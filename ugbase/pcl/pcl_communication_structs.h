@@ -12,6 +12,7 @@
 #include <algorithm>
 #include "common/util/smart_pointer.h"
 #include "common/util/binary_buffer.h"
+#include "common/error.h"
 
 namespace pcl
 {
@@ -128,14 +129,17 @@ class BasicInterface
 
 		inline iterator begin()		{return m_elements.begin();}
 		inline iterator end()		{return m_elements.end();}
+		inline const_iterator begin() const		{return m_elements.begin();}
+		inline const_iterator end() const		{return m_elements.end();}
 
-		inline Element& get_element(iterator iter)	{return *iter;}
+		inline Element& get_element(iterator iter)						{return *iter;}
+		inline const Element& get_element(const_iterator iter) const	{return *iter;}
 
 	///	returns the number of elements that are stored in the interface.
-		inline size_t size()						{return m_size;}
-		inline bool empty()							{return size() == 0;}
+		inline size_t size() const					{return m_size;}
+		inline bool empty() const					{return size() == 0;}
 
-		int get_target_proc()						{return m_targetProc;}
+		int get_target_proc() const					{return m_targetProc;}
 
 	///	swaps the content of two interfaces.
 	/** m_elements, m_size and m_targetProc are swapped.*/
@@ -229,13 +233,13 @@ class OrderedInterface
 		inline Element& get_element(iterator iter)	{return (*iter).elem;}
 		inline size_t get_local_id(iterator iter)	{return (*iter).localID;}
 
-		inline const Element& get_element(const_iterator iter) const {return (*iter).elem;}
-		inline size_t get_local_id(const_iterator iter)	const {return (*iter).localID;}
+		inline const Element& get_element(const_iterator iter) const	{return (*iter).elem;}
+		inline size_t get_local_id(const_iterator iter)	const 			{return (*iter).localID;}
 
 
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size() const					{return m_size;}
-		inline bool empty()							{return size() == 0;}
+		inline bool empty()	const					{return size() == 0;}
 
 		int get_target_proc() const					{return m_targetProc;}
 
@@ -433,7 +437,7 @@ class SingleLevelLayout
 			}
 		
 	///	clears the layout
-		void clear(){m_interfaceMap.clear();}
+		void clear()											{m_interfaceMap.clear();}
 
 	///	returns the interface to the given process.
 	/**	if the queried interface exist, it will be returned.
@@ -548,7 +552,8 @@ class MultiLevelLayout
 		typedef typename Interface::Element			Element;
 
 	///	An iterator that allows to iterate over the interfaces stored in the layout.
-		typedef typename LevelLayout::iterator		iterator;
+		typedef typename LevelLayout::iterator			iterator;
+		typedef typename LevelLayout::const_iterator	const_iterator;
 
 	public:
 		MultiLevelLayout()								{}
@@ -570,18 +575,21 @@ class MultiLevelLayout
 	 *	Layout::interface and Layout::proc_id.
 	 *	Make sure that the level matches the level in the associated end() call.*/
 		inline iterator begin(size_t level)				{require_level(level); return m_vLayouts[level]->begin();}
+		inline const_iterator begin(size_t level) const	{require_level(level); return m_vLayouts[level]->begin();}
 
 	///	returns the iterator to the last interface of the layout in the given level.
 	/**	You should access the values of this iterator using the methods
 	 *	Layout::interface and Layout::proc_id.
 	 *	Make sure that the level matches the level in the associated begin() call.*/
 		inline iterator end(size_t level)				{require_level(level); return m_vLayouts[level]->end();}
+		inline const_iterator end(size_t level) const	{require_level(level); return m_vLayouts[level]->end();}
 
 	///	returns true if the layout has no interfaces on the given level.
 	/**	Note that this method only tells whether there are interfaces or not.
 	 * To check whether there are any elements use has_interface_elements.
 	 */
 		inline bool empty(size_t level)					{return begin(level) == end(level);}
+		inline bool empty(size_t level) const			{return begin(level) == end(level);}
 
 	///	returns true if the layout has no interfaces.
 	/**	Note that this method only tells whether there are interfaces or not.
@@ -590,10 +598,11 @@ class MultiLevelLayout
 		inline bool empty()	const						{for(size_t l = 0; l < num_levels(); ++l){if(!empty(l)) return false;} return true;}
 
 	///	returns the interface to the given iterator.
-		inline Interface& interface(iterator iter)		{return iter->second;}
+		inline Interface& interface(iterator iter)						{return iter->second;}
+		inline const Interface& interface(const_iterator iter) const	{return iter->second;}
 
 	///	returns the interface to the given iterator.
-		inline int proc_id(iterator iter)				{return iter->first;}
+		inline int proc_id(const_iterator iter) const					{return iter->first;}
 
 	///	erases the interface at the given iterator on the given level.
 	/**	returns an iterator to the next interface.*/
@@ -614,18 +623,22 @@ class MultiLevelLayout
 
 	///	returns the interface to the given process.
 	/**	if the interface doesn't exist yet, it will be created.*/
-		inline Interface& interface(int procID, size_t level)	{require_level(level); return m_vLayouts[level]->interface(procID);}
+		inline Interface& interface(int procID, size_t level)				{require_level(level); return m_vLayouts[level]->interface(procID);}
+		inline const Interface& interface(int procID, size_t level) const	{require_level(level); return m_vLayouts[level]->interface(procID);}
 
 	///	returns true if an interface to the given procID on the given level already exists.
-		inline bool interface_exists(int procID, size_t level)	{require_level(level); return m_vLayouts[level]->interface_exists(procID);}
+		inline bool interface_exists(int procID, size_t level)			{require_level(level); return m_vLayouts[level]->interface_exists(procID);}
+		inline bool interface_exists(int procID, size_t level) const	{require_level(level); return m_vLayouts[level]->interface_exists(procID);}
 
 	///	returns true if an interface to the given procID already exists.
 		inline bool interface_exists(int procID)				{for(size_t i = 0; i < num_levels(); ++i){if(m_vLayouts[i]->interface_exists(procID)) return true;} return false;}
+		inline bool interface_exists(int procID) const			{for(size_t i = 0; i < num_levels(); ++i){if(m_vLayouts[i]->interface_exists(procID)) return true;} return false;}
 
 	///	returns the layout at the given level.
 	/**	If level >= num_levels() then the layouts in between
 		will be automatically created.*/
-		inline LevelLayout& layout_on_level(int level)			{require_level(level); return *m_vLayouts[level];}
+		inline LevelLayout& layout_on_level(int level)				{require_level(level); return *m_vLayouts[level];}
+		inline const LevelLayout& layout_on_level(int level) const	{require_level(level); return *m_vLayouts[level];}
 
 	///	returns the sum of the interface sizes
 		inline size_t num_interface_elements() const
@@ -669,7 +682,8 @@ class MultiLevelLayout
 		inline void new_levels(size_t num)		{for(size_t i = 0; i < num; ++i) m_vLayouts.push_back(new LevelLayout());}
 
 	///	if the required level doesn't exist yet, it will created.
-		inline void require_level(size_t level)	{if(level >= num_levels()) new_levels(level - num_levels() + 1);}
+		inline void require_level(size_t level)			{if(level >= num_levels()) new_levels(level - num_levels() + 1);}
+		inline void require_level(size_t level) const	{if(level >= num_levels()){UG_THROW("Level too high: " << level << ", while num_levels == " << num_levels());}}
 
 	///	clears this layout and then copies all levels from the given layout
 		void assign_layout(const MultiLevelLayout& mll)
@@ -714,35 +728,35 @@ class ICommunicationPolicy
 	 *	The default implementation returns -1.
 	 */	
 		virtual int
-		get_required_buffer_size(Interface& interface)		{return -1;}
+		get_required_buffer_size(const Interface& interface)	{return -1;}
 		
 	////////////////////////////////
 	//	COLLECT
 	///	signals the beginning of a layout collection.
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
-		begin_layout_collection(Layout* pLayout)	{return true;}
+		begin_layout_collection(const Layout* pLayout)			{return true;}
 
 	///	signals the end of a layout collection
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
-		end_layout_collection()						{return true;}
+		end_layout_collection()									{return true;}
 
 	///	should write data which is associated with the interface elements to the buffer.
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface) = 0;
+		collect(ug::BinaryBuffer& buff, const Interface& interface) = 0;
 
 	////////////////////////////////
 	//	EXTRACT
 	///	signals the beginning of a layout extraction.
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
-		begin_layout_extraction(Layout* pLayout)	{return true;}
+		begin_layout_extraction(const Layout* pLayout)			{return true;}
 
 	///	signals the end of a layout extraction
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
-		end_layout_extraction()						{return true;}
+		end_layout_extraction()									{return true;}
 
 	///	signals that a new layout-level will now be processed.
 	/**	This is primarily interesting for layout-extraction of multi-level-layouts.
@@ -752,14 +766,14 @@ class ICommunicationPolicy
 	 *	once with level = 0.
 	 *	This method is called after begin_layout_extraction and before
 	 *	the associated extract calls.*/
-	 	virtual void begin_level_extraction(int level)		{}
+	 	virtual void begin_level_extraction(int level)			{}
 
 	///	extract data from the buffer and assigns it to the interface-elements.
 	/**	If this method is called between calls to begin_layout_extraction and
 		end_layout_extraction, the interface that is passed to this method
 		belongs to the layout.*/
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface) = 0;
+		extract(ug::BinaryBuffer& buff, const Interface& interface) = 0;
 };
 
 }//	end of namespace pcl

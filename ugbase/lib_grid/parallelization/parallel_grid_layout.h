@@ -174,26 +174,42 @@ class GridLayoutMap
 	///	checks whether the layout associated with the given key exists for the given type.
 		template <class TType>
 		bool
-		has_layout(const Key& key);
+		has_layout(const Key& key) const;
 
 	///	creates the required layout if it doesn't exist already.
 		template <class TType>
 		typename Types<TType>::Layout&
 		get_layout(const Key& key);
 
+		template <class TType>
+		const typename Types<TType>::Layout&
+		get_layout(const Key& key) const;
+
 	///	begin-iterator to the layout-map for the given type.
 	/**	iter.first will return the key, iter.second the layout
-	 *	(of type LayoutMap::Types<TType>::Layout).*/
+	 *	(of type LayoutMap::Types<TType>::Layout).
+	 *	\{ */
 		template <class TType>
 		typename Types<TType>::Map::iterator
 		layouts_begin();
 
+		template <class TType>
+		typename Types<TType>::Map::const_iterator
+		layouts_begin() const;
+	/** \} */
+
 	///	end-iterator to the layout-map for the given type.
 	/**	iter.first will return the key, iter.second the layout
-	 *	(of type LayoutMap::Types<TType>::Layout).*/
+	 *	(of type LayoutMap::Types<TType>::Layout).
+	 *	\{ */
 		template <class TType>
 		typename Types<TType>::Map::iterator
 		layouts_end();
+
+		template <class TType>
+		typename Types<TType>::Map::const_iterator
+		layouts_end() const;
+	/** \} */
 
 	///	erases the specified layout
 	/**	returns an iterator to the next layout.*/
@@ -215,19 +231,35 @@ class GridLayoutMap
 		inline typename Types<TType>::Map&
 		get_layout_map();
 		
+		template <class TType>
+		inline const typename Types<TType>::Map&
+		get_layout_map() const;
+
 	///	the argument is only a dummy to allow to choose the right method at compile time
 	// \{
 		inline Types<VertexBase>::Map&
 		get_layout_map(VertexBase*);
 
+		inline const Types<VertexBase>::Map&
+		get_layout_map(VertexBase*) const;
+
 		inline Types<EdgeBase>::Map&
 		get_layout_map(EdgeBase*);
+
+		inline const Types<EdgeBase>::Map&
+		get_layout_map(EdgeBase*) const;
 
 		inline Types<Face>::Map&
 		get_layout_map(Face*);
 
+		inline const Types<Face>::Map&
+		get_layout_map(Face*) const;
+
 		inline Types<Volume>::Map&
 		get_layout_map(Volume*);
+
+		inline const Types<Volume>::Map&
+		get_layout_map(Volume*) const;
 	// \}
 	
 	private:

@@ -8,7 +8,7 @@
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_interface_communicator.h"
 	#include "pcl/pcl_process_communicator.h"
-	#include "lib_grid/parallelization/copy_policy.h"
+	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
 #endif
 
 namespace ug{
@@ -19,11 +19,11 @@ template <class TLayout>
 class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename Interface::iterator	InterfaceIter;
+		typedef TLayout								Layout;
+		typedef typename Layout::Type				GeomObj;
+		typedef typename Layout::Element			Element;
+		typedef typename Layout::Interface			Interface;
+		typedef typename Interface::const_iterator	InterfaceIter;
 
 	///	Construct the communication policy with a ug::BoolMarker.
 		ComPol_GatherSurfaceStates(MultiGrid& mg,
@@ -33,13 +33,13 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual ~ComPol_GatherSurfaceStates()	{}
 
-		virtual int get_required_buffer_size(Interface& interface)
+		virtual int get_required_buffer_size(const Interface& interface)
 		{
 			return interface.size() * sizeof(byte);
 		}
 
 	///	write surface state for each entry
-		virtual bool collect(ug::BinaryBuffer& buff, Interface& intfc)
+		virtual bool collect(ug::BinaryBuffer& buff, const Interface& intfc)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
@@ -51,7 +51,7 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	///	reads marks from the given stream
-		virtual bool extract(ug::BinaryBuffer& buff, Interface& intfc)
+		virtual bool extract(ug::BinaryBuffer& buff, const Interface& intfc)
 		{
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
@@ -243,7 +243,7 @@ adjust_parallel_surface_states()
 
 		com.communicate();
 
-		CopyPolicy<Layout, AByte> cpCopyStates(*m_pMG, m_aElemSurfState);
+		ComPol_CopyAttachment<Layout, AByte> cpCopyStates(*m_pMG, m_aElemSurfState);
 		com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, cpCopyStates);
 		com.communicate();
 	#endif

@@ -10,8 +10,6 @@
 #include "distribution.h"
 #include "distributed_grid.h"
 
-#include "copy_policy.h"
-
 #include "parallel_refinement/parallel_refinement.h"
 #include "parallelization_util.h"
 

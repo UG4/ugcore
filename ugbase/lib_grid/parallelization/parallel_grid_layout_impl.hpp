@@ -13,9 +13,9 @@ namespace ug
 //	GridLayoutMap - implementation
 template <class TType>
 bool GridLayoutMap::
-has_layout(const Key& key)
+has_layout(const Key& key) const
 {
-	typename Types<TType>::Map& m = get_layout_map<TType>();
+	const typename Types<TType>::Map& m = get_layout_map<TType>();
 	return m.find(key) != m.end();
 }
 
@@ -28,6 +28,18 @@ get_layout(const Key& key)
 }
 
 template <class TType>
+const typename GridLayoutMap::Types<TType>::Layout& GridLayoutMap::
+get_layout(const Key& key) const
+{
+	const typename Types<TType>::Map& m = get_layout_map<TType>();
+	typename Types<TType>::Map::const_iterator iter = m.find(key);
+	if(iter == m.end()){
+		UG_THROW("The specified layout can not be found in the GridLayoutMap.");
+	}
+	return iter->second;
+}
+
+template <class TType>
 typename GridLayoutMap::Types<TType>::Map::iterator GridLayoutMap::
 layouts_begin()
 {
@@ -35,8 +47,22 @@ layouts_begin()
 }
 
 template <class TType>
+typename GridLayoutMap::Types<TType>::Map::const_iterator GridLayoutMap::
+layouts_begin() const
+{
+	return get_layout_map<TType>().begin();
+}
+
+template <class TType>
 typename GridLayoutMap::Types<TType>::Map::iterator GridLayoutMap::
 layouts_end()
+{
+	return get_layout_map<TType>().end();
+}
+
+template <class TType>
+typename GridLayoutMap::Types<TType>::Map::const_iterator GridLayoutMap::
+layouts_end() const
 {
 	return get_layout_map<TType>().end();
 }
@@ -77,8 +103,22 @@ get_layout_map()
 	return get_layout_map(dummy);
 }
 
+template <class TType>
+inline const typename GridLayoutMap::Types<TType>::Map& GridLayoutMap::
+get_layout_map() const
+{
+	TType* dummy = NULL;//	set to NULL to avoid warnings
+	return get_layout_map(dummy);
+}
+
 inline GridLayoutMap::Types<VertexBase>::Map& GridLayoutMap::
 get_layout_map(VertexBase*)	
+{
+	return m_vertexLayoutMap;
+}
+
+inline const GridLayoutMap::Types<VertexBase>::Map& GridLayoutMap::
+get_layout_map(VertexBase*) const
 {
 	return m_vertexLayoutMap;
 }
@@ -89,14 +129,32 @@ get_layout_map(EdgeBase*)
 	return m_edgeLayoutMap;
 }
 
+inline const GridLayoutMap::Types<EdgeBase>::Map& GridLayoutMap::
+get_layout_map(EdgeBase*) const
+{
+	return m_edgeLayoutMap;
+}
+
 inline GridLayoutMap::Types<Face>::Map& GridLayoutMap::
 get_layout_map(Face*)
 {
 	return m_faceLayoutMap;
 }
 
+inline const GridLayoutMap::Types<Face>::Map& GridLayoutMap::
+get_layout_map(Face*) const
+{
+	return m_faceLayoutMap;
+}
+
 inline GridLayoutMap::Types<Volume>::Map& GridLayoutMap::
 get_layout_map(Volume*)
+{
+	return m_volumeLayoutMap;
+}
+
+inline const GridLayoutMap::Types<Volume>::Map& GridLayoutMap::
+get_layout_map(Volume*) const
 {
 	return m_volumeLayoutMap;
 }

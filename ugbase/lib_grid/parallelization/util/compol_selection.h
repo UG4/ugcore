@@ -14,11 +14,11 @@ template <class TLayout>
 class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename Interface::iterator	InterfaceIter;
+		typedef TLayout								Layout;
+		typedef typename Layout::Type				GeomObj;
+		typedef typename Layout::Element			Element;
+		typedef typename Layout::Interface			Interface;
+		typedef typename Interface::const_iterator	InterfaceIter;
 
 	///	Construct the communication policy with a ug::Selector.
 	/**	Through the parameters select and deselect one may specify whether
@@ -29,11 +29,12 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		{}
 
 		virtual int
-		get_required_buffer_size(Interface& interface)		{return interface.size() * sizeof(byte);}
+		get_required_buffer_size(const Interface& interface)
+		{return interface.size() * sizeof(byte);}
 
 	///	writes 1 for selected and 0 for unselected interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
@@ -49,7 +50,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			byte val;
 			for(InterfaceIter iter = interface.begin();
@@ -84,22 +85,23 @@ template <class TLayout>
 class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename Interface::iterator	InterfaceIter;
+		typedef TLayout								Layout;
+		typedef typename Layout::Type				GeomObj;
+		typedef typename Layout::Element			Element;
+		typedef typename Layout::Interface			Interface;
+		typedef typename Interface::const_iterator	InterfaceIter;
 
 		ComPol_EnableSelectionStateBits(Selector& sel, byte stateBits)
 			 :	m_sel(sel), m_stateBits(stateBits)
 		{}
 
 		virtual int
-		get_required_buffer_size(Interface& interface)		{return interface.size() * sizeof(byte);}
+		get_required_buffer_size(const Interface& interface)
+		{return interface.size() * sizeof(byte);}
 
 	///	writes writes the selection states of the interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
@@ -115,7 +117,7 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			byte val;
 			for(InterfaceIter iter = interface.begin();

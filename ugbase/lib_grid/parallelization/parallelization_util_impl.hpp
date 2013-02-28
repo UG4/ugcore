@@ -5,7 +5,7 @@
 #ifndef __H__UG__LIB_GRID__parallelization_util_impl__
 #define __H__UG__LIB_GRID__parallelization_util_impl__
 
-#include "copy_policy.h"
+#include "util/compol_copy_attachment.h"
 #include "pcl/pcl_interface_communicator.h"
 
 namespace ug
@@ -38,7 +38,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 //	distribute the ids master->slave
 	typedef typename GridLayoutMap::Types<TGeomObj>::Layout Layout;
 	pcl::InterfaceCommunicator<Layout> com;
-	CopyPolicy<Layout, AGeomObjID> compolCopy(g, aID);
+	ComPol_CopyAttachment<Layout, AGeomObjID> compolCopy(g, aID);
 
 	com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolCopy);
 	com.communicate();

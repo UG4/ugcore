@@ -89,11 +89,11 @@ public:
 	 * - send the buffer to process pid over InterfaceCommunicator com.
 	*/
 	virtual bool
-	collect(ug::BinaryBuffer& buff, Interface& interface)
+	collect(ug::BinaryBuffer& buff, const Interface& interface)
 
 	{
 		int pid = interface.get_target_proc();
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			Serialize(buff, derived().send(pid, interface.get_element(iter)));
 		return true;
 	}
@@ -107,11 +107,11 @@ public:
 	 * - loop through the interface. deserialize each item from s, and hand it to TDerived::receive(pid, index, item)
 	*/
 	virtual bool
-	extract(ug::BinaryBuffer& buff, Interface& interface)
+	extract(ug::BinaryBuffer& buff, const Interface& interface)
 	{
 		int pid = interface.get_target_proc();
 		TValue val;
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			Deserialize(buff, val);
 			derived().receive(pid, interface.get_element(iter), val);
@@ -126,7 +126,7 @@ public:
 	 * otherwise, it returns -1, and we return -1 -> Buffer size is sent.
 	*/
 	virtual int
-	get_required_buffer_size(Interface& interface)
+	get_required_buffer_size(const Interface& interface)
 	{
 		int s = derived().get_element_size();
 		if(s == -1)
@@ -151,12 +151,12 @@ public:
 	TDerived& derived() { return static_cast<TDerived&>(*this); }
 
 	virtual bool
-	collect(ug::BinaryBuffer& buff, Interface& interface)
+	collect(ug::BinaryBuffer& buff, const Interface& interface)
 	{
 		int pid = interface.get_target_proc();
 		int j=0;
 		char a=0;
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			bool b = derived().send(pid, interface.get_element(iter));
 			if(b) a |= (1 << j);
@@ -173,12 +173,12 @@ public:
 	}
 
 	virtual bool
-	extract(ug::BinaryBuffer& buff, Interface& interface)
+	extract(ug::BinaryBuffer& buff, const Interface& interface)
 	{
 		int pid = interface.get_target_proc();
 		int j=8;
 		char a=0;
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			size_t index = interface.get_element(iter);
 			if(j==8)
@@ -194,7 +194,7 @@ public:
 	}
 
 	virtual int
-	get_required_buffer_size(Interface& interface)
+	get_required_buffer_size(const Interface& interface)
 	{
 		return sizeof(char) * (interface.size()/8 + (interface.size()%8==0?0:1) );
 	}
@@ -373,11 +373,11 @@ public:
 	 * - send the buffer to process pid over InterfaceCommunicator com.
 	*/
 	virtual bool
-	collect(ug::BinaryBuffer& buff, Interface& interface)
+	collect(ug::BinaryBuffer& buff, const Interface& interface)
 
 	{
 		int pid = interface.get_target_proc();
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			int index;
 			char a = 0;
@@ -397,11 +397,11 @@ public:
 	 * - loop through the interface. deserialize each item from s, and hand it to TDerived::receive(pid, index, item)
 	*/
 	virtual bool
-	extract(ug::BinaryBuffer& buff, Interface& interface)
+	extract(ug::BinaryBuffer& buff, const Interface& interface)
 	{
 		int pid = interface.get_target_proc();
 		TValue val;
-		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			char a;
 			Deserialize(buff, a);
@@ -420,7 +420,7 @@ public:
 	 * otherwise, it returns -1, and we return -1 -> Buffer size is sent.
 	*/
 	virtual int
-	get_required_buffer_size(Interface& interface)
+	get_required_buffer_size(const Interface& interface)
 	{
 		int s = derived().get_element_size();
 		if(s == -1)

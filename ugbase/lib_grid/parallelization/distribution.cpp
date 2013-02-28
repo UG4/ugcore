@@ -106,11 +106,11 @@ template <class TLayout>
 class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename Interface::iterator	InterfaceIter;
+		typedef TLayout								Layout;
+		typedef typename Layout::Type				GeomObj;
+		typedef typename Layout::Element			Element;
+		typedef typename Layout::Interface			Interface;
+		typedef typename Interface::const_iterator	InterfaceIter;
 
 		ComPol_SynchronizeDistInfos(DistInfoSupplier& distInfos, bool merge) :
 			m_distInfos(distInfos), m_mergeEnabled(merge)	{}
@@ -121,11 +121,11 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 		bool merge_enabled()			{return m_mergeEnabled;}
 
 		virtual int
-		get_required_buffer_size(Interface& interface)		{return -1;}
+		get_required_buffer_size(const Interface& interface)		{return -1;}
 
 	///	write target processes and move-flag
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& intfc)
+		collect(ug::BinaryBuffer& buff, const Interface& intfc)
 		{
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter){
 				Element elem = intfc.get_element(iter);
@@ -136,7 +136,7 @@ class ComPol_SynchronizeDistInfos : public pcl::ICommunicationPolicy<TLayout>
 
 	///	read target processes and move-flag
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& intfc)
+		extract(ug::BinaryBuffer& buff, const Interface& intfc)
 		{
 			if(m_mergeEnabled){
 				vector<TargetProcInfo> tpInfo;

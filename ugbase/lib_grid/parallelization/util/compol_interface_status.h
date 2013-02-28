@@ -26,11 +26,11 @@ template <class TLayout>
 class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename Interface::iterator	InterfaceIter;
+		typedef TLayout								Layout;
+		typedef typename Layout::Type				GeomObj;
+		typedef typename Layout::Element			Element;
+		typedef typename Layout::Interface			Interface;
+		typedef typename Interface::const_iterator	InterfaceIter;
 
 	public:
 	/**
@@ -100,13 +100,13 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 	////////////////////////
 	//	COMMUNICATION STUFF
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{
 			return interface.size() * sizeof(char);
 		}
 
 		virtual bool
-		begin_layout_extraction(Layout* pLayout)
+		begin_layout_extraction(const Layout* pLayout)
 		{
 		//	clear and prepare the maps and set the layout
 			m_pLayout = pLayout;
@@ -118,7 +118,7 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 		//	iterate over all elements in the interface and write
 		//	whether they contain the status or not.
@@ -143,7 +143,7 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 		//	read the info from the buff and push bools to the
 		//	vector associated with the interface.
@@ -171,7 +171,7 @@ class ComPol_InterfaceStatus : public pcl::ICommunicationPolicy<TLayout>
 		typedef std::map<int, std::vector<bool> > VecMap;
 
 		std::vector<VecMap>		m_vecMaps;
-		TLayout*					m_pLayout;
+		const TLayout*			m_pLayout;
 		DistributedGridManager*	m_distGridMgr;
 		uint					m_status;
 		int						m_curLevel;

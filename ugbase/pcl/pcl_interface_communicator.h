@@ -63,7 +63,7 @@ class InterfaceCommunicator
 	 *	look into pcl::ProcessCommunicator::send.
 	 */
 		void send_raw(int targetProc, const void* pBuff, int bufferSize,
-					   bool bSizeKnownAtTarget = false);
+					  bool bSizeKnownAtTarget = false);
 
 	///	collects data that will be send during communicate.
 	/**	Calls ICommunicationPolicy<TLayout>::collect with the specified
@@ -72,8 +72,8 @@ class InterfaceCommunicator
 	 *	Note that data will not be send until communicate has been called.
 	 *	\sa receive_data, exchange_data*/
 		void send_data(int targetProc,
-						  Interface& interface,
-						  ICommunicationPolicy<TLayout>& commPol);
+					   const Interface& interface,
+					   ICommunicationPolicy<TLayout>& commPol);
 
 	///	collects data that will be send during communicate.
 	/**	Calls ICommunicationPolicy<TLayout>::collect with the specified
@@ -81,8 +81,8 @@ class InterfaceCommunicator
 	 *	layouts target processes.
 	 *	Note that data will not be send until communicate has been called.
 	 *	\sa receive_data, exchange_data*/
-		void send_data(Layout& layout,
-						  ICommunicationPolicy<TLayout>& commPol);
+		void send_data(const Layout& layout,
+					   ICommunicationPolicy<TLayout>& commPol);
 
 	////////////////////////////////
 	//	RECEIVE
@@ -127,15 +127,15 @@ class InterfaceCommunicator
 		make sure that your instance of the communication-policy
 		exists until communicate has benn executed.*/
 		void receive_data(int srcProc,
-						Interface& interface,
-						ICommunicationPolicy<TLayout>& commPol);
+						  const Interface& interface,
+						  ICommunicationPolicy<TLayout>& commPol);
 
 	///	registers an communication-policy to receive data on communicate.
 	/**	Receives have to be registered before communicate is executed.
 		make sure that your instance of the communication-policy
 		exists until communicate has benn executed.*/
-		void receive_data(Layout& layout,
-						ICommunicationPolicy<TLayout>& commPol);
+		void receive_data(const Layout& layout,
+						  ICommunicationPolicy<TLayout>& commPol);
 
 	////////////////////////////////
 	//	EXCHANGE
@@ -163,10 +163,10 @@ class InterfaceCommunicator
 	 *	you could use this method e.g. to copy data from all master-layouts
 	 *	to all slave-layouts of a type with a single call.*/
 		template <class TLayoutMap>
-		void exchange_data(TLayoutMap& layoutMap,
-							const typename TLayoutMap::Key& keyFrom,
-							const typename TLayoutMap::Key& keyTo,
-							ICommunicationPolicy<TLayout>& commPol);
+		void exchange_data(const TLayoutMap& layoutMap,
+						   const typename TLayoutMap::Key& keyFrom,
+						   const typename TLayoutMap::Key& keyTo,
+						   ICommunicationPolicy<TLayout>& commPol);
 	
 	///	sends and receives the collected data.
 	/**	The collected data will be send to the associated processes.
@@ -208,61 +208,61 @@ class InterfaceCommunicator
 
 	protected:
 	///	helper to collect data from single-level-layouts
-		void send_data(Layout& layout,
+		void send_data(const Layout& layout,
 				  ICommunicationPolicy<TLayout>& commPol,
 				  const layout_tags::single_level_layout_tag&);
 
 	///	helper to collect data from multi-level-layouts				  
-		void send_data(Layout& layout,
-				  ICommunicationPolicy<TLayout>& commPol,
-				  const layout_tags::multi_level_layout_tag&);
+		void send_data(const Layout& layout,
+				  	   ICommunicationPolicy<TLayout>& commPol,
+				  	   const layout_tags::multi_level_layout_tag&);
 	
 	///	prepare stream-pack-in
 		void prepare_receiver_buffer_map(BufferMap& bufMap,
-											std::set<int>& curProcs,
-											TLayout& layout);
+										 std::set<int>& curProcs,
+										 const TLayout& layout);
 	/// specialization of stream-pack preparation for single-level-layouts
 		void prepare_receiver_buffer_map(BufferMap& streamPack,
-										std::set<int>& curProcs,
-										TLayout& layout,
-										const layout_tags::single_level_layout_tag&);
+										 std::set<int>& curProcs,
+										 const TLayout& layout,
+										 const layout_tags::single_level_layout_tag&);
 	/// specialization of stream-pack preparation for multi-level-layouts
 		void prepare_receiver_buffer_map(BufferMap& streamPack,
-										std::set<int>& curProcs,
-										TLayout& layout,
-										const layout_tags::multi_level_layout_tag&);
+										 std::set<int>& curProcs,
+										 const TLayout& layout,
+										 const layout_tags::multi_level_layout_tag&);
 
 	///	collects buffer sizes for a given layout and stores them in a map
 	/**	The given map holds pairs of procID, bufferSize
 	 *	If buffer-sizes can't be determined, false is returned.
 	 *	if pMmapBuffSizesOut == NULL, the method will simply determine
 	 *	whether all buffersizes can be calculated.*/
-	 	bool collect_layout_buffer_sizes(TLayout& layout,
-										ICommunicationPolicy<TLayout>& commPol,
-										std::map<int, int>* pMapBuffSizesOut,
-										const layout_tags::single_level_layout_tag&);
+	 	bool collect_layout_buffer_sizes(const TLayout& layout,
+										 ICommunicationPolicy<TLayout>& commPol,
+										 std::map<int, int>* pMapBuffSizesOut,
+										 const layout_tags::single_level_layout_tag&);
 
 	///	collects buffer sizes for a given layout and stores them in a map
 	/**	The given map holds pairs of procID, bufferSize
 	 *	If buffer-sizes can't be determined, false is returned.
 	 *	if pMmapBuffSizesOut == NULL, the method will simply determine
 	 *	whether all buffersizes can be calculated.*/
-	 	bool collect_layout_buffer_sizes(TLayout& layout,
-										ICommunicationPolicy<TLayout>& commPol,
-										std::map<int, int>* pMapBuffSizesOut,
-										const layout_tags::multi_level_layout_tag&);	
+	 	bool collect_layout_buffer_sizes(const TLayout& layout,
+										 ICommunicationPolicy<TLayout>& commPol,
+										 std::map<int, int>* pMapBuffSizesOut,
+										 const layout_tags::multi_level_layout_tag&);
 	
 	///	extract data from stream-pack
-		void extract_data(TLayout& layout, BufferMap& bufMap,
-						CommPol& extractor);
+		void extract_data(const TLayout& layout, BufferMap& bufMap,
+						  CommPol& extractor);
 		
-		void extract_data(TLayout& layout, BufferMap& bufMap,
-						CommPol& extractor,
-						const layout_tags::single_level_layout_tag&);
+		void extract_data(const TLayout& layout, BufferMap& bufMap,
+						  CommPol& extractor,
+						  const layout_tags::single_level_layout_tag&);
 		
-		void extract_data(TLayout& layout, BufferMap& bufMap,
-						CommPol& extractor,
-						const layout_tags::multi_level_layout_tag&);
+		void extract_data(const TLayout& layout, BufferMap& bufMap,
+						  CommPol& extractor,
+						  const layout_tags::multi_level_layout_tag&);
 		
 	protected:		
 	///	holds information that will be passed to the extract routines.
@@ -275,7 +275,7 @@ class InterfaceCommunicator
 		{
 			ExtractorInfo()			{}
 			ExtractorInfo(int srcProc, CommPol* pExtractor,
-						Interface* pInterface, Layout* pLayout,
+						const Interface* pInterface, const Layout* pLayout,
 						void* buffer, ug::BinaryBuffer* binBuffer, int rawSize) :
 				m_srcProc(srcProc), m_extractor(pExtractor),
 				m_interface(pInterface), m_layout(pLayout),
@@ -286,8 +286,8 @@ class InterfaceCommunicator
 
 			int					m_srcProc;
 			CommPol*			m_extractor;			
-			Interface*			m_interface;
-			Layout*				m_layout;
+			const Interface*	m_interface;
+			const Layout*		m_layout;
 			void*				m_buffer;
 			ug::BinaryBuffer*	m_binBuffer;
 			int					m_rawSize;

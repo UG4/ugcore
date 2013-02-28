@@ -47,14 +47,14 @@ class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>
 	 *	Make sure that all members of the interface are members of the
 	 *	grid too.*/
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface);
+		collect(ug::BinaryBuffer& buff, const Interface& interface);
 		
 	///	reads the data from the buffer to the given interface .
 	/**	Derived from IExtractor
 	 *	Make sure that all members of the interface are members of the
 	 *	grid too.*/
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface);
+		extract(ug::BinaryBuffer& buff, const Interface& interface);
 		
 	protected:
 		Grid::AttachmentAccessor<GeomObj, TAttachment>	m_aaVal;
@@ -92,9 +92,9 @@ set_attachment(Grid& grid, TAttachment& attachment)
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 bool ComPol_CopyAttachment<TNodeLayout, TAttachment>::
-collect(ug::BinaryBuffer& buff, Interface& interface)
+collect(ug::BinaryBuffer& buff, const Interface& interface)
 {
-	for(typename Interface::iterator iter = interface.begin();
+	for(typename Interface::const_iterator iter = interface.begin();
 		iter != interface.end(); ++iter)
 		buff.write((char*)&m_aaVal[interface.get_element(iter)], sizeof(Value));
 	return true;
@@ -103,9 +103,9 @@ collect(ug::BinaryBuffer& buff, Interface& interface)
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 bool ComPol_CopyAttachment<TNodeLayout, TAttachment>::
-extract(ug::BinaryBuffer& buff, Interface& interface)
+extract(ug::BinaryBuffer& buff, const Interface& interface)
 {
-	for(typename Interface::iterator iter = interface.begin();
+	for(typename Interface::const_iterator iter = interface.begin();
 		iter != interface.end(); ++iter)
 		buff.read((char*)&m_aaVal[interface.get_element(iter)], sizeof(Value));
 	return true;

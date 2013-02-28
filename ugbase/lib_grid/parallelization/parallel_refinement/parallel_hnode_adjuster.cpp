@@ -13,11 +13,11 @@ template <class TLayout>
 class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TLayout							Layout;
-		typedef typename Layout::Type			GeomObj;
-		typedef typename Layout::Element		Element;
-		typedef typename Layout::Interface		Interface;
-		typedef typename Interface::iterator	InterfaceIter;
+		typedef TLayout								Layout;
+		typedef typename Layout::Type				GeomObj;
+		typedef typename Layout::Element			Element;
+		typedef typename Layout::Interface			Interface;
+		typedef typename Interface::const_iterator	InterfaceIter;
 
 		ComPol_BroadcastRefineMarks(IRefiner& ref, byte consideredMarks)
 			 :	m_ref(ref), m_consideredMarks(consideredMarks)
@@ -25,12 +25,12 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 
 		virtual ~ComPol_BroadcastRefineMarks()	{}
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{return interface.size() * sizeof(byte);}
 
 	///	writes writes the selection states of the interface entries
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
@@ -46,7 +46,7 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			byte val;
 			for(InterfaceIter iter = interface.begin();

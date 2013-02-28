@@ -107,7 +107,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecCopy_collect, "algebra parallelization");
 		//	check that vector has been set
@@ -117,7 +117,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			const TVector& v = *m_pVecSrc;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -137,7 +137,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecCopy_extract, "algebra parallelization");
 		//	check that vector has been set
@@ -147,7 +147,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVecDest;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -219,7 +219,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleCopy_collect, "algebra parallelization");
 		//	check that vector has been set
@@ -229,7 +229,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -249,7 +249,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleCopy_extract, "algebra parallelization");
 		//	check that vector has been set
@@ -259,7 +259,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -338,7 +338,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecAdd_collect, "algebra parallelization");
 		//	check that vector has been set
@@ -348,7 +348,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			const TVector& v = *m_pVecSrc;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -368,7 +368,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecAdd_extract, "algebra parallelization");
 		//	check that vector has been set
@@ -381,7 +381,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -454,7 +454,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_collect, "algebra parallelization");
 		//	check that vector has been set
@@ -464,7 +464,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -484,7 +484,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecScaleAdd_extract, "algebra parallelization");
 		//	check that vector has been set
@@ -497,7 +497,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -572,7 +572,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecAddSetZero_collect, "algebra parallelization");
 		//	check that vector has been set
@@ -582,7 +582,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -605,7 +605,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecAddSetZero_extract, "algebra parallelization");
 		//	check that vector has been set
@@ -618,7 +618,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -687,7 +687,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtract_collect, "algebra parallelization");
 		//	check that vector has been set
@@ -697,7 +697,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			// get index
@@ -717,7 +717,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtract_extract, "algebra parallelization");
 		//	check that vector has been set
@@ -730,7 +730,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -814,7 +814,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 	 * \param[in]		interface	Interface that will communicate
 	 */
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtractOnlyOneSlave_collect, "algebra parallelization");
@@ -825,7 +825,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 			TVector& v = *m_pVec;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			// get index
@@ -845,7 +845,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 	 * \param[in]		interface	Interface that communicates
 	 */
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_VecSubtractOnlyOneSlave_extract, "algebra parallelization");
 		//	check that vector has been set
@@ -858,7 +858,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 			typename TVector::value_type entry;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -937,14 +937,14 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 		}
 
 	///	writes the interface values into a buffer that will be sent
-		virtual bool collect(ug::BinaryBuffer& buff, Interface& interface)
+		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddSlaveRowsToMasterOverlap0_collect, "algebra parallelization");
 			typedef typename TMatrix::row_iterator row_iterator;
 			typedef typename TMatrix::value_type block_type;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index
@@ -986,7 +986,7 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 		}
 
 	///	writes values from a buffer into the interface
-		virtual bool extract(ug::BinaryBuffer& buff, Interface& interface)
+		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 			PROFILE_BEGIN_GROUP(ComPol_MatAddSlaveRowsToMasterOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
@@ -999,7 +999,7 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 			block_type block;
 
 		//	loop interface
-			for(typename Interface::iterator iter = interface.begin();
+			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 			//	get index

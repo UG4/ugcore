@@ -47,8 +47,8 @@ send_raw(int targetProc, const void* pBuff, int bufferSize,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-send_data(int targetProc, Interface& interface,
-			  ICommunicationPolicy<TLayout>& commPol)
+send_data(int targetProc, const Interface& interface,
+		  ICommunicationPolicy<TLayout>& commPol)
 {
 	if(!interface.empty()){
 		assert((targetProc == -1 || targetProc >= 0) && targetProc < pcl::GetNumProcesses());
@@ -65,7 +65,7 @@ send_data(int targetProc, Interface& interface,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-send_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
+send_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 PCL_PROFILE(pcl_IntCom_send_layout_data);
 //	through the the category_tag we're able to find the correct send method.
@@ -75,12 +75,12 @@ PCL_PROFILE(pcl_IntCom_send_layout_data);
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-send_data(Layout& layout,
+send_data(const Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::single_level_layout_tag&)
 {
-	typename Layout::iterator iter = layout.begin();
-	typename Layout::iterator end = layout.end();
+	typename Layout::const_iterator iter = layout.begin();
+	typename Layout::const_iterator end = layout.end();
 
 	commPol.begin_layout_collection(&layout);
 
@@ -102,7 +102,7 @@ send_data(Layout& layout,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-send_data(Layout& layout,
+send_data(const Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::multi_level_layout_tag&)
 {
@@ -110,8 +110,8 @@ send_data(Layout& layout,
 
 	for(size_t i = 0; i < layout.num_levels(); ++i)
 	{
-		typename Layout::iterator iter = layout.begin(i);
-		typename Layout::iterator end = layout.end(i);
+		typename Layout::const_iterator iter = layout.begin(i);
+		typename Layout::const_iterator end = layout.end(i);
 
 		for(; iter != end; ++iter)
 		{
@@ -152,8 +152,8 @@ receive_raw(int srcProc, void* bufOut, int bufSize)
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-receive_data(int srcProc, Interface& interface,
-			ICommunicationPolicy<TLayout>& commPol)
+receive_data(int srcProc, const Interface& interface,
+			 ICommunicationPolicy<TLayout>& commPol)
 {
 	if(!interface.empty()){
 		m_extractorInfos.push_back(ExtractorInfo(srcProc, &commPol
@@ -165,7 +165,7 @@ receive_data(int srcProc, Interface& interface,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
+receive_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 	m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
 											 NULL, &layout,
@@ -175,10 +175,10 @@ receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 template <class TLayout>
 template <class TLayoutMap>
 void InterfaceCommunicator<TLayout>::
-exchange_data(TLayoutMap& layoutMap,
-				const typename TLayoutMap::Key& keyFrom,
-				const typename TLayoutMap::Key& keyTo,
-				ICommunicationPolicy<TLayout>& commPol)
+exchange_data(const TLayoutMap& layoutMap,
+			  const typename TLayoutMap::Key& keyFrom,
+			  const typename TLayoutMap::Key& keyTo,
+			  ICommunicationPolicy<TLayout>& commPol)
 {
 	//if(layoutMap.template has_layout<Type>(keyFrom)){
 		send_data(layoutMap.template get_layout<Type>(keyFrom), commPol);
@@ -194,7 +194,7 @@ template <class TLayout>
 void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
-							TLayout& layout)
+							const TLayout& layout)
 {
 	prepare_receiver_buffer_map(bufMap, curProcs, layout,
 								typename TLayout::category_tag());
@@ -205,11 +205,11 @@ template <class TLayout>
 void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
-							TLayout& layout,
+							const TLayout& layout,
 							const layout_tags::single_level_layout_tag&)
 {
 //	simply 'touch' the buffer to make sure it's in the map.
-	for(typename TLayout::iterator li = layout.begin();
+	for(typename TLayout::const_iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
 		if(!layout.interface(li).empty()){
@@ -224,13 +224,13 @@ template <class TLayout>
 void InterfaceCommunicator<TLayout>::
 prepare_receiver_buffer_map(BufferMap& bufMap,
 							std::set<int>& curProcs,
-							TLayout& layout,
+							const TLayout& layout,
 							const layout_tags::multi_level_layout_tag&)
 {
 //	simply 'touch' the buffer to make sure it's in the map.
 	for(size_t i = 0; i < layout.num_levels(); ++i)
 	{
-		for(typename TLayout::iterator li = layout.begin(i);
+		for(typename TLayout::const_iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
 			if(!layout.interface(li).empty()){
@@ -244,12 +244,12 @@ prepare_receiver_buffer_map(BufferMap& bufMap,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 bool InterfaceCommunicator<TLayout>::
-collect_layout_buffer_sizes(TLayout& layout,
+collect_layout_buffer_sizes(const TLayout& layout,
 							ICommunicationPolicy<TLayout>& commPol,
 							std::map<int, int>* pMapBuffSizesOut,
 							const layout_tags::single_level_layout_tag&)
 {
-	for(typename TLayout::iterator li = layout.begin();
+	for(typename TLayout::const_iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
 		if(!layout.interface(li).empty()){
@@ -276,7 +276,7 @@ collect_layout_buffer_sizes(TLayout& layout,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 bool InterfaceCommunicator<TLayout>::
-collect_layout_buffer_sizes(TLayout& layout,
+collect_layout_buffer_sizes(const TLayout& layout,
 							ICommunicationPolicy<TLayout>& commPol,
 							std::map<int, int>* pMapBuffSizesOut,
 							const layout_tags::multi_level_layout_tag&)
@@ -284,7 +284,7 @@ collect_layout_buffer_sizes(TLayout& layout,
 PCL_PROFILE_FUNC();
 //	iterate through all interfaces
 	for(size_t i = 0; i < layout.num_levels(); ++i){
-		for(typename TLayout::iterator li = layout.begin(i);
+		for(typename TLayout::const_iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
 			if(!layout.interface(li).empty()){
@@ -312,7 +312,7 @@ PCL_PROFILE_FUNC();
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor)
+extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor)
 {
 PCL_PROFILE_FUNC();
 	extract_data(layout, bufMap,
@@ -323,14 +323,14 @@ PCL_PROFILE_FUNC();
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
-				const layout_tags::single_level_layout_tag&)
+extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
+			 const layout_tags::single_level_layout_tag&)
 {
 	extractor.begin_layout_extraction(&layout);
 	extractor.begin_level_extraction(0);
 
 //	extract data for the layouts interfaces
-	for(typename Layout::iterator li = layout.begin();
+	for(typename Layout::const_iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
 		if(!layout.interface(li).empty()){
@@ -345,8 +345,8 @@ extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::
-extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
-				const layout_tags::multi_level_layout_tag&)
+extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
+			 const layout_tags::multi_level_layout_tag&)
 {
 	extractor.begin_layout_extraction(&layout);
 
@@ -354,7 +354,7 @@ extract_data(TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 	for(size_t i = 0; i < layout.num_levels(); ++i)
 	{
 		extractor.begin_level_extraction(i);
-		for(typename Layout::iterator li = layout.begin(i);
+		for(typename Layout::const_iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
 			if(!layout.interface(li).empty()){
