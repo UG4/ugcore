@@ -42,6 +42,7 @@ end
 --! @param discType (String) discretizatin scheme 
 function DensityDrivenFlow(fcts, subsets, discType)
 	if 		discType == "fv1"  then return DensityDrivenFlowFV1(fcts, subsets)
+	elseif  discType == "fv"   then return DensityDrivenFlowFV(fcts, subsets)
 	else 
 		print("DensityDrivenFlow: no disc type '"..discType.."' available. Aborting")
 		exit();
