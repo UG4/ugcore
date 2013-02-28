@@ -218,12 +218,14 @@ static void Dimension(Registry& reg, string grp)
  */
 static void Common(Registry& reg, string grp)
 {
+#ifdef UG_CPU_1
 // SaveMatrixToMTX
 	{
 		typedef MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type> matOp;
 // 		reg.add_function( "SaveMatrixToMTX", static_cast<void (*)(const char*, matOp&)>(&SaveMatrixToMTX), grp );
 		reg.add_function( "SaveMatrixToMTX", static_cast<void (*)(const char*, matOp&, std::string)>(&SaveMatrixToMTX), grp );
 	}
+#endif
 }
 
 }; // end Functionality
