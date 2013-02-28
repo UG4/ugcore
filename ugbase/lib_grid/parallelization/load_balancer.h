@@ -141,19 +141,31 @@ class LoadBalancer{
 	 * The new level has to lie above the level added before.*/
 		virtual void add_distribution_level(size_t lvl, size_t numProcsPerProc);
 
+	///	If the balance falls below the given threshold, then rebalance will perform redistribution
+	/**	Set to 0.9 by default.*/
+		virtual void set_balance_threshold(number threshold);
+
+	/**	If distribution on a given level would lead to less elements per process
+	 * than the given threshold (in average), then no redistribution will be
+	 * performed on that level. Default is 1.*/
+		virtual void set_element_threshold(size_t threshold);
+
 	///	performs load balancing if the balance is too bad or if a distribution level has been reached.
 	/**	The balance is calculated using the provieded BalanceWeights class. If
 	 * an imbalance is detected (minBalanceWeight / maxBalanceWeight < balanceThreshold)
 	 * on a given set of processes, then redistribution will be performed.
 	 *
-	 * If a distribution level has been reached, e.g. due to refienement, the grid
+	 * If a distribution level has been reached, e.g. due to refinement, the grid
 	 * will be redistributed on that level even if the balance is perfectly fine.
+	 *
+	 * Note that no redistribution is performed on a given level, if the number of
+	 * elements on the target process would in average be below the element threshold.
 	 *
 	 * During redistribution the LoadBalancer tries to distribute elements such that
 	 * the sum of balance weights of elements on each process is the same on a
 	 * given level. Furthermore it tries to minimize the connection-weights of
 	 * edges which connect elements on different processes.*/
-		virtual void rebalance(number balanceThreshold);
+		virtual void rebalance();
 
 
 	///	add serialization callbacks.
@@ -175,6 +187,8 @@ class LoadBalancer{
 
 		MultiGrid*			m_mg;
 		APos				m_aPos;
+		number				m_balanceThreshold;
+		size_t				m_elementThreshold;
 		SPProcessHierarchy	m_processHierarchy;
 		SPPartitioner		m_partitioner;
 		SPBalanceWeights	m_balanceWeights;

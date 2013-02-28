@@ -104,11 +104,11 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> TFct;
 		string name = string("DomainLoadBalancer").append(suffix);
-		typedef DomainLoadBalancer<TDomain> T;
+		typedef DomainLoadBalancer<TDomain, TFct> T;
 		typedef LoadBalancer<TDomain::dim> TBase;
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
-			.add_method("add_serializer", &T::template add_serializer<TFct>);
+			.add_method("add_serializer", static_cast<void (T::*)(SmartPtr<TFct>)>(&T::add_serializer));
 		reg.add_class_to_group(name, "DomainLoadBalancer", tag);
 	}
 #endif

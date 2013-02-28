@@ -11,7 +11,7 @@
 namespace ug{
 
 ///	A small wrapper for LoadBalancer which adds comfort methods to balance and distribute domains.
-template <class TDomain>
+template <class TDomain, class TGridFct>
 class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 {
 	typedef LoadBalancer<TDomain::dim> base_class;
@@ -34,7 +34,6 @@ class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 
 	///	grid functions added through this method are distributed along with the domain.
 	/**	Make sure that added grid functions are consistent when distribution is performed!*/
-		template <class TGridFct>
 		void add_serializer(SmartPtr<TGridFct> gridFct)
 		{
 			base_class::add_serializer(GridFunctionSerializer<TGridFct>::create(gridFct));
