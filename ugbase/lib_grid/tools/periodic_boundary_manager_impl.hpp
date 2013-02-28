@@ -10,7 +10,6 @@
 
 // include declarations
 #include "periodic_boundary_manager.h"
-//#include "lib_grid/subset_handler.h"
 #include "lib_disc/domain.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "common/assert.h"
@@ -487,8 +486,6 @@ template <class TElem> void test(PeriodicBoundaryManager& PBM,
 
 	typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer SlaveContainer;
 	typedef typename SlaveContainer::iterator SlaveIter;
-
-	PBM.print_identification<TElem>();
 
 	// subset 1
 	for (gocIter iter = goc1.begin<TElem>(); iter != goc1.end<TElem>();
