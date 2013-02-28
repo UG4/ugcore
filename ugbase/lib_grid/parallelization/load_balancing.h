@@ -120,11 +120,6 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
  * below baseLevel will stay where they are and are completely ignored during
  * load balancing.
  *
- * hWeight and vWeight determine, how important it is to keep horizontal
- * and vertical neighbors on the same process as the element itself.
- * The bigger hWeight, the more attention is spend to keep neighbors together.
- * Both parameters have to be > 0. Default is 1.
- *
  * weightFct specifies a function that attributes special weights to edges on the
  * dual graph.
  *

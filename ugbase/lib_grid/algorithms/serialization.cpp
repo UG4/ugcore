@@ -15,27 +15,27 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	Implementation
-void GridDataSerializationHandler::add(VertexDataSerializer* cb)
+void GridDataSerializationHandler::add(SPVertexDataSerializer cb)
 {
 	m_vrtSerializers.push_back(cb);
 }
 
-void GridDataSerializationHandler::add(EdgeDataSerializer* cb)
+void GridDataSerializationHandler::add(SPEdgeDataSerializer cb)
 {
 	m_edgeSerializers.push_back(cb);
 }
 
-void GridDataSerializationHandler::add(FaceDataSerializer* cb)
+void GridDataSerializationHandler::add(SPFaceDataSerializer cb)
 {
 	m_faceSerializers.push_back(cb);
 }
 
-void GridDataSerializationHandler::add(VolumeDataSerializer* cb)
+void GridDataSerializationHandler::add(SPVolumeDataSerializer cb)
 {
 	m_volSerializers.push_back(cb);
 }
 
-void GridDataSerializationHandler::add(GridDataSerializer* cb)
+void GridDataSerializationHandler::add(SPGridDataSerializer cb)
 {
 	m_gridSerializers.push_back(cb);
 }

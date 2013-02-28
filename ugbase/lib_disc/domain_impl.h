@@ -38,11 +38,15 @@ IDomain<TGrid,TSubsetHandler>::IDomain(bool isAdaptive)
 //	register function for grid adaption
 	m_spGridAdaptionCallbackID =
 		message_hub()->register_class_callback(this,
-		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_changed_callback);
+		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_adaption_callback);
+
+	m_spGridCreationCallbackID =
+		message_hub()->register_class_callback(this,
+		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_creation_callback);
 
 	m_spGridDistributionCallbackID =
 		message_hub()->register_class_callback(this,
-		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_distributed_callback);
+		&ug::IDomain<ug::MultiGrid, ug::MultiGridSubsetHandler>::grid_distribution_callback);
 }
 
 ///	Destructor
@@ -107,7 +111,7 @@ update_subset_infos(int rootProc)
 template <typename TGrid, typename TSubsetHandler>
 inline
 void IDomain<TGrid,TSubsetHandler>::
-grid_changed_callback(const GridMessage_Adaption& msg)
+grid_adaption_callback(const GridMessage_Adaption& msg)
 {
 	if(msg.adaption_begins())
 		m_adaptionIsActive = true;
@@ -133,13 +137,24 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 template <typename TGrid, typename TSubsetHandler>
 inline
 void IDomain<TGrid,TSubsetHandler>::
-grid_distributed_callback(const GridMessage_Distribution& msg)
+grid_creation_callback(const GridMessage_Creation& msg)
 {
-	if(msg.msg() == GMDT_DISTRIBUTION_STOPS){
-//todo	update_domain_info may be unnecessary here and other actions may have
-//		to be performed.
+	if(msg.msg() == GMCT_CREATION_STOPS){
+		if(msg.proc_id() != -1)
+			update_subset_infos(msg.proc_id());
 		update_domain_info();
 	}
+}
+
+template <typename TGrid, typename TSubsetHandler>
+inline
+void IDomain<TGrid,TSubsetHandler>::
+grid_distribution_callback(const GridMessage_Distribution& msg)
+{
+//	this is already handled in grid_creation_callback
+	/*if(msg.msg() == GMDT_DISTRIBUTION_STOPS){
+		update_domain_info();
+	}*/
 }
 
 

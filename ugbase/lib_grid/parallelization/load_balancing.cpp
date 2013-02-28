@@ -570,9 +570,13 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 		for(ElemIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 			shPartitionOut.assign_subset(*iter, localProc);
 
+	assert(mg.is_parallel());
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 	int counter = 0;
-	for(ElemIter iter = mg.begin<TElem>(level); iter != mg.end<TElem>(level); ++iter)
-		shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
+	for(ElemIter iter = mg.begin<TElem>(level); iter != mg.end<TElem>(level); ++iter){
+		if(!distGridMgr.is_ghost(*iter))
+			shPartitionOut.assign_subset(*iter, partitionMap[counter++]);
+	}
 
 
 

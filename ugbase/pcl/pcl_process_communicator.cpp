@@ -171,7 +171,6 @@ ProcessCommunicator
 ProcessCommunicator::
 create_communicator(vector<int> &newGlobalProcs)
 {
-
 	CommWrapper comm(MPI_COMM_WORLD, false);
 
 	MPI_Group grpWorld;
@@ -182,9 +181,47 @@ create_communicator(vector<int> &newGlobalProcs)
 	MPI_Group_incl(grpWorld, (int)newGlobalProcs.size(), &newGlobalProcs.front(), &grpNew);
 	MPI_Comm_create(MPI_COMM_WORLD, grpNew, &commNew);
 
+//	create a new ProcessCommunicator
+//	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
+	if(commNew == MPI_COMM_NULL)
+		return ProcessCommunicator(PCD_EMPTY);
+
 	ProcessCommunicator newProcComm;
 	newProcComm.m_comm = SPCommWrapper(new CommWrapper(commNew, true));
 	newProcComm.m_comm->m_procs = newGlobalProcs;
+
+	return newProcComm;
+}
+
+ProcessCommunicator
+ProcessCommunicator::
+create_communicator(size_t first, size_t num)
+{
+	MPI_Group grpWorld;
+	MPI_Group grpNew;
+	MPI_Comm commNew;
+
+	ProcessCommunicator newProcComm;
+	newProcComm.m_comm = SPCommWrapper(new CommWrapper());
+	vector<int>& procs = newProcComm.m_comm->m_procs;
+
+	procs.resize(num);
+	for(size_t i = 0; i < num; ++i)
+		procs[i] = first + i;
+
+	CommWrapper comm(MPI_COMM_WORLD, false);
+
+	MPI_Comm_group(MPI_COMM_WORLD, &grpWorld);
+	MPI_Group_incl(grpWorld, (int)procs.size(), &procs.front(), &grpNew);
+	MPI_Comm_create(MPI_COMM_WORLD, grpNew, &commNew);
+
+	//	create a new ProcessCommunicator
+//	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
+	if(commNew == MPI_COMM_NULL)
+		return ProcessCommunicator(PCD_EMPTY);
+
+	newProcComm.m_comm->m_mpiComm = commNew;
+	newProcComm.m_comm->m_bReleaseCommunicator = true;
 
 	return newProcComm;
 }
@@ -430,8 +467,13 @@ barrier() const
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 ProcessCommunicator::CommWrapper::
-CommWrapper(const MPI_Comm& comm,
-			bool bReleaseComm) :
+CommWrapper() :
+	m_mpiComm(MPI_COMM_NULL),
+	m_bReleaseCommunicator(false)
+{}
+
+ProcessCommunicator::CommWrapper::
+CommWrapper(const MPI_Comm& comm, bool bReleaseComm) :
 	m_mpiComm(comm),
 	m_bReleaseCommunicator(bReleaseComm)
 {}

@@ -39,16 +39,20 @@ class SurfaceView;
  * The method posts the following messages at the message hub of the given grid:
  * 	- GridMessage_Creation(GMCT_CREATION_STARTS)
  * 	- GridMessage_Creation(GMCT_CREATION_STOPS)
+ *
+ * procId can be used to only load a grid on one process in a parallel environment.
+ * By default, procId is set to -1, which means that the domain is loaded on all
+ * processes.
  * \{
  */
 template <class TAPos>
 UG_API
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
-					  const char* filename, TAPos& aPos);
+					  const char* filename, TAPos& aPos, int procId = -1);
 
 template <class TAPos>
 UG_API
-bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos);
+bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos, int procId = -1);
 /**	\} */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,12 +66,16 @@ bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos);
  * The method posts the following messages at the message hub of the given grid:
  * 	- GridMessage_Creation(GMCT_CREATION_STARTS)
  * 	- GridMessage_Creation(GMCT_CREATION_STOPS)
+ *
+ * procId can be used to only load a grid on one process in a parallel environment.
+ * By default, procId is set to -1, which means that the domain is loaded on all
+ * processes.
  * \{ */
 UG_API
-bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename);
+bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename, int procId = -1);
 
 UG_API
-bool LoadGridFromFile(Grid& grid, const char* filename);
+bool LoadGridFromFile(Grid& grid, const char* filename, int procId = -1);
 /** \} */
 
 

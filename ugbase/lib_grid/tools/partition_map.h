@@ -8,6 +8,7 @@
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/tools/subset_handler_grid.h"
+#include "common/util/smart_pointer.h"
 
 namespace ug
 {
@@ -55,6 +56,10 @@ class PartitionMap{
 		SubsetHandler		m_shPartitions;
 		std::vector<int>	m_targetProcs;
 };
+
+typedef SmartPtr<PartitionMap>	SPPartitionMap;
+
+
 
 ///	Save the partition map to a file.
 /**	The resulting file will contain the grid on which the partition-map operates,

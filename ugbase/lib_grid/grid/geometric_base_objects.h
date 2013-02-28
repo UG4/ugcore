@@ -776,14 +776,13 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 };
 
 
-///	constant that defines the maximal number of vertices per face.
-/**	This constant is mainly used by VolumeDescriptor.
- * If required, one should be able to increase it without any problems.*/
+///	constant that defines the maximal number of vertices per volume element.
+/**	This constant is mainly used by VolumeDescriptor.*/
 const int MAX_VOLUME_VERTICES = 8;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VolumeDescriptor
-///	Can be queried for the edges, faces and vertices of a volume.
+///	Holds a set of vertices which represent the corners of a volume element
 class UG_API VolumeDescriptor : public VolumeVertices
 {
 	public:
@@ -809,12 +808,39 @@ class UG_API VolumeDescriptor : public VolumeVertices
 };
 
 
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** Defines the geometric base object type for each dimension.
+ * \{ */
+template <int dim> struct GeomObjBaseTypeByDim;
+
+template <> struct GeomObjBaseTypeByDim<0>{
+	typedef VertexBase base_obj_type;
+};
+
+template <> struct GeomObjBaseTypeByDim<1>{
+	typedef EdgeBase base_obj_type;
+};
+
+template <> struct GeomObjBaseTypeByDim<2>{
+	typedef Face base_obj_type;
+};
+
+template <> struct GeomObjBaseTypeByDim<3>{
+	typedef Volume base_obj_type;
+};
+
+/** \} */
+
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 /**	template helpers that return the geometric base object type
  *	given a pointer to a derived class of VertexBase, EdgeBase, Face or Volume.
  *
  *	e.g. PtrTypeToGeomObjBaseType<Vertex*>::base_type = VertexBase.
+ * \{
  */
 template <class TGeomObjPtrType>
 struct PtrTypeToGeomObjBaseType
@@ -835,6 +861,8 @@ struct PtrTypeToGeomObjBaseType<Face*>
 template <>
 struct PtrTypeToGeomObjBaseType<Volume*>
 {typedef Volume base_type;};
+/** \} */
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

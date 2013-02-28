@@ -11,6 +11,11 @@
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/tools/surface_view.h"
 
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_process_communicator.h"
+	#include "pcl/pcl_util.h"
+#endif
+
 using namespace std;
 
 namespace ug
@@ -105,54 +110,71 @@ static bool LoadGrid3d(Grid& grid, ISubsetHandler* psh,
 ///	This method calls specific load routines or delegates loading to LoadGrid3d
 template <class TAPos>
 static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
-					 const char* filename, TAPos& aPos)
+					 const char* filename, TAPos& aPos,
+					 int procId)
 {
 //	For convenience, we support multiple different standard paths, from which
 //	grids may be loaded. We thus first check, where the specified file is
 //	located and load it from that location afterwards.
+	bool loadingGrid = true;
+	#ifdef UG_PARALLEL
+		if((procId != -1) && (pcl::GetProcRank() != procId))
+			loadingGrid = false;
+	#endif
 
-//	check the default file first
-	string tfile = filename;
-	if(!FileExists(tfile.c_str())){
-	//	Now check whether the file was specified relative to the current
-	//	working directory
-		tfile = PathProvider::get_current_path();
-		tfile.append("/").append(filename);
-
+	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS, procId));
+	bool retVal = false;
+	if(loadingGrid){
+		bool fileExists = true;
+	//	check the default file first
+		string tfile = filename;
 		if(!FileExists(tfile.c_str())){
-		//	now check the grid path
-			tfile = PathProvider::get_path(GRID_PATH);
+		//	Now check whether the file was specified relative to the current
+		//	working directory
+			tfile = PathProvider::get_current_path();
 			tfile.append("/").append(filename);
 
 			if(!FileExists(tfile.c_str())){
-			//	The file couldn't be located. we have to abort loading.
-				return false;
+			//	now check the grid path
+				tfile = PathProvider::get_path(GRID_PATH);
+				tfile.append("/").append(filename);
+
+				if(!FileExists(tfile.c_str())){
+				//	The file couldn't be located.
+					fileExists = false;
+				}
+			}
+		}
+
+	//	Now perform the actual loading.
+	//	first all load methods, which do accept template position types are
+	//	handled. Then all those which only work with 3d position types are processed.
+		if(fileExists){
+			if(tfile.find(".ugx") != string::npos){
+				if(psh)
+					retVal = LoadGridFromUGX(grid, *psh, tfile.c_str(), aPos);
+				else{
+				//	we have to create a temporary subset handler, since
+					SubsetHandler shTmp(grid);
+					retVal = LoadGridFromUGX(grid, shTmp, tfile.c_str(), aPos);
+				}
+			}
+			else{
+			//	now we'll handle those methods, which only support 3d position types.
+				retVal = LoadGrid3d(grid, psh, tfile.c_str(), aPos);
 			}
 		}
 	}
 
+	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
 
-	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS));
-
-//	Now perform the actual loading.
-//	first all load methods, which do accept template position types are
-//	handled. Then all those which only work with 3d position types are processed.
-	bool retVal = false;
-	if(tfile.find(".ugx") != string::npos){
-		if(psh)
-			retVal = LoadGridFromUGX(grid, *psh, tfile.c_str(), aPos);
-		else{
-		//	we have to create a temporary subset handler, since
-			SubsetHandler shTmp(grid);
-			retVal = LoadGridFromUGX(grid, shTmp, tfile.c_str(), aPos);
-		}
-	}
-	else{
-	//	now we'll handle those methods, which only support 3d position types.
-		retVal = LoadGrid3d(grid, psh, tfile.c_str(), aPos);
-	}
-
-	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
+	#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator procCom;
+		if(procId == -1)
+			retVal = pcl::AllProcsTrue(retVal, procCom);
+		else
+			retVal = pcl::OneProcTrue(retVal, procCom);
+	#endif
 
 	return retVal;
 }
@@ -160,25 +182,25 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 ////////////////////////////////////////////////////////////////////////////////
 template <class TAPos>
 bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh,
-					  const char* filename, TAPos& aPos)
+					  const char* filename, TAPos& aPos, int procId)
 {
-	return LoadGrid(grid, &sh, filename, aPos);
+	return LoadGrid(grid, &sh, filename, aPos, procId);
 }
 
 template <class TAPos>
-bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos)
+bool LoadGridFromFile(Grid& grid, const char* filename, TAPos& aPos, int procId)
 {
-	return LoadGrid(grid, NULL, filename, aPos);
+	return LoadGrid(grid, NULL, filename, aPos, procId);
 }
 
-bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename)
+bool LoadGridFromFile(Grid& grid, ISubsetHandler& sh, const char* filename, int procId)
 {
-	return LoadGrid(grid, &sh, filename, aPosition);
+	return LoadGrid(grid, &sh, filename, aPosition, procId);
 }
 
-bool LoadGridFromFile(Grid& grid, const char* filename)
+bool LoadGridFromFile(Grid& grid, const char* filename, int procId)
 {
-	return LoadGrid(grid, NULL, filename, aPosition);
+	return LoadGrid(grid, NULL, filename, aPosition, procId);
 }
 
 
@@ -576,13 +598,13 @@ bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiation
-template bool LoadGridFromFile(Grid&, ISubsetHandler&, const char*, AVector1&);
-template bool LoadGridFromFile(Grid&, ISubsetHandler&, const char*, AVector2&);
-template bool LoadGridFromFile(Grid&, ISubsetHandler&, const char*, AVector3&);
+template bool LoadGridFromFile(Grid&, ISubsetHandler&, const char*, AVector1&, int);
+template bool LoadGridFromFile(Grid&, ISubsetHandler&, const char*, AVector2&, int);
+template bool LoadGridFromFile(Grid&, ISubsetHandler&, const char*, AVector3&, int);
 
-template bool LoadGridFromFile(Grid&, const char*, AVector1&);
-template bool LoadGridFromFile(Grid&, const char*, AVector2&);
-template bool LoadGridFromFile(Grid&, const char*, AVector3&);
+template bool LoadGridFromFile(Grid&, const char*, AVector1&, int);
+template bool LoadGridFromFile(Grid&, const char*, AVector2&, int);
+template bool LoadGridFromFile(Grid&, const char*, AVector3&, int);
 
 template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector1&);
 template bool SaveGridToFile(Grid&, ISubsetHandler&, const char*, AVector2&);

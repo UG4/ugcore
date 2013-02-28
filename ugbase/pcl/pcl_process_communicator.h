@@ -69,12 +69,7 @@ class ProcessCommunicator
 		ProcessCommunicator create_sub_communicator(std::vector<int> &newProcs) const;
 
 		static ProcessCommunicator create_communicator(std::vector<int> &newGlobalProcs);
-
-	///	performs MPI_Allreduce on the processes of the communicator.
-	/**	This method synchronises involved processes.
-	 */	
-		void allreduce(const void* sendBuf, void* recBuf, int count,
-					   DataType type, ReduceOperation op) const;
+		static ProcessCommunicator create_communicator(size_t first, size_t num);
 		
 	///	performs MPI_Gather on the processes of the communicator.
 	/**	This method synchronises involved processes.
@@ -264,6 +259,12 @@ class ProcessCommunicator
 
 
 
+	///	performs MPI_Allreduce on the processes of the communicator.
+	/**	This method synchronises involved processes.
+	 */
+		void allreduce(const void* sendBuf, void* recBuf, int count,
+					   DataType type, ReduceOperation op) const;
+
 	/**
 	 * simplified allreduce for size=1. calls allreduce for parameter t, and then returns the result
 	 * compiler error for unsupported datatypes
@@ -352,6 +353,8 @@ class ProcessCommunicator
 	/**	A variable stores whether the communicator has to be freed when the
 	 *	the wrapper is deleted.*/
 		struct CommWrapper{
+		///	initializes the commWrapper with MPI_COMM_NULL
+			CommWrapper();
 			CommWrapper(const MPI_Comm& comm,
 						bool bReleaseComm);
 			~CommWrapper();

@@ -129,13 +129,15 @@ enum GridMessageCreationType{
 class GridMessage_Creation : public MessageHub::IMessage
 {
 	public:
-		GridMessage_Creation(GridMessageCreationType msg = GMCT_NONE) :
-			m_msg(msg)	{}
+		GridMessage_Creation(GridMessageCreationType msg = GMCT_NONE, int procId = -1) :
+			m_msg(msg), m_procId(procId)	{}
 
 		GridMessageCreationType msg() const	{return m_msg;}
+		int proc_id() const					{return m_procId;}
 
 	private:
 		GridMessageCreationType	m_msg;
+		int m_procId;
 };
 
 }//	end of namespace

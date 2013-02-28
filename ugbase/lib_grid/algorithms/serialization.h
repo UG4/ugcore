@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__SERIALIZATION__
 
 #include <iostream>
+#include "common/util/smart_pointer.h"
 #include "common/util/binary_buffer.h"
 #include "common/serialization.h"
 #include "lib_grid/geometric_objects/geometric_objects.h"
@@ -69,6 +70,11 @@ typedef GeomObjDataSerializer<EdgeBase>		EdgeDataSerializer;
 typedef GeomObjDataSerializer<Face>			FaceDataSerializer;
 typedef GeomObjDataSerializer<Volume>		VolumeDataSerializer;
 
+typedef SmartPtr<VertexDataSerializer>	SPVertexDataSerializer;
+typedef SmartPtr<EdgeDataSerializer>	SPEdgeDataSerializer;
+typedef SmartPtr<FaceDataSerializer>	SPFaceDataSerializer;
+typedef SmartPtr<VolumeDataSerializer>	SPVolumeDataSerializer;
+
 /**	\brief	Interface for handling serialization and deserialization of
  * 			data associated with all geometric objects in a grid.
  *
@@ -109,6 +115,7 @@ class GridDataSerializer : public virtual VertexDataSerializer,
 		virtual void read_data(BinaryBuffer& in, Volume* o)		{}
 };
 
+typedef SmartPtr<GridDataSerializer>	SPGridDataSerializer;
 
 
 ///	Serialization of data associated with grid elements.
@@ -127,18 +134,13 @@ class GridDataSerializationHandler
 	public:
 		~GridDataSerializationHandler()	{}
 
-	/**	\{
-	 * Adds a callback class for serialization and deserialization.
-	 * Note that only a pointer to those callback-classes is stored.
-	 * You thus have to make sure that this pointer points to a
-	 * valid instance until the whole serialization and deserialization
-	 * process is done.
-	 */
-		void add(VertexDataSerializer* cb);
-		void add(EdgeDataSerializer* cb);
-		void add(FaceDataSerializer* cb);
-		void add(VolumeDataSerializer* cb);
-		void add(GridDataSerializer* cb);
+	///	Adds a callback class for serialization and deserialization.
+	/**	\{ */
+		void add(SPVertexDataSerializer cb);
+		void add(SPEdgeDataSerializer cb);
+		void add(SPFaceDataSerializer cb);
+		void add(SPVolumeDataSerializer cb);
+		void add(SPGridDataSerializer cb);
 	/**	\} */
 
 
@@ -200,11 +202,11 @@ class GridDataSerializationHandler
 		void read_info(BinaryBuffer& in, TSerializers& serializers);
 
 	private:
-		std::vector<VertexDataSerializer*>	m_vrtSerializers;
-		std::vector<EdgeDataSerializer*>	m_edgeSerializers;
-		std::vector<FaceDataSerializer*>	m_faceSerializers;
-		std::vector<VolumeDataSerializer*>	m_volSerializers;
-		std::vector<GridDataSerializer*>	m_gridSerializers;
+		std::vector<SPVertexDataSerializer>	m_vrtSerializers;
+		std::vector<SPEdgeDataSerializer>	m_edgeSerializers;
+		std::vector<SPFaceDataSerializer>	m_faceSerializers;
+		std::vector<SPVolumeDataSerializer>	m_volSerializers;
+		std::vector<SPGridDataSerializer>	m_gridSerializers;
 };
 
 
@@ -220,8 +222,13 @@ class GeomObjAttachmentSerializer :
 	public GeomObjDataSerializer<TGeomObj>
 {
 	public:
+		static SmartPtr<GeomObjDataSerializer<TGeomObj> >
+		create(Grid& g, TAttachment& a)
+		{return SmartPtr<GeomObjDataSerializer<TGeomObj> >(new GeomObjAttachmentSerializer(g, a));}
+
 		GeomObjAttachmentSerializer(Grid& g, TAttachment& a) :
 			m_aa(g, a, true)	{}
+
 		virtual ~GeomObjAttachmentSerializer() {};
 
 		virtual void write_data(BinaryBuffer& out, TGeomObj* o) const
@@ -237,6 +244,9 @@ class GeomObjAttachmentSerializer :
 class SubsetHandlerSerializer : public GridDataSerializer
 {
 	public:
+		static SPGridDataSerializer create(ISubsetHandler& sh)
+		{return SPGridDataSerializer(new SubsetHandlerSerializer(sh));}
+
 		SubsetHandlerSerializer(ISubsetHandler& sh);
 
 	///	writes subset-infos to the stream (subset names and colors)
@@ -258,7 +268,6 @@ class SubsetHandlerSerializer : public GridDataSerializer
 	private:
 		ISubsetHandler& m_sh;
 };
-
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

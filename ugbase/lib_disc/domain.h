@@ -144,6 +144,7 @@ class IDomain
 		SmartPtr<TGrid> m_spGrid;			///< Grid
 		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
 		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
+		MessageHub::SPCallbackId m_spGridCreationCallbackID;
 		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
 
 		DomainInfo	m_domainInfo;
@@ -151,14 +152,17 @@ class IDomain
 		bool	m_isAdaptive;
 		bool	m_adaptionIsActive;
 
-	/**	this callback is called by the message hub, when a grid change has been
+	/**	this callback is called by the message hub, when a grid adaption has been
 	 * performed. It will call all necessary actions in order to keep the grid
 	 * correct for computations. */
-		inline void grid_changed_callback(const GridMessage_Adaption& msg);
+		inline void grid_adaption_callback(const GridMessage_Adaption& msg);
+
+	///	Called when a domain has been loaded and during domain distribution
+		inline void grid_creation_callback(const GridMessage_Creation& msg);
 
 	/**	this callback is called by the message hub, when a grid has been distributed
 	 * between different processes.*/
-		inline void grid_distributed_callback(const GridMessage_Distribution& msg);
+		inline void grid_distribution_callback(const GridMessage_Distribution& msg);
 
 #ifdef UG_PARALLEL
 	protected:

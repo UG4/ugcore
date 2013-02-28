@@ -22,6 +22,11 @@
 #include "lib_disc/parallelization/domain_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
+#ifdef UG_PARALLEL
+	#include "lib_disc/parallelization/domain_load_balancer.h"
+#endif
+
+
 using namespace std;
 
 namespace ug{
@@ -91,8 +96,23 @@ static void DomainAlgebra(Registry& reg, string grp)
 			static_cast<bool (*)(TDomain&, PartitionMap&, bool, std::vector<SmartPtr<TFct> >)>(
 				&DistributeDomain<TDomain, TFct>),
 			grp);
-		//note that an overload of this method exists, regisdered in domain_bridges/domain_bridge
+		//note that an overload of this method exists, registered in domain_bridges/domain_bridge
 	}
+
+//	LoadBalancer
+#ifdef UG_PARALLEL
+	{
+		typedef ug::GridFunction<TDomain, TAlgebra> TFct;
+		string name = string("DomainLoadBalancer").append(suffix);
+		typedef DomainLoadBalancer<TDomain> T;
+		typedef LoadBalancer<TDomain::dim> TBase;
+		reg.add_class_<T, TBase>(name, domDiscGrp)
+			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
+			.add_method("add_serializer", &T::template add_serializer<TFct>);
+		reg.add_class_to_group(name, "DomainLoadBalancer", tag);
+	}
+#endif
+
 }
 
 /**

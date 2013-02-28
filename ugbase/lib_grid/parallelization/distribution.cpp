@@ -1441,16 +1441,12 @@ bool DistributeGrid(MultiGrid& mg,
 	int magicNumber2 = 560245;
 
 	ADistInfo aDistInfo = distInfos.dist_info_attachment();
-	GeomObjAttachmentSerializer<VertexBase, ADistInfo>	distInfoSerializerVRT(mg, aDistInfo);
-	GeomObjAttachmentSerializer<EdgeBase, ADistInfo>	distInfoSerializerEDGE(mg, aDistInfo);
-	GeomObjAttachmentSerializer<Face, ADistInfo>		distInfoSerializerFACE(mg, aDistInfo);
-	GeomObjAttachmentSerializer<Volume, ADistInfo>		distInfoSerializerVOL(mg, aDistInfo);
 
 	GridDataSerializationHandler distInfoSerializer;
-	distInfoSerializer.add(&distInfoSerializerVRT);
-	distInfoSerializer.add(&distInfoSerializerEDGE);
-	distInfoSerializer.add(&distInfoSerializerFACE);
-	distInfoSerializer.add(&distInfoSerializerVOL);
+	distInfoSerializer.add(GeomObjAttachmentSerializer<VertexBase, ADistInfo>::create(mg, aDistInfo));
+	distInfoSerializer.add(GeomObjAttachmentSerializer<EdgeBase, ADistInfo>::create(mg, aDistInfo));
+	distInfoSerializer.add(GeomObjAttachmentSerializer<Face, ADistInfo>::create(mg, aDistInfo));
+	distInfoSerializer.add(GeomObjAttachmentSerializer<Volume, ADistInfo>::create(mg, aDistInfo));
 
 //	now perform the serialization
 	for(size_t i_to = 0; i_to < sendPartitionInds.size(); ++i_to){

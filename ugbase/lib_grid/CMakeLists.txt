@@ -103,10 +103,16 @@ if(PARALLEL)
 							parallelization/distributed_grid.cpp
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_grid_layout.cpp
+							parallelization/load_balancer.cpp
 							parallelization/load_balancing.cpp
 							parallelization/parallel_refinement/parallel_global_fractured_media_refiner.cpp
 							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
 							parallelization/parallel_refinement/parallel_hnode_adjuster.cpp)
+	if(PARMETIS)
+		set(srcParallelization	${srcParallelization}
+								parallelization/partitioner_parmetis.cpp)
+	endif(PARMETIS)
+	
 else(PARALLEL)
 	set(srcParallelization	parallelization/load_balancing.cpp
 							parallelization/parallel_grid_layout.cpp)
