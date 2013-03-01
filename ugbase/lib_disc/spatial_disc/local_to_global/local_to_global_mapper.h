@@ -42,10 +42,12 @@ class ILocalToGlobalMapper
 		ILocalToGlobalMapper() {}
 
 	///	send local entries to global matrix
-		virtual void AddLocalMatrixToGlobal(ConstSmartPtr<DoFDistribution> dd, matrix_type& mat, const LocalMatrix& lmat) = 0;
+		virtual void AddLocalMatrixToGlobal(ConstSmartPtr<DoFDistribution> dd,
+				matrix_type& mat, const LocalMatrix& lmat) = 0;
 
 	///	send local entries to global rhs
-		virtual void AddLocalVector(ConstSmartPtr<DoFDistribution> dd, vector_type& vec, const LocalVector& lvec) = 0;
+		virtual void AddLocalVector(ConstSmartPtr<DoFDistribution> dd,
+				vector_type& vec, const LocalVector& lvec) = 0;
 
 	///	virtual destructor
 		virtual ~ILocalToGlobalMapper() {};
