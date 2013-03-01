@@ -42,15 +42,28 @@ class DataExport : 	public DependentUserData<TData, dim>
 		virtual void set_roid(ReferenceObjectID id);
 
 	///	register evaluation of export function
-		template <typename T, int refDim>
-		void set_fct(ReferenceObjectID id, IElemDisc* obj,
-		             void (T::*func)(const LocalVector& u,
-		            		 	 	 const MathVector<dim> vGlobIP[],
-		            		 	 	 const MathVector<refDim> vLocIP[],
-		            		 	 	 const size_t nip,
-		            		 	 	 TData vValue[],
-		            		 	 	 bool bDeriv,
-		            		 	 	 std::vector<std::vector<TData> > vvvDeriv[]));
+		template <typename TClass, int refDim>
+		void set_fct(ReferenceObjectID id, TClass* obj,
+		             void (TClass::*func)(
+		            		 const LocalVector& u,
+		            		 const MathVector<dim> vGlobIP[],
+		            		 const MathVector<refDim> vLocIP[],
+		            		 const size_t nip,
+		            		 TData vValue[],
+		            		 bool bDeriv,
+		            		 std::vector<std::vector<TData> > vvvDeriv[]));
+
+	///	register evaluation of export function
+		template <int refDim>
+		void set_fct(ReferenceObjectID id,
+		             void (*func)(
+		            		 const LocalVector& u,
+		            		 const MathVector<dim> vGlobIP[],
+		            		 const MathVector<refDim> vLocIP[],
+		            		 const size_t nip,
+		            		 TData vValue[],
+		            		 bool bDeriv,
+		            		 std::vector<std::vector<TData> > vvvDeriv[]));
 
 	///	clears all export functions
 		void clear_fct();
@@ -77,21 +90,41 @@ class DataExport : 	public DependentUserData<TData, dim>
 		virtual void check_setup() const;
 
 	protected:
-		template <typename T, int refDim>
-		inline void comp(const LocalVector& u, bool bDeriv);
+		template <int refDim>
+		struct traits{
+			typedef boost::function<void (const LocalVector& u,
+			                              const MathVector<dim> vGlobIP[],
+			                              const MathVector<refDim> vLocIP[],
+			                              const size_t nip,
+			                              TData vValue[],
+			                              bool bDeriv,
+			                              std::vector<std::vector<TData> > vvvDeriv[])>
+			EvalFunc;
+		};
 
+		template <int refDim>
+		typename traits<refDim>::EvalFunc& eval_fct(ReferenceObjectID id) {return eval_fct(id, Int2Type<refDim>());}
+		template <int refDim>
+		const typename traits<refDim>::EvalFunc& eval_fct(ReferenceObjectID id) const {return eval_fct(id, Int2Type<refDim>());}
+
+		typename traits<1>::EvalFunc& eval_fct(ReferenceObjectID id, Int2Type<1>) {return m_vCompFct1d[id];}
+		typename traits<2>::EvalFunc& eval_fct(ReferenceObjectID id, Int2Type<2>) {return m_vCompFct2d[id];}
+		typename traits<3>::EvalFunc& eval_fct(ReferenceObjectID id, Int2Type<3>) {return m_vCompFct3d[id];}
+		const typename traits<1>::EvalFunc& eval_fct(ReferenceObjectID id, Int2Type<1>) const {return m_vCompFct1d[id];}
+		const typename traits<2>::EvalFunc& eval_fct(ReferenceObjectID id, Int2Type<2>) const {return m_vCompFct2d[id];}
+		const typename traits<3>::EvalFunc& eval_fct(ReferenceObjectID id, Int2Type<3>) const {return m_vCompFct3d[id];}
+		typename traits<1>::EvalFunc m_vCompFct1d[NUM_REFERENCE_OBJECTS];
+		typename traits<2>::EvalFunc m_vCompFct2d[NUM_REFERENCE_OBJECTS];
+		typename traits<3>::EvalFunc m_vCompFct3d[NUM_REFERENCE_OBJECTS];
+
+		bool eval_fct_set(ReferenceObjectID id) const;
+
+		template <int refDim>
+		void comp(const LocalVector& u, bool bDeriv);
+
+	protected:
 	/// current Geom Object
 		ReferenceObjectID m_id;
-
-	///	corresponding elem disc
-		IElemDisc* m_pObj;
-
-	///	function pointers for all elem types
-		typedef void (IElemDisc::*DummyMethod)();
-		DummyMethod	m_vExportFunc[NUM_REFERENCE_OBJECTS];
-
-		typedef void (DataExport::*CompFct)(const LocalVector&, bool);
-		CompFct m_vCompFct[NUM_REFERENCE_OBJECTS];
 
 	///	data the export depends on
 		std::vector<SmartPtr<IUserData> > m_vDependData;

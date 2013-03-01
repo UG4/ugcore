@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EXPORT_IMPL__
 
 #include "data_export.h"
+#include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
@@ -16,7 +17,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-DataExport<TData, dim>::DataExport() : m_id(ROID_UNKNOWN), m_pObj(NULL)
+DataExport<TData, dim>::DataExport() : m_id(ROID_UNKNOWN)
 {
 //	reset all evaluation functions
 	clear_fct();
@@ -25,15 +26,18 @@ DataExport<TData, dim>::DataExport() : m_id(ROID_UNKNOWN), m_pObj(NULL)
 template <typename TData, int dim>
 void DataExport<TData, dim>::clear_fct()
 {
-	for(size_t roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
-		m_vExportFunc[roid] = NULL;
+	for(size_t roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
+		eval_fct<1>((ReferenceObjectID)roid) = NULL;
+		eval_fct<2>((ReferenceObjectID)roid) = NULL;
+		eval_fct<3>((ReferenceObjectID)roid) = NULL;
+	}
 }
 
 template <typename TData, int dim>
-template <typename T, int refDim>
+template <typename TClass, int refDim>
 void DataExport<TData, dim>::
-set_fct(ReferenceObjectID id, IElemDisc* obj,
-        void (T::*func)(const LocalVector& u,
+set_fct(ReferenceObjectID id, TClass* obj,
+        void (TClass::*func)(const LocalVector& u,
         				const MathVector<dim> vGlobIP[],
         				const MathVector<refDim> vLocIP[],
         				const size_t nip,
@@ -41,47 +45,37 @@ set_fct(ReferenceObjectID id, IElemDisc* obj,
         				bool bDeriv,
         				std::vector<std::vector<TData> > vvvDeriv[]))
 {
-//	store the method pointer casted to some generic (incompatible) type
-	m_vExportFunc[id] = reinterpret_cast<DummyMethod>(func);
+	if(id >= NUM_REFERENCE_OBJECTS)
+		UG_THROW("Reference Object id invalid: "<<id);
 
-//	store the evaluation forwarder
-	m_vCompFct[id] = &DataExport<TData, dim>::template comp<T,refDim>;
+	eval_fct<refDim>(id) = boost::bind(func, obj, _1, _2, _3, _4, _5, _6, _7);
+}
 
-//	store the base object needed for invocation
-	if(m_pObj == NULL) m_pObj = obj;
-	else if(m_pObj != obj)
-		UG_THROW("Exports assume to be used by on object for all functions.");
+template <typename TData, int dim>
+template <int refDim>
+void DataExport<TData, dim>::
+set_fct(ReferenceObjectID id,
+        void (*func)(const LocalVector& u,
+        				const MathVector<dim> vGlobIP[],
+        				const MathVector<refDim> vLocIP[],
+        				const size_t nip,
+        				TData vValue[],
+        				bool bDeriv,
+        				std::vector<std::vector<TData> > vvvDeriv[]))
+{
+	if(id >= NUM_REFERENCE_OBJECTS)
+		UG_THROW("Reference Object id invalid: "<<id);
+
+	eval_fct<refDim>(id) = func;
 }
 
 
 template <typename TData, int dim>
-template <typename T, int refDim>
+template <int refDim>
 inline void DataExport<TData, dim>::
 comp(const LocalVector& u, bool bDeriv)
 {
-	typedef void (T::*ExpFunc)(	const LocalVector& u,
-								const MathVector<dim> vGlobIP[],
-								const MathVector<refDim> vLocIP[],
-								const size_t nip,
-								TData vValue[],
-								bool bDeriv,
-								std::vector<std::vector<TData> > vvvDeriv[]);
-
-
-	typedef void (IElemDisc::*ElemDiscFunc)(
-								const LocalVector& u,
-								const MathVector<dim> vGlobIP[],
-								const MathVector<refDim> vLocIP[],
-								const size_t nip,
-								TData vValue[],
-								bool bDeriv,
-								std::vector<std::vector<TData> > vvvDeriv[]);
-
-//	cast the method pointer back to correct type
-	ExpFunc func = reinterpret_cast<ExpFunc>(m_vExportFunc[m_id]);
-
-//	cast if for evaluation using base class
-	ElemDiscFunc elemDiscfunc = static_cast<ElemDiscFunc>(func);
+	typename traits<refDim>::EvalFunc& func = eval_fct<refDim>(m_id);
 
 	std::vector<std::vector<TData> >* vvvDeriv = NULL;
 
@@ -93,27 +87,22 @@ comp(const LocalVector& u, bool bDeriv)
 		else
 			vvvDeriv = NULL;
 
-		(m_pObj->*(elemDiscfunc))
-				(u,
-				 this->ips(s),
-				 this->template local_ips<refDim>(s),
-				 this->num_ip(s),
-				 this->values(s),
-				 bDeriv,
-				 vvvDeriv);
+		(func)(u,
+				this->ips(s),
+				this->template local_ips<refDim>(s),
+				this->num_ip(s),
+				this->values(s),
+				bDeriv,
+				vvvDeriv);
 	}
 }
 
 template <typename TData, int dim>
 void DataExport<TData, dim>::set_roid(ReferenceObjectID id)
 {
-	if(m_vExportFunc[id] == NULL)
+	if(!eval_fct_set(id))
 		UG_THROW("DataExport::set_roid: There is no evaluation "
 				"function registered for export and elem type "<<id);
-
-	if(m_vCompFct[id] == NULL)
-		UG_THROW("DataExport::set_roid: There is no evaluation forward"
-				"function registered for export and elem type "<<m_id);
 
 	m_id = id;
 }
@@ -125,22 +114,38 @@ void DataExport<TData, dim>::check_setup() const
 		UG_THROW("DataExport::check_setup: The reference element "
 				"type has not been set for evaluation.");
 
-	if(m_vCompFct[m_id] == NULL)
-		UG_THROW("DataExport::check_setup: There is no evaluation forward"
-				"function registered for export and elem type "<<m_id);
-
-	if(m_vExportFunc[m_id] == NULL)
+	if(!eval_fct_set(m_id))
 		UG_THROW("DataExport::check_setup: There is no evaluation "
 				"function registered for export and elem type "<<m_id);
 }
 
 template <typename TData, int dim>
+bool DataExport<TData, dim>::eval_fct_set(ReferenceObjectID id) const
+{
+	const int d = ReferenceElementDimension(id);
+	bool bRes = false;
+	switch(d){
+		case 1: if(eval_fct<1>(id) != NULL) bRes = true; break;
+		case 2: if(eval_fct<2>(id) != NULL) bRes = true; break;
+		case 3: if(eval_fct<3>(id) != NULL) bRes = true; break;
+		default: UG_THROW("DataExport: Dimension "<<d<<" not supported.");
+	}
+	return bRes;
+}
+
+
+template <typename TData, int dim>
 void DataExport<TData, dim>::compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
 {
-	UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
-	UG_ASSERT(m_vCompFct[m_id] != NULL, "Func pointer is NULL");
+	UG_ASSERT(m_id != ROID_UNKNOWN, "Invalid RefElem");
 	UG_ASSERT(u != NULL, "LocalVector pointer is NULL");
-	(this->*m_vCompFct[m_id])(*u, bDeriv);
+
+	switch(this->dim_local_ips()){
+		case 1:	comp<1>(*u, bDeriv); return;
+		case 2:	comp<2>(*u, bDeriv); return;
+		case 3:	comp<3>(*u, bDeriv); return;
+		default: UG_THROW("DataExport: Dimension not supported.")
+	}
 }
 
 template <typename TData, int dim>
