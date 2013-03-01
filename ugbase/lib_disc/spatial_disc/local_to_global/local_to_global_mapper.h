@@ -41,11 +41,11 @@ class ILocalToGlobalMapper
 	///	default Constructor
 		ILocalToGlobalMapper() {}
 
-	///	adapts jacobian to enforce constraints
-		virtual void AddLocalVector(ConstSmartPtr<DoFDistribution> dd, vector_type& vec, const LocalVector& lvec) = 0;
-
-	///	adapts defect to enforce constraints
+	///	send local entries to global matrix
 		virtual void AddLocalMatrixToGlobal(ConstSmartPtr<DoFDistribution> dd, matrix_type& mat, const LocalMatrix& lmat) = 0;
+
+	///	send local entries to global rhs
+		virtual void AddLocalVector(ConstSmartPtr<DoFDistribution> dd, vector_type& vec, const LocalVector& lvec) = 0;
 
 	///	virtual destructor
 		virtual ~ILocalToGlobalMapper() {};
