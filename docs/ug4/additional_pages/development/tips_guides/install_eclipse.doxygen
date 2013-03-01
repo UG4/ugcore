@@ -225,25 +225,29 @@ highlighted correctly.
 In \em Eclipse one have to activate that implicitly.
 Therefore two actions need to be taken in \em Eclipse:
 <ol>
-  <li><em>Window</em> -> <em>Preferences</em> -> <em>C / C++</em> -> 
+  <li><em>Window</em> (<em>Eclipse</em>) or-> <em>Preferences</em> -> <em>C / C++</em> -> 
     <em>File Types</em> -> <em>New ...</em> -> <tt>*.doxygen</tt> and
     <em>Type</em> -> <em>C++ Source</em>.
     Confirm with <em>OK</em>.
   </li>
-  <li>With right-click on the <tt>ug4</tt> project go to <em>Properties</em>
-    and under <em>C / C++ General</em> activate <em>Enable project specific
-    settings</em> and choose <em>Doxygen</em> as the <em>Documentation Tool</em>.
-  </li>
+  <li><em>Window</em> (<em>Eclipse</em>) or-> <em>Preferences</em> -> <em>C / C++</em> -> 
+    <em>Editor</em>, under <em>Documentation tool comments</em> select <em>Doxygen</em> as workspace default.
+    Confirm with <em>OK</em>.
+    </li>
 </ol>
 
 <hr>
 \section secInstallEclipseAdditional Additional Tipps & Tricks
 
  - Line Numbers: Eclipse -> Properties. Subfolder General -> Editors -> Text Editors. Enable "Show line numbers".
- - Switching Tabs: On Mac: Apple+F6. On Windows: Ctrl+F6. Ctrl+PageUp / Ctrl+PageDown: Cycle through tabs without showing a list.
- - search a file in the tabs: Apple+E (Mac)
- - search a symbol (e.g. function) in the current file: Apple+O
- - You can change key mappings under Eclipse -> Properties, General -> Keys. (e.g. next Tab, previous Tab)
+ - Switching Tabs: On Mac: Cmd+F6. On Windows: Ctrl+F6. Ctrl+PageUp / Ctrl+PageDown: Cycle through tabs without showing a list.
+ - search a file in the tabs: Cmd+E (Mac)
+ - search a symbol (e.g. function) in the current file: Cmd+O (Mac) or Ctrl+O (other)
+ - quick open a resource (e.g. a file): Cmd+Shift+R (Mac) or Ctrl+Shift+R (other). Enter filename.
+ - quick open a symbol: Cmd+Shift+T (Mac) or Ctrl+Shift+T (other). Enter type/class/function name (will only work when current file is .h or .cpp)
+ - correct indention: Cmd+i (Mac) or Ctrl+i (other)
+ - goto line: Cmd+L (Mac) or Ctrl+L (other)
+ - You can change key mappings under Eclipse -> Properties, General -> Keys. (e.g. Next Editor to Ctrl+Tab, previous Editor to Ctrl+Shift+Tab)
  - Other recommended plugins are <a href="http://marketplace.eclipse.org/content/cmake-editor">CMake plugin</a> (install site http://cmakeed.sourceforge.net/eclipse/), 
   <a href="http://texlipse.sourceforge.net/screenshots/">TeXclipse</a> (install site http://texlipse.sourceforge.net).
 
