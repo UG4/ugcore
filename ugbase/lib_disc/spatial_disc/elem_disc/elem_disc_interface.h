@@ -18,7 +18,6 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/reference_element/reference_element_traits.h"
-#include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 #include "common/util/provider.h"
 #include "lib_disc/domain_util.h"
