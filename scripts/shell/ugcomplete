@@ -212,6 +212,7 @@ complete -W "\
 -DCMAKE_TOOLCHAIN_FILE= \
 -DCOMPILE_INFO= \
 -DCPU= \
+-DCUDA= \
 -DCXX11= \
 -DConstantEquation= \
 -DConvectionDiffusion= \
@@ -258,7 +259,12 @@ complete -W "\
 -Damg= \
 -DcalciumDynamics= \
 -Dd3f= \
+-Djitsg= \
+-DStructuredGrid= \
 -DinfoFileFound= \
+-DCRS_ALGEBRA= \
+-DCPU_ALGEBRA= \
+-DUSE_LUA2C= \
 $CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o default -o nospace ugcmake
 
 
