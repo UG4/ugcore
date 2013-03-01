@@ -148,7 +148,7 @@ class LoadBalancer{
 	/**	If distribution on a given level would lead to less elements per process
 	 * than the given threshold (in average), then no redistribution will be
 	 * performed on that level. Default is 1.*/
-		virtual void set_element_threshold(size_t threshold);
+		//virtual void set_element_threshold(size_t threshold);
 
 	///	performs load balancing if the balance is too bad or if a distribution level has been reached.
 	/**	The balance is calculated using the provieded BalanceWeights class. If
@@ -188,7 +188,7 @@ class LoadBalancer{
 		MultiGrid*			m_mg;
 		APos				m_aPos;
 		number				m_balanceThreshold;
-		size_t				m_elementThreshold;
+		//size_t				m_elementThreshold;
 		SPProcessHierarchy	m_processHierarchy;
 		SPPartitioner		m_partitioner;
 		SPBalanceWeights	m_balanceWeights;

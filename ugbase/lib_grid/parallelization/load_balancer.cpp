@@ -131,7 +131,7 @@ LoadBalancer<dim>::
 LoadBalancer() :
 	m_mg(NULL),
 	m_balanceThreshold(0.9),
-	m_elementThreshold(1),
+	//m_elementThreshold(1),
 	m_createVerticalInterfaces(true)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
@@ -204,12 +204,12 @@ set_balance_threshold(number threshold)
 	m_balanceThreshold = threshold;
 }
 
-template<int dim>
-void LoadBalancer<dim>::
-set_element_threshold(size_t threshold)
-{
-	m_elementThreshold = threshold;
-}
+//template<int dim>
+//void LoadBalancer<dim>::
+//set_element_threshold(size_t threshold)
+//{
+//	m_elementThreshold = threshold;
+//}
 
 template<int dim>
 void LoadBalancer<dim>::

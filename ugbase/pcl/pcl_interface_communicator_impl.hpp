@@ -180,13 +180,13 @@ exchange_data(const TLayoutMap& layoutMap,
 			  const typename TLayoutMap::Key& keyTo,
 			  ICommunicationPolicy<TLayout>& commPol)
 {
-	//if(layoutMap.template has_layout<Type>(keyFrom)){
+	if(layoutMap.template has_layout<Type>(keyFrom)){
 		send_data(layoutMap.template get_layout<Type>(keyFrom), commPol);
-	//}
+	}
 		
-	//if(layoutMap.template has_layout<Type>(keyTo)){
+	if(layoutMap.template has_layout<Type>(keyTo)){
 		receive_data(layoutMap.template get_layout<Type>(keyTo), commPol);
-	//}
+	}
 }
 							
 ////////////////////////////////////////////////////////////////////////

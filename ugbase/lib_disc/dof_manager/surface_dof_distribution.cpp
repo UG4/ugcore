@@ -155,7 +155,7 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 	if(!layoutMap.has_layout<TBaseElem>(keyType)) return;
 
 //	choose level, that must be looped
-	int fromLev = 0, toLev = layoutMap.get_layout<VertexBase>(keyType).num_levels() - 1;
+	int fromLev = 0, toLev = layoutMap.get_layout<TBaseElem>(keyType).num_levels() - 1;
 	if(m_level == GridLevel::TOPLEVEL){
 		if(toLev < 0) toLev = 0;
 	}
