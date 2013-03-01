@@ -472,21 +472,28 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			typedef LoadBalancer<1> T;
 			reg.add_class_<T>("LoadBalancer1d")
 					.add_method("add_distribution_level", &T::add_distribution_level)
-					.add_method("rebalance", &T::rebalance);
+					.add_method("rebalance", &T::rebalance)
+					.add_method("set_balance_threshold", &T::set_balance_threshold)
+					.add_method("set_element_threshold", &T::set_element_threshold);
+
 			reg.add_class_to_group("LoadBalancer1d", "LoadBalancer", "dim=1d");
 		}
 		{
 			typedef LoadBalancer<2> T;
 			reg.add_class_<T>("LoadBalancer2d")
 					.add_method("add_distribution_level", &T::add_distribution_level)
-					.add_method("rebalance", &T::rebalance);
+					.add_method("rebalance", &T::rebalance)
+					.add_method("set_balance_threshold", &T::set_balance_threshold)
+					.add_method("set_element_threshold", &T::set_element_threshold);
 			reg.add_class_to_group("LoadBalancer2d", "LoadBalancer", "dim=2d");
 		}
 		{
 			typedef LoadBalancer<3> T;
 			reg.add_class_<T>("LoadBalancer3d")
 					.add_method("add_distribution_level", &T::add_distribution_level)
-					.add_method("rebalance", &T::rebalance);
+					.add_method("rebalance", &T::rebalance)
+					.add_method("set_balance_threshold", &T::set_balance_threshold)
+					.add_method("set_element_threshold", &T::set_element_threshold);
 			reg.add_class_to_group("LoadBalancer3d", "LoadBalancer", "dim=3d");
 		}
 	#endif

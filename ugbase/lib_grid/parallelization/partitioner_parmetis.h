@@ -25,12 +25,13 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights);
 		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights);
 
-		virtual bool supports_balance_weights();
-		virtual bool supports_connection_weights();
+		virtual bool supports_balance_weights() const;
+		virtual bool supports_connection_weights() const;
 
-		virtual void partition(size_t baseLvl);
+		virtual void partition(size_t baseLvl, size_t elementThreshold);
 
 		virtual SubsetHandler& get_partitions();
+		virtual const std::vector<int>* get_process_map() const;
 
 	private:
 	///	fills m_aNumChildren with child-counts from levels baseLvl to topLvl.

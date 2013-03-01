@@ -46,7 +46,7 @@ bool DistributeGrid(MultiGrid& mg,
 					GridDataSerializationHandler& serializer,
 					GridDataSerializationHandler& deserializer,
 					bool createVerticalInterfaces,
-					std::vector<int>* processMap = NULL,
+					const std::vector<int>* processMap = NULL,
 					const pcl::ProcessCommunicator& procComm =
 												pcl::ProcessCommunicator());
 

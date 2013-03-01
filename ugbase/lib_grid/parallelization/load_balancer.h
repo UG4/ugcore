@@ -24,24 +24,26 @@ class ProcessHierarchy{
 	//todo:	add a proc list for more sophisticated hierarchy levels
 		void add_hierarchy_level(size_t gridLvl, size_t numProcsPerProc);
 
-		size_t num_hierarchy_levels();
-		size_t num_global_procs_involved(size_t hierarchyLevel);
-		size_t grid_base_level(size_t hierarchyLevel);
-		size_t hierarchy_level_from_grid_level(size_t gridLevel);
+		size_t num_hierarchy_levels() const;
+		size_t num_global_procs_involved(size_t hierarchyLevel) const;
+		size_t grid_base_level(size_t hierarchyLevel) const;
+		size_t hierarchy_level_from_grid_level(size_t gridLevel) const;
 
 	/**	Contains all processes which participate on the given hierarchy level,
 	 * but only if the local process participates itself. If it doesn't, the
 	 * returned communicator is empty.*/
-	//	ProcessCommunicator global_proc_com(size_t hierarchyLevel);
+		pcl::ProcessCommunicator global_proc_com(size_t hierarchyLevel) const;
 
 	/**	Contains only processes which are contained in the cluster of the given
 	 * hierarchyLevel in which the local process is included.*/
 		//pcl::ProcessCommunicator cluster_proc_com(size_t hierarchyLevel);
+		const std::vector<int>& cluster_procs(size_t hierarchyLevel) const;
 
 	protected:
 		struct HLevelInfo{
-			//ProcessCommunicator globalCom;
+			pcl::ProcessCommunicator globalCom;
 			//pcl::ProcessCommunicator clusterCom;
+			std::vector<int> clusterProcs;
 			size_t gridLvl;
 			size_t numGlobalProcsInUse;
 		};
@@ -50,6 +52,8 @@ class ProcessHierarchy{
 
 //		virtual pcl::ProcessCommunicator
 //			create_cluster_communicator(size_t hlvl, size_t gridLvl, size_t numProcsPerProc);
+		void init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl,
+								size_t numProcsPerProc);
 
 	private:
 		std::vector<HLevelInfo>	m_levels;
@@ -96,12 +100,17 @@ class IPartitioner{
 		virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights) = 0;
 		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights) = 0;
 
-		virtual bool supports_balance_weights() = 0;
-		virtual bool supports_connection_weights() = 0;
+		virtual bool supports_balance_weights() const = 0;
+		virtual bool supports_connection_weights() const = 0;
 
-		virtual void partition(size_t baseLvl) = 0;
+		virtual void partition(size_t baseLvl, size_t elementThreshold) = 0;
 
 		virtual SubsetHandler& get_partitions() = 0;
+
+	///	returns the processes map. Updated during partitioning. may be NULL.
+	/**	If NULL is returned, this means that each subset index correspons to a
+	 * global proc-rank.*/
+		virtual const std::vector<int>* get_process_map() const = 0;
 };
 
 
@@ -148,7 +157,7 @@ class LoadBalancer{
 	/**	If distribution on a given level would lead to less elements per process
 	 * than the given threshold (in average), then no redistribution will be
 	 * performed on that level. Default is 1.*/
-		//virtual void set_element_threshold(size_t threshold);
+		virtual void set_element_threshold(size_t threshold);
 
 	///	performs load balancing if the balance is too bad or if a distribution level has been reached.
 	/**	The balance is calculated using the provieded BalanceWeights class. If
@@ -188,7 +197,7 @@ class LoadBalancer{
 		MultiGrid*			m_mg;
 		APos				m_aPos;
 		number				m_balanceThreshold;
-		//size_t				m_elementThreshold;
+		size_t				m_elementThreshold;
 		SPProcessHierarchy	m_processHierarchy;
 		SPPartitioner		m_partitioner;
 		SPBalanceWeights	m_balanceWeights;

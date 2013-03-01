@@ -81,14 +81,14 @@ set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
 
 template<int dim>
 bool Partitioner_Parmetis<dim>::
-supports_balance_weights()
+supports_balance_weights() const
 {
 	return true;
 }
 
 template<int dim>
 bool Partitioner_Parmetis<dim>::
-supports_connection_weights()
+supports_connection_weights() const
 {
 	return true;
 }
@@ -148,7 +148,7 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt)
 
 template<int dim>
 void Partitioner_Parmetis<dim>::
-partition(size_t baseLvl)
+partition(size_t baseLvl, size_t elementThreshold)
 {
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 
@@ -159,7 +159,7 @@ partition(size_t baseLvl)
 
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
-		m_sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
+		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
 
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
@@ -172,7 +172,6 @@ partition(size_t baseLvl)
 						(int)m_processHierarchy->grid_base_level(hlevel + 1) - 1);
 		}
 
-		UG_LOG("minLvl = " << minLvl << " and maxLvl = " << maxLvl << endl);
 		if(minLvl < (int)baseLvl)
 			minLvl = (int)baseLvl;
 
@@ -183,42 +182,49 @@ partition(size_t baseLvl)
 
 		if(numProcs <= 1){
 			for(int i = minLvl; i <= maxLvl; ++i)
-				m_sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
+				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
 			continue;
 		}
 
-		UG_LOG("calling accumulate_child_counts with minLvl = " << minLvl
-				<< " and maxLvl = " << maxLvl << endl);
 		accumulate_child_counts(minLvl, maxLvl, m_aNumChildren);
 
-	//	we have to find out how many of the target processes already contain a grid.
-	//	one could store this somewhere... for the moment we simply query all involved procs
-		UG_LOG("Creating process communicator with " << numProcs << " processes" << endl);
-		pcl::ProcessCommunicator procComAll = pcl::ProcessCommunicator::
-												create_communicator(0, numProcs);
+
+		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlevel);
 
 		if(procComAll.empty())
 			continue;
 
+	//	check whether there are enough elements to perform partitioning
+		if(elementThreshold > 0){
+			int numLocalElems = mg.num<elem_t>(minLvl);
+			int numGlobalElems = procComAll.allreduce(numLocalElems, PCL_RO_SUM);
+
+			if(numGlobalElems / numProcs < (int)elementThreshold){
+			//	we can't perform partitioning on this hierarchy level.
+			//	Simply assign all elements of this hierarchy level to the local proc.
+				for(int i = minLvl; i <= maxLvl; ++i)
+					m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
+				continue;
+			}
+		}
+
+	//	we have to find out how many of the target processes already contain a grid.
 		int gotGrid = 0;
 		if(mg.num<elem_t>(minLvl) > 0)
 			gotGrid = 1;
 
-		UG_LOG("gotGrid = " << gotGrid << endl);
 		int numProcsWithGrid = procComAll.allreduce(gotGrid, PCL_RO_SUM);
-		UG_LOG("numProcsWithGrid = " << numProcsWithGrid << endl);
 
 		if(numProcsWithGrid == 0)
 			continue;
 
-		UG_LOG("partitioning..." << endl);
 		if(numProcsWithGrid == 1){
 			partition_level_metis(minLvl, numProcs);
 		}
 		else{
 			partition_level_parmetis(minLvl, numProcs, procComAll);
 		}
-		UG_LOG("assigning partitions to children..." << endl);
+
 	//	assign partitions to all children in this hierarchy level
 		for(int lvl = minLvl; lvl < maxLvl; ++lvl){
 			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
@@ -410,6 +416,13 @@ SubsetHandler& Partitioner_Parmetis<dim>::
 get_partitions()
 {
 	return m_sh;
+}
+
+template<int dim>
+const std::vector<int>* Partitioner_Parmetis<dim>::
+get_process_map() const
+{
+	return NULL;
 }
 
 template class Partitioner_Parmetis<1>;

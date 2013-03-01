@@ -143,7 +143,9 @@ create_sub_communicator(vector<int> &newProcs) const
 	MPI_Comm commNew;
 
 	MPI_Comm_group(m_comm->m_mpiComm, &grpOld);
-	MPI_Group_incl(grpOld, (int)newProcs.size(), &newProcs.front(), &grpNew);
+	if(newProcs.size() > 0){
+		MPI_Group_incl(grpOld, (int)newProcs.size(), &newProcs.front(), &grpNew);
+	}
 	MPI_Comm_create(m_comm->m_mpiComm, grpNew, &commNew);
 
 //	create a new ProcessCommunicator

@@ -5,6 +5,7 @@
 #include "load_balancer.h"
 #include "load_balancer_util.h"
 #include "distribution.h"
+#include "partitioner_bisection.h"
 
 #ifdef UG_PARMETIS
 #include "partitioner_parmetis.h"
@@ -44,63 +45,89 @@ add_hierarchy_level(size_t gridLvl, size_t numProcsPerProc)
 		hlevel.numGlobalProcsInUse *= m_levels[curLvl - 1].numGlobalProcsInUse;
 	}
 	//hlevel.clusterCom = create_cluster_communicator(curLvl, gridLvl, numProcsPerProc);
+	hlevel.globalCom =  pcl::ProcessCommunicator::create_communicator(0, hlevel.numGlobalProcsInUse);
+	init_cluster_procs(hlevel.clusterProcs, curLvl, numProcsPerProc);
 }
 
-//pcl::ProcessCommunicator ProcessHierarchy::
-//create_cluster_communicator(size_t hlvl, size_t gridLvl, size_t numProcsPerProc)
-//{
-//	const HLevelInfo& parentLvl = get_hlevel_info(hlvl - 1);
-//
-//	if(pcl::GetProcRank() < (int)parentLvl.numGlobalProcsInUse)
-//		return pcl::ProcessCommunicator(pcl::PCD_EMPTY);
-//
-//	std::vector<int> procs;
-//	if(hlvl == 0){
-//		procs.resize(numProcsPerProc);
-//		for(size_t i = 0; i < numProcsPerProc; ++i){
-//			procs[i] = i;
-//		}
-//		return pcl::ProcessCommunicator::create_communicator(procs);
-//	}
-//
-//	if(numProcsPerProc == 1){
-//		return parentLvl.clusterCom;
-//	}
-//
-////	calculate the root process for this cluster and create the group based on rootProc
-//	int rootProc = pcl::GetProcRank() / (int)parentLvl.numGlobalProcsInUse;
-//
-//	procs.reserve(numProcsPerProc);
-//	procs.push_back(rootProc);
-//	int firstNewProc = (int)parentLvl.numGlobalProcsInUse + rootProc * ((int)numProcsPerProc - 1);
-//
-//	for(int i = 0; i < (int)numProcsPerProc - 1; ++i){
-//		procs.push_back(firstNewProc + i);
-//	}
-//
-//	return pcl::ProcessCommunicator::create_communicator(procs);
-//}
+/*
+pcl::ProcessCommunicator ProcessHierarchy::
+create_cluster_communicator(size_t hlvl, size_t gridLvl, size_t numProcsPerProc)
+{
+	if(hlvl == 0){
+		return pcl::ProcessCommunicator::create_communicator(0, numProcsPerProc);
+	}
+
+	const HLevelInfo& parentLvl = get_hlevel_info(hlvl - 1);
+
+	if(numProcsPerProc == 1){
+		return parentLvl.clusterCom;
+	}
+
+//	calculate the root process for this cluster and create the group based on rootProc
+	int rootProc = pcl::GetProcRank() / (int)parentLvl.numGlobalProcsInUse;
+
+	std::vector<int> procs;
+	procs.reserve(numProcsPerProc);
+	procs.push_back(rootProc);
+	int firstNewProc = (int)parentLvl.numGlobalProcsInUse + rootProc * ((int)numProcsPerProc - 1);
+
+	for(int i = 0; i < (int)numProcsPerProc - 1; ++i){
+		procs.push_back(firstNewProc + i);
+	}
+
+	return pcl::ProcessCommunicator::create_communicator(procs);
+}*/
+
+void ProcessHierarchy::
+init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl, size_t numProcsPerProc)
+{
+	clusterProcs.clear();
+	if(hlvl == 0){
+		clusterProcs.reserve(numProcsPerProc);
+		for(size_t i = 0; i < numProcsPerProc; ++i){
+			clusterProcs.push_back(i);
+		}
+		return;
+	}
+
+	const HLevelInfo& parentLvl = get_hlevel_info(hlvl - 1);
+
+	if(numProcsPerProc == 1){
+		clusterProcs = parentLvl.clusterProcs;
+		return;
+	}
+
+//	calculate the root process for this cluster and create the group based on rootProc
+	int rootProc = pcl::GetProcRank() / (int)parentLvl.numGlobalProcsInUse;
+
+	clusterProcs.push_back(rootProc);
+	int firstNewProc = (int)parentLvl.numGlobalProcsInUse + rootProc * ((int)numProcsPerProc - 1);
+
+	for(int i = 0; i < (int)numProcsPerProc - 1; ++i){
+		clusterProcs.push_back(firstNewProc + i);
+	}
+}
 
 size_t ProcessHierarchy::
-num_hierarchy_levels()
+num_hierarchy_levels() const
 {
 	return m_levels.size();
 }
 
 size_t ProcessHierarchy::
-num_global_procs_involved(size_t hierarchyLevel)
+num_global_procs_involved(size_t hierarchyLevel) const
 {
 	return get_hlevel_info(hierarchyLevel).numGlobalProcsInUse;
 }
 
 size_t ProcessHierarchy::
-grid_base_level(size_t hierarchyLevel)
+grid_base_level(size_t hierarchyLevel) const
 {
 	return get_hlevel_info(hierarchyLevel).gridLvl;
 }
 
 size_t ProcessHierarchy::
-hierarchy_level_from_grid_level(size_t gridLevel)
+hierarchy_level_from_grid_level(size_t gridLevel) const
 {
 	if(m_levels.empty()){
 		UG_THROW("No hierarchy levels exist.");
@@ -114,6 +141,18 @@ hierarchy_level_from_grid_level(size_t gridLevel)
 			return i;
 	}
 	return m_levels.size() - 1;
+}
+
+pcl::ProcessCommunicator ProcessHierarchy::
+global_proc_com(size_t hierarchyLevel) const
+{
+	return get_hlevel_info(hierarchyLevel).globalCom;
+}
+
+const std::vector<int>& ProcessHierarchy::
+cluster_procs(size_t hierarchyLevel) const
+{
+	return get_hlevel_info(hierarchyLevel).clusterProcs;
 }
 
 //pcl::ProcessCommunicator ProcessHierarchy::
@@ -131,20 +170,18 @@ LoadBalancer<dim>::
 LoadBalancer() :
 	m_mg(NULL),
 	m_balanceThreshold(0.9),
-	//m_elementThreshold(1),
+	m_elementThreshold(1),
 	m_createVerticalInterfaces(true)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_balanceWeights = SPBalanceWeights(new StdBalanceWeights<dim>);
 	m_connectionWeights = SPConnectionWeights(new StdConnectionWeights<dim>);
 
-//todo: add alternative partitioner (e.g. bisection)
+
 	#ifdef UG_PARMETIS
 		m_partitioner = SPPartitioner(new Partitioner_Parmetis<dim>);
 	#else
-		UG_THROW("ERROR IN LoadBalancer: Currently only a Parmetis partitioner is"
-				" available. Please compile ug with Parmetis support or add a new"
-				" partitioner to ug's codebase (will hopefully be done soon...)");
+		m_partitioner = SPPartitioner(new Partitioner_Bisection<dim>);
 	#endif
 }
 
@@ -204,12 +241,12 @@ set_balance_threshold(number threshold)
 	m_balanceThreshold = threshold;
 }
 
-//template<int dim>
-//void LoadBalancer<dim>::
-//set_element_threshold(size_t threshold)
-//{
-//	m_elementThreshold = threshold;
-//}
+template<int dim>
+void LoadBalancer<dim>::
+set_element_threshold(size_t threshold)
+{
+	m_elementThreshold = threshold;
+}
 
 template<int dim>
 void LoadBalancer<dim>::
@@ -229,7 +266,7 @@ rebalance()
 //todo:	check imbalance and find base-level on which to partition!
 	m_balanceWeights->refresh_weights(0);
 	m_connectionWeights->refresh_weights(0);
-	m_partitioner->partition(0);
+	m_partitioner->partition(0, m_elementThreshold);
 
 	SubsetHandler& sh = m_partitioner->get_partitions();
 	if(sh.num<elem_t>() != m_mg->num<elem_t>()){
@@ -237,8 +274,10 @@ rebalance()
 				 << "Please check your partitioner!");
 	}
 
-	if(!DistributeGrid(*m_mg, sh, m_serializer,
-					   m_serializer, m_createVerticalInterfaces))
+	const std::vector<int>* procMap = m_partitioner->get_process_map();
+
+	if(!DistributeGrid(*m_mg, sh, m_serializer, m_serializer,
+					   m_createVerticalInterfaces, procMap))
 	{
 		UG_THROW("DistributeGrid failed!");
 	}

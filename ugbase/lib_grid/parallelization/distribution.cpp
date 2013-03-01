@@ -975,7 +975,7 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 
 ////////////////////////////////////////////////////////////////////////////////
 static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector& msel,
-						DistInfoSupplier& distInfos, std::vector<int>* processMap,
+						DistInfoSupplier& distInfos, const std::vector<int>* processMap,
 						const pcl::ProcessCommunicator& procComm,
 						bool createVerticalInterfaces)
 {
@@ -1317,7 +1317,7 @@ bool DistributeGrid(MultiGrid& mg,
 					GridDataSerializationHandler& serializer,
 					GridDataSerializationHandler& deserializer,
 					bool createVerticalInterfaces,
-					std::vector<int>* processMap,
+					const std::vector<int>* processMap,
 					const pcl::ProcessCommunicator& procComm)
 {
 	UG_STATIC_ASSERT(IS_DUMMY < 256, RedistributeGrid_IS_DUMMY_too_big);
