@@ -216,7 +216,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("ActiveSet").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
-			.add_method("set_constraint", &T::set_constraint, "", "setConstraint")
+			.add_method("set_constraint", &T::set_constraint, "", "constraint")
 			.add_method("prepare", &T::prepare, "", "prepare")
 			.add_method("active_index", &T::active_index, "", "is index active or not, stores activeSetList")
 			.add_method("comp_lambda", &T::comp_lambda, "", "complementary function computed")
@@ -225,8 +225,8 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ActiveSet", tag);
 	}
-
 }
+
 }; // end Functionality
 }// end Solver
 

@@ -16,19 +16,20 @@ template <typename TAlgebra>
 ActiveSet<TAlgebra>::ActiveSet() : m_bCons(false)
 {};
 
+
 template <typename TAlgebra>
 void ActiveSet<TAlgebra>::prepare(vector_type& u)
 {
 	m_vActiveSet.resize(0); m_vActiveSetOld.resize(0);
-
-	if(!m_bCons)
-		UG_THROW("No constraint set in ActiveSet \n");
 }
 
 template <typename TAlgebra>
 bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 		vector_type& lambda)
 {
+	if(!m_bCons)
+		UG_THROW("No constraint set in ActiveSet \n");
+
 	//	remember old ActiveSet for convergence check
 	//	TODO: avoid this vector copy; m_vActiveSetOld really necessary?
 	m_vActiveSetOld = m_vActiveSet;
@@ -47,6 +48,7 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 
 	for(size_t i = 0; i < u.size(); i++)
 	{
+		//	TODO: consider blocks here!
 		complementaryVal[0] = lambda[i] + u[i] - m_ConsVec[i];
 		if (complementaryVal[0] <= 0.0)
 		{

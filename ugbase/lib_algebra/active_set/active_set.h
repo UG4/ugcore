@@ -45,11 +45,11 @@ class ActiveSet
 		bool check_conv(vector_type& u, size_t step);
 
 	private:
-		// vector describing a constraint
+		/// vector describing a constraint
 		vector_type m_ConsVec;
 		bool m_bCons;
 
-		//	vector remembering the active set of DoFs
+		///	vector remembering the active set of DoFs
 		vector<size_t> m_vActiveSet;
 		vector<size_t> m_vActiveSetOld;
 };
