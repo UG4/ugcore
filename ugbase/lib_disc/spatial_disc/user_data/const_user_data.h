@@ -12,154 +12,9 @@
 #include "common/math/ugmath.h"
 
 #include "lib_disc/spatial_disc/user_data/user_data.h"
+#include "std/std_const_data.h"
 
 namespace ug {
-
-///////////////////////////////////////////////////////////////////////////////
-// Base class for Constant UserData
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * This class is a base class for all Constant user data. The data thus does not
- * depend neither on space, time or subset nor on the a computed solution.
- * In order to use the interface, the deriving class must implement the method:
- *
- * inline TRet evaluate(TData& data) const
- *
- */
-template <typename TImpl, typename TData, int dim, typename TRet = void>
-class StdConstUserData
-	: 	public UserData<TData,dim,TRet>
-{
-	public:
-		////////////////
-		// one value
-		////////////////
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si) const
-		{
-			getImpl().evaluate(value);
-		}
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<1>& locIP) const
-		{
-			getImpl().evaluate(value);
-		}
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<2>& locIP) const
-		{
-			getImpl().evaluate(value);
-		}
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<3>& locIP) const
-		{
-			getImpl().evaluate(value);
-		}
-
-		////////////////
-		// vector of values
-		////////////////
-		virtual void operator() (TData vValue[],
-		                         const MathVector<dim> vGlobIP[],
-		                         number time, int si, const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				getImpl().evaluate(vValue[ip]);
-		}
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<1> vLocIP[],
-		                        const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				getImpl().evaluate(vValue[ip]);
-		}
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<2> vLocIP[],
-		                        const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				getImpl().evaluate(vValue[ip]);
-		}
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<3> vLocIP[],
-		                        const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				getImpl().evaluate(vValue[ip]);
-		}
-
-		////////////////
-		// compute
-		////////////////
-
-	///	implement as a UserData
-		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
-		{
-			for(size_t s = 0; s < this->num_series(); ++s)
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-					getImpl().evaluate(this->value(s,ip));
-		}
-
-	///	callback, invoked when data storage changed
-		virtual void value_storage_changed(const size_t seriesID)
-		{
-			for(size_t ip = 0; ip < this->num_ip(seriesID); ++ip)
-				getImpl().evaluate(this->value(seriesID,ip));
-		}
-
-	///	returns if data is constant
-		virtual bool constant() const {return true;}
-
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return false;}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const {return true;}
-
-	protected:
-	///	access to implementation
-		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
-
-	///	const access to implementation
-		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Constant UserData
@@ -180,7 +35,7 @@ class StdConstUserData
 /// constant scalar user data
 template <int dim>
 class ConstUserNumber
-	: public StdConstUserData<ConstUserNumber<dim>, number, dim>
+	: public StdConstData<ConstUserNumber<dim>, number, dim>
 {
 	public:
 	///	creates empty user number
@@ -211,7 +66,7 @@ class ConstUserNumber
  */
 template <int dim, int worldDim = dim>
 class ConstUserVector
-	: public StdConstUserData<ConstUserVector<dim, worldDim>, MathVector<dim>, worldDim>
+	: public StdConstData<ConstUserVector<dim, worldDim>, MathVector<dim>, worldDim>
 {
 	public:
 	///	Constructor: no arguments, zero entries
@@ -256,7 +111,7 @@ class ConstUserVector
  */
 template <int N, int M = N, int worldDim = N>
 class ConstUserMatrix
-	: public StdConstUserData<ConstUserMatrix<N, M, worldDim>, MathMatrix<N, M>, worldDim>
+	: public StdConstData<ConstUserMatrix<N, M, worldDim>, MathMatrix<N, M>, worldDim>
 {
 	public:
 	///	Constructor
@@ -302,7 +157,7 @@ class ConstUserMatrix
 /// constant tensor user data
 template <int TRank, int dim>
 class ConstUserTensor
-	: public StdConstUserData<ConstUserTensor<TRank,dim>, MathTensor<TRank, dim>, dim>
+	: public StdConstData<ConstUserTensor<TRank,dim>, MathTensor<TRank, dim>, dim>
 {
 	public:
 	///	Constructor

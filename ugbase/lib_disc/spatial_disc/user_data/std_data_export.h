@@ -11,6 +11,7 @@
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "std/std_export_data.h"
 
 namespace ug{
 
