@@ -30,6 +30,7 @@
 #include "lib_disc/operator/non_linear_operator/nl_gauss_seidel/nl_gauss_seidel.h"
 #include "lib_disc/operator/non_linear_operator/nl_jacobi/nl_jacobi.h"
 #include "lib_disc/operator/convergence_check.h"
+#include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
 
 using namespace std;
 
@@ -247,6 +248,16 @@ static void Algebra(Registry& reg, string parentGroup)
 			.add_method("init", &T::init)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AssembledOperator", tag);
+	}
+
+
+//	ILocalToGlobalMapper
+	{
+		std::string grp = parentGroup; grp.append("/Discretization/SpatialDisc");
+		typedef ILocalToGlobalMapper<TAlgebra> T;
+		string name = string("ILocalToGlobalMapper").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "ILocalToGlobalMapper", tag);
 	}
 
 //	some functions
