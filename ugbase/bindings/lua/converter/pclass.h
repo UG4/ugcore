@@ -43,7 +43,7 @@ public:
     enum eReturnType
     {
         RT_SUBFUNCTION, RT_DIFFUSION, RT_VELOCITY, RT_CALLBACK, RT_DIRICHLET, 
-        RT_SOURCE
+        RT_SOURCE, RT_NEUMANN
     };
     eReturnType returnType;
 public:

@@ -160,7 +160,7 @@ int pclass::createC(nodeType *p, ostream &out, int indent)
                     
 				case 'R':
 				{
-					if(returnType == RT_SUBFUNCTION)
+					if(returnType == RT_SUBFUNCTION || returnType == RT_NEUMANN)
                     {
                         nodeType *a = p->opr.op[0];
                         if(a->type == typeOpr && a->opr.oper == ',')
@@ -570,7 +570,7 @@ int pclass::addfunctionC(string name, set<string> &knownFunctions, stringstream 
     
     if(parser.num_out() != 1)
     {
-        UG_LOG("error in subfunction " << name << ": subfunction must have exactly one return value (not " << parser.num_out() << ")\n");
+        UG_LOG("ERROR in LUA2C for LUA function " << name << ":  subfunction must have exactly one return value (not " << parser.num_out() << ")\n");
         return false;
     }
     
@@ -592,12 +592,13 @@ int pclass::createJITSG(ostream &out, eReturnType r, set<string> &subfunctions)
         case RT_DIRICHLET: numRet = 1; break;
         case RT_SOURCE: numRet = 1; break;
         case RT_DIFFUSION: numRet = 4; break;
-        case RT_VELOCITY: numRet = 2; break;
+		case RT_VELOCITY: numRet = 2; break;
+		case RT_NEUMANN: numRet = 1; break;
         default: UG_ASSERT(0,"");
     }
     if(num_out() != numRet)
     {
-        UG_LOG("number of return values must be " << numRet << ", not " << num_out() << "\n");
+        UG_LOG("ERROR in LUA2C for LUA function " << name << ": number of return values must be " << numRet << ", not " << num_out() << "\n");
         return false;
     }
     out << "// INSERTED CODE:";	    
@@ -638,6 +639,7 @@ int pclass::createJITSG(ostream &out, eReturnType r, set<string> &subfunctions)
         case RT_SOURCE: out << "sourceReturn:\n"; break;
         case RT_DIFFUSION: out << "diffusionReturn:\n"; break;
         case RT_VELOCITY: out << "velocityReturn:\n"; break;
+		case RT_NEUMANN: out << "return false;"; break; // necessary?
 		default: UG_ASSERT(0,"?");
 	}    
 	out << ";\n";
