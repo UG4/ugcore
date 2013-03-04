@@ -14,6 +14,7 @@
 #include <jni.h>
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/std/std_pos_data.h"
+#include "lib_disc/spatial_disc/user_data/std/std_linker_data.h"
 #include "lib_disc/spatial_disc/user_data/data_linker.h"
 #include "lib_disc/spatial_disc/user_data/data_linker_traits.h"
 
