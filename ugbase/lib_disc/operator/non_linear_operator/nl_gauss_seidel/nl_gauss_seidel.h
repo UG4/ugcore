@@ -17,8 +17,42 @@
 // modul intern headers
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/operator/non_linear_operator/assembled_non_linear_operator.h"
+#include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
 
 namespace ug {
+
+template <typename TAlgebra>
+class LocalToGlobalMapper_NL_GS : public ILocalToGlobalMapper<TAlgebra>
+{
+	public:
+	///	Algebra type
+		typedef TAlgebra algebra_type;
+
+	///	Type of algebra matrix
+		typedef typename algebra_type::matrix_type matrix_type;
+
+	///	Type of algebra vector
+		typedef typename algebra_type::vector_type vector_type;
+
+	public:
+	///	default constructor
+		LocalToGlobalMapper_NL_GS() {m_assIndex = 0;}
+
+	///	adds a local vector to the global one
+		void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd);
+
+	///	adds a local matrix to the global one
+		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd);
+
+	/// sets assemble index
+		void set_ass_index(const size_t assIndex){ m_assIndex = assIndex;}
+
+	///	destructor
+		~LocalToGlobalMapper_NL_GS() {};
+
+	private:
+		size_t m_assIndex;
+};
 
 template <typename TDomain, typename TAlgebra>
 class NLGaussSeidelSolver
@@ -67,6 +101,7 @@ class NLGaussSeidelSolver
 		{m_spApproxSpace = spApproxSpace;}
 		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 		void set_damp(number damp) {m_damp = damp;}
+		void set_obstacle_constraint(vector_type& obs) {m_obsVec = obs; m_bObs = true;}
 
 		/// This operator inverts the Operator N: Y -> X
 		virtual bool init(SmartPtr<IOperator<vector_type> > N);
@@ -107,6 +142,9 @@ class NLGaussSeidelSolver
 
 		number m_damp;
 
+		vector_type m_obsVec;
+		bool m_bObs;
+
 		///	call counter
 		int m_dgbCall;
 
@@ -129,6 +167,8 @@ class NLGaussSeidelSolver
 
 		///	selector of elements with contributions to a specific DoF
 		Selector m_sel;
+
+		LocalToGlobalMapper_NL_GS<TAlgebra> m_map;
 };
 
 }

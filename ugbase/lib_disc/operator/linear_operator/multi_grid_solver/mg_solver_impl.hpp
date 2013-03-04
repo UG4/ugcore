@@ -1208,6 +1208,9 @@ init_level_operator()
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_linear_level_operator\n");
 
+//	get assemble adapter
+	AssAdapter<TAlgebra>& assAdapt = m_spAss->get_ass_adapter();
+
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
@@ -1221,7 +1224,7 @@ init_level_operator()
 		{
 		//	set this selector to the assembling, such that only those elements
 		//	will be assembled and force grid to be considered as regular
-			m_spAss->set_marker(&m_NonGhostMarker);
+			assAdapt.set_marker(&m_NonGhostMarker);
 			m_spAss->force_regular_grid(true);
 
 		//	init level operator
@@ -1233,7 +1236,7 @@ init_level_operator()
 
 		//	remove force flag
 			m_spAss->force_regular_grid(false);
-			m_spAss->set_marker(NULL);
+			assAdapt.set_marker(NULL);
 
 		//	copy the matrix into a new (smaller) one
 			SmartPtr<matrix_type> mat = m_vLevData[lev]->spLevMat;
@@ -1909,6 +1912,9 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 //	get the surface view
 	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 
+//	get the assemble adapter
+	AssAdapter<TAlgebra>& assAdapt = m_spAss->get_ass_adapter();
+
 //	create storage for matrices on the grid levels
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
@@ -1953,7 +1959,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled
-		m_spAss->set_marker(&sel);
+		assAdapt.set_marker(&sel);
 
 	//	create a surface matrix
 		matrix_type surfMat;
@@ -1975,7 +1981,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		write_surface_debug(surfMat, ss.str().c_str());
 
 	//	remove the selector from the assembling procedure
-		m_spAss->set_marker(NULL);
+		assAdapt.set_marker(NULL);
 
 	//	project
 		try{

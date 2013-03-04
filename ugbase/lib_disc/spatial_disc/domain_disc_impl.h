@@ -74,12 +74,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	M.resize(0,0);
-	if (m_AssAdapter.assIndex.index_set){M.resize(1, 1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		M.resize(numIndex, numIndex);
-	}
+	m_AssAdapter.resize(dd, M);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -154,7 +149,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_jacobian(M, u, dd->grid_level());
@@ -185,12 +180,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	A.resize(0,0);
-	if (m_AssAdapter.assIndex.index_set){A.resize(1, 1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		A.resize(numIndex, numIndex);
-	}
+	m_AssAdapter.resize(dd, A);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -265,7 +255,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_jacobian(A, u, dd->grid_level());
@@ -303,12 +293,7 @@ assemble_jacobian(matrix_type& J,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	J.resize(0,0);
-	if (m_AssAdapter.assIndex.index_set){J.resize(1, 1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		J.resize(numIndex, numIndex);
-	}
+	m_AssAdapter.resize(dd, J);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -383,7 +368,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_jacobian(J, u, dd->grid_level());
@@ -415,12 +400,7 @@ assemble_defect(vector_type& d,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	if (m_AssAdapter.assIndex.index_set){d.resize(1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		d.resize(numIndex);
-	}
-	d.set(0.0);
+	m_AssAdapter.resize(dd, d);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -495,7 +475,7 @@ assemble_defect(vector_type& d,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_defect(d, u, dd->grid_level());
@@ -522,14 +502,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	mat.resize(0,0);
-	if (m_AssAdapter.assIndex.index_set){mat.resize(1, 1); rhs.resize(1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		mat.resize(numIndex, numIndex);
-		rhs.resize(numIndex);
-	}
-	rhs.set(0.0);
+	m_AssAdapter.resize(dd, mat);
+	m_AssAdapter.resize(dd, rhs);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -604,7 +578,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level());
@@ -635,12 +609,7 @@ assemble_rhs(vector_type& rhs,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	if (m_AssAdapter.assIndex.index_set){rhs.resize(1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		rhs.resize(numIndex);
-	}
-	rhs.set(0.0);
+	m_AssAdapter.resize(dd, rhs);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -715,7 +684,7 @@ assemble_rhs(vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index, true);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index, true);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_rhs(rhs, u, dd->grid_level());
@@ -755,7 +724,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 	vType[1] = CT_CONSTRAINTS;
 
 	// if assembling is carried out at one DoF only, u needs to be resized
-	if (m_AssAdapter.assIndex.index_set) u.resize(1);
+	if (m_AssAdapter.m_assIndex.index_set) u.resize(1);
 
 	try{
 //	constraints
@@ -766,7 +735,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_solution(u, dd->grid_level());
@@ -784,7 +753,6 @@ void DomainDiscretization<TDomain, TAlgebra>::
 adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
 		vector_type& val, ConstSmartPtr<DoFDistribution> dd)
 {
-	//	STILL IN PROGRESS
 	std::vector<size_t>::iterator iter;
 
 	for (iter = indexList.begin(); iter < indexList.end(); ++iter)
@@ -794,10 +762,9 @@ adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& index
 		{
 			//	set dirichlet row
 			SetDirichletRow(mat, *iter, alpha);
-			//	set dirichlet value in rhs
-			BlockRef(rhs[*iter], alpha) = 1.0/9.0; //TODO: val[*iter]
 		}
-
+		//	set dirichlet value in rhs
+		rhs[*iter] = val[*iter];
 	}
 }
 
@@ -901,12 +868,7 @@ assemble_jacobian(matrix_type& J,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	J.resize(0,0);
-	if (m_AssAdapter.assIndex.index_set){J.resize(1, 1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		J.resize(numIndex, numIndex);
-	}
+	m_AssAdapter.resize(dd, J);
 
 //	get current time
 	const number time = vSol->time(0);
@@ -984,7 +946,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd->grid_level(), time);
@@ -1016,13 +978,8 @@ assemble_defect(vector_type& d,
 //	update the elem discs
 	update_disc_items();
 
-//	reset matrix to zero and resize
-	if (m_AssAdapter.assIndex.index_set){d.resize(1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		d.resize(numIndex);
-	}
-	d.set(0.0);
+//	reset vector to zero and resize
+	m_AssAdapter.resize(dd, d);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1097,8 +1054,10 @@ assemble_defect(vector_type& d,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
+
+				//m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 
 				m_vConstraint[i]->adjust_defect(d, *vSol->solution(0), dd->grid_level(), vSol->time(0));
 			}
@@ -1127,14 +1086,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 	update_disc_items();
 
 //	reset matrix to zero and resize
-	mat.resize(0,0);
-	if (m_AssAdapter.assIndex.index_set){mat.resize(1,1); rhs.resize(1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		mat.resize(numIndex, numIndex);
-		rhs.resize(numIndex);
-	}
-	rhs.set(0.0);
+	m_AssAdapter.resize(dd, mat);
+	m_AssAdapter.resize(dd, rhs);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1210,7 +1163,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level(), vSol->time(0));
@@ -1243,13 +1196,8 @@ assemble_rhs(vector_type& rhs,
 //	update the elem discs
 	update_disc_items();
 
-//	reset matrix to zero and resize
-	if (m_AssAdapter.assIndex.index_set){rhs.resize(1);}
-	else{
-		const size_t numIndex = dd->num_indices();
-		rhs.resize(numIndex);
-	}
-	rhs.set(0.0);
+//	reset vector to zero and resize
+	m_AssAdapter.resize(dd, rhs);
 
 //	Union of Subsets
 	SubsetGroup unionSubsets;
@@ -1325,7 +1273,7 @@ assemble_rhs(vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd->grid_level(), vSol->time(0));
@@ -1356,7 +1304,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 	vType[1] = CT_CONSTRAINTS;
 
 	// if assembling is carried out at one DoF only, u needs to be resized
-	if (m_AssAdapter.assIndex.index_set) u.resize(1);
+	if (m_AssAdapter.m_assIndex.index_set) u.resize(1);
 
 	try{
 
@@ -1368,7 +1316,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 			if(m_vConstraint[i]->type() & type)
 			{
 				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.assIndex.index);
+				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
 					else m_vConstraint[i]->set_ass_index();
 
 				m_vConstraint[i]->adjust_solution(u, dd->grid_level(), time);
@@ -1385,7 +1333,6 @@ void DomainDiscretization<TDomain, TAlgebra>::
 adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
 		vector_type& val, number time, ConstSmartPtr<DoFDistribution> dd)
 {
-	//	STILL IN PROGRESS
 	//	TODO: is the time-variable necessary here? Or is it possible to use
 	//	the stationary version solely?
 	std::vector<size_t>::iterator iter;
@@ -1397,11 +1344,9 @@ adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& index
 		{
 			//	set dirichlet row
 			SetDirichletRow(mat, *iter, alpha);
-			//	set dirichlet value in rhs
-			//	TODO: use val-vector here to set the dirichlet values
-			BlockRef(rhs[*iter], alpha) = 0.0;
 		}
-
+		//	set dirichlet value in rhs
+		rhs[*iter] = val[*iter];
 	}
 }
 

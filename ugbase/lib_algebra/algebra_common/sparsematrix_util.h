@@ -531,6 +531,7 @@ void SetDirichletRow(T &A, size_t i, size_t alpha)
 	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 	{
 		typename T::value_type& block = conn.value();
+		// block : 1x1 (CPU=1), 3x3 (CPU=3)
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
 		{
 			if(conn.index() != i) BlockRef(block, alpha, beta) = 0.0;
@@ -599,13 +600,23 @@ void SetDirichletRow(T& A, const std::vector<size_t> vIndex)
  * \param alpha the alpha index
  */
 template <typename T>
-void SetDirichletIndex(T &A, size_t i, size_t alpha, size_t assInd)
+void SetDirichletIndex(typename T::value_type& block, size_t i, size_t alpha, size_t assInd)
 {
-	UG_ASSERT(A.num_rows() == 1, "#rows needs to be 1 in SetDirichletIndex.");
-	UG_ASSERT(A.num_cols() == 1, "#cols needs to be 1 in SetDirichletIndex.");
-
 	if(i == assInd)
-		BlockRef(A(0,0), alpha, alpha) = 1.0;
+	{
+		block = 1.0;
+		UG_LOG("block: " << block << "\n");
+	}
+}
+
+template <typename T>
+void SetDirichletIndex(T& A, size_t i, size_t alpha, size_t assInd)
+{
+	if(i == assInd)
+	{
+		A(0,0) = 1.0;
+		UG_LOG("A(0,0): " << A(0,0) << "\n");
+	}
 }
 
 template<typename T, class TOStream>

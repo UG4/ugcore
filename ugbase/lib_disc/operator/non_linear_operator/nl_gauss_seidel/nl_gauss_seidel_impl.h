@@ -53,6 +53,53 @@
 
 namespace ug{
 
+
+template <typename TAlgebra>
+void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
+{
+	const LocalIndices& ind = lvec.get_indices();
+
+	for(size_t fct=0; fct < lvec.num_all_fct(); ++fct)
+		for(size_t dof=0; dof < lvec.num_all_dof(fct); ++dof)
+		{
+			const size_t index = ind.index(fct,dof);
+			if (index == m_assIndex)
+			{
+				const size_t comp = ind.comp(fct,dof);
+				BlockRef(vec[0], comp) += lvec.value(fct,dof);
+			}
+
+		}
+}
+
+template <typename TAlgebra>
+void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
+{
+	const LocalIndices& rowInd = lmat.get_row_indices();
+	const LocalIndices& colInd = lmat.get_col_indices();
+
+	for(size_t fct1=0; fct1 < lmat.num_all_row_fct(); ++fct1)
+		for(size_t dof1=0; dof1 < lmat.num_all_row_dof(fct1); ++dof1)
+		{
+			const size_t rowIndex = rowInd.index(fct1,dof1);
+			if (rowIndex != m_assIndex)
+				continue;
+
+			const size_t rowComp = rowInd.comp(fct1,dof1);
+			for(size_t fct2=0; fct2 < lmat.num_all_col_fct(); ++fct2)
+				for(size_t dof2=0; dof2 < lmat.num_all_col_dof(fct2); ++dof2)
+				{
+					const size_t colIndex = colInd.index(fct2,dof2);
+					if (colIndex == m_assIndex)
+					{
+						const size_t colComp = colInd.comp(fct2,dof2);
+						BlockRef(mat(0, 0), rowComp, colComp)
+									+= lmat.value(fct1,dof1,fct2,dof2);
+					}
+				}
+		}
+}
+
 template <typename TDomain, typename TAlgebra>
 NLGaussSeidelSolver<TDomain, TAlgebra>::
 NLGaussSeidelSolver(SmartPtr<approx_space_type> spApproxSpace,
@@ -110,6 +157,9 @@ init(SmartPtr<IOperator<vector_type> > N)
 		m_spSurfDD = m_spApproxSpace->surface_dof_distribution(m_gridLevel.level());
 	else
 		UG_THROW("Grid Level not recognized.");
+
+	//	set specific LocalToGlobalMapping
+	//m_spMapping =
 
 	/*TDomain& dom = *m_spApproxSpace->domain();
 	typename TDomain::grid_type& grid = *dom.grid();
@@ -268,9 +318,14 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 	matrix_type& J_block = m_J_block->get_matrix();
 
+	AssAdapter<TAlgebra>& assAdapt = m_spAss->get_ass_adapter();
+
 	//	loop iteration
 	while(!m_spConvCheck->iteration_ended())
 	{
+		//bool active_set_changed = false;
+		assAdapt.set_mapping(&m_map);
+
 		//	loop all DoFs
 		for (size_t i = 0; i < u.size(); i++)
 		{
@@ -283,9 +338,11 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 			//	by passing the selector to the assembling the assemble operators
 			//	are build up only by looping over the elements which has been selected
-			m_spAss->set_selector(&m_sel);
+			assAdapt.set_selector(&m_sel);
+
 			//	assemble only with respect to DoF i (causes resizing of matrices/vectors)
-			m_spAss->ass_index(i);
+			assAdapt.set_ass_index(i);
+			m_map.set_ass_index(i);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
@@ -312,13 +369,52 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 				InverseMatMult(m_c_block[0], m_damp, J_block(0,0) , m_d_block[0]);
 			NL_GAUSSSEIDEL_PROFILE_END();
 
+			/*if (m_bObs)
+			{
+				std::vector<size_t> active_set;
+				vector_type diff;
+				diff.resize(0);
+				diff.resize(1);
+				diff[0] = u[i] - m_obsVec[i];
+
+				bool penetrate = false;
+				//	loop fcts
+				if (diff[0] > 0)
+				{
+					bool DoF_is_in_activeSet = false;
+					penetrate = true;
+
+					std::vector<size_t>::iterator iter;
+
+					//	adds DoF i to active_set
+					for (iter = active_set.begin(); iter != active_set.end(); ++iter)
+						if (*iter == i)
+							DoF_is_in_activeSet = true;
+
+					if (!DoF_is_in_activeSet)
+					{
+						active_set.push_back(i);
+						active_set_changed = true;
+					}
+				}
+
+				if (penetrate)
+					m_c_block[0] = 0.0;
+			}*/
+
 			// 	update i-th block of solution
 			u[i] -= m_c_block[0];
+
 		}
 
-		//	set selector and ass_index to NULL
-		m_spAss->set_selector();
-		m_spAss->ass_index();
+		//	if active set not changed, iteration converged!
+	//	if (!active_set_changed)
+		//	break;
+
+		//	set mapping, selector and ass_index to NULL
+		assAdapt.set_mapping();
+		assAdapt.set_selector();
+		assAdapt.set_ass_index();
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
 		m_N->prepare(u);

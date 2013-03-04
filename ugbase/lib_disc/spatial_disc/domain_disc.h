@@ -59,11 +59,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 			m_spApproxSpace(pApproxSpace), m_bForceRegGrid(false),
 			m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
 			m_AssAdapter()
-		{
-			m_AssAdapter.pBoolMarker = NULL;
-			m_AssAdapter.pSelector = NULL;
-			m_AssAdapter.assIndex.index_set = false;
-		};
+		{};
 
 		virtual ~DomainDiscretization() {};
 
@@ -247,45 +243,9 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 
 	///	enables boundary elem discs
 		virtual void enable_elem_discs(int bEnableTypes) {m_ElemTypesEnabled = bEnableTypes;}
-
-	///	sets a marker to exclude elements from assembling
-	/**
-	 * This methods sets a marker. Only elements that are marked will be
-	 * assembled during assembling process. If no marker is set, this
-	 * corresponds to a marker where all elements have been marked.
-	 *
-	 * \param[in]	mark	BoolMarker
-	 */
-	virtual void set_marker(BoolMarker* mark = NULL){m_AssAdapter.pBoolMarker = mark;}
-
-	///	sets a selector of elements for assembling
-	/**
-	 * This methods sets an element list. Only elements of this list will be
-	 * assembled during assembling process. Especially the list defines the begin
-	 * and end of the element-iterator in the element assembling-loop.
-	 * If no element list is set, this corresponds to a assembling where the loop is
-	 * carried out over all elements of a subset.
-	 *
-	 * \param[in]	sel		Selector
-	 */
-	virtual void set_selector(Selector* sel = NULL){
-		m_AssAdapter.pSelector = sel;}
-
-	///	sets an index for which the assembling should be carried out
-	/**
-	 * This methods sets a boolean if an index-wise assemble routine should be used.
-	 * This proceeding is e.g. useful for a nonlinear Gauss-Seidel or nonlinear
-	 * Jacobi solver. The specific index is passed to the domain discretization.
-	 *
-	 * \param[in]	ind			size_t
-	 * \param[in]	index_set	bool
-	 */
-	virtual void ass_index(){ ass_index(0, false);}
-	virtual void ass_index(size_t ind, bool index_set = true)
-	{
-		m_AssAdapter.assIndex.index = ind; m_AssAdapter.assIndex.index_set = index_set;
-	}
 	
+		virtual AssAdapter<TAlgebra>& get_ass_adapter() {return m_AssAdapter;}
+
 	public:
 	/// adds an element discretization to the assembling process
 	/**
@@ -386,7 +346,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		int m_ElemTypesEnabled;
 		
 	///	this object provides tools to adapt the assemble routine
-		AssAdapter m_AssAdapter;
+		AssAdapter<TAlgebra> m_AssAdapter;
 };
 
 /// @}

@@ -18,12 +18,10 @@
 
 namespace ug{
 
-
 /// interface for definition of special LocalToGlobal mappings
 /**
  * \tparam	TAlgebra			type of Algebra
  */
-
 template <typename TAlgebra>
 class ILocalToGlobalMapper
 {
@@ -42,15 +40,14 @@ class ILocalToGlobalMapper
 		ILocalToGlobalMapper() {}
 
 	///	send local entries to global matrix
-		virtual void AddLocalMatrixToGlobal(ConstSmartPtr<DoFDistribution> dd,
-				matrix_type& mat, const LocalMatrix& lmat) = 0;
+		virtual void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	send local entries to global rhs
-		virtual void AddLocalVector(ConstSmartPtr<DoFDistribution> dd,
-				vector_type& vec, const LocalVector& lvec) = 0;
+		virtual void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 	///	virtual destructor
 		virtual ~ILocalToGlobalMapper() {};
+
 };
 
 

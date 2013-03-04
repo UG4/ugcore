@@ -136,6 +136,9 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
+	///	temporarily use of assemble index type (will be removed!)
+		typedef typename AssAdapter<TAlgebra>::AssIndex assIndex_type;
+
 	public:
 		using IConstraint<TAlgebra>::adjust_jacobian;
 		using IConstraint<TAlgebra>::adjust_defect;
@@ -160,14 +163,6 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		ConstSmartPtr<ApproximationSpace<TDomain> > approximation_space() const
 		{
 			return m_spApproxSpace;
-		}
-
-	///	sets the assemble index for index-wise assemble routine
-		virtual void set_ass_index(){set_ass_index(0, false);}
-		virtual void set_ass_index(size_t ind, bool index_set = true)
-		{
-			m_AssIndex.index_set = index_set;
-			m_AssIndex.index = ind;
 		}
 
 	///	adapts jacobian to enforce constraints
@@ -208,6 +203,14 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 	///	returns the type of constraints
 		virtual int type() const = 0;
 
+	///	sets the assemble index for index-wise assemble routine
+		void set_ass_index(){set_ass_index(0, false);}
+		void set_ass_index(size_t ind, bool index_set = true)
+		{
+			m_AssIndex.index_set = index_set;
+			m_AssIndex.index = ind;
+		}
+
 	protected:
 	///	returns the level dof distribution
 		ConstSmartPtr<DoFDistribution> dd(const GridLevel& gl) const
@@ -220,7 +223,7 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 	///	Assemble index
-		AssIndex m_AssIndex;
+		assIndex_type m_AssIndex;
 };
 
 } // end namespace ug

@@ -55,11 +55,9 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	 * \param[in] dd	Domain Discretization
 	 */
 		ITimeDiscretization(SmartPtr<IDomainDiscretization<TAlgebra> > spDD)
-			: m_spDomDisc(spDD)
+			: m_spDomDisc(spDD), m_pAssAdapter(NULL)
 		{
-			m_AssAdapter.pBoolMarker = NULL;
-			m_AssAdapter.pSelector = NULL;
-			m_AssAdapter.assIndex.index_set = false;
+			m_pAssAdapter = &get_ass_adapter();
 		}
 
 	/// prepares the assembling of Defect/Jacobian for a time step
@@ -162,47 +160,6 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 			m_spDomDisc->enable_elem_discs(TypesEnable);
 		}
 
-	///	sets a marker to exclude elements from assembling
-	/**
-	 * This methods sets a marker. Only elements that are marked will be
-	 * assembled during assembling process. If no marker is set, this
-	 * corresponds to a marker where all elements have been marked.
-	 *
-	 * \param[in]	mark	BoolMarker
-	 */
-		virtual void set_marker(BoolMarker* mark = NULL)
-		{
-			m_AssAdapter.pBoolMarker = mark; forward_marker();
-		}
-	///	sets a selector of elements for assembling
-	/**
-	 * This methods sets an element list. Only elements of this list will be
-	 * assembled during assembling process. Especially the list defines the begin
-	 * and end of the element-iterator in the element assembling-loop.
-	 * If no element list is set, this corresponds to a assembling where the loop is
-	 * carried out over all elements of a subset.
-	 *
-	 * \param[in]	sel		Selector
-	 */
-		virtual void set_selector(Selector* sel = NULL)
-		{
-			m_AssAdapter.pSelector = sel; forward_selector();
-		}
-	///	sets an index for which the assembling should be carried out
-	/**
-	 * This methods sets a boolean if an index-wise assemble routine should be used.
-	 * This proceeding is e.g. useful for a nonlinear Gauss-Seidel or nonlinear
-	 * Jacobi solver. The specific index is passed.
-	 *
-	 * \param[in]	ind			size_t
-	 * \param[in]	index_set	bool
-	 */
-		virtual void ass_index(){ ass_index(0, false);}
-		virtual void ass_index(size_t ind, bool index_set = true)
-		{
-			m_AssAdapter.assIndex.index = ind; m_AssAdapter.assIndex.index_set = index_set; forward_ass_index();
-		}
-		
 	///	returns the number of constraint
 		virtual size_t num_constraints() const
 		{
@@ -216,25 +173,15 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 		}
 
 	protected:
-		void forward_marker()
+		AssAdapter<TAlgebra>& get_ass_adapter()
 		{
-			m_spDomDisc->set_marker(m_AssAdapter.pBoolMarker);
+			return m_spDomDisc->get_ass_adapter();
 		}
 
-		void forward_selector()
-		{
-			m_spDomDisc->set_selector(m_AssAdapter.pSelector);
-		}
-
-		void forward_ass_index()
-		{
-			m_spDomDisc->ass_index(m_AssAdapter.assIndex.index, m_AssAdapter.assIndex.index_set);
-		}
-		
 		SmartPtr<IDomainDiscretization<TAlgebra> > m_spDomDisc; ///< Domain Discretization
 
 		///	this object provides tools to adapt the assemble routine
-		AssAdapter m_AssAdapter;
+		AssAdapter<TAlgebra>* m_pAssAdapter;
 };
 
 /// @}

@@ -10,6 +10,7 @@
 #include "lib_grid/tools/bool_marker.h"
 #include "lib_grid/tools/selector_grid.h"
 #include "lib_grid/tools/grid_level.h"
+#include "lib_disc/spatial_disc/ass_adapter.h"
 
 namespace ug{
 
@@ -205,39 +206,7 @@ class IAssemble
 	///	enables boundary elem discs
 		virtual void enable_elem_discs(int TypesEnable) = 0;
 
-	///	sets a marker to exclude elements from assembling
-	/**
-	 * This method sets a marker. Only elements that are marked will be
-	 * assembled during assembling process. If no marker is set, this
-	 * corresponds to a marker where all elements have been marked.
-	 *
-	 * \param[in]	mark	BoolMarker
-	 */
-		virtual void set_marker(BoolMarker* mark = NULL) = 0;
-
-	///	sets a selector of elements for assembling
-	/**
-	 * This method sets a selector. Only elements of this selector will be
-	 * assembled during assembling process. Especially the selector defines the begin
-	 * and end of the element-iterator in the element assembling-loop.
-	 * If no selector is set, this corresponds to a assembling where the loop is
-	 * carried out over all elements of a given subset.
-	 *
-	 * \param[in]	sel		Selector
-	 */
-		virtual void set_selector(Selector* sel = NULL) = 0;
-
-	///	sets an index for which the assembling should be carried out
-	/**
-	 * This methods sets a boolean if an index-wise assemble routine should be used.
-	 * This proceeding is e.g. useful for a nonlinear Gauss-Seidel or nonlinear
-	 * Jacobi solver. The specific index is passed to the domain discretization.
-	 *
-	 * \param[in]	ind			size_t
-	 * \param[in]	index_set	bool
-	 */
-		virtual void ass_index() = 0;
-		virtual void ass_index(size_t ind, bool index_set = true) = 0;
+		virtual AssAdapter<TAlgebra>& get_ass_adapter() = 0;
 
 	///	returns the number of constraints
 		virtual size_t num_constraints() const = 0;
@@ -247,6 +216,7 @@ class IAssemble
 
 	/// Virtual Destructor
 		virtual ~IAssemble(){};
+
 };
 
 /// @}
