@@ -167,7 +167,7 @@ function util.SolveNonlinearTimeProblem(
 				if(bSuccess == false and currdt < minStepSize) then
 					write("++++++ Time Step size "..currdt.." below minimal step ")
 					write("size "..minStepSize..". Cannot solve problem. Aborting.");
-					exit();
+					test.require(false, "Time Solver failed.")
 				end
 				
 				-- start over again if failed
@@ -307,7 +307,7 @@ function util.SolveLinearTimeProblem(
 			if(bSuccess == false and currdt < minStepSize) then
 				write("++++++ Time Step size "..currdt.." below minimal step ")
 				write("size "..minStepSize..". Cannot solve problem. Aborting.");
-				exit();
+				test.require(false, "Time Solver failed.")
 			end
 		end
 		
