@@ -90,7 +90,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]	interface	Interface that will communicate
 	 */
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
@@ -202,7 +202,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]	interface	Interface that will communicate
 	 */
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
@@ -321,7 +321,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]	interface	Interface that will communicate
 	 */
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
@@ -437,7 +437,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]	interface	Interface that will communicate
 	 */
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
@@ -553,7 +553,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]	interface	Interface that will communicate
 	 */
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
@@ -670,7 +670,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 	 * \param[in]	interface	Interface that will communicate
 	 */
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
@@ -797,7 +797,7 @@ class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLay
 	 * \param[in]	interface	Interface that will communicate
 	 */
 		virtual int
-		get_required_buffer_size(Interface& interface)
+		get_required_buffer_size(const Interface& interface)
 		{
 			if(block_traits<typename TVector::value_type>::is_static)
 				return interface.size() * sizeof(typename TVector::value_type);
@@ -978,7 +978,7 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 		}
 
 		virtual bool
-		begin_layout_extraction(Layout* pLayout)
+		begin_layout_extraction(const Layout* pLayout)
 		{
 		//	fill the map global->local
 			GenerateAlgebraIDHashList(m_algIDHash, m_vGlobalID);

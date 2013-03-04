@@ -39,7 +39,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 		}
 		
 		virtual bool
-		begin_layout_collection(Layout* pLayout)
+		begin_layout_collection(const Layout* pLayout)
 		{
 		//	begin marking and mark all elements in m_vMarkedInterfaceElems
 			m_grid.begin_marking();
@@ -60,7 +60,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 		
 	///	writes entries for marked interface elements
 		virtual bool
-		collect(ug::BinaryBuffer& buff, Interface& interface)
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 		//	write the entry indices of marked elements.
 			if(!m_vMarkedInterfaceElems.empty())
@@ -85,7 +85,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 		}
 		
 		virtual bool
-		begin_layout_extraction(Layout* pLayout)
+		begin_layout_extraction(const Layout* pLayout)
 		{
 			m_vNewMarks.clear();
 			m_vNewRules.clear();
@@ -94,7 +94,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 		
 	///	reads marks from the given stream
 		virtual bool
-		extract(ug::BinaryBuffer& buff, Interface& interface)
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
 		//	iterate through interface elements.
 		//	if indices match then mark it.

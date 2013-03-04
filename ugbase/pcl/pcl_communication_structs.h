@@ -751,7 +751,7 @@ class ICommunicationPolicy
 	///	signals the beginning of a layout extraction.
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
-		begin_layout_extraction(const Layout* pLayout)			{return true;}
+		begin_layout_extraction(const Layout* pLayout) 			{return true;}
 
 	///	signals the end of a layout extraction
 	/**	the default implementation returns true and does nothing else.*/
