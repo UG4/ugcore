@@ -55,7 +55,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 	public:
 	///	default Constructor
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
-			m_spApproxSpace(pApproxSpace), m_AssAdapter()
+			m_spApproxSpace(pApproxSpace)
 		{};
 
 		virtual ~DomainDiscretization() {};
