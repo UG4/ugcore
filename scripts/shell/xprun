@@ -46,6 +46,8 @@ else
  PID=\$OMPI_MCA_ns_nds_vpid
  np=\$OMPI_MCA_ns_nds_num_procs
 fi
+export PID
+export np
 
 echo -- PID is \$PID -- \${USER}@\${HOSTNAME} -- $* --
 echo -ne "\033]0; PID=\$PID $* \${USER}@\${HOSTNAME}\007"

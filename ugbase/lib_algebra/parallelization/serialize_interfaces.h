@@ -23,10 +23,10 @@ namespace ug
 
 template<typename TLocalToGlobal>
 void SerializeInterface(BinaryBuffer &stream,
-		IndexLayout::Interface &interface, const TLocalToGlobal &localToGlobal)
+                        const IndexLayout::Interface &interface, const TLocalToGlobal &localToGlobal)
 {
 	Serialize(stream, interface.size());
-	for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+	for(IndexLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 	{
 		size_t localIndex = interface.get_element(iter2);
 		AlgebraID &globalIndex = localToGlobal[localIndex];
@@ -36,15 +36,15 @@ void SerializeInterface(BinaryBuffer &stream,
 
 template<typename TLocalToGlobal>
 void SerializeLayout(BinaryBuffer &stream,
-		IndexLayout &layout, const TLocalToGlobal &localToGlobal)
+                     const IndexLayout &layout, const TLocalToGlobal &localToGlobal)
 {
 	size_t size = 0;
-	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
 		size++;
 	Serialize(stream, size);
-	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
 	{
-		IndexLayout::Interface &interface = layout.interface(iter);
+		const IndexLayout::Interface &interface = layout.interface(iter);
 		int pid = layout.proc_id(iter);
 		Serialize(stream, pid);
 		Serialize(stream, interface);

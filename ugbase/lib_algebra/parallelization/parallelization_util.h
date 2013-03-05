@@ -14,6 +14,7 @@
 #include "common/assert.h"
 #include "algebra_id.h"
 #include "communication_policies.h"
+#include "algebra_layouts.h"
 
 // additions for profiling (18042011ih)
 #include "common/profiler/profiler.h"
@@ -51,9 +52,9 @@ void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	using namespace std;
 	vector<AlgebraID> globalIDs;
-	IndexLayout& masters = mat.master_layout();
-	IndexLayout& slaves = mat.slave_layout();
-	pcl::InterfaceCommunicator<IndexLayout>& comm = mat.communicator();
+	const IndexLayout& masters = mat.layouts()->master();
+	const IndexLayout& slaves = mat.layouts()->slave();
+	pcl::InterfaceCommunicator<IndexLayout>& comm = mat.layouts()->comm();
 
 	GenerateGlobalAlgebraIDs(comm, globalIDs, mat.num_rows(), masters, slaves);
 
@@ -76,8 +77,8 @@ void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
  */
 template <typename TVector>
 void AdditiveToConsistent(	TVector* pVec,
-							IndexLayout& masterLayout, IndexLayout& slaveLayout,
-							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+                          	const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
+                          	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -121,7 +122,7 @@ void AdditiveToConsistent(	TVector* pVec,
  */
 template <typename TVector>
 void UniqueToConsistent(	TVector* pVec,
-							IndexLayout& masterLayout, IndexLayout& slaveLayout,
+							const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
 							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
@@ -154,7 +155,7 @@ void UniqueToConsistent(	TVector* pVec,
  */
 template <typename TVector>
 void AdditiveToUnique(	TVector* pVec,
-						IndexLayout& masterLayout, IndexLayout& slaveLayout,
+						const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
 						pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
@@ -182,22 +183,22 @@ void AdditiveToUnique(	TVector* pVec,
  */
 template <typename TVector>
 void SetLayoutValues(	TVector* pVec,
-                     	IndexLayout& layout,
+                     	const IndexLayout& layout,
                      	number val)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
-	typename IndexLayout::iterator iter = layout.begin();
-	typename IndexLayout::iterator end = layout.end();
+	typename IndexLayout::const_iterator iter = layout.begin();
+	typename IndexLayout::const_iterator end = layout.end();
 
 //	iterate over interfaces
 	for(; iter != end; ++iter)
 	{
 	//	get interface
-		typename IndexLayout::Interface& interface = layout.interface(iter);
+		const typename IndexLayout::Interface& interface = layout.interface(iter);
 
 	//	loop over indices
-		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 		{
 		//  get index
@@ -217,22 +218,22 @@ void SetLayoutValues(	TVector* pVec,
  */
 template <typename TVector>
 void SetLayoutValues(	TVector* pVec,
-                     	IndexLayout& layout,
+                     	const IndexLayout& layout,
                      	typename TVector::value_type val)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
-	typename IndexLayout::iterator iter = layout.begin();
-	typename IndexLayout::iterator end = layout.end();
+	typename IndexLayout::const_iterator iter = layout.begin();
+	typename IndexLayout::const_iterator end = layout.end();
 
 //	iterate over interfaces
 	for(; iter != end; ++iter)
 	{
 	//	get interface
-		typename IndexLayout::Interface& interface = layout.interface(iter);
+		const typename IndexLayout::Interface& interface = layout.interface(iter);
 
 	//	loop over indices
-		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 		{
 		//  get index
@@ -254,7 +255,7 @@ void SetLayoutValues(	TVector* pVec,
  */
 template <typename TVector>
 void ConsistentToUnique(	TVector* pVec,
-							IndexLayout& slaveLayout)
+                        	const IndexLayout& slaveLayout)
 {
 	SetLayoutValues(pVec, slaveLayout, 0.0);
 }
@@ -271,8 +272,8 @@ void ConsistentToUnique(	TVector* pVec,
  */
 template <typename TVector>
 void VecSubtractOnLayout(	TVector* pVec,
-							IndexLayout& masterLayout, IndexLayout& slaveLayout,
-							pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+                         	const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
+                         	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -310,8 +311,8 @@ void VecSubtractOnLayout(	TVector* pVec,
  */
 template <typename TVector>
 void VecSubtractOneSlaveFromMaster(	TVector* pVec,
-                                   	IndexLayout& masterLayout,
-                                   	IndexLayout& slaveLayout,
+                                   	const IndexLayout& masterLayout,
+                                   	const IndexLayout& slaveLayout,
                                    	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
@@ -347,8 +348,8 @@ void VecSubtractOneSlaveFromMaster(	TVector* pVec,
  */
 template <typename TVector>
 void VecCopy(	TVector* pVec,
-						IndexLayout& masterLayout, IndexLayout& slaveLayout,
-						pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+             	const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
+             	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -438,7 +439,7 @@ void BuildDomainDecompositionLayouts(
 		IndexLayout& processMastersOut, IndexLayout& processSlavesOut,
 		IndexLayout& deltaNbrMastersOut, IndexLayout& deltaNbrSlavesOut,
 		IndexLayout& crossPointMastersOut, IndexLayout& crossPointSlavesOut,
-		IndexLayout& standardMasters, IndexLayout& standardSlaves,
+		const IndexLayout& standardMasters, const IndexLayout& standardSlaves,
 		int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo);
 /// @}
 
@@ -454,19 +455,19 @@ void BuildDomainDecompositionLayouts(
 template <typename TMatrix, typename TVector>
 void MatExtractDiagOnLayout(	TVector* pDiagVector,
 								const TMatrix* pMatrix,
-                            	IndexLayout& Layout)
+								const IndexLayout& Layout)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterator
-	typename IndexLayout::iterator iter = Layout.begin();
-	typename IndexLayout::iterator end = Layout.end();
+	typename IndexLayout::const_iterator iter = Layout.begin();
+	typename IndexLayout::const_iterator end = Layout.end();
 
 	for(; iter != end; ++iter)
 	{
 	//	get interface
-		typename IndexLayout::Interface& interface = Layout.interface(iter);
+		const typename IndexLayout::Interface& interface = Layout.interface(iter);
 
-		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 		{
 		// 	get index
@@ -494,19 +495,19 @@ void MatExtractDiagOnLayout(	TVector* pDiagVector,
 template <typename TMatrix, typename TVector>
 void MatWriteDiagOnLayout(	TMatrix* pMatrix,
                           	const TVector* pDiagVector,
-                          	IndexLayout& Layout)
+                          	const IndexLayout& Layout)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterator
-	typename IndexLayout::iterator iter = Layout.begin();
-	typename IndexLayout::iterator end = Layout.end();
+	typename IndexLayout::const_iterator iter = Layout.begin();
+	typename IndexLayout::const_iterator end = Layout.end();
 
 	for(; iter != end; ++iter)
 	{
 	//	get interface
-		typename IndexLayout::Interface& interface = Layout.interface(iter);
+		const typename IndexLayout::Interface& interface = Layout.interface(iter);
 
-		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 		{
 		// 	get index
@@ -535,7 +536,7 @@ void MatWriteDiagOnLayout(	TMatrix* pMatrix,
  */
 template <typename TAlgebra>
 void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
-                                   	IndexLayout& masterLayout, IndexLayout& slaveLayout,
+                                   	const IndexLayout& masterLayout, const IndexLayout& slaveLayout,
                                    	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
@@ -573,8 +574,8 @@ void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
  */
 template <typename TVector>
 void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
-				IndexLayout& masterLayoutDest, IndexLayout& slaveLayoutSrc,
-				pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
+               	const IndexLayout& masterLayoutDest, const IndexLayout& slaveLayoutSrc,
+               	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	//	create a new communicator if required.
@@ -607,7 +608,7 @@ void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
  */
 template <typename TVector>
 void VecBroadcast(	TVector* pVecDest, const TVector* pVecSrc,
-                  	IndexLayout& slaveLayoutDest, IndexLayout& masterLayoutSrc,
+                  	const IndexLayout& slaveLayoutDest, const IndexLayout& masterLayoutSrc,
                   	pcl::InterfaceCommunicator<IndexLayout>* pCom = NULL)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
@@ -628,17 +629,22 @@ void VecBroadcast(	TVector* pVecDest, const TVector* pVecSrc,
 }
 
 template<typename TLayout>
-void PrintLayout(TLayout &layout)
+inline void PrintLayout(const TLayout &layout)
 {
-	for(typename TLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(typename TLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
 	{
 		size_t pid = layout.proc_id(iter);
 		UG_LOG("to processor " << pid << ": ");
-		typename TLayout::Interface &interface = layout.interface(iter);
-		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		const typename TLayout::Interface &interface = layout.interface(iter);
+		for(typename TLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			UG_LOG(interface.get_element(iter2) << "  ");
 		UG_LOG("\n");
 	}
+}
+
+inline bool PrintLayouts(const HorizontalAlgebraLayouts &layout)
+{
+	return TestLayout(layout.proc_comm(), layout.comm(), layout.master(), layout.slave(), true);
 }
 
 inline IndexLayout::Interface::iterator find(IndexLayout::Interface &interface, size_t i)

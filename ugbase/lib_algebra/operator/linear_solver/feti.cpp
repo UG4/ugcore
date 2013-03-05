@@ -453,7 +453,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	if (m_bTestOneToManyLayouts == true) {
 		UG_LOG("     %  - TEST ONE TO MANY LAYOUTS:\n");
 		pcl::InterfaceCommunicator<IndexLayout> comTmp;
-		if (TestLayout(m_spOperator->process_communicator(),
+		if (TestLayout(m_spOperator->layouts()->proc_comm(),
 				comTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout, true) != true) {
 			UG_LOG("     %  - ONE TO MANY LAYOUTS inconsistent!\n");
 		} else {
@@ -1366,9 +1366,7 @@ init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 //	1. create FETI Layouts
 	UG_LOG("\n%   - Create FETI layouts ... ");
 	FETI_PROFILE_BEGIN(FETISolverInit_Create_Layouts);
-	m_fetiLayouts.create_layouts(m_pMatrix->master_layout(),
-	                             m_pMatrix->slave_layout(),
-	                             m_pMatrix->process_communicator(),
+	m_fetiLayouts.create_layouts(m_pMatrix->layouts(),
 	                             m_pMatrix->num_rows(),
 	                             *m_pDDInfo,
 	                             debugLayouts);

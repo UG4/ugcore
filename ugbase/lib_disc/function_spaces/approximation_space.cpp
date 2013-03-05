@@ -352,7 +352,7 @@ print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) cons
 {
 #ifdef UG_PARALLEL
 //	Get Process communicator;
-	const pcl::ProcessCommunicator& pCom = dd->layouts().proc_comm();
+	const pcl::ProcessCommunicator& pCom = dd->layouts()->proc_comm();
 
 //	hack since pcl does not support much constness
 	DoFDistribution* nonconstDD = const_cast<DoFDistribution*>(dd.get());
@@ -366,14 +366,14 @@ print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) cons
 //				number of DoFs by counting. If there are vert. master dofs
 //				we need to remove doubles when counting.
 	int numMasterDoF;
-	if(NumIndices(dd->layouts().vertical_master()) > 0)
+	if(NumIndices(dd->layouts()->vertical_master()) > 0)
 	{
 	//	create vector of vertical masters and horiz. slaves, since those are
 	//	not reguarded as masters on the dd. All others are masters. (Especially,
 	//	also vertical slaves are masters w.r.t. computing like smoothing !!)
 		std::vector<IndexLayout::Element> vIndex;
-		CollectElements(vIndex, nonconstDD->layouts().vertical_master());
-		CollectElements(vIndex, nonconstDD->layouts().slave(), false);
+		CollectElements(vIndex, nonconstDD->layouts()->vertical_master());
+		CollectElements(vIndex, nonconstDD->layouts()->slave(), false);
 
 	//	sort vector and remove doubles
 		std::sort(vIndex.begin(), vIndex.end());
@@ -383,7 +383,7 @@ print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) cons
 	//	now remove all horizontal masters, since they are still master though
 	//	in the vert master interface
 		std::vector<IndexLayout::Element> vIndex2;
-		CollectElements(vIndex2, nonconstDD->layouts().master());
+		CollectElements(vIndex2, nonconstDD->layouts()->master());
 		for(size_t i = 0; i < vIndex2.size(); ++i)
 			vIndex.erase(std::remove(vIndex.begin(), vIndex.end(), vIndex2[i]),
 			             vIndex.end());
@@ -394,7 +394,7 @@ print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) cons
 	else
 	{
 	//	easy case: only subtract masters from slaves
-		numMasterDoF = dd->num_indices() - NumIndices(dd->layouts().slave());
+		numMasterDoF = dd->num_indices() - NumIndices(dd->layouts()->slave());
 	}
 
 //	global and local values
@@ -575,10 +575,10 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 #ifdef UG_PARALLEL
 static void PrintLayoutStatistic(ConstSmartPtr<DoFDistribution> dd)
 {
-	UG_LOG(std::setw(8) << NumIndices(dd->layouts().master()) <<" | ");
-	UG_LOG(std::setw(8) << NumIndices(dd->layouts().slave()) <<" | ");
-	UG_LOG(std::setw(12) << NumIndices(dd->layouts().vertical_master()) <<" | ");
-	UG_LOG(std::setw(12) << NumIndices(dd->layouts().vertical_slave()));
+	UG_LOG(std::setw(8) << NumIndices(dd->layouts()->master()) <<" | ");
+	UG_LOG(std::setw(8) << NumIndices(dd->layouts()->slave()) <<" | ");
+	UG_LOG(std::setw(12) << NumIndices(dd->layouts()->vertical_master()) <<" | ");
+	UG_LOG(std::setw(12) << NumIndices(dd->layouts()->vertical_slave()));
 }
 #endif
 

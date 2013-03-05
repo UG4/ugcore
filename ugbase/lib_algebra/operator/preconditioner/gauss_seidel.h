@@ -81,7 +81,7 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 				MakeConsistent(mat, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_A.slave_layout());
+				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
 			}
 #endif
@@ -187,7 +187,7 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 				MakeConsistent(mat, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_A.slave_layout());
+				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
 			}
 #endif
@@ -293,7 +293,7 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 				MakeConsistent(mat, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_A.slave_layout());
+				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
 			}
 #endif

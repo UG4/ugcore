@@ -66,6 +66,10 @@ ugbasegrep()
 {
 	fgrep -r $1 $UG4_ROOT/ugbase
 }
+ugpluginsgrep()
+{
+	fgrep -r $1 $UG4_ROOT/plugins
+}
 source uginstall_config
 
 alias ugrelib="rm $UG4_ROOT/lib/*; rm $UG4_ROOT/bin/ugshell"

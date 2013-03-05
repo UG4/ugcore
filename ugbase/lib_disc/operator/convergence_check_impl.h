@@ -96,7 +96,7 @@ number CompositeConvCheck<TVector, TDomain>::norm(const TVector& vec, std::vecto
 
 #ifdef UG_PARALLEL
 	// sum squared local norms
-	norm = vec.process_communicator().allreduce(norm, PCL_RO_SUM);
+	norm = vec.layouts()->proc_comm().allreduce(norm, PCL_RO_SUM);
 #endif
 
 	// return global norm

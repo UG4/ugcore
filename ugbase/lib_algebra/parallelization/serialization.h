@@ -70,12 +70,12 @@ void SetParallelData(T &t,
 template<typename T, class TOStream>
 void SerializeParallelData(TOStream &buf, T &t)
 {
-	Serialize(buf, t.master_layout());
-	Serialize(buf, t.slave_layout());
+	Serialize(buf, t.layouts()->master());
+	Serialize(buf, t.layouts()->slave());
 
-	Serialize(buf, t.communicator());
+	Serialize(buf, t.layouts()->comm());
 
-	Serialize(buf, t.process_communicator());
+	Serialize(buf, t.layouts()->proc_comm());
 }
 
 template<typename T, class TIStream>

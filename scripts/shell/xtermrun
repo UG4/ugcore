@@ -20,7 +20,7 @@ charHeightFactor10=141
 if [ "$HOSTNAME" == "braeburn.gcsc.uni-frankfurt.de" ]; then 
 maxw=1920
 maxh=1200
-dx=1450
+dx=1700
 dy=0
 fi
 

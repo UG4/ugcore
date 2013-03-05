@@ -118,7 +118,8 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	try{
 		m_d.resize(u.size()); m_c.resize(u.size());
 		#ifdef UG_PARALLEL
-			m_d.copy_layouts(u); m_c.copy_layouts(u);
+			m_c.set_layouts(u.layouts());
+			m_d.set_layouts(u.layouts());
 		#endif
 	}UG_CATCH_THROW("NLJacobiSolver::apply: Resize of Defect/Correction failed.");
 

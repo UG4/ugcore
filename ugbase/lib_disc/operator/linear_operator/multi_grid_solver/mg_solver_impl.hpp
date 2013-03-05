@@ -285,7 +285,7 @@ presmooth(size_t lev)
 
 // 	pre-smoothing
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
-	GMG_PARALLEL_DEBUG_BARRIER(sd.process_communicator());
+	GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());
 	if(!smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PreSmoother, lev, m_numPreSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
@@ -332,7 +332,7 @@ restriction(size_t lev)
 	//	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0)
 		if(d.size() > 0){
 			gather_vertical(d);
-			SetLayoutValues(&d, d.vertical_slave_layout(), 0);
+			SetLayoutValues(&d, d.layouts()->vertical_slave(), 0);
 		}
 
 		write_level_debug(d, "GMG__TestAfterGather", lev);
@@ -445,7 +445,7 @@ prolongation(size_t lev)
 	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeBroadcastSmooth", lev);
 	#ifdef UG_PARALLEL
 		broadcast_vertical_add(d);
-		SetLayoutValues(&d, d.vertical_master_layout(), 0);
+		SetLayoutValues(&d, d.layouts()->vertical_master(), 0);
 
 		m_vLevData[lev]->copy_defect_to_smooth_patch();
 	#endif
@@ -546,7 +546,7 @@ postsmooth(size_t lev)
 //	We smooth the updated defect again. This means that we compute a
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
-	GMG_PARALLEL_DEBUG_BARRIER(sd.process_communicator());
+	GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());
 	if(!smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PostSmoother, lev, m_numPostSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"
@@ -590,8 +590,8 @@ base_solve(size_t lev)
 	vector_type& d = m_vLevData[lev]->d;
 
 	if( m_bBaseParallel ||
-	   (d.vertical_slave_layout().empty() &&
-		d.vertical_master_layout().empty()))
+	   (d.layouts()->vertical_slave().empty() &&
+		d.layouts()->vertical_master().empty()))
 	{
 #endif
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering serial basesolver branch.\n");
@@ -663,7 +663,7 @@ base_solve(size_t lev)
 		write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
 
 	//	check, if this proc continues, else idle
-		if(d.vertical_slave_layout().empty())
+		if(d.layouts()->vertical_slave().empty())
 		{
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: Start serial base solver.\n");
@@ -1462,9 +1462,9 @@ init_base_solver()
 	//	to on proc. Write a warning an switch to distributed coarse solver
 		vector_type& d = m_vLevData[m_baseLev]->d;
 	//	the base-solver only operates on normal and vertical-master elements...
-		if(d.vertical_slave_layout().empty()){
-			if((!d.master_layout().empty() || !d.slave_layout().empty()) &&
-			   (d.vertical_slave_layout().empty() && d.vertical_master_layout().empty()))
+		if(d.layouts()->vertical_slave().empty()){
+			if((!d.layouts()->master().empty() || !d.layouts()->slave().empty()) &&
+			   (d.layouts()->vertical_slave().empty() && d.layouts()->vertical_master().empty()))
 			{
 			//todo	add a check whether the base-solver supports parallel execution
 			//		and also make sure, that all processes change to parallel execution.
@@ -1560,7 +1560,7 @@ project_level_to_surface(vector_type& surfVec,
 
 #ifdef UG_PARALLEL
 		//	copy storage type into all vectors
-			surfVec.copy_storage_type(topVec);
+			surfVec.set_storage_type(topVec.get_storage_mask());
 #endif
 	}
 	else
@@ -1625,7 +1625,7 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 		//	copy storage type into all vectors
 			for(size_t lev = 0; lev < vLevelVec.size(); ++lev)
 				if(vLevelVec[lev] != NULL)
-					vLevelVec[lev]->copy_storage_type(surfVec);
+					vLevelVec[lev]->set_storage_type(surfVec.get_storage_mask());
 #endif
 	}
 	else
@@ -2021,21 +2021,21 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 ////	one proc may not have both, a vertical-slave- and vertical-master-layout.
 //	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
 //	ComPol_VecAdd<vector_type> cpVecAdd(&d);
-//	if(!d.vertical_slave_layout().empty()){
+//	if(!d.layouts()->vertical_slave().empty()){
 //	//	do not resume if vertical slaves are present
 //		resume = false;
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		  " Going down: SENDS vert. dofs.\n");
 //
 //	//	schedule Sending of DoFs of vertical slaves
-//		m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
+//		m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
 //	}
-//	else if(!d.vertical_master_layout().empty()){
+//	else if(!d.layouts()->vertical_master().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
 //
 //	//	schedule Receive of DoFs on vertical masters
-//		m_Com.receive_data(d.vertical_master_layout(), cpVecAdd);
+//		m_Com.receive_data(d.layouts()->vertical_master(), cpVecAdd);
 //	}
 //
 ////	perform communication
@@ -2055,21 +2055,21 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 ////	one proc may not have both, a vertical-slave- and vertical-master-layout.
 //	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 //	ComPol_VecCopy<vector_type> cpVecCopy(&t);
-//	if(!t.vertical_slave_layout().empty())
+//	if(!t.layouts()->vertical_slave().empty())
 //	{
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
 //
 //	//	schedule slaves to receive correction
-//		m_Com.receive_data(t.vertical_slave_layout(), cpVecCopy);
+//		m_Com.receive_data(t.layouts()->vertical_slave(), cpVecCopy);
 //	}
-//	else if(!t.vertical_master_layout().empty())
+//	else if(!t.layouts()->vertical_master().empty())
 //	{
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going up: SENDS vert. dofs.\n");
 //
 //	//	schedule masters to send correction
-//		m_Com.send_data(t.vertical_master_layout(), cpVecCopy);
+//		m_Com.send_data(t.layouts()->vertical_master(), cpVecCopy);
 //	}
 //
 ////	communicate
@@ -2088,7 +2088,7 @@ gather_vertical(vector_type& d)
 //	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
 
-	if(!d.vertical_slave_layout().empty()){
+	if(!d.layouts()->vertical_slave().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		  " Going down: SENDS vert. dofs.\n");
 
@@ -2097,18 +2097,18 @@ gather_vertical(vector_type& d)
 	//	count number of occurrances in v-interfaces
 		bool multiOccurance = false;
 		std::vector<number> occurence;
-		IndexLayout& layout = d.vertical_slave_layout();
+		const IndexLayout& layout = d.layouts()->vertical_slave();
 
 		if(layout.num_interfaces() > 1){
 			occurence.resize(d.size(), 0);
-			for(IndexLayout::iterator iiter = layout.begin();
+			for(IndexLayout::const_iterator iiter = layout.begin();
 				iiter != layout.end(); ++iiter)
 			{
-				IndexLayout::Interface& itfc = layout.interface(iiter);
-				for(IndexLayout::Interface::iterator iter = itfc.begin();
+				const IndexLayout::Interface& itfc = layout.interface(iiter);
+				for(IndexLayout::Interface::const_iterator iter = itfc.begin();
 					iter != itfc.end(); ++iter)
 				{
-					IndexLayout::Interface::Element& index = itfc.get_element(iter);
+					const IndexLayout::Interface::Element& index = itfc.get_element(iter);
 
 					occurence[index] += 1;
 					if(occurence[index] > 1)
@@ -2120,29 +2120,29 @@ gather_vertical(vector_type& d)
 		if(multiOccurance){
 		//todo: avoid copy tmp_d if possible.
 			vector_type tmp_d(d.size());
-			tmp_d.copy_storage_type(d);
+			tmp_d.set_storage_type(d.get_storage_mask());
 		//	we'll copy adjusted values from d to the occurances vector
 			for(size_t i = 0; i < occurence.size(); ++i){
 				if(occurence[i] > 0) // others can be ignored since not communicated anyways
 					tmp_d[i] = d[i] * (1./occurence[i]);
 			}
 			ComPol_VecAdd<vector_type> cpVecAdd(&tmp_d);
-			m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
+			m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
 		}
 		else{
 		//	schedule Sending of DoFs of vertical slaves
 			ComPol_VecAdd<vector_type> cpVecAdd(&d);
-			m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
+			m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
 		}
 	}
 
 	ComPol_VecAdd<vector_type> cpVecAddRcv(&d); // has to exist until communicate was executed
-	if(!d.vertical_master_layout().empty()){
+	if(!d.layouts()->vertical_master().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
 
 	//	schedule Receive of DoFs on vertical masters
-		m_Com.receive_data(d.vertical_master_layout(), cpVecAddRcv);
+		m_Com.receive_data(d.layouts()->vertical_master(), cpVecAddRcv);
 	}
 
 //	perform communication
@@ -2164,20 +2164,20 @@ gather_vertical_copy(vector_type& d)
 //	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
 	ComPol_VecCopy<vector_type> cpVecCopy(&d);
-	if(!d.vertical_slave_layout().empty()){
+	if(!d.layouts()->vertical_slave().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		  " Going down: SENDS vert. dofs.\n");
 
 	//	schedule Sending of DoFs of vertical slaves
-		m_Com.send_data(d.vertical_slave_layout(), cpVecCopy);
+		m_Com.send_data(d.layouts()->vertical_slave(), cpVecCopy);
 	}
 
-	if(!d.vertical_master_layout().empty()){
+	if(!d.layouts()->vertical_master().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
 
 	//	schedule Receive of DoFs on vertical masters
-		m_Com.receive_data(d.vertical_master_layout(), cpVecCopy);
+		m_Com.receive_data(d.layouts()->vertical_master(), cpVecCopy);
 	}
 
 //	perform communication
@@ -2202,20 +2202,20 @@ gather_on_ghosts(vector_type& d, vector_type& tmp, vector<int>& mapGlobalToPatch
 	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
 	tmp = d;
 	ComPol_VecAdd<vector_type> cpVecAdd(&tmp);
-	if(!d.vertical_slave_layout().empty()){
+	if(!d.layouts()->vertical_slave().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		  " Going down: SENDS vert. dofs.\n");
 
 	//	schedule Sending of DoFs of vertical slaves
-		m_Com.send_data(d.vertical_slave_layout(), cpVecAdd);
+		m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
 	}
 
-	if(!d.vertical_master_layout().empty()){
+	if(!d.layouts()->vertical_master().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
 
 	//	schedule Receive of DoFs on vertical masters
-		m_Com.receive_data(d.vertical_master_layout(), cpVecAdd);
+		m_Com.receive_data(d.layouts()->vertical_master(), cpVecAdd);
 	}
 
 //	perform communication
@@ -2226,12 +2226,12 @@ gather_on_ghosts(vector_type& d, vector_type& tmp, vector<int>& mapGlobalToPatch
 			"mapGlobalToPatch either has to be empty or of the same size as d");
 
 //	we'll iterate over all vertical masters, since ghosts are a subset of those.
-	typename IndexLayout::iterator intfcIter = d.vertical_master_layout().begin();
-	typename IndexLayout::iterator intfcIterEnd = d.vertical_master_layout().end();
+	typename IndexLayout::iterator intfcIter = d.layouts()->vertical_master().begin();
+	typename IndexLayout::iterator intfcIterEnd = d.layouts()->vertical_master().end();
 
 	for(; intfcIter != intfcIterEnd; ++intfcIter){
 		typename IndexLayout::Interface& intfc =
-								d.vertical_master_layout().interface(intfcIter);
+								d.layouts()->vertical_master().interface(intfcIter);
 
 		for(typename IndexLayout::Interface::iterator iter = intfc.begin();
 				iter != intfc.end(); ++iter)
@@ -2258,22 +2258,22 @@ broadcast_vertical(vector_type& t)
 //	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 	ComPol_VecCopy<vector_type> cpVecCopy(&t);
-	if(!t.vertical_slave_layout().empty())
+	if(!t.layouts()->vertical_slave().empty())
 	{
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
 
 	//	schedule slaves to receive correction
-		m_Com.receive_data(t.vertical_slave_layout(), cpVecCopy);
+		m_Com.receive_data(t.layouts()->vertical_slave(), cpVecCopy);
 	}
 
-	if(!t.vertical_master_layout().empty())
+	if(!t.layouts()->vertical_master().empty())
 	{
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going up: SENDS vert. dofs.\n");
 
 	//	schedule masters to send correction
-		m_Com.send_data(t.vertical_master_layout(), cpVecCopy);
+		m_Com.send_data(t.layouts()->vertical_master(), cpVecCopy);
 	}
 
 //	communicate
@@ -2295,7 +2295,7 @@ broadcast_vertical_add(vector_type& d)
 
 //	deadly v-interfaces of crossing death make the resulting defect consistent
 //	so that we have to transform it to additive unique
-	if(!d.vertical_master_layout().empty()){
+	if(!d.layouts()->vertical_master().empty()){
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		  " Going down: SENDS vert. dofs.\n");
 
@@ -2304,18 +2304,18 @@ broadcast_vertical_add(vector_type& d)
 	//	count number of occurrances in v-interfaces
 		bool multiOccurance = false;
 		std::vector<number> occurence;
-		IndexLayout& layout = d.vertical_master_layout();
+		const IndexLayout& layout = d.layouts()->vertical_master();
 
 		if(layout.num_interfaces() > 1){
 			occurence.resize(d.size(), 0);
-			for(IndexLayout::iterator iiter = layout.begin();
+			for(IndexLayout::const_iterator iiter = layout.begin();
 				iiter != layout.end(); ++iiter)
 			{
-				IndexLayout::Interface& itfc = layout.interface(iiter);
-				for(IndexLayout::Interface::iterator iter = itfc.begin();
+				const IndexLayout::Interface& itfc = layout.interface(iiter);
+				for(IndexLayout::Interface::const_iterator iter = itfc.begin();
 					iter != itfc.end(); ++iter)
 				{
-					IndexLayout::Interface::Element& index = itfc.get_element(iter);
+					const IndexLayout::Interface::Element& index = itfc.get_element(iter);
 
 					occurence[index] += 1;
 					if(occurence[index] > 1)
@@ -2327,30 +2327,30 @@ broadcast_vertical_add(vector_type& d)
 		if(multiOccurance){
 		//todo: avoid copy tmp_d if possible.
 			vector_type tmp_d(d.size());
-			tmp_d.copy_storage_type(d);
+			tmp_d.set_storage_type(d.get_storage_mask());
 		//	we'll copy adjusted values from d to the occurances vector
 			for(size_t i = 0; i < occurence.size(); ++i){
 				if(occurence[i] > 0) // others can be ignored since not communicated anyways
 					tmp_d[i] = d[i] * (1./occurence[i]);
 			}
 			ComPol_VecAdd<vector_type> cpVecAdd(&tmp_d);
-			m_Com.send_data(d.vertical_master_layout(), cpVecAdd);
+			m_Com.send_data(d.layouts()->vertical_master(), cpVecAdd);
 		}
 		else{
 		//	schedule Sending of DoFs of vertical slaves
 			ComPol_VecAdd<vector_type> cpVecAdd(&d);
-			m_Com.send_data(d.vertical_master_layout(), cpVecAdd);
+			m_Com.send_data(d.layouts()->vertical_master(), cpVecAdd);
 		}
 	}
 
 	ComPol_VecAdd<vector_type> cpVecAdd(&d);
-	if(!d.vertical_slave_layout().empty())
+	if(!d.layouts()->vertical_slave().empty())
 	{
 //		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
 //		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
 
 	//	schedule slaves to receive correction
-		m_Com.receive_data(d.vertical_slave_layout(), cpVecAdd);
+		m_Com.receive_data(d.layouts()->vertical_slave(), cpVecAdd);
 	}
 
 //	communicate
@@ -2371,11 +2371,11 @@ copy_to_horizontal_slaves(vector_type& c)
 //	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_CopyToHorizontalSlaves);
 	ComPol_VecCopy<vector_type> cpVecCopy(&c);
-	if(!c.slave_layout().empty())
-		m_Com.receive_data(c.slave_layout(), cpVecCopy);
+	if(!c.layouts()->slave().empty())
+		m_Com.receive_data(c.layouts()->slave(), cpVecCopy);
 
-	if(!c.master_layout().empty())
-		m_Com.send_data(c.master_layout(), cpVecCopy);
+	if(!c.layouts()->master().empty())
+		m_Com.send_data(c.layouts()->master(), cpVecCopy);
 
 //	communicate
 	m_Com.communicate();
@@ -2463,8 +2463,7 @@ update(size_t lev,
 		c.set_storage_type(PST_CONSISTENT);
 		d.set_storage_type(PST_ADDITIVE);
 	}
-	DoFDistribution* pDD = const_cast<DoFDistribution*>(spLevDD.get());
-	CopyLayoutsAndCommunicatorIntoMatrix(*spLevMat, *pDD);
+	spLevMat->set_layouts(spLevDD->layouts());
 #endif
 
 //	post smoother only created if not the same operator
@@ -2516,14 +2515,14 @@ update(size_t lev,
 //	Please note that smoothing is performed on vertical slaves.
 #ifdef UG_PARALLEL
 //	copy the layouts into the level vectors
-	CopyLayoutsAndCommunicatorIntoVector(u, *pDD);
-	CopyLayoutsAndCommunicatorIntoVector(c, *pDD);
-	CopyLayoutsAndCommunicatorIntoVector(d, *pDD);
-	CopyLayoutsAndCommunicatorIntoVector(t, *pDD);
+	u.set_layouts(spLevDD->layouts());
+	c.set_layouts(spLevDD->layouts());
+	d.set_layouts(spLevDD->layouts());
+	t.set_layouts(spLevDD->layouts());
 
 //	if no vertical masters, there can be no ghost and we're ready. By ghosts
 //	we denote vertical masters, that are not horizontal master/slave
-	if(spLevDD->layouts().vertical_master().empty())
+	if(spLevDD->layouts()->vertical_master().empty())
 	{
 		m_numSmoothIndices = numIndex;
 		return;
@@ -2540,9 +2539,9 @@ update(size_t lev,
 
 //	set the vector to -1 where vertical masters are present, the set all
 //	indices back to 1 where the index is also a horizontal master/slave
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts().vertical_master(), -1);
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts().master(), 1);
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts().slave(), 1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts()->vertical_master(), -1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts()->master(), 1);
+	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts()->slave(), 1);
 
 //	now we create the two mapping:
 //	vMapGlobalToPatch: mapping (whole grid index -> patch index): the non-ghost indices
@@ -2580,32 +2579,24 @@ update(size_t lev,
 //	** 2. **: We have to create new layouts for the smoothers since on the
 //	smoothing patch the indices are labeled differently.
 //	copy layouts
-	SmoothMasterLayout = spLevDD->layouts().master();
-	SmoothSlaveLayout = spLevDD->layouts().slave();
+	spSmoothLayouts = SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
+	spSmoothLayouts->master() = spLevDD->layouts()->master();
+	spSmoothLayouts->slave() = spLevDD->layouts()->slave();
+	spSmoothLayouts->comm() = spLevDD->layouts()->comm();
+	spSmoothLayouts->proc_comm() = spLevDD->layouts()->proc_comm();
 
 //	Replace indices in the layout with the smaller (smoothing patch) indices
-	ReplaceIndicesInLayout(SmoothMasterLayout, vMapGlobalToPatch);
-	ReplaceIndicesInLayout(SmoothSlaveLayout, vMapGlobalToPatch);
+	ReplaceIndicesInLayout(spSmoothLayouts->master(), vMapGlobalToPatch);
+	ReplaceIndicesInLayout(spSmoothLayouts->slave(), vMapGlobalToPatch);
 
 //	replace old layouts by new modified ones
-	sc.set_layouts(SmoothMasterLayout, SmoothSlaveLayout);
-	su.set_layouts(SmoothMasterLayout, SmoothSlaveLayout);
-	sd.set_layouts(SmoothMasterLayout, SmoothSlaveLayout);
-	st.set_layouts(SmoothMasterLayout, SmoothSlaveLayout);
-	sc.set_communicator(spLevDD->layouts().comm());
-	su.set_communicator(spLevDD->layouts().comm());
-	sd.set_communicator(spLevDD->layouts().comm());
-	st.set_communicator(spLevDD->layouts().comm());
-	sc.set_process_communicator(spLevDD->layouts().proc_comm());
-	su.set_process_communicator(spLevDD->layouts().proc_comm());
-	sd.set_process_communicator(spLevDD->layouts().proc_comm());
-	st.set_process_communicator(spLevDD->layouts().proc_comm());
+	sc.set_layouts(spSmoothLayouts);
+	su.set_layouts(spSmoothLayouts);
+	sd.set_layouts(spSmoothLayouts);
+	st.set_layouts(spSmoothLayouts);
 
 //	set the layouts in the smooth matrix
-	spSmoothMat->set_master_layout(SmoothMasterLayout);
-	spSmoothMat->set_slave_layout(SmoothSlaveLayout);
-	spSmoothMat->set_communicator(spLevDD->layouts().comm());
-	spSmoothMat->set_process_communicator(spLevDD->layouts().proc_comm());
+	spSmoothMat->set_layouts(spSmoothLayouts);
 
 //	** 3. **: Since smoothing is only performed on non-ghost elements, the
 //	corresoding operator must be assembled only on those elements. So we

@@ -141,12 +141,12 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 #ifdef UG_PARALLEL
 	public:
 	///	returns the algebra layouts
-		const AlgebraLayouts& layouts() const {return lev_info().algebraLayouts;}
+		ConstSmartPtr<AlgebraLayouts> layouts() const {return lev_info().layouts();}
 
 	// \TODO: Non-const access should be private or be removed
 	public:
 	///	returns the algebra layouts
-		AlgebraLayouts& layouts() {return lev_info().algebraLayouts;}
+		SmartPtr<AlgebraLayouts> layouts() {return lev_info().layouts();}
 #endif
 };
 

@@ -133,10 +133,10 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 
 #ifdef UG_PARALLEL
 	///	returns the algebra layouts
-		const AlgebraLayouts& layouts(const int lev) const {return lev_info(lev).algebraLayouts;}
+		ConstSmartPtr<AlgebraLayouts> layouts(const int lev) const {return lev_info(lev).layouts();}
 
 	///	returns the algebra layouts
-		AlgebraLayouts& layouts(const int lev) {return lev_info(lev).algebraLayouts;}
+		SmartPtr<AlgebraLayouts> layouts(const int lev) {return lev_info(lev).layouts();}
 
 		void create_layouts_and_communicator(int l);
 
@@ -180,12 +180,12 @@ class LevelDoFDistribution :  public DoFDistribution
 #ifdef UG_PARALLEL
 	public:
 	///	returns the algebra layouts
-		const AlgebraLayouts& layouts() const {return m_spMGDD->layouts(grid_level().level());}
+		ConstSmartPtr<AlgebraLayouts> layouts() const {return m_spMGDD->layouts(grid_level().level());}
 
 	// \TODO: Non-const access should be private or be removed
 	public:
 	///	returns the algebra layouts
-		AlgebraLayouts& layouts() {return m_spMGDD->layouts(grid_level().level());}
+		SmartPtr<AlgebraLayouts> layouts() {return m_spMGDD->layouts(grid_level().level());}
 #endif
 
 	protected:

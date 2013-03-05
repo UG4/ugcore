@@ -452,6 +452,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		
 #define ADD_DEFINED_FUNC(VAR) reg.add_function("IsDefined"#VAR, IsDefined##VAR, grp)
 		ADD_DEFINED_FUNC(UG_DEBUG);
+		ADD_DEFINED_FUNC(UG_PARALLEL);
 		ADD_DEFINED_FUNC(UG_DIM_1);
 		ADD_DEFINED_FUNC(UG_DIM_2);
 		ADD_DEFINED_FUNC(UG_DIM_3);

@@ -50,15 +50,15 @@ void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int dest
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 
-	pcl::InterfaceCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
+	pcl::InterfaceCommunicator<IndexLayout> &communicator = A.layouts()->comm();
 	BinaryBuffer stream;
 
 	Serialize(stream, A.num_rows());
 	for(size_t i=0; i<A.num_rows(); i++)
 		SerializeRow(stream, A, i, PN);
 
-	SerializeLayout(stream, A.master_layout(), PN);
-	SerializeLayout(stream, A.slave_layout(), PN);
+	SerializeLayout(stream, A.layouts()->master(), PN);
+	SerializeLayout(stream, A.layouts()->slave(), PN);
 
 	IndexLayout::Interface &verticalInterface = verticalSlaveLayout.interface(destproc);
 	for(size_t i=0; i<A.num_rows(); i++)
@@ -117,12 +117,10 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** ReceiveMatrix ************\n\n");
-	pcl::InterfaceCommunicator<IndexLayout> &communicator = (const_cast<matrix_type&>(A)).communicator();
+	pcl::InterfaceCommunicator<IndexLayout> &communicator = A.layouts()->comm();
 
 	M = A;
-	IndexLayout *pNull=NULL;
-	M.set_master_layout(*pNull);
-	M.set_slave_layout(*pNull);
+	M.set_layouts(SmartPtr<HorizontalAlgebraLayouts>(new HorizontalAlgebraLayouts));
 	typedef std::map<int, BinaryBuffer> BufferMap;
 	BufferMap streams;
 
@@ -204,9 +202,9 @@ void collect_matrix(matrix_type &A, matrix_type &M, IndexLayout &masterLayout, I
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 	std::vector<int> srcprocs;
-	pcl::ProcessCommunicator &pc = A.process_communicator();
+	const pcl::ProcessCommunicator &pc = A.layouts()->proc_comm();
 
-	ParallelNodes PN(A.communicator(), A.master_layout(), A.slave_layout(), A.num_rows());
+	ParallelNodes PN(A.layouts(), A.num_rows());
 
 	if(pcl::GetProcRank() == pc.get_proc_id(0))
 	{

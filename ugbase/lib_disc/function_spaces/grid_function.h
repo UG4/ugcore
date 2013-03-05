@@ -373,15 +373,6 @@ class GridFunction
 	protected:
 	/// Approximation Space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-
-#ifdef UG_PARALLEL
-	protected:
-	///	copies references of the layouts from the underlying dof distribution into the vector
-		void copy_layouts_into_vector();
-
-	/// copies the storage type from another vector
-		void copy_storage_type(const this_type& v);
-#endif
 };
 
 template <typename TDomain, typename TAlgebra>

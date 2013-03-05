@@ -40,14 +40,14 @@ template <> struct block_traits<vector<int> >
 
 void CommunicateConnections(vector<vector<int> >& connectionsToProcsOut,
 							vector<vector<int> >& connectionsToSubDomsOut,
-							IndexLayout& masterLayout,
-							IndexLayout& slaveLayout,
+							const IndexLayout& masterLayout,
+							const IndexLayout& slaveLayout,
 							int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	typedef IndexLayout::Interface 	Interface;
-	typedef IndexLayout::iterator 	InterfaceIter;
-	typedef Interface::iterator		ElemIter;
+	typedef IndexLayout::const_iterator 	InterfaceIter;
+	typedef Interface::const_iterator		ElemIter;
 	typedef Interface::Element		Element;
 
 	int connectionVecSize = highestReferencedIndex + 1;
@@ -65,7 +65,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsToProcsOut,
 	for(InterfaceIter iiter = masterLayout.begin();
 		iiter != masterLayout.end(); ++iiter)
 	{
-		Interface& interface = masterLayout.interface(iiter);
+		const Interface& interface = masterLayout.interface(iiter);
 		int targetProc = interface.get_target_proc();
 
 	//	iterate over all elements
@@ -357,26 +357,28 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 		IndexLayout& subdomLayoutOut, IndexLayout& processLayoutOut,
 		IndexLayout& deltaNbrLayoutOut, IndexLayout& crossPointLayoutOut,
-		IndexLayout& standardLayout, vector<int>& flags,
+		const IndexLayout& standardLayout, vector<int>& flags,
 		IDomainDecompositionInfo& ddinfo)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	typedef IndexLayout::Interface	Interface;
 	typedef IndexLayout::iterator	InterfaceIter;
+	typedef IndexLayout::const_iterator	ConstInterfaceIter;
 	typedef Interface::Element		Element;
+	typedef Interface::const_iterator		ConstElemIter;
 	typedef Interface::iterator		ElemIter;
 
 //	the local process and subdomain id
 	int localProcID = pcl::GetProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
-	for(InterfaceIter iiter = standardLayout.begin();
+	for(ConstInterfaceIter iiter = standardLayout.begin();
 		iiter != standardLayout.end(); ++iiter)
 	{
 	//	connected proc and subdomain ids
 		int connProc = standardLayout.proc_id(iiter);
 		int connSubdomID = ddinfo.map_proc_id_to_subdomain_id(connProc);
-		Interface& stdInterface = standardLayout.interface(iiter);
+		const Interface& stdInterface = standardLayout.interface(iiter);
 
 	//	in order to avoid creation of unrequired interfaces, we first count
 	//	how many entries of each flag-type (-2, -1, >= 0) exist in the current
@@ -384,7 +386,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 		int numMult = 0;		// flag: -2
 		int numOne = 0;			// flag: >= 0
 		int numNone = 0;		// flag: -1
-		for(ElemIter eiter = stdInterface.begin();
+		for(ConstElemIter eiter = stdInterface.begin();
 			eiter != stdInterface.end(); ++eiter)
 		{
 			int flag = flags[stdInterface.get_element(eiter)];
@@ -407,7 +409,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 			//	connected to exactly one other subdomain have to be copied
 			//	to subdomLayoutOut.
 				Interface& subdomInterface = subdomLayoutOut.interface(connProc);
-				for(ElemIter eiter = stdInterface.begin();
+				for(ConstElemIter eiter = stdInterface.begin();
 					eiter != stdInterface.end(); ++eiter)
 				{
 					Element elem = stdInterface.get_element(eiter);
@@ -420,7 +422,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 			//	and the deltaNbrInterface
 				Interface& deltaNbrInterface = deltaNbrLayoutOut.interface(connProc);
 				Interface& processInterface = processLayoutOut.interface(connProc);
-				for(ElemIter eiter = stdInterface.begin();
+				for(ConstElemIter eiter = stdInterface.begin();
 					eiter != stdInterface.end(); ++eiter)
 				{
 					Element elem = stdInterface.get_element(eiter);
@@ -439,7 +441,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 			Interface& crossInterface = crossPointLayoutOut.interface(connProc);
 
 		//	iterate over the elements again and assign them to their interfaces.
-			for(ElemIter eiter = stdInterface.begin();
+			for(ConstElemIter eiter = stdInterface.begin();
 				eiter != stdInterface.end(); ++eiter)
 			{
 				Element elem = stdInterface.get_element(eiter);
@@ -454,7 +456,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 			Interface& processInterface = processLayoutOut.interface(connProc);
 
 		//	iterate over the elements again and assign them to their interfaces.
-			for(ElemIter eiter = stdInterface.begin();
+			for(ConstElemIter eiter = stdInterface.begin();
 				eiter != stdInterface.end(); ++eiter)
 			{
 				Element elem = stdInterface.get_element(eiter);
@@ -470,7 +472,7 @@ void BuildDomainDecompositionLayouts(
 		IndexLayout& processMastersOut, IndexLayout& processSlavesOut,
 		IndexLayout& deltaNbrMastersOut, IndexLayout& deltaNbrSlavesOut,
 		IndexLayout& crossPointMastersOut, IndexLayout& crossPointSlavesOut,
-		IndexLayout& standardMasters, IndexLayout& standardSlaves,
+		const IndexLayout& standardMasters, const IndexLayout& standardSlaves,
 		int highestReferencedIndex, IDomainDecompositionInfo& ddinfo)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
@@ -478,6 +480,8 @@ void BuildDomainDecompositionLayouts(
 	typedef IndexLayout::Interface	Interface;
 	typedef IndexLayout::iterator	InterfaceIter;
 	typedef Interface::iterator		ElemIter;
+	typedef IndexLayout::const_iterator	ConstInterfaceIter;
+	typedef Interface::const_iterator	ConstElemIter;
 
 //	the local process and subdomain id
 	int localProcID = pcl::GetProcRank();
@@ -507,7 +511,7 @@ void BuildDomainDecompositionLayouts(
 
 //	iterate over all standard master interfaces and fill the vector as
 //	described above for master elements
-	for(InterfaceIter iiter = standardMasters.begin();
+	for(ConstInterfaceIter iiter = standardMasters.begin();
 		iiter != standardMasters.end(); ++iiter)
 	{
 	//	connected proc and subdomain ids
@@ -515,8 +519,8 @@ void BuildDomainDecompositionLayouts(
 		int connSubdomID = ddinfo.map_proc_id_to_subdomain_id(connProc);
 		if(localSubdomID != connSubdomID){
 		//	the interface connects two subdomains.
-			Interface& interface = standardMasters.interface(iiter);
-			for(ElemIter eiter = interface.begin();
+			const Interface& interface = standardMasters.interface(iiter);
+			for(ConstElemIter eiter = interface.begin();
 				eiter != interface.end(); ++eiter)
 			{
 				Interface::Element ind = interface.get_element(eiter);
@@ -540,11 +544,11 @@ void BuildDomainDecompositionLayouts(
 
 //	now fill the flags vector for slave entries.
 //	here we'll use the connectionsToProcs, since we otherwise wouldn't know all connections.
-	for(InterfaceIter iiter = standardSlaves.begin();
+	for(ConstInterfaceIter iiter = standardSlaves.begin();
 		iiter != standardSlaves.end(); ++iiter)
 	{
-		Interface& interface = standardSlaves.interface(iiter);
-		for(ElemIter eiter = interface.begin();
+		const Interface& interface = standardSlaves.interface(iiter);
+		for(ConstElemIter eiter = interface.begin();
 			eiter != interface.end(); ++eiter)
 		{
 			Interface::Element elem = interface.get_element(eiter);

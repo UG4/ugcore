@@ -14,17 +14,25 @@ namespace ug
 {
 
 template <typename TMatrix>
+typename ParallelMatrix<TMatrix>::this_type&
+ParallelMatrix<TMatrix>::operator =(const typename ParallelMatrix<TMatrix>::this_type &M)
+{
+//	forward to sequential matrices
+	TMatrix::operator= (*dynamic_cast<const TMatrix*>(&M));
+
+//	copy storage type and layouts
+	this->set_storage_type(M.get_storage_mask());
+	this->set_layouts(M.layouts());
+
+//	we're done
+	return *this;
+}
+
+template <typename TMatrix>
 bool
 ParallelMatrix<TMatrix>::
 change_storage_type(ParallelStorageType type)
 {
-	// check that communicator exists
-	if(m_pCommunicator == NULL)
-	{
-		UG_LOG("No communicator set. Cannot change storage type.\n");
-		return false;
-	}
-
 	// can only change if current state is defined
 	if(has_storage_type(PST_UNDEFINED))
 	{
@@ -38,9 +46,8 @@ change_storage_type(ParallelStorageType type)
 		return true;
 
 //	todo: Implement more types.
-	UG_LOG("ERROR in 'ParallelMatrix::change_storage_type':"
+	UG_THROW("ParallelMatrix::change_storage_type:"
 			" Currently no storage conversion supported.");
-	return false;
 }
 
 // calculate res = A x

@@ -37,7 +37,7 @@ inline std::string GetParallelName(std::string name)
 template<typename T>
 inline std::string GetParallelName(T &t, std::string name)
 {
-	return GetParallelName(name, t.process_communicator());
+	return GetParallelName(name, t.layouts()->proc_comm());
 }
 
 #endif

@@ -228,7 +228,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 				MakeConsistent(mat, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_A.slave_layout());
+				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
 			}
 #endif
@@ -336,7 +336,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 				MakeConsistent(mat, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_A.slave_layout());
+				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
 			}
 #endif

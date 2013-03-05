@@ -362,7 +362,7 @@ class AssembledMultiGridCycle :
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
 					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) sd[i] = d[ vMapPatchToGlobal[i] ];
-					sd.copy_storage_type(d);
+					sd.set_storage_type(d.get_storage_mask());
 				}
 				#endif
 			}
@@ -373,7 +373,7 @@ class AssembledMultiGridCycle :
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
 					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) st[i] = t[ vMapPatchToGlobal[i] ];
-					st.copy_storage_type(t);
+					st.set_storage_type(t.get_storage_mask());
 				}
 				#endif
 			}
@@ -385,7 +385,7 @@ class AssembledMultiGridCycle :
 				if(has_ghosts()) {
 					if(clearGhosts) d.set(0.0);
 					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) d[ vMapPatchToGlobal[i] ] = sd[i];
-					d.copy_storage_type(sd);
+					d.set_storage_type(sd.get_storage_mask());
 				}
 				#endif
 			}
@@ -397,7 +397,7 @@ class AssembledMultiGridCycle :
 				if(has_ghosts()) {
 					if(clearGhosts) c.set(0.0);
 					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) c[ vMapPatchToGlobal[i] ] = sc[i];
-					c.copy_storage_type(sc);
+					c.set_storage_type(sc.get_storage_mask());
 				}
 				#endif
 			}
@@ -454,7 +454,7 @@ class AssembledMultiGridCycle :
 
 #ifdef UG_PARALLEL
 		//	interfaces needed for smoothing
-			IndexLayout SmoothMasterLayout, SmoothSlaveLayout;
+			SmartPtr<AlgebraLayouts> spSmoothLayouts;
 #endif
 		};
 

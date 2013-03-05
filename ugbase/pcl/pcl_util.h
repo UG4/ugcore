@@ -277,13 +277,13 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 
 
 template<typename TLayout>
-void AddLayout(TLayout &destLayout, TLayout &sourceLayout)
+void AddLayout(TLayout &destLayout, const TLayout &sourceLayout)
 {
-	for(typename TLayout::iterator iter = sourceLayout.begin(); iter != sourceLayout.end(); ++iter)
+	for(typename TLayout::const_iterator iter = sourceLayout.begin(); iter != sourceLayout.end(); ++iter)
 	{
-		typename TLayout::Interface &source_interface = sourceLayout.interface(iter);
+		const typename TLayout::Interface &source_interface = sourceLayout.interface(iter);
 		typename TLayout::Interface &dest_interface = destLayout.interface(sourceLayout.proc_id(iter));
-		for(typename TLayout::Interface::iterator iter2 = source_interface.begin(); iter2 != source_interface.end(); ++iter2)
+		for(typename TLayout::Interface::const_iterator iter2 = source_interface.begin(); iter2 != source_interface.end(); ++iter2)
 			dest_interface.push_back(source_interface.get_element(iter2));
 	}
 }

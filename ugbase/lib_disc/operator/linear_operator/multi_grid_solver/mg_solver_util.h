@@ -152,7 +152,7 @@ void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
 //	copy storage type into all vectors
 	for(size_t lev = 0; lev < vLevelVector.size(); ++lev)
 		if(vLevelVector[lev] != NULL)
-			vLevelVector[lev]->copy_storage_type(surfVector);
+			vLevelVector[lev]->set_storage_type(surfVector.get_storage_mask());
 #endif
 }
 
@@ -591,7 +591,7 @@ void CopyMatrixByMapping(TMatrix& smallMat,
 	}
 
 #ifdef UG_PARALLEL
-	smallMat.copy_storage_type(origMat);
+	smallMat.set_storage_type(origMat.get_storage_mask());
 #endif
 }
 
@@ -667,7 +667,7 @@ void CopyMatrixByMapping(TMatrix& newMat,
 	}
 
 #ifdef UG_PARALLEL
-	newMat.copy_storage_type(origMat);
+	newMat.set_storage_type(origMat.get_storage_mask());
 #endif
 }
 

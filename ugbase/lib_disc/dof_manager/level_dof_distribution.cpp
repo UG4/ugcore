@@ -124,16 +124,16 @@ void LevelMGDoFDistribution::create_layouts_and_communicator(int l)
 
 //	create process communicator for interprocess layouts
 	level_required(l);
-	lev_info(l).layouts().proc_comm() = commWorld.create_sub_communicator(participate);
+	lev_info(l).layouts()->proc_comm() = commWorld.create_sub_communicator(participate);
 
 //  -----------------------------------
 //	CREATE INDEX LAYOUTS ON LEVEL
 //  -----------------------------------
 
-	create_index_layout(lev_info(l).layouts().master(), INT_H_MASTER, l);
-	create_index_layout(lev_info(l).layouts().slave(), INT_H_SLAVE, l);
-	create_index_layout(lev_info(l).layouts().vertical_master(), INT_V_MASTER, l);
-	create_index_layout(lev_info(l).layouts().vertical_slave(), INT_V_SLAVE, l);
+	create_index_layout(lev_info(l).layouts()->master(), INT_H_MASTER, l);
+	create_index_layout(lev_info(l).layouts()->slave(), INT_H_SLAVE, l);
+	create_index_layout(lev_info(l).layouts()->vertical_master(), INT_V_MASTER, l);
+	create_index_layout(lev_info(l).layouts()->vertical_slave(), INT_V_SLAVE, l);
 }
 
 void LevelMGDoFDistribution::create_index_layout(IndexLayout& layout,
@@ -482,10 +482,16 @@ void LevelMGDoFDistribution::permute_indices(const std::vector<size_t>& vNewInd,
 void LevelMGDoFDistribution::level_required(int level)
 {
 //	check if something to do
-	if(level < (int)m_vLev.size()) return;
+	const int oldSize = m_vLev.size();
+	if(level < oldSize) return;
 
 //	resize info vector
-	m_vLev.resize(level+1);
+	// note: use push_back instead of resize to avoid same smartptr in every class
+	while((int)m_vLev.size() <= level){
+		m_vLev.push_back(LevInfo<>());
+	}
+//	m_vLev.resize(level+1, LevInfo<>());
+
 	m_managingDoFDists.resize(level+1, NULL);
 
 //	adjust subsets

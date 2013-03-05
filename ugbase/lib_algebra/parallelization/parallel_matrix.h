@@ -12,6 +12,7 @@
 #include "parallel_index_layout.h"
 #include "parallelization_util.h"
 #include "parallel_storage_type.h"
+#include "algebra_layouts.h"
 #include "lib_algebra/common/operations.h"
 
 namespace ug
@@ -51,94 +52,23 @@ class ParallelMatrix : public TMatrix
 	public:
 	///	Default Constructor
 		ParallelMatrix()
-		: TMatrix(), m_type(PST_UNDEFINED),
-		  	m_pSlaveLayout(NULL), m_pMasterLayout(NULL),
-			m_pCommunicator(NULL)
+			: TMatrix(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(NULL)
 		{}
 
 	///	Constructor setting the layouts
-		ParallelMatrix(	IndexLayout& slaveLayout, IndexLayout masterLayout)
-		: TMatrix(), m_type(PST_UNDEFINED),
-			m_pCommunicator(NULL)
-		{
-			set_layouts(masterLayout, slaveLayout);
-		}
-
-		//////////////////////////////
-		// Layouts and communicator
-		//////////////////////////////
-
-	///	sets the domain decomposition level to be used
-		void set_layouts(IndexLayout& masterLayout, IndexLayout& slaveLayout)
-		{
-		//	set layout
-			m_pMasterLayout = &masterLayout;
-			m_pSlaveLayout = &slaveLayout;
-		}
-
-	///	sets slave layout
-		void set_slave_layout(IndexLayout& slaveLayout)
-		{
-			m_pSlaveLayout = &slaveLayout;
-		}
-
-	///	sets slave layout
-		void set_master_layout(IndexLayout& masterLayout)
-		{
-			m_pMasterLayout = &masterLayout;
-		}
-
-	///	returns the slave layout
-		IndexLayout& slave_layout() const
-		{
-			UG_ASSERT(m_pSlaveLayout != NULL, "No Slave Layout set, but requested.");
-			return *m_pSlaveLayout;
-		}
-
-	///	returns the master layout
-		IndexLayout& master_layout() const
-		{
-			UG_ASSERT(m_pMasterLayout != NULL, "No Slave Layout set, but requested.");
-			return *m_pMasterLayout;
-		}
-
-	///	sets a communicator
-		void set_communicator(pcl::InterfaceCommunicator<IndexLayout>& pc)
-		{
-			m_pCommunicator = &pc;
-		}
-
-	///	returns the communicator
-		pcl::InterfaceCommunicator<IndexLayout>&
-		communicator()
-		{
-			UG_ASSERT(m_pCommunicator != NULL, "No communicator set, but requested.");
-			return *m_pCommunicator;
-		}
-
-		const pcl::InterfaceCommunicator<IndexLayout>&
-		communicator() const
-		{
-			UG_ASSERT(m_pCommunicator != NULL, "No communicator set, but requested.");
-			return *m_pCommunicator;
-		}
-
-	///	sets a process communicator
-		void set_process_communicator(const pcl::ProcessCommunicator& pc)
-		{
-			m_processCommunicator = pc;
-		}
-
-	///	returns the process communicator
-		pcl::ProcessCommunicator&
-		process_communicator() {return m_processCommunicator;}
-
-		const pcl::ProcessCommunicator&
-		process_communicator() const {return m_processCommunicator;}
+		ParallelMatrix(SmartPtr<HorizontalAlgebraLayouts> layouts)
+			: TMatrix(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(layouts)
+		{}
 
 		/////////////////////////
 		// Storage type handling
 		/////////////////////////
+
+	///	returns the algebra layouts
+		ConstSmartPtr<HorizontalAlgebraLayouts> layouts() const {return m_spAlgebraLayouts;}
+
+	///	sets the algebra layouts
+		void set_layouts(ConstSmartPtr<HorizontalAlgebraLayouts> layouts) {m_spAlgebraLayouts = layouts;}
 
 	/// sets the storage type
 	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
@@ -163,9 +93,6 @@ class ParallelMatrix : public TMatrix
 	/// returns storage type mask
 		uint get_storage_mask() const { return m_type; }
 
-	/// copies the storage type from another vector
-		void copy_storage_type(const this_type& v) {m_type = v.m_type;}
-
 		/////////////////////////
 		// OverWritten functions
 		/////////////////////////
@@ -182,45 +109,15 @@ class ParallelMatrix : public TMatrix
 		template<typename TPVector>
 		bool matmul_minus(TPVector &res, const TPVector &x) const;
 
-	///	copy layouts from another parallel matrix
-		void copy_layouts(const this_type &v)
-		{
-			m_pSlaveLayout = v.m_pSlaveLayout;
-			m_pMasterLayout = v.m_pMasterLayout;
-
-			m_pCommunicator = v.m_pCommunicator;
-			m_processCommunicator = v.m_processCommunicator;
-		}
-
-		///	assignment
-		this_type &operator =(const this_type &M)
-		{
-		//	forward to sequential matrices
-			TMatrix::operator= (*dynamic_cast<const TMatrix*>(&M));
-
-		//	copy storage type and layouts
-			copy_storage_type(M);
-			copy_layouts(M);
-
-		//	we're done
-			return *this;
-		}
+	///	assignment
+		this_type &operator =(const this_type &M);
 
 	private:
-	//  type of storage  (i.e. consistent, additiv, additiv unique)
+	/// type of storage  (i.e. consistent, additiv, additiv unique)
 		uint m_type;
 
-	// 	index layout for slave dofs (0 is process-wise (finest grained) partition)
-		IndexLayout* m_pSlaveLayout;
-
-	// 	index layout for master dofs
-		IndexLayout* m_pMasterLayout;
-
-	// 	communicator for direct neighbor communication
-		pcl::InterfaceCommunicator<IndexLayout>* m_pCommunicator;
-
-	// 	process communicator (world by default)
-		pcl::ProcessCommunicator m_processCommunicator;
+	/// algebra layouts and communicators
+		ConstSmartPtr<HorizontalAlgebraLayouts> m_spAlgebraLayouts;
 };
 
 //	predaclaration.

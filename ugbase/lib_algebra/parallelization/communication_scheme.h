@@ -261,15 +261,15 @@ private:
  */
 template<typename TCommunicationScheme>
 void CommunicateOnInterfaces(pcl::InterfaceCommunicator<IndexLayout> &communicator,
-		IndexLayout &sendingLayout, IndexLayout &receivingLayout, TCommunicationScheme &scheme)
+		const IndexLayout &sendingLayout, const IndexLayout &receivingLayout, TCommunicationScheme &scheme)
 {
 	AMG_PROFILE_FUNC();
 	int i=0;
 
-	for(IndexLayout::iterator it = sendingLayout.begin(); it != sendingLayout.end(); ++it, ++i)
+	for(IndexLayout::const_iterator it = sendingLayout.begin(); it != sendingLayout.end(); ++it, ++i)
 	{
 		BinaryBuffer buff;
-		IndexLayout::Interface &interface = sendingLayout.interface(it);
+		const IndexLayout::Interface &interface = sendingLayout.interface(it);
 		scheme.collect(buff, interface);
 		// todo: don't use parallelcommunicator send_raw
 		// todo: reserve and reuse buff
@@ -278,19 +278,30 @@ void CommunicateOnInterfaces(pcl::InterfaceCommunicator<IndexLayout> &communicat
 	}
 
 	int receivingLayoutSize=0;
-	for(IndexLayout::iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it)
+	for(IndexLayout::const_iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it)
 		receivingLayoutSize++;
 
 	stdvector< BinaryBuffer > bufs(receivingLayoutSize);
 	i=0;
-	for(IndexLayout::iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it, ++i)
+	for(IndexLayout::const_iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it, ++i)
 		communicator.receive_raw(receivingLayout.proc_id(it), bufs[i],
 				scheme.get_required_buffer_size(receivingLayout.interface(it)));
 
 	communicator.communicate();
 	i=0;
-	for(IndexLayout::iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it, ++i)
+	for(IndexLayout::const_iterator it = receivingLayout.begin(); it != receivingLayout.end(); ++it, ++i)
 		scheme.extract(bufs[i], receivingLayout.interface(it));
+}
+
+template<typename TCommunicationScheme>
+void CommunicateFromSlaveToMaster(HorizontalAlgebraLayouts &layouts, TCommunicationScheme &scheme)
+{
+	CommunicateOnInterfaces(layouts.proc_comm(), layouts.slave(), layouts.master(), scheme);
+}
+template<typename TCommunicationScheme>
+void CommunicateFromMasterToSlave(HorizontalAlgebraLayouts &layouts, TCommunicationScheme &scheme)
+{
+	CommunicateOnInterfaces(layouts.proc_comm(), layouts.master(), layouts.slave(), scheme);
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

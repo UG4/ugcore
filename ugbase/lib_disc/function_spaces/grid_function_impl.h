@@ -386,7 +386,7 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace,
 	resize_values(num_indices());
 #ifdef UG_PARALLEL
 //	set layouts
-	copy_layouts_into_vector();
+	this->set_layouts(m_spDD->layouts());
 
 //	set storage type
 	this->set_storage_type(PST_UNDEFINED);
@@ -403,7 +403,7 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace)
 	resize_values(num_indices());
 #ifdef UG_PARALLEL
 //	set layouts
-	copy_layouts_into_vector();
+	this->set_layouts(m_spDD->layouts());
 
 //	set storage type
 	this->set_storage_type(PST_UNDEFINED);
@@ -420,7 +420,7 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace, int level)
 	resize_values(num_indices());
 #ifdef UG_PARALLEL
 //	set layouts
-	copy_layouts_into_vector();
+	this->set_layouts(m_spDD->layouts());
 
 //	set storage type
 	this->set_storage_type(PST_UNDEFINED);
@@ -491,10 +491,10 @@ clone_pattern(const this_type& v)
 
 #ifdef UG_PARALLEL
 //	set layouts
-	copy_layouts_into_vector();
+	this->set_layouts(v.layouts());
 
 //	copy storage type
-	vector_type::copy_storage_type(v);
+	this->set_storage_type(v.get_storage_mask());
 #endif
 };
 
@@ -529,7 +529,7 @@ permute_values(const std::vector<size_t>& vIndNew)
 	vector_type vecTmp; vecTmp.resize(this->size());
 #ifdef UG_PARALLEL
 //	copy storage type
-	vecTmp.copy_storage_type(*this);
+	vecTmp.set_storage_type(this->get_storage_mask());
 #endif
 
 //	loop indices and copy values
@@ -567,10 +567,10 @@ void GridFunction<TDomain, TAlgebra>::assign(const vector_type& v)
 
 #ifdef UG_PARALLEL
 //	set layouts
-	copy_layouts_into_vector();
+	this->set_layouts(v.layouts());
 
 //	copy storage type
-	vector_type::copy_storage_type(v);
+	this->set_storage_type(v.get_storage_mask());
 #endif
 }
 
@@ -591,10 +591,10 @@ void GridFunction<TDomain, TAlgebra>::assign(const this_type& v)
 
 #ifdef UG_PARALLEL
 //	set layouts
-	copy_layouts_into_vector();
+	this->set_layouts(v.layouts());
 
 //	copy storage type
-	vector_type::copy_storage_type(v);
+	this->set_storage_type(v.get_storage_mask());
 #endif
 }
 
@@ -606,7 +606,7 @@ GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 		= new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, this->m_spDD);
 	v->resize_values(this->num_indices());
 #ifdef UG_PARALLEL
-	v->copy_layouts_into_vector();
+	v->set_layouts(this->layouts());
 	v->set_storage_type(PST_UNDEFINED);
 #endif
 	return v;
@@ -620,29 +620,6 @@ add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > transfer)
 	transfer->set_vector(this);
 	IGridFunction::add_transfer(transfer);
 }
-
-#ifdef UG_PARALLEL
-template <typename TDomain, typename TAlgebra>
-void GridFunction<TDomain, TAlgebra>::copy_layouts_into_vector()
-{
-//	copy all horizontal layouts (for all domain decomps)
-	vector_type::set_layouts(this->m_spDD->layouts().master(), this->m_spDD->layouts().slave());
-
-//	copy vertical layouts
-	vector_type::set_vertical_layouts(this->m_spDD->layouts().vertical_master(),
-	                                  this->m_spDD->layouts().vertical_slave());
-
-//	copy communicator
-	vector_type::set_communicator(this->m_spDD->layouts().comm());
-	vector_type::set_process_communicator(this->m_spDD->layouts().proc_comm());
-}
-
-template <typename TDomain, typename TAlgebra>
-void GridFunction<TDomain, TAlgebra>::copy_storage_type(const this_type& v)
-{
-	vector_type::copy_storage_type(v);
-}
-#endif
 
 } // end namespace ug
 

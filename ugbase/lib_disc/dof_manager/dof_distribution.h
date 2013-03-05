@@ -158,11 +158,11 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider,
 #ifdef UG_PARALLEL
 	public:
 	///	returns the algebra layouts
-		virtual const AlgebraLayouts& layouts() const = 0;
+		virtual ConstSmartPtr<AlgebraLayouts> layouts() const = 0;
 
 	public:
 	///	returns the algebra layouts
-		virtual AlgebraLayouts& layouts() = 0;
+		virtual SmartPtr<AlgebraLayouts> layouts() = 0;
 #endif
 
 	public:

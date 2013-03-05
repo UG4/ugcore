@@ -24,7 +24,11 @@ namespace ug{
 struct LevInfoBase
 {
 ///	constructor
-	LevInfoBase() : numIndex(0), sizeIndexSet(0) {}
+	LevInfoBase() : numIndex(0), sizeIndexSet(0)
+#ifdef UG_PARALLEL
+	,spAlgebraLayouts(new AlgebraLayouts)
+#endif
+	{}
 
 /// number of distributed indices on whole domain
 	size_t numIndex;
@@ -37,14 +41,15 @@ struct LevInfoBase
 	size_t sizeIndexSet;
 
 #ifdef UG_PARALLEL
-	public:
+	protected:
 ///	algebra layouts
-	AlgebraLayouts algebraLayouts;
+	SmartPtr<AlgebraLayouts> spAlgebraLayouts;
 
+	public:
 ///	returns algebra layouts
 ///	\{
-	const AlgebraLayouts& layouts() const 	{return algebraLayouts;}
-	AlgebraLayouts& layouts() 				{return algebraLayouts;}
+	ConstSmartPtr<AlgebraLayouts> layouts() const 	{return spAlgebraLayouts;}
+	SmartPtr<AlgebraLayouts> layouts() 				{return spAlgebraLayouts;}
 ///	\}
 #endif
 
@@ -52,7 +57,7 @@ struct LevInfoBase
 	void clear()
 	{
 #ifdef UG_PARALLEL
-		algebraLayouts.clear();
+		spAlgebraLayouts->clear();
 #endif
 		numIndex = sizeIndexSet = 0;
 		vNumIndexOnSubset.clear();

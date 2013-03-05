@@ -94,14 +94,24 @@ private:
  */
 template<typename TVec>
 void ConsistencyCheck(const TVec &vec, pcl::InterfaceCommunicator<IndexLayout> &com,
-		const pcl::ProcessCommunicator &pc, IndexLayout &masterLayout,
-		IndexLayout &slaveLayout, std::string name="")
+		const pcl::ProcessCommunicator &pc, const IndexLayout &masterLayout,
+		const IndexLayout &slaveLayout, std::string name="")
 {
 	PROFILE_FUNC_GROUP("algebra parallelization debug");
 	ConsistencyCheckClass<TVec, typename TVec::value_type> scheme(vec, name);
 	CommunicateOnInterfaces(com, masterLayout, slaveLayout, scheme);
 
 	UG_ASSERT(AllProcsTrue(scheme.isOK(), pc), name << " not consistent!");
+}
+
+template<typename TVec>
+void ConsistencyCheck(const TVec &vec, const HorizontalAlgebraLayouts &layout, std::string name="")
+{
+	PROFILE_FUNC_GROUP("algebra parallelization debug");
+	ConsistencyCheckClass<TVec, typename TVec::value_type> scheme(vec, name);
+	CommunicateOnInterfaces(layout.comm(), layout.master(), layout.slave(), scheme);
+
+	UG_ASSERT(AllProcsTrue(scheme.isOK(), layout.proc_comm()), name << " not consistent!");
 }
 
 }

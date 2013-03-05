@@ -321,7 +321,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 		//	set zero on slaves
 			std::vector<IndexLayout::Element> vIndex;
-			CollectUniqueElements(vIndex,  m_ILU.slave_layout());
+			CollectUniqueElements(vIndex,  m_ILU.layouts()->slave());
 			SetDirichletRow(m_ILU, vIndex);
 #else
 		//	copy original matrix

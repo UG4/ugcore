@@ -33,6 +33,7 @@ if(PARALLEL)
 						parallelization/parallel_coloring.cpp						
 						parallelization/global_layout.cpp
 						parallelization/parallel_index_layout.cpp
+						parallelization/parallel_nodes.cpp
 						common/connection_viewer_output.cpp					
 						 )
 endif(PARALLEL)

@@ -158,8 +158,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	M.set_storage_type(PST_ADDITIVE);
-	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
-	CopyLayoutsAndCommunicatorIntoMatrix(M, *pDD);
+	M.set_layouts(dd->layouts());
 #endif
 }
 
@@ -261,8 +260,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	A.set_storage_type(PST_ADDITIVE);
-	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
-	CopyLayoutsAndCommunicatorIntoMatrix(A, *pDD);
+	A.set_layouts(dd->layouts());
 #endif
 }
 
@@ -371,8 +369,7 @@ assemble_jacobian(matrix_type& J,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
-	CopyLayoutsAndCommunicatorIntoMatrix(J, *pDD);
+	J.set_layouts(dd->layouts());
 #endif
 }
 
@@ -574,8 +571,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
-	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
+	mat.set_layouts(dd->layouts());
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif
 }
@@ -933,8 +929,7 @@ assemble_jacobian(matrix_type& J,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	J.set_storage_type(PST_ADDITIVE);
-	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
-	CopyLayoutsAndCommunicatorIntoMatrix(J, *pDD);
+	J.set_layouts(dd->layouts());
 #endif
 }
 
@@ -1142,8 +1137,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
 	mat.set_storage_type(PST_ADDITIVE);
-	DoFDistribution* pDD = const_cast<DoFDistribution*>(dd.get());
-	CopyLayoutsAndCommunicatorIntoMatrix(mat, *pDD);
+	mat.set_layouts(dd->layouts());
 
 	rhs.set_storage_type(PST_ADDITIVE);
 #endif

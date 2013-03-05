@@ -73,12 +73,10 @@ class FetiLayouts
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	public:
-		FetiLayouts() : m_pMasterStdLayout(NULL), m_pSlaveStdLayout(NULL) {}
+		FetiLayouts() {}
 
 	//	assigns standard layouts, creates the feti layouts
-		void create_layouts(IndexLayout& stdMasterLayout,
-		                    IndexLayout& stdSlaveLayout,
-		                    pcl::ProcessCommunicator& stdProcessCom,
+		void create_layouts(ConstSmartPtr<HorizontalAlgebraLayouts> stdLayouts,
 		                    size_t numIndices,
 		                    pcl::IDomainDecompositionInfo& DDInfo,
 		                    bool bDebug = false)
@@ -86,20 +84,18 @@ class FetiLayouts
 		//	if no indices, nothing to do
 			if(numIndices == 0) return;
 
-		//	remember std layouts
-			m_pMasterStdLayout = &stdMasterLayout;
-			m_pSlaveStdLayout = &stdSlaveLayout;
-			m_stdProcessCom = stdProcessCom;
+			m_spStdLayouts = stdLayouts;
+			m_spInnerLayouts = SmartPtr<HorizontalAlgebraLayouts>(new HorizontalAlgebraLayouts());
 
 		//	create FETI Layouts:
  // 	\todo: For some documentation info see mail by S. Reiter, 30. Januar 2011 16:10:52 MEZ
 //             (if the information therein is not already outdated ...)
 			BuildDomainDecompositionLayouts(
 							m_masterDualLayout, m_slaveDualLayout,
-							m_masterInnerLayout, m_slaveInnerLayout,
+							m_spInnerLayouts->master(), m_spInnerLayouts->slave(),
 							m_masterDualNbrLayout, m_slaveDualNbrLayout,
 							m_masterPrimalLayout, m_slavePrimalLayout,
-							*m_pMasterStdLayout, *m_pSlaveStdLayout,
+							stdLayouts->master(), stdLayouts->slave(),
 							(int)(numIndices - 1), DDInfo);
 			UG_LOG("[BuildDomainDecompositionLayouts done]");
 
@@ -108,7 +104,7 @@ class FetiLayouts
 			pcl::ProcessCommunicator worldComm;
 			for(int i = 0; i < DDInfo.get_num_subdomains(); ++i){
 				if(localSubdomID == i)
-					m_intraFetiSubDomComm = worldComm.create_sub_communicator(true);
+					m_spInnerLayouts->proc_comm() = worldComm.create_sub_communicator(true);
 				else
 					worldComm.create_sub_communicator(false);
 			}
@@ -153,59 +149,57 @@ class FetiLayouts
 			{
 				pcl::InterfaceCommunicator<IndexLayout> comTmp;
 				UG_LOG("STANDARD LAYOUTS:\n");
-				PrintLayout(m_stdProcessCom, comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout);
+				PrintLayout(m_spStdLayouts->proc_comm(), comTmp, m_spStdLayouts->master(), m_spStdLayouts->slave());
 				UG_LOG("INNER LAYOUTS:\n");
-				PrintLayout(m_stdProcessCom, comTmp, m_masterInnerLayout, m_slaveInnerLayout);
+				PrintLayout(m_spStdLayouts->proc_comm(), comTmp, m_spInnerLayouts->master(), m_spInnerLayouts->slave());
 				UG_LOG("PRIMAL LAYOUTS:\n");
-				PrintLayout(m_stdProcessCom, comTmp, m_masterPrimalLayout, m_slavePrimalLayout);
+				PrintLayout(m_spStdLayouts->proc_comm(), comTmp, m_masterPrimalLayout, m_slavePrimalLayout);
 				UG_LOG("DUAL LAYOUTS:\n");
-				PrintLayout(m_stdProcessCom, comTmp, m_masterDualLayout, m_slaveDualLayout);
+				PrintLayout(m_spStdLayouts->proc_comm(), comTmp, m_masterDualLayout, m_slaveDualLayout);
 				UG_LOG("DUAL NBR LAYOUTS:\n");
-				PrintLayout(m_stdProcessCom, comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout);
+				PrintLayout(m_spStdLayouts->proc_comm(), comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout);
 			}
 		}
 
 	//	tests the previously created layouts:
 		void test_layouts(bool bPrint)
 		{
-			// TODO: Besserer Check, dass die Layouts schon existieren? Das hier sollte aber reichen, da Konstruktor
-			// 'm_pMasterStdLayout' mit NULL initialisiert!?
-			if (m_pMasterStdLayout == NULL) {
+			if (m_spInnerLayouts.invalid() || m_spInnerLayouts.invalid()) {
 				UG_LOG("LAYOUTS not yet created!\n");
 				return;
 			}
 			pcl::InterfaceCommunicator<IndexLayout> comTmp;
 
 			UG_LOG("TEST STANDARD LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, *m_pMasterStdLayout, *m_pSlaveStdLayout, bPrint) != true) {
+			if (TestLayout(m_spStdLayouts->proc_comm(), comTmp, m_spStdLayouts->master(), m_spStdLayouts->slave(), bPrint) != true) {
 				UG_LOG("STANDARD LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("STANDARD LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST INNER LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, m_masterInnerLayout, m_slaveInnerLayout, bPrint) != true) {
+			if (TestLayout(m_spStdLayouts->proc_comm(), comTmp, m_spInnerLayouts->master(), m_spInnerLayouts->slave(), bPrint) != true) {
 				UG_LOG("INNER LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("INNER LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST PRIMAL LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, m_masterPrimalLayout, m_slavePrimalLayout, bPrint) != true) {
+			if (TestLayout(m_spStdLayouts->proc_comm(), comTmp, m_masterPrimalLayout, m_slavePrimalLayout, bPrint) != true) {
 				UG_LOG("PRIMAL LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("PRIMAL LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST DUAL LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, m_masterDualLayout, m_slaveDualLayout, bPrint) != true) {
+			if (TestLayout(m_spStdLayouts->proc_comm(), comTmp, m_masterDualLayout, m_slaveDualLayout, bPrint) != true) {
 				UG_LOG("DUAL LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("DUAL LAYOUTS are consistent!\n");
 			}
 
 			UG_LOG("TEST DUAL NBR LAYOUTS:\n");
-			if (TestLayout(m_stdProcessCom, comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout, bPrint) != true) {
+			if (TestLayout(m_spStdLayouts->proc_comm(), comTmp, m_masterDualNbrLayout, m_slaveDualNbrLayout, bPrint) != true) {
 				UG_LOG("DUAL NBR LAYOUTS inconsistent!\n");
 			} else {
 				UG_LOG("DUAL NBR LAYOUTS are consistent!\n");
@@ -213,14 +207,14 @@ class FetiLayouts
 		}
 
 	//	standard layouts
-		IndexLayout& get_std_master_layout() {return *m_pMasterStdLayout;}
-		IndexLayout& get_std_slave_layout() {return *m_pSlaveStdLayout;}
-		pcl::ProcessCommunicator& get_std_process_communicator() {return m_stdProcessCom;}
+		const IndexLayout& get_std_master_layout() {return m_spStdLayouts->master();}
+		const IndexLayout& get_std_slave_layout() {return m_spStdLayouts->slave();}
+		const pcl::ProcessCommunicator& get_std_process_communicator() {return m_spStdLayouts->proc_comm();}
 
 	//	intra subdomain layouts
-		IndexLayout& get_intra_sd_master_layout() {return m_masterInnerLayout;}
-		IndexLayout& get_intra_sd_slave_layout() {return m_slaveInnerLayout;}
-		pcl::ProcessCommunicator& get_intra_sd_process_communicator() {return m_intraFetiSubDomComm;}
+		IndexLayout& get_intra_sd_master_layout() {return m_spInnerLayouts->master();}
+		IndexLayout& get_intra_sd_slave_layout() {return m_spInnerLayouts->slave();}
+		pcl::ProcessCommunicator& get_intra_sd_process_communicator() {return m_spInnerLayouts->proc_comm();}
 
 	//	dual layouts
 		IndexLayout& get_dual_master_layout() {return m_masterDualLayout;}
@@ -249,17 +243,13 @@ class FetiLayouts
 	//	sets standard communication layouts and communicators
 		void vec_use_std_communication(vector_type& vec)
 		{
-			vec.set_slave_layout(get_std_slave_layout());
-			vec.set_master_layout(get_std_master_layout());
-			vec.set_process_communicator(get_std_process_communicator());
+			vec.set_layouts(m_spStdLayouts);
 		}
 
 	//	sets intra subdomain communication layouts and communicators
 		void vec_use_intra_sd_communication(vector_type& vec)
 		{
-			vec.set_slave_layout(get_intra_sd_slave_layout());
-			vec.set_master_layout(get_intra_sd_master_layout());
-			vec.set_process_communicator(get_intra_sd_process_communicator());
+			vec.set_layouts(m_spInnerLayouts);
 		}
 
 	public:
@@ -333,7 +323,7 @@ class FetiLayouts
 			double tProdGlobal;
 
 		//	sum up values
-			m_stdProcessCom.allreduce(&tProdLocal, &tProdGlobal, 1,
+			m_spStdLayouts->proc_comm().allreduce(&tProdLocal, &tProdGlobal, 1,
 											PCL_DT_DOUBLE, PCL_RO_SUM);
 
 		//	return result
@@ -362,9 +352,7 @@ class FetiLayouts
 	//	sets intra subdomain communication layouts and communicators
 		void mat_use_intra_sd_communication(matrix_type& mat)
 		{
-			mat.set_slave_layout(get_intra_sd_slave_layout());
-			mat.set_master_layout(get_intra_sd_master_layout());
-			mat.set_process_communicator(get_intra_sd_process_communicator());
+			mat.set_layouts(m_spInnerLayouts);
 		}
 
 	protected:
@@ -399,14 +387,10 @@ class FetiLayouts
 
 	protected:
 	//	Standard Layouts
-		IndexLayout* m_pMasterStdLayout;
-		IndexLayout* m_pSlaveStdLayout;
-		pcl::ProcessCommunicator	m_stdProcessCom;
+		ConstSmartPtr<HorizontalAlgebraLayouts> m_spStdLayouts;
 
 	//	Layouts and Communicator for Inner variables
-		IndexLayout m_masterInnerLayout;
-		IndexLayout m_slaveInnerLayout;
-		pcl::ProcessCommunicator	m_intraFetiSubDomComm;
+		SmartPtr<HorizontalAlgebraLayouts> m_spInnerLayouts;
 
 	//	Layouts for Dual variables
 		IndexLayout m_masterDualLayout;

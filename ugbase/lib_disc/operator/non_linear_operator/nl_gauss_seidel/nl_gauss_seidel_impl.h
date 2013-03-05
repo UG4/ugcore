@@ -282,7 +282,9 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	try{
 		m_d.resize(u.size()); m_c_block.resize(1); m_d_block.resize(1);
 		#ifdef UG_PARALLEL
-			m_d.copy_layouts(u); m_c_block.copy_layouts(u); m_d_block.copy_layouts(u);
+			m_d.set_layouts(u.layouts());
+			m_c_block.set_layouts(u.layouts());
+			m_d_block.set_layouts(u.layouts());
 		#endif
 	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: Resize of Defect/Correction failed.");
 

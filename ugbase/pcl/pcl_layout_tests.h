@@ -49,7 +49,8 @@ inline void PrintPC(const pcl::ProcessCommunicator &processCommunicator)
  */
 template<typename TLayout>
 bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
-		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
+		pcl::InterfaceCommunicator<TLayout> &com,
+		const TLayout &masterLayout, const TLayout &slaveLayout)
 {
 	PROFILE_FUNC_GROUP("debug");
 	//PRINTPC(processCommunicator);
@@ -57,14 +58,14 @@ bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
 	std::vector<char> bMasterToProcess; bMasterToProcess.resize(processCommunicator.size(), 0x00);
 	std::vector<char> bSlaveToProcess; bSlaveToProcess.resize(processCommunicator.size(), 0x00);
 
-	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	for(typename TLayout::const_iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		int id = processCommunicator.get_local_proc_id(masterLayout.proc_id(iter));
 		if(id == -1)
 			UG_LOG("Processor " << masterLayout.proc_id(iter) << " not in processCommunicator, but in MasterLayout\n")
 		else bMasterToProcess[id] = true;
 	}
-	for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
+	for(typename TLayout::const_iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 	{
 		int id = processCommunicator.get_local_proc_id(slaveLayout.proc_id(iter));
 		if(id == -1)
@@ -124,7 +125,8 @@ bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
  */
 template<typename TLayout, typename TValue>
 bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com,
-					TLayout &masterLayout, TLayout &slaveLayout, bool bPrint=false,
+                                        const TLayout &masterLayout,
+                                        const TLayout &slaveLayout, bool bPrint=false,
 					boost::function<TValue (typename TLayout::Element)> cbToValue
 						= TrivialToValue<typename TLayout::Element>,
 					bool compareValues = false)
@@ -135,22 +137,22 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 
 	BufferMap sendMap, receiveMap;
 
-	for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
+	for(typename TLayout::const_iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 	{
-		Interface &interface = slaveLayout.interface(iter);
+		const Interface &interface = slaveLayout.interface(iter);
 		int pid = slaveLayout.proc_id(iter);
 		ug::BinaryBuffer& buffer = sendMap[pid];
 
-		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		for(typename TLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
-			typename Interface::Element &element = interface.get_element(iter2);
+			const typename Interface::Element &element = interface.get_element(iter2);
 			Serialize(buffer, cbToValue(element));
 		}
 		com.send_raw(pid, buffer.buffer(), buffer.write_pos(), false);
 	}
 
 
-	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	for(typename TLayout::const_iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		int pid = masterLayout.proc_id(iter);
 		com.receive_raw(pid, receiveMap[pid]);
@@ -161,15 +163,15 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 	bool layoutBroken=false;
 	bool valueMismatch = false;
 
-	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	for(typename TLayout::const_iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
 		int pid = masterLayout.proc_id(iter);
 		ug::BinaryBuffer &buffer = receiveMap[pid];
 		bool broken=false;
 		uint64_t numEntries = 0;
 		if(bPrint) { UG_LOG("      Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n"); }
-		typename TLayout::Interface &interface = masterLayout.interface(iter);
-		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		const typename TLayout::Interface &interface = masterLayout.interface(iter);
+		for(typename TLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
 			if(!buffer.eof() == false)
 			{
@@ -244,8 +246,9 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
  */
 template<typename TLayout, typename TValue>
 bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
-		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
-				TLayout &slaveLayout, bool bPrint=false,
+                pcl::InterfaceCommunicator<TLayout> &com,
+                const TLayout &masterLayout,
+                const TLayout &slaveLayout, bool bPrint=false,
 				boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>,
 				bool compareValues = false)
@@ -255,11 +258,11 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 	{
 		UG_LOG("proc " << std::setw(4) << pcl::GetProcRank() << ":\n");
 		UG_LOG("   MasterLayout is to processes ");
-		for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)	{
+		for(typename TLayout::const_iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)	{
 			UG_LOG(" " << std::setw(4) << masterLayout.proc_id(iter) << " ");
 		}
 		UG_LOG("\n   Slave Layout is to processes ");
-		for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter) {
+		for(typename TLayout::const_iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter) {
 			UG_LOG(" " << std::setw(4) << slaveLayout.proc_id(iter) << " ");
 		}
 		UG_LOG("\n");
@@ -276,8 +279,8 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 
 template<typename TLayout>
 bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
-				pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
-				TLayout &slaveLayout, bool bPrint=false,
+				pcl::InterfaceCommunicator<TLayout> &com, const TLayout &masterLayout,
+				const TLayout &slaveLayout, bool bPrint=false,
 				bool compareValues = false)
 {
 	return TestLayout<TLayout, typename TLayout::Element>(processCommunicator, com,
@@ -287,9 +290,9 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 
 template<typename TLayout, typename TValue>
 bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
-		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
-				TLayout &slaveLayout,
-				boost::function<TValue (typename TLayout::Element)> cbToValue
+                 pcl::InterfaceCommunicator<TLayout> &com, const TLayout &masterLayout,
+                 const TLayout &slaveLayout,
+                 boost::function<TValue (typename TLayout::Element)> cbToValue
 					= TrivialToValue<typename TLayout::Element>)
 {
 	return TestLayout(processCommunicator, com, masterLayout, slaveLayout, true, cbToValue);
@@ -298,8 +301,9 @@ bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
 
 template<typename TLayout>
 bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
-		pcl::InterfaceCommunicator<TLayout> &com, TLayout &masterLayout,
-				TLayout &slaveLayout)
+                 pcl::InterfaceCommunicator<TLayout> &com,
+                 const TLayout &masterLayout,
+                 const TLayout &slaveLayout)
 {
 	return TestLayout(processCommunicator, com, masterLayout, slaveLayout, true);
 }
@@ -312,6 +316,7 @@ bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
 	#define TESTLAYOUT(processCommunicator, com, master, slave)
 #endif
 
+#define TESTLAYOUTS(layout) TESTLAYOUT(layout.proc_comm(), layout.comm(), layout.master(), layout.slave())
 }
 
 #endif

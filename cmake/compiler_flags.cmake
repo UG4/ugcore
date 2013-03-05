@@ -2,12 +2,17 @@
 # 
 # TODO: maybe add sanity checks for flags
 #
+function (add_c_flag flag)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" CACHE STRING "overriden flags!" FORCE)
+endfunction(add_c_flag)
+
+function (add_cpp_flag flag)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" CACHE STRING "overriden flags!" FORCE)
+endfunction(add_cpp_flag)
+
 function(add_cxx_flag flag)
-	foreach(lang C CXX)
-		set(CMAKE_${lang}_FLAGS
-			"${CMAKE_${lang}_FLAGS} ${flag}"
-			CACHE STRING "overriden flags!" FORCE)
-	endforeach()
+	add_c_flag(${flag})
+	add_cpp_flag(${flag})
 endfunction(add_cxx_flag)
 
 

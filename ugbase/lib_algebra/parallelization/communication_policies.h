@@ -890,8 +890,8 @@ template <class TLayout>
 void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
 		std::vector<AlgebraID>& idsOut,
 		size_t numIDs,
-		TLayout& masterLayout,
-		TLayout& slaveLayout)
+		const TLayout& masterLayout,
+		const TLayout& slaveLayout)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	generate an id for each entry.

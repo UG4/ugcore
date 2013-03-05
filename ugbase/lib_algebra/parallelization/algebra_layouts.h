@@ -16,14 +16,13 @@
 namespace ug{
 
 #ifdef UG_PARALLEL
-struct AlgebraLayouts
+class HorizontalAlgebraLayouts
 {
 	public:
 	///	clears the struct
 		void clear()
 		{
 			masterLayout.clear();			slaveLayout.clear();
-			verticalMasterLayout.clear();	verticalSlaveLayout.clear();
 		}
 
 	public:
@@ -33,29 +32,24 @@ struct AlgebraLayouts
 		const IndexLayout& slave() const 				{return slaveLayout;}
 	/// \}
 
-	/// returns the vertical slave/master index layout
-	/// \{
-		const IndexLayout& vertical_master() const 	{return verticalMasterLayout;}
-		const IndexLayout& vertical_slave() const 	{return verticalSlaveLayout;}
-	/// \}
-
-	///	returns communicator
-	/// \{
-		const pcl::InterfaceCommunicator<IndexLayout>& comm() const  	{return communicator;}
+	///	returns process communicator
 		const pcl::ProcessCommunicator& proc_comm() const 				{return processCommunicator;}
-	/// \}
+
+	///	returns (non-const !!!) communicator
+	/**
+	 * We return a non-const communicator, since it can only be used non-const.
+	 * This is requirement of the InterfaceCommunicator design, since internally
+	 * buffers are used during communication. Theoretically, a communicator could
+	 * be created each time for communication, but for performance reasons we
+	 * provide this one that can be shared and reused.
+	 */
+		pcl::InterfaceCommunicator<IndexLayout>& comm() const  	{return const_cast<HorizontalAlgebraLayouts*>(this)->communicator;}
 
 	public:
 	/// returns the horizontal slave/master index layout
 	/// \{
 		IndexLayout& master()	{return masterLayout;}
 		IndexLayout& slave()	{return slaveLayout;}
-	/// \}
-
-	/// returns the vertical slave/master index layout
-	/// \{
-		IndexLayout& vertical_master() 		{return verticalMasterLayout;}
-		IndexLayout& vertical_slave()  		{return verticalSlaveLayout;}
 	/// \}
 
 	///	returns communicator
@@ -71,17 +65,43 @@ struct AlgebraLayouts
 		///	(horizontal) slave index layout
 		IndexLayout slaveLayout;
 
-		///	vertical master index layout
-		IndexLayout verticalMasterLayout;
-
-		///	vertical slave index layout
-		IndexLayout verticalSlaveLayout;
-
 		///	process communicator
 		pcl::ProcessCommunicator processCommunicator;
 
 		///	communicator
 		pcl::InterfaceCommunicator<IndexLayout> communicator;
+};
+
+class AlgebraLayouts : public HorizontalAlgebraLayouts
+{
+	public:
+	///	clears the struct
+		void clear()
+		{
+			HorizontalAlgebraLayouts::clear();
+			verticalMasterLayout.clear();	verticalSlaveLayout.clear();
+		}
+
+	public:
+	/// returns the vertical slave/master index layout
+	/// \{
+		const IndexLayout& vertical_master() const 	{return verticalMasterLayout;}
+		const IndexLayout& vertical_slave() const 	{return verticalSlaveLayout;}
+	/// \}
+
+	public:
+	/// returns the vertical slave/master index layout
+	/// \{
+		IndexLayout& vertical_master() 		{return verticalMasterLayout;}
+		IndexLayout& vertical_slave()  		{return verticalSlaveLayout;}
+	/// \}
+
+	protected:
+		///	vertical master index layout
+		IndexLayout verticalMasterLayout;
+
+		///	vertical slave index layout
+		IndexLayout verticalSlaveLayout;
 };
 #endif
 

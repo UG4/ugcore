@@ -157,7 +157,7 @@ void CopyMatrixSurfaceToLevel(TMatrix& levelMatrix,
 	}
 
 #ifdef UG_PARALLEL
-	levelMatrix.copy_storage_type(surfMatrix);
+	levelMatrix.set_storage_type(surfMatrix.get_storage_mask());
 #endif
 }
 

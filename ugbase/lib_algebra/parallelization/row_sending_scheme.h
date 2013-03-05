@@ -42,16 +42,29 @@ public:
 		m_bCreateNewNodes = bCreateNewNodes;
 	}
 
+
+	/**
+	 * for processor pid in sendLayout
+	 *     for i in interface
+	 *     		send row i to processor pid
+	 * for processor pid in receivingLayout
+	 * 		issue receive data
+	 *  issue
+	 * @param communicator
+	 * @param sendLayout
+	 * @param receiveLayout
+	 * @sa issue_send
+	 */
 	void issue_send(pcl::InterfaceCommunicator<IndexLayout> &communicator,
-			IndexLayout &sendLayout, IndexLayout &receiveLayout)
+			const IndexLayout &sendLayout, const IndexLayout &receiveLayout)
 	{
 		UG_DLOG(LIB_ALG_MATRIX, 4, "*** RowSendingScheme::issue_send: ***\n");
-		for(IndexLayout::iterator it = sendLayout.begin(); it != sendLayout.end(); ++it)
+		for(IndexLayout::const_iterator it = sendLayout.begin(); it != sendLayout.end(); ++it)
 		{
-			IndexLayout::Interface interface = sendLayout.interface(it);
+			const IndexLayout::Interface& interface = sendLayout.interface(it);
 			int pid = sendLayout.proc_id(it);
 			BinaryBuffer buf;
-			for(IndexLayout::Interface::iterator iter2 = interface.begin();
+			for(IndexLayout::Interface::const_iterator iter2 = interface.begin();
 					iter2 != interface.end(); ++iter2)
 			{
 				issue_send(buf, pid, interface.get_element(iter2));
@@ -62,7 +75,7 @@ public:
 
 		rowsBufferMap.clear();
 
-		for(IndexLayout::iterator it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
+		for(IndexLayout::const_iterator it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
 		{
 			int pid = receiveLayout.proc_id(it);
 			UG_DLOG(LIB_ALG_MATRIX, 4, "issue receive from processor " << pid << "\n");
@@ -73,20 +86,20 @@ public:
 
 	}
 
-	void process(IndexLayout &receiveLayout)
+	void process(const IndexLayout &receiveLayout)
 	{
 		rowMax=0; colMax=0;
 		UG_DLOG(LIB_ALG_MATRIX, 4, "*** RowSendingScheme::process: ***\n");
 		connections.clear();
 
-		for(IndexLayout::iterator it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
+		for(IndexLayout::const_iterator it = receiveLayout.begin(); it != receiveLayout.end(); ++it)
 		{
 			int pid = receiveLayout.proc_id(it);
-			IndexLayout::Interface interface = receiveLayout.interface(it);
+			const IndexLayout::Interface& interface = receiveLayout.interface(it);
 
 			BinaryBuffer &buf = rowsBufferMap[pid];
 			UG_DLOG(LIB_ALG_MATRIX, 4, "rowsBufferMap: received " << buf.write_pos() << " bytes from processor " << pid << "\n");
-			for(IndexLayout::Interface::iterator it = interface.begin(); it != interface.end(); ++it)
+			for(IndexLayout::Interface::const_iterator it = interface.begin(); it != interface.end(); ++it)
 				process(buf, pid, interface.get_element(it));
 		}
 
@@ -127,6 +140,15 @@ private:
 		if(rows > mat.num_rows() || cols > mat.num_cols())
 			mat.resize(rows, cols);
 	}
+
+	/**
+	 *  Put row 'localRowIndex' into the binary buffer 'buf'
+	 *  PN keeps track about which indices exist on the recieving pid
+	 * @param buf				buf to write it to
+	 * @param pid				receiving pid
+	 * @param localRowIndex		local row index
+	 * \note modifies PN by specifying which nodes we sent to pid
+	 */
 	void issue_send(BinaryBuffer &buf, int pid, int localRowIndex)
 	{
 		size_t num_connections = mat.num_connections(localRowIndex);

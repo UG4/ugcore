@@ -62,53 +62,6 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
                             	MultiGrid& mg, DistributedGridManager& dGrMgr);
 
 
-/// copies all needed parallel informations into a parallel matrix
-/**
- * This function copies the layouts and the communicators of a dof distribution
- * into a matrix.
- *
- * \param[in]	dd		DoFDistribution to copy the infos from
- * \param[out]	mat		Matrix filled with infos
- *
- * \tparam	TMatrix 	Sequential Matrix type
- */
-template <typename TMatrix>
-void CopyLayoutsAndCommunicatorIntoMatrix(ParallelMatrix<TMatrix>& mat,
-                                          DoFDistribution& dd)
-{
-	mat.set_layouts(dd.layouts().master(), dd.layouts().slave());
-
-	mat.set_communicator(dd.layouts().comm());
-	mat.set_process_communicator(dd.layouts().proc_comm());
-}
-
-/// copies all needed parallel informations into a parallel vector
-/**
- * This function copies the layouts and the communicators of a dof distribution
- * into a vector.
- *
- * \param[in]	dd		DoFDistribution to copy the infos from
- * \param[out]	vec		Vector filled with infos
- *
- * \tparam 	TVector		Sequential vector type
- */
-template <typename TVector>
-void CopyLayoutsAndCommunicatorIntoVector(ParallelVector<TVector>& vec,
-                                          DoFDistribution& dd)
-{
-	//	copy all horizontal layouts (for all domain decomps)
-		vec.set_layouts(dd.layouts().master(), dd.layouts().slave());
-
-	//	copy vertical layouts
-		vec.set_vertical_layouts(dd.layouts().vertical_master(),
-		                         dd.layouts().vertical_slave());
-
-	//	copy communicator
-		vec.set_communicator(dd.layouts().comm());
-		vec.set_process_communicator(dd.layouts().proc_comm());
-}
-
-
 bool CreateIndexLayouts_DomainDecomposition(
 						IndexLayout& processLayoutOut,
 						IndexLayout& subdomainLayoutOut,

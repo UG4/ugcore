@@ -65,16 +65,17 @@ inline void CreateLayoutFromGlobalLayout(IndexLayout &layout, GlobalLayout &glob
 
 
 template<typename TLocalToGlobal>
-void CreateGlobalLayout(GlobalLayout &globalLayout, IndexLayout &layout, const TLocalToGlobal &localToGlobal)
+void CreateGlobalLayout(GlobalLayout &globalLayout,
+                        const IndexLayout &layout, const TLocalToGlobal &localToGlobal)
 {
 	PROFILE_FUNC();
-	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
 	{
-		IndexLayout::Interface &interface = layout.interface(iter);
+		const IndexLayout::Interface &interface = layout.interface(iter);
 		int pid = layout.proc_id(iter);
 
 		std::vector<AlgebraID> &v = globalLayout[pid];
-		for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		for(IndexLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
 			size_t localIndex = interface.get_element(iter2);
 			v.push_back(localToGlobal[localIndex]);
