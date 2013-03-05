@@ -34,7 +34,7 @@ void DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 	{
 		m_vDomainElemDisc[i]->set_approximation_space(m_spApproxSpace);
 
-		if(!(m_vDomainElemDisc[i]->type() & m_ElemTypesEnabled)) continue;
+		if(!(m_vDomainElemDisc[i]->type() & m_AssAdapter.m_ElemTypesEnabled)) continue;
 		m_vElemDisc.push_back(m_vDomainElemDisc[i].get());
 	}
 }
@@ -98,7 +98,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -144,7 +144,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -201,7 +201,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -247,7 +247,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -311,7 +311,7 @@ assemble_jacobian(matrix_type& J,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -357,7 +357,7 @@ assemble_jacobian(matrix_type& J,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -415,7 +415,7 @@ assemble_defect(vector_type& d,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -461,7 +461,7 @@ assemble_defect(vector_type& d,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -515,7 +515,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -561,7 +561,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -618,7 +618,7 @@ assemble_rhs(vector_type& rhs,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -664,7 +664,7 @@ assemble_rhs(vector_type& rhs,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -712,7 +712,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 //	constraints
 	for(size_t i = 0; i < vType.size(); ++i){
 		int type = vType[i];
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -787,7 +787,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -874,7 +874,7 @@ assemble_jacobian(matrix_type& J,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -920,7 +920,7 @@ assemble_jacobian(matrix_type& J,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -979,7 +979,7 @@ assemble_defect(vector_type& d,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -1025,7 +1025,7 @@ assemble_defect(vector_type& d,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -1082,7 +1082,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -1129,7 +1129,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -1189,7 +1189,7 @@ assemble_rhs(vector_type& rhs,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;
@@ -1236,7 +1236,7 @@ assemble_rhs(vector_type& rhs,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -1276,7 +1276,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 //	constraints
 	for(size_t i = 0; i < vType.size(); ++i){
 		int type = vType[i];
-		if(!(type & m_ConstraintTypesEnabled)) continue;
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -1346,7 +1346,7 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc*> vSubsetElemDisc;

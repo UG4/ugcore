@@ -11,12 +11,27 @@
 #include "lib_grid/tools/bool_marker.h"
 #include "lib_grid/tools/selector_grid.h"
 #include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
+#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+//#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 class IDomainConstraint;
 
+/// Types of constraint
+/**
+ * This types control the order in with the constraints are performed.
+ * constraints with a lower number will be performed first. The order of
+ * constraints with equal number is undefined.
+ */
+enum ConstraintType
+{
+	CT_NONE = 0,
+	CT_CONSTRAINTS = 1 << 0,
+	CT_DIRICHLET = 1 << 1,
+	CT_ALL = CT_NONE | CT_CONSTRAINTS | CT_DIRICHLET
+};
 
 template <typename TAlgebra>
 class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
@@ -66,7 +81,9 @@ class AssAdapter
 
 	public:
 	/// constructor
-		AssAdapter(): m_pBoolMarker(NULL), m_pSelector(NULL)
+		AssAdapter(): m_pBoolMarker(NULL), m_pSelector(NULL),
+		m_bForceRegGrid(false), m_ConstraintTypesEnabled(CT_ALL),
+		m_ElemTypesEnabled(EDT_ALL)
 		{
 			m_assIndex.index_set = false;
 			m_pMapper = &m_pMapperCommon;
@@ -96,7 +113,6 @@ class AssAdapter
 	 * \param[in]	mark	BoolMarker
 	 */
 		void set_marker(BoolMarker* mark = NULL){ m_pBoolMarker = mark; }
-		BoolMarker* marker(){ return m_pBoolMarker;}
 
 	///	sets a selector of elements for assembling
 	/**
@@ -109,7 +125,6 @@ class AssAdapter
 	 * \param[in]	sel		Selector
 	 */
 		void set_selector(Selector* sel = NULL){ m_pSelector = sel; }
-		Selector* selector(){ return m_pSelector;}
 
 	///	sets an index for which the assembling should be carried out
 	/**
@@ -125,10 +140,25 @@ class AssAdapter
 		{
 			m_assIndex.index = ind; m_assIndex.index_set = index_set;
 		}
-		///	returns whether the assemble Index is set or not
+		///	checks whether the assemble index is set or not
 		size_t is_ass_index_set(){ return m_assIndex.index_set;}
-		///	gets assemble Index
-		size_t ass_index(){ return m_assIndex.index;}
+
+
+	/// forces the assembling to consider the grid as regular
+		void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
+
+	///	returns if constraints enabled
+		int constraints_enabled() const {return m_ConstraintTypesEnabled;}
+
+	///	enables constraints
+		void enable_constraints(int bEnableTypes) {m_ConstraintTypesEnabled = bEnableTypes;}
+
+	///	returns type of boundary elem discs enabled
+		int elem_discs_enabled() const {return m_ElemTypesEnabled;}
+
+	///	enables boundary elem discs
+		void enable_elem_discs(int bEnableTypes) {m_ElemTypesEnabled = bEnableTypes;}
+
 
 		template <typename TElem>
 		void elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd, int si,
@@ -139,7 +169,11 @@ class AssAdapter
 
 		void adjust_matrix(matrix_type& mat, const size_t index);
 		void adjust_vector(vector_type& vec, const size_t index, const value_type& val);
-	//private:
+
+	public:
+	///	LocalToGlobalMapper-Func
+		ILocalToGlobalMapper<TAlgebra>* m_pMapper;
+		LocalToGlobalMapper<TAlgebra> 	m_pMapperCommon;
 
 	///	marker used to skip elements
 		BoolMarker* m_pBoolMarker;
@@ -158,9 +192,14 @@ class AssAdapter
 	///	object for index-wise assemble routine
 		AssIndex 	m_assIndex;
 
-	///	LocalToGlobalMapper-Func
-		ILocalToGlobalMapper<TAlgebra>* m_pMapper;
-		LocalToGlobalMapper<TAlgebra> 	m_pMapperCommon;
+	/// forces the assembling to regard the grid as regular
+		bool m_bForceRegGrid;
+
+	///	enables the constraints
+		int m_ConstraintTypesEnabled;
+
+	///	enables the constraints
+		int m_ElemTypesEnabled;
 };
 
 } // end namespace ug

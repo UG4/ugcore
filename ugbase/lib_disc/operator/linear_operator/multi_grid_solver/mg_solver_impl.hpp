@@ -1225,7 +1225,7 @@ init_level_operator()
 		//	set this selector to the assembling, such that only those elements
 		//	will be assembled and force grid to be considered as regular
 			assAdapt.set_marker(&m_NonGhostMarker);
-			m_spAss->force_regular_grid(true);
+			assAdapt.force_regular_grid(true);
 
 		//	init level operator
 			try{
@@ -1235,7 +1235,7 @@ init_level_operator()
 						" Cannot init operator for level "<< lev << ".\n");
 
 		//	remove force flag
-			m_spAss->force_regular_grid(false);
+			assAdapt.force_regular_grid(false);
 			assAdapt.set_marker(NULL);
 
 		//	copy the matrix into a new (smaller) one
@@ -1268,13 +1268,13 @@ init_level_operator()
 			(((int)lev == m_baseLev) && (m_bBaseParallel == false)))
 		{
 		//	init level operator
-			m_spAss->force_regular_grid(true);
+			assAdapt.force_regular_grid(true);
 			try{
 			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
-			m_spAss->force_regular_grid(false);
+			assAdapt.force_regular_grid(false);
 		}
 	//	else we can forget about the whole-level matrix, since the needed
 	//	smoothing matrix is stored in SmoothMat

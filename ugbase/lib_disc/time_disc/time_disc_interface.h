@@ -120,46 +120,6 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	///	sets the stage
 		virtual void set_stage(size_t stage) = 0;
 
-	/// forces the assembling to consider the grid as regular
-		virtual void force_regular_grid(bool bForce)
-		{
-			if(m_spDomDisc.invalid())
-				UG_THROW("ITimeDiscretization: DomainDisc not set!")
-			m_spDomDisc->force_regular_grid(bForce);
-		}
-
-	///	returns type of constraints enabled
-		virtual int constraints_enabled() const
-		{
-			if(m_spDomDisc.invalid())
-				UG_THROW("ITimeDiscretization: DomainDisc not set!")
-			return m_spDomDisc->constraints_enabled();
-		}
-
-	///	enables constraints
-		virtual void enable_constraints(int TypesEnable)
-		{
-			if(m_spDomDisc.invalid())
-				UG_THROW("ITimeDiscretization: DomainDisc not set!")
-			m_spDomDisc->enable_constraints(TypesEnable);
-		}
-
-	///	returns type of boundary elem discs enabled
-		virtual int elem_discs_enabled() const
-		{
-			if(m_spDomDisc.invalid())
-				UG_THROW("ITimeDiscretization: DomainDisc not set!")
-			return m_spDomDisc->elem_discs_enabled();
-		}
-
-	///	enables boundary elem discs
-		virtual void enable_elem_discs(int TypesEnable)
-		{
-			if(m_spDomDisc.invalid())
-				UG_THROW("ITimeDiscretization: DomainDisc not set!")
-			m_spDomDisc->enable_elem_discs(TypesEnable);
-		}
-
 	///	returns the number of constraint
 		virtual size_t num_constraints() const
 		{

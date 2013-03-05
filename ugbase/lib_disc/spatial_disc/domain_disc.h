@@ -55,9 +55,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 	public:
 	///	default Constructor
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
-			m_spApproxSpace(pApproxSpace), m_bForceRegGrid(false),
-			m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL),
-			m_AssAdapter()
+			m_spApproxSpace(pApproxSpace), m_AssAdapter()
 		{};
 
 		virtual ~DomainDiscretization() {};
@@ -228,21 +226,6 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		{assemble_stiffness_matrix(A, u, dd(gl));}
 
 	public:
-	/// forces the assembling to consider the grid as regular
-		virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
-
-	///	returns if constraints enabled
-		int constraints_enabled() const {return m_ConstraintTypesEnabled;}
-
-	///	enables constraints
-		void enable_constraints(int bEnableTypes) {m_ConstraintTypesEnabled = bEnableTypes;}
-
-	///	returns type of boundary elem discs enabled
-		virtual int elem_discs_enabled() const {return m_ElemTypesEnabled;}
-
-	///	enables boundary elem discs
-		virtual void enable_elem_discs(int bEnableTypes) {m_ElemTypesEnabled = bEnableTypes;}
-	
 		virtual AssAdapter<TAlgebra>& get_ass_adapter() {return m_AssAdapter;}
 
 	public:
@@ -334,15 +317,6 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 
 	///	current approximation space
 		SmartPtr<approx_space_type> m_spApproxSpace;
-
-	/// forces the assembling to regard the grid as regular
-		bool m_bForceRegGrid;
-
-	///	enables the constraints
-		int m_ConstraintTypesEnabled;
-
-	///	enables the constraints
-		int m_ElemTypesEnabled;
 		
 	///	this object provides tools to adapt the assemble routine
 		AssAdapter<TAlgebra> m_AssAdapter;

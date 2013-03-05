@@ -93,19 +93,21 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 	TGridFunction Defect(*spGridFct);
 
 //	remember enabled-flags
-	const int ElemTypesEnabled = spAssemble->elem_discs_enabled();
-	const int ConstraintTypesEnabled = spAssemble->constraints_enabled();
+	//	get assemble adapter
+	AssAdapter<typename TGridFunction::algebra_type>& assAdapt = spAssemble->get_ass_adapter();
+	const int ElemTypesEnabled = assAdapt.elem_discs_enabled();
+	const int ConstraintTypesEnabled = assAdapt.constraints_enabled();
 
 //	remove bnd components
-	spAssemble->enable_elem_discs(ElemTypesEnabled & (~EDT_BND));
-	spAssemble->enable_constraints(ConstraintTypesEnabled & (~CT_DIRICHLET));
+	assAdapt.enable_elem_discs(ElemTypesEnabled & (~EDT_BND));
+	assAdapt.enable_constraints(ConstraintTypesEnabled & (~CT_DIRICHLET));
 
 //	compute defect
 	spAssemble->assemble_defect(Defect, *spGridFct);
 
 //	reset flags to original status
-	spAssemble->enable_elem_discs(ElemTypesEnabled);
-	spAssemble->enable_constraints(ConstraintTypesEnabled);
+	assAdapt.enable_elem_discs(ElemTypesEnabled);
+	assAdapt.enable_constraints(ConstraintTypesEnabled);
 
 //	reset value
 	std::vector<number> vValue(fctGrp.size(), 0);

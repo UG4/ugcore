@@ -190,21 +190,6 @@ class IAssemble
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
 		{assemble_stiffness_matrix(A,u,GridLevel());}
 
-	/// forces the assembling to consider the grid as regular
-		virtual void force_regular_grid(bool bForce) = 0;
-
-	///	returns type of constraints enabled
-		virtual int constraints_enabled() const = 0;
-
-	///	enables constraints
-		virtual void enable_constraints(int TypesEnable) = 0;
-
-	///	returns type of boundary elem discs enabled
-		virtual int elem_discs_enabled() const = 0;
-
-	///	enables boundary elem discs
-		virtual void enable_elem_discs(int TypesEnable) = 0;
-
 		virtual AssAdapter<TAlgebra>& get_ass_adapter() = 0;
 
 	///	returns the number of constraints
