@@ -166,35 +166,35 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		}
 
 	///	adapts jacobian to enforce constraints
-		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
+		void adjust_jacobian(matrix_type& J, const vector_type& u,
 									 GridLevel gl, number time = 0.0)
 		{
 			this->adjust_jacobian(J, u, dd(gl), time);
 		}
 
 	///	adapts defect to enforce constraints
-		virtual void adjust_defect(vector_type& d, const vector_type& u,
+		void adjust_defect(vector_type& d, const vector_type& u,
 								   GridLevel gl, number time = 0.0)
 		{
 			this->adjust_defect(d, u, dd(gl), time);
 		}
 
 	///	adapts matrix and rhs (linear case) to enforce constraints
-		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
+		void adjust_linear(matrix_type& mat, vector_type& rhs,
 								   GridLevel gl, number time = 0.0)
 		{
 			this->adjust_linear(mat, rhs, dd(gl), time);
 		}
 
 	///	adapts a rhs to enforce constraints
-		virtual void adjust_rhs(vector_type& rhs, const vector_type& u,
+		void adjust_rhs(vector_type& rhs, const vector_type& u,
 								GridLevel gl, number time = 0.0)
 		{
 			this->adjust_rhs(rhs, u, dd(gl), time);
 		}
 
 	///	sets the constraints in a solution vector
-		virtual void adjust_solution(vector_type& u, GridLevel gl,
+		void adjust_solution(vector_type& u, GridLevel gl,
 									 number time = 0.0)
 		{
 			this->adjust_solution(u, dd(gl), time);
