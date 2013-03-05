@@ -19,20 +19,6 @@
 
 namespace ug{
 
-/// Types of constraint
-/**
- * This types control the order in with the constraints are performed.
- * constraints with a lower number will be performed first. The order of
- * constraints with equal number is undefined.
- */
-/*enum ConstraintType
-{
-	CT_NONE = 0,
-	CT_CONSTRAINTS = 1 << 0,
-	CT_DIRICHLET = 1 << 1,
-	CT_ALL = CT_NONE | CT_CONSTRAINTS | CT_DIRICHLET
-};*/
-
 /// interface for adjustment of constraints
 /**
  * This class is the base class for the handling of constraints. Implementations

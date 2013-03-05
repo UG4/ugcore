@@ -12,7 +12,6 @@
 #include "lib_grid/tools/selector_grid.h"
 #include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
-//#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 namespace ug{
 

@@ -94,7 +94,7 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 
 //	remember enabled-flags
 	//	get assemble adapter
-	AssAdapter<typename TGridFunction::algebra_type>& assAdapt = spAssemble->get_ass_adapter();
+	AssAdapter<typename TGridFunction::algebra_type>& assAdapt = spAssemble->ass_adapter();
 	const int ElemTypesEnabled = assAdapt.elem_discs_enabled();
 	const int ConstraintTypesEnabled = assAdapt.constraints_enabled();
 

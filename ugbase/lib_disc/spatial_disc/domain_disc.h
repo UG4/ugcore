@@ -226,7 +226,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		{assemble_stiffness_matrix(A, u, dd(gl));}
 
 	public:
-		virtual AssAdapter<TAlgebra>& get_ass_adapter() {return m_AssAdapter;}
+		virtual AssAdapter<TAlgebra>& ass_adapter() {return m_AssAdapter;}
 
 	public:
 	/// adds an element discretization to the assembling process

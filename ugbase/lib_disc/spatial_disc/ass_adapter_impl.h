@@ -8,10 +8,7 @@
 #ifndef ASS_ADAPTER_IMPL_H_
 #define ASS_ADAPTER_IMPL_H_
 
-/*#include "lib_grid/tools/bool_marker.h"
-#include "lib_grid/tools/selector_grid.h"*/
 #include "ass_adapter.h"
-//#include "lib_disc/dof_manager/dof_distribution.h"
 
 namespace ug{
 
