@@ -380,7 +380,7 @@ class SurfaceView
 		void mark_sides_as_surface_or_shadow(TElem* elem);
 
 		template <class TElem>
-		void mark_shadowing();
+		void mark_shadowing(bool markSides = false);
 
 	///	adjusts surface states in a parallel environment
 		template <class TElem>

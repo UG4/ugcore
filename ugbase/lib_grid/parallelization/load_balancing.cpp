@@ -90,7 +90,7 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 
 		return true;
 	#else
-		UG_LOG("WARNING in PartitionGrid_MetisKway: METIS is not available in "
+		UG_THROW("METIS is not available in "
 				"the current build. Please consider recompiling with METIS "
 				"support enabled.\n");
 		return false;
@@ -178,7 +178,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 	}
 	return true;
 #else
-	UG_LOG("WARNING in PartitionMultiGrid_MetisKway: METIS is not available in "
+	UG_THROW("METIS is not available in "
 			"the current build. Please consider recompiling with METIS "
 			"support enabled.\n");
 	return false;
@@ -291,7 +291,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 	}
 	return true;
 #else
-	UG_LOG("WARNING in PartitionMultiGrid_MetisKway: METIS is not available in "
+	UG_THROW("METIS is not available in "
 			"the current build. Please consider recompiling with METIS "
 			"support enabled.\n");
 	return false;
@@ -479,7 +479,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 	}
 	return true;
 #else
-	UG_LOG("WARNING in PartitionMultiGrid_MetisKway: METIS is not available in "
+	UG_THROW("METIS is not available in "
 			"the current build. Please consider recompiling with METIS "
 			"support enabled.\n");
 	return false;
@@ -653,7 +653,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 	UG_DLOG(LIB_GRID, 1, "stop - PartitionMultiGridLevel_ParmetisKway\n");
 	return true;
 #else
-	UG_LOG("WARNING in PartitionMultiGrid_MetisKway: METIS is not available in "
+	UG_THROW("METIS is not available in "
 			"the current build. Please consider recompiling with METIS "
 			"support enabled.\n");
 	return false;

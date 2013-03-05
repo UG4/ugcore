@@ -166,12 +166,9 @@ refresh_surface_states()
 //	Only low dimensional elements can be shadows.
 //	Perform assignment on higher dimensional elements first, since lower
 //	dimensional elements may shadow higher dimensional elements...
-	if(Face::dim < TElem::dim)
-		mark_shadowing<Face>();
-	if(EdgeBase::dim < TElem::dim)
-		mark_shadowing<EdgeBase>();
-	if(VertexBase::dim < TElem::dim)
-		mark_shadowing<VertexBase>();
+	if(TElem::HAS_SIDES){
+		mark_shadowing<typename TElem::side>(true);
+	}
 
 //	again we have to make sure that all copies have the same surface states on all processes
 	adjust_parallel_surface_states<VertexBase>();
@@ -205,7 +202,7 @@ mark_sides_as_surface_or_shadow(TElem* elem)
 
 template <class TElem>
 void SurfaceView::
-mark_shadowing()
+mark_shadowing(bool markSides)
 {
 	typedef typename Grid::traits<TElem>::iterator TIter;
 
@@ -225,6 +222,10 @@ mark_shadowing()
 				set_surface_state(e, surface_state(e) | ESS_SHADOWING);
 			}
 		}
+	}
+
+	if(markSides && TElem::HAS_SIDES){
+		mark_shadowing<typename TElem::side>(markSides);
 	}
 }
 
