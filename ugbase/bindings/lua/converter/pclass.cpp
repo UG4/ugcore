@@ -381,7 +381,7 @@ int pclass::createLUA(nodeType *p, ostream &out)
 				case 'R':
                     out << "return ";
                     a = p->opr.op[0];
-					i=0;
+					//i=0;
 					while(a->type == typeOpr && a->opr.oper == ',')
 					{
 						createLUA(a->opr.op[0], out);
@@ -395,7 +395,7 @@ int pclass::createLUA(nodeType *p, ostream &out)
                 case 'C':
                     out << id2variable[p->opr.op[0]->id.i].c_str() << "(";
                     a = p->opr.op[1];
-					i=0;
+					//i=0;
 					while(a->type == typeOpr && a->opr.oper == ',')
 					{
 						createLUA(a->opr.op[0], out);
