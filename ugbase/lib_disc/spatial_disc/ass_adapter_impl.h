@@ -15,7 +15,7 @@ namespace ug{
 template <typename TAlgebra>
 void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd, vector_type& vec)
 {
-	if (m_assIndex.index_set){vec.resize(1);}
+	if (m_assIndex.index_set){ vec.resize(1);}
 	else{
 		const size_t numIndex = dd->num_indices();
 		vec.resize(numIndex);
@@ -27,8 +27,7 @@ template <typename TAlgebra>
 void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd, matrix_type& mat)
 {
 	mat.resize(0,0);
-	if (m_assIndex.index_set){
-		mat.resize(1, 1);
+	if (m_assIndex.index_set){ mat.resize(1, 1);
 	}
 	else{
 		const size_t numIndex = dd->num_indices();
@@ -60,10 +59,8 @@ template <typename TDomain>
 void AssAdapter<TAlgebra>::adaptConstraint(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >& constraint)
 {
 	//	forward to ConstraintInterface if assembling is carried out at one DoF only
-	if(m_assIndex.index_set)
-		constraint->set_ass_index(m_assIndex.index);
-	else
-		constraint->set_ass_index();
+	if(m_assIndex.index_set) constraint->set_ass_index(m_assIndex.index);
+	else constraint->set_ass_index();
 }
 
 template <typename TAlgebra>

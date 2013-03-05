@@ -61,7 +61,7 @@ class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
 		~LocalToGlobalMapper() {};
 };
 
-// AssAdapter combines tools to adapt the assemble routine
+/// The AssAdapter class combines tools to adapt the assemble routine
 template <typename TAlgebra>
 class AssAdapter
 {
@@ -95,13 +95,12 @@ class AssAdapter
 			else{ m_pMapper = &m_pMapperCommon;}
 		}
 
+	/// LocalToGlobalMapper-function calls
 		void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
 		{ m_pMapper->AddLocalVec(vec, lvec, dd);}
 		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
 		{ m_pMapper->AddLocalMatToGlobal(mat, lmat, dd);}
 
-		void resize(ConstSmartPtr<DoFDistribution> dd, vector_type& vec);
-		void resize(ConstSmartPtr<DoFDistribution> dd, matrix_type& mat);
 
 	///	sets a marker to exclude elements from assembling
 	/**
@@ -159,20 +158,30 @@ class AssAdapter
 		void enable_elem_discs(int bEnableTypes) {m_ElemTypesEnabled = bEnableTypes;}
 
 
+	///	resize functions used in assemble funcs
+		void resize(ConstSmartPtr<DoFDistribution> dd, vector_type& vec);
+		void resize(ConstSmartPtr<DoFDistribution> dd, matrix_type& mat);
+
+	///	gets the element iterator from the Selector
 		template <typename TElem>
 		void elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd, int si,
 				std::vector<TElem*>& elems);
 
+	///	adapts the constraints in case of index-wise assembling
 		template <typename TDomain>
 		void adaptConstraint(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >& constraint);
 
+	///	only one index will be set to Dirichlet in case of index-wise assembling
+	///	instead of setting a complete matrix row to Dirichlet
 		void adjust_matrix(matrix_type& mat, const size_t index);
 		void adjust_vector(vector_type& vec, const size_t index, const value_type& val);
 
 	public:
-	///	LocalToGlobalMapper-Func
-		ILocalToGlobalMapper<TAlgebra>* m_pMapper;
+
+	///	default LocalToGlobalMapper
 		LocalToGlobalMapper<TAlgebra> 	m_pMapperCommon;
+	///	LocalToGlobalMapper
+		ILocalToGlobalMapper<TAlgebra>* m_pMapper;
 
 	///	marker used to skip elements
 		BoolMarker* m_pBoolMarker;
@@ -180,12 +189,11 @@ class AssAdapter
 	///	selector used to set a list of elements for the assembling
 		Selector* 	m_pSelector;
 
+	///	index-wise assembling
 		struct AssIndex{
-			///	should assemble be index-wise
-			bool index_set;
-
 			///	current index
 			size_t index;
+			bool index_set;
 		};
 
 	///	object for index-wise assemble routine

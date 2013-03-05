@@ -1209,7 +1209,7 @@ init_level_operator()
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_linear_level_operator\n");
 
 //	get assemble adapter
-	AssAdapter<TAlgebra>& assAdapt = m_spAss->get_ass_adapter();
+	AssAdapter<TAlgebra>& assAdapt = m_spAss->ass_adapter();
 
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
@@ -1913,7 +1913,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 
 //	get the assemble adapter
-	AssAdapter<TAlgebra>& assAdapt = m_spAss->get_ass_adapter();
+	AssAdapter<TAlgebra>& assAdapt = m_spAss->ass_adapter();
 
 //	create storage for matrices on the grid levels
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)

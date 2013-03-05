@@ -318,7 +318,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 	matrix_type& J_block = m_J_block->get_matrix();
 
-	AssAdapter<TAlgebra>& assAdapt = m_spAss->get_ass_adapter();
+	AssAdapter<TAlgebra>& assAdapt = m_spAss->ass_adapter();
 
 	//	loop iteration
 	while(!m_spConvCheck->iteration_ended())

@@ -85,8 +85,8 @@ class AssembledLinearOperator :
 		void set_dirichlet_values(vector_type& u);
 
 	/// forces the disc to consider the grid as regular
-		void force_regular_grid(bool bForce)
-			{if(m_spAss.valid()) m_spAss->force_regular_grid(bForce);}
+		//void force_regular_grid(bool bForce)
+		//	{if(m_spAss.valid()) m_spAss->force_regular_grid(bForce);}
 
 	///	Destructor
 		virtual ~AssembledLinearOperator() {};
