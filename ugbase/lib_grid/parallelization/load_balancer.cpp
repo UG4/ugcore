@@ -276,8 +276,7 @@ rebalance()
 
 	const std::vector<int>* procMap = m_partitioner->get_process_map();
 
-	if(!DistributeGrid(*m_mg, sh, m_serializer, m_serializer,
-					   m_createVerticalInterfaces, procMap))
+	if(!DistributeGrid(*m_mg, sh, m_serializer, m_createVerticalInterfaces, procMap))
 	{
 		UG_THROW("DistributeGrid failed!");
 	}

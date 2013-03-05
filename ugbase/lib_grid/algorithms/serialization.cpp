@@ -100,6 +100,42 @@ deserialize(BinaryBuffer& in, GeometricObjectCollection goc)
 		deserialize(in, goc.begin<Volume>(lvl), goc.end<Volume>(lvl));
 }
 
+template<class TSerializers>
+void GridDataSerializationHandler::
+deserialization_starts(TSerializers& serializers)
+{
+	for(size_t i = 0; i < serializers.size(); ++i)
+		serializers[i]->deserialization_starts();
+}
+
+void GridDataSerializationHandler::
+deserialization_starts()
+{
+	deserialization_starts(m_vrtSerializers);
+	deserialization_starts(m_edgeSerializers);
+	deserialization_starts(m_faceSerializers);
+	deserialization_starts(m_volSerializers);
+	deserialization_starts(m_gridSerializers);
+}
+
+template<class TSerializers>
+void GridDataSerializationHandler::
+deserialization_done(TSerializers& serializers)
+{
+	for(size_t i = 0; i < serializers.size(); ++i)
+		serializers[i]->deserialization_done();
+}
+
+void GridDataSerializationHandler::
+deserialization_done()
+{
+	deserialization_done(m_vrtSerializers);
+	deserialization_done(m_edgeSerializers);
+	deserialization_done(m_faceSerializers);
+	deserialization_done(m_volSerializers);
+	deserialization_done(m_gridSerializers);
+}
+
 ////////////////////////////////////////////////////////////////////////
 SubsetHandlerSerializer::
 SubsetHandlerSerializer(ISubsetHandler& sh) :

@@ -1315,7 +1315,6 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 bool DistributeGrid(MultiGrid& mg,
 					SubsetHandler& shPartition,
 					GridDataSerializationHandler& serializer,
-					GridDataSerializationHandler& deserializer,
 					bool createVerticalInterfaces,
 					const std::vector<int>* processMap,
 					const pcl::ProcessCommunicator& procComm)
@@ -1511,6 +1510,9 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	DESERIALIZE INCOMING GRIDS
+	distInfoSerializer.deserialization_starts();
+	serializer.deserialization_starts();
+
 	vector<VertexBase*>	vrts;
 	vector<EdgeBase*> edges;
 	vector<Face*> faces;
@@ -1536,11 +1538,11 @@ bool DistributeGrid(MultiGrid& mg,
 		distInfoSerializer.deserialize(in, faces.begin(), faces.end());
 		distInfoSerializer.deserialize(in, vols.begin(), vols.end());
 
-		deserializer.read_infos(in);
-		deserializer.deserialize(in, vrts.begin(), vrts.end());
-		deserializer.deserialize(in, edges.begin(), edges.end());
-		deserializer.deserialize(in, faces.begin(), faces.end());
-		deserializer.deserialize(in, vols.begin(), vols.end());
+		serializer.read_infos(in);
+		serializer.deserialize(in, vrts.begin(), vrts.end());
+		serializer.deserialize(in, edges.begin(), edges.end());
+		serializer.deserialize(in, faces.begin(), faces.end());
+		serializer.deserialize(in, vols.begin(), vols.end());
 
 	//	read the magic number and make sure that it matches our magicNumber
 		tmp = 0;
@@ -1584,6 +1586,11 @@ bool DistributeGrid(MultiGrid& mg,
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
+
+//	we'll inform deserializers now, that deserialization is complete.
+	distInfoSerializer.deserialization_done();
+	serializer.deserialization_done();
+
 	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS));
 
 	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");

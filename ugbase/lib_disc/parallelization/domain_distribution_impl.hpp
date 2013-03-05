@@ -469,8 +469,8 @@ static bool DistributeDomain(TDomain& domainOut,
 	serializer.add(shSerializer);
 
 //	now call redistribution
-	DistributeGrid(*pGrid, shPart, serializer, serializer,
-					 createVerticalInterfaces, &partitionMap.get_target_proc_vec());
+	DistributeGrid(*pGrid, shPart, serializer, createVerticalInterfaces,
+				   &partitionMap.get_target_proc_vec());
 
 	PCL_PROFILE_END();
 #endif
@@ -517,12 +517,12 @@ static bool DistributeDomain(TDomain& domainOut,
 	serializer.add(shSerializer);
 
 	for(size_t i = 0; i < gridFcts.size(); ++i){
-		serializer.add(GridFunctionSerializer<TGridFct>::create(gridFcts[i]));
+		serializer.add(GridFunctionSerializer<TGridFct>::create(pGrid.get(), gridFcts[i]));
 	}
 
 //	now call redistribution
-	DistributeGrid(*pGrid, shPart, serializer, serializer,
-					 createVerticalInterfaces, &partitionMap.get_target_proc_vec());
+	DistributeGrid(*pGrid, shPart, serializer, createVerticalInterfaces,
+				   &partitionMap.get_target_proc_vec());
 
 	PCL_PROFILE_END();
 #endif

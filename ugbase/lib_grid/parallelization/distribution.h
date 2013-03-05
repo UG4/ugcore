@@ -38,13 +38,10 @@ namespace ug{
  * 			shPartition.num_subsets(). All values in the array have to be
  * 			in the range [0, pcl:GetNumProcesses()[.
  * 			The procMap associates a process rank with each subset index.
- *
- * \todo	only use one GridDataSerializationHandler.
  */
 bool DistributeGrid(MultiGrid& mg,
 					SubsetHandler& shPartition,
 					GridDataSerializationHandler& serializer,
-					GridDataSerializationHandler& deserializer,
 					bool createVerticalInterfaces,
 					const std::vector<int>* processMap = NULL,
 					const pcl::ProcessCommunicator& procComm =

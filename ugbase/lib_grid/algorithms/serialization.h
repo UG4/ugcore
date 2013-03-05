@@ -45,6 +45,10 @@ namespace ug
  *
  * If one wants to serialize data of all objects in a grid, he should
  * take a look at GridDataSerializer.
+ *
+ * If you call read_info and/or read_data directly, make sure to also call
+ * deserialization_done after deserialization has been performed for all
+ * geometric objects.
  */
 template <class TGeomObj>
 class GeomObjDataSerializer
@@ -63,6 +67,12 @@ class GeomObjDataSerializer
 		virtual void read_info(BinaryBuffer& in)	{};
 	///	read data associated with the given object. Pure virtual.
 		virtual void read_data(BinaryBuffer& in, TGeomObj* o) = 0;
+
+	///	this method is called after read_info has been called for all geometric objects.
+		virtual void deserialization_starts()					{}
+
+	///	this method will be called after read_info has been called for all geometric objects.
+		virtual void deserialization_done()						{}
 };
 
 typedef GeomObjDataSerializer<VertexBase>	VertexDataSerializer;
@@ -87,15 +97,17 @@ typedef SmartPtr<VolumeDataSerializer>	SPVolumeDataSerializer;
  *
  * Make sure to completely read all data written by the associated write calls.
  *
- * Note that this class specializes the interfaces of VertexDataSerializer,
- * EdgeDataSerializer, FaceDataSerializer, VolumeDataSerializer.
- *
  * All methods have an empty implementation by default.
+ *
+ * If you call read_info and/or read_data directly, make sure to also call
+ * deserialization_done after deserialization has been performed for all
+ * geometric objects.
  */
-class GridDataSerializer : public virtual VertexDataSerializer,
-	EdgeDataSerializer, FaceDataSerializer, VolumeDataSerializer
+class GridDataSerializer
 {
 	public:
+		virtual ~GridDataSerializer()	{}
+
 	///	can be used to write arbitrary info to the file.
 	/**	Make sure to read everything you've written during read_data.
 	 * Default implementation is empty.*/
@@ -113,6 +125,12 @@ class GridDataSerializer : public virtual VertexDataSerializer,
 		virtual void read_data(BinaryBuffer& in, EdgeBase* o)	{}
 		virtual void read_data(BinaryBuffer& in, Face* o)		{}
 		virtual void read_data(BinaryBuffer& in, Volume* o)		{}
+
+	///	this method is called after read_info has been called for all geometric objects.
+		virtual void deserialization_starts()					{}
+
+	///	this method is called after read_info has been called for all geometric objects.
+		virtual void deserialization_done()						{}
 };
 
 typedef SmartPtr<GridDataSerializer>	SPGridDataSerializer;
@@ -128,6 +146,10 @@ typedef SmartPtr<GridDataSerializer>	SPGridDataSerializer;
  * instances of GridDataSerializer.
  *
  * Note that this class performs both serialization and deserialization.
+ *
+ * If you call the deserialize method directly, make sure to also call
+ * deserialization_done after your last call to deserialize for a given
+ * dezerialization.
  */
 class GridDataSerializationHandler
 {
@@ -184,6 +206,14 @@ class GridDataSerializationHandler
 	///	Calls deserialize on all elements in the given geometric object collection
 		void deserialize(BinaryBuffer& in, GeometricObjectCollection goc);
 
+	///	this method will be called before read_infos is called for the first time
+	///	in a deserialization run.
+		void deserialization_starts();
+
+	///	this method will be called after deserialize was called for the last time
+	///	in a deserialization run.
+		void deserialization_done();
+
 	private:
 	///	performs serialization on all given serializers.
 		template<class TGeomObj, class TSerializers>
@@ -200,6 +230,12 @@ class GridDataSerializationHandler
 
 		template<class TSerializers>
 		void read_info(BinaryBuffer& in, TSerializers& serializers);
+
+		template<class TSerializers>
+		void deserialization_starts(TSerializers& serializers);
+
+		template<class TSerializers>
+		void deserialization_done(TSerializers& serializers);
 
 	private:
 		std::vector<SPVertexDataSerializer>	m_vrtSerializers;

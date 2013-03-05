@@ -36,7 +36,8 @@ class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 	/**	Make sure that added grid functions are consistent when distribution is performed!*/
 		void add_serializer(SmartPtr<TGridFct> gridFct)
 		{
-			base_class::add_serializer(GridFunctionSerializer<TGridFct>::create(gridFct));
+			base_class::add_serializer(GridFunctionSerializer<TGridFct>::
+											create(m_dom->grid().get(), gridFct));
 		}
 
 	private:
