@@ -15,7 +15,7 @@ using namespace std;
 
 namespace ug{
 
-static vector<void*> loadedPlugins;
+static vector<DynLibHandle> loadedPlugins;
 static std::vector<std::string> loadedPluginNames;
 
 bool PluginLoaded(const std::string &name)
@@ -124,7 +124,7 @@ bool UnloadPlugins()
 	for(size_t i=0; i<loadedPlugins.size(); ++i)
 	{
 		std::string fctName("FinalizeUGPlugin");
-		void *libHandle = loadedPlugins[i];
+		DynLibHandle libHandle = loadedPlugins[i];
 
 		FctFinalizePlugin fctFinalizePlugin =
 				(FctFinalizePlugin) GetLibraryProcedure(libHandle, fctName.c_str());
