@@ -31,6 +31,10 @@ namespace ug
  *					of the extruded geometrie will be inverted.
  *
  * \param radius: radius
+ *
+ * \param rimSnapThreshold:	If a vertex lies closer to the rim than rimSnapThreshold,
+ * 							then it will be projected to the rim.
+ *
  * \param aaPos: position attachment accessor
  *
  * \param bottomSubInd: default value is -1. Defines the subset into which
@@ -43,16 +47,13 @@ namespace ug
  *				this method internally. This makes sense if you call
  *				this method repeatedly, since a repeated allocation and
  *				deallocation can be avoided.
- *
- * \param minDot:	Faces whose normal has a dot-product lower that minDot
- *					whith the given direction are not regarded as cylinder-
- *					bottom faces and are thus not extruded.
  */
 bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
 					const vector3& direction, number height, number radius,
+					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					int bottomSubInd = -1, int cylSubInd = -1,
-					Selector* pSel = NULL, float minDot = 0.1);
+					Selector* pSel = NULL);
 
 ///	adapts the grid around the given vertex to a cylinder and extrudes it.
 /**
@@ -66,6 +67,8 @@ bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
  * \param vrt: 	The Vertex
  * \param direction: the direction
  * \param radius: radius
+ * \param rimSnapThreshold:	If a vertex lies closer to the rim than rimSnapThreshold,
+ * 							then it will be projected to the rim.
  * \param aaPos: position attachment accessor
  *
  * \param height: 	The actual extrude-amount is determined by scaling direction
@@ -83,8 +86,9 @@ bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
  */					
 bool ExtrudeCylinder(Grid& grid, VertexBase* vrt,
 					const vector3& direction, number height, number radius,
+					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
-					Selector* pSel = NULL, float minDot = 0.1);
+					Selector* pSel = NULL);
 					
 /// @}
 

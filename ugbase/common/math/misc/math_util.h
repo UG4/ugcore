@@ -409,7 +409,15 @@ template <class vector_t>
 int LineSphereIntersection(number& s1Out, number& s2Out,
 						  const vector_t& v1, const vector_t& v2,
 						  const vector_t& center, number radius);
-						  
+
+
+////////////////////////////////////////////////////////////////////////
+///	returns the parameter values at which a given ray intersects an infinite cylinder.
+UG_API
+bool RayCylinderIntersection(number& tMinOut, number& tMaxOut, const vector3& rayFrom,
+							 const vector3& rayDir, const vector3& cylCenter,
+							 const vector3& cylAxis, number cylRadius);
+
 ////////////////////////////////////////////////////////////////////////
 //	TriangleTriangleIntersection
 ///	checks whether two triangles intersect and returns the intervals, if they do.

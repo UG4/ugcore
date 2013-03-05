@@ -358,6 +358,60 @@ number DistanceLineToLine(const vector3& a1, const vector3& a2,
 	return VecLength(vAB);
 }
 
+
+bool RayCylinderIntersection(number& tMinOut, number& tMaxOut, const vector3& rayFrom,
+							 const vector3& rayDir, const vector3& cylCenter,
+							 const vector3& cylAxis, number cylRadius)
+{
+//	find the closest points on the ray and the cylinder axis
+	vector3 vr, va;
+	RayRayIntersection3d(vr, va, rayFrom, rayDir, cylCenter, cylAxis);
+
+	number rayAxisDist = VecDistance(vr, va);
+
+	if(rayAxisDist > cylRadius)
+		return false;
+
+//	parallel and normalized orthogonal component of rayDir regarding cylAxis
+	vector3 dirParallel, dirOrtho;
+	vector3 axisNormized;
+	VecNormalize(axisNormized, cylAxis);
+	VecScale(dirParallel, cylAxis, VecDot(axisNormized, rayDir));
+	VecSubtract(dirOrtho, rayDir, dirParallel);
+
+//	calculate the distance from rayFrom, where rayFrom+t*dirOrtho intersects the cylinder
+	number orthoIntersectionDist = sqrt(cylRadius*cylRadius - rayAxisDist*rayAxisDist);
+
+	number orthoLen = VecLength(dirOrtho);
+	if(orthoLen < SMALL)
+		return false;
+
+//	the factor by which rayDir has to be scaled to reach the intersection point
+//	starting from vr.
+	number scaleFac = orthoIntersectionDist / orthoLen;
+
+//	get the parameter at which vr lies on the given ray
+	number t = 0;
+	if(fabs(rayDir.x) >= fabs(rayDir.y)){
+		if(fabs(rayDir.x) >= fabs(rayDir.z)){
+			if(rayDir.x == 0)
+				return false;
+			t = (vr.x - rayFrom.x) / rayDir.x;
+		}
+		else
+			t = (vr.z - rayFrom.z) / rayDir.z;
+	}
+	else if(fabs(rayDir.y) >= fabs(rayDir.z))
+		t = (vr.y - rayFrom.y) / rayDir.y;
+	else
+		t = (vr.z - rayFrom.z) / rayDir.z;
+
+	tMinOut = t - scaleFac;
+	tMaxOut = t + scaleFac;
+	return true;
+}
+
+
 //	Returns the BinomialCoefficient
 int BinomCoeff(int n, int k)
 {

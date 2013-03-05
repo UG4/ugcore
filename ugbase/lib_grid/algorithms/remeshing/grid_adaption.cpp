@@ -3,9 +3,11 @@
 //	y10 m02 d12
 
 #include <queue>
+#include <stack>
 #include "lib_grid/lg_base.h"
 #include "../geom_obj_util/geom_obj_util.h"
 #include "../refinement/regular_refinement.h"
+#include "../refinement/refinement_callbacks.h"
 #include "grid_adaption.h"
 
 using namespace std;
@@ -13,510 +15,159 @@ using namespace std;
 namespace ug
 {
 
+bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
+							   VertexBase* vrtCenter, const vector3& normal,
+							   number radius, number rimSnapThreshold,  AInt& aInt,
+							   APosition& aPos)
+{
+	if(!grid.has_vertex_attachment(aPos)){
+		UG_THROW("Position attachment required!");
+	}
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+
+	if(rimSnapThreshold < 0)
+		rimSnapThreshold = 0;
+
+	if(rimSnapThreshold > (radius - SMALL))
+		rimSnapThreshold = radius - SMALL;
+
+	const number smallRadius = radius - rimSnapThreshold;
+	const number smallRadiusSq = smallRadius * smallRadius;
+	const number largeRadius = radius + rimSnapThreshold;
+	const number largeRadiusSq = largeRadius * largeRadius;
+
+//	the cylinder geometry
+	vector3 axis;
+	VecNormalize(axis, normal);
+	vector3 center = aaPos[vrtCenter];
+
+//	recursively select all vertices in the cylinder which can be reached from a
+//	selected vertex by following an edge. Start with the given one.
+//	We'll also select edges which connect inner with outer vertices. Note that
+//	some vertices are considered rim-vertices (those with a distance between
+//	smallRadius and largeRadius). Those are neither considered inner nor outer.
+	Selector& sel = selOut;
+	sel.clear();
+	sel.select(vrtCenter);
+
+	stack<VertexBase*> vrtStack;
+	vrtStack.push(vrtCenter);
+
+	Grid::edge_traits::secure_container edges;
+	Grid::face_traits::secure_container faces;
+	vector<Quadrilateral*> quads;
+
+	while(!vrtStack.empty()){
+		VertexBase* curVrt = vrtStack.top();
+		vrtStack.pop();
+
+	//	we have to convert associated quadrilaterals to triangles.
+	//	Be careful not to alter the array of associated elements while we iterate
+	//	over it...
+		quads.clear();
+		grid.associated_elements(faces, curVrt);
+		for(size_t i = 0; i < faces.size(); ++i){
+			if(faces[i]->num_vertices() == 4){
+				Quadrilateral* q = dynamic_cast<Quadrilateral*>(faces[i]);
+				if(q)
+					quads.push_back(q);
+			}
+		}
+
+		for(size_t i = 0; i < quads.size(); ++i){
+			Triangulate(grid, quads[i], &aaPos);
+		}
+
+	//	now check whether edges leave the cylinder and mark them accordingly.
+	//	Perform projection of vertices to the cylinder rim for vertices which
+	//	lie in the threshold area.
+		grid.associated_elements(edges, curVrt);
+
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+			EdgeBase* e = edges[i_edge];
+			VertexBase* vrt = GetConnectedVertex(e, curVrt);
+
+			if(sel.is_selected(vrt))
+				continue;
+
+			vector3 p = aaPos[vrt];
+			vector3 proj;
+			ProjectPointToRay(proj, p, center, axis);
+			number distSq = VecDistanceSq(p, proj);
+
+			if(distSq < smallRadiusSq){
+				sel.select(vrt);
+				vrtStack.push(vrt);
+			}
+			else if(distSq < largeRadiusSq){
+				sel.select(vrt);
+			//	cut the ray from center through p with the cylinder hull to calculate
+			//	the new position of vrt.
+				vector3 dir;
+				VecSubtract(dir, p, center);
+				number t0, t1;
+				if(RayCylinderIntersection(t0, t1, center, dir, center, axis, radius))
+					VecScaleAdd(aaPos[vrt], 1., center, t1, dir);
+			}
+			else{
+			//	the edge will be refined later on
+				sel.select(e);
+			}
+		}
+	}
+
+//	refine selected edges and use a special refinement callback, which places
+//	new vertices on edges which intersect a cylinder on the cylinders hull.
+	RefinementCallback_IntersectCylinder refCallback(grid, center, axis, radius, aPos);
+	Refine(grid, sel, aInt, &refCallback);
+
+//	finally select all triangles which lie in the cylinder
+	sel.clear();
+	vrtStack.push(vrtCenter);
+	sel.select(vrtCenter);
+
+	while(!vrtStack.empty()){
+		VertexBase* curVrt = vrtStack.top();
+		vrtStack.pop();
+		grid.associated_elements(faces, curVrt);
+
+		for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+			Face* f = faces[i_face];
+			if(sel.is_selected(f))
+				continue;
+
+			sel.select(f);
+
+			for(size_t i = 0; i < f->num_vertices(); ++i){
+				VertexBase* vrt = f->vertex(i);
+				if(!sel.is_selected(vrt)){
+					number dist = DistancePointToRay(aaPos[vrt], center, axis);
+					if(dist < (radius - SMALL)){
+						sel.select(vrt);
+						vrtStack.push(vrt);
+					}
+				}
+			}
+		}
+	}
+
+	sel.clear<VertexBase>();
+
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
-					   VertexBase* vrtCenter, const vector3& normal,
-					   number radius, number badNormalDot,
-					   APosition& aPos)
+						   VertexBase* vrtCenter, const vector3& normal,
+						   number radius, number rimSnapThreshold, APosition& aPos)
 {
 	AInt aInt;
 	grid.attach_to_edges(aInt);
 	bool retVal = AdaptSurfaceGridToCylinder(selOut, grid, vrtCenter, normal,
-											radius, aInt, badNormalDot, aPos);
+											radius, rimSnapThreshold, aInt, aPos);
 	grid.detach_from_edges(aInt);
 	return retVal;
 }
 
-////////////////////////////////////////////////////////////////////////
-bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
-						   VertexBase* vrtCenter, const vector3& normal,
-						   number radius, AInt& aInt, number badNormalDot,
-						   APosition& aPos)
-{
-//	defines when a point is considered to be close to the rim
-//	CLOSE_TO_RIM has to be higher than 0!
-	const number CLOSE_TO_RIM = 0.8;
-
-//	defines when a point is considered to be too far outside of
-//	the cylinder to be projected
-	const number FAR_FROM_RIM = 1.5;
-
-//	the quality factor is a lower border for quality decrease
-	const number QUALITY_FACTOR = 0.6;
-
-//	the radius has to be big enough
-	if(radius < SMALL)
-		return false;
-
-//	get the position attachment accessor
-	if(!grid.has_vertex_attachment(aPos))
-		return false;
-
-//	the normalized normal
-	vector3 n;
-	VecNormalize(n, normal);
-	
-//	make sure all required options are enabled in grid
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
-		LOG("  INFO in AdaptSurfaceGridToCylinder: auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
-	}
-
-//	position accessor
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
-
-//	position of the center
-	vector3 center = aaPos[vrtCenter];
-
-//	alias for the selector
-	Selector& sel = selOut;
-//	clear the selector
-	sel.clear();
-//	store whether selection_inheritance was enabled - if not we'll enable it now
-	bool selInheritanceWasEnabled = sel.selection_inheritance_enabled();
-	sel.enable_selection_inheritance(true);
-
-//	we'll collect faces in this vector
-	vector<Face*> vFaces;
-
-//	we'll collect edges in this vector
-	vector<EdgeBase*> vEdges;
-
-//	we'll store normals of the associated faces in this vector
-	vector<vector3>	vNormals;
-
-//	begin marking
-	grid.begin_marking();
-
-//	this vectot contains the verices on which the algorithm works.
-//	it is extended during the algo.
-	vector<VertexBase*> vVrts;
-	vVrts.push_back(vrtCenter);
-	grid.mark(vrtCenter);
-
-//	this vector contains the vertices that have been projected to the rim
-	vector<VertexBase*> vRimVrts;
-
-//	those indices define the area in vVrts on which we work
-	size_t iFirst = 0;
-	size_t iEnd = 1;
-
-	while(iFirst != iEnd)
-	{
-	//	clear the selector
-		sel.clear();
-
-	//	as long as there are vertices in the queue we have to iterate
-		for(size_t vrtInd = iFirst; vrtInd < iEnd; ++ vrtInd)
-		{
-		//	the vertex that we'll check
-			//VertexBase* vrt = qVrts.front();
-			//qVrts.pop();
-			VertexBase* vrt = vVrts[vrtInd];
-
-		//	collect associated faces - they will be needed twice
-			vFaces.clear();
-			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
-				iter != grid.associated_faces_end(vrt); ++iter)
-				vFaces.push_back(*iter);
-
-/*
-		//	check if any of the edges connected to vrt is a mean-edge
-			for(size_t i = 0; i < vFaces.size(); ++i){
-				Face* f = vFaces[i];
-				if(!grid.is_marked(f)){
-					grid.mark(f);
-				//	collect associated edges
-					CollectEdges(vEdges, grid, f);
-					for(size_t j = 0; j < vEdges.size(); ++j){
-						EdgeBase* e = vEdges[j];
-						if(!grid.is_marked(e)){
-							vector3& v0 = aaPos[e->vertex(0)];
-							vector3& v1 = aaPos[e->vertex(1)];
-						//	check whether the edge should be splitted
-						//	the edge has to be longer than radius,
-						//	both endpoints have to lie near the rim,
-						//	the edge has to be closer to the center, than one of the endpoints is
-							if(VecDistance(v0, v1) > radius * 1.2)
-							{
-							//	check whether both end-points are far away from the center
-								if(VecDistance(center, v0) > radius * CLOSE_TO_RIM
-									&& VecDistance(center, v1) > radius * CLOSE_TO_RIM)
-								{
-								//	check whether the edge cuts the cylinder
-									if(DistancePointToLine(center, v0, v1) < radius * 0.9 * CLOSE_TO_RIM)
-									{
-										sel.select(e);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-
-		//	if edges have been selected (there are mean edges) we'll split them.
-		//	we have to update vFaces afterwards and to clear sel
-			if(sel.num<EdgeBase>() > 0){
-				LOG("0 ");
-			//	copy the content of sel to vEdges
-				vEdges.clear();
-				vEdges.assign(sel.begin<EdgeBase>(), sel.end<EdgeBase>());
-				for(size_t i = 0; i < vEdges.size(); ++i){
-					vector3 vtmp = CalculateCenter(vEdges[i], aaPos);
-					Vertex* nv = SplitEdge<Vertex>(grid, vEdges[i]);
-					aaPos[nv] = vtmp;
-				}
-
-				sel.clear();
-
-			//	recollect faces
-				vFaces.clear();
-				for(FaceIterator iter = grid.associated_faces_begin(vrt);
-					iter != grid.associated_faces_end(vrt); ++iter)
-					vFaces.push_back(*iter);
-			}
-*/
-		//	calculate normals
-			bool badNormal = false;
-			vNormals.resize(vFaces.size());
-			for(size_t i = 0; i < vFaces.size(); ++i)
-			{
-				CalculateNormal(vNormals[i], vFaces[i], aaPos);
-			//	if the normal points away from the normal, the normal is a bad normal
-				if(VecDot(vNormals[i], n) < badNormalDot)
-					badNormal = true;
-			}
-
-			if(badNormal){
-			//	one of the associated faces points away from the normal.
-			//	the vertex will thus be considered as a rim-vertex.
-				continue;
-			}
-			
-		//	iterate over all associated edges of vrt
-			Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(vrt);
-			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
-				iter != iterEnd; ++iter)
-			{
-				EdgeBase* e = *iter;
-			//	if the edge has already been examined, continue
-				if(grid.is_marked(e))
-					continue;
-				grid.mark(e);
-			//	get the connected vertex - if it was alreay marked, then ignore it
-				VertexBase* cv = GetConnectedVertex(e, vrt);
-
-				if(grid.is_marked(cv))
-					continue;
-				
-			//	the position of the connected vertex
-				vector3 cpos = aaPos[cv];
-			//	distance of the conencted vertex to the central axis of the cylinder.
-				vector3 projPos;
-				ProjectPointToRay(projPos, cpos, center, n);
-				vector3 dir;
-				VecSubtract(dir, cpos, projPos);
-				number dist = VecLength(dir);
-
-			//	if the connected vertex is close to the boundary of the cylinder
-			//	or outside, we'll try to project it onto the cylinder.
-			//	We'll use two measures to avoid geometry-conflicts.
-			//	the first one guarantees that the quality of the area will not get
-			//	too bad. The second makes sure that no triangles are flipped.
-				if(dist / radius > CLOSE_TO_RIM){
-					number initialQuality = AreaFaceQuality(vFaces.begin(), vFaces.end(), aaPos);
-				//	move the vertex to the rim
-					VecScale(dir, dir, radius / dist);
-					VecAdd(aaPos[cv], projPos, dir);
-
-					bool passedTests = true;
-
-					if(dist / radius > FAR_FROM_RIM)
-						passedTests = false;
-					else{
-					//	compare qualities
-						if(AreaFaceQuality(vFaces.begin(), vFaces.end(), aaPos)
-							< QUALITY_FACTOR * initialQuality)
-							passedTests = false;
-
-					//	compare normals
-						for(size_t i = 0; i < vFaces.size(); ++i){
-							vector3 n;
-							CalculateNormal(n, vFaces[i], aaPos);
-							if(VecDot(n, vNormals[i]) < QUALITY_FACTOR){
-								passedTests = false;
-								break;
-							}
-						}
-					}
-					
-				//	if one of the tests failed, undo the movement
-					
-					if(!passedTests){
-						aaPos[cv] = cpos;
-					//	if the vertex lies outside, we'll have to split the edge.
-					//	if not we'll check it in the next iteration.
-						if(dist > radius){
-							sel.select(e);
-						}
-						else{
-							grid.mark(cv);
-							vVrts.push_back(cv);
-						}
-					}
-					else{
-					//	the test succeeded. This vertex is done.
-					//	push it to vRimVrts
-						vRimVrts.push_back(cv);
-						grid.mark(cv);
-					}
-				}
-				else{
-				//	check the vertex in the next iteration
-					grid.mark(cv);
-					vVrts.push_back(cv);
-				}
-			}
-		}
-
-	//	refine marked edges
-		if(sel.num<EdgeBase>() > 0){
-			if(!Refine(grid, sel, aInt)){
-			//	clean up
-				LOG("  Refine failed in AdaptSurfaceGridToCylinder\n");
-				grid.end_marking();
-				sel.enable_selection_inheritance(selInheritanceWasEnabled);
-				return false;
-			}
-			
-		//	if new vertices have been created, they are now selected
-			for(VertexBaseIterator iter = sel.begin<VertexBase>();
-				iter != sel.end<VertexBase>(); ++iter)
-			{
-			//	if the vertex is outside of the cylinder, we'll project it
-			//	back on the cylinder.
-			//	this operation is save (although it might produce triangles
-			//	of bad quality).
-//TODO: instead of simply projecting, the intersection of the edge with the cylinder should be used.
-				vector3 projPos;
-				ProjectPointToRay(projPos, aaPos[*iter], center, n);
-				vector3 dir;
-				VecSubtract(dir, aaPos[*iter], projPos);
-				number dist = VecLength(dir);
-
-				VecScale(dir, dir, radius / dist);
-				VecAdd(aaPos[*iter], projPos, dir);
-				vRimVrts.push_back(*iter);
-				grid.mark(*iter);
-			}
-
-		//	mark all edges that resulted from the refine
-		//	and which are connected to two marked vertices
-			for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
-				iter != sel.end<EdgeBase>(); ++iter)
-			{
-				EdgeBase* e = *iter;
-				if(grid.is_marked(e->vertex(0)) && grid.is_marked(e->vertex(1)))
-					grid.mark(e);
-			}
-		}
-
-	//	adjust iFirst and iEnd
-		iFirst = iEnd;
-		iEnd = vVrts.size();
-	}
-
-//	add rimVrts to vVrts
-	for(size_t i = 0; i < vRimVrts.size(); ++i)
-		vVrts.push_back(vRimVrts[i]);
-/*
-LOG("8 ");
-//	find the median of all points along normal
-	if(vVrts.size() > 0){
-		vector3 med(0, 0, 0);
-		for(size_t i = 0; i < vVrts.size(); ++i){
-			vector3 tmp;
-			ProjectPointToRay(tmp, aaPos[vVrts[i]], center, n);
-			VecAdd(med, med, tmp);
-		}
-		VecScale(med, med, 1. / (number)vVrts.size());
-
-	//	project all vertices in vVrts into the plane defined by med and normal
-		for(size_t i = 0; i < vVrts.size(); ++i)
-			ProjectPointToPlane(aaPos[vVrts[i]], aaPos[vVrts[i]],
-								med, n);
-	}
-*/
-//	select all faces in the circle
-	sel.clear();
-//	mark all vertices in vVrts
-	grid.clear_marks();
-	for(size_t i = 0; i < vVrts.size(); ++i)
-		grid.mark(vVrts[i]);
-
-//	iterate over associated faces and select them if
-//	all their vertices are marked. and their normal points
-//	into the right direction
-	for(size_t i = 0; i < vVrts.size(); ++i){
-		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vVrts[i]);
-			iter != grid.associated_faces_end(vVrts[i]); ++iter)
-		{
-			Face* f = *iter;
-			if(!grid.is_marked(f)){
-				grid.mark(f);
-			//	check the normal
-				vector3 n;
-				CalculateNormal(n, f, aaPos);
-			//	the face is only a candidate if its normal is not too far off from
-			//	the main normal.
-				if(VecDot(n, normal) >= badNormalDot){					
-					uint numVrts = f->num_vertices();
-					bool allMarked = true;
-					for(size_t k = 0; k < numVrts; ++k){
-						if(!grid.is_marked(f->vertex(k))){
-							allMarked = false;
-							break;
-						}
-					}
-
-					if(allMarked)
-						sel.select(f);
-				}
-			}
-		}
-	}
-
-//	clean up
-	grid.end_marking();
-	sel.enable_selection_inheritance(selInheritanceWasEnabled);
-
-//	done
-	return true;
-}
-/*
-////////////////////////////////////////////////////////////////////////
-bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
-						   VertexBase* vrtCenter, const vector3& normal,
-						   number radius, AInt& aInt, APosition& aPos)
-{
-//	defines when a point is considered to be close to the rim
-//	CLOSE_TO_RIM has to be higher than 0!
-	const number CLOSE_TO_RIM = 0.8;
-
-//	defines when a point is considered to be too far outside of
-//	the cylinder to be projected
-	const number FAR_FROM_RIM = 1.5;
-
-//	the quality factor is a lower border for quality decrease
-	const number QUALITY_FACTOR = 0.6;
-
-//	the radius has to be big enough
-	if(radius < SMALL)
-		return false;
-
-//	get the position attachment accessor
-	if(!grid.has_vertex_attachment(aPos))
-		return false;
-
-//	make sure all required options are enabled in grid
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
-		LOG("  INFO in AdaptSurfaceGridToCylinder: auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
-	}
-
-//	position accessor
-	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
-
-//	position of the center
-	vector3 center = aaPos[vrtCenter];
-
-//	alias for the selector
-	Selector& sel = selOut;
-//	clear the selector
-	sel.clear();
-//	store whether selection_inheritance was enabled - if not we'll enable it now
-	bool selInheritanceWasEnabled = sel.selection_inheritance_enabled();
-	sel.enable_selection_inheritance(true);
-
-//	we'll collect faces in this vector
-	vector<Face*> vFaces;
-
-//	we'll collect edges in this vector
-	vector<EdgeBase*> vEdges;
-
-//	we'll store normals of the associated faces in this vector
-	vector<vector3>	vNormals;
-
-//	begin marking
-	grid.begin_marking();
-
-//	this vectot contains the verices on which the algorithm works.
-//	it is extended during the algo.
-	vector<VertexBase*> vVrts;
-	vVrts.push_back(vrtCenter);
-	grid.mark(vrtCenter);
-
-//	this vector contains the vertices that have been projected to the rim
-	vector<VertexBase*> vRimVrts;
-
-//	those indices define the area in vVrts on which we work
-	size_t iFirst = 0;
-	size_t iEnd = 1;
-
-
-////////
-	while(iFirst != iEnd)
-	{
-		LOG("0 ");
-	//	clear the selector
-		//sel.clear();
-
-	//	as long as there are vertices in the queue we have to iterate
-		for(int vrtInd = iFirst; vrtInd < iEnd; ++ vrtInd)
-		{
-		//	the vertex that we'll check
-			VertexBase* vrt = vVrts[vrtInd];
-
-		//	if the vertex is inside, then select all assoiated faces
-			number dist = DistancePointToRay(aaPos[vrt], center, normal);
-			if(dist < radius){
-				for(FaceIterator iter = grid.associated_faces_begin(vrt);
-					iter != grid.associated_faces_end(vrt); ++iter)
-					sel.select(*iter);
-
-			//	iterate over associated edges
-				for(EdgeBaseIterator eIter = grid.associated_edges_begin(vrt);
-					eIter != grid.associated_edges_end(vrt); ++eIter)
-				{
-					EdgeBase* e = *eIter;
-				//	if the edge is already marked, we'll ignore it
-					if(grid.is_marked(e))
-						continue;
-					grid.mark(e);
-
-				//	get the connected vertex - if it was alreay marked, then ignore it
-					VertexBase* cv = GetConnectedVertex(e, vrt);
-					if(grid.is_marked(cv))
-						continue;
-					grid.mark(cv);
-
-				//	add associated vertex to vVrts
-					vVrts.push_back(cv);
-				}
-			}
-		}
-
-		iFirst = iEnd;
-		iEnd = vVrts.size();
-	}
-
-//	assign collected faces to selector
-	sel.select(vFaces.begin(), vFaces.end());
-////////
-
-	grid.end_marking();
-	return true;
-}
-*/
 }//	end of namespace

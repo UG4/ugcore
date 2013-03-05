@@ -17,9 +17,10 @@ namespace ug
 //	inside this file.
 static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 					const vector3& direction, number height, number radius,
+					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					int bottomSubInd, int cylSubInd,
-					Selector* pSel, float minDot)
+					Selector* pSel)
 {
 //	we'll use this selector if no selector was specified
 	Selector locSel;
@@ -29,7 +30,7 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 	}
 	Selector& sel = *pSel;
 	
-	if(!AdaptSurfaceGridToCylinder(sel, grid, vrt, direction, radius, minDot)){
+	if(!AdaptSurfaceGridToCylinder(sel, grid, vrt, direction, radius, rimSnapThreshold)){
 		LOG("  WARNING: AdaptSurfaceGridToCylinder failed during ExtrudeCylinder.\n");
 		return false;
 	}
@@ -79,22 +80,24 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 
 bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
 					const vector3& direction, number height, number radius,
+					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					int bottomSubInd, int cylSubInd,
-					Selector* pSel, float minDot)
+					Selector* pSel)
 {
-	return ExtrudeCylinder(grid, &sh, vrt, direction, height, radius, aaPos,
-							bottomSubInd, cylSubInd, pSel, minDot);
+	return ExtrudeCylinder(grid, &sh, vrt, direction, height, radius,
+						 rimSnapThreshold, aaPos, bottomSubInd, cylSubInd, pSel);
 
 }
 
 bool ExtrudeCylinder(Grid& grid, VertexBase* vrt,
 					const vector3& direction, number height, number radius,
+					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
-					Selector* pSel, float minDot)
+					Selector* pSel)
 {
-	return ExtrudeCylinder(grid, NULL, vrt, direction, height, radius, aaPos,
-							-1, -1, pSel, minDot);
+	return ExtrudeCylinder(grid, NULL, vrt, direction, height, radius,
+							rimSnapThreshold, aaPos, -1, -1, pSel);
 }
 					
 }//	end of namespace

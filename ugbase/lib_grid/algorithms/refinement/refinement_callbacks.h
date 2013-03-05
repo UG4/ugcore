@@ -130,6 +130,29 @@ class RefinementCallbackSphere : public IRefinementCallback
 };
 
 
+class RefinementCallback_IntersectCylinder : public RefinementCallbackLinear<APosition>
+{
+	public:
+		using RefinementCallbackLinear<APosition>::new_vertex;
+
+	public:
+		RefinementCallback_IntersectCylinder();
+
+	///	make sure that aPos is attached to the vertices of the grid.
+		RefinementCallback_IntersectCylinder(Grid& grid, const vector3& center,
+											 const vector3& axis, number radius,
+											 APosition& aPos = aPosition);
+
+		virtual ~RefinementCallback_IntersectCylinder();
+
+		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+
+	protected:
+		vector3 m_center;
+		vector3 m_axis;
+		number m_radius;
+};
+
 ////////////////////////////////////////////////////////////////////////
 ///	calculates new positions by cutting parent edges with a plane
 /**	For each edge the intersection of the edge with the initially

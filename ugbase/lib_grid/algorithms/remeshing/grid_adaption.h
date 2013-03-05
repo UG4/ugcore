@@ -37,10 +37,13 @@ namespace ug
  * An overloaded and somewhat slower version of this method exists,
  * which automatically creates the aInt attachment. It is thus
  * a little more comfortable for the caller.
+ *
+ * \param rimSnapThreshold:	If a vertex lies closer to the rim than rimSnapThreshold,
+ * 							then it will be projected to the rim.
  */
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 						   VertexBase* vrtCenter, const vector3& normal,
-						   number radius, AInt& aInt, number badNormalDot = -1,
+						   number radius, number rimSnapThreshold, AInt& aInt,
 						   APosition& aPos = aPosition);
 
 ////////////////////////////////////////////////////////////////////////
@@ -53,10 +56,13 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
  * call this method multiple times. You should then consider
  * to call the faster version of AdaptSurfaceGridToCylinder,
  * which takes aInt as a parameter.
+ *
+ * \param rimSnapThreshold:	If a vertex lies closer to the rim than rimSnapThreshold,
+ * 							then it will be projected to the rim.
  */
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 						   VertexBase* vrtCenter, const vector3& normal,
-						   number radius, number badNormalDot = -1,
+						   number radius, number rimSnapThreshold,
 						   APosition& aPos = aPosition);
 
 /// @}	// end of add_to_group command
