@@ -10,12 +10,13 @@
 
 #include "lib_grid/tools/bool_marker.h"
 #include "lib_grid/tools/selector_grid.h"
-#include "lib_disc/common/local_algebra.h"
-#include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
-//#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 namespace ug{
+
+template <typename TDomain, typename TAlgebra>
+class IDomainConstraint;
+
 
 template <typename TAlgebra>
 class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
@@ -59,6 +60,9 @@ class AssAdapter
 
 	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
+
+	///	Type of algebra value
+		typedef typename vector_type::value_type value_type;
 
 	public:
 	/// constructor
@@ -121,16 +125,20 @@ class AssAdapter
 		{
 			m_assIndex.index = ind; m_assIndex.index_set = index_set;
 		}
-	///	gets assemble Index
+		///	returns whether the assemble Index is set or not
+		size_t is_ass_index_set(){ return m_assIndex.index_set;}
+		///	gets assemble Index
 		size_t ass_index(){ return m_assIndex.index;}
 
 		template <typename TElem>
 		void elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd, int si,
 				std::vector<TElem*>& elems);
 
-	//	template <typename TDomain>
-	//	void adaptConstraint(IDomainConstraint<TDomain, TAlgebra>& constraint);
+		template <typename TDomain>
+		void adaptConstraint(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >& constraint);
 
+		void adjust_matrix(matrix_type& mat, const size_t index);
+		void adjust_vector(vector_type& vec, const size_t index, const value_type& val);
 	//private:
 
 	///	marker used to skip elements
@@ -152,7 +160,7 @@ class AssAdapter
 
 	///	LocalToGlobalMapper-Func
 		ILocalToGlobalMapper<TAlgebra>* m_pMapper;
-		LocalToGlobalMapper<TAlgebra> m_pMapperCommon;
+		LocalToGlobalMapper<TAlgebra> 	m_pMapperCommon;
 };
 
 } // end namespace ug

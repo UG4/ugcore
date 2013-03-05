@@ -148,10 +148,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_jacobian(M, u, dd->grid_level());
 			}
 	}
@@ -254,10 +251,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_jacobian(A, u, dd->grid_level());
 			}
 	}
@@ -367,10 +361,7 @@ assemble_jacobian(matrix_type& J,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_jacobian(J, u, dd->grid_level());
 			}
 	}
@@ -474,10 +465,7 @@ assemble_defect(vector_type& d,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_defect(d, u, dd->grid_level());
 			}
 	}
@@ -577,10 +565,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level());
 			}
 	}
@@ -683,10 +668,7 @@ assemble_rhs(vector_type& rhs,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index, true);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_rhs(rhs, u, dd->grid_level());
 			}
 	}
@@ -734,10 +716,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_solution(u, dd->grid_level());
 			}
 	}
@@ -945,10 +924,7 @@ assemble_jacobian(matrix_type& J,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd->grid_level(), time);
 			}
 	}
@@ -1053,12 +1029,7 @@ assemble_defect(vector_type& d,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
-				//m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_defect(d, *vSol->solution(0), dd->grid_level(), vSol->time(0));
 			}
 	}
@@ -1162,10 +1133,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level(), vSol->time(0));
 			}
 	}
@@ -1272,10 +1240,7 @@ assemble_rhs(vector_type& rhs,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd->grid_level(), vSol->time(0));
 			}
 	}
@@ -1315,10 +1280,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				//	forward to ConstraintInterface if assembling is carried out at one DoF only
-				if(m_AssAdapter.m_assIndex.index_set) m_vConstraint[i]->set_ass_index(m_AssAdapter.m_assIndex.index);
-					else m_vConstraint[i]->set_ass_index();
-
+				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
 				m_vConstraint[i]->adjust_solution(u, dd->grid_level(), time);
 			}
 	}

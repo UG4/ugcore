@@ -7,7 +7,6 @@
 #ifndef __H__UG__LIB_DISC__ASSEMBLE__
 #define __H__UG__LIB_DISC__ASSEMBLE__
 
-#include "lib_grid/tools/bool_marker.h"
 #include "lib_grid/tools/selector_grid.h"
 #include "lib_grid/tools/grid_level.h"
 #include "lib_disc/spatial_disc/ass_adapter.h"

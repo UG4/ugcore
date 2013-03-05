@@ -58,14 +58,41 @@ void AssAdapter<TAlgebra>::elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd,
 	}
 }
 
-/*template <typename TAlgebra>
+template <typename TAlgebra>
 template <typename TDomain>
-void AssAdapter<TAlgebra>:: adaptConstraint(IDomainConstraint<TDomain, TAlgebra>& constraint)
+void AssAdapter<TAlgebra>::adaptConstraint(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >& constraint)
 {
-	if(m_assIndex.index_set) constraint->set_ass_index(m_assIndex.index);
-		else constraint->set_ass_index();
-}*/
+	//	forward to ConstraintInterface if assembling is carried out at one DoF only
+	if(m_assIndex.index_set)
+		constraint->set_ass_index(m_assIndex.index);
+	else
+		constraint->set_ass_index();
+}
 
+template <typename TAlgebra>
+void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index)
+{
+	UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for SetDirichletIndex.");
+	UG_ASSERT(mat.num_cols() == 1, "#cols needs to be 1 for SetDirichletIndex.");
+
+	if (index == m_assIndex.index)
+	{
+		UG_LOG("mat(0,0): " << mat(0,0) << "\n");
+		mat(0,0) = 1.0;
+		UG_LOG("mat(0,0): " << mat(0,0) << "\n");
+	}
+}
+
+template <typename TAlgebra>
+void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const size_t index, const value_type& val)
+{
+	if (index == m_assIndex.index)
+	{
+		UG_LOG("vec(0): " << vec[0] << "\n");
+		vec[0] = val;
+		UG_LOG("vec(0): " << vec[0] << "\n");
+	}
+}
 
 
 } // end namespace ug

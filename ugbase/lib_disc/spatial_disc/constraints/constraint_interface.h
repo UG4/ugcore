@@ -14,12 +14,10 @@
 // intern headers
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/common/local_algebra.h"
-#include "lib_disc/spatial_disc/ass_adapter.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 
 namespace ug{
-
 
 /// Types of constraint
 /**
@@ -118,6 +116,7 @@ class IConstraint
 
 	///	virtual destructor
 		virtual ~IConstraint() {};
+
 };
 
 template <typename TDomain, typename TAlgebra>
@@ -135,9 +134,6 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 
 	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
-
-	///	temporarily use of assemble index type (will be removed!)
-		typedef typename AssAdapter<TAlgebra>::AssIndex assIndex_type;
 
 	public:
 		using IConstraint<TAlgebra>::adjust_jacobian;
@@ -207,8 +203,8 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		void set_ass_index(){set_ass_index(0, false);}
 		void set_ass_index(size_t ind, bool index_set = true)
 		{
-			m_AssIndex.index_set = index_set;
-			m_AssIndex.index = ind;
+			m_AssAdapter.m_assIndex.index_set = index_set;
+			m_AssAdapter.m_assIndex.index = ind;
 		}
 
 	protected:
@@ -222,8 +218,12 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 	///	Approximation Space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
-	///	Assemble index
-		assIndex_type m_AssIndex;
+	///	Assemble adapter
+	//	note: the member variables of the assemble adapter need
+	//	to be set explicitly in this class! The vars are NOT derived from the
+	//	assemble adapter used in the assemble routine!
+		AssAdapter<TAlgebra> m_AssAdapter;
+
 };
 
 } // end namespace ug

@@ -21,7 +21,6 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/spatial_disc/user_data/data_evaluator.h"
-#include "lib_disc/spatial_disc/ass_adapter.h"
 
 #define PROFILE_ELEM_LOOP
 #ifdef PROFILE_ELEM_LOOP

@@ -21,7 +21,6 @@
 #include "disc_item.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
-#include "lib_disc/spatial_disc/ass_adapter.h"
 
 namespace ug {
 

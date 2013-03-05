@@ -588,37 +588,6 @@ void SetDirichletRow(T& A, const std::vector<size_t> vIndex)
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// SetDirichletIndex:
-//-------------------------
-/**
- * set Dirichlet Index for entry (ind,alpha).
- * \param A (in) Matrix A
- * \param i (in) index to set dirichlet, if it is the same as passed assemble Index 'assInd'
- * 			if (i == assInd) A(i,i)(alpha, alpha) = 1.0
- * \param assInd (in) index which is passed by the discretization. Assembling is carried out for this index only.
- * \param alpha the alpha index
- */
-template <typename T>
-void SetDirichletIndex(typename T::value_type& block, size_t i, size_t alpha, size_t assInd)
-{
-	if(i == assInd)
-	{
-		block = 1.0;
-		UG_LOG("block: " << block << "\n");
-	}
-}
-
-template <typename T>
-void SetDirichletIndex(T& A, size_t i, size_t alpha, size_t assInd)
-{
-	if(i == assInd)
-	{
-		A(0,0) = 1.0;
-		UG_LOG("A(0,0): " << A(0,0) << "\n");
-	}
-}
-
 template<typename T, class TOStream>
 void SerializeMatrix(TOStream &buf, const T &A)
 {
