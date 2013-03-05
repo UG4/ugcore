@@ -56,8 +56,8 @@ class StdDataExport
 		                      const MathVector<dim> vCornerCoords[],
 		                      const MathVector<refDim>& locIP) const
 		{
-			getImpl().evaluate<refDim>(&value,&globIP,time,si,u,elem,
-			                           vCornerCoords,&locIP,1,NULL);
+			getImpl().template evaluate<refDim>(&value,&globIP,time,si,u,elem,
+			                                    vCornerCoords,&locIP,1,NULL);
 		}
 
 		template <int refDim>
