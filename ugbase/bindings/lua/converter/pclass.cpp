@@ -352,7 +352,7 @@ int pclass::createLUA(nodeType *p, ostream &out)
 {
 	if (!p) return 0;
     nodeType *a;
-    int i;
+    //int i;
 	switch (p->type)
 	{
 		case typeCon:
