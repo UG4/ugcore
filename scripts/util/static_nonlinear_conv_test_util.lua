@@ -96,7 +96,7 @@ for lev = maxLev, minLev, -1 do
 	if lev > minLev then l2levdiff[lev] = L2Error(u[lev], "c", u[lev-1], "c", quadOrder)
 	else l2levdiff[lev] = 0.0 end
 	
-	if exactSol ~= nil and exactGrad ~= nil then h1exact[lev] = H1Error(exactSol, exactGrad, u[lev], "c", 0.0, quadOrder, "Inner")
+	if exactSol ~= nil and exactGrad ~= nil then h1exact[lev] = H1Error(exactSol, exactGrad, u[lev], "c", 0.0, quadOrder)
 	else h1exact[lev] = 0.0 end
 	h1diff[lev] = H1Error(u[maxLev], "c", u[lev], "c", quadOrder)
 	if lev > minLev then h1levdiff[lev] = H1Error(u[lev], "c", u[lev-1], "c", quadOrder)

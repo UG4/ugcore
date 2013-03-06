@@ -72,10 +72,10 @@ for lev = maxLev, minLev, -1 do
 	
 	-- 5. compute error
 	quadOrder = p+2
-	l2exact[lev] = L2Error(exactSol, u[lev], "c", 0.0, quadOrder, "Inner")
-	l2diff[lev] = L2Error(u[maxLev], "c", u[lev], "c", quadOrder, "Inner")
-	h1exact[lev] = H1Error(exactSol, exactGrad, u[lev], "c", 0.0, quadOrder, "Inner")
-	h1diff[lev] = H1Error(u[maxLev], "c", u[lev], "c", quadOrder, "Inner")
+	l2exact[lev] = L2Error(exactSol, u[lev], "c", 0.0, quadOrder)
+	l2diff[lev] = L2Error(u[maxLev], "c", u[lev], "c", quadOrder)
+	h1exact[lev] = H1Error(exactSol, exactGrad, u[lev], "c", 0.0, quadOrder)
+	h1diff[lev] = H1Error(u[maxLev], "c", u[lev], "c", quadOrder)
 	numDoFs[lev] = u[lev]:size()
 	write(">> L2-Error on Level "..lev.." is "..string.format("%.3e", l2exact[lev]) .."\n");
 	write(">> L2-Diff  on Level "..lev.." is "..string.format("%.3e", l2diff[lev]) .."\n");
