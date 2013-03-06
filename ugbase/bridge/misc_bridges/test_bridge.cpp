@@ -415,7 +415,7 @@ void NonAllowedFct3() {};
 const char* REFINEMENT_MESSAGE_NAME = "MSG_GRID_ADAPTION";
 
 class Message{
-	int msgType;
+	//int msgType;
 };
 
 

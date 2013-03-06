@@ -259,7 +259,6 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 				" Storage type of A1*w1 doesnt match storage type of v1 or v2.");
 		return false;
 	}
-	if(type == -1) return false;
 
 	MatMultAdd(dynamic_cast<vector_type&>(dest), alpha1, dynamic_cast<const vector_type&>(v1), alpha2, dynamic_cast<const vector_type&>(v2),
 			beta1, dynamic_cast<const matrix_type&>(A1), dynamic_cast<const vector_type&>(w1));

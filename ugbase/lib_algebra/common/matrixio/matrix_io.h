@@ -115,11 +115,11 @@ class MatrixIO
     /// Matrix exchange file type
     MatrixFileType m_matFileType;
     /// Number of rows as specified in the matrix exchange file
-    int m_rows;
+    //int m_rows;
     /// Number of columns as specified in the matrix exchange file
-    int m_cols;
+    //int m_cols;
     /// Number of data lines as specified in the matrix exchange file
-    int m_lines;
+    //int m_lines;
 
   public:
     /**
