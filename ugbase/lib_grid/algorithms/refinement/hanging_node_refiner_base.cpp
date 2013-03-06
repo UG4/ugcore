@@ -32,8 +32,8 @@ HangingNodeRefinerBase::
 HangingNodeRefinerBase(IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
 	m_pGrid(NULL),
-	m_nodeDependencyOrder1(true),
-	m_automarkHigherDimensionalObjects(false)
+	m_nodeDependencyOrder1(true)
+	//,m_automarkHigherDimensionalObjects(false)
 {
 	add_ref_mark_adjuster(StdHNodeAdjuster::create());
 }

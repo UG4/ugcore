@@ -77,7 +77,7 @@ bool LUA2C::create(const char *functionName)
 	catch(...)
 	{
 		UG_LOG("exception thrown in LUA2C::create(" << functionName << ")\n");
-		return NULL;
+		return false;
 	}
 	
 }

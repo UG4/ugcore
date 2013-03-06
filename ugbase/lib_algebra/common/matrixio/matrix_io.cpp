@@ -12,13 +12,13 @@ namespace ug
 // /////////////////////////////////////////////////////////////////////////////
 // Constructors / Destructor
 MatrixIO::MatrixIO() :
-  m_pMatFileName( NULL ), m_matFileStream(), m_matFileType( 0 ),
-  m_rows(0), m_cols(0), m_lines(0)
+  m_pMatFileName( NULL ), m_matFileStream(), m_matFileType( 0 )
+//  ,m_rows(0), m_cols(0), m_lines(0)
 {
 }
 
 MatrixIO::MatrixIO( string mFile, int openMode ) :
-  m_matFileStream(), m_matFileType( 0 ), m_rows(0), m_cols(0), m_lines(0)
+  m_matFileStream(), m_matFileType( 0 )//, m_rows(0), m_cols(0), m_lines(0)
 {
   set_mat_file_name( mFile, openMode );
 }
