@@ -138,7 +138,7 @@ class AssAdapter
 		{
 			m_assIndex.index = ind; m_assIndex.index_set = index_set;
 		}
-		///	checks whether the assemble index is set or not
+	///	checks whether the assemble index is set or not
 		size_t is_ass_index_set(){ return m_assIndex.index_set;}
 
 
@@ -173,8 +173,8 @@ class AssAdapter
 
 	///	only one index will be set to Dirichlet in case of index-wise assembling
 	///	instead of setting a complete matrix row to Dirichlet
-		void adjust_matrix(matrix_type& mat, const size_t index);
-		void adjust_vector(vector_type& vec, const size_t index, const value_type& val);
+		void adjust_matrix(matrix_type& mat, const size_t index, const size_t alpha);
+		void adjust_vector(vector_type& vec, const size_t index, const size_t alpha, double val);
 
 	public:
 
