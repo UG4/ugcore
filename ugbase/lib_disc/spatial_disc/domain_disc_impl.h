@@ -149,7 +149,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_jacobian(M, u, dd->grid_level());
+				m_vConstraint[i]->adjust_jacobian(M, u, dd);
 			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_mass_matrix:"
@@ -251,7 +251,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_jacobian(A, u, dd->grid_level());
+				m_vConstraint[i]->adjust_jacobian(A, u, dd);
 			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_stiffness_matrix:"
@@ -360,7 +360,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_jacobian(J, u, dd->grid_level());
+				m_vConstraint[i]->adjust_jacobian(J, u, dd);
 			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_jacobian:"
@@ -463,7 +463,7 @@ assemble_defect(vector_type& d,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_defect(d, u, dd->grid_level());
+				m_vConstraint[i]->adjust_defect(d, u, dd);
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
@@ -563,7 +563,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level());
+				m_vConstraint[i]->adjust_linear(mat, rhs, dd);
 			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_linear: Cannot post process.");
@@ -665,7 +665,7 @@ assemble_rhs(vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_rhs(rhs, u, dd->grid_level());
+				m_vConstraint[i]->adjust_rhs(rhs, u, dd);
 			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_rhs:"
@@ -713,7 +713,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_solution(u, dd->grid_level());
+				m_vConstraint[i]->adjust_solution(u, dd);
 			}
 	}
 
@@ -921,7 +921,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd->grid_level(), time);
+				m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd, time);
 			}
 	}
 	}UG_CATCH_THROW("Cannot adjust jacobian.");
@@ -1025,7 +1025,7 @@ assemble_defect(vector_type& d,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_defect(d, *vSol->solution(0), dd->grid_level(), vSol->time(0));
+				m_vConstraint[i]->adjust_defect(d, *vSol->solution(0), dd, vSol->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
@@ -1129,7 +1129,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_linear(mat, rhs, dd->grid_level(), vSol->time(0));
+				m_vConstraint[i]->adjust_linear(mat, rhs, dd, vSol->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
@@ -1235,7 +1235,7 @@ assemble_rhs(vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd->grid_level(), vSol->time(0));
+				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd, vSol->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");
@@ -1275,7 +1275,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
-				m_vConstraint[i]->adjust_solution(u, dd->grid_level(), time);
+				m_vConstraint[i]->adjust_solution(u, dd, time);
 			}
 	}
 	} UG_CATCH_THROW(" Cannot adjust solution.");

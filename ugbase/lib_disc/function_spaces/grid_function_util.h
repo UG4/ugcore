@@ -610,7 +610,7 @@ public:
 		vec.resize(numDoFs);
 		vec.set(1.0);
 
-		m_spPostProcess->adjust_defect(vec, vec, gl);
+		m_spPostProcess->adjust_defect(vec, vec, m_pApproxSpace->dof_distribution(gl));
 
 		return true;
 	}

@@ -50,15 +50,11 @@ class IConstraint
 	///	adapts jacobian to enforce constraints
 	/// \{
 		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                             GridLevel gl, number time = 0.0) = 0;
-		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                             ConstSmartPtr<DoFDistribution> dd, number time = 0.0) = 0;
 	/// \}
 
 	///	adapts defect to enforce constraints
 	/// \{
-		virtual void adjust_defect(vector_type& d, const vector_type& u,
-		                           GridLevel gl, number time = 0.0) = 0;
 		virtual void adjust_defect(vector_type& d, const vector_type& u,
 		                           ConstSmartPtr<DoFDistribution> dd, number time = 0.0) = 0;
 	/// \}
@@ -66,23 +62,17 @@ class IConstraint
 	///	adapts matrix and rhs (linear case) to enforce constraints
 	/// \{
 		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
-		                           GridLevel gl, number time = 0.0) = 0;
-		virtual void adjust_linear(matrix_type& mat, vector_type& rhs,
 		                           ConstSmartPtr<DoFDistribution> dd, number time = 0.0)  = 0;
 	/// \}
 
 	///	adapts a rhs to enforce constraints
 	/// \{
 		virtual void adjust_rhs(vector_type& rhs, const vector_type& u,
-		                        GridLevel gl, number time = 0.0) = 0;
-		virtual void adjust_rhs(vector_type& rhs, const vector_type& u,
 		                        ConstSmartPtr<DoFDistribution> dd, number time = 0.0)  = 0;
 	/// \}
 
 	///	sets the constraints in a solution vector
 	/// \{
-		virtual void adjust_solution(vector_type& u, GridLevel gl,
-		                             number time = 0.0) = 0;
 		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 		                             number time = 0.0)  = 0;
 	/// \}
@@ -145,41 +135,6 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		ConstSmartPtr<ApproximationSpace<TDomain> > approximation_space() const
 		{
 			return m_spApproxSpace;
-		}
-
-	///	adapts jacobian to enforce constraints
-		void adjust_jacobian(matrix_type& J, const vector_type& u,
-									 GridLevel gl, number time = 0.0)
-		{
-			this->adjust_jacobian(J, u, dd(gl), time);
-		}
-
-	///	adapts defect to enforce constraints
-		void adjust_defect(vector_type& d, const vector_type& u,
-								   GridLevel gl, number time = 0.0)
-		{
-			this->adjust_defect(d, u, dd(gl), time);
-		}
-
-	///	adapts matrix and rhs (linear case) to enforce constraints
-		void adjust_linear(matrix_type& mat, vector_type& rhs,
-								   GridLevel gl, number time = 0.0)
-		{
-			this->adjust_linear(mat, rhs, dd(gl), time);
-		}
-
-	///	adapts a rhs to enforce constraints
-		void adjust_rhs(vector_type& rhs, const vector_type& u,
-								GridLevel gl, number time = 0.0)
-		{
-			this->adjust_rhs(rhs, u, dd(gl), time);
-		}
-
-	///	sets the constraints in a solution vector
-		void adjust_solution(vector_type& u, GridLevel gl,
-									 number time = 0.0)
-		{
-			this->adjust_solution(u, dd(gl), time);
 		}
 
 	///	returns the type of constraints

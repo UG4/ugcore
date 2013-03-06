@@ -387,7 +387,7 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 	try{
 	for(size_t i = 0; i < m_vConstraint.size(); ++i){
 		if (m_vConstraint[i]->type() & CT_DIRICHLET){
-			m_vConstraint[i]->adjust_defect(uFine, uFine, m_fineLevel);
+			m_vConstraint[i]->adjust_defect(uFine, uFine, m_spApproxSpace->dof_distribution(m_fineLevel));
 		}
 	}
 	}UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::apply: "
@@ -438,7 +438,7 @@ restrict(vector_type& uCoarse, const vector_type& uFine)
 	try{
 	for(size_t i = 0; i < m_vConstraint.size(); ++i){
 		if (m_vConstraint[i]->type() & CT_DIRICHLET){
-			m_vConstraint[i]->adjust_defect(uCoarse, uCoarse, m_coarseLevel);
+			m_vConstraint[i]->adjust_defect(uCoarse, uCoarse, m_spApproxSpace->dof_distribution(m_coarseLevel));
 		}
 	}
 	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
