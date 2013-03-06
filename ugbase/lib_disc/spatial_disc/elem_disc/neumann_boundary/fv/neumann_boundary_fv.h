@@ -43,7 +43,7 @@ class NeumannBoundaryFV
 	/// \}
 
 	protected:
-		using base_type::Data;
+		using typename base_type::Data;
 
 	///	Unconditional scalar user data
 		struct NumberData : public base_type::Data
@@ -69,7 +69,7 @@ class NeumannBoundaryFV
 			std::vector<MathVector<dim> > vGloIP;
 			NeumannBoundaryFV* This;
 		};
-		friend class NumberData;
+		friend struct NumberData;
 
 	///	Conditional scalar user data
 		struct BNDNumberData : public base_type::Data

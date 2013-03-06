@@ -43,7 +43,7 @@ class NeumannBoundaryFV1
 	/// \}
 
 	protected:
-		using base_type::Data;
+		using typename base_type::Data;
 
 	///	Unconditional scalar user data
 		struct NumberData : public base_type::Data
