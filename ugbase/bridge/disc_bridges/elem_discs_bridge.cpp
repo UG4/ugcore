@@ -21,7 +21,9 @@
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 
-#include "lib_disc/spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
+#include "lib_disc/spatial_disc/elem_disc/neumann_boundary/neumann_boundary_base.h"
+#include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fv1/neumann_boundary_fv1.h"
+#include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fv/neumann_boundary_fv.h"
 #include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
 
 using namespace std;
@@ -65,24 +67,43 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "IDomainElemDisc", tag);
 	}
 
-//	Neumann Boundary
+//	Neumann Boundary Base
 	{
-		typedef NeumannBoundary<TDomain> T;
+		typedef NeumannBoundaryBase<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("NeumannBoundary").append(suffix);
+		string name = string("NeumannBoundaryBase").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
-			.template add_constructor<void (*)(const char*)>("Function(s)")
-			.add_method("add", static_cast<void (T::*)(const vector<number>&, const char*, const char*)>(&T::add))
-			.add_method("add", static_cast<void (T::*)(number, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add))
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add))
 #ifdef UG_FOR_LUA
 			.add_method("add", static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add))
 #endif
-			.add_method("set_disc_scheme", &T::set_disc_scheme)
+			.add_method("add", static_cast<void (T::*)(const vector<number>&, const char*, const char*)>(&T::add))
+			.add_method("add", static_cast<void (T::*)(number, const char*, const char*)>(&T::add));
+		reg.add_class_to_group(name, "NeumannBoundaryBase", tag);
+	}
+
+//	Neumann Boundary FV1
+	{
+		typedef NeumannBoundaryFV1<TDomain> T;
+		typedef NeumannBoundaryBase<TDomain> TBase;
+		string name = string("NeumannBoundaryFV1").append(suffix);
+		reg.add_class_<T, TBase >(name, elemGrp)
+			.template add_constructor<void (*)(const char*)>("Function")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "NeumannBoundary", tag);
+		reg.add_class_to_group(name, "NeumannBoundaryFV1", tag);
+	}
+
+//	Neumann Boundary FV
+	{
+		typedef NeumannBoundaryFV<TDomain> T;
+		typedef NeumannBoundaryBase<TDomain> TBase;
+		string name = string("NeumannBoundaryFV").append(suffix);
+		reg.add_class_<T, TBase >(name, elemGrp)
+			.template add_constructor<void (*)(const char*)>("Function")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "NeumannBoundaryFV", tag);
 	}
 
 //	Inner Boundaries

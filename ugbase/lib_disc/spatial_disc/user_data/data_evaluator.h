@@ -57,7 +57,7 @@ class DataEvaluator
 
 	///	prepares the element loop for all IElemDiscs
 		template <typename TElem>
-		void prepare_elem_loop();
+		void prepare_elem_loop(int si);
 
 	///	prepares the element for all IElemDiscs
 		template <typename TElem>

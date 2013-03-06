@@ -74,7 +74,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locA;
@@ -199,7 +199,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locM;
@@ -325,7 +325,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
@@ -465,7 +465,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	Eval.set_time_point(0);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
@@ -612,7 +612,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU, locD, tmpLocD;
@@ -767,7 +767,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	                   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locD, tmpLocD;
@@ -952,7 +952,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locRhs; LocalMatrix locA;
@@ -1106,7 +1106,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 					   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locRhs, tmpLocRhs; LocalMatrix locA, tmpLocA;
@@ -1315,7 +1315,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU, locRhs;
@@ -1461,7 +1461,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 					   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locRhs, tmpLocRhs;
@@ -1653,7 +1653,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	Eval.set_time_point(0);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locU;
@@ -1768,7 +1768,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	Eval.set_time_point(0);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>();
+	Eval.template prepare_elem_loop<TElem>(si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locU;

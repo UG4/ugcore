@@ -88,7 +88,6 @@
 #include "spatial_disc/elem_disc/elem_disc_interface.h"
 #include "spatial_disc/elem_disc/elem_disc_assemble_util.h"
 #include "spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
-#include "spatial_disc/elem_disc/neumann_boundary/neumann_boundary.h"
 
 #include "spatial_disc/user_data/const_user_data.h"
 #include "spatial_disc/user_data/user_data.h"

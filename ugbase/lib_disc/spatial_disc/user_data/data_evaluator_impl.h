@@ -39,7 +39,7 @@ prepare_timestep_elem(TElem* elem, LocalVector& u)
 
 template <typename TElem>
 void DataEvaluator::
-prepare_elem_loop()
+prepare_elem_loop(int si)
 {
 //	type of reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -61,7 +61,7 @@ prepare_elem_loop()
 // 	prepare loop (elem disc set local ip series here)
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-		try{m_vElemDisc[PT_ALL][i].elemDisc->fast_prep_elem_loop();}
+		try{m_vElemDisc[PT_ALL][i].elemDisc->fast_prep_elem_loop(id, si);}
 		UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot prepare element loop.");
 	}

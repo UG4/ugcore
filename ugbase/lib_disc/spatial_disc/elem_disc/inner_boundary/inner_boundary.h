@@ -140,7 +140,7 @@ class FV1InnerBoundaryElemDisc
 	 * at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void prep_elem_loop();
+		void prep_elem_loop(const ReferenceObjectID roid, const int si);
 
 	///	prepares the element for assembling
 	/**

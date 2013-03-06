@@ -21,7 +21,7 @@ namespace ug
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
-prep_elem_loop()
+prep_elem_loop(const ReferenceObjectID roid, const int si)
 {}
 
 
