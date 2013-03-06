@@ -63,6 +63,38 @@ class GridLevel
 			return !(this->operator==(rhs));
 		}
 
+	///	operator <
+		bool operator<(const GridLevel& rhs) const
+		{
+			if(this->with_ghosts() != rhs.with_ghosts())
+				return this->with_ghosts();
+			else if(this->type() != rhs.type())
+				return this->type() < rhs.type();
+			else return this->level() < rhs.level();
+		}
+
+	///	operator >
+		bool operator>(const GridLevel& rhs) const
+		{
+			if(this->with_ghosts() != rhs.with_ghosts())
+				return !this->with_ghosts();
+			else if(this->type() != rhs.type())
+				return this->type() > rhs.type();
+			else return this->level() > rhs.level();
+		}
+
+	///	operator <=
+		bool operator<=(const GridLevel& rhs) const
+		{
+			return (*this < rhs || *this == rhs);
+		}
+
+	///	operator >=
+		bool operator>=(const GridLevel& rhs) const
+		{
+			return (*this > rhs || *this == rhs);
+		}
+
 	protected:
 		int m_level; ///< the grid level
 		ViewType m_type;	 ///< type (i.e. surface or level view)
