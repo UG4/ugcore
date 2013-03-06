@@ -1709,6 +1709,7 @@ write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start write_level_debug(vec): " << filename << "\n");
 //	cast dbg writer
 	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
@@ -1726,6 +1727,7 @@ write_level_debug(const vector_type& vec, const char* filename, size_t lev)
 	dbgWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL));
 	dbgWriter->write_vector(vec, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop write_level_debug(vec): " << filename << "\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1737,6 +1739,7 @@ write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start write_level_debug(mat): " << filename << "\n");
 //	cast dbg writer
 	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
@@ -1754,6 +1757,7 @@ write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
 	dbgWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL));
 	dbgWriter->write_matrix(mat, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop write_level_debug(mat): " << filename << "\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1764,6 +1768,8 @@ write_surface_debug(const vector_type& vec, const char* filename)
 	PROFILE_FUNC_GROUP("debug");
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start write_surface_debug(vec): " << filename << "\n");
 
 //	cast dbg writer
 	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
@@ -1782,6 +1788,7 @@ write_surface_debug(const vector_type& vec, const char* filename)
 	dbgWriter->set_grid_level(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE));
 	dbgWriter->write_vector(vec, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop write_surface_debug(vec): " << filename << "\n");
 }
 
 
@@ -1794,6 +1801,7 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 //	if no debug writer set, we're done
 	if(m_spDebugWriter.invalid()) return;
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start write_surface_debug(mat): " << filename << "\n");
 //	cast dbg writer
 	SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > dbgWriter =
 			m_spDebugWriter.template cast_dynamic<GridFunctionDebugWriter<TDomain, TAlgebra> >();
@@ -1811,6 +1819,7 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 	dbgWriter->set_grid_level(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE));
 	dbgWriter->write_matrix(mat, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop write_surface_debug(mat): " << filename << "\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1902,12 +1911,16 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_missing_coarse_grid_coupling(const vector_type* u)
 {
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_missing_coarse_grid_coupling " << "\n");
 //	clear matrices
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 		m_vLevData[lev]->CoarseGridContribution.resize(0,0);
 
 //	if the grid is fully refined, nothing to do
-	if(!m_bAdaptive) return true;
+	if(!m_bAdaptive){
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling (non-adaptive)" << "\n");
+		return true;
+	}
 
 //	get the surface view
 	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
@@ -2002,6 +2015,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 /////////////
 
 //	we're done
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling " << "\n");
 	return true;
 }
 
