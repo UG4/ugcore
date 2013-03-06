@@ -308,7 +308,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		std::vector<Volume*>		m_newlyMarkedCoarseVols;
 		*/
 		bool		m_nodeDependencyOrder1;
-		bool		m_automarkHigherDimensionalObjects;
+		//bool		m_automarkHigherDimensionalObjects; <-- unused
 };
 
 /// @}	// end of add_to_group command
