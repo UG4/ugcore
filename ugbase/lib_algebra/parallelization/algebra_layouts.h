@@ -16,6 +16,9 @@
 namespace ug{
 
 #ifdef UG_PARALLEL
+
+///	Holds Interfaces and communicators for horizontal communication.
+/** The internal ProcessCommunicator is initialized as PCD_WORLD.*/
 class HorizontalAlgebraLayouts
 {
 	public:
@@ -72,6 +75,7 @@ class HorizontalAlgebraLayouts
 		pcl::InterfaceCommunicator<IndexLayout> communicator;
 };
 
+///	Extends the HorizontalAlgebraLayouts by vertical layouts.
 class AlgebraLayouts : public HorizontalAlgebraLayouts
 {
 	public:

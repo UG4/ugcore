@@ -52,7 +52,7 @@ class ParallelMatrix : public TMatrix
 	public:
 	///	Default Constructor
 		ParallelMatrix()
-			: TMatrix(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(NULL)
+			: TMatrix(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(new HorizontalAlgebraLayouts)
 		{}
 
 	///	Constructor setting the layouts

@@ -48,12 +48,12 @@ class ParallelVector : public TVector
 	public:
 	///	Default constructor
 		ParallelVector()
-			: TVector(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(NULL)
+			: TVector(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(new AlgebraLayouts)
 		{}
 
 	/// Resizing constructor
 		ParallelVector(size_t length)
-			: TVector(length), m_type(PST_UNDEFINED), m_spAlgebraLayouts(NULL)
+			: TVector(length), m_type(PST_UNDEFINED), m_spAlgebraLayouts(new AlgebraLayouts)
 		{}
 
 	///	Constructor setting the Layouts
