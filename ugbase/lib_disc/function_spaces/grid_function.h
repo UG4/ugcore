@@ -67,168 +67,6 @@ class IGridFunction
 	 * \param[in]	defaultValue	default value for new entries
 	 */
 		virtual void resize_values(size_t s, number defaultValue = 0.0) = 0;
-
-	public:
-	///	iterator traits
-		template <typename TElem>
-		struct traits
-		{
-			typedef typename DoFDistribution::traits<TElem>::geometric_object geometric_object;
-			typedef typename DoFDistribution::traits<TElem>::iterator iterator;
-			typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
-		};
-
-		template <int dim>
-		struct dim_traits
-		{
-			typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename DoFDistribution::dim_traits<dim>::iterator iterator;
-			typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
-		};
-
-	///	type of multi indices
-		typedef DoFDistribution::multi_index_type multi_index_type;
-
-	public:
-	///	constructor
-		IGridFunction(SmartPtr<DoFDistribution> spDoFDistribution)
-			: m_spDD(spDoFDistribution)
-		{
-			if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
-			m_spDD->manage_grid_function(*this);
-		}
-
-	///	destructor
-		virtual ~IGridFunction()
-		{
-			m_spDD->unmanage_grid_function(*this);
-		}
-
-	///	returns dof distribution
-		SmartPtr<DoFDistribution> dof_distribution() {return m_spDD;}
-
-	///	returns dof distribution
-		ConstSmartPtr<DoFDistribution> dof_distribution() const {return m_spDD;}
-
-	///	returns the grid level
-		const GridLevel& grid_level() {return m_spDD->grid_level();}
-
-	/// number of discrete functions
-		size_t num_fct() const {return m_spDD->num_fct();}
-
-	/// number of discrete functions on subset si
-		size_t num_fct(int si) const {return m_spDD->num_fct(si);}
-
-	/// returns the trial space of the discrete function fct
-		LFEID local_finite_element_id(size_t fct) const
-			{return m_spDD->local_finite_element_id(fct);}
-
-	/// returns the name of the discrete function nr_fct
-		std::string name(size_t fct) const {return m_spDD->name(fct);}
-
-	///	returns subset group by name
-		SubsetGroup subset_grp_by_name(const char* names) const {return m_spDD->subset_grp_by_name(names);}
-
-	/// returns fct id by name
-		size_t fct_id_by_name(const char* name) const{return m_spDD->fct_id_by_name(name);}
-
-	///	returns a function group to a string of functions
-		FunctionGroup fct_grp_by_name(const char* names) const {return m_spDD->fct_grp_by_name(names);}
-
-	/// returns the dimension in which solution lives
-		int dim(size_t fct) const {return m_spDD->dim(fct);}
-
-	///	returns function pattern
-		const FunctionPattern& function_pattern() const {return m_spDD->function_pattern();}
-
-	/// returns true if the discrete function nr_fct is defined on subset s
-		bool is_def_in_subset(size_t fct, int si) const {return m_spDD->is_def_in_subset(fct, si);}
-
-	/// returns true if the discrete function nr_fct is defined everywhere
-		bool is_def_everywhere(size_t fct) const {return m_spDD->is_def_everywhere(fct);}
-
-	/// number of subsets
-		int num_subsets() const {return m_spDD->num_subsets();}
-
-	/// iterator for elements where this grid function is defined
-	/// \{
-		template <typename TElem>
-		typename traits<TElem>::const_iterator begin() const
-			{return m_spDD->template begin<TElem>();}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator end() const
-			{return m_spDD->template end<TElem>();}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator begin(int si) const
-			{return m_spDD->template begin<TElem>(si);}
-
-		template <typename TElem>
-		typename traits<TElem>::const_iterator end(int si) const
-			{return m_spDD->template end<TElem>(si);}
-	/// \}
-
-	/////////////////////////////
-	// DoF access
-	/////////////////////////////
-
-	/// return the number of dofs distributed
-		size_t num_indices() const {return m_spDD->num_indices();}
-
-	/// return the number of dofs distributed on subset si
-		size_t num_indices(int si) const {return m_spDD->num_indices(si);}
-
-	/// returns the maximum number of dofs on grid objects in a dimension on a subset
-		size_t max_dofs(const int dim, const int si) const {return m_spDD->max_dofs(dim,si);}
-
-	/// return the maximum number of dofs on grid objects in a dimension
-		size_t max_dofs(const int dim) const {return m_spDD->max_dofs(dim);}
-
-	/// get all indices of the element
-		template <typename TElem>
-		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
-			{m_spDD->indices(elem, ind, bHang);}
-
-	/// get multi indices on an finite element in canonical order
-		template <typename TElem>
-		size_t multi_indices(TElem* elem, size_t fct, std::vector<multi_index_type>& ind) const
-			{return m_spDD->multi_indices(elem, fct, ind);}
-
-	/// get multi indices on an geometric object in canonical order
-		template <typename TElem>
-		size_t inner_multi_indices(TElem* elem, size_t fct,	std::vector<multi_index_type>& ind) const
-			{return m_spDD->inner_multi_indices(elem, fct, ind);}
-
-	/// get algebra indices on an geometric object in canonical order
-		template <typename TElem>
-		size_t algebra_indices(TElem* elem, std::vector<size_t>& ind) const
-			{return m_spDD->algebra_indices(elem, ind);}
-
-	/// get algebra indices on an geometric object in canonical order
-		template <typename TElem>
-		size_t inner_algebra_indices(TElem* elem, std::vector<size_t>& ind) const
-			{return m_spDD->inner_algebra_indices(elem, ind);}
-
-		/////////////////////////////
-		// Transfer callbacks
-		/////////////////////////////
-
-	///	add a transfer callback
-		void add_transfer(SmartPtr<ILocalTransfer> transfer);
-
-	///	add a transfer callback
-		void remove_transfer(SmartPtr<ILocalTransfer> transfer);
-
-	///	add a transfer callback
-		void clear_transfers();
-
-	protected:
-	///	DoF Distribution this GridFunction relies on
-		SmartPtr<DoFDistribution> m_spDD;
-
-	///	registered transfers
-		std::vector<SmartPtr<ILocalTransfer> > m_vTransfer;
 };
 
 /// represents numerical solutions on a grid using an algebraic vector
@@ -266,21 +104,25 @@ class GridFunction
 	///	Vector type used to store dof values
 		typedef typename algebra_type::vector_type vector_type;
 
+	///	type of multi indices
+		typedef DoFDistribution::multi_index_type multi_index_type;
+
 	public:
+	///	iterator traits
 		template <typename TElem>
 		struct traits
 		{
-			typedef typename IGridFunction::traits<TElem>::geometric_object geometric_object;
-			typedef typename IGridFunction::traits<TElem>::iterator iterator;
-			typedef typename IGridFunction::traits<TElem>::const_iterator const_iterator;
+			typedef typename DoFDistribution::traits<TElem>::geometric_object geometric_object;
+			typedef typename DoFDistribution::traits<TElem>::iterator iterator;
+			typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 		};
 
 		template <int dim>
 		struct dim_traits
 		{
-			typedef typename IGridFunction::dim_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename IGridFunction::dim_traits<dim>::iterator iterator;
-			typedef typename IGridFunction::dim_traits<dim>::const_iterator const_iterator;
+			typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object geometric_base_object;
+			typedef typename DoFDistribution::dim_traits<dim>::iterator iterator;
+			typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
 		};
 
 		typedef typename dim_traits<dim>::geometric_base_object element_type;
@@ -340,8 +182,113 @@ class GridFunction
 		                         bool bDisjunct = false);
 
 	/// Destructor
-		virtual ~GridFunction() {}
+		virtual ~GridFunction() {m_spDD->unmanage_grid_function(*this);}
 
+	public:
+	///	returns dof distribution
+		SmartPtr<DoFDistribution> dof_distribution() {return m_spDD;}
+
+	///	returns dof distribution
+		ConstSmartPtr<DoFDistribution> dof_distribution() const {return m_spDD;}
+
+	///	returns the grid level
+		const GridLevel& grid_level() {return m_spDD->grid_level();}
+
+	/// number of discrete functions
+		size_t num_fct() const {return m_spDD->num_fct();}
+
+	/// number of discrete functions on subset si
+		size_t num_fct(int si) const {return m_spDD->num_fct(si);}
+
+	/// returns the trial space of the discrete function fct
+		LFEID local_finite_element_id(size_t fct) const
+			{return m_spDD->local_finite_element_id(fct);}
+
+	/// returns the name of the discrete function nr_fct
+		std::string name(size_t fct) const {return m_spDD->name(fct);}
+
+	///	returns subset group by name
+		SubsetGroup subset_grp_by_name(const char* names) const {return m_spDD->subset_grp_by_name(names);}
+
+	/// returns fct id by name
+		size_t fct_id_by_name(const char* name) const{return m_spDD->fct_id_by_name(name);}
+
+	///	returns a function group to a string of functions
+		FunctionGroup fct_grp_by_name(const char* names) const {return m_spDD->fct_grp_by_name(names);}
+
+	/// returns the dimension in which solution lives
+		int get_dim(size_t fct) const {return m_spDD->dim(fct);}
+
+	///	returns function pattern
+		const FunctionPattern& function_pattern() const {return m_spDD->function_pattern();}
+
+	/// returns true if the discrete function nr_fct is defined on subset s
+		bool is_def_in_subset(size_t fct, int si) const {return m_spDD->is_def_in_subset(fct, si);}
+
+	/// returns true if the discrete function nr_fct is defined everywhere
+		bool is_def_everywhere(size_t fct) const {return m_spDD->is_def_everywhere(fct);}
+
+	/// number of subsets
+		int num_subsets() const {return m_spDD->num_subsets();}
+
+	/// iterator for elements where this grid function is defined
+	/// \{
+		template <typename TElem>
+		typename traits<TElem>::const_iterator begin() const
+			{return m_spDD->template begin<TElem>();}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator end() const
+			{return m_spDD->template end<TElem>();}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator begin(int si) const
+			{return m_spDD->template begin<TElem>(si);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator end(int si) const
+			{return m_spDD->template end<TElem>(si);}
+	/// \}
+
+	public:
+	/// return the number of dofs distributed
+		size_t num_indices() const {return m_spDD->num_indices();}
+
+	/// return the number of dofs distributed on subset si
+		size_t num_indices(int si) const {return m_spDD->num_indices(si);}
+
+	/// returns the maximum number of dofs on grid objects in a dimension on a subset
+		size_t max_dofs(const int dim, const int si) const {return m_spDD->max_dofs(dim,si);}
+
+	/// return the maximum number of dofs on grid objects in a dimension
+		size_t max_dofs(const int dim) const {return m_spDD->max_dofs(dim);}
+
+	/// get all indices of the element
+		template <typename TElem>
+		void indices(TElem* elem, LocalIndices& ind, bool bHang = false) const
+			{m_spDD->indices(elem, ind, bHang);}
+
+	/// get multi indices on an finite element in canonical order
+		template <typename TElem>
+		size_t multi_indices(TElem* elem, size_t fct, std::vector<multi_index_type>& ind) const
+			{return m_spDD->multi_indices(elem, fct, ind);}
+
+	/// get multi indices on an geometric object in canonical order
+		template <typename TElem>
+		size_t inner_multi_indices(TElem* elem, size_t fct,	std::vector<multi_index_type>& ind) const
+			{return m_spDD->inner_multi_indices(elem, fct, ind);}
+
+	/// get algebra indices on an geometric object in canonical order
+		template <typename TElem>
+		size_t algebra_indices(TElem* elem, std::vector<size_t>& ind) const
+			{return m_spDD->algebra_indices(elem, ind);}
+
+	/// get algebra indices on an geometric object in canonical order
+		template <typename TElem>
+		size_t inner_algebra_indices(TElem* elem, std::vector<size_t>& ind) const
+			{return m_spDD->inner_algebra_indices(elem, ind);}
+
+	public:
 	///	returns domain
 		SmartPtr<TDomain> domain() {return m_spApproxSpace->domain();}
 
@@ -354,10 +301,7 @@ class GridFunction
 	///	returns const domain
 		ConstSmartPtr<ApproximationSpace<TDomain> > approx_space() const {return m_spApproxSpace;}
 
-	/// access dof values
-		inline number get_dof_value(size_t i, size_t comp) const
-			{return BlockRef( (vector_type::operator[](i)), comp);}
-
+	public:
 	///	returns the position of the dofs of a function if available
 		template <typename TElem>
 		bool dof_positions(TElem* elem, size_t fct,
@@ -367,10 +311,27 @@ class GridFunction
 		bool inner_dof_positions(TElem* elem, size_t fct,
 		                         std::vector<MathVector<dim> >& vPos) const;
 
+	public:
 	///	add a transfer callback
 		void add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > transfer);
 
+	///	add a transfer callback
+		void add_transfer(SmartPtr<ILocalTransfer> transfer);
+
+	///	add a transfer callback
+		void remove_transfer(SmartPtr<ILocalTransfer> transfer);
+
+	///	add a transfer callback
+		void clear_transfers();
+
 	protected:
+	///	registered transfers
+		std::vector<SmartPtr<ILocalTransfer> > m_vTransfer;
+
+	protected:
+	///	DoF Distribution this GridFunction relies on
+		SmartPtr<DoFDistribution> m_spDD;
+
 	/// Approximation Space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 };

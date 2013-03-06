@@ -380,8 +380,11 @@ template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<approximation_space_type> approxSpace,
              SmartPtr<DoFDistribution> spDoFDistr)
- : IGridFunction(spDoFDistr), m_spApproxSpace(approxSpace)
+ : m_spDD(spDoFDistr), m_spApproxSpace(approxSpace)
 {
+	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
+	m_spDD->manage_grid_function(*this);
+
 	check_algebra();
 	resize_values(num_indices());
 #ifdef UG_PARALLEL
@@ -396,9 +399,12 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace,
 template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<approximation_space_type> approxSpace)
-	: IGridFunction(approxSpace->surface_dof_distribution()),
+	: m_spDD(approxSpace->surface_dof_distribution()),
 	  m_spApproxSpace(approxSpace)
 {
+	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
+	m_spDD->manage_grid_function(*this);
+
 	check_algebra();
 	resize_values(num_indices());
 #ifdef UG_PARALLEL
@@ -413,9 +419,12 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace)
 template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<approximation_space_type> approxSpace, int level)
-	: IGridFunction(approxSpace->surface_dof_distribution(level)),
+	: m_spDD(approxSpace->surface_dof_distribution(level)),
 	  m_spApproxSpace(approxSpace)
 {
+	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
+	m_spDD->manage_grid_function(*this);
+
 	check_algebra();
 	resize_values(num_indices());
 #ifdef UG_PARALLEL
@@ -615,10 +624,28 @@ GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 
 template <typename TDomain, typename TAlgebra>
 void GridFunction<TDomain, TAlgebra>::
-add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > transfer)
+add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > spTransfer)
 {
-	transfer->set_vector(this);
-	IGridFunction::add_transfer(transfer);
+	spTransfer->set_vector(this);
+	m_spDD->add_transfer(spTransfer);
+}
+
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
+{
+	m_spDD->add_transfer(spTransfer);
+}
+
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
+{
+	m_spDD->remove_transfer(spTransfer);
+}
+
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::clear_transfers()
+{
+	m_spDD->clear_transfers();
 }
 
 } // end namespace ug

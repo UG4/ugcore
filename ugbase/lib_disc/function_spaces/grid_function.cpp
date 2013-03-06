@@ -12,19 +12,5 @@
 namespace ug{
 
 
-void IGridFunction::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
-{
-	m_spDD->add_transfer(spTransfer);
-}
-
-void IGridFunction::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
-{
-	m_spDD->remove_transfer(spTransfer);
-}
-
-void IGridFunction::clear_transfers()
-{
-	m_spDD->clear_transfers();
-}
 
 } // end namespace ug
