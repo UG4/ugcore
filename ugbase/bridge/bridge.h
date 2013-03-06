@@ -78,6 +78,9 @@ void RegisterBridge_DiscCommon(Registry& reg, std::string grp = UG4_GRP);
 /// registers user data
 void RegisterBridge_UserData(Registry& reg, std::string grp = UG4_GRP);
 
+///	registers LoadBalancer, partitioners, etc
+void RegisterBridge_LoadBalancing(Registry& reg, std::string grp = UG4_GRP);
+
 #ifdef UG_ALGEBRA
 ///	registers lib-algebra interface methods at the registry.
 void RegisterBridge_AlgebraCommon(Registry& reg, std::string grp = UG4_GRP);

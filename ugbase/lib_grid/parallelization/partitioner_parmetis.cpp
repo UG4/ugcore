@@ -157,6 +157,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	int localProc = pcl::GetProcRank();
 
+	m_sh.clear();
+
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
@@ -327,6 +329,11 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 
+//	we have to ignore ghosts during partitioning, since partitioning should
+//	only be performed on vslaves...
+	assert(mg.is_parallel());
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+
 	int localProc = pcl::GetProcRank();
 
 //	here we'll store the dual graph
@@ -349,7 +356,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 	idx_t nVrts = (idx_t)adjacencyMapStructure.size() - 1;
 	idx_t nConstraints = 1;
 	idx_t edgeCut;
-	idx_t wgtFlag = 2;//only vertices are weighted
+	idx_t wgtFlag = 3;//vertices and edges are weighted
 	idx_t numFlag = 0;
 	idx_t numParts = (idx_t)numTargetProcs;
 	vector<idx_t> partitionMap(nVrts);
@@ -360,10 +367,15 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 
 //	create a weight map for the vertices based on the number of children+1
 	idx_t* pVrtSizeMap = NULL;
+	//vector<idx_t> vrtSizeMap(nVrts, 1);
 	vector<idx_t> vrtSizeMap;
 	vrtSizeMap.reserve(nVrts);
-	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
-		vrtSizeMap.push_back(m_aaNumChildren[*iter] + 1);
+	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+		if(!distGridMgr.is_ghost(*iter))
+			vrtSizeMap.push_back(m_aaNumChildren[*iter] + 1);
+	}
+
+	vector<idx_t> adjwgt(adjacencyMap.size(), 1);
 
 	assert((int)vrtSizeMap.size() == nVrts);
 	pVrtSizeMap = &vrtSizeMap.front();
@@ -371,10 +383,11 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 	if(!procCom.empty()){
 		UG_DLOG(LIB_GRID, 1, "CALLING PARMETIS\n");
 		MPI_Comm mpiCom = procCom.get_mpi_communicator();
+//todo: use ParMETIS V3 AdaptiveRepart and check out ParMETIS V3 RefineKway
 		int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
 											&adjacencyMapStructure.front(),
 											&adjacencyMap.front(),
-											pVrtSizeMap, NULL, &wgtFlag,
+											pVrtSizeMap, &adjwgt.front(), &wgtFlag,
 											&numFlag, &nConstraints,
 											&numParts, &tpwgts.front(), &ubvec, options,
 											&edgeCut, &partitionMap.front(),
@@ -388,9 +401,6 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 	}
 
 //	assign partition-subsets from graph-colors
-//	make sure to ignore ghosts!
-	assert(mg.is_parallel());
-	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 	int counter = 0;
 	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
 		if(!distGridMgr.is_ghost(*iter))
@@ -409,6 +419,43 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 		m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl),
 						 	 	compolSHCopy);
 	m_intfcCom.communicate();
+
+/*
+	//todo:	Not all siblings should have to be sent to the same process...
+	//		simply remove the following code block - make sure that surface-view supports this!
+	//		However, problems with discretizations and solvers would most likely occur.
+	{
+	//	currently there is a restriction in the functionality of the surface view.
+	//	Because of that we have to make sure, that all siblings in the specified level
+	//	are sent to the same process... we thus adjust the partition slightly.
+		if(lvl > 0){
+		//	put all children in the subset of the first one.
+			for(ElemIter iter = mg.begin<elem_t>(lvl-1);
+				iter != mg.end<elem_t>(lvl-1); ++iter)
+			{
+				elem_t* e = *iter;
+				size_t numChildren = mg.num_children<elem_t>(e);
+				if(numChildren > 1){
+					int partition = m_sh.get_subset_index(mg.get_child<elem_t>(e, 0));
+					for(size_t i = 1; i < numChildren; ++i)
+						m_sh.assign_subset(mg.get_child<elem_t>(e, i), partition);
+				}
+			}
+		}
+
+	//	communicate the subset id's back from masters to slaves, since slaves don't
+	//	have parents and thus can't adjust their sibling id's
+		if(glm.has_layout<elem_t>(INT_V_MASTER))
+			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl),
+								 compolSHCopy);
+
+		if(glm.has_layout<elem_t>(INT_V_SLAVE))
+			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl),
+									compolSHCopy);
+		m_intfcCom.communicate();
+	}
+*/
+
 }
 
 template<int dim>

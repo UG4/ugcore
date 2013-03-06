@@ -107,7 +107,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef LoadBalancer<TDomain::dim> TBase;
 		reg.add_class_<T, TBase>(name, domDiscGrp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
-			.add_method("add_serializer", static_cast<void (T::*)(SmartPtr<TFct>)>(&T::add_serializer));
+			.add_method("add_serializer", static_cast<void (T::*)(SmartPtr<TFct>)>(&T::add_serializer))
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DomainLoadBalancer", tag);
 	}
 #endif

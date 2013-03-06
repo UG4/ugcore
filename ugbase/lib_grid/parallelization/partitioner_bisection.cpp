@@ -75,6 +75,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 
+	m_sh.clear();
+
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);

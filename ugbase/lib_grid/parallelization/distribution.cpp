@@ -263,8 +263,7 @@ static void SaveDistSelectorToFile(MGSelector& msel, const char* filename)
 								 "normal+vslave+dummy", "vmaster+vslave+dummy",
 								 "normal+vmaster+vslave+dummy"};
 
-	UG_ASSERT(sh.num_subsets() <= 16, "Not enough subset names specified in internal list.");
-	for(int i = 0; i < sh.num_subsets(); ++i)
+	for(int i = 0; i < 16; ++i)
 		sh.subset_info(i).name = subsetNames[i];
 
 	AssignSubsetColors(sh);
@@ -330,8 +329,7 @@ static void SaveDistInfosToFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 									 "normal+vslave+dummy", "vmaster+vslave+dummy",
 									 "normal+vmaster+vslave+dummy"};
 
-		UG_ASSERT(sh.num_subsets() <= 16, "Not enough subset names specified in internal list.");
-		for(int i = 0; i < sh.num_subsets(); ++i)
+		for(int i = 0; i < 16; ++i)
 			sh.subset_info(i).name = subsetNames[i];
 
 		AssignSubsetColors(sh);
@@ -1064,7 +1062,9 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			byte localInterfaceState = 0;
 			int minProc = pcl::GetNumProcesses();
 			int minVMasterProc = pcl::GetNumProcesses();
+			int minVMasterNoVSlave = pcl::GetNumProcesses();
 			int minNormalProc = pcl::GetNumProcesses();
+
 		//	the lowest proc which holds a v-slave or a normal entry.
 		//	dummies are ignored here, since we don't want them to be h-masters.
 			int minRegularHMasterProc = pcl::GetNumProcesses();
@@ -1100,6 +1100,10 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					}
 					if(tpi.procID < minVMasterProc)
 						minVMasterProc = tpi.procID;
+					if(!(tpi.interfaceState & IS_VSLAVE)){
+						if(tpi.procID < minVMasterNoVSlave)
+							minVMasterNoVSlave = tpi.procID;
+					}
 				}
 
 				if(tpi.interfaceState & IS_VSLAVE){
@@ -1135,6 +1139,12 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				if(tpi.procID < minProc)
 					minProc = tpi.procID;
 			}
+
+		//	if one process is marked as vmaster but not as a vslave, then we have
+		//	to be careful if we adjust states on processes which are marked as
+		//	both vmaster and vslave.
+			if(minVMasterNoVSlave < pcl::GetNumProcesses())
+				minVMasterProc = minVMasterNoVSlave;
 
 		//	in some situations, lower dimensional elements can be marked as a
 		//	vmaster and a vslave at the same time. we will generate the vmaster
@@ -1179,7 +1189,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				bool tpIsVMaster = (tpi.interfaceState & IS_VMASTER);
 				bool tpIsVSlave = (tpi.interfaceState & IS_VSLAVE);
 				bool tpIsNormal = (tpi.interfaceState & IS_NORMAL);
-				bool tpiIsDummy = (tpi.interfaceState & IS_DUMMY);
+				bool tpIsDummy = (tpi.interfaceState & IS_DUMMY);
 
 
 				if(tpIsVMaster && tpIsVSlave){
@@ -1194,8 +1204,8 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					tpIsVSlave = true;
 				}
 
-				if(tpiIsDummy && (tpIsNormal || tpIsVSlave))
-					tpiIsDummy = false;
+				if(tpIsDummy && (tpIsNormal || tpIsVSlave))
+					tpIsDummy = false;
 //				if(tpIsVMaster && (tpi.procID != minVMasterProc)){
 //					tpIsVMaster = false;
 //					tpIsVSlave = true;
@@ -1288,7 +1298,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 						glm.get_layout<TElem>(INT_V_SLAVE).
 								interface(tpi.procID, lvl).push_back(e);
 					}
-					else if(tpiIsDummy && (!(tpi.interfaceState & HAS_PARENT))
+					else if(tpIsDummy && (!(tpi.interfaceState & HAS_PARENT))
 							&& (localProcID == minNormalProc))
 					{
 						glm.get_layout<TElem>(INT_V_MASTER).

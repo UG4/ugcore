@@ -47,12 +47,14 @@ namespace ug
  * If you are interested in a list of the TGeomBaseObj in the order
  * corresponding to adjacencyMapStructureOut, you may pass a pointer to
  * an array of TGeomBaseObj-pointers through pGeomObjsOut. Make sure, that
- * this array has the size of grid.num<TGeomBaseObj>(level).
+ * this array has the size of grid.num<TGeomBaseObj>(level). It may however not be
+ * completely filled, since ghosts are ignored in the dual graph.
  *
  * If you are interested in the indices assigned to each element, then
  * pass a pointer to an TIndexType attachment to paIndex.
  *
- * TGeomBaseObj can be either VertexBase, EdgeBase, Face or Volume
+ * TGeomBaseObj can be either VertexBase, EdgeBase, Face or Volume and should
+ * represent the elements of highest dimension in a given grid.
  */
 template <class TGeomBaseObj, class TIndexType>
 void ConstructParallelDualGraphMGLevel(
@@ -80,14 +82,17 @@ void ConstructParallelDualGraphMGLevel(
 
 	Grid::AttachmentAccessor<Elem, AIndex> aaInd(mg, aIndex);
 
-//	init the indices
-	size_t numElems = mg.num<Elem>(level);
+//	init the indices and count ghosts and normal elements on the fly
+	size_t numElems = 0;
 	{
-		TIndexType ind = 0;
-		for(ElemIterator iter = mg.begin<Elem>(level); iter != mg.end<Elem>(level);
-			++iter, ++ind)
+		DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+		for(ElemIterator iter = mg.begin<Elem>(level);
+			iter != mg.end<Elem>(level); ++iter)
 		{
-			aaInd[*iter] = ind;
+			if(distGridMgr.is_ghost(*iter))
+				aaInd[*iter] = -1;
+			else
+				aaInd[*iter] = numElems++;
 		}
 	}
 
@@ -118,11 +123,13 @@ void ConstructParallelDualGraphMGLevel(
 	int ind = 0;
 
 //	generate adjacency structure first
-	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 	for(ElemIterator iter = mg.begin<Elem>(level);
-		iter != mg.end<Elem>(level); ++iter, ++ind)
+		iter != mg.end<Elem>(level); ++iter)
 	{
 		Elem* elem = *iter;
+
+		if(aaInd[elem] == -1)
+			continue;
 
 	//	get all neighbours
 		CollectNeighbors(vNeighbours, elem, mg, nbhType);
@@ -132,9 +139,11 @@ void ConstructParallelDualGraphMGLevel(
 
 	//	iterate over the neighbours and push adjacent indices to the adjacencyMap
 		for(size_t i = 0; i < vNeighbours.size(); ++i){
-			if(!distGridMgr.is_ghost(vNeighbours[i]))
+			if(aaInd[vNeighbours[i]] != -1)
 				adjacencyMapOut.push_back(localNodeOffset + aaInd[vNeighbours[i]]);
 		}
+
+		++ind;
 	}
 
 //	add the final element
@@ -145,9 +154,12 @@ void ConstructParallelDualGraphMGLevel(
 	{
 		int ind = 0;
 		for(ElemIterator iter = mg.begin<Elem>(level);
-			iter != mg.end<Elem>(level); ++iter, ++ind)
+			iter != mg.end<Elem>(level); ++iter)
 		{
-			pGeomObjsOut[ind] = *iter;
+			if(aaInd[*iter] != -1){
+				pGeomObjsOut[ind] = *iter;
+				++ind;
+			}
 		}
 	}
 

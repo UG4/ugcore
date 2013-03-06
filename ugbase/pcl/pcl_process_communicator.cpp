@@ -152,6 +152,8 @@ create_sub_communicator(vector<int> &newProcs) const
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
+	else if(commNew == MPI_COMM_WORLD)
+		return ProcessCommunicator(PCD_WORLD);
 
 	// calculate global ranks for our newProcs array:
 	for(size_t i = 0; i < newProcs.size(); ++i)
@@ -187,6 +189,8 @@ create_communicator(vector<int> &newGlobalProcs)
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
+	else if(commNew == MPI_COMM_WORLD)
+		return ProcessCommunicator(PCD_WORLD);
 
 	ProcessCommunicator newProcComm;
 	newProcComm.m_comm = SPCommWrapper(new CommWrapper(commNew, true));
@@ -211,8 +215,6 @@ create_communicator(size_t first, size_t num)
 	for(size_t i = 0; i < num; ++i)
 		procs[i] = first + i;
 
-	CommWrapper comm(MPI_COMM_WORLD, false);
-
 	MPI_Comm_group(MPI_COMM_WORLD, &grpWorld);
 	MPI_Group_incl(grpWorld, (int)procs.size(), &procs.front(), &grpNew);
 	MPI_Comm_create(MPI_COMM_WORLD, grpNew, &commNew);
@@ -221,6 +223,8 @@ create_communicator(size_t first, size_t num)
 //	if the process is not participating, MPI_Comm_create will return MPI_COMM_NULL
 	if(commNew == MPI_COMM_NULL)
 		return ProcessCommunicator(PCD_EMPTY);
+	else if(commNew == MPI_COMM_WORLD)
+		return ProcessCommunicator(PCD_WORLD);
 
 	newProcComm.m_comm->m_mpiComm = commNew;
 	newProcComm.m_comm->m_bReleaseCommunicator = true;
@@ -470,7 +474,7 @@ barrier() const
 ////////////////////////////////////////////////////////////////////////
 ProcessCommunicator::CommWrapper::
 CommWrapper() :
-	m_mpiComm(MPI_COMM_NULL),
+	m_mpiComm(MPI_COMM_WORLD),
 	m_bReleaseCommunicator(false)
 {}
 

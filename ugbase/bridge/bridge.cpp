@@ -189,6 +189,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_Refinement(reg, parentGroup);
 		RegisterBridge_Selection(reg, parentGroup);
 		RegisterBridge_Transform(reg, parentGroup);
+		RegisterBridge_LoadBalancing(reg, parentGroup);
 
 		RegisterBridge_Profiler(reg, parentGroup);
 		RegisterBridge_Misc(reg, parentGroup);

@@ -353,7 +353,7 @@ class ProcessCommunicator
 	/**	A variable stores whether the communicator has to be freed when the
 	 *	the wrapper is deleted.*/
 		struct CommWrapper{
-		///	initializes the commWrapper with MPI_COMM_NULL
+		///	initializes the commWrapper with MPI_COMM_WORLD
 			CommWrapper();
 			CommWrapper(const MPI_Comm& comm,
 						bool bReleaseComm);

@@ -11,6 +11,8 @@
 #include "partitioner_parmetis.h"
 #endif
 
+using namespace std;
+
 namespace ug{
 
 ProcessHierarchy::~ProcessHierarchy()
@@ -98,7 +100,10 @@ init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl, size_t numProcsP
 	}
 
 //	calculate the root process for this cluster and create the group based on rootProc
-	int rootProc = pcl::GetProcRank() / (int)parentLvl.numGlobalProcsInUse;
+	int localProc = pcl::GetProcRank();
+	int rootProc = localProc;
+	if(localProc >= (int)parentLvl.numGlobalProcsInUse)
+		rootProc = localProc / (int)parentLvl.numGlobalProcsInUse;
 
 	clusterProcs.push_back(rootProc);
 	int firstNewProc = (int)parentLvl.numGlobalProcsInUse + rootProc * ((int)numProcsPerProc - 1);
