@@ -8,12 +8,70 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "pcl/pcl_process_communicator.h"
+#include "../distributed_grid.h"
 
 namespace ug
 {
 
+///	Generates the parralel dual graph of a MultiGrid as, e.g., required by Parmetis.
+/** \todo	The current implementation has support for MultiGrids only.
+ * 			Support for flat grids should be added.*/
+template <class TGeomBaseObj, class TIndexType,
+		  class TConnectingObj = typename TGeomBaseObj::side>
+class ParallelDualGraph{
+	public:
+		ParallelDualGraph(MultiGrid* pmg = NULL);
+		~ParallelDualGraph();
+
+		void set_grid(MultiGrid* pmg);
+
+	///	Access to the graph which was generated during the last call to generate_graph.
+	/**	\sa	num_graph_vertices, num_graph_edges, adjacency_map_structure,
+	 * 		adjacency_map, parallel_offset_map
+	 * \{ */
+		TIndexType num_graph_vertices();
+		TIndexType num_graph_edges();
+		TIndexType*	adjacency_map_structure();
+		TIndexType* adjacency_map();
+		TIndexType* parallel_offset_map();
+	/**	\} */
+
+	///	Some vertices are not considered for the dual graph (e.g. ghosts).
+	/**	Note that this method only works while the underlying grid has not been
+	 * changed since the last call to generate_graph.*/
+		bool was_considered(TGeomBaseObj* o);
+
+	///	generates the graph for the given level.
+	/**	Use adjacency_map_structure, adjacency_map, parallel_offset_map and
+	 * num_graph_vertices to access the generated graph.
+	 *
+	 * \todo	add more generate_graph methods, e.g. for flat grids or complete hierarchies.*/
+		void generate_graph(int level, pcl::ProcessCommunicator procCom =
+											pcl::ProcessCommunicator(pcl::PCD_WORLD));
+
+	private:
+		void attach_data();
+		void detach_data();
+
+	////////////////////
+	//	Members
+		typedef Attachment<int>					AElemIndex;
+		typedef Attachment<std::vector<int> >	AElemIndices;
+
+		MultiGrid*				m_pMG;
+		std::vector<TIndexType> m_adjacencyMapStructure;
+		std::vector<TIndexType> m_adjacencyMap;
+		std::vector<TIndexType> m_nodeOffsetMap;
+		AElemIndex				m_aElemIndex;
+		AElemIndices			m_aElemIndices;
+		Grid::AttachmentAccessor<TGeomBaseObj, AElemIndex>		m_aaElemIndex;
+		Grid::AttachmentAccessor<TConnectingObj, AElemIndices>	m_aaElemIndices;
+};
+
 ////////////////////////////////////////////////////////////////////////
-/** This method creates a parallel dual graph for the given level only.
+/** DEPRECIATED! Use the ParallelDualGraph class instead!
+ *
+ * This method creates a parallel dual graph for the given level only.
  * Please refer to the parmetis documentation for a detailed overview over
  * the resulting parallel graph structure.
  *
@@ -169,5 +227,10 @@ void ConstructParallelDualGraphMGLevel(
 }
 
 }//	end of namespace
+
+
+////////////////////////////////////////
+//	include implementation
+#include "parallel_dual_graph_impl.hpp"
 
 #endif

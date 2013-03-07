@@ -9,12 +9,6 @@
 #include "lib_grid/parallelization/util/compol_subset.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/graph/dual_graph.h"
-#include "util/parallel_dual_graph.h"
-
-extern "C" {
-	#include "metis.h"
-	#include "parmetis.h"
-}
 
 using namespace std;
 
@@ -155,6 +149,13 @@ partition(size_t baseLvl, size_t elementThreshold)
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 
+//	The parallel dual graph is used by parmetis partitioning.
+//	We don't initialize it now, since it only has to be initialized if
+//	load-partitioning via parmetis is performed.
+//	Declaring the graph here is for performance reasons only! It avoids
+//	repeated attachment and detachment of required data in the graph.
+	ParallelDualGraph<elem_t, idx_t> pdg;
+
 	int localProc = pcl::GetProcRank();
 
 	m_sh.clear();
@@ -223,7 +224,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			partition_level_metis(minLvl, numProcs);
 		}
 		else{
-			partition_level_parmetis(minLvl, numProcs, procComAll);
+			partition_level_parmetis(minLvl, numProcs, procComAll, pdg);
 		}
 
 	//	assign partitions to all children in this hierarchy level
@@ -270,6 +271,9 @@ partition_level_metis(int lvl, int numTargetProcs)
 
 	ConstructDualGraphMGLevel<elem_t, idx_t>(adjacencyMapStructure, adjacencyMap,
 											 mg, lvl);
+
+	if(adjacencyMap.empty())
+		return;
 
  //note: using the option METIS_OPTION_DBGLVL could be useful for debugging.
 	idx_t options[METIS_NOPTIONS];
@@ -322,39 +326,31 @@ partition_level_metis(int lvl, int numTargetProcs)
 template<int dim>
 void Partitioner_Parmetis<dim>::
 partition_level_parmetis(int lvl, int numTargetProcs,
-						 const pcl::ProcessCommunicator& procComAll)
+						 const pcl::ProcessCommunicator& procComAll,
+						 ParallelDualGraph<elem_t, idx_t>& pdg)
 {
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 
-//	we have to ignore ghosts during partitioning, since partitioning should
-//	only be performed on vslaves...
-	assert(mg.is_parallel());
-	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
-
 	int localProc = pcl::GetProcRank();
 
-//	here we'll store the dual graph
-	vector<idx_t> adjacencyMapStructure;
-	vector<idx_t> adjacencyMap;
-	vector<idx_t> nodeOffsetMap;
+//	generate the parallel graph
+	pdg.set_grid(m_mg);
+	pdg.generate_graph(lvl, procComAll);
 
-	ConstructParallelDualGraphMGLevel<elem_t, idx_t>(adjacencyMapStructure,
-											adjacencyMap, nodeOffsetMap,
-											mg, lvl, procComAll);
-
-	UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << (int)adjacencyMapStructure.size() - 1
-						<< ", #edges: " << adjacencyMap.size() / 2 << "\n");
+	UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << (int)pdg.num_graph_vertices()
+						<< ", #edges: " << (int)pdg.num_graph_edges() << "\n");
 
 	pcl::ProcessCommunicator procCom = procComAll.
-								create_sub_communicator(adjacencyMap.size() > 1);
+								create_sub_communicator(pdg.num_graph_edges() > 0);
 
 //	partition the graph using parmetis
+	//idx_t partOptions[3] = {1, 1, 0};
 	idx_t partOptions[3]; partOptions[0] = 0;//default values
 	//idx_t refineOptions[4] = {1, 0, 0, PARMETIS_PSR_UNCOUPLED};
 	idx_t refineOptions[4]; refineOptions[0] = 0;
-	idx_t nVrts = (idx_t)adjacencyMapStructure.size() - 1;
+	idx_t nVrts = pdg.num_graph_vertices();
 	idx_t nConstraints = 1;
 	idx_t edgeCut;
 	idx_t wgtFlag = 3;//vertices and edges are weighted
@@ -373,11 +369,11 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 	vector<idx_t> vrtSizeMap;
 	vrtSizeMap.reserve(nVrts);
 	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
-		if(!distGridMgr.is_ghost(*iter))
+		if(pdg.was_considered(*iter))
 			vrtSizeMap.push_back(m_aaNumChildren[*iter] + 1);
 	}
 
-	vector<idx_t> adjwgt(adjacencyMap.size());
+	vector<idx_t> adjwgt(pdg.num_graph_edges(), 1);
 
 	assert((int)vrtSizeMap.size() == nVrts);
 	pVrtSizeMap = &vrtSizeMap.front();
@@ -386,9 +382,9 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 		MPI_Comm mpiCom = procCom.get_mpi_communicator();
 		if((int)procCom.size() != numTargetProcs){
 			UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
-			int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
-												&adjacencyMapStructure.front(),
-												&adjacencyMap.front(),
+			int metisRet =	ParMETIS_V3_PartKway(pdg.parallel_offset_map(),
+												pdg.adjacency_map_structure(),
+												pdg.adjacency_map(),
 												pVrtSizeMap, &adjwgt.front(), &wgtFlag,
 												&numFlag, &nConstraints,
 												&numParts, &tpwgts.front(), &ubvec, partOptions,
@@ -403,9 +399,9 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 		}
 		else{
 			UG_DLOG(LIB_GRID, 1, "Calling ParMETIS_V3_AdaptiveRepart...");
-			int metisRet =	ParMETIS_V3_AdaptiveRepart(&nodeOffsetMap.front(),
-												&adjacencyMapStructure.front(),
-												&adjacencyMap.front(),
+			int metisRet =	ParMETIS_V3_AdaptiveRepart(pdg.parallel_offset_map(),
+												pdg.adjacency_map_structure(),
+												pdg.adjacency_map(),
 												pVrtSizeMap, pVrtSizeMap, &adjwgt.front(), &wgtFlag,
 												&numFlag, &nConstraints,
 												&numParts, &tpwgts.front(), &ubvec,
@@ -423,7 +419,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 //	assign partition-subsets from graph-colors
 	int counter = 0;
 	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
-		if(!distGridMgr.is_ghost(*iter))
+		if(pdg.was_considered(*iter))
 			m_sh.assign_subset(*iter, partitionMap[counter++]);
 	}
 

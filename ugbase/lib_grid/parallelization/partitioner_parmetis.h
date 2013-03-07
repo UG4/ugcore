@@ -8,6 +8,12 @@
 #include "parallel_grid_layout.h"
 #include "load_balancer.h"
 #include "pcl/pcl_interface_communicator.h"
+#include "util/parallel_dual_graph.h"
+
+extern "C" {
+	#include "metis.h"
+	#include "parmetis.h"
+}
 
 namespace ug{
 
@@ -47,7 +53,8 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 	 * The given procCom should contain all processes which are potentially
 	 * involved on the given level (before or after distribution).*/
 		void partition_level_parmetis(int lvl, int numTargetProcs,
-									  const pcl::ProcessCommunicator& procComAll);
+									  const pcl::ProcessCommunicator& procComAll,
+									  ParallelDualGraph<elem_t, idx_t>& pdg);
 
 		typedef SmartPtr<BalanceWeights<dim> >		SPBalanceWeights;
 		typedef SmartPtr<ConnectionWeights<dim> >	SPConnectionWeights;
