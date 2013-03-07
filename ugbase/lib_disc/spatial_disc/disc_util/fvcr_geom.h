@@ -738,7 +738,7 @@ class CRFVGeometry : public FVGeometryBase
 				inline const MathVector<worldDim>& global_grad(size_t sh) const
 					{UG_ASSERT(sh < num_sh(), "Invalid index"); return vGlobalGrad[sh];}
 
-			/// vector of gloabl gradients in ip point
+			/// vector of global gradients in ip point
 				inline const MathVector<worldDim>* global_grad_vector() const {return vGlobalGrad;}
 
 			/// number of corners, that bound the scvf
