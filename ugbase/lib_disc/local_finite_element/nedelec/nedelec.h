@@ -173,55 +173,13 @@ class NedelecLSFS<ReferenceTriangle>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline MathVector<dim> shape(const size_t i, const MathVector<dim>& x) const
 		{
-			MathVector<dim> w1;
-			number w0_m, w0_n; // values of the Whitney-0 (linear Lagrange) basis functions
-			
-			switch (i)
-			{
-			case 0: // 0->1 (here and below: corners of the edge)
-				w0_m = 1.0-x[0]-x[1];
-				w0_n = x[0];
-				w1[0] = w0_m - w0_n;
-				w1[1] =      - w0_n;
-				break;
-			case 1: // 1->2
-				w0_m = x[0];
-				w0_n = x[1];
-				w1[0] = w0_n;
-				w1[1] = w0_m;
-				break;
-			case 2: // 2->0
-				w0_m = x[1];
-				w0_n = 1.0-x[0]-x[1];
-				w1[0] = - w0_m;
-				w1[1] = - w0_m + w0_n;
-				break;
-			default: UG_THROW("NedelecLSFS: Invalid shape fct index: "<<i);
-			}
-			
-			return w1;
+			UG_THROW ("NedelecLSFS: Nedelec shapes cannot be computed in the reference space.");
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathMatrix<dim,dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			switch(i)
-			{
-				case 0: // 0->1 (here and below: corners of the edge)
-					g(0,0) = -2; g(0,1) = -1;
-					g(1,0) = -1; g(1,1) =  0;
-					return;
-				case 1: // 1->2
-					g(0,0) = 0; g(0,1) = 1;
-					g(1,0) = 1; g(1,1) = 0;
-					return;
-				case 2: // 2->0
-					g(0,0) =  0; g(0,1) = -1;
-					g(1,0) = -1; g(1,1) = -2;
-					return;
-				default: UG_THROW("NedelecLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
+			UG_THROW ("NedelecLSFS: Gradients of the Nedelec shapes cannot be computed in the reference space.");
 		}
 };
 
@@ -315,97 +273,13 @@ class NedelecLSFS<ReferenceTetrahedron>
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline MathVector<dim> shape(const size_t i, const MathVector<dim>& x) const
 		{
-			MathVector<dim> w1;
-			number w0_m, w0_n; // values of the Whitney-0 (linear Lagrange) basis functions
-			
-			switch (i)
-			{
-			case 0: // 0->1 (here and below: corners of the edge)
-				w0_m = 1.0-x[0]-x[1]-x[2];
-				w0_n = x[0];
-				w1[0] = w0_m - w0_n;
-				w1[1] =      - w0_n;
-				w1[2] =      - w0_n;
-				break;
-			case 1: // 1->2
-				w0_m = x[0];
-				w0_n = x[1];
-				w1[0] = w0_n;
-				w1[1] = w0_m;
-				w1[2] = 0.0;
-				break;
-			case 2: // 2->0
-				w0_m = x[1];
-				w0_n = 1.0-x[0]-x[1]-x[2];
-				w1[0] = - w0_m;
-				w1[1] = - w0_m + w0_n;
-				w1[2] = - w0_m;
-				break;
-			case 3: // 0->3
-				w0_m = 1.0-x[0]-x[1]-x[2];
-				w0_n = x[2];
-				w1[0] =      - w0_n;
-				w1[1] =      - w0_n;
-				w1[2] = w0_m - w0_n;
-				break;
-			case 4: // 1->3
-				w0_m = x[0];
-				w0_n = x[2];
-				w1[0] = w0_n;
-				w1[1] = 0.0;
-				w1[2] = w0_m;
-				break;
-			case 5: // 2->3
-				w0_m = x[1];
-				w0_n = x[2];
-				w1[0] = 0.0;
-				w1[1] = w0_n;
-				w1[2] = w0_m;
-				break;
-			default: UG_THROW("NedelecLSFS: Invalid shape fct index: "<<i);
-			}
-			
-			return w1;
+			UG_THROW ("NedelecLSFS: Nedelec shapes cannot be computed in the reference space.");
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
 		inline void grad(MathMatrix<dim,dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			switch(i)
-			{
-				case 0: // 0->1 (here and below: corners of the edge)
-					g(0,0) = -2; g(0,1) = -1; g(0,2) = -1;
-					g(1,0) = -1; g(1,1) =  0; g(1,2) =  0;
-					g(2,0) = -1; g(2,1) =  0; g(2,2) =  0;
-					return;
-				case 1: // 1->2
-					g(0,0) = 0; g(0,1) = 1; g(0,2) = 0;
-					g(1,0) = 1; g(1,1) = 0; g(0,2) = 0;
-					g(2,0) = 0; g(2,1) = 0; g(2,2) = 0;
-					return;
-				case 2: // 2->0
-					g(0,0) =  0; g(0,1) = -1; g(0,2) =  0;
-					g(1,0) = -1; g(1,1) = -2; g(0,2) = -1;
-					g(2,0) =  0; g(2,1) = -1; g(2,2) =  0;
-					return;
-				case 3: // 0->3
-					g(0,0) =  0; g(0,1) =  0; g(0,2) = -1;
-					g(1,0) =  0; g(1,1) =  0; g(1,2) = -1;
-					g(2,0) = -1; g(2,1) = -1; g(2,2) = -2;
-					return;
-				case 4: // 1->3
-					g(0,0) = 0; g(0,1) = 0; g(0,2) = 1;
-					g(1,0) = 0; g(1,1) = 0; g(0,2) = 0;
-					g(2,0) = 1; g(2,1) = 0; g(2,2) = 0;
-					return;
-				case 5: // 2->3
-					g(0,0) = 0; g(0,1) = 0; g(0,2) = 0;
-					g(1,0) = 0; g(1,1) = 0; g(0,2) = 1;
-					g(2,0) = 0; g(2,1) = 1; g(2,2) = 0;
-					return;
-				default: UG_THROW("NedelecLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
+			UG_THROW ("NedelecLSFS: Gradients of the Nedelec shapes cannot be computed in the reference space.");
 		}
 };
 
