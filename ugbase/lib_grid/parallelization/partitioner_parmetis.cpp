@@ -163,6 +163,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
 
+	accumulate_child_counts(baseLvl, mg.top_level(), m_aNumChildren);
+
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
 	for(size_t hlevel = 0; hlevel < m_processHierarchy->num_hierarchy_levels(); ++ hlevel)
@@ -187,9 +189,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
 			continue;
 		}
-
-		accumulate_child_counts(minLvl, maxLvl, m_aNumChildren);
-
 
 		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlevel);
 
@@ -352,7 +351,9 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 								create_sub_communicator(adjacencyMap.size() > 1);
 
 //	partition the graph using parmetis
-	idx_t options[3]; options[0] = 0;//default values
+	idx_t partOptions[3]; partOptions[0] = 0;//default values
+	//idx_t refineOptions[4] = {1, 0, 0, PARMETIS_PSR_UNCOUPLED};
+	idx_t refineOptions[4]; refineOptions[0] = 0;
 	idx_t nVrts = (idx_t)adjacencyMapStructure.size() - 1;
 	idx_t nConstraints = 1;
 	idx_t edgeCut;
@@ -362,6 +363,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 	vector<idx_t> partitionMap(nVrts);
 	vector<real_t> tpwgts(numParts, 1. / (number)numParts);
 	real_t ubvec = 1.05;
+	real_t comVsRedistRation = 1000;
 
 //todo: consider specified balance and connection weights!
 
@@ -375,28 +377,46 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 			vrtSizeMap.push_back(m_aaNumChildren[*iter] + 1);
 	}
 
-	vector<idx_t> adjwgt(adjacencyMap.size(), 1);
+	vector<idx_t> adjwgt(adjacencyMap.size());
 
 	assert((int)vrtSizeMap.size() == nVrts);
 	pVrtSizeMap = &vrtSizeMap.front();
 
 	if(!procCom.empty()){
-		UG_DLOG(LIB_GRID, 1, "CALLING PARMETIS\n");
 		MPI_Comm mpiCom = procCom.get_mpi_communicator();
-//todo: use ParMETIS V3 AdaptiveRepart and check out ParMETIS V3 RefineKway
-		int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
-											&adjacencyMapStructure.front(),
-											&adjacencyMap.front(),
-											pVrtSizeMap, &adjwgt.front(), &wgtFlag,
-											&numFlag, &nConstraints,
-											&numParts, &tpwgts.front(), &ubvec, options,
-											&edgeCut, &partitionMap.front(),
-											&mpiCom);
-		UG_DLOG(LIB_GRID, 1, "PARMETIS DONE\n");
+		if((int)procCom.size() != numTargetProcs){
+			UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
+			int metisRet =	ParMETIS_V3_PartKway(&nodeOffsetMap.front(),
+												&adjacencyMapStructure.front(),
+												&adjacencyMap.front(),
+												pVrtSizeMap, &adjwgt.front(), &wgtFlag,
+												&numFlag, &nConstraints,
+												&numParts, &tpwgts.front(), &ubvec, partOptions,
+												&edgeCut, &partitionMap.front(),
+												&mpiCom);
+			UG_DLOG(LIB_GRID, 1, "done\n");
 
-		if(metisRet != METIS_OK){
-			UG_THROW("PARMETIS FAILED on process " << localProc
-					 << " while partitioning level " << lvl);
+			if(metisRet != METIS_OK){
+				UG_THROW("ParMETIS_V3_PartKway failed on process " << localProc
+						 << " while partitioning level " << lvl);
+			}
+		}
+		else{
+			UG_DLOG(LIB_GRID, 1, "Calling ParMETIS_V3_AdaptiveRepart...");
+			int metisRet =	ParMETIS_V3_AdaptiveRepart(&nodeOffsetMap.front(),
+												&adjacencyMapStructure.front(),
+												&adjacencyMap.front(),
+												pVrtSizeMap, pVrtSizeMap, &adjwgt.front(), &wgtFlag,
+												&numFlag, &nConstraints,
+												&numParts, &tpwgts.front(), &ubvec,
+												&comVsRedistRation, refineOptions,
+												&edgeCut, &partitionMap.front(),
+												&mpiCom);
+			UG_DLOG(LIB_GRID, 1, "done\n");
+			if(metisRet != METIS_OK){
+				UG_THROW("Parmetis_V3_RefineKWay failed on process " << localProc
+						 << " while partitioning level " << lvl);
+			}
 		}
 	}
 

@@ -51,6 +51,11 @@ namespace LoadBalancing{
 struct Functionality
 {
 
+static void Common(Registry& reg, string grp) {
+	reg.add_function("MetisIsAvailable", &MetisIsAvailable, grp);
+	reg.add_function("ParmetisIsAvailable", &ParmetisIsAvailable, grp);
+}
+
 /**
  * Function called for the registration of Domain dependent parts.
  * All Functions and Classes depending on the Domain
@@ -65,9 +70,6 @@ static void Domain(Registry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
-
-	reg.add_function("MetisIsAvailable", &MetisIsAvailable, grp);
-	reg.add_function("ParmetisIsAvailable", &ParmetisIsAvailable, grp);
 
 	#ifdef UG_PARALLEL
 		{
@@ -128,6 +130,7 @@ void RegisterBridge_LoadBalancing(Registry& reg, string grp)
 	typedef LoadBalancing::Functionality Functionality;
 
 	try{
+		RegisterCommon<Functionality>(reg, grp);
 		RegisterDomainDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
