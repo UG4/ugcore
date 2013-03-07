@@ -42,7 +42,9 @@ class AverageComponent :
 				const char* fcts) :
 			m_symbFct(fcts),
 			m_spApproxSpace(approxSpace), m_bInit(false)
-		{};
+		{
+			init();
+		};
 
 		virtual ~AverageComponent(){};
 
