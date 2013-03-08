@@ -14,7 +14,7 @@
 #include <cstring>
 
 #include "algebra_misc.h"
-#include "local_helper.h"
+#include "../algebra_common/local_helper.h"
 #include "lib_algebra/common/operations_vec.h"
 #include "common/profiler/profiler.h"
 #include <vector>
