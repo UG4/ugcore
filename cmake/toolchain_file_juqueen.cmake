@@ -47,10 +47,10 @@
 # the corresponding platform files:
 set(CMAKE_SYSTEM_NAME BlueGeneQ-static)
 
-# This option tells ug_cmake_includes.txt to add the -dynamic option to the compiler flags.
+# This option tells cmake/ug_includes.cmake to add the -dynamic option to the compiler flags.
 SET(enableDynamicOption OFF)
 
-# This option tells ug_cmake_includes.txt to add the -fno-strict-aliasing option to the compiler flags.
+# This option tells cmake/ug_includes.cmake to add the -fno-strict-aliasing option to the compiler flags.
 SET(enableNoStrictAliasingOption ON)
 
 # Some variables for pathes

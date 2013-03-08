@@ -1,6 +1,6 @@
 # Based on the scripts from Ingo Heppner.
 
-# This option tells ug_cmake_includes.txt to add the -dynamic option to the compiler flags.
+# This option tells cmake/ug_includes.cmake to add the -dynamic option to the compiler flags.
 SET(enableDynamicOption ON)
 
 SET(CMAKE_C_COMPILER       /bgsys/drivers/ppcfloor/gnu-linux/bin/powerpc-bgp-linux-gcc)
