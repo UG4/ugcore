@@ -240,6 +240,7 @@ Therefore two actions need to be taken in \em Eclipse:
 \section secInstallEclipseAdditional Additional Tipps & Tricks
 
  - Line Numbers: Eclipse -> Properties. Subfolder General -> Editors -> Text Editors. Enable "Show line numbers".
+ - Show Changes in File: Eclipse -> Properties. Subfolder General -> Editors -> Text Editors -> <a href="http://help.eclipse.org/juno/index.jsp?topic=%2Forg.eclipse.platform.doc.user%2Ftasks%2Ftasks-cvs-quickdiff.htm">Quick Diff</a>. Enable "Show differences in overview ruler" and set "SVN Working Copy Base" as reference source.
  - Switching Tabs: On Mac: Cmd+F6. On Windows: Ctrl+F6. Ctrl+PageUp / Ctrl+PageDown: Cycle through tabs without showing a list.
  - search a file in the tabs: Cmd+E (Mac)
  - search a symbol (e.g. function) in the current file: Cmd+O (Mac) or Ctrl+O (other)
