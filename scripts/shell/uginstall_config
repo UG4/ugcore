@@ -1,61 +1,89 @@
 #!/bin/bash
+######################################################################
+# uginstall_config
+#-------------------------------------------------------------------
+# created by Martin Rupp 31.05.2012
+# mail: martin.rupp@gcsc.uni-frankfurt.de
+######################################################################
+# This file sets all environment variables for uginstall
+# these are
+# - LIBRARY_PATH
+# - LD_LIBRARY_PATH
+# - LDFLAGS
+# - PATH
+# - C_INCLUDE_PATH
+# - CPLUS_INCLUDE_PATH
+# without this file, uginstall won't work!
+
 LOCAL_INSTALLDIR=$HOME/local
+
+
 # LIBRARY_PATH is used by gcc before compilation to search for directories
 #              containing libraries that need to be linked to your program.
 # LD_LIBRARY_PATH is used by your program to search for directories containing 
 #                 the libraries after it has been successfully compiled and linked
+add_lib()
+{
+	lib=$1
+
+	if [ -z $LIBRARY_PATH ]; then
+		LIBRARY_PATH=$lib
+	else
+		echo $LIBRARY_PATH | grep -q $lib
+		if [ $? -ne 0 ] ; then
+			LIBRARY_PATH=$LIBRARY_PATH:$lib
+		fi
+	fi
+
+	if [ -z $LD_LIBRARY_PATH ]; then
+		LD_LIBRARY_PATH=$lib
+	else
+		echo $LD_LIBRARY_PATH | grep -q $lib
+		if [ $? -ne 0 ] ; then
+			LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$lib
+		fi
+	fi
+
+	if [ -z $LD_RUN_PATH ]; then
+		LD_RUN_PATH=$lib
+	else
+		echo $LD_RUN_PATH | grep -q $lib
+		if [ $? -ne 0 ] ; then
+			LD_RUN_PATH=$LD_RUN_PATH:$lib
+		fi
+	fi
+
+	echo $LDFLAGS | grep -q $lib
+	if [ $? -ne 0 ] ; then
+		LDFLAGS="-L$lib $LDFLAGS"
+	fi
+}
+
+
 my_setup()
 {
 	dir=$1
 	if [ -e $dir ]; then
+		
 		#echo $dir found!
 		if [ -e $dir/lib ]; then
-			if [ -z $LIBRARY_PATH ]; then
-				LIBRARY_PATH=$dir/lib64:$dir/lib
-			else
-				echo $LIBRARY_PATH | grep -q $dir/lib
-				if [ $? -ne 0 ] ; then
-					LIBRARY_PATH=$LIBRARY_PATH:$dir/lib64:$dir/lib
-				fi
-			fi
-			if [ -z $LD_LIBRARY_PATH ]; then
-				LD_LIBRARY_PATH=$dir/lib64:$dir/lib
-			else
-				echo $LD_LIBRARY_PATH | grep -q $dir/lib
-				if [ $? -ne 0 ] ; then
-					LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$dir/lib64:$dir/lib
-				fi
-			fi
-			if [ -z $LD_RUN_PATH ]; then
-				echo $LD_RUN_PATH | grep -q $dir/lib
-				if [ $? -ne 0 ] ; then
-					LD_RUN_PATH=$dir/lib64:$dir/lib
-				fi
-			else		
-				LD_RUN_PATH=$LD_RUN_PATH:$dir/lib64:$dir/lib
-			fi
-			
-			echo $LDFLAGS | grep -q $dir/lib
-			if [ $? -ne 0 ] ; then
-				LDFLAGS="-L$dir/lib $LDFLAGS"
-			fi
-			echo $LDFLAGS | grep -q $dir/lib64
-			if [ $? -ne 0 ] && [ -e $dir/lib64 ]; then
-				LDFLAGS="-L$dir/lib64 $LDFLAGS"
-			fi
-
+			add_lib $dir/lib
 		fi
+		if [ -e $dir/lib64 ]; then
+			add_lib $dir/lib64
+		fi
+
 		if [ -e $dir/include ]; then
 			if [ -z $C_INCLUDE_PATH ]; then
 				C_INCLUDE_PATH=$dir/include/
 			else
 				echo $C_INCLUDE_PATH | grep -q $dir/include
 				if [ $? -ne 0 ] ; then
-					C_INCLUDE_PATH="$dir/include:$C_INCLUDE_PATH"
+					C_INCLUDE_PATH=$dir/include:$C_INCLUDE_PATH
 				fi
 			fi
 			if [ -z $CPLUS_INCLUDE_PATH ]; then
-				CPLUS_INCLUDE_PATH="$dir/include"
+				CPLUS_INCLUDE_PATH=$dir/include
 			else
 				echo $CPLUS_INCLUDE_PATH | grep -q $dir/include
 				if [ $? -ne 0 ] ; then
@@ -81,6 +109,7 @@ my_setup2 ()
 	
 }
 
+my_setup $LOCAL_INSTALLDIR/openmpi/1.6
 my_setup llvm
 my_setup2 cmake
 my_setup2 doxygen
@@ -90,10 +119,13 @@ my_setup2 gnuplot
 my_setup2 GotoBLAS2
 my_setup2 mpfr
 my_setup2 mpc
-my_setup $LOCAL_INSTALLDIR/openmpi/1.6
 my_setup2 ParaView
+my_setup2 metis
+my_setup2 parmetis
 
 
+# completion for bash
+complete -W "all cmake doxygen gcc gmp gnuplot GotoBLAS2 Metis mpfr mpc OpenMPI ParaView ParMetis" -o default -o nospace uginstall
 
 export PATH
 export C_INCLUDE_PATH	

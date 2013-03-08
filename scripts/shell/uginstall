@@ -1,16 +1,31 @@
 #!/bin/bash
 ######################################################################
-# uginstall 0.1
+# uginstall 0.2
 #-------------------------------------------------------------------
 # created by Martin Rupp 31.05.2012
 # mail: martin.rupp@gcsc.uni-frankfurt.de
 ######################################################################
+# uginstall will download and install a number of programs:
+# cmake, doxygen, gcc, gmp, gnuplot, GotoBLAS2, Metis, mpfr, mpc, OpenMPI, ParaView, ParMetis
+# Following steps are made for each installation of programm APP:
+# - create folder ~/local
+# - create folder ~/local/APP
+# - download file, save in ~/local/APP
+# - extract file, store in ~/local/APP/version
+# - configure the program (depending on the program)
+# - install libraries in ~/local/APP/lib and lib64, binaries in ~/local/APP/bin
+#   includes in ~/local/APP/include ...
+# - create a symbolic link from ~/local/APP/used to ~/local/APP/version
+# done.
+# uginstall_config will then set PATH, LDFLAGS, LD_RUN_PATH, LIBRARY_PATH, 
+# and LD_LIBRARY_PATH so you can use the program and the libs.
+# You might need to open up a new console to reset these variables.
 
 #which wget &> /dev/null
 #if [ $? == 0 ]; then
 	#mywget=wget
 #else
-	#mywget="curl -O"
+	#mywget="curl -O -L"
 #fi
 
 scriptname=$0;		  # name of script
@@ -45,7 +60,7 @@ my_download ()
 			if [ $? == 0 ]; then
 				wget $location -O $filename.part
 			else
-				curl $location -o $filename.part
+				curl $location -o -L $filename.part
 			fi
 			if [ ! $? == 0 ]; then 
 				echo "Error downloading from $location."; 
@@ -264,8 +279,8 @@ install_gnuplot()
 {
 	my_install_external_build \
 	"gnuplot" "4.6.0"\
-	"http://sourceforge.net/projects/gnuplot/files/gnuplot/4.6.0/gnuplot-4.6.0.tar.gz/download?sources=files"\
- 	gnuplot-4.6.tar.gz gnuplot-4.6.0 \
+	"http://sourceforge.net/projects/gnuplot/files/gnuplot/4.6.0/gnuplot-4.6.0.tar.gz"\
+ 	gnuplot-4.6.0.tar gnuplot-4.6.0 \
  	"../src/configure --prefix=$HOME/local/gnuplot/4.6.0" make "make install"
 }
 
@@ -308,6 +323,39 @@ install_clang()
 	make
 }
 
+install_metis()
+{
+	which cmake &> /dev/null
+	if [ $? == 1 ]; then
+		echo "Metis needs cmake. Installing cmake..."
+		install_cmake
+	fi
+
+	my_install \
+	metis "5.0.2"\
+	"http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.0.2.tar.gz"\
+	metis-5.0.2.tar metis-5.0.2 \
+	"make config prefix=$HOME/local/metis/5.0.2" \
+	"make install"
+}
+
+install_parmetis()
+{
+	which cmake &> /dev/null
+	if [ $? == 1 ]; then
+		echo "Metis needs cmake. Installing cmake..."
+		install_cmake
+	fi
+
+	my_install \
+	parmetis "4.0.2"\
+	"http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.2.tar.gz"\
+	parmetis-4.0.2.tar parmetis-4.0.2 \
+	"make config prefix=$HOME/local/parmetis/4.0.2" \
+	"make install"
+}
+
+
 install_all()
 {
 #	install_gcc
@@ -318,13 +366,31 @@ install_all()
 	install_openmpi
 	install_ParaView
 	install_clang
+	install_metis
+	install_parmetis
 }
 
 print_usage()
 {
-	echo " $0 0.1"
+	echo " uginstall 0.2"
 	echo ""
-    	echo " usage:  " $0 " <program>"
+	echo " uginstall will download and install a number of programs:"
+	echo " cmake, doxygen, gcc, gmp, gnuplot, GotoBLAS2, Metis, mpfr, mpc, OpenMPI, ParaView, ParMetis"
+	echo " Following steps are made for each installation of programm APP:"
+	echo " - create folder ~/local"
+	echo " - create folder ~/local/APP"
+	echo " - download file, save in ~/local/APP"
+	echo " - extract file, store in ~/local/APP/version"
+	echo " - configure the program (depending on the program)"
+	echo " - install libraries in ~/local/APP/lib and lib64, binaries in ~/local/APP/bin"
+	echo "   includes in ~/local/APP/include ..."
+	echo " - create a symbolic link from ~/local/APP/used to ~/local/APP/version"
+	echo " done."
+	echo " uginstall_config will then set PATH, LDFLAGS, LD_RUN_PATH, LIBRARY_PATH, "
+	echo " and LD_LIBRARY_PATH so you can use the program and the libs."
+	echo " You might need to open up a new console to reset these variables."
+	echo " "
+    echo " usage:  uginstall <program>"
 	echo "  <program> can be:"
 	echo "	all"
 	echo "	clang       (=clang+llvm from svn)"
@@ -334,10 +400,12 @@ print_usage()
 	echo "	gmp         4.3.2                 " `[[ -e gmp/used/installed ]] && echo "(installed)"`
 	echo "	gnuplot     4.6.0                 " `[[ -e gnuplot/used/installed ]] && echo "(installed)"`
 	echo "	GotoBLAS2   1.13                  " `[[ -e GotoBLAS2/used/installed ]] && echo "(installed)"`
+	echo "	Metis       5.0.2                 " `[[ -e metis/used/installed ]] && echo "(installed)"`
 	echo "	mpfr        2.4.2                 "	`[[ -e mpfr/used/installed ]] && echo "(installed)"`
 	echo "	mpc         0.8.1                 " `[[ -e mpc/used/installed ]] && echo "(installed)"`
 	echo "	OpenMPI     1.6                   " `[[ -e openmpi/used/installed ]] && echo "(installed)"`
 	echo "	ParaView    3.14.1-Linux-32bit    " `[[ -e ParaView/used/installed ]] && echo "(installed)"`	
+	echo "	ParMetis    4.0.2                 " `[[ -e parmetis/used/installed ]] && echo "(installed)"`
 }
 
 
@@ -353,6 +421,8 @@ case $1 in
 	mpfr) install_mpfr ;;
 	OpenMPI) install_openmpi ;;
 	ParaView) install_ParaView ;;
+	Metis) install_metis ;;
+	ParMetis) install_parmetis ;;
 	all) install_all ;;
 	*) print_usage ;;
 esac
