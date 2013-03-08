@@ -32,8 +32,8 @@ if [ -z "$UG4_ROOT" ]; then
 	UG4_ROOT=`pwd`
 	cd $olddir
 else
-	if [ ! -e $UG4_ROOT/ug_cmake_includes.txt ]; then
-		echo "Could not find UG4_ROOT/ug_cmake_includes.txt . Is UG4_ROOT=$UG4_ROOT right?"
+	if [ ! -e $UG4_ROOT/cmake/ug_includes.cmake ]; then
+		echo "Could not find UG4_ROOT/cmake/ug_includes.cmake . Is UG4_ROOT=$UG4_ROOT right?"
 	fi	   	
 fi	
 
