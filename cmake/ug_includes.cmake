@@ -29,7 +29,7 @@ link_directories(${UG_ROOT_PATH}/lib)
 ################################################################################
 # include cmake functions
 set(CMAKE_MODULE_PATH ${UG_ROOT_PATH}/cmake)
-include(cmake/compiler_flags.cmake)
+include(${UG_ROOT_PATH}/cmake/compiler_flags.cmake)
 # reset flags, because of maybe switched DEBUG option
 reset_cxx_flags()
 
