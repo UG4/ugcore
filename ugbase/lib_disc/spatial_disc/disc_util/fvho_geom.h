@@ -120,6 +120,9 @@ class FVGeometry : public FVGeometryBase
 	///	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
 
+	/// flag indicating if local data may change
+		static const bool staticLocalData = true;
+
 	public:
 	///	Sub-Control Volume Face structure
 		class SCVF
@@ -672,6 +675,9 @@ class DimFVGeometry : public FVGeometryBase
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
+
+	/// flag indicating if local data may change
+		static const bool staticLocalData = false;
 
 	public:
 	///	Sub-Control Volume Face structure

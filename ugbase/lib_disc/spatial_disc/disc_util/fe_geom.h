@@ -44,6 +44,9 @@ class FEGeometry
 	///	number of integration points
 		static const size_t nip = quad_rule_type::nip;
 
+	/// flag indicating if local data may change
+		static const bool staticLocalData = true;
+
 	public:
 	///	Constructor
 		FEGeometry()
@@ -201,6 +204,9 @@ class DimFEGeometry
 
 	/// world dimension
 		static const int worldDim = TWorldDim;
+
+	/// flag indicating if local data may change
+		static const bool staticLocalData = false;
 
 	public:
 	///	default Constructor

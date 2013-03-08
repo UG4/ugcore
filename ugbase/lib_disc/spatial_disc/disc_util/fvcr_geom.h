@@ -150,6 +150,9 @@ class DimCRFVGeometry : public FVGeometryBase
 	///	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
 
+	/// flag indicating if local data may change
+		static const bool staticLocalData = false;
+
 	public:
 	///	order
 		static const int order = 1;
@@ -644,6 +647,9 @@ class CRFVGeometry : public FVGeometryBase
 
 	///	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
+
+	/// flag indicating if local data may change
+		static const bool staticLocalData = true;
 
 	///	type of Shape function used
 		typedef CrouzeixRaviartLSFS<ref_elem_type> local_shape_fct_set_type;

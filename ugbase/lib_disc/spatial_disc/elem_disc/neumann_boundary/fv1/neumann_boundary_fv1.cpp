@@ -7,6 +7,7 @@
 
 #include "neumann_boundary_fv1.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
+#include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 
 namespace ug{
 
@@ -104,7 +105,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 	m_si = si;
 
 //	register subsetIndex at Geometry
-	static TFVGeom& geo = Provider<TFVGeom >::get();
+	static TFVGeom& geo = GeomProvider<TFVGeom >::get();
 
 //	request subset indices as boundary subset. This will force the
 //	creation of boundary subsets when calling geo.update
@@ -156,7 +157,7 @@ void NeumannBoundaryFV1<TDomain>::
 prep_elem(TElem* elem, const LocalVector& u)
 {
 //  update Geometry for this element
-	static TFVGeom& geo = Provider<TFVGeom >::get();
+	static TFVGeom& geo = GeomProvider<TFVGeom >::get();
 	try{
 		geo.update(elem,
 	               this->template element_corners<TElem>(elem),
@@ -175,7 +176,7 @@ template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::
 add_rhs_elem(LocalVector& d)
 {
-	const static TFVGeom& geo = Provider<TFVGeom >::get();
+	const static TFVGeom& geo = GeomProvider<TFVGeom >::get();
 	typedef typename TFVGeom::BF BF;
 
 //	Number Data
@@ -236,7 +237,7 @@ void NeumannBoundaryFV1<TDomain>::
 finish_elem_loop()
 {
 //	remove subsetIndex from Geometry
-	static TGeom& geo = Provider<TGeom >::get();
+	static TGeom& geo = GeomProvider<TGeom >::get();
 
 
 //	unrequest subset indices as boundary subset. This will force the
@@ -280,7 +281,7 @@ lin_def(const LocalVector& u,
             const size_t nip)
 {
 //  get finite volume geometry
-	const static TFVGeom& geo = Provider<TFVGeom>::get();
+	const static TFVGeom& geo = GeomProvider<TFVGeom>::get();
 	typedef typename TFVGeom::BF BF;
 
 	size_t ip = 0;

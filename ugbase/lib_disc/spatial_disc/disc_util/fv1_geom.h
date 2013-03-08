@@ -62,6 +62,9 @@ class FV1Geometry : public FVGeometryBase
 	///	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
 
+	/// flag indicating if local data may change
+		static const bool staticLocalData = true;
+
 	public:
 	///	order
 		static const int order = 1;
@@ -561,6 +564,9 @@ class DimFV1Geometry : public FVGeometryBase
 	///	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
 
+	/// flag indicating if local data may change
+		static const bool staticLocalData = false;
+
 	public:
 	///	order
 		static const int order = 1;
@@ -1059,7 +1065,10 @@ class FV1ManifoldBoundary
 
 	// 	Hanging node flag: this Geometry does not support hanging nodes
 		static const bool usesHangingNodes = false;
-		
+
+	/// flag indicating if local data may change
+		static const bool staticLocalData = true;
+
 	protected:
 		struct MidID
 		{

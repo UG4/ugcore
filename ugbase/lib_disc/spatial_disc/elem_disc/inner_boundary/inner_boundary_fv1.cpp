@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY_IMPL__
 
 #include "inner_boundary.h"
-#include "common/util/provider.h"
+#include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 
 
@@ -46,7 +46,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	for(size_t i = 0; i < numVertex; ++i) m_vVertices.push_back(elem->vertex(i));
 
 	// update Geometry for this element
-	TFVGeom<TElem, dim>& geo = Provider<TFVGeom<TElem,dim> >::get();
+	TFVGeom<TElem, dim>& geo = GeomProvider<TFVGeom<TElem,dim> >::get();
 	try{
 		geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler()));
 	}
@@ -61,7 +61,7 @@ void FV1InnerBoundaryElemDisc<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 {
 	// get finite volume geometry
-	const static TFVGeom<TElem, dim>& fvgeom = Provider<TFVGeom<TElem,dim> >::get();
+	const static TFVGeom<TElem, dim>& fvgeom = GeomProvider<TFVGeom<TElem,dim> >::get();
 
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
@@ -107,7 +107,7 @@ void FV1InnerBoundaryElemDisc<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u)
 {
 	// get finite volume geometry
-	static TFVGeom<TElem, dim>& fvgeom = Provider<TFVGeom<TElem,dim> >::get();
+	static TFVGeom<TElem, dim>& fvgeom = GeomProvider<TFVGeom<TElem,dim> >::get();
 
 	// loop Boundary Faces
 	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
