@@ -46,7 +46,7 @@ class HFV1Geometry : public FVGeometryBase{
 		static const bool usesHangingNodes = true;
 
 	/// flag indicating if local data may change
-		static const bool staticLocalData = false;
+		static const bool staticLocalData = true;
 
 	protected:
 		struct MidID
