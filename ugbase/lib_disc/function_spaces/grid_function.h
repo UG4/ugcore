@@ -26,6 +26,8 @@ namespace ug{
 class IGridFunction
 {
 	public:
+		virtual ~IGridFunction()	{}
+
 	///	permutes all values
 	/**
 	 * This method permutes the values according to the passed mapping vector, i.e.

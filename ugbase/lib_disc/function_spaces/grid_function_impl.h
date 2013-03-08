@@ -516,7 +516,7 @@ resize_values(size_t s, number defaultValue)
 	const size_t oldSize = vector_type::size();
 
 //	resize vector
-	vector_type::resize(s);
+	vector_type::resize_sloppy(s);
 
 //	set vector to zero-values
 	for(size_t i = oldSize; i < s; ++i)
