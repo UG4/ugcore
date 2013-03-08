@@ -284,14 +284,14 @@ void SharedLibrariesLoaded()
 ////////////////////////////////////////////////////////////////////////////////
 // main
 int main(int argc, char* argv[])
-{
-	PROFILE_FUNC();
-
-	PROFILE_BEGIN(ugshellInit);
-
+{			
 	#ifdef UG_PARALLEL
 		pcl::Init(&argc, &argv);
 	#endif
+
+	PROFILE_FUNC();
+	PROFILE_BEGIN(ugshellInit);
+
 
 //	check if an output-process has been specified
 	int outputProc = 0;
