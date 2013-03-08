@@ -61,8 +61,8 @@ uint32 GetLogAssistantTag(const char *s)
   order as by a plain 'cmake ../'
 
   (To generate a list of macro definitions:
-  grep add_definitions ug_cmake_includes.txt
-  grep "\-D" ug_cmake_includes.txt.)
+  grep add_definitions cmake/ug_includes.cmake
+  grep "\-D" cmake/ug_includes.cmake.)
 */
 
 // DIM:
