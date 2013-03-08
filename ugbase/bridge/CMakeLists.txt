@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(P_UGBRIDGE)
 
-include("../../ug_cmake_includes.txt")
+include("../../cmake/ug_includes.cmake")
 
 set(srcUGBridge    	bridge.cpp
 					domain_bridges/domain_bridge.cpp

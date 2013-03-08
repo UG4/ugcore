@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(P_LIB_DISCRETIZATION)
 
-include("../../ug_cmake_includes.txt")
+include("../../cmake/ug_includes.cmake")
 
 set(srcDiscretization	domain_util.cpp
 

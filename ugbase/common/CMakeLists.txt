@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(P_COMMON)
 
-include("../../ug_cmake_includes.txt")
+include("../../cmake/ug_includes.cmake")
 
 set(srcCommon	log.cpp
 				debug_id.cpp

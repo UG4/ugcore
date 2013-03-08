@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
 
-include("../../../ug_cmake_includes.txt")
+include("../../../cmake/ug_includes.cmake")
 
 
 set(srcBindingsVRL

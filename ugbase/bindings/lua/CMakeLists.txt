@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 
-include("../../../ug_cmake_includes.txt")
+include("../../../cmake/ug_includes.cmake")
 
 if(UNIX)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX")
