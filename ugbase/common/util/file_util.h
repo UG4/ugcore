@@ -138,7 +138,7 @@ UG_API bool ReadFile(const char* filename, vector<char> &file, bool bText);
  * \return filenameXXXXXX.extension, where XXXXXX is some number between 1 and 999999,
  *			so that the file doesn't exist yet.
  */
-UG_API std::string MakeTmpFile(const std::string &filename, const std::string &extension, 
+UG_API std::string MakeTmpFile(std::string filename, const std::string &extension,
 		bool &bSuccess);
 } // namespace ug
 
