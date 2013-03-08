@@ -42,9 +42,9 @@ To use this HLibPro functionality from within ug4,
    somewhere on your filesystem, e.g. ~/bin/hlibpro-0.13.6/, then configure
    and build HLibPro. See below for some hints to do this!
 
-2. Check 'ug_cmake_includes.txt': If necessary adapt path after 'PATH_SUFFIXES'
+2. Check 'cmake/ug_includes.cmake': If necessary adapt path after 'PATH_SUFFIXES'
    (last argument of 'find_path()' call). In the moment this path is given
-   relative to the location of 'ug_cmake_includes.txt'.
+   relative to the location of 'cmake'.
 
    E.g., if your HLibPro main directory resides in '~/bin/', then use
 
