@@ -23,7 +23,7 @@ Create a \c ug4 directory and perform a svn checkout on the trunk.
 </ul>
 </ul>
 In the following section, YOURUG4ROOT is the directory which contains 
-ug_cmake_includes.txt, so depending on your checkout, 
+cmake/ug_includes.cmake, so depending on your checkout, 
 this is ug4 or ug4/trunk.
 Because of that, always keep in mind that people mean <tt>YOURUG4ROOT/apps</tt> when
 they speak about <tt>ug4/apps</tt> or <tt>ug4/trunk/apps</tt>. 
