@@ -436,6 +436,43 @@ inline void ElementNormal<ReferenceQuadrilateral, 3>(MathVector<3>& normalOut, c
 	VecScale(normalOut, normalOut, 0.5);
 }
 
+///////////////////////////////////////////////////////////////
+//	run-time normal of element
+///////////////////////////////////////////////////////////////
+
+template <int dim>
+inline void ElementNormal(ReferenceObjectID roid, MathVector<dim>& normalOut, const MathVector<dim>* vCornerCoords);
+
+template <>
+inline void ElementNormal<1>(ReferenceObjectID roid, MathVector<1>& normalOut, const MathVector<1>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_EDGE: ElementNormal<ReferenceVertex, 1>(normalOut, vCornerCoords); return;
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 1.");
+	}
+}
+
+template <>
+inline void ElementNormal<2>(ReferenceObjectID roid, MathVector<2>& normalOut, const MathVector<2>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_EDGE: ElementNormal<ReferenceEdge, 2>(normalOut, vCornerCoords); return;
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 2.");
+	}
+}
+
+template <>
+inline void ElementNormal<3>(ReferenceObjectID roid, MathVector<3>& normalOut, const MathVector<3>* vCornerCoords)
+{
+	switch(roid)
+	{
+		case ROID_TRIANGLE: ElementNormal<ReferenceTriangle, 3>(normalOut, vCornerCoords); return;
+		case ROID_QUADRILATERAL: ElementNormal<ReferenceQuadrilateral, 3>(normalOut, vCornerCoords); return;
+		default: UG_THROW("ReferenceObject "<<roid<<" not found in dim 3.");
+	}
+}
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
