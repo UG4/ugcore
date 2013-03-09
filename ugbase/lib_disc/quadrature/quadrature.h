@@ -93,6 +93,7 @@ class QuadratureRuleProvider;
 // registering function
 template <typename TRefElem>
 bool RegisterQuadratureRule(QuadratureRuleProvider<TRefElem::dim>& factory);
+template <> bool RegisterQuadratureRule<ReferenceVertex>(QuadratureRuleProvider<ReferenceVertex::dim>& factory);
 template <> bool RegisterQuadratureRule<ReferenceEdge>(QuadratureRuleProvider<ReferenceEdge::dim>& factory);
 template <> bool RegisterQuadratureRule<ReferenceTriangle>(QuadratureRuleProvider<ReferenceTriangle::dim>& factory);
 template <> bool RegisterQuadratureRule<ReferenceQuadrilateral>(QuadratureRuleProvider<ReferenceQuadrilateral::dim>& factory);
@@ -105,6 +106,14 @@ template <> bool RegisterQuadratureRule<ReferenceHexahedron>(QuadratureRuleProvi
 template <int dim>
 bool RegisterQuadratureRuleDim(QuadratureRuleProvider<dim>& factory);
 
+// implementation 0d
+template <>
+inline bool RegisterQuadratureRuleDim(QuadratureRuleProvider<0>& factory)
+{
+	bool bRet = true;
+	bRet &= RegisterQuadratureRule<ReferenceVertex>(factory);
+	return bRet;
+}
 // implementation 1d
 template <>
 inline bool RegisterQuadratureRuleDim(QuadratureRuleProvider<1>& factory)
