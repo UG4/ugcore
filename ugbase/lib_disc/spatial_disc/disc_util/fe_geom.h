@@ -8,6 +8,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__
 
+#include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
@@ -237,6 +238,151 @@ class DimFEGeometry
 	/// update Geometry for corners
 		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
 					LFEID lfeID, size_t orderQuad);
+
+	public:
+		///	boundary face
+		class BF
+		{
+			public:
+				BF() {}
+
+				/// outer normal on bf. Norm is equal to area
+				inline const MathVector<worldDim>& normal() const {return Normal;} // includes area
+
+				/// volume of bf
+				inline number volume() const {return Vol;}
+
+				/// number of integration points on scvf
+				inline size_t num_ip() const {return nip;}
+
+				///	integration weight
+				inline number weight(size_t ip) const
+				{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip] * vWeight[ip];}
+
+				/// local integration point of scvf
+				inline const MathVector<dim>& local_ip(size_t ip) const
+								{UG_ASSERT(ip<num_ip(), "Wrong index"); return vLocalIP[ip];}
+
+				/// global integration point of scvf
+				inline const MathVector<worldDim>& global_ip(size_t ip) const
+								{UG_ASSERT(ip<num_ip(), "Wrong index"); return vGlobalIP[ip];}
+
+				/// Transposed Inverse of Jacobian in integration point
+				inline const MathMatrix<worldDim,dim>& JTInv(size_t ip) const
+								{UG_ASSERT(ip<num_ip(), "Wrong index"); return vJtInv[ip];}
+
+				/// Determinant of Jacobian in integration point
+				inline number detJ(size_t ip) const
+				{UG_ASSERT(ip<num_ip(), "Wrong index"); return vDetJ[ip];}
+
+				/// number of shape functions
+				inline size_t num_sh() const {return nsh;}
+
+				/// value of shape function i in integration point
+				inline number shape(size_t ip, size_t sh) const
+				{UG_ASSERT(ip<num_ip(), "Wrong index"); return vvShape[ip][sh];}
+
+				/// vector of shape functions in ip point
+				inline const number* shape_vector(size_t ip) const
+								{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvShape[ip][0];}
+
+				/// value of local gradient of shape function i in integration point
+				inline const MathVector<dim>& local_grad(size_t ip, size_t sh) const
+								{UG_ASSERT(sh < num_sh(), "Invalid index");
+								UG_ASSERT(ip<num_ip(), "Wrong index"); return vvLocalGrad[ip][sh];}
+
+				/// vector of local gradients in ip point
+				inline const MathVector<dim>* local_grad_vector(size_t ip) const
+								{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvLocalGrad[ip][0];}
+
+				/// value of global gradient of shape function i in integration point
+				inline const MathVector<worldDim>& global_grad(size_t ip, size_t sh) const
+								{UG_ASSERT(sh < num_sh(), "Invalid index");
+								UG_ASSERT(ip<num_ip(), "Wrong index"); return vvGlobalGrad[ip][sh];}
+
+				/// vector of global gradients in ip point
+				inline const MathVector<worldDim>* global_grad_vector(size_t ip) const
+								{UG_ASSERT(ip<num_ip(), "Wrong index"); return &vvGlobalGrad[ip][0];}
+
+			protected:
+				/// let outer class access private members
+				friend class DimFEGeometry<worldDim, dim>;
+
+				size_t nip;
+				std::vector<MathVector<dim> > vLocalIP; // local integration point (size: nip)
+				std::vector<MathVector<worldDim> > vGlobalIP; // global integration point (size: nip)
+				const number* vWeight; // weight at ip
+				MathVector<worldDim> Normal; // normal (incl. area)
+				number Vol; // volume of bf
+				std::vector<MathMatrix<worldDim,dim> > vJtInv; // Jacobian transposed at ip (size: nip)
+				std::vector<number> vDetJ; // Jacobian det at ip (size: nip)
+
+				size_t nsh;
+				std::vector<std::vector<number> > vvShape; // shapes at ip (size: nip x nsh)
+				std::vector<std::vector<MathVector<dim> > > vvLocalGrad; // local grad at ip (size: nip x nsh)
+				std::vector<std::vector<MathVector<worldDim> > > vvGlobalGrad; // global grad at ip (size: nip x nsh)
+		};
+
+		/// update boundary data for given element
+		void update_boundary_faces(GeometricObject* pElem,
+								   const MathVector<worldDim>* vCornerCoords,
+								   size_t orderQuad,
+								   const ISubsetHandler* ish);
+
+	public:
+	/// add subset that is interpreted as boundary subset.
+		inline void add_boundary_subset(int subsetIndex) {m_mapVectorBF[subsetIndex];}
+
+	/// removes subset that is interpreted as boundary subset.
+		inline void remove_boundary_subset(int subsetIndex) {m_mapVectorBF.erase(subsetIndex);}
+
+	/// reset all boundary subsets
+		inline void clear_boundary_subsets() {m_mapVectorBF.clear();}
+
+	/// number of registered boundary subsets
+		inline size_t num_boundary_subsets() {return m_mapVectorBF.size();}
+
+	/// number of all boundary faces
+		inline size_t num_bf() const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			size_t num = 0;
+			for ( it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); it++ )
+				num += (*it).second.size();
+			return num;
+		}
+
+	/// number of boundary faces on subset 'subsetIndex'
+		inline size_t num_bf(int si) const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) return 0;
+			else return (*it).second.size();
+		}
+
+	/// returns the boundary face i for subsetIndex
+		inline const BF& bf(int si, size_t i) const
+		{
+			UG_ASSERT(i < num_bf(si), "Invalid index.");
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) UG_THROW("DimFVGeom: No BndSubset: "<<si);
+			return (*it).second[i];
+		}
+
+	/// returns reference to vector of boundary faces for subsetIndex
+		inline const std::vector<BF>& bf(int si) const
+		{
+			typename std::map<int, std::vector<BF> >::const_iterator it;
+			it = m_mapVectorBF.find(si);
+			if(it == m_mapVectorBF.end()) return m_vEmptyVectorBF;
+			return (*it).second;
+		}
+
+	protected:
+		std::map<int, std::vector<BF> > m_mapVectorBF;
+		std::vector<BF> m_vEmptyVectorBF;
 
 	protected:
 	///	current reference object id the local values are prepared for
