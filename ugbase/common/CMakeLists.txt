@@ -13,6 +13,7 @@ set(srcCommon	log.cpp
 				assert.cpp
 				serialization.cpp
 				allocators/small_object_allocator.cpp
+				util/base64_file_writer.cpp
 				util/binary_buffer.cpp
 				util/binary_stream.cpp
 				util/crc32.cpp
