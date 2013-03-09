@@ -45,8 +45,9 @@ function NeumannBoundary(fcts, discType)
 	if discType == nil then discType = "fv1" end
 	if 		discType == "fv1"  then return NeumannBoundaryFV1(fcts)
 	elseif  discType == "fv"   then return NeumannBoundaryFV(fcts)
+	elseif  discType == "fe"   then return NeumannBoundaryFE(fcts)
 	else 
-		print("ConstantEquation: no disc type '"..discType.."' available. Aborting")
+		print("NeumannBoundary: no disc type '"..discType.."' available. Aborting")
 		exit();
 	end
 end

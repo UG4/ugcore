@@ -24,6 +24,7 @@
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/neumann_boundary_base.h"
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fv1/neumann_boundary_fv1.h"
 #include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fv/neumann_boundary_fv.h"
+#include "lib_disc/spatial_disc/elem_disc/neumann_boundary/fe/neumann_boundary_fe.h"
 #include "lib_disc/spatial_disc/elem_disc/inner_boundary/inner_boundary.h"
 
 using namespace std;
@@ -104,6 +105,17 @@ static void Domain(Registry& reg, string grp)
 			.template add_constructor<void (*)(const char*)>("Function")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NeumannBoundaryFV", tag);
+	}
+
+//	Neumann Boundary FE
+	{
+		typedef NeumannBoundaryFE<TDomain> T;
+		typedef NeumannBoundaryBase<TDomain> TBase;
+		string name = string("NeumannBoundaryFE").append(suffix);
+		reg.add_class_<T, TBase >(name, elemGrp)
+			.template add_constructor<void (*)(const char*)>("Function")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "NeumannBoundaryFE", tag);
 	}
 
 //	Inner Boundaries

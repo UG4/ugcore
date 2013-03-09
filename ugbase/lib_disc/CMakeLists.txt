@@ -37,6 +37,7 @@ set(srcDiscretization	domain_util.cpp
 						reference_element/reference_element.cpp
 			            reference_element/reference_mapping_provider.cpp
 						
+						quadrature/gauss_quad/gauss_quad_vertex.cpp
 						quadrature/gauss_quad/gauss_quad_edge.cpp
 						quadrature/gauss_quad/gauss_quad_triangle.cpp
 						quadrature/gauss_quad/gauss_quad_quadrilateral.cpp
@@ -55,6 +56,7 @@ set(srcDiscretization	domain_util.cpp
 					
 						spatial_disc/subset_assemble_util.cpp
 						spatial_disc/elem_disc/elem_disc_interface.cpp
+						spatial_disc/disc_util/fe_geom.cpp
 						spatial_disc/disc_util/fvho_geom.cpp
 						spatial_disc/disc_util/fv1_geom.cpp
 						spatial_disc/disc_util/fvcr_geom.cpp
@@ -66,6 +68,7 @@ set(srcDiscretization	domain_util.cpp
 						spatial_disc/elem_disc/inner_boundary/inner_boundary_fv1.cpp
 						spatial_disc/elem_disc/neumann_boundary/neumann_boundary_base.cpp
 						spatial_disc/elem_disc/neumann_boundary/fv1/neumann_boundary_fv1.cpp
+						spatial_disc/elem_disc/neumann_boundary/fe/neumann_boundary_fe.cpp
 						spatial_disc/elem_disc/neumann_boundary/fv/neumann_boundary_fv.cpp)
 						
 						
