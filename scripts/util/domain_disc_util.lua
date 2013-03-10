@@ -99,6 +99,7 @@ function NavierStokesInflow(spMaster)
 	if 		discType == "fv1"  then return NavierStokesInflowFV1(spMaster)
 	elseif  discType == "fvcr" then return NavierStokesInflowFVCR(spMaster)
 	elseif  discType == "fv"   then return NavierStokesInflowFV(spMaster)
+	elseif  discType == "fe"   then return NavierStokesInflowFE(spMaster)
 	else 
 		print("NavierStokesInflow: no disc type '"..discType.."' available. Aborting")
 		exit();
