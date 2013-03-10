@@ -371,7 +371,7 @@ void NeumannBoundaryFV<Domain2d>::register_all_funcs(int order)
 				 register_func<Triangle, FVGeom >(); break;}
 		case 3:	{typedef FVGeometry<3, Triangle, dim> FVGeom;
 				 register_func<Triangle, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<2, dim> FVGeom;
+		default: {typedef DimFVGeometry<dim, 2> FVGeom;
 				 register_func<Triangle, FVGeom >(); break;}
 	}
 
@@ -383,7 +383,7 @@ void NeumannBoundaryFV<Domain2d>::register_all_funcs(int order)
 				 register_func<Quadrilateral, FVGeom >(); break;}
 		case 3:	{typedef FVGeometry<3, Quadrilateral, dim> FVGeom;
 				 register_func<Quadrilateral, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<2, dim> FVGeom;
+		default: {typedef DimFVGeometry<dim, 2> FVGeom;
 				  register_func<Quadrilateral, FVGeom >(); break;}
 	}
 }
@@ -400,7 +400,7 @@ void NeumannBoundaryFV<Domain3d>::register_all_funcs(int order)
 				 register_func<Tetrahedron, FVGeom >(); break;}
 		case 3:	{typedef FVGeometry<3, Tetrahedron, dim> FVGeom;
 				 register_func<Tetrahedron, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<3, dim> FVGeom;
+		default: {typedef DimFVGeometry<dim, 3> FVGeom;
 				  register_func<Tetrahedron, FVGeom >(); break;}
 	}
 
@@ -408,7 +408,7 @@ void NeumannBoundaryFV<Domain3d>::register_all_funcs(int order)
 	switch(order) {
 		case 1:	{typedef FVGeometry<1, Prism, dim> FVGeom;
 				 register_func<Prism, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<3, dim> FVGeom;
+		default: {typedef DimFVGeometry<dim, 3> FVGeom;
 				  register_func<Prism, FVGeom >(); break;}
 	}
 
@@ -421,7 +421,7 @@ void NeumannBoundaryFV<Domain3d>::register_all_funcs(int order)
 				 register_func<Hexahedron, FVGeom >(); break;}
 		case 3:	{typedef FVGeometry<3, Hexahedron, dim> FVGeom;
 				 register_func<Hexahedron, FVGeom >(); break;}
-		default: {typedef DimFVGeometry<3, dim> FVGeom;
+		default: {typedef DimFVGeometry<dim, 3> FVGeom;
 				  register_func<Hexahedron, FVGeom >(); break;}
 	}
 }

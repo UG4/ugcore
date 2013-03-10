@@ -1907,11 +1907,11 @@ template class FVGeometry<3, Hexahedron, 3>;
 //////////////////////
 // DimFVGeometry
 //template class DimFVGeometry<1, 1>;
-//template class DimFVGeometry<1, 2>;
-//template class DimFVGeometry<1, 3>;
+//template class DimFVGeometry<2, 1>;
+//template class DimFVGeometry<3, 1>;
 
 template class DimFVGeometry<2, 2>;
-template class DimFVGeometry<2, 3>;
+template class DimFVGeometry<3, 2>;
 
 template class DimFVGeometry<3, 3>;
 

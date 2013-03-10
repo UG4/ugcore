@@ -653,7 +653,7 @@ class FVGeometry : public FVGeometryBase
  * \tparam	TDim		reference element dim
  * \tparam	TWorldDim	(physical) world dimension
  */
-template <int TDim, int TWorldDim = TDim>
+template <int TWorldDim, int TDim = TWorldDim>
 class DimFVGeometry : public FVGeometryBase
 {
 	public:
@@ -764,7 +764,7 @@ class DimFVGeometry : public FVGeometryBase
 
 			private:
 			// 	let outer class access private members
-				friend class DimFVGeometry<dim, worldDim>;
+				friend class DimFVGeometry<worldDim, dim>;
 
 			// This scvf separates the scv with the ids given in "from" and "to"
 			// The computed normal points in direction from->to
@@ -877,7 +877,7 @@ class DimFVGeometry : public FVGeometryBase
 
 			private:
 			// 	let outer class access private members
-				friend class DimFVGeometry<dim, worldDim>;
+				friend class DimFVGeometry<worldDim, dim>;
 
 			//  node id of associated node
 				size_t nodeId;
@@ -990,7 +990,7 @@ class DimFVGeometry : public FVGeometryBase
 
 			private:
 			/// let outer class access private members
-				friend class DimFVGeometry<dim, worldDim>;
+				friend class DimFVGeometry<worldDim, dim>;
 
 			// 	id of scv this bf belongs to
 				size_t nodeId;
