@@ -940,8 +940,8 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
+FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
 FVGeometry()
 	: m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()),
 	  m_rTrialSpace(Provider<local_shape_fct_set_type>::get()),
@@ -951,10 +951,10 @@ FVGeometry()
 	update_local_data();
 }
 
-template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
-update_local(ReferenceObjectID roid, int orderShape,
-                  int quadOrderSCVF, int quadOrderSCV)
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
+void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
+update_local(ReferenceObjectID roid, const LFEID& lfeID,
+                  size_t quadOrder)
 {
 	if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
 	{
@@ -962,26 +962,26 @@ update_local(ReferenceObjectID roid, int orderShape,
 				<<geometry_traits<TElem>::REFERENCE_OBJECT_ID<<", but "
 				<<roid<<" requested.");
 	}
-	if(orderShape != TOrder)
+	if(lfeID.type() != LFEID::LAGRANGE)
+	{
+		UG_THROW("FVGeometry::update: Geometry only for shape type"
+				<<"Lagrange"<<", but "<<lfeID.type()<<" requested.");
+	}
+	if(lfeID.order() != TOrder)
 	{
 		UG_THROW("FVGeometry::update: Geometry only for shape order"
-				<<TOrder<<", but "<<orderShape<<" requested.");
+				<<TOrder<<", but "<<lfeID.order()<<" requested.");
 	}
-	if(quadOrderSCVF > TQuadOrderSCVF)
+	if(quadOrder > TQuadOrder)
 	{
 		UG_THROW("FVGeometry::update: Geometry only for scvf integration order "
-				<< TQuadOrderSCVF<<", but order "<<quadOrderSCVF<<" requested.");
-	}
-	if(quadOrderSCV > TQuadOrderSCV)
-	{
-		UG_THROW("FVGeometry::update: Geometry only for scv integration order "
-				<< TQuadOrderSCV<<", but order "<<quadOrderSCV<<" requested.");
+				<< TQuadOrder<<", but order "<<quadOrder<<" requested.");
 	}
 }
 
 
-template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
+void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
 update_local_data()
 {
 //	get reference object id
@@ -1117,8 +1117,8 @@ update_local_data()
 
 
 /// update data for given element
-template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
+void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
 update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
@@ -1232,8 +1232,8 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
-template <int TOrder, typename TElem, int TWorldDim, int TQuadOrderSCVF, int TQuadOrderSCV>
-void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>::
+template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
+void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
 update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
@@ -1383,13 +1383,14 @@ DimFVGeometry()	: m_pElem(NULL) {}
 
 template <int TDim, int TWorldDim>
 void DimFVGeometry<TDim, TWorldDim>::
-update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quadOrderSCV)
+update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 {
 //	save setting we prepare the local data for
 	m_roid = roid;
-	m_orderShape = orderShape;
-	m_quadOrderSCVF = quadOrderSCVF;
-	m_quadOrderSCV = quadOrderSCV;
+	m_lfeID = lfeID;
+	m_orderShape = m_lfeID.order();
+	m_quadOrderSCVF = orderQuad;
+	m_quadOrderSCV = orderQuad;
 
 //	resize sub elements
 	m_numSubElem = NumSubElements(m_roid, m_orderShape);
@@ -1456,7 +1457,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 
 //	get trial space
 	const LocalShapeFunctionSet<dim>& rTrialSpace =
-		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
+		LocalShapeFunctionSetProvider::get<dim>(m_roid, m_lfeID);
 
 //	request for quadrature rule
 	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
@@ -1609,7 +1610,7 @@ update_local(ReferenceObjectID roid, int orderShape, int quadOrderSCVF, int quad
 template <int TDim, int TWorldDim>
 void DimFVGeometry<TDim, TWorldDim>::
 update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
-       int orderShape, int quadOrderSCVF, int quadOrderSCV,
+       const LFEID& lfeID, size_t quadOrder,
        const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
@@ -1619,9 +1620,9 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 	ReferenceObjectID roid = (ReferenceObjectID)pElem->reference_object_id();
 
 //	if already prepared for this roid, skip update of local values
-	if(m_roid != roid || orderShape != m_orderShape ||
-	   quadOrderSCVF != m_quadOrderSCVF || quadOrderSCV != m_quadOrderSCV)
-			update_local(roid, orderShape, quadOrderSCVF, quadOrderSCV);
+	if(m_roid != roid || lfeID != m_lfeID ||
+	   quadOrder != m_quadOrderSCVF || quadOrder != m_quadOrderSCV)
+			update_local(roid, lfeID, quadOrder);
 
 //	get reference element mapping
 	try{

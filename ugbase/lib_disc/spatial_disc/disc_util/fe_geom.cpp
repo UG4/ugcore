@@ -41,7 +41,7 @@ DimFEGeometry(ReferenceObjectID roid, size_t order, LFEID lfeid) :
 template <int TWorldDim, int TRefDim>
 void
 DimFEGeometry<TWorldDim,TRefDim>::
-update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
+update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 {
 //	remember current setting
 	m_roid = roid;
@@ -99,7 +99,7 @@ template <int TWorldDim, int TRefDim>
 void
 DimFEGeometry<TWorldDim,TRefDim>::
 update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
-			LFEID lfeID, size_t orderQuad)
+		const LFEID& lfeID, size_t orderQuad)
 {
 //	check if same element
 	if(pElem == m_pElem) return;

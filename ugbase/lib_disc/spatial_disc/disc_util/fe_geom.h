@@ -100,7 +100,10 @@ class FEGeometry
 
 	public:
 	/// update Geometry for roid
-		void update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad);
+		void update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad);
+		void update_local(ReferenceObjectID roid, const LFEID& lfeID){
+			update_local(roid, lfeID, 2*lfeID.order() + 1);
+		}
 
 	/// update Geometry for corners
 		void update(TElem* pElem, const MathVector<worldDim>* vCorner)
@@ -110,7 +113,11 @@ class FEGeometry
 
 	/// update Geometry for corners
 		void update(TElem* pElem, const MathVector<worldDim>* vCorner,
-		            LFEID lfeID, size_t orderQuad);
+		            const LFEID& lfeID, size_t orderQuad);
+		void update(TElem* pElem, const MathVector<worldDim>* vCorner,
+		            const LFEID& lfeID){
+			update(pElem, vCorner, lfeID, 2*lfeID.order() + 1);
+		}
 
 	protected:
 	///	current element
@@ -227,7 +234,10 @@ class DimFEGeometry
 		}
 
 	/// update Geometry for roid
-		void update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad);
+		void update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad);
+		void update_local(ReferenceObjectID roid, const LFEID& lfeID){
+			update_local(roid, lfeID, 2*lfeID.order() + 1);
+		}
 
 	/// update Geometry for corners
 		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
@@ -237,7 +247,11 @@ class DimFEGeometry
 
 	/// update Geometry for corners
 		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
-					LFEID lfeID, size_t orderQuad);
+					const LFEID& lfeID, size_t orderQuad);
+		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
+					const LFEID& lfeID){
+			update(pElem, vCorner, lfeID, 2*lfeID.order() + 1);
+		}
 
 	public:
 		///	boundary face

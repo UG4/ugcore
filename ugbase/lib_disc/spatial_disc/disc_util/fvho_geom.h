@@ -42,7 +42,7 @@ namespace ug{
  * \tparam	TQuadOrderSCV	integration order for scv
  */
 template <	int TOrder, typename TElem, int TWorldDim,
-			int TQuadOrderSCVF = TOrder + 1, int TQuadOrderSCV = TOrder + 1>
+			int TQuadOrder = TOrder + 1>
 class FVGeometry : public FVGeometryBase
 {
 	private:
@@ -83,7 +83,7 @@ class FVGeometry : public FVGeometryBase
 		static const size_t numSCVF = numSubElem * numSCVFPerSubElem;
 
 	///	quadrature order
-		static const int quadOrderSCVF = TQuadOrderSCVF;
+		static const int quadOrderSCVF = TQuadOrder;
 
 	///	type of quadrature rule
 		typedef GaussQuadrature<scvf_type, quadOrderSCVF> scvf_quad_rule_type;
@@ -102,7 +102,7 @@ class FVGeometry : public FVGeometryBase
 		static const size_t numSCV = numSubElem * numSCVPerSubElem;
 
 	///	quadrature order
-		static const int quadOrderSCV = TQuadOrderSCV;
+		static const int quadOrderSCV = TQuadOrder;
 
 	///	type of quadrature rule
 		typedef GaussQuadrature<scv_type, quadOrderSCV> scv_quad_rule_type;
@@ -211,7 +211,7 @@ class FVGeometry : public FVGeometryBase
 
 			private:
 			// 	let outer class access private members
-				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>;
+				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>;
 
 			// This scvf separates the scv with the ids given in "from" and "to"
 			// The computed normal points in direction from->to
@@ -325,7 +325,7 @@ class FVGeometry : public FVGeometryBase
 
 			private:
 			// 	let outer class access private members
-				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>;
+				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>;
 
 			//  node id of associated node
 				size_t nodeId;
@@ -439,7 +439,7 @@ class FVGeometry : public FVGeometryBase
 
 			private:
 			/// let outer class access private members
-				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrderSCVF, TQuadOrderSCV>;
+				friend class FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>;
 
 			// 	id of scv this bf belongs to
 				size_t nodeId;
@@ -477,9 +477,8 @@ class FVGeometry : public FVGeometryBase
 
 	/// update Geometry for roid
 		void update_local(ReferenceObjectID roid,
-		                  int orderShape = TOrder,
-		                  int quadOrderSCVF = TQuadOrderSCVF,
-		                  int quadOrderSCV = TQuadOrderSCV);
+		                  const LFEID& lfeID = LFEID(LFEID::LAGRANGE, 1),
+		                  size_t orderQuad = TQuadOrder);
 
 	/// update data for given element
 		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
@@ -1026,24 +1025,22 @@ class DimFVGeometry : public FVGeometryBase
 		DimFVGeometry();
 
 	///	update local data
-		void update_local(ReferenceObjectID roid, int orderShape,
-		                  int quadOrderSCVF, int quadOrderSCV);
-		void update_local(ReferenceObjectID roid, int orderShape)
+		void update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad);
+		void update_local(ReferenceObjectID roid, const LFEID& lfeID)
 		{
-			update_local(roid, orderShape, orderShape + 1, orderShape + 1);
+			update_local(roid, lfeID, lfeID.order() + 1);
 		}
 
 	/// update data for given element
 		void update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL)
 		{
-			update(pElem, vCornerCoords,
-			       m_orderShape, m_quadOrderSCVF, m_quadOrderSCV, ish);
+			update(pElem, vCornerCoords, m_lfeID, m_quadOrderSCV, ish);
 		}
 
 	/// update data for given element
 		void update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
-		            int orderShape, int quadOrderSCVF, int quadOrderSCV,
+		            const LFEID& lfeID, size_t orderQuad,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
@@ -1186,6 +1183,9 @@ class DimFVGeometry : public FVGeometryBase
 
 	///	current order
 		int m_orderShape;
+
+	///	current trial space
+		LFEID m_lfeID;
 
 	///	current number of subelements
 		size_t m_numSubElem;

@@ -124,7 +124,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 
 	try{
-		geo.update_local(roid, m_order);
+		geo.update_local(roid, m_lfeID);
 	}
 	UG_CATCH_THROW("NeumannBoundary::prep_elem_loop:"
 						" Cannot update Finite Volume Geometry.");

@@ -33,7 +33,7 @@ template <	typename TElem,	int TWorldDim,
 			typename TTrialSpace, typename TQuadratureRule>
 void
 FEGeometry<TElem,TWorldDim,TTrialSpace,TQuadratureRule>::
-update_local(ReferenceObjectID roid, LFEID lfeID, size_t orderQuad)
+update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 {
 	if(roid != geometry_traits<TElem>::REFERENCE_OBJECT_ID)
 		UG_THROW("FEGeometry::update: Geometry only for "
@@ -55,7 +55,7 @@ template <	typename TElem,	int TWorldDim,
 void
 FEGeometry<TElem,TWorldDim,TTrialSpace,TQuadratureRule>::
 update(TElem* pElem, const MathVector<worldDim>* vCorner,
-            LFEID lfeID, size_t orderQuad)
+       const LFEID& lfeID, size_t orderQuad)
 {
 //	check
 	UG_ASSERT(lfeID == m_rTrialSpace.type(), "Wrong type requested.");
