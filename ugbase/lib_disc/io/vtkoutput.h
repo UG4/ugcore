@@ -10,6 +10,7 @@
 
 // extern libraries
 #include <vector>
+#include <map>
 
 // other ug modules
 #include "common/util/string_util.h"
@@ -626,16 +627,22 @@ class VTKOutput
 	protected:
 	///	scheduled components to be printed
 		bool m_bSelectAll;
-		std::vector<std::pair<std::vector<std::string>, std::string> > m_vSymbFctNodal;
-		std::vector<std::pair<std::vector<std::string>, std::string> > m_vSymbFctElem;
+		std::map<std::string, std::vector<std::string> > m_vSymbFctNodal;
+		std::map<std::string, std::vector<std::string> > m_vSymbFctElem;
+		typedef typename std::map<std::string,
+				std::vector<std::string> >::iterator ComponentsIterator;
 
 	///	scheduled scalar data to be printed
-		std::vector<std::pair<SmartPtr<UserData<number, TDim> >,std::string> > m_vScalarNodalData;
-		std::vector<std::pair<SmartPtr<UserData<number, TDim> >,std::string> > m_vScalarElemData;
+		std::map<std::string, SmartPtr<UserData<number, TDim> > > m_vScalarNodalData;
+		std::map<std::string, SmartPtr<UserData<number, TDim> > > m_vScalarElemData;
+		typedef typename std::map<std::string,
+				SmartPtr<UserData<number, TDim> > >::iterator ScalarDataIterator;
 
 	///	scheduled vector data to be printed
-		std::vector<std::pair<SmartPtr<UserData<MathVector<TDim>, TDim> >,std::string> > m_vVectorNodalData;
-		std::vector<std::pair<SmartPtr<UserData<MathVector<TDim>, TDim> >,std::string> > m_vVectorElemData;
+		std::map<std::string, SmartPtr<UserData<MathVector<TDim>, TDim> > > m_vVectorNodalData;
+		std::map<std::string, SmartPtr<UserData<MathVector<TDim>, TDim> > > m_vVectorElemData;
+		typedef typename std::map<std::string,
+				SmartPtr<UserData<MathVector<TDim>, TDim> > >::iterator VectorDataIterator;
 
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;

@@ -460,8 +460,6 @@ write_points(VTKFileWriter& File,
 	int n = 3*sizeof(float) * numVert;
 	if(binary)
 		File << VTKFileWriter::base64_binary << n;
-//	else
-//		File << VTKFileWriter::normal << 3*numVert << ' ';
 
 //	reset counter for vertices
 	n = 0;
@@ -602,8 +600,6 @@ write_cell_connectivity(VTKFileWriter& File,
 
 	if(binary)
 		File << VTKFileWriter::base64_binary << n;
-//	else
-//		File << numConn << ' ';
 //	switch dimension
 	if(numConn > 0){
 		switch(dim)
@@ -677,8 +673,6 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 	int n = sizeof(int) * numElem;
 	if(binary)
 		File << VTKFileWriter::base64_binary << n;
-//	else
-//		File << numElem << ' ';
 
 	n = 0;
 //	switch dimension
@@ -767,8 +761,6 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
 	if(binary)
 		File << VTKFileWriter::base64_binary << numElem;
-//	else
-//		File << numElem << ' ';
 
 //	switch dimension
 	if(numElem > 0)
@@ -914,8 +906,6 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 	int n = sizeof(float) * numVert * numCmp;
 	if(binary)
 		File << VTKFileWriter::base64_binary << n;
-//	else
-//		File << numVert*numCmp << ' ';
 
 //	start marking of grid
 	grid.begin_marking();
@@ -1043,8 +1033,6 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 	int n = sizeof(float) * numVert * (vFct.size() == 1 ? 1 : 3);
 	if(binary)
 		File << VTKFileWriter::base64_binary << n;
-//	else
-//		File << n /sizeof(float)<< ' ';
 
 //	start marking of grid
 	grid.begin_marking();
@@ -1094,11 +1082,12 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	File << "      <PointData>\n";
 
 //	loop all selected symbolic names
-	for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
+	for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
+			m_vSymbFctNodal.begin(); iter != m_vSymbFctNodal.end(); ++iter)
 	{
 	//	get symb function
-		const std::vector<std::string>& symbNames = m_vSymbFctNodal[sym].first;
-		const std::string& vtkName = m_vSymbFctNodal[sym].second;
+		const std::vector<std::string>& symbNames = (*iter).second;
+		const std::string& vtkName = (*iter).first;
 
 	//	create function group
 		std::vector<size_t> fctGrp(symbNames.size());
@@ -1121,11 +1110,12 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	}
 
 //	loop all scalar data
-	for(size_t data = 0; data < m_vScalarNodalData.size(); ++data)
+	for(ScalarDataIterator iter = m_vScalarNodalData.begin();
+			iter != m_vScalarNodalData.end(); ++iter)
 	{
 	//	get symb function
-		SmartPtr<UserData<number,TDim> > spData = m_vScalarNodalData[data].first;
-		const std::string& vtkName = m_vScalarNodalData[data].second;
+		SmartPtr<UserData<number,TDim> > spData = (*iter).second;
+		const std::string& vtkName = (*iter).first;
 
 	//	write scalar value of this data
 		try{
@@ -1136,11 +1126,12 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	}
 
 //	loop all vector data
-	for(size_t data = 0; data < m_vVectorNodalData.size(); ++data)
+	for(VectorDataIterator	iter = m_vVectorNodalData.begin();
+			iter != m_vVectorNodalData.end(); ++iter)
 	{
 	//	get symb function
-		SmartPtr<UserData<MathVector<TDim>,TDim> > spData = m_vVectorNodalData[data].first;
-		const std::string& vtkName = m_vVectorNodalData[data].second;
+		SmartPtr<UserData<MathVector<TDim>,TDim> > spData = (*iter).second;
+		const std::string& vtkName = (*iter).first;
 
 	//	write scalar value of this data
 		try{
@@ -1265,8 +1256,6 @@ write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 	int n = sizeof(float) * numElem * numCmp;
 	if(binary)
 		File << VTKFileWriter::base64_binary << n;
-//	else
-//		File << numElem*numCmp << ' ';
 
 //	switch dimension
 	switch(dim)
@@ -1400,8 +1389,6 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
 	int n = sizeof(float) * numElem * (vFct.size() == 1 ? 1 : 3);
 	if(binary)
 		File << VTKFileWriter::base64_binary << n;
-//	else
-//		File << n/sizeof() << ' ';
 
 //	switch dimension
 	switch(dim)
@@ -1444,11 +1431,12 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	File << "      <CellData>\n";
 
 //	loop all selected symbolic names
-	for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
+	for(ComponentsIterator iter = m_vSymbFctElem.begin();
+			iter != m_vSymbFctElem.end(); ++iter)
 	{
 	//	get symb function
-		const std::vector<std::string>& symbNames = m_vSymbFctElem[sym].first;
-		const std::string& vtkName = m_vSymbFctElem[sym].second;
+		const std::vector<std::string>& symbNames = (*iter).second;
+		const std::string& vtkName = (*iter).first;
 
 	//	create function group
 		std::vector<size_t> fctGrp(symbNames.size());
@@ -1471,11 +1459,12 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	}
 
 //	loop all scalar data
-	for(size_t data = 0; data < m_vScalarElemData.size(); ++data)
+	for(ScalarDataIterator iter = m_vScalarElemData.begin();
+			iter != m_vScalarElemData.end(); ++iter)
 	{
 	//	get symb function
-		SmartPtr<UserData<number,TDim> > spData = m_vScalarElemData[data].first;
-		const std::string& vtkName = m_vScalarElemData[data].second;
+		SmartPtr<UserData<number,TDim> > spData = (*iter).second;
+		const std::string& vtkName = (*iter).first;
 
 	//	write scalar value of this data
 		try{
@@ -1486,11 +1475,12 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	}
 
 //	loop all vector data
-	for(size_t data = 0; data < m_vVectorElemData.size(); ++data)
+	for(VectorDataIterator iter = m_vVectorElemData.begin();
+			iter != m_vVectorElemData.end(); ++iter)
 	{
 	//	get symb function
-		SmartPtr<UserData<MathVector<TDim>,TDim> > spData = m_vVectorElemData[data].first;
-		const std::string& vtkName = m_vVectorElemData[data].second;
+		SmartPtr<UserData<MathVector<TDim>,TDim> > spData = (*iter).second;
+		const std::string& vtkName =  (*iter).first;
 
 	//	write scalar value of this data
 		try{
@@ -1556,11 +1546,13 @@ write_pvtu(TFunction& u, const std::string& filename,
 		if(!m_vSymbFctNodal.empty() || !m_vScalarNodalData.empty() || !m_vVectorNodalData.empty())
 		{
 			fprintf(file, "    <PPointData>\n");
-			for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
+//			for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
+			for(ComponentsIterator iter = m_vSymbFctNodal.begin();
+					iter != m_vSymbFctNodal.end(); ++iter)
 			{
 			//	get symb function
-				const std::vector<std::string>& symbNames = m_vSymbFctNodal[sym].first;
-				const std::string& vtkName = m_vSymbFctNodal[sym].second;
+				const std::vector<std::string>& symbNames = (*iter).second;
+				const std::string& vtkName = (*iter).first;
 
 			//	create function group
 				std::vector<size_t> fctGrp(symbNames.size());
@@ -1581,10 +1573,12 @@ write_pvtu(TFunction& u, const std::string& filename,
 			}
 
 		//	loop all scalar data
-			for(size_t data = 0; data < m_vScalarNodalData.size(); ++data)
+//			for(size_t data = 0; data < m_vScalarNodalData.size(); ++data)
+			for(ScalarDataIterator iter = m_vScalarNodalData.begin();
+					iter != m_vScalarNodalData.end(); ++iter)
 			{
 			//	get symb function
-				const std::string& vtkName = m_vScalarNodalData[data].second;
+				const std::string& vtkName = (*iter).first;
 
 				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
 							  "NumberOfComponents=\"%d\"/>\n",
@@ -1592,10 +1586,12 @@ write_pvtu(TFunction& u, const std::string& filename,
 			}
 
 		//	loop all vector data
-			for(size_t data = 0; data < m_vVectorNodalData.size(); ++data)
+//			for(size_t data = 0; data < m_vVectorNodalData.size(); ++data)
+			for(VectorDataIterator iter = m_vVectorNodalData.begin();
+					iter != m_vVectorNodalData.end(); ++iter)
 			{
 			//	get symb function
-				const std::string& vtkName = m_vVectorNodalData[data].second;
+				const std::string& vtkName = (*iter).first;
 
 				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
 							  "NumberOfComponents=\"%d\"/>\n",
@@ -1608,11 +1604,13 @@ write_pvtu(TFunction& u, const std::string& filename,
 		if(!m_vSymbFctElem.empty() || !m_vScalarElemData.empty() || !m_vVectorElemData.empty())
 		{
 			fprintf(file, "    <PCellData>\n");
-			for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
+//			for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
+			for(ComponentsIterator iter = m_vSymbFctElem.begin();
+					iter != m_vSymbFctElem.end(); ++iter)
 			{
 			//	get symb function
-				const std::vector<std::string>& symbNames = m_vSymbFctElem[sym].first;
-				const std::string& vtkName = m_vSymbFctElem[sym].second;
+				const std::vector<std::string>& symbNames = (*iter).second;//m_vSymbFctElem[sym].first;
+				const std::string& vtkName = (*iter).first;//m_vSymbFctElem[sym].second;
 
 			//	create function group
 				std::vector<size_t> fctGrp(symbNames.size());
@@ -1633,10 +1631,11 @@ write_pvtu(TFunction& u, const std::string& filename,
 			}
 
 		//	loop all scalar data
-			for(size_t data = 0; data < m_vScalarElemData.size(); ++data)
+			for(ScalarDataIterator iter = m_vScalarElemData.begin();
+					iter != m_vScalarElemData.end(); ++iter)
 			{
 			//	get symb function
-				const std::string& vtkName = m_vScalarElemData[data].second;
+				const std::string& vtkName = (*iter).first;
 
 				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
 							  "NumberOfComponents=\"%d\"/>\n",
@@ -1644,10 +1643,11 @@ write_pvtu(TFunction& u, const std::string& filename,
 			}
 
 		//	loop all vector data
-			for(size_t data = 0; data < m_vVectorElemData.size(); ++data)
+			for(VectorDataIterator iter = m_vVectorElemData.begin();
+					iter != m_vVectorElemData.end(); ++iter)
 			{
 			//	get symb function
-				const std::string& vtkName = m_vVectorElemData[data].second;
+				const std::string& vtkName = (*iter).first;
 
 				fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
 							  "NumberOfComponents=\"%d\"/>\n",

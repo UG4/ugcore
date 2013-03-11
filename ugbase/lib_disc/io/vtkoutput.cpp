@@ -363,7 +363,7 @@ select_nodal(const std::vector<std::string>& vFct, const char* name)
 		UG_THROW("VTK:select_nodal: Using name " << name <<
 				   " that is already used by other data is not allowed.");
 
-	m_vSymbFctNodal.push_back(std::pair<std::vector<std::string>, std::string>(vFct, name));
+	m_vSymbFctNodal[name] = vFct;
 }
 
 template <int TDim>
@@ -393,7 +393,7 @@ select_nodal(SmartPtr<UserData<number, TDim> > spData, const char* name)
 		UG_THROW("VTK:select_nodal: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vScalarNodalData.push_back(std::pair<SmartPtr<UserData<number, TDim> >,std::string>(spData, name));
+	m_vScalarNodalData[name] = spData;
 }
 
 template <int TDim>
@@ -408,7 +408,7 @@ select_nodal(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* nam
 		UG_THROW("VTK:select_nodal: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vVectorNodalData.push_back(std::pair<SmartPtr<UserData<MathVector<TDim>, TDim> >,std::string>(spData, name));
+	m_vVectorNodalData[name] = spData;
 }
 
 
@@ -439,7 +439,7 @@ select_element(const std::vector<std::string>& vFct, const char* name)
 		UG_THROW("VTK:select_element: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vSymbFctElem.push_back(std::pair<std::vector<std::string>, std::string>(vFct, name));
+	m_vSymbFctElem[name] = vFct;
 }
 
 
@@ -467,7 +467,7 @@ select_element(SmartPtr<UserData<number, TDim> > spData, const char* name)
 		UG_THROW("VTK:select_element: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vScalarElemData.push_back(std::pair<SmartPtr<UserData<number, TDim> >,std::string>(spData, name));
+	m_vScalarElemData[name] = spData;
 }
 
 template <int TDim>
@@ -482,36 +482,30 @@ select_element(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* n
 		UG_THROW("VTK:select_element: Using name " << name <<
 			       " that is already used by other data is not allowed.");
 
-	m_vVectorElemData.push_back(std::pair<SmartPtr<UserData<MathVector<TDim>, TDim> >,std::string>(spData, name));
+	m_vVectorElemData[name] = spData;
 }
 
 template <int TDim>
 bool VTKOutput<TDim>::
 vtk_name_used(const char* name) const
 {
-	for(size_t j = 0; j < m_vSymbFctNodal.size(); ++j)
-		if(m_vSymbFctNodal[j].second == name)
-			return true;
+	if (m_vSymbFctNodal.find(name) != m_vSymbFctNodal.end())
+		return true;
 
-	for(size_t j = 0; j < m_vScalarNodalData.size(); ++j)
-		if(m_vScalarNodalData[j].second == name)
-			return true;
+	if (m_vScalarNodalData.find(name) != m_vScalarNodalData.end())
+		return true;
 
-	for(size_t j = 0; j < m_vVectorNodalData.size(); ++j)
-		if(m_vVectorNodalData[j].second == name)
-			return true;
+	if (m_vVectorNodalData.find(name) != m_vVectorNodalData.end())
+		return true;
 
-	for(size_t j = 0; j < m_vSymbFctElem.size(); ++j)
-		if(m_vSymbFctElem[j].second == name)
-			return true;
+	if (m_vSymbFctElem.find(name) != m_vSymbFctElem.end())
+		return true;
 
-	for(size_t j = 0; j < m_vScalarElemData.size(); ++j)
-		if(m_vScalarElemData[j].second == name)
-			return true;
+	if (m_vScalarElemData.find(name) != m_vScalarElemData.end())
+		return true;
 
-	for(size_t j = 0; j < m_vVectorElemData.size(); ++j)
-		if(m_vVectorElemData[j].second == name)
-			return true;
+	if (m_vVectorElemData.find(name) != m_vVectorElemData.end())
+		return true;
 
 	return false;
 }
