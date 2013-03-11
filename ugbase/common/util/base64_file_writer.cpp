@@ -42,6 +42,11 @@ namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC FUNCTIONS
+
+Base64FileWriter::fmtflag Base64FileWriter::format() const {
+	return m_currFormat;
+}
+
 Base64FileWriter& Base64FileWriter::operator<<(const fmtflag format)
 {
 	PROFILE_FUNC();
@@ -192,12 +197,11 @@ inline void Base64FileWriter::assertFileOpen()
 void Base64FileWriter::flushInputBuffer(bool force)
 {
 	PROFILE_FUNC();
-	if(m_lastInputByteSize == 0)
-		UG_THROW("last input byte size unknown");
 
 	size_t buff_len = 0;
 	// amount of elements to flush at once
 	const uint elements_to_flush = 32;
+	// in case of normal format, no input size is known, so this evals to zero.
 	const uint bytes_to_flush = 3 * m_lastInputByteSize * elements_to_flush;
 
 	// if force, flush all bytes in input stream

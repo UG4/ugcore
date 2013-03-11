@@ -85,6 +85,11 @@ public:
 			const std::ios_base::openmode mode = std::ios_base::out );
 
 	/**
+	 * \brief gets the current set format
+	 */
+	fmtflag format() const;
+
+	/**
 	 * \brief Closes the file writer properly and encodes any remaining buffer content
 	 */
 	void close();
