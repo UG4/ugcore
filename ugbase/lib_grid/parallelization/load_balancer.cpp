@@ -257,6 +257,7 @@ template<int dim>
 void LoadBalancer<dim>::
 rebalance()
 {
+	UG_DLOG(LIB_GRID, 1, "LoadBalancer-start rebalance\n");
 	if(!m_partitioner.valid()){
 		UG_THROW("LoadBalancer::rebalance can only be performed with a valid partitioner!");
 	}
@@ -285,6 +286,7 @@ rebalance()
 	{
 		UG_THROW("DistributeGrid failed!");
 	}
+	UG_DLOG(LIB_GRID, 1, "LoadBalancer-stop rebalance\n");
 }
 
 

@@ -502,7 +502,7 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 		{
 			int intfcType = parentInfo.get_interface_type(iter);
 			if(!(intfcType & (ES_V_MASTER | ES_V_SLAVE))){
-				UG_DLOG(LIB_GRID, 3, parentInfo.get_target_proc(iter) << ", ");
+				//UG_DLOG(LIB_GRID, 3, parentInfo.get_target_proc(iter) << ", ");
 				elemMap.insert(make_pair(parentInfo.get_local_id(iter),
 						ScheduledElement(elem, parentInfo.get_target_proc(iter))));
 			}
@@ -578,32 +578,32 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 		switch(parentType)
 		{
 			case VERTEX:
-				UG_DLOG(LIB_GRID, 3, "scheduling element with vertex-parent to interfaces ");
+				//UG_DLOG(LIB_GRID, 3, "scheduling element with vertex-parent to interfaces ");
 				schedule_element_for_insertion(m_vrtMap,
 												pElem,
 												(VertexBase*)pParent);
-				UG_DLOG(LIB_GRID, 3, endl);
+				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
 				
 			case EDGE:
-				UG_DLOG(LIB_GRID, 3, "scheduling element with edge-parent to interfaces ");
+				//UG_DLOG(LIB_GRID, 3, "scheduling element with edge-parent to interfaces ");
 				schedule_element_for_insertion(m_edgeMap, pElem,
 												(EdgeBase*)pParent);
-				UG_DLOG(LIB_GRID, 3, endl);
+				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
 
 			case FACE:
-				UG_DLOG(LIB_GRID, 3, "scheduling element with face-parent to interfaces ");
+				//UG_DLOG(LIB_GRID, 3, "scheduling element with face-parent to interfaces ");
 				schedule_element_for_insertion(m_faceMap, pElem,
 												(Face*)pParent);
-				UG_DLOG(LIB_GRID, 3, endl);
+				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
 
 			case VOLUME:
-				UG_DLOG(LIB_GRID, 3, "scheduling element with volume-parent to interfaces ");
+				//UG_DLOG(LIB_GRID, 3, "scheduling element with volume-parent to interfaces ");
 				schedule_element_for_insertion(m_volMap, pElem,
 												(Volume*)pParent);
-				UG_DLOG(LIB_GRID, 3, endl);
+				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
 		}
 	}

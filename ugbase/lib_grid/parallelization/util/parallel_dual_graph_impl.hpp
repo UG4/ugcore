@@ -124,6 +124,7 @@ template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
 void ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 generate_graph(int level, pcl::ProcessCommunicator procCom)
 {
+	UG_DLOG(LIB_GRID, 1, "ParallelDualGraph-start generate_graph\n");
 	UG_ASSERT(m_pMG, "A MultiGrid has to be set!");
 
 	using namespace std;
@@ -153,36 +154,40 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	}
 
 //	generate the nodeOffsetMap and determine the localNodeOffset
+	UG_DLOG(LIB_GRID, 2, "ParallelDualGraph-generate_graph: gathering element numbers\n");
 	m_nodeOffsetMap.clear();
 	int localNodeOffset = 0;
 
-	int numElemsTmp = (int)numElems;
-	vector<int> elemCounts(procCom.size());
-	procCom.allgather(&numElemsTmp, 1, PCL_DT_INT,
-					  &elemCounts.front(), 1, PCL_DT_INT);
+	if(!procCom.empty()){
+		int numElemsTmp = (int)numElems;
+		vector<int> elemCounts(procCom.size());
+			procCom.allgather(&numElemsTmp, 1, PCL_DT_INT,
+							  &elemCounts.front(), 1, PCL_DT_INT);
 
-	m_nodeOffsetMap.resize(procCom.size() + 1);
-	int numElemsTotal = 0;
-	for(size_t i = 0; i < elemCounts.size(); ++i){
-		m_nodeOffsetMap[i] = numElemsTotal;
-		numElemsTotal += elemCounts[i];
-	}
-	m_nodeOffsetMap[elemCounts.size()] = numElemsTotal;
-	localNodeOffset = m_nodeOffsetMap[procCom.get_local_proc_id()];
+		m_nodeOffsetMap.resize(procCom.size() + 1);
+		int numElemsTotal = 0;
+		for(size_t i = 0; i < elemCounts.size(); ++i){
+			m_nodeOffsetMap[i] = numElemsTotal;
+			numElemsTotal += elemCounts[i];
+		}
+		m_nodeOffsetMap[elemCounts.size()] = numElemsTotal;
+		localNodeOffset = m_nodeOffsetMap[procCom.get_local_proc_id()];
 
-//	we have to gather indices of connected elements in connecting elements.
-//	This is required since we have to communicate those indices between distributed
-//	connecting elements.
-	typename Grid::traits<Elem>::secure_container elems;
-	for(ConElemIterator iter = mg.begin<ConElem>(level);
-		iter != mg.end<ConElem>(level); ++iter)
-	{
-		ConElem* ce = *iter;
-		aaConInds[ce].clear();
-		mg.associated_elements(elems, ce);
-		for(size_t i = 0; i < elems.size(); ++i){
-			if(aaInd[elems[i]] != -1)
-				aaConInds[ce].push_back(localNodeOffset + aaInd[elems[i]]);
+		UG_DLOG(LIB_GRID, 2, "ParallelDualGraph-generate_graph: gathering indices of connected elements\n");
+	//	we have to gather indices of connected elements in connecting elements.
+	//	This is required since we have to communicate those indices between distributed
+	//	connecting elements.
+		typename Grid::traits<Elem>::secure_container elems;
+		for(ConElemIterator iter = mg.begin<ConElem>(level);
+			iter != mg.end<ConElem>(level); ++iter)
+		{
+			ConElem* ce = *iter;
+			aaConInds[ce].clear();
+			mg.associated_elements(elems, ce);
+			for(size_t i = 0; i < elems.size(); ++i){
+				if(aaInd[elems[i]] != -1)
+					aaConInds[ce].push_back(localNodeOffset + aaInd[elems[i]]);
+			}
 		}
 	}
 
@@ -212,6 +217,7 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	}
 	com.communicate();
 
+	UG_DLOG(LIB_GRID, 2, "ParallelDualGraph-generate_graph: building adjacency structure\n");
 //	init the adjacencyMapStructure
 	m_adjacencyMapStructure.resize(numElems + 1);
 	m_adjacencyMap.clear();
@@ -258,6 +264,7 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 
 //	add the final element
 	m_adjacencyMapStructure[m_adjacencyMapStructure.size() - 1] = m_adjacencyMap.size();
+	UG_DLOG(LIB_GRID, 1, "ParallelDualGraph-stop generate_graph\n");
 }
 
 }// end of namespace
