@@ -455,6 +455,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 	//todo:	Not all siblings should have to be sent to the same process...
 	//		simply remove the following code block - make sure that surface-view supports this!
 	//		However, problems with discretizations and solvers would most likely occur.
+/*
 	{
 		UG_LOG("ATTENTION: Grouping siblings during partitioning. "
 				"Currently required for GMG only!\n");
@@ -490,7 +491,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 									compolSHCopy);
 		m_intfcCom.communicate();
 	}
-
+*/
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop partition_level_parmetis\n");
 }
 
