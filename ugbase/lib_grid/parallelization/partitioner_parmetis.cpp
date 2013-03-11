@@ -357,7 +357,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 							<< ", #edges: " << (int)pdg.num_graph_edges() << "\n");
 
 		pcl::ProcessCommunicator procCom = procComAll.
-									create_sub_communicator(pdg.num_graph_edges() > 0);
+									create_sub_communicator(pdg.num_graph_vertices() > 0);
 
 	//	partition the graph using parmetis
 		//idx_t partOptions[3] = {1, 1, 0};
