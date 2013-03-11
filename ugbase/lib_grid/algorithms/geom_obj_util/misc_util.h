@@ -105,6 +105,12 @@ number ElementDiameterSq(Grid& grid,
                          TAAPos& aaPos,
 					     TElem* elem);
 
+///	returns the maximal squared distance between to element vertices
+template <class TAAPos>
+number ElementDiameterSq(Grid& grid,
+                         TAAPos& aaPos,
+					     GeometricObject* elem);
+
 ///	returns the maximal distance between to element vertices
 template <class TElem, class TAAPos>
 number ElementDiameter(Grid& grid,

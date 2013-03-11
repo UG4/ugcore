@@ -161,13 +161,13 @@ class ElemGlobCornerCoords
 template <typename TElem, typename TDomain>
 number ElementDiameterSq(TElem& elem, TDomain& domain)
 {
-	return ElementDiameterSq(domain.grid(), domain.position_accessor(), &elem);
+	return ElementDiameterSq(*domain.grid(), domain.position_accessor(), &elem);
 }
 
 template <typename TElem, typename TDomain>
 number ElementDiameter(TElem& elem, TDomain& domain)
 {
-	return ElementDiameter(domain.grid(), domain.position_accessor(), &elem);
+	return ElementDiameter(*domain.grid(), domain.position_accessor(), &elem);
 }
 
 } // end namespace ug

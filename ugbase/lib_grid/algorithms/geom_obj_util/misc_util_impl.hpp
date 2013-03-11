@@ -206,6 +206,20 @@ number ElementDiameterSq(Grid& grid,
 	return max;
 }
 
+template <class TAAPos>
+number ElementDiameterSq(Grid& grid,
+						 TAAPos& aaPos,
+						 GeometricObject* elem)
+{
+	switch(elem->base_object_id()){
+		case VERTEX: return ElementDiameterSq(grid, aaPos, static_cast<VertexBase*>(elem));
+		case EDGE: return ElementDiameterSq(grid, aaPos, static_cast<EdgeBase*>(elem));
+		case FACE: return ElementDiameterSq(grid, aaPos, static_cast<Face*>(elem));
+		case VOLUME: return ElementDiameterSq(grid, aaPos, static_cast<Volume*>(elem));
+		default: UG_THROW("ElementDiameterSq: Element type not found.")
+	}
+}
+
 template <class TElem, class TAAPos>
 number ElementDiameter(Grid& grid,
                        TAAPos& aaPos,
