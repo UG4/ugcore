@@ -1458,6 +1458,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 		{volHash.add(*iter, (*paaID)[*iter]);}
 	}
 
+
 //	create the vertices and store them in vVrts for later indexing.
 	{
 		uint currentLevel = 0;
@@ -1927,7 +1928,8 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								Deserialize(in, id);
 								FaceHashIter hiter = faceHash.begin(id);
 								if(hiter != faceHash.end(id)){
-									assert(dynamic_cast<ConstrainedFace*>(*hiter));
+									UG_ASSERT(dynamic_cast<ConstrainedFace*>(*hiter),
+											"Face should be constrained! gid: " << id);
 									vFaces.push_back(*hiter);
 								//	make sure that its parent is registered
 									if(parent && (!mg.get_parent(*hiter)))

@@ -80,6 +80,15 @@ bool CheckHangingNodeConsistency(MultiGrid& mg);
 
 /**@}*/ // end of doxygen defgroup command
 
+
+///	Checks whether distributed objects have the same type on all processes.
+/**	Especially when constrained / constraining objects are present in a grid,
+ * it may be useful to check the types if errors occur during refinement / distribution.
+ *
+ * \return	true if all object types match, false if not.
+ */
+bool CheckDistributedObjectConstraintTypes(MultiGrid& mg);
+
 }//	end of namespace
 
 ////////////////////////////////////////

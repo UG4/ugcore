@@ -14,7 +14,7 @@
 #include "lib_grid/file_io/file_io.h"
 
 //#define LG_DISTRIBUTION_DEBUG
-//#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 0.1
+//#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 3
 
 using namespace std;
 
@@ -1405,10 +1405,6 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	COMMUNICATE INVOLVED PROCESSES
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: CommunicateInvolvedProcesses\n");
-	UG_LOG("num subsets in shPartition: " << shPartition.num_subsets() << endl);
-	if(processMap){
-		UG_LOG("num subsets in processMap: " << processMap->size() << endl);
-	}
 
 //	each process has to know with which other processes it
 //	has to communicate.

@@ -568,7 +568,8 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 //			.add_function("ExpandLayers3d", &ExpandFractures3d, grp);
 			
 	//	Debugging
-		reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp);
+		reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp)
+			.add_function("CheckDistributedObjectConstraintTypes", &CheckDistributedObjectConstraintTypes, grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

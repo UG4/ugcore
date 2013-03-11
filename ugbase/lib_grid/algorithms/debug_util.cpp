@@ -3,6 +3,15 @@
 // 13.01.2011 (m,d,y)
  
 #include "debug_util.h"
+#include "attachment_util.h"
+
+#ifdef UG_PARALLEL
+#include "lib_grid/parallelization/distributed_grid.h"
+#include "lib_grid/parallelization/util/compol_copy_attachment.h"
+#include "lib_grid/parallelization/util/compol_binary_or_attachment.h"
+#include "pcl/pcl.h"
+#endif
+
 using namespace std;
 
 namespace ug{
@@ -448,5 +457,99 @@ UG_LOG("3\n");
 	return isConsistent;
 }
 
-}// end of namespace
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+enum ConstraintTypes{
+	CT_NONE = 0,
+	CT_CONSTRAINING = 1,
+	CT_CONSTRAINED = 1 << 1
+};
+
+template <class TElem>
+static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
+{
+	typedef typename Grid::traits<TElem>::iterator ElemIter;
+	bool retVal = true;
+
+	AInt aState;
+	mg.attach_to<TElem>(aState);
+	Grid::AttachmentAccessor<TElem, AInt> aaState(mg, aState);
+
+//	set up local states
+	for(ElemIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
+		TElem* e = *iter;
+		aaState[e] = CT_NONE;
+		if(e->is_constraining())
+			aaState[e] |= CT_CONSTRAINING;
+		if(e->is_constrained())
+			aaState[e] |= CT_CONSTRAINED;
+	}
+
+//	communicate states
+	#ifdef UG_PARALLEL
+		typedef typename GridLayoutMap::Types<TElem>::Layout Layout;
+		pcl::InterfaceCommunicator<Layout> com;
+		DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+		GridLayoutMap& glm = distGridMgr.grid_layout_map();
+
+		ComPol_BinaryOrAttachment<Layout, AInt> compolOr(mg, aState);
+		com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compolOr);
+		com.communicate();
+
+		com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compolOr);
+		com.communicate();
+
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolOr);
+		com.communicate();
+
+		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compolOr);
+		com.communicate();
+
+		com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compolOr);
+		com.communicate();
+	#endif
+
+//	check whether communicated states match the actual element states on this proc.
+	for(ElemIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
+		TElem* e = *iter;
+		int state = CT_NONE;
+		if(e->is_constraining())
+			state |= CT_CONSTRAINING;
+		if(e->is_constrained())
+			state |= CT_CONSTRAINED;
+
+		if(state != aaState[e]){
+			UG_LOG("ERROR: Distributed object has different constraint states on different procs. "
+					<< "At: " << GetGeometricObjectCenter(mg, e)
+					<< " on level " << mg.get_level(e) << endl);
+			retVal = false;
+		}
+	}
+
+	mg.detach_from<TElem>(aState);
+	return retVal;
+}
+
+bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
+{
+	bool retVal = true;
+
+//	assign constraint states
+	UG_LOG("Checking constraint types of VERTICES\n");
+	retVal &= CheckDistributedObjectConstraintTypes<VertexBase>(mg);
+	UG_LOG("Checking constraint types of EDGES\n");
+	retVal &= CheckDistributedObjectConstraintTypes<EdgeBase>(mg);
+	UG_LOG("Checking constraint types of FACES\n");
+	retVal &= CheckDistributedObjectConstraintTypes<Face>(mg);
+	UG_LOG("Checking constraint types DONE\n");
+
+//	make sure that we return the same value globally
+	#ifdef UG_PARALLEL
+		retVal = pcl::AllProcsTrue(retVal);
+	#endif
+
+	return retVal;
+}
+
+}// end of namespace

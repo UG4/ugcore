@@ -91,6 +91,11 @@ class MultiElementAttachmentAccessor
 			}
 		}
 
+		Grid::AttachmentAccessor<VertexBase, TAttachment>&	vertex_accessor()	{return m_aaVrt;}
+		Grid::AttachmentAccessor<EdgeBase, TAttachment>&	edge_accessor()		{return m_aaEdge;}
+		Grid::AttachmentAccessor<Face, TAttachment>&		face_accessor()		{return m_aaFace;}
+		Grid::AttachmentAccessor<Volume, TAttachment>&		volume_accessor()	{return m_aaVol;}
+
 	private:
 		Grid::AttachmentAccessor<VertexBase, TAttachment>	m_aaVrt;
 		Grid::AttachmentAccessor<EdgeBase, TAttachment>		m_aaEdge;

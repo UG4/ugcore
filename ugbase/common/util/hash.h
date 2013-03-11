@@ -101,7 +101,7 @@ template <class TVal, class TKey> class Hash
 			assert(m_listSize);
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
-			HashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+			HashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), key, hIndex);
 			assert((iter != m_v[hIndex].end()) && "ERROR in Hash::first(...): Hash does not contain an entry with the given key.");
 			return (*iter).value;
 		}
@@ -111,7 +111,7 @@ template <class TVal, class TKey> class Hash
 			assert(m_listSize);
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
-			ConstHashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+			ConstHashEntryIterator iter = find_next_valid(m_v[hIndex].begin(), key, hIndex);
 			assert((iter != m_v[hIndex].end()) && "ERROR in Hash::first(...): Hash does not contain an entry with the given key.");
 			return (*iter).value;
 		}
@@ -131,7 +131,7 @@ template <class TVal, class TKey> class Hash
 			HashEntryIterator iEnd = m_v[hIndex].end();
 			while(iter != iEnd)
 			{
-				if((*iter).hashKey == hKey)
+				if((*iter).key == key)
 					entriesOut.push_back(iter->value);
 				iter++;
 			}
@@ -144,17 +144,17 @@ template <class TVal, class TKey> class Hash
 			if(m_listSize){
 				hKey = hash_key(key);
 				hIndex = hKey % m_listSize;
-				beginOut.m_entryIter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+				beginOut.m_entryIter = find_next_valid(m_v[hIndex].begin(), key, hIndex);
 			}
 			else
 				beginOut.m_entryIter = m_v[0].end();
 
-			beginOut.m_hashKey = hKey;
+			beginOut.m_key = key;
 			beginOut.m_hIndex = hIndex;
 			beginOut.m_pHash = this;
 			
 			endOut.m_entryIter = m_v[hIndex].end();
-			endOut.m_hashKey = hKey;
+			endOut.m_key = key;
 			endOut.m_hIndex = hIndex;
 			endOut.m_pHash = this;
 		}
@@ -167,13 +167,12 @@ template <class TVal, class TKey> class Hash
 			if(m_listSize){
 				hKey = hash_key(key);
 				hIndex = hKey % m_listSize;
-				iter.m_entryIter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+				iter.m_entryIter = find_next_valid(m_v[hIndex].begin(), key, hIndex);
 			}
 			else
 				iter.m_entryIter = m_v[0].end();
 
-
-			iter.m_hashKey = hKey;
+			iter.m_key = key;
 			iter.m_hIndex = hIndex;
 			iter.m_pHash = this;
 			return iter;
@@ -190,7 +189,7 @@ template <class TVal, class TKey> class Hash
 			}
 
 			iter.m_entryIter = m_v[hIndex].end();
-			iter.m_hashKey = hKey;
+			iter.m_key = key;
 			iter.m_hIndex = hIndex;
 			iter.m_pHash = this;
 			return iter;
@@ -199,7 +198,7 @@ template <class TVal, class TKey> class Hash
 		void advance_iterator(Iterator& iter)
 		{
 			iter.m_entryIter++;
-			iter.m_entryIter = find_next_valid(iter.m_entryIter, iter.m_hashKey, iter.m_hIndex);
+			iter.m_entryIter = find_next_valid(iter.m_entryIter, iter.m_key, iter.m_hIndex);
 		}
 /*
 	//	const-version
@@ -246,12 +245,13 @@ template <class TVal, class TKey> class Hash
 		}
 
 		///	returns iter if iter is valid
-		HashEntryIterator find_next_valid(HashEntryIterator iter, unsigned long hashKey, unsigned long hIndex)
+		HashEntryIterator find_next_valid(HashEntryIterator iter, const TKey& key,
+										  unsigned long hIndex)
 		{
 			HashEntryIterator iEnd = m_v[hIndex].end();
 			while(iter != iEnd)
 			{
-				if((*iter).hashKey == hashKey)
+				if((*iter).key == key)
 					return iter;
 				iter++;
 			}
@@ -259,12 +259,13 @@ template <class TVal, class TKey> class Hash
 		}
 
 	//	const-version
-		ConstHashEntryIterator find_next_valid(ConstHashEntryIterator iter, unsigned long hashKey, unsigned long hIndex) const
+		ConstHashEntryIterator find_next_valid(ConstHashEntryIterator iter, const TKey& key,
+											   unsigned long hIndex) const
 		{
 			ConstHashEntryIterator iEnd = m_v[hIndex].end();
 			while(iter != iEnd)
 			{
-				if((*iter).hashKey == hashKey)
+				if((*iter).key == key)
 					return iter;
 				iter++;
 			}
@@ -301,7 +302,7 @@ template <class TVal, class TKey> class Hash
 				{
 					if(m_entryIter == iter.m_entryIter
 						&& m_pHash == iter.m_pHash
-						&& m_hashKey == iter.m_hashKey)
+						&& m_key == iter.m_key)
 						return true;
 					return false;
 				}
@@ -310,7 +311,7 @@ template <class TVal, class TKey> class Hash
 				{
 					if(m_entryIter != iter.m_entryIter
 						|| m_pHash != iter.m_pHash
-						|| m_hashKey != iter.m_hashKey)
+						|| m_key != iter.m_key)
 						return true;
 					return false;
 				}
@@ -321,7 +322,7 @@ template <class TVal, class TKey> class Hash
 			protected:
 				HashEntryIterator		m_entryIter;
 				Hash*					m_pHash;
-				unsigned long			m_hashKey;
+				TKey					m_key;
 				unsigned long			m_hIndex;
 		};
 
@@ -330,7 +331,8 @@ template <class TVal, class TKey> class Hash
 			friend class Hash;
 			public:
 				ConstIterator()	{}
-				ConstIterator(const Hash* hash, ConstHashEntryIterator entryIter, unsigned long key, unsigned long hIndex) :
+				ConstIterator(const Hash* hash, ConstHashEntryIterator entryIter,
+							  const TKey& key, unsigned long hashKey, unsigned long hIndex) :
 							m_pHash(hash), m_entryIter(entryIter), m_key(key), m_hIndex(hIndex)
 							{}
 
@@ -366,7 +368,7 @@ template <class TVal, class TKey> class Hash
 			protected:
 				const Hash*						m_pHash;
 				mutable ConstHashEntryIterator	m_entryIter;
-				unsigned long					m_key;
+				TKey							m_key;
 				unsigned long					m_hIndex;
 		};
 };
