@@ -127,7 +127,7 @@ print(const char* filename, Domain<TDim>& domain)
 
 template <int TDim>
 void VTKOutput<TDim>::
-write_empty_grid_piece(VTKFileWriter& File)
+write_empty_grid_piece(VTKFileWriter& File, bool binary)
 {
 //	write that no elements are in the grid
 	int n = 0;
@@ -483,6 +483,12 @@ select_element(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* n
 			       " that is already used by other data is not allowed.");
 
 	m_vVectorElemData[name] = spData;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+set_binary(bool b) {
+	m_bBinary = b;
 }
 
 template <int TDim>

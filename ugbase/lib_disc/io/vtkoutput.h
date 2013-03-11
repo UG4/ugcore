@@ -120,8 +120,7 @@ struct IteratorProvider<MGSubsetHandler>
 template <int TDim>
 class VTKOutput
 {
-	static const bool binary = true;
-	public:
+		public:
 	///	clears the selected output
 		void clear_selection() {m_vSymbFctNodal.clear();}
 
@@ -241,7 +240,7 @@ class VTKOutput
 		}
 
 	///	prints the domain to file
-		static void print(const char* filename, Domain<TDim>& domain);
+		void print(const char* filename, Domain<TDim>& domain);
 
 	/**
 	 * This function writes the subset si of the grid (or the whole grid if
@@ -287,7 +286,7 @@ class VTKOutput
 	 */
 		template <typename TFunction>
 		void write_time_pvd(const char* filename, TFunction& u);
-
+protected:
 	/**
 	 * This function counts the number of vertices, elements and connections for
 	 * a given subset (or the whole grid if si < 0).
@@ -300,7 +299,7 @@ class VTKOutput
 	 * \param[out]		numConn		number of connections
 	 */
 		template <typename T>
-		static void
+		void
 		count_piece_sizes(Grid& grid, const T& iterContainer, int si, int dim,
 		                  int& numVert, int& numElem, int& numConn);
 
@@ -321,12 +320,12 @@ class VTKOutput
 	 * \param[out]		numConn		number of connections
 	 */
 		template <typename TElem, typename T>
-		static void
+		void
 		count_sizes(Grid& grid, const T& iterContainer, int si,
 		            int& numVert, int& numElem, int& numConn);
 
 		template <typename T>
-		static void
+		void
 		write_points_cells_piece(VTKFileWriter& File,
 		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
@@ -334,13 +333,17 @@ class VTKOutput
 		                         int numVert, int numElem, int numConn);
 
 		template <typename T>
-		static void
+		void
 		write_grid_piece(VTKFileWriter& File,
 		                 Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                 const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
 		                 Grid& grid, const T& iterContainer, int si, int dim);
 
-		static void write_empty_grid_piece(VTKFileWriter& File);
+public:
+		// maybe somebody wants to do this from outside
+		static void write_empty_grid_piece(VTKFileWriter& File,
+				bool binary = true);
+protected:
 
 	/**
 	 * This function writes the vertices of a piece of the grid to a vtk file. If
@@ -354,7 +357,7 @@ class VTKOutput
 	 * \param[in]		numVert		number of vertices
 	 */
 		template <typename T>
-		static void
+		void
 		write_points(VTKFileWriter& File,
 		             Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		             const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
@@ -373,7 +376,7 @@ class VTKOutput
 	 * \param[in]	n			counter for vertices
 	 */
 		template <typename TElem, typename T>
-		static void
+		void
 		write_points_elementwise(VTKFileWriter& File,
 		                         Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                         const Grid::VertexAttachmentAccessor<Attachment<MathVector<TDim> > >& aaPos,
@@ -391,7 +394,7 @@ class VTKOutput
 	 * \param[out]		numConn		number of connections
 	 */
 		template <typename T>
-		static void
+		void
 		write_cells(VTKFileWriter& File,
 		            Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		            Grid& grid, const T& iterContainer, int si,
@@ -407,13 +410,13 @@ class VTKOutput
 	 * \param[in]	si			subset index
 	 */
 		template <typename TElem, typename T>
-		static void
+		void
 		write_cell_connectivity(VTKFileWriter& File,
 		                        Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                        Grid& grid, const T& iterContainer, int si);
 
 		template <typename T>
-		static void
+		void
 		write_cell_connectivity(VTKFileWriter& File,
 		                        Grid::VertexAttachmentAccessor<Attachment<int> >& aaVrtIndex,
 		                        Grid& grid, const T& iterContainer, int si, int dim,
@@ -428,11 +431,11 @@ class VTKOutput
 	 * \param[in]	n			counter for vertices
 	 */
 		template <typename TElem, typename T>
-		static void
+		void
 		write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n);
 
 		template <typename T>
-		static void
+		void
 		write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 		                   int numElem);
 
@@ -445,11 +448,11 @@ class VTKOutput
 	 * \param[in]	si			subset index
 	 */
 		template <typename TElem, typename T>
-		static void
+		void
 		write_cell_types(VTKFileWriter& File, const T& iterContainer, int si);
 
 		template <typename T>
-		static void
+		void
 		write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 		                 int numElem);
 
@@ -615,16 +618,18 @@ class VTKOutput
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true)/*, binary(true)*/ {}
-//		void set_binary(bool b) {
-//			binary = b;
-//		}
+		VTKOutput()	: m_bSelectAll(true), m_bBinary(true) {}
+
+	/// should values be printed in binary (base64 encoded way ) or plain ascii
+		void set_binary(bool b);
 
 	protected:
 	///	returns true if name for vtk-component is already used
 		bool vtk_name_used(const char* name) const;
 
 	protected:
+	/// print values in binary (base64 encoded way) or plain ascii
+		bool m_bBinary;
 	///	scheduled components to be printed
 		bool m_bSelectAll;
 		std::map<std::string, std::vector<std::string> > m_vSymbFctNodal;

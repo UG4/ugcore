@@ -41,7 +41,8 @@ void WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 template <int dim>
 void SaveDomainToVTK(const char* filename, Domain<dim>& domain)
 {
-	VTKOutput<dim>::print(filename, domain);
+	VTKOutput<dim> out;
+	out.print(filename, domain);
 }
 
 /**
@@ -203,6 +204,7 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("select_element", static_cast<void (T::*)(const vector<string>&, const char*)>(&T::select_element))
 			.add_method("select_element", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*)>(&T::select_element))
 			.add_method("select_element", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const char*)>(&T::select_element))
+			.add_method("set_binary", &T::set_binary)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "VTKOutput", tag);
 	}

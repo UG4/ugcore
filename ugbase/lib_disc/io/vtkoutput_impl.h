@@ -408,7 +408,7 @@ write_points_elementwise(VTKFileWriter& File,
 	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
 		File << VTKFileWriter::normal;
@@ -436,7 +436,7 @@ write_points_elementwise(VTKFileWriter& File,
 
 		//	get position of vertex and write position to stream
 			File << aaPos[v];
-			if(!binary)
+			if(!m_bBinary)
 				File << ' ';
 		}
 	}
@@ -456,9 +456,9 @@ write_points(VTKFileWriter& File,
 	File << VTKFileWriter::normal;
 	File << "      <Points>\n";
 	File << "        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format="
-		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
+		 <<	(m_bBinary ? "\"binary\"" : "\"ascii\"") << ">\n";
 	int n = 3*sizeof(float) * numVert;
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << n;
 
 //	reset counter for vertices
@@ -548,7 +548,7 @@ write_cell_connectivity(VTKFileWriter& File,
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
 		File << VTKFileWriter::normal;
@@ -567,7 +567,7 @@ write_cell_connectivity(VTKFileWriter& File,
 				VertexBase* vert = elem->vertex(i);
 				int id = aaVrtIndex[vert];
 				File << id;
-				if(!binary)
+				if(!m_bBinary)
 					File << ' ';
 			}
 		}
@@ -595,10 +595,10 @@ write_cell_connectivity(VTKFileWriter& File,
 	File << VTKFileWriter::normal;
 //	write opening tag to indicate that connections will be written
 	File << "        <DataArray type=\"Int32\" Name=\"connectivity\" format="
-		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 	int n = sizeof(int) * numConn;
 
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << n;
 //	switch dimension
 	if(numConn > 0){
@@ -641,7 +641,7 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n)
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
 		File << VTKFileWriter::normal;
@@ -654,7 +654,7 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n)
 
 	//	write offset
 		File << n;
-		if(!binary)
+		if(!m_bBinary)
 			File << ' ';
 	}
 }
@@ -669,9 +669,9 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 	File << VTKFileWriter::normal;
 //	write opening tag indicating that offsets are going to be written
 	File << "        <DataArray type=\"Int32\" Name=\"offsets\" format="
-		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 	int n = sizeof(int) * numElem;
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << n;
 
 	n = 0;
@@ -734,14 +734,14 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si)
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
 		File << VTKFileWriter::normal;
 //	loop all elements, write type for each element to stream
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-		if(binary)
+		if(m_bBinary)
 			File << type;
 		 else
 			File << (int) type << ' ';
@@ -758,8 +758,8 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 	File << VTKFileWriter::normal;
 //	write opening tag to indicate that types will be written
 	File << "        <DataArray type=\"Int8\" Name=\"types\" format="
-		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
-	if(binary)
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << numElem;
 
 //	switch dimension
@@ -803,7 +803,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
 	static const size_t numCo = ref_elem_type::numCorners;
 
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
 		File << VTKFileWriter::normal;
@@ -873,7 +873,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 
 		//	loop all components
 			File << vValue[co];
-			if(!binary)
+			if(!m_bBinary)
 				File << ' ';
 		}
 	}
@@ -901,10 +901,10 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 	File << VTKFileWriter::normal;
 	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
 	"NumberOfComponents=\""<<numCmp<<"\" format="
-		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 
 	int n = sizeof(float) * numVert * numCmp;
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << n;
 
 //	start marking of grid
@@ -946,7 +946,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 //	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
 																ref_elem_type;
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
 		File << VTKFileWriter::normal;
@@ -994,7 +994,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 
 			//	flush stream
 				File << (float) BlockRef(u[index], alpha);
-				if(!binary)
+				if(!m_bBinary)
 					File << ' ';
 			}
 
@@ -1003,11 +1003,11 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 		//	fill with zeros up to 3d if vector type
 			if(vFct.size() != 1) {
 				// fixme avoid double spaces
-				if(!binary)
+				if(!m_bBinary)
 					File << ' ';
 				for(size_t i = vFct.size(); i < 3; ++i) {
 					File << (float) 0.f;
-					if(!binary)
+					if(!m_bBinary)
 						File << ' ';
 				}
 			}
@@ -1028,10 +1028,10 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 //	write opening tag
 	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
 	"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format="
-		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 
 	int n = sizeof(float) * numVert * (vFct.size() == 1 ? 1 : 3);
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << n;
 
 //	start marking of grid
@@ -1165,7 +1165,7 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
 	static const size_t numCo = ref_elem_type::numCorners;
 
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
 		File << VTKFileWriter::normal;
@@ -1229,7 +1229,7 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 		}
 
 		File << value;
-		if(!binary)
+		if(!m_bBinary)
 			File << ' ';
 	}
 
@@ -1251,10 +1251,10 @@ write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 	File << VTKFileWriter::normal;
 	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
 	"NumberOfComponents=\""<<numCmp<<"\" format="
-		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 
 	int n = sizeof(float) * numElem * numCmp;
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << n;
 
 //	switch dimension
@@ -1301,7 +1301,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
 	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
 
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary;
 	else
 		File << VTKFileWriter::normal;
@@ -1351,18 +1351,18 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 
 		//	flush stream
 			File << (float) ipVal;
-			if(!binary)
+			if(!m_bBinary)
 				File << ' ';
 		}
 
-		if(!binary)
+		if(!m_bBinary)
 			File << ' ';
 
 	//	fill with zeros up to 3d if vector type
 		if(vFct.size() != 1)
 			for(size_t i = vFct.size(); i < 3; ++i) {
 				File << (float) 0.f;
-				if(!binary)
+				if(!m_bBinary)
 					File << ' ';
 			}
 
@@ -1384,10 +1384,10 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
 	File << VTKFileWriter::normal;
 	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
 	"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format="
-		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
+		 <<	(m_bBinary ? "\"binary\"": "\"ascii\"") << ">\n";
 
 	int n = sizeof(float) * numElem * (vFct.size() == 1 ? 1 : 3);
-	if(binary)
+	if(m_bBinary)
 		File << VTKFileWriter::base64_binary << n;
 
 //	switch dimension
