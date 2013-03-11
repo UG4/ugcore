@@ -9,28 +9,33 @@
 
 namespace ug{
 
+// fill position data up with zeros if dim < 3.
+VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<1>& data) {
+	if (File.format() == VTKFileWriter::base64_binary) {
+		File << (float) data[0] << (float) 0.f << (float) 0.f;
+	} else if (File.format() == VTKFileWriter::normal) {
+		File << (float) data[0] << ' ' << (float) 0.f << ' ' << (float) 0.f;
+	}
+	return File;
+}
 
-void WriteDataToBase64Stream(VTKFileWriter& File, const float& data)
-{
-	File.write_base64_buffered(data);
+VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<2>& data) {
+	if (File.format() == VTKFileWriter::base64_binary) {
+		File << (float) data[0] << (float) data[1] << (float) 0.f;
+	} else if (File.format() == VTKFileWriter::normal) {
+		File << (float) data[0] << ' ' << (float) data[1] << ' ' << (float) 0.f;
+	}
+	return File;
 }
-void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<1>& data)
-{
-	File.write_base64_buffered((float)data[0]);
-	File.write_base64_buffered((float)0.0f);
-	File.write_base64_buffered((float)0.0f);
-}
-void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<2>& data)
-{
-	File.write_base64_buffered((float)data[0]);
-	File.write_base64_buffered((float)data[1]);
-	File.write_base64_buffered((float)0.0f);
-}
-void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<3>& data)
-{
-	File.write_base64_buffered((float)data[0]);
-	File.write_base64_buffered((float)data[1]);
-	File.write_base64_buffered((float)data[2]);
+
+VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<3>& data) {
+	if (File.format() == VTKFileWriter::base64_binary) {
+		File << (float) data[0] << (float) data[1] << (float) data[2];
+	} else if (File.format() == VTKFileWriter::normal) {
+		File << (float) data[0] << ' ' << (float) data[1] << ' ' << (float) data[2];
+	}
+
+	return File;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,14 +78,15 @@ print(const char* filename, Domain<TDim>& domain)
 	VTKFileWriter File(name.c_str());
 
 //	header
-	File.write("<?xml version=\"1.0\"?>\n");
-	File.write("<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"");
-	if(IsLittleEndian()) File.write("LittleEndian");
-	else File.write("BigEndian");
-	File.write("\">\n");
+	File << VTKFileWriter::normal;
+	File << "<?xml version=\"1.0\"?>\n";
+	File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
+	if(IsLittleEndian()) File << "LittleEndian";
+	else File << "BigEndian";
+	File << "\">\n";
 
 //	opening the grid
-	File.write("  <UnstructuredGrid>\n");
+	File << "  <UnstructuredGrid>\n";
 
 // 	get dimension of grid-piece
 	int dim = DimensionOfSubsets(sh);
@@ -109,8 +115,8 @@ print(const char* filename, Domain<TDim>& domain)
 	}
 
 //	write closing xml tags
-	File.write("  </UnstructuredGrid>\n");
-	File.write("</VTKFile>\n");
+	File << "  </UnstructuredGrid>\n";
+	File << "</VTKFile>\n";
 
 // 	detach help indices
 	grid.detach_from_vertices(aVrtIndex);
@@ -125,24 +131,37 @@ write_empty_grid_piece(VTKFileWriter& File)
 {
 //	write that no elements are in the grid
 	int n = 0;
-	File.write("    <Piece NumberOfPoints=\"0\" NumberOfCells=\"0\">\n");
-	File.write("      <Points>\n");
-	File.write("        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"binary\">\n");
-	File.write_base64(n);
-	File.write("\n        </DataArray>\n");
-	File.write("      </Points>\n");
-	File.write("      <Cells>\n");
-	File.write("        <DataArray type=\"Int32\" Name=\"connectivity\" format=\"binary\">\n");
-	File.write_base64(n);
-	File.write("\n        </DataArray>\n");
-	File.write("        <DataArray type=\"Int32\" Name=\"offsets\" format=\"binary\">\n");
-	File.write_base64(n);
-	File.write("\n        </DataArray>\n");
-	File.write("        <DataArray type=\"Int8\" Name=\"types\" format=\"binary\">\n");
-	File.write_base64(n);
-	File.write("\n        </DataArray>\n");
-	File.write("      </Cells>\n");
-	File.write("    </Piece>\n");
+	File << "    <Piece NumberOfPoints=\"0\" NumberOfCells=\"0\">\n";
+	File << "      <Points>\n";
+	File << "        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format="
+		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
+	if(binary)
+		File << VTKFileWriter::base64_binary << n << VTKFileWriter::normal;
+	else
+		File << n;
+	File << "\n        </DataArray>\n";
+	File << "      </Points>\n";
+	File << "      <Cells>\n";
+	File << "        <DataArray type=\"Int32\" Name=\"connectivity\" format="
+		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
+	if(binary)
+		File << VTKFileWriter::base64_binary << n << VTKFileWriter::normal;
+	else
+		File << n;
+	File << "\n        </DataArray>\n";
+	File << "        <DataArray type=\"Int32\" Name=\"offsets\" format="
+		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
+	File << VTKFileWriter::base64_binary << n << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
+	File << "        <DataArray type=\"Int8\" Name=\"types\" format="
+		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
+	if(binary)
+		File << VTKFileWriter::base64_binary << n << VTKFileWriter::normal;
+	else
+		File << n;
+	File << "\n        </DataArray>\n";
+	File << "      </Cells>\n";
+	File << "    </Piece>\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -16,6 +16,7 @@
 #include "common/log.h"
 #include "common/util/string_util.h"
 #include "common/util/endian.h"
+#include "common/profiler/profiler.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/multi_index.h"
@@ -39,6 +40,7 @@ template <typename TFunction>
 void VTKOutput<TDim>::
 print(const char* filename, TFunction& u, int step, number time, bool makeConsistent)
 {
+	PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	if(makeConsistent)
 		if(!u.change_storage_type(PST_CONSISTENT))
@@ -137,21 +139,21 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 #endif
 
 //	header
-	File.write("<?xml version=\"1.0\"?>\n");
-	File.write("<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"");
-	if(IsLittleEndian()) File.write("LittleEndian");
-	else File.write("BigEndian");
-	File.write("\">\n");
+	File << VTKFileWriter::normal;
+	File << "<?xml version=\"1.0\"?>\n";
+	File << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"";
+	if(IsLittleEndian()) File << "LittleEndian";
+	else File << "BigEndian";
+	File << "\">\n";
 
 //	writing time point
 	if(bTimeDep)
 	{
-		std::stringstream ss; ss << "  <Time timestep=\""<<time<<"\"/>\n";
-		File.write(ss.str().c_str());
+		File << "  <Time timestep=\""<<time<<"\"/>\n";
 	}
 
 //	opening the grid
-	File.write("  <UnstructuredGrid>\n");
+	File << "  <UnstructuredGrid>\n";
 
 // 	get dimension of grid-piece
 	int dim = -1;
@@ -180,8 +182,9 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 	}
 
 //	write closing xml tags
-	File.write("  </UnstructuredGrid>\n");
-	File.write("</VTKFile>\n");
+	File << VTKFileWriter::normal;
+	File << "  </UnstructuredGrid>\n";
+	File << "</VTKFile>\n";
 
 // 	detach help indices
 	grid.detach_from_vertices(aVrtIndex);
@@ -257,17 +260,17 @@ write_grid_piece(VTKFileWriter& File,
 
 //	write the beginning of the piece, indicating the number of vertices
 //	and the number of elements for this piece of the grid.
-	std::stringstream ss;
-	ss << "    <Piece NumberOfPoints=\""<<numVert<<
-					"\" NumberOfCells=\""<<numElem<<"\">\n";
-	File.write(ss.str().c_str());
+	File << VTKFileWriter::normal;
+	File << "    <Piece NumberOfPoints=\""<<numVert<<
+	"\" NumberOfCells=\""<<numElem<<"\">\n";
 
 //	write grid
 	write_points_cells_piece<T>
 	(File, aaVrtIndex, aaPos, grid, iterContainer, si, dim, numVert, numElem, numConn);
 
 //	write closing tag
-	File.write("    </Piece>\n");
+	File << VTKFileWriter::normal;
+	File << "    </Piece>\n";
 }
 
 template <int TDim>
@@ -289,10 +292,9 @@ write_grid_solution_piece(VTKFileWriter& File,
 
 //	write the beginning of the piece, indicating the number of vertices
 //	and the number of elements for this piece of the grid.
-	std::stringstream ss;
-	ss << "    <Piece NumberOfPoints=\""<<numVert<<
-					"\" NumberOfCells=\""<<numElem<<"\">\n";
-	File.write(ss.str().c_str());
+	File << VTKFileWriter::normal;
+	File << "    <Piece NumberOfPoints=\""<<numVert<<
+	"\" NumberOfCells=\""<<numElem<<"\">\n";
 
 //	write grid
 	write_points_cells_piece<TFunction>
@@ -305,7 +307,8 @@ write_grid_solution_piece(VTKFileWriter& File,
 	write_cell_values_piece(File, u, time, grid, si, dim, numElem);
 
 //	write closing tag
-	File.write("    </Piece>\n");
+	File << VTKFileWriter::normal;
+	File << "    </Piece>\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -401,17 +404,14 @@ write_points_elementwise(VTKFileWriter& File,
 //	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
 																ref_elem_type;
-
-//	position vector
-	MathVector<TDim> Pos;
-
-//	corner counter
-	float co;
-
 //	get iterators
 	typedef typename IteratorProvider<T>::template traits<TElem>::const_iterator const_iterator;
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
+	if(binary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
 
 //	loop all elements of the subset
 	for( ; iterBegin != iterEnd; ++iterBegin)
@@ -434,22 +434,10 @@ write_points_elementwise(VTKFileWriter& File,
 		//	number vertex
 			aaVrtIndex[v] = n++;
 
-		//	get position of vertex
-			Pos = aaPos[v];
-
-		//	write position to stream
-			for(int i = 0; i < TDim; ++i)
-			{
-				co = Pos[i];
-				File.write_base64_buffered(co);
-			}
-
-		//	fill with missing zeros (if dim < 3)
-			for(int i = TDim; i < 3; ++i)
-			{
-				co = 0.0;
-				File.write_base64_buffered(co);
-			}
+		//	get position of vertex and write position to stream
+			File << aaPos[v];
+			if(!binary)
+				File << ' ';
 		}
 	}
 }
@@ -465,10 +453,15 @@ write_points(VTKFileWriter& File,
              int numVert)
 {
 //	write starting xml tag for points
-	File.write("      <Points>\n");
-	File.write("        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"binary\">\n");
+	File << VTKFileWriter::normal;
+	File << "      <Points>\n";
+	File << "        <DataArray type=\"Float32\" NumberOfComponents=\"3\" format="
+		 <<	(binary ? "\"binary\"" : "\"ascii\"") << ">\n";
 	int n = 3*sizeof(float) * numVert;
-	File.write_base64(n);
+	if(binary)
+		File << VTKFileWriter::base64_binary << n;
+//	else
+//		File << VTKFileWriter::normal << 3*numVert << ' ';
 
 //	reset counter for vertices
 	n = 0;
@@ -477,7 +470,6 @@ write_points(VTKFileWriter& File,
 	grid.begin_marking();
 
 //	switch dimension
-	File.begin_base64_buffer<float>();
 	if(numVert > 0){
 		switch(dim){
 			case 0: write_points_elementwise<VertexBase,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n); break;
@@ -492,14 +484,14 @@ write_points(VTKFileWriter& File,
 			                        " is not supported.");
 		}
 	}
-	File.end_base64_buffer<float>();
 
 //	signal end of marking the grid
 	grid.end_marking();
 
 //	write closing tags
-	File.write("\n        </DataArray>\n");
-	File.write("      </Points>\n");
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
+	File << "      </Points>\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -515,8 +507,10 @@ write_cells(VTKFileWriter& File,
             Grid& grid, const T& iterContainer, int si, int dim,
             int numElem, int numConn)
 {
+	File << VTKFileWriter::normal;
+
 //	write opening tag to indicate that elements will be written
-	File.write("      <Cells>\n");
+	File << "      <Cells>\n";
 
 //	write connectivities of elements
 	write_cell_connectivity(File, aaVrtIndex, grid, iterContainer, si, dim, numConn);
@@ -528,7 +522,8 @@ write_cells(VTKFileWriter& File,
 	write_cell_types(File, iterContainer, si, dim, numElem);
 
 //	write closing tag
-	File.write("      </Cells>\n");
+	File << VTKFileWriter::normal;
+	File << "      </Cells>\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -555,6 +550,11 @@ write_cell_connectivity(VTKFileWriter& File,
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
+	if(binary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
+
 //	loop all elements
 	for( ; iterBegin != iterEnd; iterBegin++)
 	{
@@ -568,17 +568,19 @@ write_cell_connectivity(VTKFileWriter& File,
 			{
 				VertexBase* vert = elem->vertex(i);
 				int id = aaVrtIndex[vert];
-				File.write_base64_buffered(id);
+				File << id;
+				if(!binary)
+					File << ' ';
 			}
 		}
 		else
 		{
-			int id = aaVrtIndex[elem->vertex(0)]; File.write_base64_buffered(id);
-			id = aaVrtIndex[elem->vertex(2)]; File.write_base64_buffered(id);
-			id = aaVrtIndex[elem->vertex(1)]; File.write_base64_buffered(id);
-			id = aaVrtIndex[elem->vertex(3)]; File.write_base64_buffered(id);
-			id = aaVrtIndex[elem->vertex(5)]; File.write_base64_buffered(id);
-			id = aaVrtIndex[elem->vertex(4)]; File.write_base64_buffered(id);
+			int id = aaVrtIndex[elem->vertex(0)]; File << id;
+			id = aaVrtIndex[elem->vertex(2)]; File << id;
+			id = aaVrtIndex[elem->vertex(1)]; File << id;
+			id = aaVrtIndex[elem->vertex(3)]; File << id;
+			id = aaVrtIndex[elem->vertex(5)]; File << id;
+			id = aaVrtIndex[elem->vertex(4)]; File << id;
 		}
 	}
 }
@@ -592,13 +594,17 @@ write_cell_connectivity(VTKFileWriter& File,
                         Grid& grid, const T& iterContainer, int si, int dim,
                         int numConn)
 {
+	File << VTKFileWriter::normal;
 //	write opening tag to indicate that connections will be written
-	File.write("        <DataArray type=\"Int32\" Name=\"connectivity\" format=\"binary\">\n");
+	File << "        <DataArray type=\"Int32\" Name=\"connectivity\" format="
+		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
 	int n = sizeof(int) * numConn;
-	File.write_base64(n);
 
+	if(binary)
+		File << VTKFileWriter::base64_binary << n;
+//	else
+//		File << numConn << ' ';
 //	switch dimension
-	File.begin_base64_buffer<int>();
 	if(numConn > 0){
 		switch(dim)
 		{
@@ -614,10 +620,10 @@ write_cell_connectivity(VTKFileWriter& File,
 			                        " is not supported.");
 		}
 	}
-	File.end_base64_buffer<int>();
 
 //	write closing tag
-	File.write("\n        </DataArray>\n");
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -639,6 +645,11 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n)
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
+	if(binary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
+
 //	loop all elements
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
@@ -646,7 +657,9 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int& n)
 		n += ref_elem_type::numCorners;
 
 	//	write offset
-		File.write_base64_buffered(n);
+		File << n;
+		if(!binary)
+			File << ' ';
 	}
 }
 
@@ -657,14 +670,18 @@ void VTKOutput<TDim>::
 write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
                    int numElem)
 {
+	File << VTKFileWriter::normal;
 //	write opening tag indicating that offsets are going to be written
-	File.write("        <DataArray type=\"Int32\" Name=\"offsets\" format=\"binary\">\n");
+	File << "        <DataArray type=\"Int32\" Name=\"offsets\" format="
+		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
 	int n = sizeof(int) * numElem;
-	File.write_base64(n);
+	if(binary)
+		File << VTKFileWriter::base64_binary << n;
+//	else
+//		File << numElem << ' ';
 
 	n = 0;
 //	switch dimension
-	File.begin_base64_buffer<int>();
 	if(numElem > 0){
 		switch(dim)
 		{
@@ -680,10 +697,10 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 			                        " is not supported.");
 		}
 	}
-	File.end_base64_buffer<int>();
 
 //	closing tag
-	File.write("\n        </DataArray>\n");
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -723,10 +740,17 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si)
 	const_iterator iterBegin = IteratorProvider<T>::template begin<TElem>(iterContainer, si);
 	const_iterator iterEnd = IteratorProvider<T>::template end<TElem>(iterContainer, si);
 
+	if(binary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
 //	loop all elements, write type for each element to stream
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-		File.write_base64_buffered(type);
+		if(binary)
+			File << type;
+		 else
+			File << (int) type << ' ';
 	}
 }
 
@@ -737,12 +761,16 @@ void VTKOutput<TDim>::
 write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
                  int numElem)
 {
+	File << VTKFileWriter::normal;
 //	write opening tag to indicate that types will be written
-	File.write("        <DataArray type=\"Int8\" Name=\"types\" format=\"binary\">\n");
-	File.write_base64(numElem);
+	File << "        <DataArray type=\"Int8\" Name=\"types\" format="
+		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
+	if(binary)
+		File << VTKFileWriter::base64_binary << numElem;
+//	else
+//		File << numElem << ' ';
 
 //	switch dimension
-	File.begin_base64_buffer<char>();
 	if(numElem > 0)
 	{
 		switch(dim)
@@ -759,10 +787,10 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 			                        " is not supported.");
 		}
 	}
-	File.end_base64_buffer<char>();
 
 //	write closing tag
-	File.write("\n        </DataArray>\n");
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -783,7 +811,10 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
 	static const size_t numCo = ref_elem_type::numCorners;
 
-	File.begin_base64_buffer<float>();
+	if(binary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
 
 //	get iterators
 	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
@@ -849,11 +880,12 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 			grid.mark(v);
 
 		//	loop all components
-			WriteDataToBase64Stream(File, vValue[co]);
+			File << vValue[co];
+			if(!binary)
+				File << ' ';
 		}
 	}
 
-	File.end_base64_buffer<float>();
 }
 
 
@@ -874,13 +906,16 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 				" but the data is not continuous. Cannot write it as nodal data.")
 
 //	write opening tag
-	std::stringstream ss;
-	ss << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
-					"NumberOfComponents=\""<<numCmp<<"\" format=\"binary\">\n";
-	File.write(ss.str().c_str());
+	File << VTKFileWriter::normal;
+	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+	"NumberOfComponents=\""<<numCmp<<"\" format="
+		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
 
 	int n = sizeof(float) * numVert * numCmp;
-	File.write_base64(n);
+	if(binary)
+		File << VTKFileWriter::base64_binary << n;
+//	else
+//		File << numVert*numCmp << ' ';
 
 //	start marking of grid
 	grid.begin_marking();
@@ -903,7 +938,8 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 	grid.end_marking();
 
 //	write closing tag
-	File.write("\n        </DataArray>\n");
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
 };
 
 
@@ -920,8 +956,10 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 //	get reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
 																ref_elem_type;
-
-	File.begin_base64_buffer<float>();
+	if(binary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
 
 //	index vector
 	std::vector<MultiIndex<2> > vMultInd;
@@ -965,17 +1003,27 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 				const size_t alpha = vMultInd[0][1];
 
 			//	flush stream
-				File.write_base64_buffered((float) BlockRef(u[index], alpha));
+				File << (float) BlockRef(u[index], alpha);
+				if(!binary)
+					File << ' ';
 			}
 
+
+
 		//	fill with zeros up to 3d if vector type
-			if(vFct.size() != 1)
-				for(size_t i = vFct.size(); i < 3; ++i)
-					File.write_base64_buffered((float) 0.0f);
+			if(vFct.size() != 1) {
+				// fixme avoid double spaces
+				if(!binary)
+					File << ' ';
+				for(size_t i = vFct.size(); i < 3; ++i) {
+					File << (float) 0.f;
+					if(!binary)
+						File << ' ';
+				}
+			}
 		}
 	}
 
-	File.end_base64_buffer<float>();
 }
 
 
@@ -986,14 +1034,17 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
                    const std::vector<size_t>& vFct, const std::string& name,
                    Grid& grid, int si, int dim, int numVert)
 {
+	File << VTKFileWriter::normal;
 //	write opening tag
-	std::stringstream ss;
-	ss << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
-					"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format=\"binary\">\n";
-	File.write(ss.str().c_str());
+	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+	"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format="
+		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
 
 	int n = sizeof(float) * numVert * (vFct.size() == 1 ? 1 : 3);
-	File.write_base64(n);
+	if(binary)
+		File << VTKFileWriter::base64_binary << n;
+//	else
+//		File << n /sizeof(float)<< ' ';
 
 //	start marking of grid
 	grid.begin_marking();
@@ -1017,7 +1068,8 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 	grid.end_marking();
 
 //	write closing tag
-	File.write("\n        </DataArray>\n");
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
 };
 
 template <int TDim>
@@ -1038,7 +1090,8 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 		return;
 
 //	write opening tag to indicate point data
-	File.write("      <PointData>\n");
+	File << VTKFileWriter::normal;
+	File << "      <PointData>\n";
 
 //	loop all selected symbolic names
 	for(size_t sym = 0; sym < m_vSymbFctNodal.size(); ++sym)
@@ -1098,7 +1151,8 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	}
 
 //	write closing tag
-	File.write("      </PointData>\n");
+	File << VTKFileWriter::normal;
+	File << "      </PointData>\n";
 }
 
 
@@ -1120,7 +1174,10 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 	static const ref_elem_type& refElem = Provider<ref_elem_type>::get();
 	static const size_t numCo = ref_elem_type::numCorners;
 
-	File.begin_base64_buffer<float>();
+	if(binary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
 
 //	get iterators
 	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
@@ -1180,10 +1237,11 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 			UG_CATCH_THROW("VTK::write_cell_data_elementwise: Cannot evaluate data.");
 		}
 
-		WriteDataToBase64Stream(File, value);
+		File << value;
+		if(!binary)
+			File << ' ';
 	}
 
-	File.end_base64_buffer<float>();
 }
 
 
@@ -1199,13 +1257,16 @@ write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 	spData->set_function_pattern(u.function_pattern());
 
 //	write opening tag
-	std::stringstream ss;
-	ss << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
-					"NumberOfComponents=\""<<numCmp<<"\" format=\"binary\">\n";
-	File.write(ss.str().c_str());
+	File << VTKFileWriter::normal;
+	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+	"NumberOfComponents=\""<<numCmp<<"\" format="
+		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
 
 	int n = sizeof(float) * numElem * numCmp;
-	File.write_base64(n);
+	if(binary)
+		File << VTKFileWriter::base64_binary << n;
+//	else
+//		File << numElem*numCmp << ' ';
 
 //	switch dimension
 	switch(dim)
@@ -1222,7 +1283,8 @@ write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 	}
 
 //	write closing tag
-	File.write("\n        </DataArray>\n");
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
 };
 
 
@@ -1250,7 +1312,10 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 	const_iterator iterBegin = IteratorProvider<TFunction>::template begin<TElem>(u, si);
 	const_iterator iterEnd = IteratorProvider<TFunction>::template end<TElem>(u, si);
 
-	File.begin_base64_buffer<float>();
+	if(binary)
+		File << VTKFileWriter::base64_binary;
+	else
+		File << VTKFileWriter::normal;
 
 	MathVector<dim> localIP;
 	AveragePositions(localIP, refElem.vCorner(), numCo);
@@ -1296,18 +1361,26 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 			}
 
 		//	flush stream
-			File.write_base64_buffered((float)ipVal);
+			File << (float) ipVal;
+			if(!binary)
+				File << ' ';
 		}
+
+		if(!binary)
+			File << ' ';
 
 	//	fill with zeros up to 3d if vector type
 		if(vFct.size() != 1)
-			for(size_t i = vFct.size(); i < 3; ++i)
-				File.write_base64_buffered((float) 0.0f);
+			for(size_t i = vFct.size(); i < 3; ++i) {
+				File << (float) 0.f;
+				if(!binary)
+					File << ' ';
+			}
+
 	}
 	}
 	UG_CATCH_THROW("VTK: Could not find Shape function Set.");
 
-	File.end_base64_buffer<float>();
 }
 
 
@@ -1319,13 +1392,16 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
                    Grid& grid, int si, int dim, int numElem)
 {
 //	write opening tag
-	std::stringstream ss;
-	ss << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
-					"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format=\"binary\">\n";
-	File.write(ss.str().c_str());
+	File << VTKFileWriter::normal;
+	File << "        <DataArray type=\"Float32\" Name=\""<<name<<"\" "
+	"NumberOfComponents=\""<<(vFct.size() == 1 ? 1 : 3)<<"\" format="
+		 <<	(binary ? "\"binary\"": "\"ascii\"") << ">\n";
 
 	int n = sizeof(float) * numElem * (vFct.size() == 1 ? 1 : 3);
-	File.write_base64(n);
+	if(binary)
+		File << VTKFileWriter::base64_binary << n;
+//	else
+//		File << n/sizeof() << ' ';
 
 //	switch dimension
 	switch(dim)
@@ -1342,7 +1418,8 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
 	}
 
 //	write closing tag
-	File.write("\n        </DataArray>\n");
+	File << VTKFileWriter::normal;
+	File << "\n        </DataArray>\n";
 };
 
 template <int TDim>
@@ -1363,7 +1440,8 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 		return;
 
 //	write opening tag to indicate point data
-	File.write("      <CellData>\n");
+	File << VTKFileWriter::normal;
+	File << "      <CellData>\n";
 
 //	loop all selected symbolic names
 	for(size_t sym = 0; sym < m_vSymbFctElem.size(); ++sym)
@@ -1423,7 +1501,8 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	}
 
 //	write closing tag
-	File.write("      </CellData>\n");
+	File << VTKFileWriter::normal;
+	File << "      </CellData>\n";
 }
 
 ////////////////////////////////////////////////////////////////////////////////

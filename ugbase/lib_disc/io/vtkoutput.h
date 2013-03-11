@@ -13,130 +13,14 @@
 
 // other ug modules
 #include "common/util/string_util.h"
+#include "common/util/base64_file_writer.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 
 namespace ug{
-
-class VTKFileWriter
-{
-	enum{OSIZE=32,            /* must be a multiple of 16 */
-		 BSIZE=(3*OSIZE/4)};  /* will be just right then  */
-
-	struct {
-		char buffer[BSIZE];
-		char output[OSIZE];
-		int front;
-		int size;
-	} BufferStream;
-
-	inline void EncodeTriplet(char *_in, char *out, int n)
-	{
-		static char digits[] =
-			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-		unsigned char *in = (unsigned char *)_in;
-
-		out[0] = digits[in[0] >> 2];
-		out[1] = digits[((in[0] & 0x03) << 4) | (in[1] >> 4)];
-		out[2] = n > 1? digits[((in[1] & 0x0F) << 2) | (in[2] >> 6)] : '=';
-		out[3] = n > 2? digits[in[2] & 0x3F] : '=';
-	}
-
-	inline void BufferStreamWrite(FILE* File, const void *item)
-	{
-		int i;
-		char *p;
-
-		memcpy(BufferStream.buffer + BufferStream.front, item, BufferStream.size);
-		BufferStream.front += BufferStream.size;
-		if (BufferStream.front == BSIZE) {
-			p = BufferStream.output;
-			for (i = 0; i < BSIZE; i += 3) {
-				EncodeTriplet(BufferStream.buffer + i, p, 3);
-				p += 4;
-			}
-			fwrite(BufferStream.output, 1, OSIZE, File);
-			BufferStream.front = 0;
-		}
-	}
-
-	inline void BufferStreamFlush(FILE* File)
-	{
-		int i, r, to;
-		char *p;
-
-		if (BufferStream.front != 0) {
-			p = BufferStream.output;
-			r = BufferStream.front % 3;
-			to = BufferStream.front - r;
-			for (i = 0; i < to; i += 3) {
-				EncodeTriplet(BufferStream.buffer + i, p, 3);
-				p += 4;
-			}
-			if (r) {
-				memset(BufferStream.buffer + BufferStream.front, 0, 3-r);
-				EncodeTriplet(BufferStream.buffer + to, p, r);
-				p += 4;
-			}
-			fwrite(BufferStream.output, 1, p - BufferStream.output, File);
-			BufferStream.front = 0;
-		}
-	}
-
-	public:
-		VTKFileWriter(std::string filename) : m_pFile(NULL)
-		{
-			m_pFile = fopen(filename.c_str(), "w");
-			if(m_pFile == NULL)
-				UG_THROW("Base64StreamWriter: Can not open Output File:"
-								<< filename);
-			BufferStream.front = 0;
-		}
-
-		~VTKFileWriter()
-		{
-			if(m_pFile) fclose(m_pFile);
-		}
-
-		void write(const char* msg)
-		{
-			fprintf(m_pFile, "%s", msg);
-		}
-
-		template <typename T>
-		void begin_base64_buffer() {BufferStream.size = sizeof(T);}
-
-		template <typename T>
-		void write_base64_buffered(const T& n)
-		{
-			UG_ASSERT(BufferStream.size = sizeof(T), "Stream size invalid.");
-			BufferStreamWrite(m_pFile, &n);
-		}
-
-		void flush_base64_buffered()
-		{
-			BufferStreamFlush(m_pFile);
-		}
-
-		template <typename T>
-		void end_base64_buffer()
-		{
-			UG_ASSERT(BufferStream.size = sizeof(T), "Stream size changed.");
-			BufferStreamFlush(m_pFile);
-		}
-
-		template <typename T>
-		void write_base64(const T& n)
-		{
-			BufferStream.size = sizeof(T);
-			BufferStreamWrite(m_pFile, &n);
-			BufferStreamFlush(m_pFile);
-		}
-
-	private:
-		FILE* m_pFile;
-};
+// todo this should avoid refactoring all the signatures of VTKOutput, remove it later
+typedef Base64FileWriter VTKFileWriter;
 
 template <typename T>
 struct IteratorProvider
@@ -235,6 +119,7 @@ struct IteratorProvider<MGSubsetHandler>
 template <int TDim>
 class VTKOutput
 {
+	static const bool binary = true;
 	public:
 	///	clears the selected output
 		void clear_selection() {m_vSymbFctNodal.clear();}
@@ -729,7 +614,10 @@ class VTKOutput
 
 	public:
 	///	default constructor
-		VTKOutput()	: m_bSelectAll(true) {}
+		VTKOutput()	: m_bSelectAll(true)/*, binary(true)*/ {}
+//		void set_binary(bool b) {
+//			binary = b;
+//		}
 
 	protected:
 	///	returns true if name for vtk-component is already used
@@ -753,12 +641,9 @@ class VTKOutput
 		std::map<std::string, std::vector<number> > m_mTimestep;
 };
 
-
-
-void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<1>& data);
-void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<2>& data);
-void WriteDataToBase64Stream(VTKFileWriter& File, const ug::MathVector<3>& data);
-void WriteDataToBase64Stream(VTKFileWriter& File, const float& data);
+VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<1>& data);
+VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<2>& data);
+VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<3>& data);
 
 } // namespace ug
 
