@@ -14,6 +14,8 @@ using namespace std;
 
 /**
  * \brief This is the actual encoder using Boost iterators
+ * note that final padding to triplet boundary has to be performed manually!
+ * see: http://www.boost.org/doc/libs/1_48_0/libs/serialization/doc/dataflow.html
  */
 typedef boost::archive::iterators::base64_from_binary<
 		// convert binary values to base64 characters
@@ -53,10 +55,8 @@ Base64FileWriter& Base64FileWriter::operator<<(const fmtflag format)
 
 	// forceful flushing of encoder's internal input buffer is necessary
 	// if we are switching formats.
-	if (format != m_currFormat && format == normal) {
-		if (m_numBytesWritten > 0) {
-			flushInputBuffer(true);
-		}
+	if (format != m_currFormat && m_numBytesWritten > 0) {
+		flushInputBuffer(true);
 	}
 	m_currFormat = format;
 	return *this;
