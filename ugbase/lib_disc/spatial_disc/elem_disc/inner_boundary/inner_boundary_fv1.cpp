@@ -68,7 +68,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 		// get current BF
 		const typename TFVGeom<TElem, dim>::BF& bf = fvgeom.bf(i);
 
-		// get associated node, coords and subset index
+		// get associated node and subset index
 		const size_t co = bf.node_id();
 		int si = fvgeom.subset_index();
 		
@@ -115,7 +115,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 		// get current BF
 		const typename TFVGeom<TElem, dim>::BF& bf = fvgeom.bf(i);
 		
-		// get associated node, coords and subset index
+		// get associated node and subset index
 		const int co = bf.node_id();
 		int si = fvgeom.subset_index();
 		
