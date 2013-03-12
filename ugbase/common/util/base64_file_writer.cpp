@@ -200,14 +200,14 @@ void Base64FileWriter::flushInputBuffer(bool force)
 
 	size_t buff_len = 0;
 	// amount of elements to flush at once
-	const uint elements_to_flush = 32;
+	const uint elements_to_flush = 12;
 	// in case of normal format, no input size is known, so this evals to zero.
 	const uint bytes_to_flush = 3 * m_lastInputByteSize * elements_to_flush;
 
 	// if force, flush all bytes in input stream
 	if (force) {
 		buff_len = m_numBytesWritten;
-	} else if ( bytes_to_flush <= m_numBytesWritten) {
+	} else if (bytes_to_flush <= m_numBytesWritten) {
 		buff_len = bytes_to_flush;
 	}
 
@@ -262,10 +262,10 @@ void Base64FileWriter::flushInputBuffer(bool force)
 	} else {
 		// reset buffer
 		m_inBuffer.str("");
+		m_inBuffer.seekp(0, ios_base::beg);
 	}
 
 	// set read and write position to beginning
-	m_inBuffer.seekp(0, ios_base::beg);
 	m_inBuffer.seekg(0, ios_base::beg);
 
 	// increment bytes in this block by buffer already encoded
