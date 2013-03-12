@@ -1392,7 +1392,7 @@ FlexGaussQuadrature<ReferenceHexahedron>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule<ReferenceHexahedron>(QuadratureRuleProvider<ReferenceHexahedron::dim>& factory)
+bool RegisterGaussQuadRule<ReferenceHexahedron>(QuadratureRuleProvider<ReferenceHexahedron::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferenceHexahedron> gaussQuadratureReferenceHexahedron_2(2);
 	static FlexGaussQuadrature<ReferenceHexahedron> gaussQuadratureReferenceHexahedron_3(3);

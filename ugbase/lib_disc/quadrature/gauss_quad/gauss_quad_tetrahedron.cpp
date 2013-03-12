@@ -801,7 +801,7 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule<ReferenceTetrahedron>(QuadratureRuleProvider<ReferenceTetrahedron::dim>& factory)
+bool RegisterGaussQuadRule<ReferenceTetrahedron>(QuadratureRuleProvider<ReferenceTetrahedron::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_0(0);
 	static FlexGaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_1(1);

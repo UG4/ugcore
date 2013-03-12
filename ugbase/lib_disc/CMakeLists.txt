@@ -37,6 +37,7 @@ set(srcDiscretization	domain_util.cpp
 						reference_element/reference_element.cpp
 			            reference_element/reference_mapping_provider.cpp
 						
+						quadrature/quadrature_provider.cpp
 						quadrature/gauss_quad/gauss_quad_vertex.cpp
 						quadrature/gauss_quad/gauss_quad_edge.cpp
 						quadrature/gauss_quad/gauss_quad_triangle.cpp

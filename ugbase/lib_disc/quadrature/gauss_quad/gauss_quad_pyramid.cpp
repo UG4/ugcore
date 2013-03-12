@@ -78,7 +78,7 @@ FlexGaussQuadrature<ReferencePyramid>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule<ReferencePyramid>(QuadratureRuleProvider<ReferencePyramid::dim>& factory)
+bool RegisterGaussQuadRule<ReferencePyramid>(QuadratureRuleProvider<ReferencePyramid::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferencePyramid> gaussQuadratureReferencePyramid_2(2);
 

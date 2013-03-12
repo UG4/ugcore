@@ -329,7 +329,7 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule<ReferenceEdge>(QuadratureRuleProvider<ReferenceEdge::dim>& factory)
+bool RegisterGaussQuadRule<ReferenceEdge>(QuadratureRuleProvider<ReferenceEdge::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_1(1);
 	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_3(3);

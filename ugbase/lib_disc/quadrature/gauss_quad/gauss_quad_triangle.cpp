@@ -856,7 +856,7 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 
 // register rules
 template <>
-bool RegisterQuadratureRule<ReferenceTriangle>(QuadratureRuleProvider<ReferenceTriangle::dim>& factory)
+bool RegisterGaussQuadRule<ReferenceTriangle>(QuadratureRuleProvider<ReferenceTriangle::dim>& factory)
 {
 	static FlexGaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_1(1);
 	static FlexGaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_2(2);

@@ -31,7 +31,7 @@ class VertexQuadrature : public QuadratureRule<0>
 
 // register rules
 template <>
-bool RegisterQuadratureRule<ReferenceVertex>(QuadratureRuleProvider<ReferenceVertex::dim>& factory)
+bool RegisterGaussQuadRule<ReferenceVertex>(QuadratureRuleProvider<ReferenceVertex::dim>& factory)
 {
 	static VertexQuadrature quadVertex;
 

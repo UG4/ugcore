@@ -8,7 +8,7 @@
 #include "fe_geom.h"
 #include "lib_disc/domain_traits.h"
 #include "lib_disc/common/geometry_util.h"
-#include "lib_disc/quadrature/quadrature.h"
+#include "lib_disc/quadrature/quadrature_provider.h"
 
 namespace ug{
 
