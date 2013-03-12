@@ -23,6 +23,7 @@
 #include "lib_disc/operator/linear_operator/transfer_post_process.h"
 #include "lib_disc/operator/linear_operator/prolongation_operator.h"
 #include "lib_disc/operator/linear_operator/multi_grid_solver/mg_solver.h"
+#include "lib_disc/operator/linear_operator/element_gauss_seidel/element_gauss_seidel.h"
 
 using namespace std;
 
@@ -126,6 +127,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GeometricMultiGrid", tag);
 	}
+
+	//	ElementGaussSeidel
+	{
+		typedef ElementGaussSeidel<TDomain, TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("ElementGaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
+		.add_constructor()
+		.add_method("set_relax", &T::set_relax, "", "relax")
+		.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ElementGaussSeidel", tag);
+	}
+
 }
 
 /**
