@@ -255,6 +255,33 @@ template<typename T> class DenseMatrixInverse;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // variable matrix
+template<eMatrixOrdering TOrdering>
+struct block_traits< DenseMatrix< VariableArray2<number, TOrdering> > >
+{
+	enum { ordering = TOrdering };
+	enum { is_static = false};
+	enum { static_num_rows = 0};
+	enum { static_num_cols = 0};
+	enum { depth = 1 };
+
+	typedef DenseMatrixInverse< VariableArray2<number, TOrdering> > inverse_type;
+};
+//////////////////////////////////////////////////////////////////////////////////////////////
+// fixed matrix
+template<size_t TBlockSize, eMatrixOrdering TOrdering>
+struct block_traits< DenseMatrix< FixedArray2<number, TBlockSize, TBlockSize, TOrdering> > >
+{
+	enum { ordering = TOrdering };
+	enum { is_static = true};
+	enum { static_num_rows = TBlockSize};
+	enum { static_num_cols = TBlockSize};
+	enum { depth = 1 };
+
+	typedef DenseMatrixInverse< FixedArray2<number, TBlockSize, TBlockSize, TOrdering>  > inverse_type;
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// variable block matrix
 template<typename TValue, eMatrixOrdering TOrdering>
 struct block_traits< DenseMatrix< VariableArray2<TValue, TOrdering> > >
 {
@@ -262,56 +289,56 @@ struct block_traits< DenseMatrix< VariableArray2<TValue, TOrdering> > >
 	enum { is_static = false};
 	enum { static_num_rows = 0};
 	enum { static_num_cols = 0};
+	enum { depth = block_traits<TValue>::depth+1 };
 
-	typedef DenseMatrixInverse< VariableArray2<TValue, TOrdering> > inverse_type;
+	typedef DenseMatrixInverse< VariableArray2<number, TOrdering> > inverse_type;
 };
-//////////////////////////////////////////////////////////////////////////////////////////////
-// fixed matrix
+
 template<typename TValue, size_t TBlockSize, eMatrixOrdering TOrdering>
 struct block_traits< DenseMatrix< FixedArray2<TValue, TBlockSize, TBlockSize, TOrdering> > >
 {
 	enum { ordering = TOrdering };
-	enum { is_static = true};
-	enum { static_num_rows = TBlockSize};
-	enum { static_num_cols = TBlockSize};
+	enum { is_static = false};
+	enum { static_num_rows = 0};
+	enum { static_num_cols = 0};
+	enum { depth = block_traits<TValue>::depth+1 };
 
-	typedef DenseMatrixInverse< FixedArray2<TValue, TBlockSize, TBlockSize, TOrdering>  > inverse_type;
+	typedef DenseMatrixInverse< VariableArray2<number, TOrdering> > inverse_type;
 };
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // fixed 1x1 to 3x3 : inverse is matrix
-template<typename TValue, eMatrixOrdering TOrdering>
-struct block_traits< DenseMatrix< FixedArray2<TValue, 1, 1, TOrdering> > >
+template<eMatrixOrdering TOrdering>
+struct block_traits< DenseMatrix< FixedArray2<number, 1, 1, TOrdering> > >
 {
-	enum { ordering = DenseMatrix< FixedArray2<TValue, 1, 1> >::ordering };
+	enum { ordering = DenseMatrix< FixedArray2<number, 1, 1> >::ordering };
 	enum { is_static = true};
 	enum { static_num_rows = 1};
 	enum { static_num_cols = 1};
 
-	typedef DenseMatrix< FixedArray2<TValue, 1, 1, TOrdering> > inverse_type;
+	typedef DenseMatrix< FixedArray2<number, 1, 1, TOrdering> > inverse_type;
 };
 
-template<typename TValue, eMatrixOrdering TOrdering>
-struct block_traits< DenseMatrix< FixedArray2<TValue, 2, 2, TOrdering> > >
+template<eMatrixOrdering TOrdering>
+struct block_traits< DenseMatrix< FixedArray2<number, 2, 2, TOrdering> > >
 {
-	enum { ordering = DenseMatrix< FixedArray2<TValue, 2, 2> >::ordering };
+	enum { ordering = DenseMatrix< FixedArray2<number, 2, 2> >::ordering };
 	enum { is_static = true};
 	enum { static_num_rows = 2};
 	enum { static_num_cols = 2};
 
-	typedef DenseMatrix< FixedArray2<TValue, 2, 2, TOrdering> > inverse_type;
+	typedef DenseMatrix< FixedArray2<number, 2, 2, TOrdering> > inverse_type;
 };
 
-template<typename TValue, eMatrixOrdering TOrdering>
-struct block_traits< DenseMatrix< FixedArray2<TValue, 3, 3, TOrdering> > >
+template<eMatrixOrdering TOrdering>
+struct block_traits< DenseMatrix< FixedArray2<number, 3, 3, TOrdering> > >
 {
-	enum { ordering = DenseMatrix< FixedArray2<TValue, 3, 3> >::ordering };
+	enum { ordering = DenseMatrix< FixedArray2<number, 3, 3> >::ordering };
 	enum { is_static = true};
 	enum { static_num_rows = 3};
 	enum { static_num_cols = 3};
 
-	typedef DenseMatrix< FixedArray2<TValue, 3, 3, TOrdering> > inverse_type;
+	typedef DenseMatrix< FixedArray2<number, 3, 3, TOrdering> > inverse_type;
 };
 
 

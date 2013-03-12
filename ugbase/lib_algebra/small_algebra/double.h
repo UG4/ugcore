@@ -138,6 +138,7 @@ struct block_traits<number>
 	enum { static_num_rows = 1};
 	enum { static_num_cols = 1};
 	enum { static_size = 1 };
+	enum { depth = 0 };
 };
 
 template<> struct block_multiply_traits<number, number>
