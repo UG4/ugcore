@@ -23,7 +23,7 @@ namespace ug{
 
 template <typename TData, int dim, typename TImpl>
 class StdGridFunctionData
-	: 	public UserData<TData,dim>
+	: 	public DependentUserData<TData,dim>
 {
 	public:
 		////////////////
@@ -128,6 +128,12 @@ class StdGridFunctionData
 			UG_THROW("Not implemented.");
 		}
 
+	///	returns if data depends on solution
+		virtual bool zero_derivative() const {return false;}
+
+	///	returns that a grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
 	protected:
 	///	access to implementation
 		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
@@ -171,6 +177,8 @@ class GridFunctionNumberData
 
 		//	local finite element id
 			m_lfeID = spGridFct->local_finite_element_id(m_fct);
+
+			extract_fct_grp(spGridFct->function_pattern(), cmp);
 		};
 
 		template <int refDim>
@@ -220,6 +228,35 @@ class GridFunctionNumberData
 							<<m_lfeID<<", refDim="<<refDim);
 		}
 		
+		template <int refDim>
+		void eval_deriv(GeometricObject* elem){
+			//	reference object id
+			const ReferenceObjectID roid = elem->reference_object_id();
+
+			//	get trial space
+			try{
+				const LocalShapeFunctionSet<refDim>& rTrialSpace =
+						LocalShapeFunctionSetProvider::get<refDim>(roid, m_lfeID);
+
+				//	memory for shapes
+				std::vector<number> vShape;
+
+				for(size_t s = 0; s < this->num_series(); ++s){
+					for(size_t ip = 0; ip < this->num_ip(s); ++ip){
+						//	evaluate at shapes at ip
+						rTrialSpace.shapes(vShape, this->template local_ip<refDim>(s,ip));
+
+						for(size_t sh = 0; sh < vShape.size(); ++sh)
+							this->deriv(s, ip, 0, sh) = vShape[sh];
+					}
+				}
+			}
+			UG_CATCH_THROW("GridFunctionNumberData: Shape Function Set missing for"
+					" Reference Object: "<<roid<<", Trial Space: "
+					<<m_lfeID<<", refDim="<<refDim);
+
+		}
+
 		inline void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
 		{
 			const number t = this->time();
@@ -228,7 +265,55 @@ class GridFunctionNumberData
 				evaluate<dim>(this->values(s), this->ips(s), t, si,
                   *u, elem, NULL, this->template local_ips<dim>(s),
                   this->num_ip(s));
+
+			if(!bDeriv) return;
+
+			switch(elem->base_object_id()){
+				case EDGE: eval_deriv<1>(elem); break;
+				case FACE: eval_deriv<2>(elem); break;
+				case VOLUME: eval_deriv<3>(elem); break;
+				default: UG_THROW("Not impl.");
+			}
 		}
+
+	protected:
+	///	extracts the function group
+		void extract_fct_grp(const FunctionPattern& fctPatt, std::string fctName)
+		{
+		//	if associated infos missing return
+			if(fctName.empty()) return;
+
+		//	create function group of this elem disc
+			try{
+				m_FctGrp.set_function_pattern(fctPatt);
+				m_FctGrp.add(TokenizeString(fctName));
+			}UG_CATCH_THROW("StdDataExport: Cannot find  some symbolic function "
+							"name in '"<<fctName<<"'.");
+
+		//	get common fct grp
+			FunctionGroup commonFctGroup(fctPatt);
+			commonFctGroup.add_all();
+
+		//	create a mapping between all functions and the function group of this
+		//	element disc.
+			try{
+				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, commonFctGroup);
+			}UG_CATCH_THROW("StdDataExport: Cannot create Function Index Mapping"
+							" for '"<<fctName<<"'.");
+		}
+		///	FunctionGroup corresponding to symb functions
+			FunctionGroup m_FctGrp;
+
+		///	associated function index mapping
+			FunctionIndexMapping m_FctIndexMap;
+
+	public:
+	///	returns the function group
+		const FunctionGroup& fct_grp() const {return m_FctGrp;}
+
+	///	returns the function index mapping
+		const FunctionIndexMapping& fct_index_map() const {return m_FctIndexMap;}
+
 };
 
 template <typename TGridFunction>
