@@ -628,10 +628,10 @@ protected:
 		bool vtk_name_used(const char* name) const;
 
 	protected:
-	/// print values in binary (base64 encoded way) or plain ascii
-		bool m_bBinary;
 	///	scheduled components to be printed
 		bool m_bSelectAll;
+	/// print values in binary (base64 encoded way) or plain ascii
+		bool m_bBinary;
 		std::map<std::string, std::vector<std::string> > m_vSymbFctNodal;
 		std::map<std::string, std::vector<std::string> > m_vSymbFctElem;
 		typedef typename std::map<std::string,
