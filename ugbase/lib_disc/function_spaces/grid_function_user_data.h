@@ -300,12 +300,15 @@ class GridFunctionNumberData
 				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, commonFctGroup);
 			}UG_CATCH_THROW("StdDataExport: Cannot create Function Index Mapping"
 							" for '"<<fctName<<"'.");
-		}
-		///	FunctionGroup corresponding to symb functions
-			FunctionGroup m_FctGrp;
 
-		///	associated function index mapping
-			FunctionIndexMapping m_FctIndexMap;
+			this->set_function_group(m_FctGrp);
+		}
+
+	///	FunctionGroup corresponding to symb functions
+		FunctionGroup m_FctGrp;
+
+	///	associated function index mapping
+		FunctionIndexMapping m_FctIndexMap;
 
 	public:
 	///	returns the function group
