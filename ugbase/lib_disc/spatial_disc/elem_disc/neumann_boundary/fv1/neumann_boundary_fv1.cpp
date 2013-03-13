@@ -284,14 +284,13 @@ lin_def(const LocalVector& u,
 	const static TFVGeom& geo = GeomProvider<TFVGeom>::get();
 	typedef typename TFVGeom::BF BF;
 
-	size_t ip = 0;
 	for(size_t s = 0; s < this->BndSSGrp.size(); ++s)
 	{
 		const int si = this->BndSSGrp[s];
 		const std::vector<BF>& vBF = geo.bf(si);
 		for(size_t i = 0; i < vBF.size(); ++i){
 			const int co = vBF[i].node_id();
-			vvvLinDef[ip][_C_][co] -= vBF[i].volume();
+			vvvLinDef[i][_C_][co] -= vBF[i].volume();
 		}
 	}
 }
