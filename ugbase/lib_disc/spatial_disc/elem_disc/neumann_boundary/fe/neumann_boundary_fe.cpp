@@ -305,7 +305,6 @@ lin_def(const LocalVector& u,
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(This->m_lfeID,This->m_order);
 	typedef typename TFEGeom::BF BF;
 
-	size_t ip = 0;
 	for(size_t s = 0; s < this->BndSSGrp.size(); ++s)
 	{
 		const int si = this->BndSSGrp[s];

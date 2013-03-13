@@ -54,6 +54,7 @@ QuadratureRuleProvider<0>::create_gauss_rule(ReferenceObjectID roid,
 	try{
 	switch(roid){
 		case ROID_VERTEX: q = new GaussQuadratureVertex(); break;
+		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
 	}catch(...){return NULL;}
 	return q;
@@ -68,6 +69,7 @@ QuadratureRuleProvider<1>::create_gauss_rule(ReferenceObjectID roid,
 	try{
 	switch(roid){
 		case ROID_EDGE: q = new FlexGaussQuadrature<ReferenceEdge>(order); break;
+		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
 	}catch(...){return NULL;}
 	return q;
@@ -83,6 +85,7 @@ QuadratureRuleProvider<2>::create_gauss_rule(ReferenceObjectID roid,
 	switch(roid){
 		case ROID_TRIANGLE: q = new FlexGaussQuadrature<ReferenceTriangle>(order); break;
 		case ROID_QUADRILATERAL: q = new FlexGaussQuadrature<ReferenceQuadrilateral>(order); break;
+		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
 	}catch(...){return NULL;}
 	return q;
@@ -100,6 +103,7 @@ QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID roid,
 		case ROID_PYRAMID: q = new FlexGaussQuadrature<ReferencePyramid>(order); break;
 		case ROID_PRISM: q = new FlexGaussQuadrature<ReferencePrism>(order); break;
 		case ROID_HEXAHEDRON: q = new FlexGaussQuadrature<ReferenceHexahedron>(order); break;
+		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}
 	}catch(...){return NULL;}
 	return q;

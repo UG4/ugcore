@@ -1621,7 +1621,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 
 //	if already prepared for this roid, skip update of local values
 	if(m_roid != roid || lfeID != m_lfeID ||
-	   quadOrder != m_quadOrderSCVF || quadOrder != m_quadOrderSCV)
+	   (int)quadOrder != m_quadOrderSCVF || (int)quadOrder != m_quadOrderSCV)
 			update_local(roid, lfeID, quadOrder);
 
 //	get reference element mapping
