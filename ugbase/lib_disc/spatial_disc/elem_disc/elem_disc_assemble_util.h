@@ -976,7 +976,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locRhs, ind);
+			Eval.prepare_elem(elem, locRhs, ind, true);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot prepare element.");
 
