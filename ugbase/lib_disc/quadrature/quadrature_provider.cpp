@@ -6,8 +6,8 @@
  */
 
 #include "quadrature_provider.h"
-#include "gauss_quad/gauss_quad.h"
-#include "gauss_quad/gauss_quad_vertex.h"
+#include "gauss/gauss_quad.h"
+#include "gauss/gauss_quad_vertex.h"
 #include "lib_disc/reference_element/reference_element.h"
 
 namespace ug{

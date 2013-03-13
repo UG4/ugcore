@@ -39,13 +39,13 @@ set(srcDiscretization	domain_util.cpp
 						
 						quadrature/quad_test.cpp
 						quadrature/quadrature_provider.cpp
-						quadrature/gauss_quad/gauss_quad_edge.cpp
-						quadrature/gauss_quad/gauss_quad_triangle.cpp
-						quadrature/gauss_quad/gauss_quad_quadrilateral.cpp
-						quadrature/gauss_quad/gauss_quad_tetrahedron.cpp
-						quadrature/gauss_quad/gauss_quad_prism.cpp
-						quadrature/gauss_quad/gauss_quad_pyramid.cpp
-						quadrature/gauss_quad/gauss_quad_hexahedron.cpp
+						quadrature/gauss/gauss_quad_edge.cpp
+						quadrature/gauss/gauss_quad_triangle.cpp
+						quadrature/gauss/gauss_quad_quadrilateral.cpp
+						quadrature/gauss/gauss_quad_tetrahedron.cpp
+						quadrature/gauss/gauss_quad_prism.cpp
+						quadrature/gauss/gauss_quad_pyramid.cpp
+						quadrature/gauss/gauss_quad_hexahedron.cpp
 
 						local_finite_element/local_finite_element_id.cpp
 						local_finite_element/local_shape_function_set.cpp

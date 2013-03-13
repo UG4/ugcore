@@ -25,7 +25,7 @@
 #include "lib_disc/reference_element/reference_element_traits.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/local_finite_element/crouzeix-raviart/crouzeix_raviart.h"
-#include "lib_disc/quadrature/gauss_quad/gauss_quad.h"
+#include "lib_disc/quadrature/gauss/gauss_quad.h"
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/domain_util_impl.h"
 

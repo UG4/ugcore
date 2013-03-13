@@ -6,7 +6,7 @@
  */
 
 #include "quad_test.h"
-#include "gauss_quad/gauss_quad.h"
+#include "gauss/gauss_quad.h"
 #include "quadrature.h"
 #include "quadrature_provider.h"
 
