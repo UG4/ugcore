@@ -356,7 +356,7 @@ extract_inner_algebra_indices(const typename Grid::traits<TBaseElem>::secure_con
 {
 //	loop passed elements
 	for(size_t i = 0; i < vElem.size(); ++i)
-		inner_algebra_indices(vElem[i], ind);
+		inner_algebra_indices(vElem[i], ind, false);
 }
 
 template<typename TBaseElem>
