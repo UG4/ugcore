@@ -8,7 +8,8 @@
 #ifndef __H__UG__LIB_DISC__QUADRATURE__
 #define __H__UG__LIB_DISC__QUADRATURE__
 
-#include "../reference_element/reference_element.h"
+#include "common/common.h"
+#include "common/math/ugmath.h"
 
 namespace ug{
 
@@ -57,33 +58,33 @@ class QuadratureRule{
 		inline size_t size() const {return m_numPoints;}
 
 	///	returns i'th integration point
-		inline const position_type& point(size_t i) const
+		inline const MathVector<dim>& point(size_t i) const
 		{
 			UG_ASSERT(i < size(), "Wrong index");
 			return m_pvPoint[i];
 		}
 
 	///	returns all positions in an array of size()
-		inline const position_type* points() const {return m_pvPoint;}
+		inline const MathVector<dim>* points() const {return m_pvPoint;}
 
 	///	return the i'th weight
-		inline weight_type weight(size_t i) const
+		inline number weight(size_t i) const
 		{
 			UG_ASSERT(i < size(), "Wrong index");
 			return m_pvWeight[i];
 		}
 
 	/// returns all weights in an array of size()
-		inline const weight_type* weights() const	{return m_pvWeight;}
+		inline const number* weights() const	{return m_pvWeight;}
 
 	///	returns the order
 		inline size_t order() const {return m_order;}
 
 	protected:
-		const position_type* m_pvPoint;	///< Integration points
-		const weight_type* m_pvWeight; 	///< Weights
-		size_t m_numPoints;				///< number of points
-		int m_order;					///< Order of rule
+		const MathVector<dim>* m_pvPoint;	///< Integration points
+		const number* m_pvWeight; 			///< Weights
+		size_t m_numPoints;					///< number of points
+		int m_order;						///< Order of rule
 };
 
 /// @}

@@ -11,24 +11,6 @@ namespace ug{
 
 template <int TDim>
 template <typename TRefElem>
-void
-QuadratureRuleProvider<TDim>::register_rule(const QuadratureRule<dim>& rule,
-                                            QuadratureType type)
-{
-//	check that dimension is correct
-	if(TRefElem::dim != dim)
-		UG_THROW("QuadratureRuleProvider: registering by reference"
-				" element, but at provider of different dimension.");
-
-//	get reference object id
-	ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
-
-//	forward request
-	register_rule(roid, rule, type);
-}
-
-template <int TDim>
-template <typename TRefElem>
 const QuadratureRule<TDim>&
 QuadratureRuleProvider<TDim>::get_rule(size_t order,
                                        QuadratureType type)

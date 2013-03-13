@@ -21,6 +21,8 @@
 #include "lib_disc/function_spaces/integrate.h"
 #include "lib_disc/function_spaces/integrate_flux.h"
 
+#include "lib_disc/quadrature/quad_test.h"
+
 using namespace std;
 
 namespace ug{
@@ -141,6 +143,11 @@ void RegisterBridge_Integrate(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
 	typedef Integrate::Functionality Functionality;
+
+
+	{
+		reg.add_function("TestQuadRule", &ug::TestQuadRule);
+	}
 
 	try{
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);

@@ -10,7 +10,7 @@
 
 #include "common/common.h"
 #include "../quadrature.h"
-#include "../quadrature_provider.h"
+#include "lib_disc/reference_element/reference_element.h"
 
 namespace ug{
 
@@ -18,9 +18,60 @@ namespace ug{
 template <typename TRefElem, int order>
 class GaussQuadrature;
 
+/// wrapper to ease implementation
+template <typename TImpl, int TDim, int TOrder, int TNip>
+class GaussQuadBase
+{
+	public:
+	/// Dimension of integration domain
+		static const size_t dim = TDim;
+
+	/// Position Type in Reference Element Space
+		typedef MathVector<dim> position_type;
+
+	///	Type of weights
+		typedef number weight_type;
+
+	/// Order of quadrature rule
+		static const size_t p = TOrder;
+
+	/// Number of integration points
+		static const size_t nip = TNip;
+
+	public:
+	/// number of integration points
+		static size_t size() {return nip;}
+
+	/// returns i'th integration point
+		static const MathVector<dim>& point(size_t i)
+			{UG_ASSERT(i < size(), "Wrong index"); return m_vPoint[i];}
+
+	/// returns all positions in an array of size()
+		static const MathVector<dim>* points() {return m_vPoint;}
+
+	/// return the i'th weight
+		static number weight(size_t i)
+			{UG_ASSERT(i < size(), "Wrong index"); return m_vWeight[i];}
+
+	/// returns all weights in an array of size()
+		static const number* weights() {return m_vWeight;}
+
+	/// returns the order
+		static size_t order() {return p;}
+
+	protected:
+	/// integration points
+		static MathVector<dim> m_vPoint[nip];
+
+	/// weights
+		static number m_vWeight[nip];
+};
+
 /// flexible order gauss quadrature
 /**
- * Providing gauss quadrature for an reference element
+ * Providing gauss quadrature for an reference element. This class wrapps a
+ * static GaussQuadrature into the Quadrature interface.
+ *
  * \tparam 		TRefElem		Reference Element Type
  */
 template <typename TRefElem>
@@ -34,59 +85,6 @@ class FlexGaussQuadrature
 	///	Destructor
 		~FlexGaussQuadrature() {}
 };
-
-// registering function
-template <typename TRefElem>
-bool RegisterGaussQuadRule(QuadratureRuleProvider<TRefElem::dim>& factory);
-template <> bool RegisterGaussQuadRule<ReferenceVertex>(QuadratureRuleProvider<ReferenceVertex::dim>& factory);
-template <> bool RegisterGaussQuadRule<ReferenceEdge>(QuadratureRuleProvider<ReferenceEdge::dim>& factory);
-template <> bool RegisterGaussQuadRule<ReferenceTriangle>(QuadratureRuleProvider<ReferenceTriangle::dim>& factory);
-template <> bool RegisterGaussQuadRule<ReferenceQuadrilateral>(QuadratureRuleProvider<ReferenceQuadrilateral::dim>& factory);
-template <> bool RegisterGaussQuadRule<ReferenceTetrahedron>(QuadratureRuleProvider<ReferenceTetrahedron::dim>& factory);
-template <> bool RegisterGaussQuadRule<ReferencePrism>(QuadratureRuleProvider<ReferencePrism::dim>& factory);
-template <> bool RegisterGaussQuadRule<ReferencePyramid>(QuadratureRuleProvider<ReferencePyramid::dim>& factory);
-template <> bool RegisterGaussQuadRule<ReferenceHexahedron>(QuadratureRuleProvider<ReferenceHexahedron::dim>& factory);
-
-// registering function
-template <int dim>
-inline bool RegisterGaussQuadRuleDim(QuadratureRuleProvider<dim>& factory);
-
-// implementation 0d
-template <>
-inline bool RegisterGaussQuadRuleDim(QuadratureRuleProvider<0>& factory)
-{
-	bool bRet = true;
-	bRet &= RegisterGaussQuadRule<ReferenceVertex>(factory);
-	return bRet;
-}
-// implementation 1d
-template <>
-inline bool RegisterGaussQuadRuleDim(QuadratureRuleProvider<1>& factory)
-{
-	bool bRet = true;
-	bRet &= RegisterGaussQuadRule<ReferenceEdge>(factory);
-	return bRet;
-}
-// implementation 2d
-template <>
-inline bool RegisterGaussQuadRuleDim(QuadratureRuleProvider<2>& factory)
-{
-	bool bRet = true;
-	bRet &= RegisterGaussQuadRule<ReferenceTriangle>(factory);
-	bRet &= RegisterGaussQuadRule<ReferenceQuadrilateral>(factory);
-	return bRet;
-}
-// implementation 3d
-template <>
-inline bool RegisterGaussQuadRuleDim(QuadratureRuleProvider<3>& factory)
-{
-	bool bRet = true;
-	bRet &= RegisterGaussQuadRule<ReferenceTetrahedron>(factory);
-	bRet &= RegisterGaussQuadRule<ReferencePrism>(factory);
-	bRet &= RegisterGaussQuadRule<ReferencePyramid>(factory);
-	bRet &= RegisterGaussQuadRule<ReferenceHexahedron>(factory);
-	return bRet;
-}
 
 } // namespace ug
 

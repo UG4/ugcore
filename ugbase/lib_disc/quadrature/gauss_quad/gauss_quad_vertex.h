@@ -2,17 +2,15 @@
 //  It provides the Gauss Quadratures for a reference edge.
 
 
-#include "../quadrature.h"
-#include "gauss_quad_edge.h"
-#include "common/util/provider.h"
+#include "gauss_quad.h"
 
 namespace ug{
 
-class VertexQuadrature : public QuadratureRule<0>
+class GaussQuadratureVertex : public QuadratureRule<0>
 {
 	public:
 	/// Constructor
-		VertexQuadrature(){
+		GaussQuadratureVertex(){
 			m_order = 20; // something large
 			m_numPoints = 1;
 			m_vPoint[0][0] = 0.000000000000000000;
@@ -27,17 +25,6 @@ class VertexQuadrature : public QuadratureRule<0>
 
 	/// weights
 		number m_vWeight[1];
-};
-
-// register rules
-template <>
-bool RegisterGaussQuadRule<ReferenceVertex>(QuadratureRuleProvider<ReferenceVertex::dim>& factory)
-{
-	static VertexQuadrature quadVertex;
-
-	factory.register_rule<ReferenceVertex>(quadVertex);
-
-	return true;
 };
 
 }; // namespace ug

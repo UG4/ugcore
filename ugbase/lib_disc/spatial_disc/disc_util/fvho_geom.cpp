@@ -9,7 +9,7 @@
 #include "common/util/provider.h"
 #include "fvho_geom.h"
 #include "lib_disc/reference_element/reference_element.h"
-#include "lib_disc/quadrature/quadrature.h"
+#include "lib_disc/quadrature/quadrature_provider.h"
 #include "lib_algebra/common/operations_vec.h"
 
 namespace ug{

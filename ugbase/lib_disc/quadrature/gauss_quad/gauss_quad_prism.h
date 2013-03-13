@@ -2,105 +2,32 @@
 //  It provides the Gauss Quadratures for a reference prism.
 
 
-#ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__
-#define __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__
+#ifndef __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__PRISM__
+#define __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__PRISM__
 
 #include "gauss_quad.h"
 
 namespace ug{
 
+////////////////////////////////////////////////////////////////////////////////
+// Implemented GaussQuadrature for ReferencePrism
+////////////////////////////////////////////////////////////////////////////////
 template <>
 class GaussQuadrature<ReferencePrism, 0>
-{
-	public:
-	/// Dimension of integration domain
-		static const size_t dim = 3;
-
-	/// Order of quadrature rule
-		static const size_t p = 0;
-
-	/// Number of integration points
-		static const size_t nip = 6;
-
-	/// Constructor
-		GaussQuadrature();
-
-	/// number of integration points
-		inline size_t size() const {return nip;}
-
-	/// returns i'th integration point
-		inline const MathVector<dim>& point(size_t i) const
-			{UG_ASSERT(i < size(), "Wrong index"); return m_vPoint[i];}
-
-	/// returns all positions in an array of size()
-		inline const MathVector<dim>* points() const {return m_vPoint;}
-
-	/// return the i'th weight
-		inline number weight(size_t i) const
-			{UG_ASSERT(i < size(), "Wrong index"); return m_vWeight[i];}
-
-	/// returns all weights in an array of size()
-		inline const number* weights() const {return m_vWeight;}
-
-	/// returns the order
-		inline size_t order() const {return p;}
-
-	protected:
-	/// integration points
-		MathVector<dim> m_vPoint[nip];
-
-	/// weights
-		number m_vWeight[nip];
-};
+: public GaussQuadBase<GaussQuadrature<ReferencePrism, 0>, 3, 0, 6>{};
 
 template <>
 class GaussQuadrature<ReferencePrism, 2>
-{
-	public:
-	/// Dimension of integration domain
-		static const size_t dim = 3;
+: public GaussQuadBase<GaussQuadrature<ReferencePrism, 2>, 3, 2, 6>{};
 
-	/// Order of quadrature rule
-		static const size_t p = 2;
-
-	/// Number of integration points
-		static const size_t nip = 6;
-
-	/// Constructor
-		GaussQuadrature();
-
-	/// number of integration points
-		inline size_t size() const {return nip;}
-
-	/// returns i'th integration point
-		inline const MathVector<dim>& point(size_t i) const
-			{UG_ASSERT(i < size(), "Wrong index"); return m_vPoint[i];}
-
-	/// returns all positions in an array of size()
-		inline const MathVector<dim>* points() const {return m_vPoint;}
-
-	/// return the i'th weight
-		inline number weight(size_t i) const
-			{UG_ASSERT(i < size(), "Wrong index"); return m_vWeight[i];}
-
-	/// returns all weights in an array of size()
-		inline const number* weights() const {return m_vWeight;}
-
-	/// returns the order
-		inline size_t order() const {return p;}
-
-	protected:
-	/// integration points
-		MathVector<dim> m_vPoint[nip];
-
-	/// weights
-		number m_vWeight[nip];
-};
-
+////////////////////////////////////////////////////////////////////////////////
+// template wrapper for orders implemented by higher order
+////////////////////////////////////////////////////////////////////////////////
 template <>
-class GaussQuadrature<ReferencePrism, 1> : public GaussQuadrature<ReferencePrism, 2>{};
+class GaussQuadrature<ReferencePrism, 1> 
+: public GaussQuadrature<ReferencePrism, 2>{};
 
 }; // namespace ug
 
-#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_QUADRATURE__ReferencePrism__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__QUADRATURE__GAUSS_QUADRATURE__PRISM__ */
 

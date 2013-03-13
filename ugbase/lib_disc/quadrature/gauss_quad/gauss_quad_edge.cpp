@@ -8,210 +8,215 @@
 
 namespace ug{
 
-GaussQuadrature<ReferenceEdge, 1>::GaussQuadrature()
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 1>, 1, 1, 1>::m_vWeight[1] =
 {
-	m_vPoint[0][0] = 0.500000000000000000;
+ 1.00000000000000000000000000000000
+};
 
-	m_vWeight[0] =  1.000000000000000000;
-}
-
-GaussQuadrature<ReferenceEdge, 3>::GaussQuadrature()
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 1>, 1, 1, 1>::m_vPoint[1] =
 {
-	m_vPoint[0][0] = 0.211324865405187118;
+MathVector<1>(0.50000000000000000000000000000000)
+};
 
-	m_vPoint[1][0] = 0.788675134594812882;
-
-	m_vWeight[0] =  0.500000000000000000;
-	m_vWeight[1] =  0.500000000000000000;
-}
-
-GaussQuadrature<ReferenceEdge, 5>::GaussQuadrature()
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 3>, 1, 3, 2>::m_vWeight[2] =
 {
-	m_vPoint[0][0] = 0.112701665379258311;
+ 0.50000000000000000000000000000000,
+ 0.50000000000000000000000000000000
+};
 
-	m_vPoint[1][0] = 0.500000000000000000;
-
-	m_vPoint[2][0] = 0.887298334620741689;
-
-	m_vWeight[0] =  0.277777777777777778;
-	m_vWeight[1] =  0.444444444444444444;
-	m_vWeight[2] =  0.277777777777777778;
-}
-
-GaussQuadrature<ReferenceEdge, 7>::GaussQuadrature()
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 3>, 1, 3, 2>::m_vPoint[2] =
 {
-	m_vPoint[0][0] = 0.069431844202973712;
+MathVector<1>(0.21132486540518711774542560974902),
+MathVector<1>(0.78867513459481288225457439025098)
+};
 
-	m_vPoint[1][0] = 0.330009478207571868;
-
-	m_vPoint[2][0] = 0.669990521792428132;
-
-	m_vPoint[3][0] = 0.930568155797026288;
-
-	m_vWeight[0] =  0.173927422568726929;
-	m_vWeight[1] =  0.326072577431273071;
-	m_vWeight[2] =  0.326072577431273071;
-	m_vWeight[3] =  0.173927422568726929;
-}
-
-GaussQuadrature<ReferenceEdge, 9>::GaussQuadrature()
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 5>, 1, 5, 3>::m_vWeight[3] =
 {
-	m_vPoint[0][0] = 0.046910077030668004;
+ 0.27777777777777777777777777777778,
+ 0.44444444444444444444444444444444,
+ 0.27777777777777777777777777777778
+};
 
-	m_vPoint[1][0] = 0.230765344947158454;
-
-	m_vPoint[2][0] = 0.500000000000000000;
-
-	m_vPoint[3][0] = 0.769234655052841546;
-
-	m_vPoint[4][0] = 0.953089922969331996;
-
-	m_vWeight[0] =  0.118463442528094544;
-	m_vWeight[1] =  0.239314335249683234;
-	m_vWeight[2] =  0.284444444444444444;
-	m_vWeight[3] =  0.239314335249683234;
-	m_vWeight[4] =  0.118463442528094544;
-}
-
-GaussQuadrature<ReferenceEdge, 11>::GaussQuadrature()
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 5>, 1, 5, 3>::m_vPoint[3] =
 {
-	m_vPoint[0][0] = 0.033765242898423986;
+MathVector<1>(0.11270166537925831148207346002176),
+MathVector<1>(0.50000000000000000000000000000000),
+MathVector<1>(0.88729833462074168851792653997824)
+};
 
-	m_vPoint[1][0] = 0.169395306766867743;
-
-	m_vPoint[2][0] = 0.380690406958401546;
-
-	m_vPoint[3][0] = 0.619309593041598454;
-
-	m_vPoint[4][0] = 0.830604693233132257;
-
-	m_vPoint[5][0] = 0.966234757101576014;
-
-	m_vWeight[0] =  0.085662246189585173;
-	m_vWeight[1] =  0.180380786524069304;
-	m_vWeight[2] =  0.233956967286345524;
-	m_vWeight[3] =  0.233956967286345524;
-	m_vWeight[4] =  0.180380786524069304;
-	m_vWeight[5] =  0.085662246189585173;
-}
-
-GaussQuadrature<ReferenceEdge, 13>::GaussQuadrature()
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 7>, 1, 7, 4>::m_vWeight[4] =
 {
-	m_vPoint[0][0] = 0.025446043828620738;
+ 0.17392742256872692868653197461100,
+ 0.32607257743127307131346802538900,
+ 0.32607257743127307131346802538900,
+ 0.17392742256872692868653197461100
+};
 
-	m_vPoint[1][0] = 0.129234407200302780;
-
-	m_vPoint[2][0] = 0.297077424311301417;
-
-	m_vPoint[3][0] = 0.500000000000000000;
-
-	m_vPoint[4][0] = 0.702922575688698583;
-
-	m_vPoint[5][0] = 0.870765592799697220;
-
-	m_vPoint[6][0] = 0.974553956171379262;
-
-	m_vWeight[0] =  0.064742483084434847;
-	m_vWeight[1] =  0.139852695744638334;
-	m_vWeight[2] =  0.190915025252559472;
-	m_vWeight[3] =  0.208979591836734694;
-	m_vWeight[4] =  0.190915025252559472;
-	m_vWeight[5] =  0.139852695744638334;
-	m_vWeight[6] =  0.064742483084434847;
-}
-
-GaussQuadrature<ReferenceEdge, 15>::GaussQuadrature()
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 7>, 1, 7, 4>::m_vPoint[4] =
 {
-	m_vPoint[0][0] = 0.019855071751231884;
+MathVector<1>(0.06943184420297371238802675555360),
+MathVector<1>(0.33000947820757186759866712044838),
+MathVector<1>(0.66999052179242813240133287955162),
+MathVector<1>(0.93056815579702628761197324444640)
+};
 
-	m_vPoint[1][0] = 0.101666761293186630;
-
-	m_vPoint[2][0] = 0.237233795041835507;
-
-	m_vPoint[3][0] = 0.408282678752175098;
-
-	m_vPoint[4][0] = 0.591717321247824902;
-
-	m_vPoint[5][0] = 0.762766204958164493;
-
-	m_vPoint[6][0] = 0.898333238706813370;
-
-	m_vPoint[7][0] = 0.980144928248768116;
-
-	m_vWeight[0] =  0.050614268145188130;
-	m_vWeight[1] =  0.111190517226687235;
-	m_vWeight[2] =  0.156853322938943644;
-	m_vWeight[3] =  0.181341891689180991;
-	m_vWeight[4] =  0.181341891689180991;
-	m_vWeight[5] =  0.156853322938943644;
-	m_vWeight[6] =  0.111190517226687235;
-	m_vWeight[7] =  0.050614268145188130;
-}
-
-GaussQuadrature<ReferenceEdge, 17>::GaussQuadrature()
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 9>, 1, 9, 5>::m_vWeight[5] =
 {
-	m_vPoint[0][0] = 0.015919880246186955;
+ 0.11846344252809454375713202035996,
+ 0.23931433524968323402064575741782,
+ 0.28444444444444444444444444444444,
+ 0.23931433524968323402064575741782,
+ 0.11846344252809454375713202035996
+};
 
-	m_vPoint[1][0] = 0.081984446336682103;
-
-	m_vPoint[2][0] = 0.193314283649704801;
-
-	m_vPoint[3][0] = 0.337873288298095535;
-
-	m_vPoint[4][0] = 0.500000000000000000;
-
-	m_vPoint[5][0] = 0.662126711701904465;
-
-	m_vPoint[6][0] = 0.806685716350295199;
-
-	m_vPoint[7][0] = 0.918015553663317897;
-
-	m_vPoint[8][0] = 0.984080119753813045;
-
-	m_vWeight[0] =  0.040637194180787206;
-	m_vWeight[1] =  0.090324080347428702;
-	m_vWeight[2] =  0.130305348201467731;
-	m_vWeight[3] =  0.156173538520001420;
-	m_vWeight[4] =  0.165119677500629882;
-	m_vWeight[5] =  0.156173538520001420;
-	m_vWeight[6] =  0.130305348201467731;
-	m_vWeight[7] =  0.090324080347428702;
-	m_vWeight[8] =  0.040637194180787206;
-}
-
-GaussQuadrature<ReferenceEdge, 19>::GaussQuadrature()
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 9>, 1, 9, 5>::m_vPoint[5] =
 {
-	m_vPoint[0][0] = 0.013046735741414140;
+MathVector<1>(0.04691007703066800360118656085030),
+MathVector<1>(0.23076534494715845448184278964990),
+MathVector<1>(0.50000000000000000000000000000000),
+MathVector<1>(0.76923465505284154551815721035010),
+MathVector<1>(0.95308992296933199639881343914970)
+};
 
-	m_vPoint[1][0] = 0.067468316655507745;
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 11>, 1, 11, 6>::m_vWeight[6] =
+{
+ 0.08566224618958517252014807108637,
+ 0.18038078652406930378491675691886,
+ 0.23395696728634552369493517199478,
+ 0.23395696728634552369493517199478,
+ 0.18038078652406930378491675691886,
+ 0.08566224618958517252014807108637
+};
 
-	m_vPoint[2][0] = 0.160295215850487797;
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 11>, 1, 11, 6>::m_vPoint[6] =
+{
+MathVector<1>(0.03376524289842398609384922275300),
+MathVector<1>(0.16939530676686774316930020249005),
+MathVector<1>(0.38069040695840154568474913915964),
+MathVector<1>(0.61930959304159845431525086084036),
+MathVector<1>(0.83060469323313225683069979750995),
+MathVector<1>(0.96623475710157601390615077724700)
+};
 
-	m_vPoint[3][0] = 0.283302302935376405;
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 13>, 1, 13, 7>::m_vWeight[7] =
+{
+ 0.06474248308443484663530571633954,
+ 0.13985269574463833395073388571189,
+ 0.19091502525255947247518488774449,
+ 0.20897959183673469387755102040816,
+ 0.19091502525255947247518488774449,
+ 0.13985269574463833395073388571189,
+ 0.06474248308443484663530571633954
+};
 
-	m_vPoint[4][0] = 0.425562830509184395;
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 13>, 1, 13, 7>::m_vPoint[7] =
+{
+MathVector<1>(0.02544604382862073773690515797607),
+MathVector<1>(0.12923440720030278006806761335961),
+MathVector<1>(0.29707742431130141654669679396152),
+MathVector<1>(0.50000000000000000000000000000000),
+MathVector<1>(0.70292257568869858345330320603848),
+MathVector<1>(0.87076559279969721993193238664039),
+MathVector<1>(0.97455395617137926226309484202393)
+};
 
-	m_vPoint[5][0] = 0.574437169490815605;
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 15>, 1, 15, 8>::m_vWeight[8] =
+{
+ 0.05061426814518812957626567715498,
+ 0.11119051722668723527217799721312,
+ 0.15685332293894364366898110099330,
+ 0.18134189168918099148257522463860,
+ 0.18134189168918099148257522463860,
+ 0.15685332293894364366898110099330,
+ 0.11119051722668723527217799721312,
+ 0.05061426814518812957626567715498
+};
 
-	m_vPoint[6][0] = 0.716697697064623595;
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 15>, 1, 15, 8>::m_vPoint[8] =
+{
+MathVector<1>(0.01985507175123188415821956571526),
+MathVector<1>(0.10166676129318663020422303176208),
+MathVector<1>(0.23723379504183550709113047540538),
+MathVector<1>(0.40828267875217509753026192881991),
+MathVector<1>(0.59171732124782490246973807118009),
+MathVector<1>(0.76276620495816449290886952459462),
+MathVector<1>(0.89833323870681336979577696823792),
+MathVector<1>(0.98014492824876811584178043428474)
+};
 
-	m_vPoint[7][0] = 0.839704784149512203;
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 17>, 1, 17, 9>::m_vWeight[9] =
+{
+ 0.04063719418078720598594607905526,
+ 0.09032408034742870202923601562146,
+ 0.13030534820146773115937143470932,
+ 0.15617353852000142003431520329222,
+ 0.16511967750062988158226253464349,
+ 0.15617353852000142003431520329222,
+ 0.13030534820146773115937143470932,
+ 0.09032408034742870202923601562146,
+ 0.04063719418078720598594607905526
+};
 
-	m_vPoint[8][0] = 0.932531683344492255;
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 17>, 1, 17, 9>::m_vPoint[9] =
+{
+MathVector<1>(0.01591988024618695508221189854816),
+MathVector<1>(0.08198444633668210285028510596513),
+MathVector<1>(0.19331428364970480134564898032926),
+MathVector<1>(0.33787328829809553548073099267833),
+MathVector<1>(0.50000000000000000000000000000000),
+MathVector<1>(0.66212671170190446451926900732167),
+MathVector<1>(0.80668571635029519865435101967074),
+MathVector<1>(0.91801555366331789714971489403487),
+MathVector<1>(0.98408011975381304491778810145184)
+};
 
-	m_vPoint[9][0] = 0.986953264258585860;
+template <>
+number GaussQuadBase<GaussQuadrature<ReferenceEdge, 19>, 1, 19, 10>::m_vWeight[10] =
+{
+ 0.03333567215434406879678440494667,
+ 0.07472567457529029657288816982885,
+ 0.10954318125799102199776746711408,
+ 0.13463335965499817754561346078473,
+ 0.14776211235737643508694649732567,
+ 0.14776211235737643508694649732567,
+ 0.13463335965499817754561346078473,
+ 0.10954318125799102199776746711408,
+ 0.07472567457529029657288816982885,
+ 0.03333567215434406879678440494667
+};
 
-	m_vWeight[0] =  0.033335672154344069;
-	m_vWeight[1] =  0.074725674575290297;
-	m_vWeight[2] =  0.109543181257991022;
-	m_vWeight[3] =  0.134633359654998178;
-	m_vWeight[4] =  0.147762112357376435;
-	m_vWeight[5] =  0.147762112357376435;
-	m_vWeight[6] =  0.134633359654998178;
-	m_vWeight[7] =  0.109543181257991022;
-	m_vWeight[8] =  0.074725674575290297;
-	m_vWeight[9] =  0.033335672154344069;
-}
+template <>
+MathVector<1> GaussQuadBase<GaussQuadrature<ReferenceEdge, 19>, 1, 19, 10>::m_vPoint[10] =
+{
+MathVector<1>(0.01304673574141413996101799395777),
+MathVector<1>(0.06746831665550774463395165578825),
+MathVector<1>(0.16029521585048779688283631744256),
+MathVector<1>(0.28330230293537640460036702841711),
+MathVector<1>(0.42556283050918439455758699943514),
+MathVector<1>(0.57443716949081560544241300056486),
+MathVector<1>(0.71669769706462359539963297158289),
+MathVector<1>(0.83970478414951220311716368255744),
+MathVector<1>(0.93253168334449225536604834421175),
+MathVector<1>(0.98695326425858586003898200604223)
+};
 
 
 
@@ -221,7 +226,8 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 {
 	switch(order)
 	{
-	case 1:{
+	case 0:
+	case 1:
 		const static GaussQuadrature<ReferenceEdge, 1>& q1 
 			= Provider<GaussQuadrature<ReferenceEdge, 1> >::get();
 
@@ -229,9 +235,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q1.size();
 		m_pvPoint = q1.points();
 		m_pvWeight = q1.weights();
-		}break;
+		break;
 
-	case 3:{
+	case 2:
+	case 3:
 		const static GaussQuadrature<ReferenceEdge, 3>& q3 
 			= Provider<GaussQuadrature<ReferenceEdge, 3> >::get();
 
@@ -239,9 +246,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q3.size();
 		m_pvPoint = q3.points();
 		m_pvWeight = q3.weights();
-		}break;
+		break;
 
-	case 5:{
+	case 4:
+	case 5:
 		const static GaussQuadrature<ReferenceEdge, 5>& q5 
 			= Provider<GaussQuadrature<ReferenceEdge, 5> >::get();
 
@@ -249,9 +257,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q5.size();
 		m_pvPoint = q5.points();
 		m_pvWeight = q5.weights();
-		}break;
+		break;
 
-	case 7:{
+	case 6:
+	case 7:
 		const static GaussQuadrature<ReferenceEdge, 7>& q7 
 			= Provider<GaussQuadrature<ReferenceEdge, 7> >::get();
 
@@ -259,9 +268,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q7.size();
 		m_pvPoint = q7.points();
 		m_pvWeight = q7.weights();
-		}break;
+		break;
 
-	case 9:{
+	case 8:
+	case 9:
 		const static GaussQuadrature<ReferenceEdge, 9>& q9 
 			= Provider<GaussQuadrature<ReferenceEdge, 9> >::get();
 
@@ -269,9 +279,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q9.size();
 		m_pvPoint = q9.points();
 		m_pvWeight = q9.weights();
-		}break;
+		break;
 
-	case 11:{
+	case 10:
+	case 11:
 		const static GaussQuadrature<ReferenceEdge, 11>& q11 
 			= Provider<GaussQuadrature<ReferenceEdge, 11> >::get();
 
@@ -279,9 +290,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q11.size();
 		m_pvPoint = q11.points();
 		m_pvWeight = q11.weights();
-		}break;
+		break;
 
-	case 13:{
+	case 12:
+	case 13:
 		const static GaussQuadrature<ReferenceEdge, 13>& q13 
 			= Provider<GaussQuadrature<ReferenceEdge, 13> >::get();
 
@@ -289,9 +301,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q13.size();
 		m_pvPoint = q13.points();
 		m_pvWeight = q13.weights();
-		}break;
+		break;
 
-	case 15:{
+	case 14:
+	case 15:
 		const static GaussQuadrature<ReferenceEdge, 15>& q15 
 			= Provider<GaussQuadrature<ReferenceEdge, 15> >::get();
 
@@ -299,9 +312,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q15.size();
 		m_pvPoint = q15.points();
 		m_pvWeight = q15.weights();
-		}break;
+		break;
 
-	case 17:{
+	case 16:
+	case 17:
 		const static GaussQuadrature<ReferenceEdge, 17>& q17 
 			= Provider<GaussQuadrature<ReferenceEdge, 17> >::get();
 
@@ -309,9 +323,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q17.size();
 		m_pvPoint = q17.points();
 		m_pvWeight = q17.weights();
-		}break;
+		break;
 
-	case 19:{
+	case 18:
+	case 19:
 		const static GaussQuadrature<ReferenceEdge, 19>& q19 
 			= Provider<GaussQuadrature<ReferenceEdge, 19> >::get();
 
@@ -319,42 +334,10 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 		m_numPoints = q19.size();
 		m_pvPoint = q19.points();
 		m_pvWeight = q19.weights();
-		}break;
+		break;
 
-	default: UG_ASSERT(0, "Order not availabile. Can not construct GaussQuadrature.\n");
+	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of edge.");
 	}
 }
-
-
-
-// register rules
-template <>
-bool RegisterGaussQuadRule<ReferenceEdge>(QuadratureRuleProvider<ReferenceEdge::dim>& factory)
-{
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_1(1);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_3(3);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_5(5);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_7(7);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_9(9);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_11(11);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_13(13);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_15(15);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_17(17);
-	static FlexGaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_19(19);
-
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_1);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_3);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_5);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_7);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_9);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_11);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_13);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_15);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_17);
-	factory.register_rule<ReferenceEdge>(gaussQuadratureReferenceEdge_19);
-
-	return true;
-};
-
 }; // namespace ug
 
