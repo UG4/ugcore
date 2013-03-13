@@ -281,6 +281,8 @@ class DataImport : public IDataImport
 		virtual void compute_lin_defect(const LocalVector& u)
 		{
 			UG_ASSERT(m_vLinDefectFunc[m_id] != NULL, "No evaluation function.");
+			UG_ASSERT(num_ip() == 0 || m_vvvLinDefect.size() >= num_ip(),
+			          "DataImport: Num ip "<<num_ip()<<", but memory: "<<m_vvvLinDefect.size());
 			(m_vLinDefectFunc[m_id])(u, &m_vvvLinDefect[0], m_numIP);
 		}
 
