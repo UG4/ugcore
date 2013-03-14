@@ -13,7 +13,8 @@
 namespace ug{
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd, vector_type& vec)
+void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
+		vector_type& vec)
 {
 	if (m_assIndex.index_set){ vec.resize(1);}
 	else{
@@ -24,7 +25,8 @@ void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd, vector_type
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd, matrix_type& mat)
+void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
+		matrix_type& mat)
 {
 	mat.resize(0,0);
 	if (m_assIndex.index_set){ mat.resize(1, 1);
@@ -56,7 +58,8 @@ void AssAdapter<TAlgebra>::elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd,
 
 template <typename TAlgebra>
 template <typename TDomain>
-void AssAdapter<TAlgebra>::adaptConstraint(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >& constraint)
+void AssAdapter<TAlgebra>::adaptConstraint(
+		SmartPtr<IDomainConstraint<TDomain, TAlgebra> >& constraint)
 {
 	//	forward to ConstraintInterface if assembling is carried out at one DoF only
 	if(m_assIndex.index_set) constraint->set_ass_index(m_assIndex.index);
@@ -64,10 +67,13 @@ void AssAdapter<TAlgebra>::adaptConstraint(SmartPtr<IDomainConstraint<TDomain, T
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index, const size_t alpha)
+void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index,
+		const size_t alpha)
 {
-	UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for setting Dirichlet in an index-wise manner.");
-	UG_ASSERT(mat.num_cols() == 1, "#cols needs to be 1 for setting Dirichlet in an index-wise manner.");
+	UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for setting Dirichlet "
+			"in an index-wise manner.");
+	UG_ASSERT(mat.num_cols() == 1, "#cols needs to be 1 for setting Dirichlet "
+			"in an index-wise manner.");
 
 	if (index == m_assIndex.index)
 	{
@@ -83,9 +89,11 @@ void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index, c
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const size_t index, const size_t alpha, double val)
+void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const size_t index,
+		const size_t alpha, double val)
 {
-	UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet in an index-wise manner.");
+	UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet "
+			"in an index-wise manner.");
 
 	if (index == m_assIndex.index){
 		BlockRef(vec[0], alpha) = val;

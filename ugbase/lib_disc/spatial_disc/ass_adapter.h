@@ -91,14 +91,19 @@ class AssAdapter
 	/// set local to global mapping
 		void set_mapping(ILocalToGlobalMapper<TAlgebra>* pMapper = NULL)
 		{
-			if(pMapper){ m_pMapper = pMapper;}
-			else{ m_pMapper = &m_pMapperCommon;}
+			if(pMapper)
+				m_pMapper = pMapper;
+			else
+				m_pMapper = &m_pMapperCommon;
 		}
 
 	/// LocalToGlobalMapper-function calls
-		void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
+		void AddLocalVec(vector_type& vec, const LocalVector& lvec,
+				ConstSmartPtr<DoFDistribution> dd)
 		{ m_pMapper->AddLocalVec(vec, lvec, dd);}
-		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
+
+		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat,
+				ConstSmartPtr<DoFDistribution> dd)
 		{ m_pMapper->AddLocalMatToGlobal(mat, lmat, dd);}
 
 
@@ -174,7 +179,8 @@ class AssAdapter
 	///	only one index will be set to Dirichlet in case of index-wise assembling
 	///	instead of setting a complete matrix row to Dirichlet
 		void adjust_matrix(matrix_type& mat, const size_t index, const size_t alpha);
-		void adjust_vector(vector_type& vec, const size_t index, const size_t alpha, double val);
+		void adjust_vector(vector_type& vec, const size_t index, const size_t alpha,
+				double val);
 
 	public:
 

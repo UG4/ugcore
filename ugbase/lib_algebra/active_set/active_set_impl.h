@@ -137,8 +137,6 @@ void ActiveSet<TAlgebra>::comp_lambda(vector_type& lambda,
 			MatMult(mat_u, 1.0, mat, u);
 		#endif
 
-		UG_LOG("ActiveSetGršsse (comp_lambda): " << m_vActiveSet.size() << "\n");
-
 		//	loop MultiIndex-pairs in activeSet-vector
 		for (vector<MultiIndex<2> >::iterator it = m_vActiveSet.begin();
 				it < m_vActiveSet.end(); ++it)
@@ -206,7 +204,7 @@ bool ActiveSet<TAlgebra>::check_conv(const vector_type& u, const size_t step)
 	//	check if activeSet has changed
 	if (m_vActiveSet.size() == m_vActiveSetOld.size())
 	{
-		UG_LOG("Old and new active Set has same number of member \n");
+		UG_LOG("Old and new active Set have the same number of members \n");
 
 		vector<MultiIndex<2> >::iterator it = m_vActiveSet.begin();
 

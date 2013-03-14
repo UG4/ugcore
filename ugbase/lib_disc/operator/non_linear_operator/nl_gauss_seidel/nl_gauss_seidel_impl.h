@@ -462,6 +462,7 @@ void NLGaussSeidelSolver<TDomain, TAlgebra>::write_debug(const matrix_type& mat,
 	base_writer_type::write_debug(mat, name.c_str());
 }
 
+
 }
 
 #endif /* NL_GAUSS_SEIDEL_IMPL_H_ */

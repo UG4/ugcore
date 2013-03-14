@@ -99,13 +99,13 @@ class NLGaussSeidelSolver
 		void set_damp(number damp) {m_damp = damp;}
 		void set_obstacle_constraint(vector_type& obs) {m_obsVec = obs; m_bObs = true;}
 
-		/// This operator inverts the Operator N: Y -> X
+	/// This operator inverts the Operator N: Y -> X
 		virtual bool init(SmartPtr<IOperator<vector_type> > N);
 
-		/// prepare Operator
+	/// prepare Operator
 		virtual bool prepare(vector_type& u);
 
-		/// apply Operator, i.e. N^{-1}(0) = u
+	/// apply Operator, i.e. N^{-1}(0) = u
 		virtual bool apply(vector_type& u);
 
 	private:
