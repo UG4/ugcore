@@ -8,6 +8,8 @@
 #ifndef ACTIVE_SET_H_
 #define ACTIVE_SET_H_
 
+using namespace std;
+
 namespace ug {
 
 template <typename TAlgebra>
@@ -23,6 +25,9 @@ class ActiveSet
 	///	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
+	///	Type of algebra value
+		typedef typename vector_type::value_type value_type;
+
 	public:
 	///	constructor
 		ActiveSet();
@@ -35,23 +40,33 @@ class ActiveSet
 
 		void prepare(vector_type& u);
 
+		bool check_dist_to_obs(vector_type& u);
+
 		bool active_index(vector_type& u,
 				vector_type& lambda);
 
-		void comp_lambda(matrix_type& mat, vector_type& u, vector_type& rhs, vector_type& lambda);
+		void comp_lambda(vector_type& lambda, const matrix_type& mat,
+				const vector_type& u, const vector_type& rhs);
 
-		vector<size_t> get_activeSet() { return m_vActiveSet;};
+		bool check_conv(const vector_type& u, const size_t step);
 
-		bool check_conv(vector_type& u, size_t step);
+		void createVecOfPointers();
+
+		vector<SmartPtr<MultiIndex<2> > >  activeMultiIndices()
+		{
+			createVecOfPointers();
+			return m_vActiveSetSP;
+		};
 
 	private:
 		/// vector describing a constraint
 		vector_type m_ConsVec;
 		bool m_bCons;
 
-		///	vector remembering the active set of DoFs
-		vector<size_t> m_vActiveSet;
-		vector<size_t> m_vActiveSetOld;
+		///	vector remembering the active set of MultiIndices (DoF,Fct)
+		vector<MultiIndex<2> > m_vActiveSet;
+		vector<MultiIndex<2> > m_vActiveSetOld;
+		vector<SmartPtr<MultiIndex<2> > > m_vActiveSetSP;
 };
 
 } // namespace ug

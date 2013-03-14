@@ -138,13 +138,13 @@ adjust_solution(vector_type& u, const GridLevel& gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
-		vector_type& val, const GridLevel& gl)
+adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
+		const vector_type& val, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_matrix_rhs, "discretization MultiStepTimeDiscretization");
 //	adjust matrix & rhs
 	try{
-		this->m_spDomDisc->adjust_matrix_rhs(mat, rhs, indexList, val, m_futureTime, gl);
+		this->m_spDomDisc->adjust_matrix_rhs(mat, rhs, vActiveIndices, val, m_futureTime, gl);
 	}UG_CATCH_THROW("ThetaTimeStep: Cannot adjust matrix and rhs.");
 }
 

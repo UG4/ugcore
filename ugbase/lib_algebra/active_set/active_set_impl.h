@@ -24,6 +24,38 @@ void ActiveSet<TAlgebra>::prepare(vector_type& u)
 }
 
 template <typename TAlgebra>
+bool ActiveSet<TAlgebra>::check_dist_to_obs(vector_type& u)
+{
+	//	STILL IN PROGRESS
+	value_type dist;
+	//	get number of unknowns per value_type
+	//	(e.g. if CPU == 3 -> nrFcts = 3!)
+	size_t nrFcts = GetSize(dist);
+
+	bool geometry_cut_by_cons = false;
+
+	for(size_t i = 0; i < u.size(); i++)
+	{
+		dist = u[i] - m_ConsVec[i];
+		//TODO: anstatt u muss hier die geometrische Info einflie§en!
+		for (size_t fct = 0; fct < nrFcts; fct++)
+		{
+			if (BlockRef(dist,fct) < 0.0)
+			{
+				geometry_cut_by_cons = true;
+				break;
+			}
+		}
+
+		if (geometry_cut_by_cons)
+			break;
+
+	}
+
+	return geometry_cut_by_cons;
+}
+
+template <typename TAlgebra>
 bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 		vector_type& lambda)
 {
@@ -39,76 +71,94 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 		UG_THROW("Temporarily u and lambda need to be "
 				"of same size in ActiveSet:active_index \n");
 
-	//	TODO: note: these are blocks here!!!
-	vector_type complementaryVal;
-	complementaryVal.resize(0);
-	complementaryVal.resize(1);
+	value_type complementaryVal;
 
-	bool index_is_active = false;
+	//	get number of unknowns per value_type
+	//	(e.g. if CPU == 3 -> nrFcts = 3!)
+	size_t nrFcts = GetSize(complementaryVal);
+
+	bool one_fct_is_active = false;
 
 	for(size_t i = 0; i < u.size(); i++)
 	{
-		//	TODO: consider blocks here!
-		complementaryVal[0] = lambda[i] + u[i] - m_ConsVec[i];
-		if (complementaryVal[0] <= 0.0)
-		{
-			//	index i is inactive!
-			//	temporarily this is only valid
-			//	for a constraint of type u <= *m_spConsVec
-			//UG_LOG("Index " << i << " is inactive! \n");
-			lambda[i] = 0.0;
-		}
-		else{
-			//UG_LOG("Index " << i << " is active! \n");
-			u[i] = m_ConsVec[i];
+		//	note: complementaryVal, lambda[i], etc. are blocks here
+		complementaryVal = lambda[i] + u[i] - m_ConsVec[i];
 
-			//	create list of active indices
-			m_vActiveSet.push_back(i);
-			index_is_active = true;
+		for (size_t fct = 0; fct < nrFcts; fct++)
+		{
+			if (BlockRef(complementaryVal,fct) <= 0.0)
+			{
+				//	multiindex (i,fct) is inactive!
+				//	temporarily this is only valid
+				//	for a constraint of type u <= *m_spConsVec
+				BlockRef(lambda[i],fct) = 0.0;
+			}
+			else
+			{
+				one_fct_is_active = true;
+
+				//	mark MultiIndex-pair (i,fct) as active
+				MultiIndex<2> activeMultiIndex(i,fct);
+
+				//	create list of active MultiIndex-pairs
+				m_vActiveSet.push_back(activeMultiIndex);
+
+				//	this corresponds to adjust_solution
+				//	in the context of Dirichlet-nodes:
+				BlockRef(u[i],fct) = BlockRef(m_ConsVec[i],fct);
+			}
 		}
 	}
 
-	return index_is_active;
+	return one_fct_is_active;
 }
 
 template <typename TAlgebra>
-void ActiveSet<TAlgebra>::comp_lambda(matrix_type& mat,
-		vector_type& u,
-		vector_type& rhs,
-		vector_type& lambda)
+void ActiveSet<TAlgebra>::comp_lambda(vector_type& lambda,
+		const matrix_type& mat,
+		const vector_type& u,
+		const vector_type& rhs)
 {
 	if (u.size() != lambda.size())
 		UG_THROW("Temporarily u and lambda need to be "
 				"of same size in ActiveSet:comp_lambda \n");
 
-	//	fŸr die inaktive Menge -> lambda = 0 setzen oder die untere Operation
-	//	nur fŸr aktive Indizes durchfŸhren!!!
-	// TODO: next call is only valid for ParallelVector/-Matrix!
-	//MatMultAddDirect(lambda, 1.0, rhs, -1.0, mat, u);
-
-	vector_type mat_u;
+	vector_type mat_u; // mat_u2;
 	mat_u.resize(u.size());
+	//mat_u2.resize(u.size());
 
 	// 	only if some indices are active we need to compute contact forces
 	if(m_vActiveSet.size() != 0.0)
 	{
-		// TODO: next call is only valid for ParallelVector/-Matrix!
 		//	we only need *it-th row of mat -> number mat_u = 0.0;
 		#ifdef UG_PARALLEL
 			MatMultDirect(mat_u, 1.0, mat, u);
 		#else
-			for(size_t i = 0; i < u.size(); i++)
-				mat_u[i] = 0.0;
-			UG_LOG("mat_u set to zero!!! \n");
+			MatMult(mat_u, 1.0, mat, u);
 		#endif
 
+		UG_LOG("ActiveSetGršsse (comp_lambda): " << m_vActiveSet.size() << "\n");
 
-		//	loop indices in activeSet-vector
-		for (vector<size_t>::iterator it = m_vActiveSet.begin();
+		//	loop MultiIndex-pairs in activeSet-vector
+		for (vector<MultiIndex<2> >::iterator it = m_vActiveSet.begin();
 				it < m_vActiveSet.end(); ++it)
 		{
-			lambda[*it] = rhs[*it] - mat_u[*it];
-			//UG_LOG("lambda[ " << *it << " ]" << lambda[*it] << " \n");
+			/*#ifdef UG_PARALLEL
+				MatMultDirect(u2[*it], 1.0, mat(*it), u[*it]);
+			#else
+				MatMult(mat_u2[*it], 1.0, mat.row_index(*it), u[*it]);
+			#endif*/
+
+			//	compute contact forces (lambda) for active multiIndices
+
+			//	get active (DoF,fct)-pairs out of m_vvActiveSet
+			MultiIndex<2> activeMultiIndex = *it;
+
+			size_t dof = activeMultiIndex[0];
+			size_t fct = activeMultiIndex[1];
+
+			//	lambda = rhs - Mat * u;
+			BlockRef(lambda[dof],fct) = BlockRef(rhs[dof],fct) - BlockRef(mat_u[dof],fct);
 		}
 
 		UG_LOG("new lambda-values computed \n");
@@ -124,39 +174,77 @@ void ActiveSet<TAlgebra>::comp_lambda(matrix_type& mat,
 }
 
 template <typename TAlgebra>
-bool ActiveSet<TAlgebra>::check_conv(vector_type& u, size_t step)
+bool ActiveSet<TAlgebra>::check_conv(const vector_type& u, const size_t step)
 {
 	//	ensure that at least one activeSet-iteration is performed
 	if (step <= 1)
 		return false;
 
-	//	check if constraint is satisfied for all indices
-	vector_type penetration;
-	penetration.resize(0);
-	penetration.resize(1);
+	//	NOW TWO CHECKS WILL BE PERFORMED TO ENSURE CONVERGENCE:
+	//	1. 	Is the constraint violated by any multiIndex?
+	//	2. 	Did some multiIndices change from 'active' to 'inactive' or vice versa
+	//		in the last iteration-step?
 
+	UG_LOG(m_vActiveSet.size() << " indices are active in step " << step << " ! \n");
+
+	value_type penetration;
+	//	get number of unknowns per value_type
+	//	(e.g. if CPU == 3 -> nrFcts = 3!)
+	size_t nrFcts = GetSize(penetration);
+
+	//	check if constraint is satisfied for all multiIndices
 	for(size_t i = 0; i < u.size(); i++)
 	{
-		penetration[0] = u[i] - m_ConsVec[i];
-		if (penetration[0] > 0.0) return false;
+		penetration = u[i] - m_ConsVec[i];
+
+		for (size_t fct = 0; fct < nrFcts; fct++){
+			if (BlockRef(penetration,fct) > 0.0)
+				return false;
+		}
 	}
 
+	//	check if activeSet has changed
 	if (m_vActiveSet.size() == m_vActiveSetOld.size())
 	{
-		size_t ind = 0;
-		for (vector<size_t>::iterator it = m_vActiveSet.begin();
-				it < m_vActiveSet.end(); ++it)
+		UG_LOG("Old and new active Set has same number of member \n");
+
+		vector<MultiIndex<2> >::iterator it = m_vActiveSet.begin();
+
+		for (vector<MultiIndex<2> >::iterator itOld = m_vActiveSetOld.begin();
+				itOld < m_vActiveSetOld.end(); ++itOld)
 		{
-			if (*it != m_vActiveSetOld[ind]) return false;
-			/*UG_LOG("index " << m_vActiveSetOld[ind] <<
-					" remains unchanged in activeSet \n");*/
-			ind++;
-		}
+			MultiIndex<2> multiIndexOld = *itOld;
+			MultiIndex<2> multiIndex = *it;
+
+			if ((multiIndex[0] != multiIndexOld[0])
+					|| (multiIndex[1] != multiIndexOld[1]))
+				return false;
+
+			++it;
+
+		} // itOld
+
 		//	activeSet remains unchanged & constraint is fulfilled for all indices
 		return true;
 	}
 
 	return false;
+}
+
+template <typename TAlgebra>
+void ActiveSet<TAlgebra>::createVecOfPointers()
+{
+	m_vActiveSetSP.resize(m_vActiveSet.size());
+
+	vector<MultiIndex<2> >::iterator it = m_vActiveSet.begin();
+
+	for (vector<SmartPtr<MultiIndex<2> > >::iterator itSP = m_vActiveSetSP.begin();
+				itSP < m_vActiveSetSP.end(); ++itSP)
+	{
+		*itSP = &*it;
+		++it;
+	}
+
 }
 
 }; // namespace ug

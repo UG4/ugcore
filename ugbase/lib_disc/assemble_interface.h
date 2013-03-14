@@ -159,24 +159,24 @@ class IAssemble
 
 		/// sets dirichlet rows and values in matrix resp. right hand side vector
 		/**
-		 * For a given set of indices, 'indexList', the matrix rows corresponding to these
+		 * For a given set of indices, 'vActiveIndices', the matrix rows corresponding to these
 		 * indices are set to identity (Dirichlet-row) and the entries of the right-hand-side
 		 * vector are set to the Dirichlet-values
 		 *
-		 * \param[out] 	mat			Mass-/Stiffness- Matrix
-		 * \param[out] 	rhs			Right-Hand-Side
-		 * \param[in]	indexList	Index List
-		 * \param[in]	val			Dirichlet values
-		 * \param[in]	gl			Grid Level
+		 * \param[out] 	mat				Mass-/Stiffness- Matrix
+		 * \param[out] 	rhs				Right-Hand-Side
+		 * \param[in]	vActiveIndices	vector of active Indices
+		 * \param[in]	val				Dirichlet values
+		 * \param[in]	gl				Grid Level
 		 */
 		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-		                             std::vector<size_t>& indexList, vector_type& val,
-		                             const GridLevel& gl) = 0;
+				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices, const vector_type& val,
+		        const GridLevel& gl) = 0;
 
 		/// adjust solution on surface grid
 		void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-		                       std::vector<size_t>& indexList, vector_type& val)
-		{adjust_matrix_rhs(mat, rhs, indexList, val, GridLevel());}
+				std::vector<SmartPtr<MultiIndex<2> > >  vActiveIndices, const vector_type& val)
+		{adjust_matrix_rhs(mat, rhs, vActiveIndices, val, GridLevel());}
 
 	///	assembles mass matrix
 		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, const GridLevel& gl)

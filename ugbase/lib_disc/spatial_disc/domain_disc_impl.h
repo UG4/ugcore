@@ -725,21 +725,17 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
 void DomainDiscretization<TDomain, TAlgebra>::
-adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
-		vector_type& val, ConstSmartPtr<DoFDistribution> dd)
+adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
+		const vector_type& val, ConstSmartPtr<DoFDistribution> dd)
 {
-	std::vector<size_t>::iterator iter;
+	std::vector<SmartPtr<MultiIndex<2> > >::iterator iter;
 
-	for (iter = indexList.begin(); iter < indexList.end(); ++iter)
+	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
 	{
-		//	loop functions
-		for (size_t alpha = 0; alpha < dd->num_fct(); alpha++)
-		{
-			//	set dirichlet row
-			SetDirichletRow(mat, *iter, alpha);
-		}
-		//	set dirichlet value in rhs
-		rhs[*iter] = val[*iter];
+		MultiIndex<2> multiIndex = **iter;
+
+		SetDirichletRow(mat, multiIndex[0], multiIndex[1]);
+		BlockRef(rhs[multiIndex[0]], multiIndex[1]) = BlockRef(val[multiIndex[0]], multiIndex[1]);
 	}
 }
 
@@ -1286,23 +1282,19 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
 void DomainDiscretization<TDomain, TAlgebra>::
-adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<size_t>& indexList,
-		vector_type& val, number time, ConstSmartPtr<DoFDistribution> dd)
+adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
+		const vector_type& val, number time, ConstSmartPtr<DoFDistribution> dd)
 {
-	//	TODO: is the time-variable necessary here? Or is it possible to use
-	//	the stationary version solely?
-	std::vector<size_t>::iterator iter;
+	//	currently there is no difference to the stationary variant of this method
+	//	therefore one could call the stationary impl here
+	std::vector<SmartPtr<MultiIndex<2> > >::iterator iter;
 
-	for (iter = indexList.begin(); iter < indexList.end(); ++iter)
+	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
 	{
-		//	loop functions
-		for (size_t alpha = 0; alpha < dd->num_fct(); alpha++)
-		{
-			//	set dirichlet row
-			SetDirichletRow(mat, *iter, alpha);
-		}
-		//	set dirichlet value in rhs
-		rhs[*iter] = val[*iter];
+		MultiIndex<2> multiIndex = **iter;
+
+		SetDirichletRow(mat, multiIndex[0], multiIndex[1]);
+		BlockRef(rhs[multiIndex[0]], multiIndex[1]) = BlockRef(val[multiIndex[0]], multiIndex[1]);
 	}
 }
 

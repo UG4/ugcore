@@ -96,12 +96,12 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 
 	/// \copydoc IAssemble::adjust_matrix_rhs()
 		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-				std::vector<size_t>& indexList, vector_type& val,
+				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices, const vector_type& val,
 				ConstSmartPtr<DoFDistribution> dd);
 		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-				std::vector<size_t>& indexList, vector_type& val,
+				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices, const vector_type& val,
 				const GridLevel& gl)
-		{adjust_matrix_rhs(mat,rhs,indexList,val,dd(gl));}
+		{adjust_matrix_rhs(mat,rhs,vActiveIndices,val,dd(gl));}
 
 	///	wrapper for GridFunction
 	/// \{
@@ -124,8 +124,8 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		{adjust_solution(u, u.dof_distribution());}
 
 		void adjust_matrix_rhs(matrix_type& mat, GridFunction<TDomain, TAlgebra>& rhs,
-				std::vector<size_t>& indexList, vector_type& val)
-			{adjust_matrix_rhs(mat, rhs, indexList, val, rhs.dof_distribution());}
+				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices, const vector_type& val)
+			{adjust_matrix_rhs(mat, rhs, vActiveIndices, val, rhs.dof_distribution());}
 
 	/// \}
 
@@ -195,12 +195,12 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 
 	/// \copydoc IDomainDiscretization::adjust_matrix_rhs()
 		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-							 std::vector<size_t>& indexList, vector_type& val,
-							 number time, ConstSmartPtr<DoFDistribution> dd);
+				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices, const vector_type& val,
+				number time, ConstSmartPtr<DoFDistribution> dd);
 		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-							 std::vector<size_t>& indexList, vector_type& val,
-							 number time, const GridLevel& gl)
-		{adjust_matrix_rhs(mat,rhs,indexList,val,time,dd(gl));}
+				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices, const vector_type& val,
+				number time, const GridLevel& gl)
+		{adjust_matrix_rhs(mat,rhs,vActiveIndices,val,time,dd(gl));}
 
 	/// \copydoc IDomainDiscretization::finish_timestep()
 		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);
