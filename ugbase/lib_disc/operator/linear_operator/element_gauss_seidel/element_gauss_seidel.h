@@ -113,7 +113,10 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		ElementGaussSeidel() {m_relax=1;};
+		ElementGaussSeidel() : m_relax(1){};
+
+	///	constructor setting relaxation
+		ElementGaussSeidel(number relax) : m_relax(relax) {};
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
