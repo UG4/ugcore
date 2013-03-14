@@ -318,11 +318,11 @@ restriction(size_t lev)
 
 //	Get vectors defined on whole grid (including ghosts) on this level
 //	denote by: c = Correction, d = Defect, tmp = Help vector
-	vector_type& d = m_vLevData[lev]->d;
+	vector_type& d = *m_vLevData[lev]->d;
 
 //	Lets get a reference to the coarser level correction, defect, help vector
 	UG_ASSERT(lev > 0, "restriction can't be applied on level 0.");
-	vector_type& cd = m_vLevData[lev-1]->d;
+	vector_type& cd = *m_vLevData[lev-1]->d;
 
 //	## PARALLEL CASE: gather vertical
 	#ifdef UG_PARALLEL
@@ -374,10 +374,10 @@ prolongation(size_t lev)
 //	Get vectors defined on whole grid (including ghosts) on this level
 //	denote by: c = Correction, d = Defect, tmp = Help vector
 	#ifdef UG_PARALLEL
-		vector_type& d = m_vLevData[lev]->d;
+		vector_type& d = *m_vLevData[lev]->d;
 	#endif
 
-	vector_type& tmp = m_vLevData[lev]->t;
+	vector_type& tmp = *m_vLevData[lev]->t;
 
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
@@ -389,8 +389,8 @@ prolongation(size_t lev)
 
 //	Lets get a reference to the coarser level correction, defect, help vector
 	UG_ASSERT(lev > 0, "prolongatoin can't be applied on level 0.");
-	vector_type& cc = m_vLevData[lev-1]->c;
-	vector_type& cTmp = m_vLevData[lev-1]->t;
+	vector_type& cc = *m_vLevData[lev-1]->c;
+	vector_type& cTmp = *m_vLevData[lev-1]->t;
 
 //	get smoothing operator on this level
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
@@ -441,7 +441,7 @@ prolongation(size_t lev)
 //	that v-masters have the whole value and v-slaves are all 0 (in d. sd may differ).
 //	we thus have to transport all values back to v-slaves and have to make sure
 //	that d is additive again.
-	write_level_debug(m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
+	write_level_debug(*m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
 	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeBroadcastSmooth", lev);
 	#ifdef UG_PARALLEL
 		broadcast_vertical_add(d);
@@ -494,10 +494,10 @@ prolongation(size_t lev)
 	//	we add the values.
 		#ifdef UG_PARALLEL
 			m_vLevData[lev]->copy_defect_from_smooth_patch();
-			write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorrAdditive", lev);
+			write_level_debug(*m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorrAdditive", lev);
 			//d.change_storage_type(PST_CONSISTENT);
 		#endif
-		write_level_debug(m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
+		write_level_debug(*m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
 		AddProjectionOfShadows(level_defects(),
 							   m_spApproxSpace->level_dof_distributions(),
@@ -587,7 +587,7 @@ base_solve(size_t lev)
 //	CASE a): We solve the problem in parallel (or normally for sequential code)
 #ifdef UG_PARALLEL
 //	vector defined on whole grid (including ghosts) on this level
-	vector_type& d = m_vLevData[lev]->d;
+	vector_type& d = *m_vLevData[lev]->d;
 
 	if( m_bBaseParallel ||
 	   (d.layouts()->vertical_slave().empty() &&
@@ -638,7 +638,7 @@ base_solve(size_t lev)
 
 		//	PROJECT CORRECTION BACK TO WHOLE GRID FOR PROLONGATION
 			m_vLevData[lev]->copy_correction_from_smooth_patch(true);
-			write_level_debug(m_vLevData[lev]->c, "GMG_Cor_AfterBaseSolver", lev);
+			write_level_debug(*m_vLevData[lev]->c, "GMG_Cor_AfterBaseSolver", lev);
 			GMG_PROFILE_END();
 		}
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting serial basesolver branch.\n");
@@ -650,7 +650,7 @@ base_solve(size_t lev)
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering parallel basesolver branch.\n");
 	//	get whole grid correction
-		vector_type& c = m_vLevData[lev]->c;
+		vector_type& c = *m_vLevData[lev]->c;
 
 		write_level_debug(d, "GMG_Def_BeforeGatherInBaseSolver", lev);
 
@@ -729,7 +729,7 @@ lmgc(size_t lev)
 	{
 		for(int i = 0; i < m_cycleType; ++i)
 		{
-			m_vLevData[lev]->c.set(0.0); // <<<< only for debug
+			m_vLevData[lev]->c->set(0.0); // <<<< only for debug
 		//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
 			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_BeforePreSmooth", lev);
 			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_BeforePreSmooth", lev);
@@ -742,7 +742,7 @@ lmgc(size_t lev)
 			if(!restriction(lev))
 				return false;
 
-			write_level_debug(m_vLevData[lev]->d, "GMG__TestDefectBeforeLMGCRecursion", lev);
+			write_level_debug(*m_vLevData[lev]->d, "GMG__TestDefectBeforeLMGCRecursion", lev);
 
 			if(!lmgc(lev-1))
 			{
@@ -752,7 +752,7 @@ lmgc(size_t lev)
 				return false;
 			}
 
-			write_level_debug(m_vLevData[lev]->d, "GMG__TestDefectAfterLMGCRecursion", lev);
+			write_level_debug(*m_vLevData[lev]->d, "GMG__TestDefectAfterLMGCRecursion", lev);
 
 		//	UG_LOG("Before prolongation:\n");	log_level_data(lev);
 			if(!prolongation(lev))
@@ -893,10 +893,10 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 		{
 			const size_t numIndex = m_vLevData[lev]->num_indices() + diff;
-			m_vLevData[lev]->u.resize(numIndex);
-			m_vLevData[lev]->c.resize(numIndex);
-			m_vLevData[lev]->d.resize(numIndex);
-			m_vLevData[lev]->t.resize(numIndex);
+			m_vLevData[lev]->u->resize(numIndex);
+			m_vLevData[lev]->c->resize(numIndex);
+			m_vLevData[lev]->d->resize(numIndex);
+			m_vLevData[lev]->t->resize(numIndex);
 		}
 	}
 
@@ -939,7 +939,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 			m_vLevData[lev-1]->num_indices() == 0) continue;
 
 		try{
-			m_vLevData[lev]->Projection->restrict(m_vLevData[lev-1]->u, m_vLevData[lev]->u);
+			m_vLevData[lev]->Projection->restrict(*m_vLevData[lev-1]->u, *m_vLevData[lev]->u);
 		} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
 					"solution to coarse grid function of level "<<lev-1<<".\n");
 	}
@@ -1229,7 +1229,7 @@ init_level_operator()
 
 		//	init level operator
 			try{
-			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
@@ -1270,7 +1270,7 @@ init_level_operator()
 		//	init level operator
 			assAdapt.force_regular_grid(true);
 			try{
-			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
@@ -1297,10 +1297,10 @@ init_level_operator()
 		const size_t numIndex = levMat->num_rows();
 		if(m_vLevData[lev]->num_indices() >= numIndex) continue;
 
-		m_vLevData[lev]->u.resize(numIndex);
-		m_vLevData[lev]->c.resize(numIndex);
-		m_vLevData[lev]->d.resize(numIndex);
-		m_vLevData[lev]->t.resize(numIndex);
+		m_vLevData[lev]->u->resize(numIndex);
+		m_vLevData[lev]->c->resize(numIndex);
+		m_vLevData[lev]->d->resize(numIndex);
+		m_vLevData[lev]->t->resize(numIndex);
 	}
 
 //	we're done
@@ -1460,7 +1460,7 @@ init_base_solver()
 	//	given, we know, that still the grid is distributed. But, if no
 	//	vertical layouts are present in addition, we can not gather the vectors
 	//	to on proc. Write a warning an switch to distributed coarse solver
-		vector_type& d = m_vLevData[m_baseLev]->d;
+		vector_type& d = *m_vLevData[m_baseLev]->d;
 	//	the base-solver only operates on normal and vertical-master elements...
 		if(d.layouts()->vertical_slave().empty()){
 			if((!d.layouts()->master().empty() || !d.layouts()->slave().empty()) &&
@@ -1481,7 +1481,7 @@ init_base_solver()
 			else
 			{
 			//	we init the base solver with the whole grid matrix
-				if(!m_spBaseSolver->init(m_vLevData[m_baseLev]->spLevMat, m_vLevData[m_baseLev]->u))
+				if(!m_spBaseSolver->init(m_vLevData[m_baseLev]->spLevMat, *m_vLevData[m_baseLev]->u))
 				{
 					UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
 							" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
@@ -1832,27 +1832,27 @@ log_level_data(size_t lvl)
 		prefix.assign(2 + 2 * (m_vLevData.size() - lvl), ' ');
 
 	LevData& ld = *m_vLevData[lvl];
-	UG_LOG(prefix << "local d norm: " << sqrt(VecProd(ld.d, ld.d)) << std::endl);
-	UG_LOG(prefix << "local c norm: " << sqrt(VecProd(ld.c, ld.c)) << std::endl);
+	UG_LOG(prefix << "local d norm: " << sqrt(VecProd(*ld.d, *ld.d)) << std::endl);
+	UG_LOG(prefix << "local c norm: " << sqrt(VecProd(*ld.c, *ld.c)) << std::endl);
 	UG_LOG(prefix << "local smooth_d norm: " << sqrt(VecProd(ld.get_smooth_defect(), ld.get_smooth_defect())) << std::endl);
 	UG_LOG(prefix << "local smooth_c norm: " << sqrt(VecProd(ld.get_smooth_correction(), ld.get_smooth_correction())) << std::endl);
 
 	#ifdef UG_PARALLEL
-		uint oldStorageMask = ld.d.get_storage_mask();
-		number norm = ld.d.norm();
+		uint oldStorageMask = ld.d->get_storage_mask();
+		number norm = ld.d->norm();
 		UG_LOG(prefix << "parallel d norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
-			ld.d.change_storage_type(PST_ADDITIVE);
+			ld.d->change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
-			ld.d.change_storage_type(PST_CONSISTENT);
+			ld.d->change_storage_type(PST_CONSISTENT);
 
-		oldStorageMask = ld.c.get_storage_mask();
-		norm = ld.c.norm();
+		oldStorageMask = ld.c->get_storage_mask();
+		norm = ld.c->norm();
 		UG_LOG(prefix << "parallel c norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
-			ld.c.change_storage_type(PST_ADDITIVE);
+			ld.c->change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
-			ld.c.change_storage_type(PST_CONSISTENT);
+			ld.c->change_storage_type(PST_CONSISTENT);
 
 		oldStorageMask = ld.get_smooth_defect().get_storage_mask();
 		norm = ld.get_smooth_defect().norm();
@@ -2405,6 +2405,7 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 top_level_required(size_t topLevel)
 {
 	PROFILE_FUNC_GROUP("gmg");
+
 //	allocated level if needed
 	while(num_levels() <= topLevel)
 	{
@@ -2464,18 +2465,21 @@ update(size_t lev,
 
 //	resize vectors for operations on whole grid level
 	const size_t numIndex = spLevDD->num_indices();
-	u.resize(numIndex);
-	c.resize(numIndex);
-	d.resize(numIndex);
-	t.resize(numIndex);
-
+	if(u.invalid()) u = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
+	if(c.invalid()) c = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
+	if(d.invalid()) d = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
+	if(t.invalid()) t = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
+	u->resize(numIndex);
+	c->resize(numIndex);
+	d->resize(numIndex);
+	t->resize(numIndex);
 
 //	prepare level operator
 #ifdef UG_PARALLEL
 	if(numIndex == 0){
 	//	default storage types for c and d to avoid incompatible types.
-		c.set_storage_type(PST_CONSISTENT);
-		d.set_storage_type(PST_ADDITIVE);
+		c->set_storage_type(PST_CONSISTENT);
+		d->set_storage_type(PST_ADDITIVE);
 	}
 	spLevMat->set_layouts(spLevDD->layouts());
 #endif
@@ -2514,6 +2518,12 @@ update(size_t lev,
 	for(size_t i = 0; i < vrestrictionPP.size(); ++i)
 			vRestrictionPP.push_back(vrestrictionPP[i]->clone());
 
+	GridLevel gl = GridLevel(lev, GridLevel::LEVEL, false);
+	su = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, gl, false));
+	sc = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, gl, false));
+	sd = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, gl, false));
+	st = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, gl, false));
+
 //	IN PARALLEL:
 //	In the parallel case one may have vertical slaves/masters. Those are needed
 //	when the grid hierarchy ends at a certain point on one process but is still
@@ -2529,10 +2539,11 @@ update(size_t lev,
 //	Please note that smoothing is performed on vertical slaves.
 #ifdef UG_PARALLEL
 //	copy the layouts into the level vectors
-	u.set_layouts(spLevDD->layouts());
-	c.set_layouts(spLevDD->layouts());
+//	note: not needed anymore, layouts are set by GridFunction
+/*	u->set_layouts(spLevDD->layouts());
+	c->set_layouts(spLevDD->layouts());
 	d.set_layouts(spLevDD->layouts());
-	t.set_layouts(spLevDD->layouts());
+	t.set_layouts(spLevDD->layouts());*/
 
 //	if no vertical masters, there can be no ghost and we're ready. By ghosts
 //	we denote vertical masters, that are not horizontal master/slave
@@ -2579,15 +2590,21 @@ update(size_t lev,
 //	by the preceeding 's' the relation to the smoothing is indicated
 	const size_t numSmoothIndex = vMapPatchToGlobal.size();
 	m_numSmoothIndices = numSmoothIndex;
-	su.resize(numSmoothIndex);
-	sc.resize(numSmoothIndex);
-	sd.resize(numSmoothIndex);
-	st.resize(numSmoothIndex);
+
+	// \todo: This is not correct here: DoFIndices on elements on smooth patch are still
+	//		  as in level numbering, but vector size must be restricted. It is
+	//		  necessary to add a different DoFDistribution for this type of
+	//		  dofs. In order to keep current (algebraic) solvers running, this
+	//		  resize is still performed at this point.
+	su->resize(numSmoothIndex);
+	sc->resize(numSmoothIndex);
+	sd->resize(numSmoothIndex);
+	st->resize(numSmoothIndex);
 
 	if(numSmoothIndex == 0){
 	//	set default storage types to avoid incompatibilities
-		sc.set_storage_type(PST_CONSISTENT);
-		sd.set_storage_type(PST_ADDITIVE);
+		sc->set_storage_type(PST_CONSISTENT);
+		sd->set_storage_type(PST_ADDITIVE);
 	}
 
 //	** 2. **: We have to create new layouts for the smoothers since on the
@@ -2604,10 +2621,10 @@ update(size_t lev,
 	ReplaceIndicesInLayout(spSmoothLayouts->slave(), vMapGlobalToPatch);
 
 //	replace old layouts by new modified ones
-	sc.set_layouts(spSmoothLayouts);
-	su.set_layouts(spSmoothLayouts);
-	sd.set_layouts(spSmoothLayouts);
-	st.set_layouts(spSmoothLayouts);
+	sc->set_layouts(spSmoothLayouts);
+	su->set_layouts(spSmoothLayouts);
+	sd->set_layouts(spSmoothLayouts);
+	st->set_layouts(spSmoothLayouts);
 
 //	set the layouts in the smooth matrix
 	spSmoothMat->set_layouts(spSmoothLayouts);

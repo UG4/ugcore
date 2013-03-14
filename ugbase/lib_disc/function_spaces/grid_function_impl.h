@@ -379,11 +379,13 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, Volume* elem, TDo
 template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
 GridFunction(SmartPtr<approximation_space_type> approxSpace,
-             SmartPtr<DoFDistribution> spDoFDistr)
+             SmartPtr<DoFDistribution> spDoFDistr, bool bManage)
  : m_spDD(spDoFDistr), m_spApproxSpace(approxSpace)
 {
 	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
-	m_spDD->manage_grid_function(*this);
+
+	if(bManage)
+		m_spDD->manage_grid_function(*this);
 
 	check_algebra();
 	resize_values(num_indices());
@@ -398,12 +400,14 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace,
 
 template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
-GridFunction(SmartPtr<approximation_space_type> approxSpace)
+GridFunction(SmartPtr<approximation_space_type> approxSpace, bool bManage)
 	: m_spDD(approxSpace->surface_dof_distribution()),
 	  m_spApproxSpace(approxSpace)
 {
 	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
-	m_spDD->manage_grid_function(*this);
+
+	if(bManage)
+		m_spDD->manage_grid_function(*this);
 
 	check_algebra();
 	resize_values(num_indices());
@@ -418,12 +422,36 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace)
 
 template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
-GridFunction(SmartPtr<approximation_space_type> approxSpace, int level)
+GridFunction(SmartPtr<approximation_space_type> approxSpace, int level, bool bManage)
 	: m_spDD(approxSpace->surface_dof_distribution(level)),
 	  m_spApproxSpace(approxSpace)
 {
 	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
-	m_spDD->manage_grid_function(*this);
+
+	if(bManage)
+		m_spDD->manage_grid_function(*this);
+
+	check_algebra();
+	resize_values(num_indices());
+#ifdef UG_PARALLEL
+//	set layouts
+	this->set_layouts(m_spDD->layouts());
+
+//	set storage type
+	this->set_storage_type(PST_UNDEFINED);
+#endif
+};
+
+template <typename TDomain, typename TAlgebra>
+GridFunction<TDomain, TAlgebra>::
+GridFunction(SmartPtr<approximation_space_type> approxSpace, const GridLevel& gl, bool bManage)
+	: m_spDD(approxSpace->dof_distribution(gl)),
+	  m_spApproxSpace(approxSpace)
+{
+	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
+
+	if(bManage)
+		m_spDD->manage_grid_function(*this);
 
 	check_algebra();
 	resize_values(num_indices());

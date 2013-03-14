@@ -141,13 +141,16 @@ class GridFunction
 	public:
 	/// Initializing Constructor
 		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace,
-		             SmartPtr<DoFDistribution> spDoFDistr);
+		             SmartPtr<DoFDistribution> spDoFDistr, bool bManage = true);
 
 	/// Initializing Constructor using surface dof distribution
-		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace, bool bManage = true);
 
 	/// Initializing Constructor using surface dof distribution on a level
-		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace, int level);
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace, int level, bool bManage = true);
+
+	/// Initializing Constructor using a grid level
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace, const GridLevel& gl, bool bManage = true);
 
 	///	checks the algebra
 		void check_algebra();

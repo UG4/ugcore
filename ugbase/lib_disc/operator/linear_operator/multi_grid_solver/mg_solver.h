@@ -314,9 +314,18 @@ class AssembledMultiGridCycle :
 		//	constructor
 			LevData()
 			: spLevDD(0),
+			  m_spApproxSpace(0),
 			  spLevMat(new MatrixOperator<matrix_type, vector_type>),
 			  spSmoothMat(new MatrixOperator<matrix_type, vector_type>),
-			  PreSmoother(0), PostSmoother(0), Projection(0), Prolongation(0), Restriction(0){};
+			  PreSmoother(0), PostSmoother(0),
+			  Projection(0), Prolongation(0), Restriction(0),
+			  vProlongationPP(0), vRestrictionPP(0),
+			  u(0), c(0), d(0), t(0),
+			  su(0), sc(0), sd(0), st(0)
+#ifdef UG_PARALLEL
+			  ,spSmoothLayouts(0)
+#endif
+			{};
 
 		//	prepares the grid level data for appication
 			void update(size_t lev,
@@ -351,18 +360,18 @@ class AssembledMultiGridCycle :
 			}
 
 		//	returns the vectors used for smoothing (patch only vectors)
-			vector_type& get_smooth_solution() {if(has_ghosts()) return su; else return u;}
-			vector_type& get_smooth_defect() {if(has_ghosts()) return sd; else return d;}
-			vector_type& get_smooth_correction(){if(has_ghosts()) return sc; else return c;}
-			vector_type& get_smooth_tmp(){if(has_ghosts()) return st; else return t;}
+			vector_type& get_smooth_solution() {if(has_ghosts()) return *su; else return *u;}
+			vector_type& get_smooth_defect() {if(has_ghosts()) return *sd; else return *d;}
+			vector_type& get_smooth_correction(){if(has_ghosts()) return *sc; else return *c;}
+			vector_type& get_smooth_tmp(){if(has_ghosts()) return *st; else return *t;}
 
 		//	copies values of defect to smoothing patch
 			void copy_defect_to_smooth_patch()
 			{
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
-					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) sd[i] = d[ vMapPatchToGlobal[i] ];
-					sd.set_storage_type(d.get_storage_mask());
+					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*sd)[i] = (*d)[ vMapPatchToGlobal[i] ];
+					sd->set_storage_type(d->get_storage_mask());
 				}
 				#endif
 			}
@@ -372,8 +381,8 @@ class AssembledMultiGridCycle :
 			{
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
-					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) st[i] = t[ vMapPatchToGlobal[i] ];
-					st.set_storage_type(t.get_storage_mask());
+					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*st)[i] = (*t)[ vMapPatchToGlobal[i] ];
+					st->set_storage_type(t->get_storage_mask());
 				}
 				#endif
 			}
@@ -383,9 +392,9 @@ class AssembledMultiGridCycle :
 			{
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
-					if(clearGhosts) d.set(0.0);
-					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) d[ vMapPatchToGlobal[i] ] = sd[i];
-					d.set_storage_type(sd.get_storage_mask());
+					if(clearGhosts) d->set(0.0);
+					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*d)[ vMapPatchToGlobal[i] ] = (*sd)[i];
+					d->set_storage_type(sd->get_storage_mask());
 				}
 				#endif
 			}
@@ -395,9 +404,9 @@ class AssembledMultiGridCycle :
 			{
 				#ifdef UG_PARALLEL
 				if(has_ghosts()) {
-					if(clearGhosts) c.set(0.0);
-					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) c[ vMapPatchToGlobal[i] ] = sc[i];
-					c.set_storage_type(sc.get_storage_mask());
+					if(clearGhosts) c->set(0.0);
+					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*c)[ vMapPatchToGlobal[i] ] = (*sc)[i];
+					c->set_storage_type(sc->get_storage_mask());
 				}
 				#endif
 			}
@@ -434,10 +443,10 @@ class AssembledMultiGridCycle :
             std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vRestrictionPP;
 
 		//	vectors needed
-			vector_type u, c, d, t;
+			SmartPtr<GridFunction<TDomain, TAlgebra> > u, c, d, t;
 
 		//	vectors needed for smoothing
-			vector_type su, sc, sd, st;
+			SmartPtr<GridFunction<TDomain, TAlgebra> > su, sc, sd, st;
 
 		//	missing coarse grid correction
 			matrix_type CoarseGridContribution;
@@ -470,7 +479,7 @@ class AssembledMultiGridCycle :
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
 				if(m_vLevData[i]->num_smooth_indices() > 0)
-					vVec.push_back(&m_vLevData[i]->d);
+					vVec.push_back(m_vLevData[i]->d.get());
 				else vVec.push_back(NULL);
 			}
 			return vVec;
@@ -482,7 +491,7 @@ class AssembledMultiGridCycle :
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
 				if(m_vLevData[i]->num_smooth_indices() > 0)
-					vVec.push_back(&m_vLevData[i]->d);
+					vVec.push_back(m_vLevData[i]->d.get());
 				else vVec.push_back(NULL);
 			}
 			return vVec;
@@ -494,7 +503,7 @@ class AssembledMultiGridCycle :
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
 				if(m_vLevData[i]->num_smooth_indices() > 0)
-					vVec.push_back(&m_vLevData[i]->c);
+					vVec.push_back(m_vLevData[i]->c.get());
 				else vVec.push_back(NULL);
 			}
 			return vVec;
@@ -506,7 +515,7 @@ class AssembledMultiGridCycle :
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
 				if(m_vLevData[i]->num_smooth_indices() > 0)
-					vVec.push_back(&m_vLevData[i]->c);
+					vVec.push_back(m_vLevData[i]->c.get());
 				else vVec.push_back(NULL);
 			}
 			return vVec;
@@ -518,7 +527,7 @@ class AssembledMultiGridCycle :
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
 				if(m_vLevData[i]->num_smooth_indices() > 0)
-					vVec.push_back(&m_vLevData[i]->u);
+					vVec.push_back(m_vLevData[i]->u.get());
 				else vVec.push_back(NULL);
 			}
 			return vVec;
