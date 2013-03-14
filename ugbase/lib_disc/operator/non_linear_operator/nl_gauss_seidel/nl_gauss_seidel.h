@@ -11,7 +11,6 @@
 #ifndef NL_GAUSS_SEIDEL_H_
 #define NL_GAUSS_SEIDEL_H_
 
-//#include "lib_grid/lg_base.h"
 #include "lib_algebra/operator/interface/operator_inverse.h"
 
 // modul intern headers
@@ -38,10 +37,10 @@ class LocalToGlobalMapper_NL_GS : public ILocalToGlobalMapper<TAlgebra>
 	///	default constructor
 		LocalToGlobalMapper_NL_GS() {m_assIndex = 0;}
 
-	///	adds a local vector to the global one
+	///	adds a local vector to the global rhs
 		void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd);
 
-	///	adds a local matrix to the global one
+	///	adds a local matrix to the global matrix
 		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd);
 
 	/// sets assemble index
@@ -72,9 +71,6 @@ class NLGaussSeidelSolver
 
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
-
-	///	Value type
-		typedef typename TAlgebra::vector_type::value_type val_type;
 
 	///	Domain type
 		typedef TDomain domain_type;
@@ -168,6 +164,7 @@ class NLGaussSeidelSolver
 		///	selector of elements with contributions to a specific DoF
 		Selector m_sel;
 
+		///	LocalToGlobal-Mapper which accounts for index-wise assembling
 		LocalToGlobalMapper_NL_GS<TAlgebra> m_map;
 };
 

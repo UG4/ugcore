@@ -139,7 +139,7 @@ class AssAdapter
 			m_assIndex.index = ind; m_assIndex.index_set = index_set;
 		}
 	///	checks whether the assemble index is set or not
-		size_t is_ass_index_set(){ return m_assIndex.index_set;}
+		size_t is_ass_index_set() const {return m_assIndex.index_set;}
 
 
 	/// forces the assembling to consider the grid as regular
