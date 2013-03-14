@@ -696,7 +696,7 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 		typedef MathVector<dim> grad_type;
 
 	///	Reference Element type
-		typedef ReferencePrism reference_element_type;
+		typedef ReferencePyramid reference_element_type;
 
 	public:
 	///	Constructor
