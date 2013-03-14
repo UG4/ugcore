@@ -336,6 +336,14 @@ LocalShapeFunctionSetProvider()
 		try{
 			register_set(type2, ROID_PYRAMID, sSetCrouzeixRaviart);
 		}UG_CATCH_THROW("Cannot register Pyramid Crouzeix-Raviart trial spaces.");	
+		
+	//	register pyramid for piecewise constant element
+		LFEID type3(LFEID::PIECEWISE_CONSTANT, 0);
+		static LocalShapeFunctionSetWrapper<PiecewiseConstantLSFS<ReferencePyramid> > sSetPiecewiseConstant;
+		try{
+			register_set(type3, ROID_PYRAMID, sSetPiecewiseConstant);
+		}UG_CATCH_THROW("Cannot register Pyramid piecewise constant trial spaces.");
+
 	}
 };
 
