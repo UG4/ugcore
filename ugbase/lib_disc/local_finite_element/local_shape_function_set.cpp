@@ -329,6 +329,13 @@ LocalShapeFunctionSetProvider()
 		try{
 			register_set(type1, ROID_PYRAMID, sSetLagrangeP1);
 		}UG_CATCH_THROW("Cannot register Pyramid P1 Lagrange trial spaces.");
+		
+	//	register pyramid for Crouzeix-Raviart element
+		LFEID type2(LFEID::CROUZEIX_RAVIART, 1);
+		static LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<ReferencePyramid> > sSetCrouzeixRaviart;
+		try{
+			register_set(type2, ROID_PYRAMID, sSetCrouzeixRaviart);
+		}UG_CATCH_THROW("Cannot register Pyramid Crouzeix-Raviart trial spaces.");	
 	}
 };
 
