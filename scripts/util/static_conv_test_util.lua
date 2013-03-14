@@ -71,7 +71,7 @@ for lev = maxLev, minLev, -1 do
 	write(">> Linear Solver done.\n")
 	
 	-- 5. compute error
-	quadOrder = p+2
+	quadOrder = p+3
 	l2exact[lev] = L2Error(exactSol, u[lev], "c", 0.0, quadOrder)
 	l2diff[lev] = L2Error(u[maxLev], "c", u[lev], "c", quadOrder)
 	h1exact[lev] = H1Error(exactSol, exactGrad, u[lev], "c", 0.0, quadOrder)

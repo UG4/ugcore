@@ -79,7 +79,7 @@ for lev = maxLev, minLev, -1 do
 		end			
 		
 		-- compute error
-		quadOrder = p+2
+		quadOrder = p+3
 		l2exact[lev][k] = L2Error(exactSol, u, "c", endTime, quadOrder)
 		l2diff[lev][k] = L2Error(uMostAccurate, "c", u, "c", quadOrder)
 		h1exact[lev][k] = H1Error(exactSol, exactGrad, u, "c", endTime, quadOrder)

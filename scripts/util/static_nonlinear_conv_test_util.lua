@@ -89,7 +89,7 @@ for lev = minLev, maxLev do
 end
 	
 for lev = maxLev, minLev, -1 do
-	quadOrder = p+2
+	quadOrder = p+3
 	if exactSol ~= nil then	l2exact[lev] = L2Error(exactSol, u[lev], "c", 0.0, quadOrder)
 	else l2exact[lev] = 0.0; end
 	l2diff[lev] = L2Error(u[maxLev], "c", u[lev], "c", quadOrder)
