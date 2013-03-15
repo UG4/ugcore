@@ -149,7 +149,9 @@ util.GetPreconditioner = util.CreateFancyFunction(
 		{"gmg_smoother", "ilu"},
 		{"gmg_cycleType", 1},
 		{"gmg_numPreSmooth", 2},
-		{"gmg_numPostSmooth", 2}
+		{"gmg_numPostSmooth", 2},
+		{"gmg_restriction_post_process"},
+		{"gmg_prolongation_post_process"}
 	},
 	function( name, jac_damp, gmg_approxSpace, gmg_disc, gmg_base, gmg_baseLevel, gmg_parallelBase, gmg_smoother, gmg_cycleType, gmg_numPreSmooth, gmg_numPostSmooth )
 		if not name then
@@ -213,6 +215,12 @@ util.GetPreconditioner = util.CreateFancyFunction(
 			gmg:set_cycle_type( gmg_cycleType )
 			gmg:set_num_presmooth( gmg_numPreSmooth )
 			gmg:set_num_postsmooth( gmg_numPostSmooth )
+			if gmg_restriction_post_process then
+				gmg:add_restriction_post_process( gmg_restriction_post_process )
+			end
+			if gmg_prolongation_post_process then
+				gmg:add_prolongation_post_process( gmg_prolongation_post_process )
+			end
 			return gmg
 			
 		elseif name == "ilut" then
