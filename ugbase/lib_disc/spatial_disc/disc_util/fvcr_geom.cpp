@@ -68,7 +68,7 @@ update_local_data()
 
 		m_vSCV[i].numCorners = rRefElem.num(dim-1,i,0)+1;
 		for (int j=0;j<m_vSCV[i].numCorners-1;j++){
-			m_vSCV[i].vLocPos[j]=rRefElem.corner(rRefElem.id(dim-1,i,0,j));
+			m_vSCV[i].vLocPos[m_vSCV[i].numCorners-2-j]=rRefElem.corner(rRefElem.id(dim-1,i,0,j));
 		}
 		AveragePositions(m_vLocUnkCoords[i], m_vSCV[i].vLocPos, m_vSCV[i].numCorners-1);
 		m_vSCV[i].vLocIP = m_vLocUnkCoords[i];
@@ -163,7 +163,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		if (m_vSCV[i].numCorners-1==dim){
 		     m_vSCV[i].Vol = ElementSize<scv_type0,worldDim>(m_vSCV[i].vGloPos);
 		     ElementNormal<face_type0, worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
-		} else { // m_vSCV[i].numCorners-2==dim , only possible in 3d
+		} else { // m_vSCV[i].numCorners-2==dim , only possible in 3d (pyramid)
 		     m_vSCV[i].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[i].vGloPos);
 		     ElementNormal<face_type1,worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
 		};
@@ -451,7 +451,7 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 		for (int j=0;j<m_vSCV[i].numCorners-1;j++){
-			m_vSCV[i].vGloPos[j]=vCornerCoords[m_rRefElem.id(dim-1,i,0,j)];
+			m_vSCV[i].vGloPos[m_vSCV[i].numCorners-2-j]=vCornerCoords[m_rRefElem.id(dim-1,i,0,j)];
 		}
 		AveragePositions(m_vGlobUnkCoords[i], m_vSCV[i].vGloPos, m_vSCV[i].numCorners-1);
 		m_vSCV[i].vGlobIP = m_vGlobUnkCoords[i];
@@ -462,7 +462,7 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 		if (m_vSCV[i].numCorners-1==dim){
 		     m_vSCV[i].Vol = ElementSize<scv_type0,worldDim>(m_vSCV[i].vGloPos);
 		     ElementNormal<face_type0, worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
-		} else { // m_vSCV[i].numCorners-2==dim , only possible in 3d
+		} else { // m_vSCV[i].numCorners-2==dim , only possible in 3d (pyramid)
 		     m_vSCV[i].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[i].vGloPos);
 		     ElementNormal<face_type1, worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
 		};
