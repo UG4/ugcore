@@ -86,6 +86,9 @@ class IConstraint
 		virtual void adjust_prolongation(vector_type& uFine, GridLevel fineLvl,
 										const vector_type& uCoarse, GridLevel coarseLvl) {};
 
+	///	modifies solution vector before calling the assembling routine
+		virtual void modify_solution(vector_type& uMod, const vector_type& u,
+										ConstSmartPtr<DoFDistribution> dd) {};
 
 	///	returns the type of constraints
 		virtual int type() const = 0;
