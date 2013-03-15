@@ -152,7 +152,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
 		for (int j=0;j<m_vSCV[i].numCorners-1;j++){
-			m_vSCV[i].vGloPos[j]=vCornerCoords[rRefElem.id(dim-1,i,0,j)];
+			m_vSCV[i].vGloPos[m_vSCV[i].numCorners-2-j]=vCornerCoords[rRefElem.id(dim-1,i,0,j)];
 		}
 		AveragePositions(m_vGlobUnkCoords[i], m_vSCV[i].vGloPos, m_vSCV[i].numCorners-1);
 		m_vSCV[i].vGlobIP = m_vGlobUnkCoords[i];
@@ -387,7 +387,7 @@ update_local_data()
 
 		m_vSCV[i].numCorners = m_rRefElem.num(dim-1,i,0)+1;
 		for (int j=0;j<m_vSCV[i].numCorners-1;j++){
-			m_vSCV[i].vLocPos[j]=m_rRefElem.corner(m_rRefElem.id(dim-1,i,0,j));
+			m_vSCV[i].vLocPos[m_vSCV[i].numCorners-2-j]=m_rRefElem.corner(m_rRefElem.id(dim-1,i,0,j));
 		}
 		AveragePositions(m_vLocUnkCoords[i], m_vSCV[i].vLocPos, m_vSCV[i].numCorners-1);
 		m_vSCV[i].vLocIP=m_vLocUnkCoords[i];
