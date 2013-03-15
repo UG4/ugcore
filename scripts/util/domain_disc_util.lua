@@ -119,7 +119,8 @@ function NavierStokesNoNormalStressOutflow(spMaster)
 
 	discType = spMaster:disc_type();	
 	if 		discType == "fv1"  then return NavierStokesNoNormalStressOutflowFV1(spMaster)
-	elseif  discType == "fvcr"   then return NavierStokesNoNormalStressOutflowFVCR(spMaster)
+	elseif  discType == "fvcr" then return NavierStokesNoNormalStressOutflowFVCR(spMaster)
+	elseif  discType == "fv"   then return NavierStokesNoNormalStressOutflowFV(spMaster)
 	else 
 		print("NavierStokesNoNormalStressOutflow: no disc type '"..discType.."' available. Aborting")
 		exit();
