@@ -43,6 +43,7 @@ class MathVector
 
 	public:
 		MathVector() {}
+		MathVector(const value_type& val) {for(std::size_t i = 0; i < N; ++i) m_data[i] =  val;}
 		MathVector(const MathVector& v)	{assign(v);}
 
 		// operations with other vectors
@@ -154,6 +155,7 @@ class MathVector<2, T>
 
 	public:
 		MathVector()	{}
+		MathVector(const value_type& val) {m_data[0] = m_data[1] = val;}
 		MathVector(value_type x, value_type y)
 		{
 			m_data[0] = x;
@@ -214,6 +216,7 @@ class MathVector<3, T>
 
 	public:
 		MathVector()	{}
+		MathVector(const value_type& val) {m_data[0] = m_data[1] = m_data[2] = val;}
 		MathVector(value_type x, value_type y, value_type z)
 		{
 			m_data[0] = x;
@@ -277,6 +280,7 @@ class MathVector<4, T>
 
 	public:
 		MathVector()	{}
+		MathVector(const value_type& val) {m_data[0] = m_data[1] = m_data[2] = m_data[3] =val;}
 		MathVector(value_type x, value_type y, value_type z, value_type w)
 		{
 			m_data[0] = x;
