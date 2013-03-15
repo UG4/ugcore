@@ -383,6 +383,26 @@ select(const char* fctNames, const char* name)
 
 template <int TDim>
 void VTKOutput<TDim>::
+select(SmartPtr<UserData<number, TDim> > spData, const char* name)
+{
+	if(spData->continuous())
+		select_nodal(spData, name);
+	else
+		select_element(spData, name);
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+select(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* name)
+{
+	if(spData->continuous())
+		select_nodal(spData, name);
+	else
+		select_element(spData, name);
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
 select_nodal(const std::vector<std::string>& vFct, const char* name)
 {
 //	set select all to false, since now user-chosen
@@ -499,6 +519,7 @@ select_element(const char* fctNames, const char* name)
 
 	select_element(vFct, name);
 }
+
 
 template <int TDim>
 void VTKOutput<TDim>::

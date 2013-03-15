@@ -186,6 +186,21 @@ class VTKOutput
 		void select_element(const std::vector<std::string>& vFct, const char* name);
 	/// \}
 
+	///	selects a data value to be written
+	/**
+	 * This function schedules a user data to be written to the vtk file under
+	 * a specified name.
+	 * The type of the data (nodal/element) will be determined based on the
+	 * trial space of the components (i.e if continuous available or not)
+	 *
+	 * \param[in]	spData		data to be written
+	 * \param[in]	name		name that will appear in the vtk file for the data
+	 */
+	/// \{
+		void select(SmartPtr<UserData<number, TDim> > spData, const char* name);
+		void select(SmartPtr<UserData<MathVector<TDim>, TDim> > spData, const char* name);
+	/// \}
+
 	///	selects a nodal data value to be written
 	/**
 	 * This function schedules a user data to be written to the vtk file under
