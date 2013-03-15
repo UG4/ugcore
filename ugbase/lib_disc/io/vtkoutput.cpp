@@ -338,6 +338,51 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 
 template <int TDim>
 void VTKOutput<TDim>::
+select(const std::vector<std::string>& vFct, const char* name)
+{
+//	set select all to false, since now user-chosen
+	select_all(false);
+
+//	check that admissible number of components passed
+	if(vFct.size() != 1 && vFct.size() != (size_t)TDim){
+		std::stringstream ss;
+		ss <<"VTK:select_nodal: In order to select"
+			 " a element data of a grid function for output to vtk,"
+			 " 1 or "<<TDim<<" function components must be chosen, but passed are "
+			 <<vFct.size()<<" components in '";
+		for(size_t i = 0; i < vFct.size(); ++i){
+			if(i > 0) ss << ", ";
+			ss << vFct[i];
+		}
+		ss <<"'. Please select 1 or "<<TDim<<" components in world dimension "<<TDim;
+		UG_THROW(ss);
+	}
+
+//	check if name is not in use
+	if(vtk_name_used(name))
+		UG_THROW("VTK:select_nodal: Using name " << name <<
+				   " that is already used by other data is not allowed.");
+
+	m_vSymbFct[name] = vFct;
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+select(const char* fctNames, const char* name)
+{
+//	set select all to false, since now user-chosen
+	select_all(false);
+
+	TrimString(name);
+	std::vector<std::string> vFct;
+	std::string fctString(fctNames);
+	TokenizeString(fctString, vFct, ',');
+
+	select(vFct, name);
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
 select_nodal(const std::vector<std::string>& vFct, const char* name)
 {
 //	set select all to false, since now user-chosen
@@ -495,6 +540,9 @@ template <int TDim>
 bool VTKOutput<TDim>::
 vtk_name_used(const char* name) const
 {
+	if (m_vSymbFct.find(name) != m_vSymbFct.end())
+		return true;
+
 	if (m_vSymbFctNodal.find(name) != m_vSymbFctNodal.end())
 		return true;
 

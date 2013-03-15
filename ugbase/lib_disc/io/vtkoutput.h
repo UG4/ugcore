@@ -122,10 +122,31 @@ class VTKOutput
 {
 		public:
 	///	clears the selected output
-		void clear_selection() {m_vSymbFctNodal.clear();}
+		void clear_selection() {m_vSymbFctNodal.clear(); m_vSymbFct.clear();}
 
 	///	schedules that all components of the passed discrete functions will be written to file
 		void select_all(bool bAll) {m_bSelectAll = bAll;}
+
+	///	selects a value of a grid function value to be written
+	/**
+	 * This function schedules the component(s) passed by symbolic name(s) of an
+	 * approximation space to be written to the vtk file under a specified name.
+	 * The type of the data (nodal/element) will be determined based on the
+	 * trial space of the components (i.e if continuous available or not)
+	 *
+	 * If more than one component is passed, the data will be interpreted as a
+	 *  vector and #dim arguments must be passed.
+	 *
+	 * example: fctName = "p"; name = "pressure"
+	 * example: fctNames = "u,v,w"; name = "velocity"
+	 *
+	 * \param[in]	fctName		symbolic name of component
+	 * \param[in]	name		name that will appear in the vtk file for the data
+	 */
+	/// \{
+		void select(const char* fctName, const char* name);
+		void select(const std::vector<std::string>& vFct, const char* name);
+	/// \}
 
 	///	selects a nodal value of a grid function value to be written
 	/**
@@ -632,6 +653,7 @@ protected:
 		bool m_bSelectAll;
 	/// print values in binary (base64 encoded way) or plain ascii
 		bool m_bBinary;
+		std::map<std::string, std::vector<std::string> > m_vSymbFct;
 		std::map<std::string, std::vector<std::string> > m_vSymbFctNodal;
 		std::map<std::string, std::vector<std::string> > m_vSymbFctElem;
 		typedef typename std::map<std::string,

@@ -1073,6 +1073,26 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 				if(LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct)))
 					select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
 
+	if(!m_vSymbFct.empty()){
+		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
+				m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){
+			const std::vector<std::string>& symbNames = (*iter).second;
+			const std::string& vtkName = (*iter).first;
+
+			bool bContinuous = true;
+			for(size_t i = 0; i < symbNames.size(); ++i){
+				size_t fct = u.fct_id_by_name(symbNames[i].c_str());
+				if(!LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct))){
+					bContinuous = false; break;
+				}
+			}
+
+			if(bContinuous){
+				m_vSymbFctNodal[vtkName] = symbNames;
+			}
+		}
+	}
+
 //	check if something to do
 	if(m_vSymbFctNodal.empty() && m_vScalarNodalData.empty() && m_vVectorNodalData.empty())
 		return;
@@ -1421,6 +1441,26 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 			if(!vtk_name_used(u.name(fct).c_str()))
 				if(!LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct)))
 					select_element(u.name(fct).c_str(), u.name(fct).c_str());
+
+	if(!m_vSymbFct.empty()){
+		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
+				m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){
+			const std::vector<std::string>& symbNames = (*iter).second;
+			const std::string& vtkName = (*iter).first;
+
+			bool bContinuous = true;
+			for(size_t i = 0; i < symbNames.size(); ++i){
+				size_t fct = u.fct_id_by_name(symbNames[i].c_str());
+				if(!LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct))){
+					bContinuous = false; break;
+				}
+			}
+
+			if(!bContinuous){
+				m_vSymbFctElem[vtkName] = symbNames;
+			}
+		}
+	}
 
 //	check if something to do
 	if(m_vSymbFctElem.empty() && m_vScalarElemData.empty() && m_vVectorElemData.empty())
