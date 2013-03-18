@@ -180,7 +180,7 @@ class AssAdapter
 	///	instead of setting a complete matrix row to Dirichlet
 		void adjust_matrix(matrix_type& mat, const size_t index, const size_t alpha);
 		void adjust_vector(vector_type& vec, const size_t index, const size_t alpha,
-				double val);
+				const double val);
 
 	public:
 

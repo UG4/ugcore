@@ -90,7 +90,7 @@ void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index,
 
 template <typename TAlgebra>
 void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const size_t index,
-		const size_t alpha, double val)
+		const size_t alpha, const double val)
 {
 	UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");
