@@ -1,3 +1,14 @@
+/*
+ * \file	parser.y
+ * \author	Martin Rupp
+ *
+ * Created on 20. November 2012, 10:16
+ * 
+ * use with
+ * 		bison -d -y parser.y -o parser.cpp
+ * to generate parser.cpp
+ */
+
 %{
 #include <stdio.h>
 #include <stdlib.h>

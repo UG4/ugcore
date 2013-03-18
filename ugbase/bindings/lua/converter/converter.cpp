@@ -1,3 +1,10 @@
+/*
+ * \file	converter.cpp
+ * \author	Martin Rupp
+ *
+ * Created on 20. November 2012, 10:16
+ */
+
 #include "bridge/bridge.h"
 #include "bindings/lua/lua_util.h"
 #include "bindings/lua/lua_stack_check.h"

@@ -1,3 +1,14 @@
+/* 
+ * \file	lexer.l
+ * \author	Martin Rupp
+ *
+ * Created on 20. November 2012, 10:16
+ * 
+ * use with
+ * 		flex -o lexer.cpp lexer.l
+ * to generate lexer.cpp
+ */
+
 %{
 #include <stdlib.h>
 #include "pclass.h"

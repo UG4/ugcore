@@ -1,6 +1,6 @@
 /* 
- * File:   lua2c.h
- * Author: mrupp
+ * \file	lua2c.cpp
+ * \author	Martin Rupp
  *
  * Created on 4. Dezember 2012, 17:02
  */

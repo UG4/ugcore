@@ -1,3 +1,10 @@
+/*
+ * \file	lua2c.cpp
+ * \author	Martin Rupp
+ *
+ * Created on 20. November 2012, 10:16
+ */
+
 #include "pclass.h"
 #include "bridge/bridge.h"
 #include "bindings/lua/lua_util.h"

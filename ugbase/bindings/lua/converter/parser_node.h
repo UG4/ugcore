@@ -1,3 +1,11 @@
+/*
+ * \file	parser_node.cpp
+ * \author	Martin Rupp
+ *
+ * Created on 20. November 2012, 10:16
+ */
+
+
 #ifndef PARSER_NODE_H
 #define PARSER_NODE_H
 

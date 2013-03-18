@@ -96,7 +96,8 @@ set(srcLUA2C		converter/parser.cpp
 					converter/lexer.l
 					converter/parser.cpp
 					converter/lexer.cpp
-					converter/lua2c.cpp)
+					converter/lua2c.cpp
+					converter/system_call.cpp)
 
 
 # if algebra is enabled, we have to add additional src-files and link with the

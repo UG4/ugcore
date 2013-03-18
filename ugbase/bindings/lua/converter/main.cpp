@@ -1,3 +1,10 @@
+/*
+ * \file	main.cpp
+ * \author	Martin Rupp
+ *
+ * test file for parser
+ */
+
 #include <iostream>
 #include "pclass.h"
 
