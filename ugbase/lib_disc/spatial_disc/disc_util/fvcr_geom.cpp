@@ -151,6 +151,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 // 	compute size of scv
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
+		// side nodes in reverse order to fulfill standard element order
 		for (int j=0;j<m_vSCV[i].numCorners-1;j++){
 			m_vSCV[i].vGloPos[m_vSCV[i].numCorners-2-j]=vCornerCoords[rRefElem.id(dim-1,i,0,j)];
 		}
@@ -167,6 +168,8 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 		     m_vSCV[i].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[i].vGloPos);
 		     ElementNormal<face_type1,worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
 		};
+		// nodes are in reverse order therefore reverse sign to get outward normal
+		m_vSCV[i].Normal*=-1;
 	}
 
 //	get reference mapping
@@ -444,12 +447,12 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 		m_vSCVF[i].vGloPos[m_vSCVF[i].numCo-1]=globalBary;
 		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, m_vSCVF[i].numCo);
 		ElementNormal<face_type0,worldDim>(m_vSCVF[i].Normal,m_vSCVF[i].vGloPos);// face_type0 identical to scvf type
-		// UG_LOG("f_normal(" << i << ")=" << m_vSCVF[i].Normal <<"\n");todo delete all UG_Logs after debug is finished
 	}
 
 // 	compute size of scv
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
+		// side nodes in reverse order to fulfill standard element order
 		for (int j=0;j<m_vSCV[i].numCorners-1;j++){
 			m_vSCV[i].vGloPos[m_vSCV[i].numCorners-2-j]=vCornerCoords[m_rRefElem.id(dim-1,i,0,j)];
 		}
@@ -466,6 +469,8 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 		     m_vSCV[i].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[i].vGloPos);
 		     ElementNormal<face_type1, worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
 		};
+		// nodes are in reverse order therefore reverse sign to get outward normal
+		m_vSCV[i].Normal*=-1;
 	}
 
 // 	Shapes and Derivatives
