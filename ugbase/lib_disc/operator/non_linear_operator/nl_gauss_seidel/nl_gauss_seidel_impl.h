@@ -107,7 +107,8 @@ NLGaussSeidelSolver(SmartPtr<approx_space_type> spApproxSpace,
 			m_spApproxSpace(spApproxSpace),
 			m_spConvCheck(spConvCheck),
 			m_damp(1.0),
-			m_dgbCall(0)
+			m_dgbCall(0),
+			m_bProjectedGS(false)
 {};
 
 template <typename TDomain, typename TAlgebra>
@@ -116,7 +117,8 @@ NLGaussSeidelSolver() :
 	m_spApproxSpace(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_damp(1.0),
-	m_dgbCall(0)
+	m_dgbCall(0),
+	m_bProjectedGS(false)
 {};
 
 
@@ -325,7 +327,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	//	loop iteration
 	while(!m_spConvCheck->iteration_ended())
 	{
-		//bool active_set_changed = false;
+		bool activeSet_changed = false;
 		assAdapt.set_mapping(&m_map);
 
 		//	loop all DoFs
@@ -371,46 +373,62 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 				InverseMatMult(m_c_block[0], m_damp, J_block(0,0) , m_d_block[0]);
 			NL_GAUSSSEIDEL_PROFILE_END();
 
-			/*if (m_bObs)
+			//	should projected GS be performed?
+			if (m_bProjectedGS)
 			{
-				std::vector<size_t> active_set;
-				vector_type diff;
-				diff.resize(0);
-				diff.resize(1);
-				diff[0] = u[i] - m_obsVec[i];
+				// 	TODO: move this part to the begin of the iteration-step?!
+				//	Define an appropriate else-case! At the moment vector of active MultiIndices is not used!
+				std::vector<MultiIndex<2> > vActiveSet;
+				value_type diff;
+				diff = u[i] - m_ConsVec[i];
+				//	get number of unknowns per value_type
+				//	(e.g. if CPU == 3 -> nrFcts = 3!)
+				size_t nrFcts = GetSize(diff);
 
 				bool penetrate = false;
+
 				//	loop fcts
-				if (diff[0] > 0)
+				for (size_t fct = 0; fct < nrFcts; fct++)
 				{
-					bool DoF_is_in_activeSet = false;
-					penetrate = true;
-
-					std::vector<size_t>::iterator iter;
-
-					//	adds DoF i to active_set
-					for (iter = active_set.begin(); iter != active_set.end(); ++iter)
-						if (*iter == i)
-							DoF_is_in_activeSet = true;
-
-					if (!DoF_is_in_activeSet)
+					if (BlockRef(diff,fct) > 0)
 					{
-						active_set.push_back(i);
-						active_set_changed = true;
-					}
-				}
+						bool MultiIndex_is_in_activeSet = false;
+						penetrate = true;
 
-				if (penetrate)
-					m_c_block[0] = 0.0;
-			}*/
+						std::vector<MultiIndex<2> >::iterator iter;
+
+						//	adds MultiIndex-pair (i,fct) to active_set
+						for (iter = vActiveSet.begin(); iter != vActiveSet.end(); ++iter)
+						{
+							MultiIndex<2> activeMultiIndex = *iter;
+
+							if (activeMultiIndex[0] == i && activeMultiIndex[1] == fct)
+								MultiIndex_is_in_activeSet = true;
+							//	TODO: anstatt 'MultiIndex_is_in_activeSet' hier zu verwenden,
+							//	mit continue in loop weiterspringen
+						}
+
+						if (!MultiIndex_is_in_activeSet)
+						{
+							MultiIndex<2> activeMultiIndex(i,fct);
+							vActiveSet.push_back(activeMultiIndex);
+							activeSet_changed = true;
+						}
+					}
+
+					if (penetrate)
+						BlockRef(m_c_block[0],fct) = 0.0;
+
+				} //end (fcts)
+			} //end(m_bProjectedGS)
 
 			// 	update i-th block of solution
 			u[i] -= m_c_block[0];
 
 		}
 
-		//	if active set not changed, iteration converged!
-	//	if (!active_set_changed)
+		//	TODO: if active set not changed, iteration converged!
+		//if (!activeSet_changed)
 		//	break;
 
 		//	set mapping, selector and ass_index to NULL

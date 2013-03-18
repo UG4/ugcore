@@ -66,11 +66,14 @@ class NLGaussSeidelSolver
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
+	///	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
 	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
-	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+	///	Value type
+		typedef typename vector_type::value_type value_type;
 
 	///	Domain type
 		typedef TDomain domain_type;
@@ -86,7 +89,7 @@ class NLGaussSeidelSolver
 		using base_writer_type::write_debug;
 
 	public:
-	///	default constructor
+	///	constructor
 		NLGaussSeidelSolver();
 
 	///	constructor
@@ -97,7 +100,8 @@ class NLGaussSeidelSolver
 		{m_spApproxSpace = spApproxSpace;}
 		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 		void set_damp(number damp) {m_damp = damp;}
-		void set_obstacle_constraint(vector_type& obs) {m_obsVec = obs; m_bObs = true;}
+	///	sets constraint/obstacle
+		void set_constraint(vector_type& cons) {m_ConsVec = cons; m_bProjectedGS = true;}
 
 	/// This operator inverts the Operator N: Y -> X
 		virtual bool init(SmartPtr<IOperator<vector_type> > N);
@@ -138,8 +142,8 @@ class NLGaussSeidelSolver
 
 		number m_damp;
 
-		vector_type m_obsVec;
-		bool m_bObs;
+		vector_type m_ConsVec;
+		bool m_bProjectedGS;
 
 		///	call counter
 		int m_dgbCall;
