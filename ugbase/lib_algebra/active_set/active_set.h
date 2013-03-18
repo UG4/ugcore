@@ -30,14 +30,14 @@ class ActiveSet
 
 	public:
 	///	constructor
-		ActiveSet();
+		ActiveSet() : m_bCons(false) {
+			//	specifies the number of fcts
+			value_type u_val;
+			m_nrFcts = GetSize(u_val);
+		};
 
 	///	sets constraint/obstacle
-		void set_constraint(vector_type& cons) {
-			//	note: temporarily only constraints
-			//	which do not differ for the different fcts are valid here!!!
-			m_ConsVec = cons; m_bCons = true;
-		}
+		void set_constraint(vector_type& cons) {m_ConsVec = cons; m_bCons = true;}
 
 		void prepare(vector_type& u);
 
@@ -66,6 +66,9 @@ class ActiveSet
 		};
 
 	private:
+		///	#fcts for value_type
+		size_t m_nrFcts;
+
 		/// vector describing a constraint
 		vector_type m_ConsVec;
 		bool m_bCons;

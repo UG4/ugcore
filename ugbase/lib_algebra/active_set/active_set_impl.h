@@ -13,11 +13,6 @@
 namespace ug {
 
 template <typename TAlgebra>
-ActiveSet<TAlgebra>::ActiveSet() : m_bCons(false)
-{};
-
-
-template <typename TAlgebra>
 void ActiveSet<TAlgebra>::prepare(vector_type& u)
 {
 	m_vActiveSet.resize(0); m_vActiveSetOld.resize(0);
@@ -28,9 +23,6 @@ bool ActiveSet<TAlgebra>::check_dist_to_obs(vector_type& u)
 {
 	//	STILL IN PROGRESS
 	value_type dist;
-	//	get number of unknowns per value_type
-	//	(e.g. if CPU == 3 -> nrFcts = 3!)
-	size_t nrFcts = GetSize(dist);
 
 	bool geometry_cut_by_cons = false;
 
@@ -38,7 +30,7 @@ bool ActiveSet<TAlgebra>::check_dist_to_obs(vector_type& u)
 	{
 		dist = u[i] - m_ConsVec[i];
 		//TODO: anstatt u muss hier die geometrische Info einflie§en!
-		for (size_t fct = 0; fct < nrFcts; fct++)
+		for (size_t fct = 0; fct < m_nrFcts; fct++)
 		{
 			if (BlockRef(dist,fct) < 0.0)
 			{
@@ -73,10 +65,6 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 
 	value_type complementaryVal;
 
-	//	get number of unknowns per value_type
-	//	(e.g. if CPU == 3 -> nrFcts = 3!)
-	size_t nrFcts = GetSize(complementaryVal);
-
 	bool one_fct_is_active = false;
 
 	for(size_t i = 0; i < u.size(); i++)
@@ -84,7 +72,7 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 		//	note: complementaryVal, lambda[i], etc. are blocks here
 		complementaryVal = lambda[i] + u[i] - m_ConsVec[i];
 
-		for (size_t fct = 0; fct < nrFcts; fct++)
+		for (size_t fct = 0; fct < m_nrFcts; fct++)
 		{
 			if (BlockRef(complementaryVal,fct) <= 0.0)
 			{
@@ -186,16 +174,13 @@ bool ActiveSet<TAlgebra>::check_conv(const vector_type& u, const size_t step)
 	UG_LOG(m_vActiveSet.size() << " indices are active in step " << step << " ! \n");
 
 	value_type penetration;
-	//	get number of unknowns per value_type
-	//	(e.g. if CPU == 3 -> nrFcts = 3!)
-	size_t nrFcts = GetSize(penetration);
 
 	//	check if constraint is satisfied for all multiIndices
 	for(size_t i = 0; i < u.size(); i++)
 	{
 		penetration = u[i] - m_ConsVec[i];
 
-		for (size_t fct = 0; fct < nrFcts; fct++){
+		for (size_t fct = 0; fct < m_nrFcts; fct++){
 			if (BlockRef(penetration,fct) > 0.0)
 				return false;
 		}
