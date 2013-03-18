@@ -195,9 +195,9 @@ template class QuadratureRuleProvider<1>;
 template class QuadratureRuleProvider<2>;
 template class QuadratureRuleProvider<3>;
 
-template typename QuadratureRuleProvider<0>::QuadratureType GetQuadratureType<0>(const std::string& name);
-template typename QuadratureRuleProvider<1>::QuadratureType GetQuadratureType<1>(const std::string& name);
-template typename QuadratureRuleProvider<2>::QuadratureType GetQuadratureType<2>(const std::string& name);
-template typename QuadratureRuleProvider<3>::QuadratureType GetQuadratureType<3>(const std::string& name);
+template QuadratureRuleProvider<0>::QuadratureType GetQuadratureType<0>(const std::string& name);
+template QuadratureRuleProvider<1>::QuadratureType GetQuadratureType<1>(const std::string& name);
+template QuadratureRuleProvider<2>::QuadratureType GetQuadratureType<2>(const std::string& name);
+template QuadratureRuleProvider<3>::QuadratureType GetQuadratureType<3>(const std::string& name);
 
 } // namespace ug
