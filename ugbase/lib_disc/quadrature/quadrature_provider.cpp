@@ -5,10 +5,13 @@
  *      Author: andreasvogel
  */
 
+#include "common/util/string_util.h"
 #include "quadrature_provider.h"
 #include "gauss/gauss_quad.h"
 #include "gauss/gauss_quad_vertex.h"
 #include "lib_disc/reference_element/reference_element.h"
+#include <algorithm>
+#include <locale>
 
 namespace ug{
 
@@ -169,6 +172,20 @@ std::ostream& operator<<(std::ostream& out,	const typename QuadratureRuleProvide
 	return out;
 }
 
+template <int TDim>
+typename QuadratureRuleProvider<TDim>::QuadratureType GetQuadratureType(const std::string& name)
+{
+	std::string n = TrimString(name);
+	std::transform(n.begin(), n.end(), n.begin(), ::tolower);
+	if(name == "best") return QuadratureRuleProvider<TDim>::BEST;
+	if(name == "gauss") return QuadratureRuleProvider<TDim>::GAUSS;
+	if(name == "newton-cotes") return QuadratureRuleProvider<TDim>::NEWTON_COTES;
+
+	UG_THROW("GetQuadratureType: type '"<<name<<"' not recognized. Options "
+	         "are: best, gauss, newton-cotes.");
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
@@ -177,5 +194,10 @@ template class QuadratureRuleProvider<0>;
 template class QuadratureRuleProvider<1>;
 template class QuadratureRuleProvider<2>;
 template class QuadratureRuleProvider<3>;
+
+template typename QuadratureRuleProvider<0>::QuadratureType GetQuadratureType<0>(const std::string& name);
+template typename QuadratureRuleProvider<1>::QuadratureType GetQuadratureType<1>(const std::string& name);
+template typename QuadratureRuleProvider<2>::QuadratureType GetQuadratureType<2>(const std::string& name);
+template typename QuadratureRuleProvider<3>::QuadratureType GetQuadratureType<3>(const std::string& name);
 
 } // namespace ug

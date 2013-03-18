@@ -175,7 +175,7 @@ number Integrate(TConstIterator iterBegin,
                  TConstIterator iterEnd,
                  typename domain_traits<WorldDim>::position_accessor_type& aaPos,
                  IIntegrand<number, WorldDim>& integrand,
-                 int quadOrder)
+                 int quadOrder, std::string quadType)
 {
 //	reset the result
 	number integral = 0;
@@ -187,6 +187,11 @@ number Integrate(TConstIterator iterBegin,
 //	this is the base element type (e.g. Face). This is the type when the
 //	iterators above are dereferenciated.
 	typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+
+//	get quad type
+	if(quadType.empty()) quadType = "best";
+	typename QuadratureRuleProvider<dim>::QuadratureType type =
+			GetQuadratureType<dim>(quadType);
 
 // 	iterate over all elements
 	for(; iter != iterEnd; ++iter)
@@ -200,7 +205,7 @@ number Integrate(TConstIterator iterBegin,
 	//	get quadrature Rule for reference object id and order
 		try{
 		const QuadratureRule<dim>& rQuadRule
-					= QuadratureRuleProvider<dim>::get_rule(roid, quadOrder);
+					= QuadratureRuleProvider<dim>::get_rule(roid, quadOrder, type);
 
 	//	get reference element mapping by reference object id
 		DimReferenceMapping<dim, WorldDim>& mapping
@@ -264,7 +269,7 @@ number Integrate(TConstIterator iterBegin,
 template <typename TGridFunction, int dim>
 number IntegrateSubset(SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand,
                        SmartPtr<TGridFunction> spGridFct,
-                       int si, int quadOrder)
+                       int si, int quadOrder, std::string quadType)
 {
 //	integrate elements of subset
 	typedef typename TGridFunction::template dim_traits<dim>::geometric_base_object geometric_base_object;
@@ -277,14 +282,15 @@ number IntegrateSubset(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInteg
 	                 spGridFct->template end<geometric_base_object>(si),
 	                 spGridFct->domain()->position_accessor(),
 	                 *spIntegrand,
-	                 quadOrder);
+	                 quadOrder, quadType);
 }
 
 
 template <typename TGridFunction>
 number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand,
                         SmartPtr<TGridFunction> spGridFct,
-                        const char* subsets, int quadOrder)
+                        const char* subsets, int quadOrder,
+                        std::string quadType = std::string())
 {
 //	world dimensions
 	static const int dim = TGridFunction::dim;
@@ -324,9 +330,9 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 		switch(ssGrp.dim(i))
 		{
 			case DIM_SUBSET_EMPTY_GRID: break;
-			case 1: value += IntegrateSubset<TGridFunction, 1>(spIntegrand, spGridFct, si, quadOrder); break;
-			case 2: value += IntegrateSubset<TGridFunction, 2>(spIntegrand, spGridFct, si, quadOrder); break;
-			case 3: value += IntegrateSubset<TGridFunction, 3>(spIntegrand, spGridFct, si, quadOrder); break;
+			case 1: value += IntegrateSubset<TGridFunction, 1>(spIntegrand, spGridFct, si, quadOrder, quadType); break;
+			case 2: value += IntegrateSubset<TGridFunction, 2>(spIntegrand, spGridFct, si, quadOrder, quadType); break;
+			case 3: value += IntegrateSubset<TGridFunction, 3>(spIntegrand, spGridFct, si, quadOrder, quadType); break;
 			default: UG_THROW("IntegrateSubsets: Dimension "<<ssGrp.dim(i)<<" not supported. "
 			                  " World dimension is "<<dim<<".");
 		}
@@ -454,13 +460,17 @@ template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData,
                 SmartPtr<TGridFunction> spGridFct,
                 const char* subsets, number time,
-                int quadOrder)
+                int quadOrder, std::string quadType)
 {
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
 		= CreateSmartPtr(new UserDataIntegrand<number, TGridFunction>(spData, spGridFct, time));
 
-	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
+	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder, quadType);
 }
+
+template <typename TGridFunction>
+number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time, int order)
+{return Integral(spData, spGridFct, subsets, time, order);}
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time)
@@ -518,29 +528,33 @@ template <typename TGridFunction>
 number Integral(const char* luaFct,
                 SmartPtr<TGridFunction> spGridFct,
                 const char* subsets, number time,
-                int quadOrder)
+                int quadOrder, std::string quadType)
 {
 	static const int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
 			LuaUserDataFactory<number, dim>::create(luaFct);
-	return Integral(sp, spGridFct, subsets, time, quadOrder);
+	return Integral(sp, spGridFct, subsets, time, quadOrder, quadType);
 }
 
 template <typename TGridFunction>
+number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time, int quadOrder)
+{return Integral(luaFct, spGridFct, subsets, time, quadOrder, "best");}
+
+template <typename TGridFunction>
 number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time)
-{return Integral(luaFct, spGridFct, subsets, time, 1);}
+{return Integral(luaFct, spGridFct, subsets, time, 1, "best");}
 
 template <typename TGridFunction>
 number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,number time)
-{return Integral(luaFct, spGridFct, NULL, time, 1);}
+{return Integral(luaFct, spGridFct, NULL, time, 1, "best");}
 
 template <typename TGridFunction>
 number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct,const char* subsets)
-{return Integral(luaFct, spGridFct, subsets, 0.0, 1);}
+{return Integral(luaFct, spGridFct, subsets, 0.0, 1, "best");}
 
 template <typename TGridFunction>
 number Integral(const char* luaFct, SmartPtr<TGridFunction> spGridFct)
-{return Integral(luaFct, spGridFct, NULL, 0.0, 1);}
+{return Integral(luaFct, spGridFct, NULL, 0.0, 1, "best");}
 
 #endif
 

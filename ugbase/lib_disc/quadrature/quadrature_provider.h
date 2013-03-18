@@ -109,6 +109,10 @@ std::vector<const QuadratureRule<dim>*> QuadratureRuleProvider<dim>::m_vRule[NUM
 template <int TDim>
 std::ostream& operator<<(std::ostream& out,	const typename QuadratureRuleProvider<TDim>::QuadratureType& v);
 
+/// returns Identifier from string
+template <int TDim>
+typename QuadratureRuleProvider<TDim>::QuadratureType GetQuadratureType(const std::string& name);
+
 /// @}
 
 } // namespace ug

@@ -67,6 +67,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("Integral", static_cast<number (*)(number, SmartPtr<TFct>)>(&Integral<TFct>), grp, "Integral", "ConstantValue#GridFunction");
 
 #ifdef UG_FOR_LUA
+		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, number, int, std::string)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Subsets#Time#QuadOrder#QuadType");
 		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Subsets#Time#QuadOrder");
 		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, const char*, number)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Subsets#Time");
 		reg.add_function("Integral", static_cast<number (*)(const char*, SmartPtr<TFct>, number)>(&Integral<TFct>), grp, "Integral", "LuaFunction#GridFunction#Time");
