@@ -43,6 +43,7 @@ public:
 
 	Vector(const vector_type & v)
 	{
+		m_capacity = 0;
 		m_size = 0; values = NULL;
 		create(v.m_size);
 		operator =(v);
