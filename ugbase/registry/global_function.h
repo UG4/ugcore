@@ -16,7 +16,7 @@
 #ifndef UG_PROFILER
 	#error "You need to define UG_PROFILER to use PROFILE_BRIDGE"
 #endif
-#include "common/profiler/dynamic_profiling.h"
+#include "common/profiler/runtime_profile_info.h"
 
 #endif
 
@@ -162,10 +162,10 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 			: ExportedFunctionBase(name, funcOptions, retValInfos,
 			                       paramInfos, tooltip, help),
 			  m_group(group), m_func((void*)f), m_proxy_func(pf)
-		{
 #ifdef PROFILE_BRIDGE
-			m_dpi.init(ExportedFunctionBase::name().c_str(), true, "registry", false);
+			  ,m_dpi(ExportedFunctionBase::name().c_str(), true, "registry", false)
 #endif
+		{
 			create_parameter_stack<TFunc>();
 		}
 
@@ -178,7 +178,7 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 			m_proxy_func(m_func, paramsIn, paramsOut);
 
 #ifdef PROFILE_BRIDGE
-			m_dpi.endCurNode();
+			m_dpi.endNode();
 #endif
 
 		}
@@ -197,7 +197,7 @@ class UG_API ExportedFunction : public ExportedFunctionBase
 		ProxyFunc m_proxy_func;
 
 #ifdef PROFILE_BRIDGE
-		mutable DynamicProfileInformation m_dpi;
+		mutable RuntimeProfileInfo m_dpi;
 #endif
 };
 

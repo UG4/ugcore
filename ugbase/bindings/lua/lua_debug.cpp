@@ -21,7 +21,7 @@
 #include "registry/registry.h"
 #include "info_commands.h"
 #include "lua_debug.h"
-#include "common/profiler/dynamic_profiling.h"
+#include "common/profiler/runtime_profile_info.h"
 #include "common/util/string_util.h"
 
 extern "C" {
@@ -56,7 +56,7 @@ static bool bEndProfiling=false;
 static bool bProfileLUALines=true;
 static int profilingDepth=0;
 static int profilingEndDepth=0;
-static std::map<const char*, std::map<int, pDynamicProfileInformation> >pis;
+static std::map<const char*, std::map<int, pRuntimeProfileInfo> >pis;
 #endif
 
 
@@ -376,7 +376,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				{
 					// be sure that this is const char*
 					//if(line>0) line--;
-					pDynamicProfileInformation &pi = pis[source][line];
+					pRuntimeProfileInfo &pi = pis[source][line];
 					//UG_LOG("start profile node " << source << ":" << line << "\n");
 
 					// if null, create new node
@@ -391,7 +391,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 						//const char*p = GetFileLine(source, line).c_str();
 						//strncat(buf, p+strspn(p, " \t"), 254);
 
-						pi = new DynamicProfileInformation(buf, true, "lua", false, source, true, line);
+						pi = new RuntimeProfileInfo(buf, true, "lua", false, source, true, line);
 						// UG_LOG(buf);
 					 }
 
@@ -419,8 +419,12 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				//UG_ASSERT(pis[ar->source][ar->linedefined]->isCurNode(), "profiler nodes not matching. forgot a PROFILE_END?");
 				else
 				{		
+					const char *source = ar->source;
+					int line = ar->currentline;
+					pRuntimeProfileInfo &pi = pis[source][line];
+
 					//UG_LOG("end profile node\n");
-					DynamicProfileInformation::endCurNode();				
+					pi->endNode();
 					if(bEndProfiling && profilingDepth==0)
 					{
 						UG_LOG("Profiling ended.\n");

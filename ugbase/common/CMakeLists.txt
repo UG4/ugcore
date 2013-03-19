@@ -40,6 +40,7 @@ set(sources ${srcCommon})
 
 if(UG_PROFILER)
 	set(srcProfiler	profiler/profiler.cpp
+	                profiler/runtime_profile_info.cpp
 					profiler/src/ShinyManager.cpp
 					profiler/src/ShinyNode.cpp
 					profiler/src/ShinyNodePool.cpp

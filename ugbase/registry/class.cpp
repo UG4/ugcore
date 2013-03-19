@@ -22,10 +22,10 @@ ExportedConstructor(ProxyFunc pf,
 : m_proxy_func(pf), m_className(className),
   m_options(options), m_paramInfos(paramInfos), m_vvParamInfo(0),
   m_tooltip(tooltip), m_help(help)
-{
 #ifdef PROFILE_BRIDGE
-	m_dpi.init((m_className + "(...)").c_str(), true, "registry", false);
+  ,m_dpi((m_className + "(...)").c_str(), true, "registry", false)
 #endif
+{
 
 //	Tokenize string for parameters into infos per one parameter (separated by '#')
 	std::vector<std::string> vParamInfoTmp;

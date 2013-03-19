@@ -18,7 +18,7 @@
 #ifndef UG_PROFILER
 	#error "You need to define UG_PROFILER to use PROFILE_BRIDGE"
 #endif
-#include "common/profiler/dynamic_profiling.h"
+#include "common/profiler/runtime_profile_info.h"
 #else
 #endif
 
@@ -80,10 +80,10 @@ class ExportedMethod : public ExportedFunctionBase
 						const std::string& tooltip, const std::string& help)
 		: ExportedFunctionBase(name, methodOptions, retValInfos, paramInfos, tooltip, help),
 		  m_ptrWrapper(m), m_proxy_func(pf), m_className(className)
-		{
 #ifdef PROFILE_BRIDGE
-			m_dpi.init((m_className + ":" + name).c_str(), true, "registry", false);
+		,m_dpi((m_className + ":" + name).c_str(), true, "registry", false)
 #endif
+		{
 		}
 
 	/// executes the function
@@ -95,7 +95,7 @@ class ExportedMethod : public ExportedFunctionBase
 			m_proxy_func(m_ptrWrapper, obj, paramsIn, paramsOut);
 
 #ifdef PROFILE_BRIDGE
-			m_dpi.endCurNode();
+			m_dpi.endNode();
 #endif
 		}
 
@@ -120,7 +120,7 @@ class ExportedMethod : public ExportedFunctionBase
 		std::string m_className;
 
 #ifdef PROFILE_BRIDGE
-		mutable DynamicProfileInformation m_dpi;
+		mutable RuntimeProfileInfo m_dpi;
 #endif
 };
 
@@ -302,7 +302,7 @@ class UG_API ExportedConstructor
 			void *pRet = m_proxy_func(paramsIn);
 
 #ifdef PROFILE_BRIDGE
-			m_dpi.endCurNode();
+			m_dpi.endNode();
 #endif
 			return pRet;
 		}
@@ -390,7 +390,7 @@ class UG_API ExportedConstructor
 		ParameterInfo m_paramsIn;
 
 #ifdef PROFILE_BRIDGE
-		mutable DynamicProfileInformation m_dpi;
+		mutable RuntimeProfileInfo m_dpi;
 #endif
 };
 
