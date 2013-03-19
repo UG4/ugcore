@@ -107,8 +107,8 @@ NLGaussSeidelSolver(SmartPtr<approx_space_type> spApproxSpace,
 			m_spApproxSpace(spApproxSpace),
 			m_spConvCheck(spConvCheck),
 			m_damp(1.0),
-			m_dgbCall(0),
-			m_bProjectedGS(false)
+			m_bProjectedGS(false),
+			m_dgbCall(0)
 {};
 
 template <typename TDomain, typename TAlgebra>
@@ -117,8 +117,8 @@ NLGaussSeidelSolver() :
 	m_spApproxSpace(NULL),
 	m_spConvCheck(new StdConvCheck<vector_type>(10, 1e-8, 1e-10, true)),
 	m_damp(1.0),
-	m_dgbCall(0),
-	m_bProjectedGS(false)
+	m_bProjectedGS(false),
+	m_dgbCall(0)
 {};
 
 
