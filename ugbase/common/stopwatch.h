@@ -11,13 +11,13 @@
 #ifndef __H__UG__STOPWATCH_H__
 #define __H__UG__STOPWATCH_H__
 
+#include <iostream>
+
 #ifdef UG_CXX11
 #include <chrono>
 #else
 #include <ctime>
 #endif
-
-using namespace std;
 
 namespace ug
 {
@@ -42,10 +42,10 @@ class Stopwatch
     Stopwatch() {
       // you cant be really sure when constructor is called
 #ifdef UG_CXX11
-      begin = chrono::high_resolution_clock::now();
-      end = chrono::high_resolution_clock::now() - begin;
+      begin = std::chrono::high_resolution_clock::now();
+      end = std::chrono::high_resolution_clock::now() - begin;
 #else
-      beg = end = clock();
+      beg = end = std::clock();
 #endif
       bRunning = false;
     }
@@ -54,11 +54,11 @@ class Stopwatch
      * \brief Starts the Stopwatch
      */
     void start() {
-      cout.flush();
+      std::cout.flush();
 #ifdef UG_CXX11
-      begin = chrono::high_resolution_clock::now();
+      begin = std::chrono::high_resolution_clock::now();
 #else
-      beg = clock();
+      beg = std::clock();
 #endif
       bRunning = true;
     }
@@ -68,9 +68,9 @@ class Stopwatch
      */
     void stop() {
 #ifdef UG_CXX11
-      end = chrono::high_resolution_clock::now() - begin;
+      end = std::chrono::high_resolution_clock::now() - begin;
 #else
-      end = clock();
+      end = std::clock();
 #endif
       bRunning = false;
     }
@@ -103,10 +103,10 @@ class Stopwatch
      */
     double ms() {
 #ifdef UG_CXX11
-      if ( bRunning ) end = chrono::high_resolution_clock::now() - begin;
+      if ( bRunning ) end = std::chrono::high_resolution_clock::now() - begin;
       return end.count() / 100.0;
 #else
-      if( bRunning ) end = clock();
+      if( bRunning ) end = std::clock();
       return ( end - beg ) / ( ( double )0.001 * CLOCKS_PER_SEC );
 #endif
     }
@@ -114,14 +114,14 @@ class Stopwatch
   private:
 #ifdef UG_CXX11
     /// Time point of the start of Stopwatch
-    chrono::high_resolution_clock::time_point begin;
+    std::chrono::high_resolution_clock::time_point begin;
     /// Number of microseconds since \c begin
-    chrono::microseconds end;
+    std::chrono::microseconds end;
 #else
     /// Time point of the start of Stopwatch
-    clock_t beg;
+    std::clock_t beg;
     /// Time point of the end of Stopwatch
-    clock_t end;
+    std::clock_t end;
 #endif
     /// Flag indicating state of Stopwatch
     bool bRunning;

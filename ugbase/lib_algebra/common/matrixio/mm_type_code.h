@@ -15,8 +15,6 @@
 
 #include "common/error.h"
 
-using namespace std;
-
 namespace ug
 {
 
@@ -111,8 +109,8 @@ class MMTypeCode
      *
      * \todo Display corresponding strings instead of internal numeric codes.
      */
-    string to_string() {
-      stringstream out;
+    std::string to_string() {
+      std::stringstream out;
       out << "MatrixMarket Type Codes:\n";
       out << "  ClassType:     " << m_class_type << "\n";
       out << "  NumericType:   " << m_numeric_type << "\n";
@@ -167,7 +165,7 @@ class MMTypeCode
      * \brief Sets a new class type from an enum value
      *
      * \param[in] type One value of MMTypeCode::ClassType
-     * \throws ug::UGError if \c type is not a valid value
+     * \throws UGError if \c type is not a valid value
      */
     void set_class_type( int type ) {
       switch( type ) {
@@ -185,9 +183,9 @@ class MMTypeCode
      * \brief Sets a new class type from a string
      *
      * \param[in] type a string either \c coordinate or \c array
-     * \throws ug::UGError if \c type is another string
+     * \throws UGError if \c type is another string
      */
-    void set_class_type( string type ) {
+    void set_class_type( std::string type ) {
       if( type.compare( MM_COORDINATE_STR ) == 0 || type.compare( MM_SPARSE_STR ) == 0 ) {
         set_class_type( COORDINATE );
       } else if( type.compare( MM_ARRAY_STR ) == 0 || type.compare( MM_DENSE_STR ) == 0 ) {
@@ -201,7 +199,7 @@ class MMTypeCode
      * \brief Sets a new numeric type from an enum value
      *
      * \param[in] type One value of MMTypeCode::NumericType
-     * \throws ug::UGError if \c type is not a valid value
+     * \throws UGError if \c type is not a valid value
      */
     void set_numeric_type( int type ) {
       switch( type ) {
@@ -226,9 +224,9 @@ class MMTypeCode
      *
      * \param[in] type a string either \c real, \c complex, \c integer or
      *                 \c pattern
-     * \throws ug::UGError if \c type is another string
+     * \throws UGError if \c type is another string
      */
-    void set_numeric_type( string type ) {
+    void set_numeric_type( std::string type ) {
       if( type.compare( MM_REAL_STR ) == 0 ) {
         set_numeric_type( REAL );
       } else if( type.compare( MM_COMPLEX_STR ) == 0 ) {
@@ -246,7 +244,7 @@ class MMTypeCode
      * \brief Sets a new algebraic type from an enum value
      *
      * \param[in] type One value of MMTypeCode::AlgebraicType
-     * \throws ug::UGError if \c type is not a valid value
+     * \throws UGError if \c type is not a valid value
      */
     void set_algebraic_type( int type ) {
       switch( type ) {
@@ -271,9 +269,9 @@ class MMTypeCode
      *
      * \param[in] type a string either \c general, \c symmetric,
      *                 \c skew-symmetric or \c hermitian
-     * \throws ug::UGError if \c type is another string
+     * \throws UGError if \c type is another string
      */
-    void set_algebraic_type( string type ) {
+    void set_algebraic_type( std::string type ) {
       if( type.compare( MM_GENERAL_STR ) == 0 ) {
         set_algebraic_type( GENERAL );
       } else if( type.compare( MM_SYMMETRIC_STR ) == 0 ) {

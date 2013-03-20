@@ -6,10 +6,6 @@
 
 #include "matrix_io_mtx.h"
 
-using namespace std;
-using namespace ug;
-using namespace boost;
-
 namespace ug
 {
 
@@ -22,7 +18,7 @@ MatrixIOMtx::MatrixIOMtx() :
   m_rows( 0 ), m_cols( 0 ), m_lines( 0 )
 {}
 
-MatrixIOMtx::MatrixIOMtx( string mFile, int openMode ) :
+MatrixIOMtx::MatrixIOMtx( std::string mFile, int openMode ) :
   m_matFileStream(), m_firstDataLine(0),
   m_matFileType( MatrixFileType::MATRIX_MARKET ),
   m_mmTypeCode( MMTypeCode() ), m_rows( 0 ), m_cols( 0 ), m_lines( 0 )
@@ -48,7 +44,7 @@ MatrixIOMtx::~MatrixIOMtx()
 
 // /////////////////////////////////////////////////////////////////////////////
 // Public Functions
-void MatrixIOMtx::set_mat_file_name( string mFile, int openMode )
+void MatrixIOMtx::set_mat_file_name( std::string mFile, int openMode )
 {
   PROFILE_FUNC();
   if( !mFile.empty() ) {
@@ -56,20 +52,20 @@ void MatrixIOMtx::set_mat_file_name( string mFile, int openMode )
       UG_ASSERT( FileExists( mFile.c_str() ),
                 "File " << mFile.c_str() << " could not be found." );
     } else if( openMode == MatrixIO::NEW ) {
-      ofstream createFile;
-      createFile.open( mFile.c_str(), ios_base::out );
+      std::ofstream createFile;
+      createFile.open( mFile.c_str(), std::ios_base::out );
       UG_ASSERT( createFile.is_open(), "File could not be created." );
       createFile.close();
     } else {
       UG_THROW( "Invalid open mode specified: " << openMode );
     }
-    m_pMatFileName = new string( mFile );
+    m_pMatFileName = new std::string( mFile );
   }
 }
 
-string MatrixIOMtx::get_mat_file_name() const
+std::string MatrixIOMtx::get_mat_file_name() const
 {
-  return string( *m_pMatFileName );
+  return std::string( *m_pMatFileName );
 }
 
 void MatrixIOMtx::set_mat_dims( size_t rows, size_t cols, size_t lines )
@@ -114,9 +110,9 @@ void MatrixIOMtx::read_into( CPUAlgebra::matrix_type &matrix )
   // open the file and go one before first data line
   open_file();
   
-  string dummy;
+  std::string dummy;
   for( size_t i = 0; i < m_firstDataLine; i++ ) {
-    getline( m_matFileStream, dummy );
+    std::getline( m_matFileStream, dummy );
   }
 
   matrix.resize( m_rows, m_cols );
@@ -141,18 +137,18 @@ void MatrixIOMtx::read_into( CPUAlgebra::matrix_type &matrix )
   close_file();
 }
 
-void MatrixIOMtx::write_from( CPUAlgebra::matrix_type &matrix, string comment )
+void MatrixIOMtx::write_from( CPUAlgebra::matrix_type &matrix, std::string comment )
 {
   PROFILE_FUNC();
 
   // analyze the given matrix
-  vector< vector<size_t> > rowIndexPerCol = determine_matrix_characteristics( matrix );
+  std::vector< std::vector<size_t> > rowIndexPerCol = determine_matrix_characteristics( matrix );
 
   // write the MatrixMarket banner
   write_banner();
 
   // open the file for appending
-  open_file( ios_base::out | ios_base::app );
+  open_file( std::ios_base::out | std::ios_base::app );
   
   // add a comment if it's not empty
   if ( !comment.empty() ) {
@@ -180,7 +176,7 @@ void MatrixIOMtx::write_from( CPUAlgebra::matrix_type &matrix, string comment )
 
 // /////////////////////////////////////////////////////////////////////////////
 // Private Functions
-void MatrixIOMtx::open_file( ios_base::openmode mode )
+void MatrixIOMtx::open_file( std::ios_base::openmode mode )
 {
   UG_ASSERT( !m_pMatFileName->empty(), "Matrix File not set." );
 
@@ -206,18 +202,18 @@ void MatrixIOMtx::query_matrix_type()
   // open the file
   open_file();
 
-  stringstream first_line;
+  std::stringstream first_line;
   // make sure we are at the beginning of the file
   m_matFileStream.seekg( 0 );
 
   // get the first line
-  string s;
-  getline( m_matFileStream, s );
+  std::string s;
+  std::getline( m_matFileStream, s );
   first_line.str( s );
 
   // split the line into its specified parts
   string buffer_str = "";
-  vector<string> banner_items;
+  std::vector<std::string> banner_items;
   while( first_line >> buffer_str ) {
     banner_items.push_back( buffer_str );
   };
@@ -254,38 +250,39 @@ void MatrixIOMtx::query_matrix_characteristics()
   open_file();
 
   // reach end of comments
-  string str;
+  std::string str;
   do {
     UG_ASSERT( !m_matFileStream.eof(), "Unexpected end of file." );
-    getline( m_matFileStream, str );
+    std::getline( m_matFileStream, str );
     m_firstDataLine++;
   } while( str.at( 0 ) == '%' );
 
   // get next non-empty line
   while( str.empty() ) {
     UG_ASSERT( !m_matFileStream.eof(), "Unexpected end of file." );
-    getline( m_matFileStream, str );
+    std::getline( m_matFileStream, str );
     m_firstDataLine++;
   }
   
   // split the line
-  vector<string> entriesVec;
+  std::vector<std::string> entriesVec;
   if( m_mmTypeCode.is_sparse() ) {
-    algorithm::split( entriesVec, str, is_any_of( " " ),
-                      algorithm::token_compress_on );
+    boost::algorithm::split( entriesVec, str, boost::is_any_of( " " ),
+                             boost::algorithm::token_compress_on );
   } else {
     UG_THROW( "Other than sparse MatrixMarket matrices are not yet implemented." );
   }
 
-  set_mat_dims( lexical_cast<int>( entriesVec.at( 0 ) ),
-                lexical_cast<int>( entriesVec.at( 1 ) ),
-                lexical_cast<int>( entriesVec.at( 2 ) ) );
+  set_mat_dims( boost::lexical_cast<int>( entriesVec.at( 0 ) ),
+                boost::lexical_cast<int>( entriesVec.at( 1 ) ),
+                boost::lexical_cast<int>( entriesVec.at( 2 ) ) );
 
   // close the file
   close_file();
 }
 
-vector< vector<size_t> > MatrixIOMtx::determine_matrix_characteristics( CPUAlgebra::matrix_type &matrix )
+std::vector< std::vector<size_t> > MatrixIOMtx::determine_matrix_characteristics( 
+	CPUAlgebra::matrix_type &matrix )
 {
   PROFILE_FUNC();
   
@@ -299,7 +296,7 @@ vector< vector<size_t> > MatrixIOMtx::determine_matrix_characteristics( CPUAlgeb
   // in which rows of each column non-zero entries are.
   // During this, we also get to know how many non-zero entries there are in
   // total and can detect symmetries of the matrix.
-  vector< vector<size_t> > rowIndexPerCol;
+  std::vector< std::vector<size_t> > rowIndexPerCol;
   rowIndexPerCol.resize(cols);
   bool isSymmetric = true;
   bool isSkew = true;
@@ -387,19 +384,19 @@ void MatrixIOMtx::read_entry( size_t *m, size_t *n,
   UG_ASSERT( m_matFileStream.is_open(), "File is not open." );
 
   // get the data line and split it
-  string line;
-  getline( m_matFileStream, line );
-  vector<string> elements;
-  algorithm::split( elements, line, is_any_of(" "), algorithm::token_compress_on );
+  std::string line;
+  std::getline( m_matFileStream, line );
+  std::vector<std::string> elements;
+  boost::algorithm::split( elements, line, boost::is_any_of(" "), boost::algorithm::token_compress_on );
 
   // parse it according to the matrix type
   if( is_sparse() ) {
     UG_ASSERT( elements.size() == 3,
                "Sparse matrix requires three values per line. Found: "
                << elements.size() );
-    *m = lexical_cast<size_t>( elements.at( 0 ) );
-    *n = lexical_cast<size_t>( elements.at( 1 ) );
-    *val = lexical_cast<CPUAlgebra::matrix_type::value_type>( elements.at( 2 ) );
+    *m = boost::lexical_cast<size_t>( elements.at( 0 ) );
+    *n = boost::lexical_cast<size_t>( elements.at( 1 ) );
+    *val = boost::lexical_cast<CPUAlgebra::matrix_type::value_type>( elements.at( 2 ) );
   } else {
     UG_THROW( "Other than sparse MatrixMarket matrices are not yet implemented." );
   }
@@ -408,7 +405,7 @@ void MatrixIOMtx::read_entry( size_t *m, size_t *n,
 void MatrixIOMtx::write_banner()
 {
   // Write the first lines (banner, comment, characteristics)
-  open_file( ios_base::out | ios_base::trunc );
+  open_file( std::ios_base::out | std::ios_base::trunc );
 
   // print out the banner
   m_matFileStream << MM_BANNER_STR << " " << MM_MTX_STR << " "
@@ -432,11 +429,11 @@ void MatrixIOMtx::write_entry( size_t m, size_t n ,
   UG_ASSERT( m_matFileStream.is_open(), "File is not open." );
   UG_ASSERT( m > 0, "Row index not positive." );
   UG_ASSERT( n > 0, "Column index not positive." );
-  m_matFileStream.unsetf( ios_base::scientific );
+  m_matFileStream.unsetf( std::ios_base::scientific );
   m_matFileStream << m << " " << n;
   m_matFileStream << ( (val < 0) ? " " : "  " );
-  m_matFileStream.setf( ios_base::scientific);
-  m_matFileStream << setprecision(13);
+  m_matFileStream.setf( std::ios_base::scientific);
+  m_matFileStream << std::setprecision(13);
   m_matFileStream << val << "\n";
   m_matFileStream.flush();
 }

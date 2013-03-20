@@ -19,9 +19,6 @@
 #include "lib_algebra/common/matrixio/matrix_io.h"
 #include "lib_algebra/common/matrixio/mm_type_code.h"
 
-using namespace std;
-using namespace ug;
-
 namespace ug
 {
 
@@ -56,10 +53,10 @@ class MatrixIOMtx : MatrixIO
   private:
     // Full path name of the matrix exchange file
     // (docu in matrix_io.h)
-    string *m_pMatFileName;
+    std::string *m_pMatFileName;
     // Internal file stream for reading from and writing into the matrix
     // exchange file (docu in matrix_io.h)
-    fstream m_matFileStream;
+    std::fstream m_matFileStream;
     /// Line number of the first data line (0 based)
     size_t m_firstDataLine;
     // Matrix exchange file type (set to constant MatrixFileType::MatrixMarket)
@@ -94,7 +91,7 @@ class MatrixIOMtx : MatrixIO
      * \param[in] openMode  how to deal with non-existing files (a value of
      *                      MatrixIO::OpenMode)
      */
-    MatrixIOMtx( string mFile, int openMode=MatrixIO::EXISTING );
+    MatrixIOMtx( std::string mFile, int openMode=MatrixIO::EXISTING );
     
     /**
      * \brief Destructor
@@ -117,9 +114,9 @@ class MatrixIOMtx : MatrixIO
      *
      * \throws std::runtime_error if exchange file is not found and
      *                            <tt>openMode=MatrixIO::OpenMode::Existing</tt>.
-     * \throws ug::UGError        if \c openMode is non of MatrixIO::OpenMode
+     * \throws UGError            if \c openMode is non of MatrixIO::OpenMode
      */
-    void set_mat_file_name( string mFile, int openMode=MatrixIO::EXISTING );
+    void set_mat_file_name( std::string mFile, int openMode=MatrixIO::EXISTING );
     
     /**
      * \brief Retreive associated exchange file path and name
@@ -127,7 +124,7 @@ class MatrixIOMtx : MatrixIO
      * \return String representation of exchange file with full path as set by
      * constructor or MatrixIOMtx::set_mat_file_name.
      */
-    string get_mat_file_name() const;
+    std::string get_mat_file_name() const;
 
     /**
      * \brief Sets the size of the matrix and number of data lines
@@ -148,21 +145,21 @@ class MatrixIOMtx : MatrixIO
     /**
      * \brief Retrieves number of rows as specified in the exchange file
      *
-     * \return Number of rows as \c std::size_t
+     * \return Number of rows as \c size_t
      */
     size_t get_num_rows() const;
 
     /**
      * \brief Retrieves number of columns as specified in the exchange file
      *
-     * \return Number of columns as \c std::size_t
+     * \return Number of columns as \c size_t
      */
     size_t get_num_cols() const;
 
     /**
      * \brief Retrieves number of data lines as specified in the exchange file
      *
-     * \return Number of data lines as \c std::size_t
+     * \return Number of data lines as \c size_t
      */
     size_t get_num_lines() const;
 
@@ -183,13 +180,13 @@ class MatrixIOMtx : MatrixIO
      * is considered during writing the values to the correct positions.
      *
      * \note This function does not take care about memory alignement of the
-     *       given ug-matrix (e.g. ug::SparseMatrix::defragment ).
+     *       given ug-matrix (e.g. SparseMatrix::defragment ).
      *
      * \param[in,out] matrix  Matrix of CPUAlgebra::matrix_type to read into
      *
      * \throws std::runtime_error if one of \c m_rows, \c m_cols or \c m_lines
      *                            is not positive.
-     * \throws ug::UGError        if exchange file's matrix is not in coordinate
+     * \throws UGError            if exchange file's matrix is not in coordinate
      *                            format (as only sparse matrices are supported yet)
      */
     void read_into( CPUAlgebra::matrix_type &matrix );
@@ -218,11 +215,11 @@ class MatrixIOMtx : MatrixIO
      *                    matrix exchange file.
      */
     void write_from( CPUAlgebra::matrix_type &matrix,
-                     string comment="%Generated with ug4." );
+                     std::string comment="%Generated with ug4." );
 
   private:
     // Opens file as fstream. (docu in matrix_io.h)
-    void open_file( ios_base::openmode mode=ios_base::in );
+    void open_file( std::ios_base::openmode mode=std::ios_base::in );
     
     // Closes fstream. (docu in matrix_io.h)
     void close_file();
@@ -250,9 +247,9 @@ class MatrixIOMtx : MatrixIO
      *                            <tt>%%MatrixMarket</tt>
      * \throws std::runtime_error if the second word of the banner is not
      *                            \c matrix
-     * \throws ug::UGError        if the \c format identifier is invalid
-     * \throws ug::UGError        if the \c numeric identifier is invalid
-     * \throws ug::UGError        if the \c type identifier is invalid
+     * \throws UGError            if the \c format identifier is invalid
+     * \throws UGError            if the \c numeric identifier is invalid
+     * \throws UGError            if the \c type identifier is invalid
      */
     void query_matrix_type();
 
@@ -274,7 +271,7 @@ class MatrixIOMtx : MatrixIO
      *
      * \throws std::runtime_error if the file stream ended unexpectetly (e.g.
      *                            the exchange file does not contain data lines)
-     * \throws ug::UGError        if the exchange file does not describe a
+     * \throws UGError            if the exchange file does not describe a
      *                            coordinate/sparse matrix (as only sparse
      *                            matrices are supported yet)
      */
@@ -292,7 +289,7 @@ class MatrixIOMtx : MatrixIO
      * \throws std::runtime_error if the matrix was determined to be symmetric
      *                            and skew-symmetric at the same time
      */
-    vector< vector<size_t> > determine_matrix_characteristics( CPUAlgebra::matrix_type &matrix );
+    std::vector< std::vector<size_t> > determine_matrix_characteristics( CPUAlgebra::matrix_type &matrix );
 
     /**
      * \brief Reads and parses the next data line

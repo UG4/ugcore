@@ -17,7 +17,7 @@ MatrixIO::MatrixIO() :
 {
 }
 
-MatrixIO::MatrixIO( string mFile, int openMode ) :
+MatrixIO::MatrixIO( std::string mFile, int openMode ) :
   m_matFileStream(), m_matFileType( 0 )//, m_rows(0), m_cols(0), m_lines(0)
 {
   set_mat_file_name( mFile, openMode );
@@ -31,32 +31,32 @@ MatrixIO::~MatrixIO()
 
 // /////////////////////////////////////////////////////////////////////////////
 // Public Member Functions
-void MatrixIO::set_mat_file_name( string mFile, int openMode )
+void MatrixIO::set_mat_file_name( std::string mFile, int openMode )
 {
   if ( !mFile.empty() ) {
     if ( openMode == EXISTING ) {
       UG_ASSERT( FileExists( mFile.c_str() ),
                 "File " << mFile.c_str() << " could not be found." );
     } else if( openMode == NEW ) {
-      ofstream createFile;
-      createFile.open( mFile.c_str(), ios_base::out );
+      std::ofstream createFile;
+      createFile.open( mFile.c_str(), std::ios_base::out );
       UG_ASSERT( createFile.is_open(), "File could not be created." );
       createFile.close();
     } else {
       UG_THROW( "Invalid open mode specified: " << openMode );
     }
-    m_pMatFileName = new string( mFile );
+    m_pMatFileName = new std::string( mFile );
   }
 }
 
-string MatrixIO::get_mat_file_name() const
+std::string MatrixIO::get_mat_file_name() const
 {
-  return string( *m_pMatFileName );
+  return std::string( *m_pMatFileName );
 }
 
 // /////////////////////////////////////////////////////////////////////////////
 // Private Member Functions
-void MatrixIO::open_file( ios_base::openmode mode )
+void MatrixIO::open_file( std::ios_base::openmode mode )
 {
   UG_ASSERT( !m_pMatFileName->empty(), "Matrix File not set." );
 

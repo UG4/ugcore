@@ -10,7 +10,6 @@
 #include <string>
 #include <fstream>
 
-// #include "ug.h"
 #include "common/util/file_util.h"
 #include "common/assert.h"
 #include "common/error.h"
@@ -18,8 +17,6 @@
 #include "common/profiler/profiler.h"
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/cpu_algebra_types.h"
-
-using namespace std;
 
 namespace ug
 {
@@ -109,9 +106,9 @@ class MatrixIO
     
   private:
     /// Full path name of the matrix exchange file
-    string *m_pMatFileName;
+    std::string *m_pMatFileName;
     /// Internal file stream for reading from and writing into the matrix exchange file
-    fstream m_matFileStream;
+    std::fstream m_matFileStream;
     /// Matrix exchange file type
     MatrixFileType m_matFileType;
     /// Number of rows as specified in the matrix exchange file
@@ -133,7 +130,7 @@ class MatrixIO
      * \param[in] openMode  how to deal with non-existing files (a value of
      *                      MatrixIO::OpenMode)
      */
-    MatrixIO( string mFile, int openMode=EXISTING );
+    MatrixIO( std::string mFile, int openMode=EXISTING );
     /**
      * \brief Destructor
      *
@@ -151,29 +148,29 @@ class MatrixIO
      *
      * \throws std::runtime_error if exchange file is not found and
      *                            <tt>openMode=OpenMode::Existing</tt>.
-     * \throws ug::UGError        if \c openMode is non of OpenMode
+     * \throws UGError            if \c openMode is non of OpenMode
      */
-    void set_mat_file_name( string mFile, int openMode=EXISTING );
+    void set_mat_file_name( std::string mFile, int openMode=EXISTING );
     /**
      * \brief Retreive associated exchange file path and name
      *
      * \return String representation of exchange file with full path as set by
      * constructor or MatrixIO::set_mat_file_name.
      */
-    string get_mat_file_name() const;
+    std::string get_mat_file_name() const;
 
   private:
     /**
      * \brief Opens the associated file in \c m_matFileStream
      *
      * \param[in] mode  Modus of the resulting file stream (a value of
-     *                  std::ios_base::openmode). Defaults to ios_base::in.
+     *                  std::ios_base::openmode). Defaults to std::ios_base::in.
      *
      * \throws std::runtime_error if \c m_pMatFileName is empty
      * \throws std::runtime_error if file stream can not be opened (i.e.
      *                            \c failbit or \c badbit are set)
      */
-    void open_file( ios_base::openmode mode=ios_base::in );
+    void open_file( std::ios_base::openmode mode=std::ios_base::in );
     /**
      * \brief Closes file stream
      */
