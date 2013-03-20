@@ -150,36 +150,56 @@ The following is done here:
 Now, you can create an object of this class from script using the 
 <tt>()</tt>-Operator:
 \verbatim
-ug:> myClass = Test()
+ug:> myVariable = Test()
 \endverbatim
 
 Calling a method of the class is done by using the <tt>:</tt>-Operator
 \verbatim
-ug:> myClass:print_name()
-Name is Test
+ug:> myVariable:print_name()
 Name is Test
 \endverbatim
 
 
 <hr>
-\section secSTHowToSpecifyParameterInformation How to specify Parameter information
+\section secSTHowToSpecifyParameterInformation How to specify additional information
 
 As shown in the last example, the <tt>.add_method()</tt> method allows to 
-specify additional parameter related information.
-The first string after the method pointer specifies properties of the return 
-value:
-<tt>c</tt>.
-The second string specifies properties of the parameters of the registered 
-method:
-<tt>a\#b</tt>.
+specify additional parameter related information. This is also true for add_function and add_class:
 
-These properties allow VRL and the Script to provide additional information for 
-the registered methods.
-Apart from the \em name, in this case <tt>c</tt>, VRL uses a so called 
-\em style identifier to choose between several possible type 
-representations.
+\code
+reg.add_function( "NameAppearingInScript", PointerToFunction, "group", "returnInformation", "paramInformation1#paramInformation2#...", "tooltip", "help" )
+reg.add_class_<ClassName>("ClassName", grp, "tooltip")
+	.add_method("method_name", &ClassName::method_name, "returnInformation", "paramInformation1#paramInformation2#...", "tooltip", "help")
+\endcode
+
+so the above test class registration should be extended to
+\code
+reg.add_class_<Test>("Test", grp, "Test Class for demonstration")
+   .add_constructor()
+   .add_method("add", &Test::add, "a+b", "a#b", "adds two numbers")
+   .add_method("print_name", &Test::print_name, "", "", "prints the name");
+\endcode
+
+notice how we use "" for empty strings like when there's no return value or parameters.
+
+The syntax for the parameter information for N parameters is <tt>paramName1#paramName2#paramName3#...#paramNameN"</tt>, so you have to seperate the parameters with the hash sign #
+ (see below for additional parameter information).
+
+The additional information you specify can be accessed in various ways:
+<ul>
+<li> The <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/">ug4 registry docu</a>. 
+	See <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/CGCPU1.html">here</a> for a nice example.
+<li> Autocompletion and hover information in the <a href="http://gcsc.uni-frankfurt.de/Members/mrupp/ug4-auto-completion/">UGIDE</a>.
+<li> In the VRL
+<li> In the ugshell with e.g. <tt>CG?</tt> or <tt>TypeInfo("CG")</tt> (also in LUA scripts) 
+</ul>
+
+<hr>
+\section secSTHowToSpecifyVRLInformation How to specify VRL information for parameters
+
+VRL uses a so called \em style identifier to choose between several possible type 
+representations. As noted above, the parameters are seperated by the hash sign #.
 Additional \em options allow to specify range conditions, default values etc.
-
 
 <hr>
 \subsection secParamStrings Syntax
