@@ -211,11 +211,11 @@ static void Domain(Registry& reg, string grp)
 	typedef TDomain 							domain_type;
 	typedef typename TDomain::position_type		pos_type;
 
-	reg.add_function("TranslateDomain", &TranslateDomain<domain_type>, grp);
-	reg.add_function("ScaleDomain", &ScaleDomain<domain_type>, grp);
-	reg.add_function("ScaleDomainSqrtWeighting", &ScaleDomainSqrtWeighting<domain_type>, grp);
-	reg.add_function("ScaleDomainWeighting", &ScaleDomainWeighting<domain_type>, grp);
-	reg.add_function("ScaleDomainSquaredWeighting", &ScaleDomainSquaredWeighting<domain_type>, grp);
+	reg.add_function("TranslateDomain", &TranslateDomain<domain_type>, grp, "", "dom#sel#offset");
+	reg.add_function("ScaleDomain", &ScaleDomain<domain_type>, grp, "", "dom#sel#center#scale");
+	reg.add_function("ScaleDomainSqrtWeighting", &ScaleDomainSqrtWeighting<domain_type>, grp, "", "dom#sel#center#scale");
+	reg.add_function("ScaleDomainWeighting", &ScaleDomainWeighting<domain_type>, grp, "", "dom#sel#center#scale");
+	reg.add_function("ScaleDomainSquaredWeighting", &ScaleDomainSquaredWeighting<domain_type>, grp, "", "dom#sel#center#scale");
 
 }
 

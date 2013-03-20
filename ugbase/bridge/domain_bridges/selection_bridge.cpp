@@ -121,8 +121,8 @@ struct Functionality
 static void Common(Registry& reg, string grp)
 {
 //	register domain independent mark methods
-	reg.add_function("SelectDomainElements", &SelectDomainElements, grp);
-	reg.add_function("SelectAssociatedElements", &SelectAssociatedElements, grp);
+	reg.add_function("SelectDomainElements", &SelectDomainElements, grp, "", "sel#bSelect#selectVrts#selectEdges#selectFaces#selectVolumes");
+	reg.add_function("SelectAssociatedElements", &SelectAssociatedElements, grp, "", "sel#bSelect#selectVrts#selectEdges#selectFaces");
 }
 
 /**
@@ -141,7 +141,8 @@ static void Domain(Registry& reg, string grp)
 	typedef typename TDomain::position_type		pos_type;
 
 	reg.add_function("SelectDomainSubset",
-					 &SelectDomainSubset<domain_type>, grp);
+					 &SelectDomainSubset<domain_type>, grp,
+					 "", "sel#dom#subsetIndex#bSelect#selectVrts#selectEdges#selectFaces#selectVolumes");
 }
 
 }; // end Functionality

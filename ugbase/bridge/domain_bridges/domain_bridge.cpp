@@ -274,7 +274,8 @@ static void Domain(Registry& reg, string grp)
 
 //	PartitionDomain
 	reg.add_function("PartitionDomain_Bisection",
-					 &PartitionDomain_Bisection<TDomain>, grp);
+					 &PartitionDomain_Bisection<TDomain>, grp, "",
+					 "dom#partitionMap#firstAxisToCut", "partitions a domain by repeatedly cutting it along the different axis");
 
 	reg.add_function("PartitionDomain_MetisKWay",
 					 static_cast<bool (*)(TDomain&, PartitionMap&, int, size_t, int, int)>(&PartitionDomain_MetisKWay<TDomain>), grp);
@@ -282,14 +283,14 @@ static void Domain(Registry& reg, string grp)
 					 static_cast<bool (*)(TDomain&, PartitionMap&, int, size_t, SmartPtr<PartitionWeighting>)>(&PartitionDomain_MetisKWay<TDomain>), grp);
 
 	reg.add_function("PartitionDomain_LevelBased",
-					 &PartitionDomain_LevelBased<TDomain>, grp);
+					 &PartitionDomain_LevelBased<TDomain>, grp, "", "domain#partitionMap#numPartitions#level");
 
 	reg.add_function("PartitionDistributedDomain_LevelBased",
-					 &PartitionDistributedDomain_LevelBased<TDomain>, grp);
+					 &PartitionDistributedDomain_LevelBased<TDomain>, grp, "", "domain#partitionMap#numPartitions#level");
 
 //	transform the domain
-	reg.add_function("ScaleDomain", &ScaleDomain<TDomain>, grp);
-	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp);
+	reg.add_function("ScaleDomain", &ScaleDomain<TDomain>, grp, "", "dom#sx#sy#sz");
+	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp, "", "dom#tx#ty#tz");
 
 //  calculate area covered by faces
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISubsetHandler&, int, size_t)>(&FaceArea<TDomain>), "Area sum#Domain#Subset handler#Subset index#Grid level", grp);
@@ -331,9 +332,9 @@ static void Common(Registry& reg, string grp)
 		typedef IDomain<> T;
 		reg.add_class_<T>("IDomain", grp)
 			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (T::*)()>(&T::subset_handler))
-			.add_method("grid", static_cast<SmartPtr<MultiGrid> (T::*)()>(&T::grid))
+			.add_method("grid", static_cast<SmartPtr<MultiGrid> (T::*)()>(&T::grid), "grid")
 			.add_method("get_dim", static_cast<int (T::*)() const>(&T::get_dim))
-			.add_method("domain_info", &T::domain_info)
+			.add_method("domain_info", &T::domain_info, "DomainInfo")
 			.set_construct_as_smart_pointer(true);
 	}
 

@@ -689,7 +689,7 @@ struct Functionality
 static void Common(Registry& reg, string grp)
 {
 //	register domain independent mark methods
-	reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp);
+	reg.add_function("MarkForRefinement_All", &MarkForRefinement_All, grp, "", "ref");
 }
 
 /**
@@ -710,29 +710,36 @@ static void Domain(Registry& reg, string grp)
 //	refiner factory-method registration
 //	Note that the refiners themselfs have already been registered in lib_grid_bridge.
 	reg.add_function("GlobalDomainRefiner",
-					 &GlobalDomainRefiner<domain_type>, grp);
+					 &GlobalDomainRefiner<domain_type>, grp, "new GlobalDomainRefiner", "dom");
 	reg.add_function("HangingNodeDomainRefiner",
-					 &HangingNodeDomainRefiner<domain_type>, grp);
+					 &HangingNodeDomainRefiner<domain_type>, grp, "new HangingNodeDomainRefiner", "dom");
 	reg.add_function("GlobalFracturedDomainRefiner",
-					 &CreateGlobalFracturedDomainRefiner<domain_type>, grp);
+					 &CreateGlobalFracturedDomainRefiner<domain_type>, grp, "new GlobalFracturedDomainRefiner", "dom");
 	reg.add_function("AdaptiveRegularDomainRefiner",
-					 &CreateAdaptiveRegularDomainRefiner<domain_type>, grp);
+					 &CreateAdaptiveRegularDomainRefiner<domain_type>, grp, "new AdaptiveRegularDomainRefiner", "dom");
 
 //	register domain dependent mark methods
 	reg.add_function("MarkForRefinement_VerticesInSphere",
-				&MarkForRefinement_VerticesInSphere<domain_type>, grp)
+				&MarkForRefinement_VerticesInSphere<domain_type>, grp,
+				"", "dom#refiner#center#radius")
 		.add_function("MarkForRefinement_EdgesInSphere",
-				&MarkForRefinement_ElementsInSphere<domain_type, EdgeBase>, grp)
+				&MarkForRefinement_ElementsInSphere<domain_type, EdgeBase>, grp,
+				"", "dom#refiner#center#radius")
 		.add_function("MarkForRefinement_FacesInSphere",
-				&MarkForRefinement_ElementsInSphere<domain_type, Face>, grp)
+				&MarkForRefinement_ElementsInSphere<domain_type, Face>, grp,
+				"", "dom#refiner#center#radius")
 		.add_function("MarkForRefinement_VolumesInSphere",
-				&MarkForRefinement_ElementsInSphere<domain_type, Volume>, grp)
+				&MarkForRefinement_ElementsInSphere<domain_type, Volume>, grp,
+				"", "dom#refiner#center#radius")
 		.add_function("MarkForRefinement_VerticesInCube",
-				&MarkForRefinement_VerticesInCube<domain_type>, grp)
+				&MarkForRefinement_VerticesInCube<domain_type>, grp,
+				"", "dom#refiner#min#max")
 		.add_function("MarkForRefinement_AnisotropicElements",
-				&MarkForRefinement_AnisotropicElements<domain_type>, grp)
+				&MarkForRefinement_AnisotropicElements<domain_type>, grp,
+				"", "dom#refiner#sizeRatio")
 		.add_function("MarkForRefinement_AnisotropicElements2",
-				&MarkForRefinement_AnisotropicElements2<domain_type>, grp);
+				&MarkForRefinement_AnisotropicElements2<domain_type>, grp,
+				"", "dom#refiner#sizeRatio");
 }
 
 }; // end Functionality

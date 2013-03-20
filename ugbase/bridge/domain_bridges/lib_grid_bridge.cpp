@@ -326,10 +326,10 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_method("num_pyramids", &Grid::num<Pyramid>)
 			.add_method("num_prisms", &Grid::num<Prism>)
 			.add_method("num_hexahedrons", &Grid::num<Hexahedron>)
-			.add_method("reserve_vertices", &Grid::reserve<VertexBase>)
-			.add_method("reserve_edges", &Grid::reserve<EdgeBase>)
-			.add_method("reserve_faces", &Grid::reserve<Face>)
-			.add_method("reserve_volumes", &Grid::reserve<Volume>)
+			.add_method("reserve_vertices", &Grid::reserve<VertexBase>, "", "num")
+			.add_method("reserve_edges", &Grid::reserve<EdgeBase>, "", "num")
+			.add_method("reserve_faces", &Grid::reserve<Face>, "", "num")
+			.add_method("reserve_volumes", &Grid::reserve<Volume>, "", "num")
 			.set_construct_as_smart_pointer(true);
 
 	//	MultiGrid
@@ -357,22 +357,22 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	//  ISubsetHandler
 		reg.add_class_<ISubsetHandler>("ISubsetHandler", grp)
 			.add_method("num_subsets", &ISubsetHandler::num_subsets)
-			.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
-			.add_method("set_subset_name", &ISubsetHandler::set_subset_name)
+			.add_method("get_subset_name", &ISubsetHandler::get_subset_name, "subset name", "subsetIndex")
+			.add_method("set_subset_name", &ISubsetHandler::set_subset_name, "", "name#subsetIndex")
 			.add_method("get_subset_index", static_cast<int (ISubsetHandler::*)(const char*) const>(
-											&ISubsetHandler::get_subset_index));
+											&ISubsetHandler::get_subset_index), "subset index", "subsetName");
 		
 	//	SubsetHandler
 		reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp)
 			.add_constructor()
-			.add_method("assign_grid", static_cast<void (SubsetHandler::*)(Grid&)>(&SubsetHandler::assign_grid))
+			.add_method("assign_grid", static_cast<void (SubsetHandler::*)(Grid&)>(&SubsetHandler::assign_grid), "", "g")
 			.set_construct_as_smart_pointer(true);
 
 
 	//	MGSubsetHandler
 		reg.add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler", grp)
 			.add_constructor()
-			.add_method("assign_grid", &MGSubsetHandler::assign_grid)
+			.add_method("assign_grid", &MGSubsetHandler::assign_grid, "", "mg")
 			.set_construct_as_smart_pointer(true);
 
 	//	SurfaceView
@@ -405,31 +405,32 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 		reg.add_class_<IRefiner>("IRefiner", grp)
 			.add_method("refine", &IRefiner::refine)
 			.add_method("coarsen", &IRefiner::coarsen)
-			.add_method("save_marks_to_file", &IRefiner::save_marks_to_file)
-			.add_method("set_adjusted_marks_debug_filename", &IRefiner::set_adjusted_marks_debug_filename)
+			.add_method("save_marks_to_file", &IRefiner::save_marks_to_file, "", "filename")
+			.add_method("set_adjusted_marks_debug_filename", &IRefiner::set_adjusted_marks_debug_filename, "", "filename")
 			.add_method("clear_marks", &IRefiner::clear_marks);
 
 	//	HangingNodeRefiner
 		reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp)
 			.add_constructor()
-			.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid)
+			.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid, "", "g")
 			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_<HangingNodeRefiner_MultiGrid, IRefiner>("HangingNodeRefiner_MultiGrid", grp)
 			.add_constructor()
-			.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid)
+			.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid, "", "mg")
 			.set_construct_as_smart_pointer(true);
 
 	//	AdaptiveRegularMGRefiner
 		reg.add_class_<AdaptiveRegularRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>("AdaptiveRegularRefiner_MultiGrid", grp)
 			.add_constructor()
-			.add_method("assign_grid", &AdaptiveRegularRefiner_MultiGrid::assign_grid)
+			.add_method("assign_grid", &AdaptiveRegularRefiner_MultiGrid::assign_grid, "", "mg")
 			.set_construct_as_smart_pointer(true);
 
 	//	GlobalMultiGridRefiner
 		reg.add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp)
 			.add_constructor()
-			.add_method("assign_grid", static_cast<void (GlobalMultiGridRefiner::*)(MultiGrid&)>(&GlobalMultiGridRefiner::assign_grid))
+			.add_method("assign_grid", static_cast<void (GlobalMultiGridRefiner::*)(MultiGrid&)>(&GlobalMultiGridRefiner::assign_grid),
+					"", "mg")
 			.set_construct_as_smart_pointer(true);
 	
 	//	FracturedMediaRefiner
@@ -444,10 +445,11 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			typedef GlobalFracturedMediaRefiner cls;
 			reg.add_class_<cls, IRefiner>("GlobalFracturedMediumRefiner", grp)
 				.add_constructor()
-				.add_method("assign_grid", static_cast<void (cls::*)(MultiGrid*)>(&cls::assign_grid))
-				.add_method("set_subset_handler", static_cast<void (cls::*)(ISubsetHandler*)>(&cls::set_subset_handler))
-				.add_method("mark_as_fracture", &cls::mark_as_fracture)
-				.add_method("is_fracture", &cls::is_fracture)
+				.add_method("assign_grid", static_cast<void (cls::*)(MultiGrid*)>(&cls::assign_grid), "", "g")
+				.add_method("set_subset_handler", static_cast<void (cls::*)(ISubsetHandler*)>(&cls::set_subset_handler),
+						"", "sh")
+				.add_method("mark_as_fracture", &cls::mark_as_fracture, "", "subInd#bIsFracture")
+				.add_method("is_fracture", &cls::is_fracture, "", "subInd")
 				.set_construct_as_smart_pointer(true);
 		}
 
@@ -470,11 +472,11 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	// partition weighting in metis partitioning
 	reg.add_class_<PartitionWeighting>("PartitionWeighting", grp)
 			.add_constructor()
-			.add_method("set_default_weights", &PartitionWeighting::set_default_weights)
+			.add_method("set_default_weights", &PartitionWeighting::set_default_weights, "", "hWeight#vWeight")
 			.set_construct_as_smart_pointer(true);
 	reg.add_class_<InterSubsetPartitionWeighting, PartitionWeighting>("InterSubsetPartitionWeighting", grp)
 			.add_constructor()
-			.add_method("set_inter_subset_weight", &InterSubsetPartitionWeighting::set_inter_subset_weight)
+			.add_method("set_inter_subset_weight", &InterSubsetPartitionWeighting::set_inter_subset_weight, "", "si1#si2#weight")
 			.set_construct_as_smart_pointer(true);
 
 	//	GridObject
@@ -491,34 +493,43 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	//	UGXFileInfo
 		reg.add_class_<UGXFileInfo>("UGXFileInfo", grp)
 			.add_constructor()
-			.add_method("parse_file", &UGXFileInfo::parse_file)
+			.add_method("parse_file", &UGXFileInfo::parse_file, "", "filename")
 			.add_method("num_grids", &UGXFileInfo::num_grids)
 			.add_method("num_subset_handlers", &UGXFileInfo::num_subset_handlers)
 			.add_method("num_subsets", &UGXFileInfo::num_subsets)
-			.add_method("grid_name", &UGXFileInfo::grid_name)
-			.add_method("subset_handler_name", &UGXFileInfo::subset_handler_name)
-			.add_method("subset_name", &UGXFileInfo::subset_name)
-			.add_method("grid_world_dimension", &UGXFileInfo::grid_world_dimension)
+			.add_method("grid_name", &UGXFileInfo::grid_name, "grid name", "gridInd")
+			.add_method("subset_handler_name", &UGXFileInfo::subset_handler_name, "", "gridInd#shInd")
+			.add_method("subset_name", &UGXFileInfo::subset_name, "", "gridInd#shInd#subsetInd")
+			.add_method("grid_world_dimension", &UGXFileInfo::grid_world_dimension, "", "gridInd")
 			.set_construct_as_smart_pointer(true);
 
 	//  GridObject functions
-		reg.add_function("LoadGrid", static_cast<bool (*)(Grid&, ISubsetHandler&, const char*)>(&LoadGrid), grp)
-			.add_function("LoadGrid", static_cast<bool (*)(Grid&, const char*)>(&LoadGrid), grp)
-			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const ISubsetHandler&, const char*)>(&SaveGrid), grp)
-			.add_function("SaveGrid", static_cast<bool (*)(Grid&, ISubsetHandler&, const char*)>(&SaveGrid), grp)
-			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const char*)>(&SaveGrid), grp)
-			.add_function("LoadGridObject", &LoadGridObject, grp)
-			.add_function("SaveGridObject", &SaveGridObject, grp)
-			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp)
+		reg.add_function("LoadGrid", static_cast<bool (*)(Grid&, ISubsetHandler&, const char*)>(&LoadGrid), grp,
+				"", "grid#sh#filename")
+			.add_function("LoadGrid", static_cast<bool (*)(Grid&, const char*)>(&LoadGrid), grp,
+					"", "grid#filename")
+			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const ISubsetHandler&, const char*)>(&SaveGrid), grp,
+					"", "grid#sh#filename")
+			.add_function("SaveGrid", static_cast<bool (*)(Grid&, ISubsetHandler&, const char*)>(&SaveGrid), grp,
+					"", "grid#sh#filename")
+			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const char*)>(&SaveGrid), grp,
+					"", "grid#filename")
+			.add_function("LoadGridObject", &LoadGridObject, grp,
+					"", "go#filename")
+			.add_function("SaveGridObject", &SaveGridObject, grp,
+					"", "go#filename")
+			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp,
+					"", "mg#filename")
 			.add_function("SaveGridHierarchyTransformed",
 						  static_cast<bool (*)(MultiGrid&, ISubsetHandler&, const char*, number)>(
 								  &SaveGridHierarchyTransformed),
-						  grp)
+						  grp, "", "mg#sh#filename#offset")
 			.add_function("SaveGridHierarchyTransformed",
 						  static_cast<bool (*)(MultiGrid&, const char*, number)>(
 								  &SaveGridHierarchyTransformed),
-						  grp)
-			.add_function("SaveParallelGridLayout", &SaveParallelGridLayout)
+						  grp, "", "mg#filename#offset")
+			.add_function("SaveParallelGridLayout", &SaveParallelGridLayout,
+					grp, "", "mg#filename#offset")
 			.add_function("SaveSurfaceViewTransformed", &SaveSurfaceViewTransformed)
 			.add_function("CreateGridObject", &CreateGridObject, grp)
 			.add_function("PrintGridElementNumbers", static_cast<void (*)(MultiGrid&)>(&PrintGridElementNumbers), grp)
