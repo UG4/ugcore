@@ -212,6 +212,9 @@ class GridFunction
 	/// returns the name of the discrete function nr_fct
 		std::string name(size_t fct) const {return m_spDD->name(fct);}
 
+	///	returns subset id by name
+		size_t subset_id_by_name(const char* name) const {return this->subset_grp_by_name(name)[0];}
+
 	///	returns subset group by name
 		SubsetGroup subset_grp_by_name(const char* names) const {return m_spDD->subset_grp_by_name(names);}
 

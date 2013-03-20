@@ -208,6 +208,53 @@ void SaveVectorCSV(TGridFunction& b, const char* filename) {
 	WriteVectorCSV(filename, b, b);
 }
 
+/**
+ * \brief Calculates the average of the pointwise difference of two functions on given subset
+ * \details Iterates over all vertices of given subset, calculates difference
+ *   of \c fct1 and \c fct2 and computes arithmetic mean of the differences at
+ *   all vertices (grid points).
+ * \note \c fct1 and \c fct2 must both be defined on \c subset !
+ * \param[in] spGridFct GridFunction holding functions \c fct1 and \c fct2 defined on subset \subset
+ * \param[in] subset name of the subset to compare on
+ * \param[in] fct1 name of the first function
+ * \param[in] fct2 name of the second function
+ * \return arithmetic average of the pointwise differences of \c fct1 and \c fct2 on
+ *   all vertices of \c subset
+ */
+template<typename TDomain, typename TAlgebra>
+typename TAlgebra::vector_type::value_type AverageFunctionDifference(
+		SmartPtr< GridFunction<TDomain, TAlgebra> > spGridFct,
+		std::string subset, std::string fct1, std::string fct2 )
+{
+	// get subset index
+	size_t subSetID = spGridFct->subset_id_by_name( subset.c_str() );
+
+	// get function indices
+	size_t fct1ID = spGridFct->fct_id_by_name( fct1.c_str() );
+	size_t fct2ID = spGridFct->fct_id_by_name( fct2.c_str() );
+
+	// create space for sum of difference
+	typename TAlgebra::vector_type::value_type sum = 0.0;
+	size_t numElements = 0;
+
+	// loop over all vertices in given subset and compare values of fct1 and fct2
+	typedef typename GridFunction<TDomain, TAlgebra>::template traits<VertexBase>::const_iterator gridFctIterator;
+	for( gridFctIterator iter = spGridFct->template begin<VertexBase>((int)subSetID); 
+	       iter != spGridFct->template end<VertexBase>((int)subSetID); ++iter ) {
+		// get multi_indices for the two functions on given subset
+		std::vector< MultiIndex<2> > indFct1, indFct2;
+		spGridFct->template multi_indices<VertexBase>( *iter, fct1ID, indFct1 );
+		spGridFct->template multi_indices<VertexBase>( *iter, fct2ID, indFct2 );
+
+		// calculate the difference between the two functions at this grid point
+		sum += DoFRef( *spGridFct, indFct1[0] ) - DoFRef( *spGridFct, indFct2[0] );
+		numElements++;
+	}
+	
+	// return overal arithmetic average of differences
+	return sum / numElements;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Grid Function Debug Writer
