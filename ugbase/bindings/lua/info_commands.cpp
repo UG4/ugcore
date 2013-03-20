@@ -249,10 +249,34 @@ void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thef
  */
 int UGTypeInfo(const char *p)
 {
-	bridge::Registry &reg = GetUGRegistry();
+	UG_LOG("\n");
+	const bridge::Registry &reg = GetUGRegistry();
 
 	// check if it is a class
-	const IExportedClass *c = FindClass(reg, p);
+	const ClassGroupDesc *cg = reg.get_class_group(p);
+	const IExportedClass *c=NULL;
+	if(cg != NULL)
+	{
+		UG_LOG("ClassGroup " << p << " consisting of classes\n");
+		for(size_t i=0; i<cg->num_classes(); i++)
+		{
+			if(i != 0) UG_LOG(", ");
+			UG_LOG(cg->get_class(i)->name());
+		}
+		c = cg->get_default_class();
+		if(c)
+		{	UG_LOG("\nDefault class is " << c->name() << "\n");	}
+		else
+		{
+			UG_LOG("\nDefault class (not yet?) set, using first class in list.\n");
+			if(cg->num_classes() > 0)
+				c = cg->get_class(0);
+		}
+		UG_LOG("\n\n");
+	}
+	else
+		c = reg.get_class(p);
+
 	if(c)
 	{
 		const std::vector<const char*> *names = c->class_names();
@@ -261,8 +285,10 @@ int UGTypeInfo(const char *p)
 		UG_LOG(endl);
 		PrintClassHierarchy(reg, c->name().c_str());
 		ClassInstantiations(c->name().c_str());
+		UG_LOG("\n");
 		return true;
 	}
+
 
 	lua_State* L = script::GetDefaultLuaState();
 	LUA_STACK_CHECK(L, 0);
@@ -348,7 +374,7 @@ bool ClassInstantiations(const char *classname)
 {
 	bridge::Registry &reg = GetUGRegistry();
 	// search for the class
-	const IExportedClass *c = FindClass(reg, classname);
+	const IExportedClass *c = reg.get_class(classname);
 	if(c == NULL)
 	{
 		UG_LOG("Class " << classname << " not found\n");
@@ -410,7 +436,7 @@ bool ClassUsage(const char *classname)
 	UG_LOG("\n");
 
 	// find class
-	const IExportedClass *c = FindClass(reg, classname);
+	const IExportedClass *c = reg.get_class(classname);
 	if(c == NULL)
 	{
 		UG_LOG("Class name " << classname << " not found\n");
@@ -552,7 +578,7 @@ void GetLuaGlobals(std::vector<std::string>  *functions,
 		const char *luastr = lua_tostring(L, -2);
 		if(luastr && strcmp(luastr, "_G") != 0 && strcmp(luastr, "package") != 0)
 		{
-			if(FindClass(reg, luastr)==false)
+			if(reg.get_class(luastr)==false)
 			{
 				if(FindFunction(reg, luastr))
 				{
@@ -856,26 +882,15 @@ bool ScriptPrintClassHierarchy(const char *classname)
 	return PrintClassHierarchy(GetUGRegistry(), classname);
 }
 
-const ClassGroupDesc* FindClassGroup(bridge::Registry &reg, const string &name)
-{
-	const ClassGroupDesc* p=NULL;
-	for(size_t i=0; i<reg.num_class_groups(); i++)
-	{
-		p = reg.get_class_group(i);
-		if(p->name().compare(name) == 0)
-			return p;
-	}
-	return NULL;
-}
 	
 bool ScriptHasClass(const char *classname)
 {
-	return FindClass(GetUGRegistry(), classname) != NULL;
+	return GetUGRegistry().get_class(classname) != NULL;
 }
 
 bool ScriptHasClassGroup(const char *classname)
 {
-	return FindClassGroup(GetUGRegistry(), classname) != NULL;
+	return GetUGRegistry().get_class_group(classname) != NULL;
 }
 
 bool AssertPluginLoaded(const char *name)

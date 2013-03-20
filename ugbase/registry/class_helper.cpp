@@ -5,7 +5,7 @@
  *
  * \date 20.10.2010
  *
- * ClassHierarchy implementation, GetClassHierarchy, FindClass
+ * ClassHierarchy implementation, GetClassHierarchy
  *
  * Goethe-Center for Scientific Computing 2009-2010.
  */
@@ -133,9 +133,9 @@ void PrintClassSubHierarchy(ClassHierarchy &c, int level)
 	}
 }
 
-bool PrintClassHierarchy(Registry &reg, const char *classname)
+bool PrintClassHierarchy(const Registry &reg, const char *classname)
 {
-	const IExportedClass *c = FindClass(reg, classname);
+	const IExportedClass *c = reg.get_class(classname);
 	if(c == NULL)
 	{
 		UG_LOG("Class name " << classname << " not found\n");
@@ -170,22 +170,6 @@ bool PrintClassHierarchy(Registry &reg, const char *classname)
 	return true;
 
 }
-
-
-
-
-const IExportedClass *FindClass(Registry &reg, const char* classname)
-{
-	for(size_t j=0; j<reg.num_classes(); ++j)
-		if(strcmp(classname, reg.get_class(j).name().c_str()) == 0)
-		{
-			return &reg.get_class(j);
-			break;
-		}
-	return NULL;
-}
-
-
 
 
 
@@ -316,7 +300,7 @@ void PrintConstructorInfo(const ExportedConstructor &constr,
 }
 
 
-const ExportedFunction *FindFunction(Registry &reg, const char *functionname)
+const ExportedFunction *FindFunction(const Registry &reg, const char *functionname)
 {
 	for(size_t i=0; i<reg.num_functions(); i++)
 	{
@@ -330,7 +314,7 @@ const ExportedFunction *FindFunction(Registry &reg, const char *functionname)
  *
  * searches for a function named functionname in the registry and prints it
  */
-bool PrintFunctionInfo(Registry &reg, const char *functionname)
+bool PrintFunctionInfo(const Registry &reg, const char *functionname)
 {
 	const ExportedFunction *f = FindFunction(reg, functionname);
 	if(f)
@@ -375,10 +359,10 @@ void PrintClassInfo(const IExportedClass &c)
  *
  * Searches the classname in the Registry and prints info of the class
  */
-bool PrintClassInfo(Registry &reg, const char *classname)
+bool PrintClassInfo(const Registry &reg, const char *classname)
 {
 	// search registry for that class
-	const IExportedClass *c = FindClass(reg, classname);
+	const IExportedClass *c = reg.get_class(classname);
 	if(c)
 	{
 		PrintClassInfo(*c);
@@ -415,7 +399,7 @@ bool IsClassInParameters(const ParameterInfo &par, const char *classname)
  * \param classname 	the class (and only this class) to print usage in functions/member functions of.
  * \param OutParameters
  */
-bool ClassUsageExact(Registry &reg, const char *classname, bool OutParameters)
+bool ClassUsageExact(const Registry &reg, const char *classname, bool OutParameters)
 {
 	// check functions
 	for(size_t i=0; i<reg.num_functions(); i++)

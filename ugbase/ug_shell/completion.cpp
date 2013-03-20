@@ -140,7 +140,7 @@ static size_t GetMemberFunctionCompletitions(char *buf, int len, std::vector<str
 	// now we have the class names of the lua object
 	for(size_t i=0; i < names->size(); ++i)
 	{
-		const IExportedClass *c = FindClass(reg, (*names)[i]);
+		const IExportedClass *c = reg.get_class((*names)[i]);
 		if(c == NULL) continue;
 
 		// classname found, now add matching completions
@@ -258,7 +258,7 @@ static bool GetMemberFunctionInfo(char *buf, int len)
 	// now we have the class names of the lua object
 	for(size_t i=0; i < names->size(); ++i)
 	{
-		const IExportedClass *c = FindClass(reg, (*names)[i]);
+		const IExportedClass *c = reg.get_class((*names)[i]);
 		if(c == NULL) continue;
 
 		// classname found, now add matching completions
@@ -371,6 +371,12 @@ static size_t GetClassesCompletitions(char *buf, int len, std::vector<string> &m
 	{
 		if(strncmp(p, reg.get_class(j).name().c_str(), sniplen) == 0)
 			matches.push_back(reg.get_class(j).name());
+	}
+
+	for(size_t j=0; j<reg.num_class_groups(); ++j)
+	{
+		if(strncmp(p, reg.get_class_group(j)->name().c_str(), sniplen) == 0)
+			matches.push_back(reg.get_class_group(j)->name());
 	}
 
 	if(iPrintCompletionList == 2 && matches.size() == 1 && sniplen == matches[0].size())
