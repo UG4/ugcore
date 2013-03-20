@@ -1,0 +1,245 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      9358,        236]
+NotebookOptionsPosition[      9017,        220]
+NotebookOutlinePosition[      9374,        236]
+CellTagsIndexPosition[      9331,        233]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"L", "[", 
+    RowBox[{"i_", ",", " ", "n_", ",", " ", "x_"}], "]"}], " ", ":=", " ", 
+   RowBox[{
+    RowBox[{"Product", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"x", "-", 
+         RowBox[{"j", "/", "n"}]}], ")"}], "/", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"i", "/", "n"}], " ", "-", " ", 
+         RowBox[{"j", "/", "n"}]}], ")"}]}], ",", " ", 
+      RowBox[{"{", 
+       RowBox[{"j", ",", " ", "0", ",", " ", 
+        RowBox[{"i", "-", "1"}]}], "}"}]}], "]"}], "*", "\[IndentingNewLine]",
+     "\t\t            ", 
+    RowBox[{"Product", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"x", "-", 
+         RowBox[{"j", "/", "n"}]}], ")"}], "/", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"i", "/", "n"}], " ", "-", " ", 
+         RowBox[{"j", "/", "n"}]}], ")"}]}], ",", " ", 
+      RowBox[{"{", 
+       RowBox[{"j", ",", " ", 
+        RowBox[{"i", "+", "1"}], ",", " ", "n"}], "}"}]}], "]"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{"W", "[", 
+     RowBox[{"i_", ",", "n_", ",", "x_"}], "]"}], " ", ":=", " ", 
+    RowBox[{"Integrate", "[", 
+     RowBox[{
+      RowBox[{"L", "[", 
+       RowBox[{"i", ",", "n", ",", "x"}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", "0", ",", "1"}], "}"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"maxOrder", " ", "=", " ", "10"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"prec", " ", "=", " ", "40"}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"str", " ", "=", " ", 
+   RowBox[{"OpenWrite", "[", "\"\<~/Desktop/newton_cotes.cpp\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"WriteString", "[", 
+    RowBox[{
+    "str", ",", " ", "\[IndentingNewLine]", 
+     "\"\<#include \\\"newton-cotes.h\\\"\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<#include \\\"../quadrature.h\\\"\\n\>\"", 
+     ",", "\[IndentingNewLine]", 
+     "\"\<#include \\\"common/util/provider.h\\\"\\n\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<namespace ug\\n{\\n\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<//constructor\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<NewtonCotes::NewtonCotes(int order)\\n\>\"", 
+     ",", "\[IndentingNewLine]", "\"\<{\\n\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<\\tif (order == 0) order = 1;\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<\\tm_order = order;\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<\\tm_numPoints = order+1;\\n\>\"", ",", 
+     "\[IndentingNewLine]", 
+     "\"\<\\tposition_type* pvPoint= new position_type[m_numPoints];\\n\>\"", 
+     ",", "\[IndentingNewLine]", 
+     "\"\<\\tweight_type* pvWeight= new weight_type[m_numPoints];\\n\>\"", 
+     ",", "\[IndentingNewLine]", "\"\<\\tm_pvPoint = pvPoint;\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<\\tm_pvWeight = pvWeight;\\n\\n\>\""}], 
+    "\[IndentingNewLine]", "]"}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"WriteString", "[", 
+   RowBox[{"str", ",", " ", "\"\<\\tswitch(m_numPoints)\\n\>\""}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"WriteString", "[", 
+   RowBox[{"str", ",", " ", "\"\<\\t{\\n\\t\\tcase 0:\\n\>\""}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"WriteString", "[", 
+   RowBox[{"str", ",", " ", "\"\<\\t\\tcase 1:\\n\>\""}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"For", "[", 
+    RowBox[{
+     RowBox[{"n", " ", "=", " ", "1"}], ",", " ", 
+     RowBox[{"n", " ", "<=", " ", "maxOrder"}], ",", " ", 
+     RowBox[{"n", "++"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"WriteString", "[", 
+       RowBox[{"str", ",", " ", "\"\<\\t\\tcase \>\"", ",", " ", 
+        RowBox[{"n", "+", "1"}], ",", " ", "\"\<:\\n\>\""}], "]"}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"For", "[", 
+       RowBox[{
+        RowBox[{"i", " ", "=", " ", "0"}], ",", " ", 
+        RowBox[{"i", " ", "<=", " ", "n"}], ",", " ", 
+        RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"WriteString", "[", 
+          RowBox[{
+          "str", ",", "\"\<\\t\\t\\tpvPoint[\>\"", ",", "i", ",", 
+           "\"\<][0] = \>\"", ",", " ", 
+           RowBox[{"CForm", "[", 
+            RowBox[{"N", "[", 
+             RowBox[{
+              RowBox[{"i", "/", "n"}], ",", "prec"}], "]"}], "]"}], ",", " ", 
+           "\"\<;\\n\>\""}], 
+          StyleBox[" ", "Subsubsection"], 
+          StyleBox["]", "Subsubsection"]}], 
+         StyleBox[";", "Subsubsection"]}]}], 
+       StyleBox["\[IndentingNewLine]", "Subsubsection"], 
+       StyleBox["\[IndentingNewLine]", "Subsubsection"], 
+       StyleBox["]", "Subsubsection"]}], 
+      StyleBox[";", "Subsubsection"], 
+      StyleBox["\[IndentingNewLine]", "Subsubsection"], 
+      StyleBox["\[IndentingNewLine]", "Subsubsection"], 
+      RowBox[{"WriteString", "[", 
+       RowBox[{"str", ",", " ", "\"\<\\n\>\""}], "]"}], ";", 
+      StyleBox["\[IndentingNewLine]", "Subsubsection"], 
+      RowBox[{"For", "[", 
+       RowBox[{
+        RowBox[{"i", " ", "=", " ", "0"}], ",", " ", 
+        RowBox[{"i", " ", "<=", " ", "n"}], ",", " ", 
+        RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
+        RowBox[{
+         RowBox[{"WriteString", "[", 
+          RowBox[{
+          "str", ",", "\"\<\\t\\t\\tpvWeight[\>\"", ",", "i", ",", 
+           "\"\<] = \>\"", ",", " ", 
+           RowBox[{"CForm", "[", 
+            RowBox[{"N", "[", 
+             RowBox[{
+              RowBox[{"W", "[", 
+               RowBox[{"i", ",", "n", ",", "x"}], "]"}], ",", "prec"}], "]"}],
+             "]"}], ",", " ", "\"\<;\\n\>\""}], 
+          StyleBox[" ", "Subsubsection"], 
+          StyleBox["]", "Subsubsection"]}], 
+         StyleBox[";", "Subsubsection"]}]}], 
+       StyleBox["\[IndentingNewLine]", "Subsubsection"], 
+       StyleBox[" ", "Subsubsection"], 
+       StyleBox["]", "Subsubsection"]}], 
+      StyleBox[";", "Subsubsection"], 
+      StyleBox["\[IndentingNewLine]", "Subsubsection"], 
+      RowBox[{"WriteString", "[", 
+       RowBox[{"str", ",", " ", "\"\<\\t\\tbreak;\\n\\n\>\""}], "]"}], 
+      ";"}]}], "\[IndentingNewLine]", "\[IndentingNewLine]", "]"}], " ", 
+   ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"WriteString", "[", 
+   RowBox[{
+   "str", ",", " ", "\"\<\\t\\tdefault:\\n\>\"", ",", "\n", "      ", 
+    "\"\<\\t\\t\\tUG_THROW\>\"", ",", "\"\<(\>\"", ",", "\"\<\\\"\>\"", ",", 
+    "\"\<NewtonCotes: Rule for order\>\"", ",", "\"\< \\\" <<\>\"", ",", " ", 
+    "\"\< order \>\"", ",", "\"\< << \\\"\>\"", ",", 
+    "\"\< not supported.\\\");\>\"", ",", "\"\<\\n\\t}\>\"", ",", 
+    "\"\<\\n}\\n\\n\>\""}], "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"WriteString", "[", 
+    RowBox[{
+    "str", ",", " ", 
+     "\"\<\\n//destructor\nNewtonCotes::~NewtonCotes()\\n{\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvPoint;\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvWeight;\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\t", "\"\<};\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<}\>\""}], "]"}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Close", "[", "str", "]"}], ";"}]}], "Input",
+ CellChangeTimes->{{3.572694994526762*^9, 3.572694995077527*^9}, {
+   3.572695035358219*^9, 3.572695098475851*^9}, {3.57269520932066*^9, 
+   3.572695225984209*^9}, 3.572695278478775*^9, {3.572695324956564*^9, 
+   3.572695418392474*^9}, {3.572695454204422*^9, 3.572695473607636*^9}, {
+   3.572695604589252*^9, 3.57269560502917*^9}, {3.5726963608979473`*^9, 
+   3.5726963767135878`*^9}, {3.572697035601685*^9, 3.572697037182*^9}, {
+   3.5727785363330727`*^9, 3.572778541571824*^9}, {3.5727786403119593`*^9, 
+   3.572778688431723*^9}, {3.572778762236725*^9, 3.572778798806231*^9}, {
+   3.572778846444202*^9, 3.572778851450384*^9}, {3.572778952609214*^9, 
+   3.572778966502922*^9}, {3.572779093229661*^9, 3.572779147594551*^9}, {
+   3.57277931254393*^9, 3.572779332293589*^9}, {3.572779464939969*^9, 
+   3.572779472605611*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.572778735782218*^9, 3.572778758454365*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.572778756102624*^9, 3.572778756111424*^9}}]
+},
+WindowSize->{740, 867},
+WindowMargins->{{Automatic, 642}, {Automatic, 95}},
+FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 6, \
+2010)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 8266, 192, 823, "Input"],
+Cell[8826, 214, 92, 1, 27, "Input"],
+Cell[8921, 217, 92, 1, 27, InheritFromParent]
+}
+]
+*)
+
+(* End of internal cache information *)

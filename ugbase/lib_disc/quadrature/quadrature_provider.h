@@ -30,8 +30,9 @@ class QuadratureRuleProvider
 	///	types of quadratures
 		enum QuadratureType {
 			BEST = 0,
-			GAUSS = 1,
-			NEWTON_COTES = 2,
+			GAUSS,
+			GAUSS_LEGENDRE,
+			NEWTON_COTES,
 			NUM_QUADRATURE_TYPES // always last
 		};
 
@@ -72,6 +73,10 @@ class QuadratureRuleProvider
                                 QuadratureType type);
 
 		static const QuadratureRule<TDim>* create_gauss_rule(ReferenceObjectID roid, size_t order);
+		static const QuadratureRule<TDim>* create_newton_cotes_rule(ReferenceObjectID roid, size_t order);
+		static const QuadratureRule<TDim>* create_gauss_legendre_rule(ReferenceObjectID roid, size_t order);
+		static const QuadratureRule<TDim>* create_gauss_jacobi10_rule(size_t order);
+		static const QuadratureRule<TDim>* create_gauss_jacobi20_rule(size_t order);
 
 	public:
 	///	gets quadrature rule of requested order

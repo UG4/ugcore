@@ -39,6 +39,11 @@ set(srcDiscretization	domain_util.cpp
 						
 						quadrature/quad_test.cpp
 						quadrature/quadrature_provider.cpp
+						quadrature/gauss_legendre/gauss_legendre.cpp
+						quadrature/newton_cotes/newton_cotes.cpp
+						quadrature/gauss_jacobi/gauss_jacobi20.cpp
+						quadrature/gauss_jacobi/gauss_jacobi10.cpp
+						quadrature/gauss_tensor_prod/gauss_tensor_prod.cpp
 						quadrature/gauss/gauss_quad_edge.cpp
 						quadrature/gauss/gauss_quad_triangle.cpp
 						quadrature/gauss/gauss_quad_quadrilateral.cpp
@@ -46,6 +51,7 @@ set(srcDiscretization	domain_util.cpp
 						quadrature/gauss/gauss_quad_prism.cpp
 						quadrature/gauss/gauss_quad_pyramid.cpp
 						quadrature/gauss/gauss_quad_hexahedron.cpp
+						quadrature/newton_cotes/newton_cotes.cpp
 
 						local_finite_element/local_finite_element_id.cpp
 						local_finite_element/local_shape_function_set.cpp

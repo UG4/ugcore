@@ -9,6 +9,11 @@
 #include "quadrature_provider.h"
 #include "gauss/gauss_quad.h"
 #include "gauss/gauss_quad_vertex.h"
+#include "newton_cotes/newton_cotes.h"
+#include "gauss_legendre/gauss_legendre.h"
+#include "gauss_jacobi/gauss_jacobi10.h"
+#include "gauss_jacobi/gauss_jacobi20.h"
+#include "gauss_tensor_prod/gauss_tensor_prod.h"
 #include "lib_disc/reference_element/reference_element.h"
 #include <algorithm>
 #include <locale>
@@ -112,6 +117,117 @@ QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID roid,
 	return q;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+template <>
+const QuadratureRule<1>*
+QuadratureRuleProvider<1>::create_gauss_legendre_rule(ReferenceObjectID roid, size_t order)
+{
+	QuadratureRule<1>* q = NULL;
+	try{
+		q = new GaussLegendre(order);
+	}catch(...){return NULL;}
+	return q;
+}
+
+template <>
+const QuadratureRule<2>*
+QuadratureRuleProvider<2>::create_gauss_legendre_rule(ReferenceObjectID roid,
+                                                size_t order)
+{
+	QuadratureRule<2>* q = NULL;
+	try{
+	switch(roid){
+		case ROID_QUADRILATERAL: q = new GaussQuadratureQuadrilateral(order); break;
+		case ROID_TRIANGLE: q = new GaussQuadratureTriangle(order); break;
+		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
+	}
+	}catch(...){return NULL;}
+	return q;
+}
+
+template <>
+const QuadratureRule<3>*
+QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,
+                                                size_t order)
+{
+	QuadratureRule<3>* q = NULL;
+	try{
+	switch(roid){
+		case ROID_TETRAHEDRON: q = new GaussQuadratureTetrahedron(order); break;
+		case ROID_PRISM: q = new GaussQuadraturePrism(order); break;
+		case ROID_HEXAHEDRON: q = new GaussQuadratureHexahedron(order); break;
+		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
+	}
+	}catch(...){return NULL;}
+	return q;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <>
+const QuadratureRule<1>*
+QuadratureRuleProvider<1>::create_newton_cotes_rule(ReferenceObjectID roid, size_t order)
+{
+	QuadratureRule<1>* q = NULL;
+	try{
+		q = new NewtonCotes(order);
+	}catch(...){return NULL;}
+	return q;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <>
+const QuadratureRule<1>*
+QuadratureRuleProvider<1>::create_gauss_jacobi20_rule(size_t order)
+{
+	QuadratureRule<1>* q = NULL;
+	try{
+		q = new GaussJacobi20(order);
+	}catch(...){return NULL;}
+	return q;
+}
+
+template <>
+const QuadratureRule<1>*
+QuadratureRuleProvider<1>::create_gauss_jacobi10_rule(size_t order)
+{
+	QuadratureRule<1>* q = NULL;
+	try{
+		q = new GaussJacobi10(order);
+	}catch(...){return NULL;}
+	return q;
+}
+
+template <int TDim>
+const QuadratureRule<TDim>*
+QuadratureRuleProvider<TDim>::create_newton_cotes_rule(ReferenceObjectID roid, size_t order)
+{
+	return NULL;
+}
+
+template <int TDim>
+const QuadratureRule<TDim>*
+QuadratureRuleProvider<TDim>::create_gauss_legendre_rule(ReferenceObjectID roid, size_t order)
+{
+	return NULL;
+}
+
+template <int TDim>
+const QuadratureRule<TDim>*
+QuadratureRuleProvider<TDim>::create_gauss_jacobi20_rule(size_t order)
+{
+	return NULL;
+}
+
+template <int TDim>
+const QuadratureRule<TDim>*
+QuadratureRuleProvider<TDim>::create_gauss_jacobi10_rule(size_t order)
+{
+	return NULL;
+}
+
 template <int TDim>
 void
 QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
@@ -129,23 +245,31 @@ QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
 			// 1. Try GaussQuad
 			m_vRule[type][roid][order] = create_gauss_rule(roid, order);
 			if(m_vRule[type][roid][order] != NULL) break;
-			// 2. Try others ...
 
+			// 2. Try Newton-Cotes
+				m_vRule[type][roid][order] = create_newton_cotes_rule(roid, order);
+			if(m_vRule[type][roid][order] != NULL) break;
 
+			// 3. Try Gauss-Legendre
+				m_vRule[type][roid][order] = create_gauss_legendre_rule(roid, order);
+			if(m_vRule[type][roid][order] != NULL) break;
 		}break;
 		case GAUSS: {
 			m_vRule[type][roid][order] = create_gauss_rule(roid, order);
 		}break;
 		case NEWTON_COTES: {
-
+			m_vRule[type][roid][order] = create_newton_cotes_rule(roid, order);
+		}break;
+		case GAUSS_LEGENDRE: {
+			m_vRule[type][roid][order] = create_gauss_legendre_rule(roid, order);
 		}break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: Cannot create rule for "
-		                  <<roid<<", order "<<order<<"and type "<<type);
+		                  <<roid<<", order "<<order<<" and type "<<type);
 	}
 
 	if(m_vRule[type][roid][order] == NULL)
 		UG_THROW("QuadratureRuleProvider<"<<dim<<">: Cannot create rule for "
-				                  <<roid<<", order "<<order<<"and type "<<type);
+				                  <<roid<<", order "<<order<<" and type "<<type);
 }
 
 template <int TDim>
@@ -167,6 +291,7 @@ std::ostream& operator<<(std::ostream& out,	const typename QuadratureRuleProvide
 	{
 		case QuadratureRuleProvider<TDim>::GAUSS: out << "Gauss"; break;
 		case QuadratureRuleProvider<TDim>::NEWTON_COTES: out << "Newton-Cotes"; break;
+		case QuadratureRuleProvider<TDim>::GAUSS_LEGENDRE: out << "Gauss-Legendre"; break;
 		default: out << "invalid";
 	}
 	return out;
@@ -177,12 +302,13 @@ typename QuadratureRuleProvider<TDim>::QuadratureType GetQuadratureType(const st
 {
 	std::string n = TrimString(name);
 	std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-	if(name == "best") return QuadratureRuleProvider<TDim>::BEST;
-	if(name == "gauss") return QuadratureRuleProvider<TDim>::GAUSS;
-	if(name == "newton-cotes") return QuadratureRuleProvider<TDim>::NEWTON_COTES;
+	if(n == "best") return QuadratureRuleProvider<TDim>::BEST;
+	if(n == "gauss") return QuadratureRuleProvider<TDim>::GAUSS;
+	if(n == "gauss-legendre") return QuadratureRuleProvider<TDim>::GAUSS_LEGENDRE;
+	if(n == "newton-cotes") return QuadratureRuleProvider<TDim>::NEWTON_COTES;
 
 	UG_THROW("GetQuadratureType: type '"<<name<<"' not recognized. Options "
-	         "are: best, gauss, newton-cotes.");
+	         "are: best, gauss, gauss-legendre, newton-cotes.");
 }
 
 
