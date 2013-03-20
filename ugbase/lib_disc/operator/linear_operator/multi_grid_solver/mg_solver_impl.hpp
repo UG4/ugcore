@@ -837,9 +837,18 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
-
+	
+//	Compute the number of the extra dofs (the dofs with no geometrical positions)
+//todo:	Remove this here and implement the management of these dofs in the
+//		DoFDistribution class.
+	size_t numExtraDofs = 0;
+	const size_t numDoFs = m_spSurfaceMat->num_rows();
+	const size_t numIndices = m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices();
+	if(numIndices < numDoFs && !m_bAdaptive)
+		numExtraDofs = numDoFs - numIndices;
+	
 //	Allocate memory for given top level
-	if(!top_level_required(m_topLev))
+	if(!top_level_required(m_topLev, numExtraDofs))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
 				" Cannot allocate memory. Aborting.\n");
@@ -881,23 +890,6 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
 				"Projection not set, although problem nonlinear.\n");
 		return false;
-	}
-
-	// 	resize help vectors. It may occure that disc use more than the geometric
-	//	dofs and thus the matrix (and vectors) are larger than expected only by the
-	//	passed approximation space.
-	const size_t numIndex = m_spSurfaceMat->num_rows();
-	if(m_vLevData[m_topLev]->num_indices() < numIndex && !m_bAdaptive){
-		const size_t diff = numIndex - m_vLevData[m_topLev]->num_indices();
-
-		for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
-		{
-			const size_t numIndex = m_vLevData[lev]->num_indices() + diff;
-			m_vLevData[lev]->u->resize(numIndex);
-			m_vLevData[lev]->c->resize(numIndex);
-			m_vLevData[lev]->d->resize(numIndex);
-			m_vLevData[lev]->t->resize(numIndex);
-		}
 	}
 
 //	init mapping from surface level to top level in case of full refinement
@@ -1013,9 +1005,18 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
 
+//	Compute the number of the extra dofs (the dofs with no geometrical positions)
+//todo:	Remove this here and implement the management of these dofs in the
+//		DoFDistribution class.
+	size_t numExtraDofs = 0;
+	const size_t numDoFs = m_spSurfaceMat->num_rows();
+	const size_t numIndices = m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices();
+	if(numIndices < numDoFs && !m_bAdaptive)
+		numExtraDofs = numDoFs - numIndices;
+	
 //	Allocate memory for given top level
 	GMG_PROFILE_BEGIN(GMG_CreateLevelStorage);
-	if(!top_level_required(m_topLev))
+	if(!top_level_required(m_topLev, numExtraDofs))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
 				" Cannot allocate memory. Aborting.\n");
@@ -1284,23 +1285,6 @@ init_level_operator()
 		}
 
 		GMG_PROFILE_END();
-	}
-
-	// 	resize help vectors. It may occure that disc use more than the geometric
-	//	dofs and thus the matrix (and vectors) are larger than expected only by the
-	//	passed approximation space.
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
-	{
-		SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
-
-		//	skip void level
-		const size_t numIndex = levMat->num_rows();
-		if(m_vLevData[lev]->num_indices() >= numIndex) continue;
-
-		m_vLevData[lev]->u->resize(numIndex);
-		m_vLevData[lev]->c->resize(numIndex);
-		m_vLevData[lev]->d->resize(numIndex);
-		m_vLevData[lev]->t->resize(numIndex);
 	}
 
 //	we're done
@@ -2402,7 +2386,7 @@ copy_to_horizontal_slaves(vector_type& c)
 template <typename TDomain, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
-top_level_required(size_t topLevel)
+top_level_required(size_t topLevel, size_t numExtraDofs)
 {
 	PROFILE_FUNC_GROUP("gmg");
 
@@ -2434,7 +2418,8 @@ top_level_required(size_t topLevel)
 		                       *m_spRestrictionPrototype,
 		                       m_vspProlongationPostProcess,
 		                       m_vspRestrictionPostProcess,
-		                       m_NonGhostMarker);
+		                       m_NonGhostMarker,
+		                       numExtraDofs);
 	}
 
 //	we're done
@@ -2456,7 +2441,8 @@ update(size_t lev,
        ITransferOperator<TAlgebra>& restriction,
        std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
        std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP,
-       BoolMarker& nonGhostMarker)
+       BoolMarker& nonGhostMarker,
+       size_t numExtraDoFs)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	get dof distribution
@@ -2464,11 +2450,15 @@ update(size_t lev,
 	m_spApproxSpace = approxSpace;
 
 //	resize vectors for operations on whole grid level
-	const size_t numIndex = spLevDD->num_indices();
 	if(u.invalid()) u = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
 	if(c.invalid()) c = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
 	if(d.invalid()) d = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
 	if(t.invalid()) t = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
+	
+//	enlarge the vectors on the number of the extra dofs
+//todo: Remove it here and implement the management of the extra dofs in the
+//		DoFDistribution class
+	const size_t numIndex = spLevDD->num_indices() + numExtraDoFs;
 	u->resize(numIndex);
 	c->resize(numIndex);
 	d->resize(numIndex);
@@ -2585,6 +2575,13 @@ update(size_t lev,
 	//	since in the patch we store the mapping index
 		vMapPatchToGlobal.push_back(j);
 	}
+
+//	the extra dofs are not included in the patch, so this extension should
+//	not work in the present version
+//todo: Remove it here and implement the management of the extra dofs in the
+//		DoFDistribution class
+	if (numExtraDoFs != 0)
+		UG_THROW ("DoFs with no geometrical position are not implemented in the parallel case");
 
 //	now we know the size of the smoothing patch index set and resize help vectors
 //	by the preceeding 's' the relation to the smoothing is indicated

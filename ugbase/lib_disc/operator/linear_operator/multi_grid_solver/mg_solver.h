@@ -211,7 +211,7 @@ class AssembledMultiGridCycle :
 		size_t num_levels() const {return m_vLevData.size();}
 
 	///	allocates the memory
-		bool top_level_required(size_t topLevel);
+		bool top_level_required(size_t topLevel, size_t numExtraDofs = 0);
 
 	///	initializes common part
 		bool init_common();
@@ -339,7 +339,8 @@ class AssembledMultiGridCycle :
 			            ITransferOperator<TAlgebra>& restriction,
 			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
 			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP,
-			            BoolMarker& nonGhostMarker);
+			            BoolMarker& nonGhostMarker,
+			            size_t numExtraDoFs = 0);
 
 		//	returns if ghosts are present on the level
 			bool has_ghosts() const {return num_smooth_indices() != num_indices();}
