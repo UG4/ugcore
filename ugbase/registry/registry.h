@@ -136,9 +136,10 @@ class UG_API Registry {
 
 	/// returns the first overload of an exported function
 		ExportedFunction& get_function(size_t ind);
+		const ExportedFunction& get_function(size_t ind) const;
 
 	///	returns the number of overloads of a function
-		size_t num_overloads(size_t ind);
+		size_t num_overloads(size_t ind) const;
 
 	///	returns the i-th overload of a function
 		ExportedFunction& get_overload(size_t funcInd, size_t oInd);
@@ -183,6 +184,9 @@ class UG_API Registry {
 
 	/// returns an exported class
 		IExportedClass* get_class(const std::string& name);
+
+	/// returns an exported class
+		const IExportedClass* get_class(const std::string& name) const;
 
 	///	returns true if everything well-declared, else false
 		bool check_consistency();

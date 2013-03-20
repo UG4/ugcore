@@ -92,7 +92,12 @@ ExportedFunction& Registry::get_function(size_t ind)
 	return *m_vFunction.at(ind)->get_overload(0);
 }
 
-size_t Registry::num_overloads(size_t ind)
+const ExportedFunction& Registry::get_function(size_t ind) const
+{
+	return *m_vFunction.at(ind)->get_overload(0);
+}
+
+size_t Registry::num_overloads(size_t ind) const
 {
 	return m_vFunction.at(ind)->num_overloads();
 }
@@ -132,6 +137,17 @@ IExportedClass* Registry::get_class(const std::string& name)
 
 	return NULL;
 }
+
+const IExportedClass* Registry::get_class(const std::string& name) const
+{
+//todo:	use a map to access classes by name.
+	for(size_t i = 0; i < m_vClass.size(); ++i)
+		if(name == m_vClass[i]->name())
+			return m_vClass[i];
+
+	return NULL;
+}
+
 
 void Registry::set_force_construct_via_smart_pointer(bool bForceConstructionWithSmartPtr)
 {
