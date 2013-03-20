@@ -29,6 +29,7 @@ IElemDisc::IElemDisc(const std::vector<std::string>& vFct,
 {
 	m_vFct = vFct;
 	m_vSubset = vSubset;
+	clear_add_fct();
 }
 
 void IElemDisc::clear_add_fct()
