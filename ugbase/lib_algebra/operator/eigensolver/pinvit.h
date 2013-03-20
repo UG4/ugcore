@@ -60,24 +60,45 @@ void MultiScalProd(vector_type **px,
 
 
 template<typename matrix_type, typename vector_type>
-double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
+double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2, vector_type &tmp)
 {
 
-	vector_type t;
-	CloneVector(t, v1);
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator pc;
 	v2.change_storage_type(PST_CONSISTENT);
 #endif
-	A.apply(t, v2);
+	A.apply(tmp, v2);
 #ifdef UG_PARALLEL
-	t.change_storage_type(PST_CONSISTENT);
+	tmp.change_storage_type(PST_CONSISTENT);
 #endif
-	double a = v1.dotprod(t);
+	double a = v1.dotprod(tmp);
 	//UG_LOG("EnergyProd " << a << "\n");
 
 	return a;
 }
+
+template<typename matrix_type, typename vector_type>
+double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2)
+{
+	vector_type t;
+	CloneVector(t, v1);
+	return EnergyProd(v1, A, v2, t);
+}
+
+template<typename matrix_type, typename vector_type>
+double EnergyNorm(vector_type &x, matrix_type &A, vector_type &tmp)
+{
+	return sqrt( EnergyProd(x, A, x, tmp) );
+}
+
+template<typename matrix_type, typename vector_type>
+double EnergyNorm(vector_type &x, matrix_type &A)
+{
+	vector_type tmp;
+	CloneVector(tmp, x);
+	return sqrt( EnergyProd(x, A, x, tmp) );
+}
+
 
 template<typename matrix_type, typename vector_type, typename densematrix_type>
 void MultiEnergyProd(matrix_type &A,
@@ -172,8 +193,42 @@ void PrintMaple(const matrix_type &mat, const char *name)
 
 }
 
+template<typename T>
+void MemSwap(T &a, T &b)
+{
+	char c[sizeof(T)];
+	memcpy(c, &a, sizeof(T));
+	memcpy(&a, &b, sizeof(T));
+	memcpy(&b, c, sizeof(T));
+}
+
+/**
+ * PINVIT Eigensolver
+ *
+ * example:
+ * \code
+ * EigenSolver eig;
+ * eig:set_linear_operator_A(A)
+ * eig:set_linear_operator_B(B)
+ * eig:set_max_iterations(50)
+ * eig:set_precision(evPrec)
+ * eig:set_preconditioner(gmg)
+ * eig:set_max_iterations(30)
+ * eig:set_pinvit(2)
+ * eig:set_debug(dbgWriter)
+ * ev = {}
+ * for i=1,nev do
+ *   print("adding ev "..i)
+ * 	 ev[i] = GridFunction(approxSpace)
+ * 	 ev[i]:set_random(-1.0, 1.0)
+ * 	 domainDisc:adjust_solution(ev[i])
+ * 	 eig:add_vector(ev[i])
+ * end
+ * \endcode
+ */
 template<typename TAlgebra>
 class PINVIT
+		: public DebugWritingObject<TAlgebra>
 {
 public:
 // 	Algebra type
@@ -183,7 +238,15 @@ public:
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
 
+///	Base type
+	typedef DebugWritingObject<TAlgebra> base_type;
+
+
 private:
+	using base_type::set_debug;
+	using base_type::debug_writer;
+	using base_type::write_debug;
+
 	//ILinearOperator<vector_type,vector_type>* m_pA;
 	//ILinearOperator<vector_type,vector_type>* m_pB;
 	SmartPtr<ILinearOperator<vector_type> > m_pA;
@@ -208,6 +271,10 @@ public:
 		m_iPINVIT = 3;
 	}
 
+	/**
+	 * adds a vector which should be used for eigenvalue computation
+	 * @param vec
+	 */
 	void add_vector(vector_type &vec)
 	{
 		px.push_back(&vec);
@@ -240,6 +307,232 @@ public:
 		m_dPrecision = precision;
 	}
 
+	void write_debug(int iteration)
+	{
+		for(size_t i=0; i<px.size(); i++)
+		{
+			string name = "pinvit_it_" + ToString(iteration) + "_ev_" + ToString(i);
+			write_debug(*px[i], name.c_str());
+		}
+	}
+
+	double B_norm(vector_type &x)
+	{
+		if(m_pB != NULL)
+			return EnergyNorm(x, *m_pB);
+		else
+			return x.norm();
+	}
+
+	void normalize_approximations()
+	{
+		for(size_t i=0; i< px.size(); i++)
+			(*px[i]) *= 1/ (B_norm(*px[i]));
+	}
+
+	void compute_rayleigh_and_new_correction(vector_type &x, vector_type &defect, vector_type &corr, double &lambda, double &defectNorm)
+	{
+// a. compute rayleigh quotients
+		// lambda = <x, Ax>/<x,x>
+		// todo: replace with MatMult
+//				UG_LOG("m_pA has storage type "); PrintStorageType(*m_pA); UG_LOG(", and vector px[" << i << "] has storage type"); PrintStorageType(*px[i]); UG_LOG("\n");
+		// px can be set to unique because of norm
+
+#ifdef UG_PARALLEL
+		x.change_storage_type(PST_CONSISTENT);
+		defect.set_storage_type(PST_ADDITIVE);
+#endif
+		m_pA->apply(defect, x);
+
+
+#ifdef UG_PARALLEL
+		defect.change_storage_type(PST_UNIQUE);
+		x.change_storage_type(PST_UNIQUE);
+#endif
+		lambda = x.dotprod(defect); // / <px[i], px[i]> = 1.0.
+		//UG_LOG("lambda[" << i << "] = " << lambda << "\n");
+
+// b. calculate residuum
+		// defect = A px[i] - lambda[i] B px[i]
+		if(m_pB)
+		{
+			// todo: replace with MatMultAdd
+			//MatMultAddDirect(defect, 1.0, defect, -lambda[i], *m_pB, *px[i]);
+#ifdef UG_PARALLEL
+			defect.change_storage_type(PST_ADDITIVE);
+			x.change_storage_type(PST_CONSISTENT);
+#endif
+			MatMultAddDirect(defect, 1.0, defect, -lambda, *m_pB, x);
+		}
+		else
+			VecScaleAdd(defect, 1.0, defect, -lambda, x);
+
+// c. check if converged
+
+
+#ifdef UG_PARALLEL
+		defect.change_storage_type(PST_UNIQUE);
+#endif
+		defectNorm = defect.norm();
+#ifdef UG_PARALLEL
+		defect.change_storage_type(PST_UNIQUE);
+#endif
+		if(defectNorm < 1e-12)
+			return;
+
+// d. apply preconditioner
+		m_spPrecond->apply(corr, defect);
+		corr *= 1/ B_norm(corr);
+#ifdef UG_PARALLEL
+		corr.change_storage_type(PST_UNIQUE);
+#endif
+
+	}
+
+	void print_eigenvalues_and_defect(int iteration, std::vector<double> &defectNorm, std::vector<double> &oldXnorm,	std::vector<double> &lambda)
+	{
+		UG_LOG("================================================\n");
+		UG_LOG("iteration " << iteration << "\n");
+
+		for(size_t i=0; i<lambda.size(); i++)
+		{
+			UG_LOG(i << " lambda: " << std::setw(14) << lambda[i] << " defect: " <<
+					std::setw(14) << defectNorm[i]);
+			if(iteration != 0) { UG_LOG(" reduction: " << std::setw(14) << defectNorm[i]/oldXnorm[i]); }
+			UG_LOG("\n");
+			oldXnorm[i] = defectNorm[i];
+		}
+		UG_LOG("\n");
+	}
+
+	void get_testvectors(int iteration, std::vector<vector_type> &corr, std::vector<vector_type> &oldX,
+			std::vector<vector_type *> &pTestVectors, std::vector<std::string> &testVectorDescription,
+			std::vector<double> &defectNorm)
+	{
+		pTestVectors.clear();
+		testVectorDescription.clear();
+		for(size_t i=0; i < px.size(); i++)
+		{
+			if(m_iPINVIT == 1)
+			{
+				// for PINVIT(1), projected space is  L^k = span_i < c^k_i - x^{k}_i>,
+				// that is (current eigenvalue - correction)
+				VecScaleAdd(corr[i], -1.0, corr[i], 1.0, *px[i]);
+				testVectorDescription.push_back(std::string("ev - corr [") + ToString(i) + std::string("]") );
+			}
+			else
+			{
+
+				// PINVIT(s) for s>=2:
+				// L^k = span_i < x^{k-s+2}_i , .. x^{k}_i, c^k_i>
+				// that is the space spanned by the current eigenvalue, its correction, and the s-2 previous eigenvalue approximations
+
+				pTestVectors.push_back(px[i]);
+				testVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
+				// if converged, we don't calculate a correction for this and previous approximations will be
+				// not too much different
+				if(defectNorm[i] < m_dPrecision)
+						continue;
+				pTestVectors.push_back(&corr[i]);
+				testVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
+
+				if(m_iPINVIT >= 3)
+				{
+					pTestVectors.push_back(&oldX[i]);
+					testVectorDescription.push_back(std::string("old correction [") + ToString(i) + std::string("]") );
+
+					if(iteration == 0)
+					{
+						for(size_t j=0; j<px[i]->size(); j++)
+							oldX[i][j] = (*px[i])[j] * urand(-1.0, 1.0);
+					}
+				}
+			}
+		}
+	}
+
+	void save_old_approximations( std::vector<vector_type> &old)
+	{
+		for(size_t i=0; i<px.size(); i++)
+			std::swap(old[i], *px[i]);
+	}
+
+	void get_projected_eigenvalue_problem(DenseMatrix<VariableArray2<double> > rA,
+			DenseMatrix<VariableArray2<double> > rB, std::vector<vector_type *> pTestVectors,
+			std::vector<std::string> &testVectorDescription)
+	{
+		//UG_LOG("5. compute reduced Matrices rA, rB\n");
+
+		size_t iNrOfTestVectors = pTestVectors.size();
+		rA.resize(iNrOfTestVectors, iNrOfTestVectors);
+		rB.resize(iNrOfTestVectors, iNrOfTestVectors);
+
+		if(m_pB)
+			MultiEnergyProd(*m_pB, &pTestVectors[0], rB, iNrOfTestVectors);
+		else
+			MultiScalProd(&pTestVectors[0], rB, iNrOfTestVectors);
+
+
+		/////// Remove linear depended vectors //////////////
+		std::vector<bool> bUse;
+		bUse.resize(iNrOfTestVectors, true);
+
+		{
+			DenseMatrix<VariableArray2<double> > mat = rB;
+
+			for(size_t i=0; i<mat.num_rows(); i++)
+			{
+				for(size_t j=0; j<i; j++)
+				{
+					if(!bUse[i]) continue;
+					double val = mat(i, j)/mat(j,j);
+					mat(i,j) = 0;
+					for(size_t k=j+1; k<mat.num_rows(); k++)
+						mat(i,k) -= val*mat(j, k);
+				}
+				if(mat(i,i) < 1e-8) bUse[i] = false;
+				else bUse[i] = true;
+			}
+
+			//for(size_t i=0; i<iNrOfTestVectors; i++)
+				//UG_LOG("Using " << testVectorDescription[i] << (bUse[i] ?"\n":" NOT\n"));
+			//PrintMatrix(rB, "rB");
+			//PrintMatrix(mat, "mat");
+		}
+
+
+		std::vector<vector_type *> pTestVectors2 = pTestVectors;
+		std::vector<std::string> testVectorDescription2 = testVectorDescription;
+		pTestVectors.clear();
+		testVectorDescription.clear();
+		for(size_t i=0; i<iNrOfTestVectors; i++)
+		{
+			if(bUse[i])
+			{
+				pTestVectors.push_back(pTestVectors2[i]);
+				testVectorDescription.push_back(testVectorDescription2[i]);
+			}
+		}
+
+		iNrOfTestVectors = pTestVectors.size();
+
+		// 5. compute reduced Matrices rA, rB
+		rA.resize(iNrOfTestVectors, iNrOfTestVectors);
+		rB.resize(iNrOfTestVectors, iNrOfTestVectors);
+
+		if(m_pB)
+			MultiEnergyProd(*m_pB, &pTestVectors[0], rB, iNrOfTestVectors);
+		else
+			MultiScalProd(&pTestVectors[0], rB, iNrOfTestVectors);
+
+		MultiEnergyProd(*m_pA, &pTestVectors[0], rA, iNrOfTestVectors);
+
+		//PrintMaple(rA, "rA");
+		//PrintMaple(rB, "rB");
+	}
+
+		// output
+
 	int apply()
 	{
 		UG_LOG("Eigensolver\n");
@@ -262,29 +555,31 @@ public:
 			B(i,i) = 0.00390625;
 		B.set_storage_type(PST_ADDITIVE);*/
 
-		matrix_operator_type &B = *m_pB;
-
 		vector_type tmp;
 		CloneVector(tmp, *px[0]);
 		std::vector<vector_type> corr;
-		std::vector<vector_type> oldcorr;
+
+		std::vector<vector_type> oldX;
+
+
 		lambda.resize(n);
 		corr.resize(n);
-		oldcorr.resize(n);
+		oldX.resize(n);
 		for(size_t i=0; i<n; i++)
 		{
 			UG_ASSERT(px[0]->size() == px[i]->size(), "all vectors must have same size");
 			CloneVector(corr[i], *px[0]);
-			CloneVector(oldcorr[i], *px[0]);
+			CloneVector(oldX[i], *px[0]);
 
 			//PrintStorageType(*px[i]);
 			//PrintStorageType(corr[i]);
-			//PrintStorageType(oldcorr[i]);
+			//PrintStorageType(oldX[i]);
 		}
 
 		std::vector<vector_type *> pTestVectors;
 
-		std::vector<double> corrnorm(n, m_dPrecision*10);
+		std::vector<double> defectNorm(n, m_dPrecision*10);
+		std::vector<double> oldXnorm(n);
 
 		std::vector<std::string> testVectorDescription;
 
@@ -293,35 +588,19 @@ public:
 		pcl::ProcessCommunicator pc;
 #endif
 
+
+
 		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
 		{
+			write_debug(iteration);
 			UG_LOG("iteration " << iteration << "\n");
+
 			// 0. normalize
-
-			if(m_pB)
-			{
-				for(size_t i=0; i<n; i++)
-				{
-					double d = sqrt( EnergyProd(*px[i], B, *px[i]));
-					//UG_LOG("sqrt(<x[" << i << "], Bx[" << i << "]>) = " << d << "\n");
-					(*px[i]) *= 1/d;
-				}
-			}
-			else
-			{
-				for(size_t i=0; i<n; i++)
-				{
-					double d = px[i]->norm();
-					//UG_LOG("sqrt(<x[" << i << "], x[" << i << "]>) = " << d << "\n");
-					(*px[i]) *= 1 / d;
-				}
-			}
-
+			normalize_approximations();
 
 
 			// 1. before calculating new correction, save old correction
-			for(size_t i=0; i<n; i++)
-				std::swap(oldcorr[i], corr[i]);
+			save_old_approximations(oldX);
 
 			//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
 			size_t nrofconverged=0;
@@ -329,72 +608,14 @@ public:
 
 			for(size_t i=0; i<n; i++)
 			{
-				// 2a. compute rayleigh quotients
-				// lambda = <x, Ax>/<x,x>
-				// todo: replace with MatMult
-//				UG_LOG("m_pA has storage type "); PrintStorageType(*m_pA); UG_LOG(", and vector px[" << i << "] has storage type"); PrintStorageType(*px[i]); UG_LOG("\n");
-				// px can be set to unique because of norm
-
-#ifdef UG_PARALLEL
-				px[i]->change_storage_type(PST_CONSISTENT);
-				defect.set_storage_type(PST_ADDITIVE);
-#endif
-				m_pA->apply(defect, *px[i]);
-
-
-#ifdef UG_PARALLEL
-				defect.change_storage_type(PST_UNIQUE);
-				px[i]->change_storage_type(PST_UNIQUE);
-#endif
-				lambda[i] = px[i]->dotprod(defect); // / <px[i], px[i]> = 1.0.
-				//UG_LOG("lambda[" << i << "] = " << lambda[i] << "\n");
-
-				// 2b. calculate residuum
-				// defect = A px[i] - lambda[i] B px[i]
-				if(m_pB)
-				{
-					// todo: replace with MatMultAdd
-					//MatMultAddDirect(defect, 1.0, defect, -lambda[i], *m_pB, *px[i]);
-#ifdef UG_PARALLEL
-					defect.change_storage_type(PST_ADDITIVE);
-					px[i]->change_storage_type(PST_CONSISTENT);
-#endif
-					MatMultAddDirect(defect, 1.0, defect, -lambda[i], B, *px[i]);
-				}
-				else
-					VecScaleAdd(defect, 1.0, defect, -lambda[i], *px[i]);
-
-				// 2c. check if converged
-
-
-#ifdef UG_PARALLEL
-				defect.change_storage_type(PST_UNIQUE);
-#endif
-				corrnorm[i] = defect.norm();
-#ifdef UG_PARALLEL
-				defect.change_storage_type(PST_UNIQUE);
-#endif
-				//UG_LOG("corrnorm[" << i << "] = " << corrnorm[i] << "\n");
-				if(corrnorm[i] < m_dPrecision)
+				compute_rayleigh_and_new_correction(*px[i], defect, corr[i], lambda[i], defectNorm[i]);
+				if(defectNorm[i] < m_dPrecision)
 					nrofconverged++;
-				if(corrnorm[i] < 1e-12)
-					continue;
-				// 2d. apply preconditioner
-				m_spPrecond->apply(corr[i], defect);
-				corr[i] *= 1/ sqrt( EnergyProd(corr[i], B, corr[i]));
-#ifdef UG_PARALLEL
-				corr[i].change_storage_type(PST_UNIQUE);
-#endif
 			}
 
-			// output
-			UG_LOG("================================================\n");
-			UG_LOG("iteration " << iteration << "\n");
 
-			for(size_t i=0; i<n; i++)
-				UG_LOG(i << " lambda: " << std::setw(14) << lambda[i] << " defect: " <<
-						std::setw(14) << corrnorm[i] << "\n");
-			UG_LOG("\n");
+			// output
+			print_eigenvalues_and_defect(iteration, defectNorm, oldXnorm, lambda);
 
 			if(nrofconverged==n)
 			{
@@ -405,114 +626,19 @@ public:
 			// 5. add Testvectors
 			//UG_LOG("5. add Testvectors\n");
 
-			pTestVectors.clear();
-			testVectorDescription.clear();
-			for(size_t i=0; i<n; i++)
-			{
-				if(m_iPINVIT == 1)
-				{
-					VecScaleAdd(corr[i], -1.0, corr[i], 1.0, *px[i]);
-					testVectorDescription.push_back(std::string("ev - corr [") + ToString(i) + std::string("]") );
-				}
-				else
-				{
-					pTestVectors.push_back(px[i]);
-					testVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
-					if(corrnorm[i] < m_dPrecision)
-							continue;
-					pTestVectors.push_back(&corr[i]);
-					testVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
+			get_testvectors(iteration, corr, oldX, pTestVectors, testVectorDescription, defectNorm);
 
-					if(m_iPINVIT >= 3)
-					{
-						pTestVectors.push_back(&oldcorr[i]);
-						testVectorDescription.push_back(std::string("old correction [") + ToString(i) + std::string("]") );
 
-						if(iteration == 0)
-						{
-							for(size_t j=0; j<px[i]->size(); j++)
-								oldcorr[i][j] = (*px[i])[j] * urand(-1.0, 1.0);
-						}
-					}
-				}
-			}
 			/*for(size_t i=0; i<testVectorDescription.size(); i++)
 			{	UG_LOG(testVectorDescription[i] << "\n");	} */
 
-			size_t iNrOfTestVectors = pTestVectors.size();
-
 			// 5. compute reduced Matrices rA, rB
-			//UG_LOG("5. compute reduced Matrices rA, rB\n");
-			rA.resize(iNrOfTestVectors, iNrOfTestVectors);
-			rB.resize(iNrOfTestVectors, iNrOfTestVectors);
 
-			if(m_pB)
-				MultiEnergyProd(*m_pB, &pTestVectors[0], rB, iNrOfTestVectors);
-			else
-				MultiScalProd(&pTestVectors[0], rB, iNrOfTestVectors);
+			get_projected_eigenvalue_problem(rA, rB, pTestVectors, testVectorDescription);
 
-
-			/////// Remove linear depended vectors //////////////
-			std::vector<bool> bUse;
-			bUse.resize(iNrOfTestVectors, true);
-
-			{
-				DenseMatrix<VariableArray2<double> > mat = rB;
-
-				for(size_t i=0; i<mat.num_rows(); i++)
-				{
-					for(size_t j=0; j<i; j++)
-					{
-						if(!bUse[i]) continue;
-						double val = mat(i, j)/mat(j,j);
-						mat(i,j) = 0;
-						for(size_t k=j+1; k<mat.num_rows(); k++)
-							mat(i,k) -= val*mat(j, k);
-					}
-					if(mat(i,i) < 1e-8) bUse[i] = false;
-					else bUse[i] = true;
-				}
-
-				//for(size_t i=0; i<iNrOfTestVectors; i++)
-					//UG_LOG("Using " << testVectorDescription[i] << (bUse[i] ?"\n":" NOT\n"));
-				//PrintMatrix(rB, "rB");
-				//PrintMatrix(mat, "mat");
-			}
-
-
-			std::vector<vector_type *> pTestVectors2 = pTestVectors;
-			std::vector<std::string> testVectorDescription2 = testVectorDescription;
-			pTestVectors.clear();
-			testVectorDescription.clear();
-			for(size_t i=0; i<iNrOfTestVectors; i++)
-			{
-				if(bUse[i])
-				{
-					pTestVectors.push_back(pTestVectors2[i]);
-					testVectorDescription.push_back(testVectorDescription2[i]);
-				}
-			}
-
-			iNrOfTestVectors = pTestVectors.size();
-
-			// 5. compute reduced Matrices rA, rB
-			rA.resize(iNrOfTestVectors, iNrOfTestVectors);
-			rB.resize(iNrOfTestVectors, iNrOfTestVectors);
-
-			if(m_pB)
-				MultiEnergyProd(*m_pB, &pTestVectors[0], rB, iNrOfTestVectors);
-			else
-				MultiScalProd(&pTestVectors[0], rB, iNrOfTestVectors);
-
-			MultiEnergyProd(*m_pA, &pTestVectors[0], rA, iNrOfTestVectors);
-
-			PrintMaple(rA, "rA");
-			PrintMaple(rB, "rB");
-
-			// output
 
 			// 6. solve reduced eigenvalue problem
-
+			size_t iNrOfTestVectors = pTestVectors.size();
 			r_ev.resize(iNrOfTestVectors, iNrOfTestVectors);
 			r_lambda.resize(iNrOfTestVectors);
 
@@ -528,17 +654,17 @@ public:
 			{
 				UG_LOG("Lambda < 0: \n");
 				for(size_t i=0; i<nrzero; i++)
+				{
 					UG_LOG(i << ".: " << r_lambda[i] << "\n");
-			}
 
+				}
+			}
 			UG_LOG("Lambda > 0: \n");
 			for(size_t i=nrzero; i<r_lambda.size(); i++)
 				UG_LOG(i << ".: " << r_lambda[i] << "\n");
-
 			UG_LOG("\n");
 
-
-			UG_LOG("evs: \n");
+			/*UG_LOG("evs: \n");
 			for(size_t c=nrzero; c < std::min(nrzero+n, r_ev.num_cols()); c++)
 			{
 				UG_LOG("ev [" << c << "]:\n");
@@ -546,7 +672,7 @@ public:
 					if(dabs(r_ev(r, c)) > 1e-9 )
 						UG_LOG(std::setw(14) << r_ev(r, c) << "   " << testVectorDescription[r] << "\n");
 				UG_LOG("\n\n");
-			}
+			}*/
 
 #ifdef UG_PARALLEL
 			for(size_t i=0; i<iNrOfTestVectors; i++)

@@ -76,7 +76,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef MinimalResiduumDamping<vector_type> T;
 		typedef IDamping<vector_type> TBase;
 		string name = string("MinimalResiduumDamping").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.add_class_<T,TBase>(name, grp, "Minimal Residdum Damping (damping computed based on the minimal residuum)")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "MinimalResiduumDamping", tag);
@@ -87,7 +87,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef MinimalEnergyDamping<vector_type> T;
 		typedef IDamping<vector_type> TBase;
 		string name = string("MinimalEnergyDamping").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.add_class_<T,TBase>(name, grp, "Minimal Energy Damping (damping computed based on the minimal energy)")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "MinimalEnergyDamping", tag);
@@ -98,7 +98,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef LinearSolver<vector_type> T;
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("LinearSolver").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.add_class_<T,TBase>(name, grp, "Linear Solver")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearSolver", tag);
@@ -109,7 +109,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef CG<vector_type> T;
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("CG").append(suffix);
-		reg.add_class_<T,TBase>(name, grp, "Conjugate Gradient")
+		reg.add_class_<T,TBase>(name, grp, "Conjugate Gradient Solver")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "CG", tag);
@@ -120,7 +120,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef BiCGStab<vector_type> T;
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("BiCGStab").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.add_class_<T,TBase>(name, grp, "BiCGStab Solver")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BiCGStab", tag);

@@ -139,7 +139,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef VectorDebugWritingObject<vector_type> T;
 		string name = string("VectorDebugWritingObject").append(suffix);
 		reg.add_class_<T>(name, grp)
-			.add_method("set_debug", &T::set_debug, "sets a debug writer", "d")
+			.add_method("set_debug", &T::set_debug, "sets a debug writer", "debugWriter")
 			.add_method("vector_debug_writer", static_cast<SmartPtr<IVectorDebugWriter<vector_type> > (T::*)()>(&T::vector_debug_writer))
 			.add_method("vector_debug_writer", static_cast<ConstSmartPtr<IVectorDebugWriter<vector_type> > (T::*)() const>(&T::vector_debug_writer));
 		reg.add_class_to_group(name, "VectorDebugWritingObject", tag);
@@ -177,7 +177,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("ILinearOperator").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("init", static_cast<void (T::*)()>(&T::init))
-			.add_method("apply", &T::apply);
+			.add_method("apply", &T::apply, "f#u");
 		reg.add_class_to_group(name, "ILinearOperator", tag);
 	}
 
@@ -282,7 +282,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef StdConvCheck<vector_type> T;
 		typedef IConvergenceCheck<vector_type> TBase;
 		string name = string("ConvCheck").append(suffix);
-		reg.add_class_<T, TBase>(name, grp)
+		reg.add_class_<T, TBase>(name, grp, "Convergence Check")
 			.add_constructor()
 			.template add_constructor<void (*)(int, number, number, bool)>
 							("Maximum Steps|default|min=0;value=100#"
@@ -293,7 +293,7 @@ static void Algebra(Registry& reg, string grp)
 							("Maximum Steps|default|min=0;value=100#"
 							 "Minimum Defect|default|min=0D;value=1e-10#"
 							 "Relative Reduction|default|min=0D;value=1e-12")
-			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100")
+			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100", "maximum number of steps to do")
 			.add_method("set_minimum_defect", &T::set_minimum_defect, "", "Minimum Defect|default|min=0D;value=1e-10")
 			.add_method("set_reduction", &T::set_reduction,	"", "Relative Reduction|default|min=0D;value=1e-12")
 			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")

@@ -21,6 +21,7 @@ using namespace std;
 
 #ifdef UG_PARALLEL
 #include "lib_algebra/operator/eigensolver/pinvit.h"
+#include "lib_algebra/operator/preconditioner/operator_inverse_iterator.h"
 
 namespace ug{
 namespace bridge{
@@ -53,9 +54,11 @@ static void Algebra(Registry& reg, string grp)
 	typedef typename TAlgebra::matrix_type matrix_type;
 
 #ifdef LAPACK_AVAILABLE
+	{
 		string name = string("EigenSolver").append(suffix);
 		typedef PINVIT<TAlgebra> T;
-		reg.add_class_<T>(name, grp)
+		typedef DebugWritingObject<TAlgebra> TBase;
+		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.add_method("add_vector", &T::add_vector,
 						"", "vector")
@@ -72,7 +75,18 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_pinvit", &T::set_pinvit, "", "iPINVIT", "1 = preconditioned inverse block iteration, 2 = preconditioned block gradient descent, 3 = LOBPCG")
 			.add_method("apply", &T::apply);
 		reg.add_class_to_group(name, "EigenSolver", tag);
+	}
 #endif
+	{
+		string name = string("OperatorInverseIterator").append(suffix);
+		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
+		typedef OperatorInverseIterator<TAlgebra> T;
+		typedef typename TAlgebra::vector_type vector_type;
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type>  >)>( "opInv")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "OperatorInverseIterator", tag);
+	}
 }
 }; // end Functionality
 }// end Eigensolver

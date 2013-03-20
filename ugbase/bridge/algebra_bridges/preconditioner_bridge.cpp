@@ -84,7 +84,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef SymmetricGaussSeidel<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("SymmetricGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.add_class_<T,TBase>(name, grp, "Symmetric Gauss Seidel Preconditioner")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SymmetricGaussSeidel", tag);
@@ -95,7 +95,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef BackwardGaussSeidel<TAlgebra> T;
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("BackwardGaussSeidel").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
+		reg.add_class_<T,TBase>(name, grp, "Backward Gauss Seidel Preconditioner")
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
