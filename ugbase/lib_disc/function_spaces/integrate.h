@@ -470,23 +470,23 @@ number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData,
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time, int order)
-{return Integral(spData, spGridFct, subsets, time, order);}
+{return Integral(spData, spGridFct, subsets, time, order, "best");}
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets,number time)
-{return Integral(spData, spGridFct, subsets, time, 1);}
+{return Integral(spData, spGridFct, subsets, time, 1, "best");}
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,number time)
-{return Integral(spData, spGridFct, NULL, time, 1);}
+{return Integral(spData, spGridFct, NULL, time, 1, "best");}
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct,const char* subsets)
-{return Integral(spData, spGridFct, subsets, 0.0, 1);}
+{return Integral(spData, spGridFct, subsets, 0.0, 1, "best");}
 
 template <typename TGridFunction>
 number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData, SmartPtr<TGridFunction> spGridFct)
-{return Integral(spData, spGridFct, NULL, 0.0, 1);}
+{return Integral(spData, spGridFct, NULL, 0.0, 1, "best");}
 
 ///////////////
 // const data
