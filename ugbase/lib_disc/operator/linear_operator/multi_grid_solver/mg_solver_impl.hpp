@@ -843,8 +843,9 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 //		DoFDistribution class.
 	size_t numExtraDofs = 0;
 	const size_t numDoFs = m_spSurfaceMat->num_rows();
-	const size_t numIndices = m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices();
-	if(numIndices < numDoFs && !m_bAdaptive)
+	const size_t numIndices
+		= m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices();
+	if(numIndices < numDoFs)
 		numExtraDofs = numDoFs - numIndices;
 	
 //	Allocate memory for given top level
@@ -1010,8 +1011,9 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 //		DoFDistribution class.
 	size_t numExtraDofs = 0;
 	const size_t numDoFs = m_spSurfaceMat->num_rows();
-	const size_t numIndices = m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices();
-	if(numIndices < numDoFs && !m_bAdaptive)
+	const size_t numIndices
+		= m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices();
+	if(numIndices < numDoFs)
 		numExtraDofs = numDoFs - numIndices;
 	
 //	Allocate memory for given top level
