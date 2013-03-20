@@ -222,7 +222,7 @@ void SaveVectorCSV(TGridFunction& b, const char* filename) {
  *   all vertices of \c subset
  */
 template<typename TDomain, typename TAlgebra>
-typename TAlgebra::vector_type::value_type AverageFunctionDifference(
+number AverageFunctionDifference(
 		SmartPtr< GridFunction<TDomain, TAlgebra> > spGridFct,
 		std::string subset, std::string fct1, std::string fct2 )
 {
@@ -234,7 +234,7 @@ typename TAlgebra::vector_type::value_type AverageFunctionDifference(
 	size_t fct2ID = spGridFct->fct_id_by_name( fct2.c_str() );
 
 	// create space for sum of difference
-	typename TAlgebra::vector_type::value_type sum = 0.0;
+	number sum = 0.0;
 	size_t numElements = 0;
 
 	// loop over all vertices in given subset and compare values of fct1 and fct2

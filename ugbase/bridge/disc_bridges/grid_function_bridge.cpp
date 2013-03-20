@@ -124,14 +124,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	AverageFunctionDifference
 	{
 	// function signature:
-	// TAlgebra::vector_type::value_type AverageFunctionDifference<TDomain, TAlgebra>(
+	// number AverageFunctionDifference<TDomain, TAlgebra>(
 	// 		SmartPtr< GridFunction<TDomain, TAlgebra> > spGridFct,
 	// 		std::string subset, std::string fct1, std::string fct2);
 		string name = string("AverageFunctionDifference");
 		typedef ug::GridFunction<TDomain, TAlgebra> grid_function;
 		typedef SmartPtr< grid_function > function_pointer;
-		typedef typename TAlgebra::vector_type::value_type value_type;
-		reg.add_function(name, static_cast<value_type (*)(function_pointer, std::string, std::string, std::string)>(&AverageFunctionDifference<TDomain, TAlgebra>), grp);
+		reg.add_function(name, static_cast<number (*)(function_pointer, std::string, std::string, std::string)>(&AverageFunctionDifference<TDomain, TAlgebra>), grp);
 	}
 }
 
