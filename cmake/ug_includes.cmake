@@ -514,6 +514,8 @@ if(NOT("${PROFILER}" STREQUAL "None"))
         	        "binary scalasca/kconfig. Make sure "
         	        "that PATH contains scalasca and kconfig executable.")
         endif(SCALASCA_FOUND)
+        
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "scalasca -instrument -comp=none -user ")
     	add_definitions(-DUG_PROFILER_SCALSACA)    
     
     # Vampir
