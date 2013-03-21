@@ -518,7 +518,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
 #        set(CMAKE_CXX_COMPILER "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}")
         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "scalasca -instrument -comp=none -user ")
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "scalasca -instrument -comp=none -user ")
-		add_cxx_flag(SCALASCA_USER_CFLAGS)
+		add_cxx_flag("${SCALASCA_USER_CFLAGS}")
     	add_definitions(-DUG_PROFILER_SCALSACA)    
     
     # Vampir
