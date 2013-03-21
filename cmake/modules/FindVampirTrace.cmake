@@ -74,7 +74,7 @@ endif(PKG_CONFIG_FOUND)
 # 1.c) Lets try to get command line tool an execute it
 
 # search command line tools
-find_program(VAMPIRTRACE_CXX vtc++)
+find_program(VAMPIRTRACE_CXX vtcxx)
 find_program(VAMPIRTRACE_CC vtcc)
 find_program(VAMPIRTRACE_F90 vtf90)
 
