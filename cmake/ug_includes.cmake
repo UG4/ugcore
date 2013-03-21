@@ -516,6 +516,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
         endif(SCALASCA_FOUND)
         
         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "scalasca -instrument -comp=none -user ")
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "scalasca -instrument -comp=none -user ")
     	add_definitions(-DUG_PROFILER_SCALSACA)    
     
     # Vampir
