@@ -376,10 +376,8 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				{
 					// be sure that this is const char*
 					//if(line>0) line--;
-					pRuntimeProfileInfo &pi = pis[source][line];
-					//UG_LOG("start profile node " << source << ":" << line << "\n");
-
 					 UG_LOG("#### start ##source: "<<source<<", line: "<<line<<"\n");
+					pRuntimeProfileInfo &pi = pis[source][line];
 
 					// if null, create new node
 					if(pi == NULL)
@@ -397,9 +395,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 						// UG_LOG(buf);
 					 }
 
-					 UG_LOG("#### start ##source: "<<source<<", line: "<<line<<"\n");
-					 pRuntimeProfileInfo &pi2 = pis[source][line];
-					 pi2->beginNode();
+					 pi->beginNode();
 				}
 			}
 			if(ar->what[0] == 'C' && (ar->name == NULL || strcmp(ar->name, "ug_load_script") != 0))
@@ -428,6 +424,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				//UG_ASSERT(pis[ar->source][ar->linedefined]->isCurNode(), "profiler nodes not matching. forgot a PROFILE_END?");
 				else
 				{		
+					if(source[0]=='@') source++;
 					UG_LOG("#### end   ##source: "<<source<<", line: "<<line<<"\n");
 					pRuntimeProfileInfo &pi = pis[source][line];
 
