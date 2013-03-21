@@ -28,7 +28,7 @@ include_directories(${CMAKE_BINARY_DIR})
 link_directories(${UG_ROOT_PATH}/lib)
 ################################################################################
 # include cmake functions
-set(CMAKE_MODULE_PATH ${UG_ROOT_PATH}/cmake)
+set(CMAKE_MODULE_PATH ${UG_ROOT_PATH}/cmake/modules)
 include(${UG_ROOT_PATH}/cmake/compiler_flags.cmake)
 # reset flags, because of maybe switched DEBUG option
 reset_cxx_flags()
@@ -90,6 +90,10 @@ set(svnDefault ON)
 set(precisionDefault "double")
 set(precisionOptions "single, double")
 
+# Values for the PROFILER option
+set(profilerOptions "None, Shiny, Scalasca, Vampir")
+set(profilerDefault "None")
+
 # If we run the script the first time, search for MPI to determine the default value
 if(LOCAL_OPENMPI)
 	message("local openmpi")
@@ -132,7 +136,6 @@ option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
 option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
 option(DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
 option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ${MPI_FOUND})
-option(PROFILER "Enables the internal profiler. Valid options are: ON, OFF" OFF)
 option(PROFILE_PCL "Enables profiling of the pcl-library. Valid options are ON, OFF" OFF)
 option(PROFILE_BRIDGE "Enables profiling of bridge objects. Valid options are ON, OFF" OFF)
 option(PCL_DEBUG_BARRIER "Enables debug barriers in the pcl-library. Valid options are ON, OFF" OFF)
@@ -182,6 +185,10 @@ if(NOT PRECISION)
 	set(PRECISION ${precisionDefault})
 endif(NOT PRECISION)
 
+if(NOT PROFILER)
+	set(PROFILER ${profilerDefault})
+endif(NOT PROFILER)
+
 # convert the DIM and CPU sets to readable sets
 # otherwise "2;3" gets "23" .
 # todo: make this a function/macro
@@ -217,7 +224,7 @@ message(STATUS "Info: DEBUG:             "${DEBUG}" (options are: ON, OFF)")
 message(STATUS "Info: DEBUG_LOGS:        "${DEBUG_LOGS}" (options are: ON, OFF)")
 message(STATUS "Info: PARALLEL:          "${PARALLEL}" (options are: ON, OFF)")
 message(STATUS "Info: PCL_DEBUG_BARRIER: "${PCL_DEBUG_BARRIER}" (options are: ON, OFF)")
-message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: ON, OFF)")
+message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: "${profilerOptions}")")
 message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_BRIDGE:    "${PROFILE_BRIDGE}" (options are: ON, OFF)")
 message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
@@ -489,11 +496,41 @@ if(CMAKE_BUILD_TYPE)
 else()
 	message(STATUS "Info: compiling with cxx flags: ${CMAKE_CXX_FLAGS}")
 endif()
+
 ########################################
 # PROFILER
-if(PROFILER)
-	add_definitions(-DUG_PROFILER)
-endif(PROFILER)
+if(NOT("${PROFILER}" STREQUAL "None"))
+    if("${PROFILER}" STREQUAL "Shiny")
+    	add_definitions(-DUG_PROFILER_SHINY)    
+    
+    # Scalasca
+    elseif("${PROFILER}" STREQUAL "Scalasca")
+    	message(FATAL_ERROR "Scalasca not yet done.")
+    	add_definitions(-DUG_PROFILER_SCALSACA)    
+    
+    # Vampir
+    elseif("${PROFILER}" STREQUAL "Vampir")
+        find_package(VampirTrace)
+        if(VAMPIRTRACE_FOUND)
+            message("Info: Vampir: using compiler wrapper: ${VAMPIR_CXX}")
+            message("Info: Vampir: using compiler wrapper: ${VAMPIR_CC}")
+            message("Info: Vampir: using inlcude dir: ${VAMPIRTRACE_INCLUDE_DIR}")
+            message("Info: Vampir: using library dir: ${VAMPIRTRACE_LIBRARY}")
+        else(VAMPIRTRACE_FOUND)
+        	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
+        	        "binary vtcxx and/or library or include paths. Make sure "
+        	        "that PATH contains vtcxx executable.")
+        endif(VAMPIRTRACE_FOUND)
+    	add_definitions(-DUG_PROFILER_VAMPIR)    
+
+    # wrong string in compiler
+    else("${PROFILER}" STREQUAL "Shiny")
+    	message(FATAL_ERROR "Unsupported PROFILER: ${PROFILER}. Options are: "${profilerOptions})
+    endif("${PROFILER}" STREQUAL "Shiny")
+    
+    # if one profiler is used this flag will be set
+	add_definitions(-DUG_PROFILER)    
+endif(NOT("${PROFILER}" STREQUAL "None"))
 
 
 ########################################
@@ -957,6 +994,7 @@ set(TARGET ${TARGET} CACHE STRING "Set the target of this build process. Valid o
 set(DIM ${DIM} CACHE STRING "Set the dimension for which ug4 is build. Valid options are: ${dimOptions}")
 set(CPU ${CPU} CACHE STRING "Set block sizes for which ug4 is build. Valid options are: ${cpuOptions}")
 set(PRECISION ${PRECISION} CACHE STRING "Set the precision of the number type. Valid options are: ${precisionOptions}")
+set(PROFILER ${PROFILER} CACHE STRING "Set the a profiler. Valid options are: ${profilerOptions}")
 
 # the following options too are pseudo cmake-options. However, they should
 # contains pathes, if set.
