@@ -418,7 +418,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				{
 					lua_getinfo(L, "Sln", &entry);
 					source = entry.source;
-					line = entry.linedefined;
+					line = entry.currentline;
 					UG_LOG("### entry ## curr: "<<entry.currentline<<", def: "<<entry.linedefined<<
 					       ", lastdef: "<<entry.lastlinedefined<<"\n");
 				}
