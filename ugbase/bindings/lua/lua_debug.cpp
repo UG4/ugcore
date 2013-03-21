@@ -379,6 +379,8 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 					pRuntimeProfileInfo &pi = pis[source][line];
 					//UG_LOG("start profile node " << source << ":" << line << "\n");
 
+					 UG_LOG("#### start ##source: "<<source<<", line: "<<line<<"\n");
+
 					// if null, create new node
 					if(pi == NULL)
 					{
@@ -391,7 +393,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 						//const char*p = GetFileLine(source, line).c_str();
 						//strncat(buf, p+strspn(p, " \t"), 254);
 
-						pis[source][line] = new RuntimeProfileInfo(buf, true, "lua", false, source, true, line);
+						pi = new RuntimeProfileInfo(buf, true, "lua", false, source, true, line);
 						// UG_LOG(buf);
 					 }
 
