@@ -3,9 +3,10 @@
 #ifndef __H__UG__COMMON__PROFILER__RUNTIME_PROFILE_INFO__
 #define __H__UG__COMMON__PROFILER__RUNTIME_PROFILE_INFO__
 
-#include "profiler.h"
-
 #ifdef UG_PROFILER
+
+#include "profiler.h"
+#include "common/log.h"
 
 /**
  * Class storing Profile information, only known at runtime (e.g. strings build
