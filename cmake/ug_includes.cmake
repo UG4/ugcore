@@ -544,7 +544,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
 
         # add compile flags
 		add_cxx_flag("${SCALASCA_USER_CFLAGS}")
-    	add_definitions(-DUG_PROFILER_SCALSACA)    
+    	add_definitions(-DUG_PROFILER_SCALASCA)    
     
     # Vampir
     elseif("${PROFILER}" STREQUAL "Vampir")
