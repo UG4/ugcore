@@ -529,7 +529,9 @@ if(NOT("${PROFILER}" STREQUAL "None"))
     endif("${PROFILER}" STREQUAL "Shiny")
     
     # if one profiler is used this flag will be set
-	add_definitions(-DUG_PROFILER)    
+	add_definitions(-DUG_PROFILER)    # add to c++ flags
+	set(UG_PROFILER ON)               # add Cmake variable
+	
 endif(NOT("${PROFILER}" STREQUAL "None"))
 
 
@@ -944,7 +946,6 @@ endif(buildPluginSystem)
 if(buildBridge)
 	add_definitions(-DUG_BRIDGE)
 endif(buildBridge)
-set(UG_PROFILER ${PROFILER})
 set(UG_DEBUG ${DEBUG})
 set(USE_NEW_CMAKE_INCLUDES ON)
 
