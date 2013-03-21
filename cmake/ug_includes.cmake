@@ -516,17 +516,29 @@ if(NOT("${PROFILER}" STREQUAL "None"))
         	        "that PATH contains scalasca and kconfig executable.")
         endif(SCALASCA_FOUND)
 
-       	file(WRITE ${CMAKE_BINARY_DIR}/scalasca_mpicxx
-    		"#! /bin/sh"
-    		"# THIS IS AN AUTOMATICALL GENERATED FILE. DO NOT EDIT!\n"
-    		"${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}")
-        
-        
-        set(CMAKE_CXX_COMPILER "${CMAKE_BINARY_DIR}/scalasca_mpicxx")
+        # we assume the user to build using:
+        # CXX="scalasca -instrument -comp=none -user c++"
+        # It would be desirable to set the compiler here, but somehow I did not
+        # find a solution to that issue. Maybe we could include this file before
+        # the project() command to solve the issue, but I don't know what effects
+        # that may have.
+        # I also tried:
 
+        # a) write compiler wrapper - cannot be set afterwards
+#       	file(WRITE ${CMAKE_BINARY_DIR}/scalasca_mpicxx
+#    		"#! /bin/sh"
+#    		"# THIS IS AN AUTOMATICALL GENERATED FILE. DO NOT EDIT!\n"
+#    		"${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}")
+#        set(CMAKE_CXX_COMPILER "${CMAKE_BINARY_DIR}/scalasca_mpicxx")
+
+         # b) resetting compiler: does not work, only allowed before PROJECT() command
 #        set(CMAKE_CXX_COMPILER "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER} ")
+
+         # c) does not work, since RULE_LAUNCH_LINK also prefixes Archiver (ar)
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "scalasca -instrument -comp=none -user ")
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "scalasca -instrument -comp=none -user ")
+
+        # add compile flags
 		add_cxx_flag("${SCALASCA_USER_CFLAGS}")
     	add_definitions(-DUG_PROFILER_SCALSACA)    
     
