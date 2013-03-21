@@ -554,7 +554,7 @@ class AssembledMultiGridCycle :
 	 *	mapGlobalToPatch either has to be empty or of the same size as d.
 	 */
 		void gather_on_ghosts(vector_type& d, vector_type& tmp,
-							  vector<int>& mapGlobalToPatch);
+					std::vector<int>& mapGlobalToPatch);
 
 	/**
 	 *	broadcasts the vector using vertical interfaces.
