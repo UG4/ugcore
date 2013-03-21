@@ -451,7 +451,8 @@ bool CompositeConvCheck<TVector, TDomain>::post()
 		if (m_timeMeas)
 		{
 			number time = m_stopwatch.ms()/1000.0;
-			tmsg << " (t: " << setprecision(3) << time << "s;  t/it: " << time / step() << "s)";
+			tmsg << " (t: " << std::setprecision(3) << time << "s;  t/it: "
+					<< time / step() << "s)";
 		}
 		if (success) {UG_LOG("  Iteration converged" << tmsg.str() << "  ");}
 		else {UG_LOG("  Iteration not successful" << tmsg.str() << "  ");}
