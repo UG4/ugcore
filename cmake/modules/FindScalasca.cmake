@@ -45,7 +45,7 @@ endif(PKG_CONFIG_FOUND)
 
 # search command line tools
 find_program(SCALASCA_COMMAND scalasca)
-find_program(SCALASCA_KCONFIG scalasca)
+find_program(SCALASCA_KCONFIG kconfig)
 
 # run scalasca and try to extract include hints
 execute_process(COMMAND ${SCALASCA_KCONFIG} "--user --cflags" RESULT_VARIABLE SCALASCA_KCONFIG_CFLAGS_RES OUTPUT_VARIABLE SCALASCA_USER_CFLAGS)
