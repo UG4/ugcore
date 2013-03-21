@@ -58,6 +58,9 @@ void AutoProfileNode::release()
 #ifdef UG_PROFILER_SCALASCA
 		EPIK_USER_END(m_pName);
 #endif
+#ifdef UG_PROFILER_VAMPIR
+		VT_USER_END(m_pName);
+#endif
 		m_bActive = false;
 	}
 }

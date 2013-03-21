@@ -32,30 +32,40 @@ class RuntimeProfileInfo
 
 		inline void beginNode()
 		{
+			UG_LOG("*********   ProfileNode START: begin\n");
 #ifdef UG_PROFILER_SHINY
 			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
 #endif
 #ifdef UG_PROFILER_SCALASCA
 			if(pName == NULL)
 				UG_LOG("*********   ProfileNode START: pName NULL, bCopyName="<<bNameCopied<<"\n");
-			UG_LOG("*********   ProfileNode START: "<<pName<<" ... ");
+			UG_LOG("*********   ProfileNode START: "<<pName<<"(copy="<<bNameCopied<<") ... ");
 			EPIK_USER_START(pName);
 			UG_LOG("done.\n");
 #endif
+#ifdef UG_PROFILER_VAMPIR
+			VT_USER_START(pName);
+#endif
+			UG_LOG("*********   ProfileNode START: end\n");
 		}
 
 		inline void endNode()
 		{
+			UG_LOG("*********   ProfileNode END  : begin\n");
 #ifdef UG_PROFILER_SHINY
 			Shiny::ProfileManager::instance._endCurNode();
 #endif
 #ifdef UG_PROFILER_SCALASCA
 			if(pName == NULL)
 				UG_LOG("*********   ProfileNode END  : pName NULL, bCopyName="<<bNameCopied<<"\n");
-			UG_LOG("*********   ProfileNode END  : "<<pName<<" ... ");
+			UG_LOG("*********   ProfileNode END  : "<<pName<<"(copy="<<bNameCopied<<") ... ");
 			EPIK_USER_END(pName);
 			UG_LOG("done.\n");
 #endif
+#ifdef UG_PROFILER_VAMPIR
+			VT_USER_END(pName);
+#endif
+			UG_LOG("*********   ProfileNode END  : end\n");
 		}
 
 	private:

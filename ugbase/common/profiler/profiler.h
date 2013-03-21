@@ -136,6 +136,44 @@ class AutoProfileNode
 
 #endif // UG_PROFILER_SCALASCA
 
+#ifdef UG_PROFILER_VAMPIR
+	#include "vt_user.h"
+
+	#define PROFILE_STRINGIFY(x) #x
+	#define PROFILE_TOSTRING(x) PROFILE_STRINGIFY(x)
+
+	/**	Creates a new profile-environment with the given name.
+	 * Note that the profiled section automatically ends when the current ends.
+	 */
+	#define PROFILE_BEGIN(name)	\
+			VT_USER_START(PROFILE_TOSTRING(name));	\
+			AutoProfileNode	apn_##name(PROFILE_TOSTRING(name));	\
+
+	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
+	#define PROFILE_END()										\
+			ProfileNodeManager::release_latest()
+
+	/**	Profiles the whole function*/
+	#define PROFILE_FUNC()										\
+			VT_TRACER(__FUNCTION__)
+
+	#define PROFILE_BEGIN_GROUP(name, group)					\
+			PROFILE_BEGIN(name)
+
+	#define PROFILE_FUNC_GROUP(group)							\
+			PROFILE_FUNC()
+
+	namespace ProfilerDummy{
+		inline void Update(float a = 0.0f)			{}
+		inline bool Output(const char *a = NULL)	{return false;}
+		inline bool Output(std::ostream &a)			{return false;}
+	}
+
+	#define PROFILER_UPDATE	ProfilerDummy::Update
+	#define PROFILER_OUTPUT	ProfilerDummy::Output
+
+#endif // UG_PROFILER_VAMPIR
+
 
 #else
 	#include <iostream>
