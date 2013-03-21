@@ -5,8 +5,13 @@
  */
 
 #include "common/util/file_util.h"
-#include <vector>
+#include "common/ug_config.h"
+#include "common/error.h"
+#include "common/assert.h"
+#include "common/profiler/profiler.h"
 
+#include <vector>
+#include <cstring>
 
 using namespace std;
 

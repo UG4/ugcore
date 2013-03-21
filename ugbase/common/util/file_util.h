@@ -12,14 +12,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <cstring>
-
 #include "common/ug_config.h"
-#include "common/error.h"
-#include "common/assert.h"
-#include "common/profiler/profiler.h"
-
-using namespace std;
 
 namespace ug
 {
@@ -128,7 +121,7 @@ UG_API std::string GetTmpPath();
  * \param bText if true, open file with r, otherwise rb
  * used in \sa ParallelReadFile and Script
  */
-UG_API bool ReadFile(const char* filename, vector<char> &file, bool bText);
+UG_API bool ReadFile(const char* filename, std::vector<char> &file, bool bText);
 
 
 /**
