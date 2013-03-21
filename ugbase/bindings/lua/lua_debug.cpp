@@ -421,7 +421,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				else
 				{		
 					const char *source = ar->source;
-					int line = ar->linedefined;
+					int line = ar->currentline;
 					pRuntimeProfileInfo &pi = pis[source][line];
 
 					//UG_LOG("end profile node\n");
