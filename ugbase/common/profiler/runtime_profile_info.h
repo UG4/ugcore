@@ -36,7 +36,7 @@ class RuntimeProfileInfo
 #endif
 #ifdef UG_PROFILER_SCALASCA
 			if(pName == NULL)
-				UG_LOG("*********   ProfileNode START: pName NULL, bCopyName="<<bCopyName<<"\n");
+				UG_LOG("*********   ProfileNode START: pName NULL, bCopyName="<<bNameCopied<<"\n");
 			UG_LOG("*********   ProfileNode START: "<<pName<<" ... ");
 			EPIK_USER_START(pName);
 			UG_LOG("done.\n");
@@ -50,7 +50,7 @@ class RuntimeProfileInfo
 #endif
 #ifdef UG_PROFILER_SCALASCA
 			if(pName == NULL)
-				UG_LOG("*********   ProfileNode END  : pName NULL, bCopyName="<<bCopyName<<"\n");
+				UG_LOG("*********   ProfileNode END  : pName NULL, bCopyName="<<bNameCopied<<"\n");
 			UG_LOG("*********   ProfileNode END  : "<<pName<<" ... ");
 			EPIK_USER_END(pName);
 			UG_LOG("done.\n");
