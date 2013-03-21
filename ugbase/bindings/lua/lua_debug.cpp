@@ -367,7 +367,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				lua_Debug entry;
 				if(line < 0 && bProfileLUALines && lua_getstack(L, 1, &entry))
 				{
-					lua_getinfo(L, "Sl", &entry);
+					lua_getinfo(L, "Sln", &entry);
 					source = entry.source;
 					line = entry.currentline;
 				}
