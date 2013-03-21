@@ -407,23 +407,26 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		{		
 			if(bStartProfiling) { bStartProfiling = false; return; }
 			lua_getinfo(L, "Sln", ar);
+
+			const char *source = ar->source;
+			int line = ar->currentline;
+
 			if(ar->what[0] == 'L' || ar->what[0] == 'C')
 			{
-				/*int line = ar->currentline;
 				lua_Debug entry;
 				if(line < 0 && bProfileLUALines && lua_getstack(L, 1, &entry))
 				{
-					lua_getinfo(L, "Sln", &entry);
+					lua_getinfo(L, "Sl", &entry);
+					source = entry.source;
 					line = entry.currentline;
-				}*/
+				}
+
 				if(profilingEndDepth>0)
 					profilingEndDepth--;
 				//UG_ASSERT(pis[ar->source][ar->linedefined]->isCurNode(), "profiler nodes not matching. forgot a PROFILE_END?");
 				else
 				{		
-					const char *source = ar->source;
-					int line = ar->currentline;
-				 UG_LOG("#### end   ##source: "<<source<<", line: "<<line<<"\n");
+					UG_LOG("#### end   ##source: "<<source<<", line: "<<line<<"\n");
 					pRuntimeProfileInfo &pi = pis[source][line];
 
 					//UG_LOG("end profile node\n");
