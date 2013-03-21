@@ -212,7 +212,7 @@ void MatrixIOMtx::query_matrix_type()
   first_line.str( s );
 
   // split the line into its specified parts
-  string buffer_str = "";
+  std::string buffer_str = "";
   std::vector<std::string> banner_items;
   while( first_line >> buffer_str ) {
     banner_items.push_back( buffer_str );
