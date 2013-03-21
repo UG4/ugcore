@@ -107,8 +107,8 @@ class AutoProfileNode
 	 * Note that the profiled section automatically ends when the current ends.
 	 */
 	#define PROFILE_BEGIN(name)	\
-		EPIK_USER_REG(name, PROFILE_TOSTRING(reg_##name))	\
-		EPIK_USER_BEGIN(name)	\
+		EPIK_USER_REG((name), PROFILE_TOSTRING((reg_##name)))	\
+		EPIK_USER_BEGIN((name))	\
 		AutoProfileNode	id(name);								\
 
 	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
@@ -120,7 +120,7 @@ class AutoProfileNode
 			EPIK_TRACER(PROFILE_TOSTRING(__FUNCTION__))
 
 	#define PROFILE_BEGIN_GROUP(name, group)					\
-			PROFILE_BEGIN(name)
+			PROFILE_BEGIN((name))
 
 	#define PROFILE_FUNC_GROUP(group)							\
 			PROFILE_FUNC()

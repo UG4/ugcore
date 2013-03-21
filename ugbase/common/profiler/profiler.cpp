@@ -56,7 +56,7 @@ void AutoProfileNode::release()
 		Shiny::ProfileManager::instance._endCurNode();
 #endif
 #ifdef UG_PROFILER_SCALASCA
-		EPIK_USER_END(name);
+		EPIK_USER_END(m_pName);
 #endif
 		m_bActive = false;
 	}
