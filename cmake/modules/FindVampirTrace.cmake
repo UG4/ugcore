@@ -6,7 +6,8 @@
 # It sets the following variables:
 #  VAMPIRTRACE_FOUND       - Set to false, or undefined, if VampirTrace isn't found.
 #  VAMPIRTRACE_INCLUDE_DIR - The VampirTrace include directory.
-#  VAMPIRTRACE_LIBRARY     - The VampirTrace library to link against.
+#  VAMPIRTRACE_LIBRARIES   - The VampirTrace libraries to link against.
+#  VAMPIRTRACE_VT_LIBRARY  - The vt libraries to link against.
 #  VAMPIRTRACE_OTF_LIBRARY - The otf library to link against.
 #  VAMPIRTRACE_CXX         - The full path command for vtcxx
 #  VAMPIRTRACE_CC          - The full path command for vtcc
