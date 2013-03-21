@@ -107,7 +107,7 @@ class AutoProfileNode
 	 * Note that the profiled section automatically ends when the current ends.
 	 */
 	#define PROFILE_BEGIN(name)	\
-		EPIK_USER_REG((name), PROFILE_TOSTRING((reg_##name)))	\
+		EPIK_USER_REG((name), PROFILE_TOSTRING((name)))	\
 		EPIK_USER_START((name))	\
 		AutoProfileNode	id(name);								\
 
