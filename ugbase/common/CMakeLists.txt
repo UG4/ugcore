@@ -40,14 +40,18 @@ set(sources ${srcCommon})
 
 if(UG_PROFILER)
 	set(srcProfiler	profiler/profiler.cpp
-	                profiler/runtime_profile_info.cpp
-					profiler/src/ShinyManager.cpp
+	                profiler/runtime_profile_info.cpp)	
+	set(sources ${sources} ${srcProfiler})
+endif(UG_PROFILER)
+
+if(UG_PROFILER_SHINY)
+	set(srcShiny	profiler/src/ShinyManager.cpp
 					profiler/src/ShinyNode.cpp
 					profiler/src/ShinyNodePool.cpp
 					profiler/src/ShinyOutput.cpp
 					profiler/src/ShinyTools.cpp)	
-	set(sources ${sources} ${srcProfiler})
-endif(UG_PROFILER)
+	set(sources ${sources} ${srcShiny})
+endif(UG_PROFILER_SHINY)
 
 # add support for UGProfileNode any case
 set(sources ${sources} profiler/profile_node.cpp)

@@ -502,7 +502,8 @@ endif()
 if(NOT("${PROFILER}" STREQUAL "None"))
     if("${PROFILER}" STREQUAL "Shiny")
     	add_definitions(-DUG_PROFILER_SHINY)    
-    
+     	set(UG_PROFILER_SHINY ON)               # add Cmake variable
+        
     # Scalasca
     elseif("${PROFILER}" STREQUAL "Scalasca")
         find_package(Scalasca)

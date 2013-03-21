@@ -75,7 +75,7 @@ void ug_backtrace()
 	
 #ifdef UG_POSIX
 
-#ifdef UG_PROFILER
+#ifdef UG_PROFILER_SHINY
 	UG_LOG("Profiler Backtrace:\n")
 	Shiny::ProfileNode *p = Shiny::ProfileManager::instance._curNode;
 	while(p != &Shiny::ProfileManager::instance.rootNode)

@@ -4,6 +4,8 @@
  
 #include "profiler.h"
 
+#ifdef UG_PROFILER
+
 void ProfileNodeManager::
 add(AutoProfileNode* node)
 {
@@ -16,8 +18,7 @@ release_latest()
 	if(!inst().m_nodes.empty()){
 		AutoProfileNode* node = inst().m_nodes.top();
 		inst().m_nodes.pop();
-		node->deactivate();
-		Shiny::ProfileManager::instance._endCurNode();
+		node->release();
 	}
 }
 
@@ -42,9 +43,23 @@ inst()
 
 
 
-AutoProfileNode::AutoProfileNode() : m_bActive(true)
+AutoProfileNode::AutoProfileNode(const char* name)
+	: m_bActive(true), m_pName(name)
 {
 	ProfileNodeManager::add(this);
+}
+
+void AutoProfileNode::release()
+{
+	if(m_bActive){
+#ifdef UG_PROFILER_SHINY
+		Shiny::ProfileManager::instance._endCurNode();
+#endif
+#ifdef UG_PROFILER_SCALASCA
+		EPIK_USER_END(name);
+#endif
+		m_bActive = false;
+	}
 }
 
 AutoProfileNode::~AutoProfileNode()
@@ -54,3 +69,4 @@ AutoProfileNode::~AutoProfileNode()
 	}
 }
 
+#endif

@@ -23,25 +23,33 @@ class RuntimeProfileInfo
 {
 	public:
 		RuntimeProfileInfo(const char* name = NULL, bool bCopyName = false,
-		                          const char* groups = NULL, bool bCopyGroup = false,
-		                          const char* file = NULL, bool bCopyFile = false,
-		                          int line = 0);
+		                   const char* groups = NULL, bool bCopyGroup = false,
+		                   const char* file = NULL, bool bCopyFile = false,
+		                   int line = 0);
 
 		~RuntimeProfileInfo();
 
 		inline void beginNode()
 		{
+#ifdef UG_PROFILER_SHINY
 			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
+#endif
+#ifdef UG_PROFILER_SCALASCA
+			EPIK_USER_BEGIN(name);
+#endif
 		}
 
 		inline void endNode()
 		{
+#ifdef UG_PROFILER_SHINY
 			Shiny::ProfileManager::instance._endCurNode();
+#endif
+#ifdef UG_PROFILER_SCALASCA
+			EPIK_USER_END(name);
+#endif
 		}
 
 	private:
-		Shiny::ProfileZone profileInformation;
-		Shiny::ProfileNodeCache profilerCache;
 		bool bNameCopied;
 		bool bGroupCopied;
 		bool bFileCopied;
@@ -49,6 +57,12 @@ class RuntimeProfileInfo
 		const char* pGroup;
 		const char* pFile;
 		int iLine;
+
+#ifdef UG_PROFILER_SHINY
+		Shiny::ProfileZone profileInformation;
+		Shiny::ProfileNodeCache profilerCache;
+#endif
+
 };
 
 typedef RuntimeProfileInfo* pRuntimeProfileInfo;

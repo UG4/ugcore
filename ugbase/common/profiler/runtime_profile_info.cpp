@@ -40,6 +40,7 @@ RuntimeProfileInfo::RuntimeProfileInfo(
 	}
 	iLine = line;
 
+#ifdef UG_PROFILER_SHINY
 	Shiny::ProfileZone pi = {NULL, Shiny::ProfileZone::STATE_HIDDEN, NULL, NULL, NULL, 0,
 	                         { { 0, 0 }, { 0, 0 }, { 0, 0 } }};
 	profileInformation = pi;
@@ -48,6 +49,7 @@ RuntimeProfileInfo::RuntimeProfileInfo(
 	profileInformation.file = pFile;
 	profileInformation.line = iLine;
 	profilerCache =	&Shiny::ProfileNode::_dummy;
+#endif
 }
 
 RuntimeProfileInfo::~RuntimeProfileInfo()
