@@ -509,6 +509,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
         if(SCALASCA_FOUND)
             message("-- Info: Scalasca: using scalasca command: ${SCALASCA_COMMAND}")
             message("-- Info: Scalasca: using inlcude dir: ${SCALASCA_INCLUDE_DIR}")
+            message("-- Info: Scalasca: using cxx flags: ${SCALASCA_USER_CFLAGS}")
         else(SCALASCA_FOUND)
         	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
         	        "binary scalasca/kconfig. Make sure "
