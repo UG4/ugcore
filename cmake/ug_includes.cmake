@@ -505,7 +505,15 @@ if(NOT("${PROFILER}" STREQUAL "None"))
     
     # Scalasca
     elseif("${PROFILER}" STREQUAL "Scalasca")
-    	message(FATAL_ERROR "Scalasca not yet done.")
+        find_package(Scalasca)
+        if(SCALASCA_FOUND)
+            message("-- Info: Scalasca: using scalasca command: ${SCALASCA_COMMAND}")
+            message("-- Info: Scalasca: using inlcude dir: ${SCALASCA_INCLUDE_DIR}")
+        else(SCALASCA_FOUND)
+        	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
+        	        "binary scalasca/kconfig. Make sure "
+        	        "that PATH contains scalasca and kconfig executable.")
+        endif(SCALASCA_FOUND)
     	add_definitions(-DUG_PROFILER_SCALSACA)    
     
     # Vampir
