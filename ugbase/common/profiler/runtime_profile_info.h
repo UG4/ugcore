@@ -35,7 +35,11 @@ class RuntimeProfileInfo
 			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
 #endif
 #ifdef UG_PROFILER_SCALASCA
+			if(pName == NULL)
+				UG_LOG("*********   ProfileNode START: pName NULL, bCopyName="<<bCopyName<<"\n");
+			UG_LOG("*********   ProfileNode START: "<<pName<<" ... ");
 			EPIK_USER_START(pName);
+			UG_LOG("done.\n");
 #endif
 		}
 
@@ -45,7 +49,11 @@ class RuntimeProfileInfo
 			Shiny::ProfileManager::instance._endCurNode();
 #endif
 #ifdef UG_PROFILER_SCALASCA
+			if(pName == NULL)
+				UG_LOG("*********   ProfileNode END  : pName NULL, bCopyName="<<bCopyName<<"\n");
+			UG_LOG("*********   ProfileNode END  : "<<pName<<" ... ");
 			EPIK_USER_END(pName);
+			UG_LOG("done.\n");
 #endif
 		}
 

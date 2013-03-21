@@ -117,7 +117,7 @@ class AutoProfileNode
 
 	/**	Profiles the whole function*/
 	#define PROFILE_FUNC()										\
-			EPIK_TRACER(PROFILE_TOSTRING(__FUNCTION__))
+			EPIK_TRACER(__FUNCTION__)
 
 	#define PROFILE_BEGIN_GROUP(name, group)					\
 			PROFILE_BEGIN(name)
