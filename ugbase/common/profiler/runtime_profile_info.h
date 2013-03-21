@@ -35,7 +35,7 @@ class RuntimeProfileInfo
 			Shiny::ProfileManager::instance._beginNode(&profilerCache, &profileInformation);
 #endif
 #ifdef UG_PROFILER_SCALASCA
-			EPIK_USER_BEGIN(pName);
+			EPIK_USER_START(pName);
 #endif
 		}
 
