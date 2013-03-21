@@ -540,9 +540,9 @@ void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
 	int si2 = sh.get_subset_index(sName2);
 
 	if (si1 == -1)
-		UG_THROW("given subset name " << sName1 << " does not exist");
+		UG_THROW("IdentifySubsets: given subset name " << sName1 << " does not exist");
 	if (si2 == -1)
-		UG_THROW("given subset name " << sName2 << " does not exist");
+		UG_THROW("IdentifySubsets: given subset name " << sName2 << " does not exist");
 
 	IdentifySubsets(dom, si1, si2);
 }
@@ -551,8 +551,11 @@ void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
 template <class TDomain>
 void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	if (sInd1 == -1 || sInd2 == -1) {
-		UG_LOG("IdentifySubsets: at least one invalid subset given.\n")
-		return;
+		UG_THROW("IdentifySubsets: at least one invalid subset given!")
+	}
+
+	if(sInd1 == sInd2) {
+		UG_THROW("IdentifySubsets: can not identify two identical subsets!")
 	}
 
 	// ensure grid has support for periodic boundaries
@@ -582,6 +585,10 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	// collect all geometric objects (even for all levels in case of multi grid)
 	GeometricObjectCollection goc1 = sh.get_geometric_objects_in_subset(sInd1);
 	GeometricObjectCollection goc2 = sh.get_geometric_objects_in_subset(sInd2);
+
+	if(goc1.num<VertexBase>() != goc2.num<VertexBase>()) {
+		UG_THROW("IdentifySubsets: Given subsets have different number of vertices.")
+	}
 
 	// map start type of recursion dependent to TDomain
 	// in 3d start with faces, in 2d with edges, in 1d with vertices
