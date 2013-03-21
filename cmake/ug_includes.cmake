@@ -532,7 +532,10 @@ if(NOT("${PROFILER}" STREQUAL "None"))
 #        set(CMAKE_CXX_COMPILER "${CMAKE_BINARY_DIR}/scalasca_mpicxx")
 
          # b) resetting compiler: does not work, only allowed before PROJECT() command
-#        set(CMAKE_CXX_COMPILER "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER} ")
+#        if(NOT ("${CMAKE_CXX_COMPILER}" STREQUAL "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}"))
+#        set(CMAKE_CXX_COMPILER "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}")
+#        endif(NOT ("${CMAKE_CXX_COMPILER}" STREQUAL "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}"))
+#        set(CXX "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER} ")
 
          # c) does not work, since RULE_LAUNCH_LINK also prefixes Archiver (ar)
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "scalasca -instrument -comp=none -user ")
