@@ -391,7 +391,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 						//const char*p = GetFileLine(source, line).c_str();
 						//strncat(buf, p+strspn(p, " \t"), 254);
 
-						pi = new RuntimeProfileInfo(buf, true, "lua", false, source, true, line);
+						pis[source][line] = new RuntimeProfileInfo(buf, true, "lua", false, source, true, line);
 						// UG_LOG(buf);
 					 }
 
