@@ -205,6 +205,21 @@ void MemSwap(T &a, T &b)
 /**
  * PINVIT Eigensolver
  *
+ * This Eigensolver solves problems of the form
+ * Ax = lambda B x
+ * For sparse matrices A and B, and we want to find the smallest (in terms of abs(lambda) ) e.g. 1-100 solutions (eigenvalues) of the problem.
+ * For this we need a preconditioner, calculating c = Pd (e.g. Jacobi, Gauss-Seidel, Geometric/Algebraic Multigrid, ILU).
+ *
+ * This implements the PINVIT(s) methods, with s=2 = LOBPCG
+ * see Martin Rupp - Berechnung der Resonanzschwingungen einer Gitarrendecke (Diploma thesis)
+ * and Andrew Knyazew, Toward the optimal Preconditioned Eigensolver: Locally Optimal Block Preconditioned
+ * 	Conjugate Gradient Method. http://epubs.siam.org/doi/pdf/10.1137/S1064827500366124
+ *
+ * iPINVIT=1  -> Preconditioned Inverse Block Iteration [Neymeyr]
+ * iPINVIT=2  -> Preconditioned Block Gradient Method
+ * iPINVIT=3  -> LOBPCG (locally optimal block preconditioned gradient) [Knyazew]
+ * iPINVIT>=4 -> gerneralized methods.
+ *
  * example:
  * \code
  * EigenSolver eig;
@@ -225,6 +240,8 @@ void MemSwap(T &a, T &b)
  * 	 eig:add_vector(ev[i])
  * end
  * \endcode
+ *
+
  */
 template<typename TAlgebra>
 class PINVIT
@@ -280,21 +297,24 @@ public:
 		px.push_back(&vec);
 	}
 
+	/**
+	 * set the preconditioner (or Linear Iterator)
+	 * e.g. Gauss-Seidel, AMG/GMG, Jacobi, ILU, ...
+	 * @param precond
+	 */
 	void set_preconditioner(SmartPtr<ILinearIterator<vector_type> > precond)
 	{
 		m_spPrecond = precond;
 	}
 
-	bool set_linear_operator_A(SmartPtr<ILinearOperator<vector_type> > A)
+	void set_linear_operator_A(SmartPtr<ILinearOperator<vector_type> > A)
 	{
 		m_pA = A;
-		return true;
 	}
 
-	bool set_linear_operator_B(matrix_operator_type &B)
+	void set_linear_operator_B(matrix_operator_type &B)
 	{
 		m_pB = &B;
-		return true;
 	}
 
 	void set_max_iterations(size_t maxIterations)
@@ -307,6 +327,193 @@ public:
 		m_dPrecision = precision;
 	}
 
+	/**
+	 * iPINVIT=1  -> Preconditioned Inverse Block Iteration [Neymeyr]
+	 * iPINVIT=2  -> Preconditioned Block Gradient Method
+	 * iPINVIT=3  -> LOBPCG (locally optimal block preconditioned gradient) [Knyazew]
+	 * iPINVIT>=4 -> gerneralized methods.
+	 * @param iPINVIT
+	 */
+	void set_pinvit(size_t iPINVIT)
+	{
+		m_iPINVIT = iPINVIT;
+		UG_ASSERT(iPINVIT >=1 && iPINVIT <= 3, "i has to be >= 1 and <= 3, but is " << iPINVIT);
+	}
+
+	/**
+	 * perform the calculation
+	 * @return
+	 */
+	int apply()
+	{
+		UG_LOG("Eigensolver\n");
+		DenseMatrix<VariableArray2<double> > rA;
+		DenseMatrix<VariableArray2<double> > rB;
+		DenseMatrix<VariableArray2<double> > r_ev;
+		DenseVector<VariableArray1<double> > r_lambda;
+		std::vector<double> lambda;
+
+		typedef typename vector_type::value_type value_type;
+		vector_type defect;
+		CloneVector(defect, *px[0]);
+		size_t n = px.size();
+
+		size_t size = px[0]->size();
+		/*
+		ParallelMatrix<SparseMatrix<double> > B;
+		B.resize(size, size);
+		for(size_t i=0; i<size; i++)
+			B(i,i) = 0.00390625;
+		B.set_storage_type(PST_ADDITIVE);*/
+
+		vector_type tmp;
+		CloneVector(tmp, *px[0]);
+		std::vector<vector_type> vCorr;
+
+		std::vector<vector_type> vOldX;
+
+
+		lambda.resize(n);
+		vCorr.resize(n);
+		vOldX.resize(n);
+		for(size_t i=0; i<n; i++)
+		{
+			UG_ASSERT(px[0]->size() == px[i]->size(), "all vectors must have same size");
+			CloneVector(vCorr[i], *px[0]);
+			CloneVector(vOldX[i], *px[0]);
+
+			//PrintStorageType(*px[i]);
+			//PrintStorageType(vCorr[i]);
+			//PrintStorageType(vOldX[i]);
+		}
+
+		std::vector<vector_type *> pTestVectors;
+
+		std::vector<double> vDefectNorm(n, m_dPrecision*10);
+		std::vector<double> oldXnorm(n);
+
+		std::vector<std::string> vTestVectorDescription;
+
+		m_spPrecond->init(m_pA);
+#ifdef UG_PARALLEL
+		pcl::ProcessCommunicator pc;
+#endif
+
+		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
+		{
+
+			UG_LOG("iteration " << iteration << "\n");
+
+			// 0. normalize
+			normalize_approximations();
+
+
+			// 1. before calculating new correction, save old correction
+			save_old_approximations(vOldX);
+
+			//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
+			size_t nrofconverged=0;
+
+
+			write_debug(iteration);
+			for(size_t i=0; i<n; i++)
+			{
+				compute_rayleigh_and_new_correction(*px[i], lambda[i], defect, vDefectNorm[i], vCorr[i]);
+				if(vDefectNorm[i] < m_dPrecision)
+					nrofconverged++;
+			}
+
+
+			// output
+			print_eigenvalues_and_defect(iteration, vDefectNorm, oldXnorm, lambda);
+
+			if(nrofconverged==n)
+			{
+				UG_LOG("all eigenvectors converged\n");
+				return true;
+			}
+
+			// 5. add Testvectors
+			//UG_LOG("5. add Testvectors\n");
+
+			get_testvectors(iteration, vCorr, vOldX, pTestVectors, vTestVectorDescription, vDefectNorm);
+
+
+			/*for(size_t i=0; i<vTestVectorDescription.size(); i++)
+			{	UG_LOG(vTestVectorDescription[i] << "\n");	} */
+
+			// 5. compute reduced Matrices rA, rB
+
+			get_projected_eigenvalue_problem(rA, rB, pTestVectors, vTestVectorDescription);
+
+
+			// 6. solve reduced eigenvalue problem
+			size_t iNrOfTestVectors = pTestVectors.size();
+			r_ev.resize(iNrOfTestVectors, iNrOfTestVectors);
+			r_lambda.resize(iNrOfTestVectors);
+
+			// solve rA x = lambda rB, --> r_ev, r_lambda
+			GeneralizedEigenvalueProblem(rA, r_ev, r_lambda, rB, true);
+
+			size_t nrzero;
+			for(nrzero=0; nrzero<iNrOfTestVectors; nrzero++)
+				if(r_lambda[nrzero] > 1e-15)
+					break;
+
+			if(nrzero)
+			{
+				UG_LOG("Lambda < 0: \n");
+				for(size_t i=0; i<nrzero; i++)
+				{
+					UG_LOG(i << ".: " << r_lambda[i] << "\n");
+
+				}
+			}
+			UG_LOG("Lambda > 0: \n");
+			for(size_t i=nrzero; i<r_lambda.size(); i++)
+				UG_LOG(i << ".: " << r_lambda[i] << "\n");
+			UG_LOG("\n");
+
+			/*UG_LOG("evs: \n");
+			for(size_t c=nrzero; c < std::min(nrzero+n, r_ev.num_cols()); c++)
+			{
+				UG_LOG("ev [" << c << "]:\n");
+				for(size_t r=0; r<r_ev.num_rows(); r++)
+					if(dabs(r_ev(r, c)) > 1e-9 )
+						UG_LOG(std::setw(14) << r_ev(r, c) << "   " << vTestVectorDescription[r] << "\n");
+				UG_LOG("\n\n");
+			}*/
+
+#ifdef UG_PARALLEL
+			for(size_t i=0; i<iNrOfTestVectors; i++)
+				pTestVectors[i]->change_storage_type(PST_UNIQUE);
+			for(size_t i=0; i<n; i++)
+				px[i]->change_storage_type(PST_UNIQUE);
+#endif
+			// assume r_lambda is sorted
+			std::vector<typename vector_type::value_type> x_tmp(n);
+			for(size_t i=0; i<size; i++)
+			{
+				// since x is part of the Testvectors, temporary safe result in x_tmp.
+				for(size_t r=0; r<n; r++)
+				{
+					x_tmp[r] = 0.0;
+					for(size_t c=0; c<iNrOfTestVectors; c++)
+						x_tmp[r] += r_ev(c, r+nrzero) * (*pTestVectors[c])[i];
+				}
+
+				// now overwrite
+				for(size_t r=0; r<n; r++)
+					(*px[r])[i] = x_tmp[r];
+
+			}
+		}
+
+		UG_LOG("not converged after" << m_maxIterations << " steps.\n");
+		return false;
+	}
+
+private:
 	void write_debug(int iteration)
 	{
 		for(size_t i=0; i<px.size(); i++)
@@ -330,7 +537,16 @@ public:
 			(*px[i]) *= 1/ (B_norm(*px[i]));
 	}
 
-	void compute_rayleigh_and_new_correction(vector_type &x, vector_type &defect, vector_type &corr, double &lambda, double &defectNorm)
+	/**
+	 * For a given eigenvalue approximation, computes the
+	 * rayleigh quotient, the defect, the norm of the defect, and the correction calculated by the preconditioner
+	 * @param[in]  x			current normalized eigenvalue approximation (<x,x> = 1)
+	 * @param[out] lambda		lambda = <x, Ax> / <x, x>
+	 * @param[out] defect		defect = lambda x - Ax
+	 * @param[out] vDefectNorm 	vDefectNorm = | defect |_2
+	 * @param[out] vCorr		P defect
+	 */
+	void compute_rayleigh_and_new_correction(vector_type &x, double &lambda, vector_type &defect, double &vDefectNorm, vector_type &vCorr)
 	{
 // a. compute rayleigh quotients
 		// lambda = <x, Ax>/<x,x>
@@ -373,95 +589,166 @@ public:
 #ifdef UG_PARALLEL
 		defect.change_storage_type(PST_UNIQUE);
 #endif
-		defectNorm = defect.norm();
+		vDefectNorm = defect.norm();
 #ifdef UG_PARALLEL
 		defect.change_storage_type(PST_UNIQUE);
 #endif
-		if(defectNorm < 1e-12)
+		if(vDefectNorm < 1e-12)
 			return;
 
 // d. apply preconditioner
-		m_spPrecond->apply(corr, defect);
-		corr *= 1/ B_norm(corr);
+		m_spPrecond->apply(vCorr, defect);
+		vCorr *= 1/ B_norm(vCorr);
 #ifdef UG_PARALLEL
-		corr.change_storage_type(PST_UNIQUE);
+		vCorr.change_storage_type(PST_UNIQUE);
 #endif
 
 	}
 
-	void print_eigenvalues_and_defect(int iteration, std::vector<double> &defectNorm, std::vector<double> &oldXnorm,	std::vector<double> &lambda)
+	/**
+	 * prints the current eigenvalues and convergence status
+	 * @param[in] 		iteration		iteration number
+	 * @param[in] 		vDefectNorm		vector of defect norms
+	 * @param[in,out] 	vOldDefectNorm	vector of defect norms from previous iteration
+	 * @param[in] 		vLambda			vector of eigenvalue approximations
+	 */
+	void print_eigenvalues_and_defect(int iteration, const std::vector<double> &vDefectNorm,
+			std::vector<double> &vOldDefectNorm, const std::vector<double> &vLambda)
 	{
 		UG_LOG("================================================\n");
 		UG_LOG("iteration " << iteration << "\n");
 
-		for(size_t i=0; i<lambda.size(); i++)
+		for(size_t i=0; i<vLambda.size(); i++)
 		{
-			UG_LOG(i << " lambda: " << std::setw(14) << lambda[i] << " defect: " <<
-					std::setw(14) << defectNorm[i]);
-			if(iteration != 0) { UG_LOG(" reduction: " << std::setw(14) << defectNorm[i]/oldXnorm[i]); }
+			UG_LOG(i << " lambda: " << std::setw(14) << vLambda[i] << " defect: " <<
+					std::setw(14) << vDefectNorm[i]);
+			if(iteration != 0) { UG_LOG(" reduction: " << std::setw(14) << vDefectNorm[i]/vOldDefectNorm[i]); }
 			UG_LOG("\n");
-			oldXnorm[i] = defectNorm[i];
+			vOldDefectNorm[i] = vDefectNorm[i];
 		}
 		UG_LOG("\n");
 	}
 
-	void get_testvectors(int iteration, std::vector<vector_type> &corr, std::vector<vector_type> &oldX,
-			std::vector<vector_type *> &pTestVectors, std::vector<std::string> &testVectorDescription,
-			std::vector<double> &defectNorm)
+	/**
+	 * depending on the PINVIT-method, this function calculates the used testvectors
+	 * - for PINVIT(1), projected space is  L^k = span_i < c^k_i - x^{k}_i>,
+	 *   that is (current eigenvalue - correction)
+	 * - PINVIT(s) for s>=2:
+	 *   L^k = span_i < x^{k-s+2}_i , .. x^{k}_i, c^k_i>
+	 *   that is the space spanned by the current eigenvalue, its correction, and the s-2 previous eigenvalue approximations
+	 *
+	 *  if an eigenvalue is converged, we don't calculate a correction for this and previous approximations will be
+	 *  not too much different, so we also won't add previous approximations
+	 * @param[in]  iteration				iteration number
+	 * @param[in]  vCorr					correction for eigenvector approximation
+	 * @param[in]  vOldX					previous eigenvector approximations
+	 * @param[out] pTestVectors				vector in which we store the used test vectors for the projected eigenvalue problem
+	 * @param[out] vTestVectorDescription	description of the vectors (ev, corr or oldEv)
+	 * @param[in]  vDefectNorm				norm of the defects
+	 */
+	void get_testvectors(int iteration, std::vector<vector_type> &vCorr, std::vector<vector_type> &vOldX,
+			std::vector<vector_type *> &pTestVectors, std::vector<std::string> &vTestVectorDescription,
+			const std::vector<double> &vDefectNorm)
 	{
 		pTestVectors.clear();
-		testVectorDescription.clear();
+		vTestVectorDescription.clear();
 		for(size_t i=0; i < px.size(); i++)
 		{
 			if(m_iPINVIT == 1)
 			{
-				// for PINVIT(1), projected space is  L^k = span_i < c^k_i - x^{k}_i>,
-				// that is (current eigenvalue - correction)
-				VecScaleAdd(corr[i], -1.0, corr[i], 1.0, *px[i]);
-				testVectorDescription.push_back(std::string("ev - corr [") + ToString(i) + std::string("]") );
+				VecScaleAdd(vCorr[i], -1.0, vCorr[i], 1.0, *px[i]);
+				vTestVectorDescription.push_back(std::string("ev - vCorr [") + ToString(i) + std::string("]") );
 			}
 			else
 			{
-
-				// PINVIT(s) for s>=2:
-				// L^k = span_i < x^{k-s+2}_i , .. x^{k}_i, c^k_i>
-				// that is the space spanned by the current eigenvalue, its correction, and the s-2 previous eigenvalue approximations
-
 				pTestVectors.push_back(px[i]);
-				testVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
-				// if converged, we don't calculate a correction for this and previous approximations will be
-				// not too much different
-				if(defectNorm[i] < m_dPrecision)
+				vTestVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
+
+				if(vDefectNorm[i] < m_dPrecision)
 						continue;
-				pTestVectors.push_back(&corr[i]);
-				testVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
+				pTestVectors.push_back(&vCorr[i]);
+				vTestVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
 
 				if(m_iPINVIT >= 3)
 				{
-					pTestVectors.push_back(&oldX[i]);
-					testVectorDescription.push_back(std::string("old correction [") + ToString(i) + std::string("]") );
+					pTestVectors.push_back(&vOldX[i]);
+					vTestVectorDescription.push_back(std::string("old correction [") + ToString(i) + std::string("]") );
 
 					if(iteration == 0)
 					{
 						for(size_t j=0; j<px[i]->size(); j++)
-							oldX[i][j] = (*px[i])[j] * urand(-1.0, 1.0);
+							vOldX[i][j] = (*px[i])[j] * urand(-1.0, 1.0);
 					}
 				}
 			}
 		}
 	}
 
+	/**
+	 * save current eigenvector approximation into vector old
+	 * @param[out] old vector to save approximations to
+	 */
 	void save_old_approximations( std::vector<vector_type> &old)
 	{
 		for(size_t i=0; i<px.size(); i++)
-			std::swap(old[i], *px[i]);
+			old[i] = *px[i];
 	}
 
-	void get_projected_eigenvalue_problem(DenseMatrix<VariableArray2<double> > rA,
-			DenseMatrix<VariableArray2<double> > rB, std::vector<vector_type *> pTestVectors,
-			std::vector<std::string> &testVectorDescription)
+	/**
+	 * Calculates a maximal set of rows which are linear independent
+	 * @param[in]  mat					the input matrix
+	 * @param[out] bLinearIndependent	output vector (true if linear independent)
+	 */
+	void get_linear_independent_rows(DenseMatrix<VariableArray2<double> > mat, std::vector<bool> &bLinearIndependent)
 	{
-		//UG_LOG("5. compute reduced Matrices rA, rB\n");
+		// Remove linear depended vectors
+		bLinearIndependent.resize(mat.num_rows(), true);
+		for(size_t i=0; i<mat.num_rows(); i++)
+		{
+			for(size_t j=0; j<i; j++)
+			{
+				if(!bLinearIndependent[i]) continue;
+				double val = mat(i, j)/mat(j,j);
+				mat(i,j) = 0;
+				for(size_t k=j+1; k<mat.num_rows(); k++)
+					mat(i,k) -= val*mat(j, k);
+			}
+			if(mat(i,i) < 1e-8) bLinearIndependent[i] = false;
+			else bLinearIndependent[i] = true;
+		}
+	}
+
+	/**
+	 * remove all entries with vbUse[i]==false from vector i
+	 * @param[in, out] 	v 		vector to contain result
+	 * @param[in] 		vbUse	if vbUse[i] is true, add it to new vector
+	 */
+	template<typename T>
+	void remove_unused(std::vector<T> &v, const std::vector<bool> vbUse)
+	{
+		std::vector<T> tmp = v;
+		v.clear();
+		for(size_t i=0; i<tmp.size(); i++)
+			if(vbUse[i])
+				v.push_back(tmp[i]);
+
+	}
+
+	/**
+	 * Calculate projected eigenvalue problem on space spanned by testvectors in pTestVectors
+	 * 1. calculate W as a subset of the testvectors so that those are linear B-independent
+	 * 2. rA = W^T A W
+	 * 3. rB = W^T B W
+	 * @param[out] rA							reduced eigenvalue problem matrix A
+	 * @param[out] rB							reduced eigenvalue problem matrix B
+	 * @param[in, out] pTestVectors				the testvectors, out: the used testvectors
+	 * @param[in, out] vTestVectorDescription 	their description
+	 */
+	void get_projected_eigenvalue_problem(DenseMatrix<VariableArray2<double> > &rA,
+			DenseMatrix<VariableArray2<double> > &rB, std::vector<vector_type *> &pTestVectors,
+			std::vector<std::string> &vTestVectorDescription)
+	{
+		// 1. calculate W as a subset of the testvectors so that those are linear B-independent
 
 		size_t iNrOfTestVectors = pTestVectors.size();
 		rA.resize(iNrOfTestVectors, iNrOfTestVectors);
@@ -473,50 +760,18 @@ public:
 			MultiScalProd(&pTestVectors[0], rB, iNrOfTestVectors);
 
 
-		/////// Remove linear depended vectors //////////////
+		// Remove linear depended vectors
 		std::vector<bool> bUse;
-		bUse.resize(iNrOfTestVectors, true);
-
-		{
-			DenseMatrix<VariableArray2<double> > mat = rB;
-
-			for(size_t i=0; i<mat.num_rows(); i++)
-			{
-				for(size_t j=0; j<i; j++)
-				{
-					if(!bUse[i]) continue;
-					double val = mat(i, j)/mat(j,j);
-					mat(i,j) = 0;
-					for(size_t k=j+1; k<mat.num_rows(); k++)
-						mat(i,k) -= val*mat(j, k);
-				}
-				if(mat(i,i) < 1e-8) bUse[i] = false;
-				else bUse[i] = true;
-			}
-
-			//for(size_t i=0; i<iNrOfTestVectors; i++)
-				//UG_LOG("Using " << testVectorDescription[i] << (bUse[i] ?"\n":" NOT\n"));
-			//PrintMatrix(rB, "rB");
-			//PrintMatrix(mat, "mat");
-		}
+		get_linear_independent_rows(rB, bUse);
 
 
-		std::vector<vector_type *> pTestVectors2 = pTestVectors;
-		std::vector<std::string> testVectorDescription2 = testVectorDescription;
-		pTestVectors.clear();
-		testVectorDescription.clear();
-		for(size_t i=0; i<iNrOfTestVectors; i++)
-		{
-			if(bUse[i])
-			{
-				pTestVectors.push_back(pTestVectors2[i]);
-				testVectorDescription.push_back(testVectorDescription2[i]);
-			}
-		}
+		// save used testvectors
+		remove_unused(pTestVectors, bUse);
+		remove_unused(vTestVectorDescription, bUse);
 
 		iNrOfTestVectors = pTestVectors.size();
 
-		// 5. compute reduced Matrices rA, rB
+		// 2. & 3. compute reduced Matrices rA, rB
 		rA.resize(iNrOfTestVectors, iNrOfTestVectors);
 		rB.resize(iNrOfTestVectors, iNrOfTestVectors);
 
@@ -527,187 +782,10 @@ public:
 
 		MultiEnergyProd(*m_pA, &pTestVectors[0], rA, iNrOfTestVectors);
 
-		//PrintMaple(rA, "rA");
-		//PrintMaple(rB, "rB");
+		PrintMaple(rA, "rA");
+		PrintMaple(rB, "rB");
 	}
 
-		// output
-
-	int apply()
-	{
-		UG_LOG("Eigensolver\n");
-		DenseMatrix<VariableArray2<double> > rA;
-		DenseMatrix<VariableArray2<double> > rB;
-		DenseMatrix<VariableArray2<double> > r_ev;
-		DenseVector<VariableArray1<double> > r_lambda;
-		std::vector<double> lambda;
-
-		typedef typename vector_type::value_type value_type;
-		vector_type defect;
-		CloneVector(defect, *px[0]);
-		size_t n = px.size();
-
-		size_t size = px[0]->size();
-		/*
-		ParallelMatrix<SparseMatrix<double> > B;
-		B.resize(size, size);
-		for(size_t i=0; i<size; i++)
-			B(i,i) = 0.00390625;
-		B.set_storage_type(PST_ADDITIVE);*/
-
-		vector_type tmp;
-		CloneVector(tmp, *px[0]);
-		std::vector<vector_type> corr;
-
-		std::vector<vector_type> oldX;
-
-
-		lambda.resize(n);
-		corr.resize(n);
-		oldX.resize(n);
-		for(size_t i=0; i<n; i++)
-		{
-			UG_ASSERT(px[0]->size() == px[i]->size(), "all vectors must have same size");
-			CloneVector(corr[i], *px[0]);
-			CloneVector(oldX[i], *px[0]);
-
-			//PrintStorageType(*px[i]);
-			//PrintStorageType(corr[i]);
-			//PrintStorageType(oldX[i]);
-		}
-
-		std::vector<vector_type *> pTestVectors;
-
-		std::vector<double> defectNorm(n, m_dPrecision*10);
-		std::vector<double> oldXnorm(n);
-
-		std::vector<std::string> testVectorDescription;
-
-		m_spPrecond->init(m_pA);
-#ifdef UG_PARALLEL
-		pcl::ProcessCommunicator pc;
-#endif
-
-
-
-		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
-		{
-			write_debug(iteration);
-			UG_LOG("iteration " << iteration << "\n");
-
-			// 0. normalize
-			normalize_approximations();
-
-
-			// 1. before calculating new correction, save old correction
-			save_old_approximations(oldX);
-
-			//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
-			size_t nrofconverged=0;
-
-
-			for(size_t i=0; i<n; i++)
-			{
-				compute_rayleigh_and_new_correction(*px[i], defect, corr[i], lambda[i], defectNorm[i]);
-				if(defectNorm[i] < m_dPrecision)
-					nrofconverged++;
-			}
-
-
-			// output
-			print_eigenvalues_and_defect(iteration, defectNorm, oldXnorm, lambda);
-
-			if(nrofconverged==n)
-			{
-				UG_LOG("all eigenvectors converged\n");
-				return true;
-			}
-
-			// 5. add Testvectors
-			//UG_LOG("5. add Testvectors\n");
-
-			get_testvectors(iteration, corr, oldX, pTestVectors, testVectorDescription, defectNorm);
-
-
-			/*for(size_t i=0; i<testVectorDescription.size(); i++)
-			{	UG_LOG(testVectorDescription[i] << "\n");	} */
-
-			// 5. compute reduced Matrices rA, rB
-
-			get_projected_eigenvalue_problem(rA, rB, pTestVectors, testVectorDescription);
-
-
-			// 6. solve reduced eigenvalue problem
-			size_t iNrOfTestVectors = pTestVectors.size();
-			r_ev.resize(iNrOfTestVectors, iNrOfTestVectors);
-			r_lambda.resize(iNrOfTestVectors);
-
-			// solve rA x = lambda rB, --> r_ev, r_lambda
-			GeneralizedEigenvalueProblem(rA, r_ev, r_lambda, rB, true);
-
-			size_t nrzero;
-			for(nrzero=0; nrzero<iNrOfTestVectors; nrzero++)
-				if(r_lambda[nrzero] > 1e-15)
-					break;
-
-			if(nrzero)
-			{
-				UG_LOG("Lambda < 0: \n");
-				for(size_t i=0; i<nrzero; i++)
-				{
-					UG_LOG(i << ".: " << r_lambda[i] << "\n");
-
-				}
-			}
-			UG_LOG("Lambda > 0: \n");
-			for(size_t i=nrzero; i<r_lambda.size(); i++)
-				UG_LOG(i << ".: " << r_lambda[i] << "\n");
-			UG_LOG("\n");
-
-			/*UG_LOG("evs: \n");
-			for(size_t c=nrzero; c < std::min(nrzero+n, r_ev.num_cols()); c++)
-			{
-				UG_LOG("ev [" << c << "]:\n");
-				for(size_t r=0; r<r_ev.num_rows(); r++)
-					if(dabs(r_ev(r, c)) > 1e-9 )
-						UG_LOG(std::setw(14) << r_ev(r, c) << "   " << testVectorDescription[r] << "\n");
-				UG_LOG("\n\n");
-			}*/
-
-#ifdef UG_PARALLEL
-			for(size_t i=0; i<iNrOfTestVectors; i++)
-				pTestVectors[i]->change_storage_type(PST_UNIQUE);
-			for(size_t i=0; i<n; i++)
-				px[i]->change_storage_type(PST_UNIQUE);
-#endif
-			// assume r_lambda is sorted
-			std::vector<typename vector_type::value_type> x_tmp(n);
-			for(size_t i=0; i<size; i++)
-			{
-				// since x is part of the Testvectors, temporary safe result in x_tmp.
-				for(size_t r=0; r<n; r++)
-				{
-					x_tmp[r] = 0.0;
-					for(size_t c=0; c<iNrOfTestVectors; c++)
-						x_tmp[r] += r_ev(c, r+nrzero) * (*pTestVectors[c])[i];
-				}
-
-				// now overwrite
-				for(size_t r=0; r<n; r++)
-					(*px[r])[i] = x_tmp[r];
-
-			}
-		}
-
-		UG_LOG("not converged after" << m_maxIterations << " steps.\n");
-		return false;
-	}
-
-	void set_pinvit(size_t iPINVIT)
-	{
-		m_iPINVIT = iPINVIT;
-		UG_ASSERT(iPINVIT >=1 && iPINVIT <= 3, "i has to be >= 1 and <= 3, but is " << iPINVIT);
-	}
 
 };
 
