@@ -395,7 +395,8 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 						// UG_LOG(buf);
 					 }
 
-					 pi->beginNode();
+					 pRuntimeProfileInfo &pi2 = pis[source][line];
+					 pi2->beginNode();
 				}
 			}
 			if(ar->what[0] == 'C' && (ar->name == NULL || strcmp(ar->name, "ug_load_script") != 0))
