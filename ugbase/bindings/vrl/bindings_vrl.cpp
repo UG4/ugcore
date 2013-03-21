@@ -169,7 +169,7 @@ struct Functionality
  * @param parentGroup		group for sorting of functionality
  */
 template <typename TAlgebra>
-static void Algebra(ug::bridge::Registry& reg, string parentGroup)
+static void Algebra(ug::bridge::Registry& reg, std::string parentGroup)
 {
 //	typedefs for Vector and Matrix
 	typedef typename TAlgebra::vector_type vector_type;
@@ -185,7 +185,7 @@ static void Algebra(ug::bridge::Registry& reg, string parentGroup)
 
 }; // end Functionality
 
-void RegisterVRLFunctionality(ug::bridge::Registry& reg, string grp)
+void RegisterVRLFunctionality(ug::bridge::Registry& reg, std::string grp)
 {
 	typedef ug::vrl::Functionality Functionality;
 
