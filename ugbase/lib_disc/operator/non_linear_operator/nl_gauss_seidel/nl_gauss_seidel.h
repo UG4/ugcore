@@ -162,8 +162,8 @@ class NLGaussSeidelSolver
 		}*/
 
 		// TODO: hier alle typen von geometric_base_object zulassen?
-		typedef vector<geometric_base_object*> elemList;
-		vector<elemList> m_vElemList;
+		typedef std::vector<geometric_base_object*> elemList;
+		std::vector<elemList> m_vElemList;
 
 		///	selector of elements with contributions to a specific DoF
 		Selector m_sel;
