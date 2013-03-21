@@ -407,7 +407,9 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 			lua_getinfo(L, "Sln", ar);
 
 			const char *source = ar->source;
-			int line = ar->linedefined;
+			int line = ar->currentline;
+			UG_LOG("### ar    ## curr: "<<ar->currentline<<", def: "<<ar->linedefined<<
+			       ", lastdef: "<<ar->lastlinedefined<<"\n");
 
 			if(ar->what[0] == 'L' || ar->what[0] == 'C')
 			{
@@ -417,6 +419,8 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 					lua_getinfo(L, "Sln", &entry);
 					source = entry.source;
 					line = entry.linedefined;
+					UG_LOG("### entry ## curr: "<<entry.currentline<<", def: "<<entry.linedefined<<
+					       ", lastdef: "<<entry.lastlinedefined<<"\n");
 				}
 
 				if(profilingEndDepth>0)
