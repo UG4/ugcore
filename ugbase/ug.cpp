@@ -168,7 +168,7 @@ int UGFinalize()
 	ug::GetLogAssistant().flush_error_log();
 	
 	if (outputProfileStats) {
-		UG_LOG(endl);
+		UG_LOG(std::endl);
 	//	output the profiled data.
 		PROFILER_UPDATE();
 
