@@ -1,6 +1,5 @@
 #include <string>
 #include <vector>
-#include <string>
 
 #include "ug.h"
 #include "ugbase.h"
@@ -176,8 +175,8 @@ static void Algebra(ug::bridge::Registry& reg, std::string parentGroup)
 	typedef typename TAlgebra::matrix_type matrix_type;
 
 //	suffix and tag
-	string suffix = ug::bridge::GetAlgebraSuffix<TAlgebra>();
-	string tag = ug::bridge::GetAlgebraTag<TAlgebra>();
+	std::string suffix = ug::bridge::GetAlgebraSuffix<TAlgebra>();
+	std::string tag = ug::bridge::GetAlgebraTag<TAlgebra>();
 
 
 	reg.add_function("GetDefects", &getDefects<vector_type>, "UG4/Util", "Defects");
