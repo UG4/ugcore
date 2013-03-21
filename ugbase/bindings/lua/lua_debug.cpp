@@ -395,6 +395,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 						// UG_LOG(buf);
 					 }
 
+					 UG_LOG("#### start ##source: "<<source<<", line: "<<line<<"\n");
 					 pRuntimeProfileInfo &pi2 = pis[source][line];
 					 pi2->beginNode();
 				}
@@ -422,6 +423,7 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				{		
 					const char *source = ar->source;
 					int line = ar->currentline;
+				 UG_LOG("#### end   ##source: "<<source<<", line: "<<line<<"\n");
 					pRuntimeProfileInfo &pi = pis[source][line];
 
 					//UG_LOG("end profile node\n");
