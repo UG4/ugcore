@@ -116,7 +116,7 @@ find_library(VAMPIRTRACE_OTF_LIBRARY
                    ${PKG_CONFIG_LIBVT_LIBRARY_DIRS})
 
 find_library(VAMPIRTRACE_VT_LIBRARY 
-             NAMES vt-hyb vt.hyb
+             NAMES vt
              HINTS ${VAMPIRTRACE_ENVVAR_LIBRARY_SEARCH_DIRS}
                    ${VAMPIRTRACE_COMMAND_LIBRARY_SEARCH_DIRS}
                    ${PKG_CONFIG_LIBVT_LIBRARY_DIRS})
