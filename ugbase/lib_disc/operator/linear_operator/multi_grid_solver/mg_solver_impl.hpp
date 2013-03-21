@@ -2190,7 +2190,7 @@ gather_vertical_copy(vector_type& d)
 template <typename TDomain, typename TAlgebra>
 void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
-gather_on_ghosts(vector_type& d, vector_type& tmp, vector<int>& mapGlobalToPatch)
+gather_on_ghosts(vector_type& d, vector_type& tmp, std::vector<int>& mapGlobalToPatch)
 {
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - gather_vertical\n");
 	PROFILE_FUNC_GROUP("gmg");
