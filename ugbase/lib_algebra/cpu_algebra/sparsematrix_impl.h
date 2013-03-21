@@ -820,7 +820,7 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 	{
 		if(c[ic].iIndex < old[iold].iIndex)
 		{
-			UG_ASSERT(c[ic].iIndex >= 0 && c[ic].iIndex < num_cols(), "");
+			UG_ASSERT(c[ic].iIndex < num_cols(), "");
 
 			n[i] = c[ic++];
 			// check for double connections
