@@ -49,7 +49,7 @@ public:
 		return m_iOut;
 	}
 	
-	const string &name() const
+	const std::string &name() const
 	{
 		return m_name;
 	}
