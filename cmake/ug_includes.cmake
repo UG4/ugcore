@@ -515,8 +515,16 @@ if(NOT("${PROFILER}" STREQUAL "None"))
         	        "binary scalasca/kconfig. Make sure "
         	        "that PATH contains scalasca and kconfig executable.")
         endif(SCALASCA_FOUND)
+
+       	file(WRITE ${CMAKE_BINARY_DIR}/scalasca_mpicxx
+    		"#! /bin/sh"
+    		"# THIS IS AN AUTOMATICALL GENERATED FILE. DO NOT EDIT!\n"
+    		"${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}")
         
-        set(CMAKE_CXX_COMPILER "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER} ")
+        
+        set(CMAKE_CXX_COMPILER "${CMAKE_BINARY_DIR}/scalasca_mpicxx")
+
+#        set(CMAKE_CXX_COMPILER "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER} ")
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "scalasca -instrument -comp=none -user ")
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "scalasca -instrument -comp=none -user ")
 		add_cxx_flag("${SCALASCA_USER_CFLAGS}")
