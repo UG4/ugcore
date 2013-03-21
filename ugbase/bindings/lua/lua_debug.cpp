@@ -424,7 +424,6 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				//UG_ASSERT(pis[ar->source][ar->linedefined]->isCurNode(), "profiler nodes not matching. forgot a PROFILE_END?");
 				else
 				{		
-					if(source[0]=='@') source++;
 					UG_LOG("#### end   ##source: "<<source<<", line: "<<line<<"\n");
 					pRuntimeProfileInfo &pi = pis[source][line];
 
