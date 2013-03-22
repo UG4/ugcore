@@ -560,6 +560,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
         	        "that PATH contains vtcxx executable.")
         endif(VAMPIRTRACE_FOUND)
     	add_definitions(-DUG_PROFILER_VAMPIR)    
+    	add_definitions(-vt:inst manual -DVTRACE)
 
     # wrong string in compiler
     else("${PROFILER}" STREQUAL "Shiny")
