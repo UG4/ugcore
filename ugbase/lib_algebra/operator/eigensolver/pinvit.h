@@ -190,6 +190,7 @@ void PrintMaple(const matrix_type &mat, const char *name)
 		if(r < mat.num_rows()-1) UG_LOG(", ");
 	}
 	UG_LOG("]);\n");
+	UG_LOG("(" << mat.num_rows() << " x " << mat.num_cols() << ")\n");
 
 }
 
@@ -376,11 +377,14 @@ public:
 		lambda.resize(n);
 		vCorr.resize(n);
 		vOldX.resize(n);
+		int N = px[0]->size();
 		for(size_t i=0; i<n; i++)
 		{
-			UG_ASSERT(px[0]->size() == px[i]->size(), "all vectors must have same size");
+			UG_ASSERT(N == px[i]->size(), "all vectors must have same size");
 			CloneVector(vCorr[i], *px[0]);
+			vCorr[i].resize(N);
 			CloneVector(vOldX[i], *px[0]);
+			vOldX[i].resize(N);
 
 			//PrintStorageType(*px[i]);
 			//PrintStorageType(vCorr[i]);
@@ -415,13 +419,15 @@ public:
 			size_t nrofconverged=0;
 
 
-			write_debug(iteration);
 			for(size_t i=0; i<n; i++)
 			{
 				compute_rayleigh_and_new_correction(*px[i], lambda[i], defect, vDefectNorm[i], vCorr[i]);
+				write_debug(iteration, i, *px[i], defect, vCorr[i]);
 				if(vDefectNorm[i] < m_dPrecision)
 					nrofconverged++;
 			}
+
+
 
 
 			// output
@@ -474,15 +480,15 @@ public:
 				UG_LOG(i << ".: " << r_lambda[i] << "\n");
 			UG_LOG("\n");
 
-			/*UG_LOG("evs: \n");
-			for(size_t c=nrzero; c < std::min(nrzero+n, r_ev.num_cols()); c++)
+			UG_LOG("evs: \n");
+			for(size_t c=0; c < r_ev.num_cols(); c++)
 			{
 				UG_LOG("ev [" << c << "]:\n");
 				for(size_t r=0; r<r_ev.num_rows(); r++)
 					if(dabs(r_ev(r, c)) > 1e-9 )
 						UG_LOG(std::setw(14) << r_ev(r, c) << "   " << vTestVectorDescription[r] << "\n");
 				UG_LOG("\n\n");
-			}*/
+			}
 
 #ifdef UG_PARALLEL
 			for(size_t i=0; i<iNrOfTestVectors; i++)
@@ -514,13 +520,11 @@ public:
 	}
 
 private:
-	void write_debug(int iteration)
+	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr)
 	{
-		for(size_t i=0; i<px.size(); i++)
-		{
-			string name = "pinvit_it_" + ToString(iteration) + "_ev_" + ToString(i);
-			write_debug(*px[i], name.c_str());
-		}
+		write_debug(x, ("pinvit_it_" + ToString(iteration) + "_ev_" + ToString(i)).c_str());
+		write_debug(defect, ("pinvit_it_" + ToString(iteration) + "_defect_" + ToString(i)).c_str());
+		write_debug(corr, ("pinvit_it_" + ToString(iteration) + "_corr_" + ToString(i)).c_str());
 	}
 
 	double B_norm(vector_type &x)
@@ -546,7 +550,7 @@ private:
 	 * @param[out] vDefectNorm 	vDefectNorm = | defect |_2
 	 * @param[out] vCorr		P defect
 	 */
-	void compute_rayleigh_and_new_correction(vector_type &x, double &lambda, vector_type &defect, double &vDefectNorm, vector_type &vCorr)
+	void compute_rayleigh_and_new_correction(vector_type &x, double &lambda, vector_type &defect, double &vDefectNorm, vector_type &corr)
 	{
 // a. compute rayleigh quotients
 		// lambda = <x, Ax>/<x,x>
@@ -596,11 +600,12 @@ private:
 		if(vDefectNorm < 1e-12)
 			return;
 
+		corr *= 0.0;
 // d. apply preconditioner
-		m_spPrecond->apply(vCorr, defect);
-		vCorr *= 1/ B_norm(vCorr);
+		m_spPrecond->apply(corr, defect);
+		corr *= 1/ B_norm(corr);
 #ifdef UG_PARALLEL
-		vCorr.change_storage_type(PST_UNIQUE);
+		corr.change_storage_type(PST_UNIQUE);
 #endif
 
 	}
