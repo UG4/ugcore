@@ -197,6 +197,9 @@ UGCMAKE_INTERNAL="-DBUILTIN_BLAS= -DBUILTIN_LAPACK= -DDEBUG_FORMAT="
 # cat $UG4_ROOT/debug/CMakeCache.txt | sed -n 's/^\([^/#][^:]*\):[^I].*/-D\1= \\/p'
 # add -DCMAKE_TOOLCHAIN_FILE= \
 complete -W "\
+ON \
+OFF \
+None Shiny Scalasca Vampir \
 -DBLAS= \
 -DBLAS_INCLUDE_PATH= \
 -DBLAS_LIBRARIES= \
@@ -242,6 +245,9 @@ complete -W "\
 -DPCL_DEBUG_BARRIER= \
 -DPOSIX= \
 -DPRECISION= \
+-DPROFILER= \
+-DPROFILER= \
+-DPROFILER= \
 -DPROFILER= \
 -DPROFILE_BRIDGE= \
 -DPROFILE_PCL= \
