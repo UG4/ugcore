@@ -28,7 +28,7 @@ Registry & GetUGRegistry()
 	return ugReg;
 }
 
-/// calls RegisterStandardInterfaces and LoadPlugins if UG_PLUGINS is defined
+/// calls RegisterStandardInterfaces
 void InitBridge()
 {
 	PROFILE_FUNC();
