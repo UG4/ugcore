@@ -380,7 +380,7 @@ public:
 		int N = px[0]->size();
 		for(size_t i=0; i<n; i++)
 		{
-			UG_ASSERT(N == px[i]->size(), "all vectors must have same size");
+			UG_ASSERT(N == (int)px[i]->size(), "all vectors must have same size");
 			CloneVector(vCorr[i], *px[0]);
 			vCorr[i].resize(N);
 			CloneVector(vOldX[i], *px[0]);
