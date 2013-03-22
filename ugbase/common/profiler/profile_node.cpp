@@ -137,6 +137,15 @@ bool UGProfileNode::valid() const
 
 // private functions
 
+string XMLStringEscape(string s)
+{
+	ReplaceAll(s, "&", "&amp;");
+	ReplaceAll(s, "\"", "&quot;");
+	ReplaceAll(s, "\'", "&apos;");
+	ReplaceAll(s, "<", "&lt;");
+	ReplaceAll(s, ">", "&gt;");
+}
+
 void UGProfileNode::write_node(ostream &s) const
 {
 	if(!valid()) return;
@@ -159,10 +168,10 @@ void UGProfileNode::write_node(ostream &s) const
 		if(strcmp(zone->name, "<root>") == 0)
 			s << "<name>root</name>\n";
 		else
-			s << "<name>" << zone->name << "</name>\n";
+			s << "<name>" << XMLStringEscape(zone->name) << "</name>\n";
 	}
 	if(zone->groups)
-		s << "<groups>" << zone->groups << "</groups>\n";
+		s << "<groups>" << XMLStringEscape(zone->groups) << "</groups>\n";
 	
 	if(zone->file != NULL)
 	{
