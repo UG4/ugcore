@@ -29,6 +29,7 @@ LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 template <typename TBaseElem>
 void LevelMGDoFDistribution::init()
 {
+	PROFILE_FUNC();
 	typedef typename geometry_traits<TBaseElem>::iterator iterator;
 	static const int dim = TBaseElem::dim;
 
@@ -159,6 +160,7 @@ void LevelMGDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 													  InterfaceNodeTypes keyType,
                                                       int l)
 {
+	PROFILE_FUNC();
 //	get the grid layout map
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 
@@ -251,6 +253,7 @@ void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 
 void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& vReplaced, int lev)
 {
+	PROFILE_FUNC();
 	level_required(lev);
 
 	if(max_dofs(0) > 0) defragment<VertexBase>(vReplaced, lev);
@@ -343,6 +346,7 @@ template <typename TBaseElem>
 void LevelDoFDistribution::
 get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 {
+	PROFILE_FUNC();
 //	dimension of Base Elem
 	static const int dim = TBaseElem::dim;
 
@@ -414,6 +418,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 bool LevelDoFDistribution::
 get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 {
+	PROFILE_FUNC();
 //	if no subset given, we're done
 	if(num_subsets() == 0) return true;
 
@@ -451,6 +456,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 template <typename TBaseElem>
 void LevelMGDoFDistribution::permute_indices(const std::vector<size_t>& vNewInd, int lev)
 {
+	PROFILE_FUNC();
 // 	loop Vertices
 	typedef typename geometry_traits<TBaseElem>::const_iterator const_iterator;
 	const_iterator iterEnd = m_spMGSH->multi_grid()->template end<TBaseElem>(lev);
@@ -470,6 +476,7 @@ void LevelMGDoFDistribution::permute_indices(const std::vector<size_t>& vNewInd,
 
 void LevelMGDoFDistribution::permute_indices(const std::vector<size_t>& vNewInd, int lev)
 {
+	PROFILE_FUNC();
 	if(max_dofs(VERTEX)) permute_indices<VertexBase>(vNewInd, lev);
 	if(max_dofs(EDGE))   permute_indices<EdgeBase>(vNewInd, lev);
 	if(max_dofs(FACE))   permute_indices<Face>(vNewInd, lev);
@@ -508,6 +515,7 @@ void LevelMGDoFDistribution::level_required(int level)
 void LevelDoFDistribution::
 permute_indices(const std::vector<size_t>& vIndNew)
 {
+	PROFILE_FUNC();
 	m_spMGDD->permute_indices(vIndNew, grid_level().level());
 #ifdef UG_PARALLEL
 	m_spMGDD->create_layouts_and_communicator(grid_level().level());
@@ -520,6 +528,7 @@ permute_indices(const std::vector<size_t>& vIndNew)
 void LevelDoFDistribution::
 defragment()
 {
+	PROFILE_FUNC();
 //	defragment
 	std::vector<std::pair<size_t,size_t> > vReplaced;
 	m_spMGDD->defragment(vReplaced, grid_level().level());
