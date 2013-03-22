@@ -53,8 +53,6 @@ static int currentDepth = -1;
 #ifdef UG_PROFILER
 static bool bStartProfiling=false;
 static bool bEndProfiling=false;
-static bool bProfileLUALines=true;
-static int profilingDepth=0;
 static int profilingEndDepth=0;
 static std::map<const char*, std::map<int, pRuntimeProfileInfo> >pis;
 #endif
@@ -285,7 +283,6 @@ void luaDebug(lua_State *L, const char *source, int line)
 void LuaCallHook(lua_State *L, lua_Debug *ar)
 {
 #if 0
-	UG_LOG("depth = " << profilingDepth << "\n");
 	{
 	UG_LOG("------------------------\n");
 	{
@@ -343,102 +340,158 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 		}
 	}
 #if UG_PROFILER	
+	const static bool bDebugLuaProfiler = false;
+
+	// Lua profiling is done the following way:
+	// We only want to profile those lines, that actually do something and not
+	// all lines, since they may be in inner loops and cause significant overhead.
+	// Therefore, we only react on lua-calls and returns. In addition, we don't
+	// want to profile lua-callbacks that are invoked from the C++ code, since
+	// those are commonly used in the very inner loops - this would be to much
+	// profiling overhead.
+	//
+	// NOTE: we currently use a map with const char* identifier. This will
+	//		 only work if lua does not change the strings in between. It this
+	//		 is observed we must change that to std::string
 	if(bProfiling)
 	{	
-		if(profilingDepth != 0)
+		if(ar->event == LUA_HOOKLINE){
+			return; // nothing to do: but may be enabled for debugging
+		}
+
+		// profileDepthInCcall is used to distinguish where a function call/return
+		// is executed. We only want to profile those calls that are done within
+		// lua, but not from C++ to Lua. If a call is to a C-function, the
+		// depth will be initialized with 1 and no profiling is performed until
+		// the depth is back to zero (i.e. when the C-call returns). It may however
+		// happen, that several events happen, since lua code is executed from
+		// C. In order to detect, if the hook-return is due to a lua-return or
+		// from the initalizing C-call, we count the depth.
+		static int profileDepthInCcall = 0;
+
+		// check if within a c-call
+		if(profileDepthInCcall != 0)
 		{		
-			if(ar->event == LUA_HOOKCALL) { profilingDepth++; return; }
-			if(ar->event == LUA_HOOKRET)
-			{
-				if(--profilingDepth != 0)
-					return;		
-			}	
-		}
-		
-		
-		if(bEndProfiling==false && ar->event == LUA_HOOKCALL)
-		{				
-			lua_getinfo(L, "Sln", ar);
-			const char *source = ar->source;
-			int line = ar->currentline;
-
-			if(ar->what[0] == 'L' || ar->what[0] == 'C')
-			{
-				lua_Debug entry;
-				if(line < 0 && bProfileLUALines && lua_getstack(L, 1, &entry))
-				{
-					lua_getinfo(L, "Sln", &entry);
-					source = entry.source;
-					line = entry.currentline;
-				}
-
-				if(line >= 0)
-				{
-					// be sure that this is const char*
-					//if(line>0) line--;
-					 UG_LOG("#### start ##source: "<<source<<", line: "<<line<<"\n");
-					pRuntimeProfileInfo &pi = pis[source][line];
-
-					// if null, create new node
-					if(pi == NULL)
-					{
-						char buf[1024] = "LUAunknown ";
-						if(source[0]=='@') source++;
-						if(strncmp(source, "./../scripts/", 13)==0)
-							sprintf(buf, "!%s:%d ", source+13, line);
-						else
-							sprintf(buf, "@%s:%d ", source, line);
-						//const char*p = GetFileLine(source, line).c_str();
-						//strncat(buf, p+strspn(p, " \t"), 254);
-
-						pi = new RuntimeProfileInfo(buf, true, "lua", false, source, true, line);
-						// UG_LOG(buf);
-					 }
-
-					 pi->beginNode();
-				}
+			// if another call, this must be inside lua but invoked from c
+			if(ar->event == LUA_HOOKCALL) {
+				profileDepthInCcall++; return;
 			}
-			if(ar->what[0] == 'C' && (ar->name == NULL || strcmp(ar->name, "ug_load_script") != 0))
-				profilingDepth=1;
+			// if a return, reduce depth. If depth == 0, we also have to
+			// finish the current profile node, since this must be the return
+			// from the original c-call
+			else if(ar->event == LUA_HOOKRET){
+				if(--profileDepthInCcall != 0) return;
+			}
+			else{
+				UG_THROW("LuaProfiling: Wrong hook event passed.");
+			}
 		}
+		
+		// if a call is given, but end profiling requested, we can leave
+		if(bEndProfiling == true && ar->event == LUA_HOOKCALL)
+			return;
+
+		// fill information about the event
+		lua_getinfo(L, "Sln", ar);
+
+		// we are only interested in 'Lua' or 'C' call/return events
+		if(ar->what[0] != 'L' && ar->what[0] != 'C')
+			return;
+
+		// this is the call/ret invoked, however not the called !
+		if(bDebugLuaProfiler){
+			std::string type = "call";
+			if(ar->event == LUA_HOOKRET) type = "ret ";
+			UG_LOG("## lua profile: source: "<<ar->source<<", line: "
+			       <<ar->currentline<<" "<<type<<" " << ar->what);
+		}
+
+		// we get the debug info of the calling file and line
+		lua_Debug entry;
+		if(lua_getstack(L, 1, &entry) == 0)
+			UG_THROW("LuaProfiling: Cannot get debug info from stack.")
+		if(lua_getinfo(L, "Sln", &entry) == 0)
+			UG_THROW("LuaProfiling: Cannot read debug info.")
+
+		// get source an line of the event
+		const char* source = entry.source;
+		int line = entry.currentline;
+
+		if(bDebugLuaProfiler){
+			std::string type = "call";
+			if(entry.event == LUA_HOOKRET) type = "ret ";
+			UG_LOG(",  corr: source: "<<source<<", line: "<<line<<" "<<type<<" " << entry.what << "\n");
+		}
+
+		// may still be unavailable, then we ignore this issue
+		if(line < 0) return;
+
+		// a call
+		if(ar->event == LUA_HOOKCALL)
+		{				
+			 // get info from map
+			 pRuntimeProfileInfo &pi = pis[source][line];
+
+			 // if not yet initialized, create new node
+			 if(pi == NULL){
+				 char buf[1024];
+				 if(source[0]=='@') source++;
+				 if(strncmp(source, "./../scripts/", 13)==0)
+					 sprintf(buf, "!%s:%d ", source+13, line);
+				 else
+					 sprintf(buf, "@%s:%d ", source, line);
+
+				 pi = new RuntimeProfileInfo(buf, true, "lua", false, source, true, line);
+			 }
+
+			 // start profiling
+			 pi->beginNode();
+
+			 // if this is a call to C, we disable all successive call-event
+			 // tracings until this call returns. This is done by setting
+			 // profileDepthInCcall > 1. The only exception is the call to
+			 // 'ug_load_script', that is a c-call but should be profiled
+			 //	also internally since it just loads other lua-scripts
+			 if(ar->name != NULL && strcmp(ar->name, "ug_load_script") == 0)
+				 return;
+			 if(ar->what[0] == 'C')
+				 	 profileDepthInCcall = 1;
+		}
+
+		// a return
 		else if(ar->event == LUA_HOOKRET)
 		{		
-			if(bStartProfiling) { bStartProfiling = false; return; }
-			lua_getinfo(L, "Sln", ar);
+			 // if only starting the profiling, do not react on returns
+			 if(bStartProfiling) { bStartProfiling = false; return; }
 
-			const char *source = ar->source;
-			int line = ar->currentline;
+			 // if profiling is to be ended, so something (what?)
+			 if(profilingEndDepth > 0) {
+				 profilingEndDepth--;
+			 }
+			 else
+			 {
+				 // get profile node
+				 pRuntimeProfileInfo &pi = pis[source][line];
 
-			if(ar->what[0] == 'L' || ar->what[0] == 'C')
-			{
-				lua_Debug entry;
-				if(line < 0 && bProfileLUALines && lua_getstack(L, 1, &entry))
-				{
-					lua_getinfo(L, "Sln", &entry);
-					source = entry.source;
-					line = entry.currentline;
-				}
+				 // this should be the correctly call
+				 // however it cannot be used due to some issues.
+				 pi->endNode();
 
-				if(profilingEndDepth>0)
-					profilingEndDepth--;
-				//UG_ASSERT(pis[ar->source][ar->linedefined]->isCurNode(), "profiler nodes not matching. forgot a PROFILE_END?");
-				else
-				{		
-					UG_LOG("#### end   ##source: "<<source<<", line: "<<line<<"\n");
-					pRuntimeProfileInfo &pi = pis[source][line];
-
-					//UG_LOG("end profile node\n");
-					pi->endNode();
-					if(bEndProfiling && profilingDepth==0)
-					{
-						UG_LOG("Profiling ended.\n");
-						bProfiling=false;
-						bEndProfiling=false;
-						CheckHook();
-					}
-				}		
-			}
+				 // if we are ending profiling we have to check if we are in
+				 // a c call
+				 if(bEndProfiling && profileDepthInCcall == 0)
+				 {
+					 UG_LOG("Profiling ended.\n");
+					 bProfiling=false;
+					 bEndProfiling=false;
+					 CheckHook();
+				 }
+			 }
 		}
+		else{
+			UG_THROW("LuaProfiling: Wrong hook event passed.");
+		}
+
 	}
 #endif
 
