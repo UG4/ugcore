@@ -473,8 +473,10 @@ void LuaCallHook(lua_State *L, lua_Debug *ar)
 				 // get profile node
 				 pRuntimeProfileInfo &pi = pis[source][line];
 
-				 // this should be the correctly call
-				 // however it cannot be used due to some issues.
+				 // release the node
+				 // if this part causes trouble, the std::map should be used
+				 // with std::string identifier, since I don't know if the
+				 // lua const char* are persistent
 				 pi->endNode();
 
 				 // if we are ending profiling we have to check if we are in
