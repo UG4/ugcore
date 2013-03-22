@@ -99,9 +99,9 @@ class NLGaussSeidelSolver
 		void set_approximation_space(SmartPtr<approx_space_type> spApproxSpace)
 		{m_spApproxSpace = spApproxSpace;}
 		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
-		void set_damp(number damp) {m_damp = damp;}
+		void set_damp(const number damp) {m_damp = damp;}
 	///	sets constraint/obstacle
-		void set_constraint(vector_type& cons) {m_ConsVec = cons; m_bProjectedGS = true;}
+		void set_constraint(const vector_type& cons) {m_ConsVec = cons; m_bProjectedGS = true;}
 
 	/// This operator inverts the Operator N: Y -> X
 		virtual bool init(SmartPtr<IOperator<vector_type> > N);
@@ -140,8 +140,10 @@ class NLGaussSeidelSolver
 		SmartPtr<AssembledLinearOperator<algebra_type> > m_J_block;
 		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
+		///	damping factor
 		number m_damp;
 
+		///	vector describing a constraint
 		vector_type m_ConsVec;
 		bool m_bProjectedGS;
 

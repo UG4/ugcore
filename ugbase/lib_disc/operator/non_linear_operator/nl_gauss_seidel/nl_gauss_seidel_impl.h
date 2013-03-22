@@ -265,7 +265,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	//	increase call count
 	m_dgbCall++;
 
-	//	Check for approxSpac
+	//	Check for approxSpace
 	if(m_spApproxSpace.invalid())
 		UG_THROW("NLGaussSeidelSolver::apply: Approximation Space not set.");
 
@@ -373,11 +373,12 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 				InverseMatMult(m_c_block[0], m_damp, J_block(0,0) , m_d_block[0]);
 			NL_GAUSSSEIDEL_PROFILE_END();
 
+			// 	update i-th block of solution
+			u[i] -= m_c_block[0];
+
 			//	should projected GS be performed?
 			if (m_bProjectedGS)
 			{
-				// 	TODO: move this part to the begin of the iteration-step?!
-				//	Define an appropriate else-case! At the moment vector of active MultiIndices is not used!
 				std::vector<MultiIndex<2> > vActiveSet;
 				value_type diff;
 				diff = u[i] - m_ConsVec[i];
@@ -385,19 +386,19 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 				//	(e.g. if CPU == 3 -> nrFcts = 3!)
 				size_t nrFcts = GetSize(diff);
 
-				bool penetrate = false;
-
 				//	loop fcts
 				for (size_t fct = 0; fct < nrFcts; fct++)
 				{
-					if (BlockRef(diff,fct) > 0)
+					bool penetrate = false;
+
+					if (BlockRef(diff,fct) > 0) //	i.e.: u > m_ConsVec
 					{
 						bool MultiIndex_is_in_activeSet = false;
 						penetrate = true;
 
 						std::vector<MultiIndex<2> >::iterator iter;
 
-						//	adds MultiIndex-pair (i,fct) to active_set
+						//	adds MultiIndex-pair (i,fct) to vActiveSet
 						for (iter = vActiveSet.begin(); iter != vActiveSet.end(); ++iter)
 						{
 							MultiIndex<2> activeMultiIndex = *iter;
@@ -417,15 +418,12 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 					}
 
 					if (penetrate)
-						BlockRef(m_c_block[0],fct) = 0.0;
+						BlockRef(u[i],fct) = BlockRef(m_ConsVec[i],fct);
 
 				} //end (fcts)
 			} //end(m_bProjectedGS)
 
-			// 	update i-th block of solution
-			u[i] -= m_c_block[0];
-
-		}
+		} //end(DoFs)
 
 		//	TODO: if active set not changed, iteration converged!
 		//if (!activeSet_changed)
