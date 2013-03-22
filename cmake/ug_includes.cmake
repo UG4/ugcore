@@ -91,7 +91,7 @@ set(precisionDefault "double")
 set(precisionOptions "single, double")
 
 # Values for the PROFILER option
-set(profilerOptions "None, Shiny, Scalasca, Vampir")
+set(profilerOptions "None, Shiny, Scalasca, Vampir, ScoreP")
 set(profilerDefault "None")
 
 # If we run the script the first time, search for MPI to determine the default value
@@ -546,7 +546,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "scalasca -instrument -comp=none -user ")
 
         # add compile flags
-		#add_cxx_flag("${SCALASCA_USER_CFLAGS}")
+		#add_cxx_flag("${SCALASCA_USER_CFLAGS}") -- scalasca wrapper does it itself
     	add_definitions(-DUG_PROFILER_SCALASCA)    
     
     # Vampir
@@ -567,6 +567,23 @@ if(NOT("${PROFILER}" STREQUAL "None"))
         endif(VAMPIRTRACE_FOUND)
     	add_definitions(-DUG_PROFILER_VAMPIR)    
     	add_definitions(-vt:inst manual -DVTRACE)
+
+    # ScoreP
+    elseif("${PROFILER}" STREQUAL "ScoreP")
+        find_program(SCOREP_COMMAND scorep)
+        if(SCOREP_COMMAND)
+            message("-- Info: ScoreP: using compiler wrapper: ${SCOREP_COMMAND}")
+            message("-- Info: ScoreP: check that compiler wrapper are set!")
+            message("--       Use: CC=\"scorep --user mpicc" CCX=\"scorep --user mpicxx\" cmake ...")
+            message("--       If not used: remove build completely and rerun cmake with prefix.")
+        else(SCOREP_COMMAND)
+        	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
+        	        "binary scorep and/or library or include paths. Make sure "
+        	        "that PATH contains scorep executable.")
+        endif(SCOREP_COMMAND)
+        
+    	add_definitions(-DUG_PROFILER_SCOREP)    
+    	#add_definitions(-vt:inst manual -DVTRACE)
 
     # wrong string in compiler
     else("${PROFILER}" STREQUAL "Shiny")

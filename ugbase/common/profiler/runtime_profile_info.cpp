@@ -50,6 +50,9 @@ RuntimeProfileInfo::RuntimeProfileInfo(
 	profileInformation.line = iLine;
 	profilerCache =	&Shiny::ProfileNode::_dummy;
 #endif
+#ifdef UG_PROFILER_SCOREP
+	m_pHandle = SCOREP_USER_INVALID_REGION;
+#endif
 }
 
 RuntimeProfileInfo::~RuntimeProfileInfo()

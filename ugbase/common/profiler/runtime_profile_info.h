@@ -41,6 +41,10 @@ class RuntimeProfileInfo
 #ifdef UG_PROFILER_VAMPIR
 			VT_USER_START((char*)pName);
 #endif
+#ifdef UG_PROFILER_SCOREP
+			SCOREP_USER_REGION_BEGIN( m_pHandle, pName,
+									  SCOREP_USER_REGION_TYPE_COMMON )
+#endif
 		}
 
 		inline void endNode()
@@ -53,6 +57,9 @@ class RuntimeProfileInfo
 #endif
 #ifdef UG_PROFILER_VAMPIR
 			VT_USER_END((char*)pName);
+#endif
+#ifdef UG_PROFILER_SCOREP
+			SCOREP_USER_REGION_END(m_pHandle);
 #endif
 		}
 
@@ -69,7 +76,9 @@ class RuntimeProfileInfo
 		Shiny::ProfileZone profileInformation;
 		Shiny::ProfileNodeCache profilerCache;
 #endif
-
+#ifdef UG_PROFILER_SCOREP
+		SCOREP_User_RegionHandle m_pHandle;
+#endif
 };
 
 typedef RuntimeProfileInfo* pRuntimeProfileInfo;

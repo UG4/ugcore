@@ -43,8 +43,15 @@ inst()
 
 
 
-AutoProfileNode::AutoProfileNode(const char* name)
-	: m_bActive(true), m_pName(name)
+#ifdef UG_PROFILER_SHINY
+AutoProfileNode::AutoProfileNode() : m_bActive(true)
+#endif
+#if defined(UG_PROFILER_SCALASCA) || defined(UG_PROFILER_VAMPIR)
+AutoProfileNode::AutoProfileNode(const char* name) : m_bActive(true), m_pName(name)
+#endif
+#ifdef UG_PROFILER_SCOREP
+AutoProfileNode::AutoProfileNode(SCOREP_User_RegionHandle handle) : m_bActive(true), m_pHandle(handle)
+#endif
 {
 	ProfileNodeManager::add(this);
 }
@@ -60,6 +67,9 @@ void AutoProfileNode::release()
 #endif
 #ifdef UG_PROFILER_VAMPIR
 		VT_USER_END((char*)m_pName);
+#endif
+#ifdef UG_PROFILER_SCOREP
+		SCOREP_USER_REGION_END(m_pHandle);
 #endif
 		m_bActive = false;
 	}

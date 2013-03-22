@@ -9,6 +9,10 @@
 
 #include <stack>
 
+#ifdef UG_PROFILER_SCOREP
+	#include <scorep/SCOREP_User.h>
+#endif
+
 class AutoProfileNode;
 
 class ProfileNodeManager
@@ -31,7 +35,15 @@ class AutoProfileNode
 	friend class ProfileNodeManager;
 
 	public:
-		AutoProfileNode(const char* name = 0);
+#ifdef UG_PROFILER_SHINY
+		AutoProfileNode();
+#endif
+#if defined(UG_PROFILER_SCALASCA) || defined(UG_PROFILER_VAMPIR)
+		AutoProfileNode(const char* name);
+#endif
+#ifdef UG_PROFILER_SCOREP
+		AutoProfileNode(SCOREP_User_RegionHandle name);
+#endif
 		~AutoProfileNode();
 
 	private:
@@ -40,7 +52,12 @@ class AutoProfileNode
 
 	private:
 		bool m_bActive;
+#if defined(UG_PROFILER_SCALASCA) || defined(UG_PROFILER_VAMPIR)
 		const char* m_pName;
+#endif
+#ifdef UG_PROFILER_SCOREP
+		SCOREP_User_RegionHandle m_pHandle;
+#endif
 };
 
 #ifdef UG_PROFILER_SHINY
@@ -174,6 +191,45 @@ class AutoProfileNode
 
 #endif // UG_PROFILER_VAMPIR
 
+#ifdef UG_PROFILER_SCOREP
+	#include <scorep/SCOREP_User.h>
+
+	#define PROFILE_STRINGIFY(x) #x
+	#define PROFILE_TOSTRING(x) PROFILE_STRINGIFY(x)
+
+	/**	Creates a new profile-environment with the given name.
+	 * Note that the profiled section automatically ends when the current ends.
+	 */
+	#define PROFILE_BEGIN(name)	\
+			SCOREP_USER_REGION_DEFINE( name )								\
+			SCOREP_USER_REGION_BEGIN( name, PROFILE_TOSTRING(name),
+			                          SCOREP_USER_REGION_TYPE_COMMON ) 			\
+			AutoProfileNode	apn_##name(name);								\
+
+	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
+	#define PROFILE_END()										\
+			ProfileNodeManager::release_latest()
+
+	/**	Profiles the whole function*/
+	#define PROFILE_FUNC()										\
+			SCOREP_USER_REGION(__FUNCTION__, SCOREP_USER_REGION_TYPE_FUNCTION )
+
+	#define PROFILE_BEGIN_GROUP(name, group)					\
+			PROFILE_BEGIN(name)
+
+	#define PROFILE_FUNC_GROUP(group)							\
+			PROFILE_FUNC()
+
+	namespace ProfilerDummy{
+		inline void Update(float a = 0.0f)			{}
+		inline bool Output(const char *a = NULL)	{return false;}
+		inline bool Output(std::ostream &a)			{return false;}
+	}
+
+	#define PROFILER_UPDATE	ProfilerDummy::Update
+	#define PROFILER_OUTPUT	ProfilerDummy::Output
+
+#endif // UG_PROFILER_SCOREP
 
 #else
 	#include <iostream>
