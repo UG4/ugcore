@@ -557,6 +557,9 @@ if(NOT("${PROFILER}" STREQUAL "None"))
             message("-- Info: Vampir: using compiler wrapper cc : ${VAMPIRTRACE_CC}")
             message("-- Info: Vampir: using inlcude dir: ${VAMPIRTRACE_INCLUDE_DIR}")
             message("-- Info: Vampir: using library dir: ${VAMPIRTRACE_LIBRARIES}")
+            message("-- Info: Vampir: check that compiler wrapper are set!")
+            message("--       Use: CC=\"vtcc" CCX=\"vtcxx\" cmake ...")
+            message("--       If not used: remove build completely and rerun cmake with prefix.")
         else(VAMPIRTRACE_FOUND)
         	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
         	        "binary vtcxx and/or library or include paths. Make sure "
