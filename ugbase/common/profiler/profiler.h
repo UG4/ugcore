@@ -202,9 +202,9 @@ class AutoProfileNode
 	 */
 	#define PROFILE_BEGIN(name)	\
 			SCOREP_USER_REGION_DEFINE( name )								\
-			SCOREP_USER_REGION_BEGIN( name, PROFILE_TOSTRING(name),
+			SCOREP_USER_REGION_BEGIN( name, PROFILE_TOSTRING(name),			\
 			                          SCOREP_USER_REGION_TYPE_COMMON ) 			\
-			AutoProfileNode	apn_##name(name);								\
+			AutoProfileNode	apn_##name(name);
 
 	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
 	#define PROFILE_END()										\
