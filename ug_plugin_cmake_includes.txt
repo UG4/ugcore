@@ -1,6 +1,0 @@
-MESSAGE(WARNING " WARNING UPDATE YOUR CMakeLists.txt !!!")
-MESSAGE(WARNING "cmake/ug_plugin_includes.cmake replaces ug_plugin_cmake_includes.txt")
-MESSAGE(WARNING "ug_plugin_cmake_includes.txt will be removed March 22th 2013, blame Martin Rupp")
-# blame Martin Rupp
-get_filename_component(MYPATH ${CMAKE_CURRENT_LIST_FILE} PATH)
-include(${MYPATH}/cmake/ug_plugin_includes.cmake)
