@@ -21,18 +21,21 @@ void ActiveSet<TAlgebra>::prepare(vector_type& u)
 template <typename TAlgebra>
 bool ActiveSet<TAlgebra>::check_dist_to_obs(vector_type& u)
 {
-	//	STILL IN PROGRESS
+	//	STILL IN PROGRESS: u sollte hier reference-position + Startlšsung sein!
 	value_type dist;
 
 	bool geometry_cut_by_cons = false;
 
 	for(size_t i = 0; i < u.size(); i++)
 	{
-		dist = u[i] - m_ConsVec[i];
+		UG_LOG("u(" << i << "):" << u[i] << "\n");
+		UG_LOG("m_ConsVec(" << i << "):" << m_ConsVec[i] << "\n");
+		dist = m_ConsVec[i] - u[i];
+		UG_LOG("dist:" << dist << "\n");
 		//TODO: anstatt u muss hier die geometrische Info einflie§en!
 		for (size_t fct = 0; fct < m_nrFcts; fct++)
 		{
-			if (BlockRef(dist,fct) < 0.0)
+			if (BlockRef(dist,fct) < 0.0) // i.e.: u < m_ConsVec
 			{
 				geometry_cut_by_cons = true;
 				break;
@@ -111,14 +114,12 @@ void ActiveSet<TAlgebra>::comp_lambda(vector_type& lambda,
 		UG_THROW("Temporarily u and lambda need to be "
 				"of same size in ActiveSet:comp_lambda \n");
 
-	vector_type mat_u; // mat_u2;
+	vector_type mat_u;
 	mat_u.resize(u.size());
-	//mat_u2.resize(u.size());
 
 	// 	only if some indices are active we need to compute contact forces
 	if(m_vActiveSet.size() != 0.0)
 	{
-		//	we only need *it-th row of mat -> number mat_u = 0.0;
 		#ifdef UG_PARALLEL
 			MatMultDirect(mat_u, 1.0, mat, u);
 		#else
@@ -129,12 +130,6 @@ void ActiveSet<TAlgebra>::comp_lambda(vector_type& lambda,
 		for (vector<MultiIndex<2> >::iterator it = m_vActiveSet.begin();
 				it < m_vActiveSet.end(); ++it)
 		{
-			/*#ifdef UG_PARALLEL
-				MatMultDirect(u2[*it], 1.0, mat(*it), u[*it]);
-			#else
-				MatMult(mat_u2[*it], 1.0, mat.row_index(*it), u[*it]);
-			#endif*/
-
 			//	compute contact forces (lambda) for active multiIndices
 
 			//	get active (DoF,fct)-pairs out of m_vvActiveSet
@@ -181,7 +176,7 @@ bool ActiveSet<TAlgebra>::check_conv(const vector_type& u, const size_t step)
 		penetration = u[i] - m_ConsVec[i];
 
 		for (size_t fct = 0; fct < m_nrFcts; fct++){
-			if (BlockRef(penetration,fct) > 0.0)
+			if (BlockRef(penetration,fct) > 0.0) //	i.e.: u > m_ConsVec
 				return false;
 		}
 	}
