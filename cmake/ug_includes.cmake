@@ -546,7 +546,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "scalasca -instrument -comp=none -user ")
 
         # add compile flags
-		//add_cxx_flag("${SCALASCA_USER_CFLAGS}")
+		#add_cxx_flag("${SCALASCA_USER_CFLAGS}")
     	add_definitions(-DUG_PROFILER_SCALASCA)    
     
     # Vampir
