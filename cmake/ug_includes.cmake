@@ -574,7 +574,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
         if(SCOREP_COMMAND)
             message("-- Info: ScoreP: using compiler wrapper: ${SCOREP_COMMAND}")
             message("-- Info: ScoreP: check that compiler wrapper are set!")
-            message("--       Use: CC=\"scorep --user mpicc" CCX=\"scorep --user mpicxx\" cmake ...")
+            message("--       Use: CC=\"scorep --user mpicc\" CCX=\"scorep --user mpicxx\" cmake ...")
             message("--       If not used: remove build completely and rerun cmake with prefix.")
         else(SCOREP_COMMAND)
         	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
