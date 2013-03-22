@@ -429,7 +429,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
 	# remove warning "The controlling expression is constant"
 	add_cxx_flag("-hnomessage=236")
 else()
-	#add_cxx_flag("-Wall")
+	add_cxx_flag("-Wall")
 	#§set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 
