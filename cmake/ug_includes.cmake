@@ -511,6 +511,9 @@ if(NOT("${PROFILER}" STREQUAL "None"))
             message("-- Info: Scalasca: using scalasca command: ${SCALASCA_COMMAND}")
             message("-- Info: Scalasca: using inlcude dir: ${SCALASCA_INCLUDE_DIR}")
             message("-- Info: Scalasca: using cxx flags: ${SCALASCA_USER_CFLAGS}")
+            message("-- Info: Scalasca: check that compiler prefix is set")
+            message("--       Use: CC=\"scalasca -instrument -comp=none -user mpicc\" CCX=\"scalasca -instrument -comp=none -user mpicxx\" cmake ...")
+            message("--       If not: remove build completely and rerun cmake with prefix.")
         else(SCALASCA_FOUND)
         	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
         	        "binary scalasca/kconfig. Make sure "
@@ -543,7 +546,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
 #        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "scalasca -instrument -comp=none -user ")
 
         # add compile flags
-		add_cxx_flag("${SCALASCA_USER_CFLAGS}")
+		//add_cxx_flag("${SCALASCA_USER_CFLAGS}")
     	add_definitions(-DUG_PROFILER_SCALASCA)    
     
     # Vampir
