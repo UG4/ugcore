@@ -11,7 +11,15 @@
 #define __H__UG__LIB_DISC__QUADRATURE__NEWTON_COTES__
 
 namespace ug{
-	//This class provides Newton-Cotes integrals up to order 6
+
+
+	/**This class provides Newton-Cotes integrals up to order 10,
+	 * if another order is needed, the mathematica file will generate
+	 * manually, exchange it. For further information, wikipedia -> Newton Cotes will
+	 * help out.
+	 */
+
+
 class NewtonCotes : public QuadratureRule<1>
 {
 	public:

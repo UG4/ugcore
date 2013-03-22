@@ -12,16 +12,19 @@
 
 namespace ug{
 
-//This class provides GaussLegendre integrals up to order 6
-class GaussLegendre : public QuadratureRule<1>
-{
-	public:
-	//constructor
-	GaussLegendre(int order);
+	/** This class provides GaussLegendre integrals up to order 70
+	 *  furher information considering these rules an be found on wikipedia.
+	 */
 
-	//destructor
-	~GaussLegendre();
-};
+	class GaussLegendre : public QuadratureRule<1>
+	{
+		public:
+		//constructor
+		GaussLegendre(int order);
+
+		//destructor
+		~GaussLegendre();
+	};
 
 } // namespace ug
 

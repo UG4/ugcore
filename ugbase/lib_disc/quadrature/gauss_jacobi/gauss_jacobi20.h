@@ -12,16 +12,20 @@
 
 namespace ug{
 
-//This class provides GaussLegendre integrals up to order 6
-class GaussJacobi20 : public QuadratureRule<1>
-{
-	public:
-	//constructor
-	GaussJacobi20(int order);
+	/**This class provides GaussJacobi integrals up to order 70
+	 * with alpha = 2 and beta = 0. Further information about these
+	 * quadrature rules can be found on wikipedia.
+	 */
 
-	//destructor
-	~GaussJacobi20();
-};
+	class GaussJacobi20 : public QuadratureRule<1>
+	{
+		public:
+		//constructor
+		GaussJacobi20(int order);
+
+		//destructor
+		~GaussJacobi20();
+	};
 
 } // namespace ug
 

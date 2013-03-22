@@ -156,6 +156,7 @@ QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,
 	switch(roid){
 		case ROID_TETRAHEDRON: q = new GaussQuadratureTetrahedron(order); break;
 		case ROID_PRISM: q = new GaussQuadraturePrism(order); break;
+		case ROID_PYRAMID: q = new GaussQuadraturePyramid(order); break;
 		case ROID_HEXAHEDRON: q = new GaussQuadratureHexahedron(order); break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: "<<roid<<" not supported.");
 	}

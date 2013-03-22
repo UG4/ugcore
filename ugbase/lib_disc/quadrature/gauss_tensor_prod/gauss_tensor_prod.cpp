@@ -12,6 +12,7 @@
 #include "../gauss_legendre/gauss_legendre.h"
 #include "../gauss_jacobi/gauss_jacobi10.h"
 #include "../gauss_jacobi/gauss_jacobi20.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
 
 namespace ug {
 
@@ -163,4 +164,55 @@ GaussQuadraturePrism::~GaussQuadraturePrism()
 	delete[] m_pvWeight;
 }
 
+GaussQuadraturePyramid::GaussQuadraturePyramid(int order)
+{
+	GaussQuadratureTetrahedron quadRule = GaussQuadratureTetrahedron(order);
+
+	m_order = quadRule.order();
+	m_numPoints = quadRule.size() * 2;
+	MathVector<dim>* pvPoint; number* pvWeight;
+	m_pvPoint = pvPoint = new position_type[m_numPoints];
+	m_pvWeight = pvWeight = new weight_type[m_numPoints];
+
+	MathVector<3> Tet1Co[4];
+	Tet1Co[0] = MathVector<3>(0,0,0);
+	Tet1Co[1] = MathVector<3>(1,1,0);
+	Tet1Co[2] = MathVector<3>(0,0,1);
+	Tet1Co[3] = MathVector<3>(0,1,0);
+
+	MathVector<3> Tet2Co[4];
+	Tet2Co[0] = MathVector<3>(0,0,0);
+	Tet2Co[1] = MathVector<3>(1,0,0);
+	Tet2Co[2] = MathVector<3>(1,1,0);
+	Tet2Co[3] = MathVector<3>(0,0,1);
+
+	DimReferenceMapping<3, 3>& map1 =
+			ReferenceMappingProvider::get<3,3>(ROID_TETRAHEDRON, Tet1Co);
+
+	int cnt = 0;
+	for(int i = 0; i < quadRule.size(); i++, cnt++) {
+		map1.local_to_global(pvPoint[cnt], quadRule.point(i));
+		pvWeight[cnt] = quadRule.weight(i) * map1.sqrt_gram_det(quadRule.point(i));
+
+		UG_LOG(i<<": "<<cnt<<": weight: "<<quadRule.weight(i)<<" vol: "<< map1.sqrt_gram_det(quadRule.point(i))<<",point: "<<pvPoint[cnt]<<"\n");
+	}
+
+
+	DimReferenceMapping<3, 3>& map2 =
+			ReferenceMappingProvider::get<3,3>(ROID_TETRAHEDRON, Tet2Co);
+
+	for(int j = 0; j < quadRule.size(); j++, cnt++) {
+		map2.local_to_global(pvPoint[cnt], quadRule.point(j));
+		pvWeight[cnt] = quadRule.weight(j) * map2.sqrt_gram_det(quadRule.point(j));
+
+		UG_LOG(j<<": "<<cnt<<": weight: "<<quadRule.weight(j)<<"vol: "<< map2.sqrt_gram_det(quadRule.point(j))<<",point: "<<pvPoint[cnt]<<"\n");
+	}
+};
+
+GaussQuadraturePyramid::~GaussQuadraturePyramid()
+{
+	delete[] m_pvPoint;
+	delete[] m_pvWeight;
 }
+}
+
