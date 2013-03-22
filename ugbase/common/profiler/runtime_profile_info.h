@@ -39,7 +39,7 @@ class RuntimeProfileInfo
 			EPIK_USER_START(pName);
 #endif
 #ifdef UG_PROFILER_VAMPIR
-			VT_USER_START(pName);
+			VT_USER_START((char*)pName);
 #endif
 		}
 
@@ -52,7 +52,7 @@ class RuntimeProfileInfo
 			EPIK_USER_END(pName);
 #endif
 #ifdef UG_PROFILER_VAMPIR
-			VT_USER_END(pName);
+			VT_USER_END((char*)pName);
 #endif
 		}
 
