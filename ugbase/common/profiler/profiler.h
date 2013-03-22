@@ -155,7 +155,7 @@ class AutoProfileNode
 
 	/**	Profiles the whole function*/
 	#define PROFILE_FUNC()										\
-			VT_TRACER(__FUNCTION__)
+			VT_TRACER((char*)__FUNCTION__)
 
 	#define PROFILE_BEGIN_GROUP(name, group)					\
 			PROFILE_BEGIN(name)
