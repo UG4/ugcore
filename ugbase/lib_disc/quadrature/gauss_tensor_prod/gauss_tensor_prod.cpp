@@ -27,9 +27,9 @@ GaussQuadratureTriangle::GaussQuadratureTriangle(int order)
 	m_pvPoint = pvPoint = new position_type[m_numPoints];
 	m_pvWeight = pvWeight = new weight_type[m_numPoints];
 
-	int cnt = 0;
-	for(int i = 0; i < quadRule.size(); i++){
-		for(int j = 0; j < quadRule10.size(); j++, cnt++){
+	size_t cnt = 0;
+	for(size_t i = 0; i < quadRule.size(); i++){
+		for(size_t j = 0; j < quadRule10.size(); j++, cnt++){
 			pvPoint[cnt][0] = quadRule10.point(j)[0];
 			pvPoint[cnt][1] = (1.0 - quadRule10.point(j)[0] ) * quadRule.point(i)[0];
 			pvWeight[cnt] = quadRule.weight(i) * quadRule10.weight(j);
@@ -54,9 +54,9 @@ GaussQuadratureQuadrilateral::GaussQuadratureQuadrilateral(int order)
 	m_pvPoint = pvPoint = new position_type[m_numPoints];
 	m_pvWeight = pvWeight = new weight_type[m_numPoints];
 
-	int cnt  = 0;
-	for(int i = 0; i < quadRule.size(); i ++) {
-		for(int j = 0; j < quadRule.size(); j++, cnt++) {
+	size_t cnt  = 0;
+	for(size_t i = 0; i < quadRule.size(); i ++) {
+		for(size_t j = 0; j < quadRule.size(); j++, cnt++) {
 			pvPoint[cnt][0] = quadRule.point(i)[0];
 			pvPoint[cnt][1] = quadRule.point(j)[0];
 			pvWeight[cnt] = quadRule.weight(i) * quadRule.weight(j);
@@ -81,10 +81,10 @@ GaussQuadratureHexahedron::GaussQuadratureHexahedron(int order)
 	m_pvPoint = pvPoint = new position_type[m_numPoints];
 	m_pvWeight = pvWeight = new weight_type[m_numPoints];
 
-	int cnt  = 0;
-	for(int i = 0; i < quadRule.size(); i ++) {
-		for(int j = 0; j < quadRule.size(); j++) {
-			for(int k = 0; k < quadRule.size(); k++, cnt++) {
+	size_t cnt  = 0;
+	for(size_t i = 0; i < quadRule.size(); i ++) {
+		for(size_t j = 0; j < quadRule.size(); j++) {
+			for(size_t k = 0; k < quadRule.size(); k++, cnt++) {
 				pvPoint[cnt][0] = quadRule.point(i)[0];
 				pvPoint[cnt][1] = quadRule.point(j)[0];
 				pvPoint[cnt][2] = quadRule.point(k)[0];
@@ -113,10 +113,10 @@ GaussQuadratureTetrahedron::GaussQuadratureTetrahedron(int order)
 	m_pvPoint = pvPoint = new position_type[m_numPoints];
 	m_pvWeight = pvWeight = new weight_type[m_numPoints];
 
-	int cnt = 0;
-	for(int i = 0; i < quadRule20.size(); i++) {
-		for(int j = 0; j < quadRule10.size(); j++) {
-			for(int k = 0; k < quadRule.size(); k++, cnt++) {
+	size_t cnt = 0;
+	for(size_t i = 0; i < quadRule20.size(); i++) {
+		for(size_t j = 0; j < quadRule10.size(); j++) {
+			for(size_t k = 0; k < quadRule.size(); k++, cnt++) {
 				pvPoint[cnt][0] = quadRule20.point(i)[0];
 				pvPoint[cnt][1] = (1.0 - quadRule20.point(i)[0] ) * quadRule10.point(j)[0];
 				pvPoint[cnt][2] = (1.0 - quadRule20.point(i)[0]) * (1.0 - quadRule10.point(j)[0]) * quadRule.point(k)[0];
@@ -144,10 +144,10 @@ GaussQuadraturePrism::GaussQuadraturePrism(int order)
 	m_pvPoint = pvPoint = new position_type[m_numPoints];
 	m_pvWeight = pvWeight = new weight_type[m_numPoints];
 
-	int cnt = 0;
-	for(int i = 0; i < quadRule10.size(); i++) {
-		for(int j = 0; j < quadRule.size(); j++) {
-			for(int k = 0; k < quadRule.size(); k++, cnt++) {
+	size_t cnt = 0;
+	for(size_t i = 0; i < quadRule10.size(); i++) {
+		for(size_t j = 0; j < quadRule.size(); j++) {
+			for(size_t k = 0; k < quadRule.size(); k++, cnt++) {
 				pvPoint[cnt][0] = quadRule10.point(i)[0];
 				pvPoint[cnt][1] = (1.0 - quadRule10.point(i)[0]) * quadRule.point(j)[0];
 				pvPoint[cnt][2] = quadRule.point(k)[0];
@@ -189,8 +189,8 @@ GaussQuadraturePyramid::GaussQuadraturePyramid(int order)
 	DimReferenceMapping<3, 3>& map1 =
 			ReferenceMappingProvider::get<3,3>(ROID_TETRAHEDRON, Tet1Co);
 
-	int cnt = 0;
-	for(int i = 0; i < quadRule.size(); i++, cnt++) {
+	size_t cnt = 0;
+	for(size_t i = 0; i < quadRule.size(); i++, cnt++) {
 		map1.local_to_global(pvPoint[cnt], quadRule.point(i));
 		pvWeight[cnt] = quadRule.weight(i) * map1.sqrt_gram_det(quadRule.point(i));
 
@@ -201,7 +201,7 @@ GaussQuadraturePyramid::GaussQuadraturePyramid(int order)
 	DimReferenceMapping<3, 3>& map2 =
 			ReferenceMappingProvider::get<3,3>(ROID_TETRAHEDRON, Tet2Co);
 
-	for(int j = 0; j < quadRule.size(); j++, cnt++) {
+	for(size_t j = 0; j < quadRule.size(); j++, cnt++) {
 		map2.local_to_global(pvPoint[cnt], quadRule.point(j));
 		pvWeight[cnt] = quadRule.weight(j) * map2.sqrt_gram_det(quadRule.point(j));
 
