@@ -7,6 +7,7 @@
 
 #include "debug_id.h"
 #include "common/log.h"
+#include "common/error.h"
 #include "common/assert.h"
 
 namespace ug{
@@ -56,12 +57,9 @@ register_debug_id(const char *debugID)
 	{
 		// not quite clear if cout is defined yet.
 		// note that this could be caused by double-registering libraries.
-		printf("\nFATAL ERROR: DebugID %s already registered.\n\n", debugID);
-		assert(0);
+		UG_THROW("FATAL ERROR: DebugID "<<debugID<<" already registered.");
 		return false;
 	}
 }
-
-
 
 }
