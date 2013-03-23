@@ -144,6 +144,7 @@ string XMLStringEscape(string s)
 	ReplaceAll(s, "\'", "&apos;");
 	ReplaceAll(s, "<", "&lt;");
 	ReplaceAll(s, ">", "&gt;");
+	return s;
 }
 
 void UGProfileNode::write_node(ostream &s) const
