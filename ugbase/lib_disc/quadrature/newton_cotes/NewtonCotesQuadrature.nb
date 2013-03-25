@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[      9370,        235]
-NotebookOptionsPosition[      9038,        219]
-NotebookOutlinePosition[      9396,        235]
-CellTagsIndexPosition[      9353,        232]
+NotebookDataLength[      9531,        238]
+NotebookOptionsPosition[      9199,        222]
+NotebookOutlinePosition[      9557,        238]
+CellTagsIndexPosition[      9514,        235]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -131,11 +131,12 @@ Cell[BoxData[{
           RowBox[{
           "str", ",", "\"\<\\t\\t\\tpvPoint[\>\"", ",", "i", ",", 
            "\"\<][0] = \>\"", ",", " ", 
-           RowBox[{"CForm", "[", 
-            RowBox[{"N", "[", 
-             RowBox[{
-              RowBox[{"i", "/", "n"}], ",", "prec"}], "]"}], "]"}], ",", " ", 
-           "\"\<;\\n\>\""}], 
+           RowBox[{"ScientificForm", "[", 
+            RowBox[{"CForm", "[", 
+             RowBox[{"N", "[", 
+              RowBox[{
+               RowBox[{"i", "/", "n"}], ",", "prec"}], "]"}], "]"}], "]"}], 
+           ",", " ", "\"\<;\\n\>\""}], 
           StyleBox[" ", "Subsubsection"], 
           StyleBox["]", "Subsubsection"]}], 
          StyleBox[";", "Subsubsection"]}]}], 
@@ -158,12 +159,13 @@ Cell[BoxData[{
           RowBox[{
           "str", ",", "\"\<\\t\\t\\tpvWeight[\>\"", ",", "i", ",", 
            "\"\<] = \>\"", ",", " ", 
-           RowBox[{"CForm", "[", 
-            RowBox[{"N", "[", 
-             RowBox[{
-              RowBox[{"W", "[", 
-               RowBox[{"i", ",", "n", ",", "x"}], "]"}], ",", "prec"}], "]"}],
-             "]"}], ",", " ", "\"\<;\\n\>\""}], 
+           RowBox[{"ScientificForm", "[", 
+            RowBox[{"CForm", "[", 
+             RowBox[{"N", "[", 
+              RowBox[{
+               RowBox[{"W", "[", 
+                RowBox[{"i", ",", "n", ",", "x"}], "]"}], ",", "prec"}], 
+              "]"}], "]"}], "]"}], ",", " ", "\"\<;\\n\>\""}], 
           StyleBox[" ", "Subsubsection"], 
           StyleBox["]", "Subsubsection"]}], 
          StyleBox[";", "Subsubsection"]}]}], 
@@ -209,7 +211,8 @@ Cell[BoxData[{
    3.572778966502922*^9}, {3.572779093229661*^9, 3.572779147594551*^9}, {
    3.57277931254393*^9, 3.572779332293589*^9}, {3.572779464939969*^9, 
    3.572779472605611*^9}, {3.573190788337193*^9, 3.5731907891759787`*^9}, {
-   3.5731908654078617`*^9, 3.573190875626395*^9}}],
+   3.5731908654078617`*^9, 3.573190875626395*^9}, {3.573203643587833*^9, 
+   3.573203654618308*^9}}],
 
 Cell[BoxData[""], "Input",
  CellChangeTimes->{{3.572778735782218*^9, 3.572778758454365*^9}}],
@@ -234,9 +237,9 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[557, 20, 8287, 191, 793, "Input"],
-Cell[8847, 213, 92, 1, 27, "Input"],
-Cell[8942, 216, 92, 1, 27, "Input"]
+Cell[557, 20, 8448, 194, 793, "Input"],
+Cell[9008, 216, 92, 1, 27, "Input"],
+Cell[9103, 219, 92, 1, 27, "Input"]
 }
 ]
 *)

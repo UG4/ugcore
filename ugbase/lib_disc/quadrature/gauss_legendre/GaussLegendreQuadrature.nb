@@ -10,24 +10,24 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     12354,        254]
-NotebookOptionsPosition[     12095,        240]
-NotebookOutlinePosition[     12453,        256]
-CellTagsIndexPosition[     12410,        253]
+NotebookDataLength[     12748,        261]
+NotebookOptionsPosition[     12488,        247]
+NotebookOutlinePosition[     12847,        263]
+CellTagsIndexPosition[     12804,        260]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
 Cell[BoxData[{
  RowBox[{
-  RowBox[{"maxOrder", " ", "=", " ", "7"}], ";"}], "\[IndentingNewLine]", 
+  RowBox[{"maxOrder", " ", "=", " ", "80"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"precision", " ", "=", " ", "38"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Close", "[", "str", "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"str", " ", "=", " ", 
-   RowBox[{"OpenWrite", "[", "\"\<~/Desktop/gauss_legendre03.h\>\"", "]"}]}], 
+   RowBox[{"OpenWrite", "[", "\"\<~/Desktop/gauss_legendre.cpp\>\"", "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"WriteString", "[", 
@@ -90,16 +90,18 @@ Cell[BoxData[{
        RowBox[{"WriteString", "[", 
         RowBox[{"str", ",", "\"\<\\t\\t\\tpvPoint[\>\"", ",", 
          RowBox[{"i", "-", "1"}], ",", "\"\<][0] = \>\"", ",", " ", 
-         RowBox[{"Re", "[", 
-          RowBox[{"N", "[", 
-           RowBox[{
-            RowBox[{
+         RowBox[{"ScientificForm", "[", 
+          RowBox[{"CForm", "[", 
+           RowBox[{"Re", "[", 
+            RowBox[{"N", "[", 
              RowBox[{
-              RowBox[{"1", "/", "2"}], "*", 
-              RowBox[{"NullStellen", "[", 
-               RowBox[{"[", "i", "]"}], "]"}]}], "+", 
-             RowBox[{"1", "/", "2"}]}], ",", "precision"}], "]"}], "]"}], ",",
-          " ", "\"\<;\\n\>\""}], 
+              RowBox[{
+               RowBox[{
+                RowBox[{"1", "/", "2"}], "*", 
+                RowBox[{"NullStellen", "[", 
+                 RowBox[{"[", "i", "]"}], "]"}]}], "+", 
+               RowBox[{"1", "/", "2"}]}], ",", "precision"}], "]"}], "]"}], 
+           "]"}], "]"}], ",", " ", "\"\<;\\n\>\""}], 
         StyleBox[" ", "Subsubsection"], 
         StyleBox["]", "Subsubsection"]}], 
        StyleBox[";", "Subsubsection"]}]}], 
@@ -141,8 +143,10 @@ Cell[BoxData[{
           "]"}]}], ";", "\[IndentingNewLine]", 
         RowBox[{"WriteString", "[", 
          RowBox[{"str", ",", "\"\<\\t\\t\\tpvWeight[\>\"", ",", 
-          RowBox[{"j", "-", "1"}], ",", "\"\<] = \>\"", ",", " ", "res", ",", 
-          " ", "\"\<;\\n\>\""}], 
+          RowBox[{"j", "-", "1"}], ",", "\"\<] = \>\"", ",", " ", 
+          RowBox[{"ScientificForm", "[", 
+           RowBox[{"CForm", "[", "res", "]"}], "]"}], ",", " ", 
+          "\"\<;\\n\>\""}], 
          StyleBox[" ", "Subsubsection"], 
          StyleBox["]", "Subsubsection"]}], 
         StyleBox[";", "Subsubsection"]}]}], "\[IndentingNewLine]", 
@@ -236,10 +240,13 @@ Cell[BoxData[{
    3.5722455527242727`*^9}, {3.5722456035317907`*^9, 3.572245616610579*^9}, {
    3.572246720687552*^9, 3.57224674472279*^9}, {3.572762751805538*^9, 
    3.5727627525072517`*^9}, {3.572762813901596*^9, 3.572762828240397*^9}, 
-   3.572776455902308*^9, {3.573191448266055*^9, 3.573191456760027*^9}}]
+   3.572776455902308*^9, {3.573191448266055*^9, 3.573191456760027*^9}, {
+   3.573203322251549*^9, 3.573203340912026*^9}, {3.573203817245021*^9, 
+   3.573203817377358*^9}, {3.57320426672514*^9, 3.573204268562554*^9}, {
+   3.573205358943433*^9, 3.57320535983259*^9}}]
 },
 WindowSize->{1254, 1181},
-WindowMargins->{{21, Automatic}, {Automatic, 55}},
+WindowMargins->{{Automatic, 237}, {Automatic, 23}},
 FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 6, \
 2010)",
 StyleDefinitions->"Default.nb"
@@ -255,7 +262,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[557, 20, 11534, 218, 690, "Input"]
+Cell[557, 20, 11927, 225, 690, "Input"]
 }
 ]
 *)

@@ -95,6 +95,10 @@ class GaussQuadraturePrism : public QuadratureRule<3> {
 /**
  * The following class provides QuadratureRules for pyramids
  * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ *
+ * The idea of this quadrature is to divide the pyramid into two tetrahdrons given
+ * by {x,0,1},{y,0,x},{z,0,1-x} and {x,0,1},{y,x,1},{z,0,1-y} and carry out
+ * integration on those using GaussQuadratureTetrehedron
  */
 class GaussQuadraturePyramid : public QuadratureRule<3> {
 

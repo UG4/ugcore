@@ -10,41 +10,50 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     17240,        375]
-NotebookOptionsPosition[     16980,        361]
-NotebookOutlinePosition[     17339,        377]
-CellTagsIndexPosition[     17296,        374]
+NotebookDataLength[     19072,        415]
+NotebookOptionsPosition[     18741,        398]
+NotebookOutlinePosition[     19098,        414]
+CellTagsIndexPosition[     19055,        411]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
 Notebook[{
+
+Cell[CellGroupData[{
 Cell[BoxData[{
  RowBox[{
   RowBox[{
    RowBox[{"a", " ", "=", " ", "2"}], ";", " ", 
    RowBox[{"b", " ", "=", " ", "0"}], ";", " ", 
    RowBox[{"precision", " ", "=", " ", "34"}], ";", " ", 
-   RowBox[{"n", " ", "=", " ", "5"}], ";"}], 
+   RowBox[{"n", " ", "=", " ", "80"}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Close", "[", "str", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"filename", " ", "=", " ", 
+  RowBox[{"\"\<~/Desktop/gauss_jacobi\>\"", "<>", 
+   RowBox[{"ToString", "[", "a", "]"}], "<>", 
+   RowBox[{"ToString", "[", "b", "]"}], "<>", 
+   "\"\<.cpp\>\""}]}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"str", " ", "=", " ", 
-   RowBox[{"OpenWrite", "[", "\"\<~/Desktop/gauss_jacobi20.cpp\>\"", "]"}]}], 
+   RowBox[{"OpenWrite", "[", "filename", "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
    RowBox[{"WriteString", "[", 
     RowBox[{
     "str", ",", " ", "\[IndentingNewLine]", 
-     "\"\<#include \\\"gauss_jacobi20.h\\\"\\n\>\"", ",", 
-     "\[IndentingNewLine]", "\"\<#include \\\"../quadrature.h\\\"\\n\>\"", 
-     ",", "\[IndentingNewLine]", 
+     "\"\<#include \\\"gauss_jacobi\>\"", ",", "a", ",", "b", ",", 
+     "\"\<.h\\\"\\n\>\"", ",", "\[IndentingNewLine]", 
+     "\"\<#include \\\"../quadrature.h\\\"\\n\>\"", ",", 
+     "\[IndentingNewLine]", 
      "\"\<#include \\\"common/util/provider.h\\\"\\n\\n\>\"", ",", 
      "\[IndentingNewLine]", "\"\<namespace ug\\n{\\n\\n\>\"", ",", 
-     "\[IndentingNewLine]", 
-     "\"\<GaussJacobi20::GaussJacobi20(size_t order)\\n\>\"", ",", 
-     "\[IndentingNewLine]", "\"\<{\\n\\n\>\"", ",", "\[IndentingNewLine]", 
+     "\[IndentingNewLine]", "\"\<GaussJacobi\>\"", ",", " ", "a", ",", " ", 
+     "b", ",", "\"\<::GaussJacobi\>\"", ",", "a", ",", "b", ",", 
+     "\"\<(size_t order)\\n\>\"", ",", "\[IndentingNewLine]", 
+     "\"\<{\\n\\n\>\"", ",", "\[IndentingNewLine]", 
      "\"\<\\tif (order % 2 == 0) order = order + 1;\\n\>\"", ",", 
      "\[IndentingNewLine]", "\"\<\\tm_order = order;\\n\>\"", ",", 
      "\[IndentingNewLine]", "\"\<\\tm_numPoints = (order+1)/2;\\n\>\"", ",", 
@@ -139,12 +148,17 @@ Cell[BoxData[{
         RowBox[{"WriteString", "[", 
          RowBox[{"str", ",", "\"\<\\t\\t\\tpvPoint[\>\"", ",", 
           RowBox[{"k", "-", "1"}], ",", "\"\<][0] = \>\"", ",", " ", 
-          RowBox[{"Re", "[", 
-           RowBox[{"N", "[", 
-            RowBox[{
-             RowBox[{"NullStellen", "[", 
-              RowBox[{"[", "k", "]"}], "]"}], ",", " ", "precision"}], "]"}], 
-           "]"}], ",", " ", "\"\<;\\n\>\""}], 
+          RowBox[{"ScientificForm", "[", 
+           RowBox[{
+            RowBox[{"CForm", "[", 
+             RowBox[{"Re", "[", 
+              RowBox[{"N", "[", 
+               RowBox[{
+                RowBox[{"NullStellen", "[", 
+                 RowBox[{"[", "k", "]"}], "]"}], ",", " ", "precision"}], 
+               "]"}], "]"}], 
+             StyleBox["]", "Subsubsection"]}], ",", " ", "precision"}], "]"}],
+           ",", " ", "\"\<;\\n\>\""}], 
          StyleBox[" ", "Subsubsection"], 
          StyleBox["]", "Subsubsection"]}], 
         StyleBox[";", "Subsubsection"]}]}], 
@@ -251,15 +265,20 @@ Cell[BoxData[{
         RowBox[{"WriteString", "[", 
          RowBox[{"str", ",", "\"\<\\t\\t\\tpvWeight[\>\"", ",", 
           RowBox[{"k", "-", "1"}], ",", "\"\<] = \>\"", ",", " ", 
-          RowBox[{"Re", "[", 
-           RowBox[{"N", "[", 
-            RowBox[{
-             RowBox[{"W", "[", 
-              RowBox[{"a", ",", "b", ",", "i", ",", 
-               RowBox[{"NullStellen", "[", 
-                RowBox[{"[", "k", "]"}], "]"}]}], "]"}], ",", " ", 
-             "precision"}], "]"}], 
-           StyleBox["]", "Subsubsection"]}], ",", " ", "\"\<;\\n\>\""}], 
+          RowBox[{"ScientificForm", "[", 
+           RowBox[{
+            RowBox[{"CForm", "[", 
+             RowBox[{"Re", "[", 
+              RowBox[{"N", "[", 
+               RowBox[{
+                RowBox[{"W", "[", 
+                 RowBox[{"a", ",", "b", ",", "i", ",", 
+                  RowBox[{"NullStellen", "[", 
+                   RowBox[{"[", "k", "]"}], "]"}]}], "]"}], ",", " ", 
+                "precision"}], "]"}], 
+              StyleBox["]", "Subsubsection"]}], 
+             StyleBox["]", "Subsubsection"]}], ",", " ", "precision"}], "]"}],
+           ",", " ", "\"\<;\\n\>\""}], 
          StyleBox[" ", "Subsubsection"], 
          StyleBox["]", "Subsubsection"]}], 
         StyleBox[";", "Subsubsection"]}]}], "\[IndentingNewLine]", 
@@ -282,11 +301,13 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"WriteString", "[", 
    RowBox[{
-   "str", ",", " ", "\"\<\\nGaussJacobi20::~GaussJacobi20()\\n{\\n\>\"", ",", 
-    "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvPoint;\\n\>\"", ",", 
-    "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvWeight;\\n\>\"", ",", 
-    "\[IndentingNewLine]", "\t", "\"\<};\\n\>\"", ",", "\[IndentingNewLine]", 
-    "\"\<}\>\""}], "]"}], ";"}], "\[IndentingNewLine]"}], "Input",
+   "str", ",", " ", "\"\<\\nGaussJacobi\>\"", ",", "a", ",", "b", ",", 
+    "\"\<::~GaussJacobi\>\"", ",", "a", ",", "b", ",", "\"\<()\\n{\\n\>\"", 
+    ",", "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvPoint;\\n\>\"", 
+    ",", "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvWeight;\\n\>\"", 
+    ",", "\[IndentingNewLine]", "\t", "\"\<};\\n\>\"", ",", 
+    "\[IndentingNewLine]", "\"\<}\>\""}], "]"}], 
+  ";"}], "\[IndentingNewLine]"}], "Input",
  CellChangeTimes->{{3.57226053079314*^9, 3.572260769144734*^9}, {
    3.572260803031954*^9, 3.572261034451303*^9}, {3.572261127171358*^9, 
    3.5722611344744577`*^9}, {3.572261173714417*^9, 3.572261180520932*^9}, {
@@ -357,10 +378,26 @@ Cell[BoxData[{
    3.572690975775991*^9, 3.5726910001977053`*^9}, {3.572691032895529*^9, 
    3.5726911228971033`*^9}, {3.572691170232216*^9, 3.572691212054916*^9}, {
    3.572691384093691*^9, 3.572691400641271*^9}, {3.572766711863104*^9, 
-   3.572766712277788*^9}, {3.573191319854293*^9, 3.5731913503279943`*^9}}]
+   3.572766712277788*^9}, {3.573191319854293*^9, 3.5731913503279943`*^9}, {
+   3.573197624258362*^9, 3.5731976247596292`*^9}, {3.573197748197731*^9, 
+   3.57319775001718*^9}, {3.5731982495759773`*^9, 3.5731983195155697`*^9}, {
+   3.573198378999017*^9, 3.57319839946175*^9}, {3.57319844268456*^9, 
+   3.573198503223577*^9}, {3.573198551374509*^9, 3.573198589063274*^9}, {
+   3.5731986917309513`*^9, 3.573198707496492*^9}, {3.5731987842807837`*^9, 
+   3.573198788078557*^9}, {3.573198904449922*^9, 3.573198989209241*^9}, {
+   3.573199026337203*^9, 3.573199060780177*^9}, {3.573203199160206*^9, 
+   3.573203227679002*^9}, {3.573203301325893*^9, 3.573203301429125*^9}, {
+   3.573203870178587*^9, 3.573203870315681*^9}}],
+
+Cell[BoxData["\<\"~/Desktop/gauss_jacobi20.cpp\"\>"], "Output",
+ CellChangeTimes->{
+  3.573198966589726*^9, {3.573198997310803*^9, 3.573199062540419*^9}, {
+   3.573203200061145*^9, 3.573203229739724*^9}, 3.5732033032282257`*^9, 
+   3.573203871830871*^9}]
+}, Open  ]]
 },
-WindowSize->{1454, 978},
-WindowMargins->{{Automatic, 220}, {Automatic, 127}},
+WindowSize->{1127, 989},
+WindowMargins->{{Automatic, 83}, {Automatic, 23}},
 FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 6, \
 2010)",
 StyleDefinitions->"Default.nb"
@@ -376,7 +413,10 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[557, 20, 16419, 339, 900, "Input"]
+Cell[CellGroupData[{
+Cell[579, 22, 17889, 367, 915, "Input"],
+Cell[18471, 391, 254, 4, 27, "Output"]
+}, Open  ]]
 }
 ]
 *)
