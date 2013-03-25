@@ -64,11 +64,11 @@ chmod +x $UG4_ROOT/scripts/shell/xtermrun
 
 ugbasegrep()
 {
-	fgrep -r $1 $UG4_ROOT/ugbase
+	fgrep -r "$1" $UG4_ROOT/ugbase
 }
 ugpluginsgrep()
 {
-	fgrep -r $1 $UG4_ROOT/plugins
+	fgrep -r "$1" $UG4_ROOT/plugins
 }
 source uginstall_config
 
