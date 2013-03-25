@@ -116,6 +116,7 @@ class AutoProfileNode
 
 #ifdef UG_PROFILER_SCALASCA
 	#include "epik_user.h"
+	#include <ostream>
 
 	#define PROFILE_STRINGIFY(x) #x
 	#define PROFILE_TOSTRING(x) PROFILE_STRINGIFY(x)
@@ -155,6 +156,7 @@ class AutoProfileNode
 
 #ifdef UG_PROFILER_VAMPIR
 	#include "vt_user.h"
+	#include <ostream>
 
 	#define PROFILE_STRINGIFY(x) #x
 	#define PROFILE_TOSTRING(x) PROFILE_STRINGIFY(x)
@@ -193,6 +195,7 @@ class AutoProfileNode
 
 #ifdef UG_PROFILER_SCOREP
 	#include <scorep/SCOREP_User.h>
+	#include <ostream>
 
 	#define PROFILE_STRINGIFY(x) #x
 	#define PROFILE_TOSTRING(x) PROFILE_STRINGIFY(x)
@@ -232,7 +235,7 @@ class AutoProfileNode
 #endif // UG_PROFILER_SCOREP
 
 #else
-	#include <iostream>
+	#include <ostream>
 
 	namespace ProfilerDummy{
 		inline void Update(float a = 0.0f)			{}
