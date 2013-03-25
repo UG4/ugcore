@@ -293,10 +293,10 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("TranslateDomain", &TranslateDomain<TDomain>, grp, "", "dom#tx#ty#tz");
 
 //  calculate area covered by faces
-	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISubsetHandler&, int, size_t)>(&FaceArea<TDomain>), "Area sum#Domain#Subset handler#Subset index#Grid level", grp);
-	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int, size_t)>(&FaceArea<TDomain>), "Area sum#Domaim#Subset index#Grid level", grp);
-	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int)>(&FaceArea<TDomain>), "Area sum#Domain#Subset index", grp);
-	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISelector&)>(&FaceArea<TDomain>), "Area sum#Domain#Selector", grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISubsetHandler&, int, size_t)>(&FaceArea<TDomain>), grp, "Area sum#Domain#Subset handler#Subset index#Grid level", grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int, size_t)>(&FaceArea<TDomain>), grp, "Area sum#Domaim#Subset index#Grid level", grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int)>(&FaceArea<TDomain>), grp, "Area sum#Domain#Subset index", grp);
+	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISelector&)>(&FaceArea<TDomain>), grp, "Area sum#Domain#Selector", grp);
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
