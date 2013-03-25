@@ -15,7 +15,7 @@
 // ug4 libraries
 #include "common/log.h"
 #include "common/util/string_util.h"
-#include "common/util/endian.h"
+#include "common/util/endian_detection.h"
 #include "common/profiler/profiler.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
