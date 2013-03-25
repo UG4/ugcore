@@ -413,7 +413,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 						{
 							MultiIndex<2> activeMultiIndex(i,fct);
 							vActiveSet.push_back(activeMultiIndex);
-							activeSet_changed = true;
+							//activeSet_changed = true;
 						}
 					}
 
