@@ -6671,4 +6671,5 @@ GaussJacobi20::~GaussJacobi20()
 	delete[] m_pvPoint;
 	delete[] m_pvWeight;
 };
+
 }
