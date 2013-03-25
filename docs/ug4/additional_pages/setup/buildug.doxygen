@@ -29,16 +29,9 @@ Because of that, always keep in mind that people mean <tt>YOURUG4ROOT/apps</tt> 
 they speak about <tt>ug4/apps</tt> or <tt>ug4/trunk/apps</tt>. 
 
 <hr>
-\section Enable bash tools
-For some helpful bash tools and completion, add this line to the end of your
-<tt>~/.bashrc</tt> (replace <tt>\<YOURUG4ROOT\></tt> with your path):
-\code
-source YOURUG4ROOT/scripts/shell/ugbash
-\endcode
-\note After this, the environment variable $UG4_ROOT is set to YOURUG4ROOT.
-
-If you are new to bash/Linux, please try out adding also <tt>source YOURUG4ROOT/scripts/shell/prompt</tt> . 
-That way you'll always see in which path you are. It's also covered <a href="http://mathemartician.blogspot.com/2012/07/ultimate-bash-prompt.html"> here </a>.
+\section secBuildUG4BashTools bash tools
+For some helpful bash tools and completion, use the \ref pageBashTools. 
+If you are new to bash/Linux, please also try the bash prompt covered there.
 
 <hr>
 \section secBuildUG4RunCmake Run CMake

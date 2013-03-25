@@ -13,11 +13,7 @@ It's the only chance we have to keep this guides updated and correct.
 uginstall is a number of small shell scripts to install some software without having root.
 By now, it is very preliminary and not guaranteed to work on all machines.
 
-To be able to use uginstall and the software it installs, you'll have add the following line to your
-<tt>~/.bashrc</tt> (replace <tt>\<YOURUG4ROOT\></tt> with your ug4 path):
-\code
-source YOURUG4ROOT/scripts/shell/ugbash
-\endcode
+To be able to use uginstall and the software it installs, you have to use the \ref pageBashTools. See there for setup.
 
 Before installing something, make sure things aren't already installed by some other user by checking
 the appropriate commands in the terminal (<tt>gcc --version</tt> and <tt>cmake --version</tt>).

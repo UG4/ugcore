@@ -51,6 +51,7 @@ environment
 	- ug4 and vrl
 	- <a href="http://cave1.gcsc.uni-frankfurt.de/job/ug-bridge-doc/javadoc/">ug4-Scripting Reference Documentation</a>
 	- \ref pageLuaScript	
+	- \ref pageBashTools
 
 - \subpage pageUG4Development
 	- \ref pageUG4CppIntroduction

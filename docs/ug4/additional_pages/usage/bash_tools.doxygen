@@ -1,0 +1,75 @@
+//	created by Martin Rupp
+//	martin.rupp@gcsc.uni-frankfurt.de
+//	y13 m03 d25
+
+/** \page pageBashTools BASH Tools
+
+- \ref troubleshootingCompiling
+- \ref troubleshootingParallel
+
+<hr>
+\section secBashToolsSetup Setup
+Say YOURUG4ROOT is the root directory of ug4 (it contains ugbase, plugin and so forth).
+Add the line  <tt>source YOURUG4ROOT/scripts/shell/ugbash</tt> to your <tt>~/.bash_profile</tt> or <tt>~/.bashrc</tt>.
+Note that it depends on your system if .bashrc or .bash_profile is used. See also <a href="http://www.joshstaiger.org/archives/2005/07/bash_profile_vs.html">here</a>.
+
+
+<hr>
+\section secBashToolsFeatures Features
+
+- <tt>$UG4_ROOT</tt> will be set automatically to YOURUG4ROOT.
+- <tt>$UG4_ROOT/scripts/shell</tt> and <tt>$UG4_ROOT/bin</tt> will be added to your path. That means you can call <tt>ugshell</tt> from everywhere.
+- <tt>cdug</tt> will change directory to <tt>UG4_ROOT</tt>. <tt> cdug subdir</tt> will change directory to <tt>UG4_ROOT/subdir</tt> (completion possible). 
+- <tt>ugbasegrep</tt> "the stuff i search" will do a grep-search for "the stuff i search" in ug4/ugbase, same for <tt>ugpluginsgrep</tt> in ug4/plugins.
+- <tt>ugrelib</tt> will delete ug4/lib/* and ug4/bin/ugshell, so you can re-link ugshell (sometimes necessary).
+- ugsubmit (\ref pageugsubmit)   
+- \ref bashToolsXprun
+- \ref bashToolsCompletion
+ 
+ 
+<hr>
+\section bashToolsPrompt BASH prompt
+The standard bash prompt is not very descriptive, so add 
+<tt>source YOURUG4ROOT/scripts/shell/prompt</tt> to .bashrc / .bash_profile for a nicer bash prompt. 
+That way you'll always see in which path you are (also in the title of the console). It's also covered <a href="http://mathemartician.blogspot.com/2012/07/ultimate-bash-prompt.html"> here </a>.
+
+ 
+<hr>
+\section bashToolsCompletion Completion
+<hr>
+
+We added some bash completion for power users:
+
+<ul>
+<li> ugshell
+<ul>
+<li> all standard parameters
+<li> -ex, absolute paths and paths in $UG4_ROOT/apps
+<li> all parameters found for example in <tt>myfile.lua</tt> when you entered something like 
+<tt>ugshell -ex myfile.lua -</tt> and hit 'tab', every parameter in your myfile.lua will be completed that is used in util.GetParamNumber etc..
+</ul>
+<li> <tt>ugcmake</tt>, which is an alias to <tt>cmake</tt>, but adds completion of a lot of our parameters for ug4, like -DEMBEDDED_PLUGINS= or -DCMAKE_TOOLCHAIN_FILE=.
+<li> <tt>cdug</tt>: subdirectories are completed.
+<li> <tt>ugsubmit</tt>  
+</ul>
+
+
+<hr>
+\section bashToolsXprun xprun
+xprun is a easy script to put each MPI process in its own console. You can even do simple parallel debugging with it.
+The opens e.g. 4 xterm windows and adjusts size & position so that they fit on the screen inside the windows, a mpi program is started.
+To adjust window position and max size, see xtermrun.
+You can access your PID by the variable \$PID 
+Example: xprun 4 echo 'hello, world! i am processor \$PID'
+
+For debugging, use e.g.
+\code
+xprun 4 gdb --args ugshell -ex conv_diff/laplace.lua -outproc -1
+\endcode
+
+With outproc -1 you ensure that every process will put out data.
+
+For more complex programs, you will need a real parallel debugger like DDT.
+
+
+*/

@@ -96,7 +96,7 @@ gdb --args ugshell -ex myscript.lua -myParameter1 3.4 -myOption2
 b myfile.cpp:33
 run
 \endverbatim
-
+For simple parallel debugging, see \ref bashToolsXprun .
 
 \section secDebuggingCPPTroubleshooting Debug Troubleshooting
 Sometimes you cannot set breakpoints because the source is in a shared library. This is true for all plugins. 

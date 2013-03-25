@@ -60,6 +60,7 @@ If you spend a lot of time in the shell, you should really learn about programmi
 <hr>
 \section secOtherHints Other Hints
 <ul>
+<li> <a href="http://www.joshstaiger.org/archives/2005/07/bash_profile_vs.html">.bashrc vs .bash_profile</a>
 <li> <a href="http://mathemartician.blogspot.com/2012/07/ultimate-bash-prompt.html"> a bash prompt </a>
 <li> <a href="http://wiki.linuxquestions.org/wiki/Packing_and_Unpacking_Files">Packing and Unpacking Files</a>
 <li> <a href="http://home.ubalt.edu/abento/linux/terminal/addtopath.html">Adding something to PATH in .bashrc</a>

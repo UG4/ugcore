@@ -25,6 +25,8 @@ For any questions, contact martin.rupp@gcsc.uni-frankfurt.de.
 - <tt>-noterm</tt> &mdash; Terminal logging will be disabled.
 - <tt>-logtofile filename</tt> &mdash; Output will be written to the specified
   file.
+  
+\note There is bash completion available for ugshell, see \ref pageBashTools.  
 
 Script files are written in LUA, see \ref pageScriptTutorial for an introduction.
 
@@ -265,19 +267,5 @@ This is especially the case if you have lots of small calls in your Lua script.
 However, there is no performance drawback in <tt>breakpoint()</tt>.
 
 
-<hr>
-\section secBashCompletion Bash Completion for ugshell
-When you have added <tt>source UG4_ROOT/scripts/shell/ugbash</tt> to your <tt>.bashrc</tt>, 
-then you have access to completion of parameters from the bash command line. Completion is for:
-<ul>
-<li> ugshell
-<ul>
-<li> all standard parameters
-<li> -ex, absolute paths and paths in $UG4_ROOT/apps
-<li> all parameters found for example in <tt>myfile.lua</tt> when you entered something like 
-<tt>ugshell -ex myfile.lua</tt>.
-</ul>
-<li> <tt>ugcmake</tt>, which is an alias to <tt>cmake</tt>, but adds completion of a lot of our parameters for ug4.
-</ul>
 
 */
