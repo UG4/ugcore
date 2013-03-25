@@ -207,7 +207,7 @@ class AutoProfileNode
 			SCOREP_USER_REGION_DEFINE( __scorephandle__##name )								\
 			SCOREP_USER_REGION_BEGIN( __scorephandle__##name, PROFILE_TOSTRING(name),			\
 			                          SCOREP_USER_REGION_TYPE_COMMON ) 			\
-			AutoProfileNode	apn_##name(name);
+			AutoProfileNode	apn_##name(__scorephandle__##name);
 
 	/**	Ends profiling of the latest PROFILE_BEGIN section.*/
 	#define PROFILE_END()										\
