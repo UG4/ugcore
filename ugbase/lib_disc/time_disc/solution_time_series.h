@@ -38,6 +38,15 @@ class VectorTimeSeries
 
 	public:
 
+	//! clones the object (deep-copy) including values
+		SmartPtr<VectorTimeSeries<vector_type> > clone() const
+		{
+			return SmartPtr<VectorTimeSeries<vector_type> >(this->virtual_clone());
+		}
+
+	/// clears the content of the member m_vTimeSol
+		void clear() {m_vTimeSol.clear();}
+
 	///	returns number of time steps handled
 		size_t size() const {return m_vTimeSol.size();}
 
@@ -108,6 +117,13 @@ class VectorTimeSeries
 			//	point in time
 				number t;
 		};
+
+	protected:
+	//! virtual clone
+		virtual VectorTimeSeries<vector_type>* virtual_clone() const
+		{
+			return new VectorTimeSeries<vector_type>(*this);
+		}
 
 	//	deque of previous solutions
 		std::deque<TimeSol> m_vTimeSol;
