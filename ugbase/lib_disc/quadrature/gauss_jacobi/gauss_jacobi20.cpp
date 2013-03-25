@@ -5,8 +5,7 @@
 namespace ug
 {
 
-//constructor
-GaussJacobi20::GaussJacobi20(int order)
+GaussJacobi20::GaussJacobi20(size_t order)
 {
 
 	if (order % 2 == 0) order = order + 1;
@@ -6665,8 +6664,6 @@ GaussJacobi20::GaussJacobi20(int order)
 	}
 }
 
-
-//destructor
 GaussJacobi20::~GaussJacobi20()
 {
 	delete[] m_pvPoint;

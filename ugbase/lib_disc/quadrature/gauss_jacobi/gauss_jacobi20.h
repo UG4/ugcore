@@ -2,7 +2,7 @@
  * gauss_jacobi.h
  *
  *  Created on: 15.03.2013
- *      Author: lisagrau
+ *      Author: lisagrau, andreasvogel
  */
 
 #include "../quadrature.h"
@@ -12,20 +12,26 @@
 
 namespace ug{
 
-	/**This class provides GaussJacobi integrals up to order 70
-	 * with alpha = 2 and beta = 0. Further information about these
-	 * quadrature rules can be found on wikipedia.
-	 */
+/**
+ * This class provides GaussJacobi integrals up to order 70
+ * with alpha = 2 and beta = 0. For further information see e.g.
+ *
+ * Rathod, Venkatesh, Gauss Legendre - Gauss Jacobi Quadrature Rules over
+ * a Tetrahedral Region, Int. J. Math Analysis, Vol. 5, 2011 (4), 189-198
+ *
+ * J. Villadsen and M.L. Michelsen, Solution of differential equation models by
+ * polynomial approximation, Prentice Hall Inc, Englewood Cliffs,
+ * New Jersey 07632 (1978)
+ */
+class GaussJacobi20 : public QuadratureRule<1>
+{
+	public:
+	///	constructor
+	 	GaussJacobi20(size_t order);
 
-	class GaussJacobi20 : public QuadratureRule<1>
-	{
-		public:
-		//constructor
-		GaussJacobi20(int order);
-
-		//destructor
-		~GaussJacobi20();
-	};
+	///	destructor
+	 	~GaussJacobi20();
+};
 
 } // namespace ug
 

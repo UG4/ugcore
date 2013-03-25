@@ -16,7 +16,7 @@
 
 namespace ug {
 
-GaussQuadratureTriangle::GaussQuadratureTriangle(int order)
+GaussQuadratureTriangle::GaussQuadratureTriangle(size_t order)
 {
 	GaussLegendre quadRule = GaussLegendre(order);
 	GaussJacobi10 quadRule10 = GaussJacobi10(order);
@@ -35,7 +35,6 @@ GaussQuadratureTriangle::GaussQuadratureTriangle(int order)
 			pvWeight[cnt] = quadRule.weight(i) * quadRule10.weight(j);
 		}
 	}
-
 };
 
 GaussQuadratureTriangle::~GaussQuadratureTriangle()
@@ -44,7 +43,7 @@ GaussQuadratureTriangle::~GaussQuadratureTriangle()
 	delete[] m_pvWeight;
 }
 
-GaussQuadratureQuadrilateral::GaussQuadratureQuadrilateral(int order)
+GaussQuadratureQuadrilateral::GaussQuadratureQuadrilateral(size_t order)
 {
 	GaussLegendre quadRule = GaussLegendre(order);
 
@@ -71,7 +70,7 @@ GaussQuadratureQuadrilateral::~GaussQuadratureQuadrilateral()
 	delete[] m_pvWeight;
 }
 
-GaussQuadratureHexahedron::GaussQuadratureHexahedron(int order)
+GaussQuadratureHexahedron::GaussQuadratureHexahedron(size_t order)
 {
 	GaussLegendre quadRule = GaussLegendre(order);
 
@@ -101,7 +100,7 @@ GaussQuadratureHexahedron::~GaussQuadratureHexahedron()
 	delete[] m_pvWeight;
 }
 
-GaussQuadratureTetrahedron::GaussQuadratureTetrahedron(int order)
+GaussQuadratureTetrahedron::GaussQuadratureTetrahedron(size_t order)
 {
 	GaussLegendre quadRule = GaussLegendre(order);
 	GaussJacobi10 quadRule10 = GaussJacobi10(order);
@@ -133,7 +132,7 @@ GaussQuadratureTetrahedron::~GaussQuadratureTetrahedron()
 	delete[] m_pvWeight;
 }
 
-GaussQuadraturePrism::GaussQuadraturePrism(int order)
+GaussQuadraturePrism::GaussQuadraturePrism(size_t order)
 {
 	GaussLegendre quadRule = GaussLegendre(order);
 	GaussJacobi10 quadRule10 = GaussJacobi10(order);
@@ -164,7 +163,7 @@ GaussQuadraturePrism::~GaussQuadraturePrism()
 	delete[] m_pvWeight;
 }
 
-GaussQuadraturePyramid::GaussQuadraturePyramid(int order)
+GaussQuadraturePyramid::GaussQuadraturePyramid(size_t order)
 {
 	GaussQuadratureTetrahedron quadRule = GaussQuadratureTetrahedron(order);
 

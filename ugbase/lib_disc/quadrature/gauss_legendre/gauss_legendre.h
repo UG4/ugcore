@@ -2,7 +2,7 @@
  * gauss_legendre.h
  *
  *  Created on: 12.03.2013
- *      Author: lisagrau
+ *      Author: lisagrau, andreasvogel
  */
 
 #include "../quadrature.h"
@@ -12,19 +12,20 @@
 
 namespace ug{
 
-	/** This class provides GaussLegendre integrals up to order 70
-	 *  furher information considering these rules an be found on wikipedia.
-	 */
+/**
+ * This class provides GaussLegendre integrals up to order 70.
+ * For further information, see e.g.,
+ * http://en.wikipedia.org/wiki/Gaussian_quadrature
+ */
+class GaussLegendre : public QuadratureRule<1>
+{
+	public:
+	///	constructor
+		GaussLegendre(size_t order);
 
-	class GaussLegendre : public QuadratureRule<1>
-	{
-		public:
-		//constructor
-		GaussLegendre(int order);
-
-		//destructor
+	///	destructor
 		~GaussLegendre();
-	};
+};
 
 } // namespace ug
 

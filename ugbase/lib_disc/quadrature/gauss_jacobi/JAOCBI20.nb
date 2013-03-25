@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[     17270,        377]
-NotebookOptionsPosition[     17010,        363]
-NotebookOutlinePosition[     17369,        379]
-CellTagsIndexPosition[     17326,        376]
+NotebookDataLength[     17240,        375]
+NotebookOptionsPosition[     16980,        361]
+NotebookOutlinePosition[     17339,        377]
+CellTagsIndexPosition[     17296,        374]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -42,9 +42,8 @@ Cell[BoxData[{
      ",", "\[IndentingNewLine]", 
      "\"\<#include \\\"common/util/provider.h\\\"\\n\\n\>\"", ",", 
      "\[IndentingNewLine]", "\"\<namespace ug\\n{\\n\\n\>\"", ",", 
-     "\[IndentingNewLine]", "\"\<//constructor\\n\>\"", ",", 
      "\[IndentingNewLine]", 
-     "\"\<GaussJacobi20::GaussJacobi20(int order)\\n\>\"", ",", 
+     "\"\<GaussJacobi20::GaussJacobi20(size_t order)\\n\>\"", ",", 
      "\[IndentingNewLine]", "\"\<{\\n\\n\>\"", ",", "\[IndentingNewLine]", 
      "\"\<\\tif (order % 2 == 0) order = order + 1;\\n\>\"", ",", 
      "\[IndentingNewLine]", "\"\<\\tm_order = order;\\n\>\"", ",", 
@@ -283,8 +282,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"WriteString", "[", 
    RowBox[{
-   "str", ",", " ", 
-    "\"\<\\n//destructor\nGaussJacobi20::~GaussJacobi20()\\n{\\n\>\"", ",", 
+   "str", ",", " ", "\"\<\\nGaussJacobi20::~GaussJacobi20()\\n{\\n\>\"", ",", 
     "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvPoint;\\n\>\"", ",", 
     "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvWeight;\\n\>\"", ",", 
     "\[IndentingNewLine]", "\t", "\"\<};\\n\>\"", ",", "\[IndentingNewLine]", 
@@ -359,7 +357,7 @@ Cell[BoxData[{
    3.572690975775991*^9, 3.5726910001977053`*^9}, {3.572691032895529*^9, 
    3.5726911228971033`*^9}, {3.572691170232216*^9, 3.572691212054916*^9}, {
    3.572691384093691*^9, 3.572691400641271*^9}, {3.572766711863104*^9, 
-   3.572766712277788*^9}}]
+   3.572766712277788*^9}, {3.573191319854293*^9, 3.5731913503279943`*^9}}]
 },
 WindowSize->{1454, 978},
 WindowMargins->{{Automatic, 220}, {Automatic, 127}},
@@ -378,7 +376,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[557, 20, 16449, 341, 930, "Input"]
+Cell[557, 20, 16419, 339, 900, "Input"]
 }
 ]
 *)

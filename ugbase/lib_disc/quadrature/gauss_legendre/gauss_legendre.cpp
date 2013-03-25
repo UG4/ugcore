@@ -5,8 +5,7 @@
 namespace ug
 {
 
-//constructor
-GaussLegendre::GaussLegendre(int order)
+GaussLegendre::GaussLegendre(size_t order)
 {
 
 	if (order % 2 == 0) order = order + 1;
@@ -5134,8 +5133,6 @@ GaussLegendre::GaussLegendre(int order)
 	}
 }
 
-
-//destructor
 GaussLegendre::~GaussLegendre()
 {
 	delete[] m_pvPoint;

@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[      9358,        236]
-NotebookOptionsPosition[      9017,        220]
-NotebookOutlinePosition[      9374,        236]
-CellTagsIndexPosition[      9331,        233]
+NotebookDataLength[      9370,        235]
+NotebookOptionsPosition[      9038,        219]
+NotebookOutlinePosition[      9396,        235]
+CellTagsIndexPosition[      9353,        232]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -84,13 +84,12 @@ Cell[BoxData[{
      ",", "\[IndentingNewLine]", 
      "\"\<#include \\\"common/util/provider.h\\\"\\n\\n\>\"", ",", 
      "\[IndentingNewLine]", "\"\<namespace ug\\n{\\n\\n\>\"", ",", 
-     "\[IndentingNewLine]", "\"\<//constructor\\n\>\"", ",", 
-     "\[IndentingNewLine]", "\"\<NewtonCotes::NewtonCotes(int order)\\n\>\"", 
-     ",", "\[IndentingNewLine]", "\"\<{\\n\\n\>\"", ",", 
-     "\[IndentingNewLine]", "\"\<\\tif (order == 0) order = 1;\\n\>\"", ",", 
-     "\[IndentingNewLine]", "\"\<\\tm_order = order;\\n\>\"", ",", 
-     "\[IndentingNewLine]", "\"\<\\tm_numPoints = order+1;\\n\>\"", ",", 
      "\[IndentingNewLine]", 
+     "\"\<NewtonCotes::NewtonCotes(size_t order)\\n\>\"", ",", 
+     "\[IndentingNewLine]", "\"\<{\\n\\n\>\"", ",", "\[IndentingNewLine]", 
+     "\"\<\\tif (order == 0) order = 1;\\n\>\"", ",", "\[IndentingNewLine]", 
+     "\"\<\\tm_order = order;\\n\>\"", ",", "\[IndentingNewLine]", 
+     "\"\<\\tm_numPoints = order+1;\\n\>\"", ",", "\[IndentingNewLine]", 
      "\"\<\\tposition_type* pvPoint= new position_type[m_numPoints];\\n\>\"", 
      ",", "\[IndentingNewLine]", 
      "\"\<\\tweight_type* pvWeight= new weight_type[m_numPoints];\\n\>\"", 
@@ -190,8 +189,7 @@ Cell[BoxData[{
   RowBox[{
    RowBox[{"WriteString", "[", 
     RowBox[{
-    "str", ",", " ", 
-     "\"\<\\n//destructor\nNewtonCotes::~NewtonCotes()\\n{\\n\>\"", ",", 
+    "str", ",", " ", "\"\<\\nNewtonCotes::~NewtonCotes()\\n{\\n\>\"", ",", 
      "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvPoint;\\n\>\"", ",", 
      "\[IndentingNewLine]", "\t", "\"\<\\tdelete[] m_pvWeight;\\n\>\"", ",", 
      "\[IndentingNewLine]", "\t", "\"\<};\\n\>\"", ",", 
@@ -210,7 +208,8 @@ Cell[BoxData[{
    3.572778846444202*^9, 3.572778851450384*^9}, {3.572778952609214*^9, 
    3.572778966502922*^9}, {3.572779093229661*^9, 3.572779147594551*^9}, {
    3.57277931254393*^9, 3.572779332293589*^9}, {3.572779464939969*^9, 
-   3.572779472605611*^9}}],
+   3.572779472605611*^9}, {3.573190788337193*^9, 3.5731907891759787`*^9}, {
+   3.5731908654078617`*^9, 3.573190875626395*^9}}],
 
 Cell[BoxData[""], "Input",
  CellChangeTimes->{{3.572778735782218*^9, 3.572778758454365*^9}}],
@@ -218,8 +217,8 @@ Cell[BoxData[""], "Input",
 Cell[BoxData[""], "Input",
  CellChangeTimes->{{3.572778756102624*^9, 3.572778756111424*^9}}]
 },
-WindowSize->{740, 867},
-WindowMargins->{{Automatic, 642}, {Automatic, 95}},
+WindowSize->{905, 1000},
+WindowMargins->{{Automatic, 477}, {61, Automatic}},
 FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (November 6, \
 2010)",
 StyleDefinitions->"Default.nb"
@@ -235,9 +234,9 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[557, 20, 8266, 192, 823, "Input"],
-Cell[8826, 214, 92, 1, 27, "Input"],
-Cell[8921, 217, 92, 1, 27, InheritFromParent]
+Cell[557, 20, 8287, 191, 793, "Input"],
+Cell[8847, 213, 92, 1, 27, "Input"],
+Cell[8942, 216, 92, 1, 27, "Input"]
 }
 ]
 *)

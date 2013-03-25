@@ -2,16 +2,19 @@
  * gauss_tensor_prod.h
  *
  *  Created on: 15.03.2013
- *      Author: lisagrau
+ *      Author: lisagrau, andreasvogel
  */
 
-#ifndef GAUSS_QUADRATURE_HEXAHEDRON_H_
-#define GAUSS_QUADRATURE_HEXAHEDRON_H_
+#ifndef __H__UG__LIB_DISC__QUADRATURE__GAUSS_TENSOR_PROD__
+#define __H__UG__LIB_DISC__QUADRATURE__GAUSS_TENSOR_PROD__
 
-/**
- * if higher orders for the following classes are needed, the mathematica script
- * will generate them, further information concerning the quadrature rules can be
- * found on wikipedia
+/*
+ * In this file, quadrature rules for arbitray order for elements with dim > 1
+ * are implemented. The basic idea relies on a transformation of the considered
+ * domain to the unit cube [0,1]^d and then using Gauss quadratures to carry out
+ * the integrals. Note, that on some elements the transformation introduces
+ * jacobian determinants of type (1-x)^{\alpha}(1+x)^{\beta}. In order to
+ * integrate those, the gauss-jacobi quadratures are used.
  */
 
 #include "../quadrature.h"
@@ -19,95 +22,90 @@
 namespace ug
 {
 
-	/**
-	 * The following class provides QuadratureRules for triangles
-	 * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
-	 */
-	class GaussQuadratureTriangle : public QuadratureRule<2> {
+/**
+ * The following class provides QuadratureRules for triangles
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ */
+class GaussQuadratureTriangle : public QuadratureRule<2> {
 
 	public:
-		//constructor
-		GaussQuadratureTriangle(int order);
+	/// constructor
+		GaussQuadratureTriangle(size_t order);
 
-		//destructor
+	///	destructor
 		~GaussQuadratureTriangle();
-	};
+};
 
-	/**
-	 * The following class provides QuadratureRules for quadrilaterals
-	 * by using Gauss Legendre Qadrature
-	 */
-
-	class GaussQuadratureQuadrilateral : public QuadratureRule<2> {
+/**
+ * The following class provides QuadratureRules for quadrilaterals
+ * by using Gauss Legendre Qadrature
+ */
+class GaussQuadratureQuadrilateral : public QuadratureRule<2> {
 
 	public:
-		//constructor
-		GaussQuadratureQuadrilateral(int order);
+	///	constructor
+		GaussQuadratureQuadrilateral(size_t order);
 
-		//destructor
+	///	destructor
 		~GaussQuadratureQuadrilateral();
-	};
+};
 
-	/**
-	 * The following class provides QuadratureRules for hexahedrons
-	 * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
-	 */
-
-	class GaussQuadratureHexahedron : public QuadratureRule<3> {
+/**
+ * The following class provides QuadratureRules for hexahedrons
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ */
+class GaussQuadratureHexahedron : public QuadratureRule<3> {
 
 	public:
-		//constructor
-		GaussQuadratureHexahedron(int order);
+	///	constructor
+		GaussQuadratureHexahedron(size_t order);
 
-		//destructor
+	///	destructor
 		~GaussQuadratureHexahedron();
-	};
+};
 
-	/**
-	 * The following class provides QuadratureRules for tetrahedrons
-	 * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
-	 */
-
-	class GaussQuadratureTetrahedron : public QuadratureRule<3> {
+/**
+ * The following class provides QuadratureRules for tetrahedrons
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ */
+class GaussQuadratureTetrahedron : public QuadratureRule<3> {
 
 	public:
-		//constructor
-		GaussQuadratureTetrahedron(int order);
+	///	constructor
+		GaussQuadratureTetrahedron(size_t order);
 
-		//destructor
+	///	destructor
 		~GaussQuadratureTetrahedron();
-	};
+};
 
-	/**
-	 * The following class provides QuadratureRules for prisms
-	 * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
-	 */
-
-	class GaussQuadraturePrism : public QuadratureRule<3> {
+/**
+ * The following class provides QuadratureRules for prisms
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ */
+class GaussQuadraturePrism : public QuadratureRule<3> {
 
 	public:
-		//constructor
-		GaussQuadraturePrism(int order);
+	///	constructor
+		GaussQuadraturePrism(size_t order);
 
-		//destructor
+	///	destructor
 		~GaussQuadraturePrism();
-	};
+};
 
-	/**
-	 * The following class provides QuadratureRules for pyramids
-	 * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
-	 */
-
-	class GaussQuadraturePyramid : public QuadratureRule<3> {
+/**
+ * The following class provides QuadratureRules for pyramids
+ * by using Gauss Jacobi Quadrature and Gauss Legendre Qadrature
+ */
+class GaussQuadraturePyramid : public QuadratureRule<3> {
 
 	public:
-		//constructor
-		GaussQuadraturePyramid(int order);
+	///	constructor
+		GaussQuadraturePyramid(size_t order);
 
-		//destructor
+	///	destructor
 		~GaussQuadraturePyramid();
-	};
+};
 
 } // namespace ug
 
-#endif /* GAUSS_QUADRATURE_HEXAHEDRON_H_ */
+#endif /* __H__UG__LIB_DISC__QUADRATURE__GAUSS_TENSOR_PROD__ */

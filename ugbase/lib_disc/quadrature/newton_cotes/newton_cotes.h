@@ -2,7 +2,7 @@
  * newton_cotes.h
  *
  *  Created on: 12.03.2013
- *      Author: lisagrau
+ *      Author: lisagrau, andreasvogel
  */
 
 #include "../quadrature.h"
@@ -13,19 +13,20 @@
 namespace ug{
 
 
-	/**This class provides Newton-Cotes integrals up to order 10,
-	 * if another order is needed, the mathematica file will generate
-	 * manually, exchange it. For further information, wikipedia -> Newton Cotes will
-	 * help out.
-	 */
-
-
+/**
+ * This class provides Newton-Cotes integrals for the 1d line [0,1]. See e.g.
+ * http://en.wikipedia.org/wiki/Newton–Cotes_formulas for details.
+ *
+ * The implemented rules are auto-generate using mathematica. If higher orders
+ * are needed, rerun the corresponding file.
+ */
 class NewtonCotes : public QuadratureRule<1>
 {
 	public:
-	//constructor
-		NewtonCotes(int order);
-	//destructor
+	/// constructor
+		NewtonCotes(size_t order);
+
+	/// destructor
 		~NewtonCotes();
 };
 

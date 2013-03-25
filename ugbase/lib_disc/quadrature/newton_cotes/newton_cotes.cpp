@@ -6,7 +6,7 @@ namespace ug
 {
 
 //constructor
-NewtonCotes::NewtonCotes(int order)
+NewtonCotes::NewtonCotes(size_t order)
 {
 
 	if (order == 0) order = 1;
@@ -196,8 +196,6 @@ NewtonCotes::NewtonCotes(int order)
 	}
 }
 
-
-//destructor
 NewtonCotes::~NewtonCotes()
 {
 	delete[] m_pvPoint;
