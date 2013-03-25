@@ -327,7 +327,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	//	loop iteration
 	while(!m_spConvCheck->iteration_ended())
 	{
-		bool activeSet_changed = false;
+		//bool activeSet_changed = false;
 		assAdapt.set_mapping(&m_map);
 
 		//	loop all DoFs
