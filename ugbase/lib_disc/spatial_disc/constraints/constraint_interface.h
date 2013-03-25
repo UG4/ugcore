@@ -90,6 +90,11 @@ class IConstraint
 		virtual void modify_solution(vector_type& uMod, const vector_type& u,
 										ConstSmartPtr<DoFDistribution> dd) {};
 
+	///	modify_solution for instationary case
+		virtual void modify_solution(SmartPtr<VectorTimeSeries<vector_type> > vSolMod,
+				ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+				ConstSmartPtr<DoFDistribution> dd) {};
+
 	///	returns the type of constraints
 		virtual int type() const = 0;
 
