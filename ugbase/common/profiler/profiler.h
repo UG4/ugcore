@@ -204,8 +204,8 @@ class AutoProfileNode
 	 * Note that the profiled section automatically ends when the current ends.
 	 */
 	#define PROFILE_BEGIN(name)	\
-			SCOREP_USER_REGION_DEFINE( name )								\
-			SCOREP_USER_REGION_BEGIN( name, PROFILE_TOSTRING(name),			\
+			SCOREP_USER_REGION_DEFINE( __scorephandle__##name )								\
+			SCOREP_USER_REGION_BEGIN( __scorephandle__##name, PROFILE_TOSTRING(name),			\
 			                          SCOREP_USER_REGION_TYPE_COMMON ) 			\
 			AutoProfileNode	apn_##name(name);
 
