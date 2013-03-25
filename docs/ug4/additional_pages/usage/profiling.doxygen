@@ -18,12 +18,13 @@ sebastian.reiter@gcsc.uni-frankfurt.de .
 <hr>
 \section secEnableProfiling Enable Profiling in ug4
 
-You enable profiling in ug4 by setting the \em CMake flag <tt>-DPROFILER=ON</tt>.
+You enable profiling in ug4 by setting the \em CMake flag <tt>-DPROFILER=Shiny</tt>. By this, you are using 
+the <a href="http://sourceforge.net/projects/shinyprofiler/">Shiny Profiler</a> which is included with ug4 (other options are None, Scalasca and Vampir).
 So if have a shell open in your subdirectory <tt>build_debug</tt> (as 
 explained \ref pageUG4Install "here" or 
 \ref secInstallEclipseUseMakefiles "here"), you enter
 \verbatim
-cmake -DPROFILER=ON ..
+cmake -DPROFILER=Shiny ..
 make
 \endverbatim
 
@@ -199,11 +200,8 @@ void MyFunction(size_t n)
 }
     \endcode
   </li>
-  <li>Internally we use the 
-    <a href="http://sourceforge.net/projects/shinyprofiler/">Shiny Profiler</a> 
-    for profiling.
-    <em>Shiny</em> is fast, but not priceless. 
-    Be aware that <tt>PROFILE_BEGIN</tt> has a small overhead, so dont use it 
+  <li>
+    Be aware that, no matter which compiler you are using, <tt>PROFILE_BEGIN</tt> has a small overhead, so dont use it 
     in functions which do only very little.
   </li>
 </ul>
