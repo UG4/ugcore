@@ -50,8 +50,8 @@ void TestQuadRule()
 	PrintQuadRule(FlexGaussQuadrature<ReferenceTriangle>(2));
 	PrintQuadRule(FlexGaussQuadrature<ReferenceTriangle>(3));
 
-	PrintQuadRule(QuadratureRuleProvider<2>::get_rule(ROID_TRIANGLE, 3));
-	PrintQuadRule(QuadratureRuleProvider<2>::get_rule<ReferenceTriangle>(3));
+	PrintQuadRule(QuadratureRuleProvider<2>::get(ROID_TRIANGLE, 3));
+	PrintQuadRule(QuadratureRuleProvider<2>::get<ReferenceTriangle>(3));
 
 }
 

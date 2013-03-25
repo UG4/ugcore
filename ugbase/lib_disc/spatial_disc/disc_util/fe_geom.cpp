@@ -51,7 +51,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 //	request for quadrature rule
 	try{
 	const QuadratureRule<dim>& quadRule
-			= QuadratureRuleProvider<dim>::get_rule(roid, orderQuad);
+			= QuadratureRuleProvider<dim>::get(roid, orderQuad);
 
 //	copy quad informations
 	m_nip = quadRule.size();
@@ -205,7 +205,7 @@ update_boundary_faces(GeometricObject* pElem,
 				}
 
 				const QuadratureRule<dim-1>& rSideQuadRule
-						= QuadratureRuleProvider<dim-1>::get_rule(sideRoid, quadOrder);
+						= QuadratureRuleProvider<dim-1>::get(sideRoid, quadOrder);
 
 				// 	normal on scvf
 				ElementNormal<worldDim>(sideRoid, bf.Normal, &vSideCorner[0]);

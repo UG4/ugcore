@@ -20,38 +20,9 @@
 
 namespace ug{
 
-template <int TDim>
-QuadratureRuleProvider<TDim>::QuadratureRuleProvider()
-{
-	for(int type = 0; type < NUM_QUADRATURE_TYPES; ++type)
-		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
-			m_vRule[type][roid].clear();
-}
-
-template <int TDim>
-QuadratureRuleProvider<TDim>::~QuadratureRuleProvider()
-{
-	for(int type = 0; type < NUM_QUADRATURE_TYPES; ++type)
-		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
-			for(size_t order = 0; order < m_vRule[type][roid].size(); ++order)
-				if(m_vRule[type][roid][order] != NULL)
-					delete m_vRule[type][roid][order];
-}
-
-template <int TDim>
-const QuadratureRule<TDim>&
-QuadratureRuleProvider<TDim>::get_quad_rule(ReferenceObjectID roid,
-                                            size_t order,
-                                            QuadratureType type)
-{
-	//	check if order present, else resize and create
-	if(order >= m_vRule[type][roid].size() ||
-			m_vRule[type][roid][order] == NULL)
-		create_rule(roid, order, type);
-
-	//	return correct order
-	return *m_vRule[type][roid][order];
-}
+////////////////////////////////////////////////////////////////////////////////
+// gauss
+////////////////////////////////////////////////////////////////////////////////
 
 template <>
 const QuadratureRule<0>*
@@ -118,6 +89,15 @@ QuadratureRuleProvider<3>::create_gauss_rule(ReferenceObjectID roid,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// gauss-legendre
+////////////////////////////////////////////////////////////////////////////////
+
+template <>
+const QuadratureRule<0>*
+QuadratureRuleProvider<0>::create_gauss_legendre_rule(ReferenceObjectID roid, size_t order)
+{
+	return NULL;
+}
 
 template <>
 const QuadratureRule<1>*
@@ -165,6 +145,8 @@ QuadratureRuleProvider<3>::create_gauss_legendre_rule(ReferenceObjectID roid,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// newton-cotes
+////////////////////////////////////////////////////////////////////////////////
 
 template <>
 const QuadratureRule<1>*
@@ -177,30 +159,6 @@ QuadratureRuleProvider<1>::create_newton_cotes_rule(ReferenceObjectID roid, size
 	return q;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-template <>
-const QuadratureRule<1>*
-QuadratureRuleProvider<1>::create_gauss_jacobi20_rule(size_t order)
-{
-	QuadratureRule<1>* q = NULL;
-	try{
-		q = new GaussJacobi20(order);
-	}catch(...){return NULL;}
-	return q;
-}
-
-template <>
-const QuadratureRule<1>*
-QuadratureRuleProvider<1>::create_gauss_jacobi10_rule(size_t order)
-{
-	QuadratureRule<1>* q = NULL;
-	try{
-		q = new GaussJacobi10(order);
-	}catch(...){return NULL;}
-	return q;
-}
-
 template <int TDim>
 const QuadratureRule<TDim>*
 QuadratureRuleProvider<TDim>::create_newton_cotes_rule(ReferenceObjectID roid, size_t order)
@@ -208,32 +166,48 @@ QuadratureRuleProvider<TDim>::create_newton_cotes_rule(ReferenceObjectID roid, s
 	return NULL;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// general
+////////////////////////////////////////////////////////////////////////////////
+
 template <int TDim>
-const QuadratureRule<TDim>*
-QuadratureRuleProvider<TDim>::create_gauss_legendre_rule(ReferenceObjectID roid, size_t order)
+QuadratureRuleProvider<TDim>::QuadratureRuleProvider()
 {
-	return NULL;
+	for(int type = 0; type < NUM_QUADRATURE_TYPES; ++type)
+		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
+			m_vRule[type][roid].clear();
 }
 
 template <int TDim>
-const QuadratureRule<TDim>*
-QuadratureRuleProvider<TDim>::create_gauss_jacobi20_rule(size_t order)
+QuadratureRuleProvider<TDim>::~QuadratureRuleProvider()
 {
-	return NULL;
+	for(int type = 0; type < NUM_QUADRATURE_TYPES; ++type)
+		for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
+			for(size_t order = 0; order < m_vRule[type][roid].size(); ++order)
+				if(m_vRule[type][roid][order] != NULL)
+					delete m_vRule[type][roid][order];
 }
 
 template <int TDim>
-const QuadratureRule<TDim>*
-QuadratureRuleProvider<TDim>::create_gauss_jacobi10_rule(size_t order)
+const QuadratureRule<TDim>&
+QuadratureRuleProvider<TDim>::get_quad_rule(ReferenceObjectID roid,
+                                            size_t order,
+                                            QuadType type)
 {
-	return NULL;
+	//	check if order present, else resize and create
+	if(order >= m_vRule[type][roid].size() ||
+			m_vRule[type][roid][order] == NULL)
+		create_rule(roid, order, type);
+
+	//	return correct order
+	return *m_vRule[type][roid][order];
 }
 
 template <int TDim>
 void
 QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
                                           size_t order,
-                                          QuadratureType type)
+                                          QuadType type)
 {
 //	resize vector if needed
 	if(m_vRule[type][roid].size() <= order) m_vRule[type][roid].resize(order+1, NULL);
@@ -258,11 +232,11 @@ QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
 		case GAUSS: {
 			m_vRule[type][roid][order] = create_gauss_rule(roid, order);
 		}break;
-		case NEWTON_COTES: {
-			m_vRule[type][roid][order] = create_newton_cotes_rule(roid, order);
-		}break;
 		case GAUSS_LEGENDRE: {
 			m_vRule[type][roid][order] = create_gauss_legendre_rule(roid, order);
+		}break;
+		case NEWTON_COTES: {
+			m_vRule[type][roid][order] = create_newton_cotes_rule(roid, order);
 		}break;
 		default: UG_THROW("QuadratureRuleProvider<"<<dim<<">: Cannot create rule for "
 		                  <<roid<<", order "<<order<<" and type "<<type);
@@ -275,38 +249,34 @@ QuadratureRuleProvider<TDim>::create_rule(ReferenceObjectID roid,
 
 template <int TDim>
 const QuadratureRule<TDim>&
-QuadratureRuleProvider<TDim>::get_rule(ReferenceObjectID roid, size_t order,
-                                       QuadratureType type)
+QuadratureRuleProvider<TDim>::get(ReferenceObjectID roid, size_t order,
+                                       QuadType type)
 {
 //	forward request
 	return instance().get_quad_rule(roid, order, type);
 }
 
-/// writes the Identifier to the output stream
-template <int TDim>
-std::ostream& operator<<(std::ostream& out,	const typename QuadratureRuleProvider<TDim>::QuadratureType& v)
+std::ostream& operator<<(std::ostream& out,	const QuadType& v)
 {
-	std::stringstream ss;
-
 	switch(v)
 	{
-		case QuadratureRuleProvider<TDim>::GAUSS: out << "Gauss"; break;
-		case QuadratureRuleProvider<TDim>::NEWTON_COTES: out << "Newton-Cotes"; break;
-		case QuadratureRuleProvider<TDim>::GAUSS_LEGENDRE: out << "Gauss-Legendre"; break;
+		case BEST: out << "Best"; break;
+		case GAUSS: out << "Gauss"; break;
+		case NEWTON_COTES: out << "Newton-Cotes"; break;
+		case GAUSS_LEGENDRE: out << "Gauss-Legendre"; break;
 		default: out << "invalid";
 	}
 	return out;
 }
 
-template <int TDim>
-typename QuadratureRuleProvider<TDim>::QuadratureType GetQuadratureType(const std::string& name)
+QuadType GetQuadratureType(const std::string& name)
 {
 	std::string n = TrimString(name);
 	std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-	if(n == "best") return QuadratureRuleProvider<TDim>::BEST;
-	if(n == "gauss") return QuadratureRuleProvider<TDim>::GAUSS;
-	if(n == "gauss-legendre") return QuadratureRuleProvider<TDim>::GAUSS_LEGENDRE;
-	if(n == "newton-cotes") return QuadratureRuleProvider<TDim>::NEWTON_COTES;
+	if(n == "best") return BEST;
+	if(n == "gauss") return GAUSS;
+	if(n == "gauss-legendre") return GAUSS_LEGENDRE;
+	if(n == "newton-cotes") return NEWTON_COTES;
 
 	UG_THROW("GetQuadratureType: type '"<<name<<"' not recognized. Options "
 	         "are: best, gauss, gauss-legendre, newton-cotes.");
@@ -321,10 +291,5 @@ template class QuadratureRuleProvider<0>;
 template class QuadratureRuleProvider<1>;
 template class QuadratureRuleProvider<2>;
 template class QuadratureRuleProvider<3>;
-
-template QuadratureRuleProvider<0>::QuadratureType GetQuadratureType<0>(const std::string& name);
-template QuadratureRuleProvider<1>::QuadratureType GetQuadratureType<1>(const std::string& name);
-template QuadratureRuleProvider<2>::QuadratureType GetQuadratureType<2>(const std::string& name);
-template QuadratureRuleProvider<3>::QuadratureType GetQuadratureType<3>(const std::string& name);
 
 } // namespace ug

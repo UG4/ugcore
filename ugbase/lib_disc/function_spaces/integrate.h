@@ -190,8 +190,7 @@ number Integrate(TConstIterator iterBegin,
 
 //	get quad type
 	if(quadType.empty()) quadType = "best";
-	typename QuadratureRuleProvider<dim>::QuadratureType type =
-			GetQuadratureType<dim>(quadType);
+	QuadType type = GetQuadratureType(quadType);
 
 // 	iterate over all elements
 	for(; iter != iterEnd; ++iter)
@@ -205,7 +204,7 @@ number Integrate(TConstIterator iterBegin,
 	//	get quadrature Rule for reference object id and order
 		try{
 		const QuadratureRule<dim>& rQuadRule
-					= QuadratureRuleProvider<dim>::get_rule(roid, quadOrder, type);
+					= QuadratureRuleProvider<dim>::get(roid, quadOrder, type);
 
 	//	get reference element mapping by reference object id
 		DimReferenceMapping<dim, WorldDim>& mapping

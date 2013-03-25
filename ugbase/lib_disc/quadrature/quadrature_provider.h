@@ -11,6 +11,16 @@
 #include "lib_grid/grid/geometric_base_objects.h"
 #include "quadrature.h"
 
+
+///	types of quadratures
+enum QuadType {
+	BEST = 0,
+	GAUSS,
+	GAUSS_LEGENDRE,
+	NEWTON_COTES,
+	NUM_QUADRATURE_TYPES // always last
+};
+
 namespace ug{
 
 /// provides quadrature rules for a reference dimension
@@ -27,15 +37,6 @@ class QuadratureRuleProvider
 	///	dimension of reference element
 		static const int dim = TDim;
 
-	///	types of quadratures
-		enum QuadratureType {
-			BEST = 0,
-			GAUSS,
-			GAUSS_LEGENDRE,
-			NEWTON_COTES,
-			NUM_QUADRATURE_TYPES // always last
-		};
-
 	private:
 	///	private constructor performing standard registering
 		QuadratureRuleProvider();
@@ -43,11 +44,6 @@ class QuadratureRuleProvider
 	//	disallow copy
 		QuadratureRuleProvider(const QuadratureRuleProvider&);
 		QuadratureRuleProvider& operator=(const QuadratureRuleProvider&);
-
-	//	provide rule
-		static const QuadratureRule<TDim>& get_quad_rule(ReferenceObjectID roid,
-		                                                size_t order,
-		                                                QuadratureType type);
 
 	///	singleton provider
 		static QuadratureRuleProvider<dim>& instance()
@@ -64,19 +60,19 @@ class QuadratureRuleProvider
 	///	Vector, holding all registered rules
 		static std::vector<const QuadratureRule<TDim>*> m_vRule[NUM_QUADRATURE_TYPES][NUM_REFERENCE_OBJECTS];
 
-	///	creates rule at this provider
-	/**
-	 * This function registers a quadrature rule at the Provider.
-	 */
-		static void create_rule(ReferenceObjectID roid,
-		                        size_t order,
-                                QuadratureType type);
+	///	provide rule, try to create it if not already present
+		static const QuadratureRule<TDim>&
+		get_quad_rule(ReferenceObjectID roid, size_t order, QuadType type);
 
+	///	creates rule at this provider
+		static void create_rule(ReferenceObjectID roid, size_t order, QuadType type);
+
+	///	rule creation, returns NULL if unavailable
+	/// \{
 		static const QuadratureRule<TDim>* create_gauss_rule(ReferenceObjectID roid, size_t order);
 		static const QuadratureRule<TDim>* create_newton_cotes_rule(ReferenceObjectID roid, size_t order);
 		static const QuadratureRule<TDim>* create_gauss_legendre_rule(ReferenceObjectID roid, size_t order);
-		static const QuadratureRule<TDim>* create_gauss_jacobi10_rule(size_t order);
-		static const QuadratureRule<TDim>* create_gauss_jacobi20_rule(size_t order);
+	/// \}
 
 	public:
 	///	gets quadrature rule of requested order
@@ -89,8 +85,8 @@ class QuadratureRuleProvider
 	 * \tparam		TRefElem	Reference element type
 	 */
 		template <typename TRefElem>
-		static const QuadratureRule<TDim>& get_rule(size_t order,
-		                                            QuadratureType type = BEST);
+		static const QuadratureRule<TDim>&
+		get(size_t order, QuadType type = BEST);
 
 	///	gets quadrature rule of requested order
 	/**
@@ -101,9 +97,8 @@ class QuadratureRuleProvider
 	 * \param[in]	roid		Reference Object id
 	 * \param[in]	order		Order of requested quadrature rule
 	 */
-		static const QuadratureRule<TDim>& get_rule(ReferenceObjectID roid,
-		                                            size_t order,
-		                                            QuadratureType type = BEST);
+		static const QuadratureRule<TDim>&
+		get(ReferenceObjectID roid, size_t order, QuadType type = BEST);
 };
 
 // Init static member
@@ -111,12 +106,10 @@ template <int dim>
 std::vector<const QuadratureRule<dim>*> QuadratureRuleProvider<dim>::m_vRule[NUM_QUADRATURE_TYPES][NUM_REFERENCE_OBJECTS];
 
 /// writes the Identifier to the output stream
-template <int TDim>
-std::ostream& operator<<(std::ostream& out,	const typename QuadratureRuleProvider<TDim>::QuadratureType& v);
+std::ostream& operator<<(std::ostream& out,	const QuadType& v);
 
 /// returns Identifier from string
-template <int TDim>
-typename QuadratureRuleProvider<TDim>::QuadratureType GetQuadratureType(const std::string& name);
+QuadType GetQuadratureType(const std::string& name);
 
 /// @}
 

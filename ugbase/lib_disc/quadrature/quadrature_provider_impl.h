@@ -12,8 +12,7 @@ namespace ug{
 template <int TDim>
 template <typename TRefElem>
 const QuadratureRule<TDim>&
-QuadratureRuleProvider<TDim>::get_rule(size_t order,
-                                       QuadratureType type)
+QuadratureRuleProvider<TDim>::get(size_t order, QuadType type)
 {
 //	check that dimension is correct
 	if(TRefElem::dim != dim)

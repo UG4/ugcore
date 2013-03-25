@@ -1462,7 +1462,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 //	request for quadrature rule
 	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim-1>& rSCVFQuadRule
-			= QuadratureRuleProvider<dim-1>::get_rule(scvfRoid, m_quadOrderSCVF);
+			= QuadratureRuleProvider<dim-1>::get(scvfRoid, m_quadOrderSCVF);
 
 	const int nipSCVF = rSCVFQuadRule.size();
 	m_numSCVFIP = m_numSCVF * nipSCVF;
@@ -1513,7 +1513,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 //	request for quadrature rule
 	static const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim>& rSCVQuadRule
-			= QuadratureRuleProvider<dim>::get_rule(scvRoid, m_quadOrderSCV);
+			= QuadratureRuleProvider<dim>::get(scvRoid, m_quadOrderSCV);
 
 	const int nipSCV = rSCVQuadRule.size();
 	m_numSCVIP = m_numSCV * nipSCV;
@@ -1679,7 +1679,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 	{
 		static const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
 		const QuadratureRule<dim>& rSCVQuadRule
-				= QuadratureRuleProvider<dim>::get_rule(scvRoid, m_quadOrderSCV);
+				= QuadratureRuleProvider<dim>::get(scvRoid, m_quadOrderSCV);
 		ReferenceMapping<scv_type, worldDim> map(m_vSCV[i].vGloPos);
 		for(size_t ip = 0; ip < rSCVQuadRule.size(); ++ip)
 			m_vSCV[i].vDetJMap[ip] = map.sqrt_gram_det(rSCVQuadRule.point(ip));
@@ -1758,7 +1758,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 
 	const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
 	const QuadratureRule<dim-1>& rSCVFQuadRule
-			= QuadratureRuleProvider<dim-1>::get_rule(scvfRoid, m_quadOrderSCVF);
+			= QuadratureRuleProvider<dim-1>::get(scvfRoid, m_quadOrderSCVF);
 
 	const LocalShapeFunctionSet<dim>& rTrialSpace =
 		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
