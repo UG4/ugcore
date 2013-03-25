@@ -192,8 +192,6 @@ GaussQuadraturePyramid::GaussQuadraturePyramid(size_t order)
 	for(size_t i = 0; i < quadRule.size(); i++, cnt++) {
 		map1.local_to_global(pvPoint[cnt], quadRule.point(i));
 		pvWeight[cnt] = quadRule.weight(i) * map1.sqrt_gram_det(quadRule.point(i));
-
-		UG_LOG(i<<": "<<cnt<<": weight: "<<quadRule.weight(i)<<" vol: "<< map1.sqrt_gram_det(quadRule.point(i))<<",point: "<<pvPoint[cnt]<<"\n");
 	}
 
 
@@ -203,8 +201,6 @@ GaussQuadraturePyramid::GaussQuadraturePyramid(size_t order)
 	for(size_t j = 0; j < quadRule.size(); j++, cnt++) {
 		map2.local_to_global(pvPoint[cnt], quadRule.point(j));
 		pvWeight[cnt] = quadRule.weight(j) * map2.sqrt_gram_det(quadRule.point(j));
-
-		UG_LOG(j<<": "<<cnt<<": weight: "<<quadRule.weight(j)<<"vol: "<< map2.sqrt_gram_det(quadRule.point(j))<<",point: "<<pvPoint[cnt]<<"\n");
 	}
 };
 
