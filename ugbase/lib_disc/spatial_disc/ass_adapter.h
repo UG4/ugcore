@@ -81,8 +81,8 @@ class AssAdapter
 	public:
 	/// constructor
 		AssAdapter(): m_pBoolMarker(NULL), m_pSelector(NULL),
-		m_bForceRegGrid(false), m_ConstraintTypesEnabled(CT_ALL),
-		m_ElemTypesEnabled(EDT_ALL)
+		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
+		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL)
 		{
 			m_assIndex.index_set = false;
 			m_pMapper = &m_pMapperCommon;
@@ -207,6 +207,10 @@ class AssAdapter
 
 	/// forces the assembling to regard the grid as regular
 		bool m_bForceRegGrid;
+
+	/// calls the 'modify_solution()' method of constraints;
+	///	gives the modified solution to the assembling methods
+		bool m_bModifySolutionImplemented;
 
 	///	enables the constraints
 		int m_ConstraintTypesEnabled;
