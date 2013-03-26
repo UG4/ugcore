@@ -12,6 +12,9 @@
 
 #include "lib_algebra/operator/interface/operator_iterator.h"
 
+#include <vector>
+#include <algorithm>
+
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_util.h"
 	#include "lib_algebra/parallelization/parallelization_util.h"
@@ -20,7 +23,7 @@
 
 namespace ug{
 
-template<typename TDomain, typename TAlgebra>
+template<typename TGroupObj, typename TDomain, typename TAlgebra>
 void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
                             GridFunction<TDomain, TAlgebra>& c,
                             const typename TAlgebra::vector_type& d,
@@ -38,17 +41,32 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 	// set all vector entries to zero
 	c.set(0.0);
 
-	// loop all elements
-	typedef typename GridFunction<TDomain, TAlgebra>::const_element_iterator ElemIter;
 	typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
-	for(ElemIter iter = c.template begin<Element>();
-						 	 iter != c.template end<Element>(); ++iter){
+	std::vector<Element*> vElem;
 
-		// get element
-		Element* elem = *iter;
+	// loop all grouping objects
+	typedef typename GridFunction<TDomain, TAlgebra>::template traits<TGroupObj>::const_iterator GroupObjIter;
+	for(GroupObjIter iter = c.template begin<TGroupObj>();
+					 iter != c.template end<TGroupObj>(); ++iter){
+
+		// get grouping obj
+		TGroupObj* groupObj = *iter;
+
+		// collect elems associated to grouping object
+		c.collect_associated(vElem, groupObj);
 
 		// get all algebraic indices on element
-		c.algebra_indices(elem, vInd);
+		vInd.clear();
+		for(size_t i = 0; i < vElem.size(); ++i)
+			c.algebra_indices(vElem[i], vInd, false);
+
+		// check for doublicates
+		if(vElem.size() > 1){
+		    std::sort(vInd.begin(), vInd.end());
+		    vInd.erase(std::unique(vInd.begin(), vInd.end()), vInd.end());
+		}
+
+		// get number of indices on patch
 		const size_t numIndex = vInd.size();
 
 		// set correction values for element indices to zero
@@ -57,10 +75,15 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		}
 
 		// fill local block matrix
+		bool bFound;
 		mat.resize(numIndex, numIndex);
+		mat = 0.0;
 		for (size_t j = 0; j<numIndex; j++){
 			for (size_t k=0;k<numIndex;k++){
-				mat.subassign(j*blockSize,k*blockSize,A(vInd[j],vInd[k]));
+				const_row_iterator it = A.get_connection(vInd[j],vInd[k], bFound);
+				if(bFound){
+					mat.subassign(j*blockSize,k*blockSize,it.value());
+				}
 			};
 		}
 
@@ -113,10 +136,16 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 
 	public:
 	///	default constructor
-		ElementGaussSeidel() : m_relax(1){};
+		ElementGaussSeidel() : m_relax(1), m_type("element"){};
 
 	///	constructor setting relaxation
-		ElementGaussSeidel(number relax) : m_relax(relax) {};
+		ElementGaussSeidel(number relax) : m_relax(relax), m_type("element") {};
+
+	///	constructor setting type
+		ElementGaussSeidel(const std::string& type) : m_relax(1), m_type(type) {};
+
+	///	constructor setting relaxation and type
+		ElementGaussSeidel(number relax, const std::string& type) : m_relax(relax), m_type(type) {};
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
@@ -126,6 +155,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			newInst->set_relax(m_relax);
+			newInst->set_type(m_type);
 			return newInst;
 		}
 
@@ -134,11 +164,10 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		{};
 
 	/// set relaxation parameter
-	public:
 		void set_relax(number omega){m_relax=omega;};
 
-	protected:
-		number m_relax;
+	/// set type
+		void set_type(const std::string& type){m_type=type;};
 
 	protected:
 	///	Name of preconditioner
@@ -169,20 +198,38 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 				UG_THROW("ElementGaussSeidel expects correction to be a GridFunction.");
 
 
+			typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
+			typedef typename GridFunction<TDomain, TAlgebra>::element_type Side;
+
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
 			//	make defect unique
 				SmartPtr<vector_type> spDtmp = d.clone();
 				spDtmp->change_storage_type(PST_UNIQUE);
-				ElementGaussSeidelStep(m_A, *pC, *spDtmp, m_relax);
+
+				if		(m_type == "element") ElementGaussSeidelStep<Element,TDomain,TAlgebra>(m_A, *pC, *spDtmp, m_relax);
+				else if	(m_type == "side") ElementGaussSeidelStep<Side,TDomain,TAlgebra>(m_A, *pC, *spDtmp, m_relax);
+				else if	(m_type == "face") ElementGaussSeidelStep<Face,TDomain,TAlgebra>(m_A, *pC, *spDtmp, m_relax);
+				else if	(m_type == "edge") ElementGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(m_A, *pC, *spDtmp, m_relax);
+				else if	(m_type == "vertex") ElementGaussSeidelStep<VertexBase,TDomain,TAlgebra>(m_A, *pC, *spDtmp, m_relax);
+				else UG_THROW("ElementGaussSeidel: wrong patch type '"<<m_type<<"'."
+					         " Options: element, side, face, edge, vertex.")
+
 				pC->set_storage_type(PST_UNIQUE);
 				return true;
 			}
 			else
 #endif
 			{
-				ElementGaussSeidelStep(mat, *pC, d, m_relax);
+
+				if		(m_type == "element") ElementGaussSeidelStep<Element,TDomain,TAlgebra>(mat, *pC, d, m_relax);
+				else if	(m_type == "side") ElementGaussSeidelStep<Side,TDomain,TAlgebra>(mat, *pC, d, m_relax);
+				else if	(m_type == "face") ElementGaussSeidelStep<Face,TDomain,TAlgebra>(mat, *pC, d, m_relax);
+				else if	(m_type == "edge") ElementGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(mat, *pC, d, m_relax);
+				else if	(m_type == "vertex") ElementGaussSeidelStep<VertexBase,TDomain,TAlgebra>(mat, *pC, d, m_relax);
+				else UG_THROW("ElementGaussSeidel: wrong patch type '"<<m_type<<"'."
+					         " Options: element, side, face, edge, vertex.")
 
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);
@@ -199,6 +246,9 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		matrix_type m_A;
 #endif
 
+		number m_relax;
+
+		std::string m_type;
 };
 
 } // end namespace ug

@@ -136,6 +136,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
 		.add_constructor()
 		.template add_constructor<void (*)(number)>("relax")
+		.template add_constructor<void (*)(const std::string&)>("patch-type")
+		.template add_constructor<void (*)(number, const std::string&)>("relax, patch-type")
 		.add_method("set_relax", &T::set_relax, "", "relax")
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ElementGaussSeidel", tag);

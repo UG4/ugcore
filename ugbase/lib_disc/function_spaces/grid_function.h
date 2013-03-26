@@ -131,6 +131,10 @@ class GridFunction
 		typedef typename dim_traits<dim>::iterator element_iterator;
 		typedef typename dim_traits<dim>::const_iterator const_element_iterator;
 
+		typedef typename dim_traits<dim-1>::geometric_base_object side_type;
+		typedef typename dim_traits<dim-1>::iterator side_iterator;
+		typedef typename dim_traits<dim-1>::const_iterator const_side_iterator;
+
 	protected:
 	/// virtual clone using covariant return type
 		virtual this_type* virtual_clone() const {return new this_type(*this);}
@@ -258,6 +262,13 @@ class GridFunction
 			{return m_spDD->template end<TElem>(si);}
 	/// \}
 
+	///	returns the adjacend elements
+		template <typename TElem, typename TBaseElem>
+		void collect_associated(std::vector<TBaseElem*>& vAssElem,
+								TElem* elem, bool clearContainer = true) const{
+				m_spDD->collect_associated(vAssElem, elem, clearContainer);
+		}
+
 	public:
 	/// return the number of dofs distributed
 		size_t num_indices() const {return m_spDD->num_indices();}
@@ -278,23 +289,23 @@ class GridFunction
 
 	/// get multi indices on an finite element in canonical order
 		template <typename TElem>
-		size_t multi_indices(TElem* elem, size_t fct, std::vector<multi_index_type>& ind) const
-			{return m_spDD->multi_indices(elem, fct, ind);}
+		size_t multi_indices(TElem* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const
+			{return m_spDD->multi_indices(elem, fct, ind, bHang, bClear);}
 
 	/// get multi indices on an geometric object in canonical order
 		template <typename TElem>
-		size_t inner_multi_indices(TElem* elem, size_t fct,	std::vector<multi_index_type>& ind) const
-			{return m_spDD->inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(TElem* elem, size_t fct,	std::vector<multi_index_type>& ind, bool bClear = true) const
+			{return m_spDD->inner_multi_indices(elem, fct, ind, bClear);}
 
 	/// get algebra indices on an geometric object in canonical order
 		template <typename TElem>
-		size_t algebra_indices(TElem* elem, std::vector<size_t>& ind) const
-			{return m_spDD->algebra_indices(elem, ind);}
+		size_t algebra_indices(TElem* elem, std::vector<size_t>& ind, bool bClear = true) const
+			{return m_spDD->algebra_indices(elem, ind, bClear);}
 
 	/// get algebra indices on an geometric object in canonical order
 		template <typename TElem>
-		size_t inner_algebra_indices(TElem* elem, std::vector<size_t>& ind) const
-			{return m_spDD->inner_algebra_indices(elem, ind);}
+		size_t inner_algebra_indices(TElem* elem, std::vector<size_t>& ind, bool bClear = true) const
+			{return m_spDD->inner_algebra_indices(elem, ind, bClear);}
 
 	public:
 	///	returns domain

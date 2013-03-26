@@ -106,53 +106,64 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider,
 		typename traits<TElem>::const_iterator end(int si) const {return m_spSurfView->end<TElem>(si, m_level);}
 	///	\}
 
+	///	returns the adjacend elements
+		template <typename TElem, typename TBaseElem>
+		void collect_associated(std::vector<TBaseElem*>& vAssElem,
+								TElem* elem, bool clearContainer = true) const{
+			if(m_level.type() == GridLevel::LEVEL)
+				CollectAssociated(vAssElem, *m_rMGDD.multi_grid(), elem, clearContainer);
+			else{
+				m_spSurfView->collect_associated(vAssElem, elem, clearContainer);
+			}
+		}
+
 	public:
 	///	type of multiindices
 		typedef MGDoFDistribution::multi_index_type multi_index_type;
 
 	///	returns all indices of the element
 	///	\{
-		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
-		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
-		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
-		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
-		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem, ind, bHang);}
+		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem,ind, bHang);}
+		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem,ind, bHang);}
+		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem,ind, bHang);}
+		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem,ind, bHang);}
+		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem,ind, bHang);}
 	/// \}
 
 	/// get multi indices (Element + Closure of Element)
 	/// \{
-		size_t multi_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
-		size_t multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
-		size_t multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
-		size_t multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
-		size_t multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.multi_indices(elem, fct, ind);}
+		size_t multi_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.multi_indices(elem,fct,ind,bHang,bClear);}
+		size_t multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.multi_indices(elem,fct,ind,bHang,bClear);}
+		size_t multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.multi_indices(elem,fct,ind,bHang,bClear);}
+		size_t multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.multi_indices(elem,fct,ind,bHang,bClear);}
+		size_t multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.multi_indices(elem,fct,ind,bHang,bClear);}
 	/// \}
 
 	/// get multi indices (only inner part of Element)
 	/// \{
-		size_t inner_multi_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
-		size_t inner_multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind) const{return m_rMGDD.inner_multi_indices(elem, fct, ind);}
+		size_t inner_multi_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_multi_indices(elem,fct,ind,bClear);}
+		size_t inner_multi_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_multi_indices(elem,fct,ind,bClear);}
+		size_t inner_multi_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_multi_indices(elem,fct,ind,bClear);}
+		size_t inner_multi_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_multi_indices(elem,fct,ind,bClear);}
+		size_t inner_multi_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_multi_indices(elem,fct,ind,bClear);}
 	/// \}
 
 	/// get algebra indices (Element + Closure of Element)
 	/// \{
-		size_t algebra_indices(GeometricObject* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
-		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
-		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
-		size_t algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
-		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_rMGDD.algebra_indices(elem, ind);}
+		size_t algebra_indices(GeometricObject* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.algebra_indices(elem,ind,bClear);}
+		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.algebra_indices(elem,ind,bClear);}
+		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.algebra_indices(elem,ind,bClear);}
+		size_t algebra_indices(Face* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.algebra_indices(elem,ind,bClear);}
+		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.algebra_indices(elem,ind,bClear);}
 	/// \}
 
 	/// get algebra indices (only inner part of Element)
 	/// \{
-		size_t inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Face* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
-		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind) const{return m_rMGDD.inner_algebra_indices(elem,ind);}
+		size_t inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.inner_algebra_indices(elem,ind,bClear);}
+		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.inner_algebra_indices(elem,ind,bClear);}
+		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.inner_algebra_indices(elem,ind,bClear);}
+		size_t inner_algebra_indices(Face* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.inner_algebra_indices(elem,ind,bClear);}
+		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.inner_algebra_indices(elem,ind,bClear);}
 	/// \}
 
 #ifdef UG_PARALLEL
