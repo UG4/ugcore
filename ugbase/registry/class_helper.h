@@ -87,6 +87,7 @@ UG_API bool PrintClassInfo(const Registry &reg, const char *classname);
 UG_API bool ClassUsageExact(const Registry &reg, const char *classname, bool OutParameters);
 UG_API const ExportedFunction *FindFunction(const Registry &reg, const char *functionname);
 UG_API std::string ParameterToString(const ParameterInfo &par, int i);
+UG_API bool IsClassInParameters(const ParameterInfo &par, const char *classname);
 
 } // end namespace
 } // end namespace
