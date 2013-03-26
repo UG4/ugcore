@@ -37,6 +37,7 @@ class VectorTimeSeries
 		typedef TVector vector_type;
 
 	public:
+		virtual ~VectorTimeSeries() {}
 
 	//! clones the object (deep-copy) including values
 		SmartPtr<VectorTimeSeries<vector_type> > clone() const
