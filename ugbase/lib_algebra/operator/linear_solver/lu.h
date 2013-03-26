@@ -56,9 +56,9 @@ class LU
 				UG_ASSERT(nrOfRows == block_traits<typename matrix_type::value_type>::static_num_cols, "only square matrices supported");
 				m_size = A.num_rows() * nrOfRows;
 
-				if(m_size > 5000)
+				if(m_size > 10000)
 				{
-					UG_LOG("\n----------------------------\nWARNING: Serial Dense LU-Decomposition of NxN matrices with N > 5000 not recommended!\n"
+					UG_LOG("\n----------------------------\nWARNING: You're calling Serial Dense LU-Decomposition with N=" << m_size << ". LU Decomposition of NxN matrices with N > 5000 not recommended!\n"
 							"Standard LU has complexity O(N^3), and needs O(N^2) space (in your case " << m_size*m_size*sizeof(number)/(1024.0*1024.0*1024.0) << " GBytes of memory.)."
 							"Use some AMG method instead.\n----------------------------\n");
 				}
