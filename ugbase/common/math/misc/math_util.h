@@ -15,14 +15,17 @@
 #include "../../ug_config.h"
 #include "eigenvalues.h"
 
+namespace
+{
+	#define _USE_MATH_DEFINES // needed for M_PI macro
+	#include <cmath>
+}
+
 namespace ug
 {
-
 const number SMALL = 1.0e-12;
 const number SMALL_SQ = SMALL * SMALL;
 
-#define _USE_MATH_DEFINES // needed for M_PI macro
-#include <cmath>
 const number PI = M_PI;
 
 ////////////////////////////////////////////////////////////////////////
