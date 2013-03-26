@@ -73,43 +73,63 @@ you can now assert several conditions in your code.
 \section secUnitTestsScripts Testing Scripts
 
 In order to test Lua-Scripts you just have to add the script, that you want to 
-test in the file <tt>unit_tests/src/testScripts.cpp</tt>.
+test in the file <tt>unit_tests/data/script_tests/{script_test_param.xml, experimental_plugin.xml}</tt>.
+The file name depends on whether you are testing a script which depends on a core or an experimental plugin.
+
 See this example:
 \code
-////////////////////////////////////////////////////////////////////////////////
-// Test Cases for Num Proc = 1 (quasi-serial case)
-////////////////////////////////////////////////////////////////////////////////
-BOOST_AUTO_TEST_SUITE(testLUAScriptsNumProc1);
-
-// add more script test cases below...
-BOOST_AUTO_TEST_CASE(sampleScript) 	{loadScriptWrapper("../unit_tests/scripts/sample_test.lua");}
-BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("../apps/conv_diff/laplace_test.lua");}
-
-BOOST_AUTO_TEST_SUITE_END();
-
-////////////////////////////////////////////////////////////////////////////////
-// Test Cases for Num Proc = 3 (parallel case)
-////////////////////////////////////////////////////////////////////////////////
-BOOST_AUTO_TEST_SUITE(testLUAScriptsNumProc3);
-
-// add more script test cases below...
-BOOST_AUTO_TEST_CASE(laplace) 		{loadScriptWrapper("../apps/conv_diff/laplace_test.lua");}
-
-BOOST_AUTO_TEST_SUITE_END();
+<script>
+	<path>conv_diff/laplace_test.lua</path>
+	<!-- on how many processors test this script with all its configurations -->
+	<numProcs>1 3 4 7</numProcs>
+	<!-- every config element leads to a separate test case.
+		nested configs will inherit parameters sets from parent
+	 -->
+	<config-set>
+		<config>
+			<!-- Default config => all nested configs will inherit these parameters.
+				Configs may be nested recursively. -->
+			<parameters>
+				<param name="-numRefs">2</param>
+				<!-- -distType : possible values => [grid2d | bisect | metis] -->
+				<param name="-distType">grid2d</param>
+				<!-- timeout of 6 seconds -->
+				<param name="timeout">12</param>
+			</parameters>
+			
+			<config>
+				<parameters>
+					<param name="-dim">1</param>
+					<!-- todo test other dist types for all dimension -->
+				</parameters>
+			</config>
+			
+			<config>
+				<parameters>
+					<param name="-dim">2</param>
+				</parameters>
+			</config>
+			
+			<config>
+				<parameters>
+					<param name="-dim">3</param>
+				</parameters>
+			</config>
+		</config>
+	</config-set>
+</script>
 \endcode
 
-As you see, there are currently two test suits for scripts:
-one on a single process and a second one on a 3-MPI-process run.
-(If needed, other suits may be added.
+If you want to add your plugin to the Jenkins automated test procedure, add a line
+-DMyPlugin=ON to the cmake build step section of the Job "ug-build-plugins" and add a
+<script> ... </script> section to the experimental_plugin.xml file.
+It is recommended to ensure your script file is able to be executed outside of UG4_ROOT 
+(e.g grids should be not be loaded via absolute path or relative one relying to an unknown runtime location)
 
-\attention This will require a change in the setting of Jenkins!
-The scripts, that you add for testing must be specified relative to 
-<tt>trunk/scripts/</tt>.
-
-Now, two things are tested:
+Now, two things are tested for each script configuration:
 <ol>
-  <li>In any case the successful run of the script (i.e. no <tt>LuaError</tt> 
-    reported)
+  <li>In any case the successful run of the script (i.e. no <tt>UGError/LuaError/...</tt> 
+     reported) exception
   </li>
   <li>In your script you can add additional requirements and tests as shown in 
     the example below.
@@ -148,11 +168,18 @@ You are able to use the testsuite locally. To do so you first need build it
 \code
 mkdir build_test
 cd build_test; cmake .. ; make
+\endcode
 
 The testsuite binary will be in the same location as ugshell ($UG4_ROOT/bin).
 
-To run all tests and enable logging to console invoke it with:
-test_suite --console
+To run all tests (without experimental script tests) and enabled logging to console invoke it with:
+\code
+	testsuite --console
+\endcode
+Run experimental script tests (or maybe your own parameter binding file):
+\code
+	testsuite --console -script_params $UG4_ROOT/unit_tests/data/script_tests/experimental_plugins.xml
+\endcode
 
 For more parameters please have a look at the boost 
 <a href="live.boost.org/doc/libs/1_48_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html">documentation</a>
