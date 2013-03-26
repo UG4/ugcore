@@ -66,6 +66,51 @@ struct RegisterDomainAlgebraDependent
 };
 
 
+template <	typename Functionality, typename AlgebraList = CompileAlgebraList>
+struct RegisterDomain1dAlgebraDependent
+{
+	RegisterDomain1dAlgebraDependent(Registry& reg, std::string grp)
+	{
+#ifdef UG_DIM_1
+		RegisterDomainAlgebraDependent<Functionality, boost::mpl::list<Domain1d>, AlgebraList>(reg, grp);
+#endif
+	}
+};
+
+template <	typename Functionality, typename AlgebraList = CompileAlgebraList>
+struct RegisterDomain2dAlgebraDependent
+{
+	RegisterDomain2dAlgebraDependent(Registry& reg, std::string grp)
+	{
+#ifdef UG_DIM_2
+		RegisterDomainAlgebraDependent<Functionality, boost::mpl::list<Domain2d>, AlgebraList>(reg, grp);
+#endif
+	}
+};
+
+
+template <	typename Functionality,	typename AlgebraList = CompileAlgebraList>
+struct RegisterDomain3dAlgebraDependent
+{
+	RegisterDomain3dAlgebraDependent(Registry& reg, std::string grp)
+	{
+#ifdef UG_DIM_3
+		RegisterDomainAlgebraDependent<Functionality, boost::mpl::list<Domain3d>, AlgebraList>(reg, grp);
+#endif
+	}
+};
+
+template <	typename Functionality,	typename AlgebraList = CompileAlgebraList>
+struct RegisterDomain2d3dAlgebraDependent
+{
+	RegisterDomain2d3dAlgebraDependent(Registry& reg, std::string grp)
+	{
+		RegisterDomain2dAlgebraDependent<Functionality, AlgebraList>(reg, grp);
+		RegisterDomain3dAlgebraDependent<Functionality, AlgebraList>(reg, grp);
+	}
+};
+
+
 }
 }
 #endif	/* UTIL_DOMAIN_ALGEBRA_DEPENDENT_H */

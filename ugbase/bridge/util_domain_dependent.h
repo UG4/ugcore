@@ -46,7 +46,6 @@ typedef boost::mpl::list<
 #endif
 > CompileDomainList;
 
-
 ////////////////////////////////////////////////////////////////////////////////
 //  Register invokers
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,9 +71,39 @@ struct RegisterDomainDependent
 	};
 };
 
+template<typename Functionality>
+void RegisterDomain1dDependent(Registry& reg, std::string grp)
+{
+#ifdef UG_DIM_1
+	RegisterDomainDependent<Functionality, boost::mpl::list<Domain1d> > (reg, grp);
+#endif
+}
 
+template<typename Functionality>
+void RegisterDomain2dDependent(Registry& reg, std::string grp)
+{
+#ifdef UG_DIM_2
+	RegisterDomainDependent<Functionality, boost::mpl::list<Domain2d> > (reg, grp);
+#endif
 }
+
+template<typename Functionality>
+void RegisterDomain3dDependent(Registry& reg, std::string grp)
+{
+#ifdef UG_DIM_3
+	RegisterDomainDependent<Functionality, boost::mpl::list<Domain3d> > (reg, grp);
+#endif
 }
+
+template<typename Functionality>
+void RegisterDomain2d3dDependent(Registry& reg, std::string grp)
+{
+	RegisterDomain2dDependent<Functionality>(reg, grp);
+	RegisterDomain3dDependent<Functionality>(reg, grp);
+}
+
+} // namespace bridge
+} // namespace ug
 
 #endif	/* UTIL_DOMAIN_DEPENDENT_H */
 

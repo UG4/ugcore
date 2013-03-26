@@ -36,6 +36,37 @@ void RegisterDimensionDependent(Registry& reg, std::string grp)
 #endif
 }
 
+template <typename Functionality>
+void RegisterDimension1dDependent(Registry& reg, std::string grp)
+{
+#ifdef UG_DIM_1
+	Functionality::template Dimension<1>(reg,grp);
+#endif
+}
+
+template <typename Functionality>
+void RegisterDimension2dDependent(Registry& reg, std::string grp)
+{
+#ifdef UG_DIM_2
+	Functionality::template Dimension<2>(reg,grp);
+#endif
+}
+
+template <typename Functionality>
+void RegisterDimension3dDependent(Registry& reg, std::string grp)
+{
+#ifdef UG_DIM_3
+	Functionality::template Dimension<3>(reg,grp);
+#endif
+}
+
+template <typename Functionality>
+void RegisterDimension2d3dDependent(Registry& reg, std::string grp)
+{
+	RegisterDimension2dDependent<Functionality>(reg, grp);
+	RegisterDimension3dDependent<Functionality>(reg, grp);
+}
+
 
 } // end namespace bridge
 } // end namespace ug
