@@ -58,7 +58,6 @@ void MultiScalProd(vector_type **px,
 			rA(r,c) = rA(c, r);
 }
 
-
 template<typename matrix_type, typename vector_type>
 double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2, vector_type &tmp)
 {
@@ -272,7 +271,7 @@ private:
 	typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 	matrix_operator_type *m_pB;
 
-
+	double m_dMinimumDefectToCalcCorrection;
 
 	std::vector<vector_type*> px;
 	SmartPtr<ILinearIterator<vector_type> > m_spPrecond;
@@ -287,6 +286,8 @@ public:
 		m_pA = NULL;
 		m_pB = NULL;
 		m_iPINVIT = 3;
+		m_dMinimumDefectToCalcCorrection = 1e-8;
+		m_dPrecision = 1e-8;
 	}
 
 	/**
@@ -326,6 +327,7 @@ public:
 	void set_precision(double precision)
 	{
 		m_dPrecision = precision;
+		m_dMinimumDefectToCalcCorrection = precision;
 	}
 
 	/**
@@ -393,6 +395,13 @@ public:
 
 		std::vector<vector_type *> pTestVectors;
 
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+				m_pA.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+		matrix_type &A = pOp->get_matrix();
+		std::vector<bool> vbDirichlet(A.num_rows());
+		for(size_t i=0; i<A.num_rows(); i++)
+			vbDirichlet[i] = A.is_isolated(i);
+
 		std::vector<double> vDefectNorm(n, m_dPrecision*10);
 		std::vector<double> oldXnorm(n);
 
@@ -421,13 +430,12 @@ public:
 
 			for(size_t i=0; i<n; i++)
 			{
-				compute_rayleigh_and_new_correction(*px[i], lambda[i], defect, vDefectNorm[i], vCorr[i]);
-				write_debug(iteration, i, *px[i], defect, vCorr[i]);
-				if(vDefectNorm[i] < m_dPrecision)
+				compute_rayleigh_and_new_correction(iteration, i, *px[i], lambda[i], defect, vDefectNorm[i], vCorr[i]);
+				bool bConverged = vDefectNorm[i] < m_dPrecision;
+				write_debug(iteration, i, *px[i], defect, vCorr[i], bConverged);
+				if(bConverged)
 					nrofconverged++;
 			}
-
-
 
 
 			// output
@@ -500,6 +508,8 @@ public:
 			std::vector<typename vector_type::value_type> x_tmp(n);
 			for(size_t i=0; i<size; i++)
 			{
+				if(vbDirichlet[i]) continue;
+
 				// since x is part of the Testvectors, temporary safe result in x_tmp.
 				for(size_t r=0; r<n; r++)
 				{
@@ -520,11 +530,12 @@ public:
 	}
 
 private:
-	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr)
+	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr, bool bConverged)
 	{
 		write_debug(x, ("pinvit_it_" + ToString(iteration) + "_ev_" + ToString(i)).c_str());
 		write_debug(defect, ("pinvit_it_" + ToString(iteration) + "_defect_" + ToString(i)).c_str());
-		write_debug(corr, ("pinvit_it_" + ToString(iteration) + "_corr_" + ToString(i)).c_str());
+		if(bConverged)
+			write_debug(corr, ("pinvit_it_" + ToString(iteration) + "_corr_" + ToString(i)).c_str());
 	}
 
 	double B_norm(vector_type &x)
@@ -550,7 +561,7 @@ private:
 	 * @param[out] vDefectNorm 	vDefectNorm = | defect |_2
 	 * @param[out] vCorr		P defect
 	 */
-	void compute_rayleigh_and_new_correction(vector_type &x, double &lambda, vector_type &defect, double &vDefectNorm, vector_type &corr)
+	void compute_rayleigh_and_new_correction(int iteration, int i, vector_type &x, double &lambda, vector_type &defect, double &defectNorm, vector_type &corr)
 	{
 // a. compute rayleigh quotients
 		// lambda = <x, Ax>/<x,x>
@@ -593,21 +604,20 @@ private:
 #ifdef UG_PARALLEL
 		defect.change_storage_type(PST_UNIQUE);
 #endif
-		vDefectNorm = defect.norm();
+		defectNorm = defect.norm();
 #ifdef UG_PARALLEL
 		defect.change_storage_type(PST_UNIQUE);
 #endif
-		if(vDefectNorm < 1e-12)
+		corr *= 0.0;
+		if(defectNorm < m_dMinimumDefectToCalcCorrection)
 			return;
 
-		corr *= 0.0;
 // d. apply preconditioner
 		m_spPrecond->apply(corr, defect);
 		corr *= 1/ B_norm(corr);
 #ifdef UG_PARALLEL
 		corr.change_storage_type(PST_UNIQUE);
 #endif
-
 	}
 
 	/**
@@ -628,6 +638,7 @@ private:
 			UG_LOG(i << " lambda: " << std::setw(14) << vLambda[i] << " defect: " <<
 					std::setw(14) << vDefectNorm[i]);
 			if(iteration != 0) { UG_LOG(" reduction: " << std::setw(14) << vDefectNorm[i]/vOldDefectNorm[i]); }
+			if(vDefectNorm[i] < m_dPrecision) { UG_LOG(" (converged)"); }
 			UG_LOG("\n");
 			vOldDefectNorm[i] = vDefectNorm[i];
 		}
@@ -669,12 +680,13 @@ private:
 				pTestVectors.push_back(px[i]);
 				vTestVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
 
-				if(vDefectNorm[i] < m_dPrecision)
-						continue;
-				pTestVectors.push_back(&vCorr[i]);
-				vTestVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
+				if(vDefectNorm[i] >= m_dMinimumDefectToCalcCorrection)
+				{
+					pTestVectors.push_back(&vCorr[i]);
+					vTestVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
+				}
 
-				if(m_iPINVIT >= 3)
+				if(vDefectNorm[i] >= m_dPrecision && m_iPINVIT >= 3)
 				{
 					pTestVectors.push_back(&vOldX[i]);
 					vTestVectorDescription.push_back(std::string("old correction [") + ToString(i) + std::string("]") );
@@ -770,6 +782,13 @@ private:
 		get_linear_independent_rows(rB, bUse);
 
 
+		UG_LOG("used testvectors:\n");
+		for(int i=0; i<pTestVectors.size(); i++)
+			if(bUse[i]) { UG_LOG(vTestVectorDescription[i] << "\n"); }
+		UG_LOG("unused testvectors:\n");
+		for(int i=0; i<pTestVectors.size(); i++)
+			if(!bUse[i]) { UG_LOG(vTestVectorDescription[i] << "\n"); }
+
 		// save used testvectors
 		remove_unused(pTestVectors, bUse);
 		remove_unused(vTestVectorDescription, bUse);
@@ -789,6 +808,8 @@ private:
 
 		PrintMaple(rA, "rA");
 		PrintMaple(rB, "rB");
+
+
 	}
 
 
