@@ -120,6 +120,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("ILUT").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Incomplete LU Decomposition with threshold")
 			.add_constructor()
+			.template add_constructor<void (*)(number)>("threshold parameter")
 			.add_method("set_threshold", &T::set_threshold,
 						"", "threshold", "sets threshold of incomplete LU factorisation")
 			.add_method("set_info", &T::set_info,
