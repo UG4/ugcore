@@ -2,14 +2,18 @@
 # 
 # TODO: maybe add sanity checks for flags
 #
+
+# add flag for c language only
 function (add_c_flag flag)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" CACHE STRING "overriden flags!" FORCE)
 endfunction(add_c_flag)
 
+# add flag for c++ language only
 function (add_cpp_flag flag)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" CACHE STRING "overriden flags!" FORCE)
 endfunction(add_cpp_flag)
 
+# add flag for c and c++ language
 function(add_cxx_flag flag)
 	add_c_flag(${flag})
 	add_cpp_flag(${flag})
