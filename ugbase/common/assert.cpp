@@ -72,13 +72,12 @@ string demangle(const char *str)
  */
 void ug_backtrace()
 {
-	
+	size_t i;
 #ifdef UG_POSIX
-
 #ifdef UG_PROFILER_SHINY
 	UG_LOG("Shiny Profiler Backtrace:\n")
 	Shiny::ProfileNode *p = Shiny::ProfileManager::instance._curNode;
-	size_t i=0;
+	i=0;
 	while(p != &Shiny::ProfileManager::instance.rootNode)
 	{
 		UG_LOG(std::setw(3) << i++ << std::setw(50) << p->zone->name << "\t" << p->zone->file << " :" << p->zone->line << "\n");
