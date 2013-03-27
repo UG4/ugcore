@@ -492,8 +492,9 @@ template <class TElem> void test(PeriodicBoundaryManager& PBM,
 			++iter) {
 		TElem* e = *iter;
 		if(!PBM.is_periodic(e)) {
-			UG_LOG("elem not periodic: " << GetGeometricObjectCenter(*PBM.get_grid(),e)
-					<< "\n")
+			UG_LOG("Element in subset 1 is not periodic after identification: "
+					<< GetGeometricObjectCenter(*PBM.get_grid(),e)
+					<< "\nCheck your geometry for symmetry!\n")
 		}
 		UG_ASSERT(PBM.is_periodic(e), "item of subset 1 should be periodic now");
 
@@ -509,18 +510,25 @@ template <class TElem> void test(PeriodicBoundaryManager& PBM,
 			}
 		}
 	}
-	// subset 1
+
+	// subset 2
 	for (gocIter iter = goc2.begin<TElem>(); iter != goc2.end<TElem>();
 			++iter) {
-		UG_ASSERT(PBM.is_periodic(*iter), "item of subset 2 should be periodic now");
+		TElem* e = *iter;
+		if(!PBM.is_periodic(e)) {
+			UG_LOG("Element in subset 1 is not periodic after identification: "
+					<< GetGeometricObjectCenter(*PBM.get_grid(),e)
+					<< "\nCheck your geometry for symmetry!\n")
+		}
+		UG_ASSERT(PBM.is_periodic(e), "item of subset 1 should be periodic now");
 
-		if (PBM.master(*iter) == *iter) {
-			SlaveContainer* slaves = PBM.slaves(*iter);
+		if (PBM.master(e) == e) {
+			SlaveContainer* slaves = PBM.slaves(e);
 			UG_ASSERT(slaves, "master should have slaves")
 			UG_ASSERT(!slaves->empty(), "master should have slaves")
 			for (SlaveIter i = slaves->begin(); i != slaves->end(); ++i) {
 				TElem* slave = *i;
-				master_slave_pair p = std::make_pair(*iter, slave);
+				master_slave_pair p = std::make_pair(e, slave);
 				bool inserted = (s.insert(p)).second;
 				UG_ASSERT(inserted, "pair already exists");
 			}
