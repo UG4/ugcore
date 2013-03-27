@@ -76,11 +76,12 @@ void ug_backtrace()
 #ifdef UG_POSIX
 
 #ifdef UG_PROFILER_SHINY
-	UG_LOG("Profiler Backtrace:\n")
+	UG_LOG("Shiny Profiler Backtrace:\n")
 	Shiny::ProfileNode *p = Shiny::ProfileManager::instance._curNode;
+	size_t i=0;
 	while(p != &Shiny::ProfileManager::instance.rootNode)
 	{
-		UG_LOG(p->zone->name << "\n");
+		UG_LOG(std::setw(3) << i++ << std::setw(50) << p->zone->name << "\t" << p->zone->file << " :" << p->zone->line << "\n");
 		p = p->parent;
 	}
 	UG_LOG("\n");
@@ -89,7 +90,6 @@ void ug_backtrace()
 	void *array[100];
 	size_t size;
 	char **strings;
-	size_t i;
 
 	size = backtrace (array, 100);
 	strings = backtrace_symbols (array, size);
