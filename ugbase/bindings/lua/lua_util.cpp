@@ -192,6 +192,9 @@ lua_State* GetDefaultLuaState()
 	//	make dim check available in lua script
 		lua_register(theLuaState, "ug_dim_compiled", UGDimCompiled);
 
+	//	make algebra check available in lua script
+		lua_register(theLuaState, "ug_algebra_compiled", UGAlgebraCompiled);
+
 	//	make class name available in lua script
 		lua_register(theLuaState, "ug_class_name", UGGetClassName);
 
@@ -423,4 +426,26 @@ int UGDimCompiled(lua_State *L)
 #endif
 	lua_pushboolean(L, false); return 1;
 }
+
+int UGAlgebraCompiled(lua_State *L)
+{
+	std::string name = lua_tostring(L, -1);
+#if UG_CPU_1
+	if(name == "CPU1"){ lua_pushboolean(L, true); return 1;}
+#endif
+#if UG_CPU_2
+	if(name == "CPU2"){ lua_pushboolean(L, true); return 1;}
+#endif
+#if UG_CPU_3
+	if(name == "CPU3"){ lua_pushboolean(L, true); return 1;}
+#endif
+#if UG_CPU_4
+	if(name == "CPU4"){ lua_pushboolean(L, true); return 1;}
+#endif
+#if UG_CPU_VAR
+	if(name == "CPUVAR"){ lua_pushboolean(L, true); return 1;}
+#endif
+	lua_pushboolean(L, false); return 1;
+}
+
 }}//	end of namespace

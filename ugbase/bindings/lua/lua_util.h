@@ -95,6 +95,9 @@ UG_API int UGIsBaseClass(lua_State *L);
 /// Returns if dimension is compiled into binary
 UG_API int UGDimCompiled(lua_State *L);
 
+/// Returns if dimension is compiled into binary
+UG_API int UGAlgebraCompiled(lua_State *L);
+
 /// Returns type of a userdata as string
 UG_API int UGGetClassName(lua_State *L);
 

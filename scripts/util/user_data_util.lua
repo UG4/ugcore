@@ -46,6 +46,14 @@ function __ug__CheckUserDataArgType(r, l)
 		Data = lData
 	end
 
+	if rData ~= "" and lData ~= "" then
+		if rData == "Number" then
+			Data = lData
+		else
+			Data = rData
+		end
+	end
+
 	---------------------------------------------------------
 	-- Check match of types for operands
 	---------------------------------------------------------
@@ -167,20 +175,12 @@ function __ug__UserNumber_mul(l, r)
 	-- one operand is scalar value from lua
 	else
 		if rType == "" then
-			if tonumber(r) then
-				if lData ~= "Number" then
-					error("Error in '*' or '/': One Data Type must be number")
-				end
-			else
+			if not tonumber(r) then
 				error("Error in '*' or '/': Operand must be scalar number or UserData.")
 			end
 		end
 		if lType == "" then
-			if tonumber(l) then
-				if rData ~= "Number" then
-					error("Error in '*' or '/': One Data Type must be number")
-				end
-			else
+			if not tonumber(l) then
 				error("Error in '*' or '/': Operand must be scalar number or UserData.")
 			end
 		end		
@@ -193,7 +193,8 @@ function __ug__UserNumber_mul(l, r)
 	-- Multiply
 	---------------------------------------------------------
 	local linker =  _G[ScaleAddLinkerName]()
-	linker:add(l, r)
+	if rData == "" or rData == "Number" then linker:add(r, l)
+	else linker:add(l, r) end
 	return linker				
 end
 
@@ -317,34 +318,51 @@ end
 -- Loop to set the __add functions for UserData
 --------------------------------------------------------------------------------
 
+function set_user_data_overloads(name)
+	-- request metatable for the classname
+	mt = ug_get_metatable(name)
+	
+	-- set __add function in metatable
+	mt.__add = _G["__ug__UserNumber_add"]
+
+	-- set __sub function in metatable
+	mt.__sub = _G["__ug__UserNumber_sub"]
+	
+	-- set __mul function in metatable
+	mt.__mul = _G["__ug__UserNumber_mul"]
+
+	-- set __div function in metatable
+	mt.__div = _G["__ug__UserNumber_div"]
+	
+	-- set __pow function in metatable
+	mt.__pow = _G["__ug__UserNumber_pow"]
+end
+
 -- loop some kinds of UserData implementation
 for k, class in ipairs({"User", "ConstUser", "LuaUser", "ScaleAddLinker"}) do
--- loop some kind of data types
-for k, type in ipairs({"Number", "Vector", "Matrix"}) do
--- loop dimensions
-for dim =  1,3 do
-	-- only set if dimension is compiled (otherwise metatable does not exist)
-	if ug_dim_compiled(dim) then
-
-		-- request metatable for the classname
-		mt = ug_get_metatable(class..type..dim.."d")
-		
-		-- set __add function in metatable
-		mt.__add = _G["__ug__UserNumber_add"]
-	
-		-- set __sub function in metatable
-		mt.__sub = _G["__ug__UserNumber_sub"]
-		
-		-- set __mul function in metatable
-		mt.__mul = _G["__ug__UserNumber_mul"]
-
-		-- set __div function in metatable
-		mt.__div = _G["__ug__UserNumber_div"]
-		
-		-- set __pow function in metatable
-		mt.__pow = _G["__ug__UserNumber_pow"]
+	-- loop some kind of data types
+	for k, type in ipairs({"Number", "Vector", "Matrix"}) do
+		-- loop dimensions
+		for dim =  1,3 do
+			-- only set if dimension is compiled (otherwise metatable does not exist)
+			if ug_dim_compiled(dim) then
+				set_user_data_overloads(class..type..dim.."d")
+			end
+		end
 	end
 end
-end
+
+-- add GridFunctionData
+for k, class in ipairs({"GridFunctionGradientData", "GridFunctionNumberData"}) do
+	-- loop algebra
+	for j, algebra in ipairs({"CPU1", "CPU2", "CPU3", "CPU4", "CPUVAR"}) do
+		-- loop dimensions
+		for dim =  1,3 do
+			-- only set if dimension is compiled (otherwise metatable does not exist)
+			if ug_dim_compiled(dim) and ug_algebra_compiled(algebra) then
+				set_user_data_overloads(class..dim.."d"..algebra)
+			end
+		end
+	end
 end
 
