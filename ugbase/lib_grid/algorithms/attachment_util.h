@@ -72,7 +72,7 @@ class MultiElementAttachmentAccessor
 				case EDGE: return m_aaEdge[static_cast<EdgeBase*>(e)];
 				case FACE: return m_aaFace[static_cast<Face*>(e)];
 				case VOLUME: return m_aaVol[static_cast<Volume*>(e)];
-				default: UG_THROW("Unknown element type!"); break;
+				default: UG_THROW("Unknown element type!");
 			}
 		}
 
@@ -87,7 +87,7 @@ class MultiElementAttachmentAccessor
 				case EDGE: return m_aaEdge[static_cast<EdgeBase*>(e)];
 				case FACE: return m_aaFace[static_cast<Face*>(e)];
 				case VOLUME: return m_aaVol[static_cast<Volume*>(e)];
-				default: UG_THROW("Unknown element type!"); break;
+				default: UG_THROW("Unknown element type!");
 			}
 		}
 
