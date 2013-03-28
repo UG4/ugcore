@@ -29,6 +29,10 @@ template <typename TDomain>
 class DataEvaluator
 {
 	public:
+	///	world dimension
+		static const int dim = TDomain::dim;
+
+	public:
 	///	sets the elem discs to evaluate
 		DataEvaluator(int discPart,
 		              const std::vector<IElemDisc<TDomain>*>& vElemDisc,
@@ -108,8 +112,8 @@ class DataEvaluator
 		void clear_extracted_data_and_mappings();
 
 	///	tries to add the last entry of vTryingToAdd to the eval data
-		void add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEvalData,
-								   std::vector<SmartPtr<IUserData> >& vTryingToAdd);
+		void add_data_to_eval_data(std::vector<SmartPtr<IUserData<dim> > >& vEvalData,
+								   std::vector<SmartPtr<IUserData<dim> > >& vTryingToAdd);
 
 	///	extracts imports and userdata from IElemDiscs
 		void extract_imports_and_userdata(int discPart);
@@ -153,12 +157,12 @@ class DataEvaluator
 	////////////////////////////////
 	///	struct to store data related to an import
 		struct Import{
-			Import(IDataImport* _import,
+			Import(IDataImport<dim>* _import,
 			       FunctionIndexMapping& _map, FunctionIndexMapping& _connMap,
 			       ProcessType _process) :
 			import(_import), map(_map), connMap(_connMap), process(_process) {}
 
-			IDataImport* import;
+			IDataImport<dim>* import;
 			FunctionIndexMapping map;
 			FunctionIndexMapping connMap;
 			ProcessType process;
@@ -169,9 +173,9 @@ class DataEvaluator
 	////////////////////////////////
 	// 	UserData
 	////////////////////////////////
-		std::vector<SmartPtr<IUserData> > m_vConstData;	    //< constant data
-		std::vector<SmartPtr<IUserData> > m_vPosData;       //< position dependent data
-		std::vector<SmartPtr<IUserData> > m_vDependentData; //< dependent data
+		std::vector<SmartPtr<IUserData<dim> > > m_vConstData;	    //< constant data
+		std::vector<SmartPtr<IUserData<dim> > > m_vPosData;       //< position dependent data
+		std::vector<SmartPtr<IUserData<dim> > > m_vDependentData; //< dependent data
 		std::vector<FunctionIndexMapping> m_vDependentMap;
 };
 

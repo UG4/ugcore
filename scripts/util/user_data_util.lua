@@ -28,19 +28,19 @@ function __ug__CheckUserDataArgType(r, l)
 
 	-- check that userdata are UserData	
 	if rType ~= "" then
-		if not ug_is_base_class("IUserData", rType) then
+		rDim = r:get_dim()
+		if not ug_is_base_class("IUserData"..rDim.."d", rType) then
 			error("Error: Can only operate on UserData, but summand is "..rType)
 		end
-		rDim = r:get_dim()
 		Dim = rDim
 		rData = r:type()
 		Data = rData
 	end
 	if lType ~= "" then
-		if not ug_is_base_class("IUserData", lType) then
+		lDim = l:get_dim()
+		if not ug_is_base_class("IUserData"..lDim.."d", lType) then
 			error("Error: Can only operate on UserData, but summand is "..lType)
 		end
-		lDim = l:get_dim()
 		Dim = lDim
 		lData = l:type()		
 		Data = lData

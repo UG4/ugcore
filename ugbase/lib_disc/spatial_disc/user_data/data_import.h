@@ -27,6 +27,7 @@ enum DiscPart {	NONE = 0,
 /**
  * An IDataImport is the base class for importing data to ElemDiscs
  */
+template <int dim>
 class IDataImport
 {
 	public:
@@ -80,7 +81,7 @@ class IDataImport
 		}
 
 	/// returns the connected user data
-		virtual SmartPtr<IUserData> data() = 0;
+		virtual SmartPtr<IUserData<dim> > data() = 0;
 
 	///	set function group for linearization of defect
 		void set_function_group(const FunctionGroup& fctGrp){m_fctGrp = fctGrp;}
@@ -109,7 +110,7 @@ class IDataImport
 
 	protected:
 	/// connected iexport
-		SmartPtr<IUserData> m_spIUserData;
+		SmartPtr<IUserData<dim> > m_spIUserData;
 
 	///	function group for linear defect
 		FunctionGroup m_fctGrp;
@@ -127,11 +128,11 @@ class IDataImport
  * A DataImport is used to import data into an ElemDisc.
  */
 template <typename TData, int dim>
-class DataImport : public IDataImport
+class DataImport : public IDataImport<dim>
 {
 	public:
 	/// Constructor
-		DataImport(bool bLinDefect = true) : IDataImport(bLinDefect),
+		DataImport(bool bLinDefect = true) : IDataImport<dim>(bLinDefect),
 			m_id(ROID_UNKNOWN),
 			m_seriesID(-1),	m_spUserData(NULL), m_vValue(NULL),
 			m_numIP(0), m_spDependentUserData(NULL)
@@ -144,7 +145,7 @@ class DataImport : public IDataImport
 		void set_data(SmartPtr<UserData<TData, dim> > spData);
 
 	/// returns the connected IUserData
-		SmartPtr<IUserData> data() {return m_spUserData.template cast_dynamic<IUserData>();}
+		SmartPtr<IUserData<dim> > data() {return m_spUserData.template cast_dynamic<IUserData<dim> >();}
 
 	/// returns the connected IUserData
 		SmartPtr<UserData<TData, dim> > user_data(){return m_spUserData;}

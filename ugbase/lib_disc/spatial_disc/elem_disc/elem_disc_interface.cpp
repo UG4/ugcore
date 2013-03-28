@@ -107,7 +107,7 @@ void IElemDisc<TDomain>::set_subsets(std::string ssString)
 }
 
 template <typename TDomain>
-void IElemDisc<TDomain>::register_import(IDataImport& Imp)
+void IElemDisc<TDomain>::register_import(IDataImport<dim>& Imp)
 {
 //	check that not already registered
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
@@ -119,7 +119,7 @@ void IElemDisc<TDomain>::register_import(IDataImport& Imp)
 }
 
 template <typename TDomain>
-void IElemDisc<TDomain>::register_export(SmartPtr<IUserData> Exp)
+void IElemDisc<TDomain>::register_export(SmartPtr<IUserData<dim> > Exp)
 {
 //	check that not already registered
 	for(size_t i = 0; i < m_vIExport.size(); ++i)
@@ -131,14 +131,14 @@ void IElemDisc<TDomain>::register_export(SmartPtr<IUserData> Exp)
 }
 
 template <typename TDomain>
-IDataImport& IElemDisc<TDomain>::get_import(size_t i)
+IDataImport<IElemDisc<TDomain>::dim>& IElemDisc<TDomain>::get_import(size_t i)
 {
 	UG_ASSERT(i < num_imports(), "Invalid index");
 	return *m_vIImport[i];
 }
 
 template <typename TDomain>
-SmartPtr<IUserData> IElemDisc<TDomain>::get_export(size_t i)
+SmartPtr<IUserData<IElemDisc<TDomain>::dim> > IElemDisc<TDomain>::get_export(size_t i)
 {
 	UG_ASSERT(i < num_exports(), "Invalid index");
 	return m_vIExport[i];

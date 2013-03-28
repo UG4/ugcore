@@ -72,16 +72,16 @@ class DataExport : 	public DependentUserData<TData, dim>
 		void clear() {m_vDependData.clear();}
 
 	///	add data dependency
-		void add_needed_data(SmartPtr<IUserData> data);
+		void add_needed_data(SmartPtr<IUserData<dim> > data);
 
 	///	remove needed data
-		void remove_needed_data(SmartPtr<IUserData> data);
+		void remove_needed_data(SmartPtr<IUserData<dim> > data);
 
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return m_vDependData.size();}
 
 	///	return needed data
-		virtual SmartPtr<IUserData> needed_data(size_t i) {return m_vDependData.at(i);}
+		virtual SmartPtr<IUserData<dim> > needed_data(size_t i) {return m_vDependData.at(i);}
 
 	///	returns if the dependent data is ready for evaluation
 		virtual void check_setup() const;
@@ -124,7 +124,7 @@ class DataExport : 	public DependentUserData<TData, dim>
 		ReferenceObjectID m_id;
 
 	///	data the export depends on
-		std::vector<SmartPtr<IUserData> > m_vDependData;
+		std::vector<SmartPtr<IUserData<dim> > > m_vDependData;
 };
 
 } // end namespace ug

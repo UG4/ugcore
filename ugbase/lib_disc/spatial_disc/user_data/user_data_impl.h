@@ -16,7 +16,8 @@ namespace ug{
 //	IUserData
 ////////////////////////////////////////////////////////////////////////////////
 
-inline IUserData::IUserData() : m_locPosDim(-1), m_timePoint(0), m_si(-1)
+template <int dim>
+IUserData<dim>::IUserData() : m_locPosDim(-1), m_timePoint(0), m_si(-1)
 {
 	m_vNumIP.clear();
 	m_vMayChange.clear();
@@ -25,7 +26,8 @@ inline IUserData::IUserData() : m_locPosDim(-1), m_timePoint(0), m_si(-1)
 	m_vTime.clear(); m_vTime.push_back(0.0);
 }
 
-inline void IUserData::clear()
+template <int dim>
+void IUserData<dim>::clear()
 {
 	local_ip_series_to_be_cleared();
 	m_vNumIP.clear();
@@ -37,8 +39,9 @@ inline void IUserData::clear()
 	m_si = -1;
 }
 
+template <int dim>
 template <int ldim>
-size_t IUserData::register_local_ip_series(const MathVector<ldim>* vPos,
+size_t IUserData<dim>::register_local_ip_series(const MathVector<ldim>* vPos,
                                          const size_t numIP,
                                          bool bMayChange)
 {
@@ -78,8 +81,9 @@ size_t IUserData::register_local_ip_series(const MathVector<ldim>* vPos,
 }
 
 
+template <int dim>
 template <int ldim>
-void IUserData::set_local_ips(const size_t seriesID,
+void IUserData<dim>::set_local_ips(const size_t seriesID,
                             const MathVector<ldim>* vPos,
                             const size_t numIP)
 {
@@ -116,8 +120,9 @@ void IUserData::set_local_ips(const size_t seriesID,
 	local_ips_changed(seriesID, numIP);
 }
 
+template <int dim>
 template <int ldim>
-const MathVector<ldim>* IUserData::local_ips(size_t s) const
+const MathVector<ldim>* IUserData<dim>::local_ips(size_t s) const
 {
 //	check, that dimension is ok.
 	if(m_locPosDim != ldim) UG_THROW("Local IP dimension conflict");
@@ -128,8 +133,9 @@ const MathVector<ldim>* IUserData::local_ips(size_t s) const
 	return get_local_ips(Int2Type<ldim>())[s];
 }
 
+template <int dim>
 template <int ldim>
-const MathVector<ldim>& IUserData::local_ip(size_t s, size_t ip) const
+const MathVector<ldim>& IUserData<dim>::local_ip(size_t s, size_t ip) const
 {
 //	check, that dimension is ok.
 	if(m_locPosDim != ldim) UG_THROW("Local IP dimension conflict");
@@ -140,12 +146,8 @@ const MathVector<ldim>& IUserData::local_ip(size_t s, size_t ip) const
 	return get_local_ips(Int2Type<ldim>())[s][ip];
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//	IIPDimData
-////////////////////////////////////////////////////////////////////////////////
-
 template <int dim>
-void IDimUserData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
+void IUserData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
 {
 	numIP = numIP +1;
 	numIP = numIP -1;
@@ -169,14 +171,14 @@ void IDimUserData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, si
 }
 
 template <int dim>
-inline void IDimUserData<dim>::check_s(size_t s) const
+inline void IUserData<dim>::check_s(size_t s) const
 {
 	UG_ASSERT(s < num_series(), "Wrong series id");
 	UG_ASSERT(s < m_vvGlobPos.size(), "Invalid index.");
 }
 
 template <int dim>
-inline void IDimUserData<dim>::check_s_ip(size_t s, size_t ip) const
+inline void IUserData<dim>::check_s_ip(size_t s, size_t ip) const
 {
 	check_s(s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index.");

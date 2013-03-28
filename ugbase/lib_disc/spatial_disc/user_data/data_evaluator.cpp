@@ -188,14 +188,14 @@ void DataEvaluator<TDomain>::clear_extracted_data_and_mappings()
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEvalData,
-                                          std::vector<SmartPtr<IUserData> >& vTryingToAdd)
+void DataEvaluator<TDomain>::add_data_to_eval_data(std::vector<SmartPtr<IUserData<dim> > >& vEvalData,
+												   std::vector<SmartPtr<IUserData<dim> > >& vTryingToAdd)
 {
 //	if empty, we're done
 	if(vTryingToAdd.empty()) return;
 
 //	search for element in already scheduled data
-	std::vector<SmartPtr<IUserData> >::iterator it, itEnd;
+	typename std::vector<SmartPtr<IUserData<dim> > >::iterator it, itEnd;
 	it = find(vEvalData.begin(), vEvalData.end(), vTryingToAdd.back());
 
 //	if found, skip this data
@@ -217,7 +217,7 @@ void DataEvaluator<TDomain>::add_data_to_eval_data(std::vector<SmartPtr<IUserDat
 						" Circle dependency of data detected for UserData.");
 
 //	add all dependent datas
-	SmartPtr<IUserData> data = vTryingToAdd.back();
+	SmartPtr<IUserData<dim> > data = vTryingToAdd.back();
 	for(size_t i = 0; i < data->num_needed_data(); ++i)
 	{
 	//	add each data separately
@@ -251,8 +251,8 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 	}
 
 //	queue for all user data needed
-	std::vector<SmartPtr<IUserData> > vEvalData;
-	std::vector<SmartPtr<IUserData> > vTryingToAdd;
+	std::vector<SmartPtr<IUserData<dim> > > vEvalData;
+	std::vector<SmartPtr<IUserData<dim> > > vTryingToAdd;
 
 //	In the next loop we extract all need UserData:
 //	We only process the DataImport if there has been set data to the import
@@ -272,7 +272,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 		for(size_t i = 0; i < disc.elemDisc->num_imports(); ++i)
 		{
 		//	get import
-			IDataImport* iimp = &(disc.elemDisc->get_import(i));
+			IDataImport<dim>* iimp = &(disc.elemDisc->get_import(i));
 
 		//	skip non-given data (no need for evaluation)
 			if(!iimp->data_given()) continue;
@@ -327,7 +327,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 	for(size_t i = 0; i < vEvalData.size(); ++i)
 	{
 	//	get the user data
-		SmartPtr<IUserData> ipData = vEvalData[i];
+		SmartPtr<IUserData<dim> > ipData = vEvalData[i];
 
 	//	sort data into const and non-solution dependent
 		if(ipData->constant()) {m_vConstData.push_back(ipData); continue;}
@@ -366,7 +366,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 		for(size_t i = 0; i < disc.elemDisc->num_imports(); ++i)
 		{
 		//	get import
-			IDataImport* iimp = &(disc.elemDisc->get_import(i));
+			IDataImport<dim>* iimp = &(disc.elemDisc->get_import(i));
 
 		//	skip non-given data (no need for evaluation)
 			if(!iimp->data_given()) continue;
@@ -382,7 +382,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 			if(iimp->zero_derivative()) continue;
 
 		//	get and cast dependent data
-			SmartPtr<IUserData> dependData = iimp->data();
+			SmartPtr<IUserData<dim> > dependData = iimp->data();
 
 		//	create FuncMap for data
 		//	this is ok, since the function group has been updated in the

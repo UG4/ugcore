@@ -22,7 +22,10 @@ namespace ug{
 /**
  * This is the base class for all coupled data at integration point. It handles
  * the set of local integration points and stores the current time.
+ *
+ * \tparam	dim		world dimension
  */
+template <int dim>
 class IUserData
 {
 	public:
@@ -138,6 +141,16 @@ class IUserData
 	///	virtual desctructor
 		virtual ~IUserData() {};
 
+	public:
+	///	set global positions
+		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP);
+
+	///	returns global ips
+		const MathVector<dim>* ips(size_t s) const {check_s(s); return m_vvGlobPos[s];}
+
+	/// returns global ip
+		const MathVector<dim>& ip(size_t s, size_t ip) const{check_s_ip(s,ip); return m_vvGlobPos[s][ip];}
+
 	protected:
 	///	callback invoked after local ips have been added to the series
 	/**
@@ -152,13 +165,27 @@ class IUserData
 	 * 		 invoke the local_ip_series_to_be_cleared() callback, and adding all local
 	 * 		 series again.
 	 */
-		virtual void local_ip_series_added(const size_t seriesID) = 0;
+		virtual void local_ip_series_added(const size_t seriesID){m_vvGlobPos.resize(seriesID+1);}
 
 	///	callback invoked, if a local ip series has been changed
 		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP) = 0;
 
 	///	callback invoked, when local ips are cleared
-		virtual void local_ip_series_to_be_cleared() = 0;
+		virtual void local_ip_series_to_be_cleared() {m_vvGlobPos.clear();}
+
+	///	callback invoked after global ips have been changed
+	/**
+	 * This callback is invoked when the global ips have been changed. It can
+	 * be used by derived classes to react on this fact, e.g. to forward the
+	 * global_ips.
+	 */
+		virtual void global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const size_t numIP) {};
+
+	///	checks in debug mode the correct usage of indices
+		inline void check_s(size_t s) const;
+
+	///	checks in debug mode the correct usage of indices
+		inline void check_s_ip(size_t s, size_t ip) const;
 
 	protected:
 	///	help function to get local ips
@@ -184,6 +211,9 @@ class IUserData
 		std::vector<const MathVector<2>*> m_pvLocIP2d;
 		std::vector<const MathVector<3>*> m_pvLocIP3d;
 
+	/// global ips
+		std::vector<const MathVector<dim>*> m_vvGlobPos;
+
 	///	time for evaluation
 		std::vector<number> m_vTime;
 
@@ -196,59 +226,6 @@ class IUserData
 	protected:
 	/// functions the data depends on
 		FunctionGroup m_fctGrp;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//	Dimension UserData
-////////////////////////////////////////////////////////////////////////////////
-
-/// World dimension based UserData
-/**
- * This class is the dimension dependent base class for all integration point data.
- * It provides the access to the data and handles the global integration
- * points.
- *
- * \tparam	dim		world dimension
- */
-template <int dim>
-class IDimUserData : virtual public IUserData
-{
-	public:
-	///	set global positions
-		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP);
-
-	///	returns global ips
-		const MathVector<dim>* ips(size_t s) const {check_s(s); return m_vvGlobPos[s];}
-
-	/// returns global ip
-		const MathVector<dim>& ip(size_t s, size_t ip) const{check_s_ip(s,ip); return m_vvGlobPos[s][ip];}
-
-	protected:
-	///	callback invoked after global ips have been changed
-	/**
-	 * This callback is invoked when the global ips have been changed. It can
-	 * be used by derived classes to react on this fact, e.g. to forward the
-	 * global_ips.
-	 */
-		virtual void global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const size_t numIP) {};
-
-	///	implement callback, called when num of local IP series changed
-		virtual void local_ip_series_added(const size_t seriesID){m_vvGlobPos.resize(seriesID+1);}
-
-	///	implement callback, called when local IPs changed
-		virtual void local_ips_changed(const size_t seriesID, const size_t newNumIP) = 0;
-
-	///	implement callback, invoked when local ips are cleared
-		virtual void local_ip_series_to_be_cleared() {m_vvGlobPos.clear();}
-
-	///	checks in debug mode the correct usage of indices
-		inline void check_s(size_t s) const;
-
-	///	checks in debug mode the correct usage of indices
-		inline void check_s_ip(size_t s, size_t ip) const;
-
-	/// global ips
-		std::vector<const MathVector<dim>*> m_vvGlobPos;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -300,11 +277,11 @@ template <typename TData, int dim> class DataImport;
  * \tparam	TRet	Type of return flag (bool or void)
  */
 template <typename TData, int dim, typename TRet = void>
-class UserData : public IDimUserData<dim>
+class UserData : public IUserData<dim>
 {
 	public:
 	///	type of base class
-		typedef IDimUserData<dim> base_type;
+		typedef IUserData<dim> base_type;
 
 	///	explicitly forward some functions
 		using base_type::num_series;

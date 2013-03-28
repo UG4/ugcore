@@ -110,16 +110,16 @@ class IElemDisc
 	////////////////////////////
 	public:
 	///	registers a data import
-		void register_import(IDataImport& Imp);
+		void register_import(IDataImport<dim>& Imp);
 
 	///	registers a data export
-		void register_export(SmartPtr<IUserData> Exp);
+		void register_export(SmartPtr<IUserData<dim> > Exp);
 
 	///	returns number of imports
 		size_t num_imports() const {return m_vIImport.size();}
 
 	/// returns an import
-		IDataImport& get_import(size_t i);
+		IDataImport<dim>& get_import(size_t i);
 
 	///	removes all imports
 		void clear_imports() {m_vIImport.clear();}
@@ -128,17 +128,17 @@ class IElemDisc
 		size_t num_exports() const {return m_vIExport.size();}
 
 	/// returns an export
-		SmartPtr<IUserData> get_export(size_t i);
+		SmartPtr<IUserData<dim> > get_export(size_t i);
 
 	///	removes all exports
 		void clear_exports() {m_vIExport.clear();}
 
 	protected:
 	/// data imports
-		std::vector<IDataImport*> m_vIImport;
+		std::vector<IDataImport<dim>*> m_vIImport;
 
 	///	data exports
-		std::vector<SmartPtr<IUserData> > m_vIExport;
+		std::vector<SmartPtr<IUserData<dim> > > m_vIExport;
 
 	public:
 	////////////////////////////

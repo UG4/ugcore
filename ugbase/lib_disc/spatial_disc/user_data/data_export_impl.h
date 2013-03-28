@@ -150,14 +150,14 @@ void DataExport<TData, dim>::compute(LocalVector* u, GeometricObject* elem, bool
 
 template <typename TData, int dim>
 void DataExport<TData, dim>::
-add_needed_data(SmartPtr<IUserData> data)
+add_needed_data(SmartPtr<IUserData<dim> > data)
 {
 	m_vDependData.push_back(data);
 }
 
 template <typename TData, int dim>
 void DataExport<TData, dim>::
-remove_needed_data(SmartPtr<IUserData> data)
+remove_needed_data(SmartPtr<IUserData<dim> > data)
 {
 	m_vDependData.erase(remove(m_vDependData.begin(),
 	                           m_vDependData.end(),

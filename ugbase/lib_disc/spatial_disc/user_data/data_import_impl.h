@@ -26,7 +26,7 @@ template <typename TData, int dim>
 void DataImport<TData,dim>::set_roid(ReferenceObjectID id)
 {
 //	if lin defect is not supposed to be computed, we're done
-	if(!m_bCompLinDefect) return;
+	if(!this->m_bCompLinDefect) return;
 
 //	Check for evaluation function and choose it if present
 	if(m_vLinDefectFunc[id] != NULL)
@@ -183,7 +183,7 @@ void DataImport<TData,dim>::add_jacobian(LocalMatrix& J, const number scale)
 	for(size_t ip = 0; ip < num_ip(); ++ip)
 	{
 //	loop all functions
-	for(size_t fct1 = 0; fct1 < num_fct(); ++fct1)
+	for(size_t fct1 = 0; fct1 < this->num_fct(); ++fct1)
 		for(size_t fct2 = 0; fct2 < m_spDependentUserData->num_fct(); ++fct2)
 		{
 //	get array of linearized defect and derivative
@@ -205,7 +205,7 @@ void DataImport<TData,dim>::set_dof_sizes(const LocalIndices& ind,
                                           const FunctionIndexMapping& map)
 {
 //	check size
-	UG_ASSERT(map.num_fct() == num_fct(), "Number function mismatch.");
+	UG_ASSERT(map.num_fct() == this->num_fct(), "Number function mismatch.");
 
 //	cache numFct and their numDoFs
 	m_vvNumDoFPerFct.resize(map.num_fct());

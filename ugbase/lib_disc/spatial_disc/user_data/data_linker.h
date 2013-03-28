@@ -47,7 +47,7 @@ class DataLinker
 		}
 
 	///	sets an input
-		virtual void set_input(size_t i, SmartPtr<IDimUserData<dim> > input)
+		virtual void set_input(size_t i, SmartPtr<IUserData<dim> > input)
 		{
 			UG_ASSERT(i < m_vpIUserData.size(), "invalid index");
 			m_vpIUserData[i] = input;
@@ -61,7 +61,7 @@ class DataLinker
 		virtual size_t num_needed_data() const {return m_vpIUserData.size();}
 
 	///	return needed data
-		virtual SmartPtr<IUserData> needed_data(size_t i)
+		virtual SmartPtr<IUserData<dim> > needed_data(size_t i)
 		{
 			UG_ASSERT(i < m_vpIUserData.size(), "Input not needed");
 			UG_ASSERT(m_vpIUserData[i].valid(), "Data input not valid");
@@ -110,10 +110,10 @@ class DataLinker
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<IDimUserData<dim> > > m_vpIUserData;
+		std::vector<SmartPtr<IUserData<dim> > > m_vpIUserData;
 
 	///	data input casted to IDependend data
-		std::vector<SmartPtr<IUserData> > m_vpIDependData;
+		std::vector<SmartPtr<IUserData<dim> > > m_vpIDependData;
 
 	///	common functions the data depends on
 		FunctionGroup m_commonFctGroup;

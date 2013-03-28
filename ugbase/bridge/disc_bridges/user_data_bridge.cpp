@@ -443,7 +443,7 @@ void RegisterUserDataType(Registry& reg, string grp)
 //	      in vrl and lua. E.g. UserNumber, UserVector, ...
 	{
 		typedef UserData<TData, dim> T;
-		typedef IUserData TBase1;
+		typedef IUserData<dim> TBase1;
 		string name = string("User").append(type).append(dimSuffix);
 		reg.add_class_<T,TBase1>(name, grp)
 			.add_method("get_dim", &T::get_dim)
@@ -456,7 +456,7 @@ void RegisterUserDataType(Registry& reg, string grp)
 //	 	  in vrl and lua. E.g. CondUserNumber, CondUserVector, ...
 	{
 		typedef UserData<TData, dim, bool> T;
-		typedef IUserData TBase1;
+		typedef IUserData<dim> TBase1;
 		string name = string("CondUser").append(type).append(dimSuffix);
 		reg.add_class_<T,TBase1>(name, grp);
 		reg.add_class_to_group(name, string("CondUser").append(type), dimTag);
@@ -523,6 +523,13 @@ static void Dimension(Registry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
+
+//	IUserData
+	{
+		string name = string("IUserData").append(dimSuffix);
+		reg.add_class_<IUserData<dim> >(name, grp);
+		reg.add_class_to_group(name, "IUserData", dimTag);
+	}
 
 	RegisterUserDataType<number, dim>(reg, grp);
 	RegisterUserDataType<MathVector<dim>, dim>(reg, grp);
@@ -622,7 +629,6 @@ static void Dimension(Registry& reg, string grp)
 static void Common(Registry& reg, string grp)
 {
 	reg.add_class_<IFunction<number> >("IFunctionNumber", grp);
-	reg.add_class_<IUserData>("IUserData", grp);
 }
 
 }; // end Functionality
