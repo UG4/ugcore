@@ -23,6 +23,7 @@
 #include "lapack_densematrix_inverse.h"
 #include "lapack_interface.h"
 #include <complex>
+#include "../small_matrix/densematrix.h"
 
 namespace ug{
 
@@ -101,6 +102,7 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 
 }
 #else // LAPACK_AVAILABLE
+namespace ug{
 template<typename A_type, typename TLambdaVectorType>
 int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 		TLambdaVectorType &lambda, DenseMatrix<A_type> &B, bool bSortEigenvalues=false)
@@ -108,6 +110,6 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 	UG_ASSERT(0, "GeneralizedEigenvalueProblemComplex is only implemented for LAPACK at the moment");
 	return 0;
 }
-
+}
 #endif // LAPACK_AVAILABLE
 #endif // __H__UG__EIGENVALUE__
