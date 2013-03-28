@@ -14,35 +14,38 @@
 
 namespace ug{
 
+template <typename TDomain>
 template <typename TElem>
-inline void IElemDisc::fast_prep_timestep_elem(TElem* elem, const LocalVector& u)
+inline void IElemDisc<TDomain>::fast_prep_timestep_elem(TElem* elem, const LocalVector& u)
 {
 	if (this->m_vPrepareTimestepElemFct[m_id] != NULL)
 	{
 	//	cast the method pointer back to the original type
-		typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
+		typedef void (IElemDisc<TDomain>::*Func)(TElem*, const LocalVector&);
 		Func pFunc = reinterpret_cast<Func>(m_vPrepareTimestepElemFct[m_id]);
 		(this->*(pFunc))(elem, u);
 	}
 }
 
+template <typename TDomain>
 template <typename TElem>
-inline void IElemDisc::fast_prep_elem(TElem* elem, const LocalVector& u)
+inline void IElemDisc<TDomain>::fast_prep_elem(TElem* elem, const LocalVector& u)
 {
 	UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 //	cast the method pointer back to the original type
-	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
+	typedef void (IElemDisc<TDomain>::*Func)(TElem*, const LocalVector&);
 	Func pFunc = reinterpret_cast<Func>(m_vPrepareElemFct[m_id]);
 	(this->*(pFunc))(elem, u);
 }
 
+template <typename TDomain>
 template <typename TElem>
-inline void IElemDisc::fast_fsh_timestep_elem(TElem* elem, const number time, const LocalVector& u)
+inline void IElemDisc<TDomain>::fast_fsh_timestep_elem(TElem* elem, const number time, const LocalVector& u)
 {
 	if (this->m_vFinishTimestepElemFct[m_id] != NULL)
 	{
 	//	cast the method pointer back to the original type
-		typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
+		typedef void (IElemDisc<TDomain>::*Func)(TElem*, const LocalVector&);
 		Func pFunc = reinterpret_cast<Func>(m_vFinishTimestepElemFct[m_id]);
 		(this->*(pFunc))(elem, u);
 	}
@@ -52,8 +55,9 @@ inline void IElemDisc::fast_fsh_timestep_elem(TElem* elem, const number time, co
 //	setting of fast elem ass functions
 ///////////////////////////////////////////////////////////////////////////////
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -63,8 +67,9 @@ void IElemDisc::set_prep_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 	m_vPrepareTimestepElemFct[id] = reinterpret_cast<PrepareTimestepElemFct>(func);
 };
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_prep_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_prep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -74,8 +79,9 @@ void IElemDisc::set_prep_elem_fct(ReferenceObjectID id, TAssFunc func)
 	m_vPrepareElemFct[id] = reinterpret_cast<PrepareElemFct>(func);
 };
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -85,8 +91,9 @@ void IElemDisc::set_prep_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 	m_vPrepareElemLoopFct[id] = static_cast<PrepareElemLoopFct>(func);
 };
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -96,8 +103,9 @@ void IElemDisc::set_fsh_elem_loop_fct(ReferenceObjectID id, TAssFunc func)
 	m_vFinishElemLoopFct[id] = static_cast<FinishElemLoopFct>(func);
 };
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -107,8 +115,9 @@ void IElemDisc::set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func)
 	m_vElemJAFct[id] = static_cast<ElemJAFct>(func);
 };
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -118,8 +127,9 @@ void IElemDisc::set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func)
 	m_vElemJMFct[id] = static_cast<ElemJMFct>(func);
 };
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -133,8 +143,9 @@ void IElemDisc::set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func)
 
 //explicit reaction, reaction_rate and source
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_add_def_A_elem_fct_explicit(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_add_def_A_elem_fct_explicit(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem_explicit-function, but"
@@ -146,8 +157,9 @@ void IElemDisc::set_add_def_A_elem_fct_explicit(ReferenceObjectID id, TAssFunc f
 
 /////////////////////////////////////////////////////////////////////////////
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -157,8 +169,9 @@ void IElemDisc::set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func)
 	m_vElemdMFct[id] = static_cast<ElemdMFct>(func);
 };
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
@@ -168,8 +181,9 @@ void IElemDisc::set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func)
 	m_vElemRHSFct[id] = static_cast<ElemRHSFct>(func);
 };
 
+template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc::set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"

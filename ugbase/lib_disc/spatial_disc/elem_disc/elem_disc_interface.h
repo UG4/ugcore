@@ -51,8 +51,19 @@ enum ElemDiscType
  * contribution of one element to the global jacobian and local contributions
  * of one element to the local defect.
  */
+template <typename TDomain>
 class IElemDisc
 {
+	public:
+	///	Domain type
+		typedef TDomain domain_type;
+
+	///	World dimension
+		static const int dim = TDomain::dim;
+
+	///	Position type
+		typedef typename TDomain::position_type position_type;
+
 	public:
 	///	Constructor
 		IElemDisc(const char* functions = NULL, const char* subsets = NULL);
@@ -420,7 +431,7 @@ class IElemDisc
 
 	private:
 	//	abbreviation for own type
-		typedef IElemDisc T;
+		typedef IElemDisc<TDomain> T;
 
 	// 	types of timestep function pointers
 		typedef void (T::*PrepareTimestepElemFct)(const LocalVector& u);
@@ -505,39 +516,13 @@ class IElemDisc
 	protected:
 	/// current Geometric Object
 		ReferenceObjectID m_id;
-};
-
-template <typename TDomain>
-class IDomainElemDisc : public IElemDisc
-{
-	private:
-	///	base class type
-		typedef IElemDisc base_type;
 
 	public:
-	///	Domain type
-		typedef TDomain domain_type;
-
-	///	World dimension
-		static const int dim = TDomain::dim;
-
-	///	Position type
-		typedef typename TDomain::position_type position_type;
-
-	public:
-	///	Constructor
-		IDomainElemDisc(const char* functions = NULL, const char* subsets = NULL)
-			: IElemDisc(functions, subsets), m_spApproxSpace(NULL) {};
-		
-	///	Constructor
-		IDomainElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset)
-			: IElemDisc(vFct, vSubset), m_spApproxSpace(NULL) {};
-
 	///	sets the approximation space
 	/**	Calls protected virtual 'approximation_space_changed', when a new approximation space
 	 * has been set. Note that 'approximation_space_changed' is only called once if the
 	 * same approximation space is set multiple times.*/
-		void set_approximation_space(SmartPtr<ApproximationSpace<domain_type> > approxSpace)
+		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 		{
 		//	check whether the approximation space has already been set
 			bool newApproxSpace = (m_spApproxSpace != approxSpace);
@@ -551,20 +536,20 @@ class IDomainElemDisc : public IElemDisc
 		}
 
 	///	returns approximation space
-		SmartPtr<ApproximationSpace<domain_type> > approx_space() {return m_spApproxSpace;}
+		SmartPtr<ApproximationSpace<TDomain> > approx_space() {return m_spApproxSpace;}
 
 	///	returns approximation space
-		ConstSmartPtr<ApproximationSpace<domain_type> > approx_space() const {return m_spApproxSpace;}
+		ConstSmartPtr<ApproximationSpace<TDomain> > approx_space() const {return m_spApproxSpace;}
 
 	///	returns the domain
-		domain_type& domain()
+		TDomain& domain()
 		{
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain();
 		}
 
 	///	returns the domain
-		const domain_type& domain() const
+		const TDomain& domain() const
 		{
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain();
@@ -577,14 +562,14 @@ class IDomainElemDisc : public IElemDisc
 		bool fct_pattern_set() const {return m_spApproxSpace.valid();}
 
 	///	returns the subset handler
-		typename domain_type::subset_handler_type& subset_handler()
+		typename TDomain::subset_handler_type& subset_handler()
 		{
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain()->subset_handler();
 		}
 
 	///	returns the subset handler
-		const typename domain_type::subset_handler_type& subset_handler() const
+		const typename TDomain::subset_handler_type& subset_handler() const
 		{
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain()->subset_handler();
@@ -592,7 +577,7 @@ class IDomainElemDisc : public IElemDisc
 
 	///	returns the corner coordinates of an Element in a C-array
 		template<typename TElem>
-		const position_type* element_corners(TElem* elem)
+		const MathVector<dim>* element_corners(TElem* elem)
 		{
 		//	check domain
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set");
@@ -609,7 +594,7 @@ class IDomainElemDisc : public IElemDisc
 
 	protected:
 	///	Approximation Space
-		SmartPtr<ApproximationSpace<domain_type> > m_spApproxSpace;
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 };
 /// @}

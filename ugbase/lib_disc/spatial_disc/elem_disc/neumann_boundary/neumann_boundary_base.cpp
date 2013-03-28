@@ -20,7 +20,7 @@ namespace ug{
 
 template<typename TDomain>
 NeumannBoundaryBase<TDomain>::NeumannBoundaryBase(const char* function)
- :IDomainElemDisc<TDomain>(function, "")
+ :IElemDisc<TDomain>(function, "")
 {
 	if(this->num_fct() != 1)
 		UG_THROW("NeumannBoundaryBase: needed exactly one function.");
@@ -124,9 +124,15 @@ add(const char* name, const char* function, const char* subsets)
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_DIM_1
 template class NeumannBoundaryBase<Domain1d>;
+#endif
+#ifdef UG_DIM_2
 template class NeumannBoundaryBase<Domain2d>;
+#endif
+#ifdef UG_DIM_3
 template class NeumannBoundaryBase<Domain3d>;
+#endif
 
 } // namespace ug
 

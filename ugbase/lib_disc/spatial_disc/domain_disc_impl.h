@@ -101,7 +101,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -112,23 +112,23 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			AssembleMassMatrix<Edge,TAlgebra>
+			AssembleMassMatrix<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleMassMatrix<Triangle,TAlgebra>
+			AssembleMassMatrix<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
-			AssembleMassMatrix<Quadrilateral,TAlgebra>
+			AssembleMassMatrix<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleMassMatrix<Tetrahedron,TAlgebra>
+			AssembleMassMatrix<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
-			AssembleMassMatrix<Pyramid,TAlgebra>
+			AssembleMassMatrix<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
-			AssembleMassMatrix<Prism,TAlgebra>
+			AssembleMassMatrix<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
-			AssembleMassMatrix<Hexahedron,TAlgebra>
+			AssembleMassMatrix<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		default:
@@ -203,7 +203,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -214,23 +214,23 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			AssembleStiffnessMatrix<Edge,TAlgebra>
+			AssembleStiffnessMatrix<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleStiffnessMatrix<Triangle,TAlgebra>
+			AssembleStiffnessMatrix<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
-			AssembleStiffnessMatrix<Quadrilateral,TAlgebra>
+			AssembleStiffnessMatrix<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleStiffnessMatrix<Tetrahedron,TAlgebra>
+			AssembleStiffnessMatrix<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
-			AssembleStiffnessMatrix<Pyramid,TAlgebra>
+			AssembleStiffnessMatrix<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
-			AssembleStiffnessMatrix<Prism,TAlgebra>
+			AssembleStiffnessMatrix<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
-			AssembleStiffnessMatrix<Hexahedron,TAlgebra>
+			AssembleStiffnessMatrix<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		default:
@@ -312,7 +312,7 @@ assemble_jacobian(matrix_type& J,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -323,23 +323,23 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			AssembleJacobian<Edge,TAlgebra>
+			AssembleJacobian<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleJacobian<Triangle,TAlgebra>
+			AssembleJacobian<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
-			AssembleJacobian<Quadrilateral,TAlgebra>
+			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleJacobian<Tetrahedron,TAlgebra>
+			AssembleJacobian<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
-			AssembleJacobian<Pyramid,TAlgebra>
+			AssembleJacobian<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
-			AssembleJacobian<Prism,TAlgebra>
+			AssembleJacobian<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
-			AssembleJacobian<Hexahedron,TAlgebra>
+			AssembleJacobian<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
 			break;
 		default:
@@ -415,7 +415,7 @@ assemble_defect(vector_type& d,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -426,23 +426,23 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			AssembleDefect<Edge,TAlgebra>
+			AssembleDefect<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleDefect<Triangle,TAlgebra>
+			AssembleDefect<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
-			AssembleDefect<Quadrilateral,TAlgebra>
+			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleDefect<Tetrahedron,TAlgebra>
+			AssembleDefect<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
-			AssembleDefect<Pyramid,TAlgebra>
+			AssembleDefect<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
-			AssembleDefect<Prism,TAlgebra>
+			AssembleDefect<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
-			AssembleDefect<Hexahedron,TAlgebra>
+			AssembleDefect<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
 			break;
 		default:
@@ -515,7 +515,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -526,23 +526,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleLinear<Edge,TAlgebra>
+			AssembleLinear<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		case 2:
-			AssembleLinear<Triangle,TAlgebra>
+			AssembleLinear<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
-			AssembleLinear<Quadrilateral,TAlgebra>
+			AssembleLinear<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		case 3:
-			AssembleLinear<Tetrahedron,TAlgebra>
+			AssembleLinear<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
-			AssembleLinear<Pyramid,TAlgebra>
+			AssembleLinear<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
-			AssembleLinear<Prism,TAlgebra>
+			AssembleLinear<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
-			AssembleLinear<Hexahedron,TAlgebra>
+			AssembleLinear<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		default:
@@ -617,7 +617,7 @@ assemble_rhs(vector_type& rhs,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -628,23 +628,23 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleRhs<Edge,TAlgebra>
+			AssembleRhs<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		case 2:
-			AssembleRhs<Triangle,TAlgebra>
+			AssembleRhs<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
-			AssembleRhs<Quadrilateral,TAlgebra>
+			AssembleRhs<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		case 3:
-			AssembleRhs<Tetrahedron,TAlgebra>
+			AssembleRhs<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
-			AssembleRhs<Pyramid,TAlgebra>
+			AssembleRhs<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
-			AssembleRhs<Prism,TAlgebra>
+			AssembleRhs<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
-			AssembleRhs<Hexahedron,TAlgebra>
+			AssembleRhs<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		default:
@@ -782,7 +782,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -793,23 +793,23 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			PrepareTimestep<Edge,TAlgebra>
+			PrepareTimestep<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 2:
-			PrepareTimestep<Triangle,TAlgebra>
+			PrepareTimestep<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			PrepareTimestep<Quadrilateral,TAlgebra>
+			PrepareTimestep<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 3:
-			PrepareTimestep<Tetrahedron,TAlgebra>
+			PrepareTimestep<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			PrepareTimestep<Pyramid,TAlgebra>
+			PrepareTimestep<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			PrepareTimestep<Prism,TAlgebra>
+			PrepareTimestep<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			PrepareTimestep<Hexahedron,TAlgebra>
+			PrepareTimestep<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		default:
@@ -869,7 +869,7 @@ assemble_jacobian(matrix_type& J,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -880,23 +880,23 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			AssembleJacobian<Edge,TAlgebra>
+			AssembleJacobian<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
 			break;
 		case 2:
-			AssembleJacobian<Triangle,TAlgebra>
+			AssembleJacobian<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
-			AssembleJacobian<Quadrilateral,TAlgebra>
+			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
 			break;
 		case 3:
-			AssembleJacobian<Tetrahedron,TAlgebra>
+			AssembleJacobian<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
-			AssembleJacobian<Pyramid,TAlgebra>
+			AssembleJacobian<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
-			AssembleJacobian<Prism,TAlgebra>
+			AssembleJacobian<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
-			AssembleJacobian<Hexahedron,TAlgebra>
+			AssembleJacobian<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
 			break;
 		default:
@@ -973,7 +973,7 @@ assemble_defect(vector_type& d,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -984,23 +984,23 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			AssembleDefect<Edge,TAlgebra>
+			AssembleDefect<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
-			AssembleDefect<Triangle,TAlgebra>
+			AssembleDefect<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleDefect<Quadrilateral,TAlgebra>
+			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
-			AssembleDefect<Tetrahedron,TAlgebra>
+			AssembleDefect<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleDefect<Pyramid,TAlgebra>
+			AssembleDefect<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleDefect<Prism,TAlgebra>
+			AssembleDefect<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleDefect<Hexahedron,TAlgebra>
+			AssembleDefect<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
@@ -1076,7 +1076,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -1087,23 +1087,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleLinear<Edge,TAlgebra>
+			AssembleLinear<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
-			AssembleLinear<Triangle,TAlgebra>
+			AssembleLinear<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleLinear<Quadrilateral,TAlgebra>
+			AssembleLinear<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
-			AssembleLinear<Tetrahedron,TAlgebra>
+			AssembleLinear<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleLinear<Pyramid,TAlgebra>
+			AssembleLinear<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleLinear<Prism,TAlgebra>
+			AssembleLinear<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleLinear<Hexahedron,TAlgebra>
+			AssembleLinear<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
@@ -1182,7 +1182,7 @@ assemble_rhs(vector_type& rhs,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -1193,23 +1193,23 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleRhs<Edge,TAlgebra>
+			AssembleRhs<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
-			AssembleRhs<Triangle,TAlgebra>
+			AssembleRhs<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleRhs<Quadrilateral,TAlgebra>
+			AssembleRhs<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
-			AssembleRhs<Tetrahedron,TAlgebra>
+			AssembleRhs<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleRhs<Pyramid,TAlgebra>
+			AssembleRhs<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleRhs<Prism,TAlgebra>
+			AssembleRhs<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
-			AssembleRhs<Hexahedron,TAlgebra>
+			AssembleRhs<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
@@ -1335,7 +1335,7 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		if(m_AssAdapter.m_bForceRegGrid) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
-		std::vector<IElemDisc*> vSubsetElemDisc;
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
 
 	//	get all element discretizations that work on the subset
 		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
@@ -1346,23 +1346,23 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			FinishTimestep<Edge,  TAlgebra>
+			FinishTimestep<Edge,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 2:
-			FinishTimestep<Triangle,TAlgebra>
+			FinishTimestep<Triangle,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			FinishTimestep<Quadrilateral,TAlgebra>
+			FinishTimestep<Quadrilateral,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 3:
-			FinishTimestep<Tetrahedron,TAlgebra>
+			FinishTimestep<Tetrahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			FinishTimestep<Pyramid,TAlgebra>
+			FinishTimestep<Pyramid,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			FinishTimestep<Prism,TAlgebra>
+			FinishTimestep<Prism,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
-			FinishTimestep<Hexahedron,TAlgebra>
+			FinishTimestep<Hexahedron,TDomain,TAlgebra>
 				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		default:

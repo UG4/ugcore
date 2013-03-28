@@ -239,7 +239,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 	 *
 	 * \param[in] 	elem		Element Discretization to be added
 	 */
-		void add(SmartPtr<IDomainElemDisc<TDomain> > elem)
+		void add(SmartPtr<IElemDisc<TDomain> > elem)
 		{
 		//	check that not already registered
 			for(size_t i = 0; i < m_vDomainElemDisc.size(); ++i)
@@ -307,10 +307,10 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 
 	protected:
 	///	vector holding all registered elem discs
-		std::vector<SmartPtr<IDomainElemDisc<domain_type> > > m_vDomainElemDisc;
+		std::vector<SmartPtr<IElemDisc<TDomain> > > m_vDomainElemDisc;
 
 	///	vector holding all registered elem discs
-		std::vector<IElemDisc*> m_vElemDisc;
+		std::vector<IElemDisc<TDomain>*> m_vElemDisc;
 
 	//	vector holding all registered constraints
 		std::vector<SmartPtr<IDomainConstraint<TDomain, TAlgebra> > > m_vConstraint;

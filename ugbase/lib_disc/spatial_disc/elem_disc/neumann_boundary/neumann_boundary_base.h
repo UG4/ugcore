@@ -18,11 +18,11 @@ namespace ug{
 
 template<typename TDomain>
 class NeumannBoundaryBase
-	: public IDomainElemDisc<TDomain>
+	: public IElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain> base_type;
+		typedef IElemDisc<TDomain> base_type;
 
 	///	Base class type
 		typedef NeumannBoundaryBase<TDomain> this_type;

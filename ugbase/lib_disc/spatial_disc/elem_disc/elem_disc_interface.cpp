@@ -9,10 +9,11 @@
 
 namespace ug{
 
-IElemDisc::IElemDisc(const char* functions, const char* subsets)
+template <typename TDomain>
+IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
 	: 	m_timePoint(0),
 	  	m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
-	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
+	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN), m_spApproxSpace(NULL)
 {
 	m_vFct.clear();
 	m_vSubset.clear();
@@ -21,18 +22,20 @@ IElemDisc::IElemDisc(const char* functions, const char* subsets)
 	clear_add_fct();
 }
 
-IElemDisc::IElemDisc(const std::vector<std::string>& vFct,
+template <typename TDomain>
+IElemDisc<TDomain>::IElemDisc(const std::vector<std::string>& vFct,
                      const std::vector<std::string>& vSubset)
 	: 	m_timePoint(0),
 		m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
-		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
+		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN), m_spApproxSpace(NULL)
 {
 	m_vFct = vFct;
 	m_vSubset = vSubset;
 	clear_add_fct();
 }
 
-void IElemDisc::clear_add_fct()
+template <typename TDomain>
+void IElemDisc<TDomain>::clear_add_fct()
 {
 	for(size_t i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
@@ -55,7 +58,8 @@ void IElemDisc::clear_add_fct()
 }
 
 
-void IElemDisc::set_functions(std::string fctString)
+template <typename TDomain>
+void IElemDisc<TDomain>::set_functions(std::string fctString)
 {
 //	tokenize string
 	TokenizeString(fctString, m_vFct, ',');
@@ -78,7 +82,8 @@ void IElemDisc::set_functions(std::string fctString)
 	}
 }
 
-void IElemDisc::set_subsets(std::string ssString)
+template <typename TDomain>
+void IElemDisc<TDomain>::set_subsets(std::string ssString)
 {
 //	tokenize string
 	TokenizeString(ssString, m_vSubset, ',');
@@ -101,7 +106,8 @@ void IElemDisc::set_subsets(std::string ssString)
 	}
 }
 
-void IElemDisc::register_import(IDataImport& Imp)
+template <typename TDomain>
+void IElemDisc<TDomain>::register_import(IDataImport& Imp)
 {
 //	check that not already registered
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
@@ -112,7 +118,8 @@ void IElemDisc::register_import(IDataImport& Imp)
 	m_vIImport.push_back(&Imp);
 }
 
-void IElemDisc::register_export(SmartPtr<IUserData> Exp)
+template <typename TDomain>
+void IElemDisc<TDomain>::register_export(SmartPtr<IUserData> Exp)
 {
 //	check that not already registered
 	for(size_t i = 0; i < m_vIExport.size(); ++i)
@@ -123,19 +130,22 @@ void IElemDisc::register_export(SmartPtr<IUserData> Exp)
 	m_vIExport.push_back(Exp);
 }
 
-IDataImport& IElemDisc::get_import(size_t i)
+template <typename TDomain>
+IDataImport& IElemDisc<TDomain>::get_import(size_t i)
 {
 	UG_ASSERT(i < num_imports(), "Invalid index");
 	return *m_vIImport[i];
 }
 
-SmartPtr<IUserData> IElemDisc::get_export(size_t i)
+template <typename TDomain>
+SmartPtr<IUserData> IElemDisc<TDomain>::get_export(size_t i)
 {
 	UG_ASSERT(i < num_exports(), "Invalid index");
 	return m_vIExport[i];
 }
 
-void IElemDisc::set_roid(ReferenceObjectID roid, int discType)
+template <typename TDomain>
+void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 {
 	m_id = roid;
 
@@ -170,7 +180,8 @@ void IElemDisc::set_roid(ReferenceObjectID roid, int discType)
 	}
 };
 
-void IElemDisc::set_time_dependent(const LocalVectorTimeSeries& locTimeSeries,
+template <typename TDomain>
+void IElemDisc<TDomain>::set_time_dependent(const LocalVectorTimeSeries& locTimeSeries,
    		        				const std::vector<number>& vScaleMass,
    		        				const std::vector<number>& vScaleStiff)
 {
@@ -179,12 +190,27 @@ void IElemDisc::set_time_dependent(const LocalVectorTimeSeries& locTimeSeries,
 	m_vScaleStiff = vScaleStiff;
 }
 
-
-void IElemDisc::set_time_independent()
+template <typename TDomain>
+void IElemDisc<TDomain>::set_time_independent()
 {
 	m_pLocalVectorTimeSeries = NULL;
 	m_vScaleMass.clear();
 	m_vScaleStiff.clear();
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//	explicit template instantiations
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef UG_DIM_1
+template class IElemDisc<Domain1d>;
+#endif
+#ifdef UG_DIM_2
+template class IElemDisc<Domain2d>;
+#endif
+#ifdef UG_DIM_3
+template class IElemDisc<Domain3d>;
+#endif
+
 } // end namespace ug
+

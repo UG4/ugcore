@@ -61,17 +61,17 @@ static void Domain(Registry& reg, string grp)
 
 //	DomainElemDisc base class
 	{
-		typedef IDomainElemDisc<TDomain> T;
-		typedef IElemDisc TBase;
-		string name = string("IDomainElemDisc").append(suffix);
-		reg.add_class_<T, TBase >(name, elemGrp);
-		reg.add_class_to_group(name, "IDomainElemDisc", tag);
+		typedef IElemDisc<TDomain> T;
+		string name = string("IElemDisc").append(suffix);
+		reg.add_class_<T>(name, elemGrp)
+			.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary));
+		reg.add_class_to_group(name, "IElemDisc", tag);
 	}
 
 //	Neumann Boundary Base
 	{
 		typedef NeumannBoundaryBase<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
+		typedef IElemDisc<TDomain> TBase;
 		string name = string("NeumannBoundaryBase").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*, const char*)>(&T::add))
@@ -121,7 +121,7 @@ static void Domain(Registry& reg, string grp)
 //	Inner Boundaries
 	{
 		typedef FV1InnerBoundaryElemDisc<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
+		typedef IElemDisc<TDomain> TBase;
 		string name = string("FV1InnerBoundary").append(suffix);
 		reg.add_class_<T, TBase >(name, elemGrp);
 		reg.add_class_to_group(name, "FV1InnerBoundary", tag);
@@ -201,14 +201,6 @@ static void Common(Registry& reg, string grp)
 {
 //	get group string
 	grp.append("/Discretization");
-
-//	Elem Discs
-	{
-		string elemGrp = grp; elemGrp.append("/ElemDisc");
-		typedef IElemDisc T;
-		reg.add_class_<T>("IElemDisc", elemGrp)
-			.add_method("set_stationary", static_cast<void (T::*)()>(&T::set_stationary));
-	}
 }
 };
 

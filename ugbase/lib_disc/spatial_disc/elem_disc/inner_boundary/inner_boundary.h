@@ -36,7 +36,7 @@ namespace ug
 
 template<typename TDomain>
 class FV1InnerBoundaryElemDisc
-: public IDomainElemDisc<TDomain>
+: public IElemDisc<TDomain>
 {
 	public:
 		/// struct that holds information about the flux densities and from where to where the flux occurs
@@ -60,7 +60,7 @@ class FV1InnerBoundaryElemDisc
 
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain> base_type;
+		typedef IElemDisc<TDomain> base_type;
 
 	///	own type
 		typedef FV1InnerBoundaryElemDisc<TDomain> this_type;
@@ -79,7 +79,7 @@ class FV1InnerBoundaryElemDisc
 	
     /// Constructor
         FV1InnerBoundaryElemDisc(const char* functions, const char* subsets)
-        	: IDomainElemDisc<TDomain>(functions, subsets)
+        	: IElemDisc<TDomain>(functions, subsets)
         {
         	register_all_fv1_funcs();
         }

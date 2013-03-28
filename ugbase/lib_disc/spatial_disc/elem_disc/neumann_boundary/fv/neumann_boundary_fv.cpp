@@ -354,11 +354,14 @@ extract_bip(const TFVGeom& geo)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_DIM_1
 template<>
 void NeumannBoundaryFV<Domain1d>::register_all_funcs(int order)
 {
 }
+#endif
 
+#ifdef UG_DIM_2
 template<>
 void NeumannBoundaryFV<Domain2d>::register_all_funcs(int order)
 {
@@ -387,7 +390,9 @@ void NeumannBoundaryFV<Domain2d>::register_all_funcs(int order)
 				  register_func<Quadrilateral, FVGeom >(); break;}
 	}
 }
+#endif
 
+#ifdef UG_DIM_3
 template<>
 void NeumannBoundaryFV<Domain3d>::register_all_funcs(int order)
 {
@@ -425,7 +430,7 @@ void NeumannBoundaryFV<Domain3d>::register_all_funcs(int order)
 				  register_func<Hexahedron, FVGeom >(); break;}
 	}
 }
-
+#endif
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>

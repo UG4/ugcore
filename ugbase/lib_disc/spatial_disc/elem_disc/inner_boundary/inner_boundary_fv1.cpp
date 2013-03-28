@@ -200,10 +200,15 @@ register_fv1_func()
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_DIM_1
 template class FV1InnerBoundaryElemDisc<Domain1d>;
+#endif
+#ifdef UG_DIM_2
 template class FV1InnerBoundaryElemDisc<Domain2d>;
+#endif
+#ifdef UG_DIM_3
 template class FV1InnerBoundaryElemDisc<Domain3d>;
-
+#endif
 
 
 } // namespace ug

@@ -323,6 +323,7 @@ extract_bip(const TFVGeom& geo)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_DIM_1
 template<>
 void NeumannBoundaryFV1<Domain1d>::register_all_funcs(bool bHang)
 {
@@ -331,7 +332,9 @@ void NeumannBoundaryFV1<Domain1d>::register_all_funcs(bool bHang)
 	}
 	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
 }
+#endif
 
+#ifdef UG_DIM_2
 template<>
 void NeumannBoundaryFV1<Domain2d>::register_all_funcs(bool bHang)
 {
@@ -341,7 +344,9 @@ void NeumannBoundaryFV1<Domain2d>::register_all_funcs(bool bHang)
 	}
 	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
 }
+#endif
 
+#ifdef UG_DIM_3
 template<>
 void NeumannBoundaryFV1<Domain3d>::register_all_funcs(bool bHang)
 {
@@ -353,6 +358,7 @@ void NeumannBoundaryFV1<Domain3d>::register_all_funcs(bool bHang)
 	}
 	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
 }
+#endif
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>

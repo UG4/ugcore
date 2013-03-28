@@ -25,12 +25,13 @@ enum ProcessType {PT_ALL=0, PT_STATIONARY, PT_INSTATIONARY, MAX_PROCESS};
  * contributions due to Import/Exports are computed by this class and can be
  * added to the local jacobian/defect.
  */
+template <typename TDomain>
 class DataEvaluator
 {
 	public:
 	///	sets the elem discs to evaluate
 		DataEvaluator(int discPart,
-		              const std::vector<IElemDisc*>& vElemDisc,
+		              const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		              const FunctionPattern& fctPat,
 		              const int subset,
 		              const bool bNonRegularGrid,
@@ -122,7 +123,7 @@ class DataEvaluator
 
 	///	struct to store data related to elem disc
 		struct ElemDisc {
-			IElemDisc* elemDisc;
+			IElemDisc<TDomain>* elemDisc;
 			FunctionGroup fctGrp;
 			FunctionIndexMapping map;
 			bool needLocTimeSeries;

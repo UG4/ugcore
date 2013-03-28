@@ -9,9 +9,10 @@
 
 namespace ug{
 
+template <typename TDomain>
 void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
                         SubsetGroup& unionSSGrp,
-                        std::vector<IElemDisc* > vElemDisc,
+                        std::vector<IElemDisc<TDomain>* > vElemDisc,
                         ConstSmartPtr<ISubsetHandler> pSH)
 {
 	PROFILE_FUNC_GROUP("discretization");
@@ -41,8 +42,9 @@ void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
 	}
 }
 
-void GetElemDiscOnSubset(std::vector<IElemDisc*>& vSubsetElemDisc,
-                         const std::vector<IElemDisc*>& vElemDisc,
+template <typename TDomain>
+void GetElemDiscOnSubset(std::vector<IElemDisc<TDomain>*>& vSubsetElemDisc,
+                         const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                          const std::vector<SubsetGroup>& vSSGrp,
                          int si, bool clearVec)
 {
@@ -57,5 +59,22 @@ void GetElemDiscOnSubset(std::vector<IElemDisc*>& vSubsetElemDisc,
 			vSubsetElemDisc.push_back(vElemDisc[i]);
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//	explicit template instantiations
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef UG_DIM_1
+template void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp, SubsetGroup& unionSSGrp, std::vector<IElemDisc<Domain1d>* > vElemDisc, ConstSmartPtr<ISubsetHandler> pSH);
+template void GetElemDiscOnSubset(std::vector<IElemDisc<Domain1d>*>& vSubsetElemDisc, const std::vector<IElemDisc<Domain1d>*>& vElemDisc, const std::vector<SubsetGroup>& vSSGrp, int si, bool clearVec);
+#endif
+#ifdef UG_DIM_2
+template void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp, SubsetGroup& unionSSGrp, std::vector<IElemDisc<Domain2d>* > vElemDisc, ConstSmartPtr<ISubsetHandler> pSH);
+template void GetElemDiscOnSubset(std::vector<IElemDisc<Domain2d>*>& vSubsetElemDisc, const std::vector<IElemDisc<Domain2d>*>& vElemDisc, const std::vector<SubsetGroup>& vSSGrp, int si, bool clearVec);
+#endif
+#ifdef UG_DIM_3
+template void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp, SubsetGroup& unionSSGrp, std::vector<IElemDisc<Domain3d>* > vElemDisc, ConstSmartPtr<ISubsetHandler> pSH);
+template void GetElemDiscOnSubset(std::vector<IElemDisc<Domain3d>*>& vSubsetElemDisc, const std::vector<IElemDisc<Domain3d>*>& vElemDisc, const std::vector<SubsetGroup>& vSSGrp, int si, bool clearVec);
+#endif
 
 } // end namespace ug

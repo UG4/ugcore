@@ -16,8 +16,9 @@ namespace ug{
 // DataEvaluator Setup
 ///////////////////////////////////////////////////////////////////////////////
 
-DataEvaluator::DataEvaluator(int discPart,
-                             const std::vector<IElemDisc*>& vElemDisc,
+template <typename TDomain>
+DataEvaluator<TDomain>::DataEvaluator(int discPart,
+                             const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                              const FunctionPattern& fctPat,
                              const int subset,
                              const bool bNonRegularGrid,
@@ -80,13 +81,13 @@ DataEvaluator::DataEvaluator(int discPart,
 		try{
 			disc.fctGrp.set_function_pattern(fctPat);
 			disc.fctGrp.add(disc.elemDisc->symb_fcts());
-		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot find "
+		}UG_CATCH_THROW("'DataEvaluator<TDomain>::set_elem_discs': Cannot find "
 					"some symbolic Function Name for disc "<<i<<".");
 
 	//	create a mapping between all functions and the function group of this
 	//	element disc.
 		try{CreateFunctionIndexMapping(disc.map, disc.fctGrp, m_commonFctGroup);
-		}UG_CATCH_THROW("'DataEvaluator::set_elem_discs': Cannot create "
+		}UG_CATCH_THROW("'DataEvaluator<TDomain>::set_elem_discs': Cannot create "
 						"Function Index Mapping for disc "<<i<<".");
 
 	////////////////////////
@@ -100,7 +101,7 @@ DataEvaluator::DataEvaluator(int discPart,
 		for(size_t fct = 0; fct < disc.fctGrp.size(); ++fct){
 			for(size_t si = 0; si < discSubsetGrp.size(); ++si){
 				if(!fctPat.is_def_in_subset(disc.fctGrp[fct], discSubsetGrp[si])){
-					UG_LOG("WARNING in 'DataEvaluator::set_elem_discs': On disc "<<i<<
+					UG_LOG("WARNING in 'DataEvaluator<TDomain>::set_elem_discs': On disc "<<i<<
 						   ": symbolic Function "<<disc.elemDisc->symb_fcts()[fct]
 					 << " is not defined on subset "<<disc.elemDisc->symb_subsets()[si]
 					 << ". This may be senseful only in particular cases.\n");
@@ -111,7 +112,7 @@ DataEvaluator::DataEvaluator(int discPart,
 	//	check correct number of functions
 		if(disc.fctGrp.size() !=disc.elemDisc->num_fct()){
 			std::stringstream ss;
-			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
+			ss << "DataEvaluator<TDomain>::set_elem_discs: Elem Disc "<<i<<
 					" requires "<<disc.elemDisc->num_fct()<<" symbolic "
 					"Function Name, but "<<disc.fctGrp.size()<<" Functions "
 					" specified: ";
@@ -130,7 +131,7 @@ DataEvaluator::DataEvaluator(int discPart,
 		if(!(disc.elemDisc->request_finite_element_id(vLfeID)))
 		{
 			std::stringstream ss;
-			ss << "DataEvaluator::set_elem_discs: Elem Disc "<<i<<
+			ss << "DataEvaluator<TDomain>::set_elem_discs: Elem Disc "<<i<<
 				" can not assemble the specified local finite element space set:";
 			for(size_t f=0; f < disc.elemDisc->symb_fcts().size(); ++f)
 			{
@@ -148,7 +149,7 @@ DataEvaluator::DataEvaluator(int discPart,
 	//  let disc use non-regular grid assemblings
 		if(!disc.elemDisc->request_non_regular_grid(bNonRegularGrid))
 		{
-			UG_THROW("DataEvaluator::set_non_regular_grid: "
+			UG_THROW("DataEvaluator<TDomain>::set_non_regular_grid: "
 					" Elem Disc " << i << " does not support non-regular"
 					" grids, but this is requested.\n");
 		}
@@ -171,7 +172,8 @@ DataEvaluator::DataEvaluator(int discPart,
 
 }
 
-void DataEvaluator::clear_extracted_data_and_mappings()
+template <typename TDomain>
+void DataEvaluator<TDomain>::clear_extracted_data_and_mappings()
 {
 	for(int type = 0; type < MAX_PROCESS; ++type){
 		m_vImport[type][MASS].clear();
@@ -185,7 +187,8 @@ void DataEvaluator::clear_extracted_data_and_mappings()
 	m_vDependentMap.clear();
 }
 
-void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEvalData,
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEvalData,
                                           std::vector<SmartPtr<IUserData> >& vTryingToAdd)
 {
 //	if empty, we're done
@@ -210,7 +213,7 @@ void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEv
 
 //	if found, return error of circle dependency
 	if(it != itEnd)
-		UG_THROW("DataEvaluator::add_data_to_eval_data:"
+		UG_THROW("DataEvaluator<TDomain>::add_data_to_eval_data:"
 						" Circle dependency of data detected for UserData.");
 
 //	add all dependent datas
@@ -230,7 +233,8 @@ void DataEvaluator::add_data_to_eval_data(std::vector<SmartPtr<IUserData> >& vEv
 		vTryingToAdd.pop_back();
 }
 
-void DataEvaluator::extract_imports_and_userdata(int discPart)
+template <typename TDomain>
+void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 {
 	clear_extracted_data_and_mappings();
 
@@ -425,7 +429,8 @@ void DataEvaluator::extract_imports_and_userdata(int discPart)
 }
 
 
-void DataEvaluator::set_time_point(const size_t timePoint)
+template <typename TDomain>
+void DataEvaluator<TDomain>::set_time_point(const size_t timePoint)
 {
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 		m_vElemDisc[PT_ALL][i].elemDisc->set_time_point(timePoint);
@@ -441,7 +446,8 @@ void DataEvaluator::set_time_point(const size_t timePoint)
 // Assemble routines
 ///////////////////////////////////////////////////////////////////////////////
 
-void DataEvaluator::compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv)
+template <typename TDomain>
+void DataEvaluator<TDomain>::compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv)
 {
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
@@ -465,12 +471,13 @@ void DataEvaluator::compute_elem_data(LocalVector& u, GeometricObject* elem, boo
 		try{
 			m_vDependentData[i]->compute(&u, elem, bDeriv);
 		}
-		UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
+		UG_CATCH_THROW("DataEvaluator<TDomain>::compute_elem_data:"
 						"Cannot compute data for Export " << i);
 	}
 }
 
-void DataEvaluator::add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, ProcessType type)
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & STIFF, "Using add_JA_elem, but not STIFF requested.")
 
@@ -491,14 +498,15 @@ void DataEvaluator::add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject*
 		try{
 			m_vElemDisc[type][i].elemDisc->fast_add_jac_A_elem(A, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::add_jac_A_elem: "
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_jac_A_elem: "
 						"Cannot assemble Jacobian (A) for IElemDisc "<<i);
 	}
 
 	add_coupl_JA(A, u, type);
 }
 
-void DataEvaluator::add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType type)
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_JM_elem, but not MASS requested.")
 
@@ -520,14 +528,15 @@ void DataEvaluator::add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject*
 			if(!m_vElemDisc[type][i].elemDisc->is_stationary())
 				m_vElemDisc[type][i].elemDisc->fast_add_jac_M_elem(M, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::add_jac_M_elem: "
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_jac_M_elem: "
 						"Cannot assemble Jacobian (M) for IElemDisc "<<i);
 	}
 
 	add_coupl_JM(M, u, type);
 }
 
-void DataEvaluator::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & STIFF, "Using add_dA_elem, but not STIFF requested.")
 
@@ -548,7 +557,7 @@ void DataEvaluator::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject*
 		try{
 			m_vElemDisc[type][i].elemDisc->fast_add_def_A_elem(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::add_def_A_elem: "
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_def_A_elem: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
 }
@@ -557,7 +566,8 @@ void DataEvaluator::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject*
 
 // explicit terms for reaction, reaction_rate, source explicit
 
-void DataEvaluator::add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & EXPL, "Using add_dA_elem, but not EXPL requested.")
 
@@ -578,14 +588,15 @@ void DataEvaluator::add_dA_elem_explicit(LocalVector& d, LocalVector& u, Geometr
 		try{
 			m_vElemDisc[type][i].elemDisc->fast_add_def_A_elem_explicit(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::add_def_A_elem_explicit: "
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_def_A_elem_explicit: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-void DataEvaluator::add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_dM_elem, but not MASS requested.")
 
@@ -607,12 +618,13 @@ void DataEvaluator::add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject*
 			if(!m_vElemDisc[type][i].elemDisc->is_stationary())
 				m_vElemDisc[type][i].elemDisc->fast_add_def_M_elem(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::add_def_M_elem: "
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_def_M_elem: "
 						"Cannot assemble Defect (M) for IElemDisc "<<i);
 	}
 }
 
-void DataEvaluator::add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type)
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & RHS, "Using add_rhs_elem, but not RHS requested.")
 
@@ -632,26 +644,28 @@ void DataEvaluator::add_rhs_elem(LocalVector& rhs, GeometricObject* elem, Proces
 		try{
 			m_vElemDisc[type][i].elemDisc->fast_add_rhs_elem(rhs);
 		}
-		UG_CATCH_THROW("DataEvaluator::add_rhs_elem: "
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_rhs_elem: "
 						"Cannot assemble rhs for IElemDisc "<<i);
 	}
 }
 
-void DataEvaluator::finish_elem_loop()
+template <typename TDomain>
+void DataEvaluator<TDomain>::finish_elem_loop()
 {
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
 		try{
 			m_vElemDisc[PT_ALL][i].elemDisc->fast_fsh_elem_loop();
 		}
-		UG_CATCH_THROW("DataEvaluator::fsh_elem_loop: "
+		UG_CATCH_THROW("DataEvaluator<TDomain>::fsh_elem_loop: "
 						"Cannot finish element loop for IElemDisc "<<i);
 	}
 
 	clear_positions_in_user_data();
 }
 
-void DataEvaluator::clear_positions_in_user_data()
+template <typename TDomain>
+void DataEvaluator<TDomain>::clear_positions_in_user_data()
 {
 //	remove ip series for all used UserData
 	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
@@ -668,7 +682,8 @@ void DataEvaluator::clear_positions_in_user_data()
 // Coupling
 ///////////////////////////////////////////////////////////////////////////////
 
-void DataEvaluator::add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type)
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
@@ -678,7 +693,7 @@ void DataEvaluator::add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType typ
 
 	//	compute linearization of defect
 		try{m_vImport[type][STIFF][i].import->compute_lin_defect(u);
-		}UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot compute"
+		}UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JA: Cannot compute"
 						" linearized defect for Import " << i <<" (Stiffness part).");
 	}
 //	compute linearized defect
@@ -689,7 +704,7 @@ void DataEvaluator::add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType typ
 
 	//	compute linearization of defect
 		try{m_vImport[type][RHS][i].import->compute_lin_defect(u);
-		}UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot compute"
+		}UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JA: Cannot compute"
 						" linearized defect for Import " << i <<" (Rhs part).");
 	}
 
@@ -701,7 +716,7 @@ void DataEvaluator::add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType typ
 
 	//	add off diagonal coupling
 		try{m_vImport[type][STIFF][i].import->add_jacobian(J, 1.0);}
-		UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot add couplings.");
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JA: Cannot add couplings.");
 	}
 
 //	loop all imports located in the rhs part
@@ -712,11 +727,12 @@ void DataEvaluator::add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType typ
 
 	//	add off diagonal coupling
 		try{m_vImport[type][RHS][i].import->add_jacobian(J, -1.0);}
-		UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot add couplings.");
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JA: Cannot add couplings.");
 	}
 }
 
-void DataEvaluator::add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type)
+template <typename TDomain>
+void DataEvaluator<TDomain>::add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
@@ -726,7 +742,7 @@ void DataEvaluator::add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType typ
 
 	//	compute linearization of defect
 		try{m_vImport[type][MASS][i].import->compute_lin_defect(u);
-		}UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot compute"
+		}UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JM: Cannot compute"
 						" linearized defect for Import " << i <<" (Mass part).");
 	}
 
@@ -740,9 +756,23 @@ void DataEvaluator::add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType typ
 		try{
 			m_vImport[type][MASS][i].import->add_jacobian(J, 1.0);
 		}
-		UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot add couplings.");
+		UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JM: Cannot add couplings.");
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//	explicit template instantiations
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef UG_DIM_1
+template class DataEvaluator<Domain1d>;
+#endif
+#ifdef UG_DIM_2
+template class DataEvaluator<Domain2d>;
+#endif
+#ifdef UG_DIM_3
+template class DataEvaluator<Domain3d>;
+#endif
 
 } // end namespace ug
 

@@ -54,9 +54,9 @@ namespace ug {
  * \param[in]		u				solution
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                         	ConstSmartPtr<DoFDistribution> dd,
         					TIterator iterBegin,
         					TIterator iterEnd,
@@ -70,7 +70,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 
 	try
 	{
-	DataEvaluator Eval(STIFF,
+	DataEvaluator<TDomain> Eval(STIFF,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
@@ -131,9 +131,9 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("AssembleStiffnessMatrix': Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                         	ConstSmartPtr<DoFDistribution> dd,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
@@ -148,14 +148,14 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleStiffnessMatrix<TElem,TAlgebra>
+		AssembleStiffnessMatrix<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleStiffnessMatrix<TElem,  TAlgebra>
+		AssembleStiffnessMatrix<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, A, u, assAdapt);
 	}
@@ -178,9 +178,9 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		u				solution
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<DoFDistribution> dd,
 					TIterator iterBegin,
 					TIterator iterEnd,
@@ -195,7 +195,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(MASS,
+	DataEvaluator<TDomain> Eval(MASS,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
@@ -256,9 +256,9 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("AssembleMassMatrix: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<DoFDistribution> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
@@ -273,14 +273,14 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleMassMatrix<TElem,TAlgebra>
+		AssembleMassMatrix<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, M, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleMassMatrix<TElem,  TAlgebra>
+		AssembleMassMatrix<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, M, u, assAdapt);
 	}
@@ -304,9 +304,9 @@ AssembleMassMatrix(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		u				solution
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<DoFDistribution> dd,
 					TIterator iterBegin,
 					TIterator iterEnd,
@@ -321,7 +321,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(STIFF | RHS,
+	DataEvaluator<TDomain> Eval(STIFF | RHS,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
@@ -384,9 +384,9 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<DoFDistribution> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
@@ -401,14 +401,14 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleJacobian<TElem,TAlgebra>
+		AssembleJacobian<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, J, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleJacobian<TElem,  TAlgebra>
+		AssembleJacobian<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, J, u, assAdapt);
 	}
@@ -434,9 +434,9 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		s_a0			scaling factor for stiffness part
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<DoFDistribution> dd,
 					TIterator iterBegin,
 					TIterator iterEnd,
@@ -459,7 +459,7 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(MASS | STIFF | RHS,
+	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
 					   &locTimeSeries);
 	Eval.set_time_point(0);
@@ -543,9 +543,9 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<DoFDistribution> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
@@ -561,13 +561,13 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
 	
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleJacobian<TElem,TAlgebra>
+		AssembleJacobian<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, J, vSol, s_a0, assAdapt);
 	}
 	else
 	{
-		AssembleJacobian<TElem,  TAlgebra>
+		AssembleJacobian<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, J, vSol, s_a0, assAdapt);
 	}
@@ -591,9 +591,9 @@ AssembleJacobian(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		u				solution
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -608,7 +608,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(STIFF | RHS,
+	DataEvaluator<TDomain> Eval(STIFF | RHS,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
@@ -680,9 +680,9 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(stationary) AssembleDefect: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
@@ -697,14 +697,14 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleDefect<TElem,TAlgebra>
+		AssembleDefect<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, d, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleDefect<TElem,  TAlgebra>
+		AssembleDefect<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, d, u, assAdapt);
 	}
@@ -730,9 +730,9 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vScaleStiff		scaling factors for stiffness part
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -762,7 +762,7 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(MASS | STIFF | RHS | EXPL,
+	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS | EXPL,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
 	                   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
@@ -881,9 +881,9 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleDefect: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
@@ -900,14 +900,14 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
 		
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleDefect<TElem,TAlgebra>
+		AssembleDefect<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleDefect<TElem,  TAlgebra>
+		AssembleDefect<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
@@ -931,9 +931,9 @@ AssembleDefect(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in,out]	rhs				Right-hand side
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -948,7 +948,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(STIFF | RHS,
+	DataEvaluator<TDomain> Eval(STIFF | RHS,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare loop
@@ -1017,9 +1017,9 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(stationary) AssembleLinear: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
@@ -1034,14 +1034,14 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleLinear<TElem,TAlgebra>
+		AssembleLinear<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, rhs, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleLinear<TElem,  TAlgebra>
+		AssembleLinear<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, A, rhs, assAdapt);
 	}
@@ -1068,9 +1068,9 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vScaleStiff		scaling factors for stiffness part
  * \param[in]		mark			BoolMarker
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -1101,7 +1101,7 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(MASS | STIFF | RHS,
+	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
 					   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
@@ -1243,9 +1243,9 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleLinear: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
@@ -1263,14 +1263,14 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleLinear<TElem,TAlgebra>
+		AssembleLinear<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleLinear<TElem,  TAlgebra>
+		AssembleLinear<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
@@ -1294,9 +1294,9 @@ AssembleLinear(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		u				solution
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -1311,7 +1311,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(RHS,
+	DataEvaluator<TDomain> Eval(RHS,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare loop
@@ -1374,9 +1374,9 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("AssembleRhs: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
@@ -1391,14 +1391,14 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleRhs<TElem,TAlgebra>
+		AssembleRhs<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, rhs, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleRhs<TElem,  TAlgebra>
+		AssembleRhs<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, rhs, u, assAdapt);
 	}
@@ -1424,9 +1424,9 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vScaleStiff		scaling factors for stiffness part
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -1456,7 +1456,7 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(MASS | STIFF | RHS,
+	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
 					   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
@@ -1576,9 +1576,9 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) AssembleRhs: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
+AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
@@ -1595,14 +1595,14 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		AssembleRhs<TElem,TAlgebra>
+		AssembleRhs<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		AssembleRhs<TElem,  TAlgebra>
+		AssembleRhs<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
@@ -1625,9 +1625,9 @@ AssembleRhs(	const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
+PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -1647,7 +1647,7 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 	try
 	{
-	DataEvaluator Eval(NONE,
+	DataEvaluator<TDomain> Eval(NONE,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
 					   &locTimeSeries);
 	Eval.set_time_point(0);
@@ -1693,9 +1693,9 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot create Data Evaluator.");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
+PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
@@ -1709,14 +1709,14 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		PrepareTimestep<TElem,TAlgebra>
+		PrepareTimestep<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, vSol, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		PrepareTimestep<TElem,  TAlgebra>
+		PrepareTimestep<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, vSol, assAdapt);
 	}
@@ -1739,9 +1739,9 @@ PrepareTimestep(const std::vector<IElemDisc*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		assAdapt		assemble adapter
  */
-template <typename TElem, typename TAlgebra, typename TIterator>
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
-FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
+FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                ConstSmartPtr<DoFDistribution> dd,
                TIterator iterBegin,
 			   TIterator iterEnd,
@@ -1762,7 +1762,7 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 //	prepare for given elem discs
 	try
 	{
-	DataEvaluator Eval(NONE,
+	DataEvaluator<TDomain> Eval(NONE,
 	                   vElemDisc, dd->function_pattern(), si , bNonRegularGrid,
 					   &locTimeSeries);
 	Eval.set_time_point(0);
@@ -1808,9 +1808,9 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 	UG_CATCH_THROW("(instationary) FinishTimestep: Cannot create Data Evaluator");
 }
 
-template <typename TElem, typename TAlgebra>
+template <typename TElem, typename TDomain, typename TAlgebra>
 void
-FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
+FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                ConstSmartPtr<DoFDistribution> dd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
@@ -1824,14 +1824,14 @@ FinishTimestep(const std::vector<IElemDisc*>& vElemDisc,
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
-		FinishTimestep<TElem,TAlgebra>
+		FinishTimestep<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, vSol, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
-		FinishTimestep<TElem,  TAlgebra>
+		FinishTimestep<TElem,TDomain,TAlgebra>
 			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, vSol, assAdapt);
 	}

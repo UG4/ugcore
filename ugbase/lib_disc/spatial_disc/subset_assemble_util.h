@@ -29,9 +29,10 @@ namespace ug {
  * \param[in]		vElemDisc	Vector of element discs, defined for subsets
  * \param[in]		clearGroup	flag if group should be cleared
  */
+template <typename TDomain>
 void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
                         SubsetGroup& unionSSGrp,
-                        std::vector<IElemDisc* > vElemDisc,
+                        std::vector<IElemDisc<TDomain>* > vElemDisc,
                         ConstSmartPtr<ISubsetHandler> pSH);
 
 /**
@@ -43,8 +44,9 @@ void CreateSubsetGroups(std::vector<SubsetGroup>& vSSGrp,
  * \param[in]		si					Subset index
  * \param[in]		clearVec			flag if vector should be cleared
  */
-void GetElemDiscOnSubset(std::vector<IElemDisc*>& vSubsetElemDisc,
-                         const std::vector<IElemDisc*>& vElemDisc,
+template <typename TDomain>
+void GetElemDiscOnSubset(std::vector<IElemDisc<TDomain>*>& vSubsetElemDisc,
+                         const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                          const std::vector<SubsetGroup>& vSSGrp,
                          int si, bool clearVec = true);
 

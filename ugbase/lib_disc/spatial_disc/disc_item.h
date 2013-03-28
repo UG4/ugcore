@@ -28,7 +28,7 @@ class IDiscretizationItem
 		virtual size_t num_elem_disc() const = 0;
 
 	///	returns the element disc
-		virtual SmartPtr<IDomainElemDisc<TDomain> > elem_disc(size_t i) = 0;
+		virtual SmartPtr<IElemDisc<TDomain> > elem_disc(size_t i) = 0;
 
 	///	returns the number of constraints
 		virtual size_t num_constraint() const = 0;

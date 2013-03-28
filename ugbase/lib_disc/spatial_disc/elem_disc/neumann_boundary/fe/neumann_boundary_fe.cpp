@@ -347,19 +347,24 @@ extract_bip(const TFEGeom& geo)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_DIM_1
 template<>
 void NeumannBoundaryFE<Domain1d>::register_all_funcs(int order)
 {
 	register_func<Edge, DimFEGeometry<dim, 1> >();
 }
+#endif
 
+#ifdef UG_DIM_2
 template<>
 void NeumannBoundaryFE<Domain2d>::register_all_funcs(int order)
 {
 	register_func<Triangle, DimFEGeometry<dim, 2> >();
 	register_func<Quadrilateral, DimFEGeometry<dim, 2> >();
 }
+#endif
 
+#ifdef UG_DIM_3
 template<>
 void NeumannBoundaryFE<Domain3d>::register_all_funcs(int order)
 {
@@ -368,7 +373,7 @@ void NeumannBoundaryFE<Domain3d>::register_all_funcs(int order)
 	register_func<Pyramid, DimFEGeometry<dim, 3> >();
 	register_func<Hexahedron, DimFEGeometry<dim, 3> >();
 }
-
+#endif
 
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
