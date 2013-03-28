@@ -23,7 +23,6 @@ set(srcCommon	log.cpp
 				util/message_hub.cpp
 				util/ostream_util.cpp
 				util/parameter_parsing.cpp
-				util/plugin_util.cpp
         		util/string_util.cpp
         		util/table.cpp
 				util/variant.cpp
@@ -37,6 +36,9 @@ set(srcCommon	log.cpp
 
 set(sources ${srcCommon})
 
+if(NOT STATIC)
+    set(sources	${sources} util/plugin_util.cpp)
+endif(NOT STATIC)
 
 if(UG_PROFILER)
 	set(srcProfiler	profiler/profiler.cpp
@@ -62,9 +64,9 @@ set(sources ${sources} profiler/profile_node.cpp)
 if(UNIX AND NOT CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
 	
-	if(buildPluginSystem)
+	if(NOT STATIC)
 		set(sources ${sources}	util/os_dependent_impl/dynamic_library_util_unix.cpp)
-	endif(buildPluginSystem)
+	endif(NOT STATIC)
 	
 	if(APPLE)
 		set(sources ${sources} util/os_dependent_impl/os_info_osx.cpp)
@@ -75,9 +77,9 @@ if(UNIX AND NOT CYGWIN)
 elseif(WIN32 OR CYGWIN)
 	set(sources ${sources}	util/os_dependent_impl/os_info_win.cpp)
 	
-	if(buildPluginSystem)
+	if(NOT STATIC)
 		set(sources ${sources}	util/os_dependent_impl/dynamic_library_util_unix.cpp)
-	endif(buildPluginSystem)
+	endif(NOT STATIC)
 	
 	#if(MINGW)
 	#	set(sources ${sources} util/os_dependent_impl/file_util_posix.cpp)

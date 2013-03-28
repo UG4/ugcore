@@ -113,8 +113,7 @@ endif(buildAlgebra)
 if(USE_LUA2C)
 	set(srcUGScript ${srcUGScript}
 		${srcLUA2C})
-endif()
-
+endif(USE_LUA2C)
 
 set(Sources ${srcUGScript} ${srcLua})
 

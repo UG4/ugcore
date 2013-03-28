@@ -11,6 +11,8 @@
 #include "os_info.h"
 #include "dynamic_library_util.h"
 
+#include "plugin_util.h"
+
 using namespace std;
 
 namespace ug{

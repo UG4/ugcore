@@ -16,9 +16,10 @@
 #include "common/util/os_info.h"
 #include "common/util/path_provider.h"
 #ifdef UG_PLUGINS
-	#include "common/util/plugin_util.h"
 	#ifdef UG_EMBEDDED_PLUGINS
 		#include "embedded_plugins.h"
+	#else
+		#include "common/util/plugin_util.h"
 	#endif
 #endif
 
@@ -596,10 +597,12 @@ int main(int argc, char* argv[])
 	// Until fully tested for dependency problems, I commented out the following lines.
 	// For using valgrind, you'll have to uncomment them.
 	//ReleaseDefaultLuaState();
-	#ifdef UG_EMBEDDED_PLUGINS
-		//FinalizeEmbeddPlugins();
-	#else
-		//UnloadPlugins();
+	#ifdef UG_PLUGINS
+		#ifdef UG_EMBEDDED_PLUGINS
+			//FinalizeEmbeddPlugins();
+		#else
+			//UnloadPlugins();
+		#endif
 	#endif
 
 	PROFILE_END();

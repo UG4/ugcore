@@ -17,9 +17,9 @@ include("cmake/ug_includes.cmake")
 
 ########################
 # compile plugins
-if(buildPluginSystem)
+if(buildPlugins)
 	add_subdirectory(plugins)
-endif(buildPluginSystem)
+endif(buildPlugins)
 
 ########################
 # compile metis

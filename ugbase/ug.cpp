@@ -16,9 +16,10 @@
 	#include "bridge/bridge.h"
 #endif
 #ifdef UG_PLUGINS
-	#include "common/util/plugin_util.h"
 	#ifdef UG_EMBEDDED_PLUGINS
 		#include "embedded_plugins.h"
+	#else
+		#include "common/util/plugin_util.h"
 	#endif
 #endif
 
@@ -196,7 +197,13 @@ int UGFinalize()
 void UGForceExit()
 {
 	UG_LOG("--- ABORTING UG EXECUTION ---\n");
-	// ? UnloadPlugins();
+	#ifdef UG_PLUGINS
+		#ifdef UG_EMBEDDED_PLUGINS
+			//FinalizeEmbeddPlugins();
+		#else
+			// ? UnloadPlugins();
+		#endif
+	#endif
 	UGFinalize();
 	exit(0);
 }
