@@ -18,24 +18,40 @@ sebastian.reiter@gcsc.uni-frankfurt.de .
 <hr>
 \section secEnableProfiling Enable Profiling in ug4
 
-You enable profiling in ug4 by setting the \em CMake flag <tt>-DPROFILER=Shiny</tt>. By this, you are using 
-the <a href="http://sourceforge.net/projects/shinyprofiler/">Shiny Profiler</a> which is included with ug4 (other options are None, Scalasca and Vampir).
-So if have a shell open in your subdirectory <tt>build_debug</tt> (as 
+You enable profiling in ug4 by setting the \em CMake flag <tt>-DPROFILER=<Profiler></tt>.
+E.g., using a shell open in your subdirectory <tt>build_debug</tt> (as
 explained \ref pageUG4Install "here" or 
-\ref secInstallEclipseUseMakefiles "here"), you enter
+\ref secInstallEclipseUseMakefiles "here"), and enter
 \verbatim
-cmake -DPROFILER=Shiny ..
+cmake -DPROFILER=<Profiler> ..
 make
 \endverbatim
+
+The currently supported options for <tt> <Profiler> </tt> are:
+<tt>None, Shiny, Scalasca, Vampir, ScoreP</tt>
 
 Note that <em>CMake</em> "remembers" the flags you set.
 You can see the flags set in the output (for not changing any flags just enter 
 <tt>cmake ..</tt>). 
+
 To enable profiling of the \em PCL (Parallel Communication Layer), set 
 <tt>-DPROFILE_PCL=ON</tt>.
+
 Check the output of <tt>cmake ..</tt> for changes and additional flags.
 Keep in mind that you have to do a make when changing <em>Cmake</em> flags.
 
+\note The Shiny profiler is shipped with the ug4 distribution and can always
+be used. However, for the Scalasca, Vampir and ScoreP profiling additional
+software must be installed (refer to the provided links below). One some machines
+this software is already installed, e.g. on cekon include "/home/profiler/bin"
+to your PATH in order to obtain scalasca and scorep. VampirTrace is provided
+with Open MPI 1.3 and higher.
+
+\subsection secEnableProfilingShiny Shiny Profiling
+
+Using the <a href="http://sourceforge.net/projects/shinyprofiler/">Shiny Profiler</a>
+which is included with ug4 can be enabled setting the \em CMake flag
+<tt>-DPROFILER=Shiny</tt>.
 
 For getting profiling output at the end of the execution of your script,
 you can add
@@ -43,16 +59,85 @@ you can add
 \code
 SetOutputProfileStats(true)
 \endcode
-at the beginning of your script. With this, profiler statistics are output at the end of the execution of
-    <tt>ugshell</tt>, there you will see the total call tree (from main on)
-    and a flat list with timings.
+at the beginning of your script. With this, profiler statistics are output at
+the end of the execution of <tt>ugshell</tt>, there you will see the total
+call tree (from main on) and a flat list with timings.
 
- For a more visual output you can add
+For a more visual output you can add
 \code
 WriteProfileData("pd.pdxml")
 \endcode
 
-At the end of your script. For viewing that file, download the <a href="http://gcsc.uni-frankfurt.de/Members/mrupp/shinyviewer/shinyprofileviewer">ShinyProfileViewer</a>.
+At the end of your script. For viewing that file, download the
+<a href="http://gcsc.uni-frankfurt.de/Members/mrupp/shinyviewer/shinyprofileviewer">ShinyProfileViewer</a>.
+
+\subsection secEnableProfilingScalasca Scalasca Profiling
+
+The <a href="http://www.scalasca.org/">Scalasca</a> profiler is enabled by
+setting the \em CMake flag <tt>-DPROFILER=Scalasca</tt>. This will specify
+the user-defined <tt>UG_PROFILE</tt> profiling marks (see below) to write
+profiling output using the EPIK-API provided by Scalasca.
+
+In addition the scalsca compiler-wrapper must be used when building the code.
+Make sure you have the <tt>scalasca</tt> binary in your PATH and run cmake with
+
+\verbatim
+CC="scalasca -instrument -comp=none -user mpicc" CCX="scalasca -instrument -comp=none -user mpicxx" cmake -DPROFILER=Scalasca ..."
+\endverbatim
+
+Note, that the compiler is only set at the very first cmake run and not changed
+on successive reruns. In order to change the compiler wrapper you must remove
+your build completely and run cmake from scratch. Your application is the analysed using
+
+\verbatim
+scalasca -analyse mpirun ugshell -ex ...
+\endverbatim
+
+See the profiling result via
+
+\verbatim
+scalasca -examine <epik-folder>
+\endverbatim
+
+\subsection secEnableProfilingVampir VampirTrace Profiling
+
+The <a href="http://www.tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/software_werkzeuge_zur_unterstuetzung_von_programmierung_und_optimierung/vampirtrace">VampirTrace</a> profiler is enabled by
+setting the \em CMake flag <tt>-DPROFILER=Vampir</tt>. This will specify
+the user-defined <tt>UG_PROFILE</tt> profiling marks (see below) to write
+profiling output using the VampirTrace-API.
+
+In addition the vampirtrace compiler-wrapper must be used when building the code.
+Make sure you have the <tt>vtcc, vtcxx</tt> binary in your PATH and run cmake with
+
+\verbatim
+CC="vtcc" CCX="vtcxx" cmake -DPROFILER=Vampir ..."
+\endverbatim
+
+Note, that the compiler is only set at the very first cmake run and not changed
+on successive reruns. In order to change the compiler wrapper you must remove
+your build completely and run cmake from scratch.
+Run your application normally, trace output will be produced automatically.
+
+\subsection secEnableProfilingScoreP ScoreP Profiling
+
+The <a href="http://www.vi-hps.org/projects/score-p/">ScoreP</a> profiler is enabled by
+setting the \em CMake flag <tt>-DPROFILER=ScoreP</tt>. This will specify
+the user-defined <tt>UG_PROFILE</tt> profiling marks (see below) to write
+profiling output using the SCOREP-API.
+
+In addition the scorep compiler-wrapper must be used when building the code.
+Make sure you have the <tt>scorep</tt> binary in your PATH and run cmake with
+
+\verbatim
+CC="scorep --user --nocompiler mpicc" CCX="scorep --user --nocompiler mpicxx" cmake -DPROFILER=ScoreP ..."
+\endverbatim
+
+Note, that the compiler is only set at the very first cmake run and not changed
+on successive reruns. In order to change the compiler wrapper you must remove
+your build completely and run cmake from scratch.
+Run your application normally, trace output will be produced automatically.
+
+\note Currently the ScoreP support for ug4 is experimental and may not be successful
 
 <hr>
 \section secProfilingRegistry Profiling Registry
