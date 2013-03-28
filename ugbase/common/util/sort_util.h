@@ -80,12 +80,47 @@ inline CompareIndicesByClass<TCompareValues> CompareIndicesBy(const TCompareValu
 	return CompareIndicesByClass<TCompareValues>(values);
 }
 
+/**
+ * Allows sorting of indices by their values in another array with a comp function
+ */
 template<typename TCompareValues, typename TCompare>
 inline CompareIndicesByClass2<TCompareValues, TCompare> CompareIndicesBy(const TCompareValues &values, TCompare comp)
 {
 	return CompareIndicesByClass2<TCompareValues, TCompare>(values, comp);
 }
 
+/**
+ * example:
+ * ind = GetSortedIndices(v);
+ * then v[ ind[0] ] <= v[ ind[1] ] <= ... <= v [ ind[v.size() -1] ]; ,
+ * @param values array where indices should be sorted after
+ * @return the indices list sorted with respect to the ordering in values
+ */
+template<typename TCompareValues>
+std::vector<size_t> GetSortedIndices(const TCompareValues &values)
+{
+	std::vector<size_t> indices(values.size());
+	for(size_t i=0; i<indices.size(); i++) indices[i] = i;
+	std::sort(indices.begin(), indices.end(), CompareIndicesByClass<TCompareValues>(values));
+	return indices;
+}
+
+/**
+ * example:
+ * ind = GetSortedIndices(v);
+ * then v[ ind[0] ] <= v[ ind[1] ] <= ... <= v [ ind[v.size() -1] ]; ,
+ * @param values array where indices should be sorted after
+ * @param comp compare function
+ * @return the indices list sorted with respect to the ordering in values (with compare function comp)
+ */
+template<typename TCompareValues, typename TCompare>
+std::vector<size_t> GetSortedIndices(const TCompareValues &values, TCompare comp)
+{
+	std::vector<size_t> indices(values.size());
+	for(size_t i=0; i<indices.size(); i++) indices[i] = i;
+	std::sort(indices.begin(), indices.end(), CompareIndicesByClass2<TCompareValues, TCompare>(values, comp));
+	return indices;
+}
 
 inline bool boolstrcmp(const char *a, const char *b)
 {
