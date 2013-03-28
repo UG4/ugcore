@@ -60,18 +60,15 @@ static void Algebra(Registry& reg, string grp)
 		typedef DebugWritingObject<TAlgebra> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.add_method("add_vector", &T::add_vector,
-						"", "vector")
-			.add_method("set_preconditioner", &T::set_preconditioner,
-						"", "Preconditioner")
-			.add_method("set_linear_operator_A", &T::set_linear_operator_A,
-						"", "LinearOperatorA")
-			.add_method("set_linear_operator_B", &T::set_linear_operator_B,
-						"", "LinearOperatorB")
-			.add_method("set_max_iterations", &T::set_max_iterations,
-							"", "precision")
-			.add_method("set_precision", &T::set_precision,
-							"", "precision")
+			.add_method("add_vector", &T::add_vector, "", "vector")
+			.add_method("set_preconditioner", &T::set_preconditioner, "", "Preconditioner")
+			.add_method("set_linear_operator_A", &T::set_linear_operator_A,	"", "LinearOperatorA")
+			.add_method("set_linear_operator_B", &T::set_linear_operator_B,	"", "LinearOperatorB")
+			.add_method("set_max_iterations", &T::set_max_iterations, "", "precision")
+			.add_method("num_eigenvalues", &T::num_eigenvalues, "number of eigenvalues")
+			.add_method("get_eigenvalue", &T::get_eigenvalue, "eigenvalue i", "i")
+			.add_method("set_precision", &T::set_precision, "", "precision")
+			.add_method("get_eigenvector", &T::get_eigenvector, "eigenvector i", "i")
 			.add_method("set_pinvit", &T::set_pinvit, "", "iPINVIT", "1 = preconditioned inverse block iteration, 2 = preconditioned block gradient descent, 3 = LOBPCG")
 			.add_method("apply", &T::apply);
 		reg.add_class_to_group(name, "EigenSolver", tag);

@@ -12,10 +12,15 @@
 #define __H__UG__LIB_ALGEBRA__PINVIT_H__
 
 #include "common/util/string_util.h"
+#include "lib_algebra/small_algebra/lapack/eigenvalue2.h"
+#include <complex>
+#include "common/util/sort_util.h"
 
 // constructors
 namespace ug{
-
+#define PINVIT_PROFILE_FUNC() PROFILE_FUNC_GROUP("pinvit algebra")
+#define PINVIT_PROFILE_BEGIN(t) PROFILE_BEGIN_GROUP(t, "pinvit algebra")
+#define PINVIT_PROFILE_END() PROFILE_END()
 
 /*template<typename mat_type, typename vec_type, typename densematrix_type>
 void MultiEnergyProd(const SparseMatrix<mat_type> &A,
@@ -38,10 +43,19 @@ void MultiEnergyProd(const SparseMatrix<mat_type> &A,
 	}
 }*/
 
+
+inline bool absCompare(double a, double b)
+{
+	return abs(a) < abs(b);
+}
+
+
+
 template<typename vector_type, typename densematrix_type>
 void MultiScalProd(vector_type **px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
+	PINVIT_PROFILE_FUNC()
 	UG_ASSERT(0, "");
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
 	for(size_t r=0; r<n; r++)
@@ -61,6 +75,7 @@ void MultiScalProd(vector_type **px,
 template<typename matrix_type, typename vector_type>
 double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2, vector_type &tmp)
 {
+	PINVIT_PROFILE_FUNC()
 
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator pc;
@@ -104,6 +119,7 @@ void MultiEnergyProd(matrix_type &A,
 			vector_type **px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
+	PINVIT_PROFILE_FUNC()
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator pc;
 #endif
@@ -279,6 +295,8 @@ private:
 	size_t m_maxIterations;
 	double m_dPrecision;
 	size_t m_iPINVIT;
+	std::vector<double> lambda;
+	std::vector<bool> vbDirichlet;
 
 public:
 	PINVIT()
@@ -309,9 +327,16 @@ public:
 		m_spPrecond = precond;
 	}
 
-	void set_linear_operator_A(SmartPtr<ILinearOperator<vector_type> > A)
+	void set_linear_operator_A(SmartPtr<ILinearOperator<vector_type> > loA)
 	{
-		m_pA = A;
+		m_pA = loA;
+		// get dirichlet nodes
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
+				m_pA.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+		matrix_type &A = pOp->get_matrix();
+		vbDirichlet.resize(A.num_rows());
+		for(size_t i=0; i<A.num_rows(); i++)
+			vbDirichlet[i] = A.is_isolated(i);
 	}
 
 	void set_linear_operator_B(matrix_operator_type &B)
@@ -343,25 +368,66 @@ public:
 		UG_ASSERT(iPINVIT >=1 && iPINVIT <= 3, "i has to be >= 1 and <= 3, but is " << iPINVIT);
 	}
 
+	size_t num_eigenvalues()
+	{
+		return px.size();
+	}
+
+	double get_eigenvalue(size_t i)
+	{
+		if(lambda.size() != px.size()) return 0.0;
+		return lambda[i];
+	}
+
+	vector_type &get_eigenvector(size_t i)
+	{
+		return *px[i];
+	}
+
+
+	void print_projected_eigenvalues(DenseMatrix<VariableArray2<double> > &r_ev, std::vector<std::complex<double> > &r_lambda, std::vector<string> &vTestVectorDescription)
+	{
+		UG_LOG("evs: \n");
+		for(size_t c=0; c < r_ev.num_cols(); c++)
+		{
+			UG_LOG("eigenvalue [" << c << "] =  " << r_lambda[c] << ", vector:\n");
+			std::vector<double> tmpEV(r_ev.num_rows());
+			for(size_t r=0; r<r_ev.num_rows(); r++)
+				tmpEV[r] = r_ev(r, c);
+			std::vector<size_t> s = GetSortedIndices(tmpEV, absCompare);
+
+
+			for(size_t i=0; i<r_ev.num_rows(); i++)
+			{
+				//if(r_ev.num_rows() > 3 && abs(r_ev(s[i], c))/abs(r_ev(s[r_ev.num_rows()-1], c)) < 0.01) continue;
+				size_t j = s[i];
+				UG_LOG(std::setw(14) << r_ev(j, c) << "   " << vTestVectorDescription[j] << "\n");
+			}
+			UG_LOG("\n\n");
+		}
+
+
+	}
+
 	/**
 	 * perform the calculation
 	 * @return
 	 */
 	int apply()
 	{
+		PINVIT_PROFILE_FUNC()
 		UG_LOG("Eigensolver\n");
 		DenseMatrix<VariableArray2<double> > rA;
 		DenseMatrix<VariableArray2<double> > rB;
 		DenseMatrix<VariableArray2<double> > r_ev;
-		DenseVector<VariableArray1<double> > r_lambda;
-		std::vector<double> lambda;
+		std::vector<std::complex<double> > r_lambda;
 
 		typedef typename vector_type::value_type value_type;
 		vector_type defect;
 		CloneVector(defect, *px[0]);
-		size_t n = px.size();
+		size_t nEigenvalues = px.size();
 
-		size_t size = px[0]->size();
+		//size_t size = px[0]->size();
 		/*
 		ParallelMatrix<SparseMatrix<double> > B;
 		B.resize(size, size);
@@ -376,11 +442,11 @@ public:
 		std::vector<vector_type> vOldX;
 
 
-		lambda.resize(n);
-		vCorr.resize(n);
-		vOldX.resize(n);
+		lambda.resize(nEigenvalues);
+		vCorr.resize(nEigenvalues);
+		vOldX.resize(nEigenvalues);
 		int N = px[0]->size();
-		for(size_t i=0; i<n; i++)
+		for(size_t i=0; i<nEigenvalues; i++)
 		{
 			UG_ASSERT(N == (int)px[i]->size(), "all vectors must have same size");
 			CloneVector(vCorr[i], *px[0]);
@@ -395,15 +461,9 @@ public:
 
 		std::vector<vector_type *> pTestVectors;
 
-		SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
-				m_pA.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
-		matrix_type &A = pOp->get_matrix();
-		std::vector<bool> vbDirichlet(A.num_rows());
-		for(size_t i=0; i<A.num_rows(); i++)
-			vbDirichlet[i] = A.is_isolated(i);
 
-		std::vector<double> vDefectNorm(n, m_dPrecision*10);
-		std::vector<double> oldXnorm(n);
+		std::vector<double> vDefectNorm(nEigenvalues, m_dPrecision*10);
+		std::vector<double> oldXnorm(nEigenvalues);
 
 		std::vector<std::string> vTestVectorDescription;
 
@@ -415,25 +475,20 @@ public:
 		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
 		{
 
-			UG_LOG("iteration " << iteration << "\n");
+			UG_LOG("iteration " << iteration << "\nEigenvalues");
 
 			// 0. normalize
 			normalize_approximations();
 
 
-			// 1. before calculating new correction, save old correction
-			save_old_approximations(vOldX);
-
 			//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
 			size_t nrofconverged=0;
 
 
-			for(size_t i=0; i<n; i++)
+			for(size_t i=0; i<nEigenvalues; i++)
 			{
 				compute_rayleigh_and_new_correction(iteration, i, *px[i], lambda[i], defect, vDefectNorm[i], vCorr[i]);
-				bool bConverged = vDefectNorm[i] < m_dPrecision;
-				write_debug(iteration, i, *px[i], defect, vCorr[i], bConverged);
-				if(bConverged)
+				if(vDefectNorm[i] < m_dPrecision)
 					nrofconverged++;
 			}
 
@@ -441,25 +496,26 @@ public:
 			// output
 			print_eigenvalues_and_defect(iteration, vDefectNorm, oldXnorm, lambda);
 
-			if(nrofconverged==n)
+			if(nrofconverged==nEigenvalues)
 			{
-				UG_LOG("all eigenvectors converged\n");
+				UG_LOG("all eigenvectors converged\nEigenvalues");
 				return true;
 			}
 
 			// 5. add Testvectors
-			//UG_LOG("5. add Testvectors\n");
+			//UG_LOG("5. add Testvectors\nEigenvalues");
 
 			get_testvectors(iteration, vCorr, vOldX, pTestVectors, vTestVectorDescription, vDefectNorm);
 
+			for(size_t i=0; i<nEigenvalues; i++)
+			{ 	write_debug(iteration, i, *px[i], defect, vCorr[i], vOldX[i], vDefectNorm[i] < m_dPrecision); }
 
 			/*for(size_t i=0; i<vTestVectorDescription.size(); i++)
-			{	UG_LOG(vTestVectorDescription[i] << "\n");	} */
+			{	UG_LOG(vTestVectorDescription[i] << "\nEigenvalues");	} */
 
 			// 5. compute reduced Matrices rA, rB
 
 			get_projected_eigenvalue_problem(rA, rB, pTestVectors, vTestVectorDescription);
-
 
 			// 6. solve reduced eigenvalue problem
 			size_t iNrOfTestVectors = pTestVectors.size();
@@ -467,79 +523,111 @@ public:
 			r_lambda.resize(iNrOfTestVectors);
 
 			// solve rA x = lambda rB, --> r_ev, r_lambda
-			GeneralizedEigenvalueProblem(rA, r_ev, r_lambda, rB, true);
+			GeneralizedEigenvalueProblemComplex(rA, r_ev, r_lambda, rB, true);
+			print_projected_eigenvalues(r_ev, r_lambda, vTestVectorDescription);
 
-			size_t nrzero;
-			for(nrzero=0; nrzero<iNrOfTestVectors; nrzero++)
-				if(r_lambda[nrzero] > 1e-15)
-					break;
 
-			if(nrzero)
-			{
-				UG_LOG("Lambda < 0: \n");
-				for(size_t i=0; i<nrzero; i++)
-				{
-					UG_LOG(i << ".: " << r_lambda[i] << "\n");
+			//write_debug_projected_eigenvalues(r_ev, pTestVectors, iteration);
+			set_new_approximations_and_save_old(r_ev, pTestVectors, vOldX);
 
-				}
-			}
-			UG_LOG("Lambda > 0: \n");
-			for(size_t i=nrzero; i<r_lambda.size(); i++)
-				UG_LOG(i << ".: " << r_lambda[i] << "\n");
-			UG_LOG("\n");
-
-			UG_LOG("evs: \n");
-			for(size_t c=0; c < r_ev.num_cols(); c++)
-			{
-				UG_LOG("ev [" << c << "]:\n");
-				for(size_t r=0; r<r_ev.num_rows(); r++)
-					if(dabs(r_ev(r, c)) > 1e-9 )
-						UG_LOG(std::setw(14) << r_ev(r, c) << "   " << vTestVectorDescription[r] << "\n");
-				UG_LOG("\n\n");
-			}
-
-#ifdef UG_PARALLEL
-			for(size_t i=0; i<iNrOfTestVectors; i++)
-				pTestVectors[i]->change_storage_type(PST_UNIQUE);
-			for(size_t i=0; i<n; i++)
-				px[i]->change_storage_type(PST_UNIQUE);
-#endif
-			// assume r_lambda is sorted
-			std::vector<typename vector_type::value_type> x_tmp(n);
-			for(size_t i=0; i<size; i++)
-			{
-				if(vbDirichlet[i]) continue;
-
-				// since x is part of the Testvectors, temporary safe result in x_tmp.
-				for(size_t r=0; r<n; r++)
-				{
-					x_tmp[r] = 0.0;
-					for(size_t c=0; c<iNrOfTestVectors; c++)
-						x_tmp[r] += r_ev(c, r+nrzero) * (*pTestVectors[c])[i];
-				}
-
-				// now overwrite
-				for(size_t r=0; r<n; r++)
-					(*px[r])[i] = x_tmp[r];
-
-			}
+			assert_real_positive(r_lambda);
 		}
 
-		UG_LOG("not converged after" << m_maxIterations << " steps.\n");
+		UG_LOG("not converged after" << m_maxIterations << " steps.\nEigenvalues");
 		return false;
 	}
 
-private:
-	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr, bool bConverged)
+	void write_debug_projected_eigenvalues(DenseMatrix<VariableArray2<double> > &r_ev, std::vector<vector_type *> &pTestVectors, int iteration)
 	{
+		PROFILE_FUNC_GROUP("debug");
+		if(debug_writer() == NULL) return;
+
+		vector_type t; t.resize(px[0]->size());
+		CloneVector(t, *px[0]);
+		for(size_t r=0; r<px.size(); r++)
+		{
+			for(size_t i=0; i<t.size(); i++)
+			{
+				if(vbDirichlet[i])
+					t[i] = 0.0;
+				else
+				{
+					for(size_t c=0; c<pTestVectors.size(); c++)
+						t[i] += r_ev(c, r) * (*pTestVectors[c])[i];
+				}
+			}
+			write_debug(t, ("pinvit_it_" + ToString(iteration) + "_pev_" + ToString(r)).c_str());
+		}
+	}
+
+	void set_new_approximations_and_save_old(DenseMatrix<VariableArray2<double> > &r_ev, std::vector<vector_type *> &pTestVectors, std::vector<vector_type> &vOldX)
+	{
+#ifdef UG_PARALLEL
+		for(size_t i=0; i<pTestVectors.size(); i++)
+			pTestVectors[i]->change_storage_type(PST_UNIQUE);
+		for(size_t i=0; i<px.size(); i++)
+			px[i]->change_storage_type(PST_UNIQUE);
+#endif
+		// assume r_lambda is sorted
+		std::vector<typename vector_type::value_type> x_tmp(px.size());
+		size_t size = px[0]->size();
+#define UG_ASSERT_EQUAL(a, b) UG_ASSERT(a == b, UG_TO_STRING(a) << " = " << a << " != " << UG_TO_STRING(b) << " = " << b);
+		UG_ASSERT_EQUAL(pTestVectors.size(), r_ev.num_rows())
+		for(size_t i=0; i<size; i++)
+		{
+			if(vbDirichlet[i]) continue;
+
+			// since vx can be part of the Testvectors, temporary safe result in x_tmp.
+			for(size_t r=0; r<px.size(); r++)
+			{
+				x_tmp[r] = 0.0;
+				for(size_t c=0; c<pTestVectors.size(); c++)
+					x_tmp[r] += r_ev(c, r) * (*pTestVectors[c])[i];
+			}
+
+			// now overwrite
+			for(size_t r=0; r<px.size(); r++)
+			{
+				// save old
+				vOldX[r][i] = (*px[r])[i];
+				// store new
+				(*px[r])[i] = x_tmp[r];
+			}
+
+		}
+
+	}
+
+	void assert_real_positive(const std::vector<std::complex<double> > &r_lambda)
+	{
+
+		//#define UG_ASSERT2(cond, txt) {if(!cond) { UG_LOG("Warning: " << txt << "\n"); }}
+		#define UG_ASSERT2(cond, txt) UG_ASSERT(cond, txt)
+		for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
+		{
+			UG_ASSERT2(r_lambda[i].imag() < 1e-8, "eigenvalue " << i << " is imaginary (" << r_lambda[i] << ")\n");
+			UG_ASSERT2(r_lambda[i].real() > 1e-8, "eigenvalues " << i << "<= 0\n");
+		}
+
+		for(size_t i=0; i<r_lambda.size(); i++)
+			UG_LOG(i << ".: " << r_lambda[i] << "\n");
+		UG_LOG("\n");
+	}
+
+private:
+	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr, vector_type &oldX, bool bConverged)
+	{
+		PROFILE_FUNC_GROUP("debug")
 		write_debug(x, ("pinvit_it_" + ToString(iteration) + "_ev_" + ToString(i)).c_str());
 		write_debug(defect, ("pinvit_it_" + ToString(iteration) + "_defect_" + ToString(i)).c_str());
 		if(bConverged)
 			write_debug(corr, ("pinvit_it_" + ToString(iteration) + "_corr_" + ToString(i)).c_str());
+		write_debug(oldX, ("pinvit_it_" + ToString(iteration) + "_old_" + ToString(i)).c_str());
 	}
 
 	double B_norm(vector_type &x)
 	{
+		PINVIT_PROFILE_FUNC()
 		if(m_pB != NULL)
 			return EnergyNorm(x, *m_pB);
 		else
@@ -548,6 +636,7 @@ private:
 
 	void normalize_approximations()
 	{
+		PINVIT_PROFILE_FUNC()
 		for(size_t i=0; i< px.size(); i++)
 			(*px[i]) *= 1/ (B_norm(*px[i]));
 	}
@@ -563,6 +652,7 @@ private:
 	 */
 	void compute_rayleigh_and_new_correction(int iteration, int i, vector_type &x, double &lambda, vector_type &defect, double &defectNorm, vector_type &corr)
 	{
+		PINVIT_PROFILE_FUNC()
 // a. compute rayleigh quotients
 		// lambda = <x, Ax>/<x,x>
 		// todo: replace with MatMult
@@ -630,6 +720,7 @@ private:
 	void print_eigenvalues_and_defect(int iteration, const std::vector<double> &vDefectNorm,
 			std::vector<double> &vOldDefectNorm, const std::vector<double> &vLambda)
 	{
+		PINVIT_PROFILE_FUNC()
 		UG_LOG("================================================\n");
 		UG_LOG("iteration " << iteration << "\n");
 
@@ -666,6 +757,7 @@ private:
 			std::vector<vector_type *> &pTestVectors, std::vector<std::string> &vTestVectorDescription,
 			const std::vector<double> &vDefectNorm)
 	{
+		PINVIT_PROFILE_FUNC()
 		pTestVectors.clear();
 		vTestVectorDescription.clear();
 		for(size_t i=0; i < px.size(); i++)
@@ -688,14 +780,17 @@ private:
 
 				if(vDefectNorm[i] >= m_dPrecision && m_iPINVIT >= 3)
 				{
-					pTestVectors.push_back(&vOldX[i]);
-					vTestVectorDescription.push_back(std::string("old correction [") + ToString(i) + std::string("]") );
+					if(iteration != 0)
+					{
+						pTestVectors.push_back(&vOldX[i]);
+						vTestVectorDescription.push_back(std::string("old eigenvalue[") + ToString(i) + std::string("]") );
+					}
 
-					if(iteration == 0)
+					/*if(iteration == 0)
 					{
 						for(size_t j=0; j<px[i]->size(); j++)
 							vOldX[i][j] = (*px[i])[j] * urand(-1.0, 1.0);
-					}
+					}*/
 				}
 			}
 		}
@@ -707,6 +802,7 @@ private:
 	 */
 	void save_old_approximations( std::vector<vector_type> &old)
 	{
+		PINVIT_PROFILE_FUNC()
 		for(size_t i=0; i<px.size(); i++)
 			old[i] = *px[i];
 	}
@@ -718,6 +814,7 @@ private:
 	 */
 	void get_linear_independent_rows(DenseMatrix<VariableArray2<double> > mat, std::vector<bool> &bLinearIndependent)
 	{
+		PINVIT_PROFILE_FUNC()
 		// Remove linear depended vectors
 		bLinearIndependent.resize(mat.num_rows(), true);
 		for(size_t i=0; i<mat.num_rows(); i++)
@@ -730,7 +827,7 @@ private:
 				for(size_t k=j+1; k<mat.num_rows(); k++)
 					mat(i,k) -= val*mat(j, k);
 			}
-			if(mat(i,i) < 1e-8) bLinearIndependent[i] = false;
+			if(mat(i,i) < 1e-12) bLinearIndependent[i] = false;
 			else bLinearIndependent[i] = true;
 		}
 	}
@@ -743,6 +840,7 @@ private:
 	template<typename T>
 	void remove_unused(std::vector<T> &v, const std::vector<bool> vbUse)
 	{
+		PINVIT_PROFILE_FUNC()
 		std::vector<T> tmp = v;
 		v.clear();
 		for(size_t i=0; i<tmp.size(); i++)
@@ -765,6 +863,7 @@ private:
 			DenseMatrix<VariableArray2<double> > &rB, std::vector<vector_type *> &pTestVectors,
 			std::vector<std::string> &vTestVectorDescription)
 	{
+		PINVIT_PROFILE_FUNC()
 		// 1. calculate W as a subset of the testvectors so that those are linear B-independent
 
 		size_t iNrOfTestVectors = pTestVectors.size();
@@ -783,10 +882,10 @@ private:
 
 
 		UG_LOG("used testvectors:\n");
-		for(int i=0; i<pTestVectors.size(); i++)
+		for(size_t i=0; i<pTestVectors.size(); i++)
 			if(bUse[i]) { UG_LOG(vTestVectorDescription[i] << "\n"); }
 		UG_LOG("unused testvectors:\n");
-		for(int i=0; i<pTestVectors.size(); i++)
+		for(size_t i=0; i<pTestVectors.size(); i++)
 			if(!bUse[i]) { UG_LOG(vTestVectorDescription[i] << "\n"); }
 
 		// save used testvectors
