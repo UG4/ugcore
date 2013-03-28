@@ -184,14 +184,10 @@ For \em JuQueen you have to "cross compile" and to do so use a specific
 \ref secCMake_ToolchainFiles.
 Start CMake like this
 \code
-cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/juqueen.cmake ..
+cmake -DSTATIC=ON -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/juqueen.cmake ..
 \endcode
-or, for <strong>static builds</strong> which is the <strong>configuration of 
-choice</strong> if you want to <strong>process very large jobs</strong>,
-\code
-cmake -DSTATIC=ON -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/juqueen_static.cmake ..
-\endcode
-
+A <strong>static build</strong> is the <strong>configuration of
+choice</strong> if you want to <strong>process very large jobs</strong>.
 Regarding the preferred build type "static" see also \ref secVery_large_jobs_on_JuQueen!
 
 \note
