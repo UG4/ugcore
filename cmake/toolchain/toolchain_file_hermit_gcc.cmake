@@ -11,7 +11,7 @@
 # for GCC:
 #    module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
 # then start cmake
-#    cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_file_hermit.cmake ..
+#    cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/hermit.cmake ..
 
 
 # on the cray compiler:

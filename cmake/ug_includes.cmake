@@ -993,7 +993,7 @@ endif(buildForLUA)
 
 ################################################################################
 # This is a hidden option, which is currently only required for builds on jugene.
-# Note that the associated option is enabled in toolchain_file_jugene.cmake
+# Note that the associated option is enabled in /cmake/toolchain/jugene.cmake
 if(enableDynamicOption)
 	add_definitions(-dynamic)
 endif(enableDynamicOption)
