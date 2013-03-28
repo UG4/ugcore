@@ -42,7 +42,13 @@ class VectorTimeSeries
 	//! clones the object (deep-copy) including values
 		SmartPtr<VectorTimeSeries<vector_type> > clone() const
 		{
-			return SmartPtr<VectorTimeSeries<vector_type> >(this->virtual_clone());
+			SmartPtr<VectorTimeSeries<TVector> > cloneTimeSol
+				= SmartPtr<VectorTimeSeries<TVector> >(new VectorTimeSeries<TVector>);
+
+			for(int i = m_vTimeSol.size()-1; i >= 0 ; --i)
+				cloneTimeSol->push(solution(i)->clone(), time(i));
+
+			return cloneTimeSol;
 		}
 
 	/// clears the content of the member m_vTimeSol
@@ -120,11 +126,6 @@ class VectorTimeSeries
 		};
 
 	protected:
-	//! virtual clone
-		virtual VectorTimeSeries<vector_type>* virtual_clone() const
-		{
-			return new VectorTimeSeries<vector_type>(*this);
-		}
 
 	//	deque of previous solutions
 		std::deque<TimeSol> m_vTimeSol;
