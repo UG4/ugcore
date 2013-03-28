@@ -100,6 +100,14 @@ int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_ty
 
 
 }
+#else // LAPACK_AVAILABLE
+template<typename A_type, typename TLambdaVectorType>
+int GeneralizedEigenvalueProblemComplex(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
+		TLambdaVectorType &lambda, DenseMatrix<A_type> &B, bool bSortEigenvalues=false)
+{
+	UG_ASSERT(0, "GeneralizedEigenvalueProblemComplex is only implemented for LAPACK at the moment");
+	return 0;
+}
 
 #endif // LAPACK_AVAILABLE
 #endif // __H__UG__EIGENVALUE__
