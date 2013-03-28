@@ -195,8 +195,9 @@ For this to work a CMake version with special platform files for Blue Gene/Q is
 required, but the currently (October 2012) installed version on JuQueen does not
 (the FZJ support is asked to support appropriate platform files).
 In the meantime one can resort to a local installation of (the most recent version
-of) CMake, where appropriate platform files are copied into the
-<tt>Modules/Platform/</tt> sub directory, e.g.
+of) CMake, where appropriate platform files
+(e.g. http://www.cmake.org/Bug/bug_relationship_graph.php?bug_id=13512&graph=dependency)
+are copied into the <tt>Modules/Platform/</tt> sub directory, e.g.
 
 \code
 ~/local/share/cmake-2.8/Modules/Platform/BlueGeneQ-*.cmake
