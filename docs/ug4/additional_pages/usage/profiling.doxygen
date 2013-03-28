@@ -47,7 +47,7 @@ this software is already installed, e.g. on cekon include "/home/profiler/bin"
 to your PATH in order to obtain scalasca and scorep. VampirTrace is provided
 with Open MPI 1.3 and higher.
 
-\note All profilings rely on the user-defined profiling marks <tt>PROFILE_*<\tt>
+\note All profilings rely on the user-defined profiling marks <tt>PROFILE_*</tt>
 that must be inserted into the code manually. Choosing a compiler those marks
 are defined for the requested profiler API. The external profilers Scalasca, Vampir
 and ScoreP also provide a automatic instrumentation facility, that inserts
