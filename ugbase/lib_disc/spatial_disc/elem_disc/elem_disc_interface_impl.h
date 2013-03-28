@@ -17,11 +17,13 @@ namespace ug{
 template <typename TElem>
 inline void IElemDisc::fast_prep_timestep_elem(TElem* elem, const LocalVector& u)
 {
-	UG_ASSERT(m_vPrepareTimestepElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-//	cast the method pointer back to the original type
-	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
-	Func pFunc = reinterpret_cast<Func>(m_vPrepareTimestepElemFct[m_id]);
-	(this->*(pFunc))(elem, u);
+	if (this->m_vPrepareTimestepElemFct[m_id] != NULL)
+	{
+	//	cast the method pointer back to the original type
+		typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
+		Func pFunc = reinterpret_cast<Func>(m_vPrepareTimestepElemFct[m_id]);
+		(this->*(pFunc))(elem, u);
+	}
 }
 
 template <typename TElem>
@@ -37,11 +39,13 @@ inline void IElemDisc::fast_prep_elem(TElem* elem, const LocalVector& u)
 template <typename TElem>
 inline void IElemDisc::fast_fsh_timestep_elem(TElem* elem, const number time, const LocalVector& u)
 {
-	UG_ASSERT(m_vFinishTimestepElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-//	cast the method pointer back to the original type
-	typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
-	Func pFunc = reinterpret_cast<Func>(m_vFinishTimestepElemFct[m_id]);
-	(this->*(pFunc))(elem, u);
+	if (this->m_vFinishTimestepElemFct[m_id] != NULL)
+	{
+	//	cast the method pointer back to the original type
+		typedef void (IElemDisc::*Func)(TElem*, const LocalVector&);
+		Func pFunc = reinterpret_cast<Func>(m_vFinishTimestepElemFct[m_id]);
+		(this->*(pFunc))(elem, u);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
