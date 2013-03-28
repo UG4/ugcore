@@ -30,14 +30,14 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 //	check number
 	if(vLfeID.size() != 1)
 	{
-		UG_LOG("NeumannBoundary:"
+		UG_LOG("NeumannBoundaryFV:"
 				" Wrong number of functions given. Need exactly "<<1<<"\n");
 		return false;
 	}
 
 	if(vLfeID[0].type() != LFEID::LAGRANGE)
 	{
-		UG_LOG("NeumannBoundary:"
+		UG_LOG("NeumannBoundaryFV:"
 				" FV Scheme only implemented for 1st order.\n");
 		return false;
 	}
@@ -45,7 +45,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 //	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
 	{
-		UG_LOG("NeumannBoundary:"
+		UG_LOG("NeumannBoundaryFV:"
 				" Adaptive or invalid order not implemented.\n");
 		return false;
 	}
@@ -126,7 +126,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 	try{
 		geo.update_local(roid, m_lfeID);
 	}
-	UG_CATCH_THROW("NeumannBoundary::prep_elem_loop:"
+	UG_CATCH_THROW("NeumannBoundaryFV::prep_elem_loop:"
 						" Cannot update Finite Volume Geometry.");
 
 //	request subset indices as boundary subset. This will force the
@@ -185,7 +185,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	               this->template element_corners<TElem>(elem),
 	               &(this->subset_handler()));
 	}
-	UG_CATCH_THROW("NeumannBoundary::prep_elem: "
+	UG_CATCH_THROW("NeumannBoundaryFV::prep_elem: "
 						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)

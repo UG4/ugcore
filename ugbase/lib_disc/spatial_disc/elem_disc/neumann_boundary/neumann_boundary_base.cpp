@@ -23,7 +23,7 @@ NeumannBoundaryBase<TDomain>::NeumannBoundaryBase(const char* function)
  :IDomainElemDisc<TDomain>(function, "")
 {
 	if(this->num_fct() != 1)
-		UG_THROW("NeumannBoundary: needed exactly one function.");
+		UG_THROW("NeumannBoundaryBase: needed exactly one function.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,12 +40,12 @@ update_subset_groups(Data& userData)
 //	convert strings
 	try{
 		userData.InnerSSGrp = this->approx_space()->subset_grp_by_name(userData.InnerSubsetNames.c_str());
-	}UG_CATCH_THROW("NeumannBoundary:"
+	}UG_CATCH_THROW("NeumannBoundaryBase:"
 					" Subsets '"<<userData.InnerSubsetNames<<"' not"
 					" all contained in ApproximationSpace.");
 	try{
 		userData.BndSSGrp = this->approx_space()->subset_grp_by_name(userData.BndSubsetNames.c_str());
-	}UG_CATCH_THROW("NeumannBoundary:"
+	}UG_CATCH_THROW("NeumannBoundaryBase:"
 					" Subsets '"<<userData.BndSubsetNames<<"' not"
 					" all contained in ApproximationSpace.");
 }
@@ -105,11 +105,11 @@ add(const char* name, const char* function, const char* subsets)
 
 //	no match found
 	if(!CheckLuaCallbackName(name))
-		UG_THROW("NeumannBoundary: Lua-Callback with name '"<<name<<
+		UG_THROW("NeumannBoundaryBase: Lua-Callback with name '"<<name<<
 		               "' does not exist.");
 
 //	name exists but wrong signature
-	UG_THROW("NeumannBoundary: Cannot find matching callback "
+	UG_THROW("NeumannBoundaryBase: Cannot find matching callback "
 					"signature. Use one of:\n"
 					"a) Number - Callback\n"
 					<< (LuaUserData<number, dim>::signature()) << "\n" <<

@@ -30,7 +30,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 //	check number
 	if(vLfeID.size() != 1)
 	{
-		UG_LOG("NeumannBoundary:"
+		UG_LOG("NeumannBoundaryFE:"
 				" Wrong number of functions given. Need exactly "<<1<<"\n");
 		return false;
 	}
@@ -38,7 +38,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 //	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
 	{
-		UG_LOG("NeumannBoundary:"
+		UG_LOG("NeumannBoundaryFE:"
 				" Adaptive or invalid order not implemented.\n");
 		return false;
 	}
@@ -59,7 +59,7 @@ bool NeumannBoundaryFE<TDomain>::
 request_non_regular_grid(bool bNonRegular)
 {
 	if(bNonRegular)
-		UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
+		UG_THROW("NeumannBoundaryFE: Hanging Nodes not implemented.");
 
 	return true;
 }
@@ -119,8 +119,8 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 	try{
 		geo.update_local(roid, m_lfeID, m_quadOrder);
 	}
-	UG_CATCH_THROW("NeumannBoundary::prep_elem_loop:"
-						" Cannot update Finite Volume Geometry.");
+	UG_CATCH_THROW("NeumannBoundaryFE::prep_elem_loop:"
+						" Cannot update Finite Element Geometry.");
 
 //	request subset indices as boundary subset. This will force the
 //	creation of boundary subsets when calling geo.update
@@ -180,8 +180,8 @@ prep_elem(TElem* elem, const LocalVector& u)
 	               m_quadOrder,
 	               &(this->subset_handler()));
 	}
-	UG_CATCH_THROW("NeumannBoundary::prep_elem: "
-						"Cannot update Finite Volume Geometry.");
+	UG_CATCH_THROW("NeumannBoundaryFE::prep_elem: "
+						"Cannot update Finite Element Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
 		if(m_vNumberData[i].InnerSSGrp.contains(m_si))

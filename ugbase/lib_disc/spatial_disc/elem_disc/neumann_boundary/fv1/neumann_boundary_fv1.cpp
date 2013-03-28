@@ -51,7 +51,7 @@ bool NeumannBoundaryFV1<TDomain>::
 request_non_regular_grid(bool bNonRegular)
 {
 	if(bNonRegular)
-		UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
+		UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
 
 	return true;
 }
@@ -163,7 +163,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	               this->template element_corners<TElem>(elem),
 	               &(this->subset_handler()));
 	}
-	UG_CATCH_THROW("NeumannBoundary::prep_elem: "
+	UG_CATCH_THROW("NeumannBoundaryFV1::prep_elem: "
 						"Cannot update Finite Volume Geometry.");
 
 	for(size_t i = 0; i < m_vNumberData.size(); ++i)
@@ -329,7 +329,7 @@ void NeumannBoundaryFV1<Domain1d>::register_all_funcs(bool bHang)
 	if(!bHang){
 		register_func<Edge, FV1Geometry<Edge, dim> >();
 	}
-	else UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
+	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
 }
 
 template<>
@@ -339,7 +339,7 @@ void NeumannBoundaryFV1<Domain2d>::register_all_funcs(bool bHang)
 		register_func<Triangle, FV1Geometry<Triangle, dim> >();
 		register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
 	}
-	else UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
+	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
 }
 
 template<>
@@ -351,7 +351,7 @@ void NeumannBoundaryFV1<Domain3d>::register_all_funcs(bool bHang)
 		register_func<Pyramid, FV1Geometry<Pyramid, dim> >();
 		register_func<Hexahedron, FV1Geometry<Hexahedron, dim> >();
 	}
-	else UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
+	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
 }
 
 template<typename TDomain>
