@@ -275,18 +275,6 @@ inline
 void
 VecSubtract(vector_t& vOut, const vector_t& v, typename vector_t::value_type s);
 
-/// Devide a vector by a scalar (componentwise)
-template <typename vector_t>
-inline
-void
-VecDevide(vector_t& vOut, const vector_t& v, typename vector_t::value_type s);
-
-/// Multiply a vector by a scalar (componentwise)
-template <typename vector_t>
-inline
-void
-VecMultiply(vector_t& vOut, const vector_t& v, typename vector_t::value_type s);
-
 ////////////////////////////////////////////////////////////////
 // Norms
 template <typename vector_t>

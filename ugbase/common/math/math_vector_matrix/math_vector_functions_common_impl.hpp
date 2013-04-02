@@ -440,33 +440,6 @@ VecSubtract(vector_t& vOut, const vector_t& v, typename vector_t::value_type s)
 	}
 }
 
-/// Devide a vector by a scalar (componentwise)
-template <typename vector_t>
-inline
-void
-VecDevide(vector_t& vOut, const vector_t& v, typename vector_t::value_type s)
-{
-	typedef typename vector_t::size_type size_type;
-	for(size_type i = 0; i < vOut.size(); ++i)
-	{
-		vOut[i] = v[i] / s;
-	}
-}
-
-/// Multiply a vector by a scalar (componentwise)
-template <typename vector_t>
-inline
-void
-VecMultiply(vector_t& vOut, const vector_t& v, typename vector_t::value_type s)
-{
-	typedef typename vector_t::size_type size_type;
-	for(size_type i = 0; i < vOut.size(); ++i)
-	{
-		vOut[i] = v[i] * s;
-	}
-}
-
-
 template <typename vector_t>
 inline
 typename vector_t::value_type
