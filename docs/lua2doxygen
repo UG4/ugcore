@@ -3,29 +3,39 @@
 # changed by Martin Rupp. More copyright information follows.
 
 
-use strict;
+#use strict;
 use warnings;
+#package bla;
+$input = $ARGV[0];
 
-my $input = $ARGV[0];
+$bInBlock = 0;
+$bInFunction = 0;
+$blockName = q{};
+$result = q{};
+$luaDoxygenMark = "--!";
+$inMultilineComment = 0;
+$inDocuMultilineComment = 0;
+$functionComment = "";
+$code="";
 
-my $bla=0;
-my $bInBlock = 0;
-my $bInFunction = 0;
-my $blockName = q{};
-my $result = q{};
-my $deux = 0;
-my $luaDoxygenMark = "--!";
-my $originalLine;
-my $functionLine;
-my $inMultilineComment = 0;
-my $inDocuMultilineComment = 0;
-my $functionComment = "";
-my $code="";
+local $/=undef; #Unset $/, the Input Record Separator, to make <> give you the whole file at once.
 open FH, "<$input"  or die "Can't open $input for reading: $!";
 
+$doc = <FH>;
+@document = split( /\n/, $doc);
+#print(document);
 
-foreach my $line (<FH>)
+sub trim($)
 {
+	my $string = shift;
+	$string =~ s/^\s+//;
+	$string =~ s/\s+$//;
+	return $string;
+}
+
+for ($i=0;$i<$#document;$i++)
+{
+  $line = $document[$i];
 	chomp $line;
     $originalLine=$line;
 
@@ -81,9 +91,20 @@ foreach my $line (<FH>)
     if ( $line =~ /^\s*function[ \t]/) 
     {
         $bInFunction = 1;
-        $line .= q{;};
-        $line =~ s/:/-/;
-        $functionLine = $line;
+		$functionLine = "";
+		while( $line !~ m/[\)]*\)/ )
+		  {
+			$functionLine .= trim($line);
+			$functionLine .= "\n";
+			$i++;
+			$line = $document[$i];
+			$line =~ s/--[^!].*//;
+		  }
+		$functionLine .= trim($line);
+
+		$functionLine =~ s/:/-/;
+        $functionLine .= q{;};
+
         $result .= "\n/**\n";
         if($functionComment ne "")
         {
@@ -191,6 +212,14 @@ foreach my $line (<FH>)
     
 }
 
+    # function end
+    if ($bInFunction == 1) 
+    {
+       	$result .= "$line\n\\endcode\n**/\n".$functionLine."\n";
+    }
+
+
+    
 close FH;
 $result .= "\n/** <hr> \\include $input */\n";
 #print("/**\n\\file $input\n\\brief my superfile\n\\code\n".$code."\n\\endcode\n**/\n");
