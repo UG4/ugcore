@@ -131,20 +131,6 @@ void IElemDisc<TDomain>::register_export(SmartPtr<IUserData<dim> > Exp)
 }
 
 template <typename TDomain>
-IDataImport<IElemDisc<TDomain>::dim>& IElemDisc<TDomain>::get_import(size_t i)
-{
-	UG_ASSERT(i < num_imports(), "Invalid index");
-	return *m_vIImport[i];
-}
-
-template <typename TDomain>
-SmartPtr<IUserData<IElemDisc<TDomain>::dim> > IElemDisc<TDomain>::get_export(size_t i)
-{
-	UG_ASSERT(i < num_exports(), "Invalid index");
-	return m_vIExport[i];
-}
-
-template <typename TDomain>
 void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 {
 	m_id = roid;

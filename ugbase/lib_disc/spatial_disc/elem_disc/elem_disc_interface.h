@@ -119,7 +119,11 @@ class IElemDisc
 		size_t num_imports() const {return m_vIImport.size();}
 
 	/// returns an import
-		IDataImport<dim>& get_import(size_t i);
+		IDataImport<dim>& get_import(size_t i)
+		{
+			UG_ASSERT(i < num_imports(), "Invalid index");
+			return *m_vIImport[i];
+		}
 
 	///	removes all imports
 		void clear_imports() {m_vIImport.clear();}
@@ -128,7 +132,11 @@ class IElemDisc
 		size_t num_exports() const {return m_vIExport.size();}
 
 	/// returns an export
-		SmartPtr<IUserData<dim> > get_export(size_t i);
+		SmartPtr<IUserData<dim> > get_export(size_t i)
+		{
+			UG_ASSERT(i < num_exports(), "Invalid index");
+			return m_vIExport[i];
+		}
 
 	///	removes all exports
 		void clear_exports() {m_vIExport.clear();}
