@@ -8,6 +8,10 @@ Here you find documentation about some of the script in ug4/scripts:
 
 - <a href="ug__util_8lua.html">scripts/util.lua</a>
 - <a href="partition__maps_8lua.html">scripts/util/partition_maps.lua</a>
+- <a href="solver__util_8lua.html">scripts/util/solver_util.lua</a>
+- <a href="time__step__util_8lua.html">scripts/util/time_step_util.lua</a>
+- <a href="domain__disc__util_8lua.html">scripts/util/domain_disc_util.lua</a>
+- <a href="scripts_2util_2domain__distribution__util_8lua.html">script/util/domain_distribution_util.lua</a>
 - <a href="stats__util_8lua.html">scripts/util/stats_util.lua</a>
-
+- <a href="gnuplot_8lua.html">scripts/util/gnuplot.lua</a>
 */
