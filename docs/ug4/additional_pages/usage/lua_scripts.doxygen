@@ -6,12 +6,16 @@
 
 Here you find documentation about some of the script in ug4/scripts:
 
-- <a href="ug__util_8lua.html">scripts/util.lua</a>
-- <a href="partition__maps_8lua.html">scripts/util/partition_maps.lua</a>
-- <a href="solver__util_8lua.html">scripts/util/solver_util.lua</a>
-- <a href="time__step__util_8lua.html">scripts/util/time_step_util.lua</a>
-- <a href="domain__disc__util_8lua.html">scripts/util/domain_disc_util.lua</a>
-- <a href="scripts_2util_2domain__distribution__util_8lua.html">script/util/domain_distribution_util.lua</a>
-- <a href="stats__util_8lua.html">scripts/util/stats_util.lua</a>
-- <a href="gnuplot_8lua.html">scripts/util/gnuplot.lua</a>
+- <a href="ug__util_8lua.html">ug util - standard include</a>
+- <a href="partition__maps_8lua.html">Partition Maps</a>
+- <a href="time__step__util_8lua.html">Time Steps Util</a>
+- <a href="domain__disc__util_8lua.html">Domain Disc Util</a>
+- <a href="scripts_2util_2domain__distribution__util_8lua.html">Domain Distribution Util</a>
+- <a href="stats__util_8lua.html">Stats Utily for tables across runs</a>
+- <a href="gnuplot_8lua.html">Gnuplot Util</a>
+
+Solvers:
+- <a href="solver__util_8lua.html">Solver Util</a>
+- <a href="setup__famg_8lua.html">FAMG</a>
+- <a href="setup__rsamg_8lua.html">RSAMG</a>
 */
