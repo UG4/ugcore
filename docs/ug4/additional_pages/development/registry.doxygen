@@ -1,5 +1,16 @@
 /**	\page pageUG4Registry ug4-Registry
 
+- \ref secSTHowToRegister
+- \ref secSTHowToRegisterFunctions
+- \ref secSTHowToRegisterClasses
+- \ref secSTHowToSpecifyParameterInformation
+- \ref secSTHowToSpecifyVRLInformation
+- \ref secSTHowToRegisterBaseClasses
+- \ref secSTHowToRegisterOverloadedMethods
+- \ref secSTHowToRegisterOverloadedConstructors
+
+<hr>
+
 In order to make functionality (such as C++ classes, methods and functions) 
 available in the Lua-Script or the VRL, this functionality must be registered
 by the C++ programmer.
