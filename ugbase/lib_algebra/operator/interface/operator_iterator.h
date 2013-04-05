@@ -273,7 +273,7 @@ class IPreconditioner :
 	 * \param[in]	mat			underlying matrix (i.e. L in L*u = f)
 	 * \returns		bool		success flag
 	 */
-		virtual bool preprocess(MatrixOperator<matrix_type, vector_type>& mat) = 0;
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp) = 0;
 
 	///	computes a new correction c = B*d
 	/**
@@ -285,7 +285,7 @@ class IPreconditioner :
 	 * \param[in]	d			defect
 	 * \returns		bool		success flag
 	 */
-		virtual bool step(MatrixOperator<matrix_type, vector_type>& mat, vector_type& c, const vector_type& d)  = 0;
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)  = 0;
 
 	///	cleans the operator
 		virtual bool postprocess() = 0;
@@ -364,7 +364,7 @@ class IPreconditioner :
 				UG_THROW(name() << "::init': Passed Operator is invalid.");
 
 		//	Preprocess
-			if(!preprocess(*m_spOperator))
+			if(!preprocess(Op))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::init': Preprocess failed.\n");
 				return false;
@@ -415,7 +415,7 @@ class IPreconditioner :
 				               << c.size() << "] sizes have to match!");
 
 		// 	apply iterator: c = B*d
-			if(!step(*m_spOperator, c, d))
+			if(!step(m_spOperator, c, d))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::apply': Step Routine failed.\n");
 				return false;

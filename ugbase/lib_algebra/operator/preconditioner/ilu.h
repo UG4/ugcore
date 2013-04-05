@@ -304,8 +304,9 @@ class ILU : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "ILU";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
+			matrix_type &mat = *pOp;
 			PROFILE_BEGIN_GROUP(ILU_preprocess, "algebra ILU");
 		//	Debug output of matrices
 			write_debug(mat, "ILU_BeforeMakeConsistent");
@@ -348,7 +349,7 @@ class ILU : public IPreconditioner<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 			PROFILE_BEGIN_GROUP(ILU_step, "algebra ILU");
 		//	\todo: introduce damping

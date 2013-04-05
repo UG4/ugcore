@@ -561,13 +561,13 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Line Gauss-Seidel";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
 				//	copy original matrix
-				MakeConsistent(mat, m_A);
+				MakeConsistent(*pOp, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
@@ -581,7 +581,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 		virtual bool postprocess() {return true;}
 
 	//	Stepping routine
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
@@ -599,7 +599,7 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-				if(!linegs_step(mat, c, d)) return false;
+				if(!linegs_step(*pOp, c, d)) return false;
 			//	if(!gs_step_LL(mat, c, d)) return false;
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);
@@ -908,13 +908,13 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Line Vanka";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
 				//	copy original matrix
-				MakeConsistent(mat, m_A);
+				MakeConsistent(*pOp, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
@@ -928,7 +928,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 		virtual bool postprocess() {return true;}
 
 	//	Stepping routine
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
@@ -946,7 +946,7 @@ class LineVanka : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-				if(!linevanka_step(mat, c, d)) return false;
+				if(!linevanka_step(*pOp, c, d)) return false;
 			//	if(!gs_step_LL(mat, c, d)) return false;
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);

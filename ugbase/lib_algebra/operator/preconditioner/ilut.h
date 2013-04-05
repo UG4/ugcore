@@ -75,8 +75,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "ILUTPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
+			matrix_type &mat = *pOp;
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
 		//	Prepare Inverse Matrix
@@ -200,7 +201,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 			// apply iterator: c = LU^{-1}*d (damp is not used)
 			// L

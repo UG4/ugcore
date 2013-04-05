@@ -219,13 +219,13 @@ class Vanka : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Vanka";}
 
 	///	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
 				//	copy original matrix
-				MakeConsistent(mat, m_A);
+				MakeConsistent(*pOp, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
@@ -235,7 +235,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
@@ -254,7 +254,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-				if(!Vanka_step(mat, c, d, m_relax)) return false;
+				if(!Vanka_step(*pOp, c, d, m_relax)) return false;
 
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);
@@ -327,13 +327,13 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "DiagVanka";}
 
 	///	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
 				//	copy original matrix
-				MakeConsistent(mat, m_A);
+				MakeConsistent(*pOp, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
@@ -343,7 +343,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
@@ -363,7 +363,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 #endif
 			{
 
-				if(!Diag_Vanka_step(mat, c, d, m_relax)) return false;
+				if(!Diag_Vanka_step(*pOp, c, d, m_relax)) return false;
 
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);

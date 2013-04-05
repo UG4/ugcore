@@ -174,13 +174,13 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "ElementGaussSeidel";}
 
 	///	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
 			{
 				//	copy original matrix
-				MakeConsistent(mat, m_A);
+				MakeConsistent(*pOp, m_A);
 				//	set zero on slaves
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
@@ -190,7 +190,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 			GridFunction<TDomain, TAlgebra>* pC
 				= dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
@@ -222,7 +222,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			else
 #endif
 			{
-
+				matrix_type &mat = *pOp;
 				if		(m_type == "element") ElementGaussSeidelStep<Element,TDomain,TAlgebra>(mat, *pC, d, m_relax);
 				else if	(m_type == "side") ElementGaussSeidelStep<Side,TDomain,TAlgebra>(mat, *pC, d, m_relax);
 				else if	(m_type == "face") ElementGaussSeidelStep<Face,TDomain,TAlgebra>(mat, *pC, d, m_relax);

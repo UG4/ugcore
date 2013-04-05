@@ -40,6 +40,8 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		using base_type::set_debug;
 		using base_type::debug_writer;
 		using base_type::write_debug;
+		using base_type::m_spOperator;
+		using base_type::damping;
 
 	public:
 	///	default constructor
@@ -53,7 +55,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		{
 			SmartPtr<Jacobi<algebra_type> > newInst(new Jacobi<algebra_type>());
 			newInst->set_debug(debug_writer());
-			newInst->set_damp(this->damping());
+			newInst->set_damp(damping());
 			return newInst;
 		}
 
@@ -66,8 +68,9 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "Jacobi";}
 
 	///	Preprocess routine
-		virtual bool preprocess(matrix_operator_type& mat)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
+			matrix_type &mat = *pOp;
 			PROFILE_BEGIN_GROUP(Jacobi_preprocess, "algebra Jacobi");
 #ifdef UG_PARALLEL
 		// 	create help vector to apply diagonal
@@ -99,8 +102,8 @@ class Jacobi : public IPreconditioner<TAlgebra>
 
 		//	get damping in constant case to damp at once
 			number damp = 1.0;
-			if(this->damping()->constant_damping())
-				damp = this->damping()->damping();
+			if(damping()->constant_damping())
+				damp = damping()->damping();
 
 		// 	invert diagonal and multiply by damping
 			for(size_t i = 0; i < diag.size(); ++i)
@@ -113,7 +116,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
-		virtual bool step(matrix_operator_type& mat, vector_type& c, const vector_type& d)
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 			PROFILE_BEGIN_GROUP(Jacobi_step, "algebra Jacobi");
 #ifdef UG_PARALLEL
@@ -136,10 +139,11 @@ class Jacobi : public IPreconditioner<TAlgebra>
 				return false;
 			}
 #else
+			matrix_type &mat = *pOp;
 		//	get damping in constant case to damp at once
 			number damp = 1.0;
-			if(this->damping()->constant_damping())
-				damp = this->damping()->damping();
+			if(damping()->constant_damping())
+				damp = damping()->damping();
 
 		// 	apply iterator: c = B*d (damp is not used)
 			for(size_t i = 0; i < c.size(); ++i)
@@ -175,26 +179,26 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			#endif
 
 		//	Check sizes
-			if(d.size() != this->m_spOperator->num_rows())
+			if(d.size() != m_spOperator->num_rows())
 				UG_THROW("Vector [size= "<<d.size()<<"] and Row [size= "
 				               <<this->m_spOperator->num_rows()<<"] sizes have to match!");
-			if(c.size() != this->m_spOperator->num_cols())
+			if(c.size() != m_spOperator->num_cols())
 				UG_THROW("Vector [size= "<<c.size()<<"] and Column [size= "
-				               <<this->m_spOperator->num_cols()<<"] sizes have to match!");
+				               <<m_spOperator->num_cols()<<"] sizes have to match!");
 			if(d.size() != c.size())
 				UG_THROW("Vector [d size= "<<d.size()<<", c size = "
 				               << c.size() << "] sizes have to match!");
 
 		// 	apply iterator: c = B*d
-			if(!step(*this->m_spOperator, c, d))
+			if(!step(m_spOperator, c, d))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::apply': Step Routine failed.\n");
 				return false;
 			}
 
 		//	apply scaling
-			if(!this->damping()->constant_damping()){
-				const number kappa = this->damping()->damping(c, d, this->m_spOperator);
+			if(!damping()->constant_damping()){
+				const number kappa = damping()->damping(c, d, m_spOperator);
 				if(kappa != 1.0){
 					c *= kappa;
 				}
