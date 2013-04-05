@@ -17,13 +17,7 @@
 
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
-#include "lib_algebra/operator/preconditioner/jacobi.h"
-#include "lib_algebra/operator/preconditioner/gauss_seidel.h"
-#include "lib_algebra/operator/preconditioner/ilu.h"
-#include "lib_algebra/operator/preconditioner/ilut.h"
-#include "lib_algebra/operator/preconditioner/iterator_product.h"
-#include "lib_algebra/operator/preconditioner/vanka.h"
-
+#include "lib_algebra/operator/preconditioner/preconditioners.h"
 using namespace std;
 
 namespace ug{

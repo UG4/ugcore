@@ -69,8 +69,16 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("get_eigenvalue", &T::get_eigenvalue, "eigenvalue i", "i")
 			.add_method("set_precision", &T::set_precision, "", "precision")
 			.add_method("get_eigenvector", &T::get_eigenvector, "eigenvector i", "i")
+			.add_method("set_print_projected_eigenvectors", &T::set_print_projected_eigenvectors, "", "b")
+			.add_method("set_print_projected_eigenvalues", &T::set_print_projected_eigenvalues, "", "b")
+			.add_method("set_print_projected_eigenproblem", &T::set_print_projected_eigenproblem, "", "b")
+			.add_method("set_additional_eigenvectors_to_keep", &T::set_additional_eigenvectors_to_keep, "", "i", "additional i smallest ritz-eigenvectors are added to the test space")
+			.add_method("set_use_additional_corrections", &T::set_use_additional_corrections, "", "b")
+			.add_method("set_debug_calc_projected_eigenvalues", &T::set_debug_calc_projected_eigenvalues, "", "b")
+			.add_method("set_print_used_testvectors", &T::set_print_used_testvectors, "", "b")
 			.add_method("set_pinvit", &T::set_pinvit, "", "iPINVIT", "1 = preconditioned inverse block iteration, 2 = preconditioned block gradient descent, 3 = LOBPCG")
 			.add_method("apply", &T::apply);
+
 		reg.add_class_to_group(name, "EigenSolver", tag);
 	}
 #endif
