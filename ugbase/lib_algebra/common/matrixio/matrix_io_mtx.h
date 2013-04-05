@@ -189,7 +189,44 @@ class MatrixIOMtx : MatrixIO
      * \throws UGError            if exchange file's matrix is not in coordinate
      *                            format (as only sparse matrices are supported yet)
      */
-    void read_into( CPUAlgebra::matrix_type &matrix );
+    template<typename matrix_type>
+    void read_into( matrix_type &matrix )
+    {
+      PROFILE_FUNC();
+      UG_ASSERT( m_rows > 0 || m_cols > 0 || m_lines > 0,
+                 "MatrixMarket matrix dimensions seem not be reasonable: (m, n, nnz)=("
+                 << m_rows << "," << m_cols << "," << m_lines << ")" );
+
+      // open the file and go one before first data line
+      open_file();
+
+      std::string dummy;
+      for( size_t i = 0; i < m_firstDataLine; i++ ) {
+        std::getline( m_matFileStream, dummy );
+      }
+
+      matrix.resize( m_rows, m_cols );
+      size_t x, y;
+      double val;
+      if ( m_mmTypeCode.is_sparse() ) {
+        for( size_t i = 0; i < m_lines; i++ ) {
+          read_entry( &x, &y, &val );
+          // we need to substract 1 from row and column indices as MM is 1-based
+          matrix( x - 1, y - 1 ) = val;
+          if ( m_mmTypeCode.is_symmetric() && x != y ) {
+            matrix( y - 1, x - 1 ) = val;
+          } else if ( m_mmTypeCode.is_skew_symmetric() && x != y ) {
+            matrix( y - 1, x - 1 ) = -val;
+          }
+        }
+      } else {
+        UG_THROW( "Other than sparse MatrixMarket matrices are not yet implemented." );
+      }
+
+      // close the file
+      close_file();
+    }
+
 
     /**
      * \brief Writes a ug matrix into the associated MatrixMarket exchange file
@@ -214,8 +251,45 @@ class MatrixIOMtx : MatrixIO
      * \param[in] comment Optional comment to be put atop of the MatrixMarket
      *                    matrix exchange file.
      */
-    void write_from( CPUAlgebra::matrix_type &matrix,
-                     std::string comment="%Generated with ug4." );
+    template<typename matrix_type>
+    void write_from( matrix_type &matrix,
+                     std::string comment="%Generated with ug4." )
+    {
+	  PROFILE_FUNC();
+
+	  // analyze the given matrix
+	  std::vector< std::vector<size_t> > rowIndexPerCol = determine_matrix_characteristics( matrix );
+
+	  // write the MatrixMarket banner
+	  write_banner();
+
+	  // open the file for appending
+	  open_file( std::ios_base::out | std::ios_base::app );
+
+	  // add a comment if it's not empty
+	  if ( !comment.empty() ) {
+		if ( comment.find_first_of( '%' ) != 0 ) {
+		  UG_WARNING( "Given comment did not start with '%'. Prepending it to make it valid." );
+		  comment.insert( 0, "%" );
+		}
+		m_matFileStream << comment << "\n";
+	  }
+
+	  // write characteristics
+	  m_matFileStream << m_rows << " " << m_cols << " " << m_lines << "\n";
+
+
+	  // write entries to the file
+	  for ( size_t col = 0; col < m_cols; col++ ) {
+		for (size_t row = 0; row < rowIndexPerCol.at(col).size(); row++ ) {
+		  // we need to add 1 to row and column index, as MM indices are 1-based
+		  write_entry( rowIndexPerCol.at(col).at(row) + 1, col + 1,
+					   matrix(rowIndexPerCol.at(col).at(row), col) );
+		}
+	  }
+	  close_file();
+    }
+
 
   private:
     // Opens file as fstream. (docu in matrix_io.h)
