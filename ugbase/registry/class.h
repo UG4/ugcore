@@ -648,6 +648,17 @@ class ExportedClass : public ExportedClassBaseImpl
 		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
 
 	/// Method registration
+	/**
+	 * @param methodName the name of the method to appear in the registry
+	 * @param func pointer to the member function (e.g. &MyClass::my_method)
+	 * @param retValInfos string documenting what the function returns (optional)
+	 * @param paramInfos string documenting the parameters of the function
+	 * seperate parameters with an # e.g. "x#y#z" (don't specify the type of the values)  (optional)
+	 * @param toolTip small documentation for the function (optional)
+	 * @param help help string for the function
+	 * @sa \ref pageUG4Registry
+	 * @sa \ref secSTHowToSpecifyParameterInformation
+	 */
 		template <typename TMethod>
 		ExportedClass<TClass>& add_method (std::string methodName, TMethod func,
 		                                    std::string retValInfos = "", std::string paramInfos = "",
@@ -728,6 +739,14 @@ class ExportedClass : public ExportedClassBaseImpl
 		}
 
 	/// constructor registration
+	/**
+	 * @param paramInfos string documenting the parameters of the function
+	 * seperate parameters with an # e.g. "x#y#z" (don't specify the type of the values)  (optional)
+	 * @param toolTip small documentation for the function (optional)
+	 * @param help help string for the function
+	 * @param options style option of the constructor itself (for visualisation)
+	 * @sa \ref pageUG4Registry
+	 */
 		template <typename TFunc>
 		ExportedClass<TClass>& add_constructor(std::string paramInfos = "",
 		                                       std::string tooltip = "", std::string help = "",

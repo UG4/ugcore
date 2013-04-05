@@ -97,6 +97,7 @@ class UG_API ClassGroupDesc
  * Please note, that some of the methods take std::string by copy instead of
  * using const std::string&. This is on purpose in order to allow a call
  * of the method using a const char* as well.
+ * @sa \ref pageUG4Registry
  */
 class UG_API Registry {
 	public:
@@ -123,7 +124,20 @@ class UG_API Registry {
 	// global functions
 	//////////////////////
 		
-	/**	References the template function proxy_function<TFunc> and stores
+	/**
+	 * @brief adds a function to the registry
+	 * @param funcName the name of the function
+	 * @param func function pointer of the function
+	 * @param group registry group. use / for subgroups e.g. ug4/mygroup/mysubgroup (optional)
+	 * @param retValInfos string documenting what the function returns (optional)
+	 * @param paramInfos string documenting the parameters of the function
+	 * seperate parameters with an # e.g. "x#y#z" (don't specify the type of the values)  (optional)
+	 * @param toolTip small documentation for the function (optional)
+	 * @param help help string for the function
+	 * @sa \ref pageUG4Registry
+	 * @sa \ref secSTHowToSpecifyParameterInformation
+	 *
+	 * References the template function proxy_function<TFunc> and stores
 	 * it with the FuntionWrapper.
 	 */
 		template<class TFunc>
@@ -154,19 +168,34 @@ class UG_API Registry {
 	// classes
 	///////////////////
 
-	/// Register a class at this registry
+	/**
+	 * @brief Register a class at this registry
+	 * @param className name of the class to appear in the registry
+	 * @param group registry group. use / for subgroups e.g. ug4/mygroup/mysubgroup (optional)
+	 * @param toolTip describing text for the class (optional)
+	 */
 		template <typename TClass>
 		ExportedClass<TClass>& add_class_(std::string className,
 		                                   std::string group = "",
 		                                   std::string tooltip = "");
 
-	/// Register a class at this registry together with its base class
+	/**
+	 * @brief Register a class at this registry together with its base class
+	 * @param className name of the class to appear in the registry
+	 * @param group registry group. use / for subgroups e.g. ug4/mygroup/mysubgroup (optional)
+	 * @param toolTip describing text for the class (optional)
+	 */
 		template <typename TClass, typename TBaseClass>
 		ExportedClass<TClass>& add_class_(std::string className,
 		                                   std::string group = "",
 		                                   std::string tooltip = "");
 
-	/// Register a class at this registry together with its base class
+	/**
+	 * @brief Register a class at this registry together with two base classes
+	 * @param className name of the class to appear in the registry
+	 * @param group registry group. use / for subgroups e.g. ug4/mygroup/mysubgroup (optional)
+	 * @param toolTip describing text for the class (optional)
+	 */
 		template <typename TClass, typename TBaseClass1, typename TBaseClass2>
 		ExportedClass<TClass>& add_class_(std::string className,
 		                                   std::string group = "",
@@ -215,7 +244,7 @@ class UG_API Registry {
 
 	///	adds the given class to the given group.
 	/**	Groups are constructed automatically if required.
-	 * This method is just for conveniance. It is effectively the same as:
+	 * This method is just for convenience. It is effectively the same as:
 	 * get_class_group(groupName).add_class(reg.get_class(className), classTag).*/
 		void add_class_to_group(std::string className, std::string groupName,
 		                        std::string classTag = "");
