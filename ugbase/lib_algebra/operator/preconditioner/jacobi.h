@@ -70,9 +70,10 @@ class Jacobi : public IPreconditioner<TAlgebra>
 	///	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
-			matrix_type &mat = *pOp;
+
 			PROFILE_BEGIN_GROUP(Jacobi_preprocess, "algebra Jacobi");
 #ifdef UG_PARALLEL
+			matrix_type &mat = *pOp;
 		// 	create help vector to apply diagonal
 			size_t size = mat.num_rows();
 			if(size != mat.num_cols())
