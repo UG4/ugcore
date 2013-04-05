@@ -314,9 +314,12 @@ elseif("${TARGET}" STREQUAL "gridshell")
 	set(buildRegistry ON)
 	
 elseif("${TARGET}" STREQUAL "amg")
+	set(buildPluginSystem OFF)
 	set(targetLibraryName ugamg)
 	set(buildAlgebra ON)
 	set(buildGrid OFF)
+	#set(buildPluginSystem OFF)
+	set(PARALLEL OFF)
 else("${TARGET}" STREQUAL "ugshell")
 	message(FATAL_ERROR "Unsupported TARGET: "${TARGET}". Options are: "${targetOptions})
 	
