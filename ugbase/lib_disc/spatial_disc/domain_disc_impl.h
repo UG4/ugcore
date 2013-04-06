@@ -148,7 +148,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_jacobian(M, u, dd);
 			}
 	}
@@ -250,7 +250,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_jacobian(A, u, dd);
 			}
 	}
@@ -359,7 +359,7 @@ assemble_jacobian(matrix_type& J,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_jacobian(J, u, dd);
 			}
 	}
@@ -462,7 +462,7 @@ assemble_defect(vector_type& d,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_defect(d, u, dd);
 			}
 	}
@@ -562,7 +562,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd);
 			}
 	}
@@ -664,7 +664,7 @@ assemble_rhs(vector_type& rhs,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_rhs(rhs, u, dd);
 			}
 	}
@@ -712,7 +712,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_solution(u, dd);
 			}
 	}
@@ -916,7 +916,7 @@ assemble_jacobian(matrix_type& J,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd, time);
 			}
 	}
@@ -1020,7 +1020,7 @@ assemble_defect(vector_type& d,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_defect(d, *vSol->solution(0), dd, vSol->time(0));
 			}
 	}
@@ -1124,7 +1124,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_linear(mat, rhs, dd, vSol->time(0));
 			}
 	}
@@ -1230,7 +1230,7 @@ assemble_rhs(vector_type& rhs,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_rhs(rhs, rhs, dd, vSol->time(0));
 			}
 	}
@@ -1270,7 +1270,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
-				m_AssAdapter.adaptConstraint(m_vConstraint[i]);
+				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
 				m_vConstraint[i]->adjust_solution(u, dd, time);
 			}
 	}

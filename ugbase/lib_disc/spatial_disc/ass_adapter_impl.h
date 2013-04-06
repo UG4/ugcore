@@ -57,16 +57,6 @@ void AssAdapter<TAlgebra>::elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd,
 }
 
 template <typename TAlgebra>
-template <typename TDomain>
-void AssAdapter<TAlgebra>::adaptConstraint(
-		SmartPtr<IDomainConstraint<TDomain, TAlgebra> >& constraint)
-{
-	//	forward to ConstraintInterface if assembling is carried out at one DoF only
-	if(m_assIndex.index_set) constraint->set_ass_index(m_assIndex.index);
-	else constraint->set_ass_index();
-}
-
-template <typename TAlgebra>
 void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index,
 		const size_t alpha)
 {
@@ -81,8 +71,7 @@ void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index,
 		typename matrix_type::value_type& block = mat(0,0);
 
 		BlockRef(block, alpha, alpha) = 1.0;
-		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
-		{
+		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta){
 			if(beta != alpha) BlockRef(block, alpha, beta) = 0.0;
 		}
 	}

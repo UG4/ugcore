@@ -148,12 +148,10 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 	///	returns the type of constraints
 		virtual int type() const = 0;
 
-	///	sets the assemble index for index-wise assemble routine
-		void set_ass_index(){set_ass_index(0, false);}
-		void set_ass_index(size_t ind, bool index_set = true)
+	///	sets the assemble adapter for the constraints
+		void ass_adapter(AssAdapter<TAlgebra>* assAdapter = NULL)
 		{
-			m_AssAdapter.m_assIndex.index_set = index_set;
-			m_AssAdapter.m_assIndex.index = ind;
+			m_pAssAdapter = assAdapter;
 		}
 
 	protected:
@@ -168,10 +166,7 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 	///	Assemble adapter
-	//	note: the member variables of the assemble adapter need
-	//	to be set explicitly in this class! The vars are NOT derived from the
-	//	assemble adapter used in the assemble routine!
-		AssAdapter<TAlgebra> m_AssAdapter;
+		AssAdapter<TAlgebra>* m_pAssAdapter;
 
 };
 

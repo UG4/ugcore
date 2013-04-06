@@ -172,10 +172,6 @@ class AssAdapter
 		void elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd, int si,
 				std::vector<TElem*>& elems);
 
-	///	adapts the constraints in case of index-wise assembling
-		template <typename TDomain>
-		void adaptConstraint(SmartPtr<IDomainConstraint<TDomain, TAlgebra> >& constraint);
-
 	///	only one index will be set to Dirichlet in case of index-wise assembling
 	///	instead of setting a complete matrix row to Dirichlet
 		void adjust_matrix(matrix_type& mat, const size_t index, const size_t alpha);
