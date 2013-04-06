@@ -78,14 +78,14 @@ if("${SHELLTYPE}" STREQUAL "readline")
 	target_link_libraries(${targetExecutableName} readline)
 endif("${SHELLTYPE}" STREQUAL "readline")
 
-if(STATIC)
+if(STATIC_BUILD)
 # if we're compiling with the new cmake_includes, then we have to link
 # against the ug4_s static library
 	target_link_libraries(${targetExecutableName} ${targetLibraryName})
-else(STATIC)
+else(STATIC_BUILD)
 # link the dynamic library
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})
-endif(STATIC)
+endif(STATIC_BUILD)
 
 if(BUILD_UGDOCU)
 	add_custom_target(updateUGDocu ALL )

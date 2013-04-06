@@ -132,7 +132,7 @@ endif(WIN32)
 
 
 # the following options are real cmake-options
-option(STATIC "Enables static linking. Valid options are: ON, OFF" OFF)
+option(STATIC_BUILD "Enables static linking. Valid options are: ON, OFF" OFF)
 option(DEBUG "Enables debugging. Valid options are: ON, OFF" OFF)
 option(DEBUG_LOGS "Enables debug output. Valid options are: ON, OFF" OFF)
 option(PARALLEL "Enables parallel compilation. Valid options are: ON, OFF" ${MPI_FOUND})
@@ -219,7 +219,7 @@ message(STATUS "Info: TARGET:            ${TARGET} (options are: ${targetOptions
 message(STATUS "Info: DIM:               ${DIMReadable} (options are: ${dimOptions})")
 message(STATUS "Info: CPU:               ${CPUReadable} (options are: ${cpuOptions})")
 message(STATUS "Info: PRECISION:         ${PRECISION} (options are: ${precisionOptions})")
-message(STATUS "Info: STATIC:            ${STATIC} (options are: ON, OFF)")
+message(STATUS "Info: STATIC_BUILD:      ${STATIC_BUILD} (options are: ON, OFF)")
 message(STATUS "Info: DEBUG:             ${DEBUG} (options are: ON, OFF)")
 message(STATUS "Info: DEBUG_LOGS:        ${DEBUG_LOGS} (options are: ON, OFF)")
 message(STATUS "Info: PARALLEL:          ${PARALLEL} (options are: ON, OFF)")
@@ -265,9 +265,9 @@ if("${TARGET}" STREQUAL "ugshell")
 	
 elseif("${TARGET}" STREQUAL "vrl")
 	# The vrl works only, if a dynamic library is built.
-	if(STATIC)
-		message(FATAL_ERROR "ug4 for vrl can only be build as a dynamic library. Please set STATIC = OFF.")
-	endif(STATIC)
+	if(STATIC_BUILD)
+		message(FATAL_ERROR "ug4 for vrl can only be build as a dynamic library. Please set STATIC_BUILD = OFF.")
+	endif(STATIC_BUILD)
 	
 	set(buildAlgebra ON)
 	set(buildForVRL ON)
@@ -344,15 +344,15 @@ endif("${PRECISION}" STREQUAL "single")
 
 set(buildEmbeddedPlugins ${EMBEDDED_PLUGINS})
 
-if(STATIC)
+if(STATIC_BUILD)
 	set(buildDynamicLib OFF)
 	set(buildEmbeddedPlugins ON)
 	set(targetLibraryName ${targetLibraryName}_s)
 	add_definitions(-DUG_STATIC)
-else(STATIC)
+else(STATIC_BUILD)
 	set(buildDynamicLib ON)
 	set(UG_SHARED ON)
-endif(STATIC)
+endif(STATIC_BUILD)
 
 if(buildEmbeddedPlugins)
 	add_definitions(-DUG_EMBEDDED_PLUGINS)
@@ -883,13 +883,13 @@ endif(OpenCL)
 
 #########################################
 if(USE_LUA2C)
-    if(STATIC)
+    if(STATIC_BUILD)
     	MESSAGE(STATUS "Info: LUA2C requested, but static build. LUA2C disabled.")
     	set(USE_LUA2C OFF)
-    else(STATIC)
+    else(STATIC_BUILD)
     	MESSAGE(STATUS "Info: Using LUA2C")
     	add_definitions(-DUSE_LUA2C)
-    endif(STATIC)
+    endif(STATIC_BUILD)
 endif(USE_LUA2C)
 
 
@@ -923,11 +923,11 @@ endif(INTERNAL_BOOST)
 ########################################
 # dynamic linking
 if(UNIX)
-    if(STATIC)
+    if(STATIC_BUILD)
         set(linkLibraries ${linkLibraries})
-    else(STATIC)
+    else(STATIC_BUILD)
         set(linkLibraries ${linkLibraries} dl)
-    endif(STATIC)
+    endif(STATIC_BUILD)
 elseif(WIN32)
 	set(linkLibraries ${linkLibraries} Kernel32)
 endif(UNIX)
