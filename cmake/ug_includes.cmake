@@ -69,7 +69,7 @@ set(targetExecutableName ugshell)
 set(targetLibraryName ug4)
 
 # Values for the DIM option
-set(dimOptions "1, 2, 3, ALL, \"1\;2\", \"1\;3\", \"2\;3"\")
+set(dimOptions "1, 2, 3, ALL, \"1\;2\", \"1\;3\", \"2\;3\"")
 set(dimDefault "ALL")
 
 # Values for the CPU option
@@ -215,30 +215,30 @@ endforeach(d)
 # We'll output the current options-setting in this section
 message(STATUS "")
 message(STATUS "Info: Current options:")
-message(STATUS "Info: TARGET:            "${TARGET}" (options are: "${targetOptions}")")
-message(STATUS "Info: DIM:               "${DIMReadable}" (options are: "${dimOptions}")")
-message(STATUS "Info: CPU:               "${CPUReadable}" (options are: "${cpuOptions}")")
-message(STATUS "Info: PRECISION:         "${PRECISION}" (options are: "${precisionOptions}")")
-message(STATUS "Info: STATIC:            "${STATIC}" (options are: ON, OFF)")
-message(STATUS "Info: DEBUG:             "${DEBUG}" (options are: ON, OFF)")
-message(STATUS "Info: DEBUG_LOGS:        "${DEBUG_LOGS}" (options are: ON, OFF)")
-message(STATUS "Info: PARALLEL:          "${PARALLEL}" (options are: ON, OFF)")
-message(STATUS "Info: PCL_DEBUG_BARRIER: "${PCL_DEBUG_BARRIER}" (options are: ON, OFF)")
-message(STATUS "Info: PROFILER:          "${PROFILER}" (options are: "${profilerOptions}")")
-message(STATUS "Info: PROFILE_PCL:       "${PROFILE_PCL}" (options are: ON, OFF)")
-message(STATUS "Info: PROFILE_BRIDGE:    "${PROFILE_BRIDGE}" (options are: ON, OFF)")
-message(STATUS "Info: LAPACK:            "${LAPACK}" (options are: ON, OFF)")
-message(STATUS "Info: BLAS:              "${BLAS}" (options are: ON, OFF)")
-message(STATUS "Info: METIS:             "${METIS}" (options are: ON, OFF)")
-message(STATUS "Info: PARMETIS:          "${PARMETIS}" (options are: ON, OFF)")
-message(STATUS "Info: INTERNAL_BOOST:    "${INTERNAL_BOOST}" (options are: ON, OFF)")
-message(STATUS "Info: EMBEDDED_PLUGINS   "${EMBEDDED_PLUGINS}" (options are: ON, OFF)")
-message(STATUS "Info: COMPILE_INFO       "${COMPILE_INFO}" (options are: ON, OFF)")
+message(STATUS "Info: TARGET:            ${TARGET} (options are: ${targetOptions})")
+message(STATUS "Info: DIM:               ${DIMReadable} (options are: ${dimOptions})")
+message(STATUS "Info: CPU:               ${CPUReadable} (options are: ${cpuOptions})")
+message(STATUS "Info: PRECISION:         ${PRECISION} (options are: ${precisionOptions})")
+message(STATUS "Info: STATIC:            ${STATIC} (options are: ON, OFF)")
+message(STATUS "Info: DEBUG:             ${DEBUG} (options are: ON, OFF)")
+message(STATUS "Info: DEBUG_LOGS:        ${DEBUG_LOGS} (options are: ON, OFF)")
+message(STATUS "Info: PARALLEL:          ${PARALLEL} (options are: ON, OFF)")
+message(STATUS "Info: PCL_DEBUG_BARRIER: ${PCL_DEBUG_BARRIER} (options are: ON, OFF)")
+message(STATUS "Info: PROFILER:          ${PROFILER} (options are: ${profilerOptions})")
+message(STATUS "Info: PROFILE_PCL:       ${PROFILE_PCL} (options are: ON, OFF)")
+message(STATUS "Info: PROFILE_BRIDGE:    ${PROFILE_BRIDGE} (options are: ON, OFF)")
+message(STATUS "Info: LAPACK:            ${LAPACK} (options are: ON, OFF)")
+message(STATUS "Info: BLAS:              ${BLAS} (options are: ON, OFF)")
+message(STATUS "Info: METIS:             ${METIS} (options are: ON, OFF)")
+message(STATUS "Info: PARMETIS:          ${PARMETIS} (options are: ON, OFF)")
+message(STATUS "Info: INTERNAL_BOOST:    ${INTERNAL_BOOST} (options are: ON, OFF)")
+message(STATUS "Info: EMBEDDED_PLUGINS   ${EMBEDDED_PLUGINS} (options are: ON, OFF)")
+message(STATUS "Info: COMPILE_INFO       ${COMPILE_INFO} (options are: ON, OFF)")
 message(STATUS "")
 message(STATUS "Info: External libraries (path which contains the library or ON if you used uginstall):")
-message(STATUS "Info: TETGEN:   "${TETGEN})
-message(STATUS "Info: HYPRE:    "${HYPRE})
-message(STATUS "Info: HLIBPRO:  "${HLIBPRO})
+message(STATUS "Info: TETGEN:   ${TETGEN}")
+message(STATUS "Info: HYPRE:    ${HYPRE}")
+message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
 message(STATUS "")
 message(STATUS "Info: C Compiler ID: ${CMAKE_C_COMPILER_ID}, C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}") 
 message(STATUS "")
@@ -321,7 +321,7 @@ elseif("${TARGET}" STREQUAL "amg")
 	#set(buildPluginSystem OFF)
 	set(PARALLEL OFF)
 else("${TARGET}" STREQUAL "ugshell")
-	message(FATAL_ERROR "Unsupported TARGET: "${TARGET}". Options are: "${targetOptions})
+	message(FATAL_ERROR "Unsupported TARGET: ${TARGET}. Options are: ${targetOptions}")
 	
 endif("${TARGET}" STREQUAL "ugshell")
 
@@ -332,7 +332,7 @@ if("${PRECISION}" STREQUAL "single")
 elseif("${PRECISION}" STREQUAL "double")
 	# Nothing to do here. double-precision is the default
 else("${PRECISION}" STREQUAL "single")
-	message(FATAL_ERROR "Unsupported PRECISION: "${PRECISION}". Options are: "${precisionOptions})
+	message(FATAL_ERROR "Unsupported PRECISION: ${PRECISION}. Options are: ${precisionOptions}")
 endif("${PRECISION}" STREQUAL "single")
 
 ########################################
@@ -372,7 +372,7 @@ else("${DIM}" STREQUAL "ALL")
 		# check if dim is valid
 		if(d GREATER 3 OR d LESS 1)
 			message(FATAL_ERROR "ERROR: Cannot build world dimension ${d}. "
-								"Valid options are: "${dimOptions})
+													"Valid options are: ${dimOptions}")
 		endif(d GREATER 3 OR d LESS 1)
 	
 		add_definitions(-DUG_DIM_${d})
@@ -396,7 +396,7 @@ if(CRS_ALGEBRA)
             # check if dim is valid
             if(d GREATER 4 OR d LESS 1)
                 message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
-                                    "Valid options are: "${cpuOptions})
+                                    "Valid options are: ${cpuOptions}")
             endif(d GREATER 4 OR d LESS 1)
 
             add_definitions(-DUG_CRS_${d})
@@ -416,7 +416,7 @@ if(CPU_ALGEBRA)
             # check if dim is valid
             if(d GREATER 4 OR d LESS 1)
                 message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
-                                    "Valid options are: "${cpuOptions})
+                                    "Valid options are: ${cpuOptions}")
             endif(d GREATER 4 OR d LESS 1)
 
             add_definitions(-DUG_CPU_${d})
@@ -519,8 +519,8 @@ if(NOT("${PROFILER}" STREQUAL "None"))
             message("--       If not used: remove build completely and rerun cmake with prefix.")
         else(SCALASCA_FOUND)
         	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
-        	        "binary scalasca/kconfig. Make sure "
-        	        "that PATH contains scalasca and kconfig executable.")
+        	        "binary scalasca/kconfig. Make sure that PATH contains "
+        	        "scalasca and kconfig executable.")
         endif(SCALASCA_FOUND)
 
         # we assume the user to build using:
@@ -590,7 +590,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
 
     # wrong string in compiler
     else("${PROFILER}" STREQUAL "Shiny")
-    	message(FATAL_ERROR "Unsupported PROFILER: ${PROFILER}. Options are: "${profilerOptions})
+    	message(FATAL_ERROR "Unsupported PROFILER: ${PROFILER}. Options are: ${profilerOptions}")
     endif("${PROFILER}" STREQUAL "Shiny")
     
     # if one profiler is used this flag will be set

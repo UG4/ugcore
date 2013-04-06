@@ -25,7 +25,7 @@ endif(NOT UNIX)
 
 
 # this option is a pseudo-option, since it uses a string instead of (ON / OFF)
-option(SHELLTYPE "Set the type of the shell. Valid options are: "${targetOptions})
+option(SHELLTYPE "Set the type of the shell. Valid options are: ${targetOptions}")
 
 if(NOT SHELLTYPE)
 	set(SHELLTYPE ${shelltypeDefault})
@@ -33,7 +33,7 @@ endif(NOT SHELLTYPE)
 
 # output the current shell-type
 message(STATUS "")
-message(STATUS "Info: SHELLTYPE: "${SHELLTYPE}" (options are: "${shelltypeOptions}")")
+message(STATUS "Info: SHELLTYPE: ${SHELLTYPE} (options are: ${shelltypeOptions})")
 
 
 # set the main sources

@@ -70,13 +70,13 @@ set(MPI_C_COMPILER       ${MPI_ROOT}/bin/mpicc)
 set(MPI_CXX_COMPILER     ${MPI_ROOT}/bin/mpicxx)
 set(MPI_Fortran_COMPILER ${MPI_ROOT}/bin/mpif90)
 
-message(STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: "${CMAKE_C_COMPILER})       # TMP
-message(STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: "${CMAKE_CXX_COMPILER})     # TMP
-message(STATUS "TMP INFO: Value of '\${CMAKE_Fortran_COMPILER}' is: "${CMAKE_Fortran_COMPILER}) # TMP
+message(STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: ${CMAKE_C_COMPILER}")       # TMP
+message(STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: ${CMAKE_CXX_COMPILER}")     # TMP
+message(STATUS "TMP INFO: Value of '\${CMAKE_Fortran_COMPILER}' is: ${CMAKE_Fortran_COMPILER}") # TMP
 
-message(STATUS "TMP INFO: Value of '\${MPI_C_COMPILER}'         is: "${MPI_C_COMPILER})         # TMP
-message(STATUS "TMP INFO: Value of '\${MPI_CXX_COMPILER}'       is: "${MPI_CXX_COMPILER})       # TMP
-message(STATUS "TMP INFO: Value of '\${MPI_Fortran_COMPILER}'   is: "${MPI_Fortran_COMPILER})   # TMP
+message(STATUS "TMP INFO: Value of '\${MPI_C_COMPILER}'         is: ${MPI_C_COMPILER}")         # TMP
+message(STATUS "TMP INFO: Value of '\${MPI_CXX_COMPILER}'       is: ${MPI_CXX_COMPILER}")       # TMP
+message(STATUS "TMP INFO: Value of '\${MPI_Fortran_COMPILER}'   is: ${MPI_Fortran_COMPILER}")   # TMP
 
 # For debugging purposes
 #include(CMakePrintSystemInformation)
