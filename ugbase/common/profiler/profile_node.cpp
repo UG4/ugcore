@@ -411,12 +411,12 @@ void WriteCompressedProfileData(const char *filename)
 
 void WriteProfileData(const char *filename)
 {
-	bool bProfileAll = false; // for the moment
 	
 	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
 	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
 	const UGProfileNode *pnRoot = reinterpret_cast<const UGProfileNode*> (node);
 #ifdef UG_PARALLEL
+	bool bProfileAll = false; // for the moment
 	typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >
 		IndexLayout;
 
