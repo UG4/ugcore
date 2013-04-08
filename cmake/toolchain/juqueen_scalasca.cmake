@@ -69,9 +69,9 @@ set(CMAKE_CXX_COMPILER     scalasca\ -instrument\ -comp=none\ -user\ ${GCC_ROOT}
 set(CMAKE_Fortran_COMPILER scalasca\ -instrument\ -comp=none\ -user\ ${GCC_ROOT}/bin/${GCC_NAME}-gfortran)
 
 # The MPI wrappers for the GNU compilers
-set(MPI_C_COMPILER       scalasca\ -instrument\ -comp=none\ -user\ ${MPI_ROOT}/bin/mpicc)
-set(MPI_CXX_COMPILER     scalasca\ -instrument\ -comp=none\ -user\ ${MPI_ROOT}/bin/mpicxx)
-set(MPI_Fortran_COMPILER scalasca\ -instrument\ -comp=none\ -user\ ${MPI_ROOT}/bin/mpif90)
+set(CMAKE_C_COMPILER       scalasca\ -instrument\ -comp=none\ -user\ ${MPI_ROOT}/bin/mpicc)
+set(CMAKE_CXX_COMPILER     scalasca\ -instrument\ -comp=none\ -user\ ${MPI_ROOT}/bin/mpicxx)
+set(CMAKE_Fortran_COMPILER scalasca\ -instrument\ -comp=none\ -user\ ${MPI_ROOT}/bin/mpif90)
 
 message(STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: ${CMAKE_C_COMPILER}")       # TMP
 message(STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: ${CMAKE_CXX_COMPILER}")     # TMP
