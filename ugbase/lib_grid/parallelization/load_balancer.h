@@ -102,10 +102,12 @@ class IPartitioner{
 
 		virtual bool supports_balance_weights() const = 0;
 		virtual bool supports_connection_weights() const = 0;
+		virtual bool supports_rebalancing() const = 0;
 
 		virtual void partition(size_t baseLvl, size_t elementThreshold) = 0;
 
 		virtual SubsetHandler& get_partitions() = 0;
+
 
 	///	returns the processes map. Updated during partitioning. may be NULL.
 	/**	If NULL is returned, this means that each subset index correspons to a
@@ -158,6 +160,9 @@ class LoadBalancer{
 	 * than the given threshold (in average), then no redistribution will be
 	 * performed on that level. Default is 1.*/
 		virtual void set_element_threshold(size_t threshold);
+
+	///	returns the quality of the current distribution
+		virtual number distribution_quality();
 
 	///	performs load balancing if the balance is too bad or if a distribution level has been reached.
 	/**	The balance is calculated using the provieded BalanceWeights class. If

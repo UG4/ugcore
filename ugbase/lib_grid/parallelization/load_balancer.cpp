@@ -254,6 +254,53 @@ set_element_threshold(size_t threshold)
 }
 
 template<int dim>
+number LoadBalancer<dim>::
+distribution_quality()
+{
+//todo	Consider connection weights in the final quality!
+	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	using std::min;
+
+	MultiGrid& mg = *m_mg;
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+
+	number minQuality = 1;
+
+//	calculate the quality estimate.
+//todo The quality of a level could be weighted by the total amount of elements
+//		in each level.
+	for(size_t lvl = mg.top_level(); lvl < mg.num_levels(); ++lvl){
+		size_t hlvl = m_processHierarchy->hierarchy_level_from_grid_level(lvl);
+		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
+		if(numProcs <= 1)
+			continue;
+
+		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
+
+		int localWeight = 0;
+		for(ElemIter iter = mg.begin<elem_t>(lvl);
+			iter != mg.end<elem_t>(lvl); ++iter)
+		{
+			if(!distGridMgr.is_ghost(*iter))
+				localWeight += 1;//todo: use balance weights
+		}
+
+		int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
+		int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
+
+		if(maxWeight <= 0)
+			continue;
+
+		number quality = (number)minWeight / (number)maxWeight;
+
+		minQuality = min(minQuality, quality);
+	}
+
+	return minQuality;
+}
+
+
+template<int dim>
 void LoadBalancer<dim>::
 rebalance()
 {
@@ -272,19 +319,39 @@ rebalance()
 //todo:	check imbalance and find base-level on which to partition!
 	m_balanceWeights->refresh_weights(0);
 	m_connectionWeights->refresh_weights(0);
-	m_partitioner->partition(0, m_elementThreshold);
 
-	SubsetHandler& sh = m_partitioner->get_partitions();
-	if(sh.num<elem_t>() != m_mg->num<elem_t>()){
-		UG_THROW("All elements have to be assigned to subsets during partitioning! "
-				 << "Please check your partitioner!");
+//	distribution quality is only interesting if rebalancing is supported
+	number distQuality = 0;
+	if(m_partitioner->supports_rebalancing()){
+		distQuality = distribution_quality();
+		UG_LOG("Current distribution quality: " << distQuality << "\n");
 	}
 
-	const std::vector<int>* procMap = m_partitioner->get_process_map();
-
-	if(!DistributeGrid(*m_mg, sh, m_serializer, m_createVerticalInterfaces, procMap))
+	if((!m_partitioner->supports_rebalancing())
+	   || (m_balanceThreshold > distQuality))
 	{
-		UG_THROW("DistributeGrid failed!");
+		UG_LOG("Redistributing...\n");
+		UG_DLOG(LIB_GRID, 1, "LoadBalancer-rebalance: partitioning...\n");
+		m_partitioner->partition(0, m_elementThreshold);
+
+		SubsetHandler& sh = m_partitioner->get_partitions();
+		if(sh.num<elem_t>() != m_mg->num<elem_t>()){
+			UG_THROW("All elements have to be assigned to subsets during partitioning! "
+					 << "Please check your partitioner!");
+		}
+
+		const std::vector<int>* procMap = m_partitioner->get_process_map();
+
+		UG_DLOG(LIB_GRID, 1, "LoadBalancer-rebalance: distributing...\n");
+		if(!DistributeGrid(*m_mg, sh, m_serializer, m_createVerticalInterfaces, procMap))
+		{
+			UG_THROW("DistributeGrid failed!");
+		}
+
+		UG_LOG("Distribution quality after redistribution: " << distribution_quality() << "\n");
+	}
+	else{
+		UG_LOG("No redistribution necessary.\n");
 	}
 	UG_DLOG(LIB_GRID, 1, "LoadBalancer-stop rebalance\n");
 }

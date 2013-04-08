@@ -25,6 +25,7 @@ class Partitioner_Bisection : public IPartitioner<dim>{
 
 		virtual bool supports_balance_weights() const;
 		virtual bool supports_connection_weights() const;
+		virtual bool supports_rebalancing() const			{return false;}
 
 		virtual void partition(size_t baseLvl, size_t elementThreshold);
 
