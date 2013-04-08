@@ -14,6 +14,7 @@ The page is an install guide for the usage of Eclipse for ug.
 - \ref secInstallEclipseSyntaxDoxygen
 - \ref secInstallEclipseAdditional
 - \ref secUG4ProjectInEclipse
+- \ref secInstallEclipseTroubleshooting
 
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
@@ -272,6 +273,16 @@ If you want to use this project in another eclipse (like another version or on a
 you have to use \em File -> \em Import -> <em> Existing Projects into Workspace </em>.
 
 
+<hr>
+\section secInstallEclipseTroubleshooting Troubleshooting
+
+- Eclipse hangs up at "Loading workbench": Try to reset your workspace (see below)
+- C++-Autocompletion not working/hanging up: Try to reset your workspace (see below)
+- Reset your workspace: Quit Eclipse. Go to your workspace directory and delete (or rename)
+the directory <tt>.metadata</tt>. That's where eclipse stores all the workspace data (like which projects you have in eclipse, and also
+C++-Indexer files). 
+- SVN Information not showing for a project: Try to delete the project from the workspace, then add it again (import -> existing workspace).
+- A project is damaged in eclipse and you want to set it up from scratch: Delete it from the workspace. Quit Eclipse. Go to the projects directory and delete the files <tt>.project</tt>, <tt>.cproject</tt> and <tt>.settings</tt>. 
  
 
  * 
