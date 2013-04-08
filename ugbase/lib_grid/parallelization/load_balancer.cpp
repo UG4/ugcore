@@ -6,6 +6,7 @@
 #include "load_balancer_util.h"
 #include "distribution.h"
 #include "partitioner_bisection.h"
+#include "distributed_grid.h"
 
 #ifdef UG_PARMETIS
 #include "partitioner_parmetis.h"
