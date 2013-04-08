@@ -64,14 +64,14 @@ set(MPI_ROOT  "/bgsys/drivers/ppcfloor/comm/gcc")
 #set(SPI_ROOT  "/bgsys/drivers/ppcfloor/spi")
 
 # The serial GNU compilers
-set(CMAKE_C_COMPILER       scalasca\ -instrument\ -comp=none\ -user\ bgxlc)
-set(CMAKE_CXX_COMPILER     scalasca\ -instrument\ -comp=none\ -user\ bgxlc++)
-set(CMAKE_Fortran_COMPILER scalasca\ -instrument\ -comp=none\ -user\ bgxlf90)
+set(CMAKE_C_COMPILER       bgxlc)
+set(CMAKE_CXX_COMPILER     bgxlc++)
+set(CMAKE_Fortran_COMPILER bgxlf90)
 
 # The MPI wrappers for the GNU compilers
-set(MPI_C_COMPILER       scalasca\ -instrument\ -comp=none\ -user\ mpixlc)
-set(MPI_CXX_COMPILER     scalasca\ -instrument\ -comp=none\ -user\ mpixlcxx)
-set(MPI_Fortran_COMPILER scalasca\ -instrument\ -comp=none\ -user\ mpixlf90)
+set(MPI_C_COMPILER       mpixlc)
+set(MPI_CXX_COMPILER     mpixlcxx)
+set(MPI_Fortran_COMPILER mpixlf90)
 
 message(STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: ${CMAKE_C_COMPILER}")       # TMP
 message(STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: ${CMAKE_CXX_COMPILER}")     # TMP
