@@ -19,7 +19,7 @@
 
 using namespace std;
 
-#ifdef UG_PARALLEL
+
 #include "lib_algebra/operator/eigensolver/pinvit.h"
 #include "lib_algebra/operator/preconditioner/operator_inverse_iterator.h"
 
@@ -115,15 +115,3 @@ void RegisterBridge_Eigensolver(Registry& reg, string grp)
 
 } // namespace bridge
 } // namespace ug
-
-#else
-namespace ug{
-namespace bridge{
-
-void RegisterBridge_Eigensolver(Registry& reg, string grp)
-{}
-
-} // namespace bridge
-} // namespace ug
-
-#endif
