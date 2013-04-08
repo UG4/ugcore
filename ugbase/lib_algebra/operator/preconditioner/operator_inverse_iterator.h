@@ -97,7 +97,7 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 		{
 			if(m_opInv->apply(c, d))
 			{
-				UG_LOG("ERROR in '" << name() << "::apply'\n");
+				//UG_LOG("ERROR in '" << name() << "::apply'\n");
 				return false;
 			}
 			return true;
@@ -107,7 +107,7 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 		{
 			if(m_opInv->apply_return_defect(c, d))
 			{
-				UG_LOG("ERROR in '" << name() << "::apply_update_defect'\n");
+				//UG_LOG("ERROR in '" << name() << "::apply_update_defect'\n");
 				return false;
 			}
 			return true;

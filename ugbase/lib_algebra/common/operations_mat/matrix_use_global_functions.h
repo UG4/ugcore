@@ -68,7 +68,7 @@ struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_GLOBAL_FUNCTIONS>
 			const number &alpha1, const vector_t &v1,
 			const number &beta1, const matrix_t &A1, const vector_t &w1)
 	{
-		return MatMultAddDirect(dest, alpha1, w1, beta1, A1, w1);
+		return MatMultAddDirect(dest, alpha1, v1, beta1, A1, w1);
 	}
 
 	//! calculates dest = alpha1*v1 + beta1 * A1 *w1 + alpha2*v2;

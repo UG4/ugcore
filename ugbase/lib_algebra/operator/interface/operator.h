@@ -8,6 +8,8 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR__
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__OPERATOR__
 
+#include "lib_algebra/common/operations_mat/matrix_algebra_types.h"
+
 namespace ug{
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -242,6 +244,15 @@ class MatrixOperator :	public virtual ILinearOperator<X,Y>,
 
 	// 	Access to matrix
 		virtual M& get_matrix() {return *this;};
+};
+
+template<typename M, typename X, typename Y>
+struct matrix_algebra_type_traits<MatrixOperator<M, X, Y> >
+{
+	enum
+	{
+		type = matrix_algebra_type_traits<M>::type
+	};
 };
 
 } // end namespace ug

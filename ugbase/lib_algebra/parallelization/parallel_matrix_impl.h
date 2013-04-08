@@ -60,11 +60,11 @@ apply(TPVector &res, const TPVector &x) const
 	PROFILE_FUNC_GROUP("algebra");
 //	check types combinations
 	int type = -1;
-	if(this->has_storage_type(PST_ADDITIVE)
+	if(has_storage_type(PST_ADDITIVE)
 			&& x.has_storage_type(PST_CONSISTENT)) type = 0;
-	if(this->has_storage_type(PST_CONSISTENT)
+	if(has_storage_type(PST_CONSISTENT)
 			&& x.has_storage_type(PST_ADDITIVE)) type = 1;
-	if(this->has_storage_type(PST_CONSISTENT)
+	if(has_storage_type(PST_CONSISTENT)
 			&& x.has_storage_type(PST_CONSISTENT)) type = 2;
 
 //	if no admissible type is found, return error
@@ -73,7 +73,8 @@ apply(TPVector &res, const TPVector &x) const
 		UG_LOG("ERROR in 'ParallelMatrix::apply' (b = A*x): "
 				"Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT\n"
-				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n");
+				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n"
+				"    (storage type of A = " << get_storage_type() << ", x = " << x.get_storage_type() << ")");
 		return false;
 	}
 
@@ -103,11 +104,11 @@ apply_transposed(TPVector &res, const TPVector &x) const
 	PROFILE_FUNC_GROUP("algebra");
 //	check types combinations
 	int type = -1;
-	if(this->has_storage_type(PST_ADDITIVE)
+	if(has_storage_type(PST_ADDITIVE)
 			&& x.has_storage_type(PST_CONSISTENT)) type = 0;
-	if(this->has_storage_type(PST_CONSISTENT)
+	if(has_storage_type(PST_CONSISTENT)
 			&& x.has_storage_type(PST_ADDITIVE)) type = 1;
-	if(this->has_storage_type(PST_CONSISTENT)
+	if(has_storage_type(PST_CONSISTENT)
 			&& x.has_storage_type(PST_CONSISTENT)) type = 2;
 
 //	if no admissible type is found, return error
@@ -116,7 +117,8 @@ apply_transposed(TPVector &res, const TPVector &x) const
 		UG_LOG("ERROR in 'ParallelMatrix::apply_transposed' (b = A^T*x): "
 				"Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT\n"
-				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n");
+				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n"
+				"    (storage type of A = " << get_storage_type() << ", x = " << x.get_storage_type() << ")");
 		return false;
 	}
 
@@ -155,8 +157,8 @@ matmul_minus(TPVector &res, const TPVector &x) const
 	{
 		UG_LOG("ERROR in 'ParallelMatrix::matmul_minus' (b -= A*x):"
 				" Wrong storage type of Matrix/Vector: Possibilities are:\n"
-				"    - A is PST_ADDITIVE and x is PST_CONSISTENT "
-				"and b is PST_ADDITIVE\n");
+				"    - A is PST_ADDITIVE and x is PST_CONSISTENT and b is PST_ADDITIVE\n"
+				"    (storage type of A = " << this->get_storage_type() << ", x = " << x.get_storage_type() << ", b = " << x.get_storage_type() << ")");
 		return false;
 	}
 
@@ -193,7 +195,8 @@ ug::ParallelStorageType GetMultType(const ParallelMatrix<matrix_type> &A1, const
 		UG_LOG("ERROR in 'ParallelMatrix::apply' (b = A*x): "
 				"Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT\n"
-				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n");
+				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n"
+				"    (storage type of A = " << A1.get_storage_type() << ", x = " << x.get_storage_type() << ")");
 	}
 	return type;
 }
@@ -228,7 +231,7 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 
 	if(!v1.has_storage_type(type))
 	{
-		UG_LOG("Error in MatMultAdd(dest, alpha1, v1, beta1, A1, w1): Storage type of A1*w1 doesnt match storage type of v1.");
+		UG_LOG("Error in MatMultAdd(dest, alpha1, v1, beta1, A1, w1): Storage type of A1*w1 = " << type << ", storage type of v1 = " << v1.get_storage_type() << ".");
 		return false;
 	}
 
@@ -256,7 +259,8 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 	if(!v1.has_storage_type(type) || !v2.has_storage_type(type))
 	{
 		UG_LOG("Error in MatMultAdd(dest, alpha1, v1, alpha2, v2, beta1, A1, w1):"
-				" Storage type of A1*w1 doesnt match storage type of v1 or v2.");
+				" Storage type of A1*w1 doesnt match storage type of v1 or v2.\n"
+				"Storage type of A1*w1 = " << type << " v1 = " << v1.get_storage_type() << ", v2 = " << v2.get_storage_type() << ".");
 		return false;
 	}
 

@@ -92,6 +92,7 @@ class ParallelMatrix : public TMatrix
 
 	/// returns storage type mask
 		uint get_storage_mask() const { return m_type; }
+		ParallelStorageType get_storage_type() const { return (ParallelStorageType) m_type; }
 
 		/////////////////////////
 		// OverWritten functions
@@ -128,7 +129,9 @@ struct matrix_algebra_type_traits;
 template<typename T>
 struct matrix_algebra_type_traits<ParallelMatrix<T> >
 {
-	static const int type = MATRIX_USE_GLOBAL_FUNCTIONS;
+	enum{
+		type=MATRIX_USE_GLOBAL_FUNCTIONS
+	};
 };
 
 } // end namespace ug

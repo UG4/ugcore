@@ -605,7 +605,9 @@ protected:
 template<typename T>
 struct matrix_algebra_type_traits<CRSSparseMatrix<T> >
 {
-	static const int type = MATRIX_USE_ROW_FUNCTIONS;
+	enum{
+		type=MATRIX_USE_ROW_FUNCTIONS
+	};
 };
 
 //! calculates dest = alpha1*v1 + beta1 * A1^T *w1;

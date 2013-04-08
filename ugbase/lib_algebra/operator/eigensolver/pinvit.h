@@ -474,13 +474,11 @@ public:
 
 			if(m_pB)
 			{
-				// todo: replace with MatMultAdd
-				//MatMultAddDirect(defect, 1.0, defect, -lambda[i], *m_pB, *px[i]);
 #ifdef UG_PARALLEL
 				defect.change_storage_type(PST_ADDITIVE);
 				t.change_storage_type(PST_CONSISTENT);
 #endif
-				MatMultAddDirect(defect, 1.0, defect, -lambda, *m_pB, t);
+				MatMultAdd(defect, 1.0, defect, -lambda, *m_pB, t);
 			}
 			else
 				VecScaleAdd(defect, 1.0, defect, -lambda, t);
@@ -551,24 +549,25 @@ public:
 
 		for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
 		{
-			UG_ASSERT(r_lambda[i].imag() < 1e-8, "eigenvalue " << i << " is imaginary (" << r_lambda[i] << ")\n");
-			UG_ASSERT(r_lambda[i].real() > 1e-8, "eigenvalues " << i << "<= 0\n");
-		}
-
-		for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
-		{
 			if(r_lambda[i].imag() >= 1e-8)
 				{UG_LOG("WARNING: eigenvalue " << i << " is imaginary (" << r_lambda[i] << ")\n"); }
 			if(r_lambda[i].real() <= 1e-8)
 				{UG_LOG("WARNING: eigenvalues " << i << "<= 0\n");}
 		}
 
-		if(m_bPrintProjectedEigenvalues && m_bPrintProjectedEigenvectors == false)
+		//if(m_bPrintProjectedEigenvalues && m_bPrintProjectedEigenvectors == false)
 		{
 			for(size_t i=0; i<r_lambda.size(); i++)
 				UG_LOG(i << ".: " << r_lambda[i] << "\n");
 			UG_LOG("\n");
 		}
+
+		for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
+		{
+			UG_ASSERT(r_lambda[i].imag() < 1e-8, "eigenvalue " << i << " is imaginary (" << r_lambda[i] << ")\n");
+			UG_ASSERT(r_lambda[i].real() > 1e-8, "eigenvalues " << i << "<= 0\n");
+		}
+
 	}
 
 private:
@@ -656,13 +655,11 @@ private:
 		// defect = A px[i] - lambda[i] B px[i]
 		if(m_pB)
 		{
-			// todo: replace with MatMultAdd
-			//MatMultAddDirect(defect, 1.0, defect, -lambda[i], *m_pB, *px[i]);
 #ifdef UG_PARALLEL
 			defect.change_storage_type(PST_ADDITIVE);
 			x.change_storage_type(PST_CONSISTENT);
 #endif
-			MatMultAddDirect(defect, 1.0, defect, -lambda, *m_pB, x);
+			MatMultAdd(defect, 1.0, defect, -lambda, *m_pB, x);
 		}
 		else
 			VecScaleAdd(defect, 1.0, defect, -lambda, x);
