@@ -53,9 +53,6 @@ SET(enableDynamicOption OFF)
 # This option tells cmake/ug_includes.cmake to add the -fno-strict-aliasing option to the compiler flags.
 SET(enableNoStrictAliasingOption ON)
 
-# This option tells cmake/ug_includes.cmake to enable scalasca macros
-SET(PROFILER Scalasca)
-
 # Some variables for pathes
 set(GCC_ROOT  "/bgsys/drivers/ppcfloor/gnu-linux")
 set(GCC_NAME  "powerpc64-bgq-linux")
@@ -64,14 +61,14 @@ set(MPI_ROOT  "/bgsys/drivers/ppcfloor/comm/gcc")
 #set(SPI_ROOT  "/bgsys/drivers/ppcfloor/spi")
 
 # The serial GNU compilers
-set(CMAKE_C_COMPILER       bgxlc)
-set(CMAKE_CXX_COMPILER     bgxlc++)
-set(CMAKE_Fortran_COMPILER bgxlf90)
+set(CMAKE_C_COMPILER       "scalasca -instrument -comp=none -user ${GCC_ROOT}/bin/${GCC_NAME}-gcc")
+set(CMAKE_CXX_COMPILER     "scalasca -instrument -comp=none -user ${GCC_ROOT}/bin/${GCC_NAME}-g++")
+set(CMAKE_Fortran_COMPILER "scalasca -instrument -comp=none -user ${GCC_ROOT}/bin/${GCC_NAME}-gfortran")
 
 # The MPI wrappers for the GNU compilers
-set(MPI_C_COMPILER       mpixlc)
-set(MPI_CXX_COMPILER     mpixlcxx)
-set(MPI_Fortran_COMPILER mpixlf90)
+set(MPI_C_COMPILER       "scalasca -instrument -comp=none -user ${MPI_ROOT}/bin/mpicc")
+set(MPI_CXX_COMPILER     "scalasca -instrument -comp=none -user ${MPI_ROOT}/bin/mpicxx")
+set(MPI_Fortran_COMPILER "scalasca -instrument -comp=none -user ${MPI_ROOT}/bin/mpif90")
 
 message(STATUS "TMP INFO: Value of '\${CMAKE_C_COMPILER}'       is: ${CMAKE_C_COMPILER}")       # TMP
 message(STATUS "TMP INFO: Value of '\${CMAKE_CXX_COMPILER}'     is: ${CMAKE_CXX_COMPILER}")     # TMP
