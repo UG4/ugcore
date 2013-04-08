@@ -555,7 +555,7 @@ public:
 				{UG_LOG("WARNING: eigenvalues " << i << "<= 0\n");}
 		}
 
-		//if(m_bPrintProjectedEigenvalues && m_bPrintProjectedEigenvectors == false)
+		if(m_bPrintProjectedEigenvalues && m_bPrintProjectedEigenvectors == false)
 		{
 			for(size_t i=0; i<r_lambda.size(); i++)
 				UG_LOG(i << ".: " << r_lambda[i] << "\n");
