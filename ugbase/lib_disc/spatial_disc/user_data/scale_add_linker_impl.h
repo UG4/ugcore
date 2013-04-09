@@ -57,8 +57,8 @@ add(SmartPtr<CplUserData<TDataScale, dim> > scale, SmartPtr<CplUserData<TData, d
 
 //	increase number of inputs by one and set inputs at base class
 	base_type::set_num_input(2*numInput+2);
-	base_type::set_input(2*numInput, data);
-	base_type::set_input(2*numInput+1, scale);
+	base_type::set_input(2*numInput, data, data);
+	base_type::set_input(2*numInput+1, scale, scale);
 }
 
 template <typename TData, int dim, typename TDataScale>

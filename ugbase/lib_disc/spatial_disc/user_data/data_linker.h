@@ -27,7 +27,7 @@ class DataLinker
 {
 	public:
 	///	constructor
-		DataLinker() {m_vpICplUserData.clear(); m_vpIDependData.clear();}
+		DataLinker() {m_vspICplUserData.clear(); m_vspUserDataInfo.clear();}
 
 	///	returns if derivative is zero
 		virtual bool zero_derivative() const;
@@ -35,37 +35,39 @@ class DataLinker
 	///	returns if the derivative of the i'th input is zero
 		bool zero_derivative(size_t i) const
 		{
-			if(!m_vpICplUserData[i].valid()) return true;
-			return m_vpICplUserData[i]->zero_derivative();
+			if(!m_vspICplUserData[i].valid()) return true;
+			return m_vspICplUserData[i]->zero_derivative();
 		}
 
 	///	sets the number of inputs
 		void set_num_input(size_t num)
 		{
-			m_vpICplUserData.resize(num, NULL);
-			m_vpIDependData.resize(num, NULL);
+			m_vspICplUserData.resize(num, NULL);
+			m_vspUserDataInfo.resize(num, NULL);
 		}
 
 	///	sets an input
-		virtual void set_input(size_t i, SmartPtr<ICplUserData<dim> > input)
+		virtual void set_input(size_t i,
+		                       SmartPtr<ICplUserData<dim> > input,
+		                       SmartPtr<UserDataInfo> info)
 		{
-			UG_ASSERT(i < m_vpICplUserData.size(), "invalid index");
-			m_vpICplUserData[i] = input;
-			m_vpIDependData[i] = input;
+			UG_ASSERT(i < m_vspICplUserData.size(), "invalid index");
+			m_vspICplUserData[i] = input;
+			m_vspUserDataInfo[i] = info;
 		}
 
 	///	number of inputs
 		virtual size_t num_input() const {return num_needed_data();}
 
 	///	number of other Data this data depends on
-		virtual size_t num_needed_data() const {return m_vpICplUserData.size();}
+		virtual size_t num_needed_data() const {return m_vspICplUserData.size();}
 
 	///	return needed data
 		virtual SmartPtr<ICplUserData<dim> > needed_data(size_t i)
 		{
-			UG_ASSERT(i < m_vpICplUserData.size(), "Input not needed");
-			UG_ASSERT(m_vpICplUserData[i].valid(), "Data input not valid");
-			return m_vpICplUserData[i];
+			UG_ASSERT(i < m_vspICplUserData.size(), "Input not needed");
+			UG_ASSERT(m_vspICplUserData[i].valid(), "Data input not valid");
+			return m_vspICplUserData[i];
 		}
 
 	///	returns if data is ok
@@ -78,9 +80,9 @@ class DataLinker
 	///	returns number of functions the input depends on
 		size_t input_num_fct(size_t i) const
 		{
-			UG_ASSERT(i < m_vpIDependData.size(), "Input invalid");
-			if(!m_vpIDependData[i].valid()) return 0;
-			return m_vpIDependData[i]->num_fct();
+			UG_ASSERT(i < m_vspICplUserData.size(), "Input invalid");
+			if(!m_vspICplUserData[i].valid()) return 0;
+			return m_vspICplUserData[i]->num_fct();
 		}
 
 	///	returns the number in the common FctGrp for a fct of an input
@@ -110,10 +112,10 @@ class DataLinker
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<ICplUserData<dim> > > m_vpICplUserData;
+		std::vector<SmartPtr<ICplUserData<dim> > > m_vspICplUserData;
 
 	///	data input casted to IDependend data
-		std::vector<SmartPtr<ICplUserData<dim> > > m_vpIDependData;
+		std::vector<SmartPtr<UserDataInfo> > m_vspUserDataInfo;
 
 	///	common functions the data depends on
 		FunctionGroup m_commonFctGroup;

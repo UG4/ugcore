@@ -898,7 +898,7 @@ set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data)
 	m_vpDependData[i] = data.template cast_dynamic<DependentUserData<TDataIn, dim> >();
 
 //	forward to base class
-	base_type::set_input(i, data);
+	base_type::set_input(i, data, data);
 }
 
 template <typename TData, int dim, typename TDataIn>

@@ -58,8 +58,8 @@ divide(SmartPtr<CplUserData<number, dim> > dividend, SmartPtr<CplUserData<number
 
 //	increase number of inputs by one and set inputs at base class
 	base_type::set_num_input(2*numInput+2);
-	base_type::set_input(2*numInput, divisor);
-	base_type::set_input(2*numInput+1, dividend);
+	base_type::set_input(2*numInput, divisor, divisor);
+	base_type::set_input(2*numInput+1, dividend, dividend);
 }
 
 template <int dim>

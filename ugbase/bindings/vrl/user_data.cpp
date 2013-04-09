@@ -347,7 +347,7 @@ class VRLUserLinker
 			m_vpDependData[i] = data.template cast_dynamic<DependentUserData<TDataIn, dim> >();
 
 		//	forward to base class
-			base_type::set_input(i, data);
+			base_type::set_input(i, data, data);
 		}
 
 	///	computes the value
@@ -738,7 +738,8 @@ class VRLUserData
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int dim>
-class VRLCondUserNumber : public CplUserData<number, dim, bool>
+class VRLCondUserNumber
+	: public StdPositionData<VRLCondUserNumber<dim>, number, dim, bool>
 {
 protected:
 	jdouble condData2Double(JNIEnv *env, jobject obj) const
@@ -856,7 +857,7 @@ public:
 	}
 
 	///	evaluates the data at a given point and time
-	bool operator() (number& c, const MathVector<dim>& x, number time, int si) const
+	inline bool evaluate(number& c, const MathVector<dim>& x, number time, int si) const
 	{
 		JNIEnv* env = threading::getEnv(getJavaVM());
 
@@ -894,6 +895,12 @@ public:
 			}
 		}
 	}
+
+///	returns if provided data is continuous over geometric object boundaries
+	virtual bool continuous() const {return true;}
+
+///	returns if grid function is needed for evaluation
+	virtual bool requires_grid_fct() const {return false;}
 
 	void releaseGlobalRefs()
 	{

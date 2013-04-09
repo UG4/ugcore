@@ -358,7 +358,7 @@ class DarcyVelocityLinker
 		{
 			m_spPermeability = data;
 			m_spDPermeability = data.template cast_dynamic<DependentUserData<MathMatrix<dim,dim>, dim> >();
-			base_type::set_input(_K_, data);
+			base_type::set_input(_K_, data, data);
 		}
 
 		void set_permeability(number val)
@@ -371,7 +371,7 @@ class DarcyVelocityLinker
 		{
 			m_spViscosity = data;
 			m_spDViscosity = data.template cast_dynamic<DependentUserData<number, dim> >();
-			base_type::set_input(_MU_, data);
+			base_type::set_input(_MU_, data, data);
 		}
 
 		void set_viscosity(number val)
@@ -384,7 +384,7 @@ class DarcyVelocityLinker
 		{
 			m_spDensity = data;
 			m_spDDensity = data.template cast_dynamic<DependentUserData<number, dim> >();
-			base_type::set_input(_RHO_, data);
+			base_type::set_input(_RHO_, data, data);
 		}
 
 	///	set gravity import
@@ -392,7 +392,7 @@ class DarcyVelocityLinker
 		{
 			m_spGravity = data;
 			m_spDGravity = data.template cast_dynamic<DependentUserData<MathVector<dim>, dim> >();
-			base_type::set_input(_G_, data);
+			base_type::set_input(_G_, data, data);
 		}
 
 	///	set pressure gradient import
@@ -400,7 +400,7 @@ class DarcyVelocityLinker
 		{
 			m_spPressureGrad = data;
 			m_spDPressureGrad = data.template cast_dynamic<DependentUserData<MathVector<dim>, dim> >();
-			base_type::set_input(_DP_, data);
+			base_type::set_input(_DP_, data, data);
 		}
 
 	protected:

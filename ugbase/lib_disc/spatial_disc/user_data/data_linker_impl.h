@@ -20,8 +20,8 @@ template <typename TData, int dim>
 bool DataLinker<TData,dim>::zero_derivative() const
 {
 	bool bRet = true;
-	for(size_t i = 0; i < m_vpICplUserData.size(); ++i)
-		bRet &= m_vpICplUserData[i]->zero_derivative();
+	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
+		bRet &= m_vspICplUserData[i]->zero_derivative();
 	return bRet;
 }
 
@@ -30,7 +30,7 @@ void DataLinker<TData,dim>::check_setup() const
 {
 //	check, that all inputs are set
 	for(size_t i = 0; i < num_input(); ++i)
-		if(!m_vpICplUserData[i].valid())
+		if(!m_vspICplUserData[i].valid())
 			UG_THROW("DataLinker::check_setup: Input number "<<i<<" missing.");
 }
 
@@ -39,10 +39,10 @@ void DataLinker<TData,dim>::update_function_group()
 {
 //	collect all function groups
 	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
-	for(size_t i = 0; i < m_vpIDependData.size(); ++i)
-		if(m_vpIDependData[i].valid())
-			if(m_vpIDependData[i]->num_fct() != 0)
-				vFctGrp[i] = &(m_vpIDependData[i]->function_group());
+	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
+		if(m_vspICplUserData[i].valid())
+			if(m_vspICplUserData[i]->num_fct() != 0)
+				vFctGrp[i] = &(m_vspICplUserData[i]->function_group());
 
 //	create union of all function groups
 	try{
@@ -74,13 +74,13 @@ local_ip_series_added(const size_t seriesID)
 	const size_t s = seriesID;
 
 //	 we need a series id for all inputs
-	m_vvSeriesID.resize(m_vpICplUserData.size());
+	m_vvSeriesID.resize(m_vspICplUserData.size());
 
 //	loop inputs
-	for(size_t i = 0; i < m_vpICplUserData.size(); ++i)
+	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
 	{
 	//	check unset data
-		UG_ASSERT(m_vpICplUserData[i].valid(), "No Input set, but requested.");
+		UG_ASSERT(m_vspICplUserData[i].valid(), "No Input set, but requested.");
 
 	//	resize series ids
 		m_vvSeriesID[i].resize(s+1);
@@ -90,19 +90,19 @@ local_ip_series_added(const size_t seriesID)
 		{
 			case 1:
 				m_vvSeriesID[i][s] =
-						m_vpICplUserData[i]->template register_local_ip_series<1>
+						m_vspICplUserData[i]->template register_local_ip_series<1>
 								(this->template local_ips<1>(s), this->num_ip(s),
 								 this->m_vMayChange[s]);
 				break;
 			case 2:
 				m_vvSeriesID[i][s] =
-						m_vpICplUserData[i]->template register_local_ip_series<2>
+						m_vspICplUserData[i]->template register_local_ip_series<2>
 								(this->template local_ips<2>(s), this->num_ip(s),
 								 this->m_vMayChange[s]);
 				break;
 			case 3:
 				m_vvSeriesID[i][s] =
-						m_vpICplUserData[i]->template register_local_ip_series<3>
+						m_vspICplUserData[i]->template register_local_ip_series<3>
 								(this->template local_ips<3>(s), this->num_ip(s),
 								 this->m_vMayChange[s]);
 				break;
@@ -122,20 +122,20 @@ local_ips_changed(const size_t seriesID, const size_t newNumIP)
 	const size_t s = seriesID;
 
 //	loop inputs
-	for(size_t i = 0; i < m_vpICplUserData.size(); ++i)
+	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
 	{
 	//	skip unset data
-		UG_ASSERT(m_vpICplUserData[i].valid(), "No Input set, but requested.");
+		UG_ASSERT(m_vspICplUserData[i].valid(), "No Input set, but requested.");
 
 		switch(this->dim_local_ips())
 		{
-			case 1: m_vpICplUserData[i]->template set_local_ips<1>
+			case 1: m_vspICplUserData[i]->template set_local_ips<1>
 					(m_vvSeriesID[i][s], this->template local_ips<1>(s), this->num_ip(s));
 				break;
-			case 2: m_vpICplUserData[i]->template set_local_ips<2>
+			case 2: m_vspICplUserData[i]->template set_local_ips<2>
 					(m_vvSeriesID[i][s], this->template local_ips<2>(s), this->num_ip(s));
 				break;
-			case 3: m_vpICplUserData[i]->template set_local_ips<3>
+			case 3: m_vspICplUserData[i]->template set_local_ips<3>
 					(m_vvSeriesID[i][s], this->template local_ips<3>(s), this->num_ip(s));
 				break;
 			default: UG_THROW("Dimension not supported."); break;
@@ -151,13 +151,13 @@ void DataLinker<TData,dim>::
 global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const size_t numIP)
 {
 //	loop inputs
-	for(size_t i = 0; i < m_vpICplUserData.size(); ++i)
+	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
 	{
 	//	skip unset data
-		UG_ASSERT(m_vpICplUserData[i].valid(), "No Input set, but requested.");
+		UG_ASSERT(m_vspICplUserData[i].valid(), "No Input set, but requested.");
 
 	//	adjust global ids of imported data
-		m_vpICplUserData[i]->set_global_ips(m_vvSeriesID[i][seriesID], vPos, numIP);
+		m_vspICplUserData[i]->set_global_ips(m_vvSeriesID[i][seriesID], vPos, numIP);
 	}
 }
 
