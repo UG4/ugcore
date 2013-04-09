@@ -433,7 +433,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
 	add_cxx_flag("-hnomessage=236")
 else()
 	add_cxx_flag("-Wall")
-	#§set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
+	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 
 ########################################
@@ -496,8 +496,10 @@ endif(DEBUG_LOGS)
 if(CMAKE_BUILD_TYPE)
 	string(TOUPPER ${CMAKE_BUILD_TYPE} bt_upper)
 	message(STATUS "Info: compiling with cxx flags: ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${bt_upper}}")
+	message(STATUS "Info: compiling with c flags: ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${bt_upper}}")
 else()
 	message(STATUS "Info: compiling with cxx flags: ${CMAKE_CXX_FLAGS}")
+	message(STATUS "Info: compiling with c flags: ${CMAKE_C_FLAGS}")
 endif()
 
 ########################################
