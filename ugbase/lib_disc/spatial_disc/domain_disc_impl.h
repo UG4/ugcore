@@ -291,6 +291,24 @@ assemble_jacobian(matrix_type& J,
 	SubsetGroup unionSubsets;
 	std::vector<SubsetGroup> vSSGrp;
 
+//	pre process -  modifies the solution, used for computing the defect
+	const vector_type* pModifyU = &u;
+	SmartPtr<vector_type> pModifyMemory = NULL;
+	if( m_AssAdapter.m_bModifySolutionImplemented ){
+		pModifyMemory = u.clone();
+		pModifyU = pModifyMemory.get();
+	}
+
+	try{
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
+	}
+	} UG_CATCH_THROW("Cannot modify solution.");
+
+
 //	create list of all subsets
 	try{
 		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
@@ -324,23 +342,23 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			AssembleJacobian<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			break;
 		case 2:
 			AssembleJacobian<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			break;
 		case 3:
 			AssembleJacobian<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			AssembleJacobian<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			AssembleJacobian<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			AssembleJacobian<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_jacobian (stationary):"
@@ -360,7 +378,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
-				m_vConstraint[i]->adjust_jacobian(J, u, dd);
+				m_vConstraint[i]->adjust_jacobian(J, *pModifyU, dd);
 			}
 	}
 	}UG_CATCH_THROW("DomainDiscretization::assemble_jacobian:"
@@ -393,6 +411,26 @@ assemble_defect(vector_type& d,
 //	Union of Subsets
 	SubsetGroup unionSubsets;
 	std::vector<SubsetGroup> vSSGrp;
+
+//	pre process -  modifies the solution, used for computing the defect
+	const vector_type* pModifyU = &u;
+	SmartPtr<vector_type> pModifyMemory = NULL;
+	if( m_AssAdapter.m_bModifySolutionImplemented ){
+		pModifyMemory = u.clone();
+		pModifyU = pModifyMemory.get();
+	}
+
+	bool log_domDisc = false; // 576 on level 4!
+	if ( log_domDisc ) UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU)[576],0) << "\t" << BlockRef((*pModifyU)[576],1)<< "\n");
+
+	try{
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
+	}
+	} UG_CATCH_THROW("Cannot modify solution.");
 
 //	create list of all subsets
 	try{
@@ -427,23 +465,23 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			AssembleDefect<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			break;
 		case 2:
 			AssembleDefect<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			break;
 		case 3:
 			AssembleDefect<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			AssembleDefect<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			AssembleDefect<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			AssembleDefect<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, u, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_defect (stationary):"
@@ -463,10 +501,11 @@ assemble_defect(vector_type& d,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
-				m_vConstraint[i]->adjust_defect(d, u, dd);
+				m_vConstraint[i]->adjust_defect(d, *pModifyU, dd);
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
+
 
 //	Remember parallel storage type
 #ifdef UG_PARALLEL
@@ -853,6 +892,24 @@ assemble_jacobian(matrix_type& J,
 		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
+//	pre process -  modifies the solution, used for computing the defect
+	ConstSmartPtr<VectorTimeSeries<vector_type> > pModifyU = vSol;
+	SmartPtr<VectorTimeSeries<vector_type> > pModifyMemory = NULL;
+	if( m_AssAdapter.m_bModifySolutionImplemented ){
+		pModifyMemory = vSol->clone();
+		pModifyU = pModifyMemory;
+	}
+
+	try{
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
+	}
+	} UG_CATCH_THROW("'DomainDiscretization': Cannot modify solution.");
+
+
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
@@ -881,23 +938,23 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			AssembleJacobian<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			break;
 		case 2:
 			AssembleJacobian<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			break;
 		case 3:
 			AssembleJacobian<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			AssembleJacobian<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			AssembleJacobian<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			AssembleJacobian<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, vSol, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_jacobian (instationary):"
@@ -917,7 +974,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
-				m_vConstraint[i]->adjust_jacobian(J, *vSol->solution(0), dd, time);
+				m_vConstraint[i]->adjust_jacobian(J, *pModifyU->solution(0), dd, time);
 			}
 	}
 	}UG_CATCH_THROW("Cannot adjust jacobian.");
@@ -957,6 +1014,30 @@ assemble_defect(vector_type& d,
 		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
 	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
 
+
+//	pre process -  modifies the solution, used for computing the defect
+	ConstSmartPtr<VectorTimeSeries<vector_type> > pModifyU = vSol;
+	SmartPtr<VectorTimeSeries<vector_type> > pModifyMemory = NULL;
+	if( m_AssAdapter.m_bModifySolutionImplemented ){
+		pModifyMemory = vSol->clone();
+		pModifyU = pModifyMemory;
+	}
+
+	UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU->solution(0))[144],0) << "\t" << BlockRef((*pModifyU->solution(0))[144],1)<< "\n");
+
+	try{
+	for(int type = 1; type < CT_ALL; type = type << 1){
+		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() & type)
+				m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
+	}
+	} UG_CATCH_THROW("'DomainDiscretization: Cannot modify solution.");
+
+	UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyMemory->solution(0))[144],0) << "\t" << BlockRef((*pModifyMemory->solution(0))[144],1)<< "\n");
+
+	UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyU->solution(0))[144],0) << "\t" << BlockRef((*pModifyU->solution(0))[144],1)<< "\n");
+
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.size(); ++i)
 	{
@@ -985,23 +1066,23 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			AssembleDefect<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
 			AssembleDefect<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
 			AssembleDefect<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleDefect<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleDefect<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleDefect<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_defect (instationary):"
@@ -1021,7 +1102,7 @@ assemble_defect(vector_type& d,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
-				m_vConstraint[i]->adjust_defect(d, *vSol->solution(0), dd, vSol->time(0));
+				m_vConstraint[i]->adjust_defect(d, *pModifyU->solution(0), dd, pModifyU->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
