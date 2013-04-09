@@ -9,5 +9,6 @@ These pages should give help to ease the collaborative development of \ug4.
 - \subpage pageUG4DoxygenQuickref
 - \subpage pageUsingGit
 - \subpage pageUG4SSH
+- \subpage pageUG4SVN
 
 */
