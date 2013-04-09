@@ -326,7 +326,9 @@ rebalance()
 	number distQuality = -1;
 	if(m_partitioner->supports_repartitioning()){
 		distQuality = m_partitioner->estimate_distribution_quality();
-		UG_LOG("Current estimated distribution quality: " << distQuality << "\n");
+		if(!m_partitioner->verbose()){
+			UG_LOG("Current estimated distribution quality: " << distQuality << "\n");
+		}
 	}
 
 	if(m_balanceThreshold > distQuality)
@@ -349,8 +351,11 @@ rebalance()
 			UG_THROW("DistributeGrid failed!");
 		}
 
-		UG_LOG("Estimated distribution quality after redistribution: " <<
-				m_partitioner->estimate_distribution_quality() << "\n");
+		UG_LOG("Redistribution done\n");
+		number newDistQuality = m_partitioner->estimate_distribution_quality();
+		if(!m_partitioner->verbose()){
+			UG_LOG("Estimated distribution quality after redistribution: " << newDistQuality << "\n");
+		}
 	}
 	else{
 		UG_LOG("No redistribution necessary.\n");

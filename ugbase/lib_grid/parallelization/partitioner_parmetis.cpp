@@ -287,6 +287,10 @@ partition(size_t baseLvl, size_t elementThreshold)
 			int numGlobalElems = globalCom.allreduce(numLocalElems, PCL_RO_SUM);
 
 			if(numGlobalElems / numProcs < (int)elementThreshold){
+				if(verbose()){
+					UG_LOG("No partitioning performed for level " << minLvl
+							<< ": Not enough elements.\n");
+				}
 			//	we can't perform partitioning on this hierarchy level.
 			//	Simply assign all elements of this hierarchy level to the local proc.
 				for(int i = minLvl; i <= maxLvl; ++i)
