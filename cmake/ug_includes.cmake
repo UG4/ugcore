@@ -912,12 +912,6 @@ endif(INTERNAL_BOOST)
 find_package(Boost 1.40 REQUIRED)
 message(STATUS "Info: Including Boost from ${Boost_INCLUDE_DIRS}")
 include_directories(${Boost_INCLUDE_DIRS})
-if(INTERNAL_BOOST AND "${INTERNAL_BOOST_PATH}" NOT STREQUAL "${Boost_INCLUDE_DIRS}")
-	message(WARNING "Not using internal Boost but using compatible from"
-	                " ${Boost_INCLUDE_DIRS} "
-	                "This should work without problems. "
-	                "(Suppress this warning by defining INTERNAL_BOOST=OFF)")
-endif()
 
 
 ########################################
