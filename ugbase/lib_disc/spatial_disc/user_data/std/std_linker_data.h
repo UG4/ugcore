@@ -88,7 +88,7 @@ class StdDataLinker
 		virtual bool requires_grid_fct() const
 		{
 			for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
-				if(this->m_vspICplUserData[i]->requires_grid_fct())
+				if(this->m_vspUserDataInfo[i]->requires_grid_fct())
 					return true;
 			return false;
 		}
@@ -98,7 +98,7 @@ class StdDataLinker
 		{
 			bool bRet = true;
 			for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
-				bRet &= this->m_vspICplUserData[i]->continuous();
+				bRet &= this->m_vspUserDataInfo[i]->continuous();
 			return bRet;
 		}
 
@@ -106,7 +106,7 @@ class StdDataLinker
 		virtual void set_function_pattern(const FunctionPattern& fctPatt)
 		{
 			for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
-				this->m_vspICplUserData[i]->set_function_pattern(fctPatt);
+				this->m_vspUserDataInfo[i]->set_function_pattern(fctPatt);
 		}
 
 	protected:

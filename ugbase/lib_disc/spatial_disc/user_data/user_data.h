@@ -67,7 +67,7 @@ struct user_data_traits< MathTensor<4,dim> >{static std::string name() 		{return
  * \tparam	TRet	Type of return flag (bool or void)
  */
 template <typename TData, int dim, typename TRet = void>
-class UserData : virtual public UserDataInfo
+class UserData : public UserDataInfo
 {
 	public:
 	///	returns dimension
@@ -165,7 +165,7 @@ class UserData : virtual public UserDataInfo
  * \tparam	dim		world dimension
  */
 template <int dim>
-class ICplUserData : virtual public UserDataInfo
+class ICplUserData
 {
 	public:
 	///	default constructor
@@ -229,12 +229,6 @@ class ICplUserData : virtual public UserDataInfo
 	/// returns local ip
 		template <int ldim>
 		const MathVector<ldim>& local_ip(size_t s, size_t ip) const;
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const = 0;
-
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const = 0;
 
 	///	returns if data is constant
 		virtual bool constant() const {return false;}
