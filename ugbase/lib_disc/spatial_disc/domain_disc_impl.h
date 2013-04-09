@@ -420,8 +420,7 @@ assemble_defect(vector_type& d,
 		pModifyU = pModifyMemory.get();
 	}
 
-	bool log_domDisc = false; // 576 on level 4!
-	if ( log_domDisc ) UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU)[576],0) << "\t" << BlockRef((*pModifyU)[576],1)<< "\n");
+	//UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU)[576],0) << "\t" << BlockRef((*pModifyU)[576],1)<< "\n");
 
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
@@ -1023,7 +1022,7 @@ assemble_defect(vector_type& d,
 		pModifyU = pModifyMemory;
 	}
 
-	UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU->solution(0))[144],0) << "\t" << BlockRef((*pModifyU->solution(0))[144],1)<< "\n");
+	//UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU->solution(0))[144],0) << "\t" << BlockRef((*pModifyU->solution(0))[144],1)<< "\n");
 
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
@@ -1034,9 +1033,9 @@ assemble_defect(vector_type& d,
 	}
 	} UG_CATCH_THROW("'DomainDiscretization: Cannot modify solution.");
 
-	UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyMemory->solution(0))[144],0) << "\t" << BlockRef((*pModifyMemory->solution(0))[144],1)<< "\n");
+	//UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyMemory->solution(0))[144],0) << "\t" << BlockRef((*pModifyMemory->solution(0))[144],1)<< "\n");
 
-	UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyU->solution(0))[144],0) << "\t" << BlockRef((*pModifyU->solution(0))[144],1)<< "\n");
+	//UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyU->solution(0))[144],0) << "\t" << BlockRef((*pModifyU->solution(0))[144],1)<< "\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.size(); ++i)
