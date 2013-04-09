@@ -167,11 +167,8 @@ Performance, altough deactivating "deep outgoing state" is not recommended.<br>
 Remember that \em Eclipse does not know that the files are not on your local 
 machine, so when you are doing big SVN checkouts in \em Eclipse, all data is 
 going to your computer, and then to the remote machine. 
-Consider using the remote shell for those tasks. 
+Consider using the remote shell for those tasks.
 
-\note Sometimes the SVN version installed on the cluster is not compatible with yours,
-so when you used your local svn on the remote directory, you can't use the
-remote svn anymore. See this script to <a href="http://svn.apache.org/repos/asf/subversion/trunk/tools/client-side/change-svn-wc-format.py">
-Change SVN format</a>.
+See also \ref secSSH_outdatedSVN.
 
 */

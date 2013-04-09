@@ -1,0 +1,320 @@
+//  created by Martin Rupp
+//  martin.rupp@gcsc.uni-frankfurt.de
+//  y13 m04 d08
+
+/** \page pageUG4SVN SVN
+
+- \ref secSVNBasics
+- \ref secSVNRepository
+- \ref secSVNCheckout
+- \ref secSVNCommit
+- \ref secSVNUpdate
+- \ref secSVNFiles
+- \ref secSVNStatus
+- \ref secSVNConflicts
+- \ref secSVNOtherConflicts
+- \ref secSVNEclipse
+- \ref secSVNWarnings
+
+<hr>
+\section secSVNBasics SVN Basics
+
+SVN is a version control system. That means it is a software to coordinate software development within a team.
+
+SVN is installed on a server, and there are
+- one or more \ref secSVNRepository which keep the source codes for a project
+- \ref secSVNUsers, which can
+- \ref secSVNCheckout 
+- \ref secSVNCommit
+- \ref secSVNUpdate
+
+Every time a users successfully commits changes to the repository (that is: uploaded some changes),
+the <em>revision number</em> will be increased by one.
+The most up-to-date version is called the current revision, the current revision number, HEAD revision or just HEAD.
+
+<hr>
+\section secSVNRepository SVN Repositories
+an SVN repository is a URL to a server, added with a description which repository from the server you want to have.
+For ug4, the SVN server is <tt>svn://fuji.gcsc.uni-frankfurt.de</tt>, and the repository there is called ug4, so the complete
+SVN URL is <tt>svn://fuji.gcsc.uni-frankfurt.de/ug4</tt>. 
+
+<hr>
+\section secSVNUsers SVN Users
+Sebastian Reiter can create a new SVN user for you. SVN Users consists of a username and a password.
+
+
+<hr>
+\section secSVNCheckout Download the source code (checkout)
+To checkout ug4's trunk directory to the directory <tt>ug4svn</tt>, we do
+\code
+svn co svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4svn
+\endcode
+
+SVN will prompt you for your password:
+\verbatim
+Authentication realm: <svn://fuji.gcsc.uni-frankfurt.de:3690> fuji-svn-repositories
+Password for 'mrupp': 
+\endverbatim
+
+after that, ug4 (HEAD revision) will be downloaded.
+
+\note All commands following are relative to the current directory, and working in a subdirectory will \emph not effect the
+directories above.
+
+<hr>
+\section secSVNCommit Upload/check in changes (commit)
+
+You can work now normally with the code, perform changes and so on.
+Say you changed the file <tt>ug4/plugins/experimental/myplugin/bla.cpp</tt>. Then 
+
+\code
+svn commit plugins/experimental/myplugin/bla.cpp -m"i added some usefull stuff"
+\endcode
+
+Will upload or check in (commit) your changes to the server. Note that you have to specify some describing text via <tt>-m</tt>.
+
+
+<hr>
+\section secSVNUpdate Download changes others uploaded (update)
+Say i am another user, and i need the changes you made to <tt>ug4/plugins/experimental/myplugin/bla.cpp</tt>, then i can do a
+\code
+svn update
+\endcode
+in the ug4 directory, and i'll have the new version. You can see \emph checkout as the initial \emph update.
+\note When you do a <tt>svn update</tt> in a subdirectory, \emph only the subdirectory will be updated.
+\note SVN always keeps track of the last updated/checked out version (see diff and status).
+
+<hr>
+\section secSVNFiles Add, delete or rename files or directories
+If you create a new file, say  <tt>ug4/plugins/experimental/myplugin/blub.cpp</tt>, the file is not <em>under version control</em>
+or not <em>versioned</em>. 
+That means, SVN won't upload changes of that file. To change that, do
+\code
+svn add plugins/experimental/myplugin/blub.cpp
+svn commit plugins/experimental/myplugin/blub.cpp -m"added blub.cpp"
+\endcode
+Note that you also have to \emph commit the changes (in this case: addition of a file).
+In the same way you can remove files (<tt>svn rm file</tt>) and rename files (<tt>svn rename fileOld fileNew</tt>), 
+same is also true for directories.
+
+<hr>
+\section secSVNStatus Knowing what you have to check in
+\code
+svn status
+\endcode
+
+result will be for example
+\verbatim
+? 	not_under_version_control.txt
+M	file_i_modified.cpp
+A	file_i_added.cpp
+D	file_i_deleted.cpp
+!	missing_file.cpp
+\endverbatim
+
+Files marked with '?' are not under version control. Files marked with '!' are files you deleted, but are under version control.
+They will be recreated when you do a <tt>svn update</tt>. Use <tt>svn rm theFile.cpp</tt> to delete files.
+\note All files marked with an M or A will be checked in if you to a <tt>svn commit -m"bla"</tt> (that is a commit of the current directory).
+
+<hr>
+\section secSVNRevert Reverting your changes
+Sometimes you want to revert the changes you made (that way you can also be sure to be able to update):
+\code
+svn revert filename.cpp
+\endcode
+(also possible with directories, use with care and better check with <tt>svn status</tt>).
+
+<hr>
+\section secSVNConflicts Conflicts
+Now two people are working on <tt>plugins/experimental/myplugin/bla.cpp</tt>, so one day it happens that user A and B 
+did some different changes <tt>bla.cpp</tt>, and now both want to commit the changes. 
+By conincidence, user A is first, everything is ok.
+Now user B wants to commit his changes, but the error message is "file is out of date", user B has to do an \emph update
+first. Now since the file <tt>bla.cpp</tt> was changed by user B, SVN has to \emph merge the changes from the 
+\emph update process with the changes user B made. As in all synchronization problems, there can be \emph conflicts,
+and various ways to solve them.
+
+\verbatim
+Conflict discovered in 'bla.cpp'.
+Select: (p) postpone, (df) diff-full, (e) edit,
+        (mc) mine-conflict, (tc) theirs-conflict,
+        (s) show all options: 
+\endverbatim
+
+see <a href="http://www.logicaltrinkets.com/wordpress/?p=178">here</a> about how to resolve conflicts.
+If you want to throw away your changes, and just use the version from the server, enter <tt>tf</tt> (theirs full).
+If you made some changes you want to keep, use <tt>tc</tt> (theirs conflict).
+
+SVN remembers the state of the last version you checked out (or updated), so it always knows which files you changed 
+and which changes you made.
+
+
+<hr>
+\section secSVNOtherConflicts Error, other conflicts, troubleshooting
+
+\verbatim
+svn: Failed to add file 'bla.cpp': an unversioned file of the same name already exists
+\endverbatim
+SVN is afraid to overwrite the file bla.cpp, it is an unversioned file. You can rename the locally created bla.cpp to my_bla.cpp, and then
+the update should work. After that, merge your changes from my_bla.cpp manually.
+
+\verbatim
+svn: Failed to add directory 'another/directory': an unversioned directory of the same name already exists
+\endverbatim
+Again, SVN is afraid to overwrite the directory another/directory. Rename it to another/directory_my, update, and merge the two directories
+ manually.
+
+\subsection secSSH_outdatedSVN Incompatible SVN Versions
+Sometimes the SVN version installed on the cluster is not compatible with yours,
+so when you used your local svn on the remote directory, you can't use the
+remote svn anymore. See this script to <a href="http://svn.apache.org/repos/asf/subversion/trunk/tools/client-side/change-svn-wc-format.py">
+Change SVN format</a>.
+
+
+<hr>
+\subsection secSVNMore More
+\subsubsection secSVNMoreUsername SVN Revision number
+Getting the svn revision number of this directory and the subdirectories
+\code
+svnversion
+\endcode
+The output has the form
+\verbatim
+LOWESTREVISION[:HIGHESTREVISION][M]
+\endverbatim
+
+So <tt>9476:9496M</tt> means the lowest revision number is 9476, the highest is 9496, and you modified some files which are 
+under version control (hence the 'M'). 
+An output like <tt>9476</tt> means that all files are on revision number 9476 and non of them is modified.
+
+\subsubsection update ug4 or ug4's revision number
+With "updating ug4" we mean you need to update \emph all of ug4, not only some subdirectory. For that, go to your ug4 base directory,
+and enter <tt>svn update</tt>. There you can also do a <tt>svnversion</tt> to get the SVN version of whole ug4.
+ 
+\subsubsection secSVNMoreUsername Other Usernames
+Without specifying the username explicitly, SVN assumes that the SVN username is the name of the current user.
+If SVN has the wrong username, you might have your checkout line to 
+\code
+svn co --username horst svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4svn
+\endcode
+
+
+\subsubsection secSVNMoreHistory Log or History
+
+Showing the SVN log or history
+\code
+svn log bla.cpp
+\endcode
+will show the complete log entries of bla.cpp. 
+\code
+svn log -l 7
+\endcode
+will show the last 7 entries of the log of the current directory (and its subdirectories and files).
+
+\subsubsection secSVNMoreDiff diff
+
+Knowing what you changed in the files (diff)
+\code
+svn diff bla.cpp
+\endcode
+will compare the file bla.cpp to the version you last updated.
+
+
+\subsubsection secSVNMoreExample Other Examples
+current directory is CURDIR
+<ul>
+
+<li><tt>svn co -r 9767 svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4svn</tt><br>
+checking out revision number 9767 (instead of HEAD)
+</li><li><tt>svn status</tt><br>
+show svn status (modified, versioned, added, deleted) of CURDIR
+</li><li>svn status mydir </tt><br>
+show svn status of CURDIR/mydir (if mydir relative) or mydir (if mydir absolute)
+</li><li>svn commit -m"commiting CURDIR"</tt><br>
+upload changes in CURDIR and its subdirectories
+</li><li>svn commit myfile.cpp -m"commiting CURDIR"</tt><br>
+upload changes in myfile.cpp
+</li><li>svn commit bla1.cpp bla2.cpp -m"commiting CURDIR"</tt><br>
+upload changes in bla1.cpp and bla2.cpp
+
+</li><li>svn add myfile.cpp</tt><br>
+add the file myfile.cpp to the versioning system. needs \emph commit to upload changes.
+</li><li>svn add myfile.cpp myfile2.cpp</tt><br>
+adding the files myfile.cpp and myfile2.cpp
+</li><li>svn add *.cpp</tt><br>
+adding all .cpp files in CURDIR
+</li><li>svn add subdir subdir/*.cpp</tt><br>
+adding CURDIR/subdir and all .cpp files in CURDIR/subdir
+
+
+</li><li>svn update -r 1978 bla.cpp</tt><br>
+get the bla.cpp version from revision 1978 (used e.g. when you need to find out bugs which didn't happened some revisions ago)
+</li><li>svn update -r {2013-02-03} mydir</tt><br>
+get the version from 02.03.2013 (date) of CURDIR/mydir
+</li><li>svn update -r PREV</tt><br>
+get the previous version of CURDIR
+
+</li><li>svn update</tt><br>
+update CURDIR
+
+</li><li>svn diff</tt><br>
+show diff of CURDIR, subdirectories, and files
+
+</li><li>svn diff bla.cpp </tt><br>
+show diff of bla.cpp
+
+</li><li>svn diff -r HEAD bla.cpp</tt><br>
+compare bla.cpp with the current HEAD revision on the server
+
+</li><li>svn revert bla.cpp</tt><br>
+revert the changes you've made to bla.cpp
+</li><li>
+svn revert -R .</tt><br>
+revert the changes you've made to this directory and the subdirectories
+</li></ul>
+
+<hr>
+\section secSVNEclipse SVN in Eclipse
+Eclipse provides an easy-to-use interface for SVN in Eclipse. If you have code which is under version control, you will see
+the revision number on the right side of the files. On the left side you can see a '>', that means this file is modified, or,
+on directories: this directory or a subdirectory contains modifications.
+
+Right mouseclick on a file, you have 
+<ul>
+<li>
+<b>Team</b>:
+- <b>Commit</b> : performs a <tt>svn commit</tt> of this file/directory. You can enter a commit message, you see which changes are committed 
+and you can deselect some of the files. 
+\warning Unlike <tt>svn commit</tt>, if you have unversioned files in your directory, they will be added. You have to deselect them again.
+ Consider adding those files to svn:ignore.
+- <b>Update</b> : <tt>svn update</tt> of this file
+- <b>Update to revision</b>: bring this file to an older revision state (used e.g. when you need to find out bugs which didn't happened some revisions ago)
+- <b>Revert</b>: <tt>svn revert</tt> of this file/directory.
+- <b>Show History</b>: shows the svn log of this file
+- <b>Add to svn:ignore</b> : This way, svn won't care about these files anymore. They also won't show up on <tt>svn status</tt>, and Eclipse
+won't add them if you commit their parent directory.
+</li>
+<li>
+<b>Compare With...</b> : various ways to compare this file</li>
+<li>
+<b>Replace With...</b> : various ways to replace this file</li>
+</ul>
+
+<hr>
+\section secSVNWarnings Some Warnings
+<ul>
+<li> \warning Do not add unnecessary files. That means: Make sure you don't add unnecessary files. In ug4, a click on ug4's
+ base directory and there a commit will almost always add lots of unnecessary files like your build, bin or lib files.
+ Make use of the svn:ignore option. </li>
+<li> \warning Do not add lots of result files or huge data files. Keep in mind \emph everyone has to download them.
+</li></ul>
+
+<hr>
+Other sources:
+- http://svnbook.red-bean.com
+- http://maverick.inria.fr/~Xavier.Decoret/resources/svn/ 
+
+
+
+
+*/

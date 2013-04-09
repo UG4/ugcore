@@ -22,6 +22,7 @@ Create a \c ug4 directory and perform a svn checkout on the trunk.
 <li> <tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>
 </ul>
 </ul>
+More about SVN \ref pageUG4SVN "here".
 In the following section, YOURUG4ROOT is the directory which contains 
 cmake/ug_includes.cmake, so depending on your checkout, 
 this is ug4 or ug4/trunk.

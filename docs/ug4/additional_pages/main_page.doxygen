@@ -69,7 +69,8 @@ environment
 		- \ref pageTeamCommunication
 		- \ref pageUG4DoxygenQuickref
 		- \ref pageUsingGit
-		- \ref pageUG4SSH	
+		- \ref pageUG4SSH
+		- \ref pageUG4SVN	
 	- \ref pageDebuggingCPP
 
 - \subpage pageTroubleshooting
