@@ -15,6 +15,145 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
+//	UserData Info
+////////////////////////////////////////////////////////////////////////////////
+
+/// base class providing runtime-info on dimension and type
+class UserDataInfo {
+	public:
+	///	returns dimension
+		virtual int get_dim() const = 0;
+
+	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
+		virtual std::string type() const = 0;
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool continuous() const = 0;
+
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const = 0;
+
+	///	sets the function pattern for a possibly needed grid function
+		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
+
+	/// virtual destructor
+		virtual ~UserDataInfo() {}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+//	UserData
+////////////////////////////////////////////////////////////////////////////////
+
+// Traits
+template <typename TData>
+struct user_data_traits{static std::string name() 							{return "(unknown)";}};
+template <>
+struct user_data_traits<number>{static std::string name() 					{return "Number";}};
+template <std::size_t dim>
+struct user_data_traits< MathVector<dim> >{static std::string name() 		{return "Vector";}};
+template <std::size_t dim>
+struct user_data_traits< MathMatrix<dim,dim> >{static std::string name() 	{return "Matrix";}};
+template <std::size_t dim>
+struct user_data_traits< MathTensor<4,dim> >{static std::string name() 		{return "Tensor4";}};
+
+/// Type based UserData
+/**
+ * This class is the base class for all integration point data for a templated
+ * type. It provides the access to the data and handles the global integration
+ * points.
+ *
+ * \tparam	TData	Data
+ * \tparam	dim		world dimension
+ * \tparam	TRet	Type of return flag (bool or void)
+ */
+template <typename TData, int dim, typename TRet = void>
+class UserData : virtual public UserDataInfo
+{
+	public:
+	///	returns dimension
+		int get_dim() const {return dim;}
+
+	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
+		std::string type() const {return user_data_traits<TData>::name();}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool continuous() const = 0;
+
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const = 0;
+
+	public:
+	///	returns value for a global position
+		virtual TRet operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si) const = 0;
+
+	///	returns value for local and global position
+	///	\{
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<1>& locIP) const = 0;
+
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<2>& locIP) const = 0;
+
+		virtual TRet operator() (TData& value,
+		                         const MathVector<dim>& globIP,
+		                         number time, int si,
+		                         LocalVector& u,
+		                         GeometricObject* elem,
+		                         const MathVector<dim> vCornerCoords[],
+		                         const MathVector<3>& locIP) const = 0;
+	///	\}
+
+	///	returns value for global positions
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si, const size_t nip) const = 0;
+
+	///	returns values for local and global positions
+	///	\{
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<1> vLocIP[],
+		                        const size_t nip,
+		                        const MathMatrix<1, dim>* vJT = NULL) const = 0;
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<2> vLocIP[],
+		                        const size_t nip,
+		                        const MathMatrix<2, dim>* vJT = NULL) const = 0;
+
+		virtual void operator()(TData vValue[],
+		                        const MathVector<dim> vGlobIP[],
+		                        number time, int si,
+		                        LocalVector& u,
+		                        GeometricObject* elem,
+		                        const MathVector<dim> vCornerCoords[],
+		                        const MathVector<3> vLocIP[],
+		                        const size_t nip,
+		                        const MathMatrix<3, dim>* vJT = NULL) const = 0;
+	///	\}
+};
+////////////////////////////////////////////////////////////////////////////////
 //	UserData Interface
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -26,11 +165,11 @@ namespace ug{
  * \tparam	dim		world dimension
  */
 template <int dim>
-class IUserData
+class ICplUserData : virtual public UserDataInfo
 {
 	public:
 	///	default constructor
-		IUserData();
+		ICplUserData();
 
 	///	set the subset of evaluation
 		void set_subset(int si) {m_si = si;}
@@ -91,26 +230,23 @@ class IUserData
 		template <int ldim>
 		const MathVector<ldim>& local_ip(size_t s, size_t ip) const;
 
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool continuous() const = 0;
+
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const = 0;
+
 	///	returns if data is constant
 		virtual bool constant() const {return false;}
 
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const {return false;}
-
 	///	returns if data depends on solution
 		virtual bool zero_derivative() const {return true;}
-
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
-
-	///	sets the function pattern for a possibly needed grid function
-		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
 
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return 0;}
 
 	///	return needed data
-		virtual SmartPtr<IUserData> needed_data(size_t i) {return NULL;}
+		virtual SmartPtr<ICplUserData> needed_data(size_t i) {return NULL;}
 
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual void compute(LocalVector* u,
@@ -140,7 +276,7 @@ class IUserData
 		virtual void check_setup() const {}
 
 	///	virtual desctructor
-		virtual ~IUserData() {};
+		virtual ~ICplUserData() {};
 
 	public:
 	///	set global positions
@@ -233,18 +369,6 @@ class IUserData
 //	UserData
 ////////////////////////////////////////////////////////////////////////////////
 
-// Traits
-template <typename TData>
-struct user_data_traits{static std::string name() 							{return "(unknown)";}};
-template <>
-struct user_data_traits<number>{static std::string name() 					{return "Number";}};
-template <std::size_t dim>
-struct user_data_traits< MathVector<dim> >{static std::string name() 		{return "Vector";}};
-template <std::size_t dim>
-struct user_data_traits< MathMatrix<dim,dim> >{static std::string name() 	{return "Matrix";}};
-template <std::size_t dim>
-struct user_data_traits< MathTensor<4,dim> >{static std::string name() 		{return "Tensor4";}};
-
 // predeclaration
 template <typename TData, int dim> class DataImport;
 
@@ -259,11 +383,11 @@ template <typename TData, int dim> class DataImport;
  * \tparam	TRet	Type of return flag (bool or void)
  */
 template <typename TData, int dim, typename TRet = void>
-class UserData : public IUserData<dim>
+class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 {
 	public:
 	///	type of base class
-		typedef IUserData<dim> base_type;
+		typedef ICplUserData<dim> base_type;
 
 	///	explicitly forward some functions
 		using base_type::num_series;
@@ -276,6 +400,13 @@ class UserData : public IUserData<dim>
 	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
 		std::string type() const {return user_data_traits<TData>::name();}
 
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool continuous() const = 0;
+
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const = 0;
+
+	public:
 	///	returns the value at ip
 		const TData& value(size_t s, size_t ip) const
 			{check_series_ip(s,ip); return m_vvValue[s][ip];}
@@ -297,7 +428,7 @@ class UserData : public IUserData<dim>
 			{check_series_ip(s,ip); return m_vvBoolFlag[s][ip];}
 
 	///	destructor
-		~UserData() {local_ip_series_to_be_cleared();}
+		~CplUserData() {local_ip_series_to_be_cleared();}
 
 	///	register external callback, invoked when data storage changed
 		void register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)());
@@ -338,76 +469,6 @@ class UserData : public IUserData<dim>
 		typedef void (DataImport<TData,dim>::*CallbackFct)();
 		std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > m_vCallback;
 
-	public:
-	///	returns value for a global position
-		virtual TRet operator() (TData& value,
-								 const MathVector<dim>& globIP,
-								 number time, int si) const;
-
-	///	returns value for local and global position
-	///	\{
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<1>& locIP) const;
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<2>& locIP) const;
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<3>& locIP) const;
-	///	\}
-
-	///	returns value for global positions
-		virtual void operator()(TData vValue[],
-								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const;
-
-	///	returns values for local and global positions
-	///	\{
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<1> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<1, dim>* vJT = NULL) const;
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<2> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<2, dim>* vJT = NULL) const;
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<3> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<3, dim>* vJT = NULL) const;
-	///	\}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -420,13 +481,13 @@ class UserData : public IUserData<dim>
  * unknown solutions.
  */
 template <typename TData, int dim>
-class DependentUserData : public UserData<TData, dim>
+class DependentUserData : public CplUserData<TData, dim>
 {
 	public:
 	///	Base class type
-		typedef UserData<TData, dim> base_type;
+		typedef CplUserData<TData, dim> base_type;
 
-	//	explicitly forward methods of IUserData
+	//	explicitly forward methods of ICplUserData
 		using base_type::num_series;
 		using base_type::num_ip;
 		using base_type::local_ips;

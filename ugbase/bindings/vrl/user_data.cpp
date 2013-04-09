@@ -329,7 +329,7 @@ class VRLUserLinker
 		}
 
 	///	set input i
-		void set_input(size_t i, SmartPtr<UserData<TDataIn, dim> > data)
+		void set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data)
 		{
 			UG_ASSERT(i < m_vpUserData.size(), "Input not needed");
 			UG_ASSERT(i < m_vpDependData.size(), "Input not needed");
@@ -594,7 +594,7 @@ class VRLUserLinker
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<UserData<TDataIn, dim> > > m_vpUserData;
+		std::vector<SmartPtr<CplUserData<TDataIn, dim> > > m_vpUserData;
 
 	///	data input casted to dependend data
 		std::vector<SmartPtr<DependentUserData<TDataIn, dim> > > m_vpDependData;
@@ -738,7 +738,7 @@ class VRLUserData
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int dim>
-class VRLCondUserNumber : public UserData<number, dim, bool>
+class VRLCondUserNumber : public CplUserData<number, dim, bool>
 {
 protected:
 	jdouble condData2Double(JNIEnv *env, jobject obj) const
@@ -923,7 +923,7 @@ private:
 template <typename TData>
 class PrintUserData2d {
 public:
-	void set(SmartPtr<UserData<TData, 2> > user) {m_spNumber = user;}
+	void set(SmartPtr<CplUserData<TData, 2> > user) {m_spNumber = user;}
 
 	static std::string dataname()
 	{
@@ -951,7 +951,7 @@ public:
 	}
 
 private:
-	SmartPtr<UserData<TData, 2> > m_spNumber;
+	SmartPtr<CplUserData<TData, 2> > m_spNumber;
 };
 
 template <typename TData>
@@ -969,7 +969,7 @@ public:
 		return ss.str();
 	}
 
-	void set(SmartPtr<UserData<number, 2, bool> > user) {m_spData = user;}
+	void set(SmartPtr<CplUserData<number, 2, bool> > user) {m_spData = user;}
 
 	std::string print(number x, number y, number time, int si)
 	{
@@ -992,7 +992,7 @@ public:
 	}
 
 private:
-	SmartPtr<UserData<number, 2, bool> > m_spData;
+	SmartPtr<CplUserData<number, 2, bool> > m_spData;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1006,7 +1006,7 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 	//	VRLUserType
 	{
 		typedef VRLUserData<TData, dim> T;
-		typedef UserData<TData, dim> TBase;
+		typedef CplUserData<TData, dim> TBase;
 		std::stringstream options;
 		options << "Input:|user-data|dim=" << T::retArrayDim << ";"
 				<< "params=["<<T::params()<<"];";
@@ -1020,7 +1020,7 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 	//	VRLUserLinkerTypeNumber
 	{
 		typedef VRLUserLinker<TData, dim, number> T;
-		typedef UserData<TData, dim> TBase;
+		typedef CplUserData<TData, dim> TBase;
 		std::stringstream options;
 		reg.add_class_<T, TBase>(T::name(), grp)
 			.add_constructor()
@@ -1029,7 +1029,7 @@ void RegisterUserDataType(ug::bridge::Registry& reg, const std::string& grp)
 			.add_method("vrl_value_callback", &T::vrl_value_callback)
 			.add_method("deriv", &T::set_vrl_deriv_callback)
 			.add_method("vrl_deriv_callback", &T::vrl_deriv_callback)
-			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<UserData<number, dim> >)>(&T::set_input))
+			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<CplUserData<number, dim> >)>(&T::set_input))
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(T::name(), T::group_name(), tag);
 	}
@@ -1059,7 +1059,7 @@ void RegisterUserData(ug::bridge::Registry& reg, const char* parentGroup)
 	//	VRLCondUserNumber
 	{
 		typedef VRLCondUserNumber<dim> T;
-		typedef UserData<number, dim, bool> TBase;
+		typedef CplUserData<number, dim, bool> TBase;
 		std::stringstream options;
 		options << "Input:|cond-user-data|params=["<<T::params()<<"];";
 		reg.add_class_<T, TBase>(T::name(), grp)

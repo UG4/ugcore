@@ -213,7 +213,7 @@ class LuaUserFunction
 
 	///	set input i
 	/// \{
-		void set_input(size_t i, SmartPtr<UserData<TDataIn, dim> > data);
+		void set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data);
 		void set_input(size_t i, number val);
 	///	\}
 
@@ -292,7 +292,7 @@ class LuaUserFunction
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<UserData<TDataIn, dim> > > m_vpUserData;
+		std::vector<SmartPtr<CplUserData<TDataIn, dim> > > m_vpUserData;
 
 	///	data input casted to dependend data
 		std::vector<SmartPtr<DependentUserData<TDataIn, dim> > > m_vpDependData;

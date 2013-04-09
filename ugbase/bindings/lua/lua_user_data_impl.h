@@ -880,7 +880,7 @@ void LuaUserFunction<TData,dim,TDataIn>::set_num_input(size_t num)
 
 template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::
-set_input(size_t i, SmartPtr<UserData<TDataIn, dim> > data)
+set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data)
 {
 	UG_ASSERT(i < m_vpUserData.size(), "Input not needed");
 	UG_ASSERT(i < m_vpDependData.size(), "Input not needed");

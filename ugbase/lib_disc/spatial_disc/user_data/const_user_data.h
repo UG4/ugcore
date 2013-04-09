@@ -181,28 +181,28 @@ class ConstUserTensor
 
 /// creates user data of desired type
 template <typename TData, int dim>
-SmartPtr<UserData<TData,dim> > CreateConstUserData(number val, TData dummy);
+SmartPtr<CplUserData<TData,dim> > CreateConstUserData(number val, TData dummy);
 
 template <int dim>
-inline SmartPtr<UserData<number,dim> > CreateConstUserData(number val, number)
+inline SmartPtr<CplUserData<number,dim> > CreateConstUserData(number val, number)
 {
 	return CreateSmartPtr(new ConstUserNumber<dim>(val));
 };
 
 template <int dim>
-SmartPtr<UserData<MathVector<dim>,dim> > CreateConstUserData(number val, MathVector<dim>)
+SmartPtr<CplUserData<MathVector<dim>,dim> > CreateConstUserData(number val, MathVector<dim>)
 {
 	return CreateSmartPtr(new ConstUserVector<dim>(val));
 }
 
 template <int dim>
-SmartPtr<UserData<MathMatrix<dim,dim>,dim> > CreateConstUserData(number val, MathMatrix<dim,dim>)
+SmartPtr<CplUserData<MathMatrix<dim,dim>,dim> > CreateConstUserData(number val, MathMatrix<dim,dim>)
 {
 	return CreateSmartPtr(new ConstUserMatrix<dim>(val));
 }
 
 template <int dim>
-SmartPtr<UserData<MathTensor<4,dim>,dim> > CreateConstUserData(number val, MathTensor<4,dim>)
+SmartPtr<CplUserData<MathTensor<4,dim>,dim> > CreateConstUserData(number val, MathTensor<4,dim>)
 {
 	return CreateSmartPtr(new ConstUserTensor<4,dim>(val));
 }

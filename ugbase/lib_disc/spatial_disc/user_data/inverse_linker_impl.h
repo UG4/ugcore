@@ -34,7 +34,7 @@ InverseLinker(const InverseLinker& linker)
 
 template <int dim>
 void InverseLinker<dim>::
-divide(SmartPtr<UserData<number, dim> > dividend, SmartPtr<UserData<number, dim> > divisor)
+divide(SmartPtr<CplUserData<number, dim> > dividend, SmartPtr<CplUserData<number, dim> > divisor)
 {
 
 //	current number of inputs
@@ -64,14 +64,14 @@ divide(SmartPtr<UserData<number, dim> > dividend, SmartPtr<UserData<number, dim>
 
 template <int dim>
 void InverseLinker<dim>::
-divide(number dividend, SmartPtr<UserData<number, dim> > divisor)
+divide(number dividend, SmartPtr<CplUserData<number, dim> > divisor)
 {
 	divide(CreateConstUserData<dim>(dividend, number()), divisor);
 }
 
 template <int dim>
 void InverseLinker<dim>::
-divide(SmartPtr<UserData<number, dim> > dividend, number divisor)
+divide(SmartPtr<CplUserData<number, dim> > dividend, number divisor)
 {
 	divide(dividend, CreateConstUserData<dim>(divisor, number()));
 }

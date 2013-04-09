@@ -33,7 +33,7 @@ class IDataImport
 	public:
 	/// Constructor
 		IDataImport(bool compLinDefect = true)
-			: m_spIUserData(NULL), m_part(STIFF),
+			: m_spICplUserData(NULL), m_part(STIFF),
 			 m_bCompLinDefect(compLinDefect)
 		{}
 
@@ -75,13 +75,13 @@ class IDataImport
 	 */
 		bool zero_derivative() const
 		{
-			if(!m_spIUserData.valid()) return true;
-			else if (m_spIUserData->zero_derivative()) return true;
+			if(!m_spICplUserData.valid()) return true;
+			else if (m_spICplUserData->zero_derivative()) return true;
 			else return !m_bCompLinDefect;
 		}
 
 	/// returns the connected user data
-		virtual SmartPtr<IUserData<dim> > data() = 0;
+		virtual SmartPtr<ICplUserData<dim> > data() = 0;
 
 	///	set function group for linearization of defect
 		void set_function_group(const FunctionGroup& fctGrp){m_fctGrp = fctGrp;}
@@ -110,7 +110,7 @@ class IDataImport
 
 	protected:
 	/// connected iexport
-		SmartPtr<IUserData<dim> > m_spIUserData;
+		SmartPtr<ICplUserData<dim> > m_spICplUserData;
 
 	///	function group for linear defect
 		FunctionGroup m_fctGrp;
@@ -142,13 +142,13 @@ class DataImport : public IDataImport<dim>
 		~DataImport();
 
 	///	set the user data
-		void set_data(SmartPtr<UserData<TData, dim> > spData);
+		void set_data(SmartPtr<CplUserData<TData, dim> > spData);
 
-	/// returns the connected IUserData
-		SmartPtr<IUserData<dim> > data() {return m_spUserData.template cast_dynamic<IUserData<dim> >();}
+	/// returns the connected ICplUserData
+		SmartPtr<ICplUserData<dim> > data() {return m_spUserData.template cast_dynamic<ICplUserData<dim> >();}
 
-	/// returns the connected IUserData
-		SmartPtr<UserData<TData, dim> > user_data(){return m_spUserData;}
+	/// returns the connected ICplUserData
+		SmartPtr<CplUserData<TData, dim> > user_data(){return m_spUserData;}
 
 	///	returns true if data given
 		virtual bool data_given() const {return m_spUserData.valid();}
@@ -316,7 +316,7 @@ class DataImport : public IDataImport<dim>
 		int m_seriesID;
 
 	/// connected UserData
-		SmartPtr<UserData<TData, dim> > m_spUserData;
+		SmartPtr<CplUserData<TData, dim> > m_spUserData;
 
 	///	cached access to the UserData field
 		const TData* m_vValue;

@@ -87,8 +87,8 @@ class StdDataLinker
 	///	returns that a grid function is needed for evaluation
 		virtual bool requires_grid_fct() const
 		{
-			for(size_t i = 0; i < this->m_vpIUserData.size(); ++i)
-				if(this->m_vpIUserData[i]->requires_grid_fct())
+			for(size_t i = 0; i < this->m_vpICplUserData.size(); ++i)
+				if(this->m_vpICplUserData[i]->requires_grid_fct())
 					return true;
 			return false;
 		}
@@ -97,16 +97,16 @@ class StdDataLinker
 		virtual bool continuous() const
 		{
 			bool bRet = true;
-			for(size_t i = 0; i < this->m_vpIUserData.size(); ++i)
-				bRet &= this->m_vpIUserData[i]->continuous();
+			for(size_t i = 0; i < this->m_vpICplUserData.size(); ++i)
+				bRet &= this->m_vpICplUserData[i]->continuous();
 			return bRet;
 		}
 
 	///	sets the associated function pattern
 		virtual void set_function_pattern(const FunctionPattern& fctPatt)
 		{
-			for(size_t i = 0; i < this->m_vpIUserData.size(); ++i)
-				this->m_vpIUserData[i]->set_function_pattern(fctPatt);
+			for(size_t i = 0; i < this->m_vpICplUserData.size(); ++i)
+				this->m_vpICplUserData[i]->set_function_pattern(fctPatt);
 		}
 
 	protected:

@@ -67,7 +67,7 @@ request_non_regular_grid(bool bNonRegular)
 
 template<typename TDomain>
 void NeumannBoundaryFE<TDomain>::
-add(SmartPtr<UserData<number, dim> > data, const char* BndSubsets, const char* InnerSubsets)
+add(SmartPtr<CplUserData<number, dim> > data, const char* BndSubsets, const char* InnerSubsets)
 {
 	m_vNumberData.push_back(NumberData(data, BndSubsets, InnerSubsets, this));
 	this->add_inner_subsets(InnerSubsets);
@@ -75,7 +75,7 @@ add(SmartPtr<UserData<number, dim> > data, const char* BndSubsets, const char* I
 
 template<typename TDomain>
 void NeumannBoundaryFE<TDomain>::
-add(SmartPtr<UserData<number, dim, bool> > user, const char* BndSubsets, const char* InnerSubsets)
+add(SmartPtr<CplUserData<number, dim, bool> > user, const char* BndSubsets, const char* InnerSubsets)
 {
 	m_vBNDNumberData.push_back(BNDNumberData(user, BndSubsets, InnerSubsets));
 	this->add_inner_subsets(InnerSubsets);
@@ -83,7 +83,7 @@ add(SmartPtr<UserData<number, dim, bool> > user, const char* BndSubsets, const c
 
 template<typename TDomain>
 void NeumannBoundaryFE<TDomain>::
-add(SmartPtr<UserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets)
+add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets)
 {
 	m_vVectorData.push_back(VectorData(user, BndSubsets, InnerSubsets));
 	this->add_inner_subsets(InnerSubsets);

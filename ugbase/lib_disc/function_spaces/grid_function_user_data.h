@@ -129,6 +129,9 @@ class StdGridFunctionData
 			UG_THROW("Not implemented.");
 		}
 
+	///	returns if data is continuous
+		virtual bool continuous() const {return false;}
+
 	///	returns if data depends on solution
 		virtual bool zero_derivative() const {return false;}
 

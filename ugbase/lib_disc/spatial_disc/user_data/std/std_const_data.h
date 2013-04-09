@@ -27,7 +27,7 @@ namespace ug{
 template <typename TImpl, typename TData, int dim>
 class StdConstData
 	: 	public StdUserData<		StdConstData<TImpl,TData,dim>,
-								UserData<TData,dim>,
+								CplUserData<TData,dim>,
 								TData,dim>
 {
 	public:

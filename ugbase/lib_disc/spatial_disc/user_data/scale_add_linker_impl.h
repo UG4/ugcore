@@ -34,7 +34,7 @@ ScaleAddLinker(const ScaleAddLinker& linker)
 
 template <typename TData, int dim, typename TDataScale>
 void ScaleAddLinker<TData,dim,TDataScale>::
-add(SmartPtr<UserData<TDataScale, dim> > scale, SmartPtr<UserData<TData, dim> > data)
+add(SmartPtr<CplUserData<TDataScale, dim> > scale, SmartPtr<CplUserData<TData, dim> > data)
 {
 //	current number of inputs
 	const size_t numInput = base_type::num_input() / 2;
@@ -63,14 +63,14 @@ add(SmartPtr<UserData<TDataScale, dim> > scale, SmartPtr<UserData<TData, dim> > 
 
 template <typename TData, int dim, typename TDataScale>
 void ScaleAddLinker<TData,dim,TDataScale>::
-add(number scale, SmartPtr<UserData<TData, dim> > data)
+add(number scale, SmartPtr<CplUserData<TData, dim> > data)
 {
 	add(CreateConstUserData<dim>(scale, TDataScale()), data);
 }
 
 template <typename TData, int dim, typename TDataScale>
 void ScaleAddLinker<TData,dim,TDataScale>::
-add(SmartPtr<UserData<TDataScale, dim> > scale, number data)
+add(SmartPtr<CplUserData<TDataScale, dim> > scale, number data)
 {
 	add(scale, CreateConstUserData<dim>(data, TData()));
 }

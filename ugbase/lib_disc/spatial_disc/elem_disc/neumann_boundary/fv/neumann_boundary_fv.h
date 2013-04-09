@@ -37,9 +37,9 @@ class NeumannBoundaryFV
 
 	///	add a boundary value
 	///	\{
-		void add(SmartPtr<UserData<number, dim> > data, 			const char* BndSubsets, const char* InnerSubsets);
-		void add(SmartPtr<UserData<number, dim, bool> > user, 		const char* BndSubsets, const char* InnerSubsets);
-		void add(SmartPtr<UserData<MathVector<dim>, dim> > user, 	const char* BndSubsets, const char* InnerSubsets);
+		void add(SmartPtr<CplUserData<number, dim> > data, 			const char* BndSubsets, const char* InnerSubsets);
+		void add(SmartPtr<CplUserData<number, dim, bool> > user, 		const char* BndSubsets, const char* InnerSubsets);
+		void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, 	const char* BndSubsets, const char* InnerSubsets);
 	/// \}
 
 	protected:
@@ -48,7 +48,7 @@ class NeumannBoundaryFV
 	///	Unconditional scalar user data
 		struct NumberData : public base_type::Data
 		{
-			NumberData(SmartPtr<UserData<number, dim> > data,
+			NumberData(SmartPtr<CplUserData<number, dim> > data,
 					   std::string BndSubsets, std::string InnerSubsets,
 					   NeumannBoundaryFV* this_)
 				: base_type::Data(BndSubsets, InnerSubsets), This(this_)
@@ -74,21 +74,21 @@ class NeumannBoundaryFV
 	///	Conditional scalar user data
 		struct BNDNumberData : public base_type::Data
 		{
-			BNDNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
+			BNDNumberData(SmartPtr<CplUserData<number, dim, bool> > functor_,
 						  std::string BndSubsets, std::string InnerSubsets)
 				: base_type::Data(BndSubsets, InnerSubsets), functor(functor_) {}
 
-			SmartPtr<UserData<number, dim, bool> > functor;
+			SmartPtr<CplUserData<number, dim, bool> > functor;
 		};
 
 	///	Unconditional vector user data
 		struct VectorData : public base_type::Data
 		{
-			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > functor_,
+			VectorData(SmartPtr<CplUserData<MathVector<dim>, dim> > functor_,
 					   std::string BndSubsets, std::string InnerSubsets)
 			: base_type::Data(BndSubsets, InnerSubsets), functor(functor_) {}
 
-			SmartPtr<UserData<MathVector<dim>, dim> > functor;
+			SmartPtr<CplUserData<MathVector<dim>, dim> > functor;
 		};
 
 		std::vector<NumberData> m_vNumberData;

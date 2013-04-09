@@ -13,11 +13,11 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-//	IUserData
+//	ICplUserData
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int dim>
-IUserData<dim>::IUserData() : m_locPosDim(-1), m_timePoint(0), m_si(-1)
+ICplUserData<dim>::ICplUserData() : m_locPosDim(-1), m_timePoint(0), m_si(-1)
 {
 	m_vNumIP.clear();
 	m_vMayChange.clear();
@@ -27,7 +27,7 @@ IUserData<dim>::IUserData() : m_locPosDim(-1), m_timePoint(0), m_si(-1)
 }
 
 template <int dim>
-void IUserData<dim>::clear()
+void ICplUserData<dim>::clear()
 {
 	local_ip_series_to_be_cleared();
 	m_vNumIP.clear();
@@ -41,7 +41,7 @@ void IUserData<dim>::clear()
 
 template <int dim>
 template <int ldim>
-size_t IUserData<dim>::register_local_ip_series(const MathVector<ldim>* vPos,
+size_t ICplUserData<dim>::register_local_ip_series(const MathVector<ldim>* vPos,
                                          const size_t numIP,
                                          bool bMayChange)
 {
@@ -83,7 +83,7 @@ size_t IUserData<dim>::register_local_ip_series(const MathVector<ldim>* vPos,
 
 template <int dim>
 template <int ldim>
-void IUserData<dim>::set_local_ips(const size_t seriesID,
+void ICplUserData<dim>::set_local_ips(const size_t seriesID,
                             const MathVector<ldim>* vPos,
                             const size_t numIP)
 {
@@ -122,7 +122,7 @@ void IUserData<dim>::set_local_ips(const size_t seriesID,
 
 template <int dim>
 template <int ldim>
-const MathVector<ldim>* IUserData<dim>::local_ips(size_t s) const
+const MathVector<ldim>* ICplUserData<dim>::local_ips(size_t s) const
 {
 //	check, that dimension is ok.
 	if(m_locPosDim != ldim) UG_THROW("Local IP dimension conflict");
@@ -135,7 +135,7 @@ const MathVector<ldim>* IUserData<dim>::local_ips(size_t s) const
 
 template <int dim>
 template <int ldim>
-const MathVector<ldim>& IUserData<dim>::local_ip(size_t s, size_t ip) const
+const MathVector<ldim>& ICplUserData<dim>::local_ip(size_t s, size_t ip) const
 {
 //	check, that dimension is ok.
 	if(m_locPosDim != ldim) UG_THROW("Local IP dimension conflict");
@@ -147,7 +147,7 @@ const MathVector<ldim>& IUserData<dim>::local_ip(size_t s, size_t ip) const
 }
 
 template <int dim>
-void IUserData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
+void ICplUserData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP)
 {
 	numIP = numIP +1;
 	numIP = numIP -1;
@@ -171,14 +171,14 @@ void IUserData<dim>::set_global_ips(size_t s, const MathVector<dim>* vPos, size_
 }
 
 template <int dim>
-inline void IUserData<dim>::check_s(size_t s) const
+inline void ICplUserData<dim>::check_s(size_t s) const
 {
 	UG_ASSERT(s < num_series(), "Wrong series id");
 	UG_ASSERT(s < m_vvGlobPos.size(), "Invalid index.");
 }
 
 template <int dim>
-inline void IUserData<dim>::check_s_ip(size_t s, size_t ip) const
+inline void ICplUserData<dim>::check_s_ip(size_t s, size_t ip) const
 {
 	check_s(s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index.");
@@ -190,126 +190,7 @@ inline void IUserData<dim>::check_s_ip(size_t s, size_t ip) const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim, typename TRet>
-TRet UserData<TData,dim,TRet>::
-operator() (TData& value,
-            const MathVector<dim>& globIP,
-            number time, int si) const
-{
-	UG_THROW("UserData: operator()(TData, MathVector<dim>, "
-			"time, si) not implemented.");
-}
-
-template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::
-operator() (TData vValue[],
-            const MathVector<dim> vGlobIP[],
-            number time, int si, const size_t nip) const
-{
-	UG_THROW("UserData: operator()(TData[], MathVector<dim>[], "
-			"time, si) not implemented.");
-}
-
-template <typename TData, int dim, typename TRet>
-TRet UserData<TData,dim,TRet>::
-operator() (TData& value,
-            const MathVector<dim>& globIP,
-            number time, int si,
-            LocalVector& u,
-            GeometricObject* elem,
-            const MathVector<dim> vCornerCoords[],
-            const MathVector<1>& locIP) const
-{
-	UG_THROW("UserData: operator()(TData, MathVector<dim>, "
-			"time, si, LocalVector, GeometricObject*, MathVector<1>) not implemented.");
-}
-
-template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::
-operator()(TData vValue[],
-           const MathVector<dim> vGlobIP[],
-           number time, int si,
-           LocalVector& u,
-           GeometricObject* elem,
-           const MathVector<dim> vCornerCoords[],
-           const MathVector<1> vLocIP[],
-           const size_t nip,
-           const MathMatrix<1, dim>* vJT) const
-{
-	for(size_t ip = 0; ip < nip; ++ip)
-	{
-		operator()(vValue[ip], vGlobIP[ip], time, si,
-		                  u, elem, vCornerCoords, vLocIP[ip]);
-	}
-}
-
-template <typename TData, int dim, typename TRet>
-TRet UserData<TData,dim,TRet>::
-operator() (TData& value,
-            const MathVector<dim>& globIP,
-            number time, int si,
-            LocalVector& u,
-            GeometricObject* elem,
-            const MathVector<dim> vCornerCoords[],
-            const MathVector<2>& locIP) const
-{
-	UG_THROW("UserData: operator()(TData, MathVector<dim>, "
-			"time, si, LocalVector, GeometricObject*, MathVector<2>) not implemented.");
-}
-
-template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::
-operator()(TData vValue[],
-           const MathVector<dim> vGlobIP[],
-           number time, int si,
-           LocalVector& u,
-           GeometricObject* elem,
-           const MathVector<dim> vCornerCoords[],
-           const MathVector<2> vLocIP[],
-           const size_t nip,
-           const MathMatrix<2, dim>* vJT) const
-{
-	for(size_t ip = 0; ip < nip; ++ip)
-	{
-		operator()(vValue[ip], vGlobIP[ip], time, si,
-		                  u, elem, vCornerCoords, vLocIP[ip]);
-	}
-}
-
-template <typename TData, int dim, typename TRet>
-TRet UserData<TData,dim,TRet>::
-operator() (TData& value,
-            const MathVector<dim>& globIP,
-            number time, int si,
-            LocalVector& u,
-            GeometricObject* elem,
-            const MathVector<dim> vCornerCoords[],
-            const MathVector<3>& locIP) const
-{
-	UG_THROW("UserData: operator()(TData, MathVector<dim>, "
-			"time, si, LocalVector, GeometricObject*, MathVector<3>) not implemented.");
-}
-
-template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::
-operator()(TData vValue[],
-           const MathVector<dim> vGlobIP[],
-           number time, int si,
-           LocalVector& u,
-           GeometricObject* elem,
-           const MathVector<dim> vCornerCoords[],
-           const MathVector<3> vLocIP[],
-           const size_t nip,
-           const MathMatrix<3, dim>* vJT) const
-{
-	for(size_t ip = 0; ip < nip; ++ip)
-	{
-		operator()(vValue[ip], vGlobIP[ip], time, si,
-		                  u, elem, vCornerCoords, vLocIP[ip]);
-	}
-}
-
-template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::
+void CplUserData<TData,dim,TRet>::
 register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)())
 {
 	typedef std::pair<DataImport<TData,dim>*, CallbackFct> Pair;
@@ -317,7 +198,7 @@ register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim
 }
 
 template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::
+void CplUserData<TData,dim,TRet>::
 unregister_storage_callback(DataImport<TData,dim>* obj)
 {
 	typedef typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > VecType;
@@ -331,7 +212,7 @@ unregister_storage_callback(DataImport<TData,dim>* obj)
 }
 
 template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::
+void CplUserData<TData,dim,TRet>::
 call_storage_callback() const
 {
 	typedef typename std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > VecType;
@@ -343,14 +224,14 @@ call_storage_callback() const
 }
 
 template <typename TData, int dim, typename TRet>
-inline void UserData<TData,dim,TRet>::check_series(size_t s) const
+inline void CplUserData<TData,dim,TRet>::check_series(size_t s) const
 {
 	UG_ASSERT(s < num_series(), "Wrong series id"<<s);
 	UG_ASSERT(s < m_vvValue.size(), "Invalid index "<<s);
 }
 
 template <typename TData, int dim, typename TRet>
-inline void UserData<TData,dim,TRet>::check_series_ip(size_t s, size_t ip) const
+inline void CplUserData<TData,dim,TRet>::check_series_ip(size_t s, size_t ip) const
 {
 	check_series(s);
 	UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
@@ -358,7 +239,7 @@ inline void UserData<TData,dim,TRet>::check_series_ip(size_t s, size_t ip) const
 }
 
 template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::local_ip_series_added(const size_t seriesID)
+void CplUserData<TData,dim,TRet>::local_ip_series_added(const size_t seriesID)
 {
 	const size_t s = seriesID;
 
@@ -384,7 +265,7 @@ void UserData<TData,dim,TRet>::local_ip_series_added(const size_t seriesID)
 }
 
 template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::local_ip_series_to_be_cleared()
+void CplUserData<TData,dim,TRet>::local_ip_series_to_be_cleared()
 {
 //	free the memory
 //	clear all series
@@ -396,7 +277,7 @@ void UserData<TData,dim,TRet>::local_ip_series_to_be_cleared()
 }
 
 template <typename TData, int dim, typename TRet>
-void UserData<TData,dim,TRet>::local_ips_changed(const size_t seriesID, const size_t newNumIP)
+void CplUserData<TData,dim,TRet>::local_ips_changed(const size_t seriesID, const size_t newNumIP)
 {
 //	resize only when more data is needed than actually allocated
 	if(newNumIP >= m_vvValue[seriesID].size())
@@ -501,7 +382,7 @@ void DependentUserData<TData,dim>::local_ip_series_added(const size_t seriesID)
 	m_vvvvDeriv.resize(seriesID+1);
 
 //	forward change signal to base class
-	UserData<TData, dim>::local_ip_series_added(seriesID);
+	base_type::local_ip_series_added(seriesID);
 }
 
 template <typename TData, int dim>
@@ -511,7 +392,7 @@ void DependentUserData<TData,dim>::local_ip_series_to_be_cleared()
 	m_vvvvDeriv.clear();
 
 //	forward change signal to base class
-	UserData<TData, dim>::local_ip_series_to_be_cleared();
+	base_type::local_ip_series_to_be_cleared();
 }
 
 template <typename TData, int dim>

@@ -113,7 +113,7 @@ class IElemDisc
 		void register_import(IDataImport<dim>& Imp);
 
 	///	registers a data export
-		void register_export(SmartPtr<IUserData<dim> > Exp);
+		void register_export(SmartPtr<ICplUserData<dim> > Exp);
 
 	///	returns number of imports
 		size_t num_imports() const {return m_vIImport.size();}
@@ -132,7 +132,7 @@ class IElemDisc
 		size_t num_exports() const {return m_vIExport.size();}
 
 	/// returns an export
-		SmartPtr<IUserData<dim> > get_export(size_t i)
+		SmartPtr<ICplUserData<dim> > get_export(size_t i)
 		{
 			UG_ASSERT(i < num_exports(), "Invalid index");
 			return m_vIExport[i];
@@ -146,7 +146,7 @@ class IElemDisc
 		std::vector<IDataImport<dim>*> m_vIImport;
 
 	///	data exports
-		std::vector<SmartPtr<IUserData<dim> > > m_vIExport;
+		std::vector<SmartPtr<ICplUserData<dim> > > m_vIExport;
 
 	public:
 	////////////////////////////

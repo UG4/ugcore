@@ -34,7 +34,7 @@ class DataExport :
 	///	default constructor
 		DataExport();
 
-	///	implement compute() method of IUserData
+	///	implement compute() method of ICplUserData
 		virtual void compute(LocalVector* u, GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
 
@@ -124,19 +124,25 @@ class DataExport :
 		void clear() {m_vDependData.clear();}
 
 	///	add data dependency
-		void add_needed_data(SmartPtr<IUserData<dim> > data);
+		void add_needed_data(SmartPtr<ICplUserData<dim> > data);
 
 	///	remove needed data
-		void remove_needed_data(SmartPtr<IUserData<dim> > data);
+		void remove_needed_data(SmartPtr<ICplUserData<dim> > data);
 
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return m_vDependData.size();}
 
 	///	return needed data
-		virtual SmartPtr<IUserData<dim> > needed_data(size_t i) {return m_vDependData.at(i);}
+		virtual SmartPtr<ICplUserData<dim> > needed_data(size_t i) {return m_vDependData.at(i);}
 
 	///	returns if the dependent data is ready for evaluation
 		virtual void check_setup() const;
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool continuous() const {return false;}
+
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
 
 	protected:
 		/* The following classes are used to implement the functors to support
@@ -293,7 +299,7 @@ class DataExport :
 		ReferenceObjectID m_id;
 
 	///	data the export depends on
-		std::vector<SmartPtr<IUserData<dim> > > m_vDependData;
+		std::vector<SmartPtr<ICplUserData<dim> > > m_vDependData;
 };
 
 } // end namespace ug

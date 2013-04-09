@@ -81,7 +81,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		string name = string("GridFunctionNumberData").append(suffix);
 		typedef GridFunctionNumberData<TFct> T;
-		typedef UserData<number, dim> TBase;
+		typedef CplUserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
@@ -92,7 +92,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		string name = string("GridFunctionVectorData").append(suffix);
 		typedef GridFunctionVectorData<TFct> T;
-		typedef UserData<MathVector<dim>, dim> TBase;
+		typedef CplUserData<MathVector<dim>, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Components")
 			.set_construct_as_smart_pointer(true);
@@ -103,7 +103,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		string name = string("GridFunctionGradientData").append(suffix);
 		typedef GridFunctionGradientData<TFct> T;
-		typedef UserData<MathVector<dim>, dim> TBase;
+		typedef CplUserData<MathVector<dim>, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
 			.set_construct_as_smart_pointer(true);
@@ -114,7 +114,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		string name = string("GridFunctionGradientComponentData").append(suffix);
 		typedef GridFunctionGradientComponentData<TFct> T;
-		typedef UserData<number, dim> TBase;
+		typedef CplUserData<number, dim> TBase;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TFct>, const char*, size_t)>("GridFunction#Components")
 			.set_construct_as_smart_pointer(true);

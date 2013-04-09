@@ -27,7 +27,7 @@ class DataLinker
 {
 	public:
 	///	constructor
-		DataLinker() {m_vpIUserData.clear(); m_vpIDependData.clear();}
+		DataLinker() {m_vpICplUserData.clear(); m_vpIDependData.clear();}
 
 	///	returns if derivative is zero
 		virtual bool zero_derivative() const;
@@ -35,22 +35,22 @@ class DataLinker
 	///	returns if the derivative of the i'th input is zero
 		bool zero_derivative(size_t i) const
 		{
-			if(!m_vpIUserData[i].valid()) return true;
-			return m_vpIUserData[i]->zero_derivative();
+			if(!m_vpICplUserData[i].valid()) return true;
+			return m_vpICplUserData[i]->zero_derivative();
 		}
 
 	///	sets the number of inputs
 		void set_num_input(size_t num)
 		{
-			m_vpIUserData.resize(num, NULL);
+			m_vpICplUserData.resize(num, NULL);
 			m_vpIDependData.resize(num, NULL);
 		}
 
 	///	sets an input
-		virtual void set_input(size_t i, SmartPtr<IUserData<dim> > input)
+		virtual void set_input(size_t i, SmartPtr<ICplUserData<dim> > input)
 		{
-			UG_ASSERT(i < m_vpIUserData.size(), "invalid index");
-			m_vpIUserData[i] = input;
+			UG_ASSERT(i < m_vpICplUserData.size(), "invalid index");
+			m_vpICplUserData[i] = input;
 			m_vpIDependData[i] = input;
 		}
 
@@ -58,14 +58,14 @@ class DataLinker
 		virtual size_t num_input() const {return num_needed_data();}
 
 	///	number of other Data this data depends on
-		virtual size_t num_needed_data() const {return m_vpIUserData.size();}
+		virtual size_t num_needed_data() const {return m_vpICplUserData.size();}
 
 	///	return needed data
-		virtual SmartPtr<IUserData<dim> > needed_data(size_t i)
+		virtual SmartPtr<ICplUserData<dim> > needed_data(size_t i)
 		{
-			UG_ASSERT(i < m_vpIUserData.size(), "Input not needed");
-			UG_ASSERT(m_vpIUserData[i].valid(), "Data input not valid");
-			return m_vpIUserData[i];
+			UG_ASSERT(i < m_vpICplUserData.size(), "Input not needed");
+			UG_ASSERT(m_vpICplUserData[i].valid(), "Data input not valid");
+			return m_vpICplUserData[i];
 		}
 
 	///	returns if data is ok
@@ -110,10 +110,10 @@ class DataLinker
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<IUserData<dim> > > m_vpIUserData;
+		std::vector<SmartPtr<ICplUserData<dim> > > m_vpICplUserData;
 
 	///	data input casted to IDependend data
-		std::vector<SmartPtr<IUserData<dim> > > m_vpIDependData;
+		std::vector<SmartPtr<ICplUserData<dim> > > m_vpIDependData;
 
 	///	common functions the data depends on
 		FunctionGroup m_commonFctGroup;

@@ -76,13 +76,13 @@ void DataImport<TData,dim>::clear_fct()
 
 
 template <typename TData, int dim>
-void DataImport<TData,dim>::set_data(SmartPtr<UserData<TData, dim> > spData)
+void DataImport<TData,dim>::set_data(SmartPtr<CplUserData<TData, dim> > spData)
 {
 //	remember UserData
 	m_spUserData = spData;
 
 //	remember iexport
-	this->m_spIUserData = spData;
+	this->m_spICplUserData = spData;
 
 //	remember dependent data (i.e. is NULL iff no dependent data given)
 	m_spDependentUserData = m_spUserData.template cast_dynamic<DependentUserData<TData, dim> >();

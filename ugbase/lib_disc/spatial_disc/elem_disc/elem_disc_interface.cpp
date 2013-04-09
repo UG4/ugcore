@@ -119,7 +119,7 @@ void IElemDisc<TDomain>::register_import(IDataImport<dim>& Imp)
 }
 
 template <typename TDomain>
-void IElemDisc<TDomain>::register_export(SmartPtr<IUserData<dim> > Exp)
+void IElemDisc<TDomain>::register_export(SmartPtr<ICplUserData<dim> > Exp)
 {
 //	check that not already registered
 	for(size_t i = 0; i < m_vIExport.size(); ++i)

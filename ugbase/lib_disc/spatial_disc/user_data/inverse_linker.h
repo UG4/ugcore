@@ -40,11 +40,11 @@ class InverseLinker
 	///	constructor
 		InverseLinker(const InverseLinker& linker);
 
-		void divide(SmartPtr<UserData<number, dim> > dividend,
-		         SmartPtr<UserData<number, dim> > divisor);
+		void divide(SmartPtr<CplUserData<number, dim> > dividend,
+		         SmartPtr<CplUserData<number, dim> > divisor);
 		void divide(number dividend,
-		         SmartPtr<UserData<number, dim> > divisor);
-		void divide(SmartPtr<UserData<number, dim> > dividend,
+		         SmartPtr<CplUserData<number, dim> > divisor);
+		void divide(SmartPtr<CplUserData<number, dim> > dividend,
 		         number divisor);
 		void divide(number dividend,
 		         number divisor);
@@ -124,13 +124,13 @@ class InverseLinker
 
 	protected:
 	///	data Dividend
-		std::vector<SmartPtr<UserData<number, dim> > > m_vpDividendData;
+		std::vector<SmartPtr<CplUserData<number, dim> > > m_vpDividendData;
 
 	///	data Dividend casted to dependend data
 		std::vector<SmartPtr<DependentUserData<number, dim> > > m_vpDividendDependData;
 
 	///	data Divisor
-		std::vector<SmartPtr<UserData<number, dim> > > m_vpDivisorData;
+		std::vector<SmartPtr<CplUserData<number, dim> > > m_vpDivisorData;
 
 	///	data Divisor casted to dependend data
 		std::vector<SmartPtr<DependentUserData<number, dim> > > m_vpDependData;

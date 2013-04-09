@@ -37,9 +37,9 @@ class NeumannBoundaryBase
 
 	///	add a boundary value
 	///	\{
-		virtual void add(SmartPtr<UserData<number, dim> > data, const char* BndSubsets, const char* InnerSubsets) = 0;
-		virtual void add(SmartPtr<UserData<number, dim, bool> > user, const char* BndSubsets, const char* InnerSubsets) = 0;
-		virtual void add(SmartPtr<UserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets) = 0;
+		virtual void add(SmartPtr<CplUserData<number, dim> > data, const char* BndSubsets, const char* InnerSubsets) = 0;
+		virtual void add(SmartPtr<CplUserData<number, dim, bool> > user, const char* BndSubsets, const char* InnerSubsets) = 0;
+		virtual void add(SmartPtr<CplUserData<MathVector<dim>, dim> > user, const char* BndSubsets, const char* InnerSubsets) = 0;
 		void add(number val, const char* BndSubsets, const char* InnerSubsets);
 		void add(const std::vector<number>& val, const char* BndSubsets, const char* InnerSubsets);
 #ifdef UG_FOR_LUA

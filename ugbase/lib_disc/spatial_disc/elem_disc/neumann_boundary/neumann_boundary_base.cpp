@@ -67,7 +67,7 @@ template<typename TDomain>
 void NeumannBoundaryBase<TDomain>::
 add(number val, const char* function, const char* subsets)
 {
-	SmartPtr<UserData<number, dim> > sp = CreateSmartPtr(new ConstUserNumber<dim>(val));
+	SmartPtr<CplUserData<number, dim> > sp = CreateSmartPtr(new ConstUserNumber<dim>(val));
 	add(sp, function, subsets);
 }
 
@@ -75,7 +75,7 @@ template<typename TDomain>
 void NeumannBoundaryBase<TDomain>::
 add(const std::vector<number>& val, const char* function, const char* subsets)
 {
-	SmartPtr<UserData<MathVector<dim>, dim> > sp = CreateSmartPtr(new ConstUserVector<dim>(val));
+	SmartPtr<CplUserData<MathVector<dim>, dim> > sp = CreateSmartPtr(new ConstUserVector<dim>(val));
 	add(sp, function, subsets);
 }
 
@@ -85,19 +85,19 @@ void NeumannBoundaryBase<TDomain>::
 add(const char* name, const char* function, const char* subsets)
 {
 	if(LuaUserData<number, dim>::check_callback_returns(name)){
-		SmartPtr<UserData<number, dim> > sp =
+		SmartPtr<CplUserData<number, dim> > sp =
 							LuaUserDataFactory<number, dim>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
-		SmartPtr<UserData<number, dim, bool> > sp =
+		SmartPtr<CplUserData<number, dim, bool> > sp =
 				LuaUserDataFactory<number, dim, bool>::create(name);
 		add(sp, function, subsets);
 		return;
 	}
 	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
-		SmartPtr<UserData<MathVector<dim>, dim> > sp =
+		SmartPtr<CplUserData<MathVector<dim>, dim> > sp =
 				LuaUserDataFactory<MathVector<dim>, dim>::create(name);
 		add(sp, function, subsets);
 		return;

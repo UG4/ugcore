@@ -27,7 +27,7 @@ namespace ug{
 template <typename TImpl, typename TData, int dim, typename TRet = void>
 class StdPositionData
 	: 	public StdUserData<		StdPositionData<TImpl,TData,dim,TRet>,
-								UserData<TData,dim,TRet>,
+								CplUserData<TData,dim,TRet>,
 								TData,dim,TRet>
 {
 	public:

@@ -47,11 +47,11 @@ class ScaleAddLinker
 
 	///	adds an input to the list of summands scaled by a user data factor
 	///	\{
-		void add(SmartPtr<UserData<TDataScale, dim> > scale,
-		         SmartPtr<UserData<TData, dim> > data);
+		void add(SmartPtr<CplUserData<TDataScale, dim> > scale,
+		         SmartPtr<CplUserData<TData, dim> > data);
 		void add(number scale,
-		         SmartPtr<UserData<TData, dim> > data);
-		void add(SmartPtr<UserData<TDataScale, dim> > scale,
+		         SmartPtr<CplUserData<TData, dim> > data);
+		void add(SmartPtr<CplUserData<TDataScale, dim> > scale,
 		         number data);
 		void add(number scale,
 		         number data);
@@ -132,13 +132,13 @@ class ScaleAddLinker
 
 	protected:
 	///	data input
-		std::vector<SmartPtr<UserData<TDataScale, dim> > > m_vpScaleData;
+		std::vector<SmartPtr<CplUserData<TDataScale, dim> > > m_vpScaleData;
 
 	///	data input casted to dependend data
 		std::vector<SmartPtr<DependentUserData<TDataScale, dim> > > m_vpScaleDependData;
 
 	///	data input
-		std::vector<SmartPtr<UserData<TData, dim> > > m_vpUserData;
+		std::vector<SmartPtr<CplUserData<TData, dim> > > m_vpUserData;
 
 	///	data input casted to dependend data
 		std::vector<SmartPtr<DependentUserData<TData, dim> > > m_vpDependData;
