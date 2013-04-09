@@ -14,6 +14,7 @@
 #include "common/util/string_util.h"
 
 #include "user_data.h"
+#include "std/std_user_data.h"
 
 namespace ug{
 
@@ -26,7 +27,8 @@ namespace ug{
  * A DataExport is user data produced by an element discretization.
  */
 template <typename TData, int dim>
-class DataExport : 	public DependentUserData<TData, dim>
+class DataExport :
+	public StdUserData<	DataExport<TData,dim>, DependentUserData<TData, dim>, TData,dim>
 {
 	public:
 	///	default constructor
@@ -35,6 +37,51 @@ class DataExport : 	public DependentUserData<TData, dim>
 	///	implement compute() method of IUserData
 		virtual void compute(LocalVector* u, GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
+
+		inline void evaluate (TData& value,
+		                      const MathVector<dim>& globIP,
+		                      number time, int si) const
+		{
+			UG_THROW("DataExport: Solution, element and local ips required "
+					"for evaluation, but not passed. Cannot evaluate.");
+		}
+
+		inline void evaluate (TData vValue[],
+		                      const MathVector<dim> vGlobIP[],
+		                      number time, int si, const size_t nip) const
+		{
+			UG_THROW("DataExport: Solution, element and local ips required "
+					"for evaluation, but not passed. Cannot evaluate.");
+		}
+
+		template <int refDim>
+		inline void evaluate (TData& value,
+		                      const MathVector<dim>& globIP,
+		                      number time, int si,
+		                      LocalVector& u,
+		                      GeometricObject* elem,
+		                      const MathVector<dim> vCornerCoords[],
+		                      const MathVector<refDim>& locIP) const
+		{
+			evaluate<refDim>(&value,&globIP,time,si,u,elem,
+			                 vCornerCoords,&locIP,1,NULL);
+		}
+
+		template <int refDim>
+		inline void evaluate(TData vValue[],
+		                     const MathVector<dim> vGlobIP[],
+		                     number time, int si,
+		                     LocalVector& u,
+		                     GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     const MathVector<refDim> vLocIP[],
+		                     const size_t nip,
+		                     const MathMatrix<refDim, dim>* vJT = NULL) const
+		{
+			const Functor<refDim>& func = eval_fct<refDim>(m_id);
+			(func)(vValue,vGlobIP,time,si,u,elem,
+					vCornerCoords,vLocIP,nip, false, NULL);
+		}
 
 	///	sets the geometric object type
 		virtual void set_roid(ReferenceObjectID id);
@@ -111,7 +158,7 @@ class DataExport : 	public DependentUserData<TData, dim>
 				                const MathVector<refDim> vLocIP[],
 				                const size_t nip,
 				                bool bDeriv,
-				                std::vector<std::vector<TData> > vvvDeriv[]) = 0;
+				                std::vector<std::vector<TData> > vvvDeriv[]) const = 0;
 				virtual ~FunctorBase() {}
 		};
 
@@ -141,7 +188,7 @@ class DataExport : 	public DependentUserData<TData, dim>
 				                const MathVector<refDim> vLocIP[],
 				                const size_t nip,
 				                bool bDeriv,
-				                std::vector<std::vector<TData> > vvvDeriv[])
+				                std::vector<std::vector<TData> > vvvDeriv[]) const
 				{
 					m_f(vValue, vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip, bDeriv, vvvDeriv);
 				}
@@ -176,7 +223,7 @@ class DataExport : 	public DependentUserData<TData, dim>
 				                const MathVector<refDim> vLocIP[],
 				                const size_t nip,
 				                bool bDeriv,
-				                std::vector<std::vector<TData> > vvvDeriv[])
+				                std::vector<std::vector<TData> > vvvDeriv[]) const
 				{
 					((m_pObj)->*m_mf)(vValue, vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip, bDeriv, vvvDeriv);
 				}
@@ -207,7 +254,7 @@ class DataExport : 	public DependentUserData<TData, dim>
 				                const MathVector<refDim> vLocIP[],
 				                const size_t nip,
 				                bool bDeriv,
-				                std::vector<std::vector<TData> > vvvDeriv[])
+				                std::vector<std::vector<TData> > vvvDeriv[]) const
 				{
 					(*m_spImpl)(vValue, vGlobIP, time, si, u, elem, vCornerCoords, vLocIP, nip, bDeriv, vvvDeriv);
 				}
@@ -217,7 +264,7 @@ class DataExport : 	public DependentUserData<TData, dim>
 				void invalidate() {m_spImpl = SmartPtr<FunctorBase<refDim> >();}
 
 			protected:
-				SmartPtr<FunctorBase<refDim> > m_spImpl;
+				ConstSmartPtr<FunctorBase<refDim> > m_spImpl;
 		};
 
 		template <int refDim>
