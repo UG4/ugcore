@@ -1,14 +1,26 @@
 #!/bin/bash
 # parameter1: path to get svn revision of
 # parameter2: path and name of output file
-SVN_REVISION=`svnversion $1`
-if [[ ! $? == 0 ]]; then
-   SVN_REVISION="unknown"
+
+if [[ -d "${1}/.svn" ]]; then
+	# pure SVN
+	SVN_REVISION=`svnversion $1`
+elif [[ -e "${1}/.git/svn/refs/remotes/git-svn/unhandled.log" ]]; then
+	# SVN through Git
+	# TODO add detection of commits to local working copy and display them as
+	#      rNNN+n where 'rNNN' is the last SVN commit and 'n' is the number of 
+	#      local commits
+	SVN_REVISION=`grep -e '^r[0-9]\+' ${1}/.git/svn/refs/remotes/git-svn/unhandled.log | tail -1`
+else
+	# non of both or severly broken
+	SVN_REVISION="unknown"
 fi
+
 HOSTNAME=`hostname`
 if [[ ! $? == 0 ]]; then
    HOSTNAME="unknown"
 fi
+
 COMPILE_DATE=`date`
 cat > $2 <<EOF
 namespace ug{

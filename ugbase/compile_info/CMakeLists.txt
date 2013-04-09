@@ -25,12 +25,33 @@ set(infoFileName ${CMAKE_BINARY_DIR}/compile_info_vars.cpp)
 
 unset(infoFileFound CACHE)
 find_file(infoFileFound compile_info_vars.cpp PATHS ${CMAKE_BINARY_DIR})
- 
+
+if(IS_DIRECTORY ${P_UG4_SOURCE_DIR}/.svn)
+	# Oh. Still using pure SVN ...
+	execute_process(
+		COMMAND svnversion ${P_UG4_SOURCE_DIR}
+		WORKING_DIRECTORY ${P_UG4_SOURCE_DIR}
+		OUTPUT_VARIABLE svnCurrentRevision
+	)
+elseif(IS_DIRECTORY ${P_UG4_SOURCE_DIR}/.git/svn)
+	# You are using SVN through Git
+	execute_process(
+		COMMAND git log -1
+		RESULT_VARIABLE gitsvnAllRevisionsResult
+		OUTPUT_VARIABLE gitsvnAllRevisions
+	)
+	string(REGEX MATCH "@[0-9]+" gitsvnLastRev "${gitsvnAllRevisions}")
+	string(REPLACE "@" "r" svnCurrentRevision "${gitsvnLastRev}")
+else()
+	# Huh?! You aren't using any VCS?! Poor boy ...
+	set(svnCurrentRevision "unknown")
+endif()
+
 if(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")
 	file(WRITE ${infoFileName} 
 		"namespace ug\n"
 		"{\n"
-		"const char *UG_SVN_REVISION=\"UNKNOWN\";\n"
+		"const char *UG_SVN_REVISION=\"${svnCurrentRevision}\";\n"
 		"const char *UG_BUILD_HOST=\"${CMAKE_SYSTEM_NAME}\";\n"
 		"const char *UG_COMPILE_DATE=\"UNKNOWN\";\n"
 		"}\n")
