@@ -897,27 +897,25 @@ endif(USE_LUA2C)
 # find and collect required libraries
 
 ########################################
-# boost (required)
+# Boost (required)
+#  If INTERNAL_BOOST is enabled we try to use this but if not available we also
+#  consider system installations and will use these.
+#  Note: If the internal Boost is available and as well system installations,
+#        the internal one has precedence.
 if(INTERNAL_BOOST)
-	include_directories(${UG_ROOT_PATH}/externals/boost_1_48_0/)
-	message(STATUS "Info: Using externals/boost_1_48_0")
-else(INTERNAL_BOOST)
-	find_package(Boost REQUIRED)
-	include_directories(${Boost_INCLUDE_DIRS})
-
-	if(Boost_FOUND)
-		if(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
-			#message(STATUS "Info: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}').")
-			
-		else(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
-			# we require a newer version of boost
-			message(FATAL_ERROR " BOOST in ${Boost_INCLUDE_DIRS} is not compatible (required 1.40.0, but is ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}) . NO Boost available. Aborting.")	
-		endif(Boost_MAJOR_VERSION GREATER 1 OR Boost_MINOR_VERSION GREATER 39)
-	else(Boost_FOUND)
-		message(FATAL_ERROR " BOOST not found! NO Boost available, but at least boost 1.40.0 is required. Aborting.")
-	endif(Boost_FOUND)
-	
+	set(INTERNAL_BOOST_PATH ${UG_ROOT_PATH}/externals/boost_1_48_0/)
+	set(BOOST_ROOT ${INTERNAL_BOOST_PATH})
+	message(STATUS "Info: Try using internal Boost from externals/boost_1_48_0")
 endif(INTERNAL_BOOST)
+find_package(Boost 1.40 REQUIRED)
+message(STATUS "Info: Including Boost from ${Boost_INCLUDE_DIRS}")
+include_directories(${Boost_INCLUDE_DIRS})
+if(INTERNAL_BOOST AND NOT "${INTERNAL_BOOST_PATH}" STREQUAL "${Boost_INCLUDE_DIRS}")
+	message(WARNING "Not using internal Boost but using compatible from"
+	                "${Boost_INCLUDE_DIRS}"
+	                "This should work without problems."
+	                "(Suppress this warning by defining INTERNAL_BOOST=OFF)")
+endif()
 
 
 ########################################
