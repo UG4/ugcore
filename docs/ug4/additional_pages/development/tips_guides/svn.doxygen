@@ -300,12 +300,14 @@ won't add them if you commit their parent directory.
 <b>Replace With...</b> : various ways to replace this file</li>
 </ul>
 
+\note You disable that new files are automatically added when using Commit here: Preferences -> Team -> SVN -> Uncheck "Check the new resources in the commit dialog".
+
 <hr>
 \section secSVNWarnings Some Warnings
 <ul>
 <li> \warning Do not add unnecessary files. That means: Make sure you don't add unnecessary files. In ug4, a click on ug4's
  base directory and there a commit will almost always add lots of unnecessary files like your build, bin or lib files.
- Make use of the svn:ignore option. </li>
+ Make use of the svn:ignore option or that those files are unchecked. </li>
 <li> \warning Do not add lots of result files or huge data files. Keep in mind \emph everyone has to download them.
 </li></ul>
 
