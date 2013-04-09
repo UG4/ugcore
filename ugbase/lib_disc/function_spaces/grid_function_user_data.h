@@ -123,7 +123,8 @@ class StdGridFunctionData
 			                               vCornerCoords,vLocIP,nip, vJT);
 		}
 
-		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
 		{
 			UG_THROW("Not implemented.");
 		}

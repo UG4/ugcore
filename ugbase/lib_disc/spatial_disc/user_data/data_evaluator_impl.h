@@ -101,7 +101,7 @@ prepare_elem_loop(int si)
 
 //	evaluate constant data
 	for(size_t i = 0; i < m_vConstData.size(); ++i)
-		m_vConstData[i]->compute(NULL, NULL, false);
+		m_vConstData[i]->compute(NULL, NULL, NULL, false);
 }
 
 
@@ -111,6 +111,16 @@ void DataEvaluator<TDomain>::
 prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
              bool bDeriv)
 {
+//	remember element
+	m_pElem = elem;
+
+	UG_ASSERT(m_vElemDisc[PT_ALL].size() > 0, "No elem discs, but assembling");
+
+//	get corners
+	ElemGlobCornerCoords<TDomain, TElem>& co_coord = Provider<ElemGlobCornerCoords<TDomain, TElem> >::get();
+	co_coord.update(&m_vElemDisc[PT_ALL][0].elemDisc->domain(), elem);
+	m_vCornerCoords = co_coord.vGlobalCorner();
+
 // 	prepare element
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
@@ -150,7 +160,7 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 			m_vDependentData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
 	}
 
-	compute_elem_data(u, elem, bDeriv);
+	compute_elem_data(u, elem, m_vCornerCoords, bDeriv);
 }
 
 template <typename TDomain>

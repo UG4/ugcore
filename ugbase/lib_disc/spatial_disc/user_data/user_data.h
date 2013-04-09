@@ -115,6 +115,7 @@ class IUserData
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual void compute(LocalVector* u,
 		                     GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
 		                     bool bDeriv = false) = 0;
 	///	resize arrays
 		virtual void set_dof_sizes(const LocalIndices& ind,

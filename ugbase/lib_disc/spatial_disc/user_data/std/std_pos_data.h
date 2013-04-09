@@ -74,7 +74,8 @@ class StdPositionData
 		}
 
 	///	implement as a UserData
-		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
 		{
 			const number t = this->time();
 			const int si = this->subset();

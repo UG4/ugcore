@@ -50,7 +50,8 @@ class InverseLinker
 		         number divisor);
 
 	///	computes the value
-		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false);
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
 
 		inline void evaluate (number& value,
 		                      const MathVector<dim>& globIP,

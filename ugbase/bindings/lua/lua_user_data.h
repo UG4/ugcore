@@ -221,7 +221,8 @@ class LuaUserFunction
 		virtual void operator() (TData& out, int numArgs, ...) const;
 
 	///	computes the value
-		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false);
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
 
 		inline void evaluate (TData& value,
 		                      const MathVector<dim>& globIP,

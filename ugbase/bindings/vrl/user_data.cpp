@@ -351,7 +351,8 @@ class VRLUserLinker
 		}
 
 	///	computes the value
-		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
 		{
 		//	vector of data for all inputs
 			std::vector<TDataIn> vDataIn(this->num_input());
@@ -880,7 +881,8 @@ public:
 		return result;
 	}
 
-	virtual void compute(LocalVector* u, GeometricObject* elem, bool computeDeriv = false)
+	virtual void compute(LocalVector* u, GeometricObject* elem,
+	                     const MathVector<dim> vCornerCoords[], bool computeDeriv = false)
 	{
 		// \todo: should remember flag
 		for (size_t s = 0; s < this->num_series(); ++s)

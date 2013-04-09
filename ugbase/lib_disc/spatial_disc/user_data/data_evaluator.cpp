@@ -447,11 +447,12 @@ void DataEvaluator<TDomain>::set_time_point(const size_t timePoint)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv)
+void DataEvaluator<TDomain>::compute_elem_data(LocalVector& u, GeometricObject* elem,
+                                               const MathVector<dim> vCornerCoords[], bool bDeriv)
 {
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
-		m_vPosData[i]->compute(&u, elem, false);
+		m_vPosData[i]->compute(&u, elem, NULL, false);
 
 // 	process dependent data:
 //	We can not simply compute exports first, then Linker, because an export
@@ -469,7 +470,7 @@ void DataEvaluator<TDomain>::compute_elem_data(LocalVector& u, GeometricObject* 
 
 	//	compute the data
 		try{
-			m_vDependentData[i]->compute(&u, elem, bDeriv);
+			m_vDependentData[i]->compute(&u, elem, vCornerCoords, bDeriv);
 		}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::compute_elem_data:"
 						"Cannot compute data for Export " << i);

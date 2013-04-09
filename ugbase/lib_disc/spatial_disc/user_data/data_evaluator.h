@@ -97,7 +97,8 @@ class DataEvaluator
 
 	protected:
 	///	computes all needed data on the element
-		void compute_elem_data(LocalVector& u, GeometricObject* elem, bool bDeriv = false);
+		void compute_elem_data(LocalVector& u, GeometricObject* elem,
+		                       const MathVector<dim> vCornerCoords[], bool bDeriv = false);
 
 	///	adds the contribution due to coupling to local stiffness matrix
 		void add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type = PT_ALL);
@@ -151,6 +152,12 @@ class DataEvaluator
 
 	///	local time series (non-const since mapping may change)
 		LocalVectorTimeSeries* m_pLocTimeSeries;
+
+	///	current element
+		GeometricObject* m_pElem;
+
+	///	current Corner Coordinates
+		const MathVector<dim>* m_vCornerCoords;
 
 	////////////////////////////////
 	// 	Data Import

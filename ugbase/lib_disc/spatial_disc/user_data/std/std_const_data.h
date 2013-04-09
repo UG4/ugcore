@@ -74,7 +74,8 @@ class StdConstData
 		}
 
 	///	implement as a UserData
-		virtual void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
 		{
 			for(size_t s = 0; s < this->num_series(); ++s)
 				for(size_t ip = 0; ip < this->num_ip(s); ++ip)

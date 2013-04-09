@@ -803,7 +803,7 @@ evaluate(TData vValue[],
 
 template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::
-compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
+compute(LocalVector* u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], bool bDeriv)
 {
 	PROFILE_CALLBACK();
 //	vector of data for all inputs

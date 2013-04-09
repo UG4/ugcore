@@ -171,7 +171,8 @@ evaluate(number vValue[],
 
 template <int dim>
 void InverseLinker<dim>::
-compute(LocalVector* u, GeometricObject* elem, bool bDeriv)
+compute(LocalVector* u, GeometricObject* elem,
+        const MathVector<dim> vCornerCoords[], bool bDeriv)
 {
 //	check that size of Scalings and inputs is equal
 	UG_ASSERT(m_vpDivisorData.size() == m_vpDividendData.size(), "Wrong num Scales.");
