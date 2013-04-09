@@ -30,17 +30,19 @@ namespace ug{
  * \code
  * #include "common/util/table.h"
  * ...
- * ug::Table<std::stringstream> table(2, 2);
+ * ug::Table<std::stringstream> table;
  * table(0, 0) << "num rows:";		table(0, 1) << table.num_rows();
  * table(1, 0) << "num columns:";	table(1, 1) << table.num_cols();
  * std::cout << table;
  * \endcode
  *
  * And this is what the output looks like:
-\verbatim
+ * \verbatim
      num rows:  2
-  num columns:  2
-\endverbatim
+     num columns:  2
+ * \endverbatim
+ *
+ * Note that several typedefs exist: StringTable, StringStreamTable
  * \todo	different alignments for different columns / rows / fields
  */
 template <class T>
@@ -57,7 +59,12 @@ class Table
 		void add_rows(size_t num);
 		void add_cols(size_t num);
 		
+	///	Returns a reference to the given entry.
+	/**	If an entry lies outside of the tables bounds, the table will
+	 * automatically be resized accordingly.*/
 		T& operator() (size_t rowInd, size_t colInd);
+
+	///	Returns a reference to the given entry.
 		const T& operator() (size_t rowInd, size_t colInd) const;
 		
 		size_t num_rows() const;
@@ -97,6 +104,9 @@ std::string EntryToString(const Table<std::string>& table,
 std::string EntryToString(const Table<std::stringstream>& table,
 						  size_t rowInd, size_t colInd);
 
+
+typedef Table<std::string>	StringTable;
+typedef Table<std::stringstream> StringStreamTable;
 
 }//	end of namespace
 

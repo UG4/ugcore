@@ -51,10 +51,10 @@ void Table<T>::add_rows(size_t num)
 		m_data.resize(newSize);
 
 		if(m_numCols > 0){
-			for(size_t i = m_numRows; i < newSize; ++i){
-				m_data[i].resize(m_numCols);
-				for(size_t i_col = 0; i_col < m_numCols; ++i)
-					m_data[i][i_col] = new T;
+			for(size_t i_row = m_numRows; i_row < newSize; ++i_row){
+				m_data[i_row].resize(m_numCols);
+				for(size_t i_col = 0; i_col < m_numCols; ++i_col)
+					m_data[i_row][i_col] = new T;
 			}
 		}
 		
@@ -80,8 +80,12 @@ void Table<T>::add_cols(size_t num)
 template <class T>
 T& Table<T>::operator() (size_t rowInd, size_t colInd)
 {
-	assert(rowInd < num_rows());
-	assert(colInd < num_cols());
+	if(rowInd >= num_rows())
+		add_rows(rowInd - num_rows() + 1);
+
+	if(colInd >= num_cols())
+		add_cols(colInd - num_cols() + 1);
+
 	return *m_data[rowInd][colInd];
 }
 

@@ -9,6 +9,7 @@
 #include "lib_grid/parallelization/util/compol_subset.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/graph/dual_graph.h"
+#include "common/util/table.h"
 
 using namespace std;
 
@@ -85,6 +86,83 @@ bool Partitioner_Parmetis<dim>::
 supports_connection_weights() const
 {
 	return true;
+}
+
+template<int dim>
+number Partitioner_Parmetis<dim>::
+estimate_distribution_quality()
+{
+//todo	Consider connection weights in the final quality!
+	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	using std::min;
+
+	MultiGrid& mg = *m_mg;
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+
+	number minQuality = 1;
+
+	accumulate_child_counts(0, mg.top_level(), m_aNumChildren);
+
+	Table<stringstream> qualityOut;
+
+//	calculate the quality estimate.
+//todo The quality of a level could be weighted by the total amount of elements
+//		in each level.
+	for(size_t hlvl = 0; hlvl < m_processHierarchy->num_hierarchy_levels(); ++hlvl)
+	{
+		number quality = 1;
+		size_t minLvl = m_processHierarchy->grid_base_level(hlvl);
+
+		if(minLvl > mg.top_level())
+			break;
+
+		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
+		bool processParticipates = false;
+		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
+		if(!procComAll.empty()){
+			processParticipates = true;
+			if(numProcs > 1){
+				int localWeight = 0;
+				for(ElemIter iter = mg.begin<elem_t>(minLvl);
+					iter != mg.end<elem_t>(minLvl); ++iter)
+				{
+					if(!distGridMgr.is_ghost(*iter))
+						localWeight += (1 + m_aaNumChildren[*iter]);//todo: use balance weights
+				}
+
+				int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
+				int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
+
+				if(maxWeight > 0)
+					quality = (number)minWeight / (number)maxWeight;
+				else
+					processParticipates = false;
+			}
+		}
+
+		minQuality = min(minQuality, quality);
+
+		if(verbose()){
+			qualityOut(hlvl + 1, 1) << minLvl;
+			qualityOut(hlvl + 1, 2) << numProcs;
+			if(processParticipates)
+				qualityOut(hlvl + 1, 3) << quality;
+			else
+				qualityOut(hlvl + 1, 3) << "idle";
+		}
+	}
+
+	if(verbose()){
+		qualityOut(0, 1) << "grid level";
+		qualityOut(0, 2) << "num procs";
+		qualityOut(0, 3) << "estimated quality";
+
+		UG_LOG("Estimated distribution quality:\n" << qualityOut << "\n");
+	}
+
+//	the quality is a global property - we thus have to use the global minimum
+	pcl::ProcessCommunicator comGlobal;
+	return comGlobal.allreduce(minQuality, PCL_RO_MIN);
 }
 
 template<int dim>

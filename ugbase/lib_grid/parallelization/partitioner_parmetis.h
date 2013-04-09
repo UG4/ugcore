@@ -23,6 +23,8 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		typedef IPartitioner<dim> base_class;
 		typedef typename base_class::elem_t	elem_t;
 
+		using base_class::verbose;
+
 		Partitioner_Parmetis();
 		virtual ~Partitioner_Parmetis();
 
@@ -33,7 +35,9 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 
 		virtual bool supports_balance_weights() const;
 		virtual bool supports_connection_weights() const;
-		virtual bool supports_rebalancing() const			{return true;}
+		virtual bool supports_repartitioning() const			{return true;}
+
+		virtual number estimate_distribution_quality();
 
 		virtual void partition(size_t baseLvl, size_t elementThreshold);
 

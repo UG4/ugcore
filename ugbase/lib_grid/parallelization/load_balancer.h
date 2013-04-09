@@ -93,6 +93,9 @@ class IPartitioner{
 	public:
 		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type	elem_t;
 
+		IPartitioner() :
+			m_verbose(true)	{}
+
 		virtual ~IPartitioner()	{}
 
 		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos) = 0;
@@ -102,7 +105,11 @@ class IPartitioner{
 
 		virtual bool supports_balance_weights() const = 0;
 		virtual bool supports_connection_weights() const = 0;
-		virtual bool supports_rebalancing() const = 0;
+		virtual bool supports_repartitioning() const = 0;
+
+	/** The returned distribution quality represents the global quality and thus
+	 * is the same for all processes.*/
+		virtual number estimate_distribution_quality() = 0;
 
 		virtual void partition(size_t baseLvl, size_t elementThreshold) = 0;
 
@@ -113,6 +120,12 @@ class IPartitioner{
 	/**	If NULL is returned, this means that each subset index correspons to a
 	 * global proc-rank.*/
 		virtual const std::vector<int>* get_process_map() const = 0;
+
+		void set_verbose(bool verbose)	{m_verbose = true;}
+		bool verbose() const			{return m_verbose;}
+
+	private:
+		bool m_verbose;
 };
 
 
@@ -161,8 +174,8 @@ class LoadBalancer{
 	 * performed on that level. Default is 1.*/
 		virtual void set_element_threshold(size_t threshold);
 
-	///	returns the quality of the current distribution
-		virtual number distribution_quality();
+//	///	returns the quality of the current distribution
+//		virtual number distribution_quality();
 
 	///	performs load balancing if the balance is too bad or if a distribution level has been reached.
 	/**	The balance is calculated using the provieded BalanceWeights class. If

@@ -4,6 +4,7 @@
 
 #include "partitioner_bisection.h"
 #include "load_balancing.h"
+#include "distributed_grid.h"
 
 using namespace std;
 
@@ -64,6 +65,52 @@ bool Partitioner_Bisection<dim>::
 supports_connection_weights() const
 {
 	return false;
+}
+
+template<int dim>
+number Partitioner_Bisection<dim>::
+estimate_distribution_quality()
+{
+//todo	Consider connection weights in the final quality!
+	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+	using std::min;
+
+	MultiGrid& mg = *m_mg;
+	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+
+	number minQuality = 1;
+
+//	calculate the quality estimate.
+//todo The quality of a level could be weighted by the total amount of elements
+//		in each level.
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		size_t hlvl = m_processHierarchy->hierarchy_level_from_grid_level(lvl);
+		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
+		if(numProcs <= 1)
+			continue;
+
+		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
+
+		int localWeight = 0;
+		for(ElemIter iter = mg.begin<elem_t>(lvl);
+			iter != mg.end<elem_t>(lvl); ++iter)
+		{
+			if(!distGridMgr.is_ghost(*iter))
+				localWeight += 1;
+		}
+
+		int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
+		int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
+
+		if(maxWeight <= 0)
+			break;
+
+		number quality = (number)minWeight / (number)maxWeight;
+
+		minQuality = min(minQuality, quality);
+	}
+
+	return minQuality;
 }
 
 template<int dim>

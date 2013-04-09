@@ -254,51 +254,51 @@ set_element_threshold(size_t threshold)
 	m_elementThreshold = threshold;
 }
 
-template<int dim>
-number LoadBalancer<dim>::
-distribution_quality()
-{
-//todo	Consider connection weights in the final quality!
-	typedef typename Grid::traits<elem_t>::iterator ElemIter;
-	using std::min;
-
-	MultiGrid& mg = *m_mg;
-	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
-
-	number minQuality = 1;
-
-//	calculate the quality estimate.
-//todo The quality of a level could be weighted by the total amount of elements
-//		in each level.
-	for(size_t lvl = mg.top_level(); lvl < mg.num_levels(); ++lvl){
-		size_t hlvl = m_processHierarchy->hierarchy_level_from_grid_level(lvl);
-		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
-		if(numProcs <= 1)
-			continue;
-
-		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
-
-		int localWeight = 0;
-		for(ElemIter iter = mg.begin<elem_t>(lvl);
-			iter != mg.end<elem_t>(lvl); ++iter)
-		{
-			if(!distGridMgr.is_ghost(*iter))
-				localWeight += 1;//todo: use balance weights
-		}
-
-		int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
-		int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
-
-		if(maxWeight <= 0)
-			continue;
-
-		number quality = (number)minWeight / (number)maxWeight;
-
-		minQuality = min(minQuality, quality);
-	}
-
-	return minQuality;
-}
+//template<int dim>
+//number LoadBalancer<dim>::
+//distribution_quality()
+//{
+////todo	Consider connection weights in the final quality!
+//	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+//	using std::min;
+//
+//	MultiGrid& mg = *m_mg;
+//	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+//
+//	number minQuality = 1;
+//
+////	calculate the quality estimate.
+////todo The quality of a level could be weighted by the total amount of elements
+////		in each level.
+//	for(size_t lvl = mg.top_level(); lvl < mg.num_levels(); ++lvl){
+//		size_t hlvl = m_processHierarchy->hierarchy_level_from_grid_level(lvl);
+//		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
+//		if(numProcs <= 1)
+//			continue;
+//
+//		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
+//
+//		int localWeight = 0;
+//		for(ElemIter iter = mg.begin<elem_t>(lvl);
+//			iter != mg.end<elem_t>(lvl); ++iter)
+//		{
+//			if(!distGridMgr.is_ghost(*iter))
+//				localWeight += 1;//todo: use balance weights
+//		}
+//
+//		int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
+//		int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
+//
+//		if(maxWeight <= 0)
+//			continue;
+//
+//		number quality = (number)minWeight / (number)maxWeight;
+//
+//		minQuality = min(minQuality, quality);
+//	}
+//
+//	return minQuality;
+//}
 
 
 template<int dim>
@@ -321,15 +321,15 @@ rebalance()
 	m_balanceWeights->refresh_weights(0);
 	m_connectionWeights->refresh_weights(0);
 
-//	distribution quality is only interesting if rebalancing is supported
-	number distQuality = 0;
-	if(m_partitioner->supports_rebalancing()){
-		distQuality = distribution_quality();
-		UG_LOG("Current distribution quality: " << distQuality << "\n");
+//	distribution quality is only interesting if repartitioning is supported.
+//	If it is not we'll set it to -1, thus calling partition anyways
+	number distQuality = -1;
+	if(m_partitioner->supports_repartitioning()){
+		distQuality = m_partitioner->estimate_distribution_quality();
+		UG_LOG("Current estimated distribution quality: " << distQuality << "\n");
 	}
 
-	if((!m_partitioner->supports_rebalancing())
-	   || (m_balanceThreshold > distQuality))
+	if(m_balanceThreshold > distQuality)
 	{
 		UG_LOG("Redistributing...\n");
 		UG_DLOG(LIB_GRID, 1, "LoadBalancer-rebalance: partitioning...\n");
@@ -349,7 +349,8 @@ rebalance()
 			UG_THROW("DistributeGrid failed!");
 		}
 
-		UG_LOG("Distribution quality after redistribution: " << distribution_quality() << "\n");
+		UG_LOG("Estimated distribution quality after redistribution: " <<
+				m_partitioner->estimate_distribution_quality() << "\n");
 	}
 	else{
 		UG_LOG("No redistribution necessary.\n");
