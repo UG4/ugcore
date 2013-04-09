@@ -17,18 +17,20 @@ using namespace std;
 
 namespace ug{
 
-static vector<DynLibHandle> loadedPlugins;
-static std::vector<std::string> loadedPluginNames;
-
-bool PluginLoaded(const std::string &name)
-{
-	return std::find(loadedPluginNames.begin(), loadedPluginNames.end(), name) != loadedPluginNames.end();
+namespace {
+	vector<DynLibHandle> loadedPlugins;
+	vector<string> loadedPluginNames;
 }
 
-bool LoadPlugins(const char* pluginPath, std::string parentGroup)
+bool PluginLoaded(const string &name)
+{
+	return find(loadedPluginNames.begin(), loadedPluginNames.end(), name) != loadedPluginNames.end();
+}
+
+bool LoadPlugins(const char* pluginPath, string parentGroup)
 {
 	PROFILE_FUNC();
-	typedef void (*FctInitPlugin)(ug::bridge::Registry*, std::string);
+	typedef void (*FctInitPlugin)(ug::bridge::Registry*, string);
 
 	bool bSuccess = true;
 
@@ -39,8 +41,8 @@ bool LoadPlugins(const char* pluginPath, std::string parentGroup)
 
 	bridge::Registry& reg = bridge::GetUGRegistry();
 
-	std::string prefixStr = GetDynamicLibraryPrefix();
-	std::string suffixStr = std::string(".").append(GetDynamicLibrarySuffix());
+	string prefixStr = GetDynamicLibraryPrefix();
+	string suffixStr = string(".").append(GetDynamicLibrarySuffix());
 
 	int prefixLen = prefixStr.size();
 	int suffixLen = suffixStr.size(); // includes '.'
@@ -125,7 +127,7 @@ bool UnloadPlugins()
 	typedef void (*FctFinalizePlugin)();
 	for(size_t i=0; i<loadedPlugins.size(); ++i)
 	{
-		std::string fctName("FinalizeUGPlugin");
+		string fctName("FinalizeUGPlugin");
 		DynLibHandle libHandle = loadedPlugins[i];
 
 		FctFinalizePlugin fctFinalizePlugin =
