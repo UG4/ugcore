@@ -388,19 +388,6 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 		using base_type::num_ip;
 
 	public:
-	///	returns dimension
-		int get_dim() const {return dim;}
-
-	///	returns type of data as string (e.g. "Number", "Vector", "Matrix")
-		std::string type() const {return user_data_traits<TData>::name();}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const = 0;
-
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const = 0;
-
-	public:
 	///	returns the value at ip
 		const TData& value(size_t s, size_t ip) const
 			{check_series_ip(s,ip); return m_vvValue[s][ip];}
