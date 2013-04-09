@@ -75,13 +75,13 @@ class IElemDisc
 	// Functions and Subsets
 
 	///	sets functions by name list, divided by ','
-		void set_functions(std::string functions);
+		void set_functions(const std::string& functions);
 
 	/// sets functions by vector of names
 		void set_functions(const std::vector<std::string>& functions) {m_vFct = functions;};
 
 	///	sets subset(s) by name list, divided by ','
-		void set_subsets(std::string subsets);
+		void set_subsets(const std::string& subsets);
 
 	///	sets subset(s) by name list, divided by ','
 		void set_subsets(const std::vector<std::string>& subsets) {m_vSubset = subsets;}

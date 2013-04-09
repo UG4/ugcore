@@ -59,7 +59,7 @@ void IElemDisc<TDomain>::clear_add_fct()
 
 
 template <typename TDomain>
-void IElemDisc<TDomain>::set_functions(std::string fctString)
+void IElemDisc<TDomain>::set_functions(const std::string& fctString)
 {
 //	tokenize string
 	TokenizeString(fctString, m_vFct, ',');
@@ -83,7 +83,7 @@ void IElemDisc<TDomain>::set_functions(std::string fctString)
 }
 
 template <typename TDomain>
-void IElemDisc<TDomain>::set_subsets(std::string ssString)
+void IElemDisc<TDomain>::set_subsets(const std::string& ssString)
 {
 //	tokenize string
 	TokenizeString(ssString, m_vSubset, ',');
