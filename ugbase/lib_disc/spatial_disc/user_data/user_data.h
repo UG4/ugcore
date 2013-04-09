@@ -233,36 +233,17 @@ class IUserData
 //	UserData
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Traits
+// Traits
 template <typename TData>
-struct user_data_traits
-{
-	static std::string name() {return "(unknown)";}
-};
-
+struct user_data_traits{static std::string name() 							{return "(unknown)";}};
 template <>
-struct user_data_traits<number>
-{
-	static std::string name() {return "Number";}
-};
-
+struct user_data_traits<number>{static std::string name() 					{return "Number";}};
 template <std::size_t dim>
-struct user_data_traits< MathVector<dim> >
-{
-	static std::string name() {return "Vector";}
-};
-
+struct user_data_traits< MathVector<dim> >{static std::string name() 		{return "Vector";}};
 template <std::size_t dim>
-struct user_data_traits< MathMatrix<dim,dim> >
-{
-	static std::string name() {return "Matrix";}
-};
-
+struct user_data_traits< MathMatrix<dim,dim> >{static std::string name() 	{return "Matrix";}};
 template <std::size_t dim>
-struct user_data_traits< MathTensor<4,dim> >
-{
-	static std::string name() {return "Tensor4";}
-};
+struct user_data_traits< MathTensor<4,dim> >{static std::string name() 		{return "Tensor4";}};
 
 // predeclaration
 template <typename TData, int dim> class DataImport;
