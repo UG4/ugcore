@@ -23,8 +23,14 @@ endfunction(add_cxx_flag)
 # Used to clear c/cxx flags. Handles environment variables CXX_FLAGS and C_FLAGS
 function(reset_cxx_flags)
 	# check env for set flags, and overwrite present cxx flag string
-	set(CXX_FLAGS "$ENV{CXX_FLAGS}" CACHE STRING "custom cxx flags" FORCE)
-	set(C_FLAGS "$ENV{C_FLAGS}" CACHE STRING "custom c flags" FORCE)
+	# note: this allows also empty strings "" 
+	if(DEFINED ENV{CXX_FLAGS})
+		set(CXX_FLAGS "$ENV{CXX_FLAGS}" CACHE STRING "custom cxx flags" FORCE)
+	endif()
+	
+	if(DEFINED ENV{C_FLAGS})
+		set(C_FLAGS "$ENV{C_FLAGS}" CACHE STRING "custom c flags" FORCE)
+	endif()
 	
 	# first reset flags, then check env for given flags
 	foreach(lang C CXX)
@@ -37,6 +43,6 @@ function(reset_cxx_flags)
 	endif()
 	
 	if(C_FLAGS)
-		add_c_flag(${CXX_FLAGS})
+		add_c_flag(${C_FLAGS})
 	endif()
 endfunction(reset_cxx_flags)
