@@ -171,6 +171,10 @@ class ICplUserData
 	///	default constructor
 		ICplUserData();
 
+	///	clear all data
+		void clear();
+
+	public:
 	///	set the subset of evaluation
 		void set_subset(int si) {m_si = si;}
 
@@ -186,55 +190,9 @@ class ICplUserData
 	///	get evaluation time
 		number time() const {return m_vTime[m_timePoint];}
 
-	///	returns the number of ip series
-		size_t num_series() const {return m_vNumIP.size();}
-
-	/// returns the number of integration points
-		size_t num_ip(size_t s) const {UG_ASSERT(s < num_series(), "Invalid series"); return m_vNumIP[s];}
-
-	///	clear all data
-		void clear();
-
-	///	set local positions, returns series id
-	/**
-	 * This method registers a local ip series. If the position of points may
-	 * change during computations, this can be specified.
-	 * IMPORTANT: the memory of the local ip values must remain valid until the
-	 * UserData is deleted.
-	 *
-	 * \returns size_t 		series id
-	 */
-		template <int ldim>
-		size_t register_local_ip_series(const MathVector<ldim>* vPos,
-		                                const size_t numIP,
-		                                bool bMayChange = true);
-
-	///	sets new local ip positions for a local ip series
-	/**
-	 * This method set new local positions for an already registered ip series.
-	 * Of coarse this is only possible for a ip series, that has the bMayChange
-	 * flag set to true.
-	 */
-		template <int ldim>
-		void set_local_ips(const size_t seriesId, const MathVector<ldim>* vPos,
-		                   const size_t numIP);
-
-	///	returns current local ip dimension
-		int dim_local_ips() const {return m_locPosDim;}
-
-	///	returns local ips
-		template <int ldim>
-		const MathVector<ldim>* local_ips(size_t s) const;
-
-	/// returns local ip
-		template <int ldim>
-		const MathVector<ldim>& local_ip(size_t s, size_t ip) const;
-
+	public:
 	///	returns if data is constant
 		virtual bool constant() const {return false;}
-
-	///	returns if data depends on solution
-		virtual bool zero_derivative() const {return true;}
 
 	///	number of other Data this data depends on
 		virtual size_t num_needed_data() const {return 0;}
@@ -247,6 +205,20 @@ class ICplUserData
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     bool bDeriv = false) = 0;
+
+	///	sets the geometric object type
+		virtual void set_roid(ReferenceObjectID id) {};
+
+	///	returns if the dependent data is ready for evaluation
+		virtual void check_setup() const {}
+
+	///	virtual desctructor
+		virtual ~ICplUserData() {};
+
+	public:
+	///	returns if data depends on solution
+		virtual bool zero_derivative() const {return true;}
+
 	///	resize arrays
 		virtual void set_dof_sizes(const LocalIndices& ind,
 								   const FunctionIndexMapping& map) {}
@@ -260,19 +232,51 @@ class ICplUserData
 	///	Function Group of functions
 		const FunctionGroup& function_group() const {return m_fctGrp;}
 
-	///	number of fuctions this export depends on
+	///	number of functions this export depends on
 		size_t num_fct() const {return m_fctGrp.size();}
 
-	///	sets the geometric object type
-		virtual void set_roid(ReferenceObjectID id) {};
-
-	///	returns if the dependent data is ready for evaluation
-		virtual void check_setup() const {}
-
-	///	virtual desctructor
-		virtual ~ICplUserData() {};
-
 	public:
+	///	returns the number of ip series
+		size_t num_series() const {return m_vNumIP.size();}
+
+	/// returns the number of integration points
+		size_t num_ip(size_t s) const {UG_ASSERT(s < num_series(), "Invalid series"); return m_vNumIP[s];}
+
+	///	set local positions, returns series id
+	/**
+	 * This method registers a local ip series. If the position of points may
+	 * change during computations, this can be specified.
+	 * IMPORTANT: the memory of the local ip values must remain valid until the
+	 * UserData is deleted.
+	 *
+	 * \returns size_t 		series id
+	 */
+		template <int ldim>
+		size_t register_local_ip_series(const MathVector<ldim>* vPos,
+										const size_t numIP,
+										bool bMayChange = true);
+
+	///	sets new local ip positions for a local ip series
+	/**
+	 * This method set new local positions for an already registered ip series.
+	 * Of coarse this is only possible for a ip series, that has the bMayChange
+	 * flag set to true.
+	 */
+		template <int ldim>
+		void set_local_ips(const size_t seriesId, const MathVector<ldim>* vPos,
+						   const size_t numIP);
+
+	///	returns current local ip dimension
+		int dim_local_ips() const {return m_locPosDim;}
+
+	///	returns local ips
+		template <int ldim>
+		const MathVector<ldim>* local_ips(size_t s) const;
+
+	/// returns local ip
+		template <int ldim>
+		const MathVector<ldim>& local_ip(size_t s, size_t ip) const;
+
 	///	set global positions
 		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP);
 
