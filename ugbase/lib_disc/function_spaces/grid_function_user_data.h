@@ -294,14 +294,10 @@ class GridFunctionNumberData
 			}UG_CATCH_THROW("StdDataExport: Cannot find  some symbolic function "
 							"name in '"<<fctName<<"'.");
 
-		//	get common fct grp
-			FunctionGroup commonFctGroup(fctPatt);
-			commonFctGroup.add_all();
-
 		//	create a mapping between all functions and the function group of this
 		//	element disc.
 			try{
-				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, commonFctGroup);
+				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, fctPatt);
 			}UG_CATCH_THROW("StdDataExport: Cannot create Function Index Mapping"
 							" for '"<<fctName<<"'.");
 

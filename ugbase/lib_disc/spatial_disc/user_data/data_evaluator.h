@@ -125,17 +125,17 @@ class DataEvaluator
 
 	///	struct to store data related to elem disc
 		struct ElemDisc {
-			IElemDisc<TDomain>* elemDisc;
-			FunctionGroup fctGrp;
-			FunctionIndexMapping map;
-			bool needLocTimeSeries;
-			ProcessType process;
+			IElemDisc<TDomain>* elemDisc;	//< element disc
+			FunctionGroup fctGrp;			//< associated function group
+			FunctionIndexMapping map;		//< mapping from fctPatt for the fct group
+			bool needLocTimeSeries;			//< flag if time series needed
+			ProcessType process;			//< type of process (STAT, INSTAT, ..)
 		};
 
 	///	elem disc data
 		std::vector<ElemDisc> m_vElemDisc[MAX_PROCESS];
 
-	///	common function group (all function of function pattern)
+	///	underlying function pattern
 		const FunctionPattern& m_fctPatt;
 
 	///	flag if hanging nodes are used
@@ -166,10 +166,10 @@ class DataEvaluator
 			       ProcessType _process) :
 			import(_import), map(_map), connMap(_connMap), process(_process) {}
 
-			IDataImport<dim>* import;
-			FunctionIndexMapping map;
-			FunctionIndexMapping connMap;
-			ProcessType process;
+			IDataImport<dim>* import;		//< import
+			FunctionIndexMapping map;		//< mapping for import fct group
+			FunctionIndexMapping connMap;	//< mapping for data fct group
+			ProcessType process;			//< type of process (STAT, INSTAT,...)
 		};
 
 		std::vector<Import> m_vImport[MAX_PROCESS][MAX_PART];

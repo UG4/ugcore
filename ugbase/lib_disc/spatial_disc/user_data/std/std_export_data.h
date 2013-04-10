@@ -106,14 +106,10 @@ class StdDataExport
 			}UG_CATCH_THROW("StdDataExport: Cannot find  some symbolic function "
 							"name in '"<<m_SymbFct<<"'.");
 
-		//	get common fct grp
-			FunctionGroup commonFctGroup(*m_pFctPatt);
-			commonFctGroup.add_all();
-
 		//	create a mapping between all functions and the function group of this
 		//	element disc.
 			try{
-				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, commonFctGroup);
+				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, *m_pFctPatt);
 			}UG_CATCH_THROW("StdDataExport: Cannot create Function Index Mapping"
 							" for '"<<m_SymbFct<<"'.");
 		}
