@@ -132,6 +132,70 @@ vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem)
 }
 
 
+template <class TElem>
+static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
+{
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		for(typename MultiGrid::traits<TElem>::iterator iter = mg.begin<TElem>(lvl);
+			iter != mg.end<TElem>(lvl); ++iter)
+		{
+			TElem* e = *iter;
+		//	make sure that all children have the local element as parent
+			for(size_t i_child = 0; i_child < mg.num_children<VertexBase>(e); ++i_child)
+			{
+				if(e != mg.get_parent(mg.get_child<VertexBase>(e, i_child))){
+					UG_THROW("parent is not referenced by children!");
+				}
+			}
+
+			for(size_t i_child = 0; i_child < mg.num_children<EdgeBase>(e); ++i_child)
+			{
+				if(e != mg.get_parent(mg.get_child<EdgeBase>(e, i_child))){
+					UG_THROW("parent is not referenced by children!");
+				}
+			}
+
+			for(size_t i_child = 0; i_child < mg.num_children<Face>(e); ++i_child)
+			{
+				if(e != mg.get_parent(mg.get_child<Face>(e, i_child))){
+					UG_THROW("parent is not referenced by children!");
+				}
+			}
+
+			for(size_t i_child = 0; i_child < mg.num_children<Volume>(e); ++i_child)
+			{
+				if(e != mg.get_parent(mg.get_child<Volume>(e, i_child))){
+					UG_THROW("parent is not referenced by children!");
+				}
+			}
+
+		//	also make sure that each element with a parent is contained in the
+		//	children list of its parent
+			GeometricObject* parent = mg.get_parent(e);
+			if(parent){
+				bool gotIt = false;
+				for(size_t i = 0; i < mg.num_children<TElem>(parent); ++i){
+					if(mg.get_child<TElem>(parent, i) == e){
+						gotIt = true;
+						break;
+					}
+				}
+
+				if(!gotIt){
+					UG_THROW("Element not contained in child list of its parent");
+				}
+			}
+		}
+	}
+}
+
+void CheckMultiGridConsistency(MultiGrid& mg)
+{
+	CheckMultiGridConsistencyImpl<VertexBase>(mg);
+	CheckMultiGridConsistencyImpl<EdgeBase>(mg);
+	CheckMultiGridConsistencyImpl<Face>(mg);
+	CheckMultiGridConsistencyImpl<Volume>(mg);
+}
 
 //	the following define is only used by the CheckHangingNodeConsistency methods
 //	and is highly specialized for them.

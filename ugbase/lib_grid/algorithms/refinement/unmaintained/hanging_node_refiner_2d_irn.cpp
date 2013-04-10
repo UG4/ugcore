@@ -843,7 +843,7 @@ void HangingNodeRefiner2D_IRN::refine_constrained_edge(ConstrainedEdge* constrai
 		hv->set_constraining_object(constrainingEdge);
 
 	//	unlink cde and ce
-		constrainingEdge->unconstrain_edge(constrainedEdge);
+		constrainingEdge->unconstrain_object(constrainedEdge);
 		constrainedEdge->set_constraining_object(NULL);
 
 	//	split the constrained edge and register new edges at the grid.
@@ -915,7 +915,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 
 	//	centerVrt has to be transformed into a normal vertex.
 	//	unlink it first from the constraining edge
-		ce->unconstrain_vertex(centerVrt);
+		ce->unconstrain_object(centerVrt);
 		vector3 vPos;
 
 		Vertex* nCenterVrt = *grid.create_and_replace<Vertex>(centerVrt);
@@ -951,7 +951,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 					VertexBase* tVrt = get_center_vertex(tEdge);
 				//	if tEdge is constrained by ce, we have to unconstrain it first.
 					if(ce->is_constrained_object(tEdge))
-						ce->unconstrain_edge(tEdge);
+						ce->unconstrain_object(tEdge);
 				//	create the new edge.
 					nCE = *grid.create_and_replace<ConstrainingEdge>(tEdge);
 					set_center_vertex(nCE, tVrt);
@@ -1051,7 +1051,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 				if(replaceMe)
 				{
 				//	unconstrain the edge
-					ce->unconstrain_edge(replaceMe);
+					ce->unconstrain_object(replaceMe);
 				//	store the vertex that was placed on refineMe (if there was any)
 					VertexBase* tmpVrt = get_center_vertex(replaceMe);
 				//	if the edge was scheduled we have to output this

@@ -276,7 +276,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 	//	note that even if a process is yet used on a given hierarchy level, it may
 	//	still contain some low dimensional dummy elements in h-interfaces. We thus
 	//	continue execution on a process even if it is not originally involved in
-	//	redistribution on this hlevel. Not that this is only a problem if
+	//	redistribution on this hlevel. Note that this is only a problem if
 	//	maxLvl = minLvl + 1.
 		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlevel);
 		pcl::ProcessCommunicator globalCom;

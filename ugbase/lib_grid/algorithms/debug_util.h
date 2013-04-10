@@ -67,6 +67,9 @@ template <class TElem>
 int GetGeometricObjectIndex(Grid& g, TElem* elem);
 
 
+///	Checks whether parent child connections in a multi-grid are correct
+void CheckMultiGridConsistency(MultiGrid& mg);
+
 ///	checks whether all constraining and constrained objects are correctly connected.
 bool CheckHangingNodeConsistency(Grid& g);
 

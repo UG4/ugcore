@@ -16,6 +16,18 @@
 //#define LG_DISTRIBUTION_DEBUG
 //#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 3
 
+#define PROFILE_GRID_DISTRIBUTION
+#ifdef PROFILE_GRID_DISTRIBUTION
+	#define GDIST_PROFILE_FUNC()	PROFILE_FUNC_GROUP("gdist")
+	#define GDIST_PROFILE(name)	PROFILE_BEGIN_GROUP(name, "gdist")
+	#define GDIST_PROFILE_END()	PROFILE_END()
+#else
+	#define GDIST_PROFILE_FUNC()
+	#define GDIST_PROFILE(name)
+	#define GDIST_PROFILE_END()
+#endif
+
+
 using namespace std;
 
 namespace ug{
@@ -459,6 +471,9 @@ template <class TElem>
 static void SelectAssociatedSides(MGSelector& msel, TElem* e,
 								  ISelector::status_t status = ISelector::SELECTED)
 {
+	//UG_DLOG(LIB_GRID, 1, "dist-start: SelectAssociatedSides\n");
+	GDIST_PROFILE_FUNC();
+
 	UG_ASSERT(msel.multi_grid(), "");
 	MultiGrid& mg = *msel.multi_grid();
 
@@ -475,6 +490,8 @@ static void SelectAssociatedSides(MGSelector& msel, TElem* e,
 				SelectAssociatedSides(msel, s, nstate);
 		//}
 	}
+
+	//UG_DLOG(LIB_GRID, 1, "dist-stop: SelectAssociatedSides\n");
 }
 
 
@@ -486,6 +503,9 @@ static void SelectAssociatedSides(MGSelector& msel, TElem* e,
 static void SelectAssociatedConstrainedElements(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: SelectAssociatedConstrainedElements\n");
+	GDIST_PROFILE_FUNC();
+
 	const bool selectAll = true;
 
 //	constraining triangles
@@ -599,6 +619,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 			}
 		}
 	}
+	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectAssociatedConstrainedElements\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -607,6 +628,9 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 static void SelectAssociatedConstrainingElements(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: SelectAssociatedConstrainingElements\n");
+	GDIST_PROFILE_FUNC();
+
 	const bool selectAll = true;
 
 //	constrained triangles
@@ -724,6 +748,7 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
 			}
 		}
 	}
+	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectAssociatedConstrainingElements\n");
 }
 
 
@@ -739,6 +764,9 @@ static void SelectAssociatedConstrainingElements(MGSelector& msel,
 static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 								ISelector::status_t status = ISelector::SELECTED)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: SelectChildrenOfSelectedShadowVertices\n");
+	GDIST_PROFILE_FUNC();
+
 	UG_ASSERT(msel.multi_grid(), "The selector has to operate on a grid!");
 	MultiGrid& mg = *msel.multi_grid();
 	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
@@ -767,6 +795,7 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 			}
 		}
 	}
+	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectChildrenOfSelectedShadowVertices\n");
 }
 
 
@@ -785,6 +814,9 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 template <class TElem>
 static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: AssignVerticalMasterAndSlaveStates\n");
+	GDIST_PROFILE_FUNC();
+
 	UG_ASSERT(msel.multi_grid(), "Selector has to operate on a MultiGrid");
 	MultiGrid& mg = *msel.multi_grid();
 	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
@@ -829,6 +861,8 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 			}
 		}
 	}
+
+	UG_DLOG(LIB_GRID, 1, "dist-stop: AssignVerticalMasterAndSlaveStates\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -836,6 +870,9 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 template <class TElem>
 static void SelectUnselectedRootElementsAsVMasters(MGSelector& msel)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: SelectUnselectedRootElementsAsVMasters\n");
+	GDIST_PROFILE_FUNC();
+
 	typedef typename Grid::traits<TElem>::iterator TIter;
 
 	UG_ASSERT(msel.multi_grid(), "Selector has to operate on a MultiGrid");
@@ -848,6 +885,7 @@ static void SelectUnselectedRootElementsAsVMasters(MGSelector& msel)
 				msel.select(*iter, IS_VMASTER);
 		}
 	}
+	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectUnselectedRootElementsAsVMasters\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -855,6 +893,9 @@ static void SelectUnselectedRootElementsAsVMasters(MGSelector& msel)
 template <class TElem>
 static void SelectSelectedRootElementsAsVSlaves(MGSelector& msel)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: SelectSelectedRootElementsAsVSlaves\n");
+	GDIST_PROFILE_FUNC();
+
 	typedef typename Grid::traits<TElem>::iterator TIter;
 
 	UG_ASSERT(msel.multi_grid(), "Selector has to operate on a MultiGrid");
@@ -865,6 +906,7 @@ static void SelectSelectedRootElementsAsVSlaves(MGSelector& msel)
 		if(!distGridMgr.contains_status(*iter, ES_V_MASTER))
 			msel.select(*iter, IS_VSLAVE);
 	}
+	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectSelectedRootElementsAsVSlaves\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -873,6 +915,9 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 								bool partitionForLocalProc,
 								bool createVerticalInterfaces)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: SelectElementsForTargetPartition\n");
+	GDIST_PROFILE_FUNC();
+
 //	elements which do not have parents (so called root-elements), and which are
 //	not v-slaves have to have a copy on the local proc.
 //	If they are not contained in the partition for the local proc, we'll add a
@@ -948,6 +993,7 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 	SelectAssociatedConstrainingElements(msel, IS_DUMMY);
 	SelectAssociatedConstrainedElements(msel, IS_DUMMY | HAS_PARENT);
 	SelectChildrenOfSelectedShadowVertices(msel, IS_DUMMY | HAS_PARENT);
+	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectElementsForTargetPartition\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -955,6 +1001,9 @@ template <class TElem>
 static void AddTargetProcToDistInfos(MGSelector& msel,
 									DistInfoSupplier& distInfos, int targetProc)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: AddTargetProcToDistInfos\n");
+	GDIST_PROFILE_FUNC();
+
 	typedef typename Grid::traits<TElem>::iterator	TElemIter;
 
 
@@ -969,6 +1018,8 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 					TargetProcInfo(targetProc, selState));
 		}
 	}
+
+	UG_DLOG(LIB_GRID, 1, "dist-stop: AddTargetProcToDistInfos\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -977,6 +1028,9 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 						const pcl::ProcessCommunicator& procComm,
 						bool createVerticalInterfaces)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: FillDistInfos\n");
+	GDIST_PROFILE_FUNC();
+
 	for(int i_part = 0; i_part < shPartition.num_subsets(); ++i_part){
 
 		int targetProc = i_part;
@@ -1027,6 +1081,7 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 	}
 #endif
 
+	UG_DLOG(LIB_GRID, 1, "dist-stop: FillDistInfos\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1040,6 +1095,9 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 										DistInfoSupplier& distInfos,
 										AGeomObjID& aGID)
 {
+	UG_DLOG(LIB_GRID, 1, "dist-start: CreateLayoutsFromDistInfos\n");
+	GDIST_PROFILE_FUNC();
+
 	typedef typename MultiGrid::traits<TElem>::iterator	TIter;
 	typedef typename GridLayoutMap::Types<TElem>::Interface	TInterface;
 
@@ -1319,6 +1377,8 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 		glm.get_layout<TElem>(INT_V_MASTER).sort_interface_entries(gidCmp);
 	if(glm.has_layout<TElem>(INT_V_SLAVE))
 		glm.get_layout<TElem>(INT_V_SLAVE).sort_interface_entries(gidCmp);
+
+	UG_DLOG(LIB_GRID, 1, "dist-stop: CreateLayoutsFromDistInfos\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1329,6 +1389,8 @@ bool DistributeGrid(MultiGrid& mg,
 					const std::vector<int>* processMap,
 					const pcl::ProcessCommunicator& procComm)
 {
+	GDIST_PROFILE_FUNC();
+
 	UG_STATIC_ASSERT(IS_DUMMY < 256, RedistributeGrid_IS_DUMMY_too_big);
 
 	UG_DLOG(LIB_GRID, 1, "dist-start: DistributeGrid\n");
@@ -1359,14 +1421,15 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	GLOBAL IDS
-	PCL_PROFILE(redist_CreateGlobalIDs);
+	GDIST_PROFILE(gdist_CreateGlobalIDs);
+	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Create global vertex ids\n");
 //todo:	only create global ids if they aren't already present
 	CreateAndDistributeGlobalIDs<VertexBase>(mg, glm);
 	CreateAndDistributeGlobalIDs<EdgeBase>(mg, glm);
 	CreateAndDistributeGlobalIDs<Face>(mg, glm);
 	CreateAndDistributeGlobalIDs<Volume>(mg, glm);
 	MultiElementAttachmentAccessor<AGeomObjID> aaID(mg, aGeomObjID);
-	PCL_PROFILE_END();
+	GDIST_PROFILE_END();
 
 	#ifdef LG_DISTRIBUTION_DEBUG
 	{
@@ -1391,6 +1454,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	FILL THE DISTRIBUTION INFOS (INVOLVES COMMUNICATION...)
+	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Fill distribution infos\n");
 	DistInfoSupplier distInfos(mg);
 	FillDistInfos(mg, shPartition, msel, distInfos, processMap, procComm,
 				  createVerticalInterfaces);
@@ -1432,6 +1496,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	SERIALIZE THE GRID, THE GLOBAL IDS AND THE DISTRIBUTION INFOS.
+	GDIST_PROFILE(gdist_Serialization);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Serialization\n");
 	AInt aLocalInd;
 	mg.attach_to_all(aLocalInd);
@@ -1454,43 +1519,50 @@ bool DistributeGrid(MultiGrid& mg,
 	distInfoSerializer.add(GeomObjAttachmentSerializer<Volume, ADistInfo>::create(mg, aDistInfo));
 
 //	now perform the serialization
+	int localPartitionInd = -1;
 	for(size_t i_to = 0; i_to < sendPartitionInds.size(); ++i_to){
 		int partInd = sendPartitionInds[i_to];
 		bool localPartition = (sendToRanks[i_to] == pcl::GetProcRank());
+		if(localPartition)
+			localPartitionInd = partInd;
 
 	//	the last size is required to calculate the size of the new segment
 		size_t oldSize = out.write_pos();
 
-	//	write a magic number for debugging purposes
-		out.write((char*)&magicNumber1, sizeof(int));
+	//	don't serialize the local partition since we'll keep it here on the local
+	//	process anyways.
+		if(!localPartition){
+		//	write a magic number for debugging purposes
+			out.write((char*)&magicNumber1, sizeof(int));
 
-	//	select the elements of the current partition
-		msel.clear();
-		SelectElementsForTargetPartition(msel, shPartition, partInd,
-									 localPartition, createVerticalInterfaces);
+		//	select the elements of the current partition
+			msel.clear();
+			SelectElementsForTargetPartition(msel, shPartition, partInd,
+										 localPartition, createVerticalInterfaces);
 
-		SerializeMultiGridElements(mg, msel.get_geometric_objects(), aaInt, out, &aaID);
+			SerializeMultiGridElements(mg, msel.get_geometric_objects(), aaInt, out, &aaID);
 
 
-	//	serialize associated data
-		distInfoSerializer.write_infos(out);
-		distInfoSerializer.serialize(out, msel.get_geometric_objects());
-		serializer.write_infos(out);
-		serializer.serialize(out, msel.get_geometric_objects());
+		//	serialize associated data
+			distInfoSerializer.write_infos(out);
+			distInfoSerializer.serialize(out, msel.get_geometric_objects());
+			serializer.write_infos(out);
+			serializer.serialize(out, msel.get_geometric_objects());
 
-	//	write a magic number for debugging purposes
-		out.write((char*)&magicNumber2, sizeof(int));
+		//	write a magic number for debugging purposes
+			out.write((char*)&magicNumber2, sizeof(int));
+		}
 
 	//	size of the segment we just wrote to out
 		outSegSizes.push_back((int)(out.write_pos() - oldSize));
 	}
-	PCL_PROFILE_END();
+	GDIST_PROFILE_END();
 
 
 ////////////////////////////////
 //	COMMUNICATE SERIALIZED DATA
+	GDIST_PROFILE(gdist_CommunicateSerializedData);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Distribute data\n");
-	PCL_PROFILE(dist_CommunicateSerializedData);
 //	now distribute the packs between involved processes
 	BinaryBuffer in;
 	vector<int> inSegSizes(recvFromRanks.size());
@@ -1500,22 +1572,116 @@ bool DistributeGrid(MultiGrid& mg,
 							out.buffer(), GetDataPtr(outSegSizes),
 							GetDataPtr(sendToRanks), (int)sendToRanks.size());
 
-	PCL_PROFILE_END();
+	GDIST_PROFILE_END();
 
 ////////////////////////////////
 //	INTERMEDIATE CLEANUP
+	GDIST_PROFILE(gdist_IntermediateCleanup);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Intermediate cleanup\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STARTS));
 
-	PCL_PROFILE(dist_ClearLocalGrid);
-//	we'll erase everything and deserialize even the local grid from stream
-	mg.clear_geometry();
+//	we have to remove all elements which won't stay on the local process.
+//	To do so, we'll first select all elements that stay, invert that selection
+//	and erase all elements which are selected thereafter.
+	if(localPartitionInd != -1){
+		msel.clear();
+		SelectElementsForTargetPartition(msel, shPartition, localPartitionInd,
+									 	 true, createVerticalInterfaces);
+		InvertSelection(msel);
+
+	//	make sure that constrained/constraining connections won't be harmed
+	//	this is a little cumbersome in the moment. Ideally constrained/constraining
+	//	elements should unregister from each other automatically on destruction.
+	//	Note that it is sufficient in this case to only iterate over constrained
+	//	elements.
+		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+			for(ConstrainedVertexIterator iter = msel.begin<ConstrainedVertex>(lvl);
+				iter != msel.end<ConstrainedVertex>(lvl); ++iter)
+			{
+				GeometricObject* co = (*iter)->get_constraining_object();
+				if(co && !msel.is_selected(co)){
+					switch(co->base_object_id()){
+						case EDGE:{
+							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
+								ce->unconstrain_vertex(*iter);
+						}break;
+						case FACE:{
+							if(co->reference_object_id() == ROID_TRIANGLE){
+								if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+									ce->unconstrain_object(*iter);
+							}
+							else{
+								if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+									ce->unconstrain_object(*iter);
+							}
+						}break;
+						default: break;
+					}
+				}
+			}
+
+			for(ConstrainedEdgeIterator iter = msel.begin<ConstrainedEdge>(lvl);
+				iter != msel.end<ConstrainedEdge>(lvl); ++iter)
+			{
+				GeometricObject* co = (*iter)->get_constraining_object();
+				if(co && !msel.is_selected(co)){
+					switch(co->base_object_id()){
+						case EDGE:{
+							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
+								ce->unconstrain_edge(*iter);
+						}break;
+						case FACE:{
+							if(co->reference_object_id() == ROID_TRIANGLE){
+								if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+									ce->unconstrain_object(*iter);
+							}
+							else{
+								if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+									ce->unconstrain_object(*iter);
+							}
+						}break;
+						default: break;
+					}
+				}
+			}
+
+			for(ConstrainedTriangleIterator iter = msel.begin<ConstrainedTriangle>(lvl);
+				iter != msel.end<ConstrainedTriangle>(lvl); ++iter)
+			{
+				GeometricObject* co = (*iter)->get_constraining_object();
+				if(co && !msel.is_selected(co)){
+					if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+						ce->unconstrain_object(*iter);
+				}
+			}
+
+			for(ConstrainedQuadrilateralIterator iter = msel.begin<ConstrainedQuadrilateral>(lvl);
+				iter != msel.end<ConstrainedQuadrilateral>(lvl); ++iter)
+			{
+				GeometricObject* co = (*iter)->get_constraining_object();
+				if(co && !msel.is_selected(co)){
+					if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+						ce->unconstrain_object(*iter);
+				}
+			}
+		}
+
+		EraseSelectedObjects(msel);
+	}
+	else{
+	//	nothing remains on the local process...
+		mg.clear_geometry();
+	}
+
+//	the grid layout map will be rebuilt from scratch
 	glm.clear();
-	PCL_PROFILE_END();
+
+	GDIST_PROFILE_END();
 
 ////////////////////////////////
 //	DESERIALIZE INCOMING GRIDS
+	GDIST_PROFILE(gdist_Deserialize);
 	distInfoSerializer.deserialization_starts();
 	serializer.deserialization_starts();
 
@@ -1525,6 +1691,10 @@ bool DistributeGrid(MultiGrid& mg,
 	vector<Volume*> vols;
 
 	for(size_t i = 0; i < recvFromRanks.size(); ++i){
+	//	there is nothing to serialize from the local rank
+		if(recvFromRanks[i] == pcl::GetProcRank())
+			continue;
+
 		UG_DLOG(LIB_GRID, 2, "Deserializing from rank " << recvFromRanks[i] << "\n");
 
 	//	read the magic number and make sure that it matches our magicNumber
@@ -1558,6 +1728,7 @@ bool DistributeGrid(MultiGrid& mg,
 					 "Magic number mismatch after deserialization.\n");
 		}
 	}
+	GDIST_PROFILE_END();
 
 //	DEBUG: output distInfos...
 	#ifdef LG_DISTRIBUTION_DEBUG
@@ -1568,20 +1739,21 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	CREATE LAYOUTS
+	GDIST_PROFILE(gdist_CreateLayouts);
 	CreateLayoutsFromDistInfos<VertexBase>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<EdgeBase>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<Face>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<Volume>(mg, glm, distInfos, aGeomObjID);
-
+	GDIST_PROFILE_END();
 
 ////////////////////////////////
 //	UPDATE THE DISTRIBUTED GRID MANAGER
+	GDIST_PROFILE(gdist_UpdateDistGridManager);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Update DistributedGridManager\n");
-	PCL_PROFILE(redist_UpdateDistGridManager);
 	glm.remove_empty_interfaces();
 	distGridMgr.enable_interface_management(true);
 	distGridMgr.grid_layouts_changed(false);
-	PCL_PROFILE_END();
+	GDIST_PROFILE_END();
 
 	mg.detach_from_all(aLocalInd);
 
@@ -1589,6 +1761,8 @@ bool DistributeGrid(MultiGrid& mg,
 		PerformValidityCheck(distGridMgr);
 	#endif
 
+//	execute callbacks for external postprocessing
+	GDIST_PROFILE(gdist_ExternalPostProcessing);
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
@@ -1600,6 +1774,8 @@ bool DistributeGrid(MultiGrid& mg,
 	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS));
 
 	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");
+	GDIST_PROFILE_END();
+
 	return true;
 }
 
