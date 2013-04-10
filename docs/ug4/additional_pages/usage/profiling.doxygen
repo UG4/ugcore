@@ -18,7 +18,7 @@ sebastian.reiter@gcsc.uni-frankfurt.de .
 <hr>
 \section secEnableProfiling Enable Profiling in ug4
 
-You enable profiling in ug4 by setting the \em CMake flag <tt>-DPROFILER=<Profiler></tt>.
+You enable profiling in ug4 by setting the \em CMake flag <tt>-DPROFILER=\<Profiler\></tt>.
 E.g., using a shell open in your subdirectory <tt>build_debug</tt> (as
 explained \ref pageUG4Install "here" or 
 \ref secInstallEclipseUseMakefiles "here"), and enter
@@ -27,7 +27,7 @@ cmake -DPROFILER=<Profiler> ..
 make
 \endverbatim
 
-The currently supported options for <tt> <Profiler> </tt> are:
+The currently supported options for <tt>\<Profiler\></tt> are:
 <tt>None, Shiny, Scalasca, Vampir, ScoreP</tt>
 
 Note that <em>CMake</em> "remembers" the flags you set.

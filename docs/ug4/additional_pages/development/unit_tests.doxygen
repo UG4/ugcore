@@ -122,7 +122,7 @@ See this example:
 
 If you want to add your plugin to the Jenkins automated test procedure, add a line
 -DMyPlugin=ON to the cmake build step section of the Job "ug-build-plugins" and add a
-<script> ... </script> section to the experimental_plugin.xml file.
+<tt>\<script\> ... \</script\></tt> section to the experimental_plugin.xml file.
 It is recommended to ensure your script file is able to be executed outside of UG4_ROOT 
 (e.g grids should be not be loaded via absolute path or relative one relying to an unknown runtime location)
 

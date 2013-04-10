@@ -193,7 +193,7 @@ reg.add_class_<Test>("Test", grp, "Test Class for demonstration")
 
 notice how we use "" for empty strings like when there's no return value or parameters.
 
-The syntax for the parameter information for N parameters is <tt>paramName1#paramName2#paramName3#...#paramNameN"</tt>, so you have to seperate the parameters with the hash sign #
+The syntax for the parameter information for N parameters is <tt>paramName1\#paramName2\#paramName3\#...\#paramNameN"</tt>, so you have to seperate the parameters with the hash sign #
  (see below for additional parameter information).
 
 The additional information you specify can be accessed in various ways:

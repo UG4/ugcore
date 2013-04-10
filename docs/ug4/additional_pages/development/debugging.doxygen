@@ -26,7 +26,7 @@ It works like this: In your LUA-Script, you add the line
 GetLogAssistant():set_debug_level("MAIN", 2)
 \endcode
 
-Now the debug level for the \emph DebugID MAIN is set to 2. Now in the C++ code,
+Now the debug level for the \em DebugID MAIN is set to 2. Now in the C++ code,
 you can do logging with UG_LOG, using some ostream functionality like in cout:
 \code
 UG_LOG("Hello World " << myInteger << "\n");
