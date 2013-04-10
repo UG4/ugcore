@@ -566,9 +566,6 @@ class IElemDisc
 	///	returns the function pattern
 		const FunctionPattern& function_pattern() const {return *m_spApproxSpace;}
 
-	///	returns if function pattern set
-		bool fct_pattern_set() const {return m_spApproxSpace.valid();}
-
 	///	returns the subset handler
 		typename TDomain::subset_handler_type& subset_handler()
 		{
