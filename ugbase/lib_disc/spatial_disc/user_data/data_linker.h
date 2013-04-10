@@ -74,7 +74,7 @@ class DataLinker
 		virtual void check_setup() const;
 
 	///	updates the function group
-		void update_function_group();
+		void update_function_group_and_map();
 
 	protected:
 	///	returns number of functions the input depends on
@@ -116,9 +116,6 @@ class DataLinker
 
 	///	data input casted to IDependend data
 		std::vector<SmartPtr<UserDataInfo> > m_vspUserDataInfo;
-
-	///	common functions the data depends on
-		FunctionGroup m_commonFctGroup;
 
 	///	Function mapping for each input relative to common FunctionGroup
 		std::vector<FunctionIndexMapping> m_vMap;

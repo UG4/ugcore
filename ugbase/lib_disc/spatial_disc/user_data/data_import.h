@@ -84,13 +84,16 @@ class IDataImport
 		virtual SmartPtr<ICplUserData<dim> > data() = 0;
 
 	///	set function group for linearization of defect
-		void set_function_group(const FunctionGroup& fctGrp){m_fctGrp = fctGrp;}
+		void set_map(const FunctionIndexMapping& map){m_map = map;}
 
-	///	get funtion group
-		const FunctionGroup& function_group() const{return m_fctGrp;}
+	///	get function mapping
+		const FunctionIndexMapping& map() const{return m_map;}
+
+	///	get function mapping of dependent data
+		const FunctionIndexMapping& conn_map() const{return m_spICplUserData->map();}
 
 	/// number of functions
-		size_t num_fct() const {return m_fctGrp.size();}
+		size_t num_fct() const {return m_map.num_fct();}
 
 	///	sets the geometric object type
 		virtual void set_roid(ReferenceObjectID id) = 0;
@@ -99,8 +102,7 @@ class IDataImport
 		virtual void compute_lin_defect(const LocalVector& u) = 0;
 
 	///	resize arrays
-		virtual void set_dof_sizes(const LocalIndices& ind,
-		                           const FunctionIndexMapping& map) = 0;
+		virtual void update_dof_sizes(const LocalIndices& ind) = 0;
 
 	///	add jacobian entries introduced by this import
 		virtual void add_jacobian(LocalMatrix& J, const number scale) = 0;
@@ -112,8 +114,8 @@ class IDataImport
 	/// connected iexport
 		SmartPtr<ICplUserData<dim> > m_spICplUserData;
 
-	///	function group for linear defect
-		FunctionGroup m_fctGrp;
+	///	Mapping for import fct
+		FunctionIndexMapping m_map;
 
 	protected:
 	///	flag to indicate where import is located
@@ -248,8 +250,7 @@ class DataImport : public IDataImport<dim>
 		void add_jacobian(LocalMatrix& J, const number scale);
 
 	///	resize lin defect arrays
-		virtual void set_dof_sizes(const LocalIndices& ind,
-		                           const FunctionIndexMapping& map);
+		virtual void update_dof_sizes(const LocalIndices& ind);
 
 	public:
 	///	type of evaluation function

@@ -19,18 +19,18 @@ void DataEvaluator<TDomain>::prepare_timestep_elem(TElem* elem, LocalVector& u)
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
 	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i].map;
+		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i]->map();
 
 	//	access disc functions
 		u.access_by_map(map);
 
-		if(m_vElemDisc[PT_ALL][i].needLocTimeSeries)
+		if(m_vElemDisc[PT_ALL][i]->local_time_series_needed())
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
 				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	prepare timestep for elem disc
 		try{
-			m_vElemDisc[PT_ALL][i].elemDisc->fast_prep_timestep_elem(elem, u);
+			m_vElemDisc[PT_ALL][i]->fast_prep_timestep_elem(elem, u);
 		}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::prepare_timestep_element: "
 						"Cannot prepare timestep on element for IElemDisc "<<i);
@@ -52,7 +52,7 @@ prepare_elem_loop(int si)
 // 	set elem type in elem disc
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-		try{m_vElemDisc[PT_ALL][i].elemDisc->set_roid(id, m_discPart);}
+		try{m_vElemDisc[PT_ALL][i]->set_roid(id, m_discPart);}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::prepare_elem_loop: "
 						"Cannot set geometric object type for Disc " << i);
 	}
@@ -62,7 +62,7 @@ prepare_elem_loop(int si)
 // 	prepare loop (elem disc set local ip series here)
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
-		try{m_vElemDisc[PT_ALL][i].elemDisc->fast_prep_elem_loop(id, si);}
+		try{m_vElemDisc[PT_ALL][i]->fast_prep_elem_loop(id, si);}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::prepare_elem_loop: "
 						"Cannot prepare element loop.");
 	}
@@ -74,17 +74,17 @@ prepare_elem_loop(int si)
 
 //	set geometric type at imports
 	for(size_t i = 0; i < m_vImport[PT_ALL][MASS].size(); ++i){
-		try{m_vImport[PT_ALL][MASS][i].import->set_roid(id);}
+		try{m_vImport[PT_ALL][MASS][i]->set_roid(id);}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::prepare_elem_loop: Cannot set  geometric "
 						"object type "<<id<<" for Import "<<i<<" (Mass part).");
 	}
 	for(size_t i = 0; i < m_vImport[PT_ALL][STIFF].size(); ++i){
-		try{m_vImport[PT_ALL][STIFF][i].import->set_roid(id);}
+		try{m_vImport[PT_ALL][STIFF][i]->set_roid(id);}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::prepare_elem_loop: Cannot set  geometric "
 						"object type "<<id<<" for Import "<<i<<" (Stiff part).");
 	}
 	for(size_t i = 0; i < m_vImport[PT_ALL][RHS].size(); ++i){
-		try{m_vImport[PT_ALL][RHS][i].import->set_roid(id);}
+		try{m_vImport[PT_ALL][RHS][i]->set_roid(id);}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::prepare_elem_loop: Cannot set  geometric "
 						"object type "<<id<<" for Import "<<i<<" (Rhs part).");
 	}
@@ -118,25 +118,25 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 
 //	get corners
 	ElemGlobCornerCoords<TDomain, TElem>& co_coord = Provider<ElemGlobCornerCoords<TDomain, TElem> >::get();
-	co_coord.update(&m_vElemDisc[PT_ALL][0].elemDisc->domain(), elem);
+	co_coord.update(&m_vElemDisc[PT_ALL][0]->domain(), elem);
 	m_vCornerCoords = co_coord.vGlobalCorner();
 
 // 	prepare element
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
 	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i].map;
+		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i]->map();
 
 	//	access disc functions
 		u.access_by_map(map);
 
-		if(m_vElemDisc[PT_ALL][i].needLocTimeSeries)
+		if(m_vElemDisc[PT_ALL][i]->local_time_series_needed())
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
 				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	prepare for elem disc
 		try{
-			m_vElemDisc[PT_ALL][i].elemDisc->fast_prep_elem(elem, u);
+			m_vElemDisc[PT_ALL][i]->fast_prep_elem(elem, u);
 		}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::prep_elem: "
 						"Cannot prepare element for IElemDisc "<<i);
@@ -150,14 +150,14 @@ prepare_elem(TElem* elem, LocalVector& u, const LocalIndices& ind,
 	if(bDeriv)
 	{
 		for(size_t i = 0; i < m_vImport[PT_ALL][MASS].size(); ++i)
-			m_vImport[PT_ALL][MASS][i].import->set_dof_sizes(ind, m_vImport[PT_ALL][MASS][i].map);
+			m_vImport[PT_ALL][MASS][i]->update_dof_sizes(ind);
 		for(size_t i = 0; i < m_vImport[PT_ALL][STIFF].size(); ++i)
-			m_vImport[PT_ALL][STIFF][i].import->set_dof_sizes(ind, m_vImport[PT_ALL][STIFF][i].map);
+			m_vImport[PT_ALL][STIFF][i]->update_dof_sizes(ind);
 		for(size_t i = 0; i < m_vImport[PT_ALL][RHS].size(); ++i)
-			m_vImport[PT_ALL][RHS][i].import->set_dof_sizes(ind, m_vImport[PT_ALL][RHS][i].map);
+			m_vImport[PT_ALL][RHS][i]->update_dof_sizes(ind);
 
 		for(size_t i = 0; i < m_vDependentData.size(); ++i)
-			m_vDependentData[i]->set_dof_sizes(ind, m_vDependentMap[i]);
+			m_vDependentData[i]->update_dof_sizes(ind);
 	}
 
 	compute_elem_data(u, elem, m_vCornerCoords, bDeriv);
@@ -172,18 +172,18 @@ finish_timestep_elem(TElem* elem, const number time, LocalVector& u)
 	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 	{
 	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i].map;
+		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i]->map();
 
 	//	access disc functions
 		u.access_by_map(map);
 
-		if(m_vElemDisc[PT_ALL][i].needLocTimeSeries)
+		if(m_vElemDisc[PT_ALL][i]->local_time_series_needed())
 			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
 				m_pLocTimeSeries->solution(t).access_by_map(map);
 
 	//	finish timestep for elem disc
 		try{
-			m_vElemDisc[PT_ALL][i].elemDisc->fast_fsh_timestep_elem(elem, time, u);
+			m_vElemDisc[PT_ALL][i]->fast_fsh_timestep_elem(elem, time, u);
 		}
 		UG_CATCH_THROW("DataEvaluator<TDomain>::finish_timestep_element: "
 						"Cannot finish timestep on element for IElemDisc "<<i);

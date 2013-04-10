@@ -6,31 +6,30 @@
  */
 
 #include "elem_disc_interface.h"
+#include "lib_disc/common/groups_util.h"
 
 namespace ug{
 
 template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
-	: 	m_timePoint(0),
+	: 	m_pFctPattern(0), m_timePoint(0),
 	  	m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
 	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN), m_spApproxSpace(NULL)
 {
-	m_vFct.clear();
-	m_vSubset.clear();
-	if(functions) set_functions(functions);
-	if(subsets) set_subsets(subsets);
+	set_functions(functions);
+	set_subsets(subsets);
 	clear_add_fct();
 }
 
 template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const std::vector<std::string>& vFct,
-                     const std::vector<std::string>& vSubset)
-	: 	m_timePoint(0),
+                              const std::vector<std::string>& vSubset)
+	: 	m_pFctPattern(0), m_timePoint(0),
 		m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
 		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN), m_spApproxSpace(NULL)
 {
-	m_vFct = vFct;
-	m_vSubset = vSubset;
+	set_functions(vFct);
+	set_subsets(vSubset);
 	clear_add_fct();
 }
 
@@ -61,8 +60,13 @@ void IElemDisc<TDomain>::clear_add_fct()
 template <typename TDomain>
 void IElemDisc<TDomain>::set_functions(const std::string& fctString)
 {
-//	tokenize string
-	TokenizeString(fctString, m_vFct, ',');
+	set_functions(TokenizeString(fctString));
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::set_functions(const std::vector<std::string>& functions)
+{
+	m_vFct = functions;
 
 //	remove white space
 	for(size_t i = 0; i < m_vFct.size(); ++i)
@@ -76,17 +80,24 @@ void IElemDisc<TDomain>::set_functions(const std::string& fctString)
 	{
 		if(m_vFct.empty())
 			UG_THROW("Error while setting functions in an ElemDisc: passed "
-							"function string '"<<fctString<<"' lacks a "
+							"function string lacks a "
 							"function specification at position "<<i<<"(of "
 							<<m_vFct.size()-1<<")");
 	}
+
+	update_function_index_mapping();
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::set_subsets(const std::string& ssString)
 {
-//	tokenize string
-	TokenizeString(ssString, m_vSubset, ',');
+	set_subsets(TokenizeString(ssString));
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::set_subsets(const std::vector<std::string>& subsets)
+{
+	m_vSubset = subsets;
 
 //	remove white space
 	for(size_t i = 0; i < m_vSubset.size(); ++i)
@@ -100,11 +111,94 @@ void IElemDisc<TDomain>::set_subsets(const std::string& ssString)
 	{
 		if(m_vFct.empty())
 			UG_THROW("Error while setting subsets in an ElemDisc: passed "
-							"subset string '"<<ssString<<"' lacks a "
+							"subset string lacks a "
 							"subset specification at position "<<i<<"(of "
 							<<m_vFct.size()-1<<")");
 	}
 }
+
+template <typename TDomain>
+void IElemDisc<TDomain>::set_function_pattern(const FunctionPattern& fctPatt)
+{
+	m_pFctPattern = &fctPatt;
+	update_function_index_mapping();
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::update_function_index_mapping()
+{
+//	without fct pattern, cannot create mappings
+	if(!m_pFctPattern) return;
+
+//	create function group of this elem disc
+	try{
+		m_fctGrp.set_function_pattern(*m_pFctPattern);
+		m_fctGrp.add(this->symb_fcts());
+	}UG_CATCH_THROW("ElemDisc: Cannot find some symbolic Function Name.");
+
+//	create a mapping between all functions and the function group of this
+//	element disc.
+	try{CreateFunctionIndexMapping(m_fctIndexMap, m_fctGrp, *m_pFctPattern);
+	}UG_CATCH_THROW("ElemDisc: Cannot create Function Index Mapping.");
+
+//	set function group at imports
+	for(size_t i = 0; i < m_vIImport.size(); ++i){
+		m_vIImport[i]->set_map(m_fctIndexMap);
+	}
+
+//	set function group at exports
+	for(size_t i = 0; i < m_vIExport.size(); ++i){
+		m_vIExport[i]->set_function_group(m_fctGrp);
+		m_vIExport[i]->set_map(m_fctIndexMap);
+	}
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::check_setup()
+{
+//	check that all functions are defined on chosen subsets
+	SubsetGroup discSubsetGrp(m_pFctPattern->subset_handler(), m_vSubset);
+
+//	check that all functions are defined on chosen subsets
+	for(size_t fct = 0; fct < m_fctGrp.size(); ++fct){
+		for(size_t si = 0; si < discSubsetGrp.size(); ++si){
+			if(!m_pFctPattern->is_def_in_subset(m_fctGrp[fct], discSubsetGrp[si])){
+				UG_LOG("WARNING in ElemDisc: symbolic Function "<< symb_fcts()[fct]
+				 << " is not defined on subset "<< symb_subsets()[si]
+				 << ". This may be senseful only in particular cases.\n");
+			}
+		}
+	}
+
+//	check correct number of functions
+	if(m_fctGrp.size() != this->num_fct()){
+		std::stringstream ss;
+		ss << "ElemDisc requires "<< this->num_fct()<<" symbolic "
+				"Function Name, but "<< m_fctGrp.size()<<" Functions "
+				" specified: ";
+		for(size_t f=0; f < symb_fcts().size(); ++f){
+			if(f > 0) ss << ", "; ss << symb_fcts()[f];
+		}
+		UG_THROW(ss.str());
+	}
+
+//	request assembling for local finite element id
+	std::vector<LFEID> vLfeID(m_fctGrp.size());
+	for(size_t f = 0; f < vLfeID.size(); ++f)
+		vLfeID[f] = m_fctGrp.local_finite_element_id(f);
+	if(!(this->request_finite_element_id(vLfeID)))
+	{
+		std::stringstream ss;
+		ss << "Elem Disc can not assemble the specified local finite element space set:";
+		for(size_t f=0; f < symb_fcts().size(); ++f)
+		{
+			ss << "  Fct "<<f<<": '"<< symb_fcts()[f];
+			ss << "' using "<< vLfeID[f];
+		}
+		UG_THROW(ss.str());
+	}
+}
+
 
 template <typename TDomain>
 void IElemDisc<TDomain>::register_import(IDataImport<dim>& Imp)
@@ -116,6 +210,8 @@ void IElemDisc<TDomain>::register_import(IDataImport<dim>& Imp)
 
 //	add it
 	m_vIImport.push_back(&Imp);
+
+	update_function_index_mapping();
 }
 
 template <typename TDomain>
@@ -128,6 +224,8 @@ void IElemDisc<TDomain>::register_export(SmartPtr<ICplUserData<dim> > Exp)
 
 //	add it
 	m_vIExport.push_back(Exp);
+
+	update_function_index_mapping();
 }
 
 template <typename TDomain>

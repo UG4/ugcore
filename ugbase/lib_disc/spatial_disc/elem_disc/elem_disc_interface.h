@@ -66,7 +66,7 @@ class IElemDisc
 
 	public:
 	///	Constructor
-		IElemDisc(const char* functions = NULL, const char* subsets = NULL);
+		IElemDisc(const char* functions = "", const char* subsets = "");
 
 	///	Constructor
 		IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
@@ -78,13 +78,13 @@ class IElemDisc
 		void set_functions(const std::string& functions);
 
 	/// sets functions by vector of names
-		void set_functions(const std::vector<std::string>& functions) {m_vFct = functions;};
+		void set_functions(const std::vector<std::string>& functions);
 
 	///	sets subset(s) by name list, divided by ','
 		void set_subsets(const std::string& subsets);
 
 	///	sets subset(s) by name list, divided by ','
-		void set_subsets(const std::vector<std::string>& subsets) {m_vSubset = subsets;}
+		void set_subsets(const std::vector<std::string>& subsets);
 
 	/// number of functions this discretization handles
 		size_t num_fct() const {return m_vFct.size();}
@@ -98,12 +98,39 @@ class IElemDisc
 	///	returns the symbolic subsets
 		const std::vector<std::string>& symb_subsets() const {return m_vSubset;}
 
+	///	returns the current function pattern
+		const FunctionPattern& function_pattern() const {return *m_pFctPattern;}
+
+	///	returns the current function group
+		const FunctionGroup& function_group() const {return m_fctGrp;}
+
+	///	returns the current function index mapping
+		const FunctionIndexMapping& map() const {return m_fctIndexMap;}
+
+	///	checks the setup of the elem disc
+		void check_setup();
+
 	protected:
 	///	vector holding name of all symbolic functions
 		std::vector<std::string> m_vFct;
 
 	///	vector holding name of all symbolic subsets
 		std::vector<std::string> m_vSubset;
+
+	///	current function pattern
+		const FunctionPattern* m_pFctPattern;
+
+	///	current function group
+		FunctionGroup m_fctGrp;
+
+	///	current function index mapping
+		FunctionIndexMapping m_fctIndexMap;
+
+	///	sets current function pattern
+		void set_function_pattern(const FunctionPattern& fctPatt);
+
+	///	updates the function index mapping
+		void update_function_index_mapping();
 
 	////////////////////////////
 	// UserData and Coupling
@@ -225,6 +252,8 @@ class IElemDisc
 	 * \returns 	if elem disc needs time series local solutions
 	 */
 		virtual bool requests_local_time_series() {return false;}
+
+		bool local_time_series_needed() {return is_time_dependent() && requests_local_time_series();}
 
 	///	sets the current time point
 		void set_time_point(const size_t timePoint) {m_timePoint = timePoint;}
@@ -538,6 +567,9 @@ class IElemDisc
 		//	remember approx space
 			m_spApproxSpace = approxSpace;
 
+		//	set function pattern
+			set_function_pattern(*approxSpace);
+
 		//	invoke callback
 			if(newApproxSpace)
 				approximation_space_changed();
@@ -562,9 +594,6 @@ class IElemDisc
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain();
 		}
-
-	///	returns the function pattern
-		const FunctionPattern& function_pattern() const {return *m_spApproxSpace;}
 
 	///	returns the subset handler
 		typename TDomain::subset_handler_type& subset_handler()

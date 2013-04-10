@@ -201,10 +201,10 @@ void DataImport<TData,dim>::add_jacobian(LocalMatrix& J, const number scale)
 }
 
 template <typename TData, int dim>
-void DataImport<TData,dim>::set_dof_sizes(const LocalIndices& ind,
-                                          const FunctionIndexMapping& map)
+void DataImport<TData,dim>::update_dof_sizes(const LocalIndices& ind)
 {
 //	check size
+	const FunctionIndexMapping& map = this->map();
 	UG_ASSERT(map.num_fct() == this->num_fct(), "Number function mismatch.");
 
 //	cache numFct and their numDoFs

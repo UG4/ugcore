@@ -35,7 +35,7 @@ void DataLinker<TData,dim>::check_setup() const
 }
 
 template <typename TData, int dim>
-void DataLinker<TData,dim>::update_function_group()
+void DataLinker<TData,dim>::update_function_group_and_map()
 {
 //	collect all function groups
 	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
@@ -46,9 +46,14 @@ void DataLinker<TData,dim>::update_function_group()
 
 //	create union of all function groups
 	try{
-		CreateUnionOfFunctionGroups(m_commonFctGroup, vFctGrp, true);
-	}UG_CATCH_THROW("'DataLinker::update_function_group': Cannot create"
+		CreateUnionOfFunctionGroups(this->m_fctGrp, vFctGrp, true);
+	}UG_CATCH_THROW("'DataLinker::update_function_group_and_map': Cannot create"
 					" common function group.");
+
+	try{
+		CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, *this->m_fctGrp.function_pattern());
+	}UG_CATCH_THROW("'DataLinker::update_function_group_and_map':"
+					"Cannot create Function Index Mapping for Common Functions.");
 
 //	create FunctionIndexMapping for each Disc
 	m_vMap.resize(vFctGrp.size());
@@ -57,14 +62,11 @@ void DataLinker<TData,dim>::update_function_group()
 		if(vFctGrp[i] != NULL)
 		{
 			try{
-				CreateFunctionIndexMapping(m_vMap[i], *vFctGrp[i], m_commonFctGroup);
-			}UG_CATCH_THROW("'DataLinker::update_function_group':"
+				CreateFunctionIndexMapping(m_vMap[i], *vFctGrp[i], this->m_fctGrp);
+			}UG_CATCH_THROW("'DataLinker::update_function_group_and_map':"
 							"Cannot create Function Index Mapping for input "<<i<<".");
 		}
 	}
-
-//	set common function group as the function group the data depends on
-	this->set_function_group(m_commonFctGroup);
 }
 
 template <typename TData, int dim>

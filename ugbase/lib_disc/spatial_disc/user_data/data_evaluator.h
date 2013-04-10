@@ -123,17 +123,8 @@ class DataEvaluator
 	///	disc part needed (MASS and/or STIFF and/or RHS)
 		int m_discPart;
 
-	///	struct to store data related to elem disc
-		struct ElemDisc {
-			IElemDisc<TDomain>* elemDisc;	//< element disc
-			FunctionGroup fctGrp;			//< associated function group
-			FunctionIndexMapping map;		//< mapping from fctPatt for the fct group
-			bool needLocTimeSeries;			//< flag if time series needed
-			ProcessType process;			//< type of process (STAT, INSTAT, ..)
-		};
-
 	///	elem disc data
-		std::vector<ElemDisc> m_vElemDisc[MAX_PROCESS];
+		std::vector<IElemDisc<TDomain>*> m_vElemDisc[MAX_PROCESS];
 
 	///	underlying function pattern
 		const FunctionPattern& m_fctPatt;
@@ -156,31 +147,15 @@ class DataEvaluator
 	///	current Corner Coordinates
 		const MathVector<dim>* m_vCornerCoords;
 
-	////////////////////////////////
-	// 	Data Import
-	////////////////////////////////
-	///	struct to store data related to an import
-		struct Import{
-			Import(IDataImport<dim>* _import,
-			       FunctionIndexMapping& _map, FunctionIndexMapping& _connMap,
-			       ProcessType _process) :
-			import(_import), map(_map), connMap(_connMap), process(_process) {}
+	///	imports that must be evaluated
+		std::vector<IDataImport<dim>*> m_vImport[MAX_PROCESS][MAX_PART];
 
-			IDataImport<dim>* import;		//< import
-			FunctionIndexMapping map;		//< mapping for import fct group
-			FunctionIndexMapping connMap;	//< mapping for data fct group
-			ProcessType process;			//< type of process (STAT, INSTAT,...)
-		};
-
-		std::vector<Import> m_vImport[MAX_PROCESS][MAX_PART];
-
-	////////////////////////////////
-	// 	UserData
-	////////////////////////////////
-		std::vector<SmartPtr<ICplUserData<dim> > > m_vConstData;	    //< constant data
+	///	user data that must be evaluated
+	/// \{
+		std::vector<SmartPtr<ICplUserData<dim> > > m_vConstData;	 //< constant data
 		std::vector<SmartPtr<ICplUserData<dim> > > m_vPosData;       //< position dependent data
 		std::vector<SmartPtr<ICplUserData<dim> > > m_vDependentData; //< dependent data
-		std::vector<FunctionIndexMapping> m_vDependentMap;
+	/// \}
 };
 
 } // end namespace ug

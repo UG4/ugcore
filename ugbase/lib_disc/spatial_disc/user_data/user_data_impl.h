@@ -300,10 +300,10 @@ void CplUserData<TData,dim,TRet>::local_ips_changed(const size_t seriesID, const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-void DependentUserData<TData,dim>::set_dof_sizes(const LocalIndices& ind,
-                                               const FunctionIndexMapping& map)
+void DependentUserData<TData,dim>::update_dof_sizes(const LocalIndices& ind)
 {
 //	check size
+	const FunctionIndexMapping& map = this->map();
 	UG_ASSERT(map.num_fct() == this->num_fct(), "Number function mismatch.");
 
 //	cache numFct and their numDoFs

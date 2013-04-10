@@ -220,11 +220,10 @@ class ICplUserData
 		virtual bool zero_derivative() const {return true;}
 
 	///	resize arrays
-		virtual void set_dof_sizes(const LocalIndices& ind,
-								   const FunctionIndexMapping& map) {}
+		virtual void update_dof_sizes(const LocalIndices& ind) {}
 
-	///	updates the function group (needed for Linker)
-		virtual void update_function_group() {}
+	///	updates the function group and mapping (needed for Linker)
+		virtual void update_function_group_and_map() {}
 
 	/// set	Function Group of functions (by copy)
 		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
@@ -232,8 +231,21 @@ class ICplUserData
 	///	Function Group of functions
 		const FunctionGroup& function_group() const {return m_fctGrp;}
 
+	///	set function mapping
+		void set_map(const FunctionIndexMapping& map) {m_map = map;}
+
+	///	get function mapping
+		const FunctionIndexMapping& map() const{return m_map;}
+
 	///	number of functions this export depends on
-		size_t num_fct() const {return m_fctGrp.size();}
+		size_t num_fct() const {return m_map.num_fct();}
+
+	protected:
+	/// functions the data depends on
+		FunctionGroup m_fctGrp;
+
+	///	Mapping for import fct
+		FunctionIndexMapping m_map;
 
 	public:
 	///	returns the number of ip series
@@ -357,10 +369,6 @@ class ICplUserData
 
 	///	subset for evaluation
 		int m_si;
-
-	protected:
-	/// functions the data depends on
-		FunctionGroup m_fctGrp;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -502,8 +510,7 @@ class DependentUserData : public CplUserData<TData, dim>
 			{check_s_ip_fct(s,ip,fct);return &(m_vvvvDeriv[s][ip][fct][0]);}
 
 	///	resize lin defect arrays
-		virtual void set_dof_sizes(const LocalIndices& ind,
-		                           const FunctionIndexMapping& map);
+		virtual void update_dof_sizes(const LocalIndices& ind);
 
 	///	sets all derivative values to zero
 		void clear_derivative_values();
