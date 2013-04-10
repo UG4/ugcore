@@ -67,18 +67,10 @@ DataEvaluator<TDomain>::DataEvaluator(int discPart,
 		IElemDisc<TDomain>* disc = m_vElemDisc[PT_ALL][i];
 
 	// checks
-		disc->check_setup();
+		disc->check_setup(bNonRegularGrid);
 
 	//	check if time dependent
 		m_bNeedLocTimeSeries |= disc->local_time_series_needed();
-
-	//  let disc use non-regular grid assemblings
-		if(!disc->request_non_regular_grid(bNonRegularGrid))
-		{
-			UG_THROW("DataEvaluator<TDomain>::set_non_regular_grid: "
-					" Elem Disc " << i << " does not support non-regular"
-					" grids, but this is requested.\n");
-		}
 
 		if(bNonRegularGrid)
 			m_bUseHanging |= disc->use_hanging();

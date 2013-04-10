@@ -89,30 +89,15 @@ class FV1InnerBoundaryElemDisc
 	
 	public:	// inherited from IElemDisc
 	///	type of trial space for each function used
-		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID)
+		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 		{
-		//	check number
-			if(vLfeID.size() != this->num_fct()) return false;
+			if(!bNonRegularGrid)
+				UG_THROW("FV1InnerBoundary: only regular grid implemented.");
 
 		//	check that Lagrange 1st order
 			for(size_t i = 0; i < vLfeID.size(); ++i)
-				if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1)) return false;
-			return true;
-		}
-
-	///	switches between non-regular and regular grids
-		virtual bool request_non_regular_grid(bool bNonRegular)
-		{
-		//	switch, which assemble functions to use.
-			if(bNonRegular)
-			{
-				UG_LOG("ERROR in 'FV1InnerBoundaryElemDisc::request_non_regular_grid':"
-						" Non-regular grid not implemented.\n");
-				return false;
-			}
-
-		//	this disc supports regular grids
-			return true;
+				if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1))
+					UG_THROW("FV1InnerBoundary: 1st order lagrange expected.");
 		}
 
 	///	returns if hanging nodes are used

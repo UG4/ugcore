@@ -154,7 +154,7 @@ void IElemDisc<TDomain>::update_function_index_mapping()
 }
 
 template <typename TDomain>
-void IElemDisc<TDomain>::check_setup()
+void IElemDisc<TDomain>::check_setup(bool bNonRegularGrid)
 {
 //	check that all functions are defined on chosen subsets
 	SubsetGroup discSubsetGrp(m_pFctPattern->subset_handler(), m_vSubset);
@@ -170,33 +170,12 @@ void IElemDisc<TDomain>::check_setup()
 		}
 	}
 
-//	check correct number of functions
-	if(m_fctGrp.size() != this->num_fct()){
-		std::stringstream ss;
-		ss << "ElemDisc requires "<< this->num_fct()<<" symbolic "
-				"Function Name, but "<< m_fctGrp.size()<<" Functions "
-				" specified: ";
-		for(size_t f=0; f < symb_fcts().size(); ++f){
-			if(f > 0) ss << ", "; ss << symb_fcts()[f];
-		}
-		UG_THROW(ss.str());
-	}
-
 //	request assembling for local finite element id
 	std::vector<LFEID> vLfeID(m_fctGrp.size());
 	for(size_t f = 0; f < vLfeID.size(); ++f)
 		vLfeID[f] = m_fctGrp.local_finite_element_id(f);
-	if(!(this->request_finite_element_id(vLfeID)))
-	{
-		std::stringstream ss;
-		ss << "Elem Disc can not assemble the specified local finite element space set:";
-		for(size_t f=0; f < symb_fcts().size(); ++f)
-		{
-			ss << "  Fct "<<f<<": '"<< symb_fcts()[f];
-			ss << "' using "<< vLfeID[f];
-		}
-		UG_THROW(ss.str());
-	}
+
+	prepare_setting(vLfeID, bNonRegularGrid);
 }
 
 

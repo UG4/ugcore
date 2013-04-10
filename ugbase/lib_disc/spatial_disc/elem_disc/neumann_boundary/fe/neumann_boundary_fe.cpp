@@ -24,24 +24,19 @@ NeumannBoundaryFE<TDomain>::NeumannBoundaryFE(const char* function)
 }
 
 template<typename TDomain>
-bool NeumannBoundaryFE<TDomain>::
-request_finite_element_id(const std::vector<LFEID>& vLfeID)
+void NeumannBoundaryFE<TDomain>::
+prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
+	if(bNonRegularGrid)
+		UG_THROW("NeumannBoundaryFE: Hanging Nodes not implemented.");
+
 //	check number
 	if(vLfeID.size() != 1)
-	{
-		UG_LOG("NeumannBoundaryFE:"
-				" Wrong number of functions given. Need exactly "<<1<<"\n");
-		return false;
-	}
+		UG_THROW("NeumannBoundaryFE: needs exactly 1 function.");
 
 //	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
-	{
-		UG_LOG("NeumannBoundaryFE:"
-				" Adaptive or invalid order not implemented.\n");
-		return false;
-	}
+		UG_THROW("NeumannBoundaryFE: Adaptive order not implemented.");
 
 //	set order
 	m_lfeID = vLfeID[0];
@@ -49,21 +44,7 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 	m_quadOrder = 2*m_order+1;
 
 	register_all_funcs(m_order);
-
-//	is supported
-	return true;
 }
-
-template<typename TDomain>
-bool NeumannBoundaryFE<TDomain>::
-request_non_regular_grid(bool bNonRegular)
-{
-	if(bNonRegular)
-		UG_THROW("NeumannBoundaryFE: Hanging Nodes not implemented.");
-
-	return true;
-}
-
 
 template<typename TDomain>
 void NeumannBoundaryFE<TDomain>::

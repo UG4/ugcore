@@ -24,52 +24,29 @@ NeumannBoundaryFV<TDomain>::NeumannBoundaryFV(const char* function)
 }
 
 template<typename TDomain>
-bool NeumannBoundaryFV<TDomain>::
-request_finite_element_id(const std::vector<LFEID>& vLfeID)
+void NeumannBoundaryFV<TDomain>::
+prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
+	if(bNonRegularGrid)
+		UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
+
 //	check number
 	if(vLfeID.size() != 1)
-	{
-		UG_LOG("NeumannBoundaryFV:"
-				" Wrong number of functions given. Need exactly "<<1<<"\n");
-		return false;
-	}
+		UG_THROW("NeumannBoundaryFV: Need exactly 1 function.");
 
 	if(vLfeID[0].type() != LFEID::LAGRANGE)
-	{
-		UG_LOG("NeumannBoundaryFV:"
-				" FV Scheme only implemented for 1st order.\n");
-		return false;
-	}
+		UG_THROW("NeumannBoundary: FV Scheme only implemented for 1st order.");
 
 //	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
-	{
-		UG_LOG("NeumannBoundaryFV:"
-				" Adaptive or invalid order not implemented.\n");
-		return false;
-	}
+		UG_THROW("NeumannBoundary: Adaptive order not implemented.");
 
 //	set order
 	m_lfeID = vLfeID[0];
 	m_order = vLfeID[0].order();
 
 	register_all_funcs(m_order);
-
-//	is supported
-	return true;
 }
-
-template<typename TDomain>
-bool NeumannBoundaryFV<TDomain>::
-request_non_regular_grid(bool bNonRegular)
-{
-	if(bNonRegular)
-		UG_THROW("NeumannBoundary: Hanging Nodes not implemented.");
-
-	return true;
-}
-
 
 template<typename TDomain>
 void NeumannBoundaryFV<TDomain>::

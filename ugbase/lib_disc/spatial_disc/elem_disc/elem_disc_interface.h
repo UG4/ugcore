@@ -108,7 +108,7 @@ class IElemDisc
 		const FunctionIndexMapping& map() const {return m_fctIndexMap;}
 
 	///	checks the setup of the elem disc
-		void check_setup();
+		void check_setup(bool bNonRegularGrid);
 
 	protected:
 	///	vector holding name of all symbolic functions
@@ -182,32 +182,18 @@ class IElemDisc
 	///	 returns the type of elem disc
 		virtual int type() const {return EDT_ELEM | EDT_SIDE;}
 
-	/// requests assembling for a finite element id
+	/// requests assembling for trial spaces and grid type
 	/**
-	 * This function is called before the assembling starts. In the vector
-	 * exactly this->num_fct() Local Finite Element IDs must be passed. The
-	 * IElemDisc-Implementation checks if it can assemble the set of LFEID and
-	 * registers the corresponding assembling functions. If this is not the
-	 * case instead false is returned.
+	 * This function is called before the assembling starts. The
+	 * IElemDisc-Implementation is supposed to checks if it can assemble the set
+	 * of LFEID and the grid type. It may register corresponding assembling
+	 * functions or perform other initialization.
+	 * If the ElemDisc does not support the setting it should throw an exception.
 	 *
-	 * \param[in]		vLfeID		vector of Local Finite Element IDs
-	 * \returns			true		if assemble routines are present and selected
-	 * 					false		if no assembling for those Spaces available
+	 * \param[in] vLfeID			vector of Local Finite Element IDs
+	 * \param[in] bNonRegularGrid	regular grid type
 	 */
-		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID) = 0;
-
-	///	informs the assembling, that hanging nodes must be taken into account
-	/**
-	 * This method is called before the assembling of elements, that may have
-	 * hanging nodes, constrained edges, etc. Thus, if the assembling must take
-	 * special care, it can prepare for such needs. Typically other assembling
-	 * functions are used then and registered.
-	 *
-	 * \param[in]		bNonRegular 	true iff non-regular grid used
-	 * \returns			bool			true  if successful
-	 * 									false if cannot be handled by disc
-	 */
-		virtual bool request_non_regular_grid(bool bNonRegular) = 0;
+		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid) = 0;
 
 	///	returns if discretization acts on hanging nodes if present
 	/**
