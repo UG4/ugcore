@@ -363,7 +363,102 @@ class MatrixIOMtx : MatrixIO
      * \throws std::runtime_error if the matrix was determined to be symmetric
      *                            and skew-symmetric at the same time
      */
-    std::vector< std::vector<size_t> > determine_matrix_characteristics( CPUAlgebra::matrix_type &matrix );
+
+
+    template<typename matrix_type>
+    std::vector< std::vector<size_t> > determine_matrix_characteristics(const matrix_type &matrix )
+    {
+      PROFILE_FUNC();
+
+      // read matrix dimensions
+      size_t rows = matrix.num_rows();
+      size_t cols = matrix.num_cols();
+      size_t offDiagEntries = 0;
+      size_t diagEntries = 0;
+
+      // As MatrixMarket specifies a column-first-ordering, we need to get to know
+      // in which rows of each column non-zero entries are.
+      // During this, we also get to know how many non-zero entries there are in
+      // total and can detect symmetries of the matrix.
+      std::vector< std::vector<size_t> > rowIndexPerCol;
+      rowIndexPerCol.resize(cols);
+      bool isSymmetric = true;
+      bool isSkew = true;
+      bool changed = false;
+      for ( size_t r = 0; r < rows; r++ ) { // iterate rows
+        for (typename matrix_type::const_row_iterator conn = matrix.begin_row(r);
+              conn != matrix.end_row(r); ++conn ) {
+          if ( conn.value() != 0.0 ) {
+            // first add index to list
+            if ( isSymmetric || isSkew ) {
+              if ( conn.index() <= r ) {
+                rowIndexPerCol.at( conn.index() ).push_back(r);
+              }
+            } else {
+              rowIndexPerCol.at( conn.index() ).push_back(r);
+            }
+
+            // increment counters
+            (conn.index() == r) ? diagEntries++ : offDiagEntries++ ;
+
+            // check, whether it's still a symmetric or skew-symmetric matrix
+            if ( r != conn.index() ) {
+              if ( matrix(r, conn.index() ) != matrix( conn.index(), r ) ) {
+                if ( isSymmetric ) {
+                  changed = true;
+                }
+                isSymmetric = false;
+              }
+              if ( matrix(r, conn.index() ) != -1.0 * matrix( conn.index(), r ) ) {
+                if ( isSkew ) {
+                  changed = true;
+                }
+                isSkew = false;
+              }
+            }
+
+            // We assumed the matrix to be symmetric or skew-symmetric, but it's
+            // not. Thus we need to redo everything done before.
+            if ( changed ) {
+              offDiagEntries = 0;
+              diagEntries = 0;
+              rowIndexPerCol.clear();
+              rowIndexPerCol.resize( cols );
+              r = -1; // at the end of the current row-loop this is incremented again
+              changed = false;
+              break;
+            }
+          }
+        }
+      }
+
+      // make sure the matrix is not both, symmetric and skew-symmetric
+      UG_ASSERT( ( ( isSymmetric && !isSkew ) ||
+                   ( isSkew && !isSymmetric ) ||
+                   ( !isSkew && !isSymmetric ) ),
+                 "Error on detecting symmetry of matrix. (skew:" << isSkew
+                 << " sym:" << isSymmetric << ")" );
+
+      // set MMTypeCode
+      size_t entries = 0;
+      m_mmTypeCode.set_class_type( MMTypeCode::COORDINATE );
+      m_mmTypeCode.set_numeric_type( MMTypeCode::REAL );
+      if ( isSymmetric ) {
+        entries = ( offDiagEntries / 2 )+ diagEntries;
+        m_mmTypeCode.set_algebraic_type( MMTypeCode::SYMMETRIC );
+      } else if ( isSkew ) {
+        entries = ( offDiagEntries / 2 ) + diagEntries;
+        m_mmTypeCode.set_algebraic_type( MMTypeCode::SKEW );
+      } else {
+        entries = offDiagEntries + diagEntries;
+        m_mmTypeCode.set_algebraic_type( MMTypeCode::GENERAL );
+      }
+
+      // now we can set the dimensions
+      set_mat_dims( rows, cols, entries );
+
+      return rowIndexPerCol;
+    }
 
     /**
      * \brief Reads and parses the next data line
