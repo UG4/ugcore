@@ -16,9 +16,6 @@
 
 namespace ug{
 
-// predeclaration
-class FunctionPattern;
-
 ////////////////////////////////////////////////////////////////////////////////
 //	Subset Group
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,25 +40,23 @@ void RemoveLowerDimSubsets(SubsetGroup& subsetGroup);
 
 /**
  * Creates a function index mapping that maps all local indices from the one
- * Function Group to the other. This is only possible if the first
- * Function Group is contained in the second.
+ * Function Group to the other. Make sure that the first
+ * Function Group is contained in the second and both function groups are based
+ * on the same function pattern - otherwise an exception is thrown.
  */
-void
-CreateFunctionIndexMapping(FunctionIndexMapping& map,
-                           const FunctionGroup& grpFrom,
-                           const FunctionGroup& grpTo);
+void CreateFunctionIndexMapping(FunctionIndexMapping& map,
+                                const FunctionGroup& grpFrom,
+                                const FunctionGroup& grpTo);
 
 /**
  * Creates a function index mapping that maps all local indices from the one
- * Function Group to the other. The second function group is here contained in
- * the first, thus not all mappings are defined, but only those where the index
- * of the first group is contained in the range of the second.
+ * Function Group to the corresponding indices in a function pattern.
+ * Make sure that the Function Group is contained function pattern - otherwise
+ * an exception is thrown.
  */
-void
-CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
-                                  const FunctionGroup& grpFromLarge,
-                                  const FunctionGroup& grpToSmall);
-
+void CreateFunctionIndexMapping(FunctionIndexMapping& map,
+                                const FunctionGroup& grpFrom,
+                                const FunctionPattern& fctPattern);
 
 /**
  * This function create the union of function groups. Container is clear at beginning.

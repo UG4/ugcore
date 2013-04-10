@@ -25,6 +25,7 @@ DataEvaluator<TDomain>::DataEvaluator(int discPart,
                              LocalVectorTimeSeries* pLocTimeSeries,
                              const std::vector<number>* pvScaleMass,
                              const std::vector<number>* pvScaleStiff)
+                             : m_fctPatt(fctPat)
 {
 //	remember needed disc parts
 	m_discPart = discPart;
@@ -57,10 +58,6 @@ DataEvaluator<TDomain>::DataEvaluator(int discPart,
 	m_bUseHanging = false; // initially
 	m_subset = subset;
 
-//	set function pattern to common function group
-	m_commonFctGroup.set_function_pattern(fctPat);
-	m_commonFctGroup.add_all();
-
 	m_vElemDisc[PT_ALL].clear();
 	m_vElemDisc[PT_ALL].resize(vElemDisc.size());
 
@@ -86,7 +83,7 @@ DataEvaluator<TDomain>::DataEvaluator(int discPart,
 
 	//	create a mapping between all functions and the function group of this
 	//	element disc.
-		try{CreateFunctionIndexMapping(disc.map, disc.fctGrp, m_commonFctGroup);
+		try{CreateFunctionIndexMapping(disc.map, disc.fctGrp, m_fctPatt);
 		}UG_CATCH_THROW("'DataEvaluator<TDomain>::set_elem_discs': Cannot create "
 						"Function Index Mapping for disc "<<i<<".");
 
@@ -339,8 +336,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 
 	//	create FuncMap
 		FunctionIndexMapping map;
-		try{CreateFunctionIndexMapping(map, ipData->function_group(),
-									   m_commonFctGroup);
+		try{CreateFunctionIndexMapping(map, ipData->function_group(), m_fctPatt);
 		}UG_CATCH_THROW("DataEvaluator:Cannot create Function Index Mapping for IDependData.");
 
 	//	save as dependent data
@@ -388,8 +384,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 		//	this is ok, since the function group has been updated in the
 		//	previous loop over all needed data
 			FunctionIndexMapping map;
-			try{CreateFunctionIndexMapping(map, dependData->function_group(),
-										   m_commonFctGroup);
+			try{CreateFunctionIndexMapping(map, dependData->function_group(), m_fctPatt);
 			}UG_CATCH_THROW("DataEvaluator: Cannot create Function Index Mapping for DependentData.");
 
 		//	remember Import

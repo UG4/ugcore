@@ -94,7 +94,7 @@ void FunctionGroup::add(const string& name)
 
 void FunctionGroup::add(const char* name)
 {
-	add(string(name));
+	add(TokenizeString(name));
 }
 
 void FunctionGroup::add(const vector<string>& vName)
@@ -167,7 +167,7 @@ void FunctionGroup::remove(const string& name)
 
 void FunctionGroup::remove(const char* name)
 {
-	remove(string(name));
+	remove(TokenizeString(name));
 }
 
 void FunctionGroup::remove(const vector<string>& vName)

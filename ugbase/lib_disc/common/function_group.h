@@ -17,7 +17,12 @@
 
 namespace ug{
 
-// FunctionGroup is just a group of size_t, representing some functions
+/** Group of functions represented by integers
+ * FunctionGroup is just a group of size_t, representing some functions. The
+ * function group is based on a FunctionPattern and the integer represent the
+ * position of the function in the function pattern. Selection of functions is
+ * best via usage of symbolic names of the functions.
+ */
 class FunctionGroup
 {
 	public:
@@ -140,39 +145,6 @@ class FunctionGroup
 		std::vector<size_t> m_vFunction;
 };
 
-/// describes a mapping between local ids of two FunctionGroups
-class SubFunctionMap
-{
-	public:
-		SubFunctionMap() {clear();}
-
-		/** select function
-		 *	The selected function gets the next free index
-		 *
-		 * \param[in] 	fct		index of function to be selected
-		 * \return 				true is selected
-		 * 						false if unable to select
-		 */
-		void select(size_t fct) {m_vMap.push_back(fct);}
-
-		/// clear map
-		void clear() {m_vMap.clear();}
-
-		/// number of selected functions
-		size_t num_fct() const {return m_vMap.size();}
-
-		/// return number of function
-		size_t operator[](size_t i) const
-		{
-			UG_ASSERT(i < num_fct(), "Invalid function access.");
-			return m_vMap[i];
-		}
-
-	protected:
-		// mapping SubFunction -> Function
-		std::vector<size_t> m_vMap;
-};
-
 /// describes a mapping between two local index sets
 /**
  * This class is used to define mapping between to index sets. The domain index
@@ -182,21 +154,11 @@ class SubFunctionMap
 class FunctionIndexMapping
 {
 	public:
-	/// Constructor
-		FunctionIndexMapping() {clear();}
-
 	/// removes all connections
 		void clear() {m_vMapping.clear();}
 
 	/// adds a mapping between indexFrom and indexTo
-		void add(size_t indexFrom, size_t indexTo)
-		{
-		//	increase size if needed, setting all new entries to invalid
-			if(indexFrom >= num_fct()) m_vMapping.resize(indexFrom+1, -1);
-
-		// 	set the mapping
-			m_vMapping[indexFrom] = indexTo;
-		}
+		void push_back(size_t indexTo){m_vMapping.push_back(indexTo);}
 
 	/// returns the number of indices that are mapped
 		size_t num_fct() const {return m_vMapping.size();}
@@ -205,19 +167,12 @@ class FunctionIndexMapping
 		size_t operator[](size_t i) const
 		{
 			UG_ASSERT(i < num_fct(), "Invalid index.\n");
-			UG_ASSERT(m_vMapping[i] >= 0, "Mapping undefined.\n");
 			return m_vMapping[i];
-		}
-
-	/// returns if the mapping is valid for an index
-		bool mapping_valid(size_t i) const
-		{
-			return (i < num_fct() && m_vMapping[i] >= 0);
 		}
 
 	protected:
 	/// vector holding the mapped indices
-		std::vector<int> m_vMapping;
+		std::vector<size_t> m_vMapping;
 };
 
 

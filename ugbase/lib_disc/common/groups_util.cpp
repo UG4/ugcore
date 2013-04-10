@@ -65,7 +65,12 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 //	clear map
 	map.clear();
 
-//	check that from group is contained in to group
+//	check that groups are based on same function pattern
+	if(grpToLarge.function_pattern() != grpFromSmall.function_pattern())
+		UG_THROW("CreateFunctionIndexMapping: groups are not based on same "
+				"function pattern, thus no mapping can be created.");
+
+//	check that "from group" is contained in "to group"
 	if(!grpToLarge.contains(grpFromSmall))
 		UG_THROW("CreateFunctionIndexMapping: smaller FunctionGroup "
 				<< grpFromSmall << " is not contained in larger Group " <<
@@ -81,36 +86,17 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 		const size_t locIndex = grpToLarge.local_index(uniqueID);
 
 	//	set mapping
-		map.add(from, locIndex);
+		map.push_back(locIndex);
 	}
 }
 
-void
-CreateFunctionIndexMappingInverse(FunctionIndexMapping& map,
-                                  const FunctionGroup& grpFromLarge,
-                                  const FunctionGroup& grpToSmall)
+void CreateFunctionIndexMapping(FunctionIndexMapping& map,
+                                const FunctionGroup& grpFrom,
+                                const FunctionPattern& fctPattern)
 {
-//	clear map
-	map.clear();
-
-//	check that from group is contained in to group
-	if(!grpFromLarge.contains(grpToSmall))
-		UG_THROW("CreateFunctionIndexMapping: smaller FunctionGroup "
-				<< grpToSmall << " is not contained in larger Group " <<
-				grpFromLarge<<". Cannot create Mapping.");
-
-//	loop all functions on grpFrom
-	for(size_t to = 0; to < grpToSmall.size(); ++to)
-	{
-	//	get unique id of function
-		const size_t uniqueID = grpToSmall[to];
-
-	//	find unique id of function in grpTo
-		const size_t locIndex = grpFromLarge.local_index(uniqueID);
-
-	//	set mapping
-		map.add(locIndex, to);
-	}
+	FunctionGroup commonFctGroup(fctPattern);
+	commonFctGroup.add_all();
+	CreateFunctionIndexMapping(map, grpFrom, commonFctGroup);
 }
 
 

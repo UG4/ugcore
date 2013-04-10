@@ -106,9 +106,6 @@ class DataEvaluator
 	///	adds the contribution due to coupling to local mass matrix
 		void add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type = PT_ALL);
 
-	///	returns common function group of all needed functions
-		const FunctionGroup& function_group() const {return m_commonFctGroup;}
-
 	///	clears imports and user data and mappings betweem commonFctGrp and local
 		void clear_extracted_data_and_mappings();
 
@@ -139,7 +136,7 @@ class DataEvaluator
 		std::vector<ElemDisc> m_vElemDisc[MAX_PROCESS];
 
 	///	common function group (all function of function pattern)
-		FunctionGroup m_commonFctGroup;
+		const FunctionPattern& m_fctPatt;
 
 	///	flag if hanging nodes are used
 		bool m_bUseHanging;
