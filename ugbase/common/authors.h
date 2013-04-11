@@ -9,6 +9,10 @@
 #define	AUTHORS_H
 
 namespace ug {
+
+/// \addtogroup ugbase_common
+/// \{
+
     /**
      * Names of the UG Core developer team, seperated by ','.
      */
@@ -37,7 +41,7 @@ namespace ug {
 "terms of this License Agreement.\n"
 "3. The licensors are the Goethe Center for Scientific Computing (G-CSC),\n"
 " Goethe University Frankfurt am Main, Germany and the Steinbeis \n"
-"Forschungszentrum, …lbronn, Germany.\n"
+"Forschungszentrum, ï¿½lbronn, Germany.\n"
 "\n"
 "License To Use\n"
 "1. Subject to the terms and conditions of this Agreement, the \n"
@@ -47,7 +51,7 @@ namespace ug {
 "non-commercial use only.\n"
 "2. Usage and/or publication of results obtained with the aid \n"
 "of ug4 is only permitted if the following citation is included: \n"
-"\"A. Vogel, S. Reiter, M. Rupp, A. NŠgel, G. Wittum: UG4 - A Novel \n"
+"\"A. Vogel, S. Reiter, M. Rupp, A. Nï¿½gel, G. Wittum: UG4 - A Novel \n"
 "Flexible Software System for Simulating PDE Based Models on High \n"
 "Performance Computers, Comp. Vis. Sci.\"\n"
 "3. Redistribution of ug4 is not permitted by this Agreement. \n"
@@ -72,6 +76,10 @@ namespace ug {
 "to loss of data or data being rendered inaccurate or losses \n"
 "sustained by the licensee or a failure of the program to operate \n"
 "with any other programs).\n";
+
+// end group ugbase_common
+/// \}
+
 }
 
 #endif	/* AUTHORS_H */

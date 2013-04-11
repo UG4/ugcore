@@ -12,6 +12,9 @@
 #include <vector>
 #include <sstream>
 
+/// \addtogroup ugbase_common
+/// \{
+
 void ug_throw_error();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -24,11 +27,17 @@ void ug_throw_error();
 #define UG_CATCH_THROW(msg)	catch(ug::UGError& err){std::stringstream __ss; __ss << msg;\
 							  err.push_msg(__ss.str(),__FILE__,__LINE__); throw(err);}
 
+// end group ugbase_common
+/// \}
+
 ////////////////////////////////////////////////////////////////////////////////
 // UG Error
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace ug{
+
+/// \addtogroup ugbase_common
+/// \{
 
 ///	Instances of this class or of derived classes are thrown if errors arise.
 /**	By default the error-code is 0 and terminate returns false.*/
@@ -93,6 +102,9 @@ class UGError
 		std::vector<std::string> m_vFile; //< File stack
 		std::vector<unsigned long> m_vLine; //< Line stack
 };
+
+// end group ugbase_common
+/// \}
 
 } // end namespace ug
 

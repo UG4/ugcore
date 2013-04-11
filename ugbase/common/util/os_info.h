@@ -10,6 +10,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ///	returns the standard prefix of static and dynamic libraries on this os
 UG_API const char* GetDynamicLibraryPrefix();
 
@@ -18,6 +21,9 @@ UG_API const char* GetDynamicLibrarySuffix();
 
 ///	returns a string containing the path-separator for the current os
 UG_API const char* GetPathSeparator();
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

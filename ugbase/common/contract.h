@@ -1,13 +1,15 @@
 /**
+ * \addtogroup ugbase_common
+ * \{
  * \file contract.h
  *
  * \brief A Design by Contract(TM) system for C++
  *
  * This file provides a basic Design by Contract(TM) system as described in
- * <i>Meyer, B., Applying ÒDesign by ContractÓ, IEEE Computer 25(10), 40-51, October 1992.</i>
+ * <i>Meyer, B., Applying ï¿½Design by Contractï¿½, IEEE Computer 25(10), 40-51, October 1992.</i>
  * It is inspired by the article <i>Welch,D./Strong, S., An Exception-Based Assertion
  * Mechanism for C++, J. of Object-Oriented Programming, July/August 1998, pp. 50-60</i>
- * and by <i>Isernhagen, R., Softwaretechnik in C und C++, Carl Hanser Verlag MŸnchen Wien, pp. 694-706</i>
+ * and by <i>Isernhagen, R., Softwaretechnik in C und C++, Carl Hanser Verlag Mï¿½nchen Wien, pp. 694-706</i>
  *
  * A contract for a class constist of a set of pre- and post-condition as well as a
  * set of invariants.
@@ -235,9 +237,15 @@
 	#define check_invariants()
 #endif
 
+// end group ugbase_common
+/// \}
 
 namespace ug
 {
+
+/// \addtogroup ugbase_common
+/// \{
+
 	/**
 	 * \class contract_error
 	 *
@@ -322,8 +330,9 @@ namespace ug
 
 	};
 
+// end group ugbase_common
+/// \}
 
-
-};
+}
 
 #endif /* CONTRACT_H_ */

@@ -12,6 +12,9 @@
 #include "common/log.h"
 #include "ug_config.h"
 
+/// \addtogroup ugbase_common
+/// \{
+
 #define UG_TO_STRING1(x)  #x
 #define UG_TO_STRING(x)  UG_TO_STRING1(x)
 
@@ -52,5 +55,8 @@ UG_API void ug_assert_failed();
 #else /* NDEBUG */
 #define UG_ASSERT(expr, msg) {}
 #endif
+
+// end group ugbase_common
+/// \}
 
 #endif /* __H__COMMON__ASSERT__ */

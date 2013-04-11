@@ -12,6 +12,10 @@
 //	you may either download pstint.h or use boost/cstdint.h
 #include <stdint.h>
 //#include "pstdint.h"
+
+/// \addtogroup ugbase_common
+/// \{
+
 ///brief Include C99 int-types into the lg namespace.
 namespace ugtypes
 {
@@ -92,5 +96,7 @@ typedef ugtypes::int64_t int64;
 	typedef double number;
 #endif
 
+// end group ugbase_common
+/// \}
 
 #endif

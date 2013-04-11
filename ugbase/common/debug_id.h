@@ -14,6 +14,10 @@
 #include <sstream>
 
 namespace ug{
+
+/// \addtogroup ugbase_common
+/// \{
+
 class DebugIDManager;
 class DebugID
 {
@@ -147,6 +151,9 @@ inline DebugIDManager& GetDebugIDManager()
 	return DebugIDManager::instance();
 }
 
-}
+// end group ugbase_common
+/// \}
+
+}	// end namespace ug
 #endif	/* __H__UG__COMMON__DEBUG_ID_H */
 

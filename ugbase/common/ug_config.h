@@ -11,6 +11,8 @@
 //	be used to appoint the library, which defines the function and the libraries
 //	or executables, which just use the function.
 
+/// \addtogroup ugbase_common
+/// \{
 
 #if defined UG_WIN32 || defined UG_CYGWIN
 	#ifdef __GNUC__
@@ -35,5 +37,8 @@
 		#define UG_API
 	#endif
 #endif
-	
+
+// end group ugbase_common
+/// \}
+
 #endif

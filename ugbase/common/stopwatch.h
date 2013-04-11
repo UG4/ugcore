@@ -22,6 +22,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common
+/// \{
+
 /**
  * \brief Stopwatch class for quickly taking times
  *
@@ -127,6 +130,8 @@ class Stopwatch
     bool bRunning;
 };
 
+// end group ugbase_common
+/// \}
 
 } // namespace ug
 

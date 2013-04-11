@@ -5,6 +5,9 @@
 #ifndef __H__COMMON__STATIC_ASSERT__
 #define __H__COMMON__STATIC_ASSERT__
 
+/// \addtogroup ugbase_common
+/// \{
+
 //	STATIC_ASSERT is only active during debug-mode.
 #ifndef NDEBUG
 
@@ -38,5 +41,8 @@ template <> struct CompileTimeAssertion<true>
 #define UG_STATIC_ASSERT(expr, msg)
 
 #endif
+
+// end group ugbase_common
+/// \}
 
 #endif

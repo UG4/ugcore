@@ -21,6 +21,9 @@
 #include "common/util/crc32.h"
 #include "debug_id.h"
 
+/// \addtogroup ugbase_common
+/// \{
+
 //	in order to support VRL logs, we're including bindings_vrl.h
 //  this is necessary to get access to the JVM environment
 #ifdef UG_FOR_VRL
@@ -322,5 +325,8 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 
 // include implementation
 #include "log_impl.h"
+
+// end group ugbase_common
+/// \}
 
 #endif /* __H__UG__COMMON__LOG__ */

@@ -1,5 +1,6 @@
 /**
  * \file file_util.h
+ * \ingroup ugbase_common_util
  * \date 2012-05-15
  * \brief File utility functions
  * \details Utility function, which depend on functionality specific to
@@ -16,6 +17,9 @@
 
 namespace ug
 {
+
+/// \addtogroup ugbase_common_util
+/// \{
 
 /**
  * \brief Returns a list of all directories in a directory
@@ -133,6 +137,10 @@ UG_API bool ReadFile(const char* filename, std::vector<char> &file, bool bText);
  */
 UG_API std::string MakeTmpFile(std::string filename, const std::string &extension,
 		bool &bSuccess);
+
+// end group ugbase_common_util
+/// \}
+
 } // namespace ug
 
 #endif // __H__UG__FILE_UTIL__

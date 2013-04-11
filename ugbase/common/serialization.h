@@ -18,6 +18,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common
+/// \{
+
 //todo	It would probably be a good idea to replace the generic Serialize and
 //		Deserialize methods with concrete ones, since nasty and hard to trace
 //		bugs could be avoided this way. The following Serialize methods already
@@ -463,6 +466,9 @@ void Deserialize(TIStream& buf, std::map<Key, T>& m)
 		Deserialize(buf, m[k]);
 	}
 }
+
+// end group ugbase_common
+/// \}
 
 }//	end of namespace
 
