@@ -14,6 +14,9 @@ namespace ug
 namespace bridge
 {
 
+/// \addtogroup registry
+/// \{
+
 ////////////////////////////////////////////////////////////////////////////////
 // ParameterStackToTypeValueList
 ////////////////////////////////////////////////////////////////////////////////
@@ -88,6 +91,8 @@ struct CreateParameterInfoOut<void>{
 	static void create(ParameterInfo& stack){}
 };
 
+// end group registry
+/// \}
 
 } // end namespace bridge
 

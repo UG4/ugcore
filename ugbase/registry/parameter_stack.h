@@ -17,6 +17,8 @@ namespace ug
 namespace bridge
 {
 
+/// \addtogroup registry
+/// \{
 
 /// a stack holding parameter infos about a parameter stack
 /**
@@ -582,6 +584,9 @@ template<> struct ParameterStack::ToType<SmartPtr<std::vector<std::pair<void*, c
 template<> struct ParameterStack::ToType<SmartPtr<std::vector<std::pair<const void*, const ClassNameNode*> > > >{static SmartPtr<std::vector<std::pair<const void*, const ClassNameNode*> > >  to(const ParameterStack* This, int index){return This->_to_void_pointer_vector<const void*>(index);}};
 template<> struct ParameterStack::ToType<SmartPtr<std::vector<std::pair<SmartPtr<void>, const ClassNameNode*> > > >{static SmartPtr<std::vector<std::pair<SmartPtr<void>, const ClassNameNode*> > >  to(const ParameterStack* This, int index){return This->_to_void_pointer_vector<SmartPtr<void> >(index);}};
 template<> struct ParameterStack::ToType<SmartPtr<std::vector<std::pair<ConstSmartPtr<void>, const ClassNameNode*> > > >{static SmartPtr<std::vector<std::pair<ConstSmartPtr<void>, const ClassNameNode*> > >  to(const ParameterStack* This, int index){return This->_to_void_pointer_vector<ConstSmartPtr<void> >(index);}};
+
+// end group registry
+/// \}
 
 } // end namespace bridge
 } // end namespace ug

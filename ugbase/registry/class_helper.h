@@ -25,6 +25,9 @@ namespace ug
 namespace bridge
 {
 
+/// \addtogroup registry
+/// \{
+
 // ClassHierarchy
 //--------------
 /**
@@ -88,6 +91,9 @@ UG_API bool ClassUsageExact(const Registry &reg, const char *classname, bool Out
 UG_API const ExportedFunction *FindFunction(const Registry &reg, const char *functionname);
 UG_API std::string ParameterToString(const ParameterInfo &par, int i);
 UG_API bool IsClassInParameters(const ParameterInfo &par, const char *classname);
+
+// end group registry
+/// \}
 
 } // end namespace
 } // end namespace

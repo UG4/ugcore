@@ -28,6 +28,9 @@ namespace ug
 namespace bridge
 {
 
+/// \addtogroup registry
+/// \{
+
 class MethodPtrWrapper
 {
 	public:
@@ -793,6 +796,9 @@ class ExportedClass : public ExportedClassBaseImpl
 			return CastAndDelete<TClass>;
 		}
 };
+
+// end group registry
+/// \}
 
 } // end namespace bridge
 } // end namespace ug

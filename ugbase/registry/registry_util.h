@@ -7,6 +7,10 @@
 
 namespace ug
 {
+
+/// \addtogroup registry
+/// \{
+
 /**
  * Checks whether the specified name is a valid registry identifier name.
  * <p>
@@ -25,6 +29,9 @@ UG_API bool IsValidRegistryIdentifier(const std::string& name);
  * @return message string
  */
 UG_API std::string GetRegistryIdentifierMessage();
+
+// end group registry
+/// \}
 
 }//	end of namespace
 

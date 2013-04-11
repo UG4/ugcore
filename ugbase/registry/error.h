@@ -14,6 +14,9 @@
 namespace ug{
 namespace bridge{
 
+/// \addtogroup registry
+/// \{
+
 struct UGRegistryError : public UGError
 {
 	UGRegistryError(std::string name_,
@@ -39,6 +42,8 @@ struct UGRegistryError : public UGError
 	std::string msg;
 };
 
+// end group registry
+/// \}
 
 } // end namespace bridge
 } // end namespace ug

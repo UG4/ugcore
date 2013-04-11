@@ -22,6 +22,9 @@ namespace ug
 namespace bridge
 {
 
+/// \addtogroup registry
+/// \{
+
 /// node for class names
 /**
  * A ClassNameNode stores the name of a registered class and pointers to
@@ -218,6 +221,9 @@ bool ClassNameTreeContains(const ClassNameNode& node, const std::string& name);
 /// returns an std::vector that contains in reverse order the base class that
 ///	must be used in the Class Hierarchy to get to the base class
 bool ClassNameTreeWay(std::vector<size_t>& vWay, const ClassNameNode& node, const std::string& name);
+
+// end group registry
+/// \}
 
 } // end namespace
 } // end namespace

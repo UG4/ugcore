@@ -25,6 +25,9 @@ namespace ug
 namespace bridge
 {
 
+/// \addtogroup registry
+/// \{
+
 ///	Exception throw, if method name has not been given
 struct UG_REGISTRY_ERROR_FunctionOrMethodNameMissing {};
 
@@ -336,6 +339,8 @@ struct FunctionProxy<TFunc, void>
 	}
 };
 
+// end group registry
+/// \}
 
 } // end namespace bridge
 } // end namespace ug

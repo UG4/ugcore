@@ -23,6 +23,12 @@ namespace ug
 namespace bridge
 {
 
+/**
+ * \defgroup registry Registry
+ * \ingroup bridge
+ * \{
+ */
+
 //	PREDECLARATIONS
 class Registry;
 
@@ -284,6 +290,9 @@ class UG_API Registry {
 	///	flag if classes must be constructed via smart-pointer
 		bool m_bForceConstructionWithSmartPtr;
 };
+
+// end group registry
+/// \}
 
 } // end namespace registry
 

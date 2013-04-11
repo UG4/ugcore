@@ -19,6 +19,9 @@ namespace ug
 namespace bridge
 {
 
+/// \addtogroup registry
+/// \{
+
 template <typename TFunc>
 struct func_traits {};
 
@@ -550,6 +553,8 @@ struct constructor_traits <T, TypeList<T1, T2, T3, T4, T5, T6, T7, T8> >
 	};
 };
 
+// end group registry
+/// \}
 
 } // end namespace bridge
 } // end namespace ug
