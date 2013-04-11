@@ -134,7 +134,7 @@ class FV1InnerBoundaryElemDisc
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void prep_elem(TElem* elem, const LocalVector& u);
+		void prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	finishes the loop over all elements
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
@@ -142,28 +142,23 @@ class FV1InnerBoundaryElemDisc
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u);
+		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u);
+		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the stiffness part of the local defect
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void add_def_A_elem(LocalVector& d, const LocalVector& u);
+		void add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the mass part of the local defect
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void add_def_M_elem(LocalVector& d, const LocalVector& u);
+		void add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local right hand side
 		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
-		void add_rhs_elem(LocalVector& d);
-
-	protected:
-		// position access
-		const position_type* m_vCornerCoords;
-		std::vector<VertexBase*> m_vVertices;
+		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	private:
 		void register_all_fv1_funcs();

@@ -116,7 +116,7 @@ prep_elem(TElem* elem, const LocalVector& u,
 // 	Update Geometry for this element
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 	try{
-		geo.update(elem, m_pDomain->subset_handler(), &m_vCornerCoords[0]))
+		geo.update(elem, m_pDomain->subset_handler(), vCornerCoords))
 	}
 	UG_CATCH_THROW("FVConvectionDiffusion::prep_elem:"
 					" Cannot update Finite Volume Geometry.");

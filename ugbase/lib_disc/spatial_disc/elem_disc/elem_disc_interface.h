@@ -274,27 +274,23 @@ class IElemDisc
 		number stiff_scale() const {return m_vScaleStiff[m_timePoint];}
 	///	\}
 
+	public:
 	/// prepare the timestep
 	/**
 	 * This function prepares a timestep (iff timedependent). This function is
 	 * called once for every element before the spatial assembling procedure
 	 * begins.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
-		template <typename TElem>
-		void fast_prep_timestep_elem(TElem* elem, const LocalVector& u);
+		void fast_prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// prepare the timestep
-		virtual void prep_timestep_elem(GeometricObject* elem, const LocalVector& u) {}
+		virtual void prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 
 	///	prepares the loop over all elements of one type
 	/**
 	 * This function should prepare the element loop for elements of one fixed
 	 * type. This function is called before e.g. the loop over all geometric
 	 * objects of a chosen type is performed.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_prep_elem_loop(const ReferenceObjectID roid, const int si);
 
@@ -305,25 +301,20 @@ class IElemDisc
 	/**
 	 * This function prepares one Geometric object, that will be assembled in
 	 * the next step.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 *
 	 * \param[in]		elem		The geometric object
 	 * \param[in]		u			The current local solution
 	 */
-		template <typename TElem>
-		void fast_prep_elem(TElem* elem, const LocalVector& u);
+		void fast_prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual prepare one elements for assembling
-		virtual void prep_elem(GeometricObject* elem, const LocalVector& u) {}
+		virtual void prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 
 	///	postprocesses the loop over all elements of one type
 	/**
 	 * This function should post process the element loop for elements of one fixed
 	 * type. This function is called after e.g. the loop over all geometric
 	 * objects of a chosen type has been performed.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
 		void fast_fsh_elem_loop();
 
@@ -334,94 +325,66 @@ class IElemDisc
 	/**
 	 * This function finishes the timestep (iff timedependent). This function is
 	 * called in the PostProcess of a timestep.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
-		template <typename TElem>
-		void fast_fsh_timestep_elem(TElem* elem, const number time, const LocalVector& u);
+		void fast_fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// virtual finish the timestep
-		virtual void fsh_timestep_elem(GeometricObject* elem, const number time, const LocalVector& u) {}
+		virtual void fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 
 	/// Assembling of Jacobian (Stiffness part)
 	/**
 	 * This function assembles the local (stiffness) jacobian for the current
 	 * solution u.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
-		{UG_ASSERT(m_vElemJAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-			(this->*m_vElemJAFct[m_id])(J, u);}
+		void fast_add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// Assembling of Jacobian (Stiffness part)
-		virtual void add_jac_A_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
+		virtual void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 
 	/// Assembling of Jacobian (Mass part)
 	/**
 	 * This function assembles the local (mass) jacobian for the current
 	 * solution u.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
-		{UG_ASSERT(m_vElemJMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-			(this->*m_vElemJMFct[m_id])(J, u);}
+		void fast_add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// Assembling of Jacobian (Mass part)
-		virtual void add_jac_M_elem(GeometricObject* elem, LocalMatrix& J, const LocalVector& u) {}
+		virtual void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 
 	/// Assembling of Defect (Stiffness part)
 	/**
 	 * This function assembles the local (stiffness) defect for the current
 	 * solution u.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_add_def_A_elem(LocalVector& d, const LocalVector& u)
-		{UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-			(this->*m_vElemdAFct[m_id])(d, u);}
-
-	/// explicit terms
-   	    void fast_add_def_A_expl_elem(LocalVector& d, const LocalVector& u)
-   	    {
-   	    	if(this->m_vElemdAExplFct[m_id] != NULL)
-   	    		(this->*m_vElemdAExplFct[m_id])(d, u);
-   	    }
-
+		void fast_add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// virtual Assembling of Defect (Stiffness part)
-		virtual void add_def_A_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
+		virtual void add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
+
+	/// explicit terms
+   	    void fast_add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
     /// defect for explicit terms
-		virtual void add_def_A_expl_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
+		virtual void add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 
 	/// Assembling of Defect (Mass part)
 	/**
 	 * This function assembles the local (mass) defect for the current
 	 * solution u.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_add_def_M_elem(LocalVector& d, const LocalVector& u)
-		{UG_ASSERT(m_vElemdMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-			(this->*m_vElemdMFct[m_id])(d, u);}
+		void fast_add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// virtual Assembling of Defect (Mass part)
-		virtual void add_def_M_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
+		virtual void add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 
 	/// Assembling of Right-Hand Side
 	/**
 	 * This function assembles the local rhs.
-	 * <b>NOTE:</b>Before this method can be used, the method
-	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_add_rhs_elem(LocalVector& rhs)
-		{UG_ASSERT(m_vElemRHSFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-			(this->*m_vElemRHSFct[m_id])(rhs);}
+		void fast_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// virtual Assembling of Right-Hand Side
-		virtual void add_rhs_elem(GeometricObject* elem, LocalVector& rhs) {}
+		virtual void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 
 	/// Virtual destructor
 		virtual ~IElemDisc() {}
@@ -450,24 +413,24 @@ class IElemDisc
 		typedef IElemDisc<TDomain> T;
 
 	// 	types of timestep function pointers
-		typedef void (T::*PrepareTimestepElemFct)(const LocalVector& u);
-		typedef void (T::*FinishTimestepElemFct)(const LocalVector& u);
+		typedef void (T::*PrepareTimestepElemFct)(number, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*FinishTimestepElemFct)(number, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	// 	types of loop function pointers
 		typedef void (T::*PrepareElemLoopFct)(ReferenceObjectID roid, int si);
-		typedef void (T::*PrepareElemFct)(GeometricObject* obj, const LocalVector& u);
+		typedef void (T::*PrepareElemFct)(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 		typedef void (T::*FinishElemLoopFct)();
 
 	// 	types of Jacobian assemble functions
-		typedef void (T::*ElemJAFct)(LocalMatrix& J, const LocalVector& u);
-		typedef void (T::*ElemJMFct)(LocalMatrix& J, const LocalVector& u);
+		typedef void (T::*ElemJAFct)(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemJMFct)(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	// 	types of Defect assemble functions
-		typedef void (T::*ElemdAFct)(LocalVector& d, const LocalVector& u);
-		typedef void (T::*ElemdMFct)(LocalVector& d, const LocalVector& u);
+		typedef void (T::*ElemdAFct)(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemdMFct)(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	// 	types of right hand side assemble functions
-		typedef void (T::*ElemRHSFct)(LocalVector& d);
+		typedef void (T::*ElemRHSFct)(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	protected:
 	// 	register the functions
@@ -586,19 +549,6 @@ class IElemDisc
 		{
 			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
 			return *m_spApproxSpace->domain()->subset_handler();
-		}
-
-	///	returns the corner coordinates of an Element in a C-array
-		template<typename TElem>
-		const MathVector<dim>* element_corners(TElem* elem)
-		{
-		//	check domain
-			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set");
-		
-		//	get and update the provider
-			ElemGlobCornerCoords<TDomain, TElem>& co_coord = Provider<ElemGlobCornerCoords<TDomain, TElem> >::get();
-			co_coord.update((m_spApproxSpace->domain()).get(), elem);
-			return co_coord.vGlobalCorner();
 		}
 
 	protected:

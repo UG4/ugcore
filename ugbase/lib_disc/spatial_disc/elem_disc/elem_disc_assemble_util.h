@@ -57,6 +57,7 @@ namespace ug {
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                        	ConstSmartPtr<TDomain> spDomain,
                         	ConstSmartPtr<DoFDistribution> dd,
         					TIterator iterBegin,
         					TIterator iterEnd,
@@ -70,6 +71,9 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 	try
 	{
@@ -88,6 +92,9 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -104,7 +111,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true);
+			Eval.prepare_elem(locU, elem, vCornerCoords, ind, true);
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix Cannot prepare element.");
 
@@ -112,7 +119,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		locA = 0.0;
 		try
 		{
-			Eval.add_JA_elem(locA, locU, elem);
+			Eval.add_JA_elem(locA, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute Jacobian (A).");
 
@@ -137,6 +144,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                        	ConstSmartPtr<TDomain> spDomain,
                         	ConstSmartPtr<DoFDistribution> dd,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
@@ -152,14 +160,14 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleStiffnessMatrix<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleStiffnessMatrix<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, A, u, assAdapt);
 	}
 }
@@ -184,6 +192,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                   	ConstSmartPtr<TDomain> spDomain,
 					ConstSmartPtr<DoFDistribution> dd,
 					TIterator iterBegin,
 					TIterator iterEnd,
@@ -197,6 +206,9 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	prepare for given elem discs
 	try
@@ -216,6 +228,9 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -232,7 +247,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true);
+			Eval.prepare_elem(locU, elem, vCornerCoords, ind, true);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot prepare element.");
 
@@ -240,7 +255,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		locM = 0.0;
 		try
 		{
-			Eval.add_JM_elem(locM, locU, elem);
+			Eval.add_JM_elem(locM, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute Jacobian (M).");
 
@@ -265,6 +280,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                   	ConstSmartPtr<TDomain> spDomain,
 					ConstSmartPtr<DoFDistribution> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
@@ -280,14 +296,14 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleMassMatrix<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, M, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleMassMatrix<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, M, u, assAdapt);
 	}
 }
@@ -313,6 +329,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                 	ConstSmartPtr<TDomain> spDomain,
 					ConstSmartPtr<DoFDistribution> dd,
 					TIterator iterBegin,
 					TIterator iterEnd,
@@ -326,6 +343,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	prepare for given elem discs
 	try
@@ -345,6 +365,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -361,7 +384,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true);
+			Eval.prepare_elem(locU, elem, vCornerCoords, ind, true);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot prepare element.");
 
@@ -371,7 +394,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble JA
 		try
 		{
-			Eval.add_JA_elem(locJ, locU, elem);
+			Eval.add_JA_elem(locJ, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute Jacobian (A).");
 
@@ -396,6 +419,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                 	ConstSmartPtr<TDomain> spDomain,
 					ConstSmartPtr<DoFDistribution> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
@@ -411,14 +435,14 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleJacobian<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, J, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleJacobian<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, J, u, assAdapt);
 	}
 }
@@ -446,6 +470,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                 	ConstSmartPtr<TDomain> spDomain,
 					ConstSmartPtr<DoFDistribution> dd,
 					TIterator iterBegin,
 					TIterator iterEnd,
@@ -460,6 +485,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
@@ -489,6 +517,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -509,7 +540,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true);
+			Eval.prepare_elem(locU, elem, vCornerCoords, ind, true);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot prepare element.");
 
@@ -520,10 +551,10 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		// 	Assemble JA
 		try
 		{
-			Eval.add_JA_elem(locJ, locU, elem, PT_INSTATIONARY);
+			Eval.add_JA_elem(locJ, locU, elem, vCornerCoords, PT_INSTATIONARY);
 			locJ *= s_a0;
 
-			Eval.add_JA_elem(locJ, locU, elem, PT_STATIONARY);
+			Eval.add_JA_elem(locJ, locU, elem, vCornerCoords, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (A).");
 		EL_PROFILE_END();
@@ -531,7 +562,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble JM
 		try
 		{
-			Eval.add_JM_elem(locJ, locU, elem, PT_INSTATIONARY);
+			Eval.add_JM_elem(locJ, locU, elem, vCornerCoords, PT_INSTATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (M).");
 
@@ -558,6 +589,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                 	ConstSmartPtr<TDomain> spDomain,
 					ConstSmartPtr<DoFDistribution> dd,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
@@ -574,13 +606,13 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleJacobian<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, J, vSol, s_a0, assAdapt);
 	}
 	else
 	{
 		AssembleJacobian<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, J, vSol, s_a0, assAdapt);
 	}
 }
@@ -606,6 +638,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -619,6 +652,9 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	prepare for given elem discs
 	try
@@ -638,6 +674,9 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -654,7 +693,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind);
+			Eval.prepare_elem(locU, elem, vCornerCoords, ind);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot prepare element.");
 
@@ -664,7 +703,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble A
 		try
 		{
-			Eval.add_dA_elem(locD, locU, elem);
+			Eval.add_dA_elem(locD, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Defect (A).");
 
@@ -672,7 +711,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		try
 		{
 			tmpLocD = 0.0;
-			Eval.add_rhs_elem(tmpLocD, elem);
+			Eval.add_rhs_elem(tmpLocD, elem, vCornerCoords);
 			locD.scale_append(-1, tmpLocD);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Rhs.");
@@ -698,6 +737,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
@@ -713,14 +753,14 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleDefect<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, d, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleDefect<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, d, u, assAdapt);
 	}
 }
@@ -748,6 +788,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -763,6 +804,9 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -796,6 +840,9 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -822,7 +869,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		// 	prepare element
 			try
 			{
-				Eval.prepare_elem(elem, locU, ind, false);
+				Eval.prepare_elem(locU, elem, vCornerCoords, ind, false);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot prepare element.");
 
@@ -830,7 +877,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocD = 0.0;
-				Eval.add_dM_elem(tmpLocD, locU, elem, PT_INSTATIONARY);
+				Eval.add_dM_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locD.scale_append(vScaleMass[t], tmpLocD);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (M).");
@@ -839,11 +886,11 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocD = 0.0;
-				Eval.add_dA_elem(tmpLocD, locU, elem, PT_INSTATIONARY);
+				Eval.add_dA_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locD.scale_append(vScaleStiff[t], tmpLocD);
 
 				if(t == 0)
-					Eval.add_dA_elem(locD, locU, elem, PT_STATIONARY);
+					Eval.add_dA_elem(locD, locU, elem, vCornerCoords, PT_STATIONARY);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (A).");
 
@@ -855,7 +902,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			   tmpLocD = 0.0;
 			   try
 			   {
-			     Eval.add_dA_elem_explicit(tmpLocD, locU, elem, PT_INSTATIONARY);
+			     Eval.add_dA_elem_explicit(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
 			   }
 			   UG_CATCH_THROW("(instationary) AssembleDefect explizit: Cannot compute Defect (A).");
 
@@ -869,12 +916,12 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocD = 0.0;
-				Eval.add_rhs_elem(tmpLocD, elem, PT_INSTATIONARY);
+				Eval.add_rhs_elem(tmpLocD, elem, vCornerCoords, PT_INSTATIONARY);
 				locD.scale_append( -vScaleStiff[t], tmpLocD);
 
 				if(t==0){
 					tmpLocD = 0.0;
-					Eval.add_rhs_elem(tmpLocD, elem, PT_STATIONARY);
+					Eval.add_rhs_elem(tmpLocD, elem, vCornerCoords, PT_STATIONARY);
 					locD.scale_append( -1.0, tmpLocD);
 				}
 			}
@@ -902,6 +949,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
@@ -919,14 +967,14 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleDefect<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleDefect<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 }
@@ -952,6 +1000,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -965,6 +1014,9 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	prepare for given elem discs
 	try
@@ -984,6 +1036,9 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -997,7 +1052,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locRhs, ind, true);
+			Eval.prepare_elem(locRhs, elem, vCornerCoords, ind, true);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot prepare element.");
 
@@ -1008,14 +1063,14 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble JA
 		try
 		{
-			Eval.add_JA_elem(locA, locRhs, elem);
+			Eval.add_JA_elem(locA, locRhs, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Jacobian (A).");
 
 	// 	Assemble rhs
 		try
 		{
-			Eval.add_rhs_elem(locRhs, elem);
+			Eval.add_rhs_elem(locRhs, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Rhs.");
 
@@ -1041,6 +1096,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
@@ -1056,14 +1112,14 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleLinear<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, rhs, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleLinear<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, A, rhs, assAdapt);
 	}
 }
@@ -1092,6 +1148,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -1108,6 +1165,9 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -1141,6 +1201,9 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -1168,7 +1231,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, true);
+			Eval.prepare_elem(locU, elem, vCornerCoords, ind, true);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
@@ -1176,7 +1239,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		try
 		{
 			tmpLocA = 0.0;
-			Eval.add_JM_elem(tmpLocA, locU, elem, PT_INSTATIONARY);
+			Eval.add_JM_elem(tmpLocA, locU, elem, vCornerCoords, PT_INSTATIONARY);
 			locA.scale_append(vScaleMass[0], tmpLocA);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
@@ -1185,10 +1248,10 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		try
 		{
 			tmpLocA = 0.0;
-			Eval.add_JA_elem(tmpLocA, locU, elem, PT_INSTATIONARY);
+			Eval.add_JA_elem(tmpLocA, locU, elem, vCornerCoords, PT_INSTATIONARY);
 			locA.scale_append(vScaleStiff[0], tmpLocA);
 
-			Eval.add_JA_elem(locA, locU, elem, PT_STATIONARY);
+			Eval.add_JA_elem(locA, locU, elem, vCornerCoords, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
 
@@ -1196,10 +1259,10 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		try
 		{
 			tmpLocRhs = 0.0;
-			Eval.add_rhs_elem(tmpLocRhs, elem, PT_INSTATIONARY);
+			Eval.add_rhs_elem(tmpLocRhs, elem, vCornerCoords, PT_INSTATIONARY);
 			locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
 
-			Eval.add_rhs_elem(locRhs, elem, PT_STATIONARY);
+			Eval.add_rhs_elem(locRhs, elem, vCornerCoords, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
 
@@ -1216,7 +1279,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		// 	prepare element
 			try
 			{
-				Eval.prepare_elem(elem, locU, ind, false);
+				Eval.prepare_elem(locU, elem, vCornerCoords, ind, false);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot prepare element.");
 
@@ -1224,7 +1287,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_dM_elem(tmpLocRhs, locU, elem, PT_INSTATIONARY);
+				Eval.add_dM_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
@@ -1233,7 +1296,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_dA_elem(tmpLocRhs, locU, elem, PT_INSTATIONARY);
+				Eval.add_dA_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
@@ -1242,7 +1305,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_rhs_elem(tmpLocRhs, elem, PT_INSTATIONARY);
+				Eval.add_rhs_elem(tmpLocRhs, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Rhs.");
@@ -1270,6 +1333,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
@@ -1288,14 +1352,14 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleLinear<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleLinear<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 }
@@ -1321,6 +1385,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+            	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -1334,6 +1399,9 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	prepare for given elem discs
 	try
@@ -1353,6 +1421,9 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -1369,7 +1440,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind);
+			Eval.prepare_elem(locU, elem, vCornerCoords, ind);
 		}
 		UG_CATCH_THROW("AssembleRhs: Cannot prepare element.");
 
@@ -1379,7 +1450,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble rhs
 		try
 		{
-			Eval.add_rhs_elem(locRhs, elem);
+			Eval.add_rhs_elem(locRhs, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("AssembleRhs: Cannot compute Rhs.");
 
@@ -1404,6 +1475,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+            	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
@@ -1419,14 +1491,14 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleRhs<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, rhs, u, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleRhs<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, rhs, u, assAdapt);
 	}
 }
@@ -1454,6 +1526,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+            	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -1469,6 +1542,9 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
@@ -1502,6 +1578,9 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -1528,7 +1607,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare element
 		try
 		{
-			Eval.prepare_elem(elem, locU, ind, false);
+			Eval.prepare_elem(locU, elem, vCornerCoords, ind, false);
 		}
 		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
 
@@ -1536,10 +1615,10 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		try
 		{
 			tmpLocRhs = 0.0;
-			Eval.add_rhs_elem(tmpLocRhs, elem, PT_INSTATIONARY);
+			Eval.add_rhs_elem(tmpLocRhs, elem, vCornerCoords, PT_INSTATIONARY);
 			locRhs.scale_append(vScaleStiff[0], tmpLocRhs);
 
-			Eval.add_rhs_elem(locRhs, elem, PT_STATIONARY);
+			Eval.add_rhs_elem(locRhs, elem, vCornerCoords, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Rhs.");
 
@@ -1556,7 +1635,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		// 	prepare element
 			try
 			{
-				Eval.prepare_elem(elem, locU, ind, false);
+				Eval.prepare_elem(locU, elem, vCornerCoords, ind, false);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot prepare element.");
 
@@ -1564,7 +1643,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_dM_elem(tmpLocRhs, locU, elem, PT_INSTATIONARY);
+				Eval.add_dM_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Jacobian (M).");
@@ -1573,7 +1652,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_dA_elem(tmpLocRhs, locU, elem, PT_INSTATIONARY);
+				Eval.add_dA_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Jacobian (A).");
@@ -1582,7 +1661,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_rhs_elem(tmpLocRhs, elem, PT_INSTATIONARY);
+				Eval.add_rhs_elem(tmpLocRhs, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Rhs.");
@@ -1609,6 +1688,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+            	ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
@@ -1626,14 +1706,14 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleRhs<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleRhs<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
 	}
 }
@@ -1658,6 +1738,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
 				TIterator iterBegin,
 				TIterator iterEnd,
@@ -1670,6 +1751,9 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
@@ -1697,6 +1781,9 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -1717,7 +1804,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	prepare timestep
 		try
 		{
-			Eval.prepare_timestep_elem(elem, locU);
+			Eval.prepare_timestep_elem(vSol->time(0), locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
 	}
@@ -1729,6 +1816,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+                ConstSmartPtr<TDomain> spDomain,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
@@ -1743,14 +1831,14 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		PrepareTimestep<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, vSol, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		PrepareTimestep<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, vSol, assAdapt);
 	}
 }
@@ -1775,6 +1863,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
 FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               ConstSmartPtr<TDomain> spDomain,
                ConstSmartPtr<DoFDistribution> dd,
                TIterator iterBegin,
 			   TIterator iterEnd,
@@ -1787,6 +1876,9 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 //	reference object id
 	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
 
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
@@ -1815,6 +1907,9 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	get Element
 		TElem* elem = *iter;
 
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
 	//	check if elem is skipped from assembling
 		if(assAdapt.m_pBoolMarker)
 			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
@@ -1835,7 +1930,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	finish timestep
 		try
 		{
-			Eval.finish_timestep_elem(elem, locTimeSeries.time(0), locU);
+			Eval.finish_timestep_elem(locTimeSeries.time(0), locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(instationary) FinishTimestep: Cannot finish timestep.");
 	}
@@ -1847,6 +1942,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 template <typename TElem, typename TDomain, typename TAlgebra>
 void
 FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+               ConstSmartPtr<TDomain> spDomain,
                ConstSmartPtr<DoFDistribution> dd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
@@ -1861,14 +1957,14 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		FinishTimestep<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, elems.begin(), elems.end(), si,
+			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
 			 bNonRegularGrid, vSol, assAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		FinishTimestep<TElem,TDomain,TAlgebra>
-			(vElemDisc, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
+			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
 					bNonRegularGrid, vSol, assAdapt);
 	}
 }

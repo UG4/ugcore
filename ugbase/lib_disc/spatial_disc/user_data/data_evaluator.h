@@ -57,39 +57,36 @@ class DataEvaluator
 		////////////////////////////////////////////
 
 	///	prepares the element for all time-dependent IElemDiscs
-		template <typename TElem>
-		void prepare_timestep_elem(TElem* elem, LocalVector& u);
+		void prepare_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	prepares the element loop for all IElemDiscs
 		void prepare_elem_loop(const ReferenceObjectID id, int si);
 
 	///	prepares the element for all IElemDiscs
-		template <typename TElem>
-		void prepare_elem(TElem* elem, LocalVector& u,
+		void prepare_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[],
 		                  const LocalIndices& ind,
 		                  bool bDeriv = false);
 
 	///	finishes the element for all time-dependent IElemDiscs
-		template <typename TElem>
-		void finish_timestep_elem(TElem* elem, const number time, LocalVector& u);
+		void finish_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	compute local stiffness matrix for all IElemDiscs
-		void add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
+		void add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local mass matrix for all IElemDiscs
-		void add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
+		void add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local stiffness defect for all IElemDiscs
-		void add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
+		void add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local stiffness defect for all IElemDiscs explicit
-		void add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
+		void add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local mass defect for all IElemDiscs
-		void add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type = PT_ALL);
+		void add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local rhs for all IElemDiscs
-		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type = PT_ALL);
+		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	finishes the element loop for all IElemDiscs
 		void finish_elem_loop();
@@ -140,12 +137,6 @@ class DataEvaluator
 	///	local time series (non-const since mapping may change)
 		LocalVectorTimeSeries* m_pLocTimeSeries;
 
-	///	current element
-		GeometricObject* m_pElem;
-
-	///	current Corner Coordinates
-		const MathVector<dim>* m_vCornerCoords;
-
 	///	imports that must be evaluated
 		std::vector<IDataImport<dim>*> m_vImport[MAX_PROCESS][MAX_PART];
 
@@ -158,7 +149,5 @@ class DataEvaluator
 };
 
 } // end namespace ug
-
-#include "data_evaluator_impl.h"
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_EVALUATOR__ */

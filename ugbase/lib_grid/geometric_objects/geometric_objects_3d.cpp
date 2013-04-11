@@ -325,7 +325,7 @@ std::pair<GeometricBaseObject, int> Tetrahedron::
 get_opposing_object(VertexBase* vrt) const
 {
 	using namespace tet_rules;
-	for(int i = 0; i < NUM_VERTICES; ++i){
+	for(int i = 0; i < tet_rules::NUM_VERTICES; ++i){
 		if(vrt == m_vertices[i]){
 			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
 							 OPPOSED_OBJECT[i][1]);
@@ -515,7 +515,7 @@ std::pair<GeometricBaseObject, int> Hexahedron::
 get_opposing_object(VertexBase* vrt) const
 {
 	using namespace hex_rules;
-	for(int i = 0; i < NUM_VERTICES; ++i){
+	for(int i = 0; i < hex_rules::NUM_VERTICES; ++i){
 		if(vrt == m_vertices[i]){
 			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
 							 OPPOSED_OBJECT[i][1]);
@@ -729,7 +729,7 @@ std::pair<GeometricBaseObject, int> Prism::
 get_opposing_object(VertexBase* vrt) const
 {
 	using namespace prism_rules;
-	for(int i = 0; i < NUM_VERTICES; ++i){
+	for(int i = 0; i < prism_rules::NUM_VERTICES; ++i){
 		if(vrt == m_vertices[i]){
 			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
 							 OPPOSED_OBJECT[i][1]);
@@ -919,7 +919,7 @@ std::pair<GeometricBaseObject, int> Pyramid::
 get_opposing_object(VertexBase* vrt) const
 {
 	using namespace pyra_rules;
-	for(int i = 0; i < NUM_VERTICES; ++i){
+	for(int i = 0; i < pyra_rules::NUM_VERTICES; ++i){
 		if(vrt == m_vertices[i]){
 			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
 							 OPPOSED_OBJECT[i][1]);

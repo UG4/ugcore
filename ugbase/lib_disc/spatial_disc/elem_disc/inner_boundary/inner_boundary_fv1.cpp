@@ -35,20 +35,12 @@ fsh_elem_loop()
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
-prep_elem(TElem* elem, const LocalVector& u)
+prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	// get corners
-	m_vCornerCoords = this->template element_corners<TElem>(elem);
-
-	// get vertices
-	m_vVertices.clear();
-	const size_t numVertex = elem->num_vertices();
-	for(size_t i = 0; i < numVertex; ++i) m_vVertices.push_back(elem->vertex(i));
-
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = GeomProvider<TFVGeom<TElem,dim> >::get();
 	try{
-		geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler()));
+		geo.update(elem, vCornerCoords, &(this->subset_handler()));
 	}
 	UG_CATCH_THROW("FV1InnerBoundaryElemDisc::prep_elem: "
 						"Cannot update Finite Volume Geometry.");
@@ -58,7 +50,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
-add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
+add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
 	const static TFVGeom<TElem, dim>& fvgeom = GeomProvider<TFVGeom<TElem,dim> >::get();
@@ -97,14 +89,14 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
-add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
+add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {}
 
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
-add_def_A_elem(LocalVector& d, const LocalVector& u)
+add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = GeomProvider<TFVGeom<TElem,dim> >::get();
@@ -149,13 +141,13 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
-add_def_M_elem(LocalVector& d, const LocalVector& u)
+add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {}
 
 template<typename TDomain>
 template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 void FV1InnerBoundaryElemDisc<TDomain>::
-add_rhs_elem(LocalVector& d)
+add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {}
 
 

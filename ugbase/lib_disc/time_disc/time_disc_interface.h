@@ -72,7 +72,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	/**
 	 *	This function supplies the TimeDiscretization with previous time
 	 *	steps and step size before the assembling routines can be called.
-	 *	A sub-routine at element-level ("prepare_timestep_element") is called
+	 *	A sub-routine at element-level ("prep_timestep_elem") is called
 	 *	within this function.
 	 *
 	 * \param[in] prevSol 	the solution at the previous time steps
@@ -92,7 +92,7 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	/**
 	 *	This function is called after the assembling routines at the end of a
 	 *	timestep.
-	 *	Within this function "finish_timestep_element" is called which allows
+	 *	Within this function "fsh_timestep_elem" is called which allows
 	 *	modifying data depending on the current solution at element-level.
 	 *
 	 * \param[in] currSol 	the current solution

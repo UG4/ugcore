@@ -213,6 +213,8 @@ class UG_API VertexBase : public GeometricObject
 
 		static const int BASE_OBJECT_ID = VERTEX;
 
+		static const size_t NUM_VERTICES = 1;
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<VertexBase*>(pObj) != NULL;}
 
@@ -299,6 +301,8 @@ class UG_API EdgeBase : public GeometricObject, public EdgeVertices
 		static const int dim = 1;
 
 		static const int BASE_OBJECT_ID = EDGE;
+
+		static const size_t NUM_VERTICES = 2;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}

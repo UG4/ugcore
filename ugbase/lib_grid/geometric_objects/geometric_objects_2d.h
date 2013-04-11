@@ -67,6 +67,9 @@ template <class ConcreteTriangleType, class BaseClass>
 class UG_API CustomTriangle : public BaseClass
 {
 	public:
+		static const size_t NUM_VERTICES = 3;
+
+	public:
 		CustomTriangle()	{}
 		CustomTriangle(const TriangleDescriptor& td);
 		CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3);
@@ -197,6 +200,9 @@ class UG_API QuadrilateralDescriptor
 template <class ConcreteQuadrilateralType, class BaseClass>
 class UG_API CustomQuadrilateral : public BaseClass
 {
+	public:
+		static const size_t NUM_VERTICES = 4;
+
 	public:
 		using Face::ConstVertexArray;
 

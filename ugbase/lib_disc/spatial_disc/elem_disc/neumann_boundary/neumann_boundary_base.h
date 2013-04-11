@@ -73,13 +73,13 @@ class NeumannBoundaryBase
 	///	dummy add methods
 	///	\{
 		template<typename TElem, typename TFVGeom>
-		void add_JA_elem(LocalMatrix& J, const LocalVector& u) {}
+		void add_JA_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 		template<typename TElem, typename TFVGeom>
-		void add_JM_elem(LocalMatrix& J, const LocalVector& u) {}
+		void add_JM_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 		template<typename TElem, typename TFVGeom>
-		void add_dA_elem(LocalVector& d, const LocalVector& u) {}
+		void add_dA_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 		template<typename TElem, typename TFVGeom>
-		void add_dM_elem(LocalVector& d, const LocalVector& u) {}
+		void add_dM_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
 	/// \}
 };
 

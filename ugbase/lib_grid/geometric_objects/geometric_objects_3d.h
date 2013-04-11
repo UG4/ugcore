@@ -63,6 +63,8 @@ class UG_API Tetrahedron : public Volume
 	public:
 		typedef Volume BaseClass;
 
+		static const size_t NUM_VERTICES = 4;
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != NULL;}
 
@@ -184,6 +186,8 @@ class UG_API Hexahedron : public Volume
 	public:
 		typedef Volume BaseClass;
 
+		static const size_t NUM_VERTICES = 8;
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != NULL;}
 
@@ -299,6 +303,8 @@ class UG_API Prism : public Volume
 	public:
 		typedef Volume BaseClass;
 
+		static const size_t NUM_VERTICES = 6;
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Prism*>(pObj) != NULL;}
 
@@ -413,6 +419,8 @@ class UG_API Pyramid : public Volume
 {
 	public:
 		typedef Volume BaseClass;
+
+		static const size_t NUM_VERTICES = 5;
 
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != NULL;}

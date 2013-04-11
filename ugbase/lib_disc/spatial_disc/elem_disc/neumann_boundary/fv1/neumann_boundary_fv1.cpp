@@ -134,14 +134,12 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::
-prep_elem(TElem* elem, const LocalVector& u)
+prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 //  update Geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom >::get();
 	try{
-		geo.update(elem,
-	               this->template element_corners<TElem>(elem),
-	               &(this->subset_handler()));
+		geo.update(elem, vCornerCoords, &(this->subset_handler()));
 	}
 	UG_CATCH_THROW("NeumannBoundaryFV1::prep_elem: "
 						"Cannot update Finite Volume Geometry.");
@@ -154,7 +152,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void NeumannBoundaryFV1<TDomain>::
-add_rhs_elem(LocalVector& d)
+add_rhs_elem(LocalVector& d, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	const static TFVGeom& geo = GeomProvider<TFVGeom >::get();
 	typedef typename TFVGeom::BF BF;

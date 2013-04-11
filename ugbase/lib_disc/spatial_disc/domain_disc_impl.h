@@ -113,23 +113,23 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		{
 		case 1:
 			AssembleMassMatrix<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		case 2:
 			AssembleMassMatrix<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			AssembleMassMatrix<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		case 3:
 			AssembleMassMatrix<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			AssembleMassMatrix<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			AssembleMassMatrix<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			AssembleMassMatrix<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, M, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_mass_matrix:"
@@ -215,23 +215,23 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		{
 		case 1:
 			AssembleStiffnessMatrix<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		case 2:
 			AssembleStiffnessMatrix<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			AssembleStiffnessMatrix<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		case 3:
 			AssembleStiffnessMatrix<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			AssembleStiffnessMatrix<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			AssembleStiffnessMatrix<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			AssembleStiffnessMatrix<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, A, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_stiffness_matrix:"
@@ -342,23 +342,23 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			AssembleJacobian<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			break;
 		case 2:
 			AssembleJacobian<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			break;
 		case 3:
 			AssembleJacobian<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			AssembleJacobian<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			AssembleJacobian<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			AssembleJacobian<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_jacobian (stationary):"
@@ -464,23 +464,23 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			AssembleDefect<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			break;
 		case 2:
 			AssembleDefect<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			break;
 		case 3:
 			AssembleDefect<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			AssembleDefect<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			AssembleDefect<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			AssembleDefect<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_defect (stationary):"
@@ -565,23 +565,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		case 1:
 			AssembleLinear<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		case 2:
 			AssembleLinear<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			AssembleLinear<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		case 3:
 			AssembleLinear<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			AssembleLinear<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			AssembleLinear<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			AssembleLinear<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_linear (stationary):"
@@ -667,23 +667,23 @@ assemble_rhs(vector_type& rhs,
 		{
 		case 1:
 			AssembleRhs<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		case 2:
 			AssembleRhs<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			AssembleRhs<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		case 3:
 			AssembleRhs<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			AssembleRhs<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			AssembleRhs<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			AssembleRhs<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_rhs (stationary):"
@@ -832,23 +832,23 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		{
 		case 1:
 			PrepareTimestep<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 2:
 			PrepareTimestep<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			PrepareTimestep<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 3:
 			PrepareTimestep<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			PrepareTimestep<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			PrepareTimestep<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			PrepareTimestep<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::prepare_timestep (instationary):"
@@ -937,23 +937,23 @@ assemble_jacobian(matrix_type& J,
 		{
 		case 1:
 			AssembleJacobian<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			break;
 		case 2:
 			AssembleJacobian<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			AssembleJacobian<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			break;
 		case 3:
 			AssembleJacobian<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			AssembleJacobian<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			AssembleJacobian<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			AssembleJacobian<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_jacobian (instationary):"
@@ -1065,23 +1065,23 @@ assemble_defect(vector_type& d,
 		{
 		case 1:
 			AssembleDefect<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
 			AssembleDefect<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleDefect<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
 			AssembleDefect<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleDefect<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleDefect<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleDefect<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_defect (instationary):"
@@ -1168,23 +1168,23 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		{
 		case 1:
 			AssembleLinear<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
 			AssembleLinear<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleLinear<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
 			AssembleLinear<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleLinear<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleLinear<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleLinear<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_linear (instationary):"
@@ -1274,23 +1274,23 @@ assemble_rhs(vector_type& rhs,
 		{
 		case 1:
 			AssembleRhs<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 2:
 			AssembleRhs<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleRhs<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		case 3:
 			AssembleRhs<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleRhs<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleRhs<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			AssembleRhs<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::assemble_rhs (instationary):"
@@ -1427,23 +1427,23 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		{
 		case 1:
 			FinishTimestep<Edge,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 2:
 			FinishTimestep<Triangle,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			FinishTimestep<Quadrilateral,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		case 3:
 			FinishTimestep<Tetrahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			FinishTimestep<Pyramid,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			FinishTimestep<Prism,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			FinishTimestep<Hexahedron,TDomain,TAlgebra>
-				(vSubsetElemDisc, dd, si, bNonRegularGrid, vSol, m_AssAdapter);
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_AssAdapter);
 			break;
 		default:
 			UG_THROW("DomainDiscretization::finish_timestep (instationary):"
