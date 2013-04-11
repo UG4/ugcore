@@ -763,6 +763,9 @@ static void Domain(Registry& reg, string grp)
 	typedef typename TDomain::position_type		pos_type;
 	typedef typename TDomain::position_attachment_type apos_type;
 
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
+
 //	refiner factory-method registration
 //	Note that the refiners themselfs have already been registered in lib_grid_bridge.
 	reg.add_function("GlobalDomainRefiner",
@@ -800,8 +803,8 @@ static void Domain(Registry& reg, string grp)
 //	register refinement projection handler and factories
 	{
 		typedef RefinementProjectionHandler<apos_type> T;
-		reg.add_class_<T, IRefinementCallback>(
-					"RefinementProjectionHandler", grp)
+		string name = string("RefinementProjectionHandler").append(suffix);
+		reg.add_class_<T, IRefinementCallback>(name, grp)
 				.add_method("set_default_callback", &T::set_default_callback, grp)
 				.add_method("set_callback",
 						static_cast<void (T::*)(int, SmartPtr<IRefinementCallback>) >
@@ -809,6 +812,7 @@ static void Domain(Registry& reg, string grp)
 				.add_method("set_callback",
 						static_cast<void (T::*)(std::string, SmartPtr<IRefinementCallback>) >
 							(&T::set_callback), grp);
+		reg.add_class_to_group(name, "RefinementProjectionHandler", tag);
 	}
 
 	reg.add_function("DomainRefinementProjectionHandler",
