@@ -217,7 +217,11 @@ for ($i=0;$i<$#document;$i++)
     {
        	$result .= "$line\n\\endcode\n**/\n".$functionLine."\n";
     }
-
+    if($functionComment ne "")
+    {
+    	$result.="/**\n".$functionComment."\n**/\n\n";
+    	$functionComment = "";
+    }
 
     
 close FH;
