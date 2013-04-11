@@ -17,6 +17,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 //	type-traits
 ///	associate internally used types with an external typename
@@ -775,6 +778,9 @@ class ICommunicationPolicy
 		virtual bool
 		extract(ug::BinaryBuffer& buff, const Interface& interface) = 0;
 };
+
+// end group pcl
+/// \}
 
 }//	end of namespace pcl
 

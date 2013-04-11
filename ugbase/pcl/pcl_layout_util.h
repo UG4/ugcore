@@ -12,6 +12,9 @@
 
 namespace pcl{
 
+/// \addtogroup pcl
+/// \{
+
 ///	removes all empty interfaces from the given layout.
 template <class TLayout>
 void RemoveEmptyInterfaces(TLayout& layout)
@@ -141,6 +144,9 @@ void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
 		}
 	}
 }
+
+// end group pcl
+/// \}
 
 }// end of namespace
 

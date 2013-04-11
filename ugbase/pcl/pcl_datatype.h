@@ -7,6 +7,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 //	DataType
 #define PCL_DT_NULL					MPI_DATATYPE_NULL
 #define PCL_DT_BYTE 				MPI_BYTE
@@ -96,5 +99,8 @@ public:
 	typedef DataTypeDirectlySupported supported;
 	enum { directlySupported = true };
 };
+
+// end group pcl
+/// \}
 
 }

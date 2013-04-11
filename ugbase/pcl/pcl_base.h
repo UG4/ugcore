@@ -8,6 +8,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 ///	call this method before any other pcl-operations.
 //void Init(int argc, char* argv[]);
@@ -22,6 +25,9 @@ int GetNumProcesses();
 
 ///	returns the rank of the process
 int GetProcRank();
+
+// end group pcl
+/// \}
 
 }//	end of namespace
 #endif

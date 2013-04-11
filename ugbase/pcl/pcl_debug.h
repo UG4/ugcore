@@ -21,6 +21,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 //	LogLayoutStructure
 ///	Logs the internals of a layout.
@@ -80,6 +83,8 @@ void LogLayoutMapStructure(TLayoutMap& lm)
 	}
 }
 
+// end group pcl
+/// \}
 
 }//	end of namespace
 

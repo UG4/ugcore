@@ -14,6 +14,9 @@
 
 namespace pcl{
 
+/// \addtogroup pcl
+/// \{
+
 inline std::string ToString(const ProcessCommunicator &pc)
 {
 	if(pc.empty()) return "Empty ProcessCommunicator";
@@ -28,6 +31,9 @@ inline std::string ToString(const ProcessCommunicator &pc)
 		return out.str();
 	}
 }
+
+// end group pcl
+/// \}
 
 
 } // namespace ug

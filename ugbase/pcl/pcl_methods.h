@@ -22,6 +22,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 typedef int ProcID;
 
 //	ReduceOperation
@@ -151,6 +154,9 @@ inline int IRecv(T *buf, int count, int source, int tag, MPI_Comm comm, MPI_Requ
 	return ::MPI_IRecv(buf, count, DataTypeTraits<T>::get_data_type(), source, tag, comm, request);
 }*/
 
+
+// end group pcl
+/// \}
 
 
 }//	end of namespace

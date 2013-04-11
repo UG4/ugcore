@@ -11,6 +11,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 class IDomainDecompositionInfo
 {
 
@@ -112,6 +115,9 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 		//std::vector<int> m_vnum_procs_per_subdomain; // as vector, for variable distribution of processors over subdomains
 		int m_num_procs_per_subdomain;
 }; /* end class 'StandardDomainDecompositionInfo' */
+
+// end group pcl
+/// \}
 
 }//	end of namespace
 #endif

@@ -10,7 +10,13 @@
 
 namespace pcl{
 
+/// \addtogroup pcl
+/// \{
+
 void SetMPIErrHandler();
+
+// end group pcl
+/// \}
 
 }
 

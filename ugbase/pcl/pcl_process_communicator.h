@@ -17,6 +17,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 ///	values that can be passed to a ProcessCommunicators constructor.
 enum ProcessCommunicatorDefaults
 {
@@ -373,6 +376,9 @@ class ProcessCommunicator
 	///	smart-pointer to an instance of a CommWrapper.
 		SPCommWrapper	m_comm;
 };
+
+// end group pcl
+/// \}
 
 }//	end of namespace pcl
 

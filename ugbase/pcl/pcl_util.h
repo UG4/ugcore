@@ -29,6 +29,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 /// synchronizes all processes.
 ///	This is just a shortcut if all processes have to be synchronized.
 /**	This is equivalent to calling pcl::ProcessCommunicator()::barrier().
@@ -299,6 +302,9 @@ void AddLayout(TLayout &destLayout, const TLayout &sourceLayout)
  * \return false on all cores if
  */
 bool ParallelReadFile(std::string &filename, std::vector<char> &file, bool bText, bool bDistributedLoad, const ProcessCommunicator& pc = ProcessCommunicator());
+
+// end group pcl
+/// \}
 
 }//	end of namespace
 

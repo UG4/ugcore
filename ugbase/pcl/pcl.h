@@ -16,4 +16,10 @@
 
 #include "pcl_layout_tests.h"
 
+/**
+ * \defgroup pcl PCL
+ * \ingroup ugbase
+ * \brief the Process Communication Layer
+ */
+
 #endif

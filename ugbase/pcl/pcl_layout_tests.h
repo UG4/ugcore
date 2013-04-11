@@ -24,6 +24,9 @@
 namespace pcl
 {
 
+/// \addtogroup pcl
+/// \{
+
 ///	Trivial implementation of a to-value callback.
 /**	TValue has to be constructable from TElem.*/
 template <class TElem>
@@ -317,6 +320,10 @@ bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
 #endif
 
 #define TESTLAYOUTS(layout) TESTLAYOUT(layout.proc_comm(), layout.comm(), layout.master(), layout.slave())
-}
+
+// end group pcl
+/// \}
+
+} // end namespace pcl
 
 #endif

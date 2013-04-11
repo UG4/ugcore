@@ -14,6 +14,10 @@
 
 namespace pcl
 {
+
+/// \addtogroup pcl
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 //	There are two types of communicators:
 //	- InterfaceCommunicator: Data is exchanged between elements of
@@ -320,6 +324,9 @@ class InterfaceCommunicator
 	/**	reset to true after each communication-step.*/
 		bool m_bSendBuffersFixed;
 };
+
+// end group pcl
+/// \}
 
 }//	end of namespace pcl
 
