@@ -973,7 +973,7 @@ assemble_jacobian(matrix_type& J,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
-				m_vConstraint[i]->adjust_jacobian(J, *pModifyU->solution(0), dd, time);
+				m_vConstraint[i]->adjust_jacobian(J, *pModifyU->solution(0), dd, time, pModifyU);
 			}
 	}
 	}UG_CATCH_THROW("Cannot adjust jacobian.");
@@ -1101,7 +1101,7 @@ assemble_defect(vector_type& d,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->ass_adapter(&m_AssAdapter);
-				m_vConstraint[i]->adjust_defect(d, *pModifyU->solution(0), dd, pModifyU->time(0));
+				m_vConstraint[i]->adjust_defect(d, *pModifyU->solution(0), dd, pModifyU->time(0), pModifyU);
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust defect.");
