@@ -75,7 +75,7 @@ DataEvaluator(int discPart,
 
 	//	sort by process type
 		ProcessType process;
-		if(disc->is_stationary()) process = PT_STATIONARY;
+		if(!disc->is_time_dependent()) process = PT_STATIONARY;
 		else process = PT_INSTATIONARY;
 		m_vElemDisc[process].push_back(disc);
 	}
@@ -174,7 +174,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 
 		//	check correct process type
 			if(iimp->part() == MASS)
-				if(disc->is_stationary()) continue;
+				if(!disc->is_time_dependent()) continue;
 
 		//	push export on stack of needed data
 			vTryingToAdd.push_back(iimp->data());
@@ -196,7 +196,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 
 		//	remember Import
 			ProcessType process;
-			if(disc->is_stationary()) process = PT_STATIONARY;
+			if(!disc->is_time_dependent()) process = PT_STATIONARY;
 			else process = PT_INSTATIONARY;
 
 			m_vImport[PT_ALL][iimp->part()].push_back(iimp);
@@ -442,7 +442,7 @@ add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType t
 
 	//	assemble JM
 		try{
-			if(!m_vElemDisc[type][i]->is_stationary())
+			if(m_vElemDisc[type][i]->is_time_dependent())
 				m_vElemDisc[type][i]->fast_add_jac_M_elem(M, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::add_jac_M_elem: "
@@ -529,7 +529,7 @@ add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType t
 
 	//	assemble dM
 		try{
-			if(!m_vElemDisc[type][i]->is_stationary())
+			if(m_vElemDisc[type][i]->is_time_dependent())
 				m_vElemDisc[type][i]->fast_add_def_M_elem(d, u);
 		}
 		UG_CATCH_THROW("DataEvaluator::add_def_M_elem: "

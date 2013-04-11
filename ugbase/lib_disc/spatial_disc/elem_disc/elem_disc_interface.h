@@ -225,9 +225,6 @@ class IElemDisc
 		void set_stationary(bool bStationaryForced = true) {m_bStationaryForced = bStationaryForced;}
 		void set_stationary() {set_stationary(true);}
 
-	///	returns if assembling is forced to be stationary
-		bool is_stationary() const {return m_bStationaryForced;}
-
 	///	returns if local time series needed by assembling
 	/**
 	 * This callback must be implemented by a derived Elem Disc in order to handle
