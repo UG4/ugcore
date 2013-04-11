@@ -61,8 +61,7 @@ class DataEvaluator
 		void prepare_timestep_elem(TElem* elem, LocalVector& u);
 
 	///	prepares the element loop for all IElemDiscs
-		template <typename TElem>
-		void prepare_elem_loop(int si);
+		void prepare_elem_loop(const ReferenceObjectID id, int si);
 
 	///	prepares the element for all IElemDiscs
 		template <typename TElem>

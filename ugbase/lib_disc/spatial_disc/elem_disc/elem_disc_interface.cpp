@@ -208,6 +208,37 @@ void IElemDisc<TDomain>::register_export(SmartPtr<ICplUserData<dim> > Exp)
 }
 
 template <typename TDomain>
+void IElemDisc<TDomain>::fast_prep_elem_loop(const ReferenceObjectID roid, const int si)
+{
+//	set id and disc part (this checks and inits fast-assemble functions)
+	this->set_roid(roid, si);
+
+//	remove positions in currently registered imports
+	for(size_t i = 0; i < m_vIImport.size(); ++i)
+		m_vIImport[i]->clear_ips();
+
+//	call prep_elem_loop (this may set ip-series to imports)
+	(this->*m_vPrepareElemLoopFct[m_id])(roid, si);
+
+//	set roid in imports (for evaluation function)
+	for(size_t i = 0; i < m_vIImport.size(); ++i)
+		m_vIImport[i]->set_roid(roid);
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::fast_fsh_elem_loop()
+{
+	UG_ASSERT(m_vFinishElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+
+//	call finish
+	(this->*m_vFinishElemLoopFct[m_id])();
+
+//	remove positions in currently registered imports
+	for(size_t i = 0; i < m_vIImport.size(); ++i)
+		m_vIImport[i]->clear_ips();
+}
+
+template <typename TDomain>
 void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 {
 	m_id = roid;
@@ -215,31 +246,31 @@ void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 	if(roid == ROID_UNKNOWN)
 	{
 		m_id = ROID_UNKNOWN;
-		UG_THROW("Cannot assemble for RefID: "<<roid<<".");
+		UG_THROW("ElemDisc: Reference element type has not been set correctly.");
 	}
 
 	if(m_vPrepareElemLoopFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid);
+		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
 	if(m_vPrepareElemFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid);
+		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid<<"(world dim: "<<dim<<")");
 	if(m_vFinishElemLoopFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid);
+		UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
 
 	if(discType & MASS){
 		if(m_vElemJMFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
 		if(m_vElemdMFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
 	}
 	if(discType & STIFF){
 		if(m_vElemJAFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid<<"(world dim: "<<dim<<")");
 		if(m_vElemdAFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid<<"(world dim: "<<dim<<")");
 	}
 	if(discType & RHS){
 		if(m_vElemRHSFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid);
+			UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid<<"(world dim: "<<dim<<")");
 	}
 };
 

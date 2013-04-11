@@ -82,20 +82,6 @@ DataEvaluator(int discPart,
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::clear_extracted_data_and_mappings()
-{
-	for(int type = 0; type < MAX_PROCESS; ++type){
-		m_vImport[type][MASS].clear();
-		m_vImport[type][STIFF].clear();
-		m_vImport[type][RHS].clear();
-	}
-
-	m_vConstData.clear();
-	m_vPosData.clear();
-	m_vDependentData.clear();
-}
-
-template <typename TDomain>
 void DataEvaluator<TDomain>::
 add_data_to_eval_data(std::vector<SmartPtr<ICplUserData<dim> > >& vEvalData,
                       std::vector<SmartPtr<ICplUserData<dim> > >& vTryingToAdd)
@@ -274,6 +260,23 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 		m_vDependentData[i]->set_subset(m_subset);
 }
 
+template <typename TDomain>
+void DataEvaluator<TDomain>::clear_extracted_data_and_mappings()
+{
+	for(int type = 0; type < MAX_PROCESS; ++type){
+		m_vImport[type][MASS].clear();
+		m_vImport[type][STIFF].clear();
+		m_vImport[type][RHS].clear();
+	}
+
+	m_vConstData.clear();
+	m_vPosData.clear();
+	m_vDependentData.clear();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// prepare / finish
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::set_time_point(const size_t timePoint)
@@ -286,6 +289,74 @@ void DataEvaluator<TDomain>::set_time_point(const size_t timePoint)
 		m_vPosData[i]->set_time_point(timePoint);
 	for(size_t i = 0; i < m_vDependentData.size(); ++i)
 		m_vDependentData[i]->set_time_point(timePoint);
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+prepare_elem_loop(const ReferenceObjectID id, int si)
+{
+// 	prepare loop (elem disc set local ip series here)
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->fast_prep_elem_loop(id, si);
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
+						"Cannot prepare element loop.");
+
+//	extract data imports and userdatas
+	try{
+		extract_imports_and_userdata(m_discPart);
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
+					"Cannot extract imports and userdata.");
+
+//	check setup of imports
+	try{
+		for(size_t i = 0; i < m_vImport[PT_ALL][MASS].size(); ++i)
+			m_vImport[PT_ALL][MASS][i]->check_setup();
+		for(size_t i = 0; i < m_vImport[PT_ALL][STIFF].size(); ++i)
+			m_vImport[PT_ALL][STIFF][i]->check_setup();
+		for(size_t i = 0; i < m_vImport[PT_ALL][RHS].size(); ++i)
+			m_vImport[PT_ALL][RHS][i]->check_setup();
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Import correctly implemented.");
+
+//	prepare and check dependent data
+	try{
+		for(size_t i = 0; i < m_vDependentData.size(); ++i){
+			m_vDependentData[i]->set_roid(id);
+			m_vDependentData[i]->check_setup();
+		}
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: Dependent UserData "
+				   " (e.g. Linker or Export) is not ready for evaluation.");
+
+//	evaluate constant data
+	for(size_t i = 0; i < m_vConstData.size(); ++i)
+		m_vConstData[i]->compute(NULL, NULL, NULL, false);
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::finish_elem_loop()
+{
+//	finish each elem disc
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->fast_fsh_elem_loop();
+	}
+	UG_CATCH_THROW("DataEvaluator::fsh_elem_loop: Cannot finish element loop");
+
+//	clear positions at user data
+	clear_positions_in_user_data();
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::clear_positions_in_user_data()
+{
+//	remove ip series for all used UserData
+	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
+	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear();
+	for(size_t i = 0; i < m_vDependentData.size(); ++i) m_vDependentData[i]->clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -410,9 +481,6 @@ add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType t
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// explicit terms for reaction, reaction_rate, source explicit
-
 template <typename TDomain>
 void DataEvaluator<TDomain>::
 add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
@@ -440,8 +508,6 @@ add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, Proc
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
 }
-
-/////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
@@ -497,35 +563,6 @@ add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type)
 		UG_CATCH_THROW("DataEvaluator::add_rhs_elem: "
 						"Cannot assemble rhs for IElemDisc "<<i);
 	}
-}
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::finish_elem_loop()
-{
-	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-	{
-		try{
-			m_vElemDisc[PT_ALL][i]->fast_fsh_elem_loop();
-		}
-		UG_CATCH_THROW("DataEvaluator::fsh_elem_loop: "
-						"Cannot finish element loop for IElemDisc "<<i);
-	}
-
-	clear_positions_in_user_data();
-}
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::clear_positions_in_user_data()
-{
-//	remove ip series for all used UserData
-	for(size_t i = 0; i < m_vConstData.size(); ++i) m_vConstData[i]->clear();
-	for(size_t i = 0; i < m_vPosData.size(); ++i)   m_vPosData[i]->clear();
-	for(size_t i = 0; i < m_vDependentData.size(); ++i) m_vDependentData[i]->clear();
-
-//	we remove all ips, since they may have been set in prepare_elem
-	for(size_t d = 0; d < m_vElemDisc[PT_ALL].size(); ++d)
-		for(size_t i = 0; i < m_vElemDisc[PT_ALL][d]->num_imports(); ++i)
-			m_vElemDisc[PT_ALL][d]->get_import(i).clear_ips();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

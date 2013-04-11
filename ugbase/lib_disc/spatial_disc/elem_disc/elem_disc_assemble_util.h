@@ -68,13 +68,16 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 	try
 	{
 	DataEvaluator<TDomain> Eval(STIFF,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locA;
@@ -192,6 +195,9 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	prepare for given elem discs
 	try
 	{
@@ -199,7 +205,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locM;
@@ -318,6 +324,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	prepare for given elem discs
 	try
 	{
@@ -325,7 +334,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
@@ -449,6 +458,9 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
@@ -465,7 +477,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	Eval.set_time_point(0);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locU; LocalMatrix locJ;
@@ -605,6 +617,9 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	prepare for given elem discs
 	try
 	{
@@ -612,7 +627,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU, locD, tmpLocD;
@@ -746,6 +761,9 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
 		UG_THROW("(instationary) AssembleDefect: s_a and s_m must have same size.");
@@ -767,7 +785,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	                   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locD, tmpLocD;
@@ -945,6 +963,9 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	prepare for given elem discs
 	try
 	{
@@ -952,7 +973,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locRhs; LocalMatrix locA;
@@ -1085,6 +1106,9 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
 		UG_THROW("(instationary) AssembleLinear: s_a and s_m must have same size.");
@@ -1106,7 +1130,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locRhs, tmpLocRhs; LocalMatrix locA, tmpLocA;
@@ -1308,6 +1332,9 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	prepare for given elem discs
 	try
 	{
@@ -1315,7 +1342,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 // 	local indices and local algebra
 	LocalIndices ind; LocalVector locU, locRhs;
@@ -1440,6 +1467,9 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	check time scheme
 	if(vScaleMass.size() != vScaleStiff.size())
 		UG_THROW("(instationary) AssembleRhs: s_a and s_m must have same size.");
@@ -1461,7 +1491,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locRhs, tmpLocRhs;
@@ -1638,6 +1668,9 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
@@ -1653,7 +1686,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	Eval.set_time_point(0);
 
 //	prepare element loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locU;
@@ -1752,6 +1785,9 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
 
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
 //	get current time and vector
 	const typename TAlgebra::vector_type& u = *vSol->solution(0);
 
@@ -1768,7 +1804,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	Eval.set_time_point(0);
 
 //	prepare loop
-	Eval.template prepare_elem_loop<TElem>(si);
+	Eval.prepare_elem_loop(id, si);
 
 //	local algebra
 	LocalIndices ind; LocalVector locU;

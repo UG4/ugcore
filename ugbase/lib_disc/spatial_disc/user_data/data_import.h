@@ -23,6 +23,21 @@ enum DiscPart {	NONE = 0,
 				EXPL = 1 << 3,
 				MAX_PART};
 
+inline
+std::ostream& operator<< (std::ostream& outStream, DiscPart part)
+{
+	switch(part)
+	{
+		case NONE: outStream << "(none)"; break;
+		case MASS: outStream << "mass"; break;
+		case STIFF: outStream << "stiff"; break;
+		case RHS: outStream << "rhs"; break;
+		case EXPL: outStream << "expl"; break;
+		default: UG_THROW("Unknown DiscPart in operator<<");
+	}
+	return outStream;
+};
+
 /// Base class for data import
 /**
  * An IDataImport is the base class for importing data to ElemDiscs
@@ -97,6 +112,9 @@ class IDataImport
 
 	///	sets the geometric object type
 		virtual void set_roid(ReferenceObjectID id) = 0;
+
+	///	checks if ready for evaluation
+		virtual void check_setup() = 0;
 
 	///	compute lin defect
 		virtual void compute_lin_defect(LocalVector& u) = 0;
@@ -260,6 +278,9 @@ class DataImport : public IDataImport<dim>
 
 	///	sets the geometric object type
 		virtual void set_roid(ReferenceObjectID id);
+
+	///	checks if ready for evaluation
+		virtual void check_setup();
 
 	///	register evaluation of linear defect for a element
 		template <typename TClass>

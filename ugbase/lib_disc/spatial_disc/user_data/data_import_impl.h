@@ -25,17 +25,30 @@ DataImport<TData,dim>::~DataImport()
 template <typename TData, int dim>
 void DataImport<TData,dim>::set_roid(ReferenceObjectID id)
 {
+	if(id == ROID_UNKNOWN)
+		UG_THROW("DataImport::set_roid: Setting unknown ReferenceObjectId.");
+
+	m_id = id;
+}
+
+template <typename TData, int dim>
+void DataImport<TData,dim>::check_setup()
+{
 //	if lin defect is not supposed to be computed, we're done
 	if(!this->m_bCompLinDefect) return;
 
-//	Check for evaluation function and choose it if present
-	if(m_vLinDefectFunc[id] != NULL)
-	{
-		m_id = id;
-		return;
-	}
+	if(m_id == ROID_UNKNOWN)
+		UG_THROW("DataImport::check_setup: The reference element "
+				"type has not been set for evaluation.");
 
-	UG_THROW("DataImport::set_roid: No lin defect functions registered for "<<id);
+//	Check for evaluation function and choose it if present
+	if(m_vLinDefectFunc[m_id] != NULL)
+		return;
+
+//	fails
+	UG_THROW("DataImport::check_setup: No evaluation function for computation of "
+			"linearized defect registered for "<<m_id<<", but required. "
+			"(world dim: "<<dim<<", part: "<<this->part()<<")");
 }
 
 template <typename TData, int dim>

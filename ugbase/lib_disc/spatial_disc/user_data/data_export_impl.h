@@ -111,9 +111,8 @@ comp(const LocalVector& u, GeometricObject* elem,
 template <typename TData, int dim>
 void DataExport<TData, dim>::set_roid(ReferenceObjectID id)
 {
-	if(!eval_fct_set(id))
-		UG_THROW("DataExport::set_roid: There is no evaluation "
-				"function registered for export and elem type "<<id);
+	if(id == ROID_UNKNOWN)
+		UG_THROW("DataExport::set_roid: Setting unknown ReferenceObjectId.");
 
 	m_id = id;
 }
@@ -127,7 +126,9 @@ void DataExport<TData, dim>::check_setup() const
 
 	if(!eval_fct_set(m_id))
 		UG_THROW("DataExport::check_setup: There is no evaluation "
-				"function registered for export and elem type "<<m_id);
+				"function registered for data export and element type "<<m_id<<
+				", but required. (world dim: "<<dim<<", ref dim: "<<
+				ReferenceElementDimension(m_id)<<")");
 }
 
 template <typename TData, int dim>
@@ -150,6 +151,7 @@ void DataExport<TData, dim>::compute(LocalVector* u, GeometricObject* elem,
                                      const MathVector<dim> vCornerCoords[], bool bDeriv)
 {
 	UG_ASSERT(m_id != ROID_UNKNOWN, "Invalid RefElem");
+	UG_ASSERT(m_id == elem->reference_object_id(), "Wrong element type");
 	UG_ASSERT(u != NULL, "LocalVector pointer is NULL");
 
 	switch(this->dim_local_ips()){

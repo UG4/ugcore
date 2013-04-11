@@ -299,9 +299,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_prep_elem_loop(const ReferenceObjectID roid, const int si)
-		{UG_ASSERT(m_vPrepareElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-			(this->*m_vPrepareElemLoopFct[m_id])(roid, si);}
+		void fast_prep_elem_loop(const ReferenceObjectID roid, const int si);
 
 	///	virtual prepares the loop over all elements of one type
 		virtual void prep_elem_loop(const ReferenceObjectID roid, const int si) {}
@@ -330,9 +328,7 @@ class IElemDisc
 	 * <b>NOTE:</b>Before this method can be used, the method
 	 * 'set_roid' must have been called to set the elem type.
 	 */
-		void fast_fsh_elem_loop()
-		{UG_ASSERT(m_vFinishElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-			(this->*m_vFinishElemLoopFct[m_id])();}
+		void fast_fsh_elem_loop();
 
 	///	virtual postprocesses the loop over all elements of one type
 		virtual void fsh_elem_loop() {}
