@@ -380,16 +380,15 @@ compute_elem_data(LocalVector& u, GeometricObject* elem,
 //	needed data has previously computed). We look up, if a Export is given, if
 //	so compute it, else compute the linker
 
-//	loop all dependent data
-	for(size_t i = 0; i < m_vDependentData.size(); ++i){
-	//	compute the data
-		try{
+//	compute the data
+	try{
+		for(size_t i = 0; i < m_vDependentData.size(); ++i){
 			u.access_by_map(m_vDependentData[i]->map());
 			m_vDependentData[i]->compute(&u, elem, vCornerCoords, bDeriv);
 		}
-		UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
-						"Cannot compute data for Export " << i);
 	}
+	UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
+					"Cannot compute data for Export or Linker.");
 }
 
 template <typename TDomain>
