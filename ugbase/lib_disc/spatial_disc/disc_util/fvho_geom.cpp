@@ -1119,8 +1119,11 @@ update_local_data()
 /// update data for given element
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
 void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
-update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
+
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
 
@@ -1234,8 +1237,11 @@ update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHan
 
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
 void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
-update_boundary_faces(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
+
 //	get grid
 	Grid& grid = *(ish->grid());
 

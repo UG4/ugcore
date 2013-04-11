@@ -54,12 +54,15 @@ template <	typename TElem,	int TWorldDim,
 			typename TTrialSpace, typename TQuadratureRule>
 void
 FEGeometry<TElem,TWorldDim,TTrialSpace,TQuadratureRule>::
-update(TElem* pElem, const MathVector<worldDim>* vCorner,
+update(GeometricObject* elem, const MathVector<worldDim>* vCorner,
        const LFEID& lfeID, size_t orderQuad)
 {
 //	check
 	UG_ASSERT(lfeID == m_rTrialSpace.type(), "Wrong type requested.");
 	UG_ASSERT(orderQuad <= m_rQuadRule.order(), "Wrong order requested.");
+
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
 
 //	check if element changed
 	if(pElem == m_pElem) return;

@@ -424,8 +424,11 @@ update_local_data()
 /// update data for given element
 template <	typename TElem, int TWorldDim>
 void CRFVGeometry<TElem, TWorldDim>::
-update(TElem* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
+
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
 

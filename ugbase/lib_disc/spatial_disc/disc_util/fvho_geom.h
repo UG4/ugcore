@@ -481,11 +481,11 @@ class FVGeometry : public FVGeometryBase
 		                  size_t orderQuad = TQuadOrder);
 
 	/// update data for given element
-		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(TElem* elem,
+		void update_boundary_faces(GeometricObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 

@@ -986,7 +986,7 @@ class CRFVGeometry : public FVGeometryBase
 		void update_local_data();
 
 	/// update data for given element
-		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element

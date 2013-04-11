@@ -400,11 +400,11 @@ class FV1Geometry : public FVGeometryBase
 		void update_local_data();
 
 	/// update data for given element
-		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(TElem* elem,
+		void update_boundary_faces(GeometricObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -1177,7 +1177,7 @@ class FV1ManifoldBoundary
 		FV1ManifoldBoundary();
 		
 	///	update data for given element
-		void update(TElem* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 			
 	/// get vector of corners for current element

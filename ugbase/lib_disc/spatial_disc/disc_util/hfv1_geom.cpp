@@ -39,11 +39,14 @@ HFV1Geometry()
 
 template <typename TElem, int TWorldDim>
 void HFV1Geometry<TElem, TWorldDim>::
-update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
+
 	// If already update for this element, do nothing
-	if(m_pElem == elem) return;
-	else m_pElem = elem;
+	if(m_pElem == pElem) return;
+	else m_pElem = pElem;
 
 	// get grid
 	Grid& grid = *(ish->grid());
@@ -66,7 +69,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 
 	// get natural edges (and faces if in 3d)
 	std::vector<EdgeBase*> vEdges;
-	CollectEdgesSorted(vEdges, grid, elem);
+	CollectEdgesSorted(vEdges, grid, pElem);
 
 	// compute Nodes
 	m_vSCVF.clear();
@@ -159,7 +162,7 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 	if(dim == 3)
 	{
 		std::vector<Face*> vFaces;
-		CollectFacesSorted(vFaces, grid, elem);
+		CollectFacesSorted(vFaces, grid, pElem);
 
 		// compute Nodes
 		MathVector<dim> locSideMid;

@@ -517,10 +517,13 @@ update_local_data()
 /// update data for given element
 template <typename TElem, int TWorldDim>
 void FV1Geometry<TElem, TWorldDim>::
-update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
+
 // 	if already update for this element, do nothing
-	if(m_pElem == elem) return; else m_pElem = elem;
+	if(m_pElem == pElem) return; else m_pElem = pElem;
 
 // 	remember global position of nodes
 	for(size_t i = 0; i < m_rRefElem.num(0); ++i)
@@ -604,13 +607,16 @@ update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHand
 
 //	if no boundary subsets required, return
 	if(num_boundary_subsets() == 0 || ish == NULL) return;
-	else update_boundary_faces(elem, vCornerCoords, ish);
+	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
 template <typename TElem, int TWorldDim>
 void FV1Geometry<TElem, TWorldDim>::
-update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
+
 //	get grid
 	Grid& grid = *(ish->grid());
 
@@ -620,21 +626,21 @@ update_boundary_faces(TElem* elem, const MathVector<worldDim>* vCornerCoords, co
 //	get subset indices for sides (i.e. edge in 2d, faces in 3d)
 	if(dim == 1) {
 		std::vector<VertexBase*> vVertex;
-		CollectVertices(vVertex, grid, elem);
+		CollectVertices(vVertex, grid, pElem);
 		vSubsetIndex.resize(vVertex.size());
 		for(size_t i = 0; i < vVertex.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
 	}
 	if(dim == 2) {
 		std::vector<EdgeBase*> vEdges;
-		CollectEdgesSorted(vEdges, grid, elem);
+		CollectEdgesSorted(vEdges, grid, pElem);
 		vSubsetIndex.resize(vEdges.size());
 		for(size_t i = 0; i < vEdges.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vEdges[i]);
 	}
 	if(dim == 3) {
 		std::vector<Face*> vFaces;
-		CollectFacesSorted(vFaces, grid, elem);
+		CollectFacesSorted(vFaces, grid, pElem);
 		vSubsetIndex.resize(vFaces.size());
 		for(size_t i = 0; i < vFaces.size(); ++i)
 			vSubsetIndex[i] = ish->get_subset_index(vFaces[i]);
@@ -1174,25 +1180,28 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 /// update data for given element
 template <typename TElem, int TWorldDim>
 void FV1ManifoldBoundary<TElem, TWorldDim>::
-update(TElem* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
+	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+	TElem* pElem = static_cast<TElem*>(elem);
+
 	// 	if already update for this element, do nothing
-	if (m_pElem == elem) return;
-	else m_pElem = elem;
+	if (m_pElem == pElem) return;
+	else m_pElem = pElem;
 
 	//	store subset index for geometry
 	Grid& grid = *(ish->grid());
 	if (worldDim == 2)
 	{
 		std::vector<EdgeBase*> vEdge;
-		CollectEdgesSorted(vEdge, grid, elem);
+		CollectEdgesSorted(vEdge, grid, pElem);
 		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
 		m_ssi = ish->get_subset_index(vEdge[0]);
 	}
 	if (worldDim == 3)
 	{
 		std::vector<Face*> vFace;
-		CollectFacesSorted(vFace, grid, elem);
+		CollectFacesSorted(vFace, grid, pElem);
 		UG_ASSERT(vFace.size(),"No face contained in 2D manifold element!");
 		m_ssi = ish->get_subset_index(vFace[0]);
 	}

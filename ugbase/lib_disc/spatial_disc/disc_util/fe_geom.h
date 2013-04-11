@@ -106,15 +106,15 @@ class FEGeometry
 		}
 
 	/// update Geometry for corners
-		void update(TElem* pElem, const MathVector<worldDim>* vCorner)
+		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
 		{
 			update(pElem, vCorner, m_rTrialSpace.type(), m_rQuadRule.order());
 		}
 
 	/// update Geometry for corners
-		void update(TElem* pElem, const MathVector<worldDim>* vCorner,
+		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
 		            const LFEID& lfeID, size_t orderQuad);
-		void update(TElem* pElem, const MathVector<worldDim>* vCorner,
+		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
 		            const LFEID& lfeID){
 			update(pElem, vCorner, lfeID, 2*lfeID.order() + 1);
 		}
