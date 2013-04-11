@@ -1,13 +1,13 @@
--- created by Sebastian Reiter
--- s.b.reiter@googlemail.com
+--[[!
+\file domain_distribution_util.lua
+\defgroup scripts_util_domaindistribution Domain Distribution Utility
+\ingroup scripts_util
+\brief creates partition maps of different structure and provides some easy to use domain distribution methods.
+\author Sebastian Reiter
+\{
+]]--
 
 util = util or {}
-
---[[!
-\file scripts/util/domain_distribution_util.lua
-\brief	creates partition maps of different structure and provides some
-		easy to use domain distribution methods.
-]]--
 
 
 --!	Distributes the top-level of a domain to the given number of processes.
@@ -72,8 +72,8 @@ function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 		if wFct ~= nil then
 			util.PartitionMapMetisReweigh(dom, partitionMap, numTargetProcs, distributionLevel, wFct)
 		else 
-			print("ERROR in util.DistributeDomain: requested partitionMethod \"metisReweigh\",\
-				   but no weightingFct given.")
+			print("ERROR in util.DistributeDomain: requested partitionMethod \"metisReweigh\"," \
+				    " but no weightingFct given.")
 			return
 		end
 	else
@@ -169,3 +169,5 @@ function util.PartitionMapLexicographic2D(dom, partitionMapOut, numNodesX,
 --	TODO: the 'surfaceOnly' parameter should be handled in a more flexible way.
 	PartitionDomain_RegularGrid(dom, partitionMapOut, procsX, procsY, true)
 end
+
+--[[! \} ]]--

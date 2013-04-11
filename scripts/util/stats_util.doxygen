@@ -1,5 +1,8 @@
 /**
-\file scripts/util/stats_util.lua
+\file stats_util.lua
+\defgroup scripts_util_stats Statistics Utility
+\ingroup scripts_util
+\{
 \author Martin Rupp
 
 This file and the comments are intended to make your life easier when you want to do several runs of a script and
@@ -48,4 +51,5 @@ done
 and in you lua-file, you could use <tt>util.writeFileStats(stats, util.GetParam("-outdir", "").."stats.txt")</tt>.
 Instead of defining -logtofile from the shell, you could also make something like
 <tt>GetLogAssistant():enable_file_output(true, util.GetParam("-outdir". "").."check_numRefs"..numRefs.."_procs"..procs..".txt")</tt>
+\}
 */

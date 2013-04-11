@@ -1,5 +1,10 @@
--- create a globally seen package (all non-local functions call then be
--- called using gnuplot.xxx.)
+--[[!
+\file gnuplot.lua
+\defgroup scripts_util_gnuplot GNUPlot Utility
+create a globally seen package (all non-local functions call then be called using gnuplot.xxx.)
+\ingroup scripts_util
+\{
+]]--
 module( "gnuplot", package.seeall )
 
 function getArraySizes(t)
@@ -613,3 +618,5 @@ function array_concat(...)
     end
     return t
 end
+
+--[[! \} ]]--

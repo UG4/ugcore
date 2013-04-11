@@ -1,5 +1,7 @@
 ----------------------------------------------------------
 --[[!
+--   \addtogroup scripts_util_solver
+--   \{
 --   \file setup_fetisolver.lua
 --   \brief Lua - Script which creates and configures a FETI solver (linear solver).
 -- 	 \author Ingo Heppner (using FETI solver specific code from 'fetitest.lua').--
@@ -727,3 +729,5 @@ end -- TMP
 	print("    Returning FETI solver 'fetiSolver', ready for application (end of 'SetupFETISolver()')!")
 	return fetiSolver, fetiConvCheck, logfileName
 end
+
+--[[! \} ]]--

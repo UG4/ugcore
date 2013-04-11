@@ -1,3 +1,9 @@
+--[[!
+\file time_step_util.lua
+\defgroup scripts_util_timestep Timestep Utility
+\ingroup scripts_util
+\{
+]]--
 
 function util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
 
@@ -333,3 +339,5 @@ function util.SolveLinearTimeProblem(
 	
 	if not (out==nil) then out:write_time_pvd(filename, u) end
 end
+
+--[[! \} ]]--

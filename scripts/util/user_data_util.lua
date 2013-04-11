@@ -1,11 +1,13 @@
 --[[!
--- \file scripts/util/use_data_util.lua
--- 
+-- \file use_data_util.lua
+-- \defgroup scripts_util_userdata UserData Utility
+-- \ingroup scripts_util
 -- Some usage info:
 -- Name of instance of ug4-object: ug_class_name(obj) (returns "" if not a ug4 class)
 -- Check if class is base class: ug_is_base_class("BaseClass", "DerivClass")
 -- Check if dimension compiled in:  ug_dim_compiled(dim)
 -- Returning metatable for a ug4-class: ug_get_metatable("ClassName")
+-- \{
 !]]--
 
 function __ug__CheckUserDataArgType(r, l)

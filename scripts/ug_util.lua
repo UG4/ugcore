@@ -1,3 +1,10 @@
+--[[!
+-- \defgroup scripts_util Lua Utility Scripts
+-- \ingroup scripts
+-- General Lua utility scripts for ug4.
+-- \{
+]]--
+
 -- Create util namespace
 util = util or {}
 
@@ -137,7 +144,7 @@ end
 --!								after pre-refinement.
 --!								See util.DistributeDomain for more information
 --!								(in UG_BASE/scripts/util/domain_distribution.lua)
---! @param wFct 			(optional SmartPtr<EdgeWeighting>) Sets the weighting function for the
+--! @param wFct 			(optional SmartPtr\<EdgeWeighting\>) Sets the weighting function for the
 --!							'metisReweigh' partitioning method.
 function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 										neededSubsets, distributionMethod,
@@ -589,4 +596,5 @@ function AssertPluginsLoaded(pluginNamesList)
 	
 end
 
-			
+-- end group scripts_util
+--[[! \} ]]--

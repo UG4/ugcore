@@ -1,11 +1,13 @@
 ----------------------------------------------------------
 --[[!
+--   \addtogroup scripts_util_solver
+--   \{
 --   \file setup_famg.lua
 --   \brief Lua - Script which creates and configures the FAMG solver
--- 	 \author Martin Rupp
---  \sa util.SetupFAMGPreconditioner
+--   \author Martin Rupp
+--   \sa util.SetupFAMGPreconditioner
 --
---  \note You have to enable the AMG plugin: cmake -Damg=ON ..
+--   \note You have to enable the AMG plugin: cmake -Damg=ON ..
 !]]--
 
 
@@ -93,4 +95,4 @@ function util.SetupFAMGPreconditioner(base, presmoother, postsmoother)
 	return amg	
 end
 
-
+--[[! \} ]]--

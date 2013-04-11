@@ -1,5 +1,7 @@
 ----------------------------------------------------------
 --[[!
+--   \addtogroup scripts_util_solver
+--   \{
 --   \file setup_hlibsolver.lua
 --   \brief Lua - Script which creates and configures a HLIB solver (linear solver).
 -- 	 \author Ingo Heppner (using HLIB solver specific code from 'hlibtest.lua').
@@ -136,3 +138,5 @@ function SetupHLIBSolver(str_problem,
 	print("    Returning HLIB solver 'hlibSolver', ready for application (end of 'SetupHLIBSolver()')!")
 	return hlibSolver, hlibConvCheck, logfileName
 end
+
+--[[! \} ]]--

@@ -3,7 +3,10 @@
 -- s.b.reiter@googlemail.com
 
 --[[!
+\addtogroup scripts_util
+\{
 \file scaling_analyzer.lua
+\author Sebastian Reiter
 \brief lua script to compare profiling outputs from different runs of one problem
 
 This lua script can be used to compare profiling outputs from different
@@ -324,3 +327,5 @@ else
 		end
 	end
 end
+
+--[[! \} ]]--

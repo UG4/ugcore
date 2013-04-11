@@ -1,5 +1,7 @@
 ----------------------------------------------------------
 --[[!
+--   \addtogroup scripts_util_solver
+--   \{
 --   \file setup_rsamg.lua
 --   \brief Lua - Script which creates and configures the RSAMG solver
 -- 	 \author Martin Rupp
@@ -64,3 +66,5 @@ function util.SetupRSAMGPreconditioner(base, presmoother, postsmoother)
 	
 	return amg	
 end
+
+--[[! \} ]]--

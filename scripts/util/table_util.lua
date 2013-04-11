@@ -1,3 +1,10 @@
+--[[!
+-- \defgroup scripts_util_table Table Utility
+-- \ingroup scripts_util
+-- Utility functions for easy but advanced table access.
+-- \{
+]]--
+
 table = table or {}
 
 function table.getArraySizes(t)
@@ -94,3 +101,5 @@ function table.print(data, style)
 	end		
 end
 
+-- end group scripts_util_table
+--[[! \} ]]--

@@ -1,3 +1,10 @@
+--[[!
+-- \defgroup scripts_util_test Tests Utility
+-- \ingroup scripts_util
+-- Utility functions for unit testing in Lua scripts.
+-- \{
+]]--
+
 test = test or {}
 
 function test.getSourceAndLine()
@@ -78,3 +85,6 @@ else
 	end
 
 end
+
+-- end group scripts_util_test
+--[[! \} ]]--

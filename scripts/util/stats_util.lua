@@ -1,3 +1,7 @@
+--[[!
+\addtogroup scripts_util_stats
+\{
+]]--
 -- created by Martin Rupp, 06.02.2012, martin.rupp@gcsc.uni-frankfurt.de
 -- for documentation: stats_util.doxygen
 util = util or {}
@@ -250,3 +254,5 @@ function util.printFormattedTableSideways(tab, header, type, bNumbers)
 	end
 end
 
+-- end group scripts_util_stats
+--[[! \} ]]--

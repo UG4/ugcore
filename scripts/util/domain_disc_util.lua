@@ -1,6 +1,9 @@
 --[[!
-\file scripts/util/domain_disc_util.lua
-\brief	functions to create DomainDiscs using a string disc-type identifier
+\file domain_disc_util.lua
+\defgroup scripts_util_domaindisc Domain Discretization Utility
+\ingroup scripts_util
+\{
+\brief functions to create DomainDiscs using a string disc-type identifier
 ]]--
 
 
@@ -110,3 +113,5 @@ function NavierStokesNoNormalStressOutflow(spMaster)
 		exit();
 	end
 end
+
+--[[! \} ]]--

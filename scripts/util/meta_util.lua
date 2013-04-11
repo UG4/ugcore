@@ -1,6 +1,9 @@
 --[[!
-\file scripts/util/meta_util.lua
+\file meta_util.lua
+\defgroup scripts_util_meta Metaprogramming Utility
+\ingroup scripts_util
 \brief Meta Programming Functions for Lua Scripts
+\{
 ]]--
 
 util = util or {}
@@ -48,3 +51,5 @@ function util.CreateFancyFunction( arg_def, f )
     return f( unpack( params, 1, #arg_def ) )
   end
 end
+
+--[[! \} ]]--

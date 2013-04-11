@@ -1,7 +1,10 @@
 --[[!
-\file scripts/util/solver_util.lua
+\file solver_util.lua
+\defgroup scripts_util_solver Solver Utility
+\ingroup scripts_util
 \brief Utility functions to easily create solver toolchains
 \note Use these functions to reduce copy-and-paste code in your Lua scripts.
+\{
 
 <hr>
 \b GetPreconditioner
@@ -309,3 +312,6 @@ util.GetSolver = util.CreateFancyFunction(
 		end
 	end
 )
+
+-- end group scripts_util_solver
+--[[! \} ]]--
