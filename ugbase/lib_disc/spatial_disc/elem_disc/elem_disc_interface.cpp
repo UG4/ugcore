@@ -49,7 +49,7 @@ void IElemDisc<TDomain>::clear_add_fct()
 		m_vElemJMFct[i] = NULL;
 
 		m_vElemdAFct[i] = NULL;
-		m_vElemdAFct_explicit[i] = NULL;
+		m_vElemdAExplFct[i] = NULL;
 		m_vElemdMFct[i] = NULL;
 
 		m_vElemRHSFct[i] = NULL;

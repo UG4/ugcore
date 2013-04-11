@@ -145,14 +145,14 @@ void IElemDisc<TDomain>::set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc f
 
 template <typename TDomain>
 template<typename TAssFunc>
-void IElemDisc<TDomain>::set_add_def_A_elem_fct_explicit(ReferenceObjectID id, TAssFunc func)
+void IElemDisc<TDomain>::set_add_def_A_expl_elem_fct(ReferenceObjectID id, TAssFunc func)
 {
 	if(!fast_add_elem_enabled())
 		UG_THROW("IElemDisc: trying to register fast_ass_elem_explicit-function, but"
 						" IElemDisc has not been set to fast assembling. Please"
 						" use 'enable_fast_ass_elem_explicit(true)' in your IElemDisc "
 						" prior to the setting of any fast_ass_elem_explicit-function.");
-	m_vElemdAFct_explicit[id] = static_cast<ElemdAFct>(func);
+	m_vElemdAExplFct[id] = static_cast<ElemdAFct>(func);
 };
 
 /////////////////////////////////////////////////////////////////////////////

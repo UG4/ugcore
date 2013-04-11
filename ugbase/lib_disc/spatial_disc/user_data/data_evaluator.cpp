@@ -501,9 +501,9 @@ add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, Proc
 
 	//	assemble dA
 		try{
-			m_vElemDisc[type][i]->fast_add_def_A_elem_explicit(d, u);
+			m_vElemDisc[type][i]->fast_add_def_A_expl_elem(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator::add_def_A_elem_explicit: "
+		UG_CATCH_THROW("DataEvaluator::add_def_A_expl_elem: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
 }

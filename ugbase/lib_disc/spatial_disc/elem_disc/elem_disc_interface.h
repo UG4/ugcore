@@ -382,19 +382,19 @@ class IElemDisc
 		{UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 			(this->*m_vElemdAFct[m_id])(d, u);}
 
-		// explicit reaction, reaction_rate and source
-   	    void fast_add_def_A_elem_explicit(LocalVector& d, const LocalVector& u)
+	/// explicit terms
+   	    void fast_add_def_A_expl_elem(LocalVector& d, const LocalVector& u)
    	    {
-   	    	if(this->m_vElemdAFct_explicit[m_id] != NULL)
-   	    		(this->*m_vElemdAFct_explicit[m_id])(d, u);
+   	    	if(this->m_vElemdAExplFct[m_id] != NULL)
+   	    		(this->*m_vElemdAExplFct[m_id])(d, u);
    	    }
 
 
 	/// virtual Assembling of Defect (Stiffness part)
 		virtual void add_def_A_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
-        // explicit defect for reaction, reaction_rate and source
-		virtual void add_def_A_elem_explicit(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
+    /// defect for explicit terms
+		virtual void add_def_A_expl_elem(GeometricObject* elem, LocalVector& d, const LocalVector& u) {}
 
 	/// Assembling of Defect (Mass part)
 	/**
@@ -481,7 +481,7 @@ class IElemDisc
 		template <typename TAssFunc> void set_add_jac_A_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_jac_M_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_def_A_elem_fct(ReferenceObjectID id, TAssFunc func);
-		template <typename TAssFunc> void set_add_def_A_elem_fct_explicit(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_add_def_A_expl_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
 
@@ -523,7 +523,7 @@ class IElemDisc
 
 	// 	Defect function pointers
 		ElemdAFct 	m_vElemdAFct[NUM_REFERENCE_OBJECTS];
-		ElemdAFct 	m_vElemdAFct_explicit[NUM_REFERENCE_OBJECTS];
+		ElemdAFct 	m_vElemdAExplFct[NUM_REFERENCE_OBJECTS];
 		ElemdMFct 	m_vElemdMFct[NUM_REFERENCE_OBJECTS];
 
 	// 	Rhs function pointers
