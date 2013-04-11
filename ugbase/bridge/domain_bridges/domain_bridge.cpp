@@ -35,6 +35,12 @@ using namespace std;
 
 namespace ug{
 
+/**
+ * \defgroup domain_bridge Domain Bridge
+ * \ingroup bridge
+ * \{
+ */
+
 //	This method is only a temporary test method and will be replaced by
 //	a more sophisticated approach
 template <typename TDomain>
@@ -202,8 +208,14 @@ static number FaceArea(TDomain& dom, ISelector& sel)
 	return FaceArea(sel, aaPos);
 }
 
+// end group domain_bridge
+/// \}
+
 namespace bridge{
 namespace Domain{
+
+/// \addtogroup domain_bridge
+/// \{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -353,8 +365,12 @@ static void Domain(Registry& reg, string grp)
 }
 }; // end Functionality2d3d
 
+// end group domain_bridge
+/// \}
+
 }// end Domain
 
+/// \addtogroup domain_bridge
 void RegisterBridge_Domain(Registry& reg, string grp)
 {
 	grp.append("/Domain");

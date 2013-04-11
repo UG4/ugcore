@@ -20,6 +20,12 @@ using namespace std;
 
 namespace ug{
 
+/**
+ * \defgroup refinement_bridge Refinement Bridge
+ * \ingroup domain_bridge
+ * \{
+ */
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Creates a global domain refiner.
 /**	Automatically chooses whether a parallel refiner is required.*/
@@ -665,11 +671,16 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
 }
 
+// end group refinement_bridge
+/// \}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 namespace bridge{
 namespace Refinement{
+
+/// \addtogroup refinement_bridge
+/// \{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -743,8 +754,13 @@ static void Domain(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group refinement_bridge
+/// \}
+
 }// end Refinement
 
+/// \addtogroup refinement_bridge
 void RegisterBridge_Refinement(Registry& reg, string grp)
 {
 	grp.append("/Refinement");

@@ -24,6 +24,12 @@ using namespace std;
 
 namespace ug{
 
+/**
+ * \defgroup loadbalance_bridge Load Balancing Bridge
+ * \ingroup domain_bridge
+ * \{
+ */
+
 static bool MetisIsAvailable()
 {
 	#ifdef UG_METIS
@@ -40,9 +46,14 @@ static bool ParmetisIsAvailable()
 	return false;
 }
 
+// end group loadbalance_bridge
+/// \}
 
 namespace bridge{
 namespace LoadBalancing{
+
+/// \addtogroup loadbalance_bridge
+/// \{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -121,8 +132,12 @@ static void Domain(Registry& reg, string grp)
 
 };// end of struct Functionality
 
+// end group loadbalance_bridge
+/// \}
+
 }// end of namespace
 
+/// \addtogroup loadbalance_bridge
 void RegisterBridge_LoadBalancing(Registry& reg, string grp)
 {
 	grp.append("/LoadBalancing");

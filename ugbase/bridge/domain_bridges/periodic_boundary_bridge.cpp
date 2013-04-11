@@ -17,6 +17,12 @@ namespace ug {
 namespace bridge {
 namespace periodicBoundary {
 
+/**
+ * \defgroup periodic_bridge Periodic Bounadry Bridge
+ * \ingroup domain_bridge
+ * \{
+ */
+
 void print_all_identifications(Grid& g) {
 	if(!g.has_periodic_boundaries())
 		return;
@@ -56,8 +62,12 @@ struct Functionality {
 	}
 }; // end Functionality
 
+// end group periodic_bridge
+/// \}
+
 }  // end periodicBoundary
 
+/// \addtogroup periodic_bridge
 void RegisterBridge_PeriodicBoundary(Registry& reg, string grp) {
 	grp.append("/Periodic");
 

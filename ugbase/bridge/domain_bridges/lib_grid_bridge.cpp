@@ -24,6 +24,13 @@ namespace ug
 {
 namespace bridge
 {
+
+/**
+ * \defgroup libgrid_bridge libGrid Bridge
+ * \ingroup domain_bridge
+ * \{
+ */
+
 ///	Wrapper object that simplifies script creation
 class GridObject : public Grid
 {
@@ -584,6 +591,9 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
+
+// end group libgrid_bridge
+/// \}
 
 }//	end of namespace 
 }//	end of namespace 

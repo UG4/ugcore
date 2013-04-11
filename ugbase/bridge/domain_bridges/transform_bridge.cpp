@@ -19,6 +19,12 @@ using namespace std;
 
 namespace ug{
 
+/**
+ * \defgroup transform_bridge Transformation Bridge
+ * \ingroup domain_bridge
+ * \{
+ */
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Translates (moves) selected elements by the given offset
 template <class TDomain>
@@ -184,10 +190,16 @@ void ScaleDomainSqrtWeighting(TDomain& dom, ISelector& sel, const vector3& cente
 
 }
 
+// end group transform_bridge
+/// \}
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 namespace bridge{
 namespace Transform{
+
+/// \addtogroup transform_bridge
+/// \{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -220,8 +232,13 @@ static void Domain(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group transform_bridge
+/// \}
+
 }// end Refinement
 
+/// \addtogroup transform_bridge
 void RegisterBridge_Transform(Registry& reg, string grp)
 {
 	grp.append("/Transform");

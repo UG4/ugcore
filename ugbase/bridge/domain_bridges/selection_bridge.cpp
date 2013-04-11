@@ -18,6 +18,12 @@ using namespace std;
 
 namespace ug{
 
+/**
+ * \defgroup selection_bridge Selection Bridge
+ * \ingroup domain_bridge
+ * \{
+ */
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Selects / Deselects all elements
 void SelectDomainElements(ISelector& sel, bool bSelect, bool selectVrts,
@@ -97,11 +103,16 @@ void SelectDomainSubset(ISelector& sel, TDomain& dom, int subsetIndex,
 		SelectSubsetElements<Volume>(sel, sh, subsetIndex, status);
 }
 
+// end group selection_bridge
+/// \}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 namespace bridge{
 namespace Selection{
+
+/// \addtogroup selection_bridge
+/// \{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -146,8 +157,13 @@ static void Domain(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group selection_bridge
+/// \}
+
 }// end Refinement
 
+/// \addtogroup selection_bridge
 void RegisterBridge_Selection(Registry& reg, string grp)
 {
 	grp.append("/Selection");
