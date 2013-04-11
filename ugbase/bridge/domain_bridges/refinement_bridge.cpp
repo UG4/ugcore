@@ -15,6 +15,7 @@
 #include "lib_grid/lib_grid.h"
 //todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors/refinement_projection_handler.h"
 
 using namespace std;
 
@@ -675,6 +676,49 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 /// \}
 
 ////////////////////////////////////////////////////////////////////////////////
+//	REFINEMENT PROJECTORS
+template <class TDomain>
+SmartPtr<RefinementProjectionHandler<typename TDomain::position_attachment_type> >
+DomainRefinementProjectionHandler(TDomain* dom)
+{
+	typedef RefinementProjectionHandler<typename TDomain::position_attachment_type>	TRefProj;
+	return SmartPtr<TRefProj>(
+			new TRefProj(dom->subset_handler(), dom->position_attachment()));
+}
+
+template <class TDomain>
+SmartPtr<IRefinementCallback>
+LinearProjector(TDomain* dom)
+{
+	typedef RefinementCallbackLinear<typename TDomain::position_attachment_type>	TRefProj;
+	return SmartPtr<TRefProj>(
+			new TRefProj(*dom->grid(), dom->position_attachment()));
+}
+
+template <class TDomain>
+SmartPtr<IRefinementCallback>
+SphereProjector(TDomain* dom, number x, number y, number z, number radius)
+{
+	typedef RefinementCallbackSphere<typename TDomain::position_attachment_type>	TRefProj;
+	typename TDomain::position_type v;
+	VecCopy(v, vector3(x, y, z), 0);
+	return SmartPtr<TRefProj>(
+			new TRefProj(*dom->grid(), dom->position_attachment(), v, radius));
+}
+
+template <class TDomain>
+SmartPtr<IRefinementCallback>
+SubdivisionLoopProjector(TDomain* dom)
+{
+	typedef RefinementCallbackSubdivisionLoop<typename TDomain::position_attachment_type>	TRefProj;
+	return SmartPtr<TRefProj>(
+			new TRefProj(*dom->grid(), dom->position_attachment(),
+						 dom->position_attachment()));
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 namespace bridge{
 namespace Refinement{
@@ -717,6 +761,7 @@ static void Domain(Registry& reg, string grp)
 {
 	typedef TDomain 							domain_type;
 	typedef typename TDomain::position_type		pos_type;
+	typedef typename TDomain::position_attachment_type apos_type;
 
 //	refiner factory-method registration
 //	Note that the refiners themselfs have already been registered in lib_grid_bridge.
@@ -751,6 +796,30 @@ static void Domain(Registry& reg, string grp)
 		.add_function("MarkForRefinement_AnisotropicElements2",
 				&MarkForRefinement_AnisotropicElements2<domain_type>, grp,
 				"", "dom#refiner#sizeRatio");
+
+//	register refinement projection handler and factories
+	{
+		typedef RefinementProjectionHandler<apos_type> T;
+		reg.add_class_<T, IRefinementCallback>(
+					"RefinementProjectionHandler", grp)
+				.add_method("set_default_callback", &T::set_default_callback, grp)
+				.add_method("set_callback",
+						static_cast<void (T::*)(int, SmartPtr<IRefinementCallback>) >
+							(&T::set_callback), grp)
+				.add_method("set_callback",
+						static_cast<void (T::*)(std::string, SmartPtr<IRefinementCallback>) >
+							(&T::set_callback), grp);
+	}
+
+	reg.add_function("DomainRefinementProjectionHandler",
+					&DomainRefinementProjectionHandler<TDomain>, grp,
+					"RefinementProjectionHandler", "domain")
+		.add_function("LinearProjector", &LinearProjector<TDomain>, grp,
+					"IRefinementCallback", "domain")
+		.add_function("SphereProjector", &SphereProjector<TDomain>, grp,
+					"IRefinementCallback", "domain#x#y#z#radius")
+		.add_function("SubdivisionLoopProjector", &SubdivisionLoopProjector<TDomain>, grp,
+					"IRefinementCallback", "domain");
 }
 
 }; // end Functionality

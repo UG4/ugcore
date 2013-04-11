@@ -408,13 +408,16 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	////////////////////////
 	//	REFINEMENT
 
+		reg.add_class_<IRefinementCallback>("IRefinementCallback", grp);
+
 	//	IRefiner
 		reg.add_class_<IRefiner>("IRefiner", grp)
 			.add_method("refine", &IRefiner::refine)
 			.add_method("coarsen", &IRefiner::coarsen)
 			.add_method("save_marks_to_file", &IRefiner::save_marks_to_file, "", "filename")
 			.add_method("set_adjusted_marks_debug_filename", &IRefiner::set_adjusted_marks_debug_filename, "", "filename")
-			.add_method("clear_marks", &IRefiner::clear_marks);
+			.add_method("clear_marks", &IRefiner::clear_marks)
+			.add_method("set_refinement_callback", &IRefiner::set_refinement_callback);
 
 	//	HangingNodeRefiner
 		reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp)
