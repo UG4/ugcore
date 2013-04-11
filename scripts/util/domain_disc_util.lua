@@ -21,22 +21,6 @@ function ConvectionDiffusion(fcts, subsets, discType)
 	end
 end
 
---!	Returns a ConstantEquation Element-Disc of the requested type
---! @return Returns the domain discreatization
---! @param fcts (String) names of symbolic functions 
---! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
-function ConstantEquation(fcts, subsets, discType)
-	if discType == nil then discType = "fv1" end
-	if 		discType == "fv1"  then return ConstantEquationFV1(fcts, subsets)
-	elseif  discType == "fe"   then return ConstantEquationFE(fcts, subsets)
-	elseif  discType == "fv"   then return ConstantEquationFV(fcts, subsets)
-	else 
-		print("ConstantEquation: no disc type '"..discType.."' available. Aborting")
-		exit();
-	end
-end
-
 --!	Returns a NeumannBoundary Element-Disc of the requested type
 --! @return Returns the domain discreatization
 --! @param fcts (String) names of symbolic function 
