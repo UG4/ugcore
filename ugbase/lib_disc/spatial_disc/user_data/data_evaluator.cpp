@@ -17,20 +17,19 @@ namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
-DataEvaluator<TDomain>::DataEvaluator(int discPart,
-                             const std::vector<IElemDisc<TDomain>*>& vElemDisc,
-                             const FunctionPattern& fctPat,
-                             const int subset,
-                             const bool bNonRegularGrid,
-                             LocalVectorTimeSeries* pLocTimeSeries,
-                             const std::vector<number>* pvScaleMass,
-                             const std::vector<number>* pvScaleStiff)
-                             : m_fctPatt(fctPat)
+DataEvaluator<TDomain>::
+DataEvaluator(int discPart,
+              const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+              const FunctionPattern& fctPat,
+              const int subset,
+              const bool bNonRegularGrid,
+              LocalVectorTimeSeries* pLocTimeSeries,
+              const std::vector<number>* pvScaleMass,
+              const std::vector<number>* pvScaleStiff)
+   : m_fctPatt(fctPat)
 {
-//	remember needed disc parts
-	m_discPart = discPart;
-
 //	currently only fast assembles allowed
+//	\todo: this should be generalized to non-fast assemble
 	for(size_t i = 0; i < vElemDisc.size(); ++i){
 		if(!vElemDisc[i]->fast_add_elem_enabled()){
 			UG_THROW("DataEvaluator: currently only fast assemble allowed."
@@ -38,25 +37,12 @@ DataEvaluator<TDomain>::DataEvaluator(int discPart,
 		}
 	}
 
-// handle time dependency
-	if(pLocTimeSeries != NULL && pvScaleMass != NULL && pvScaleStiff != NULL){
-		for(size_t i = 0; i < vElemDisc.size(); ++i)
-			vElemDisc[i]->set_time_dependent(*pLocTimeSeries, *pvScaleMass, *pvScaleStiff);
-	}
-	else if(pLocTimeSeries != NULL){
-		for(size_t i = 0; i < vElemDisc.size(); ++i)
-			vElemDisc[i]->set_time_dependent(*pLocTimeSeries, std::vector<number>(), std::vector<number>());
-	}
-	else{
-		for(size_t i = 0; i < vElemDisc.size(); ++i)
-			vElemDisc[i]->set_time_independent();
-	}
-
-// remember time series
+// 	remember infos
+	m_discPart = discPart;
 	m_pLocTimeSeries = pLocTimeSeries;
+	m_subset = subset;
 	m_bNeedLocTimeSeries = false; // initially
 	m_bUseHanging = false; // initially
-	m_subset = subset;
 
 	m_vElemDisc[PT_ALL] = vElemDisc;
 
@@ -66,15 +52,28 @@ DataEvaluator<TDomain>::DataEvaluator(int discPart,
 	//	get elem disc
 		IElemDisc<TDomain>* disc = m_vElemDisc[PT_ALL][i];
 
-	// checks
+	// 	handle time dependency
+		if(pLocTimeSeries != NULL && pvScaleMass != NULL && pvScaleStiff != NULL){
+			disc->set_time_dependent(*pLocTimeSeries, *pvScaleMass, *pvScaleStiff);
+		}
+		else if(pLocTimeSeries != NULL){
+			disc->set_time_dependent(*pLocTimeSeries, std::vector<number>(), std::vector<number>());
+		}
+		else{
+			disc->set_time_independent();
+		}
+
+	// 	checks
 		disc->check_setup(bNonRegularGrid);
 
-	//	check if time dependent
+	//	cache time dependency
 		m_bNeedLocTimeSeries |= disc->local_time_series_needed();
 
+	//	cache grid type required
 		if(bNonRegularGrid)
 			m_bUseHanging |= disc->use_hanging();
 
+	//	sort by process type
 		ProcessType process;
 		if(disc->is_stationary()) process = PT_STATIONARY;
 		else process = PT_INSTATIONARY;
@@ -97,8 +96,9 @@ void DataEvaluator<TDomain>::clear_extracted_data_and_mappings()
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_data_to_eval_data(std::vector<SmartPtr<ICplUserData<dim> > >& vEvalData,
-												   std::vector<SmartPtr<ICplUserData<dim> > >& vTryingToAdd)
+void DataEvaluator<TDomain>::
+add_data_to_eval_data(std::vector<SmartPtr<ICplUserData<dim> > >& vEvalData,
+                      std::vector<SmartPtr<ICplUserData<dim> > >& vTryingToAdd)
 {
 //	if empty, we're done
 	if(vTryingToAdd.empty()) return;
@@ -293,8 +293,9 @@ void DataEvaluator<TDomain>::set_time_point(const size_t timePoint)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::compute_elem_data(LocalVector& u, GeometricObject* elem,
-                                               const MathVector<dim> vCornerCoords[], bool bDeriv)
+void DataEvaluator<TDomain>::
+compute_elem_data(LocalVector& u, GeometricObject* elem,
+                  const MathVector<dim> vCornerCoords[], bool bDeriv)
 {
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
@@ -321,7 +322,8 @@ void DataEvaluator<TDomain>::compute_elem_data(LocalVector& u, GeometricObject* 
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, ProcessType type)
+void DataEvaluator<TDomain>::
+add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & STIFF, "Using add_JA_elem, but not STIFF requested.")
 
@@ -350,7 +352,8 @@ void DataEvaluator<TDomain>::add_JA_elem(LocalMatrix& A, LocalVector& u, Geometr
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType type)
+void DataEvaluator<TDomain>::
+add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_JM_elem, but not MASS requested.")
 
@@ -380,7 +383,8 @@ void DataEvaluator<TDomain>::add_JM_elem(LocalMatrix& M, LocalVector& u, Geometr
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
+void DataEvaluator<TDomain>::
+add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & STIFF, "Using add_dA_elem, but not STIFF requested.")
 
@@ -407,11 +411,11 @@ void DataEvaluator<TDomain>::add_dA_elem(LocalVector& d, LocalVector& u, Geometr
 }
 
 /////////////////////////////////////////////////////////////////////////////
-
 // explicit terms for reaction, reaction_rate, source explicit
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
+void DataEvaluator<TDomain>::
+add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & EXPL, "Using add_dA_elem, but not EXPL requested.")
 
@@ -440,7 +444,8 @@ void DataEvaluator<TDomain>::add_dA_elem_explicit(LocalVector& d, LocalVector& u
 /////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
+void DataEvaluator<TDomain>::
+add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & MASS, "Using add_dM_elem, but not MASS requested.")
 
@@ -468,7 +473,8 @@ void DataEvaluator<TDomain>::add_dM_elem(LocalVector& d, LocalVector& u, Geometr
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type)
+void DataEvaluator<TDomain>::
+add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type)
 {
 	UG_ASSERT(m_discPart & RHS, "Using add_rhs_elem, but not RHS requested.")
 
@@ -527,7 +533,8 @@ void DataEvaluator<TDomain>::clear_positions_in_user_data()
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type)
+void DataEvaluator<TDomain>::
+add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
@@ -576,7 +583,8 @@ void DataEvaluator<TDomain>::add_coupl_JA(LocalMatrix& J, LocalVector& u, Proces
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type)
+void DataEvaluator<TDomain>::
+add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type)
 {
 //	compute linearized defect
 	for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
