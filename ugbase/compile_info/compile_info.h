@@ -6,9 +6,21 @@
 
 namespace ug
 {
+
+/**
+ * \defgroup ugbase_compileinfo CompileInfo
+ * \ingroup ugbase
+ * \brief providing version number and build information
+ * \{
+ */
+
 UG_API const char* UGSvnRevision();
 UG_API const char* UGBuildHost();
 UG_API const char* UGCompileDate();
+
+// end group ugbase_compileinfo
+/// \}
+
 }//	end of namespace
 
 #endif
