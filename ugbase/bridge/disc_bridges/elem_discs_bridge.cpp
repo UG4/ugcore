@@ -34,6 +34,12 @@ namespace bridge{
 namespace ElemDiscs{
 
 /**
+ * \defgroup elemdisc_bridge Element Discretization Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -204,8 +210,12 @@ static void Common(Registry& reg, string grp)
 }
 };
 
+// end group elemdisc_bridge
+/// \}
+
 }// namespace ElemDiscs
 
+/// \addtogroup elemdisc_bridge
 void RegisterBridge_ElemDiscs(Registry& reg, string grp)
 {
 	typedef ElemDiscs::Functionality Functionality;

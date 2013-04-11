@@ -31,6 +31,11 @@ namespace ug{
 namespace bridge{
 namespace MultiGrid{
 
+/**
+ * \defgroup multigrid_bridge Multi Grid Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -179,8 +184,12 @@ static void Algebra(Registry& reg, string grp)
 }
 };
 
+// end group multigrid_bridge
+/// \}
+
 }// namespace MultiGrid
 
+/// \addtogroup multigrid_bridge
 void RegisterBridge_MultiGrid(Registry& reg, string grp)
 {
 	grp.append("/Discretization");

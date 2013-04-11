@@ -28,6 +28,12 @@ namespace bridge{
 namespace FiniteVolume{
 
 /**
+ * \defgroup finitvolume_bridge Finite Volume Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -136,8 +142,13 @@ static void Common(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group finitvolume_bridge
+/// \}
+
 }// end FiniteVolume
 
+/// \addtogroup finitvolume_bridge
 void RegisterBridge_FiniteVolume(Registry& reg, string grp)
 {
 	grp.append("/Discretization");

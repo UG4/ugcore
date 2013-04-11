@@ -40,6 +40,12 @@ namespace bridge{
 namespace DiscAlgebra{
 
 /**
+ * \defgroup discalgebra_bridge Discretization Algebra Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -413,8 +419,13 @@ static void Common(Registry& reg, string parentgroup)
 }
 
 }; // end Functionality
+
+// end group discalgebra_bridge
+/// \}
+
 }// end DiscAlgebra
 
+/// \addtogroup discalgebra_bridge
 void RegisterBridge_DiscAlgebra(Registry& reg, string grp)
 {
 	typedef DiscAlgebra::Functionality Functionality;

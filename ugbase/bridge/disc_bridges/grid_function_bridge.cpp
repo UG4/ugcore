@@ -28,6 +28,12 @@ namespace bridge{
 namespace GridFunction{
 
 /**
+ * \defgroup gridfnct_bridge Grid Function Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -275,8 +281,12 @@ static void Common(Registry& reg, string grp)
 
 }; // end Functionality
 
+// end group gridfnct_bridge
+/// \}
+
 }// namespace GridFunction
 
+/// \addtogorup gridfnct_bridge
 void RegisterBridge_GridFunction(Registry& reg, string grp)
 {
 	grp.append("/Discretization");

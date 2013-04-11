@@ -32,6 +32,11 @@ namespace ug{
 namespace bridge{
 namespace Constraints{
 
+/**
+ * \defgroup constraints_bridge Constraints Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -120,8 +125,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 }
 
 };
+
+// end group constraints_bridge
+/// \}
+
 }// namespace Constraints
 
+/// \addtogroup constraints_bridge
 void RegisterBridge_Constraints(Registry& reg, string grp)
 {
 	grp.append("/Discretization/SpatialDisc");

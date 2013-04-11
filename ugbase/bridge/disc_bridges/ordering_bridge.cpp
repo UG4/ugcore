@@ -27,6 +27,12 @@ namespace bridge{
 namespace Ordering{
 
 /**
+ * \defgroup ordering_bridge Ordering Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -127,8 +133,12 @@ static void Common(Registry& reg, string grp)
 
 }; // end Functionality
 
+// end group ordering_bridge
+/// \}
+
 }// namespace Ordering
 
+/// \addtogroup ordering_bridge
 void RegisterBridge_Ordering(Registry& reg, string grp)
 {
 	grp.append("/Discretization");

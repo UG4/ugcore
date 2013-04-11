@@ -30,6 +30,12 @@ namespace bridge{
 namespace Integrate{
 
 /**
+ * \defgroup integrate_bridge Integration Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -138,8 +144,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group integrate_bridge
+/// \}
+
 }// end Integrate
 
+/// \addtogroup integrate_bridge
 void RegisterBridge_Integrate(Registry& reg, string grp)
 {
 	grp.append("/Discretization");

@@ -24,6 +24,12 @@ namespace ug
 namespace bridge
 {
 
+/**
+ * \defgroup disccommon_bridge Common Discretization Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
 void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 {
 //	get group string
@@ -58,6 +64,9 @@ void RegisterBridge_DiscCommon(Registry& reg, string parentGroup)
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
+
+// end group disccommon_bridge
+/// \}
 
 } // end namespace bridge
 } // end namespace ug

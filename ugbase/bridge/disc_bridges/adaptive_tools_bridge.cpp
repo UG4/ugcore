@@ -29,6 +29,12 @@ namespace bridge{
 namespace AdaptiveTools{
 
 /**
+ * \defgroup adaptivetools_bridge Adaptive Tools Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -158,8 +164,13 @@ static void Common(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group adaptivetools_bridge
+/// \}
+
 }// end AdaptiveTools
 
+/// \addtogroup adaptivetools_bridge
 void RegisterBridge_AdaptiveTools(Registry& reg, string grp)
 {
 	grp.append("/Discretization");

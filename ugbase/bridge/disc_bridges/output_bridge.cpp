@@ -29,6 +29,12 @@ namespace ug{
 namespace bridge{
 namespace Output{
 
+/**
+ * \defgroup output_bridge Output Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
 /// small wrapper to write a grid function to vtk
 template <typename TGridFunction>
 void WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
@@ -235,8 +241,13 @@ static void Common(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group output_bridge
+/// \}
+
 }// end Output
 
+/// \addtogroup output_bridge
 void RegisterBridge_Output(Registry& reg, string grp)
 {
 	grp.append("/Discretization/Output");

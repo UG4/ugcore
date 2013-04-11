@@ -27,6 +27,12 @@ namespace bridge{
 namespace Interpolate{
 
 /**
+ * \defgroup interpolate_bridge Interpolation Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -137,8 +143,12 @@ static void Common(Registry& reg, string grp)
 
 }; // end Functionality
 
+// end group interpolate_bridge
+/// \}
+
 }// namespace Interpolate
 
+/// \addtogroup interpolate_bridge
 void RegisterBridge_Interpolate(Registry& reg, string grp)
 {
 	grp.append("/Discretization");

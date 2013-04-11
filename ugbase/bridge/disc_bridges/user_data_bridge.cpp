@@ -20,6 +20,12 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
+/**
+ * \defgroup userdata_bridge User Data Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
 /// Hard Coded Linker for d3f
 template <int dim>
 class DarcyVelocityLinker
@@ -521,7 +527,13 @@ void RegisterUserDataType(Registry& reg, string grp)
 
 }
 
+// end group userdata_bridge
+/// \}
+
 namespace UserDataBridge{
+
+/// \addtogroup userdata_bridge
+/// \{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -652,8 +664,13 @@ static void Common(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group userdata_bridge
+/// \}
+
 }// end UserData
 
+/// \addtogroup userdata_bridge
 void RegisterBridge_UserData(Registry& reg, string grp)
 {
 //	get group string

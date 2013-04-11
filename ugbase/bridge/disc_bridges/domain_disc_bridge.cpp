@@ -34,6 +34,12 @@ namespace bridge{
 namespace DomainDisc{
 
 /**
+ * \defgroup domaindisc_bridge Domain Discretization Bridge
+ * \ingroup disc_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -180,8 +186,12 @@ static void Common(Registry& reg, string grp)
 
 }; // end Functionality
 
+// end group domaindisc_bridge
+/// \}
+
 }// namespace DomainDisc
 
+/// \addtogroup domaindisc_bridge
 void RegisterBridge_DomainDisc(Registry& reg, string grp)
 {
 	grp.append("/Discretization");
