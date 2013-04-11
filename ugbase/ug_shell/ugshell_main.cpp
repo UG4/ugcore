@@ -35,6 +35,12 @@ using namespace std;
 using namespace ug;
 using namespace script;
 
+/**
+ * \defgroup ugbase_ugshell UGShell
+ * \ingroup ugbase
+ * \brief the shell for ug4
+ * \{
+ */
 
 ////////////////////////////////////////////////////////////////////////////////
 // interactive shells
@@ -613,3 +619,5 @@ int main(int argc, char* argv[])
 	return ret;
 }
 
+// end group ugbase_ugshell
+/// \}

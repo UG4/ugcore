@@ -33,6 +33,8 @@ using namespace std;
 using namespace ug;
 using namespace bridge;
 
+/// \addtogroup ugbase_ugshell
+/// \{
 
 /**
  * GetNamespaceCompletitions
@@ -95,7 +97,7 @@ static size_t GetNamespaceCompletitions(char *buf, int len, std::vector<string> 
 	return matches.size() - matchesSizeBefore;
 }
 
-/*
+/**
  * GetMemberFunctionCompletitions
  * gets completion of the word in p, based on the classname which is before p,
  * and puts matching completions in matches.
@@ -505,7 +507,7 @@ static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &mat
 	return matches.size() - matchesSizeBefore;
 }
 
-/*
+/**
  * \brief A function to implement word completion of classes and functions of ugscript
  * When entered Dom<tab>, it completes to Domain2d, for example. If Domain2d and Domain3d
  * are registered, it completes to Domain and shows suggestions Domain2d and Domain3d.
@@ -579,3 +581,6 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 		return strlen(buf);
 	}
 }
+
+// end group ugbase_ugshell
+/// \}
