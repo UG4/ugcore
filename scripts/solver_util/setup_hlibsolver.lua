@@ -139,4 +139,6 @@ function SetupHLIBSolver(str_problem,
 	return hlibSolver, hlibConvCheck, logfileName
 end
 
---[[! \} ]]--
+--[[!
+\}
+]]--

@@ -1,5 +1,5 @@
 --[[!
--- \file use_data_util.lua
+-- \file user_data_util.lua
 -- \defgroup scripts_util_userdata UserData Utility
 -- \ingroup scripts_util
 -- Some usage info:
@@ -368,3 +368,6 @@ for k, class in ipairs({"GridFunctionGradientData", "GridFunctionNumberData"}) d
 	end
 end
 
+--[[!
+\}
+]]--

@@ -1,5 +1,5 @@
 --[[!
-\file domain_distribution_util.lua
+\file scripts/util/domain_distribution_util.lua
 \defgroup scripts_util_domaindistribution Domain Distribution Utility
 \ingroup scripts_util
 \brief creates partition maps of different structure and provides some easy to use domain distribution methods.
@@ -169,4 +169,6 @@ function util.PartitionMapLexicographic2D(dom, partitionMapOut, numNodesX,
 	PartitionDomain_RegularGrid(dom, partitionMapOut, procsX, procsY, true)
 end
 
---[[! \} ]]--
+--[[!
+\}
+]]--

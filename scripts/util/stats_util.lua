@@ -255,4 +255,6 @@ function util.printFormattedTableSideways(tab, header, type, bNumbers)
 end
 
 -- end group scripts_util_stats
---[[! \} ]]--
+--[[!
+\}
+]]--

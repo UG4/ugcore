@@ -102,4 +102,6 @@ function table.print(data, style)
 end
 
 -- end group scripts_util_table
---[[! \} ]]--
+--[[!
+\}
+]]--

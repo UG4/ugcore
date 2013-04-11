@@ -598,7 +598,7 @@ options = {	title =			"Title",
 --gnuplot.plot("vibration.tex", datasource, options)
 --gnuplot.plot(nil, datasource, options)
 
---]]
+]]--
 
 -- return a new array containing the concatenation of all of its 
 -- parameters. Scaler parameters are included in place, and array 
@@ -619,4 +619,6 @@ function array_concat(...)
     return t
 end
 
---[[! \} ]]--
+--[[!
+\}
+]]--

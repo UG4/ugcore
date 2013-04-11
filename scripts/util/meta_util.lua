@@ -52,4 +52,6 @@ function util.CreateFancyFunction( arg_def, f )
   end
 end
 
---[[! \} ]]--
+--[[!
+\}
+]]--

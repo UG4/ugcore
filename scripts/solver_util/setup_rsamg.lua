@@ -67,4 +67,6 @@ function util.SetupRSAMGPreconditioner(base, presmoother, postsmoother)
 	return amg	
 end
 
---[[! \} ]]--
+--[[!
+\}
+]]--

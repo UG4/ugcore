@@ -11,7 +11,7 @@
 --
 --   Note: To use FAMG as sub problem solvers configure ug4 as follows (since FAMG
 --   is now contained in the 'amg' plugin):
---   cmake <other cmake options> -Damg=ON ..
+--   cmake \<other cmake options\> -Damg=ON ..
 --
 --   Description of some parameters / options:
 --      -AMGwriteMat:   write testvectors (only if Neumann or Dirichlet problem solver is of type "famg")
@@ -31,7 +31,7 @@
 --				 verbosity, logfileName)
 --  \endcode
 --      where 'solver' is the solver object which is called by
---      'ApplyLinearSolver(., ., ., <solver>)', i.e.:
+--      'ApplyLinearSolver(., ., ., \<solver\>)', i.e.:
 --	
 --  \code
 --	print("Apply solver.")
@@ -446,7 +446,7 @@ function SetupFETISolver(str_problem,
 			testvector = GridFunction(approxSpace)
 			testvectorwriter:update(testvector)	
 			npAMG:add_testvector(testvectorwriter, 1.0)
-   ]]				
+   ]]--
 			npAMG:set_testvector_from_matrix_rows()
 				
 			if bExternalCoarsening then
@@ -581,7 +581,7 @@ function SetupFETISolver(str_problem,
 			testvector = GridFunction(approxSpace)
 			testvectorwriter:update(testvector)	
 			dpAMG:add_testvector(testvectorwriter, 1.0)
-   ]]	
+   ]]--
 			dpAMG:set_testvector_from_matrix_rows()
 				
 			if bExternalCoarsening then
@@ -711,7 +711,7 @@ end -- TMP
 		--BuildDomainDecompositionLayoutsTest2d(u, domainDecompInfo);
 		--OneToManyTests2d(u)
 	end
-]]
+]]--
 
 	----------------------------------------------------------
 -- add feti specific name parts to new logfile name
@@ -730,4 +730,6 @@ end -- TMP
 	return fetiSolver, fetiConvCheck, logfileName
 end
 
---[[! \} ]]--
+--[[!
+\}
+]]--

@@ -314,4 +314,6 @@ util.GetSolver = util.CreateFancyFunction(
 )
 
 -- end group scripts_util_solver
---[[! \} ]]--
+--[[!
+\}
+]]--

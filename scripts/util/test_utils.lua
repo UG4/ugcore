@@ -87,4 +87,6 @@ else
 end
 
 -- end group scripts_util_test
---[[! \} ]]--
+--[[!
+\}
+]]--
