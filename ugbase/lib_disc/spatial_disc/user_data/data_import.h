@@ -99,7 +99,7 @@ class IDataImport
 		virtual void set_roid(ReferenceObjectID id) = 0;
 
 	///	compute lin defect
-		virtual void compute_lin_defect(const LocalVector& u) = 0;
+		virtual void compute_lin_defect(LocalVector& u) = 0;
 
 	///	resize arrays
 		virtual void update_dof_sizes(const LocalIndices& ind) = 0;
@@ -280,11 +280,12 @@ class DataImport : public IDataImport<dim>
 		void clear_fct();
 
 	///	compute lin defect
-		virtual void compute_lin_defect(const LocalVector& u)
+		virtual void compute_lin_defect(LocalVector& u)
 		{
 			UG_ASSERT(m_vLinDefectFunc[m_id] != NULL, "No evaluation function.");
 			UG_ASSERT(num_ip() == 0 || m_vvvLinDefect.size() >= num_ip(),
 			          "DataImport: Num ip "<<num_ip()<<", but memory: "<<m_vvvLinDefect.size());
+			u.access_by_map(this->map());
 			(m_vLinDefectFunc[m_id])(u, &m_vvvLinDefect[0], m_numIP);
 		}
 

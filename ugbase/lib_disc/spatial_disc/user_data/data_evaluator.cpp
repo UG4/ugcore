@@ -122,7 +122,7 @@ add_data_to_eval_data(std::vector<SmartPtr<ICplUserData<dim> > >& vEvalData,
 
 //	if found, return error of circle dependency
 	if(it != itEnd)
-		UG_THROW("DataEvaluator<TDomain>::add_data_to_eval_data:"
+		UG_THROW("DataEvaluator::add_data_to_eval_data:"
 						" Circle dependency of data detected for UserData.");
 
 //	add all dependent datas
@@ -316,7 +316,7 @@ compute_elem_data(LocalVector& u, GeometricObject* elem,
 			u.access_by_map(m_vDependentData[i]->map());
 			m_vDependentData[i]->compute(&u, elem, vCornerCoords, bDeriv);
 		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::compute_elem_data:"
+		UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
 						"Cannot compute data for Export " << i);
 	}
 }
@@ -344,7 +344,7 @@ add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, ProcessType t
 		try{
 			m_vElemDisc[type][i]->fast_add_jac_A_elem(A, u);
 		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_jac_A_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_jac_A_elem: "
 						"Cannot assemble Jacobian (A) for IElemDisc "<<i);
 	}
 
@@ -375,7 +375,7 @@ add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, ProcessType t
 			if(!m_vElemDisc[type][i]->is_stationary())
 				m_vElemDisc[type][i]->fast_add_jac_M_elem(M, u);
 		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_jac_M_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_jac_M_elem: "
 						"Cannot assemble Jacobian (M) for IElemDisc "<<i);
 	}
 
@@ -405,7 +405,7 @@ add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType t
 		try{
 			m_vElemDisc[type][i]->fast_add_def_A_elem(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_def_A_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_def_A_elem: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
 }
@@ -436,7 +436,7 @@ add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, Proc
 		try{
 			m_vElemDisc[type][i]->fast_add_def_A_elem_explicit(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_def_A_elem_explicit: "
+		UG_CATCH_THROW("DataEvaluator::add_def_A_elem_explicit: "
 						"Cannot assemble Defect (A) for IElemDisc "<<i);
 	}
 }
@@ -467,7 +467,7 @@ add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, ProcessType t
 			if(!m_vElemDisc[type][i]->is_stationary())
 				m_vElemDisc[type][i]->fast_add_def_M_elem(d, u);
 		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_def_M_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_def_M_elem: "
 						"Cannot assemble Defect (M) for IElemDisc "<<i);
 	}
 }
@@ -494,7 +494,7 @@ add_rhs_elem(LocalVector& rhs, GeometricObject* elem, ProcessType type)
 		try{
 			m_vElemDisc[type][i]->fast_add_rhs_elem(rhs);
 		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_rhs_elem: "
+		UG_CATCH_THROW("DataEvaluator::add_rhs_elem: "
 						"Cannot assemble rhs for IElemDisc "<<i);
 	}
 }
@@ -507,7 +507,7 @@ void DataEvaluator<TDomain>::finish_elem_loop()
 		try{
 			m_vElemDisc[PT_ALL][i]->fast_fsh_elem_loop();
 		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::fsh_elem_loop: "
+		UG_CATCH_THROW("DataEvaluator::fsh_elem_loop: "
 						"Cannot finish element loop for IElemDisc "<<i);
 	}
 
@@ -537,49 +537,27 @@ void DataEvaluator<TDomain>::
 add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type)
 {
 //	compute linearized defect
-	for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
-	{
-	//	set correct access for import
-		u.access_by_map(m_vImport[type][STIFF][i]->map());
+	try{
+		for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
+			m_vImport[type][STIFF][i]->compute_lin_defect(u);
 
-	//	compute linearization of defect
-		try{m_vImport[type][STIFF][i]->compute_lin_defect(u);
-		}UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JA: Cannot compute"
-						" linearized defect for Import " << i <<" (Stiffness part).");
+		for(size_t i = 0; i < m_vImport[type][RHS].size(); ++i)
+			m_vImport[type][RHS][i]->compute_lin_defect(u);
 	}
-//	compute linearized defect
-	for(size_t i = 0; i < m_vImport[type][RHS].size(); ++i)
-	{
-	//	set correct access for import
-		u.access_by_map(m_vImport[type][RHS][i]->map());
+	UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot compute"
+					" linearized defect for Import.");
 
-	//	compute linearization of defect
-		try{m_vImport[type][RHS][i]->compute_lin_defect(u);
-		}UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JA: Cannot compute"
-						" linearized defect for Import " << i <<" (Rhs part).");
+//	add off diagonal coupling
+	try{
+	//	loop all imports located in the stiffness part
+		for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
+			m_vImport[type][STIFF][i]->add_jacobian(J, 1.0);
+
+	//	loop all imports located in the rhs part
+		for(size_t i = 0; i < m_vImport[type][RHS].size(); ++i)
+			m_vImport[type][RHS][i]->add_jacobian(J, -1.0);
 	}
-
-//	loop all imports located in the stiffness part
-	for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
-	{
-	//	rows are given by import, cols are given by connected data
-		J.access_by_map(m_vImport[type][STIFF][i]->map(), m_vImport[type][STIFF][i]->conn_map());
-
-	//	add off diagonal coupling
-		try{m_vImport[type][STIFF][i]->add_jacobian(J, 1.0);}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JA: Cannot add couplings.");
-	}
-
-//	loop all imports located in the rhs part
-	for(size_t i = 0; i < m_vImport[type][RHS].size(); ++i)
-	{
-	//	rows are given by import, cols are given by connected data
-		J.access_by_map(m_vImport[type][RHS][i]->map(), m_vImport[type][RHS][i]->conn_map());
-
-	//	add off diagonal coupling
-		try{m_vImport[type][RHS][i]->add_jacobian(J, -1.0);}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JA: Cannot add couplings.");
-	}
+	UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot add couplings.");
 }
 
 template <typename TDomain>
@@ -587,29 +565,20 @@ void DataEvaluator<TDomain>::
 add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type)
 {
 //	compute linearized defect
-	for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
-	{
-	//	set correct access for import
-		u.access_by_map(m_vImport[type][MASS][i]->map());
-
-	//	compute linearization of defect
-		try{m_vImport[type][MASS][i]->compute_lin_defect(u);
-		}UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JM: Cannot compute"
-						" linearized defect for Import " << i <<" (Mass part).");
+	try{
+		for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
+			m_vImport[type][MASS][i]->compute_lin_defect(u);
 	}
+	UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot compute"
+					" linearized defect for Import.");
 
-//	loop all imports located in the mass part
-	for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
-	{
-	//	rows are given by import, cols are given by connected data
-		J.access_by_map(m_vImport[type][MASS][i]->map(), m_vImport[type][MASS][i]->conn_map());
-
-	//	add off diagonal coupling
-		try{
-			m_vImport[type][MASS][i]->add_jacobian(J, 1.0);
-		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::add_coupl_JM: Cannot add couplings.");
+//	add off diagonal coupling
+	try{
+	//	loop all imports located in the mass part
+		for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
+				m_vImport[type][MASS][i]->add_jacobian(J, 1.0);
 	}
+	UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot add couplings.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

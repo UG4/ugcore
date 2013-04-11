@@ -179,6 +179,9 @@ void DataImport<TData,dim>::add_jacobian(LocalMatrix& J, const number scale)
 {
 	UG_ASSERT(m_spDependentUserData.valid(), "No Export set.");
 
+//	access jacobian by maps
+	J.access_by_map(this->map(), this->conn_map());
+
 //	loop integration points
 	for(size_t ip = 0; ip < num_ip(); ++ip)
 	{
