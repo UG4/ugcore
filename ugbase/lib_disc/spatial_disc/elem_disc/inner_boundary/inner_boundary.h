@@ -91,7 +91,7 @@ class FV1InnerBoundaryElemDisc
 	///	type of trial space for each function used
 		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 		{
-			if(!bNonRegularGrid)
+			if(bNonRegularGrid)
 				UG_THROW("FV1InnerBoundary: only regular grid implemented.");
 
 		//	check that Lagrange 1st order
