@@ -14,7 +14,8 @@
 namespace ug{
 namespace bridge{
 
-
+/// \addtogroup bridge
+/// \{
 
 template <typename Functionality>
 void RegisterCommon(Registry& reg, std::string grp)
@@ -67,6 +68,8 @@ void RegisterDimension2d3dDependent(Registry& reg, std::string grp)
 	RegisterDimension3dDependent<Functionality>(reg, grp);
 }
 
+// end group bridge
+/// \}
 
 } // end namespace bridge
 } // end namespace ug

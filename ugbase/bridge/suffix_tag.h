@@ -12,6 +12,9 @@
 namespace ug{
 namespace bridge{
 
+/// \addtogroup bridge
+/// \{
+
 ////////////////////////////////////////////////////////////////////////////////
 //	Dimension - Suffix and Tag
 ////////////////////////////////////////////////////////////////////////////////
@@ -150,6 +153,9 @@ std::string GetDomainAlgebraSuffix(){return GetDimensionAlgebraSuffix<TDomain::d
 /// returns the dim-tag for a domain (e.g. "dim=3d;alg=CPU1;")
 template <typename TDomain, typename TAlgebra>
 std::string GetDomainAlgebraTag(){return GetDimensionAlgebraTag<TDomain::dim, TAlgebra>();}
+
+// end group bridge
+/// \}
 
 }//	end bridge
 }//	end ug

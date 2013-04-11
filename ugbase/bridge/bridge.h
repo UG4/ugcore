@@ -14,6 +14,12 @@
 namespace ug{
 namespace bridge{
 
+/**
+ * \defgroup bridge Bridge
+ * \ingroup ugbase
+ * \{
+ */
+
 /// string for ug4 group
 extern const char* UG4_GRP;
 
@@ -103,6 +109,9 @@ void RegisterBridge_GridFunction(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Interpolate(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Ordering(Registry& reg, std::string grp = UG4_GRP);
 #endif
+
+// end group bridge
+/// \}
 
 }//	end bridge
 }//	end ug

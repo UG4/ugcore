@@ -12,8 +12,10 @@
 
 namespace ug{
 namespace bridge{
-	
-	
+
+/// \addtogroup bridge
+/// \{
+
 template <	typename Functionality,
 			typename DomainList = CompileDomainList,
 			typename AlgebraList = CompileAlgebraList>
@@ -110,6 +112,8 @@ struct RegisterDomain2d3dAlgebraDependent
 	}
 };
 
+// end group bridge
+/// \}
 
 }
 }

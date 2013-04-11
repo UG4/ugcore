@@ -24,6 +24,9 @@
 namespace ug{
 namespace bridge{
 
+/// \addtogroup bridge
+/// \{
+
 ////////////////////////////////////////////////////////////////////////////////
 // 	Default Domain List
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,6 +104,9 @@ void RegisterDomain2d3dDependent(Registry& reg, std::string grp)
 	RegisterDomain2dDependent<Functionality>(reg, grp);
 	RegisterDomain3dDependent<Functionality>(reg, grp);
 }
+
+// end group bridge
+/// \}
 
 } // namespace bridge
 } // namespace ug
