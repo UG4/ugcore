@@ -25,6 +25,12 @@ namespace bridge{
 namespace Preconditioner{
 
 /**
+ * \defgroup precond_bridge Preconditioner Bridge
+ * \ingroup algebra_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -164,9 +170,13 @@ static void Algebra(Registry& reg, string grp)
 	
 
 }; // end Functionality
+
+// end group precond_bridge
+/// \}
+
 }// end Preconditioner
 
-
+/// \addtogroup precond_bridge
 void RegisterBridge_Preconditioner(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");

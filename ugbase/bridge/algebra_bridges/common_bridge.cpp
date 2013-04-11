@@ -29,6 +29,12 @@ using namespace std;
 
 namespace ug{
 
+/**
+ * \defgroup algebracommon_bridge Common Algebra Bridge
+ * \ingroup algebra_bridge
+ * \{
+ */
+
 //! calculates dest = alpha1*v1 + alpha2*v2
 template<typename vector_t>
 inline void VecScaleAdd2(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2)
@@ -43,8 +49,14 @@ inline void VecScaleAdd3(vector_t &dest, double alpha1, const vector_t &v1, doub
 	VecScaleAdd(dest, alpha1, v1, alpha2, v2, alpha3, v3);
 }
 
+// end group algebracommon_bridge
+/// \}
+
 namespace bridge{
 namespace AlgebraCommon{
+
+/// \addtogroup algebracommon_bridge
+/// \{
 
 /**
  * Class exporting the functionality. All functionality that is to
@@ -332,8 +344,13 @@ static void Common(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group algebracommon_bridge
+/// \}
+
 }// end AlgebraCommon
 
+/// \addtogroup algebracommon_bridge
 void RegisterBridge_AlgebraCommon(Registry& reg, string grp)
 {
 	grp.append("/Algebra");

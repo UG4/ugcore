@@ -27,6 +27,12 @@ namespace bridge{
 namespace Preconditioner{
 
 /**
+ * \defgroup domdepprecond_bridge Domain Dependend Preconditioner Bridge
+ * \ingroup precond_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -74,9 +80,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 };
 
 }; // end Functionality
+
+// end group domdepprecond_bridge
+/// \}
+
 }// end Preconditioner
 
-
+/// \addtogroup domdepprecond_bridge
 void RegisterBridge_DomainDependentPreconditioner(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Preconditioner");

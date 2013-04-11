@@ -28,6 +28,12 @@ namespace bridge{
 namespace Eigensolver{
 
 /**
+ * \defgroup eigensolver_bridge Eigensolver Bridge
+ * \ingroup algebra_bridge
+ * \{
+ */
+
+/**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
@@ -94,9 +100,14 @@ static void Algebra(Registry& reg, string grp)
 	}
 }
 }; // end Functionality
+
+// end group eigensolver_bridge
+/// \}
+
 }// end Eigensolver
 
 
+/// \addtogroup eigensolver_bridge
 void RegisterBridge_Eigensolver(Registry& reg, string grp)
 {
 	grp.append("/Algebra/Solver");
