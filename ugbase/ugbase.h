@@ -5,6 +5,11 @@
 #ifndef __H__UG__UGBASE__
 #define __H__UG__UGBASE__
 
+/**
+ * \defgroup ugbase ugbase
+ * \brief the core functionality of ug4
+ * \{
+ */
 
 /////////////////////////////////////////////////////
 // This file is used to include all parts of the
@@ -36,5 +41,8 @@
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
 #endif
+
+// end group ugbase
+/// \}
 
 #endif
