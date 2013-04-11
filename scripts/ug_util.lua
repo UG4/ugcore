@@ -597,4 +597,6 @@ function AssertPluginsLoaded(pluginNamesList)
 end
 
 -- end group scripts_util
---[[! \} ]]--
+--[[!  
+\} 
+]]--
