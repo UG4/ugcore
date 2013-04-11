@@ -50,13 +50,15 @@ class IConstraint
 	///	adapts jacobian to enforce constraints
 	/// \{
 		virtual void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                             ConstSmartPtr<DoFDistribution> dd, number time = 0.0) = 0;
+		                             ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+		                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL) = 0;
 	/// \}
 
 	///	adapts defect to enforce constraints
 	/// \{
 		virtual void adjust_defect(vector_type& d, const vector_type& u,
-		                           ConstSmartPtr<DoFDistribution> dd, number time = 0.0) = 0;
+		                           ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+		                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL) = 0;
 	/// \}
 
 	///	adapts matrix and rhs (linear case) to enforce constraints

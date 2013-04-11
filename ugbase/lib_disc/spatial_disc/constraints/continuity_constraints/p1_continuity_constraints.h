@@ -38,10 +38,12 @@ class SymP1Constraints
 		virtual int type() const {return CT_CONSTRAINTS;}
 
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL);
 
 		void adjust_defect(vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL);
 
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
@@ -76,10 +78,12 @@ class OneSideP1Constraints
 		virtual int type() const {return CT_CONSTRAINTS;}
 
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
-		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL);
 
 		void adjust_defect(vector_type& d, const vector_type& u,
-		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL);
 
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);

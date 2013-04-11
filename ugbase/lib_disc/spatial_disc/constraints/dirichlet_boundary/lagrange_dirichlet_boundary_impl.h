@@ -291,7 +291,9 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
-adjust_jacobian(matrix_type& J, const vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
+adjust_jacobian(matrix_type& J, const vector_type& u,
+		ConstSmartPtr<DoFDistribution> dd, number time,
+		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
 {
 	extract_data();
 
@@ -416,7 +418,8 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
-              ConstSmartPtr<DoFDistribution> dd, number time)
+              ConstSmartPtr<DoFDistribution> dd, number time,
+              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
 {
 	extract_data();
 
