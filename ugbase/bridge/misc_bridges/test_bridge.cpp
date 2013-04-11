@@ -20,6 +20,10 @@ namespace ug
 namespace bridge
 {
 
+/// \defgroup test_bridge Test Bridge
+/// \ingroup misc_bridge
+/// \{
+
 // prints "Hello World"
 void PrintHelloWorldToScreen()
 {
@@ -788,6 +792,9 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
+
+// end group test_bridge
+/// \}
 
 }//	end of namespace
 }//	end of namespace

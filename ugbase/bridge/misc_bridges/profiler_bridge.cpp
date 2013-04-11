@@ -21,6 +21,9 @@ namespace ug
 namespace bridge
 {
 
+/// \defgroup profiler_bridge Profiler Bridge
+/// \ingroup misc_bridge
+/// \{
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void RegisterBridge_Profiler(Registry &reg, string parentGroup)
@@ -79,6 +82,9 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 	reg.add_function("WriteProfileData", &WriteProfileData, grp, "", "filename.pdxml", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 }
 
+
+// end group profiler_bridge
+/// \}
 
 } // namespace bridge
 

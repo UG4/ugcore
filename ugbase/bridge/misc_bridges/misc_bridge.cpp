@@ -23,6 +23,8 @@ void PrintLUA();
 namespace bridge
 {
 
+/// \addtogroup misc_bridge
+/// \{
 
 uint32 GetLogAssistantTag(const char *s)
 {
@@ -485,7 +487,9 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 
 }
 
+// end group misc_bridge
+/// \}
 
-}
+}	// end namespace bridge
 
-}
+} // end namespace ug

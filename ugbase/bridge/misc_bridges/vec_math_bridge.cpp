@@ -13,6 +13,10 @@ using namespace std;
 
 namespace ug{
 
+/// \defgroup vecmath_bridge VecMath Bridge
+/// \ingroup misc_bridge
+/// \{
+
 ////////////////////////////////////////////////////////////////////////////////
 //	Some methods which assist in creating vectors
 static SmartPtr<vector1> MakeVec(number x)
@@ -96,6 +100,9 @@ void RegisterBridge_VecMath(Registry& reg, string parentGroup)
 	RegisterBridge_VecMath<4>(reg, grp);
 	RegisterVecMathBridge_DimIndep(reg, grp);
 }
+
+// end group vecmath_bridge
+/// \}
 
 }// end of namespace
 }// end of namespace

@@ -16,6 +16,10 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
+/// \defgroup util_bridge Utility Bridge
+/// \ingroup misc_bridge
+/// \{
+
 static string GetAppPath()
 {return PathProvider::get_path(APP_PATH);}
 
@@ -76,6 +80,9 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 		.add_function("quit", &UGForceExit, grp,
 				 "", "", "Immediatly terminates the application.");
 }
+
+// end group util_bridge
+/// \}
 
 }// end of namespace bridge
 }// end of namespace ug

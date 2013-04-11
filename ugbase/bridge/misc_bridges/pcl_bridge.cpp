@@ -16,6 +16,10 @@ using namespace std;
 namespace ug{
 namespace bridge{
 
+/// \defgroup pcl_bridge PCL Bridge
+/// \ingroup misc_bridge
+/// \{
+
 #ifdef UG_PARALLEL
 
 static bool PclDebugBarrierEnabled()
@@ -143,6 +147,9 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 }
 
 #endif //UG_PARALLEL
+
+// end group pcl_bridge
+/// \}
 
 }// end of namespace
 }// end of namespace
