@@ -72,8 +72,7 @@ function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 		if wFct ~= nil then
 			util.PartitionMapMetisReweigh(dom, partitionMap, numTargetProcs, distributionLevel, wFct)
 		else 
-			print("ERROR in util.DistributeDomain: requested partitionMethod \"metisReweigh\"," \
-				    " but no weightingFct given.")
+			print("ERROR in util.DistributeDomain: requested partitionMethod \"metisReweigh\", but no weightingFct given.")
 			return
 		end
 	else
