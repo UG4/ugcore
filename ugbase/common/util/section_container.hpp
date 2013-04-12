@@ -322,8 +322,26 @@ SectionContainer<TValue, TContainer>::
 append(const SectionContainer& c)
 {
 	for(int i = 0; i < c.num_sections(); ++i){
-		for(const_iterator iter = c.section_begin(i); iter != c.section_end(i); ++iter){
-			insert(*iter, i);
+		for(const_iterator iter = c.section_begin(i); iter != c.section_end(i);){
+			const TValue& val = *iter;
+			++iter;
+			insert(val, i);
+		}
+	}
+}
+
+template <class TValue, class TContainer>
+void
+SectionContainer<TValue, TContainer>::
+transfer_elements(SectionContainer& c)
+{
+	for(int i = 0; i < c.num_sections(); ++i){
+		for(iterator iter = c.section_begin(i); iter != c.section_end(i);){
+			const TValue& val = *iter;
+			iterator iterOld = iter;
+			++iter;
+			c.erase(iterOld, i);
+			insert(val, i);
 		}
 	}
 }

@@ -85,8 +85,14 @@ class SectionContainer
 		inline Container& get_container()			{return m_container;}
 
 	///	appends the elements of the given container to the current one
-	/**	Note that the append operation is performed for each section separately.*/
+	/**	Note that the append operation is performed for each section separately.
+	 * \warning	This method should not be used if the underlying container and
+	 * 			the given one operate on the same AttachedElemList. Otherwise
+	 * 			severe side effect will occur! Use transfer_elements instead!*/
 		void append(const SectionContainer& c);
+
+	///	takes all elements from the given section container and transfers them to this one.
+		void transfer_elements(SectionContainer& c);
 
 	protected:
 		void add_sections(int num);

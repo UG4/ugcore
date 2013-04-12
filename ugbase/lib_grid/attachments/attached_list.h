@@ -144,6 +144,10 @@ class ConstAttachedElementListIterator : public std::iterator<
  *
  * If the list operates on a shared attachment, the one who created the
  * attachment is responsible for releasing it.
+ *
+ * \warning	Special care has to be taken with this type of list. It is e.g. not
+ * 			possible to insert the same element multiple times into the list.
+ * 			Instead upon new insertion, the old entry will be erased.
  */
 template <class TAttachmentPipe>
 class AttachedElementList
