@@ -4,8 +4,8 @@
 # overwriting configs from INCLUDE
 PROJECT_NAME           = "Plugins"
 OUTPUT_DIRECTORY       = plugins
-INPUT                  = ../plugins \
-                         plugins/additional_pages
+INPUT                  = plugins/additional_pages \
+                         ../plugins
 EXCLUDE               += ../plugins/core/d3f \
                          ../plugins/external
 LAYOUT_FILE            = Layout_plugins.xml

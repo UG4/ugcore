@@ -717,8 +717,10 @@ RECURSIVE              = YES
 # run.
 
 EXCLUDE                = ../ugbase/lib_grid/externals \
+                         ../ugbase/lib_grid/file_io/externals \
                          ../ugbase/pcl/old_pcl \
                          ../ugbase/bindings/lua/externals \
+                         ../ugbase/ug_shell/externals \
                          ../ug3layer \
                          ../ugbase/lib_grid/algorithms/refinement/unmaintained \
                          ../ugbase/lib_grid/parallelization/parallel_refinement/unmaintained
