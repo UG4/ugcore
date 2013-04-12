@@ -5,6 +5,7 @@
 
 #use strict;
 use warnings;
+use File::Basename;
 #package bla;
 $input = $ARGV[0];
 
@@ -17,6 +18,8 @@ $inMultilineComment = 0;
 $inDocuMultilineComment = 0;
 $functionComment = "";
 $code="";
+$fromline = 0;
+
 
 local $/=undef; #Unset $/, the Input Record Separator, to make <> give you the whole file at once.
 open FH, "<$input"  or die "Can't open $input for reading: $!";
@@ -33,7 +36,18 @@ sub trim($)
 	return $string;
 }
 
-for ($i=0;$i<$#document;$i++)
+sub writeFunction()
+{
+	$bInFunction = 0;
+	$result .= "location: ".dirname($input)." / ".basename($input)." :$fromline-$i\n";
+	if($i-$fromline < 20)
+	{
+		$result .= "$resultcode$line\n\\endcode\n";
+	}
+	$result .= "**/\n".$functionLine."\n";
+}
+
+for ($i=0;$i<=$#document;$i++)
 {
   $line = $document[$i];
 	chomp $line;
@@ -59,6 +73,8 @@ for ($i=0;$i<$#document;$i++)
     if ($originalLine =~ /--\[\[!/)
     {
     	$inDocuMultilineComment=1;
+		# $line =~ s/^--\[\[!//;
+		# $functionComment .= $line ."\n";
     	next;
     }
     elsif ($line =~ /--\[\[/)
@@ -109,9 +125,10 @@ for ($i=0;$i<$#document;$i++)
         if($functionComment ne "")
         {
         	$result .= $functionComment."\n";
-        }
-        $result .= "\\code\n".$originalLine."\n\n";
+        }		
+        $resultcode = "\\code\n".$originalLine."\n\n";
         $functionComment = "";
+		$fromline = $i;
         next
     }
     elsif ( $line =~ /^\s*(\w*)\s+=\s+function\s*\(([^\)]*)/ ) 
@@ -125,8 +142,9 @@ for ($i=0;$i<$#document;$i++)
         {
         	$result .= $functionComment."\n";
         }
-        $result .= "\\code\n".$originalLine."\n\n";
+        $resultcode = "\\code\n".$originalLine."\n\n";
         $functionComment = "";
+		$fromline = $i;
         next
     }
         
@@ -135,12 +153,11 @@ for ($i=0;$i<$#document;$i++)
     {
     	if ( $line =~ /^end/ )
      	{
-        	$bInFunction = 0;
-        	$result .= "$line\n\\endcode\n**/\n".$functionLine."\n";
+			writeFunction()
         }
         else
         {
-        	$result .= $originalLine . "\n";
+        	$resultcode .= $originalLine . "\n";
         }
     }
     
@@ -212,16 +229,16 @@ for ($i=0;$i<$#document;$i++)
     
 }
 
-    # function end
-    if ($bInFunction == 1) 
-    {
-       	$result .= "$line\n\\endcode\n**/\n".$functionLine."\n";
-    }
-    if($functionComment ne "")
-    {
-    	$result.="/**\n".$functionComment."\n**/\n\n";
-    	$functionComment = "";
-    }
+# function end
+if ($bInFunction == 1) 
+{
+	writeFunction()
+}
+if($functionComment ne "")
+{
+	$result.="/**\n".$functionComment."\n**/\n\n";
+	$functionComment = "";
+}
 
     
 close FH;
