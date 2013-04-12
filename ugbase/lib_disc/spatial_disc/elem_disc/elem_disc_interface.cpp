@@ -236,28 +236,30 @@ void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 		UG_THROW("ElemDisc: Reference element type has not been set correctly.");
 	}
 
-	if(m_vPrepareElemLoopFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
-	if(m_vPrepareElemFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid<<"(world dim: "<<dim<<")");
-	if(m_vFinishElemLoopFct[m_id]==NULL)
-		UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
+	if(fast_add_elem_enabled()){
+		if(m_vPrepareElemLoopFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
+		if(m_vPrepareElemFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'prepare_elem' for "<<roid<<"(world dim: "<<dim<<")");
+		if(m_vFinishElemLoopFct[m_id]==NULL)
+			UG_THROW("ElemDisc: Missing evaluation method 'finish_elem_loop' for "<<roid<<"(world dim: "<<dim<<")");
 
-	if(discType & MASS){
-		if(m_vElemJMFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
-		if(m_vElemdMFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
-	}
-	if(discType & STIFF){
-		if(m_vElemJAFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid<<"(world dim: "<<dim<<")");
-		if(m_vElemdAFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid<<"(world dim: "<<dim<<")");
-	}
-	if(discType & RHS){
-		if(m_vElemRHSFct[m_id]==NULL)
-			UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid<<"(world dim: "<<dim<<")");
+		if(discType & MASS){
+			if(m_vElemJMFct[m_id]==NULL)
+				UG_THROW("ElemDisc: Missing evaluation method 'add_jac_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
+			if(m_vElemdMFct[m_id]==NULL)
+				UG_THROW("ElemDisc: Missing evaluation method 'add_def_M_elem' for "<<roid<<"(world dim: "<<dim<<")");
+		}
+		if(discType & STIFF){
+			if(m_vElemJAFct[m_id]==NULL)
+				UG_THROW("ElemDisc: Missing evaluation method 'add_jac_A_elem' for "<<roid<<"(world dim: "<<dim<<")");
+			if(m_vElemdAFct[m_id]==NULL)
+				UG_THROW("ElemDisc: Missing evaluation method 'add_def_A_elem for' "<<roid<<"(world dim: "<<dim<<")");
+		}
+		if(discType & RHS){
+			if(m_vElemRHSFct[m_id]==NULL)
+				UG_THROW("ElemDisc: Missing evaluation method 'add_rhs_elem' for "<<roid<<"(world dim: "<<dim<<")");
+		}
 	}
 };
 
@@ -297,6 +299,8 @@ do_prep_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, 
 	if(fast_add_elem_enabled()){
 		if (this->m_vPrepareTimestepElemFct[m_id] != NULL)
 			(this->*(m_vPrepareTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
+	} else {
+		prep_timestep_elem(time, u, elem, vCornerCoords);
 	}
 }
 
@@ -313,6 +317,8 @@ do_prep_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCorne
 	if(fast_add_elem_enabled()){
 		UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 		(this->*(m_vPrepareElemFct[m_id]))(u, elem, vCornerCoords);
+	} else {
+		prep_elem(u, elem, vCornerCoords);
 	}
 }
 
@@ -329,6 +335,8 @@ do_fsh_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, c
 	if(fast_add_elem_enabled()){
 		if (this->m_vFinishTimestepElemFct[m_id] != NULL)
 			(this->*(m_vFinishTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
+	} else {
+		fsh_timestep_elem(time, u, elem, vCornerCoords);
 	}
 }
 
@@ -347,6 +355,8 @@ do_prep_elem_loop(const ReferenceObjectID roid, const int si)
 	//	call assembling routine
 	if(fast_add_elem_enabled()){
 		(this->*m_vPrepareElemLoopFct[m_id])(roid, si);
+	} else {
+		prep_elem_loop(roid, si);
 	}
 
 //	set roid in imports (for evaluation function)
@@ -363,6 +373,8 @@ do_fsh_elem_loop()
 //	call finish
 	if(fast_add_elem_enabled()){
 		(this->*m_vFinishElemLoopFct[m_id])();
+	} else {
+		fsh_elem_loop();
 	}
 
 //	remove positions in currently registered imports
@@ -384,6 +396,8 @@ do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const M
 	if(fast_add_elem_enabled()){
 		UG_ASSERT(m_vElemJAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 		(this->*m_vElemJAFct[m_id])(J, u, elem, vCornerCoords);
+	} else {
+		add_jac_A_elem(J, u, elem, vCornerCoords);
 	}
 }
 
@@ -404,6 +418,8 @@ do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const M
 	if(fast_add_elem_enabled()){
 		UG_ASSERT(m_vElemJMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 		(this->*m_vElemJMFct[m_id])(J, u, elem, vCornerCoords);
+	} else {
+		add_jac_M_elem(J, u, elem, vCornerCoords);
 	}
 }
 
@@ -421,6 +437,8 @@ do_add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const M
 	if(fast_add_elem_enabled()){
 		UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 		(this->*m_vElemdAFct[m_id])(d, u, elem, vCornerCoords);
+	} else {
+		add_def_A_elem(d, u, elem, vCornerCoords);
 	}
 }
 
@@ -438,6 +456,8 @@ do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, co
 	if(fast_add_elem_enabled()){
 		if(this->m_vElemdAExplFct[m_id] != NULL)
 			(this->*m_vElemdAExplFct[m_id])(d, u, elem, vCornerCoords);
+	} else {
+		add_def_A_expl_elem(d, u, elem, vCornerCoords);
 	}
 }
 
@@ -458,6 +478,8 @@ do_add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const M
 	if(fast_add_elem_enabled()){
 		UG_ASSERT(m_vElemdMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 		(this->*m_vElemdMFct[m_id])(d, u, elem, vCornerCoords);
+	} else {
+		add_def_M_elem(d, u, elem, vCornerCoords);
 	}
 }
 
@@ -474,6 +496,8 @@ do_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> v
 	if(fast_add_elem_enabled()){
 		UG_ASSERT(m_vElemRHSFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 		(this->*m_vElemRHSFct[m_id])(rhs, elem, vCornerCoords);
+	} else {
+		add_rhs_elem(rhs, elem, vCornerCoords);
 	}
 }
 

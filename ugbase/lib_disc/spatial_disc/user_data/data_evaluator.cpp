@@ -27,15 +27,6 @@ DataEvaluator(int discPart,
               const std::vector<number>* pvScaleStiff)
    : m_fctPatt(fctPat)
 {
-//	currently only fast assembles allowed
-//	\todo: this should be generalized to non-fast assemble
-	for(size_t i = 0; i < vElemDisc.size(); ++i){
-		if(!vElemDisc[i]->fast_add_elem_enabled()){
-			UG_THROW("DataEvaluator: currently only fast assemble allowed."
-					 " Please use enable_fast_add_elem in all IElemDisc.");
-		}
-	}
-
 // 	remember infos
 	m_discPart = discPart;
 	m_pLocTimeSeries = pLocTimeSeries;
@@ -413,8 +404,7 @@ prepare_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCorne
 //	itself could depend on other data if implemented somehow in the IElemDisc
 //	(e.g. using data from some DataImport). Thus, we have to loop the sorted
 //	vector of all dependent data (that is correctly sorted the way that always
-//	needed data has previously computed). We look up, if a Export is given, if
-//	so compute it, else compute the linker
+//	needed data has previously computed).
 
 //	compute the data
 	try{
