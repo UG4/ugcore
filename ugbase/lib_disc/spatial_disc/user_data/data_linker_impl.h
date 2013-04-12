@@ -41,8 +41,8 @@ void DataLinker<TData,dim>::update_function_group_and_map()
 	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
 	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
 		if(m_vspICplUserData[i].valid())
-			if(m_vspICplUserData[i]->num_fct() != 0)
-				vFctGrp[i] = &(m_vspICplUserData[i]->function_group());
+			if(m_vspUserDataInfo[i]->num_fct() != 0)
+				vFctGrp[i] = &(m_vspUserDataInfo[i]->function_group());
 
 //	create union of all function groups
 	try{

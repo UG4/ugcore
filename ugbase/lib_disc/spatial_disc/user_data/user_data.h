@@ -30,14 +30,40 @@ class UserDataInfo {
 	///	returns if provided data is continuous over geometric object boundaries
 		virtual bool continuous() const = 0;
 
+	/// virtual destructor
+		virtual ~UserDataInfo() {}
+
+	public:
 	///	returns if grid function is needed for evaluation
 		virtual bool requires_grid_fct() const = 0;
 
 	///	sets the function pattern for a possibly needed grid function
 		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
 
-	/// virtual destructor
-		virtual ~UserDataInfo() {}
+	///	updates the function group and mapping (needed for Linker)
+		virtual void update_function_group_and_map() {}
+
+	/// set	Function Group of functions (by copy)
+		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
+
+	///	Function Group of functions
+		const FunctionGroup& function_group() const {return m_fctGrp;}
+
+	///	set function mapping
+		void set_map(const FunctionIndexMapping& map) {m_map = map;}
+
+	///	get function mapping
+		const FunctionIndexMapping& map() const{return m_map;}
+
+	///	number of functions this export depends on
+		size_t num_fct() const {return m_map.num_fct();}
+
+	protected:
+	/// functions the data depends on
+		FunctionGroup m_fctGrp;
+
+	///	Mapping for import fct
+		FunctionIndexMapping m_map;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +93,7 @@ struct user_data_traits< MathTensor<4,dim> >{static std::string name() 		{return
  * \tparam	TRet	Type of return flag (bool or void)
  */
 template <typename TData, int dim, typename TRet = void>
-class UserData : public UserDataInfo
+class UserData : virtual public UserDataInfo
 {
 	public:
 	///	returns dimension
@@ -165,7 +191,7 @@ class UserData : public UserDataInfo
  * \tparam	dim		world dimension
  */
 template <int dim>
-class ICplUserData
+class ICplUserData : virtual public UserDataInfo
 {
 	public:
 	///	default constructor
@@ -221,31 +247,6 @@ class ICplUserData
 
 	///	resize arrays
 		virtual void update_dof_sizes(const LocalIndices& ind) {}
-
-	///	updates the function group and mapping (needed for Linker)
-		virtual void update_function_group_and_map() {}
-
-	/// set	Function Group of functions (by copy)
-		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
-
-	///	Function Group of functions
-		const FunctionGroup& function_group() const {return m_fctGrp;}
-
-	///	set function mapping
-		void set_map(const FunctionIndexMapping& map) {m_map = map;}
-
-	///	get function mapping
-		const FunctionIndexMapping& map() const{return m_map;}
-
-	///	number of functions this export depends on
-		size_t num_fct() const {return m_map.num_fct();}
-
-	protected:
-	/// functions the data depends on
-		FunctionGroup m_fctGrp;
-
-	///	Mapping for import fct
-		FunctionIndexMapping m_map;
 
 	public:
 	///	returns the number of ip series

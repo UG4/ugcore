@@ -199,19 +199,6 @@ class IElemDisc
 	///	removes all imports
 		void clear_imports() {m_vIImport.clear();}
 
-	///	returns number of exports
-		size_t num_exports() const {return m_vIExport.size();}
-
-	/// returns an export
-		SmartPtr<ICplUserData<dim> > get_export(size_t i)
-		{
-			UG_ASSERT(i < num_exports(), "Invalid index");
-			return m_vIExport[i];
-		}
-
-	///	removes all exports
-		void clear_exports() {m_vIExport.clear();}
-
 	protected:
 	/// data imports
 		std::vector<IDataImport<dim>*> m_vIImport;

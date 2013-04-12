@@ -80,9 +80,9 @@ class DataLinker
 	///	returns number of functions the input depends on
 		size_t input_num_fct(size_t i) const
 		{
-			UG_ASSERT(i < m_vspICplUserData.size(), "Input invalid");
-			if(!m_vspICplUserData[i].valid()) return 0;
-			return m_vspICplUserData[i]->num_fct();
+			UG_ASSERT(i < m_vspUserDataInfo.size(), "Input invalid");
+			if(!m_vspUserDataInfo[i].valid()) return 0;
+			return m_vspUserDataInfo[i]->num_fct();
 		}
 
 	///	returns the number in the common FctGrp for a fct of an input
