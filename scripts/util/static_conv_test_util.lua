@@ -1,94 +1,93 @@
 function util.computeLinearStaticConvRatesForSpace(dom, maxLev, minLev, discType, p,
 													exactSol, exactGrad, 
 													createApproxSpace, createDomainDisc, createSolver,
-									 				plotPath, solPath, dataPath)
-
-print("\n")
-print("---------------------------")
-print(" General parameters chosen:")
-print("---------------------------")
-print("    dim        = " .. dim)
-print("    grid       = " .. gridName)
-print("    maxLev     = " .. maxLev)
-print("    minLev     = " .. minLev)
-print("    type       = " .. discType)
-print("    order      = " .. p)
-print("\n")
-
--- create Approximation Space
-print(">> Create ApproximationSpace: "..discType..", "..p)
-local approxSpace = createApproxSpace(dom, discType, p)
-
-print(">> Create Domain Disc: "..discType..", "..p)
-local domainDisc = createDomainDisc(discType, p, approxSpace)
-
-print(">> Create Solver")
-local solver = createSolver(approxSpace)
-
---------------------------------------------------------------------------------
---  Apply Solver
---------------------------------------------------------------------------------
-
-local l2exact = {}
-local l2diff = {}
-local h1exact = {}
-local h1diff = {}
-local numDoFs = {}
-local u = {}
-
-for lev = maxLev, minLev, -1 do
+									 				plotPath, solPath, dataPath)	
+	print("\n")
+	print("---------------------------")
+	print(" General parameters chosen:")
+	print("---------------------------")
+	print("    dim        = " .. dim)
+	print("    grid       = " .. gridName)
+	print("    maxLev     = " .. maxLev)
+	print("    minLev     = " .. minLev)
+	print("    type       = " .. discType)
+	print("    order      = " .. p)
+	print("\n")
 	
-	-- create operator from discretization
-	local A = AssembledLinearOperator(domainDisc)
-	u[lev] = GridFunction(approxSpace, lev)
-	local b = GridFunction(approxSpace, lev)
-	write("\n>> Algebra created.\n")
+	-- create Approximation Space
+	print(">> Create ApproximationSpace: "..discType..", "..p)
+	local approxSpace = createApproxSpace(dom, discType, p)
 	
-	-- 1. init operator
-	domainDisc:assemble_linear(A, b)
-	write(">> Matrix and Rhs assembled.\n")
+	print(">> Create Domain Disc: "..discType..", "..p)
+	local domainDisc = createDomainDisc(discType, p, approxSpace)
 	
-	-- 2. set dirichlet values in start iterate
-	u[lev]:set(0.0)
-	domainDisc:adjust_solution(u[lev])
-	write(">> Inital guess for solution prepared.\n")
+	print(">> Create Solver")
+	local solver = createSolver(approxSpace)
 	
-	-- print matrix for test purpose
-	if debug == true then
-		SaveMatrixForConnectionViewer(u, A, "Stiffness_"..discType..p.."_l"..lev..".mat")
-		SaveVectorForConnectionViewer(b, "Rhs_"..discType..p.."_l"..lev..".vec")
-		write(">> Linear Equation system written for debug purpose.\n")
+	--------------------------------------------------------------------------------
+	--  Apply Solver
+	--------------------------------------------------------------------------------
+	
+	local l2exact = {}
+	local l2diff = {}
+	local h1exact = {}
+	local h1diff = {}
+	local numDoFs = {}
+	local u = {}
+	
+	for lev = maxLev, minLev, -1 do
+		
+		-- create operator from discretization
+		local A = AssembledLinearOperator(domainDisc)
+		u[lev] = GridFunction(approxSpace, lev)
+		local b = GridFunction(approxSpace, lev)
+		write("\n>> Algebra created.\n")
+		
+		-- 1. init operator
+		domainDisc:assemble_linear(A, b)
+		write(">> Matrix and Rhs assembled.\n")
+		
+		-- 2. set dirichlet values in start iterate
+		u[lev]:set(0.0)
+		domainDisc:adjust_solution(u[lev])
+		write(">> Inital guess for solution prepared.\n")
+		
+		-- print matrix for test purpose
+		if debug == true then
+			SaveMatrixForConnectionViewer(u, A, "Stiffness_"..discType..p.."_l"..lev..".mat")
+			SaveVectorForConnectionViewer(b, "Rhs_"..discType..p.."_l"..lev..".vec")
+			write(">> Linear Equation system written for debug purpose.\n")
+		end
+		
+		-- 3. init solver for linear Operator
+		solver:init(A, u[lev])
+		write(">> Linear Solver initialized.\n")
+		
+		-- 4. apply solver
+		if solver:apply_return_defect(u[lev],b) ~= true then
+			write(">> Linear solver failed. Aborting."); exit();
+		end
+		write(">> Linear Solver done.\n")
+		
+		-- 5. compute error
+		quadOrder = p+3
+		l2exact[lev] = L2Error(exactSol, u[lev], "c", 0.0, quadOrder)
+		l2diff[lev] = L2Error(u[maxLev], "c", u[lev], "c", quadOrder)
+		h1exact[lev] = H1Error(exactSol, exactGrad, u[lev], "c", 0.0, quadOrder)
+		h1diff[lev] = H1Error(u[maxLev], "c", u[lev], "c", quadOrder)
+		numDoFs[lev] = u[lev]:size()
+		write(">> L2-Error on Level "..lev.." is "..string.format("%.3e", l2exact[lev]) .."\n");
+		write(">> L2-Diff  on Level "..lev.." is "..string.format("%.3e", l2diff[lev]) .."\n");
+		write(">> H1-Error on Level "..lev.." is "..string.format("%.3e", h1exact[lev]) .."\n");
+		write(">> H1-Diff  on Level "..lev.." is "..string.format("%.3e", h1diff[lev]) .."\n");
+		write(">> #DoF     on Level "..lev.." is "..numDoFs[lev] .."\n");
+		
+		-- 6. write solution
+		WriteGridFunctionToVTK(u[lev], solPath.."sol_"..discType..p.."_l"..lev)
+		write(">> Solution written to: "..solPath.."sol_"..discType..p.."_l"..lev.."\n");	
 	end
 	
-	-- 3. init solver for linear Operator
-	solver:init(A, u[lev])
-	write(">> Linear Solver initialized.\n")
-	
-	-- 4. apply solver
-	if solver:apply_return_defect(u[lev],b) ~= true then
-		write(">> Linear solver failed. Aborting."); exit();
-	end
-	write(">> Linear Solver done.\n")
-	
-	-- 5. compute error
-	quadOrder = p+3
-	l2exact[lev] = L2Error(exactSol, u[lev], "c", 0.0, quadOrder)
-	l2diff[lev] = L2Error(u[maxLev], "c", u[lev], "c", quadOrder)
-	h1exact[lev] = H1Error(exactSol, exactGrad, u[lev], "c", 0.0, quadOrder)
-	h1diff[lev] = H1Error(u[maxLev], "c", u[lev], "c", quadOrder)
-	numDoFs[lev] = u[lev]:size()
-	write(">> L2-Error on Level "..lev.." is "..string.format("%.3e", l2exact[lev]) .."\n");
-	write(">> L2-Diff  on Level "..lev.." is "..string.format("%.3e", l2diff[lev]) .."\n");
-	write(">> H1-Error on Level "..lev.." is "..string.format("%.3e", h1exact[lev]) .."\n");
-	write(">> H1-Diff  on Level "..lev.." is "..string.format("%.3e", h1diff[lev]) .."\n");
-	write(">> #DoF     on Level "..lev.." is "..numDoFs[lev] .."\n");
-	
-	-- 6. write solution
-	WriteGridFunctionToVTK(u[lev], solPath.."sol_"..discType..p.."_l"..lev)
-	write(">> Solution written to: "..solPath.."sol_"..discType..p.."_l"..lev.."\n");	
-end
-
-return l2exact, l2diff, h1exact, h1diff, numDoFs
+	return l2exact, l2diff, h1exact, h1diff, numDoFs
 end
 
 

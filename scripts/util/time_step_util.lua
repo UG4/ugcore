@@ -5,6 +5,10 @@
 \{
 ]]--
 
+--!
+--! @param domainDisc
+--! @param timeScheme theta, impleuler, expleuer, crank-nicolson, alexander, fracstep, or bdf
+--! @param orderOrTheta theat is timeScheme=theta
 function util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
 
 	local timeDisc = nil;
@@ -73,7 +77,23 @@ function util.PrintUsageOfSolveTimeProblem()
 	print("                    Iterated until minStepSize is reached.")
 end
 
-
+--!
+--! @param u 				[in] GridFunction with Startvalues, [out] Solution"
+--! @param domainDisc 		Domain Discretization
+--! @param solver       	Linear or Nonlinear Solver
+--! @param out				a VTKOutput (pass nil for no output)
+--! @param filename			filename for output
+--! @param timeScheme   	Name of time step scheme:
+--!     	            	Theta, ImplEuler, ExplEuler, Crank-Nicolson
+--! 	                	Alexander, FracStep, BDF
+--! @param orderOrTheta		theta param if 'Theta', order if 'BDF'
+--! @param startTime		start time point
+--! @param endTime			end time point")
+--! @param maxStepSize		maximal step sized used
+--! @param minStepSize 		(optinal) minimal step sized used	
+--! @param reductionFactor 	(optinal) factor by which the step size is
+--! 						reduced, if the problem was not solved.
+--! 						Iterated until minStepSize is reached.
 function util.SolveNonlinearTimeProblem(
 	u,
 	domainDisc,
@@ -214,7 +234,23 @@ function util.SolveNonlinearTimeProblem(
 end
 
 
-
+--!
+--! @param u 				[in] GridFunction with Startvalues, [out] Solution"
+--! @param domainDisc 		Domain Discretization
+--! @param solver       	Linear or Nonlinear Solver
+--! @param out				a VTKOutput (pass nil for no output)
+--! @param filename			filename for output
+--! @param timeScheme   	Name of time step scheme:
+--!     	            	Theta, ImplEuler, ExplEuler, Crank-Nicolson
+--! 	                	Alexander, FracStep, BDF
+--! @param orderOrTheta		theta param if 'Theta', order if 'BDF'
+--! @param startTime		start time point
+--! @param endTime			end time point")
+--! @param maxStepSize		maximal step sized used
+--! @param minStepSize 		(optinal) minimal step sized used	
+--! @param reductionFactor 	(optinal) factor by which the step size is
+--! 						reduced, if the problem was not solved.
+--! 						Iterated until minStepSize is reached.
 function util.SolveLinearTimeProblem(
 	u,
 	domainDisc,
