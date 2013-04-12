@@ -21,7 +21,6 @@ DataEvaluator<TDomain>::
 DataEvaluator(int discPart,
               const std::vector<IElemDisc<TDomain>*>& vElemDisc,
               const FunctionPattern& fctPat,
-              const int subset,
               const bool bNonRegularGrid,
               LocalVectorTimeSeries* pLocTimeSeries,
               const std::vector<number>* pvScaleMass,
@@ -40,7 +39,6 @@ DataEvaluator(int discPart,
 // 	remember infos
 	m_discPart = discPart;
 	m_pLocTimeSeries = pLocTimeSeries;
-	m_subset = subset;
 	m_bNeedLocTimeSeries = false; // initially
 	m_bUseHanging = false; // initially
 
@@ -129,7 +127,7 @@ add_data_to_eval_data(std::vector<SmartPtr<ICplUserData<dim> > >& vEvalData,
 }
 
 template <typename TDomain>
-void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
+void DataEvaluator<TDomain>::extract_imports_and_userdata(int subsetIndex, int discPart)
 {
 	clear_extracted_data_and_mappings();
 
@@ -255,9 +253,9 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int discPart)
 
 // 	NOTE: constant data is not processed, since constant == independent of si
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
-		m_vPosData[i]->set_subset(m_subset);
+		m_vPosData[i]->set_subset(subsetIndex);
 	for(size_t i = 0; i < m_vDependentData.size(); ++i)
-		m_vDependentData[i]->set_subset(m_subset);
+		m_vDependentData[i]->set_subset(subsetIndex);
 }
 
 template <typename TDomain>
@@ -298,14 +296,14 @@ prepare_elem_loop(const ReferenceObjectID id, int si)
 // 	prepare loop (elem disc set local ip series here)
 	try{
 		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-			m_vElemDisc[PT_ALL][i]->fast_prep_elem_loop(id, si);
+			m_vElemDisc[PT_ALL][i]->do_prep_elem_loop(id, si);
 	}
 	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 						"Cannot prepare element loop.");
 
 //	extract data imports and userdatas
 	try{
-		extract_imports_and_userdata(m_discPart);
+		extract_imports_and_userdata(si, m_discPart);
 	}
 	UG_CATCH_THROW("DataEvaluator::prepare_elem_loop: "
 					"Cannot extract imports and userdata.");
@@ -342,7 +340,7 @@ void DataEvaluator<TDomain>::finish_elem_loop()
 //	finish each elem disc
 	try{
 		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-			m_vElemDisc[PT_ALL][i]->fast_fsh_elem_loop();
+			m_vElemDisc[PT_ALL][i]->do_fsh_elem_loop();
 	}
 	UG_CATCH_THROW("DataEvaluator::fsh_elem_loop: Cannot finish element loop");
 
@@ -367,27 +365,11 @@ template <typename TDomain>
 void DataEvaluator<TDomain>::
 prepare_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-
-// 	prepare timestep
-	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i]->map();
-
-	//	access disc functions
-		u.access_by_map(map);
-
-		if(m_vElemDisc[PT_ALL][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	prepare timestep for elem disc
-		try{
-			m_vElemDisc[PT_ALL][i]->fast_prep_timestep_elem(time, u, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::prep_timestep_elem: "
-						"Cannot prepare timestep on element for IElemDisc "<<i);
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_prep_timestep_elem(time, u, elem, vCornerCoords);
 	}
+	UG_CATCH_THROW("DataEvaluator::prep_timestep_elem: Cannot prepare timestep.");
 }
 
 
@@ -398,25 +380,11 @@ prepare_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCorne
              bool bDeriv)
 {
 // 	prepare element
-	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i]->map();
-
-	//	access disc functions
-		u.access_by_map(map);
-
-		if(m_vElemDisc[PT_ALL][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	prepare for elem disc
-		try{
-			m_vElemDisc[PT_ALL][i]->fast_prep_elem(u, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::prep_elem: "
-						"Cannot prepare element for IElemDisc "<<i);
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_prep_elem(u, elem, vCornerCoords);
 	}
+	UG_CATCH_THROW("DataEvaluator::prep_elem: Cannot prepare element.");
 
 //	adjust lin defect array of imports and derivative array of exports
 //	INFO: This is place here, since the 'prepare_elem' method of an element
@@ -436,40 +404,6 @@ prepare_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCorne
 			m_vDependentData[i]->update_dof_sizes(ind);
 	}
 
-	compute_elem_data(u, elem, vCornerCoords, bDeriv);
-}
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::
-finish_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
-{
-// 	finish timestep
-	for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[PT_ALL][i]->map();
-
-	//	access disc functions
-		u.access_by_map(map);
-
-		if(m_vElemDisc[PT_ALL][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	finish timestep for elem disc
-		try{
-			m_vElemDisc[PT_ALL][i]->fast_fsh_timestep_elem(time, u, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator<TDomain>::fsh_timestep_elem: "
-						"Cannot finish timestep on element for IElemDisc "<<i);
-	}
-}
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::
-compute_elem_data(LocalVector& u, GeometricObject* elem,
-                  const MathVector<dim> vCornerCoords[], bool bDeriv)
-{
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
 		m_vPosData[i]->compute(&u, elem, NULL, false);
@@ -489,192 +423,34 @@ compute_elem_data(LocalVector& u, GeometricObject* elem,
 			m_vDependentData[i]->compute(&u, elem, vCornerCoords, bDeriv);
 		}
 	}
-	UG_CATCH_THROW("DataEvaluator::compute_elem_data:"
-					"Cannot compute data for Export or Linker.");
+	UG_CATCH_THROW("DataEvaluator::prep_elem: Cannot compute data for Export or Linker.");
 }
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+finish_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	UG_ASSERT(m_discPart & STIFF, "Using add_JA_elem, but not STIFF requested.")
-
-	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[type][i]->map();
-
-	//	access disc functions
-		u.access_by_map(map);
-		A.access_by_map(map);
-
-		if(m_vElemDisc[type][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	assemble JA
-		try{
-			m_vElemDisc[type][i]->fast_add_jac_A_elem(A, u, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator::add_jac_A_elem: "
-						"Cannot assemble Jacobian (A) for IElemDisc "<<i);
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_fsh_timestep_elem(time, u, elem, vCornerCoords);
 	}
-
-	add_coupl_JA(A, u, type);
+	UG_CATCH_THROW("DataEvaluator::fsh_timestep_elem: Cannot finish timestep.");
 }
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+add_jac_A_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
 {
-	UG_ASSERT(m_discPart & MASS, "Using add_JM_elem, but not MASS requested.")
+	UG_ASSERT(m_discPart & STIFF, "Using add_jac_A_elem, but not STIFF requested.");
 
-	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[type][i]->map();
-
-	//	access disc functions
-		u.access_by_map(map);
-		M.access_by_map(map);
-
-		if(m_vElemDisc[type][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	assemble JM
-		try{
-			if(m_vElemDisc[type][i]->is_time_dependent())
-				m_vElemDisc[type][i]->fast_add_jac_M_elem(M, u, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator::add_jac_M_elem: "
-						"Cannot assemble Jacobian (M) for IElemDisc "<<i);
+	// compute elem-owned contribution
+	try{
+		for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
+			m_vElemDisc[type][i]->do_add_jac_A_elem(J, u, elem, vCornerCoords);
 	}
+	UG_CATCH_THROW("DataEvaluator::add_jac_A_elem: Cannot assemble Jacobian (A)");
 
-	add_coupl_JM(M, u, type);
-}
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::
-add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
-{
-	UG_ASSERT(m_discPart & STIFF, "Using add_dA_elem, but not STIFF requested.")
-
-	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[type][i]->map();
-
-	//	access disc functions
-		u.access_by_map(map);
-		d.access_by_map(map);
-
-		if(m_vElemDisc[type][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	assemble dA
-		try{
-			m_vElemDisc[type][i]->fast_add_def_A_elem(d, u, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator::add_def_A_elem: "
-						"Cannot assemble Defect (A) for IElemDisc "<<i);
-	}
-}
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::
-add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
-{
-	UG_ASSERT(m_discPart & EXPL, "Using add_dA_elem, but not EXPL requested.")
-
-	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[type][i]->map();
-
-	//	access disc functions
-		u.access_by_map(map);
-		d.access_by_map(map);
-
-		if(m_vElemDisc[type][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	assemble dA
-		try{
-			m_vElemDisc[type][i]->fast_add_def_A_expl_elem(d, u, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator::add_def_A_expl_elem: "
-						"Cannot assemble Defect (A) for IElemDisc "<<i);
-	}
-}
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::
-add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
-{
-	UG_ASSERT(m_discPart & MASS, "Using add_dM_elem, but not MASS requested.")
-
-	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[type][i]->map();
-
-	//	access disc functions
-		u.access_by_map(map);
-		d.access_by_map(map);
-
-		if(m_vElemDisc[type][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	assemble dM
-		try{
-			if(m_vElemDisc[type][i]->is_time_dependent())
-				m_vElemDisc[type][i]->fast_add_def_M_elem(d, u, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator::add_def_M_elem: "
-						"Cannot assemble Defect (M) for IElemDisc "<<i);
-	}
-}
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::
-add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
-{
-	UG_ASSERT(m_discPart & RHS, "Using add_rhs_elem, but not RHS requested.")
-
-	for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
-	{
-	//	get map
-		const FunctionIndexMapping& map = m_vElemDisc[type][i]->map();
-
-	//	access disc functions
-		rhs.access_by_map(map);
-
-		if(m_vElemDisc[type][i]->local_time_series_needed())
-			for(size_t t=0; t < m_pLocTimeSeries->size(); ++t)
-				m_pLocTimeSeries->solution(t).access_by_map(map);
-
-	//	assemble rhs
-		try{
-			m_vElemDisc[type][i]->fast_add_rhs_elem(rhs, elem, vCornerCoords);
-		}
-		UG_CATCH_THROW("DataEvaluator::add_rhs_elem: "
-						"Cannot assemble rhs for IElemDisc "<<i);
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Coupling
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename TDomain>
-void DataEvaluator<TDomain>::
-add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type)
-{
-//	compute linearized defect
+	//	compute linearized defect
 	try{
 		for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
 			m_vImport[type][STIFF][i]->compute_lin_defect(u);
@@ -682,41 +458,102 @@ add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type)
 		for(size_t i = 0; i < m_vImport[type][RHS].size(); ++i)
 			m_vImport[type][RHS][i]->compute_lin_defect(u);
 	}
-	UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot compute"
-					" linearized defect for Import.");
+	UG_CATCH_THROW("DataEvaluator::add_jac_A_elem: Cannot compute"
+			" linearized defect for Import.");
 
-//	add off diagonal coupling
+	//	add off diagonal coupling
 	try{
-	//	loop all imports located in the stiffness part
+		//	loop all imports located in the stiffness part
 		for(size_t i = 0; i < m_vImport[type][STIFF].size(); ++i)
 			m_vImport[type][STIFF][i]->add_jacobian(J, 1.0);
 
-	//	loop all imports located in the rhs part
+		//	loop all imports located in the rhs part
 		for(size_t i = 0; i < m_vImport[type][RHS].size(); ++i)
 			m_vImport[type][RHS][i]->add_jacobian(J, -1.0);
 	}
-	UG_CATCH_THROW("DataEvaluator::add_coupl_JA: Cannot add couplings.");
+	UG_CATCH_THROW("DataEvaluator::add_jac_A_elem: Cannot add couplings.");
 }
 
 template <typename TDomain>
 void DataEvaluator<TDomain>::
-add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type)
+add_jac_M_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
 {
-//	compute linearized defect
+	UG_ASSERT(m_discPart & MASS, "Using add_jac_M_elem, but not MASS requested.");
+
+	// compute elem-owned contribution
+	try{
+		for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
+			m_vElemDisc[type][i]->do_add_jac_M_elem(J, u, elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("DataEvaluator::add_jac_M_elem: Cannot assemble Jacobian (M)");
+
+	//	compute linearized defect
 	try{
 		for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
 			m_vImport[type][MASS][i]->compute_lin_defect(u);
 	}
 	UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot compute"
-					" linearized defect for Import.");
+			" linearized defect for Import.");
 
-//	add off diagonal coupling
+	//	add off diagonal coupling
 	try{
-	//	loop all imports located in the mass part
+		//	loop all imports located in the mass part
 		for(size_t i = 0; i < m_vImport[type][MASS].size(); ++i)
-				m_vImport[type][MASS][i]->add_jacobian(J, 1.0);
+			m_vImport[type][MASS][i]->add_jacobian(J, 1.0);
 	}
 	UG_CATCH_THROW("DataEvaluator::add_coupl_JM: Cannot add couplings.");
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+{
+	UG_ASSERT(m_discPart & STIFF, "Using add_def_A_elem, but not STIFF requested.");
+
+	try{
+		for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
+			m_vElemDisc[type][i]->do_add_def_A_elem(d, u, elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("DataEvaluator::add_def_A_elem: Cannot assemble Defect (A)");
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+{
+	UG_ASSERT(m_discPart & EXPL, "Using add_def_A_elem, but not EXPL requested.");
+
+	try{
+		for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
+			m_vElemDisc[type][i]->do_add_def_A_expl_elem(d, u, elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("DataEvaluator::add_def_A_expl_elem: Cannot assemble Defect (A)");
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+{
+	UG_ASSERT(m_discPart & MASS, "Using add_def_M_elem, but not MASS requested.");
+
+	try{
+		for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
+			m_vElemDisc[type][i]->do_add_def_M_elem(d, u, elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("DataEvaluator::add_def_M_elem: Cannot assemble Defect (M)");
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type)
+{
+	UG_ASSERT(m_discPart & RHS, "Using add_rhs_elem, but not RHS requested.");
+
+	try{
+		for(size_t i = 0; i < m_vElemDisc[type].size(); ++i)
+			m_vElemDisc[type][i]->do_add_rhs_elem(rhs, elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("DataEvaluator::add_rhs_elem: Cannot assemble rhs");
 }
 
 ////////////////////////////////////////////////////////////////////////////////

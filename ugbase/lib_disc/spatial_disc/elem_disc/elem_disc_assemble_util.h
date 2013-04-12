@@ -78,7 +78,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(STIFF,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
 //	prepare element loop
 	Eval.prepare_elem_loop(id, si);
@@ -119,7 +119,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		locA = 0.0;
 		try
 		{
-			Eval.add_JA_elem(locA, locU, elem, vCornerCoords);
+			Eval.add_jac_A_elem(locA, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot compute Jacobian (A).");
 
@@ -214,7 +214,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(MASS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
 //	prepare element loop
 	Eval.prepare_elem_loop(id, si);
@@ -255,7 +255,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		locM = 0.0;
 		try
 		{
-			Eval.add_JM_elem(locM, locU, elem, vCornerCoords);
+			Eval.add_jac_M_elem(locM, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot compute Jacobian (M).");
 
@@ -351,7 +351,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(STIFF | RHS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
 //	prepare element loop
 	Eval.prepare_elem_loop(id, si);
@@ -394,7 +394,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble JA
 		try
 		{
-			Eval.add_JA_elem(locJ, locU, elem, vCornerCoords);
+			Eval.add_jac_A_elem(locJ, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot compute Jacobian (A).");
 
@@ -500,7 +500,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid,
 					   &locTimeSeries);
 	Eval.set_time_point(0);
 
@@ -551,10 +551,10 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		// 	Assemble JA
 		try
 		{
-			Eval.add_JA_elem(locJ, locU, elem, vCornerCoords, PT_INSTATIONARY);
+			Eval.add_jac_A_elem(locJ, locU, elem, vCornerCoords, PT_INSTATIONARY);
 			locJ *= s_a0;
 
-			Eval.add_JA_elem(locJ, locU, elem, vCornerCoords, PT_STATIONARY);
+			Eval.add_jac_A_elem(locJ, locU, elem, vCornerCoords, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (A).");
 		EL_PROFILE_END();
@@ -562,7 +562,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble JM
 		try
 		{
-			Eval.add_JM_elem(locJ, locU, elem, vCornerCoords, PT_INSTATIONARY);
+			Eval.add_jac_M_elem(locJ, locU, elem, vCornerCoords, PT_INSTATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (M).");
 
@@ -660,7 +660,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(STIFF | RHS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
 //	prepare element loop
 	Eval.prepare_elem_loop(id, si);
@@ -703,7 +703,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble A
 		try
 		{
-			Eval.add_dA_elem(locD, locU, elem, vCornerCoords);
+			Eval.add_def_A_elem(locD, locU, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot compute Defect (A).");
 
@@ -825,7 +825,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS | EXPL,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid,
 	                   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare element loop
@@ -877,7 +877,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocD = 0.0;
-				Eval.add_dM_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
+				Eval.add_def_M_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locD.scale_append(vScaleMass[t], tmpLocD);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (M).");
@@ -886,11 +886,11 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocD = 0.0;
-				Eval.add_dA_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
+				Eval.add_def_A_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locD.scale_append(vScaleStiff[t], tmpLocD);
 
 				if(t == 0)
-					Eval.add_dA_elem(locD, locU, elem, vCornerCoords, PT_STATIONARY);
+					Eval.add_def_A_elem(locD, locU, elem, vCornerCoords, PT_STATIONARY);
 			}
 			UG_CATCH_THROW("(instationary) AssembleDefect: Cannot compute Defect (A).");
 
@@ -902,7 +902,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			   tmpLocD = 0.0;
 			   try
 			   {
-			     Eval.add_dA_elem_explicit(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
+			     Eval.add_def_A_expl_elem(tmpLocD, locU, elem, vCornerCoords, PT_INSTATIONARY);
 			   }
 			   UG_CATCH_THROW("(instationary) AssembleDefect explizit: Cannot compute Defect (A).");
 
@@ -1022,7 +1022,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(STIFF | RHS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
 //	prepare loop
 	Eval.prepare_elem_loop(id, si);
@@ -1063,7 +1063,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	// 	Assemble JA
 		try
 		{
-			Eval.add_JA_elem(locA, locRhs, elem, vCornerCoords);
+			Eval.add_jac_A_elem(locA, locRhs, elem, vCornerCoords);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot compute Jacobian (A).");
 
@@ -1186,7 +1186,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid,
 					   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare loop
@@ -1239,7 +1239,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		try
 		{
 			tmpLocA = 0.0;
-			Eval.add_JM_elem(tmpLocA, locU, elem, vCornerCoords, PT_INSTATIONARY);
+			Eval.add_jac_M_elem(tmpLocA, locU, elem, vCornerCoords, PT_INSTATIONARY);
 			locA.scale_append(vScaleMass[0], tmpLocA);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
@@ -1248,10 +1248,10 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		try
 		{
 			tmpLocA = 0.0;
-			Eval.add_JA_elem(tmpLocA, locU, elem, vCornerCoords, PT_INSTATIONARY);
+			Eval.add_jac_A_elem(tmpLocA, locU, elem, vCornerCoords, PT_INSTATIONARY);
 			locA.scale_append(vScaleStiff[0], tmpLocA);
 
-			Eval.add_JA_elem(locA, locU, elem, vCornerCoords, PT_STATIONARY);
+			Eval.add_jac_A_elem(locA, locU, elem, vCornerCoords, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
 
@@ -1287,7 +1287,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_dM_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
+				Eval.add_def_M_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (M).");
@@ -1296,7 +1296,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_dA_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
+				Eval.add_def_A_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot compute Jacobian (A).");
@@ -1407,7 +1407,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(RHS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid);
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
 
 //	prepare loop
 	Eval.prepare_elem_loop(id, si);
@@ -1563,7 +1563,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid,
 					   &locTimeSeries, &vScaleMass, &vScaleStiff);
 
 //	prepare loop
@@ -1643,7 +1643,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_dM_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
+				Eval.add_def_M_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(-vScaleMass[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Jacobian (M).");
@@ -1652,7 +1652,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			try
 			{
 				tmpLocRhs = 0.0;
-				Eval.add_dA_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
+				Eval.add_def_A_elem(tmpLocRhs, locU, elem, vCornerCoords, PT_INSTATIONARY);
 				locRhs.scale_append(-vScaleStiff[t], tmpLocRhs);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot compute Jacobian (A).");
@@ -1765,7 +1765,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(NONE,
-	                   vElemDisc, dd->function_pattern(), si, bNonRegularGrid,
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid,
 					   &locTimeSeries);
 	Eval.set_time_point(0);
 
@@ -1891,7 +1891,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	try
 	{
 	DataEvaluator<TDomain> Eval(NONE,
-	                   vElemDisc, dd->function_pattern(), si , bNonRegularGrid,
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid,
 					   &locTimeSeries);
 	Eval.set_time_point(0);
 

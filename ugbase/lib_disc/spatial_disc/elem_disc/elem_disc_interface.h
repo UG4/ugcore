@@ -71,9 +71,53 @@ class IElemDisc
 	///	Constructor
 		IElemDisc(const std::vector<std::string>& vFct, const std::vector<std::string>& vSubset);
 
+	/// Virtual destructor
+		virtual ~IElemDisc() {}
+
+	public:
+	///	sets the approximation space
+	/**	Calls protected virtual 'approximation_space_changed', when a new approximation space
+	 * has been set. Note that 'approximation_space_changed' is only called once if the
+	 * same approximation space is set multiple times.*/
+		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
+
+	///	returns approximation space
+		SmartPtr<ApproximationSpace<TDomain> > approx_space() {return m_spApproxSpace;}
+
+	///	returns approximation space
+		ConstSmartPtr<ApproximationSpace<TDomain> > approx_space() const {return m_spApproxSpace;}
+
+	///	returns the domain
+		SmartPtr<TDomain> domain(){return m_spApproxSpace->domain();}
+
+	///	returns the domain
+		ConstSmartPtr<TDomain> domain() const{return m_spApproxSpace->domain();}
+
+	///	returns the subset handler
+		typename TDomain::subset_handler_type& subset_handler()
+		{
+			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
+			return *m_spApproxSpace->domain()->subset_handler();
+		}
+
+	///	returns the subset handler
+		const typename TDomain::subset_handler_type& subset_handler() const
+		{
+			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
+			return *m_spApproxSpace->domain()->subset_handler();
+		}
+
+	protected:
+	///	callback invoked, when approximation space is changed
+		virtual void approximation_space_changed() {}
+
+	///	Approximation Space
+		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
 	////////////////////////////
 	// Functions and Subsets
-
+	////////////////////////////
+	public:
 	///	sets functions by name list, divided by ','
 		void set_functions(const std::string& functions);
 
@@ -175,34 +219,11 @@ class IElemDisc
 	///	data exports
 		std::vector<SmartPtr<ICplUserData<dim> > > m_vIExport;
 
+
+	////////////////////////////
+	// time handling
+	////////////////////////////
 	public:
-	////////////////////////////
-	// Assembling functions
-	////////////////////////////
-	///	 returns the type of elem disc
-		virtual int type() const {return EDT_ELEM | EDT_SIDE;}
-
-	/// requests assembling for trial spaces and grid type
-	/**
-	 * This function is called before the assembling starts. The
-	 * IElemDisc-Implementation is supposed to checks if it can assemble the set
-	 * of LFEID and the grid type. It may register corresponding assembling
-	 * functions or perform other initialization.
-	 * If the ElemDisc does not support the setting it should throw an exception.
-	 *
-	 * \param[in] vLfeID			vector of Local Finite Element IDs
-	 * \param[in] bNonRegularGrid	regular grid type
-	 */
-		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid) = 0;
-
-	///	returns if discretization acts on hanging nodes if present
-	/**
-	 * This function returns if a discretization really needs the hanging nodes
-	 * in case of non-regular grid. This may not be the case for e.g. finite
-	 * element assemblings but is needed for finite volumes
-	 */
-		virtual bool use_hanging() const {return false;}
-
 	///	sets if assembling should be time-dependent and the local time series
 	/**
 	 * This function specifies if the assembling is time-dependent. If NULL is
@@ -211,7 +232,7 @@ class IElemDisc
 	 *
 	 * \param[in]	locTimeSeries	Time series of previous solutions
 	 */
-		void set_time_dependent(const LocalVectorTimeSeries& locTimeSeries,
+		void set_time_dependent(LocalVectorTimeSeries& locTimeSeries,
 		        				const std::vector<number>& vScaleMass,
 		        				const std::vector<number>& vScaleStiff);
 
@@ -274,130 +295,12 @@ class IElemDisc
 		number stiff_scale() const {return m_vScaleStiff[m_timePoint];}
 	///	\}
 
-	public:
-	/// prepare the timestep
-	/**
-	 * This function prepares a timestep (iff timedependent). This function is
-	 * called once for every element before the spatial assembling procedure
-	 * begins.
-	 */
-		void fast_prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// prepare the timestep
-		virtual void prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	///	prepares the loop over all elements of one type
-	/**
-	 * This function should prepare the element loop for elements of one fixed
-	 * type. This function is called before e.g. the loop over all geometric
-	 * objects of a chosen type is performed.
-	 */
-		void fast_prep_elem_loop(const ReferenceObjectID roid, const int si);
-
-	///	virtual prepares the loop over all elements of one type
-		virtual void prep_elem_loop(const ReferenceObjectID roid, const int si) {}
-
-	///	prepare one elements for assembling
-	/**
-	 * This function prepares one Geometric object, that will be assembled in
-	 * the next step.
-	 *
-	 * \param[in]		elem		The geometric object
-	 * \param[in]		u			The current local solution
-	 */
-		void fast_prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	///	virtual prepare one elements for assembling
-		virtual void prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	///	postprocesses the loop over all elements of one type
-	/**
-	 * This function should post process the element loop for elements of one fixed
-	 * type. This function is called after e.g. the loop over all geometric
-	 * objects of a chosen type has been performed.
-	 */
-		void fast_fsh_elem_loop();
-
-	///	virtual postprocesses the loop over all elements of one type
-		virtual void fsh_elem_loop() {}
-
-	/// finish the timestep
-	/**
-	 * This function finishes the timestep (iff timedependent). This function is
-	 * called in the PostProcess of a timestep.
-	 */
-		void fast_fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// virtual finish the timestep
-		virtual void fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	/// Assembling of Jacobian (Stiffness part)
-	/**
-	 * This function assembles the local (stiffness) jacobian for the current
-	 * solution u.
-	 */
-		void fast_add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// Assembling of Jacobian (Stiffness part)
-		virtual void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	/// Assembling of Jacobian (Mass part)
-	/**
-	 * This function assembles the local (mass) jacobian for the current
-	 * solution u.
-	 */
-		void fast_add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// Assembling of Jacobian (Mass part)
-		virtual void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	/// Assembling of Defect (Stiffness part)
-	/**
-	 * This function assembles the local (stiffness) defect for the current
-	 * solution u.
-	 */
-		void fast_add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// virtual Assembling of Defect (Stiffness part)
-		virtual void add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	/// explicit terms
-   	    void fast_add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-    /// defect for explicit terms
-		virtual void add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	/// Assembling of Defect (Mass part)
-	/**
-	 * This function assembles the local (mass) defect for the current
-	 * solution u.
-	 */
-		void fast_add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// virtual Assembling of Defect (Mass part)
-		virtual void add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	/// Assembling of Right-Hand Side
-	/**
-	 * This function assembles the local rhs.
-	 */
-		void fast_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-
-	/// virtual Assembling of Right-Hand Side
-		virtual void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]) {}
-
-	/// Virtual destructor
-		virtual ~IElemDisc() {}
-
 	protected:
-	///	number of functions
-		size_t m_numFct;
-
 	///	time point
 		size_t m_timePoint;
 
 	///	list of local vectors for all solutions of the time series
-		const LocalVectorTimeSeries* m_pLocalVectorTimeSeries;
+		LocalVectorTimeSeries* m_pLocalVectorTimeSeries;
 
 	///	weight factors for time dependent assembling
 	/// \{
@@ -407,6 +310,86 @@ class IElemDisc
 
 	///	flag if stationary assembling is to be used even in instationary assembling
 		bool m_bStationaryForced;
+
+	////////////////////////////
+	// general info
+	////////////////////////////
+	public:
+	///	 returns the type of elem disc
+		virtual int type() const {return EDT_ELEM | EDT_SIDE;}
+
+	/// requests assembling for trial spaces and grid type
+	/**
+	 * This function is called before the assembling starts. The
+	 * IElemDisc-Implementation is supposed to checks if it can assemble the set
+	 * of LFEID and the grid type. It may register corresponding assembling
+	 * functions or perform other initialization.
+	 * If the ElemDisc does not support the setting it should throw an exception.
+	 *
+	 * \param[in] vLfeID			vector of Local Finite Element IDs
+	 * \param[in] bNonRegularGrid	regular grid type
+	 */
+		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid) = 0;
+
+	///	returns if discretization acts on hanging nodes if present
+	/**
+	 * This function returns if a discretization really needs the hanging nodes
+	 * in case of non-regular grid. This may not be the case for e.g. finite
+	 * element assemblings but is needed for finite volumes
+	 */
+		virtual bool use_hanging() const {return false;}
+
+	////////////////////////////
+	// assembling functions
+	////////////////////////////
+	public:
+	/// prepare the timestep
+		virtual void prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	virtual prepares the loop over all elements of one type
+		virtual void prep_elem_loop(const ReferenceObjectID roid, const int si);
+
+	///	virtual prepare one elements for assembling
+		virtual void prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	virtual postprocesses the loop over all elements of one type
+		virtual void fsh_elem_loop();
+
+	/// virtual finish the timestep
+		virtual void fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// Assembling of Jacobian (Stiffness part)
+		virtual void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// Assembling of Jacobian (Mass part)
+		virtual void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// virtual Assembling of Defect (Stiffness part)
+		virtual void add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+    /// defect for explicit terms
+		virtual void add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// virtual Assembling of Defect (Mass part)
+		virtual void add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	/// virtual Assembling of Right-Hand Side
+		virtual void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	function dispatching call to implementation (fast or virtual)
+	/// \{
+		void do_prep_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
+		void do_prep_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_fsh_elem_loop();
+		void do_fsh_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+   	    void do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+	/// \}
 
 	private:
 	//	abbreviation for own type
@@ -495,70 +478,6 @@ class IElemDisc
 	protected:
 	/// current Geometric Object
 		ReferenceObjectID m_id;
-
-	public:
-	///	sets the approximation space
-	/**	Calls protected virtual 'approximation_space_changed', when a new approximation space
-	 * has been set. Note that 'approximation_space_changed' is only called once if the
-	 * same approximation space is set multiple times.*/
-		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
-		{
-		//	check whether the approximation space has already been set
-			bool newApproxSpace = (m_spApproxSpace != approxSpace);
-
-		//	remember approx space
-			m_spApproxSpace = approxSpace;
-
-		//	set function pattern
-			set_function_pattern(*approxSpace);
-
-		//	invoke callback
-			if(newApproxSpace)
-				approximation_space_changed();
-		}
-
-	///	returns approximation space
-		SmartPtr<ApproximationSpace<TDomain> > approx_space() {return m_spApproxSpace;}
-
-	///	returns approximation space
-		ConstSmartPtr<ApproximationSpace<TDomain> > approx_space() const {return m_spApproxSpace;}
-
-	///	returns the domain
-		TDomain& domain()
-		{
-			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
-			return *m_spApproxSpace->domain();
-		}
-
-	///	returns the domain
-		const TDomain& domain() const
-		{
-			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
-			return *m_spApproxSpace->domain();
-		}
-
-	///	returns the subset handler
-		typename TDomain::subset_handler_type& subset_handler()
-		{
-			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
-			return *m_spApproxSpace->domain()->subset_handler();
-		}
-
-	///	returns the subset handler
-		const typename TDomain::subset_handler_type& subset_handler() const
-		{
-			UG_ASSERT(m_spApproxSpace.valid(), "ApproxSpace not set.");
-			return *m_spApproxSpace->domain()->subset_handler();
-		}
-
-	protected:
-	///	callback invoked, when approximation space is changed
-		virtual void approximation_space_changed() {}
-
-	protected:
-	///	Approximation Space
-		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-
 };
 /// @}
 

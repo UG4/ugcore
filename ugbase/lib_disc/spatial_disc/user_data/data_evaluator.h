@@ -37,7 +37,6 @@ class DataEvaluator
 		DataEvaluator(int discPart,
 		              const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		              const FunctionPattern& fctPat,
-		              const int subset,
 		              const bool bNonRegularGrid,
 		              LocalVectorTimeSeries* locTimeSeries = NULL,
 		              const std::vector<number>* vScaleMass = NULL,
@@ -64,44 +63,33 @@ class DataEvaluator
 
 	///	prepares the element for all IElemDiscs
 		void prepare_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[],
-		                  const LocalIndices& ind,
-		                  bool bDeriv = false);
+		                  const LocalIndices& ind, bool bDeriv = false);
+
+	///	finishes the element loop for all IElemDiscs
+		void finish_elem_loop();
 
 	///	finishes the element for all time-dependent IElemDiscs
 		void finish_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	compute local stiffness matrix for all IElemDiscs
-		void add_JA_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_jac_A_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local mass matrix for all IElemDiscs
-		void add_JM_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_jac_M_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local stiffness defect for all IElemDiscs
-		void add_dA_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local stiffness defect for all IElemDiscs explicit
-		void add_dA_elem_explicit(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local mass defect for all IElemDiscs
-		void add_dM_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local rhs for all IElemDiscs
 		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
-	///	finishes the element loop for all IElemDiscs
-		void finish_elem_loop();
-
 	protected:
-	///	computes all needed data on the element
-		void compute_elem_data(LocalVector& u, GeometricObject* elem,
-		                       const MathVector<dim> vCornerCoords[], bool bDeriv = false);
-
-	///	adds the contribution due to coupling to local stiffness matrix
-		void add_coupl_JA(LocalMatrix& J, LocalVector& u, ProcessType type = PT_ALL);
-
-	///	adds the contribution due to coupling to local mass matrix
-		void add_coupl_JM(LocalMatrix& J, LocalVector& u, ProcessType type = PT_ALL);
-
 	///	clears imports and user data and mappings betweem commonFctGrp and local
 		void clear_extracted_data_and_mappings();
 
@@ -110,7 +98,7 @@ class DataEvaluator
 								   std::vector<SmartPtr<ICplUserData<dim> > >& vTryingToAdd);
 
 	///	extracts imports and userdata from IElemDiscs
-		void extract_imports_and_userdata(int discPart);
+		void extract_imports_and_userdata(int subsetIndex, int discPart);
 
 	///	clears all requested positions in user data
 		void clear_positions_in_user_data();
@@ -130,9 +118,6 @@ class DataEvaluator
 
 	///	flag indicating if any elem disc needs local time series
 		bool m_bNeedLocTimeSeries;
-
-	///	subset
-		int m_subset;
 
 	///	local time series (non-const since mapping may change)
 		LocalVectorTimeSeries* m_pLocTimeSeries;

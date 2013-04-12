@@ -12,9 +12,9 @@ namespace ug{
 
 template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
-	: 	m_pFctPattern(0), m_timePoint(0),
-	  	m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
-	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN), m_spApproxSpace(NULL)
+	: 	m_spApproxSpace(NULL), m_pFctPattern(0),
+	  	m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
+	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
 	set_functions(functions);
 	set_subsets(subsets);
@@ -24,13 +24,31 @@ IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
 template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const std::vector<std::string>& vFct,
                               const std::vector<std::string>& vSubset)
-	: 	m_pFctPattern(0), m_timePoint(0),
-		m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
-		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN), m_spApproxSpace(NULL)
+	: 	m_spApproxSpace(NULL), m_pFctPattern(0),
+		m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
+		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
 	set_functions(vFct);
 	set_subsets(vSubset);
 	clear_add_fct();
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
+{
+//	check whether the approximation space has already been set
+	bool newApproxSpace = (m_spApproxSpace != approxSpace);
+
+//	remember approx space
+	m_spApproxSpace = approxSpace;
+
+//	set function pattern
+	set_function_pattern(*approxSpace);
+
+//	invoke callback
+	if(newApproxSpace)
+		approximation_space_changed();
 }
 
 template <typename TDomain>
@@ -244,9 +262,10 @@ void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 };
 
 template <typename TDomain>
-void IElemDisc<TDomain>::set_time_dependent(const LocalVectorTimeSeries& locTimeSeries,
-   		        				const std::vector<number>& vScaleMass,
-   		        				const std::vector<number>& vScaleStiff)
+void IElemDisc<TDomain>::
+set_time_dependent(LocalVectorTimeSeries& locTimeSeries,
+                   const std::vector<number>& vScaleMass,
+                   const std::vector<number>& vScaleStiff)
 {
 	m_pLocalVectorTimeSeries = &locTimeSeries;
 	m_vScaleMass = vScaleMass;
@@ -262,36 +281,60 @@ void IElemDisc<TDomain>::set_time_independent()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//	explicit template instantiations
+//	assembling functions dispatches
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_prep_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	if (this->m_vPrepareTimestepElemFct[m_id] != NULL)
-		(this->*(m_vPrepareTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
+	//	access by map
+	u.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		if (this->m_vPrepareTimestepElemFct[m_id] != NULL)
+			(this->*(m_vPrepareTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
+	}
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_prep_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-	(this->*(m_vPrepareElemFct[m_id]))(u, elem, vCornerCoords);
+	//	access by map
+	u.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		UG_ASSERT(m_vPrepareElemFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+		(this->*(m_vPrepareElemFct[m_id]))(u, elem, vCornerCoords);
+	}
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_fsh_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	if (this->m_vFinishTimestepElemFct[m_id] != NULL)
-		(this->*(m_vFinishTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
+	//	access by map
+	u.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		if (this->m_vFinishTimestepElemFct[m_id] != NULL)
+			(this->*(m_vFinishTimestepElemFct[m_id]))(time, u, elem, vCornerCoords);
+	}
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_prep_elem_loop(const ReferenceObjectID roid, const int si)
+do_prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 //	set id and disc part (this checks and inits fast-assemble functions)
 	this->set_roid(roid, si);
@@ -301,7 +344,10 @@ fast_prep_elem_loop(const ReferenceObjectID roid, const int si)
 		m_vIImport[i]->clear_ips();
 
 //	call prep_elem_loop (this may set ip-series to imports)
-	(this->*m_vPrepareElemLoopFct[m_id])(roid, si);
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		(this->*m_vPrepareElemLoopFct[m_id])(roid, si);
+	}
 
 //	set roid in imports (for evaluation function)
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
@@ -310,12 +356,14 @@ fast_prep_elem_loop(const ReferenceObjectID roid, const int si)
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_fsh_elem_loop()
+do_fsh_elem_loop()
 {
 	UG_ASSERT(m_vFinishElemLoopFct[m_id]!=NULL, "Fast-Assemble Method missing.");
 
 //	call finish
-	(this->*m_vFinishElemLoopFct[m_id])();
+	if(fast_add_elem_enabled()){
+		(this->*m_vFinishElemLoopFct[m_id])();
+	}
 
 //	remove positions in currently registered imports
 	for(size_t i = 0; i < m_vIImport.size(); ++i)
@@ -324,50 +372,197 @@ fast_fsh_elem_loop()
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	UG_ASSERT(m_vElemJAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-	(this->*m_vElemJAFct[m_id])(J, u, elem, vCornerCoords);
+	//	access by map
+	u.access_by_map(map());
+	J.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		UG_ASSERT(m_vElemJAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+		(this->*m_vElemJAFct[m_id])(J, u, elem, vCornerCoords);
+	}
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	UG_ASSERT(m_vElemJMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-	(this->*m_vElemJMFct[m_id])(J, u, elem, vCornerCoords);
+	// check if really needed (may occur in cases, when mixing stat and instat)
+	if(!is_time_dependent()) return;
+
+	//	access by map
+	u.access_by_map(map());
+	J.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		UG_ASSERT(m_vElemJMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+		(this->*m_vElemJMFct[m_id])(J, u, elem, vCornerCoords);
+	}
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-	(this->*m_vElemdAFct[m_id])(d, u, elem, vCornerCoords);
+	//	access by map
+	u.access_by_map(map());
+	d.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		UG_ASSERT(m_vElemdAFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+		(this->*m_vElemdAFct[m_id])(d, u, elem, vCornerCoords);
+	}
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-   	if(this->m_vElemdAExplFct[m_id] != NULL)
-   		(this->*m_vElemdAExplFct[m_id])(d, u, elem, vCornerCoords);
+	//	access by map
+	u.access_by_map(map());
+	d.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		if(this->m_vElemdAExplFct[m_id] != NULL)
+			(this->*m_vElemdAExplFct[m_id])(d, u, elem, vCornerCoords);
+	}
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	UG_ASSERT(m_vElemdMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-	(this->*m_vElemdMFct[m_id])(d, u, elem, vCornerCoords);
+	// check if really needed (may occur in cases, when mixing stat and instat)
+	if(!is_time_dependent()) return;
+
+	//	access by map
+	u.access_by_map(map());
+	d.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		UG_ASSERT(m_vElemdMFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+		(this->*m_vElemdMFct[m_id])(d, u, elem, vCornerCoords);
+	}
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fast_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	UG_ASSERT(m_vElemRHSFct[m_id]!=NULL, "Fast-Assemble Method missing.");
-	(this->*m_vElemRHSFct[m_id])(rhs, elem, vCornerCoords);
+	//	access by map
+	rhs.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		UG_ASSERT(m_vElemRHSFct[m_id]!=NULL, "Fast-Assemble Method missing.");
+		(this->*m_vElemRHSFct[m_id])(rhs, elem, vCornerCoords);
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//	virtual assembling functions default
+////////////////////////////////////////////////////////////////////////////////
+
+static void ThrowMissingVirtualMethod(const char* method){
+	UG_THROW("ElemDisc: using virtual assembling functions, but no override "
+			 "for '"<<method<<"' implemented (although called).");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("prep_timestep_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("prep_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("fsh_timestep_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+prep_elem_loop(const ReferenceObjectID roid, const int si)
+{
+	ThrowMissingVirtualMethod("prep_elem_loop");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+fsh_elem_loop()
+{
+	ThrowMissingVirtualMethod("fsh_elem_loop");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("add_jac_A_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("add_jac_M_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("add_def_A_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("add_def_A_expl_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("add_def_M_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("add_rhs_elem");
 }
 
 

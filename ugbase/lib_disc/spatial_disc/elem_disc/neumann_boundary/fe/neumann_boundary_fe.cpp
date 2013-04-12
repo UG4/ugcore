@@ -368,10 +368,10 @@ void NeumannBoundaryFE<TDomain>::register_func()
 	this->set_add_rhs_elem_fct(	 id, &T::template add_rhs_elem<TElem, TFEGeom>);
 	this->set_fsh_elem_loop_fct( id, &T::template finish_elem_loop<TElem, TFEGeom>);
 
-	this->set_add_jac_A_elem_fct(	 id, &T::template add_JA_elem<TElem, TFEGeom>);
-	this->set_add_jac_M_elem_fct(	 id, &T::template add_JM_elem<TElem, TFEGeom>);
-	this->set_add_def_A_elem_fct(	 id, &T::template add_dA_elem<TElem, TFEGeom>);
-	this->set_add_def_M_elem_fct(	 id, &T::template add_dM_elem<TElem, TFEGeom>);
+	this->set_add_jac_A_elem_fct(	 id, &T::template add_jac_A_elem<TElem, TFEGeom>);
+	this->set_add_jac_M_elem_fct(	 id, &T::template add_jac_M_elem<TElem, TFEGeom>);
+	this->set_add_def_A_elem_fct(	 id, &T::template add_def_A_elem<TElem, TFEGeom>);
+	this->set_add_def_M_elem_fct(	 id, &T::template add_def_M_elem<TElem, TFEGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -153,6 +153,13 @@ class LocalVectorTimeSeries
 	///	returns the local vector for the i'th time point
 		LocalVector& solution(size_t i) {return m_vLocalVector.at(i);}
 
+	///	access dofs by map
+		void access_by_map(const FunctionIndexMapping& funcMap)
+		{
+			for(size_t t=0; t < size(); ++t)
+				solution(t).access_by_map(funcMap);
+		}
+
 	/// extract local values from global vectors
 		template <typename TVector>
 		void read_values(ConstSmartPtr<VectorTimeSeries<TVector> > vecTimeSeries, LocalIndices& ind)
