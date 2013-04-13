@@ -1,5 +1,5 @@
 /**
- * \file core_smoothers.h
+ * \file ugbase/lib_algebra/algebra_common/core_smoothers.h
  *
  * \author Martin Rupp
  *

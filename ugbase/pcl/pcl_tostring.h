@@ -1,5 +1,5 @@
 /**
- * \file /pcl_const_rework/ugbase/pcl/pcl_tostring.h
+ * \file ugbase/pcl/pcl_tostring.h
  *
  *  \date	 	05.03.2013
  *  \author 	mrupp

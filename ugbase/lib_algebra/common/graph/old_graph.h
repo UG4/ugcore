@@ -1,5 +1,5 @@
 /**
- * \file amg/graph.h
+ * \file ugbase/lib_algebra/common/graph/old_graph.h
  *
  * \author Martin Rupp
  *

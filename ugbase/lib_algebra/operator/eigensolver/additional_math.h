@@ -1,5 +1,5 @@
 /**
- * \file /ug4svn/ugbase/lib_algebra/operator/eigensolver/additional_math.h
+ * \file ugbase/lib_algebra/operator/eigensolver/additional_math.h
  *
  *  \date	 	28.03.2013
  *  \author 	mrupp
