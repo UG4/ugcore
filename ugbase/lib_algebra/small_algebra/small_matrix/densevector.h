@@ -17,6 +17,8 @@
 
 namespace ug{
 
+/// \addtogroup small_algebra
+/// \{
 
 template<typename T>
 class TE_TRANSPOSED
@@ -304,7 +306,8 @@ operator <= (double alpha, const DenseVector<TStorage> &vec)
 	return vec >= alpha;
 }
 
-
+// end group small_algebra
+/// \}
 
 }
 #include "densevector_impl.h"

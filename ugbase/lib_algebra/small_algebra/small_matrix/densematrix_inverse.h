@@ -9,6 +9,9 @@
 //
 namespace ug {
 
+/// \addtogroup small_algebra
+/// \{
+
 //////////////////////////////////////////////////////
 // 1x1
 
@@ -305,7 +308,8 @@ inline bool InverseMatMult(DenseVector<vector_t> &dest, double beta,
 
 ///////////////////////////////////////////
 
-
+// end group small_algebra
+/// \}
 
 }
 

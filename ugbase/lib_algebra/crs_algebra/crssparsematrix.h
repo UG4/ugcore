@@ -18,7 +18,7 @@
 
 namespace ug{
 
-/// \addtogroup lib_algebra
+/// \addtogroup crs_algebra
 ///	@{
 
 
@@ -619,7 +619,9 @@ inline void MatMultTransposedAdd(vector_t &dest,
 	A1.axpy_transposed(dest, alpha1, v1, beta1, w1);
 }
 
-///	@}
+// end group crs_algebra
+/// \}
+
 } // namespace ug
 
 //#include "matrixrow.h"

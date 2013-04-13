@@ -14,12 +14,22 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+/**
+ * \defgroup lib_algebra lib_algebra
+ * \brief Algebra Library
+ */
+
 #include "common/common.h"
 
 // algebra chooser and types
 #include "algebra_type.h"
 
 // common
+/**
+ * \defgroup lib_algebra_common lib_algebra Common
+ * \ingroup lib_algebra
+ * \brief Utilities for libAlgebra
+ */
 #include "common/operations.h"
 #include "common/stl_debug.h"
 

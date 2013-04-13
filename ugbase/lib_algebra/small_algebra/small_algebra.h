@@ -1,6 +1,10 @@
 #ifndef __H__UG__SMALL_ALGEBRA__
 #define __H__UG__SMALL_ALGEBRA__
 
+/**
+ * \defgroup small_algebra Small Algebra
+ * \ingroup lib_algebra
+ */
 
 #include "blocks.h"
 

@@ -12,12 +12,8 @@
 
 namespace ug{
 
-/**
- * \brief Algebra Library
- *
- *
- * \defgroup lib_algebra lib_algebra
- */
+/// \addtogroup lib_algebra lib_algebra
+/// \{
 
 ////////////////////////////////////////////////////////////////////////////////
 //   Algebra Types
@@ -73,6 +69,8 @@ class DefaultAlgebra
 		static AlgebraType m_default;
 };
 
+// end group lib_algebra
+/// \}
 
 } // end namespace ug
 

@@ -4,6 +4,10 @@
 
 namespace ug
 {
+
+/// \addtogroup lib_algebra
+/// \{
+
 #ifndef NDEBUG
 //!
 //! use this to force the creation of prsize_t routines or similar for use in gdb.
@@ -30,6 +34,10 @@ struct sortStruct
 		return sortValue < other.sortValue;
 	}
 };
+
+// end group lib_algebra
+/// \}
+
 }
 
 

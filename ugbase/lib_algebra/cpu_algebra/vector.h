@@ -20,8 +20,8 @@ namespace ug{
 //							Vector
 ///////////////////////////////////////////////////////////////////
 
-/// \addtogroup lib_algebra
-///	@{
+/// \addtogroup cpu_algebra
+/// \{
 
 //!
 template <typename TValueType>
@@ -200,7 +200,8 @@ private:
 	//mutable vector_mode dist_mode;
 };
 
-// @}
+// end group cpu_algebra
+/// \}
 
 } // namespace ug
 

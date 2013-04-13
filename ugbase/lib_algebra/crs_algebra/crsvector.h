@@ -15,8 +15,8 @@ namespace ug{
 //							CRSVector
 ///////////////////////////////////////////////////////////////////
 
-/// \addtogroup lib_algebra
-///	@{
+/// \addtogroup crs_algebra
+/// \{
 
 //!
 template <typename TValueType>
@@ -70,7 +70,8 @@ SmartPtr<CRSVector<value_type> > CRSVector<value_type>::clone_without_values() c
 	return SmartPtr<CRSVector<value_type> >(this->virtual_clone_without_values());
 }
 
-// @}
+// end group crs_algebra
+/// \}
 
 } // namespace ug
 

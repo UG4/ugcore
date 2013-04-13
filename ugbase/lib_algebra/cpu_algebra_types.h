@@ -40,7 +40,12 @@ namespace ug{
 //   CPU Algebra (Block 1x1 Algebra)
 ////////////////////////////////////////////////////////////////////////////////
 
-	
+/**
+ * \defgroup cpu_algebra CPU Algebra
+ * \ingroup lib_algebra
+ * \{
+ */
+
 struct CPUAlgebra
 {
 #ifdef UG_PARALLEL
@@ -58,6 +63,15 @@ struct CPUAlgebra
 	}
 };
 
+// end group cpu_algebra
+/// \}
+
+/**
+ * \defgroup crs_algebra CRS Algebra
+ * \ingroup lib_algebra
+ * \{
+ */
+
 struct CRSAlgebra
 {
 #ifdef UG_PARALLEL
@@ -74,9 +88,14 @@ struct CRSAlgebra
 		return AlgebraType(AlgebraType::CRS, 1);
 	}
 };
+
+// end group crs_algebra
+/// \}
+
 ////////////////////////////////////////////////////////////////////////////////
 //   CPU Fixed Block Algebra
 ////////////////////////////////////////////////////////////////////////////////
+/// \addtogroup cpu_algebra
 template<int TBlockSize>
 struct CPUBlockAlgebra
 {
@@ -95,7 +114,7 @@ struct CPUBlockAlgebra
 	}
 };
 
-
+/// \addtogroup crs_algebra
 template<int TBlockSize>
 struct CRSBlockAlgebra
 {
@@ -118,6 +137,7 @@ struct CRSBlockAlgebra
 //   CPU Variable Block Algebra
 ////////////////////////////////////////////////////////////////////////////////
 
+/// \addtogroup cpu_algebra
 struct CPUVariableBlockAlgebra
 {
 #ifdef UG_PARALLEL
@@ -135,6 +155,7 @@ struct CPUVariableBlockAlgebra
 	}
 };
 
+/// \addtogroup crs_algebra
 struct CRSVariableBlockAlgebra
 {
 #ifdef UG_PARALLEL

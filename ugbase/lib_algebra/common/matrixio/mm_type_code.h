@@ -18,8 +18,8 @@
 namespace ug
 {
 
-/// \addtogroup lib_algebra
-/// @{
+/// \addtogroup matrixio
+/// \{
 
 /**
  * \brief Type representation for MatrixMarket matrix exchange files
@@ -286,7 +286,8 @@ class MMTypeCode
     }
 };
 
-/// @}
+// end group matrixio
+/// \}
 
 } // namespace ug
 

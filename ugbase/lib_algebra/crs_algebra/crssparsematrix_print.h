@@ -16,6 +16,9 @@
 
 namespace ug {
 
+/// \addtogroup crs_algebra
+/// \{
+
 //!
 //! print to console whole SparseMatrix
 template<typename T>
@@ -48,6 +51,9 @@ void CRSSparseMatrix<T>::printtype() const
 {
 	std::cout << *this;
 }
+
+// end group crs_algebra
+/// \}
 
 }
 #endif // __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__

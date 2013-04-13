@@ -17,6 +17,10 @@
 #include "../../common/operations.h"
 
 namespace ug{
+
+/// \addtogroup small_algebra
+/// \{
+
 template<typename T>
 struct matrix_algebra_type_traits;
 
@@ -67,7 +71,8 @@ inline void MatMultTransposedAdd(DenseVector<vector_t> &dest,
 	}
 }
 
-
+// end group small_algebra
+/// \}
 
 }
 

@@ -19,6 +19,9 @@
 
 namespace ug{
 
+/// \addtogroup small_algebra
+/// \{
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 //	DenseMatrix
 /**
@@ -211,6 +214,9 @@ template<typename T> struct block_multiply_traits<DenseMatrix<T>, DenseMatrix<T>
 {
 	typedef DenseMatrix<T> ReturnType;
 };
+
+// end group small_algebra
+/// \}
 
 }
 

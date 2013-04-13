@@ -20,8 +20,8 @@
 
 namespace ug{
 
-/// \addtogroup lib_algebra
-///	@{
+/// \addtogroup cpu_algebra
+/// \{
 
 template<typename value_type> class matrixrow;
 template<typename vec_type> class Vector;
@@ -591,7 +591,9 @@ inline void MatMultTransposedAdd(vector_t &dest,
 	A1.axpy_transposed(dest, alpha1, v1, beta1, w1);
 }
 
-///	@}
+// end group cpu_algebra
+/// \}
+
 } // namespace ug
 
 //#include "matrixrow.h"

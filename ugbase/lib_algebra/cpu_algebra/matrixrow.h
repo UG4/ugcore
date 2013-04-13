@@ -14,8 +14,8 @@
 namespace ug{
 ///////////////////////////////////////////////////////////////////
 
-/// \addtogroup lib_algebra
-///	@{
+/// \addtogroup cpu_algebra
+/// \{
 
 //!
 /** class matrixrow
@@ -96,7 +96,8 @@ private:
 };
 
 
-/// @}
+// end group cpu_algebra
+/// \}
 
 } // namespace ug
 

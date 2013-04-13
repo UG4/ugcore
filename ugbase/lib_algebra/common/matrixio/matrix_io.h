@@ -21,8 +21,11 @@
 namespace ug
 {
 
-/// \addtogroup lib_algebra
-/// @{
+/**
+ * \defgroup matrixio MatrixIO
+ * \ingroup lib_algebra_common
+ * \{
+ */
 
 /**
  * \brief Representation of a matrix exchange file format
@@ -177,7 +180,8 @@ class MatrixIO
     void close_file();
 };
 
-/// @}
+// end group matrixio
+/// \}
 
 } // namespace ug
 

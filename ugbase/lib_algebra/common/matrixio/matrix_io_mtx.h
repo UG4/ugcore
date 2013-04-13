@@ -22,8 +22,8 @@
 namespace ug
 {
 
-/// \addtogroup lib_algebra
-/// @{
+/// \addtogroup matrixio
+/// \{
 
 /**
  * \brief Provides I/O functionality for MatrixMarket exchange file format
@@ -502,7 +502,8 @@ class MatrixIOMtx : MatrixIO
     void write_entry( size_t m, size_t n, CPUAlgebra::matrix_type::value_type val );
 };
 
-///@}
+// end group matrixio
+/// \}
 
 } // namespace ug
 
