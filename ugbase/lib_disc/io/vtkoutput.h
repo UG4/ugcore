@@ -588,7 +588,7 @@ protected:
 										   Grid& grid, int si);
 
 	/**
-	 * This function writes the values of a function as a <DataArray> field to
+	 * This function writes the values of a function as a \<DataArray\> field to
 	 * the vtu file.
 	 *
 	 * \param[in,out]	File		file to write the points
