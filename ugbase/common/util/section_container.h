@@ -11,6 +11,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 //	SectionContainer
 ///	A container that is divided into different sections.
@@ -124,6 +127,9 @@ class SectionContainer
 		SectionVec		m_vSections;
 		uint			m_numElements;
 };
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

@@ -9,6 +9,10 @@
 
 #include <functional>
 #include <cstring>
+
+/// \addtogroup ugbase_common_util
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	Policies
@@ -58,7 +62,6 @@ template <class T, template <class TT> class FreePolicy = FreeDelete> class Cons
  * The FreePolicy has to feature the method free().
  *
  * If a const smart pointer is required, use ConstSmartPtr
- * \{
  */
 template <typename T, template <class TT> class FreePolicy>
 class SmartPtr
@@ -402,7 +405,6 @@ inline ConstSmartPtr<T, FreePolicy> SmartPtr<T, FreePolicy>::cast_const() const{
  *
  * \todo	add to_smart_ptr_dynamic
  *
- * \{
  */
 template <>
 class SmartPtr<void>
@@ -696,5 +698,7 @@ SmartPtr<T> CreateSmartPtr(T* inst)
 	return SmartPtr<T>(inst);
 }
 
+// end group ugbase_common_util
+/// \}
 
 #endif

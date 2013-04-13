@@ -1,5 +1,15 @@
 /**
-\defgroup ugbase_common_util Common Unitlities
+\defgroup ugbase_common_util Common Utilities
 \ingroup ugbase_common
 \brief further general utilities
+
+
+\defgroup ugbase_common_io Common IO
+\ingroup ugbase_common_util
+
+
+\defgroup ugbase_common_types Common Types
+\ingroup ugbase_common_util
+
+
 */

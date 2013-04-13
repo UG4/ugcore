@@ -12,6 +12,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ///	Container which holds an array of pointers
 /**	Gives access to an array of elements of type TPtr. TPtr is assumed to be a
  * pointer type and treated as thus. This means it has to support assignment
@@ -111,6 +114,9 @@ class PointerConstArray{
 		size_t				m_size;
 		size_t				m_capacity;
 };
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

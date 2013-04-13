@@ -14,6 +14,9 @@
 
 namespace ug{
 
+/// \addtogroup ugbase_common_types
+/// \{
+
 // todo: Change numbers in VRL
 // Type values must not be changed! Bindings rely on the exact values.
 // Append new types at the end and update bindings.
@@ -158,6 +161,9 @@ template <> inline Variant::Type Variant::type<void*>() 				{return VT_POINTER;}
 template <> inline Variant::Type Variant::type<const void*>() 			{return VT_CONST_POINTER;}
 template <> inline Variant::Type Variant::type<SmartPtr<void> >() 		{return VT_SMART_POINTER;}
 template <> inline Variant::Type Variant::type<ConstSmartPtr<void> >() 	{return VT_CONST_SMART_POINTER;}
+
+// end group ugbase_common_types
+/// \}
 
 }//	end of namespace
 

@@ -5,6 +5,9 @@
 
 namespace ug {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 template <int N>
 struct Int2Type {
 	enum{ value = N};
@@ -207,6 +210,9 @@ size_t GetUniqueTypeID()
 	static size_t typeID = UniqueTypeIDProvider::inst().new_id();
 	return typeID;
 }
+
+// end group ugbase_common_util
+/// \}
 
 }
 

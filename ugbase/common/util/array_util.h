@@ -10,6 +10,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_types
+/// \{
+
 ///	removes the first occurance of the specified entry.
 /**
  * Runs in O(size).
@@ -87,6 +90,9 @@ int ArrayReplaceEntry(TType* array, const TType& newEntry,
 
 	return false;
 }
+
+// end group ugbase_common_types
+/// \}
 
 }//	end of namespace
 

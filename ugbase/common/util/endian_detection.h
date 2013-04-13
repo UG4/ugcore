@@ -10,6 +10,9 @@
 
 namespace ug{
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 /**
  * Returns true if the system endianess is little endian, i.e. the least
  * significant byte is stored first. If returned false the system endianess is
@@ -37,6 +40,9 @@ inline bool IsBigEndian()
 {
 	return !IsLittleEndian();
 }
+
+// end group ugbase_common_util
+/// \}
 
 } // end namespace ug
 

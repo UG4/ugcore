@@ -8,6 +8,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ///	Holds and automatically deletes a pointer, similar to std::auto_ptr. USE WITH CARE!
 /**	WARNING: USE WITH CARE!
  * Class shows uncommon behavior when copied.
@@ -71,6 +74,9 @@ class OwnedPtr
 	private:
 		mutable TPtr m_p;
 };
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

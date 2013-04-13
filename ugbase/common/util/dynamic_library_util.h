@@ -7,6 +7,9 @@
 
 namespace ug{
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 #ifdef UG_WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
@@ -31,6 +34,9 @@ bool CloseLibrary(DynLibHandle h);
 /**	If no procedure with the given name was found, NULL is returned.
  * \sa OpenLibrary, CloseLibrary*/
 void* GetLibraryProcedure(DynLibHandle h, const char* procName);
+
+// end group ugbase_common_util
+/// \}
 
 }// end of namespace
 

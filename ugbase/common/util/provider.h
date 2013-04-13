@@ -10,6 +10,9 @@
 
 namespace ug{
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 /// Provider, holding a single instance of an object
 /**
  * This class is used to wrap an object into a singleton-like provider, such
@@ -28,6 +31,9 @@ class Provider
 			return inst;
 		}
 };
+
+// end group ugbase_common_util
+/// \}
 
 } // end namespace ug
 

@@ -21,8 +21,6 @@
 #include "common/util/crc32.h"
 #include "debug_id.h"
 
-/// \addtogroup ugbase_common
-/// \{
 
 //	in order to support VRL logs, we're including bindings_vrl.h
 //  this is necessary to get access to the JVM environment
@@ -32,6 +30,10 @@
 #endif
 
 namespace ug{
+
+/// \addtogroup ugbase_common
+/// \{
+
 	const uint64 UNIT_KILO     = 1024;                   // 2^{10}
 	const uint64 UNIT_MEGA     = UNIT_KILO * 1024;       // 2^{20} =                 1'048'576
 	const uint64 UNIT_GIGA     = UNIT_MEGA * 1024;       // 2^{30} =             1'073'741'824
@@ -209,6 +211,9 @@ inline std::string ConvertNumber (uint64_t size, unsigned int width,
 inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
                                     unsigned int numDisplayedDigits);
 
+// end group ugbase_common
+/// \}
+
 } // end namespace ug
 
 
@@ -217,6 +222,10 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 // DEBUG LOG
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+
+/// \addtogroup ugbase_common
+/// \{
 
 // Usage:
 /* The following macros can be used to control debug messages.

@@ -12,6 +12,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 class LoaderObj
 {
 	public:
@@ -74,6 +77,9 @@ class LoaderObj
 		std::vector<ug::vector3>	m_vPoints;
 		std::vector<ug::vector2>	m_vTexCoords;
 };
+
+// end group ugbase_common_util
+/// \}
 
 }
 

@@ -9,6 +9,10 @@
 
 namespace ug
 {
+
+/// \addtogroup ugbase_common_util
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter and returns its position in argv.
  *	If the parameter is not contained in argv, -1 is returned.
@@ -47,6 +51,9 @@ UG_API bool ParamToString(const char** strOut, const char* param, int argc, cons
 
 UG_API double ParamToDouble(const char *param, int argc, const char * const * argv, double dDefault);
 UG_API int ParamToInt(const char *param, int argc, const char * const * argv, int iDefault);
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

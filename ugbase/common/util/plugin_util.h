@@ -11,10 +11,16 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ///	Loads all plugins in the given path.
 UG_API bool LoadPlugins(const char* pluginPath, std::string parentGroup);
 UG_API bool UnloadPlugins();
 UG_API bool PluginLoaded(const std::string &name);
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

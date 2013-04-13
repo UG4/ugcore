@@ -8,6 +8,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	UID
 ///	supplies a unique ID.
@@ -38,6 +41,9 @@ class UID
 	private:
 		unsigned int m_uID;
 };
+
+// end group ugbase_common_util
+/// \}
 
 }
 #endif

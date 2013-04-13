@@ -9,6 +9,10 @@
 
 namespace ug
 {
+
+/// \addtogroup ugbase_common_io
+/// \{
+
 ///	Used by EmptyStream, to send tokens into nirvana!
 /**	Note that the implementation is not really the fastest, since a virtual
  * function is called for each token. However, not much is done in that
@@ -47,6 +51,9 @@ class EmptyOStream : public std::ostream
 	protected:
 		EmptyStreamBuffer	m_streamBuf;
 };
+
+// end group ugbase_common_io
+/// \}
 
 }//	end of namespace
 

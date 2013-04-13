@@ -10,6 +10,10 @@
 #include <iostream>
 
 namespace ug{
+
+/// \addtogroup ugbase_common_types
+/// \{
+
 ///	Useful for printing a table to the terminal or into a file.
 /**	This class is for output purposes only. It automatically adds spacings, so
  * that all entries in a column are indeed displayed in the same column.
@@ -18,8 +22,8 @@ namespace ug{
  * If it is however used in output related code, the introduced overhead should
  * be fine and probably even negligible.
  *
- * The class is most commonly used as a string table (Table<std::string>) or
- * as a stringstream table (Table<std::stringstream>). If you want to use it
+ * The class is most commonly used as a string table (<tt>Table\<std::string\></tt>) or
+ * as a stringstream table (<tt>Table\<std::stringstream\></tt>). If you want to use it
  * for your own types, you may specialize the template method
  * \code
  * template <class T> std::string EntryToString(const Table<T>& table, size_t rowInd, size_t colInd);
@@ -107,6 +111,9 @@ std::string EntryToString(const Table<std::stringstream>& table,
 
 typedef Table<std::string>	StringTable;
 typedef Table<std::stringstream> StringStreamTable;
+
+// end group ugbase_common_types
+/// \}
 
 }//	end of namespace
 

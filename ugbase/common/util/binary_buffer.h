@@ -11,6 +11,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_io
+/// \{
+
 ///	A Buffer for binary data.
 /**	The BinaryBuffer allows read and write access, which mimics the
  * behavior of std::iostream. However, in contrary to ug::BinaryStream,
@@ -75,6 +78,9 @@ class BinaryBuffer
 		size_t				m_readPos;
 		size_t				m_writePos;
 };
+
+// end group ugbase_common_io
+/// \}
 
 }//	end of namespace
 

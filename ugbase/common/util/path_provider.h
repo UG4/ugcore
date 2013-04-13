@@ -14,6 +14,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 ///	Constants used by PathProvider
 enum PathTypes
@@ -139,6 +142,9 @@ class PathProvider
 		std::map<PathTypes, std::string>	m_map;
 		std::stack<std::string>		m_curPaths;
 };
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

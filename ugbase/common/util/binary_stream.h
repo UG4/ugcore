@@ -11,6 +11,10 @@
 
 namespace ug
 {
+
+/// \addtogroup ugbase_common_io
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 ///	A special version of a std::streambuf, writes data directly into a buffer that is accessible at any time.
 /** This buffer stores the data directly in a growing array.
@@ -112,6 +116,9 @@ class BinaryStream : public std::iostream
 	protected:
 		BinaryStreamBuffer	m_streamBuf;
 };
+
+// end group ugbase_common_io
+/// \}
 
 }//	end of namespace
 

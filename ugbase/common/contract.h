@@ -1,7 +1,7 @@
 /**
+ * \file contract.h
  * \addtogroup ugbase_common
  * \{
- * \file contract.h
  *
  * \brief A Design by Contract(TM) system for C++
  *

@@ -20,6 +20,10 @@
 
 namespace ug
 {
+
+/// \addtogroup ugbase_common_util
+/// \{
+
 class MessageHub;
 typedef SmartPtr<MessageHub> SPMessageHub;
 
@@ -194,7 +198,7 @@ class MessageHub
 	 *
 	 * The callback has to be of the type
 	 *
-	 * boost::function<void (const IMessage&)>
+	 * <tt>boost::function\<void (const IMessage&)\></tt>
 	 *
 	 * The method returns a smart-pointer to an callback-identifier.
 	 *
@@ -213,6 +217,9 @@ class MessageHub
 	private:
 		CallbackMap	m_callbackMap;///< given a msg-type-id, this map returns a list of associated callbacks
 };
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

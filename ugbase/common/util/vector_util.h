@@ -10,6 +10,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ///	Returns a pointer to the array which is managed by the std::vector.
 /**	Note that this pointer may be invalidated once new elements are added
  * to the vector or old ones are removed.
@@ -32,6 +35,9 @@ const T* GetDataPtr(const std::vector<T>& v)
 	return &v.front();
 }
 /**	\} */
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 

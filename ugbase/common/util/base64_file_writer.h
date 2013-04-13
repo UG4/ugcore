@@ -14,6 +14,9 @@
 
 namespace ug {
 
+/// \addtogroup ugbase_common_io
+/// \{
+
 /**
  * \brief File writer allowing selective base64 encoding of arbitrary data
  * \details This provides a convenient and well tested way of writing selectivly
@@ -169,6 +172,8 @@ private:
 	 */
 	inline void assertFileOpen();
 };
+
+// end group ugbase_common_io
 
 } // namespace: ug
 

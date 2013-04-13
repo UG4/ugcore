@@ -5,6 +5,9 @@
 #ifndef __H__SORT_UTIL__
 #define __H__SORT_UTIL__
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 template<typename TIndex, typename TValue>
 struct SortStruct
 {
@@ -127,6 +130,8 @@ inline bool boolstrcmp(const char *a, const char *b)
 	return strcmp(a, b) < 0;
 }
 
+// end group ugbase_common_util
+/// \}
 
 #endif
 

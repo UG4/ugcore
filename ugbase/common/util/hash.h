@@ -13,6 +13,9 @@
 namespace ug
 {
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ///	The hashing method can be specialized for different types.
 /**	A default implementation exists, which casts each key
  * to a unsigned long.
@@ -372,6 +375,9 @@ template <class TVal, class TKey> class Hash
 				unsigned long					m_hIndex;
 		};
 };
+
+// end group ugbase_common_util
+/// \}
 
 }//	end of namespace
 #endif

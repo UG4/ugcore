@@ -4,6 +4,9 @@
 #ifndef __H__FUNCTION_CAST__
 #define __H__FUNCTION_CAST__
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 ///	Casts a function of one type to a function of another type
 /**	ATTENTION: Use with care!
  * This method should only be used on functions which have similar parameters,
@@ -21,5 +24,8 @@ TTarget function_cast(TSrc src)
 {
 	return (TTarget)src;
 }
+
+// end group ugbase_common_util
+/// \}
 
 #endif

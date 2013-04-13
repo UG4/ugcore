@@ -14,6 +14,9 @@
 
 namespace ug{
 
+/// \addtogroup ugbase_common_util
+/// \{
+
 /// splits the string into parts based on a separating char
 /**
  * returns the string parts using a separator char in order to indicate parts
@@ -225,6 +228,9 @@ inline std::string ToString(const T &t)
     out << t;
     return out.str();
 }
+
+// end group ugbase_common_util
+/// \}
 
 } // end namespace ug
 
