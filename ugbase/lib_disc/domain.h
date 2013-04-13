@@ -21,10 +21,8 @@ namespace ug{
  *
  * \defgroup lib_disc_domain Domain
  * \ingroup lib_discretization
+ * \{
  */
-
-/// \ingroup lib_disc_domain
-/// @{
 
 ///	Describes the contents of a domain.
 /**	In a parallel environment those are the contents of the global distributed domain.
@@ -238,7 +236,8 @@ typedef Domain<3, MultiGrid, MGSubsetHandler> Domain3d;
 
 } // end namespace ug
 
-/// @}
+// end group lib_disc_domain
+/// \}
 
 // include implementation
 #include "domain_impl.h"

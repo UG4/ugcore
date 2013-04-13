@@ -14,6 +14,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+/**
+ * \defgroup lib_discretization lib_discretization
+ */
+
 // Domain
 #include "domain.h"
 #include "domain_util.h"

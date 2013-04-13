@@ -10,6 +10,9 @@
 
 namespace ug{
 
+/// \addtogroup lib_disc_domain
+/// \{
+
 ///	Loads a domain from a grid-file.
 /**	By optionally specifying a procId, you can make sure that the domain is only
  * loaded on one process. Pass -1, if you want to load it on all processes.
@@ -119,10 +122,10 @@ number ElementDiameter(const TElem& elem, TDomain& domain);
 template <typename TDomain>
 number MaxElementDiameter(TDomain& domain, int level);
 
+// end group lib_disc_domain
+/// \}
 
 } // end namespace ug
-
-/// @}
 
 ////////////////////////////////
 //	include implementation
