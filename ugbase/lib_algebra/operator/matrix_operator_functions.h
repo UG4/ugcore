@@ -1,4 +1,6 @@
-/**	This file contains some methods that forward operations on
+/**
+ * \file lib_algebra/operator/matrix_operator_functions.h
+ * This file contains some methods that forward operations on
  * IMatrixOperator to the concrete matrix methods. It can be removed
  * as soon as IMatrixOperator is derived from its Matrix.
  */

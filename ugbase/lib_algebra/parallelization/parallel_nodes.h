@@ -22,7 +22,7 @@
 
 
 
-///	serializes data from a vector<bool> into a binary stream
+//	serializes data from a vector<bool> into a binary stream
 /*template <class TOStream>
 void Serialize(TOStream& buf, const std::vector<bool>& vec)
 {

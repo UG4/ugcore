@@ -10,10 +10,14 @@
 #include "communication_scheme.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h" // for IndexLayout
 
-/**
- * with ConsistencyCheck, you can check the consistency of any array over layouts
-*/
 namespace ug{
+
+/**
+ * \defgroup lib_algebra_parallel_consistencycheck Parallel Algebra Consistency Check
+ * \ingroup lib_algebra_parallelization
+ * \brief with ConsistencyCheck, you can check the consistency of any array over layouts
+ * \{
+ */
 
 template<typename TVec, typename TValue>
 class ConsistencyCheckClassSend
@@ -113,6 +117,9 @@ void ConsistencyCheck(const TVec &vec, const HorizontalAlgebraLayouts &layout, s
 
 	UG_ASSERT(AllProcsTrue(scheme.isOK(), layout.proc_comm()), name << " not consistent!");
 }
+
+// end group lib_algebra_parallel_consistencycheck
+/// \}
 
 }
 #endif // CONSISTENCY_CHECK_H

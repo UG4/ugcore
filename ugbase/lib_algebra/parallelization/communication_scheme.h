@@ -8,69 +8,73 @@
 #ifndef COMMUNICATION_SCHEME_H_
 #define COMMUNICATION_SCHEME_H_
 
-/**
- * CommunicationScheme is a base class for a recurring programming task:
- * You want to send data over a layout/interface. Now you just need to
- * specify what to to at each index on the receiver side, and on each index on the sender side
-
- * example with own CommunicationScheme
- class AddCommunicationScheme : public CommunicationScheme<AddCommunicationScheme, double>
- {
- public:
-	AddCommunicationScheme(const std::vector<double> &v) : vec(v) {}
-	double send(int pid, size_t index) const	{ return vec[index]; }
-	void receive(int pid, size_t index, double val) { vec[index] += val; }
-	inline int get_element_size() const { return sizeof(double); }
-private:
-	const std::vector<double> &vec;
-};
-
-* to use it, you just need to write
- AddCommunicationScheme scheme(vec)
- CommunicateOnInterfaces(parallelCommunicator, masterLayout, slaveLayout, scheme);
-
-* and all slave nodes have been added the master nodes.
-* (here slaveLayout is the receiving, and masterLayout is the sending Scheme)
-
-
-* example with StdArrayCommunicationScheme:
- * std::vector<int> vec;
- * ... do sth with the vector on both processors
- * transfer data from master to slave
- * StdArrayCommunicationScheme<std::vector<int> > arrScheme(vec)
- * CommunicateOnIntefaces(parallelCommunicator, masterLayout, slaveLayout, arrScheme);
- * ... done. Now all master nodes have overwritten the data on the slave nodes.
- * note that instead of int you can use any type for there is Serialize/Deserialize,
- * so also: string, map, int, char, double and so on.
- * there is also a specialization for bool which uses only 1 bit for each bool.
-
- *
- *
- *
- *
- */
-
 #include "pcl/pcl.h"
 
 #ifdef UG_PARALLEL
 namespace ug
 {
 
+/**
+ * \defgroup lib_algebra_parallelization_scheme Parallel Algebra Communication Scheme
+ * \brief Communication Scheme for parallel Algebra
+ * \ingroup lib_algebra_parallelization
+ * \{
+ */
+
 // CommunicationScheme
 //----------------------
 /**
  * \brief CRTP Base class for communications on layout/interfaces
+ *
+ * \details CommunicationScheme is a base class for a recurring programming task:
+ *   You want to send data over a layout/interface. Now you just need to
+ *   specify what to to at each index on the receiver side, and on each index 
+ *   on the sender side
+ *   Example with own CommunicationScheme
+ * \code{.cpp}
+ * class AddCommunicationScheme : public CommunicationScheme<AddCommunicationScheme, double>
+ * {
+ * public:
+ * 	AddCommunicationScheme(const std::vector<double> &v) : vec(v) {}
+ * 	double send(int pid, size_t index) const	{ return vec[index]; }
+ * 	void receive(int pid, size_t index, double val) { vec[index] += val; }
+ * 	inline int get_element_size() const { return sizeof(double); }
+ * private:
+ * 	const std::vector<double> &vec;
+ * };
+ * \endcode
+ * to use it, you just need to write
+ * \code{.cpp}
+ * AddCommunicationScheme scheme(vec);
+ * CommunicateOnInterfaces(parallelCommunicator, masterLayout, slaveLayout, scheme);
+ * \endcode
+ * and all slave nodes have been added the master nodes.
+ * (here slaveLayout is the receiving, and masterLayout is the sending Scheme)
+ * 
+ * Example with <tt>StdArrayCommunicationScheme</tt>:
+ * \code{.cpp}
+ * std::vector<int> vec;
+ * // ... do sth with the vector on both processors
+ * // transfer data from master to slave
+ * StdArrayCommunicationScheme<std::vector<int> > arrScheme(vec)
+ * CommunicateOnIntefaces(parallelCommunicator, masterLayout, slaveLayout, arrScheme);
+ * // ... done.
+ * \endcode
+ * Now all master nodes have overwritten the data on the slave nodes.
+ * note that instead of int you can use any type for there is Serialize/Deserialize,
+ * so also: \c string, \c map, \c int, \c char, \c double and so on.
+ * There is also a specialization for \c bool which uses only 1 bit for each 
+ * \c bool.
+ * 
+ * \note The derived class has to have the functions:
+ *  - <tt>%StdArrayCommunicationScheme</tt>
+ *  - <tt>const TValue &send(int pid, size_t index) const</tt>
+ *  - <tt>void receive(int pid, size_t index, value_type &v)</tt>
+ *  - <tt>inline int get_element_size() const</tt>
+ *
  * \tparam TDerived Derived class
  * \tparam TValue
- *
- * The derived class has to have the functions.
- * \sa StdArrayCommunicationScheme
- * const TValue &send(int pid, size_t index) const
- * void receive(int pid, size_t index, value_type &v)
- * inline int get_element_size() const
- *
  */
-
 template<typename TDerived, typename TValue>
 class CommunicationScheme : public pcl::ICommunicationPolicy<IndexLayout>
 {
@@ -441,6 +445,9 @@ public:
 	}
 };
 #endif
+
+// end group lib_algebra_parallelization_scheme
+/// \}
 
 } // namespace ug
 #endif /* SEND_INTERFACE_H_ */

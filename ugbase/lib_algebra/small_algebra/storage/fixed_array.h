@@ -15,6 +15,8 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //	FixedArray1
+namespace ug{
+
 /**
  * FixedArray1 is a one-dimensional array which supports most of the interface of std::vector.
  * (some functions and iterators have to be added).
@@ -24,8 +26,6 @@
  * \param T type of object in Array (i.e. double)
  * \param n number of elements in the fixed array (T values[n]; )
  */
-namespace ug{
-
 template<typename T, size_t n>
 class FixedArray1
 {
