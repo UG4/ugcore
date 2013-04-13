@@ -286,7 +286,7 @@ static void Common(Registry& reg, string grp)
 
 }// namespace GridFunction
 
-/// \addtogorup gridfnct_bridge
+/// \addtogroup gridfnct_bridge
 void RegisterBridge_GridFunction(Registry& reg, string grp)
 {
 	grp.append("/Discretization");

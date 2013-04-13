@@ -21,16 +21,16 @@ namespace ug{
  * implementation of the virtual evaluation operators through templated
  * methods evaluate.
  *
- * template <int refDim>
+ * template \<int refDim\>
  * inline TRet evaluate(TData vValue[],
-		                const MathVector<dim> vGlobIP[],
+		                const MathVector\<dim\> vGlobIP[],
 		                number time, int si,
 		                LocalVector& u,
 		                GeometricObject* elem,
-		                const MathVector<dim> vCornerCoords[],
-		                const MathVector<refDim> vLocIP[],
+		                const MathVector\<dim\> vCornerCoords[],
+		                const MathVector\<refDim\> vLocIP[],
 		                const size_t nip,
-		                const MathMatrix<refDim, dim>* vJT = NULL) const
+		                const MathMatrix\<refDim, dim\>* vJT = NULL) const
  *
  */
 template <typename TImpl, typename TBase, typename TData, int dim, typename TRet = void>

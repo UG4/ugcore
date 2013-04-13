@@ -293,7 +293,7 @@ static bool GetMemberFunctionInfo(char *buf, int len)
 /**
  * GetGlobalsCompletitions
  * searches in the Lua string table for string that completes the string in buf
- * if they are also globals, we add them to vector<string> matches.
+ * if they are also globals, we add them to vector\<string\> matches.
  * \param buf the buffer to complete
  * \param len the length of buf
  * \param matches put your matches here
@@ -509,7 +509,7 @@ static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &mat
 
 /**
  * \brief A function to implement word completion of classes and functions of ugscript
- * When entered Dom<tab>, it completes to Domain2d, for example. If Domain2d and Domain3d
+ * When entered Dom\<tab\>, it completes to Domain2d, for example. If Domain2d and Domain3d
  * are registered, it completes to Domain and shows suggestions Domain2d and Domain3d.
  * currently only works with Linenoise.
  * todo: 	- not all completions must have same snipped length. change
@@ -517,7 +517,7 @@ static size_t GetOtherCompletitions(char *buf, int len, std::vector<string> &mat
   * \param buf buffer from linenoise to complete
   * \param len length of the buf
   * \param buflen maximal length of the buffer buf
-  * \param iPrintCompletitionList number of times <tab> has been pushed, so we can display next 5 matches each time <tab> has been pushed.
+  * \param iPrintCompletitionList number of times \<tab\> has been pushed, so we can display next 5 matches each time \<tab\> has been pushed.
  */
 int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 {

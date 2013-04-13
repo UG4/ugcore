@@ -30,7 +30,7 @@ namespace ug
  *
  * \todo	Allow to restrict marking to vertices, edges, faces or volumes
  * \todo	Add is_marked, mark, unmark for GeometricObject
- * \todo	Refactor to template <class T> Marker.
+ * \todo	Refactor to template \<class T\> Marker.
  */
 class BoolMarker : public GridObserver
 {
