@@ -23,6 +23,13 @@ namespace
 
 namespace ug
 {
+
+/**
+ * \defgroup ugbase_mathutil Math Utilities
+ * \ingroup ugbase_math
+ * \{
+ */
+
 const number SMALL = 1.0e-12;
 const number SMALL_SQ = SMALL * SMALL;
 
@@ -566,6 +573,8 @@ template <class vector_t>
 void ReflectVectorAtPlane(vector_t& vReflectedOut, const vector_t& v,
                           const vector_t& n, const vector_t& r0);
 
+// end group ugbase_math
+/// \}
 
 }//	end of namespace
 

@@ -19,6 +19,12 @@
 namespace ug
 {
 
+/**
+ * \defgroup math_matrix Matrix
+ * \ingroup ugbase_math
+ * \{
+ */
+
 //template <std::size_t N, std::size_t M, typename T = number> class MathMatrix;
 
 /**
@@ -255,6 +261,8 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,3>& m)
 std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,2>& m);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,3>& m);
 
+// end group math_matrix
+/// \}
 
 } //end of namespace: lgmath
 

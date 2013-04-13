@@ -27,6 +27,9 @@
 
 #include "common/types.h"
 
+/// \addtogroup ugbase_math
+/// \{
+
 void IntersectLineSegments(const number A1x, const number A1y, const number A1z,
                            const number A2x, const number A2y, const number A2z,
                            const number B1x, const number B1y, const number B1z,
@@ -61,5 +64,8 @@ void AdjustNearestPoints(number A1x, number A1y, number A1z,
                          number epsilon_squared, number s, number t,
                          number &PointOnSegAx, number &PointOnSegAy, number &PointOnSegAz,
                          number &PointOnSegBx, number &PointOnSegBy, number &PointOnSegBz);
+
+// end group ugbase_math
+/// \}
 
 #endif // _lineintersect_utils_h

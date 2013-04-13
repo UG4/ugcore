@@ -12,6 +12,9 @@
 
 namespace ug{
 
+/// \addtogroup math_matrix
+/// \{
+
 ////////////////////////////////////////////////////////////////////////////////
 // Addition of Matrices
 ////////////////////////////////////////////////////////////////////////////////
@@ -450,6 +453,9 @@ MatInftyNorm(matrix_t& m);
 template <typename matrix_t>
 inline typename matrix_t::value_type
 MatMaxNorm(matrix_t& m);
+
+// end group math_matrix
+/// \}
 
 } //end of namespace
 

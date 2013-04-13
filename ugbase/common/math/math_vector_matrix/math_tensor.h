@@ -13,9 +13,13 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	MathTensor
-///	a mathematical Tensor of rank TRank and N entries.
+/**
+ * \defgroup math_tensor Tensor
+ * \ingroup ugbase_math
+ * \{
+ */
 
-
+/// a mathematical Tensor of rank TRank and N entries.
 template <size_t TRank, size_t N, typename T = number> class MathTensor;
 
 template <size_t TRank, size_t N, typename T>
@@ -185,11 +189,8 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathTensorX<TEntry,
 	return outStream;
 }
 
-
-
-
-
-
+// end group math_tensor
+/// \}
 
 }//	end of namespace
 

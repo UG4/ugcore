@@ -10,6 +10,12 @@
 ////////////////////////////////////////////////////////////////////////
 //	This header assembles all math-related types and functions
 
+/**
+ * \defgroup ugbase_math Math
+ * General math types and utilities
+ * \ingroup ugbase
+ */
+
 ////////////////////////////////////////////////////////////////////////
 //	the common math-types
 #include "ugmath_types.h"

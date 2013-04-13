@@ -13,6 +13,9 @@
 
 namespace ug{
 
+/// \addtogroup ugbase_math
+/// \{
+
 /// Matrix - Vector Multiplication
 // vOut = m * v
 template <typename vector_t_out, typename matrix_t, typename vector_t_in>
@@ -48,7 +51,10 @@ inline
 void
 TransposedMatVecMultAdd(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v);
 
-} //end of namespace: lgmath
+// end group ugbase_math
+/// \}
+
+} //end of namespace: ug
 
 #include "math_matrix_vector_functions_common_impl.hpp"
 

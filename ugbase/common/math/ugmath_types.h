@@ -26,14 +26,8 @@
 namespace ug
 {
 
-/**
- * Abbreviations of small vectors
- *
- * \defgroup vectors Vectors
- */
-
 /// \addtogroup vectors
-///\{
+/// \{
 
 /// a 1d vector
 typedef MathVector<1, number> vector1;
@@ -56,7 +50,8 @@ typedef MathMatrix<3,3, number> matrix33;
 /// a 4x4 matrix
 typedef MathMatrix<4,4, number> matrix44;
 
-///\}
+// end group vectors
+/// \}
 
 }
 

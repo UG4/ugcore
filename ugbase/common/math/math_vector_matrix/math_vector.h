@@ -25,6 +25,13 @@
 namespace ug
 {
 
+/**
+ * \defgroup vectors Vectors
+ * Abbreviations of small vectors
+ * \ingroup ugbase_math
+ * \{
+ */
+
 ////////////////////////////////////////////////////////////////////////
 //	MathMathVector
 ///	a mathematical Vector with N entries.
@@ -401,6 +408,8 @@ void Deserialize(TStream& out, MathVector<N, T>& valOut)
 	out.read((char*)valOut.m_data, sizeof(T) * N);
 }
 
+// end group vectors
+/// \}
 
 }//	end of namespace
 

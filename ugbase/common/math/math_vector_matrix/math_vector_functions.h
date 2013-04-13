@@ -9,6 +9,10 @@
 
 namespace ug
 {
+
+/// \addtogroup vectors
+/// \{
+
 ////////////////////////////////////////////////////////////////
 ///	Copy contents between vectors of possibly different types.
 /**	If the target vector is bigger than the source vector, additional entries
@@ -307,7 +311,8 @@ inline
 typename vector_t::value_type
 VecInftyNorm(const vector_t& v);
 
-
+// end group vectors
+/// \}
 
 }//	end of namespace
 
