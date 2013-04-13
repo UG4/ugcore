@@ -3,6 +3,7 @@
 //	y08 m11 d05
 
 /**
+ * \defgroup lib_grid lib_grid
  * \brief The grid library.
  *
  * lib_grid not only defines basic types like ug::Grid and ug::MultiGrid,
@@ -11,7 +12,6 @@
  * of methods that work on those types. Those can mostly be found in the
  * \ref lib_grid_algorithms section.
  *
- * \defgroup lib_grid lib_grid
  */
  
 #include "grid/grid.h"
