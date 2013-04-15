@@ -169,7 +169,7 @@ class IConvectionShapes
 
 	///	set the Geometry type to use for next updates
 		template <typename TFVGeom>
-		bool set_geometry_type();
+		bool set_geometry_type(const TFVGeom& geo);
 
 	protected:
 	///	Vector holding all update functions
@@ -206,7 +206,7 @@ template <int dim>
 template <typename TFVGeom>
 bool
 IConvectionShapes<dim>::
-set_geometry_type()
+set_geometry_type(const TFVGeom& geo)
 {
 //	get unique geometry id
 	size_t id = GetUniqueFVGeomID<TFVGeom>();
@@ -223,7 +223,6 @@ set_geometry_type()
 	m_id = id;
 
 //	set sizes
-	TFVGeom& geo = Provider<TFVGeom>::get();
 	set_sizes(geo.num_scvf(), geo.num_sh());
 
 //	we're done
