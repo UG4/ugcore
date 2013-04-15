@@ -480,9 +480,17 @@ class DependentUserData : public CplUserData<TData, dim>
 		using base_type::local_ips;
 
 	public:
-	///	returns that data depends on solution
-		virtual bool zero_derivative() const {return false;}
+	///	default constructor
+		DependentUserData() {}
 
+	///	sets the associated symbolic functions
+	/// \{
+		DependentUserData(const char* symbFct) {set_functions(symbFct);}
+		DependentUserData(const std::string& symbFct) {set_functions(symbFct);}
+		DependentUserData(const std::vector<std::string>& symbFct) {set_functions(symbFct);}
+	/// \}
+
+	public:
 	/// number of shapes for local function
 		size_t num_sh(size_t fct) const
 		{
@@ -506,11 +514,36 @@ class DependentUserData : public CplUserData<TData, dim>
 		const TData* deriv(size_t s, size_t ip, size_t fct) const
 			{check_s_ip_fct(s,ip,fct);return &(m_vvvvDeriv[s][ip][fct][0]);}
 
+	///	sets all derivative values to zero
+		void clear_derivative_values();
+
+	public:
+	///	returns that data depends on solution
+		virtual bool zero_derivative() const {return false;}
+
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
 	///	resize lin defect arrays
 		virtual void update_dof_sizes(const LocalIndices& ind);
 
-	///	sets all derivative values to zero
-		void clear_derivative_values();
+	///	sets the associated function pattern
+		virtual void set_function_pattern(const FunctionPattern& fctPatt);
+
+	///	sets the associated symbolic functions
+	/// \{
+		void set_functions(const char* symbFct);
+		void set_functions(const std::string& symbFct);
+		void set_functions(const std::vector<std::string>& symbFct);
+	/// \}
+
+	protected:
+	///	extracts the function group
+		void extract_fct_grp();
+
+	protected:
+	///	string of symbolic functions required
+		std::vector<std::string> m_SymbFct;
 
 	protected:
 	///	checks in debug mode the correct usage of indices

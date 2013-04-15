@@ -146,11 +146,11 @@ class StdDependentUserData
 	  	  	  	  	  	  DependentUserData<TData, dim> >
 {
 	public:
-		StdDependentUserData() : m_pFctPatt(NULL){}
+		StdDependentUserData(){}
 
-		StdDependentUserData(const char* functions) : m_pFctPatt(NULL){
-			set_functions(functions);
-		}
+		StdDependentUserData(const char* symbFct) {this->set_functions(symbFct);}
+		StdDependentUserData(const std::string& symbFct) {this->set_functions(symbFct);}
+		StdDependentUserData(const std::vector<std::string>& symbFct) {this->set_functions(symbFct);}
 
 	public:
 		virtual void compute(LocalVector* u, GeometricObject* elem,
@@ -199,59 +199,6 @@ class StdDependentUserData
 			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,u,elem,
 												vCornerCoords,vLocIP,nip, vJT);
 		}
-
-	public:
-	///	returns if grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
-
-	///	sets the associated function pattern
-		virtual void set_function_pattern(const FunctionPattern& fctPatt)
-		{
-			m_pFctPatt = &fctPatt;
-			extract_fct_grp();
-		}
-
-	///	sets the associated symbolic functions
-		void set_functions(const char* symbFct)
-		{
-			m_SymbFct = symbFct;
-			extract_fct_grp();
-		}
-
-	protected:
-	///	extracts the function group
-		void extract_fct_grp()
-		{
-		//	if associated infos missing return
-			if(m_pFctPatt == NULL) return;
-			this->m_fctGrp.set_function_pattern(*m_pFctPatt);
-
-			if(m_SymbFct.empty()){
-				this->m_fctGrp.clear();
-				return;
-			}
-
-		//	create function group of this elem disc
-			try{
-				this->m_fctGrp.clear();
-				this->m_fctGrp.add(TokenizeString(m_SymbFct));
-			}UG_CATCH_THROW("StdDependendDataExport: Cannot find  some symbolic function "
-							"name in '"<<m_SymbFct<<"'.");
-
-		//	create a mapping between all functions and the function group of this
-		//	element disc.
-			try{
-				CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, *m_pFctPatt);
-			}UG_CATCH_THROW("StdDependendDataExport: Cannot create Function Index Mapping"
-							" for '"<<m_SymbFct<<"'.");
-		}
-
-	protected:
-	///	associated function pattern
-		const FunctionPattern* m_pFctPatt;
-
-	///	string of symbolic functions required
-		std::string m_SymbFct;
 
 	protected:
 	///	access to implementation

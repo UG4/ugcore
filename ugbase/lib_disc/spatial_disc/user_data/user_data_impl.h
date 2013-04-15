@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__SPATIAL_DISC__USER_DATA__USER_DATA_IMPL__
 
 #include "user_data.h"
+#include "lib_disc/common/groups_util.h"
 
 namespace ug{
 
@@ -298,6 +299,71 @@ void CplUserData<TData,dim,TRet>::local_ips_changed(const size_t seriesID, const
 ////////////////////////////////////////////////////////////////////////////////
 //	DependentUserData
 ////////////////////////////////////////////////////////////////////////////////
+
+template <typename TData, int dim>
+void DependentUserData<TData,dim>::set_function_pattern(const FunctionPattern& fctPatt)
+{
+	this->m_fctGrp.set_function_pattern(fctPatt);
+	extract_fct_grp();
+}
+
+template <typename TData, int dim>
+void DependentUserData<TData,dim>::set_functions(const char* symbFct)
+{
+	set_functions(std::string(symbFct));
+}
+
+template <typename TData, int dim>
+void DependentUserData<TData,dim>::set_functions(const std::string& symbFct)
+{
+	set_functions(TokenizeTrimString(symbFct));
+}
+
+template <typename TData, int dim>
+void DependentUserData<TData,dim>::set_functions(const std::vector<std::string>& symbFct)
+{
+	m_SymbFct = symbFct;
+	extract_fct_grp();
+}
+
+template <typename TData, int dim>
+void DependentUserData<TData,dim>::extract_fct_grp()
+{
+	//	if associated infos missing return
+	const FunctionPattern* pFctPatt = this->m_fctGrp.function_pattern();
+	if(pFctPatt == NULL) return;
+
+	//	if no function passed, clear functions
+	if(m_SymbFct.size() == 1 && m_SymbFct[0].empty()) m_SymbFct.clear();
+
+	//	if functions passed with separator, but not all tokens filled, throw error
+	for(size_t i = 0; i < m_SymbFct.size(); ++i)
+	{
+		if(m_SymbFct.empty())
+			UG_THROW("Error while setting functions in a DependentUserData: passed "
+					"function string lacks a "
+					"function specification at position "<<i<<"(of "
+					<<m_SymbFct.size()-1<<")");
+	}
+
+	if(m_SymbFct.empty()){
+		this->m_fctGrp.clear();
+		return;
+	}
+
+	//	create function group of this elem disc
+	try{
+		this->m_fctGrp.clear();
+		this->m_fctGrp.add(m_SymbFct);
+	}UG_CATCH_THROW("DependentUserData: Cannot find some symbolic function "
+			"name.");
+
+	//	create a mapping between all functions and the function group of this
+	//	element disc.
+	try{
+		CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, *pFctPatt);
+	}UG_CATCH_THROW("DependentUserData: Cannot create Function Index Mapping.");
+}
 
 template <typename TData, int dim>
 void DependentUserData<TData,dim>::update_dof_sizes(const LocalIndices& ind)
