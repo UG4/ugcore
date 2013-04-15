@@ -38,6 +38,7 @@ if(buildAlgebra)
 					
 					disc_bridges/domain_disc_bridge.cpp
 					disc_bridges/interpolate_bridge.cpp
+					disc_bridges/max_error_bridge.cpp
 					disc_bridges/grid_function_bridge.cpp
 					disc_bridges/ordering_bridge.cpp
 					disc_bridges/integrate_bridge.cpp
