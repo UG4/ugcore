@@ -1,12 +1,12 @@
 /*
- * std_pos_data.h
+ * std_glob_pos_data.h
  *
  *  Created on: 03.07.2012
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__STD_POS_DATA__
-#define __H__UG__LIB_DISC__SPATIAL_DISC__STD_POS_DATA__
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__STD_GLOB_POS_DATA__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__STD_GLOB_POS_DATA__
 
 #include "std_user_data.h"
 
@@ -25,8 +25,8 @@ namespace ug{
  *
  */
 template <typename TImpl, typename TData, int dim, typename TRet = void>
-class StdPositionData
-	: 	public StdUserData<StdPositionData<TImpl,TData,dim,TRet>, TData, dim, TRet>
+class StdGlobPosData
+	: 	public StdUserData<StdGlobPosData<TImpl,TData,dim,TRet>, TData, dim, TRet>
 {
 	public:
 		virtual TRet operator() (TData& value,
@@ -102,4 +102,4 @@ class StdPositionData
 
 } // namespace ug
 
-#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__STD_POS_DATA__ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__STD_GLOB_POS_DATA__ */

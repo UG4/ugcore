@@ -19,7 +19,7 @@ extern "C" {
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
-#include "lib_disc/spatial_disc/user_data/std_pos_data.h"
+#include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
 #include "lua_traits.h"
@@ -53,7 +53,7 @@ class LuaUserDataFactory;
  */
 template <typename TData, int dim, typename TRet = void>
 class LuaUserData
-	: public StdPositionData<LuaUserData<TData, dim, TRet>, TData, dim, TRet>
+	: public StdGlobPosData<LuaUserData<TData, dim, TRet>, TData, dim, TRet>
 {
 	///	friend class
 		friend class LuaUserDataFactory<TData, dim, TRet>;

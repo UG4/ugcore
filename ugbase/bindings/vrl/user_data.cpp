@@ -13,7 +13,7 @@
 #include <boost/function.hpp>
 #include <jni.h>
 #include "lib_disc/spatial_disc/user_data/user_data.h"
-#include "lib_disc/spatial_disc/user_data/std_pos_data.h"
+#include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 #include "lib_disc/spatial_disc/user_data/linker/linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/linker_traits.h"
 
@@ -606,7 +606,7 @@ class VRLUserLinker
 
 template <typename TData, int dim>
 class VRLUserData
-	: public StdPositionData<VRLUserData<TData, dim>, TData, dim>
+	: public StdGlobPosData<VRLUserData<TData, dim>, TData, dim>
 {
 	protected:
 		static jobject compileUserDataString(JNIEnv *env, const char* s)
@@ -738,7 +738,7 @@ class VRLUserData
 
 template <int dim>
 class VRLCondUserNumber
-	: public StdPositionData<VRLCondUserNumber<dim>, number, dim, bool>
+	: public StdGlobPosData<VRLCondUserNumber<dim>, number, dim, bool>
 {
 protected:
 	jdouble condData2Double(JNIEnv *env, jobject obj) const
