@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__INVERSE_LINKER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__INVERSE_LINKER__
 
-#include "lib_disc/spatial_disc/user_data/std/std_linker_data.h"
+#include "lib_disc/spatial_disc/user_data/data_linker.h"
 
 namespace ug{
 
@@ -31,7 +31,7 @@ class InverseLinker
 {
 	public:
 	//	type of base class
-		typedef DataLinker<number, dim> base_type;
+		typedef StdDataLinker<InverseLinker<dim>, number, dim> base_type;
 
 	public:
 	///	constructor

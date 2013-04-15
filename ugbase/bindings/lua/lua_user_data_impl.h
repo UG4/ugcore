@@ -887,7 +887,7 @@ set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data)
 
 //	check input number
 	if(i >= this->num_input())
-		UG_THROW("DataLinker::set_input: Only " << this->num_input()
+		UG_THROW("LuaUserFunction::set_input: Only " << this->num_input()
 						<< " inputs can be set. Use 'set_num_input' to increase"
 						" the number of needed inputs.");
 

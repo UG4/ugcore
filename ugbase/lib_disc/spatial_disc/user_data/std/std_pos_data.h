@@ -26,21 +26,19 @@ namespace ug{
  */
 template <typename TImpl, typename TData, int dim, typename TRet = void>
 class StdPositionData
-	: 	public StdUserData<		StdPositionData<TImpl,TData,dim,TRet>,
-								CplUserData<TData,dim,TRet>,
-								TData,dim,TRet>
+	: 	public StdUserData<StdPositionData<TImpl,TData,dim,TRet>, TData, dim, TRet>
 {
 	public:
-		inline TRet evaluate (TData& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si) const
+		virtual TRet operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si) const
 		{
 			return this->getImpl().evaluate(value, globIP, time, si);
 		}
 
-		inline void evaluate (TData vValue[],
-		                      const MathVector<dim> vGlobIP[],
-		                      number time, int si, const size_t nip) const
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si, const size_t nip) const
 		{
 			for(size_t ip = 0; ip < nip; ++ip)
 				this->getImpl().evaluate(vValue[ip], vGlobIP[ip], time, si);

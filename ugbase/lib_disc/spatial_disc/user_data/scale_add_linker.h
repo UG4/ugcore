@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__SCALE_ADD_LINKER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__SCALE_ADD_LINKER__
 
-#include "lib_disc/spatial_disc/user_data/std/std_linker_data.h"
+#include "lib_disc/spatial_disc/user_data/data_linker.h"
 
 namespace ug{
 
@@ -36,7 +36,7 @@ class ScaleAddLinker
 {
 	public:
 	//	type of base class
-		typedef DataLinker<TData, dim> base_type;
+		typedef StdDataLinker<ScaleAddLinker<TData, dim, TDataScale>, TData, dim> base_type;
 
 	public:
 	///	constructor

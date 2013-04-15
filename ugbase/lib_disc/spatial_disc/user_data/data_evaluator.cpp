@@ -221,13 +221,15 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int subsetIndex, int d
 	//	get the user data
 		SmartPtr<ICplUserData<dim> > ipData = vEvalData[i];
 
+	//	update function pattern (this will update functionGroups and Map of Data)
+		try{
+			ipData->set_function_pattern(m_fctPatt);
+		}
+		UG_CATCH_THROW("DataEvaluator: Cannot set FunctionPattern to UserData.");
+
 	//	sort data into const and non-solution dependent
 		if(ipData->constant()) {m_vConstData.push_back(ipData); continue;}
 		if(ipData->zero_derivative()){m_vPosData.push_back(ipData); continue;}
-
-	//	update function group of dependent data
-		try{ipData->update_function_group_and_map();}
-		UG_CATCH_THROW("DataEvaluator: Cannot update FunctionGroup of IDependentData.");
 
 	//	save as dependent data
 		m_vDependentData.push_back(ipData);

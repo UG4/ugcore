@@ -38,19 +38,12 @@ class UserDataInfo {
 		virtual bool requires_grid_fct() const = 0;
 
 	///	sets the function pattern for a possibly needed grid function
-		virtual void set_function_pattern(const FunctionPattern& fctPatt) {}
-
-	///	updates the function group and mapping (needed for Linker)
-		virtual void update_function_group_and_map() {}
-
-	/// set	Function Group of functions (by copy)
-		void set_function_group(const FunctionGroup& fctGrp) {m_fctGrp = fctGrp;}
+		virtual void set_function_pattern(const FunctionPattern& fctPatt) {
+			m_fctGrp.set_function_pattern(fctPatt);
+		}
 
 	///	Function Group of functions
 		const FunctionGroup& function_group() const {return m_fctGrp;}
-
-	///	set function mapping
-		void set_map(const FunctionIndexMapping& map) {m_map = map;}
 
 	///	get function mapping
 		const FunctionIndexMapping& map() const{return m_map;}
@@ -487,6 +480,9 @@ class DependentUserData : public CplUserData<TData, dim>
 		using base_type::local_ips;
 
 	public:
+	///	returns that data depends on solution
+		virtual bool zero_derivative() const {return false;}
+
 	/// number of shapes for local function
 		size_t num_sh(size_t fct) const
 		{

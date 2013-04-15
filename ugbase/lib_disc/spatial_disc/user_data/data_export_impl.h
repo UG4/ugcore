@@ -17,7 +17,9 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-DataExport<TData, dim>::DataExport() : m_id(ROID_UNKNOWN)
+DataExport<TData, dim>::DataExport(const char* functions)
+: StdDependentUserData<DataExport<TData,dim>, TData, dim>(functions),
+  m_id(ROID_UNKNOWN)
 {
 //	reset all evaluation functions
 	clear_fct();

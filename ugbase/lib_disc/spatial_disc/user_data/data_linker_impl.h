@@ -16,8 +16,8 @@ namespace ug{
 //	Data Linker
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename TData, int dim>
-bool DataLinker<TData,dim>::zero_derivative() const
+template <typename TImpl, typename TData, int dim>
+bool StdDataLinker<TImpl,TData,dim>::zero_derivative() const
 {
 	bool bRet = true;
 	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
@@ -25,34 +25,43 @@ bool DataLinker<TData,dim>::zero_derivative() const
 	return bRet;
 }
 
-template <typename TData, int dim>
-void DataLinker<TData,dim>::check_setup() const
+template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::check_setup() const
 {
 //	check, that all inputs are set
 	for(size_t i = 0; i < num_input(); ++i)
 		if(!m_vspICplUserData[i].valid())
-			UG_THROW("DataLinker::check_setup: Input number "<<i<<" missing.");
+			UG_THROW("StdDataLinker::check_setup: Input number "<<i<<" missing.");
 }
 
-template <typename TData, int dim>
-void DataLinker<TData,dim>::update_function_group_and_map()
+template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::
+set_function_pattern(const FunctionPattern& fctPatt)
 {
-//	collect all function groups
+//	set function pattern in dependent data and collect all function groups
 	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
-	for(size_t i = 0; i < m_vspICplUserData.size(); ++i)
-		if(m_vspICplUserData[i].valid())
-			if(m_vspUserDataInfo[i]->num_fct() != 0)
-				vFctGrp[i] = &(m_vspUserDataInfo[i]->function_group());
+	for(size_t i = 0; i < m_vspICplUserData.size(); ++i){
+		if(m_vspICplUserData[i].valid()){
+			m_vspUserDataInfo[i]->set_function_pattern(fctPatt);
+			vFctGrp[i] = &(m_vspUserDataInfo[i]->function_group());
+		}
+	}
+
+//	All data this linker depends on has now an updated function group. We can
+//	now setup the map of this data. Therefore, we create a union of all function
+//	this linker depends on and compute maps between this common function group
+//	and the the function needed by the data.
 
 //	create union of all function groups
 	try{
+		this->m_fctGrp.set_function_pattern(fctPatt);
 		CreateUnionOfFunctionGroups(this->m_fctGrp, vFctGrp, true);
-	}UG_CATCH_THROW("'DataLinker::update_function_group_and_map': Cannot create"
+	}UG_CATCH_THROW("'StdDataLinker::set_function_pattern': Cannot create"
 					" common function group.");
 
 	try{
 		CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, *this->m_fctGrp.function_pattern());
-	}UG_CATCH_THROW("'DataLinker::update_function_group_and_map':"
+	}UG_CATCH_THROW("'StdDataLinker::set_function_pattern':"
 					"Cannot create Function Index Mapping for Common Functions.");
 
 //	create FunctionIndexMapping for each Disc
@@ -63,14 +72,14 @@ void DataLinker<TData,dim>::update_function_group_and_map()
 		{
 			try{
 				CreateFunctionIndexMapping(m_vMap[i], *vFctGrp[i], this->m_fctGrp);
-			}UG_CATCH_THROW("'DataLinker::update_function_group_and_map':"
+			}UG_CATCH_THROW("'StdDataLinker::set_function_pattern':"
 							"Cannot create Function Index Mapping for input "<<i<<".");
 		}
 	}
 }
 
-template <typename TData, int dim>
-void DataLinker<TData,dim>::
+template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::
 local_ip_series_added(const size_t seriesID)
 {
 	const size_t s = seriesID;
@@ -117,8 +126,8 @@ local_ip_series_added(const size_t seriesID)
 }
 
 
-template <typename TData, int dim>
-void DataLinker<TData,dim>::
+template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::
 local_ips_changed(const size_t seriesID, const size_t newNumIP)
 {
 	const size_t s = seriesID;
@@ -148,8 +157,8 @@ local_ips_changed(const size_t seriesID, const size_t newNumIP)
 	DependentUserData<TData, dim>::local_ips_changed(seriesID, newNumIP);
 }
 
-template <typename TData, int dim>
-void DataLinker<TData,dim>::
+template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::
 global_ips_changed(const size_t seriesID, const MathVector<dim>* vPos, const size_t numIP)
 {
 //	loop inputs

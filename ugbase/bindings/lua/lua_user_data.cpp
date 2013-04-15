@@ -149,7 +149,7 @@ static void Dimension(Registry& reg, string grp)
 //	LuaUserFunctionNumber
 	{
 		typedef LuaUserFunction<number, dim, number> T;
-		typedef DataLinker<number, dim> TBase;
+		typedef DependentUserData<number, dim> TBase;
 		string name = string("LuaUserFunctionNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
@@ -164,7 +164,7 @@ static void Dimension(Registry& reg, string grp)
 //	LuaUserFunctionMatrixNumber
 	{
 		typedef LuaUserFunction<MathMatrix<dim,dim>, dim, number> T;
-		typedef DataLinker<MathMatrix<dim,dim>, dim> TBase;
+		typedef DependentUserData<MathMatrix<dim,dim>, dim> TBase;
 		string name = string("LuaUserFunctionMatrixNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
@@ -179,7 +179,7 @@ static void Dimension(Registry& reg, string grp)
 //	LuaUserFunctionVectorNumber
 	{
 		typedef LuaUserFunction<MathVector<dim>, dim, number > T;
-		typedef DataLinker<MathVector<dim>, dim> TBase;
+		typedef DependentUserData<MathVector<dim>, dim> TBase;
 		string name = string("LuaUserFunctionVectorNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
@@ -194,7 +194,7 @@ static void Dimension(Registry& reg, string grp)
 //	LuaUserFunctionNumberVector
 	{
 		typedef LuaUserFunction<number, dim, MathVector<dim> > T;
-		typedef DataLinker<number, dim> TBase;
+		typedef DependentUserData<number, dim> TBase;
 		string name = string("LuaUserFunctionNumberVector").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")

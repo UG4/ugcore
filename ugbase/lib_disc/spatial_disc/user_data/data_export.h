@@ -28,44 +28,15 @@ namespace ug{
  */
 template <typename TData, int dim>
 class DataExport :
-	public StdUserData<	DataExport<TData,dim>, DependentUserData<TData, dim>, TData,dim>
+	public StdDependentUserData<DataExport<TData,dim>, TData, dim>
 {
 	public:
 	///	default constructor
-		DataExport();
+		DataExport(const char* functions);
 
 	///	implement compute() method of ICplUserData
 		virtual void compute(LocalVector* u, GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
-
-		inline void evaluate (TData& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si) const
-		{
-			UG_THROW("DataExport: Solution, element and local ips required "
-					"for evaluation, but not passed. Cannot evaluate.");
-		}
-
-		inline void evaluate (TData vValue[],
-		                      const MathVector<dim> vGlobIP[],
-		                      number time, int si, const size_t nip) const
-		{
-			UG_THROW("DataExport: Solution, element and local ips required "
-					"for evaluation, but not passed. Cannot evaluate.");
-		}
-
-		template <int refDim>
-		inline void evaluate (TData& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si,
-		                      LocalVector& u,
-		                      GeometricObject* elem,
-		                      const MathVector<dim> vCornerCoords[],
-		                      const MathVector<refDim>& locIP) const
-		{
-			evaluate<refDim>(&value,&globIP,time,si,u,elem,
-			                 vCornerCoords,&locIP,1,NULL);
-		}
 
 		template <int refDim>
 		inline void evaluate(TData vValue[],
@@ -116,9 +87,6 @@ class DataExport :
 
 	///	clears all export functions
 		void clear_fct();
-
-	///	returns if data depends on solution
-		virtual bool zero_derivative() const {return false;}
 
 	///	clear dependent data
 		void clear() {m_vDependData.clear();}

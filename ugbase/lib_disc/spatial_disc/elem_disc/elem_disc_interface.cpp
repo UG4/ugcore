@@ -163,12 +163,6 @@ void IElemDisc<TDomain>::update_function_index_mapping()
 	for(size_t i = 0; i < m_vIImport.size(); ++i){
 		m_vIImport[i]->set_map(m_fctIndexMap);
 	}
-
-//	set function group at exports
-	for(size_t i = 0; i < m_vIExport.size(); ++i){
-		m_vIExport[i]->set_function_group(m_fctGrp);
-		m_vIExport[i]->set_map(m_fctIndexMap);
-	}
 }
 
 template <typename TDomain>

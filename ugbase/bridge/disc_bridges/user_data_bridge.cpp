@@ -32,7 +32,7 @@ class DarcyVelocityLinker
 	: public StdDataLinker< DarcyVelocityLinker<dim>, MathVector<dim>, dim>
 {
 	///	Base class type
-		typedef DataLinker<MathVector<dim>, dim> base_type;
+		typedef StdDataLinker< DarcyVelocityLinker<dim>, MathVector<dim>, dim> base_type;
 
 	public:
 		DarcyVelocityLinker() :
@@ -498,19 +498,10 @@ void RegisterUserDataType(Registry& reg, string grp)
 		reg.add_class_to_group(name, string("DependentUserData").append(type), dimTag);
 	}
 
-//	DataLinker"Type"
-	{
-		typedef DataLinker<TData, dim> T;
-		typedef DependentUserData<TData, dim> TBase;
-		string name = string("DataLinker").append(type).append(dimSuffix);
-		reg.add_class_<T, TBase >(name, grp);
-		reg.add_class_to_group(name, string("DataLinker").append(type), dimTag);
-	}
-
 //	ScaleAddLinker"Type"
 	{
 		typedef ScaleAddLinker<TData, dim, number> T;
-		typedef DataLinker<TData, dim> TBase;
+		typedef DependentUserData<TData, dim> TBase;
 		string name = string("ScaleAddLinker").append(type).append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , SmartPtr<CplUserData<TData,dim> >)>(&T::add))
@@ -610,7 +601,7 @@ static void Dimension(Registry& reg, string grp)
 //	DarcyVelocityLinker
 	{
 		typedef DarcyVelocityLinker<dim> T;
-		typedef DataLinker<MathVector<dim>, dim> TBase;
+		typedef DependentUserData<MathVector<dim>, dim> TBase;
 		string name = string("DarcyVelocityLinker").append(dimSuffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_method("set_density", &T::set_density)
@@ -624,23 +615,24 @@ static void Dimension(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
 	}
-	//	InverseLinker"Type"
-		{
-			typedef InverseLinker<dim> T;
-			typedef DataLinker<number,dim> TBase;
 
-				string name = string("InverseLinker").append(dimSuffix);
-				reg.add_class_<T,TBase>(name, grp)
-				.add_method("divide", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , SmartPtr<CplUserData<number,dim> >)>(&T::divide))
-				.add_method("divide", static_cast<void (T::*)(number , SmartPtr<CplUserData<number,dim> >)>(&T::divide))
-				.add_method("divide", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , number)>(&T::divide))
-				.add_method("divide", static_cast<void (T::*)(number,number)>(&T::divide))
-				.add_constructor()
-				.template add_constructor<void (*)(const InverseLinker<dim>&)>()
-				.set_construct_as_smart_pointer(true);
-			reg.add_class_to_group(name, string("InverseLinker"), dimTag);
+//	InverseLinker"Type"
+	{
+		typedef InverseLinker<dim> T;
+		typedef DependentUserData<number,dim> TBase;
 
-		}
+			string name = string("InverseLinker").append(dimSuffix);
+			reg.add_class_<T,TBase>(name, grp)
+			.add_method("divide", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , SmartPtr<CplUserData<number,dim> >)>(&T::divide))
+			.add_method("divide", static_cast<void (T::*)(number , SmartPtr<CplUserData<number,dim> >)>(&T::divide))
+			.add_method("divide", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> > , number)>(&T::divide))
+			.add_method("divide", static_cast<void (T::*)(number,number)>(&T::divide))
+			.add_constructor()
+			.template add_constructor<void (*)(const InverseLinker<dim>&)>()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, string("InverseLinker"), dimTag);
+
+	}
 
 }
 

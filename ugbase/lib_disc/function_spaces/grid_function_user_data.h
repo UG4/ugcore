@@ -15,142 +15,16 @@
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
-#include "lib_disc/spatial_disc/user_data/user_data.h"
+#include "lib_disc/spatial_disc/user_data/std/std_user_data.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 
 
 namespace ug{
 
-template <typename TData, int dim, typename TImpl>
-class StdGridFunctionData
-	: 	public DependentUserData<TData,dim>
-{
-	public:
-		////////////////
-		// one value
-		////////////////
-		virtual void operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si) const
-		{
-			UG_THROW("StdGridFunctionData: Need element.");
-		}
-
-		virtual void operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<1>& locIP) const
-		{
-			getImpl().template evaluate<1>(&value,&globIP,time,si,u,elem,vCornerCoords,&locIP, 1, NULL);
-		}
-
-		virtual void operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<2>& locIP) const
-		{
-			getImpl().template evaluate<2>(&value,&globIP,time,si,u,elem,vCornerCoords,&locIP, 1, NULL);
-		}
-
-		virtual void operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<3>& locIP) const
-		{
-			getImpl().template evaluate<3>(&value,&globIP,time,si,u,elem,vCornerCoords,&locIP, 1, NULL);
-		}
-
-		////////////////
-		// vector of values
-		////////////////
-
-		virtual void operator() (TData vValue[],
-		                         const MathVector<dim> vGlobIP[],
-		                         number time, int si, const size_t nip) const
-		{
-			UG_THROW("StdGridFunctionData: Need element.");
-		}
-
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<1> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<1, dim>* vJT = NULL) const
-		{
-			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,u,elem,
-			                               vCornerCoords,vLocIP,nip, vJT);
-		}
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<2> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<2, dim>* vJT = NULL) const
-		{
-			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,u,elem,
-			                               vCornerCoords,vLocIP,nip, vJT);
-		}
-
-		virtual void operator()(TData vValue[],
-		                        const MathVector<dim> vGlobIP[],
-		                        number time, int si,
-		                        LocalVector& u,
-		                        GeometricObject* elem,
-		                        const MathVector<dim> vCornerCoords[],
-		                        const MathVector<3> vLocIP[],
-		                        const size_t nip,
-		                        const MathMatrix<3, dim>* vJT = NULL) const
-		{
-			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,u,elem,
-			                               vCornerCoords,vLocIP,nip, vJT);
-		}
-
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
-		{
-			UG_THROW("Not implemented.");
-		}
-
-	///	returns if data is continuous
-		virtual bool continuous() const {return false;}
-
-	///	returns if data depends on solution
-		virtual bool zero_derivative() const {return false;}
-
-	///	returns that a grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
-
-	protected:
-	///	access to implementation
-		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
-
-	///	const access to implementation
-		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
-};
-
-
 template <typename TGridFunction>
 class GridFunctionNumberData
-	: public StdGridFunctionData<number, TGridFunction::dim,
-	  	  	  	  	  	  	  	  GridFunctionNumberData<TGridFunction> >
+	: public StdDependentUserData<GridFunctionNumberData<TGridFunction>,
+	  	  	  	  	  	  	  	  number, TGridFunction::dim>
 {
 	public:
 	//	world dimension of grid function
@@ -171,6 +45,8 @@ class GridFunctionNumberData
 		GridFunctionNumberData(SmartPtr<TGridFunction> spGridFct, const char* cmp)
 			: m_spGridFct(spGridFct)
 		{
+			this->set_functions(cmp);
+
 		//	get function id of name
 			m_fct = spGridFct->fct_id_by_name(cmp);
 
@@ -181,9 +57,13 @@ class GridFunctionNumberData
 
 		//	local finite element id
 			m_lfeID = spGridFct->local_finite_element_id(m_fct);
-
-			extract_fct_grp(spGridFct->function_pattern(), cmp);
 		};
+
+		virtual bool continuous() const
+		{
+			if(m_lfeID.type() == LFEID::LAGRANGE) return true;
+			else return false;
+		}
 
 		template <int refDim>
 		inline void evaluate(number vValue[],
@@ -261,8 +141,8 @@ class GridFunctionNumberData
 
 		}
 
-		inline void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
-		{
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
 			const number t = this->time();
 			const int si = this->subset();
 			for(size_t s = 0; s < this->num_series(); ++s)
@@ -279,50 +159,12 @@ class GridFunctionNumberData
 				default: UG_THROW("Not impl.");
 			}
 		}
-
-	protected:
-	///	extracts the function group
-		void extract_fct_grp(const FunctionPattern& fctPatt, std::string fctName)
-		{
-		//	if associated infos missing return
-			if(fctName.empty()) return;
-
-		//	create function group of this elem disc
-			try{
-				m_FctGrp.set_function_pattern(fctPatt);
-				m_FctGrp.add(TokenizeString(fctName));
-			}UG_CATCH_THROW("StdDataExport: Cannot find  some symbolic function "
-							"name in '"<<fctName<<"'.");
-
-		//	create a mapping between all functions and the function group of this
-		//	element disc.
-			try{
-				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, fctPatt);
-			}UG_CATCH_THROW("StdDataExport: Cannot create Function Index Mapping"
-							" for '"<<fctName<<"'.");
-
-			this->set_function_group(m_FctGrp);
-		}
-
-	///	FunctionGroup corresponding to symb functions
-		FunctionGroup m_FctGrp;
-
-	///	associated function index mapping
-		FunctionIndexMapping m_FctIndexMap;
-
-	public:
-	///	returns the function group
-		const FunctionGroup& fct_grp() const {return m_FctGrp;}
-
-	///	returns the function index mapping
-		const FunctionIndexMapping& fct_index_map() const {return m_FctIndexMap;}
-
 };
 
 template <typename TGridFunction>
 class GridFunctionVectorData
-	: public StdGridFunctionData<MathVector<TGridFunction::dim>, TGridFunction::dim,
-	  	  	  	  	  	  	  	  GridFunctionVectorData<TGridFunction> >
+	: public StdDependentUserData<GridFunctionVectorData<TGridFunction>,
+	  	  	  	  	  	  	  	  MathVector<TGridFunction::dim>, TGridFunction::dim>
 {
 	public:
 	//	world dimension of grid function
@@ -343,6 +185,8 @@ class GridFunctionVectorData
 		GridFunctionVectorData(SmartPtr<TGridFunction> spGridFct, const char* cmp)
 			: m_spGridFct(spGridFct)
 		{
+			this->set_functions(cmp);
+
 		//	create function group of this elem disc
 			try{
 			//	get strings
@@ -368,6 +212,14 @@ class GridFunctionVectorData
 			}UG_CATCH_THROW("GridFunctionVectorData: Cannot find  some symbolic function "
 							"name in '"<<cmp<<"'.");
 		};
+
+		virtual bool continuous() const
+		{
+			for(int i = 0; i < dim; ++i)
+				if(m_vlfeID[i].type() != LFEID::LAGRANGE)
+					return false;
+			return true;
+		}
 
 		template <int refDim>
 		inline void evaluate(MathVector<dim> vValue[],
@@ -416,22 +268,25 @@ class GridFunctionVectorData
 						 <<roid<<", refDim="<<refDim);
 		}
 
-		inline void compute(LocalVector* u, GeometricObject* elem, bool bDeriv = false)
-		{
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
 			const number t = this->time();
 			const int si = this->subset();
 			for(size_t s = 0; s < this->num_series(); ++s)
 				evaluate<dim>(this->values(s), this->ips(s), t, si,
                   *u, elem, NULL, this->template local_ips<dim>(s),
                   this->num_ip(s));
+
+			if(bDeriv)
+				UG_THROW("Not implemented.");
 		};
 };
 
 
 template <typename TGridFunction>
 class GridFunctionGradientData
-	: public StdGridFunctionData<MathVector<TGridFunction::dim>, TGridFunction::dim,
-	  	  	  	  	  	  	  	  GridFunctionGradientData<TGridFunction> >
+	: public StdDependentUserData<GridFunctionGradientData<TGridFunction> ,
+	  	  	  	  	  	  	  	  MathVector<TGridFunction::dim>, TGridFunction::dim>
 {
 	public:
 	//	world dimension of grid function
@@ -452,6 +307,8 @@ class GridFunctionGradientData
 		GridFunctionGradientData(SmartPtr<TGridFunction> spGridFct, const char* cmp)
 			: m_spGridFct(spGridFct)
 		{
+			this->set_functions(cmp);
+
 		//	get function id of name
 			m_fct = spGridFct->fct_id_by_name(cmp);
 
@@ -463,6 +320,16 @@ class GridFunctionGradientData
 		//	local finite element id
 			m_lfeID = spGridFct->local_finite_element_id(m_fct);
 		};
+
+		virtual bool continuous() const
+		{
+			return false;
+		}
+
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+			UG_THROW("Not implemented.");
+		}
 
 		template <int refDim>
 		inline void evaluate(MathVector<dim> vValue[],
@@ -545,9 +412,8 @@ class GridFunctionGradientData
  */
 template <typename TGridFunction>
 class GridFunctionGradientComponentData
-	: public StdGridFunctionData<number,
-	                             TGridFunction::dim,
-	                             GridFunctionGradientComponentData<TGridFunction> >
+	: public StdDependentUserData<GridFunctionGradientComponentData<TGridFunction>,
+									number, TGridFunction::dim>
 {
 	public:
 		///	World dimension of GridFunction m_spGridFct
@@ -578,6 +444,8 @@ class GridFunctionGradientComponentData
 		                                   size_t component /* 1-based */ )
 			: m_spGridFct( spGridFct )
 		{
+			this->set_functions(cmp);
+
 			//	check validity of component index
 			if ( component > static_cast<size_t>(dim) && component > 0 ) {
 				UG_THROW( "GridFunctionGradientComponentData: Requested component index " 
@@ -597,6 +465,16 @@ class GridFunctionGradientComponentData
 			//	local finite element id
 			m_lfeID = spGridFct->local_finite_element_id( m_fct );
 		};
+
+		virtual bool continuous() const
+		{
+			return false;
+		}
+
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+			UG_THROW("Not implemented.");
+		}
 
 		/**
 		 * \param[out] vValue Array of the <tt>nip</tt> gradient components

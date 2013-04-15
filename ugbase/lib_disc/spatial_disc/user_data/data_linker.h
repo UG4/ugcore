@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__
 
-#include "user_data.h"
+#include "std/std_user_data.h"
 #include "lib_disc/common/groups_util.h"
 
 namespace ug{
@@ -21,14 +21,74 @@ namespace ug{
  * \tparam 	TData		output Data type
  * \tparam 	dim			World dimension
  */
-template <typename TData, int dim>
-class DataLinker
-	: public DependentUserData<TData, dim>
+template <typename TImpl, typename TData, int dim>
+class StdDataLinker
+	: 	public StdDependentUserData<StdDataLinker<TImpl,TData,dim>, TData, dim>
 {
 	public:
-	///	constructor
-		DataLinker() {m_vspICplUserData.clear(); m_vspUserDataInfo.clear();}
+		inline void evaluate (TData& value,
+		                      const MathVector<dim>& globIP,
+		                      number time, int si) const
+		{
+			getImpl().evaluate(value,globIP,time,si);
+		}
 
+		inline void evaluate (TData vValue[],
+		                      const MathVector<dim> vGlobIP[],
+		                      number time, int si, const size_t nip) const
+		{
+			for(size_t ip = 0; ip < nip; ++ip)
+				getImpl().evaluate(vValue[ip],vGlobIP[ip],time,si);
+		}
+
+		template <int refDim>
+		inline void evaluate (TData& value,
+		                      const MathVector<dim>& globIP,
+		                      number time, int si,
+		                      LocalVector& u,
+		                      GeometricObject* elem,
+		                      const MathVector<dim> vCornerCoords[],
+		                      const MathVector<refDim>& locIP) const
+		{
+			getImpl().template evaluate<refDim>(value,globIP,time,si,u,elem,
+			                                    vCornerCoords,locIP);
+		}
+
+		template <int refDim>
+		inline void evaluate(TData vValue[],
+		                     const MathVector<dim> vGlobIP[],
+		                     number time, int si,
+		                     LocalVector& u,
+		                     GeometricObject* elem,
+		                     const MathVector<dim> vCornerCoords[],
+		                     const MathVector<refDim> vLocIP[],
+		                     const size_t nip,
+		                     const MathMatrix<refDim, dim>* vJT = NULL) const
+		{
+			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,u,elem,
+			                                    vCornerCoords,vLocIP,nip, vJT);
+		}
+
+
+	///	returns that a grid function is needed for evaluation
+		virtual bool requires_grid_fct() const
+		{
+			for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
+				if(this->m_vspUserDataInfo[i]->requires_grid_fct())
+					return true;
+			return false;
+		}
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool continuous() const
+		{
+			bool bRet = true;
+			for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
+				bRet &= this->m_vspUserDataInfo[i]->continuous();
+			return bRet;
+		}
+
+	public:
 	///	returns if derivative is zero
 		virtual bool zero_derivative() const;
 
@@ -74,7 +134,7 @@ class DataLinker
 		virtual void check_setup() const;
 
 	///	updates the function group
-		void update_function_group_and_map();
+		virtual void set_function_pattern(const FunctionPattern& fctPatt);
 
 	protected:
 	///	returns number of functions the input depends on
@@ -122,6 +182,13 @@ class DataLinker
 
 	///	series id the linker uses to get data from input
 		std::vector<std::vector<size_t> > m_vvSeriesID;
+
+	protected:
+	///	access to implementation
+		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
+
+	///	const access to implementation
+		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
 };
 
 } // end namespace ug

@@ -22,139 +22,21 @@
 
 namespace ug{
 
-///////////////////////////////////////////////////////////////////////////////
-// Base class for Exports
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename TImpl, typename TData, int dim>
-class StdDataExport
-	:  	public StdUserData<	StdDataExport<TImpl,TData,dim>,
-	  						DataExport<TData,dim>,
-	  						TData,dim>
-{
-	public:
-		StdDataExport() : m_pFctPatt(NULL) {m_SymbFct.clear();}
-
-		inline void evaluate (TData& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si) const
-		{
-			UG_THROW("StdDataExport: Solution, element and local ips required "
-					"for evaluation, but not passed. Cannot evaluate.");
-		}
-
-		inline void evaluate (TData vValue[],
-		                      const MathVector<dim> vGlobIP[],
-		                      number time, int si, const size_t nip) const
-		{
-			UG_THROW("StdDataExport: Solution, element and local ips required "
-					"for evaluation, but not passed. Cannot evaluate.");
-		}
-
-		template <int refDim>
-		inline void evaluate (TData& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si,
-		                      LocalVector& u,
-		                      GeometricObject* elem,
-		                      const MathVector<dim> vCornerCoords[],
-		                      const MathVector<refDim>& locIP) const
-		{
-			getImpl().template evaluate<refDim>(&value,&globIP,time,si,u,elem,
-			                                    vCornerCoords,&locIP,1,NULL);
-		}
-
-		template <int refDim>
-		inline void evaluate(TData vValue[],
-		                     const MathVector<dim> vGlobIP[],
-		                     number time, int si,
-		                     LocalVector& u,
-		                     GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[],
-		                     const MathVector<refDim> vLocIP[],
-		                     const size_t nip,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const
-		{
-			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,u,elem,
-			                                    vCornerCoords,vLocIP,nip, vJT);
-		}
-
-	///	returns that a grid function is needed for evaluation
-		virtual bool requires_grid_fct() const {return true;}
-
-	///	sets the associated function pattern
-		virtual void set_function_pattern(const FunctionPattern& fctPatt)
-		{
-			m_pFctPatt = &fctPatt;
-			extract_fct_grp();
-		}
-
-	///	sets the associated symbolic functions
-		void set_symb_fct(const char* symbFct)
-		{
-			m_SymbFct = symbFct;
-			extract_fct_grp();
-		}
-
-	protected:
-	///	extracts the function group
-		void extract_fct_grp()
-		{
-		//	if associated infos missing return
-			if(m_pFctPatt == NULL || m_SymbFct.empty()) return;
-
-		//	create function group of this elem disc
-			try{
-				m_FctGrp.set_function_pattern(*m_pFctPatt);
-				m_FctGrp.add(TokenizeString(m_SymbFct));
-			}UG_CATCH_THROW("StdDataExport: Cannot find  some symbolic function "
-							"name in '"<<m_SymbFct<<"'.");
-
-		//	create a mapping between all functions and the function group of this
-		//	element disc.
-			try{
-				CreateFunctionIndexMapping(m_FctIndexMap, m_FctGrp, *m_pFctPatt);
-			}UG_CATCH_THROW("StdDataExport: Cannot create Function Index Mapping"
-							" for '"<<m_SymbFct<<"'.");
-		}
-
-	///	returns the function group
-		const FunctionGroup& fct_grp() const {return m_FctGrp;}
-
-	///	returns the function index mapping
-		const FunctionIndexMapping& fct_index_map() const {return m_FctIndexMap;}
-
-		protected:
-	///	associated function pattern
-		const FunctionPattern* m_pFctPatt;
-
-	///	string of symbolic functions required
-		std::string m_SymbFct;
-
-	///	FunctionGroup corresponding to symb functions
-		FunctionGroup m_FctGrp;
-
-	///	associated function index mapping
-		FunctionIndexMapping m_FctIndexMap;
-
-	protected:
-	///	access to implementation
-		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
-
-	///	const access to implementation
-		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
-};
-
 ////////////////////////////////////////////////////////////////////////////////
 // ValueDataExport
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int dim>
 class ValueDataExport
-	: public StdDataExport<ValueDataExport<dim>,number,dim>
+	: public StdDependentUserData<ValueDataExport<dim>,number,dim>
 {
 	public:
-		ValueDataExport(const char* functions){this->set_symb_fct(functions);}
+		ValueDataExport(const char* functions){this->set_functions(functions);}
+
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+			UG_THROW("Not implemented.");
+		}
 
 		template <int refDim>
 		inline void evaluate(number vValue[],
@@ -171,10 +53,10 @@ class ValueDataExport
 			const ReferenceObjectID roid = elem->reference_object_id();
 
 		//	local finite element id
-			const LFEID& lfeID = this->fct_grp().local_finite_element_id(_C_);
+			const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
 
 		//	access local vector by map
-			u.access_by_map(this->fct_index_map());
+			u.access_by_map(this->map());
 
 		//	request for trial space
 			try{
@@ -204,7 +86,7 @@ class ValueDataExport
 	///	returns if provided data is continuous over geometric object boundaries
 		virtual bool continuous() const
 		{
-			const LFEID& lfeID = this->fct_grp().local_finite_element_id(_C_);
+			const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
 
 			if(lfeID.type() == LFEID::LAGRANGE) return true;
 			else return false;
@@ -221,10 +103,15 @@ class ValueDataExport
 
 template <int dim>
 class GradientDataExport
-	: public StdDataExport<GradientDataExport<dim>, MathVector<dim>,dim>
+	: public StdDependentUserData<GradientDataExport<dim>, MathVector<dim>,dim>
 {
 	public:
-		GradientDataExport(const char* functions){this->set_symb_fct(functions);}
+		GradientDataExport(const char* functions){this->set_functions(functions);}
+
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+			UG_THROW("Not implemented.");
+		}
 
 		template <int refDim>
 		inline void evaluate(MathVector<dim> vValue[],
@@ -241,10 +128,10 @@ class GradientDataExport
 			const ReferenceObjectID roid = elem->reference_object_id();
 
 		//	local finite element id
-			const LFEID& lfeID = this->fct_grp().local_finite_element_id(_C_);
+			const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
 
 		//	access local vector by map
-			u.access_by_map(this->fct_index_map());
+			u.access_by_map(this->map());
 
 		//	request for trial space
 			try{

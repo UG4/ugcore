@@ -14,7 +14,7 @@
 #include <jni.h>
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/std/std_pos_data.h"
-#include "lib_disc/spatial_disc/user_data/std/std_linker_data.h"
+#include "lib_disc/spatial_disc/user_data/data_linker.h"
 #include "lib_disc/spatial_disc/user_data/data_linker.h"
 #include "lib_disc/spatial_disc/user_data/data_linker_traits.h"
 
@@ -225,7 +225,7 @@ class VRLUserLinker
 {
 	public:
 	///	type of base class
-		typedef DataLinker<TData, dim> base_type;
+		typedef StdDataLinker<VRLUserLinker<TData, dim, TDataIn>, TData, dim> base_type;
 
 	protected:
 		static jobject compileUserDataString(JNIEnv *env, const char* s)
@@ -336,7 +336,7 @@ class VRLUserLinker
 
 		//	check input number
 			if(i >= this->num_input())
-				UG_THROW("DataLinker::set_input: Only " << this->num_input()
+				UG_THROW("VRLUserLinker::set_input: Only " << this->num_input()
 								<< " inputs can be set. Use 'set_num_input' to increase"
 								" the number of needed inputs.");
 

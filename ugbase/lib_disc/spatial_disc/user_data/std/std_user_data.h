@@ -33,17 +33,14 @@ namespace ug{
 		                const MathMatrix\<refDim, dim\>* vJT = NULL) const
  *
  */
-template <typename TImpl, typename TBase, typename TData, int dim, typename TRet = void>
+template <typename TImpl, typename TData, int dim, typename TRet = void, typename TBase = CplUserData<TData, dim, TRet> >
 class StdUserData : public TBase
 {
 	public:
 	///	returns value for a global position
 		virtual TRet operator() (TData& value,
 								 const MathVector<dim>& globIP,
-								 number time, int si) const
-		{
-			return getImpl().evaluate(value, globIP, time, si);
-		}
+								 number time, int si) const = 0;
 
 	///	returns value for local and global position
 	///	\{
@@ -87,10 +84,7 @@ class StdUserData : public TBase
 	///	returns value for global positions
 		virtual void operator()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const
-		{
-				getImpl().evaluate(vValue,vGlobIP,time,si,nip);
-		}
+								number time, int si, const size_t nip) const = 0;
 
 	///	returns values for local and global positions
 	///	\{
@@ -143,6 +137,129 @@ class StdUserData : public TBase
 
 	///	const access to implementation
 		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
+};
+
+template <typename TImpl, typename TData, int dim>
+class StdDependentUserData
+	: public StdUserData< StdDependentUserData<TImpl, TData, dim>,
+	  	  	  	  	  	  TData, dim, void,
+	  	  	  	  	  	  DependentUserData<TData, dim> >
+{
+	public:
+		StdDependentUserData() : m_pFctPatt(NULL){}
+
+		StdDependentUserData(const char* functions) : m_pFctPatt(NULL){
+			set_functions(functions);
+		}
+
+	public:
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false) = 0;
+
+		virtual void operator() (TData& value,
+								 const MathVector<dim>& globIP,
+								 number time, int si) const
+		{
+			UG_THROW("StdDependentUserData: Solution, element and local ips required "
+					"for evaluation, but not passed. Cannot evaluate.");
+		}
+
+		virtual void operator()(TData vValue[],
+								const MathVector<dim> vGlobIP[],
+								number time, int si, const size_t nip) const
+		{
+			UG_THROW("StdDependentUserData: Solution, element and local ips required "
+					"for evaluation, but not passed. Cannot evaluate.");
+		}
+
+		template <int refDim>
+		inline void evaluate (TData& value,
+							  const MathVector<dim>& globIP,
+							  number time, int si,
+							  LocalVector& u,
+							  GeometricObject* elem,
+							  const MathVector<dim> vCornerCoords[],
+							  const MathVector<refDim>& locIP) const
+		{
+			getImpl().template evaluate<refDim>(&value,&globIP,time,si,u,elem,
+												vCornerCoords,&locIP,1,NULL);
+		}
+
+		template <int refDim>
+		inline void evaluate(TData vValue[],
+							 const MathVector<dim> vGlobIP[],
+							 number time, int si,
+							 LocalVector& u,
+							 GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[],
+							 const MathVector<refDim> vLocIP[],
+							 const size_t nip,
+							 const MathMatrix<refDim, dim>* vJT = NULL) const
+		{
+			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,u,elem,
+												vCornerCoords,vLocIP,nip, vJT);
+		}
+
+	public:
+	///	returns if grid function is needed for evaluation
+		virtual bool requires_grid_fct() const {return true;}
+
+	///	sets the associated function pattern
+		virtual void set_function_pattern(const FunctionPattern& fctPatt)
+		{
+			m_pFctPatt = &fctPatt;
+			extract_fct_grp();
+		}
+
+	///	sets the associated symbolic functions
+		void set_functions(const char* symbFct)
+		{
+			m_SymbFct = symbFct;
+			extract_fct_grp();
+		}
+
+	protected:
+	///	extracts the function group
+		void extract_fct_grp()
+		{
+		//	if associated infos missing return
+			if(m_pFctPatt == NULL) return;
+			this->m_fctGrp.set_function_pattern(*m_pFctPatt);
+
+			if(m_SymbFct.empty()){
+				this->m_fctGrp.clear();
+				return;
+			}
+
+		//	create function group of this elem disc
+			try{
+				this->m_fctGrp.clear();
+				this->m_fctGrp.add(TokenizeString(m_SymbFct));
+			}UG_CATCH_THROW("StdDependendDataExport: Cannot find  some symbolic function "
+							"name in '"<<m_SymbFct<<"'.");
+
+		//	create a mapping between all functions and the function group of this
+		//	element disc.
+			try{
+				CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, *m_pFctPatt);
+			}UG_CATCH_THROW("StdDependendDataExport: Cannot create Function Index Mapping"
+							" for '"<<m_SymbFct<<"'.");
+		}
+
+	protected:
+	///	associated function pattern
+		const FunctionPattern* m_pFctPatt;
+
+	///	string of symbolic functions required
+		std::string m_SymbFct;
+
+	protected:
+	///	access to implementation
+		TImpl& getImpl() {return static_cast<TImpl&>(*this);}
+
+	///	const access to implementation
+		const TImpl& getImpl() const {return static_cast<const TImpl&>(*this);}
+
 };
 
 } // namespace ug
