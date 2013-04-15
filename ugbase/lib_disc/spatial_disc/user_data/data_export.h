@@ -41,11 +41,11 @@ class ValueDataExport
 		inline void evaluate(number vValue[],
 		                     const MathVector<dim> vGlobIP[],
 		                     number time, int si,
-		                     LocalVector& u,
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
+		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 		virtual bool continuous() const;
@@ -75,11 +75,11 @@ class GradientDataExport
 		inline void evaluate(MathVector<dim> vValue[],
 		                       const MathVector<dim> vGlobIP[],
 		                       number time, int si,
-		                       LocalVector& u,
 		                       GeometricObject* elem,
 		                       const MathVector<dim> vCornerCoords[],
 		                       const MathVector<refDim> vLocIP[],
 		                       const size_t nip,
+		                       LocalVector* u,
 		                       const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 		virtual bool continuous() const{return false;}
@@ -113,15 +113,15 @@ class DataExport :
 		inline void evaluate(TData vValue[],
 		                     const MathVector<dim> vGlobIP[],
 		                     number time, int si,
-		                     LocalVector& u,
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
+		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 			const Functor<refDim>& func = eval_fct<refDim>(m_id);
-			(func)(vValue,vGlobIP,time,si,u,elem,
+			(func)(vValue,vGlobIP,time,si,*u,elem,
 					vCornerCoords,vLocIP,nip, false, NULL);
 		}
 

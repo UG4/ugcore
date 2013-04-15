@@ -427,8 +427,8 @@ class UserDataIntegrand
 
 			//	compute data
 				try{
-					(*m_spData)(vValue, vGlobIP, m_time, this->m_si, u, pElem,
-								vCornerCoords, vLocIP, numIP, &vJT[0]);
+					(*m_spData)(vValue, vGlobIP, m_time, this->m_si, pElem,
+								vCornerCoords, vLocIP, numIP, &u, &vJT[0]);
 				}
 				UG_CATCH_THROW("DirectUserDataIntegrand: Cannot evaluate data.");
 			}

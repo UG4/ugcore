@@ -68,54 +68,14 @@ class DarcyVelocityLinker
 		}
 
 		template <int refDim>
-		inline void evaluate (MathVector<dim>& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si,
-		                      LocalVector& u,
-		                      GeometricObject* elem,
-		                      const MathVector<dim> vCornerCoords[],
-		                      const MathVector<refDim>& locIP) const
-		{
-			number density;
-			number viscosity;
-			MathVector<dim> gravity;
-			MathVector<dim> pressureGrad;
-			MathMatrix<dim,dim> permeability;
-
-			(*m_spDensity)(density, globIP, time, si, u,
-							elem, vCornerCoords, locIP);
-			(*m_spViscosity)(viscosity, globIP, time, si, u,
-								elem, vCornerCoords, locIP);
-			(*m_spGravity)(gravity, globIP, time, si, u,
-							elem, vCornerCoords, locIP);
-			(*m_spPressureGrad)(pressureGrad, globIP, time, si, u,
-								elem, vCornerCoords, locIP);
-			(*m_spPermeability)(permeability, globIP, time, si, u,
-							elem, vCornerCoords, locIP);
-
-		//	Variables
-			MathVector<dim> Vel;
-
-		//	compute rho*g
-			VecScale(Vel, gravity, density);
-
-		// 	compute rho*g - \nabla p
-			VecSubtract(Vel, Vel, pressureGrad);
-
-		//	compute Darcy velocity q := K / mu * (rho*g - \nabla p)
-			MatVecMult(value, permeability, Vel);
-			VecScale(value, value, 1./viscosity);
-		}
-
-		template <int refDim>
 		inline void evaluate(MathVector<dim> vValue[],
 		                     const MathVector<dim> vGlobIP[],
 		                     number time, int si,
-		                     LocalVector& u,
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
+		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 			std::vector<number> vDensity(nip);
@@ -124,16 +84,16 @@ class DarcyVelocityLinker
 			std::vector<MathVector<dim> > vPressureGrad(nip);
 			std::vector<MathMatrix<dim,dim> > vPermeability(nip);
 
-			(*m_spDensity)(&vDensity[0], vGlobIP, time, si, u,
-							elem, vCornerCoords, vLocIP, nip, vJT);
-			(*m_spViscosity)(&vViscosity[0], vGlobIP, time, si, u,
-								elem, vCornerCoords, vLocIP, nip, vJT);
-			(*m_spGravity)(&vGravity[0], vGlobIP, time, si, u,
-							elem, vCornerCoords, vLocIP, nip, vJT);
-			(*m_spPressureGrad)(&vPressureGrad[0], vGlobIP, time, si, u,
-								elem, vCornerCoords, vLocIP, nip, vJT);
-			(*m_spPermeability)(&vPermeability[0], vGlobIP, time, si, u,
-							elem, vCornerCoords, vLocIP, nip, vJT);
+			(*m_spDensity)(&vDensity[0], vGlobIP, time, si,
+							elem, vCornerCoords, vLocIP, nip, u, vJT);
+			(*m_spViscosity)(&vViscosity[0], vGlobIP, time, si,
+								elem, vCornerCoords, vLocIP, nip, u, vJT);
+			(*m_spGravity)(&vGravity[0], vGlobIP, time, si,
+							elem, vCornerCoords, vLocIP, nip, u, vJT);
+			(*m_spPressureGrad)(&vPressureGrad[0], vGlobIP, time, si,
+								elem, vCornerCoords, vLocIP, nip, u, vJT);
+			(*m_spPermeability)(&vPermeability[0], vGlobIP, time, si,
+							elem, vCornerCoords, vLocIP, nip, u, vJT);
 
 			for(size_t ip = 0; ip < nip; ++ip)
 			{

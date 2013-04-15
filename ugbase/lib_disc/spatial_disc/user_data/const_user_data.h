@@ -49,26 +49,14 @@ class StdConstData
 		}
 
 		template <int refDim>
-		inline void evaluate (TData& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si,
-		                      LocalVector& u,
-		                      GeometricObject* elem,
-		                      const MathVector<dim> vCornerCoords[],
-		                      const MathVector<refDim>& locIP) const
-		{
-			getImpl().evaluate(value);
-		}
-
-		template <int refDim>
 		inline void evaluate(TData vValue[],
 		                     const MathVector<dim> vGlobIP[],
 		                     number time, int si,
-		                     LocalVector& u,
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
+		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 			for(size_t ip = 0; ip < nip; ++ip)

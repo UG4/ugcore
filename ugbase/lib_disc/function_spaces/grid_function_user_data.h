@@ -68,11 +68,11 @@ class GridFunctionNumberData
 		inline void evaluate(number vValue[],
 		                     const MathVector<dim> vGlobIP[],
 		                     number time, int si,
-		                     LocalVector& u,
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
+		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 		//	reference object id
@@ -146,8 +146,8 @@ class GridFunctionNumberData
 			const int si = this->subset();
 			for(size_t s = 0; s < this->num_series(); ++s)
 				evaluate<dim>(this->values(s), this->ips(s), t, si,
-                  *u, elem, NULL, this->template local_ips<dim>(s),
-                  this->num_ip(s));
+                  elem, vCornerCoords, this->template local_ips<dim>(s),
+                  this->num_ip(s), u);
 
 			if(!bDeriv) return;
 
@@ -224,11 +224,11 @@ class GridFunctionVectorData
 		inline void evaluate(MathVector<dim> vValue[],
 							 const MathVector<dim> vGlobIP[],
 							 number time, int si,
-							 LocalVector& u,
 							 GeometricObject* elem,
 							 const MathVector<dim> vCornerCoords[],
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
+							 LocalVector* u,
 							 const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 		//	reference object id
@@ -273,8 +273,8 @@ class GridFunctionVectorData
 			const int si = this->subset();
 			for(size_t s = 0; s < this->num_series(); ++s)
 				evaluate<dim>(this->values(s), this->ips(s), t, si,
-                  *u, elem, NULL, this->template local_ips<dim>(s),
-                  this->num_ip(s));
+                  elem, vCornerCoords, this->template local_ips<dim>(s),
+                  this->num_ip(s), u);
 
 			if(bDeriv)
 				UG_THROW("Not implemented.");
@@ -334,11 +334,11 @@ class GridFunctionGradientData
 		inline void evaluate(MathVector<dim> vValue[],
 							 const MathVector<dim> vGlobIP[],
 							 number time, int si,
-							 LocalVector& u,
 							 GeometricObject* elem,
 							 const MathVector<dim> vCornerCoords[],
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
+							 LocalVector* u,
 							 const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 		//	reference object id
@@ -482,11 +482,11 @@ class GridFunctionGradientComponentData
 		inline void evaluate( number vValue[],
 		                      const MathVector<dim> vGlobIP[],
 		                      number time, int si,
-		                      LocalVector& u,
 		                      GeometricObject* elem,
 		                      const MathVector<dim> vCornerCoords[],
 		                      const MathVector<refDim> vLocIP[],
 		                      const size_t nip,
+		                      LocalVector* u,
 		                      const MathMatrix<refDim, dim>* vJT = NULL ) const
 		{
 			//	reference object id

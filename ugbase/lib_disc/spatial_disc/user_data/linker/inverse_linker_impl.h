@@ -110,43 +110,14 @@ evaluate (number& value,
 template <int dim>
 template <int refDim>
 void InverseLinker<dim>::
-evaluate (number& value,
-          const MathVector<dim>& globIP,
-          number time, int si,
-          LocalVector& u,
-          GeometricObject* elem,
-          const MathVector<dim> vCornerCoords[],
-          const MathVector<refDim>& locIP) const
-{
-	//	reset value
-	value = 1.0;
-
-	number valDivisor = 0;
-	number valDividend = 0;
-
-
-
-//	add contribution of each summand
-	for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
-	{
-		(*m_vpDivisorData[c])(valDivisor, globIP, time, si, u, elem, vCornerCoords, locIP);
-		(*m_vpDividendData[c])(valDividend, globIP, time, si, u, elem, vCornerCoords, locIP);
-		UG_ASSERT(valDivisor!=0, "DIVISOR IS 0");
-		value *= valDividend/valDivisor;
-	}
-}
-
-template <int dim>
-template <int refDim>
-void InverseLinker<dim>::
 evaluate(number vValue[],
          const MathVector<dim> vGlobIP[],
          number time, int si,
-         LocalVector& u,
          GeometricObject* elem,
          const MathVector<dim> vCornerCoords[],
          const MathVector<refDim> vLocIP[],
          const size_t nip,
+         LocalVector* u,
          const MathMatrix<refDim, dim>* vJT) const
 {
 	//	reset value
@@ -159,10 +130,10 @@ evaluate(number vValue[],
 //	add contribution of each summand
 	for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
 	{
-		(*m_vpDivisorData[c])(&vValData[0], vGlobIP, time, si, u,
-						elem, vCornerCoords, vLocIP, nip, vJT);
-		(*m_vpDividendData[c])(&vValScale[0], vGlobIP, time, si, u,
-							elem, vCornerCoords, vLocIP, nip, vJT);
+		(*m_vpDivisorData[c])(&vValData[0], vGlobIP, time, si,
+						elem, vCornerCoords, vLocIP, nip, u, vJT);
+		(*m_vpDividendData[c])(&vValScale[0], vGlobIP, time, si,
+							elem, vCornerCoords, vLocIP, nip, u, vJT);
 
 		for(size_t ip = 0; ip < nip; ++ip)
 			vValue[ip] *=  vValScale[ip]/vValData[ip];

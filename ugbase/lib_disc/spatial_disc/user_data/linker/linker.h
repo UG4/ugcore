@@ -42,31 +42,18 @@ class StdDataLinker
 		}
 
 		template <int refDim>
-		inline void evaluate (TData& value,
-		                      const MathVector<dim>& globIP,
-		                      number time, int si,
-		                      LocalVector& u,
-		                      GeometricObject* elem,
-		                      const MathVector<dim> vCornerCoords[],
-		                      const MathVector<refDim>& locIP) const
-		{
-			getImpl().template evaluate<refDim>(value,globIP,time,si,u,elem,
-			                                    vCornerCoords,locIP);
-		}
-
-		template <int refDim>
 		inline void evaluate(TData vValue[],
 		                     const MathVector<dim> vGlobIP[],
 		                     number time, int si,
-		                     LocalVector& u,
 		                     GeometricObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
+		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,u,elem,
-			                                    vCornerCoords,vLocIP,nip, vJT);
+			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,elem,
+			                                    vCornerCoords,vLocIP,nip,u,vJT);
 		}
 
 

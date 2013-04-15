@@ -107,68 +107,74 @@ class UserData : virtual public UserDataInfo
 								 const MathVector<dim>& globIP,
 								 number time, int si) const = 0;
 
-	///	returns value for local and global position
-	///	\{
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<1>& locIP) const = 0;
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<2>& locIP) const = 0;
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<3>& locIP) const = 0;
-	///	\}
-
 	///	returns value for global positions
 		virtual void operator()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
 								number time, int si, const size_t nip) const = 0;
+
+	///	returns value for local and global position
+	///	\{
+		TRet operator() (TData& value,
+						 const MathVector<dim>& globIP,
+						 number time, int si,
+						 GeometricObject* elem,
+						 const MathVector<dim> vCornerCoords[],
+						 const MathVector<1>& locIP,
+						 LocalVector* u) const {
+			operator()(&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
+		}
+
+		TRet operator() (TData& value,
+						 const MathVector<dim>& globIP,
+						 number time, int si,
+						 GeometricObject* elem,
+						 const MathVector<dim> vCornerCoords[],
+						 const MathVector<2>& locIP,
+						 LocalVector* u) const {
+			operator()(&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
+		}
+
+		TRet operator() (TData& value,
+						 const MathVector<dim>& globIP,
+						 number time, int si,
+						 GeometricObject* elem,
+						 const MathVector<dim> vCornerCoords[],
+						 const MathVector<3>& locIP,
+	                     LocalVector* u) const {
+			operator()(&value, &globIP, time, si, elem, vCornerCoords, &locIP, 1, u);
+		}
+	///	\}
 
 	///	returns values for local and global positions
 	///	\{
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        LocalVector& u,
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
 		                        const size_t nip,
+		                        LocalVector* u,
 		                        const MathMatrix<1, dim>* vJT = NULL) const = 0;
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        LocalVector& u,
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
 		                        const size_t nip,
+		                        LocalVector* u,
 		                        const MathMatrix<2, dim>* vJT = NULL) const = 0;
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        LocalVector& u,
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
 		                        const size_t nip,
+		                        LocalVector* u,
 		                        const MathMatrix<3, dim>* vJT = NULL) const = 0;
 	///	\}
 };

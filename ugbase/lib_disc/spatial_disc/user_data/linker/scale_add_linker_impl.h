@@ -110,42 +110,14 @@ evaluate (TData& value,
 template <typename TData, int dim, typename TDataScale>
 template <int refDim>
 void ScaleAddLinker<TData,dim,TDataScale>::
-evaluate (TData& value,
-          const MathVector<dim>& globIP,
-          number time, int si,
-          LocalVector& u,
-          GeometricObject* elem,
-          const MathVector<dim> vCornerCoords[],
-          const MathVector<refDim>& locIP) const
-{
-	//	reset value
-	value = 0.0;
-
-	TData valData;
-	TDataScale valScale;
-
-//	add contribution of each summand
-	for(size_t c = 0; c < m_vpUserData.size(); ++c)
-	{
-		(*m_vpUserData[c])(valData, globIP, time, si, u, elem, vCornerCoords, locIP);
-		(*m_vpScaleData[c])(valScale, globIP, time, si, u, elem, vCornerCoords, locIP);
-
-		linker_traits<TData, TDataScale>::
-		mult_add(value, valData, valScale);
-	}
-}
-
-template <typename TData, int dim, typename TDataScale>
-template <int refDim>
-void ScaleAddLinker<TData,dim,TDataScale>::
 evaluate(TData vValue[],
          const MathVector<dim> vGlobIP[],
          number time, int si,
-         LocalVector& u,
          GeometricObject* elem,
          const MathVector<dim> vCornerCoords[],
          const MathVector<refDim> vLocIP[],
          const size_t nip,
+         LocalVector* u,
          const MathMatrix<refDim, dim>* vJT) const
 {
 	//	reset value
@@ -158,10 +130,10 @@ evaluate(TData vValue[],
 //	add contribution of each summand
 	for(size_t c = 0; c < m_vpUserData.size(); ++c)
 	{
-		(*m_vpUserData[c])(&vValData[0], vGlobIP, time, si, u,
-						elem, vCornerCoords, vLocIP, nip, vJT);
-		(*m_vpScaleData[c])(&vValScale[0], vGlobIP, time, si, u,
-							elem, vCornerCoords, vLocIP, nip, vJT);
+		(*m_vpUserData[c])(&vValData[0], vGlobIP, time, si,
+						elem, vCornerCoords, vLocIP, nip, u, vJT);
+		(*m_vpScaleData[c])(&vValScale[0], vGlobIP, time, si,
+							elem, vCornerCoords, vLocIP, nip, u, vJT);
 
 		for(size_t ip = 0; ip < nip; ++ip)
 			linker_traits<TData, TDataScale>::

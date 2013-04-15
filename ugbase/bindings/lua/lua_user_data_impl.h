@@ -752,38 +752,14 @@ evaluate (TData& value,
 template <typename TData, int dim, typename TDataIn>
 template <int refDim>
 void LuaUserFunction<TData,dim,TDataIn>::
-evaluate (TData& value,
-          const MathVector<dim>& globIP,
-          number time, int si,
-          LocalVector& u,
-          GeometricObject* elem,
-          const MathVector<dim> vCornerCoords[],
-          const MathVector<refDim>& locIP) const
-{
-	PROFILE_CALLBACK();
-//	vector of data for all inputs
-	std::vector<TDataIn> vDataIn(this->num_input());
-
-//	gather all input data for this ip
-	for(size_t c = 0; c < vDataIn.size(); ++c)
-		(*m_vpUserData[c])(vDataIn[c], globIP, time, si, u, elem, vCornerCoords, locIP);
-
-//	evaluate data at ip
-	eval_value(value, vDataIn, globIP, time, si);
-}
-
-
-template <typename TData, int dim, typename TDataIn>
-template <int refDim>
-void LuaUserFunction<TData,dim,TDataIn>::
 evaluate(TData vValue[],
          const MathVector<dim> vGlobIP[],
          number time, int si,
-         LocalVector& u,
          GeometricObject* elem,
          const MathVector<dim> vCornerCoords[],
          const MathVector<refDim> vLocIP[],
          const size_t nip,
+         LocalVector* u,
          const MathMatrix<refDim, dim>* vJT) const
 {
 	PROFILE_CALLBACK();
@@ -794,7 +770,7 @@ evaluate(TData vValue[],
 	for(size_t ip = 0; ip < nip; ++ip)
 	{
 		for(size_t c = 0; c < vDataIn.size(); ++c)
-			(*m_vpUserData[c])(vDataIn[c], vGlobIP[ip], time, si, u, elem, vCornerCoords, vLocIP[ip]);
+			(*m_vpUserData[c])(vDataIn[c], vGlobIP[ip], time, si, elem, vCornerCoords, vLocIP[ip], u);
 
 	//	evaluate data at ip
 		eval_value(vValue[ip], vDataIn, vGlobIP[ip], time, si);

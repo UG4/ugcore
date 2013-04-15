@@ -22,11 +22,11 @@ template <int refDim>
 void ValueDataExport<dim>::evaluate(number vValue[],
                      const MathVector<dim> vGlobIP[],
                      number time, int si,
-                     LocalVector& u,
                      GeometricObject* elem,
                      const MathVector<dim> vCornerCoords[],
                      const MathVector<refDim> vLocIP[],
                      const size_t nip,
+                     LocalVector* u,
                      const MathMatrix<refDim, dim>* vJT) const
 {
 //	reference object id
@@ -36,7 +36,7 @@ void ValueDataExport<dim>::evaluate(number vValue[],
 	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
 
 //	access local vector by map
-	u.access_by_map(this->map());
+	u->access_by_map(this->map());
 
 //	request for trial space
 	try{
@@ -55,7 +55,7 @@ void ValueDataExport<dim>::evaluate(number vValue[],
 	//	compute concentration at ip
 		vValue[ip] = 0.0;
 		for(size_t sh = 0; sh < vShape.size(); ++sh)
-			vValue[ip] += u(_C_, sh) * vShape[sh];
+			vValue[ip] += (*u)(_C_, sh) * vShape[sh];
 	}
 
 	}
@@ -79,11 +79,11 @@ template <int refDim>
 void GradientDataExport<dim>::evaluate(MathVector<dim> vValue[],
                        const MathVector<dim> vGlobIP[],
                        number time, int si,
-                       LocalVector& u,
                        GeometricObject* elem,
                        const MathVector<dim> vCornerCoords[],
                        const MathVector<refDim> vLocIP[],
                        const size_t nip,
+                       LocalVector* u,
                        const MathMatrix<refDim, dim>* vJT) const
 {
 //	reference object id
@@ -93,7 +93,7 @@ void GradientDataExport<dim>::evaluate(MathVector<dim> vValue[],
 	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
 
 //	access local vector by map
-	u.access_by_map(this->map());
+	u->access_by_map(this->map());
 
 //	request for trial space
 	try{
@@ -125,7 +125,7 @@ void GradientDataExport<dim>::evaluate(MathVector<dim> vValue[],
 	//	compute grad at ip
 		VecSet(locGrad, 0.0);
 		for(size_t sh = 0; sh < vLocGrad.size(); ++sh)
-			VecScaleAppend(locGrad, u(_C_, sh), vLocGrad[sh]);
+			VecScaleAppend(locGrad, (*u)(_C_, sh), vLocGrad[sh]);
 
 		Inverse(JTInv, vJT[ip]);
 		MatVecMult(vValue[ip], JTInv, locGrad);

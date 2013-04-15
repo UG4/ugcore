@@ -845,8 +845,8 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 
 		//	compute data
 			try{
-				(*spData)(vValue, &vCorner[0], time, si, locU, elem,
-							&vCorner[0], refElem.vCorner(), numCo, NULL);
+				(*spData)(vValue, &vCorner[0], time, si, elem,
+							&vCorner[0], refElem.vCorner(), numCo, &locU, NULL);
 			}
 			UG_CATCH_THROW("VTK::write_nodal_data_elementwise: Cannot evaluate data.");
 		}
@@ -1234,8 +1234,8 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 
 		//	compute data
 			try{
-				(*spData)(value, globIP, time, si, locU, elem,
-							&vCorner[0], localIP);
+				(*spData)(value, globIP, time, si, elem,
+							&vCorner[0], localIP, &locU);
 			}
 			UG_CATCH_THROW("VTK::write_cell_data_elementwise: Cannot evaluate data.");
 		}

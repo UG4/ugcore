@@ -42,45 +42,6 @@ class StdUserData : public TBase
 								 const MathVector<dim>& globIP,
 								 number time, int si) const = 0;
 
-	///	returns value for local and global position
-	///	\{
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<1>& locIP) const
-		{
-			return getImpl().template evaluate<1>(value,globIP,time,si,u,
-			                                      elem,vCornerCoords,locIP);
-		}
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<2>& locIP) const
-		{
-			return getImpl().template evaluate<2>(value,globIP,time,si,u,
-			                                      elem,vCornerCoords,locIP);
-		}
-
-		virtual TRet operator() (TData& value,
-		                         const MathVector<dim>& globIP,
-		                         number time, int si,
-		                         LocalVector& u,
-		                         GeometricObject* elem,
-		                         const MathVector<dim> vCornerCoords[],
-		                         const MathVector<3>& locIP) const
-		{
-			return getImpl().template evaluate<3>(value,globIP,time,si,u,
-			                                      elem,vCornerCoords,locIP);
-		}
-	///	\}
-
 	///	returns value for global positions
 		virtual void operator()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
@@ -91,43 +52,43 @@ class StdUserData : public TBase
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        LocalVector& u,
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
 		                        const size_t nip,
+		                        LocalVector* u,
 		                        const MathMatrix<1, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,u,elem,
-										   vCornerCoords,vLocIP,nip, vJT);
+			getImpl().template evaluate<1>(vValue,vGlobIP,time,si,elem,
+										   vCornerCoords,vLocIP,nip,u,vJT);
 		}
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        LocalVector& u,
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
 		                        const size_t nip,
+		                        LocalVector* u,
 		                        const MathMatrix<2, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,u,elem,
-										   vCornerCoords,vLocIP,nip, vJT);
+			getImpl().template evaluate<2>(vValue,vGlobIP,time,si,elem,
+										   vCornerCoords,vLocIP,nip,u,vJT);
 		}
 
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        LocalVector& u,
 		                        GeometricObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
 		                        const size_t nip,
+		                        LocalVector* u,
 		                        const MathMatrix<3, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,u,elem,
-										   vCornerCoords,vLocIP,nip, vJT);
+			getImpl().template evaluate<3>(vValue,vGlobIP,time,si,elem,
+										   vCornerCoords,vLocIP,nip,u,vJT);
 		}
 
 	///	\}
@@ -173,31 +134,18 @@ class StdDependentUserData
 		}
 
 		template <int refDim>
-		inline void evaluate (TData& value,
-							  const MathVector<dim>& globIP,
-							  number time, int si,
-							  LocalVector& u,
-							  GeometricObject* elem,
-							  const MathVector<dim> vCornerCoords[],
-							  const MathVector<refDim>& locIP) const
-		{
-			getImpl().template evaluate<refDim>(&value,&globIP,time,si,u,elem,
-												vCornerCoords,&locIP,1,NULL);
-		}
-
-		template <int refDim>
 		inline void evaluate(TData vValue[],
 							 const MathVector<dim> vGlobIP[],
 							 number time, int si,
-							 LocalVector& u,
 							 GeometricObject* elem,
 							 const MathVector<dim> vCornerCoords[],
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
+							 LocalVector* u,
 							 const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,u,elem,
-												vCornerCoords,vLocIP,nip, vJT);
+			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,elem,
+												vCornerCoords,vLocIP,nip,u,vJT);
 		}
 
 	protected:
