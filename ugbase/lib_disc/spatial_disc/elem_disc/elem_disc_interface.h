@@ -183,9 +183,6 @@ class IElemDisc
 	///	registers a data import
 		void register_import(IDataImport<dim>& Imp);
 
-	///	registers a data export
-		void register_export(SmartPtr<ICplUserData<dim> > Exp);
-
 	///	returns number of imports
 		size_t num_imports() const {return m_vIImport.size();}
 
@@ -202,10 +199,6 @@ class IElemDisc
 	protected:
 	/// data imports
 		std::vector<IDataImport<dim>*> m_vIImport;
-
-	///	data exports
-		std::vector<SmartPtr<ICplUserData<dim> > > m_vIExport;
-
 
 	////////////////////////////
 	// time handling

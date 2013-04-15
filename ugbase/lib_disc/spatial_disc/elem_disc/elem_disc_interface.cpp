@@ -206,20 +206,6 @@ void IElemDisc<TDomain>::register_import(IDataImport<dim>& Imp)
 }
 
 template <typename TDomain>
-void IElemDisc<TDomain>::register_export(SmartPtr<ICplUserData<dim> > Exp)
-{
-//	check that not already registered
-	for(size_t i = 0; i < m_vIExport.size(); ++i)
-		if(m_vIExport[i] == Exp)
-			UG_THROW("Trying to register export twice.");
-
-//	add it
-	m_vIExport.push_back(Exp);
-
-	update_function_index_mapping();
-}
-
-template <typename TDomain>
 void IElemDisc<TDomain>::set_roid(ReferenceObjectID roid, int discType)
 {
 	m_id = roid;
