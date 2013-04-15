@@ -67,9 +67,7 @@ template <int dim>
 bool ValueDataExport<dim>::continuous() const
 {
 	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
-
-	if(lfeID.type() == LFEID::LAGRANGE) return true;
-	else return false;
+	return LocalShapeFunctionSetProvider::continuous(lfeID);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

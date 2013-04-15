@@ -61,8 +61,7 @@ class GridFunctionNumberData
 
 		virtual bool continuous() const
 		{
-			if(m_lfeID.type() == LFEID::LAGRANGE) return true;
-			else return false;
+			return LocalShapeFunctionSetProvider::continuous(m_lfeID);
 		}
 
 		template <int refDim>
@@ -216,7 +215,7 @@ class GridFunctionVectorData
 		virtual bool continuous() const
 		{
 			for(int i = 0; i < dim; ++i)
-				if(m_vlfeID[i].type() != LFEID::LAGRANGE)
+				if(!LocalShapeFunctionSetProvider::continuous(m_vlfeID[i]))
 					return false;
 			return true;
 		}
