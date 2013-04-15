@@ -1,5 +1,5 @@
 /*
- * data_linker.h
+ * linker.h
  *
  *  Created on: 12.11.2011
  *      Author: andreasvogel
@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__
 #define __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__
 
-#include "std/std_user_data.h"
+#include "../std_user_data.h"
 #include "lib_disc/common/groups_util.h"
 
 namespace ug{
@@ -194,6 +194,6 @@ class StdDataLinker
 } // end namespace ug
 
 //	include implementation
-#include "data_linker_impl.h"
+#include "linker_impl.h"
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DATA_LINKER__ */

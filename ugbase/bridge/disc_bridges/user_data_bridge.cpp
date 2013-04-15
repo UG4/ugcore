@@ -10,10 +10,10 @@
 
 #include "common/common.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
-#include "lib_disc/spatial_disc/user_data/data_linker.h"
+#include "lib_disc/spatial_disc/user_data/linker/linker.h"
+#include "lib_disc/spatial_disc/user_data/linker/scale_add_linker.h"
+#include "lib_disc/spatial_disc/user_data/linker/inverse_linker.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
-#include "lib_disc/spatial_disc/user_data/scale_add_linker.h"
-#include "lib_disc/spatial_disc/user_data/inverse_linker.h"
 
 using namespace std;
 

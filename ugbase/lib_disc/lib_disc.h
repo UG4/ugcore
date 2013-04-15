@@ -97,7 +97,7 @@
 #include "spatial_disc/user_data/user_data.h"
 #include "spatial_disc/user_data/data_export.h"
 #include "spatial_disc/user_data/data_import.h"
-#include "spatial_disc/user_data/data_linker.h"
+#include "spatial_disc/user_data/linker/linker.h"
 
 #include "spatial_disc/constraints/constraint_interface.h"
 #include "spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.h"

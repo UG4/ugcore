@@ -11,7 +11,7 @@
 #include "common/common.h"
 #include "common/math/ugmath.h"
 
-#include "lib_disc/spatial_disc/user_data/std/std_user_data.h"
+#include "std_user_data.h"
 
 namespace ug {
 

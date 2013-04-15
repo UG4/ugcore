@@ -19,9 +19,9 @@ extern "C" {
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
-#include "lib_disc/spatial_disc/user_data/std/std_pos_data.h"
+#include "lib_disc/spatial_disc/user_data/std_pos_data.h"
 #include "lib_disc/spatial_disc/user_data/user_function.h"
-#include "lib_disc/spatial_disc/user_data/data_linker.h"
+#include "lib_disc/spatial_disc/user_data/linker/linker.h"
 #include "lua_traits.h"
 
 #ifdef USE_LUA2C
