@@ -315,7 +315,6 @@ prepare_elem_loop(const ReferenceObjectID id, int si)
 //	prepare and check dependent data
 	try{
 		for(size_t i = 0; i < m_vDependentData.size(); ++i){
-			m_vDependentData[i]->set_roid(id);
 			m_vDependentData[i]->check_setup();
 		}
 	}

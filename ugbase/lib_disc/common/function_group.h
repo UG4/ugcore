@@ -93,6 +93,9 @@ class FunctionGroup
 	/// returns the name of a function
 		const char* name(size_t i) const;
 
+	/// returns the comma-separted names of all functions
+		std::string names() const;
+
 	/// returns unique function id of a function
 		size_t operator[](size_t i) const {return unique_id(i);}
 

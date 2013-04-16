@@ -363,6 +363,8 @@ void DependentUserData<TData,dim>::extract_fct_grp()
 	try{
 		CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, *pFctPatt);
 	}UG_CATCH_THROW("DependentUserData: Cannot create Function Index Mapping.");
+
+	this->check_setup();
 }
 
 template <typename TData, int dim>

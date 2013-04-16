@@ -69,6 +69,7 @@ set(srcDiscretization	domain_util.cpp
 						spatial_disc/disc_util/fvcr_geom.cpp
 						spatial_disc/disc_util/hfv1_geom.cpp
 						spatial_disc/user_data/data_evaluator.cpp
+						spatial_disc/user_data/data_export.cpp
 						
 						spatial_disc/constraints/continuity_constraints/p1_continuity_constraints.cpp
 						

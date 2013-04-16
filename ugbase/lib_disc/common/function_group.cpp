@@ -189,6 +189,19 @@ const char* FunctionGroup::name(size_t i) const
 	return m_pFunctionPattern->name(m_vFunction[i]);
 }
 
+std::string FunctionGroup::names() const
+{
+	if(!is_init())
+		UG_THROW("Cannot use FunctionGroup without FunctionPattern.");
+
+	std::string s;
+	for(size_t i = 0; i < size(); ++i){
+		if(i > 0) s.append(", ");
+		s.append(name(i));
+	}
+	return s;
+}
+
 
 LFEID FunctionGroup::local_finite_element_id(size_t i) const
 {

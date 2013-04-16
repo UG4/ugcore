@@ -46,11 +46,9 @@ class ValueDataExport
 		                    std::vector<std::vector<number> > vvvDeriv[],
 		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
 
-		virtual bool continuous() const;
+		virtual void check_setup() const;
 
-	protected:
-	//	abbreviation for component
-		static const int _C_ = 0;
+		virtual bool continuous() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,11 +76,39 @@ class GradientDataExport
 		                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
 		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
 
-		virtual bool continuous() const{return false;}
+		virtual void check_setup() const;
 
-	protected:
-	//	abbreviation for component
-		static const int _C_ = 0;
+		virtual bool continuous() const{return false;}
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// VectorDataExport
+////////////////////////////////////////////////////////////////////////////////
+
+template <int dim>
+class VectorDataExport
+	: public StdDependentUserData<VectorDataExport<dim>, MathVector<dim>,dim>
+{
+	public:
+		VectorDataExport(const char* functions){this->set_functions(functions);}
+
+		template <int refDim>
+		void eval_and_deriv(MathVector<dim> vValue[],
+							const MathVector<dim> vGlobIP[],
+							number time, int si,
+							GeometricObject* elem,
+							const MathVector<dim> vCornerCoords[],
+							const MathVector<refDim> vLocIP[],
+							const size_t nip,
+							LocalVector* u,
+							bool bDeriv,
+							int s,
+							std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
+							const MathMatrix<refDim, dim>* vJT = NULL) const;
+
+		virtual void check_setup() const;
+
+		virtual bool continuous() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,15 +139,7 @@ class DataExport :
 		                    bool bDeriv,
 		                    int s,
 		                    std::vector<std::vector<TData> > vvvDeriv[],
-		                    const MathMatrix<refDim, dim>* vJT = NULL) const
-		{
-			const Functor<refDim>& func = eval_fct<refDim>(m_id);
-			(func)(vValue,vGlobIP,time,si,*u,elem,
-					vCornerCoords,vLocIP,nip, bDeriv, vvvDeriv);
-		}
-
-	///	sets the geometric object type
-		virtual void set_roid(ReferenceObjectID id);
+		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 	///	register evaluation of export function
 		template <typename TClass, int refDim>
@@ -168,9 +186,6 @@ class DataExport :
 
 	///	return needed data
 		virtual SmartPtr<ICplUserData<dim> > needed_data(size_t i) {return m_vDependData.at(i);}
-
-	///	returns if the dependent data is ready for evaluation
-		virtual void check_setup() const;
 
 	///	returns if provided data is continuous over geometric object boundaries
 		virtual bool continuous() const {return false;}
@@ -325,9 +340,6 @@ class DataExport :
 		bool eval_fct_set(ReferenceObjectID id) const;
 
 	protected:
-	/// current Geom Object
-		ReferenceObjectID m_id;
-
 	///	data the export depends on
 		std::vector<SmartPtr<ICplUserData<dim> > > m_vDependData;
 };

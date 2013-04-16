@@ -231,9 +231,6 @@ class ICplUserData : virtual public UserDataInfo
 		                     const MathVector<dim> vCornerCoords[],
 		                     bool bDeriv = false) = 0;
 
-	///	sets the geometric object type
-		virtual void set_roid(ReferenceObjectID id) {};
-
 	///	returns if the dependent data is ready for evaluation
 		virtual void check_setup() const {}
 

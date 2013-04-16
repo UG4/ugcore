@@ -14,149 +14,12 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-// ValueDataExport
-////////////////////////////////////////////////////////////////////////////////
-
-template <int dim>
-template <int refDim>
-void ValueDataExport<dim>::eval_and_deriv(number vValue[],
-                    const MathVector<dim> vGlobIP[],
-                    number time, int si,
-                    GeometricObject* elem,
-                    const MathVector<dim> vCornerCoords[],
-                    const MathVector<refDim> vLocIP[],
-                    const size_t nip,
-                    LocalVector* u,
-                    bool bDeriv,
-                    int s,
-                    std::vector<std::vector<number> > vvvDeriv[],
-                    const MathMatrix<refDim, dim>* vJT) const
-{
-//	reference object id
-	const ReferenceObjectID roid = elem->reference_object_id();
-
-//	local finite element id
-	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
-
-//	access local vector by map
-	u->access_by_map(this->map());
-
-//	request for trial space
-	try{
-	const LocalShapeFunctionSet<refDim>& rTrialSpace
-		 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
-
-//	memory for shapes
-	std::vector<number> vShape;
-
-//	loop ips
-	for(size_t ip = 0; ip < nip; ++ip)
-	{
-	//	evaluate at shapes at ip
-		rTrialSpace.shapes(vShape, vLocIP[ip]);
-
-	//	compute concentration at ip
-		vValue[ip] = 0.0;
-		for(size_t sh = 0; sh < vShape.size(); ++sh)
-			vValue[ip] += (*u)(_C_, sh) * vShape[sh];
-	}
-
-	}
-	UG_CATCH_THROW("ValueDataExport: Trial space missing, Reference Object: "
-	               <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
-
-	if(bDeriv)
-		UG_THROW("Not implemented.");
-}
-
-template <int dim>
-bool ValueDataExport<dim>::continuous() const
-{
-	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
-	return LocalShapeFunctionSetProvider::continuous(lfeID);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// GradientDataExport
-////////////////////////////////////////////////////////////////////////////////
-
-template <int dim>
-template <int refDim>
-void GradientDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
-                    const MathVector<dim> vGlobIP[],
-                    number time, int si,
-                    GeometricObject* elem,
-                    const MathVector<dim> vCornerCoords[],
-                    const MathVector<refDim> vLocIP[],
-                    const size_t nip,
-                    LocalVector* u,
-                    bool bDeriv,
-                    int s,
-                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
-                    const MathMatrix<refDim, dim>* vJT) const
-{
-//	reference object id
-	const ReferenceObjectID roid = elem->reference_object_id();
-
-//	local finite element id
-	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
-
-//	access local vector by map
-	u->access_by_map(this->map());
-
-//	request for trial space
-	try{
-	const LocalShapeFunctionSet<refDim>& rTrialSpace
-		 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
-
-//	Reference Mapping
-	MathMatrix<dim, refDim> JTInv;
-	std::vector<MathMatrix<refDim, dim> > vJTtmp;
-	if(!vJT){
-		DimReferenceMapping<refDim, dim>& map
-			= ReferenceMappingProvider::get<refDim, dim>(roid, vCornerCoords);
-
-		vJTtmp.resize(nip);
-		map.jacobian_transposed(&vJTtmp[0], vLocIP, nip);
-		vJT = &vJTtmp[0];
-	}
-
-//	storage for shape function at ip
-	std::vector<MathVector<refDim> > vLocGrad;
-	MathVector<refDim> locGrad;
-
-//	loop ips
-	for(size_t ip = 0; ip < nip; ++ip)
-	{
-	//	evaluate at shapes at ip
-		rTrialSpace.grads(vLocGrad, vLocIP[ip]);
-
-	//	compute grad at ip
-		VecSet(locGrad, 0.0);
-		for(size_t sh = 0; sh < vLocGrad.size(); ++sh)
-			VecScaleAppend(locGrad, (*u)(_C_, sh), vLocGrad[sh]);
-
-		Inverse(JTInv, vJT[ip]);
-		MatVecMult(vValue[ip], JTInv, locGrad);
-	}
-
-	}
-	UG_CATCH_THROW("GradientDataExport: Trial space missing, Reference Object: "
-				 <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
-
-	if(bDeriv)
-		UG_THROW("Not implemented.");
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
 // DataExport
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
 DataExport<TData, dim>::DataExport(const char* functions)
-: StdDependentUserData<DataExport<TData,dim>, TData, dim>(functions),
-  m_id(ROID_UNKNOWN)
+: StdDependentUserData<DataExport<TData,dim>, TData, dim>(functions)
 {
 //	reset all evaluation functions
 	clear_fct();
@@ -170,6 +33,32 @@ void DataExport<TData, dim>::clear_fct()
 		eval_fct<2>((ReferenceObjectID)roid).invalidate();
 		eval_fct<3>((ReferenceObjectID)roid).invalidate();
 	}
+}
+
+template <typename TData, int dim>
+template <int refDim>
+void DataExport<TData, dim>::eval_and_deriv(TData vValue[],
+                    const MathVector<dim> vGlobIP[],
+                    number time, int si,
+                    GeometricObject* elem,
+                    const MathVector<dim> vCornerCoords[],
+                    const MathVector<refDim> vLocIP[],
+                    const size_t nip,
+                    LocalVector* u,
+                    bool bDeriv,
+                    int s,
+                    std::vector<std::vector<TData> > vvvDeriv[],
+                    const MathMatrix<refDim, dim>* vJT) const
+{
+	u->access_by_map(this->map());
+	const ReferenceObjectID roid = elem->reference_object_id();
+	const Functor<refDim>& func = eval_fct<refDim>(roid);
+	if(func.invalid())
+		UG_THROW("DataExport: no evaluation function set for "<<
+		         roid<<" (world dim: "<<dim<<", ref dim: "<<refDim<<").");
+
+	(func)(vValue,vGlobIP,time,si,*u,elem,
+			vCornerCoords,vLocIP,nip, bDeriv, vvvDeriv);
 }
 
 template <typename TData, int dim>
@@ -212,29 +101,6 @@ set_fct(ReferenceObjectID id,
 		UG_THROW("Reference Object id invalid: "<<id);
 
 	eval_fct<refDim>(id) = Functor<refDim>(func);
-}
-
-template <typename TData, int dim>
-void DataExport<TData, dim>::set_roid(ReferenceObjectID id)
-{
-	if(id == ROID_UNKNOWN)
-		UG_THROW("DataExport::set_roid: Setting unknown ReferenceObjectId.");
-
-	m_id = id;
-}
-
-template <typename TData, int dim>
-void DataExport<TData, dim>::check_setup() const
-{
-	if(m_id == ROID_UNKNOWN)
-		UG_THROW("DataExport::check_setup: The reference element "
-				"type has not been set for evaluation.");
-
-	if(!eval_fct_set(m_id))
-		UG_THROW("DataExport::check_setup: There is no evaluation "
-				"function registered for data export and element type "<<m_id<<
-				", but required. (world dim: "<<dim<<", ref dim: "<<
-				ReferenceElementDimension(m_id)<<")");
 }
 
 template <typename TData, int dim>
