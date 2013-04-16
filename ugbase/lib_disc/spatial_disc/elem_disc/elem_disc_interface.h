@@ -143,7 +143,7 @@ class IElemDisc
 		const std::vector<std::string>& symb_subsets() const {return m_vSubset;}
 
 	///	returns the current function pattern
-		const FunctionPattern& function_pattern() const {return *m_pFctPattern;}
+		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spFctPattern;}
 
 	///	returns the current function group
 		const FunctionGroup& function_group() const {return m_fctGrp;}
@@ -162,7 +162,7 @@ class IElemDisc
 		std::vector<std::string> m_vSubset;
 
 	///	current function pattern
-		const FunctionPattern* m_pFctPattern;
+		ConstSmartPtr<FunctionPattern> m_spFctPattern;
 
 	///	current function group
 		FunctionGroup m_fctGrp;
@@ -171,7 +171,7 @@ class IElemDisc
 		FunctionIndexMapping m_fctIndexMap;
 
 	///	sets current function pattern
-		void set_function_pattern(const FunctionPattern& fctPatt);
+		void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt);
 
 	///	updates the function index mapping
 		void update_function_index_mapping();

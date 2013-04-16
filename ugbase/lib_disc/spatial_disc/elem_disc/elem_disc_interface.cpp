@@ -12,7 +12,7 @@ namespace ug{
 
 template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
-	: 	m_spApproxSpace(NULL), m_pFctPattern(0),
+	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
 	  	m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
 	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
@@ -24,7 +24,7 @@ IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
 template <typename TDomain>
 IElemDisc<TDomain>::IElemDisc(const std::vector<std::string>& vFct,
                               const std::vector<std::string>& vSubset)
-	: 	m_spApproxSpace(NULL), m_pFctPattern(0),
+	: 	m_spApproxSpace(NULL), m_spFctPattern(0),
 		m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
 		m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
@@ -44,7 +44,7 @@ set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 	m_spApproxSpace = approxSpace;
 
 //	set function pattern
-	set_function_pattern(*approxSpace);
+	set_function_pattern(approxSpace->dof_distribution_info());
 
 //	invoke callback
 	if(newApproxSpace)
@@ -136,9 +136,9 @@ void IElemDisc<TDomain>::set_subsets(const std::vector<std::string>& subsets)
 }
 
 template <typename TDomain>
-void IElemDisc<TDomain>::set_function_pattern(const FunctionPattern& fctPatt)
+void IElemDisc<TDomain>::set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt)
 {
-	m_pFctPattern = &fctPatt;
+	m_spFctPattern = fctPatt;
 	update_function_index_mapping();
 }
 
@@ -146,17 +146,17 @@ template <typename TDomain>
 void IElemDisc<TDomain>::update_function_index_mapping()
 {
 //	without fct pattern, cannot create mappings
-	if(!m_pFctPattern) return;
+	if(m_spFctPattern.invalid()) return;
 
 //	create function group of this elem disc
 	try{
-		m_fctGrp.set_function_pattern(*m_pFctPattern);
+		m_fctGrp.set_function_pattern(m_spFctPattern);
 		m_fctGrp.add(this->symb_fcts());
 	}UG_CATCH_THROW("ElemDisc: Cannot find some symbolic Function Name.");
 
 //	create a mapping between all functions and the function group of this
 //	element disc.
-	try{CreateFunctionIndexMapping(m_fctIndexMap, m_fctGrp, *m_pFctPattern);
+	try{CreateFunctionIndexMapping(m_fctIndexMap, m_fctGrp, m_spFctPattern);
 	}UG_CATCH_THROW("ElemDisc: Cannot create Function Index Mapping.");
 
 //	set function group at imports
@@ -169,12 +169,12 @@ template <typename TDomain>
 void IElemDisc<TDomain>::check_setup(bool bNonRegularGrid)
 {
 //	check that all functions are defined on chosen subsets
-	SubsetGroup discSubsetGrp(m_pFctPattern->subset_handler(), m_vSubset);
+	SubsetGroup discSubsetGrp(m_spFctPattern->subset_handler(), m_vSubset);
 
 //	check that all functions are defined on chosen subsets
 	for(size_t fct = 0; fct < m_fctGrp.size(); ++fct){
 		for(size_t si = 0; si < discSubsetGrp.size(); ++si){
-			if(!m_pFctPattern->is_def_in_subset(m_fctGrp[fct], discSubsetGrp[si])){
+			if(!m_spFctPattern->is_def_in_subset(m_fctGrp[fct], discSubsetGrp[si])){
 				UG_LOG("WARNING in ElemDisc: symbolic Function "<< symb_fcts()[fct]
 				 << " is not defined on subset "<< symb_subsets()[si]
 				 << ". This may be senseful only in particular cases.\n");

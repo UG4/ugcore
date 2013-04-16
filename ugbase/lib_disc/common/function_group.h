@@ -30,23 +30,23 @@ class FunctionGroup
 		FunctionGroup();
 
 	///	Constructor setting function pattern
-		FunctionGroup(const FunctionPattern& funcPattern);
+		FunctionGroup(ConstSmartPtr<FunctionPattern> spFuncPattern);
 
 	///	Constructor setting function pattern and function
-		FunctionGroup(const FunctionPattern& funcPattern, const char* name);
+		FunctionGroup(ConstSmartPtr<FunctionPattern> spFuncPattern, const char* name);
 
 	///	Constructor setting function pattern and function
-		FunctionGroup(const FunctionPattern& funcPattern, const std::string& name);
+		FunctionGroup(ConstSmartPtr<FunctionPattern> spFuncPattern, const std::string& name);
 
 	///	Constructor setting function pattern and functions
-		FunctionGroup(const FunctionPattern& funcPattern, const std::vector<std::string>& vName);
+		FunctionGroup(ConstSmartPtr<FunctionPattern> spFuncPattern, const std::vector<std::string>& vName);
 
 	/// set underlying function pattern
-		void set_function_pattern(const FunctionPattern& funcPattern);
+		void set_function_pattern(ConstSmartPtr<FunctionPattern> spFuncPattern);
 
 	/// get underlying function pattern
-		const FunctionPattern* function_pattern() const
-			{return m_pFunctionPattern;}
+		ConstSmartPtr<FunctionPattern> function_pattern() const
+			{return m_spFunctionPattern;}
 
 	/// adds a function by id to this group
 		void add(size_t fct);
@@ -138,11 +138,11 @@ class FunctionGroup
 
 	protected:
 	/// returns if FunctionGroup is ready for use
-		bool is_init() const {return m_pFunctionPattern != NULL;}
+		bool is_init() const {return m_spFunctionPattern.valid();}
 
 	protected:
 	/// underlying function pattern
-		const FunctionPattern* m_pFunctionPattern;
+		ConstSmartPtr<FunctionPattern> m_spFunctionPattern;
 
 	/// vector holding all selected unique function ids
 		std::vector<size_t> m_vFunction;

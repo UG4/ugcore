@@ -320,7 +320,7 @@ void Prolongate(GridFunction<TDomain, TAlgebra>& uFine,
 		UG_THROW("Prolongate: GridFunctions must have same Domain.");
 
 //	grid functions must have same function pattern
-	if(&uFine.function_pattern() != &uCoarse.function_pattern())
+	if(uFine.function_pattern().get() != uCoarse.function_pattern().get())
 		UG_THROW("Prolongate: GridFunctions must have same Function Pattern.");
 
 //	get grid levels
@@ -568,7 +568,7 @@ void Restrict(GridFunction<TDomain, TAlgebra>& uCoarse,
 		UG_THROW("Restrict: GridFunctions must have same Domain.");
 
 //	grid functions must have same function pattern
-	if(&uCoarse.function_pattern() != &uFine.function_pattern())
+	if(uCoarse.function_pattern().get() != uFine.function_pattern().get())
 		UG_THROW("Restrict: GridFunctions must have same Function Pattern.");
 
 //	get grid levels

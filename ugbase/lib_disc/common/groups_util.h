@@ -56,7 +56,7 @@ void CreateFunctionIndexMapping(FunctionIndexMapping& map,
  */
 void CreateFunctionIndexMapping(FunctionIndexMapping& map,
                                 const FunctionGroup& grpFrom,
-                                const FunctionPattern& fctPattern);
+                                ConstSmartPtr<FunctionPattern> fctPattern);
 
 /**
  * This function create the union of function groups. Container is clear at beginning.

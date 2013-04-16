@@ -39,6 +39,9 @@ class FunctionPattern
 			m_bLocked(false), m_spSH(spSH)
 		{clear();}
 
+	///	sets new subsets handler
+		void set_subset_handler(ConstSmartPtr<ISubsetHandler> spSH);
+
 	/// get underlying subset handler
 		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_spSH;}
 
@@ -54,66 +57,23 @@ class FunctionPattern
 	/**
 	 * \param[in] name			name(s) of single solution (comma separated)
 	 * \param[in] id			Shape Function set id
+	 * \param[in] subsets		Subsets separated by ','
+	 * \param[in] dim			Dimension
+	 */
+		void add(const std::vector<std::string>& vName, LFEID id,
+				 const std::vector<std::string>& vSubset, int dim = -1);
+
+	protected:
+	/// add single solutions of LocalShapeFunctionSetID to selected subsets
+	/**
+	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] id			Shape Function set id
 	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
 	 * \param[in] dim			Dimension
 	 */
 		void add(const std::vector<std::string>& vName, LFEID id, const SubsetGroup& ssGrp, int dim = -1);
 
-	/// add single solutions of LocalShapeFunctionSetID to selected subsets
-	/**
-	 * \param[in] name			name(s) of single solution (comma separated)
-	 * \param[in] id			Shape Function set id
-	 * \param[in] subsets		Subsets separated by ','
-	 * \param[in] dim			Dimension
-	 */
-		void add(const std::vector<std::string>& vName, LFEID id,
-		         const std::vector<std::string>& vSubset, int dim = -1);
-
-	/// add single solutions of LocalShapeFunctionSetID to the entire domain
-	/**
-	 * \param[in] 	name		name(s) of single solution (comma separated)
-	 * \param[in] 	id			Shape Function set id
-	 * \param[in]	dim			Dimension (optional)
-	 */
-		void add(const char* name, LFEID id, int dim = -1);
-
-	/// add single solutions of LocalShapeFunctionSetID to selected subsets
-	/**
-	 * \param[in] name			name(s) of single solution (comma separated)
-	 * \param[in] id			Shape Function set id
-	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
-	 * \param[in] dim			Dimension
-	 */
-		void add(const char* name, LFEID id, const SubsetGroup& ssGrp, int dim = -1);
-
-	/// add single solutions of LocalShapeFunctionSetID to selected subsets
-	/**
-	 * \param[in] name			name(s) of single solution (comma separated)
-	 * \param[in] id			Shape Function set id
-	 * \param[in] subsets		Subsets separated by ','
-	 * \param[in] dim			Dimension
-	 */
-		void add(const char* name, LFEID id, const char* subsets, int dim = -1);
-
-	///	adds function using string to indicate finite element type
-		void add(const std::vector<std::string>& vName, const char* type, int order);
-
-	///	adds function using string to indicate finite element type
-		void add(const std::vector<std::string>& vName, const char* type);
-
-	///	adds function using string to indicate finite element type
-		void add(const std::vector<std::string>& vName, const char* type, int order,
-		         const std::vector<std::string>& vSubsets);
-
-	///	adds function using string to indicate finite element type
-		void add(const char* name, const char* type, int order);
-
-	///	adds function using string to indicate finite element type
-		void add(const char* name, const char* type);
-
-	///	adds function using string to indicate finite element type
-		void add(const char* name, const char* type, int order, const char* subsets);
-
+	public:
 	///	lock pattern (i.e. can not be changed then)
 		void lock()	{m_bLocked = true;}
 
@@ -185,9 +145,6 @@ class FunctionPattern
 
 	/// returns the function id if function with given name found in pattern, exception else
 		size_t fct_id_by_name(const char* name) const;
-
-	///	returns function group by name
-		FunctionGroup fct_grp_by_name(const char* names) const;
 
 	/// returns the dimension in which solution lives
 		int dim(size_t fct) const

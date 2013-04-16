@@ -92,7 +92,7 @@ CreateFunctionIndexMapping(FunctionIndexMapping& map,
 
 void CreateFunctionIndexMapping(FunctionIndexMapping& map,
                                 const FunctionGroup& grpFrom,
-                                const FunctionPattern& fctPattern)
+                                ConstSmartPtr<FunctionPattern> fctPattern)
 {
 	FunctionGroup commonFctGroup(fctPattern);
 	commonFctGroup.add_all();
@@ -123,12 +123,12 @@ void CreateUnionOfFunctionGroups(FunctionGroup& fctGrp,
 	{
 		if(vFctGrp[grp] == NULL) continue;
 
-		const FunctionPattern* pFctPat = vFctGrp[grp]->function_pattern();
-		if(pFctPat == NULL)
+		ConstSmartPtr<FunctionPattern> pFctPat = vFctGrp[grp]->function_pattern();
+		if(pFctPat.invalid())
 			UG_THROW("CreateUnionOfFunctionGroups: Function group "
 					<<grp<<" has NULL as underlying FunctionPattern.");
 
-		fctGrp.set_function_pattern(*pFctPat);
+		fctGrp.set_function_pattern(pFctPat);
 		break;
 	}
 

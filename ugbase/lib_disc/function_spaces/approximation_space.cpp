@@ -25,15 +25,18 @@ IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
                     SmartPtr<grid_type> spMG,
                     const AlgebraType& algebraType)
-:	 DoFDistributionInfo(spMGSH),
+:	 DoFDistributionInfoProvider(),
      m_spMG(spMG),
  	 m_spMGSH(spMGSH),
+ 	 m_spDoFDistributionInfo(new DoFDistributionInfo(spMGSH)),
  	 m_bAdaptionIsActive(false),
 	 m_algebraType(algebraType)
 #ifdef UG_PARALLEL
 	, m_pDistGridMgr(NULL)
 #endif
 {
+	this->set_dof_distribution_info(m_spDoFDistributionInfo);
+
 //	get blocksize of algebra
 	const int blockSize = m_algebraType.blocksize();
 
@@ -55,15 +58,18 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
 IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
                     SmartPtr<grid_type> spMG)
-	: DoFDistributionInfo(spMGSH),
+	: DoFDistributionInfoProvider(),
 	  m_spMG(spMG),
 	  m_spMGSH(spMGSH),
+	  m_spDoFDistributionInfo(new DoFDistributionInfo(spMGSH)),
 	  m_bAdaptionIsActive(false),
 	  m_algebraType(DefaultAlgebra::get())
 #ifdef UG_PARALLEL
 	, m_pDistGridMgr(NULL)
 #endif
 {
+	this->set_dof_distribution_info(m_spDoFDistributionInfo);
+
 //	get blocksize of algebra
 	const int blockSize = m_algebraType.blocksize();
 
@@ -97,6 +103,52 @@ IApproximationSpace::
 	if(m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>(NULL);
 }
+
+
+
+void IApproximationSpace::add(const char* names, LFEID lfeID, int dim)
+{
+	add(TokenizeTrimString(names), lfeID, dim);
+}
+
+void IApproximationSpace::add(const char* names, LFEID lfeID,
+                          const char* subsets, int dim)
+{
+	add(TokenizeTrimString(names), lfeID, TokenizeTrimString(subsets), dim);
+}
+
+void IApproximationSpace::add(const std::vector<std::string>& vName, const char* fetype, int order)
+{
+	add(vName, ConvertStringToLFEID(fetype, order));
+}
+
+void IApproximationSpace::add(const std::vector<std::string>& vName, const char* fetype)
+{
+	add(vName, ConvertStringToLFEID(fetype));
+}
+
+void IApproximationSpace::add(const std::vector<std::string>& vName, const char* fetype, int order,
+                          const std::vector<std::string>& vSubsets)
+{
+	add(vName, ConvertStringToLFEID(fetype, order), vSubsets);
+}
+
+void IApproximationSpace::add(const char* name, const char* fetype, int order)
+{
+	add(name, ConvertStringToLFEID(fetype, order));
+}
+
+void IApproximationSpace::add(const char* name, const char* fetype)
+{
+	add(name, ConvertStringToLFEID(fetype));
+}
+
+void IApproximationSpace::add(const char* name, const char* fetype,
+                          int order, const char* subsets)
+{
+	add(name, ConvertStringToLFEID(fetype, order), subsets);
+}
+
 
 
 void IApproximationSpace::register_at_adaption_msg_hub()
@@ -633,7 +685,7 @@ void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
 //	if not yet MGLevelDD allocated
 	if(!m_spLevMGDD.valid()){
 		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>
-					(new LevelMGDoFDistribution(m_spMG, m_spMGSH, *this,
+					(new LevelMGDoFDistribution(m_spMG, m_spMGSH, m_spDoFDistributionInfo,
 					                            m_bGrouped));
 	}
 
@@ -669,7 +721,7 @@ void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
 	{
 		if(!m_vSurfDD[lvl].valid()){
 			m_vSurfDD[lvl] = SmartPtr<SurfaceDoFDistribution>
-							(new SurfaceDoFDistribution(m_spMG, m_spMGSH, *this,
+							(new SurfaceDoFDistribution(m_spMG, m_spMGSH, m_spDoFDistributionInfo,
 									m_spSurfaceView, lvl, m_bGrouped));
 		}
 	}
@@ -684,7 +736,7 @@ void IApproximationSpace::top_surf_dd_required()
 	if(!m_spTopSurfDD.valid()){
 		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>
 							(new SurfaceDoFDistribution(
-									m_spMG, m_spMGSH, *this,
+									m_spMG, m_spMGSH, m_spDoFDistributionInfo,
 									m_spSurfaceView, GridLevel::TOPLEVEL, m_bGrouped));
 	}
 }
@@ -698,7 +750,7 @@ void IApproximationSpace::surface_view_required()
 
 void IApproximationSpace::dof_distribution_info_required()
 {
-	DoFDistributionInfo::init();
+	m_spDoFDistributionInfo->init();
 }
 
 

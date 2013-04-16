@@ -33,9 +33,6 @@ class DoFDistributionInfo : public FunctionPattern
 		///	initializes the DoFs
 		void init();
 
-		///	returns the function pattern
-		const FunctionPattern& function_pattern() const {return *this;}
-
 
 		/// return the maximum number of dofs on grid objects in a dimension
 		size_t max_dofs(const int dim) const {return m_vMaxDoFsInDim[dim];}
@@ -111,18 +108,24 @@ class DoFDistributionInfo : public FunctionPattern
 class DoFDistributionInfoProvider{
 	public:
 		/// constructor
-		DoFDistributionInfoProvider(const DoFDistributionInfo& rDDI)
-			: m_spDDI(&rDDI)
+		DoFDistributionInfoProvider(ConstSmartPtr<DoFDistributionInfo> spDDI)
+			: m_spDDI(spDDI)
 		{}
 
+		/// constructor
+		DoFDistributionInfoProvider() : m_spDDI(0) {}
+
+		/// sets the dd info
+		void set_dof_distribution_info(ConstSmartPtr<DoFDistributionInfo> spDDI) {m_spDDI = spDDI;}
+
 		///	returns underlying info
-		const DoFDistributionInfo& dof_distribution_info() const {return *m_spDDI;}
+		ConstSmartPtr<DoFDistributionInfo> dof_distribution_info() const {return m_spDDI;}
 
 		///	returns the subset handler
 		ConstSmartPtr<ISubsetHandler> subset_handler() const {return m_spDDI->subset_handler();}
 
 		///	returns the function pattern
-		const FunctionPattern& function_pattern() const {return m_spDDI->function_pattern();}
+		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spDDI;}
 
 
 		/// number of discrete functions on subset si
@@ -191,6 +194,8 @@ class DoFDistributionInfoProvider{
 		/// returns maximal dimension where to dofs must be ordered
 		int max_dim_to_order_dofs(size_t fct) const {return m_spDDI->max_dim_to_order_dofs(fct);}
 
+		///	prints statistic on local dof distribution
+		void print_local_dof_statistic() const {print_local_dof_statistic(1);}
 
 		///	prints informations
 		void print_local_dof_statistic(int verboseLev) const {m_spDDI->print_local_dof_statistic(verboseLev);}
@@ -200,7 +205,7 @@ class DoFDistributionInfoProvider{
 
 	protected:
 		///	Function Pattern
-		const DoFDistributionInfo* m_spDDI;
+		ConstSmartPtr<DoFDistributionInfo> m_spDDI;
 };
 
 

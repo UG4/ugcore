@@ -16,6 +16,15 @@
 
 namespace ug{
 
+void FunctionPattern::set_subset_handler(ConstSmartPtr<ISubsetHandler> spSH){
+	if(m_bLocked)
+		UG_THROW("FunctionPattern: already locked, but trying to set"
+				" new subset handler.");
+
+	m_spSH = spSH;
+	clear();
+}
+
 void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID, int dim)
 {
 //	add all names
@@ -113,57 +122,6 @@ void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
 	add(vName, lfeID, SubsetGroup(m_spSH, vSubset), dim);
 }
 
-void FunctionPattern::add(const char* names, LFEID lfeID, int dim)
-{
-	add(TokenizeTrimString(names), lfeID, dim);
-}
-
-void FunctionPattern::add(const char* names, LFEID lfeID,
-                          const SubsetGroup& ssGrp, int dim)
-{
-	add(TokenizeTrimString(names), lfeID, ssGrp, dim);
-}
-
-void FunctionPattern::add(const char* names, LFEID lfeID,
-                          const char* subsets, int dim)
-{
-	add(TokenizeTrimString(names), lfeID, TokenizeTrimString(subsets), dim);
-}
-
-void FunctionPattern::add(const std::vector<std::string>& vName, const char* fetype, int order)
-{
-	add(vName, ConvertStringToLFEID(fetype, order));
-}
-
-void FunctionPattern::add(const std::vector<std::string>& vName, const char* fetype)
-{
-	add(vName, ConvertStringToLFEID(fetype));
-}
-
-void FunctionPattern::add(const std::vector<std::string>& vName, const char* fetype, int order,
-                          const std::vector<std::string>& vSubsets)
-{
-	add(vName, ConvertStringToLFEID(fetype, order), vSubsets);
-}
-
-void FunctionPattern::add(const char* name, const char* fetype, int order)
-{
-	add(name, ConvertStringToLFEID(fetype, order));
-}
-
-void FunctionPattern::add(const char* name, const char* fetype)
-{
-	add(name, ConvertStringToLFEID(fetype));
-}
-
-void FunctionPattern::add(const char* name, const char* fetype,
-                          int order, const char* subsets)
-{
-	add(name, ConvertStringToLFEID(fetype, order), subsets);
-}
-
-
-
 
 size_t FunctionPattern::fct_id_by_name(const char* name) const
 {
@@ -175,12 +133,5 @@ size_t FunctionPattern::fct_id_by_name(const char* name) const
 
 	UG_THROW("Function name "<<name<<" not found in pattern.");
 }
-
-///	returns function group by name
-FunctionGroup FunctionPattern::fct_grp_by_name(const char* names) const
-{
-	return FunctionGroup(*this, TokenizeString(names));
-}
-
 
 } // end namespace ug

@@ -131,7 +131,7 @@ void StdDataLinker<TImpl,TData,dim>::check_setup() const
 
 template <typename TImpl, typename TData, int dim>
 void StdDataLinker<TImpl,TData,dim>::
-set_function_pattern(const FunctionPattern& fctPatt)
+set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt)
 {
 //	set function pattern in dependent data and collect all function groups
 	std::vector<const FunctionGroup*> vFctGrp(num_input(), NULL);
@@ -155,7 +155,7 @@ set_function_pattern(const FunctionPattern& fctPatt)
 					" common function group.");
 
 	try{
-		CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, *this->m_fctGrp.function_pattern());
+		CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, this->m_fctGrp.function_pattern());
 	}UG_CATCH_THROW("'StdDataLinker::set_function_pattern':"
 					"Cannot create Function Index Mapping for Common Functions.");
 

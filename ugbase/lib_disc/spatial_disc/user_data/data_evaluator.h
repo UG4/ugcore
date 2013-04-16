@@ -36,7 +36,7 @@ class DataEvaluator
 	///	sets the elem discs to evaluate
 		DataEvaluator(int discPart,
 		              const std::vector<IElemDisc<TDomain>*>& vElemDisc,
-		              const FunctionPattern& fctPat,
+		              ConstSmartPtr<FunctionPattern> fctPat,
 		              const bool bNonRegularGrid,
 		              LocalVectorTimeSeries* locTimeSeries = NULL,
 		              const std::vector<number>* vScaleMass = NULL,
@@ -111,7 +111,7 @@ class DataEvaluator
 		std::vector<IElemDisc<TDomain>*> m_vElemDisc[MAX_PROCESS];
 
 	///	underlying function pattern
-		const FunctionPattern& m_fctPatt;
+		ConstSmartPtr<FunctionPattern> m_spFctPattern;
 
 	///	flag if hanging nodes are used
 		bool m_bUseHanging;

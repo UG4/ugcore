@@ -232,7 +232,7 @@ class GridFunction
 		int get_dim(size_t fct) const {return m_spDD->dim(fct);}
 
 	///	returns function pattern
-		const FunctionPattern& function_pattern() const {return m_spDD->function_pattern();}
+		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spDD->function_pattern();}
 
 	/// returns true if the discrete function nr_fct is defined on subset s
 		bool is_def_in_subset(size_t fct, int si) const {return m_spDD->is_def_in_subset(fct, si);}

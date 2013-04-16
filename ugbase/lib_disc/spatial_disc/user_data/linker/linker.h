@@ -108,7 +108,7 @@ class StdDataLinker
 		virtual void check_setup() const;
 
 	///	updates the function group
-		virtual void set_function_pattern(const FunctionPattern& fctPatt);
+		virtual void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt);
 
 	protected:
 	///	returns number of functions the input depends on

@@ -20,12 +20,12 @@ template <typename TDomain>
 DataEvaluator<TDomain>::
 DataEvaluator(int discPart,
               const std::vector<IElemDisc<TDomain>*>& vElemDisc,
-              const FunctionPattern& fctPat,
+              ConstSmartPtr<FunctionPattern> fctPat,
               const bool bNonRegularGrid,
               LocalVectorTimeSeries* pLocTimeSeries,
               const std::vector<number>* pvScaleMass,
               const std::vector<number>* pvScaleStiff)
-   : m_fctPatt(fctPat)
+   : m_spFctPattern(fctPat)
 {
 // 	remember infos
 	m_discPart = discPart;
@@ -223,7 +223,7 @@ void DataEvaluator<TDomain>::extract_imports_and_userdata(int subsetIndex, int d
 
 	//	update function pattern (this will update functionGroups and Map of Data)
 		try{
-			ipData->set_function_pattern(m_fctPatt);
+			ipData->set_function_pattern(m_spFctPattern);
 		}
 		UG_CATCH_THROW("DataEvaluator: Cannot set FunctionPattern to UserData.");
 

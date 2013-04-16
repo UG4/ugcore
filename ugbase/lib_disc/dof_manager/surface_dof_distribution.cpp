@@ -18,11 +18,11 @@ namespace ug{
 SurfaceDoFDistribution::
 SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
                        SmartPtr<MGSubsetHandler> spMGSH,
-					   const DoFDistributionInfo& rDDInfo,
+                       ConstSmartPtr<DoFDistributionInfo> spDDInfo,
                        SmartPtr<SurfaceView> spSurfView,
                        int level, bool bGrouped)
-		:	DoFDistributionInfoProvider(rDDInfo),
-		 	MGDoFDistribution(spMG, spMGSH, rDDInfo, bGrouped),
+		:	DoFDistributionInfoProvider(spDDInfo),
+		 	MGDoFDistribution(spMG, spMGSH, spDDInfo, bGrouped),
 		 	DoFDistribution(*this, spSurfView, GridLevel(level, GridLevel::SURFACE, false)),
 		 	m_spSurfView(spSurfView),
 		 	m_level(level)

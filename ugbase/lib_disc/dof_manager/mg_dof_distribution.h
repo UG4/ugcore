@@ -93,7 +93,7 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 	public:
 		MGDoFDistribution(SmartPtr<MultiGrid> spMG,
 						  SmartPtr<MGSubsetHandler> spMGSH,
-						  const DoFDistributionInfo& rDDInfo,
+						  ConstSmartPtr<DoFDistributionInfo> spDDInfo,
 		                  bool bGrouped);
 
 		~MGDoFDistribution();

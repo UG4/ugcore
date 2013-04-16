@@ -17,10 +17,10 @@ namespace ug{
 LevelMGDoFDistribution::
 LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 					   SmartPtr<MGSubsetHandler> spMGSH,
-					   const DoFDistributionInfo& rDDInfo,
+					   ConstSmartPtr<DoFDistributionInfo> spDDInfo,
                        bool bGrouped)
-	:	DoFDistributionInfoProvider(rDDInfo),
-	 	MGDoFDistribution(spMG, spMGSH, rDDInfo, bGrouped)
+	:	DoFDistributionInfoProvider(spDDInfo),
+	 	MGDoFDistribution(spMG, spMGSH, spDDInfo, bGrouped)
 {
 	if(num_levels() > 0) level_required(num_levels()-1);
 	init();

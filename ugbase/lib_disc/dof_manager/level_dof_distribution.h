@@ -23,7 +23,7 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 	///	constructor
 		LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 		                       SmartPtr<MGSubsetHandler> spMGSH,
-							   const DoFDistributionInfo& rDDInfo,
+		                       ConstSmartPtr<DoFDistributionInfo> spDDInfo,
 		                       bool bGrouped);
 
 	///	removes holes in the index set

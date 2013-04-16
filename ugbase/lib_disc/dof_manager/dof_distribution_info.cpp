@@ -248,7 +248,7 @@ void DoFDistributionInfo::print_local_dof_statistic(int verboseLev) const
 
 FunctionGroup DoFDistributionInfoProvider::fct_grp_by_name(const char* names) const
 {
-	return m_spDDI->fct_grp_by_name(names);
+	return FunctionGroup(m_spDDI, TokenizeString(names));
 }
 
 SubsetGroup DoFDistributionInfoProvider::subset_grp_by_name(const char* names) const

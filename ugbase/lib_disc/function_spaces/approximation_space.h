@@ -34,7 +34,7 @@ namespace ug{
  *  		However for a locally/adaptively refined MultiGrid the level grid
  *  		solution is only living on a part of the domain)
  */
-class IApproximationSpace : public DoFDistributionInfo
+class IApproximationSpace : public DoFDistributionInfoProvider
 {
 	public:
 	///	Type of Subset Handler
@@ -55,6 +55,67 @@ class IApproximationSpace : public DoFDistributionInfo
 
 	///	Destructor
 		~IApproximationSpace();
+
+	///	clears functions
+		void clear() {m_spDoFDistributionInfo->clear();}
+
+	/// add single solutions of LocalShapeFunctionSetID to the entire domain
+	/**
+	 * \param[in] 	name		name(s) of single solution (comma separated)
+	 * \param[in] 	id			Shape Function set id
+	 * \param[in]	dim			Dimension (optional)
+	 */
+		void add(const std::vector<std::string>& vName, LFEID id, int dim = -1){
+			m_spDoFDistributionInfo->add(vName, id, dim);
+		}
+
+	/// add single solutions of LocalShapeFunctionSetID to selected subsets
+	/**
+	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] id			Shape Function set id
+	 * \param[in] subsets		Subsets separated by ','
+	 * \param[in] dim			Dimension
+	 */
+		void add(const std::vector<std::string>& vName, LFEID id,
+				 const std::vector<std::string>& vSubset, int dim = -1){
+			m_spDoFDistributionInfo->add(vName, id, vSubset, dim);
+		}
+
+	/// add single solutions of LocalShapeFunctionSetID to the entire domain
+	/**
+	 * \param[in] 	name		name(s) of single solution (comma separated)
+	 * \param[in] 	id			Shape Function set id
+	 * \param[in]	dim			Dimension (optional)
+	 */
+		void add(const char* name, LFEID id, int dim = -1);
+
+	/// add single solutions of LocalShapeFunctionSetID to selected subsets
+	/**
+	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] id			Shape Function set id
+	 * \param[in] subsets		Subsets separated by ','
+	 * \param[in] dim			Dimension
+	 */
+		void add(const char* name, LFEID id, const char* subsets, int dim = -1);
+
+	///	adds function using string to indicate finite element type
+		void add(const std::vector<std::string>& vName, const char* type, int order);
+
+	///	adds function using string to indicate finite element type
+		void add(const std::vector<std::string>& vName, const char* type);
+
+	///	adds function using string to indicate finite element type
+		void add(const std::vector<std::string>& vName, const char* type, int order,
+				 const std::vector<std::string>& vSubsets);
+
+	///	adds function using string to indicate finite element type
+		void add(const char* name, const char* type, int order);
+
+	///	adds function using string to indicate finite element type
+		void add(const char* name, const char* type);
+
+	///	adds function using string to indicate finite element type
+		void add(const char* name, const char* type, int order, const char* subsets);
 
 	/// get underlying subset handler
 		ConstSmartPtr<MGSubsetHandler> subset_handler() const {return m_spMGSH;}
@@ -180,6 +241,9 @@ class IApproximationSpace : public DoFDistributionInfo
 
 	///	flag if DoFs should be grouped
 		bool m_bGrouped;
+
+	///	DofDistributionInfo
+		SmartPtr<DoFDistributionInfo> m_spDoFDistributionInfo;
 
 	///	MG Level DoF Distribution
 		SmartPtr<LevelMGDoFDistribution> m_spLevMGDD;

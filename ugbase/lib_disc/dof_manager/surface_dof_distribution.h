@@ -22,7 +22,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 	///	constructor
 		SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
 		                       SmartPtr<MGSubsetHandler> spMGSH,
- 							   const DoFDistributionInfo& rDDInfo,
+		                       ConstSmartPtr<DoFDistributionInfo> spDDInfo,
 		                       SmartPtr<SurfaceView> spSurfView,
 		                       int level, bool bGrouped);
 

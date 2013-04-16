@@ -43,7 +43,7 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx)
 
 	// store function name
 	for (size_t fi = 0; fi < m_dd->num_fct(); fi++)
-		m_fctName.push_back(m_dd->function_pattern().name(fi));
+		m_fctName.push_back(m_dd->function_pattern()->name(fi));
 }
 
 template <class TVector, class TDomain>
@@ -124,7 +124,7 @@ void CompositeConvCheck<TVector, TDomain>::set_level(int level)
 
 	// store function name
 	for (size_t fi = 0; fi < m_dd->num_fct(); fi++)
-		m_fctName.push_back(m_dd->function_pattern().name(fi));
+		m_fctName.push_back(m_dd->function_pattern()->name(fi));
 }
 
 

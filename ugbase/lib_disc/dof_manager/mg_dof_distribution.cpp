@@ -243,9 +243,9 @@ void ComputeOrientationOffset<Face>
 MGDoFDistribution::
 MGDoFDistribution(SmartPtr<MultiGrid> spMG,
                   SmartPtr<MGSubsetHandler> spMGSH,
-				  const DoFDistributionInfo& rDDInfo,
+				  ConstSmartPtr<DoFDistributionInfo> spDDInfo,
                   bool bGrouped)
-	: DoFDistributionInfoProvider(rDDInfo),
+	: DoFDistributionInfoProvider(spDDInfo),
       m_bGrouped(bGrouped),
 	  m_frozen(false),
 	  m_spMG(spMG),

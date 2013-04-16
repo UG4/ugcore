@@ -301,7 +301,7 @@ void CplUserData<TData,dim,TRet>::local_ips_changed(const size_t seriesID, const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TData, int dim>
-void DependentUserData<TData,dim>::set_function_pattern(const FunctionPattern& fctPatt)
+void DependentUserData<TData,dim>::set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt)
 {
 	this->m_fctGrp.set_function_pattern(fctPatt);
 	extract_fct_grp();
@@ -330,8 +330,8 @@ template <typename TData, int dim>
 void DependentUserData<TData,dim>::extract_fct_grp()
 {
 	//	if associated infos missing return
-	const FunctionPattern* pFctPatt = this->m_fctGrp.function_pattern();
-	if(pFctPatt == NULL) return;
+	ConstSmartPtr<FunctionPattern> spFctPatt = this->m_fctGrp.function_pattern();
+	if(spFctPatt.invalid()) return;
 
 	//	if no function passed, clear functions
 	if(m_SymbFct.size() == 1 && m_SymbFct[0].empty()) m_SymbFct.clear();
@@ -361,7 +361,7 @@ void DependentUserData<TData,dim>::extract_fct_grp()
 	//	create a mapping between all functions and the function group of this
 	//	element disc.
 	try{
-		CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, *pFctPatt);
+		CreateFunctionIndexMapping(this->m_map, this->m_fctGrp, spFctPatt);
 	}UG_CATCH_THROW("DependentUserData: Cannot create Function Index Mapping.");
 
 	this->check_setup();

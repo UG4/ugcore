@@ -225,14 +225,33 @@ static void Common(Registry& reg, string grp)
 		.add_constructor<void (*)(int, std::string)>("Level, Type")
 		.set_construct_as_smart_pointer(true);
 
-//	FunctionPattern
+//	DoFDistributionInfoProvider
 	{
-	typedef FunctionPattern T;
-	reg.add_class_<T>("FunctionPattern", grp)
-		.add_method("clear", &T::clear)
+	typedef DoFDistributionInfoProvider T;
+	reg.add_class_<T>("DoFDistributionInfoProvider", grp)
+		.add_method("print_local_dof_statistic", static_cast<void (T::*)(int) const>(&T::print_local_dof_statistic))
+		.add_method("print_local_dof_statistic", static_cast<void (T::*)() const>(&T::print_local_dof_statistic))
 		.add_method("num_fct", static_cast<size_t (T::*)() const>(&T::num_fct))
 		.add_method("name", &T::name)
-		.add_method("dim", &T::dim)
+		.add_method("dim", &T::dim);
+	}
+
+//	IApproximationSpace
+	{
+	typedef IApproximationSpace T;
+	typedef DoFDistributionInfoProvider TBase;
+	reg.add_class_<T, TBase>("IApproximationSpace", grp)
+		.add_method("print_statistic", static_cast<void (T::*)(int) const>(&T::print_statistic))
+		.add_method("print_statistic", static_cast<void (T::*)() const>(&T::print_statistic))
+		.add_method("print_layout_statistic", static_cast<void (T::*)(int) const>(&T::print_layout_statistic))
+		.add_method("print_layout_statistic", static_cast<void (T::*)() const>(&T::print_layout_statistic))
+		.add_method("num_levels", &T::num_levels)
+		.add_method("init_levels", &T::init_levels)
+		.add_method("init_surfaces", &T::init_surfaces)
+		.add_method("init_top_surface", &T::init_top_surface)
+		.add_method("defragment", &T::defragment)
+
+		.add_method("clear", &T::clear)
 		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int, const char*)>(&T::add),
 					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
 					"currently no help available")
@@ -251,31 +270,7 @@ static void Common(Registry& reg, string grp)
 		.add_method("add_fct", static_cast<void (T::*)(const std::vector<std::string>&, const char*)>(&T::add),
 					"", "Name # Type|selection|value=[\"crouzeix-raviart\",\"piecewise-constant\"] ", "Adds a function to the Function Pattern",
 					"currently no help available");
-	}
 
-//	DoFDistributionInfo
-	{
-	typedef DoFDistributionInfo T;
-	typedef FunctionPattern TBase;
-	reg.add_class_<T, TBase>("DoFDistributionInfo", grp)
-		.add_method("print_local_dof_statistic", static_cast<void (T::*)(int) const>(&T::print_local_dof_statistic))
-		.add_method("print_local_dof_statistic", static_cast<void (T::*)() const>(&T::print_local_dof_statistic));
-	}
-
-//	IApproximationSpace
-	{
-	typedef IApproximationSpace T;
-	typedef DoFDistributionInfo TBase;
-	reg.add_class_<T, TBase>("IApproximationSpace", grp)
-		.add_method("print_statistic", static_cast<void (T::*)(int) const>(&T::print_statistic))
-		.add_method("print_statistic", static_cast<void (T::*)() const>(&T::print_statistic))
-		.add_method("print_layout_statistic", static_cast<void (T::*)(int) const>(&T::print_layout_statistic))
-		.add_method("print_layout_statistic", static_cast<void (T::*)() const>(&T::print_layout_statistic))
-		.add_method("num_levels", &T::num_levels)
-		.add_method("init_levels", &T::init_levels)
-		.add_method("init_surfaces", &T::init_surfaces)
-		.add_method("init_top_surface", &T::init_top_surface)
-		.add_method("defragment", &T::defragment);
 	}
 }
 

@@ -38,7 +38,7 @@ class UserDataInfo {
 		virtual bool requires_grid_fct() const = 0;
 
 	///	sets the function pattern for a possibly needed grid function
-		virtual void set_function_pattern(const FunctionPattern& fctPatt) {
+		virtual void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt) {
 			m_fctGrp.set_function_pattern(fctPatt);
 		}
 
@@ -531,7 +531,7 @@ class DependentUserData : public CplUserData<TData, dim>
 		virtual void update_dof_sizes(const LocalIndices& ind);
 
 	///	sets the associated function pattern
-		virtual void set_function_pattern(const FunctionPattern& fctPatt);
+		virtual void set_function_pattern(ConstSmartPtr<FunctionPattern> fctPatt);
 
 	///	sets the associated symbolic functions
 	/// \{
