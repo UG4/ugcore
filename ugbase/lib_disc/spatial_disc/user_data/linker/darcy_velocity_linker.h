@@ -112,27 +112,165 @@ class DarcyVelocityLinker
 			}
 		}
 
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+		template <int refDim>
+		void eval_and_deriv(MathVector<dim> vDarcyVel[],
+		                    const MathVector<dim> vGlobIP[],
+		                    number time, int si,
+		                    GeometricObject* elem,
+		                    const MathVector<dim> vCornerCoords[],
+		                    const MathVector<refDim> vLocIP[],
+		                    const size_t nip,
+		                    LocalVector* u,
+		                    bool bDeriv,
+		                    int s,
+		                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
+		                    const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
-		//	Compute the Darcy velocity at all ips  //
-		/////////////////////////////////////////////
+		//	get the data of the ip series
+			const number* vDensity = m_spDensity->values(s);
+			const number* vViscosity = m_spViscosity->values(s);
+			const MathVector<dim>* vGravity = m_spGravity->values(s);
+			const MathVector<dim>* vPressureGrad = m_spPressureGrad->values(s);
+			const MathMatrix<dim,dim>* vPermeability = m_spPermeability->values(s);
 
-		//	loop all time series and every integration point of the series
-			for(size_t s = 0; s < this->num_series(); ++s)
+			for(size_t ip = 0; ip < nip; ++ip)
 			{
-			//	get the data of the ip series
-				const number* vDensity = m_spDensity->values(s);
-				const number* vViscosity = m_spViscosity->values(s);
-				const MathVector<dim>* vGravity = m_spGravity->values(s);
-				const MathVector<dim>* vPressureGrad = m_spPressureGrad->values(s);
-				const MathMatrix<dim,dim>* vPermeability = m_spPermeability->values(s);
+			//	Variables
+				MathVector<dim> Vel;
 
-			//	get the data to be filled
-				MathVector<dim>* vDarcyVel = this->values(s);
+			//	compute rho*g
+				VecScale(Vel, vGravity[ip], vDensity[ip]);
 
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+			// 	compute rho*g - \nabla p
+				VecSubtract(Vel, Vel, vPressureGrad[ip]);
+
+			//	compute Darcy velocity q := K / mu * (rho*g - \nabla p)
+				MatVecMult(vDarcyVel[ip], vPermeability[ip], Vel);
+				VecScale(vDarcyVel[ip], vDarcyVel[ip], 1./vViscosity[ip]);
+			}
+
+			//	Compute the derivatives at all ips     //
+			/////////////////////////////////////////////
+
+		//	check if something to do
+			if(!bDeriv || this->zero_derivative()) return;
+
+		//	clear all derivative values
+			this->set_zero(vvvDeriv, nip);
+
+		//	Derivatives of Viscosity
+			if(m_spDViscosity.valid() && !m_spDViscosity->zero_derivative())
+			for(size_t ip = 0; ip < nip; ++ip)
+				for(size_t fct = 0; fct < m_spDViscosity->num_fct(); ++fct)
 				{
+				//	get derivative of viscosity w.r.t. to all functions
+					const number* vDViscosity = m_spDViscosity->deriv(s, ip, fct);
+
+				//	get common fct id for this function
+					const size_t commonFct = this->input_common_fct(_MU_, fct);
+
+				//	loop all shapes and set the derivative
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+					{
+					//  DarcyVel_fct[sh] -= mu_fct_sh / mu * q
+						VecSubtract(vvvDeriv[ip][commonFct][sh], vDarcyVel[ip], -vDViscosity[sh] / vViscosity[ip]);
+					}
+				}
+
+		//	Derivatives of Density
+			if(m_spDDensity.valid() && !m_spDDensity->zero_derivative())
+			for(size_t ip = 0; ip < nip; ++ip)
+				for(size_t fct = 0; fct < m_spDDensity->num_fct(); ++fct)
+				{
+				//	get derivative of viscosity w.r.t. to all functions
+					const number* vDDensity = m_spDDensity->deriv(s, ip, fct);
+
+				//	get common fct id for this function
+					const size_t commonFct = this->input_common_fct(_RHO_, fct);
+
+				//	Precompute K/mu * g
+					MathVector<dim> Kmug;
+
+				//	a) compute K * g
+					MatVecMult(Kmug, vPermeability[ip], vGravity[ip]);
+
+				//	b) compute K* g / mu
+					VecScale(Kmug, Kmug, 1./vViscosity[ip]);
+
+				//	loop all shapes and set the derivative
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+					{
+					//  DarcyVel_fct[sh] += K/mu * (rho_fct_sh * g)
+						VecScaleAppend(vvvDeriv[ip][commonFct][sh],
+									   vDDensity[sh], Kmug);
+					}
+				}
+
+		//	Derivatives of Gravity
+			if(m_spDGravity.valid() && !m_spDGravity->zero_derivative())
+			for(size_t ip = 0; ip < nip; ++ip)
+				for(size_t fct = 0; fct < m_spDGravity->num_fct(); ++fct)
+				{
+				//	get derivative of viscosity w.r.t. to all functions
+					const MathVector<dim>* vDGravity = m_spDGravity->deriv(s, ip, fct);
+
+				//	get common fct id for this function
+					const size_t commonFct = this->input_common_fct(_G_, fct);
+
+				//	Precompute K/mu * rho
+					MathMatrix<dim,dim> Kmurho;
+
+				//	a) compute K/mu * rho
+					MatScale(Kmurho, vDensity[ip]/vViscosity[ip],vPermeability[ip]);
+
+				//	loop all shapes and set the derivative
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+					{
+						MathVector<dim> tmp;
+						MatVecMult(tmp, Kmurho, vDGravity[sh]);
+
+						vvvDeriv[ip][commonFct][sh] += tmp;
+					}
+				}
+
+		//	Derivatives of Pressure
+			if(m_spDPressureGrad.valid() && !m_spDPressureGrad->zero_derivative())
+			for(size_t ip = 0; ip < nip; ++ip)
+				for(size_t fct = 0; fct < m_spDPressureGrad->num_fct(); ++fct)
+				{
+				//	get derivative of viscosity w.r.t. to all functions
+					const MathVector<dim>* vDPressureGrad = m_spDPressureGrad->deriv(s, ip, fct);
+
+				//	get common fct id for this function
+					const size_t commonFct = this->input_common_fct(_DP_, fct);
+
+				//	Precompute -K/mu
+					MathMatrix<dim,dim> Kmu;
+
+				//	a) compute -K/mu
+					MatScale(Kmu, -1.0/vViscosity[ip],vPermeability[ip]);
+
+				//	loop all shapes and set the derivative
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+					{
+						MathVector<dim> tmp;
+						MatVecMult(tmp, Kmu, vDPressureGrad[sh]);
+
+						vvvDeriv[ip][commonFct][sh] += tmp;
+					}
+				}
+
+		//	Derivatives of Permeability
+			if(m_spDPermeability.valid() && !m_spDPermeability->zero_derivative())
+			for(size_t ip = 0; ip < nip; ++ip)
+				for(size_t fct = 0; fct < m_spDPermeability->num_fct(); ++fct)
+				{
+				//	get derivative of viscosity w.r.t. to all functions
+					const MathMatrix<dim,dim>* vDPermeability = m_spDPermeability->deriv(s, ip, fct);
+
+				//	get common fct id for this function
+					const size_t commonFct = this->input_common_fct(_K_, fct);
+
 				//	Variables
 					MathVector<dim> Vel;
 
@@ -143,169 +281,17 @@ class DarcyVelocityLinker
 					VecSubtract(Vel, Vel, vPressureGrad[ip]);
 
 				//	compute Darcy velocity q := K / mu * (rho*g - \nabla p)
-					MatVecMult(vDarcyVel[ip], vPermeability[ip], Vel);
-					VecScale(vDarcyVel[ip], vDarcyVel[ip], 1./vViscosity[ip]);
+					VecScale(Vel, Vel, 1./vViscosity[ip]);
+
+				//	loop all shapes and set the derivative
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+					{
+						MathVector<dim> tmp;
+						MatVecMult(tmp, vDPermeability[sh], Vel);
+
+						vvvDeriv[ip][commonFct][sh] += tmp;
+					}
 				}
-			}
-
-			//	Compute the derivatives at all ips     //
-			/////////////////////////////////////////////
-
-		//	check if something to do
-			if(!bDeriv || this->zero_derivative()) return;
-
-		//	clear all derivative values
-			this->clear_derivative_values();
-
-		//	loop all series
-			for(size_t s = 0; s < this->num_series(); ++s)
-			{
-			//	get the data of the ip series
-				const number* vDensity = m_spDensity->values(s);
-				const number* vViscosity = m_spViscosity->values(s);
-				const MathVector<dim>* vGravity = m_spGravity->values(s);
-				const MathVector<dim>* vPressureGrad = m_spPressureGrad->values(s);
-				const MathMatrix<dim,dim>* vPermeability = m_spPermeability->values(s);
-
-			//	get the data to be filled
-				MathVector<dim>* vDarcyVel = this->values(s);
-
-			//	Derivatives of Viscosity
-				if(m_spDViscosity.valid() && !m_spDViscosity->zero_derivative())
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_spDViscosity->num_fct(); ++fct)
-					{
-					//	get derivative of viscosity w.r.t. to all functions
-						const number* vDViscosity = m_spDViscosity->deriv(s, ip, fct);
-
-					//	get common fct id for this function
-						const size_t commonFct = this->input_common_fct(_MU_, fct);
-
-					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
-						{
-						//  DarcyVel_fct[sh] -= mu_fct_sh / mu * q
-							VecSubtract(this->deriv(s, ip, commonFct, sh), vDarcyVel[ip], -vDViscosity[sh] / vViscosity[ip]);
-						}
-					}
-
-			//	Derivatives of Density
-				if(m_spDDensity.valid() && !m_spDDensity->zero_derivative())
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_spDDensity->num_fct(); ++fct)
-					{
-					//	get derivative of viscosity w.r.t. to all functions
-						const number* vDDensity = m_spDDensity->deriv(s, ip, fct);
-
-					//	get common fct id for this function
-						const size_t commonFct = this->input_common_fct(_RHO_, fct);
-
-					//	Precompute K/mu * g
-						MathVector<dim> Kmug;
-
-					//	a) compute K * g
-						MatVecMult(Kmug, vPermeability[ip], vGravity[ip]);
-
-					//	b) compute K* g / mu
-						VecScale(Kmug, Kmug, 1./vViscosity[ip]);
-
-					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
-						{
-						//  DarcyVel_fct[sh] += K/mu * (rho_fct_sh * g)
-							VecScaleAppend(this->deriv(s, ip, commonFct, sh),
-							               vDDensity[sh], Kmug);
-						}
-					}
-
-			//	Derivatives of Gravity
-				if(m_spDGravity.valid() && !m_spDGravity->zero_derivative())
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_spDGravity->num_fct(); ++fct)
-					{
-					//	get derivative of viscosity w.r.t. to all functions
-						const MathVector<dim>* vDGravity = m_spDGravity->deriv(s, ip, fct);
-
-					//	get common fct id for this function
-						const size_t commonFct = this->input_common_fct(_G_, fct);
-
-					//	Precompute K/mu * rho
-						MathMatrix<dim,dim> Kmurho;
-
-					//	a) compute K/mu * rho
-						MatScale(Kmurho, vDensity[ip]/vViscosity[ip],vPermeability[ip]);
-
-					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
-						{
-							MathVector<dim> tmp;
-							MatVecMult(tmp, Kmurho, vDGravity[sh]);
-
-							this->deriv(s, ip, commonFct, sh) += tmp;
-						}
-					}
-
-			//	Derivatives of Pressure
-				if(m_spDPressureGrad.valid() && !m_spDPressureGrad->zero_derivative())
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_spDPressureGrad->num_fct(); ++fct)
-					{
-					//	get derivative of viscosity w.r.t. to all functions
-						const MathVector<dim>* vDPressureGrad = m_spDPressureGrad->deriv(s, ip, fct);
-
-					//	get common fct id for this function
-						const size_t commonFct = this->input_common_fct(_DP_, fct);
-
-					//	Precompute -K/mu
-						MathMatrix<dim,dim> Kmu;
-
-					//	a) compute -K/mu
-						MatScale(Kmu, -1.0/vViscosity[ip],vPermeability[ip]);
-
-					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
-						{
-							MathVector<dim> tmp;
-							MatVecMult(tmp, Kmu, vDPressureGrad[sh]);
-
-							this->deriv(s, ip, commonFct, sh) += tmp;
-						}
-					}
-
-			//	Derivatives of Permeability
-				if(m_spDPermeability.valid() && !m_spDPermeability->zero_derivative())
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-					for(size_t fct = 0; fct < m_spDPermeability->num_fct(); ++fct)
-					{
-					//	get derivative of viscosity w.r.t. to all functions
-						const MathMatrix<dim,dim>* vDPermeability = m_spDPermeability->deriv(s, ip, fct);
-
-					//	get common fct id for this function
-						const size_t commonFct = this->input_common_fct(_K_, fct);
-
-					//	Variables
-						MathVector<dim> Vel;
-
-					//	compute rho*g
-						VecScale(Vel, vGravity[ip], vDensity[ip]);
-
-					// 	compute rho*g - \nabla p
-						VecSubtract(Vel, Vel, vPressureGrad[ip]);
-
-					//	compute Darcy velocity q := K / mu * (rho*g - \nabla p)
-						VecScale(Vel, Vel, 1./vViscosity[ip]);
-
-					//	loop all shapes and set the derivative
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
-						{
-							MathVector<dim> tmp;
-							MatVecMult(tmp, vDPermeability[sh], Vel);
-
-							this->deriv(s, ip, commonFct, sh) += tmp;
-						}
-					}
-
-			}
 		}
 
 	public:

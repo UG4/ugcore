@@ -49,10 +49,6 @@ class InverseLinker
 		void divide(number dividend,
 		         number divisor);
 
-	///	computes the value
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
-
 		inline void evaluate (number& value,
 		                      const MathVector<dim>& globIP,
 		                      number time, int si) const;
@@ -67,6 +63,20 @@ class InverseLinker
 		                     const size_t nip,
 		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
+
+		template <int refDim>
+		void eval_and_deriv(number vValue[],
+		                    const MathVector<dim> vGlobIP[],
+		                    number time, int si,
+		                    GeometricObject* elem,
+		                    const MathVector<dim> vCornerCoords[],
+		                    const MathVector<refDim> vLocIP[],
+		                    const size_t nip,
+		                    LocalVector* u,
+		                    bool bDeriv,
+		                    int s,
+		                    std::vector<std::vector<number> > vvvDeriv[],
+		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 	protected:
 	///	divisor at ip of input

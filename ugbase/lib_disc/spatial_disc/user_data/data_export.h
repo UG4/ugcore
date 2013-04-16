@@ -32,21 +32,19 @@ class ValueDataExport
 	public:
 		ValueDataExport(const char* functions){this->set_functions(functions);}
 
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
-			UG_THROW("Not implemented.");
-		}
-
 		template <int refDim>
-		inline void evaluate(number vValue[],
-		                     const MathVector<dim> vGlobIP[],
-		                     number time, int si,
-		                     GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[],
-		                     const MathVector<refDim> vLocIP[],
-		                     const size_t nip,
-		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
+		void eval_and_deriv(number vValue[],
+		                    const MathVector<dim> vGlobIP[],
+		                    number time, int si,
+		                    GeometricObject* elem,
+		                    const MathVector<dim> vCornerCoords[],
+		                    const MathVector<refDim> vLocIP[],
+		                    const size_t nip,
+		                    LocalVector* u,
+		                    bool bDeriv,
+		                    int s,
+		                    std::vector<std::vector<number> > vvvDeriv[],
+		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 		virtual bool continuous() const;
 
@@ -66,21 +64,19 @@ class GradientDataExport
 	public:
 		GradientDataExport(const char* functions){this->set_functions(functions);}
 
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
-			UG_THROW("Not implemented.");
-		}
-
 		template <int refDim>
-		inline void evaluate(MathVector<dim> vValue[],
-		                       const MathVector<dim> vGlobIP[],
-		                       number time, int si,
-		                       GeometricObject* elem,
-		                       const MathVector<dim> vCornerCoords[],
-		                       const MathVector<refDim> vLocIP[],
-		                       const size_t nip,
-		                       LocalVector* u,
-		                       const MathMatrix<refDim, dim>* vJT = NULL) const;
+		void eval_and_deriv(MathVector<dim> vValue[],
+		                    const MathVector<dim> vGlobIP[],
+		                    number time, int si,
+		                    GeometricObject* elem,
+		                    const MathVector<dim> vCornerCoords[],
+		                    const MathVector<refDim> vLocIP[],
+		                    const size_t nip,
+		                    LocalVector* u,
+		                    bool bDeriv,
+		                    int s,
+		                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
+		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 		virtual bool continuous() const{return false;}
 
@@ -105,24 +101,23 @@ class DataExport :
 	///	default constructor
 		DataExport(const char* functions);
 
-	///	implement compute() method of ICplUserData
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
-
 		template <int refDim>
-		inline void evaluate(TData vValue[],
-		                     const MathVector<dim> vGlobIP[],
-		                     number time, int si,
-		                     GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[],
-		                     const MathVector<refDim> vLocIP[],
-		                     const size_t nip,
-		                     LocalVector* u,
-		                     const MathMatrix<refDim, dim>* vJT = NULL) const
+		void eval_and_deriv(TData vValue[],
+		                    const MathVector<dim> vGlobIP[],
+		                    number time, int si,
+		                    GeometricObject* elem,
+		                    const MathVector<dim> vCornerCoords[],
+		                    const MathVector<refDim> vLocIP[],
+		                    const size_t nip,
+		                    LocalVector* u,
+		                    bool bDeriv,
+		                    int s,
+		                    std::vector<std::vector<TData> > vvvDeriv[],
+		                    const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
 			const Functor<refDim>& func = eval_fct<refDim>(m_id);
 			(func)(vValue,vGlobIP,time,si,*u,elem,
-					vCornerCoords,vLocIP,nip, false, NULL);
+					vCornerCoords,vLocIP,nip, bDeriv, vvvDeriv);
 		}
 
 	///	sets the geometric object type
@@ -328,10 +323,6 @@ class DataExport :
 		Functor<3> m_vCompFct3d[NUM_REFERENCE_OBJECTS];
 
 		bool eval_fct_set(ReferenceObjectID id) const;
-
-		template <int refDim>
-		void comp(const LocalVector& u, GeometricObject* elem,
-		          const MathVector<dim> vCornerCoords[], bool bDeriv);
 
 	protected:
 	/// current Geom Object

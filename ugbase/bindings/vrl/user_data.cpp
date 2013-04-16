@@ -349,68 +349,73 @@ class VRLUserLinker
 			base_type::set_input(i, data, data);
 		}
 
-	///	computes the value
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
+		template <int refDim>
+		void eval_and_deriv(TData vValue[],
+		                    const MathVector<dim> vGlobIP[],
+		                    number time, int si,
+		                    GeometricObject* elem,
+		                    const MathVector<dim> vCornerCoords[],
+		                    const MathVector<refDim> vLocIP[],
+		                    const size_t nip,
+		                    LocalVector* u,
+		                    bool bDeriv,
+		                    int s,
+		                    std::vector<std::vector<TData> > vvvDeriv[],
+		                    const MathMatrix<refDim, dim>* vJT = NULL)
 		{
 		//	vector of data for all inputs
 			std::vector<TDataIn> vDataIn(this->num_input());
 
-			const number t = this->time();
-			const int si = this->subset();
+			for(size_t ip = 0; ip < nip; ++ip)
+			{
+			//	gather all input data for this ip
+				for(size_t c = 0; c < vDataIn.size(); ++c)
+					vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
 
-			for(size_t s = 0; s < this->num_series(); ++s)
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-				{
-				//	gather all input data for this ip
-					for(size_t c = 0; c < vDataIn.size(); ++c)
-						vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
-
-				//	evaluate data at ip
-					eval_value(this->value(s,ip), vDataIn, this->ip(s, ip), t, si);
-				}
+			//	evaluate data at ip
+				eval_value(vValue[ip], vDataIn, vGlobIP[ip], time, si);
+			}
 
 		//	check if derivative is required
 			if(!bDeriv || this->zero_derivative()) return;
 
 		//	clear all derivative values
-			this->clear_derivative_values();
+			this->set_zero(vvvDeriv, nip);
 
 		//	loop all inputs
 			for(size_t c = 0; c < vDataIn.size(); ++c)
 			{
 			//	check if input has derivative
-				if(this->zero_derivative(c)) continue;
+				if(m_vpDependData[c]->zero_derivative()) continue;
 
 			//	loop ips
-				for(size_t s = 0; s < this->num_series(); ++s)
-					for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+				for(size_t ip = 0; ip < nip; ++ip)
+				{
+				//	gather all input data for this ip
+					vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
+
+				//	data of derivative w.r.t. one component at ip-values
+					TData derivVal;
+
+				//	evaluate data at ip
+					eval_deriv(derivVal, vDataIn, vGlobIP[ip], time, si, c);
+
+				//	loop functions
+					for(size_t fct = 0; fct < this->input_num_fct(c); ++fct)
 					{
-					//	gather all input data for this ip
-						vDataIn[c] = m_vpUserData[c]->value(this->series_id(c,s), ip);
+					//	get common fct id for this function
+						const size_t commonFct = this->input_common_fct(c, fct);
 
-					//	data of derivative w.r.t. one component at ip-values
-						TData derivVal;
-
-					//	evaluate data at ip
-						eval_deriv(derivVal, vDataIn, this->ip(s, ip), t, si, c);
-
-					//	loop functions
-						for(size_t fct = 0; fct < this->input_num_fct(c); ++fct)
+					//	loop dofs
+						for(size_t dof = 0; dof < this->num_sh(fct); ++dof)
 						{
-						//	get common fct id for this function
-							const size_t commonFct = this->input_common_fct(c, fct);
-
-						//	loop dofs
-							for(size_t dof = 0; dof < this->num_sh(fct); ++dof)
-							{
-								linker_traits<TData, TDataIn>::
-								mult_add(this->deriv(s, ip, commonFct, dof),
-								         derivVal,
-								         m_vpDependData[c]->deriv(this->series_id(c,s), ip, fct, dof));
-							}
+							linker_traits<TData, TDataIn>::
+							mult_add(vvvDeriv[ip][commonFct][dof],
+									 derivVal,
+									 m_vpDependData[c]->deriv(this->series_id(c,s), ip, fct, dof));
 						}
 					}
+				}
 			}
 		}
 

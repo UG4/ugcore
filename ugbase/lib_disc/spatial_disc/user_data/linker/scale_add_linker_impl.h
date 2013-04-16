@@ -142,29 +142,39 @@ evaluate(TData vValue[],
 }
 
 template <typename TData, int dim, typename TDataScale>
+template <int refDim>
 void ScaleAddLinker<TData,dim,TDataScale>::
-compute(LocalVector* u, GeometricObject* elem,
-        const MathVector<dim> vCornerCoords[], bool bDeriv)
+eval_and_deriv(TData vValue[],
+                    const MathVector<dim> vGlobIP[],
+                    number time, int si,
+                    GeometricObject* elem,
+                    const MathVector<dim> vCornerCoords[],
+                    const MathVector<refDim> vLocIP[],
+                    const size_t nip,
+                    LocalVector* u,
+                    bool bDeriv,
+                    int s,
+                    std::vector<std::vector<TData> > vvvDeriv[],
+                    const MathMatrix<refDim, dim>* vJT) const
 {
 //	check that size of Scalings and inputs is equal
 	UG_ASSERT(m_vpUserData.size() == m_vpScaleData.size(), "Wrong num Scales.");
 
 //	compute value
-	for(size_t s = 0; s < this->num_series(); ++s)
-		for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-		{
-		//	reset value
-			this->value(s,ip) = 0.0;
+	for(size_t ip = 0; ip < nip; ++ip)
+	{
+	//	reset value
+		vValue[ip] = 0.0;
 
-		//	add contribution of each summand
-			for(size_t c = 0; c < m_vpUserData.size(); ++c)
-			{
-				linker_traits<TData, TDataScale>::
-				mult_add(this->value(s, ip),
-				         input_value(c, s, ip),
-				         scale_value(c, s, ip));
-			}
+	//	add contribution of each summand
+		for(size_t c = 0; c < m_vpUserData.size(); ++c)
+		{
+			linker_traits<TData, TDataScale>::
+			mult_add(vValue[ip],
+					 input_value(c, s, ip),
+					 scale_value(c, s, ip));
 		}
+	}
 
 //	check if derivative is required
 	if(!bDeriv || this->zero_derivative()) return;
@@ -174,7 +184,7 @@ compute(LocalVector* u, GeometricObject* elem,
 	          	  	  	  	  	  	  	  	  	  "Wrong num Scales.");
 
 //	clear all derivative values
-	this->clear_derivative_values();
+	this->set_zero(vvvDeriv, nip);
 
 //	loop all inputs
 	for(size_t c = 0; c < m_vpUserData.size(); ++c)
@@ -182,49 +192,47 @@ compute(LocalVector* u, GeometricObject* elem,
 	//	check if input has derivative
 		if(!m_vpUserData[c]->zero_derivative())
 		{
-			for(size_t s = 0; s < this->num_series(); ++s)
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+			for(size_t ip = 0; ip < nip; ++ip)
+			{
+			//	loop functions
+				for(size_t fct = 0; fct < input_num_fct(c); ++fct)
 				{
-				//	loop functions
-					for(size_t fct = 0; fct < input_num_fct(c); ++fct)
-					{
-					//	get common fct id for this function
-						const size_t commonFct = input_common_fct(c, fct);
+				//	get common fct id for this function
+					const size_t commonFct = input_common_fct(c, fct);
 
-					//	loop dofs
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
-						{
-							linker_traits<TData, TDataScale>::
-							mult_add(this->deriv(s, ip, commonFct, sh),
-							         input_deriv(c, s, ip, fct, sh),
-							         scale_value(c, s, ip));
-						}
+				//	loop dofs
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+					{
+						linker_traits<TData, TDataScale>::
+						mult_add(vvvDeriv[ip][commonFct][sh],
+								 input_deriv(c, s, ip, fct, sh),
+								 scale_value(c, s, ip));
 					}
 				}
+			}
 		}
 
 	//	check if scaling has derivative
 		if(!m_vpScaleData[c]->zero_derivative())
 		{
-			for(size_t s = 0; s < this->num_series(); ++s)
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+			for(size_t ip = 0; ip < nip; ++ip)
+			{
+			//	loop functions
+				for(size_t fct = 0; fct < scale_num_fct(c); ++fct)
 				{
-				//	loop functions
-					for(size_t fct = 0; fct < scale_num_fct(c); ++fct)
-					{
-					//	get common fct id for this function
-						const size_t commonFct = scale_common_fct(c, fct);
+				//	get common fct id for this function
+					const size_t commonFct = scale_common_fct(c, fct);
 
-					//	loop dofs
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
-						{
-							linker_traits<TData, TDataScale>::
-							mult_add(this->deriv(s, ip, commonFct, sh),
-									 input_value(c, s, ip),
-									 scale_deriv(c, s, ip, fct, sh));
-						}
+				//	loop dofs
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+					{
+						linker_traits<TData, TDataScale>::
+						mult_add(vvvDeriv[ip][commonFct][sh],
+								 input_value(c, s, ip),
+								 scale_deriv(c, s, ip, fct, sh));
 					}
 				}
+			}
 		}
 	}
 }

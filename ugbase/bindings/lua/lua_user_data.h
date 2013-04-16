@@ -220,10 +220,6 @@ class LuaUserFunction
 	///	evaluates the data
 		virtual void operator() (TData& out, int numArgs, ...) const;
 
-	///	computes the value
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
-
 		inline void evaluate (TData& value,
 		                      const MathVector<dim>& globIP,
 		                      number time, int si) const;
@@ -238,6 +234,20 @@ class LuaUserFunction
 		                     const size_t nip,
 		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
+
+		template <int refDim>
+		void eval_and_deriv(TData vValue[],
+		                    const MathVector<dim> vGlobIP[],
+		                    number time, int si,
+		                    GeometricObject* elem,
+		                    const MathVector<dim> vCornerCoords[],
+		                    const MathVector<refDim> vLocIP[],
+		                    const size_t nip,
+		                    LocalVector* u,
+		                    bool bDeriv,
+		                    int s,
+		                    std::vector<std::vector<TData> > vvvDeriv[],
+		                    const MathMatrix<refDim, dim>* vJT = NULL);
 
 	protected:
 	///	sets the Lua function used to compute the data

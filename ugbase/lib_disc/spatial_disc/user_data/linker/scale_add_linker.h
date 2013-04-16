@@ -57,10 +57,6 @@ class ScaleAddLinker
 		         number data);
 	/// \}
 
-	///	computes the value
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false);
-
 		inline void evaluate (TData& value,
 		                      const MathVector<dim>& globIP,
 		                      number time, int si) const;
@@ -75,6 +71,20 @@ class ScaleAddLinker
 		                     const size_t nip,
 		                     LocalVector* u,
 		                     const MathMatrix<refDim, dim>* vJT = NULL) const;
+
+		template <int refDim>
+		void eval_and_deriv(TData vValue[],
+		                    const MathVector<dim> vGlobIP[],
+		                    number time, int si,
+		                    GeometricObject* elem,
+		                    const MathVector<dim> vCornerCoords[],
+		                    const MathVector<refDim> vLocIP[],
+		                    const size_t nip,
+		                    LocalVector* u,
+		                    bool bDeriv,
+		                    int s,
+		                    std::vector<std::vector<TData> > vvvDeriv[],
+		                    const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 	protected:
 	///	data at ip of input

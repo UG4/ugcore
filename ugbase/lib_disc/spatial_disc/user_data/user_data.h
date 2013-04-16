@@ -521,7 +521,7 @@ class DependentUserData : public CplUserData<TData, dim>
 			{check_s_ip_fct(s,ip,fct);return &(m_vvvvDeriv[s][ip][fct][0]);}
 
 	///	sets all derivative values to zero
-		void clear_derivative_values();
+		static void set_zero(std::vector<std::vector<TData> > vvvDeriv[], const size_t nip);
 
 	public:
 	///	returns that data depends on solution

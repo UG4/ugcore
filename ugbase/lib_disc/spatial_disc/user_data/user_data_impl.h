@@ -406,16 +406,14 @@ void DependentUserData<TData,dim>::resize_deriv_array(const size_t s)
 }
 
 template <typename TData, int dim>
-void DependentUserData<TData,dim>::clear_derivative_values()
+void DependentUserData<TData,dim>::set_zero(std::vector<std::vector<TData> > vvvDeriv[], const size_t nip)
 {
-	for(size_t s = 0; s < m_vvvvDeriv.size(); ++s)
-		for(size_t ip = 0; ip < m_vvvvDeriv[s].size(); ++ip)
-			for(size_t fct = 0; fct <  m_vvvvDeriv[s][ip].size(); ++fct)
-				for(size_t sh = 0; sh <  m_vvvvDeriv[s][ip][fct].size(); ++sh)
-				{
-					m_vvvvDeriv[s][ip][fct][sh] = 0.0;
-				}
-
+	for(size_t ip = 0; ip < nip; ++ip)
+		for(size_t fct = 0; fct <  vvvDeriv[ip].size(); ++fct)
+			for(size_t sh = 0; sh <  vvvDeriv[ip][fct].size(); ++sh)
+			{
+				vvvDeriv[ip][fct][sh] = 0.0;
+			}
 }
 
 template <typename TData, int dim>

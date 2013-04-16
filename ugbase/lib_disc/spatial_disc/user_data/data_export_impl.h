@@ -19,15 +19,18 @@ namespace ug{
 
 template <int dim>
 template <int refDim>
-void ValueDataExport<dim>::evaluate(number vValue[],
-                     const MathVector<dim> vGlobIP[],
-                     number time, int si,
-                     GeometricObject* elem,
-                     const MathVector<dim> vCornerCoords[],
-                     const MathVector<refDim> vLocIP[],
-                     const size_t nip,
-                     LocalVector* u,
-                     const MathMatrix<refDim, dim>* vJT) const
+void ValueDataExport<dim>::eval_and_deriv(number vValue[],
+                    const MathVector<dim> vGlobIP[],
+                    number time, int si,
+                    GeometricObject* elem,
+                    const MathVector<dim> vCornerCoords[],
+                    const MathVector<refDim> vLocIP[],
+                    const size_t nip,
+                    LocalVector* u,
+                    bool bDeriv,
+                    int s,
+                    std::vector<std::vector<number> > vvvDeriv[],
+                    const MathMatrix<refDim, dim>* vJT) const
 {
 //	reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();
@@ -61,6 +64,9 @@ void ValueDataExport<dim>::evaluate(number vValue[],
 	}
 	UG_CATCH_THROW("ValueDataExport: Trial space missing, Reference Object: "
 	               <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
+
+	if(bDeriv)
+		UG_THROW("Not implemented.");
 }
 
 template <int dim>
@@ -76,15 +82,18 @@ bool ValueDataExport<dim>::continuous() const
 
 template <int dim>
 template <int refDim>
-void GradientDataExport<dim>::evaluate(MathVector<dim> vValue[],
-                       const MathVector<dim> vGlobIP[],
-                       number time, int si,
-                       GeometricObject* elem,
-                       const MathVector<dim> vCornerCoords[],
-                       const MathVector<refDim> vLocIP[],
-                       const size_t nip,
-                       LocalVector* u,
-                       const MathMatrix<refDim, dim>* vJT) const
+void GradientDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
+                    const MathVector<dim> vGlobIP[],
+                    number time, int si,
+                    GeometricObject* elem,
+                    const MathVector<dim> vCornerCoords[],
+                    const MathVector<refDim> vLocIP[],
+                    const size_t nip,
+                    LocalVector* u,
+                    bool bDeriv,
+                    int s,
+                    std::vector<std::vector<MathVector<dim> > > vvvDeriv[],
+                    const MathMatrix<refDim, dim>* vJT) const
 {
 //	reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();
@@ -134,6 +143,9 @@ void GradientDataExport<dim>::evaluate(MathVector<dim> vValue[],
 	}
 	UG_CATCH_THROW("GradientDataExport: Trial space missing, Reference Object: "
 				 <<roid<<", Trial Space: "<<lfeID<<", refDim="<<refDim);
+
+	if(bDeriv)
+		UG_THROW("Not implemented.");
 }
 
 
@@ -202,39 +214,6 @@ set_fct(ReferenceObjectID id,
 	eval_fct<refDim>(id) = Functor<refDim>(func);
 }
 
-
-template <typename TData, int dim>
-template <int refDim>
-inline void DataExport<TData, dim>::
-comp(const LocalVector& u, GeometricObject* elem,
-     const MathVector<dim> vCornerCoords[], bool bDeriv)
-{
-	Functor<refDim>& func = eval_fct<refDim>(m_id);
-
-	std::vector<std::vector<TData> >* vvvDeriv = NULL;
-
-//	evaluate for each ip series
-	for(size_t s = 0; s < this->num_series(); ++s)
-	{
-		if(bDeriv && this->m_vvvvDeriv[s].size() > 0)
-			vvvDeriv = &this->m_vvvvDeriv[s][0];
-		else
-			vvvDeriv = NULL;
-
-		(func)(	this->values(s),
-				this->ips(s),
-				this->time(),
-				this->subset(),
-				u,
-				elem,
-				vCornerCoords,
-				this->template local_ips<refDim>(s),
-				this->num_ip(s),
-				bDeriv,
-				vvvDeriv);
-	}
-}
-
 template <typename TData, int dim>
 void DataExport<TData, dim>::set_roid(ReferenceObjectID id)
 {
@@ -272,22 +251,6 @@ bool DataExport<TData, dim>::eval_fct_set(ReferenceObjectID id) const
 	return bRes;
 }
 
-
-template <typename TData, int dim>
-void DataExport<TData, dim>::compute(LocalVector* u, GeometricObject* elem,
-                                     const MathVector<dim> vCornerCoords[], bool bDeriv)
-{
-	UG_ASSERT(m_id != ROID_UNKNOWN, "Invalid RefElem");
-	UG_ASSERT(m_id == elem->reference_object_id(), "Wrong element type");
-	UG_ASSERT(u != NULL, "LocalVector pointer is NULL");
-
-	switch(this->dim_local_ips()){
-		case 1:	comp<1>(*u, elem, vCornerCoords, bDeriv); return;
-		case 2:	comp<2>(*u, elem, vCornerCoords, bDeriv); return;
-		case 3:	comp<3>(*u, elem, vCornerCoords, bDeriv); return;
-		default: UG_THROW("DataExport: Dimension not supported.")
-	}
-}
 
 template <typename TData, int dim>
 void DataExport<TData, dim>::

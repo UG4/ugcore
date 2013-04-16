@@ -141,27 +141,37 @@ evaluate(number vValue[],
 }
 
 template <int dim>
+template <int refDim>
 void InverseLinker<dim>::
-compute(LocalVector* u, GeometricObject* elem,
-        const MathVector<dim> vCornerCoords[], bool bDeriv)
+eval_and_deriv(number vValue[],
+                    const MathVector<dim> vGlobIP[],
+                    number time, int si,
+                    GeometricObject* elem,
+                    const MathVector<dim> vCornerCoords[],
+                    const MathVector<refDim> vLocIP[],
+                    const size_t nip,
+                    LocalVector* u,
+                    bool bDeriv,
+                    int s,
+                    std::vector<std::vector<number> > vvvDeriv[],
+                    const MathMatrix<refDim, dim>* vJT) const
 {
 //	check that size of Scalings and inputs is equal
 	UG_ASSERT(m_vpDivisorData.size() == m_vpDividendData.size(), "Wrong num Scales.");
 
 //	compute value
-	for(size_t s = 0; s < this->num_series(); ++s)
-		for(size_t ip = 0; ip < this->num_ip(s); ++ip)
-		{
-		//	reset value
-			this->value(s,ip) = 1.0;
+	for(size_t ip = 0; ip < nip; ++ip)
+	{
+	//	reset value
+		vValue[ip] = 1.0;
 
-		//	add contribution of each summand
-			for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
-			{
-				UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
-				this->value(s, ip) *= dividend_value(c,s,ip)/divisor_value(c,s,ip);
-			}
+	//	add contribution of each summand
+		for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
+		{
+			UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
+			vValue[ip] *= dividend_value(c,s,ip)/divisor_value(c,s,ip);
 		}
+	}
 
 //	check if derivative is required
 	if(!bDeriv || this->zero_derivative()) return;
@@ -171,7 +181,7 @@ compute(LocalVector* u, GeometricObject* elem,
 	          	  	  	  	  	  	  	  	  	  "Wrong num Scales.");
 
 //	clear all derivative values
-	this->clear_derivative_values();
+	this->set_zero(vvvDeriv, nip);
 
 //	loop all inputs
 	for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
@@ -179,62 +189,60 @@ compute(LocalVector* u, GeometricObject* elem,
 	//	check if Divisor has derivative
 		if(!m_vpDivisorData[c]->zero_derivative())
 		{
-			for(size_t s = 0; s < this->num_series(); ++s)
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+			for(size_t ip = 0; ip < nip; ++ip)
+			{
+			//	loop functions
+				for(size_t fct = 0; fct < divisor_num_fct(c); ++fct)
 				{
-				//	loop functions
-					for(size_t fct = 0; fct < divisor_num_fct(c); ++fct)
-					{
-					//	get common fct id for this function
-						const size_t commonFct = divisor_common_fct(c, fct);
+				//	get common fct id for this function
+					const size_t commonFct = divisor_common_fct(c, fct);
 
-					//	loop dofs
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+				//	loop dofs
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+					{
+						if(dividend_value(c,s,ip)!=0)
 						{
-							if(dividend_value(c,s,ip)!=0)
-							{
-								UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
-								this->deriv(s, ip, commonFct, sh) += this->value(s,ip) / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*(-1.0)*(dividend_value(c,s,ip))/divisor_value(c,s,ip)/divisor_value(c,s,ip)*divisor_deriv(c, s, ip, fct, sh);
-							}
-							else
-								this->deriv(s, ip, commonFct, sh) += 0;
-							 //        input_deriv(c, s, ip, fct, sh),
-							 //        scale_value(c, s, ip));
+							UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
+							vvvDeriv[ip][commonFct][sh] += vValue[ip] / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*(-1.0)*(dividend_value(c,s,ip))/divisor_value(c,s,ip)/divisor_value(c,s,ip)*divisor_deriv(c, s, ip, fct, sh);
 						}
+						else
+							vvvDeriv[ip][commonFct][sh] += 0;
+						 //        input_deriv(c, s, ip, fct, sh),
+						 //        scale_value(c, s, ip));
 					}
 				}
+			}
 		}
 
 	//	check if Dividend has derivative
 		if(!m_vpDividendData[c]->zero_derivative())
 		{
-			for(size_t s = 0; s < this->num_series(); ++s)
-				for(size_t ip = 0; ip < this->num_ip(s); ++ip)
+			for(size_t ip = 0; ip < nip; ++ip)
+			{
+			//	loop functions
+				for(size_t fct = 0; fct < dividend_num_fct(c); ++fct)
 				{
-				//	loop functions
-					for(size_t fct = 0; fct < dividend_num_fct(c); ++fct)
+				//	get common fct id for this function
+					const size_t commonFct = dividend_common_fct(c, fct);
+
+				//	loop dofs
+					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 					{
-					//	get common fct id for this function
-						const size_t commonFct = dividend_common_fct(c, fct);
-
-					//	loop dofs
-						for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
+						if(dividend_value(c,s,ip)!=0)
 						{
-							if(dividend_value(c,s,ip)!=0)
-							{
-								UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
-								this->deriv(s, ip, commonFct, sh) += this->value(s,ip) / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*dividend_deriv(c, s, ip, fct, sh)/divisor_value(c,s,ip);
-							}
-							else
-								this->deriv(s, ip, commonFct, sh) += 0;
-
-								//linker_traits<TData, TDataScale>::
-							//mult_add(this->deriv(s, ip, commonFct, sh),
-							//		 input_value(c, s, ip),
-							//		 scale_deriv(c, s, ip, fct, sh));
+							UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
+							vvvDeriv[ip][commonFct][sh] += vValue[ip] / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*dividend_deriv(c, s, ip, fct, sh)/divisor_value(c,s,ip);
 						}
+						else
+							vvvDeriv[ip][commonFct][sh] += 0;
+
+							//linker_traits<TData, TDataScale>::
+						//mult_add(this->deriv(s, ip, commonFct, sh),
+						//		 input_value(c, s, ip),
+						//		 scale_deriv(c, s, ip, fct, sh));
 					}
 				}
+			}
 		}
 	}
 }

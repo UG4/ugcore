@@ -114,9 +114,6 @@ class StdDependentUserData
 		StdDependentUserData(const std::vector<std::string>& symbFct) {this->set_functions(symbFct);}
 
 	public:
-		virtual void compute(LocalVector* u, GeometricObject* elem,
-							 const MathVector<dim> vCornerCoords[], bool bDeriv = false) = 0;
-
 		virtual void operator() (TData& value,
 								 const MathVector<dim>& globIP,
 								 number time, int si) const
@@ -144,8 +141,47 @@ class StdDependentUserData
 							 LocalVector* u,
 							 const MathMatrix<refDim, dim>* vJT = NULL) const
 		{
-			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,elem,
-												vCornerCoords,vLocIP,nip,u,vJT);
+			const_cast<TImpl*>(static_cast<const TImpl*>(this))->
+					template eval_and_deriv<refDim>(vValue,vGlobIP,time,si,elem,
+					                                vCornerCoords,vLocIP,nip,u,
+					                                false,0,NULL,vJT);
+		}
+
+		template <int refDim>
+		void eval_deriv(LocalVector* u, GeometricObject* elem,
+		                const MathVector<dim> vCornerCoords[], bool bDeriv = false) {
+
+			const number t = this->time();
+			const int si = this->subset();
+
+			std::vector<std::vector<TData> >* vvvDeriv = NULL;
+
+			for(size_t s = 0; s < this->num_series(); ++s){
+
+				if(bDeriv && this->m_vvvvDeriv[s].size() > 0)
+					vvvDeriv = &this->m_vvvvDeriv[s][0];
+				else
+					vvvDeriv = NULL;
+
+				getImpl().template eval_and_deriv<refDim>(this->values(s), this->ips(s), t, si,
+				                                 elem, vCornerCoords,
+				                                 this->template local_ips<refDim>(s), this->num_ip(s),
+				                                 u, bDeriv, s, vvvDeriv);
+			}
+		}
+
+		virtual void compute(LocalVector* u, GeometricObject* elem,
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+
+			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
+			          "local ip dimension and reference element dimension mismatch.");
+
+			switch(this->dim_local_ips()){
+				case 1: eval_deriv<1>(u,elem,vCornerCoords,bDeriv); break;
+				case 2: eval_deriv<2>(u,elem,vCornerCoords,bDeriv); break;
+				case 3: eval_deriv<3>(u,elem,vCornerCoords,bDeriv); break;
+				default: UG_THROW("StdDependentUserData: Dimension not supported.");
+			}
 		}
 
 	protected:
