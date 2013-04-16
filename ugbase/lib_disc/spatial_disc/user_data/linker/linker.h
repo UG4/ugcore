@@ -30,18 +30,11 @@ class StdDataLinker
 	public:
 		virtual void operator() (TData& value,
 								 const MathVector<dim>& globIP,
-								 number time, int si) const
-		{
-			getImpl().evaluate(value,globIP,time,si);
-		}
+								 number time, int si) const;
 
 		virtual void operator()(TData vValue[],
 								const MathVector<dim> vGlobIP[],
-								number time, int si, const size_t nip) const
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
-				getImpl().evaluate(vValue[ip],vGlobIP[ip],time,si);
-		}
+								number time, int si, const size_t nip) const;
 
 		template <int refDim>
 		inline void evaluate(TData vValue[],
@@ -52,72 +45,27 @@ class StdDataLinker
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
 							 LocalVector* u,
-							 const MathMatrix<refDim, dim>* vJT = NULL) const
-		{
-			getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,elem,
-			                                    vCornerCoords,vLocIP,nip,u,vJT);
-		}
-
-		template <int refDim>
-		void eval_deriv(LocalVector* u, GeometricObject* elem,
-		                const MathVector<dim> vCornerCoords[], bool bDeriv = false){
-
-			const number t = this->time();
-			const int si = this->subset();
-
-			std::vector<std::vector<TData> >* vvvDeriv = NULL;
-
-			for(size_t s = 0; s < this->num_series(); ++s){
-
-				if(bDeriv && this->m_vvvvDeriv[s].size() > 0)
-					vvvDeriv = &this->m_vvvvDeriv[s][0];
-				else
-					vvvDeriv = NULL;
-
-				getImpl().template eval_and_deriv<refDim>(this->values(s), this->ips(s), t, si,
-				                                 elem, vCornerCoords,
-				                                 this->template local_ips<refDim>(s), this->num_ip(s),
-				                                 u, bDeriv, s, vvvDeriv);
-			}
-		}
+							 const MathMatrix<refDim, dim>* vJT = NULL) const;
 
 		virtual void compute(LocalVector* u, GeometricObject* elem,
-							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
+							 const MathVector<dim> vCornerCoords[], bool bDeriv = false);
 
-			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
-			          "local ip dimension and reference element dimension mismatch.");
-
-			switch(this->dim_local_ips()){
-				case 1: eval_deriv<1>(u,elem,vCornerCoords,bDeriv); break;
-				case 2: eval_deriv<2>(u,elem,vCornerCoords,bDeriv); break;
-				case 3: eval_deriv<3>(u,elem,vCornerCoords,bDeriv); break;
-				default: UG_THROW("StdDataLinker: Dimension not supported.");
-			}
-		}
-
-
-	///	returns that a grid function is needed for evaluation
-		virtual bool requires_grid_fct() const
-		{
-			for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
-				if(this->m_vspUserDataInfo[i]->requires_grid_fct())
-					return true;
-			return false;
-		}
-
-	///	returns if provided data is continuous over geometric object boundaries
-		virtual bool continuous() const
-		{
-			bool bRet = true;
-			for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
-				bRet &= this->m_vspUserDataInfo[i]->continuous();
-			return bRet;
-		}
+	protected:
+		template <int refDim>
+		void eval_deriv(LocalVector* u, GeometricObject* elem,
+		                const MathVector<dim> vCornerCoords[], bool bDeriv = false);
 
 	public:
+	///	returns that a grid function is needed for evaluation
+		virtual bool requires_grid_fct() const;
+
+	///	returns if provided data is continuous over geometric object boundaries
+		virtual bool continuous() const;
+
 	///	returns if derivative is zero
 		virtual bool zero_derivative() const;
 
+	public:
 	///	returns if the derivative of the i'th input is zero
 		bool zero_derivative(size_t i) const
 		{

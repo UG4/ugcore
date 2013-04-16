@@ -17,6 +17,101 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::
+operator() (TData& value,
+            const MathVector<dim>& globIP,
+            number time, int si) const
+{
+	getImpl().evaluate(value,globIP,time,si);
+}
+
+template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::
+operator()(TData vValue[],
+           const MathVector<dim> vGlobIP[],
+           number time, int si, const size_t nip) const
+{
+	for(size_t ip = 0; ip < nip; ++ip)
+		getImpl().evaluate(vValue[ip],vGlobIP[ip],time,si);
+}
+
+template <typename TImpl, typename TData, int dim>
+template <int refDim>
+void StdDataLinker<TImpl,TData,dim>::
+evaluate(TData vValue[],
+					 const MathVector<dim> vGlobIP[],
+					 number time, int si,
+					 GeometricObject* elem,
+					 const MathVector<dim> vCornerCoords[],
+					 const MathVector<refDim> vLocIP[],
+					 const size_t nip,
+					 LocalVector* u,
+					 const MathMatrix<refDim, dim>* vJT) const
+{
+	getImpl().template evaluate<refDim>(vValue,vGlobIP,time,si,elem,
+	                                    vCornerCoords,vLocIP,nip,u,vJT);
+}
+
+template <typename TImpl, typename TData, int dim>
+template <int refDim>
+void StdDataLinker<TImpl,TData,dim>::eval_deriv(LocalVector* u, GeometricObject* elem,
+                const MathVector<dim> vCornerCoords[], bool bDeriv){
+
+	const number t = this->time();
+	const int si = this->subset();
+
+	std::vector<std::vector<TData> >* vvvDeriv = NULL;
+
+	for(size_t s = 0; s < this->num_series(); ++s){
+
+		if(bDeriv && this->m_vvvvDeriv[s].size() > 0)
+			vvvDeriv = &this->m_vvvvDeriv[s][0];
+		else
+			vvvDeriv = NULL;
+
+		getImpl().template eval_and_deriv<refDim>(this->values(s), this->ips(s), t, si,
+		                                 elem, vCornerCoords,
+		                                 this->template local_ips<refDim>(s), this->num_ip(s),
+		                                 u, bDeriv, s, vvvDeriv);
+	}
+}
+
+template <typename TImpl, typename TData, int dim>
+void StdDataLinker<TImpl,TData,dim>::
+compute(LocalVector* u, GeometricObject* elem,
+        const MathVector<dim> vCornerCoords[], bool bDeriv){
+
+	UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),
+	          "local ip dimension and reference element dimension mismatch.");
+
+	switch(this->dim_local_ips()){
+		case 1: eval_deriv<1>(u,elem,vCornerCoords,bDeriv); break;
+		case 2: eval_deriv<2>(u,elem,vCornerCoords,bDeriv); break;
+		case 3: eval_deriv<3>(u,elem,vCornerCoords,bDeriv); break;
+		default: UG_THROW("StdDataLinker: Dimension not supported.");
+	}
+}
+
+
+template <typename TImpl, typename TData, int dim>
+bool StdDataLinker<TImpl,TData,dim>::requires_grid_fct() const
+{
+	for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
+		if(this->m_vspUserDataInfo[i]->requires_grid_fct())
+			return true;
+	return false;
+}
+
+template <typename TImpl, typename TData, int dim>
+bool StdDataLinker<TImpl,TData,dim>::continuous() const
+{
+	bool bRet = true;
+	for(size_t i = 0; i < this->m_vspICplUserData.size(); ++i)
+		bRet &= this->m_vspUserDataInfo[i]->continuous();
+	return bRet;
+}
+
+template <typename TImpl, typename TData, int dim>
 bool StdDataLinker<TImpl,TData,dim>::zero_derivative() const
 {
 	bool bRet = true;
