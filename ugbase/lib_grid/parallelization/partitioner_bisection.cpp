@@ -90,27 +90,27 @@ estimate_distribution_quality()
 			continue;
 
 		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
+		if(!procComAll.empty()){
+			int localWeight = 0;
+			for(ElemIter iter = mg.begin<elem_t>(lvl);
+				iter != mg.end<elem_t>(lvl); ++iter)
+			{
+				if(!distGridMgr.is_ghost(*iter))
+					localWeight += 1;
+			}
 
-		int localWeight = 0;
-		for(ElemIter iter = mg.begin<elem_t>(lvl);
-			iter != mg.end<elem_t>(lvl); ++iter)
-		{
-			if(!distGridMgr.is_ghost(*iter))
-				localWeight += 1;
+			int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
+			int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
+
+			if(maxWeight > 0){
+				number quality = (number)minWeight / (number)maxWeight;
+				minQuality = min(minQuality, quality);
+			}
 		}
-
-		int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
-		int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
-
-		if(maxWeight <= 0)
-			break;
-
-		number quality = (number)minWeight / (number)maxWeight;
-
-		minQuality = min(minQuality, quality);
 	}
 
-	return minQuality;
+	pcl::ProcessCommunicator comGlobal;
+	return comGlobal.allreduce(minQuality, PCL_RO_MIN);
 }
 
 template<int dim>
