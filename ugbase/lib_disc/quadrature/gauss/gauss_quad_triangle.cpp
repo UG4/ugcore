@@ -4,7 +4,6 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_triangle.h"
-#include "common/util/provider.h"
 
 namespace ug{
 
@@ -470,123 +469,87 @@ FlexGaussQuadrature<ReferenceTriangle>::FlexGaussQuadrature(int order)
 	{
 	case 0:
 	case 1:
-		const static GaussQuadrature<ReferenceTriangle, 1>& q1 
-			= Provider<GaussQuadrature<ReferenceTriangle, 1> >::get();
-
-		m_order = q1.order();
-		m_numPoints = q1.size();
-		m_pvPoint = q1.points();
-		m_pvWeight = q1.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 1>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 1>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 1>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 1>::weights();
 		break;
 
 	case 2:
-		const static GaussQuadrature<ReferenceTriangle, 2>& q2 
-			= Provider<GaussQuadrature<ReferenceTriangle, 2> >::get();
-
-		m_order = q2.order();
-		m_numPoints = q2.size();
-		m_pvPoint = q2.points();
-		m_pvWeight = q2.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 2>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 2>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 2>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 2>::weights();
 		break;
 
 	case 3:
-		const static GaussQuadrature<ReferenceTriangle, 3>& q3 
-			= Provider<GaussQuadrature<ReferenceTriangle, 3> >::get();
-
-		m_order = q3.order();
-		m_numPoints = q3.size();
-		m_pvPoint = q3.points();
-		m_pvWeight = q3.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 3>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 3>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 3>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 3>::weights();
 		break;
 
 	case 4:
-		const static GaussQuadrature<ReferenceTriangle, 4>& q4 
-			= Provider<GaussQuadrature<ReferenceTriangle, 4> >::get();
-
-		m_order = q4.order();
-		m_numPoints = q4.size();
-		m_pvPoint = q4.points();
-		m_pvWeight = q4.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 4>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 4>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 4>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 4>::weights();
 		break;
 
 	case 5:
-		const static GaussQuadrature<ReferenceTriangle, 5>& q5 
-			= Provider<GaussQuadrature<ReferenceTriangle, 5> >::get();
-
-		m_order = q5.order();
-		m_numPoints = q5.size();
-		m_pvPoint = q5.points();
-		m_pvWeight = q5.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 5>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 5>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 5>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 5>::weights();
 		break;
 
 	case 6:
-		const static GaussQuadrature<ReferenceTriangle, 6>& q6 
-			= Provider<GaussQuadrature<ReferenceTriangle, 6> >::get();
-
-		m_order = q6.order();
-		m_numPoints = q6.size();
-		m_pvPoint = q6.points();
-		m_pvWeight = q6.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 6>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 6>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 6>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 6>::weights();
 		break;
 
 	case 7:
-		const static GaussQuadrature<ReferenceTriangle, 7>& q7 
-			= Provider<GaussQuadrature<ReferenceTriangle, 7> >::get();
-
-		m_order = q7.order();
-		m_numPoints = q7.size();
-		m_pvPoint = q7.points();
-		m_pvWeight = q7.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 7>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 7>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 7>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 7>::weights();
 		break;
 
 	case 8:
-		const static GaussQuadrature<ReferenceTriangle, 8>& q8 
-			= Provider<GaussQuadrature<ReferenceTriangle, 8> >::get();
-
-		m_order = q8.order();
-		m_numPoints = q8.size();
-		m_pvPoint = q8.points();
-		m_pvWeight = q8.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 8>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 8>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 8>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 8>::weights();
 		break;
 
 	case 9:
-		const static GaussQuadrature<ReferenceTriangle, 9>& q9 
-			= Provider<GaussQuadrature<ReferenceTriangle, 9> >::get();
-
-		m_order = q9.order();
-		m_numPoints = q9.size();
-		m_pvPoint = q9.points();
-		m_pvWeight = q9.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 9>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 9>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 9>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 9>::weights();
 		break;
 
 	case 10:
-		const static GaussQuadrature<ReferenceTriangle, 10>& q10 
-			= Provider<GaussQuadrature<ReferenceTriangle, 10> >::get();
-
-		m_order = q10.order();
-		m_numPoints = q10.size();
-		m_pvPoint = q10.points();
-		m_pvWeight = q10.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 10>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 10>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 10>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 10>::weights();
 		break;
 
 	case 11:
-		const static GaussQuadrature<ReferenceTriangle, 11>& q11 
-			= Provider<GaussQuadrature<ReferenceTriangle, 11> >::get();
-
-		m_order = q11.order();
-		m_numPoints = q11.size();
-		m_pvPoint = q11.points();
-		m_pvWeight = q11.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 11>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 11>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 11>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 11>::weights();
 		break;
 
 	case 12:
-		const static GaussQuadrature<ReferenceTriangle, 12>& q12 
-			= Provider<GaussQuadrature<ReferenceTriangle, 12> >::get();
-
-		m_order = q12.order();
-		m_numPoints = q12.size();
-		m_pvPoint = q12.points();
-		m_pvWeight = q12.weights();
+		m_order = GaussQuadrature<ReferenceTriangle, 12>::order();
+		m_numPoints = GaussQuadrature<ReferenceTriangle, 12>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTriangle, 12>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTriangle, 12>::weights();
 		break;
 
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of triangle.");

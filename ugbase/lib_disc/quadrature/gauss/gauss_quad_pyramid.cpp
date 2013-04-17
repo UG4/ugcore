@@ -4,7 +4,6 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_pyramid.h"
-#include "common/util/provider.h"
 
 namespace ug{
 
@@ -45,13 +44,10 @@ FlexGaussQuadrature<ReferencePyramid>::FlexGaussQuadrature(int order)
 	case 0:
 	case 1:
 	case 2:
-		const static GaussQuadrature<ReferencePyramid, 2>& q2 
-			= Provider<GaussQuadrature<ReferencePyramid, 2> >::get();
-
-		m_order = q2.order();
-		m_numPoints = q2.size();
-		m_pvPoint = q2.points();
-		m_pvWeight = q2.weights();
+		m_order = GaussQuadrature<ReferencePyramid, 2>::order();
+		m_numPoints = GaussQuadrature<ReferencePyramid, 2>::size();
+		m_pvPoint = GaussQuadrature<ReferencePyramid, 2>::points();
+		m_pvWeight = GaussQuadrature<ReferencePyramid, 2>::weights();
 		break;
 
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of pyramid.");

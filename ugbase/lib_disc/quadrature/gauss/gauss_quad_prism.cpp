@@ -4,7 +4,6 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_prism.h"
-#include "common/util/provider.h"
 
 namespace ug{
 
@@ -61,24 +60,18 @@ FlexGaussQuadrature<ReferencePrism>::FlexGaussQuadrature(int order)
 	switch(order)
 	{
 	case 0:
-		const static GaussQuadrature<ReferencePrism, 0>& q0 
-			= Provider<GaussQuadrature<ReferencePrism, 0> >::get();
-
-		m_order = q0.order();
-		m_numPoints = q0.size();
-		m_pvPoint = q0.points();
-		m_pvWeight = q0.weights();
+		m_order = GaussQuadrature<ReferencePrism, 0>::order();
+		m_numPoints = GaussQuadrature<ReferencePrism, 0>::size();
+		m_pvPoint = GaussQuadrature<ReferencePrism, 0>::points();
+		m_pvWeight = GaussQuadrature<ReferencePrism, 0>::weights();
 		break;
 
 	case 1:
 	case 2:
-		const static GaussQuadrature<ReferencePrism, 2>& q2 
-			= Provider<GaussQuadrature<ReferencePrism, 2> >::get();
-
-		m_order = q2.order();
-		m_numPoints = q2.size();
-		m_pvPoint = q2.points();
-		m_pvWeight = q2.weights();
+		m_order = GaussQuadrature<ReferencePrism, 2>::order();
+		m_numPoints = GaussQuadrature<ReferencePrism, 2>::size();
+		m_pvPoint = GaussQuadrature<ReferencePrism, 2>::points();
+		m_pvWeight = GaussQuadrature<ReferencePrism, 2>::weights();
 		break;
 
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of prism.");

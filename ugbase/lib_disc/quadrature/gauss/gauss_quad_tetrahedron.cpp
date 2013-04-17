@@ -4,7 +4,6 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_tetrahedron.h"
-#include "common/util/provider.h"
 
 namespace ug{
 
@@ -363,84 +362,60 @@ FlexGaussQuadrature<ReferenceTetrahedron>::FlexGaussQuadrature(int order)
 	switch(order)
 	{
 	case 0:
-		const static GaussQuadrature<ReferenceTetrahedron, 0>& q0 
-			= Provider<GaussQuadrature<ReferenceTetrahedron, 0> >::get();
-
-		m_order = q0.order();
-		m_numPoints = q0.size();
-		m_pvPoint = q0.points();
-		m_pvWeight = q0.weights();
+		m_order = GaussQuadrature<ReferenceTetrahedron, 0>::order();
+		m_numPoints = GaussQuadrature<ReferenceTetrahedron, 0>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTetrahedron, 0>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTetrahedron, 0>::weights();
 		break;
 
 	case 1:
-		const static GaussQuadrature<ReferenceTetrahedron, 1>& q1 
-			= Provider<GaussQuadrature<ReferenceTetrahedron, 1> >::get();
-
-		m_order = q1.order();
-		m_numPoints = q1.size();
-		m_pvPoint = q1.points();
-		m_pvWeight = q1.weights();
+		m_order = GaussQuadrature<ReferenceTetrahedron, 1>::order();
+		m_numPoints = GaussQuadrature<ReferenceTetrahedron, 1>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTetrahedron, 1>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTetrahedron, 1>::weights();
 		break;
 
 	case 2:
-		const static GaussQuadrature<ReferenceTetrahedron, 2>& q2 
-			= Provider<GaussQuadrature<ReferenceTetrahedron, 2> >::get();
-
-		m_order = q2.order();
-		m_numPoints = q2.size();
-		m_pvPoint = q2.points();
-		m_pvWeight = q2.weights();
+		m_order = GaussQuadrature<ReferenceTetrahedron, 2>::order();
+		m_numPoints = GaussQuadrature<ReferenceTetrahedron, 2>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTetrahedron, 2>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTetrahedron, 2>::weights();
 		break;
 
 	case 3:
-		const static GaussQuadrature<ReferenceTetrahedron, 3>& q3 
-			= Provider<GaussQuadrature<ReferenceTetrahedron, 3> >::get();
-
-		m_order = q3.order();
-		m_numPoints = q3.size();
-		m_pvPoint = q3.points();
-		m_pvWeight = q3.weights();
+		m_order = GaussQuadrature<ReferenceTetrahedron, 3>::order();
+		m_numPoints = GaussQuadrature<ReferenceTetrahedron, 3>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTetrahedron, 3>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTetrahedron, 3>::weights();
 		break;
 
 	case 4:
 	case 5:
-		const static GaussQuadrature<ReferenceTetrahedron, 5>& q5 
-			= Provider<GaussQuadrature<ReferenceTetrahedron, 5> >::get();
-
-		m_order = q5.order();
-		m_numPoints = q5.size();
-		m_pvPoint = q5.points();
-		m_pvWeight = q5.weights();
+		m_order = GaussQuadrature<ReferenceTetrahedron, 5>::order();
+		m_numPoints = GaussQuadrature<ReferenceTetrahedron, 5>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTetrahedron, 5>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTetrahedron, 5>::weights();
 		break;
 
 	case 6:
-		const static GaussQuadrature<ReferenceTetrahedron, 6>& q6 
-			= Provider<GaussQuadrature<ReferenceTetrahedron, 6> >::get();
-
-		m_order = q6.order();
-		m_numPoints = q6.size();
-		m_pvPoint = q6.points();
-		m_pvWeight = q6.weights();
+		m_order = GaussQuadrature<ReferenceTetrahedron, 6>::order();
+		m_numPoints = GaussQuadrature<ReferenceTetrahedron, 6>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTetrahedron, 6>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTetrahedron, 6>::weights();
 		break;
 
 	case 7:
-		const static GaussQuadrature<ReferenceTetrahedron, 7>& q7 
-			= Provider<GaussQuadrature<ReferenceTetrahedron, 7> >::get();
-
-		m_order = q7.order();
-		m_numPoints = q7.size();
-		m_pvPoint = q7.points();
-		m_pvWeight = q7.weights();
+		m_order = GaussQuadrature<ReferenceTetrahedron, 7>::order();
+		m_numPoints = GaussQuadrature<ReferenceTetrahedron, 7>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTetrahedron, 7>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTetrahedron, 7>::weights();
 		break;
 
 	case 8:
-		const static GaussQuadrature<ReferenceTetrahedron, 8>& q8 
-			= Provider<GaussQuadrature<ReferenceTetrahedron, 8> >::get();
-
-		m_order = q8.order();
-		m_numPoints = q8.size();
-		m_pvPoint = q8.points();
-		m_pvWeight = q8.weights();
+		m_order = GaussQuadrature<ReferenceTetrahedron, 8>::order();
+		m_numPoints = GaussQuadrature<ReferenceTetrahedron, 8>::size();
+		m_pvPoint = GaussQuadrature<ReferenceTetrahedron, 8>::points();
+		m_pvWeight = GaussQuadrature<ReferenceTetrahedron, 8>::weights();
 		break;
 
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of tetrahedron.");

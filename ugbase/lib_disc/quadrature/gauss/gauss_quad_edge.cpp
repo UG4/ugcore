@@ -4,7 +4,6 @@
 
 #include "../quadrature.h"
 #include "gauss_quad_edge.h"
-#include "common/util/provider.h"
 
 namespace ug{
 
@@ -228,112 +227,82 @@ FlexGaussQuadrature<ReferenceEdge>::FlexGaussQuadrature(int order)
 	{
 	case 0:
 	case 1:
-		const static GaussQuadrature<ReferenceEdge, 1>& q1 
-			= Provider<GaussQuadrature<ReferenceEdge, 1> >::get();
-
-		m_order = q1.order();
-		m_numPoints = q1.size();
-		m_pvPoint = q1.points();
-		m_pvWeight = q1.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 1>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 1>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 1>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 1>::weights();
 		break;
 
 	case 2:
 	case 3:
-		const static GaussQuadrature<ReferenceEdge, 3>& q3 
-			= Provider<GaussQuadrature<ReferenceEdge, 3> >::get();
-
-		m_order = q3.order();
-		m_numPoints = q3.size();
-		m_pvPoint = q3.points();
-		m_pvWeight = q3.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 3>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 3>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 3>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 3>::weights();
 		break;
 
 	case 4:
 	case 5:
-		const static GaussQuadrature<ReferenceEdge, 5>& q5 
-			= Provider<GaussQuadrature<ReferenceEdge, 5> >::get();
-
-		m_order = q5.order();
-		m_numPoints = q5.size();
-		m_pvPoint = q5.points();
-		m_pvWeight = q5.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 5>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 5>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 5>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 5>::weights();
 		break;
 
 	case 6:
 	case 7:
-		const static GaussQuadrature<ReferenceEdge, 7>& q7 
-			= Provider<GaussQuadrature<ReferenceEdge, 7> >::get();
-
-		m_order = q7.order();
-		m_numPoints = q7.size();
-		m_pvPoint = q7.points();
-		m_pvWeight = q7.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 7>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 7>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 7>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 7>::weights();
 		break;
 
 	case 8:
 	case 9:
-		const static GaussQuadrature<ReferenceEdge, 9>& q9 
-			= Provider<GaussQuadrature<ReferenceEdge, 9> >::get();
-
-		m_order = q9.order();
-		m_numPoints = q9.size();
-		m_pvPoint = q9.points();
-		m_pvWeight = q9.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 9>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 9>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 9>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 9>::weights();
 		break;
 
 	case 10:
 	case 11:
-		const static GaussQuadrature<ReferenceEdge, 11>& q11 
-			= Provider<GaussQuadrature<ReferenceEdge, 11> >::get();
-
-		m_order = q11.order();
-		m_numPoints = q11.size();
-		m_pvPoint = q11.points();
-		m_pvWeight = q11.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 11>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 11>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 11>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 11>::weights();
 		break;
 
 	case 12:
 	case 13:
-		const static GaussQuadrature<ReferenceEdge, 13>& q13 
-			= Provider<GaussQuadrature<ReferenceEdge, 13> >::get();
-
-		m_order = q13.order();
-		m_numPoints = q13.size();
-		m_pvPoint = q13.points();
-		m_pvWeight = q13.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 13>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 13>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 13>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 13>::weights();
 		break;
 
 	case 14:
 	case 15:
-		const static GaussQuadrature<ReferenceEdge, 15>& q15 
-			= Provider<GaussQuadrature<ReferenceEdge, 15> >::get();
-
-		m_order = q15.order();
-		m_numPoints = q15.size();
-		m_pvPoint = q15.points();
-		m_pvWeight = q15.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 15>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 15>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 15>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 15>::weights();
 		break;
 
 	case 16:
 	case 17:
-		const static GaussQuadrature<ReferenceEdge, 17>& q17 
-			= Provider<GaussQuadrature<ReferenceEdge, 17> >::get();
-
-		m_order = q17.order();
-		m_numPoints = q17.size();
-		m_pvPoint = q17.points();
-		m_pvWeight = q17.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 17>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 17>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 17>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 17>::weights();
 		break;
 
 	case 18:
 	case 19:
-		const static GaussQuadrature<ReferenceEdge, 19>& q19 
-			= Provider<GaussQuadrature<ReferenceEdge, 19> >::get();
-
-		m_order = q19.order();
-		m_numPoints = q19.size();
-		m_pvPoint = q19.points();
-		m_pvWeight = q19.weights();
+		m_order = GaussQuadrature<ReferenceEdge, 19>::order();
+		m_numPoints = GaussQuadrature<ReferenceEdge, 19>::size();
+		m_pvPoint = GaussQuadrature<ReferenceEdge, 19>::points();
+		m_pvWeight = GaussQuadrature<ReferenceEdge, 19>::weights();
 		break;
 
 	default: UG_THROW("Order "<<order<<" not available for GaussQuadrature of edge.");
