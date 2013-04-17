@@ -1,38 +1,47 @@
 #!/bin/bash
 
+doxylog="$1"
+
 # remove old html and tags
 function cleanup_old_docu {
-	rm -rf ug4/html ug4/plugins/html ug4/apps/html *.tags
+	echo "Step 1/7: Removing old docu if existend"
+	rm -rf ug4/html ug4/plugins/html ug4/apps/html *.tags &> $doxylog
 }
 
 # generate tags for ugbase
 function generate_ugbase {
-	doxygen - < doxy_config_ugbase_tags.txt
+	echo "Step 2/7: Generating tags for ugbase"
+	doxygen - < doxy_config_ugbase_tags.txt 1>> $doxylog 2>> $doxylog
 }
 
 # generate tags and html for plugins
 function generate_plugins {
-	doxygen - < doxy_config_plugins.txt
+	echo "Step 3/7: Generating tags and html for plugins"
+	doxygen - < doxy_config_plugins.txt 1>> $doxylog 2>> $doxylog
 }
 
 # generate html for apps
 function generate_apps {
-	doxygen - < doxy_config_apps.txt
+	echo "Step 4/7: Generating tags and html for apps"
+	doxygen - < doxy_config_apps.txt 1>> $doxylog 2>> $doxylog
 }
 
 # generate html for ugbase
 function generate_ug4 {
-	doxygen - < doxy_config_ug4_mathjax.txt
+	echo "Step 5/7: Generating html for ugbase"
+	doxygen - < doxy_config_ug4_mathjax.txt 1>> $doxylog 2>> $doxylog
 }
 
 # prepare amalgamation of html
 function prepare_amalgamate {
-	mkdir -p ug4/html/apps ug4/html/plugins
+	echo "Step 6/7: Prepare amalgamation"
+	mkdir -p ug4/html/apps ug4/html/plugins 1>> $doxylog 2>> $doxylog
 }
 
 # move all html into a single directory
 function amalgamate {
-	mv -fu apps/html/* ug4/html/apps/. && mv -fu plugins/html/* ug4/html/plugins/.
+	echo "Step 7/7: Amalgamate html of ubgase, plugins and apps"
+	mv -fu apps/html/* ug4/html/apps/. && mv -fu plugins/html/* ug4/html/plugins/. 1>> $doxylog 2>> $doxylog
 }
 
 # stitch all steps into a single command list

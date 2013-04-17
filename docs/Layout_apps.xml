@@ -12,7 +12,7 @@
       <tab type="user" url="../group__lib__algebra.html" title="libAlgebra" />
       <tab type="user" url="../group__lib__discretization.html" title="libDiscretization" />
       <tab type="user" url="../group__lib__grid.html" title="libGrid" />
-      <tab type="user" url="../plugins/index.html" title="Plugins" />
+      <tab type="user" url="../plugins/group__plugins.html" title="Plugins" />
       <tab type="user" url="../group__scripts.html" title="Scripts" />
       <tab type="user" url="@ref apps" title="Apps" />
     </tab>

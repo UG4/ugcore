@@ -14,7 +14,7 @@
       <tab type="user" url="../group__lib__grid.html" title="libGrid" />
       <tab type="user" url="@ref plugins" title="Plugins" />
       <tab type="user" url="../group__scripts.html" title="Scripts" />
-      <tab type="user" url="../apps/index.html" title="Apps" />
+      <tab type="user" url="../apps/group__apps.html" title="Apps" />
     </tab>
     <tab type="namespaces" visible="yes" title="">
       <tab type="namespacelist" visible="yes" title="" intro="" />

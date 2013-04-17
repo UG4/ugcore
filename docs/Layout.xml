@@ -11,9 +11,9 @@
       <tab type="user" url="@ref lib_algebra" title="libAlgebra" />
       <tab type="user" url="@ref lib_discretization" title="libDiscretization" />
       <tab type="user" url="@ref lib_grid" title="libGrid" />
-      <tab type="user" url="plugins/index.html" title="Plugins" />
+      <tab type="user" url="plugins/group__plugins.html" title="Plugins" />
       <tab type="user" url="@ref scripts" title="Scripts" />
-      <tab type="user" url="apps/index.html" title="Apps" />
+      <tab type="user" url="apps/group__apps.html" title="Apps" />
     </tab>
     <tab type="namespaces" visible="yes" title="">
       <tab type="namespacelist" visible="yes" title="" intro="" />
