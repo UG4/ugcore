@@ -138,14 +138,15 @@ ProcessCommunicator
 ProcessCommunicator::
 create_sub_communicator(vector<int> &newProcs) const
 {
+	if(newProcs.size() == 0)
+		return ProcessCommunicator(PCD_EMPTY);
+
 	MPI_Group grpOld;
 	MPI_Group grpNew;
 	MPI_Comm commNew;
 
 	MPI_Comm_group(m_comm->m_mpiComm, &grpOld);
-	if(newProcs.size() > 0){
-		MPI_Group_incl(grpOld, (int)newProcs.size(), &newProcs.front(), &grpNew);
-	}
+	MPI_Group_incl(grpOld, (int)newProcs.size(), &newProcs.front(), &grpNew);
 	MPI_Comm_create(m_comm->m_mpiComm, grpNew, &commNew);
 
 //	create a new ProcessCommunicator
@@ -246,6 +247,13 @@ allreduce(const void* sendBuf, void* recBuf, int count,
 	}
 
 	MPI_Allreduce(const_cast<void*>(sendBuf), recBuf, count, type, op, m_comm->m_mpiComm);
+}
+
+size_t ProcessCommunicator::allreduce(const size_t &t, pcl::ReduceOperation op) const
+{
+	int ret, tt = (int)t;
+	allreduce(&tt, &ret, 1, PCL_DT_INT, op);
+	return (size_t)ret;
 }
 
 void
@@ -470,28 +478,6 @@ barrier() const
 	MPI_Barrier(m_comm->m_mpiComm);
 }
 
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-ProcessCommunicator::CommWrapper::
-CommWrapper() :
-	m_mpiComm(MPI_COMM_WORLD),
-	m_bReleaseCommunicator(false)
-{}
-
-ProcessCommunicator::CommWrapper::
-CommWrapper(const MPI_Comm& comm, bool bReleaseComm) :
-	m_mpiComm(comm),
-	m_bReleaseCommunicator(bReleaseComm)
-{}
-
-ProcessCommunicator::CommWrapper::
-~CommWrapper()
-{
-	if(m_bReleaseCommunicator)
-		MPI_Comm_free(&m_mpiComm);
-}
-
-
 void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int root) const
 {
 	PCL_PROFILE(pcl_ProcCom_Bcast);
@@ -519,13 +505,6 @@ void ProcessCommunicator::broadcast(ug::BinaryBuffer &buf, int root) const
 	}
 }
 
-size_t ProcessCommunicator::allreduce(const size_t &t, pcl::ReduceOperation op) const
-{
-	int ret, tt = (int)t;
-	allreduce(&tt, &ret, 1, PCL_DT_INT, op);
-	return (size_t)ret;
-}
-
 void ProcessCommunicator::broadcast(size_t &s, int root) const
 {
 	unsigned long l = s;
@@ -533,5 +512,25 @@ void ProcessCommunicator::broadcast(size_t &s, int root) const
 	s = l;
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+ProcessCommunicator::CommWrapper::
+CommWrapper() :
+	m_mpiComm(MPI_COMM_WORLD),
+	m_bReleaseCommunicator(false)
+{}
+
+ProcessCommunicator::CommWrapper::
+CommWrapper(const MPI_Comm& comm, bool bReleaseComm) :
+	m_mpiComm(comm),
+	m_bReleaseCommunicator(bReleaseComm)
+{}
+
+ProcessCommunicator::CommWrapper::
+~CommWrapper()
+{
+	if(m_bReleaseCommunicator)
+		MPI_Comm_free(&m_mpiComm);
+}
 
 }//	end of namespace pcl

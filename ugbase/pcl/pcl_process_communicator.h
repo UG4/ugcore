@@ -69,10 +69,16 @@ class ProcessCommunicator
 	 *	communicator - even if they don't want to participate in the new one.*/
 		ProcessCommunicator create_sub_communicator(bool participate) const;
 		
+	/**	Make sure that all processes which participate in the current communicator
+	 * call this method with the same parameters! Process indices are to be specified
+	 * relative to the current communicator.*/
 		ProcessCommunicator create_sub_communicator(std::vector<int> &newProcs) const;
 
+	/**	Make sure that all processes call this method with the same parameters!
+	 * \{ */
 		static ProcessCommunicator create_communicator(std::vector<int> &newGlobalProcs);
 		static ProcessCommunicator create_communicator(size_t first, size_t num);
+	/** \} */
 		
 	///	performs MPI_Gather on the processes of the communicator.
 	/**	This method synchronises involved processes.
