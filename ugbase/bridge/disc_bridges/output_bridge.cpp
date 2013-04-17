@@ -89,7 +89,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, int, number)>(&T::print))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&, bool)>(&T::print))
 			.add_method("print", static_cast<void (T::*)(const char*, function_type&)>(&T::print))
-			.add_method("set_binary", &T::set_binary);
 	}
 
 
