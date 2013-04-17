@@ -13,12 +13,12 @@ template <class TElem>
 static void mark_if_periodic(IRefiner& ref, TElem* e) {
 	if(!ref.grid())
 		return;
-	if(ref.grid()->has_periodic_boundaries())
+	if(!ref.grid()->has_periodic_boundaries())
 		return;
 
 	PeriodicBoundaryManager& pbm = *ref.grid()->periodic_boundary_manager();
 
-	// ensure vertex is periodic
+	// ensure element is periodic
 	if(!pbm.is_periodic(e))
 		return;
 
@@ -203,22 +203,17 @@ ref_marks_changed(IRefiner& ref,
 
 ////////////////////////////////
 // Periodic boundaries
-	if(!grid.has_periodic_boundaries())
-		return;
+	if(grid.has_periodic_boundaries()){
+		for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt)
+			mark_if_periodic(ref, vrts[i_vrt]);
 
-// should work, but ref is abstract...
-//	std::for_each(vrts.begin(), vrts.end(),
-//			boost::bind(&mark_if_periodic<VertexBase>, ref, _1));
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge)
+			mark_if_periodic(ref, edges[i_edge]);
 
-	for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt)
-		mark_if_periodic(ref, vrts[i_vrt]);
+		for(size_t i_face = 0; i_face < faces.size(); ++i_face)
+			mark_if_periodic(ref, faces[i_face]);
 
-	for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge)
-		mark_if_periodic(ref, edges[i_edge]);
-
-	for(size_t i_face = 0; i_face < faces.size(); ++i_face)
-		mark_if_periodic(ref, faces[i_face]);
-
-	// omit volumes, as these are not meant to be periodic
+		// omit volumes, as these are not meant to be periodic
+	}
 }
 }// end of namespace
