@@ -20,6 +20,15 @@ namespace bridge{
 /// \ingroup misc_bridge
 /// \{
 
+static string GetRootPath()
+{return PathProvider::get_path(ROOT_PATH);}
+
+static string GetGridPath()
+{return PathProvider::get_path(GRID_PATH);}
+
+static string GetAppsPath()
+{return PathProvider::get_path(APPS_PATH);}
+
 static string GetAppPath()
 {return PathProvider::get_path(APP_PATH);}
 
@@ -57,8 +66,17 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	string grp(parentGroup);
 	grp.append("/Util");
 
+	reg.add_function("ug_get_root_path", &GetRootPath, grp,
+					 "pathName", "", "Returns ug's root path");
+
+	reg.add_function("ug_get_grid_path", &GetGridPath, grp,
+					 "pathName", "", "Returns the path in which ug's standard grids are stored.");
+
+	reg.add_function("ug_get_apps_path", &GetAppsPath, grp,
+					 "pathName", "", "Returns the path in which ug's apps are stored");
+
 	reg.add_function("ug_get_app_path", &GetAppPath, grp,
-					 "pathName", "", "Returns the application path");
+					 "pathName", "", "Returns the path in which the ug executable lies");
 
 	reg.add_function("ug_get_data_path", &GetDataPath, grp,
 					 "pathName", "", "Returns the data path");
