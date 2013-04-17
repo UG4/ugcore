@@ -396,8 +396,10 @@ const char* ISubsetHandler::
 get_subset_name(int subsetIndex) const
 {
 //	check that subset exists
-	if(subsetIndex < 0 || subsetIndex >= num_subsets())
-		throw(ERROR_BadSubsetIndex(subsetIndex));
+	if(subsetIndex < 0 || subsetIndex >= num_subsets()){
+		UG_THROW("Bad subset index " << subsetIndex
+				<< ". Only " << num_subsets() << " subsets are present.");
+	}
 
 //	get subset info
 	const SubsetInfo& subsetInfo = subset_info(subsetIndex);
@@ -408,9 +410,7 @@ get_subset_name(int subsetIndex) const
 void ISubsetHandler::
 set_subset_name(const char* name, int subsetIndex)
 {
-//	check that subset exists
-	if(subsetIndex < 0 || subsetIndex >= num_subsets())
-		throw(ERROR_BadSubsetIndex(subsetIndex));
+	subset_required(subsetIndex);
 
 //	get subset info
 	SubsetInfo& subsetInfo = subset_info(subsetIndex);
@@ -428,6 +428,10 @@ set_subset_info(int subsetIndex, const SubsetInfo& subsetInfo)
 SubsetInfo& ISubsetHandler::
 subset_info(int subsetIndex)
 {
+	if(subsetIndex < 0){
+		UG_THROW("Bad subset index " << subsetIndex << ". No subset-info available for this subset.");
+	}
+
 	subset_required(subsetIndex);
 	return m_subsetInfos[subsetIndex];
 }
@@ -436,7 +440,10 @@ subset_info(int subsetIndex)
 const SubsetInfo& ISubsetHandler::
 subset_info(int subsetIndex) const
 {
-	assert(((subsetIndex >= 0) && (subsetIndex < (int)num_subsets())) && "ERROR in SubsetHandler::subset_info(..) const: bad subset index. Use non-const version to avoid this Problem.");
+	if(subsetIndex < 0 || subsetIndex >= num_subsets()){
+		UG_THROW("Bad subset index " << subsetIndex
+				<< ". Only " << num_subsets() << " subsets are present.");
+	}
 
 	return m_subsetInfos[subsetIndex];
 }

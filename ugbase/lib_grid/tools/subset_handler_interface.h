@@ -165,13 +165,6 @@ class attachment_traits<Volume*, ISubsetHandler>
 */
 
 ////////////////////////////////////////////////////////////////////////
-//	ERROR_BadSubsetIndex
-struct ERROR_BadSubsetIndex{
-	ERROR_BadSubsetIndex(int subsetIndex) : m_subsetIndex(subsetIndex)	{}
-	int m_subsetIndex;
-};
-
-////////////////////////////////////////////////////////////////////////
 //	ISubsetHandler
 /** A derived class has to implement the following public methods:
  * <code>
