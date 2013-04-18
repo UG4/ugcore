@@ -524,7 +524,7 @@ clone_pattern(const this_type& v)
 	this->m_spDD = v.m_spDD;
 
 //	resize the vector
-	resize_values(num_indices());
+	resize_values(v.size());
 
 #ifdef UG_PARALLEL
 //	set layouts
@@ -621,7 +621,7 @@ void GridFunction<TDomain, TAlgebra>::assign(const this_type& v)
 	this->m_spDD = v.m_spDD;
 
 //	resize the vector
-	resize_values(num_indices());
+	resize_values(v.size());
 
 //  copy values
 	*(dynamic_cast<vector_type*>(this)) = *dynamic_cast<const vector_type*>(&v);
@@ -641,7 +641,7 @@ GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 {
 	GridFunction<TDomain, TAlgebra>* v
 		= new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, this->m_spDD);
-	v->resize_values(this->num_indices());
+	v->resize_values(this->size());
 #ifdef UG_PARALLEL
 	v->set_layouts(this->layouts());
 	v->set_storage_type(PST_UNDEFINED);
