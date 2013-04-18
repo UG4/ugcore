@@ -32,7 +32,8 @@ HangingNodeRefinerBase::
 HangingNodeRefinerBase(IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
 	m_pGrid(NULL),
-	m_nodeDependencyOrder1(true)
+	m_nodeDependencyOrder1(true),
+	m_adjustingRefMarks(false)
 	//,m_automarkHigherDimensionalObjects(false)
 {
 	add_ref_mark_adjuster(StdHNodeAdjuster::create());
@@ -93,7 +94,7 @@ bool HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			if(refMark & (RM_REGULAR | RM_ANISOTROPIC))
+			if(m_adjustingRefMarks && (refMark & (RM_REGULAR | RM_ANISOTROPIC)))
 				m_newlyMarkedRefVrts.push_back(v);
 			return true;
 		}
@@ -107,7 +108,7 @@ bool HangingNodeRefinerBase::mark(EdgeBase* e, RefinementMark refMark)
 	if(get_mark(e) != refMark){
 		if(refinement_is_allowed(e)){
 			m_selMarkedElements.select(e, refMark);
-			if(refMark & (RM_REGULAR | RM_ANISOTROPIC))
+			if(m_adjustingRefMarks && (refMark & (RM_REGULAR | RM_ANISOTROPIC)))
 				m_newlyMarkedRefEdges.push_back(e);
 			return true;
 		}
@@ -122,7 +123,7 @@ bool HangingNodeRefinerBase::mark(Face* f, RefinementMark refMark)
 	if(get_mark(f) != refMark){
 		if(refinement_is_allowed(f)){
 			m_selMarkedElements.select(f, refMark);
-			if(refMark & (RM_REGULAR | RM_ANISOTROPIC))
+			if(m_adjustingRefMarks && (refMark & (RM_REGULAR | RM_ANISOTROPIC)))
 				m_newlyMarkedRefFaces.push_back(f);
 			return true;
 		}
@@ -136,7 +137,7 @@ bool HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			if(refMark & (RM_REGULAR | RM_ANISOTROPIC))
+			if(m_adjustingRefMarks && (refMark & (RM_REGULAR | RM_ANISOTROPIC)))
 				m_newlyMarkedRefVols.push_back(v);
 			return true;
 		}
@@ -236,7 +237,10 @@ bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
 
 	AssignSubsetColors(sh);
 
-	return SaveGridToFile(g, sh, filename);
+	if(MultiGrid* pmg = dynamic_cast<MultiGrid*>(&g))
+		return SaveGridHierarchyTransformed(*pmg, sh, filename, 0.1);
+	else
+		return SaveGridToFile(g, sh, filename);
 }
 
 void HangingNodeRefinerBase::
@@ -548,6 +552,8 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	HNODE_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "hnode_ref-start: collect_objects_for_refine\n");
 
+	m_adjustingRefMarks = true;
+
 //	build correct selection. see HangingVertexRefiner description.
 //	unmark all elements which are marked for coarsening
 
@@ -566,18 +572,35 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	std::vector<Face*>			newlyMarkedFaces;
 	std::vector<Volume*>		newlyMarkedVols;
 
+	newlyMarkedVrts.assign(m_selMarkedElements.begin<VertexBase>(),
+						   m_selMarkedElements.end<VertexBase>());
+	newlyMarkedEdges.assign(m_selMarkedElements.begin<EdgeBase>(),
+							m_selMarkedElements.end<EdgeBase>());
+	newlyMarkedFaces.assign(m_selMarkedElements.begin<Face>(),
+							m_selMarkedElements.end<Face>());
+	newlyMarkedVols.assign(m_selMarkedElements.begin<Volume>(),
+						   m_selMarkedElements.end<Volume>());
+
 	bool continueAdjustment = true;
+	bool firstAdjustment = true;
+
 	while(continueAdjustment){
-	//	we don't simply pass m_newlyMarkedXXX to the adjusters, since we want to
-	//	record newly marked elements during adjustment. Those newly marked elems
-	//	are then used for the next calls, etc.
-		newlyMarkedVrts.swap(m_newlyMarkedRefVrts);
+		if(!firstAdjustment){
+		//	we don't simply pass m_newlyMarkedXXX to the adjusters, since we want to
+		//	record newly marked elements during adjustment. Those newly marked elems
+		//	are then used for the next calls, etc.
+		//	This is only necessary if we're not in the first adjustment iteration.
+			newlyMarkedVrts.swap(m_newlyMarkedRefVrts);
+			newlyMarkedEdges.swap(m_newlyMarkedRefEdges);
+			newlyMarkedFaces.swap(m_newlyMarkedRefFaces);
+			newlyMarkedVols.swap(m_newlyMarkedRefVols);
+		}
+
+		firstAdjustment = false;
+
 		m_newlyMarkedRefVrts.clear();
-		newlyMarkedEdges.swap(m_newlyMarkedRefEdges);
 		m_newlyMarkedRefEdges.clear();
-		newlyMarkedFaces.swap(m_newlyMarkedRefFaces);
 		m_newlyMarkedRefFaces.clear();
-		newlyMarkedVols.swap(m_newlyMarkedRefVols);
 		m_newlyMarkedRefVols.clear();
 
 	//	call the adjusters
@@ -596,6 +619,7 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 		continueAdjustment = continue_collect_objects_for_refine(continueRequired);
 	}
 
+	m_adjustingRefMarks = false;
 	UG_DLOG(LIB_GRID, 1, "hnode_ref-stop: collect_objects_for_refine\n");
 }
 

@@ -63,6 +63,16 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 	///	creates closure elements for 3d geometries
 		void create_closure_elements_3d();
 
+	///	collects parents of all closure elements which share a value with the given mark.
+	/**	Note that the parents container is not cleared. The method may thus be called
+	 * multiple times.
+	 * If a parent is a closure element (which shouldn't be the case) it won't be
+	 * added to the container.
+	 * Note that a parent may be added multiple times to the parents container.*/
+		template <class TElem>
+		void get_parents_of_marked_closure_elements(std::vector<GeometricObject*>& parents,
+									   	   	   	    Selector::status_t mark);
+
 	///	removes all closure elements, calls the base implementation and creates a new closure
 		virtual void perform_refinement();
 

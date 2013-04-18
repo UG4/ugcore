@@ -309,6 +309,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		*/
 		bool		m_nodeDependencyOrder1;
 		//bool		m_automarkHigherDimensionalObjects; <-- unused
+		bool		m_adjustingRefMarks;///<	true during collect_objects_for_refine
 };
 
 /// @}	// end of add_to_group command

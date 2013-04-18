@@ -376,11 +376,46 @@ create_closure_elements_3d()
 	m_closureElems.enable_autoselection(false);
 }
 
+template <class TElem>
+void AdaptiveRegularRefiner_MultiGrid::
+get_parents_of_marked_closure_elements(std::vector<GeometricObject*>& parents,
+									   Selector::status_t mark)
+{
+	UG_ASSERT(multi_grid(), "A multi grid has to be assigned to the refiner.");
+	MultiGrid& mg = *multi_grid();
+
+	typedef typename Selector::traits<TElem>::iterator	TIter;
+	for(TIter iter = m_selMarkedElements.begin<TElem>();
+		iter != m_selMarkedElements.end<TElem>(); ++iter)
+	{
+		TElem* e = *iter;
+		if(!m_closureElems.is_selected(e))
+			continue;
+
+		if(get_mark(e) & mark){
+			GeometricObject* parent = mg.get_parent(e);
+			if(parent && !m_closureElems.is_selected(parent))
+				parents.push_back(parent);
+		}
+	}
+}
+
 void AdaptiveRegularRefiner_MultiGrid::
 perform_refinement()
 {
 //	todo: copy refinement marks from closure elements to their parents
+	vector<GeometricObject*> parents;
+	Selector::status_t refMark = RM_REGULAR | RM_ANISOTROPIC;
+	get_parents_of_marked_closure_elements<VertexBase>(parents, refMark);
+	get_parents_of_marked_closure_elements<EdgeBase>(parents, refMark);
+	get_parents_of_marked_closure_elements<Face>(parents, refMark);
+	get_parents_of_marked_closure_elements<Volume>(parents, refMark);
+
 	remove_closure_elements();
+
+//	mark parents of formerly marked closure elements for refinement
+	mark(parents.begin(), parents.end(), RM_REGULAR);
+
 	HangingNodeRefiner_MultiGrid::perform_refinement();
 	create_closure_elements();
 }

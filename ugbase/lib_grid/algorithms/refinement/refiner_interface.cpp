@@ -7,6 +7,28 @@
 
 namespace ug{
 
+bool IRefiner::mark(GeometricObject* o, RefinementMark refMark)
+{
+	switch(o->base_object_id()){
+		case VERTEX:	return mark(static_cast<VertexBase*>(o), refMark);
+		case EDGE:		return mark(static_cast<EdgeBase*>(o), refMark);
+		case FACE:		return mark(static_cast<Face*>(o), refMark);
+		case VOLUME:	return mark(static_cast<Volume*>(o), refMark);
+	}
+	return false;
+}
+
+RefinementMark IRefiner::get_mark(GeometricObject* o)
+{
+	switch(o->base_object_id()){
+		case VERTEX:	return get_mark(static_cast<VertexBase*>(o));
+		case EDGE:		return get_mark(static_cast<EdgeBase*>(o));
+		case FACE:		return get_mark(static_cast<Face*>(o));
+		case VOLUME:	return get_mark(static_cast<Volume*>(o));
+	}
+	return RM_NONE;
+}
+
 void IRefiner::adaption_begins()
 {
 	if(!m_messageHub.valid()){

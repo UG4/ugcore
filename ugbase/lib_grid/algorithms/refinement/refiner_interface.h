@@ -67,6 +67,11 @@ class IRefiner
 		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR)		{return false;}
 	/**	\} */
 
+	///	marks the specified geometric object
+	/**	The default implementation casts the object to a more concrete type
+	 * (VertexBase, EdgeBase, Face, Volume) and calls the appropriate mark method.*/
+		virtual bool mark(GeometricObject* o, RefinementMark refMark = RM_REGULAR);
+
 	///	Returns the mark of a given element. Default returns RM_REGULAR
 	/**	\{ */
 		virtual RefinementMark get_mark(VertexBase* v)	{return RM_REGULAR;}
@@ -74,6 +79,11 @@ class IRefiner
 		virtual RefinementMark get_mark(Face* f)		{return RM_REGULAR;}
 		virtual RefinementMark get_mark(Volume* v)		{return RM_REGULAR;}
 	/**	\} */
+
+	///	returns the mark of the specified geometric object
+	/**	The default implementation casts the object to a more concrete type
+	 * (VertexBase, EdgeBase, Face, Volume) and calls the appropriate get_mark method.*/
+		virtual RefinementMark get_mark(GeometricObject* o);
 
 	///	marks all elements between iterBegin and iterEnd.
 	/**	the value-type of TIterator has to be a pointer to a type derived
