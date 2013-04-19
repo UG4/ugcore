@@ -1,32 +1,69 @@
 #!/bin/sh
 # execute UG test-suite
 # ------------------------
+# xml input files
+ugroot=$WORKSPACE/trunk/
+unit_test_data=$ugroot/unit_tests/data/script_tests/
+core_tests=$unit_test_data/script_test_param.xml
+experimental_test=$unit_test_data/experimental_plugins.xml
+validate_schema=$unit_test_data/ScriptParamMappingSchema.xsd
+ 
 # testsuite arguments
-args='--output_format=XML --log_level=all --report_level=no --run_test=*NumProc$np --log_sink=utf_log_np$np.xml'
+defargs='--output_format=XML --log_level=all --report_level=no --log_sink=utf_log_np$np.xml'
+# note script params defaults to $core_tests
+testcore_args='--run_test=*NumProc$np'
+testplugins_args='-script_params $experimental_test --run_test=/LUAScriptsNumProc$np'
 
 # has to be set to find libug4.so
-LD_LIBRARY_PATH=$WORKSPACE/trunk/lib/
+LD_LIBRARY_PATH=$ugroot/lib/
 # path to testsuite
-ts=$WORKSPACE/trunk/bin/testsuite
+ts=$ugroot/bin/testsuite
 # should be "serial" or "parallel"
 mode=$1
+# should experimental plugins tested?
+plugins=$2
+
+# if plugins is set to something, use plugin argument for testsuite
+# else use core arguments
+if [ $plugins ]; then
+	echo 'use plugin args'
+	additional_args=$testplugins_args
+else
+	additional_args=$testcore_args
+fi
+
+# first of all validate input xml files againt schema
+which xmllint
+if [ $? -eq 0 ]; then
+	for file in $core_tests $experimental_test; do
+		xmllint --schema $validate_schema --noout $file  
+		if [ $? -gt 0 ]; then
+			echo "$file does not validate against schema"
+			exit 1
+		fi
+	done
+else
+	echo "warning: input files did not get validated, because xmllint is missing"
+fi
+
 # run testsuite in temporary directory in jobs workspace
 dir=$(mktemp -d --tmpdir=$WORKSPACE)
 cd $dir
 
-
 case "$mode" in
-
 # run testsuite in serial mode
 serial)
-	$ts $args
+	echo 'serial mode...'
+	# fixme $np does not get evaluated...
+	np=1
+	eval $ts $defargs $additional_args
 ;;
 
 # run testsuite in parallel mode for 1 till 16 processors
 parallel)
 	# if run_test filter matches no tests, continue
 	for np in {1..16}; do 
-  		mpirun -n $np $ts $args || continue
+  		mpirun -n $np $ts $defargs $additional_args || continue
 	done
 ;;
 esac
@@ -35,7 +72,7 @@ esac
 find -empty -name "ug_test_numprocs*.log" -exec rm {} +
 find -empty -name "*.xml" -exec rm {} +
 
-# copy utf logs and ug logs to workspace for archivation
+# copy utf logs and ug logs to workspace for archivation with jenkins
 mv *.xml *.log $WORKSPACE
 
 # delete temporary run directory
