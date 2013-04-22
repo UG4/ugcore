@@ -532,7 +532,12 @@ class DimCRFVGeometry : public FVGeometryBase
 
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scv_global_ips() const {return m_vGlobUnkCoords;}
-
+		
+	/// returns local barycenter
+		const MathVector<dim> local_bary() const {return localBary;}
+		
+    /// returns global barycenter
+		const MathVector<worldDim> global_bary() const {return globalBary;}
 
 	protected:
 	//	global and local ips on SCVF
@@ -1032,6 +1037,11 @@ class CRFVGeometry : public FVGeometryBase
 	/// returns all ips of scv as they appear in scv loop
 		const MathVector<worldDim>* scv_global_ips() const {return m_vGlobUnkCoords;}
 
+	/// returns local barycenter
+		const MathVector<dim> local_bary() const {return localBary;}
+
+	/// returns global barycenter
+		const MathVector<worldDim> global_bary() const {return globalBary;}
 
 	protected:
 	//	global and local ips on SCVF
