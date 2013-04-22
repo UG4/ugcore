@@ -68,7 +68,7 @@ serial)
 parallel)
 	# if run_test filter matches no tests, continue
 	for np in {1..16}; do 
-  		mpirun -n $np $ts $defargs $additional_args || continue
+		eval mpirun -n $np $ts $defargs $additional_args || continue
 	done
 ;;
 esac
