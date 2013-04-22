@@ -290,7 +290,7 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
  * \param dimensions	Dimensions of Positions
  */
 template<typename Vector_type, typename postype>
-void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, postype *positions, int dimensions)
+void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, postype *positions, int dimensions, const Vector_type *compareVec=NULL)
 {
 	PROFILE_FUNC_GROUP("debug");
 #ifdef UG_PARALLEL
@@ -316,10 +316,12 @@ void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, p
 
 	file << 1 << std::endl; // show all cons
 	// write connections
-	for(size_t i=0; i < rows; i++)
-	{
-		file << i << " " << i << " " << b[i] <<		std::endl;
-	}
+	if(compareVec == NULL)
+		for(size_t i=0; i < rows; i++)
+			file << i << " " << i << " " << b[i] <<		std::endl;
+	else
+		for(size_t i=0; i < rows; i++)
+			file << i << " " << i << " " << b[i]-(*compareVec)[i] << std::endl;
 }
 
 
