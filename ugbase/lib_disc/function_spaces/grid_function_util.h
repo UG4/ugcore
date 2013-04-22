@@ -143,7 +143,7 @@ void WriteVectorToConnectionViewer(
 template<typename TGridFunction>
 void SaveVectorForConnectionViewer(TGridFunction& b, const char* filename) {
 	PROFILE_FUNC();
-	WriteVectorToConnectionViewer(filename, b, b, NULL);
+	WriteVectorToConnectionViewer(filename, b, b);
 }
 
 template<typename TGridFunction>
