@@ -165,9 +165,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		typedef MatrixOperator<matrix_type,	vector_type> matOp;
 
-		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& ,const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
-		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
-		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& , function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>), grp);
+		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& ,const char*)>(&SaveVectorForConnectionViewer<function_type>),
+				grp, "", "vec#name", "save vector as .vec for ConnectionViewer");
+		reg.add_function("SaveVectorDiffForConnectionViewer", static_cast<void (*)(function_type& ,function_type&, const char*)>(&SaveVectorDiffForConnectionViewer<function_type>),
+						grp, "", "vecA#vecB#name", "compare two vectors a and b and save difference in .vec for ConnectionViewer");
+		reg.add_function("SaveVectorForConnectionViewer", static_cast<void (*)(function_type& , matOp&, const char*)>(&SaveVectorForConnectionViewer<function_type>),
+				grp, "", "vec#matrix#name", "save vector as .vec for ConnectionViewer, use matrix connections as a \"grid\"");
+		reg.add_function("SaveVectorDiffForConnectionViewer", static_cast<void (*)(function_type& , function_type& , matOp&, const char*)>(&SaveVectorDiffForConnectionViewer<function_type>), grp,
+				grp, "", "vecA#veccB#matrix#name", "compare two vectors a and b and save difference in .vec for ConnectionViewer, use matrix connections as a \"grid\"");
 	}
 
 //	SaveVectorCSV

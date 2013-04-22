@@ -98,7 +98,8 @@ inline void SaveMatrixToMTX( const char *filename,
 template<class TFunction>
 void WriteVectorToConnectionViewer(const char *filename,
 		const typename TFunction::algebra_type::vector_type &b,
-		const TFunction &u) {
+		const TFunction &u,
+		const typename TFunction::algebra_type::vector_type *pCompareVec = NULL) {
 	PROFILE_FUNC();
 //	check name
 	if ( !FileTypeIs( filename, ".vec") ) {
@@ -112,7 +113,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 	ExtractPositions(u, vPos);
 
 //	write vector
-	WriteVectorToConnectionViewer( filename, b, &vPos[0], dim );
+	WriteVectorToConnectionViewer( filename, b, &vPos[0], dim, pCompareVec);
 }
 
 template<class TFunction>
@@ -142,7 +143,13 @@ void WriteVectorToConnectionViewer(
 template<typename TGridFunction>
 void SaveVectorForConnectionViewer(TGridFunction& b, const char* filename) {
 	PROFILE_FUNC();
-	WriteVectorToConnectionViewer(filename, b, b);
+	WriteVectorToConnectionViewer(filename, b, b, NULL);
+}
+
+template<typename TGridFunction>
+void SaveVectorDiffForConnectionViewer(TGridFunction& b, TGridFunction& bCompare, const char* filename) {
+	PROFILE_FUNC();
+	WriteVectorToConnectionViewer(filename, b, b, &bCompare);
 }
 
 template<typename TGridFunction>
@@ -156,7 +163,7 @@ void SaveVectorForConnectionViewer(
 }
 
 template<typename TGridFunction>
-void SaveVectorForConnectionViewer(
+void SaveVectorDiffForConnectionViewer(
 		TGridFunction& u,
 		TGridFunction& compareVec,
 		MatrixOperator<typename TGridFunction::algebra_type::matrix_type,
