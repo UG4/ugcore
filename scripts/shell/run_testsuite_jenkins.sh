@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/sh -ex
 # execute UG test-suite
 # ------------------------
 # xml input files
-ugroot=$WORKSPACE/trunk/
-unit_test_data=$ugroot/unit_tests/data/script_tests/
+ugroot=$WORKSPACE/trunk
+unit_test_data=$ugroot/unit_tests/data/script_tests
 core_tests=$unit_test_data/script_test_param.xml
 experimental_test=$unit_test_data/experimental_plugins.xml
 validate_schema=$unit_test_data/ScriptParamMappingSchema.xsd
@@ -22,6 +22,11 @@ ts=$ugroot/bin/testsuite
 mode=$1
 # should experimental plugins tested?
 plugins=$2
+
+if [ "$mode" != "parallel" -a "$mode" != "serial" ]; then
+	echo "mode not set: should be parallel or serial"
+	exit 1
+fi
 
 # if plugins is set to something, use plugin argument for testsuite
 # else use core arguments
@@ -77,6 +82,3 @@ mv *.xml *.log $WORKSPACE
 
 # delete temporary run directory
 rm -rf $dir
-
-# return success, no matter what was the last return code...
-#exit 0
