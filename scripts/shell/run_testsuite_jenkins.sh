@@ -9,9 +9,10 @@ experimental_test=$unit_test_data/experimental_plugins.xml
 validate_schema=$unit_test_data/ScriptParamMappingSchema.xsd
  
 # testsuite arguments
-defargs='--output_format=XML --log_level=all --report_level=no --log_sink=utf_log_np$np.xml'
+defargs='--output_format=XML --log_level=all --report_level=no --log_sink=utf_log_$mode_np$np.xml'
 # note script params defaults to $core_tests
 testcore_args='--run_test=*NumProc$np'
+# run testsuite LuaScripts for plugins
 testplugins_args='-script_params $experimental_test --run_test=/LUAScriptsNumProc$np'
 
 # has to be set to find libug4.so
