@@ -791,7 +791,7 @@ class UG_API VolumeDescriptor : public VolumeVertices
 {
 	public:
 		VolumeDescriptor();
-		VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces);
+		VolumeDescriptor(uint numVertices);
 		VolumeDescriptor(const VolumeDescriptor& vd);
 
 		virtual ~VolumeDescriptor()										{}

@@ -112,7 +112,7 @@ VolumeDescriptor::VolumeDescriptor()
 {
 }
 
-VolumeDescriptor::VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces)
+VolumeDescriptor::VolumeDescriptor(uint numVertices)
 {
 	set_num_vertices(numVertices);
 }
