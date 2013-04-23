@@ -62,7 +62,7 @@ serial)
 	echo 'serial mode...'
 	# fixme $np does not get evaluated...
 	np=1
-	eval $ts $defargs $additional_args
+	eval $ts $defargs $additional_args || true 
 ;;
 
 # run testsuite in parallel mode for 1 till 16 processors
