@@ -20,7 +20,7 @@
 namespace ug{
 
 template <typename TFunction>
-void ComputeGradient(TFunction& u, size_t fct,
+void ComputeGradientLagrange1(TFunction& u, size_t fct,
                      MultiGrid::AttachmentAccessor<
                      typename TFunction::element_type,
                      ug::Attachment<number> >& aaError)
@@ -108,6 +108,104 @@ void ComputeGradient(TFunction& u, size_t fct,
 		aaError[elem] = VecTwoNorm(MidGrad) * pow(elemSize, 2./dim);
 	}
 }
+
+template <typename TFunction>
+void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
+                     MultiGrid::AttachmentAccessor<
+                     typename TFunction::element_type,
+                     ug::Attachment<number> >& aaError)
+{
+	static const int dim = TFunction::dim;
+	typedef typename TFunction::const_element_iterator const_iterator;
+	typedef typename TFunction::domain_type domain_type;
+	typedef typename domain_type::grid_type grid_type;
+	typedef typename TFunction::element_type element_type;
+	typedef typename element_type::side side_type;
+	
+	typename grid_type::template traits<side_type>::secure_container sides;
+
+//	get position accessor
+	typename TFunction::domain_type::position_accessor_type& aaPos
+			= u.domain()->position_accessor();
+			
+	grid_type& grid = *u.domain()->grid();
+
+//	some storage
+	MathMatrix<dim, dim> JTInv;
+	std::vector<MathVector<dim> > vLocalGrad;
+	std::vector<MathVector<dim> > vGlobalGrad;
+	std::vector<MathVector<dim> > vCorner;
+
+//	get iterator over elements
+	const_iterator iter = u.template begin<element_type>();
+	const_iterator iterEnd = u.template end<element_type>();
+
+//	loop elements
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get the element
+		element_type* elem = *iter;
+	
+	//  get sides of element		
+		grid.associated_elements_sorted(sides, elem );
+
+	//	reference object type
+		ReferenceObjectID roid = elem->reference_object_id();
+
+	//	get trial space
+		const LocalShapeFunctionSet<dim>& lsfs =
+				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
+
+	//	create a reference mapping
+		DimReferenceMapping<dim, dim>& map
+			= ReferenceMappingProvider::get<dim, dim>(roid);
+
+	//	get local Mid Point
+		MathVector<dim> localIP = ReferenceElementCenter<dim>(roid);
+
+	//	number of shape functions
+		const size_t numSH = lsfs.num_sh();
+		vLocalGrad.resize(numSH);
+		vGlobalGrad.resize(numSH);
+
+	//	evaluate reference gradient at local midpoint
+		lsfs.grads(&vLocalGrad[0], localIP);
+
+	//	get corners of element
+		CollectCornerCoordinates(vCorner, *elem, aaPos);
+
+	//	update mapping
+		map.update(&vCorner[0]);
+
+	//	compute jacobian
+		map.jacobian_transposed_inverse(JTInv, localIP);
+
+	//	compute size (volume) of element
+		const number elemSize = ElementSize<dim>(roid, &vCorner[0]);
+
+	//	compute gradient at mid point by summing contributions of all shape fct
+		MathVector<dim> MidGrad; VecSet(MidGrad, 0.0);
+		for(size_t sh = 0 ; sh < numSH; ++sh)
+		{
+		//	get global Gradient
+			MatVecMult(vGlobalGrad[sh], JTInv, vLocalGrad[sh]);
+
+		//	get of of vertex
+			std::vector<MultiIndex<2> > ind;
+			u.inner_multi_indices(sides[sh], fct, ind);
+
+		//	scale global gradient
+			vGlobalGrad[sh] *= BlockRef(u[ind[0][0]], ind[0][1]);
+
+		//	sum up
+			MidGrad += vGlobalGrad[sh];
+		}
+
+	//	write result in array storage
+		aaError[elem] = VecTwoNorm(MidGrad) * pow(elemSize, 2./dim);
+	}
+}
+
 
 /// marks elements according to an attached error value field
 /**
@@ -266,7 +364,16 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
 
 // 	Compute error on elements
-	ComputeGradient(u, fct, aaError);
+	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
+		ComputeGradientLagrange1(u, fct, aaError);
+	else {
+		if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+			ComputeGradientCrouzeixRaviart(u, fct, aaError);
+		else {
+			UG_THROW("Unsupported finite element type " << u.local_finite_element_id(fct));
+		}
+	}
+
 
 // 	Mark elements for refinement
 	MarkElements(aaError, refiner, u, TOL, refineFrac, coarseFrac, maxLevel);
