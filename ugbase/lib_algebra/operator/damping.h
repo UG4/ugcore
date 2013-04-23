@@ -10,6 +10,7 @@
 
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
+#include "interface/linear_operator.h"
 
 namespace ug{
 
@@ -146,6 +147,6 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 		}
 };
 
-}
+}  // end namespace ug
 
 #endif /* __H__LIB_ALGEBRA__OPERATOR__DAMPING__ */

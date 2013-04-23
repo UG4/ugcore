@@ -12,8 +12,9 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__LINE_SMOOTHERS__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__LINE_SMOOTHERS__
 
-#include "lib_algebra/operator/interface/operator.h"
-#include "lib_algebra/operator/interface/operator_iterator.h"
+#include "common/util/smart_pointer.h"
+#include "lib_algebra/operator/interface/preconditioner.h"
+
 #include "lib_algebra/algebra_common/core_smoothers.h"
 #include "lib_disc/dof_manager/lexorder.h"
 #include "lib_grid/algorithms/attachment_util.h"

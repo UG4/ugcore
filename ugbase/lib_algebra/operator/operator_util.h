@@ -3,8 +3,9 @@
 
 
 #include "common/profiler/profiler.h"
-#include "lib_algebra/operator/interface/operator.h"
-#include "lib_algebra/operator/interface/operator_inverse.h"
+#include "common/util/smart_pointer.h"
+#include "lib_algebra/operator/interface/linear_operator.h"
+#include "lib_algebra/operator/interface/linear_operator_inverse.h"
 
 namespace ug{
 

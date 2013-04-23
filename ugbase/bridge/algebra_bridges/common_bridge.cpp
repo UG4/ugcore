@@ -17,8 +17,14 @@
 
 // operator interfaces
 #include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/matrix_operator.h"
+#include "lib_algebra/operator/interface/matrix_operator_inverse.h"
+#include "lib_algebra/operator/interface/preconditioner.h"
+#include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/operator_inverse.h"
-#include "lib_algebra/operator/interface/operator_iterator.h"
+#include "lib_algebra/operator/interface/linear_iterator.h"
+
+#include "lib_algebra/operator/debug_writer.h"
 
 // operator util
 #include "lib_algebra/operator/preconditioner/iterator_product.h"

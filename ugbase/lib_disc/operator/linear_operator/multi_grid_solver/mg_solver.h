@@ -17,7 +17,7 @@
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/distributed_grid.h"
 #endif
-#include "lib_algebra/operator/interface/operator_iterator.h"
+#include "lib_algebra/operator/interface/linear_iterator.h"
 #include "lib_algebra/operator/interface/operator_inverse.h"
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_algebra/operator/preconditioner/jacobi.h"

@@ -8,7 +8,14 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__ITERATOR_OPERATOR_INVERSE__
 #define __H__UG__LIB_DISC__OPERATOR__ITERATOR_OPERATOR_INVERSE__
 
-#include "lib_algebra/operator/interface/operator_iterator.h"
+#include <string>
+
+#include "common/util/smart_pointer.h"
+#include "lib_algebra/operator/interface/linear_iterator.h"
+#include "lib_algebra/operator/interface/linear_operator_inverse.h"
+#include "lib_algebra/operator/interface/preconditioner.h"
+
+#include "common/log.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"

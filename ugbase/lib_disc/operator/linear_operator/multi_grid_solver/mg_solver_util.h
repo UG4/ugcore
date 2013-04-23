@@ -14,12 +14,11 @@
 // library intern headers
 #include "common/common.h"
 #ifdef UG_PARALLEL
+	#include "lib_algebra/parallelization/parallel_storage_type.h"
 	#include "lib_grid/parallelization/distributed_grid.h"
 #endif
-#include "lib_algebra/operator/interface/operator_iterator.h"
-#include "lib_algebra/operator/interface/operator_inverse.h"
-#include "lib_algebra/operator/interface/operator.h"
 
+#include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/dof_manager/mg_dof_distribution.h"
 
 //only for debugging!!!

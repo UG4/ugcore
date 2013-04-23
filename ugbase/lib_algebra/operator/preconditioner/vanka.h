@@ -8,7 +8,8 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__VANKA__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__VANKA__
 
-#include "lib_algebra/operator/interface/operator_iterator.h"
+#include "common/util/smart_pointer.h"
+#include "lib_algebra/operator/interface/preconditioner.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_util.h"

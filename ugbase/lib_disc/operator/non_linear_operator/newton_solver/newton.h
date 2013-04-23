@@ -11,6 +11,8 @@
 #include <cmath>
 
 #include "lib_algebra/operator/interface/operator_inverse.h"
+#include "lib_algebra/operator/interface/linear_operator_inverse.h"
+#include "lib_algebra/operator/debug_writer.h"
 
 // modul intern headers
 #include "lib_disc/assemble_interface.h"

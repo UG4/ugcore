@@ -8,7 +8,7 @@
 #ifndef __H__LIB_ALGEBRA__MATRIX_OPERATOR_FUNCTIONS__
 #define __H__LIB_ALGEBRA__MATRIX_OPERATOR_FUNCTIONS__
 
-#include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/matrix_operator.h"
 
 namespace ug
 {

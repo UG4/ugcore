@@ -12,7 +12,7 @@
 #include "common/util/file_util.h"
 
 #include "lib_algebra/cpu_algebra/sparsematrix_print.h"
-#include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "lib_algebra/operator/vector_writer.h"
 #include "lib_disc/io/vtkoutput.h"

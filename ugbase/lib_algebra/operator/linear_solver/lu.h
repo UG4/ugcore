@@ -10,7 +10,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "lib_algebra/operator/interface/operator_inverse.h"
+#include "common/common.h"
+#include "lib_algebra/operator/interface/matrix_operator_inverse.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"

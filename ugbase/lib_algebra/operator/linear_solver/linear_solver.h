@@ -10,7 +10,8 @@
 #include <iostream>
 #include <string>
 
-#include "lib_algebra/operator/interface/operator.h"
+#include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
+#include "lib_algebra/operator/interface/linear_solver_profiling.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif

@@ -11,11 +11,19 @@
 #ifndef __H__UG__LIB_ALGEBRA__PINVIT_H__
 #define __H__UG__LIB_ALGEBRA__PINVIT_H__
 
-#include "common/util/string_util.h"
-#include "lib_algebra/small_algebra/lapack/eigenvalue2.h"
 #include <complex>
+#include <vector>
+#include <string>
+#include "common/util/string_util.h"
 #include "common/util/sort_util.h"
 #include "additional_math.h"
+
+#include "lib_algebra/small_algebra/lapack/eigenvalue2.h"
+
+#include "lib_algebra/operator/interface/linear_operator.h"
+#include "lib_algebra/operator/interface/preconditioner.h"
+#include "lib_algebra/operator/interface/matrix_operator.h"
+#include "lib_algebra/operator/debug_writer.h"
 
 #define UG_ASSERT_EQUAL(a, b, txt) UG_ASSERT(a == b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] == [" << UG_TO_STRING(b) << " = " << b << "] ")
 #define UG_ASSERT_SMALLER_EQUAL(a, b, txt) UG_ASSERT(a <= b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] <= [" << UG_TO_STRING(b) << " = " << b << "] ")

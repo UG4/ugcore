@@ -48,8 +48,8 @@
 
 
 // operator interfaces
-#include "lib_algebra/operator/interface/operator.h"
-#include "lib_algebra/operator/interface/operator_inverse.h"
-#include "lib_algebra/operator/interface/operator_iterator.h"
+//#include "lib_algebra/operator/interface/operator.h"
+//#include "lib_algebra/operator/interface/operator_inverse.h"
+//#include "lib_algebra/operator/interface/operator_iterator.h"
 
 #endif /* __H__LIB_ALGEBRA__LIB_ALGEBRA__ */

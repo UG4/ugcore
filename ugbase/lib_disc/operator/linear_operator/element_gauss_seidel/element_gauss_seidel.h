@@ -10,7 +10,7 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ELEMENT_GAUSS_SEIDEL__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__ELEMENT_GAUSS_SEIDEL__
 
-#include "lib_algebra/operator/interface/operator_iterator.h"
+#include "lib_algebra/operator/interface/preconditioner.h"
 
 #include <vector>
 #include <algorithm>
