@@ -75,6 +75,13 @@ uggrep()
 	fgrep -r "$1" $UG4_ROOT
 }
 
+ug4svnupdate()
+{
+	cd $UG4_ROOT
+	svn update
+	cd -
+}
+
 source uginstall_config
 
 alias ugrelib="rm $UG4_ROOT/lib/*; rm $UG4_ROOT/bin/ugshell"
