@@ -633,7 +633,7 @@ inline void MatMultTransposedAdd(vector_t &dest,
 } // namespace ug
 
 //#include "matrixrow.h"
-#include "SparseMatrix_impl.h"
-#include "SparseMatrix_print.h"
+#include "sparsematrix_impl.h"
+#include "sparsematrix_print.h"
 
 #endif
