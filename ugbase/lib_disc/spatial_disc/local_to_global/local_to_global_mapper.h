@@ -35,7 +35,7 @@ class ILocalToGlobalMapper
 
 	public:
 	///	default Constructor
-		ILocalToGlobalMapper() {}
+		ILocalToGlobalMapper() {};
 
 	///	send local entries to global matrix
 		virtual void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd) = 0;
