@@ -15,7 +15,7 @@
 
 #include "lib_algebra/common/operations_vec.h"
 #include "common/profiler/profiler.h"
-#include "SparseMatrix.h"
+#include "sparsematrix.h"
 #include <vector>
 #include <algorithm>
 
