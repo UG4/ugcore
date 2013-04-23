@@ -478,7 +478,7 @@ protected:
     int get_index_const(size_t r, size_t c) const
     {
         if(rowStart[r] == -1 || rowStart[r] == rowEnd[r]) return -1;
-        size_t index=get_index_internal(r, c);
+        int index=get_index_internal(r, c);
 		if(index < maxValues && cols[index] == c)
             return index;
         else
@@ -504,7 +504,7 @@ protected:
         /*    for(int i=rowStart[r]; i<rowEnd[r]; i++)
          if(cols[i] == c)
          return i;*/
-        size_t index=get_index_internal(r, c);
+        int index=get_index_internal(r, c);
         if(index < rowEnd[r]
 				&& index < maxValues && cols[index] == c)
             return index;
@@ -524,7 +524,7 @@ protected:
             }
             fragmented += rowEnd[r]-rowStart[r];
             index = index-rowStart[r]+maxValues;
-            size_t j=rowEnd[r]-rowStart[r]+maxValues;
+            int j=rowEnd[r]-rowStart[r]+maxValues;
             if(rowEnd[r] != 0)
                 for(int i=rowEnd[r]-1; i>=rowStart[r]; i--, j--)
                 {
