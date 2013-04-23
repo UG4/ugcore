@@ -475,7 +475,7 @@ protected:
     }
 
 
-    int get_index_const(size_t r, size_t c) const
+    int get_index_const(int r, int c) const
     {
         if(rowStart[r] == -1 || rowStart[r] == rowEnd[r]) return -1;
         int index=get_index_internal(r, c);
@@ -486,7 +486,7 @@ protected:
     }
 
 
-    int get_index(size_t r, size_t c)
+    int get_index(int r, int c)
     {
         if(rowStart[r] == -1 || rowStart[r] == rowEnd[r])
         {
@@ -505,8 +505,10 @@ protected:
          if(cols[i] == c)
          return i;*/
         int index=get_index_internal(r, c);
+
         if(index < rowEnd[r]
-				&& index < maxValues && cols[index] == c)
+				&& index < maxValues
+				&& cols[index] == c)
             return index;
 
 		assert(index == rowEnd[r] || cols[index] > c);
@@ -517,7 +519,7 @@ protected:
         if(rowEnd[r] == rowMax[r])
         {
             int newSize = (rowEnd[r]-rowStart[r])*2;
-            if(maxValues+newSize > cols.size())
+            if(maxValues+newSize > (int)cols.size())
             {
                 assureValuesSize(maxValues+newSize);
                 index=get_index_internal(r, c);
@@ -605,8 +607,8 @@ protected:
     bool bNeedsValues;
 
     std::vector<value_type> values;
-    size_t maxValues;
-    size_t m_numCols;
+    int maxValues;
+    int m_numCols;
 };
 
 
