@@ -3,9 +3,9 @@
  *
  * \author Martin Rupp
  *
- * \date 26.11.2009
+ * \date 29.10.2012
  *
- * Goethe-Center for Scientific Computing 2009-2010.
+ * Goethe-Center for Scientific Computing 2012
  */
 
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
@@ -13,18 +13,14 @@
 
 #include "math.h"
 #include "common/common.h"
-
-#include "../common/template_expressions.h"
-#include "vector.h"
+#include "../algebra_common/sparsematrix_util.h"
 #include "../common/operations_mat/operations_mat.h"
 
 namespace ug{
 
 /// \addtogroup cpu_algebra
-/// \{
+///	@{
 
-template<typename value_type> class matrixrow;
-template<typename vec_type> class Vector;
 
 /** SparseMatrix
  *  \brief sparse matrix for big, variable sparse matrices.
@@ -37,6 +33,7 @@ template<typename vec_type> class Vector;
  *
  * \sa matrixrow, CreateAsMultiplyOf
  * \param T blocktype
+ * \param T blocktype
  */
 template<typename TValueType> class SparseMatrix
 {
@@ -45,20 +42,16 @@ public:
 	enum {rows_sorted=true};
 
 	typedef SparseMatrix<value_type> this_type;
-	typedef matrixrow<value_type> row_type;
-	typedef matrixrow<value_type> matrixrow_type;
-
 
 public:
 	struct connection
 	{
 		size_t iIndex;		// index to
 		value_type dValue; // smallmatrix value;
-
 		connection() {}
 		connection(size_t i, const value_type &v)
 		: iIndex(i), dValue(v) {}
-		
+
 		void print(){std::cout << *this;}
 		friend std::ostream &operator<<(std::ostream &output, const connection &c)
 		{
@@ -87,7 +80,7 @@ public:
 	/// constructor for empty SparseMatrix
 	SparseMatrix();
 	/// destructor
-	virtual ~SparseMatrix ();
+	virtual ~SparseMatrix () {}
 
 
 	/**
@@ -200,12 +193,6 @@ public:
 
 
 
-	/**
-	 * \brief defragmentates the matrix by writing all matrix rows consecutively in memory.
-	 * Sets pRowEnd = pRowStart+1.
-	 */
-	void defragment();
-
 
 	//! set matrix to Id*a
 	bool set(double a);
@@ -214,11 +201,20 @@ public:
 	 * access connection (r, c)
 	 * \param r row
 	 * \param c column
-	 * \note it is assert'ed that connection (r,c) is there
-	 * use operator()(r,c,bConnectionFound) to check.
+	 * \note if connection (r, c) is not there, returns 0.0
 	 * \return SparseMat(r, c)
 	 */
-	const value_type &operator() (size_t r, size_t c) const;
+	const value_type &operator () (size_t r, size_t c)  const
+    {
+        int j=get_index_const(r, c);
+		if(j == -1)
+		{
+			static value_type v(0.0);
+			return v;
+		}
+        UG_ASSERT(cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
+        return values[j];
+    }
 
 	/** operator() (size_t r, size_t c) const
 	 * access or create connection (r, c)
@@ -228,7 +224,12 @@ public:
 	 * use operator()(r,c,bConnectionFound) to prevent
 	 * \return SparseMat(r, c)=0.0 if connection created, otherwise SparseMat(r, c)
 	 */
-	value_type &operator() (size_t r, size_t c);
+	value_type &operator() (size_t r, size_t c)
+	{
+		int j=get_index(r, c);
+        UG_ASSERT(j != -1 && cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
+        return values[j];
+    }
 
 public:
 	// row functions
@@ -256,7 +257,11 @@ public:
 	void add_matrix_row(size_t row, connection *c, size_t nr);
 
 	//! returns number of connections of row row.
-	inline size_t num_connections(size_t row) const;
+	inline size_t num_connections(size_t i) const
+	{
+		if(rowStart[i] == -1) return 0;
+		else return rowEnd[i]-rowStart[i];
+	}
 
 	//! calculates dest += alpha * A[row, .] v;
 	template<typename vector_t>
@@ -266,12 +271,13 @@ public:
 	//----------------------
 
 	//! returns number of rows
-	size_t num_rows() const { return rows; }
+	size_t num_rows() const { return rowEnd.size(); }
+
 	//! returns the number of cols
-	size_t num_cols() const { return cols; }
+	size_t num_cols() const { return m_numCols; }
 
 	//! returns the total number of connections
-	size_t total_num_connections() const { return iTotalNrOfConnections; }
+	size_t total_num_connections() const { return nnz; }
 
 public:
 
@@ -296,115 +302,40 @@ public:
 	 *  row_iterator
 	 *  iterator over a row
 	 */
+
 	class row_iterator
-	{
-	private:
-		connection *p;
-
-#ifdef UG_DEBUG
-		connection *pEnd;
-	public:
-		inline row_iterator(connection *pC, connection *pE)
-		: p(pC), pEnd(pE)
-		  { }
-
-		inline void check() const
-		{
-			UG_ASSERT(p != pEnd, "iterator is at end.");
-		}
-#else
-	public:
-		inline row_iterator(connection *pC, connection *pE)
-			: p(pC)
-			  { }
-		inline void check() const {}
-#endif
-
-		inline connection &operator *() const {check(); return *p;}
-
-		inline size_t index() const { check(); return p->iIndex; }
-		inline value_type &value() const { check(); return p->dValue; }
-
-		inline void operator ++() {	check(); ++p; }
-		inline void operator += (int nr) { check(); p+=nr;}
-
-		bool operator != (const row_iterator &other) const
-		{
-			return other.p != p;
-		}
-		bool operator == (const row_iterator &other) const
-		{
-			return other.p == p;
-		}
-	};
-
-	class const_row_iterator
-	{
-	private:
-		connection *p;
-
-#ifdef UG_DEBUG
-		connection *pEnd;
-	public:
-		inline const_row_iterator(connection *pC, connection *pE)
-		: p(pC), pEnd(pE)
-		  { }
-
-		inline void check() const
-		{
-			UG_ASSERT(p != pEnd, "iterator is at end.");
-		}
-#else
-	public:
-		inline const_row_iterator(connection *pC, connection *pE)
-			: p(pC)
-			  { }
-		inline void check() const {}
-#endif
-
-		inline const connection &operator *() const {check(); return *p;}
-
-		inline size_t index() const { check(); return p->iIndex; }
-		inline const value_type &value() const { check(); return p->dValue; }
-
-		inline void operator ++() {	check(); ++p; }
-		inline void operator += (int nr) { check(); p+=nr;}
-
-		bool operator != (const const_row_iterator &other) const
-		{
-			return other.p != p;
-		}
-		bool operator == (const const_row_iterator &other) const
-		{
-			return other.p == p;
-		}
-	};
+    {
+        SparseMatrix &A;
+        size_t i;
+    public:
+        row_iterator(SparseMatrix &_A, size_t _i) : A(_A), i(_i) {}
+        value_type &value() { return A.values[i];   }
+        size_t index() const { return A.cols[i];     }
+        bool operator != (const row_iterator &o) const { return i != o.i; }
+        void operator ++ () { ++i; }
+		void operator += (int nr) { i+=nr; }
+		bool operator == (const row_iterator &other) const { return other.i == i; }
+    };
+    class const_row_iterator
+    {
+        const SparseMatrix &A;
+        size_t i;
+    public:
+        const_row_iterator(const SparseMatrix &_A, size_t _i) : A(_A), i(_i) {}
+        const value_type &value() const { return A.values[i];   }
+        size_t index() const { return A.cols[i];     }
+        bool operator != (const const_row_iterator &o) const { return i != o.i; }
+        void operator ++ () { ++i; }
+		bool operator == (const const_row_iterator &other) const { return other.i == i; }
+    };
 
 
-	// iterators
-	const_row_iterator begin_row(size_t row) const
-	{
-		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
-		return const_row_iterator(pRowStart[row], pRowEnd[row]);
-	}
 
-	row_iterator begin_row(size_t row)
-	{
-		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
-		return row_iterator(pRowStart[row], pRowEnd[row]);
-	}
 
-	const_row_iterator end_row(size_t row) const
-	{
-		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
-		return const_row_iterator(pRowEnd[row], pRowEnd[row]);
-	}
-
-	row_iterator end_row(size_t row)
-	{
-		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
-		return row_iterator(pRowEnd[row], pRowEnd[row]);
-	}
+	row_iterator         begin_row(size_t r)         { return row_iterator(*this, rowStart[r]);  }
+    row_iterator         end_row(size_t r)           { return row_iterator(*this, rowEnd[r]);  }
+    const_row_iterator   begin_row(size_t r) const   { return const_row_iterator(*this, rowStart[r]);  }
+    const_row_iterator   end_row(size_t r)   const   { return const_row_iterator(*this, rowEnd[r]);  }
 
 public:
 	// connectivity functions
@@ -416,28 +347,68 @@ public:
 	 * \param c index of the column
 	 * \return a const_row_iterator to the connection A(r,c) if existing, otherwise end_row(row)
 	 */
-	const_row_iterator get_connection(size_t r, size_t c, bool &bFound) const;
-
+	const_row_iterator get_connection(size_t r, size_t c, bool &bFound) const
+	{
+        int j=get_index_const(r, c);
+		if(j != -1)
+		{
+			bFound = true;
+			return const_row_iterator(*this, j);
+		}
+		else
+		{
+			bFound = false;
+			return end_row(r);
+		}
+    }
 	/**
 	 * \param r index of the row
 	 * \param c index of the column
 	 * \return a row_iterator to the connection A(r,c) if existing, otherwise end_row(row)
 	 */
-	row_iterator get_connection(size_t r, size_t c, bool &bFound);
+	row_iterator get_connection(size_t r, size_t c, bool &bFound)
+	{
+		int j=get_index_const(r, c);
+		if(j != -1)
+		{
+			bFound = true;
+			return row_iterator(*this, j);
+		}
+		else
+		{
+			bFound = false;
+			return end_row(r);
+		}
+	}
 
 	/**
 	 * \param r index of the row
 	 * \param c index of the column
 	 * \return a const_row_iterator to the connection A(r,c) if existing, otherwise end_row(row)
 	 */
-	const_row_iterator get_connection(size_t r, size_t c) const;
+	const_row_iterator get_connection(size_t r, size_t c) const
+	{
+		bool b;
+		return get_connection(r, c, b);
+	}
 	/**
 	 * \param r index of the row
 	 * \param c index of the column
 	 * \return a row_iterator to the connection A(r,c)
 	 * \remark creates connection if necessary.
 	 */
-	row_iterator get_connection(size_t r, size_t c);
+	row_iterator get_connection(size_t r, size_t c)
+	{
+		assert(bNeedsValues);
+        int j=get_index(r, c);
+		return row_iterator(*this, j);
+	}
+
+
+	void defragment()
+    {
+        copyToNewSize(nnz);
+    }
 
 public:
 	// output functions
@@ -452,7 +423,7 @@ public:
 	friend std::ostream &operator<<(std::ostream &out, const SparseMatrix &m)
 	{
 		out << "SparseMatrix " //<< m.name
-		<< " [ " << m.rows << " x " << m.cols << " ]";
+		<< " [ " << m.num_rows() << " x " << m.num_cols() << " ]";
 		return out;
 	}
 
@@ -465,110 +436,177 @@ private:
 	//---------------------------------------
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
 
-private:
-	/**
-	 * \brief private method to create the matrix
-	 * \param _rows nr of rows
-	 * \param _cols nr of cols
-	 * \return true on sucess
-	 */
-	bool create(size_t _rows, size_t _cols);
-	bool destroy();
 
-	/**
-	 * \brief returns the matrix in a condition where you can change rowssizes (add connections).
-	 * creates own pRowEnd array, so that rows dont have to be consecutive anymore
-	 */
-	void definalize();
 
-	/**
-	 * \return true, if matrix is finalized
-	 */
-	void finalize()
+
+    void assureValuesSize(size_t s)
+    {
+        if(s < cols.size()) return;
+        size_t newSize = nnz*2;
+        if(newSize < s) newSize = s;
+        copyToNewSize(newSize);
+
+    }
+	size_t get_nnz() const { return nnz; }
+
+protected:
+	int get_index_internal(size_t row, int col) const
+    {
+        assert(rowStart[row] != -1);
+        int l = rowStart[row];
+		int r = rowEnd[row];
+		int mid=0;
+        while(l < r)
+        {
+            mid = (l+r)/2;
+            if(cols[mid] < col)
+                l = mid+1;
+            else if(cols[mid] > col)
+                r = mid-1;
+            else
+                return mid;
+        }
+        mid = (l+r)/2;
+        if(mid < rowStart[row])
+            return rowStart[row];
+        if(mid == rowEnd[row] || col <= cols[mid])
+            return mid;
+        else return mid+1;
+    }
+
+
+    int get_index_const(size_t r, size_t c) const
+    {
+        if(rowStart[r] == -1 || rowStart[r] == rowEnd[r]) return -1;
+        size_t index=get_index_internal(r, c);
+		if(index < maxValues && cols[index] == c)
+            return index;
+        else
+            return -1;
+    }
+
+
+    int get_index(size_t r, size_t c)
+    {
+        if(rowStart[r] == -1 || rowStart[r] == rowEnd[r])
+        {
+            assureValuesSize(maxValues+1);
+            rowStart[r] = maxValues;
+            rowEnd[r] = maxValues+1;
+            rowMax[r] = maxValues+1;
+            if(bNeedsValues) values[maxValues] = 0.0;
+            cols[maxValues] = c;
+            maxValues++;
+            nnz++;
+            return maxValues-1;
+        }
+
+        /*    for(int i=rowStart[r]; i<rowEnd[r]; i++)
+         if(cols[i] == c)
+         return i;*/
+        size_t index=get_index_internal(r, c);
+        if(index < rowEnd[r]
+				&& index < maxValues && cols[index] == c)
+            return index;
+
+		assert(index == rowEnd[r] || cols[index] > c);
+		assert(index == rowStart[r] || cols[index-1] < c);
+		for(int i=rowStart[r]+1; i<rowEnd[r]; i++)
+			assert(cols[i] > cols[i-1]);
+
+        if(rowEnd[r] == rowMax[r])
+        {
+            int newSize = (rowEnd[r]-rowStart[r])*2;
+            if(maxValues+newSize > cols.size())
+            {
+                assureValuesSize(maxValues+newSize);
+                index=get_index_internal(r, c);
+            }
+            fragmented += rowEnd[r]-rowStart[r];
+            index = index-rowStart[r]+maxValues;
+            size_t j=rowEnd[r]-rowStart[r]+maxValues;
+            if(rowEnd[r] != 0)
+                for(int i=rowEnd[r]-1; i>=rowStart[r]; i--, j--)
+                {
+                    if(j==index) j--;
+                    if(bNeedsValues) values[j] = values[i];
+                    cols[j] = cols[i];
+                    if(i==rowStart[r]) break;
+                }
+            rowEnd[r] = maxValues+rowEnd[r]-rowStart[r]+1;
+            rowStart[r] = maxValues;
+            rowMax[r] = maxValues+newSize;
+            maxValues += newSize;
+        }
+        else
+        {
+            if(rowEnd[r] != 0)
+                for(int i=rowEnd[r]-1; i>=index; i--)
+                {
+                    if(bNeedsValues) values[i+1] = values[i];
+                    cols[i+1] = cols[i];
+                    if(i==index) break;
+                }
+            rowEnd[r]++;
+        }
+        if(bNeedsValues) values[index] = 0.0;
+        cols[index] = c;
+        assert(index >= rowStart[r] && index < rowEnd[r]);
+        nnz++;
+
+		for(int i=rowStart[r]+1; i<rowEnd[r]; i++)
+			assert(cols[i] > cols[i-1]);
+        return index;
+
+    }
+    void copyToNewSize(size_t newSize)
+    {
+        //std::cout << "increasing from " << cols.size() << " to " << newSize << "\n";
+        std::vector<value_type> v(newSize);
+        std::vector<int> c(newSize);
+        size_t j=0;
+        for(size_t r=0; r<num_rows(); r++)
+        {
+            if(rowStart[r] == -1)
+				rowStart[r] = rowEnd[r] = rowMax[r] = j;
+			else
+			{
+				size_t start=j;
+				for(int k=rowStart[r]; k<rowEnd[r]; k++, j++)
+				{
+					if(bNeedsValues) v[j] = values[k];
+					c[j] = cols[k];
+				}
+				rowStart[r] = start;
+				rowEnd[r] = rowMax[r] = j;
+			}
+        }
+        rowStart[num_rows()] = rowEnd[num_rows()-1];
+        fragmented = 0;
+        maxValues = j;
+        if(bNeedsValues) std::swap(values, v);
+        std::swap(cols, c);
+    }
+
+	void check_fragmentation() const
 	{
-		defragment();
+		if((double)nnz/(double)maxValues < 0.9)
+			(const_cast<this_type*>(this))->defragment();
 	}
-	bool is_finalized() const;
-
-	/**
-	 *
-	 *
-	 */
-
-	/**
-	 * "safe" way to set a connection, since when cons[row] is in the big consecutive consmem-array,
-	 * you must NOT delete[] mem.
-	 * @param row row of which to set new connections
-	 * @param mem connection array created with new. SparseMatrix deallocates it in the future
-	 */
-	void safe_set_connections(size_t row, connection *mem) const;
-
-	/**
-	 * \param row index of the row
-	 * \return true if row is in the big consecutive consmem-array
-	 */
-	bool in_consmem(size_t row) const;
-
-private:
-	enum get_connection_nr_flag
-	{
-		// find the first (in terms of distance) which is
-		LESS =1,
-		LESS_EQUAL = 2,
-		EQUAL = 3,
-		GREATER_EQUAL = 4,
-		GREATER = 5
-		// than the connection (r,c)
-	};
 
 
-	/**
-	 * searches connections A(r,c)
-	 * \param r index of the row
-	 * \param c index of the column
-	 * \param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= depending on flag
-	 * \param flag EQUAL, LESS_EQUAL, LESS, GREATER, or GREATER_EQUAL
-	 * \return true if connection was exactly found in = mode, otherwise always false if no connection at all.
-	 * \remarks flag=EQUAL is standard parameter
-	 */
-	bool get_connection_nr(size_t r, size_t c, size_t &nr, get_connection_nr_flag flag=EQUAL) const;
+protected:
+    std::vector<int> rowStart;
+    std::vector<int> rowEnd;
+    std::vector<int> rowMax;
+    std::vector<int> cols;
+    size_t fragmented;
+    size_t nnz;
+    bool bNeedsValues;
 
-	/**
-	 * binary searches connection A(r,c).
-	 * \param r index of the row
-	 * \param c index of the column
-	 * \param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= \sa get_connection_nr
-	 * \return true if connection was exactly found in = mode, otherwise always true.
-	 * \remarks >=/>/=/<=/< depends on template parameter flag
-	 */
-	template<size_t flag>
-	bool get_connection_nr_templ(size_t r, size_t c, size_t &nr) const;
-
-
-public:
-	//     data
-	//----------------------
-
-private:
-	size_t rows;						//!< nr of rows
-	size_t cols;						//!< nr of cols
-	connection **pRowStart;				//< pointers to array of beginning of connections of each row
-	connection **pRowEnd;				//< pointers to array of ends of connections of each row
-
-	size_t iTotalNrOfConnections;		//!< number of connections ("non-zeros")
-	size_t bandwidth;					//!< bandwidth (experimental)
-
-	size_t estimatedRowSize;			//!< estimated length of each row
-	size_t *iMaxNrOfConnections;		//!< max nr of connections for row [i]. TODO.
-
-
-	connection *consmem;				//!< consecutive memory for the connections
-	size_t consmemsize;					//!< size of the consecutive memory for connections
-	size_t iFragmentedMem;				//!< size of connections memory not in consmem
-
-	bool m_bIgnoreZeroes;				//!< if set, add and set wont set connections which are zero
-
-	friend class matrixrow<value_type>;
+    std::vector<value_type> values;
+    size_t maxValues;
+    size_t m_numCols;
 };
 
 
@@ -579,8 +617,6 @@ struct matrix_algebra_type_traits<SparseMatrix<T> >
 		type=MATRIX_USE_ROW_FUNCTIONS
 	};
 };
-
-
 
 //! calculates dest = alpha1*v1 + beta1 * A1^T *w1;
 template<typename vector_t, typename matrix_t>
@@ -597,8 +633,7 @@ inline void MatMultTransposedAdd(vector_t &dest,
 } // namespace ug
 
 //#include "matrixrow.h"
-#include "sparsematrix_impl.h"
-#include "../algebra_common/sparsematrix_util.h"
-#include "sparsematrix_print.h"
+#include "SparseMatrix_impl.h"
+#include "SparseMatrix_print.h"
 
 #endif

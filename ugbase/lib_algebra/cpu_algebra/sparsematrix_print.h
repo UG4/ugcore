@@ -3,26 +3,29 @@
  *
  * \author Martin Rupp
  *
- * \date 04.11.2009
+ * \date 29.10.2012
  *
- * Goethe-Center for Scientific Computing 2009-2010.
+ * Goethe-Center for Scientific Computing 2012
  */
 
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__
 #define  __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__
 
-#include "sparsematrix.h"
+#include "SparseMatrix.h"
 #include "common/common.h"
 
 namespace ug {
+
+/// \addtogroup crs_algebra
+/// \{
 
 //!
 //! print to console whole SparseMatrix
 template<typename T>
 void SparseMatrix<T>::print(const char * const text) const
 {
-	UG_LOG("================= SparseMatrix " << rows << "x" << cols << " =================\n");
-	for(size_t i=0; i < rows; i++)
+	UG_LOG("================= SparseMatrix " << num_rows() << "x" << num_cols() << " =================\n");
+	for(size_t i=0; i < num_rows(); i++)
 		printrow(i);
 }
 
@@ -48,6 +51,9 @@ void SparseMatrix<T>::printtype() const
 {
 	std::cout << *this;
 }
+
+// end group crs_algebra
+/// \}
 
 }
 #endif // __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__
