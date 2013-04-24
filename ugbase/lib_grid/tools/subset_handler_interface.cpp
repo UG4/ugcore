@@ -1112,28 +1112,33 @@ void ISubsetHandler::
 vertices_to_be_merged(Grid* grid, VertexBase* target,
 					 VertexBase* elem1, VertexBase* elem2)
 {
-	elems_to_be_merged(grid, target, elem1, elem2);
+	if(elements_are_supported(SHE_VERTEX))
+		elems_to_be_merged(grid, target, elem1, elem2);
+
 }
 
 void ISubsetHandler::
 edges_to_be_merged(Grid* grid, EdgeBase* target,
 				  EdgeBase* elem1, EdgeBase* elem2)
 {
-	elems_to_be_merged(grid, target, elem1, elem2);
+	if(elements_are_supported(SHE_EDGE))
+		elems_to_be_merged(grid, target, elem1, elem2);
 }
 
 void ISubsetHandler::
 faces_to_be_merged(Grid* grid, Face* target,
 					Face* elem1, Face* elem2)
 {
-	elems_to_be_merged(grid, target, elem1, elem2);
+	if(elements_are_supported(SHE_FACE))
+		elems_to_be_merged(grid, target, elem1, elem2);
 }
 
 void ISubsetHandler::
 volumes_to_be_merged(Grid* grid, Volume* target,
 					Volume* elem1, Volume* elem2)
 {
-	elems_to_be_merged(grid, target, elem1, elem2);
+	if(elements_are_supported(SHE_VOLUME))
+		elems_to_be_merged(grid, target, elem1, elem2);
 }
 
 }//	end of namespace
