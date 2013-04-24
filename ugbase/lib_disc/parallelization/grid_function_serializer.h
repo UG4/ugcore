@@ -98,19 +98,23 @@ class GridFunctionSerializer : public GridDataSerializer
 		{
 			std::vector<size_t>	indices;
 
-			for(typename Grid::traits<TElem>::iterator iter = m_grid->begin<TElem>();
-				iter != m_grid->end<TElem>(); ++iter)
+			for(typename TGridFct::template traits<TElem>::const_iterator iter = m_fct->template begin<TElem>();
+				iter != m_fct->template end<TElem>(); ++iter)
 			{
 				TElem* e = *iter;
 				Entry& entry = m_aaEntry[e];
 
-				indices.clear();
-				m_fct->inner_algebra_indices(e, indices);
+				if(!entry.values.empty()){
+					indices.clear();
+					m_fct->inner_algebra_indices(e, indices);
 
-				UG_ASSERT(entry.values.size() == indices.size(), "value <-> index mismatch!");
+					UG_ASSERT(entry.values.size() == indices.size(), "Wrong number of values given");
 
-				for(size_t i = 0; i < indices.size(); ++i){
-					(*m_fct)[indices[i]] = entry.values[i];
+					if(entry.values.size() == indices.size()){
+						for(size_t i = 0; i < indices.size(); ++i){
+							(*m_fct)[indices[i]] = entry.values[i];
+						}
+					}
 				}
 			}
 		}
