@@ -265,7 +265,7 @@ grid() const
 }
 
 bool ISubsetHandler::
-elements_are_supported(uint shElements)
+elements_are_supported(uint shElements) const
 {
 	return (m_supportedElements & shElements) == shElements;
 }

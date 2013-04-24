@@ -43,6 +43,38 @@ ISubsetHandler::get_attachment_pipe<Volume>(int subsetIndex)
 }
 */
 
+inline int ISubsetHandler::
+get_subset_index(VertexBase* elem) const
+{
+	if(elements_are_supported(SHE_VERTEX))
+		return m_aaSubsetIndexVRT[elem];
+	return -1;
+}
+
+inline int ISubsetHandler::
+get_subset_index(EdgeBase* elem) const
+{
+	if(elements_are_supported(SHE_EDGE))
+		return m_aaSubsetIndexEDGE[elem];
+	return -1;
+}
+
+inline int ISubsetHandler::
+get_subset_index(Face* elem) const
+{
+	if(elements_are_supported(SHE_FACE))
+		return m_aaSubsetIndexFACE[elem];
+	return -1;
+}
+
+inline int ISubsetHandler::
+get_subset_index(Volume* elem) const
+{
+	if(elements_are_supported(SHE_VOLUME))
+		return m_aaSubsetIndexVOL[elem];
+	return -1;
+}
+
 inline void ISubsetHandler::
 subset_assigned(VertexBase* v, int subsetIndex)
 {

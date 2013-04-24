@@ -242,7 +242,7 @@ class UG_API ISubsetHandler : public GridObserver
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		bool elements_are_supported(uint shElements);
+		bool elements_are_supported(uint shElements) const;
 
 	///	set the type of elements that shall be handled by the SubsetHandler.
 	/**	Pass an or-combination of constants enumerated in SubsetHandlerElements.
@@ -329,10 +329,10 @@ class UG_API ISubsetHandler : public GridObserver
 		void assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex);
 
 		int get_subset_index(GeometricObject* elem) const;
-		inline int get_subset_index(VertexBase* elem) const	{return m_aaSubsetIndexVRT[elem];}
-		inline int get_subset_index(EdgeBase* elem) const	{return m_aaSubsetIndexEDGE[elem];}
-		inline int get_subset_index(Face* elem) const		{return m_aaSubsetIndexFACE[elem];}
-		inline int get_subset_index(Volume* elem) const		{return m_aaSubsetIndexVOL[elem];}
+		inline int get_subset_index(VertexBase* elem) const;
+		inline int get_subset_index(EdgeBase* elem) const;
+		inline int get_subset_index(Face* elem) const;
+		inline int get_subset_index(Volume* elem) const;
 
 	///	returns the index of the first subset with the given name.
 	/**	If no subset with the given name exists, -1 is returned.
