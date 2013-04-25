@@ -423,6 +423,17 @@ void Grid::unmark(TIterator begin, TIterator end)
 
 
 ////////////////////////////////////////////////////////////////////////
+template <class TContainer>
+void Grid::get_associated(TContainer& container, GeometricObject* o)
+{
+	switch(o->base_object_id()){
+		case VERTEX: return get_associated(container, static_cast<VertexBase*>(o));
+		case EDGE: return get_associated(container, static_cast<EdgeBase*>(o));
+		case FACE: return get_associated(container, static_cast<Face*>(o));
+		case VOLUME: return get_associated(container, static_cast<Volume*>(o));
+	}
+}
+
 template <class TElem>
 void Grid::associated_elements(traits<VertexBase>::secure_container& elemsOut, TElem* e)
 {

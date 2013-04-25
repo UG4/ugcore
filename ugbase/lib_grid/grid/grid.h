@@ -1037,6 +1037,9 @@ class UG_API Grid
 		void get_associated(SecureVolumeContainer& vols, EdgeBase* e);
 		void get_associated(SecureVolumeContainer& vols, Face* f);
 
+		template <class TContainer>
+		void get_associated(TContainer& container, GeometricObject* o);
+
 		template <class TElem>
 		void get_associated(typename traits<typename TElem::geometric_base_object>
 							::secure_container& elems, TElem* e);
