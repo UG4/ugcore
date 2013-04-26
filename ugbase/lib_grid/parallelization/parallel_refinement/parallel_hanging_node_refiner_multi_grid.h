@@ -73,6 +73,17 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 	/**	Notifies the associated distGridMgr that elements have been erased.*/
 		virtual void post_coarsen();
 
+	///	copies the current marks in the ref-mark-selector from v-slaves to v-masters
+	/**	This is only required during coarsening.*/
+		template <class TElem, class TIntfcCom>
+		void copy_marks_to_vmasters(TIntfcCom& com);
+
+	///	called by the coarsen method in order to adjust the selection to valid elements.
+	/**	This method is responsible to mark all elements that shall be coarsened.
+	 * It calls the base implementation and performs some communication of marks
+	 * between vslaves and vmasters after completion.*/
+		virtual void collect_objects_for_coarsen();
+
 	///	called to check, whether another iteration of collect_objects_for_coarsen has to be performed.
 		virtual bool continue_collect_objects_for_coarsen(bool continueRequired);
 
@@ -99,6 +110,7 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		pcl::InterfaceCommunicator<VertexLayout> m_intfComVRT;
 		pcl::InterfaceCommunicator<EdgeLayout> m_intfComEDGE;
 		pcl::InterfaceCommunicator<FaceLayout> m_intfComFACE;
+		pcl::InterfaceCommunicator<VolumeLayout> m_intfComVOL;
 };
 
 /// @}

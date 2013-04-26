@@ -217,7 +217,7 @@ public:
 			static value_type v(0.0);
 			return v;
 		}
-        UG_ASSERT(cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
+        UG_ASSERT(cols[j]==(int)c && j >= rowStart[r] && j < rowEnd[r], "");
         return values[j];
     }
 
@@ -232,7 +232,7 @@ public:
 	value_type &operator() (size_t r, size_t c)
 	{
 		int j=get_index(r, c);
-        UG_ASSERT(j != -1 && cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
+        UG_ASSERT(j != -1 && cols[j]==(int)c && j >= rowStart[r] && j < rowEnd[r], "");
         return values[j];
     }
 

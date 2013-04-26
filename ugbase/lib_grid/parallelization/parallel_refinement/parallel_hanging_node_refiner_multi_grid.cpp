@@ -427,9 +427,32 @@ set_involved_processes(pcl::ProcessCommunicator com)
 	m_procCom = com;
 }
 
+template <class TElem, class TIntfcCom>
+void ParallelHangingNodeRefiner_MultiGrid::
+copy_marks_to_vmasters(TIntfcCom& com)
+{
+	typedef typename GridLayoutMap::Types<TElem>::Layout	TLayout;
+	ComPol_Selection<TLayout> comPol(get_refmark_selector());
 
-bool
-ParallelHangingNodeRefiner_MultiGrid::
+	com.exchange_data(m_pDistGridMgr->grid_layout_map(),
+					  INT_V_SLAVE, INT_V_MASTER, comPol);
+	com.communicate();
+}
+
+void ParallelHangingNodeRefiner_MultiGrid::
+collect_objects_for_coarsen()
+{
+	BaseClass::collect_objects_for_coarsen();
+//	marks are now consistent across h-interfaces. however, we have to
+//	copy marks to v-masters, too, since those may have to be coarsened or
+//	transformed, too
+	copy_marks_to_vmasters<VertexBase>(m_intfComVRT);
+	copy_marks_to_vmasters<EdgeBase>(m_intfComEDGE);
+	copy_marks_to_vmasters<Face>(m_intfComFACE);
+	copy_marks_to_vmasters<Volume>(m_intfComVOL);
+}
+
+bool ParallelHangingNodeRefiner_MultiGrid::
 continue_collect_objects_for_coarsen(bool continueRequired)
 {
 	return (bool)m_procCom.allreduce((int)continueRequired, PCL_RO_LOR);

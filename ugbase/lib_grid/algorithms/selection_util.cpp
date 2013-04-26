@@ -303,7 +303,8 @@ void ExtendSelection(Selector& sel, size_t extSize)
 }
 
 template <class TGeomObj>
-void SelectionFill(Selector& sel)
+void SelectionFill(Selector& sel,
+				   typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary)
 {
 	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
 	typedef typename TGeomObj::lower_dim_base_object Side;
@@ -336,8 +337,8 @@ void SelectionFill(Selector& sel)
 	//	collect all sides in a vector
 		CollectAssociated(sides, grid, o);
 		for(size_t i = 0; i < sides.size(); ++i){
-		//	if the side is selected, we don't have to process it
-			if(sel.is_selected(sides[i]))
+		//	if the side is a region boundary, we don't have to process it
+			if(cbRegionBoundary(sides[i]))
 				continue;
 
 		//	all associated unselected geom-objs have to be selected
@@ -354,10 +355,9 @@ void SelectionFill(Selector& sel)
 }
 
 //	Only those template specializations make sense.
-template void SelectionFill<EdgeBase>(Selector&);
-template void SelectionFill<Face>(Selector&);
-template void SelectionFill<Volume>(Selector&);
-
+template void SelectionFill<EdgeBase>(Selector&, Grid::vertex_traits::callback);
+template void SelectionFill<Face>(Selector&, Grid::edge_traits::callback);
+template void SelectionFill<Volume>(Selector&, Grid::face_traits::callback);
 
 
 ////////////////////////////////////////////////////////////////////////

@@ -264,12 +264,44 @@ void ExtendSelection(Selector& sel, size_t extSize);
 ////////////////////////////////////////////////////////////////////////
 ///	Extends the selection around selected objects until selected sides are reached.
 /**	Selects all elements of the given base-type which are reachable
- * without traversing a selected side.
+ * without traversing a bounding side.
+ * Whether a side is bounding can be specified through the cbRegionBoundary callback
+ *
+ * - 	Use e.g. IsSelected(sel) to indicate that all selected edges are region boundaries.
+ * -	Use e.g. IsNotInSubset(sh, -1) to indicate, that all faces which are in a subset
+ * 		should be considered as region boundaryies.
+ *
+ * Those callbacks are declared in lib_grid/algorithms/callback_util.h"
  *
  * Valid types for TGeomBaseObj are EdgeBase, Face and Volume.
  */
 template <class TGeomObj>
-void SelectionFill(Selector& sel);
+void SelectionFill(Selector& sel,
+			   	   typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary);
+
+////////////////////////////////////////////////////////////////////////
+/// Selects the region which contains the given point
+/**	Selects all elements of the given base-type which are reachable
+ * without traversing a bounding side. The method starts at the element which
+ * contains the given point.
+ *
+ * Whether a side is bounding can be specified through the cbRegionBoundary callback
+ *
+ * - 	Use e.g. IsSelected(sel) to indicate that all selected edges are region boundaries.
+ * -	Use e.g. IsNotInSubset(sh, -1) to indicate, that all faces which are in a subset
+ * 		should be considered as region boundaryies.
+ *
+ * Those callbacks are declared in lib_grid/algorithms/callback_util.h"
+ *
+ * The method tries to find the start element using a brute force approach with
+ * runtime O(n). If no element which contains the given point was found, the method
+ * returns false.
+ *
+ * Valid types for TGeomBaseObj are EdgeBase, Face and Volume.
+ */
+template <class TGeomObj, class TAAPos>
+bool SelectRegion(Selector& sel, const typename TAAPos::ValueType& p, TAAPos& aaPos,
+			   	  typename Grid::traits<typename TGeomObj::side>::callback cbRegionBoundary);
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGenealogy

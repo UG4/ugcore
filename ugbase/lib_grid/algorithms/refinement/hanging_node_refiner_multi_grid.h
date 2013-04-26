@@ -88,6 +88,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 */
 		virtual bool perform_coarsening();
 
+		void save_coarsen_marks_to_file(Selector& sel, const char* filename);
 		void debug_save(Selector& sel, const char* filename);
 
 	///	a callback that allows to deny refinement of special vertices
@@ -209,7 +210,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 		template <class TElem>
 		void deselect_uncoarsenable_parents();
 
-	///	called be the coarsen method in order to adjust the selection to valid elements.
+	///	called by the coarsen method in order to adjust the selection to valid elements.
 	/**	This method is responsible to mark all elements that shall be coarsened.
 	 * Only sub-surface elements may be coarsened. If a sub-surface element has
 	 * a side, which is not a sub-surface element, then the element may not be
@@ -250,6 +251,14 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	///	allows to check whether a distributed grid contains volumes
 	/**	The default implementation returns whether the local grid contains volumes.*/
 		virtual bool contains_volumes()			{return m_pMG->num<Volume>() > 0;}
+
+	/**	This callback is called during execution of the coarsen() method after
+	 * collect_objects_for_coarsen is done. It is responsible to mark
+	 * elements for hnode coarsening. That means all elements on which a hanging
+	 * node or constrained children shall be created have to be marked using
+	 * mark_for_hnode_refinement during this method. The default implementation
+	 * performs this marking for all local elements.*/
+		//virtual void assign_hnode_coarsen_marks();
 
 	private:
 		MultiGrid*	m_pMG;

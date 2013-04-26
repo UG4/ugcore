@@ -397,6 +397,10 @@ restrict_selection_to_coarsen_families()
 	MultiGrid& mg = *m_pMG;
 	Selector& sel = get_refmark_selector();
 
+//	coarsening is only performed for complete families. If some siblings aren't
+//	selected for coarsening, the whole family may not be coarsened. All siblings
+//	have to be deselected in this case.
+
 //	mark parents, which have been processed and mark siblings, which are valid
 //	candidates. If thus a surface element is encountered, which has a marked
 //	parent, but is not marked itself, then it is clear that it is not a valid
@@ -743,13 +747,11 @@ deselect_uncoarsenable_parents()
 	}
 }
 
-///	temporary method, which will be removed when debugging is done.
-/**	Assigns the grid to subset 1 and the selection to subset 0, then
- * saves to the specified file.*/
+
 void HangingNodeRefiner_MultiGrid::
-debug_save(Selector& sel, const char* filename)
+save_coarsen_marks_to_file(Selector& sel, const char* filename)
 {
-/*	assert(sel.grid());
+	assert(sel.grid());
 	Grid& g = *sel.grid();
 
 	SubsetHandler sh(g);
@@ -802,7 +804,19 @@ debug_save(Selector& sel, const char* filename)
 	sh.subset_info(3).name = "no_nbrs_selected";
 	sh.subset_info(4).name = "nothing selected";
 
-	SaveGridToFile(g, sh, filename);*/
+
+	if(MultiGrid* mg = dynamic_cast<MultiGrid*>(&g))
+		SaveGridHierarchyTransformed(*mg, sh, filename, 0.1);
+	else
+		SaveGridToFile(g, sh, filename);
+}
+
+
+///	temporary method, which will be removed when debugging is done.
+void HangingNodeRefiner_MultiGrid::
+debug_save(Selector& sel, const char* filename)
+{
+//	save_coarsen_marks_to_file(sel, filename);
 }
 
 void HangingNodeRefiner_MultiGrid::
@@ -997,6 +1011,71 @@ debug_save(sel, "debug_save_2_restricted_to_coarsen_families.ugx");
 	debug_save(sel, "debug_save_7_final_selection.ugx");
 }
 
+//void HangingNodeRefiner_MultiGrid::
+//assign_hnode_coarsen_marks()
+//{
+//	MultiGrid& mg = *m_pMG;
+//	Selector& sel = get_refmark_selector();
+//////////////////////
+////	FACES
+//	if(mg.num<Volume>() > 0){
+//		for(Selector::traits<Face>::iterator iter = sel.begin<Face>();
+//			iter != sel.end<Face>();)
+//		{
+//			Face* elem = *iter;
+//			if((sel.get_selection_status(elem) == HNCM_SOME_NBRS_SELECTED)
+//				&& !elem->is_constrained())
+//			{
+//				Face* parent = dynamic_cast<Face*>(mg.get_parent(elem));
+//				if(parent){
+//					UG_ASSERT(!parent->is_constrained(), "Parent may not be constrained");
+//					mark_for_hnode_refinement(elem);
+//					if(!parent->is_constraining())
+//						mark_for_hnode_refinement(parent);
+//				}
+//				else{
+//				//todo: what if parent is on another process (elem is a v-slave)?
+//					if(elem->is_constraining()){
+//						mark_for_hnode_refinement(elem);
+//					}
+//					continue;
+//				}
+//			}
+//		}
+//	}
+//
+//////////////////////
+////	FACES
+//	if(mg.num<Face>() > 0){
+//		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+//			iter != sel.end<EdgeBase>();)
+//		{
+//			EdgeBase* elem = *iter;
+//			if((sel.get_selection_status(elem) == HNCM_SOME_NBRS_SELECTED)
+//				&& !elem->is_constrained())
+//			{
+//				GeometricObject* parent = mg.get_parent(elem);
+//				if(parent){
+//					UG_ASSERT(parent->base_object_id() != VOLUME,
+//							"child-edges of volumes may not be marked for partial coarsening");
+//					UG_ASSERT(!parent->is_constrained(), "Parent may not be constrained");
+//
+//					mark_for_hnode_refinement(elem);
+//					if(!parent->is_constraining())
+//						mark_for_hnode_refinement(parent);
+//				}
+//				else{
+//				//todo: what if parent is on another process (elem is a v-slave)?
+//					if(elem->is_constraining()){
+//						mark_for_hnode_refinement(elem);
+//					}
+//					continue;
+//				}
+//			}
+//		}
+//	}
+//}
+
 bool HangingNodeRefiner_MultiGrid::
 perform_coarsening()
 {
@@ -1035,10 +1114,11 @@ We have to handle elements as follows:
 	Selector& sel = get_refmark_selector();
 
 	collect_objects_for_coarsen();
+//	assign_hnode_coarsen_marks();
 
 //	if a debug file was specified, we'll now save the marks to that file
 	if(!m_adjustedMarksDebugFilename.empty())
-		save_marks_to_file(m_adjustedMarksDebugFilename.c_str());
+		save_coarsen_marks_to_file(sel, m_adjustedMarksDebugFilename.c_str());
 
 //	if the selector is empty, we'll return false
 	if(sel.empty())
