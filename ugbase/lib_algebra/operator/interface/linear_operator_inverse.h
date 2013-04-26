@@ -8,6 +8,7 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__INTERFACE__LINEAR_OPERATOR_INVERSE__
 #define __H__LIB_ALGEBRA__OPERATOR__INTERFACE__LINEAR_OPERATOR_INVERSE__
 
+#include "linear_operator.h"
 #include "lib_algebra/operator/convergence_check.h"
 #include "common/error.h"
 #include "common/util/smart_pointer.h"
