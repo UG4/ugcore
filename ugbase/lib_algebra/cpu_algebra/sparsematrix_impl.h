@@ -27,11 +27,13 @@ template<typename T>
 SparseMatrix<T>::SparseMatrix()
 {
 	bNeedsValues = true;
+	iIterators=0;
 }
 
 template<typename T>
 bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 {
+	//UG_LOG("SparseMatrix resize " << newRows << "x" << newCols << "\n");
 	PROFILE_BEGIN_GROUP(SparseMatrix_resize, "algebra SparseMatrix");
 	rowStart.clear(); rowStart.resize(newRows+1, -1);
 	rowMax.clear(); rowMax.resize(newRows);

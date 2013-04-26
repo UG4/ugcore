@@ -15,11 +15,16 @@
 #include "common/common.h"
 #include "../algebra_common/sparsematrix_util.h"
 #include "../common/operations_mat/operations_mat.h"
+#include <iostream>
+#include <algorithm>
+#include "common/util/ostream_util.h"
 
 namespace ug{
 
 /// \addtogroup cpu_algebra
 ///	@{
+
+
 
 
 /** SparseMatrix
@@ -212,7 +217,7 @@ public:
 			static value_type v(0.0);
 			return v;
 		}
-        UG_ASSERT(cols[j]==(int)c && j >= (int)rowStart[r] && j < (int)rowEnd[r], "");
+        UG_ASSERT(cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
         return values[j];
     }
 
@@ -227,7 +232,7 @@ public:
 	value_type &operator() (size_t r, size_t c)
 	{
 		int j=get_index(r, c);
-        UG_ASSERT(j != -1 && cols[j]==(int)c && j >= (int)rowStart[r] && j < (int)rowEnd[r], "");
+        UG_ASSERT(j != -1 && cols[j]==c && j >= rowStart[r] && j < rowEnd[r], "");
         return values[j];
     }
 
@@ -293,6 +298,15 @@ public:
 	 * const iterator over a row
 	 */
 
+
+	void add_iterator() const
+	{
+		iIterators++;
+	}
+	void remove_iterator() const
+	{
+		iIterators--;
+	}
 	// a row_iterator has to suppport
 	// operator ++, operator +=, index() const, const value_type &value() const, value_type &value()
 	// a const_row_iterator has to suppport
@@ -308,24 +322,30 @@ public:
         SparseMatrix &A;
         size_t i;
     public:
-        row_iterator(SparseMatrix &_A, size_t _i) : A(_A), i(_i) {}
-        value_type &value() { return A.values[i];   }
-        size_t index() const { return A.cols[i];     }
-        bool operator != (const row_iterator &o) const { return i != o.i; }
-        void operator ++ () { ++i; }
-		void operator += (int nr) { i+=nr; }
-		bool operator == (const row_iterator &other) const { return other.i == i; }
+        inline void check() const { ; UG_ASSERT(i <= A.cols.size(), "?"); }
+        row_iterator(SparseMatrix &_A, size_t _i) : A(_A), i(_i) { A.add_iterator(); }
+        ~row_iterator() { A.remove_iterator(); }
+        value_type &value() { check(); return A.values[i];   }
+        size_t index() const { check(); return A.cols[i]; }
+        bool operator != (const row_iterator &o) const { UG_ASSERT(i <= o.i, "?"); return i != o.i; check(); }
+        void operator ++ () { ++i; check(); }
+		void operator += (int nr) { i+=nr; check(); }
+		bool operator == (const row_iterator &other) const { return other.i == i; check(); }
     };
     class const_row_iterator
     {
         const SparseMatrix &A;
         size_t i;
     public:
-        const_row_iterator(const SparseMatrix &_A, size_t _i) : A(_A), i(_i) {}
-        const value_type &value() const { return A.values[i];   }
-        size_t index() const { return A.cols[i];     }
-        bool operator != (const const_row_iterator &o) const { return i != o.i; }
-        void operator ++ () { ++i; }
+        inline void check() const { ; UG_ASSERT(i <= A.cols.size(), "?"); }
+
+        const_row_iterator(const SparseMatrix &_A, size_t _i) : A(_A), i(_i) {A.add_iterator();}
+        ~const_row_iterator() { A.remove_iterator(); }
+        const value_type &value() const { check(); return A.values[i];   }
+        size_t index() const { check(); return A.cols[i];     }
+        bool operator != (const const_row_iterator &o) const { UG_ASSERT(i <= o.i, "?"); return i != o.i; }
+        void operator ++ () { ++i; check(); }
+        void operator += (int nr) { i+=nr; check(); }
 		bool operator == (const const_row_iterator &other) const { return other.i == i; }
     };
 
@@ -563,7 +583,22 @@ protected:
     }
     void copyToNewSize(size_t newSize)
     {
-        //std::cout << "increasing from " << cols.size() << " to " << newSize << "\n";
+    	/*UG_LOG("copyToNewSize: from " << values.size()  << " to " << newSize << "\n");
+    	UG_LOG("sizes are " << cols.size() << " and " << values.size() << ", ");
+    	UG_LOG(reset_floats << "capacities are " << cols.capacity() << " and " << values.capacity() << ", NNZ = " << nnz << ", fragmentation = " <<
+    			(1-((double)nnz)/cols.size())*100.0 << "%\n");
+    	if(newSize == nnz) { UG_LOG("Defragmenting to NNZ."); }*/
+    	if( (iIterators > 0)
+    		|| (newSize > values.size() && (100.0*nnz)/newSize < 20 && newSize <= cols.capacity()) )
+    	{
+    		UG_ASSERT(newSize > values.size(), "no nnz-defragmenting while using iterators.");
+    		//UG_LOG("copyToNew not defragmenting because of iterators or low fragmentation.\n");}
+    		cols.resize(newSize);
+    		cols.resize(cols.capacity());
+    		if(bNeedsValues) { values.resize(newSize); values.resize(cols.size()); }
+    		return;
+    	}
+
         std::vector<value_type> v(newSize);
         std::vector<int> c(newSize);
         size_t j=0;
@@ -609,6 +644,7 @@ protected:
     std::vector<value_type> values;
     int maxValues;
     int m_numCols;
+    mutable int iIterators;
 };
 
 
