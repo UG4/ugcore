@@ -113,22 +113,15 @@ void SplitAddRow_Symmetric(TMatrix& A,
 		}
 
 	//	loop coupling between constrained dof -> constraining dof
-		// we can't use an iterator over A and modify A at the same time, since
-		// changes in the structure of A will invalidate all iterators (like as std::map) (mr 25.04.2013)
-		typedef typename TMatrix::connection connection;
-		std::vector<connection> connections;
-		connections.reserve(A.num_connections(constrainedIndex[i]));
-		for(row_iterator conn = A.begin_row(constrainedIndex[i]); conn != A.end_row(constrainedIndex[i]); ++conn)
-			connections.push_back(connection(conn.index(), conn.value()));
-
-		for(size_t k=0; k<connections.size(); k++)
+		for(row_iterator conn = A.begin_row(constrainedIndex[i]);
+							conn != A.end_row(constrainedIndex[i]); ++conn)
 		{
 		//	skip self-coupling (already handled)
-			const size_t j = connections[k].iIndex;
+			const size_t j = conn.index();
 			if(j == constrainedIndex[i]) continue;
 
 		//	get coupling entry
-			block_type block = connections[k].dValue;
+			block_type block = conn.value();
 			block_type blockT = A(j, constrainedIndex[i]);
 
 		//	multiply the cpl value by the inverse number of constraining
