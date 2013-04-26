@@ -1,13 +1,12 @@
-// created by Sebastian Reiter
-// s.b.reiter@googlemail.com
-// y11 m01 d02
+/*
+ * ostream_util.h
+ *
+ *  Created on: 26.04.2013
+ *      Author: mrupp
+ */
 
-#ifndef __H__UG_OSTREAM_UTIL__
-#define __H__UG_OSTREAM_UTIL__
-
-#include <iostream>
-#include <fstream>
-#include "empty_stream.h"
+#ifndef __H__UG_OSTREAM_UTIL_H_
+#define __H__UG_OSTREAM_UTIL_H_
 
 namespace ug
 {
@@ -15,36 +14,24 @@ namespace ug
 /// \addtogroup ugbase_common_io
 /// \{
 
-///	forwards data written to this stream-buffer to other stream buffers.
-/**	Make sure that the buffers are initialized and ready for writing,
- *	before you intend to write anything to the buffer.
+///used to unset flags set by std::scientific or std::fixed.
+/**
+ * example:
+ * std::cout << std::scienfitic << myDouble << "\n";
+ * std::cout << reset_floats << myPrecentage << "\n";
+ * also in UG_LOG:
+ * UG_LOG(reset_floats << myValue);
+ * \note use ug::reset_floats if not in namespace ug.
  */
-class OStreamBufferSplitter : public std::streambuf
+static inline std::ios_base&
+reset_floats(std::ios_base& o)
 {
-	public:
-		OStreamBufferSplitter();
-
-		OStreamBufferSplitter(std::streambuf* buf1, std::streambuf* buf2);
-
-		~OStreamBufferSplitter();
-
-	//	flushes the local buffer into the associated buffers
-		void flush();
-
-		void set_buffers(std::streambuf* buf1, std::streambuf* buf2);
-
-		virtual int_type overflow(int_type c = traits_type::eof());
-
-	private:
-		static const int		BUF_SIZE = 128;
-		std::streambuf*	m_buf1;
-		std::streambuf*	m_buf2;
-		char_type		m_buf[BUF_SIZE];
-};
+	o.unsetf(std::ios_base::floatfield);
+	return o;
+}
 
 // end group ugbase_common_io
 /// \}
 
-}// end of namespace
-
-#endif
+}
+#endif /* __H__UG_OSTREAM_UTIL_H_ */

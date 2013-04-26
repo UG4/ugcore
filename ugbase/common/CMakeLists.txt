@@ -21,7 +21,7 @@ set(srcCommon	log.cpp
         		util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
 				util/message_hub.cpp
-				util/ostream_util.cpp
+				util/ostream_buffer_splitter.cpp
 				util/parameter_parsing.cpp
         		util/string_util.cpp
         		util/table.cpp

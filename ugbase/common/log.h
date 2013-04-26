@@ -12,7 +12,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include "util/ostream_util.h"
+#include "util/ostream_buffer_splitter.h"
 #include "types.h"
 #include "ug_config.h"
 
