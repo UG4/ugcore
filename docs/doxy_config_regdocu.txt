@@ -2,12 +2,28 @@
 @INCLUDE               = doxy_config_ug4_mathjax.txt
 
 # overwriting configs from INCLUDE
-PROJECT_NAME           = "Apps"
-OUTPUT_DIRECTORY       = apps
-INPUT                  = ../apps \
-                         apps/additional_pages
-EXCLUDE               += ../apps/d3f
-LAYOUT_FILE            = Layout_apps.xml
+PROJECT_NAME           = "Registry"
+OUTPUT_DIRECTORY       = regdocu
+STRICT_PROTO_MATCHING  = NO
+GENERATE_TODOLIST      = NO
+GENERATE_TESTLIST      = NO
+GENERATE_BUGLIST       = NO
+GENERATE_DEPRECATEDLIST= YES
+SHOW_USED_FILES        = NO
+SHOW_FILES             = NO
+SHOW_NAMESPACES        = YES
+INPUT                  = regdocu
+FILE_PATTERNS          = *.cpp *.doxygen
+EXCLUDE                =
+LAYOUT_FILE            = Layout_regdocu.xml
+SOURCE_BROWSER         = NO
+INLINE_SOURCES         = NO
+STRIP_CODE_COMMENTS    = YES
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+REFERENCES_LINK_SOURCE = YES
+USE_HTAGS              = NO
+VERBATIM_HEADERS       = NO
 
 # The TAGFILES option can be used to specify one or more tagfiles. For each
 # tag file the location of the external documentation should be added. The
@@ -23,10 +39,9 @@ LAYOUT_FILE            = Layout_apps.xml
 # doxygen is run, you must also specify the path to the tagfile here.
 
 TAGFILES               = ugbase.tags=.. \
-                         plugins.tags=../plugins \
-                         regdocu.tags=../regdocu
+                         plugins.tags=../plugins
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.
 
-GENERATE_TAGFILE       = apps.tags
+GENERATE_TAGFILE       = regdocu.tags

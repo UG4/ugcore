@@ -1,14 +1,6 @@
 @INCLUDE               = doxy_config_ug4.txt
 @INCLUDE               = doxy_config_ug4_mathjax.txt
 
-# overwriting configs from INCLUDE
-PROJECT_NAME           = "Apps"
-OUTPUT_DIRECTORY       = apps
-INPUT                  = ../apps \
-                         apps/additional_pages
-EXCLUDE               += ../apps/d3f
-LAYOUT_FILE            = Layout_apps.xml
-
 # The TAGFILES option can be used to specify one or more tagfiles. For each
 # tag file the location of the external documentation should be added. The
 # format of a tag file without this location is as follows:
@@ -22,11 +14,6 @@ LAYOUT_FILE            = Layout_apps.xml
 # NOT include the path). If a tag file is not located in the directory in which
 # doxygen is run, you must also specify the path to the tagfile here.
 
-TAGFILES               = ugbase.tags=.. \
-                         plugins.tags=../plugins \
-                         regdocu.tags=../regdocu
-
-# When a file name is specified after GENERATE_TAGFILE, doxygen will create
-# a tag file that is based on the input files it reads.
-
-GENERATE_TAGFILE       = apps.tags
+TAGFILES               = ugbase.tags=. \
+                         plugins.tags=./plugins \
+                         regdocu.tags=./regdocu

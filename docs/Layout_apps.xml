@@ -3,7 +3,7 @@
   <!-- Navigation index tabs for HTML output -->
   <navindex>
     <tab type="user" url="../index.html" title="ug4" />
-    <tab type="mainpage" visible="yes" title="Apps" />
+    <tab type="mainpage" url="group__apps.html" visible="no" title="Apps" />
     <!-- related pages -->
 <!--     <tab type="pages" visible="yes" title="" intro="" /> -->
     <tab type="usergroup" title="Modules">
@@ -13,6 +13,7 @@
       <tab type="user" url="../group__lib__discretization.html" title="libDiscretization" />
       <tab type="user" url="../group__lib__grid.html" title="libGrid" />
       <tab type="user" url="../plugins/group__plugins.html" title="Plugins" />
+	  <tab type="user" url="../regdocu/namespaceug4_bridge.html" title="Registry" />
       <tab type="user" url="../group__scripts.html" title="Scripts" />
       <tab type="user" url="@ref apps" title="Apps" />
     </tab>

@@ -6,6 +6,7 @@ PROJECT_NAME           = "ugbase"
 OUTPUT_DIRECTORY       = ugbase
 INPUT                  = ../ugbase
 GENERATE_HTML          = NO
+TAGFILES               = 
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.
