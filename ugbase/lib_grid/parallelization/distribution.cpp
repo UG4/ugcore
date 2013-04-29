@@ -1730,6 +1730,8 @@ bool DistributeGrid(MultiGrid& mg,
 			UG_THROW("ERROR in RedistributeGrid: "
 					 "Magic number mismatch after deserialization.\n");
 		}
+
+		UG_DLOG(LIB_GRID, 2, "Deserialization from rank " << recvFromRanks[i] << " done\n");
 	}
 	GDIST_PROFILE_END();
 

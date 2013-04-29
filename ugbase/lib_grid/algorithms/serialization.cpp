@@ -10,6 +10,18 @@
 
 using namespace std;
 
+#define PROFILE_GRID_SERIALIZATION
+#ifdef PROFILE_GRID_SERIALIZATION
+	#define SRLZ_PROFILE_FUNC()	PROFILE_FUNC_GROUP("serialization")
+	#define SRLZ_PROFILE(name)		PROFILE_BEGIN_GROUP(name, "serialization")
+	#define SRLZ_PROFILE_END()		PROFILE_END()
+#else
+	#define SRLZ_PROFILE_FUNC()
+	#define SRLZ_PROFILE(name)
+	#define SRLZ_PROFILE_END()
+#endif
+
+
 namespace ug
 {
 
@@ -866,6 +878,8 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								BinaryBuffer& out,
 								MultiElementAttachmentAccessor<AGeomObjID>* paaID)
 {
+	SRLZ_PROFILE_FUNC();
+
 	int tInt;
 	number tNumber;
 
@@ -1343,9 +1357,9 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 static GeometricObject*
-GetParent(BinaryBuffer& in, vector<VertexBase*>& vVrts,
-		vector<EdgeBase*>& vEdges, vector<Face*>& vFaces,
-		vector<Volume*> vVols)
+GetParent(BinaryBuffer& in, const vector<VertexBase*>& vVrts,
+		const vector<EdgeBase*>& vEdges, const vector<Face*>& vFaces,
+		const vector<Volume*>& vVols)
 {
 	char type;
 	int index;
@@ -1380,6 +1394,8 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									std::vector<Volume*>* pvVols,
 									MultiElementAttachmentAccessor<AGeomObjID>* paaID)
 {
+	SRLZ_PROFILE_FUNC();
+
 //todo	A parents global id should be serialized and used to identify a parent
 //		if it was not sent along with an element but was already contained on
 //		the target process.
@@ -1429,6 +1445,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 	GeomObjID id;
 
+	SRLZ_PROFILE(srlz_settingUpHashes);
 //	create hashes for existing geometric objects
 	Hash<VertexBase*, GeomObjID>	vrtHash((int)(1.1f * (float)mg.num<VertexBase>()));
 	Hash<EdgeBase*, GeomObjID>		edgeHash((int)(1.1f * (float)mg.num<EdgeBase>()));
@@ -1457,10 +1474,11 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 			iter != mg.end<Volume>(); ++iter)
 		{volHash.add(*iter, (*paaID)[*iter]);}
 	}
-
+	SRLZ_PROFILE_END();
 
 //	create the vertices and store them in vVrts for later indexing.
 	{
+		SRLZ_PROFILE(srlz_readingData);
 		uint currentLevel = 0;
 	//	iterate through the stream and create vertices
 		while(!in.eof())
@@ -1488,6 +1506,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 			{
 				case GOID_VERTEX:
 					{
+						SRLZ_PROFILE(srlz_vertices);
 						for(int i = 0; i < numElems; ++i)
 						{
 							GeometricObject* parent = GetParent(in, vVrts, vEdges,
@@ -1523,6 +1542,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					
 				case GOID_HANGING_VERTEX:
 					{
+						SRLZ_PROFILE(srlz_hangingVertices);
 					//	create the hanging vertices and assign the local coordinates
 						for(int i = 0; i < numElems; ++i)
 						{
@@ -1583,6 +1603,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					}break;
 				case GOID_EDGE:
 					{
+						SRLZ_PROFILE(srlz_edges);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2;
@@ -1616,6 +1637,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					}break;
 				case GOID_CONSTRAINING_EDGE:
 					{
+						SRLZ_PROFILE(srlz_constrainingEdges);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2;
@@ -1650,6 +1672,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					}break;
 				case GOID_CONSTRAINED_EDGE:
 					{
+						SRLZ_PROFILE(srlz_constrainedEdges);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2;
@@ -1708,6 +1731,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					}break;
 				case GOID_TRIANGLE:
 					{
+						SRLZ_PROFILE(srlz_triangles);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3;
@@ -1744,6 +1768,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					}break;
 				case GOID_QUADRILATERAL:
 					{
+						SRLZ_PROFILE(srlz_quadrilaterals);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3, i4;
@@ -1783,6 +1808,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 				case GOID_CONSTRAINING_TRIANGLE:
 					{
+						SRLZ_PROFILE(srlz_constrainingTriangles);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3;
@@ -1821,6 +1847,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 				case GOID_CONSTRAINED_TRIANGLE:
 					{
+						SRLZ_PROFILE(srlz_constrainedTriangles);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3;
@@ -1870,6 +1897,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 				case GOID_CONSTRAINING_QUADRILATERAL:
 					{
+						SRLZ_PROFILE(srlz_constrainingQuadrilaterals);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3, i4;
@@ -1912,6 +1940,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 				case GOID_CONSTRAINED_QUADRILATERAL:
 					{
+						SRLZ_PROFILE(srlz_constrainedQuadrilaterals);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3, i4;
@@ -1966,6 +1995,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 				case GOID_TETRAHEDRON:
 					{
+						SRLZ_PROFILE(srlz_tetrahedrons);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3, i4;
@@ -2006,6 +2036,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					}break;
 				case GOID_HEXAHEDRON:
 					{
+						SRLZ_PROFILE(srlz_hexahedrons);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3, i4, i5, i6, i7, i8;
@@ -2050,6 +2081,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					}break;
 				case GOID_PRISM:
 					{
+						SRLZ_PROFILE(srlz_prisms);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3, i4, i5, i6;
@@ -2092,6 +2124,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 					}break;
 				case GOID_PYRAMID:
 					{
+						SRLZ_PROFILE(srlz_pyramids);
 						for(int i = 0; i < numElems; ++i)
 						{
 							int i1, i2, i3, i4, i5;
