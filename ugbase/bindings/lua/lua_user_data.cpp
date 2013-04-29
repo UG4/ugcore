@@ -152,8 +152,8 @@ static void Dimension(Registry& reg, string grp)
 		typedef DependentUserData<number, dim> TBase;
 		string name = string("LuaUserFunctionNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
-			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName, NumberOfArguments, PosTimeFlag")
+			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
+			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName#NumberOfArguments#PosTimeFlag")
 			.add_method("set_deriv", &T::set_deriv)
 			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<CplUserData<number, dim> >)>(&T::set_input))
 			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input))
@@ -167,8 +167,8 @@ static void Dimension(Registry& reg, string grp)
 		typedef DependentUserData<MathMatrix<dim,dim>, dim> TBase;
 		string name = string("LuaUserFunctionMatrixNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
-			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName, NumberOfArguments, PosTimeFlag")
+			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
+			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName#NumberOfArguments#PosTimeFlag")
 			.add_method("set_deriv", &T::set_deriv)
 			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<CplUserData<number, dim> >)>(&T::set_input))
 			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input))
@@ -182,8 +182,8 @@ static void Dimension(Registry& reg, string grp)
 		typedef DependentUserData<MathVector<dim>, dim> TBase;
 		string name = string("LuaUserFunctionVectorNumber").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName, NumberOfArguments")
-			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName, NumberOfArguments, PosTimeFlag")
+			.template add_constructor<void (*)(const char*, int)>("LuaCallbackName#NumberOfArguments")
+			.template add_constructor<void (*)(const char*, int, bool)>("LuaCallbackName#NumberOfArguments#PosTimeFlag")
 			.add_method("set_deriv", &T::set_deriv)
 			.add_method("set_input", static_cast<void (T::*)(size_t, SmartPtr<CplUserData<number, dim> >)>(&T::set_input))
 			.add_method("set_input", static_cast<void (T::*)(size_t, number)>(&T::set_input))

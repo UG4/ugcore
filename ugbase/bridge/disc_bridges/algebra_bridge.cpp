@@ -125,7 +125,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		typedef ITimeDiscretization<TAlgebra> T;
 		string name = string("ITimeDiscretization").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
-			.add_method("prepare_step", &T::prepare_step, "", "prepares the assembling of Defect/Jacobian for a time step")
+			.add_method("prepare_step", &T::prepare_step, "", "", "prepares the assembling of Defect/Jacobian for a time step")
 			.add_method("prepare_step_elem", static_cast<void (T::*)(SmartPtr<VectorTimeSeries<vector_type> >, number)>(&T::prepare_step_elem))
 			.add_method("finish_step_elem", static_cast<void (T::*)(SmartPtr<VectorTimeSeries<vector_type> >)>(&T::finish_step_elem))
 			.add_method("num_stages", &T::num_stages, "the number of stages")
@@ -145,7 +145,7 @@ static void Algebra(Registry& reg, string parentGroup)
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >)>("Domain Discretization")
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,number)>("Domain Discretization#Theta")
 				.template add_constructor<void (*)(SmartPtr<IDomainDiscretization<TAlgebra> >,const char*)>("Domain Discretization#Scheme")
-				.add_method("set_theta", &T::set_theta, "", "Theta (1 = Impl; 0 = Expl)")
+				.add_method("set_theta", &T::set_theta, "", "Theta", "Theta value 1 = Impl; 0 = Expl")
 				.add_method("set_scheme", &T::set_scheme, "", "Scheme|selection|value=[\"Theta\",\"Alexander\",\"FracStep\"]")
 				.add_method("set_stage", &T::set_stage, "", "Stage")
 				.set_construct_as_smart_pointer(true);
@@ -175,7 +175,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >)>("Assembling Routine")
-			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >, const GridLevel&)>("AssemblingRoutine, GridLevel")
+			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >, const GridLevel&)>("AssemblingRoutine#GridLevel")
 			.add_method("set_discretization", &T::set_discretization)
 			.add_method("set_level", &T::set_level)
 			.add_method("set_dirichlet_values", &T::set_dirichlet_values)
@@ -247,7 +247,7 @@ static void Algebra(Registry& reg, string parentGroup)
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >)>("AssemblingRoutine")
-			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >, const GridLevel&)>("AssemblingRoutine, GridLevel")
+			.template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> >, const GridLevel&)>("AssemblingRoutine#GridLevel")
 			.add_method("set_discretization", &T::set_discretization, "", "ass")
 			.add_method("set_level", &T::set_level, "", "gridLevel")
 			.add_method("level", &T::level, "gridLevel", "")
@@ -361,24 +361,30 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("CompositeConvCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
-			.add_method("set_level", (void (T::*)(int)) &T::set_level, "grid level where defect vectors come from")
-			.add_method("set_functions", (void (T::*)(const char*)) &T::set_functions, "",
-					"functions to be evaluated individually as comma-separated list")
-			.add_method("timeMeasurement", &T::timeMeasurement, "", "", "whether to perform a time measurement or not")
-			.add_method("set_maximum_steps", &T::set_maximum_steps, "", "Maximum Steps|default|min=0;value=100")
-			.add_method("set_minimum_defect", (void (T::*)(const std::vector<number>, number)) &T::set_minimum_defect, "",
-					"minimum defect for defined functions (comma-separated list)#minimum defect for rest|default|min=0D;value=1e-10")
-			.add_method("set_reduction", (void (T::*)(const std::vector<number>, number)) &T::set_reduction,	"",
-					"defect reduction for defined functions (comma-separated list)#defect reduction for rest|default|min=0D;value=1e-08")
-			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")
-			.add_method("defect", (number (T::*)(size_t) const) &T::defect, "defect", "function index", "returns the current defect")
-			.add_method("step", &T::step, "step", "", "returns the current number of steps")
-			.add_method("reduction", (number (T::*)(size_t) const) &T::reduction, "reduction", "function index",
-					"returns the current relative reduction for a function")
-			.add_method("rate", (number (T::*)(size_t) const) &T::rate, "rate", "function index",
-					"returns the current convergence rate for a function")
-			.add_method("avg_rate", (number (T::*)(size_t) const) &T::avg_rate, "avg_rate", "function index",
-					"returns the averaged convergence rate for a function")
+			.add_method("set_level", (void (T::*)(int)) &T::set_level,
+			            "", "grid_level", "sets grid level where defect vectors come from")
+			.add_method("set_functions", (void (T::*)(const char*)) &T::set_functions,
+			            "", "functions", "sets functions to be evaluated individually as comma separated list")
+			.add_method("timeMeasurement", &T::timeMeasurement,
+			            "", "", "whether to perform a time measurement or not")
+			.add_method("set_maximum_steps", &T::set_maximum_steps, 
+			            "", "maximum steps|default|min=0;value=100")
+			.add_method("set_minimum_defect", (void (T::*)(const std::vector<number>, number)) &T::set_minimum_defect,
+			            "", "minimum defect for defined functions as comma separated list#minimum defect for rest|default|min=0D;value=1e-10")
+			.add_method("set_reduction", (void (T::*)(const std::vector<number>, number)) &T::set_reduction,
+			            "", "defect reduction for defined functions comma separated list#defect reduction for rest|default|min=0D;value=1e-08")
+			.add_method("set_verbose", &T::set_verbose, 
+			            "", "Verbosity")
+			.add_method("defect", (number (T::*)(size_t) const) &T::defect, 
+			            "defect", "function index", "returns the current defect")
+			.add_method("step", &T::step,  
+			            "step", "", "returns the current number of steps")
+			.add_method("reduction", (number (T::*)(size_t) const) &T::reduction, 
+			            "reduction", "function index", "returns the current relative reduction for a function")
+			.add_method("rate", (number (T::*)(size_t) const) &T::rate, 
+			            "rate", "function index", "returns the current convergence rate for a function")
+			.add_method("avg_rate", (number (T::*)(size_t) const) &T::avg_rate, 
+			            "avg_rate", "function index", "returns the averaged convergence rate for a function")
 			.add_method("iteration_ended", &T::iteration_ended)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "CompositeConvCheck", tag);

@@ -70,7 +70,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("GridFunction").append(suffix);
 		reg.add_class_<TFct, vector_type>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("ApproximationSpace")
-			.template add_constructor<void (*)(SmartPtr<approximation_space_type>, int)>("ApproximationSpace, Level")
+			.template add_constructor<void (*)(SmartPtr<approximation_space_type>, int)>("ApproximationSpace#Level")
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
 						"Success", "Vector")
 			.add_method("clone", &TFct::clone)
@@ -166,7 +166,7 @@ static void Domain(Registry& reg, string grp)
 		string name = string("ApproximationSpace").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
-			.template add_constructor<void (*)(SmartPtr<TDomain>, const AlgebraType&)>("Domain, AlgebraType")
+			.template add_constructor<void (*)(SmartPtr<TDomain>, const AlgebraType&)>("Domain#AlgebraType")
 			.add_method("domain", static_cast<SmartPtr<TDomain> (T::*)()>(&T::domain))
 			.add_method("surface_view", static_cast<ConstSmartPtr<SurfaceView> (T::*)() const>(&T::surface_view))
 			.set_construct_as_smart_pointer(true);
@@ -222,7 +222,7 @@ static void Common(Registry& reg, string grp)
 	reg.add_class_<GridLevel>("GridLevel", grp)
 		.add_constructor()
 		.add_constructor<void (*)(int)>("Level")
-		.add_constructor<void (*)(int, std::string)>("Level, Type")
+		.add_constructor<void (*)(int, std::string)>("Level#Type")
 		.set_construct_as_smart_pointer(true);
 
 //	DoFDistributionInfoProvider
@@ -253,22 +253,22 @@ static void Common(Registry& reg, string grp)
 
 		.add_method("clear", &T::clear)
 		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int, const char*)>(&T::add),
-					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
+					"", "Name#Type|selection|value=[\"Lagrange\",\"DG\"]#Order#Subsets", "Adds a function to the Function Pattern",
 					"currently no help available")
 		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int)>(&T::add),
-					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
+					"", "Name#Type|selection|value=[\"Lagrange\",\"DG\"]#Order", "Adds a function to the Function Pattern",
 					"currently no help available")
 		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*)>(&T::add),
-					"", "Name # Type|selection|value=[\"crouzeix-raviart\",\"piecewise-constant\"] ", "Adds a function to the Function Pattern",
+					"", "Name#Type|selection|value=[\"crouzeix-raviart\",\"piecewise-constant\"] ", "Adds a function to the Function Pattern",
 					"currently no help available")
 		.add_method("add_fct", static_cast<void (T::*)(const std::vector<std::string>&, const char*, int, const std::vector<std::string>&)>(&T::add),
-					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order # Subsets", "Adds a function to the Function Pattern",
+					"", "Name#Type|selection|value=[\"Lagrange\",\"DG\"]#Order#Subsets", "Adds a function to the Function Pattern",
 					"currently no help available")
 		.add_method("add_fct", static_cast<void (T::*)(const std::vector<std::string>&, const char*, int)>(&T::add),
-					"", "Name # Type|selection|value=[\"Lagrange\",\"DG\"] # Order", "Adds a function to the Function Pattern",
+					"", "Name#Type|selection|value=[\"Lagrange\",\"DG\"]#Order", "Adds a function to the Function Pattern",
 					"currently no help available")
 		.add_method("add_fct", static_cast<void (T::*)(const std::vector<std::string>&, const char*)>(&T::add),
-					"", "Name # Type|selection|value=[\"crouzeix-raviart\",\"piecewise-constant\"] ", "Adds a function to the Function Pattern",
+					"", "Name#Type|selection|value=[\"crouzeix-raviart\",\"piecewise-constant\"]", "Adds a function to the Function Pattern",
 					"currently no help available");
 
 	}

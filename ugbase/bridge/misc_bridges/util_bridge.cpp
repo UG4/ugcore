@@ -67,36 +67,37 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	grp.append("/Util");
 
 	reg.add_function("ug_get_root_path", &GetRootPath, grp,
-					 "pathName", "", "Returns ug's root path");
+	                 "pathName", "", "Returns ug's root path");
 
 	reg.add_function("ug_get_grid_path", &GetGridPath, grp,
-					 "pathName", "", "Returns the path in which ug's standard grids are stored.");
+	                 "pathName", "", "Returns the path in which ug's standard grids are stored.");
 
 	reg.add_function("ug_get_apps_path", &GetAppsPath, grp,
-					 "pathName", "", "Returns the path in which ug's apps are stored");
+	                 "pathName", "", "Returns the path in which ug's apps are stored");
 
 	reg.add_function("ug_get_app_path", &GetAppPath, grp,
-					 "pathName", "", "Returns the path in which the ug executable lies");
+	                 "pathName", "", "Returns the path in which the ug executable lies");
 
 	reg.add_function("ug_get_data_path", &GetDataPath, grp,
-					 "pathName", "", "Returns the data path");
+	                 "pathName", "", "Returns the data path");
 
 	reg.add_function("ug_get_script_path", &GetScriptPath, grp,
-					 "pathName", "", "Returns the script path");
+	                 "pathName", "", "Returns the script path");
 
 	reg.add_function("ug_get_current_path", &GetCurrentPath, grp,
-					 "pathName", "", "Returns the current path");
+	                 "pathName", "", "Returns the current path");
 
 	reg.add_function("ExecuteSystemCommand", &ExecuteSystemCommand, grp,
-					 "success", "command", "Executes a command in the system shell");
+	                 "success", "command", "Executes a command in the system shell");
 
-	reg.add_function("srand", int_srand, grp, "seed", "The pseudo-random number generator is initialized using the argument passed as seed.")
+	reg.add_function("srand", int_srand, grp, 
+	                 "", "seed", "The pseudo-random number generator is initialized using the argument passed as seed.")
 		.add_function("ug_file_exists", &FileExists, grp,
-				 "exists", "", "Returns true if a path exists, false if not.")
+	                  "exists", "", "Returns true if a path exists, false if not.")
 		.add_function("exit", &UGForceExit, grp,
-				 "", "", "Immediatly terminates the application.")
+	                  "", "", "Immediatly terminates the application.")
 		.add_function("quit", &UGForceExit, grp,
-				 "", "", "Immediatly terminates the application.");
+	                  "", "", "Immediatly terminates the application.");
 }
 
 // end group util_bridge

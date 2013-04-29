@@ -932,26 +932,42 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 
 	try
 	{
-		reg.add_function("ls", &LuaList, grp.c_str(), "", "", "list all objects");
-		reg.add_function("list_cfunctions", &LuaList_cfunctions, grp.c_str(), "", "", "list all cfunctions");
-		reg.add_function("list_classes", &LuaList_classes, grp.c_str(), "", "", "list all classes");
-		reg.add_function("list_internalFunctions", &LuaList_internalFunctions, grp.c_str(), "", "", "list all of LUAs internal functions");
-		reg.add_function("list_luaObjects", &LuaList_luaObjects, grp.c_str(), "", "", "list all created LUA objects");
-		reg.add_function("list_scriptFunctions", LuaList_scriptFunctions, grp.c_str(), "", "", "list all LUA script functions");
-		reg.add_function("TypeInfo", &UGTypeInfo, grp.c_str(), "", "\"typeName\"", "print information about a type");
-		reg.add_function("ClassUsage", &ClassUsage, grp.c_str(), "", "\"typeName\"", "print information about the usage of a type");
-		reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str(), "", "\"typeName\"", "print all objects of the type");
-		reg.add_function("ClassHierarchy" ,&ScriptPrintClassHierarchy, grp.c_str(), "", "\"typeName\"", "print the class hierachy of type");
-		reg.add_function("Stacktrace", &ScriptStacktrace, grp.c_str(), "", "", "prints the LUA function stack, that is which functions are called up to this point");
-		reg.add_function("HasClass", &ScriptHasClass, grp.c_str(), "true if class exists", "\"className\"", "use only if you know that you're not using a class group, otherwise HasClassGroup");
-		reg.add_function("HasClassGroup", &ScriptHasClassGroup, grp.c_str(), "true if class oder classGroup exists", "\"classGroupName\"", "can be used before instantiating a class");
+		reg.add_function("ls", &LuaList, grp.c_str(), 
+		                 "", "", "list all objects");
+		reg.add_function("list_cfunctions", &LuaList_cfunctions, grp.c_str(), 
+		                 "", "", "list all cfunctions");
+		reg.add_function("list_classes", &LuaList_classes, grp.c_str(), 
+		                 "", "", "list all classes");
+		reg.add_function("list_internalFunctions", &LuaList_internalFunctions, grp.c_str(), 
+		                 "", "", "list all of LUAs internal functions");
+		reg.add_function("list_luaObjects", &LuaList_luaObjects, grp.c_str(), 
+		                 "", "", "list all created LUA objects");
+		reg.add_function("list_scriptFunctions", LuaList_scriptFunctions, grp.c_str(), 
+		                 "", "", "list all LUA script functions");
+		reg.add_function("TypeInfo", &UGTypeInfo, grp.c_str(), 
+		                 "", "typeName", "print information about a type");
+		reg.add_function("ClassUsage", &ClassUsage, grp.c_str(), 
+		                 "", "typeName", "print information about the usage of a type");
+		reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str(), 
+		                 "", "typeName", "print all objects of the type");
+		reg.add_function("ClassHierarchy" ,&ScriptPrintClassHierarchy, grp.c_str(), 
+		                 "", "typeName", "print the class hierachy of type");
+		reg.add_function("Stacktrace", &ScriptStacktrace, grp.c_str(), 
+		                 "", "", "prints the LUA function stack, that is which functions are called up to this point");
+		reg.add_function("HasClass", &ScriptHasClass, grp.c_str(), 
+		                 "true if class exists", "className", "use only if you know that you're not using a class group, otherwise HasClassGroup");
+		reg.add_function("HasClassGroup", &ScriptHasClassGroup, grp.c_str(), 
+		                 "true if class oder classGroup exists", "classGroupName", "can be used before instantiating a class");
 #ifdef UG_PLUGINS
 	#ifndef UG_EMBEDDED_PLUGINS
-		reg.add_function("PluginLoaded", &PluginLoaded, grp.c_str(), "true if plugin loaded", "\"pluginName\"", "pluginName as listed when using cmake ..");
-		reg.add_function("AssertPluginLoaded", &AssertPluginLoaded, grp.c_str(), "true if plugin loaded", "\"pluginName\"", "throws an error if plugin not loaded, displays help string how to enable plugins via cmake -DpluginName=ON ..");
+		reg.add_function("PluginLoaded", &PluginLoaded, grp.c_str(), 
+		                 "true if plugin loaded", "pluginName", "pluginName as listed when using cmake ..");
+		reg.add_function("AssertPluginLoaded", &AssertPluginLoaded, grp.c_str(), 
+		                 "true if plugin loaded", "pluginName", "throws an error if plugin not loaded, displays help string how to enable plugins via cmake -DpluginName=ON ..");
 	#endif
 #endif
-		reg.add_function("EnableLUA2C", &EnableLUA2C, grp.c_str(), "", "bEnable", "");
+		reg.add_function("EnableLUA2C", &EnableLUA2C, grp.c_str(), 
+		                 "", "bEnable", "");
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 

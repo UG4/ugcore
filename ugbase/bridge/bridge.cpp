@@ -249,7 +249,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 	// 	AlgebraType Interface
 		reg.add_class_<AlgebraType>("AlgebraType", "/ug4/Init")
 			.add_constructor<void (*)(const char*, int)>("Type|selection|value=[\"CPU\"]#Blocksize|selection|value=[1,2,3,4]")
-			.add_constructor<void (*)(const char*)>("Type  (Blocksize=variable)|selection|value=[\"CPU\"]")
+			.add_constructor<void (*)(const char*)>("Type|selection|value=[\"CPU\"]", "Variable Blocksize")
 			.set_construct_as_smart_pointer(true);
 #endif
 

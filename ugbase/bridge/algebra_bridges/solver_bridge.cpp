@@ -172,11 +172,11 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("FETI").append(suffix);
 		reg.add_class_<	T, BaseT,TBase2>(name, grp, "FETI Domain Decomposition Solver")
 		.add_constructor()
-		.add_method("set_neumann_solver", &T::set_neumann_solver,
+		.add_method("set_neumann_solver", &T::set_neumann_solver, "", 
 					"", "Neumann Solver")
-		.add_method("set_dirichlet_solver", &T::set_dirichlet_solver,
+		.add_method("set_dirichlet_solver", &T::set_dirichlet_solver, "",
 					"", "Dirichlet Solver")
-		.add_method("set_coarse_problem_solver", &T::set_coarse_problem_solver,
+		.add_method("set_coarse_problem_solver", &T::set_coarse_problem_solver, "",
 					"", "Coarse Problem Solver")
 		.add_method("set_domain_decomp_info", &T::set_domain_decomp_info)
 		.add_method("print_statistic_of_inner_solver", &T::print_statistic_of_inner_solver)
@@ -224,15 +224,15 @@ static void Algebra(Registry& reg, string grp)
 			.add_constructor()
 			.add_method("set_constraint", &T::set_constraint, "", "constraint")
 			.add_method("prepare", &T::prepare, "", "prepare")
-			.add_method("check_dist_to_obs", &T::check_dist_to_obs, "",
+			.add_method("check_dist_to_obs", &T::check_dist_to_obs, "", "",
 					"is distance to obs >= 0")
-			.add_method("active_index", &T::active_index, "",
+			.add_method("active_index", &T::active_index, "", "",
 					"is index active or not, stores activeSetList")
-			.add_method("comp_lambda", &T::comp_lambda, "",
+			.add_method("comp_lambda", &T::comp_lambda, "", "",
 					"complementary function computed")
-			.add_method("check_conv", &T::check_conv, "",
+			.add_method("check_conv", &T::check_conv, "", "",
 					"activeIndexSet changed or not")
-			.add_method("activeMultiIndices", &T::activeMultiIndices, "",
+			.add_method("activeMultiIndices", &T::activeMultiIndices, "", "",
 					"returns all active MultiIndices in a vector")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ActiveSet", tag);
