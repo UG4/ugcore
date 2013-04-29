@@ -13,7 +13,8 @@
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
-
+#include "progress.h"
+#include "common/util/ostream_util.h"
 namespace ug{
 
 template <typename TAlgebra>
@@ -99,8 +100,18 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 			size_t totalentries=0;
 			size_t maxentries=0;
+			bool bUseProgress = A->num_rows() > 20000;
+			progress p;
+			if(bUseProgress)
+			{
+				UG_LOG("Using ILUT(" << m_eps << ") on " << A->num_rows() << " x " << A->num_rows() << " matrix...");
+				p.start(A->num_rows());
+			}
+
+
 			for(size_t i=1; i<A->num_rows(); i++)
 			{
+				if(bUseProgress) p.set(i);
 				con.resize(0);
 				size_t u_part=0;
 
@@ -179,6 +190,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					};
 				}
 
+
 				totalentries+=con.size();
 				if(maxentries < con.size()) maxentries = con.size();
 
@@ -186,6 +198,11 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				m_L.set_matrix_row(i, &con[0], u_part);
 				m_U.set_matrix_row(i, &con[u_part], con.size()-u_part);
 
+			}
+			if(bUseProgress)
+			{
+				p.stop();
+				UG_LOG(reset_floats << "Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)");
 			}
 
 			m_L.defragment();
