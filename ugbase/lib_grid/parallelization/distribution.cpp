@@ -1675,7 +1675,7 @@ bool DistributeGrid(MultiGrid& mg,
 //	}
 
 //todo: remove this!
-	UG_LOG("WARNING: SERIALIZING AND CLEARING THE WHOLE GRID!\n");
+	//UG_LOG("WARNING: SERIALIZING AND CLEARING THE WHOLE GRID!\n");
 	mg.clear_geometry();
 //	the grid layout map will be rebuilt from scratch
 	glm.clear();
