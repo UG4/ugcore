@@ -56,6 +56,35 @@ In this case run \em CMake like this
 cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..
 \endverbatim
 
+Toolchain files are located in <tt>cmake/toolchain</tt>.
+
+\subsection secStaticBuild Static Builds 
+ug4 is using external libraries and distributes some of its own codes into libraries (e.g. plugins).
+There are two ways of dealing with libraries:
+<ul>
+<li> <em>dynamic linking</em>: When the program is started, the library code is loaded out of another file. Those other files are called <a href=http://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html>shared libraries</a>. They usually end on .so or .so*.</li>
+<li> <em>static linking</em>: The library code is written into the program binary when linking is done. When the program is started, all code is already loaded, since
+it is <em>in</em> the program itself. Static libraries usually end on '.a'. See also <a href=https://en.wikipedia.org/wiki/Static_library>Static Libraries</a>.</li>
+</ul>   
+Although its possible on most clusters to create shared libraries and run 
+dynamically linked executables this is <strong>in general not 
+recommended</strong>, since loading of shared libraries can delay the 
+startup of such an application considerably, especially when using large 
+partitions (8 racks or more).
+See for example  <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/SharedLibraries.html">Shared Libraries and Dynamic Executables on Juqueen</a>.
+
+Start CMake like this
+\code
+cmake -DSTATIC_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/juqueen.cmake ..
+\endcode
+
+If you're using a \ref secCMake_ToolchainFiles, use
+\code
+cmake -DSTATIC_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..
+\endcode 
+
+\warning You must use this line in a <em>clean</em> directory, without previous cmake files. Otherwise you will have linking problems with some files like MPI (error "attempted static link of dynamic object").
+    
 
 \subsection secCMake_OtherCompilers Setting compilers to use
 You can specify other compilers than detected by \em CMake from the command 
