@@ -386,7 +386,7 @@ void IElemDisc<TDomain>::
 do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// check if really needed (may occur in cases, when mixing stat and instat)
-	if(!is_time_dependent()) return;
+	if(m_bStationaryForced) return;
 
 	//	access by map
 	u.access_by_map(map());
@@ -446,7 +446,7 @@ void IElemDisc<TDomain>::
 do_add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// check if really needed (may occur in cases, when mixing stat and instat)
-	if(!is_time_dependent()) return;
+	if(m_bStationaryForced) return;
 
 	//	access by map
 	u.access_by_map(map());
