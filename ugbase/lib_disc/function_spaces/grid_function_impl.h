@@ -409,6 +409,8 @@ GridFunction(SmartPtr<approximation_space_type> approxSpace, bool bManage)
 	if(bManage)
 		m_spDD->manage_grid_function(*this);
 
+	m_bManaged = bManage;
+
 	check_algebra();
 	resize_values(num_indices());
 #ifdef UG_PARALLEL
@@ -619,6 +621,9 @@ void GridFunction<TDomain, TAlgebra>::assign(const this_type& v)
 
 //	assign dof distribution (resizes vector)
 	this->m_spDD = v.m_spDD;
+
+	if(v.m_bManaged==true)
+		this->m_spDD->manage_grid_function(*this);
 
 //	resize the vector
 	resize_values(v.size());

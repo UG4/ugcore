@@ -343,6 +343,9 @@ class GridFunction
 	///	add a transfer callback
 		void clear_transfers();
 
+	/// return m_bManaged
+		bool managed(){return m_bManaged;}
+
 	protected:
 	///	registered transfers
 		std::vector<SmartPtr<ILocalTransfer> > m_vTransfer;
@@ -353,6 +356,9 @@ class GridFunction
 
 	/// Approximation Space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
+	/// boolean for DoF Distribution management of grid function
+		bool m_bManaged;
 };
 
 template <typename TDomain, typename TAlgebra>
