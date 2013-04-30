@@ -87,11 +87,4 @@ else(STATIC_BUILD)
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})
 endif(STATIC_BUILD)
 
-if(BUILD_UGDOCU)
-	add_custom_target(updateUGDocu ALL )
-	add_custom_command(TARGET updateUGDocu
-						 PRE_BUILD
-						 COMMAND "${UG_ROOT_PATH}/bin/ugdocu" -silent
-						 WORKING_DIRECTORY ${UG_ROOT_PATH}/bin)
-	add_dependencies(updateUGDocu ${TARGET} ugdocu)
-endif(BUILD_UGDOCU)
+include(../../cmake/build_ugdocu.cmake)
