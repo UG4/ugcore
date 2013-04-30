@@ -50,7 +50,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 	 * \param[in,out]	vReplaced	vector with all pairs of replacements
 	 */
 		template <typename TBaseElem>
-		void defragment(std::vector<std::pair<size_t,size_t> >& vReplaced);
+		bool defragment(std::vector<std::pair<size_t,size_t> >& vReplaced);
 
 	///	adds indices to created objects
 	/**

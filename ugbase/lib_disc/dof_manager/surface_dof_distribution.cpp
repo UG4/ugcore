@@ -226,13 +226,13 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 #endif
 
 template <typename TBaseElem>
-void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& vReplaced)
+bool SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& vReplaced)
 {
 	typedef typename traits<TBaseElem>::iterator iterator;
 	static const int dim = TBaseElem::dim;
 
 //	if nothing to do, return
-	if(!lev_info().free_index_available()) return;
+	if(!lev_info().free_index_available()) return true;
 
 	int numElem = 0;
 //	loop subsets
@@ -259,7 +259,7 @@ void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 			if(num_dofs(roid, si) == 0) continue;
 
 		//	check correct index and replace if needed
-			MGDoFDistribution::defragment(elem, roid, si, lev_info(), vReplaced);
+			if (MGDoFDistribution::defragment(elem, roid, si, lev_info(), vReplaced)==false) return false;
 
 		//	if copy exists, copy also to parent and grand-parents and ... etc.
 			//\todo: save this execution in non-adaptive case
@@ -271,46 +271,59 @@ void SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 			}
 		}
 	}
+	return true;
 }
 
 void SurfaceDoFDistribution::defragment()
 {
 //	defragment
 	std::vector<std::pair<size_t,size_t> > vReplaced;
-	if(max_dofs(VERTEX) > 0) defragment<VertexBase>(vReplaced);
-	if(max_dofs(EDGE) > 0) defragment<EdgeBase>(vReplaced);
-	if(max_dofs(FACE) > 0) defragment<Face>(vReplaced);
-	if(max_dofs(VOLUME) > 0) defragment<Volume>(vReplaced);
 
-//	check that only invalid indices left
-	for(LevInfo<std::set<size_t> >::iterator it = lev_info().begin(); it != lev_info().end(); ++it)
-		UG_ASSERT(*it >= lev_info().numIndex, "After defragment still index in "
-		          	  	  	  	  "valid range present in free index container.");
+	bool valid = true;
 
-//	clear container
-	lev_info().sizeIndexSet -= lev_info().num_free_index();
-	lev_info().clear();
+	if(max_dofs(VERTEX) > 0) valid=defragment<VertexBase>(vReplaced);
+	if((max_dofs(EDGE) > 0)&&(valid==true)) valid=defragment<EdgeBase>(vReplaced);
+	if((max_dofs(FACE) > 0)&&(valid==true)) valid=defragment<Face>(vReplaced);
+	if((max_dofs(VOLUME) > 0)&&(valid==true)) valid=defragment<Volume>(vReplaced);
 
-	if(lev_info().free_index_available())
-		UG_THROW("Internal error: Still free indices available after "
-						"defragment: " <<  lev_info().num_free_index());
+	// if no valid index set redistribute
+	if (valid==false){
+		redistribute_dofs();
+	} else {
+		//	check that only invalid indices left
+		for(size_t m=1;m<lev_info().max_multiplicity();m++)
+			for(LevInfo<std::set<size_t> >::iterator it = lev_info().begin(m); it != lev_info().end(m); ++it)
+				UG_ASSERT(*it >= lev_info().numIndex, "After defragment still index in "
+				          	  	  	  	  "valid range present in free index container.");
 
-	if(lev_info().numIndex != lev_info().sizeIndexSet)
-		UG_THROW("Internal error: numIndex and sizeIndexSet must be "
-						"equal after defragment, since the index set does not "
-						"contain holes anymore. But numIndex = "<<lev_info().numIndex
-						<<", sizeIndexSet = "<<lev_info().sizeIndexSet);
+		//	clear container
+		for(size_t m=1;m<lev_info().max_multiplicity();m++){
+			lev_info().sizeIndexSet -= lev_info().num_free_index(m);
+			lev_info().clear(m);
+		}
 
-//	adapt managed vectors
-	if(!vReplaced.empty())
-		copy_values(vReplaced, true);
+		for(size_t m=1;m<lev_info().max_multiplicity();m++)
+			if(lev_info().free_index_available(m))
+				UG_THROW("Internal error: Still free indices available after "
+								"defragment: " <<  lev_info().num_free_index(m));
 
-//	num indices may have changed
-	resize_values(num_indices());
+		if(lev_info().numIndex != lev_info().sizeIndexSet)
+			UG_THROW("Internal error: numIndex and sizeIndexSet must be "
+								"equal after defragment, since the index set does not "
+								"contain holes anymore. But numIndex = "<<lev_info().numIndex
+								<<", sizeIndexSet = "<<lev_info().sizeIndexSet);
 
-#ifdef UG_PARALLEL
-	create_layouts_and_communicator();
-#endif
+		//	adapt managed vectors
+		if(!vReplaced.empty())
+			copy_values(vReplaced, true);
+
+		//	num indices may have changed
+		resize_values(num_indices());
+
+		#ifdef UG_PARALLEL
+			create_layouts_and_communicator();
+		#endif
+	}
 }
 
 template <typename TBaseElem>
@@ -367,20 +380,21 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 {
 	if(is_frozen())
 		return;
+		
+	UG_LOG("erased obj adress=" << obj << "\n");
 
 	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
 //	case 1: Only replacement. Just copy indices from one obj to the other
-	if(replacedBy) {copy(replacedBy, obj); return;}
+	if(replacedBy) {copy(replacedBy, obj); UG_LOG("replace case\n");return;}
 
 //	case 2: Element disappears, but parent is identical. Thus, the parent
 //			has the same indices attached. All indices remain valid on
 //			every surface level. No resizement in the index set must be
 //			performed.
 	if(parent_if_copy(obj)) {
-		if(obj_index(obj) != obj_index(get_parent(obj)))
-			UG_THROW("Must have same index in parent");
-		return;
+		// if identical return, else do case 3
+		if(obj_index(obj) == obj_index(get_parent(obj))) return;
 	}
 
 //	case 3: The object that will be erased has no identical parent on the
@@ -388,8 +402,9 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 //			the index set.
 
 //	All prolongation callbacks are invoked now
-	for(size_t i = 0; i < m_vRestriction[gbo].size(); ++i)
+	for(size_t i = 0; i < m_vRestriction[gbo].size(); ++i){
 		m_vRestriction[gbo][i]->restrict_values(obj, get_parent(obj), *this);
+	}
 
 //	remember that index from object is now no longer in index set
 	erase(obj,

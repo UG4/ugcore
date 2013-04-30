@@ -68,16 +68,16 @@ template <typename TContainer = std::vector<size_t> >
 struct LevInfo : public LevInfoBase
 {
 ///	returns if free index available
-	inline bool free_index_available() const;
+	inline bool free_index_available(size_t multiplicity) const;
 
 ///	returns number of free index available
-	inline size_t num_free_index() const;
+	inline size_t num_free_index(size_t multiplicity) const;
 
 ///	returns a free index
-	inline size_t pop_free_index();
+	inline size_t pop_free_index(size_t multiplicity);
 
 ///	adds a free index, returns if index has not been contained before
-	inline bool push_free_index(size_t index);
+	inline bool push_free_index(size_t index,size_t multiplicity);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -360,7 +360,7 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		 * \returns true if index has been replaced, false else
 		 */
 		template <typename TBaseObject, typename T>
-		void defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
+		bool defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 		                LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced);
 		template <typename T>
 		void defragment(GeometricObject* obj, const ReferenceObjectID roid, const int si,
@@ -457,46 +457,71 @@ struct LevInfo<std::vector<size_t> > : public LevInfoBase
 	typedef std::vector<size_t>::iterator iterator;
 	typedef std::vector<size_t>::const_iterator const_iterator;
 
-///	returns if free index avaiable
-	inline bool free_index_available() const
+///	returns if free index available
+	inline bool free_index_available(size_t multiplicity) const
 	{
-		return !vFreeIndex.empty();
+		if (vvFreeIndex.size()<=multiplicity) return false;
+		return !vvFreeIndex[multiplicity].empty();
 	}
 
-///	returns number of free index avaiable
-	inline size_t num_free_index() const
+	inline bool free_index_available() const
 	{
-		return vFreeIndex.size();
+		bool available = false;
+		for (size_t i=0;i<vvFreeIndex.size();i++){
+			if (vvFreeIndex[i].empty()==false){
+				available = true;
+				break;
+			}
+		}
+		return available;
+	}
+
+///	returns number of free index available
+	inline size_t num_free_index(size_t multiplicity) const
+	{
+		return vvFreeIndex[multiplicity].size();
 	}
 
 ///	returns a free index
-	inline size_t pop_free_index()
+	inline size_t pop_free_index(size_t multiplicity)
 	{
-		const size_t index = vFreeIndex.back();
-		vFreeIndex.pop_back();
+		if(vvFreeIndex.size() <= multiplicity)
+			vvFreeIndex.resize(multiplicity+1);
+
+		const size_t index = vvFreeIndex[multiplicity].back();
+		vvFreeIndex[multiplicity].pop_back();
 		return index;
 	}
 
 ///	adds a free index, returns if index has not been contained before
-	inline bool push_free_index(size_t index)
+	inline bool push_free_index(size_t index, size_t multiplicity)
 	{
-		vFreeIndex.push_back(index); return true;
+		if(vvFreeIndex.size() <= multiplicity)
+					vvFreeIndex.resize(multiplicity+1);
+
+		vvFreeIndex[multiplicity].push_back(index);
+		return true;
 	}
 
 ///	returns iterators
 ///	\{
-	inline iterator begin() {return vFreeIndex.begin();}
-	inline iterator end() {return vFreeIndex.end();}
-	inline const_iterator begin() const {return vFreeIndex.begin();}
-	inline const_iterator end() const {return vFreeIndex.end();}
+	inline iterator begin(size_t multiplicity) {return vvFreeIndex[multiplicity].begin();}
+	inline iterator end(size_t multiplicity) {return vvFreeIndex[multiplicity].end();}
+	inline const_iterator begin(size_t multiplicity) const {return vvFreeIndex[multiplicity].begin();}
+	inline const_iterator end(size_t multiplicity) const {return vvFreeIndex[multiplicity].end();}
 ///	\}
 
 ///	clear container
-	void clear() {vFreeIndex.clear();}
-	void clear_all() {clear(); LevInfoBase::clear();}
+	void clear(size_t multiplicity){vvFreeIndex[multiplicity].clear();}
+	void clear_all() {
+		for (size_t i=0;i<vvFreeIndex.size();i++) clear(i);
+		LevInfoBase::clear();
+	}
+	
+	size_t max_multiplicity(){return vvFreeIndex.size();}
 
 	protected:
-	std::vector<size_t> vFreeIndex;
+	std::vector<std::vector<size_t> > vvFreeIndex;
 };
 
 template <>
@@ -505,49 +530,73 @@ struct LevInfo<std::set<size_t> > : public LevInfoBase
 	typedef std::set<size_t>::iterator iterator;
 	typedef std::set<size_t>::const_iterator const_iterator;
 
-///	returns if free index avaiable
-	inline bool free_index_available() const
+///	returns if free index available
+	inline bool free_index_available(size_t multiplicity) const
 	{
-		return !vFreeIndex.empty();
+		if(vvFreeIndex.size() <= multiplicity) return false;
+		return !vvFreeIndex[multiplicity].empty();
 	}
 
-///	returns number of free index avaiable
-	inline size_t num_free_index() const
+///	returns if free index available
+	inline bool free_index_available() const
 	{
-		return vFreeIndex.size();
+		bool available = false;
+		for (size_t i=0;i<vvFreeIndex.size();i++){
+			if (vvFreeIndex[i].empty()==false){
+				available = true;
+				break;
+			}
+		}
+		return available;
+	}
+
+///	returns number of free index available
+	inline size_t num_free_index(size_t multiplicity) const
+	{
+		if(vvFreeIndex.size() <= multiplicity) return 0;
+		return vvFreeIndex[multiplicity].size();
 	}
 
 ///	returns a free index
-	inline size_t pop_free_index()
+	inline size_t pop_free_index(size_t multiplicity)
 	{
-		const size_t index = *vFreeIndex.begin();
-		vFreeIndex.erase(vFreeIndex.begin());
+		if(vvFreeIndex.size() <= multiplicity)
+			vvFreeIndex.resize(multiplicity+1);
+		const size_t index = *vvFreeIndex[multiplicity].begin();
+		vvFreeIndex[multiplicity].erase(vvFreeIndex[multiplicity].begin());
 		return index;
 	}
 
 ///	adds a free index, returns if index has not been contained before
-	inline bool push_free_index(size_t index)
+	inline bool push_free_index(size_t index,size_t multiplicity)
 	{
+		if(vvFreeIndex.size() <= multiplicity)
+					vvFreeIndex.resize(multiplicity+1);
 	//	already contained, just return flag
-		if(vFreeIndex.find(index) != vFreeIndex.end()) return false;
+		if(vvFreeIndex[multiplicity].find(index) != vvFreeIndex[multiplicity].end()) return false;
 
-		vFreeIndex.insert(index); return true;
+		vvFreeIndex[multiplicity].insert(index); return true;
 	}
 
 ///	returns iterators
 ///	\{
-	inline iterator begin() {return vFreeIndex.begin();}
-	inline iterator end() {return vFreeIndex.end();}
-	inline const_iterator begin() const {return vFreeIndex.begin();}
-	inline const_iterator end() const {return vFreeIndex.end();}
+	inline iterator begin(size_t multiplicity) {return vvFreeIndex[multiplicity].begin();}
+	inline iterator end(size_t multiplicity) {return vvFreeIndex[multiplicity].end();}
+	inline const_iterator begin(size_t multiplicity) const {return vvFreeIndex[multiplicity].begin();}
+	inline const_iterator end(size_t multiplicity) const {return vvFreeIndex[multiplicity].end();}
 ///	\}
 
 ///	clear container
-	void clear() {vFreeIndex.clear();}
-	void clear_all() {clear(); LevInfoBase::clear();}
+	void clear(size_t multiplicity){vvFreeIndex[multiplicity].clear();}
+	void clear_all() {
+		for (size_t i=0;i<vvFreeIndex.size();i++) clear(i);
+		LevInfoBase::clear();
+	}
+
+	size_t max_multiplicity(){return vvFreeIndex.size();}
 
 	protected:
-	std::set<size_t> vFreeIndex;
+	std::vector<std::set<size_t> > vvFreeIndex;
 };
 
 } // end namespace ug

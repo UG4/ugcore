@@ -262,17 +262,22 @@ void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 	if(max_dofs(3) > 0) defragment<Volume>(vReplaced, lev);
 
 //	check that only invalid indices left
-	for(LevInfo<std::vector<size_t> >::iterator it = lev_info(lev).begin(); it != lev_info(lev).end(); ++it)
-		UG_ASSERT(*it >= lev_info(lev).numIndex, "After defragment still index in "
+	for(size_t m=1;m<lev_info(lev).max_multiplicity();m++)
+		for(LevInfo<std::vector<size_t> >::iterator it = lev_info(lev).begin(m); it != lev_info(lev).end(m); ++it)
+			UG_ASSERT(*it >= lev_info(lev).numIndex, "After defragment still index in "
 								  "valid range present in free index container.");
 
 //	clear container
-	lev_info(lev).sizeIndexSet -= lev_info(lev).num_free_index();
-	lev_info(lev).clear();
+	for(size_t m=1;m<lev_info(lev).max_multiplicity();m++){
+		lev_info(lev).sizeIndexSet -= lev_info(lev).num_free_index(m);
+		lev_info(lev).clear(m);
+	}
 
-	if(lev_info(lev).free_index_available())
-		UG_THROW("Internal error: Still free indices available after "
-						"defragment: " <<  lev_info(lev).num_free_index());
+	for(size_t m=1;m<lev_info(lev).max_multiplicity();m++){
+		if(lev_info(lev).free_index_available(m))
+			UG_THROW("Internal error: Still free indices available after "
+						"defragment: " <<  lev_info(lev).num_free_index(m));
+	}
 
 	if(lev_info(lev).numIndex != lev_info(lev).sizeIndexSet)
 		UG_THROW("Internal error: numIndex and sizeIndexSet must be "

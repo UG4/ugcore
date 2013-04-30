@@ -160,10 +160,10 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	if(!m_bGrouped) numNewIndex = num_dofs(roid,si);
 
 //	a) 	if no holes are in the index set,
-	if(li.free_index_available())
+	if(li.free_index_available(numNewIndex))
 	{
 	//	get a free index (a hole) and use it
-		obj_index(obj) = li.pop_free_index();
+		obj_index(obj) = li.pop_free_index(numNewIndex);
 	}
 	else
 	{
@@ -194,18 +194,23 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 }
 
 template <typename TBaseObject, typename T>
-void MGDoFDistribution::
+bool MGDoFDistribution::
 defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
            LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced)
 {
 	bool master = false;
+
+	//	compute the number of indices needed on the Geometric object
+	size_t numNewIndex=1;
+	if(!m_bGrouped) numNewIndex= num_dofs(roid,si);
+
 	if(m_spMG->has_periodic_boundaries())
 	{
 		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
 		// ignore slaves
 		if(pbm.is_slave(obj))
 		{
-			return;
+			return true;
 		}
 
 		if(pbm.is_master(obj))
@@ -217,18 +222,16 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	const size_t oldIndex = obj_index(obj);
 
 // 	check if index must be replaced by lower one
-	if(oldIndex < li.numIndex) return;
+	if(oldIndex < li.numIndex) return true;
 
-//	must have holes in the index set
-	UG_ASSERT(li.free_index_available(), "Hole in index set, but no free index:"
-	          <<" oldIndex: "<<oldIndex<<", li.numIndex: "<<li.numIndex<<", "<<
-	          " roid: "<<roid<<", si: "<<si);
+//	if no holes in index set return false
+	if (li.free_index_available(numNewIndex)==false) return false;
 
 //	get new index from stack
 	while(1)
 	{
 	//	get a free index (a hole) and use it
-		const size_t newIndex = li.pop_free_index();
+		const size_t newIndex = li.pop_free_index(numNewIndex);
 
 	//	check that index is admissible
 		if(newIndex < li.numIndex)
@@ -262,12 +265,9 @@ defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 			UG_THROW("No more free index, but still need to defragment.");
 	}
 
-//	compute the number of indices needed on the Geometric object
-	size_t numNewIndex = 1;
-	if(!m_bGrouped) numNewIndex = num_dofs(roid,si);
-
 //	number of Indices stays the same, but size of index set is changed.
 	li.sizeIndexSet -= numNewIndex;
+	return true;
 }
 
 
@@ -284,14 +284,14 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 		if(m_spMG->periodic_boundary_manager()->is_slave(obj))
 			return;
 
-//	store the index of the object, that will be erased as a available hole of the
-//	index set
-	bool bNonContained = li.push_free_index(obj_index(obj));
-	if(!bNonContained) return;
-
 //	compute number of indices on the geometric object
 	size_t numNewIndex = 1;
 	if(!m_bGrouped) numNewIndex = num_dofs(roid,si);
+
+//	store the index of the object, that will be erased as a available hole of the
+//	index set
+	bool bNonContained = li.push_free_index(obj_index(obj), numNewIndex);
+	if(!bNonContained) return;
 
 //	number of managed indices has changed, thus decrease counter. Note, that the
 //	size of the index set remains unchanged.
@@ -349,8 +349,8 @@ void MGDoFDistribution::erase(GeometricObject* elem, const ReferenceObjectID roi
 	switch(elem->base_object_id())
 	{
 		case VERTEX: return erase(static_cast<VertexBase*>(elem), roid, si, li);
-		case EDGE: return erase(static_cast<EdgeBase*>(elem), roid, si, li);
-		case FACE: return erase(static_cast<Face*>(elem), roid, si, li);
+		case EDGE: 	 return erase(static_cast<EdgeBase*>(elem), roid, si, li);
+		case FACE:	 return erase(static_cast<Face*>(elem), roid, si, li);
 		case VOLUME: return erase(static_cast<Volume*>(elem), roid, si, li);
 		default: UG_THROW("Geometric Base element not found.");
 	}
