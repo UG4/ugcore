@@ -1,6 +1,6 @@
 #!/bin/bash
 
-doxylog="$1"
+doxylog="${1:-"doxylog.log"}"
 with_regdocu="${2:-0}"
 
 # remove old html and tags
