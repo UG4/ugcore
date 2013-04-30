@@ -196,8 +196,12 @@ class LuaUserFunction
 		using base_type::set_input;
 
 	public:
-	///	constructor
-	/// \{
+	/**
+	 * \brief constructor
+	 * \param luaCallback name of the Lua function to use as callback
+	 * \param numArgs number of arguments of the Lua callback
+	 * \{
+	 */ 
 		LuaUserFunction(const char* luaCallback, size_t numArgs);
 		LuaUserFunction(const char* luaCallback, size_t numArgs, bool bPosTimeNeed);
 	/// \}
@@ -205,14 +209,21 @@ class LuaUserFunction
 	///	destructor frees the reference
 		virtual ~LuaUserFunction();
 
-	///	sets the Lua function used to compute the derivative
+	/**
+	 * \brief sets the Lua function used to compute the derivative
+	 * \param arg this is the derivative with respect to the parameter index \c arg
+	 * \param luaCallback name of the Lua function to use as callback
+	 */
 		void set_deriv(size_t arg, const char* luaCallback);
 
 	///	set number of needed inputs
 		void set_num_input(size_t num);
 
-	///	set input i
-	/// \{
+	/**
+	 * \brief set input value for paramter \c i
+	 * \param i parameter index this input is bind to
+	 * \{
+	 */
 		void set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data);
 		void set_input(size_t i, number val);
 	///	\}
