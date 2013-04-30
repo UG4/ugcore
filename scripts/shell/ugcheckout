@@ -1,0 +1,157 @@
+#!/bin/bash
+
+#------------------------------------------------------------------------------#
+#      Probably useful bash functions for partial SVN checkouts of ug4         #
+#                               by Torbjörn Klatt                              #
+#                                  2013-04-26                                  #
+#------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------#
+# is_ug4_root_set()                                                            #
+# Checks whether the environment variable UG4_ROOT is set to a valid directory #
+# Returns:                                                                     #
+#   0   on success                                                             #
+#   1   on failure                                                             #
+#------------------------------------------------------------------------------#
+function is_ug4_root_set {
+	if [[ -d $UG4_ROOT ]]; then return 0
+	else
+		echo "ERROR: Environment variable UG4_ROOT not set to valid directory: '${UG4_ROOT}'"
+		exit 1
+	fi
+}
+
+#------------------------------------------------------------------------------#
+# co_plugin_scaffold()                                                         #
+# Checks out the immediates of $UG4_ROOT/plugins                               #
+# Returns:                                                                     #
+#   0   on success                                                             #
+#  >0   on failure                                                             #
+# Calls:                                                                       #
+#   is_ug4_root_set()                                                          #
+#------------------------------------------------------------------------------#
+function co_plugin_scaffold {
+	is_ug4_root_set()
+	if [[ -d $UG4_ROOT/plugins ]]; then
+		cd $UG4_ROOT/plugins
+		svn update --set-depth immediates
+		return $?
+	else
+		echo "ERROR: plugins directory not found in '${UG4_ROOT}'."
+		exit 1
+	fi
+}
+
+#------------------------------------------------------------------------------#
+# co_core_plugin()                                                             #
+# Checks out the whole content of a specified core plugin                      #
+# Parameters:                                                                  #
+#   1st:  directory name of the desired core plugin (without any further path) #
+# Returns:                                                                     #
+#   0   on success                                                             #
+#  >0   on failure                                                             #
+# Calls:                                                                       #
+#   co_plugin_scaffold()                                                       #
+#------------------------------------------------------------------------------#
+function co_core_plugin {
+	if [[ -z $1 ]]; then exit 1
+	co_plugin_scaffold()
+	if [[ -d $UG4_ROOT/plugins/core/$1 ]]; then
+		cd $UG4_ROOT/plugins/core/$1
+		svn update --set-depth infinity
+		return $?
+	else
+		echo "ERROR: Desired core plugin not found: '${1}'"
+		exit 1
+	fi
+}
+
+#------------------------------------------------------------------------------#
+# co_experimental_plugin()                                                     #
+# Checks out the whole content of a specified experimental plugin              #
+# Parameters:                                                                  #
+#   1st:  directory name of the desired core plugin (without any further path) #
+# Returns:                                                                     #
+#   0   on success                                                             #
+#  >0   on failure                                                             #
+# Calls:                                                                       #
+#   co_plugin_scaffold()                                                       #
+#------------------------------------------------------------------------------#
+function co_experimental_plugin {
+	if [[ -z $1 ]]; then exit 1
+	co_plugin_scaffold()
+	if [[ -d $UG4_ROOT/plugins/experimental/$1 ]]; then
+		cd $UG4_ROOT/plugins/experimental/$1
+		svn update --set-depth infinity
+		return $?
+	else
+		echo "ERROR: Desired experimental plugin not found: '${1}'"
+		exit 1
+	fi
+}
+
+#------------------------------------------------------------------------------#
+# co_apps_scaffold()                                                           #
+# Checks out the immediates of $UG4_ROOT/apps                                  #
+# Returns:                                                                     #
+#   0   on success                                                             #
+#  >0   on failure                                                             #
+# Calls:                                                                       #
+#   is_ug4_root_set()                                                          #
+#------------------------------------------------------------------------------#
+function co_apps_scaffold {
+	is_ug4_root_set()
+	if [[ -d $UG4_ROOT/apps ]]; then
+		cd $UG4_ROOT/apps
+		svn update --set-depth immediates
+		return $?
+	else
+		echo "ERROR: apps directory not found in '${UG4_ROOT}'."
+		exit 1
+	fi
+}
+
+#------------------------------------------------------------------------------#
+# co_experimental_plugin()                                                     #
+# Checks out the whole content of a specified app                              #
+# Parameters:                                                                  #
+#   1st:  directory name of the desired app (without any further path)         #
+# Returns:                                                                     #
+#   0   on success                                                             #
+#  >0   on failure                                                             #
+# Calls:                                                                       #
+#   co_apps_scaffold()                                                         #
+#------------------------------------------------------------------------------#
+function co_app {
+	if [[ -z $1 ]]; then exit 1
+	co_apps_scaffold()
+	if [[ -d $UG4_ROOT/apps/$1 ]]; then
+		cd $UG4_ROOT/apps/$1
+		svn update --set-depth infinity
+		return $?
+	else
+		echo "ERROR: Desired app not found in apps: '${1}'"
+		exit 1
+	fi
+}
+
+#------------------------------------------------------------------------------#
+# co_docu()                                                                    #
+# Checks out the whole content of the docs directory                           #
+# Returns:                                                                     #
+#   0   on success                                                             #
+#  >0   on failure                                                             #
+# Calls:                                                                       #
+#   is_ug4_root_set()                                                          #
+#------------------------------------------------------------------------------#
+function co_docu {
+	is_ug4_root_set()
+	if [[ -d $UG4_ROOT/docs ]]; then
+		cd $UG4_ROOT/docs
+		svn update --set-depth infinity
+		return $?
+	else
+		echo "ERROR: docs directory not found in '${UG4_ROOT}'."
+		exit 1
+	fi
+}
