@@ -7,6 +7,7 @@
 - \ref secSVNBasics
 - \ref secSVNRepository
 - \ref secSVNCheckout
+  - \ref secSVNPartialCheckout
 - \ref secSVNCommit
 - \ref secSVNUpdate
 - \ref secSVNFiles
@@ -35,7 +36,7 @@ The most up-to-date version is called the current revision, the current revision
 <hr>
 \section secSVNRepository SVN Repositories
 an SVN repository is a URL to a server, added with a description which repository from the server you want to have.
-For ug4, the SVN server is <tt>svn://fuji.gcsc.uni-frankfurt.de</tt>, and the repository there is called ug4, so the complete
+For \ug4, the SVN server is <tt>svn://fuji.gcsc.uni-frankfurt.de</tt>, and the repository there is called ug4, so the complete
 SVN URL is <tt>svn://fuji.gcsc.uni-frankfurt.de/ug4</tt>. 
 
 <hr>
@@ -45,7 +46,7 @@ Sebastian Reiter can create a new SVN user for you. SVN Users consists of a user
 
 <hr>
 \section secSVNCheckout Download the source code (checkout)
-To checkout ug4's trunk directory to the directory <tt>ug4svn</tt>, we do
+To checkout \ug4's trunk directory to the directory <tt>ug4svn</tt>, we do
 \code
 svn co svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4svn
 \endcode
@@ -56,10 +57,50 @@ Authentication realm: <svn://fuji.gcsc.uni-frankfurt.de:3690> fuji-svn-repositor
 Password for 'mrupp': 
 \endverbatim
 
-after that, ug4 (HEAD revision) will be downloaded.
+after that, \ug4 (HEAD revision) will be downloaded.
 
 \note All commands following are relative to the current directory, and working in a subdirectory will \em not effect the
 directories above.
+
+\subsection secSVNPartialCheckout Partial Checkout
+In most cases it is not necessary to check out the whole \ug4 repository.
+Therefore SVN provides the possibility to only checkout certain directories of
+a repository.
+
+To achieve this, first checkout the trunk of \ug4 without recursing into subdirectories
+by
+
+    svn co --depth immediates svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4svn
+
+Now only folders and files of `ug4/trunk` without their content is downloaded.
+To get a minimal compiling copy of \ug4 issue the following commands:
+
+    cd ug4svn
+    cd ugbase && svn update --set-depth infinity && cd ..
+    cd cmake && svn update --set-depth infinity && cd ..
+    cd scripts && svn update --set-depth infinity && cd ..
+
+This will download all the core parts of \ug4 (`ugbase`), the various files and
+scripts for \em CMake (`cmake`) and the utility scripts, which might turn
+out helpful (`scripts`).
+
+If you are working on a certain app without bothering about all the others, first
+get the list of all apps and then only check out your awesome one:
+
+    cd apps && svn update --set-depth immediates && cd ..
+    cd apps/your_awesome_app && svn update --set-depth infinity && cd ../..
+
+Similar you proceed with plugins:
+
+    cd plugins && svn update --set-depth immediates && cd ..
+    cd plugins/core && svn update --set-depth immediates && cd ../..
+    cd plugins/experimental && svn update --set-depth immediates && cd ../..
+
+Finally there are some great news for you: SVN will keep track and remember your 
+settings regarding the depth.
+I.e. if you `svn update` in the root (i.e. `ug4svn`) it will only checkout and
+update those directories and files, which you have checked out so you will not
+get annoyed by a flood of changes in a boring app you don't care about!
 
 <hr>
 \section secSVNCommit Upload/check in changes (commit)
@@ -188,7 +229,7 @@ under version control (hence the 'M').
 An output like <tt>9476</tt> means that all files are on revision number 9476 and non of them is modified.
 
 \subsubsection update ug4 or ug4's revision number
-With "updating ug4" we mean you need to update \em all of ug4, not only some subdirectory. For that, go to your ug4 base directory,
+With "updating ug4" we mean you need to update \em all of \ug4, not only some subdirectory. For that, go to your ug4 base directory,
 and enter <tt>svn update</tt>. There you can also do a <tt>svnversion</tt> to get the SVN version of whole ug4.
  
 \subsubsection secSVNMoreUsername Other Usernames
