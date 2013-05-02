@@ -15,8 +15,18 @@
 #endif
 #include <string>
 #include <sstream>
+#ifdef UG_FOR_LUA
+#include "bindings/lua/info_commands.h"
+#include <map>
+namespace ug{
+namespace script{
+bool IsLUADebug();
+}
+}
+#endif
 
 using namespace std;
+
 
 
 
@@ -64,6 +74,77 @@ string demangle(const char *str)
 }
 #endif
 
+void lua_backtrace()
+{
+#ifdef UG_FOR_LUA
+	bool bDoLUAStackTrace=true;
+#ifdef UG_POSIX
+#ifdef UG_PROFILER_SHINY
+	if(ug::script::IsLUADebug()) bDoLUAStackTrace = false;
+#endif
+#endif
+	if(bDoLUAStackTrace)
+	{
+		UG_LOG("--------------- LUA Stack Trace: --------------\n");
+		ug::bridge::LuaStackTrace();
+		UG_LOG("\n");
+	}
+#endif
+}
+
+void shiny_backtrace()
+{
+#ifdef UG_POSIX
+#ifdef UG_PROFILER_SHINY
+	UG_LOG("---------- Shiny Profiler Backtrace: ----------\n");
+	Shiny::ProfileNode *p = Shiny::ProfileManager::instance._curNode;
+	size_t i=0;
+
+	while(p != &Shiny::ProfileManager::instance.rootNode)
+	{
+		const char *name = p->zone->name;
+		if(name[0] == '@') name = "LUA Script";
+		UG_LOG(std::setw(3) << i++ << std::setw(50) << name << "\t" << p->zone->file << " :" << p->zone->line << "\n");
+		p = p->parent;
+	}
+	UG_LOG("\n");
+#endif
+#endif
+}
+
+
+
+string get_gcc_backtrace()
+{
+#ifdef UG_POSIX
+	stringstream ss;
+	void *array[100];
+	size_t size;
+	char **strings;
+
+	size = backtrace (array, 100);
+	strings = backtrace_symbols (array, size);
+
+	for (size_t i = 0; i < size; i++)
+		ss << i << ":\n" << demangle(strings[i]);
+	free (strings);
+	ss << "\n";
+	return ss.str();
+#else
+	return "";
+#endif	// UG_POSIX
+}
+
+void gcc_backtrace()
+{
+#ifdef UG_POSIX
+	UG_LOG("--------------- GCC Backtrace: ----------------\n");
+	UG_LOG(get_gcc_backtrace());
+#endif	// UG_POSIX
+}
+
+
+
 /*
  * This function is meant to put out some more meaningful debug data.
  * It prints the call backtrace and Profiler backtrace if available.
@@ -72,33 +153,9 @@ string demangle(const char *str)
  */
 void ug_backtrace()
 {
-	size_t i;
-#ifdef UG_POSIX
-#ifdef UG_PROFILER_SHINY
-	UG_LOG("Shiny Profiler Backtrace:\n")
-	Shiny::ProfileNode *p = Shiny::ProfileManager::instance._curNode;
-	i=0;
-	while(p != &Shiny::ProfileManager::instance.rootNode)
-	{
-		UG_LOG(std::setw(3) << i++ << std::setw(50) << p->zone->name << "\t" << p->zone->file << " :" << p->zone->line << "\n");
-		p = p->parent;
-	}
-	UG_LOG("\n");
-#endif
-	UG_LOG("GCC Backtrace:\n")
-	void *array[100];
-	size_t size;
-	char **strings;
-
-	size = backtrace (array, 100);
-	strings = backtrace_symbols (array, size);
-
-	for (i = 0; i < size; i++)
-		UG_LOG(i << ":\n" << demangle(strings[i]));
-	free (strings);
-	UG_LOG("\n");
-
-#endif	// UG_POSIX
+	lua_backtrace();
+	shiny_backtrace();
+	gcc_backtrace();
 
 }
 
