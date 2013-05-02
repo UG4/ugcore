@@ -125,6 +125,9 @@ UG_API std::string GetLuaTypeString(lua_State* L, int index);
 /// prints information about lua's call stack (file:line source).
 UG_API void LuaStackTrace(lua_State* L);
 
+/// prints information about lua's call stack (file:line source).
+UG_API void LuaStackTrace();
+
 /// returns the current file and line ( \sa LuaStackTrace ).
 UG_API std::string GetLuaFileAndLine(lua_State* L);
 

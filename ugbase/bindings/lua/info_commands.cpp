@@ -875,7 +875,7 @@ std::string GetLuaFileAndLine(lua_State* L)
 	return ss.str();
 }
 
-void ScriptStacktrace()
+void LuaStackTrace()
 {
 	LuaStackTrace(script::GetDefaultLuaState());
 }
@@ -952,7 +952,7 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		                 "", "typeName", "print all objects of the type");
 		reg.add_function("ClassHierarchy" ,&ScriptPrintClassHierarchy, grp.c_str(), 
 		                 "", "typeName", "print the class hierachy of type");
-		reg.add_function("Stacktrace", &ScriptStacktrace, grp.c_str(), 
+		reg.add_function("Stacktrace", static_cast<void (*)()>(&LuaStackTrace), grp.c_str(),
 		                 "", "", "prints the LUA function stack, that is which functions are called up to this point");
 		reg.add_function("HasClass", &ScriptHasClass, grp.c_str(), 
 		                 "true if class exists", "className", "use only if you know that you're not using a class group, otherwise HasClassGroup");
