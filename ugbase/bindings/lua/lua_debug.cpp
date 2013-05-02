@@ -57,7 +57,10 @@ static int profilingEndDepth=0;
 static std::map<const char*, std::map<int, pRuntimeProfileInfo> >pis;
 #endif
 
-
+bool IsLUADebug()
+{
+	return bProfiling;
+}
 int curHookMask = 0;
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
