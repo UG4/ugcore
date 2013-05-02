@@ -287,8 +287,8 @@ void SelectionFill(Selector& sel,
  *
  * Whether a side is bounding can be specified through the cbRegionBoundary callback
  *
- * - 	Use e.g. IsSelected(sel) to indicate that all selected edges are region boundaries.
- * -	Use e.g. IsNotInSubset(sh, -1) to indicate, that all faces which are in a subset
+ * - 	Use e.g. IsSelected(sel) to indicate that all selected sides are region boundaries.
+ * -	Use e.g. IsNotInSubset(sh, -1) to indicate, that all sides which are in a subset
  * 		should be considered as region boundaryies.
  *
  * Those callbacks are declared in lib_grid/algorithms/callback_util.h"
