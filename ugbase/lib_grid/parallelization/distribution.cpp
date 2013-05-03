@@ -1531,7 +1531,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 	//	don't serialize the local partition since we'll keep it here on the local
 	//	process anyways.
-//		if(!localPartition){
+		if(!localPartition){
 		//	write a magic number for debugging purposes
 			out.write((char*)&magicNumber1, sizeof(int));
 
@@ -1551,7 +1551,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 		//	write a magic number for debugging purposes
 			out.write((char*)&magicNumber2, sizeof(int));
-//		}
+		}
 
 	//	size of the segment we just wrote to out
 		outSegSizes.push_back((int)(out.write_pos() - oldSize));
