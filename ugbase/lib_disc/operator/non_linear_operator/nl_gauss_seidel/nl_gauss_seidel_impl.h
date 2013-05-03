@@ -280,15 +280,13 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		m_J_block->set_level(m_gridLevel);
 	}
 
-	//	resize
-	try{
-		m_d.resize(u.size()); m_c_block.resize(1); m_d_block.resize(1);
-		#ifdef UG_PARALLEL
-			m_d.set_layouts(u.layouts());
-			m_c_block.set_layouts(u.layouts());
-			m_d_block.set_layouts(u.layouts());
-		#endif
-	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: Resize of Defect/Correction failed.");
+	//	create tmp vectors
+	SmartPtr<vector_type> spD = u.clone_without_values();
+	SmartPtr<vector_type> spC = u.clone_without_values();
+	SmartPtr<vector_type> spDBlock = u.clone_without_values();
+
+	//	resize vectors, because they are only used as block-vectors with one entry
+	(*spC).resize(1); (*spDBlock).resize(1);
 
 	//	Set dirichlet values
 	try{
@@ -299,7 +297,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	// 	Compute first Defect d = L(u)
 	try{
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeDefect1);
-		m_N->apply(m_d, u);
+		m_N->apply(*spD, u);
 		NL_GAUSSSEIDEL_PROFILE_END();
 	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
 			"Computation of Start-Defect failed.");
@@ -309,11 +307,11 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
 	std::string name("NLGaussSeidel_Defect");
 	name.append(ext);
-	write_debug(m_d, name.c_str());
+	write_debug(*spD, name.c_str());
 	write_debug(u, "NLGaussSeidel_StartSolution");
 
 	// 	start convergence check
-	m_spConvCheck->start(m_d);
+	m_spConvCheck->start(*spD);
 
 	// 	assign selector to grid
 	TDomain& dom = *m_spApproxSpace->domain();
@@ -363,23 +361,25 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 			//	get i-th block of defect d: d(i) =: m_d_block
 			NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
-			m_N->apply(m_d_block, u);
+			m_N->apply(*spDBlock, u);
 			NL_GAUSSSEIDEL_PROFILE_END();
 
 			//	get i,i-th block of J: J(i,i)
 			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
 			//	m_c_i = m_damp * d_i /J_ii
 			NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELInvertJ);
-				InverseMatMult(m_c_block[0], m_damp, J_block(0,0) , m_d_block[0]);
+				InverseMatMult((*spC)[0], m_damp, J_block(0,0) , (*spDBlock)[0]);
 			NL_GAUSSSEIDEL_PROFILE_END();
 
 			// 	update i-th block of solution
-			u[i] -= m_c_block[0];
+			u[i] -= (*spC)[0];
 
 			//	should projected GS be performed?
 			if (m_bProjectedGS)
 			{
-				std::vector<MultiIndex<2> > vActiveSet;
+				//	call ProjectVectorCorrection
+
+				/*std::vector<MultiIndex<2> > vActiveSet;
 				value_type diff;
 				diff = u[i] - m_ConsVec[i];
 				//	get number of unknowns per value_type
@@ -420,7 +420,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 					if (penetrate)
 						BlockRef(u[i],fct) = BlockRef(m_ConsVec[i],fct);
 
-				} //end (fcts)
+				} //end (fcts)*/
 			} //end(m_bProjectedGS)
 
 		} //end(DoFs)
@@ -436,7 +436,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
 		m_N->prepare(u);
-		m_N->apply(m_d, u);
+		m_N->apply(*spD, u);
 		NL_GAUSSSEIDEL_PROFILE_END();
 
 		//	update counter
@@ -444,11 +444,11 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		sprintf(ext, "_iter%03d", loopCnt);
 
 		// 	check convergence
-		m_spConvCheck->update(m_d);
+		m_spConvCheck->update(*spD);
 
 		//	write defect for debug
 		std::string name("NLGaussSeidel_Defect"); name.append(ext);
-		write_debug(m_d, name.c_str());
+		write_debug(*spD, name.c_str());
 	}
 
 	return m_spConvCheck->post();

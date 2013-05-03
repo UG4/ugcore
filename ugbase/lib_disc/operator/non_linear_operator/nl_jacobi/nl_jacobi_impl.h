@@ -108,20 +108,15 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	//	increase call count
 	m_dgbCall++;
 
-	//	Jacobian
+//	Jacobian
 	if(m_J.invalid() || m_J->discretization() != m_spAss) {
 		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
 		m_J->set_level(m_N->level());
 	}
 
-//	resize
-	try{
-		m_d.resize(u.size()); m_c.resize(u.size());
-		#ifdef UG_PARALLEL
-			m_c.set_layouts(u.layouts());
-			m_d.set_layouts(u.layouts());
-		#endif
-	}UG_CATCH_THROW("NLJacobiSolver::apply: Resize of Defect/Correction failed.");
+//	create tmp vectors
+	SmartPtr<vector_type> spD = u.clone_without_values();
+	SmartPtr<vector_type> spC = u.clone_without_values();
 
 //	Set dirichlet values
 	try{
@@ -132,7 +127,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 // 	Compute first Defect d = L(u)
 	try{
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeDefect1);
-		m_N->apply(m_d, u);
+		m_N->apply(*spD, u);
 		NL_JACOBI_PROFILE_END();
 	}UG_CATCH_THROW("NLJacobiSolver::apply: "
 			"Computation of Start-Defect failed.");
@@ -142,11 +137,11 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
 	std::string name("NLJacobi_Defect");
 	name.append(ext);
-	write_debug(m_d, name.c_str());
+	write_debug(*spD, name.c_str());
 	write_debug(u, "NLJacobi_StartSolution");
 
 // 	start convergence check
-	m_spConvCheck->start(m_d);
+	m_spConvCheck->start(*spD);
 
 	matrix_type& J = m_J->get_matrix();
 
@@ -155,7 +150,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	{
 		// 	set correction c = 0
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBISetCorretionZero);
-		if(!m_c.set(0.0))
+		if(!spC->set(0.0))
 		{
 			UG_LOG("ERROR in 'NLJacobiSolver::apply':"
 					" Cannot reset correction to zero.\n");
@@ -183,17 +178,17 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 			//	get i,i-th block of J: J(i,i)
 			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
 			//	m_c_i = m_damp * d_i /J_ii
-			InverseMatMult(m_c[i], m_damp, J(i,i), m_d[i]);
+			InverseMatMult((*spC)[i], m_damp, J(i,i), (*spD)[i]);
 
 			// 	update solution
-			u[i] -= m_c[i];
+			u[i] -= (*spC)[i];
 		}
 		NL_JACOBI_PROFILE_END();
 
 	// 	compute new Defect
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeDefect);
 		m_N->prepare(u);
-		m_N->apply(m_d, u);
+		m_N->apply(*spD, u);
 		NL_JACOBI_PROFILE_END();
 
 	//	update counter
@@ -201,11 +196,11 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		sprintf(ext, "_iter%03d", loopCnt);
 
 	// 	check convergence
-		m_spConvCheck->update(m_d);
+		m_spConvCheck->update(*spD);
 
 	//	write defect for debug
 		std::string name("NLJacobi_Defect"); name.append(ext);
-		write_debug(m_d, name.c_str());
+		write_debug(*spD, name.c_str());
 	}
 
 	return m_spConvCheck->post();
