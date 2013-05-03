@@ -297,16 +297,16 @@ assemble_jacobian(matrix_type& J,
 	if( m_AssAdapter.m_bModifySolutionImplemented ){
 		pModifyMemory = u.clone();
 		pModifyU = pModifyMemory.get();
+		try{
+		for(int type = 1; type < CT_ALL; type = type << 1){
+			if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
+			for(size_t i = 0; i < m_vConstraint.size(); ++i)
+				if(m_vConstraint[i]->type() & type)
+					m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
+		}
+		} UG_CATCH_THROW("Cannot modify solution.");
 	}
 
-	try{
-	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
-		for(size_t i = 0; i < m_vConstraint.size(); ++i)
-			if(m_vConstraint[i]->type() & type)
-				m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
-	}
-	} UG_CATCH_THROW("Cannot modify solution.");
 
 
 //	create list of all subsets
@@ -418,18 +418,19 @@ assemble_defect(vector_type& d,
 	if( m_AssAdapter.m_bModifySolutionImplemented ){
 		pModifyMemory = u.clone();
 		pModifyU = pModifyMemory.get();
+		try{
+		for(int type = 1; type < CT_ALL; type = type << 1){
+			if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
+			for(size_t i = 0; i < m_vConstraint.size(); ++i)
+				if(m_vConstraint[i]->type() & type)
+					m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
+		}
+		} UG_CATCH_THROW("Cannot modify solution.");
 	}
 
 	//UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU)[576],0) << "\t" << BlockRef((*pModifyU)[576],1)<< "\n");
 
-	try{
-	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
-		for(size_t i = 0; i < m_vConstraint.size(); ++i)
-			if(m_vConstraint[i]->type() & type)
-				m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
-	}
-	} UG_CATCH_THROW("Cannot modify solution.");
+
 
 //	create list of all subsets
 	try{
@@ -897,16 +898,16 @@ assemble_jacobian(matrix_type& J,
 	if( m_AssAdapter.m_bModifySolutionImplemented ){
 		pModifyMemory = vSol->clone();
 		pModifyU = pModifyMemory;
+		try{
+		for(int type = 1; type < CT_ALL; type = type << 1){
+			if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
+			for(size_t i = 0; i < m_vConstraint.size(); ++i)
+				if(m_vConstraint[i]->type() & type)
+					m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
+		}
+		} UG_CATCH_THROW("'DomainDiscretization': Cannot modify solution.");
 	}
 
-	try{
-	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
-		for(size_t i = 0; i < m_vConstraint.size(); ++i)
-			if(m_vConstraint[i]->type() & type)
-				m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
-	}
-	} UG_CATCH_THROW("'DomainDiscretization': Cannot modify solution.");
 
 
 //	loop subsets
@@ -1020,18 +1021,16 @@ assemble_defect(vector_type& d,
 	if( m_AssAdapter.m_bModifySolutionImplemented ){
 		pModifyMemory = vSol->clone();
 		pModifyU = pModifyMemory;
+		try{
+		for(int type = 1; type < CT_ALL; type = type << 1){
+			if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
+			for(size_t i = 0; i < m_vConstraint.size(); ++i)
+				if(m_vConstraint[i]->type() & type)
+					m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
+		}
+		} UG_CATCH_THROW("'DomainDiscretization: Cannot modify solution.");
 	}
 
-	//UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU->solution(0))[144],0) << "\t" << BlockRef((*pModifyU->solution(0))[144],1)<< "\n");
-
-	try{
-	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_AssAdapter.m_ConstraintTypesEnabled)) continue;
-		for(size_t i = 0; i < m_vConstraint.size(); ++i)
-			if(m_vConstraint[i]->type() & type)
-				m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
-	}
-	} UG_CATCH_THROW("'DomainDiscretization: Cannot modify solution.");
 
 	//UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyMemory->solution(0))[144],0) << "\t" << BlockRef((*pModifyMemory->solution(0))[144],1)<< "\n");
 
