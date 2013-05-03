@@ -433,6 +433,8 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
 	add_cxx_flag("-hnomessage=236")
 else()
 	add_cxx_flag("-Wall")
+    # for some reason -Wsign-compare is not in -Wall for Clang 
+	add_cxx_flag("-Wsign-compare")
 	#set(CMAKE_CPP_FLAGS	"${CMAKE_CPP_FLAGS} -Wno-overloaded-virtual -Wno-autological-compare" CACHE STRING "overriden flags!" FORCE)
 endif()
 
