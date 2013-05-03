@@ -4,6 +4,8 @@
 # overwriting configs from INCLUDE
 PROJECT_NAME           = "Registry"
 OUTPUT_DIRECTORY       = regdocu
+ALWAYS_DETAILED_SEC    = NO
+INLINE_INHERITED_MEMB  = YES
 STRICT_PROTO_MATCHING  = NO
 GENERATE_TODOLIST      = NO
 GENERATE_TESTLIST      = NO
@@ -11,7 +13,8 @@ GENERATE_BUGLIST       = NO
 GENERATE_DEPRECATEDLIST= YES
 SHOW_USED_FILES        = NO
 SHOW_FILES             = NO
-SHOW_NAMESPACES        = YES
+SHOW_NAMESPACES        = NO
+HIDE_SCOPE_NAMES       = YES
 INPUT                  = regdocu
 FILE_PATTERNS          = *.cpp *.doxygen
 EXCLUDE                =
