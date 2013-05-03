@@ -1519,12 +1519,12 @@ bool DistributeGrid(MultiGrid& mg,
 	distInfoSerializer.add(GeomObjAttachmentSerializer<Volume, ADistInfo>::create(mg, aDistInfo));
 
 //	now perform the serialization
-//	int localPartitionInd = -1;
+	int localPartitionInd = -1;
 	for(size_t i_to = 0; i_to < sendPartitionInds.size(); ++i_to){
 		int partInd = sendPartitionInds[i_to];
 		bool localPartition = (sendToRanks[i_to] == pcl::GetProcRank());
-//		if(localPartition)
-//			localPartitionInd = partInd;
+		if(localPartition)
+			localPartitionInd = partInd;
 
 	//	the last size is required to calculate the size of the new segment
 		size_t oldSize = out.write_pos();
@@ -1584,99 +1584,96 @@ bool DistributeGrid(MultiGrid& mg,
 //	we have to remove all elements which won't stay on the local process.
 //	To do so, we'll first select all elements that stay, invert that selection
 //	and erase all elements which are selected thereafter.
-//	if(localPartitionInd != -1){
-//		msel.clear();
-//		SelectElementsForTargetPartition(msel, shPartition, localPartitionInd,
-//									 	 true, createVerticalInterfaces);
-//		InvertSelection(msel);
-//
-//	//	make sure that constrained/constraining connections won't be harmed
-//	//	this is a little cumbersome in the moment. Ideally constrained/constraining
-//	//	elements should unregister from each other automatically on destruction.
-//	//	Note that it is sufficient in this case to only iterate over constrained
-//	//	elements.
-//		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-//			for(ConstrainedVertexIterator iter = msel.begin<ConstrainedVertex>(lvl);
-//				iter != msel.end<ConstrainedVertex>(lvl); ++iter)
-//			{
-//				GeometricObject* co = (*iter)->get_constraining_object();
-//				if(co && !msel.is_selected(co)){
-//					switch(co->base_object_id()){
-//						case EDGE:{
-//							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
-//								ce->unconstrain_vertex(*iter);
-//						}break;
-//						case FACE:{
-//							if(co->reference_object_id() == ROID_TRIANGLE){
-//								if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
-//									ce->unconstrain_object(*iter);
-//							}
-//							else{
-//								if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
-//									ce->unconstrain_object(*iter);
-//							}
-//						}break;
-//						default: break;
-//					}
-//				}
-//			}
-//
-//			for(ConstrainedEdgeIterator iter = msel.begin<ConstrainedEdge>(lvl);
-//				iter != msel.end<ConstrainedEdge>(lvl); ++iter)
-//			{
-//				GeometricObject* co = (*iter)->get_constraining_object();
-//				if(co && !msel.is_selected(co)){
-//					switch(co->base_object_id()){
-//						case EDGE:{
-//							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
-//								ce->unconstrain_edge(*iter);
-//						}break;
-//						case FACE:{
-//							if(co->reference_object_id() == ROID_TRIANGLE){
-//								if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
-//									ce->unconstrain_object(*iter);
-//							}
-//							else{
-//								if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
-//									ce->unconstrain_object(*iter);
-//							}
-//						}break;
-//						default: break;
-//					}
-//				}
-//			}
-//
-//			for(ConstrainedTriangleIterator iter = msel.begin<ConstrainedTriangle>(lvl);
-//				iter != msel.end<ConstrainedTriangle>(lvl); ++iter)
-//			{
-//				GeometricObject* co = (*iter)->get_constraining_object();
-//				if(co && !msel.is_selected(co)){
-//					if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
-//						ce->unconstrain_object(*iter);
-//				}
-//			}
-//
-//			for(ConstrainedQuadrilateralIterator iter = msel.begin<ConstrainedQuadrilateral>(lvl);
-//				iter != msel.end<ConstrainedQuadrilateral>(lvl); ++iter)
-//			{
-//				GeometricObject* co = (*iter)->get_constraining_object();
-//				if(co && !msel.is_selected(co)){
-//					if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
-//						ce->unconstrain_object(*iter);
-//				}
-//			}
-//		}
-//
-//		EraseSelectedObjects(msel);
-//	}
-//	else{
-//	//	nothing remains on the local process...
-//		mg.clear_geometry();
-//	}
+	if(localPartitionInd != -1){
+		msel.clear();
+		SelectElementsForTargetPartition(msel, shPartition, localPartitionInd,
+									 	 true, createVerticalInterfaces);
+		InvertSelection(msel);
 
-//todo: remove this!
-	//UG_LOG("WARNING: SERIALIZING AND CLEARING THE WHOLE GRID!\n");
-	mg.clear_geometry();
+	//	make sure that constrained/constraining connections won't be harmed
+	//	this is a little cumbersome in the moment. Ideally constrained/constraining
+	//	elements should unregister from each other automatically on destruction.
+	//	Note that it is sufficient in this case to only iterate over constrained
+	//	elements.
+		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+			for(ConstrainedVertexIterator iter = msel.begin<ConstrainedVertex>(lvl);
+				iter != msel.end<ConstrainedVertex>(lvl); ++iter)
+			{
+				GeometricObject* co = (*iter)->get_constraining_object();
+				if(co && !msel.is_selected(co)){
+					switch(co->base_object_id()){
+						case EDGE:{
+							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
+								ce->unconstrain_vertex(*iter);
+						}break;
+						case FACE:{
+							if(co->reference_object_id() == ROID_TRIANGLE){
+								if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+									ce->unconstrain_object(*iter);
+							}
+							else{
+								if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+									ce->unconstrain_object(*iter);
+							}
+						}break;
+						default: break;
+					}
+				}
+			}
+
+			for(ConstrainedEdgeIterator iter = msel.begin<ConstrainedEdge>(lvl);
+				iter != msel.end<ConstrainedEdge>(lvl); ++iter)
+			{
+				GeometricObject* co = (*iter)->get_constraining_object();
+				if(co && !msel.is_selected(co)){
+					switch(co->base_object_id()){
+						case EDGE:{
+							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
+								ce->unconstrain_edge(*iter);
+						}break;
+						case FACE:{
+							if(co->reference_object_id() == ROID_TRIANGLE){
+								if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+									ce->unconstrain_object(*iter);
+							}
+							else{
+								if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+									ce->unconstrain_object(*iter);
+							}
+						}break;
+						default: break;
+					}
+				}
+			}
+
+			for(ConstrainedTriangleIterator iter = msel.begin<ConstrainedTriangle>(lvl);
+				iter != msel.end<ConstrainedTriangle>(lvl); ++iter)
+			{
+				GeometricObject* co = (*iter)->get_constraining_object();
+				if(co && !msel.is_selected(co)){
+					if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
+						ce->unconstrain_object(*iter);
+				}
+			}
+
+			for(ConstrainedQuadrilateralIterator iter = msel.begin<ConstrainedQuadrilateral>(lvl);
+				iter != msel.end<ConstrainedQuadrilateral>(lvl); ++iter)
+			{
+				GeometricObject* co = (*iter)->get_constraining_object();
+				if(co && !msel.is_selected(co)){
+					if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
+						ce->unconstrain_object(*iter);
+				}
+			}
+		}
+
+		EraseSelectedObjects(msel);
+	}
+	else{
+	//	nothing remains on the local process...
+		mg.clear_geometry();
+	}
+
 //	the grid layout map will be rebuilt from scratch
 	glm.clear();
 
@@ -1695,8 +1692,8 @@ bool DistributeGrid(MultiGrid& mg,
 
 	for(size_t i = 0; i < recvFromRanks.size(); ++i){
 	//	there is nothing to serialize from the local rank
-//		if(recvFromRanks[i] == pcl::GetProcRank())
-//			continue;
+		if(recvFromRanks[i] == pcl::GetProcRank())
+			continue;
 
 		UG_DLOG(LIB_GRID, 2, "Deserializing from rank " << recvFromRanks[i] << "\n");
 
@@ -1771,12 +1768,12 @@ bool DistributeGrid(MultiGrid& mg,
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
+	msgHub->post_message(GridMessage_Distribution(GMDT_GRID_SERIALIZATION_DONE));
 
 //	we'll inform deserializers now, that deserialization is complete.
 	distInfoSerializer.deserialization_done();
 	serializer.deserialization_done();
-
-	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS));
+	msgHub->post_message(GridMessage_Distribution(GMDT_DATA_SERIALIZATION_DONE));
 
 	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");
 	GDIST_PROFILE_END();

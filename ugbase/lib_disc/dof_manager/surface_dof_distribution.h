@@ -52,6 +52,20 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 		template <typename TBaseElem>
 		bool defragment(std::vector<std::pair<size_t,size_t> >& vReplaced);
 
+	/**
+	 * Iterate over all elements and adds those whose
+	 * dof-entry has not yet been assigned (whose index equals NOT_YET_ASSIGNED)*/
+		template <typename TBaseElem>
+		void add_unassigned_elements();
+
+	///	removes dof-indices from ghosts (those are no longer contained in the surface grid).
+		template <typename TBaseElem>
+		void remove_ghost_entries();
+
+	///	called by base class when parallel redistribution is done.
+		virtual void parallel_redistribution_ended();
+
+
 	///	adds indices to created objects
 	/**
 	 * When an element is inserted into the grid, this function is called an

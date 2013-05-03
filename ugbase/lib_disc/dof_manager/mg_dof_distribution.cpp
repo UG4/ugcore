@@ -247,7 +247,8 @@ MGDoFDistribution(SmartPtr<MultiGrid> spMG,
                   bool bGrouped)
 	: DoFDistributionInfoProvider(spDDInfo),
       m_bGrouped(bGrouped),
-	  m_frozen(false),
+	  m_strictSubsetChecks(true),
+	  m_parallelRedistributionMode(false),
 	  m_spMG(spMG),
 	  m_pMG(spMG.get()),
 	  m_spMGSH(spMGSH)
@@ -264,14 +265,27 @@ MGDoFDistribution::
 	unregister_observer();
 }
 
-void MGDoFDistribution::freeze(bool bFreeze)
+void MGDoFDistribution::
+begin_parallel_redistribution()
 {
-	if(m_frozen && (!bFreeze)){
-		m_frozen = false;
-		redistribute_dofs();
-	}
-	else
-		m_frozen = bFreeze;
+	UG_ASSERT(!parallel_redistribution_mode(),
+			  "The dof distribution must not be in parallel distribution mode when"
+			  " begin_parallel_redistribution is called.");
+
+	m_parallelRedistributionMode = true;
+	m_strictSubsetChecks = false;
+}
+
+void MGDoFDistribution::
+end_parallel_redistribution()
+{
+	UG_ASSERT(parallel_redistribution_mode(),
+			  "The dof distribution has to be in parallel distribution mode when"
+			  " end_parallel_redistribution is called.");
+
+	m_parallelRedistributionMode = false;
+	m_strictSubsetChecks = true;
+	parallel_redistribution_ended();
 }
 
 void MGDoFDistribution::check_subsets()

@@ -95,6 +95,109 @@ void SurfaceDoFDistribution::redistribute_dofs()
 	resize_values(num_indices());
 }
 
+template <typename TBaseElem>
+void SurfaceDoFDistribution::
+add_unassigned_elements()
+{
+	typedef typename traits<TBaseElem>::iterator iterator;
+	static const int dim = TBaseElem::dim;
+
+	for(int si = 0; si < num_subsets(); ++si){
+	// 	skip if no dofs to be distributed
+		if(max_dofs(dim, si) == 0) continue;
+
+		for(iterator iter = begin<TBaseElem>(si);
+			iter != end<TBaseElem>(si); ++iter)
+		{
+			TBaseElem* elem = *iter;
+			if(obj_index(elem) != NOT_YET_ASSIGNED)
+				continue;
+
+			const ReferenceObjectID roid = elem->reference_object_id();
+			add_from_free(elem, roid, si, m_levInfo);
+
+			TBaseElem* parent = parent_if_copy(elem);
+			while(parent){
+				copy(parent, elem);
+				elem = parent;
+				parent = parent_if_copy(elem);
+			}
+		}
+	} // end subset
+}
+
+template <typename TBaseElem>
+void SurfaceDoFDistribution::
+remove_ghost_entries()
+{
+	#ifdef UG_PARALLEL
+		UG_ASSERT(m_pMG->distributed_grid_manager(),
+				  "A distributed grid manager has to be present in a parallel environment.");
+		DistributedGridManager& dgm = *m_pMG->distributed_grid_manager();
+		GridLayoutMap& glm = dgm.grid_layout_map();
+		typedef typename GridLayoutMap::Types<TBaseElem>::Layout	TLayout;
+		typedef typename TLayout::Interface							TInterface;
+
+		if(glm.has_layout<TBaseElem>(INT_V_MASTER)){
+			TLayout& masterLayout = glm.get_layout<TBaseElem>(INT_V_MASTER);
+			for(size_t lvl = 0; lvl < masterLayout.num_levels(); ++lvl){
+				for(typename TLayout::iterator iter = masterLayout.begin(lvl);
+					iter != masterLayout.end(lvl); ++iter)
+				{
+					TInterface& intfc = masterLayout.interface(iter);
+					for(typename TInterface::iterator eiter = intfc.begin();
+						eiter != intfc.end(); ++eiter)
+					{
+						TBaseElem* e = intfc.get_element(eiter);
+						size_t objInd = obj_index(e);
+						if(dgm.is_ghost(e)
+						   && (objInd != NOT_YET_ASSIGNED)
+						   && (objInd != NOT_DEF_ON_SUBSET))
+						{
+						//	we have to erase the object from the distribution
+							erase(e, e->reference_object_id(),
+								  m_spMGSH->get_subset_index(e),
+								  m_levInfo);
+
+						//	set the index of the object and of all its parent
+						//	copies to NOT_YET_ASSIGNED
+							TBaseElem* telem = e;
+							while(telem){
+								obj_index(telem) = NOT_YET_ASSIGNED;
+								telem = parent_if_copy(telem);
+							}
+						}
+					}
+				}
+			}
+		}
+	#endif
+}
+
+void SurfaceDoFDistribution::
+parallel_redistribution_ended()
+{
+	m_levInfo.vNumIndexOnSubset.resize(num_subsets(), 0);
+
+	if(max_dofs(VERTEX) > 0) remove_ghost_entries<VertexBase>();
+	if(max_dofs(EDGE) > 0)   remove_ghost_entries<EdgeBase>();
+	if(max_dofs(FACE) > 0)   remove_ghost_entries<Face>();
+	if(max_dofs(VOLUME) > 0) remove_ghost_entries<Volume>();
+
+	if(max_dofs(VERTEX) > 0) add_unassigned_elements<VertexBase>();
+	if(max_dofs(EDGE) > 0)   add_unassigned_elements<EdgeBase>();
+	if(max_dofs(FACE) > 0)   add_unassigned_elements<Face>();
+	if(max_dofs(VOLUME) > 0) add_unassigned_elements<Volume>();
+
+//	DEFRAGMENT HAS TO BE CALLED EXTERNALLY! OR EXECUTE THE FOLLOWING CODE
+//	#ifdef UG_PARALLEL
+//		create_layouts_and_communicator();
+//	#endif
+//
+//	resize_values(lev_info().sizeIndexSet);
+}
+
+
 #ifdef UG_PARALLEL
 void SurfaceDoFDistribution::create_layouts_and_communicator()
 {
@@ -330,9 +433,6 @@ template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
                         bool replacesParent)
 {
-	if(is_frozen())
-		return;
-
 	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
 //	case 1: if replacesParent == true, only an obj (e.g. HangingVertex)
@@ -342,23 +442,26 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 	if(replacesParent) return;
 
 //	case 2: A real insertion in the multigrid: add indices
-	add(obj,
-		obj->reference_object_id(),
-		m_spMGSH->get_subset_index(obj),
-		m_levInfo);
+	if(add(obj,
+			obj->reference_object_id(),
+			m_spMGSH->get_subset_index(obj),
+			m_levInfo))
+	{
+	//	the insertion changed the size of the index range. Thus, we have to
+	//	resize the managed vectors. We do this now, since a transfer callback
+	//	may be listen to the object creation and will interpolate the values. Thus,
+	//	the vector entries must already be valid.
+		resize_values(lev_info().sizeIndexSet);
 
-//	the insertion changed the size of the index range. Thus, we have to
-//	resize the managed vectors. We do this now, since a transfer callback
-//	may be listen to the object creation and will interpolate the values. Thus,
-//	the vector entries must already be valid.
-	resize_values(lev_info().sizeIndexSet);
-
-//	the parent, that will be covered after the creation, will no longer be part
-//	of the surface. But we still need the values for the transfer callbacks.
-//	Therefore, we leave the "old" indices attached and valid for the moment.
-//	All prolongation callbacks are invoked now
-	for(size_t i = 0; i < m_vProlongation[gbo].size(); ++i)
-		m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
+	//	the parent, that will be covered after the creation, will no longer be part
+	//	of the surface. But we still need the values for the transfer callbacks.
+	//	Therefore, we leave the "old" indices attached and valid for the moment.
+	//	All prolongation callbacks are invoked now
+		if(pParent){
+			for(size_t i = 0; i < m_vProlongation[gbo].size(); ++i)
+				m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
+		}
+	}
 
 //	Now we remember that the indices on the parent object must be removed when
 //	defragmentation is called. We do this only, if the parent is of same
@@ -367,50 +470,83 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 	TBaseElem* parent = parent_if_same_type(obj);
 	if(parent)
 	{
-		erase(parent,
-		      parent->reference_object_id(),
-		      m_spMGSH->get_subset_index(parent),
-		      m_levInfo);
+		if(obj_index(parent) != NOT_YET_ASSIGNED){
+			erase(parent,
+				  parent->reference_object_id(),
+				  m_spMGSH->get_subset_index(parent),
+				  m_levInfo);
+
+			if(parallel_redistribution_mode()){
+			//	set the index of the object and of all its parent copies to NOT_YET_ASSIGNED
+			//	this is important to correctly erase ghost copies when the redistribution is done
+				TBaseElem* telem = parent;
+				while(telem){
+					obj_index(telem) = NOT_YET_ASSIGNED;
+					telem = parent_if_copy(telem);
+				}
+			}
+		}
 	}
+
 }
 
 template <typename TBaseElem>
 inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
                              TBaseElem* replacedBy)
 {
-	if(is_frozen())
-		return;
-		
-	UG_LOG("erased obj adress=" << obj << "\n");
-
 	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
 //	case 1: Only replacement. Just copy indices from one obj to the other
-	if(replacedBy) {copy(replacedBy, obj); UG_LOG("replace case\n");return;}
+	if(replacedBy) {copy(replacedBy, obj); return;}
 
-//	case 2: Element disappears, but parent is identical. Thus, the parent
-//			has the same indices attached. All indices remain valid on
-//			every surface level. No resizement in the index set must be
-//			performed.
-	if(parent_if_copy(obj)) {
-		// if identical return, else do case 3
-		if(obj_index(obj) == obj_index(get_parent(obj))) return;
-	}
+//	different behavior is required for element erasure during adaption and
+//	during redistribution.
+//	When an element is removed during redistribution, it will be inserted on
+//	another process later on. This means, that parents of the removed element
+//	on the local process won't be contained in the surface grid after
+//	redistribution is done...
+	if(!parallel_redistribution_mode()){
+	//	case 2: Element disappears, but parent is identical. Thus, the parent
+	//			has the same indices attached. All indices remain valid on
+	//			every surface level. No resizement in the index set must be
+	//			performed.
+		if(parent_if_copy(obj)) {
+			// if identical return, else do case 3
+			if(obj_index(obj) == obj_index(get_parent(obj))) return;
+		}
 
-//	case 3: The object that will be erased has no identical parent on the
-//			coarser grid. In this case we have to remove the index from
-//			the index set.
+	//	case 3: The object that will be erased has no identical parent on the
+	//			coarser grid. In this case we have to remove the index from
+	//			the index set.
 
-//	All prolongation callbacks are invoked now
-	for(size_t i = 0; i < m_vRestriction[gbo].size(); ++i){
-		m_vRestriction[gbo][i]->restrict_values(obj, get_parent(obj), *this);
+	//	All prolongation callbacks are invoked now
+		if(get_parent(obj)){
+			for(size_t i = 0; i < m_vRestriction[gbo].size(); ++i){
+				m_vRestriction[gbo][i]->restrict_values(obj, get_parent(obj), *this);
+			}
+		}
 	}
 
 //	remember that index from object is now no longer in index set
-	erase(obj,
-	      obj->reference_object_id(),
-	      m_spMGSH->get_subset_index(obj),
-	      m_levInfo);
+	if(m_spSurfView->is_surface_element(obj)
+	   &&(obj_index(obj) != NOT_YET_ASSIGNED)
+	   && (obj_index(obj) != NOT_DEF_ON_SUBSET))
+	{
+		erase(obj,
+			  obj->reference_object_id(),
+			  m_spMGSH->get_subset_index(obj),
+			  m_levInfo);
+
+		if(parallel_redistribution_mode()){
+		//	set the index of the object and of all its parent copies to NOT_YET_ASSIGNED
+		//	this is important to correctly erase ghost copies when the redistribution is done
+			TBaseElem* telem = obj;
+			while(telem){
+				obj_index(telem) = NOT_YET_ASSIGNED;
+				telem = parent_if_copy(telem);
+			}
+		}
+	}
 }
 
 

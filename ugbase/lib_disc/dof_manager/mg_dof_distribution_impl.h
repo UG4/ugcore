@@ -80,12 +80,23 @@ inline const size_t& MGDoFDistribution::obj_index(GeometricObject* obj) const
 
 
 template <typename TBaseObject, typename T>
-void MGDoFDistribution::
+bool MGDoFDistribution::
 add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
     LevInfo<T>& li)
 {
+	if(si == -1){
+		if(m_strictSubsetChecks){
+			UG_THROW("Only elements which are assigned to a subset may be added"
+					" to the dof manager.");
+		}
+		else{
+			obj_index(obj) = NOT_YET_ASSIGNED;
+			return false;
+		}
+	}
+
 //	if no dofs on this subset for the roid, do nothing
-	if(num_dofs(roid,si) == 0) return;
+	if(num_dofs(roid,si) == 0) return false;
 
 	bool master = false;
 
@@ -94,7 +105,7 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
 		// ignore slaves
 		if(pbm.is_slave(obj))
-			return;
+			return false;
 
 		if(pbm.is_master(obj))
 		{
@@ -130,15 +141,28 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 			obj_index(*iter) = master_index;
 		}
 	}
+
+	return true;
 }
 
 template <typename TBaseObject, typename T>
-void MGDoFDistribution::
+bool MGDoFDistribution::
 add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
               LevInfo<T>& li)
 {
+	if(si == -1){
+		if(m_strictSubsetChecks){
+			UG_THROW("Only elements which are assigned to a subset may be added"
+					" to the dof manager.");
+		}
+		else{
+			obj_index(obj) = NOT_YET_ASSIGNED;
+			return false;
+		}
+	}
+
 //	if no dofs on this subset for the roid, do nothing
-	if(num_dofs(roid,si) == 0) return;
+	if(num_dofs(roid,si) == 0) return false;
 
 	bool master = false;
 
@@ -147,7 +171,7 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
 		// ignore slaves
 		if(pbm.is_slave(obj))
-			return;
+			return false;
 
 		if(pbm.is_master(obj))
 		{
@@ -191,6 +215,7 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 			obj_index(*iter) = master_index;
 		}
 	}
+	return true;
 }
 
 template <typename TBaseObject, typename T>
@@ -291,6 +316,7 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	store the index of the object, that will be erased as a available hole of the
 //	index set
 	bool bNonContained = li.push_free_index(obj_index(obj), numNewIndex);
+
 	if(!bNonContained) return;
 
 //	number of managed indices has changed, thus decrease counter. Note, that the
@@ -315,7 +341,7 @@ copy(GeometricObject* objNew, GeometricObject* objOld)
 }
 
 template <typename T>
-void MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
+bool MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
                             const int si, LevInfo<T>& li)
 {
 	switch(elem->base_object_id())
@@ -326,10 +352,11 @@ void MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
 		case VOLUME: return add(static_cast<Volume*>(elem), roid, si, li);
 		default: UG_THROW("Geometric Base element not found.");
 	}
+	return false;
 }
 
 template <typename T>
-void MGDoFDistribution::add_from_free(GeometricObject* elem, const ReferenceObjectID roid,
+bool MGDoFDistribution::add_from_free(GeometricObject* elem, const ReferenceObjectID roid,
                                       const int si, LevInfo<T>& li)
 {
 	switch(elem->base_object_id())
@@ -340,6 +367,7 @@ void MGDoFDistribution::add_from_free(GeometricObject* elem, const ReferenceObje
 		case VOLUME: return add_from_free(static_cast<Volume*>(elem), roid, si, li);
 		default: UG_THROW("Geometric Base element not found.");
 	}
+	return false;
 }
 
 template <typename T>

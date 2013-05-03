@@ -94,6 +94,60 @@ void LevelMGDoFDistribution::redistribute_dofs()
 	}
 }
 
+
+template <typename TBaseElem>
+void LevelMGDoFDistribution::
+add_unassigned_elements()
+{
+	PROFILE_FUNC();
+	typedef typename geometry_traits<TBaseElem>::iterator iterator;
+	static const int dim = TBaseElem::dim;
+
+//	check if indices in the dimension
+	if(max_dofs(dim) == 0) return;
+
+	for(int l = 0; l < num_levels(); ++l){
+		for(int si = 0; si < num_subsets(); ++si){
+		// 	skip if no dofs to be distributed
+			if(max_dofs(dim, si) == 0) continue;
+
+		// 	loop elems
+			for(iterator iter = m_spMGSH->begin<TBaseElem>(si,l);
+				iter != m_spMGSH->end<TBaseElem>(si,l); ++iter)
+			{
+				TBaseElem* elem = *iter;
+				if(obj_index(elem) != NOT_YET_ASSIGNED)
+					continue;
+
+				const ReferenceObjectID roid = elem->reference_object_id();
+				add_from_free(elem, roid, si, m_vLev[l]);
+			}
+		} // end subset
+	} // end level
+}
+
+void LevelMGDoFDistribution::
+parallel_redistribution_ended()
+{
+	level_required(num_levels() - 1);
+
+	if(max_dofs(0) > 0) add_unassigned_elements<VertexBase>();
+	if(max_dofs(1) > 0) add_unassigned_elements<EdgeBase>();
+	if(max_dofs(2) > 0) add_unassigned_elements<Face>();
+	if(max_dofs(3) > 0) add_unassigned_elements<Volume>();
+
+//	DEFRAGMENT HAS TO BE CALLED EXTERNALLY! OR EXECUTE THE FOLLOWING CODE
+//#ifdef UG_PARALLEL
+//	for(int l = 0; l < num_levels(); ++l)
+//		create_layouts_and_communicator(l);
+//#endif
+//
+//	for(int l = 0; l < num_levels(); ++l){
+//		if(m_managingDoFDists[l])
+//			m_managingDoFDists[l]->resize_values(lev_info(l).sizeIndexSet);
+//	}
+}
+
 void LevelMGDoFDistribution::
 register_managing_dof_distribution(ManagingDoFDistribution* mdd, int lvl)
 {
@@ -290,9 +344,6 @@ template <typename TBaseElem>
 inline void LevelMGDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
                         bool replacesParent)
 {
-	if(is_frozen())
-		return;
-
 //	check level
 	const int lev = m_spMGSH->get_level(obj);
 	level_required(lev);
@@ -307,9 +358,6 @@ inline void LevelMGDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 template <typename TBaseElem>
 inline void LevelMGDoFDistribution::obj_to_be_erased(TBaseElem* obj,TBaseElem* replacedBy)
 {
-	if(is_frozen())
-		return;
-
 //	add indices
 	erase(obj,
 	      obj->reference_object_id(),

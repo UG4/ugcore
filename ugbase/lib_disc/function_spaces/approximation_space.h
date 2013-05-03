@@ -222,10 +222,8 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	 * correct for computations.*/
 		void grid_changed_callback(const GridMessage_Adaption& msg);
 
-	/**	This callback is called when the GridMessage_Creation was emitted.
-	 * It refreshes the associated surface view and freezes / unfreezes associated
-	 * dof-managers.*/
-		void grid_creation_callback(const GridMessage_Creation& msg);
+	///	called during parallel redistribution
+		void grid_distribution_callback(const GridMessage_Distribution& msg);
 
 	///	sets the distributed grid manager
 #ifdef UG_PARALLEL
@@ -262,7 +260,7 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 
 	///	message hub id
 		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
-		MessageHub::SPCallbackId m_spGridCreationCallbackID;
+		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
 
 		bool m_bAdaptionIsActive;
 

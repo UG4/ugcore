@@ -98,29 +98,9 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 
 		~MGDoFDistribution();
 
-	///	Enable / disable automatic creation of new DoFs
-	/**	Normally a dof distribution automatically creates new dofs when a new
-	 * element is created in the associated grid. However, there are situations,
-	 * in which this behavior is not desirable.
-	 * E.g., when the associated grid is loaded afresh or if the associated grid
-	 * is distributed to other processes (and thus created afresh again), one
-	 * currently should freeze the distribution before loading takes place and
-	 * unfreeze it afterwards. When unfreezing the dof-distribution, dofs
-	 * are automatically refreshed for all elements. This is rather costly,
-	 * so only freeze the dof distribution if it is really necessary.
-	 * Associated vectors are resized after this refresh. The refresh is performed
-	 * through a call to redistribute_dofs.*/
-		void freeze(bool bFreeze);
-
-	///	returns true if the dof distribution is currently frozen.
-		bool is_frozen() const						{return m_frozen;}
-
-	///	redistributes all dofs
-	/**	This method is automatically called, whenever the dof-distribution
-	 * is unfrozen.
-	 * \note	The method is pure virtual and implemented by derived classes.*/
-		virtual void redistribute_dofs() = 0;
-
+		void begin_parallel_redistribution();
+		void end_parallel_redistribution();
+		inline bool parallel_redistribution_mode()	{return m_parallelRedistributionMode;}
 
 		///	returns the multigrid
 		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
@@ -308,10 +288,10 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		 * \param[in,out]	li			Level Information about Indices
 		 */
 		template <typename TBaseObject, typename T>
-		void add(TBaseObject* obj, const ReferenceObjectID roid,
+		bool add(TBaseObject* obj, const ReferenceObjectID roid,
 		         const int si, LevInfo<T>& li);
 		template <typename T>
-		void add(GeometricObject* obj, const ReferenceObjectID roid,
+		bool add(GeometricObject* obj, const ReferenceObjectID roid,
 		         const int si, LevInfo<T>& li);
 
 		/**
@@ -323,10 +303,10 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		 * \param[in,out]	li			Level Information about Indices
 		 */
 		template <typename TBaseObject, typename T>
-		void add_from_free(TBaseObject* obj, const ReferenceObjectID roid,
+		bool add_from_free(TBaseObject* obj, const ReferenceObjectID roid,
 		                   const int si, LevInfo<T>& li);
 		template <typename T>
-		void add_from_free(GeometricObject* obj, const ReferenceObjectID roid,
+		bool add_from_free(GeometricObject* obj, const ReferenceObjectID roid,
 		                   const int si, LevInfo<T>& li);
 
 		/**
@@ -365,6 +345,12 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		template <typename T>
 		void defragment(GeometricObject* obj, const ReferenceObjectID roid, const int si,
 		                LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced);
+
+		/**
+		 * Derived classes should iterate over all elements and add those whose
+		 * dof-entry has not yet been assigned (whose index equals NOT_YET_ASSIGNED)
+		 */
+		virtual void parallel_redistribution_ended() = 0;
 
 		/**
 		 * copies the indices from one geometric object to another one. This
@@ -409,7 +395,21 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 	protected:
 	///	grouping
 		bool m_bGrouped;
-		bool m_frozen;
+
+	/**	those variables control, how the manager reacts on the creation of new elements.
+	 *	If strictSubsetChecks are enabled, the manager will throw UGError if a
+	 *	created element isn't contained in a subset.
+	 *	If strictSubsetChecks are disabled, it will assign a pseudo dof index to
+	 *	elements which are not contained in any subset.
+	 *	During parallel redistribution, special behavior is required when erasing
+	 *	elements. This is because erased elements will be inserted on other
+	 *	processes again. Parents of erased elements thus won't be contained in
+	 *	the surface view. When parallelRedistributionMode is active,
+	 *	strictSubsetChecks are most likely disabled.
+	 *	\{ */
+		bool m_strictSubsetChecks;
+		bool m_parallelRedistributionMode;
+	/**	\} */
 
 		MessageHub::SPCallbackId	m_callbackId_GridCreation;
 

@@ -103,7 +103,8 @@ class GridMessage_Adaption : public MessageHub::IMessage
 enum GridMessageDistributionType{
 	GMDT_NONE,
 	GMDT_DISTRIBUTION_STARTS,
-	GMDT_DISTRIBUTION_STOPS
+	GMDT_GRID_SERIALIZATION_DONE,
+	GMDT_DATA_SERIALIZATION_DONE
 };
 
 class GridMessage_Distribution : public MessageHub::IMessage

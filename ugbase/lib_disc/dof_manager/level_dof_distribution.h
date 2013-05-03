@@ -54,6 +54,15 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 		template <typename TBaseElem>
 		void init();
 
+	/**
+	 * Iterate over all elements and adds those whose
+	 * dof-entry has not yet been assigned (whose index equals NOT_YET_ASSIGNED)*/
+		template <typename TBaseElem>
+		void add_unassigned_elements();
+
+	///	called by base class when parallel redistribution is done
+		virtual void parallel_redistribution_ended();
+
 	///	removes holes in the index set
 	/**
 	 * This method removes holes in the index set such that the index set is

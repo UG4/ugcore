@@ -96,23 +96,25 @@ class GridFunctionSerializer : public GridDataSerializer
 		template <class TElem>
 		void copy_values_to_grid_function()
 		{
+			TGridFct& fct = *m_fct;
 			std::vector<size_t>	indices;
 
-			for(typename TGridFct::template traits<TElem>::const_iterator iter = m_fct->template begin<TElem>();
-				iter != m_fct->template end<TElem>(); ++iter)
+			for(typename TGridFct::template traits<TElem>::const_iterator iter = fct.template begin<TElem>();
+				iter != fct.template end<TElem>(); ++iter)
 			{
 				TElem* e = *iter;
 				Entry& entry = m_aaEntry[e];
 
 				if(!entry.values.empty()){
 					indices.clear();
-					m_fct->inner_algebra_indices(e, indices);
+					fct.inner_algebra_indices(e, indices);
 
 					UG_ASSERT(entry.values.size() == indices.size(), "Wrong number of values given");
 
 					if(entry.values.size() == indices.size()){
 						for(size_t i = 0; i < indices.size(); ++i){
-							(*m_fct)[indices[i]] = entry.values[i];
+							if(indices[i] < fct.size())
+								fct[indices[i]] = entry.values[i];
 						}
 					}
 				}
@@ -122,12 +124,18 @@ class GridFunctionSerializer : public GridDataSerializer
 		template <class TElem>
 		void write(BinaryBuffer& out, TElem* e) const
 		{
+			static typename TGridFct::vector_type::value_type dummy;
+
+			const TGridFct& fct = *m_fct;
 			std::vector<size_t>	indices;
-			m_fct->inner_algebra_indices(e, indices);
+			fct.inner_algebra_indices(e, indices);
 
 			Serialize(out, int(indices.size()));
 			for(size_t i = 0; i < indices.size(); ++i){
-				Serialize(out, (*m_fct)[indices[i]]);
+				if(indices[i] < fct.size())
+					Serialize(out, fct[indices[i]]);
+				else
+					Serialize(out, dummy);
 			}
 		}
 

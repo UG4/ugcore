@@ -159,9 +159,9 @@ void IApproximationSpace::register_at_adaption_msg_hub()
 		msgHub->register_class_callback(this,
 		&ug::IApproximationSpace::grid_changed_callback);
 
-	m_spGridCreationCallbackID =
+	m_spGridDistributionCallbackID =
 		msgHub->register_class_callback(this,
-		&ug::IApproximationSpace::grid_creation_callback);
+		&ug::IApproximationSpace::grid_distribution_callback);
 }
 
 void IApproximationSpace::
@@ -188,36 +188,41 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 	}
 }
 
-void IApproximationSpace::grid_creation_callback(const GridMessage_Creation& msg)
+void IApproximationSpace::
+grid_distribution_callback(const GridMessage_Distribution& msg)
 {
-	bool freeze = false;
-	bool performSomething = false;
+	switch(msg.msg()){
+		case GMDT_DISTRIBUTION_STARTS:
+			if(m_spLevMGDD.valid())
+				m_spLevMGDD->begin_parallel_redistribution();
+			if(m_spTopSurfDD.valid())
+				m_spTopSurfDD->begin_parallel_redistribution();
 
-	if(msg.msg() == GMCT_CREATION_STARTS){
-		freeze = true;
-		performSomething = true;
-	}
-	else if(msg.msg() == GMCT_CREATION_STOPS){
-		freeze = false;
-		performSomething = true;
-	//	refresh the surface view
-		if(m_spSurfaceView.valid())
-			m_spSurfaceView->refresh_surface_states();
-	}
+			for(size_t i = 0; i < m_vSurfDD.size(); ++i){
+				if(m_vSurfDD[i].valid())
+					m_vSurfDD[i]->begin_parallel_redistribution();
+			}
+			break;
 
-//	freeze / unfreeze all associated dof managers
-	if(performSomething){
-		if(m_spLevMGDD.valid())
-			m_spLevMGDD->freeze(freeze);
-		if(m_spTopSurfDD.valid())
-			m_spTopSurfDD->freeze(freeze);
+		case GMDT_GRID_SERIALIZATION_DONE:
+			if(m_spSurfaceView.valid())
+				m_spSurfaceView->refresh_surface_states();
 
-		for(size_t i = 0; i < m_vSurfDD.size(); ++i){
-			if(m_vSurfDD[i].valid())
-				m_vSurfDD[i]->freeze(freeze);
-		}
+			if(m_spLevMGDD.valid())
+				m_spLevMGDD->end_parallel_redistribution();
+			if(m_spTopSurfDD.valid())
+				m_spTopSurfDD->end_parallel_redistribution();
 
-	//	levelDDs are already handled since they all share m_spLevMGDD
+			for(size_t i = 0; i < m_vSurfDD.size(); ++i){
+				if(m_vSurfDD[i].valid())
+					m_vSurfDD[i]->end_parallel_redistribution();
+			}
+
+			defragment();
+			break;
+
+		default:
+			break;
 	}
 }
 
