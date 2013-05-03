@@ -195,7 +195,7 @@ update_boundary_faces(GeometricObject* pElem,
 				vBF.resize(vBF.size()+1);
 				BF& bf = vBF.back();
 
-				const ReferenceObjectID sideRoid = rRefElem.ref_elem_type(dim-1,side);
+				const ReferenceObjectID sideRoid = rRefElem.roid(dim-1,side);
 
 				std::vector<MathVector<worldDim> > vSideCorner(rRefElem.num(dim-1, side, 0));
 				std::vector<MathVector<dim> > vLocalSideCorner(rRefElem.num(dim-1, side, 0));

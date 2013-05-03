@@ -48,7 +48,7 @@ class ReferenceElement
 		ReferenceElement();
 
 	/// returns the reference object id
-		ReferenceObjectID reference_object_id() const
+		ReferenceObjectID roid() const
 			{return m_vRefElemType[m_dim][0];}
 
 	/// returns the dimension where reference element lives
@@ -103,11 +103,11 @@ class ReferenceElement
 			{return m_id[dim_i][i][dim_j][j];}
 
 	/// number of reference elements this element contains
-		size_t num_ref_elem(ReferenceObjectID type) const
+		size_t num(ReferenceObjectID type) const
 			{return m_vNumRefElem[type];}
 
 	/// reference element type of obj nr i in dimension dim_i
-		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const
+		ReferenceObjectID roid(int dim_i, size_t i) const
 			{return m_vRefElemType[dim_i][i];}
 
 	/// print informations about the reference element
@@ -161,7 +161,7 @@ class DimReferenceElement : public ReferenceElement
 		static const int dim = d;
 
 	/// coordinates of reference corner in a vector
-		const MathVector<dim>* vCorner() const {return &m_vCorner[0];}
+		const MathVector<dim>* corners() const {return &m_vCorner[0];}
 
 	/// coordinates of reference corner (i = 0 ... num(0))
 		const MathVector<dim>& corner(size_t i) const {return m_vCorner[i];}

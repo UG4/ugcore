@@ -220,7 +220,7 @@ class LagrangeLDS<ReferenceVertex>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider<ReferenceVertex>::get().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceVertex>::get().roid(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -289,7 +289,7 @@ class LagrangeLDS<ReferenceEdge>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider<ReferenceEdge>::get().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceEdge>::get().roid(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -361,7 +361,7 @@ class LagrangeLDS<ReferenceTriangle>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider<ReferenceTriangle>::get().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceTriangle>::get().roid(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -443,7 +443,7 @@ class LagrangeLDS<ReferenceQuadrilateral>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider<ReferenceQuadrilateral>::get().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceQuadrilateral>::get().roid(d, id));
 		}
 
 	///	returns the dof storage
@@ -507,7 +507,7 @@ class LagrangeLDS<ReferenceTetrahedron>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider<ReferenceTetrahedron>::get().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceTetrahedron>::get().roid(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -588,7 +588,7 @@ class LagrangeLDS<ReferencePrism>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider<ReferencePrism>::get().ref_elem_type(d, id));
+			return num_dof(Provider<ReferencePrism>::get().roid(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -675,7 +675,7 @@ class LagrangeLDS<ReferencePyramid>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider<ReferencePyramid>::get().ref_elem_type(d, id));
+			return num_dof(Provider<ReferencePyramid>::get().roid(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension
@@ -750,7 +750,7 @@ class LagrangeLDS<ReferenceHexahedron>
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
-			return num_dof(Provider<ReferenceHexahedron>::get().ref_elem_type(d, id));
+			return num_dof(Provider<ReferenceHexahedron>::get().roid(d, id));
 		}
 
 	///	returns if the storage needs objects of a given dimension

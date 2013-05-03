@@ -154,7 +154,7 @@ void SetLagrangeVolumeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 //	const MathVector<dim,int>* vCo = rRef.corner();
 
 //	get type of reference element
-	ReferenceObjectID type = rRef.ref_elem_type(dim, 0);
+	ReferenceObjectID type = rRef.roid(dim, 0);
 
 //	handle elems
 	switch(type)

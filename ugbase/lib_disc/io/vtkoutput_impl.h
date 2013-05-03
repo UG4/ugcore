@@ -846,7 +846,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 		//	compute data
 			try{
 				(*spData)(vValue, &vCorner[0], time, si, elem,
-							&vCorner[0], refElem.vCorner(), numCo, &locU, NULL);
+							&vCorner[0], refElem.corners(), numCo, &locU, NULL);
 			}
 			UG_CATCH_THROW("VTK::write_nodal_data_elementwise: Cannot evaluate data.");
 		}
@@ -1197,7 +1197,7 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 
 	MathVector<refDim> localIP;
 	MathVector<TDim> globIP;
-	AveragePositions(localIP, refElem.vCorner(), numCo);
+	AveragePositions(localIP, refElem.corners(), numCo);
 
 	std::vector<MathVector<TDim> > vCorner(numCo);
 
@@ -1327,7 +1327,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 		File << VTKFileWriter::normal;
 
 	MathVector<dim> localIP;
-	AveragePositions(localIP, refElem.vCorner(), numCo);
+	AveragePositions(localIP, refElem.corners(), numCo);
 
 //	request for trial space
 	try{

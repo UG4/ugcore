@@ -49,7 +49,7 @@ static void ComputeMidPoints(const TRefElem& rRefElem,
 
 	// for PYRAMIDS: add midpoints of imaginary faces, edges and volumes
 	// resulting from the division into two tetrahedra alongside x==y
-	if (rRefElem.reference_object_id() == ROID_PYRAMID)
+	if (rRefElem.roid() == ROID_PYRAMID)
 	{
 		// diagonal 2->0, diagonal 0->2
 		VecScaleAdd(vvMid[1][rRefElem.num(1)], 0.5, vCorner[2], 0.5, vCorner[0]);
@@ -101,7 +101,7 @@ static void ComputeSCVFMidID(const TRefElem& rRefElem,
 {
 	static const int dim = TRefElem::dim;
 
-	if (rRefElem.reference_object_id() != ROID_PYRAMID)
+	if (rRefElem.roid() != ROID_PYRAMID)
 	{
 		//	set mid ids
 		{
@@ -213,7 +213,7 @@ static void ComputeSCVMidID(const TRefElem& rRefElem,
 {
 	static const int dim = TRefElem::dim;
 
-	if (rRefElem.reference_object_id() != ROID_PYRAMID)
+	if (rRefElem.roid() != ROID_PYRAMID)
 	{
 		if(dim == 1)
 		{
@@ -340,7 +340,7 @@ static void ComputeBFMidID(const TRefElem& rRefElem, int side,
 {
 	static const int dim = TRefElem::dim;
 
-	if (rRefElem.reference_object_id() != ROID_PYRAMID || side != 0)
+	if (rRefElem.roid() != ROID_PYRAMID || side != 0)
 	{
 		//	number of corners of side
 		const int coOfSide = rRefElem.num(dim-1, side, 0);
