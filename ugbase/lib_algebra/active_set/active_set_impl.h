@@ -105,7 +105,7 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 }
 
 template <typename TAlgebra>
-void ActiveSet<TAlgebra>::comp_lambda(vector_type& lambda,
+void ActiveSet<TAlgebra>::contactForces(vector_type& lambda,
 		const matrix_type& mat,
 		const vector_type& u,
 		const vector_type& rhs)

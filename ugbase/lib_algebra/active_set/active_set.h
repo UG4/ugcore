@@ -49,7 +49,7 @@ class ActiveSet
 				vector_type& lambda);
 
 	///	computes the contact forces lambda
-		void comp_lambda(vector_type& lambda, const matrix_type& mat,
+		void contactForces(vector_type& lambda, const matrix_type& mat,
 				const vector_type& u, const vector_type& rhs);
 
 	///	checks if all constraints are fulfilled & the activeSet remained unchanged

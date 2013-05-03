@@ -228,7 +228,7 @@ static void Algebra(Registry& reg, string grp)
 					"is distance to obs >= 0")
 			.add_method("active_index", &T::active_index, "", "",
 					"is index active or not, stores activeSetList")
-			.add_method("comp_lambda", &T::comp_lambda, "", "",
+			.add_method("contactForces", &T::contactForces, "", "",
 					"complementary function computed")
 			.add_method("check_conv", &T::check_conv, "", "",
 					"activeIndexSet changed or not")
