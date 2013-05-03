@@ -98,9 +98,21 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 
 		~MGDoFDistribution();
 
+	///	Notify the dof-distribution that parallel redistribution is taking place
+	/** During parallel redistribution, element creation and deletion have to be
+	 * handled slightly different from other cases (e.g. refinement).
+	 *
+	 * When calling begin_parallel_redistribution, make sure to also call the
+	 * matching end_parallel_redistribution.
+	 *
+	 * \warning	It is crucial that the dof-distribution will be defragmented after
+	 * 			end_parallel_redistribution was called. Parallel interfaces
+	 * 			and associated vectors are in an inconsistent state otherwise.
+	 * \{ */
 		void begin_parallel_redistribution();
 		void end_parallel_redistribution();
 		inline bool parallel_redistribution_mode()	{return m_parallelRedistributionMode;}
+	/** \} */
 
 		///	returns the multigrid
 		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
