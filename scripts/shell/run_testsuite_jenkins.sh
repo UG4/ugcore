@@ -9,7 +9,7 @@ experimental_test=$unit_test_data/experimental_plugins.xml
 validate_schema=$unit_test_data/ScriptParamMappingSchema.xsd
  
 # testsuite arguments
-defargs='--output_format=XML --log_level=all --report_level=no --log_sink=utf_log_$mode_np$np.xml'
+defargs='--output_format=XML --log_level=all --report_level=no --log_sink=utf_log_${mode}_np$np.xml'
 # note script params defaults to $core_tests
 testcore_args='--run_test=*NumProc$np'
 # run testsuite LuaScripts for plugins
@@ -59,8 +59,6 @@ cd $dir
 case "$mode" in
 # run testsuite in serial mode
 serial)
-	echo 'serial mode...'
-	# fixme $np does not get evaluated...
 	np=1
 	eval $ts $defargs $additional_args || true 
 ;;
