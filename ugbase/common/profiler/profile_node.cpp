@@ -139,11 +139,11 @@ bool UGProfileNode::valid() const
 
 string XMLStringEscape(string s)
 {
-	ReplaceAll(s, "&", "&amp;");
-	ReplaceAll(s, "\"", "&quot;");
-	ReplaceAll(s, "\'", "&apos;");
-	ReplaceAll(s, "<", "&lt;");
-	ReplaceAll(s, ">", "&gt;");
+	s = ReplaceAll(s, "&", "&amp;");
+	s = ReplaceAll(s, "\"", "&quot;");
+	s = ReplaceAll(s, "\'", "&apos;");
+	s = ReplaceAll(s, "<", "&lt;");
+	s = ReplaceAll(s, ">", "&gt;");
 	return s;
 }
 
