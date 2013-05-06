@@ -22,12 +22,14 @@ DoFDistributionInfo::DoFDistributionInfo(ConstSmartPtr<ISubsetHandler> spSH)
 
 void DoFDistributionInfo::init()
 {
+	PROFILE_FUNC();
 	FunctionPattern::lock();
 	create_offsets();
 }
 
 void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
 {
+	PROFILE_FUNC();
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
@@ -83,6 +85,7 @@ void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
 
 void DoFDistributionInfo::create_offsets()
 {
+	PROFILE_FUNC();
 //	function infos
 	m_vMaxDimToOrderDoFs.resize(num_fct(), 0);
 	m_vNumDoFOnSubelem.resize(num_fct());
