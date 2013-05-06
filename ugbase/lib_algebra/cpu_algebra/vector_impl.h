@@ -276,7 +276,7 @@ bool Vector<value_type>::get(V& u) const
 
 
 template<typename value_type>
-bool Vector<value_type>::add(const value_type *u, const size_t *indices, int nr)
+bool Vector<value_type>::add(const value_type *u, const size_t *indices, size_t nr)
 {
 	for(size_t i=0; i < nr; i++)
 		values[indices[i]] += u[i];
@@ -284,7 +284,7 @@ bool Vector<value_type>::add(const value_type *u, const size_t *indices, int nr)
 }
 
 template<typename value_type>
-bool Vector<value_type>::set(const value_type *u, const size_t *indices, int nr)
+bool Vector<value_type>::set(const value_type *u, const size_t *indices, size_t nr)
 {
 	for(size_t i=0; i < nr; i++)
 		values[indices[i]] = u[i];
@@ -292,7 +292,7 @@ bool Vector<value_type>::set(const value_type *u, const size_t *indices, int nr)
 }
 
 template<typename value_type>
-bool Vector<value_type>::get(value_type *u, const size_t *indices, int nr) const
+bool Vector<value_type>::get(value_type *u, const size_t *indices, size_t nr) const
 {
 	for(size_t i=0; i < nr; i++)
 		u[i] = values[indices[i]] ;

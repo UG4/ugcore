@@ -128,9 +128,9 @@ public:
 	template <typename V> bool get(V& u) const;
 
 
-	bool add(const value_type *u, const size_t *indices, int nr);
-	bool set(const value_type *u, const size_t *indices, int nr);
-	bool get(value_type *u, const size_t *indices, int nr) const;
+	bool add(const value_type *u, const size_t *indices, size_t nr);
+	bool set(const value_type *u, const size_t *indices, size_t nr);
+	bool get(value_type *u, const size_t *indices, size_t nr) const;
 
 
 	//template<typename T> inline void apply(Operation_type op, const T &t);
