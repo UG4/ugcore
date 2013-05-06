@@ -56,9 +56,7 @@ else
 		msg = msg or ""
 		file, line = test.getSourceAndLine()
 		-- break script execution if require_impl is false
-		if boost_require_impl(expression, msg, file, line) == false then
-			exit()
-		end
+		boost_require_impl(expression, msg, file, line)
 	end
 
 	function test.check(expression, msg)
