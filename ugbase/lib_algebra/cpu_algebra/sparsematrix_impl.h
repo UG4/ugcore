@@ -28,13 +28,14 @@ SparseMatrix<T>::SparseMatrix()
 {
 	bNeedsValues = true;
 	iIterators=0;
+	nnz = 0;
+	m_numCols = 0;
+	maxValues = 0;
 }
 
 template<typename T>
-bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
+bool SparseMatrix<T>::resize_and_clear(size_t newRows, size_t newCols)
 {
-	//UG_LOG("SparseMatrix resize " << newRows << "x" << newCols << "\n");
-	PROFILE_BEGIN_GROUP(SparseMatrix_resize, "algebra SparseMatrix");
 	rowStart.clear(); rowStart.resize(newRows+1, -1);
 	rowMax.clear(); rowMax.resize(newRows);
 	rowEnd.clear(); rowEnd.resize(newRows, -1);
@@ -47,13 +48,40 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 	return true;
 }
 
+template<typename T>
+bool SparseMatrix<T>::resize_and_keep_values(size_t newRows, size_t newCols)
+{
+	//UG_LOG("SparseMatrix resize " << newRows << "x" << newCols << "\n");
+	if(newRows == 0 && newCols == 0)
+		return resize_and_clear(0,0);
+
+	if(newRows != num_rows())
+	{
+		size_t oldrows = num_rows();
+		rowStart.resize(newRows+1, -1);
+		rowMax.resize(newRows);
+		rowEnd.resize(newRows, -1);
+		for(size_t i=oldrows; i<newRows; i++)
+		{
+			rowStart[i] = -1;
+			rowEnd[i] = -1;
+		}
+	}
+	if((int)newCols < m_numCols)
+		copyToNewSize(get_nnz_max_cols(newCols), newCols);
+
+	m_numCols = newCols;
+
+	if(bNeedsValues) values.resize(newRows);
+	return true;
+}
+
 
 template<typename T>
 bool SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, double scale)
 {
-	PROFILE_BEGIN_GROUP(SparseMatrix_set_as_transpose_of, "algebra SparseMatrix");
-	resize(B.num_cols(), B.num_rows());
-	set(0.0);
+	PROFILE_SPMATRIX(SparseMatrix_set_as_transpose_of);
+	resize_and_clear(B.num_cols(), B.num_rows());
 	/*rowStart.resize(B.num_cols(), 0);
 	rowMax.resize(B.num_cols(), 0);
 	rowEnd.resize(B.num_cols(), 0);
@@ -100,7 +128,7 @@ bool SparseMatrix<T>::axpy(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
-	PROFILE_BEGIN_GROUP(SparseMatrix_axpy, "algebra SparseMatrix");
+	PROFILE_SPMATRIX(SparseMatrix_axpy);
 	check_fragmentation();
 	if(alpha1 == 0.0)
 	{
@@ -146,7 +174,7 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
-	PROFILE_BEGIN_GROUP(SparseMatrix_axpy_transposed, "algebra SparseMatrix");
+	PROFILE_SPMATRIX(SparseMatrix_axpy_transposed);
 	check_fragmentation();
 	if(&dest == &v1) {
 		if(alpha1 == 0.0)
@@ -174,7 +202,7 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 template<typename T>
 bool SparseMatrix<T>::set(double a)
 {
-	PROFILE_BEGIN_GROUP(SparseMatrix_set, "algebra SparseMatrix");
+	PROFILE_SPMATRIX(SparseMatrix_set);
 	check_fragmentation();
 	for(size_t row=0; row<num_rows(); row++)
 		for(row_iterator it = begin_row(row); it != end_row(row); ++it)
@@ -204,15 +232,41 @@ inline bool SparseMatrix<T>::is_isolated(size_t i) const
 template<typename T>
 void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
-	//PROFILE_BEGIN_GROUP(SparseMatrix_set_matrix_row, "algebra SparseMatrix");
-	for(size_t i=0; i<nr; i++)
-		operator()(row, c[i].iIndex) = c[i].dValue;
+	/*PROFILE_SPMATRIX(SparseMatrix_set_matrix_row);
+	bool bSorted=false;
+	for(size_t i=0; bSorted && i+1 < nr; i++)
+		bSorted = c[i].iIndex < c[i+1].iIndex;
+	if(bSorted)
+	{
+		int start;
+		if(rowStart[row] == -1 || rowMax[row] - rowStart[row] < (int)nr)
+		{
+			assureValuesSize(maxValues+nr);
+			start = maxValues;
+			rowMax[row] = start+nr;
+			rowStart[row] = start;
+			maxValues+=nr;
+		}
+		else
+			start = rowStart[row];
+		rowEnd[row] = start+nr;
+		for(size_t i=0; i<nr; i++)
+		{
+			cols[start+i] = c[i].iIndex;
+			values[start+i] = c[i].dValue;
+		}
+	}
+	else*/
+	{
+		for(size_t i=0; i<nr; i++)
+			operator()(row, c[i].iIndex) = c[i].dValue;
+	}
 }
 
 template<typename T>
 void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 {
-	//PROFILE_BEGIN_GROUP(SparseMatrix_add_matrix_row, "algebra SparseMatrix");
+	//PROFILE_SPMATRIX(SparseMatrix_add_matrix_row);
 	for(size_t i=0; i<nr; i++)
 		operator()(row, c[i].iIndex) += c[i].dValue;
 }
@@ -221,8 +275,8 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 template<typename T>
 bool SparseMatrix<T>::set_as_copy_of(const SparseMatrix<T> &B, double scale)
 {
-	PROFILE_BEGIN_GROUP(SparseMatrix_set_as_copy_of, "algebra SparseMatrix");
-	resize(B.num_rows(), B.num_cols());
+	//PROFILE_SPMATRIX(SparseMatrix_set_as_copy_of);
+	resize_and_clear(B.num_rows(), B.num_cols());
 	for(size_t i=0; i < B.num_rows(); i++)
 		for(const_row_iterator it = B.begin_row(i); it != B.end_row(i); ++it)
 			operator()(i, it.index()) = scale*it.value();
@@ -234,7 +288,7 @@ bool SparseMatrix<T>::set_as_copy_of(const SparseMatrix<T> &B, double scale)
 template<typename T>
 bool SparseMatrix<T>::scale(double d)
 {
-	PROFILE_BEGIN_GROUP(SparseMatrix_scale, "algebra SparseMatrix");
+	//PROFILE_SPMATRIX(SparseMatrix_scale);
 	for(size_t i=0; i < num_rows(); i++)
 		for(row_iterator it = begin_row(i); it != end_row(i); ++it)
 			it.value() *= d;
@@ -295,6 +349,221 @@ void SparseMatrix<T>::get(M &mat) const
 }
 
 
+template<typename T>
+int SparseMatrix<T>::get_index_internal(size_t row, int col) const
+{
+	//PROFILE_SPMATRIX(SP_get_index_internal);
+	assert(rowStart[row] != -1);
+	int l = rowStart[row];
+	int r = rowEnd[row];
+	int mid=0;
+	while(l < r)
+	{
+		mid = (l+r)/2;
+		if(cols[mid] < col)
+			l = mid+1;
+		else if(cols[mid] > col)
+			r = mid-1;
+		else
+			return mid;
+	}
+	mid = (l+r)/2;
+	if(mid < rowStart[row])
+		return rowStart[row];
+	if(mid == rowEnd[row] || col <= cols[mid])
+		return mid;
+	else return mid+1;
+}
+
+
+template<typename T>
+int SparseMatrix<T>::get_index_const(int r, int c) const
+{
+	if(rowStart[r] == -1 || rowStart[r] == rowEnd[r]) return -1;
+	int index=get_index_internal(r, c);
+	if(index < maxValues && cols[index] == c)
+		return index;
+	else
+		return -1;
+}
+
+
+template<typename T>
+int SparseMatrix<T>::get_index(int r, int c)
+{
+	if(rowStart[r] == -1 || rowStart[r] == rowEnd[r])
+	{
+		// row did not start, start new row at the end of cols array
+		assureValuesSize(maxValues+1);
+		rowStart[r] = maxValues;
+		rowEnd[r] = maxValues+1;
+		rowMax[r] = maxValues+1;
+		if(bNeedsValues) values[maxValues] = 0.0;
+		cols[maxValues] = c;
+		maxValues++;
+		nnz++;
+		return maxValues-1;
+	}
+
+	/*    for(int i=rowStart[r]; i<rowEnd[r]; i++)
+	 if(cols[i] == c)
+	 return i;*/
+
+	// get the index where (r,c) _should_ be
+	int index=get_index_internal(r, c);
+
+	if(index < rowEnd[r]
+			&& index < maxValues
+			&& cols[index] == c)
+		return index; // we found it
+
+	// we did not find it, so we have to add it
+
+#ifndef NDEBUG
+	assert(index == rowEnd[r] || cols[index] > c);
+	assert(index == rowStart[r] || cols[index-1] < c);
+	for(int i=rowStart[r]+1; i<rowEnd[r]; i++)
+		assert(cols[i] > cols[i-1]);
+#endif
+	if(rowEnd[r] == rowMax[r] && rowEnd[r] == maxValues
+			&& maxValues < (int)cols.size())
+	{
+		// this row is stored at the end, so we can easily make more room
+		rowMax[r]++;
+		maxValues++;
+	}
+
+	if(rowEnd[r] == rowMax[r])
+	{
+		// row is full, we need to copy it to another place
+		int newSize = (rowEnd[r]-rowStart[r])*2;
+		if(maxValues+newSize > (int)cols.size())
+		{
+			assureValuesSize(maxValues+newSize);
+			index=get_index_internal(r, c);
+		}
+		// copy it to the end and insert index
+		fragmented += rowEnd[r]-rowStart[r];
+		index = index-rowStart[r]+maxValues;
+		int j=rowEnd[r]-rowStart[r]+maxValues;
+		if(rowEnd[r] != 0)
+			for(int i=rowEnd[r]-1; i>=rowStart[r]; i--, j--)
+			{
+				if(j==index) j--;
+				if(bNeedsValues) values[j] = values[i];
+				cols[j] = cols[i];
+				if(i==rowStart[r]) break;
+			}
+		rowEnd[r] = maxValues+rowEnd[r]-rowStart[r]+1;
+		rowStart[r] = maxValues;
+		rowMax[r] = maxValues+newSize;
+		maxValues += newSize;
+	}
+	else
+	{
+		// move part > index so we can insert the index
+		if(rowEnd[r] != 0)
+			for(int i=rowEnd[r]-1; i>=index; i--)
+			{
+				if(bNeedsValues) values[i+1] = values[i];
+				cols[i+1] = cols[i];
+				if(i==index) break;
+			}
+		rowEnd[r]++;
+	}
+	if(bNeedsValues) values[index] = 0.0;
+	cols[index] = c;
+
+	nnz++;
+#ifndef NDEBUG
+	assert(index >= rowStart[r] && index < rowEnd[r]);
+	for(int i=rowStart[r]+1; i<rowEnd[r]; i++)
+		assert(cols[i] > cols[i-1]);
+#endif
+	return index;
+
+}
+
+template<typename T>
+void SparseMatrix<T>::copyToNewSize(size_t newSize, size_t maxCol)
+{
+	PROFILE_SPMATRIX(SparseMatrix_copyToNewSize);
+	/*UG_LOG("copyToNewSize: from " << values.size()  << " to " << newSize << "\n");
+	UG_LOG("sizes are " << cols.size() << " and " << values.size() << ", ");
+	UG_LOG(reset_floats << "capacities are " << cols.capacity() << " and " << values.capacity() << ", NNZ = " << nnz << ", fragmentation = " <<
+			(1-((double)nnz)/cols.size())*100.0 << "%\n");
+	if(newSize == nnz) { UG_LOG("Defragmenting to NNZ."); }*/
+	if( (iIterators > 0)
+		|| (newSize > values.size() && (100.0*nnz)/newSize < 20 && newSize <= cols.capacity()) )
+	{
+		UG_ASSERT(newSize > values.size(), "no nnz-defragmenting while using iterators.");
+		//UG_LOG("copyToNew not defragmenting because of iterators or low fragmentation.\n");}
+		cols.resize(newSize);
+		cols.resize(cols.capacity());
+		if(bNeedsValues) { values.resize(newSize); values.resize(cols.size()); }
+		return;
+	}
+
+	std::vector<value_type> v(newSize);
+	std::vector<int> c(newSize);
+	size_t j=0;
+	for(size_t r=0; r<num_rows(); r++)
+	{
+		if(rowStart[r] == -1)
+			rowStart[r] = rowEnd[r] = rowMax[r] = j;
+		else
+		{
+			size_t start=j;
+			for(int k=rowStart[r]; k<rowEnd[r]; k++)
+			{
+				if(cols[k] < (int)maxCol)
+				{
+					if(bNeedsValues) v[j] = values[k];
+					c[j] = cols[k];
+					j++;
+				}
+			}
+			rowStart[r] = start;
+			rowEnd[r] = rowMax[r] = j;
+		}
+	}
+	rowStart[num_rows()] = rowEnd[num_rows()-1];
+	fragmented = 0;
+	maxValues = j;
+	if(bNeedsValues) std::swap(values, v);
+	std::swap(cols, c);
+}
+
+template<typename T>
+void SparseMatrix<T>::check_fragmentation() const
+{
+	if((double)nnz/(double)maxValues < 0.9)
+		(const_cast<this_type*>(this))->defragment();
+}
+
+template<typename T>
+void SparseMatrix<T>::assureValuesSize(size_t s)
+{
+    if(s <= cols.size()) return;
+    size_t newSize = nnz*2;
+    if(newSize < s) newSize = s;
+    copyToNewSize(newSize);
+
+}
+
+template<typename T>
+int SparseMatrix<T>::get_nnz_max_cols(size_t maxCols)
+{
+	int j=0;
+	for(size_t r=0; r<num_rows(); r++)
+	{
+		if(rowStart[r] == -1) continue;
+		for(int k=rowStart[r]; k<rowEnd[r]; k++)
+			if(cols[k] < (int)maxCols)
+				j++;
+	}
+	return j;
+}
 
 } // namespace ug
 

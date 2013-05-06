@@ -48,7 +48,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
 
 //  resize matrix
-	if(!mat.resize(numFineDoFs, numCoarseDoFs))
+	if(!mat.resize_and_clear(numFineDoFs, numCoarseDoFs))
 		UG_THROW("AssembleStdProlongationForP1Lagrange:"
 				"Cannot resize Interpolation Matrix.");
 
@@ -160,7 +160,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
 
 //  resize matrix
-	if(!mat.resize(numFineDoFs, numCoarseDoFs))
+	if(!mat.resize_and_clear(numFineDoFs, numCoarseDoFs))
 		UG_THROW("AssembleStdProlongationForP1Lagrange:"
 				"Cannot resize Interpolation Matrix.");
 
@@ -318,7 +318,7 @@ void StdTransfer<TDomain, TAlgebra>::init()
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::init: "
 				"Approximation Space not set. Cannot init Projection.");
 
-	m_matrix.resize(0,0);
+	m_matrix.resize_and_clear(0,0);
 
 // 	check only lagrange P1 functions
 	bool P1LagrangeOnly = true;

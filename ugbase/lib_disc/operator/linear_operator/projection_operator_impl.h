@@ -41,7 +41,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	const size_t numCoarseDoFs = coarseDD.num_indices();
 
 // 	resize matrix
-	if(!mat.resize(numCoarseDoFs, numFineDoFs))
+	if(!mat.resize_and_clear(numCoarseDoFs, numFineDoFs))
 		UG_THROW("AssembleInjectionForP1Lagrange: "
 				"Cannot resize Interpolation Matrix.");
 
@@ -131,7 +131,7 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 	const size_t numCoarseDoFs = coarseDD.num_indices();
 
 // 	resize matrix
-	if(!mat.resize(numCoarseDoFs, numFineDoFs))
+	if(!mat.resize_and_clear(numCoarseDoFs, numFineDoFs))
 		UG_THROW("AssembleInjectionByAverageOfChildren: "
 				"Cannot resize Interpolation Matrix.");
 
@@ -179,8 +179,6 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 	if(!m_spApproxSpace.valid())
 		UG_THROW("InjectionTransfer::init: "
 				"Approximation Space not set. Cannot init Projection.");
-
-	m_matrix.resize(0,0);
 
 // 	check only lagrange P1 functions
 	bool P1LagrangeOnly = true;

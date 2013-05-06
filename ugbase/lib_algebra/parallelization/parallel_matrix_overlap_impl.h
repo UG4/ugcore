@@ -122,7 +122,7 @@ private:
 
 		if(bCreateNewNodes)
 		{
-			m_newMat.resize(PN.local_size(), PN.local_size());
+			m_newMat.resize_and_keep_values(PN.local_size(), PN.local_size());
 			PN.add_new_layouts_to(newMastersLayout, newSlavesLayout);
 
 			AddLayout(m_totalMasterLayout, newMastersLayout);

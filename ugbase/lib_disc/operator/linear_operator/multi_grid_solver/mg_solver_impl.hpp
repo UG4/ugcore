@@ -1246,8 +1246,7 @@ init_level_operator()
 			SmartPtr<matrix_type> smoothMat = m_vLevData[lev]->spSmoothMat;
 
 			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
-			smoothMat->resize(0, 0);// clear!
-			smoothMat->resize(numSmoothIndex, numSmoothIndex);
+			smoothMat->resize_and_clear(numSmoothIndex, numSmoothIndex);
 			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapGlobalToPatch, *mat);
 		}
 		else if((lev == m_vLevData.size() - 1) && (!m_bAdaptive))
@@ -1257,7 +1256,7 @@ init_level_operator()
 			SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
 			SmartPtr<matrix_type> surfMat = m_spSurfaceMat;
 
-			levMat->resize( surfMat->num_rows(), surfMat->num_cols());
+			levMat->resize_and_clear( surfMat->num_rows(), surfMat->num_cols());
 			CopyMatrixByMapping(*levMat, m_vSurfToTopMap, *surfMat);
 
 			GMG_PROFILE_END();
@@ -1283,7 +1282,7 @@ init_level_operator()
 	//	smoothing matrix is stored in SmoothMat
 		else
 		{
-			m_vLevData[lev]->spLevMat->resize(0,0);
+			m_vLevData[lev]->spLevMat->resize_and_clear(0,0);
 		}
 
 		GMG_PROFILE_END();
@@ -1900,7 +1899,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_missing_coarse_grid_coupling " << "\n");
 //	clear matrices
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
-		m_vLevData[lev]->CoarseGridContribution.resize(0,0);
+		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(0,0);
 
 //	if the grid is fully refined, nothing to do
 	if(!m_bAdaptive){
@@ -1922,7 +1921,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 							= m_spApproxSpace->level_dof_distribution(lev);
 
 	//	resize the matrix
-		m_vLevData[lev]->CoarseGridContribution.resize(dd->num_indices(),
+		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(dd->num_indices(),
 		                                               dd->num_indices());
 	}
 

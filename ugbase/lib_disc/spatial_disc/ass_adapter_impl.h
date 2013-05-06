@@ -28,12 +28,11 @@ template <typename TAlgebra>
 void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 		matrix_type& mat)
 {
-	mat.resize(0,0);
-	if (m_assIndex.index_set){ mat.resize(1, 1);
+	if (m_assIndex.index_set){ mat.resize_and_clear(1, 1);
 	}
 	else{
 		const size_t numIndex = dd->num_indices();
-		mat.resize(numIndex, numIndex);
+		mat.resize_and_clear(numIndex, numIndex);
 	}
 }
 

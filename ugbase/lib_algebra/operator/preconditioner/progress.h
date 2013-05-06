@@ -19,7 +19,7 @@
 
 #include <iostream>
 #include "common/util/string_util.h"
-
+#include "common/log.h"
 namespace ug {
 class progress
 {
@@ -36,21 +36,21 @@ public:
 	{
 		m_total = total;
 		m_now = 0;
-		std::cout << "\n." << repeat('_', m_length) << ".\n";
-		std::cout << "[";
+		UG_LOG("\n." << repeat('_', m_length) << ".\n");
+		UG_LOG("[");
 	}
 	inline void set(double now)
 	{
 		int i=(int)(m_length*m_now/m_total);
 		int i2=(int)(m_length*now/m_total);
-		for(; i<i2; i++) { std::cout << "-"; std::cout.flush(); }
+		for(; i<i2; i++) { UG_LOG("-"); }
 		m_now = now;
 	}
 	inline void stop()
 	{
-		int i=(int)(10*m_now/m_total);
-		for(; i<10; i++) std::cout << "-";
-		std::cout <<"]\n";
+		int i=(int)(m_length*m_now/m_total);
+		for(; i<m_length; i++) { UG_LOG("-"); }
+		UG_LOG("]\n");
 	}
 private:
 	double m_total;

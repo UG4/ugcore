@@ -138,7 +138,7 @@ private:
 		size_t cols = std::max(colMax, mat.num_cols());
 		size_t rows = std::max(rowMax, mat.num_rows());
 		if(rows > mat.num_rows() || cols > mat.num_cols())
-			mat.resize(rows, cols);
+			mat.resize_and_keep_values(rows, cols);
 	}
 
 	/**

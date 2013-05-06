@@ -170,7 +170,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 		}
 	}
 
-	M.resize(PN.local_size(), PN.local_size());
+	M.resize_and_keep_values(PN.local_size(), PN.local_size());
 
 	for(size_t i=0; i<srcprocs.size(); i++)
 	{

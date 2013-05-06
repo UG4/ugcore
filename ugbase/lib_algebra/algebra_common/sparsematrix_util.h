@@ -52,7 +52,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	UG_ASSERT(C.num_rows() == B.num_cols() && B.num_rows() == A.num_cols(), "sizes must match");
 
 	// create output matrix M
-	M.resize(A.num_rows(), C.num_cols());
+	M.resize_and_clear(A.num_rows(), C.num_cols());
 
 
 	std::vector<int> posInConnections(C.num_cols(), -1);
@@ -158,7 +158,7 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 	UG_ASSERT(B.num_rows() == A.num_cols(), "sizes must match");
 
 	// create output matrix M
-	M.resize(A.num_rows(), B.num_cols());
+	M.resize_and_clear(A.num_rows(), B.num_cols());
 
 	std::vector<int> posInConnections(B.num_cols(), -1);
 
@@ -231,7 +231,7 @@ void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2
 
 	// create output matrix M
 	if(&M != &A)
-		M.resize(A.num_rows(), A.num_cols());
+		M.resize_and_clear(A.num_rows(), A.num_cols());
 
 	// types
 	std::vector<typename matrix_type::connection > con; con.reserve(10);
@@ -617,7 +617,7 @@ void DeserializeMatrix(TIStream& buf, T &A)
 
 	Deserialize(buf, numRows);
 	Deserialize(buf, numCols);
-	A.resize(numRows, numCols);
+	A.resize_and_clear(numRows, numCols);
 
 	std::vector<typename T::connection> con; con.reserve(16);
 

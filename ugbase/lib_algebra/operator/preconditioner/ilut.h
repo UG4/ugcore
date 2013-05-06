@@ -85,10 +85,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		//	Prepare Inverse Matrix
 			matrix_type* A = &mat;
 			typedef typename matrix_type::connection connection;
-			m_L.resize(A->num_rows(), A->num_cols());
-			m_U.resize(A->num_rows(), A->num_cols());
+			m_L.resize_and_clear(A->num_rows(), A->num_cols());
+			m_U.resize_and_clear(A->num_rows(), A->num_cols());
 
 			// con is the current line of L/U
+			// i also tried using std::list here or a special custom vector-based linked list
+			// but vector is fastest, even with the insert operation.
 			std::vector<typename matrix_type::connection> con;
 			con.reserve(300);
 			con.resize(0);
@@ -167,7 +169,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 							{
 								// insert sorted
 								con.insert(con.begin()+j, c);
-								++j;
+								++j; // don't do this when using iterators
 							}
 							// else do some lumping
 							++k_it;

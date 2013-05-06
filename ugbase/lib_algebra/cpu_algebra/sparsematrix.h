@@ -19,12 +19,40 @@
 #include <algorithm>
 #include "common/util/ostream_util.h"
 
+
+#define PROFILE_SPMATRIX(name) PROFILE_BEGIN_GROUP(name, "SparseMatrix algebra")
+
+
 namespace ug{
 
 /// \addtogroup cpu_algebra
 ///	@{
 
 
+// example for the variable CRS storage structure:
+// say we have:
+// rowStart = 0 3 8
+// rowEnd = 3 6 11
+// rowMax = 3 8 11
+// cols ( | marking end of row): 2 5 6 | 2 6 7 x x| 8 9 10
+
+// now insert (0 3): row 0 is full (rowEnd[0]==rowMax[0]), copy it to the end, and insert index
+// rowStart = 11 3 8
+// rowEnd = 15 6 11
+// rowMax = 17 8 11
+// cols ( | marking end of row): x x x | 2 6 7 x x| 8 9 10 | 2 3 5 6 x x |
+
+// now insert (1 3): row 1 not full, we can add it
+// rowStart 11 3 8
+// rowEnd 15 7 11
+// rowMax = 17 8 11
+// cols : x x x | 2 3 6 7 x | 8 9 10 | 2 3 5 6 x x |
+
+// defragment:
+// rowStart 0 4 8
+// rowEnd 4 8 11
+// rowMax = 4 8 11
+// cols : 2 3 5 6 | 2 3 6 7 | 8 9 10
 
 
 /** SparseMatrix
@@ -94,8 +122,8 @@ public:
 	 * \param newCols new nr of cols
 	 * \return
 	 */
-	bool resize(size_t newRows, size_t newCols);
-
+	bool resize_and_clear(size_t newRows, size_t newCols);
+	bool resize_and_keep_values(size_t newRows, size_t newCols);
 
 	/**
 	 * \brief write in a empty SparseMatrix (this) the transpose SparseMatrix of B.
@@ -198,6 +226,10 @@ public:
 
 
 
+	inline void check_rc(size_t r, size_t c) const
+	{
+		UG_ASSERT(r < num_rows() && c < num_cols(), "tried to access element (" << r << ", " << c << ") of " << num_rows() << " x " << num_cols() << " matrix.");
+	}
 
 	//! set matrix to Id*a
 	bool set(double a);
@@ -211,6 +243,7 @@ public:
 	 */
 	const value_type &operator () (size_t r, size_t c)  const
     {
+		check_rc(r, c);
         int j=get_index_const(r, c);
 		if(j == -1)
 		{
@@ -231,6 +264,7 @@ public:
 	 */
 	value_type &operator() (size_t r, size_t c)
 	{
+		check_rc(r, c);
 		int j=get_index(r, c);
         UG_ASSERT(j != -1 && cols[j]==(int)c && j >= rowStart[r] && j < rowEnd[r], "");
         return values[j];
@@ -327,7 +361,7 @@ public:
         ~row_iterator() { A.remove_iterator(); }
         value_type &value() { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i]; }
-        bool operator != (const row_iterator &o) const { UG_ASSERT(i <= o.i, "?"); return i != o.i; check(); }
+        bool operator != (const row_iterator &o) const { UG_ASSERT(i <= o.i, "?"); return i != o.i;  }
         void operator ++ () { ++i; check(); }
 		void operator += (int nr) { i+=nr; check(); }
 		bool operator == (const row_iterator &other) const { return other.i == i; check(); }
@@ -361,6 +395,31 @@ public:
 	// connectivity functions
 	//-------------------------
 
+    bool has_connection(size_t r, size_t c) const
+    {
+    	check_rc(r, c);
+    	bool bFound;
+    	get_connection(r, c, bFound);
+    	return bFound;
+    }
+
+	/**
+	 * \param r index of the row
+	 * \param c index of the column
+	 * \return a const_row_iterator to the connection A(r,c) if existing, otherwise end_row(row)
+	 */
+	row_iterator get_iterator_or_next(size_t r, size_t c)
+	{
+		check_rc(r, c);
+		if(rowStart[r] == -1 || rowStart[r] == rowEnd[r])
+        	return end_row(r);
+        else
+        {
+        	int j=get_index_internal(r, c);
+        	if(j > maxValues) return end_row(r);
+        	else return row_iterator(*this, j);
+        }
+    }
 
 	/**
 	 * \param r index of the row
@@ -369,6 +428,7 @@ public:
 	 */
 	const_row_iterator get_connection(size_t r, size_t c, bool &bFound) const
 	{
+		check_rc(r, c);
         int j=get_index_const(r, c);
 		if(j != -1)
 		{
@@ -388,6 +448,7 @@ public:
 	 */
 	row_iterator get_connection(size_t r, size_t c, bool &bFound)
 	{
+		check_rc(r, c);
 		int j=get_index_const(r, c);
 		if(j != -1)
 		{
@@ -419,6 +480,7 @@ public:
 	 */
 	row_iterator get_connection(size_t r, size_t c)
 	{
+		check_rc(r, c);
 		assert(bNeedsValues);
         int j=get_index(r, c);
 		return row_iterator(*this, j);
@@ -427,7 +489,8 @@ public:
 
 	void defragment()
     {
-        copyToNewSize(nnz);
+		if(num_rows() != 0 && num_cols() != 0)
+			copyToNewSize(nnz);
     }
 
 public:
@@ -457,179 +520,20 @@ private:
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
 
 
-
-
-    void assureValuesSize(size_t s)
-    {
-        if(s < cols.size()) return;
-        size_t newSize = nnz*2;
-        if(newSize < s) newSize = s;
-        copyToNewSize(newSize);
-
-    }
-	size_t get_nnz() const { return nnz; }
+    void assureValuesSize(size_t s);
+    size_t get_nnz() const { return nnz; }
 
 protected:
-	int get_index_internal(size_t row, int col) const
-    {
-        assert(rowStart[row] != -1);
-        int l = rowStart[row];
-		int r = rowEnd[row];
-		int mid=0;
-        while(l < r)
-        {
-            mid = (l+r)/2;
-            if(cols[mid] < col)
-                l = mid+1;
-            else if(cols[mid] > col)
-                r = mid-1;
-            else
-                return mid;
-        }
-        mid = (l+r)/2;
-        if(mid < rowStart[row])
-            return rowStart[row];
-        if(mid == rowEnd[row] || col <= cols[mid])
-            return mid;
-        else return mid+1;
-    }
-
-
-    int get_index_const(int r, int c) const
-    {
-        if(rowStart[r] == -1 || rowStart[r] == rowEnd[r]) return -1;
-        int index=get_index_internal(r, c);
-		if(index < maxValues && cols[index] == c)
-            return index;
-        else
-            return -1;
-    }
-
-
-    int get_index(int r, int c)
-    {
-        if(rowStart[r] == -1 || rowStart[r] == rowEnd[r])
-        {
-            assureValuesSize(maxValues+1);
-            rowStart[r] = maxValues;
-            rowEnd[r] = maxValues+1;
-            rowMax[r] = maxValues+1;
-            if(bNeedsValues) values[maxValues] = 0.0;
-            cols[maxValues] = c;
-            maxValues++;
-            nnz++;
-            return maxValues-1;
-        }
-
-        /*    for(int i=rowStart[r]; i<rowEnd[r]; i++)
-         if(cols[i] == c)
-         return i;*/
-        int index=get_index_internal(r, c);
-
-        if(index < rowEnd[r]
-				&& index < maxValues
-				&& cols[index] == c)
-            return index;
-
-		assert(index == rowEnd[r] || cols[index] > c);
-		assert(index == rowStart[r] || cols[index-1] < c);
-		for(int i=rowStart[r]+1; i<rowEnd[r]; i++)
-			assert(cols[i] > cols[i-1]);
-
-        if(rowEnd[r] == rowMax[r])
-        {
-            int newSize = (rowEnd[r]-rowStart[r])*2;
-            if(maxValues+newSize > (int)cols.size())
-            {
-                assureValuesSize(maxValues+newSize);
-                index=get_index_internal(r, c);
-            }
-            fragmented += rowEnd[r]-rowStart[r];
-            index = index-rowStart[r]+maxValues;
-            int j=rowEnd[r]-rowStart[r]+maxValues;
-            if(rowEnd[r] != 0)
-                for(int i=rowEnd[r]-1; i>=rowStart[r]; i--, j--)
-                {
-                    if(j==index) j--;
-                    if(bNeedsValues) values[j] = values[i];
-                    cols[j] = cols[i];
-                    if(i==rowStart[r]) break;
-                }
-            rowEnd[r] = maxValues+rowEnd[r]-rowStart[r]+1;
-            rowStart[r] = maxValues;
-            rowMax[r] = maxValues+newSize;
-            maxValues += newSize;
-        }
-        else
-        {
-            if(rowEnd[r] != 0)
-                for(int i=rowEnd[r]-1; i>=index; i--)
-                {
-                    if(bNeedsValues) values[i+1] = values[i];
-                    cols[i+1] = cols[i];
-                    if(i==index) break;
-                }
-            rowEnd[r]++;
-        }
-        if(bNeedsValues) values[index] = 0.0;
-        cols[index] = c;
-        assert(index >= rowStart[r] && index < rowEnd[r]);
-        nnz++;
-
-		for(int i=rowStart[r]+1; i<rowEnd[r]; i++)
-			assert(cols[i] > cols[i-1]);
-        return index;
-
-    }
+	int get_index_internal(size_t row, int col) const;
+    int get_index_const(int r, int c) const;
+    int get_index(int r, int c);
     void copyToNewSize(size_t newSize)
     {
-    	/*UG_LOG("copyToNewSize: from " << values.size()  << " to " << newSize << "\n");
-    	UG_LOG("sizes are " << cols.size() << " and " << values.size() << ", ");
-    	UG_LOG(reset_floats << "capacities are " << cols.capacity() << " and " << values.capacity() << ", NNZ = " << nnz << ", fragmentation = " <<
-    			(1-((double)nnz)/cols.size())*100.0 << "%\n");
-    	if(newSize == nnz) { UG_LOG("Defragmenting to NNZ."); }*/
-    	if( (iIterators > 0)
-    		|| (newSize > values.size() && (100.0*nnz)/newSize < 20 && newSize <= cols.capacity()) )
-    	{
-    		UG_ASSERT(newSize > values.size(), "no nnz-defragmenting while using iterators.");
-    		//UG_LOG("copyToNew not defragmenting because of iterators or low fragmentation.\n");}
-    		cols.resize(newSize);
-    		cols.resize(cols.capacity());
-    		if(bNeedsValues) { values.resize(newSize); values.resize(cols.size()); }
-    		return;
-    	}
-
-        std::vector<value_type> v(newSize);
-        std::vector<int> c(newSize);
-        size_t j=0;
-        for(size_t r=0; r<num_rows(); r++)
-        {
-            if(rowStart[r] == -1)
-				rowStart[r] = rowEnd[r] = rowMax[r] = j;
-			else
-			{
-				size_t start=j;
-				for(int k=rowStart[r]; k<rowEnd[r]; k++, j++)
-				{
-					if(bNeedsValues) v[j] = values[k];
-					c[j] = cols[k];
-				}
-				rowStart[r] = start;
-				rowEnd[r] = rowMax[r] = j;
-			}
-        }
-        rowStart[num_rows()] = rowEnd[num_rows()-1];
-        fragmented = 0;
-        maxValues = j;
-        if(bNeedsValues) std::swap(values, v);
-        std::swap(cols, c);
+    	copyToNewSize(newSize, num_cols());
     }
-
-	void check_fragmentation() const
-	{
-		if((double)nnz/(double)maxValues < 0.9)
-			(const_cast<this_type*>(this))->defragment();
-	}
+    void copyToNewSize(size_t newSize, size_t maxCols);
+	void check_fragmentation() const;
+	int get_nnz_max_cols(size_t maxCols);
 
 
 protected:

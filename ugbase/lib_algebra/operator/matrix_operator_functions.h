@@ -43,8 +43,7 @@ void MatIdentity(	MatrixOperator<M, X, Y>& opOut)
 	size_t numRows = matOut.num_rows();
 	size_t numCols = matOut.num_cols();
 
-	matOut.resize(0, 0);
-	matOut.resize(numRows, numCols);
+	matOut.resize_and_clear(numRows, numCols);
 
 	for(size_t i = 0; i < numRows; ++i)
 		matOut(i, i) = 1.0;
