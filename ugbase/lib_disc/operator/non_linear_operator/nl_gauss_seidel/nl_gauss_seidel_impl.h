@@ -55,7 +55,8 @@ namespace ug{
 
 
 template <typename TAlgebra>
-void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
+void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalVec(vector_type& vec,
+		const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
 {
 	const LocalIndices& ind = lvec.get_indices();
 
@@ -73,7 +74,8 @@ void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalVec(vector_type& vec, const Lo
 }
 
 template <typename TAlgebra>
-void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
+void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalMatToGlobal(matrix_type& mat,
+		const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
 {
 	const LocalIndices& rowInd = lmat.get_row_indices();
 	const LocalIndices& colInd = lmat.get_col_indices();
