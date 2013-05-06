@@ -209,7 +209,7 @@ bool GridSubsetHandler::perform_self_tests()
 //	iterate through the subsets and check whether the assigned
 //	elements have the correct subset index
 	LOG("  checking subset indices\n");
-	for(int i = 0; i < num_subsets_in_list(); ++i){
+	for(size_t i = 0; i < num_subsets_in_list(); ++i){
 		LOG("  checking subset " << i);
 		for(iterator iter = begin<TElem>(i); iter != end<TElem>(i); ++iter)
 		{
