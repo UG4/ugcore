@@ -86,15 +86,6 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 // 	get MultiGrid
 	const MultiGrid& grid = coarseDD.multi_grid();
 
-// 	get number of dofs on different levels
-	const size_t numFineDoFs = fineDD.num_indices();
-	const size_t numCoarseDoFs = coarseDD.num_indices();
-
-// 	resize matrix
-	if(!mat.resize(numCoarseDoFs, numFineDoFs))
-		UG_THROW("AssembleInjectionByAverageOfChildren: "
-				"Cannot resize Interpolation Matrix.");
-
 	std::vector<size_t> coarseInd, fineInd;
 
 // 	Vertex iterators
@@ -135,6 +126,15 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
                                           const DoFDistribution& coarseDD,
                                           const DoFDistribution& fineDD)
 {
+// 	get number of dofs on different levels
+	const size_t numFineDoFs = fineDD.num_indices();
+	const size_t numCoarseDoFs = coarseDD.num_indices();
+
+// 	resize matrix
+	if(!mat.resize(numCoarseDoFs, numFineDoFs))
+		UG_THROW("AssembleInjectionByAverageOfChildren: "
+				"Cannot resize Interpolation Matrix.");
+
 	if(coarseDD.max_dofs(VERTEX)) AssembleInjectionByAverageOfChildren<0, TAlgebra>(mat, coarseDD, fineDD);
 	if(coarseDD.max_dofs(EDGE)) AssembleInjectionByAverageOfChildren<1, TAlgebra>(mat, coarseDD, fineDD);
 	if(coarseDD.max_dofs(FACE)) AssembleInjectionByAverageOfChildren<2, TAlgebra>(mat, coarseDD, fineDD);
@@ -260,6 +260,7 @@ restrict(vector_type& uCoarse, const vector_type& uFine)
 		UG_THROW("InjectionTransfer::apply_transposed:"
 				" Cannot apply transposed matrix.");
 }
+
 
 template <typename TDomain, typename TAlgebra>
 SmartPtr<ITransferOperator<TAlgebra> >
