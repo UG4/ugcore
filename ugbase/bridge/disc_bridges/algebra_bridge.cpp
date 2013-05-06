@@ -16,6 +16,7 @@
 #include "bridge/util_domain_algebra_dependent.h"
 
 // discretization interfaces
+#include "lib_algebra/active_set/active_set.h"
 #include "lib_algebra/operator/convergence_check.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
@@ -410,6 +411,30 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("apply", &T::apply, "success", "u")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NLGaussSeidelSolver", tag);
+	}
+
+	//	ActiveSet
+	{
+		typedef ActiveSet<TDomain, TAlgebra> T;
+		string name = string("ActiveSet").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("set_constraint", &T::set_constraint, "", "constraint")
+			.add_method("prepare", &T::prepare, "", "prepare")
+			.add_method("check_dist_to_obs", &T::check_dist_to_obs, "", "",
+					"is distance to obs >= 0")
+			.add_method("active_index", &T::active_index, "", "",
+					"is index active or not, stores activeSetList")
+			.add_method("contactForces", &T::contactForces, "", "",
+					"complementary function computed")
+			.add_method("contactForcesRes", &T::contactForcesRes, "", "",
+					"complementary function computed")
+			.add_method("check_conv", &T::check_conv, "", "",
+					"activeIndexSet changed or not")
+			.add_method("activeMultiIndices", &T::activeMultiIndices, "", "",
+					"returns all active MultiIndices in a vector")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ActiveSet", tag);
 	}
 }
 

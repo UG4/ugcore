@@ -28,7 +28,6 @@
 	#include "lib_algebra/operator/linear_solver/hlibpro.h"
 	#endif
 #endif
-#include "lib_algebra/active_set/active_set.h"
 
 using namespace std;
 
@@ -216,27 +215,6 @@ static void Algebra(Registry& reg, string grp)
 	}
 #endif
 
-	//	ActiveSet
-	{
-		typedef ActiveSet<TAlgebra> T;
-		string name = string("ActiveSet").append(suffix);
-		reg.add_class_<T>(name, grp)
-			.add_constructor()
-			.add_method("set_constraint", &T::set_constraint, "", "constraint")
-			.add_method("prepare", &T::prepare, "", "prepare")
-			.add_method("check_dist_to_obs", &T::check_dist_to_obs, "", "",
-					"is distance to obs >= 0")
-			.add_method("active_index", &T::active_index, "", "",
-					"is index active or not, stores activeSetList")
-			.add_method("contactForces", &T::contactForces, "", "",
-					"complementary function computed")
-			.add_method("check_conv", &T::check_conv, "", "",
-					"activeIndexSet changed or not")
-			.add_method("activeMultiIndices", &T::activeMultiIndices, "", "",
-					"returns all active MultiIndices in a vector")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ActiveSet", tag);
-	}
 }
 
 }; // end Functionality

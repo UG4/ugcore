@@ -12,14 +12,14 @@
 
 namespace ug {
 
-template <typename TAlgebra>
-void ActiveSet<TAlgebra>::prepare(vector_type& u)
+template <typename TDomain, typename TAlgebra>
+void ActiveSet<TDomain, TAlgebra>::prepare(vector_type& u)
 {
 	m_vActiveSet.resize(0); m_vActiveSetOld.resize(0);
 }
 
-template <typename TAlgebra>
-bool ActiveSet<TAlgebra>::check_dist_to_obs(vector_type& u)
+template <typename TDomain, typename TAlgebra>
+bool ActiveSet<TDomain, TAlgebra>::check_dist_to_obs(vector_type& u)
 {
 	//	STILL IN PROGRESS: u sollte hier reference-position + Startlšsung sein!
 	value_type dist;
@@ -50,9 +50,9 @@ bool ActiveSet<TAlgebra>::check_dist_to_obs(vector_type& u)
 	return geometry_cut_by_cons;
 }
 
-template <typename TAlgebra>
-bool ActiveSet<TAlgebra>::active_index(vector_type& u,
-		vector_type& lambda)
+template <typename TDomain, typename TAlgebra>
+bool ActiveSet<TDomain, TAlgebra>::active_index(vector_type& u,
+		vector_type& contactForce)
 {
 	if(!m_bCons)
 		UG_THROW("No constraint set in ActiveSet \n");
@@ -62,8 +62,8 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 	m_vActiveSetOld = m_vActiveSet;
 	m_vActiveSet.resize(0);
 
-	if (u.size() != lambda.size())
-		UG_THROW("Temporarily u and lambda need to be "
+	if (u.size() != contactForce.size())
+		UG_THROW("Temporarily u and contactForce need to be "
 				"of same size in ActiveSet:active_index \n");
 
 	value_type complementaryVal;
@@ -72,8 +72,8 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 
 	for(size_t i = 0; i < u.size(); i++)
 	{
-		//	note: complementaryVal, lambda[i], etc. are blocks here
-		complementaryVal = lambda[i] + u[i] - m_ConsVec[i];
+		//	note: complementaryVal, contactForce[i], etc. are blocks here
+		complementaryVal = contactForce[i] + u[i] - m_ConsVec[i];
 
 		for (size_t fct = 0; fct < m_nrFcts; fct++)
 		{
@@ -82,7 +82,7 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 				//	multiindex (i,fct) is inactive!
 				//	temporarily this is only valid
 				//	for a constraint of type u <= *m_spConsVec
-				BlockRef(lambda[i],fct) = 0.0;
+				BlockRef(contactForce[i],fct) = 0.0;
 			}
 			else
 			{
@@ -104,22 +104,44 @@ bool ActiveSet<TAlgebra>::active_index(vector_type& u,
 	return one_fct_is_active;
 }
 
-template <typename TAlgebra>
-void ActiveSet<TAlgebra>::contactForces(vector_type& lambda,
+//	computes the contact forces for a given contact discretization
+template <typename TDomain, typename TAlgebra>
+void ActiveSet<TDomain, TAlgebra>::contactForces(vector_type& contactforce,
+		const vector_type& u)
+{
+	if(m_vActiveSet.size() != 0.0)
+	{
+		//	check that contact disc is set
+		if (m_spContactDisc.invalid())
+			UG_THROW("No contact discretization set in "
+						"ActiveSet:contactForces \n");
+
+		if (u.size() != contactforce.size())
+			UG_THROW("Temporarily u and contactForce need to be "
+					"of same size in ActiveSet:contactForces \n");
+
+		m_spContactDisc->contactForces(contactforce, u, m_vActiveSet);
+	}
+}
+
+
+//	computes the contact forces via the residuum: contactforce = rhs - mat * u;
+template <typename TDomain, typename TAlgebra>
+void ActiveSet<TDomain, TAlgebra>::contactForcesRes(vector_type& contactforce,
 		const matrix_type& mat,
 		const vector_type& u,
 		const vector_type& rhs)
 {
-	if (u.size() != lambda.size())
-		UG_THROW("Temporarily u and lambda need to be "
-				"of same size in ActiveSet:comp_lambda \n");
-
-	vector_type mat_u;
-	mat_u.resize(u.size());
-
 	// 	only if some indices are active we need to compute contact forces
 	if(m_vActiveSet.size() != 0.0)
 	{
+		if (u.size() != contactforce.size())
+			UG_THROW("Temporarily u and contactForce need to be "
+					"of same size in ActiveSet:contactForcesRes \n");
+
+		vector_type mat_u;
+		mat_u.resize(u.size());
+
 		#ifdef UG_PARALLEL
 			MatMultDirect(mat_u, 1.0, mat, u);
 		#else
@@ -130,32 +152,32 @@ void ActiveSet<TAlgebra>::contactForces(vector_type& lambda,
 		for (vector<MultiIndex<2> >::iterator it = m_vActiveSet.begin();
 				it < m_vActiveSet.end(); ++it)
 		{
-			//	compute contact forces (lambda) for active multiIndices
+			//	compute contact forces for active multiIndices
 
-			//	get active (DoF,fct)-pairs out of m_vvActiveSet
+			//	get active (DoF,fct)-pairs out of m_vActiveSet
 			MultiIndex<2> activeMultiIndex = *it;
 
 			size_t dof = activeMultiIndex[0];
 			size_t fct = activeMultiIndex[1];
 
-			//	lambda = rhs - Mat * u;
-			BlockRef(lambda[dof],fct) = BlockRef(rhs[dof],fct) - BlockRef(mat_u[dof],fct);
+			//	contactForce = rhs - Mat * u;
+			BlockRef(contactforce[dof],fct) = BlockRef(rhs[dof],fct) - BlockRef(mat_u[dof],fct);
 		}
 
-		UG_LOG("new lambda-values computed \n");
+		UG_LOG("new contactforce-values computed \n");
 	}
 	else{
-		UG_LOG("no active index in comp_lambda \n");
+		UG_LOG("no active index in contactForcesRes \n");
 	}
 
 	/*for(size_t i = 0; i < u.size(); i++){
-		rhs[i] -= lambda[i];
+		rhs[i] -= contactforce[i];
 	}
 	UG_LOG("rhs updated \n");*/
 }
 
-template <typename TAlgebra>
-bool ActiveSet<TAlgebra>::check_conv(const vector_type& u, const size_t step)
+template <typename TDomain, typename TAlgebra>
+bool ActiveSet<TDomain, TAlgebra>::check_conv(const vector_type& u, const size_t step)
 {
 	//	ensure that at least one activeSet-iteration is performed
 	if (step <= 1)
@@ -209,8 +231,8 @@ bool ActiveSet<TAlgebra>::check_conv(const vector_type& u, const size_t step)
 	return false;
 }
 
-template <typename TAlgebra>
-void ActiveSet<TAlgebra>::createVecOfPointers()
+template <typename TDomain, typename TAlgebra>
+void ActiveSet<TDomain, TAlgebra>::createVecOfPointers()
 {
 	m_vActiveSetSP.resize(m_vActiveSet.size());
 
