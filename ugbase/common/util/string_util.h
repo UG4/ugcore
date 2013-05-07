@@ -14,212 +14,272 @@
 
 namespace ug{
 
-/// \addtogroup ugbase_common_util
-/// \{
-
-/// splits the string into parts based on a separating char
 /**
- * returns the string parts using a separator char in order to indicate parts
- * @param str			original string
- * @param vToken		tokenized parts
- * @param delimiter		char used as separator
+ * \defgroup ugbase_common_util_strings String Utilities
+ * \ingroup ugbase_common_util
+ * \{
  */
-UG_API void TokenizeString(const std::string& str, std::vector<std::string>& vToken, const char delimiter = ',');
 
-/// splits the string into parts based on a separating char
 /**
- * returns the string parts using a separator char in order to indicate parts
- * @param str			original string
- * @param delimiter		char used as separator
- * @return tokenized parts
+ * \brief splits the string into parts based on a separating char
+ * \details the string parts using a separator char in order to indicate parts
+ * \note any prior content of \c vToken will get deleted
+ * \param[in]     str       original string
+ * \param[in,out] vToken    tokenized parts
+ * \param[in]     delimiter char used as separator
  */
-UG_API std::vector<std::string> TokenizeString(const std::string& str, const char delimiter = ',');
+UG_API void TokenizeString( const std::string& str, std::vector<std::string>& vToken, 
+                            const char delimiter=',' );
 
-/// splits the string into parts based on a separating char
 /**
- * returns the string parts using a separator char in order to indicate parts
- * @param str			original string
- * @param delimiter		char used as separator
- * @return tokenized parts
+ * \brief splits the string into parts based on a separating character
+ * \details returns the string parts using a separator char in order to indicate parts
+ * \param[in] str       original string
+ * \param[in] delimiter char used as separator
+ * \return tokenized parts
  */
-UG_API std::vector<std::string> TokenizeString(const char* str, const char delimiter = ',');
+UG_API std::vector<std::string> TokenizeString( const std::string& str,
+                                                const char delimiter=',' );
 
-/// splits the string into parts based on a separating char and trims parts
 /**
- * returns the string parts using a separator char in order to indicate parts and
- * trims the tokens before returning
- * @param str			original string
- * @param delimiter		char used as separator
- * @return tokenized and trimmed parts
+ * \brief splits the string into parts based on a separating character
+ * \details returns the string parts using a separator char in order to indicate parts
+ * \param[in] str       original string
+ * \param[in] delimiter char used as separator
+ * \return tokenized parts
  */
-UG_API std::vector<std::string> TokenizeTrimString(const std::string& str, const char delimiter = ',');
+UG_API std::vector<std::string> TokenizeString( const char* str,
+                                                const char delimiter=',' );
 
 /**
- * removes all white space from a string, also within the string
- * @param string	the string to modify
+ * \brief splits the string into trimmed parts based on a separating char
+ * \details returns the string parts separated by \c delimiter and trims all parts
+ * \param[in] str       original string
+ * \param[in] delimiter char used as separator
+ * \return tokenized and trimmed parts
+ */
+UG_API std::vector<std::string> TokenizeTrimString( const std::string& str, 
+                                                    const char delimiter=',' );
+
+/**
+ * \brief removes all white space from a string, also within the string
+ * \param[in,out] string the string to modify
  */
 UG_API void RemoveWhitespaceFromString(std::string& string);
 
 /**
- * removes all white space from the front and end of a string
- * @param string	the string to modify
- * @return the modified string
+ * \brief removes all white space from the front and end of a string
+ * \param[in] string the string to modify
+ * \return the modified string
  */
 UG_API std::string TrimString(const std::string& str);
 
-/// returns the number of digits of an integer (expressed with base 10)
 /**
- * This functions returns the number of digits for the passed number. A minus
- * sign is ignored.
- *
- * \param[in]	n 		number to count the number of digits
+ * \brief returns the number of digits of an integer (expressed with base 10)
+ * \details Determines the number of digits for the passed base-10 number.
+ *   A minus sign is ignored.
+ * \param[in] n number to count the number of digits
+ * \returns number of digits
  */
 UG_API int NumberOfDigits(int n);
 
-///	appends a counter number to a string
 /**
- * This functions appends to a string a counter preceded by some indicator. If
- * a maxCounter is passed, the field is adjusted to the maximum needed width
- * and additional space is filled by zeros.
- *
- * \param[in, out]	str			string to append the counter
- * \param[in]		indicator	some string preceding the counter
- * \param[in]		counter		counter added
- * \param[in]		maxCounter	maximum counter to be added
+ * \brief appends a counter number to a string
+ * \details This functions appends to a string a counter preceded by some 
+ *   indicator.
+ *   If a \c maxCounter is passed, the field is adjusted to the maximum needed 
+ *   width and additional space is filled by zeros.
+ * \param[in,out] str        string to append the counter
+ * \param[in]     indicator  some string preceding the counter
+ * \param[in]     counter    counter added
+ * \param[in]     maxCounter maximum counter to be added
  */
-UG_API void AppendCounterToString(std::string& str, std::string indicator,
-                           int counter, int maxCounter = -1);
+UG_API void AppendCounterToString( std::string& str, std::string indicator,
+                                   int counter, int maxCounter=-1 );
 
-UG_API std::string AppendSpacesToString(std::string& str, int nSpaces);
+/**
+ * \brief padding a string with spaces to predefined length
+ * \details Appends spaces to the given string so that the resulting string has
+ *   a predefined length of \c totalLength
+ * \param[in] str         string to be padded
+ * \param[in] totalLength desired total length of the string
+ * \returns padded string
+ */
+UG_API std::string AppendSpacesToString(std::string& str, int totalLength);
 
-//sreiter
-///	this template function creates a hash key for a string value.
-template <> UG_API unsigned long hash_key(const std::string& key);
+/**
+ * \brief creates a hash key from a string value
+ * \details this template function creates a hash key for a string value
+ * \param[in] str string to create hash for
+ * \returns hash key for given \c key
+ * \note Implementation is copied from some book or website. Can't remember... (sreiter)
+ */
+template <> UG_API unsigned long hash_key(const std::string& str);
 
-/// returns the part of the string after the last '/' or '\' character (e.g. "/sw/bla.txt" -> "bla.txt")
-UG_API std::string FilenameWithoutPath(const std::string& str);
+/**
+ * \brief determines last occurrence of '/' or '\'
+ * \param[in] str string to lock in
+ * \returns position of the last occurrence of '/' or '\' in \c str; 
+ *   returns `std::string::npos` if none are found
+ */
+std::string::size_type GetDirectorySeperatorPos(const std::string &str);
 
-/// returns the part of the string before the last '/' or '\' character (e.g. "/sw/bla.txt" -> "/sw/")
+/**
+ * \brief returns best guess of a filename from a given string
+ * \details returns the part of the string after the last '/' or '\' character 
+ *   (e.g. `/sw/bla.txt` -> `bla.txt`)
+ * \param[in] str to retrieve the filename from
+ * \return best guess of the file name from given path; if no guess can be made
+ *   the complete string is returned
+ */
+UG_API std::string FilenameWithoutPath(const std::string &str);
+
+/**
+ * \brief returns best guess of a path without a filename from a given string
+ * \details returns the part of the string before the last '/' or '\' character 
+ *   (e.g. `/sw/bla.txt` -> `/sw/`)
+ * \param[in] str to retrieve the filename from
+ * \return best guess of the file name from given path; if no guess can be made
+ *   '.' is returned
+ */
 UG_API std::string PathFromFilename(const std::string &str);
 
-/// returns the filename without path and with extension (e.g. "/sw/bla.txt" -> "bla")
+/**
+ * \brief returns the best guess of the filename from given string
+ * \details returns the part of the string without path and extension
+ *   (e.g. `/sw/bla.txt` -> `bla`)
+ * \param[in] str to retrieve filename from
+ * \returns best guess of the filename without path and extension; if no guess 
+ *   can be made, the whole string is returned
+ */
 UG_API std::string FilenameWithoutExtension(std::string str);
 
-/// returns the extension of the filename (e.g. "/sw/bla.txt" -> "txt")
+/**
+ * \brief returns the best guess of a file extensions from given string
+ * \details returns the extension of the filename (e.g. `/sw/bla.txt` -> `txt`).
+ *   Everything after the last dot ('.') of \c str is considered the file extension.
+ * \param[in] str to retrieve file extension from
+ * \returns best guess of the file extension; empty string if no guess can be made
+ */
 UG_API std::string GetFilenameExtension(const std::string &str);
 
 /**
- * Replaces each substring of <code>target</code> string that is equal to
- * <code>oldstr</code> with <code>newstr</code>
- * @param target string to modify
- * @param oldstr string to raplace
- * @param newstr replacement string
- * @return a copy of the specified <code>target</code> string where
- *         all occurences of <code>oldstr</code> are replaced with
- *         <code>newstr</code>
+ * \brief Substitutes substrings of given string with other substrings
+ * \details Replaces each substring of \c target string that is equal to \c oldstr 
+ *   with \c newstr
+ * \param[in] target string to modify
+ * \param[in] oldstr string to raplace
+ * \param[in] newstr replacement string
+ * \return a copy of the specified \c target string where all occurences of 
+ *   \c oldstr are replaced with \c newstr.
  */
-UG_API std::string ReplaceAll(
-		std::string target,
-		const std::string& oldstr,
-		const std::string& newstr);
-
+UG_API std::string ReplaceAll( std::string target, const std::string& oldstr, 
+                               const std::string& newstr );
 
 /**
- * Checks whether <code>str</code> starts with <code>search</code>.
- * @param str string
- * @param search string to search
- * @return <code>true</code> if <code>str</code> starts
- * with <code>search</code>; <code>false</code> otherwise
+ * \brief checks whether a given string starts with a specified substring
+ * \details Checks whether \c str starts with \c search.
+ * \param[in] str    string
+ * \param[in] search string to search for
+ * \return \c true if \c str starts with \c search; \c false otherwise
  */
 UG_API bool StartsWith(const std::string& str, const std::string& search);
 
 /**
- * Checks whether <code>str</code> contains <code>search</code>.
- * @param str string
- * @param search string to search
- * @return <code>true</code> if <code>str</code> contains
- * <code>search</code>; <code>false</code> otherwise
+ * \brief Checks whether given string contains a specified substring
+ * \details Checks whether \c str contains \c search.
+ * \param[in] str    string
+ * \param[in] search string to search for
+ * \return \c true if \c str contains \c search; \c false otherwise
  */
 UG_API bool Contains(const std::string& str, const std::string& search);
 
 /**
- * Returns a lower case version of the specified string.
- * <p><b>Note: </b>this function does not support custom locales. Thus,
- *                 only ascii strings shall be specified.</p> 
- * @param str string to convert
- * @return a lower case version of the specified string
+ * \brief Returns a lower case version of the specified string.
+ * \note this function does not support custom locales.
+ *   Thus, only ascii strings shall be specified.
+ * \param[in] str string to convert
+ * \return a lower case version of the specified string
  */
 UG_API std::string ToLower(std::string str);
 
 /**
- * Returns an upper case version of the specified string.
- * <p><b>Note: </b>this function does not support custom locales. Thus,
- *                 only ascii strings shall be specified.</p> 
- * @param str string to convert
- * @return an upper case version of the specified string
+ * \brief Returns an upper case version of the specified string.
+ * \note this function does not support custom locales.
+ *   Thus, only ascii strings shall be specified.
+ * \param[in] str string to convert
+ * \return an upper case version of the specified string
  */
 UG_API std::string ToUpper(std::string str);
 
 /**
- * Searches for duplicates in the specified vector and returns a vector 
- * containing all elements that occur multiple times.
- * @param vec vector to analyze
- * @return a vector containing all elements that occur multiple times
+ * \brief Finds and returns all duplicate elements of given vector
+ * \details Searches for duplicates in the specified vector and returns a vector 
+ *   containing all elements that occur multiple times.
+ * \param[in] vec vector to analyze
+ * \return a vector containing all elements that occur multiple times
  */
 UG_API std::vector<std::string> FindDuplicates(const std::vector<std::string>& vec);
 
 /**
- * @param c  the character
- * @param nr number of times to repeat c
- * @return string with nr times c
+ * \brief Builds a string with specified repetitions of given character
+ * \param[in] c  the character
+ * \param[in] nr number of times to repeat \c c
+ * \return string with \c nr times \c c
  */
 UG_API std::string repeat(char c, int nr);
 
 /**
- * Levenshtein distance calculates the minimum number of edits to transform one string
- * into the other with allowable edit operations insertion, deletion, or substitution of a
- * single character.
- * @param s1 string 1
- * @param s2 string 2
- * @return minimum number of edits needed to transform one string into the other
- * see http://en.wikipedia.org/wiki/Levenshtein_distance
+ * \brief Calculate Levenshtein Distance of to strings
+ * \details Levenshtein distance calculates the minimum number of edits to 
+ *   transform one string into the other with allowable edit operations 
+ *   insertion, deletion, or substitution of a single character.
+ * \note taken from http://en.wikipedia.org/wiki/Levenshtein_distance
+ *   (check copyright or recreate!)
+ * \param[in] s1 string 1
+ * \param[in] s2 string 2
+ * \return minimum number of edits needed to transform one string into the other
  */
 UG_API size_t LevenshteinDistance( const std::string& s1, const std::string& s2 );
 
 
 /**
- * \brief function to get some lines of a file
- * \param filename				file name
- * \param fromline
- * \param toline
- * \param includeLineNumbers	if true, add the line number in front of each line and a tab.
- *
+ * \brief get some specified lines of a file
+ * \param[in] filename           file name
+ * \param[in] fromline           line number to start from
+ * \param[in] toline             line number to stop at
+ * \param[in] includeLineNumbers if true, add the line number in front of each 
+ *   line and a tab.
  * \return lines fromline to toline of file filename.
  */
-UG_API std::string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers);
+UG_API std::string GetFileLines( const char *filename, size_t fromline, size_t toline, 
+                                 bool includeLineNumbers );
 
 /**
- * \brief function to get a line of a file
- * \param filename				file name
- * \param line
- * \return the line of the file.
+ * \brief get a specific line of a file
+ * \param filename file name
+ * \param line     line number to extract
+ * \return the line of the file
  */
 UG_API std::string GetFileLine(const char *filename, size_t line);
 
 /**
- * IsLonger can be used to get the longest string in a vector of strings:
- * int maxLength = (*max_element(vecStr.begin(), vecStr.end(), IsLonger)).size();
- * @param a
- * @param b
- * @return true if b is longer then a
+ * \brief checks whether second string is longer than first string
+ * \details This can be used to get the longest string in a vector of strings:
+ * 
+ *     int maxLength = (*max_element(vecStr.begin(), vecStr.end(), IsLonger)).size();
+ * \param[in] a
+ * \param[in] b
+ * \return \c true if \c b is longer then \c a; \c false otherwise
  */
 UG_API bool IsLonger(const std::string &a, const std::string &b);
 
 
 /**
- * Convert a object supporting 'cout << obj' to a string
- * @param t 
- * @return a string with the object as if you would use operator << (like cout)
+ * \brief Convert a object supporting '`std::cout << obj`' to a string
+ * \tparam T type of the object; must support `std::ostream operator<<()`
+ * \param[in] t object to convert to string
+ * \return a string with the object as if you would use operator << (like `std::cout`)
  */
 template<typename T>
 inline std::string ToString(const T &t)
@@ -229,7 +289,7 @@ inline std::string ToString(const T &t)
     return out.str();
 }
 
-// end group ugbase_common_util
+// end group ugbase_common_util_strings
 /// \}
 
 } // end namespace ug

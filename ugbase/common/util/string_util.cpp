@@ -10,9 +10,9 @@
 #include <fstream>
 #include "common/common.h"
 
-using namespace std;
-
 namespace ug{
+
+using namespace std;
 
 void RemoveWhitespaceFromString(std::string& str)
 {
@@ -62,7 +62,6 @@ string TrimString(const string& str)
 	return str.substr(start, end - start + 1);
 }
 
-/// returns the number of digits of an integer (expressed with base 10)
 int NumberOfDigits(int n)
 {
 //	a 0 has 1 digit
@@ -80,9 +79,8 @@ int NumberOfDigits(int n)
     return cnt;
 }
 
-///	appends a counter number to a string
-void AppendCounterToString(string& str, string indicator,
-                           int counter, int maxCounter)
+void AppendCounterToString( string& str, string indicator, int counter, 
+                            int maxCounter )
 {
 //	check correct usage
 	if(maxCounter >= 0)
@@ -102,10 +100,8 @@ void AppendCounterToString(string& str, string indicator,
 	str.append(ss.str());
 }
 
-///	appends a number of spaces to a string, returns "padded" string
 string AppendSpacesToString(string& str, int totalLength)
 {
-
 	int numSpaces = max((int)(totalLength-str.length()), 0);
 	for(int i = 0; i < numSpaces; ++i) str.append(" ");
 
@@ -118,13 +114,13 @@ string::size_type GetDirectorySeperatorPos(const string &str)
 	string::size_type pos2 = str.rfind("\\");
 	if(pos1 != string::npos)
 	{
-		if(pos2 != string::npos && pos2 > pos1)	return pos2;
+		if(pos2 != string::npos && pos2 > pos1) return pos2;
 		else return pos1;
 	}
 	else return pos2;
 }
 
-string FilenameWithoutPath(const string& str)
+string FilenameWithoutPath(const string &str)
 {
 	string::size_type pos = GetDirectorySeperatorPos(str);
 	if( pos != string::npos ) return str.substr( pos+1 );
@@ -153,11 +149,7 @@ string GetFilenameExtension(const string &str)
 	else return "";
 }
 
-string ReplaceAll(
-		string target,
-		const string& oldstr,
-		const string& newstr) {
-
+string ReplaceAll( string target, const string& oldstr, const string& newstr ) {
 	// no substitution necessary
 	if (oldstr == newstr) {
 		return target;
@@ -176,7 +168,7 @@ bool StartsWith(const string& str, const string& begin) {
 }
 
 bool Contains(const string& str, const string& search) {
-	return str.find(search) !=string::npos;
+	return str.find(search) != string::npos;
 }
 
 //sreiter - Implementation is copied from some book or website. Can't remember...
@@ -194,7 +186,6 @@ template <> unsigned long hash_key(const string& key)
 
 	return hash;
 }
-
 
 string ToLower(string str) {
     transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -238,12 +229,6 @@ vector<string> FindDuplicates(const vector<string>& vec) {
 const unsigned int cost_del = 1;
 const unsigned int cost_ins = 1;
 const unsigned int cost_sub = 1;
-/**
- * Levenshtein distance algorithm, taken from
- * http://www.freemedialibrary.com/index.php/Levenshtein_distance
- * (check copyright or recreate!)
- *
- */
 size_t LevenshteinDistance( const string& s1, const string& s2 )
 {
   size_t n1 = s1.length();
@@ -287,19 +272,15 @@ string repeat(char c, int nr)
 		return string("");
 }
 
-
-
 bool IsLonger(const string &a, const string &b)
 {
 	return b.size() > a.size();
 }
 
-
-
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers)
 {
 	char buf[512];
-	fstream file(filename, ios::in);
+	fstream file(filename, std::ios::in);
 	if(file.is_open() == false) return string("");
 	for(size_t i=0; i<fromline && !file.eof(); i++)
 		file.getline(buf, 512);
