@@ -317,6 +317,8 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	index set
 	bool bNonContained = li.push_free_index(obj_index(obj), numNewIndex);
 
+	obj_index(obj) = NOT_YET_ASSIGNED;
+
 	if(!bNonContained) return;
 
 //	number of managed indices has changed, thus decrease counter. Note, that the

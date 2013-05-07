@@ -426,7 +426,7 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		MessageHub::SPCallbackId	m_callbackId_GridCreation;
 
 	///	indication that function is not defined on a subset
-		enum{NOT_DEF_ON_SUBSET = (size_t) - 1};
+		//enum{NOT_DEF_ON_SUBSET = (size_t) - 1};
 	///	indication that function is not defined on a subset
 		enum{NOT_YET_ASSIGNED = (size_t) - 2};
 

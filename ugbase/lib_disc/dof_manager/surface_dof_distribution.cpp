@@ -8,6 +8,8 @@
 #include "surface_dof_distribution.h"
 #include "mg_dof_distribution_impl.h"
 
+using namespace std;
+
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -151,8 +153,7 @@ remove_ghost_entries()
 						TBaseElem* e = intfc.get_element(eiter);
 						size_t objInd = obj_index(e);
 						if(dgm.is_ghost(e)
-						   && (objInd != NOT_YET_ASSIGNED)
-						   && (objInd != NOT_DEF_ON_SUBSET))
+						   && (objInd != NOT_YET_ASSIGNED))
 						{
 						//	we have to erase the object from the distribution
 							erase(e, e->reference_object_id(),
@@ -188,6 +189,46 @@ parallel_redistribution_ended()
 	if(max_dofs(EDGE) > 0)   add_unassigned_elements<EdgeBase>();
 	if(max_dofs(FACE) > 0)   add_unassigned_elements<Face>();
 	if(max_dofs(VOLUME) > 0) add_unassigned_elements<Volume>();
+
+// DEBUG CHECKS... REMOVE THOSE AS SOON AS EVERYTHING WORKS STABLE
+////	iterate over all vertices in the surface view and check whether all are assigned
+//	for(typename traits<VertexBase>::iterator iter = begin<VertexBase>();
+//		iter != end<VertexBase>(); ++iter)
+//	{
+//		if(m_spSurfView->is_ghost(*iter)) continue;
+//		if(obj_index(*iter) == NOT_YET_ASSIGNED){
+//			UG_LOG("ERROR: UNASSIGNED SURFACE VERTEX FOUND AT: "
+//					<< GetGeometricObjectCenter(*m_pMG, *iter) << endl);
+//		}
+//	}
+//
+////	iterate over all edges in the surface view and check whether all vertices are assigned
+//	for(typename traits<EdgeBase>::iterator iter = begin<EdgeBase>();
+//		iter != end<EdgeBase>(); ++iter)
+//	{
+//		if(m_spSurfView->is_ghost(*iter)) continue;
+//		EdgeBase* e = *iter;
+//		for(size_t i = 0; i < e->num_vertices(); ++i){
+//			if(obj_index(e->vertex(i)) == NOT_YET_ASSIGNED){
+//				UG_LOG("ERROR: UNASSIGNED SURFACE-EDGE-VERTEX FOUND AT: "
+//						<< GetGeometricObjectCenter(*m_pMG, e->vertex(i)) << endl);
+//			}
+//		}
+//	}
+//
+////	iterate over all faces in the surface view and check whether all vertices are assigned
+//	for(typename traits<Face>::iterator iter = begin<Face>();
+//		iter != end<Face>(); ++iter)
+//	{
+//		if(m_spSurfView->is_ghost(*iter)) continue;
+//		Face* e = *iter;
+//		for(size_t i = 0; i < e->num_vertices(); ++i){
+//			if(obj_index(e->vertex(i)) == NOT_YET_ASSIGNED){
+//				UG_LOG("ERROR: UNASSIGNED SURFACE-FACE-VERTEX FOUND AT: "
+//						<< GetGeometricObjectCenter(*m_pMG, e->vertex(i)) << endl);
+//			}
+//		}
+//	}
 
 //	DEFRAGMENT HAS TO BE CALLED EXTERNALLY! OR EXECUTE THE FOLLOWING CODE
 //	#ifdef UG_PARALLEL
@@ -475,16 +516,14 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 				  parent->reference_object_id(),
 				  m_spMGSH->get_subset_index(parent),
 				  m_levInfo);
+		}
 
-			if(parallel_redistribution_mode()){
-			//	set the index of the object and of all its parent copies to NOT_YET_ASSIGNED
-			//	this is important to correctly erase ghost copies when the redistribution is done
-				TBaseElem* telem = parent;
-				while(telem){
-					obj_index(telem) = NOT_YET_ASSIGNED;
-					telem = parent_if_copy(telem);
-				}
-			}
+	//	set the index of the object and of all its parent copies to NOT_YET_ASSIGNED
+	//	this is important to correctly erase ghost copies when the redistribution is done
+		TBaseElem* telem = parent;
+		while(telem){
+			copy(telem, obj);
+			telem = parent_if_copy(telem);
 		}
 	}
 
@@ -529,8 +568,7 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 
 //	remember that index from object is now no longer in index set
 	if(m_spSurfView->is_surface_element(obj)
-	   &&(obj_index(obj) != NOT_YET_ASSIGNED)
-	   && (obj_index(obj) != NOT_DEF_ON_SUBSET))
+	   &&(obj_index(obj) != NOT_YET_ASSIGNED))
 	{
 		erase(obj,
 			  obj->reference_object_id(),
