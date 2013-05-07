@@ -63,15 +63,16 @@ class ActiveSet
 	///	checks if all constraints are fulfilled & the activeSet remained unchanged
 		bool check_conv(const vector_type& u, const size_t step);
 
-	///	creates a list of pointers to the active Indices for lua-registry
-		void createVecOfPointers();
-
 	///	method used for lua-call in order to pass the ActiveSet to assemble-funcs
 		vector<SmartPtr<MultiIndex<2> > >  activeMultiIndices()
 		{
 			createVecOfPointers();
 			return m_vActiveSetSP;
 		};
+
+	private:
+	///	creates a list of pointers to the active Indices for lua-registry
+		void createVecOfPointers();
 
 	private:
 		///	#fcts for value_type

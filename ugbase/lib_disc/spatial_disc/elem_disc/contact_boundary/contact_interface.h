@@ -44,6 +44,9 @@ class IContactDisc
 	public:
 		IContactDisc(){};
 
+	/// Virtual destructor
+		virtual ~IContactDisc() {}
+
 		//virtual void set_elem_disc(SmartPtr<IElemDisc<TDomain> > elem) = 0;
 
 		virtual void contactForces(TGridFunction& force, const TGridFunction& u,

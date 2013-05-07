@@ -116,6 +116,7 @@ void ActiveSet<TDomain, TAlgebra>::contactForces(vector_type& contactforce,
 			UG_THROW("No contact discretization set in "
 						"ActiveSet:contactForces \n");
 
+		//	TODO: restrict contactforce-gridfunction.size() to possible contact subset
 		if (u.size() != contactforce.size())
 			UG_THROW("Temporarily u and contactForce need to be "
 					"of same size in ActiveSet:contactForces \n");
