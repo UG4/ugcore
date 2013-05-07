@@ -364,6 +364,15 @@ select_subsurface_elements_only()
 }
 */
 
+void HangingNodeRefiner_MultiGrid::
+restrict_selection_to_surface_coarsen_elements()
+{
+	restrict_selection_to_surface_coarsen_elements<VertexBase>();
+	restrict_selection_to_surface_coarsen_elements<EdgeBase>();
+	restrict_selection_to_surface_coarsen_elements<Face>();
+	restrict_selection_to_surface_coarsen_elements<Volume>();
+}
+
 template <class TElem>
 void HangingNodeRefiner_MultiGrid::
 restrict_selection_to_surface_coarsen_elements()
@@ -388,6 +397,17 @@ restrict_selection_to_surface_coarsen_elements()
 			sel.deselect(e);
 	}
 }
+
+
+void HangingNodeRefiner_MultiGrid::
+restrict_selection_to_coarsen_families()
+{
+	restrict_selection_to_coarsen_families<VertexBase>();
+	restrict_selection_to_coarsen_families<EdgeBase>();
+	restrict_selection_to_coarsen_families<Face>();
+	restrict_selection_to_coarsen_families<Volume>();
+}
+
 
 template <class TElem>
 void HangingNodeRefiner_MultiGrid::
@@ -706,7 +726,8 @@ deselect_isolated_sides()
 		return;
 	}
 
-//	iterate over all selected elements of the given type and deselect it,
+//	iterate over all selected elements of the given type and deselect those who
+//	do not have selected neighbors.
 	for(typename Selector::traits<TElem>::iterator iter = sel.begin<TElem>();
 		iter != sel.end<TElem>();)
 	{
@@ -843,7 +864,7 @@ collect_objects_for_coarsen()
  *
  * - normal marks on all volumes which shall be coarsened.
  *
- * One has to be carful, since only whole families may be coarsened at once
+ * One has to be careful, since only whole families may be coarsened at once
  * (either all children of a parent or none may be removed).
  *
  *
@@ -870,18 +891,12 @@ collect_objects_for_coarsen()
 debug_save(sel, "debug_save_0_initial_selection.ugx");
 
 //	first we'll shrink the selection so that only surface elements are selected
-	restrict_selection_to_surface_coarsen_elements<Volume>();
-	restrict_selection_to_surface_coarsen_elements<Face>();
-	restrict_selection_to_surface_coarsen_elements<EdgeBase>();
-	restrict_selection_to_surface_coarsen_elements<VertexBase>();
+	restrict_selection_to_surface_coarsen_elements();
 
 debug_save(sel, "debug_save_1_restricted_to_surface_elems.ugx");
 
 //	restrict to coarsen family
-	restrict_selection_to_coarsen_families<Volume>();
-	restrict_selection_to_coarsen_families<Face>();
-	restrict_selection_to_coarsen_families<EdgeBase>();
-	restrict_selection_to_coarsen_families<VertexBase>();
+	restrict_selection_to_coarsen_families();
 
 debug_save(sel, "debug_save_2_restricted_to_coarsen_families.ugx");
 

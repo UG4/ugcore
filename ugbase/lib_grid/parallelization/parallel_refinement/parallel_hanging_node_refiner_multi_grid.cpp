@@ -427,6 +427,15 @@ set_involved_processes(pcl::ProcessCommunicator com)
 	m_procCom = com;
 }
 
+void ParallelHangingNodeRefiner_MultiGrid::
+copy_marks_to_vmasters()
+{
+	copy_marks_to_vmasters<VertexBase>(m_intfComVRT);
+	copy_marks_to_vmasters<EdgeBase>(m_intfComEDGE);
+	copy_marks_to_vmasters<Face>(m_intfComFACE);
+	copy_marks_to_vmasters<Volume>(m_intfComVOL);
+}
+
 template <class TElem, class TIntfcCom>
 void ParallelHangingNodeRefiner_MultiGrid::
 copy_marks_to_vmasters(TIntfcCom& com)
@@ -440,16 +449,56 @@ copy_marks_to_vmasters(TIntfcCom& com)
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
+copy_marks_to_vslaves()
+{
+	copy_marks_to_vslaves<VertexBase>(m_intfComVRT);
+	copy_marks_to_vslaves<EdgeBase>(m_intfComEDGE);
+	copy_marks_to_vslaves<Face>(m_intfComFACE);
+	copy_marks_to_vslaves<Volume>(m_intfComVOL);
+}
+
+template <class TElem, class TIntfcCom>
+void ParallelHangingNodeRefiner_MultiGrid::
+copy_marks_to_vslaves(TIntfcCom& com)
+{
+	typedef typename GridLayoutMap::Types<TElem>::Layout	TLayout;
+	ComPol_Selection<TLayout> comPol(get_refmark_selector());
+
+	com.exchange_data(m_pDistGridMgr->grid_layout_map(),
+					  INT_V_MASTER, INT_V_SLAVE, comPol);
+	com.communicate();
+}
+
+
+void ParallelHangingNodeRefiner_MultiGrid::
+restrict_selection_to_surface_coarsen_elements()
+{
+//	call base implementation and copy marks from vslaves to vmasters afterwards.
+//	Important since vmasters may locally be surface elements but may globally be
+//	parents of other elements.
+	BaseClass::restrict_selection_to_surface_coarsen_elements();
+	copy_marks_to_vmasters();
+}
+
+void ParallelHangingNodeRefiner_MultiGrid::
+restrict_selection_to_coarsen_families()
+{
+//	this operation has to be performed on vmasters, since vslaves usually don't
+//	have parents locally. We thus copy the marks from vmasters to vslaves once
+//	they have been adjusted.
+	BaseClass::restrict_selection_to_coarsen_families();
+	copy_marks_to_vslaves();
+}
+
+
+void ParallelHangingNodeRefiner_MultiGrid::
 collect_objects_for_coarsen()
 {
 	BaseClass::collect_objects_for_coarsen();
 //	marks are now consistent across h-interfaces. however, we have to
 //	copy marks to v-masters, too, since those may have to be coarsened or
 //	transformed, too
-	copy_marks_to_vmasters<VertexBase>(m_intfComVRT);
-	copy_marks_to_vmasters<EdgeBase>(m_intfComEDGE);
-	copy_marks_to_vmasters<Face>(m_intfComFACE);
-	copy_marks_to_vmasters<Volume>(m_intfComVOL);
+	copy_marks_to_vmasters();
 }
 
 bool ParallelHangingNodeRefiner_MultiGrid::

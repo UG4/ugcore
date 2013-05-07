@@ -154,12 +154,10 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	///	calls base implementation and replaces cge with a normal edge.
 		virtual void refine_constraining_edge(ConstrainingEdge* cge);
 
-
 	///	collects corner vertices and fills them into the associated vector
 	/**	The size of cornersOut is automatically adjusted.
 	 *  The i-th element of corners out will contain the child vertex of the
-	 *  i-th vertex of elem.
-	 */
+	 *  i-th vertex of elem.*/
 		template <class TElem>
 		void collect_child_corners(std::vector<VertexBase*>& cornersOut, TElem* elem)
 		{
@@ -170,6 +168,16 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 			}
 		}
 
+	///	Makes sure that only surface elements are marked and that only coarsen marks are used.
+	/**	calls the overloaded template implementation for the four base element types.
+	 * this method is called prior to restrict_selection_to_coarsen_families.*/
+		virtual void restrict_selection_to_surface_coarsen_elements();
+
+	///	Deselects all elements which have an unselected sibling.
+	/** Siblings are elements who share the same parent.
+	 * Calls the overloaded template implementation for the four base element types.
+	 * this method is called after to restrict_selection_to_surface_coarsen_elements.*/
+		virtual void restrict_selection_to_coarsen_families();
 
 	///	Deselects all non-surface elements and all elements not marked with RM_COARSEN
 		template <class TElem>

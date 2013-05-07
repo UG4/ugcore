@@ -74,9 +74,29 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 		virtual void post_coarsen();
 
 	///	copies the current marks in the ref-mark-selector from v-slaves to v-masters
-	/**	This is only required during coarsening.*/
+	/**	\{ */
+		void copy_marks_to_vmasters();
+
 		template <class TElem, class TIntfcCom>
 		void copy_marks_to_vmasters(TIntfcCom& com);
+	/** \} */
+
+	///	copies the current marks in the ref-mark-selector from v-slaves to v-masters
+	/**	\{ */
+		void copy_marks_to_vslaves();
+
+		template <class TElem, class TIntfcCom>
+		void copy_marks_to_vslaves(TIntfcCom& com);
+	/** \} */
+
+	///	Makes sure that only surface elements are marked and that only coarsen marks are used.
+	/**	calls the overloaded template implementation for the four base element types.*/
+		virtual void restrict_selection_to_surface_coarsen_elements();
+
+	///	Deselects all elements which have an unselected sibling.
+	/** Siblings are elements who share the same parent.
+	 * Calls the overloaded template implementation for the four base element types.*/
+		virtual void restrict_selection_to_coarsen_families();
 
 	///	called by the coarsen method in order to adjust the selection to valid elements.
 	/**	This method is responsible to mark all elements that shall be coarsened.
