@@ -205,7 +205,7 @@ class MatrixIOMtx : MatrixIO
         std::getline( m_matFileStream, dummy );
       }
 
-      matrix.resize( m_rows, m_cols );
+      matrix.resize_and_clear( m_rows, m_cols );
       size_t x, y;
       double val;
       if ( m_mmTypeCode.is_sparse() ) {
