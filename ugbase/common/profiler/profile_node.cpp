@@ -33,15 +33,17 @@ using namespace std;
 namespace ug
 {
 
+
+
+
+#if SHINY_PROFILER
+
 void ProfilerUpdate()
 {
 	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
 	UpdateTotalMem();
 }
 
-
-
-#if SHINY_PROFILER
 
 static const int PROFILER_BRIDGE_OUTPUT_WIDTH_NAME = 70; // Shiny::OUTPUT_WIDTH_NAME
 static const int PROFILER_BRIDGE_OUTPUT_WIDTH_HIT  = 13; // Shiny::OUTPUT_WIDTH_HIT
