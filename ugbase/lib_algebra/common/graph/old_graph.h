@@ -80,7 +80,7 @@ public:
 	bool has_connection(size_t from, size_t to) const
 	{
 		size_check(from, to);
-		return binary_search(begin_row(from), end_row(to), to);
+		return binary_search(begin_row(from), end_row(from), to);
 	}
 
 	//! set a connection from "from" to "to" if not already there
