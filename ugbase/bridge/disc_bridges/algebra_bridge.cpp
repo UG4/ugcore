@@ -420,6 +420,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("set_constraint", &T::set_constraint, "", "constraint")
+			.add_method("set_contactDisc", &T::set_contactDisc, "", "contactDisc")
 			.add_method("prepare", &T::prepare, "", "prepare")
 			.add_method("check_dist_to_obs", &T::check_dist_to_obs, "", "",
 					"is distance to obs >= 0")
@@ -436,6 +437,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ActiveSet", tag);
 	}
+
 }
 
 static void Common(Registry& reg, string parentgroup)
