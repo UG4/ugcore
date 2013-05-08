@@ -106,6 +106,8 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			if(damping()->constant_damping())
 				damp = damping()->damping();
 
+			CheckVectorInvertible(diag);
+
 		// 	invert diagonal and multiply by damping
 			for(size_t i = 0; i < diag.size(); ++i)
 			{

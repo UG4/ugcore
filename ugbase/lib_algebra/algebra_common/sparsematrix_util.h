@@ -755,6 +755,52 @@ size_t GetMaxConnections(const TMatrix &A)
 	return m;
 }
 
+
+template<typename TMatrix>
+bool CheckDiagonalInvertible(const TMatrix &A)
+{
+#ifndef NDEBUG
+	bool bsucc=true;
+	typename TMatrix::value_type x = 1.0;
+	typename TMatrix::value_type y = 1.0;
+	for(size_t i=0; i<A.num_rows(); i++)
+	{
+		bool b =InverseMatMult(x, 1.0, A(i,i), y);
+		if(!b)
+		{
+			UG_LOG("WARNING: entry " << i << " = " << A(i,i) << " not invertible\n");
+			bsucc = false;
+		}
+	}
+	return bsucc;
+#else
+	return true;
+#endif
+}
+
+template<typename TVector>
+bool CheckVectorInvertible(const TVector &v)
+{
+#ifndef NDEBUG
+	typedef typename block_traits<typename TVector::value_type>::inverse_type inverse_type;
+	bool bsucc=true;
+	inverse_type inv;
+
+	for(size_t i=0; i<v.size(); i++)
+	{
+		bool b = GetInverse(inv, v[i]);
+		if(!b)
+		{
+			UG_LOG("WARNING: entry " << i << " = " << v[i] << " not invertible\n");
+			bsucc = false;
+		}
+	}
+	return bsucc;
+#else
+	return true;
+#endif
+}
+
 /// @}
 } // end namespace ug
 

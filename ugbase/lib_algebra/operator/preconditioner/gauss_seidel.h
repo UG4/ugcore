@@ -191,6 +191,7 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 				SetDirichletRow(m_A, vIndex);
 			}
 #endif
+			CheckDiagonalInvertible(m_A);
 			return true;
 		}
 
@@ -297,6 +298,7 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 				SetDirichletRow(m_A, vIndex);
 			}
 #endif
+			CheckDiagonalInvertible(m_A);
 			return true;
 		}
 
