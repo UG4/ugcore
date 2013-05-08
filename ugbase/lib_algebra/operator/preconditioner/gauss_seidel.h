@@ -83,8 +83,13 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
+				matrix_type &A = m_A;
 			}
+#else
+			matrix_type &A = *pOp;
 #endif
+//			UG_ASSERT(CheckDiagonalInvertible(A), "GS: A has noninvertible diagonal");
+			CheckDiagonalInvertible(A);
 			return true;
 		}
 
@@ -189,9 +194,13 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
+				matrix_type &A = m_A;
 			}
+#else
+			matrix_type &A = *pOp;
 #endif
-			CheckDiagonalInvertible(m_A);
+//			UG_ASSERT(CheckDiagonalInvertible(A), "BackwardGS: A has noninvertible diagonal");
+			CheckDiagonalInvertible(A);
 			return true;
 		}
 
@@ -296,9 +305,13 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
+				matrix_type &A = m_A;
 			}
+#else
+			matrix_type &A = *pOp;
 #endif
-			CheckDiagonalInvertible(m_A);
+			//UG_ASSERT(CheckDiagonalInvertible(A), "SGS: A has noninvertible diagonal");
+			CheckDiagonalInvertible(A);
 			return true;
 		}
 
