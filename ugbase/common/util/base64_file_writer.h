@@ -73,9 +73,9 @@ public:
 	 *                     file or truncate existing.
 	 * \throws UGError if \c filename can not be opened or is not writeable
 	 */
-	Base64FileWriter( const char* filename,
-				const std::ios_base::openmode mode=(std::ios_base::out |
-													std::ios_base::trunc));
+	Base64FileWriter(const char* filename,
+				const std::ios_base::openmode mode = (std::ios_base::out |
+														std::ios_base::trunc));
 
 	/**
 	 * \brief Destructor, which properly flushs encoder's internal buffer and closes file stream
@@ -154,19 +154,13 @@ private:
 	size_t m_numBytesWritten;
 
 	/**
-	 * number of bytes written in a format block
-	 */
-	size_t m_numBytesInBlock;
-
-	/**
 	 * \brief Flushes input buffer
+	 * \param force whether to forcefully flush the buffer
 	 */
-	void flushInputBuffer( bool force=false );
-
-	void addPadding(size_t blockSize);
+	void flushInputBuffer(bool force = false);
 
 	/**
-	 * \brief Check on readyness of the file stream
+	 * \brief Check on readiness of the file stream
 	 * \throws UGError if either the filestream's \c badbit is set or the file
 	 *                 stream is not open.
 	 */

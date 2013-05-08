@@ -25,21 +25,6 @@ typedef boost::archive::iterators::base64_from_binary<
 		// compose all the above operations in to a new iterator
 		> base64_text;
 
-//ostream& operator << (ostream& os, ug::Base64FileWriter::fmtflag f) {
-//	switch(f) {
-//	case ug::Base64FileWriter::normal:
-//		os << "normal";
-//		break;
-//	case ug::Base64FileWriter::base64_ascii:
-//		os << "base64_ascii";
-//		break;
-//	case ug::Base64FileWriter::base64_binary:
-//		os << "base64_binary";
-//		break;
-//	}
-//	return os;
-//}
-
 namespace ug {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,8 +98,7 @@ Base64FileWriter::Base64FileWriter() :
 	m_currFormat(base64_ascii),
 	m_inBuffer(ios_base::binary | ios_base::out | ios_base::in),
 	m_lastInputByteSize(0),
-	m_numBytesWritten(0),
-	m_numBytesInBlock(0)
+	m_numBytesWritten(0)
 {}
 
 Base64FileWriter::Base64FileWriter(const char* filename,
@@ -122,8 +106,7 @@ Base64FileWriter::Base64FileWriter(const char* filename,
 	m_currFormat(base64_ascii),
 	m_inBuffer(ios_base::binary | ios_base::out | ios_base::in),
 	m_lastInputByteSize(0),
-	m_numBytesWritten(0),
-	m_numBytesInBlock(0)
+	m_numBytesWritten(0)
 {
 	PROFILE_FUNC();
 
@@ -203,23 +186,24 @@ void Base64FileWriter::flushInputBuffer(bool force)
 	const uint elements_to_flush = 12;
 	// in case of normal format, no input size is known, so this evals to zero.
 	const uint bytes_to_flush = 3 * m_lastInputByteSize * elements_to_flush;
+	// in case of forced flush we have to add padding
+	uint paddChars = 0;
 
 	// if force, flush all bytes in input stream
 	if (force) {
+		paddChars = (3 - m_numBytesWritten % 3) % 3;
 		buff_len = m_numBytesWritten;
 	} else if (bytes_to_flush <= m_numBytesWritten) {
 		buff_len = bytes_to_flush;
-	}
-
-	if (buff_len == 0) {
-		if(force) { // empty buffer and force => we're finished
-			addPadding(m_numBytesInBlock);
-		}
+	} else {
+		// buff_len == 0
 		return;
 	}
 
 	m_tmpBuff.clear();
-	m_tmpBuff.reserve(buff_len);
+	// enlarge the input stream by # paddChars because boost reads beyond buffer
+	m_tmpBuff.resize(buff_len + paddChars, 0x0);
+
 	char* buff = &m_tmpBuff[0];
 
 	if (!m_inBuffer.good()) {
@@ -268,28 +252,16 @@ void Base64FileWriter::flushInputBuffer(bool force)
 	// set read and write position to beginning
 	m_inBuffer.seekg(0, ios_base::beg);
 
-	// increment bytes in this block by buffer already encoded
-	m_numBytesInBlock += buff_len;
-
 	if (force) {
-		addPadding(m_numBytesInBlock);
+		for(uint i = 0; i < paddChars; ++i)
+			m_fStream << '=';
 
 		// resetting num bytes written and bytes in block
 		m_numBytesWritten = 0;
-		m_numBytesInBlock = 0;
 	} else {
 		// update amount of bytes in input buffer
 		m_numBytesWritten -= buff_len;
 	}
-}
-
-void Base64FileWriter::addPadding(size_t blockSize)
-{
-	PROFILE_FUNC();
-	// perform padding if last triplet has only 1 or 2 bytes
-	uint writePaddChars = (3 - blockSize % 3) % 3;
-	for (uint i = 0; i < writePaddChars; i++)
-		m_fStream << '=';
 }
 
 void Base64FileWriter::close()
