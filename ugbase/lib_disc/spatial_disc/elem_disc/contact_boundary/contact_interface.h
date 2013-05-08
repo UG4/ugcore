@@ -12,34 +12,30 @@
 #include "common/common.h"
 
 // library intern headers
-#include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
+#include "lib_disc/domain_traits.h"
+#include "lib_disc/common/multi_index.h"
 
 namespace ug{
 
 template <typename TDomain, typename TGridFunction>
 class IContactDisc
-	: public IElemDisc<TDomain>
 {
 	private:
-	///	Base class type
-		typedef IElemDisc<TDomain> base_type;
-
 	///	own type
 		typedef IContactDisc<TDomain, TGridFunction> this_type;
 
 	public:
 	///	Domain type
-		typedef typename base_type::domain_type domain_type;
+		typedef TDomain domain_type;
 
 	///	World dimension
-		static const int dim = base_type::dim;
+		static const int dim = TDomain::dim;
 
 	///	Position type
-		typedef typename base_type::position_type position_type;
+		typedef typename TDomain::position_type position_type;
 
 	///	base element type of associated domain
-		typedef typename domain_traits<TDomain::dim>::
-				geometric_base_object TBaseElem;
+		typedef typename domain_traits<dim>::geometric_base_object TBaseElem;
 
 	public:
 		IContactDisc(){};
@@ -47,13 +43,8 @@ class IContactDisc
 	/// Virtual destructor
 		virtual ~IContactDisc() {}
 
-		//virtual void set_elem_disc(SmartPtr<IElemDisc<TDomain> > elem) = 0;
-
 		virtual void contactForces(TGridFunction& force, const TGridFunction& u,
 				std::vector<MultiIndex<2> > vActiveSet) = 0;
-
-		//virtual void contactForces_elem(LocalVector& locForce,
-		//		TBaseElem* elem, const LocalVector& locU) = 0;
 };
 
 } //end namespace ug

@@ -21,6 +21,7 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 
 #include "lib_disc/spatial_disc/domain_disc.h"
+#include "lib_disc/spatial_disc/elem_disc/contact_boundary/contact_interface.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_interface.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_disc/spatial_disc/constraints/dirichlet_boundary/lagrange_dirichlet_boundary.h"
@@ -121,6 +122,16 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("clear", &T::clear)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DirichletBoundary", tag);
+	}
+
+	//	ContactDisc base class
+	typedef GridFunction<TDomain, TAlgebra> function_type;
+	{
+		typedef IContactDisc<TDomain, function_type> T;
+		string name = string("IContactDisc").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "IContactDisc", tag);
 	}
 }
 
