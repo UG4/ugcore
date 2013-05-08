@@ -760,12 +760,12 @@ template<typename TMatrix>
 bool CheckDiagonalInvertible(const TMatrix &A)
 {
 #ifndef NDEBUG
+	typedef typename block_traits<typename TMatrix::value_type>::inverse_type inverse_type;
 	bool bsucc=true;
-	typename TMatrix::value_type x = 1.0;
-	typename TMatrix::value_type y = 1.0;
+	inverse_type inv;
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
-		bool b =InverseMatMult(x, 1.0, A(i,i), y);
+		bool b = GetInverse(inv, A(i,i));
 		if(!b)
 		{
 			UG_LOG("WARNING: entry " << i << " = " << A(i,i) << " not invertible\n");
