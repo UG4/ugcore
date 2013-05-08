@@ -723,6 +723,38 @@ bool Axpy_transposedCommonSparseMatrix(const T &A, vector_t &dest,
 	return true;
 }
 
+
+/// returns the number of non-zeroes (!= number of connections)
+template<typename TMatrix>
+size_t GetNNZs(const TMatrix &A)
+{
+	size_t m=0;
+	for(size_t i=0; i<A.num_rows(); i++)
+	{
+		for(typename TMatrix::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+			if(it.value() != 0.0) m++;
+	}
+	return m;
+}
+
+/// returns max number of non-zero connections in rows
+template<typename TMatrix>
+size_t GetMaxConnections(const TMatrix &A)
+{
+	size_t m=0;
+	for(size_t i=0; i<A.num_rows(); i++)
+	{
+		//if(m < A.num_connections(i)) m = A.num_connections(i);
+
+		size_t n=0;
+		for(typename TMatrix::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+			if(it.value() != 0.0) n++;
+		if(m < n) m = n;
+	}
+
+	return m;
+}
+
 /// @}
 } // end namespace ug
 
