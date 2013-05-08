@@ -33,6 +33,7 @@ string GetBytesSize(size_t s, int length)
 	return ss.str();
 }
 
+#ifdef UG_PROFILER_SHINY
 size_t GetSelfMem(const Shiny::ProfileNode *p)
 {
 	return 0;
@@ -41,7 +42,7 @@ size_t  GetTotalMem(const Shiny::ProfileNode *p)
 {
 	return 0;
 }
-
+#endif
 bool EnableMemTracker(bool b)
 {
 	return false;
