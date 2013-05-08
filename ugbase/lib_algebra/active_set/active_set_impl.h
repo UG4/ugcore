@@ -106,22 +106,37 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(vector_type& u,
 
 //	computes the contact forces for a given contact discretization
 template <typename TDomain, typename TAlgebra>
-void ActiveSet<TDomain, TAlgebra>::contactForces(vector_type& contactforce,
-		const vector_type& u)
+void ActiveSet<TDomain, TAlgebra>::contactForces(function_type& contactforce,
+		function_type& rhs, const function_type& u)
 {
+	//	check that contact disc is set
+	if (m_spContactDisc.invalid())
+		UG_THROW("No contact discretization set in "
+					"ActiveSet:contactForces \n");
+
 	if(m_vActiveSet.size() != 0.0)
 	{
-		//	check that contact disc is set
-		if (m_spContactDisc.invalid())
-			UG_THROW("No contact discretization set in "
-						"ActiveSet:contactForces \n");
-
 		//	TODO: restrict contactforce-gridfunction.size() to possible contact subset
 		if (u.size() != contactforce.size())
 			UG_THROW("Temporarily u and contactForce need to be "
 					"of same size in ActiveSet:contactForces \n");
 
 		m_spContactDisc->contactForces(contactforce, u, m_vActiveSet);
+
+		for (vector<MultiIndex<2> >::iterator it = m_vActiveSet.begin();
+						it < m_vActiveSet.end(); ++it)
+		{
+			//	update rhs with contact forces for active multiIndices
+
+			//	get active (DoF,fct)-pairs out of m_vActiveSet
+			MultiIndex<2> activeMultiIndex = *it;
+
+			size_t dof = activeMultiIndex[0];
+			size_t fct = activeMultiIndex[1];
+
+			//	rhs = rhs + contactForce;
+			BlockRef(rhs[dof],fct) = BlockRef(rhs[dof],fct) + BlockRef(contactforce[dof],fct);
+		}
 	}
 }
 

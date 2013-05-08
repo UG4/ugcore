@@ -9,6 +9,7 @@
 #define ACTIVE_SET_H_
 
 #include "lib_disc/spatial_disc/elem_disc/contact_boundary/contact_interface.h"
+#include "lib_disc/function_spaces/grid_function.h"
 
 using namespace std;
 
@@ -30,6 +31,9 @@ class ActiveSet
 	///	Type of algebra value
 		typedef typename vector_type::value_type value_type;
 
+	///	Type of grid function
+		typedef GridFunction<TDomain, TAlgebra> function_type;
+
 	public:
 	///	constructor
 		ActiveSet() : m_bCons(false), m_spContactDisc(NULL) {
@@ -42,8 +46,8 @@ class ActiveSet
 		void set_constraint(vector_type& cons) {m_ConsVec = cons; m_bCons = true;}
 
 	///	sets an contact discretization in order to use contact-disc dependent funcs
-		void set_contactDisc(SmartPtr<IContactDisc<TDomain, vector_type> > contact)
-		{m_spContactDisc == contact;};
+		void set_contactDisc(SmartPtr<IContactDisc<TDomain, function_type> > contact)
+		{m_spContactDisc = contact;};
 
 		void prepare(vector_type& u);
 
@@ -54,7 +58,8 @@ class ActiveSet
 		bool active_index(vector_type& u, vector_type& contactForce);
 
 	///	computes the contact forces for a given contact disc
-		void contactForces(vector_type& contactForce, const vector_type& u);
+		void contactForces(function_type& contactForce, function_type& rhs,
+				const function_type& u);
 
 	///	computes the contact forces via the residuum
 		void contactForcesRes(vector_type& contactForce, const matrix_type& mat,
@@ -83,7 +88,7 @@ class ActiveSet
 		bool m_bCons;
 
 		///	pointer to an contact-Disc
-		SmartPtr<IContactDisc<TDomain, vector_type> > m_spContactDisc;
+		SmartPtr<IContactDisc<TDomain, function_type> > m_spContactDisc;
 
 		///	vector of the current active set of MultiIndices (DoF,Fct)
 		vector<MultiIndex<2> > m_vActiveSet;
