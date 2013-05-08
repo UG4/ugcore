@@ -12,7 +12,7 @@
 #include "bindings/lua/info_commands.h"
 #include "common/util/parameter_parsing.h"
 #include "common/util/file_util.h"
-
+#include "common/profiler/memtracker.h"
 #include "common/util/os_info.h"
 #include "common/util/path_provider.h"
 #ifdef UG_PLUGINS
@@ -27,7 +27,7 @@
 #include "pcl/pcl.h"
 #endif
 
-
+void get_undeleted();
 #include "compile_info/compile_info.h"
 
 
@@ -41,6 +41,7 @@ using namespace script;
  * \brief the shell for ug4
  * \{
  */
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // interactive shells
@@ -541,6 +542,7 @@ int main(int argc, char* argv[])
 	#endif
 	
 	
+		EnableMemTracker(true);
 	//	if a script has been specified, then execute it now
 	//	if a script is executed, we won't execute the interactive shell.
 		if(scriptName)
@@ -577,6 +579,8 @@ int main(int argc, char* argv[])
 			else
 				runInteractiveShell = false;
 		}
+		EnableMemTracker(false);
+		//DisplayVacantMemory();
 
 		//	interactive shell may only be executed in serial environment
 		#ifdef UG_PARALLEL

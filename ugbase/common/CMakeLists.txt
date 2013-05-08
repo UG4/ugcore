@@ -33,6 +33,12 @@ set(srcCommon	log.cpp
 				math/misc/lineintersect_utils.cpp
 				math/misc/eigenvalues.cpp
 				math/misc/math_util.cpp)
+				
+if(INTERNAL_MEMTRACKER)
+    set(srcCommon ${srcCommon} profiler/memtracker.cpp)
+else(INTERNAL_MEMTRACKER)
+    set(srcCommon ${srcCommon} profiler/memtracker_disabled.cpp)
+endif(INTERNAL_MEMTRACKER)
 
 set(sources ${srcCommon})
 

@@ -23,7 +23,7 @@ template <typename T>
 class FreeDelete
 {
 	public:
-		static void free(const T* data)	{delete data;}
+		static void free(const T* data)	{if(data) delete data;}
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ template <typename T>
 class FreeArrayDelete
 {
 	public:
-		static void free(const T* data)	{delete[] data;}
+		static void free(const T* data)	{if(data) delete[] data;}
 };
 
 ////////////////////////////////////////////////////////////////////////

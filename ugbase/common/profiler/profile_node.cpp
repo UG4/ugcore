@@ -22,6 +22,7 @@
 #include "compile_info/compile_info.h"
 #include "pcl/pcl_base.h"
 
+#include "memtracker.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -29,9 +30,16 @@
 
 using namespace std;
 
-
 namespace ug
 {
+
+void ProfilerUpdate()
+{
+	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
+	UpdateTotalMem();
+}
+
+
 
 #if SHINY_PROFILER
 
@@ -86,6 +94,32 @@ double UGProfileNode::get_avg_total_time() const
 	return data.totalTicksAvg() * SHINY_DAMPING_FACTOR;
 }
 
+double UGProfileNode::get_self_mem() const
+{
+	if(!valid()) return 0.0;
+	return GetSelfMem(this);
+}
+
+
+double UGProfileNode::get_total_mem() const
+{
+	if(!valid()) return 0.0;
+	return GetTotalMem(this);
+}
+
+string UGProfileNode::get_mem_info(double fullMem) const
+{
+	if(HasMemTracking())
+	{
+		stringstream s;
+		s << GetBytesSize(get_self_mem(), 10) << setw(5) << floor(get_self_mem() / fullMem * 100) << "%  ";
+		s << GetBytesSize(get_total_mem(), 10) << setw(5) << floor(get_total_mem() / fullMem * 100) << "%  ";
+		return s.str();
+	}
+	else
+		return "";
+}
+
 string UGProfileNode::call_tree(double dSkipMarginal) const
 {
 	if(!valid()) return "Profile Node not valid!";
@@ -93,7 +127,7 @@ string UGProfileNode::call_tree(double dSkipMarginal) const
 	stringstream s;
 	UGProfileNode::log_header(s, "call tree");
 
-	rec_print(get_avg_total_time(), s, 0, dSkipMarginal);
+	rec_print(get_avg_total_time(), get_total_mem(), s, 0, dSkipMarginal);
 
 	return s.str();
 }
@@ -199,8 +233,7 @@ void UGProfileNode::write_node(ostream &s) const
 	s << "</node>\n";
 }
 
-
-string UGProfileNode::print_node(double full, size_t offset) const
+string UGProfileNode::print_node(double full, double fullMem, size_t offset) const
 {
 	if(!valid()) return "";
 	double totalTicksAvg = get_avg_total_time();
@@ -242,7 +275,7 @@ string UGProfileNode::print_node(double full, size_t offset) const
 			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " <<
 			left << setw(2) << totalUnit->suffix << " " <<
 			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "%  "
-			<< zone->groups;
+			<< get_mem_info(fullMem) << zone->groups;
 	return s.str();
 }
 
@@ -261,15 +294,15 @@ const UGProfileNode *UGProfileNode::get_next_sibling() const
 	return reinterpret_cast<const UGProfileNode*>(nextSibling);
 }
 
-void UGProfileNode::rec_print(double full, stringstream &s, size_t offset, double dSkipMarginal) const
+void UGProfileNode::rec_print(double full, double fullMem, stringstream &s, size_t offset, double dSkipMarginal) const
 {
 	if(!valid()) return;
 	if(dSkipMarginal==0.0 || full*dSkipMarginal < get_avg_total_time())
 	{
-		s << print_node(full, offset) << "\n";
+		s << print_node(full, fullMem, offset) << "\n";
 		for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 		{
-			p->rec_print(full, s, offset+1, dSkipMarginal);
+			p->rec_print(full, fullMem, s, offset+1, dSkipMarginal);
 			if(p==get_last_child())
 				break;
 		}
@@ -359,10 +392,11 @@ string UGProfileNode::child_sorted(const char *name, bool sortFunction(const UGP
 
 	UGProfileNode::log_header(s, name);
 	double full = get_avg_total_time();
+	double fullMem = get_total_mem();
 	for(size_t i=0; i<nodes.size(); i++)
 	{
 		if(dSkipMarginal==0.0 || full*dSkipMarginal < nodes[i]->get_avg_total_time())
-			s << nodes[i]->print_node(full) << "\n";
+			s << nodes[i]->print_node(full, fullMem) << "\n";
 	}
 	return s.str();
 }
@@ -373,7 +407,14 @@ void UGProfileNode::log_header(stringstream &s, const char *name)
 	s << 	left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << name << " " <<
 			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << "hits" << " " <<
 			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4+PROFILER_BRIDGE_OUTPUT_WIDTH_PERC+1 -4) << "self time" << " " <<
-			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4+PROFILER_BRIDGE_OUTPUT_WIDTH_PERC+1) << "total time"  << " \n";
+			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4+PROFILER_BRIDGE_OUTPUT_WIDTH_PERC+1) << "total time";
+	if(HasMemTracking())
+	{
+		s << "  " << setw(10+5+3) << "self mem" << "   " <<
+				setw(10) << "total mem";
+	}
+
+	s << "\n";
 }
 
 bool UGProfileNode::self_time_sort(const UGProfileNode *a, const UGProfileNode *b)
@@ -412,7 +453,7 @@ void WriteCompressedProfileData(const char *filename)
 void WriteProfileData(const char *filename)
 {
 	
-	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
+	ProfilerUpdate();
 	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
 	const UGProfileNode *pnRoot = reinterpret_cast<const UGProfileNode*> (node);
 #ifdef UG_PARALLEL
@@ -480,7 +521,7 @@ void WriteProfileData(const char *filename)
 
 const UGProfileNode *GetProfileNode(const char *name)
 {
-	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
+	ProfilerUpdate();
 	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
 	if(name == NULL)
 		return reinterpret_cast<const UGProfileNode*> (node);
@@ -581,6 +622,16 @@ double UGProfileNode::get_avg_self_time_ms() const
 
 /// \return time in milliseconds spend in this node including subnodes
 double UGProfileNode::get_avg_total_time_ms() const
+{
+	return 0.0;
+}
+
+double UGProfileNode::get_total_mem() const
+{
+	return 0.0;
+}
+
+double UGProfileNode::get_self_mem() const
 {
 	return 0.0;
 }

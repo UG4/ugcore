@@ -44,6 +44,9 @@ public:
 	/// \return time in seconds spend in this node including subnodes
 	double get_avg_total_time() const;
 
+	double get_self_mem() const;
+	double get_total_mem() const;
+
 	std::string call_tree(double dSkipMarginal) const;
 
 	std::string call_tree() const;
@@ -69,13 +72,15 @@ public:
 public:
 	void add_nodes(std::vector<const UGProfileNode*> &nodes) const;
 	void write_node(std::ostream &s) const;
-private:
-	std::string print_node(double full, size_t offset=0) const;
 	const UGProfileNode *get_first_child() const;
 	const UGProfileNode *get_last_child() const;
 	const UGProfileNode *get_next_sibling() const;
+private:
+	std::string print_node(double full, double fullMem, size_t offset=0) const;
+	std::string get_mem_info(double fullMem) const;
 
-	void rec_print(double full, std::stringstream &s, size_t offset, double dSkipMarginal) const;
+
+	void rec_print(double full, double fullMem, std::stringstream &s, size_t offset, double dSkipMarginal) const;
 	std::string child_sorted(const char *name, bool sortFunction(const UGProfileNode *a, const UGProfileNode *b),
 			double dSkipMarginal) const;
 	static void log_header(std::stringstream &s, const char *name);
