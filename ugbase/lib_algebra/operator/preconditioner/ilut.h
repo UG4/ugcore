@@ -13,7 +13,7 @@
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
-#include "progress.h"
+#include "common/progress.h"
 #include "common/util/ostream_util.h"
 namespace ug{
 
@@ -102,18 +102,13 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 			size_t totalentries=0;
 			size_t maxentries=0;
-			bool bUseProgress = A->num_rows() > 20000;
-			progress p;
-			if(bUseProgress)
-			{
-				UG_LOG("Using ILUT(" << m_eps << ") on " << A->num_rows() << " x " << A->num_rows() << " matrix...");
-				p.start(A->num_rows());
-			}
 
+			PROGRESS_START(prog, A->num_rows(),
+					"Using ILUT(" << m_eps << ") on " << A->num_rows() << " x " << A->num_rows() << " matrix...");
 
 			for(size_t i=1; i<A->num_rows(); i++)
 			{
-				if(bUseProgress) p.set(i);
+				PROGRESS_UPDATE(prog, i);
 				con.resize(0);
 				size_t u_part=0;
 
@@ -201,11 +196,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				m_U.set_matrix_row(i, &con[u_part], con.size()-u_part);
 
 			}
-			if(bUseProgress)
-			{
-				p.stop();
-				UG_LOG(reset_floats << "Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)");
-			}
+			PROGRESS_FINISH(prog);
+
 
 			m_L.defragment();
 			m_U.defragment();
@@ -215,6 +207,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				UG_LOG("	A nr of connections: " << A->total_num_connections()  << "\n");
 				UG_LOG("	L+U nr of connections: " << m_L.total_num_connections()+m_U.total_num_connections() << "\n");
 				UG_LOG("	Increase factor: " << (float)(m_L.total_num_connections() + m_U.total_num_connections() )/A->total_num_connections() << "\n");
+				UG_LOG(reset_floats << "Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)\n");
 			}
 
 			return true;
