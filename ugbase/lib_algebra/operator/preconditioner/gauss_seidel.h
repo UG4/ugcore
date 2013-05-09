@@ -83,8 +83,8 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
-				matrix_type &A = m_A;
 			}
+			matrix_type &A = m_A;
 #else
 			matrix_type &A = *pOp;
 #endif
@@ -194,8 +194,8 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
-				matrix_type &A = m_A;
 			}
+			matrix_type &A = m_A;
 #else
 			matrix_type &A = *pOp;
 #endif
@@ -305,8 +305,8 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 				std::vector<IndexLayout::Element> vIndex;
 				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
 				SetDirichletRow(m_A, vIndex);
-				matrix_type &A = m_A;
 			}
+			matrix_type &A = m_A;
 #else
 			matrix_type &A = *pOp;
 #endif
