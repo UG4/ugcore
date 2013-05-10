@@ -518,8 +518,8 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 				  m_levInfo);
 		}
 
-	//	set the index of the object and of all its parent copies to NOT_YET_ASSIGNED
-	//	this is important to correctly erase ghost copies when the redistribution is done
+	//	copy the index from the newly created object to its parent and great parents.
+	//	this is important to correctly erase ghost copies when redistribution is done
 		TBaseElem* telem = parent;
 		while(telem){
 			copy(telem, obj);
