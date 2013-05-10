@@ -240,6 +240,7 @@ Therefore two actions need to be taken in \em Eclipse:
 <hr>
 \section secInstallEclipseAdditional Additional Tipps & Tricks
 
+ - Speeding up the indexer: Eclipse -> Properties. Subfolder C/C++ -> Indexer : Disable Index unused headers, Enable Index source and header files opened in editor.
  - Line Numbers: Eclipse -> Properties. Subfolder General -> Editors -> Text Editors. Enable "Show line numbers".
  - Show Changes in File: Eclipse -> Properties. Subfolder General -> Editors -> Text Editors -> <a href="http://help.eclipse.org/juno/index.jsp?topic=%2Forg.eclipse.platform.doc.user%2Ftasks%2Ftasks-cvs-quickdiff.htm">Quick Diff</a>. Enable "Show differences in overview ruler" and set "SVN Working Copy Base" as reference source.
  - Switching Tabs: On Mac: Cmd+F6. On Windows: Ctrl+F6. Ctrl+PageUp / Ctrl+PageDown: Cycle through tabs without showing a list.
@@ -278,9 +279,10 @@ you have to use \em File -> \em Import -> <em> Existing Projects into Workspace 
 
 - Eclipse hangs up at "Loading workbench": Try to reset your workspace (see below)
 - C++-Autocompletion not working/hanging up: Try to reset your workspace (see below)
-- Reset your workspace: Quit Eclipse. Go to your workspace directory and delete (or rename)
-the directory <tt>.metadata</tt>. That's where eclipse stores all the workspace data (like which projects you have in eclipse, and also
-C++-Indexer files). 
+- Reset your workspace: Quit Eclipse. Go to your workspace directory, and there to <tt>.metadata/.plugins</tt>. (That's where eclipse stores all the workspace data, like which projects you have in eclipse, and also
+C++-Indexer files).  Delete all directories there except for <tt>org.eclipse.core.resources</tt>, <tt>org.eclipse.core.runtime</tt> and <tt>org.eclipse.cdt.core</tt>.
+Index files are stored in <tt>org.eclipse.cdt.core</tt>, you can delete that too if it is still not working. There's also a script for that in
+<tt>ug4/scripts/shell/ugrestoreworkspace</tt> (execute in your workspace dir). 
 - SVN Information not showing for a project: Try to delete the project from the workspace, then add it again (import -> existing workspace).
 - A project is damaged in eclipse and you want to set it up from scratch: Delete it from the workspace. Quit Eclipse. Go to the projects directory and delete the files <tt>.project</tt>, <tt>.cproject</tt> and <tt>.settings</tt>. 
  

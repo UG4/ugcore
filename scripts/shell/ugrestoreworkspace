@@ -1,0 +1,33 @@
+#!/bin/bash
+######################################################################
+# ugrestoreworkspace
+#-------------------------------------------------------------------
+# created by Martin Rupp 10.05.2013
+# mail: martin.rupp@gcsc.uni-frankfurt.de
+#
+# Sometimes Eclipse corrupts the eclipse workspace. this is a script
+# to reset the workspace (delete index files and so on) but keep
+# the project and general settings.
+######################################################################
+
+
+if [ -d .metadata/.plugins ]; then
+dir=`mktemp -d .metadata/.plugins.XXXXXXXXXX`
+echo "Backup .metadata/.plugins to $dir..."
+mv .metadata/.plugins/* $dir
+echo "copying $dir/org.eclipse.core.* and $dir/org.eclipse.cdt.core back to .metadata/.plugins"
+cp -r $dir/org.eclipse.core.* $dir/org.eclipse.cdt.core .metadata/.plugins
+echo "done, workspace restored."
+echo "you might also consider to rm -rf .metadata/.plugins/org.eclipse.cdt.core if your index is corrupted."
+else
+echo "current directory does NOT contain .metadata/.plugins, so it doesn't seem to be a eclipse workspace."
+
+if [ -d $UG4_ROOT/../.metadata/.plugins ]; then
+echo "however, found eclipse workspace in $UG4_ROOT/.. . go there."
+fi
+
+if [ -d $UG4_ROOT/../../.metadata/.plugins ]; then
+echo "however, found eclipse workspace in $UG4_ROOT/../.. . go there."
+fi
+
+fi
