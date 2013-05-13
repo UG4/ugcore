@@ -793,6 +793,7 @@ string UGProfileNode::entry_count_sorted(double dSkipMarginal) const
 	return "Profiler not available!";
 }
 
+/*
 string UGProfileNode::child_self_time_sorted(double dSkipMarginal) const
 {
 	return "Profiler not available!";
@@ -803,15 +804,11 @@ string UGProfileNode::child_self_time_sorted() const
 	return child_self_time_sorted(0.0);
 }
 
-string UGProfileNode::total_time_sorted(double dSkipMarginal) const
-{
-	return "Profiler not available!";
-}
-
 string UGProfileNode::total_time_sorted() const
 {
 	return total_time_sorted(0.0);
 }
+*/
 
 /// \return true if node has been found
 bool UGProfileNode::valid() const
