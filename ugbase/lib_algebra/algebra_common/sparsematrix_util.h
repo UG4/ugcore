@@ -11,8 +11,9 @@
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX_UTIL__
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX_UTIL__
 
-#include "../small_algebra/small_algebra.h"
 #include "common/profiler/profiler.h"
+#include "unsorted_sparse_vector.h"
+#include "../small_algebra/small_algebra.h"
 
 namespace ug
 {
@@ -55,14 +56,15 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	M.resize_and_clear(A.num_rows(), C.num_cols());
 
 
-	std::vector<int> posInConnections(C.num_cols(), -1);
-
-	// types
-	std::vector<typename ABC_type::connection > con; con.reserve(16);
-	std::vector<typename ABC_type::connection > con2; con2.reserve(16);
 
 	typedef typename A_type::value_type avalue;
 	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
+
+	typedef UnsortedSparseVector<typename ABC_type::value_type> RowType;
+	typedef typename RowType::iterator RowIterator;
+	RowType row(C.num_cols());;
+
+	std::vector<typename ABC_type::connection> con2;
 	//typename C_type::value_type cvalue;
 
 	typename ABC_type::connection c;
@@ -75,7 +77,7 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	// M_{ij} = \sum_kl A_{ik} * B_{kl} * C_{lj}
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
-		con.clear();
+		row.clear();
 		for(cAiterator itAik = A.begin_row(i); itAik != A.end_row(i); ++itAik)
 		{
 			if(itAik.value() == 0.0) continue;
@@ -91,49 +93,28 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 				for(cCiterator itClj = C.begin_row(l); itClj != C.end_row(l); ++itClj)
 				{
 					if(itClj.value() == 0.0) continue;
-					size_t j = itClj.index();
-
-					if(posInConnections[j] == -1)
-					{
-						// we havent visited node <indexTo>
-						// so we need to add a Connection to the row
-						// save the index of the connection in the row
-						posInConnections[j] = con.size();
-						c.iIndex = j;
-						AssignMult(c.dValue, ab, itClj.value());
-						con.push_back(c);
-					}
-					else
-					{
-						// we have visited this node before,
-						// so we know the index of the connection
-						// -> add a*b*c
-						AddMult(con[posInConnections[j]].dValue, ab, itClj.value());
-					}
-
+					AddMult( row (itClj.index() ), ab, itClj.value());
 				}
 			}
 		}
 
-		// reset posInConnections to -1
-		for(size_t j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;
 		if(epsilonTruncation != 0.0)
 		{
 			double m=0;
-			for(size_t j=0; j<con.size(); j++)
+			for(RowIterator it = row.begin(); it != row.end(); ++it)
 			{
-				double d = BlockNorm(con[j].dValue);
+				double d = BlockNorm(it->value());
 				if(d > m) m = d;
 			}
 			m *= epsilonTruncation;
 			con2.clear();
-			for(size_t j=0; j<con.size(); j++)
-				if( BlockNorm(con[j].dValue) > m )
-					con2.push_back(con[j]);
+			for(RowIterator it = row.begin(); it != row.end(); ++it)
+				if( BlockNorm(it->value()) > m )
+					con2.push_back(*it);
 			M.set_matrix_row(i, &con2[0], con2.size());
 		}
 		else
-			M.set_matrix_row(i, &con[0], con.size());
+			M.set_matrix_row(i, row.unsorted_raw_ptr(), row.num_connections());
 	}
 
 }
@@ -160,53 +141,32 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 	// create output matrix M
 	M.resize_and_clear(A.num_rows(), B.num_cols());
 
-	std::vector<int> posInConnections(B.num_cols(), -1);
-
 	// types
-	std::vector<typename AB_type::connection > con; con.reserve(255);
-	typename AB_type::connection c;
 	typedef typename A_type::const_row_iterator cAiterator;
 	typedef typename B_type::const_row_iterator cBiterator;
+	typedef UnsortedSparseVector<typename AB_type::value_type> RowType;
+	typedef typename RowType::iterator RowIterator;
+
+	RowType row(B.num_cols());
 
 	// M_{ij} = \sum_k A_{ik} * B_{kj}
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
-		con.clear();
+		row.clear();
 		for(cAiterator itAik = A.begin_row(i); itAik != itAik.end_row(i); ++itAik)
 		{
 			if(itAik.value() == 0.0) continue;
 			size_t k = itAik.index();
 
-
 			for(cBiterator itBkj = B.begin(k); itBkj != B.end_row(k); ++itBkj)
 			{
 				if(itBkj.value() == 0.0) continue;
 				size_t j = itBkj.index();
-
-				if(posInConnections[j] == -1)
-				{
-					// we havent visited node <indexTo>
-					// so we need to add a Connection to the row
-					// save the index of the connection in the row
-					posInConnections[j] = con.size();
-					c.iIndex = j;
-					AssignMult(c.dValue, itAik.value(), itBkj.value());
-					con.push_back(c);
-				}
-				else
-				{
-					// we have visited this node before,
-					// so we know the index of the connection
-					// -> add a*b*c
-					AddMult(con[posInConnections[j]].dValue, itAik.value(), itBkj.value());
-				}
+				AddMult( row(j), itAik.value(), itBkj.value());
 			}
 		}
 
-		// reset posInConnections to -1
-		for(size_t l=0; l<con.size(); l++) posInConnections[con[l].iIndex] = -1;
-		// set Matrix_type Row in AH
-		M.set_matrix_row(i, &con[0], con.size());
+		M.set_matrix_row(i, row.unsorted_raw_ptr(), row.num_connection());
 	}
 
 }

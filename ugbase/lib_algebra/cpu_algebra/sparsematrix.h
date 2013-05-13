@@ -14,11 +14,13 @@
 #include "math.h"
 #include "common/common.h"
 #include "../algebra_common/sparsematrix_util.h"
-#include "../common/operations_mat/operations_mat.h"
 #include <iostream>
 #include <algorithm>
 #include "common/util/ostream_util.h"
 
+#include "../algebra_common/connection.h"
+#include "../algebra_common/matrixrow.h"
+#include "../common/operations_mat/operations_mat.h"
 
 #define PROFILE_SPMATRIX(name) PROFILE_BEGIN_GROUP(name, "SparseMatrix algebra")
 
@@ -77,34 +79,9 @@ public:
 	typedef SparseMatrix<value_type> this_type;
 
 public:
-	struct connection
-	{
-		size_t iIndex;		// index to
-		value_type dValue; // smallmatrix value;
-		connection() {}
-		connection(size_t i, const value_type &v)
-		: iIndex(i), dValue(v) {}
-
-		void print(){std::cout << *this;}
-		friend std::ostream &operator<<(std::ostream &output, const connection &c)
-		{
-			output << "(" << c.iIndex << "-> ";
-			output << c.dValue;
-			output << ")";
-			return output;
-		}
-
-		void operator = (const connection &other)
-		{
-			iIndex = other.iIndex;
-			dValue = other.dValue;
-		}
-
-		int operator < (const connection &c) const
-		{
-			return iIndex < c.iIndex;
-		}
-	};
+	typedef AlgebraicConnection<TValueType> connection;
+	typedef MatrixRow<this_type> row_type;
+	typedef ConstMatrixRow<this_type> const_row_type;
 
 public:
 	// construction etc
@@ -346,50 +323,60 @@ public:
 	// a const_row_iterator has to suppport
 	// operator ++, operator +=, index() const, const value_type &value() const
 
+	inline void check_row(size_t row, int i) const
+	{
+		UG_ASSERT(i < rowEnd[row] && i >= rowStart[row], "row iterator row " << row << " pos " << i << " out of bounds [" << rowStart[row] << ", " << rowEnd[row] << "]");
+	}
+
 	/**
 	 *  row_iterator
 	 *  iterator over a row
 	 */
-
 	class row_iterator
     {
         SparseMatrix &A;
+        size_t row;
         size_t i;
     public:
-        inline void check() const { ; UG_ASSERT(i <= A.cols.size(), "?"); }
-        row_iterator(SparseMatrix &_A, size_t _i) : A(_A), i(_i) { A.add_iterator(); }
+        inline void check() const {A.check_row(row, i); }
+        row_iterator(SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) { A.add_iterator(); }
         ~row_iterator() { A.remove_iterator(); }
+        row_iterator *operator ->() { return this; }
         value_type &value() { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i]; }
-        bool operator != (const row_iterator &o) const { UG_ASSERT(i <= o.i, "?"); return i != o.i;  }
-        void operator ++ () { ++i; check(); }
-		void operator += (int nr) { i+=nr; check(); }
+        bool operator != (const row_iterator &o) const { return i != o.i;  }
+        void operator ++ () { ++i; }
+		void operator += (int nr) { i+=nr; }
 		bool operator == (const row_iterator &other) const { return other.i == i; check(); }
     };
     class const_row_iterator
     {
         const SparseMatrix &A;
+        size_t row;
         size_t i;
     public:
-        inline void check() const { ; UG_ASSERT(i <= A.cols.size(), "?"); }
-
-        const_row_iterator(const SparseMatrix &_A, size_t _i) : A(_A), i(_i) {A.add_iterator();}
+        inline void check() const {A.check_row(row, i); }
+        const_row_iterator(const SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) {A.add_iterator();}
         ~const_row_iterator() { A.remove_iterator(); }
+        const_row_iterator *operator ->() { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
-        bool operator != (const const_row_iterator &o) const { UG_ASSERT(i <= o.i, "?"); return i != o.i; }
-        void operator ++ () { ++i; check(); }
-        void operator += (int nr) { i+=nr; check(); }
+        bool operator != (const const_row_iterator &o) const { return i != o.i; }
+        void operator ++ () { ++i; }
+        void operator += (int nr) { i+=nr; }
 		bool operator == (const const_row_iterator &other) const { return other.i == i; }
     };
 
 
 
 
-	row_iterator         begin_row(size_t r)         { return row_iterator(*this, rowStart[r]);  }
-    row_iterator         end_row(size_t r)           { return row_iterator(*this, rowEnd[r]);  }
-    const_row_iterator   begin_row(size_t r) const   { return const_row_iterator(*this, rowStart[r]);  }
-    const_row_iterator   end_row(size_t r)   const   { return const_row_iterator(*this, rowEnd[r]);  }
+	row_iterator         begin_row(size_t r)         { return row_iterator(*this, r, rowStart[r]);  }
+    row_iterator         end_row(size_t r)           { return row_iterator(*this, r, rowEnd[r]);  }
+    const_row_iterator   begin_row(size_t r) const   { return const_row_iterator(*this, r, rowStart[r]);  }
+    const_row_iterator   end_row(size_t r)   const   { return const_row_iterator(*this, r, rowEnd[r]);  }
+
+    row_type 		get_row(size_t r) 		{ return row_type(*this, r); }
+    const_row_type 	get_row(size_t r) const { return const_row_type(*this, r); }
 
 public:
 	// connectivity functions
@@ -417,7 +404,7 @@ public:
         {
         	int j=get_index_internal(r, c);
         	if(j > maxValues) return end_row(r);
-        	else return row_iterator(*this, j);
+        	else return row_iterator(*this, r, j);
         }
     }
 
@@ -433,7 +420,7 @@ public:
 		if(j != -1)
 		{
 			bFound = true;
-			return const_row_iterator(*this, j);
+			return const_row_iterator(*this, r, j);
 		}
 		else
 		{
@@ -453,7 +440,7 @@ public:
 		if(j != -1)
 		{
 			bFound = true;
-			return row_iterator(*this, j);
+			return row_iterator(*this, r, j);
 		}
 		else
 		{
@@ -483,7 +470,7 @@ public:
 		check_rc(r, c);
 		assert(bNeedsValues);
         int j=get_index(r, c);
-		return row_iterator(*this, j);
+		return row_iterator(*this, r, j);
 	}
 
 

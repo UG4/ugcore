@@ -26,22 +26,27 @@ namespace ug{
 template<typename T>
 SparseMatrix<T>::SparseMatrix()
 {
+	PROFILE_SPMATRIX(SparseMatrix_constructor);
 	bNeedsValues = true;
 	iIterators=0;
 	nnz = 0;
 	m_numCols = 0;
 	maxValues = 0;
+	cols.resize(32);
+	if(bNeedsValues) values.resize(32);
 }
 
 template<typename T>
 bool SparseMatrix<T>::resize_and_clear(size_t newRows, size_t newCols)
 {
+	PROFILE_SPMATRIX(SparseMatrix_resize_and_clear);
 	rowStart.clear(); rowStart.resize(newRows+1, -1);
 	rowMax.clear(); rowMax.resize(newRows);
 	rowEnd.clear(); rowEnd.resize(newRows, -1);
 	m_numCols = newCols;
 	nnz = 0;
 
+	cols.clear(); cols.resize(newRows);
 	values.clear();
 	if(bNeedsValues) values.resize(newRows);
 	maxValues = 0;
@@ -51,6 +56,7 @@ bool SparseMatrix<T>::resize_and_clear(size_t newRows, size_t newCols)
 template<typename T>
 bool SparseMatrix<T>::resize_and_keep_values(size_t newRows, size_t newCols)
 {
+	PROFILE_SPMATRIX(SparseMatrix_resize_and_keep_values);
 	//UG_LOG("SparseMatrix resize " << newRows << "x" << newCols << "\n");
 	if(newRows == 0 && newCols == 0)
 		return resize_and_clear(0,0);
@@ -71,8 +77,6 @@ bool SparseMatrix<T>::resize_and_keep_values(size_t newRows, size_t newCols)
 		copyToNewSize(get_nnz_max_cols(newCols), newCols);
 
 	m_numCols = newCols;
-
-	if(bNeedsValues) values.resize(newRows);
 	return true;
 }
 
@@ -352,7 +356,7 @@ void SparseMatrix<T>::get(M &mat) const
 template<typename T>
 int SparseMatrix<T>::get_index_internal(size_t row, int col) const
 {
-	//PROFILE_SPMATRIX(SP_get_index_internal);
+	PROFILE_SPMATRIX(SP_get_index_internal);
 	assert(rowStart[row] != -1);
 	int l = rowStart[row];
 	int r = rowEnd[row];
@@ -368,12 +372,16 @@ int SparseMatrix<T>::get_index_internal(size_t row, int col) const
 			return mid;
 	}
 	mid = (l+r)/2;
+	int ret;
 	if(mid < rowStart[row])
-		return rowStart[row];
-	if(mid == rowEnd[row] || col <= cols[mid])
-		return mid;
-	else return mid+1;
+		ret = rowStart[row];
+	else if(mid == rowEnd[row] || col <= cols[mid])
+		ret = mid;
+	else ret = mid+1;
+	UG_ASSERT(ret <= rowEnd[row] && ret >= rowStart[row], "row iterator row " <<  row << " pos " << ret << " out of bounds [" << rowStart[row] << ", " << rowEnd[row] << "]");
+	return ret;
 }
+
 
 
 template<typename T>
@@ -381,7 +389,7 @@ int SparseMatrix<T>::get_index_const(int r, int c) const
 {
 	if(rowStart[r] == -1 || rowStart[r] == rowEnd[r]) return -1;
 	int index=get_index_internal(r, c);
-	if(index < maxValues && cols[index] == c)
+	if(index >= rowStart[r] && index < rowEnd[r] && cols[index] == c)
 		return index;
 	else
 		return -1;
@@ -391,8 +399,11 @@ int SparseMatrix<T>::get_index_const(int r, int c) const
 template<typename T>
 int SparseMatrix<T>::get_index(int r, int c)
 {
+//	UG_LOG("get_index " << r << ", " << c << "\n");
+//	UG_LOG(rowStart[r] << " - " << rowMax[r] << " - " << rowEnd[r] << " - " << cols.size() << " - "  << maxValues << "\n");
 	if(rowStart[r] == -1 || rowStart[r] == rowEnd[r])
 	{
+//		UG_LOG("new row\n");
 		// row did not start, start new row at the end of cols array
 		assureValuesSize(maxValues+1);
 		rowStart[r] = maxValues;
@@ -413,9 +424,11 @@ int SparseMatrix<T>::get_index(int r, int c)
 	int index=get_index_internal(r, c);
 
 	if(index < rowEnd[r]
-			&& index < maxValues
 			&& cols[index] == c)
+	{
+//		UG_LOG("found\n");
 		return index; // we found it
+	}
 
 	// we did not find it, so we have to add it
 
@@ -428,6 +441,7 @@ int SparseMatrix<T>::get_index(int r, int c)
 	if(rowEnd[r] == rowMax[r] && rowEnd[r] == maxValues
 			&& maxValues < (int)cols.size())
 	{
+//		UG_LOG("at end\n");
 		// this row is stored at the end, so we can easily make more room
 		rowMax[r]++;
 		maxValues++;
@@ -435,10 +449,12 @@ int SparseMatrix<T>::get_index(int r, int c)
 
 	if(rowEnd[r] == rowMax[r])
 	{
+//		UG_LOG("renew\n");
 		// row is full, we need to copy it to another place
 		int newSize = (rowEnd[r]-rowStart[r])*2;
 		if(maxValues+newSize > (int)cols.size())
 		{
+//			UG_LOG("ass\n");
 			assureValuesSize(maxValues+newSize);
 			index=get_index_internal(r, c);
 		}
@@ -461,6 +477,7 @@ int SparseMatrix<T>::get_index(int r, int c)
 	}
 	else
 	{
+//		UG_LOG("enlength\n");
 		// move part > index so we can insert the index
 		if(rowEnd[r] != 0)
 			for(int i=rowEnd[r]-1; i>=index; i--)
