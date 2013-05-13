@@ -13,6 +13,23 @@
 
 namespace ug{
 
+/**
+ * This is in most cases faster than the std::map-based SparseVector in sparse_vector.h
+ * because it uses and "posInConnection" array which reduces all operations to O(1),
+ * instead of O(log n) for std::map when number of non-zeroes in the vector.
+ * The additional array is as long as the (non-sparse) size of the vector, so this makes only sense if you
+ * REUSE the UnsortedSparseVector, like
+ * \code
+ * N = 10000; // N is the non-sparse total size of the vector
+ * UnsortedSparseVector<int> vec(N); // expensive.
+ * for(size_t i=0; i < N; i++)
+ * {
+ * 		vec.clear();
+ * 		for(size_t j=0; j<50; j++)
+ * 			vec(rand()%N)++;	// O(1)
+ * }
+ * \endcode
+ */
 template<typename TValue>
 class UnsortedSparseVector
 {
