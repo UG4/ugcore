@@ -295,7 +295,7 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
  */
 UG_API
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
-								std::vector<ug::vector3> vNormals,
+								std::vector<vector3> vNormals,
 								APosition aPos = aPosition,
 								ANormal* paNorm = NULL,
 								int applyToSubset = -2);
