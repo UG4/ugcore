@@ -106,7 +106,9 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			if(damping()->constant_damping())
 				damp = damping()->damping();
 
-			CheckVectorInvertible(diag);
+			if(CheckVectorInvertible(diag) == false)
+				return false;
+//			UG_ASSERT(CheckVectorInvertible(diag), "Jacobi: A has noninvertible diagonal");
 
 		// 	invert diagonal and multiply by damping
 			for(size_t i = 0; i < diag.size(); ++i)
