@@ -76,12 +76,12 @@ double UGProfileNode::get_avg_entry_count() const
 
 double UGProfileNode::get_avg_self_time_ms() const
 {
-	return get_avg_self_time() / 1000.0;
+	return get_avg_self_time() * Shiny::GetTickInvFreq() * 1000.0;
 }
 
 double UGProfileNode::get_avg_total_time_ms() const
 {
-	return get_avg_total_time() / 1000.0;
+	return get_avg_total_time() * Shiny::GetTickInvFreq() * 1000.0;
 }
 
 double UGProfileNode::get_avg_self_time() const
@@ -129,61 +129,54 @@ string UGProfileNode::call_tree(double dSkipMarginal) const
 	stringstream s;
 	UGProfileNode::log_header(s, "call tree");
 
-	rec_print(get_avg_total_time(), get_total_mem(), s, 0, dSkipMarginal);
+	rec_print(get_avg_total_time_ms(), get_total_mem(), s, 0, dSkipMarginal);
 
 	return s.str();
 }
 
-string UGProfileNode::call_tree() const
-{
-	return call_tree(0.0);
-}
-
 string UGProfileNode::child_self_time_sorted(double dSkipMarginal) const
 {
-	return child_sorted("self time sorted", UGProfileNode::self_time_sort, dSkipMarginal);
-}
-string UGProfileNode::child_self_time_sorted() const
-{
-	return child_self_time_sorted(0.0);
+	return print_child_sorted("self time sorted", UGProfileNode::self_time_sort, dSkipMarginal);
 }
 
 string UGProfileNode::total_time_sorted(double dSkipMarginal) const
 {
-	return child_sorted("total time sorted", UGProfileNode::total_time_sort, dSkipMarginal);
+	return print_child_sorted("total time sorted", UGProfileNode::total_time_sort, dSkipMarginal);
 }
-string UGProfileNode::total_time_sorted() const
+
+string UGProfileNode::child_self_memory_sorted(double dSkipMarginal) const
 {
-	return total_time_sorted(0.0);
+	return print_child_sorted("self memory sorted", UGProfileNode::self_memory_sort, dSkipMarginal);
+}
+
+string UGProfileNode::total_memory_sorted(double dSkipMarginal) const
+{
+	return print_child_sorted("total memory sorted", UGProfileNode::total_memory_sort, dSkipMarginal);
 }
 
 string UGProfileNode::entry_count_sorted(double dSkipMarginal) const
 {
-	return child_sorted("entry count sorted", UGProfileNode::entry_count_sort, dSkipMarginal);
+	return print_child_sorted("entry count sorted", UGProfileNode::entry_count_sort, dSkipMarginal);
 }
-string UGProfileNode::entry_count_sorted() const
-{
-	return entry_count_sorted(0.0);
-}
+
 
 bool UGProfileNode::valid() const
 {
 	return this != NULL;
 }
 
-// private functions
-
-string XMLStringEscape(string s)
+string SimplifyUG4Path(string s)
 {
-	s = ReplaceAll(s, "&", "&amp;");
-	s = ReplaceAll(s, "\"", "&quot;");
-	s = ReplaceAll(s, "\'", "&apos;");
-	s = ReplaceAll(s, "<", "&lt;");
-	s = ReplaceAll(s, ">", "&gt;");
-	return s;
+	const string &ug4root = PathProvider::get_path(ROOT_PATH);
+	if(StartsWith(s, ug4root))
+		return string("$") + s.substr(ug4root.length());
+	else
+		return s;
 }
 
-void UGProfileNode::write_node(ostream &s) const
+// private functions
+
+void UGProfileNode::PDXML_rec_write(ostream &s) const
 {
 	if(!valid()) return;
 	
@@ -212,22 +205,17 @@ void UGProfileNode::write_node(ostream &s) const
 	
 	if(zone->file != NULL)
 	{
-		s << "<file>";
-		const string &ug4root = PathProvider::get_path(ROOT_PATH);
-		if(StartsWith(zone->file, ug4root))
-			s << "$" << (zone->file+ug4root.length());
-		else
-			s << zone->file;
-		s << "</file>\n<line>" << zone->line << "</line>\n";
+		s << "<file>" << SimplifyUG4Path(zone->file) << "</file>\n";
+		s << "<line>" << zone->line << "</line>\n";
 	}
 	 
 	s << "<hits>" << floor(get_avg_entry_count()) << "</hits>\n"
-	  << "<self>" << get_avg_self_time() << "</self>\n"
-	  << "<total>" << get_avg_total_time() << "</total>\n";
+	  << "<self>" << get_avg_self_time_ms() * 1000.0 << "</self>\n"
+	  << "<total>" << get_avg_total_time_ms() * 1000.0 << "</total>\n";
 			
 	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 	{
-		p->write_node(s);
+		p->PDXML_rec_write(s);
 		if(p==get_last_child())
 			break;
 	}
@@ -235,17 +223,22 @@ void UGProfileNode::write_node(ostream &s) const
 	s << "</node>\n";
 }
 
-string UGProfileNode::print_node(double full, double fullMem, size_t offset) const
+
+string UGProfileNode::print_node(double fullMs, double fullMem, size_t offset) const
 {
 	if(!valid()) return "";
-	double totalTicksAvg = get_avg_total_time();
 	const Shiny::TimeUnit *selfUnit = Shiny::GetTimeUnit(get_avg_self_time());
-	const Shiny::TimeUnit *totalUnit = Shiny::GetTimeUnit(totalTicksAvg);
+	const Shiny::TimeUnit *totalUnit = Shiny::GetTimeUnit(get_avg_total_time());
 	stringstream s;
 	if(offset)	s << setw(offset) << " ";
 
+	// name
 	if(zone->name[0] == '@')
 	{
+		// zone name is a filename
+		// this can happen when we are using LUA script profiling.
+
+		// check if filename is too long
 		if(strlen(zone->name) > (PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) )
 			s << "@... " << zone->name+strlen(zone->name)-(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset-5);
 		else
@@ -255,6 +248,9 @@ string UGProfileNode::print_node(double full, double fullMem, size_t offset) con
 		const char *p = strchr(name, ':'); // search for line number
 		if(!(p == NULL || p[0] == 0x00 || p[1] == 0x00))
 		{
+			// if we find the corresponding code in the LUA file, print the code as "name"
+			// and the filename above
+
 			int line = strtol(p+1, NULL, 10);
 			char file[255];
 			strncpy(file, name, p-name);
@@ -263,20 +259,26 @@ string UGProfileNode::print_node(double full, double fullMem, size_t offset) con
 			for(size_t i=0; i<str.size(); i++) if(str[i] == '\t') str[i] = ' ';
 			s << "\n";
 			if(offset)	s << setw(offset) << " ";
-			s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(str.c_str(), PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
+			s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) <<
+					cut(str.c_str(), PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
 		}
 	}
 	else
 		s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
 
+	// entry count
 	s <<	right << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
-			setprecision(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME-1) <<
-			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << get_avg_self_time() * selfUnit->invTickFreq << " " <<
+			setprecision(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME-1);
+
+	// self time
+	s << 	setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << get_avg_self_time() * selfUnit->invTickFreq << " " <<
 			left << setw(2) << selfUnit->suffix << " " <<
-			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(get_avg_self_time() / full * 100) << "%  " <<
-			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " <<
+			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(get_avg_self_time_ms() / fullMs * 100) << "%  ";
+
+	// total time
+	s << 	setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << get_avg_total_time() * totalUnit->invTickFreq << " " <<
 			left << setw(2) << totalUnit->suffix << " " <<
-			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "%  ";
+			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(get_avg_total_time_ms() / fullMs * 100) << "%  ";
 	if(fullMem >= 0.0)
 		s << get_mem_info(fullMem) << zone->groups;
 	return s.str();
@@ -302,17 +304,17 @@ const UGProfileNode *UGProfileNode::find_next_in_tree() const
 	return reinterpret_cast<const UGProfileNode*>(findNextInTree());
 }
 
-void UGProfileNode::rec_print(double full, double fullMem, stringstream &s, size_t offset, double dSkipMarginal) const
+void UGProfileNode::rec_print(double fullMs, double fullMem, stringstream &s, size_t offset, double dSkipMarginal) const
 {
 	if(!valid()) return;
 	if(dSkipMarginal==0.0 ||
-			(full*dSkipMarginal < get_avg_total_time() || (HasMemTracking() && fullMem*dSkipMarginal< get_total_mem() ) )
+			(fullMs*dSkipMarginal < get_avg_total_time_ms() || (HasMemTracking() && fullMem*dSkipMarginal< get_total_mem() ) )
 			)
 	{
-		s << print_node(full, fullMem, offset) << "\n";
+		s << print_node(fullMs, fullMem, offset) << "\n";
 		for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 		{
-			p->rec_print(full, fullMem, s, offset+1, dSkipMarginal);
+			p->rec_print(fullMs, fullMem, s, offset+1, dSkipMarginal);
 			if(p==get_last_child())
 				break;
 		}
@@ -322,7 +324,7 @@ void UGProfileNode::rec_print(double full, double fullMem, stringstream &s, size
 string UGProfileNode::groups() const
 {
 	vector<const UGProfileNode*> nodes;
-	add_nodes(nodes);
+	rec_add_nodes(nodes);
 
 	map<string, double> mapGroups;
 	for(size_t i=0; i<nodes.size(); i++)
@@ -380,33 +382,33 @@ string UGProfileNode::groups() const
 }
 
 
-void UGProfileNode::add_nodes(vector<const UGProfileNode*> &nodes) const
+void UGProfileNode::rec_add_nodes(vector<const UGProfileNode*> &nodes) const
 {
 	nodes.push_back(this);
 	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 	{
-		p->add_nodes(nodes);
+		p->rec_add_nodes(nodes);
 		if(p==get_last_child())
 			break;
 	}
 }
 
-string UGProfileNode::child_sorted(const char *name, bool sortFunction(const UGProfileNode *a, const UGProfileNode *b),
+string UGProfileNode::print_child_sorted(const char *name, bool sortFunction(const UGProfileNode *a, const UGProfileNode *b),
 		double dSkipMarginal) const
 {
 	if(!valid()) return "";
 	stringstream s;
 	vector<const UGProfileNode*> nodes;
-	add_nodes(nodes);
+	rec_add_nodes(nodes);
 	sort(nodes.begin(), nodes.end(), sortFunction);
 
 	UGProfileNode::log_header(s, name);
-	double full = get_avg_total_time();
+	double fullMs = get_avg_total_time_ms();
 	double fullMem = get_total_mem();
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		if(dSkipMarginal==0.0 || full*dSkipMarginal < nodes[i]->get_avg_total_time())
-			s << nodes[i]->print_node(full, fullMem) << "\n";
+		if(dSkipMarginal==0.0 || fullMs*dSkipMarginal < nodes[i]->get_avg_total_time_ms())
+			s << nodes[i]->print_node(fullMs, fullMem) << "\n";
 	}
 	return s.str();
 }
@@ -437,6 +439,17 @@ bool UGProfileNode::total_time_sort(const UGProfileNode *a, const UGProfileNode 
 	return a->get_avg_total_time() < b->get_avg_total_time();
 }
 
+bool UGProfileNode::self_memory_sort(const UGProfileNode *a, const UGProfileNode *b)
+{
+	return a->get_self_mem() < b->get_self_mem();
+}
+
+bool UGProfileNode::total_memory_sort(const UGProfileNode *a, const UGProfileNode *b)
+{
+	return a->get_total_mem() < b->get_total_mem();
+}
+
+
 bool UGProfileNode::entry_count_sort(const UGProfileNode *a, const UGProfileNode *b)
 {
 	return a->get_avg_entry_count() < b->get_avg_entry_count();
@@ -460,44 +473,101 @@ void WriteCompressedProfileData(const char *filename)
 }
 */
 
-void CheckForTooSmallNodes(const UGProfileNode *node, double full, stringstream &s)
+#ifndef NDEBUG
+#define PROFILE_NODE_MIN_HITS 500
+#define PROFILE_NODE_MIN_TOTAL_TIME_MS 10
+#define PROFILE_NODE_MAX_TIME_PER_CALL_MS 0.01
+#else
+#define PROFILE_NODE_MIN_HITS 1000
+#define PROFILE_NODE_MIN_TOTAL_TIME_MS 100
+#define PROFILE_NODE_MAX_TIME_PER_CALL_MS 0.01
+#endif
+
+void UGProfileNode::check_for_too_small_nodes(double fullMs, std::map<string, const UGProfileNode *> &list) const
 {
-	if(node->get_avg_total_time_ms() < 0.001*full) return;
-	for(const UGProfileNode *p=node->get_first_child(); p != NULL; p=p->get_next_sibling())
+	// also don't check nodes which require less time than 0.01% of the whole problem
+	if(get_avg_total_time_ms() < 0.01*0.01*fullMs) return;
+	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 	{
 		double t_ms = p->get_avg_total_time_ms();
 		size_t entry = p->get_avg_entry_count();
-		// display entries which take less than 1 microsecond
-		if(entry > 1000 && t_ms/entry < 0.001)
+
+		if(t_ms > PROFILE_NODE_MIN_TOTAL_TIME_MS)
 		{
-			if(p->zone->file != NULL)
-				s << p->zone->file << ":" << p->zone->line << " : \n";
-			s << p->print_node(full, -1.0, 0);
-			s << "\n";
+			if(entry > PROFILE_NODE_MIN_HITS && t_ms/entry < PROFILE_NODE_MAX_TIME_PER_CALL_MS)
+			{
+				string desc = p->zone->name;
+				if(p->zone->file != NULL)
+					desc.append(string(p->zone->file) + string(":") + ToString(p->zone->line));
+				const UGProfileNode *p2 = list[desc];
+
+				if(p2 == NULL)
+					list[desc] = p;
+				else
+				{
+					double t_ms2 = p->get_avg_total_time_ms();
+					size_t entry2 = p->get_avg_entry_count();
+					if(entry2/t_ms2 < entry/t_ms)
+						list[desc] = p;
+				}
+			}
+
+			p->check_for_too_small_nodes(fullMs, list);
 		}
-		CheckForTooSmallNodes(p, full, s);
-		if(p==node->get_last_child())
+		if(p==get_last_child())
 			break;
 	}
 
 }
 
-void CheckForTooSmallNodes()
+void UGProfileNode::CheckForTooSmallNodes()
 {
 	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
-	stringstream s;
-	double fullMs = pnRoot->get_avg_total_time();
-	if(fullMs > 1000)
+
+	double fullMs = pnRoot->get_avg_total_time_ms();
+
+	if(fullMs > 1)
 	{
-		CheckForTooSmallNodes(pnRoot, fullMs, s);
-		string str = s.str();
-		if(str.length() > 0)
+		std::map<string, const UGProfileNode *> list;
+		pnRoot->check_for_too_small_nodes(fullMs, list);
+
+		if(list.size() != 0)
 		{
-			UG_LOG("WARNING: Some profile nodes are too small:\n");
-			stringstream s2;
-			UGProfileNode::log_header(s2, "small profile nodes");
-			UG_LOG(s2.str() << str << "\n");
+			UG_LOG("WARNING: Some profile nodes are too small\n");
+			UG_LOG("(nodes with hits > " << PROFILE_NODE_MIN_HITS << " and totalTime > " << PROFILE_NODE_MIN_TOTAL_TIME_MS
+					<< " and totalTime/hits < " << PROFILE_NODE_MAX_TIME_PER_CALL_MS << " ms) :\n");
+
+			stringstream s;
+			s << 	left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << "name" << " " <<
+					right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << "hits" << " " <<
+					setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4) << "total  " << " " <<
+					setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+5) << "total/hits\n";
+			for(std::map<string, const UGProfileNode *>::iterator it = list.begin();
+					it != list.end(); ++it)
+			{
+				const UGProfileNode *p = it->second;
+				if(p->zone->file != NULL)
+					s << SimplifyUG4Path(p->zone->file) << ":" << p->zone->line << " : \n";
+
+				s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << p->zone->name << " ";
+				// entry count
+				s <<	right << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(p->get_avg_entry_count()) << " " <<
+						setprecision(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME-1);
+
+				// total time
+				const Shiny::TimeUnit *totalUnit = Shiny::GetTimeUnit(p->get_avg_total_time());
+				s << 	setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << p->get_avg_total_time() * totalUnit->invTickFreq << " " <<
+						left << setw(2) << totalUnit->suffix << "   ";
+
+				// fraction
+				double t = p->get_avg_total_time()/p->get_avg_entry_count();
+				const Shiny::TimeUnit *fracUnit = Shiny::GetTimeUnit(t);
+				s << 	setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) <<  t * fracUnit->invTickFreq << " " <<
+						left << setw(2) << fracUnit->suffix << "\n";
+			}
+			UG_LOG(s.str());
+
 		}
 	}
 }
@@ -508,7 +578,7 @@ const UGProfileNode *UGProfileNode::get_root()
 	return reinterpret_cast<const UGProfileNode*> (node);
 }
 
-void WriteProfileData(const char *filename)
+void WriteProfileDataXML(const char *filename)
 {
 	ProfilerUpdate();
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
@@ -534,7 +604,7 @@ void WriteProfileData(const char *filename)
 
 		f << "<core id=\"0\">\n";
 		
-		pnRoot->write_node(f);
+		pnRoot->PDXML_rec_write(f);
 		f << "</core>\n";	
 		
 #ifdef UG_PARALLEL
@@ -564,7 +634,7 @@ void WriteProfileData(const char *filename)
 		if(bProfileAll)
 		{
 			stringstream ss;
-			pnRoot->write_node(ss);
+			pnRoot->PDXML_rec_write(ss);
 			BinaryBuffer buf;
 			Serialize(buf, ss.str());
 			ic.send_raw(0, buf.buffer(), buf.write_pos(), false);
@@ -601,8 +671,8 @@ void PrintLUA()
 {
 	const UGProfileNode *rootNode = GetProfileNode(NULL);
 	vector<const UGProfileNode*> nodes;
-	rootNode->add_nodes(nodes);
-	double full = rootNode->get_avg_total_time();
+	rootNode->rec_add_nodes(nodes);
+	double full = rootNode->get_avg_total_time_ms();
 
 	map<string, vector<double> > files;
 	for(size_t i=0; i<nodes.size(); i++)
@@ -629,7 +699,7 @@ void PrintLUA()
 			for(; s<(size_t)line+1; s++)
 				v[s]=0.0;
 		}
-		v[line] = nodes[i]->get_avg_total_time();
+		v[line] = nodes[i]->get_avg_total_time_ms();
 	}
 
 
@@ -691,15 +761,36 @@ double UGProfileNode::get_self_mem() const
 {
 	return 0.0;
 }
-
+///////////////////////////////////////////////////////////////////
 string UGProfileNode::call_tree(double dSkipMarginal) const
 {
 	return "Profiler not available!";
 }
 
-string UGProfileNode::call_tree() const
+string UGProfileNode::child_self_time_sorted(double dSkipMarginal) const
 {
-	return call_tree(0.0);
+	return "Profiler not available!";
+}
+
+string UGProfileNode::total_time_sorted(double dSkipMarginal) const
+{
+	return "Profiler not available!";
+}
+
+
+string UGProfileNode::child_self_memory_sorted(double dSkipMarginal) const
+{
+	return "Profiler not available!";
+}
+
+string UGProfileNode::total_memory_sorted(double dSkipMarginal) const
+{
+	return "Profiler not available!";
+}
+
+string UGProfileNode::entry_count_sorted(double dSkipMarginal) const
+{
+	return "Profiler not available!";
 }
 
 string UGProfileNode::child_self_time_sorted(double dSkipMarginal) const
@@ -722,16 +813,6 @@ string UGProfileNode::total_time_sorted() const
 	return total_time_sorted(0.0);
 }
 
-string UGProfileNode::entry_count_sorted(double dSkipMarginal) const
-{
-	return "Profiler not available!";
-}
-
-string UGProfileNode::entry_count_sorted() const
-{
-	return entry_count_sorted(0.0);
-}
-
 /// \return true if node has been found
 bool UGProfileNode::valid() const
 {
@@ -748,7 +829,7 @@ const UGProfileNode *GetProfileNode(const char *name)
 	return NULL;
 }
 
-void WriteProfileData(const char *filename)
+void WriteProfileDataXML(const char *filename)
 {
 	return;
 }
@@ -761,6 +842,11 @@ bool GetProfilerAvailable()
 void PrintLUA()
 {
 	UG_LOG("LUA Profiler not available.");
+}
+
+void UGProfileNode::CheckForTooSmallNodes()
+{
+
 }
 
 #endif // SHINY

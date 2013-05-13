@@ -15,6 +15,7 @@
 #include "common/profiler/memtracker.h"
 #include "common/util/os_info.h"
 #include "common/util/path_provider.h"
+#include "common/profiler/profile_node.h"
 #ifdef UG_PLUGINS
 	#ifdef UG_EMBEDDED_PLUGINS
 		#include "embedded_plugins.h"
@@ -618,6 +619,7 @@ int main(int argc, char* argv[])
 	PROFILE_END();
 	UGFinalize();
 
+	ug::UGProfileNode::CheckForTooSmallNodes();
 	UG_LOG(endl);
 
 	return ret;
