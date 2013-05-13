@@ -356,7 +356,7 @@ void SparseMatrix<T>::get(M &mat) const
 template<typename T>
 int SparseMatrix<T>::get_index_internal(size_t row, int col) const
 {
-	PROFILE_SPMATRIX(SP_get_index_internal);
+//	PROFILE_SPMATRIX(SP_get_index_internal);
 	assert(rowStart[row] != -1);
 	int l = rowStart[row];
 	int r = rowEnd[row];
