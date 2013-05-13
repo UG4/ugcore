@@ -304,5 +304,15 @@ string GetFileLine(const char *filename, size_t line)
 	return GetFileLines(filename, line, line, false);
 }
 
+string XMLStringEscape(string s)
+{
+	s = ReplaceAll(s, "&", "&amp;");
+	s = ReplaceAll(s, "\"", "&quot;");
+	s = ReplaceAll(s, "\'", "&apos;");
+	s = ReplaceAll(s, "<", "&lt;");
+	s = ReplaceAll(s, ">", "&gt;");
+	return s;
+}
+
 }
 

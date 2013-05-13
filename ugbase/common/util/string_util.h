@@ -289,6 +289,15 @@ inline std::string ToString(const T &t)
     return out.str();
 }
 
+/**
+ * \brief returns a string suitable for XML files
+ * this functions escapes the characters <, >, ', " and &
+ * @sa http://www.hdfgroup.org/HDF5/XML/xml_escape_chars.htm
+ * @param[in] s
+ * @return escaped string
+ */
+UG_API std::string XMLStringEscape(std::string s);
+
 // end group ugbase_common_util_strings
 /// \}
 
