@@ -68,6 +68,8 @@ public:
 	/// \return true if node has been found
 	bool valid() const;
 
+	static const UGProfileNode *get_root();
+
 #if SHINY_PROFILER
 public:
 	void add_nodes(std::vector<const UGProfileNode*> &nodes) const;
@@ -75,15 +77,17 @@ public:
 	const UGProfileNode *get_first_child() const;
 	const UGProfileNode *get_last_child() const;
 	const UGProfileNode *get_next_sibling() const;
-private:
+	const UGProfileNode *find_next_in_tree() const;
 	std::string print_node(double full, double fullMem, size_t offset=0) const;
+	static void log_header(std::stringstream &s, const char *name);
+private:
 	std::string get_mem_info(double fullMem) const;
 
 
 	void rec_print(double full, double fullMem, std::stringstream &s, size_t offset, double dSkipMarginal) const;
 	std::string child_sorted(const char *name, bool sortFunction(const UGProfileNode *a, const UGProfileNode *b),
 			double dSkipMarginal) const;
-	static void log_header(std::stringstream &s, const char *name);
+
 	static bool self_time_sort(const UGProfileNode *a, const UGProfileNode *b);
 	static bool total_time_sort(const UGProfileNode *a, const UGProfileNode *b);
 	static bool entry_count_sort(const UGProfileNode *a, const UGProfileNode *b);	

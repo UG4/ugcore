@@ -276,8 +276,9 @@ string UGProfileNode::print_node(double full, double fullMem, size_t offset) con
 			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(get_avg_self_time() / full * 100) << "%  " <<
 			setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << totalTicksAvg * totalUnit->invTickFreq << " " <<
 			left << setw(2) << totalUnit->suffix << " " <<
-			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "%  "
-			<< get_mem_info(fullMem) << zone->groups;
+			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(totalTicksAvg / full * 100) << "%  ";
+	if(fullMem >= 0.0)
+		s << get_mem_info(fullMem) << zone->groups;
 	return s.str();
 }
 
@@ -296,10 +297,17 @@ const UGProfileNode *UGProfileNode::get_next_sibling() const
 	return reinterpret_cast<const UGProfileNode*>(nextSibling);
 }
 
+const UGProfileNode *UGProfileNode::find_next_in_tree() const
+{
+	return reinterpret_cast<const UGProfileNode*>(findNextInTree());
+}
+
 void UGProfileNode::rec_print(double full, double fullMem, stringstream &s, size_t offset, double dSkipMarginal) const
 {
 	if(!valid()) return;
-	if(dSkipMarginal==0.0 || full*dSkipMarginal < get_avg_total_time())
+	if(dSkipMarginal==0.0 ||
+			(full*dSkipMarginal < get_avg_total_time() || (HasMemTracking() && fullMem*dSkipMarginal< get_total_mem() ) )
+			)
 	{
 		s << print_node(full, fullMem, offset) << "\n";
 		for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
@@ -452,12 +460,58 @@ void WriteCompressedProfileData(const char *filename)
 }
 */
 
+void CheckForTooSmallNodes(const UGProfileNode *node, double full, stringstream &s)
+{
+	if(node->get_avg_total_time_ms() < 0.001*full) return;
+	for(const UGProfileNode *p=node->get_first_child(); p != NULL; p=p->get_next_sibling())
+	{
+		double t_ms = p->get_avg_total_time_ms();
+		size_t entry = p->get_avg_entry_count();
+		// display entries which take less than 1 microsecond
+		if(entry > 1000 && t_ms/entry < 0.001)
+		{
+			if(p->zone->file != NULL)
+				s << p->zone->file << ":" << p->zone->line << " : \n";
+			s << p->print_node(full, -1.0, 0);
+			s << "\n";
+		}
+		CheckForTooSmallNodes(p, full, s);
+		if(p==node->get_last_child())
+			break;
+	}
+
+}
+
+void CheckForTooSmallNodes()
+{
+	Shiny::ProfileManager::instance.update(1.0); // WE call with damping = 1.0
+	const UGProfileNode *pnRoot = UGProfileNode::get_root();
+	stringstream s;
+	double fullMs = pnRoot->get_avg_total_time();
+	if(fullMs > 1000)
+	{
+		CheckForTooSmallNodes(pnRoot, fullMs, s);
+		string str = s.str();
+		if(str.length() > 0)
+		{
+			UG_LOG("WARNING: Some profile nodes are too small:\n");
+			stringstream s2;
+			UGProfileNode::log_header(s2, "small profile nodes");
+			UG_LOG(s2.str() << str << "\n");
+		}
+	}
+}
+
+const UGProfileNode *UGProfileNode::get_root()
+{
+	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
+	return reinterpret_cast<const UGProfileNode*> (node);
+}
+
 void WriteProfileData(const char *filename)
 {
-	
 	ProfilerUpdate();
-	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
-	const UGProfileNode *pnRoot = reinterpret_cast<const UGProfileNode*> (node);
+	const UGProfileNode *pnRoot = UGProfileNode::get_root();
 #ifdef UG_PARALLEL
 	bool bProfileAll = false; // for the moment
 	typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >
@@ -524,14 +578,14 @@ void WriteProfileData(const char *filename)
 const UGProfileNode *GetProfileNode(const char *name)
 {
 	ProfilerUpdate();
-	const Shiny::ProfileNode *node = &Shiny::ProfileManager::instance.rootNode;
+	const UGProfileNode *node = UGProfileNode::get_root();
 	if(name == NULL)
-		return reinterpret_cast<const UGProfileNode*> (node);
+		return node;
 	do
 	{
 		if(strcmp(node->zone->name, name) == 0)
-			return reinterpret_cast<const UGProfileNode*> (node);
-		node = node->findNextInTree();
+			return node;
+		node = node->find_next_in_tree();
 	} while (node);
 
 	UG_LOG("Profiler Node \"" << name << "\" not found\n");
