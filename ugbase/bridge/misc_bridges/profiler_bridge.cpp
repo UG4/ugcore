@@ -32,11 +32,13 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 	string grp = ss.str();
 
 	reg.add_class_<UGProfileNode>("UGProfileNode", grp)
+		// call tree
 		.add_method("call_tree", static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::call_tree), "string with call tree")
 		.add_method("call_tree",
 				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::call_tree), "string with call tree",
 				"dSkipMarginal")
 
+		// self time
 		.add_method("child_self_time_sorted",
 				static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::child_self_time_sorted),
 				"string with sorted childs", "", "childs are sorted by self time")
@@ -44,6 +46,7 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::child_self_time_sorted),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by self time")
 
+		// total time
 		.add_method("total_time_sorted",
 				static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::total_time_sorted),
 				"string with sorted childs", "", "childs are sorted by total time")
@@ -51,6 +54,24 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::total_time_sorted),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by total time")
 
+
+		// self memory
+		.add_method("child_self_memory_sorted",
+						static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::child_self_memory_sorted),
+						"string with sorted childs", "", "childs are sorted by self memory")
+		.add_method("child_self_memory_sorted",
+				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::child_self_memory_sorted),
+				"string with sorted childs", "dSkipMarginal", "childs are sorted by self memory")
+
+		// total memory
+		.add_method("total_memory_sorted",
+				static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::total_memory_sorted),
+				"string with sorted childs", "", "childs are sorted by total memory")
+		.add_method("total_memory_sorted",
+				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::total_memory_sorted),
+				"string with sorted childs", "dSkipMarginal", "childs are sorted by total memory")
+
+		// entry count
 		.add_method("entry_count_sorted",
 				static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::entry_count_sorted),
 				"string with sorted childs", "", "childs are sorted by entry count")
@@ -58,6 +79,7 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::entry_count_sorted),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by entry count")
 
+		// misc
 		.add_method("get_avg_entry_count", &UGProfileNode::get_avg_entry_count,
 				"number of entries in this profiler node", "")
 		.add_method("get_avg_self_time_ms", &UGProfileNode::get_avg_self_time_ms,
@@ -81,7 +103,7 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 	                 "true if profiler available");
 	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp,  
 	                 "", "bOutput", "if set to true and profiler available, profile stats are printed at the end of the program. true is default");
-	reg.add_function("WriteProfileData", &WriteProfileData, grp, 
+	reg.add_function("WriteProfileData", &WriteProfileDataXML, grp,
 	                 "", "filename", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 }
 
