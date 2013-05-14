@@ -279,6 +279,7 @@ bool IsLonger(const string &a, const string &b)
 
 string GetFileLines(const char *filename, size_t fromline, size_t toline, bool includeLineNumbers)
 {
+	if(filename[0] == '@') filename++;
 	char buf[512];
 	fstream file(filename, std::ios::in);
 	if(file.is_open() == false) return string("");
