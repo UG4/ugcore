@@ -122,8 +122,13 @@ UG_API bool ClassInstantiations(const char *classname);
  */
 UG_API std::string GetLuaTypeString(lua_State* L, int index);
 
-/// prints information about lua's call stack (file:line source).
-UG_API void LuaStackTrace(lua_State* L);
+///
+/**
+ * @brief  prints information about lua's call stack (file:line source).
+ * @param L the lua state
+ * @param backtraceLevel number of calls to display (<= 0 -> all)
+ */
+UG_API void LuaStackTrace(lua_State* L, int backtraceLevel=0);
 
 /// prints information about lua's call stack (file:line source).
 UG_API void LuaStackTrace();

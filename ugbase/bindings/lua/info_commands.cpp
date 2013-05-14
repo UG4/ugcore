@@ -835,18 +835,19 @@ void LuaPrintCurrentLine(lua_State* L)
 	UG_LOG("\n");
 
 }
-/// prints information about lua's call stack (file:line source).
-void LuaStackTrace(lua_State* L)
+
+void LuaStackTrace(lua_State* L, int backtraceLevel)
 {
     lua_Debug entry;
     for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
 	{
     	int status = lua_getinfo(L, "Sln", &entry);
     	if(entry.currentline <0) continue;
-    	if(!status || !entry.short_src || entry.currentline < 0) continue;
-    	UG_LOG(entry.short_src << ":" << entry.currentline);
-    	UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
+    	if(!status || !entry.source || entry.currentline < 0) continue;
+    	UG_LOG(entry.source << ":" << entry.currentline);
+    	UG_LOG(" " << GetFileLine(entry.source, entry.currentline));
     	UG_LOG("\n");
+    	if(--backtraceLevel == 0) break;
     }
 }
 
@@ -854,24 +855,27 @@ void LuaStackTrace(lua_State* L)
 /// returns the current file and line ( \sa LuaStackTrace ).
 bool GetLuaFileAndLine(lua_State* L, std::string &file, size_t &line)
 {
+	file = "unknown";
+	line = -1;
 	lua_Debug entry;
-	lua_getstack(L, 1, &entry);
-	int status = lua_getinfo(L, "Sln", &entry);
-	if(!status || !entry.short_src || entry.currentline < 0) return false;
-	file = entry.short_src;
-	line = entry.currentline;
-	return true;
+	for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
+	{
+	   	int status = lua_getinfo(L, "Sln", &entry);
+	   	if(!status || !entry.source || entry.currentline <0) continue;
+		file = entry.source;
+		line = entry.currentline;
+		return true;
+	}
+	return false;
 }
 
 /// returns the current file and line ( \sa LuaStackTrace ).
 std::string GetLuaFileAndLine(lua_State* L)
 {
-	lua_Debug entry;
-	lua_getstack(L, 1, &entry);
-	int status = lua_getinfo(L, "Sln", &entry);
-	if(!status || !entry.short_src || entry.currentline < 0) return std::string("");
+	string file; size_t line;
+	if(GetLuaFileAndLine(L, file, line) == false) return "[LUA File could not be determined]";
 	std::stringstream ss;
-	ss << entry.short_src << ":" << entry.currentline;
+	ss << file << ":" << line << " " << GetFileLine(file.c_str(), line);
 	return ss.str();
 }
 

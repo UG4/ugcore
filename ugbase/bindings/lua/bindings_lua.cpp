@@ -126,6 +126,44 @@ static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
 	return str;
 }
 
+
+/**
+ * if one of the parameters is nil, this returns an error
+ * to warn the user about not initialised variables
+ * @param L						the lua state
+ * @param offsetToFirstParam	offset to first param
+ * @return error string or ""
+ */
+string GetNilWarning(lua_State* L, int offsetToFirstParam)
+{
+	int index = offsetToFirstParam + 1; // stack-indices start with 1
+	std::vector<int> indices;
+	for(; lua_type(L, index) != LUA_TNONE; index++)
+		if(lua_isnil(L, index))
+			indices.push_back(index-offsetToFirstParam);
+
+	if(indices.size() > 0)
+	{
+		std::stringstream ss;
+
+		if(indices.size() == 1)
+			ss << errSymb << "WARNING: Argument " << indices[0] << " is nil, it is ";
+		else
+		{
+			ss << errSymb << "WARNING: Arguments";
+			for(size_t i=0; i<indices.size()-1; i++)
+			{
+				if(i>0) ss << ", ";
+				ss << indices[i];
+			}
+			ss << " and " << indices[indices.size()-1] << " are nil, they are ";
+		}
+		ss << "possibly not initialized or initialized with an error.\n";
+		return ss.str();
+	}
+	else return "";
+}
+
 /**
  *
  * \returns	String describing the reason why LuaStackToParams failed.
@@ -797,6 +835,7 @@ static int LuaProxyFunction(lua_State* L)
 		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n");
 		UG_LOG(errSymb<<"ERROR occured when trying to call '"
 			   << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):'\n");
+		UG_LOG(GetNilWarning(L, 0));
 		UG_LOG(errSymb<<"No matching overload found! Candidates are:\n");
 		for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
 		{
@@ -807,7 +846,6 @@ static int LuaProxyFunction(lua_State* L)
 			PrintFunctionInfo(*func);
 			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
 		}
-		//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
 
 		UG_LUA_THROW_EMPTY(L);
 	}
@@ -882,6 +920,7 @@ static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname
 		else
 		{ 	UG_LOG("class " << c->name() << " with constructor '" << c->name());	}
 		UG_LOG("(" << GetLuaParametersString(L, 0) << ")':\n");
+		UG_LOG(GetNilWarning(L, 0));
 		UG_LOG(errSymb<<"No matching overload found! Candidates are:\n");
 		for(size_t i = 0; i < c->num_constructors(); ++i)
 		{
@@ -1221,6 +1260,7 @@ static int LuaProxyMethod(lua_State* L)
 		   << classname << ":" << methodGrp->name() << "(" <<
 		   GetLuaParametersString(L, 1) << ")':\n");
 
+	UG_LOG(GetNilWarning(L, 1));
 	UG_LOG(errSymb<<"No matching overload found! Candidates in class "
 			<< classname << " are:\n");
 
