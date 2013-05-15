@@ -14,7 +14,7 @@
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/algorithms/attachment_util.h"
-#include "lib_grid/parallelization/parallel_grid_layout.h"
+#include "lib_grid/parallelization/geometric_object_id.h"
 
 namespace ug
 {
