@@ -5,11 +5,7 @@
 
 /** \page pageUG4Profiling Profiling ug4
 
-- \ref secEnableProfiling
-- \ref secProfilingRegistry
-- \ref secProfilingYourCode
-- \ref secProfilingCPPExample
-- \ref secScriptProfiling
+[TOC]
 
 For any questions, contact martin.rupp@gcsc.uni-frankfurt.de or 
 sebastian.reiter@gcsc.uni-frankfurt.de .

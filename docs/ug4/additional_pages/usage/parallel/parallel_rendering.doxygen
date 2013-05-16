@@ -4,9 +4,7 @@
 
 /**	\page pageParallelRendering Parallel Rendering
 
-	- \ref secParallelRenderingGeneral           "General Information about Parallel Rendering"
-	- \ref secParallelRenderingWithParaView      "Parallel Rendering with ParaView"
-
+[TOC]
 
 <hr>
 \section secParallelRenderingGeneral General Information about Parallel Rendering

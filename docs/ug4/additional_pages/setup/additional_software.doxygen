@@ -4,11 +4,7 @@
 
 /** \page pageAdditionalSoftware Prerequisites and Recommendend Tools
 
-- \ref secInstallCMake
-- \ref secInstallBoost
-- \ref secInstallLUA
-- \ref secInstallParaView
-- \ref secInstallLAPACK
+[TOC]
 
 On this page you'll find short installation instructions for additional software
 that might be useful &mdash; or is even necessary &mdash; for working with \ug4 
@@ -20,7 +16,8 @@ administrator privileges - congratulations ...)
 
 We propose the following procedures for which we assume that all additional
 software is installed in a directory \c local directly in your home directory 
-(version numbers are those of the most recent (stable) versions at the time this documentation was written).
+(version numbers are those of the most recent (stable) versions at the time this 
+documentation was written).
 
 A basic understanding of the used Unix tools (\c wget, \c tar, ...) is useful 
 but not necessary (instructions should work "out of the box" &mdash; except for 
@@ -34,7 +31,6 @@ curl -O http://www.cmake.org/files/v2.8/cmake-2.8.6.tar.gz
 \endverbatim
 
 <hr>
-<br>
 \section secInstallCMake Installation of CMake (required)
 
 You may install CMake through a pre-built installer, which can be obtained here:
@@ -78,7 +74,6 @@ alias cmake '$HOME/local/bin/cmake'
 
 
 <hr>
-<br>
 \section secInstallBoost Installation of Boost (optional)
 
 A version of the <a href="http://www.boost.org">Boost library</a> is 
@@ -121,7 +116,6 @@ cmake -DINTERNAL_BOOST=OFF <further cmake parameters> ..
 
 
 <hr>
-<br>
 \section secInstallLUA Installation of LUA (optional)
 
 You can install a local version of the <a href="http://www.lua.org">Lua 
@@ -167,7 +161,6 @@ lua my_scaling_analyzer.lua
 
 
 <hr>
-<br>
 \section secInstallParaView Installation of ParaView (optional)
 
 You can install a local version of <a href="http://paraview.org/">ParaView</a>
@@ -230,9 +223,7 @@ paraview --state=<state file>
 For parallel rendering see e.g. \ref pageParallelRendering.
 
 <hr>
-<br>
 \section secInstallLAPACK Installation BLAS/LAPACK (optional)
-
 
 <ul>
   <li> Note: On most systems, LAPACK and BLAS are preinstalled and are found by cmake.

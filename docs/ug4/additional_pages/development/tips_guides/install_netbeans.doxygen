@@ -4,13 +4,10 @@
 
 /** \page pageInstallNetbeans Developing with the Netbeans IDE
 
+[TOC]
+
 The page is an install guide for the usage of Netbeans for ug.
 Currently tested with Netbeans 7.2 on Mac OS.
-
-- \ref secInstallNetbeansDownload
-- \ref secInstallNetbeansCreateProject
-- \ref secInstallNetbeansRunningAndDebugging
-- \ref secInstallNetbeansLUA
 
 For any questions, contact martin.rupp@gcsc.uni-frankfurt.de .
 

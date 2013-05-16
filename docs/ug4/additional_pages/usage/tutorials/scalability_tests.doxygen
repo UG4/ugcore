@@ -4,9 +4,7 @@
 
 /** \page pageUG4ScalabilityTests Scalability Tests
 
-- \ref secScalabilityTestsGeneral
-- \ref secScalabilityTestsSpecific
-
+[TOC]
 
 <hr>
 \section secScalabilityTestsGeneral General Practical Information about Scalability Tests

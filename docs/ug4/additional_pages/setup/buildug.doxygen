@@ -2,9 +2,7 @@
 
 /** \page pageBuildUG4 Building UG4
 
-- \ref secBuildUG4Checkout
-- \ref secBuildUG4RunCmake
-- \ref secBuildUG4Make
+[TOC]
 
 Before building \ug4, you should make sure that you installed all necessary tools (\ref pageUG4Install) 
 for your system. Beginners might also want to have a look at \ref pageShellAndLinux. 
@@ -12,108 +10,102 @@ for your system. Beginners might also want to have a look at \ref pageShellAndLi
 <hr>
 \section secBuildUG4Checkout Checkout ug4
 
-<ul>
-<li> You can \ref secInstallEclipseUG4Download . <br> 
-<li> <b>OR</b> If you want to do it \em manually with <tt> svn </tt>: 
-Create a \c ug4 directory and perform a svn checkout on the trunk.
-<ul>
-<li> <tt>mkdir ug4</tt>
-<li> <tt>cd ug4</tt>
-<li> <tt>svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk</tt>
-</ul>
-</ul>
+- You can \ref secInstallEclipseUG4Download .
+- \b OR If you want to do it \em manually with `svn`: 
+  Create a \c ug4 directory and perform a svn checkout on the trunk.
+  - `mkdir ug4`
+  - `cd ug4`
+  - `svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk`
+
 More about SVN \ref pageUG4SVN "here".
-In the following section, YOURUG4ROOT is the directory which contains 
-cmake/ug_includes.cmake, so depending on your checkout, 
-this is ug4 or ug4/trunk.
-Because of that, always keep in mind that people mean <tt>YOURUG4ROOT/apps</tt> when
-they speak about <tt>ug4/apps</tt> or <tt>ug4/trunk/apps</tt>. 
+In the following section, `YOURUG4ROOT` is the directory which contains 
+`cmake/ug_includes.cmake`, so depending on your checkout, this is `ug4/cmake` or 
+`ug4/trunk/cmake`.
+Because of that, always keep in mind that people mean `YOURUG4ROOT/apps` when
+they speak about `ug4/apps` or `ug4/trunk/apps`. 
 
 <hr>
-\section secBuildUG4BashTools bash tools
+\section secBuildUG4BashTools Bash Tools
 For some helpful bash tools and completion, use the \ref pageBashTools. 
 If you are new to bash/Linux, please also try the bash prompt covered there.
 
 <hr>
 \section secBuildUG4RunCmake Run CMake
 
-We are using cmake to do an out of source build. That means that the files created at compile 
-time are in a different directory than the source. It is recommended to do the build in 
-subdirectories of YOURUG4ROOT. Depending on the type of build, you can give them names, most
-common are <tt>build_release</tt> or <tt>build_debug</tt>, but some also like 
-<tt>debug</tt> or <tt>release</tt>. When you are in the directory, you start <tt>cmake [DIR]</tt> 
-where [DIR] is the directory where you find the CMakeLists.txt which says "project(P_UG4)" inside.
+We are using \em CMake to do an out of source build.
+That means that the files created at compile time are in a different directory 
+than the source.
+It is recommended to do the build in subdirectories of `YOURUG4ROOT`.
+Depending on the type of build, you can give them names, most common are 
+`build_release` or `build_debug`, but some also like `debug` or `release`.
+When you are in the directory, you start `cmake [DIR]` where `[DIR]` is the 
+directory where you find the `CMakeLists.txt` which says `project(P_UG4) inside.
 The following example is for a debug build:  
 
-<ol>
-  <li>Open a terminal/shell window</li>
-  <li>move to <tt>YOURUG4ROOT</tt></li>
-  <li><tt>mkdir build_debug</tt></li>
-  <li><tt>cd build_debug</tt></li>
-  <li> Generate Makefiles:
-  <ul>  	
-  	<li> Linux/MacOS: <tt>cmake ..</tt>
-  	<li> Windows: <tt>cmake -G"MSYS Makefiles" ..</tt>
-  	<li> Clusters: <tt> cmake -DCMAKE_TOOLCHAIN_FILE=\<TOOLCHAINFILE\> ..</tt> <br>see \ref pageUG4SetupParallel.
-  </ul>
-</ol>
+-# Open a terminal/shell window
+-# move to `YOURUG4ROOT`
+-# `mkdir build_debug`
+-# `cd build_debug`
+-# Generate Makefiles:
+   - Linux/MacOS: `cmake ..`
+   - Windows: `cmake -G"MSYS Makefiles" ..`
+   - Clusters: `cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..` <br>
+     see \ref pageUG4SetupParallel.
 
 Note that there are several options that can be passed to \em CMake to change
 the build behaviour.
-You see always the current chosen setup when runnig <tt>cmake ..</tt> and you should 
+You see always the current chosen setup when runnig `cmake ..` and you should 
 see a list of options which you can change.
-In order to change an option run <tt>cmake</tt> again with the parameter 
-<tt>-D&lt;option&gt;=&lt;val&gt;</tt>, where <tt>&lt;option&gt;</tt> is one of 
-the enumerated options and <tt>&lt;val&gt;</tt> is one of the possible values 
-for that option (<tt>&lt;</tt> and <tt>&gt;</tt> should of course not be typed).
-The last argument to <tt>cmake</tt> always has to be the path which you used 
-when you called cmake the first time.
+In order to change an option run `cmake` again with the parameter 
+`-D<option>=<val>`, where `<option>` is one of the enumerated options and 
+`<val>` is one of the possible values for that option (`<` and `>` should 
+of course not be typed).
+The last argument to `cmake` always has to be the path which you used when you 
+called cmake the first time.
 
-\note To get more completions for the ug4 cmake parameters, use ugcmake.
-
+\note To get more completions for the \ug4 \em CMake parameters, use \em ugcmake.
 
 Note that you only have to specify the variables which you want to change.
 All other variables will keep their values.
-Since in our example we want to do a debug build (hence the name <tt>build_debug</tt>)
-we need to enter <tt>cmake -DDEBUG=ON ..</tt> . On the console in <tt>YOURUG4ROOT/build_debug</tt>.
+Since in our example we want to do a debug build (hence the name `build_debug`)
+we need to enter `cmake -DDEBUG=ON ..`.
+On the console in `YOURUG4ROOT/build_debug`.
 
-As default ug is build for all supported world dimensions (<tt>Dim = 1,2,3</tt>).
+As default ug is build for all supported world dimensions (`Dim = 1,2,3`).
 If you only need a special dimension (e.g. for code development) and you want to 
-save compilation time, use the <tt>-DDIM</tt> option.
+save compilation time, use the `-DDIM` option.
 Examples:
-- <tt>cmake -DDIM=ALL ..</tt> -> Builds all dimensions
-- <tt>cmake -DDIM=2 ..</tt> -> Builds only dimension 2
-- <tt>cmake -DDIM="2;3" ..</tt> -> Builds dimension 2 and 3, but not 1
+- `cmake -DDIM=ALL ..` -> Builds all dimensions
+- `cmake -DDIM=2 ..` -> Builds only dimension 2
+- `cmake -DDIM="2;3" ..` -> Builds dimension 2 and 3, but not 1
 
 For \em CMake Versions older than 2.8 you may be forced to explicitly specify,
 that the option \c DIM is passed as a string.
-So, please use: <tt>cmake -DDIM:STRING=2 ..</tt> etc.
+So, please use: `cmake -DDIM:STRING=2 ..` etc.
 
 
 <hr>
 \section secBuildUG4Make Make
 
-<ol>
-<li>move to <tt>YOURUG4ROOT/build_debug</tt>
-<li> <tt>make</tt>
-</ol>
-and your \ug4 is being build. Common options for make are
-<ul>
-<li> <tt>-k</tt> Don't stop at errors
-<li> <tt>-jN</tt> Where N is the number of cores. We suggest 
-to use no more than 4 and to keep an eye on memory consumption.
-There are some files in ug4/ugbase/bridge which need 1 GB RAM when being compiled, 
-so you'll get stuck there. 
-<li> <tt>VERBOSE=1</tt> Do a "verbose" build, i.e., see what happens in detail
-(commands executed and their output which otherwise is suppressed).
+-# move to `YOURUG4ROOT/build_debug`
+-# `make`
+
+and your \ug4 is being build.
+Common options for make are
+- `-k`: Don't stop at errors
+- `-jN`: Where `N` is the number of cores.
+  We suggest to use no more than 4 and to keep an eye on memory consumption.
+  There are some files in `ug4/ugbase/bridge` which need more than 1 GB RAM 
+  when being compiled, so you'll get stuck there. 
+- `VERBOSE=1`: Do a "verbose" build, i.e., see what happens in detail
+  (commands executed and their output which otherwise is suppressed).
 
 With redirection of the output into a file, for later analysis, you would have
 e.g. (Bash syntax):
-\code
+\verbatim
 make VERBOSE=1 > static-build_make-verbose-output.txt 2>&1 
-\endcode
-</ul>
+\endverbatim
 
-If everything went fine, you can move to YOURUG4ROOT/bin and start \ref pageUG4Shell .
+If everything went fine, you can move to `YOURUG4ROOT/bin` and start \ref pageUG4Shell .
 
 */

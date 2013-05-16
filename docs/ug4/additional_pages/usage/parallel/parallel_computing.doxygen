@@ -4,12 +4,7 @@
 
 /**	\page pageUG4ParallelComputing Parallel computing
 
-	- \ref secParallelComputingHowto
-	- \ref secParallelComputingGeneral           "General Information about Parallel Computing"
-    - \ref secParallelComputingInputOutput "Input and Output"
-	- \ref secParallelComputingSpecific          "Specific Information about Parallel Computing"
-	- \ref secParallelComputingAvailableMachines "Available Parallel Computers"
-	
+[TOC]
 
 <hr>
 \section secParallelComputingHowto Parallel Computing: Howto

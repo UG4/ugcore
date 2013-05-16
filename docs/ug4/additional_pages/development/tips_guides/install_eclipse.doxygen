@@ -4,17 +4,9 @@
 
 /** \page pageInstallEclipse Developing with the Eclipse IDE
 
-The page is an install guide for the usage of Eclipse for ug.
+[TOC]
 
-- \ref secInstallEclipseDownload
-- \ref secInstallEclipseUG4Download 
-- \ref secInstallEclipseUseMakefiles
-- \ref secInstallEclipseRunExecutable
-- \ref secInstallEclipseSyntaxLua
-- \ref secInstallEclipseSyntaxDoxygen
-- \ref secInstallEclipseAdditional
-- \ref secUG4ProjectInEclipse
-- \ref secInstallEclipseTroubleshooting
+The page is an install guide for the usage of Eclipse for ug.
 
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 

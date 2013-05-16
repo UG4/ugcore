@@ -4,11 +4,7 @@
 
 /** \page pageUG4HLib Coupling of HLibPro
 
-- \ref secCouplingUG4HLibPro_General
-- \ref secCouplingUG4HLibPro_ShortDesc
-- \ref secCouplingUG4HLibPro_InstallationUG4
-- \ref secCouplingUG4HLibPro_InstallationHLibPro
-- \ref secCouplingUG4HLibPro_Remarks
+[TOC]
 
 <hr>
 \section secCouplingUG4HLibPro_General General

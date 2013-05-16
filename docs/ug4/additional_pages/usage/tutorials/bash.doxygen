@@ -9,10 +9,7 @@
 /** 
 \page pageShellAndLinux Some information about Shell and Linux
 
-- \ref secAbsoluteBeginners
-- \ref secRemoteEditors
-- \ref secOtherHints
-
+[TOC]
 
 \section secAbsoluteBeginners Absolute Beginners
 <a href="http://linux.about.com/od/linux101/a/desktop11b.htm">A list of basic BASH commands</a> and

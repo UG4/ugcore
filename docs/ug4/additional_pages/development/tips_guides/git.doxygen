@@ -6,14 +6,11 @@
 
 /** \page pageUsingGit Using Git Locally Instead of SVN
 
+[TOC]
+
 Some people might want to use \em Git instead of \em SVN for their local 
 working copy and development environment.
 This is even possible with a \em SVN server.
-
-- \ref secGitSVNGeneral
-- \ref secGitSVNClone
-- \ref secGitSVNCommit
-- \ref secGitSVNNotes
 
 For any questions email torbjoern@torbjoern-klatt.de
 

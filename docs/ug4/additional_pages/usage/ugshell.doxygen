@@ -4,12 +4,7 @@
 
 /** \page pageUG4Shell ugshell
 
-- \ref secCommandLineOption
-- \ref secInteractiveShell
-- \ref secAutoCompletion
-- \ref secRuntimeInformation
-- \ref secDebugging
-- \ref secBashCompletion
+[TOC]
 
 For any questions, contact martin.rupp\@gcsc.uni-frankfurt.de.
 

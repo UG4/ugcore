@@ -6,10 +6,7 @@
 
 /** \page pageUG4SetupParallel Installation on Parallel Computers
 
-- \ref secGeneral_Notes
-- \ref secCMake
-- \ref secInstallation_of_additional_software 
-- \ref secMacOSX
+[TOC]
 
 Special instructions for the different parallel computers are on separate pages:
 - \subpage pageUG4ParallelCekon

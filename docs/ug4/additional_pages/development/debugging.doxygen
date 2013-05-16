@@ -4,13 +4,7 @@
 
 /** \page pageDebuggingCPP Debugging UG4's C/C++ Code
 
-- \ref secDebuggingOutput
-- \ref secDebuggingUG4CPP
-- \ref secDebuggingCPPTroubleshooting
-- \ref secDebuggingLUA
-
-
-<hr>
+[TOC]
 
 \section secDebuggingOutput "printf" debugging UG4
 

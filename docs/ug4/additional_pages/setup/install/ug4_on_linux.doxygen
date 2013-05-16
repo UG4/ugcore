@@ -4,10 +4,7 @@
 
 /** \page pageUG4OnLinux Prerequisites on Linux / Unix
 
-- \ref secInstallLinuxCMake
-- \ref secInstallLinuxMPI
-- \ref secInstallLinuxLAPACK
-- \ref secInstallLinuxParaView
+[TOC]
 
 \note Because of the great variety of systems, this installation guides may be outdated quickly. So if this guide is not working for you
 \em please write an email to martin.rupp@gcsc.uni-frankfurt.de explaining where you're stuck - even if you have resolved your problem.

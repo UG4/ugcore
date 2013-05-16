@@ -4,18 +4,7 @@
 
 /** \page pageUG4SVN SVN
 
-- \ref secSVNBasics
-- \ref secSVNRepository
-- \ref secSVNCheckout
-  - \ref secSVNPartialCheckout
-- \ref secSVNCommit
-- \ref secSVNUpdate
-- \ref secSVNFiles
-- \ref secSVNStatus
-- \ref secSVNConflicts
-- \ref secSVNOtherConflicts
-- \ref secSVNEclipse
-- \ref secSVNWarnings
+[TOC]
 
 <hr>
 \section secSVNBasics SVN Basics

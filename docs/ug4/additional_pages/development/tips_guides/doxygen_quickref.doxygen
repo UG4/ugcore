@@ -4,19 +4,7 @@
 
 /** \page pageUG4DoxygenQuickref Doxygen Quick Reference
 
-- \ref secDoxygenGeneral
-  - \ref secDoxygenParScope
-  - \ref secDoxygenOwnCommands
-- \ref secDoxygenText
-  - \ref secDoxygenStyle
-  - \ref secDoxygenLinks
-  - \ref secDoxygenParagraphs
-  - \ref secDoxygenLists
-- \ref secDoxygenFunctions
-  - \ref secDoxygenParameters
-  - \ref secDoxygenGrouping
-- \ref secDoxygenTipps
-- \ref secBuildingDocumentation
+[TOC]
 
 <hr>
 As written in our \ref pageUG4CodingStyle "Coding Style Guidelines", we are 

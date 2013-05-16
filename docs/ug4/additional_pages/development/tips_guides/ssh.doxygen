@@ -4,12 +4,7 @@
 
 /** \page pageUG4SSH SSH
 
-- \ref secSSHKeys
-- \ref secSSHControlmaster
-- \ref secSSHHopping
-- \ref secSSHFS
-- \ref secSSH_Eclipse
-
+[TOC]
 
 <hr>
 \section secSSHKeys Exchanging SSH Keys

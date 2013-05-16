@@ -3,11 +3,8 @@
 //	y12 m03 d07
 
 /**	\page pageugsubmit Job Scheduling on Clusters
-	- \ref secIntroduction "Introduction"
-	- \ref secOtherScripts "Other Scripts"
-	- \ref secugsubmit "ugsubmit"
-	- \ref secuginfo "uginfo"
-	- \ref secugcancel "ugcancel"
+
+[TOC]
 
 <hr>
 \section secIntroduction Introduction

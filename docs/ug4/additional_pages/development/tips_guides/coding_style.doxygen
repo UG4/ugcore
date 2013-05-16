@@ -4,14 +4,11 @@
 
 /** \page pageUG4CodingStyle Coding Style
 
+[TOC]
+
 The following Coding Style is recommended for ug.
 
-- \ref secCodingSyleNaming
-- \ref secCodingSyleFiles
-- \ref secCodingSyleDocumentation
-
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
-
 
 <hr>
 \section secCodingSyleNaming Naming
