@@ -65,7 +65,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, cons
 		int si = fvgeom.subset_index();
 		
 		FluxDerivCond fdc;
-		if (!fluxDensityDerivFct(u, co, si, fdc))
+		const MathVector<dim>& cc = vCornerCoords[co]; // current corner's coordinates
+		if (!fluxDensityDerivFct(u, co, cc, si, fdc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_jac_A_elem:"
 							" Call to fluxDensityDerivFct resulted did not succeed.");
 		
@@ -113,7 +114,8 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, cons
 		
 		// get flux densities in that node
 		FluxCond fc;
-		if (!fluxDensityFct(u, co, si, fc))
+		const MathVector<dim>& cc = vCornerCoords[co]; // current corner's coordinates
+		if (!fluxDensityFct(u, co, cc, si, fc))
 			UG_THROW("FV1InnerBoundaryElemDisc::add_def_A_elem:"
 						" Call to fluxDensityFct did not succeed.");
 
