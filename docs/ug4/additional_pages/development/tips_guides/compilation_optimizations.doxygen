@@ -1,0 +1,95 @@
+/** \page pageUG4CompilationOptimization Compilation Optimizations
+
+[TOC]
+
+Some people might want to run and test \ug4 with different build configurations.
+For example a release build with full compiler optimizations and a development 
+and debugging build with all debug symbols and profiler analysis.
+In addition it might be useful having these builds in both sequential and parallel
+builds.
+
+The recommended way is to use multiple build directories.
+One for each build configuration:
+- `build_release_sp` (release build without parallelization)
+- `build_release_mp` (release build with parallelization)
+- `build_debug_sp` (debug build without parallelization)
+- `build_debug_mp` (debug build with parallelization)
+
+\section secCCACHE Compile Time Speedup with ccache
+\em ccache (https://ccache.samba.org/) is a wrapper around \em GCC compatible 
+compilers (basically \em GCC itself and \em Clang) providing a cache for compiler 
+objects to speedup recompilation.
+The average speedup for the second and any subsequent compile runs is between 5-
+and 40-fold.
+
+\subsection secCCACHEGCCSetup Basic Setup for GCC
+\em ccache should be available in your distributions repositories (on \em Mac 
+via \em macports).
+Make sure it is in your `$PATH` (`which ccache` should print the location).
+We will assume its in `/usr/bin/ccache`.
+
+The easiest way is to add symlinks for the GCC compiler executables `cc`, `c++`, 
+`cpp`, `gcc` and `g++` pointing to `/usr/bin/ccache` in a directory contained in 
+`$PATH` prior to the location of the \em real compiler executables.
+
+Assuming your `$PATH` is `/usr/local/bin:/usr/bin` and the compilers are found 
+in `/usr/bin`.
+Add symlinks via `ln -s /usr/bin/ccache /usr/local/bin/<gcc_exec>` for each of 
+the five GCC executables.
+
+If you now run `gcc` (i.e. `/usr/local/bin/gcc` or any other of the five), 
+\em ccache is executed which runs the \em real `/usr/bin/gcc` only if it does not
+find the resulting objects in its cache (i.e. the source file or any includes
+have changed).
+
+\subsection secCCACHEClangSetup Basic Setup for Clang
+Though \em Clang is similar enough to \em GCC to be used with \em ccache, it needs
+some further tweaks to suppress myriads of annoying compiler warnings.
+It is also assumed that \em Clang's executables (`clang` and `clang++`) are in 
+`/usr/bin`.
+
+Instead of adding symlinks to `/usr/bin/ccache` we need two little Bash scripts 
+for invoking \em ccache.
+
+For `clang` save the following two lines as `/usr/local/bin/clang`:
+\verbatim
+#!/bin/bash
+CCACHE_CPP2=yes ccache /usr/bin/clang -Qunused-arguments -fcolor-diagnostics "$@"
+\endverbatim
+And for `clang++` save the following two lines as `/usr/local/bin/clang++`:
+\verbatim
+#!/bin/bash
+CCACHE_CPP2=yes ccache /usr/bin/clang++ -Qunused-arguments -fcolor-diagnostics "$@"
+\endverbatim
+
+\subsection secCCACHEMultiCache Using Multiple Caches
+When using \em ccache for multiple build configurations the speedup is far from
+being optimal.
+This is due to the fact, that ccache overrides the compiler objects for a given
+source file if the compile parameters have changed.
+Switching back and forth between different build configurations causes more cache
+misses than hits in \em ccache and little to no speedup.
+
+Luckily \em ccache allows us to specify the cache directory via the environment 
+variable `CCACHE_DIR`.
+By default this is `/home/USER/.ccache`.
+
+For the four build configurations mentioned at the beginning, we need four 
+different caches.
+Create those in a directory writable by you, e.g. in `/home/USER/.cache/ccache/ug4`:
+- `/home/USER/.cache/ccache/ug4/build_release_sp`
+- `/home/USER/.cache/ccache/ug4/build_release_mp`
+- `/home/USER/.cache/ccache/ug4/build_debug_sp`
+- `/home/USER/.cache/ccache/ug4/build_debug_mp`
+
+When executing `make` in one of the build dirs, simply set `CCACHE_DIR` to the
+appropriate cache directory:
+\verbatim
+cd build_debug_mp
+CCACHE_DIR=/home/USER/.cache/ccache/ug4/build_debug_mp make
+\endverbatim
+
+\note In the case of \ug4 \em ccache uses between 1.5GB and 2GB for its cache
+per build configuration.
+
+*/

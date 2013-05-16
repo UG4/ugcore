@@ -7,6 +7,7 @@ These pages should give help to ease the collaborative development of \ug4.
 - \subpage pageUG4CodingStyle
 - \subpage pageTeamCommunication
 - \subpage pageUG4DoxygenQuickref
+- \subpage pageUG4CompilationOptimization
 - \subpage pageUsingGit
 - \subpage pageUG4SSH
 - \subpage pageUG4SVN

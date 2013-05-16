@@ -67,6 +67,7 @@ environment
 		- \ref pageInstallNetbeans
 		- \ref pageUG4CodingStyle
 		- \ref pageTeamCommunication
+		- \ref pageUG4CompilationOptimization
 		- \ref pageUG4DoxygenQuickref
 		- \ref pageUsingGit
 		- \ref pageUG4SSH
