@@ -4,60 +4,95 @@
 
 /** \page pageTroubleshooting Troubleshooting
 
-- \ref troubleshootingCompiling
-- \ref troubleshootingParallel
+[TOC]
 
-
-This file is intended for troubleshooting. Please provide information about as much errors as possible.
-It might be a very stupid error for you, but there's a high chance someone else has the same problem
-and spends hours on solving it.
+This file is intended for troubleshooting.
+Please provide information about as much errors as possible.
+It might be a very stupid error for you, but there's a high chance someone else 
+has the same problem and spends hours on solving it.
 
 <hr>
 \section troubleshootingCompiling Compiling
 <hr>
 
-\subsection troubleshootingCompiling1 General Tipps
-<b>Symptoms</b><br>
-You can't compile/link your program.<br>
-<b>Possible Cause</b><br>
-Could be anything. If the problem persists, copy/paste all your console output and email it to someone.<br>
-<b>Solution</b><br>
-If you can't compile your program, it is sometimes a good idea to recompile or relink parts of ug4.
-Try the following:
-<ul>
-<li> Delete contents <tt>ug4/bin/plugins</tt> of directory. Recompile ug4.
-<li> Delete contents of whole <tt>ug4/bin/</tt> directory. Recompile ug4.
-<li> Delete contents of whole <tt>ug4/bin/</tt> directory and reset your build configuration by deleting 
-your build directory (e.g. ug4/debug). You will have to redo a cmake .. and reenter all your cmake parameters like -DDIM and plugins.
-</ul>
+\subsection troubleshooting_cant_compile_or_link Can not compile or link
+<dl>
+	<dt>Symptoms</dt>
+	<dd>
+		You can't compile/link your program
+	</dd>
+	<dt>Possible Cause</dt>
+	<dd>
+		Could be anything.
+		If the problem persists, copy/paste all your console output and email it to someone.
+	</dd>
+	<dt>Solution</dt>
+	<dd>
+		If you can't compile your program, it is sometimes a good idea to recompile or relink parts of \ug4.
+		Try the following:
+		- Delete contents `ug4/bin/plugins` of directory. Recompile \ug4.
+		- Delete contents of whole `ug4/bin/` directory. Recompile \ug4.
+		- Delete contents of whole `ug4/bin/` directory and reset your build configuration 
+		  by deleting your build directory (e.g. `ug4/debug`).
+		  You will have to redo a `cmake ..` and reenter all your \em CMake parameters 
+		  like `-DDIM` and plugins.
+	</dd>
+</dl>
 
+\subsection troubleshooting_ugshell_registry_errors ugshell crashes on startup with registry errors
+<dl>
+	<dt>Symptoms</dt>
+	<dd>\em ugshell keeps crashing on startup with registry errors</dd>
+	<dt>Possible Causes</dt>
+	<dd>
+		A plugin might got renamed or deleted and \em CMake is not able to detect previous 
+		and not deprecated library files in `ug4/bin/plugins`.
+	</dd>
+	<dt>Solution</dt>
+	<dd>
+		Delete the content of `ug4/bin/plugins`, reconfigure (i.e. run \em CMake in your
+		build directory) and recompile \ug4.
+	</dd>
+</dl>
 
-<hr>
-\subsection troubleshootingCompiling2 Compiling plugin with different configuration Plugin initialization shows error
-<b>Symptoms</b><br>
-\code
+\subsection troubleshooting_compile_plugin_diff_config Compiling plugin with different configuration Plugin initialization shows error
+<dl>
+	<dt>Symptoms</dt>
+	<dd>
+		\verbatim
 *** glibc detected *** gravtree: corrupted double-linked list: 0x000000001aa0fc50 ***
-\endcode
-<b> Cause </b><br>
-Compiling plugin seperately with different configurations<br>
-<b> Solution </b><br>
-Delete contents <tt>ug4/bin/plugins</tt> of directory.
-Use the <tt>-D[pluginname]</tt> option of cmake.
-Recompile ug4.
+		\endverbatim
+	</dd>
+	<dt>Cause</dt>
+	<dd>Compiling plugin seperately with different configurations</dd>
+	<dt>Solution</dt>
+	<dd>
+		Delete contents `ug4/bin/plugins` of directory.
+		Use the `-D[pluginname]` option of cmake.
+		Recompile \ug4.
+	</dd>
+</dl>
 
 <hr>
 \section troubleshootingParallel Parallel execution
-
-
 <hr>
-\subsection troubleshootingParallel1 Output appears multiple times
-<br><b>Symptoms</b><br>
-Parallel output appears multiple times even though -outproc 0 was chosen.
-<br><b> Possible Cause </b><br>
-ug4 was not compiled with UG_PARALLEL. Try to use PrintBuildConfiguration() in LUA/ugshell or
-enter cmake .. in your build dir. There you should get PARALLEL: ON.
-<br><b> Solution </b><br>
-Enter cmake -DPARALLEL=ON .. . If you get errors that MPI could not be found, ask someone.
-<hr>
+
+\subsection troubleshooting_multiple_parallel_output Output appears multiple times
+<dl>
+	<dt>Symptoms</dt>
+	<dd>Parallel output appears multiple times even though `-outproc 0` was chosen.</dd>
+	<dt>Possible Cause </dt>
+	<dd>
+		\ug4 was not compiled with `UG_PARALLEL`.
+		Try to use `PrintBuildConfiguration()` in LUA/ugshell or enter `cmake ..` in 
+		your build dir.
+		There you should get `PARALLEL: ON`.
+	</dd>
+	<dt>Solution</dt>
+	<dd>
+		Enter `cmake -DPARALLEL=ON ..`.
+		If you get errors that MPI could not be found, ask someone.
+	</dd>
+</dl>
 
 */
