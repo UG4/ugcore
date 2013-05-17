@@ -817,7 +817,7 @@ eval_and_deriv(TData vValue[],
 	for(size_t c = 0; c < vDataIn.size(); ++c)
 	{
 	//	check if input has derivative
-		if(m_vpDependData[c]->zero_derivative()) continue;
+		if(m_vpUserData[c]->zero_derivative()) continue;
 
 	//	loop ips
 		for(size_t ip = 0; ip < nip; ++ip)
