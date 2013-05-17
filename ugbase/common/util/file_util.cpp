@@ -149,6 +149,11 @@ string MakeTmpFile(string filename, const string &extension, bool &bSuccess)
 	return "";
 }
 
+bool CreateDirectory(std::string directory)
+{
+	return CreateDirectory(directory.c_str());
+}
+
 } // namespace ug
 
 // EOF
