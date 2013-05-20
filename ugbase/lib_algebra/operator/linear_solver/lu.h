@@ -105,16 +105,16 @@ class LU
 
 
 		bool m_bDense;
-		SmartPtr<ILUTPreconditioner<TAlgebra> > ilut;
-		SmartPtr<MatrixOperator<matrix_type, vector_type> > mo;
-		SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > linearSolver;
+		SmartPtr<ILUTPreconditioner<CPUAlgebra> > ilut;
+		SmartPtr<MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type> > mo;
+		SmartPtr<IPreconditionedLinearOperatorInverse<CPUAlgebra::vector_type> > linearSolver;
 		bool init_sparse(const matrix_type &A)
 		{
 			m_bDense = false;
-			ilut = new ILUTPreconditioner<TAlgebra>(0);
+			ilut = new ILUTPreconditioner<CPUAlgebra>(0);
 
-			mo = new MatrixOperator<matrix_type, vector_type>;
-			matrix_type &mat = mo->get_matrix();
+			mo = new MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type>;
+			CPUAlgebra::matrix_type &mat = mo->get_matrix();
 			mat.resize_and_clear(m_size, m_size);
 #ifdef UG_PARALLEL
 			mat.set_storage_type(PST_ADDITIVE);
@@ -132,7 +132,7 @@ class LU
 				}
 			mat.defragment();
 
-			SmartPtr<StdConvCheck<vector_type> > convCheck = new StdConvCheck<vector_type>;
+			SmartPtr<StdConvCheck<CPUAlgebra::vector_type> > convCheck = new StdConvCheck<CPUAlgebra::vector_type>;
 			convCheck->set_maximum_steps(100);
 			convCheck->set_minimum_defect(1e-12);
 			convCheck->set_reduction(1e-16);
@@ -140,7 +140,7 @@ class LU
 
 
 
-			linearSolver = new LinearSolver<vector_type>;
+			linearSolver = new LinearSolver<CPUAlgebra::vector_type>;
 			linearSolver->set_preconditioner(ilut);
 			linearSolver->set_convergence_check(convCheck);
 			linearSolver->init(mo);
@@ -347,8 +347,8 @@ class LU
 	/// inverse
 		DenseMatrixInverse<DenseMatrix<VariableArray2<double> > > m_mat;
 		DenseVector<VariableArray1<double> > m_tmp;
-		vector_type m_u;
-		vector_type m_b;
+		CPUAlgebra::vector_type m_u;
+		CPUAlgebra::vector_type m_b;
 		size_t m_size;
 };
 
