@@ -589,9 +589,19 @@ copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisju
 		for(size_t i = 0; i < vIndexMap.size(); ++i)
 			this->operator[](vIndexMap[i].second)
 				= this->operator[](vIndexMap[i].first);
-
-//	other case not implemented
-	else UG_THROW("Not implemented.");
+	else {
+		typedef typename vector_type::value_type value_type;
+		std::vector<value_type> values;
+		values.resize(vIndexMap[vIndexMap.size()-1].first);
+		for(size_t i = 0; i < vIndexMap.size(); ++i){ 
+			const size_t index = vIndexMap[i].first;
+			if (index>=values.size()) values.resize(index+1);
+			values[index] = this->operator[](index);
+		}
+		for(size_t i = 0; i < vIndexMap.size(); ++i)
+			this->operator[](vIndexMap[i].second)
+				= values[vIndexMap[i].first];
+	}
 }
 
 template <typename TDomain, typename TAlgebra>

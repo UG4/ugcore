@@ -306,6 +306,14 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		bool add(GeometricObject* obj, const ReferenceObjectID roid,
 		         const int si, LevInfo<T>& li);
 
+		template <typename TBaseObject, typename T>
+				bool add(TBaseObject* obj, const ReferenceObjectID roid,
+				         const int si, LevInfo<T>& li,std::vector<std::pair<size_t,size_t> >& vReplaced);
+
+		template <typename T>
+		bool add(GeometricObject* obj, const ReferenceObjectID roid,
+		         const int si, LevInfo<T>& li,std::vector<std::pair<size_t,size_t> >& vReplaced);
+
 		/**
 		 * adds indices to a geometric object. Tries to reuse free indices.
 		 *

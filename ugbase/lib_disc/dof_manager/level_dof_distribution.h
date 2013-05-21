@@ -183,8 +183,11 @@ class LevelDoFDistribution :  public DoFDistribution
 	///	renames the indices
 		void permute_indices(const std::vector<size_t>& vIndNew);
 
-	///	removes wholes in index set
+	///	removes holes in index set
 		void defragment();
+
+	/// only needed in surface dof distribution, here it does nothing
+		void set_redistribution(bool bRedistribute){};
 
 #ifdef UG_PARALLEL
 	public:

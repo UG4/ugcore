@@ -27,7 +27,8 @@ SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
 		 	MGDoFDistribution(spMG, spMGSH, spDDInfo, bGrouped),
 		 	DoFDistribution(*this, spSurfView, GridLevel(level, GridLevel::SURFACE, false)),
 		 	m_spSurfView(spSurfView),
-		 	m_level(level)
+		 	m_level(level),
+		 	m_bRedistribute(false)
 {
 	init();
 }
@@ -87,12 +88,76 @@ void SurfaceDoFDistribution::init()
 #endif
 }
 
-void SurfaceDoFDistribution::redistribute_dofs()
+template <typename TBaseElem>
+void SurfaceDoFDistribution::reinit(std::vector<std::pair<size_t,size_t> >& vReplaced)
+{
+	typedef typename traits<TBaseElem>::iterator iterator;
+	static const int dim = TBaseElem::dim;
+
+	for(int si = 0; si < num_subsets(); ++si)
+	{
+	// 	skip if no dofs to be distributed
+		if(max_dofs(dim, si) == 0) continue;
+
+	//	get iterators of elems
+		iterator iter = begin<TBaseElem>(si);
+		iterator iterEnd = end<TBaseElem>(si);
+
+	// 	loop elems
+		for(; iter != iterEnd; ++iter)
+		{
+		// 	get vertex
+			TBaseElem* elem = *iter;
+
+		//	a) add new indices
+
+		//	add element
+			const ReferenceObjectID roid = elem->reference_object_id();
+			add(elem, roid, si, m_levInfo,vReplaced);
+
+		//	b) if copy exists, copy also to parent and grand-parents and ... etc.
+			//\todo: save this execution in non-adaptive case
+			TBaseElem* parent = parent_if_copy(elem);
+			while(parent){
+				copy(parent, elem);
+				elem = parent;
+				parent = parent_if_copy(elem);
+			}
+		}
+	} // end subset
+}
+
+void SurfaceDoFDistribution::reinit()
+{
+	m_levInfo.clear_all();
+
+	std::vector<std::pair<size_t,size_t> > vReplaced;
+
+	if(max_dofs(VERTEX) > 0) reinit<VertexBase>(vReplaced);
+	if(max_dofs(EDGE) > 0)   reinit<EdgeBase>(vReplaced);
+	if(max_dofs(FACE) > 0)   reinit<Face>(vReplaced);
+	if(max_dofs(VOLUME) > 0) reinit<Volume>(vReplaced);
+
+	//	adapt managed vectors
+	if(!vReplaced.empty())
+		copy_values(vReplaced, false);
+
+#ifdef UG_PARALLEL
+	m_pDistGridMgr = m_spMG->distributed_grid_manager();
+	create_layouts_and_communicator();
+#endif
+
+}
+
+void SurfaceDoFDistribution::redistribute_dofs(bool bReinit)
 {
 	m_levInfo.clear_all();
 	m_sFreeIndex.clear();
 
-	init();
+	if (bReinit==false)
+		init();
+	else
+		reinit();
 
 	resize_values(num_indices());
 }
@@ -422,17 +487,18 @@ void SurfaceDoFDistribution::defragment()
 {
 //	defragment
 	std::vector<std::pair<size_t,size_t> > vReplaced;
-
 	bool valid = true;
 
-	if(max_dofs(VERTEX) > 0) valid=defragment<VertexBase>(vReplaced);
-	if((max_dofs(EDGE) > 0)&&(valid==true)) valid=defragment<EdgeBase>(vReplaced);
-	if((max_dofs(FACE) > 0)&&(valid==true)) valid=defragment<Face>(vReplaced);
-	if((max_dofs(VOLUME) > 0)&&(valid==true)) valid=defragment<Volume>(vReplaced);
+	if (m_bRedistribute==false){
+		if(max_dofs(VERTEX) > 0) valid=defragment<VertexBase>(vReplaced);
+		if((max_dofs(EDGE) > 0)&&(valid==true)) valid=defragment<EdgeBase>(vReplaced);
+		if((max_dofs(FACE) > 0)&&(valid==true)) valid=defragment<Face>(vReplaced);
+		if((max_dofs(VOLUME) > 0)&&(valid==true)) valid=defragment<Volume>(vReplaced);
+	} else valid=false;
 
 	// if no valid index set redistribute
 	if (valid==false){
-		redistribute_dofs();
+		redistribute_dofs(true);
 	} else {
 		//	check that only invalid indices left
 		for(size_t m=1;m<lev_info().max_multiplicity();m++)
@@ -503,6 +569,8 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 				m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
 		}
 	}
+	
+	if (m_bRedistribute==true) return;
 
 //	Now we remember that the indices on the parent object must be removed when
 //	defragmentation is called. We do this only, if the parent is of same

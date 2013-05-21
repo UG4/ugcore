@@ -30,7 +30,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 		void defragment();
 
 	///	redistributes all dofs and resizes associated vectors afterwards.
-		virtual void redistribute_dofs();
+		virtual void redistribute_dofs(bool bReinit);
 
 	protected:
 	///	initializes the indices
@@ -39,6 +39,13 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 	///	initializes the indices
 		template <typename TBaseElem>
 		void init();
+
+	///	initializes the indices and permute values
+		void reinit();
+
+	///	initializes the indices and permute values
+		template <typename TBaseElem>
+		void reinit(std::vector<std::pair<size_t,size_t> >& vReplaced);
 
 	///	removes holes in the index set
 	/**
@@ -114,7 +121,10 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 
 	///	renames the indices
 		void permute_indices(const std::vector<size_t>& vIndNew);
-
+		
+	/// set redistribution	
+		void set_redistribution(bool bRedistribute){m_bRedistribute = bRedistribute;}
+		
 	protected:
 		/// permutes the indices for an base element type
 		template <typename TBaseElem>
@@ -138,6 +148,8 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 
 	///	set of invalid indices, still contained in index set
 		std::set<size_t> m_sFreeIndex;
+		
+		bool m_bRedistribute;
 
 	protected:
 #ifdef UG_PARALLEL

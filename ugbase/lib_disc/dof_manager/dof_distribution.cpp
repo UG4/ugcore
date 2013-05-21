@@ -13,8 +13,9 @@ void DoFDistribution::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
 {
 	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
 	{
-		if(spTransfer->prolongation_needed((GeometricBaseObject)gbo))
+		if(spTransfer->prolongation_needed((GeometricBaseObject)gbo)){
 			m_vProlongation[gbo].push_back(spTransfer);
+		}
 
 		if(spTransfer->restriction_needed((GeometricBaseObject)gbo))
 			m_vRestriction[gbo].push_back(spTransfer);

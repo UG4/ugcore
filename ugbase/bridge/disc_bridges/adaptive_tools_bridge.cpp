@@ -72,7 +72,19 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 		reg.add_function("Restrict", &Restrict<TDomain, TAlgebra>, grp);
 	}
+	
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
 
+//	ElementLocalTransfer
+	{
+		typedef ElementLocalTransfer<TAlgebra,TFunction> T;
+		typedef ILocalTransferAlgebra<TAlgebra> TBase;
+		string name = string("ElementLocalTransfer").append(suffix);
+		reg.add_class_<T, TBase>(name)
+			.template add_constructor<void (*)(SmartPtr<TFunction>)>("grid function")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ElementLocalTransfer", tag);
+	}
 }
 
 /**
@@ -144,7 +156,6 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "P1LocalTransfer", tag);
 	}
-
 }
 
 /**

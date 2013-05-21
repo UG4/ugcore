@@ -59,6 +59,9 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider,
 		///	renames the indices
 		virtual void permute_indices(const std::vector<size_t>& vIndNew) = 0;
 
+		/// sets redistribution of grid after grid adaption
+		virtual void set_redistribution(bool bRedistribution) = 0;
+
 	public:
 		template <typename TElem>
 		struct traits

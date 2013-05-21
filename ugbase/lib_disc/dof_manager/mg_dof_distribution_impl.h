@@ -78,7 +78,6 @@ inline const size_t& MGDoFDistribution::obj_index(GeometricObject* obj) const
 };
 
 
-
 template <typename TBaseObject, typename T>
 bool MGDoFDistribution::
 add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
@@ -121,6 +120,77 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 //	first managed index plus the size of the index set. (If holes are in the
 //	index set, this is not treated here, holes remain)
 	obj_index(obj) = li.sizeIndexSet;
+
+//	the size of the index set has changed. adjust counter
+	li.sizeIndexSet += numNewIndex;
+
+//	number of managed indices and the number of managed indices on the subset has
+//	changed. Thus, increase the counters.
+	li.numIndex += numNewIndex;
+	li.vNumIndexOnSubset[si] += numNewIndex;
+
+	// if obj is a master, assign all its slaves
+	if(master) {
+		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer SlaveContainer;
+		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveIterator SlaveIterator;
+		SlaveContainer& slaves = *m_spMG->periodic_boundary_manager()->slaves(obj);
+		size_t master_index = obj_index(obj);
+		for(SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
+		{
+			obj_index(*iter) = master_index;
+		}
+	}
+
+	return true;
+}
+
+template <typename TBaseObject, typename T>
+bool MGDoFDistribution::
+add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
+    LevInfo<T>& li,std::vector<std::pair<size_t,size_t> >& vReplaced)
+{
+	if(si == -1){
+		if(m_strictSubsetChecks){
+			UG_THROW("Only elements which are assigned to a subset may be added"
+					" to the dof manager.");
+		}
+		else{
+			obj_index(obj) = NOT_YET_ASSIGNED;
+			return false;
+		}
+	}
+
+//	if no dofs on this subset for the roid, do nothing
+	if(num_dofs(roid,si) == 0) return false;
+
+	bool master = false;
+
+	if(m_spMG->has_periodic_boundaries())
+	{
+		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
+		// ignore slaves
+		if(pbm.is_slave(obj))
+			return false;
+
+		if(pbm.is_master(obj))
+		{
+			master = true;
+		}
+	}
+
+//	get old (current) index
+	const size_t oldIndex = obj_index(obj);
+
+//	compute the number of indices needed on the Geometric object
+	size_t numNewIndex = 1;
+	if(!m_bGrouped) numNewIndex = num_dofs(roid,si);
+
+	const size_t newIndex = li.sizeIndexSet;
+
+// 	set first available index to the object. The first available index is the
+//	first managed index plus the size of the index set. (If holes are in the
+//	index set, this is not treated here, holes remain)
+	obj_index(obj) = li.sizeIndexSet;
 	
 //	the size of the index set has changed. adjust counter
 	li.sizeIndexSet += numNewIndex;
@@ -141,6 +211,9 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 			obj_index(*iter) = master_index;
 		}
 	}
+
+	//	remember replacement
+	vReplaced.push_back(std::pair<size_t,size_t>(oldIndex, newIndex));
 
 	return true;
 }
@@ -352,6 +425,21 @@ bool MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
 		case EDGE: return add(static_cast<EdgeBase*>(elem), roid, si, li);
 		case FACE: return add(static_cast<Face*>(elem), roid, si, li);
 		case VOLUME: return add(static_cast<Volume*>(elem), roid, si, li);
+		default: UG_THROW("Geometric Base element not found.");
+	}
+	return false;
+}
+
+template <typename T>
+bool MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
+                            const int si, LevInfo<T>& li,std::vector<std::pair<size_t,size_t> >& vReplaced)
+{
+	switch(elem->base_object_id())
+	{
+		case VERTEX: return add(static_cast<VertexBase*>(elem), roid, si, li,vReplaced);
+		case EDGE: return add(static_cast<EdgeBase*>(elem), roid, si, li,vReplaced);
+		case FACE: return add(static_cast<Face*>(elem), roid, si, li,vReplaced);
+		case VOLUME: return add(static_cast<Volume*>(elem), roid, si, li,vReplaced);
 		default: UG_THROW("Geometric Base element not found.");
 	}
 	return false;

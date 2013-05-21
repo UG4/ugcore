@@ -345,6 +345,10 @@ class GridFunction
 
 	/// return m_bManaged
 		bool managed(){return m_bManaged;}
+		
+		void set_redistribution(bool bRedistribute){
+			m_spDD->set_redistribution(bRedistribute);
+		}
 
 	protected:
 	///	registered transfers
