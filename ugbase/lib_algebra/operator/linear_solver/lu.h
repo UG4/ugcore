@@ -20,6 +20,8 @@
 #include "../interface/preconditioned_linear_operator_inverse.h"
 #include "linear_solver.h"
 
+#include "lib_algebra/cpu_algebra_types.h"
+
 #include "../operator_util.h"
 namespace ug{
 
