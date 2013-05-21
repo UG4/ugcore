@@ -136,8 +136,8 @@ class LU
 
 			SmartPtr<StdConvCheck<CPUAlgebra::vector_type> > convCheck = new StdConvCheck<CPUAlgebra::vector_type>;
 			convCheck->set_maximum_steps(100);
-			convCheck->set_minimum_defect(1e-12);
-			convCheck->set_reduction(1e-16);
+			convCheck->set_minimum_defect(1e-50);
+			convCheck->set_reduction(1e-20);
 			convCheck->set_verbose(false);
 
 
