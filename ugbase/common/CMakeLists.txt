@@ -12,6 +12,7 @@ set(srcCommon	log.cpp
 				debug_id.cpp
 				assert.cpp
 				serialization.cpp
+				progress.cpp
 				allocators/small_object_allocator.cpp
 				util/base64_file_writer.cpp
 				util/binary_buffer.cpp
