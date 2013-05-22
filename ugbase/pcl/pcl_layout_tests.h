@@ -303,7 +303,7 @@ bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
 
 
 template<typename TLayout>
-bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
+inline bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
                  pcl::InterfaceCommunicator<TLayout> &com,
                  const TLayout &masterLayout,
                  const TLayout &slaveLayout)
@@ -311,6 +311,21 @@ bool PrintLayout(const pcl::ProcessCommunicator &processCommunicator,
 	return TestLayout(processCommunicator, com, masterLayout, slaveLayout, true);
 }
 
+
+
+template<typename TLayout>
+inline void PrintLayout(const TLayout &layout)
+{
+	for(typename TLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	{
+		size_t pid = layout.proc_id(iter);
+		UG_LOG("to processor " << pid << ": ");
+		const typename TLayout::Interface &interface = layout.interface(iter);
+		for(typename TLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+			UG_LOG(interface.get_element(iter2) << "  ");
+		UG_LOG("\n");
+	}
+}
 
 #ifndef NDEBUG
 	#define TESTLAYOUT(processCommunicator, com, master, slave) { if(TestLayout(processCommunicator,\
