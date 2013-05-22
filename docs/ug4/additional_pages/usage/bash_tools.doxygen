@@ -7,23 +7,27 @@
 [TOC]
 
 <hr>
-\section secBashToolsSetup Setup
+\section secBashToolsSetup Setting up ugbash
 Say YOURUG4ROOT is the root directory of ug4 (it contains ugbase, plugin and so forth).
 Add the line  <tt>source YOURUG4ROOT/scripts/shell/ugbash</tt> to your <tt>~/.bash_profile</tt> or <tt>~/.bashrc</tt>.
-Note that it depends on your system if .bashrc or .bash_profile is used. See also <a href="http://www.joshstaiger.org/archives/2005/07/bash_profile_vs.html">here</a>.
-
+(it depends on your system if .bashrc or .bash_profile is used. See also <a href="http://www.joshstaiger.org/archives/2005/07/bash_profile_vs.html">here</a>.)
+\note The bash configuration files (.bashrc or .bash_profile) are loaded when you open up a new console or log into a computer (and only then). Now every time you change them, you have to
+reload them (with <tt>source .bashrc</tt> or <tt>source .bash_profile</tt>) or just open a new shell to make your changes effective.
 
 <hr>
-\section secBashToolsFeatures Features
+\section secBashToolsFeatures ugbash Features
 
 - <tt>$UG4_ROOT</tt> will be set automatically to YOURUG4ROOT.
 - <tt>$UG4_ROOT/scripts/shell</tt> and <tt>$UG4_ROOT/bin</tt> will be added to your path. That means you can call <tt>ugshell</tt> from everywhere.
+- \ref bashToolsCompletion
+
+ugbash makes some additional bash commands available:
 - <tt>cdug</tt> will change directory to <tt>UG4_ROOT</tt>. <tt> cdug subdir</tt> will change directory to <tt>UG4_ROOT/subdir</tt> (completion possible). 
 - <tt>ugbasegrep</tt> "the stuff i search" will do a grep-search for "the stuff i search" in ug4/ugbase, same for <tt>ugpluginsgrep</tt> in ug4/plugins.
-- <tt>ugrelib</tt> will delete ug4/lib/* and ug4/bin/ugshell, so you can re-link ugshell (sometimes necessary).
-- ugsubmit (\ref pageugsubmit)   
+- <tt>ugrelib</tt> will delete ug4/lib/*, ug4/bin/ugshell and ug4/bin/plugins/*, so you can re-link ugshell (sometimes necessary).
+- ugsubmit (\ref pageugsubmit)
 - \ref bashToolsXprun
-- \ref bashToolsCompletion
+
  
  
 <hr>
@@ -37,7 +41,7 @@ That way you'll always see in which path you are (also in the title of the conso
 \section bashToolsCompletion Completion
 <hr>
 
-We added some bash completion for power users:
+When using ugbash, you have additional completion (used with tab):
 
 <ul>
 <li> ugshell

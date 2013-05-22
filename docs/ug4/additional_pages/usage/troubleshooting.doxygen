@@ -19,23 +19,29 @@ has the same problem and spends hours on solving it.
 <dl>
 	<dt>Symptoms</dt>
 	<dd>
-		You can't compile/link your program
+		- You can't compile/link your program
+		- "dyld: lazy symbol binding failed: Symbol not found" (link error)
+		- "duplicate symbol" (link error)
 	</dd>
 	<dt>Possible Cause</dt>
 	<dd>
-		Could be anything.
-		If the problem persists, copy/paste all your console output and email it to someone.
+		- Part of \ug4 compiled with one cmake setting, other part compiled with another.
+		- OR Wrong settings in CMake, missing libraries, wrong library paths.
+		- If the problem persists, copy/paste all your console output and email it to someone.
 	</dd>
 	<dt>Solution</dt>
 	<dd>
 		If you can't compile your program, it is sometimes a good idea to recompile or relink parts of \ug4.
 		Try the following:
-		- Delete contents `ug4/bin/plugins` of directory. Recompile \ug4.
-		- Delete contents of whole `ug4/bin/` directory. Recompile \ug4.
-		- Delete contents of whole `ug4/bin/` directory and reset your build configuration 
+		- use <tt>ugrelib</tt> (that is: delete ug4/bin/ugshell, ug4/lib/*, ug4/bin/plugins/*), recompile.
+		- If that doesn't work, also do a `make clean` and a make.
+		- If that doesn't work, also reset your build configuration 
 		  by deleting your build directory (e.g. `ug4/debug`).
 		  You will have to redo a `cmake ..` and reenter all your \em CMake parameters 
 		  like `-DDIM` and plugins.
+		- If that doesn't help, it may be a problem with external libraries.
+		  Read the error line. Memorize the error message. Think about it. Does it complain about something with MPI or any library you know?
+		  If there are filepaths or filenames, are they correct? Where do they point to?
 	</dd>
 </dl>
 
@@ -94,5 +100,20 @@ has the same problem and spends hours on solving it.
 		If you get errors that MPI could not be found, ask someone.
 	</dd>
 </dl>
+
+<hr>
+\section troubleshootingOther Other
+<hr>
+
+\subsection troubleshooting_cant_find_scripts Can't find [ugsubmit/ugrelib/cdug etc.]
+<dl>
+	<dt>Symptoms</dt>
+	<dd>You want to run e.g. ugsubmit, but it says it is not found</dd>
+	<dt>Solution</dt>
+	<dd>
+		All bash script extensions of ug are located in ug4/scripts/shell, go to \ref pageBashTools to learn more.
+	</dd>
+</dl>
+
 
 */
