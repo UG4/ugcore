@@ -58,7 +58,7 @@ function util.SetupRSAMGPreconditioner(base, presmoother, postsmoother)
 	amg:set_epsilon_strong(0.1)
 	amg:set_max_nodes_for_base(100)
 	amg:set_max_fill_before_base(0.4)
-	amg:set_prolongation_truncation(1e-2)
+	amg:set_prolongation_truncation(1e-4)
 	amg:set_min_nodes_on_one_processor(1000)
 	amg:set_preferred_nodes_on_one_processor(1000)
 	

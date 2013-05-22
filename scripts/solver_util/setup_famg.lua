@@ -65,7 +65,7 @@ function util.SetupFAMGPreconditioner(base, presmoother, postsmoother)
 	amg:set_theta(0.9)
 
 	local jac = Jacobi()
-	jac:set_damp(0.8)
+	jac:set_damp(0.6)
 	amg:set_testvector_smooths(3)
 	amg:set_damping_for_smoother_in_interpolation_calculation(0.6)
 	amg:set_testvector_smoother(jac)
@@ -86,7 +86,7 @@ function util.SetupFAMGPreconditioner(base, presmoother, postsmoother)
 	amg:set_max_fill_before_base(0.4)
 	amg:set_fsmoothing(true)
 	
-	amg:set_galerkin_truncation(1e-9)
+	amg:set_galerkin_truncation(0.0)
 	amg:set_H_reduce_interpolation_nodes_parameter(0.0)
 	amg:set_prereduce_A_parameter(0.0)
 	
