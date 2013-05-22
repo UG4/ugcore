@@ -155,13 +155,13 @@ option(POSIX "If enabled and available, some additional functionality may be ava
 option(BUILD_UGDOCU "If enabled, every build builds a new completion file for ugIDE" OFF)
 option(CRS_ALGEBRA "Use the CRS Sparse Matrix" OFF)
 option(CPU_ALGEBRA "Use the old CPU Sparse Matrix" ON)
+option(INTERNAL_MEMTRACKER "Internal Memory Tracker" OFF)
 
 if(APPLE)
 	option(USE_LUA2C "Use LUA2C" ON)
 else(APPLE)
 	option(USE_LUA2C "Use LUA2C" OFF)
 endif(APPLE)
-
 
 ################################################################################
 # set default values for pseudo-options
@@ -242,6 +242,11 @@ message(STATUS "Info: HLIBPRO:  ${HLIBPRO}")
 message(STATUS "")
 message(STATUS "Info: C Compiler ID: ${CMAKE_C_COMPILER_ID}, C++ Compiler ID: ${CMAKE_CXX_COMPILER_ID}") 
 message(STATUS "")
+
+if(INTERNAL_MEMTRACKER)
+    message(STATUS "Info: Using Internal Memtracker (INTERNAL_MEMTRACKER=ON)")
+endif(INTERNAL_MEMTRACKER)
+
 
 ################################################################################
 # Options are processed in this section.

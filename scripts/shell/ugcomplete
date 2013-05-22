@@ -271,6 +271,7 @@ None Shiny Scalasca Vampir \
 -DCRS_ALGEBRA= \
 -DCPU_ALGEBRA= \
 -DUSE_LUA2C= \
+-DINTERNAL_MEMTRACKER= \
 $CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o default -o nospace ugcmake
 
 
