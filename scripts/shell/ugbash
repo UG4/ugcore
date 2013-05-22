@@ -84,4 +84,4 @@ ug4svnupdate()
 
 source uginstall_config
 
-alias ugrelib="rm $UG4_ROOT/lib/*; rm $UG4_ROOT/bin/ugshell"
+alias ugrelib="rm $UG4_ROOT/lib/*; rm $UG4_ROOT/bin/ugshell; rm $UG4_ROOT/bin/plugins/*"
