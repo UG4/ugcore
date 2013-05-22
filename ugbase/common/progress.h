@@ -23,13 +23,8 @@ class Progress
 	int m_minSecondsUntilProgress;
 	double startS;
 public:
-	Progress(int minSecondsUntilProgress=1)
-	{
-		m_minSecondsUntilProgress = minSecondsUntilProgress;
-		m_length=70;
-		bStarted=false;
-		myDepth = totalDepth++;
-	}
+	Progress(int minSecondsUntilProgress=1);
+
 	~Progress()
 	{
 		stop();

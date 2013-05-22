@@ -6,7 +6,17 @@
  */
 
 #include "progress.h"
+namespace ug{
 
+int Progress::totalDepth = 0;
+int Progress::lastUpdateDepth = -1;
 
-int ug::Progress::totalDepth = 0;
-int ug::Progress::lastUpdateDepth = -1;
+Progress::Progress(int minSecondsUntilProgress)
+{
+	m_minSecondsUntilProgress = minSecondsUntilProgress;
+	m_length=100;
+	bStarted=false;
+	myDepth = totalDepth++;
+}
+
+}
