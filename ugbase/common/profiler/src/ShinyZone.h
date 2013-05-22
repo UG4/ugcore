@@ -19,6 +19,11 @@ restrictions:
        misrepresented as being the original software.
 
     3. This notice may not be removed or altered from any source distribution.
+
+////////////////////////////////////////////////////////////////////////////////////
+Modified by Goethe-Center for Scientific Computing, University of Frankfurt 2009-2013,
+see marks.
+- changes for group/file/line information
 */
 
 #ifndef SHINY_ZONE_H
@@ -49,9 +54,11 @@ namespace Shiny {
 
 		mutable const char* name;
 		
-		const char *groups;
-		const char *file;
-		int line;
+		// changes -[
+		const char *groups;		// profile group (default empty)
+		const char *file;		// file (fill with __FILE__)
+		int line;				// line in file ( __LINE__ )
+		// ]-
 		
 		
 		ProfileData data;

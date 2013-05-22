@@ -19,6 +19,10 @@ restrictions:
        misrepresented as being the original software.
 
     3. This notice may not be removed or altered from any source distribution.
+////////////////////////////////////////////////////////////////////////////////////
+Modified by Goethe-Center for Scientific Computing, University of Frankfurt 2009-2013,
+see marks.
+- changed default output width
 */
 
 #ifndef SHINY_OUTPUT_H

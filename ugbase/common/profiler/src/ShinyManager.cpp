@@ -19,6 +19,11 @@ restrictions:
        misrepresented as being the original software.
 
     3. This notice may not be removed or altered from any source distribution.
+
+////////////////////////////////////////////////////////////////////////////////////
+Modified by Goethe-Center for Scientific Computing, University of Frankfurt 2009-2013,
+see marks.
+- changes for group/file/line information
 */
 
 #include "ShinyManager.h"
@@ -64,9 +69,11 @@ namespace Shiny {
 			/* next = */ NULL,
 			/* _state = */ ProfileZone::STATE_HIDDEN,
 			/* name = */ "<root>",
+// changes -[
 			/* group = */ 0,
 			/* file = */ 0,
 			/* line = */ 0,
+// ]-
 			/* data = */ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
 		},
 		/* _initialized = */ false,
