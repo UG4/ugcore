@@ -628,44 +628,9 @@ void VecBroadcast(	TVector* pVecDest, const TVector* pVecSrc,
 		com.communicate();
 }
 
-template<typename TLayout>
-inline void PrintLayout(const TLayout &layout)
-{
-	for(typename TLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
-	{
-		size_t pid = layout.proc_id(iter);
-		UG_LOG("to processor " << pid << ": ");
-		const typename TLayout::Interface &interface = layout.interface(iter);
-		for(typename TLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
-			UG_LOG(interface.get_element(iter2) << "  ");
-		UG_LOG("\n");
-	}
-}
-
 inline bool PrintLayouts(const HorizontalAlgebraLayouts &layout)
 {
 	return TestLayout(layout.proc_comm(), layout.comm(), layout.master(), layout.slave(), true);
-}
-
-inline IndexLayout::Interface::iterator find(IndexLayout::Interface &interface, size_t i)
-{
-	for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
-	{
-		if(interface.get_element(iter) == i)
-			return iter;
-	}
-	return interface.end();
-}
-
-inline bool IsInInterface(IndexLayout::Interface &interface, size_t i)
-{
-	return find(interface, i) != interface.end();
-}
-
-inline void AddIfUnique(IndexLayout::Interface &interface, size_t i)
-{
-	if(IsInInterface(interface, i) == false)
-		interface.push_back(i);
 }
 
 template<typename TLayout>
