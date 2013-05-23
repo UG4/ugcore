@@ -348,7 +348,7 @@ void WriteVector(std::string filename, const Vector_type &b, postype *positions,
 template<typename Vector_type, typename postype>
 void WriteVectorPar(std::string filename, const Vector_type &b, postype *positions, int dimensions, const Vector_type *compareVec=NULL)
 {
-	WriteVectorPar(GetParallelName(b, filename), b, positions, dimensions, compareVec);
+	WriteVector(GetParallelName(b, filename), b, positions, dimensions, compareVec);
 }
 
 template<typename Matrix_type, typename Vector_type, typename postype>
@@ -408,7 +408,7 @@ template<typename Matrix_type, typename Vector_type, typename postype>
 void WriteVectorPar(std::string filename, const Matrix_type &A, const Vector_type &v,
 		postype *positions, int dimensions, const Vector_type *compareVec=NULL)
 {
-	WriteVectorPar(GetParallelName(A, filename), A, v, positions, dimensions, compareVec);
+	WriteVector(GetParallelName(A, filename), A, v, positions, dimensions, compareVec);
 }
 
 #if 0
