@@ -46,6 +46,30 @@ void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0);
 void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& vMap);
 
 
+
+inline IndexLayout::Interface::iterator find(IndexLayout::Interface &interface, size_t i)
+{
+	for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
+	{
+		if(interface.get_element(iter) == i)
+			return iter;
+	}
+	return interface.end();
+}
+
+inline bool IsInInterface(IndexLayout::Interface &interface, size_t i)
+{
+	return find(interface, i) != interface.end();
+}
+
+inline void AddIfUnique(IndexLayout::Interface &interface, size_t i)
+{
+	if(IsInInterface(interface, i) == false)
+		interface.push_back(i);
+}
+
+
+
 } // end namespace ug
 
 #endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__ */
