@@ -66,7 +66,7 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 	///	default constructor
 		OperatorInverseIterator(SmartPtr<ILinearOperatorInverse<vector_type>  > opInv) : m_opInv(opInv)
 		{
-			m_name = std::string("OperatorInverseIterator(") + string(m_opInv->name()) + string(")");
+			m_name = std::string("OperatorInverseIterator(") + std::string(m_opInv->name()) + std::string(")");
 		}
 		~OperatorInverseIterator()
 		{
