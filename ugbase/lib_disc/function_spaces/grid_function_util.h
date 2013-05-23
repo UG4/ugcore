@@ -52,7 +52,7 @@ void WriteMatrixToConnectionViewer(const char *filename,
 	ExtractPositions(u, vPos);
 
 // 	write matrix
-	WriteMatrixToConnectionViewer( filename, A, &vPos[0], dim );
+	ConnectionViewer::WriteMatrixPar( filename, A, &vPos[0], dim );
 }
 
 template<typename TGridFunction>
@@ -113,7 +113,7 @@ void WriteVectorToConnectionViewer(const char *filename,
 	ExtractPositions(u, vPos);
 
 //	write vector
-	WriteVectorToConnectionViewer( filename, b, &vPos[0], dim, pCompareVec);
+	ConnectionViewer::WriteVectorPar( filename, b, &vPos[0], dim, pCompareVec);
 }
 
 template<class TFunction>
@@ -137,7 +137,7 @@ void WriteVectorToConnectionViewer(
 	ExtractPositions(u, positions);
 
 //	write vector
-	WriteVectorToConnectionViewer( filename, A, b, &positions[0], dim, pCompareVec );
+	ConnectionViewer::WriteVectorPar( filename, A, b, &positions[0], dim, pCompareVec );
 }
 
 template<typename TGridFunction>
@@ -373,7 +373,7 @@ public:
 			extract_positions(m_gridLevel);
 			std::vector<MathVector<dim> >& vPos =
 					this->template get_positions<dim>();
-			WriteMatrixToConnectionViewer(name.c_str(), mat, &vPos[0], dim);
+			ConnectionViewer::WriteMatrixPar(name.c_str(), mat, &vPos[0], dim);
 		}
 		else{
 			if(m_pvMapGlobalToPatch){
@@ -390,9 +390,9 @@ public:
 			                 vCoarsePos);
 
 			if(mat.num_cols() == vFinePos.size())
-				WriteMatrixToConnectionViewer(name, mat, vFinePos, vCoarsePos, dim);
+				ConnectionViewer::WriteMatrixPar(name, mat, vFinePos, vCoarsePos, dim);
 			else
-				WriteMatrixToConnectionViewer(name, mat, vCoarsePos, vFinePos, dim);
+				ConnectionViewer::WriteMatrixPar(name, mat, vCoarsePos, vFinePos, dim);
 		}
 	}
 
@@ -432,7 +432,7 @@ protected:
 		extract_positions(m_gridLevel);
 		std::vector<MathVector<dim> >& vPos =
 				this->template get_positions<dim>();
-		WriteVectorToConnectionViewer(name.c_str(), vec, &vPos[0], dim);
+		ConnectionViewer::WriteVectorPar(name.c_str(), vec, &vPos[0], dim);
 	}
 
 	void write_vector_to_vtk(const vector_type& vec, const char* filename) {

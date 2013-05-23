@@ -34,7 +34,8 @@ if(PARALLEL)
 						parallelization/global_layout.cpp
 						parallelization/parallel_index_layout.cpp
 						parallelization/parallel_nodes.cpp
-						common/connection_viewer_output.cpp					
+						common/connection_viewer_output.cpp		
+						common/connection_viewer_input.cpp			
 						 )
 endif(PARALLEL)
 

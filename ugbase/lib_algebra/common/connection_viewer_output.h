@@ -12,15 +12,18 @@
 #include <fstream>
 #include <vector>
 #include <string>
-
+#include "common/progress.h"
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
 
-namespace ug
-{
 
 #define CONNECTION_VIEWER_VERSION 1
+
+namespace ug
+{
+namespace ConnectionViewer
+{
 
 #ifdef UG_PARALLEL
 /**
@@ -39,8 +42,43 @@ inline std::string GetParallelName(T &t, std::string name)
 {
 	return GetParallelName(name, t.layouts()->proc_comm());
 }
-
+#else
+inline std::string GetParallelName(T &t, std::string name)
+{
+	return name;
+}
 #endif
+
+
+bool AddMarkers(std::string filename, std::string markfilename);
+bool WriteMarkers(std::string markfilename, std::vector<bool> markers, float r, float g, float b, float alpha, int size);
+
+template<typename TPosition>
+bool WriteGridHeader(std::fstream &f, const TPosition &positions, size_t N, int dimension)
+{
+	assert(dimension == 2 || dimension == 3);
+	f << 1 << "\n";
+	f << dimension << "\n";
+	f << N << "\n";
+	if(dimension == 1)
+		for(size_t i=0; i < N; i++)
+			f << positions[i][0] << " 0.0\n";
+	else if(dimension == 2)
+		for(size_t i=0; i < N; i++)
+			f << positions[i][0] << " " << positions[i][1] << "\n";
+	else
+		for(size_t i=0; i < N; i++)
+			f << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << "\n";
+
+	f << 1 << "\n"; // stringsInWindow
+	return true;
+}
+
+template<typename TPosition>
+bool WriteGridHeader(std::fstream &f, const TPosition &positions, int dimension)
+{
+	return WriteGridHeader(f, positions, positions.size(), dimension);
+}
 
 // WriteMatrixToConnectionViewer
 //--------------------------------------------------
@@ -52,35 +90,21 @@ inline std::string GetParallelName(T &t, std::string name)
  * \param dimensions Dimension of positions
  */
 template<typename Matrix_type, typename postype>
-void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
+void WriteMatrix(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
 {
 	PROFILE_FUNC_GROUP("debug");
-#ifdef UG_PARALLEL
 	filename = GetParallelName(A, filename);
-#endif
-
-	std::fstream file(filename.c_str(), std::ios::out);
-	file << CONNECTION_VIEWER_VERSION << std::endl;
-	file << dimensions << std::endl;
-
 	size_t rows = A.num_rows();
 
-	// write positions
-	file << rows << std::endl;
-	if(dimensions == 1)
-			for(size_t i=0; i < rows; i++)
-				file << positions[i][0] << " 0.0"  << std::endl;
-	else if(dimensions == 2)
-		for(size_t i=0; i < rows; i++)
-			file << positions[i][0] << " " << positions[i][1] << std::endl;
-	else
-		for(size_t i=0; i < rows; i++)
-		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
+	std::fstream file(filename.c_str(), std::ios::out);
 
-	file << 1 << std::endl; // show all cons
+	WriteGridHeader(file, positions, rows, dimensions);
+	PROGRESS_START(prog, rows, "WriteMatrixToConnectionViewer " << dimensions << "d, " << rows << "x" << rows);
+
 	// write connections
 	for(size_t i=0; i < rows; i++)
 	{
+		PROGRESS_UPDATE(prog, i);
 		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
 				file << i << " " << conn.index() << " " << conn.value() <<		std::endl;
@@ -89,6 +113,11 @@ void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, p
 	}
 }
 
+template<typename Matrix_type, typename postype>
+void WriteMatrixPar(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
+{
+	WriteMatrix(GetParallelName(A, filename), A, positions, dimensions);
+}
 
 //	NOTE:	The commented version below contains a bug which only occurs in rare situations,
 //			resulting in a matrix output, where one entry has connections to
@@ -96,7 +125,7 @@ void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, p
 //			Instead of fixing it, the method was instead replaced by the method below
 //			the commented section, which simplifies the output. Since the version with
 //			the mapping might still be of interest, it remains in a commented form.
-//// WriteMatrixToConnectionViewer
+//// WriteMatrix
 ////--------------------------------------------------
 ///**
 // * this version can handle different from and to spaces
@@ -218,14 +247,11 @@ void WriteMatrixToConnectionViewer(std::string filename, const Matrix_type &A, p
  * this version can handle different from and to spaces
  */
 template <typename Matrix_type, typename postype>
-bool WriteMatrixToConnectionViewer(	std::string filename,
+bool WriteMatrix(	std::string filename,
 									const Matrix_type &A,
 									std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
 {
 	PROFILE_FUNC_GROUP("debug");
-#ifdef UG_PARALLEL
-	filename = GetParallelName(A, filename);
-#endif
 
 	if(positionsFrom.size() != A.num_cols())
 	{
@@ -269,8 +295,11 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 
 	file << 1 << std::endl; // show all cons
 	// write connections
+
+	PROGRESS_START(prog, A.num_rows(), "WriteMatrixToConnectionViewer " << dimensions << "d, " << A.num_rows() << "x" << A.num_rows() );
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
+		PROGRESS_UPDATE(prog, i);
 		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
 				file << i << " " << conn.index() + fromOffset << " " << conn.value() <<	std::endl;
@@ -278,6 +307,14 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
 				file << i << " " << conn.index() + fromOffset << " 0" << std::endl;
 	}
 	return true;
+}
+
+
+template <typename Matrix_type, typename postype>
+bool WriteMatrixPar(std::string filename, const Matrix_type &A,
+					std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
+{
+	return WriteMatrix(GetParallelName(A, filename), A, positionsFrom, positionsTo, dimensions);
 }
 
 // WriteVectorToConnectionViewer
@@ -290,31 +327,14 @@ bool WriteMatrixToConnectionViewer(	std::string filename,
  * \param dimensions	Dimensions of Positions
  */
 template<typename Vector_type, typename postype>
-void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+void WriteVector(std::string filename, const Vector_type &b, postype *positions, int dimensions, const Vector_type *compareVec=NULL)
 {
 	PROFILE_FUNC_GROUP("debug");
-#ifdef UG_PARALLEL
-	filename = GetParallelName(filename);
-#endif
+
 	std::fstream file(filename.c_str(), std::ios::out);
-	file << CONNECTION_VIEWER_VERSION << std::endl;
-	file << dimensions << std::endl;
-
 	size_t rows = b.size();
-	// write positions
-	file << rows << std::endl;
+	WriteGridHeader(file, positions, rows, dimensions);
 
-	if(dimensions == 1)
-		for(size_t i=0; i < rows; i++)
-			file << positions[i][0] << " 0.0"  << std::endl;
-	else if(dimensions == 2)
-		for(size_t i=0; i < rows; i++)
-			file << positions[i][0] << " " << positions[i][1] << std::endl;
-	else
-		for(size_t i=0; i < rows; i++)
-		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
-
-	file << 1 << std::endl; // show all cons
 	// write connections
 	if(compareVec == NULL)
 		for(size_t i=0; i < rows; i++)
@@ -324,9 +344,14 @@ void WriteVectorToConnectionViewer(std::string filename, const Vector_type &b, p
 			file << i << " " << i << " " << b[i]-(*compareVec)[i] << std::endl;
 }
 
+template<typename Vector_type, typename postype>
+void WriteVectorPar(std::string filename, const Vector_type &b, postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+{
+	WriteVectorPar(GetParallelName(b, filename), b, positions, dimensions, compareVec);
+}
 
 template<typename Matrix_type, typename Vector_type, typename postype>
-void WriteVectorToConnectionViewer(std::string filename, const Matrix_type &A, const Vector_type &v,
+void WriteVector(std::string filename, const Matrix_type &A, const Vector_type &v,
 		postype *positions, int dimensions, const Vector_type *compareVec=NULL)
 {
 	PROFILE_FUNC_GROUP("debug");
@@ -335,28 +360,17 @@ void WriteVectorToConnectionViewer(std::string filename, const Matrix_type &A, c
 		UG_LOG(__FILE__ << ":" << __LINE__ << " WriteVectorToConnectionViewer: only dimension=2 supported");
 		return;
 	}
-#ifdef UG_PARALLEL
 	filename = GetParallelName(A, filename);
-#endif
-
-	std::fstream file(filename.c_str(), std::ios::out);
-	file << CONNECTION_VIEWER_VERSION << std::endl;
-	file << dimensions << std::endl;
 
 	size_t rows = A.num_rows();
+	std::fstream file(filename.c_str(), std::ios::out);
+	WriteGridHeader(file, positions, rows, dimensions);
 
-	// write positions
-	file << rows << std::endl;
-
-		for(size_t i=0; i < rows; i++)
-			file << positions[i][0] << " " << positions[i][1] << std::endl;
-
-
-
-	file << 1 << std::endl; // show all cons
+	PROGRESS_START(prog, rows, "WriteVectorToConnectionViewer " << dimensions << "d, " << A.num_rows() << "x" << A.num_rows() );
 	// write connections
 	for(size_t i=0; i < rows; i++)
 	{
+		PROGRESS_UPDATE(prog, i);
 		for(typename Matrix_type::const_row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
 			if(conn.value() != 0.0)
 				file << i << " " << conn.index() << " " << conn.value() <<		std::endl;
@@ -389,14 +403,19 @@ void WriteVectorToConnectionViewer(std::string filename, const Matrix_type &A, c
 
 }
 
+template<typename Matrix_type, typename Vector_type, typename postype>
+void WriteVectorPar(std::string filename, const Matrix_type &A, const Vector_type &v,
+		postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+{
+	WriteVectorPar(GetParallelName(A, filename), A, v, positions, dimensions, compareVec);
+}
+
 #if 0
 template<typename Vector_type, typename postype>
-void WriteVectorToConnectionViewerNEW(std::string filename, const Vector_type &b, postype *positions, int dimensions)
+void WriteVectorNEW(std::string filename, const Vector_type &b, postype *positions, int dimensions)
 {
 	PROFILE_FUNC_GROUP("debug");
-#ifdef UG_PARALLEL
 	filename = GetParallelName(filename);
-#endif
 
 	std::fstream file(filename.c_str(), std::ios::out);
 	file << CONNECTION_VIEWER_VERSION << std::endl;
@@ -430,5 +449,6 @@ void WriteVectorToConnectionViewerNEW(std::string filename, const Vector_type &b
 }
 #endif
 
+} // namespace ConnectionViewer
 } // namespace ug
 #endif /* CONNECTIONVIEWEROUTPUT_H_ */
