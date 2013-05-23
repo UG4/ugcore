@@ -94,7 +94,6 @@ template<typename Matrix_type, typename postype>
 void WriteMatrix(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
 {
 	PROFILE_FUNC_GROUP("debug");
-	filename = GetParallelName(A, filename);
 	size_t rows = A.num_rows();
 
 	std::fstream file(filename.c_str(), std::ios::out);
