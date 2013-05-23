@@ -44,7 +44,7 @@ public:
 	}
 	double clock_s()
 	{
-		return clock() / CLOCKS_PER_SEC;
+		return clock() / ((double)CLOCKS_PER_SEC);
 	}
 	inline void set(double now)
 	{
@@ -75,7 +75,7 @@ public:
 			int i=(int)(m_length*m_now/m_total);
 			for(; i<m_length; i++) { UG_LOG("-"); }
 			UG_LOG("]");
-			UG_LOG(" took " << (clock()-startS)/ ( ( float ) CLOCKS_PER_SEC ) << " s.\n");
+			UG_LOG(" took " << clock_s()-startS << " s.\n");
 			lastUpdateDepth = myDepth;
 			bStarted = false;
 		}
