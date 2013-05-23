@@ -76,7 +76,7 @@ class AlgebraDebugWriter
 			name.append(".vec");
 
 		//	write to file
-			WriteVectorToConnectionViewer<vector_type, position_type>
+			ConnectionViewer::WriteVectorPar<vector_type, position_type>
 				(name.c_str(), vec, m_pPositions, dim);
 		}
 
@@ -101,7 +101,7 @@ class AlgebraDebugWriter
 			}
 
 		//	write to file
-			WriteMatrixToConnectionViewer<matrix_type, position_type>
+			ConnectionViewer::WriteMatrixPar<matrix_type, position_type>
 				( filename, mat, m_pPositions, dim);
 		}
 
