@@ -22,6 +22,8 @@ set(src_Algebra)
 
 set(src_Algebra	 ${src_Algebra}
 	algebra_type.cpp
+	common/connection_viewer_output.cpp
+	common/connection_viewer_input.cpp
 	 )
 add_subdirectory(common/matrixio)
 
@@ -33,9 +35,7 @@ if(PARALLEL)
 						parallelization/parallel_coloring.cpp						
 						parallelization/global_layout.cpp
 						parallelization/parallel_index_layout.cpp
-						parallelization/parallel_nodes.cpp
-						common/connection_viewer_output.cpp		
-						common/connection_viewer_input.cpp			
+						parallelization/parallel_nodes.cpp	
 						 )
 endif(PARALLEL)
 

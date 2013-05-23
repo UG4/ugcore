@@ -7,6 +7,7 @@
 
 #include <string>
 #include <fstream>
+#include <vector>
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
