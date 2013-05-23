@@ -138,7 +138,7 @@ void Base64FileWriter::open(const char *filename,
 template <typename T>
 void Base64FileWriter::dispatch(const T& value)
 {
-	PROFILE_FUNC();
+//	PROFILE_FUNC(); // this profile node is too small
 	assertFileOpen();
 
 	switch ( m_currFormat ) {
@@ -179,7 +179,7 @@ inline void Base64FileWriter::assertFileOpen()
 
 void Base64FileWriter::flushInputBuffer(bool force)
 {
-	PROFILE_FUNC();
+//	PROFILE_FUNC(); // this profile node is too small
 
 	size_t buff_len = 0;
 	// amount of elements to flush at once
