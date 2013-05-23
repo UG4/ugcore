@@ -16,6 +16,7 @@
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "lib_disc/spatial_disc/disc_util/fvcr_geom.h"
 
 namespace ug{
 
@@ -206,6 +207,90 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 	}
 }
 
+template <typename TFunction>
+void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
+                     MultiGrid::AttachmentAccessor<
+                     typename TFunction::element_type,
+                     ug::Attachment<number> >& aaError)
+{
+	static const int dim = TFunction::dim;
+	typedef typename TFunction::const_element_iterator const_iterator;
+	typedef typename TFunction::domain_type domain_type;
+	typedef typename domain_type::grid_type grid_type;
+	typedef typename TFunction::element_type element_type;
+	typedef typename element_type::side side_type;
+	
+	typename grid_type::template traits<side_type>::secure_container sides;
+
+//	get position accessor
+	typename TFunction::domain_type::position_accessor_type& aaPos
+			= u.domain()->position_accessor();
+			
+	grid_type& grid = *u.domain()->grid();
+
+	domain_type& domain = *u.domain().get();
+
+//	some storage
+	MathMatrix<dim, dim> JTInv;
+	
+	std::vector<MathVector<dim> > vCorner;
+
+//	get iterator over elements
+	const_iterator iter = u.template begin<element_type>();
+	const_iterator iterEnd = u.template end<element_type>();
+	
+	DimCRFVGeometry<dim> geo;
+
+//	loop elements
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get the element
+		element_type* elem = *iter;
+		
+		MathVector<dim> vGlobalGrad;
+		vGlobalGrad*=0;
+	
+	//  get sides of element		
+		grid.associated_elements_sorted(sides, elem );
+
+	//	reference object type
+		ReferenceObjectID roid = elem->reference_object_id();
+
+	//	get corners of element
+		CollectCornerCoordinates(vCorner, *elem, aaPos);
+		
+		//	evaluate finite volume geometry
+		geo.update(elem, &(vCorner[0]), domain.subset_handler().get());
+
+	//	compute size (volume) of element
+		const number elemSize = ElementSize<dim>(roid, &vCorner[0]);
+		
+		typename grid_type::template traits<element_type>::secure_container assoElements;
+		
+	// assemble element-wise finite volume gradient
+		for (size_t s=0;s<sides.size();s++){
+			grid.associated_elements(assoElements,sides[s]);
+			// face value is average of associated elements
+			number faceValue = 0;
+			size_t numOfAsso = assoElements.size();
+			for (size_t i=0;i<numOfAsso;i++){
+				std::vector<MultiIndex<2> > ind;
+				u.inner_multi_indices(assoElements[i], fct, ind);
+				faceValue+=BlockRef(u[ind[0][0]], ind[0][1]);
+			}
+			faceValue/=(number)numOfAsso;
+			const typename DimCRFVGeometry<dim>::SCV& scv = geo.scv(s);
+			for (int d=0;d<dim;d++){
+				vGlobalGrad[d] += faceValue * scv.normal()[d]; 
+			}
+		}
+		vGlobalGrad/=(number)elemSize;
+
+	//	write result in array storage
+		aaError[elem] = VecTwoNorm(vGlobalGrad) * pow(elemSize, 2./dim);
+	}
+}
+
 
 /// marks elements according to an attached error value field
 /**
@@ -366,15 +451,18 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 // 	Compute error on elements
 	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
 		ComputeGradientLagrange1(u, fct, aaError);
-	else {
+	else{
 		if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
 			ComputeGradientCrouzeixRaviart(u, fct, aaError);
-		else {
-			UG_THROW("Unsupported finite element type " << u.local_finite_element_id(fct));
+		else{
+			if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, 0)){
+				ComputeGradientPiecewiseConstant(u,fct,aaError);
+			} else {
+				UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
+			}
 		}
 	}
-
-
+	
 // 	Mark elements for refinement
 	MarkElements(aaError, refiner, u, TOL, refineFrac, coarseFrac, maxLevel);
 
