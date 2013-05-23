@@ -57,27 +57,9 @@ class AlgebraDebugWriter
 				UG_THROW("'AlgebraDebugWriter::write_vector':"
 						" Number of positions does not match.\n");
 
-		//	get fresh name
-			std::string name(filename);
-
-		//	search for ending and remove
-			size_t found = name.find_first_of(".");
-			if(found != std::string::npos) name.resize(found);
-
-		#ifdef UG_PARALLEL
-		//	add process number
-			int rank = pcl::GetProcRank();
-			char ext[20];
-			sprintf(ext, "_p%04d", rank);
-			name.append(ext);
-		#endif
-
-		//	add ending
-			name.append(".vec");
-
 		//	write to file
 			ConnectionViewer::WriteVectorPar<vector_type, position_type>
-				(name.c_str(), vec, m_pPositions, dim);
+				(filename, vec, m_pPositions, dim);
 		}
 
 	///	write matrix
