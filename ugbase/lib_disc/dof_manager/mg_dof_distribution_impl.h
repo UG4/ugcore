@@ -31,11 +31,29 @@ GeometricObject* MGDoFDistribution::get_parent(TBaseElem* elem) const
 template <typename TBaseElem>
 TBaseElem* MGDoFDistribution::parent_if_copy(TBaseElem* elem) const
 {
-	GeometricObject* pParent = multi_grid()->get_parent(elem);
-	TBaseElem* parent = dynamic_cast<TBaseElem*>(pParent);
-	if(parent != NULL &&
-		multi_grid()->template num_children<TBaseElem>(parent) == 1) return parent;
-	else return NULL;
+//todo: only works in serial...
+	const MultiGrid& mg = *multi_grid();
+	TBaseElem* parent = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
+	if(!parent)
+		return NULL;
+
+//	note: 	This check would not be sufficient to show that elem is a copy,
+//			since during refinement or coarsening the number of children varies.
+	if(mg.num_children<TBaseElem>(parent) > 1)
+		return NULL;
+
+//	to check whether elem is a copy of parent, it is sufficient to check that
+//	all vertices of elem have a vertex-parent.
+	MultiGrid::vertex_traits::secure_container elemVrts;
+	const_cast<MultiGrid&>(mg).associated_elements(elemVrts, elem);
+	for(size_t i = 0; i < elemVrts.size(); ++i){
+		GeometricObject* p = mg.get_parent(elemVrts[i]);
+		if(!p)
+			return NULL;
+		if(p->base_object_id() != VERTEX)
+			return NULL;
+	}
+	return parent;
 }
 
 template <typename TBaseElem>
