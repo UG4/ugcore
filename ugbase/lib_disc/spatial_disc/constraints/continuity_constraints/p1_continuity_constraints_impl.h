@@ -85,6 +85,8 @@ void SplitAddRow_Symmetric(TMatrix& A,
 	typedef typename TMatrix::value_type block_type;
 	typedef typename TMatrix::row_iterator row_iterator;
 
+	UG_ASSERT(!vConstrainingIndex.empty(), "There have to be constraining indices!");
+
 	//	check number of indices passed
 	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
 		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
