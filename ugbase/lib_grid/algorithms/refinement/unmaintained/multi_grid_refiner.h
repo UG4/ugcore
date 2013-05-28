@@ -102,7 +102,7 @@ class MultiGridRefiner : public GridObserver
 		enum RefinementMark
 		{
 			RM_NONE = 0x00FF,
-			RM_REGULAR = 1 << 8,
+			RM_REFINE = 1 << 8,
 			RM_ANISOTROPIC = 1 << 9,	//not yet used
 			RM_COPY = 1 << 10,
 			RM_IRREGULAR = 1 << 11,

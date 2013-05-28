@@ -344,6 +344,9 @@ template <typename TBaseElem>
 inline void LevelMGDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
                         bool replacesParent)
 {
+	if(max_dofs(TBaseElem::BASE_OBJECT_ID) == 0)
+		return;
+
 //	check level
 	const int lev = m_spMGSH->get_level(obj);
 	level_required(lev);
@@ -358,6 +361,9 @@ inline void LevelMGDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 template <typename TBaseElem>
 inline void LevelMGDoFDistribution::obj_to_be_erased(TBaseElem* obj,TBaseElem* replacedBy)
 {
+	if(max_dofs(TBaseElem::BASE_OBJECT_ID) == 0)
+		return;
+
 //	add indices
 	erase(obj,
 	      obj->reference_object_id(),

@@ -147,6 +147,9 @@ is_contained(TGeomObj* obj) const
 {
 	UG_ASSERT(m_surfView->get_level(obj) == m_lvl, "Wrong level");
 
+	if(m_surfView->is_surface_element(obj))
+		return true;
+
 	if(m_lvl == m_topLvl){
 #ifdef UG_PARALLEL
 		if(m_bWithGhosts) return true;
@@ -156,7 +159,7 @@ is_contained(TGeomObj* obj) const
 #endif
 	}
 
-	return m_surfView->is_surface_element(obj);
+	return false;
 }
 
 
@@ -316,6 +319,9 @@ is_contained(TGeomObj* obj) const
 {
 	UG_ASSERT(m_surfView->get_level(obj) == m_lvl, "Wrong level");
 
+	if(m_surfView->is_surface_element(obj))
+		return true;
+
 	if(m_lvl == m_topLvl){
 #ifdef UG_PARALLEL
 		if(m_bWithGhosts) return true;
@@ -325,7 +331,7 @@ is_contained(TGeomObj* obj) const
 #endif
 	}
 
-	return m_surfView->is_surface_element(obj);
+	return false;
 }
 
 
@@ -639,6 +645,12 @@ template <class TGeomObj>
 bool SurfaceView::is_surface_element(TGeomObj* obj, int topLevel) const
 {
 	int lvl = get_level(obj);
+	if((topLevel > -1) && (lvl > topLevel))
+		return false;
+
+	if(is_surface_element(obj))
+		return true;
+
 	if(lvl == topLevel){
 		#ifdef UG_PARALLEL
 			return !m_distGridMgr->is_ghost(obj);
@@ -646,9 +658,6 @@ bool SurfaceView::is_surface_element(TGeomObj* obj, int topLevel) const
 			return true;
 		#endif
 	}
-	else if((topLevel > -1) && (lvl > topLevel))
-		return false;
-	return is_surface_element(obj);
 }
 
 template <class TGeomObj>

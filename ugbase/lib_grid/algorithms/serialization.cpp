@@ -813,58 +813,16 @@ static void WriteParent(MultiGrid& mg, TElem* pElem,
 						MultiElementAttachmentAccessor<AInt>&	aaInt,
 						BinaryBuffer& out)
 {
-	char type;
-	int index;
 	GeometricObject* pParent = mg.get_parent(pElem);
-	
-	if(pParent)
-	{
-			int parentType = pParent->base_object_id();
+	char type = mg.parent_type(pElem);
+	int index = -1;
 
-		switch(parentType)
-		{
-			case VERTEX:
-				if(mg.is_marked(reinterpret_cast<VertexBase*>(pParent))){
-					type = GOID_VERTEX_BASE;
-					index = aaInt[(VertexBase*)pParent];
-					out.write((char*)&type, sizeof(char));
-					out.write((char*)&index, sizeof(int));
-					return;
-				}
-				break;
-			case EDGE:
-				if(mg.is_marked(reinterpret_cast<EdgeBase*>(pParent))){
-					type = GOID_EDGE_BASE;
-					index = aaInt[(EdgeBase*)pParent];
-					out.write((char*)&type, sizeof(char));
-					out.write((char*)&index, sizeof(int));
-					return;
-				}
-				break;
-			case FACE:
-				if(mg.is_marked(reinterpret_cast<Face*>(pParent))){
-					type = GOID_FACE;
-					index = aaInt[(Face*)pParent];
-					out.write((char*)&type, sizeof(char));
-					out.write((char*)&index, sizeof(int));
-					return;
-				}
-				break;
-			case VOLUME:
-				if(mg.is_marked(reinterpret_cast<Volume*>(pParent))){
-					type = GOID_VOLUME;
-					index = aaInt[(Volume*)pParent];
-					out.write((char*)&type, sizeof(char));
-					out.write((char*)&index, sizeof(int));
-					return;
-				}
-				break;
-		}
+	if(pParent && mg.is_marked(pParent)){
+		UG_ASSERT(pParent->base_object_id() == type,
+				  "parent->base_object_id() and MultiGrid::parent_type mismatch!");
+		index = aaInt[pParent];
 	}
 
-//	if we reach this point the parent is invalid.
-	type = GOID_INVALID;
-	index = -1;
 	out.write((char*)&type, sizeof(char));
 	out.write((char*)&index, sizeof(int));
 
@@ -939,9 +897,9 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 			{
 				ConstrainedVertex* v = *iter;
 				mg.mark(v);
-				tNumber = (v)->get_local_coordinate_1();
+				tNumber = v->get_local_coordinate_1();
 				out.write((char*)&tNumber, sizeof(number));
-				tNumber = (v)->get_local_coordinate_2();
+				tNumber = v->get_local_coordinate_2();
 				out.write((char*)&tNumber, sizeof(number));
 				aaInt[v] = vrtInd++;
 
@@ -964,6 +922,8 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 				out.write((char*)&type, sizeof(int));
 				out.write((char*)&ind, sizeof(int));
+				tInt = v->get_parent_base_object_id();
+				out.write((char*)&tInt, sizeof(int));
 
 				WriteParent(mg, v, aaInt, out);
 				if(paaID)	Serialize(out, (*paaID)[*iter]);
@@ -1032,6 +992,8 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 				out.write((char*)&type, sizeof(int));
 				out.write((char*)&ind, sizeof(int));
+				tInt = e->get_parent_base_object_id();
+				out.write((char*)&tInt, sizeof(int));
 
 				WriteParent(mg, e, aaInt, out);
 				if(paaID)	Serialize(out, (*paaID)[*iter]);
@@ -1134,6 +1096,8 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				}
 
 				out.write((char*)&ind, sizeof(int));
+				tInt = e->get_parent_base_object_id();
+				out.write((char*)&tInt, sizeof(int));
 
 				WriteParent(mg, e, aaInt, out);
 				if(paaID)	Serialize(out, (*paaID)[e]);
@@ -1192,6 +1156,8 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				}
 
 				out.write((char*)&ind, sizeof(int));
+				tInt = e->get_parent_base_object_id();
+				out.write((char*)&tInt, sizeof(int));
 
 				WriteParent(mg, e, aaInt, out);
 				if(paaID)	Serialize(out, (*paaID)[e]);
@@ -1356,7 +1322,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-static GeometricObject*
+static pair<GeometricObject*, char>
 GetParent(BinaryBuffer& in, const vector<VertexBase*>& vVrts,
 		const vector<EdgeBase*>& vEdges, const vector<Face*>& vFaces,
 		const vector<Volume*>& vVols)
@@ -1365,24 +1331,25 @@ GetParent(BinaryBuffer& in, const vector<VertexBase*>& vVrts,
 	int index;
 	in.read((char*)&type, sizeof(char));
 	in.read((char*)&index, sizeof(int));
-	
-	switch(type)
-	{
-		case GOID_VERTEX_BASE:
-			assert(index < (int)vVrts.size() && "bad index!");
-			return vVrts[index];
-		case GOID_EDGE_BASE:
-			assert(index < (int)vEdges.size() && "bad index!");
-			return vEdges[index];
-		case GOID_FACE:
-			assert(index < (int)vFaces.size() && "bad index!");
-			return vFaces[index];
-		case GOID_VOLUME:
-			assert(index < (int)vVols.size() && "bad index!");
-			return vVols[index];
+
+	if(index >= 0){
+		switch(type){
+			case VERTEX:
+				assert(index < (int)vVrts.size() && "bad index!");
+				return  make_pair(vVrts[index], type);
+			case EDGE:
+				assert(index < (int)vEdges.size() && "bad index!");
+				return make_pair(vEdges[index], type);
+			case FACE:
+				assert(index < (int)vFaces.size() && "bad index!");
+				return make_pair(vFaces[index], type);
+			case VOLUME:
+				assert(index < (int)vVols.size() && "bad index!");
+				return make_pair(vVols[index], type);
+		}
 	}
 	
-	return NULL;
+	return make_pair<GeometricObject*, char>(NULL, type);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1509,8 +1476,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						SRLZ_PROFILE(srlz_vertices);
 						for(int i = 0; i < numElems; ++i)
 						{
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								VrtHashIter hiter = vrtHash.begin(id);
@@ -1532,8 +1501,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(parent)
 								vVrts.push_back(*mg.create<Vertex>(parent));
-							else
+							else{
 								vVrts.push_back(*mg.create<Vertex>(currentLevel));
+								mg.set_parent_type(vVrts.back(), pInfo.second);
+							}
 
 							if(paaID)
 								(*paaID)[vVrts.back()] = id;
@@ -1553,9 +1524,12 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int cgInd;
 							in.read((char*)&cgType, sizeof(int));
 							in.read((char*)&cgInd, sizeof(int));
+							int parentBaseObjId;
+							in.read((char*)&parentBaseObjId, sizeof(int));
 
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1573,10 +1547,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							ConstrainedVertex* hv;
 							if(parent)
 								hv = *mg.create<ConstrainedVertex>(parent);
-							else
+							else{
 								hv = *mg.create<ConstrainedVertex>(currentLevel);
+								mg.set_parent_type(hv, pInfo.second);
+							}
 							hv->set_local_coordinate_1(coord1);
 							hv->set_local_coordinate_2(coord2);
+							hv->set_parent_base_object_id(parentBaseObjId);
 							vVrts.push_back(hv);
 							if(paaID)
 								(*paaID)[hv] = id;
@@ -1609,8 +1586,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int i1, i2;
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								EdgeHashIter hiter = edgeHash.begin(id);
@@ -1627,9 +1606,11 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							if(parent)
 								e = *mg.create<Edge>(
 										EdgeDescriptor(vVrts[i1], vVrts[i2]), parent);
-							else
+							else{
 								e = *mg.create<Edge>(
 										EdgeDescriptor(vVrts[i1], vVrts[i2]), currentLevel);
+								mg.set_parent_type(e, pInfo.second);
+							}
 							vEdges.push_back(e);
 							if(paaID)
 								(*paaID)[e] = id;
@@ -1643,8 +1624,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int i1, i2;
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								EdgeHashIter hiter = edgeHash.begin(id);
@@ -1662,9 +1645,11 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							if(parent)
 								e = *mg.create<ConstrainingEdge>(
 										EdgeDescriptor(vVrts[i1], vVrts[i2]), parent);
-							else
+							else{
 								e = *mg.create<ConstrainingEdge>(
 										EdgeDescriptor(vVrts[i1], vVrts[i2]), currentLevel);
+								mg.set_parent_type(e, pInfo.second);
+							}
 							vEdges.push_back(e);
 							if(paaID)
 								(*paaID)[e] = id;
@@ -1682,9 +1667,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int cgInd;
 							in.read((char*)&cgType, sizeof(int));
 							in.read((char*)&cgInd, sizeof(int));
+							int parentBaseObjId;
+							in.read((char*)&parentBaseObjId, sizeof(int));
 
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								EdgeHashIter hiter = edgeHash.begin(id);
@@ -1702,9 +1691,14 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							if(parent)
 								e = *mg.create<ConstrainedEdge>(
 										EdgeDescriptor(vVrts[i1], vVrts[i2]), parent);
-							else
+							else{
 								e = *mg.create<ConstrainedEdge>(
 										EdgeDescriptor(vVrts[i1], vVrts[i2]), currentLevel);
+								mg.set_parent_type(e, pInfo.second);
+							}
+
+							e->set_parent_base_object_id(parentBaseObjId);
+
 							vEdges.push_back(e);
 							if(paaID)
 								(*paaID)[e] = id;
@@ -1738,7 +1732,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								FaceHashIter hiter = faceHash.begin(id);
@@ -1757,10 +1754,12 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								t = *mg.create<Triangle>(TriangleDescriptor(
 															vVrts[i1], vVrts[i2],
 															vVrts[i3]), parent);
-							else
+							else{
 								t = *mg.create<Triangle>(TriangleDescriptor(
 															vVrts[i1], vVrts[i2],
 															vVrts[i3]), currentLevel);
+								mg.set_parent_type(t, pInfo.second);
+							}
 							vFaces.push_back(t);
 							if(paaID)
 								(*paaID)[t] = id;
@@ -1776,8 +1775,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								FaceHashIter hiter = faceHash.begin(id);
@@ -1796,10 +1797,12 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								q = *mg.create<Quadrilateral>(QuadrilateralDescriptor(
 															vVrts[i1], vVrts[i2], vVrts[i3],
 															vVrts[i4]), parent);
-							else
+							else{
 								q = *mg.create<Quadrilateral>(QuadrilateralDescriptor(
 															vVrts[i1], vVrts[i2], vVrts[i3],
 															vVrts[i4]), currentLevel);
+								mg.set_parent_type(q, pInfo.second);
+							}
 							vFaces.push_back(q);
 							if(paaID)
 								(*paaID)[q] = id;
@@ -1815,8 +1818,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								FaceHashIter hiter = faceHash.begin(id);
@@ -1835,10 +1840,12 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								e = *mg.create<ConstrainingTriangle>(
 										TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]),
 										parent);
-							else
+							else{
 								e = *mg.create<ConstrainingTriangle>(
 										TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]),
 										currentLevel);
+								mg.set_parent_type(e, pInfo.second);
+							}
 							vFaces.push_back(e);
 							if(paaID)
 								(*paaID)[e] = id;
@@ -1856,9 +1863,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i3, sizeof(int));
 							int cgInd;
 							in.read((char*)&cgInd, sizeof(int));
+							int parentBaseObjId;
+							in.read((char*)&parentBaseObjId, sizeof(int));
 
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								FaceHashIter hiter = faceHash.begin(id);
@@ -1877,10 +1888,15 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								e = *mg.create<ConstrainedTriangle>(
 										TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]),
 										parent);
-							else
+							else{
 								e = *mg.create<ConstrainedTriangle>(
 										TriangleDescriptor(vVrts[i1], vVrts[i2], vVrts[i3]),
 										currentLevel);
+								mg.set_parent_type(e, pInfo.second);
+							}
+
+							e->set_parent_base_object_id(parentBaseObjId);
+
 							vFaces.push_back(e);
 							if(paaID)
 								(*paaID)[e] = id;
@@ -1905,8 +1921,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								FaceHashIter hiter = faceHash.begin(id);
@@ -1926,11 +1944,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 										QuadrilateralDescriptor(vVrts[i1], vVrts[i2],
 																vVrts[i3], vVrts[i4]),
 										parent);
-							else
+							else{
 								e = *mg.create<ConstrainingQuadrilateral>(
 										QuadrilateralDescriptor(vVrts[i1], vVrts[i2],
 																vVrts[i3], vVrts[i4]),
 										currentLevel);
+								mg.set_parent_type(e, pInfo.second);
+							}
 
 							vFaces.push_back(e);
 							if(paaID)
@@ -1950,9 +1970,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i4, sizeof(int));
 							int cgInd;
 							in.read((char*)&cgInd, sizeof(int));
+							int parentBaseObjId;
+							in.read((char*)&parentBaseObjId, sizeof(int));
 
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								FaceHashIter hiter = faceHash.begin(id);
@@ -1973,11 +1997,15 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 										QuadrilateralDescriptor(vVrts[i1], vVrts[i2],
 																vVrts[i3], vVrts[i4]),
 										parent);
-							else
+							else{
 								e = *mg.create<ConstrainedQuadrilateral>(
 										QuadrilateralDescriptor(vVrts[i1], vVrts[i2],
 																vVrts[i3], vVrts[i4]),
 										currentLevel);
+								mg.set_parent_type(e, pInfo.second);
+							}
+
+							e->set_parent_base_object_id(parentBaseObjId);
 
 							vFaces.push_back(e);
 							if(paaID)
@@ -2003,8 +2031,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								VolHashIter hiter = volHash.begin(id);
@@ -2024,11 +2054,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 															vVrts[i1], vVrts[i2],
 															vVrts[i3], vVrts[i4]),
 															parent);
-							else
+							else{
 								t = *mg.create<Tetrahedron>(TetrahedronDescriptor(
 															vVrts[i1], vVrts[i2],
 															vVrts[i3], vVrts[i4]),
 															currentLevel);
+								mg.set_parent_type(t, pInfo.second);
+							}
 							vVols.push_back(t);
 							if(paaID)
 								(*paaID)[t] = id;
@@ -2048,8 +2080,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i6, sizeof(int));
 							in.read((char*)&i7, sizeof(int));
 							in.read((char*)&i8, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								VolHashIter hiter = volHash.begin(id);
@@ -2069,11 +2103,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 													vVrts[i1], vVrts[i2], vVrts[i3],
 													vVrts[i4], vVrts[i5], vVrts[i6],
 													vVrts[i7], vVrts[i8]), parent);
-							else
+							else{
 								h = *mg.create<Hexahedron>(HexahedronDescriptor(
 													vVrts[i1], vVrts[i2], vVrts[i3],
 													vVrts[i4], vVrts[i5], vVrts[i6],
 													vVrts[i7], vVrts[i8]), currentLevel);
+								mg.set_parent_type(h, pInfo.second);
+							}
 							vVols.push_back(h);
 							if(paaID)
 								(*paaID)[h] = id;
@@ -2091,8 +2127,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i4, sizeof(int));
 							in.read((char*)&i5, sizeof(int));
 							in.read((char*)&i6, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								VolHashIter hiter = volHash.begin(id);
@@ -2112,11 +2150,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 												vVrts[i1], vVrts[i2], vVrts[i3],
 												vVrts[i4], vVrts[i5], vVrts[i6]),
 												parent);
-							else
+							else{
 								p = *mg.create<Prism>(PrismDescriptor(
 												vVrts[i1], vVrts[i2], vVrts[i3],
 												vVrts[i4], vVrts[i5], vVrts[i6]),
 												currentLevel);
+								mg.set_parent_type(p, pInfo.second);
+							}
 							vVols.push_back(p);
 							if(paaID)
 								(*paaID)[p] = id;
@@ -2133,8 +2173,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
 							in.read((char*)&i5, sizeof(int));
-							GeometricObject* parent = GetParent(in, vVrts, vEdges,
-																	vFaces, vVols);
+							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+																			vFaces, vVols);
+							GeometricObject* parent = pInfo.first;
+
 							if(paaID){
 								Deserialize(in, id);
 								VolHashIter hiter = volHash.begin(id);
@@ -2153,10 +2195,12 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								p = *mg.create<Pyramid>(PyramidDescriptor(
 													vVrts[i1], vVrts[i2], vVrts[i3],
 													vVrts[i4], vVrts[i5]), parent);
-							else
+							else{
 								p = *mg.create<Pyramid>(PyramidDescriptor(
 													vVrts[i1], vVrts[i2], vVrts[i3],
 													vVrts[i4], vVrts[i5]), currentLevel);
+								mg.set_parent_type(p, pInfo.second);
+							}
 							vVols.push_back(p);
 							if(paaID)
 								(*paaID)[p] = id;

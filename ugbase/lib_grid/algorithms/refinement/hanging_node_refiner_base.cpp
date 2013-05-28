@@ -94,7 +94,7 @@ bool HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REGULAR | RM_ANISOTROPIC)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
 				m_newlyMarkedRefVrts.push_back(v);
 			return true;
 		}
@@ -108,7 +108,7 @@ bool HangingNodeRefinerBase::mark(EdgeBase* e, RefinementMark refMark)
 	if(get_mark(e) != refMark){
 		if(refinement_is_allowed(e)){
 			m_selMarkedElements.select(e, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REGULAR | RM_ANISOTROPIC)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
 				m_newlyMarkedRefEdges.push_back(e);
 			return true;
 		}
@@ -123,7 +123,7 @@ bool HangingNodeRefinerBase::mark(Face* f, RefinementMark refMark)
 	if(get_mark(f) != refMark){
 		if(refinement_is_allowed(f)){
 			m_selMarkedElements.select(f, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REGULAR | RM_ANISOTROPIC)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
 				m_newlyMarkedRefFaces.push_back(f);
 			return true;
 		}
@@ -137,7 +137,7 @@ bool HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REGULAR | RM_ANISOTROPIC)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
 				m_newlyMarkedRefVols.push_back(v);
 			return true;
 		}
@@ -150,28 +150,28 @@ RefinementMark HangingNodeRefinerBase::
 get_mark(VertexBase* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& ~HNRM_CONSTRAINED);
+							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
 }
 
 RefinementMark HangingNodeRefinerBase::
 get_mark(EdgeBase* e)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
-							& ~HNRM_CONSTRAINED);
+							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
 }
 
 RefinementMark HangingNodeRefinerBase::
 get_mark(Face* f)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(f)
-							& ~HNRM_CONSTRAINED);
+							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
 }
 
 RefinementMark HangingNodeRefinerBase::
 get_mark(Volume* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& ~HNRM_CONSTRAINED);
+							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
 }
 
 
@@ -185,55 +185,50 @@ bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
 	Grid& g = *m_pGrid;
 	SubsetHandler sh(g);
 
-	AssignGridToSubset(g, sh, 4);
+	AssignGridToSubset(g, sh, 3);
 
 	Selector& sel = get_refmark_selector();
 
 	for(VertexBaseIterator iter = g.vertices_begin(); iter != g.vertices_end(); ++iter){
 		Selector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
-			case RM_REGULAR: sh.assign_subset(*iter, 0); break;
-			case RM_REGULAR | HNRM_CONSTRAINED: sh.assign_subset(*iter, 1); break;
-			case RM_ANISOTROPIC: sh.assign_subset(*iter, 2); break;
-			case RM_COARSEN: sh.assign_subset(*iter, 3); break;
+			case RM_REFINE: sh.assign_subset(*iter, 0); break;
+			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
 		}
 	}
 
 	for(EdgeBaseIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
 		Selector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
-			case RM_REGULAR: sh.assign_subset(*iter, 0); break;
-			case RM_REGULAR | HNRM_CONSTRAINED: sh.assign_subset(*iter, 1); break;
-			case RM_ANISOTROPIC: sh.assign_subset(*iter, 2); break;
-			case RM_COARSEN: sh.assign_subset(*iter, 3); break;
+			case RM_REFINE: sh.assign_subset(*iter, 0); break;
+			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
 		}
 	}
 
 	for(FaceIterator iter = g.faces_begin(); iter != g.faces_end(); ++iter){
 		Selector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
-			case RM_REGULAR: sh.assign_subset(*iter, 0); break;
-			case RM_REGULAR | HNRM_CONSTRAINED: sh.assign_subset(*iter, 1); break;
-			case RM_ANISOTROPIC: sh.assign_subset(*iter, 2); break;
-			case RM_COARSEN: sh.assign_subset(*iter, 3); break;
+			case RM_REFINE: sh.assign_subset(*iter, 0); break;
+			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
 		}
 	}
 
 	for(VolumeIterator iter = g.volumes_begin(); iter != g.volumes_end(); ++iter){
 		Selector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
-			case RM_REGULAR: sh.assign_subset(*iter, 0); break;
-			case RM_REGULAR | HNRM_CONSTRAINED: sh.assign_subset(*iter, 1); break;
-			case RM_ANISOTROPIC: sh.assign_subset(*iter, 2); break;
-			case RM_COARSEN: sh.assign_subset(*iter, 3); break;
+			case RM_REFINE: sh.assign_subset(*iter, 0); break;
+			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
+			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
 		}
 	}
 
 	sh.subset_info(0).name = "refine regular";
-	sh.subset_info(1).name = "refine constrained";
-	sh.subset_info(2).name = "refine anisotropic";
-	sh.subset_info(3).name = "coarsen";
-	sh.subset_info(4).name = "no marks";
+	sh.subset_info(1).name = "refine anisotropic";
+	sh.subset_info(2).name = "coarsen";
+	sh.subset_info(3).name = "no marks";
 
 	AssignSubsetColors(sh);
 
@@ -311,9 +306,26 @@ void HangingNodeRefinerBase::perform_refinement()
 	pre_refine();
 
 ////////////////////////////////
+//	ConstrainedVertices
+	UG_DLOG(LIB_GRID, 1, "  constrained vertices.\n");
+	for(ConstrainedVertexIterator iter = m_selMarkedElements.begin<ConstrainedVertex>();
+		iter != m_selMarkedElements.end<ConstrainedVertex>();)
+	{
+		ConstrainedVertex* cdv = *iter;
+		++iter;
+		process_constrained_vertex(cdv);
+	}
+
+////////////////////////////////
 //	ConstrainedEdges
-//	constrained edges can be ignored, since they will be refined together with
-//	their constraining edges.
+	UG_DLOG(LIB_GRID, 1, "  constrained edges.\n");
+	for(ConstrainedEdgeIterator iter = m_selMarkedElements.begin<ConstrainedEdge>();
+		iter != m_selMarkedElements.end<ConstrainedEdge>();)
+	{
+		ConstrainedEdge* cde = *iter;
+		++iter;
+		process_constrained_edge(cde);
+	}
 
 	UG_DLOG(LIB_GRID, 1, "  constraining edges.\n");
 ////////////////////////////////
@@ -324,9 +336,7 @@ void HangingNodeRefinerBase::perform_refinement()
 		while(iter != m_selMarkedElements.end<ConstrainingEdge>()){
 			ConstrainingEdge* cge = *iter;
 			++iter;
-
-			if(!marked_for_hnode_refinement(cge) && refinement_is_allowed(cge))
-				refine_constraining_edge(cge);
+			process_constraining_edge(cge);
 		}
 	}
 
@@ -343,43 +353,11 @@ void HangingNodeRefinerBase::perform_refinement()
 
 			if(!refinement_is_allowed(e))
 				continue;
-/*
-		//	check whether all connected elements are marked.
-		//	If so, we can perform a normal refine.
-		//	If not, we'll create a new hanging vertex and new constrained edges.
-		//	The edge itself will be transformed to a constraining edge.
-			bool bAllMarked = true;
 
-			if(grid.num_faces() > 0){
-				CollectFaces(vFaces, grid, e);
-				for(size_t i = 0; i < vFaces.size(); ++i){
-					if(!is_marked(vFaces[i])){
-						bAllMarked = false;
-						break;
-					}
-				}
-			}
-
-		//	volumes only have to be checked if all faces were marked.
-			if(bAllMarked && (grid.num_volumes() > 0)){
-				CollectVolumes(vVols, grid, e);
-				for(size_t i = 0; i < vVols.size(); ++i){
-					if(!is_marked(vVols[i])){
-						bAllMarked = false;
-						break;
-					}
-				}
-			}
-
-			if(bAllMarked)
-				refine_edge_with_normal_vertex(e);
-			else
-				refine_edge_with_hanging_vertex(e);
-*/
-			if(marked_for_hnode_refinement(e)){
+			if(marked_to_constraining(e)){
 				refine_edge_with_hanging_vertex(e);
 			}
-			else{
+			else if(marked_refine(e)){
 				refine_edge_with_normal_vertex(e);
 			}
 		}
@@ -388,8 +366,23 @@ void HangingNodeRefinerBase::perform_refinement()
 
 ////////////////////////////////
 //	Faces
-//	constrained faces are ignored, since they are automatically refined during
-//	constraining-face-refine.
+	UG_DLOG(LIB_GRID, 1, "  constrained triangles.\n");
+	for(ConstrainedTriangleIterator iter = m_selMarkedElements.begin<ConstrainedTriangle>();
+		iter != m_selMarkedElements.end<ConstrainedTriangle>();)
+	{
+		ConstrainedTriangle* cdf = *iter;
+		++iter;
+		process_constrained_face(cdf);
+	}
+
+	UG_DLOG(LIB_GRID, 1, "  constrained triangles.\n");
+	for(ConstrainedQuadrilateralIterator iter = m_selMarkedElements.begin<ConstrainedQuadrilateral>();
+		iter != m_selMarkedElements.end<ConstrainedQuadrilateral>();)
+	{
+		ConstrainedQuadrilateral* cdf = *iter;
+		++iter;
+		process_constrained_face(cdf);
+	}
 
 	UG_DLOG(LIB_GRID, 1, "  constraining triangles.\n");
 //	constraining triangles
@@ -398,8 +391,7 @@ void HangingNodeRefinerBase::perform_refinement()
 		while(iter != m_selMarkedElements.end<ConstrainingTriangle>()){
 			ConstrainingTriangle* cgf = *iter;
 			++iter;
-			if(!marked_for_hnode_refinement(cgf) && refinement_is_allowed(cgf))
-				refine_constraining_face(cgf);
+			process_constraining_face(cgf);
 		}
 	}
 
@@ -410,8 +402,7 @@ void HangingNodeRefinerBase::perform_refinement()
 		while(iter != m_selMarkedElements.end<ConstrainingQuadrilateral>()){
 			ConstrainingQuadrilateral* cgf = *iter;
 			++iter;
-			if(!marked_for_hnode_refinement(cgf) && refinement_is_allowed(cgf))
-				refine_constraining_face(cgf);
+			process_constraining_face(cgf);
 		}
 	}
 
@@ -425,30 +416,10 @@ void HangingNodeRefinerBase::perform_refinement()
 
 			if(!refinement_is_allowed(f))
 				continue;
-/*
-		//	check whether all associated volumes are marked
-			bool bAllMarked = true;
-			if(grid.num_volumes() > 0){
-				CollectVolumes(vVols, grid, f);
-				for(size_t i = 0; i < vVols.size(); ++i){
-					if(!is_marked(vVols[i])){
-						bAllMarked = false;
-						break;
-					}
-				}
-			}
 
-		//	if all are marked, the face can be normally refined.
-		//	If not, we'll create constrained faces.
-			if(bAllMarked)
-				refine_face_with_normal_vertex(f);
-			else{
+			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
-			}
-*/
-			if(marked_for_hnode_refinement(f))
-				refine_face_with_hanging_vertex(f);
-			else
+			else if(marked_refine(f))
 				refine_face_with_normal_vertex(f);
 		}
 	}
@@ -463,32 +434,11 @@ void HangingNodeRefinerBase::perform_refinement()
 
 			if(!refinement_is_allowed(f))
 				continue;
-/*
-		//	check whether all associated volumes are marked
-			bool bAllMarked = true;
-			if(grid.num_volumes() > 0){
-				CollectVolumes(vVols, grid, f);
-				for(size_t i = 0; i < vVols.size(); ++i){
-					if(!is_marked(vVols[i])){
-						bAllMarked = false;
-						break;
-					}
-				}
-			}
 
-		//	if all are marked, the face can be normally refined.
-		//	If not, we'll create constrained faces.
-			if(bAllMarked)
-				refine_face_with_normal_vertex(f);
-			else{
+			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
-			}
-*/
-			if(marked_for_hnode_refinement(f))
-				refine_face_with_hanging_vertex(f);
-			else
+			else if(marked_refine(f))
 				refine_face_with_normal_vertex(f);
-
 		}
 	}
 
@@ -629,7 +579,8 @@ assign_hnode_marks()
 	UG_DLOG(LIB_GRID, 1, "  assigning hnode marks...\n");
 //	iterate over all faces and volumes. If the element is not marked, but
 //	a side is marked, the side has to be marked for hnode refinement.
-//	Note that we won't mark any new elements here - we only adjust the marks.
+//	Note that we won't mark any new elements for refinement here - we only adjust the marks
+//	or add conversion marks (HNRM_TO_NORMAL etc).
 //	Note also that we won't remove any marks during this algorithm (neither normal
 //	nor hnode marks).
 	vector<Face*> faces;
@@ -649,8 +600,61 @@ assign_hnode_marks()
 				if(refinement_is_allowed(vols[i])
 				   && (!m_selMarkedElements.is_selected(vols[i])))
 				{
-					mark_for_hnode_refinement(f, true);
+					add_hmark(f, HNRM_TO_CONSTRAINING);
 					break;
+				}
+			}
+		}
+
+	//	make sure, that constrained faces, edges and vertices of selected
+	//	constraining faces will be converted to normal edges, if they are not
+	//	yet marked and to constraining edges, if they are marked.
+		for(ConstrainingTriangleIterator iter = m_selMarkedElements.begin<ConstrainingTriangle>();
+			iter != m_selMarkedElements.end<ConstrainingTriangle>(); ++iter)
+		{
+			ConstrainingTriangle* cgf = *iter;
+			if(marked_refine(cgf)){
+				add_hmark(cgf, HNRM_TO_NORMAL);
+				for(size_t i = 0; i < cgf->num_constrained_vertices(); ++i)
+					add_hmark(cgf->constrained_vertex(i), HNRM_TO_NORMAL);
+				for(size_t i = 0; i < cgf->num_constrained_edges(); ++i){
+					EdgeBase* cde = cgf->constrained_edge(i);
+					if(marked_refine(cde))
+						add_hmark(cde, HNRM_TO_CONSTRAINING);
+					else
+						add_hmark(cde, HNRM_TO_NORMAL);
+				}
+				for(size_t i = 0; i < cgf->num_constrained_faces(); ++i){
+					Face* cdf = cgf->constrained_face(i);
+					if(marked_refine(cdf))
+						add_hmark(cdf, HNRM_TO_CONSTRAINING);
+					else
+						add_hmark(cdf, HNRM_TO_NORMAL);
+				}
+			}
+		}
+
+		for(ConstrainingQuadrilateralIterator iter = m_selMarkedElements.begin<ConstrainingQuadrilateral>();
+			iter != m_selMarkedElements.end<ConstrainingQuadrilateral>(); ++iter)
+		{
+			ConstrainingQuadrilateral* cgf = *iter;
+			if(marked_refine(cgf)){
+				add_hmark(cgf, HNRM_TO_NORMAL);
+				for(size_t i = 0; i < cgf->num_constrained_vertices(); ++i)
+					add_hmark(cgf->constrained_vertex(i), HNRM_TO_NORMAL);
+				for(size_t i = 0; i < cgf->num_constrained_edges(); ++i){
+					EdgeBase* cde = cgf->constrained_edge(i);
+					if(marked_refine(cde))
+						add_hmark(cde, HNRM_TO_CONSTRAINING);
+					else
+						add_hmark(cde, HNRM_TO_NORMAL);
+				}
+				for(size_t i = 0; i < cgf->num_constrained_faces(); ++i){
+					Face* cdf = cgf->constrained_face(i);
+					if(marked_refine(cdf))
+						add_hmark(cdf, HNRM_TO_CONSTRAINING);
+					else
+						add_hmark(cdf, HNRM_TO_NORMAL);
 				}
 			}
 		}
@@ -663,15 +667,33 @@ assign_hnode_marks()
 			EdgeBase* e = *iter;
 			CollectAssociated(faces, grid, e);
 			for(size_t i = 0; i < faces.size(); ++i){
-				if(marked_for_hnode_refinement(faces[i])){
-					mark_for_hnode_refinement(e, true);
+				if(marked_to_constraining(faces[i])){
+					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
 				}
 				else if(refinement_is_allowed(faces[i])
 						&& (!m_selMarkedElements.is_selected(faces[i])))
 				{
-					mark_for_hnode_refinement(e, true);
+					add_hmark(e, HNRM_TO_CONSTRAINING);
 					break;
+				}
+			}
+		}
+
+		for(ConstrainingEdgeIterator iter = m_selMarkedElements.begin<ConstrainingEdge>();
+			iter != m_selMarkedElements.end<ConstrainingEdge>(); ++iter)
+		{
+			ConstrainingEdge* cge = *iter;
+			if(marked_refine(cge)){
+				add_hmark(cge, HNRM_TO_NORMAL);
+				for(size_t i = 0; i < cge->num_constrained_vertices(); ++i)
+					add_hmark(cge->constrained_vertex(i), HNRM_TO_NORMAL);
+				for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
+					EdgeBase* cde = cge->constrained_edge(i);
+					if(marked_refine(cde))
+						add_hmark(cde, HNRM_TO_CONSTRAINING);
+					else
+						add_hmark(cde, HNRM_TO_NORMAL);
 				}
 			}
 		}
@@ -681,9 +703,88 @@ assign_hnode_marks()
 ////////////////////////////////////////////////////////////////////////
 //	implementation of refine-methods.
 void HangingNodeRefinerBase::
-refine_constraining_edge(ConstrainingEdge* cge)
+process_constrained_vertex(ConstrainedVertex* cdv)
 {
-	HNODE_PROFILE_FUNC();
+
+	if(marked_to_normal(cdv)){
+		EdgeBase* parentEdge = NULL;
+		Face* parentFace = NULL;
+		GeometricObject* constrObj = cdv->get_constraining_object();
+
+		if(constrObj){
+			switch(cdv->get_parent_base_object_id()){
+				case EDGE:{
+						ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(constrObj);
+						UG_ASSERT(cge, "Constraining edge has invalid type!");
+						UG_ASSERT(marked_to_normal(cge),
+								  "Constraining edge has to be converted to a normal edge!");
+						cge->clear_constrained_vertices();
+						parentEdge = cge;
+						UG_ASSERT(get_center_vertex(cge) == cdv,
+								  "Center vertex and constrained vertex do not match!");
+					}break;
+				case FACE:{
+						ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
+						UG_ASSERT(cgf, "Constraining face has invalid type!");
+						UG_ASSERT(marked_to_normal(cgf),
+								  "Constraining edge has to be converted to a normal edge!");
+						cgf->clear_constrained_vertices();
+						parentFace = cgf;
+						UG_ASSERT((get_center_vertex(cgf) == NULL) || (get_center_vertex(cgf) == cdv),
+								  "Center vertex and constrained vertex do not match!");
+					}break;
+				default:
+					break;
+			}
+		}
+
+		Grid& grid = *m_pGrid;
+		VertexBase* nVrt = *grid.create_and_replace<Vertex>(cdv);
+		if(parentEdge)
+			set_center_vertex(parentEdge, nVrt);
+		else if(parentFace)
+			set_center_vertex(parentFace, nVrt);
+	}
+}
+
+void HangingNodeRefinerBase::
+process_constrained_edge(ConstrainedEdge* cde)
+{
+	GeometricObject* constrObj = cde->get_constraining_object();
+	if(constrObj && (marked_to_normal(cde) || marked_to_constraining(cde))){
+		switch(cde->get_parent_base_object_id()){
+			case EDGE:{
+					ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(constrObj);
+					UG_ASSERT(cge, "Constraining edge has invalid type!");
+					UG_ASSERT(marked_to_normal(cge),
+							  "Constraining edge has to be converted to a normal edge!");
+					cge->clear_constrained_edges();
+				}break;
+			case FACE:{
+					ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
+					UG_ASSERT(cgf, "Constraining face has invalid type!");
+					UG_ASSERT(marked_to_normal(cgf),
+							  "Constraining face has to be converted to a normal face!");
+					cgf->clear_constrained_edges();
+				}break;
+			default:
+				break;
+		}
+	}
+
+	Grid& grid = *m_pGrid;
+	if(marked_to_normal(cde)){
+		grid.create_and_replace<Edge>(cde);
+	}
+	else if(marked_to_constraining(cde)){
+		refine_edge_with_hanging_vertex(cde);
+	}
+}
+
+void HangingNodeRefinerBase::
+process_constraining_edge(ConstrainingEdge* cge)
+{
+/*	HNODE_PROFILE_FUNC();
 
 //	make sure that there is one hanging vertex and two constrained edges.
 	assert(cge->num_constrained_vertices() == 1 && "bad number of constrained vertices. There has to be exactly 1.");
@@ -722,13 +823,15 @@ refine_constraining_edge(ConstrainingEdge* cge)
 	}
 
 	cge->clear_constrained_objects();
-	set_center_vertex(cge, centerVrt);
+	set_center_vertex(cge, centerVrt);*/
 }
 
 void HangingNodeRefinerBase::
 refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
 	HNODE_PROFILE_FUNC();
+
+	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
 
 //	the grid
 	Grid& grid = *m_pGrid;
@@ -752,6 +855,8 @@ void HangingNodeRefinerBase::
 refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
 	HNODE_PROFILE_FUNC();
+
+	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
 
 	Grid& grid = *m_pGrid;
 //	we have to insert a hanging node.
@@ -796,6 +901,8 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 {
 	HNODE_PROFILE_FUNC();
 
+	UG_ASSERT(refinement_is_allowed(f), "Refinement of given face not allowed!");
+
 //UG_LOG("refine_face_with_normal_vertex\n");
 	Grid& grid = *m_pGrid;
 
@@ -809,7 +916,7 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 	//	if the face is refined with a regular rule, then every edge has to have
 	//	an associated center vertex
 		assert((get_mark(f) == RM_ANISOTROPIC) ||
-				(get_mark(f) == RM_REGULAR && get_center_vertex(e) != NULL));
+				(get_mark(f) == RM_REFINE && get_center_vertex(e) != NULL));
 
 	//	assign the center vertex
 		vNewEdgeVertices[i] = get_center_vertex(e);
@@ -843,6 +950,8 @@ void HangingNodeRefinerBase::
 refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 {
 	HNODE_PROFILE_FUNC();
+
+	UG_ASSERT(refinement_is_allowed(f), "Refinement of given face not allowed!");
 
 //UG_LOG("refine_face_with_hanging_vertex\n");
 	Grid& grid = *m_pGrid;
@@ -881,7 +990,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 	//	if the face is refined with a regular rule, then every edge has to have
 	//	an associated center vertex
 		assert((get_mark(f) == RM_ANISOTROPIC) ||
-				((get_mark(f) == RM_REGULAR) && (get_center_vertex(e) != NULL)));
+				((get_mark(f) == RM_REFINE) && (get_center_vertex(e) != NULL)));
 
 	//	assign the center vertex
 		vNewEdgeVertices[i] = get_center_vertex(e);
@@ -990,14 +1099,45 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 }
 
 void HangingNodeRefinerBase::
-refine_constraining_face(ConstrainingFace* cgf)
+process_constrained_face(ConstrainedFace* cdf)
+{
+	GeometricObject* constrObj = cdf->get_constraining_object();
+
+	if(constrObj && (marked_to_normal(cdf) || marked_to_constraining(cdf))){
+		switch(cdf->get_parent_base_object_id()){
+			case FACE:{
+					ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(constrObj);
+					UG_ASSERT(cgf, "Constraining face has invalid type!");
+					UG_ASSERT(marked_to_normal(cgf),
+							  "Constraining face has to be converted to a normal face!");
+					cgf->clear_constrained_faces();
+				}break;
+			default:
+				UG_ASSERT(cdf->get_constraining_object() == NULL,
+						  "Invalid constraining object encountered!");
+				break;
+		}
+	}
+
+	Grid& grid = *m_pGrid;
+	if(marked_to_normal(cdf)){
+		if(cdf->num_vertices() == 3)
+			grid.create_and_replace<Triangle>(cdf);
+		else
+			grid.create_and_replace<Quadrilateral>(cdf);
+	}
+	else if(marked_to_constraining(cdf)){
+		refine_face_with_hanging_vertex(cdf);
+	}
+}
+
+void HangingNodeRefinerBase::
+process_constraining_face(ConstrainingFace* cgf)
 {
 	HNODE_PROFILE_FUNC();
-
-	size_t numVrts = cgf->num_vertices();
-
-//	the grid
 	Grid& grid = *m_pGrid;
+/*
+	size_t numVrts = cgf->num_vertices();
 
 //	make sure that there is one hanging vertex and two constrained edges.
 	UG_ASSERT(cgf->num_constrained_edges() == numVrts,
@@ -1016,12 +1156,7 @@ refine_constraining_face(ConstrainingFace* cgf)
 		centralHV = NULL;
 		if(cgf->num_constrained_vertices() > 0)
 			centralHV = dynamic_cast<ConstrainedVertex*>(cgf->constrained_vertex(0));
-/*
-		if(!centralHV){
-			UG_LOG("The central hanging vertex of a constraining face is missing. ignoring face.\n");
-			return;
-		}
-*/
+
 	//	replace the central vertex with a normal vertex
 		if(centralHV)
 			centerVrt = *grid.create_and_replace<Vertex>(centralHV);
@@ -1063,9 +1198,12 @@ refine_constraining_face(ConstrainingFace* cgf)
 				f = *grid.create_and_replace<Quadrilateral>(f);
 		}
 	}
-
+*/
 //	cgf->clear_constrained_objects();
 //	cgf itself now has to be transformed to a normal face
+	UG_ASSERT(marked_to_normal(cgf), "A constraining face has to be converted to"
+									 " a normal face when it is refined.");
+	VertexBase* centerVrt = get_center_vertex(cgf);
 	Face* nFace;
 	if(cgf->num_vertices() == 3)
 		nFace = *grid.create_and_replace<Triangle>(cgf);
@@ -1080,6 +1218,8 @@ void HangingNodeRefinerBase::
 refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 {
 	HNODE_PROFILE_FUNC();
+
+	UG_ASSERT(refinement_is_allowed(v), "Refinement of given volume not allowed!");
 
 	Grid& grid = *m_pGrid;
 

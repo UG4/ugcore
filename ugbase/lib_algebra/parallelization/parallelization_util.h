@@ -97,7 +97,6 @@ void AdditiveToConsistent(	TVector* pVec,
 		com.receive_data(masterLayout, cpVecAdd);
 		com.communicate();
 		PU_PROFILE_END(); //AdditiveToConsistent_step1 // added 18042011ih
-
 	//	step 2: copy master values to slaves
 	//	create the required communication policies
 		ComPol_VecCopy<TVector> cpVecCopy(pVec);

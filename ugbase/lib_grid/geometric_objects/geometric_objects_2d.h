@@ -328,16 +328,37 @@ class UG_API ConstrainedFace : public Face
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainedFace*>(pObj) != NULL;}
 
-		ConstrainedFace() : m_pConstrainingObject(NULL)			{}
+		ConstrainedFace() : m_pConstrainingObject(NULL), m_parentBaseObjectId(-1)	{}
 		virtual ~ConstrainedFace()	{}
 
-		inline void set_constraining_object(GeometricObject* pObj)	{m_pConstrainingObject = pObj;}
+		inline void set_constraining_object(GeometricObject* pObj)
+		{
+			m_pConstrainingObject = pObj;
+			if(pObj)
+				m_parentBaseObjectId = pObj->base_object_id();
+			else
+				m_parentBaseObjectId = -1;
+		}
+
 		inline GeometricObject* get_constraining_object()			{return m_pConstrainingObject;}
+
+		inline int get_parent_base_object_id()				{return m_parentBaseObjectId;}
+		inline void set_parent_base_object_id(int id)
+		{
+			if((m_parentBaseObjectId != -1) && (m_parentBaseObjectId != id)){
+				UG_THROW("Bad parent base object id specified! The given id"
+						" has to match the id of the constraining object if that"
+						" is present. Call this method only, if no constraining"
+						" object has been set!");
+			}
+			m_parentBaseObjectId = id;
+		}
 
 		virtual bool is_constrained() const							{return true;}
 
 	protected:
 		GeometricObject*	m_pConstrainingObject;
+		int					m_parentBaseObjectId;
 };
 
 

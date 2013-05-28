@@ -425,7 +425,7 @@ adjust_parallel_selection(const std::vector<VertexBase*>* pvVrts,
 			
 			int rule = get_rule(e);
 			switch(rule){
-				case RM_REGULAR:{
+				case RM_REFINE:{
 				//	mark associated faces
 					CollectFaces(vAssFaces, grid, e);
 					
@@ -443,7 +443,7 @@ adjust_parallel_selection(const std::vector<VertexBase*>* pvVrts,
 							for(size_t k = 0; k < vAssEdges.size(); ++k){
 								EdgeBase* assEdge = vAssEdges[k];
 								if(m_selMarks.is_selected(assEdge)){
-									if(get_rule(assEdge) != RM_REGULAR)
+									if(get_rule(assEdge) != RM_REFINE)
 										refineRegular = false;
 								}
 								else{
@@ -455,7 +455,7 @@ adjust_parallel_selection(const std::vector<VertexBase*>* pvVrts,
 							
 						//	set the refinement rule of the face
 							if(refineRegular)
-								set_rule(f, RM_REGULAR);
+								set_rule(f, RM_REFINE);
 							else
 								set_rule(f, RM_IRREGULAR);
 								

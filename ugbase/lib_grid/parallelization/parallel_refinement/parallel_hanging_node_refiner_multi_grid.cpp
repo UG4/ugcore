@@ -2,10 +2,13 @@
 // s.b.reiter@googlemail.com
 // 09.02.2011 (m,d,y)
  
+#include <algorithm>
 #include "parallel_hanging_node_refiner_multi_grid.h"
 #include "../util/compol_selection.h"
 #include "parallel_hnode_adjuster.h"
 #include "lib_grid/algorithms/debug_util.h"
+
+using namespace std;
 
 namespace ug{
 
@@ -158,10 +161,14 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
+			const int TO_NORMAL = HangingNodeRefinerBase::HNRM_TO_NORMAL;
+			const int TO_CONSTRAINED = HangingNodeRefinerBase::HNRM_TO_CONSTRAINED;
+			const int TO_CONSTRAINING = HangingNodeRefinerBase::HNRM_TO_CONSTRAINING;
+
 		//	search for entries which changed their constrained/constraining status
 			UG_ASSERT(m_distGridMgr.get_assigned_grid(),
 					"The distributed grid manager has to operate on a valid grid!");
-			MultiGrid& mg = *m_distGridMgr.get_assigned_grid();
+			//MultiGrid& mg = *m_distGridMgr.get_assigned_grid();
 
 			int counter = 0;
 			for(InterfaceIter iter = interface.begin();
@@ -169,41 +176,14 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 			{
 				byte mark = CT_IGNORE;
 				Element elem = interface.get_element(iter);
-
 				if(m_sel.is_selected(elem)){
-					if(elem->is_constraining()){
-						if((m_sel.get_selection_status(elem)
-							& HangingNodeRefinerBase::HNRM_CONSTRAINED) == 0)
-						{
-							mark = CT_TO_NORMAL;
-						}
-					}
-					else if(elem->is_constrained()){
-						if((m_sel.get_selection_status(elem)
-							& HangingNodeRefinerBase::HNRM_CONSTRAINED))
-						{
-							mark = CT_TO_CONSTRAINING;
-						}
-					}
-					else{
-						if((m_sel.get_selection_status(elem)
-							& HangingNodeRefinerBase::HNRM_CONSTRAINED))
-						{
-							mark = CT_TO_CONSTRAINING;
-						}
-					}
-				}
-				else{
-					if(elem->is_constrained()){
-						GeometricObject* go = mg.get_parent(elem);
-						if(go && m_sel.is_selected(go)){
-							if((m_sel.get_selection_status(go)
-								& HangingNodeRefinerBase::HNRM_CONSTRAINED) == 0)
-							{
-								mark = CT_TO_NORMAL;
-							}
-						}
-					}
+					int refMark = m_sel.get_selection_status(elem);
+					if((refMark & TO_NORMAL) == TO_NORMAL)
+						mark = CT_TO_NORMAL;
+					if((refMark & TO_CONSTRAINED) == TO_CONSTRAINED)
+						mark = CT_TO_CONSTRAINED;
+					if((refMark & TO_CONSTRAINING) == TO_CONSTRAINING)
+						mark = CT_TO_CONSTRAINING;
 				}
 
 				if(mark != CT_IGNORE){
@@ -301,26 +281,33 @@ assign_hnode_marks()
 
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 
+	ComPol_EnableSelectionStateBits<VertexLayout> compolVRT(BaseClass::m_selMarkedElements,
+														   BaseClass::HNRM_TO_NORMAL
+														 | BaseClass::HNRM_TO_CONSTRAINED
+														 | BaseClass::HNRM_TO_CONSTRAINING);
+
 	ComPol_EnableSelectionStateBits<EdgeLayout> compolEDGE(BaseClass::m_selMarkedElements,
-														 BaseClass::HNRM_CONSTRAINED);
+														   BaseClass::HNRM_TO_NORMAL
+														 | BaseClass::HNRM_TO_CONSTRAINED
+														 | BaseClass::HNRM_TO_CONSTRAINING);
 	ComPol_EnableSelectionStateBits<FaceLayout> compolFACE(BaseClass::m_selMarkedElements,
-														 BaseClass::HNRM_CONSTRAINED);
+														   BaseClass::HNRM_TO_NORMAL
+														 | BaseClass::HNRM_TO_CONSTRAINED
+														 | BaseClass::HNRM_TO_CONSTRAINING);
 
-	m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
-								compolEDGE);
+	m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, compolVRT);
+	m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, compolEDGE);
+	m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, compolFACE);
 
-	m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER,
-								compolFACE);
-
+	m_intfComVRT.communicate();
 	m_intfComEDGE.communicate();
 	m_intfComFACE.communicate();
 
-	m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
-								compolEDGE);
+	m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, compolVRT);
+	m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, compolEDGE);
+	m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, compolFACE);
 
-	m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE,
-								compolFACE);
-
+	m_intfComVRT.communicate();
 	m_intfComEDGE.communicate();
 	m_intfComFACE.communicate();
 
@@ -428,12 +415,16 @@ set_involved_processes(pcl::ProcessCommunicator com)
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
-copy_marks_to_vmasters()
+copy_marks_to_vmasters(bool vertices, bool edges, bool faces, bool volumes)
 {
-	copy_marks_to_vmasters<VertexBase>(m_intfComVRT);
-	copy_marks_to_vmasters<EdgeBase>(m_intfComEDGE);
-	copy_marks_to_vmasters<Face>(m_intfComFACE);
-	copy_marks_to_vmasters<Volume>(m_intfComVOL);
+	if(vertices)
+		copy_marks_to_vmasters<VertexBase>(m_intfComVRT);
+	if(edges)
+		copy_marks_to_vmasters<EdgeBase>(m_intfComEDGE);
+	if(faces)
+		copy_marks_to_vmasters<Face>(m_intfComFACE);
+	if(volumes)
+		copy_marks_to_vmasters<Volume>(m_intfComVOL);
 }
 
 template <class TElem, class TIntfcCom>
@@ -449,12 +440,16 @@ copy_marks_to_vmasters(TIntfcCom& com)
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
-copy_marks_to_vslaves()
+copy_marks_to_vslaves(bool vertices, bool edges, bool faces, bool volumes)
 {
-	copy_marks_to_vslaves<VertexBase>(m_intfComVRT);
-	copy_marks_to_vslaves<EdgeBase>(m_intfComEDGE);
-	copy_marks_to_vslaves<Face>(m_intfComFACE);
-	copy_marks_to_vslaves<Volume>(m_intfComVOL);
+	if(vertices)
+		copy_marks_to_vslaves<VertexBase>(m_intfComVRT);
+	if(edges)
+		copy_marks_to_vslaves<EdgeBase>(m_intfComEDGE);
+	if(faces)
+		copy_marks_to_vslaves<Face>(m_intfComFACE);
+	if(volumes)
+		copy_marks_to_vslaves<Volume>(m_intfComVOL);
 }
 
 template <class TElem, class TIntfcCom>
@@ -467,44 +462,6 @@ copy_marks_to_vslaves(TIntfcCom& com)
 	com.exchange_data(m_pDistGridMgr->grid_layout_map(),
 					  INT_V_MASTER, INT_V_SLAVE, comPol);
 	com.communicate();
-}
-
-
-void ParallelHangingNodeRefiner_MultiGrid::
-restrict_selection_to_surface_coarsen_elements()
-{
-//	call base implementation and copy marks from vslaves to vmasters afterwards.
-//	Important since vmasters may locally be surface elements but may globally be
-//	parents of other elements.
-	BaseClass::restrict_selection_to_surface_coarsen_elements();
-	copy_marks_to_vmasters();
-}
-
-void ParallelHangingNodeRefiner_MultiGrid::
-restrict_selection_to_coarsen_families()
-{
-//	this operation has to be performed on vmasters, since vslaves usually don't
-//	have parents locally. We thus copy the marks from vmasters to vslaves once
-//	they have been adjusted.
-	BaseClass::restrict_selection_to_coarsen_families();
-	copy_marks_to_vslaves();
-}
-
-
-void ParallelHangingNodeRefiner_MultiGrid::
-collect_objects_for_coarsen()
-{
-	BaseClass::collect_objects_for_coarsen();
-//	marks are now consistent across h-interfaces. however, we have to
-//	copy marks to v-masters, too, since those may have to be coarsened or
-//	transformed, too
-	copy_marks_to_vmasters();
-}
-
-bool ParallelHangingNodeRefiner_MultiGrid::
-continue_collect_objects_for_coarsen(bool continueRequired)
-{
-	return (bool)m_procCom.allreduce((int)continueRequired, PCL_RO_LOR);
 }
 
 
@@ -556,9 +513,22 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 			//	check the current status and adjust the mark accordingly
 				byte curVal = m_sel.get_selection_status(elem);
 
-				if(curVal != val)
-					m_sel.select(elem, ParallelHangingNodeRefiner_MultiGrid::
-													HNCM_SOME_NBRS_SELECTED);
+				if(curVal == val)
+					continue;
+
+				byte maxVal = max(curVal, val);
+				byte minVal = min(curVal, val);
+
+				if((minVal != ParallelHangingNodeRefiner_MultiGrid::HNCM_NO_NBRS)
+				   && (minVal < maxVal)
+				   && (maxVal == ParallelHangingNodeRefiner_MultiGrid::HNCM_ALL))
+				{
+					curVal = ParallelHangingNodeRefiner_MultiGrid::HNCM_PARTIAL;
+				}
+				else
+					curVal = maxVal;
+
+				m_sel.select(elem, curVal);
 			}
 			return true;
 		}
@@ -566,79 +536,37 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		Selector& m_sel;
 };
 
-void
-ParallelHangingNodeRefiner_MultiGrid::
-broadcast_vertex_coarsen_marks()
+void ParallelHangingNodeRefiner_MultiGrid::
+broadcast_marks_horizontally(bool vertices, bool edges, bool faces)
 {
-//	the broadcast has to be performed with some special operations on the
-//	marks:
-//	- if one mark equals HNCM_SOME_NBRS_SELECTED then all have to be set to
-//		HNCM_SOME_NBRS_SELECTED.
-//	- if on contains HNCM_ALL_NBRS_SELECTED and another contains another mark,
-//		then all have to be set to HNCM_SOME_NBRS_SELECTED.
-//	- else the mark stays as it is.
-//
-//	we'll collect the marks at the master-nodes, adjust the and distribute them
-//	to the associated slaves afterwards.
-	ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector());
-
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
-
-	m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
-	m_intfComVRT.communicate();
-
-	m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
-	m_intfComVRT.communicate();
+	if(vertices){
+		ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector());
+		m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+		m_intfComVRT.communicate();
+		m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+		m_intfComVRT.communicate();
+	}
+	if(edges){
+		ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector());
+		m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+		m_intfComEDGE.communicate();
+		m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+		m_intfComEDGE.communicate();
+	}
+	if(faces){
+		ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector());
+		m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
+		m_intfComFACE.communicate();
+		m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
+		m_intfComFACE.communicate();
+	}
 }
 
-void
-ParallelHangingNodeRefiner_MultiGrid::
-broadcast_edge_coarsen_marks()
+bool ParallelHangingNodeRefiner_MultiGrid::
+one_proc_true(bool localProcTrue)
 {
-//	the broadcast has to be performed with some special operations on the
-//	marks:
-//	- if one mark equals HNCM_SOME_NBRS_SELECTED then all have to be set to
-//		HNCM_SOME_NBRS_SELECTED.
-//	- if on contains HNCM_ALL_NBRS_SELECTED and another contains another mark,
-//		then all have to be set to HNCM_SOME_NBRS_SELECTED.
-//	- else the mark stays as it is.
-//
-//	we'll collect the marks at the master-nodes, adjust the and distribute them
-//	to the associated slaves afterwards.
-	ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector());
-
-	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
-
-	m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
-	m_intfComEDGE.communicate();
-
-	m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
-	m_intfComEDGE.communicate();
-}
-
-void
-ParallelHangingNodeRefiner_MultiGrid::
-broadcast_face_coarsen_marks()
-{
-//	the broadcast has to be performed with some special operations on the
-//	marks:
-//	- if one mark equals HNCM_SOME_NBRS_SELECTED then all have to be set to
-//		HNCM_SOME_NBRS_SELECTED.
-//	- if on contains HNCM_ALL_NBRS_SELECTED and another contains another mark,
-//		then all have to be set to HNCM_SOME_NBRS_SELECTED.
-//	- else the mark stays as it is.
-//
-//	we'll collect the marks at the master-nodes, adjust the and distribute them
-//	to the associated slaves afterwards.
-	ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector());
-
-	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
-
-	m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
-	m_intfComFACE.communicate();
-
-	m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
-	m_intfComFACE.communicate();
+	return pcl::OneProcTrue(localProcTrue);
 }
 
 bool

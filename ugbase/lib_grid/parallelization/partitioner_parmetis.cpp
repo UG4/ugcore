@@ -310,7 +310,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 			continue;
 
 		if(numProcsWithGrid == 1){
-			partition_level_metis(minLvl, numProcs);
+			if(gotGrid)
+				partition_level_metis(minLvl, numProcs);
 		}
 		else{
 			partition_level_parmetis(minLvl, numProcs, procComAll, pdg);
@@ -413,6 +414,32 @@ partition_level_metis(int lvl, int numTargetProcs)
 	int counter = 0;
 	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
 		m_sh.assign_subset(*iter, partitionMap[counter++]);
+
+
+//	clustered siblings help to ensure that all vertices which are connected to
+//	a constrained vertex through are on the same process as the constrained vertex.
+//	If only refinement is performed, it would be sufficient to only cluster
+//	constrained siblings. However, coarsening would be rather complicated in that
+//	case, since it is rather complicated to introduce constrained sibling elements if a
+//	previously unconstrained sibling is not located on the same process...
+//todo: clustering should already be considered during graph-partitioning.
+	if(base_class::clustered_siblings_enabled()){
+		UG_LOG("NOTE: Clustering siblings during partitioning.\n");
+		if(lvl > 0){
+		//	put all children in the subset of the first one.
+			for(ElemIter iter = mg.begin<elem_t>(lvl-1);
+				iter != mg.end<elem_t>(lvl-1); ++iter)
+			{
+				elem_t* e = *iter;
+				size_t numChildren = mg.num_children<elem_t>(e);
+				if(numChildren > 1){
+					int partition = m_sh.get_subset_index(mg.get_child<elem_t>(e, 0));
+					for(size_t i = 1; i < numChildren; ++i)
+						m_sh.assign_subset(mg.get_child<elem_t>(e, i), partition);
+				}
+			}
+		}
+	}
 
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop partition_level_metis\n");
 }
@@ -533,20 +560,15 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 						 	 	compolSHCopy);
 	m_intfcCom.communicate();
 
-
-	//todo:	Not all siblings should have to be sent to the same process...
-	//		simply remove the following code block - make sure that surface-view supports this!
-	//		However, problems with discretizations and solvers would most likely occur.
-/*
-	{
-		UG_LOG("ATTENTION: Grouping siblings during partitioning. "
-				"Currently required for GMG only!\n");
-//		todo: Remove grouping and do some debugging! No grouping fails e.g. with
-//		mpirun -n 8 ugshell -ex adaptive_mg/error_indicator_new.lua -dim 3 -numRefs 8 -redistributionSteps 1 -redistributionProcs 2
-
-	//	currently there is a restriction in the functionality of the surface view.
-	//	Because of that we have to make sure, that all siblings in the specified level
-	//	are sent to the same process... we thus adjust the partition slightly.
+//	clustered siblings help to ensure that all vertices which are connected to
+//	a constrained vertex through are on the same process as the constrained vertex.
+//	If only refinement is performed, it would be sufficient to only cluster
+//	constrained siblings. However, coarsening would be rather complicated in that
+//	case, since it is rather complicated to introduce constrained sibling elements if a
+//	previously unconstrained sibling is not located on the same process...
+//todo: clustering should already be considered during graph-partitioning.
+	if(base_class::clustered_siblings_enabled()){
+		UG_LOG("NOTE: Clustering siblings during partitioning.\n");
 		if(lvl > 0){
 		//	put all children in the subset of the first one.
 			for(ElemIter iter = mg.begin<elem_t>(lvl-1);
@@ -573,7 +595,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 									compolSHCopy);
 		m_intfcCom.communicate();
 	}
-*/
+
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop partition_level_parmetis\n");
 }
 

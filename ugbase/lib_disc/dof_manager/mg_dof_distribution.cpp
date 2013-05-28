@@ -1042,6 +1042,14 @@ void MGDoFDistribution::register_observer()
 	if(max_dofs(FACE)) type |= OT_FACE_OBSERVER;
 	if(max_dofs(VOLUME)) type |= OT_VOLUME_OBSERVER;
 
+#ifdef UG_PARALLEL
+	if(pcl::GetNumProcesses() > 1){
+	//	to correctly support parallel coarsening we have to register the dof-distribution
+	//	as a full observer.
+		type = OT_FULL_OBSERVER;
+	}
+#endif
+
 	multi_grid()->register_observer(this, type);
 }
 

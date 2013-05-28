@@ -71,7 +71,7 @@ class GridFunctionSerializer : public GridDataSerializer
 		typedef typename TGridFct::value_type	value_type;
 
 		struct Entry{
-			std::vector<value_type>	values;
+			std::vector<std::pair<bool, value_type> >	values;
 		};
 
 		typedef Attachment<Entry>	AEntry;
@@ -113,8 +113,8 @@ class GridFunctionSerializer : public GridDataSerializer
 
 					if(entry.values.size() == indices.size()){
 						for(size_t i = 0; i < indices.size(); ++i){
-							if(indices[i] < fct.size())
-								fct[indices[i]] = entry.values[i];
+							if(entry.values[i].first && (indices[i] < fct.size()))
+								fct[indices[i]] = entry.values[i].second;
 						}
 					}
 				}
@@ -124,7 +124,8 @@ class GridFunctionSerializer : public GridDataSerializer
 		template <class TElem>
 		void write(BinaryBuffer& out, TElem* e) const
 		{
-			static typename TGridFct::vector_type::value_type dummy;
+			const char valid = 1;
+			const char invalid = 0;
 
 			const TGridFct& fct = *m_fct;
 			std::vector<size_t>	indices;
@@ -132,10 +133,12 @@ class GridFunctionSerializer : public GridDataSerializer
 
 			Serialize(out, int(indices.size()));
 			for(size_t i = 0; i < indices.size(); ++i){
-				if(indices[i] < fct.size())
+				if(indices[i] < fct.size()){
+					Serialize(out, valid);
 					Serialize(out, fct[indices[i]]);
+				}
 				else
-					Serialize(out, dummy);
+					Serialize(out, invalid);
 			}
 		}
 
@@ -146,10 +149,15 @@ class GridFunctionSerializer : public GridDataSerializer
 			Deserialize(in, numVals);
 
 			Entry& entry = m_aaEntry[e];
-			entry.values.resize(numVals);
+			entry.values.resize(numVals, std::make_pair<bool, value_type>(false, 0));
 
 			for(int i = 0; i < numVals; ++i){
-				Deserialize(in, entry.values[i]);
+				char isValid;
+				Deserialize(in, isValid);
+				if(isValid){
+					entry.values[i].first = true;
+					Deserialize(in, entry.values[i].second);
+				}
 			}
 		}
 

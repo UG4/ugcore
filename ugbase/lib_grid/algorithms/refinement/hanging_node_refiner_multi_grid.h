@@ -41,9 +41,13 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 		using HangingNodeRefinerBase::mark;
 
 		enum HNodeCoarsenMarks{
-			HNCM_ALL_NBRS_SELECTED = RM_MAX + 1,
-			HNCM_SOME_NBRS_SELECTED,
-			HNCM_NO_NBRS_SELECTED
+			HNCM_REPLACE = HNRM_MAX + 1,
+			HNCM_NO_NBRS,
+			HNCM_NONE,
+			HNCM_PARTIAL,
+			HNCM_ALL,
+			HNCM_UNKNOWN,
+			HNCM_INVALID
 		};
 
 	public:
@@ -125,6 +129,9 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 *  newCornerVrts. If newCornerVrts were passed to this method, they
 	 *  are ignored.
 	 *  \{*/
+	///	calls base implementation and replaces cge with a normal edge.
+		virtual void process_constraining_edge(ConstrainingEdge* cge);
+
 		virtual void refine_edge_with_normal_vertex(EdgeBase* e,
 											VertexBase** newCornerVrts = NULL);
 		virtual void refine_edge_with_hanging_vertex(EdgeBase* e,
@@ -151,8 +158,6 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	///	Associates a vertex with the face.
 		virtual void set_center_vertex(Face* f, VertexBase* v);
 
-	///	calls base implementation and replaces cge with a normal edge.
-		virtual void refine_constraining_edge(ConstrainingEdge* cge);
 
 	///	collects corner vertices and fills them into the associated vector
 	/**	The size of cornersOut is automatically adjusted.
@@ -198,8 +203,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 * dimension are selected.
 	 * Note that this method should only be called for vertices, edges and faces.
 	 * It does not make sense to call it for volumes.*/
-		template <class TElem>
-		void classify_selection();
+//		template <class TElem>
+//		void classify_selection();
 
 	///	Applies marks like RM_COARSEN_CONSTRAINING or RM_COARSEN_UNCONSTRAIN
 	/**	This method should first be called for Face, then for EdgeBase, then for
@@ -209,14 +214,14 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 
 	///deselect coarsen families, which are adjacent to unselected constraining elements
 	/**	If at least one family was deselected, this method returns true.*/
-		template <class TElem>
-		bool deselect_invalid_coarsen_families();
-
-		template <class TElem>
-		void deselect_isolated_sides();
-
-		template <class TElem>
-		void deselect_uncoarsenable_parents();
+//		template <class TElem>
+//		bool deselect_invalid_coarsen_families();
+//
+//		template <class TElem>
+//		void deselect_isolated_sides();
+//
+//		template <class TElem>
+//		void deselect_uncoarsenable_parents();
 
 	///	called by the coarsen method in order to adjust the selection to valid elements.
 	/**	This method is responsible to mark all elements that shall be coarsened.
@@ -235,17 +240,17 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 * which indicates if it requires the continuation of collect_objects_for_coarsen.
 	 * If one process does require continuation, then all processes have to continue.
 	 * The default implementation simply returns the local status.*/
-		virtual bool continue_collect_objects_for_coarsen(bool continueRequired)
-		{return continueRequired;}
+//		virtual bool continue_collect_objects_for_coarsen(bool continueRequired)
+//		{return continueRequired;}
 
 	///	called during collect_objects_for_coarsen when coarsen-marks shall be distributed
 	/**	This method is especially useful if coarsening shall be applied in a
 	 * parallel environment. A derived class can implement this method to schedule
 	 * communication. The default implementation does nothing.
 	 * \{ */
-		virtual void broadcast_vertex_coarsen_marks()	{}
-		virtual void broadcast_edge_coarsen_marks()		{}
-		virtual void broadcast_face_coarsen_marks()		{}
+//		virtual void broadcast_vertex_coarsen_marks()	{}
+//		virtual void broadcast_edge_coarsen_marks()		{}
+//		virtual void broadcast_face_coarsen_marks()		{}
 	/** \} */
 
 	///	allows to check whether a distributed grid contains edges
@@ -267,6 +272,16 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 * mark_for_hnode_refinement during this method. The default implementation
 	 * performs this marking for all local elements.*/
 		//virtual void assign_hnode_coarsen_marks();
+
+		virtual void broadcast_marks_horizontally(bool vertices, bool edges, bool faces)	{}
+
+		virtual void copy_marks_to_vmasters(bool vertices, bool edges,
+											bool faces, bool volumes)			{}
+
+		virtual void copy_marks_to_vslaves(bool vertices, bool edges,
+											bool faces, bool volumes)			{}
+
+		virtual bool one_proc_true(bool localProcTrue)		{return localProcTrue;}
 
 	private:
 		MultiGrid*	m_pMG;

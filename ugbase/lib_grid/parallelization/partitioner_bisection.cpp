@@ -194,6 +194,31 @@ partition(size_t baseLvl, size_t elementThreshold)
 		PartitionElementsByRepeatedIntersection<elem_t, dim>(m_sh, mg, minLvl,
 															 numProcs, m_aPos);
 
+	//	clustered siblings help to ensure that all vertices which are connected to
+	//	a constrained vertex through are on the same process as the constrained vertex.
+	//	If only refinement is performed, it would be sufficient to only cluster
+	//	constrained siblings. However, coarsening would be rather complicated in that
+	//	case, since it is rather complicated to introduce constrained sibling elements if a
+	//	previously unconstrained sibling is not located on the same process...
+	//todo: clustering should already be considered during graph-partitioning.
+		if(base_class::clustered_siblings_enabled()){
+			UG_LOG("NOTE: Clustering siblings during partitioning.\n");
+			if(minLvl > 0){
+			//	put all children in the subset of the first one.
+				for(ElemIter iter = mg.begin<elem_t>(minLvl-1);
+					iter != mg.end<elem_t>(minLvl-1); ++iter)
+				{
+					elem_t* e = *iter;
+					size_t numChildren = mg.num_children<elem_t>(e);
+					if(numChildren > 1){
+						int partition = m_sh.get_subset_index(mg.get_child<elem_t>(e, 0));
+						for(size_t i = 1; i < numChildren; ++i)
+							m_sh.assign_subset(mg.get_child<elem_t>(e, i), partition);
+					}
+				}
+			}
+		}
+
 	//	assign partitions to all children in this hierarchy level
 		for(int lvl = minLvl; lvl < maxLvl; ++lvl){
 			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)

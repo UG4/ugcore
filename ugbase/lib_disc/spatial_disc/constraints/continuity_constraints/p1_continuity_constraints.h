@@ -16,6 +16,7 @@ namespace ug {
 
 /// returns the vertices of the object constraining a hanging vertex
 void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
+						 const Grid& grid,
                          ConstrainedVertex* hgVrt,
                          bool bClearContainer = true);
 

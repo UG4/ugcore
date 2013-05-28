@@ -2,14 +2,19 @@
 // s.b.reiter@googlemail.com
 // 24.11.2011 (m,d,y)
  
+#include <sstream>
 #include "surface_view.h"
 #include "common/assert.h"
 #include "lib_grid/parallelization/util/compol_boolmarker.h"
+#include "lib_grid/file_io/file_io.h"
+
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_interface_communicator.h"
 	#include "pcl/pcl_process_communicator.h"
 	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
 #endif
+
+using namespace std;
 
 namespace ug{
 
@@ -77,7 +82,8 @@ is_local_surface_view_element(TElem* elem)
 {
 	#ifdef UG_PARALLEL
 		return !(m_pMG->has_children(elem)
-				|| m_distGridMgr->contains_status(elem, ES_V_MASTER));
+				 || m_distGridMgr->is_ghost(elem));
+				//|| m_distGridMgr->contains_status(elem, ES_V_MASTER));
 	#else
 		return !m_pMG->has_children(elem);
 	#endif
@@ -119,6 +125,18 @@ refresh_surface_states()
 	}
 }
 
+//static void DebugSave(MultiGrid& mg, SurfaceView& sv, const char* prefix)
+//{
+//	stringstream ss;
+//	ss << prefix;
+//#ifdef UG_PARALLEL
+//	ss << "_p" << pcl::GetProcRank();
+//#endif
+//	ss << ".ugx";
+//
+//	SaveSurfaceViewTransformed(mg, sv, ss.str().c_str(), 0.1);
+//}
+
 template <class TElem>
 void SurfaceView::
 refresh_surface_states()
@@ -143,10 +161,6 @@ refresh_surface_states()
 		{
 			TElem* elem = *iter;
 
-		//	assign local surface state. In a serial environment, this is sufficient.
-		//	In a parallel environment, we possibly mark vertical masters as surface
-		//	elements, even though they have children on other processes. This will
-		//	be fixed in a post-processing step.
 			if(is_local_surface_view_element(elem)){
 				set_surface_state(elem, ESS_SURFACE);
 				mark_sides_as_surface_or_shadow<TElem, typename TElem::side>(elem);
@@ -156,11 +170,45 @@ refresh_surface_states()
 		}
 	}
 
+//	make sure that all constrained elements are surface view members
+//todo: This may have to be remvoed if constrained elements are always in h-interfaces anyways
+	for(ConstrainedTriangleIterator iter = mg.begin<ConstrainedTriangle>();
+		iter != mg.end<ConstrainedTriangle>(); ++iter)
+	{
+		Face* elem = *iter;
+		set_surface_state(elem, ESS_SURFACE);
+		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, ESS_SURFACE | ESS_SHADOWING);
+		if(GeometricObject* p = m_pMG->get_parent(elem))
+			set_surface_state(p, surface_state(p) | ESS_HIDDEN);
+	}
+	for(ConstrainedQuadrilateralIterator iter = mg.begin<ConstrainedQuadrilateral>();
+		iter != mg.end<ConstrainedQuadrilateral>(); ++iter)
+	{
+		Face* elem = *iter;
+		set_surface_state(elem, ESS_SURFACE);
+		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, ESS_SURFACE | ESS_SHADOWING);
+		if(GeometricObject* p = m_pMG->get_parent(elem))
+			set_surface_state(p, surface_state(p) | ESS_HIDDEN);
+	}
+	for(ConstrainedEdgeIterator iter = mg.begin<ConstrainedEdge>();
+		iter != mg.end<ConstrainedEdge>(); ++iter)
+	{
+		EdgeBase* elem = *iter;
+		set_surface_state(elem, ESS_SURFACE);
+		mark_sides_as_surface_or_shadow<EdgeBase, VertexBase>(elem, ESS_SURFACE | ESS_SHADOWING);
+		if(GeometricObject* p = m_pMG->get_parent(elem))
+			set_surface_state(p, surface_state(p) | ESS_HIDDEN);
+	}
+
+//	DebugSave(*m_pMG, *this, "surf_01_initial_assignment");
+
 //	we have to make sure that all copies have the same surface states on all processes
 	adjust_parallel_surface_states<VertexBase>();
 	adjust_parallel_surface_states<EdgeBase>();
 	adjust_parallel_surface_states<Face>();
 	adjust_parallel_surface_states<Volume>();
+
+//	DebugSave(*m_pMG, *this, "surf_02_first_communication");
 
 //	we now have to mark all shadowing elements.
 //	Only low dimensional elements can be shadows.
@@ -170,16 +218,20 @@ refresh_surface_states()
 		mark_shadowing<typename TElem::side>(true);
 	}
 
+//	DebugSave(*m_pMG, *this, "surf_03_shadowings_marked");
+
 //	again we have to make sure that all copies have the same surface states on all processes
 	adjust_parallel_surface_states<VertexBase>();
 	adjust_parallel_surface_states<EdgeBase>();
 	adjust_parallel_surface_states<Face>();
 	adjust_parallel_surface_states<Volume>();
+
+//	DebugSave(*m_pMG, *this, "surf_04_second_communication");
 }
 
 template <class TElem, class TSide>
 void SurfaceView::
-mark_sides_as_surface_or_shadow(TElem* elem)
+mark_sides_as_surface_or_shadow(TElem* elem, byte surfaceState)
 {
 	if(!TElem::HAS_SIDES)
 		return;
@@ -190,9 +242,11 @@ mark_sides_as_surface_or_shadow(TElem* elem)
 	for(size_t i = 0; i < sides.size(); ++i){
 		TSide* s = sides[i];
 		if(surface_state(s) == ESS_NONE){
-			set_surface_state(s, ESS_SURFACE);
-			if(GeometricObject* p = m_pMG->get_parent(s))
-				set_surface_state(p, surface_state(p) | ESS_HIDDEN);
+			set_surface_state(s, surfaceState);
+			if(m_pMG->has_children(s))
+				set_surface_state(s, surface_state(s) | ESS_HIDDEN);
+//			else if(GeometricObject* p = m_pMG->get_parent(s))
+//				set_surface_state(p, surface_state(p) | ESS_HIDDEN);
 		}
 	}
 
@@ -212,10 +266,8 @@ mark_shadowing(bool markSides)
 		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
-			#ifdef UG_PARALLEL
-				if(m_distGridMgr->is_ghost(e))
-					continue;
-			#endif
+			if((surface_state(e) == ESS_NONE) || (surface_state(e) == ESS_HIDDEN))
+				continue;
 
 			GeometricObject* p = mg.get_parent(e);
 			if(p && is_shadowed(p)){
@@ -239,14 +291,15 @@ adjust_parallel_surface_states()
 		GridLayoutMap& glm = m_distGridMgr->grid_layout_map();
 		ComPol_GatherSurfaceStates<Layout>	cpAdjust(*m_pMG, m_aaElemSurfState);
 		pcl::InterfaceCommunicator<Layout> com;
-
 		com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, cpAdjust);
-
+	//	the v-communication is only required if constrained ghosts can be surface elements.
+		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, cpAdjust);
 		com.communicate();
 
 		ComPol_CopyAttachment<Layout, AByte> cpCopyStates(*m_pMG, m_aElemSurfState);
 		com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, cpCopyStates);
 		com.communicate();
+
 	#endif
 }
 

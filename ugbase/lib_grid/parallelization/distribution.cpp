@@ -829,6 +829,13 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 			iter != msel.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
+			if((msel.get_selection_status(e) & IS_VMASTER)
+				|| (msel.get_selection_status(e) & IS_VSLAVE))
+			{
+			//	nothing to do here...
+				continue;
+			}
+
 		//	assign vertical master states first
 			size_t numChildren = mg.num_children<TElem>(e);
 			GeometricObject* parent = mg.get_parent(e);
@@ -931,7 +938,8 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 	MultiGrid& mg = *msel.multi_grid();
 
 	if(mg.num<Volume>() > 0){
-		SelectSubsetElements<Volume>(msel, shPartition, partitionIndex, IS_NORMAL);
+		if(partitionIndex >= 0)
+			SelectSubsetElements<Volume>(msel, shPartition, partitionIndex, IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
 				SelectUnselectedRootElementsAsVMasters<Volume>(msel);
@@ -940,7 +948,8 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 		}
 	}
 	else if(mg.num<Face>() > 0){
-		SelectSubsetElements<Face>(msel, shPartition, partitionIndex, IS_NORMAL);
+		if(partitionIndex >= 0)
+			SelectSubsetElements<Face>(msel, shPartition, partitionIndex, IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
 				SelectUnselectedRootElementsAsVMasters<Face>(msel);
@@ -949,7 +958,8 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 		}
 	}
 	else if(mg.num<EdgeBase>() > 0){
-		SelectSubsetElements<EdgeBase>(msel, shPartition, partitionIndex, IS_NORMAL);
+		if(partitionIndex >= 0)
+			SelectSubsetElements<EdgeBase>(msel, shPartition, partitionIndex, IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
 				SelectUnselectedRootElementsAsVMasters<EdgeBase>(msel);
@@ -958,7 +968,8 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 		}
 	}
 	else if(mg.num<VertexBase>() > 0){
-		SelectSubsetElements<VertexBase>(msel, shPartition, partitionIndex, IS_NORMAL);
+		if(partitionIndex >= 0)
+			SelectSubsetElements<VertexBase>(msel, shPartition, partitionIndex, IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
 				SelectUnselectedRootElementsAsVMasters<VertexBase>(msel);
@@ -990,7 +1001,7 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 
 //	select associated constraining elements first, since they may reference
 //	additional unselected constrained elements.
-	SelectAssociatedConstrainingElements(msel, IS_DUMMY);
+	//SelectAssociatedConstrainingElements(msel, IS_DUMMY);
 	SelectAssociatedConstrainedElements(msel, IS_DUMMY | HAS_PARENT);
 	SelectChildrenOfSelectedShadowVertices(msel, IS_DUMMY | HAS_PARENT);
 	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectElementsForTargetPartition\n");
@@ -1584,7 +1595,7 @@ bool DistributeGrid(MultiGrid& mg,
 //	we have to remove all elements which won't stay on the local process.
 //	To do so, we'll first select all elements that stay, invert that selection
 //	and erase all elements which are selected thereafter.
-	if(localPartitionInd != -1){
+	if(createVerticalInterfaces || (localPartitionInd != -1)){
 		msel.clear();
 		SelectElementsForTargetPartition(msel, shPartition, localPartitionInd,
 									 	 true, createVerticalInterfaces);

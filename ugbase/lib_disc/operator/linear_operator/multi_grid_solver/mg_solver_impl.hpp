@@ -1404,6 +1404,7 @@ init_smoother()
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
 				m_vLevData[lev]->get_smooth_mat();
 
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing pre-smoother\n");
 		if(!m_vLevData[lev]->PreSmoother->init(spSmoothMat, u))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
@@ -1411,6 +1412,7 @@ init_smoother()
 			return false;
 		}
 
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing post-smoother\n");
 		if(m_vLevData[lev]->PreSmoother.get() != m_vLevData[lev]->PostSmoother.get())
 		{
 			if(!m_vLevData[lev]->PostSmoother->init(spSmoothMat, u))

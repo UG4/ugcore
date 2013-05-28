@@ -82,6 +82,10 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 		inline void obj_created(TBaseElem* obj, GeometricObject* pParent = NULL,
 		                        bool replacesParent = false);
 
+	///	adds side elements of the given element, if those havn't been added already
+		template <typename TElem>
+		void add_unassigned_sides(TElem* e);
+
 	///	removes indices, when a grid element is removed
 	/**
 	 * When a grid element is removed from the grid, this function is called

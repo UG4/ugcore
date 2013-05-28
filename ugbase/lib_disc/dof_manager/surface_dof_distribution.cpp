@@ -7,6 +7,8 @@
 
 #include "surface_dof_distribution.h"
 #include "mg_dof_distribution_impl.h"
+#include "lib_grid/file_io/file_io.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 using namespace std;
 
@@ -254,6 +256,8 @@ parallel_redistribution_ended()
 	if(max_dofs(EDGE) > 0)   add_unassigned_elements<EdgeBase>();
 	if(max_dofs(FACE) > 0)   add_unassigned_elements<Face>();
 	if(max_dofs(VOLUME) > 0) add_unassigned_elements<Volume>();
+
+	resize_values(lev_info().sizeIndexSet);
 
 // DEBUG CHECKS... REMOVE THOSE AS SOON AS EVERYTHING WORKS STABLE
 ////	iterate over all vertices in the surface view and check whether all are assigned
@@ -542,6 +546,9 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 {
 	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
+	if(max_dofs(gbo) == 0)
+		return;
+
 //	case 1: if replacesParent == true, only an obj (e.g. HangingVertex)
 //			is replaced by a similar obj (e.g. Vertex). This case is
 //			handled in obj_to_be_erased(), that will be called in addition
@@ -549,24 +556,34 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 	if(replacesParent) return;
 
 //	case 2: A real insertion in the multigrid: add indices
-	if(add(obj,
-			obj->reference_object_id(),
-			m_spMGSH->get_subset_index(obj),
-			m_levInfo))
-	{
-	//	the insertion changed the size of the index range. Thus, we have to
-	//	resize the managed vectors. We do this now, since a transfer callback
-	//	may be listen to the object creation and will interpolate the values. Thus,
-	//	the vector entries must already be valid.
-		resize_values(lev_info().sizeIndexSet);
+	if(parallel_redistribution_mode()){
+		if(TBaseElem* parent = parent_if_copy(obj))
+			copy(obj, parent);
+		else
+			obj_index(obj) = NOT_YET_ASSIGNED;
+	}
+	else{
+		if(add(obj,
+				obj->reference_object_id(),
+				m_spMGSH->get_subset_index(obj),
+				m_levInfo))
+		{
+			if(!parallel_redistribution_mode()){
+			//	the insertion changed the size of the index range. Thus, we have to
+			//	resize the managed vectors. We do this now, since a transfer callback
+			//	may be listen to the object creation and will interpolate the values. Thus,
+			//	the vector entries must already be valid.
+				resize_values(lev_info().sizeIndexSet);
 
-	//	the parent, that will be covered after the creation, will no longer be part
-	//	of the surface. But we still need the values for the transfer callbacks.
-	//	Therefore, we leave the "old" indices attached and valid for the moment.
-	//	All prolongation callbacks are invoked now
-		if(pParent){
-			for(size_t i = 0; i < m_vProlongation[gbo].size(); ++i)
-				m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
+			//	the parent, that will be covered after the creation, will no longer be part
+			//	of the surface. But we still need the values for the transfer callbacks.
+			//	Therefore, we leave the "old" indices attached and valid for the moment.
+			//	All prolongation callbacks are invoked now
+				if(pParent){
+					for(size_t i = 0; i < m_vProlongation[gbo].size(); ++i)
+						m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
+				}
+			}
 		}
 	}
 	
@@ -586,7 +603,7 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 				  m_levInfo);
 		}
 
-	//	copy the index from the newly created object to its parent and great parents.
+	//	copy the index from the newly created object to its parent and grand parents.
 	//	this is important to correctly erase ghost copies when redistribution is done
 		TBaseElem* telem = parent;
 		while(telem){
@@ -597,14 +614,76 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 
 }
 
+template <typename TElem>
+void SurfaceDoFDistribution::
+add_unassigned_sides(TElem* e)
+{
+	if(!TElem::HAS_SIDES)
+		return;
+
+	typedef typename TElem::side TSide;
+	typename Grid::traits<TSide>::secure_container	sides;
+	m_spMG->associated_elements(sides, e);
+	for(size_t i = 0; i < sides.size(); ++i){
+		TSide * s = sides[i];
+		if(max_dofs(TSide::BASE_OBJECT_ID) > 0){
+			if(obj_index(s) == NOT_YET_ASSIGNED){
+				add_from_free(s, s->reference_object_id(),
+							  m_spMGSH->get_subset_index(s), m_levInfo);
+				TSide* ts = s;
+				while(ts){
+					copy(ts, s);
+					ts = parent_if_copy(ts);
+				}
+			}
+		}
+		add_unassigned_sides(s);
+	}
+}
+
 template <typename TBaseElem>
-inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
-                             TBaseElem* replacedBy)
+inline void SurfaceDoFDistribution::
+obj_to_be_erased(TBaseElem* obj, TBaseElem* replacedBy)
 {
 	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
 
+	if((!parallel_redistribution_mode()) && replacedBy && replacedBy->is_constrained())
+	{
+		size_t oldSize = lev_info().sizeIndexSet;
+		if(max_dofs(TBaseElem::BASE_OBJECT_ID) > 0){
+			if((obj_index(obj) == NOT_YET_ASSIGNED))
+			{
+			//	the element has to receive a valid index and it's parents too,
+			//	since those are shadowed elements now
+				add_from_free(replacedBy, replacedBy->reference_object_id(),
+							  m_spMGSH->get_subset_index(replacedBy), m_levInfo);
+				TBaseElem* telem = replacedBy;
+				while(telem){
+					copy(telem, replacedBy);
+					telem = parent_if_copy(telem);
+				}
+				add_unassigned_sides(replacedBy);
+			}
+			else
+				copy(replacedBy, obj);
+		}
+		else
+			add_unassigned_sides(replacedBy);
+
+		if(lev_info().sizeIndexSet > oldSize)
+			resize_values(lev_info().sizeIndexSet);
+
+		return;
+	}
+
+	if(max_dofs(TBaseElem::BASE_OBJECT_ID) == 0)
+		return;
+
 //	case 1: Only replacement. Just copy indices from one obj to the other
-	if(replacedBy) {copy(replacedBy, obj); return;}
+	if(replacedBy){
+		copy(replacedBy, obj);
+		return;
+	}
 
 //	different behavior is required for element erasure during adaption and
 //	during redistribution.
@@ -613,13 +692,33 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 //	on the local process won't be contained in the surface grid after
 //	redistribution is done...
 	if(!parallel_redistribution_mode()){
+		GeometricObject* parent = get_parent(obj);
 	//	case 2: Element disappears, but parent is identical. Thus, the parent
 	//			has the same indices attached. All indices remain valid on
 	//			every surface level. No resizement in the index set must be
 	//			performed.
 		if(parent_if_copy(obj)) {
-			// if identical return, else do case 3
-			if(obj_index(obj) == obj_index(get_parent(obj))) return;
+			size_t objIndex = obj_index(obj);
+			if(!m_spSurfView->is_surface_element(obj)){
+			//	obj is not a member of the surface view and hasn't got a valid index.
+			//	It's parent, however, becomes a member of the surface view when obj
+			//	is erased and therefore has to be added to the surface view.
+			//todo: PERFORM SOME KIND OF RESTRICTION!!!
+				size_t oldSize = lev_info().sizeIndexSet;
+				add_from_free(parent, parent->reference_object_id(),
+							  m_spMGSH->get_subset_index(parent), m_levInfo);
+				TBaseElem* telem = static_cast<TBaseElem*>(parent);
+				while(telem){
+					copy(telem, obj);
+					telem = parent_if_copy(telem);
+				}
+				if(lev_info().sizeIndexSet > oldSize)
+					resize_values(lev_info().sizeIndexSet);
+				return;
+			}
+			else if(objIndex == obj_index(parent)){
+				return;
+			}
 		}
 
 	//	case 3: The object that will be erased has no identical parent on the
@@ -627,9 +726,9 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 	//			the index set.
 
 	//	All prolongation callbacks are invoked now
-		if(get_parent(obj)){
+		if(parent){
 			for(size_t i = 0; i < m_vRestriction[gbo].size(); ++i){
-				m_vRestriction[gbo][i]->restrict_values(obj, get_parent(obj), *this);
+				m_vRestriction[gbo][i]->restrict_values(obj, parent, *this);
 			}
 		}
 	}

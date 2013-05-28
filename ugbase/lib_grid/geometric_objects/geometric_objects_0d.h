@@ -84,7 +84,7 @@ class UG_API ConstrainedVertex : public VertexBase
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainedVertex*>(pObj) != NULL;}
 
-		ConstrainedVertex()	: m_constrainingObj(NULL)	{}
+		ConstrainedVertex()	: m_constrainingObj(NULL), m_parentBaseObjectId(-1)	{}
 		virtual ~ConstrainedVertex()	{}
 
 		virtual GeometricObject* create_empty_instance() const	{return new ConstrainedVertex;}
@@ -94,9 +94,27 @@ class UG_API ConstrainedVertex : public VertexBase
 
 		virtual bool is_constrained() const			{return true;}
 
-		inline void set_constraining_object(GeometricObject* constrObj)	{m_constrainingObj = constrObj;}
+		inline void set_constraining_object(GeometricObject* constrObj)
+		{
+			m_constrainingObj = constrObj;
+			if(constrObj)
+				m_parentBaseObjectId = constrObj->base_object_id();
+			else
+				m_parentBaseObjectId = -1;
+		}
+
 		inline GeometricObject* get_constraining_object()	{return m_constrainingObj;}
-		inline int get_parent_base_object_id()	{return m_constrainingObj->base_object_id();}
+		inline int get_parent_base_object_id()				{return m_parentBaseObjectId;}
+		inline void set_parent_base_object_id(int id)
+		{
+			if((m_parentBaseObjectId != -1) && (m_parentBaseObjectId != id)){
+				UG_THROW("Bad parent base object id specified! The given id"
+						" has to match the id of the constraining object if that"
+						" is present. Call this method only, if no constraining"
+						" object has been set!");
+			}
+			m_parentBaseObjectId = id;
+		}
 
 		inline const vector2& get_local_coordinates() const	{return m_localCoord;}
 		inline number get_local_coordinate_1() const		{return m_localCoord.x;}
@@ -104,12 +122,13 @@ class UG_API ConstrainedVertex : public VertexBase
 
 		inline void set_local_coordinates(number x, number y)		{m_localCoord.x = x; m_localCoord.y = y;}
 		inline void set_local_coordinates(const vector2& coords)	{m_localCoord = coords;}
-		inline void set_local_coordinate_1(number coord) 	{m_localCoord.x = coord;}
-		inline void set_local_coordinate_2(number coord) 	{m_localCoord.y = coord;}
+		inline void set_local_coordinate_1(number coord) 			{m_localCoord.x = coord;}
+		inline void set_local_coordinate_2(number coord) 			{m_localCoord.y = coord;}
 
 	protected:
 		GeometricObject*	m_constrainingObj;
 		vector2				m_localCoord;
+		int					m_parentBaseObjectId;
 
 
 };

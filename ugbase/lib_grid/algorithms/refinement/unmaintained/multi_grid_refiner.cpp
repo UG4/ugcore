@@ -251,7 +251,7 @@ void MultiGridRefiner::refine()
 				}
 /*
 				if(bIrregular){
-					assert((get_rule(f) != RM_REGULAR) && "Bad refinement-rule set during collect_objects_for_refine!");
+					assert((get_rule(f) != RM_REFINE) && "Bad refinement-rule set during collect_objects_for_refine!");
 		//TODO:	care about anisotropy
 					set_rule(f, RM_IRREGULAR);
 				}
@@ -275,10 +275,10 @@ void MultiGridRefiner::refine()
 						mg.register_element(vFaces[j], f);
 						switch(oldRule)
 						{
-						case RM_REGULAR:	set_status(vFaces[j], SM_REGULAR); break;
+						case RM_REFINE:	set_status(vFaces[j], SM_REGULAR); break;
 						case RM_IRREGULAR:	set_status(vFaces[j], SM_IRREGULAR); break;
 						default:
-							assert((oldRule == RM_REGULAR) && "rule not yet handled.");//always fails.
+							assert((oldRule == RM_REFINE) && "rule not yet handled.");//always fails.
 							break;
 						}
 					}
@@ -320,7 +320,7 @@ void MultiGridRefiner::collect_objects_for_refine()
 //build closure
 	select faces that are associated with edges
 		iterate over associated edges
-			if all are marked RM_REGULAR -> mark face RM_REGULAR
+			if all are marked RM_REFINE -> mark face RM_REFINE
 			else-> mark face RM_IRREGULAR, select and mark unselected edges as COPY-edge
 		iterate over associated vertices
 			push unselected to vVrts
@@ -328,7 +328,7 @@ void MultiGridRefiner::collect_objects_for_refine()
 
 	select volumes that are associated with faces
 		iterate over associated faces
-			if all are marked RM_REGULAR -> mark volume RM_REGULAR
+			if all are marked RM_REFINE -> mark volume RM_REFINE
 			else-> mark vol RM_IRREGULAR, select and mark unselected faces as COPY-face
 		iterate over associated edges
 			select and mark unselected edges as COPY-edge
@@ -408,7 +408,7 @@ adjust_initial_selection()
 		}
 		else{
 		//	mark it for regular refinement
-			set_rule(v, RM_REGULAR);
+			set_rule(v, RM_REFINE);
 		//	collect associated faces
 			CollectFaces(vFaces, grid, v);
 			for(uint i = 0; i < vFaces.size(); ++i)
@@ -441,7 +441,7 @@ adjust_initial_selection()
 		}
 		else{
 		//	mark it for regular refinement
-			set_rule(f, RM_REGULAR);
+			set_rule(f, RM_REFINE);
 		//	collect associated edges
 			CollectEdges(vEdges, grid, f);
 			for(uint i = 0; i < vEdges.size(); ++i)
@@ -473,7 +473,7 @@ adjust_initial_selection()
 		}
 		else{
 		//	mark it for regular refinement
-			set_rule(e, RM_REGULAR);
+			set_rule(e, RM_REFINE);
 		//	select associated vertices
 			for(uint i = 0; i < e->num_vertices(); ++i)
 				mark_for_refinement(e->vertex(i));
@@ -525,7 +525,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 					for(size_t j = 0; j < vEdges.size(); ++j){
 						EdgeBase* e = vEdges[j];
 						if(m_selMarks.is_selected(e)){
-							if(get_rule(e) == RM_REGULAR)
+							if(get_rule(e) == RM_REFINE)
 								++numRegular;
 						}
 						else{
@@ -540,7 +540,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 				//	if all associated edges are refined regular,
 				//	we'll refine the face regular, too.
 					if(numRegular == vEdges.size())
-						set_rule(f, RM_REGULAR);
+						set_rule(f, RM_REFINE);
 					else
 						set_rule(f, RM_IRREGULAR);
 						
@@ -586,7 +586,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 					for(size_t j = 0; j < vFaces.size(); ++j){
 						Face* f = vFaces[j];
 						if(m_selMarks.is_selected(f)){
-							if(get_rule(f) == RM_REGULAR)
+							if(get_rule(f) == RM_REFINE)
 								++numRegular;
 						}
 						else{
@@ -600,7 +600,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 				//	set rule
 				//	if all faces are refined regular, we'll refine the volume regular, too.
 					if(numRegular == vFaces.size())
-						set_rule(v, RM_REGULAR);
+						set_rule(v, RM_REFINE);
 					else
 						set_rule(v, RM_IRREGULAR);
 					

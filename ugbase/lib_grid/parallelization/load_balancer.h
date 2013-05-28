@@ -94,7 +94,8 @@ class IPartitioner{
 		typedef typename GeomObjBaseTypeByDim<dim>::base_obj_type	elem_t;
 
 		IPartitioner() :
-			m_verbose(true)	{}
+			m_verbose(true),
+			m_clusteredSiblings(true)	{}
 
 		virtual ~IPartitioner()	{}
 
@@ -106,6 +107,18 @@ class IPartitioner{
 		virtual bool supports_balance_weights() const = 0;
 		virtual bool supports_connection_weights() const = 0;
 		virtual bool supports_repartitioning() const = 0;
+
+	/**	clustered siblings help to ensure that all vertices which are connected to
+	 * a constrained vertex through are on the same process as the constrained vertex.
+	 * If only refinement is performed, it would be sufficient to only cluster
+	 * constrained siblings. However, coarsening would be rather complicated in that
+	 * case, since it is rather complicated to introduce constrained sibling elements if a
+	 * previously unconstrained sibling is not located on the same process...
+	 * \note	enabled by default
+	 * \{ */
+		virtual void enable_clustered_siblings(bool bEnable)	{m_clusteredSiblings = bEnable;}
+		virtual bool clustered_siblings_enabled()				{return m_clusteredSiblings;}
+	/**	\} */
 
 	/** The returned distribution quality represents the global quality and thus
 	 * is the same for all processes.*/
@@ -126,6 +139,7 @@ class IPartitioner{
 
 	private:
 		bool m_verbose;
+		bool m_clusteredSiblings;
 };
 
 

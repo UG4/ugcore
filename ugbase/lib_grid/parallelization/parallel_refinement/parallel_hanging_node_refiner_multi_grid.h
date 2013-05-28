@@ -22,10 +22,12 @@ namespace ug
  */
 class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 {
-	typedef HangingNodeRefiner_MultiGrid BaseClass;
-	using BaseClass::mark;
-
 	public:
+		typedef HangingNodeRefiner_MultiGrid BaseClass;
+		using BaseClass::mark;
+		using BaseClass::copy_marks_to_vmasters;
+		using BaseClass::copy_marks_to_vslaves;
+
 		ParallelHangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
 
 		ParallelHangingNodeRefiner_MultiGrid(
@@ -75,44 +77,16 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 	///	copies the current marks in the ref-mark-selector from v-slaves to v-masters
 	/**	\{ */
-		void copy_marks_to_vmasters();
-
 		template <class TElem, class TIntfcCom>
 		void copy_marks_to_vmasters(TIntfcCom& com);
 	/** \} */
 
 	///	copies the current marks in the ref-mark-selector from v-slaves to v-masters
 	/**	\{ */
-		void copy_marks_to_vslaves();
-
 		template <class TElem, class TIntfcCom>
 		void copy_marks_to_vslaves(TIntfcCom& com);
 	/** \} */
 
-	///	Makes sure that only surface elements are marked and that only coarsen marks are used.
-	/**	calls the overloaded template implementation for the four base element types.*/
-		virtual void restrict_selection_to_surface_coarsen_elements();
-
-	///	Deselects all elements which have an unselected sibling.
-	/** Siblings are elements who share the same parent.
-	 * Calls the overloaded template implementation for the four base element types.*/
-		virtual void restrict_selection_to_coarsen_families();
-
-	///	called by the coarsen method in order to adjust the selection to valid elements.
-	/**	This method is responsible to mark all elements that shall be coarsened.
-	 * It calls the base implementation and performs some communication of marks
-	 * between vslaves and vmasters after completion.*/
-		virtual void collect_objects_for_coarsen();
-
-	///	called to check, whether another iteration of collect_objects_for_coarsen has to be performed.
-		virtual bool continue_collect_objects_for_coarsen(bool continueRequired);
-
-	///	called during collect_objects_for_coarsen when coarsen-marks shall be distributed
-	/** \{ */
-		virtual void broadcast_vertex_coarsen_marks();
-		virtual void broadcast_edge_coarsen_marks();
-		virtual void broadcast_face_coarsen_marks();
-	/** \} */
 
 	///	allows to check whether a distributed grid contains edges
 		virtual bool contains_edges();
@@ -122,6 +96,16 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 	///	allows to check whether a distributed grid contains volumes
 		virtual bool contains_volumes();
+
+		virtual void broadcast_marks_horizontally(bool vertices, bool edges, bool faces);
+
+		virtual void copy_marks_to_vmasters(bool vertices, bool edges,
+											bool faces, bool volumes);
+
+		virtual void copy_marks_to_vslaves(bool vertices, bool edges,
+										   bool faces, bool volumes);
+
+		virtual bool one_proc_true(bool localProcTrue);
 
 	private:
 		DistributedGridManager* m_pDistGridMgr;

@@ -45,7 +45,7 @@ class FracturedMediaRefiner : public THangingNodeRefiner<TGrid>
 	/**	Uses the degenerated-edge-threshold to determine, whether the face
 	 * is a fracture-face or not.
 	 * Make sure to specify a position attachment before marking any elements.*/
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE);
 
 	protected:
 		number aspect_ratio(Face* f);

@@ -45,16 +45,16 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 		virtual bool coarsening_supported() const	{return false;}
 
 	///	Marks a vertex for refinement (ignores RM_COARSEN).
-		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REFINE);
 
 	///	Marks an edge for refinement (ignores RM_COARSEN).
-		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REFINE);
 
 	///	Marks a face for refinement (ignores RM_COARSEN).
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE);
 
 	///	Marks a volume for refinement (ignores RM_COARSEN).
-		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE);
 
 	protected:
 	///	performs registration and deregistration at a grid.
@@ -69,13 +69,13 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 	///	erases unused refined elements
 		virtual void post_refine();
 
-		virtual void refine_constraining_edge(ConstrainingEdge* cge);
+		virtual void process_constraining_edge(ConstrainingEdge* cge);
 		virtual void refine_edge_with_normal_vertex(EdgeBase* e,
 											VertexBase** newCornerVrts = NULL);
 
 		virtual void refine_face_with_normal_vertex(Face* f,
 											VertexBase** newCornerVrts = NULL);
-		virtual void refine_constraining_face(ConstrainingFace* cgf);
+		virtual void process_constraining_face(ConstrainingFace* cgf);
 
 		virtual void refine_volume_with_normal_vertex(Volume* v,
 											VertexBase** newVolumeVrts = NULL);

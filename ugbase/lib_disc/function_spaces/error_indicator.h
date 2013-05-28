@@ -396,7 +396,7 @@ void MarkElements(MultiGrid::AttachmentAccessor<typename TFunction::element_type
 		if(aaError[elem] >= minErrToRefine)
 			if(u.domain()->grid()->get_level(elem) <= maxLevel)
 			{
-				refiner.mark(elem, RM_REGULAR);
+				refiner.mark(elem, RM_REFINE);
 				numMarkedRefine++;
 			}
 

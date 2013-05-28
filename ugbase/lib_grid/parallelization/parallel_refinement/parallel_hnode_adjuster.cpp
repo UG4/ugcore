@@ -65,8 +65,8 @@ class ComPol_BroadcastRefineMarks : public pcl::ICommunicationPolicy<TLayout>
 						m_ref.mark(elem, RM_COARSEN);
 					if(val & RM_ANISOTROPIC)
 						m_ref.mark(elem, RM_ANISOTROPIC);
-					if(val & RM_REGULAR)
-						m_ref.mark(elem, RM_REGULAR);
+					if(val & RM_REFINE)
+						m_ref.mark(elem, RM_REFINE);
 				}
 			}
 			return true;
@@ -127,7 +127,7 @@ ref_marks_changed(IRefiner& ref,
 	bool exchangeFlag = pcl::OneProcTrue(newlyMarkedElems);
 
 	if(exchangeFlag){
-		const byte consideredMarks = RM_REGULAR | RM_ANISOTROPIC;
+		const byte consideredMarks = RM_REFINE | RM_ANISOTROPIC;
 		ComPol_BroadcastRefineMarks<VertexLayout> compolRefVRT(ref, consideredMarks);
 		ComPol_BroadcastRefineMarks<EdgeLayout> compolRefEDGE(ref, consideredMarks);
 		ComPol_BroadcastRefineMarks<FaceLayout> compolRefFACE(ref, consideredMarks);

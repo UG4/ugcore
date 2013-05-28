@@ -142,11 +142,12 @@ class DistributedGridManager : public GridObserver
 		bool is_interface_element(TElem* elem);
 		
 	/**	returns a list of pairs (procID, index) that tells for each element
-	 *	where in which interfaces it lies.*/
+	 *	where in which interfaces it lies.
+	 *	\param	statusType	may be any or-combination of values enumerated in ElementStatusTypes.*/
 	 	template <class TElem>
 	 	void collect_interface_entries(
 						std::vector<std::pair<int, size_t> >& vEntriesOut,
-						TElem* elem);
+						TElem* elem, byte statusType, bool clearContainer = true);
 
 
 	///	Enables or disables interface managment. Use with care!
@@ -232,6 +233,9 @@ class DistributedGridManager : public GridObserver
 
 		template <class TElem>
 		void element_to_be_erased(TElem* elem);
+
+		template <class TElem>
+		void create_missing_constrained_h_interfaces(const std::vector<TElem*>& newConstrainedElems);
 
 	protected:
 	///	Be careful when creating copies of ElementInfo.
@@ -390,6 +394,12 @@ class DistributedGridManager : public GridObserver
 		inline const ElemInfoFace& elem_info(Face* ele) const		{return m_aaElemInfoFACE[ele];}
 		inline const ElemInfoVol& elem_info(Volume* ele) const		{return m_aaElemInfoVOL[ele];}
 
+		inline void got_new_constrained_vertical(VertexBase* v)	{m_newConstrainedVerticalVrts.push_back(v);}
+		inline void got_new_constrained_vertical(EdgeBase* e)	{m_newConstrainedVerticalEdges.push_back(e);}
+		inline void got_new_constrained_vertical(Face* f)		{m_newConstrainedVerticalFaces.push_back(f);}
+		inline void got_new_constrained_vertical(Volume*)		{UG_THROW("There are no constrained volumes!");}
+
+
 	protected:
 		MultiGrid*		m_pGrid;
 		GridLayoutMap	m_gridLayoutMap;
@@ -414,6 +424,9 @@ class DistributedGridManager : public GridObserver
 		ScheduledElemMap	m_faceMap;	///< holds all elements that were scheduled by faces
 		ScheduledElemMap	m_volMap;	///< holds all elements that were scheduled by volumes
 
+		std::vector<VertexBase*>	m_newConstrainedVerticalVrts;
+		std::vector<EdgeBase*>		m_newConstrainedVerticalEdges;
+		std::vector<Face*>			m_newConstrainedVerticalFaces;
 };
 
 /// @}

@@ -161,8 +161,8 @@ collect_objects_for_refine()
 				if(EdgeLength(e, m_aaPos) / eMax >= m_aspectRatioThreshold){
 				//	non-degenerated edge
 				//	make sure it is selected
-					if(BaseClass::get_mark(e) != RM_REGULAR)
-						mark(e, RM_REGULAR);
+					if(BaseClass::get_mark(e) != RM_REFINE)
+						mark(e, RM_REFINE);
 
 				//	this edge possibly connects to an unselected degenerated neighbor.
 				//	If this is the case, we'll have to mark it and push it to the queue.
@@ -186,9 +186,9 @@ collect_objects_for_refine()
 
 		//	if all edges are degenerate, we will have to perform regular refinement
 			if(numDeg == edges.size()){
-				BaseClass::mark(f, RM_REGULAR);
+				BaseClass::mark(f, RM_REFINE);
 				for(size_t i = 0; i < edges.size(); ++i)
-					mark(edges[i], RM_REGULAR);
+					mark(edges[i], RM_REFINE);
 			}
 		}
 

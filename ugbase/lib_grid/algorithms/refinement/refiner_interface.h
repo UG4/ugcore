@@ -16,9 +16,9 @@ namespace ug
 ///	refinement-marks allow to specify how an element shall be processed during refinement.
 //	Make sure not to use refinement marks with a value of 128 or higher! Those
 enum RefinementMark{
-	RM_NONE = 0,				///< no refinement is performed
-	RM_REGULAR = 1,				///< regular refinement is performed
-	RM_ANISOTROPIC = 1 << 1,	///< anisotropic refinement is performed
+	RM_NONE = 0,							///< no refinement is performed
+	RM_REFINE = 1,							///< regular refinement is performed
+	RM_ANISOTROPIC = RM_REFINE | 1 << 1,	///< anisotropic refinement is performed
 	RM_COARSEN = 1 << 2,		///< the element is coarsened (only valid for adaptive multi-grid refinement)
 	RM_MAX						///< the highest constant in RefinementMark. Should always be smaller than 128!
 };
@@ -61,23 +61,23 @@ class IRefiner
 
 	///	Marks a element for refinement. Default implementation is empty
 	/**	\{ */
-		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR)	{return false;}
-		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR)		{return false;}
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR)			{return false;}
-		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR)		{return false;}
+		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REFINE)	{return false;}
+		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REFINE)		{return false;}
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE)			{return false;}
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE)		{return false;}
 	/**	\} */
 
 	///	marks the specified geometric object
 	/**	The default implementation casts the object to a more concrete type
 	 * (VertexBase, EdgeBase, Face, Volume) and calls the appropriate mark method.*/
-		virtual bool mark(GeometricObject* o, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(GeometricObject* o, RefinementMark refMark = RM_REFINE);
 
-	///	Returns the mark of a given element. Default returns RM_REGULAR
+	///	Returns the mark of a given element. Default returns RM_REFINE
 	/**	\{ */
-		virtual RefinementMark get_mark(VertexBase* v)	{return RM_REGULAR;}
-		virtual RefinementMark get_mark(EdgeBase* e)	{return RM_REGULAR;}
-		virtual RefinementMark get_mark(Face* f)		{return RM_REGULAR;}
-		virtual RefinementMark get_mark(Volume* v)		{return RM_REGULAR;}
+		virtual RefinementMark get_mark(VertexBase* v)	{return RM_REFINE;}
+		virtual RefinementMark get_mark(EdgeBase* e)	{return RM_REFINE;}
+		virtual RefinementMark get_mark(Face* f)		{return RM_REFINE;}
+		virtual RefinementMark get_mark(Volume* v)		{return RM_REFINE;}
 	/**	\} */
 
 	///	returns the mark of the specified geometric object
@@ -90,7 +90,7 @@ class IRefiner
 	 * 	from either EdgeBase, Face or Volume.*/
 		template <class TIterator>
 		void mark(const TIterator& iterBegin, const TIterator& iterEnd,
-				  RefinementMark refMark = RM_REGULAR)
+				  RefinementMark refMark = RM_REFINE)
 			{
 				TIterator iter = iterBegin;
 				while(iter != iterEnd){

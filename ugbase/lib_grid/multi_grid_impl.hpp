@@ -161,10 +161,28 @@ associate_parent(TElem* elem, GeometricObject* parent)
 	if(oldParent)
 		remove_child(oldParent, elem);
 
-	if(parent)
+	if(parent){
 		add_child(parent, elem);
+		set_parent_type(parent, (char)parent->base_object_id());
+	}
+	else
+		set_parent_type(parent, -1);
 
 	set_parent(elem, parent);
+}
+
+template <class TElem>
+char MultiGrid::
+parent_type(TElem* elem) const
+{
+	return m_aaParentType[elem];
+}
+
+template <class TElem>
+void MultiGrid::
+set_parent_type(TElem* elem, char type)
+{
+	m_aaParentType[elem] = type;
 }
 
 //	info-access
@@ -265,7 +283,10 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent)
 	{
 	//	the element is inserted into a new layer.
 		level = get_level(pParent) + 1;
+		set_parent_type(elem, pParent->base_object_id());
 	}
+	else
+		set_parent_type(elem, -1);
 
 //	register parent and child
 	//typename mginfo_traits<TElem>::info_type& info = get_info(elem);
@@ -307,6 +328,11 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent,
 //	put the element into the hierarchy
 	level_required(level);
 	m_hierarchy.assign_subset(elem, level);
+
+//	explicitly copy the parent-type from pReplaceMe to the new vrt.
+//	This has to be done explicitly since a parent may not exist locally in
+//	a parallel environment.
+	set_parent_type(elem, parent_type(pReplaceMe));
 }
 
 template <class TElem>

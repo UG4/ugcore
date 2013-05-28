@@ -12,6 +12,7 @@
 #include "common_attachments.h"
 #include "common/util/array_util.h"
 #include "multi_grid_child_info.h"
+#include "algorithms/attachment_util.h"
 
 namespace ug
 {
@@ -62,7 +63,7 @@ class MultiGrid : public Grid, public GridObserver
 		using Grid::create;
 		using Grid::create_by_cloning;
 
-	public:
+
 		MultiGrid();
 	///	initialises the grid with the given option.
 	/**	pass an or-combination of constants enumerated in
@@ -280,9 +281,21 @@ class MultiGrid : public Grid, public GridObserver
 	 * automatic association is not sufficient.
 	 * Note that only elements of equal or higher dimension can be parent to a
 	 * given element.
-	 * Note that while parent may be NULL, elem has to be supplied.*/
+	 * Note that while parent may be NULL, elem has to be supplied.
+	 * The method also sets the parent type.*/
 		template <class TElem>
 		void associate_parent(TElem* elem, GeometricObject* parent);
+
+	///	returns the object-type of the parent of a given object
+		template <class TElem>
+		char parent_type(TElem* elem) const;
+
+	///	sets the object-type of the parent of a given object
+	/**	The parent type is normally handled internally. However, e.g. during
+	 * parallel redistribution it may have to be set from outside (e.g. if
+	 * a parent element hasn't been transfered to the same process as its children).*/
+		template <class TElem>
+		void set_parent_type(TElem* elem, char type);
 
 	///	for debug purposes
 		void check_edge_elem_infos(int level) const;
@@ -359,8 +372,9 @@ class MultiGrid : public Grid, public GridObserver
 		typedef Attachment<EdgeInfo>			AEdgeInfo;
 		typedef Attachment<FaceInfo*>			AFaceInfo;
 		typedef Attachment<VolumeInfo*>			AVolumeInfo;
+		typedef Attachment<char>				AParentType;
 
-	protected:
+
 	//	initialization
 		void init();
 		
@@ -482,7 +496,7 @@ class MultiGrid : public Grid, public GridObserver
 		inline void release_child_info(Volume* o)		{if(m_aaVolInf[o]) delete m_aaVolInf[o]; m_aaVolInf[o] = NULL;}
 	/**	\} */
 
-	protected:
+
 	//	hierarchy
 		SubsetHandler	m_hierarchy;
 		bool m_bHierarchicalInsertion;
@@ -495,6 +509,7 @@ class MultiGrid : public Grid, public GridObserver
 		AEdgeInfo	m_aEdgeInfo;
 		AFaceInfo	m_aFaceInfo;
 		AVolumeInfo	m_aVolumeInfo;
+		AParentType	m_aParentType;
 
 	//	parent access - only required for faces and volumes.
 		Grid::FaceAttachmentAccessor<AParent>		m_aaParentFACE;
@@ -505,6 +520,8 @@ class MultiGrid : public Grid, public GridObserver
 		Grid::EdgeAttachmentAccessor<AEdgeInfo>		m_aaEdgeInf;
 		Grid::FaceAttachmentAccessor<AFaceInfo>		m_aaFaceInf;
 		Grid::VolumeAttachmentAccessor<AVolumeInfo>	m_aaVolInf;
+
+		MultiElementAttachmentAccessor<AParentType>	m_aaParentType;
 };
 
 

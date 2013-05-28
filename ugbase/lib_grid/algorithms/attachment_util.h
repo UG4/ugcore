@@ -6,7 +6,7 @@
 #define __H__LIB_GRID__ATTACHMENT_UTIL__
 
 #include <vector>
-#include "lib_grid/lg_base.h"
+#include "lib_grid/grid/grid.h"
 
 namespace ug
 {

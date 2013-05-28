@@ -120,19 +120,21 @@ class UG_API ConstrainedEdge : public EdgeBase
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainedEdge*>(pObj) != NULL;}
 
-		ConstrainedEdge() : m_pConstrainingObject(NULL)	{}
-		ConstrainedEdge(VertexBase* v1, VertexBase* v2)
+		ConstrainedEdge() : m_pConstrainingObject(NULL), m_parentBaseObjectId(-1)	{}
+		ConstrainedEdge(VertexBase* v1, VertexBase* v2) :
+			m_pConstrainingObject(NULL),
+			m_parentBaseObjectId(-1)
 			{
 				m_vertices[0] = v1;
 				m_vertices[1] = v2;
-				m_pConstrainingObject = NULL;
 			}
 
-		ConstrainedEdge(const EdgeDescriptor& descriptor)
+		ConstrainedEdge(const EdgeDescriptor& descriptor) :
+			m_pConstrainingObject(NULL),
+			m_parentBaseObjectId(-1)
 			{
 				m_vertices[0] = descriptor.vertex(0);
 				m_vertices[1] = descriptor.vertex(1);
-				m_pConstrainingObject = NULL;
 			}
 
 		virtual ~ConstrainedEdge()	{}
@@ -167,11 +169,33 @@ class UG_API ConstrainedEdge : public EdgeBase
 					VertexBase* newVertex,
 					VertexBase** pSubstituteVrts = NULL);
 
-		inline void set_constraining_object(GeometricObject* pObj)	{m_pConstrainingObject = pObj;}
+		inline void set_constraining_object(GeometricObject* pObj)
+		{
+			m_pConstrainingObject = pObj;
+			if(pObj)
+				m_parentBaseObjectId = pObj->base_object_id();
+			else
+				m_parentBaseObjectId = -1;
+		}
+
 		inline GeometricObject* get_constraining_object()	{return m_pConstrainingObject;}
+
+		inline int get_parent_base_object_id()				{return m_parentBaseObjectId;}
+		inline void set_parent_base_object_id(int id)
+		{
+			if((m_parentBaseObjectId != -1) && (m_parentBaseObjectId != id)){
+				UG_THROW("Bad parent base object id specified! The given id"
+						" has to match the id of the constraining object if that"
+						" is present. Call this method only, if no constraining"
+						" object has been set!");
+			}
+			m_parentBaseObjectId = id;
+		}
+
 
 	protected:
 		GeometricObject*	m_pConstrainingObject;
+		int					m_parentBaseObjectId;
 };
 
 template <>

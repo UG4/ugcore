@@ -3,6 +3,10 @@
 // y09 m08 d17
 
 #include "distributed_grid.h"
+#include "common/serialization.h"
+#include "common/util/hash.h"
+#include "pcl/pcl_interface_communicator.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 using namespace std;
 
@@ -401,12 +405,15 @@ add_element_to_interface(TElem* pElem, int procID)
 	typename GridLayoutMap::Types<TElem>::Interface::iterator iter;
 	typename GridLayoutMap::Types<TElem>::Interface* interface;
 	int intfcType = ES_NONE;
+	byte s = get_status(pElem);
 	
 	if(status & ES_H_MASTER){
 		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_MASTER)
 						.interface(procID, m_pGrid->get_level(pElem));
 		iter = interface->push_back(pElem);
-		elem_info(pElem).set_status(ES_IN_INTERFACE | ES_H_MASTER);
+		s &= (~ES_SCHEDULED_FOR_INTERFACE);
+		s |= ES_IN_INTERFACE | ES_H_MASTER;
+		elem_info(pElem).set_status(s);
 		intfcType = ES_H_MASTER;
 	}
 	else{
@@ -414,8 +421,10 @@ add_element_to_interface(TElem* pElem, int procID)
 		interface = &m_gridLayoutMap.get_layout<TElem>(INT_H_SLAVE)
 						.interface(procID, m_pGrid->get_level(pElem));
 		iter = interface->push_back(pElem);
-						
-		elem_info(pElem).set_status(ES_IN_INTERFACE | ES_H_SLAVE);
+
+		s &= (~ES_SCHEDULED_FOR_INTERFACE);
+		s |= ES_IN_INTERFACE | ES_H_SLAVE;
+		elem_info(pElem).set_status(s);
 		intfcType = ES_H_SLAVE;
 	}
 	
@@ -525,7 +534,7 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 						bool replacesParent)
 {
 	if(replacesParent){
-	//	we only have to replace the parent entry. To do this
+	//	we have to replace the parent entry. To do this
 	//	we'll replace all occurences of the parent in all interfaces.
 	//	If a replace takes place, the parent has to be of the same type
 	//	as pElem.
@@ -547,6 +556,15 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 
 		//	clear the parent-info.
 			elem_info(parent).reset();
+
+		//	we also have to check wheter the new element has been converted
+		//	from normal to constrained while lying in a v-interface during coarsening
+			if(m_bElementDeletionMode && pElem->is_constrained()
+				&& (!pParent->is_constrained()) && is_in_vertical_interface(pElem))
+			{
+				got_new_constrained_vertical(pElem);
+			}
+
 			return;
 		}
 		else{
@@ -613,60 +631,7 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 		assert(!"only sorted mode supported in the moment!");
 	}
 }
-/*
-// when handle_erased_element is implemented, one has to be careful with
-// the local interface ids. Those won't be continuous after an erasure
-// was performed. This is normally no problem. But when it comes to
-// grid-redistribution, a method is required that brings those id-s
-// back to continuous. Keep that in mind and have a look at the
-// todos in RedistributeGrid.
 
-template <class TElem, class TCommGrp>
-void DistributedGrid::
-handle_erased_element(TElem* e, TCommGrp& commGrp)
-{
-//	for each deleted element a check has to be performed whether it was
-//	contained in the associated communication-group.
-//	If so it has to be removed from the group.
-//TODO:
-//	If we are in creation mode, we also have to check whether the element
-//	is contained in any map.
-//	if so we'll store it in a hash and will check later, on insertion of new
-//	edges into the interface, whether the pointer is contained in the hash.
-//	If so we won't add it.
-	if(check_status(e, ES_IN_COMM_GRP))
-	{
-	//	delete the element from the communication group
-		typename TCommGrp::HNODE hNode = commGrp.get_handle(e);
-		commGrp.erase_node(hNode);
-	}
-	
-	if(check_status(e, ES_SCHEDULED_FOR_COMM_GRP))
-	{
-	//	todo: remove the element from the map.
-		assert(0);
-	}
-}
-
-template <class TElem, class TCommGrp>
-void DistributedGrid::
-handle_replaced_element(TElem* eOld, TElem* eNew, TCommGrp& commGrp)
-{
-//	if the replaced element is a memeber of the elements communication group,
-//	we have to perform replace-node on the group.
-	if(check_status(eOld, ES_IN_COMM_GRP))
-	{
-	//	replace eOld wiht eNew in the communication group
-		commGrp.replace_node(eOld, eNew);
-	}
-	
-	if(check_status(eOld, ES_SCHEDULED_FOR_COMM_GRP))
-	{
-	//	todo: remove the element from the map.
-		assert(0);
-	}
-}
-*/
 void DistributedGridManager::
 vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
 				bool replacesParent)
@@ -704,13 +669,382 @@ begin_element_deletion()
 {
 	assert(!m_bOrderedInsertionMode);
 	m_bElementDeletionMode = true;
+	m_newConstrainedVerticalVrts.clear();
+	m_newConstrainedVerticalEdges.clear();
+	m_newConstrainedVerticalFaces.clear();
+}
+
+
+template <class TLayout>
+class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
+{
+	public:
+		typedef TLayout								Layout;
+		typedef typename Layout::Type				GeomObj;
+		typedef typename Layout::Element			Element;
+		typedef typename Layout::Interface			Interface;
+		typedef typename Interface::const_iterator	InterfaceIter;
+
+		ComPol_NewConstrainedVerticals(DistributedGridManager* dgm,
+									const std::vector<GeomObj*>& newConstrained) :
+			m_newConstrained(newConstrained),
+			m_dgm(dgm),
+			m_hash(newConstrained.size()),
+			m_localHMasterCount(0),
+			m_exchangeVMasterRanks(false)
+		{
+			vector<pair<int, size_t> >	interfaceEntries;
+
+		//	insert each new constrained into the hash. The value represents the
+		//	lowest connected vslave of each vmaster. Values of vslaves are set to -1.
+			for(size_t i_nc = 0; i_nc < newConstrained.size(); ++i_nc){
+				GeomObj* e = newConstrained[i_nc];
+				if(m_dgm->contains_status(e, ES_H_MASTER)){
+					m_hash.add(Entry(pcl::GetProcRank(), m_localHMasterCount), e);
+					++m_localHMasterCount;
+				}
+				else if(m_dgm->contains_status(e, ES_V_MASTER)
+						&& !(m_dgm->contains_status(e, ES_H_SLAVE)))
+				{
+				//	find lowest connected vslave proc
+					m_dgm->collect_interface_entries(interfaceEntries, e, ES_V_MASTER);
+					UG_ASSERT(!interfaceEntries.empty(),
+							  "Elem with type " << e->base_object_id() << " at " <<
+							   GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), e)
+							   << " is marked as v-master but is not contained in a vslave interface!");
+					int lp = interfaceEntries.front().first;
+					for(size_t i = 1; i < interfaceEntries.size(); ++i)
+						lp = min(lp, interfaceEntries[i].first);
+
+					m_hash.add(Entry(lp, -1), e);
+				}
+				else
+					m_hash.add(Entry(-1, -1), e);
+			}
+		}
+
+		virtual ~ComPol_NewConstrainedVerticals()	{}
+
+		virtual int
+		get_required_buffer_size(const Interface& interface)
+		{return -1;}
+
+		virtual bool
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			vector<pair<int, size_t> > vInterfaces;
+
+			int targetProc = interface.get_target_proc();
+			int counter = 0;
+			for(InterfaceIter iter = interface.begin();
+				iter != interface.end(); ++iter, ++counter)
+			{
+				bool sendVMasterRanks = false;
+				Element elem = interface.get_element(iter);
+				if(m_hash.has_entries(elem)){
+					Serialize(buff, counter);
+					Entry& entry = m_hash.first(elem);
+					Serialize(buff, entry.hmasterProcInfo);
+					sendVMasterRanks = (entry.hmasterProcInfo.first == targetProc);
+				}
+
+				if(m_exchangeVMasterRanks){
+					UG_ASSERT(m_dgm->contains_status(elem, ES_V_SLAVE),
+							  "Only v-slaves can communicate associated v-masters.");
+
+					if(sendVMasterRanks){
+						m_dgm->collect_interface_entries(vInterfaces, elem, ES_V_SLAVE);
+						int numOtherMasters = (int)vInterfaces.size() - 1;
+						Serialize(buff, numOtherMasters);
+						for(size_t i = 0; i < vInterfaces.size(); ++i){
+							if(vInterfaces[i].first != targetProc){
+								Serialize(buff, vInterfaces[i].first);
+							}
+						}
+					}
+				}
+			}
+
+			int val = -1;
+			Serialize(buff, val);
+
+			return true;
+		}
+
+		virtual bool
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			int index;
+			Deserialize(buff, index);
+
+			int localProc = pcl::GetProcRank();
+			int counter = 0;
+			InterfaceIter iter = interface.begin();
+
+			while((index != -1) && (iter != interface.end())){
+				if(counter == index){
+					Element elem = interface.get_element(iter);
+					std::pair<int, int> val;
+					Deserialize(buff, val);
+
+					UG_ASSERT(m_hash.has_entries(elem),
+							  "A matching element has to exist in the local procs "
+							  "new constrained list.");
+
+				//	the entry whose second value is specified has the highest priority
+					Entry& entry = m_hash.first(elem);
+					if((entry.hmasterProcInfo.second == -1) && (val.first != -1))
+						entry.hmasterProcInfo = val;
+
+					if(m_exchangeVMasterRanks){
+						UG_ASSERT(m_dgm->contains_status(elem, ES_V_MASTER),
+								  "Only v-masters can receive from associated v-slaves.");
+						if(entry.hmasterProcInfo.first == localProc){
+							int numOtherMasters;
+							Deserialize(buff, numOtherMasters);
+							entry.otherVMasterRanks.clear();
+							entry.otherVMasterRanks.reserve(numOtherMasters);
+							for(int i = 0; i < numOtherMasters; ++i){
+								int om;
+								Deserialize(buff, om);
+								entry.otherVMasterRanks.push_back(om);
+								UG_ASSERT(om != localProc, "Only other procs should arrive here!");
+							}
+						}
+					}
+
+					Deserialize(buff, index);
+				}
+				++counter;
+				++iter;
+			}
+
+			UG_ASSERT(index == -1, "Not all entries in the stream have been read!");
+			return (index == -1);
+		}
+
+		void exchange_data()
+		{
+			pcl::InterfaceCommunicator<TLayout> com;
+
+			UG_DLOG(LIB_GRID, 3, "  communicating vmasters->vslaves...\n");
+			m_exchangeVMasterRanks = false;
+			GridLayoutMap& glm = m_dgm->grid_layout_map();
+			if(glm.has_layout<GeomObj>(INT_V_MASTER))
+				com.send_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
+			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
+				com.receive_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
+			com.communicate();
+
+		//	iterate over all entries. Those who contain the local proc as h-master
+		//	proc have to be supplied with a local h-master index (if none is present yet)
+			int localProc = pcl::GetProcRank();
+			for(size_t i = 0; i < m_newConstrained.size(); ++i){
+				GeomObj* elem = m_newConstrained[i];
+				Entry& entry = m_hash.first(elem);
+				if((entry.hmasterProcInfo.first == localProc)
+					&& (entry.hmasterProcInfo.second == -1))
+				{
+					entry.hmasterProcInfo.second = m_localHMasterCount++;
+				}
+			}
+
+			UG_DLOG(LIB_GRID, 3, "  communicating vslaves->vmasters...\n");
+			m_exchangeVMasterRanks = true;
+			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
+				com.send_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
+			if(glm.has_layout<GeomObj>(INT_V_MASTER))
+				com.receive_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
+			com.communicate();
+		}
+
+	/**	returns a std::pair<int, int> where 'first' represents the h-master rank and
+	 * where 'second' defines the order in which entries have to be added to
+	 * the h-interface.*/
+		std::pair<int, int> get_h_master_info(GeomObj* o)	{return m_hash.first(o).hmasterProcInfo;}
+
+	/**	returns the array of other v-master procs which build an interface to the local proc,
+	 * if the local proc will be the new h-master proc and if it is also a v-master proc.*/
+		std::vector<int>& other_v_masters(GeomObj* o)		{return m_hash.first(o).otherVMasterRanks;}
+
+	private:
+		struct Entry{
+			Entry(int hmasterRank, int localHMasterCount) :
+				hmasterProcInfo(hmasterRank, localHMasterCount)	{}
+
+			std::pair<int, int>	hmasterProcInfo;
+			std::vector<int> otherVMasterRanks;
+		};
+
+		const std::vector<GeomObj*>	m_newConstrained;
+		DistributedGridManager* m_dgm;
+		Hash<Entry, GeomObj*>	m_hash;
+		int						m_localHMasterCount;
+		bool					m_exchangeVMasterRanks;
+};
+
+template <class TElem>
+void DistributedGridManager::
+create_missing_constrained_h_interfaces(const vector<TElem*>& newConstrainedElems)
+{
+//	some notes:
+//	The process on which the new hmaster lies is carefully chosen so that if an
+//	element already lies in a h-interface, its hmaster entry will also be the hmaster
+//	of the newly created h-interfaces.
+//	h-interfaces between all v-slaves exist at this time. h-interfaces between
+//	v-slaves and v-masters may exist.
+//	h-interfaces are created between the new hmaster and all other associated vmasters.
+//	We don't have to create h-interfaces between vslaves since those would already
+//	exist if they were required.
+//	Before creating an interface we make sure that no hinterface between those procs
+//	exists.
+
+	MultiGrid& mg = *m_pGrid;
+	typedef typename GridLayoutMap::Types<TElem>::Layout	layout_t;
+
+	ComPol_NewConstrainedVerticals<layout_t> compolHMasters(mg.distributed_grid_manager(),
+															newConstrainedElems);
+
+	compolHMasters.exchange_data();
+
+	int localRank = pcl::GetProcRank();
+
+	ScheduledElemMap	scheduledElems;
+	vector<pair<int, size_t> > vInterfaces;
+	vector<pair<int, size_t> > hInterfaces;
+
+	for(size_t i_nce = 0; i_nce < newConstrainedElems.size(); ++i_nce){
+		TElem* e = newConstrainedElems[i_nce];
+
+		std::pair<int, int> hmasterInfo = compolHMasters.get_h_master_info(e);
+		int hmasterRank = hmasterInfo.first;
+		int hmasterOrder = hmasterInfo.second;
+
+		UG_ASSERT(hmasterRank != -1, "HMaster ranks have not been communicated properly");
+		UG_ASSERT(hmasterOrder != -1, "HMaster orders have not been communicated properly");
+
+		if(hmasterRank == localRank){
+		//	make the local element a hmaster and create hinterfaces to all other vmasters
+			if(contains_status(e, ES_V_SLAVE)){
+				collect_interface_entries(hInterfaces, e, ES_H_SLAVE);
+				collect_interface_entries(hInterfaces, e, ES_H_MASTER, false);
+				collect_interface_entries(vInterfaces, e, ES_V_SLAVE);
+
+				for(size_t i_v = 0; i_v < vInterfaces.size(); ++i_v){
+					int tp = vInterfaces[i_v].first;
+				//	make sure that no h-interface to this process exists already!
+					bool hInterfaceExists = false;
+					for(size_t i_h = 0; i_h < hInterfaces.size(); ++i_h){
+						if(tp == hInterfaces[i_h].first){
+							hInterfaceExists = true;
+							break;
+						}
+					}
+
+					if(!hInterfaceExists){
+						scheduledElems.insert(make_pair(hmasterOrder, ScheduledElement(e, tp)));
+						elem_info(e).set_status(get_status(e) | ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+					}
+				}
+			}
+			else{
+				UG_ASSERT(contains_status(e, ES_V_MASTER), "Only vslaves and vmasters should be handled here!");
+				collect_interface_entries(hInterfaces, e, ES_H_SLAVE);
+				collect_interface_entries(hInterfaces, e, ES_H_MASTER, false);
+				vector<int>& otherVMasters = compolHMasters.other_v_masters(e);
+				for(size_t i_om = 0; i_om < otherVMasters.size(); ++i_om){
+					int om = otherVMasters[om];
+				//	check whether a h-interface to that process exists already
+					bool hInterfaceExists = false;
+					for(size_t i_h = 0; i_h < hInterfaces.size(); ++i_h){
+						if(om == hInterfaces[i_h].first){
+							hInterfaceExists = true;
+							break;
+						}
+					}
+
+					if(!hInterfaceExists){
+						scheduledElems.insert(make_pair(hmasterOrder, ScheduledElement(e, om)));
+						elem_info(e).set_status(get_status(e) | ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+					}
+				}
+			}
+		}
+		else if(contains_status(e, ES_V_MASTER)){
+			UG_ASSERT(!contains_status(e, ES_H_MASTER), "This proc should be considered as h-master proc!");
+		//	create a hslaveinterface to the hmasterRank.
+			collect_interface_entries(hInterfaces, e, ES_H_SLAVE);
+			collect_interface_entries(hInterfaces, e, ES_H_MASTER, false);
+
+		//	make sure that no h-interface to this process exists already!
+			bool hInterfaceExists = false;
+			for(size_t i_h = 0; i_h < hInterfaces.size(); ++i_h){
+				if(hmasterRank == hInterfaces[i_h].first){
+					hInterfaceExists = true;
+					break;
+				}
+			}
+
+			if(!hInterfaceExists){
+				scheduledElems.insert(make_pair(hmasterOrder, ScheduledElement(e, hmasterRank)));
+				elem_info(e).set_status(get_status(e) | ES_H_SLAVE | ES_SCHEDULED_FOR_INTERFACE);
+			}
+		}
+	}
+
+//	finally insert the scheduled elements in the actual interfaces
+	perform_ordered_element_insertion(scheduledElems);
 }
 
 void DistributedGridManager::
 end_element_deletion()
 {
+	UG_DLOG(LIB_GRID, 1, "DistributedGridManager start - end_element_deletion\n");
 // todo	defragment interfaces
 	m_bElementDeletionMode = false;
+
+//	we have to make sure that h-interfaces exist between new constrained vertical
+//	interface elements.
+	MultiGrid& mg = *m_pGrid;
+
+//	make sure that all associated elements are contained in the newConstrained... containers.
+	std::vector<EdgeBase*> edges;
+	for(size_t i = 0; i < m_newConstrainedVerticalFaces.size(); ++i){
+		CollectAssociated(edges, mg, m_newConstrainedVerticalFaces[i], false);
+	}
+
+	mg.begin_marking();
+	mg.mark(m_newConstrainedVerticalEdges.begin(), m_newConstrainedVerticalEdges.end());
+
+	for(size_t i = 0; i < edges.size(); ++i){
+		EdgeBase* e = edges[i];
+		if(!mg.is_marked(e)){
+			mg.mark(e);
+			m_newConstrainedVerticalEdges.push_back(e);
+		}
+	}
+
+	mg.mark(m_newConstrainedVerticalVrts.begin(), m_newConstrainedVerticalVrts.end());
+	for(size_t i = 0; i < m_newConstrainedVerticalEdges.size(); ++i){
+		EdgeBase* e = m_newConstrainedVerticalEdges[i];
+		for(size_t j = 0; j < 2; ++j){
+			if(!mg.is_marked(e->vertex(j))){
+				mg.mark(e->vertex(j));
+				m_newConstrainedVerticalVrts.push_back(e->vertex(j));
+			}
+		}
+	}
+
+	mg.end_marking();
+
+	UG_DLOG(LIB_GRID, 2, "  creating missing constrained h interfaces for vertices...\n");
+	create_missing_constrained_h_interfaces(m_newConstrainedVerticalVrts);
+	UG_DLOG(LIB_GRID, 2, "  creating missing constrained h interfaces for edges...\n");
+	create_missing_constrained_h_interfaces(m_newConstrainedVerticalEdges);
+	UG_DLOG(LIB_GRID, 2, "  creating missing constrained h interfaces for faces...\n");
+	create_missing_constrained_h_interfaces(m_newConstrainedVerticalFaces);
+
+	UG_DLOG(LIB_GRID, 1, "DistributedGridManager stop - end_element_deletion\n");
 }
 
 template <class TElem>
@@ -723,7 +1057,7 @@ element_to_be_erased(TElem* elem)
 	ElementInfo<TElem>& elemInfo = elem_info(elem);
 
 	if(elemInfo.is_interface_element()){
-		assert(m_bElementDeletionMode);
+		UG_ASSERT(m_bElementDeletionMode, "Call begin_element_deletion() before deleting elements.");
 	//	erase the element from all associated interfaces
 		for(typename ElementInfo<TElem>::EntryIterator iter = elemInfo.entries_begin();
 			iter != elemInfo.entries_end(); ++iter)

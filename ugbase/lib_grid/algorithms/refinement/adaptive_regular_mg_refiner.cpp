@@ -405,7 +405,7 @@ perform_refinement()
 {
 //	todo: copy refinement marks from closure elements to their parents
 	vector<GeometricObject*> parents;
-	Selector::status_t refMark = RM_REGULAR | RM_ANISOTROPIC;
+	Selector::status_t refMark = RM_REFINE | RM_ANISOTROPIC;
 	get_parents_of_marked_closure_elements<VertexBase>(parents, refMark);
 	get_parents_of_marked_closure_elements<EdgeBase>(parents, refMark);
 	get_parents_of_marked_closure_elements<Face>(parents, refMark);
@@ -414,7 +414,7 @@ perform_refinement()
 	remove_closure_elements();
 
 //	mark parents of formerly marked closure elements for refinement
-	mark(parents.begin(), parents.end(), RM_REGULAR);
+	mark(parents.begin(), parents.end(), RM_REFINE);
 
 	HangingNodeRefiner_MultiGrid::perform_refinement();
 	create_closure_elements();

@@ -187,10 +187,10 @@ post_refine()
 }
 
 void HangingNodeRefiner_Grid::
-refine_constraining_edge(ConstrainingEdge* e)
+process_constraining_edge(ConstrainingEdge* e)
 {
 //	call original implementation
-	HangingNodeRefinerBase::refine_constraining_edge(e);
+	HangingNodeRefinerBase::process_constraining_edge(e);
 
 //	if there are no faces, the edge can be erased
 	if(m_pGrid->num_faces() == 0)
@@ -220,10 +220,10 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 }
 
 void HangingNodeRefiner_Grid::
-refine_constraining_face(ConstrainingFace* f)
+process_constraining_face(ConstrainingFace* f)
 {
 //	call original implementation
-	HangingNodeRefinerBase::refine_constraining_face(f);
+	HangingNodeRefinerBase::process_constraining_face(f);
 
 //	if there are no volumes, the face can be erased
 	if(m_pGrid->num_volumes() == 0)

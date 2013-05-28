@@ -377,7 +377,8 @@ class SurfaceView
 	 * states to sides of surface elements.
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <class TElem, class TSide>
-		void mark_sides_as_surface_or_shadow(TElem* elem);
+		void mark_sides_as_surface_or_shadow(TElem* elem,
+											 byte surfaceState = ESS_SURFACE);
 
 		template <class TElem>
 		void mark_shadowing(bool markSides = false);

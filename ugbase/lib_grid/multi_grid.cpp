@@ -16,7 +16,8 @@ MultiGrid::MultiGrid() :
 	m_aVertexInfo("MultiGrid_VertexInfo"),
 	m_aEdgeInfo("MultiGrid_EdgeInfo"),
 	m_aFaceInfo("MultiGrid_FaceInfo"),
-	m_aVolumeInfo("MultiGrid_VolumeInfo")
+	m_aVolumeInfo("MultiGrid_VolumeInfo"),
+	m_aParentType("MultiGrid_ParentType")
 {
 	init();
 }
@@ -26,7 +27,8 @@ MultiGrid::MultiGrid(uint options) :
 	m_aVertexInfo("MultiGrid_VertexInfo"),
 	m_aEdgeInfo("MultiGrid_EdgeInfo"),
 	m_aFaceInfo("MultiGrid_FaceInfo"),
-	m_aVolumeInfo("MultiGrid_VolumeInfo")
+	m_aVolumeInfo("MultiGrid_VolumeInfo"),
+	m_aParentType("MultiGrid_ParentType")
 {
 	init();
 }
@@ -64,6 +66,8 @@ void MultiGrid::init()
 	attach_to_faces_dv(m_aFaceInfo, NULL);
 	attach_to_volumes_dv(m_aVolumeInfo, NULL);
 
+	attach_to_all(m_aParentType);
+
 //	init accessors
 	m_aaVrtInf.access(*this, m_aVertexInfo);
 	m_aaEdgeInf.access(*this, m_aEdgeInfo);
@@ -71,6 +75,8 @@ void MultiGrid::init()
 	m_aaParentFACE.access(*this, m_aParent);
 	m_aaVolInf.access(*this, m_aVolumeInfo);
 	m_aaParentVOL.access(*this, m_aParent);
+
+	m_aaParentType.access(*this, m_aParentType, true, true, true, true);
 }
 
 void MultiGrid::create_levels(int numLevels)

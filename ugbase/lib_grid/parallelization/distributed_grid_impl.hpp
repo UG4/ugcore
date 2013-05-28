@@ -49,20 +49,23 @@ template <class TElem>
 void DistributedGridManager::
 collect_interface_entries(
 				std::vector<std::pair<int, size_t> >& vEntriesOut,
-				TElem* elem)
+				TElem* elem, byte statusType, bool clearContainer)
 {
 //TODO: make sure that the localIDs match the position at which
 //		an element is stored in the interface
 	typedef ElementInfo<TElem> ElemInfo;
 	ElemInfo& info = elem_info(elem);
 
-	vEntriesOut.clear();
-	
+	if(clearContainer)
+		vEntriesOut.clear();
+
 	for(typename ElemInfo::EntryIterator iter = info.entries_begin();
 		iter != info.entries_end(); ++iter)
 	{
-		vEntriesOut.push_back(make_pair(info.get_target_proc(iter),
-										info.get_local_id(iter)));
+		if((info.get_interface_type(iter) & statusType) == statusType){
+			vEntriesOut.push_back(make_pair(info.get_target_proc(iter),
+											info.get_local_id(iter)));
+		}
 	}
 }
 

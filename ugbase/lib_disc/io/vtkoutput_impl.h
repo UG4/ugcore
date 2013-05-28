@@ -17,13 +17,14 @@
 #include "common/util/string_util.h"
 #include "common/util/endian_detection.h"
 #include "common/profiler/profiler.h"
+#include "common/util/provider.h"
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/multi_index.h"
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/spatial_disc/disc_util/fv_util.h"
-#include "common/util/provider.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl_base.h"
@@ -991,6 +992,9 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 			//	get index and subindex
 				const size_t index = vMultInd[0][0];
 				const size_t alpha = vMultInd[0][1];
+
+				UG_ASSERT(index < u.size(), "Bad index in vertex at "
+						  << GetGeometricObjectCenter(grid, v));
 
 			//	flush stream
 				File << (float) BlockRef(u[index], alpha);

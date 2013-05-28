@@ -23,6 +23,8 @@ InterfaceCommunicator() :
 	m_bDebugCommunication(false),
 	m_bSendBuffersFixed(true)
 {
+//	UG_LOG("DEBUG: Enabling debug communication in constructor of InterfaceCommunicator\n");
+//	enable_communication_debugging();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -414,14 +416,13 @@ communicate()
 			iter != m_curInProcs.end(); ++iter){
 			dbgRecvFrom.push_back(*iter);
 		}
-			
+
 		for(std::set<int>::iterator iter = m_curOutProcs.begin();
 			iter != m_curOutProcs.end(); ++iter)
 			dbgSendTo.push_back(*iter);
-			
+
 		if(!SendRecvListsMatch(dbgRecvFrom, dbgSendTo, m_debugProcComm)){
-			UG_LOG("ERROR in InterfaceCommunicator::communicate(): send / receive mismatch. Aborting.\n");
-			retVal = false;
+			UG_THROW("ERROR in InterfaceCommunicator::communicate(): send / receive mismatch. Aborting.\n");
 		}
 	}
 

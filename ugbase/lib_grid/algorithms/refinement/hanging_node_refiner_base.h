@@ -68,7 +68,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	additional mark to RefinementMarks. Used to flag whether an element
 	 * will be refined with constraining.*/
 		enum HNodeRefMarks{
-			HNRM_CONSTRAINED = 128
+			HNRM_TO_NORMAL = 		1 << 4,
+			HNRM_TO_CONSTRAINED =	1 << 5,
+			HNRM_TO_CONSTRAINING =	1 << 6,
+			HNRM_MAX
 		};
 
 	public:
@@ -92,10 +95,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	///	Marks a element for refinement.
 	/**	\{ */
-		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REGULAR);
-		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REGULAR);
-		virtual bool mark(Face* f, RefinementMark refMark = RM_REGULAR);
-		virtual bool mark(Volume* v, RefinementMark refMark = RM_REGULAR);
+		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REFINE);
+		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REFINE);
+		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE);
+		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE);
 	/**	\} */
 
 	///	Returns the mark of a given element.
@@ -136,24 +139,6 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 */
 		void perform_refinement();
 
-	///	returns true if an element is marked for hnode refinement.
-		template<class TElem>
-		bool marked_for_hnode_refinement(TElem* elem)
-			{return m_selMarkedElements.get_selection_status(elem) & HNRM_CONSTRAINED;}
-
-	///	use this method to set whether an element should be refined with hnode refinement.
-		template<class TElem>
-		void mark_for_hnode_refinement(TElem* elem, bool bMark)
-			{
-				if(bMark)
-					m_selMarkedElements.select(elem,
-								m_selMarkedElements.get_selection_status(elem)
-									| HNRM_CONSTRAINED);
-				else
-					m_selMarkedElements.select(elem,
-								m_selMarkedElements.get_selection_status(elem)
-									& ~HNRM_CONSTRAINED);
-			}
 
 	///	a callback that allows to deny refinement of special vertices
 		virtual bool refinement_is_allowed(VertexBase* elem)	{return true;}
@@ -199,8 +184,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * node or constrained children shall be created have to be marked using
 	 * mark_for_hnode_refinement during this method. The default implementation
 	 * performs this marking for all local elements.
-	 * Make sure to not mark any new elements during this method. Marks may only
-	 * be adjusted!*/
+	 * Make sure to not mark any new elements for refinement during this method.*/
 		virtual void assign_hnode_marks();
 
 	/**	called by refine after collect_objects_for_refine and before
@@ -218,17 +202,20 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 *  means, that the corner vertices of the original element shall be taken.
 	 *  \{
 	 */
-		virtual void refine_constraining_edge(ConstrainingEdge* cge);
+		virtual void process_constrained_vertex(ConstrainedVertex* cdv);
+		virtual void process_constrained_edge(ConstrainedEdge* cde);
+		virtual void process_constraining_edge(ConstrainingEdge* cge);
 		virtual void refine_edge_with_normal_vertex(EdgeBase* e,
 											VertexBase** newCornerVrts = NULL);
 		virtual void refine_edge_with_hanging_vertex(EdgeBase* e,
 											VertexBase** newCornerVrts = NULL);
 
+		virtual void process_constrained_face(ConstrainedFace* cdf);
+		virtual void process_constraining_face(ConstrainingFace* cgf);
 		virtual void refine_face_with_normal_vertex(Face* f,
 											VertexBase** newCornerVrts = NULL);
 		virtual void refine_face_with_hanging_vertex(Face* f,
 											VertexBase** newCornerVrts = NULL);
-		virtual void refine_constraining_face(ConstrainingFace* cgf);
 
 		virtual void refine_volume_with_normal_vertex(Volume* v,
 											VertexBase** newVolumeVrts = NULL);
@@ -268,14 +255,34 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		inline bool is_marked(Volume* v)					{return m_selMarkedElements.is_selected(v);}
 		//inline void mark(Volume* v)						{mark(v);}
 
-		template <class TElem>
-		inline bool marked_regular(TElem* elem)				{return m_selMarkedElements.get_selection_status(elem) == RM_REGULAR;}
 
 		template <class TElem>
-		inline bool marked_anisotropic(TElem* elem)			{return m_selMarkedElements.get_selection_status(elem) == RM_ANISOTROPIC;}
+		inline bool marked_refine(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_REFINE) == RM_REFINE;}
 
 		template <class TElem>
-		inline bool marked_coarsen(TElem* elem)			{return m_selMarkedElements.get_selection_status(elem) == RM_COARSEN;}
+		inline bool marked_anisotropic(TElem* elem)			{return (m_selMarkedElements.get_selection_status(elem) & RM_ANISOTROPIC) == RM_ANISOTROPIC;}
+
+		template <class TElem>
+		inline bool marked_regular(TElem* elem)				{return marked_refine(elem) && (!marked_anisotropic(elem));}
+
+		template <class TElem>
+		inline bool marked_coarsen(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_COARSEN) == RM_COARSEN;}
+
+		template <class TElem>
+		inline bool marked_to_normal(TElem* elem)			{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_NORMAL) == HNRM_TO_NORMAL;}
+
+		template <class TElem>
+		inline bool marked_to_constrained(TElem* elem)		{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINED) == HNRM_TO_CONSTRAINED;}
+
+		template <class TElem>
+		inline bool marked_to_constraining(TElem* elem)		{return (m_selMarkedElements.get_selection_status(elem) & HNRM_TO_CONSTRAINING) == HNRM_TO_CONSTRAINING;}
+
+		template <class TElem>
+		inline void add_hmark(TElem* elem, HNodeRefMarks mark)
+		{
+			m_selMarkedElements.select(elem,
+						m_selMarkedElements.get_selection_status(elem) | mark);
+		}
 
 	///	removes coarsen marks from the selection
 	/**	Note that derived classes are not informed about those deselections!*/
