@@ -28,7 +28,7 @@ SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
 		 	DoFDistribution(*this, spSurfView, GridLevel(level, GridLevel::SURFACE, false)),
 		 	m_spSurfView(spSurfView),
 		 	m_level(level),
-		 	m_bRedistributeDofs(false)
+		 	m_bRedistribute(false)
 {
 	init();
 }
@@ -483,45 +483,13 @@ bool SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 	return true;
 }
 
-template <class TElem>
-void SurfaceDoFDistribution::
-erase_dof_entries(const std::vector<TElem*>& elems)
-{
-	for(size_t i = 0; i < elems.size(); ++i){
-		TElem* e = elems[i];
-		if(obj_index(e) != NOT_YET_ASSIGNED){
-			erase(e,
-				  e->reference_object_id(),
-				  m_spMGSH->get_subset_index(e),
-				  m_levInfo);
-		}
-
-	//	copy the index from the newly created object to its parent and great parents.
-	//	this is important to correctly erase ghost copies when redistribution is done
-		TElem* telem = parent_if_copy(e);
-		while(telem){
-			copy(telem, e);
-			telem = parent_if_copy(telem);
-		}
-	}
-}
-
 void SurfaceDoFDistribution::defragment()
 {
-	erase_dof_entries(m_eraseOnDefragmentVrts);
-	erase_dof_entries(m_eraseOnDefragmentEdges);
-	erase_dof_entries(m_eraseOnDefragmentFaces);
-	erase_dof_entries(m_eraseOnDefragmentVols);
-	m_eraseOnDefragmentVrts.clear();
-	m_eraseOnDefragmentEdges.clear();
-	m_eraseOnDefragmentFaces.clear();
-	m_eraseOnDefragmentVols.clear();
-
 //	defragment
 	std::vector<std::pair<size_t,size_t> > vReplaced;
 	bool valid = true;
 
-	if (m_bRedistributeDofs==false){
+	if (m_bRedistribute==false){
 		if(max_dofs(VERTEX) > 0) valid=defragment<VertexBase>(vReplaced);
 		if((max_dofs(EDGE) > 0)&&(valid==true)) valid=defragment<EdgeBase>(vReplaced);
 		if((max_dofs(FACE) > 0)&&(valid==true)) valid=defragment<Face>(vReplaced);
@@ -602,7 +570,7 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 		}
 	}
 	
-	// if (m_bRedistribute==true) return;
+	if (m_bRedistribute==true) return;
 
 //	Now we remember that the indices on the parent object must be removed when
 //	defragmentation is called. We do this only, if the parent is of same
@@ -611,7 +579,20 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 	TBaseElem* parent = parent_if_same_type(obj);
 	if(parent)
 	{
-		schedule_for_erase_on_defragment(parent);
+		if(obj_index(parent) != NOT_YET_ASSIGNED){
+			erase(parent,
+				  parent->reference_object_id(),
+				  m_spMGSH->get_subset_index(parent),
+				  m_levInfo);
+		}
+
+	//	copy the index from the newly created object to its parent and great parents.
+	//	this is important to correctly erase ghost copies when redistribution is done
+		TBaseElem* telem = parent;
+		while(telem){
+			copy(telem, obj);
+			telem = parent_if_copy(telem);
+		}
 	}
 
 }
@@ -638,10 +619,7 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 	//			performed.
 		if(parent_if_copy(obj)) {
 			// if identical return, else do case 3
-			if(obj_index(obj) != obj_index(get_parent(obj))){
-				UG_THROW("Copies have to have the same indices!");
-			}
-			return;
+			if(obj_index(obj) == obj_index(get_parent(obj))) return;
 		}
 
 	//	case 3: The object that will be erased has no identical parent on the
@@ -649,14 +627,9 @@ inline void SurfaceDoFDistribution::obj_to_be_erased(TBaseElem* obj,
 	//			the index set.
 
 	//	All prolongation callbacks are invoked now
-		GeometricObject* parent = get_parent(obj);
-		if(parent && (obj_index(parent) == NOT_YET_ASSIGNED)){
-			add(parent, parent->reference_object_id(),
-						m_spMGSH->get_subset_index(parent),
-						m_levInfo);
-			resize_values(lev_info().sizeIndexSet);
+		if(get_parent(obj)){
 			for(size_t i = 0; i < m_vRestriction[gbo].size(); ++i){
-				m_vRestriction[gbo][i]->restrict_values(obj, parent, *this);
+				m_vRestriction[gbo][i]->restrict_values(obj, get_parent(obj), *this);
 			}
 		}
 	}

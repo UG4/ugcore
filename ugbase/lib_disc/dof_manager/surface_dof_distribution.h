@@ -123,13 +123,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 		void permute_indices(const std::vector<size_t>& vIndNew);
 		
 	/// set redistribution	
-		void set_redistribution(bool bRedistributeDofs){m_bRedistributeDofs = bRedistributeDofs;}
-		
-	/// index set for dofs in coarsened elements, filled in elementwise transfer, 
-	///	not necessary if injection can be used (Lagrange 1)
-		std::vector<MultiIndex<2> > coarseMultiInd;
-	/// set of values of new coarse dofs
-		std::vector<number> coarseValues;
+		void set_redistribution(bool bRedistribute){m_bRedistribute = bRedistribute;}
 		
 	protected:
 		/// permutes the indices for an base element type
@@ -141,14 +135,6 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 
 		LevInfo<std::set<size_t> >& lev_info() {return m_levInfo;}
 		const LevInfo<std::set<size_t> >& lev_info() const {return m_levInfo;}
-
-		void schedule_for_erase_on_defragment(VertexBase* e)	{m_eraseOnDefragmentVrts.push_back(e);}
-		void schedule_for_erase_on_defragment(EdgeBase* e)		{m_eraseOnDefragmentEdges.push_back(e);}
-		void schedule_for_erase_on_defragment(Face* e)			{m_eraseOnDefragmentFaces.push_back(e);}
-		void schedule_for_erase_on_defragment(Volume* e)		{m_eraseOnDefragmentVols.push_back(e);}
-
-		template <class TElem>
-		void erase_dof_entries(const std::vector<TElem*>& elems);
 
 	protected:
 	///	MultiGrid Subset Handler
@@ -163,12 +149,7 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 	///	set of invalid indices, still contained in index set
 		std::set<size_t> m_sFreeIndex;
 		
-		bool m_bRedistributeDofs;
-
-		std::vector<VertexBase*>	m_eraseOnDefragmentVrts;
-		std::vector<EdgeBase*>		m_eraseOnDefragmentEdges;
-		std::vector<Face*> 			m_eraseOnDefragmentFaces;
-		std::vector<Volume*>		m_eraseOnDefragmentVols;
+		bool m_bRedistribute;
 
 	protected:
 #ifdef UG_PARALLEL

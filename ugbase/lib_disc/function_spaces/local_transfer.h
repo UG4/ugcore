@@ -155,23 +155,6 @@ class P1LocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 		size_t m_fct;
 };
 
-int objectDim(GeometricObject* elem){
-	switch (elem->reference_object_id())
-	{
-		case ROID_VERTEX: return 0;
-		case ROID_EDGE: return 1;
-		case ROID_TRIANGLE: return 2;
-		case ROID_QUADRILATERAL: return 2;
-		case ROID_PRISM: return 3;
-		case ROID_PYRAMID: return 3;
-		case ROID_TETRAHEDRON: return 3;
-		case ROID_HEXAHEDRON: return 3;
-		case NUM_REFERENCE_OBJECTS: UG_THROW("Reference Object type unknown.");
-		case ROID_UNKNOWN: UG_THROW("Reference Object type unknown.");
-		default: UG_THROW("Reference Object type not found.");
-	}
-}
-
 template <typename TAlgebra,typename TGridFunction>
 class ElementLocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 {
@@ -222,48 +205,6 @@ class ElementLocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 		virtual bool restriction_needed(GeometricBaseObject gbo) const
 		{
 			return true;
-		}
-		
-		template <typename TElem>
-		void restrict_values_by_averaging(GeometricObject* child, GeometricObject* parent, const MGDoFDistribution& mgDD) const
-		{
-			size_t numChild = m_grid->template num_children<TElem>(parent);
-			std::vector<TElem*> vChild(numChild);
-			for(size_t c = 0; c < numChild; ++c)
-				vChild[c] = m_grid->template get_child<TElem>(parent,c);
-			LocalIndices parentInd;
-			mgDD.indices(parent, parentInd, false);
-			for (size_t fct=0;fct<mgDD.num_fct();fct++){
-				std::vector<MultiIndex<2> > vCoarseMultInd;
-				mgDD.inner_multi_indices(parent, fct, vCoarseMultInd);
-				if (vCoarseMultInd.size()==0) continue;
-				std::vector<MultiIndex<2> > vFineMultInd;
-				size_t numChildDof=0;
-				number value=0;
-				for (size_t c=0;c<numChild;c++){
-					TElem* child = vChild[c];
-					mgDD.inner_multi_indices(child, fct, vFineMultInd);
-					// sum up
-					for (size_t ip=0;ip<vFineMultInd.size();ip++){
-						value+=BlockRef((*m_pVec)[ vFineMultInd[ip][0] ], vFineMultInd[ip][1]);
-						numChildDof++;
-					}
-				}
-				// average
-				value/=(number)numChildDof;
-				for (size_t parentIp=0;parentIp<vCoarseMultInd.size();parentIp++){
-					BlockRef((*m_pVec)[ vCoarseMultInd[parentIp][0] ], vCoarseMultInd[parentIp][1]) = value;
-				}
-				// overwrite child values with interpolated value
-				for (size_t c=0;c<numChild;c++){
-					TElem* child = vChild[c];
-					mgDD.inner_multi_indices(child, fct, vFineMultInd);
-					// sum up
-					for (size_t ip=0;ip<vFineMultInd.size();ip++){
-						BlockRef((*m_pVec)[ vFineMultInd[ip][0] ], vFineMultInd[ip][1]) = value;
-					}
-				}
-			}
 		}
 
 		void prolongate_values_general(GeometricObject* child, GeometricObject* parent, const MGDoFDistribution& mgDD) const
@@ -353,7 +294,7 @@ class ElementLocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 				lsfs.shapes(vvShape, vLocPos);
 				for(size_t ip = 0; ip < vFineMultInd.size(); ++ip){
 					number interValue = 0;
-					for(size_t sh = 0; sh < vvShape[ip].size(); ++sh){ 
+					for(size_t sh = 0; sh < vvShape[ip].size(); ++sh){
 						interValue += vvShape[ip][sh] * coarseLocU(fct,sh);
 					}
 					BlockRef((*m_pVec)[ vFineMultInd[ip][0] ], vFineMultInd[ip][1]) = interValue;
@@ -365,40 +306,10 @@ class ElementLocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 		void prolongate_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {prolongate_values_general(elem,parent,mgDD); }
 		void prolongate_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const { prolongate_values_general(elem,parent,mgDD);}
 		void prolongate_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {prolongate_values_general(elem,parent,mgDD);}
-		// from p1 transfer
-		void restrict_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const
-		{
-			switch(parent->reference_object_id())
-			{
-				case ROID_VERTEX:
-				{
-					VertexBase* pParent = static_cast<VertexBase*>(parent);
-					for(size_t fct = 0; fct < mgDD.num_fct(); fct++){
-						std::vector<MultiIndex<2> > vFineMI;
-						std::vector<MultiIndex<2> > vCoarseMI;
-						mgDD.inner_multi_indices(vrt, fct, vFineMI);
-						if (vFineMI.size()==0) continue;
-						mgDD.inner_multi_indices(pParent, fct, vCoarseMI);
-						if (vCoarseMI.size()==0) continue;
-						for(size_t i = 0; i < vFineMI.size(); ++i)
-							BlockRef((*m_pVec)[ vCoarseMI[i][0] ], vCoarseMI[i][1]) =
-								BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]);
-					}
-				}
-				break;
-				case ROID_EDGE:
-				case ROID_TRIANGLE:
-				case ROID_QUADRILATERAL:
-				case ROID_TETRAHEDRON:
-				case ROID_PRISM:
-				case ROID_PYRAMID:
-				case ROID_HEXAHEDRON: /*nothing to do in those cases */ break;
-				default: UG_THROW("Reference Object type not found.");
-			}
-		}
-		void restrict_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {if (objectDim(parent)==1) restrict_values_by_averaging<EdgeBase>(elem,parent,mgDD);}
-		void restrict_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {if (objectDim(parent)==2) restrict_values_by_averaging<Face>(elem,parent,mgDD);}
-		void restrict_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {if (objectDim(parent)==3) restrict_values_by_averaging<Volume>(elem,parent,mgDD);}
+		void restrict_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const{}
+		void restrict_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
+		void restrict_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
+		void restrict_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
 	};
 
 } // end namespace ug
