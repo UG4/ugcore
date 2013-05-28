@@ -953,7 +953,7 @@ create_missing_constrained_h_interfaces(const vector<TElem*>& newConstrainedElem
 				collect_interface_entries(hInterfaces, e, ES_H_MASTER, false);
 				vector<int>& otherVMasters = compolHMasters.other_v_masters(e);
 				for(size_t i_om = 0; i_om < otherVMasters.size(); ++i_om){
-					int om = otherVMasters[om];
+					int om = otherVMasters[i_om];
 				//	check whether a h-interface to that process exists already
 					bool hInterfaceExists = false;
 					for(size_t i_h = 0; i_h < hInterfaces.size(); ++i_h){

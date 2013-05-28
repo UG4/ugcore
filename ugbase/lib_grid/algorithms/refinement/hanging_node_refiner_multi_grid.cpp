@@ -665,7 +665,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 		copy_marks_to_vmasters(false, true, false, false);
 
 	//	clear all edges which are marked with HNCM_NONE from the selection
-		for(typename Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
 			iter != sel.end<EdgeBase>();)
 		{
 			EdgeBase* e = *iter;
@@ -713,7 +713,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 	//	invalid mark.
 		copy_marks_to_vmasters(false, true, false, false);
 
-		for(typename Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
 			iter != sel.end<EdgeBase>();)
 		{
 			EdgeBase* e = *iter;
@@ -774,7 +774,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 		copy_marks_to_vslaves(false, true, true, true);
 
 	//	find edges which were marked as unknown and prepare qedges for the next run
-		for(typename Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
 			iter != sel.end<EdgeBase>(); ++iter)
 		{
 			if(sel.get_selection_status(*iter) == HNCM_UNKNOWN)
@@ -794,7 +794,7 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 	copy_marks_to_vmasters(true, false, true, false);
 
 	if(gotVols){
-		for(typename Selector::traits<Face>::iterator iter = sel.begin<Face>();
+		for(Selector::traits<Face>::iterator iter = sel.begin<Face>();
 			iter != sel.end<Face>();)
 		{
 			Face* f = *iter;
@@ -810,7 +810,7 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 		}
 	}
 
-	for(typename Selector::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
+	for(Selector::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
 		iter != sel.end<VertexBase>();)
 	{
 		VertexBase* v = *iter;
@@ -836,7 +836,7 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 //	transformed to a normal edge
 //	mark parents of normal and constraining edges and faces which were marked for
 //	partial refinement with a replace mark
-	for(typename Selector::traits<EdgeBase>::iterator
+	for(Selector::traits<EdgeBase>::iterator
 		iter = sel.begin<EdgeBase>(); iter != sel.end<EdgeBase>(); ++iter)
 	{
 		EdgeBase* e = *iter;
@@ -851,7 +851,7 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 		}
 	}
 
-	for(typename Selector::traits<Face>::iterator
+	for(Selector::traits<Face>::iterator
 		iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter)
 	{
 		Face* e = *iter;
