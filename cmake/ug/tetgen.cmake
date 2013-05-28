@@ -1,0 +1,11 @@
+# included from ug_includes.cmake
+if(TETGEN)
+	find_library(TETGEN_LIBS NAMES tet PATHS ${TETGEN})
+	if(TETGEN_LIBS-NOTFOUND)
+		message(FATAL_ERROR "ERROR: Couldn't find TETGEN in the specified path.")
+	else(TETGEN_LIBS-NOTFOUND)
+		add_definitions(-DUG_TETGEN -DTETLIBRARY)
+		include_directories(${TETGEN})
+		set(linkLibraries ${linkLibraries} ${TETGEN_LIBS})
+	endif(TETGEN_LIBS-NOTFOUND)
+endif(TETGEN)

@@ -253,82 +253,7 @@ endif(INTERNAL_MEMTRACKER)
 
 ########################################
 # TARGET
-add_definitions(-DUG_TARGET="${TARGET}") # (dummy) preprocessor directive used for displaying build configuration
-
-
-# The target option enables specific build variables
-if("${TARGET}" STREQUAL "ugshell")
-	set(buildUGShell ON)
-	set(buildForLUA ON)
-	set(buildAlgebra ON)
-	set(buildPlugins ON)
-	set(buildGrid ON)
-	set(buildDisc ON)
-	set(buildBridge ON)
-	set(buildBindings ON)
-	set(buildRegistry ON)
-	
-elseif("${TARGET}" STREQUAL "vrl")
-	# The vrl works only, if a dynamic library is built.
-	if(STATIC_BUILD)
-		message(FATAL_ERROR "ug4 for vrl can only be build as a dynamic library. Please set STATIC_BUILD = OFF.")
-	endif(STATIC_BUILD)
-	
-	set(buildAlgebra ON)
-	set(buildForVRL ON)
-	set(buildPlugins ON)
-	#todo: rename targetLibraryName to ug4_vrl
-	#set(targetLibraryName ug4_vrl)
-	set(buildGrid ON)
-	set(buildDisc ON)
-	set(buildBridge ON)
-	set(buildBindings ON)
-	set(buildRegistry ON)
-	
-elseif("${TARGET}" STREQUAL "libug4")
-	set(buildAlgebra ON)
-	set(buildPlugins ON)
-	set(buildGrid ON)
-	set(buildDisc ON)
-	set(buildBridge ON)
-	set(buildBindings ON)
-	set(buildRegistry ON)	
-	
-elseif("${TARGET}" STREQUAL "libgrid")
-	set(targetLibraryName grid)
-	set(buildGrid ON)
-
-elseif("${TARGET}" STREQUAL "ugplugin")
-	set(buildAlgebra ON)
-	set(buildGrid ON)
-	set(buildDisc ON)
-	set(buildForLUA ON)
-	set(buildPlugins ON)
-	set(buildBridge ON)
-	set(buildBindings ON)
-	set(buildRegistry ON)
-
-elseif("${TARGET}" STREQUAL "gridshell")
-	set(targetExecutableName gridshell)
-	set(buildUGShell ON)
-	set(buildPlugins ON)
-	set(buildGrid ON)
-	set(buildDisc ON)
-	set(buildBridge ON)
-	set(buildBindings ON)
-	set(buildRegistry ON)
-	
-elseif("${TARGET}" STREQUAL "amg")
-	set(buildPluginSystem OFF)
-	set(targetLibraryName ugamg)
-	set(buildAlgebra ON)
-	set(buildGrid OFF)
-	#set(buildPluginSystem OFF)
-	set(PARALLEL OFF)
-else("${TARGET}" STREQUAL "ugshell")
-	message(FATAL_ERROR "Unsupported TARGET: ${TARGET}. Options are: ${targetOptions}")
-	
-endif("${TARGET}" STREQUAL "ugshell")
+include(${UG_ROOT_PATH}/cmake/ug/target.cmake)
 
 ########################################
 # PRECISION
@@ -385,49 +310,9 @@ else("${DIM}" STREQUAL "ALL")
 endif("${DIM}" STREQUAL "ALL")
 
 ########################################
-# CPU
+# Algebra Selection (CPU=)
 # The cpu option sets defines for C and C++
-if(CRS_ALGEBRA)
-	MESSAGE(STATUS "Info: Using CRS Matrix Algebra.")
-
-    if("${CPU}" STREQUAL "ALL")
-        # todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
-        add_definitions(-DUG_CRS_1 -DUG_CRS_2 -DUG_CRS_3)
-
-    else("${CPU}" STREQUAL "ALL")
-        # CPU is a string of numbers (e.g. "1;2")
-        # loop dims
-        foreach(d ${CPU})
-            # check if dim is valid
-            if(d GREATER 4 OR d LESS 1)
-                message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
-                                    "Valid options are: ${cpuOptions}")
-            endif(d GREATER 4 OR d LESS 1)
-
-            add_definitions(-DUG_CRS_${d})
-        endforeach(d)
-    endif("${CPU}" STREQUAL "ALL")
-endif()
-if(CPU_ALGEBRA)
-    MESSAGE(STATUS "Info: Using CPU Matrix Algebra.")
-    if("${CPU}" STREQUAL "ALL")
-        # todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
-        add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)
-
-    else("${CPU}" STREQUAL "ALL")
-        # CPU is a string of numbers (e.g. "1;2")
-        # loop dims
-        foreach(d ${CPU})
-            # check if dim is valid
-            if(d GREATER 4 OR d LESS 1)
-                message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
-                                    "Valid options are: ${cpuOptions}")
-            endif(d GREATER 4 OR d LESS 1)
-
-            add_definitions(-DUG_CPU_${d})
-        endforeach(d)
-    endif("${CPU}" STREQUAL "ALL")
-endif()
+include(${UG_ROOT_PATH}/cmake/ug/algebra_selection.cmake)
 
 ########################################
 # COMPILER specific flags
@@ -446,58 +331,7 @@ endif()
 ########################################
 # DEBUG
 ########################################
-if(DEBUG)
-	add_definitions(-DUG_DEBUG)
-	# if no build type set, add default debug flags
-	if("${CMAKE_BUILD_TYPE}" STREQUAL "None" OR
-		"${CMAKE_BUILD_TYPE}" STREQUAL "")
-		# use cmake standard flags for debug builds (-g)
-		add_cxx_flag(${CMAKE_CXX_FLAGS_DEBUG})
-		# if user specified additional debug flags add them
-		if(DEBUG_FORMAT)
-			add_cxx_flag(${DEBUG_FORMAT})
-			message(STATUS "Info: Debug Information is ${DEBUG_FORMAT}") 
-		endif(DEBUG_FORMAT)
-	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-		message(WARNING "Build type set to Release, but DEBUG build wanted.")
-	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
-		message(WARNING "Build type set to MinSizeRel, but DEBUG build wanted.")
-	endif()
-	
-	# This code would enable strict bounds checking for STL objects like in vector::operator[]. 
-	# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC). 
-	# when this bug is fixed, one could set those flags (or similar) depending on the compiler.
-	
-	# I disabled the following definitions, since they cause several additional problems.
-	# First they also cause problems on MinGW builds.
-	# Secondly they have to be defined also for all executables, which link against
-	# ug. Since they are well hidden, this may cause quite some headache.
-	# One should think about a flag DEBUG_STL or something like this, which explicitly
-	# enables those flags. (sreiter)
-	#if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
-	#	add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
-	#ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
-else(DEBUG)
-	# add release definitions
-	add_definitions(-DBOOST_UBLAS_NDEBUG)
-	if(NOT CMAKE_BUILD_TYPE)
-		# if DEBUG=OFF also add standard cmake release flags (-O3 -DNDEBUG)
-		add_cxx_flag(${CMAKE_CXX_FLAGS_RELEASE})
-	elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-		message(WARNING "Build type set to Debug, but DEBUG=OFF. Leads to strange cflags!")
-	endif()
-
-	# compiler specific release flags
-	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		add_cxx_flag("-funroll-loops -ftree-vectorize")
-	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
-		add_cxx_flag("-hipa5 -hunroll2")
-	endif()
-endif(DEBUG)
-
-if(DEBUG_LOGS)
-	add_definitions(-DUG_ENABLE_DEBUG_LOGS)
-endif(DEBUG_LOGS)
+include(${UG_ROOT_PATH}/cmake/ug/debug.cmake)
 
 # if build type is set print own cflags and flags from build type 
 if(CMAKE_BUILD_TYPE)
@@ -511,114 +345,7 @@ endif()
 
 ########################################
 # PROFILER
-if(NOT("${PROFILER}" STREQUAL "None"))
-    if("${PROFILER}" STREQUAL "Shiny")
-    	add_definitions(-DUG_PROFILER_SHINY)    
-     	set(UG_PROFILER_SHINY ON)               # add Cmake variable
-        
-    # Scalasca
-    elseif("${PROFILER}" STREQUAL "Scalasca")
-        find_package(Scalasca)
-        if(SCALASCA_FOUND)
-            message("-- Info: Scalasca: using scalasca command: ${SCALASCA_COMMAND}")
-            message("-- Info: Scalasca: using inlcude dir: ${SCALASCA_INCLUDE_DIR}")
-            message("-- Info: Scalasca: using cxx flags: ${SCALASCA_USER_CFLAGS}")
-            message("-- Info: Scalasca: check that compiler prefix is set!")
-            message("--       Use: CC=\"scalasca -instrument -comp=none -user mpicc\" CXX=\"scalasca -instrument -comp=none -user mpicxx\" cmake ...")
-            message("--       If not used: remove build completely and rerun cmake with prefix.")
-        else(SCALASCA_FOUND)
-        	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
-        	        "binary scalasca/kconfig. Make sure that PATH contains "
-        	        "scalasca and kconfig executable.")
-        endif(SCALASCA_FOUND)
-
-        # we assume the user to build using:
-        # CXX="scalasca -instrument -comp=none -user c++"
-        # It would be desirable to set the compiler here, but somehow I did not
-        # find a solution to that issue. Maybe we could include this file before
-        # the project() command to solve the issue, but I don't know what effects
-        # that may have.
-        # I also tried:
-
-        # a) write compiler wrapper - cannot be set afterwards
-#       	file(WRITE ${CMAKE_BINARY_DIR}/scalasca_mpicxx
-#    		"#! /bin/sh"
-#    		"# THIS IS AN AUTOMATICALL GENERATED FILE. DO NOT EDIT!\n"
-#    		"${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}")
-#        set(CMAKE_CXX_COMPILER "${CMAKE_BINARY_DIR}/scalasca_mpicxx")
-
-         # b) resetting compiler: does not work, only allowed before PROJECT() command
-#        if(NOT ("${CMAKE_CXX_COMPILER}" STREQUAL "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}"))
-#        set(CMAKE_CXX_COMPILER "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}")
-#        endif(NOT ("${CMAKE_CXX_COMPILER}" STREQUAL "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER}"))
-#        set(CXX "${SCALASCA_COMMAND} -instrument -comp=none -user ${CMAKE_CXX_COMPILER} ")
-
-         # c) does not work, since RULE_LAUNCH_LINK also prefixes Archiver (ar)
-#        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "scalasca -instrument -comp=none -user ")
-#        set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "scalasca -instrument -comp=none -user ")
-
-        # add compile flags
-		#add_cxx_flag("${SCALASCA_USER_CFLAGS}") -- scalasca wrapper does it itself
-    	add_definitions(-DUG_PROFILER_SCALASCA)    
-    
-    # Vampir
-    elseif("${PROFILER}" STREQUAL "Vampir")
-        find_package(VampirTrace)
-        if(VAMPIRTRACE_FOUND)
-            message("-- Info: Vampir: using compiler wrapper c++: ${VAMPIRTRACE_CXX}")
-            message("-- Info: Vampir: using compiler wrapper cc : ${VAMPIRTRACE_CC}")
-            message("-- Info: Vampir: using inlcude dir: ${VAMPIRTRACE_INCLUDE_DIR}")
-            message("-- Info: Vampir: using library dir: ${VAMPIRTRACE_LIBRARIES}")
-            message("-- Info: Vampir: check that compiler wrapper are set!")
-            message("--       Use: CC=\"vtcc\" CXX=\"vtcxx\" cmake ...")
-            message("--       If not used: remove build completely and rerun cmake with prefix.")
-        else(VAMPIRTRACE_FOUND)
-        	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
-        	        "binary vtcxx and/or library or include paths. Make sure "
-        	        "that PATH contains vtcxx executable.")
-        endif(VAMPIRTRACE_FOUND)
-    	add_definitions(-DUG_PROFILER_VAMPIR)    
-    	add_definitions(-vt:inst manual -DVTRACE)
-
-    # ScoreP
-    elseif("${PROFILER}" STREQUAL "ScoreP")
-        find_program(SCOREP_COMMAND scorep)
-        if(SCOREP_COMMAND)
-            message("-- Info: ScoreP: using compiler wrapper: ${SCOREP_COMMAND}")
-            message("-- Info: ScoreP: check that compiler wrapper are set!")
-            message("--       Use: CC=\"scorep --user mpicc\" CXX=\"scorep --user mpicxx\" cmake ...")
-            message("--       If not used: remove build completely and rerun cmake with prefix.")
-        else(SCOREP_COMMAND)
-        	message(FATAL_ERROR "PROFILER: ${PROFILER}: Cannot find required "
-        	        "binary scorep and/or library or include paths. Make sure "
-        	        "that PATH contains scorep executable.")
-        endif(SCOREP_COMMAND)
-        
-    	add_definitions(-DUG_PROFILER_SCOREP)    
-    	#add_definitions(-vt:inst manual -DVTRACE)
-
-    # wrong string in compiler
-    else("${PROFILER}" STREQUAL "Shiny")
-    	message(FATAL_ERROR "Unsupported PROFILER: ${PROFILER}. Options are: ${profilerOptions}")
-    endif("${PROFILER}" STREQUAL "Shiny")
-    
-    # if one profiler is used this flag will be set
-	add_definitions(-DUG_PROFILER)    # add to c++ flags
-	set(UG_PROFILER ON)               # add Cmake variable
-	
-endif(NOT("${PROFILER}" STREQUAL "None"))
-
-
-########################################
-# PROFILE_PCL
-if(PROFILE_PCL)
-	add_definitions(-DPROFILE_PCL)
-endif(PROFILE_PCL)
-
-# PROFILE_BRIDGE
-if(PROFILE_BRIDGE)
-	add_definitions(-DPROFILE_BRIDGE)
-endif(PROFILE_BRIDGE)
+include(${UG_ROOT_PATH}/cmake/ug/profiler.cmake)
 
 
 ########################################
@@ -630,276 +357,32 @@ endif(PCL_DEBUG_BARRIER)
 
 ########################################
 # OPENMP
-IF(OPENMP)
-	# writing to CMAKE_CXX_FLAGS directly can cause problems on some platforms.
-	# Please use add_definitions instead. Hope that works in this case, too. sreiter.
-  # The linker option '-lgomp' or '-liomp5' can not be added to add_definitions
-  # as these are not passed to the link then. But they have to. tklatt.
-	#	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
-  IF(CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_cxx_flags("-fopenmp")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgomp")
-    ADD_DEFINITIONS(-DUG_OPENMP)
-    MESSAGE(STATUS "Info: Using OpenMP (experimental)")
-  ELSEIF(CMAKE_C_COMPILER_ID STREQUAL "Intel" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    add_cxx_flags("-fopenmp")
-    SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -liomp5")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -liomp5")
-    ADD_DEFINITIONS(-DUG_OPENMP)
-    MESSAGE(STATUS "Info: Using OpenMP (experimental)")
-  ELSEIF(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    MESSAGE(WARNING "Clang does not support OpenMP yet.")
-  ELSE()
-    MESSAGE(WARNING "Don't know compiler type, thus don't know how to enable OpenMP")
-  ENDIF()
-ENDIF(OPENMP)
-
-
-
-
-########################################
+include(${UG_ROOT_PATH}/cmake/ug/openmp.cmake)
 # C++11
-# Note 1: C++11 is still experimental with most compilers, though the most
-# important features are already supported.
-# Note 2: Though Clang supports C++11, adding the compiler flag globally (as done
-# for GCC below) will break the build on trying to compile C/ObjC files with this
-# flag. GCC only emits warnings, Clang throws an error.
-# TODO: Workaround Note 2. Probably requires larger refactoring of all CMake files.
-IF(CXX11)
-	IF(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-		# Check for the GCC's C++11 capabilities
-		INCLUDE(CheckCXXCompilerFlag)
-		CHECK_CXX_COMPILER_FLAG(-std=c++0x HAVE_CXX0X)
-		# since GCC4.7 (c++0x will be removed in future versions of GCC)
-		CHECK_CXX_COMPILER_FLAG(-std=c++11 HAVE_CXX11)
-		# Add appropriate compiler flags
-		IF(HAVE_CXX11)
-			SET(CXX11_FLAG "-std=c++11")
-		ELSEIF(HAVE_CXX0X)
-			SET(CXX11_FLAG "-std=c++0x")
-		ENDIF()
-
-		IF(CXX11_FLAG)
-			ADD_DEFINITIONS(-DUG_CXX11)
-			add_cxx_flag(${CXX11_FLAG})
-			MESSAGE(STATUS "Info: C++11 enabled. (flag: ${CXX11_FLAG})")
-		ELSE()
-			SET(CXX11 OFF)
-			MESSAGE(STATUS "Info: Compiler does not support C++11 standard.")
-		ENDIF()
-	ELSE()
-		MESSAGE(STATUS "Info: Enabling C++11 is only supported with GCC currently.")
-	ENDIF()
-ENDIF(CXX11)
-
+include(${UG_ROOT_PATH}/cmake/ug/cpp11.cmake)
+# CUDA
+include(${UG_ROOT_PATH}/cmake/ug/cuda.cmake)
+# LUA2C
+include(${UG_ROOT_PATH}/cmake/ug/lua2c.cmake)
 
 ########################################
 # buildAlgebra
-if(buildAlgebra)
-	add_definitions(-DUG_ALGEBRA)
-	
-	# we'll check for lapack and blas here
-	if(LAPACK OR BLAS)
-		# On OSX, we know where lapack and blas are located. To avoid errors
-		# with Fortran compilers on OSX, we'll add APPLE as a special case here.
-		if(APPLE)
-			if(LAPACK)
-				set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
-				FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
-				if(LAPACK_INCLUDE_PATH)
-		  			set(LAPACK_FOUND YES)
-		  		endif(LAPACK_INCLUDE_PATH)
-			endif(LAPACK)
-			
-			if(BLAS)
-				set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
-				find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
-				set(BLAS_FOUND YES)
-				if(BLAS_INCLUDE_PATH)
-					set(BLAS_FOUND YES)
-				endif(BLAS_INCLUDE_PATH)
-			endif(BLAS)
-			
-		elseif(NOT BUILTIN_BLAS AND NOT BUILTIN_LAPACK)			
-			# a fortran compiler is required to find the packages
-			# Sadly there seems to be a cmake-bug, hence the following workaround.
-			# ENABLE_LANGUAGE workaround begin (issue 0009220)
-			message(STATUS "Info: If problems with the Fortran compiler occur, consider deactivating LAPACK and BLAS")
-			if(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
-			  set(CMAKE_Fortran_COMPILER CMAKE_Fortran_COMPILER-NOTFOUND)
-			endif(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
-			# ENABLE_LANGUAGE workaround end (issue 0009220)
-			
-			ENABLE_LANGUAGE(Fortran OPTIONAL)
-			if(CMAKE_Fortran_COMPILER_WORKS)
-				if(LAPACK)
-					find_package(LAPACK)
-				endif(LAPACK)
-				
-				if(BLAS)
-					find_package(BLAS)
-				endif(BLAS)
-				
-			endif(CMAKE_Fortran_COMPILER_WORKS)
-		endif(APPLE)
-		
-	# We'll output whether lapack and blas are used, to avoid misconceptions
-		if(LAPACK_FOUND)
-			message(STATUS "Info: Using Lapack")
-			include_directories (${LAPACK_INCLUDE_PATH})
-			set(linkLibraries ${linkLibraries} ${LAPACK_LIBRARIES})
-			add_definitions(-DLAPACK_AVAILABLE)
-		elseif(BUILTIN_LAPACK)
-			message(STATUS "Info: Using Builtin Lapack")
-			add_definitions(-DLAPACK_AVAILABLE)
-		else(LAPACK_FOUND)	
-			message(STATUS "Info: Not using Lapack. No package found.")
-		endif(LAPACK_FOUND)
-		
-		if(BLAS_FOUND)
-			message(STATUS "Info: Using Blas")
-			include_directories (${BLAS_INCLUDE_PATH})
-			set(linkLibraries ${linkLibraries} ${BLAS_LIBRARIES})
-			add_definitions(-DBLAS_AVAILABLE)
-		elseif(BUILTIN_BLAS)
-			message(STATUS "Info: Using Builtin Blas")
-			add_definitions(-DBLAS_AVAILABLE)
-		else(BLAS_FOUND)	
-			message(STATUS "Info: Not using Blas. No package found.")
-		endif(BLAS_FOUND)
-		
-		if(BLAS_goto2_LIBRARY)
-			message(STATUS "Info: GotoBLAS2 found: (${BLAS_goto2_LIBRARY}). Adding -lgfortran.")
-			SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgfortran")
-		endif()
-	endif(LAPACK OR BLAS)
-endif(buildAlgebra)
+include(${UG_ROOT_PATH}/cmake/ug/build_algebra.cmake)
 
 
 ########################################
 # METIS
-if(METIS OR PARMETIS)
-	add_definitions(-DUG_METIS)
-	include_directories(${UG_ROOT_PATH}/externals/metis-5.0.2/include)
-	set(buildMetis ON)
-	set(linkLibraries ${linkLibraries} metis)
-endif(METIS OR PARMETIS)
-
-########################################
+include(${UG_ROOT_PATH}/cmake/ug/metis.cmake)
 # PARMETIS
-if(PARMETIS)
-	add_definitions(-DUG_PARMETIS)
-	include_directories(${UG_ROOT_PATH}/externals/parmetis-4.0.2/include)
-	set(buildParmetis ON)
-	set(linkLibraries ${linkLibraries} parmetis)
-endif(PARMETIS)
-
-########################################
+include(${UG_ROOT_PATH}/cmake/ug/parmetis.cmake)    
 # TETGEN
-if(TETGEN)
-	find_library(TETGEN_LIBS NAMES tet PATHS ${TETGEN})
-	if(TETGEN_LIBS-NOTFOUND)
-		message(FATAL_ERROR "ERROR: Couldn't find TETGEN in the specified path.")
-	else(TETGEN_LIBS-NOTFOUND)
-		add_definitions(-DUG_TETGEN -DTETLIBRARY)
-		include_directories(${TETGEN})
-		set(linkLibraries ${linkLibraries} ${TETGEN_LIBS})
-	endif(TETGEN_LIBS-NOTFOUND)
-endif(TETGEN)
-
-########################################
+include(${UG_ROOT_PATH}/cmake/ug/tetgen.cmake)
 # HYPRE
-if(HYPRE)
-	find_library(HYPRE_LIBS HYPRE PATHS ${HYPRE})
-
-	if(HYPRE_LIBS-NOTFOUND)
-		message(FATAL_ERROR "ERROR: Couldn't find HYPRE in the specified path.")
-	else(HYPRE_LIBS-NOTFOUND)
-		add_definitions(-DUG_HYPRE -DHYPRELIB_DIR) # TODO: Is '-DHYPRELIB_DIR' used?
-		include_directories(${HYPRE}/../include/)
-		set(linkLibraries ${linkLibraries} ${HYPRE_LIBS})
-	endif(HYPRE_LIBS-NOTFOUND)
-endif(HYPRE)
-
-########################################
+include(${UG_ROOT_PATH}/cmake/ug/hypre.cmake)
 # HLIBPRO
-if(HLIBPRO)
-#	find_library(HLIBPRO_LIBS NAMES hpro PATHS ${HLIBPRO})
-	find_library(HLIBPRO_LIBS NAMES libhpro.dylib PATH_SUFFIXES ../hlibpro-0.13.6/lib/ ${HLIBPRO}) # hlib built as shared lib via 'scons shared=1 static=0' (26092011ih)
-	find_path (HLIBPROLIB_DIR libhpro.dylib
-		PATHS ENV PATH
-		PATH_SUFFIXES ../hlibpro-0.13.6/lib/ )
-#	message(STATUS "INFO: Using HLibPro; content of 'HLIBPRO_LIBS' is '${HLIBPRO_LIBS}', content of 'HLIBPROLIB_DIR' is '${HLIBPROLIB_DIR}'.")
-	if(HLIBPRO_LIBS-NOTFOUND)
-		message(FATAL_ERROR "ERROR: Couldn't find HLIBPRO in the specified path.")
-	else(HLIBPRO_LIBS-NOTFOUND)
-#		add_definitions(-DHLIBPROLIB_DIR)
-		add_definitions(-DUG_HLIBPRO)
-		include_directories(${HLIBPROLIB_DIR}/../include/)
-		include_directories(${HLIBPROLIB_DIR}/../src/include/)
-		set(linkLibraries ${linkLibraries} ${HLIBPRO_LIBS})
-	endif(HLIBPRO_LIBS-NOTFOUND)
-endif(HLIBPRO)
-
-#########################################
-# CUDA
-if(CUDA)
-	SET(MY_HOSTNAME $ENV{HOSTNAME})
-	if(MY_HOSTNAME STREQUAL "tales")
-        SET(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-5.0)
-    endif()    
-    find_package(CUDA)
-	if(CUDA_FOUND)
-		SET(CUDA_NVCC_FLAGS "-arch=sm_13")
-		MESSAGE(STATUS "Info: CUDA ${CUDA_VERSION}. Toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}, nvcc: ${CUDA_NVCC_EXECUTABLE}")
-
-		file(WRITE ${CMAKE_BINARY_DIR}/cuda_jit.h
-			"#define CUDA_TOOLKIT_ROOT_DIR \"${CUDA_TOOLKIT_ROOT_DIR}\"\n"
-			"#define CUDA_NVCC_EXECUTABLE \"${CUDA_NVCC_EXECUTABLE}\"\n"
-			"#define CUDA_VERSION \"${CUDA_VERSION}\"\n"
-			"#define CUDA_NVCC_FLAGS \"${CUDA_NVCC_FLAGS}\"\n")
-
-		include_directories(${CUDA_TOOLKIT_INCLUDE})
-		include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
-        
-		set(linkLibraries ${linkLibraries} ${CUDA_CUDART_LIBRARY} ${CUDA_cublas_LIBRARY})   
-		add_definitions(-DCUDA_AVAILABLE)
-	else(CUDA_FOUND)
-		message(FATAL_ERROR "Error: Couldn't find CUDA")
-	endif()
-endif()
-
-#########################################
+include(${UG_ROOT_PATH}/cmake/ug/hlibpro.cmake)
 # OpenCL
-if(OpenCL)
-	IF(APPLE)
-		MESSAGE(STATUS "Info: Found OpenCL: -framework OpenCL (Apple)")
-		SET(OPENCL_FOUND YES)
-		set(linkLibraries "${linkLibraries} -framework OpenCL")   
-		add_definitions(-DOPENCL_AVAILABLE)
-	ELSE(APPLE)
-		INCLUDE ("${UG_ROOT_PATH}/cmake/FindOpenCL.cmake")	
-		if(OPENCL_FOUND)
-			MESSAGE(STATUS "Info: Found OpenCL. Inc: ${OPENCL_INCLUDE_DIRS}, lib: ${OPENCL_LIB_DIR}")
-			include_directories(${OPENCL_INCLUDE_DIRS})
-			set(linkLibraries ${linkLibraries} ${OPENCL_LIB_DIR})   
-			add_definitions(-DOPENCL_AVAILABLE)
-		else(OPENCL_FOUND)
-			MESSAGE(FATAL_ERROR " OpenCL not found! Aborting.")
-		endif(OPENCL_FOUND)
-	ENDIF(APPLE)
-endif(OpenCL)
-
-#########################################
-if(USE_LUA2C)
-    if(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: LUA2C requested, but static build. LUA2C disabled.")
-    	set(USE_LUA2C OFF)
-    else(STATIC_BUILD)
-    	MESSAGE(STATUS "Info: Using LUA2C")
-    	add_definitions(-DUSE_LUA2C)
-    endif(STATIC_BUILD)
-endif(USE_LUA2C)
+include(${UG_ROOT_PATH}/cmake/ug/opencl.cmake)
 
 
 ################################################################################
@@ -936,33 +419,7 @@ endif(UNIX)
 
 ########################################
 # MPI
-if(PARALLEL)
-	if(BUILTIN_MPI)
-		add_definitions(-DUG_PARALLEL)
-	else(BUILTIN_MPI)
-		# search mpi
-		find_package(MPI)
-		# MPI is required for parallel builds
-		if(MPI_FOUND)
-			add_definitions(-DUG_PARALLEL)
-			include_directories(${MPI_INCLUDE_PATH})
-			# Add mpi libraries:
-			# Standard case: add cxx libraries
-			if(MPI_CXX_LIBRARIES)
-				set(linkLibraries ${linkLibraries} ${MPI_CXX_LIBRARIES})
-			# Depreciated case: In order to support cmake versions < 2.8.6, 
-			#                   where MPI_CXX_LIBRARIES cannot be used
-			else(MPI_CXX_LIBRARIES)				
-				set(linkLibraries ${linkLibraries} ${MPI_LIBRARY})
-				if(MPI_EXTRA_LIBRARY)
-				set(linkLibraries ${linkLibraries} ${MPI_EXTRA_LIBRARY})
-				endif(MPI_EXTRA_LIBRARY)
-			endif(MPI_CXX_LIBRARIES)				
-		else(MPI_FOUND)
-			message(FATAL_ERROR "MPI not found. Please set PARALLEL to OFF (run cmake -DPARALLEL=OFF ...)")
-		endif(MPI_FOUND)
-	endif(BUILTIN_MPI)
-endif(PARALLEL)
+include(${UG_ROOT_PATH}/cmake/ug/mpi.cmake)
 
 
 ########################################
@@ -1024,35 +481,11 @@ set(UG_DEBUG ${DEBUG})
 # link against required libraries
 link_libraries(${linkLibraries})
 
-################################################################################
-# Finally declare a method that allows all sub-cmake-files to add their sources
-# to a common library.
 
-#######################
-# Export sources to global variable.
-# PURPOSE: use this function to add local package sources to global
-#          ugSources property which is used to build libug4
-# @param prefix current directory prefix
-# @param sources sources list to export
-function(ExportSources prefix sources)
-    # iterate over all arguments and insert given prefix
-    foreach(l ${ARGV})
-        # FIXME: this is a hack to omit the first argument
-        #        which is the prefix. Shall we use boolean or index variable?
-        if(NOT "${l}" STREQUAL "${prefix}")
-            # retrieve the global property ugSources and store it
-            # in tmp variable
-            # NOTE: properties must be assigned to variables before being used
-            get_property(tmp GLOBAL PROPERTY ugSources)
-            # append tmp to the global ugSources property using the correct prefix
-            if("${prefix}" STREQUAL "")
-				set_property(GLOBAL PROPERTY ugSources ${tmp} "${l}")
-			else("${prefix}" STREQUAL "")
-				set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
-			endif("${prefix}" STREQUAL "")
-        endif(NOT "${l}" STREQUAL "${prefix}")
-    endforeach(l)
-endfunction(ExportSources)
+################################################################################
+# Declare a method that allows all sub-cmake-files to add their sources
+# to a common library.
+include(${UG_ROOT_PATH}/cmake/ug/export_sources.cmake)
 
 
 ######################################################################################################################

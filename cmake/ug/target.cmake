@@ -1,0 +1,76 @@
+# included from ug_includes.cmake
+add_definitions(-DUG_TARGET="${TARGET}") # (dummy) preprocessor directive used for displaying build configuration
+
+# The target option enables specific build variables
+if("${TARGET}" STREQUAL "ugshell")
+	set(buildUGShell ON)
+	set(buildForLUA ON)
+	set(buildAlgebra ON)
+	set(buildPlugins ON)
+	set(buildGrid ON)
+	set(buildDisc ON)
+	set(buildBridge ON)
+	set(buildBindings ON)
+	set(buildRegistry ON)
+	
+elseif("${TARGET}" STREQUAL "vrl")
+	# The vrl works only, if a dynamic library is built.
+	if(STATIC_BUILD)
+		message(FATAL_ERROR "ug4 for vrl can only be build as a dynamic library. Please set STATIC_BUILD = OFF.")
+	endif(STATIC_BUILD)
+	
+	set(buildAlgebra ON)
+	set(buildForVRL ON)
+	set(buildPlugins ON)
+	#todo: rename targetLibraryName to ug4_vrl
+	#set(targetLibraryName ug4_vrl)
+	set(buildGrid ON)
+	set(buildDisc ON)
+	set(buildBridge ON)
+	set(buildBindings ON)
+	set(buildRegistry ON)
+	
+elseif("${TARGET}" STREQUAL "libug4")
+	set(buildAlgebra ON)
+	set(buildPlugins ON)
+	set(buildGrid ON)
+	set(buildDisc ON)
+	set(buildBridge ON)
+	set(buildBindings ON)
+	set(buildRegistry ON)	
+	
+elseif("${TARGET}" STREQUAL "libgrid")
+	set(targetLibraryName grid)
+	set(buildGrid ON)
+
+elseif("${TARGET}" STREQUAL "ugplugin")
+	set(buildAlgebra ON)
+	set(buildGrid ON)
+	set(buildDisc ON)
+	set(buildForLUA ON)
+	set(buildPlugins ON)
+	set(buildBridge ON)
+	set(buildBindings ON)
+	set(buildRegistry ON)
+
+elseif("${TARGET}" STREQUAL "gridshell")
+	set(targetExecutableName gridshell)
+	set(buildUGShell ON)
+	set(buildPlugins ON)
+	set(buildGrid ON)
+	set(buildDisc ON)
+	set(buildBridge ON)
+	set(buildBindings ON)
+	set(buildRegistry ON)
+	
+elseif("${TARGET}" STREQUAL "amg")
+	set(buildPluginSystem OFF)
+	set(targetLibraryName ugamg)
+	set(buildAlgebra ON)
+	set(buildGrid OFF)
+	#set(buildPluginSystem OFF)
+	set(PARALLEL OFF)
+else("${TARGET}" STREQUAL "ugshell")
+	message(FATAL_ERROR "Unsupported TARGET: ${TARGET}. Options are: ${targetOptions}")
+	
+endif("${TARGET}" STREQUAL "ugshell")
