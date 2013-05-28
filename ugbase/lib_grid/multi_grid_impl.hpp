@@ -163,10 +163,10 @@ associate_parent(TElem* elem, GeometricObject* parent)
 
 	if(parent){
 		add_child(parent, elem);
-		set_parent_type(parent, (char)parent->base_object_id());
+		set_parent_type(elem, (char)parent->base_object_id());
 	}
 	else
-		set_parent_type(parent, -1);
+		set_parent_type(elem, -1);
 
 	set_parent(elem, parent);
 }

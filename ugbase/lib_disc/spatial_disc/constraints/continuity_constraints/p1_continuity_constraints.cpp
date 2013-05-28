@@ -25,7 +25,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 	{
 	case EDGE:
 	{
-	//	in a parallel environment, the parent may be missing
+	//	in a parallel environment, the parent may be missing...
 		GeometricObject* constrainingObject = hgVrt->get_constraining_object();
 		if(constrainingObject){
 		//	cast to constraining edge
@@ -56,7 +56,8 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 				vConstrainingVrt.push_back(vrt);
 			}
 		}
-		else{
+		else
+		{
 		//	we have to find the constraining vertices of hgVrt without having
 		//	access to the parent element.
 			Grid::edge_traits::secure_container edges;
@@ -76,6 +77,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 		break;
 	case FACE:
 	{
+	//	in a parallel environment, the parent may be missing...
 		GeometricObject* constrainingObject = hgVrt->get_constraining_object();
 		if(constrainingObject){
 		//	cast to constraining quadrilateral
@@ -107,7 +109,8 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 				vConstrainingVrt.push_back(vrt);
 			}
 		}
-		else{
+		else
+		{
 		//	we have to find the constraining vertices of hgVrt without having
 		//	access to the parent element.
 			Grid::face_traits::secure_container faces;

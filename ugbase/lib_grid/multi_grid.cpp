@@ -211,6 +211,7 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 		if(replaceInfo.child_vertex()){
 			myInfo.add_child(replaceInfo.child_vertex());
 			set_parent(replaceInfo.child_vertex(), vrt);
+			set_parent_type(replaceInfo.child_vertex(), VERTEX);
 		}
 	}
 	else{
@@ -290,11 +291,13 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 		if(replaceInfo.child_vertex()){
 			myInfo.add_child(replaceInfo.child_vertex());
 			set_parent(replaceInfo.child_vertex(), edge);
+			set_parent_type(replaceInfo.child_vertex(), EDGE);
 		}
 
 		for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
 			myInfo.add_child(replaceInfo.child_edge(i));
 			set_parent(replaceInfo.child_edge(i), edge);
+			set_parent_type(replaceInfo.child_edge(i), EDGE);
 		}
 	}
 	else{
@@ -372,16 +375,19 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 			if(replaceInfo.child_vertex()){
 				myInfo.add_child(replaceInfo.child_vertex());
 				set_parent(replaceInfo.child_vertex(), face);
+				set_parent_type(replaceInfo.child_vertex(), FACE);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
 				myInfo.add_child(replaceInfo.child_edge(i));
 				set_parent(replaceInfo.child_edge(i), face);
+				set_parent_type(replaceInfo.child_edge(i), FACE);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_faces(); ++i){
 				myInfo.add_child(replaceInfo.child_face(i));
 				set_parent(replaceInfo.child_face(i), face);
+				set_parent_type(replaceInfo.child_face(i), FACE);
 			}
 		}
 	}
@@ -449,21 +455,25 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 			if(replaceInfo.child_vertex()){
 				myInfo.add_child(replaceInfo.child_vertex());
 				set_parent(replaceInfo.child_vertex(), vol);
+				set_parent_type(replaceInfo.child_vertex(), VOLUME);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_edges(); ++i){
 				myInfo.add_child(replaceInfo.child_edge(i));
 				set_parent(replaceInfo.child_edge(i), vol);
+				set_parent_type(replaceInfo.child_edge(i), VOLUME);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_faces(); ++i){
 				myInfo.add_child(replaceInfo.child_face(i));
 				set_parent(replaceInfo.child_face(i), vol);
+				set_parent_type(replaceInfo.child_face(i), VOLUME);
 			}
 
 			for(size_t i = 0; i < replaceInfo.num_child_volumes(); ++i){
 				myInfo.add_child(replaceInfo.child_volume(i));
 				set_parent(replaceInfo.child_volume(i), vol);
+				set_parent_type(replaceInfo.child_volume(i), VOLUME);
 			}
 		}
 	}

@@ -1001,7 +1001,8 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 
 //	select associated constraining elements first, since they may reference
 //	additional unselected constrained elements.
-	//SelectAssociatedConstrainingElements(msel, IS_DUMMY);
+//	UG_LOG("DEBUG: SELECTING CONSTRAINING ELEMENTS...\n");
+//	SelectAssociatedConstrainingElements(msel, IS_DUMMY);
 	SelectAssociatedConstrainedElements(msel, IS_DUMMY | HAS_PARENT);
 	SelectChildrenOfSelectedShadowVertices(msel, IS_DUMMY | HAS_PARENT);
 	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectElementsForTargetPartition\n");

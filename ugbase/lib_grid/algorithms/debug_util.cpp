@@ -616,4 +616,166 @@ bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 	return retVal;
 }
 
+#ifdef UG_PARALLEL
+template <class TLayout>
+class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLayout>
+{
+	public:
+		typedef TLayout								Layout;
+		typedef typename Layout::Type				GeomObj;
+		typedef typename Layout::Element			Element;
+		typedef typename Layout::Interface			Interface;
+		typedef typename Interface::const_iterator	InterfaceIter;
+
+		ComPol_CheckDistributedParentStates(MultiGrid& mg) :
+			m_mg(mg),
+			m_dgm(mg.distributed_grid_manager()),
+			m_comparisionFailed(false),
+			m_performMasterCheck(false)
+		{
+		}
+
+		virtual ~ComPol_CheckDistributedParentStates()	{}
+
+		virtual int
+		get_required_buffer_size(const Interface& interface)
+		{return interface.size() * sizeof(int);}
+
+		virtual bool
+		collect(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			for(InterfaceIter iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				Element elem = interface.get_element(iter);
+				int parentType = m_mg.parent_type(elem);
+				Serialize(buff, parentType);
+			}
+			return true;
+		}
+
+		virtual bool
+		extract(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			for(InterfaceIter iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				Element elem = interface.get_element(iter);
+				int parentType;
+				Deserialize(buff, parentType);
+
+				if(m_performMasterCheck){
+					GeometricObject* parent = m_mg.get_parent(elem);
+					if(parent && (parentType != parent->base_object_id())){
+						UG_LOG("  PARENT-TYPE MISMATCH AT CHILD ELEMENT WITH OBJECT ID " << elem->base_object_id()
+								<< " at " << GetGeometricObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
+						UG_LOG("    Parent object id: " << parent->base_object_id() << ", received id: " << parentType << "\n");
+						m_comparisionFailed = true;
+					}
+					else if((!parent) && (parentType != -1)){
+						UG_LOG("  PARENT-TYPE MISMATCH AT CHILD ELEMENT WITH OBJECT ID " << elem->base_object_id()
+								<< " at " << GetGeometricObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
+						UG_LOG("  The element hasn't got a parent but received parent id is != -1. Received id: " << parentType << "\n");
+						m_comparisionFailed = true;
+					}
+				}
+				else if(parentType != m_mg.parent_type(elem)){
+					UG_LOG("  PARENT-TYPE MISMATCH AT ELEMENT WITH OBJECT ID " << elem->base_object_id()
+							<< " at " << GetGeometricObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
+					UG_LOG("    Parent object id: " <<  (int)m_mg.parent_type(elem) << ", received id: " << parentType << "\n");
+					m_comparisionFailed = true;
+				}
+			}
+			return true;
+		}
+
+		bool exchange_data()
+		{
+			pcl::InterfaceCommunicator<TLayout> com;
+
+			m_comparisionFailed = false;
+			GridLayoutMap& glm = m_dgm->grid_layout_map();
+			m_performMasterCheck = false;
+			if(glm.has_layout<GeomObj>(INT_H_SLAVE))
+				com.send_data(glm.get_layout<GeomObj>(INT_H_SLAVE), *this);
+			if(glm.has_layout<GeomObj>(INT_H_MASTER))
+				com.receive_data(glm.get_layout<GeomObj>(INT_H_MASTER), *this);
+			com.communicate();
+
+			m_performMasterCheck = true;
+			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
+				com.send_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
+			if(glm.has_layout<GeomObj>(INT_V_MASTER))
+				com.receive_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
+			com.communicate();
+
+			return !m_comparisionFailed;
+		}
+
+	private:
+		MultiGrid& m_mg;
+		DistributedGridManager* m_dgm;
+		bool m_comparisionFailed;
+		bool m_performMasterCheck;
+};
+#endif
+
+template <class TElem>
+bool CheckLocalParentTypes(MultiGrid& mg)
+{
+	bool success = true;
+	typedef typename MultiGrid::traits<TElem>::iterator iter_t;
+	for(iter_t iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
+		TElem* e = *iter;
+		GeometricObject* parent = mg.get_parent(e);
+		if(parent){
+			if(mg.parent_type(e) != parent->base_object_id()){
+				UG_LOG("  LOCAL PARENT-TYPE MISMATCH AT ELEMENT WITH OBJECT ID " << e->base_object_id()
+						<< " at " << GetGeometricObjectCenter(mg, e) << " on level " << mg.get_level(e) << "\n");
+				UG_LOG("    Stored parent id: " <<  (int)mg.parent_type(e) << ", actual parent id: " << parent->base_object_id() << "\n");
+				success = false;
+			}
+		}
+	}
+	return success;
+}
+
+bool CheckDistributedParentTypes(MultiGrid& mg)
+{
+	UG_LOG("DEBUG: Checking distributed parent types...\n");
+#ifdef UG_PARALLEL
+	ComPol_CheckDistributedParentStates<VertexLayout>	vrtChecker(mg);
+	ComPol_CheckDistributedParentStates<EdgeLayout>		edgeChecker(mg);
+	ComPol_CheckDistributedParentStates<FaceLayout> 	faceChecker(mg);
+	ComPol_CheckDistributedParentStates<VolumeLayout>	volChecker(mg);
+
+	bool success = true;
+	UG_LOG(" checking vertices...\n");
+	success &= CheckLocalParentTypes<VertexBase>(mg);
+	success &= vrtChecker.exchange_data();
+	UG_LOG(" checking edges...\n");
+	success &= CheckLocalParentTypes<EdgeBase>(mg);
+	success &= edgeChecker.exchange_data();
+	UG_LOG(" checking faces...\n");
+	success &= CheckLocalParentTypes<Face>(mg);
+	success &= faceChecker.exchange_data();
+	UG_LOG(" checking volumes...\n");
+	success &= CheckLocalParentTypes<Volume>(mg);
+	success &= volChecker.exchange_data();
+	UG_LOG(" checking done with status ");
+
+	success = pcl::AllProcsTrue(success);
+
+	if(success){
+		UG_LOG("SUCCESS\n");
+	}
+	else{
+		UG_LOG("FAILURE\n");
+	}
+	return success;
+#else
+	return true;
+#endif
+}
+
 }// end of namespace

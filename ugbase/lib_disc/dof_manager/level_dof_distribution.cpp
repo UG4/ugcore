@@ -136,16 +136,17 @@ parallel_redistribution_ended()
 	if(max_dofs(2) > 0) add_unassigned_elements<Face>();
 	if(max_dofs(3) > 0) add_unassigned_elements<Volume>();
 
+	for(int l = 0; l < num_levels(); ++l){
+		if(m_managingDoFDists[l])
+			m_managingDoFDists[l]->resize_values(lev_info(l).sizeIndexSet);
+	}
+
 //	DEFRAGMENT HAS TO BE CALLED EXTERNALLY! OR EXECUTE THE FOLLOWING CODE
 //#ifdef UG_PARALLEL
 //	for(int l = 0; l < num_levels(); ++l)
 //		create_layouts_and_communicator(l);
 //#endif
-//
-//	for(int l = 0; l < num_levels(); ++l){
-//		if(m_managingDoFDists[l])
-//			m_managingDoFDists[l]->resize_values(lev_info(l).sizeIndexSet);
-//	}
+
 }
 
 void LevelMGDoFDistribution::

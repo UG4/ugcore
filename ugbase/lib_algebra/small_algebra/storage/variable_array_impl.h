@@ -261,8 +261,8 @@ template<typename T, eMatrixOrdering T_ordering>
 T &
 VariableArray2<T, T_ordering>::operator()(size_t r, size_t c)
 {
-	assert(r<rows);
-	assert(c<cols);
+	UG_ASSERT(r<rows, "r = " << r << ", rows = " << rows);
+	UG_ASSERT(c<cols, "c = " << c << ", cols = " << cols);
 	if(T_ordering==RowMajor)
 		return values[c+r*cols];
 	else
@@ -273,8 +273,8 @@ template<typename T, eMatrixOrdering T_ordering>
 const T &
 VariableArray2<T, T_ordering>::operator()(size_t r, size_t c) const
 {
-	assert(r<rows);
-	assert(c<cols);
+	UG_ASSERT(r<rows, "r = " << r << ", rows = " << rows);
+	UG_ASSERT(c<cols, "c = " << c << ", cols = " << cols);
 	if(T_ordering==RowMajor)
 		return values[c+r*cols];
 	else

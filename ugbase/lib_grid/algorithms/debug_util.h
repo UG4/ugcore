@@ -81,7 +81,6 @@ bool CheckHangingNodeConsistency(Grid& g);
  */
 bool CheckHangingNodeConsistency(MultiGrid& mg);
 
-/**@}*/ // end of doxygen defgroup command
 
 
 ///	Checks whether distributed objects have the same type on all processes.
@@ -92,6 +91,11 @@ bool CheckHangingNodeConsistency(MultiGrid& mg);
  */
 bool CheckDistributedObjectConstraintTypes(MultiGrid& mg);
 
+
+///	Check whether local parent types match the type of the actual parent element.
+bool CheckDistributedParentTypes(MultiGrid& mg);
+
+/**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 
 ////////////////////////////////////////

@@ -590,7 +590,8 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			
 	//	Debugging
 		reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp)
-			.add_function("CheckDistributedObjectConstraintTypes", &CheckDistributedObjectConstraintTypes, grp);
+			.add_function("CheckDistributedObjectConstraintTypes", &CheckDistributedObjectConstraintTypes, grp)
+			.add_function("CheckDistributedParentTypes", &CheckDistributedParentTypes, grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
