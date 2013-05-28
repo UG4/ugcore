@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__DISTRIBUTED_GRID_IMPL__
 
 #include <vector>
+#include <utility>
 
 namespace ug
 {
@@ -63,7 +64,7 @@ collect_interface_entries(
 		iter != info.entries_end(); ++iter)
 	{
 		if((info.get_interface_type(iter) & statusType) == statusType){
-			vEntriesOut.push_back(make_pair(info.get_target_proc(iter),
+			vEntriesOut.push_back(std::make_pair(info.get_target_proc(iter),
 											info.get_local_id(iter)));
 		}
 	}
