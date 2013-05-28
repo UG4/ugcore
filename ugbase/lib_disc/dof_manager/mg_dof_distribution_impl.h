@@ -400,9 +400,10 @@ erase(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 	li.vNumIndexOnSubset[si] -= numNewIndex;
 }
 
+template <class TElemNew, class TElemOld>
 inline
 void MGDoFDistribution::
-copy(GeometricObject* objNew, GeometricObject* objOld)
+copy(TElemNew* objNew, TElemOld* objOld)
 {
 //	check subsets
 	UG_ASSERT(m_spMGSH->get_subset_index(objNew) ==

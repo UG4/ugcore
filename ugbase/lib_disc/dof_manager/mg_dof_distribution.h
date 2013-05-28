@@ -377,7 +377,8 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		 * method is usually called, if an object of the grid is replaced by a
 		 * similar one.
 		 */
-		inline void copy(GeometricObject* objNew, GeometricObject* objOld);
+		template <class TElemNew, class TElemOld>
+		inline void copy(TElemNew* objNew, TElemOld* objOld);
 
 		///	checks that subset assigment is ok
 		void check_subsets();
