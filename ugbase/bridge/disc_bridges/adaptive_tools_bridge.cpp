@@ -62,6 +62,13 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("MarkForAdaption_GradientIndicator",
 						 &MarkForAdaption_GradientIndicator<TDomain, TAlgebra>, grp);
 	}
+	
+//	MarkForAdaption_GradientJumpIndicator
+	{
+		string grp("ug4/Refinement/");
+		reg.add_function("MarkForAdaption_GradientJumpIndicator",
+						 &MarkForAdaption_GradientJumpIndicator<TDomain, TAlgebra>, grp);
+	}
 
 //	Prolongate
 	{

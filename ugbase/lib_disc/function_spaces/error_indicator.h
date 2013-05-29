@@ -247,8 +247,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 	//	get the element
 		element_type* elem = *iter;
 		
-		MathVector<dim> vGlobalGrad;
-		vGlobalGrad*=0;
+		MathVector<dim> vGlobalGrad=0;
 	
 	//  get sides of element		
 		grid.associated_elements_sorted(sides, elem );
@@ -462,6 +461,95 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 			}
 		}
 	}
+	
+// 	Mark elements for refinement
+	MarkElements(aaError, refiner, u, TOL, refineFrac, coarseFrac, maxLevel);
+
+// 	detach error field
+	pMG->template detach_from<element_type>(aError);
+};
+
+template <typename TFunction>
+void computeGradientJump(TFunction& u,
+                     MultiGrid::AttachmentAccessor<
+                     typename TFunction::element_type,
+                     ug::Attachment<number> >& aaGrad,
+					 MultiGrid::AttachmentAccessor<
+                     typename TFunction::element_type,
+                     ug::Attachment<number> >& aaError)
+{
+	typedef typename TFunction::domain_type domain_type;
+	typedef typename domain_type::grid_type grid_type;
+	typedef typename TFunction::element_type element_type;
+	typedef typename element_type::side side_type;
+	typedef typename TFunction::template traits<side_type>::const_iterator side_iterator;
+	
+	grid_type& grid = *u.domain()->grid();
+
+	//	get iterator over elements
+	side_iterator iter = u.template begin<side_type>();
+	side_iterator iterEnd = u.template end<side_type>();
+	//	loop elements
+	for(; iter != iterEnd; ++iter)
+	{
+		//	get the element
+		side_type* side = *iter;
+		typename grid_type::template traits<element_type>::secure_container neighElements;
+		grid.associated_elements(neighElements,side);
+		if (neighElements.size()!=2) continue;
+		number localJump = std::abs(aaGrad[neighElements[0]]-aaGrad[neighElements[1]]);
+		for (size_t i=0;i<2;i++)
+			if (aaError[neighElements[i]]<localJump) aaError[neighElements[i]]=localJump;
+	}
+}
+
+// indicator is based on elementwise computation of jump between elementwise gradients
+// the value in an element is the maximum jump between the element gradient and gradient
+// in elements with common face
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_GradientJumpIndicator(IRefiner& refiner,
+                                       GridFunction<TDomain, TAlgebra>& u,
+                                       const char* fctName,
+                                       number TOL,
+                                       number refineFrac, number coarseFrac,
+                                       int maxLevel)
+{
+//	types
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
+	typedef typename TFunction::domain_type::grid_type grid_type;
+	typedef typename TFunction::element_type element_type;
+
+//	function id
+	const size_t fct = u.fct_id_by_name(fctName);
+
+//	get multigrid
+	SmartPtr<grid_type> pMG = u.domain()->grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aGrad;
+	pMG->template attach_to<element_type>(aGrad);
+	MultiGrid::AttachmentAccessor<element_type, ANumber> aaGrad(*pMG, aGrad);
+	
+	ANumber aError;
+	pMG->template attach_to<element_type>(aError);
+	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
+
+// 	Compute error on elements
+	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
+		ComputeGradientLagrange1(u, fct, aaGrad);
+	else{
+		if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+			ComputeGradientCrouzeixRaviart(u, fct, aaGrad);
+		else{
+			if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, 0)){
+				ComputeGradientPiecewiseConstant(u,fct,aaGrad);
+			} else {
+				UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
+			}
+		}
+	}
+	computeGradientJump(u,aaGrad,aaError);
 	
 // 	Mark elements for refinement
 	MarkElements(aaError, refiner, u, TOL, refineFrac, coarseFrac, maxLevel);
