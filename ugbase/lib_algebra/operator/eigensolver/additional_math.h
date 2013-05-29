@@ -55,7 +55,7 @@ void MultiScalProd(vector_type **px,
 		for(size_t c=r; c<n; c++)
 		{
 			rA(r, c) = px[c]->dotprod(*px[r]);
-			UG_LOG("MultiScalProd : " << rA(r, c) << "\n");
+			//UG_LOG("MultiScalProd : " << rA(r, c) << "\n");
 		}
 	}
 
