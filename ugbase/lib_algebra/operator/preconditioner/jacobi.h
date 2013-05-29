@@ -231,7 +231,8 @@ class Jacobi : public IPreconditioner<TAlgebra>
 
 };
 
-
 } // end namespace ug
+
+#include "gpujacobi.h"
 
 #endif
