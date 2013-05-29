@@ -311,6 +311,12 @@ class ExpandLayersDesc : public std::vector<FractureInfo>
 };
 
 
+template <class T>
+static
+bool IsValidPtr(T* o){
+	return o != NULL;
+}
+
 ////////////////////////////////////////////////////////////////////////
 void RegisterBridge_Grid(Registry& reg, string parentGroup)
 {
@@ -318,6 +324,18 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	stringstream groupString; groupString << parentGroup << "/Grid";
 	string grp = groupString.str();
 	try{
+	//	Geometric Objects
+		reg.add_class_<GeometricObject>("GeometricObject", grp);
+		reg.add_class_<VertexBase, GeometricObject>("Vertex", grp);
+		reg.add_class_<EdgeBase, GeometricObject>("Edge", grp);
+		reg.add_class_<Face, GeometricObject>("Face", grp);
+		reg.add_class_<Volume, GeometricObject>("Volume", grp);
+
+		reg.add_function("IsValid", &IsValidPtr<VertexBase>, grp);
+		reg.add_function("IsValid", &IsValidPtr<EdgeBase>, grp);
+		reg.add_function("IsValid", &IsValidPtr<Face>, grp);
+		reg.add_function("IsValid", &IsValidPtr<Volume>, grp);
+
 	//	Grid
 		reg.add_class_<Grid>("Grid", grp)
 			.add_constructor()
@@ -590,8 +608,12 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			
 	//	Debugging
 		reg.add_function("CheckHangingNodeConsistency", static_cast<bool (*)(MultiGrid&)>(&CheckHangingNodeConsistency), grp)
+			.add_function("CheckMultiGridConsistency", &CheckMultiGridConsistency, grp)
 			.add_function("CheckDistributedObjectConstraintTypes", &CheckDistributedObjectConstraintTypes, grp)
-			.add_function("CheckDistributedParentTypes", &CheckDistributedParentTypes, grp);
+			.add_function("CheckDistributedParentTypes", &CheckDistributedParentTypes, grp)
+			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, VertexBase*)>(&CheckElementConsistency), grp)
+			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, EdgeBase*)>(&CheckElementConsistency), grp)
+			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Face*)>(&CheckElementConsistency), grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

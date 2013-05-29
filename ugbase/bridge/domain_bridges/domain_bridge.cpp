@@ -20,6 +20,7 @@
 #include "lib_disc/parallelization/domain_distribution.h"
 
 #include "lib_grid/algorithms/refinement/global_multi_grid_refiner.h"
+#include "lib_grid/algorithms/geom_obj_util/misc_util.h"
 
 #include "lib_grid/algorithms/subset_util.h"
 
@@ -208,6 +209,18 @@ static number FaceArea(TDomain& dom, ISelector& sel)
 	return FaceArea(sel, aaPos);
 }
 
+
+template <class TDomain, class TElem>
+static TElem* GetElementByCoordinate(TDomain& dom, number x, number y, number z)
+{
+	vector3 tv(x, y, z);
+	typename TDomain::position_type v;
+	VecCopy(v, tv, 0);
+
+	typename TDomain::grid_type& g = *dom.grid();
+	return FindClosestByCoordinate<TElem>(v, g.template begin<TElem>(), g.template end<TElem>(), dom.position_accessor());
+}
+
 // end group domain_bridge
 /// \}
 
@@ -309,6 +322,12 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int, size_t)>(&FaceArea<TDomain>), grp, "Area sum", "Domaim#Subset index#Grid level");
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, int)>(&FaceArea<TDomain>), grp, "Area sum", "Domain#Subset index");
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISelector&)>(&FaceArea<TDomain>), grp, "Area sum", "Domain#Selector");
+
+//	element access
+	reg.add_function("GetVertexByCoordinate", &GetElementByCoordinate<TDomain, VertexBase>, grp);
+	reg.add_function("GetEdgeByCoordinate", &GetElementByCoordinate<TDomain, EdgeBase>, grp);
+	reg.add_function("GetFaceByCoordinate", &GetElementByCoordinate<TDomain, Face>, grp);
+	reg.add_function("GetVolumeByCoordinate", &GetElementByCoordinate<TDomain, Volume>, grp);
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);

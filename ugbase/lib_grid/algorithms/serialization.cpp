@@ -1538,8 +1538,29 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									assert(dynamic_cast<ConstrainedVertex*>(*hiter));
 									vVrts.push_back(*hiter);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
+									if(parent && (!mg.get_parent(*hiter))){
 										mg.associate_parent(*hiter, parent);
+									//	make sure that constrained/constraining relations are fine
+										switch(parent->base_object_id()){
+											case EDGE:{
+												ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(parent);
+												UG_ASSERT(cge, "Constraining edge has to be of type ConstrainingEdge");
+												cge->add_constrained_object(*hiter);
+												static_cast<ConstrainedVertex*>(*hiter)->set_constraining_object(cge);
+											}break;
+
+											case FACE:{
+												ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
+												UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
+												cgf->add_constrained_object(*hiter);
+												static_cast<ConstrainedVertex*>(*hiter)->set_constraining_object(cgf);
+											}break;
+
+											default:
+												UG_THROW("Constraining object has to be an edge or a face");
+												break;
+										}
+									}
 									continue;
 								}
 							}
@@ -1681,8 +1702,30 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									assert(dynamic_cast<ConstrainedEdge*>(*hiter));
 									vEdges.push_back(*hiter);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
+									if(parent && (!mg.get_parent(*hiter))){
 										mg.associate_parent(*hiter, parent);
+									//	make sure that constrained/constraining relations are fine
+										switch(parent->base_object_id()){
+											case EDGE:{
+												ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(parent);
+												UG_ASSERT(cge, "Constraining edge has to be of type ConstrainingEdge");
+												cge->add_constrained_object(*hiter);
+												static_cast<ConstrainedEdge*>(*hiter)->set_constraining_object(cge);
+											}break;
+
+											case FACE:{
+												ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
+												UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
+												cgf->add_constrained_object(*hiter);
+												static_cast<ConstrainedEdge*>(*hiter)->set_constraining_object(cgf);
+											}break;
+
+											default:
+												UG_THROW("Constraining object has to be an edge or a face");
+												break;
+										}
+
+									}
 									continue;
 								}
 							}
@@ -1877,8 +1920,16 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									assert(dynamic_cast<ConstrainedFace*>(*hiter));
 									vFaces.push_back(*hiter);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
+									if(parent && (!mg.get_parent(*hiter))){
 										mg.associate_parent(*hiter, parent);
+									//	make sure that constrained/constraining relations are fine
+										UG_ASSERT(parent->base_object_id() == FACE,
+												  "Only faces may constrain faces");
+										ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
+										UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
+										cgf->add_constrained_object(*hiter);
+										static_cast<ConstrainedFace*>(*hiter)->set_constraining_object(cgf);
+									}
 									continue;
 								}
 							}
@@ -1985,8 +2036,16 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 											"Face should be constrained! gid: " << id);
 									vFaces.push_back(*hiter);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
+									if(parent && (!mg.get_parent(*hiter))){
 										mg.associate_parent(*hiter, parent);
+									//	make sure that constrained/constraining relations are fine
+										UG_ASSERT(parent->base_object_id() == FACE,
+												  "Only faces may constrain faces");
+										ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
+										UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
+										cgf->add_constrained_object(*hiter);
+										static_cast<ConstrainedFace*>(*hiter)->set_constraining_object(cgf);
+									}
 									continue;
 								}
 							}

@@ -135,6 +135,8 @@ vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem)
 template <class TElem>
 static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 {
+	DistributedGridManager* dgm = mg.distributed_grid_manager();
+
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
 		for(typename MultiGrid::traits<TElem>::iterator iter = mg.begin<TElem>(lvl);
 			iter != mg.end<TElem>(lvl); ++iter)
@@ -183,6 +185,20 @@ static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 
 				if(!gotIt){
 					UG_THROW("Element not contained in child list of its parent");
+				}
+			}
+			else{
+				if(lvl > 0){
+					#ifdef UG_PARALLEL
+						if(!dgm->contains_status(e, INT_V_SLAVE))
+						{
+							UG_THROW("Each element in a higher level has to have a parent"
+									 " unless it is a v-slave!");
+						}
+					#else
+						UG_THROW("Each element in a higher level has to have a parent"
+								 " unless it is a v-slave!");
+					#endif
 				}
 			}
 		}
@@ -776,6 +792,116 @@ bool CheckDistributedParentTypes(MultiGrid& mg)
 #else
 	return true;
 #endif
+}
+
+
+bool CheckElementConsistency(MultiGrid& mg, VertexBase* v)
+{
+	bool success = true;
+	UG_LOG("DEBUG: Checking vertex at " << GetGeometricObjectCenter(mg, v) << endl);
+	UG_LOG("  vertex type:");
+	if(v->is_constrained()){
+		UG_LOG(" constrained");
+	}
+	else{
+		UG_LOG(" normal");
+	}
+	UG_LOG("\n");
+
+	if(v->is_constrained()){
+		ConstrainedVertex* cdv = dynamic_cast<ConstrainedVertex*>(v);
+		UG_ASSERT(cdv, "Bad type!");
+		UG_ASSERT(cdv->get_constraining_object() == mg.get_parent(cdv),
+				  "ConstrainingObject / Parent mismatch");
+	}
+	else{
+	}
+
+	return success;
+}
+
+bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e)
+{
+	bool success = true;
+	UG_LOG("DEBUG: Checking edge at " << GetGeometricObjectCenter(mg, e) << endl);
+	UG_LOG("  edge type:");
+	if(e->is_constrained()){
+		UG_LOG(" constrained");
+	}
+	else if(e->is_constraining()){
+		UG_LOG(" constraining");
+	}
+	else{
+		UG_LOG(" normal");
+	}
+	UG_LOG("\n");
+
+//	constrained/constraining checks
+	if(e->is_constrained()){
+		ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e);
+		UG_ASSERT(cde, "Bad type!");
+		UG_ASSERT(cde->get_constraining_object() == mg.get_parent(cde),
+				  "ConstrainingObject / Parent mismatch");
+
+		UG_ASSERT(cde->vertex(0)->is_constrained() || cde->vertex(1)->is_constrained(),
+				  "At least one corner of a constrained edge has to be a constrained vertex");
+	}
+	else if(e->is_constraining()){
+		ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(e);
+		UG_ASSERT(cge, "Bad type!");
+		UG_ASSERT(cge->constrained_vertex(0), "A constrained vertex has to exist");
+		UG_ASSERT(mg.get_child_vertex(cge) == cge->constrained_vertex(0),
+				  "Mismatch between vertex child and constrained vertex.");
+		UG_ASSERT(cge->num_constrained_edges() == 2, "2 constrained edges have to exist!");
+
+		for(size_t i1 = 0; i1 < cge->num_constrained_edges(); ++i1){
+			bool constrainedEdgeMatch = false;
+			for(size_t i2 = 0; i2 < mg.num_children<EdgeBase>(cge); ++i2){
+				if(mg.get_child<EdgeBase>(cge, i2) == cge->constrained_edge(i1)){
+					constrainedEdgeMatch = true;
+					break;
+				}
+			}
+			UG_ASSERT(constrainedEdgeMatch, "no matching child found to constrained edge");
+		}
+
+		CheckElementConsistency(mg, cge->constrained_vertex(0));
+	}
+
+//	check vertices
+	for(size_t i = 0; i < e->num_vertices(); ++i){
+		success &= CheckElementConsistency(mg, e->vertex(i));
+	}
+
+	return success;
+}
+
+bool CheckElementConsistency(MultiGrid& mg, Face* f)
+{
+	bool success = true;
+	UG_LOG("DEBUG: Checking face at " << GetGeometricObjectCenter(mg, f) << endl);
+
+	UG_LOG("  face type:");
+	if(f->is_constrained()){
+		UG_LOG(" constrained");
+	}
+	else if(f->is_constraining()){
+		UG_LOG(" constraining");
+	}
+	else{
+		UG_LOG(" normal");
+	}
+	UG_LOG("\n");
+
+//	check sides
+	Grid::edge_traits::secure_container edges;
+	mg.associated_elements(edges, f);
+
+	for(size_t i = 0; i < edges.size(); ++i){
+		success &= CheckElementConsistency(mg, edges[i]);
+	}
+
+	return success;
 }
 
 }// end of namespace

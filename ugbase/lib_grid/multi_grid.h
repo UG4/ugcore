@@ -282,7 +282,8 @@ class MultiGrid : public Grid, public GridObserver
 	 * Note that only elements of equal or higher dimension can be parent to a
 	 * given element.
 	 * Note that while parent may be NULL, elem has to be supplied.
-	 * The method also sets the parent type.*/
+	 * The method also sets the parent type if a parent is supplied and leaves the
+	 * parent type as it is if none is supplied.*/
 		template <class TElem>
 		void associate_parent(TElem* elem, GeometricObject* parent);
 
