@@ -1,8 +1,9 @@
 # included from ug_includes.cmake
+message(STATUS "Debug = ${DEBUG}, ${CMAKE_BUILD_TYPE}")
 if(DEBUG)
 	add_definitions(-DUG_DEBUG)
 	# if no build type set, add default debug flags
-	if("${CMAKE_BUILD_TYPE}" STREQUAL "None" OR
+	if(NOT CMAKE_BUILD_TYPE OR "${CMAKE_BUILD_TYPE}" STREQUAL "None" OR
 		"${CMAKE_BUILD_TYPE}" STREQUAL "")
 		# use cmake standard flags for debug builds (-g)
 		add_cxx_flag(${CMAKE_CXX_FLAGS_DEBUG})
