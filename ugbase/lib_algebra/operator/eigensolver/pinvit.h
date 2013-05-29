@@ -257,7 +257,7 @@ public:
 		m_bPrintUsedTestvectors = b;
 	}
 
-	void print_projected_eigenvectors(DenseMatrix<VariableArray2<double> > &r_ev, std::vector<std::complex<double> > &r_lambda, std::vector<string> &vTestVectorDescription)
+	void print_projected_eigenvectors(DenseMatrix<VariableArray2<double> > &r_ev, std::vector<std::complex<double> > &r_lambda, std::vector<std::string> &vTestVectorDescription)
 	{
 		UG_LOG("evs: \n");
 		for(size_t c=0; c < r_ev.num_cols(); c++)
