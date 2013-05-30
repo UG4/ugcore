@@ -15,7 +15,7 @@
 #include <iostream>
 #include <cassert>
 #include "../storage/storage.h"
-#include "densematrix.h"
+#include "densevector.h"
 
 namespace ug{
 
@@ -209,11 +209,6 @@ DenseMatrix<TStorage> operator *(number a, const DenseMatrix<TStorage> &b)
 	return b*a;
 }
 
-
-template<typename T> struct block_multiply_traits<DenseMatrix<T>, DenseMatrix<T> >
-{
-	typedef DenseMatrix<T> ReturnType;
-};
 
 // end group small_algebra
 /// \}

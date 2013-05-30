@@ -16,6 +16,8 @@
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
+#include "../plugins/experimental/jitsg/stopwatch.h"
+
 namespace ug{
 
 /// linear solver using abstract preconditioner interface
@@ -49,6 +51,7 @@ class LinearSolver
 	///	solves the system and returns the last defect
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
+
 			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
 
 			#ifdef UG_PARALLEL
@@ -85,12 +88,19 @@ class LinearSolver
 			// 	Iteration loop
 			while(!convergence_check()->iteration_ended())
 			{
+				stopwatch s;
+				s.start();
+
 				char ext[20]; sprintf(ext, "_iter%03d", ++loopCnt);
 
 			// 	Compute a correction c := B*d using one iterative step
 			// 	Internally the defect is updated d := d - A*c = d - A*(x+c)
 				if(preconditioner().valid()) {
+					stopwatch s2;
+					s2.start();
+
 					LS_PROFILE_BEGIN(LS_ApplyPrecond);
+
 					if(!preconditioner()->apply_update_defect(c, d))
 					{
 						UG_LOG("ERROR in 'LinearSolver::apply': Iterator "
@@ -98,11 +108,15 @@ class LinearSolver
 						return false;
 					}
 					LS_PROFILE_END(); //LS_ApplyPrecond
+					std::cout << "prec step took " << s2.diff() << "\n";
 				}
 
 			// 	add correction to solution: x += c
 				LS_PROFILE_BEGIN(LS_AddCorrection);
+				stopwatch s4;
+				s4.start();
 				x += c;
+				std::cout << "++ took " << s4.diff() << "\n";
 				LS_PROFILE_END(); //LS_AddCorrection
 
 				name = std::string("LS_Defect_"); name.append(ext).append(".vec");
@@ -114,8 +128,13 @@ class LinearSolver
 
 			// 	compute new defect (in parallel) d := d - A*c
 				LS_PROFILE_BEGIN(LS_ComputeNewDefect);
+				stopwatch s3;
+				s3.start();
 				convergence_check()->update(d);
+				std::cout << "update took " << s3.diff() << "\n";
 				LS_PROFILE_END(); //LS_ComputeNewDefect
+				std::cout << "linearsolver step took " << s.diff() << "\n";
+
 			}
 
 		//	write some information when ending the iteration

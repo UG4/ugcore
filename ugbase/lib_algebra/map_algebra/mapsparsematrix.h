@@ -35,9 +35,6 @@ public:
 	enum {rows_sorted=true};
 
 	typedef SparseMatrix<value_type> this_type;
-	typedef matrixrow<value_type> row_type;
-	typedef matrixrow<value_type> matrixrow_type;
-
 
 	
 public:

@@ -1880,6 +1880,11 @@ template class LocalSchurComplement<CPUVariableBlockAlgebra>;
 template class PrimalSubassembledMatrixInverse<CPUVariableBlockAlgebra >;
 template class FETISolver<CPUVariableBlockAlgebra >;
 #endif
+#ifdef UG_GPU
+template class LocalSchurComplement<GPUAlgebra>;
+template class PrimalSubassembledMatrixInverse<GPUAlgebra>;
+template class FETISolver<GPUAlgebra>;
+#endif
 };  // end of namespace
 
 #endif

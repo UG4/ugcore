@@ -2,6 +2,9 @@
 #ifndef __H__UG__SMALL_ALGEBRA__BLOCK_DENSE__
 #define __H__UG__SMALL_ALGEBRA__BLOCK_DENSE__
 
+#include "densematrix.h"
+#include "densevector.h"
+
 namespace ug{
 
 template<typename A>
@@ -221,6 +224,8 @@ inline size_t GetCols(const DenseMatrix<T> &t)
 	return t.num_cols();
 }
 
+template<typename T>
+struct block_traits;
 
 template<typename T>
 struct block_traits< DenseMatrix<T> >
@@ -241,6 +246,8 @@ struct block_traits< DenseVector<T> >
 	enum { static_size = DenseVector<T>::static_size};
 };
 
+template<typename T1, typename T2>
+struct block_multiply_traits;
 
 template<typename T1, typename T2>
 struct block_multiply_traits<DenseMatrix<T1>, DenseVector<T2> >
@@ -339,6 +346,12 @@ struct block_traits< DenseMatrix< FixedArray2<number, 3, 3, TOrdering> > >
 	enum { static_num_cols = 3};
 
 	typedef DenseMatrix< FixedArray2<number, 3, 3, TOrdering> > inverse_type;
+};
+
+
+template<typename T> struct block_multiply_traits<DenseMatrix<T>, DenseMatrix<T> >
+{
+	typedef DenseMatrix<T> ReturnType;
 };
 
 

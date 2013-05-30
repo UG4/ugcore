@@ -3,6 +3,7 @@
 
 #include "densematrix.h"
 #include "densevector.h"
+#include "block_dense.h"
 #include "common/common.h"
 #include <algorithm>
 

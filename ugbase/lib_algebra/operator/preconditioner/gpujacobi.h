@@ -21,14 +21,15 @@
 #include "lib_algebra/small_algebra/blocks.h"
 #include "lib_algebra/gpu_algebra/gpuvector.h"
 
+
 extern "C" bool
 CUDA_JacobiApply(const double *diagInv, double *corr, const double *defect, const int N);
 
 namespace ug{
 
+
 ///	Jacobi Preconditioner
-template <>
-class Jacobi<GPUAlgebra> : public IPreconditioner<GPUAlgebra>
+class GPUJacobi : public IPreconditioner<GPUAlgebra>
 {
 	public:
 	///	Algebra type
@@ -56,22 +57,22 @@ class Jacobi<GPUAlgebra> : public IPreconditioner<GPUAlgebra>
 
 	public:
 	///	default constructor
-		Jacobi() {this->set_damp(1.0);};
+		GPUJacobi() {this->set_damp(1.0);};
 
 	///	constructor setting the damping parameter
-		Jacobi(number damp) {this->set_damp(damp);};
+		GPUJacobi(number damp) {this->set_damp(damp);};
 
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<Jacobi<algebra_type> > newInst(new Jacobi<algebra_type>());
+			SmartPtr<GPUJacobi> newInst(new GPUJacobi());
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(damping());
 			return newInst;
 		}
 
 	///	Destructor
-		virtual ~Jacobi()
+		virtual ~GPUJacobi()
 		{};
 
 	protected:
@@ -112,6 +113,19 @@ class Jacobi<GPUAlgebra> : public IPreconditioner<GPUAlgebra>
 
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
+#ifdef UG_PARALLEL
+		// 	the computed correction is additive
+			c.set_storage_type(PST_ADDITIVE);
+
+		//	we make it consistent
+			if(!c.change_storage_type(PST_CONSISTENT))
+			{
+				UG_LOG("ERROR in 'JacobiPreconditioner::apply': "
+						"Cannot change parallel status of correction to consistent.\n");
+				return false;
+			}
+#endif
+
 			const double *devDiagInv = m_diagInv.get_dev_ptr();
 			double *devC = c.get_dev_ptr();
 			const double *devD = d.get_dev_ptr();
@@ -119,6 +133,8 @@ class Jacobi<GPUAlgebra> : public IPreconditioner<GPUAlgebra>
 //			UG_LOG("devDiagInv = " << devDiagInv<< " " << m_diagInv.size()  << " devC = " << devC << " " << c.size() << " devD = "
 //					<< devD << " " << d.size() << " N = " << N << "\n");
 			CUDA_JacobiApply(devDiagInv, devC, devD, N);
+
+
 			return true;
 		}
 
@@ -128,6 +144,18 @@ class Jacobi<GPUAlgebra> : public IPreconditioner<GPUAlgebra>
 	protected:
 		GPUVector<double> m_diagInv;
 
+};
+
+template<>
+class Jacobi<GPUAlgebra> : public GPUJacobi
+{
+	using GPUJacobi::set_damp;
+public:
+	///	default constructor
+		Jacobi() {this->set_damp(1.0);};
+
+	///	constructor setting the damping parameter
+		Jacobi(number damp) {this->set_damp(damp);};
 };
 
 

@@ -14,8 +14,8 @@
 #include "cpu_algebra/vector.h"
 #include "cpu_algebra/sparsematrix.h"
 
-#include "crs_algebra/crsvector.h"
-#include "crs_algebra/crssparsematrix.h"
+#include "gpu_algebra/gpuvector.h"
+#include "gpu_algebra/gpusparsematrix.h"
 
 // parallel support
 #ifdef UG_PARALLEL
@@ -72,20 +72,20 @@ struct CPUAlgebra
  * \{
  */
 
-struct CRSAlgebra
+struct GPUAlgebra
 {
 #ifdef UG_PARALLEL
-		typedef ParallelMatrix<CRSSparseMatrix<double> > matrix_type;
-		typedef ParallelVector<CRSVector<double> > vector_type;
+		typedef ParallelMatrix<GPUSparseMatrix<double> > matrix_type;
+		typedef ParallelVector<GPUVector<double> > vector_type;
 #else
-		typedef CRSSparseMatrix<double> matrix_type;
-		typedef CRSVector<double> vector_type;
+		typedef GPUSparseMatrix<double> matrix_type;
+		typedef GPUVector<double> vector_type;
 #endif
 
 	static const int blockSize = 1;
 	static AlgebraType get_type()
 	{
-		return AlgebraType(AlgebraType::CRS, 1);
+		return AlgebraType(AlgebraType::GPU, 1);
 	}
 };
 
@@ -114,25 +114,6 @@ struct CPUBlockAlgebra
 	}
 };
 
-/// \addtogroup crs_algebra
-template<int TBlockSize>
-struct CRSBlockAlgebra
-{
-#ifdef UG_PARALLEL
-	typedef ParallelMatrix<CRSSparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > > matrix_type;
-	typedef ParallelVector<CRSVector<DenseVector<FixedArray1<double, TBlockSize> > > > vector_type;
-#else
-	typedef  CRSSparseMatrix<CRSSparseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > matrix_type;
-	typedef CRSVector<DenseVector<FixedArray1<double, TBlockSize> > > vector_type;
-#endif
-
-	static const int blockSize = TBlockSize;
-	static AlgebraType get_type()
-	{
-		return AlgebraType(AlgebraType::CRS, TBlockSize);
-	}
-};
-
 ////////////////////////////////////////////////////////////////////////////////
 //   CPU Variable Block Algebra
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,25 +135,6 @@ struct CPUVariableBlockAlgebra
 		return AlgebraType(AlgebraType::CPU, AlgebraType::VariableBlockSize);
 	}
 };
-
-/// \addtogroup crs_algebra
-struct CRSVariableBlockAlgebra
-{
-#ifdef UG_PARALLEL
-	typedef ParallelMatrix<CRSSparseMatrix<DenseMatrix<VariableArray2<double> > > > matrix_type;
-	typedef ParallelVector<CRSVector<DenseVector<VariableArray1<double> > > > vector_type;
-#else
-	typedef CRSSparseMatrix<DenseMatrix<VariableArray2<double> > > matrix_type;
-	typedef CRSVector<DenseVector<VariableArray1<double> > > vector_type;
-#endif
-
-	static const int blockSize = AlgebraType::VariableBlockSize;
-	static AlgebraType get_type()
-	{
-		return AlgebraType(AlgebraType::CRS, AlgebraType::VariableBlockSize);
-	}
-};
-
 
 }
 #endif /* __H__UG__LIB_ALGEBRA__CPU_ALGEBRA_TYPES__ */

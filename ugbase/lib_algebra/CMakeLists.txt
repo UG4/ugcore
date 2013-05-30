@@ -39,12 +39,20 @@ if(PARALLEL)
 						 )
 endif(PARALLEL)
 
+if(CUDA_FOUND)
+	set(src_Algebra ${src_Algebra} 
+			 	gpu_algebra/cuda/cuda_error.cpp
+				gpu_algebra/cuda/cuda_helper.cpp                
+                gpu_algebra/cuda/helper_cuda.cpp
+                gpu_algebra/cuda/common_cuda.cu
+				)
+endif(CUDA_FOUND)
+
 ##########################
 # setup library
 if(BUILD_ONE_LIB)
-    EXPORTSOURCES(ugbase/lib_algebra ${src_Algebra})
+  EXPORTSOURCES(ugbase/lib_algebra ${src_Algebra})   
 else(BUILD_ONE_LIB)
-	add_library(algebra ${src_Algebra} )
+    CUDA_ADD_LIBRARY( lib_algebra SHARED ${src_Algebra}  )
+   #add_library(algebra_CUDA ${src_Algebra})
 endif(BUILD_ONE_LIB)
-
-
