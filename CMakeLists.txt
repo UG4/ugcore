@@ -55,15 +55,25 @@ if(BUILD_ONE_LIB)
 		if(WIN32)
 			add_definitions(-DLUA_BUILD_AS_DLL -DLUA_LIB -DLUA_CORE)
 		endif(WIN32)
-		add_library(${targetLibraryName} SHARED ${ug4libSources})
-
+		if(CUDA_FOUND)
+		   CUDA_add_library(${targetLibraryName} SHARED ${ug4libSources})
+		else(CUDA_FOUND)
+		   add_library(${targetLibraryName} SHARED ${ug4libSources})
+		endif(CUDA_FOUND)
+		#ug_add_library(${targetLibraryName} SHARED ${ug4libSources})
+		
 		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo)
 			target_link_libraries(${targetLibraryName} CompileInfo)
 		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
 
 	else(buildDynamicLib)
-		add_library(${targetLibraryName} ${ug4libSources})
+	    if(CUDA_FOUND)
+	        CUDA_add_library(${targetLibraryName} ${ug4libSources})
+	    else(CUDA_FOUND)
+	        add_library(${targetLibraryName} ${ug4libSources})
+        endif(CUDA_FOUND)
+	    
 		
 		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo_s)
