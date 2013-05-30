@@ -286,7 +286,7 @@ LuaUserData<TData,dim,TRet>::~LuaUserData()
 
 template <typename TData, int dim, typename TRet>
 SmartPtr<LuaUserData<TData,dim,TRet> >
-LuaUserDataFactory<TData,dim,TRet>::provide_or_create(std::string name)
+LuaUserDataFactory<TData,dim,TRet>::provide_or_create(const std::string& name)
 {
 	PROFILE_CALLBACK();
 	typedef std::map<std::string, std::pair<LuaUserData<TData,dim,TRet>*, int*> > Map;
@@ -333,7 +333,7 @@ LuaUserDataFactory<TData,dim,TRet>::provide_or_create(std::string name)
 
 template <typename TData, int dim, typename TRet>
 void
-LuaUserDataFactory<TData,dim,TRet>::remove(std::string name)
+LuaUserDataFactory<TData,dim,TRet>::remove(const std::string& name)
 {
 	typedef std::map<std::string, std::pair<LuaUserData<TData,dim,TRet>*, int*> > Map;
 	typedef typename Map::iterator iterator;

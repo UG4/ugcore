@@ -147,10 +147,11 @@ class LuaUserDataFactory
 		}
 
 	///	returns new Data if not already created, already existing else
-		static SmartPtr<LuaUserData<TData,dim,TRet> > provide_or_create(std::string name);
+		static SmartPtr<LuaUserData<TData,dim,TRet> > provide_or_create(
+				const std::string& name);
 
 	///	removes the user data
-		static void remove(std::string name);
+		static void remove(const std::string& name);
 
 	///	storage of already created data
 		static std::map<std::string, std::pair<LuaUserData<TData,dim,TRet>*, int*> > m_mData;
@@ -170,7 +171,7 @@ class LuaUserDataFactory
 	 * @param name		lua callback name
 	 * @return			LuaUserNumber as SmartPtr
 	 */
-		static SmartPtr<LuaUserData<TData,dim,TRet> > create(std::string name)
+		static SmartPtr<LuaUserData<TData,dim,TRet> > create(const std::string& name)
 		{
 			return instance().provide_or_create(name);
 		}
