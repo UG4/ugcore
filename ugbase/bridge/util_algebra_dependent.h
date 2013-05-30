@@ -15,8 +15,12 @@
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/pop_front.hpp>
 
+#include "common/util/end_boost_list.h"
+
 #ifndef UTIL_ALGEBRA_DEPENDENT_H
 #define	UTIL_ALGEBRA_DEPENDENT_H
+
+
 
 namespace ug{
 namespace bridge{
@@ -29,76 +33,37 @@ namespace bridge{
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef boost::mpl::list<
-#ifdef UG_CRS_1
-		CRSAlgebra
-#if defined UG_CRS_2 || defined UG_CRS_3 || defined UG_CRS_4 || defined UG_CRS_VAR || defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
-		,
-#endif
-#endif
-	
-		
-#ifdef UG_CRS_2
-		CRSBlockAlgebra<2>
-#if defined UG_CRS_3 || defined UG_CRS_4 || defined UG_CRS_VAR || defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
-		,
-#endif
-#endif
-
-#ifdef UG_CRS_3
-		CRSBlockAlgebra<3>
-#if defined UG_CRS_4 || defined UG_CRS_VAR || defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
-		,
-#endif
-#endif
-
-#ifdef UG_CRS_4
-		CRSBlockAlgebra<4>
-#if defined UG_CRS_VAR || defined UG_CPU_1 || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
-		,
-#endif
+#ifdef UG_GPU
+		GPUAlgebra,
 #endif
 
 #ifdef UG_CPU_VAR
-		CRSVariableBlockAlgebra
-#if defined UG_CRS_VAR || UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
-		,
-#endif
+		CRSVariableBlockAlgebra,
 #endif
 
 	
 #ifdef UG_CPU_1
-		CPUAlgebra
-#if defined UG_CPU_2 || defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
-		,
-#endif
+		CPUAlgebra,
 #endif
 		
 #ifdef UG_CPU_2
-		CPUBlockAlgebra<2>
-#if defined UG_CPU_3 || defined UG_CPU_4 || defined UG_CPU_VAR
-		,
-#endif
+		CPUBlockAlgebra<2>,
 #endif
 		
 #ifdef UG_CPU_3
-		CPUBlockAlgebra<3>
-#if defined UG_CPU_4 || defined UG_CPU_VAR
-		,
-#endif
+		CPUBlockAlgebra<3>,
 #endif
 		
 #ifdef UG_CPU_4
-		CPUBlockAlgebra<4>
-#if defined UG_CPU_VAR
-		,
-#endif
+		CPUBlockAlgebra<4>,
 #endif
 		
 #ifdef UG_CPU_VAR
-		CPUVariableBlockAlgebra
+		CPUVariableBlockAlgebra,
 #endif
-> CompileAlgebraList;
 
+	end_boost_list // see common/util/end_boost_list.h
+> CompileAlgebraList;
 
 
 
@@ -111,7 +76,11 @@ struct RegisterAlgebraDependent
 		typename boost::mpl::if_c<isEmpty, RegEnd, RegNext>::type (reg,grp);
 	}
 
-	struct RegEnd{ RegEnd(Registry& reg, std::string grp){} };
+	struct RegEnd{
+		RegEnd(Registry& reg, std::string grp)
+		{
+		}
+	};
 	struct RegNext
 	{
 		RegNext(Registry& reg, std::string grp)

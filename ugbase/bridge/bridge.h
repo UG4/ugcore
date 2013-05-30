@@ -91,6 +91,7 @@ void RegisterBridge_LoadBalancing(Registry& reg, std::string grp = UG4_GRP);
 ///	registers lib-algebra interface methods at the registry.
 void RegisterBridge_AlgebraCommon(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Preconditioner(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_PILUT(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Solver(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Eigensolver(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_DomainDependentPreconditioner(Registry& reg, std::string grp = UG4_GRP);

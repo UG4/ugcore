@@ -68,7 +68,7 @@ inline std::string GetAlgebraSuffix(const TAlgebraTypeType& algType)
 
 //	add type
 	if(algType.type() == TAlgebraTypeType::CPU) ss << "CPU";
-	else if(algType.type() == TAlgebraTypeType::CRS) ss << "CRS";
+	else if(algType.type() == TAlgebraTypeType::GPU) ss << "GPU";
 	else UG_THROW("Unknown algebra type.");
 
 //	add blocktype
@@ -94,7 +94,7 @@ inline std::string GetAlgebraTag(const TAlgebraTypeType& algType)
 
 //	add type
 	if(algType.type() == TAlgebraTypeType::CPU) ss << "CPU";
-	else if(algType.type() == TAlgebraTypeType::CRS) ss << "CRS";
+	else if(algType.type() == TAlgebraTypeType::GPU) ss << "GPU";
 	else UG_THROW("Unknown algebra type.");
 
 //	add blocktype
