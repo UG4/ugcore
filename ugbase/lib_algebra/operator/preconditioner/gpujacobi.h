@@ -108,7 +108,7 @@ class GPUJacobi : public IPreconditioner<GPUAlgebra>
 			for(size_t i = 0; i < mat.num_rows(); ++i)
 				m_diagInv[i] = damp/mat(i,i);
 
-			const double *devDiagInv = m_diagInv.get_dev_ptr();
+			CUDAHelper::get_instance();
 		//	done
 			return true;
 		}
