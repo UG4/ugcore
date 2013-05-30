@@ -19,6 +19,8 @@ if(CUDA)
 		include_directories(${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc)
         
 		set(linkLibraries ${linkLibraries} ${CUDA_CUDART_LIBRARY} ${CUDA_cublas_LIBRARY})
+		## cusparse is not found on some systems
+		#set(linkLibraries ${linkLibraries} "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcusparse.so")
 		set(linkLibraries ${linkLibraries} ${CUDA_cusparse_LIBRARY})   
 		add_definitions(-DCUDA_AVAILABLE)
 	else(CUDA_FOUND)
