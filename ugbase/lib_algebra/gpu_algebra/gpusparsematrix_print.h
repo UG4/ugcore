@@ -11,7 +11,7 @@
 #ifndef __H__UG__CPU_ALGEBRA__GPUSparseMatrix_PRINT__
 #define  __H__UG__CPU_ALGEBRA__GPUSparseMatrix_PRINT__
 
-#include "GPUSparseMatrix.h"
+#include "gpusparsematrix.h"
 #include "common/common.h"
 
 namespace ug {

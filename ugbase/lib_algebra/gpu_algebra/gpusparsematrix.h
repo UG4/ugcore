@@ -650,7 +650,7 @@ inline void MatMultTransposedAdd(vector_t &dest,
 } // namespace ug
 
 //#include "matrixrow.h"
-#include "GPUSparseMatrix_impl.h"
-#include "GPUSparseMatrix_print.h"
+#include "gpusparsematrix_impl.h"
+#include "gpusparsematrix_print.h"
 
 #endif

@@ -15,7 +15,7 @@
 
 #include "lib_algebra/common/operations_vec.h"
 #include "common/profiler/profiler.h"
-#include "GPUSparseMatrix.h"
+#include "gpusparsematrix.h"
 #include <vector>
 #include <algorithm>
 #include "cuda/cuda_helper.h"
