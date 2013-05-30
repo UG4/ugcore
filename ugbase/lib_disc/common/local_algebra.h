@@ -8,9 +8,9 @@
 #ifndef __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__
 #define __H__UG__LIB_DISC__COMMON__LOCAL_ALGEBRA__
 
-#define UG_LOCALALGEBRA_ASSERT(cond, exp)
+//#define UG_LOCALALGEBRA_ASSERT(cond, exp)
 // include define below to assert arrays used in stabilization
-//#define UG_LOCALALGEBRA_ASSERT(cond, exp) UG_ASSERT((cond), (exp))
+#define UG_LOCALALGEBRA_ASSERT(cond, exp) UG_ASSERT((cond), (exp))
 
 #include <vector>
 

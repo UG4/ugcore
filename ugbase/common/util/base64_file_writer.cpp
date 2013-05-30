@@ -204,28 +204,30 @@ void Base64FileWriter::flushInputBuffer(bool force)
 	// enlarge the input stream by # paddChars because boost reads beyond buffer
 	m_tmpBuff.resize(buff_len + paddChars, 0x0);
 
-	char* buff = &m_tmpBuff[0];
+	if(!m_tmpBuff.empty()){
+		char* buff = &m_tmpBuff[0];
 
-	if (!m_inBuffer.good()) {
-		UG_THROW("input buffer not good before read");
+		if (!m_inBuffer.good()) {
+			UG_THROW("input buffer not good before read");
+		}
+
+		// read the buffer
+		m_inBuffer.read(buff, buff_len);
+
+		if (!m_inBuffer.good()) {
+			UG_THROW("failed to read from input buffer");
+		}
+
+		// encode buff in base64
+		copy(base64_text(buff), base64_text(buff + buff_len),
+				boost::archive::iterators::ostream_iterator<char>(m_fStream));
 	}
-
-	// read the buffer
-	m_inBuffer.read(buff, buff_len);
-
-	if (!m_inBuffer.good()) {
-		UG_THROW("failed to read from input buffer");
-	}
-
-	// encode buff in base64
-	copy(base64_text(buff), base64_text(buff + buff_len),
-			boost::archive::iterators::ostream_iterator<char>(m_fStream));
 
 	size_t rest_len = m_numBytesWritten - buff_len;
 
 	if (rest_len > 0) {
 		m_tmpBuff.clear();
-		m_tmpBuff.reserve(rest_len);
+		m_tmpBuff.resize(rest_len);
 		char* rest = &m_tmpBuff[0];
 		// read the rest
 		m_inBuffer.read(rest, rest_len);

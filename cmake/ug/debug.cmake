@@ -31,6 +31,14 @@ if(DEBUG)
 	#if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
 	#	add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
 	#ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT APPLE)
+	
+	# Since they are still useful I added a manual flag to enable them.
+	# Note that this only works if DEBUG=ON.
+	if(DEBUG_STL)
+		add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1)
+		message(STATUS "Info: Debugging STL")
+	endif(DEBUG_STL)
+	
 else(DEBUG)
 	# add release definitions
 	add_definitions(-DBOOST_UBLAS_NDEBUG)
