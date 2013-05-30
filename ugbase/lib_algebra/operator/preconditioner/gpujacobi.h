@@ -37,13 +37,13 @@ class GPUJacobi : public IPreconditioner<GPUAlgebra>
 		typedef TAlgebra algebra_type;
 
 	///	Vector type
-		typedef typename TAlgebra::vector_type vector_type;
+		typedef TAlgebra::vector_type vector_type;
 
 	///	Matrix type
-		typedef typename TAlgebra::matrix_type matrix_type;
+		typedef TAlgebra::matrix_type matrix_type;
 
 	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+		typedef IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
 
 	///	Base type
 		typedef IPreconditioner<TAlgebra> base_type;
