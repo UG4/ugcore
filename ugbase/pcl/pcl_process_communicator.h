@@ -301,8 +301,10 @@ class ProcessCommunicator
 		void allreduce(const std::vector<T> &send,
 				std::vector<T> &receive, pcl::ReduceOperation op) const
 		{
-			receive.resize(send.size());
-			allreduce(&send[0], &receive[0], send.size(), op);
+			if(send.size() > 0){
+				receive.resize(send.size());
+				allreduce(&send[0], &receive[0], send.size(), op);
+			}
 		}
 
 	/**
