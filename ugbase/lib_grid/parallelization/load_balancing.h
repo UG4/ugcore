@@ -54,7 +54,7 @@ bool PartitionElementsByRepeatedIntersection(SubsetHandler& shOut,
  * Let xInd, yInd be the indices of the cell in which an element lies.
  * the associated subset index is then calculated by
  * \code
- * 		subsetIndex = yInd * numCellsX + xInd;
+ * 		subsetIndex = zInd * numCellsX * numCellsY + yInd * numCellsX + xInd;
  * \endcode
  *
  * \param bucketSubset	All elements which shall not be considered are assigned
@@ -63,7 +63,7 @@ bool PartitionElementsByRepeatedIntersection(SubsetHandler& shOut,
 template <class TElem, class TIterator, class TAAPos>
 bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 								TIterator begin, TIterator end,
-								int numCellsX, int numCellsY,
+								int numCellsX, int numCellsY, int numCellsZ,
 								TAAPos& aaPos,
 								typename Grid::traits<TElem>::callback cbConsiderElem
 									= Grid::traits<TElem>::cb_consider_all,

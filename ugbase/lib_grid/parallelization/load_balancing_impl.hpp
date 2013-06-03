@@ -191,7 +191,7 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 template <class TElem, class TIterator, class TAAPos>
 bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 								TIterator begin, TIterator end,
-								int numCellsX, int numCellsY,
+								int numCellsX, int numCellsY, int numCellsZ,
 								TAAPos& aaPos,
 								typename Grid::traits<TElem>::callback cbConsiderElem,
 								int bucketSubset)
@@ -208,6 +208,10 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	UG_ASSERT(shOut.grid(), "A grid has to be associated with the "
 											"specified subset handler.");
 
+	if((numCellsX < 1) || (numCellsY < 1) || (numCellsZ < 1)){
+		UG_THROW("At least one cell per direction should be specified.");
+	}
+
 	Grid& grid = *shOut.grid();
 
 //	collect all elements which shall be considered for partitioning.
@@ -221,7 +225,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	}
 
 //	calculate the bounding box
-	vector_t min, max;
+	vector_t tmin, tmax;
 	{
 		grid.begin_marking();
 		vector<VertexBase*>	vrts, associatedVrts;
@@ -236,21 +240,31 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 		}
 		grid.end_marking();
 
-		CalculateBoundingBox(min, max, associatedVrts.begin(),
+		CalculateBoundingBox(tmin, tmax, associatedVrts.begin(),
 							 associatedVrts.end(), aaPos);
 	}
 
+	vector3 min, max;
+	VecCopy(min, tmin, 0);
+	VecCopy(max, tmax, 0);
+
 	number width = max.x - min.x;
 	number height = max.y - min.y;
+	number depth = max.z - min.z;
 
-	if(width < SMALL){
+	if((width < SMALL) && numCellsX > 1){
 		UG_LOG("Can't execute PartitionElements_Rectangle: Geometry has no width.\n");
 		return false;
 	}
-	if(height < SMALL){
+	if((height < SMALL) && numCellsY > 1){
 		UG_LOG("Can't execute PartitionElements_Rectangle: Geometry has no height.\n");
 		return false;
 	}
+	if((depth < SMALL) && numCellsZ > 1){
+		UG_LOG("Can't execute PartitionElements_Rectangle: Geometry has no height.\n");
+		return false;
+	}
+
 
 //	iterate over all elements and calculate the index at which they shall be
 //	inserted into the subset handler
@@ -258,14 +272,22 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 		iter != elems.end(); ++iter)
 	{
 		TElem* elem = *iter;
-		vector_t center = CalculateCenter(elem, aaPos);
+		vector3 center;
+		VecCopy(center, CalculateCenter(elem, aaPos), 0);
 
 	//	get the cell index
-		int xInd = (int)((number)numCellsX * (center.x - min.x) / width);
-		int yInd = (int)((number)numCellsY * (center.y - min.y) / height);
+		int xInd = 0;
+		if(numCellsX > 1)
+				xInd = (int)((number)numCellsX * (center.x - min.x) / width);
+		int yInd = 0;
+		if(numCellsY > 1)
+			yInd = (int)((number)numCellsY * (center.y - min.y) / height);
+		int zInd = 0;
+		if(numCellsZ > 1)
+			zInd = (int)((number)numCellsZ * (center.z - min.z) / depth);
 
 	//	calculate the subset index (one could think of several alternatives here)
-		int si = yInd * numCellsX + xInd;
+		int si = zInd * numCellsX * numCellsY + yInd * numCellsX + xInd;
 
 	//	assign the subset
 		shOut.assign_subset(elem, si);
