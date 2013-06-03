@@ -108,7 +108,7 @@ class LinearSolver
 						return false;
 					}
 					LS_PROFILE_END(); //LS_ApplyPrecond
-					std::cout << "prec step took " << s2.diff() << "\n";
+					// std::cout << "prec step took " << s2.diff() << "\n";
 				}
 
 			// 	add correction to solution: x += c
@@ -116,7 +116,7 @@ class LinearSolver
 				stopwatch s4;
 				s4.start();
 				x += c;
-				std::cout << "++ took " << s4.diff() << "\n";
+				// std::cout << "++ took " << s4.diff() << "\n";
 				LS_PROFILE_END(); //LS_AddCorrection
 
 				name = std::string("LS_Defect_"); name.append(ext).append(".vec");
@@ -131,9 +131,9 @@ class LinearSolver
 				stopwatch s3;
 				s3.start();
 				convergence_check()->update(d);
-				std::cout << "update took " << s3.diff() << "\n";
+				// std::cout << "update took " << s3.diff() << "\n";
 				LS_PROFILE_END(); //LS_ComputeNewDefect
-				std::cout << "linearsolver step took " << s.diff() << "\n";
+				// std::cout << "linearsolver step took " << s.diff() << "\n";
 
 			}
 

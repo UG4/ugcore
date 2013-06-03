@@ -546,7 +546,7 @@ template <class TAPosition>
 void RefinementCallbackSubdivisionLoop<TAPosition>::
 new_vertex(VertexBase* vrt, Face* parent)
 {
-//	this woul'd only be interesting for quad subdivision.
+//	this would only be interesting for quad subdivision.
 	m_aaTargetPos[vrt] = CalculateCenter(parent, BaseClass::m_aaPos);
 }
 
@@ -564,8 +564,8 @@ is_crease_vertex(VertexBase* vrt)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
 		return false;
-	//return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
-	return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
+	return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
+	//return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
 }
 
 template <class TAPosition>
@@ -574,8 +574,8 @@ is_crease_edge(EdgeBase* edge)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
 		return false;
-	//return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
-	return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
+	return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
+	//return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
 }
 
 }// end of namespace
