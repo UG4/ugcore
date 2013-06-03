@@ -13,7 +13,6 @@
 #include "common/util/string_util.h"
 #include "compile_info/compile_info.h"
 #include "common/util/crc32.h"
-#include "../plugins/experimental/jitsg/stopwatch.h"
 using namespace std;
 
 void ug_backtrace();
@@ -444,11 +443,6 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("GetClockS", &GetClockS, grp);
 		reg.add_function("PrintLUA", &PrintLUA, grp);
 
-
-		reg.add_class_<stopwatch>("stopwatch", grp)
-				.add_constructor()
-				.add_method("start", &stopwatch::start)
-				.add_method("diff", &stopwatch::diff);
 	}
 
 	{
