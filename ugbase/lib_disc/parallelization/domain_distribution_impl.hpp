@@ -107,7 +107,7 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 ///	partitions a domain by sorting all elements into a regular grid
 template <typename TDomain>
 static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partitionMap,
-										int numCellsX, int numCellsY,
+										int numCellsX, int numCellsY, int numCellsZ,
 										bool surfaceOnly)
 {
 	PROFILE_FUNC_GROUP("parallelization");
@@ -144,13 +144,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 				PartitionElements_RegularGrid<Volume>(
 											partitionMap.get_partition_handler(),
 											pMG->begin<Volume>(), pMG->end<Volume>(),
-											numCellsX, numCellsY, aaPos,
+											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::volume_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Volume>(
 											partitionMap.get_partition_handler(),
 											pMG->begin<Volume>(), pMG->end<Volume>(),
-											numCellsX, numCellsY, aaPos,
+											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
 		else if(pMG->num<Face>() > 0){
@@ -158,13 +158,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 				PartitionElements_RegularGrid<Face>(
 											partitionMap.get_partition_handler(),
 											pMG->begin<Face>(), pMG->end<Face>(),
-											numCellsX, numCellsY, aaPos,
+											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::face_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<Face>(
 											partitionMap.get_partition_handler(),
 											pMG->begin<Face>(), pMG->end<Face>(),
-											numCellsX, numCellsY, aaPos,
+											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
 		else if(pMG->num<EdgeBase>() > 0){
@@ -172,13 +172,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 				PartitionElements_RegularGrid<EdgeBase>(
 											partitionMap.get_partition_handler(),
 											pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(),
-											numCellsX, numCellsY, aaPos,
+											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::edge_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<EdgeBase>(
 											partitionMap.get_partition_handler(),
 											pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(),
-											numCellsX, numCellsY, aaPos,
+											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
 		else if(pMG->num<VertexBase>() > 0){
@@ -186,13 +186,13 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 				PartitionElements_RegularGrid<VertexBase>(
 											partitionMap.get_partition_handler(),
 											pMG->begin<VertexBase>(), pMG->end<VertexBase>(),
-											numCellsX, numCellsY, aaPos,
+											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::vertex_traits::cb_consider_all, bucketSubset);
 			else
 				PartitionElements_RegularGrid<VertexBase>(
 											partitionMap.get_partition_handler(),
 											pMG->begin<VertexBase>(), pMG->end<VertexBase>(),
-											numCellsX, numCellsY, aaPos,
+											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
 		else{

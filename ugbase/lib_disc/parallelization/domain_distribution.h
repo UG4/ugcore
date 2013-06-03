@@ -22,7 +22,7 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 ///	partitions a domain by sorting all elements into a regular grid
 template <typename TDomain>
 static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partitionMap,
-										int numCellsX, int numCellsY,
+										int numCellsX, int numCellsY, int numCellsZ,
 										bool surfaceOnly);
 
 ///	partitions a domain by using graph-based partitioning by METIS
