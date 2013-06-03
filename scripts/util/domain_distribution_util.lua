@@ -164,9 +164,24 @@ function util.PartitionMapLexicographic2D(dom, partitionMapOut, numNodesX,
 --	now perform the actual partitioning.
 	local procsX = numNodesX * subGridWidth
 	local procsY = numNodesY * subGridWidth
+	local procsZ = 1
 	
 --	TODO: the 'surfaceOnly' parameter should be handled in a more flexible way.
-	PartitionDomain_RegularGrid(dom, partitionMapOut, procsX, procsY, true)
+	PartitionDomain_RegularGrid(dom, partitionMapOut, procsX, procsY, procsZ, true)
+end
+
+--! Partitions the grid by assigning each element to a process corresponding to 
+--! the index of the cell in which the elements center lies.
+--! Make sure that numNodesX, numNodesY and numNodesZ are >= 1.
+function util.PartitionMapRegularGrid(dom, partitionMapOut, numNodesX, numNodesY, numNodesZ)
+	local numProcsRequired = numNodesX * numNodesY * numNodesZ
+	if GetNumProcesses() < (numProcsRequired) then
+		print("Not enough processes allocated. At least " .. numProcsRequired .. " processes are required!")
+		exit()
+	end
+	partitionMapOut:clear()
+	partitionMapOut:add_target_procs(0, numProcsRequired)
+	PartitionDomain_RegularGrid(dom, partitionMapOut, numNodesX, numNodesY, numNodesZ, true)
 end
 
 --[[!
