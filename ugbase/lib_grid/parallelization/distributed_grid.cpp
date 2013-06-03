@@ -69,15 +69,7 @@ set_grid(Grid* grid)
 {
 	if(m_pGrid){
 		m_pGrid->unregister_observer(this);
-	//	remove attached data
-		m_pGrid->detach_from_vertices(m_aElemInfoVrt);
-		m_pGrid->detach_from_edges(m_aElemInfoEdge);
-		m_pGrid->detach_from_faces(m_aElemInfoFace);
-		m_pGrid->detach_from_volumes(m_aElemInfoVol);
-		m_pGrid = NULL;
-		
-	//	clear the layout-map
-		m_gridLayoutMap = GridLayoutMap();
+		free_grid_data();
 	}
 	
 	if(grid){
@@ -104,11 +96,26 @@ set_grid(Grid* grid)
 	}
 }
 
+void DistributedGridManager::free_grid_data()
+{
+//	remove attached data
+	if(m_pGrid){
+		m_pGrid->detach_from_vertices(m_aElemInfoVrt);
+		m_pGrid->detach_from_edges(m_aElemInfoEdge);
+		m_pGrid->detach_from_faces(m_aElemInfoFace);
+		m_pGrid->detach_from_volumes(m_aElemInfoVol);
+		m_pGrid = NULL;
+	}
+
+//	clear the layout-map
+	m_gridLayoutMap = GridLayoutMap();
+}
+
 void DistributedGridManager::
 grid_to_be_destroyed(Grid* grid)
 {
 	if(m_pGrid)
-		set_grid(NULL);
+		free_grid_data();
 }
 /*
 template <class TElem>

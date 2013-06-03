@@ -196,6 +196,9 @@ class DistributedGridManager : public GridObserver
 	/**	call set_grid(NULL) to unregister the observer from a grid.*/
 		void set_grid(Grid* grid);
 		
+	///	free's all grid related data
+		void free_grid_data();
+
 		template <class TGeomObj>
 		void reset_elem_infos();
 		

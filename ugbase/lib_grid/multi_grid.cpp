@@ -35,8 +35,6 @@ MultiGrid::MultiGrid(uint options) :
 
 MultiGrid::~MultiGrid()
 {
-	notify_and_clear_observers_on_grid_destruction(this);
-
 //	release child infos
 	for(FaceIterator iter = begin<Face>(); iter != end<Face>(); ++iter)
 		release_child_info(*iter);
@@ -54,7 +52,8 @@ void MultiGrid::init()
 	m_bHierarchicalInsertion = true;
 
 //	the MultiGrid observes itself (its underlying grid).
-	register_observer(this, OT_FULL_OBSERVER);
+	register_observer(this, OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
+							OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
 
 //	attach parent-pointers
 	attach_to_faces(m_aParent);

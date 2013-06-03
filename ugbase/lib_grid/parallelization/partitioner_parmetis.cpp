@@ -468,40 +468,40 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 		pcl::ProcessCommunicator procCom = procComAll.
 									create_sub_communicator(pdg.num_graph_vertices() > 0);
 
-	//	partition the graph using parmetis
-		//idx_t partOptions[3] = {1, 1, 0};
-		idx_t partOptions[3]; partOptions[0] = 0;//default values
-		//idx_t refineOptions[4] = {1, 0, 0, PARMETIS_PSR_UNCOUPLED};
-		idx_t refineOptions[4]; refineOptions[0] = 0;
-		idx_t nVrts = pdg.num_graph_vertices();
-		idx_t nConstraints = 1;
-		idx_t edgeCut;
-		idx_t wgtFlag = 3;//vertices and edges are weighted
-		idx_t numFlag = 0;
-		idx_t numParts = (idx_t)numTargetProcs;
-		vector<idx_t> partitionMap(nVrts);
-		vector<real_t> tpwgts(numParts, 1. / (number)numParts);
-		real_t ubvec = 1.05;
-		real_t comVsRedistRation = 1000;
-
-	//todo: consider specified balance and connection weights!
-
-	//	create a weight map for the vertices based on the number of children+1
-		idx_t* pVrtSizeMap = NULL;
-		//vector<idx_t> vrtSizeMap(nVrts, 1);
-		vector<idx_t> vrtSizeMap;
-		vrtSizeMap.reserve(nVrts);
-		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
-			if(pdg.was_considered(*iter))
-				vrtSizeMap.push_back(m_aaNumChildren[*iter] + 1);
-		}
-
-		vector<idx_t> adjwgt(pdg.num_graph_edges(), 1);
-
-		assert((int)vrtSizeMap.size() == nVrts);
-		pVrtSizeMap = &vrtSizeMap.front();
-
 		if(!procCom.empty()){
+		//	partition the graph using parmetis
+			//idx_t partOptions[3] = {1, 1, 0};
+			idx_t partOptions[3]; partOptions[0] = 0;//default values
+			//idx_t refineOptions[4] = {1, 0, 0, PARMETIS_PSR_UNCOUPLED};
+			idx_t refineOptions[4]; refineOptions[0] = 0;
+			idx_t nVrts = pdg.num_graph_vertices();
+			idx_t nConstraints = 1;
+			idx_t edgeCut;
+			idx_t wgtFlag = 3;//vertices and edges are weighted
+			idx_t numFlag = 0;
+			idx_t numParts = (idx_t)numTargetProcs;
+			vector<idx_t> partitionMap(nVrts);
+			vector<real_t> tpwgts(numParts, 1. / (number)numParts);
+			real_t ubvec = 1.05;
+			real_t comVsRedistRation = 1000;
+
+		//todo: consider specified balance and connection weights!
+
+		//	create a weight map for the vertices based on the number of children+1
+			idx_t* pVrtSizeMap = NULL;
+			//vector<idx_t> vrtSizeMap(nVrts, 1);
+			vector<idx_t> vrtSizeMap;
+			vrtSizeMap.reserve(nVrts);
+			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+				if(pdg.was_considered(*iter))
+					vrtSizeMap.push_back(m_aaNumChildren[*iter] + 1);
+			}
+
+			vector<idx_t> adjwgt(pdg.num_graph_edges(), 1);
+
+			assert((int)vrtSizeMap.size() == nVrts);
+			pVrtSizeMap = &vrtSizeMap.front();
+
 			MPI_Comm mpiCom = procCom.get_mpi_communicator();
 			if((int)procCom.size() != numTargetProcs){
 				UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
@@ -537,13 +537,13 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 							 << " while partitioning level " << lvl);
 				}
 			}
-		}
 
-	//	assign partition-subsets from graph-colors
-		int counter = 0;
-		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
-			if(pdg.was_considered(*iter))
-				m_sh.assign_subset(*iter, partitionMap[counter++]);
+		//	assign partition-subsets from graph-colors
+			int counter = 0;
+			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+				if(pdg.was_considered(*iter))
+					m_sh.assign_subset(*iter, partitionMap[counter++]);
+			}
 		}
 	}
 

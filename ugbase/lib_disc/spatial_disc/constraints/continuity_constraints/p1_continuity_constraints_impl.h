@@ -99,9 +99,9 @@ void SplitAddRow_Symmetric(TMatrix& A,
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 	//	add coupling constrained dof -> constrained dof
-	//	we can work directly on the entry (modifying it) since row of
+	//	we don't have to adjust the block itself, since the row of
 	//	constraints will be set to interpolation afterwards
-		block_type& block = A(constrainedIndex[i], constrainedIndex[i]);
+		block_type block = A(constrainedIndex[i], constrainedIndex[i]);
 
 	//	scale by weight
 		block *= frac*frac;
