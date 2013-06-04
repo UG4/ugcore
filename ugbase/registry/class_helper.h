@@ -80,7 +80,7 @@ UG_API void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg);
 UG_API bool PrintFunctionInfo(const Registry &reg, const char *functionname);
 
 UG_API void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false,
-                       const char *classname=NULL, const char *highlightclassname=NULL);
+                       const char *classname=NULL, const char *highlightclassname=NULL, bool bPrintHelp=false);
 UG_API void PrintConstructorInfo(const ExportedConstructor &constr, const char *classname,
 		const char *highlightclassname=NULL);
 

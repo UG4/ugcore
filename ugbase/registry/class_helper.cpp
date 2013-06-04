@@ -274,7 +274,7 @@ bool PrintParametersOut(const ExportedFunctionBase &thefunc)
  * Prints parameters of the function thefunc.
  * If highlightclassname != NULL, it highlights parameters which implement the highlightclassname class.
  */
-void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const char *classname, const char *highlightclassname)
+void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const char *classname, const char *highlightclassname, bool bPrintHelp)
 {
 	PrintParametersOut(thefunc);
 	if(classname)
@@ -284,7 +284,15 @@ void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const 
 
 	PrintParametersIn<ExportedFunctionBase>(thefunc, highlightclassname);
 
+
 	if(isConst) { UG_LOG(" const"); }
+	if(bPrintHelp)
+	{
+		if(thefunc.tooltip().length() != 0)
+		{	UG_LOG("\n     tooltip: " << thefunc.tooltip());	}
+		if(thefunc.help().length() != 0)
+		{	UG_LOG("\n     help: " << thefunc.help());	}
+	}
 }
 
 /**
@@ -319,7 +327,7 @@ bool PrintFunctionInfo(const Registry &reg, const char *functionname)
 	const ExportedFunction *f = FindFunction(reg, functionname);
 	if(f)
 	{
-		PrintFunctionInfo(*f, false);
+		PrintFunctionInfo(*f, false, NULL, NULL, true);
 		return true;
 	}
 	else
@@ -342,7 +350,7 @@ void PrintClassInfo(const IExportedClass &c)
 	for(size_t k=0; k<c.num_methods(); ++k)
 	{
 		UG_LOG(" - ");
-		PrintFunctionInfo(c.get_method(k), false);
+		PrintFunctionInfo(c.get_method(k), false, NULL, NULL, true);
 		UG_LOG(endl);
 	}
 	UG_LOG(" " << c.num_const_methods() << " const method(s):" << endl);
