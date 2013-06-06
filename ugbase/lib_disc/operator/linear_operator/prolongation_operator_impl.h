@@ -404,7 +404,7 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-restrict(vector_type& uCoarse, const vector_type& uFine)
+do_restrict(vector_type& uCoarse, const vector_type& uFine)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	Check, that operator is initialized

@@ -146,7 +146,7 @@ class UG_API Registry {
 	 * References the template function proxy_function<TFunc> and stores
 	 * it with the FuntionWrapper.
 	 */
-		template<class TFunc>
+		template<typename TFunc>
 		Registry& add_function(std::string funcName, TFunc func, std::string group = "",
 		                       std::string retValInfos = "", std::string paramInfos = "",
 		                       std::string tooltip = "", std::string help = "");

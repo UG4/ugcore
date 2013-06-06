@@ -16,7 +16,7 @@ namespace ug{
 template <typename TRefMapping>
 class DimReferenceMappingWrapper
 	: public DimReferenceMapping<TRefMapping::dim, TRefMapping::worldDim>,
-	  	  	  TRefMapping
+	  public TRefMapping
 {
 	public:
 	///	world dimension (range space dimension)

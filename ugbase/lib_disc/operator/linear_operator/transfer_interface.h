@@ -51,7 +51,7 @@ class ITransferOperator
 		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse) = 0;
 
 	/// Restricts vector, i.e. moves data from fine to coarse level
-		virtual void restrict(vector_type& uCoarse, const vector_type& uFine) = 0;
+		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine) = 0;
 
 	///	Clone
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone() = 0;

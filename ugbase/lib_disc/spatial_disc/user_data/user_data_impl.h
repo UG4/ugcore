@@ -195,7 +195,8 @@ void CplUserData<TData,dim,TRet>::
 register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim>::*func)())
 {
 	typedef std::pair<DataImport<TData,dim>*, CallbackFct> Pair;
-	m_vCallback.push_back(Pair(obj,func));
+	//	m_vCallback.push_back(Pair(obj,func));
+	m_vCallback.push_back(Pair(obj, boost::bind(func, obj)));
 }
 
 template <typename TData, int dim, typename TRet>
@@ -220,7 +221,8 @@ call_storage_callback() const
 	typedef typename VecType::const_iterator iterator;
 	for(iterator iter = m_vCallback.begin(); iter != m_vCallback.end(); ++iter)
 	{
-		(((*iter).first)->*((*iter).second))();
+		//		(((*iter).first)->*((*iter).second))();
+		((*iter).second)();
 	}
 }
 

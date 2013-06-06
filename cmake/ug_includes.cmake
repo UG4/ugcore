@@ -321,6 +321,9 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
 	add_cxx_flag("-h gnu")
 	# remove warning "The controlling expression is constant"
 	add_cxx_flag("-hnomessage=236")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "XL")
+    # currently no flags for IBM xl compiler
+    # however, the -Wall option is not supported
 else()
 	add_cxx_flag("-Wall")
     # for some reason -Wsign-compare is not in -Wall for Clang 

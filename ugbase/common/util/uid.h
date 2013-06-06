@@ -38,6 +38,8 @@ class UID
 				return false;
 			}
 
+		virtual ~UID() {};
+
 	private:
 		unsigned int m_uID;
 };

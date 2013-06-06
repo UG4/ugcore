@@ -456,7 +456,8 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 		std::vector<std::vector<bool> > m_vvBoolFlag;
 
 	///	registered callbacks
-		typedef void (DataImport<TData,dim>::*CallbackFct)();
+//		typedef void (DataImport<TData,dim>::*CallbackFct)();
+		typedef boost::function<void ()> CallbackFct;
 		std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > m_vCallback;
 
 };

@@ -120,9 +120,10 @@ class MultiIndex<2, size_t>
 		MultiIndex(){};
 
 	///	Constructor with values
-		MultiIndex(single_index_type a, single_index_type b)
-			: i0(a), i1(b)
-		{}
+		MultiIndex(single_index_type a, single_index_type b){
+			m_indices[0] = a;
+			m_indices[1] = b;
+		}
 
 		/// number of indices in multi index
 		inline size_t size() const {return 2;}
@@ -154,14 +155,7 @@ class MultiIndex<2, size_t>
 
 
 	private:
-		union
-		{
-			struct
-			{
-				single_index_type i0, i1;
-			};
-			single_index_type m_indices[2];
-		};
+		single_index_type m_indices[2];
 };
 
 // specialization of 3
@@ -176,9 +170,11 @@ class MultiIndex<3, size_t>
 		MultiIndex(){};
 
 	///	Constructor with values
-		MultiIndex(single_index_type a, single_index_type b, single_index_type c)
-			: i0(a), i1(b), i2(c)
-		{}
+		MultiIndex(single_index_type a, single_index_type b, single_index_type c){
+			m_indices[0] = a;
+			m_indices[1] = b;
+			m_indices[2] = c;
+		}
 
 		/// number of indices in multi index
 		inline size_t size() const {return 3;}
@@ -211,14 +207,7 @@ class MultiIndex<3, size_t>
 		}
 
 	private:
-		union
-		{
-			struct
-			{
-				single_index_type i0, i1, i2;
-			};
-			single_index_type m_indices[3];
-		};
+		single_index_type m_indices[3];
 };
 
 template <int N>

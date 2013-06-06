@@ -37,7 +37,6 @@ class NLJacobiSolver
 
 	protected:
 		typedef DebugWritingObject<TAlgebra> base_writer_type;
-		using base_writer_type::write_debug;
 
 	public:
 	///	default constructor

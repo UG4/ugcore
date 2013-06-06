@@ -48,7 +48,7 @@ namespace ug
  * (lib_algebra/common/matrixio/matrix_io.h) for usage and not the header file
  * of this specific exchange file format.
  */
-class MatrixIOMtx : MatrixIO
+class MatrixIOMtx : private MatrixIO
 {
   private:
     // Full path name of the matrix exchange file

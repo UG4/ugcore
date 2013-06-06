@@ -40,10 +40,6 @@ class NewtonSolver
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	protected:
-		typedef DebugWritingObject<TAlgebra> base_writer_type;
-		using base_writer_type::write_debug;
-
 	public:
 	///	constructor setting operator
 		NewtonSolver(SmartPtr<IOperator<vector_type> > N);

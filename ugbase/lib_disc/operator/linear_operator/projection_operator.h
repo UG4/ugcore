@@ -83,7 +83,7 @@ class InjectionTransfer :
 		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse);
 
 	/// Apply Transposed Operator u = L^T*f
-		virtual void restrict(vector_type& uCoarse, const vector_type& uFine);
+		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine);
 
 	///	clones the operator
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();

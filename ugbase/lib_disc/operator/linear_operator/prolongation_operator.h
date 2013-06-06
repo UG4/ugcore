@@ -85,7 +85,7 @@ class StdTransfer :
 		virtual void prolongate(vector_type& uFineOut, const vector_type& uCoarse);
 
 	/// apply transposed Operator, restrict function
-		virtual void restrict(vector_type& uCoarse, const vector_type& uFine);
+		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine);
 
 	///	returns new instance with same setting
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();

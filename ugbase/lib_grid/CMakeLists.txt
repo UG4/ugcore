@@ -72,7 +72,8 @@ set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_stl.cpp
 				file_io/file_io.cpp)
 								
-set(srcLibGrid	tools/bool_marker.cpp
+set(srcLibGrid	common_attachments.cpp
+                tools/bool_marker.cpp
 				tools/subset_handler_interface.cpp
 				tools/subset_handler_grid.cpp
 				tools/subset_handler_multi_grid.cpp
@@ -91,7 +92,6 @@ set(srcLibGrid	tools/bool_marker.cpp
 				geometric_objects/prism_rules.cpp
 				geometric_objects/hexahedron_rules.cpp
 				geometric_objects/rule_util.cpp
-				common_attachments.cpp
 				multi_grid.cpp
 				lib_grid_messages.cpp
 				)
@@ -145,9 +145,9 @@ set(srcTokstream
 
 #the grid library					
 
-set(Sources
+set(Sources         ${srcLibGrid}
                     ${srcParallelization}
-					${srcGrid} ${srcLibGrid}
+					${srcGrid} 
 					${srcAlgorithms} ${srcFileIO}
 					${srcTokstream} ${srcTetgen} ${srcLgm} ${srcNg})
 

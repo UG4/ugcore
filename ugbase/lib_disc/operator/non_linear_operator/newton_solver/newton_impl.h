@@ -364,6 +364,7 @@ void NewtonSolver<TAlgebra>::write_debug(const vector_type& vec, const char* fil
 	name.append(ext).append(".vec");
 
 //	write
+	typedef DebugWritingObject<TAlgebra> base_writer_type;
 	base_writer_type::write_debug(vec, name.c_str());
 }
 
@@ -376,6 +377,7 @@ void NewtonSolver<TAlgebra>::write_debug(const matrix_type& mat, const char* fil
 	name.append(ext).append(".mat");
 
 //	write
+	typedef DebugWritingObject<TAlgebra> base_writer_type;
 	base_writer_type::write_debug(mat, name.c_str());
 }
 

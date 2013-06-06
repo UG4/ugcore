@@ -345,7 +345,7 @@ restriction(size_t lev)
 	if((cd.size() > 0) && (d.size() > 0)){
 		GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 		try{
-			m_vLevData[lev]->Restriction->restrict(cd, d);
+			m_vLevData[lev]->Restriction->do_restrict(cd, d);
 		} UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Restriction of "
 					"Defect from level "<<lev<<" to "<<lev-1<<" failed. "
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
@@ -932,7 +932,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 			m_vLevData[lev-1]->num_indices() == 0) continue;
 
 		try{
-			m_vLevData[lev]->Projection->restrict(*m_vLevData[lev-1]->u, *m_vLevData[lev]->u);
+			m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->u, *m_vLevData[lev]->u);
 		} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
 					"solution to coarse grid function of level "<<lev-1<<".\n");
 	}
