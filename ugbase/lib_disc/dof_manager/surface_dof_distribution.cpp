@@ -168,28 +168,50 @@ template <typename TBaseElem>
 void SurfaceDoFDistribution::
 add_unassigned_elements()
 {
-	typedef typename traits<TBaseElem>::iterator iterator;
+	typedef typename MGSubsetHandler::traits<TBaseElem>::iterator iterator;
 	static const int dim = TBaseElem::dim;
 
-	for(int si = 0; si < num_subsets(); ++si){
+//	really ugly things can happen. Imagine the following:
+//	A ghost (vmaster, not in h-interface) is encountered. Such elements never have
+//	a surface-dof and aren't contained in the surface view either. Well - that's fine.
+//	They can however have a parent which has surface state shadowed. This parent
+//	isn't contained in the surface-view either and hasn't received a dof-index
+//	(which it needs) since its child is a ghost.
+//	here we thus iterate over all elements of the mgSH and assign dofs to all unassigned
+//	surface and shadowed elements.
+//	Since we'll rework the SurfaceDoFDistribution, this not perfectly performant
+//	fix should be ok for now - especially since it is only used during redistribution.
+
+	SurfaceView& surfView = *m_spSurfView;
+	MGSubsetHandler& sh = *surfView.subset_handler();
+	int topLvl = (int)sh.num_levels() - 1;
+
+	for(int si = 0; si < sh.num_subsets(); ++si){
 	// 	skip if no dofs to be distributed
 		if(max_dofs(dim, si) == 0) continue;
 
-		for(iterator iter = begin<TBaseElem>(si);
-			iter != end<TBaseElem>(si); ++iter)
-		{
-			TBaseElem* elem = *iter;
-			if(obj_index(elem) != NOT_YET_ASSIGNED)
-				continue;
+		for(int lvl = topLvl; lvl >= 0; --lvl){
+		//	start at the top and traverse the levels down to the base level
+			for(iterator iter = sh.begin<TBaseElem>(si, lvl);
+				iter != sh.end<TBaseElem>(si, lvl); ++iter)
+			{
+				TBaseElem* e = *iter;
 
-			const ReferenceObjectID roid = elem->reference_object_id();
-			add_from_free(elem, roid, si, m_levInfo);
+				if((obj_index(e) == NOT_YET_ASSIGNED)
+				   && (!surfView.is_ghost(e))
+				   && (surfView.is_surface_element(e) || surfView.is_shadowed(e)))
+			   {
 
-			TBaseElem* parent = parent_if_shadowed_copy(elem);
-			while(parent){
-				copy(parent, elem);
-				elem = parent;
-				parent = parent_if_shadowed_copy(elem);
+					const ReferenceObjectID roid = e->reference_object_id();
+					add_from_free(e, roid, si, m_levInfo);
+
+					TBaseElem* parent = parent_if_shadowed_copy(e);
+					while(parent){
+						copy(parent, e);
+						e = parent;
+						parent = parent_if_shadowed_copy(e);
+					}
+			   }
 			}
 		}
 	} // end subset
@@ -265,16 +287,22 @@ parallel_redistribution_ended()
 	resize_values(lev_info().sizeIndexSet);
 
 // DEBUG CHECKS... REMOVE THOSE AS SOON AS EVERYTHING WORKS STABLE
-////	iterate over all vertices in the surface view and check whether all are assigned
-//	for(typename traits<VertexBase>::iterator iter = begin<VertexBase>();
-//		iter != end<VertexBase>(); ++iter)
+////	iterate over all vertices and check whether all required indices are assigned
+//	UG_LOG("DEBUG: Performing check of dof-indices\n");
+//	for(Grid::vertex_traits::iterator iter = m_spMG->begin<VertexBase>();
+//		iter != m_spMG->end<VertexBase>(); ++iter)
 //	{
 //		if(m_spSurfView->is_ghost(*iter)) continue;
-//		if(obj_index(*iter) == NOT_YET_ASSIGNED){
-//			UG_LOG("ERROR: UNASSIGNED SURFACE VERTEX FOUND AT: "
-//					<< GetGeometricObjectCenter(*m_pMG, *iter) << endl);
+//		if(m_spSurfView->is_surface_element(*iter) || m_spSurfView->is_shadowed(*iter))
+//		{
+//			if(obj_index(*iter) == NOT_YET_ASSIGNED){
+//				UG_LOG_ALL_PROCS("ERROR: UNASSIGNED SURFACE VERTEX FOUND: "
+//						<< ElementDebugInfo(*m_pMG, *iter)
+//						<< " on proc " << pcl::GetProcRank() << endl);
+//			}
 //		}
 //	}
+//	UG_LOG("DEBUG: Check done.\n");
 //
 ////	iterate over all edges in the surface view and check whether all vertices are assigned
 //	for(typename traits<EdgeBase>::iterator iter = begin<EdgeBase>();
