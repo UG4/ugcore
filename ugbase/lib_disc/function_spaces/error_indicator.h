@@ -347,10 +347,10 @@ void MarkElements(MultiGrid::AttachmentAccessor<typename TFunction::element_type
 	int numElemLocal = numElem;
 	if(pcl::GetNumProcesses() > 1){
 		pcl::ProcessCommunicator com;
-		com.allreduce(&maxLocal, &max, 1, PCL_DT_DOUBLE, PCL_RO_MAX);
-		com.allreduce(&minLocal, &min, 1, PCL_DT_DOUBLE, PCL_RO_MIN);
-		com.allreduce(&totalErrLocal, &totalErr, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-		com.allreduce(&numElemLocal, &numElem, 1, PCL_DT_INT, PCL_RO_SUM);
+		max = com.allreduce(maxLocal, PCL_RO_MAX);
+		min = com.allreduce(minLocal, PCL_RO_MIN);
+		totalErr = com.allreduce(totalErrLocal, PCL_RO_SUM);
+		numElem = com.allreduce(numElemLocal, PCL_RO_SUM);
 	}
 #endif
 	UG_LOG("  +++++  Gradient Error Indicator on "<<numElem<<" Elements +++++\n");
@@ -413,14 +413,84 @@ void MarkElements(MultiGrid::AttachmentAccessor<typename TFunction::element_type
 		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::GetProcRank()<<": " << numMarkedCoarse << " Elements.\n");
 		pcl::ProcessCommunicator com;
 		int numMarkedRefineLocal = numMarkedRefine, numMarkedCoarseLocal = numMarkedCoarse;
-		com.allreduce(&numMarkedRefineLocal, &numMarkedRefine, 1, PCL_DT_INT, PCL_RO_SUM);
-		com.allreduce(&numMarkedCoarseLocal, &numMarkedCoarse, 1, PCL_DT_INT, PCL_RO_SUM);
+		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
+		numMarkedCoarse = com.allreduce(numMarkedCoarseLocal, PCL_RO_SUM);
 	}
 #endif
 
 	UG_LOG("  +++ Marked for refinement: " << numMarkedRefine << " Elements.\n");
 	UG_LOG("  +++ Marked for coarsening: " << numMarkedCoarse << " Elements.\n");
 }
+
+/// marks elements according to an attached error value field
+/**
+ * This function marks elements for refinement. The passed error attachment
+ * is used as a weight for the amount of the error an each element. All elements
+ * that have an indicated error > refineTol are marked for refinement and
+ * elements with an error < coarsenTol are marked for coarsening
+ *
+ * \param[in, out]	refiner		Refiner, elements marked on exit
+ * \param[in]		u			Grid Function
+ * \param[in]		refTol		all elements with error > refTol are marked for refinement.
+ * 								If refTol is negative, no element will be marked for refinement.
+ * \param[in]		coarsenTol	all elements with error < coarsenTol are marked for coarsening.
+ * 								If coarsenTol is negative, no element will be marked for coarsening.
+ * \param[in]		aaError		Error value attachment to elements
+ */
+template <typename TFunction>
+void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<typename TFunction::element_type,
+						  ug::Attachment<number> >& aaError,
+						  IRefiner& refiner,
+						  TFunction& u,
+						  number refTol,
+						  number coarsenTol,
+						  int maxLevel)
+{
+	typedef typename TFunction::element_type element_type;
+	typedef typename TFunction::const_element_iterator const_iterator;
+
+	int numMarkedRefine = 0, numMarkedCoarse = 0;
+	const_iterator iter = u.template begin<element_type>();
+	const_iterator iterEnd = u.template end<element_type>();
+
+//	loop elements for marking
+	for(; iter != iterEnd; ++iter){
+		element_type* elem = *iter;
+
+	//	marks for refinement
+		if((refTol >= 0)
+			&& (aaError[elem] > refTol)
+			&& (u.domain()->grid()->get_level(elem) < maxLevel))
+		{
+			refiner.mark(elem, RM_REFINE);
+			numMarkedRefine++;
+		}
+
+	//	marks for coarsening
+		if((coarsenTol >= 0)
+			&& (aaError[elem] < coarsenTol)
+			&& (u.domain()->grid()->get_level(elem) > 0))
+		{
+			refiner.mark(elem, RM_COARSEN);
+			numMarkedCoarse++;
+		}
+	}
+
+#ifdef UG_PARALLEL
+	if(pcl::GetNumProcesses() > 1){
+		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::GetProcRank()<<": " << numMarkedRefine << " Elements.\n");
+		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::GetProcRank()<<": " << numMarkedCoarse << " Elements.\n");
+		pcl::ProcessCommunicator com;
+		int numMarkedRefineLocal = numMarkedRefine, numMarkedCoarseLocal = numMarkedCoarse;
+		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
+		numMarkedCoarse = com.allreduce(numMarkedCoarseLocal, PCL_RO_SUM);
+	}
+#endif
+
+	UG_LOG("  +++ Marked for refinement: " << numMarkedRefine << " Elements.\n");
+	UG_LOG("  +++ Marked for coarsening: " << numMarkedCoarse << " Elements.\n");
+}
+
 
 template <typename TDomain, typename TAlgebra>
 void MarkForAdaption_GradientIndicator(IRefiner& refiner,
@@ -450,16 +520,12 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 // 	Compute error on elements
 	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
 		ComputeGradientLagrange1(u, fct, aaError);
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+		ComputeGradientCrouzeixRaviart(u, fct, aaError);
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+		ComputeGradientPiecewiseConstant(u,fct,aaError);
 	else{
-		if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
-			ComputeGradientCrouzeixRaviart(u, fct, aaError);
-		else{
-			if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, 0)){
-				ComputeGradientPiecewiseConstant(u,fct,aaError);
-			} else {
-				UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
-			}
-		}
+		UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
 	}
 	
 // 	Mark elements for refinement
@@ -468,6 +534,51 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 // 	detach error field
 	pMG->template detach_from<element_type>(aError);
 };
+
+
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
+                                       GridFunction<TDomain, TAlgebra>& u,
+                                       const char* fctName,
+                                       number refTol,
+                                       number coarsenTol,
+                                       int maxLevel)
+{
+//	types
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
+	typedef typename TFunction::domain_type::grid_type grid_type;
+	typedef typename TFunction::element_type element_type;
+
+//	function id
+	const size_t fct = u.fct_id_by_name(fctName);
+
+//	get multigrid
+	SmartPtr<grid_type> pMG = u.domain()->grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aError;
+	pMG->template attach_to<element_type>(aError);
+	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
+
+// 	Compute error on elements
+	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
+		ComputeGradientLagrange1(u, fct, aaError);
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+		ComputeGradientCrouzeixRaviart(u, fct, aaError);
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+		ComputeGradientPiecewiseConstant(u,fct,aaError);
+	else{
+		UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
+	}
+
+// 	Mark elements for refinement
+	MarkElementsAbsolute(aaError, refiner, u, refTol, coarsenTol, maxLevel);
+
+// 	detach error field
+	pMG->template detach_from<element_type>(aError);
+};
+
 
 template <typename TFunction>
 void computeGradientJump(TFunction& u,

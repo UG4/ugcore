@@ -103,6 +103,19 @@ bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e);
 bool CheckElementConsistency(MultiGrid& mg, Face* f);
 /** \} */
 
+
+///	Returns a string containing information on the given element
+/**	The string contains the position and level of the element, whether it is
+ * normal, constrained or constraining, and its assigned and actual parent types.
+ * In parallel the interface states are also returned.
+ *
+ * This method is intended for use in UG_ASSERT or UG_THROW to print additional
+ * information on an element for which a problem occurred.
+ * \return	string containing gathered information on the given element
+ */
+template <class TElem>
+std::string ElementDebugInfo(const Grid& grid, TElem* e);
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

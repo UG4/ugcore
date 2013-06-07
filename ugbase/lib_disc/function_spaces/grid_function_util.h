@@ -52,7 +52,10 @@ void WriteMatrixToConnectionViewer(const char *filename,
 	ExtractPositions(u, vPos);
 
 // 	write matrix
-	ConnectionViewer::WriteMatrixPar( filename, A, &vPos[0], dim );
+	if(vPos.empty())
+		ConnectionViewer::WriteMatrixPar( filename, A, (MathVector<dim>*)NULL, dim );
+	else
+		ConnectionViewer::WriteMatrixPar( filename, A, &vPos[0], dim );
 }
 
 template<typename TGridFunction>
@@ -373,7 +376,10 @@ public:
 			extract_positions(m_gridLevel);
 			std::vector<MathVector<dim> >& vPos =
 					this->template get_positions<dim>();
-			ConnectionViewer::WriteMatrixPar(name.c_str(), mat, &vPos[0], dim);
+			if(vPos.empty())
+				ConnectionViewer::WriteMatrixPar(name.c_str(), mat,(MathVector<dim>*)NULL, dim);
+			else
+				ConnectionViewer::WriteMatrixPar(name.c_str(), mat, &vPos[0], dim);
 		}
 		else{
 			if(m_pvMapGlobalToPatch){
@@ -432,7 +438,10 @@ protected:
 		extract_positions(m_gridLevel);
 		std::vector<MathVector<dim> >& vPos =
 				this->template get_positions<dim>();
-		ConnectionViewer::WriteVectorPar(name.c_str(), vec, &vPos[0], dim);
+		if(vPos.empty())
+			ConnectionViewer::WriteVectorPar(name.c_str(), vec, (MathVector<dim>*)NULL, dim);
+		else
+			ConnectionViewer::WriteVectorPar(name.c_str(), vec, &vPos[0], dim);
 	}
 
 	void write_vector_to_vtk(const vector_type& vec, const char* filename) {

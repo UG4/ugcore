@@ -56,16 +56,18 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	MarkForAdaption_GradientIndicator
+//	Refinement
 	{
+	//	MarkForAdaption_GradientIndicator
 		string grp("ug4/Refinement/");
 		reg.add_function("MarkForAdaption_GradientIndicator",
 						 &MarkForAdaption_GradientIndicator<TDomain, TAlgebra>, grp);
-	}
 	
-//	MarkForAdaption_GradientJumpIndicator
-	{
-		string grp("ug4/Refinement/");
+	//	MarkForAdaption_AbsoluteGradientIndicator
+		reg.add_function("MarkForAdaption_AbsoluteGradientIndicator",
+				 &MarkForAdaption_AbsoluteGradientIndicator<TDomain, TAlgebra>, grp);
+
+	//	MarkForAdaption_GradientJumpIndicator
 		reg.add_function("MarkForAdaption_GradientJumpIndicator",
 						 &MarkForAdaption_GradientJumpIndicator<TDomain, TAlgebra>, grp);
 	}

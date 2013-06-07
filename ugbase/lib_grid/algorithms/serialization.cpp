@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "serialization.h"
 #include "common/serialization.h"
+#include "debug_util.h"
 
 using namespace std;
 
@@ -925,6 +926,10 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				tInt = v->get_parent_base_object_id();
 				out.write((char*)&tInt, sizeof(int));
 
+				UG_ASSERT(v->get_parent_base_object_id() != -1,
+						  "Bad constraining element id in constrained vertex encountered:"
+						   << ElementDebugInfo(mg, v));
+
 				WriteParent(mg, v, aaInt, out);
 				if(paaID)	Serialize(out, (*paaID)[*iter]);
 			}
@@ -1526,6 +1531,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&cgInd, sizeof(int));
 							int parentBaseObjId;
 							in.read((char*)&parentBaseObjId, sizeof(int));
+
+							UG_ASSERT(parentBaseObjId != -1,
+									  "Bad constraining element id in constrained vertex encountered");
 
 							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);

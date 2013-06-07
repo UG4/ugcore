@@ -129,6 +129,10 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 	/// set redistribution	
 		void set_redistribution(bool bRedistribute){m_bRedistribute = bRedistribute;}
 		
+	///	returns parent != NULL, if it is a copy and shadowed by elem
+		template <typename TBaseElem>
+		TBaseElem* parent_if_shadowed_copy(TBaseElem* elem) const;
+
 	protected:
 		/// permutes the indices for an base element type
 		template <typename TBaseElem>
@@ -179,6 +183,17 @@ class SurfaceDoFDistribution : public MGDoFDistribution,
 		SmartPtr<AlgebraLayouts> layouts() {return lev_info().layouts();}
 #endif
 };
+
+
+template <typename TBaseElem>
+TBaseElem* SurfaceDoFDistribution::
+parent_if_shadowed_copy(TBaseElem* elem) const
+{
+	TBaseElem* parent = parent_if_copy(elem);
+	if(parent && m_spSurfView->is_shadowed(parent))
+		return parent;
+	return NULL;
+}
 
 
 } // end namespace ug

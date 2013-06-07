@@ -7,6 +7,7 @@
 
 #include "p1_continuity_constraints.h"
 #include "lib_grid/algorithms/geom_obj_util/edge_util.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 namespace ug{
 
@@ -136,7 +137,12 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 		}
 	}
 		break;
-	default: UG_THROW("Parent element of hanging vertex wrong."); break;
+	default:
+		UG_THROW("Parent element of hanging vertex wrong: "
+				<< hgVrt->get_parent_base_object_id()
+				<< ". Element info: "
+				<< ElementDebugInfo(grid, hgVrt));
+		break;
 	}
 }
 

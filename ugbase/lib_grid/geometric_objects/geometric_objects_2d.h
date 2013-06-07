@@ -336,8 +336,6 @@ class UG_API ConstrainedFace : public Face
 			m_pConstrainingObject = pObj;
 			if(pObj)
 				m_parentBaseObjectId = pObj->base_object_id();
-			else
-				m_parentBaseObjectId = -1;
 		}
 
 		inline GeometricObject* get_constraining_object()			{return m_pConstrainingObject;}

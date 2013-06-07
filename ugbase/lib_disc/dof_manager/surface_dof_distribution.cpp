@@ -65,11 +65,11 @@ void SurfaceDoFDistribution::init()
 
 		//	b) if copy exists, copy also to parent and grand-parents and ... etc.
 			//\todo: save this execution in non-adaptive case
-			TBaseElem* parent = parent_if_copy(elem);
+			TBaseElem* parent = parent_if_shadowed_copy(elem);
 			while(parent){
 				copy(parent, elem);
 				elem = parent;
-				parent = parent_if_copy(elem);
+				parent = parent_if_shadowed_copy(elem);
 			}
 		}
 	} // end subset
@@ -119,11 +119,11 @@ void SurfaceDoFDistribution::reinit(std::vector<std::pair<size_t,size_t> >& vRep
 
 		//	b) if copy exists, copy also to parent and grand-parents and ... etc.
 			//\todo: save this execution in non-adaptive case
-			TBaseElem* parent = parent_if_copy(elem);
+			TBaseElem* parent = parent_if_shadowed_copy(elem);
 			while(parent){
 				copy(parent, elem);
 				elem = parent;
-				parent = parent_if_copy(elem);
+				parent = parent_if_shadowed_copy(elem);
 			}
 		}
 	} // end subset
@@ -185,11 +185,11 @@ add_unassigned_elements()
 			const ReferenceObjectID roid = elem->reference_object_id();
 			add_from_free(elem, roid, si, m_levInfo);
 
-			TBaseElem* parent = parent_if_copy(elem);
+			TBaseElem* parent = parent_if_shadowed_copy(elem);
 			while(parent){
 				copy(parent, elem);
 				elem = parent;
-				parent = parent_if_copy(elem);
+				parent = parent_if_shadowed_copy(elem);
 			}
 		}
 	} // end subset
@@ -222,6 +222,11 @@ remove_ghost_entries()
 						if(dgm.is_ghost(e)
 						   && (objInd != NOT_YET_ASSIGNED))
 						{
+//						//	DEBUG
+//							if(VecDistanceSq(GetGeometricObjectCenter(*m_spMG, e), vector3(0.5625, 0.0625, 0)) < SMALL){
+//								UG_LOG("DEBUG: encountered problematic object on level " << m_spMG->get_level(e) << "\n");
+//							}
+
 						//	we have to erase the object from the distribution
 							erase(e, e->reference_object_id(),
 								  m_spMGSH->get_subset_index(e),
@@ -476,11 +481,11 @@ bool SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& 
 
 		//	if copy exists, copy also to parent and grand-parents and ... etc.
 			//\todo: save this execution in non-adaptive case
-			TBaseElem* parent = parent_if_copy(elem);
+			TBaseElem* parent = parent_if_shadowed_copy(elem);
 			while(parent){
 				copy(parent, elem);
 				elem = parent;
-				parent = parent_if_copy(elem);
+				parent = parent_if_shadowed_copy(elem);
 			}
 		}
 	}
@@ -568,21 +573,19 @@ inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject*
 				m_spMGSH->get_subset_index(obj),
 				m_levInfo))
 		{
-			if(!parallel_redistribution_mode()){
-			//	the insertion changed the size of the index range. Thus, we have to
-			//	resize the managed vectors. We do this now, since a transfer callback
-			//	may be listen to the object creation and will interpolate the values. Thus,
-			//	the vector entries must already be valid.
-				resize_values(lev_info().sizeIndexSet);
+		//	the insertion changed the size of the index range. Thus, we have to
+		//	resize the managed vectors. We do this now, since a transfer callback
+		//	may be listen to the object creation and will interpolate the values. Thus,
+		//	the vector entries must already be valid.
+			resize_values(lev_info().sizeIndexSet);
 
-			//	the parent, that will be covered after the creation, will no longer be part
-			//	of the surface. But we still need the values for the transfer callbacks.
-			//	Therefore, we leave the "old" indices attached and valid for the moment.
-			//	All prolongation callbacks are invoked now
-				if(pParent){
-					for(size_t i = 0; i < m_vProlongation[gbo].size(); ++i)
-						m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
-				}
+		//	the parent, that will be covered after the creation, will no longer be part
+		//	of the surface. But we still need the values for the transfer callbacks.
+		//	Therefore, we leave the "old" indices attached and valid for the moment.
+		//	All prolongation callbacks are invoked now
+			if(pParent){
+				for(size_t i = 0; i < m_vProlongation[gbo].size(); ++i)
+					m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
 			}
 		}
 	}
@@ -633,7 +636,7 @@ add_unassigned_sides(TElem* e)
 				TSide* ts = s;
 				while(ts){
 					copy(ts, s);
-					ts = parent_if_copy(ts);
+					ts = parent_if_shadowed_copy(ts);
 				}
 			}
 		}
@@ -660,7 +663,7 @@ obj_to_be_erased(TBaseElem* obj, TBaseElem* replacedBy)
 				TBaseElem* telem = replacedBy;
 				while(telem){
 					copy(telem, replacedBy);
-					telem = parent_if_copy(telem);
+					telem = parent_if_shadowed_copy(telem);
 				}
 				add_unassigned_sides(replacedBy);
 			}
@@ -719,6 +722,10 @@ obj_to_be_erased(TBaseElem* obj, TBaseElem* replacedBy)
 			else if(objIndex == obj_index(parent)){
 				return;
 			}
+			else{
+				copy(parent, obj);
+				return;
+			}
 		}
 
 	//	case 3: The object that will be erased has no identical parent on the
@@ -734,7 +741,7 @@ obj_to_be_erased(TBaseElem* obj, TBaseElem* replacedBy)
 	}
 
 //	remember that index from object is now no longer in index set
-	if(m_spSurfView->is_surface_element(obj)
+	if((!m_spMG->has_children(obj))/*m_spSurfView->is_surface_element(obj)*/
 	   &&(obj_index(obj) != NOT_YET_ASSIGNED))
 	{
 		erase(obj,
@@ -892,11 +899,11 @@ void SurfaceDoFDistribution::permute_indices(const std::vector<size_t>& vNewInd)
 
 	//	if copy exists, copy also to parent and grand-parents and ... etc.
 		//\todo: save this execution in non-adaptive case
-		TBaseElem* parent = parent_if_copy(elem);
+		TBaseElem* parent = parent_if_shadowed_copy(elem);
 		while(parent){
 			copy(parent, elem);
 			elem = parent;
-			parent = parent_if_copy(elem);
+			parent = parent_if_shadowed_copy(elem);
 		}
 	}
 }

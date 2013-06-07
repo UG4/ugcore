@@ -99,8 +99,6 @@ class UG_API ConstrainedVertex : public VertexBase
 			m_constrainingObj = constrObj;
 			if(constrObj)
 				m_parentBaseObjectId = constrObj->base_object_id();
-			else
-				m_parentBaseObjectId = -1;
 		}
 
 		inline GeometricObject* get_constraining_object()	{return m_constrainingObj;}
