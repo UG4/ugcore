@@ -46,50 +46,10 @@ Authentication realm: <svn://fuji.gcsc.uni-frankfurt.de:3690> fuji-svn-repositor
 Password for 'mrupp': 
 \endverbatim
 
-after that, \ug4 (HEAD revision) will be downloaded.
+after that, \ug4 (HEAD revision) will be downloaded. See also \ref secSVNPartialCheckout.
 
 \note All commands following are relative to the current directory, and working in a subdirectory will \em not effect the
 directories above.
-
-\subsection secSVNPartialCheckout Partial Checkout
-In most cases it is not necessary to check out the whole \ug4 repository.
-Therefore SVN provides the possibility to only checkout certain directories of
-a repository.
-
-To achieve this, first checkout the trunk of \ug4 without recursing into subdirectories
-by
-
-    svn co --depth immediates svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4svn
-
-Now only folders and files of `ug4/trunk` without their content is downloaded.
-To get a minimal compiling copy of \ug4 issue the following commands:
-
-    cd ug4svn
-    cd ugbase && svn update --set-depth infinity && cd ..
-    cd cmake && svn update --set-depth infinity && cd ..
-    cd scripts && svn update --set-depth infinity && cd ..
-
-This will download all the core parts of \ug4 (`ugbase`), the various files and
-scripts for \em CMake (`cmake`) and the utility scripts, which might turn
-out helpful (`scripts`).
-
-If you are working on a certain app without bothering about all the others, first
-get the list of all apps and then only check out your awesome one:
-
-    cd apps && svn update --set-depth immediates && cd ..
-    cd apps/your_awesome_app && svn update --set-depth infinity && cd ../..
-
-Similar you proceed with plugins:
-
-    cd plugins && svn update --set-depth immediates && cd ..
-    cd plugins/core && svn update --set-depth immediates && cd ../..
-    cd plugins/experimental && svn update --set-depth immediates && cd ../..
-
-Finally there are some great news for you: SVN will keep track and remember your 
-settings regarding the depth.
-I.e. if you `svn update` in the root (i.e. `ug4svn`) it will only checkout and
-update those directories and files, which you have checked out so you will not
-get annoyed by a flood of changes in a boring app you don't care about!
 
 <hr>
 \section secSVNCommit Upload/check in changes (commit)
@@ -281,6 +241,8 @@ get the version from 02.03.2013 (date) of CURDIR/mydir</li>
 get the previous version of CURDIR</li>
 <li><tt>svn update</tt><br>
 update CURDIR</li>
+<li><tt>svn update SUBDIR</tt><br>
+update the contents of CURDIR/SUBDIR</li>
 <li><tt>svn diff</tt><br>
 show diff of CURDIR, subdirectories, and files</li>
 <li><tt>svn diff bla.cpp </tt><br>
@@ -336,7 +298,78 @@ Other sources:
 - http://svnbook.red-bean.com
 - http://maverick.inria.fr/~Xavier.Decoret/resources/svn/ 
 
+<hr>
+\section secSVNTroubleshooting SVN Troubleshooting
+Sometimes SVN is not getting it right. Some problems are:
+<ul>
+
+<li>svn update says 'Skipped .'. That is because your current directory is not under version control. If you do a 'ls -la', you will see you don't have a .svn folder there. That can
+ have several reasons:
+ <ul>
+ <li>You are in a directory which is not meant to be in SVN, for example the subfolders bin, debug or release,  . They are not under version control because those files are generated 
+ from the build script, and contain a lot of big files, and we don't want everyone to be forced to download unnecessary files. Solution: Change to another directory. </li>
+ <li> Sometimes you are sure that a directory should be in svn, but is not, because .svn was deleted accidentially. Then: say your directory is THEDIR/THESUBDIR and you are in
+  THEDIR/THESUBDIR. then
+ \code
+ cd ..
+ mv THESUBDIR THESUBDIR_mine
+ svn update THESUBDIR
+ \endcode
+ This way, you save your directories contents, and forced SVN to re-download the contents of THESUBDIR, which then contains a .svn again. If you made changes to THESUBDIR, use
+ \code
+ diff THESUBDIR THESUBDIR_mine
+ \endcode
+ Now you can manually re-insert your changes from THESUBDIR_mine to THESUBDIR.
+ </li>
+ <li> If the same happended to you in the base directory of ug4, you have to rename your whole ug4 to ug4_mine and re-checkout ug4.</li>
+ </ul>
+ <li> I accidentially deleted directory THESUBDIR which was under SVN control. How to get it back?
+ \code
+ cd ..
+ svn update THESUBDIR
+ \endcode
+ </li>
+ </ul>  
 
 
+\section secSVNPartialCheckout Partial Checkout
+In most cases it is not necessary to check out the whole \ug4 repository.
+Therefore SVN provides the possibility to only checkout certain directories of
+a repository.
+
+To achieve this, first checkout the trunk of \ug4 without recursing into subdirectories
+by
+\code
+    svn co --depth immediates svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk ug4svn
+\endcode
+Now only folders and files of `ug4/trunk` without their content is downloaded.
+To get a minimal compiling copy of \ug4 issue the following commands:
+\code
+    cd ug4svn
+    cd ugbase && svn update --set-depth infinity && cd ..
+    cd cmake && svn update --set-depth infinity && cd ..
+    cd scripts && svn update --set-depth infinity && cd ..
+\endcode
+This will download all the core parts of \ug4 (`ugbase`), the various files and
+scripts for \em CMake (`cmake`) and the utility scripts, which might turn
+out helpful (`scripts`).
+
+If you are working on a certain app without bothering about all the others, first
+get the list of all apps and then only check out your awesome one:
+\code
+    cd apps && svn update --set-depth immediates && cd ..
+    cd apps/your_awesome_app && svn update --set-depth infinity && cd ../..
+\endcode
+Similar you proceed with plugins:
+\code
+    cd plugins && svn update --set-depth immediates && cd ..
+    cd plugins/core && svn update --set-depth immediates && cd ../..
+    cd plugins/experimental && svn update --set-depth immediates && cd ../..
+\endcode
+Finally there are some great news for you: SVN will keep track and remember your 
+settings regarding the depth.
+I.e. if you `svn update` in the root (i.e. `ug4svn`) it will only checkout and
+update those directories and files, which you have checked out so you will not
+get annoyed by a flood of changes in a boring app you don't care about!
 
 */

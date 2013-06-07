@@ -115,5 +115,8 @@ has the same problem and spends hours on solving it.
 	</dd>
 </dl>
 
+\subsection troubleshooting_SVN I have a problem with SVN
+See \ref secSVNTroubleshooting.
+
 
 */
