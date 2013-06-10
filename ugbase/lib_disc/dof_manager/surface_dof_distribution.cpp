@@ -682,7 +682,7 @@ obj_to_be_erased(TBaseElem* obj, TBaseElem* replacedBy)
 	{
 		size_t oldSize = lev_info().sizeIndexSet;
 		if(max_dofs(TBaseElem::BASE_OBJECT_ID) > 0){
-			if((obj_index(obj) == NOT_YET_ASSIGNED))
+			if(obj_index(obj) == NOT_YET_ASSIGNED)
 			{
 			//	the element has to receive a valid index and it's parents too,
 			//	since those are shadowed elements now
