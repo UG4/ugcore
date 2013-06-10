@@ -810,6 +810,7 @@ bool CheckElementConsistency(MultiGrid& mg, VertexBase* v)
 
 	if(v->is_constrained()){
 		ConstrainedVertex* cdv = dynamic_cast<ConstrainedVertex*>(v);
+		(void) cdv; // removes unused warning
 		UG_ASSERT(cdv, "Bad type!");
 		UG_ASSERT(cdv->get_constraining_object() == mg.get_parent(cdv),
 				  "ConstrainingObject / Parent mismatch");
@@ -839,6 +840,7 @@ bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e)
 //	constrained/constraining checks
 	if(e->is_constrained()){
 		ConstrainedEdge* cde = dynamic_cast<ConstrainedEdge*>(e);
+		(void) cde; // removes unused warning
 		UG_ASSERT(cde, "Bad type!");
 		UG_ASSERT(cde->get_constraining_object() == mg.get_parent(cde),
 				  "ConstrainingObject / Parent mismatch");
