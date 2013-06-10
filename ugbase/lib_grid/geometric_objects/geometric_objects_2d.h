@@ -204,7 +204,7 @@ class UG_API CustomQuadrilateral : public BaseClass
 		static const size_t NUM_VERTICES = 4;
 
 	public:
-		using BaseClass::ConstVertexArray;
+		using typename BaseClass::ConstVertexArray;
 
 		CustomQuadrilateral()	{}
 		CustomQuadrilateral(const QuadrilateralDescriptor& qd);
