@@ -53,6 +53,11 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 		int nameStart = prefixLen;
 		int nameLength = (int)files[i].size() - suffixLen - nameStart;
 
+	//	exclude MAC OS X hidden folder custom file ".DS_Store" from plugin consideration
+		#ifdef __APPLE__
+			if(files[i].compare(".DS_Store") == 0) continue;
+		#endif
+
 	//	check that plugin name can exist
 		if(nameLength <= 0)
 		{
