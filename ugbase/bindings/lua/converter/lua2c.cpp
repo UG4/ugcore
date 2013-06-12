@@ -5,7 +5,7 @@
  * Created on 20. November 2012, 10:16
  */
 
-#include "pclass.h"
+#include "lua_parser_class.h"
 #include "bridge/bridge.h"
 #include "bindings/lua/lua_util.h"
 #include "bindings/lua/lua_stack_check.h"
@@ -30,7 +30,7 @@ bool LUA2C::create(const char *functionName)
 	UG_LOG("parsing " << functionName << "... ");
 	try{
 	m_f=NULL;
-	pclass parser;	
+	LUAParserClass parser;
 	if(parser.parse_luaFunction(functionName) == false)
 		return 0;
 	//parser.reduce();

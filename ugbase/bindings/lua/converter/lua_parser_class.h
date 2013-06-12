@@ -1,12 +1,12 @@
 /* 
- * File:   pclass.h
+ * File:   lua_parser_class.h
  * Author: mrupp
  *
  * Created on 20. November 2012, 10:16
  */
 
-#ifndef PCLASS_H
-#define	PCLASS_H
+#ifndef LUAParserClass_H
+#define	LUAParserClass_H
 
 #include <map>
 #include <set>
@@ -19,15 +19,18 @@
 #include "parser.hpp"
 #include <iostream>
 
+#include "vm.h"
+
 void yyerror(const char *s);
 namespace ug{
-class pclass;
+class LUAParserClass;
 }
-void yaccparse(const char*command, ug::pclass *p);
+void yaccparse(const char*command, ug::LUAParserClass *p);
 
 namespace ug{
 
-class pclass
+
+class LUAParserClass
 {
 	std::map<std::string, size_t> variables;
 	std::map<size_t, std::string> id2variable;
@@ -47,7 +50,7 @@ public:
     };
     eReturnType returnType;
 public:
-	pclass()
+	LUAParserClass()
 	{
         numOut = -1;
         returnType = RT_CALLBACK;
@@ -178,7 +181,13 @@ public:
     
     int createRT(nodeType *a, std::ostream &out, const char **rt, int nr, int indent);
     
-    
+    int createVM(nodeType *p, VMAdd &vm);
+    int createVM(VMAdd &vm)
+    {
+    	for(size_t i=0; i<nodes.size(); i++)
+    		createVM(nodes[i], vm);
+    	return true;
+    }
 	int	createC(nodeType *p, std::ostream &out, int indent);
     int createJITSG(std::ostream &out, eReturnType r, std::set<std::string> &subfunctions);
 	int	createLUA(nodeType *p, std::ostream &out);
@@ -339,5 +348,5 @@ public:
 };
 
 } // namespace ug
-#endif	/* PCLASS_H */
+#endif	/* LUAParserClass_H */
 

@@ -149,7 +149,7 @@
 #include <stdarg.h>
 
 #include "parser_node.h"
-#include "pclass.h"
+#include "lua_parser_class.h"
 
 #define YYERROR_VERBOSE
 /* prototypes */
@@ -158,7 +158,7 @@ int yylex(void);
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 YY_BUFFER_STATE yy_scan_string (const char *yy_str  );
 
-pclass *globalP;
+LUAParserClass *globalP;
 
 void yyerror(const char *s);
 
@@ -2081,7 +2081,7 @@ void yyerror(const char *s)
 	globalP->err << "error: " << s << "\n";
 }
 
-void yaccparse(const char*command, ug::pclass *p)
+void yaccparse(const char*command, ug::LUAParserClass *p)
 {	
 	globalP = p;
 	if(command!=NULL)

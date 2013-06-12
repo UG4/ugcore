@@ -532,12 +532,12 @@ char *yytext;
 #line 1 "lexer.l"
 #line 2 "lexer.l"
 #include <stdlib.h>
-#include "pclass.h"
+#include "lua_parser_class.h"
 #include "parser.hpp"
 using namespace ug;
 void yyerror(const char *);
 using namespace ug;
-extern pclass *globalP;
+extern LUAParserClass *globalP;
 #line 542 "lexer.cpp"
 
 #define INITIAL 0

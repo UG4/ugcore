@@ -10,7 +10,7 @@
 #include "bindings/lua/lua_stack_check.h"
 #include "bindings/lua/info_commands.h"
 #include "lua2c.h"
-#include "pclass.h"
+#include "lua_parser_class.h"
 
 using namespace std;
 namespace ug{
@@ -19,12 +19,23 @@ namespace bridge {
 
 int convert(const char *functionName)
 {
-    pclass parser;
+    LUAParserClass parser;
     if(parser.parse_luaFunction(functionName) == false) return 0;
     
     parser.createC(cout);
 
 	return 0;	
+}
+
+int convertVM(const char *functionName)
+{
+	LUAParserClass parser;
+    if(parser.parse_luaFunction(functionName) == false) return 0;
+    VMAdd vm;
+    parser.createVM(vm);
+    vm.print();
+
+	return 0;
 }
 
 
@@ -36,6 +47,7 @@ bool RegisterConverter(Registry &reg, const char* parentGroup)
 	//try
 	{
 		reg.add_function("LUA2C_convertC", &convert, grp.c_str());		
+		reg.add_function("LUA2C_convertVM", &convertVM, grp.c_str());
 	}
 	//UG_REGISTRY_CATCH_THROW(grp);
 

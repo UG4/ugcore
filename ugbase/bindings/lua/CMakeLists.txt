@@ -90,7 +90,12 @@ set(srcUGScript		lua_util.cpp
 
 set(srcLUA2C		converter/parser.cpp
 					converter/lexer.cpp
-					converter/pclass.cpp
+					converter/lua_parser_class.cpp
+					converter/lua_parser_class_create_c.cpp
+					converter/lua_parser_class_create_jitsg.cpp
+					converter/lua_parser_class_create_lua.cpp
+					converter/lua_parser_class_create_vm.cpp
+					converter/lua_parser_class_reduce.cpp
 					converter/converter.cpp
 					converter/parser.y
 					converter/lexer.l
