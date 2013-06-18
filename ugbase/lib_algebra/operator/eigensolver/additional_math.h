@@ -74,9 +74,7 @@ double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2, vector_type 
 	v2.change_storage_type(PST_CONSISTENT);
 #endif
 	A.apply(tmp, v2);
-#ifdef UG_PARALLEL
-	tmp.change_storage_type(PST_CONSISTENT);
-#endif
+	// tmp is additive, v1 is consistent
 	double a = v1.dotprod(tmp);
 	//UG_LOG("EnergyProd " << a << "\n");
 
