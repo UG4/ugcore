@@ -70,19 +70,6 @@ static void AdjustSelection(Grid& grid, Selector& sel)
 bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			IRefinementCallback* refCallback)
 {
-//	aInt has to be attached to the edges of the grid
-	if(grid.num<Face>() > 0 && (!grid.has_edge_attachment(aInt))){
-		LOG("  WARNING in Refine: aInt is not attached to the edges of the grid. Aborting.\n");
-		return false;
-	}
-
-//	if there are volumes in the grid, 
-//	aInt has to be attached to the faces of the grid
-	if(grid.num<Volume>() && (!grid.has_face_attachment(aInt))){
-		LOG("  WARNING in Refine: aInt is not attached to the faces of the grid. Aborting.\n");
-		return false;
-	}
-		
 //	position data is required
 	if(!grid.has_vertex_attachment(aPosition)){
 		LOG("  WARNING in Refine: aPosition is not attached to the vertices of the grid. Aborting.\n");
@@ -131,6 +118,20 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
 	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>());
 	
+
+//	aInt has to be attached to the edges of the grid
+	if(sel.num<Face>() > 0 && (!grid.has_edge_attachment(aInt))){
+		LOG("  WARNING in Refine: aInt is not attached to the edges of the grid. Aborting.\n");
+		return false;
+	}
+
+//	if there are selected volumes,
+//	aInt has to be attached to the faces of the grid
+	if(sel.num<Volume>() && (!grid.has_face_attachment(aInt))){
+		LOG("  WARNING in Refine: aInt is not attached to the faces of the grid. Aborting.\n");
+		return false;
+	}
+
 //	number of edges, faces and volumes that will be refined
 	const size_t numRefEdges = sel.num<EdgeBase>();
 	const size_t numRefFaces = sel.num<Face>();

@@ -12,6 +12,7 @@
 #include "common/node_tree/node_tree.h"
 #include "lib_grid/algorithms/trees/octree.h"
 #include "lib_grid/algorithms/callback_util.h"
+#include "../trees/octree.h"
 
 using namespace std;
 
