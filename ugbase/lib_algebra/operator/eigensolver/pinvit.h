@@ -25,6 +25,8 @@
 #include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/debug_writer.h"
 
+#include "lib_algebra/algebra_common/vector_util.h"
+
 #define UG_ASSERT_EQUAL(a, b, txt) UG_ASSERT(a == b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] == [" << UG_TO_STRING(b) << " = " << b << "] ")
 #define UG_ASSERT_SMALLER_EQUAL(a, b, txt) UG_ASSERT(a <= b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] <= [" << UG_TO_STRING(b) << " = " << b << "] ")
 #define UG_ASSERT_SMALLER(a, b, txt) UG_ASSERT(a < b, txt << " [" << UG_TO_STRING(a) << " = " << a << "] < [" << UG_TO_STRING(b) << " = " << b << "] ")
@@ -318,7 +320,7 @@ public:
 			CloneVector(vAdditional[i], *px[0]);
 
 			vAdditional[i].resize(N);
-			vAdditional[i].set(0.0);
+			vAdditional[i] = 0.0;
 		}
 
 		vector_type tmp;
@@ -337,10 +339,10 @@ public:
 
 			CloneVector(vCorr[i], *px[0]);
 			vCorr[i].resize(N);
-			vCorr[i].set(0);
+			vCorr[i] = 0;
 			CloneVector(vOldX[i], *px[0]);
 			vOldX[i].resize(N);
-			vOldX[i].set(0);
+			vOldX[i] = 0;
 
 			//PrintStorageType(*px[i]);
 			//PrintStorageType(vCorr[i]);
@@ -460,8 +462,10 @@ public:
 		CloneVector(t, *px[0]);
 		CloneVector(defect, *px[0]);
 
+#ifdef UG_PARALLEL
 		for(size_t c=0; c<pTestVectors.size(); c++)
 			pTestVectors[c]->change_storage_type(PST_CONSISTENT);
+#endif
 
 		for(size_t r=0; r<pTestVectors.size(); r++)
 		{
@@ -762,39 +766,54 @@ private:
 		{
 			for(size_t i=0; i < px.size(); i++)
 			{
-				pTestVectors.push_back(px[i]);
-				vTestVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
-
-				if(vDefectNorm[i] >= m_dPrecision && m_iPINVIT >= 3)
+				if(IsNormalAndNotTooBig(*px[i]))
 				{
-					if(iteration != 0)
-					{
-						pTestVectors.push_back(&vOldX[i]);
-						vTestVectorDescription.push_back(std::string("old eigenvalue[") + ToString(i) + std::string("]") );
-					}
+					pTestVectors.push_back(px[i]);
+					vTestVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
 
-					/*if(iteration == 0)
+					if(vDefectNorm[i] >= m_dPrecision && m_iPINVIT >= 3)
 					{
-						for(size_t j=0; j<px[i]->size(); j++)
-							vOldX[i][j] = (*px[i])[j] * urand(-1.0, 1.0);
-					}*/
+						if(iteration != 0)
+						{
+							pTestVectors.push_back(&vOldX[i]);
+							vTestVectorDescription.push_back(std::string("old eigenvalue[") + ToString(i) + std::string("]") );
+						}
+
+						/*if(iteration == 0)
+						{
+							for(size_t j=0; j<px[i]->size(); j++)
+								vOldX[i][j] = (*px[i])[j] * urand(-1.0, 1.0);
+						}*/
+					}
 				}
+				else
+				{	UG_LOGN("WARNING ev [" << i << "] not normal or too big");	}
 			}
 
 			for(size_t i=0; i<numCorrections; i++)
 			{
-				pTestVectors.push_back(&vCorr[i]);
-				if(vDefectNorm[i] >= m_dPrecision)
-					vTestVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
+				if(IsNormalAndNotTooBig(vCorr[i]))
+				{
+					pTestVectors.push_back(&vCorr[i]);
+					if(vDefectNorm[i] >= m_dPrecision)
+						vTestVectorDescription.push_back(std::string("correction [") + ToString(i) + std::string("]") );
+					else
+						vTestVectorDescription.push_back(std::string("additional correction [") + ToString(i) + std::string("]") );
+				}
 				else
-					vTestVectorDescription.push_back(std::string("additional correction [") + ToString(i) + std::string("]") );
+				{	UG_LOGN("WARNING correction [" << i << "] not normal or too big");	}
 			}
 
 		}
 		for(size_t i=0; i<m_currentAdditionalEigenvectors; i++)
 		{
-			pTestVectors.push_back(&vAdditional[i]);
-			vTestVectorDescription.push_back(std::string("additional [") + ToString(i) + std::string("]") );
+			if(IsNormalAndNotTooBig(vAdditional[i]))
+			{
+				pTestVectors.push_back(&vAdditional[i]);
+				vTestVectorDescription.push_back(std::string("additional [") + ToString(i) + std::string("]") );
+			}
+			else
+			{	UG_LOGN("WARNING additional [" << i << "] not normal or too big");	}
 		}
 	}
 
@@ -905,6 +924,8 @@ private:
 		// 2. & 3. compute reduced Matrices rA, rB
 		rA.resize(iNrOfTestVectors, iNrOfTestVectors);
 		rB.resize(iNrOfTestVectors, iNrOfTestVectors);
+
+		UG_LOG("iNrOfTestVectors = " << iNrOfTestVectors << "\n");
 
 		if(m_pB)
 			MultiEnergyProd(*m_pB, &pTestVectors[0], rB, iNrOfTestVectors);
