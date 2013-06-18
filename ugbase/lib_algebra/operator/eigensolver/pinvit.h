@@ -309,14 +309,16 @@ public:
 			B(i,i) = 0.00390625;
 		B.set_storage_type(PST_ADDITIVE);*/
 
-				std::vector<vector_type> vAdditional;
+		std::vector<vector_type> vAdditional;
 		vAdditional.resize(m_additionalEigenvectorsToKeep);
 		size_t N = px[0]->size();
 
 		for(size_t i=0; i<m_additionalEigenvectorsToKeep; i++)
 		{
 			CloneVector(vAdditional[i], *px[0]);
+
 			vAdditional[i].resize(N);
+			vAdditional[i].set(0.0);
 		}
 
 		vector_type tmp;
@@ -335,8 +337,10 @@ public:
 
 			CloneVector(vCorr[i], *px[0]);
 			vCorr[i].resize(N);
+			vCorr[i].set(0);
 			CloneVector(vOldX[i], *px[0]);
 			vOldX[i].resize(N);
+			vOldX[i].set(0);
 
 			//PrintStorageType(*px[i]);
 			//PrintStorageType(vCorr[i]);
@@ -454,6 +458,10 @@ public:
 		vector_type t; t.resize(px[0]->size());
 		vector_type defect; defect.resize(px[0]->size());
 		CloneVector(t, *px[0]);
+		CloneVector(defect, *px[0]);
+
+		for(size_t c=0; c<pTestVectors.size(); c++)
+			pTestVectors[c]->change_storage_type(PST_CONSISTENT);
 
 		for(size_t r=0; r<pTestVectors.size(); r++)
 		{
@@ -471,12 +479,14 @@ public:
 				}
 			}
 
+
 			t *= 1.0/B_norm(t);
+
 #ifdef UG_PARALLEL
-			t.change_storage_type(PST_CONSISTENT);
+			t.set_storage_type(PST_CONSISTENT);
+			defect.set_storage_type(PST_ADDITIVE);
 #endif
 			m_pA->apply(defect, t);
-
 
 			double lambda = t.dotprod(defect);
 
@@ -492,6 +502,7 @@ public:
 				VecScaleAdd(defect, 1.0, defect, -lambda, t);
 
 
+
 			UG_LOG(r << " lambda: " << std::setw(14) << lambda << " defect: " << std::setw(14) << defect.norm() << "\n");
 
 			if(bWrite)
@@ -505,9 +516,12 @@ public:
 	{
 #ifdef UG_PARALLEL
 		for(size_t i=0; i<pTestVectors.size(); i++)
-			pTestVectors[i]->change_storage_type(PST_UNIQUE);
+			pTestVectors[i]->change_storage_type(PST_CONSISTENT);
 		for(size_t i=0; i<px.size(); i++)
-			px[i]->change_storage_type(PST_UNIQUE);
+			px[i]->change_storage_type(PST_CONSISTENT);
+
+		for(size_t i=0; i<vAdditional.size(); i++)
+			vAdditional[i].set_storage_type(PST_CONSISTENT);
 #endif
 		// assume r_lambda is sorted
 
@@ -516,6 +530,7 @@ public:
 
 		size_t numCalc = std::min(px.size()+m_additionalEigenvectorsToKeep, r_ev.num_cols()); //px.size()
 		m_currentAdditionalEigenvectors = numCalc-px.size();
+		UG_LOG("current aditional eigenvectors: " << m_currentAdditionalEigenvectors << "\n");
 
 		std::vector<typename vector_type::value_type> x_tmp(numCalc);
 		for(size_t i=0; i<size; i++)
@@ -547,7 +562,6 @@ public:
 				vAdditional[r-px.size()][i] = x_tmp[r];
 
 		}
-
 	}
 
 	void assert_real_positive(const std::vector<std::complex<double> > &r_lambda)
@@ -668,6 +682,7 @@ private:
 			x.change_storage_type(PST_CONSISTENT);
 #endif
 			MatMultAdd(defect, 1.0, defect, -lambda, *m_pB, x);
+
 		}
 		else
 			VecScaleAdd(defect, 1.0, defect, -lambda, x);
@@ -814,7 +829,7 @@ private:
 				for(size_t k=j+1; k<mat.num_rows(); k++)
 					mat(i,k) -= val*mat(j, k);
 			}
-			if(mat(i,i) < 1e-12) bLinearIndependent[i] = false;
+			if(mat(i,i) < 1e-6) bLinearIndependent[i] = false;
 			else bLinearIndependent[i] = true;
 		}
 	}
