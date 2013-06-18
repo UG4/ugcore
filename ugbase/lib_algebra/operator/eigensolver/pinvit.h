@@ -787,7 +787,7 @@ private:
 					}
 				}
 				else
-				{	UG_LOGN("WARNING ev [" << i << "] not normal or too big");	}
+				{	UG_LOG("WARNING ev [" << i << "] not normal or too big");	}
 			}
 
 			for(size_t i=0; i<numCorrections; i++)
@@ -801,7 +801,7 @@ private:
 						vTestVectorDescription.push_back(std::string("additional correction [") + ToString(i) + std::string("]") );
 				}
 				else
-				{	UG_LOGN("WARNING correction [" << i << "] not normal or too big");	}
+				{	UG_LOG("WARNING correction [" << i << "] not normal or too big");	}
 			}
 
 		}
@@ -813,7 +813,7 @@ private:
 				vTestVectorDescription.push_back(std::string("additional [") + ToString(i) + std::string("]") );
 			}
 			else
-			{	UG_LOGN("WARNING additional [" << i << "] not normal or too big");	}
+			{	UG_LOG("WARNING additional [" << i << "] not normal or too big");	}
 		}
 	}
 
