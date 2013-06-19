@@ -71,6 +71,16 @@ UG_API int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
 UG_API EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns the number of associated edges of the given vertex
+UG_API
+int NumAssociatedEdges(Grid& grid, VertexBase* v);
+
+////////////////////////////////////////////////////////////////////////
+///	returns the number of associated faces of the given vertex
+UG_API
+int NumAssociatedFaces(Grid& grid, VertexBase* v);
+
+////////////////////////////////////////////////////////////////////////
 //	CollectSurfaceNeighborsSorted
 ///	Collects neighbor-vertices in either clockwise or counter clockwise order.
 /**	Please note: This algorithm uses Grid::mark.

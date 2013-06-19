@@ -40,6 +40,25 @@ static bool PerformTetrahedralization(Grid& grid,
 	if(grid.num<Quadrilateral>() > 0)
 		Triangulate(grid, grid.begin<Quadrilateral>(), grid.end<Quadrilateral>(), &aaPos);
 
+//	we have to make sure that all vertices in the grid are actually connected
+//	to a triangle. If this wouldn't be the case, tetgen would likely have problems.
+	size_t numVrtsRemoved = 0;
+	for(VertexBaseIterator iter = grid.begin<VertexBase>();
+		iter != grid.end<VertexBase>();)
+	{
+		VertexBase* v = *iter;
+		++iter;
+		if((NumAssociatedEdges(grid, v) == 0) || (NumAssociatedFaces(grid, v) == 0)){
+			grid.erase(v);
+			++numVrtsRemoved;
+		}
+	}
+
+	if(numVrtsRemoved > 0){
+		UG_LOG("WARNING in Tetrahedralize: Removed " << numVrtsRemoved
+				<< " vertices which were not connected to any edge or face\n");
+	}
+
 //	attach an index to the vertices
 	AInt aInd;
 	grid.attach_to_vertices(aInd);

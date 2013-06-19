@@ -98,6 +98,22 @@ EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri)
 }
 
 ////////////////////////////////////////////////////////////////////////
+int NumAssociatedEdges(Grid& grid, VertexBase* v)
+{
+	Grid::edge_traits::secure_container edges;
+	grid.associated_elements(edges, v);
+	return (int)edges.size();
+}
+
+////////////////////////////////////////////////////////////////////////
+int NumAssociatedFaces(Grid& grid, VertexBase* v)
+{
+	Grid::face_traits::secure_container faces;
+	grid.associated_elements(faces, v);
+	return (int)faces.size();
+}
+
+////////////////////////////////////////////////////////////////////////
 //	CollectSurfaceNeighborsSorted
 bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
 								   Grid& grid, VertexBase* v)

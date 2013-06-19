@@ -135,7 +135,9 @@ vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem)
 template <class TElem>
 static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 {
-	DistributedGridManager* dgm = mg.distributed_grid_manager();
+	#ifdef UG_PARALLEL
+		DistributedGridManager* dgm = mg.distributed_grid_manager();
+	#endif
 
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
 		for(typename MultiGrid::traits<TElem>::iterator iter = mg.begin<TElem>(lvl);
