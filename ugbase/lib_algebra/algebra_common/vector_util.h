@@ -13,21 +13,39 @@
 
 namespace ug{
 template<typename TVector>
-bool IsNormalAndNotTooBig(TVector &v, double tooBigValue=1e24)
+bool IsFiniteAndNotTooBig(TVector &v, double tooBigValue=1e24)
 {
 	for(size_t i=0; i<v.size(); i++)
 	{
 		for(size_t j=0; j< GetSize(v[i]); j++)
 		{
 			double d = BlockRef(v[i], j);
-			if(d > tooBigValue || d < -tooBigValue
-					|| isnormal(d) == false)
-			{
+			if(d > tooBigValue || d < -tooBigValue || isfinite(d) == false)
 				return false;
-			}
 		}
 	}
 	return true;
+}
+
+template<typename TVector>
+bool IsFinite(TVector &v)
+{
+	for(size_t i=0; i<v.size(); i++)
+	{
+		for(size_t j=0; j< GetSize(v[i]); j++)
+		{
+			double d = BlockRef(v[i], j);
+			if(isfinite(d) == false)
+				return false;
+		}
+	}
+	return true;
+}
+
+template<typename TVector>
+bool IsNormalAndNotTooBig(TVector &v, double tooBigValue=1e24)
+{
+	return IsFiniteAndNotTooBig(v, tooBigValue);
 }
 
 }
