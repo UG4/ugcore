@@ -20,48 +20,6 @@
 namespace ug
 {
 
-class UG_API DelaunayDebugSaver
-{
-	public:
-		static DelaunayDebugSaver& inst()
-		{
-			static DelaunayDebugSaver dds;
-			return dds;
-		}
-
-		void save(Grid& g, const char* msg)
-		{
-			if(m_saveEnabled){
-				std::stringstream ss;
-				ss << "dbg" << m_counter++ << ".ugx";
-
-				UG_LOG(msg << ": debug-save to " << ss.str() << std::endl);
-				SubsetHandler sh(g);
-				AssignGridToSubset(g, sh, 0);
-				SaveGridToFile(g, sh, ss.str().c_str());
-			}
-		}
-
-		void enable_save(bool enable = true)	{m_saveEnabled = enable;}
-
-	private:
-		DelaunayDebugSaver() : m_saveEnabled(false), m_counter(0) {}
-
-		bool	m_saveEnabled;
-		int		m_counter;
-};
-
-inline void EnableDelaunayDebugSave(bool enable = true)
-{
-	DelaunayDebugSaver::inst().enable_save(enable);
-}
-
-inline void DelaunayDebugSave(Grid& g, const char* msg)
-{
-	DelaunayDebugSaver::inst().save(g, msg);
-}
-
-
 /** This class intended for internal use in delaunay related algorithms.
  *
  * This helper class describes the set of triangles and edges, on which
@@ -453,6 +411,108 @@ class DelaunayInfo : public GridObserver
 
 
 ////////////////////////////////////////////////////////////////////////////////
+class UG_API DelaunayDebugSaver
+{
+	public:
+		static DelaunayDebugSaver& inst()
+		{
+			static DelaunayDebugSaver dds;
+			return dds;
+		}
+
+		void save(Grid& g, const char* msg)
+		{
+			if(m_saveEnabled){
+				std::stringstream ss;
+				ss << "dbg" << m_counter++ << ".ugx";
+
+				UG_LOG(msg << ": debug-save to " << ss.str() << std::endl);
+				SubsetHandler sh(g);
+				AssignGridToSubset(g, sh, 0);
+				SaveGridToFile(g, sh, ss.str().c_str());
+			}
+		}
+
+		template <class TAAPos>
+		void save(Grid& g, const char* msg, DelaunayInfo<TAAPos>& dinfo)
+		{
+			if(m_saveEnabled){
+				std::stringstream ss;
+				ss << "dbg" << m_counter++ << ".ugx";
+
+				UG_LOG(msg << ": debug-save to " << ss.str() << std::endl);
+				SubsetHandler sh(g);
+
+				for(VertexBaseIterator iter = g.begin<VertexBase>();
+					iter != g.end<VertexBase>(); ++iter)
+				{
+					if(dinfo.is_marked(*iter))
+						sh.assign_subset(*iter, 1);
+					else
+						sh.assign_subset(*iter, 0);
+				}
+
+				for(EdgeBaseIterator iter = g.begin<EdgeBase>();
+					iter != g.end<EdgeBase>(); ++iter)
+				{
+					if(dinfo.is_constrained(*iter))
+						sh.assign_subset(*iter, 3);
+					if(dinfo.is_candidate(*iter))
+						sh.assign_subset(*iter, 4);
+					else
+						sh.assign_subset(*iter, 2);
+				}
+
+				for(FaceIterator iter = g.begin<Face>();
+					iter != g.end<Face>(); ++iter)
+				{
+					if(dinfo.is_marked(*iter))
+						sh.assign_subset(*iter, 6);
+					else
+						sh.assign_subset(*iter, 5);
+				}
+
+				sh.subset_info(0).name = "unmarked vrts";
+				sh.subset_info(1).name = "marked vrts";
+				sh.subset_info(2).name = "unmarked edges";
+				sh.subset_info(3).name = "constrained edges";
+				sh.subset_info(4).name = "candidate edges";
+				sh.subset_info(5).name = "unmarked faces";
+				sh.subset_info(6).name = "marked faces";
+
+				AssignSubsetColors(sh);
+				SaveGridToFile(g, sh, ss.str().c_str());
+
+			}
+		}
+
+		void enable_save(bool enable = true)	{m_saveEnabled = enable;}
+
+	private:
+		DelaunayDebugSaver() : m_saveEnabled(false), m_counter(0) {}
+
+		bool	m_saveEnabled;
+		int		m_counter;
+};
+
+inline void EnableDelaunayDebugSave(bool enable = true)
+{
+	DelaunayDebugSaver::inst().enable_save(enable);
+}
+
+inline void DelaunayDebugSave(Grid& g, const char* msg)
+{
+	DelaunayDebugSaver::inst().save(g, msg);
+}
+
+template <class TAAPos>
+inline void DelaunayDebugSave(Grid& g, const char* msg, DelaunayInfo<TAAPos>& dinfo)
+{
+	DelaunayDebugSaver::inst().save(g, msg, dinfo);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 template <class TAAPos>
 bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 {
@@ -555,7 +615,7 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 
 			e = eNew;
 
-			DelaunayDebugSave(grid, "Edge Swapped");
+			DelaunayDebugSave(grid, "Edge Swapped", info);
 
 		//	all edges of associated triangles are candidates again (except e)
 			GetAssociatedFaces(nbrFaces, grid, e, 2);
@@ -608,6 +668,8 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 				  	  	   Grid::edge_traits::callback cbConstrainedEdge = Grid::edge_traits::cb_consider_none,
 				  	  	   int maxSteps = -1/*remove this*/)
 {
+	//EnableDelaunayDebugSave(true);
+
 	using namespace std;
 	typedef typename TAAPos::ValueType vector_t;
 
@@ -671,6 +733,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 		}
 	}
 
+	UG_LOG("MakeDelaunay Initial\n");
 	MakeDelaunay(info);
 
 	if(minAngle > 0 && maxSteps != 0){
@@ -787,7 +850,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 					}
 
 					if(split){
-						//UG_LOG("SPLIT\n");
+						UG_LOG("EDGE-SPLIT\n");
 						vector_t center = CalculateCenter(nextEdge, aaPos);
 
 						VertexBase* vrt0 = nextEdge->vertex(0);
@@ -959,7 +1022,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 							//	now erase vrt
 								grid.erase(vrt);
 
-								DelaunayDebugSave(grid, "After TriangleFill");
+								DelaunayDebugSave(grid, "After TriangleFill", info);
 							}
 
 							//UG_LOG("adding new candidates\n");
@@ -1018,6 +1081,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 				//	and perform local delaunay (not necessarily local...).
 				//	todo: make sure, that cc really lies in curTri
 				//...
+					UG_LOG("Inserting point into triangle\n");
 					VertexBase* vrt0 = curFace->vertex(0);
 					VertexBase* vrt1 = curFace->vertex(1);
 					VertexBase* vrt2 = curFace->vertex(2);
@@ -1031,7 +1095,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 				//UG_LOG("erasing old face\n");
 					grid.erase(curFace);
 
-					DelaunayDebugSave(grid, "After InsertPoint");
+					DelaunayDebugSave(grid, "After InsertPoint", info);
 
 					pointInserted = vrt;
 				}
@@ -1040,26 +1104,43 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 					//UG_LOG("temp-save to delaunay_debug.ugx\n");
 					//SaveGridToFile(grid, "delaunay_debug.ugx");
 
-					//UG_LOG("adding candidates\n");
-					//	if a vertex was inserted, we'll have to perform a delaunay step.
-					//	mark all edges which are connected to a triangle, which is conencted
-					//	to vrt.
-						CollectAssociated(faces, grid, pointInserted);
-						for(size_t i_face = 0; i_face < faces.size(); ++i_face){
-							CollectAssociated(edges, grid, faces[i_face]);
-							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-								if(!info.is_constrained(edges[i_edge]))
-									info.push_candidate(edges[i_edge]);
+					UG_LOG("inserted point\n");
+				//	if a vertex was inserted, we'll have to perform a delaunay step.
+				//	Find new candidates by examining edges of associated triangles of vrt.
+				//	If an edge of such a triangle is connected to exactly 2
+				//	triangles, both marked, then it is a new candidate.
+					CollectAssociated(faces, grid, pointInserted);
+					for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+						if(!info.is_marked(faces[i_face]))
+							continue;
+
+						CollectAssociated(edges, grid, faces[i_face]);
+						for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+							EdgeBase* e = edges[i_edge];
+							if(info.is_candidate(e) || info.is_constrained(e))
+								continue;
+
+							Face* nbrs[2];
+							if(GetAssociatedFaces(nbrs, grid, e, 2) == 2){
+								if(info.is_marked(nbrs[0])
+								   && info.is_marked(nbrs[1]))
+								{
+									info.push_candidate(e);
+								}
 							}
 						}
+					}
 
-					//UG_LOG("redelaunaylizing\n");
-						if(!MakeDelaunay(info)){
-							UG_LOG("Make Delaunay failed in step " << stepCount << ".\n");
-							UG_LOG("  While examining face " << faceCenter << endl);
-							return false;
-						}
-					//UG_LOG("adaption step completed!\n");
+					DelaunayDebugSave(grid, "Candidates Adjusted After Insert Point", info);
+
+				//UG_LOG("redelaunaylizing\n");
+					UG_LOG("MakeDelaunay after InsertPoint\n");
+					if(!MakeDelaunay(info)){
+						UG_LOG("Make Delaunay failed in step " << stepCount << ".\n");
+						UG_LOG("  While examining face " << faceCenter << endl);
+						return false;
+					}
+				//UG_LOG("adaption step completed!\n");
 				}
 			}
 
@@ -1081,7 +1162,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 /*
 			if((stepCount % 1000) == 0){
 				UG_LOG("temp-save to delaunay_debug.ugx in step " << stepCount << endl);
-				//DelaunayDebugSave(grid, "");
+				//DelaunayDebugSave(grid, "", info);
 				SaveGridToFile(grid, "delaunay_debug.ugx");
 			}
 */
