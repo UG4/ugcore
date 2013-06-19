@@ -733,7 +733,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 		}
 	}
 
-	UG_LOG("MakeDelaunay Initial\n");
+	//UG_LOG("MakeDelaunay Initial\n");
 	MakeDelaunay(info);
 
 	if(minAngle > 0 && maxSteps != 0){
@@ -850,7 +850,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 					}
 
 					if(split){
-						UG_LOG("EDGE-SPLIT\n");
+						//UG_LOG("EDGE-SPLIT\n");
 						vector_t center = CalculateCenter(nextEdge, aaPos);
 
 						VertexBase* vrt0 = nextEdge->vertex(0);
@@ -1081,7 +1081,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 				//	and perform local delaunay (not necessarily local...).
 				//	todo: make sure, that cc really lies in curTri
 				//...
-					UG_LOG("Inserting point into triangle\n");
+					//UG_LOG("Inserting point into triangle\n");
 					VertexBase* vrt0 = curFace->vertex(0);
 					VertexBase* vrt1 = curFace->vertex(1);
 					VertexBase* vrt2 = curFace->vertex(2);
@@ -1104,7 +1104,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 					//UG_LOG("temp-save to delaunay_debug.ugx\n");
 					//SaveGridToFile(grid, "delaunay_debug.ugx");
 
-					UG_LOG("inserted point\n");
+					//UG_LOG("inserted point\n");
 				//	if a vertex was inserted, we'll have to perform a delaunay step.
 				//	Find new candidates by examining edges of associated triangles of vrt.
 				//	If an edge of such a triangle is connected to exactly 2
@@ -1134,7 +1134,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 					DelaunayDebugSave(grid, "Candidates Adjusted After Insert Point", info);
 
 				//UG_LOG("redelaunaylizing\n");
-					UG_LOG("MakeDelaunay after InsertPoint\n");
+					//UG_LOG("MakeDelaunay after InsertPoint\n");
 					if(!MakeDelaunay(info)){
 						UG_LOG("Make Delaunay failed in step " << stepCount << ".\n");
 						UG_LOG("  While examining face " << faceCenter << endl);
