@@ -71,8 +71,8 @@ function util.PrintUsageOfSolveTimeProblem()
 	print("startTime        -- start time point")
 	print("endTime          -- end time point")
 	print("maxStepSize      -- maximal step sized used")	
-	print("minStepSize      -- (optinal) minimal step sized used")	
-	print("reductionFactor  -- (optinal) factor by which the step size is ")
+	print("minStepSize      -- (optional) minimal step sized used")	
+	print("reductionFactor  -- (optional) factor by which the step size is ")
 	print("                    reduced, if the problem was not solved. ")
 	print("                    Iterated until minStepSize is reached.")
 end
@@ -90,10 +90,13 @@ end
 --! @param startTime		start time point
 --! @param endTime			end time point")
 --! @param maxStepSize		maximal step sized used
---! @param minStepSize 		(optinal) minimal step sized used	
---! @param reductionFactor 	(optinal) factor by which the step size is
+--! @param minStepSize 		(optional) minimal step sized used	
+--! @param reductionFactor 	(optional) factor by which the step size is
 --! 						reduced, if the problem was not solved.
 --! 						Iterated until minStepSize is reached.
+--! @param bFinishTimeStep 	(optional) boolean if finish_timestep should be 
+--! 						called or not
+
 function util.SolveNonlinearTimeProblem(
 	u,
 	domainDisc,
@@ -106,7 +109,8 @@ function util.SolveNonlinearTimeProblem(
 	endTime,
 	maxStepSize,
 	minStepSize,
-	reductionFactor)
+	reductionFactor,
+	bFinishTimeStep)
 
 	if u == nil or domainDisc == nil or newtonSolver == nil or timeScheme == nil
 		or startTime == nil or endTime == nil or maxStepSize == nil then
@@ -212,7 +216,11 @@ function util.SolveNonlinearTimeProblem(
 					VecScaleAssign(oldestSol, 1.0, u)
 					solTimeSeries:push_discard_oldest(oldestSol, time)
 				end
-
+				
+				if not (bFinishTimeStep == nil) then 
+					timeDisc:finish_step_elem(solTimeSeries, u:grid_level()) 
+				end
+				
 				if timeDisc:num_stages() > 1 then
 					print("      +++ STAGE " .. stage .. " END   ++++++")
 				end
