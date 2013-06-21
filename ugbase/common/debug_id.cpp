@@ -10,6 +10,8 @@
 #include "common/error.h"
 #include "common/assert.h"
 
+#include "util/string_util.h"
+
 namespace ug{
 
 DebugID::DebugID(const char *str)
@@ -36,7 +38,21 @@ set_debug_levels(int lev)
 bool DebugIDManager::
 set_debug_level(const char *debugID, int level)
 {
-	if(set_debug_level(crc32(debugID), level) == false)
+	int slen = strlen(debugID);
+	if(slen<=0) return false;
+	if(debugID[slen-1] == '*')
+	{
+		for(int i=0; i<m_dbgLevelIdentifiers.size(); i++)
+		{
+			const char *name = m_dbgLevelIdentifiers[i].c_str();
+			if(WildcardMatch(name, debugID))
+			{
+				set_debug_level(crc32(name), level);
+				UG_LOGN(name);
+			}
+		}
+	}
+	else if(set_debug_level(crc32(debugID), level) == false)
 	{
 		UG_LOG("DebugID " << debugID << " not registered.\n");
 		return false;

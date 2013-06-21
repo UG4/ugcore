@@ -128,13 +128,18 @@ public:
 		bool set_debug_levels(int lev);
 
 	/// returns a string describing all registered debugIDs.
-		std::string get_registered_debug_IDs()
+		std::string get_registered_debug_IDs() const
 		{
 			std::stringstream str;
 			str << "DebugIDs:\n";
 			for(size_t i=0; i<m_dbgLevelIdentifiers.size(); i++)
 				str << m_dbgLevelIdentifiers[i] << " : Level " << get_debug_level(m_dbgLevelIdentifiers[i].c_str()) << "\n";
 			return str.str();
+		}
+
+		const std::vector<std::string> &get_registered_debug_IDs_arr() const
+		{
+			return m_dbgLevelIdentifiers;
 		}
 
 
