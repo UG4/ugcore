@@ -48,7 +48,7 @@ set_debug_level(const char *debugID, int level)
 			if(WildcardMatch(name, debugID))
 			{
 				set_debug_level(crc32(name), level);
-				UG_LOGN(name);
+				//UG_LOGN(name);
 			}
 		}
 	}
