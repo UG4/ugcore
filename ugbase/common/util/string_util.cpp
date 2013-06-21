@@ -3,6 +3,7 @@
 #include "string_util.h"
 #include <algorithm>
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
