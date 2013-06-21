@@ -9,7 +9,7 @@
 #include "common/log.h"
 #include "common/error.h"
 #include "common/assert.h"
-
+#include <string.h>
 #include "util/string_util.h"
 
 namespace ug{
@@ -42,7 +42,7 @@ set_debug_level(const char *debugID, int level)
 	if(slen<=0) return false;
 	if(debugID[slen-1] == '*')
 	{
-		for(int i=0; i<m_dbgLevelIdentifiers.size(); i++)
+		for(size_t i=0; i<m_dbgLevelIdentifiers.size(); i++)
 		{
 			const char *name = m_dbgLevelIdentifiers[i].c_str();
 			if(WildcardMatch(name, debugID))
