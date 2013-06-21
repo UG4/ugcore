@@ -322,6 +322,23 @@ bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
 						  	const vector3& b1, const vector3& b2);
 
 ////////////////////////////////////////////////////////////////////////
+///	Calculates the parameter values at wich two rays are closest.
+/**	Returns true if the calculation was successfull (e.g. if the rays were not parallel).
+ * \sa RayRayIntersection2d, RayRayIntersection3d, LineLineProjection*/
+template <class vector_t>
+bool RayRayProjection(number& t1Out, number& t2Out,
+						const vector_t& from1, const vector_t& dir1,
+						const vector_t& from2, const vector_t& dir2);
+
+////////////////////////////////////////////////////////////////////////
+///	calculates the closest point between the rays through the given lines.
+/**	returns true if the closest points lie inside the line segments.*/
+template <class vector_t>
+bool LineLineProjection(number& t1Out, number& t2Out,
+						  const vector_t& a1, const vector_t& a2,
+						  const vector_t& b1, const vector_t& b2);
+
+////////////////////////////////////////////////////////////////////////
 ///	calculates the distance between two 3d line segments
 /**	Calculates the distance between the two finite line segments
  * a (given by endpoints a1, a2) and b (given by endpoints b1, b2).

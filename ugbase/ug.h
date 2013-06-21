@@ -42,7 +42,7 @@ UG_API int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
 ///	Initializes the pathes of ug::PathProvider.
 /**	Initializes the following pathes in ug::PathProvider:
  *	- ROOT_PATH
- *	- APP_PATH
+ *	- BIN_PATH
  *	- SCRIPT_PATH
  *	- DATA_PATH
  *	- GRID_PATH

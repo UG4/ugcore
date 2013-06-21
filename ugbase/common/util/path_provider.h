@@ -21,7 +21,7 @@ namespace ug
 ///	Constants used by PathProvider
 enum PathTypes
 {
-	APP_PATH = 0,	///< path in which the binary lies
+	BIN_PATH = 0,	///< path in which the binary lies
 	DATA_PATH,
 	SCRIPT_PATH,
 	ROOT_PATH,
@@ -41,7 +41,7 @@ enum PathTypes
  * you have to call them through the :: operator. E.g.
  *
  * \code
- * std::string appPath = PathProvider::get_path(APP_PATH);
+ * std::string appPath = PathProvider::get_path(BIN_PATH);
  * \endcode
  */
 class PathProvider
@@ -79,9 +79,9 @@ class PathProvider
 	 * to be the most current path and is returned by this method.
 	 *
 	 * \param defPath	(optional) If the stack is empty, the path associated with
-	 * 					defPath is returned. By default defPath is set to APP_PATH.
+	 * 					defPath is returned. By default defPath is set to BIN_PATH.
 	 */
-		static inline const std::string& get_current_path(PathTypes defPath = APP_PATH)
+		static inline const std::string& get_current_path(PathTypes defPath = BIN_PATH)
 		{
 			if(inst().m_curPaths.empty())
 				return get_path(defPath);

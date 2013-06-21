@@ -29,8 +29,8 @@ static string GetGridPath()
 static string GetAppsPath()
 {return PathProvider::get_path(APPS_PATH);}
 
-static string GetAppPath()
-{return PathProvider::get_path(APP_PATH);}
+static string GetBinPath()
+{return PathProvider::get_path(BIN_PATH);}
 
 static string GetDataPath()
 {return PathProvider::get_path(DATA_PATH);}
@@ -75,7 +75,7 @@ void RegisterBridge_Util(Registry& reg, string parentGroup)
 	reg.add_function("ug_get_apps_path", &GetAppsPath, grp,
 	                 "pathName", "", "Returns the path in which ug's apps are stored");
 
-	reg.add_function("ug_get_app_path", &GetAppPath, grp,
+	reg.add_function("ug_get_bin_path", &GetBinPath, grp,
 	                 "pathName", "", "Returns the path in which the ug executable lies");
 
 	reg.add_function("ug_get_data_path", &GetDataPath, grp,

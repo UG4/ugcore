@@ -381,7 +381,51 @@ bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
 	}
 	return false;
 }
-						  
+
+template <class vector_t>
+bool RayRayProjection(number& t1Out, number& t2Out,
+						const vector_t& from1, const vector_t& dir1,
+						const vector_t& from2, const vector_t& dir2)
+{
+	vector_t ab;
+	VecSubtract(ab, from2, from1);
+	number l11 = VecDot(dir1, dir1);
+	number l12 = -VecDot(dir1, dir2);
+	number l22 = VecDot(dir2, dir2);
+	number ra = VecDot(dir1, ab);
+	number rb = -VecDot(dir2, ab);
+
+	number smallSq = SMALL * SMALL;
+//	l11 and l22 are always >= 0
+	if((l11 < smallSq) || (l22 < smallSq))
+		return false;
+
+	number tmp = l11 * l22 - l12 * l12;
+	if(fabs(tmp) < SMALL)
+		return false;
+
+	t2Out = (l11*rb - l12*ra) / tmp;
+	t1Out = (ra - l12*t2Out) / l11;
+	return true;
+}
+
+template <class vector_t>
+bool LineLineProjection(number& t1Out, number& t2Out,
+						  const vector_t& a1, const vector_t& a2,
+						  const vector_t& b1, const vector_t& b2)
+{
+	vector_t dirA, dirB;
+	VecSubtract(dirA, a2, a1);
+	VecSubtract(dirB, b2, b1);
+
+	if(RayRayProjection(t1Out, t2Out, a1, dirA, b1, dirB)){
+		if((t1Out >= 0) && (t1Out <= 1.) && (t2Out >= 0) && (t2Out <= 1.))
+			return true;
+		return false;
+	}
+	return false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, number& tOut,

@@ -78,8 +78,8 @@ bool InitPaths(const char* argv0)
 
 	if(!PathProvider::has_path(ROOT_PATH))
 		PathProvider::set_path(ROOT_PATH, strRoot);
-	if(!PathProvider::has_path(APP_PATH))
-		PathProvider::set_path(APP_PATH, strRoot + pathSep + "bin");
+	if(!PathProvider::has_path(BIN_PATH))
+		PathProvider::set_path(BIN_PATH, strRoot + pathSep + "bin");
 	if(!PathProvider::has_path(SCRIPT_PATH))
 		PathProvider::set_path(SCRIPT_PATH, strRoot + pathSep + "scripts");
 	if(!PathProvider::has_path(DATA_PATH))
@@ -93,12 +93,12 @@ bool InitPaths(const char* argv0)
 		PathProvider::set_path(APPS_PATH, strRoot + pathSep + "apps");
 
 //	log the paths
-	UG_DLOG(MAIN, 1, "app path set to: " << PathProvider::get_path(APP_PATH) <<
+	UG_DLOG(MAIN, 1, "app path set to: " << PathProvider::get_path(BIN_PATH) <<
 			std::endl << "script path set to: " << PathProvider::get_path(SCRIPT_PATH) <<
 			std::endl << "data path set to: " << PathProvider::get_path(DATA_PATH) <<
 			std::endl);
 /*
-	if(!script::FileExists(PathProvider::get_path(APP_PATH).c_str()) ||
+	if(!script::FileExists(PathProvider::get_path(BIN_PATH).c_str()) ||
 	   !script::FileExists(PathProvider::get_path(SCRIPT_PATH).c_str()) ||
 	   !script::FileExists(PathProvider::get_path(DATA_PATH).c_str()))
 	{
