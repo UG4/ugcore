@@ -479,6 +479,7 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);
 
 		reg.add_function("LevenshteinDistance", &LevenshteinDistance, grp);
+		reg.add_function("WildcardMatch", &WildcardMatch, grp);
 		
 		reg.add_function("ug_backtrace", &ug_backtrace, grp);
 		
