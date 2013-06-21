@@ -9,6 +9,7 @@
 #include <cctype>
 #include <fstream>
 #include "common/common.h"
+#include "common/assert.h"
 
 namespace ug{
 
@@ -314,6 +315,49 @@ string XMLStringEscape(string s)
 	s = ReplaceAll(s, ">", "&gt;");
 	return s;
 }
+
+bool WildcardMatch(const char *str, const char *pattern)
+{
+	int strLen = strlen(str);
+	int patternLen = strlen(pattern);
+	int j=0;
+	for(int i=0; i<patternLen; i++)
+	{
+		if(j >= strLen)
+			return pattern[i] == '*';
+		switch(pattern[i])
+		{
+		case '*':
+			if(i == patternLen-1) return true;
+			else
+			{
+				char nextSign = pattern[i+1];
+				UG_ASSERT(nextSign != '*', "** is not a valid pattern");
+				while(1)
+				{
+					for(;j<strLen; j++)
+						if(str[j] == nextSign)
+							break;
+					if(j == strLen) return false;
+					if(WildcardMatch(str+j, pattern+i+1)) return true;
+					j++;
+				}
+			}
+			break;
+
+		case '?':
+			j++;
+			break;
+
+		default:
+			if(pattern[i] != str[j]) return false;
+			j++;
+			break;
+		}
+	}
+	return true;
+}
+
 
 }
 

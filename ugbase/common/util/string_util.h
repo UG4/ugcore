@@ -298,6 +298,14 @@ inline std::string ToString(const T &t)
  */
 UG_API std::string XMLStringEscape(std::string s);
 
+/**
+ * \brief wildcard matches like bla.* or *.bla or t?st
+ * @param[in] str a string
+ * @param[in] pattern a pattern with wildcards * or ?
+ * @return true if match otherwise false
+ */
+UG_API bool WildcardMatch(const char *str, const char *pattern);
+
 // end group ugbase_common_util_strings
 /// \}
 
