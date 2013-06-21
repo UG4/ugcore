@@ -257,6 +257,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 
 	#define UG_DLOG(tag, level, msg)			{if(ug::GetDebugIDManager().get_debug_level(tag) >= level)\
 													{ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
+	#define UG_DLOGN(tag, level, msg)			UG_DLOG(tag, level, msg << "\n");
 	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetDebugIDManager().get_debug_level(tag) >= level)\
 													{ug::LogAssistant& la = ug::GetLogAssistant(); int op = la.get_output_process();\
 													la.set_output_process(-1); la.debug_logger() << "[Proc " << la.get_process_rank() << "]: "\
@@ -266,6 +267,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 	#define UG_RESET_DEBUG_LEVELS()				{}
 	#define UG_SET_DEBUG_LEVELS(level)			{}
 	#define UG_DLOG(tag, level, msg)			{}
+	#define UG_DLOGN(tag, level, msg)			{}
 	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{}
 	#define UG_DEBUG_BEGIN(tag, level)			{ if(1==0) {
 	#define UG_DEBUG_END(tag, level)			}; }
@@ -317,6 +319,7 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
 
 
 #define UG_LOG(msg) {ug::GetLogAssistant().logger() << msg << std::flush; VRL_LOG(msg);}
+#define UG_LOGN(msg) UG_LOG(msg << "\n")
 
 #define UG_LOG_ALL_PROCS(msg) {ug::LogAssistant& la = ug::GetLogAssistant();\
 							   int op = la.get_output_process(); la.set_output_process(-1);\
