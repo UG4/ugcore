@@ -176,7 +176,6 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		for (size_t i = 0; i < u.size(); i++)
 		{
 			//	get i,i-th block of J: J(i,i)
-			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
 			//	m_c_i = m_damp * d_i /J_ii
 			InverseMatMult((*spC)[i], m_damp, J(i,i), (*spD)[i]);
 

@@ -162,9 +162,6 @@ init(SmartPtr<IOperator<vector_type> > N)
 	else
 		UG_THROW("Grid Level not recognized.");
 
-	//	set specific LocalToGlobalMapping
-	//m_spMapping =
-
 	/*TDomain& dom = *m_spApproxSpace->domain();
 	typename TDomain::grid_type& grid = *dom.grid();
 
@@ -336,7 +333,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 			// 	Compute Jacobian J(u) using the updated u-components
 
 			//	since we only need J(i,i) and d(i) in every DoF loop,
-			//	we access the i-th Element list indicating the neighboorhood of DoF i!
+			//	we access the i-th Element list indicating the neighborhood of DoF i!
 			m_sel.clear();
 			m_sel.select(m_vElemList[i].begin(), m_vElemList[i].end());
 
@@ -354,12 +351,6 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 				NL_GAUSSSEIDEL_PROFILE_END();
 			}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
 					"Initialization of Jacobian failed.");
-
-			//	Write Jacobian for debug
-			/*std::string matname("NLGaussSeidel_Jacobian");
-			sprintf(ext, "_iter%03d_DoF%03lu", loopCnt, (unsigned long) i);
-			matname.append(ext);
-			write_debug(m_J_block->get_matrix(), matname.c_str());*/
 
 			//	get i-th block of defect d: d(i) =: m_d_block
 			NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
