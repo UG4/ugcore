@@ -1767,7 +1767,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 			= QuadratureRuleProvider<dim-1>::get(scvfRoid, m_quadOrderSCVF);
 
 	const LocalShapeFunctionSet<dim>& rTrialSpace =
-		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, m_orderShape));
+		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, m_orderShape));
 
 //	update reference mapping
 	rMapping.update(vCornerCoords);

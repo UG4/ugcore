@@ -23,7 +23,7 @@ namespace ug{
 
 /// Nedelec, i.e. the edge local dof set
 template <typename TRefElem>
-class NedelecLDS : public ILocalDoFSet
+class NedelecLDS : public LocalDoFSet
 {
 	protected:
 	///	dimension of reference element

@@ -20,7 +20,7 @@ template <int TWorldDim, int TRefDim>
 DimFEGeometry<TWorldDim,TRefDim>::
 DimFEGeometry() :
 	m_roid(ROID_UNKNOWN), m_quadOrder(0),
-	m_lfeID(LFEID(LFEID::NONE, LFEID::INVALID)),
+	m_lfeID(),
 	m_vIPLocal(NULL), m_vQuadWeight(NULL)
 {}
 

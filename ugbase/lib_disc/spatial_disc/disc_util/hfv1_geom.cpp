@@ -467,7 +467,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 				LocalShapeFunctionSetProvider::
 					get<ref_elem_type::dim>
 						(ref_elem_type::REFERENCE_OBJECT_ID,
-						 LFEID(LFEID::LAGRANGE, 1));
+						 LFEID(LFEID::LAGRANGE, ref_elem_type::dim, 1));
 
 		const size_t num_sh = ref_elem_type::numCorners;
 		m_vSCVF[i].vShape.resize(num_sh);

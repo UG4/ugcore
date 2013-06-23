@@ -55,7 +55,7 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
 
 	//	get trial space
 		const LocalShapeFunctionSet<dim>& lsfs =
-				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::LAGRANGE, 1));
+				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::LAGRANGE, dim, 1));
 
 	//	create a reference mapping
 		DimReferenceMapping<dim, dim>& map
@@ -155,7 +155,7 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 
 	//	get trial space
 		const LocalShapeFunctionSet<dim>& lsfs =
-				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
+				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
 
 	//	create a reference mapping
 		DimReferenceMapping<dim, dim>& map
@@ -504,6 +504,7 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
 	typedef typename TFunction::element_type element_type;
+	const int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u.fct_id_by_name(fctName);
@@ -518,11 +519,11 @@ void MarkForAdaption_GradientIndicator(IRefiner& refiner,
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
 
 // 	Compute error on elements
-	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
+	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, dim, 1))
 		ComputeGradientLagrange1(u, fct, aaError);
-	else if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
 		ComputeGradientCrouzeixRaviart(u, fct, aaError);
-	else if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0))
 		ComputeGradientPiecewiseConstant(u,fct,aaError);
 	else{
 		UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
@@ -548,6 +549,7 @@ void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
 	typedef typename TFunction::element_type element_type;
+	const int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u.fct_id_by_name(fctName);
@@ -562,11 +564,11 @@ void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
 
 // 	Compute error on elements
-	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
+	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, dim, 1))
 		ComputeGradientLagrange1(u, fct, aaError);
-	else if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
 		ComputeGradientCrouzeixRaviart(u, fct, aaError);
-	else if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0))
 		ComputeGradientPiecewiseConstant(u,fct,aaError);
 	else{
 		UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
@@ -629,6 +631,7 @@ void MarkForAdaption_GradientJumpIndicator(IRefiner& refiner,
 	typedef GridFunction<TDomain, TAlgebra> TFunction;
 	typedef typename TFunction::domain_type::grid_type grid_type;
 	typedef typename TFunction::element_type element_type;
+	const int dim = TFunction::dim;
 
 //	function id
 	const size_t fct = u.fct_id_by_name(fctName);
@@ -647,13 +650,13 @@ void MarkForAdaption_GradientJumpIndicator(IRefiner& refiner,
 	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
 
 // 	Compute error on elements
-	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1))
+	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, dim, 1))
 		ComputeGradientLagrange1(u, fct, aaGrad);
 	else{
-		if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+		if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
 			ComputeGradientCrouzeixRaviart(u, fct, aaGrad);
 		else{
-			if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, 0)){
+			if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0)){
 				ComputeGradientPiecewiseConstant(u,fct,aaGrad);
 			} else {
 				UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");

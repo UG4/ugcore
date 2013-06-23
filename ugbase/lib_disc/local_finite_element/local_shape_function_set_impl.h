@@ -17,12 +17,12 @@ namespace ug{
 // LocalShapeFunctionSetProvider
 ///////////////////////////////////////////
 
-template <int dim, typename t_shape, typename t_grad>
-std::map<LFEID, const LocalShapeFunctionSet<dim, t_shape, t_grad>* >*
-LocalShapeFunctionSetProvider::get_map()
+template <int dim, typename TShape, typename TGrad>
+std::map<LFEID, ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > >*
+LocalShapeFunctionSetProvider::get_maps()
 {
 //	get type of map
-	typedef std::map<LFEID, const LocalShapeFunctionSet<dim, t_shape, t_grad>*> Map;
+	typedef std::map<LFEID, ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > > Map;
 
 //	create static map
 	static Map sShapeFunctionSetMap[NUM_REFERENCE_OBJECTS];
@@ -31,55 +31,40 @@ LocalShapeFunctionSetProvider::get_map()
 	return sShapeFunctionSetMap;
 };
 
-template <int dim, typename t_shape, typename t_grad>
-std::vector<LocalShapeFunctionSet<dim, t_shape, t_grad>*>&
-LocalShapeFunctionSetProvider::get_dynamic_allocated_vector()
-{
-//	get type of map
-	typedef std::vector<LocalShapeFunctionSet<dim, t_shape, t_grad>*> Vec;
-
-//	create static map
-	static Vec sShapeFunctionSetMap;
-
-//	return map
-	return sShapeFunctionSetMap;
-};
-
-template <int dim, typename t_shape, typename t_grad>
+template <int dim, typename TShape, typename TGrad>
 void LocalShapeFunctionSetProvider::
 register_set(LFEID type,
              const ReferenceObjectID roid,
-             const LocalShapeFunctionSet<dim, t_shape, t_grad>& set)
+             ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > set)
 {
 //	get type of map
-	typedef std::map<LFEID, const LocalShapeFunctionSet<dim, t_shape, t_grad>* > Map;
-	Map& map = get_map<dim, t_shape, t_grad>()[roid];
+	typedef std::map<LFEID, ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > > Map;
+	Map& map = get_maps<dim, TShape, TGrad>()[roid];
 
 //	insert into map
 	typedef typename Map::value_type DimMapPair;
-	if(map.insert(DimMapPair(type, &set)).second == false)
+	if(map.insert(DimMapPair(type, set)).second == false)
 		UG_THROW("LocalShapeFunctionSetProvider::register_set(): "
 				"Reference type already registered for trial space: "<<type<<" and "
 				" Reference element type "<<roid<<".");
 
-	std::map<LFEID, bool>& contMap = get_continuous_map();
-	if(contMap.find(type) == contMap.end()){
-		contMap.insert(std::map<LFEID, bool>::value_type(type, set.continuous()));
+	if(m_mContSpace.find(type) == m_mContSpace.end()){
+		m_mContSpace.insert(std::map<LFEID, bool>::value_type(type, set->continuous()));
 	}else{
-		if(contMap[type] != set.continuous())
+		if(m_mContSpace[type] != set->continuous())
 			UG_THROW("LocalShapeFunctionSetProvider::register_set(): "
-					"Reference type says continuous:"<<set.continuous()<<", but "
-					" other Reference element say"<<contMap[type]<<".");
+					"Reference type says continuous:"<<set->continuous()<<", but "
+					" other Reference element says "<<m_mContSpace[type]<<".");
 	}
 }
 
 
-template <int dim, typename t_shape, typename t_grad>
+template <int dim, typename TShape, typename TGrad>
 bool LocalShapeFunctionSetProvider::
 unregister_set(LFEID id)
 {
-	typedef std::map<LFEID, const LocalShapeFunctionSet<dim, t_shape, t_grad>* > Map;
-	Map* vMap = get_map<dim, t_shape, t_grad>();
+	typedef std::map<LFEID, ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > > Map;
+	Map* vMap = get_maps<dim, TShape, TGrad>();
 
 	for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r)
 	{
@@ -92,20 +77,19 @@ unregister_set(LFEID id)
 		if(!(map.erase(id) == 1)) return false;
 	}
 
-	std::map<LFEID, bool>& contMap = get_continuous_map();
-	if(contMap.erase(id) == 1) return false;
+	if(m_mContSpace.erase(id) == 1) return false;
 
 	return true;
 }
 
-template <int dim, typename t_shape, typename t_grad>
-const LocalShapeFunctionSet<dim, t_shape, t_grad>&
+template <int dim, typename TShape, typename TGrad>
+ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >
 LocalShapeFunctionSetProvider::
-get(ReferenceObjectID roid, LFEID id, bool bCreate)
+getptr(ReferenceObjectID roid, LFEID id, bool bCreate)
 {
 //	init provider and get map
-	typedef std::map<LFEID, const LocalShapeFunctionSet<dim, t_shape, t_grad>* > Map;
-	const Map& map = inst().get_map<dim, t_shape, t_grad>()[roid];
+	typedef std::map<LFEID, ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > > Map;
+	const Map& map = inst().get_maps<dim, TShape, TGrad>()[roid];
 
 //	search for identifier
 	typename Map::const_iterator iter = map.find(id);
@@ -116,18 +100,31 @@ get(ReferenceObjectID roid, LFEID id, bool bCreate)
 		if(bCreate)
 		{
 		//	try to create the set
-			dynamically_create_set(roid, id);
+			create_set(roid, id);
 
 		//	next try to return the set
-			return get<dim, t_shape, t_grad>(roid, id, false);
+			return getptr<dim, TShape, TGrad>(roid, id, false);
 		}
 
 		UG_THROW("LocalShapeFunctionSetProvider: Local Shape Function Set not "
-				 "found for "<<roid<<" (dim="<<dim<<") and type = "<<id);
+				 "found for "<<roid<<" (world dim: "<<dim<<") and type = "<<id<<
+				 ". (This is usually due to: a) The function set is not implemented at "
+				 " all, or b) The finite element space is discontinuous but the "
+				 "evaluation is requested on a subelement, i.e. a grid object "
+				 "with dimension less than the dimension where the finite element"
+				 " space is defined.)");
 	}
 
 //	return shape function set
-	return *(iter->second);
+	return (iter->second);
+}
+
+template <int dim, typename TShape, typename TGrad>
+const LocalShapeFunctionSet<dim, TShape, TGrad>&
+LocalShapeFunctionSetProvider::
+get(ReferenceObjectID roid, LFEID id, bool bCreate)
+{
+	return *getptr<dim,TShape,TGrad>(roid, id, bCreate);
 }
 
 }

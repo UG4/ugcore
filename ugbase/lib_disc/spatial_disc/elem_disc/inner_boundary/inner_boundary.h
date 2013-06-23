@@ -96,7 +96,7 @@ class FV1InnerBoundaryElemDisc
 
 		//	check that Lagrange 1st order
 			for(size_t i = 0; i < vLfeID.size(); ++i)
-				if(vLfeID[i] != LFEID(LFEID::LAGRANGE, 1))
+				if(vLfeID[i].type() != LFEID::LAGRANGE || vLfeID[i].order() != 1)
 					UG_THROW("FV1InnerBoundary: 1st order lagrange expected.");
 		}
 

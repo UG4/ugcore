@@ -21,7 +21,7 @@ namespace ug{
 
 /// Piecewise constant Set
 template <typename TRefElem>
-class PiecewiseConstantLDS : public ILocalDoFSet
+class PiecewiseConstantLDS : public LocalDoFSet
 {
 	protected:
 	///	dimension of reference element

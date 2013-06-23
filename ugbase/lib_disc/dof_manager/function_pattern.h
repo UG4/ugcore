@@ -51,7 +51,7 @@ class FunctionPattern
 	 * \param[in] 	id			Shape Function set id
 	 * \param[in]	dim			Dimension (optional)
 	 */
-		void add(const std::vector<std::string>& vName, LFEID id, int dim = -1);
+		void add(const std::vector<std::string>& vName, LFEID id);
 
 	/// add single solutions of LocalShapeFunctionSetID to selected subsets
 	/**
@@ -61,9 +61,9 @@ class FunctionPattern
 	 * \param[in] dim			Dimension
 	 */
 		void add(const std::vector<std::string>& vName, LFEID id,
-				 const std::vector<std::string>& vSubset, int dim = -1);
+				 const std::vector<std::string>& vSubset);
 
-	protected:
+	private:
 	/// add single solutions of LocalShapeFunctionSetID to selected subsets
 	/**
 	 * \param[in] name			name(s) of single solution (comma separated)
@@ -71,7 +71,7 @@ class FunctionPattern
 	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
 	 * \param[in] dim			Dimension
 	 */
-		void add(const std::vector<std::string>& vName, LFEID id, const SubsetGroup& ssGrp, int dim = -1);
+		void add(const std::vector<std::string>& vName, LFEID id, const SubsetGroup& ssGrp);
 
 	public:
 	///	lock pattern (i.e. can not be changed then)
@@ -150,7 +150,7 @@ class FunctionPattern
 		int dim(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "Invalid index.");
-			return m_vFunction[fct].dim;
+			return m_vFunction[fct].id.dim();
 		}
 
 	/// returns true if the discrete function nr_fct is defined on subset si
@@ -174,14 +174,12 @@ class FunctionPattern
 	///	internal structure to hold all functions
 		struct Function
 		{
-			Function(const char* name_, int dim_,
-			         LFEID id_, bool everywhere_,
+			Function(const char* name_, LFEID id_, bool everywhere_,
 			         const SubsetGroup& subsetIndices_)
-				: name(name_), dim(dim_), id(id_),
+				: name(name_), id(id_),
 				  everywhere(everywhere_), subsetIndices(subsetIndices_){};
 
 			std::string name;
-			int dim;
 			LFEID id;
 			bool everywhere;
 			SubsetGroup subsetIndices;

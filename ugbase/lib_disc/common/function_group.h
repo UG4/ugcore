@@ -125,7 +125,10 @@ class FunctionGroup
 		int dim() const;
 
 	/// returns the trial space of the discrete function fct
+	/// \{
 		LFEID local_finite_element_id(size_t i) const;
+		LFEID lfeid(size_t i) const;
+	/// \}
 
 	/// returns true if unique id is contained in this group
 		bool contains(size_t uniqueID) const;

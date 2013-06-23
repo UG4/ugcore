@@ -17,182 +17,61 @@ namespace ug{
 
 LocalDoFSetProvider::
 ~LocalDoFSetProvider()
-{
-//	free all created sets
-	for(size_t i = 0; i < m_vCreated.size(); ++i)
-		delete m_vCreated[i];
-};
+{};
 
 template <typename TRefElem>
-void LocalDoFSetProvider::create_lagrange_set(size_t order)
-{
-//	create lagrange set
-	LagrangeLDS<TRefElem>* setLagrange = new LagrangeLDS<TRefElem>(order);
-
-//	remember created set for delete in destructor
-	m_vCreated.push_back(setLagrange);
-
-//	register the set
-	try{
-		register_set(LFEID(LFEID::LAGRANGE, order), *setLagrange);
-	}
-	UG_CATCH_THROW("Unable to register LagrangeLDS");
-}
-
-void LocalDoFSetProvider::create_lagrange_sets(size_t order)
-{
-	create_lagrange_set<ReferenceVertex>(order);
-	create_lagrange_set<ReferenceEdge>(order);
-	create_lagrange_set<ReferenceTriangle>(order);
-	create_lagrange_set<ReferenceQuadrilateral>(order);
-	create_lagrange_set<ReferenceTetrahedron>(order);
-	create_lagrange_set<ReferencePyramid>(order);
-	create_lagrange_set<ReferencePrism>(order);
-	create_lagrange_set<ReferenceHexahedron>(order);
-}
-
-template <typename TRefElem>
-void LocalDoFSetProvider::create_crouzeix_raviart_sets()
-{
-//	create Crouzeix-Raviart set
-	CrouzeixRaviartLDS<TRefElem>* setCrouzeixRaviart = new CrouzeixRaviartLDS<TRefElem>();
-
-//	remember created set for delete in destructor
-	m_vCreated.push_back(setCrouzeixRaviart);
-
-//	register the set
-	try{
-		register_set(LFEID(LFEID::CROUZEIX_RAVIART, 1), *setCrouzeixRaviart);
-	}
-	UG_CATCH_THROW("Unable to register CrouzeixRaviartLDS");
-}
-
-void LocalDoFSetProvider::create_crouzeix_raviart_sets()
-{
-	create_crouzeix_raviart_sets<ReferenceVertex>();
-	create_crouzeix_raviart_sets<ReferenceEdge>();
-	create_crouzeix_raviart_sets<ReferenceTriangle>();
-	create_crouzeix_raviart_sets<ReferenceQuadrilateral>();
-	create_crouzeix_raviart_sets<ReferenceTetrahedron>();
-	create_crouzeix_raviart_sets<ReferencePyramid>();
-	create_crouzeix_raviart_sets<ReferencePrism>();
-	create_crouzeix_raviart_sets<ReferenceHexahedron>();
-}
-
-
-template <typename TRefElem>
-void LocalDoFSetProvider::create_piecewise_constant_sets()
-{
-//	create piecewise constant set
-	PiecewiseConstantLDS<TRefElem>* setPiecewiseConstant = new PiecewiseConstantLDS<TRefElem>();
-
-//	remember created set for delete in destructor
-	m_vCreated.push_back(setPiecewiseConstant);
-
-//	register the set
-	try{
-		register_set(LFEID(LFEID::PIECEWISE_CONSTANT, 0), *setPiecewiseConstant);
-	}
-	UG_CATCH_THROW("Unable to register PiecewiseConstantLDS");
-}
-
-void LocalDoFSetProvider::create_piecewise_constant_sets()
-{
-	create_piecewise_constant_sets<ReferenceVertex>();
-	create_piecewise_constant_sets<ReferenceEdge>();
-	create_piecewise_constant_sets<ReferenceTriangle>();
-	create_piecewise_constant_sets<ReferenceQuadrilateral>();
-	create_piecewise_constant_sets<ReferenceTetrahedron>();
-	create_piecewise_constant_sets<ReferencePyramid>();
-	create_piecewise_constant_sets<ReferencePrism>();
-	create_piecewise_constant_sets<ReferenceHexahedron>();
-}
-
-template <typename TRefElem>
-void LocalDoFSetProvider::create_mini_bubble_sets()
-{
-//	create piecewise constant set
-	MiniBubbleLDS<TRefElem>* setMiniBubble = new MiniBubbleLDS<TRefElem>();
-
-//	remember created set for delete in destructor
-	m_vCreated.push_back(setMiniBubble);
-
-//	register the set
-	try{
-		register_set(LFEID(LFEID::MINI, 1), *setMiniBubble);
-	}
-	UG_CATCH_THROW("Unable to register MiniBubbleLDS");
-}
-
-void LocalDoFSetProvider::create_mini_bubble_sets()
-{
-	create_mini_bubble_sets<ReferenceVertex>();
-	create_mini_bubble_sets<ReferenceEdge>();
-	create_mini_bubble_sets<ReferenceTriangle>();
-	create_mini_bubble_sets<ReferenceQuadrilateral>();
-
-	create_mini_bubble_sets<ReferenceTetrahedron>();
-	create_mini_bubble_sets<ReferencePyramid>();
-	create_mini_bubble_sets<ReferencePrism>();
-	create_mini_bubble_sets<ReferenceHexahedron>();
-
-}
-
-template <typename TRefElem>
-void LocalDoFSetProvider::create_nedelec_sets()
-{
-//	create nedelec element set
-	NedelecLDS<TRefElem>* setNedelec = new NedelecLDS<TRefElem>();
-
-//	remember created set for delete in destructor
-	m_vCreated.push_back(setNedelec);
-
-//	register the set
-	try{
-		register_set(LFEID(LFEID::NEDELEC, 1), *setNedelec);
-	}
-	UG_CATCH_THROW("Unable to register NedelecLDS");
-}
-
-void LocalDoFSetProvider::create_nedelec_sets()
-{
-	create_nedelec_sets<ReferenceVertex>();
-	create_nedelec_sets<ReferenceEdge>();
-	create_nedelec_sets<ReferenceTriangle>();
-	create_nedelec_sets<ReferenceQuadrilateral>();
-	create_nedelec_sets<ReferenceTetrahedron>();
-	create_nedelec_sets<ReferencePyramid>();
-	create_nedelec_sets<ReferencePrism>();
-	create_nedelec_sets<ReferenceHexahedron>();
-}
-
 void LocalDoFSetProvider::create_set(const LFEID& id)
 {
-	if(id.type() == LFEID::LAGRANGE)
-	{
-		create_lagrange_sets(id.order());
+	switch(id.type()){
+		case LFEID::LAGRANGE:
+			register_set(id, ConstSmartPtr<LocalDoFSet>(new LagrangeLDS<TRefElem>(id.order())));
+			return;
+		case LFEID::PIECEWISE_CONSTANT:
+			register_set(id, ConstSmartPtr<LocalDoFSet>(new PiecewiseConstantLDS<TRefElem>));
+			return;
+		case LFEID::CROUZEIX_RAVIART:
+			register_set(id, ConstSmartPtr<LocalDoFSet>(new CrouzeixRaviartLDS<TRefElem>));
+			return;
+		case LFEID::MINI:
+			register_set(id, ConstSmartPtr<LocalDoFSet>(new MiniBubbleLDS<TRefElem>));
+			return;
+		case LFEID::NEDELEC:
+			register_set(id, ConstSmartPtr<LocalDoFSet>(new NedelecLDS<TRefElem>));
+			return;
+		default: return;
 	}
-	if(id.type() == LFEID::CROUZEIX_RAVIART)
-	{
-		create_crouzeix_raviart_sets();
-	}
-	if(id.type() == LFEID::PIECEWISE_CONSTANT)
-	{
-		create_piecewise_constant_sets();
-	}
-	if(id.type() == LFEID::MINI)
-	{
-		create_mini_bubble_sets();
-	}
-	if(id.type() == LFEID::NEDELEC)
-	{
-		create_nedelec_sets();
-	}
-
 }
 
+void LocalDoFSetProvider::
+create_set(ReferenceObjectID roid, const LFEID& id)
+{
+	try{
+	//	switch type
+		switch(roid)
+		{
+			case ROID_VERTEX:		create_set<ReferenceVertex>(id); return;
+			case ROID_EDGE:			create_set<ReferenceEdge>(id); return;
+			case ROID_TRIANGLE:		create_set<ReferenceTriangle>(id); return;
+			case ROID_QUADRILATERAL:create_set<ReferenceQuadrilateral>(id); return;
+			case ROID_TETRAHEDRON:	create_set<ReferenceTetrahedron>(id); return;
+			case ROID_PRISM:		create_set<ReferencePrism>(id); return;
+			case ROID_PYRAMID:		create_set<ReferencePyramid>(id); return;
+			case ROID_HEXAHEDRON:	create_set<ReferenceHexahedron>(id); return;
+			default: return;
+		}
+	}
+	UG_CATCH_THROW("LocalDoFSetProvider: Creation of set "<<id<<
+					" for "<<roid<<" failed.");
+}
+void LocalDoFSetProvider::
+create_set(const LFEID& id)
+{
+	for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
+		create_set((ReferenceObjectID)roid, id);
+}
 
-const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id, bool bCreate)
+const LocalDoFSet& LocalDoFSetProvider::
+get(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 {
 //	init provider and search for identifier
 	RoidMap::const_iterator iter = inst().m_mRoidDoFSet.find(id);
@@ -205,17 +84,15 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id, b
 			create_set(id);
 			return get(roid, id, false);
 		}
-
-		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
-				"Unknown LocalDoFSet for type "<<id<<" requested.\n");
-		UG_THROW("LocalDoFSet for Finite Element Space unknown");
+		UG_THROW("LocalDoFSetProvider: Cannot create local dof set for finite "
+				"element type "<<id<<" and "<<roid);
 	}
 
 //	get vector
-	const std::vector<const ILocalDoFSet*>& vBase = iter->second;
+	const std::vector<ConstSmartPtr<LocalDoFSet> >& vBase = iter->second;
 
 //	check that dof set registered
-	if(vBase[roid] == NULL)
+	if(vBase[roid].invalid())
 	{
 		if(bCreate)
 		{
@@ -223,17 +100,16 @@ const ILocalDoFSet& LocalDoFSetProvider::get(ReferenceObjectID roid, LFEID id, b
 			return get(roid, id, false);
 		}
 
-		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
-				"Unknown LocalDoFSet for type "<<id<<" requested for"
-				" Reference Element type " <<roid<<".\n");
-		UG_THROW("Trial Space type unknown");
+		UG_THROW("LocalDoFSetProvider: Cannot create local dof set for finite "
+				"element type "<<id<<" and "<<roid);
 	}
 
 //	return dof set
 	return *(vBase[roid]);
 }
 
-const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id, bool bCreate)
+const CommonLocalDoFSet& LocalDoFSetProvider::
+get(int dim, const LFEID& id, bool bCreate)
 {
 //	init provider and search for identifier
 	CommonMap::const_iterator iter = inst().m_mCommonDoFSet.find(id);
@@ -247,9 +123,8 @@ const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id, bool bCreat
 			return get(dim, id, false);
 		}
 
-		UG_LOG("ERROR in 'LocalDoFSetProvider::get': "
-				"Unknown LocalDoFSet for type "<<id<<" and dim "<<dim<<" requested.\n");
-		UG_THROW("LocalDoFSet for Finite Element Space unknown");
+		UG_THROW("LocalDoFSetProvider: Cannot create local dof set for "<<id<<
+				" and dimension "<<dim);
 	}
 
 //	get dimension
@@ -260,25 +135,25 @@ const CommonLocalDoFSet& LocalDoFSetProvider::get(int dim, LFEID id, bool bCreat
 }
 
 
-void LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
+void LocalDoFSetProvider::register_set(const LFEID& id, ConstSmartPtr<LocalDoFSet> set)
 {
 //	reference object id
-	const ReferenceObjectID roid = set.roid();
+	const ReferenceObjectID roid = set->roid();
 
 //	get vector of types
-	std::vector<const ILocalDoFSet*>& vBase = m_mRoidDoFSet[id];
+	std::vector<ConstSmartPtr<LocalDoFSet> >& vBase = m_mRoidDoFSet[id];
 
 //	resize vector
 	vBase.resize(NUM_REFERENCE_OBJECTS, NULL);
 
 //	check that no space has been previously registered to this place
-	if(vBase[roid])
+	if(vBase[roid].valid())
 		UG_THROW("LocalDoFSetProvider::register_set(): "
 				"LocalDoFSet already registered for type: "<<id<<" and "
 				" Reference element type "<<roid<<".");
 
 //	if ok, add
-	vBase[roid] = &set;
+	vBase[roid] = set;
 
 //	get common dof set for the dimension
 	std::vector<CommonLocalDoFSet>& vCommonSet = m_mCommonDoFSet[id];
@@ -288,7 +163,7 @@ void LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
 
 //	add this local dof set
 	try{
-		vCommonSet[set.dim()].add(set);
+		vCommonSet[set->dim()].add(*set);
 	}
 	catch(UGError& err)
 	{
@@ -300,21 +175,19 @@ void LocalDoFSetProvider::register_set(LFEID id, const ILocalDoFSet& set)
 		ss<<"LocalDoFSetProvider::register_set(): "
 				"Cannot build CommonLocalDoFSet for type: "<<id<<" when adding "
 				" Reference element type "<<roid<<".\n"<<
-				"CommonLocalDoFSet is:\n" << vCommonSet[set.dim()]<<
-				"LocalDoFSet is:\n" << set;
+				"CommonLocalDoFSet is:\n" << vCommonSet[set->dim()]<<
+				"LocalDoFSet is:\n" << *set;
 		err.push_msg(ss.str(),__FILE__,__LINE__);
 		throw(err);
 	}
 }
 
-std::map<LFEID, std::vector<const ILocalDoFSet*> >
-LocalDoFSetProvider::m_mRoidDoFSet = std::map<LFEID, std::vector<const ILocalDoFSet*> >();
+std::map<LFEID, std::vector<ConstSmartPtr<LocalDoFSet> > >
+LocalDoFSetProvider::m_mRoidDoFSet =
+		std::map<LFEID, std::vector<ConstSmartPtr<LocalDoFSet> > >();
 
 std::map<LFEID, std::vector<CommonLocalDoFSet> >
 LocalDoFSetProvider::m_mCommonDoFSet = std::map<LFEID, std::vector<CommonLocalDoFSet> >();
-
-std::vector<ILocalDoFSet*>
-LocalDoFSetProvider::m_vCreated = std::vector<ILocalDoFSet*>();
 
 ////////////////////////////////////////////////////////////////////////////////
 // 	CommonLocalDoFSet
@@ -328,7 +201,7 @@ void CommonLocalDoFSet::clear()
 }
 
 ///	add a local dof set to the intersection
-void CommonLocalDoFSet::add(const ILocalDoFSet& set)
+void CommonLocalDoFSet::add(const LocalDoFSet& set)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
@@ -374,7 +247,7 @@ std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v)
 }
 
 /// writes to the output stream
-std::ostream& operator<<(std::ostream& out,	const ILocalDoFSet& v)
+std::ostream& operator<<(std::ostream& out,	const LocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{

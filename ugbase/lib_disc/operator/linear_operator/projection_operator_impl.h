@@ -29,7 +29,8 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	PROFILE_FUNC_GROUP("gmg");
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
-		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+		if(fineDD.local_finite_element_id(fct).type() != LFEID::LAGRANGE ||
+			fineDD.local_finite_element_id(fct).order() != 1)
 			UG_THROW("AssembleInjectionForP1Lagrange: "
 					"Interpolation only implemented for Lagrange P1 functions.");
 
@@ -183,7 +184,8 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 // 	check only lagrange P1 functions
 	bool P1LagrangeOnly = true;
 	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
-		if(m_spApproxSpace->local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+		if(m_spApproxSpace->local_finite_element_id(fct).type() != LFEID::LAGRANGE ||
+				m_spApproxSpace->local_finite_element_id(fct).order() != 1)
 			P1LagrangeOnly = false;
 
 	try{

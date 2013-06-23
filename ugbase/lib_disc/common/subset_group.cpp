@@ -220,7 +220,7 @@ int SubsetGroup::dim(size_t i) const
 	return DimensionOfSubset(*m_pSH, m_vSubset[i]);
 }
 
-int SubsetGroup::get_local_highest_subset_dimension() const
+int SubsetGroup::get_highest_subset_dimension() const
 {
 	if(!is_init())
 		UG_THROW("Cannot use SubsetGroup without SubsetHandler.");
@@ -239,7 +239,7 @@ int SubsetGroup::get_local_highest_subset_dimension() const
 			d = test_dim;
 	}
 
-//	returnn dimension
+//	return dimension
 	return d;
 }
 

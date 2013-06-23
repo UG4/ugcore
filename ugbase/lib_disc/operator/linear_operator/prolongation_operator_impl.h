@@ -32,7 +32,8 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	PROFILE_FUNC_GROUP("gmg");
 // 	allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
-		if(fineDD.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+		if(fineDD.local_finite_element_id(fct).type() != LFEID::LAGRANGE ||
+			fineDD.local_finite_element_id(fct).order() != 1)
 			UG_THROW("AssembleStdProlongationForP1Lagrange:"
 				"Interpolation only implemented for Lagrange P1 functions.");
 
@@ -206,7 +207,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 		//	loop all components
 			for(size_t fct = 0; fct < coarseDD.num_fct(); fct++)
 			{
-				if (vLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0)){
+				if (vLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT){
 					//	check that fct defined on subset
 					if(!coarseDD.is_def_in_subset(fct, si)) continue;
 					//  get global indices
@@ -323,7 +324,8 @@ void StdTransfer<TDomain, TAlgebra>::init()
 // 	check only lagrange P1 functions
 	bool P1LagrangeOnly = true;
 	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
-		if(m_spApproxSpace->local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+		if(m_spApproxSpace->local_finite_element_id(fct).type() != LFEID::LAGRANGE ||
+			m_spApproxSpace->local_finite_element_id(fct).order() != 1)
 			P1LagrangeOnly = false;
 
 	try{

@@ -91,13 +91,17 @@ class LFEID
 
 	public:
 	///	default constructor
-		LFEID() : m_type(NONE), m_order(INVALID) {}
+		LFEID() : m_type(NONE), m_dim(-1), m_order(INVALID) {}
 
 	///	constructor with values
-		LFEID(SpaceType type, int order) : m_type(type), m_order(order) {}
+		LFEID(SpaceType type, int dim, int order)
+			: m_type(type), m_dim(dim), m_order(order) {}
 
 	///	returns the order of the local finite element
 		int order() const {return m_order;}
+
+	///	returns the space dimension of the local finite element
+		int dim() const {return m_dim;}
 
 	///	returns the type of the local finite element
 		SpaceType type() const {return m_type;}
@@ -105,7 +109,7 @@ class LFEID
 	///	equality check
 		bool operator==(const LFEID& v) const
 		{
-			return (m_type == v.m_type && m_order==v.m_order);
+			return (m_type == v.m_type && m_dim==v.m_dim && m_order==v.m_order);
 		}
 
 	///	inequality check
@@ -113,12 +117,13 @@ class LFEID
 
 	///	operator <
 	/**	returns comparison which set id is regarded lesser
-	 * The Local Finite Elements are ordered by type first and
+	 * The Local Finite Elements are ordered by type first, then by dimension and
 	 * then by increasing order.
 	 */
 		bool operator<(const LFEID& v) const
 		{
 			if(m_type != v.m_type) return m_type < v.m_type;
+			else if(m_dim != v.m_dim) return m_dim < v.m_dim;
 			else return m_order < v.m_order;
 		}
 
@@ -126,6 +131,7 @@ class LFEID
 		bool operator>(const LFEID& v) const
 		{
 			if(m_type != v.m_type) return m_type > v.m_type;
+			else if(m_dim != v.m_dim) return m_dim > v.m_dim;
 			else return m_order > v.m_order;
 		}
 
@@ -147,6 +153,9 @@ class LFEID
 	///	Space type
 		SpaceType m_type;
 
+	///	dimension
+		int m_dim;
+
 	///	Order
 		int m_order;
 };
@@ -155,10 +164,10 @@ class LFEID
 std::ostream& operator<<(std::ostream& out,	const LFEID& v);
 
 ///	returns the LFEID for a combination of Space and order
-LFEID ConvertStringToLFEID(const char* type, int order);
+LFEID ConvertStringToLFEID(const char* type, int dim, int order);
 
 ///	returns the LFEID
-LFEID ConvertStringToLFEID(const char* type);
+LFEID ConvertStringToLFEID(const char* type, int dim);
 
 /// @}
 

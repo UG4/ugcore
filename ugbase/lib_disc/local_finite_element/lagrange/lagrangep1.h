@@ -54,7 +54,7 @@ class LagrangeP1
 
 	public:
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, 1);}
+		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return true;}

@@ -18,7 +18,7 @@ namespace ug{
 template<typename TDomain>
 NeumannBoundaryFV<TDomain>::NeumannBoundaryFV(const char* function)
  :NeumannBoundaryBase<TDomain>(function),
-  m_order(1), m_lfeID(LFEID::LAGRANGE, m_order)
+  m_order(1), m_lfeID(LFEID::LAGRANGE, TDomain::dim, m_order)
 {
 	register_all_funcs(m_order);
 }

@@ -134,29 +134,196 @@ class LocalShapeFunctionSetWrapper
 //	Provider for LocalShapeFunctionSets
 ////////////////////////////////////////////////////////////////////////////////
 
-std::map<LFEID, bool>&
-LocalShapeFunctionSetProvider::get_continuous_map()
+template <typename TRefElem>
+void LocalShapeFunctionSetProvider::create_lagrange_set(const LFEID& id)
 {
-//	get type of map
-	typedef std::map<LFEID, bool> Vec;
+//	reference object id
+	static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+	static const int dim = TRefElem::dim;
 
-//	create static map
-	static Vec sShapeFunctionSetMap;
+//	if refdim == dim create the space
+	if(dim == id.dim()){
+		ConstSmartPtr<LocalShapeFunctionSet<dim> > set;
+		switch(id.order()){
+			case 1: set = ConstSmartPtr<LocalShapeFunctionSet<dim> >
+						  (new LocalShapeFunctionSetWrapper<LagrangeP1<TRefElem> >);
+					break;
+			case 2: set = ConstSmartPtr<LocalShapeFunctionSet<dim> >
+						  (new LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem,2> >);
+					break;
+			break;
+			case 3: set = ConstSmartPtr<LocalShapeFunctionSet<dim> >
+						  (new LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem,3> >);
+					break;
+			break;
+			case 4: set = ConstSmartPtr<LocalShapeFunctionSet<dim> >
+						  (new LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem,4> >);
+					break;
+			break;
 
-//	return map
-	return sShapeFunctionSetMap;
-};
+			default:{
+				SmartPtr<LocalShapeFunctionSetWrapper<FlexLagrangeLSFS<TRefElem> > >
+					sSetFlexLagrange(new LocalShapeFunctionSetWrapper<FlexLagrangeLSFS<TRefElem> >);
+				sSetFlexLagrange->set_order(id.order());
+				set = sSetFlexLagrange;
+			}
+		}
+		register_set(id, roid, set);
+		return;
+	}
+//	if refdim < dim, the restriction of to the subelement is the lagrange space
+//	of the refdim
+	else if (dim < id.dim()){
+	//  get (and maybe create) lagrange space for dim == refdim (always exist)
+		ConstSmartPtr<LocalShapeFunctionSet<dim> > set =
+			getptr<dim>(roid, LFEID(id.type(), dim, id.order()));
+
+	//	register this space as space on subelement
+		register_set(id, roid, set);
+	}
+
+	// else: for refdim > dim there exist no restrictions
+}
+
+void LocalShapeFunctionSetProvider::
+create_lagrange_set(ReferenceObjectID roid, const LFEID& id)
+{
+//	only order >= 1 available
+	if(id.order() < 1) return;
+
+	try{
+	//	switch type
+		switch(roid)
+		{
+			case ROID_EDGE:			create_lagrange_set<ReferenceEdge>(id); return;
+			case ROID_TRIANGLE:		create_lagrange_set<ReferenceTriangle>(id); return;
+			case ROID_QUADRILATERAL:create_lagrange_set<ReferenceQuadrilateral>(id); return;
+			case ROID_TETRAHEDRON:	create_lagrange_set<ReferenceTetrahedron>(id); return;
+			case ROID_PRISM:		create_lagrange_set<ReferencePrism>(id); return;
+			case ROID_HEXAHEDRON:	create_lagrange_set<ReferenceHexahedron>(id); return;
+
+			case ROID_PYRAMID:
+				// only space available for order 1
+				if(id.order() != 1) return;
+				{
+					register_set(LFEID(LFEID::LAGRANGE, 3, 1), ROID_PYRAMID,
+					             ConstSmartPtr<LocalShapeFunctionSet<3> >
+								(new LocalShapeFunctionSetWrapper<LagrangeP1<ReferencePyramid> >));
+				}
+
+			default: return;
+		}
+	}
+	UG_CATCH_THROW("LocalShapeFunctionSetProvider: Creation of Lagrange set "
+					<<id<<" for "<<roid<<" failed.");
+}
+
+
+template <typename TRefElem>
+void LocalShapeFunctionSetProvider::create_generic_sets(const LFEID& id)
+{
+//	reference object id
+	static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
+	static const int dim = TRefElem::dim;
+
+	switch(id.type()){
+		case LFEID::PIECEWISE_CONSTANT:
+			if(id == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0))
+				register_set(id, roid,
+							 ConstSmartPtr<LocalShapeFunctionSet<dim> >(
+							 new LocalShapeFunctionSetWrapper<PiecewiseConstantLSFS<TRefElem> >));
+			return;
+		case LFEID::CROUZEIX_RAVIART:
+			if(id == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
+				register_set(id, roid,
+							 ConstSmartPtr<LocalShapeFunctionSet<dim> >(
+							 new LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<TRefElem> >));
+			return;
+		case LFEID::NEDELEC:
+			if(id == LFEID(LFEID::NEDELEC, dim, 1))
+				register_set(id, roid,
+							 ConstSmartPtr<LocalShapeFunctionSet<dim, MathVector<dim>, MathMatrix<dim,dim> > >(
+							 new LocalShapeFunctionSetWrapper<NedelecLSFS<TRefElem> >));
+			return;
+
+		case LFEID::MINI:
+			// \todo: P1 bubble spaces restricted to a sub-geometric object (e.g. side)
+			//		  are the usual P1 lagrange spaces. Add them here.
+			if(id == LFEID(LFEID::MINI, dim, 1))
+				register_set(id, roid,
+							 ConstSmartPtr<LocalShapeFunctionSet<dim> >(
+							 new LocalShapeFunctionSetWrapper<MiniBubbleLSFS<TRefElem> >));
+			return;
+		default: return;
+	}
+}
+
+void LocalShapeFunctionSetProvider::
+create_generic_sets(ReferenceObjectID roid, const LFEID& id)
+{
+	try{
+	//	switch type
+		switch(roid)
+		{
+			case ROID_EDGE:			create_generic_sets<ReferenceEdge>(id); return;
+			case ROID_TRIANGLE:		create_generic_sets<ReferenceTriangle>(id); return;
+			case ROID_QUADRILATERAL:create_generic_sets<ReferenceQuadrilateral>(id); return;
+			case ROID_TETRAHEDRON:	create_generic_sets<ReferenceTetrahedron>(id); return;
+			case ROID_PRISM:		create_generic_sets<ReferencePrism>(id); return;
+			case ROID_PYRAMID:		create_generic_sets<ReferencePyramid>(id); return;
+			case ROID_HEXAHEDRON:	create_generic_sets<ReferenceHexahedron>(id); return;
+			default: return;
+		}
+	}
+	UG_CATCH_THROW("LocalShapeFunctionSetProvider: Creation of set "<<id<<
+					" for "<<roid<<" failed.");
+}
+
+void LocalShapeFunctionSetProvider::
+create_set(ReferenceObjectID roid, const LFEID& id)
+{
+	switch(id.type())
+	{
+		case LFEID::LAGRANGE:
+			create_lagrange_set(roid, id);
+			break;
+
+		case LFEID::PIECEWISE_CONSTANT:
+		case LFEID::CROUZEIX_RAVIART:
+		case LFEID::MINI:
+		case LFEID::NEDELEC:
+			create_generic_sets(roid, id);
+			break;
+
+		default: return;
+	}
+}
+
+void LocalShapeFunctionSetProvider::
+create_set(const LFEID& id)
+{
+	for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
+		create_set((ReferenceObjectID)roid, id);
+}
+
+
+LocalShapeFunctionSetProvider::
+LocalShapeFunctionSetProvider()
+{};
+
+LocalShapeFunctionSetProvider::
+~LocalShapeFunctionSetProvider()
+{};
 
 bool LocalShapeFunctionSetProvider::continuous(const LFEID& type, bool bCreate)
 {
-	std::map<LFEID, bool>& contMap = inst().get_continuous_map();
-	std::map<LFEID, bool>::iterator iter = contMap.find(type);
-	if(iter == contMap.end())
+	std::map<LFEID, bool>::iterator iter = m_mContSpace.find(type);
+	if(iter == m_mContSpace.end())
 	{
 		if(bCreate)
 		{
 		//	try to create the set
-			dynamically_create_set(type);
+			create_set(type);
 
 		//	next try to return the set
 			return continuous(type, false);
@@ -169,199 +336,8 @@ bool LocalShapeFunctionSetProvider::continuous(const LFEID& type, bool bCreate)
 	return (*iter).second;
 }
 
-template <typename TRefElem>
-void LocalShapeFunctionSetProvider::init_standard_sets()
-{
-//	reference object id
-	static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
-
-//	create static Sets
-	static LocalShapeFunctionSetWrapper<LagrangeP1<TRefElem> > sSetLagrangeP1;
-	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 2> > sSetLagrangeP2;
-	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 3> > sSetLagrangeP3;
-	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 4> > sSetLagrangeP4;
-
-//	insert into map: P1 Lagrange
-	LFEID type1(LFEID::LAGRANGE, 1);
-	register_set(type1, roid, sSetLagrangeP1);
-
-//	insert into map: P2 Lagrange
-	LFEID type2(LFEID::LAGRANGE, 2);
-	register_set(type2, roid, sSetLagrangeP2);
-
-//	insert into map: P3 Lagrange
-	LFEID type3(LFEID::LAGRANGE, 3);
-	register_set(type3, roid, sSetLagrangeP3);
-
-//	insert into map: P4 Lagrange
-	LFEID type4(LFEID::LAGRANGE, 4);
-	register_set(type4, roid, sSetLagrangeP4);
-
-
-//	insert into map: Crouzeix-Raviart
-	static LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<TRefElem> > sSetCrouzeixRaviart;
-	LFEID typeCR(LFEID::CROUZEIX_RAVIART, 1);
-	register_set(typeCR, roid, sSetCrouzeixRaviart);
-
-//	insert into map: Piecewise constant
-	static LocalShapeFunctionSetWrapper<PiecewiseConstantLSFS<TRefElem> > sSetPiecewiseConstant;
-	LFEID typePC(LFEID::PIECEWISE_CONSTANT, 0);
-	register_set(typePC, roid, sSetPiecewiseConstant);
-
-//	insert into map: MINI element
-	static LocalShapeFunctionSetWrapper<MiniBubbleLSFS<TRefElem> > sSetMiniBubble;
-	LFEID typeMB(LFEID::MINI, 1);
-	register_set(typeMB, roid, sSetMiniBubble);
-
-//	insert into map: Nedelec element
-	static LocalShapeFunctionSetWrapper<NedelecLSFS<TRefElem> > sSetNedelec;
-	LFEID typeNedelec(LFEID::NEDELEC, 1);
-	register_set(typeNedelec, roid, sSetNedelec);
-
-}
-
-template <typename TRefElem>
-void LocalShapeFunctionSetProvider::init_flex_lagrange(size_t order)
-{
-//	reference object id
-	static const ReferenceObjectID roid = TRefElem::REFERENCE_OBJECT_ID;
-
-//	create static Sets
-	LocalShapeFunctionSetWrapper<FlexLagrangeLSFS<TRefElem> >* sSetFlexLagrange
-		= new LocalShapeFunctionSetWrapper<FlexLagrangeLSFS<TRefElem> >;
-	sSetFlexLagrange->set_order(order);
-
-//	insert into map: Lagrange
-	LFEID type(LFEID::LAGRANGE, order);
-	register_set(type, roid, *sSetFlexLagrange);
-
-//	remember creation
-	get_dynamic_allocated_vector<TRefElem::dim>().push_back(sSetFlexLagrange);
-}
-
-void LocalShapeFunctionSetProvider::
-dynamically_create_set(ReferenceObjectID roid, LFEID id)
-{
-//	Lagrange space
-	if(id.type() == LFEID::LAGRANGE)
-	{
-	//	only order >= 1 available
-		if(id.order() < 1) return;
-
-		try{
-	//	switch type
-		switch(roid)
-		{
-			case ROID_EDGE:			init_flex_lagrange<ReferenceEdge>(id.order()); return;
-			case ROID_TRIANGLE:		init_flex_lagrange<ReferenceTriangle>(id.order()); return;
-			case ROID_QUADRILATERAL:init_flex_lagrange<ReferenceQuadrilateral>(id.order()); return;
-			case ROID_TETRAHEDRON:	init_flex_lagrange<ReferenceTetrahedron>(id.order()); return;
-			case ROID_PRISM:		init_flex_lagrange<ReferencePrism>(id.order()); return;
-			case ROID_HEXAHEDRON:	init_flex_lagrange<ReferenceHexahedron>(id.order()); return;
-			default: UG_THROW("LocalShapeFunctionSetProvider: Roid="<<roid<<" unknown.");
-		}
-
-		}
-		UG_CATCH_THROW("Dynamic Allocation of set failed.");
-	}
-}
-
-void LocalShapeFunctionSetProvider::
-dynamically_create_set(LFEID id)
-{
-//	Lagrange space
-	if(id.type() == LFEID::LAGRANGE)
-	{
-	//	only order >= 1 available
-		if(id.order() < 1) return;
-
-		try{
-	//	switch type
-		init_flex_lagrange<ReferenceEdge>(id.order()); return;
-		init_flex_lagrange<ReferenceTriangle>(id.order()); return;
-		init_flex_lagrange<ReferenceQuadrilateral>(id.order()); return;
-		init_flex_lagrange<ReferenceTetrahedron>(id.order()); return;
-		init_flex_lagrange<ReferencePrism>(id.order()); return;
-		init_flex_lagrange<ReferenceHexahedron>(id.order()); return;
-		}
-		UG_CATCH_THROW("Dynamic Allocation of set failed.");
-	}
-}
-
-LocalShapeFunctionSetProvider::
-LocalShapeFunctionSetProvider()
-{
-	static bool init = false;
-
-	if(!init)
-	{
-	//	remember initialization
-		init = true;
-
-	//	clear created holder
-		get_dynamic_allocated_vector<1>().clear();
-		get_dynamic_allocated_vector<2>().clear();
-		get_dynamic_allocated_vector<3>().clear();
-
-	//	register all element types that allow higher orders
-		try{
-			init_standard_sets<ReferenceEdge>();
-		}UG_CATCH_THROW("Cannot register standard Edge trial spaces.");
-		try{
-			init_standard_sets<ReferenceTriangle>();
-		}UG_CATCH_THROW("Cannot register standard Triangle trial spaces.");
-		try{
-			init_standard_sets<ReferenceQuadrilateral>();
-		}UG_CATCH_THROW("Cannot register standard Quadrilateral trial spaces.");
-		try{
-			init_standard_sets<ReferenceTetrahedron>();
-		}UG_CATCH_THROW("Cannot register standard Tetrahedron trial spaces.");
-		try{
-			init_standard_sets<ReferencePrism>();
-		}UG_CATCH_THROW("Cannot register standard Prism trial spaces.");
-		try{
-			init_standard_sets<ReferenceHexahedron>();
-		}UG_CATCH_THROW("Cannot register standard Hexahedron trial spaces.");
-
-	//	register 1st order pyramid
-		LFEID type1(LFEID::LAGRANGE, 1);
-		static LocalShapeFunctionSetWrapper<LagrangeP1<ReferencePyramid> > sSetLagrangeP1;
-		try{
-			register_set(type1, ROID_PYRAMID, sSetLagrangeP1);
-		}UG_CATCH_THROW("Cannot register Pyramid P1 Lagrange trial spaces.");
-		
-	//	register pyramid for Crouzeix-Raviart element
-		LFEID type2(LFEID::CROUZEIX_RAVIART, 1);
-		static LocalShapeFunctionSetWrapper<CrouzeixRaviartLSFS<ReferencePyramid> > sSetCrouzeixRaviart;
-		try{
-			register_set(type2, ROID_PYRAMID, sSetCrouzeixRaviart);
-		}UG_CATCH_THROW("Cannot register Pyramid Crouzeix-Raviart trial spaces.");	
-		
-	//	register pyramid for piecewise constant element
-		LFEID type3(LFEID::PIECEWISE_CONSTANT, 0);
-		static LocalShapeFunctionSetWrapper<PiecewiseConstantLSFS<ReferencePyramid> > sSetPiecewiseConstant;
-		try{
-			register_set(type3, ROID_PYRAMID, sSetPiecewiseConstant);
-		}UG_CATCH_THROW("Cannot register Pyramid piecewise constant trial spaces.");
-
-	}
-};
-
-LocalShapeFunctionSetProvider::
-~LocalShapeFunctionSetProvider()
-{
-	std::vector<LocalShapeFunctionSet<1>*>& dynVec1 =
-											get_dynamic_allocated_vector<1>();
-	std::vector<LocalShapeFunctionSet<2>*>& dynVec2 =
-											get_dynamic_allocated_vector<2>();
-	std::vector<LocalShapeFunctionSet<3>*>& dynVec3 =
-											get_dynamic_allocated_vector<3>();
-
-	for(size_t i = 0; i < dynVec1.size(); ++i) delete dynVec1[i];
-	for(size_t i = 0; i < dynVec2.size(); ++i) delete dynVec2[i];
-	for(size_t i = 0; i < dynVec3.size(); ++i) delete dynVec3[i];
-};
-
+std::map<LFEID, bool>
+LocalShapeFunctionSetProvider::m_mContSpace = std::map<LFEID, bool>();
 
 } // namespace ug
 

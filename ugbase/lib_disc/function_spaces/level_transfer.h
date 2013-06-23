@@ -210,8 +210,8 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 //		if(vFineLFEID[fct] != vCoarseLFEID[fct])
 //			bSameLFEID = false;
 
-		if (vCoarseLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0) ||
-			vFineLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+		if (vCoarseLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT ||
+			vFineLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT)
 			UG_THROW("Not implemented.")
 	}
 
@@ -334,7 +334,8 @@ void Prolongate(GridFunction<TDomain, TAlgebra>& uFine,
 //	loop functions
 	bool bOnlyP1Fct = true;
 	for(size_t fct = 0; fct < uFine.num_fct(); ++fct)
-		if(uFine.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+		if(uFine.local_finite_element_id(fct).type() != LFEID::LAGRANGE ||
+			uFine.local_finite_element_id(fct).order() != 1)
 		{
 			bOnlyP1Fct = false; break;
 		}
@@ -582,7 +583,8 @@ void Restrict(GridFunction<TDomain, TAlgebra>& uCoarse,
 //	loop functions
 	bool bOnlyP1Fct = true;
 	for(size_t fct = 0; fct < uCoarse.num_fct(); ++fct)
-		if(uCoarse.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+		if(uCoarse.local_finite_element_id(fct).type() != LFEID::LAGRANGE ||
+				uCoarse.local_finite_element_id(fct).order() != 1)
 		{
 			bOnlyP1Fct = false; break;
 		}

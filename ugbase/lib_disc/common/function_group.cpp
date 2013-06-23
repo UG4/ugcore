@@ -215,6 +215,10 @@ LFEID FunctionGroup::local_finite_element_id(size_t i) const
 	return m_spFunctionPattern->local_finite_element_id(m_vFunction[i]);
 }
 
+LFEID FunctionGroup::lfeid(size_t i) const{
+	return local_finite_element_id(i);
+}
+
 int FunctionGroup::dim(size_t i) const
 {
 	if(!is_init())

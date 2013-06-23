@@ -106,47 +106,80 @@ IApproximationSpace::
 
 
 
-void IApproximationSpace::add(const char* names, LFEID lfeID, int dim)
+
+void IApproximationSpace::
+add(const std::vector<std::string>& vName, const char* fetype, int order)
 {
-	add(TokenizeTrimString(names), lfeID, dim);
+	const int dim = DimensionOfSubsets(*m_spMGSH);
+	if(dim == DIM_SUBSET_EMPTY_GRID)
+		UG_THROW("ApproximationSpace: Cannot find dimension of grid. Maybe your grid is empty?");
+
+	add(vName, ConvertStringToLFEID(fetype, dim, order));
 }
 
-void IApproximationSpace::add(const char* names, LFEID lfeID,
-                          const char* subsets, int dim)
+void IApproximationSpace::
+add(const std::vector<std::string>& vName, const char* fetype)
 {
-	add(TokenizeTrimString(names), lfeID, TokenizeTrimString(subsets), dim);
+	const int dim = DimensionOfSubsets(*m_spMGSH);
+	if(dim == DIM_SUBSET_EMPTY_GRID)
+		UG_THROW("ApproximationSpace: Cannot find dimension of grid. Maybe your grid is empty?");
+
+	add(vName, ConvertStringToLFEID(fetype, dim));
 }
 
-void IApproximationSpace::add(const std::vector<std::string>& vName, const char* fetype, int order)
+void IApproximationSpace::
+add(const char* name, const char* fetype, int order)
 {
-	add(vName, ConvertStringToLFEID(fetype, order));
+	add(TokenizeTrimString(name), fetype, order);
 }
 
-void IApproximationSpace::add(const std::vector<std::string>& vName, const char* fetype)
+void IApproximationSpace::
+add(const char* name, const char* fetype)
 {
-	add(vName, ConvertStringToLFEID(fetype));
+	add(TokenizeTrimString(name), fetype);
 }
 
-void IApproximationSpace::add(const std::vector<std::string>& vName, const char* fetype, int order,
-                          const std::vector<std::string>& vSubsets)
+
+void IApproximationSpace::
+add(const std::vector<std::string>& vName, const char* fetype, int order,
+    const std::vector<std::string>& vSubsets)
 {
-	add(vName, ConvertStringToLFEID(fetype, order), vSubsets);
+	SubsetGroup ssGrp(m_spMGSH, vSubsets);
+	const int dim = ssGrp.get_highest_subset_dimension();
+
+//	check
+	if(dim == DIM_SUBSET_EMPTY_GRID)
+		UG_THROW("ApproximationSpace: Cannot find dimension for new function on"
+				"the subsets. Maybe your grid is empty?");
+
+	add(vName, ConvertStringToLFEID(fetype, dim, order), vSubsets);
 }
 
-void IApproximationSpace::add(const char* name, const char* fetype, int order)
+void IApproximationSpace::
+add(const std::vector<std::string>& vName, const char* fetype,
+    const std::vector<std::string>& vSubsets)
 {
-	add(name, ConvertStringToLFEID(fetype, order));
+	SubsetGroup ssGrp(m_spMGSH, vSubsets);
+	const int dim = ssGrp.get_highest_subset_dimension();
+
+//	check
+	if(dim == DIM_SUBSET_EMPTY_GRID)
+		UG_THROW("ApproximationSpace: Cannot find dimension for new function on"
+				"the subsets. Maybe your grid is empty?");
+
+	add(vName, ConvertStringToLFEID(fetype, dim), vSubsets);
 }
 
-void IApproximationSpace::add(const char* name, const char* fetype)
+void IApproximationSpace::
+add(const char* name, const char* fetype, int order, const char* subsets)
 {
-	add(name, ConvertStringToLFEID(fetype));
+	add(TokenizeTrimString(name), fetype, order, TokenizeTrimString(subsets));
 }
 
-void IApproximationSpace::add(const char* name, const char* fetype,
-                          int order, const char* subsets)
+void IApproximationSpace::
+add(const char* name, const char* fetype, const char* subsets)
 {
-	add(name, ConvertStringToLFEID(fetype, order), subsets);
+	add(TokenizeTrimString(name), fetype, TokenizeTrimString(subsets));
 }
 
 

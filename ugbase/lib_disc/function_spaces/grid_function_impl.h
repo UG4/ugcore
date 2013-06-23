@@ -57,7 +57,7 @@ InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 
 //	\TODO: This is a lousy quick-hack. Remove, when dof pos on lower dim elemens
 	//		can be handeled correctly for non-lagrangian spaces.
-	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
 	{
 		vPos.clear();
 		if(fctDim != refDim+1) return true;
@@ -71,7 +71,7 @@ InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 		vPos.push_back(center);
 		return true;
 	}
-	if(lfeID == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+	if(lfeID == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0))
 	{
 		vPos.clear();
 		if(fctDim != refDim) return true;
@@ -91,7 +91,7 @@ InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 		= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
 
 //	get local dof set
-	const ILocalDoFSet& lds = LocalDoFSetProvider::get(roid, lfeID);
+	const LocalDoFSet& lds = LocalDoFSetProvider::get(roid, lfeID);
 
 //	typedef local position type
 	typedef typename LocalShapeFunctionSet<refDim>::position_type
@@ -224,7 +224,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 
 //	\TODO: This is a lousy quick-hack. Remove, when dof pos on lower dim elemens
 	//		can be handeled correctly for non-lagrangian spaces.
-	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, 1))
+	if(lfeID.type() == LFEID::CROUZEIX_RAVIART)
 	{
 		vPos.clear();
 
@@ -268,7 +268,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, TElem* elem, TDom
 		// other cases should never happen
 		UG_THROW("Special case for Crouzeix-Raviart: case should not happen.");
 	}
-	if(lfeID == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+	if(lfeID.type() == LFEID::PIECEWISE_CONSTANT)
 	{
 		vPos.clear();
 		if(fctDim != refDim) return true;

@@ -61,7 +61,7 @@ class MiniBubbleLSFS<ReferenceEdge>
 		MiniBubbleLSFS(){}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return true;}
@@ -151,7 +151,7 @@ class MiniBubbleLSFS<ReferenceTriangle>
 		MiniBubbleLSFS(){}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return true;}
@@ -254,7 +254,7 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 		MiniBubbleLSFS(){}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return true;}
@@ -364,7 +364,7 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		MiniBubbleLSFS(){}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return true;}
@@ -477,7 +477,7 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 		MiniBubbleLSFS(){}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return true;}
@@ -561,7 +561,7 @@ class MiniBubbleLSFS<ReferencePrism>
 		MiniBubbleLSFS(){}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return true;}
@@ -647,7 +647,7 @@ class MiniBubbleLSFS<ReferencePyramid>
 		MiniBubbleLSFS(){}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, 1);}
+		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return true;}

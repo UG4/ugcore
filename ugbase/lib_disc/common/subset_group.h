@@ -132,7 +132,7 @@ class SubsetGroup
 	 * \return 		-1			if no dimension available
 	 * 				dim	>= 0	highest dimension of all subsets in this group
 	 */
-		int get_local_highest_subset_dimension() const;
+		int get_highest_subset_dimension() const;
 
 	/// returns true if subset is contained in this group
 		bool contains(int si) const;

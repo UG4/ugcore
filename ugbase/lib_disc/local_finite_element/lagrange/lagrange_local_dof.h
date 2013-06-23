@@ -183,7 +183,7 @@ class LagrangeLDS{};
 /// specialization for Edges
 template <>
 class LagrangeLDS<ReferenceVertex>
-	: public ILocalDoFSet
+	: public LocalDoFSet
 {
 	public:
 	///	constructor
@@ -251,7 +251,7 @@ class LagrangeLDS<ReferenceVertex>
 /// specialization for Edges
 template <>
 class LagrangeLDS<ReferenceEdge>
-: public ILocalDoFSet
+: public LocalDoFSet
 {
 	public:
 	///	constructor
@@ -322,7 +322,7 @@ class LagrangeLDS<ReferenceEdge>
 /// specialization for Triangles
 template <>
 class LagrangeLDS<ReferenceTriangle>
-: public ILocalDoFSet
+: public LocalDoFSet
 {
 	public:
 	///	constructor
@@ -395,7 +395,7 @@ class LagrangeLDS<ReferenceTriangle>
 /// specialization for Quadrilateral
 template <>
 class LagrangeLDS<ReferenceQuadrilateral>
-: public ILocalDoFSet
+: public LocalDoFSet
 {
 	public:
 	///	constructor
@@ -467,7 +467,7 @@ class LagrangeLDS<ReferenceQuadrilateral>
 /// specialization for Tetrahedron
 template <>
 class LagrangeLDS<ReferenceTetrahedron>
-: public ILocalDoFSet
+: public LocalDoFSet
 {
 	public:
 	///	constructor
@@ -544,7 +544,7 @@ class LagrangeLDS<ReferenceTetrahedron>
 /// specialization for Prism
 template <>
 class LagrangeLDS<ReferencePrism>
-: public ILocalDoFSet
+: public LocalDoFSet
 {
 	public:
 	///	constructor
@@ -631,7 +631,7 @@ size_t GetNumberOfDoFsOfPyramid(int p)
 /// specialization for Pyramid
 template <>
 class LagrangeLDS<ReferencePyramid>
-: public ILocalDoFSet
+: public LocalDoFSet
 {
 	public:
 	///	constructor
@@ -710,7 +710,7 @@ class LagrangeLDS<ReferencePyramid>
 /// specialization for Hexahedron
 template <>
 class LagrangeLDS<ReferenceHexahedron>
-: public ILocalDoFSet
+: public LocalDoFSet
 {
 	public:
 	///	constructor

@@ -95,7 +95,7 @@ class DoFDistributionInfo : public FunctionPattern
 		std::vector<size_t> m_vvMaxDoFsInDimPerSubset[NUM_GEOMETRIC_BASE_OBJECTS];
 
 		///	local dof sets
-		std::vector<const ILocalDoFSet*> m_vLocalDoFSet[NUM_REFERENCE_OBJECTS];
+		std::vector<const LocalDoFSet*> m_vLocalDoFSet[NUM_REFERENCE_OBJECTS];
 
 		///	maximum dimensions where dofs must be ordered
 		std::vector<int> m_vMaxDimToOrderDoFs;
@@ -168,8 +168,10 @@ class DoFDistributionInfoProvider{
 
 
 		///	returns the local finite element id of a function
+		/// \{
 		const LFEID& local_finite_element_id(size_t fct) const {return m_spDDI->local_finite_element_id(fct);}
-
+		const LFEID& lfeid(size_t fct) const {return m_spDDI->lfeid(fct);}
+		/// \}
 
 		/// return the maximum number of dofs on grid objects in a dimension
 		size_t max_dofs(const int dim) const {return m_spDDI->max_dofs(dim);}

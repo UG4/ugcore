@@ -307,36 +307,34 @@ class LocalShapeFunctionSetProvider {
 		};
 
 	private:
-	// 	initialize the standard trialspaces (called during construction)
+	/// create the standard lagrange space
+	///	\{
 		template <typename TRefElem>
-		void init_standard_sets();
+		static void create_lagrange_set(const LFEID& id);
+		static void create_lagrange_set(ReferenceObjectID roid, const LFEID& id);
+	///	\}
 
-	// 	initialize the standard trialspaces (called during construction)
+	/// create the piecewise-constant space
+	///	\{
 		template <typename TRefElem>
-		static void init_flex_lagrange(size_t order);
+		static void create_generic_sets(const LFEID& id);
+		static void create_generic_sets(ReferenceObjectID roid, const LFEID& id);
+	///	\}
 
+	private:
 	// 	return a map of element_trial_spaces
-		template <int dim, typename t_shape, typename t_grad>
-		static std::map<LFEID, const LocalShapeFunctionSet<dim, t_shape, t_grad>* >*
-		get_map();
-
-	//	vector of dynamically created spaces
-		template <int dim, typename t_shape, typename t_grad>
-		static std::vector<LocalShapeFunctionSet<dim, t_shape, t_grad>*>&
-		get_dynamic_allocated_vector();
-		template <int dim>
-		static std::vector<LocalShapeFunctionSet<dim>*>&
-		get_dynamic_allocated_vector()
-			{return get_dynamic_allocated_vector<dim, number, MathVector<dim> > ();};
+		template <int dim, typename TShape, typename TGrad>
+		static std::map<LFEID, ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > >*
+		get_maps();
 
 	//	returns the continuous information
-		static std::map<LFEID, bool>& get_continuous_map();
+		static std::map<LFEID, bool> m_mContSpace;
 
 	//	creates new set at runtime if available
-		static void dynamically_create_set(ReferenceObjectID roid, LFEID id);
+		static void create_set(ReferenceObjectID roid, const LFEID& id);
 
 	//	creates new set at runtime if available
-		static void dynamically_create_set(LFEID id);
+		static void create_set(const LFEID& id);
 
 	public:
 	/// register a local shape function set for a given reference element type
@@ -348,10 +346,10 @@ class LocalShapeFunctionSetProvider {
 	 * \param[in]		roid	Reference Object id
 	 * \param[in]		set		Local Shape Function Set to register
 	 */
-		template <int dim, typename t_shape, typename t_grad>
+		template <int dim, typename TShape, typename TGrad>
 		static void	register_set(LFEID id,
 		           	             const ReferenceObjectID roid,
-		           	             const LocalShapeFunctionSet<dim, t_shape, t_grad>& set);
+		           	             ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > set);
 
 	/// unregister a local shape function set for a given reference element type
 	/**
@@ -361,7 +359,7 @@ class LocalShapeFunctionSetProvider {
 	 * \param[in]		id 		Identifier for local shape function set
 	 * \return			bool	true iff removal successful
 	 */
-		template <int dim, typename t_shape, typename t_grad>
+		template <int dim, typename TShape, typename TGrad>
 		static bool unregister_set(LFEID id);
 
 	///	returns the Local Shape Function Set
@@ -375,13 +373,23 @@ class LocalShapeFunctionSetProvider {
 	 * \return 		set		A const reference to the shape function set
 	 */
 	///\{
-		template <int dim, typename t_shape, typename t_grad>
-		static const LocalShapeFunctionSet<dim, t_shape, t_grad>& get(ReferenceObjectID roid,
-		                                             LFEID id, bool bCreate = true);
+		template <int dim, typename TShape, typename TGrad>
+		static const LocalShapeFunctionSet<dim, TShape, TGrad>&
+		get(ReferenceObjectID roid, LFEID id, bool bCreate = true);
+
 		template <int dim>
-		static const LocalShapeFunctionSet<dim>& get(ReferenceObjectID roid,
-		                                             LFEID id, bool bCreate = true)
+		static const LocalShapeFunctionSet<dim>&
+		get(ReferenceObjectID roid, LFEID id, bool bCreate = true)
 			{return get<dim,number,MathVector<dim> >(roid, id, bCreate);};
+
+		template <int dim, typename TShape, typename TGrad>
+		static ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >
+		getptr(ReferenceObjectID roid, LFEID id, bool bCreate = true);
+
+		template <int dim>
+		static ConstSmartPtr<LocalShapeFunctionSet<dim> >
+		getptr(ReferenceObjectID roid, LFEID id, bool bCreate = true)
+			{return getptr<dim,number,MathVector<dim> >(roid, id, bCreate);};
 	///\}
 
 	///returns if a Local Shape Function Set is continuous

@@ -59,44 +59,15 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	clears functions
 		void clear() {m_spDoFDistributionInfo->clear();}
 
+	public:
 	/// add single solutions of LocalShapeFunctionSetID to the entire domain
 	/**
 	 * \param[in] 	name		name(s) of single solution (comma separated)
 	 * \param[in] 	id			Shape Function set id
-	 * \param[in]	dim			Dimension (optional)
 	 */
-		void add(const std::vector<std::string>& vName, LFEID id, int dim = -1){
-			m_spDoFDistributionInfo->add(vName, id, dim);
+		void add(const std::vector<std::string>& vName, LFEID id){
+			m_spDoFDistributionInfo->add(vName, id);
 		}
-
-	/// add single solutions of LocalShapeFunctionSetID to selected subsets
-	/**
-	 * \param[in] name			name(s) of single solution (comma separated)
-	 * \param[in] id			Shape Function set id
-	 * \param[in] subsets		Subsets separated by ','
-	 * \param[in] dim			Dimension
-	 */
-		void add(const std::vector<std::string>& vName, LFEID id,
-				 const std::vector<std::string>& vSubset, int dim = -1){
-			m_spDoFDistributionInfo->add(vName, id, vSubset, dim);
-		}
-
-	/// add single solutions of LocalShapeFunctionSetID to the entire domain
-	/**
-	 * \param[in] 	name		name(s) of single solution (comma separated)
-	 * \param[in] 	id			Shape Function set id
-	 * \param[in]	dim			Dimension (optional)
-	 */
-		void add(const char* name, LFEID id, int dim = -1);
-
-	/// add single solutions of LocalShapeFunctionSetID to selected subsets
-	/**
-	 * \param[in] name			name(s) of single solution (comma separated)
-	 * \param[in] id			Shape Function set id
-	 * \param[in] subsets		Subsets separated by ','
-	 * \param[in] dim			Dimension
-	 */
-		void add(const char* name, LFEID id, const char* subsets, int dim = -1);
 
 	///	adds function using string to indicate finite element type
 		void add(const std::vector<std::string>& vName, const char* type, int order);
@@ -105,18 +76,49 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 		void add(const std::vector<std::string>& vName, const char* type);
 
 	///	adds function using string to indicate finite element type
-		void add(const std::vector<std::string>& vName, const char* type, int order,
-				 const std::vector<std::string>& vSubsets);
-
-	///	adds function using string to indicate finite element type
 		void add(const char* name, const char* type, int order);
 
 	///	adds function using string to indicate finite element type
 		void add(const char* name, const char* type);
 
+	public:
+	/// add single solutions of LocalShapeFunctionSetID to selected subsets
+	/**
+	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] id			Shape Function set id
+	 * \param[in] subsets		Subsets separated by ','
+	 */
+		void add(const std::vector<std::string>& vName, LFEID id,
+				 const std::vector<std::string>& vSubset){
+			m_spDoFDistributionInfo->add(vName, id, vSubset);
+		}
+
 	///	adds function using string to indicate finite element type
+		void add(const std::vector<std::string>& vName, const char* type, int order,
+				 const std::vector<std::string>& vSubsets);
+
+	///	adds function using string to indicate finite element type
+	/**
+	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] type			type of local finite element space
+	 * \param[in] order			order of local finite element space
+	 * \param[in] subsets		Subsets separated by ','
+	 */
 		void add(const char* name, const char* type, int order, const char* subsets);
 
+	///	adds function using string to indicate finite element type
+		void add(const std::vector<std::string>& vName, const char* type,
+				 const std::vector<std::string>& vSubsets);
+
+	///	adds function using string to indicate finite element type
+	/**
+	 * \param[in] name			name(s) of single solution (comma separated)
+	 * \param[in] type			type of local finite element space
+	 * \param[in] subsets		Subsets separated by ','
+	 */
+		void add(const char* name, const char* type, const char* subsets);
+
+	public:
 	/// get underlying subset handler
 		ConstSmartPtr<MGSubsetHandler> subset_handler() const {return m_spMGSH;}
 

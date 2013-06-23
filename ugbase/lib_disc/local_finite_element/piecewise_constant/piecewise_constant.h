@@ -69,7 +69,7 @@ class PiecewiseConstantLSFS
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::PIECEWISE_CONSTANT, 0);}
+		inline static LFEID type() {return LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return false;}

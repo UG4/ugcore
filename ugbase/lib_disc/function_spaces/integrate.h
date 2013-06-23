@@ -1966,7 +1966,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 		UG_THROW("IntegrateNormalGradientOnManifold: Function space does not contain"
 				" a function with name " << cmp << ".");
 
-	if(u.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, 1))
+	if(u.local_finite_element_id(fct) != LFEID(LFEID::LAGRANGE, TGridFunction::dim, 1))
 		UG_THROW("IntegrateNormalGradientOnManifold:"
 				 "Only implemented for Lagrange P1 functions.");
 

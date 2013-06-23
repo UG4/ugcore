@@ -67,7 +67,7 @@ post_process(vector_type& u)
 	for(size_t f = 0; f < m_fctGrp.size(); f++)
 	{
 		const size_t fct = m_fctGrp[f];
-		if(dd.local_finite_element_id(fct) != LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+		if(dd.local_finite_element_id(fct).type() != LFEID::PIECEWISE_CONSTANT)
 			UG_THROW("Only implemented for piecewise constant.");
 	}
 

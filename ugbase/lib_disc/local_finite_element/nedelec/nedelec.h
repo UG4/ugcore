@@ -68,7 +68,7 @@ class NedelecLSFS
 		NedelecLSFS() {};
 	
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::NEDELEC, 1);}
+		inline static LFEID type() {return LFEID(LFEID::NEDELEC, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return false;}
@@ -143,7 +143,7 @@ class NedelecLSFS<ReferenceTriangle>
 		NedelecLSFS() {};
 	
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::NEDELEC, 1);}
+		inline static LFEID type() {return LFEID(LFEID::NEDELEC, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return false;}
@@ -228,7 +228,7 @@ class NedelecLSFS<ReferenceTetrahedron>
 		NedelecLSFS() {};
 	
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::NEDELEC, 1);}
+		inline static LFEID type() {return LFEID(LFEID::NEDELEC, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline static bool continuous() {return false;}

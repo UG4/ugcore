@@ -80,7 +80,7 @@ update_local_data()
 	/////////////////////////
 
 	const LocalShapeFunctionSet<dim>& TrialSpace =
-		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
+		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
 
 	m_nsh = TrialSpace.num_sh();
 
@@ -273,7 +273,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 	rMapping.update(vCornerCoords);
 
 	const LocalShapeFunctionSet<dim>& TrialSpace =
-		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, 1));
+		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
 
 //	loop requested subset
 	typename std::map<int, std::vector<BF> >::iterator it;

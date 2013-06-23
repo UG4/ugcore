@@ -21,7 +21,7 @@ namespace ug{
 
 /// MiniBubble Set (2D only!)
 template <typename TRefElem>
-class MiniBubbleLDS : public ILocalDoFSet
+class MiniBubbleLDS : public LocalDoFSet
 {
 	protected:
 	///	dimension of reference element

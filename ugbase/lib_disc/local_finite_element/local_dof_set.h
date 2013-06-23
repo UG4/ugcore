@@ -80,7 +80,7 @@ class LocalDoF
  * This class provides the interface for the storage of degrees of freedom
  * on a finite element.
  */
-class ILocalDoFSet
+class LocalDoFSet
 {
 	public:
 	///	returns the reference dimension
@@ -105,13 +105,13 @@ class ILocalDoFSet
 		virtual const LocalDoF& local_dof(size_t dof) const = 0;
 
 	///	virtual destructor
-		virtual ~ILocalDoFSet() {};
+		virtual ~LocalDoFSet() {};
 };
 
 /// @}
 
 /// writes to the output stream
-std::ostream& operator<<(std::ostream& out,	const ILocalDoFSet& v);
+std::ostream& operator<<(std::ostream& out,	const LocalDoFSet& v);
 
 /**
  * Intersection of local dof sets
@@ -129,7 +129,7 @@ class CommonLocalDoFSet
 		void clear();
 
 	///	add a local dof set to the intersection
-		void add(const ILocalDoFSet& set);
+		void add(const LocalDoFSet& set);
 
 	///	number of dofs on a reference element type
 		int num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
@@ -172,52 +172,21 @@ class LocalDoFSetProvider {
 		};
 
 	private:
-	//	creation of lagrange set for a reference element
-		template <typename TRefElem>
-		static void create_lagrange_set(size_t order);
-
-	//	creation of lagrange set for all reference elements
-		static void create_lagrange_sets(size_t order);
-
-	//	creation of crouzeix-raviart set for a reference element
-		template <typename TRefElem>
-		static void create_crouzeix_raviart_sets();
-
-	//	creation of crouzeix-raviart set for all reference elements
-		static void create_crouzeix_raviart_sets();
-
-	//	creation of piecewise constant set for a reference element
-		template <typename TRefElem>
-		static void create_piecewise_constant_sets();
-
-	//	creation of piecewise constant set for all reference elements
-		static void create_piecewise_constant_sets();
-
-	//	creation of piecewise constant set for a reference element
-		template <typename TRefElem>
-		static void create_mini_bubble_sets();
-
-	//	creation of piecewise constant set for all reference elements
-		static void create_mini_bubble_sets();
-
 	//	creation of nedelec element set for a reference element
 		template <typename TRefElem>
-		static void create_nedelec_sets();
+		static void create_set(const LFEID& id);
 
-	//	creation of nedelec element set for all reference elements
-		static void create_nedelec_sets();
+	// 	creation of set
+		static void create_set(ReferenceObjectID roid, const LFEID& id);
 
 	// 	creation of set
 		static void create_set(const LFEID& id);
 
 	//	type of map holding dof sets for a reference object id
-		typedef std::map<LFEID, std::vector<const ILocalDoFSet*> > RoidMap;
+		typedef std::map<LFEID, std::vector<ConstSmartPtr<LocalDoFSet> > > RoidMap;
 
 	//	map holding dof sets for a reference object id
 		static RoidMap m_mRoidDoFSet;
-
-	//	vector holding all created dof sets
-		static std::vector<ILocalDoFSet*> m_vCreated;
 
 	//	type of map holding common dof set for roid of same dimension
 		typedef std::map<LFEID, std::vector<CommonLocalDoFSet> > CommonMap;
@@ -234,7 +203,7 @@ class LocalDoFSetProvider {
 	 * \param[in]		set		Local Shape Function Set to register
 	 * \return			bool	true iff registration successful
 	 */
-		static void register_set(LFEID id, const ILocalDoFSet& set);
+		static void register_set(const LFEID& id, ConstSmartPtr<LocalDoFSet> set);
 
 	/** unregister a local DoF set for a given reference element type
 	 * This function is used to unregister a Local Shape Function set for an element
@@ -243,13 +212,13 @@ class LocalDoFSetProvider {
 	 * \param[in]		id 		Identifier for local DoF set
 	 * \return			bool	true iff removal successful
 	 */
-		static bool unregister_set(LFEID id);
+		static bool unregister_set(const LFEID& id);
 
 	///	returns the common dof set for all reference objects of a dimension
-		static const CommonLocalDoFSet& get(int dim, LFEID id, bool bCreate = true);
+		static const CommonLocalDoFSet& get(int dim, const LFEID& id, bool bCreate = true);
 
 	///	returns the local DoF set base for an id
-		static const ILocalDoFSet& get(ReferenceObjectID type, LFEID id, bool bCreate = true);
+		static const LocalDoFSet& get(ReferenceObjectID roid, const LFEID& id, bool bCreate = true);
 };
 
 

@@ -21,7 +21,7 @@ namespace ug{
 
 /// Crouzeix - Raviart Set
 template <typename TRefElem>
-class CrouzeixRaviartLDS : public ILocalDoFSet
+class CrouzeixRaviartLDS : public LocalDoFSet
 {
 	protected:
 	///	dimension of reference element

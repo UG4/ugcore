@@ -23,20 +23,20 @@ std::ostream& operator<<(std::ostream& out,	const LFEID& v)
 
 	switch(v.m_type)
 	{
-		case LFEID::LAGRANGE: out << "(Lagrange, " << ss.str() << ")"; break;
-		case LFEID::CROUZEIX_RAVIART: out << "(Crouzeix-Raviart, " << ss.str() << ")"; break;
-		case LFEID::PIECEWISE_CONSTANT: out << "(Piecewise constant, " << ss.str() << ")"; break;
-		case LFEID::DG: out << "(DG, " << ss.str() << ")"; break;
-		case LFEID::MINI: out << "(MINI, " << ss.str() << ")"; break;
-		case LFEID::NEDELEC: out << "(Nedelec, " << ss.str() << ")"; break;
-		case LFEID::USER_DEFINED: out << "(User defined, " << ss.str() << ")"; break;
-		default: out << "(unknown, " << ss.str() << ")";
+		case LFEID::LAGRANGE: out << "(Lagrange, " << v.m_dim << ", " << ss.str() << ")"; break;
+		case LFEID::CROUZEIX_RAVIART: out << "(Crouzeix-Raviart, " << v.m_dim << ", " << ss.str() << ")"; break;
+		case LFEID::PIECEWISE_CONSTANT: out << "(Piecewise constant, " << v.m_dim << ", " << ss.str() << ")"; break;
+		case LFEID::DG: out << "(DG, " << v.m_dim << ", " << ss.str() << ")"; break;
+		case LFEID::MINI: out << "(MINI, " << v.m_dim << ", " << ss.str() << ")"; break;
+		case LFEID::NEDELEC: out << "(Nedelec, " << v.m_dim << ", " << ss.str() << ")"; break;
+		case LFEID::USER_DEFINED: out << "(User defined, " << v.m_dim << ", " << ss.str() << ")"; break;
+		default: out << "(unknown, " << v.m_dim << ", " << ss.str() << ")";
 	}
 	return out;
 }
 
 ///	returns the LFEID for a combination of Space and order
-LFEID ConvertStringToLFEID(const char* type, int order)
+LFEID ConvertStringToLFEID(const char* type, int dim, int order)
 {
 //	convert to string
 	std::string typeStr(type);
@@ -52,11 +52,12 @@ LFEID ConvertStringToLFEID(const char* type, int order)
 	else if(typeStr == "nedelec") eType = LFEID::NEDELEC;
 	else UG_THROW("Cannot find local finite element space: "<<type<<", "<<order);
 
-	return LFEID(eType, order);
+	return LFEID(eType, dim, order);
 }
 
+
 ///	returns the LFEID for a combination of Space and order
-LFEID ConvertStringToLFEID(const char* type)
+LFEID ConvertStringToLFEID(const char* type, int dim)
 {
 	int order;
 //	convert to string
@@ -91,7 +92,7 @@ LFEID ConvertStringToLFEID(const char* type)
 	}
 	else UG_THROW("Cannot find local finite element space: "<<type);
 
-	return LFEID(eType, order);
+	return LFEID(eType, dim, order);
 }
 
 /// @}

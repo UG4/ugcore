@@ -25,7 +25,7 @@ void FunctionPattern::set_subset_handler(ConstSmartPtr<ISubsetHandler> spSH){
 	clear();
 }
 
-void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID, int dim)
+void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID)
 {
 //	add all names
 	for(size_t i = 0; i < vName.size(); ++i)
@@ -43,18 +43,10 @@ void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID, in
 							<<lfeID<< " is not a valid space. "
 							"[use e.g. (Lagrange, p), (DG, p), ...].");
 
-	//	if no dimension passed, try to get dimension
-		if(dim == -1) dim = DimensionOfSubsets(*m_spSH);
-
-	#ifdef UG_PARALLEL
-	//	some processes may not have an element of the subset at all. They can not
-	//	know the dimension of the subset. Therefore we have to broadcast it.
-		pcl::ProcessCommunicator ProcCom; dim = ProcCom.allreduce(dim, PCL_RO_MAX);
-	#endif
-
-	//	if still no dimension available, return false
-		if(dim == -1)
-			UG_THROW("FunctionPattern: Cannot find dimension for new function.");
+	//	check dimension
+		if(DimensionOfSubsets(*m_spSH) != lfeID.dim())
+			UG_THROW("FunctionPattern: Adding "<<lfeID<<" to whole grid of"
+			         " dimension "<<DimensionOfSubsets(*m_spSH)<<".")
 
 	//	create temporary subset group
 		SubsetGroup tmpSSGrp;
@@ -62,12 +54,12 @@ void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID, in
 		tmpSSGrp.add_all();
 
 	// 	add to function list, everywhere = true, copy SubsetGroup
-		m_vFunction.push_back(Function(name, dim, lfeID, true, tmpSSGrp));
+		m_vFunction.push_back(Function(name, lfeID, true, tmpSSGrp));
 	}
 }
 
 void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
-                          const SubsetGroup& ssGrp, int dim)
+                          const SubsetGroup& ssGrp)
 {
 //	add all names
 	for(size_t i = 0; i < vName.size(); ++i)
@@ -83,7 +75,7 @@ void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
 		if(lfeID.type() == LFEID::NONE || lfeID.order() < LFEID::ADAPTIV)
 			UG_THROW("FunctionPattern: "
 					" Specified Local Finite Element Space "<<lfeID<< " is not "
-					" a valid space. [use e.g. (Lagrange, p), (DG, p), ...].");
+					" a valid space. [use e.g. (Lagrange, dim, p), (DG, dim, p), ...].");
 
 	//	check that subset handler are equal
 		if(m_spSH.get() != ssGrp.subset_handler().get())
@@ -91,35 +83,20 @@ void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
 					"SubsetHandler of SubsetGroup does "
 					"not match SubsetHandler of FunctionPattern.");
 
-	//	if no dimension passed, try to get dimension
-		if(dim == -1) dim = ssGrp.get_local_highest_subset_dimension();
-
-	#ifdef UG_PARALLEL
-	//	some processes may not have an element of the subset at all. They can not
-	//	know the dimension of the subset. Therefore we have to broadcast it.
-		pcl::ProcessCommunicator ProcCom; dim = ProcCom.allreduce(dim, PCL_RO_MAX);
-	#endif
-
-	//	if still no dimension available, return false
-		if(dim == -1)
-			UG_THROW("FunctionPattern: Cannot find dimension for new function.");
+	//	check dimension
+		if(ssGrp.get_highest_subset_dimension() != lfeID.dim())
+			UG_THROW("FunctionPattern: Adding "<<lfeID<<" to subsets with"
+					 " highest dimension "<<ssGrp.get_highest_subset_dimension()<<".")
 
 	// 	add to function list, everywhere = false, copy SubsetGroup as given
-		m_vFunction.push_back(Function(name, dim, lfeID, false, ssGrp));
-
-		for(size_t i = 0; i < ssGrp.size(); ++i)
-		{
-			if(i>0) UG_LOG(", ");
-			UG_LOG(ssGrp.name(i));
-		}
-		UG_LOG("](dim="<<dim<<").\n");
+		m_vFunction.push_back(Function(name, lfeID, false, ssGrp));
 	}
 }
 
 void FunctionPattern::add(const std::vector<std::string>& vName, LFEID lfeID,
-                          const std::vector<std::string>& vSubset, int dim)
+                          const std::vector<std::string>& vSubset)
 {
-	add(vName, lfeID, SubsetGroup(m_spSH, vSubset), dim);
+	add(vName, lfeID, SubsetGroup(m_spSH, vSubset));
 }
 
 

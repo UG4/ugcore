@@ -289,8 +289,10 @@ void Interpolate(SmartPtr<UserData<number, TGridFunction::dim> > spInterpolFunct
 
 //	check if fast P1 interpolation can be used
 	// \TODO: This should be improved. Manifold admissible if space continuous
-	const bool bUseP1Interpolation =
-			(spGridFct->local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, 1));
+	bool bUseP1Interpolation = false;
+	if(spGridFct->local_finite_element_id(fct).type() == LFEID::LAGRANGE &&
+			spGridFct->local_finite_element_id(fct).order() == 1)
+		bUseP1Interpolation = true;
 	const bool bAllowManyfoldInterpolation =
 			(spGridFct->local_finite_element_id(fct).type() == LFEID::LAGRANGE);
 
