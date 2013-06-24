@@ -45,6 +45,74 @@ namespace ug
 namespace bridge
 {
 
+void SetLuaNamespaceInTable(string name, string value)
+{
+	UG_LOGN("SetLuaNamespaceInTable " << name << " str " << value);
+	lua_State* L = script::GetDefaultLuaState();
+	LUA_STACK_CHECK(L, 0);
+	int dotPos = name.find(".");
+
+	if(dotPos == -1)
+	{
+		lua_pushstring(L, name.c_str()); // key
+		lua_pushstring(L, value.c_str()); // value
+		lua_settable(L, -3);
+	}
+	else
+	{
+		string subname = name.substr(0, dotPos);
+		string restname = name.substr(dotPos+1, name.size());
+
+		lua_pushstring(L, subname.c_str());
+		lua_rawget(L, -2);
+		if(lua_isnil(L, -1))
+		{
+			lua_pop(L, 1);
+
+			lua_newtable(L);
+			SetLuaNamespaceInTable(restname, value);
+			lua_pushstring(L, subname.c_str());
+			lua_insert(L, -2); /* swap uppertable and 0 */
+			lua_settable(L, -3);
+		}
+		else
+		{
+			SetLuaNamespaceInTable(restname.c_str(), value);
+			lua_pop(L, 1);
+		}
+	}
+}
+void SetLuaNamespace(string name, string value)
+{
+	UG_LOGN("SetLuaNamespace " << name << " str " << value);
+	lua_State* L = script::GetDefaultLuaState();
+	LUA_STACK_CHECK(L, 0);
+
+	int dotPos = name.find(".");
+
+	if(dotPos == -1)
+	{
+		lua_pushstring(L, value.c_str());
+		lua_setglobal(L, name.c_str());
+	}
+	else
+	{
+		string subname = name.substr(0, dotPos);
+		string restname = name.substr(dotPos+1, name.size());
+		lua_getglobal(L, subname.c_str());
+		if(lua_isnil(L, -1))
+		{
+			lua_pop(L, 1);
+			lua_newtable(L);
+			lua_setglobal(L, subname.c_str());
+			lua_getglobal(L, subname.c_str());
+		}
+		SetLuaNamespaceInTable(restname, value);
+		lua_pop(L, 1);
+
+	}
+}
+
 
 /**
  * this function also includes all lines before fromline which begin with -- (lua comments)
@@ -152,7 +220,7 @@ bool GetLuaNamespace(lua_State* L, string name)
 	{
 		lua_pushstring(L, tokens[i].c_str());
 		lua_rawget(L, -2);
-		lua_remove(L, -2);
+		lua_remove(L, -2); // remove parent table from stack
 		if(lua_isnil(L, -1))
 			return false;
 	}
@@ -787,12 +855,12 @@ string GetLuaTypeString(lua_State* L, int index)
 	if(lua_istable(L, index)) {
 		lua_pushnil(L);
 		str.append("{");
-		bool bFirst = true;
+		/*bool bFirst = true;
 		while (lua_next(L, index) != 0) {
 			if(bFirst) {bFirst = false;} else {str.append(", ");};
 			str.append(GetLuaTypeString(L, -1));
 			lua_pop(L, 1);
-	   }
+	   }*/
 		str.append("} (table)/");
 	}
 	if(lua_isthread(L, index)) str.append("thread/");
