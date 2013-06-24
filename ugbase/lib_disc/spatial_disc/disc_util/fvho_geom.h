@@ -477,7 +477,7 @@ class FVGeometry : public FVGeometryBase
 
 	/// update Geometry for roid
 		void update_local(ReferenceObjectID roid,
-		                  const LFEID& lfeID = LFEID(LFEID::LAGRANGE, 1),
+		                  const LFEID& lfeID = LFEID(LFEID::LAGRANGE, worldDim, 1),
 		                  size_t orderQuad = TQuadOrder);
 
 	/// update data for given element
