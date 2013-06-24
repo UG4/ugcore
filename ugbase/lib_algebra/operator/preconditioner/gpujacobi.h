@@ -6,7 +6,7 @@
  */
 
 #ifdef CUDA_AVAILABLE
-
+#ifdef UG_GPU
 #ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GPUJACOBI__
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__GPUJACOBI__
 
@@ -20,6 +20,7 @@
 
 #include "lib_algebra/small_algebra/blocks.h"
 #include "lib_algebra/gpu_algebra/gpuvector.h"
+#include "lib_algebra/cpu_algebra_types.h"
 
 
 extern "C" bool
@@ -164,5 +165,5 @@ public:
 } // end namespace ug
 
 #endif
-
+#endif
 #endif // USE_CUDA
