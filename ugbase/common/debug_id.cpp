@@ -57,7 +57,7 @@ set_debug_level(const char *debugID, int level)
 		UG_LOG("DebugID " << debugID << " not registered.\n");
 		return false;
 	}
-	else return true;
+	return true;
 }
 
 bool DebugIDManager::
