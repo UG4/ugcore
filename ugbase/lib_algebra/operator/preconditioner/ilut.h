@@ -112,6 +112,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				con.resize(0);
 				size_t u_part=0;
 
+				UG_ASSERT(A->num_connections(i) != 0, "row " << i << " has no connections");
+
 				// get the row A(i, .) into con
 				double dmax=0;
 				for(typename matrix_type::row_iterator i_it = A->begin_row(i); i_it != A->end_row(i); ++i_it)
@@ -233,7 +235,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			{
 				size_t i=m_U.num_rows()-1;
 				typename matrix_type::row_iterator it = m_U.begin_row(i);
-				UG_ASSERT(it.index() == i, "");
+				UG_ASSERT(it != m_U.end_row(i), i);
+				UG_ASSERT(it.index() == i, i);
 				block_type &uii = it.value();
 				typename vector_type::value_type s = c[i];
 				// check if close to zero
@@ -252,7 +255,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			for(size_t i=m_U.num_rows()-2; ; i--)
 			{
 				typename matrix_type::row_iterator it = m_U.begin_row(i);
-				UG_ASSERT(it.index() == i, "");
+				UG_ASSERT(it != m_U.end_row(i), i);
+				UG_ASSERT(it.index() == i, i);
 				block_type &uii = it.value();
 
 				typename vector_type::value_type s = c[i];
