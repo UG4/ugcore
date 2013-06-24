@@ -14,6 +14,7 @@
 #include "parallel_storage_type.h"
 #include "algebra_layouts.h"
 #include "lib_algebra/common/operations.h"
+#include "parallel_vector.h"
 
 namespace ug
 {
