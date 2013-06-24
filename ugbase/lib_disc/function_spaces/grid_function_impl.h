@@ -85,6 +85,20 @@ InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 		vPos.push_back(center);
 		return true;
 	}
+	if(lfeID == LFEID(LFEID::NEDELEC, dim, 1))
+	{
+		vPos.clear();
+		if(refDim != 1) return true;
+
+		MathVector<dim> center;
+		VecSet(center, 0.0);
+		for(size_t co = 0; co < vVertPos.size(); ++co)
+			VecAppend(center, vVertPos[co]);
+		VecScale(center, center, 1./(vVertPos.size()));
+
+		vPos.push_back(center);
+		return true;
+	}
 
 //	get local shape function set
 	const LocalShapeFunctionSet<refDim>& lsfs
