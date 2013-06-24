@@ -178,7 +178,13 @@ int main(int argc, char* argv[])
 
 //	INIT PLUGINS
 	try{
-		UGInitPlugins();
+		UG_LOG(", plugins... ");
+		if(UGInitPlugins() == true)
+		{	UG_LOG("done"); }
+		else																	
+		{	UG_LOG("fail");	}
+		
+		UG_LOG("                 *\n");
 	}
 	catch(UGError &err)
 	{
