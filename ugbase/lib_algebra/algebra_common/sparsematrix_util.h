@@ -15,6 +15,12 @@
 #include "unsorted_sparse_vector.h"
 #include "../small_algebra/small_algebra.h"
 
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#include "lib_algebra/parallelization/parallel_matrix.h"
+#include "lib_algebra/parallelization/parallel_vector.h"
+#endif
+
 namespace ug
 {
 
@@ -760,6 +766,21 @@ bool CheckVectorInvertible(const TVector &v)
 	return true;
 #endif
 }
+
+#ifdef UG_PARALLEL
+template<typename TMatrix>
+bool CheckDiagonalInvertible(const ParallelMatrix<TMatrix> &m)
+{
+	return AllProcsTrue(CheckDiagonalInvertible((TMatrix&)m), m.layouts()->proc_comm());
+}
+
+template<typename TVector>
+bool CheckVectorInvertible(const ParallelVector<TVector> &v)
+{
+	return AllProcsTrue(CheckVectorInvertible((TVector&)v), v.layouts()->proc_comm());
+}
+#endif
+
 
 /// @}
 } // end namespace ug
