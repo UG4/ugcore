@@ -217,9 +217,6 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 			if(set.roid() != roid)
 				continue;
 
-	//	check if space specifies for roid
-		if(set.num_dof(roid) == NOT_SPECIFIED) continue;
-
 	//	check if already value set and iff the same
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
 			if(m_vNumDoF[i] != set.num_dof(roid))
