@@ -213,4 +213,23 @@ void UGOutputProfileStatsOnExit(bool bEnable)
 	outputProfileStats = bEnable;
 }
 
+#ifdef UG_PLUGINS
+bool UGInitPlugins()
+{
+	#ifdef UG_EMBEDDED_PLUGINS
+		InitializeEmbeddedPlugins(&bridge::GetUGRegistry(), "ug4/");
+		return true;
+	#else
+		if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	return true;
+		else																	return false;
+	#endif
+}
+#else
+bool UGInitPlugins()
+{
+	return true;
+}
+#endif
+
+
 } //end of namespace ug

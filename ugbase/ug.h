@@ -66,6 +66,9 @@ UG_API void UGForceExit();
 ///	Call with true, if profiling output is desired at the end of the show.
 UG_API void UGOutputProfileStatsOnExit(bool bEnable);
 
+///	Init (if UG_PLUGINS is set) embedded or non-shared plugins
+UG_API bool UGInitPlugins();
+
 }//	end of namespace
 
 #endif
