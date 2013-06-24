@@ -412,6 +412,32 @@ int UGIsBaseClass(lua_State *L)
 	return 0;
 }
 
+void SetLuaUGArgs(lua_State* L, int argc, char* argv[], int firstParamIndex, int iNoQuit)
+{
+//	create ugargc and ugargv in lua
+	//	we want to forward argc and argv to the lua-environment.
+	//	we'll create a table for that.
+	//	Please note that ugargv will neither contain the name of the program, nor
+	//	the script, if one was specified.
+	lua_newtable(L);
+	int ugargc=0;
+	for(int i = firstParamIndex; i < argc; ++i){
+		if(i == iNoQuit) continue;
+	//	push the index to the table
+		lua_pushnumber(L, ++ugargc);
+	//	push the value to the table
+		lua_pushstring(L, argv[i]);
+	//	create the entry
+		lua_settable(L, -3);
+	}
+	//	set the tables name
+	lua_setglobal(L, "ugargv");
+
+	lua_pushnumber(L, ugargc);
+	lua_setglobal(L, "ugargc");
+}
+
+
 int UGDimCompiled(lua_State *L)
 {
 	int dim = lua_tointeger(L, -1);

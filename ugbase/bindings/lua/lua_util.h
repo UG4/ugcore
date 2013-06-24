@@ -101,6 +101,8 @@ UG_API int UGAlgebraCompiled(lua_State *L);
 /// Returns type of a userdata as string
 UG_API int UGGetClassName(lua_State *L);
 
+UG_API void SetLuaUGArgs(lua_State* L, int argc, char* argv[], int firstParamIndex, int iNoQuit);
+
 /**
  * searches for the filename
  * - relative to current script

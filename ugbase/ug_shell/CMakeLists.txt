@@ -38,7 +38,8 @@ message(STATUS "Info: SHELLTYPE: ${SHELLTYPE} (options are: ${shelltypeOptions})
 
 # set the main sources
 set(srcUGShell	    ugshell_main.cpp
-                    completion.cpp)
+                    completion.cpp
+                    shell.cpp)
                     #signal_handler.cpp)
 
 

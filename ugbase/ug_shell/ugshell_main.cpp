@@ -7,35 +7,39 @@
 
 #include "ug.h"
 #include "bindings/lua/lua_util.h"
-#include "bindings/lua/lua_debug.h"
 #include "bridge/bridge.h"
-#include "bindings/lua/info_commands.h"
+
 #include "common/util/parameter_parsing.h"
 #include "common/util/file_util.h"
 #include "common/profiler/memtracker.h"
 #include "common/util/os_info.h"
 #include "common/util/path_provider.h"
 #include "common/profiler/profile_node.h"
-#ifdef UG_PLUGINS
-	#ifdef UG_EMBEDDED_PLUGINS
-		#include "embedded_plugins.h"
-	#else
-		#include "common/util/plugin_util.h"
-	#endif
-#endif
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
 #endif
+#include "common/catch_std.h"
 
 void get_undeleted();
 #include "compile_info/compile_info.h"
-
+#include "bindings/lua/lua_debug.h"
+#include "shell.h"
 
 using namespace std;
 using namespace ug;
 using namespace script;
 
+
+namespace ug
+{
+
+namespace bridge
+{
+
+void SetLuaNamespace(string name, string value);
+}
+}
 /**
  * \defgroup ugbase_ugshell UGShell
  * \ingroup ugbase
@@ -43,245 +47,6 @@ using namespace script;
  * \{
  */
 
-
-////////////////////////////////////////////////////////////////////////////////
-// interactive shells
-//#define UG_PROMPT "\e[1mug:>\e[0m"
-#define UG_PROMPT "ug:> "
-
-#if defined(UG_USE_READLINE)
-	#include <stdio.h>
-	#include <readline/readline.h>
-	#include <readline/history.h>
-	void ug_cacheline(string str)
-	{
-		add_history(str.c_str());
-	}
-	string ug_readline(const char *prompt)
-	{
-		string ret;
-		char *str=readline(prompt);
-		if(str==NULL)
-			ret="";
-		else ret=str;
-		free(str);
-		return ret;
-	}
-#else
-	#if defined(UG_USE_LINENOISE)
-		#include "externals/linenoise/linenoise.h"
-
-		int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList);
-
-		string ug_readline(const char *prompt)
-		{
-			string ret;
-			char *str=linenoise(prompt);
-			if(str==NULL)
-				ret="";
-			else ret=str;
-			free(str);
-			return ret;
-		}
-		void ug_cacheline(string str)
-		{
-			linenoiseHistoryAdd(str.c_str());
-		}
-
-		extern int iOtherCompletitionsLength;
-		extern const char **pOtherCompletitions;
-	#else
-		#define ug_cacheline(str)	
-		string ug_readline(const char* prompt)
-		{
-			cout << prompt;
-			string strBuffer;
-			getline(cin, strBuffer);
-			return strBuffer;
-		}
-
-	#endif
-#endif
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// normal shell
-int runShell(const char *prompt=UG_PROMPT)
-{
-	//	run the shell
-	const char *completitions[] ={"quit", "exit"};
-	while(1)
-	{
-#if defined(UG_USE_LINENOISE)
-		iOtherCompletitionsLength=sizeof(completitions)/sizeof(completitions[0]);
-		pOtherCompletitions=completitions;
-#endif
-
-		PROFILE_BEGIN(ug_readline);
-			string buf = ug_readline(prompt);
-		PROFILE_END();
-
-#if defined(UG_USE_LINENOISE)
-		iOtherCompletitionsLength=0;
-#endif
-		size_t len = buf.length();
-		if(len)
-		{
-			if(buf.compare("exit")==0 || buf.compare("quit")==0)
-				break;
-
-			if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
-			{
-				bridge::UGTypeInfo(buf.c_str()+6);
-				continue;
-			}
-			if(buf[len-1]=='?')
-			{
-				buf.resize(len-1);
-				bridge::UGTypeInfo(buf.c_str());
-				continue;
-			}
-
-			ug_cacheline(buf);
-
-			try
-			{
-				script::ParseBuffer(buf.c_str(), "interactive shell");
-			}
-			catch(LuaError& err)
-			{
-				PathProvider::clear_current_path_stack();
-				if(!err.get_msg().empty()){
-					UG_LOG("LUA-ERROR: \n");
-					for(size_t i=0;i<err.num_msg();++i)
-						UG_LOG(err.get_msg(i)<<endl);
-				}
-			}
-			catch(UGError &err)
-			{
-				PathProvider::clear_current_path_stack();
-				UG_LOG("UGError:\n");
-				for(size_t i=0; i<err.num_msg(); i++)
-					UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
-				UG_LOG("\n");
-			}
-		}
-	}
-//todo:	clear the history (add ug_freelinecache)
-	return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// debug shell
-debug_return debugShell()
-{
-	static string last="";
-	ug::bridge::LuaStackTrace(GetDefaultLuaState());
-	//ug::bridge::LuaPrintCurrentLine(GetDefaultLuaState());
-
-#ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1)
-	{
-		UG_LOG("Parallel Shell not available currently.");
-		return DEBUG_CONTINUE;
-	}
-#endif
-
-	//	run the shell
-	const char *completitions[]={"quit", "exit", "step", "next", "cont", "continue", "finish", "list", "backtrace", "bt",
-			"up", "down"};
-	while(1)
-	{
-#if defined(UG_USE_LINENOISE)
-		iOtherCompletitionsLength=sizeof(completitions)/sizeof(completitions[0]);
-		pOtherCompletitions=completitions;
-#endif
-		PROFILE_BEGIN(ug_readline);
-			string buf = ug_readline("debug:> ");
-		PROFILE_END();
-
-#if defined(UG_USE_LINENOISE)
-		iOtherCompletitionsLength=0;
-#endif
-		size_t len = buf.length();
-		if(len)
-		{
-			ug_cacheline(buf);
-			last = buf;
-		}
-		else
-		{
-			if(last.length() > 0)
-			{
-				buf = last;
-				UG_LOG("debug:> " << last << "\n");
-			}
-		}
-
-		if(buf.compare("exit")==0 || buf.compare("quit")==0)
-			return DEBUG_EXIT;
-		else if(buf.compare("continue")==0 || buf.compare("cont")==0)
-			return DEBUG_CONTINUE;
-		else if(buf.compare("next")==0)
-			return DEBUG_NEXT;
-		else if(buf.compare("step")==0)
-			return DEBUG_STEP;
-		else if(buf.compare("finish")==0)
-			return DEBUG_FINISH;
-		else if(buf.compare("list")==0)
-		{
-			DebugList();
-			continue;
-		}
-		else if(buf.compare("backtrace")==0 || buf.compare("bt")==0)
-		{
-			DebugBacktrace();
-			continue;
-		}
-		else if(buf.compare("up")==0)
-		{
-			DebugUp();
-			continue;
-		}
-		else if(buf.compare("down")==0)
-		{
-			DebugDown();
-			continue;
-		}
-		else if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
-		{
-			bridge::UGTypeInfo(buf.c_str()+6);
-			continue;
-		}
-
-		if(len)
-		{
-			if(buf[len-1]=='?')
-			{
-				buf.resize(len-1);
-				bridge::UGTypeInfo(buf.c_str());
-				continue;
-			}
-
-			try
-			{
-				script::ParseBuffer(buf.c_str(), "debug shell");
-			}
-			catch(LuaError& err)
-			{
-				PathProvider::clear_current_path_stack();
-				if(!err.get_msg().empty()){
-					UG_LOG("LUA-ERROR: \n");
-					for(size_t i=0;i<err.num_msg();++i)
-						UG_LOG(err.get_msg(i)<<endl);
-				}
-			}
-		}
-	}
-//todo:	clear the history (add ug_freelinecache)
-	return DEBUG_EXIT;
-}
 
 #ifdef UG_DEBUG
 void SharedLibrariesLoaded()
@@ -413,19 +178,7 @@ int main(int argc, char* argv[])
 
 //	INIT PLUGINS
 	try{
-		#ifdef UG_PLUGINS
-			UG_LOG(", plugins... ");
-			#ifdef UG_EMBEDDED_PLUGINS
-				InitializeEmbeddedPlugins(&bridge::GetUGRegistry(), "ug4/");
-				UG_LOG("done");
-			#else
-				if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	{UG_LOG("done");}
-				else																	{UG_LOG("fail");}
-			#endif
-			UG_LOG("                 *\n");
-		#else
-			UG_LOG("                                  *\n");
-		#endif
+		UGInitPlugins();
 	}
 	catch(UGError &err)
 	{
@@ -490,10 +243,6 @@ int main(int argc, char* argv[])
 	if(!bAbort){
 		bool runInteractiveShell = true;
 
-	//	we want to forward argc and argv to the lua-environment.
-	//	we'll create a table for that.
-	//	Please note that ugargv will neither contain the name of the program, nor
-	//	the script, if one was specified.
 		lua_State* L = script::GetDefaultLuaState();
 
 	//	if a script shall be executed we do so now.
@@ -512,37 +261,17 @@ int main(int argc, char* argv[])
 
 		int iNoQuit = GetParamIndex("-noquit", argc, argv);
 
-	//	create ugargc and ugargv in lua
-
-		lua_newtable(L);
-		int ugargc=0;
-		for(int i = firstParamIndex; i < argc; ++i){
-			if(i == iNoQuit) continue;
-		//	push the index to the table
-			lua_pushnumber(L, ++ugargc);
-		//	push the value to the table
-			lua_pushstring(L, argv[i]);
-		//	create the entry
-			lua_settable(L, -3);
-		}
-		//	set the tables name
-		lua_setglobal(L, "ugargv");
-
-		lua_pushnumber(L, ugargc);
-		lua_setglobal(L, "ugargc");
+		SetLuaDebugIDs(L);
+		SetLuaUGArgs(L, argc, argv, firstParamIndex, iNoQuit);
 
 		// replace LUAs print function with our own, to use UG_LOG
 		lua_register(L, "print", UGLuaPrint );
 		lua_register(L, "write", UGLuaWrite );
 	
+		ug::bridge::InitShell();
+
 		PROFILE_END(); // ugshellInit
-	
-	#if defined(UG_USE_LINENOISE)
-		linenoiseSetCompletionFunction(CompletionFunction);
-		SetDebugShell(debugShell);
-	#endif
-	
-	
+
 		EnableMemTracker(true);
 	//	if a script has been specified, then execute it now
 	//	if a script is executed, we won't execute the interactive shell.
@@ -574,6 +303,7 @@ int main(int argc, char* argv[])
 				UG_LOG("\n");
 				UG_LOG("aborting script parsing...\n");
 			}
+			CATCH_STD_EXCEPTIONS();
 
 			if(FindParam("-noquit", argc, argv))
 				runInteractiveShell = true;
@@ -595,7 +325,7 @@ int main(int argc, char* argv[])
 		#endif
 
 		if(runInteractiveShell)
-			ret = runShell();
+			ret = ug::bridge::RunShell();
 
 	}//bAbort
 	else

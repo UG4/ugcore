@@ -59,6 +59,8 @@ UG_API void DebugUp();
 
 /// Free all memory associated with lua_debug
 UG_API void FinalizeLUADebug();
+
+UG_API void SetLuaDebugIDs(lua_State* L);
 }
 }
 

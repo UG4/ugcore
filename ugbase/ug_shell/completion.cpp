@@ -30,8 +30,13 @@ extern "C"
 }
 
 using namespace std;
-using namespace ug;
-using namespace bridge;
+
+namespace ug{
+namespace bridge{
+
+int iOtherCompletitionsLength;
+const char **pOtherCompletitions=NULL;
+
 
 /// \addtogroup ugbase_ugshell
 /// \{
@@ -468,8 +473,6 @@ size_t GetPathCompletitions(char *buf, int len, std::vector<string> &matches, si
 	return matches.size() - matchesSizeBefore;
 }
 
-int iOtherCompletitionsLength;
-const char **pOtherCompletitions=NULL;
 /**
  * GetOtherCompletitions
  * puts in matches completitions of user-provided strings like "quit", "continue" etc.
@@ -582,5 +585,13 @@ int CompletionFunction(char *buf, int len, int buflen, int iPrintCompletionList)
 	}
 }
 
+void SetOtherCompletions(const char **otherCompletions, int nr)
+{
+	pOtherCompletitions = otherCompletions;
+	iOtherCompletitionsLength = nr;
+}
+
+}
+}
 // end group ugbase_ugshell
 /// \}

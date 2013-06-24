@@ -608,5 +608,47 @@ bool RegisterLuaDebug(ug::bridge::Registry &reg)
 }
 
 
+
+void SetLuaDebug(lua_State* L, string id)
+{
+	string name = id;
+	string rest = name;
+	string pre = "";
+
+	while(1)
+	{
+		int dotPos = rest.find(".");
+		if(dotPos == -1) break;
+		string sub = rest.substr(0, dotPos);
+		rest = rest.substr(dotPos+1, rest.size());
+
+		//ug::bridge::SetLuaNamespace(pre+sub+".group", pre+sub+".*");
+		//string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "function debugID." + pre+sub + ".set_group_level(level) GetLogAssistant():set_debug_level(\"" + pre+sub + ".*\", level) end\n";
+		string p = std::string("") + "debugID." + pre+sub + " = " + "debugID." + pre+sub + " or {}\n" + "debugID." + pre+sub + ".id = \"" + pre+sub + "\"\n";
+		//UG_LOGN(p);
+		script::ParseBuffer(p.c_str(), "");
+		pre = pre+sub+".";
+
+	}
+
+	//ug::bridge::SetLuaNamespace(pre+rest+".id", pre+rest);
+//	string p = std::string("") + "debugID." + name + " = " + "debugID." + name + " or {}\n" + "function debugID." + name + ".set_level(level) GetLogAssistant():set_debug_level(\"" + name + "\", level) end\n";
+	string p = std::string("") + "debugID." + name + " = " + "debugID." + name + " or {}\n" + "debugID." + name + ".id = \"" + name + "\"\n";
+	//UG_LOGN(p);
+	script::ParseBuffer(p.c_str(), "");
+}
+
+void SetLuaDebugIDs(lua_State* L)
+{
+	script::ParseBuffer(
+			"debugID = {}\n"
+			"function debug.set(did, level) GetLogAssistant():set_debug_level((did.id) ..\"*\", level) end",
+			"");
+	const vector<string> &s = DebugIDManager::instance().get_registered_debug_IDs_arr();
+	for(size_t i=0; i<s.size(); i++)
+		SetLuaDebug(L, s[i]);
+}
+
+
 }
 }
