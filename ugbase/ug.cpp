@@ -142,17 +142,11 @@ int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank)
 		}
 #endif
 
-#ifdef UG_PLUGINS
-	#ifdef UG_EMBEDDED_PLUGINS
-		InitializeEmbeddedPlugins(&bridge::GetUGRegistry(), "ug4/");
-	#else
-		if(!LoadPlugins(ug::PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))
+		if(UGInitPlugins() == false)
 		{
 			success &= false;
 			UG_LOG("ERROR in UGInit: LoadPlugins failed!\n");
 		}
-	#endif
-#endif
 	}
 
 	// convert boolean success == true to int = 0.
