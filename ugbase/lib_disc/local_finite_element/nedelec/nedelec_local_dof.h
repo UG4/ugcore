@@ -62,21 +62,14 @@ class NedelecLDS : public LocalDoFSet
 	///	returns the number of DoFs on a sub-geometric object type
 		int num_dof(ReferenceObjectID type) const
 		{
-			return max_num_dof(ReferenceElementDimension(type));
+			if(ReferenceElementDimension(type) == 1) return 1;
+			else return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
 			if(d == 1) return 1;
-			else return 0;
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if(d == 1) return 1;
-			else if (d > refDim) return -1;
 			else return 0;
 		}
 

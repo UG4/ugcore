@@ -98,9 +98,6 @@ class LocalDoFSet
 	///	returns the number of DoFs on a sub-geometric object of dim and id
 		virtual size_t num_dof(int d, size_t id) const = 0;
 
-	///	returns maximum number of DoFs that are associated with objects of the dimension
-		virtual size_t max_num_dof(int d) const = 0;
-
 	///	returns the DoFs storage
 		virtual const LocalDoF& local_dof(size_t dof) const = 0;
 

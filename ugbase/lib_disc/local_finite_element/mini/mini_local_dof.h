@@ -69,7 +69,10 @@ class MiniBubbleLDS : public LocalDoFSet
 	///	returns the number of DoFs on a sub-geometric object type
 		int num_dof(ReferenceObjectID type) const
 		{
-			return max_num_dof(ReferenceElementDimension(type));
+			const int d = ReferenceElementDimension(type);
+			if (d==0) return 1;         // vertices
+			if (d == refDim)   return 1;    // element
+			return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
@@ -77,15 +80,6 @@ class MiniBubbleLDS : public LocalDoFSet
 		{
 			// each element and vertex hold one dof
 			if((d == refDim)||(d==0)) return 1;
-			else return 0;
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if (d==0) return 1;         // vertices
-			if (d == refDim)   return 1;    // element
-			else if (d > refDim) return -1;
 			else return 0;
 		}
 

@@ -214,20 +214,13 @@ class LagrangeLDS<ReferenceVertex>
 		int num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX) return 1;
-			else return -1;
+			else return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
 			return num_dof(Provider<ReferenceVertex>::get().roid(d, id));
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if(d == 0) return 1;
-			else return 0;
 		}
 
 	///	returns the dof storage
@@ -283,21 +276,13 @@ class LagrangeLDS<ReferenceEdge>
 		{
 				 if(type == ROID_VERTEX) return 1;
 			else if(type == ROID_EDGE) return p-1;
-			else return -1;
+			else return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
 			return num_dof(Provider<ReferenceEdge>::get().roid(d, id));
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-				 if(d == 0) return 1;
-			else if(d == 1) return p-1;
-			else return 0;
 		}
 
 	///	returns the dof storage
@@ -355,22 +340,13 @@ class LagrangeLDS<ReferenceTriangle>
 			if(type == ROID_VERTEX)   return 1;
 			if(type == ROID_EDGE) 	  return (p-1);
 			if(type == ROID_TRIANGLE) return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
-			else return -1;
+			else return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
 			return num_dof(Provider<ReferenceTriangle>::get().roid(d, id));
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			if(d==2) return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
-			else return 0;
 		}
 
 	///	returns the dof storage
@@ -428,15 +404,6 @@ class LagrangeLDS<ReferenceQuadrilateral>
 			if(type == ROID_VERTEX)		   return 1;
 			if(type == ROID_EDGE) 		   return (p-1);
 			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
-			else return -1;
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			if(d==2) return (p-1)*(p-1);
 			else return 0;
 		}
 
@@ -501,26 +468,13 @@ class LagrangeLDS<ReferenceTetrahedron>
 			if(type == ROID_EDGE) 	     return (p-1);
 			if(type == ROID_TRIANGLE)    return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 			if(type == ROID_TETRAHEDRON) return ((p>3) ? BinomCoeff(p-1, p-4) : 0);
-			else return -1;
+			else return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
 			return num_dof(Provider<ReferenceTetrahedron>::get().roid(d, id));
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if(d==0) return 1;
-		//	number of shapes on edge is same as for edge with p-1
-			if(d==1) return (p-1);
-		//	number of shapes on faces is same as for triangles in 2d
-			if(d==2) return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
-		//	number of shapes on interior is same as for tetrahedra with p-4
-			if(d==3) return ((p>3) ? BinomCoeff(p-1, p-4) : 0);
-			else return 0;
 		}
 
 	///	returns the dof storage
@@ -582,23 +536,13 @@ class LagrangeLDS<ReferencePrism>
 			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
 		//	same as for a 3d prism of order p-2
 			if(type == ROID_PRISM)		   return ((p>2) ? BinomCoeff(p-1, p-3)*(p-1) : 0);
-			else return -1;
+			else return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
 			return num_dof(Provider<ReferencePrism>::get().roid(d, id));
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			if(d==2) return num_dof(ROID_QUADRILATERAL);
-			if(d==3) return num_dof(ROID_PRISM);
-			else return 0;
 		}
 
 	///	returns the dof storage
@@ -669,23 +613,13 @@ class LagrangeLDS<ReferencePyramid>
 			if(type == ROID_QUADRILATERAL)	return (p-1)*(p-1);
 		//	same as for a 3d pyramid of order p-2
 			if(type == ROID_PYRAMID)		return ((p>2) ? GetNumberOfDoFsOfPyramid(p-3) : 0);
-			else return -1;
+			else return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
 			return num_dof(Provider<ReferencePyramid>::get().roid(d, id));
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			if(d==2) return num_dof(ROID_QUADRILATERAL);
-			if(d==3) return num_dof(ROID_PYRAMID);
-			else return 0;
 		}
 
 	///	returns the dof storage
@@ -744,23 +678,13 @@ class LagrangeLDS<ReferenceHexahedron>
 			if(type == ROID_EDGE) 	 	   return (p-1);
 			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
 			if(type == ROID_HEXAHEDRON)    return (p-1)*(p-1)*(p-1);
-			else return -1;
+			else return 0;
 		}
 
 	///	returns the number of DoFs on sub-geometric object in dimension and id
 		size_t num_dof(int d, size_t id) const
 		{
 			return num_dof(Provider<ReferenceHexahedron>::get().roid(d, id));
-		}
-
-	///	returns if the storage needs objects of a given dimension
-		size_t max_num_dof(int d) const
-		{
-			if(d==0) return 1;
-			if(d==1) return (p-1);
-			if(d==2) return (p-1)*(p-1);
-			if(d==3) return (p-1)*(p-1)*(p-1);
-			else return 0;
 		}
 
 	///	returns the dof storage
