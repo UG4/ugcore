@@ -50,9 +50,6 @@ class NedelecLDS : public LocalDoFSet
 				m_vLocalDoF[i] = LocalDoF(1, i, 0);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return refDim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
@@ -60,16 +57,9 @@ class NedelecLDS : public LocalDoFSet
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 			if(ReferenceElementDimension(type) == 1) return 1;
-			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			if(d == 1) return 1;
 			else return 0;
 		}
 

@@ -201,9 +201,6 @@ class LagrangeLDS<ReferenceVertex>
 			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceVertex>::get(), p);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return ReferenceVertex::dim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return ReferenceVertex::REFERENCE_OBJECT_ID;}
 
@@ -211,16 +208,10 @@ class LagrangeLDS<ReferenceVertex>
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX) return 1;
 			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			return num_dof(Provider<ReferenceVertex>::get().roid(d, id));
 		}
 
 	///	returns the dof storage
@@ -262,9 +253,6 @@ class LagrangeLDS<ReferenceEdge>
 			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceEdge>::get(), p);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return ReferenceEdge::dim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return ReferenceEdge::REFERENCE_OBJECT_ID;}
 
@@ -272,17 +260,11 @@ class LagrangeLDS<ReferenceEdge>
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 				 if(type == ROID_VERTEX) return 1;
 			else if(type == ROID_EDGE) return p-1;
 			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			return num_dof(Provider<ReferenceEdge>::get().roid(d, id));
 		}
 
 	///	returns the dof storage
@@ -325,9 +307,6 @@ class LagrangeLDS<ReferenceTriangle>
 			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceTriangle>::get(), p);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return ReferenceTriangle::dim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return ReferenceTriangle::REFERENCE_OBJECT_ID;}
 
@@ -335,18 +314,12 @@ class LagrangeLDS<ReferenceTriangle>
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX)   return 1;
 			if(type == ROID_EDGE) 	  return (p-1);
 			if(type == ROID_TRIANGLE) return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			return num_dof(Provider<ReferenceTriangle>::get().roid(d, id));
 		}
 
 	///	returns the dof storage
@@ -389,9 +362,6 @@ class LagrangeLDS<ReferenceQuadrilateral>
 			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceQuadrilateral>::get(), p);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return ReferenceQuadrilateral::dim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return ReferenceQuadrilateral::REFERENCE_OBJECT_ID;}
 
@@ -399,18 +369,12 @@ class LagrangeLDS<ReferenceQuadrilateral>
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX)		   return 1;
 			if(type == ROID_EDGE) 		   return (p-1);
 			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
 			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			return num_dof(Provider<ReferenceQuadrilateral>::get().roid(d, id));
 		}
 
 	///	returns the dof storage
@@ -452,9 +416,6 @@ class LagrangeLDS<ReferenceTetrahedron>
 			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceTetrahedron>::get(), p);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return ReferenceTetrahedron::dim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return ReferenceTetrahedron::REFERENCE_OBJECT_ID;}
 
@@ -462,19 +423,13 @@ class LagrangeLDS<ReferenceTetrahedron>
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX)      return 1;
 			if(type == ROID_EDGE) 	     return (p-1);
 			if(type == ROID_TRIANGLE)    return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
 			if(type == ROID_TETRAHEDRON) return ((p>3) ? BinomCoeff(p-1, p-4) : 0);
 			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			return num_dof(Provider<ReferenceTetrahedron>::get().roid(d, id));
 		}
 
 	///	returns the dof storage
@@ -516,9 +471,6 @@ class LagrangeLDS<ReferencePrism>
 			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferencePrism>::get(), p);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return ReferencePrism::dim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return ReferencePrism::REFERENCE_OBJECT_ID;}
 
@@ -526,7 +478,7 @@ class LagrangeLDS<ReferencePrism>
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX)        return 1;
 			if(type == ROID_EDGE)          return (p-1);
@@ -537,12 +489,6 @@ class LagrangeLDS<ReferencePrism>
 		//	same as for a 3d prism of order p-2
 			if(type == ROID_PRISM)		   return ((p>2) ? BinomCoeff(p-1, p-3)*(p-1) : 0);
 			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			return num_dof(Provider<ReferencePrism>::get().roid(d, id));
 		}
 
 	///	returns the dof storage
@@ -593,9 +539,6 @@ class LagrangeLDS<ReferencePyramid>
 			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferencePyramid>::get(), p);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return ReferencePyramid::dim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return ReferencePyramid::REFERENCE_OBJECT_ID;}
 
@@ -603,7 +546,7 @@ class LagrangeLDS<ReferencePyramid>
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX)			return 1;
 			if(type == ROID_EDGE) 			return (p-1);
@@ -614,12 +557,6 @@ class LagrangeLDS<ReferencePyramid>
 		//	same as for a 3d pyramid of order p-2
 			if(type == ROID_PYRAMID)		return ((p>2) ? GetNumberOfDoFsOfPyramid(p-3) : 0);
 			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			return num_dof(Provider<ReferencePyramid>::get().roid(d, id));
 		}
 
 	///	returns the dof storage
@@ -662,9 +599,6 @@ class LagrangeLDS<ReferenceHexahedron>
 			SetLagrangeLocalDoFs(m_vLocalDoF, Provider<ReferenceHexahedron>::get(), p);
 		}
 
-	///	returns the reference dimension
-		int dim() const {return ReferenceHexahedron::dim;}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return ReferenceHexahedron::REFERENCE_OBJECT_ID;}
 
@@ -672,19 +606,13 @@ class LagrangeLDS<ReferenceHexahedron>
 		size_t num_dof() const {return nsh;};
 
 	///	returns the number of DoFs on a sub-geometric object type
-		int num_dof(ReferenceObjectID type) const
+		size_t num_dof(ReferenceObjectID type) const
 		{
 			if(type == ROID_VERTEX)		   return 1;
 			if(type == ROID_EDGE) 	 	   return (p-1);
 			if(type == ROID_QUADRILATERAL) return (p-1)*(p-1);
 			if(type == ROID_HEXAHEDRON)    return (p-1)*(p-1)*(p-1);
 			else return 0;
-		}
-
-	///	returns the number of DoFs on sub-geometric object in dimension and id
-		size_t num_dof(int d, size_t id) const
-		{
-			return num_dof(Provider<ReferenceHexahedron>::get().roid(d, id));
 		}
 
 	///	returns the dof storage

@@ -83,26 +83,27 @@ class LocalDoF
 class LocalDoFSet
 {
 	public:
-	///	returns the reference dimension
-		virtual int dim() const = 0;
-
 	///	returns the Reference object id of the corresponding grid object
 		virtual ReferenceObjectID roid() const = 0;
 
-	///	returns the total number of dofs on the finite element
-		virtual size_t num_dof() const = 0;
-
 	///	returns the number of DoFs on a sub-geometric object type
-		virtual int num_dof(ReferenceObjectID roid) const = 0;
-
-	///	returns the number of DoFs on a sub-geometric object of dim and id
-		virtual size_t num_dof(int d, size_t id) const = 0;
+		virtual size_t num_dof(ReferenceObjectID roid) const = 0;
 
 	///	returns the DoFs storage
 		virtual const LocalDoF& local_dof(size_t dof) const = 0;
 
 	///	virtual destructor
 		virtual ~LocalDoFSet() {};
+
+	public:
+	///	returns the reference dimension
+		int dim() const;
+
+	///	returns the total number of dofs on the finite element
+		virtual size_t num_dof() const;
+
+	///	returns the number of DoFs on a sub-geometric object of dim and id
+		size_t num_dof(int d, size_t id) const;
 };
 
 /// @}

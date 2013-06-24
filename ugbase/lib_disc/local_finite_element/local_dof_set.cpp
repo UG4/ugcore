@@ -190,6 +190,28 @@ std::map<LFEID, std::vector<CommonLocalDoFSet> >
 LocalDoFSetProvider::m_mCommonDoFSet = std::map<LFEID, std::vector<CommonLocalDoFSet> >();
 
 ////////////////////////////////////////////////////////////////////////////////
+// 	LocalDoFSet
+////////////////////////////////////////////////////////////////////////////////
+
+int LocalDoFSet::dim() const {
+	return ReferenceElementDimension(roid());
+}
+
+size_t LocalDoFSet::num_dof() const
+{
+	size_t sum = 0;
+	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
+		sum += num_dof((ReferenceObjectID)i);
+	return sum;
+}
+
+size_t LocalDoFSet::num_dof(int d, size_t id) const
+{
+	static const ReferenceElement& rRefElem = ReferenceElementProvider::get(roid());
+	return num_dof(rRefElem.roid(d, id));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // 	CommonLocalDoFSet
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -219,7 +241,7 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 
 	//	check if already value set and iff the same
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
-			if(m_vNumDoF[i] != set.num_dof(roid))
+			if(m_vNumDoF[i] != (int)set.num_dof(roid))
 			{
 				UG_THROW("LocalDoFSetIntersection::add: "
 						" Values does not match ("<<m_vNumDoF[i]<<" <-> "
