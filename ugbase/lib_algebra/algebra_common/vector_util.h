@@ -10,10 +10,13 @@
 
 #include "lib_algebra/small_algebra/blocks.h"
 #include <boost/math/special_functions/fpclassify.hpp>
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
 
 namespace ug{
 template<typename TVector>
-bool IsFiniteAndNotTooBig(TVector &v, double tooBigValue=1e24)
+bool IsFiniteAndNotTooBig(const TVector &v, double tooBigValue=1e24)
 {
 	for(size_t i=0; i<v.size(); i++)
 	{
@@ -28,7 +31,7 @@ bool IsFiniteAndNotTooBig(TVector &v, double tooBigValue=1e24)
 }
 
 template<typename TVector>
-bool IsFinite(TVector &v)
+bool IsFinite(const TVector &v)
 {
 	for(size_t i=0; i<v.size(); i++)
 	{
@@ -42,11 +45,18 @@ bool IsFinite(TVector &v)
 	return true;
 }
 
+#ifdef UG_PARALLEL
 template<typename TVector>
-bool IsNormalAndNotTooBig(TVector &v, double tooBigValue=1e24)
+bool IsFiniteAndNotTooBig(const ParallelVector<TVector> &v)
 {
-	return IsFiniteAndNotTooBig(v, tooBigValue);
+	return AllProcsTrue(IsFiniteAndNotTooBig((TVector&)v), v.layouts()->proc_comm());
 }
+template<typename TVector>
+bool IsFinite(const ParallelVector<TVector> &v)
+{
+	return AllProcsTrue(IsFiniteAndNotTooBig((TVector&)v), v.layouts()->proc_comm());
+}
+#endif
 
 }
 #endif /* VECTOR_UTIL_H_ */

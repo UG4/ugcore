@@ -8,6 +8,8 @@
 #ifndef __UG__ADDITIONAL_MATH_H__
 #define __UG__ADDITIONAL_MATH_H__
 
+#include "smart_ptr_vector.h"
+
 #define PINVIT_PROFILE_FUNC() PROFILE_FUNC_GROUP("pinvit algebra")
 #define PINVIT_PROFILE_BEGIN(t) PROFILE_BEGIN_GROUP(t, "pinvit algebra")
 #define PINVIT_PROFILE_END() PROFILE_END()
@@ -44,20 +46,15 @@ inline bool absCompare(double a, double b)
 
 
 template<typename vector_type, typename densematrix_type>
-void MultiScalProd(vector_type **px,
+void MultiScalProd(vector_type &px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
 	PINVIT_PROFILE_FUNC()
 	UG_ASSERT(0, "");
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
 	for(size_t r=0; r<n; r++)
-	{
 		for(size_t c=r; c<n; c++)
-		{
 			rA(r, c) = px[c]->dotprod(*px[r]);
-			//UG_LOG("MultiScalProd : " << rA(r, c) << "\n");
-		}
-	}
 
 	for(size_t r=0; r<n; r++)
 		for(size_t c=0; c<r; c++)
@@ -106,7 +103,7 @@ double EnergyNorm(vector_type &x, matrix_type &A)
 
 template<typename matrix_type, typename vector_type, typename densematrix_type>
 void MultiEnergyProd(matrix_type &A,
-			vector_type **px,
+			SmartPtrVector<vector_type> &px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
 	PINVIT_PROFILE_FUNC()
@@ -124,7 +121,7 @@ void MultiEnergyProd(matrix_type &A,
 #ifdef UG_PARALLEL
 		px[r]->change_storage_type(PST_CONSISTENT);
 #endif
-		A.apply(t, (*px[r]));
+		A.apply(t, *px[r]);
 #ifdef UG_PARALLEL
 		t.change_storage_type(PST_CONSISTENT);
 #endif

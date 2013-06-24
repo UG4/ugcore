@@ -36,14 +36,16 @@ class ParallelVector : public TVector
 	public:
 		typedef typename TVector::value_type value_type;
 		typedef typename TVector::vector_type vector_type;
+		///	own type
+		typedef ParallelVector<TVector> this_type;
 
 	private:
 	// 	disallow copy constructor
 		//ParallelVector(const ParallelVector&);
 
-	public:
-	///	own type
-		typedef ParallelVector<TVector> this_type;
+	/// catch all other assignments so we don't use copy constructor here
+		template<typename T> this_type &operator =(T t);
+
 
 	public:
 	///	Default constructor
@@ -127,6 +129,7 @@ class ParallelVector : public TVector
 
 	///	assignment
 		this_type &operator =(const this_type &v);
+
 
 	///	subtract a vector
 		this_type &operator -=(const this_type &v);
