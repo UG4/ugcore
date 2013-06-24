@@ -451,8 +451,8 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 		if(vFineLFEID[fct] != vCoarseLFEID[fct])
 			bSameLFEID = false;
 
-		if (vCoarseLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0) ||
-			vFineLFEID[fct] == LFEID(LFEID::PIECEWISE_CONSTANT, 0))
+		if (vCoarseLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT ||
+			vFineLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT)
 			UG_THROW("Not implemented.")
 	}
 
