@@ -91,6 +91,65 @@ class MathVector
 
 };
 
+/** THIS IS A TEMPORARY STUB. Some discretization routines use MathVector<0>, requiring
+ * a single coordinate.
+ * A mathematical Vector with 1 entry and static storage
+ */
+template <typename T>
+class MathVector<0, T>
+{
+	public:
+		typedef std::size_t size_type;
+		typedef T value_type;
+		static const std::size_t Size = 1;
+
+	public:
+		MathVector()	{}
+		MathVector(value_type x)
+		{
+			m_data[0] = x;
+		}
+		MathVector(const MathVector<1, T>& v)	{assign(v);}
+
+		// operations with other vectors
+		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
+		MathVector& operator+= (const MathVector& v) {m_data[0] += v.x; return *this;}
+		MathVector& operator-= (const MathVector& v) {m_data[0] -= v.x; return *this;}
+
+		// operations with scalar
+		MathVector& operator=  (const value_type& val) {m_data[0] =  val;return *this;}
+		MathVector& operator+= (const value_type& val) {m_data[0] += val;return *this;}
+		MathVector& operator-= (const value_type& val) {m_data[0] -= val;return *this;}
+		MathVector& operator*= (const value_type& val) {m_data[0] *= val;return *this;}
+		MathVector& operator/= (const value_type& val) {m_data[0] /= val;return *this;}
+
+		// scalar product
+		value_type operator* (const MathVector& v) const {return m_data[0] * v.x;}
+
+		inline std::size_t size() const								{return 1;}
+
+		inline value_type& coord(std::size_t index)					{return m_data[0];}
+		inline const value_type& coord(std::size_t index) const		{return m_data[0];}
+
+		inline value_type& operator[](std::size_t index)				{return m_data[0];}
+		inline const value_type& operator[](std::size_t index) const	{return m_data[0];}
+
+	public:
+		union
+		{
+			struct
+			{
+				value_type x;
+			};
+
+			value_type m_data[1];
+		};
+
+	protected:
+		inline void assign(const MathVector<1, T>& v)	{m_data[0] = v.x;}
+
+};
+
 /**
  * A mathematical Vector with 1 entry and static storage
  */
