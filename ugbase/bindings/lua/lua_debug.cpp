@@ -642,7 +642,7 @@ void SetLuaDebugIDs(lua_State* L)
 {
 	script::ParseBuffer(
 			"debugID = {}\n"
-			"function debug.set(did, level) GetLogAssistant():set_debug_level((did.id) ..\"*\", level) end",
+			"function SetDebugLevel(did, level) GetLogAssistant():set_debug_level((did.id) ..\"*\", level) end",
 			"");
 	const vector<string> &s = DebugIDManager::instance().get_registered_debug_IDs_arr();
 	for(size_t i=0; i<s.size(); i++)
