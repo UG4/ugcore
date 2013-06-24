@@ -109,7 +109,7 @@ get(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 }
 
 const CommonLocalDoFSet& LocalDoFSetProvider::
-get(int dim, const LFEID& id, bool bCreate)
+get(const LFEID& id, bool bCreate)
 {
 //	init provider and search for identifier
 	CommonMap::const_iterator iter = inst().m_mCommonDoFSet.find(id);
@@ -120,18 +120,14 @@ get(int dim, const LFEID& id, bool bCreate)
 		if(bCreate)
 		{
 			create_set(id);
-			return get(dim, id, false);
+			return get(id, false);
 		}
 
-		UG_THROW("LocalDoFSetProvider: Cannot create local dof set for "<<id<<
-				" and dimension "<<dim);
+		UG_THROW("LocalDoFSetProvider: Cannot create local dof set for "<<id);
 	}
 
-//	get dimension
-	const std::vector<CommonLocalDoFSet>& vCommonDoFSet = iter->second;
-
 //	return the common set
-	return vCommonDoFSet.at(dim);
+	return iter->second;
 }
 
 
@@ -146,24 +142,18 @@ void LocalDoFSetProvider::register_set(const LFEID& id, ConstSmartPtr<LocalDoFSe
 //	resize vector
 	vBase.resize(NUM_REFERENCE_OBJECTS, NULL);
 
-//	check that no space has been previously registered to this place
-	if(vBase[roid].valid())
-		UG_THROW("LocalDoFSetProvider::register_set(): "
-				"LocalDoFSet already registered for type: "<<id<<" and "
-				" Reference element type "<<roid<<".");
-
 //	if ok, add
 	vBase[roid] = set;
 
-//	get common dof set for the dimension
-	std::vector<CommonLocalDoFSet>& vCommonSet = m_mCommonDoFSet[id];
+//	skip if not the dimension of the space
+	if(set->dim() > id.dim()) return;
 
-//	resize
-	vCommonSet.resize(4);
+//	get common dof set for the dimension
+	CommonLocalDoFSet& vCommonSet = m_mCommonDoFSet[id];
 
 //	add this local dof set
 	try{
-		vCommonSet[set->dim()].add(*set);
+		vCommonSet.add(*set);
 	}
 	catch(UGError& err)
 	{
@@ -175,7 +165,7 @@ void LocalDoFSetProvider::register_set(const LFEID& id, ConstSmartPtr<LocalDoFSe
 		ss<<"LocalDoFSetProvider::register_set(): "
 				"Cannot build CommonLocalDoFSet for type: "<<id<<" when adding "
 				" Reference element type "<<roid<<".\n"<<
-				"CommonLocalDoFSet is:\n" << vCommonSet[set->dim()]<<
+				"CommonLocalDoFSet is:\n" << vCommonSet<<
 				"LocalDoFSet is:\n" << *set;
 		err.push_msg(ss.str(),__FILE__,__LINE__);
 		throw(err);
@@ -186,8 +176,8 @@ std::map<LFEID, std::vector<ConstSmartPtr<LocalDoFSet> > >
 LocalDoFSetProvider::m_mRoidDoFSet =
 		std::map<LFEID, std::vector<ConstSmartPtr<LocalDoFSet> > >();
 
-std::map<LFEID, std::vector<CommonLocalDoFSet> >
-LocalDoFSetProvider::m_mCommonDoFSet = std::map<LFEID, std::vector<CommonLocalDoFSet> >();
+std::map<LFEID, CommonLocalDoFSet>
+LocalDoFSetProvider::m_mCommonDoFSet = std::map<LFEID, CommonLocalDoFSet>();
 
 ////////////////////////////////////////////////////////////////////////////////
 // 	LocalDoFSet
@@ -243,8 +233,9 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
 			if(m_vNumDoF[i] != (int)set.num_dof(roid))
 			{
-				UG_THROW("LocalDoFSetIntersection::add: "
-						" Values does not match ("<<m_vNumDoF[i]<<" <-> "
+				UG_THROW("LocalDoFSetIntersection::add: Adding DoF-Spezification "
+						"for "<<roid<<" as Subelement of Space for "<<set.roid()<<
+						": Values does not match ("<<m_vNumDoF[i]<<" <-> "
 						<< set.num_dof(roid)<<").");
 			}
 

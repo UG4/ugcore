@@ -120,8 +120,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
-			const int lfeDim = dd->dim(fct);
-			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeDim, lfeID);
+			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
 				const int numDoF = locDoF.num_dof((ReferenceObjectID)roid);
@@ -140,8 +139,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
-			const int lfeDim = dd->dim(fct);
-			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeDim, lfeID);
+			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
 				if(locDoF.num_dof((ReferenceObjectID)roid) != 0){
@@ -275,8 +273,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
-			const int lfeDim = dd->dim(fct);
-			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeDim, lfeID);
+			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
 				const int numDoF = locDoF.num_dof((ReferenceObjectID)roid);
@@ -295,8 +292,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
-			const int lfeDim = dd->dim(fct);
-			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeDim, lfeID);
+			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
 				if(locDoF.num_dof((ReferenceObjectID)roid) != 0){

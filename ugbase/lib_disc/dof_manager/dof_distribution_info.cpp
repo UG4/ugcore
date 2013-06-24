@@ -59,7 +59,7 @@ void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
 			                     " in parallel.");
 
 		//	get trial space
-			const CommonLocalDoFSet& clds = LocalDoFSetProvider::get(dim, lfeid(fct));
+			const CommonLocalDoFSet& clds = LocalDoFSetProvider::get(lfeid(fct));
 
 		//	get number of DoFs on the reference element need for the space
 			const int numDoF = clds.num_dof(roid);
@@ -98,7 +98,7 @@ void DoFDistributionInfo::create_offsets()
 		//	remember local dof set
 			m_vLocalDoFSet[roid][fct] = & LocalDoFSetProvider::get((ReferenceObjectID)roid, lfeid(fct));
 
-			const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(this->dim(fct), lfeid(fct));
+			const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(lfeid(fct));
 
 			for(int subRoid=ROID_VERTEX; subRoid < NUM_REFERENCE_OBJECTS; ++subRoid)
 			{
@@ -193,6 +193,7 @@ void DoFDistributionInfo::print_local_dof_statistic(int verboseLev) const
 				if(!is_def_in_subset(fct, si)) continue;
 				UG_LOG(subset_name(si));
 			}
+			UG_LOG("\n");
 		}
 		UG_LOG("\n");
 	}

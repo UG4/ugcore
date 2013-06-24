@@ -187,7 +187,7 @@ class LocalDoFSetProvider {
 		static RoidMap m_mRoidDoFSet;
 
 	//	type of map holding common dof set for roid of same dimension
-		typedef std::map<LFEID, std::vector<CommonLocalDoFSet> > CommonMap;
+		typedef std::map<LFEID, CommonLocalDoFSet> CommonMap;
 
 	//	map holding common dof set for roid of same dimension
 		static CommonMap m_mCommonDoFSet;
@@ -213,7 +213,7 @@ class LocalDoFSetProvider {
 		static bool unregister_set(const LFEID& id);
 
 	///	returns the common dof set for all reference objects of a dimension
-		static const CommonLocalDoFSet& get(int dim, const LFEID& id, bool bCreate = true);
+		static const CommonLocalDoFSet& get(const LFEID& id, bool bCreate = true);
 
 	///	returns the local DoF set base for an id
 		static const LocalDoFSet& get(ReferenceObjectID roid, const LFEID& id, bool bCreate = true);
