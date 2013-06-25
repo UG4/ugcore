@@ -24,7 +24,8 @@
 #define CATCH_STD_EXCEPTIONS()\
 	catch(std::bad_alloc& ex)	{	UG_LOG_CATCH("bad_alloc caught: " << ex.what() << "\nThis is mostly caused by an OUT OF MEMORY - condition.\n"\
 			 	 << "You might have to reduce your problem size, go parallel or increase memory.")	} \
-	catch(std::exception& ex)	{	UG_LOG_CATCH("bad_cast caught: " << ex.what() << "\nThis is caused by a Casting error in classes.")	} \
+	catch(std::bad_cast& ex)	{	UG_LOG_CATCH("bad_cast caught: " << ex.what() << "\nThis is caused by a Casting error in classes.")	} \
+	catch(std::exception& ex)	{	UG_LOG_CATCH("std::exception caught: " << ex.what() << "\n.")	} \
 
 
 
