@@ -16,6 +16,8 @@ IElemDisc<TDomain>::IElemDisc(const char* functions, const char* subsets)
 	  	m_timePoint(0), m_pLocalVectorTimeSeries(NULL), m_bStationaryForced(false),
 	  	m_bFastAssembleEnabled(false), m_id(ROID_UNKNOWN)
 {
+	if(functions == NULL) functions = "";
+	if(subsets == NULL) subsets = "";
 	set_functions(functions);
 	set_subsets(subsets);
 	clear_add_fct();
