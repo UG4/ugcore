@@ -239,13 +239,19 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				UG_ASSERT(it.index() == i, i);
 				block_type &uii = it.value();
 				typename vector_type::value_type s = c[i];
-				// check if close to zero
-				if (BlockNorm(uii)<m_small){
+				// check if diag part is significantly smaller than rhs
+				// This may happen when matrix is indefinite with one eigenvalue
+				// zero. In that case, the factorization on the last row is
+				// nearly zero due to round-off errors. In order to allow ill-
+				// scaled matrices (i.e. small matrix entries row-wise) this
+				// is compared to the rhs, that is small in this case as well.
+				if (BlockNorm(uii) <= m_small * m_eps * BlockNorm(s)){
+					UG_LOG("ILUT("<<m_eps<<") Warning: Near-zero diagonal entry "
+							"with norm "<<BlockNorm(uii)<<" in last row of U "
+							" with corresponding non-near-zero rhs with norm "
+							<< BlockNorm(s) << ". Setting rhs to zero.\n");
 					// set correction to zero
 					c[i] = 0;
-					if (BlockNorm(s)>m_small){
-						UG_LOG("Warning: near-zero diagonal entry in last row of U with corresponding non-near-zero rhs entry (" << BlockNorm(s) << ")\n");
-					}
 				} else {
 					// c[i] = s/uii;
 					InverseMatMult(c[i], 1.0, uii, s);
