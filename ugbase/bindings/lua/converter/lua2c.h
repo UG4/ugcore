@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <string>
 #include "common/util/dynamic_library_util.h"
-
+#include "vm.h"
 namespace ug{
 namespace bridge {
 
@@ -24,19 +24,22 @@ private:
 	
 	DynLibHandle m_libHandle;
 	std::string m_pDyn;
-	
+	VMAdd vm;
 
 public:
 	std::string m_name;
 	LUA2C_Function m_f;
 	int m_iIn, m_iOut;
-	
+	bool bInitialized;
+	bool bVM;
 	LUA2C()
 	{ 
 		m_f= NULL; 
 		m_name = "uninitialized"; 
 		m_pDyn = ""; 
 		m_libHandle = NULL;
+		bInitialized = false;
+		bVM = false;
 	}	
 	
 	int num_in() const
@@ -56,15 +59,23 @@ public:
 	
 	bool is_valid() const
 	{
-		return m_f != NULL;
+		return bInitialized;
 	}
 	
 	bool create(const char *functionName);
 	
 	inline bool call(double *ret, double *in) const
 	{
-		UG_ASSERT(m_f != NULL, "function " << m_name << " not valid");
-		return m_f(ret, in);
+		if(bVM)
+		{
+			const_cast<LUA2C*>(this)->vm(ret, in);
+			return true;
+		}
+		else
+		{
+			UG_ASSERT(m_f != NULL, "function " << m_name << " not valid");
+			return m_f(ret, in);
+		}
 	}
 	
 	virtual ~LUA2C();

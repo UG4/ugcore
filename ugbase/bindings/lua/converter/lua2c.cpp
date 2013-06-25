@@ -24,7 +24,7 @@ namespace bridge {
 DebugID DID_LUA2C("LUA2C");
 
 
-
+#if 0
 bool LUA2C::create(const char *functionName)
 {
 	UG_LOG("parsing " << functionName << "... ");
@@ -79,6 +79,8 @@ bool LUA2C::create(const char *functionName)
 	
 	if(m_f !=NULL) { UG_LOG("OK\n"); }
 	else { UG_LOG("FAILED.\n"); }
+	if(m_f !=NULL)
+		bInitialized = true;
 	return m_f != NULL;
 	}
 	catch(...)
@@ -88,7 +90,24 @@ bool LUA2C::create(const char *functionName)
 	}
 	
 }
+#else
+bool LUA2C::create(const char *functionName)
+{
+	m_name = functionName;
+	UG_LOG("parsing " << functionName << "... ");
+	LUAParserClass parser;
+	if(parser.parse_luaFunction(functionName) == false)
+		return 0;
 
+	parser.createVM(vm);
+	vm.print();
+	m_iIn = vm.num_in();
+	m_iOut = vm.num_out();
+	bInitialized = true;
+	bVM = true;
+}
+
+#endif
 LUA2C::~LUA2C()
 {
     UG_DLOG(DID_LUA2C, 2, "removing " << m_name << "\n");		

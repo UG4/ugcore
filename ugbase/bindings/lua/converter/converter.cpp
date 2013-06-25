@@ -34,6 +34,13 @@ int convertVM(const char *functionName)
     VMAdd vm;
     parser.createVM(vm);
     vm.print();
+    UG_LOG("\nCALLING ...\n")
+    double in[3] = {1,20,30};
+    double out[8];
+    vm(out, in);
+    UG_LOG("\n\nRETURNED ");
+    for(int i=0; i<vm.num_out(); i++)
+    {	UG_LOG(out[i] << "\n"); }
 
 	return 0;
 }

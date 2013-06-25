@@ -18,6 +18,7 @@
 #include "parser_node.h"
 #include "parser.hpp"
 #include <iostream>
+#include "common/util/smart_pointer.h"
 
 #include "vm.h"
 
@@ -170,6 +171,11 @@ public:
 		return numOut;
 	}
 
+
+
+	int add_subfunctions(std::map<std::string, SmartPtr<LUAParserClass> > &subfunctions);
+	int add_subfunction(std::string name, std::map<std::string, SmartPtr<LUAParserClass> > &subfunctions);
+
     int add_subfunctions(std::set<std::string> &knownFunctions, std::stringstream &declarations, std::stringstream &definitions);
     static int addfunctionC(std::string name, std::set<std::string> &knownFunctions, std::stringstream &declarations, std::stringstream &definitions);
     
@@ -181,14 +187,14 @@ public:
     
     int createRT(nodeType *a, std::ostream &out, const char **rt, int nr, int indent);
     
-    int createVM(nodeType *p, VMAdd &vm);
-    int createVM(VMAdd &vm)
-    {
-    	for(size_t i=0; i<nodes.size(); i++)
-    		createVM(nodes[i], vm);
-    	return true;
-    }
-	int	createC(nodeType *p, std::ostream &out, int indent);
+
+    int createVMSub(VMAdd &vm, std::map<std::string, SmartPtr<VMAdd> > &subVM);
+    int createVMHeader(VMAdd &vm);
+    int createVM(nodeType *p, VMAdd &vm,  std::map<std::string, SmartPtr<VMAdd> > &subVM);
+
+    int createVM(VMAdd &vm);
+
+    int	createC(nodeType *p, std::ostream &out, int indent);
     int createJITSG(std::ostream &out, eReturnType r, std::set<std::string> &subfunctions);
 	int	createLUA(nodeType *p, std::ostream &out);
 	void reduce();
