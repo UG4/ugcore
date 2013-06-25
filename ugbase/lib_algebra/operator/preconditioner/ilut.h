@@ -74,7 +74,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "ILUTPreconditioner";}
+		virtual const char* name() const {return "ILUT";}
 
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
