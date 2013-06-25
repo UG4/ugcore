@@ -24,7 +24,7 @@ namespace bridge {
 DebugID DID_LUA2C("LUA2C");
 
 
-#if 0
+#if 1
 bool LUA2C::create(const char *functionName)
 {
 	UG_LOG("parsing " << functionName << "... ");
