@@ -1,0 +1,15 @@
+
+/** \page pageSTLesson11 Lesson 11 - Grid Generation
+
+The tutorial will show how a circular geometry filled with nicely shaped
+triangles can be generated. Also subset assignment is performed.
+The resulting geometry will then be written to a file and is ready for simulation.
+
+This tutorial requires the 'promesh' plugin. If you're building ug from
+source, make sure to call cmake with -Dpromesh=ON
+
+Below you'll find the scripts sources.
+They are the same as in
+<tt>apps/tutorials/tut11_geometry_generation.lua</tt>
+\include tut11_geometry_generation.lua
+*/
