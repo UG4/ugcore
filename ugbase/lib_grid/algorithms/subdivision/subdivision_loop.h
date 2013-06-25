@@ -6,6 +6,7 @@
 #define __H__UG__SUBDIVISION_LOOP__
 
 #include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "subdivision_rules_piecewise_loop.h"
 
 namespace ug
