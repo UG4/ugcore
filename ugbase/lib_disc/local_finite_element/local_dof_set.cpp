@@ -77,14 +77,12 @@ get(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 	RoidMap::const_iterator iter = inst().m_mRoidDoFSet.find(id);
 
 //	if not found
-	if(iter == m_mRoidDoFSet.end())
-	{
-		if(bCreate)
-		{
+	if(iter == m_mRoidDoFSet.end()){
+		if(bCreate){
 			create_set(id);
 			return get(roid, id, false);
 		}
-		UG_THROW("LocalDoFSetProvider: Cannot create local dof set for finite "
+		UG_THROW("LocalDoFSetProvider: Cannot create LocalDoFSet for finite "
 				"element type "<<id<<" and "<<roid);
 	}
 
@@ -92,15 +90,12 @@ get(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 	const std::vector<ConstSmartPtr<LocalDoFSet> >& vBase = iter->second;
 
 //	check that dof set registered
-	if(vBase[roid].invalid())
-	{
-		if(bCreate)
-		{
+	if(vBase[roid].invalid()){
+		if(bCreate){
 			create_set(id);
 			return get(roid, id, false);
 		}
-
-		UG_THROW("LocalDoFSetProvider: Cannot create local dof set for finite "
+		UG_THROW("LocalDoFSetProvider: Cannot create LocalDoFSet for finite "
 				"element type "<<id<<" and "<<roid);
 	}
 
@@ -115,15 +110,12 @@ get(const LFEID& id, bool bCreate)
 	CommonMap::const_iterator iter = inst().m_mCommonDoFSet.find(id);
 
 //	if not found
-	if(iter == m_mCommonDoFSet.end())
-	{
-		if(bCreate)
-		{
+	if(iter == m_mCommonDoFSet.end()){
+		if(bCreate)	{
 			create_set(id);
 			return get(id, false);
 		}
-
-		UG_THROW("LocalDoFSetProvider: Cannot create local dof set for "<<id);
+		UG_THROW("LocalDoFSetProvider: Cannot create CommonLocalDoFSet for "<<id);
 	}
 
 //	return the common set
@@ -145,8 +137,8 @@ void LocalDoFSetProvider::register_set(const LFEID& id, ConstSmartPtr<LocalDoFSe
 //	if ok, add
 	vBase[roid] = set;
 
-//	skip if not the dimension of the space
-	if(set->dim() > id.dim()) return;
+//	for creation of CommonLocalDoFSet: skip if not the dimension of the space
+	if(set->dim() != id.dim()) return;
 
 //	get common dof set for the dimension
 	CommonLocalDoFSet& vCommonSet = m_mCommonDoFSet[id];
@@ -220,24 +212,13 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 	//	get roid
 		const ReferenceObjectID roid = (ReferenceObjectID) i;
 
-	//	skip if reference element dim of set lower than ref element
-		if(set.dim() < ReferenceElementDimension(roid))
-			continue;
-
-	//	skip if same dimension but different roid
-		if(set.dim() == ReferenceElementDimension(roid))
-			if(set.roid() != roid)
-				continue;
-
 	//	check if already value set and iff the same
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
 			if(m_vNumDoF[i] != (int)set.num_dof(roid))
-			{
 				UG_THROW("LocalDoFSetIntersection::add: Adding DoF-Spezification "
 						"for "<<roid<<" as Subelement of Space for "<<set.roid()<<
 						": Values does not match ("<<m_vNumDoF[i]<<" <-> "
 						<< set.num_dof(roid)<<").");
-			}
 
 	//	set value if not already set
 		m_vNumDoF[i] = set.num_dof(roid);
