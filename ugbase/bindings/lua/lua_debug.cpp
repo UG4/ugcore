@@ -549,7 +549,7 @@ void DebugList()
 }
 void DebugBacktrace()
 {
-	ug::bridge::LuaStackTrace(GetDefaultLuaState());
+	ug::bridge::LuaStackTrace();
 }
 
 

@@ -45,7 +45,7 @@ UG_API const std::vector<const char*> *GetClassNames(lua_State* L, const char *n
  * \param thefunc		method to print
  * \return 0
  */
-UG_API void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc);
+UG_API std::string LuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc);
 
 
 
@@ -55,7 +55,7 @@ UG_API void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMetho
  * \param bComplete		if complete, we print the source code of the function
  * \return 0
  */
-UG_API int PrintFunctionInfo(lua_State *L, bool bComplete);
+UG_API std::string FunctionInfo(lua_State *L, bool bComplete, const char *functionName=NULL);
 
 UG_API int UGTypeInfo(const char *p);
 
@@ -89,7 +89,7 @@ UG_API bool LuaGetBoolean(lua_State *L, const char *name, bool notAvailable);
  * prints the current lua line
  * @param L
  */
-UG_API void LuaPrintCurrentLine(lua_State* L);
+UG_API std::string LuaCurrentLine(lua_State* L);
 
 /**
  * searches the lua stack for the first valid line info
@@ -102,7 +102,7 @@ UG_API void LuaGetLastLine(lua_State* L, lua_Debug entry);
  * \brief prints the source of a lua script function which is on top of the stack
  * \param L		the lua state
  */
-UG_API void PrintLuaScriptFunction(lua_State *L, int index=-1);
+UG_API std::string LuaGetScriptFunctionString(lua_State *L, int index=-1);
 
 /**
  * \brief prints the source of a lua script function which is on top of the stack
@@ -128,10 +128,13 @@ UG_API std::string GetLuaTypeString(lua_State* L, int index);
  * @param L the lua state
  * @param backtraceLevel number of calls to display (<= 0 -> all)
  */
-UG_API void LuaStackTrace(lua_State* L, int backtraceLevel=0);
+UG_API std::string LuaStackTraceString(lua_State* L, int backtraceLevel=0);
+
+UG_API std::string LuaStackTraceString();
 
 /// prints information about lua's call stack (file:line source).
 UG_API void LuaStackTrace();
+
 
 /// returns the current file and line ( \sa LuaStackTrace ).
 UG_API std::string GetLuaFileAndLine(lua_State* L);

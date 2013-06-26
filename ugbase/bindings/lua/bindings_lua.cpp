@@ -22,6 +22,34 @@ using namespace ug::script;
 #define UG_LUA_THROW_EMPTY(luaState)	luaL_error(luaState, "")
 #define UG_LUA_THROW(luaState, msg)		luaL_error(luaState, "\n%s", msg)
 
+#define UG_LUA_BINDINGS_THROW(L) \
+			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n"); \
+			UG_LUA_THROW_EMPTY(L);
+
+#define UG_LUA_BINDINGS_CATCH(str)\
+		catch(LuaError& err){ \
+			UG_LUA_THROW(L, err.get_msg().c_str()); \
+		} \
+		catch(UGError& err){ \
+			UG_LOG(errSymb << "EXCEPTION: UGError thrown\n");\
+			UG_LOG(UGErrorTraceback(err) << "\n"); \
+			UG_LOG(errSymb << str); \
+			UG_LUA_BINDINGS_THROW(L)\
+		}\
+		catch(std::exception& ex)\
+		{\
+			UG_LOG(errSymb<<"EXCEPTION: std::exception (" << ex.what() << ") thrown\n");\
+			UG_LOG(errSymb<< str << "\n");\
+			UG_LUA_BINDINGS_THROW(L);\
+		}\
+		catch(...)\
+		{\
+			UG_LOG(errSymb<<"EXCEPTION: Unknown Exception thrown\n");\
+			UG_LOG(errSymb<< str << "\n");\
+			UG_LUA_BINDINGS_THROW(L);\
+		}
+
+
 namespace ug{
 namespace bridge{
 namespace lua{
@@ -34,6 +62,32 @@ const bool IMLPICIT_SMART_PTR_TO_PTR_CONVERSION = true;
 //	a symbol preceding error messages
 const char* errSymb = " % ";
 
+
+std::string ParameterStackString(ParameterStack &s)
+{
+	std::stringstream ss;
+	for(int i=0; i<s.size(); i++)
+	{
+		if(i != 0) ss << ", ";
+		switch(s.type(i))
+		{
+			case Variant::VT_INVALID: ss << "invalid"; break;
+			case Variant::VT_BOOL: ss << "bool " << s.to<bool>(i); break;
+			case Variant::VT_INT: ss << "int " << s.to<int>(i); break;
+			case Variant::VT_SIZE_T: ss << "size_t " << s.to<size_t>(i); break;
+			case Variant::VT_FLOAT: ss << "float " << s.to<float>(i); break;
+			case Variant::VT_DOUBLE: ss << "double " << s.to<double>(i); break;
+			case Variant::VT_CSTRING: ss << "cstring \"" << s.to<const char*>(i) << "\""; break;
+			case Variant::VT_STDSTRING: ss << "stdstring " << s.to<std::string>(i) << "\""; break;
+			case Variant::VT_POINTER: ss << "pointer " << s.to<void*>(i); break;
+			case Variant::VT_CONST_POINTER: ss << "constPointer " << s.to<const void*>(i); break;
+			case Variant::VT_SMART_POINTER: ss << "smartPointer " << s.to<SmartPtr<void> >(i).get(); break;
+			case Variant::VT_CONST_SMART_POINTER: ss << "constSmartPointer " << s.to<ConstSmartPtr<void> >(i).get(); break;
+			default: ss << "unknown"; break;
+		}
+	}
+	return ss.str();
+}
 
 ///	creates a new UserDataWrapper and associates it with ptr in luas registry
 /**
@@ -731,13 +785,14 @@ static int ParamsToLuaStack(const ParameterStack& ps, lua_State* L)
 
 
 /**
- * Prints a traceback of errors in UGError err
  * @param err
+ * @return traceback of errors in UGError err
  */
-static void PrintUGErrorTraceback(UGError &err)
+string UGErrorTraceback(UGError &err)
 {
+	std::stringstream ss;
 //	header
-	UG_LOG(errSymb<<"  Error traceback (innermost first): \n");
+	ss << errSymb<<"  Error traceback (innermost first): \n";
 
 //	padding to insert
 	std::string pad(errSymb); pad.append("     ");
@@ -758,11 +813,12 @@ static void PrintUGErrorTraceback(UGError &err)
 		}
 
 	//	write message
-		UG_LOG(errSymb<<std::setw(3)<<i<<": "<<msg<<endl);
+		ss << errSymb<<std::setw(3)<<i<<": "<<msg<<endl;
 
 	//	write file and line
-		UG_LOG(pad << "[at "<<err.get_file(i)<<", line "<<err.get_line(i)<<"]\n");
+		ss << pad << "[at "<<err.get_file(i)<<", line "<<err.get_line(i)<<"]\n";
 	}
+	return ss.str();
 }
 
 /**
@@ -794,37 +850,7 @@ static int LuaProxyFunction(lua_State* L)
 		try{
 			func->execute(paramsIn, paramsOut);
 		}
-		catch(LuaError& err){
-			UG_LUA_THROW(L, err.get_msg().c_str());
-		}
-		catch(UGError& err){
-			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
-			UG_LOG(errSymb<<"UGError thrown in call to function '");
-			PrintFunctionInfo(*func); UG_LOG("'.\n");
-			PrintUGErrorTraceback(err);
-
-			//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
-			UG_LUA_THROW_EMPTY(L);
-		}
-		catch(bad_alloc& ba)
-		{
-			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
-			UG_LOG(errSymb<<"std::bad_alloc thrown in call to function '");
-			PrintFunctionInfo(*func); UG_LOG("'.\n");
-			UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
-
-			//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
-			UG_LUA_THROW_EMPTY(L);
-		}
-#ifdef __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
-		catch(...)
-		{
-			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n");
-			UG_LOG(errSymb<<"Unknown Exception thrown in call to function '");
-			PrintFunctionInfo(*func); UG_LOG("'.\n");
-			UG_LUA_THROW_EMPTY(L);
-		}
-#endif
+		UG_LUA_BINDINGS_CATCH("in call to function '" << FunctionInfo(*func) << " (" << ParameterStackString(paramsIn) << ") '");
 
 	//	if we reach this point, then the method was successfully executed.
 		return ParamsToLuaStack(paramsOut, L);
@@ -843,7 +869,7 @@ static int LuaProxyFunction(lua_State* L)
 			ParameterStack paramsIn;
 			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
 			UG_LOG(errSymb<<" - ");
-			PrintFunctionInfo(*func);
+			UG_LOG(FunctionInfo(*func));
 			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
 		}
 
@@ -892,19 +918,7 @@ static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname
 								  c->get_delete_function(), false);
 			}
 		}
-		catch(LuaError& err){
-			UG_LUA_THROW(L, err.get_msg().c_str());
-		}
-		catch(UGError& err)
-		{
-			UG_LOG(errSymb<<"Error in " << GetLuaFileAndLine(L) <<":\n");
-			UG_LOG(errSymb<<"UGError thrown while creating class '"<<c->name());
-			UG_LOG("'.\n");
-			PrintUGErrorTraceback(err);
-
-			//UG_LOG(errSymb<<"Call stack:\n"); LuaStackTrace(L);
-			UG_LUA_THROW_EMPTY(L);
-		}
+		UG_LUA_BINDINGS_CATCH("while creating class '"<< c->name()  << " (" << ParameterStackString(paramsIn) << ") '");
 
 	//	object created
 		return 1;
@@ -927,8 +941,8 @@ static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname
 			const ExportedConstructor& constr = c->get_constructor(i);
 			ParameterStack paramsIn;
 			badParam = LuaStackToParams(paramsIn, constr.params_in(), L, 0);
-			UG_LOG(errSymb<<" - ");
-			PrintConstructorInfo(constr, c->name().c_str());
+			UG_LOG(errSymb << " - ");
+			UG_LOG(ConstructorInfo(constr, c->name().c_str()));
 			UG_LOG(": " << GetTypeMismatchString(constr.params_in(), L, 0, badParam) << "\n");
 		}
 		//UG_LOG(errSymb<<"Call stack:\n");	LuaStackTrace(L);
@@ -1057,34 +1071,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				}
 			}
 		}
-		catch(LuaError& err){
-			UG_LUA_THROW(L, err.get_msg().c_str());
-		}
-		catch(UGError& err)
-		{
-			UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-			UG_LOG(errSymb << "UGError thrown in call to method '");
-			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
-			PrintUGErrorTraceback(err);
-			UG_LUA_THROW_EMPTY(L);
-		}
-		catch(std::bad_alloc& ba)
-		{
-			UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-			UG_LOG(errSymb << "std::bad_alloc thrown in call to '");
-			UG_LOG(errSymb<<"bad_alloc description: " << ba.what() << endl);
-			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG(".'\n");
-			UG_LUA_THROW_EMPTY(L);
-		}
-#ifdef 	__UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
-		catch(...)
-		{
-			UG_LOG(errSymb << GetLuaFileAndLine(L) << ":\n");
-			UG_LOG(errSymb << "Unknown Exception thrown in call to '");
-			PrintLuaClassMethodInfo(L, 1, *m); UG_LOG("'.\n");
-			UG_LUA_THROW_EMPTY(L);
-		}
-#endif
+		UG_LUA_BINDINGS_CATCH("in call to method '" << LuaClassMethodInfo(L, 1, *m)  << " (" << ParameterStackString(paramsIn) << ") '");
 
 	//	if we reach this point, then the method was successfully executed.
 		return ParamsToLuaStack(paramsOut, L);
@@ -1193,9 +1180,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				const ExportedMethod* func = methodGrp->get_overload(i);
 				ParameterStack paramsIn;
 				badParam = LuaStackToParams(paramsIn, func->params_in(), L, 1);
-				UG_LOG("- ");
-				PrintFunctionInfo(*func);
-				UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
+				UG_LOG("- " << FunctionInfo(*func) << ": " << GetTypeMismatchString(func->params_in(), L, 1, badParam) << "\n");
 			}
 		}
 	}
@@ -1231,7 +1216,7 @@ static int LuaProxyMethod(lua_State* L)
 	{
 		UG_LOG(errSymb<<"Error at "<<GetLuaFileAndLine(L) << ":\n")
 		UG_LOG(errSymb<<"Error in call to LuaProxyMethod: No object specified in call to '");
-		PrintLuaClassMethodInfo(L, 1, *methodGrp->get_overload(0));
+		UG_LOG(LuaClassMethodInfo(L, 1, *methodGrp->get_overload(0)));
 		UG_LOG("'.\n");
 		return 0;
 	}
