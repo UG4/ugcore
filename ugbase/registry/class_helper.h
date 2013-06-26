@@ -77,17 +77,17 @@ UG_API void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg);
  * Finds the class classname in the default ug registry and returns
  * IExportedClass pointer if found, otherwise NULL
  */
-UG_API bool PrintFunctionInfo(const Registry &reg, const char *functionname);
+UG_API std::string FunctionInfo(const Registry &reg, const char *functionname);
 
-UG_API void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false,
+UG_API std::string FunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false,
                        const char *classname=NULL, const char *highlightclassname=NULL, bool bPrintHelp=false);
-UG_API void PrintConstructorInfo(const ExportedConstructor &constr, const char *classname,
+UG_API std::string ConstructorInfo(const ExportedConstructor &constr, const char *classname,
 		const char *highlightclassname=NULL);
 
-UG_API bool PrintClassHierarchy(const Registry &reg, const char *classname);
-UG_API void PrintClassInfo(const IExportedClass &c);
-UG_API bool PrintClassInfo(const Registry &reg, const char *classname);
-UG_API bool ClassUsageExact(const Registry &reg, const char *classname, bool OutParameters);
+UG_API std::string ClassHierarchyString(const Registry &reg, const char *classname);
+UG_API std::string ClassInfo(const IExportedClass &c);
+UG_API std::string ClassInfo(const Registry &reg, const char *classname);
+UG_API std::string ClassUsageExact(const Registry &reg, const char *classname, bool OutParameters);
 UG_API const ExportedFunction *FindFunction(const Registry &reg, const char *functionname);
 UG_API std::string ParameterToString(const ParameterInfo &par, int i);
 UG_API bool IsClassInParameters(const ParameterInfo &par, const char *classname);
