@@ -14,7 +14,7 @@
 #include <dirent.h>
 #include <string>
 #include <sys/stat.h>
-
+#include <string>
 #include "ug.h"
 
 #include "bindings/lua/lua_util.h"
@@ -37,6 +37,11 @@ namespace bridge{
 int iOtherCompletitionsLength;
 const char **pOtherCompletitions=NULL;
 
+
+void print(std::string s)
+{
+	print(s.c_str());
+}
 
 /// \addtogroup ugbase_ugshell
 /// \{
@@ -204,13 +209,13 @@ static bool GetGlobalFunctionInfo(char *buf, int len)
 	if(lua_iscfunction(L, -1))
 	{
 		printf("\n");
-		PrintFunctionInfo(reg, snip.c_str());
+		print(FunctionInfo(reg, snip.c_str()));
 		printf("\n");
 	}
 	else if(lua_isfunction(L, -1))
 	{
 		printf("\n");
-		PrintFunctionInfo(L, false);
+		print(FunctionInfo(L, false));
 		printf("\n");
 	}
 	lua_pop(L, 1);
@@ -274,7 +279,7 @@ static bool GetMemberFunctionInfo(char *buf, int len)
 			if(snip.compare(c->get_method(k).name()) == 0)
 			{
 				printf("\n");
-				PrintFunctionInfo(c->get_method(k), false, (*names)[i]);
+				print(FunctionInfo(c->get_method(k), false, (*names)[i]));
 				bFound = true;
 			}
 		}
@@ -283,7 +288,7 @@ static bool GetMemberFunctionInfo(char *buf, int len)
 			if(snip.compare(c->get_const_method(k).name()) == 0)
 			{
 				printf("\n");
-				PrintFunctionInfo(c->get_method(k), false, (*names)[i]);
+				print(FunctionInfo(c->get_method(k), false, (*names)[i]));
 				bFound = true;
 			}
 

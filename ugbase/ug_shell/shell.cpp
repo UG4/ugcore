@@ -171,7 +171,7 @@ int RunShell(const char *prompt)
 debug_return DebugShell()
 {
 	static string last="";
-	ug::bridge::LuaStackTrace(GetDefaultLuaState());
+	ug::bridge::LuaStackTrace();
 	//ug::bridge::LuaPrintCurrentLine(GetDefaultLuaState());
 
 #ifdef UG_PARALLEL
