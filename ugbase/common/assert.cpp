@@ -86,7 +86,7 @@ void lua_backtrace()
 	if(bDoLUAStackTrace)
 	{
 		UG_LOG("--------------- LUA Stack Trace: --------------\n");
-		ug::bridge::LuaStackTrace();
+		UG_LOG(ug::bridge::LuaStackTraceString());
 		UG_LOG("\n");
 	}
 #endif
