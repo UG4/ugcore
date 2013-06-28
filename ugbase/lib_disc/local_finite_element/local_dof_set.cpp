@@ -140,26 +140,24 @@ void LocalDoFSetProvider::register_set(const LFEID& id, ConstSmartPtr<LocalDoFSe
 //	for creation of CommonLocalDoFSet: skip if not the dimension of the space
 	if(set->dim() != id.dim()) return;
 
-//	get common dof set for the dimension
-	CommonLocalDoFSet& vCommonSet = m_mCommonDoFSet[id];
-
 //	add this local dof set
 	try{
-		vCommonSet.add(*set);
+		m_mCommonDoFSet[id].add(*set);
 	}
 	catch(UGError& err)
 	{
-	//	remove set
-		m_mCommonDoFSet.erase(id);
-
 	//	write error message
 		std::stringstream ss;
 		ss<<"LocalDoFSetProvider::register_set(): "
 				"Cannot build CommonLocalDoFSet for type: "<<id<<" when adding "
 				" Reference element type "<<roid<<".\n"<<
-				"CommonLocalDoFSet is:\n" << vCommonSet<<
+				"CommonLocalDoFSet is:\n" << m_mCommonDoFSet[id]<<
 				"LocalDoFSet is:\n" << *set;
 		err.push_msg(ss.str(),__FILE__,__LINE__);
+
+	//	remove set
+		m_mCommonDoFSet.erase(id);
+
 		throw(err);
 	}
 }
@@ -211,6 +209,10 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 	{
 	//	get roid
 		const ReferenceObjectID roid = (ReferenceObjectID) i;
+
+	//	do not override values of same dimension
+		if(ReferenceElementDimension(roid) == set.dim()
+			&& roid != set.roid()) continue;
 
 	//	check if already value set and iff the same
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
