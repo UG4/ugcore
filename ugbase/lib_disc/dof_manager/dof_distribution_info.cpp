@@ -72,15 +72,15 @@ void DoFDistributionInfo::create_offsets()
 	PROFILE_FUNC();
 //	function infos
 	m_vMaxDimToOrderDoFs.resize(num_fct(), 0);
-	m_vNumDoFOnSubelem.resize(num_fct());
 
+//	cache number of DoFs in a sub-geometric object
 	for(size_t fct = 0; fct < num_fct(); ++fct){
 		const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(lfeid(fct));
 
-	//	cache number of DoFs in a sub-geometric object
-		for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
-			for(int subRoid=ROID_VERTEX; subRoid < NUM_REFERENCE_OBJECTS; ++subRoid)
-				m_vNumDoFOnSubelem[fct](roid,subRoid) = lds.num_dof((ReferenceObjectID)subRoid);
+		for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid){
+			m_vNumDoFOnSubelem[roid].resize(num_fct());
+			m_vNumDoFOnSubelem[roid][fct] = lds.num_dof((ReferenceObjectID)roid);
+		}
 	}
 
 //	loop all reference element to resize the arrays
