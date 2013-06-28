@@ -511,7 +511,7 @@ string ClassUsage(const char *classname)
 	if(c == NULL)
 	{
 		ss << "Class name " << classname << " not found\n";
-		return false;
+		return ss.str();
 	}
 
 	// print usages in functions
@@ -915,6 +915,7 @@ std::string LuaStackTraceString(lua_State* L, int backtraceLevel)
     	ss << "\n";
     	if(--backtraceLevel == 0) break;
     }
+    return ss.str();
 }
 
 
