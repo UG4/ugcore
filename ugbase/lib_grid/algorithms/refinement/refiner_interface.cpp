@@ -4,6 +4,7 @@
  
 #include "refiner_interface.h"
 #include "lib_grid/lib_grid_messages.h"
+#include "common/catch_std.h"
 
 namespace ug{
 
@@ -62,37 +63,41 @@ void IRefiner::adaption_ends()
 
 void IRefiner::refine()
 {
-	if(!m_messageHub.valid()){
-		UG_THROW("A message-hub has to be assigned to IRefiner before refine may be called. "
-				"Make sure that you assigned a grid to the refiner you're using.");
+	try
+	{
+		if(!m_messageHub.valid()){
+			UG_THROW("A message-hub has to be assigned to IRefiner before refine may be called. "
+					"Make sure that you assigned a grid to the refiner you're using.");
+		}
+
+	//	we'll schedule an adaption-begins message, if adaption is not yet enabled.
+		bool locallyActivatedAdaption = false;
+		if(!m_adaptionIsActive){
+			locallyActivatedAdaption = true;
+			adaption_begins();
+		}
+
+	//	now post a message, which informs that refinement begins
+		if(adaptivity_supported())
+			m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS));
+		else
+			m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS));
+
+	//	now perform refinement
+		perform_refinement();
+
+	//	post a message that refinement has been finished
+		if(adaptivity_supported())
+			m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
+		else
+			m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS));
+
+	//	and finally - if we posted an adaption-begins message, then we'll post
+	//	an adaption ends message, too.
+		if(locallyActivatedAdaption)
+			adaption_ends();
 	}
-
-//	we'll schedule an adaption-begins message, if adaption is not yet enabled.
-	bool locallyActivatedAdaption = false;
-	if(!m_adaptionIsActive){
-		locallyActivatedAdaption = true;
-		adaption_begins();
-	}
-
-//	now post a message, which informs that refinement begins
-	if(adaptivity_supported())
-		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS));
-	else
-		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS));
-
-//	now perform refinement
-	perform_refinement();
-
-//	post a message that refinement has been finished
-	if(adaptivity_supported())
-		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
-	else
-		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS));
-
-//	and finally - if we posted an adaption-begins message, then we'll post
-//	an adaption ends message, too.
-	if(locallyActivatedAdaption)
-		adaption_ends();
+	CATCH_STD_EXCEPTIONS();
 }
 
 
