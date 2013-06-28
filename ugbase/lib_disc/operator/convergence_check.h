@@ -87,6 +87,14 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	///	enables time measurement
 		void timeMeasurement(bool yesOrNo) {m_timeMeas = yesOrNo;};
 
+		virtual SmartPtr<IConvergenceCheck<TVector> > clone()
+		{
+			SmartPtr<CompositeConvCheck<TVector, TDomain> > newInst = new CompositeConvCheck<TVector, TDomain>(m_spApprox);
+			// use std assignment (implicit member-wise is fine here)
+			*newInst = *this;
+			return newInst;
+		}
+
 	protected:
 		void print_offset();
 		bool is_valid_number(number value);

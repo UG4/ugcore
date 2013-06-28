@@ -115,6 +115,9 @@ class IConvergenceCheck
 		/// sets info string
 		virtual void set_info(std::string name) = 0;
 
+		/// clone the object
+		virtual SmartPtr<IConvergenceCheck<TVector> > clone() = 0;
+
 		/// virtual destructor
 		virtual ~IConvergenceCheck() {};
 };
@@ -171,6 +174,14 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		void set_name(std::string name) {m_name = name;}
 		void set_info(std::string info) {m_info = info;}
 		const std::vector<number> get_defects() const { return _defects;}
+
+		virtual SmartPtr<IConvergenceCheck<TVector> > clone()
+		{
+			SmartPtr<StdConvCheck<TVector> > newInst = new StdConvCheck<TVector>;
+			// use std assignment (implicit member-wise is fine here)
+			*newInst = *this;
+			return newInst;
+		}
 
 	protected:
 		void print_offset();

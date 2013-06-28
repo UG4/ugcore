@@ -154,6 +154,11 @@ bool StdConvCheck<TVector>::post()
 		success = true;
 	};
 
+	if (m_verbose && is_valid_number(m_currentDefect))
+	{
+		print_offset(); UG_LOG("Average reduction over " << step() << " steps: " << pow(reduction(), 1.0/step()) << "\n");
+	}
+
 	if(!success)
 	{
 		if (!is_valid_number(m_currentDefect))
