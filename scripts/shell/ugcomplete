@@ -252,6 +252,7 @@ None Shiny Scalasca Vampir \
 -DPROFILE_BRIDGE= \
 -DPROFILE_PCL= \
 -DPlasmaMembrane= \
+-DParticleLadenFlow= \
 -DReceptorKinetic= \
 -DSHELLTYPE= \
 -DSTATIC= \
