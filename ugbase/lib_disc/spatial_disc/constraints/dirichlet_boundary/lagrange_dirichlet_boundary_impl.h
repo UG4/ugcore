@@ -377,15 +377,12 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
 
-			//	dimension of fct
-				const int dim = dd->dim(fct);
-
 			//	get multi indices
 				dd->inner_multi_indices(elem, fct, multInd);
 
 			//	get dof position
 				if(TUserData::isConditional){
-					InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
+					InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
 					UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
 				}
 
@@ -506,12 +503,9 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 			//	get multi indices
 				dd->inner_multi_indices(elem, fct, multInd);
 
-			//	dimension of fct
-				const int dim = dd->dim(fct);
-
 			//	get dof position
 				if(TUserData::isConditional){
-					InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
+					InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
 					UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch. (multInd.size()="<<
 					          multInd.size()<<", vPos.size()="<<vPos.size()<<")");
 				}
@@ -628,11 +622,8 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
 
-			//	dimension of fct
-				const int dim = dd->dim(fct);
-
 			//	get dof position
-				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
+				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
 
 			//	get multi indices
 				dd->inner_multi_indices(elem, fct, multInd);
@@ -752,11 +743,8 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
 
-			//	dimension of fct
-				const int dim = dd->dim(fct);
-
 			//	get dof position
-				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
+				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
 
 			//	get multi indices
 				dd->inner_multi_indices(elem, fct, multInd);
@@ -883,11 +871,8 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 			//	get local finite element id
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
 
-			//	dimension of fct
-				const int dim = dd->dim(fct);
-
 			//	get dof position
-				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID, dim);
+				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
 
 			//	get multi indices
 				dd->inner_multi_indices(elem, fct, multInd);

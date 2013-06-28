@@ -281,7 +281,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 
 				//	global positions of fine dofs
 					std::vector<MathVector<dim> > vDoFPos, vLocPos;
-					DoFPosition(vDoFPos, child, *uFine.domain(), vFineLFEID[fct], dim);
+					DoFPosition(vDoFPos, child, *uFine.domain(), vFineLFEID[fct]);
 
 					UG_ASSERT(vDoFPos.size() == vFineMI.size(), "numDoFPos ("
 							  <<vDoFPos.size()<<") != numDoFs ("<<vFineMI.size()<<").");
@@ -499,7 +499,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 
 			//	global positions of fine dofs
 				std::vector<MathVector<dim> > vDoFPos;
-				InnerDoFPosition(vDoFPos, coarseElem, *uCoarse.domain(), vCoarseLFEID[fct], dim);
+				InnerDoFPosition(vDoFPos, coarseElem, *uCoarse.domain(), vCoarseLFEID[fct]);
 
 			//	loop dof points
 				for(size_t ip = 0; ip < vDoFPos.size(); ++ip)

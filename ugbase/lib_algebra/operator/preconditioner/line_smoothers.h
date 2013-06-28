@@ -387,7 +387,7 @@ void collectStretchedElementIndices(ConstSmartPtr<TDomain> domain,
 
 					//	load positions associated with element and function
 					InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
-				                 dd->local_finite_element_id(fct), dd->dim(fct));
+					                 dd->local_finite_element_id(fct));
 
 					//	check correct size
 					UG_ASSERT(ind.size() == vElemPos.size(), "Num MultiIndex ("<<ind.size()

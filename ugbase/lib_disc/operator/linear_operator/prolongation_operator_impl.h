@@ -249,7 +249,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 
 				//	global positions of fine dofs
 					std::vector<MathVector<dim> > vDoFPos, vLocPos;
-					DoFPosition(vDoFPos, child, *spDomain, vLFEID[fct], dim);
+					DoFPosition(vDoFPos, child, *spDomain, vLFEID[fct]);
 
 					UG_ASSERT(vDoFPos.size() == vFineMultInd.size(), "numDoFPos ("
 					          <<vDoFPos.size()<<") != numDoFs ("<<vFineMultInd.size()<<").");

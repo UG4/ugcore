@@ -240,7 +240,7 @@ class ElementLocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 				mgDD.inner_multi_indices(child, fct, vFineMultInd);
 				if (vFineMultInd.size()==0) continue;
 				std::vector<MathVector<dim> > vDoFPos, vLocPos;
-				DoFPosition(vDoFPos, child, *m_spDomain, m_vLFEID[fct], dim);
+				DoFPosition(vDoFPos, child, *m_spDomain, m_vLFEID[fct]);
 				//	get local position of DoF
 				vLocPos.resize(vDoFPos.size());
 				for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
