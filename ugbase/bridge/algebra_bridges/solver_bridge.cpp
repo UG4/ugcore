@@ -21,6 +21,7 @@
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
 #include "lib_algebra/operator/linear_solver/cg.h"
 #include "lib_algebra/operator/linear_solver/bicgstab.h"
+#include "lib_algebra/operator/linear_solver/gmres.h"
 #include "lib_algebra/operator/linear_solver/lu.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/operator/linear_solver/feti.h"
@@ -129,6 +130,17 @@ static void Algebra(Registry& reg, string grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BiCGStab", tag);
+	}
+
+// 	GMRES Solver
+	{
+		typedef GMRES<vector_type> T;
+		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
+		string name = string("GMRES").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "GMRES Solver")
+			.template add_constructor<void (*)(size_t)>()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GMRES", tag);
 	}
 
 // 	LU Solver
