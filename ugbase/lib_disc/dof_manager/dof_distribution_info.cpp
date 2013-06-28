@@ -33,52 +33,36 @@ void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
 // 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-	// 	counter
-		size_t count = 0;
-
 	//	reset
 		m_vvNumDoFsOnROID[roid][si] = 0;
 
 	//	loop functions
 		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
-		//	reset to not defined (initially)
-			m_vvvOffsets[roid][si][fct] = NOT_DEF_ON_SUBSET;
-
 		//	if function is not defined, we leave the offset as invalid.
-			if(!is_def_in_subset(fct, si))	continue;
-
-		//	get dimension of subset
-			int dim = this->dim(fct);
-
-		//	check dimension
-			if(dim < 0) UG_THROW("Dimension of function "<<fct<<" is not valid."
-			                     " This may indicate, that the subset is empty, "
-			                     " or empty on some process and the subset "
-			                     "dimensions have not been computed correctly "
-			                     " in parallel.");
+			if(!is_def_in_subset(fct, si)) {
+				m_vvvOffsets[roid][si][fct] = NOT_DEF_ON_SUBSET;
+				continue;
+			}
 
 		//	get trial space
 			const CommonLocalDoFSet& clds = LocalDoFSetProvider::get(lfeid(fct));
 
 		//	get number of DoFs on the reference element need for the space
-			const int numDoF = clds.num_dof(roid);
+			const size_t numDoF = clds.num_dof(roid);
 
 		//	overwrite max dim with dofs (if subset has that dimension)
-			if(dim_subset(si) > ReferenceElementDimension((ReferenceObjectID)roid))
-				m_vMaxDimToOrderDoFs[fct] = ReferenceElementDimension((ReferenceObjectID)roid);
+			if(dim_subset(si) > ReferenceElementDimension(roid))
+				m_vMaxDimToOrderDoFs[fct] = ReferenceElementDimension(roid);
 
 		//	check that numDoFs specified by this roid
-			if(numDoF == -1) continue;
+			if(numDoF == 0) continue;
 
 		//	set offset for each function defined in the subset
-			m_vvvOffsets[roid][si][fct] = count;
+			m_vvvOffsets[roid][si][fct] = m_vvNumDoFsOnROID[roid][si];
 
 		//	increase number of DoFs per type on this subset
 			m_vvNumDoFsOnROID[roid][si] += numDoF;
-
-		//	increase the count
-			count += numDoF;
 		}
 	}
 }
@@ -89,23 +73,14 @@ void DoFDistributionInfo::create_offsets()
 //	function infos
 	m_vMaxDimToOrderDoFs.resize(num_fct(), 0);
 	m_vNumDoFOnSubelem.resize(num_fct());
-	for(size_t fct = 0; fct < num_fct(); ++fct)
-	{
+
+	for(size_t fct = 0; fct < num_fct(); ++fct){
+		const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(lfeid(fct));
+
+	//	cache number of DoFs in a sub-geometric object
 		for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
-		{
-			m_vLocalDoFSet[roid].resize(num_fct());
-
-		//	remember local dof set
-			m_vLocalDoFSet[roid][fct] = & LocalDoFSetProvider::get((ReferenceObjectID)roid, lfeid(fct));
-
-			const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(lfeid(fct));
-
 			for(int subRoid=ROID_VERTEX; subRoid < NUM_REFERENCE_OBJECTS; ++subRoid)
-			{
-			//	get number of DoFs in this sub-geometric object
 				m_vNumDoFOnSubelem[fct](roid,subRoid) = lds.num_dof((ReferenceObjectID)subRoid);
-			}
-		}
 	}
 
 //	loop all reference element to resize the arrays

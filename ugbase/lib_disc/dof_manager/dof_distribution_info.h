@@ -94,9 +94,6 @@ class DoFDistributionInfo : public FunctionPattern
 		///	maximum number of DoFs on geometric objects in a dimension per subset
 		std::vector<size_t> m_vvMaxDoFsInDimPerSubset[NUM_GEOMETRIC_BASE_OBJECTS];
 
-		///	local dof sets
-		std::vector<const LocalDoFSet*> m_vLocalDoFSet[NUM_REFERENCE_OBJECTS];
-
 		///	maximum dimensions where dofs must be ordered
 		std::vector<int> m_vMaxDimToOrderDoFs;
 

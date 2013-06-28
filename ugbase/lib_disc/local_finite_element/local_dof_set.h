@@ -130,7 +130,10 @@ class CommonLocalDoFSet
 		void add(const LocalDoFSet& set);
 
 	///	number of dofs on a reference element type
-		int num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
+		size_t num_dof(ReferenceObjectID roid) const {
+			UG_ASSERT(m_vNumDoF[roid] >= 0, "No DoF info for "<<roid);
+			return m_vNumDoF[roid];
+		}
 
 	protected:
 		int m_vNumDoF[NUM_REFERENCE_OBJECTS];
