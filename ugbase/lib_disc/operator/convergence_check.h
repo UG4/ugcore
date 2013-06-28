@@ -67,7 +67,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		int step() const {return m_currentStep;}
 		number reduction() const {return m_currentOverallDefect/m_initialOverallDefect;};
 		number rate() const {return m_currentOverallDefect/m_lastOverallDefect;}
-		number avg_rate() const {return m_currentOverallDefect/m_initialOverallDefect/m_currentStep;}
+		number avg_rate() const {return std::pow((number)m_currentOverallDefect/m_initialOverallDefect,(number)1.0/m_currentStep);}
 
 	/// information about current status for single component
 		number defect(size_t fctIndex) const {return m_currentDefect[fctIndex];};

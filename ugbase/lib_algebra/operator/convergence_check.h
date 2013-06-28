@@ -166,7 +166,7 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		number previous_defect() const { return m_lastDefect; }
 		int step() const {return m_currentStep;}
 		number rate() const {return m_currentDefect/m_lastDefect;};
-		number avg_rate() const {return m_sumRates/step();}
+		number avg_rate() const {return std::pow((number)m_ratesProduct,(number)1.0/step());}
 
 		int get_offset() const {return m_offset;}
 		void set_offset(int offset){m_offset = offset;}
@@ -202,7 +202,7 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		int m_currentStep;
 
 		// sum of the convergence rates over all steps
-		number m_sumRates;
+		number m_ratesProduct;
 
 	protected:
 		// maximum number of steps to be performed

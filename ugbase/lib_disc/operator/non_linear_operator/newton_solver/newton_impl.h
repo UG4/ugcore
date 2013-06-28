@@ -272,28 +272,28 @@ void NewtonSolver<TAlgebra>::print_average_convergence() const
 {
 	UG_LOG("\nNewton solver convergence history:\n");
 	UG_LOG("Newton Step | Num Calls | Total Lin Iters | Avg Lin Iters | Avg Nonlin Rates | Avg Lin Rates \n");
-	int allCalls = 0, allSteps = 0;
-	number allLinRates = 0.0, allNonLinRates = 0.0;
+	int allCalls = 0, allLinSteps = 0;
+	number allLinRatesProduct = 1.0, allNonLinRatesProduct = 1.0;
 	for(int call = 0; call < (int)m_vLinSolverCalls.size(); ++call)
 	{
 		UG_LOG( " " << std::setw(10) << call+1 << " | ");
 		UG_LOG(std::setw(9) << m_vLinSolverCalls[call] << " | ");
 		allCalls += m_vLinSolverCalls[call];
 		UG_LOG(std::setw(15) << m_vTotalLinSolverSteps[call] << " | ");
-		allSteps += m_vTotalLinSolverSteps[call];
+		allLinSteps += m_vTotalLinSolverSteps[call];
 		UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << m_vTotalLinSolverSteps[call] / (double)m_vLinSolverCalls[call] << " | ");
-		allNonLinRates += m_vNonLinSolverRates[call];
+		allNonLinRatesProduct *= m_vNonLinSolverRates[call];
 		UG_LOG(std::setw(16) << std::setprecision(6) << std::fixed << m_vNonLinSolverRates[call] / (double)m_vLinSolverCalls[call] << " | ");
-		allLinRates += m_vLinSolverRates[call];
+		allLinRatesProduct *= (number)std::pow((number)m_vLinSolverRates[call],(number)m_vTotalLinSolverSteps[call]);
 		UG_LOG(std::setw(13) << std::setprecision(6) << std::fixed << m_vLinSolverRates[call] / (double)m_vLinSolverCalls[call]);
 		UG_LOG("\n");
 	}
 	UG_LOG( "        all | ");
 	UG_LOG(std::setw(9) << allCalls << " | ");
-	UG_LOG(std::setw(15) << allSteps << " | ");
-	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allSteps / (double)allCalls << " | ");
-	UG_LOG(std::setw(16) << std::setprecision(6) << std::fixed << allNonLinRates / (double)allCalls << " | ");
-	UG_LOG(std::setw(13) << std::setprecision(6) << std::fixed << allLinRates / (double)allCalls);
+	UG_LOG(std::setw(15) << allLinSteps << " | ");
+	UG_LOG(std::setw(13) << std::setprecision(2) << std::fixed << allLinSteps / (number)allCalls << " | ");
+	UG_LOG(std::setw(16) << std::setprecision(6) << std::fixed << std::pow((number)allNonLinRatesProduct,(number)1.0/(number)allCalls) << " | ");
+	UG_LOG(std::setw(13) << std::setprecision(6) << std::fixed << std::pow((number)allLinRatesProduct,(number)1.0/(number)allLinSteps));
 	UG_LOG("\n");
 }
 

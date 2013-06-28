@@ -24,7 +24,7 @@ template <typename TVector>
 StdConvCheck<TVector>::
 StdConvCheck()
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
-  	 m_sumRates(0), m_maxSteps(200), m_minDefect(10e-8), m_relReduction(10e-10),
+  	 m_ratesProduct(1), m_maxSteps(200), m_minDefect(10e-8), m_relReduction(10e-10),
 	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
 	 {};
 
@@ -32,7 +32,7 @@ template <typename TVector>
 StdConvCheck<TVector>::
 StdConvCheck(int maxSteps, number minDefect, number relReduction)
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
-  	 m_sumRates(0), m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
+  	 m_ratesProduct(1), m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
 	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
 	 {};
 
@@ -40,7 +40,7 @@ template <typename TVector>
 StdConvCheck<TVector>::
 StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose)
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
-  	 m_sumRates(0), m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
+  	 m_ratesProduct(1), m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
 	 m_verbose(verbose), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
 	 {};
 
@@ -51,7 +51,7 @@ void StdConvCheck<TVector>::start_defect(number initialDefect)
 	m_initialDefect = initialDefect;
 	m_currentDefect = m_initialDefect;
 	m_currentStep = 0;
-	m_sumRates = 0;
+	m_ratesProduct = 1;
 
 	if(m_verbose)
 	{
@@ -105,7 +105,7 @@ void StdConvCheck<TVector>::update_defect(number newDefect)
 	m_lastDefect = m_currentDefect;
 	m_currentDefect = newDefect;
 	m_currentStep++;
-	m_sumRates += newDefect/m_lastDefect;
+	m_ratesProduct *= newDefect/m_lastDefect;
 
 	if(m_verbose)
 	{
