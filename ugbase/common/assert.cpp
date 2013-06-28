@@ -86,7 +86,8 @@ void lua_backtrace()
 	if(bDoLUAStackTrace)
 	{
 		UG_LOG("--------------- LUA Stack Trace: --------------\n");
-		UG_LOG(ug::bridge::LuaStackTraceString());
+		//UG_LOG(ug::bridge::LuaStackTraceString());
+		UG_LOG("currently disabled, watch for updates.\n")
 		UG_LOG("\n");
 	}
 #endif
