@@ -225,15 +225,22 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	{
 		size_t i=x.size()-1;
 		s = b[i];
-		// check if diagonal entry close to zero
-		if (BlockNorm(A(i,i))<__eps){
-		// set correction to zero
+
+		// check if diag part is significantly smaller than rhs
+		// This may happen when matrix is indefinite with one eigenvalue
+		// zero. In that case, the factorization on the last row is
+		// nearly zero due to round-off errors. In order to allow ill-
+		// scaled matrices (i.e. small matrix entries row-wise) this
+		// is compared to the rhs, that is small in this case as well.
+		if (BlockNorm(A(i,i)) <= __eps * BlockNorm(s)){
+			UG_LOG("ILU Warning: Near-zero diagonal entry "
+					"with norm "<<BlockNorm(A(i,i))<<" in last row of U "
+					" with corresponding non-near-zero rhs with norm "
+					<< BlockNorm(s) << ". Setting rhs to zero.\n");
+			// set correction to zero
 			x[i] = 0;
-			if (BlockNorm(s)>__eps){
-				UG_LOG("Warning: near-zero diagonal entry in last row of U with corresponding non-near-zero rhs entry (" << BlockNorm(s) << ")\n");
-			}
 		} else {
-			// x[i] = s/A(i,i);
+			// c[i] = s/uii;
 			InverseMatMult(x[i], 1.0, A(i,i), s);
 		}
 	}
