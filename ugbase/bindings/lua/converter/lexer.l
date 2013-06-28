@@ -44,48 +44,48 @@ number         ({n}|{n}[.]{n}){exp}?
                 return *yytext;
              }
 
-">="            return GE;
-"<="            return LE;
-"=="            return EQ;
-"~="            return NE;
-"end"			return END;
-"local"			return LOCAL;
-"function"		return FUNCTION;
-"return"		return RETURN;
+">="            return LUAPARSER_GE;
+"<="            return LUAPARSER_LE;
+"=="            return LUAPARSER_EQ;
+"~="            return LUAPARSER_NE;
+"end"			return LUAPARSER_END;
+"local"			return LUAPARSER_LOCAL;
+"function"		return LUAPARSER_FUNCTION;
+"return"		return LUAPARSER_RETURN;
 
-"if"            return IF;
-"then"          return THEN;
-"else"          return ELSE;
-"elseif"        return ELSEIF;
+"if"            return LUAPARSER_IF;
+"then"          return LUAPARSER_THEN;
+"else"          return LUAPARSER_ELSE;
+"elseif"        return LUAPARSER_ELSEIF;
 
-"for"			return TK_FOR;
-"do"			return TK_DO;
-"break"			return TK_BREAK;
+"for"			return LUAPARSER_FOR;
+"do"			return LUAPARSER_DO;
+"break"			return LUAPARSER_BREAK;
 
 
-"and"			return AND;
-"or"			return OR;
+"and"			return LUAPARSER_AND;
+"or"			return LUAPARSER_OR;
 
-"math.cos"		return MATH_COS;
-"math.sin"		return MATH_SIN;
-"math.exp"		return MATH_EXP;
-"math.abs"		return MATH_ABS;
-"math.log"		return MATH_LOG;
-"math.log10"    return MATH_LOG10;
-"math.sqrt"     return MATH_SQRT;
-"math.floor"    return MATH_FLOOR;
-"math.ceil"     return MATH_CEIL;
+"math.cos"		return LUAPARSER_MATH_COS;
+"math.sin"		return LUAPARSER_MATH_SIN;
+"math.exp"		return LUAPARSER_MATH_EXP;
+"math.abs"		return LUAPARSER_MATH_ABS;
+"math.log"		return LUAPARSER_MATH_LOG;
+"math.log10"    return LUAPARSER_MATH_LOG10;
+"math.sqrt"     return LUAPARSER_MATH_SQRT;
+"math.floor"    return LUAPARSER_MATH_FLOOR;
+"math.ceil"     return LUAPARSER_MATH_CEIL;
 
-"math.pow"      return MATH_POW;
-"math.max"      return MATH_MAX;
-"math.min"      return MATH_MIN;
+"math.pow"      return LUAPARSER_MATH_POW;
+"math.max"      return LUAPARSER_MATH_MAX;
+"math.min"      return LUAPARSER_MATH_MIN;
 
-"math.pi"       return MATH_PI;
+"math.pi"       return LUAPARSER_MATH_PI;
 
 
 {name}       { 
                 yylval.sIndex = globalP->get_id_for_name(yytext);
-                return VARIABLE;
+                return LUAPARSER_VARIABLE;
             }
 
 [ \t\n]+        ;       /* ignore whitespace */

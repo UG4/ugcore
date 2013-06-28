@@ -39,20 +39,20 @@ void yyerror(const char *s);
 
 
 %token <iValue> YY_INTEGER
-%token <sIndex> VARIABLE
-%token WHILE IF THEN END ELSE ELSEIF LOCAL FUNCTION RETURN
-%token MATH_SIN MATH_COS MATH_EXP MATH_ABS MATH_LOG MATH_LOG10 MATH_SQRT
-%token MATH_FLOOR MATH_CEIL MATH_POW 
-%token MATH_MAX MATH_MIN 
-%token MATH_PI TK_DO TK_FOR TK_BREAK
-%nonassoc ELSE
+%token <sIndex> LUAPARSER_VARIABLE
+%token LUAPARSER_WHILE LUAPARSER_IF LUAPARSER_THEN LUAPARSER_END LUAPARSER_ELSE LUAPARSER_ELSEIF LUAPARSER_LOCAL LUAPARSER_FUNCTION LUAPARSER_RETURN
+%token LUAPARSER_MATH_SIN LUAPARSER_MATH_COS LUAPARSER_MATH_EXP LUAPARSER_MATH_ABS LUAPARSER_MATH_LOG LUAPARSER_MATH_LOG10 LUAPARSER_MATH_SQRT
+%token LUAPARSER_MATH_FLOOR LUAPARSER_MATH_CEIL LUAPARSER_MATH_POW 
+%token LUAPARSER_MATH_MAX LUAPARSER_MATH_MIN 
+%token LUAPARSER_MATH_PI LUAPARSER_DO LUAPARSER_FOR LUAPARSER_BREAK
+%nonassoc LUAPARSER_ELSE
 
-%left AND OR
-%left GE LE EQ NE '>' '<'
+%left LUAPARSER_AND LUAPARSER_OR
+%left LUAPARSER_GE LUAPARSER_LE LUAPARSER_EQ LUAPARSER_NE '>' '<'
 %left '+' '-'
 %left '*' '/'
 
-%nonassoc UMINUS
+%nonassoc LUAPARSER_UMINUS
 
 %type <nPtr> stmt expr stmt_list funcstat arguments exprlist arguments2 elseblock forStep
 
@@ -68,35 +68,39 @@ func:
 
 
 stmt:
-          expr							{ $$ = $1; }
-		| RETURN exprlist				{ $$ = globalP->opr1('R', $2);}
-		| LOCAL VARIABLE '=' expr		{ $$ = globalP->opr2('=', globalP->id($2), $4); globalP->set_local($2); }
-		| LOCAL VARIABLE				{ $$ = NULL; globalP->set_local($2); }        
-		| VARIABLE '=' expr				{ $$ = globalP->opr2('=', globalP->id($1), $3); globalP->assert_local($1); }
-        | IF expr THEN stmt_list elseblock END	{ $$ = globalP->opr3(IF, $2, $4, $5); }        
-		| TK_FOR VARIABLE '=' expr ',' expr forStep TK_DO stmt_list END { $$ = globalP->forOp(globalP->id($2), $4, $6, $7, $9); }
-		| TK_BREAK						{ $$ = globalP->opr0(TK_BREAK); }
+          expr												{ $$ = $1; }
+		| LUAPARSER_RETURN exprlist							{ $$ = globalP->opr1('R', $2);}
+		| LUAPARSER_LOCAL LUAPARSER_VARIABLE '=' expr		{ $$ = globalP->opr2('=', globalP->id($2), $4); globalP->set_local($2); }
+		| LUAPARSER_LOCAL LUAPARSER_VARIABLE				{ $$ = NULL; globalP->set_local($2); }        
+		| LUAPARSER_VARIABLE '=' expr						{ $$ = globalP->opr2('=', globalP->id($1), $3); globalP->assert_local($1); }
+        | LUAPARSER_IF expr LUAPARSER_THEN stmt_list elseblock LUAPARSER_END			
+        													{ $$ = globalP->opr3(LUAPARSER_IF, $2, $4, $5); }        
+		| LUAPARSER_FOR LUAPARSER_VARIABLE '=' expr ',' expr forStep LUAPARSER_DO stmt_list LUAPARSER_END 
+															{ $$ = globalP->forOp(globalP->id($2), $4, $6, $7, $9); }
+		| LUAPARSER_BREAK									{ $$ = globalP->opr0(LUAPARSER_BREAK); }
         ;
 
 forStep:
-		',' expr						{ $$ = $2; }
-		|								{ $$ = globalP->con(1); }
+		',' expr											{ $$ = $2; }
+		|													{ $$ = globalP->con(1); }
 		;
 
 elseblock:
-        ELSEIF expr THEN stmt_list elseblock { $$ = globalP->opr3(ELSEIF, $2, $4, $5); }
-        | ELSE stmt_list                    { $$ = globalP->opr1(ELSE, $2); }
-        |                                   { $$ = NULL; }
+        LUAPARSER_ELSEIF expr LUAPARSER_THEN stmt_list elseblock 
+        													{ $$ = globalP->opr3(LUAPARSER_ELSEIF, $2, $4, $5); }
+        | LUAPARSER_ELSE stmt_list                   		{ $$ = globalP->opr1(LUAPARSER_ELSE, $2); }
+        |					                                { $$ = NULL; }
         ;
 
 funcstat:
-		FUNCTION VARIABLE '(' arguments ')' stmt_list END         { globalP->set_name($2); globalP->set_arguments($4); $$ = $6; }
+		LUAPARSER_FUNCTION LUAPARSER_VARIABLE '(' arguments ')' stmt_list LUAPARSER_END
+													         { globalP->set_name($2); globalP->set_arguments($4); $$ = $6; }
 		;
 
 
 arguments:
-		VARIABLE ',' arguments			{ $$ = globalP->opr2(',', globalP->id($1), $3); }
-		| VARIABLE						{ $$ = globalP->id($1); }
+		LUAPARSER_VARIABLE ',' arguments					{ $$ = globalP->opr2(',', globalP->id($1), $3); }
+		| LUAPARSER_VARIABLE								{ $$ = globalP->id($1); }
 		;
 
 arguments2:
@@ -117,35 +121,35 @@ stmt_list:
 
 expr:
           YY_INTEGER               { $$ = globalP->con($1); }          
-        | VARIABLE '(' arguments2 ')' { $$ = globalP->function(globalP->id($1), $3); }
-        | VARIABLE              { $$ = globalP->id($1); }
-        | '-' expr %prec UMINUS { $$ = globalP->opr1(UMINUS, $2); }
+        | LUAPARSER_VARIABLE '(' arguments2 ')' 	{ $$ = globalP->function(globalP->id($1), $3); }
+        | LUAPARSER_VARIABLE             			{ $$ = globalP->id($1); }
+        | '-' expr %prec LUAPARSER_UMINUS { $$ = globalP->opr1(LUAPARSER_UMINUS, $2); }
         | expr '+' expr         { $$ = globalP->opr2('+', $1, $3); }
         | expr '-' expr         { $$ = globalP->opr2('-', $1, $3); }
         | expr '*' expr         { $$ = globalP->opr2('*', $1, $3); }
         | expr '/' expr         { $$ = globalP->opr2('/', $1, $3); }
         | expr '<' expr         { $$ = globalP->opr2('<', $1, $3); }
         | expr '>' expr         { $$ = globalP->opr2('>', $1, $3); }
-        | expr GE expr          { $$ = globalP->opr2(GE, $1, $3); }
-        | expr LE expr          { $$ = globalP->opr2(LE, $1, $3); }
-        | expr NE expr          { $$ = globalP->opr2(NE, $1, $3); }
-        | expr EQ expr          { $$ = globalP->opr2(EQ, $1, $3); }
-		| expr AND expr          { $$ = globalP->opr2(AND, $1, $3); }
-		| expr OR expr          { $$ = globalP->opr2(OR, $1, $3); }
+        | expr LUAPARSER_GE expr          { $$ = globalP->opr2(LUAPARSER_GE, $1, $3); }
+        | expr LUAPARSER_LE expr          { $$ = globalP->opr2(LUAPARSER_LE, $1, $3); }
+        | expr LUAPARSER_NE expr          { $$ = globalP->opr2(LUAPARSER_NE, $1, $3); }
+        | expr LUAPARSER_EQ expr          { $$ = globalP->opr2(LUAPARSER_EQ, $1, $3); }
+		| expr LUAPARSER_AND expr          { $$ = globalP->opr2(LUAPARSER_AND, $1, $3); }
+		| expr LUAPARSER_OR expr          { $$ = globalP->opr2(LUAPARSER_OR, $1, $3); }
         | '(' expr ')'          { $$ = $2; }
-		| MATH_COS '(' expr ')' { $$ = globalP->opr1(MATH_COS, $3); }
-		| MATH_SIN '(' expr ')' { $$ = globalP->opr1(MATH_SIN, $3); }
-		| MATH_EXP '(' expr ')' { $$ = globalP->opr1(MATH_EXP, $3); }
-        | MATH_ABS '(' expr ')' { $$ = globalP->opr1(MATH_ABS, $3); }
-        | MATH_LOG '(' expr ')' { $$ = globalP->opr1(MATH_LOG, $3); }
-        | MATH_LOG10 '(' expr ')' { $$ = globalP->opr1(MATH_LOG10, $3); }
-        | MATH_SQRT '(' expr ')' { $$ = globalP->opr1(MATH_SQRT, $3); }
-        | MATH_FLOOR '(' expr ')' { $$ = globalP->opr1(MATH_FLOOR, $3); }
-        | MATH_CEIL '(' expr ')' { $$ = globalP->opr1(MATH_CEIL, $3); }
-        | MATH_POW '(' expr ',' expr ')' { $$ = globalP->opr2(MATH_CEIL, $3, $5); }
-        | MATH_MIN '(' expr ',' expr ')' { $$ = globalP->opr2(MATH_MIN, $3, $5); }
-        | MATH_MAX '(' expr ',' expr ')' { $$ = globalP->opr2(MATH_MAX, $3, $5); }
-        | MATH_PI                  { $$ = globalP->opr0(MATH_PI); }
+		| LUAPARSER_MATH_COS '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_COS, $3); }
+		| LUAPARSER_MATH_SIN '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_SIN, $3); }
+		| LUAPARSER_MATH_EXP '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_EXP, $3); }
+        | LUAPARSER_MATH_ABS '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_ABS, $3); }
+        | LUAPARSER_MATH_LOG '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_LOG, $3); }
+        | LUAPARSER_MATH_LOG10 '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_LOG10, $3); }
+        | LUAPARSER_MATH_SQRT '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_SQRT, $3); }
+        | LUAPARSER_MATH_FLOOR '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_FLOOR, $3); }
+        | LUAPARSER_MATH_CEIL '(' expr ')' { $$ = globalP->opr1(LUAPARSER_MATH_CEIL, $3); }
+        | LUAPARSER_MATH_POW '(' expr ',' expr ')' { $$ = globalP->opr2(LUAPARSER_MATH_CEIL, $3, $5); }
+        | LUAPARSER_MATH_MIN '(' expr ',' expr ')' { $$ = globalP->opr2(LUAPARSER_MATH_MIN, $3, $5); }
+        | LUAPARSER_MATH_MAX '(' expr ',' expr ')' { $$ = globalP->opr2(LUAPARSER_MATH_MAX, $3, $5); }
+        | LUAPARSER_MATH_PI                  { $$ = globalP->opr0(LUAPARSER_MATH_PI); }
 		
         ;
 

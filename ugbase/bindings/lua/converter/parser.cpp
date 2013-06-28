@@ -67,82 +67,82 @@
       know about them.  */
    enum yytokentype {
      YY_INTEGER = 258,
-     VARIABLE = 259,
-     WHILE = 260,
-     IF = 261,
-     THEN = 262,
-     END = 263,
-     ELSE = 264,
-     ELSEIF = 265,
-     LOCAL = 266,
-     FUNCTION = 267,
-     RETURN = 268,
-     MATH_SIN = 269,
-     MATH_COS = 270,
-     MATH_EXP = 271,
-     MATH_ABS = 272,
-     MATH_LOG = 273,
-     MATH_LOG10 = 274,
-     MATH_SQRT = 275,
-     MATH_FLOOR = 276,
-     MATH_CEIL = 277,
-     MATH_POW = 278,
-     MATH_MAX = 279,
-     MATH_MIN = 280,
-     MATH_PI = 281,
-     TK_DO = 282,
-     TK_FOR = 283,
-     TK_BREAK = 284,
-     OR = 285,
-     AND = 286,
-     NE = 287,
-     EQ = 288,
-     LE = 289,
-     GE = 290,
-     UMINUS = 291
+     LUAPARSER_VARIABLE = 259,
+     LUAPARSER_WHILE = 260,
+     LUAPARSER_IF = 261,
+     LUAPARSER_THEN = 262,
+     LUAPARSER_END = 263,
+     LUAPARSER_ELSE = 264,
+     LUAPARSER_ELSEIF = 265,
+     LUAPARSER_LOCAL = 266,
+     LUAPARSER_FUNCTION = 267,
+     LUAPARSER_RETURN = 268,
+     LUAPARSER_MATH_SIN = 269,
+     LUAPARSER_MATH_COS = 270,
+     LUAPARSER_MATH_EXP = 271,
+     LUAPARSER_MATH_ABS = 272,
+     LUAPARSER_MATH_LOG = 273,
+     LUAPARSER_MATH_LOG10 = 274,
+     LUAPARSER_MATH_SQRT = 275,
+     LUAPARSER_MATH_FLOOR = 276,
+     LUAPARSER_MATH_CEIL = 277,
+     LUAPARSER_MATH_POW = 278,
+     LUAPARSER_MATH_MAX = 279,
+     LUAPARSER_MATH_MIN = 280,
+     LUAPARSER_MATH_PI = 281,
+     LUAPARSER_DO = 282,
+     LUAPARSER_FOR = 283,
+     LUAPARSER_BREAK = 284,
+     LUAPARSER_OR = 285,
+     LUAPARSER_AND = 286,
+     LUAPARSER_NE = 287,
+     LUAPARSER_EQ = 288,
+     LUAPARSER_LE = 289,
+     LUAPARSER_GE = 290,
+     LUAPARSER_UMINUS = 291
    };
 #endif
 /* Tokens.  */
 #define YY_INTEGER 258
-#define VARIABLE 259
-#define WHILE 260
-#define IF 261
-#define THEN 262
-#define END 263
-#define ELSE 264
-#define ELSEIF 265
-#define LOCAL 266
-#define FUNCTION 267
-#define RETURN 268
-#define MATH_SIN 269
-#define MATH_COS 270
-#define MATH_EXP 271
-#define MATH_ABS 272
-#define MATH_LOG 273
-#define MATH_LOG10 274
-#define MATH_SQRT 275
-#define MATH_FLOOR 276
-#define MATH_CEIL 277
-#define MATH_POW 278
-#define MATH_MAX 279
-#define MATH_MIN 280
-#define MATH_PI 281
-#define TK_DO 282
-#define TK_FOR 283
-#define TK_BREAK 284
-#define OR 285
-#define AND 286
-#define NE 287
-#define EQ 288
-#define LE 289
-#define GE 290
-#define UMINUS 291
+#define LUAPARSER_VARIABLE 259
+#define LUAPARSER_WHILE 260
+#define LUAPARSER_IF 261
+#define LUAPARSER_THEN 262
+#define LUAPARSER_END 263
+#define LUAPARSER_ELSE 264
+#define LUAPARSER_ELSEIF 265
+#define LUAPARSER_LOCAL 266
+#define LUAPARSER_FUNCTION 267
+#define LUAPARSER_RETURN 268
+#define LUAPARSER_MATH_SIN 269
+#define LUAPARSER_MATH_COS 270
+#define LUAPARSER_MATH_EXP 271
+#define LUAPARSER_MATH_ABS 272
+#define LUAPARSER_MATH_LOG 273
+#define LUAPARSER_MATH_LOG10 274
+#define LUAPARSER_MATH_SQRT 275
+#define LUAPARSER_MATH_FLOOR 276
+#define LUAPARSER_MATH_CEIL 277
+#define LUAPARSER_MATH_POW 278
+#define LUAPARSER_MATH_MAX 279
+#define LUAPARSER_MATH_MIN 280
+#define LUAPARSER_MATH_PI 281
+#define LUAPARSER_DO 282
+#define LUAPARSER_FOR 283
+#define LUAPARSER_BREAK 284
+#define LUAPARSER_OR 285
+#define LUAPARSER_AND 286
+#define LUAPARSER_NE 287
+#define LUAPARSER_EQ 288
+#define LUAPARSER_LE 289
+#define LUAPARSER_GE 290
+#define LUAPARSER_UMINUS 291
 
 
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "parser.y"
+#line 12 "parser.y"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -183,7 +183,7 @@ void yyerror(const char *s);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 21 "parser.y"
+#line 32 "parser.y"
 {
     double iValue;                 /* integer value */
     int sIndex;                /* symbol table index */
@@ -516,12 +516,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    51,    51,    55,    60,    61,    62,    63,    64,    65,
-      66,    67,    71,    72,    76,    77,    78,    82,    87,    88,
-      92,    93,    98,    99,   103,   104,   108,   109,   110,   111,
-     112,   113,   114,   115,   116,   117,   118,   119,   120,   121,
-     122,   123,   124,   125,   126,   127,   128,   129,   130,   131,
-     132,   133,   134,   135,   136,   137
+       0,    62,    62,    66,    71,    72,    73,    74,    75,    76,
+      78,    80,    84,    85,    89,    91,    92,    96,   102,   103,
+     107,   108,   113,   114,   118,   119,   123,   124,   125,   126,
+     127,   128,   129,   130,   131,   132,   133,   134,   135,   136,
+     137,   138,   139,   140,   141,   142,   143,   144,   145,   146,
+     147,   148,   149,   150,   151,   152
 };
 #endif
 
@@ -530,15 +530,20 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "YY_INTEGER", "VARIABLE", "WHILE", "IF",
-  "THEN", "END", "ELSE", "ELSEIF", "LOCAL", "FUNCTION", "RETURN",
-  "MATH_SIN", "MATH_COS", "MATH_EXP", "MATH_ABS", "MATH_LOG", "MATH_LOG10",
-  "MATH_SQRT", "MATH_FLOOR", "MATH_CEIL", "MATH_POW", "MATH_MAX",
-  "MATH_MIN", "MATH_PI", "TK_DO", "TK_FOR", "TK_BREAK", "OR", "AND", "'>'",
-  "'<'", "NE", "EQ", "LE", "GE", "'+'", "'-'", "'*'", "'/'", "UMINUS",
-  "'='", "','", "'('", "')'", "$accept", "program", "func", "stmt",
-  "forStep", "elseblock", "funcstat", "arguments", "arguments2",
-  "exprlist", "stmt_list", "expr", 0
+  "$end", "error", "$undefined", "YY_INTEGER", "LUAPARSER_VARIABLE",
+  "LUAPARSER_WHILE", "LUAPARSER_IF", "LUAPARSER_THEN", "LUAPARSER_END",
+  "LUAPARSER_ELSE", "LUAPARSER_ELSEIF", "LUAPARSER_LOCAL",
+  "LUAPARSER_FUNCTION", "LUAPARSER_RETURN", "LUAPARSER_MATH_SIN",
+  "LUAPARSER_MATH_COS", "LUAPARSER_MATH_EXP", "LUAPARSER_MATH_ABS",
+  "LUAPARSER_MATH_LOG", "LUAPARSER_MATH_LOG10", "LUAPARSER_MATH_SQRT",
+  "LUAPARSER_MATH_FLOOR", "LUAPARSER_MATH_CEIL", "LUAPARSER_MATH_POW",
+  "LUAPARSER_MATH_MAX", "LUAPARSER_MATH_MIN", "LUAPARSER_MATH_PI",
+  "LUAPARSER_DO", "LUAPARSER_FOR", "LUAPARSER_BREAK", "LUAPARSER_OR",
+  "LUAPARSER_AND", "'>'", "'<'", "LUAPARSER_NE", "LUAPARSER_EQ",
+  "LUAPARSER_LE", "LUAPARSER_GE", "'+'", "'-'", "'*'", "'/'",
+  "LUAPARSER_UMINUS", "'='", "','", "'('", "')'", "$accept", "program",
+  "func", "stmt", "forStep", "elseblock", "funcstat", "arguments",
+  "arguments2", "exprlist", "stmt_list", "expr", 0
 };
 #endif
 
@@ -1587,278 +1592,278 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 51 "parser.y"
+#line 62 "parser.y"
     { }
     break;
 
   case 3:
-#line 55 "parser.y"
+#line 66 "parser.y"
     { globalP->add((yyvsp[(1) - (1)].nPtr)); }
     break;
 
   case 4:
-#line 60 "parser.y"
+#line 71 "parser.y"
     { (yyval.nPtr) = (yyvsp[(1) - (1)].nPtr); }
     break;
 
   case 5:
-#line 61 "parser.y"
+#line 72 "parser.y"
     { (yyval.nPtr) = globalP->opr1('R', (yyvsp[(2) - (2)].nPtr));}
     break;
 
   case 6:
-#line 62 "parser.y"
+#line 73 "parser.y"
     { (yyval.nPtr) = globalP->opr2('=', globalP->id((yyvsp[(2) - (4)].sIndex)), (yyvsp[(4) - (4)].nPtr)); globalP->set_local((yyvsp[(2) - (4)].sIndex)); }
     break;
 
   case 7:
-#line 63 "parser.y"
+#line 74 "parser.y"
     { (yyval.nPtr) = NULL; globalP->set_local((yyvsp[(2) - (2)].sIndex)); }
     break;
 
   case 8:
-#line 64 "parser.y"
+#line 75 "parser.y"
     { (yyval.nPtr) = globalP->opr2('=', globalP->id((yyvsp[(1) - (3)].sIndex)), (yyvsp[(3) - (3)].nPtr)); globalP->assert_local((yyvsp[(1) - (3)].sIndex)); }
     break;
 
   case 9:
-#line 65 "parser.y"
-    { (yyval.nPtr) = globalP->opr3(IF, (yyvsp[(2) - (6)].nPtr), (yyvsp[(4) - (6)].nPtr), (yyvsp[(5) - (6)].nPtr)); }
+#line 77 "parser.y"
+    { (yyval.nPtr) = globalP->opr3(LUAPARSER_IF, (yyvsp[(2) - (6)].nPtr), (yyvsp[(4) - (6)].nPtr), (yyvsp[(5) - (6)].nPtr)); }
     break;
 
   case 10:
-#line 66 "parser.y"
+#line 79 "parser.y"
     { (yyval.nPtr) = globalP->forOp(globalP->id((yyvsp[(2) - (10)].sIndex)), (yyvsp[(4) - (10)].nPtr), (yyvsp[(6) - (10)].nPtr), (yyvsp[(7) - (10)].nPtr), (yyvsp[(9) - (10)].nPtr)); }
     break;
 
   case 11:
-#line 67 "parser.y"
-    { (yyval.nPtr) = globalP->opr0(TK_BREAK); }
+#line 80 "parser.y"
+    { (yyval.nPtr) = globalP->opr0(LUAPARSER_BREAK); }
     break;
 
   case 12:
-#line 71 "parser.y"
+#line 84 "parser.y"
     { (yyval.nPtr) = (yyvsp[(2) - (2)].nPtr); }
     break;
 
   case 13:
-#line 72 "parser.y"
+#line 85 "parser.y"
     { (yyval.nPtr) = globalP->con(1); }
     break;
 
   case 14:
-#line 76 "parser.y"
-    { (yyval.nPtr) = globalP->opr3(ELSEIF, (yyvsp[(2) - (5)].nPtr), (yyvsp[(4) - (5)].nPtr), (yyvsp[(5) - (5)].nPtr)); }
+#line 90 "parser.y"
+    { (yyval.nPtr) = globalP->opr3(LUAPARSER_ELSEIF, (yyvsp[(2) - (5)].nPtr), (yyvsp[(4) - (5)].nPtr), (yyvsp[(5) - (5)].nPtr)); }
     break;
 
   case 15:
-#line 77 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(ELSE, (yyvsp[(2) - (2)].nPtr)); }
+#line 91 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_ELSE, (yyvsp[(2) - (2)].nPtr)); }
     break;
 
   case 16:
-#line 78 "parser.y"
+#line 92 "parser.y"
     { (yyval.nPtr) = NULL; }
     break;
 
   case 17:
-#line 82 "parser.y"
+#line 97 "parser.y"
     { globalP->set_name((yyvsp[(2) - (7)].sIndex)); globalP->set_arguments((yyvsp[(4) - (7)].nPtr)); (yyval.nPtr) = (yyvsp[(6) - (7)].nPtr); }
     break;
 
   case 18:
-#line 87 "parser.y"
+#line 102 "parser.y"
     { (yyval.nPtr) = globalP->opr2(',', globalP->id((yyvsp[(1) - (3)].sIndex)), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 19:
-#line 88 "parser.y"
+#line 103 "parser.y"
     { (yyval.nPtr) = globalP->id((yyvsp[(1) - (1)].sIndex)); }
     break;
 
   case 20:
-#line 92 "parser.y"
+#line 107 "parser.y"
     { (yyval.nPtr) = globalP->opr2(',', (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 21:
-#line 93 "parser.y"
+#line 108 "parser.y"
     { (yyval.nPtr) = (yyvsp[(1) - (1)].nPtr); }
     break;
 
   case 22:
-#line 98 "parser.y"
+#line 113 "parser.y"
     { (yyval.nPtr) = globalP->opr2(',', (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 23:
-#line 99 "parser.y"
+#line 114 "parser.y"
     { (yyval.nPtr) = (yyvsp[(1) - (1)].nPtr); }
     break;
 
   case 24:
-#line 103 "parser.y"
+#line 118 "parser.y"
     { (yyval.nPtr) = (yyvsp[(1) - (1)].nPtr); }
     break;
 
   case 25:
-#line 104 "parser.y"
+#line 119 "parser.y"
     { (yyval.nPtr) = globalP->opr2(';', (yyvsp[(1) - (2)].nPtr), (yyvsp[(2) - (2)].nPtr)); }
     break;
 
   case 26:
-#line 108 "parser.y"
+#line 123 "parser.y"
     { (yyval.nPtr) = globalP->con((yyvsp[(1) - (1)].iValue)); }
     break;
 
   case 27:
-#line 109 "parser.y"
+#line 124 "parser.y"
     { (yyval.nPtr) = globalP->function(globalP->id((yyvsp[(1) - (4)].sIndex)), (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 28:
-#line 110 "parser.y"
+#line 125 "parser.y"
     { (yyval.nPtr) = globalP->id((yyvsp[(1) - (1)].sIndex)); }
     break;
 
   case 29:
-#line 111 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(UMINUS, (yyvsp[(2) - (2)].nPtr)); }
+#line 126 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_UMINUS, (yyvsp[(2) - (2)].nPtr)); }
     break;
 
   case 30:
-#line 112 "parser.y"
+#line 127 "parser.y"
     { (yyval.nPtr) = globalP->opr2('+', (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 31:
-#line 113 "parser.y"
+#line 128 "parser.y"
     { (yyval.nPtr) = globalP->opr2('-', (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 32:
-#line 114 "parser.y"
+#line 129 "parser.y"
     { (yyval.nPtr) = globalP->opr2('*', (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 33:
-#line 115 "parser.y"
+#line 130 "parser.y"
     { (yyval.nPtr) = globalP->opr2('/', (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 34:
-#line 116 "parser.y"
+#line 131 "parser.y"
     { (yyval.nPtr) = globalP->opr2('<', (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 35:
-#line 117 "parser.y"
+#line 132 "parser.y"
     { (yyval.nPtr) = globalP->opr2('>', (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 36:
-#line 118 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(GE, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
+#line 133 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_GE, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 37:
-#line 119 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(LE, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
+#line 134 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_LE, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 38:
-#line 120 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(NE, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
+#line 135 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_NE, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 39:
-#line 121 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(EQ, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
+#line 136 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_EQ, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 40:
-#line 122 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(AND, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
+#line 137 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_AND, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 41:
-#line 123 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(OR, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
+#line 138 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_OR, (yyvsp[(1) - (3)].nPtr), (yyvsp[(3) - (3)].nPtr)); }
     break;
 
   case 42:
-#line 124 "parser.y"
+#line 139 "parser.y"
     { (yyval.nPtr) = (yyvsp[(2) - (3)].nPtr); }
     break;
 
   case 43:
-#line 125 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_COS, (yyvsp[(3) - (4)].nPtr)); }
+#line 140 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_COS, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 44:
-#line 126 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_SIN, (yyvsp[(3) - (4)].nPtr)); }
+#line 141 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_SIN, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 45:
-#line 127 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_EXP, (yyvsp[(3) - (4)].nPtr)); }
+#line 142 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_EXP, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 46:
-#line 128 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_ABS, (yyvsp[(3) - (4)].nPtr)); }
+#line 143 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_ABS, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 47:
-#line 129 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_LOG, (yyvsp[(3) - (4)].nPtr)); }
+#line 144 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_LOG, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 48:
-#line 130 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_LOG10, (yyvsp[(3) - (4)].nPtr)); }
+#line 145 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_LOG10, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 49:
-#line 131 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_SQRT, (yyvsp[(3) - (4)].nPtr)); }
+#line 146 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_SQRT, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 50:
-#line 132 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_FLOOR, (yyvsp[(3) - (4)].nPtr)); }
+#line 147 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_FLOOR, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 51:
-#line 133 "parser.y"
-    { (yyval.nPtr) = globalP->opr1(MATH_CEIL, (yyvsp[(3) - (4)].nPtr)); }
+#line 148 "parser.y"
+    { (yyval.nPtr) = globalP->opr1(LUAPARSER_MATH_CEIL, (yyvsp[(3) - (4)].nPtr)); }
     break;
 
   case 52:
-#line 134 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(MATH_CEIL, (yyvsp[(3) - (6)].nPtr), (yyvsp[(5) - (6)].nPtr)); }
+#line 149 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_MATH_CEIL, (yyvsp[(3) - (6)].nPtr), (yyvsp[(5) - (6)].nPtr)); }
     break;
 
   case 53:
-#line 135 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(MATH_MIN, (yyvsp[(3) - (6)].nPtr), (yyvsp[(5) - (6)].nPtr)); }
+#line 150 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_MATH_MIN, (yyvsp[(3) - (6)].nPtr), (yyvsp[(5) - (6)].nPtr)); }
     break;
 
   case 54:
-#line 136 "parser.y"
-    { (yyval.nPtr) = globalP->opr2(MATH_MAX, (yyvsp[(3) - (6)].nPtr), (yyvsp[(5) - (6)].nPtr)); }
+#line 151 "parser.y"
+    { (yyval.nPtr) = globalP->opr2(LUAPARSER_MATH_MAX, (yyvsp[(3) - (6)].nPtr), (yyvsp[(5) - (6)].nPtr)); }
     break;
 
   case 55:
-#line 137 "parser.y"
-    { (yyval.nPtr) = globalP->opr0(MATH_PI); }
+#line 152 "parser.y"
+    { (yyval.nPtr) = globalP->opr0(LUAPARSER_MATH_PI); }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1862 "parser.cpp"
+#line 1867 "parser.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2072,7 +2077,7 @@ yyreturn:
 }
 
 
-#line 141 "parser.y"
+#line 156 "parser.y"
 
 
 

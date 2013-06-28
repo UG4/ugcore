@@ -92,36 +92,36 @@ class VMAdd
 		UG_LOG(desc << " " << t << "\n");
 	}
 
-	void print_op(size_t &i)
+		void print_op(size_t &i)
 	{
 		int op;
 		deserialize(i, op);
 		switch(op)
 		{
-		case MATH_COS: 		UG_LOG("cos\n"); break;
-		case MATH_SIN: 		UG_LOG("sin\n"); break;
-		case MATH_EXP: 		UG_LOG("exp\n"); break;
-		case MATH_ABS: 		UG_LOG("abs\n"); break;
-		case MATH_LOG: 		UG_LOG("log\n"); break;
-		case MATH_LOG10: 	UG_LOG("log10\n"); break;
-		case MATH_SQRT: 		UG_LOG("sqrt\n"); break;
-		case MATH_FLOOR: 		UG_LOG("floor\n"); break;
-		case MATH_CEIL: 		UG_LOG("ceil\n"); break;
+		case LUAPARSER_MATH_COS: 		UG_LOG("cos\n"); break;
+		case LUAPARSER_MATH_SIN: 		UG_LOG("sin\n"); break;
+		case LUAPARSER_MATH_EXP: 		UG_LOG("exp\n"); break;
+		case LUAPARSER_MATH_ABS: 		UG_LOG("abs\n"); break;
+		case LUAPARSER_MATH_LOG: 		UG_LOG("log\n"); break;
+		case LUAPARSER_MATH_LOG10: 	UG_LOG("log10\n"); break;
+		case LUAPARSER_MATH_SQRT: 		UG_LOG("sqrt\n"); break;
+		case LUAPARSER_MATH_FLOOR: 		UG_LOG("floor\n"); break;
+		case LUAPARSER_MATH_CEIL: 		UG_LOG("ceil\n"); break;
 		case '+': 		UG_LOG("+\n"); break;
 		case '-': 		UG_LOG("-\n"); break;
 		case '*': 		UG_LOG("*\n"); break;
 		case '/': 		UG_LOG("/\n"); break;
 		case '<': 		UG_LOG("<\n"); break;
 		case '>': 		UG_LOG(">\n"); break;
-		case GE: 		UG_LOG("GE\n"); break;
-		case LE: 		UG_LOG("LE\n"); break;
-		case NE: 		UG_LOG("NE\n"); break;
-		case EQ: 		UG_LOG("EQ\n"); break;
-		case AND: 		UG_LOG("AND\n"); break;
-		case OR: 		UG_LOG("OR\n"); break;
-		case MATH_POW: 		UG_LOG("pow\n"); break;
-		case MATH_MIN: 		UG_LOG("min\n"); break;
-		case MATH_MAX: 		UG_LOG("max\n"); break;
+		case LUAPARSER_GE: 		UG_LOG("GE\n"); break;
+		case LUAPARSER_LE: 		UG_LOG("LE\n"); break;
+		case LUAPARSER_NE: 		UG_LOG("NE\n"); break;
+		case LUAPARSER_EQ: 		UG_LOG("EQ\n"); break;
+		case LUAPARSER_AND: 		UG_LOG("AND\n"); break;
+		case LUAPARSER_OR: 		UG_LOG("OR\n"); break;
+		case LUAPARSER_MATH_POW: 		UG_LOG("pow\n"); break;
+		case LUAPARSER_MATH_MIN: 		UG_LOG("min\n"); break;
+		case LUAPARSER_MATH_MAX: 		UG_LOG("max\n"); break;
 		}
 	}
 
@@ -266,7 +266,7 @@ public:
 					int varI;
 					deserialize(i, varI);
 
-					UG_ASSERT(varI < subfunctions.size(), i);
+					UG_ASSERT(varI < (int)subfunctions.size(), i);
 					UG_LOG("CALL to subfunction " << varI << ": ");
 					subfunctions[varI]->print_short();
 					UG_LOG("\n");
@@ -307,15 +307,15 @@ public:
 		deserialize(i, op);
 		switch(op)
 		{
-			case MATH_COS: v = cos(v);	break;
-			case MATH_SIN: v = sin(v);	break;
-			case MATH_EXP: v = exp(v);	break;
-			case MATH_ABS: v = abs(v); 	break;
-			case MATH_LOG: v = log(v); 	break;
-			case MATH_LOG10: v = log10(v); break;
-			case MATH_SQRT:  v = sqrt(v); 	break;
-			case MATH_FLOOR: v = floor(v); break;
-			case MATH_CEIL: v = ceil(v); break;
+			case LUAPARSER_MATH_COS: v = cos(v);	break;
+			case LUAPARSER_MATH_SIN: v = sin(v);	break;
+			case LUAPARSER_MATH_EXP: v = exp(v);	break;
+			case LUAPARSER_MATH_ABS: v = abs(v); 	break;
+			case LUAPARSER_MATH_LOG: v = log(v); 	break;
+			case LUAPARSER_MATH_LOG10: v = log10(v); break;
+			case LUAPARSER_MATH_SQRT:  v = sqrt(v); 	break;
+			case LUAPARSER_MATH_FLOOR: v = floor(v); break;
+			case LUAPARSER_MATH_CEIL: v = ceil(v); break;
 		}
 	}
 
@@ -335,17 +335,16 @@ public:
 			case '/': 	a = b/a;	break;
 			case '<': 	a = (b < a) ? 1.0 : 0.0; break;
 			case '>': 	a = (b > a) ? 1.0 : 0.0; break;
-			case GE: 	a = (b >= a) ? 1.0 : 0.0; break;
-			case LE: 	a = (b <= a) ? 1.0 : 0.0; break;
-			case NE: 	a = (b != a) ? 1.0 : 0.0; break;
-			case EQ: 	a = (b == a) ? 1.0 : 0.0; break;
-			case AND: 	a = (a != 0.0 && b != 0.0) ? 1.0 : 0.0; break;
-			case OR: 	a = (a != 0 || b != 0) ? 1.0 : 0.0; break;
-			case MATH_POW: 	a = pow(b, a); break;
-			case MATH_MIN: 	a = (b < a) ? a : b; break;
-			case MATH_MAX: 	a = (b > a) ? a : b; break;
+			case LUAPARSER_GE: 	a = (b >= a) ? 1.0 : 0.0; break;
+			case LUAPARSER_LE: 	a = (b <= a) ? 1.0 : 0.0; break;
+			case LUAPARSER_NE: 	a = (b != a) ? 1.0 : 0.0; break;
+			case LUAPARSER_EQ: 	a = (b == a) ? 1.0 : 0.0; break;
+			case LUAPARSER_AND: 	a = (a != 0.0 && b != 0.0) ? 1.0 : 0.0; break;
+			case LUAPARSER_OR: 	a = (a != 0 || b != 0) ? 1.0 : 0.0; break;
+			case LUAPARSER_MATH_POW: 	a = pow(b, a); break;
+			case LUAPARSER_MATH_MIN: 	a = (b < a) ? a : b; break;
+			case LUAPARSER_MATH_MAX: 	a = (b > a) ? a : b; break;
 		}
-
 	}
 
 	double call(double *stack, int &SP)

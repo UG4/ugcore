@@ -27,7 +27,7 @@ int LUAParserClass::createLUA(nodeType *p, ostream &out)
 		case typeOpr:
 			switch (p->opr.oper)
 			{
-				case IF:
+				case LUAPARSER_IF:
 					out << "if ";
 					createLUA(p->opr.op[0], out);
 					out << " then\n";
@@ -68,44 +68,44 @@ int LUAParserClass::createLUA(nodeType *p, ostream &out)
 					createLUA(a, out);
 					out << ")\n";
 					break;
-				case UMINUS:
+				case LUAPARSER_UMINUS:
 					out << "-";
 					createLUA(p->opr.op[0], out);
 					break;
 
-				case MATH_COS:
-                case MATH_SIN:
-                case MATH_EXP:
-                case MATH_ABS:
-                case MATH_LOG:
-                case MATH_LOG10:
-                case MATH_SQRT:
-                case MATH_FLOOR:
-                case MATH_CEIL:
+				case LUAPARSER_MATH_COS:
+                case LUAPARSER_MATH_SIN:
+                case LUAPARSER_MATH_EXP:
+                case LUAPARSER_MATH_ABS:
+                case LUAPARSER_MATH_LOG:
+                case LUAPARSER_MATH_LOG10:
+                case LUAPARSER_MATH_SQRT:
+                case LUAPARSER_MATH_FLOOR:
+                case LUAPARSER_MATH_CEIL:
                     switch (p->opr.oper)
                     {
-                        case MATH_COS: out << "math.cos("; break;
-                        case MATH_SIN: out << "math.sin("; break;
-                        case MATH_EXP: out << "math.exp("; break;
-                        case MATH_ABS: out << "math.abs("; break;
-                        case MATH_LOG: out << "math.log("; break;
-                        case MATH_LOG10: out << "math.log10("; break;
-                        case MATH_SQRT: out << "math.sqrt("; break;
-                        case MATH_FLOOR: out << "math.floor("; break;
-                        case MATH_CEIL: out << "math.ceil("; break;
+                        case LUAPARSER_MATH_COS: out << "math.cos("; break;
+                        case LUAPARSER_MATH_SIN: out << "math.sin("; break;
+                        case LUAPARSER_MATH_EXP: out << "math.exp("; break;
+                        case LUAPARSER_MATH_ABS: out << "math.abs("; break;
+                        case LUAPARSER_MATH_LOG: out << "math.log("; break;
+                        case LUAPARSER_MATH_LOG10: out << "math.log10("; break;
+                        case LUAPARSER_MATH_SQRT: out << "math.sqrt("; break;
+                        case LUAPARSER_MATH_FLOOR: out << "math.floor("; break;
+                        case LUAPARSER_MATH_CEIL: out << "math.ceil("; break;
                     }
 					createLUA(p->opr.op[0], out);
 					out << ")";
 					break;
 
-                case MATH_POW:
-                case MATH_MIN:
-                case MATH_MAX:
+                case LUAPARSER_MATH_POW:
+                case LUAPARSER_MATH_MIN:
+                case LUAPARSER_MATH_MAX:
                     switch (p->opr.oper)
                     {
-                        case MATH_POW: out << "math.pow("; break;
-                        case MATH_MIN: out << "math.min("; break;
-                        case MATH_MAX: out << "math.max("; break;
+                        case LUAPARSER_MATH_POW: out << "math.pow("; break;
+                        case LUAPARSER_MATH_MIN: out << "math.min("; break;
+                        case LUAPARSER_MATH_MAX: out << "math.max("; break;
                     }
 
 					createLUA(p->opr.op[0], out);
@@ -138,17 +138,17 @@ int LUAParserClass::createLUA(nodeType *p, ostream &out)
 							break;
 						case '>': out << '>';
 							break;
-						case GE: out << " >= ";
+						case LUAPARSER_GE: out << " >= ";
 							break;
-						case LE: out << " <= ";
+						case LUAPARSER_LE: out << " <= ";
 							break;
-						case NE: out << " ~= ";
+						case LUAPARSER_NE: out << " ~= ";
 							break;
-						case EQ: out << " == ";
+						case LUAPARSER_EQ: out << " == ";
 							break;
-						case AND: out << " and ";
+						case LUAPARSER_AND: out << " and ";
 							break;
-						case OR: out << " or ";
+						case LUAPARSER_OR: out << " or ";
 							break;
 					}
 					out << "(";

@@ -2,7 +2,7 @@ CC      = gcc
 CFLAGS  =
 LDFLAGS =
 
-OBJ = lexer.o parser.o main.o pclass.o
+OBJ = lexer.cpp parser.cpp
 
 prog: $(OBJ)
 	g++ -g $(CFLAGS) -o prog $(OBJ) $(LDFLAGS)

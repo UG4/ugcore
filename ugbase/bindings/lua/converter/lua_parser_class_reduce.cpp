@@ -29,7 +29,7 @@ LUAParserClass::reduce(nodeType *p)
 		case typeOpr:
 			switch (p->opr.oper)
 			{
-				case IF:
+				case LUAPARSER_IF:
 					p1 = reduce(p->opr.op[0]);
 					p2 = reduce(p->opr.op[1]);
 
@@ -62,7 +62,7 @@ LUAParserClass::reduce(nodeType *p)
 						p->opr.op[0] = p1;
 					}
 					break;
-				case UMINUS:
+				case LUAPARSER_UMINUS:
 					p1 = reduce(p->opr.op[0]);
 					if (p1->type == typeCon)
 					{
@@ -76,7 +76,7 @@ LUAParserClass::reduce(nodeType *p)
 					}
 					break;
 
-				case MATH_COS:
+				case LUAPARSER_MATH_COS:
 					p1 = reduce(p->opr.op[0]);
 					if (p1->type == typeCon)
 					{
@@ -90,7 +90,7 @@ LUAParserClass::reduce(nodeType *p)
 					}
 					break;
 
-				case MATH_SIN:
+				case LUAPARSER_MATH_SIN:
 					p1 = reduce(p->opr.op[0]);
 					if (p1->type == typeCon)
 					{
@@ -104,7 +104,7 @@ LUAParserClass::reduce(nodeType *p)
 					}
 					break;
 
-				case MATH_EXP:
+				case LUAPARSER_MATH_EXP:
 					p1 = reduce(p->opr.op[0]);
 					if (p1->type == typeCon)
 					{
@@ -135,12 +135,12 @@ LUAParserClass::reduce(nodeType *p)
 							case '-': return con(a - b);
 							case '*': return con(a * b);
 							case '/': return con(a / b);
-							case GE: return con(a > b);
-							case LE: return con(a < b);
-							case NE: return con(a != b);
-							case EQ: return con(a == b);
-							case AND: return con(a != 0.0 && b != 0.0 ? 1.0: 0.0);
-							case OR: return con(a != 0.0 || b != 0.0 ? 1.0: 0.0);
+							case LUAPARSER_GE: return con(a > b);
+							case LUAPARSER_LE: return con(a < b);
+							case LUAPARSER_NE: return con(a != b);
+							case LUAPARSER_EQ: return con(a == b);
+							case LUAPARSER_AND: return con(a != 0.0 && b != 0.0 ? 1.0: 0.0);
+							case LUAPARSER_OR: return con(a != 0.0 || b != 0.0 ? 1.0: 0.0);
 						}
 					}
 					if (p1 != p->opr.op[0])

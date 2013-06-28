@@ -39,7 +39,7 @@ int convertVM(const char *functionName)
     double out[8];
     vm(out, in);
     UG_LOG("\n\nRETURNED ");
-    for(int i=0; i<vm.num_out(); i++)
+    for(size_t i=0; i<vm.num_out(); i++)
     {	UG_LOG(out[i] << "\n"); }
 
 	return 0;

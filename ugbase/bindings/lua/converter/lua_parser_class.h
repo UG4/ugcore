@@ -319,7 +319,7 @@ public:
 		p = new nodeType;
 
 		p->type = typeOpr;
-		p->opr.oper = TK_FOR;
+		p->opr.oper = LUAPARSER_FOR;
 		p->opr.nops = 5;
 		p->opr.op = new nodeType*[5];
 		p->opr.op[0] = _var;

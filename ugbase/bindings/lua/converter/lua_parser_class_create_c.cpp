@@ -26,7 +26,7 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
 		case typeOpr:
 			switch (p->opr.oper)
 			{
-				case IF:
+				case LUAPARSER_IF:
                 {
 					out << repeat('\t', indent);			out << "if(";
 					createC(p->opr.op[0], out, 0);
@@ -36,7 +36,7 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
 					out << repeat('\t', indent); 			out << "}\n";
 
                     nodeType *a = p->opr.op[2];
-                    while(a != NULL && a->opr.oper == ELSEIF)
+                    while(a != NULL && a->opr.oper == LUAPARSER_ELSEIF)
                     {
                         out << repeat('\t', indent); 			out << "else if(";
                         createC(a->opr.op[0], out, 0);
@@ -48,7 +48,7 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
                     }
                     if(a != NULL)
                     {
-                        UG_ASSERT(a->opr.oper == ELSE, a->opr.oper);
+                        UG_ASSERT(a->opr.oper == LUAPARSER_ELSE, a->opr.oper);
                         out << repeat('\t', indent); 			out << "else\n";
                         out << repeat('\t', indent); 			out << "{\n";
                         createC(a->opr.op[0], out, indent+1);
@@ -148,7 +148,7 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
                     break;
 				}
 
-				case TK_FOR:
+				case LUAPARSER_FOR:
 					out << repeat('\t', indent);
 					out << "for(";
 					createC(p->opr.op[0], out, 0);
@@ -170,54 +170,54 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
 					out << "}\n";
 					break;
 
-				case TK_BREAK:
+				case LUAPARSER_BREAK:
 					out << repeat('\t', indent);
 					out << "break;\n";
 					break;
 
-				case UMINUS:
+				case LUAPARSER_UMINUS:
 					out << "-(";
 					createC(p->opr.op[0], out, 0);
 					out << ")";
 					break;
 
-                case MATH_PI:
-                    out << " MATH_PI ";
+                case LUAPARSER_MATH_PI:
+                    out << " LUAPARSER_MATH_PI ";
                     break;
 
-				case MATH_COS:
-                case MATH_SIN:
-                case MATH_EXP:
-                case MATH_ABS:
-                case MATH_LOG:
-                case MATH_LOG10:
-                case MATH_SQRT:
-                case MATH_FLOOR:
-                case MATH_CEIL:
+				case LUAPARSER_MATH_COS:
+                case LUAPARSER_MATH_SIN:
+                case LUAPARSER_MATH_EXP:
+                case LUAPARSER_MATH_ABS:
+                case LUAPARSER_MATH_LOG:
+                case LUAPARSER_MATH_LOG10:
+                case LUAPARSER_MATH_SQRT:
+                case LUAPARSER_MATH_FLOOR:
+                case LUAPARSER_MATH_CEIL:
                     switch (p->opr.oper)
                     {
-                        case MATH_COS: out << "cos("; break;
-                        case MATH_SIN: out << "sin("; break;
-                        case MATH_EXP: out << "exp("; break;
-                        case MATH_ABS: out << "fabs("; break;
-                        case MATH_LOG: out << "log("; break;
-                        case MATH_LOG10: out << "log10("; break;
-                        case MATH_SQRT: out << "sqrt("; break;
-                        case MATH_FLOOR: out << "floor("; break;
-                        case MATH_CEIL: out << "ceil("; break;
+                        case LUAPARSER_MATH_COS: out << "cos("; break;
+                        case LUAPARSER_MATH_SIN: out << "sin("; break;
+                        case LUAPARSER_MATH_EXP: out << "exp("; break;
+                        case LUAPARSER_MATH_ABS: out << "fabs("; break;
+                        case LUAPARSER_MATH_LOG: out << "log("; break;
+                        case LUAPARSER_MATH_LOG10: out << "log10("; break;
+                        case LUAPARSER_MATH_SQRT: out << "sqrt("; break;
+                        case LUAPARSER_MATH_FLOOR: out << "floor("; break;
+                        case LUAPARSER_MATH_CEIL: out << "ceil("; break;
                     }
 					createC(p->opr.op[0], out, 0);
 					out << ")";
 					break;
 
-                case MATH_POW:
-                case MATH_MIN:
-                case MATH_MAX:
+                case LUAPARSER_MATH_POW:
+                case LUAPARSER_MATH_MIN:
+                case LUAPARSER_MATH_MAX:
                     switch (p->opr.oper)
                     {
-                        case MATH_POW: out << "pow("; break;
-                        case MATH_MIN: out << "min("; break;
-                        case MATH_MAX: out << "max("; break;
+                        case LUAPARSER_MATH_POW: out << "pow("; break;
+                        case LUAPARSER_MATH_MIN: out << "min("; break;
+                        case LUAPARSER_MATH_MAX: out << "max("; break;
                     }
 
 					createC(p->opr.op[0], out, 0);
@@ -250,17 +250,17 @@ int LUAParserClass::createC(nodeType *p, ostream &out, int indent)
 							break;
 						case '>': out << '>';
 							break;
-						case GE: out << " >= ";
+						case LUAPARSER_GE: out << " >= ";
 							break;
-						case LE: out << " <= ";
+						case LUAPARSER_LE: out << " <= ";
 							break;
-						case NE: out << " != ";
+						case LUAPARSER_NE: out << " != ";
 							break;
-						case EQ: out << " == ";
+						case LUAPARSER_EQ: out << " == ";
 							break;
-						case AND: out << " && ";
+						case LUAPARSER_AND: out << " && ";
 							break;
-						case OR: out << " || ";
+						case LUAPARSER_OR: out << " || ";
 							break;
 					}
 					out << "(";
@@ -284,7 +284,7 @@ int LUAParserClass::createC(ostream &out)
         return false;
     }
 
-    out << "#define MATH_PI 3.1415926535897932384626433832795028841971693\n";
+    out << "#define LUAPARSER_MATH_PI 3.1415926535897932384626433832795028841971693\n";
     out << "// inline function declarations\n";
     out << declarations.str() << "\n";
 

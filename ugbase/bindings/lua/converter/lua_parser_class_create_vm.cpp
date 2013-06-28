@@ -42,7 +42,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
 		case typeOpr:
 			switch (p->opr.oper)
 			{
-				case IF:
+				case LUAPARSER_IF:
                 {
                 	// create if directive
                 	createVM(p->opr.op[0], vm, subVM);
@@ -55,7 +55,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
                 	jmpExitPos.push_back( vm.jmp() );
 
                     nodeType *a = p->opr.op[2];
-                    while(a != NULL && a->opr.oper == ELSEIF)
+                    while(a != NULL && a->opr.oper == LUAPARSER_ELSEIF)
                     {
                     	vm.adjust_jmp_pos(jmpElsePos, vm.get_pos());
 
@@ -72,7 +72,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
                     }
                     if(a != NULL)
                     {
-                        UG_ASSERT(a->opr.oper == ELSE, a->opr.oper);
+                        UG_ASSERT(a->opr.oper == LUAPARSER_ELSE, a->opr.oper);
                         vm.adjust_jmp_pos(jmpElsePos, vm.get_pos());
 
                         createVM(a->opr.op[0], vm, subVM);
@@ -126,33 +126,33 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
 					break;
 				}
 
-				case TK_FOR:
+				case LUAPARSER_FOR:
 					UG_ASSERT(0, "not implemented");
 					break;
 
-				case TK_BREAK:
+				case LUAPARSER_BREAK:
 					UG_ASSERT(0, "not implemented");
 					break;
 
-				case UMINUS:
+				case LUAPARSER_UMINUS:
 					createVM(p->opr.op[0], vm, subVM);
 					vm.push(-1.0);
 					vm.binary('*');
 					break;
 
-                case MATH_PI:
+                case LUAPARSER_MATH_PI:
                     vm.push(3.141);
                     break;
 
-				case MATH_COS:
-                case MATH_SIN:
-                case MATH_EXP:
-                case MATH_ABS:
-                case MATH_LOG:
-                case MATH_LOG10:
-                case MATH_SQRT:
-                case MATH_FLOOR:
-                case MATH_CEIL:
+				case LUAPARSER_MATH_COS:
+                case LUAPARSER_MATH_SIN:
+                case LUAPARSER_MATH_EXP:
+                case LUAPARSER_MATH_ABS:
+                case LUAPARSER_MATH_LOG:
+                case LUAPARSER_MATH_LOG10:
+                case LUAPARSER_MATH_SQRT:
+                case LUAPARSER_MATH_FLOOR:
+                case LUAPARSER_MATH_CEIL:
                 	createVM(p->opr.op[0], vm, subVM);
                 	vm.unary(p->opr.oper);
 					break;
@@ -163,15 +163,15 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
 				case '/':
 				case '<':
 				case '>':
-				case GE:
-				case LE:
-				case NE:
-				case EQ:
-				case AND:
-				case OR:
-                case MATH_POW:
-                case MATH_MIN:
-                case MATH_MAX:
+				case LUAPARSER_GE:
+				case LUAPARSER_LE:
+				case LUAPARSER_NE:
+				case LUAPARSER_EQ:
+				case LUAPARSER_AND:
+				case LUAPARSER_OR:
+                case LUAPARSER_MATH_POW:
+                case LUAPARSER_MATH_MIN:
+                case LUAPARSER_MATH_MAX:
                 	createVM(p->opr.op[1], vm, subVM);
                 	createVM(p->opr.op[0], vm, subVM);
                 	vm.binary(p->opr.oper);

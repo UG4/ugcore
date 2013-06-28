@@ -40,83 +40,83 @@
       know about them.  */
    enum yytokentype {
      YY_INTEGER = 258,
-     VARIABLE = 259,
-     WHILE = 260,
-     IF = 261,
-     THEN = 262,
-     END = 263,
-     ELSE = 264,
-     ELSEIF = 265,
-     LOCAL = 266,
-     FUNCTION = 267,
-     RETURN = 268,
-     MATH_SIN = 269,
-     MATH_COS = 270,
-     MATH_EXP = 271,
-     MATH_ABS = 272,
-     MATH_LOG = 273,
-     MATH_LOG10 = 274,
-     MATH_SQRT = 275,
-     MATH_FLOOR = 276,
-     MATH_CEIL = 277,
-     MATH_POW = 278,
-     MATH_MAX = 279,
-     MATH_MIN = 280,
-     MATH_PI = 281,
-     TK_DO = 282,
-     TK_FOR = 283,
-     TK_BREAK = 284,
-     OR = 285,
-     AND = 286,
-     NE = 287,
-     EQ = 288,
-     LE = 289,
-     GE = 290,
-     UMINUS = 291
+     LUAPARSER_VARIABLE = 259,
+     LUAPARSER_WHILE = 260,
+     LUAPARSER_IF = 261,
+     LUAPARSER_THEN = 262,
+     LUAPARSER_END = 263,
+     LUAPARSER_ELSE = 264,
+     LUAPARSER_ELSEIF = 265,
+     LUAPARSER_LOCAL = 266,
+     LUAPARSER_FUNCTION = 267,
+     LUAPARSER_RETURN = 268,
+     LUAPARSER_MATH_SIN = 269,
+     LUAPARSER_MATH_COS = 270,
+     LUAPARSER_MATH_EXP = 271,
+     LUAPARSER_MATH_ABS = 272,
+     LUAPARSER_MATH_LOG = 273,
+     LUAPARSER_MATH_LOG10 = 274,
+     LUAPARSER_MATH_SQRT = 275,
+     LUAPARSER_MATH_FLOOR = 276,
+     LUAPARSER_MATH_CEIL = 277,
+     LUAPARSER_MATH_POW = 278,
+     LUAPARSER_MATH_MAX = 279,
+     LUAPARSER_MATH_MIN = 280,
+     LUAPARSER_MATH_PI = 281,
+     LUAPARSER_DO = 282,
+     LUAPARSER_FOR = 283,
+     LUAPARSER_BREAK = 284,
+     LUAPARSER_OR = 285,
+     LUAPARSER_AND = 286,
+     LUAPARSER_NE = 287,
+     LUAPARSER_EQ = 288,
+     LUAPARSER_LE = 289,
+     LUAPARSER_GE = 290,
+     LUAPARSER_UMINUS = 291
    };
 #endif
 /* Tokens.  */
 #define YY_INTEGER 258
-#define VARIABLE 259
-#define WHILE 260
-#define IF 261
-#define THEN 262
-#define END 263
-#define ELSE 264
-#define ELSEIF 265
-#define LOCAL 266
-#define FUNCTION 267
-#define RETURN 268
-#define MATH_SIN 269
-#define MATH_COS 270
-#define MATH_EXP 271
-#define MATH_ABS 272
-#define MATH_LOG 273
-#define MATH_LOG10 274
-#define MATH_SQRT 275
-#define MATH_FLOOR 276
-#define MATH_CEIL 277
-#define MATH_POW 278
-#define MATH_MAX 279
-#define MATH_MIN 280
-#define MATH_PI 281
-#define TK_DO 282
-#define TK_FOR 283
-#define TK_BREAK 284
-#define OR 285
-#define AND 286
-#define NE 287
-#define EQ 288
-#define LE 289
-#define GE 290
-#define UMINUS 291
+#define LUAPARSER_VARIABLE 259
+#define LUAPARSER_WHILE 260
+#define LUAPARSER_IF 261
+#define LUAPARSER_THEN 262
+#define LUAPARSER_END 263
+#define LUAPARSER_ELSE 264
+#define LUAPARSER_ELSEIF 265
+#define LUAPARSER_LOCAL 266
+#define LUAPARSER_FUNCTION 267
+#define LUAPARSER_RETURN 268
+#define LUAPARSER_MATH_SIN 269
+#define LUAPARSER_MATH_COS 270
+#define LUAPARSER_MATH_EXP 271
+#define LUAPARSER_MATH_ABS 272
+#define LUAPARSER_MATH_LOG 273
+#define LUAPARSER_MATH_LOG10 274
+#define LUAPARSER_MATH_SQRT 275
+#define LUAPARSER_MATH_FLOOR 276
+#define LUAPARSER_MATH_CEIL 277
+#define LUAPARSER_MATH_POW 278
+#define LUAPARSER_MATH_MAX 279
+#define LUAPARSER_MATH_MIN 280
+#define LUAPARSER_MATH_PI 281
+#define LUAPARSER_DO 282
+#define LUAPARSER_FOR 283
+#define LUAPARSER_BREAK 284
+#define LUAPARSER_OR 285
+#define LUAPARSER_AND 286
+#define LUAPARSER_NE 287
+#define LUAPARSER_EQ 288
+#define LUAPARSER_LE 289
+#define LUAPARSER_GE 290
+#define LUAPARSER_UMINUS 291
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 21 "parser.y"
+#line 32 "parser.y"
 {
     double iValue;                 /* integer value */
     int sIndex;                /* symbol table index */

@@ -530,7 +530,17 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "lexer.l"
-#line 2 "lexer.l"
+/* 
+ * \file	lexer.l
+ * \author	Martin Rupp
+ *
+ * Created on 20. November 2012, 10:16
+ * 
+ * use with
+ * 		flex -o lexer.cpp lexer.l
+ * to generate lexer.cpp
+ */
+#line 13 "lexer.l"
 #include <stdlib.h>
 #include "lua_parser_class.h"
 #include "parser.hpp"
@@ -538,7 +548,7 @@ using namespace ug;
 void yyerror(const char *);
 using namespace ug;
 extern LUAParserClass *globalP;
-#line 542 "lexer.cpp"
+#line 552 "lexer.cpp"
 
 #define INITIAL 0
 
@@ -720,10 +730,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 18 "lexer.l"
+#line 29 "lexer.l"
 
 
-#line 727 "lexer.cpp"
+#line 737 "lexer.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -808,12 +818,12 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 20 "lexer.l"
+#line 31 "lexer.l"
 ;       /* lua comment*/
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 22 "lexer.l"
+#line 33 "lexer.l"
 {
                 yylval.iValue = atof(yytext);
                 return YY_INTEGER;
@@ -821,7 +831,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 27 "lexer.l"
+#line 38 "lexer.l"
 {
                 yylval.iValue = atof(yytext);
                 return YY_INTEGER;                
@@ -829,178 +839,178 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 32 "lexer.l"
+#line 43 "lexer.l"
 {
                 return *yytext;
              }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 36 "lexer.l"
-return GE;
+#line 47 "lexer.l"
+return LUAPARSER_GE;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 37 "lexer.l"
-return LE;
+#line 48 "lexer.l"
+return LUAPARSER_LE;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 38 "lexer.l"
-return EQ;
+#line 49 "lexer.l"
+return LUAPARSER_EQ;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 39 "lexer.l"
-return NE;
+#line 50 "lexer.l"
+return LUAPARSER_NE;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 40 "lexer.l"
-return END;
+#line 51 "lexer.l"
+return LUAPARSER_END;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 41 "lexer.l"
-return LOCAL;
+#line 52 "lexer.l"
+return LUAPARSER_LOCAL;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 42 "lexer.l"
-return FUNCTION;
+#line 53 "lexer.l"
+return LUAPARSER_FUNCTION;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 43 "lexer.l"
-return RETURN;
+#line 54 "lexer.l"
+return LUAPARSER_RETURN;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 45 "lexer.l"
-return IF;
+#line 56 "lexer.l"
+return LUAPARSER_IF;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 46 "lexer.l"
-return THEN;
+#line 57 "lexer.l"
+return LUAPARSER_THEN;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 47 "lexer.l"
-return ELSE;
+#line 58 "lexer.l"
+return LUAPARSER_ELSE;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 48 "lexer.l"
-return ELSEIF;
+#line 59 "lexer.l"
+return LUAPARSER_ELSEIF;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 50 "lexer.l"
-return TK_FOR;
+#line 61 "lexer.l"
+return LUAPARSER_FOR;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 51 "lexer.l"
-return TK_DO;
+#line 62 "lexer.l"
+return LUAPARSER_DO;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 52 "lexer.l"
-return TK_BREAK;
+#line 63 "lexer.l"
+return LUAPARSER_BREAK;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 55 "lexer.l"
-return AND;
+#line 66 "lexer.l"
+return LUAPARSER_AND;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 56 "lexer.l"
-return OR;
+#line 67 "lexer.l"
+return LUAPARSER_OR;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 58 "lexer.l"
-return MATH_COS;
+#line 69 "lexer.l"
+return LUAPARSER_MATH_COS;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 59 "lexer.l"
-return MATH_SIN;
+#line 70 "lexer.l"
+return LUAPARSER_MATH_SIN;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 60 "lexer.l"
-return MATH_EXP;
+#line 71 "lexer.l"
+return LUAPARSER_MATH_EXP;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 61 "lexer.l"
-return MATH_ABS;
+#line 72 "lexer.l"
+return LUAPARSER_MATH_ABS;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 62 "lexer.l"
-return MATH_LOG;
+#line 73 "lexer.l"
+return LUAPARSER_MATH_LOG;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 63 "lexer.l"
-return MATH_LOG10;
+#line 74 "lexer.l"
+return LUAPARSER_MATH_LOG10;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 64 "lexer.l"
-return MATH_SQRT;
+#line 75 "lexer.l"
+return LUAPARSER_MATH_SQRT;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 65 "lexer.l"
-return MATH_FLOOR;
+#line 76 "lexer.l"
+return LUAPARSER_MATH_FLOOR;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 66 "lexer.l"
-return MATH_CEIL;
+#line 77 "lexer.l"
+return LUAPARSER_MATH_CEIL;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 68 "lexer.l"
-return MATH_POW;
+#line 79 "lexer.l"
+return LUAPARSER_MATH_POW;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 69 "lexer.l"
-return MATH_MAX;
+#line 80 "lexer.l"
+return LUAPARSER_MATH_MAX;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 70 "lexer.l"
-return MATH_MIN;
+#line 81 "lexer.l"
+return LUAPARSER_MATH_MIN;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 72 "lexer.l"
-return MATH_PI;
+#line 83 "lexer.l"
+return LUAPARSER_MATH_PI;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 75 "lexer.l"
+#line 86 "lexer.l"
 { 
                 yylval.sIndex = globalP->get_id_for_name(yytext);
-                return VARIABLE;
+                return LUAPARSER_VARIABLE;
             }
 	YY_BREAK
 case 36:
 /* rule 36 can match eol */
 YY_RULE_SETUP
-#line 80 "lexer.l"
+#line 91 "lexer.l"
 ;       /* ignore whitespace */
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 82 "lexer.l"
+#line 93 "lexer.l"
 {
                     char buf[255];
                     sprintf(buf, "Unknown character '%s' at line %d", yytext, yyget_lineno());
@@ -1009,10 +1019,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 88 "lexer.l"
+#line 99 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 1016 "lexer.cpp"
+#line 1026 "lexer.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2009,7 +2019,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 88 "lexer.l"
+#line 99 "lexer.l"
 
 
 
