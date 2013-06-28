@@ -11,10 +11,12 @@
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
 
+#include "lib_disc/domain_util.h"
 #include "lib_disc/common/subset_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
+#include "lib_disc/reference_element/reference_mapping.h"
 
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"

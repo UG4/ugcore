@@ -15,6 +15,34 @@
 
 namespace ug {
 
+
+/**
+ * Returns the global DoF position on an element.
+ */
+///Ê\{
+template <int dim>
+bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
+                      const std::vector<MathVector<dim> >& vCornerCoord, const LFEID& lfeID);
+
+
+template <typename TDomain>
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
+                      GeometricObject* elem, const TDomain& domain, const LFEID& lfeID);
+/// \}
+
+/**
+ * Returns the global DoF position on an element.
+ */
+///Ê\{
+template <int dim>
+bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
+                 const std::vector<MathVector<dim> >& vCornerCoord, const LFEID& lfeID);
+
+template <typename TDomain>
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
+                 GeometricObject* elem, const TDomain& domain, const LFEID& lfeID);
+/// \}
+
 /**
  * extracts the positions of the degrees of freedom and stores them into the
  * passed vector at the position of the algebraic index corresponding to the

@@ -10,6 +10,7 @@
 
 #include "lagrange_dirichlet_boundary.h"
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/function_spaces/dof_position_util.h"
 
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"
