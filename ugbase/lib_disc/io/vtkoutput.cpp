@@ -175,7 +175,7 @@ vtu_filename(std::string& nameOut, std::string nameIn, int rank,
              int si, int maxSi, int step)
 {
 //	copy name
-	nameOut = nameIn.substr(0, nameIn.find_last_of('.');
+	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
 	nameOut = nameIn;
 #ifdef UG_PARALLEL
 // 	process index
