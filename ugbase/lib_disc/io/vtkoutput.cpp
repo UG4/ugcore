@@ -175,7 +175,7 @@ vtu_filename(std::string& nameOut, std::string nameIn, int rank,
              int si, int maxSi, int step)
 {
 //	copy name
-//	nameOut = nameIn.substr(0, nameIn.find_first_of(".")); REMOVED
+	nameOut = nameIn.substr(0, nameIn.find_last_of('.');
 	nameOut = nameIn;
 #ifdef UG_PARALLEL
 // 	process index
@@ -202,7 +202,7 @@ pvtu_filename(std::string& nameOut, std::string nameIn,
               int si, int maxSi, int step)
 {
 //	copy name
-	nameOut = nameIn.substr(0, nameIn.find_first_of('.'));
+	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
 
 // 	subset index
 	if(si >= 0)
@@ -222,7 +222,7 @@ void VTKOutput<TDim>::
 pvd_filename(std::string& nameOut, std::string nameIn)
 {
 //	copy name
-	nameOut = nameIn.substr(0, nameIn.find_first_of('.'));
+	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
 
 // 	add file extension
 	nameOut.append(".pvd");
@@ -234,7 +234,7 @@ void VTKOutput<TDim>::
 pvd_time_filename(std::string& nameOut, std::string nameIn, int step)
 {
 //	copy name
-	nameOut = nameIn.substr(0, nameIn.find_first_of('.'));
+	nameOut = nameIn.substr(0, nameIn.find_last_of('.'));
 
 // 	time index
 	if(step >= 0)
