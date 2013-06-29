@@ -18,7 +18,6 @@
 #include <boost/mpl/at.hpp>
 
 #include <algorithm>
-#include <set>
 
 namespace ug {
 
@@ -99,7 +98,10 @@ void PeriodicBoundaryManager::identify(TElem* e1, TElem* e2,
 // is considered periodic if it is a master or a slave
 template <class TElem>
 bool PeriodicBoundaryManager::is_periodic(TElem* e) const {
-	return get_periodic_status_accessor<TElem>()[e] != P_NOT_PERIODIC;
+	if(e)
+		return get_periodic_status_accessor<TElem>()[e] != P_NOT_PERIODIC;
+	else
+		UG_THROW("null pointer is never periodic.");
 }
 
 // gets master of e, may be null
@@ -473,69 +475,52 @@ void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
 	}
 }
 
-#ifdef UG_DEBUG
-/**
- * create all pairs of <master, slave> and insert them into a set to check for duplicates
- */
-template <class TElem> void test(PeriodicBoundaryManager& PBM,
-		GeometricObjectCollection& goc1, GeometricObjectCollection& goc2) {
-	typedef typename ElementStorage<TElem>::SectionContainer::iterator gocIter;
-	typedef typename std::pair<TElem*, TElem*> master_slave_pair;
-	typedef typename std::set<master_slave_pair> MSSet;
-	MSSet s;
+template <class TElem, class TIterator>
+void PeriodicBoundaryManager::check_elements_periodicity(
+		TIterator begin,
+		TIterator end,
+		typename Group<TElem>::unique_pairs& s,
+		ISubsetHandler* sh) {
 
-	typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer SlaveContainer;
-	typedef typename SlaveContainer::iterator SlaveIter;
+	typedef typename Group<TElem>::SlaveContainer Container;
+	typedef typename Group<TElem>::SlaveIterator SlaveIter;
+	typedef typename ElementStorage<TElem>::SectionContainer::const_iterator SecContainerIter;
 
-	// subset 1
-	for (gocIter iter = goc1.begin<TElem>(); iter != goc1.end<TElem>();
-			++iter) {
+	for (SecContainerIter iter = begin; iter != end; ++iter) {
 		TElem* e = *iter;
-		if(!PBM.is_periodic(e)) {
-			UG_LOG("Element in subset 1 is not periodic after identification: "
-					<< GetGeometricObjectCenter(*PBM.get_grid(),e)
-					<< "\nCheck your geometry for symmetry!\n")
-		}
-		UG_ASSERT(PBM.is_periodic(e), "item of subset 1 should be periodic now");
-
-		if (PBM.master(e) == e) {
-			SlaveContainer* slaves = PBM.slaves(e);
-			UG_ASSERT(slaves, "master should have slaves")
-			UG_ASSERT(!slaves->empty(), "master should have slaves")
-			for (SlaveIter i = slaves->begin(); i != slaves->end(); ++i) {
-				TElem* slave = *i;
-				master_slave_pair p = std::make_pair(e, slave);
-				bool inserted = (s.insert(p)).second;
-				UG_ASSERT(inserted, "pair already exists");
+		if(! e)
+			continue;
+		if(!is_periodic(e)) {
+			// lookup subset name of element
+			const char* sh_name = "";
+			if(sh) {
+				int element_si = sh->get_subset_index(e);
+				sh_name = sh->get_subset_name(element_si);
 			}
-		}
-	}
-
-	// subset 2
-	for (gocIter iter = goc2.begin<TElem>(); iter != goc2.end<TElem>();
-			++iter) {
-		TElem* e = *iter;
-		if(!PBM.is_periodic(e)) {
-			UG_LOG("Element in subset 1 is not periodic after identification: "
-					<< GetGeometricObjectCenter(*PBM.get_grid(),e)
+			UG_THROW("Element in subset '" << sh_name
+					<< "' is not periodic after identification: "
+					<< GetGeometricObjectCenter(*get_grid(), e)
 					<< "\nCheck your geometry for symmetry!\n")
 		}
-		UG_ASSERT(PBM.is_periodic(e), "item of subset 1 should be periodic now");
 
-		if (PBM.master(e) == e) {
-			SlaveContainer* slaves = PBM.slaves(e);
-			UG_ASSERT(slaves, "master should have slaves")
-			UG_ASSERT(!slaves->empty(), "master should have slaves")
-			for (SlaveIter i = slaves->begin(); i != slaves->end(); ++i) {
+		if (master(e) == e) {
+			Container* _slaves = slaves(e);
+			if(! _slaves)
+				UG_THROW("masters slave storage is not valid.")
+
+			if(_slaves->empty())
+				UG_THROW("master has no slaves")
+
+			for (SlaveIter i = _slaves->begin(); i != _slaves->end(); ++i) {
 				TElem* slave = *i;
-				master_slave_pair p = std::make_pair(e, slave);
+				typename Group<TElem>::master_slave_pair p = std::make_pair(e, slave);
 				bool inserted = (s.insert(p)).second;
-				UG_ASSERT(inserted, "pair already exists");
+				if(! inserted)
+					UG_THROW("master/slave pair already exists.");
 			}
 		}
 	}
 }
-#endif
 
 template <class TDomain>
 void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
@@ -595,7 +580,21 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	GeometricObjectCollection goc2 = sh.get_geometric_objects_in_subset(sInd2);
 
 	if(goc1.num<VertexBase>() != goc2.num<VertexBase>()) {
-		UG_THROW("IdentifySubsets: Given subsets have different number of vertices.")
+		UG_THROW("IdentifySubsets: Given subsets have different number of vertices."
+				"\nnum# in " << sh.get_subset_name(sInd1) << ": " << goc1.num<VertexBase>() <<
+				"\nnum# in " << sh.get_subset_name(sInd2) << ": " << goc2.num<VertexBase>())
+	}
+
+	if(goc1.num<EdgeBase>() != goc2.num<EdgeBase>()) {
+		UG_THROW("IdentifySubsets: Given subsets have different number of edges."
+						"\nnum# in " << sh.get_subset_name(sInd1) << ": " << goc1.num<EdgeBase>() <<
+						"\nnum# in " << sh.get_subset_name(sInd2) << ": " << goc2.num<EdgeBase>())
+	}
+
+	if(goc1.num<Face>() != goc2.num<Face>()) {
+		UG_THROW("IdentifySubsets: Given subsets have different number of faces."
+						"\nnum# in " << sh.get_subset_name(sInd1) << ": " << goc1.num<Face>() <<
+						"\nnum# in " << sh.get_subset_name(sInd2) << ": " << goc2.num<Face>())
 	}
 
 	// map start type of recursion dependent to TDomain
@@ -631,12 +630,11 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 				}
 			}
 	}
-#ifdef UG_DEBUG
-	test<VertexBase>(pbm, goc1, goc2);
-	test<EdgeBase>(pbm, goc1, goc2);
-	test<Face>(pbm, goc1, goc2);
-#endif
+
+	// ensure periodic identification has been performed correctly
+	pbm.check_periodicity(goc1, goc2, &sh);
 }
+
 } // end namespace ug
 
 #endif /* PERIODIC_IDENTIFIER_IMPL_HPP_ */

@@ -221,6 +221,44 @@ void PeriodicBoundaryManager::face_to_be_erased(Grid* grid, Face* f,
 	handle_deletion(f, replacedBy);
 }
 
+/**
+ * performs following checks on all elements in goc1 and goc2
+ * 1. all elements given are periodic
+ * 2. masters of groups are valid (master pointer of group valid + have at least one child)
+ * 3. no duplicate master, slave pairs exists
+ * 4.
+ */
+bool PeriodicBoundaryManager::check_periodicity(
+		const GeometricObjectCollection& goc1,
+		const GeometricObjectCollection& goc2, ISubsetHandler* sh) {
+
+	Group<VertexBase>::unique_pairs s_vert;
+	Group<EdgeBase>::unique_pairs s_edge;
+	Group<Face>::unique_pairs s_face;
+
+	UG_ASSERT(goc1.num_levels() == goc2.num_levels(),
+			"collections have different mg levels!")
+
+	for (size_t lvl = 0; lvl < goc1.num_levels(); lvl++) {
+		check_elements_periodicity<VertexBase>(goc1.begin<VertexBase>(lvl),
+				goc1.end<VertexBase>(lvl), s_vert, sh);
+		check_elements_periodicity<VertexBase>(goc2.begin<VertexBase>(lvl),
+				goc2.end<VertexBase>(lvl), s_vert, sh);
+
+		check_elements_periodicity<EdgeBase>(goc1.begin<EdgeBase>(lvl),
+				goc1.end<EdgeBase>(lvl), s_edge, sh);
+		check_elements_periodicity<EdgeBase>(goc2.begin<EdgeBase>(lvl),
+				goc2.end<EdgeBase>(lvl), s_edge, sh);
+
+		check_elements_periodicity<Face>(goc1.begin<Face>(lvl),
+				goc1.end<Face>(lvl), s_face, sh);
+		check_elements_periodicity<Face>(goc2.begin<Face>(lvl),
+				goc2.end<Face>(lvl), s_face, sh);
+	}
+
+	return true;
+}
+
 //void PeriodicBoundaryManager::set_identifier(SmartPtr<IIdentifier> i, size_t si) {
 //	UG_ASSERT(m_vIdentifier.capacity() >= si, "identifier vector not big enough")
 //	m_vIdentifier[si] = i;

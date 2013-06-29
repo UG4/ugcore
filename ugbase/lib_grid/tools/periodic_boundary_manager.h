@@ -8,11 +8,11 @@
 #ifndef PERIODIC_IDENTIFIER_H_
 #define PERIODIC_IDENTIFIER_H_
 
-//#include "common/util/smart_pointer.h"
-
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/grid/geometric_base_objects.h"
+
+#include <set>
 
 namespace ug {
 
@@ -81,6 +81,9 @@ public:
 	public:
 		typedef Container SlaveContainer;
 		typedef typename Container::iterator SlaveIterator;
+		// the set typedefs are used to check for periodicity after identification
+		typedef typename std::pair<TElem*, TElem*> master_slave_pair;
+		typedef typename std::set<master_slave_pair> unique_pairs;
 
 		Group(TElem* m = NULL) : m_master(m) {}
 
@@ -152,6 +155,11 @@ public:
 
 	virtual void face_to_be_erased(Grid* grid, Face* f,
 									 Face* replacedBy = NULL);
+
+	/// checks that all elements of given gocs are periodic (called after identification)
+	bool check_periodicity(const GeometricObjectCollection& goc1,
+							  const GeometricObjectCollection& goc2,
+							  ISubsetHandler* sh = NULL);
 
 	/**
 	 * sets the identifier instance to use for subset index si
@@ -227,6 +235,14 @@ protected:
 	/// casts parent pointer to exact type before calling handle_creation
 	template <class TElem>
 	void handle_creation_cast_wrapper(TElem* e, GeometricObject* parent, bool replacesParent);
+
+	template <class TElem, class TIterator>
+	void check_elements_periodicity(
+			TIterator begin,
+			TIterator end,
+			typename Group<TElem>::unique_pairs& s,
+			ISubsetHandler* sh);
+
 };
 
 ///	Accesses attachements with consideration to periodic boundaries
