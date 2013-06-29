@@ -16,7 +16,7 @@ testcore_args='--run_test=*NumProc$np'
 testplugins_args='-script_params $experimental_test --run_test=/LUAScriptsNumProc$np'
 
 # has to be set to find libug4.so
-LD_LIBRARY_PATH=$ugroot/lib/
+export LD_LIBRARY_PATH=$ugroot/lib/
 # path to testsuite
 ts=$ugroot/bin/testsuite
 # should be "serial" or "parallel"
