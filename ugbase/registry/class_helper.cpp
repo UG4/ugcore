@@ -308,7 +308,7 @@ string ConstructorInfo(const ExportedConstructor &constr,
 		const char *classname, const char *highlightclassname)
 {
 	UG_LOG(classname << ":" << classname);
-	PrintParametersIn<ExportedConstructor>(constr, highlightclassname);
+	return PrintParametersIn<ExportedConstructor>(constr, highlightclassname);
 }
 
 
@@ -364,6 +364,7 @@ string ClassInfo(const IExportedClass &c)
 		ss << FunctionInfo(c.get_const_method(k), true);
 		ss << endl;
 	}
+	return ss.str();
 }
 
 
