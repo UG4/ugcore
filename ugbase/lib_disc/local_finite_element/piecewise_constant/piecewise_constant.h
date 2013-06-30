@@ -37,19 +37,11 @@ class PiecewiseConstantLSFS
 		typedef typename base_type::grad_type grad_type;
 
 	public:
-	///	Reference Element type
-		typedef TRefElem reference_element_type;
-
-	///	Order of Shape functions
-		static const size_t order = 0;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
-
-	/// Number of shape functions
-		static const size_t nsh = 1;
+		static const int dim = TRefElem::dim;
 
 	protected:
+	///	barycenter
 		MathVector<dim> bary;
 
 	public:
@@ -57,14 +49,12 @@ class PiecewiseConstantLSFS
 		PiecewiseConstantLSFS()
 		{
 			const TRefElem& rRef = Provider<TRefElem>::get();
-			//	get corner position integer
-			int num = rRef.num(0);
 
 			bary = rRef.corner(0);
-            for (int j=1;j<num;j++){
-            	bary+=rRef.corner(j);
+            for (size_t j=1; j < rRef.num(0); ++j){
+            	bary += rRef.corner(j);
             }
-            bary*=1./(number)num;
+            bary *= 1./rRef.num(0);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
@@ -76,9 +66,7 @@ class PiecewiseConstantLSFS
 	///	\copydoc ug::LocalShapeFunctionSet::position()
 		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
-			for(int d = 0; d < dim; d++)
-				pos[d]=bary[d];
-			return true;
+			pos = bary; return true;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
@@ -88,7 +76,7 @@ class PiecewiseConstantLSFS
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline void grad(grad_type& g, const size_t i,	const MathVector<dim>& x) const
+		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
 			TRefElem::check_position(x);
 			VecSet(g, 0.0);
