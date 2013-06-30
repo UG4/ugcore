@@ -10,7 +10,7 @@
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__
 
-#endif // __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__
+#include "nedelec_local_dof.h"
 
 namespace ug{
 
@@ -26,7 +26,8 @@ namespace ug{
  */
 template <typename TRefElement>
 class NedelecLSFS
-: public
+: public NedelecLDS<TRefElement>,
+  public
 	BaseLocalShapeFunctionSet
 		<
 			NedelecLSFS<TRefElement>,
@@ -67,11 +68,8 @@ class NedelecLSFS
 	///	Constructor
 		NedelecLSFS() {};
 	
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::NEDELEC, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -101,7 +99,8 @@ class NedelecLSFS
 /// Nedelec (or Whitney-1) base function set for triangles
 template <>
 class NedelecLSFS<ReferenceTriangle>
-: public
+: public NedelecLDS<ReferenceTriangle>,
+  public
 	BaseLocalShapeFunctionSet
 		<
 			NedelecLSFS<ReferenceTriangle>,
@@ -141,12 +140,9 @@ class NedelecLSFS<ReferenceTriangle>
 	public:
 	///	Constructor
 		NedelecLSFS() {};
-	
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::NEDELEC, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -186,7 +182,8 @@ class NedelecLSFS<ReferenceTriangle>
 /// Nedelec (or Whitney-1) base function set for tetrahedra
 template <>
 class NedelecLSFS<ReferenceTetrahedron>
-: public
+: public NedelecLDS<ReferenceTetrahedron>,
+  public
 	BaseLocalShapeFunctionSet
 		<
 			NedelecLSFS<ReferenceTetrahedron>,
@@ -226,12 +223,9 @@ class NedelecLSFS<ReferenceTetrahedron>
 	public:
 	///	Constructor
 		NedelecLSFS() {};
-	
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::NEDELEC, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -284,5 +278,7 @@ class NedelecLSFS<ReferenceTetrahedron>
 };
 
 } // namespace ug
+
+#endif // __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__
 
 /* End of File */

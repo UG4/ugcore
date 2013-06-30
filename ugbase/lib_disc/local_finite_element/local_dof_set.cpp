@@ -177,7 +177,7 @@ int LocalDoFSet::dim() const {
 	return ReferenceElementDimension(roid());
 }
 
-size_t LocalDoFSet::num_dof() const
+size_t LocalDoFSet::num_sh() const
 {
 	size_t sum = 0;
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
@@ -190,6 +190,18 @@ size_t LocalDoFSet::num_dof(int d, size_t id) const
 	static const ReferenceElement& rRefElem = ReferenceElementProvider::get(roid());
 	return num_dof(rRefElem.roid(d, id));
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// 	DimLocalDoFSet
+////////////////////////////////////////////////////////////////////////////////
+
+template <int TDim>
+DimLocalDoFSet<TDim>::DimLocalDoFSet(){
+}
+
+template class DimLocalDoFSet<1>;
+template class DimLocalDoFSet<2>;
+template class DimLocalDoFSet<3>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // 	CommonLocalDoFSet

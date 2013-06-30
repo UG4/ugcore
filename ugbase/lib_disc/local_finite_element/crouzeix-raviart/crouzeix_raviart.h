@@ -11,6 +11,7 @@
 #include "../common/lagrange1d.h"
 #include "../local_shape_function_set.h"
 #include "../local_dof_set.h"
+#include "crouzeix_raviart_local_dof.h"
 #include "lib_disc/common/multi_index.h"
 #include "common/util/provider.h"
 #include "common/util/metaprogramming_util.h"
@@ -31,7 +32,8 @@ class CrouzeixRaviartLSFS;
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceEdge>
-	: public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceEdge>, 1>
+: public CrouzeixRaviartLDS<ReferenceEdge>,
+  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceEdge>, 1>
 {
 	public:
 	///	Order of Shape functions
@@ -60,11 +62,8 @@ class CrouzeixRaviartLSFS<ReferenceEdge>
 	///	Constructor
 		CrouzeixRaviartLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -119,7 +118,8 @@ class CrouzeixRaviartLSFS<ReferenceEdge>
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceTriangle>
-	: public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceTriangle>, 2>
+: public CrouzeixRaviartLDS<ReferenceTriangle>,
+  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceTriangle>, 2>
 {
 	public:
 	///	Order of Shape functions
@@ -147,11 +147,8 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 	///	Constructor
 		CrouzeixRaviartLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -216,7 +213,8 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
-	: public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceQuadrilateral>, 2>
+: public CrouzeixRaviartLDS<ReferenceQuadrilateral>,
+  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceQuadrilateral>, 2>
 {
 	public:
 	///	Order of Shape functions
@@ -245,11 +243,8 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 	///	Constructor
 		CrouzeixRaviartLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -319,7 +314,8 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceTetrahedron>
-	: public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceTetrahedron>, 3>
+: public CrouzeixRaviartLDS<ReferenceTetrahedron>,
+  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceTetrahedron>, 3>
 {
 	public:
 	///	Order of Shape functions
@@ -348,11 +344,8 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 	///	Constructor
 		CrouzeixRaviartLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -431,7 +424,8 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceHexahedron>
-	: public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceHexahedron>, 3>
+: public CrouzeixRaviartLDS<ReferenceHexahedron>,
+  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceHexahedron>, 3>
 {
 	public:
 	///	Order of Shape functions
@@ -460,11 +454,8 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 	///	Constructor
 		CrouzeixRaviartLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -556,7 +547,8 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 
 template <>
 class CrouzeixRaviartLSFS<ReferencePrism>
-	: public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferencePrism>, 3>
+: public CrouzeixRaviartLDS<ReferencePrism>,
+  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferencePrism>, 3>
 {
 	public:
 	///	Order of Shape functions
@@ -584,11 +576,8 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 	///	Constructor
 		CrouzeixRaviartLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -673,7 +662,8 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 
 template <>
 class CrouzeixRaviartLSFS<ReferencePyramid>
-	: public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferencePyramid>, 3>
+: public CrouzeixRaviartLDS<ReferencePyramid>,
+  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferencePyramid>, 3>
 {
 	public:
 	///	Order of Shape functions
@@ -702,11 +692,8 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 	///	Constructor
 		CrouzeixRaviartLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::CROUZEIX_RAVIART, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}

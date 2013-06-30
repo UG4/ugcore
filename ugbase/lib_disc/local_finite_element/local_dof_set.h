@@ -83,8 +83,20 @@ class LocalDoF
 class LocalDoFSet
 {
 	public:
+	///	returns the reference dimension
+		int dim() const;
+
 	///	returns the Reference object id of the corresponding grid object
 		virtual ReferenceObjectID roid() const = 0;
+
+	///	type of shape functions
+		virtual LFEID type() const = 0;
+
+	///	returns the total number of dofs on the finite element
+	/// \{
+				size_t num_dof() const {return num_sh();}
+		virtual size_t num_sh() const;
+	/// \}
 
 	///	returns the number of DoFs on a sub-geometric object type
 		virtual size_t num_dof(ReferenceObjectID roid) const = 0;
@@ -92,18 +104,35 @@ class LocalDoFSet
 	///	returns the DoFs storage
 		virtual const LocalDoF& local_dof(size_t dof) const = 0;
 
-	///	virtual destructor
-		virtual ~LocalDoFSet() {};
-
-	public:
-	///	returns the reference dimension
-		int dim() const;
-
-	///	returns the total number of dofs on the finite element
-		virtual size_t num_dof() const;
-
 	///	returns the number of DoFs on a sub-geometric object of dim and id
 		size_t num_dof(int d, size_t id) const;
+
+	///	virtual destructor
+		virtual ~LocalDoFSet() {};
+};
+
+/**
+ * Local DoF Set also providing to local position of the dofs (iff available)
+ */
+template <int TDim>
+class DimLocalDoFSet : public LocalDoFSet
+{
+	public:
+	/// constructor
+		DimLocalDoFSet();
+
+	///	returns if the local dof position are exact
+		virtual bool exact_position_available() const = 0;
+
+	///	local position of DoF i
+	/**
+	 * This function returns the local position of a DoF if possible.
+	 * \param[in] 	i		number of DoF
+	 * \param[out]	pos		Position of DoF
+	 * \retval		true 	if position exists
+	 * \retval		false 	if no meaningful position available
+	 */
+		virtual bool position(size_t i, MathVector<TDim>& pos) const = 0;
 };
 
 /// @}

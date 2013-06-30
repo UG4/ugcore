@@ -53,6 +53,9 @@ class NedelecLDS : public LocalDoFSet
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
+	///	\copydoc ug::LocalShapeFunctionSet::type()
+		inline LFEID type() const {return LFEID(LFEID::NEDELEC, refDim, 1);}
+
 	///	returns the total number of DoFs on the finite element
 		size_t num_dof() const {return nsh;};
 
@@ -65,6 +68,9 @@ class NedelecLDS : public LocalDoFSet
 
 	///	returns the dof storage
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
+
+	///	returns if the local dof position are exact
+		bool exact_position_available() const {return true;};
 
 	protected:
 	///	number of shapes (== number of edges)

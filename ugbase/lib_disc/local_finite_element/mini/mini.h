@@ -11,6 +11,7 @@
 #include "../common/lagrange1d.h"
 #include "../local_shape_function_set.h"
 #include "../local_dof_set.h"
+#include "mini_local_dof.h"
 #include "lib_disc/common/multi_index.h"
 #include "common/util/provider.h"
 #include "common/util/metaprogramming_util.h"
@@ -31,7 +32,8 @@ class MiniBubbleLSFS;
 
 template <>
 class MiniBubbleLSFS<ReferenceEdge>
-	: public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceEdge>, 1>
+: public MiniBubbleLDS<ReferenceEdge>,
+  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceEdge>, 1>
 {
 	public:
 	///	Order of Shape functions
@@ -60,11 +62,8 @@ class MiniBubbleLSFS<ReferenceEdge>
 	///	Constructor
 		MiniBubbleLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -122,7 +121,8 @@ class MiniBubbleLSFS<ReferenceEdge>
 
 template <>
 class MiniBubbleLSFS<ReferenceTriangle>
-	: public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceTriangle>, 2>
+: public MiniBubbleLDS<ReferenceTriangle>,
+  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceTriangle>, 2>
 {
 	public:
 	///	Order of Shape functions
@@ -150,11 +150,8 @@ class MiniBubbleLSFS<ReferenceTriangle>
 	///	Constructor
 		MiniBubbleLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -224,7 +221,8 @@ class MiniBubbleLSFS<ReferenceTriangle>
 
 template <>
 class MiniBubbleLSFS<ReferenceQuadrilateral>
-	: public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceQuadrilateral>, 2>
+: public MiniBubbleLDS<ReferenceQuadrilateral>,
+  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceQuadrilateral>, 2>
 {
 	public:
 	///	Order of Shape functions
@@ -253,11 +251,8 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 	///	Constructor
 		MiniBubbleLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -334,7 +329,8 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 
 template <>
 class MiniBubbleLSFS<ReferenceTetrahedron>
-	: public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceTetrahedron>, 3>
+: public MiniBubbleLDS<ReferenceTetrahedron>,
+  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceTetrahedron>, 3>
 {
 	public:
 	///	Order of Shape functions
@@ -363,11 +359,8 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 	///	Constructor
 		MiniBubbleLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -447,7 +440,8 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 
 template <>
 class MiniBubbleLSFS<ReferenceHexahedron>
-	: public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceHexahedron>, 3>
+: public MiniBubbleLDS<ReferenceHexahedron>,
+  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceHexahedron>, 3>
 {
 	public:
 	///	Order of Shape functions
@@ -476,11 +470,8 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 	///	Constructor
 		MiniBubbleLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -532,7 +523,8 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 
 template <>
 class MiniBubbleLSFS<ReferencePrism>
-	: public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferencePrism>, 3>
+: public MiniBubbleLDS<ReferencePrism>,
+  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferencePrism>, 3>
 {
 	public:
 	///	Order of Shape functions
@@ -560,11 +552,8 @@ class MiniBubbleLSFS<ReferencePrism>
 	///	Constructor
 		MiniBubbleLSFS(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
@@ -617,7 +606,8 @@ class MiniBubbleLSFS<ReferencePrism>
 
 template <>
 class MiniBubbleLSFS<ReferencePyramid>
-	: public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferencePyramid>, 3>
+: public MiniBubbleLDS<ReferencePyramid>,
+  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferencePyramid>, 3>
 {
 	public:
 	///	Order of Shape functions
@@ -647,10 +637,10 @@ class MiniBubbleLSFS<ReferencePyramid>
 		MiniBubbleLSFS(){}
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::MINI, dim, 1);}
+		inline LFEID type() const {return LFEID(LFEID::MINI, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}

@@ -11,6 +11,7 @@
 #include "../common/lagrange1d.h"
 #include "../local_shape_function_set.h"
 #include "../local_dof_set.h"
+#include "piecewise_constant_local_dof.h"
 #include "lib_disc/common/multi_index.h"
 #include "common/util/provider.h"
 #include "common/util/metaprogramming_util.h"
@@ -21,7 +22,8 @@ namespace ug{
 /// Elementwise constant shape functions
 template <typename TRefElem>
 class PiecewiseConstantLSFS
-	: public BaseLocalShapeFunctionSet<PiecewiseConstantLSFS<TRefElem>, TRefElem::dim>
+	: public PiecewiseConstantLDS<TRefElem>,
+	  public BaseLocalShapeFunctionSet<PiecewiseConstantLSFS<TRefElem>, TRefElem::dim>
 {
 	private:
 	///	base class
@@ -68,11 +70,8 @@ class PiecewiseConstantLSFS
             bary*=1./(number)num;
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return false;}
+		inline bool continuous() const {return false;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return 1;}

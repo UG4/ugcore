@@ -46,6 +46,9 @@ class PiecewiseConstantLDS : public LocalDoFSet
 			}
 		}
 
+	///	\copydoc ug::LocalShapeFunctionSet::type()
+		inline LFEID type() const {return LFEID(LFEID::PIECEWISE_CONSTANT, refDim, 0);}
+
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
@@ -61,6 +64,9 @@ class PiecewiseConstantLDS : public LocalDoFSet
 
 	///	returns the dof storage
 		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
+
+	///	returns if the local dof position are exact
+		bool exact_position_available() const {return false;};
 
 	protected:
 	///	number of shapes

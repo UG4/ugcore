@@ -41,8 +41,8 @@ class LocalShapeFunctionSetWrapper
 		typedef TImpl ImplType;
 
 	public:
-	///	Domain position type
-		typedef typename ImplType::position_type position_type;
+	///	reference element dimension
+		static const int dim = TImpl::dim;
 
 	///	Shape type
 		typedef typename ImplType::shape_type shape_type;
@@ -54,29 +54,43 @@ class LocalShapeFunctionSetWrapper
 	///	constructor
 		LocalShapeFunctionSetWrapper(){}
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
+	public:
+	///	\copydoc ug::LocalDoFSet::type()
+		virtual ReferenceObjectID roid() const {return ImplType::roid();}
+
+	///	\copydoc ug::LocalDoFSet::continuous()
 		virtual LFEID type() const {return ImplType::type();}
 
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		virtual bool continuous() const {return ImplType::continuous();}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+	///	\copydoc ug::LocalDoFSet::num_sh()
 		virtual size_t num_sh() const {return ImplType::num_sh();}
 
+	///	\copydoc ug::LocalDoFSet::num_dof()
+		virtual size_t num_dof(ReferenceObjectID roid) const {return ImplType::num_dof(roid);}
+
+	///	\copydoc ug::LocalDoFSet::local_dof()
+		virtual const LocalDoF& local_dof(size_t dof) const {return ImplType::local_dof(dof);}
+
+	///	\copydoc ug::LocalDoFSet::exact_position_available()
+		virtual bool exact_position_available() const {return ImplType::exact_position_available();}
+
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		virtual bool position(size_t i, position_type& pos) const
+		virtual bool position(size_t i, MathVector<dim>& pos) const
 		{
 			return ImplType::position(i, pos);
 		}
 
+	public:
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		virtual bool continuous() const {return ImplType::continuous();}
+
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		virtual shape_type shape(size_t i, const position_type& x) const
+		virtual shape_type shape(size_t i, const MathVector<dim>& x) const
 		{
 			return ImplType::shape(i, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		virtual void shape(shape_type& s, size_t i, const position_type& x) const
+		virtual void shape(shape_type& s, size_t i, const MathVector<dim>& x) const
 		{
 			typedef BaseLocalShapeFunctionSet<TImpl, TImpl::dim,
 				  	  	  	  	  	  	  	   typename TImpl::shape_type,
@@ -86,45 +100,45 @@ class LocalShapeFunctionSetWrapper
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		virtual void shapes(shape_type* vShape, const position_type& x) const
+		virtual void shapes(shape_type* vShape, const MathVector<dim>& x) const
 		{
 			ImplType::shapes(vShape, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
-		virtual void shapes(std::vector<shape_type>& vShape, const position_type& x) const
+		virtual void shapes(std::vector<shape_type>& vShape, const MathVector<dim>& x) const
 		{
 			ImplType::shapes(vShape, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
 		virtual void shapes(std::vector<std::vector<shape_type> >& vvShape,
-							const std::vector<position_type>& vLocPos) const
+							const std::vector<MathVector<dim> >& vLocPos) const
 		{
 			ImplType::shapes(vvShape, vLocPos);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		virtual void grad(grad_type& g, size_t i, const position_type& x) const
+		virtual void grad(grad_type& g, size_t i, const MathVector<dim>& x) const
 		{
 			ImplType::grad(g, i, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		virtual void grads(grad_type* vGrad, const position_type& x) const
+		virtual void grads(grad_type* vGrad, const MathVector<dim>& x) const
 		{
 			ImplType::grads(vGrad, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
-		virtual void grads(std::vector<grad_type>& vGrad, const position_type& x) const
+		virtual void grads(std::vector<grad_type>& vGrad, const MathVector<dim>& x) const
 		{
 			ImplType::grads(vGrad, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		virtual void grads(std::vector<std::vector<grad_type> >& vvGrad,
-						   const std::vector<position_type>& vLocPos) const
+						   const std::vector<MathVector<dim> >& vLocPos) const
 		{
 			ImplType::grads(vvGrad, vLocPos);
 		}

@@ -53,11 +53,12 @@ set(srcDiscretization	domain_util.cpp
 						quadrature/gauss/gauss_quad_hexahedron.cpp
 						quadrature/newton_cotes/newton_cotes.cpp
 
+						local_finite_element/lagrange/lagrange_local_dof.cpp
+						local_finite_element/lagrange/lagrangep1.cpp
+						local_finite_element/lagrange/lagrange.cpp
 						local_finite_element/local_finite_element_id.cpp
 						local_finite_element/local_shape_function_set.cpp
 						local_finite_element/local_dof_set.cpp
-						local_finite_element/lagrange/lagrangep1.cpp
-						local_finite_element/lagrange/lagrange.cpp
 						
 						operator/linear_operator/multi_grid_solver/mg_solver_util.cpp
 					

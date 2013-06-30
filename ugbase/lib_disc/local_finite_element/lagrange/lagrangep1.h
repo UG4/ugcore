@@ -10,6 +10,7 @@
 
 #include "../local_shape_function_set.h"
 #include "../local_dof_set.h"
+#include "lagrange_local_dof.h"
 
 namespace ug{
 
@@ -24,7 +25,8 @@ namespace ug{
  */
 template <typename TRefElem>
 class LagrangeP1
-	: public BaseLocalShapeFunctionSet<LagrangeP1<TRefElem>, TRefElem::dim>
+	: public LagrangeLDS<TRefElem>,
+	  public BaseLocalShapeFunctionSet<LagrangeP1<TRefElem>, TRefElem::dim>
 {
 	///	base class
 		typedef BaseLocalShapeFunctionSet<LagrangeP1<TRefElem>, TRefElem::dim> base_type;
@@ -53,11 +55,14 @@ class LagrangeP1
 		static const size_t nsh = TRefElem::numCorners;
 
 	public:
+	///	constructor
+		LagrangeP1() : LagrangeLDS<TRefElem>(1) {}
+
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, 1);}
+		LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		size_t num_sh() const { return nsh;}

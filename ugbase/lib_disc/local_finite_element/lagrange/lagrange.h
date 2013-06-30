@@ -11,6 +11,7 @@
 #include "../common/lagrange1d.h"
 #include "../local_shape_function_set.h"
 #include "../local_dof_set.h"
+#include "lagrange_local_dof.h"
 #include "lib_disc/common/multi_index.h"
 #include "common/util/metaprogramming_util.h"
 #include "lib_grid/grid/geometric_base_objects.h"
@@ -36,7 +37,8 @@ class FlexLagrangeLSFS;
  */
 template <int TOrder>
 class LagrangeLSFS<ReferenceEdge, TOrder>
-	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceEdge, TOrder>, 1>
+	: public LagrangeLDS<ReferenceEdge>,
+	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceEdge, TOrder>, 1>
 {
 	private:
 	///	abbreviation for order
@@ -46,9 +48,6 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceEdge, TOrder>, 1> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -76,29 +75,29 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, p);}
+		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline static size_t num_sh() {return nsh;}
+		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			pos = EquidistantLagrange1D::position(multi_index(i)[0], p);
 			return true;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline shape_type shape(size_t i, const position_type& x) const
+		inline shape_type shape(size_t i, const MathVector<dim>& x) const
 		{
 			return m_vPolynom[multi_index(i)[0]].value(x[0]);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, size_t i, const position_type& x) const
+		inline void grad(grad_type& g, size_t i, const MathVector<dim>& x) const
 		{
 			g[0] = m_vDPolynom[multi_index(i)[0]].value(x[0]);
 		}
@@ -120,27 +119,27 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		}
 
 	///	return Multi index for index i
-		inline static MathVector<dim,int> mapped_multi_index(size_t i)
+		inline MathVector<dim,int> mapped_multi_index(size_t i) const
 		{
 			check_index(i);
 			return MathVector<1,int>(i);
 		}
 
 	///	return the index for a multi_index
-		inline static size_t mapped_index(const MathVector<dim,int>& ind)
+		inline size_t mapped_index(const MathVector<dim,int>& ind) const
 		{
 			check_multi_index(ind);
 			return ind[0];
 		}
 
 	///	checks in debug mode that index is valid
-		inline static void check_index(size_t i)
+		inline void check_index(size_t i) const
 		{
 			UG_ASSERT(i < nsh, "Wrong index.");
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MathVector<dim,int>& ind)
+		inline void check_multi_index(const MathVector<dim,int>& ind) const
 		{
 			UG_ASSERT(ind[0] < (int)nsh && ind[0] >= 0, "Wrong MultiIndex");
 		}
@@ -158,7 +157,8 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
  */
 template <>
 class FlexLagrangeLSFS<ReferenceEdge>
-	: public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceEdge>, 1>
+	: public LagrangeLDS<ReferenceEdge>,
+	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceEdge>, 1>
 {
 	public:
 	///	Reference Element type
@@ -184,26 +184,26 @@ class FlexLagrangeLSFS<ReferenceEdge>
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			pos = EquidistantLagrange1D::position(multi_index(i)[0], p);
 			return true;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline shape_type shape(size_t i, const position_type& x) const
+		inline shape_type shape(size_t i, const MathVector<dim>& x) const
 		{
 			return m_vPolynom[multi_index(i)[0]].value(x[0]);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, size_t i, const position_type& x) const
+		inline void grad(grad_type& g, size_t i, const MathVector<dim>& x) const
 		{
 			g[0] = m_vDPolynom[multi_index(i)[0]].value(x[0]);
 		}
@@ -269,7 +269,8 @@ class FlexLagrangeLSFS<ReferenceEdge>
 
 template <int TOrder>
 class LagrangeLSFS<ReferenceTriangle, TOrder>
-	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTriangle, TOrder>, 2>
+	: public LagrangeLDS<ReferenceTriangle>,
+	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTriangle, TOrder>, 2>
 {
 	private:
 	///	abbreviation for order
@@ -279,9 +280,6 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTriangle, TOrder>, 2> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -309,16 +307,16 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, p);}
+		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline static size_t num_sh() {return nsh;}
+		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -354,14 +352,14 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline void grad(grad_type& g, const size_t i,	const position_type& x) const
+		inline void grad(grad_type& g, const size_t i,	const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	   	   	   const position_type& x) const
+		               	   	   	   	   	   const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceTriangle::check_position(x);
@@ -440,13 +438,13 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		}
 
 	///	checks in debug mode that index is valid
-		inline static void check_index(size_t i)
+		inline void check_index(size_t i) const
 		{
 			UG_ASSERT(i < nsh, "Wrong index.");
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MathVector<dim,int>& ind)
+		inline void check_multi_index(const MathVector<dim,int>& ind) const
 		{
 			UG_ASSERT(ind[0] <= (int)p && ind[0]>=0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= (int)p && ind[0]>=0, "Wrong Multiindex.");
@@ -463,7 +461,8 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 
 template <>
 class FlexLagrangeLSFS<ReferenceTriangle>
-	: public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceTriangle>, 2>
+	: public LagrangeLDS<ReferenceTriangle>,
+	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceTriangle>, 2>
 {
 	public:
 	///	Reference Element type
@@ -489,13 +488,13 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -531,14 +530,14 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline void grad(grad_type& g, const size_t i,	const position_type& x) const
+		inline void grad(grad_type& g, const size_t i,	const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	   	   	   const position_type& x) const
+		               	   	   	   	   	   const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceTriangle::check_position(x);
@@ -649,7 +648,8 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 
 template <int TOrder>
 class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
-	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2>
+	: public LagrangeLDS<ReferenceQuadrilateral>,
+	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2>
 {
 	private:
 	///	abbreviation for order
@@ -659,9 +659,6 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -689,16 +686,16 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, p);}
+		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline static size_t num_sh() {return nsh;}
+		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -728,14 +725,14 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, const size_t i, const position_type& x) const
+		inline void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	/// evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	const position_type& x) const
+		               	   	   	const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceQuadrilateral::check_position(x);
@@ -789,13 +786,13 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		}
 
 	///	checks in debug mode that index is valid
-		inline static void check_index(size_t i)
+		inline void check_index(size_t i) const
 		{
 			UG_ASSERT(i < nsh, "Wrong index.");
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MathVector<dim,int>& ind)
+		inline void check_multi_index(const MathVector<dim,int>& ind) const
 		{
 			UG_ASSERT(ind[0] <= (int)p && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= (int)p && ind[1] >= 0, "Wrong Multiindex.");
@@ -811,7 +808,8 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 
 template <>
 class FlexLagrangeLSFS<ReferenceQuadrilateral>
-	: public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceQuadrilateral>, 2>
+	: public LagrangeLDS<ReferenceQuadrilateral>,
+	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceQuadrilateral>, 2>
 {
 	public:
 	///	Reference Element type
@@ -837,13 +835,13 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -873,14 +871,14 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, const size_t i, const position_type& x) const
+		inline void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	/// evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	const position_type& x) const
+		               	   	   	const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceQuadrilateral::check_position(x);
@@ -965,7 +963,8 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 
 template <int TOrder>
 class LagrangeLSFS<ReferenceTetrahedron, TOrder>
-	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3>
+	: public LagrangeLDS<ReferenceTetrahedron>,
+	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3>
 {
 	private:
 	///	abbreviation for order
@@ -975,9 +974,6 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -1005,16 +1001,16 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, p);}
+		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline static size_t num_sh() {return nsh;}
+		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1050,14 +1046,14 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, const size_t i, const position_type& x) const
+		inline void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	   	    const position_type& x) const
+		               	   	   	   	    const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceTetrahedron::check_position(x);
@@ -1163,13 +1159,13 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		}
 
 	///	checks in debug mode that index is valid
-		inline static void check_index(size_t i)
+		inline void check_index(size_t i) const
 		{
 			UG_ASSERT(i < nsh, "Wrong index.");
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MathVector<dim,int>& ind)
+		inline void check_multi_index(const MathVector<dim,int>& ind) const
 		{
 			UG_ASSERT(ind[0] <= (int)p && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= (int)p && ind[1] >= 0, "Wrong Multiindex.");
@@ -1187,7 +1183,8 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 
 template <>
 class FlexLagrangeLSFS<ReferenceTetrahedron>
-	: public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceTetrahedron>, 3>
+	: public LagrangeLDS<ReferenceTetrahedron>,
+	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceTetrahedron>, 3>
 {
 	public:
 	///	Reference Element type
@@ -1213,13 +1210,13 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1255,14 +1252,14 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, const size_t i, const position_type& x) const
+		inline void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	   	    const position_type& x) const
+		               	   	   	   	    const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceTetrahedron::check_position(x);
@@ -1401,7 +1398,8 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 
 template <int TOrder>
 class LagrangeLSFS<ReferencePrism, TOrder>
-	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePrism, TOrder>, 3>
+	: public LagrangeLDS<ReferencePrism>,
+	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePrism, TOrder>, 3>
 {
 	private:
 	///	abbreviation for order
@@ -1414,9 +1412,6 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePrism, TOrder>, 3> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -1444,16 +1439,16 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, p);}
+		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline static size_t num_sh() {return nsh;}
+		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1493,14 +1488,14 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		void grad(grad_type& g, const size_t i, const position_type& x) const
+		void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
 		void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	   	   	const position_type& x) const
+		               	   	   	   	   	const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferencePrism::check_position(x);
@@ -1591,13 +1586,13 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		}
 
 	///	checks in debug mode that index is valid
-		inline static void check_index(size_t i)
+		inline void check_index(size_t i) const
 		{
 			UG_ASSERT(i < nsh, "Wrong index.");
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MathVector<dim,int>& ind)
+		inline void check_multi_index(const MathVector<dim,int>& ind) const
 		{
 			UG_ASSERT(ind[0] <= (int)p && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= (int)p && ind[1] >= 0, "Wrong Multiindex.");
@@ -1617,7 +1612,8 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 
 template <>
 class FlexLagrangeLSFS<ReferencePrism>
-	: public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferencePrism>, 3>
+	: public LagrangeLDS<ReferencePrism>,
+	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferencePrism>, 3>
 {
 	public:
 	///	Reference Element type
@@ -1643,13 +1639,13 @@ class FlexLagrangeLSFS<ReferencePrism>
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1689,14 +1685,14 @@ class FlexLagrangeLSFS<ReferencePrism>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		void grad(grad_type& g, const size_t i, const position_type& x) const
+		void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
 		void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	   	   	const position_type& x) const
+		               	   	   	   	   	const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferencePrism::check_position(x);
@@ -1842,7 +1838,8 @@ template <> struct NumberOfDoFsOfPyramid<-1>{enum {value = 0};};
 //			one regards the pyramid as two tetrahedrons, glued together.
 template <int TOrder>
 class LagrangeLSFS<ReferencePyramid, TOrder>
-	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePyramid, TOrder>, 3>
+	: public LagrangeLDS<ReferencePyramid>,
+	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePyramid, TOrder>, 3>
 {
 	private:
 	///	abbreviation for order
@@ -1852,9 +1849,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePyramid, TOrder>, 3> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -1882,16 +1876,16 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, p);}
+		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline static size_t num_sh() {return nsh;}
+		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -1935,7 +1929,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, const size_t i, const position_type& x) const
+		inline void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 		//	only first order
 			if(p != 1) UG_THROW("Only 1. order Lagrange Pyramid implemented.");
@@ -1981,7 +1975,7 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 
 	///	evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		               	   	   	   	   	   const position_type& x) const
+		               	   	   	   	   	   const MathVector<dim>& x) const
 		{
 			grad(g, index(ind), x);
 		}
@@ -2040,13 +2034,13 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		}
 
 	///	checks in debug mode that index is valid
-		inline static void check_index(size_t i)
+		inline void check_index(size_t i) const
 		{
 			UG_ASSERT(i < nsh, "Wrong index.");
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MathVector<dim,int>& ind)
+		inline void check_multi_index(const MathVector<dim,int>& ind) const
 		{
 			UG_ASSERT(ind[0] <= (int)p-ind[2] && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= (int)p-ind[2] && ind[1] >= 0, "Wrong Multiindex.");
@@ -2066,7 +2060,8 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 
 template <int TOrder>
 class LagrangeLSFS<ReferenceHexahedron, TOrder>
-	: public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3>
+	: public LagrangeLDS<ReferenceHexahedron>,
+	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3>
 {
 	private:
 	///	abbreviation for order
@@ -2076,9 +2071,6 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -2106,16 +2098,16 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		LagrangeLSFS();
 
 	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline static LFEID type() {return LFEID(LFEID::LAGRANGE, dim, p);}
+		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline static size_t num_sh() {return nsh;}
+		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -2146,14 +2138,14 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, const size_t i, const position_type& x) const
+		inline void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		          	  	  	  	const position_type& x) const
+		          	  	  	  	const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceHexahedron::check_position(x);
@@ -2207,13 +2199,13 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		}
 
 	///	checks in debug mode that index is valid
-		inline static void check_index(size_t i)
+		inline void check_index(size_t i) const
 		{
 			UG_ASSERT(i < nsh, "Wrong index.");
 		}
 
 	///	checks in debug mode that multi-index is valid
-		inline static void check_multi_index(const MathVector<dim,int>& ind)
+		inline void check_multi_index(const MathVector<dim,int>& ind) const
 		{
 			UG_ASSERT(ind[0] <= (int)p && ind[0] >= 0, "Wrong Multiindex.");
 			UG_ASSERT(ind[1] <= (int)p && ind[1] >= 0, "Wrong Multiindex.");
@@ -2229,7 +2221,8 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 
 template <>
 class FlexLagrangeLSFS<ReferenceHexahedron>
-	: public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceHexahedron>, 3>
+	: public LagrangeLDS<ReferenceHexahedron>,
+	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceHexahedron>, 3>
 {
 	public:
 	///	Reference Element type
@@ -2255,13 +2248,13 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline static bool continuous() {return true;}
+		inline bool continuous() const {return true;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		inline size_t num_sh() const {return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 		//	get Multi Index
 			MathVector<dim,int> ind = multi_index(i);
@@ -2292,14 +2285,14 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(grad_type& g, const size_t i, const position_type& x) const
+		inline void grad(grad_type& g, const size_t i, const MathVector<dim>& x) const
 		{
 			grad(g, multi_index(i), x);
 		}
 
 	///	evaluates the gradient
 		inline void grad(grad_type& g, const MathVector<dim,int> ind,
-		          	  	  	  	const position_type& x) const
+		          	  	  	  	const MathVector<dim>& x) const
 		{
 			check_multi_index(ind);
 			//ReferenceHexahedron::check_position(x);

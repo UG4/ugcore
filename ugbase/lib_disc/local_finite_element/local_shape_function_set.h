@@ -18,6 +18,7 @@
 // library intern headers
 #include "lib_disc/reference_element/reference_element.h"
 #include "local_finite_element_id.h"
+#include "lib_disc/local_finite_element/local_dof_set.h"
 
 namespace ug {
 
@@ -41,7 +42,7 @@ namespace ug {
 template <	int TDim,
 			typename TShape = number,
 			typename TGrad = MathVector<TDim> >
-class LocalShapeFunctionSet
+class LocalShapeFunctionSet : public DimLocalDoFSet<TDim>
 {
 	public:
 	///	Dimension, where shape functions are defined
@@ -57,24 +58,8 @@ class LocalShapeFunctionSet
 		typedef TGrad grad_type;
 
 	public:
-	///	type of shape functions
-		virtual LFEID type() const = 0;
-
 	///	returns if space constructs continuous functions
 		virtual bool continuous() const = 0;
-
-	///	Number of DoFs (shapes) on finite element
-		virtual size_t num_sh() const = 0;
-
-	///	local position of DoF i
-	/**
-	 * This function returns the local position of a DoF if possible.
-	 * \param[in] 	i		number of DoF
-	 * \param[out]	pos		Position of DoF
-	 * \retval		true 	if position exists
-	 * \retval		false 	if no meaningful position available
-	 */
-		virtual bool position(size_t i, MathVector<dim>& pos) const = 0;
 
 	/// evaluates the shape function
 	/**
@@ -184,9 +169,6 @@ class BaseLocalShapeFunctionSet
 	//////////////////////////////////////////
 	//	methods implemented by derived class
 	//////////////////////////////////////////
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return getImpl().type();}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return getImpl().continuous();}
