@@ -51,9 +51,6 @@ class NedelecLSFS
 		typedef BaseLocalShapeFunctionSet<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -124,9 +121,6 @@ class NedelecLSFS<ReferenceTriangle>
 		typedef BaseLocalShapeFunctionSet<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
 
 	public:
-	///	Domain position type
-		typedef base_type::position_type position_type;
-
 	///	Shape type
 		typedef base_type::shape_type shape_type;
 
@@ -207,9 +201,6 @@ class NedelecLSFS<ReferenceTetrahedron>
 		typedef BaseLocalShapeFunctionSet<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
 
 	public:
-	///	Domain position type
-		typedef base_type::position_type position_type;
-
 	///	Shape type
 		typedef base_type::shape_type shape_type;
 

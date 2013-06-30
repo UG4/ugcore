@@ -55,20 +55,14 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 		typedef typename base_type::grad_type grad_type;
 
 	public:
-	///	Reference Element type
-		typedef ReferenceEdge reference_element_type;
-
 	///	Order of Shape functions
 		static const size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static const int dim = ReferenceEdge::dim;
 
 	/// Number of shape functions
 		static const size_t nsh = p+1;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -161,14 +155,8 @@ class FlexLagrangeLSFS<ReferenceEdge>
 	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceEdge>, 1>
 {
 	public:
-	///	Reference Element type
-		typedef ReferenceEdge reference_element_type;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
+		static const int dim = ReferenceEdge::dim;
 
 	public:
 	///	default Constructor
@@ -287,20 +275,14 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 		typedef typename base_type::grad_type grad_type;
 
 	public:
-	///	Reference Element type
-		typedef ReferenceTriangle reference_element_type;
-
 	///	Order of Shape functions
 		static const size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static const int dim = ReferenceTriangle::dim;
 
 	/// Number of shape functions
 		static const size_t nsh = BinomialCoefficient<dim + p, p>::value;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -465,14 +447,8 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceTriangle>, 2>
 {
 	public:
-	///	Reference Element type
-		typedef ReferenceTriangle reference_element_type;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
+		static const int dim = ReferenceTriangle::dim;
 
 	public:
 	///	default Constructor
@@ -666,20 +642,14 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 		typedef typename base_type::grad_type grad_type;
 
 	public:
-	///	Reference Element type
-		typedef ReferenceQuadrilateral reference_element_type;
-
 	///	Order of Shape functions
 		static const size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static const int dim = ReferenceQuadrilateral::dim;
 
 	/// Number of shape functions
 		static const size_t nsh = (p+1)*(p+1);
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -812,14 +782,8 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceQuadrilateral>, 2>
 {
 	public:
-	///	Reference Element type
-		typedef ReferenceQuadrilateral reference_element_type;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
+		static const int dim = ReferenceQuadrilateral::dim;
 
 	public:
 	///	default Constructor
@@ -981,20 +945,14 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 		typedef typename base_type::grad_type grad_type;
 
 	public:
-	///	Reference Element type
-		typedef ReferenceTetrahedron reference_element_type;
-
 	///	Order of Shape functions
 		static const size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static const int dim = ReferenceTetrahedron::dim;
 
 	/// Number of shape functions
 		static const size_t nsh = BinomialCoefficient<dim + p, p>::value;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -1187,14 +1145,8 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceTetrahedron>, 3>
 {
 	public:
-	///	Reference Element type
-		typedef ReferenceTetrahedron reference_element_type;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
+		static const int dim = ReferenceTetrahedron::dim;
 
 	public:
 	///	default Constructor
@@ -1419,20 +1371,14 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		typedef typename base_type::grad_type grad_type;
 
 	public:
-	///	Reference Element type
-		typedef ReferencePrism reference_element_type;
-
 	///	Order of Shape functions
 		static const size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static const int dim = ReferencePrism::dim;
 
 	/// Number of shape functions
 		static const size_t nsh = dofPerLayer*(p+1);
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -1616,14 +1562,8 @@ class FlexLagrangeLSFS<ReferencePrism>
 	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferencePrism>, 3>
 {
 	public:
-	///	Reference Element type
-		typedef ReferencePrism reference_element_type;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
+		static const int dim = ReferencePrism::dim;
 
 	public:
 	///	default Constructor
@@ -1856,9 +1796,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 		typedef typename base_type::grad_type grad_type;
 
 	public:
-	///	Reference Element type
-		typedef ReferencePyramid reference_element_type;
-
 	///	Order of Shape functions
 		static const size_t order = TOrder;
 
@@ -1867,9 +1804,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 
 	/// Number of shape functions
 		static const size_t nsh = NumberOfDoFsOfPyramid<p>::value;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -2078,20 +2012,14 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 		typedef typename base_type::grad_type grad_type;
 
 	public:
-	///	Reference Element type
-		typedef ReferenceHexahedron reference_element_type;
-
 	///	Order of Shape functions
 		static const size_t order = TOrder;
 
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
+		static const int dim = ReferenceHexahedron::dim;
 
 	/// Number of shape functions
 		static const size_t nsh = (p+1)*(p+1)*(p+1);
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
 
 	public:
 	///	Constructor
@@ -2225,14 +2153,8 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceHexahedron>, 3>
 {
 	public:
-	///	Reference Element type
-		typedef ReferenceHexahedron reference_element_type;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
-
-	///	Multi Index type
-		typedef MathVector<dim,int> multi_index_type;
+		static const int dim = ReferenceHexahedron::dim;
 
 	public:
 	///	default Constructor

@@ -157,9 +157,6 @@ class BaseLocalShapeFunctionSet
 	///	dimension of reference element
 		static const int dim = TDim;
 
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef TShape shape_type;
 
@@ -170,6 +167,7 @@ class BaseLocalShapeFunctionSet
 	//	methods implemented by derived class
 	//////////////////////////////////////////
 
+	public:
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return getImpl().continuous();}
 
@@ -198,6 +196,7 @@ class BaseLocalShapeFunctionSet
 	//	methods generated generically
 	//////////////////////////////////////////
 
+	public:
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline void shape(shape_type& sh, size_t i, const MathVector<dim>& x) const
 		{

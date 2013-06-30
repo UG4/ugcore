@@ -30,9 +30,6 @@ class PiecewiseConstantLSFS
 		typedef BaseLocalShapeFunctionSet<PiecewiseConstantLSFS<TRefElem>, TRefElem::dim> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -77,7 +74,7 @@ class PiecewiseConstantLSFS
 		inline size_t num_sh() const {return 1;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, position_type& pos) const
+		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			for(int d = 0; d < dim; d++)
 				pos[d]=bary[d];
@@ -91,7 +88,7 @@ class PiecewiseConstantLSFS
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline void grad(grad_type& g, const size_t i,	const position_type& x) const
+		inline void grad(grad_type& g, const size_t i,	const MathVector<dim>& x) const
 		{
 			TRefElem::check_position(x);
 			VecSet(g, 0.0);

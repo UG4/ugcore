@@ -19,7 +19,7 @@ namespace ug{
 template<>
 LagrangeP1<ReferenceEdge>::shape_type
 LagrangeP1<ReferenceEdge>::
-shape(size_t i, const position_type& x) const
+shape(size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -32,7 +32,7 @@ shape(size_t i, const position_type& x) const
 template<>
 void
 LagrangeP1<ReferenceEdge>::
-grad(grad_type& value, size_t i, const position_type& x) const
+grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -44,7 +44,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 
 template<>
 bool LagrangeP1<ReferenceEdge>::
-position(size_t i, position_type& value) const
+position(size_t i, MathVector<dim>& value) const
 {
 	switch(i)
 	{
@@ -62,7 +62,7 @@ position(size_t i, position_type& value) const
 template<>
 LagrangeP1<ReferenceTriangle>::shape_type
 LagrangeP1<ReferenceTriangle>::
-shape(size_t i, const position_type& x) const
+shape(size_t i, const MathVector<dim>& x) const
 {
 	switch (i)
 	{
@@ -76,7 +76,7 @@ shape(size_t i, const position_type& x) const
 template<>
 void
 LagrangeP1<ReferenceTriangle>::
-grad(grad_type& value, size_t i, const position_type& x) const
+grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -92,7 +92,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 
 template<>
 bool LagrangeP1<ReferenceTriangle>::
-position(size_t i, position_type& value) const
+position(size_t i, MathVector<dim>& value) const
 {
 	switch(i)
 	{
@@ -114,7 +114,7 @@ position(size_t i, position_type& value) const
 template<>
 LagrangeP1<ReferenceQuadrilateral>::shape_type
 LagrangeP1<ReferenceQuadrilateral>::
-shape(size_t i, const position_type& x) const
+shape(size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -129,7 +129,7 @@ shape(size_t i, const position_type& x) const
 template<>
 void
 LagrangeP1<ReferenceQuadrilateral>::
-grad(grad_type& value, size_t i, const position_type& x) const
+grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -148,7 +148,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 template<>
 bool
 LagrangeP1<ReferenceQuadrilateral>::
-position(size_t i, position_type& value) const
+position(size_t i, MathVector<dim>& value) const
 {
 	switch(i)
 	{
@@ -172,7 +172,7 @@ position(size_t i, position_type& value) const
 template<>
 LagrangeP1<ReferenceTetrahedron>::shape_type
 LagrangeP1<ReferenceTetrahedron>::
-shape(size_t i, const position_type& x) const
+shape(size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -187,7 +187,7 @@ shape(size_t i, const position_type& x) const
 template<>
 void
 LagrangeP1<ReferenceTetrahedron>::
-grad(grad_type& value, size_t i, const position_type& x) const
+grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -209,7 +209,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 
 template<>
 bool LagrangeP1<ReferenceTetrahedron>::
-position(size_t i, position_type& value) const
+position(size_t i, MathVector<dim>& value) const
 {
 	switch(i)
 	{
@@ -237,7 +237,7 @@ position(size_t i, position_type& value) const
 template<>
 LagrangeP1<ReferencePyramid>::shape_type
 LagrangeP1<ReferencePyramid>::
-shape(size_t i, const position_type& x) const
+shape(size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -269,7 +269,7 @@ shape(size_t i, const position_type& x) const
 template<>
 void
 LagrangeP1<ReferencePyramid>::
-grad(grad_type& value, size_t i, const position_type& x) const
+grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -344,7 +344,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 
 template<>
 bool LagrangeP1<ReferencePyramid>::
-position(size_t i, position_type& value) const
+position(size_t i, MathVector<dim>& value) const
 {
 	static const DimReferenceElement<3>& refElem
 		= ReferenceElementProvider::get<3>(ROID_PYRAMID);
@@ -360,7 +360,7 @@ position(size_t i, position_type& value) const
 template<>
 LagrangeP1<ReferencePrism>::shape_type
 LagrangeP1<ReferencePrism>::
-shape(size_t i, const position_type& x) const
+shape(size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -377,7 +377,7 @@ shape(size_t i, const position_type& x) const
 template<>
 void
 LagrangeP1<ReferencePrism>::
-grad(grad_type& value, size_t i, const position_type& x) const
+grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -417,7 +417,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 
 template<>
 bool LagrangeP1<ReferencePrism>::
-position(size_t i, position_type& value) const
+position(size_t i, MathVector<dim>& value) const
 {
 	static const DimReferenceElement<3>& refElem
 		= ReferenceElementProvider::get<3>(ROID_PRISM);
@@ -433,7 +433,7 @@ position(size_t i, position_type& value) const
 template<>
 LagrangeP1<ReferenceHexahedron>::shape_type
 LagrangeP1<ReferenceHexahedron>::
-shape(size_t i, const position_type& x) const
+shape(size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -452,7 +452,7 @@ shape(size_t i, const position_type& x) const
 template<>
 void
 LagrangeP1<ReferenceHexahedron>::
-grad(grad_type& value, size_t i, const position_type& x) const
+grad(grad_type& value, size_t i, const MathVector<dim>& x) const
 {
 	switch(i)
 	{
@@ -502,7 +502,7 @@ grad(grad_type& value, size_t i, const position_type& x) const
 
 template<>
 bool LagrangeP1<ReferenceHexahedron>::
-position(size_t i, position_type& value) const
+position(size_t i, MathVector<dim>& value) const
 {
 	static const DimReferenceElement<3>& refElem
 		= ReferenceElementProvider::get<3>(ROID_HEXAHEDRON);

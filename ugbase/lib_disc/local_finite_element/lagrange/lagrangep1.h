@@ -32,9 +32,6 @@ class LagrangeP1
 		typedef BaseLocalShapeFunctionSet<LagrangeP1<TRefElem>, TRefElem::dim> base_type;
 
 	public:
-	///	Domain position type
-		typedef typename base_type::position_type position_type;
-
 	///	Shape type
 		typedef typename base_type::shape_type shape_type;
 
@@ -68,13 +65,13 @@ class LagrangeP1
 		size_t num_sh() const { return nsh;}
 
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		bool position(size_t i, position_type& pos) const;
+		bool position(size_t i, MathVector<dim>& pos) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		shape_type shape(size_t i, const position_type& x) const;
+		shape_type shape(size_t i, const MathVector<dim>& x) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		void grad(grad_type& value, size_t i, const position_type& x) const;
+		void grad(grad_type& value, size_t i, const MathVector<dim>& x) const;
 };
 
 /// @}

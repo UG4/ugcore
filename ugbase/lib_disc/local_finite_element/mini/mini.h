@@ -46,9 +46,6 @@ class MiniBubbleLSFS<ReferenceEdge>
 		static const size_t nsh = 3;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -134,9 +131,6 @@ class MiniBubbleLSFS<ReferenceTriangle>
 	/// Number of shape functions
 		static const size_t nsh = 4;
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -235,9 +229,6 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 		static const size_t nsh = 5;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -343,9 +334,6 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 		static const size_t nsh = 4+1;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -454,9 +442,6 @@ class MiniBubbleLSFS<ReferenceHexahedron>
 		static const size_t nsh = 6;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -536,9 +521,6 @@ class MiniBubbleLSFS<ReferencePrism>
 	/// Number of shape functions
 		static const size_t nsh = 5;
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -620,9 +602,6 @@ class MiniBubbleLSFS<ReferencePyramid>
 		static const size_t nsh = 5;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 

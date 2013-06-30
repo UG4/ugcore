@@ -46,9 +46,6 @@ class CrouzeixRaviartLSFS<ReferenceEdge>
 		static const size_t nsh = 2;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -131,9 +128,6 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 	/// Number of shape functions
 		static const size_t nsh = 3;
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -227,9 +221,6 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 		static const size_t nsh = 4;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -328,9 +319,6 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 		static const size_t nsh = 4;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -438,9 +426,6 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 		static const size_t nsh = 6;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -560,9 +545,6 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 	/// Number of shape functions
 		static const size_t nsh = 5;
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
@@ -676,9 +658,6 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 		static const size_t nsh = 5;
 
 	public:
-	///	Domain position type
-		typedef MathVector<dim> position_type;
-
 	///	Shape type
 		typedef number shape_type;
 
