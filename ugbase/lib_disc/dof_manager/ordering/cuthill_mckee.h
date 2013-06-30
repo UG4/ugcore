@@ -10,7 +10,6 @@
 
 #include <vector>
 #include "lib_disc/function_spaces/approximation_space.h"
-#include "common/profiler/profiler.h"
 
 namespace ug{
 
@@ -32,37 +31,11 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
                               bool bReverse = true);
 
 /// orders the dof distribution using Cuthill-McKee
-inline void OrderCuthillMcKee(DoFDistribution& dofDistr,
-                       bool bReverse)
-{
-	PROFILE_FUNC();
-//	get adjacency graph
-	std::vector<std::vector<size_t> > vvConnection;
-	if(!dofDistr.get_connections(vvConnection))
-		UG_THROW("OrderCuthillMcKee: No adjacency graph available.");
-
-//	get mapping for cuthill-mckee order
-	std::vector<size_t> vNewIndex;
-	ComputeCuthillMcKeeOrder(vNewIndex, vvConnection, bReverse);
-
-//	reorder indices
-	dofDistr.permute_indices(vNewIndex);
-}
+inline void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse);
 
 /// orders the all DofDistributions of the ApproximationSpace using Cuthill-McKee
 template <typename TDomain>
-void OrderCuthillMcKee(ApproximationSpace<TDomain>& approxSpace,
-                       bool bReverse)
-{
-//	order levels
-	if(approxSpace.levels_enabled())
-		for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-			OrderCuthillMcKee(*approxSpace.level_dof_distribution(lev), bReverse);
-
-//	order surface
-	if(approxSpace.top_surface_enabled())
-		OrderCuthillMcKee(*approxSpace.surface_dof_distribution(), bReverse);
-}
+void OrderCuthillMcKee(ApproximationSpace<TDomain>& approxSpace, bool bReverse);
 
 } // end namespace ug
 

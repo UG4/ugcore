@@ -1,30 +1,100 @@
 /*
- * cuthill_mckee.h
+ * lexorder.cpp
  *
  *  Created on: 21.03.2011
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__DOF_MANAGER__LEXORDER__
-#define __H__UG__LIB_DISC__DOF_MANAGER__LEXORDER__
-
-#include <vector>
-#include <utility> // for pair
-
-#include "lib_disc/function_spaces/approximation_space.h"
+#include "lexorder.h"
+#include "common/common.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
 #include "lib_disc/reference_element/reference_element_util.h"
+#include "lib_disc/domain.h"
+#include <algorithm>
+#include <vector>
+#include <queue>
+#include <utility>
 
 namespace ug{
 
+
+// Order for 1D
+template<int dim>
+bool ComparePosDim(const std::pair<MathVector<dim>, size_t> &p1,
+                   const std::pair<MathVector<dim>, size_t> &p2)
+{return false;}
+
+template<>
+bool ComparePosDim<1>(const std::pair<MathVector<1>, size_t> &p1,
+                      const std::pair<MathVector<1>, size_t> &p2)
+{
+	return (p1.first[0]<p2.first[0]);
+};
+
+// Order for 2D
+template<>
+bool ComparePosDim<2>(const std::pair<MathVector<2>, size_t> &p1,
+                      const std::pair<MathVector<2>, size_t> &p2)
+{
+	if (p1.first[1]==p2.first[1]) {
+		return (p1.first[0] < p2.first[0]);
+	}
+	else {
+		return (p1.first[1] < p2.first[1]);
+	}
+};
+
+// Order for 3D
+template<>
+bool ComparePosDim<3>(const std::pair<MathVector<3>, size_t> &p1,
+                      const std::pair<MathVector<3>, size_t> &p2)
+{
+	if (p1.first[2]==p2.first[2]){
+		if (p1.first[1]==p2.first[1]) {
+			return p1.first[0] < p2.first[0];
+		}
+		else {
+			return (p1.first[1] < p2.first[1]);
+		}
+	}
+	else{
+		return (p1.first[2] < p2.first[2]);
+	}
+};
+
+
 template<int dim>
 void ComputeLexicographicOrder(std::vector<size_t>& vNewIndex,
-                               std::vector<std::pair<MathVector<dim>, size_t> >& vPos);
+                               std::vector<std::pair<MathVector<dim>, size_t> >& vPos)
+{
+//	a) order all indices
+	if(vNewIndex.size() == vPos.size()){
+	//  sort indices based on their position
+		std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim>);
+
+	//	write mapping
+		for (size_t i=0; i < vPos.size(); ++i)
+			vNewIndex[vPos[i].second] = i;
+	}
+//	b) only some indices to order
+	else{
+	//	create copy of pos
+		std::vector<std::pair<MathVector<dim>, size_t> > vPosOrig(vPos);
+
+	//  sort indices based on their position
+		std::sort(vPos.begin(), vPos.end(), ComparePosDim<dim>);
+
+	//	write mapping
+		for (size_t i=0; i < vNewIndex.size(); ++i)
+			vNewIndex[i] = i;
+		for (size_t i=0; i < vPos.size(); ++i)
+			vNewIndex[vPos[i].second] = vPosOrig[i].second;
+	}
+}
 
 /// orders the dof distribution using Cuthill-McKee
 template <typename TDomain>
-void OrderLexForDofDist(SmartPtr<DoFDistribution> dd,
-                        ConstSmartPtr<TDomain> domain)
+void OrderLexForDofDist(SmartPtr<DoFDistribution> dd, ConstSmartPtr<TDomain> domain)
 {
 //	Lex Ordering is only possible in this cases:
 //	b) Same number of DoFs on each geometric object (or no DoFs on object)
@@ -132,8 +202,7 @@ void OrderLexForDofDist(SmartPtr<DoFDistribution> dd,
 
 /// orders the all DofDistributions of the ApproximationSpace using lexicographic order
 template <typename TDomain>
-void OrderLex(ApproximationSpace<TDomain>& approxSpace,
-              const char *order)
+void OrderLex(ApproximationSpace<TDomain>& approxSpace, const char *order)
 {
 	// TODO: decode order input
 
@@ -147,6 +216,20 @@ void OrderLex(ApproximationSpace<TDomain>& approxSpace,
 		OrderLexForDofDist<TDomain>(approxSpace.surface_dof_distribution(), approxSpace.domain());
 }
 
-} // end namespace ug
+#ifdef UG_DIM_1
+template void ComputeLexicographicOrder<1>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<1>, size_t> >& vPos);
+template void OrderLexForDofDist<Domain1d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain1d> domain);
+template void OrderLex<Domain1d>(ApproximationSpace<Domain1d>& approxSpace, const char *order);
+#endif
+#ifdef UG_DIM_2
+template void ComputeLexicographicOrder<2>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<2>, size_t> >& vPos);
+template void OrderLexForDofDist<Domain2d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain2d> domain);
+template void OrderLex<Domain2d>(ApproximationSpace<Domain2d>& approxSpace, const char *order);
+#endif
+#ifdef UG_DIM_3
+template void ComputeLexicographicOrder<3>(std::vector<size_t>& vNewIndex, std::vector<std::pair<MathVector<3>, size_t> >& vPos);
+template void OrderLexForDofDist<Domain3d>(SmartPtr<DoFDistribution> dd, ConstSmartPtr<Domain3d> domain);
+template void OrderLex<Domain3d>(ApproximationSpace<Domain3d>& approxSpace, const char *order);
+#endif
 
-#endif /* __H__UG__LIB_DISC__DOF_MANAGER__LEXORDER__ */
+}

@@ -17,8 +17,8 @@
 
 // lib_disc includes
 #include "lib_disc/domain.h"
-#include "lib_disc/dof_manager/cuthill_mckee.h"
-#include "lib_disc/dof_manager/lexorder.h"
+#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
+#include "lib_disc/dof_manager/ordering/lexorder.h"
 
 using namespace std;
 

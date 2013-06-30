@@ -16,7 +16,9 @@
 #include "lib_algebra/operator/interface/preconditioner.h"
 
 #include "lib_algebra/algebra_common/core_smoothers.h"
-#include "lib_disc/dof_manager/lexorder.h"
+#include "lib_disc/function_spaces/dof_position_util.h"
+#include "lib_disc/function_spaces/approximation_space.h"
+#include "lib_disc/dof_manager/ordering/lexorder.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_disc/common/groups_util.h"
 #ifdef UG_PARALLEL

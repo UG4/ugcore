@@ -19,14 +19,14 @@ set(srcDiscretization	domain_util.cpp
 						common/subset_util.cpp
 
 						dof_manager/function_pattern.cpp
-						dof_manager/cuthill_mckee.cpp
-						dof_manager/lexorder.cpp
 						dof_manager/dof_distribution_info.cpp
 						dof_manager/dof_distribution.cpp
 						dof_manager/mg_dof_distribution.cpp
 						dof_manager/level_dof_distribution.cpp
 						dof_manager/surface_dof_distribution.cpp
 						dof_manager/managing_dof_distribution.cpp
+						dof_manager/ordering/cuthill_mckee.cpp
+						dof_manager/ordering/lexorder.cpp
 
                         function_spaces/approximation_space.cpp
                         function_spaces/dof_position_util.cpp
