@@ -230,7 +230,7 @@ void SetLagrangeMultiIndex(	MathVector<TRefElem::dim,int>* vMultiIndex,
 
 template <int TOrder>
 LagrangeLSFS<ReferenceEdge, TOrder>::LagrangeLSFS()
-	: LagrangeLDS(p)
+	: LagrangeLDS<ReferenceEdge>(p)
 {
 //	init polynomials
 	for(size_t i = 0; i < nsh; ++i)
@@ -249,7 +249,7 @@ LagrangeLSFS<ReferenceEdge, TOrder>::LagrangeLSFS()
 
 void FlexLagrangeLSFS<ReferenceEdge>::set_order(size_t order)
 {
-	LagrangeLDS::set_order(order);
+	LagrangeLDS<ReferenceEdge>::set_order(order);
 
 //	resize
 	p = order;
@@ -287,7 +287,7 @@ template class LagrangeLSFS<ReferenceEdge, 5>;
 
 template <int TOrder>
 LagrangeLSFS<ReferenceTriangle, TOrder>::LagrangeLSFS()
-	: LagrangeLDS(p)
+	: LagrangeLDS<ReferenceTriangle>(p)
 {
 //	init polynomials
 	for(size_t i = 0; i <= p; ++i)
@@ -306,7 +306,7 @@ LagrangeLSFS<ReferenceTriangle, TOrder>::LagrangeLSFS()
 
 void FlexLagrangeLSFS<ReferenceTriangle>::set_order(size_t order)
 {
-	LagrangeLDS::set_order(order);
+	LagrangeLDS<ReferenceTriangle>::set_order(order);
 
 //	resize
 	p = order;
@@ -346,7 +346,7 @@ template class LagrangeLSFS<ReferenceTriangle, 5>;
 
 template <int TOrder>
 LagrangeLSFS<ReferenceQuadrilateral, TOrder>::LagrangeLSFS()
-	: LagrangeLDS(p)
+	: LagrangeLDS<ReferenceQuadrilateral>(p)
 {
 //	init polynomials
 	for(size_t i = 0; i <= p; ++i)
@@ -365,7 +365,7 @@ LagrangeLSFS<ReferenceQuadrilateral, TOrder>::LagrangeLSFS()
 
 void FlexLagrangeLSFS<ReferenceQuadrilateral>::set_order(size_t order)
 {
-	LagrangeLDS::set_order(order);
+	LagrangeLDS<ReferenceQuadrilateral>::set_order(order);
 
 //	resize
 	p = order;
@@ -405,7 +405,7 @@ template class LagrangeLSFS<ReferenceQuadrilateral, 5>;
 
 template <int TOrder>
 LagrangeLSFS<ReferenceTetrahedron, TOrder>::LagrangeLSFS()
-	: LagrangeLDS(p)
+	: LagrangeLDS<ReferenceTetrahedron>(p)
 {
 	for(size_t i = 0; i <= p; ++i)
 	{
@@ -423,7 +423,7 @@ LagrangeLSFS<ReferenceTetrahedron, TOrder>::LagrangeLSFS()
 
 void FlexLagrangeLSFS<ReferenceTetrahedron>::set_order(size_t order)
 {
-	LagrangeLDS::set_order(order);
+	LagrangeLDS<ReferenceTetrahedron>::set_order(order);
 
 //	resize
 	p = order;
@@ -463,7 +463,7 @@ template class LagrangeLSFS<ReferenceTetrahedron, 5>;
 
 template <int TOrder>
 LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
-	: LagrangeLDS(p)
+	: LagrangeLDS<ReferencePrism>(p)
 {
 	for(size_t i = 0; i <= p; ++i)
 	{
@@ -485,7 +485,7 @@ LagrangeLSFS<ReferencePrism, TOrder>::LagrangeLSFS()
 
 void FlexLagrangeLSFS<ReferencePrism>::set_order(size_t order)
 {
-	LagrangeLDS::set_order(order);
+	LagrangeLDS<ReferencePrism>::set_order(order);
 
 //	resize
 	p = order;
@@ -530,7 +530,7 @@ template class LagrangeLSFS<ReferencePrism, 5>;
 
 template <int TOrder>
 LagrangeLSFS<ReferencePyramid, TOrder>::LagrangeLSFS()
-	: LagrangeLDS(p)
+	: LagrangeLDS<ReferencePyramid>(p)
 {
 	m_vvPolynom.resize(p+1);
 	m_vvDPolynom.resize(p+1);
@@ -564,7 +564,7 @@ template class LagrangeLSFS<ReferencePyramid, 2>;
 
 template <int TOrder>
 LagrangeLSFS<ReferenceHexahedron, TOrder>::LagrangeLSFS()
-	: LagrangeLDS(p)
+	: LagrangeLDS<ReferenceHexahedron>(p)
 {
 //	init polynomials
 	for(size_t i = 0; i <= p; ++i)
@@ -583,7 +583,7 @@ LagrangeLSFS<ReferenceHexahedron, TOrder>::LagrangeLSFS()
 
 void FlexLagrangeLSFS<ReferenceHexahedron>::set_order(size_t order)
 {
-	LagrangeLDS::set_order(order);
+	LagrangeLDS<ReferenceHexahedron>::set_order(order);
 
 //	resize
 	p = order;
