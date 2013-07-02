@@ -91,7 +91,7 @@ class LocalShapeFunctionSetWrapper
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		virtual void shape(shape_type& s, size_t i, const MathVector<dim>& x) const
 		{
-			typedef BaseLocalShapeFunctionSet<TImpl, TImpl::dim,
+			typedef BaseLSFS<TImpl, TImpl::dim,
 				  	  	  	  	  	  	  	   typename TImpl::shape_type,
 				  	  	  	  	  	  	  	   typename TImpl::grad_type> baseType;
 

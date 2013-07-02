@@ -18,7 +18,7 @@ namespace ug{
 /// Elementwise constant shape functions
 template <typename TRefElem>
 class PiecewiseConstantLSFS
-	: public BaseLocalShapeFunctionSet<PiecewiseConstantLSFS<TRefElem>, TRefElem::dim>
+	: public BaseLSFS<PiecewiseConstantLSFS<TRefElem>, TRefElem::dim>
 {
 	public:
 	///	Dimension, where shape functions are defined

@@ -107,7 +107,7 @@ class MiniBubbleLDS : public LocalDoFSet
 template <>
 class MiniBubbleLSFS<ReferenceEdge>
 : public MiniBubbleLDS<ReferenceEdge>,
-  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceEdge>, 1>
+  public BaseLSFS<MiniBubbleLSFS<ReferenceEdge>, 1>
 {
 	public:
 	///	Order of Shape functions
@@ -193,7 +193,7 @@ class MiniBubbleLSFS<ReferenceEdge>
 template <>
 class MiniBubbleLSFS<ReferenceTriangle>
 : public MiniBubbleLDS<ReferenceTriangle>,
-  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceTriangle>, 2>
+  public BaseLSFS<MiniBubbleLSFS<ReferenceTriangle>, 2>
 {
 	public:
 	///	Order of Shape functions
@@ -290,7 +290,7 @@ class MiniBubbleLSFS<ReferenceTriangle>
 template <>
 class MiniBubbleLSFS<ReferenceQuadrilateral>
 : public MiniBubbleLDS<ReferenceQuadrilateral>,
-  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceQuadrilateral>, 2>
+  public BaseLSFS<MiniBubbleLSFS<ReferenceQuadrilateral>, 2>
 {
 	public:
 	///	Order of Shape functions
@@ -395,7 +395,7 @@ class MiniBubbleLSFS<ReferenceQuadrilateral>
 template <>
 class MiniBubbleLSFS<ReferenceTetrahedron>
 : public MiniBubbleLDS<ReferenceTetrahedron>,
-  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceTetrahedron>, 3>
+  public BaseLSFS<MiniBubbleLSFS<ReferenceTetrahedron>, 3>
 {
 	public:
 	///	Order of Shape functions

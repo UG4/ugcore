@@ -38,14 +38,14 @@ class FlexLagrangeLSFS;
 template <int TOrder>
 class LagrangeLSFS<ReferenceEdge, TOrder>
 	: public LagrangeLDS<ReferenceEdge>,
-	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceEdge, TOrder>, 1>
+	  public BaseLSFS<LagrangeLSFS<ReferenceEdge, TOrder>, 1>
 {
 	private:
 	///	abbreviation for order
 		static const size_t p = TOrder;
 
 	///	base class
-		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceEdge, TOrder>, 1> base_type;
+		typedef BaseLSFS<LagrangeLSFS<ReferenceEdge, TOrder>, 1> base_type;
 
 	public:
 	///	Shape type
@@ -149,7 +149,7 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 template <>
 class FlexLagrangeLSFS<ReferenceEdge>
 	: public LagrangeLDS<ReferenceEdge>,
-	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceEdge>, 1>
+	  public BaseLSFS<FlexLagrangeLSFS<ReferenceEdge>, 1>
 {
 	public:
 	///	Dimension, where shape functions are defined
@@ -252,14 +252,14 @@ class FlexLagrangeLSFS<ReferenceEdge>
 template <int TOrder>
 class LagrangeLSFS<ReferenceTriangle, TOrder>
 	: public LagrangeLDS<ReferenceTriangle>,
-	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTriangle, TOrder>, 2>
+	  public BaseLSFS<LagrangeLSFS<ReferenceTriangle, TOrder>, 2>
 {
 	private:
 	///	abbreviation for order
 		static const size_t p = TOrder;
 
 	///	base class
-		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTriangle, TOrder>, 2> base_type;
+		typedef BaseLSFS<LagrangeLSFS<ReferenceTriangle, TOrder>, 2> base_type;
 
 	public:
 	///	Shape type
@@ -435,7 +435,7 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 template <>
 class FlexLagrangeLSFS<ReferenceTriangle>
 	: public LagrangeLDS<ReferenceTriangle>,
-	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceTriangle>, 2>
+	  public BaseLSFS<FlexLagrangeLSFS<ReferenceTriangle>, 2>
 {
 	public:
 	///	Dimension, where shape functions are defined
@@ -613,14 +613,14 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 template <int TOrder>
 class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	: public LagrangeLDS<ReferenceQuadrilateral>,
-	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2>
+	  public BaseLSFS<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2>
 {
 	private:
 	///	abbreviation for order
 		static const size_t p = TOrder;
 
 	///	base class
-		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2> base_type;
+		typedef BaseLSFS<LagrangeLSFS<ReferenceQuadrilateral, TOrder>, 2> base_type;
 
 	public:
 	///	Shape type
@@ -764,7 +764,7 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 template <>
 class FlexLagrangeLSFS<ReferenceQuadrilateral>
 	: public LagrangeLDS<ReferenceQuadrilateral>,
-	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceQuadrilateral>, 2>
+	  public BaseLSFS<FlexLagrangeLSFS<ReferenceQuadrilateral>, 2>
 {
 	public:
 	///	Dimension, where shape functions are defined
@@ -910,14 +910,14 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 template <int TOrder>
 class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 	: public LagrangeLDS<ReferenceTetrahedron>,
-	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3>
+	  public BaseLSFS<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3>
 {
 	private:
 	///	abbreviation for order
 		static const size_t p = TOrder;
 
 	///	base class
-		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3> base_type;
+		typedef BaseLSFS<LagrangeLSFS<ReferenceTetrahedron, TOrder>, 3> base_type;
 
 	public:
 	///	Shape type
@@ -1121,7 +1121,7 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 template <>
 class FlexLagrangeLSFS<ReferenceTetrahedron>
 	: public LagrangeLDS<ReferenceTetrahedron>,
-	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceTetrahedron>, 3>
+	  public BaseLSFS<FlexLagrangeLSFS<ReferenceTetrahedron>, 3>
 {
 	public:
 	///	Dimension, where shape functions are defined
@@ -1327,7 +1327,7 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 template <int TOrder>
 class LagrangeLSFS<ReferencePrism, TOrder>
 	: public LagrangeLDS<ReferencePrism>,
-	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePrism, TOrder>, 3>
+	  public BaseLSFS<LagrangeLSFS<ReferencePrism, TOrder>, 3>
 {
 	private:
 	///	abbreviation for order
@@ -1337,7 +1337,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 		static const size_t dofPerLayer = BinomialCoefficient<2 + p, p>::value;
 
 	///	base class
-		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePrism, TOrder>, 3> base_type;
+		typedef BaseLSFS<LagrangeLSFS<ReferencePrism, TOrder>, 3> base_type;
 
 	public:
 	///	Shape type
@@ -1532,7 +1532,7 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 template <>
 class FlexLagrangeLSFS<ReferencePrism>
 	: public LagrangeLDS<ReferencePrism>,
-	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferencePrism>, 3>
+	  public BaseLSFS<FlexLagrangeLSFS<ReferencePrism>, 3>
 {
 	public:
 	///	Dimension, where shape functions are defined
@@ -1749,14 +1749,14 @@ template <> struct NumberOfDoFsOfPyramid<-1>{enum {value = 0};};
 template <int TOrder>
 class LagrangeLSFS<ReferencePyramid, TOrder>
 	: public LagrangeLDS<ReferencePyramid>,
-	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePyramid, TOrder>, 3>
+	  public BaseLSFS<LagrangeLSFS<ReferencePyramid, TOrder>, 3>
 {
 	private:
 	///	abbreviation for order
 		static const size_t p = TOrder;
 
 	///	base class
-		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferencePyramid, TOrder>, 3> base_type;
+		typedef BaseLSFS<LagrangeLSFS<ReferencePyramid, TOrder>, 3> base_type;
 
 	public:
 	///	Shape type
@@ -1962,14 +1962,14 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 template <int TOrder>
 class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	: public LagrangeLDS<ReferenceHexahedron>,
-	  public BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3>
+	  public BaseLSFS<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3>
 {
 	private:
 	///	abbreviation for order
 		static const size_t p = TOrder;
 
 	///	base class
-		typedef BaseLocalShapeFunctionSet<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3> base_type;
+		typedef BaseLSFS<LagrangeLSFS<ReferenceHexahedron, TOrder>, 3> base_type;
 
 	public:
 	///	Shape type
@@ -2114,7 +2114,7 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 template <>
 class FlexLagrangeLSFS<ReferenceHexahedron>
 	: public LagrangeLDS<ReferenceHexahedron>,
-	  public BaseLocalShapeFunctionSet<FlexLagrangeLSFS<ReferenceHexahedron>, 3>
+	  public BaseLSFS<FlexLagrangeLSFS<ReferenceHexahedron>, 3>
 {
 	public:
 	///	Dimension, where shape functions are defined

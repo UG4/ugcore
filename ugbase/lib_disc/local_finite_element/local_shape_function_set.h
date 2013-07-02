@@ -147,7 +147,7 @@ class LocalShapeFunctionSet : public DimLocalDoFSet<TDim>
 template <typename TImpl, int TDim,
 		  typename TShape = number,
 		  typename TGrad = MathVector<TDim> >
-class BaseLocalShapeFunctionSet
+class BaseLSFS
 {
 	public:
 	///	type of implementation
@@ -167,18 +167,6 @@ class BaseLocalShapeFunctionSet
 	//////////////////////////////////////////
 
 	public:
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return getImpl().continuous();}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return getImpl().num_sh();}
-
-	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
-		{
-			return getImpl().position(i, pos);
-		}
-
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
 		inline shape_type shape(size_t i, const MathVector<dim>& x) const
 		{
@@ -206,14 +194,14 @@ class BaseLocalShapeFunctionSet
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
 		inline void shapes(shape_type* vShape, const MathVector<dim>& x) const
 		{
-			for(size_t sh = 0; sh < num_sh(); ++sh)
+			for(size_t sh = 0; sh < getImpl().num_sh(); ++sh)
 				vShape[sh] = shape(sh, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
 		inline void shapes(std::vector<shape_type>& vShape, const MathVector<dim>& x) const
 		{
-			vShape.resize(num_sh()); shapes(&vShape[0], x);
+			vShape.resize(getImpl().num_sh()); shapes(&vShape[0], x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shapes()
@@ -228,14 +216,14 @@ class BaseLocalShapeFunctionSet
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		inline void grads(grad_type* vGrad, const MathVector<dim>& x) const
 		{
-			for(size_t sh = 0; sh < num_sh(); ++sh)
+			for(size_t sh = 0; sh < getImpl().num_sh(); ++sh)
 				grad(vGrad[sh], sh, x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()
 		inline void grads(std::vector<grad_type>& vGrad, const MathVector<dim>& x) const
 		{
-			vGrad.resize(num_sh()); grads(&vGrad[0], x);
+			vGrad.resize(getImpl().num_sh()); grads(&vGrad[0], x);
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grads()

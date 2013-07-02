@@ -5,54 +5,33 @@
  * Author: Christian Wehner
  */
 
-#ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__CROUZEIX_RAVIART__
-#define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__CROUZEIX_RAVIART__
+#ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__
+#define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__
 
-#include "../common/lagrange1d.h"
-#include "../local_finite_element_provider.h"
-#include "../local_dof_set.h"
-#include "lib_disc/common/multi_index.h"
-#include "common/util/provider.h"
-#include "common/util/metaprogramming_util.h"
 #include "lib_grid/grid/geometric_base_objects.h"
-#include "common/util/provider.h"
-#include "../local_dof_set.h"
 #include "lib_disc/reference_element/reference_element_util.h"
-#include "lib_disc/common/multi_index.h"
-
+#include "lib_disc/local_finite_element/local_shape_function_set.h"
 
 namespace ug{
 
 
 /// Crouzeix - Raviart Set
 template <typename TRefElem>
-class CrouzeixRaviartLDS : public LocalDoFSet
+class CrouzeixRaviartBase
 {
-	protected:
+	public:
 	///	dimension of reference element
-		static const int refDim = TRefElem::dim;
+		static const int dim = TRefElem::dim;
+
+	/// Number of shape functions
+		static const size_t nsh = TRefElem::numSides;
 
 	public:
 	///	constructor
-		CrouzeixRaviartLDS()
+		CrouzeixRaviartBase()
 		{
-			const TRefElem& rRefElem = Provider<TRefElem>::get();
-
-			p = 1;
-			if(refDim > 0)
-			{
-				nsh = rRefElem.num(refDim-1);
-
-			//	set local DoFs (all located at dim-1 objects)
-				m_vLocalDoF.resize(nsh);
-				for(size_t i = 0; i< rRefElem.num(refDim-1); ++i)
-					m_vLocalDoF[i] = LocalDoF(refDim-1, i, 0);
-			}
-			else
-			{
-				nsh = 0;
-				m_vLocalDoF.clear();
-			}
+			for(size_t i = 0; i < nsh; ++i)
+				m_vLocalDoF[i] = LocalDoF(dim-1, i, 0);
 		}
 
 	///	returns the type of reference element
@@ -60,12 +39,12 @@ class CrouzeixRaviartLDS : public LocalDoFSet
 
 	///	returns the total number of DoFs on the finite element
 		size_t num_dof() const {return nsh;};
+		size_t num_sh() const {return nsh;}
 
 	///	returns the number of DoFs on a sub-geometric object type
 		size_t num_dof(ReferenceObjectID type) const
 		{
-			const int d = ReferenceElementDimension(type);
-			if(d == refDim-1)   return 1;
+			if(ReferenceElementDimension(type) == dim-1) return 1;
 			else return 0;
 		}
 
@@ -75,15 +54,12 @@ class CrouzeixRaviartLDS : public LocalDoFSet
 	///	returns if the local dof position are exact
 		bool exact_position_available() const {return true;};
 
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		bool continuous() const {return false;}
+
 	protected:
-	///	number of shapes
-		size_t nsh;
-
-	///	order
-		size_t p;
-
 	///	association to elements
-		std::vector<LocalDoF> m_vLocalDoF;
+		LocalDoF m_vLocalDoF[nsh];
 };
 
 /// Lagrange Shape Function Set without virtual functions and fixed order
@@ -99,40 +75,16 @@ class CrouzeixRaviartLSFS;
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceTriangle>
-: public CrouzeixRaviartLDS<ReferenceTriangle>,
-  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceTriangle>, 2>
+: public CrouzeixRaviartBase<ReferenceTriangle>,
+  public BaseLSFS<CrouzeixRaviartLSFS<ReferenceTriangle>, 2>
 {
 	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
 	///	Dimension, where shape functions are defined
 		static const int dim = 2;
 
-	/// Number of shape functions
-		static const size_t nsh = 3;
 	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferenceTriangle reference_element_type;
-
-	public:
-	///	Constructor
-		CrouzeixRaviartLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -148,10 +100,8 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferenceTriangle::check_position(x);
-
 			switch(i)
 			{
 				case 0:	return 1-2*x[1];
@@ -163,10 +113,8 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
+		void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferenceTriangle::check_position(x);
-
 			switch(i)
 			{
 				case 0:	g[0] = 0.0;
@@ -191,41 +139,16 @@ class CrouzeixRaviartLSFS<ReferenceTriangle>
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
-: public CrouzeixRaviartLDS<ReferenceQuadrilateral>,
-  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceQuadrilateral>, 2>
+: public CrouzeixRaviartBase<ReferenceQuadrilateral>,
+  public BaseLSFS<CrouzeixRaviartLSFS<ReferenceQuadrilateral>, 2>
 {
 	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
 	///	Dimension, where shape functions are defined
 		static const int dim = 2;
 
-	/// Number of shape functions
-		static const size_t nsh = 4;
-
 	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferenceQuadrilateral reference_element_type;
-
-	public:
-	///	Constructor
-		CrouzeixRaviartLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -244,10 +167,8 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferenceQuadrilateral::check_position(x);
-
 			switch(i)
 			{
 				case 0:	return 0.75+x[0]-2*x[1]-x[0]*x[0]+x[1]*x[1];
@@ -260,10 +181,8 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
+		void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferenceQuadrilateral::check_position(x);
-
 			switch(i)
 			{
 				case 0:	g[0] = 1-2*x[0];
@@ -289,41 +208,16 @@ class CrouzeixRaviartLSFS<ReferenceQuadrilateral>
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceTetrahedron>
-: public CrouzeixRaviartLDS<ReferenceTetrahedron>,
-  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceTetrahedron>, 3>
+: public CrouzeixRaviartBase<ReferenceTetrahedron>,
+  public BaseLSFS<CrouzeixRaviartLSFS<ReferenceTetrahedron>, 3>
 {
 	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = 3;
-
-	/// Number of shape functions
-		static const size_t nsh = 4;
+		static const int dim = ReferenceTetrahedron::dim;
 
 	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferenceTetrahedron reference_element_type;
-
-	public:
-	///	Constructor
-		CrouzeixRaviartLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -346,10 +240,8 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferenceTetrahedron::check_position(x);
-
 			switch(i)
 			{
 				case 0:	return 1 - 3*x[2];;
@@ -362,10 +254,8 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
+		void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferenceTetrahedron::check_position(x);
-
 			switch(i)
 			{
 				case 0:	g[0] = 0.0;
@@ -396,41 +286,16 @@ class CrouzeixRaviartLSFS<ReferenceTetrahedron>
 
 template <>
 class CrouzeixRaviartLSFS<ReferenceHexahedron>
-: public CrouzeixRaviartLDS<ReferenceHexahedron>,
-  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceHexahedron>, 3>
+: public CrouzeixRaviartBase<ReferenceHexahedron>,
+  public BaseLSFS<CrouzeixRaviartLSFS<ReferenceHexahedron>, 3>
 {
 	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
 	///	Dimension, where shape functions are defined
-		static const int dim = 3;
-
-	/// Number of shape functions
-		static const size_t nsh = 6;
+		static const int dim = ReferenceHexahedron::dim;
 
 	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferenceHexahedron reference_element_type;
-
-	public:
-	///	Constructor
-		CrouzeixRaviartLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -459,10 +324,8 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferenceHexahedron::check_position(x);
-
 			switch(i)
 			{
 				case 0:	return 1.0/3.0*(2 + 2*x[0] + 2*x[1] - 7*x[2]-2*x[0]*x[0]-2*x[1]*x[1]+4*x[2]*x[2]);
@@ -477,10 +340,8 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
+		void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferenceHexahedron::check_position(x);
-
 			switch(i)
 			{
 				case 0:	g[0] = 1.0/3.0*(2-4*x[0]);
@@ -516,40 +377,16 @@ class CrouzeixRaviartLSFS<ReferenceHexahedron>
 
 template <>
 class CrouzeixRaviartLSFS<ReferencePrism>
-: public CrouzeixRaviartLDS<ReferencePrism>,
-  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferencePrism>, 3>
+: public CrouzeixRaviartBase<ReferencePrism>,
+  public BaseLSFS<CrouzeixRaviartLSFS<ReferencePrism>, 3>
 {
 	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
 	///	Dimension, where shape functions are defined
 		static const int dim = 3;
 
-	/// Number of shape functions
-		static const size_t nsh = 5;
 	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferencePrism reference_element_type;
-
-	public:
-	///	Constructor
-		CrouzeixRaviartLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -574,10 +411,8 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferencePrism::check_position(x);
-
 			switch(i)
 			{
 				case 0:	return 1+x[0]-x[1]-3*x[2]-2*(x[0]*x[0]-x[1]*x[1]-x[2]*x[2]);
@@ -591,10 +426,8 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
+		void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferencePrism::check_position(x);
-
 			switch(i)
 			{
 				case 0:	g[0] = 1-4*x[0];
@@ -628,41 +461,16 @@ class CrouzeixRaviartLSFS<ReferencePrism>
 
 template <>
 class CrouzeixRaviartLSFS<ReferencePyramid>
-: public CrouzeixRaviartLDS<ReferencePyramid>,
-  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferencePyramid>, 3>
+: public CrouzeixRaviartBase<ReferencePyramid>,
+  public BaseLSFS<CrouzeixRaviartLSFS<ReferencePyramid>, 3>
 {
 	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
 	///	Dimension, where shape functions are defined
 		static const int dim = 3;
 
-	/// Number of shape functions
-		static const size_t nsh = 5;
-
 	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferencePyramid reference_element_type;
-
-	public:
-	///	Constructor
-		CrouzeixRaviartLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
 	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
+		bool position(size_t i, MathVector<dim>& pos) const
 		{
 			switch(i)
 			{
@@ -687,10 +495,8 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		number shape(const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferencePyramid::check_position(x);
-
 			switch(i)
 			{
 				case 0:	return 1-3*x[2];
@@ -704,10 +510,8 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
+		void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
-			// ReferencePyramid::check_position(x);
-
 			switch(i)
 			{
 				case 0:	g[0] = 0.0;
@@ -734,5 +538,5 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 
 } //namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__CROUZEIX_RAVIART__ */
+#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__ */
 

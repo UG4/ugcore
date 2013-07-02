@@ -26,10 +26,10 @@ namespace ug{
 template <typename TRefElem>
 class LagrangeP1
 	: public LagrangeLDS<TRefElem>,
-	  public BaseLocalShapeFunctionSet<LagrangeP1<TRefElem>, TRefElem::dim>
+	  public BaseLSFS<LagrangeP1<TRefElem>, TRefElem::dim>
 {
 	///	base class
-		typedef BaseLocalShapeFunctionSet<LagrangeP1<TRefElem>, TRefElem::dim> base_type;
+		typedef BaseLSFS<LagrangeP1<TRefElem>, TRefElem::dim> base_type;
 
 	public:
 	///	Shape type

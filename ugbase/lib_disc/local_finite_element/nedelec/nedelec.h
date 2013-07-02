@@ -90,7 +90,7 @@ template <>
 class NedelecLSFS<ReferenceTriangle>
 : public NedelecLDS<ReferenceTriangle>,
   public
-	BaseLocalShapeFunctionSet
+	BaseLSFS
 		<
 			NedelecLSFS<ReferenceTriangle>,
 			ReferenceTriangle::dim, ///< dimensionality of the element
@@ -110,7 +110,7 @@ class NedelecLSFS<ReferenceTriangle>
 
 	private:
 	///	Base class
-		typedef BaseLocalShapeFunctionSet<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
+		typedef BaseLSFS<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
 
 	public:
 	///	Shape type
@@ -170,7 +170,7 @@ template <>
 class NedelecLSFS<ReferenceTetrahedron>
 : public NedelecLDS<ReferenceTetrahedron>,
   public
-	BaseLocalShapeFunctionSet
+	BaseLSFS
 		<
 			NedelecLSFS<ReferenceTetrahedron>,
 			ReferenceTetrahedron::dim, ///< dimensionality of the element
@@ -190,7 +190,7 @@ class NedelecLSFS<ReferenceTetrahedron>
 
 	private:
 	///	Base class
-		typedef BaseLocalShapeFunctionSet<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
+		typedef BaseLSFS<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
 
 	public:
 	///	Shape type
