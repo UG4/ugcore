@@ -53,7 +53,7 @@ void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
 			const int numDoF = clds.num_dof(roid);
 
 		//	check that numDoFs specified by this roid
-			if(numDoF == NOT_SPECIFIED || m_vvNumDoFsOnROID[roid][si]){
+			if(numDoF == NOT_SPECIFIED || m_vvNumDoFsOnROID[roid][si] == NOT_SPECIFIED){
 				m_vvNumDoFsOnROID[roid][si] = NOT_SPECIFIED;
 				m_vvvOffsets[roid][si][fct] = 0;
 				continue;
