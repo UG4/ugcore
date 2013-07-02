@@ -312,7 +312,8 @@ int main(int argc, char* argv[])
 			CATCH_STD_EXCEPTIONS();
 
 #ifdef UG_DEBUG
-			script::ParseBuffer("if util ~= nil and util.PrintIgnoredArguments ~= nil then util.PrintIgnoredArguments() end", "");
+			script::ParseBuffer("if util ~= nil and util.PrintIgnoredArguments ~= nil then util.PrintIgnoredArguments() end\n"
+								"if util ~= nil and util.CheckAndPrintHelp ~= nil then util.CheckAndPrintHelp(\"\") end", "");
 #endif
 
 			if(FindParam("-noquit", argc, argv))
