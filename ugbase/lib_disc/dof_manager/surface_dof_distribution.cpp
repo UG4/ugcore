@@ -880,7 +880,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 //	if this is not the case for non-grouped DoFs, we cannot allow reordering
 	if(!MGDoFDistribution::grouped())
 	{
-		size_t numDoFs = 0;
+		int numDoFs = 0;
 		for(int si = 0; si < num_subsets(); ++si)
 			for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 			{

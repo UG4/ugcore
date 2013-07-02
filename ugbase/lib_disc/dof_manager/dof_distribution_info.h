@@ -25,6 +25,8 @@ class DoFDistributionInfo : public FunctionPattern
 		enum{NOT_DEF_ON_SUBSET = (size_t) - 1};
 		///	indication that function is not defined on a subset
 		enum{NOT_YET_ASSIGNED = (size_t) - 2};
+		///	indicate not set value
+		enum{NOT_SPECIFIED = CommonLocalDoFSet::NOT_SPECIFIED};
 
 	public:
 		/// constructor
@@ -48,14 +50,14 @@ class DoFDistributionInfo : public FunctionPattern
 
 
 		///	returns the maximum number of dofs on a Reference Object
-		inline size_t num_dofs(const ReferenceObjectID roid, const int si) const {
+		int num_dofs(const ReferenceObjectID roid, const int si) const {
 			UG_ASSERT((int)roid >= 0 && (int)roid < NUM_REFERENCE_OBJECTS, "Invalid subset.")
 			UG_ASSERT(si >= 0 && si < (int)m_vvNumDoFsOnROID[roid].size(), "Invalid subset.")
 			return m_vvNumDoFsOnROID[roid][si];
 		}
 
 		///	returns the number of dofs on a subelement of an element
-		size_t num_dofs(size_t fct, const ReferenceObjectID roid) const {return m_vNumDoFOnSubelem[roid][fct];}
+		int num_dofs(size_t fct, const ReferenceObjectID roid) const {return m_vNumDoFOnSubelem[roid][fct];}
 
 
 		/// returns maximal dimension where to dofs must be ordered
@@ -83,7 +85,7 @@ class DoFDistributionInfo : public FunctionPattern
 		std::vector<std::vector<size_t> > m_vvvOffsets[NUM_REFERENCE_OBJECTS];
 
 		///	number of DoFs on a reference element type on a subset
-		std::vector<size_t> m_vvNumDoFsOnROID[NUM_REFERENCE_OBJECTS];
+		std::vector<int> m_vvNumDoFsOnROID[NUM_REFERENCE_OBJECTS];
 
 		///	maximum number of DoFs on a reference type
 		size_t m_vMaxDoFsOnROID[NUM_REFERENCE_OBJECTS];
@@ -98,7 +100,7 @@ class DoFDistributionInfo : public FunctionPattern
 		std::vector<int> m_vMaxDimToOrderDoFs;
 
 		///	number Dofs for local DoF set and subelement of element
-		std::vector<size_t> m_vNumDoFOnSubelem[NUM_REFERENCE_OBJECTS];
+		std::vector<int> m_vNumDoFOnSubelem[NUM_REFERENCE_OBJECTS];
 };
 
 
@@ -184,10 +186,10 @@ class DoFDistributionInfoProvider{
 
 
 		///	returns the maximum number of dofs on a Reference Object
-		size_t num_dofs(const ReferenceObjectID roid, const int si) const {return m_spDDI->num_dofs(roid, si);}
+		int num_dofs(const ReferenceObjectID roid, const int si) const {return m_spDDI->num_dofs(roid, si);}
 
 		///	returns the number of dofs on a subelement of an element
-		size_t num_dofs(size_t fct, const ReferenceObjectID roid) const {return m_spDDI->num_dofs(fct, roid);}
+		int num_dofs(size_t fct, const ReferenceObjectID roid) const {return m_spDDI->num_dofs(fct, roid);}
 
 
 		/// returns maximal dimension where to dofs must be ordered

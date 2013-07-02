@@ -22,7 +22,7 @@
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/multi_index.h"
 #include "lib_disc/reference_element/reference_element.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv_util.h"
 #include "lib_grid/algorithms/debug_util.h"
 
@@ -1074,7 +1074,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 	if(m_bSelectAll)
 		for(size_t fct = 0; fct < u.num_fct(); ++fct)
 			if(!vtk_name_used(u.name(fct).c_str()))
-				if(LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct)))
+				if(LocalFiniteElementProvider::continuous(u.local_finite_element_id(fct)))
 					select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
 
 	if(!m_vSymbFct.empty()){
@@ -1086,7 +1086,7 @@ write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& g
 			bool bContinuous = true;
 			for(size_t i = 0; i < symbNames.size(); ++i){
 				size_t fct = u.fct_id_by_name(symbNames[i].c_str());
-				if(!LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct))){
+				if(!LocalFiniteElementProvider::continuous(u.local_finite_element_id(fct))){
 					bContinuous = false; break;
 				}
 			}
@@ -1342,7 +1342,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 	{
 		const LFEID lfeID = u.local_finite_element_id(vFct[f]);
 		const LocalShapeFunctionSet<dim>& lsfs
-			 = LocalShapeFunctionSetProvider::get<dim>(roid, lfeID);
+			 = LocalFiniteElementProvider::get<dim>(roid, lfeID);
 
 		vNsh[f] = lsfs.num_sh();
 		lsfs.shapes(vvShape[f], localIP);
@@ -1443,7 +1443,7 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 	if(m_bSelectAll)
 		for(size_t fct = 0; fct < u.num_fct(); ++fct)
 			if(!vtk_name_used(u.name(fct).c_str()))
-				if(!LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct)))
+				if(!LocalFiniteElementProvider::continuous(u.local_finite_element_id(fct)))
 					select_element(u.name(fct).c_str(), u.name(fct).c_str());
 
 	if(!m_vSymbFct.empty()){
@@ -1455,7 +1455,7 @@ write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& gr
 			bool bContinuous = true;
 			for(size_t i = 0; i < symbNames.size(); ++i){
 				size_t fct = u.fct_id_by_name(symbNames[i].c_str());
-				if(!LocalShapeFunctionSetProvider::continuous(u.local_finite_element_id(fct))){
+				if(!LocalFiniteElementProvider::continuous(u.local_finite_element_id(fct))){
 					bContinuous = false; break;
 				}
 			}

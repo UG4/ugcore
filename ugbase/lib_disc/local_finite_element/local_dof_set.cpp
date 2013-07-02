@@ -6,168 +6,9 @@
  */
 
 #include "local_dof_set.h"
-#include "lagrange/lagrange_local_dof.h"
-#include "crouzeix-raviart/crouzeix_raviart_local_dof.h"
-#include "piecewise_constant/piecewise_constant_local_dof.h"
-#include "mini/mini_local_dof.h"
-#include "nedelec/nedelec_local_dof.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
-
-LocalDoFSetProvider::
-~LocalDoFSetProvider()
-{};
-
-template <typename TRefElem>
-void LocalDoFSetProvider::create_set(const LFEID& id)
-{
-	switch(id.type()){
-		case LFEID::LAGRANGE:
-			register_set(id, ConstSmartPtr<LocalDoFSet>(new LagrangeLDS<TRefElem>(id.order())));
-			return;
-		case LFEID::PIECEWISE_CONSTANT:
-			register_set(id, ConstSmartPtr<LocalDoFSet>(new PiecewiseConstantLDS<TRefElem>));
-			return;
-		case LFEID::CROUZEIX_RAVIART:
-			register_set(id, ConstSmartPtr<LocalDoFSet>(new CrouzeixRaviartLDS<TRefElem>));
-			return;
-		case LFEID::MINI:
-			register_set(id, ConstSmartPtr<LocalDoFSet>(new MiniBubbleLDS<TRefElem>));
-			return;
-		case LFEID::NEDELEC:
-			register_set(id, ConstSmartPtr<LocalDoFSet>(new NedelecLDS<TRefElem>));
-			return;
-		default: return;
-	}
-}
-
-void LocalDoFSetProvider::
-create_set(ReferenceObjectID roid, const LFEID& id)
-{
-	try{
-	//	switch type
-		switch(roid)
-		{
-			case ROID_VERTEX:		create_set<ReferenceVertex>(id); return;
-			case ROID_EDGE:			create_set<ReferenceEdge>(id); return;
-			case ROID_TRIANGLE:		create_set<ReferenceTriangle>(id); return;
-			case ROID_QUADRILATERAL:create_set<ReferenceQuadrilateral>(id); return;
-			case ROID_TETRAHEDRON:	create_set<ReferenceTetrahedron>(id); return;
-			case ROID_PRISM:		create_set<ReferencePrism>(id); return;
-			case ROID_PYRAMID:		create_set<ReferencePyramid>(id); return;
-			case ROID_HEXAHEDRON:	create_set<ReferenceHexahedron>(id); return;
-			default: return;
-		}
-	}
-	UG_CATCH_THROW("LocalDoFSetProvider: Creation of set "<<id<<
-					" for "<<roid<<" failed.");
-}
-void LocalDoFSetProvider::
-create_set(const LFEID& id)
-{
-	for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid)
-		create_set((ReferenceObjectID)roid, id);
-}
-
-const LocalDoFSet& LocalDoFSetProvider::
-get(ReferenceObjectID roid, const LFEID& id, bool bCreate)
-{
-//	init provider and search for identifier
-	RoidMap::const_iterator iter = inst().m_mRoidDoFSet.find(id);
-
-//	if not found
-	if(iter == m_mRoidDoFSet.end()){
-		if(bCreate){
-			create_set(id);
-			return get(roid, id, false);
-		}
-		UG_THROW("LocalDoFSetProvider: Cannot create LocalDoFSet for finite "
-				"element type "<<id<<" and "<<roid);
-	}
-
-//	get vector
-	const std::vector<ConstSmartPtr<LocalDoFSet> >& vBase = iter->second;
-
-//	check that dof set registered
-	if(vBase[roid].invalid()){
-		if(bCreate){
-			create_set(id);
-			return get(roid, id, false);
-		}
-		UG_THROW("LocalDoFSetProvider: Cannot create LocalDoFSet for finite "
-				"element type "<<id<<" and "<<roid);
-	}
-
-//	return dof set
-	return *(vBase[roid]);
-}
-
-const CommonLocalDoFSet& LocalDoFSetProvider::
-get(const LFEID& id, bool bCreate)
-{
-//	init provider and search for identifier
-	CommonMap::const_iterator iter = inst().m_mCommonDoFSet.find(id);
-
-//	if not found
-	if(iter == m_mCommonDoFSet.end()){
-		if(bCreate)	{
-			create_set(id);
-			return get(id, false);
-		}
-		UG_THROW("LocalDoFSetProvider: Cannot create CommonLocalDoFSet for "<<id);
-	}
-
-//	return the common set
-	return iter->second;
-}
-
-
-void LocalDoFSetProvider::register_set(const LFEID& id, ConstSmartPtr<LocalDoFSet> set)
-{
-//	reference object id
-	const ReferenceObjectID roid = set->roid();
-
-//	get vector of types
-	std::vector<ConstSmartPtr<LocalDoFSet> >& vBase = m_mRoidDoFSet[id];
-
-//	resize vector
-	vBase.resize(NUM_REFERENCE_OBJECTS, NULL);
-
-//	if ok, add
-	vBase[roid] = set;
-
-//	for creation of CommonLocalDoFSet: skip if not the dimension of the space
-	if(set->dim() != id.dim()) return;
-
-//	add this local dof set
-	try{
-		m_mCommonDoFSet[id].add(*set);
-	}
-	catch(UGError& err)
-	{
-	//	write error message
-		std::stringstream ss;
-		ss<<"LocalDoFSetProvider::register_set(): "
-				"Cannot build CommonLocalDoFSet for type: "<<id<<" when adding "
-				" Reference element type "<<roid<<".\n"<<
-				"CommonLocalDoFSet is:\n" << m_mCommonDoFSet[id]<<
-				"LocalDoFSet is:\n" << *set;
-		err.push_msg(ss.str(),__FILE__,__LINE__);
-
-	//	remove set
-		m_mCommonDoFSet.erase(id);
-
-		throw(err);
-	}
-}
-
-std::map<LFEID, std::vector<ConstSmartPtr<LocalDoFSet> > >
-LocalDoFSetProvider::m_mRoidDoFSet =
-		std::map<LFEID, std::vector<ConstSmartPtr<LocalDoFSet> > >();
-
-std::map<LFEID, CommonLocalDoFSet>
-LocalDoFSetProvider::m_mCommonDoFSet = std::map<LFEID, CommonLocalDoFSet>();
 
 ////////////////////////////////////////////////////////////////////////////////
 // 	LocalDoFSet
@@ -191,6 +32,24 @@ size_t LocalDoFSet::num_dof(int d, size_t id) const
 	return num_dof(rRefElem.roid(d, id));
 }
 
+bool LocalDoFSet::operator==(const LocalDoFSet& v) const
+{
+	if(roid() != v.roid()) return false;
+	if(dim() != v.dim()) return false;
+
+	if(num_dof() != v.num_dof()) return false;
+
+	for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
+		const ReferenceObjectID roid = (ReferenceObjectID)r;
+		if(num_dof(roid) != v.num_dof(roid)) return false;
+	}
+
+	for(size_t dof = 0; dof < num_dof(); ++dof)
+		if(local_dof(dof) != v.local_dof(dof)) return false;
+
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // 	DimLocalDoFSet
 ////////////////////////////////////////////////////////////////////////////////
@@ -199,6 +58,26 @@ template <int TDim>
 DimLocalDoFSet<TDim>::DimLocalDoFSet(){
 }
 
+template <int TDim>
+bool DimLocalDoFSet<TDim>::operator==(const DimLocalDoFSet<TDim>& v) const
+{
+	if(*dynamic_cast<const LocalDoFSet*>(this) != *dynamic_cast<const LocalDoFSet*>(&v))
+		return false;
+
+	if(exact_position_available() != v.exact_position_available()) return false;
+
+	for(size_t dof = 0; dof < num_dof(); ++dof){
+		MathVector<TDim> pos, vpos;
+		position(dof, pos);
+		v.position(dof, vpos);
+
+		if(pos != vpos) return false;
+	}
+
+	return true;
+}
+
+template class DimLocalDoFSet<0>;
 template class DimLocalDoFSet<1>;
 template class DimLocalDoFSet<2>;
 template class DimLocalDoFSet<3>;
@@ -239,28 +118,54 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 	}
 }
 
-/// writes to the output stream
+std::ostream& operator<<(std::ostream& out,	const LocalDoF& v)
+{
+	out <<"("<<v.dim()<<","<<v.id()<<","<<v.offset()<<")";
+	return out;
+}
+
 std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
 		ReferenceObjectID roid = (ReferenceObjectID) i;
 
-		out << std::setw(14) << roid << ":   " << v.num_dof(roid) << "\n";
+		out << std::setw(14) << roid << ":   ";
+		if(v.num_dof(roid) == CommonLocalDoFSet::NOT_SPECIFIED)
+			out << "(not specified)";
+		else
+			out << v.num_dof(roid);
+		out << "\n";
 	}
 	return out;
 }
 
-/// writes to the output stream
 std::ostream& operator<<(std::ostream& out,	const LocalDoFSet& v)
 {
 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 	{
 		ReferenceObjectID roid = (ReferenceObjectID) i;
-
 		out << std::setw(14) << roid << ":   " << v.num_dof(roid) << "\n";
 	}
 	return out;
 }
+
+template <int dim>
+std::ostream& operator<<(std::ostream& out,	const DimLocalDoFSet<dim>& v)
+{
+	out << *dynamic_cast<const LocalDoFSet*>(&v);
+
+	for(size_t dof = 0; dof < v.num_dof(); ++dof){
+		out << "DoF "<<std::setw(3)<<dof<<": ";
+		MathVector<dim> pos; v.position(dof, pos);
+		out << v.local_dof(dof) << ", " << pos << "\n";
+	}
+	return out;
+}
+
+template std::ostream& operator<<(std::ostream& out, const DimLocalDoFSet<0>& v);
+template std::ostream& operator<<(std::ostream& out, const DimLocalDoFSet<1>& v);
+template std::ostream& operator<<(std::ostream& out, const DimLocalDoFSet<2>& v);
+template std::ostream& operator<<(std::ostream& out, const DimLocalDoFSet<3>& v);
 
 } // end namespace ug

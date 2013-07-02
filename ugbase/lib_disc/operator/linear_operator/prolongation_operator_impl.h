@@ -10,7 +10,7 @@
 
 #include "prolongation_operator.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 
 namespace ug{
@@ -230,7 +230,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 				coarseDD.multi_indices(coarseElem, fct, vCoarseMultInd);
 
 			//	get local finite element trial spaces
-				const LocalShapeFunctionSet<dim>& lsfs = LocalShapeFunctionSetProvider::get<dim>(roid, vLFEID[fct]);
+				const LocalShapeFunctionSet<dim>& lsfs = LocalFiniteElementProvider::get<dim>(roid, vLFEID[fct]);
 
 			//	get corner coordinates
 				std::vector<MathVector<dim> > vCornerCoarse;

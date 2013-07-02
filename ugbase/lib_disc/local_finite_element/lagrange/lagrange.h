@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGE__LAGRANGE__
 
 #include "../common/lagrange1d.h"
-#include "../local_shape_function_set.h"
+#include "../local_finite_element_provider.h"
 #include "../local_dof_set.h"
 #include "lagrange_local_dof.h"
 #include "lib_disc/common/multi_index.h"
@@ -67,9 +67,6 @@ class LagrangeLSFS<ReferenceEdge, TOrder>
 	public:
 	///	Constructor
 		LagrangeLSFS();
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -167,9 +164,6 @@ class FlexLagrangeLSFS<ReferenceEdge>
 
 	///	sets the order
 		void set_order(size_t order);
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -287,9 +281,6 @@ class LagrangeLSFS<ReferenceTriangle, TOrder>
 	public:
 	///	Constructor
 		LagrangeLSFS();
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -459,9 +450,6 @@ class FlexLagrangeLSFS<ReferenceTriangle>
 
 	///	sets the order
 		void set_order(size_t order);
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -655,9 +643,6 @@ class LagrangeLSFS<ReferenceQuadrilateral, TOrder>
 	///	Constructor
 		LagrangeLSFS();
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
 
@@ -794,9 +779,6 @@ class FlexLagrangeLSFS<ReferenceQuadrilateral>
 
 	///	sets the order
 		void set_order(size_t order);
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -957,9 +939,6 @@ class LagrangeLSFS<ReferenceTetrahedron, TOrder>
 	public:
 	///	Constructor
 		LagrangeLSFS();
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -1157,9 +1136,6 @@ class FlexLagrangeLSFS<ReferenceTetrahedron>
 
 	///	sets the order
 		void set_order(size_t order);
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -1384,9 +1360,6 @@ class LagrangeLSFS<ReferencePrism, TOrder>
 	///	Constructor
 		LagrangeLSFS();
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
 
@@ -1574,9 +1547,6 @@ class FlexLagrangeLSFS<ReferencePrism>
 
 	///	sets the order
 		void set_order(size_t order);
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
@@ -1809,9 +1779,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 	///	Constructor
 		LagrangeLSFS();
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
 
@@ -2025,9 +1992,6 @@ class LagrangeLSFS<ReferenceHexahedron, TOrder>
 	///	Constructor
 		LagrangeLSFS();
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
-
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}
 
@@ -2165,9 +2129,6 @@ class FlexLagrangeLSFS<ReferenceHexahedron>
 
 	///	sets the order
 		void set_order(size_t order);
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, p);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		inline bool continuous() const {return true;}

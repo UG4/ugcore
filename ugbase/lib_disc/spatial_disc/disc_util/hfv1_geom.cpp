@@ -464,7 +464,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 		m_vSCVF[i].detj = m_rMapping.sqrt_gram_det(m_vSCVF[i].localIP);
 
 		const LocalShapeFunctionSet<ref_elem_type::dim>& TrialSpace =
-				LocalShapeFunctionSetProvider::
+				LocalFiniteElementProvider::
 					get<ref_elem_type::dim>
 						(ref_elem_type::REFERENCE_OBJECT_ID,
 						 LFEID(LFEID::LAGRANGE, ref_elem_type::dim, 1));

@@ -16,7 +16,7 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/quadrature/quadrature_provider.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fv1_geom.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
@@ -620,7 +620,7 @@ class L2ErrorIntegrand
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
+							LocalFiniteElementProvider::get<elemDim>(roid, m_id);
 
 		//	number of dofs on element
 			const size_t num_sh = rTrialSpace.num_sh();
@@ -820,9 +820,9 @@ class L2DiffIntegrand
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rFineLSFS =
-					LocalShapeFunctionSetProvider::get<elemDim>(fineROID, m_fineLFEID);
+					LocalFiniteElementProvider::get<elemDim>(fineROID, m_fineLFEID);
 			const LocalShapeFunctionSet<elemDim>& rCoarseLSFS =
-					LocalShapeFunctionSetProvider::get<elemDim>(coarseROID, m_coarseLFEID);
+					LocalFiniteElementProvider::get<elemDim>(coarseROID, m_coarseLFEID);
 
 		//	get multiindices of element
 			std::vector<MultiIndex<2> > vFineMI, vCoarseMI;
@@ -987,7 +987,7 @@ class H1ErrorIntegrand
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
+							LocalFiniteElementProvider::get<elemDim>(roid, m_id);
 
 		//	number of dofs on element
 			const size_t num_sh = rTrialSpace.num_sh();
@@ -1209,9 +1209,9 @@ class H1DiffIntegrand
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rFineLSFS =
-					LocalShapeFunctionSetProvider::get<elemDim>(fineROID, m_fineLFEID);
+					LocalFiniteElementProvider::get<elemDim>(fineROID, m_fineLFEID);
 			const LocalShapeFunctionSet<elemDim>& rCoarseLSFS =
-					LocalShapeFunctionSetProvider::get<elemDim>(coarseROID, m_coarseLFEID);
+					LocalFiniteElementProvider::get<elemDim>(coarseROID, m_coarseLFEID);
 
 		//	get multiindices of element
 			std::vector<MultiIndex<2> > vFineMI, vCoarseMI;
@@ -1376,7 +1376,7 @@ class L2FuncIntegrand
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
+							LocalFiniteElementProvider::get<elemDim>(roid, m_id);
 
 		//	number of dofs on element
 			const size_t num_sh = rTrialSpace.num_sh();
@@ -1497,7 +1497,7 @@ class StdFuncIntegrand
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
-							LocalShapeFunctionSetProvider::get<elemDim>(roid, m_id);
+							LocalFiniteElementProvider::get<elemDim>(roid, m_id);
 
 		//	number of dofs on element
 			const size_t num_sh = rTrialSpace.num_sh();

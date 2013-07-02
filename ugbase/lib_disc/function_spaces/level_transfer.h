@@ -10,7 +10,7 @@
 
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 
 namespace ug{
 
@@ -261,7 +261,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 
 			//	get local finite element trial spaces
 				const LocalShapeFunctionSet<dim>& lsfs
-					= LocalShapeFunctionSetProvider::get<dim>(coarseROID, vCoarseLFEID[fct]);
+					= LocalFiniteElementProvider::get<dim>(coarseROID, vCoarseLFEID[fct]);
 
 			//	get corner coordinates
 				std::vector<MathVector<dim> > vCornerCoarse;
@@ -525,7 +525,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 
 					//	get local finite element trial spaces
 						const LocalShapeFunctionSet<locDim>& lsfs
-							= LocalShapeFunctionSetProvider::get<locDim>(fineROID, vFineLFEID[fct]);
+							= LocalFiniteElementProvider::get<locDim>(fineROID, vFineLFEID[fct]);
 
 					//	get Reference Mapping
 						DimReferenceMapping<locDim, dim>& map

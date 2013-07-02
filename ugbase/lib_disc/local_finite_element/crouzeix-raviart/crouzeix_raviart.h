@@ -9,102 +9,86 @@
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__CROUZEIX_RAVIART__
 
 #include "../common/lagrange1d.h"
-#include "../local_shape_function_set.h"
+#include "../local_finite_element_provider.h"
 #include "../local_dof_set.h"
-#include "crouzeix_raviart_local_dof.h"
 #include "lib_disc/common/multi_index.h"
 #include "common/util/provider.h"
 #include "common/util/metaprogramming_util.h"
 #include "lib_grid/grid/geometric_base_objects.h"
+#include "common/util/provider.h"
+#include "../local_dof_set.h"
+#include "lib_disc/reference_element/reference_element_util.h"
+#include "lib_disc/common/multi_index.h"
+
 
 namespace ug{
+
+
+/// Crouzeix - Raviart Set
+template <typename TRefElem>
+class CrouzeixRaviartLDS : public LocalDoFSet
+{
+	protected:
+	///	dimension of reference element
+		static const int refDim = TRefElem::dim;
+
+	public:
+	///	constructor
+		CrouzeixRaviartLDS()
+		{
+			const TRefElem& rRefElem = Provider<TRefElem>::get();
+
+			p = 1;
+			if(refDim > 0)
+			{
+				nsh = rRefElem.num(refDim-1);
+
+			//	set local DoFs (all located at dim-1 objects)
+				m_vLocalDoF.resize(nsh);
+				for(size_t i = 0; i< rRefElem.num(refDim-1); ++i)
+					m_vLocalDoF[i] = LocalDoF(refDim-1, i, 0);
+			}
+			else
+			{
+				nsh = 0;
+				m_vLocalDoF.clear();
+			}
+		}
+
+	///	returns the type of reference element
+		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+
+	///	returns the total number of DoFs on the finite element
+		size_t num_dof() const {return nsh;};
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_dof(ReferenceObjectID type) const
+		{
+			const int d = ReferenceElementDimension(type);
+			if(d == refDim-1)   return 1;
+			else return 0;
+		}
+
+	///	returns the dof storage
+		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
+
+	///	returns if the local dof position are exact
+		bool exact_position_available() const {return true;};
+
+	protected:
+	///	number of shapes
+		size_t nsh;
+
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
+};
 
 /// Lagrange Shape Function Set without virtual functions and fixed order
 template <typename TRefElem>
 class CrouzeixRaviartLSFS;
-
-////////////////////////////////////////////////////////////////////////////////
-//	ReferenceEdge
-//
-//  function space span {1,x}
-//
-////////////////////////////////////////////////////////////////////////////////
-
-template <>
-class CrouzeixRaviartLSFS<ReferenceEdge>
-: public CrouzeixRaviartLDS<ReferenceEdge>,
-  public BaseLocalShapeFunctionSet<CrouzeixRaviartLSFS<ReferenceEdge>, 1>
-{
-	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
-	///	Dimension, where shape functions are defined
-		static const int dim = 1;
-
-	/// Number of shape functions
-		static const size_t nsh = 2;
-
-	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferenceEdge reference_element_type;
-
-	public:
-	///	Constructor
-		CrouzeixRaviartLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
-		{
-			switch(i)
-			{
-				case 0:	pos[0] = 0;return true;
-				case 1:	pos[0] = 1;return true;
-				default: UG_THROW("CrouzeixRaviartLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
-		{
-			// ReferenceEdge::check_position(x);
-
-			switch(i)
-			{
-				case 0:	return 1-x[0];
-				case 1:	return x[0];
-				default: UG_THROW("CrouzeixRaviartLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
-		{
-			// ReferenceEdge::check_position(x);
-
-			switch(i)
-			{
-				case 0:	g[0] = -1.0;
-				case 1:	g[0] =  1.0;
-				default: UG_THROW("CrouzeixRaviartLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ReferenceTriangle

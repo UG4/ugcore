@@ -17,7 +17,7 @@
 
 // library intern includes
 #include "lib_disc/reference_element/reference_element.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "fv_util.h"
 #include "fv1_geom.h"
 

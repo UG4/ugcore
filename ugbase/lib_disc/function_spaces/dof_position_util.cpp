@@ -11,7 +11,7 @@
 #include "lib_disc/domain_util.h"
 #include "lib_disc/domain_traits.h"
 
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/reference_element/reference_element_util.h"
@@ -28,7 +28,7 @@ bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObject
 {
 //	\TODO: This is a lousy quick-hack. Remove, when dof pos on lower dim elemens
 	//		can be handeled correctly for non-lagrangian spaces.
-	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
+/*	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
 	{
 		vPos.clear();
 		if(lfeID.dim() != refDim+1) return true;
@@ -70,17 +70,13 @@ bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObject
 		vPos.push_back(center);
 		return true;
 	}
-
+*/
 //	create a reference mapping
 	const DimReferenceMapping<refDim,dim>& map =
 					ReferenceMappingProvider::get<refDim,dim>(roid, vVertPos);
 
-//	get local shape function set
-	const LocalShapeFunctionSet<refDim>& lsfs
-					= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
-
 //	get local dof set
-	const LocalDoFSet& lds = LocalDoFSetProvider::get(roid, lfeID);
+	const DimLocalDoFSet<refDim>& lds = LocalFiniteElementProvider::get_dofs<refDim>(roid, lfeID);
 
 //	clear pos
 	vPos.clear();
@@ -89,14 +85,14 @@ bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObject
 	bool bExact = true;
 
 //	loop all shape functions
-	for(size_t sh = 0; sh < lsfs.num_sh(); ++sh)
+	for(size_t sh = 0; sh < lds.num_sh(); ++sh)
 	{
 	//	check if dof in interior
 		if(lds.local_dof(sh).dim() != refDim) continue;
 
 	//	get local position
 		MathVector<refDim> locPos;
-		bExact &= lsfs.position(sh, locPos);
+		bExact &= lds.position(sh, locPos);
 
 	//	map to global position
 		MathVector<dim> globPos;
@@ -117,13 +113,13 @@ bool InnerDoFPositionVertex(std::vector<MathVector<dim> >& vPos, const Reference
 	UG_ASSERT(vVertPos.size() == 1, "Vertex should have only on inner Vertex");
 
 //	get local dof set
-	const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(lfeID);
+	const CommonLocalDoFSet& lds = LocalFiniteElementProvider::get_dofs(lfeID);
 
 //	clear pos
 	vPos.clear();
 
 //	loop all shape functions
-	for(size_t sh = 0; sh < lds.num_dof(ROID_VERTEX); ++sh)
+	for(int sh = 0; sh < lds.num_dof(ROID_VERTEX); ++sh)
 		vPos.push_back(vVertPos[0]);
 
 //	return if positions are given exactly
@@ -175,7 +171,7 @@ bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID ro
 {
 //	\TODO: This is a lousy quick-hack. Remove, when dof pos on lower dim elemens
 	//		can be handeled correctly for non-lagrangian spaces.
-	if(lfeID.type() == LFEID::CROUZEIX_RAVIART)
+/*	if(lfeID.type() == LFEID::CROUZEIX_RAVIART)
 	{
 		vPos.clear();
 
@@ -228,27 +224,27 @@ bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID ro
 		vPos.push_back(center);
 		return true;
 	}
-
+*/
 //	create a reference mapping
 	const DimReferenceMapping<refDim,dim>& map =
 					ReferenceMappingProvider::get<refDim,dim>(roid, vVertPos);
 
 //	get local shape function set
-	const LocalShapeFunctionSet<refDim>& lsfs
-					= LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
+	const DimLocalDoFSet<refDim>& lds
+					= LocalFiniteElementProvider::get_dofs<refDim>(roid, lfeID);
 
 //	clear pos
-	vPos.resize(lsfs.num_sh());
+	vPos.resize(lds.num_sh());
 
 //	bool flag if position is exact, or no exact position available for shapes
 	bool bExact = true;
 
 //	loop all shape functions
-	for(size_t sh = 0; sh < lsfs.num_sh(); ++sh)
+	for(size_t sh = 0; sh < lds.num_sh(); ++sh)
 	{
 	//	get local position
 		MathVector<refDim> locPos;
-		bExact &= lsfs.position(sh, locPos);
+		bExact &= lds.position(sh, locPos);
 
 	//	map to global position
 		map.local_to_global(vPos[sh], locPos);
@@ -263,14 +259,14 @@ bool DoFPositionVertex(std::vector<MathVector<dim> >& vPos, const ReferenceObjec
                        const std::vector<MathVector<dim> >& vVertPos, const LFEID& lfeID)
 {
 //	get local dof set
-	const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(lfeID);
+	const CommonLocalDoFSet& lds = LocalFiniteElementProvider::get_dofs(lfeID);
 
 //	clear pos
 	vPos.clear();
 
 //	loop all shape functions
 	for(size_t co = 0; co < vVertPos.size(); ++co)
-		for(size_t sh = 0; sh < lds.num_dof(ROID_VERTEX); ++sh)
+		for(int sh = 0; sh < lds.num_dof(ROID_VERTEX); ++sh)
 		vPos.push_back(vVertPos[co]);
 
 //	return if positions are given exactly

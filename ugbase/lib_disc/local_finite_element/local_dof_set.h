@@ -65,6 +65,14 @@ class LocalDoF
 	///	returns the offset for the geometric object
 		inline size_t offset() const {return m_offset;}
 
+	///	equality check
+		bool operator==(const LocalDoF& v) const{
+			return dim() == v.dim() && id() == v.id() && offset() == v.offset();
+		}
+
+	///	inequality check
+		bool operator!=(const LocalDoF& v) const {return !((*this)==v);}
+
 	protected:
 	///	dimension of sub-geometric object
 		int m_dim;
@@ -75,6 +83,9 @@ class LocalDoF
 	///	offset if several DoFs associated to the same geometric object
 		size_t m_offset;
 };
+
+/// writes to the output stream
+std::ostream& operator<<(std::ostream& out,	const LocalDoF& v);
 
 /**
  * This class provides the interface for the storage of degrees of freedom
@@ -88,9 +99,6 @@ class LocalDoFSet
 
 	///	returns the Reference object id of the corresponding grid object
 		virtual ReferenceObjectID roid() const = 0;
-
-	///	type of shape functions
-		virtual LFEID type() const = 0;
 
 	///	returns the total number of dofs on the finite element
 	/// \{
@@ -106,6 +114,12 @@ class LocalDoFSet
 
 	///	returns the number of DoFs on a sub-geometric object of dim and id
 		size_t num_dof(int d, size_t id) const;
+
+	///	equality check
+		bool operator==(const LocalDoFSet& v) const;
+
+	///	inequality check
+		bool operator!=(const LocalDoFSet& v) const {return !((*this)==v);}
 
 	///	virtual destructor
 		virtual ~LocalDoFSet() {};
@@ -133,22 +147,31 @@ class DimLocalDoFSet : public LocalDoFSet
 	 * \retval		false 	if no meaningful position available
 	 */
 		virtual bool position(size_t i, MathVector<TDim>& pos) const = 0;
+
+	///	equality check
+		bool operator==(const DimLocalDoFSet<TDim>& v) const;
+
+	///	inequality check
+		bool operator!=(const DimLocalDoFSet<TDim>& v) const {return !((*this)==v);}
 };
 
 /// @}
 
 /// writes to the output stream
 std::ostream& operator<<(std::ostream& out,	const LocalDoFSet& v);
+/// writes to the output stream
+template <int dim>
+std::ostream& operator<<(std::ostream& out,	const DimLocalDoFSet<dim>& v);
 
 /**
  * Intersection of local dof sets
  */
 class CommonLocalDoFSet
 {
+	public:
 	///	indicate not set value
 		enum{NOT_SPECIFIED = -1};
 
-	public:
 	///	constructor
 		CommonLocalDoFSet() {clear();}
 
@@ -159,10 +182,7 @@ class CommonLocalDoFSet
 		void add(const LocalDoFSet& set);
 
 	///	number of dofs on a reference element type
-		size_t num_dof(ReferenceObjectID roid) const {
-			UG_ASSERT(m_vNumDoF[roid] >= 0, "No DoF info for "<<roid);
-			return m_vNumDoF[roid];
-		}
+		int num_dof(ReferenceObjectID roid) const {return m_vNumDoF[roid];}
 
 	protected:
 		int m_vNumDoF[NUM_REFERENCE_OBJECTS];
@@ -170,86 +190,6 @@ class CommonLocalDoFSet
 
 /// writes to the output stream
 std::ostream& operator<<(std::ostream& out,	const CommonLocalDoFSet& v);
-
-
-////////////////////////////////////////////////////////////////////////////////
-//	Provider
-////////////////////////////////////////////////////////////////////////////////
-
-// LocalDoFSetProvider
-/** class to provide local DoF sets
- *
- *	This class provides references to Local DoF sets.
- *	It is implemented as a Singleton.
- */
-class LocalDoFSetProvider {
-	private:
-	// 	disallow private constructor
-		LocalDoFSetProvider(){};
-
-	// disallow copy and assignment (intentionally left unimplemented)
-		LocalDoFSetProvider(const LocalDoFSetProvider&);
-		LocalDoFSetProvider& operator=(const LocalDoFSetProvider&);
-
-	// 	private destructor
-		~LocalDoFSetProvider();
-
-	// 	Singleton provider
-		static LocalDoFSetProvider& inst()
-		{
-			static LocalDoFSetProvider myInst;
-			return myInst;
-		};
-
-	private:
-	//	creation of nedelec element set for a reference element
-		template <typename TRefElem>
-		static void create_set(const LFEID& id);
-
-	// 	creation of set
-		static void create_set(ReferenceObjectID roid, const LFEID& id);
-
-	// 	creation of set
-		static void create_set(const LFEID& id);
-
-	//	type of map holding dof sets for a reference object id
-		typedef std::map<LFEID, std::vector<ConstSmartPtr<LocalDoFSet> > > RoidMap;
-
-	//	map holding dof sets for a reference object id
-		static RoidMap m_mRoidDoFSet;
-
-	//	type of map holding common dof set for roid of same dimension
-		typedef std::map<LFEID, CommonLocalDoFSet> CommonMap;
-
-	//	map holding common dof set for roid of same dimension
-		static CommonMap m_mCommonDoFSet;
-
-	public:
-	/** register a local DoF set for a given reference element type
-	 * This function is used to register a Local Shape Function set for an element
-	 * type and the corresponding local DoF set id.
-	 *
-	 * \param[in]		id 		Identifier for local DoF set
-	 * \param[in]		set		Local Shape Function Set to register
-	 * \return			bool	true iff registration successful
-	 */
-		static void register_set(const LFEID& id, ConstSmartPtr<LocalDoFSet> set);
-
-	/** unregister a local DoF set for a given reference element type
-	 * This function is used to unregister a Local Shape Function set for an element
-	 * type and the corresponding local DoF set id from this Provider.
-	 *
-	 * \param[in]		id 		Identifier for local DoF set
-	 * \return			bool	true iff removal successful
-	 */
-		static bool unregister_set(const LFEID& id);
-
-	///	returns the common dof set for all reference objects of a dimension
-		static const CommonLocalDoFSet& get(const LFEID& id, bool bCreate = true);
-
-	///	returns the local DoF set base for an id
-		static const LocalDoFSet& get(ReferenceObjectID roid, const LFEID& id, bool bCreate = true);
-};
 
 
 } // end namespace ug

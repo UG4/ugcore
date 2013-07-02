@@ -80,7 +80,7 @@ update_local_data()
 	/////////////////////////
 
 	const LocalShapeFunctionSet<dim>& TrialSpace =
-		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
+		LocalFiniteElementProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
 
 	m_nsh = TrialSpace.num_sh();
 
@@ -273,7 +273,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 	rMapping.update(vCornerCoords);
 
 	const LocalShapeFunctionSet<dim>& TrialSpace =
-		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
+		LocalFiniteElementProvider::get<dim>(m_roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
 
 //	loop requested subset
 	typename std::map<int, std::vector<BF> >::iterator it;
@@ -620,28 +620,21 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 	}
 }
 
-//////////////////////
-// DimCRFVGeometry
-template class DimCRFVGeometry<1, 1>;
+#ifdef UG_DIM_2
 template class DimCRFVGeometry<2, 2>;
-template class DimCRFVGeometry<3, 3>;
-
-//////////////////////
-// CRFVGeometry
-
-template class CRFVGeometry<Edge, 1>;
-template class CRFVGeometry<Edge, 2>;
-template class CRFVGeometry<Edge, 3>;
-
 template class CRFVGeometry<Triangle, 2>;
-template class CRFVGeometry<Triangle, 3>;
-
 template class CRFVGeometry<Quadrilateral, 2>;
+#endif
+
+#ifdef UG_DIM_3
+template class DimCRFVGeometry<3, 3>;
+template class CRFVGeometry<Triangle, 3>;
 template class CRFVGeometry<Quadrilateral, 3>;
 
 template class CRFVGeometry<Tetrahedron, 3>;
 template class CRFVGeometry<Prism, 3>;
 template class CRFVGeometry<Pyramid, 3>;
 template class CRFVGeometry<Hexahedron, 3>;
+#endif
 
 } // end namespace ug

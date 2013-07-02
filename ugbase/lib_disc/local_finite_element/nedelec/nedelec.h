@@ -10,13 +10,71 @@
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__NEDELEC__NEDELEC__
 
-#include "nedelec_local_dof.h"
+#include "common/util/provider.h"
+#include "../local_dof_set.h"
+#include "lib_disc/common/multi_index.h"
 
 namespace ug{
 
 ///////////////////////////////////////////////////////////////////////////////
 // Nedelec Set
 ///////////////////////////////////////////////////////////////////////////////
+
+/// Nedelec, i.e. the edge local dof set
+template <typename TRefElem>
+class NedelecLDS
+{
+	protected:
+	///	dimension of reference element
+		static const int refDim = TRefElem::dim;
+
+	public:
+	///	constructor
+		NedelecLDS()
+		{
+			if(refDim < 2)
+			{
+			//	No dofs if the dimension is less than 2:
+				nsh = 0;
+				m_vLocalDoF.clear();
+				return;
+			}
+
+			const TRefElem& rRefElem = Provider<TRefElem>::get();
+
+			nsh = rRefElem.num(1); // number of the edges
+		//	set local DoFs (all located at the edges)
+			m_vLocalDoF.resize(nsh);
+			for(size_t i = 0; i < nsh; ++i)
+				m_vLocalDoF[i] = LocalDoF(1, i, 0);
+		}
+
+	///	returns the type of reference element
+		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+
+	///	returns the total number of DoFs on the finite element
+		size_t num_dof() const {return nsh;};
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_dof(ReferenceObjectID type) const
+		{
+			if(ReferenceElementDimension(type) == 1) return 1;
+			else return 0;
+		}
+
+	///	returns the dof storage
+		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
+
+	///	returns if the local dof position are exact
+		bool exact_position_available() const {return true;};
+
+	protected:
+	///	number of shapes (== number of edges)
+		size_t nsh;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
+};
 
 /**
  * Nedelec (or Whitney-1) base function set for a general element:
@@ -25,73 +83,7 @@ namespace ug{
  * specializations below.
  */
 template <typename TRefElement>
-class NedelecLSFS
-: public NedelecLDS<TRefElement>,
-  public
-	BaseLocalShapeFunctionSet
-		<
-			NedelecLSFS<TRefElement>,
-			TRefElement::dim, ///< dimensionality of the element
-			MathVector<TRefElement::dim>, ///< return type of the shape functions
-			MathMatrix<TRefElement::dim, TRefElement::dim> ///< return type of the gradients
-		>
-{
-	public:
-	///	Reference Element type
-		typedef TRefElement reference_element_type;
-
-	///	Order of Shape functions
-		static const size_t order = 1;
-
-	///	Dimension, where shape functions are defined
-		static const int dim = reference_element_type::dim;
-
-	private:
-	///	Base class
-		typedef BaseLocalShapeFunctionSet<NedelecLSFS<reference_element_type>, dim, MathVector<dim>,  MathMatrix<dim,dim> > base_type;
-
-	public:
-	///	Shape type
-		typedef typename base_type::shape_type shape_type;
-
-	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
-
-	protected:
-	///	number of shapes (no shapes for the general case)
-		static const size_t nsh = 0;
-
-	public:
-	///	Constructor
-		NedelecLSFS() {};
-	
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
-		{
-			UG_THROW("NedelecLSFS:"
-						" Shapes are implemented for triangles and tetrahedra only.");
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline MathVector<dim> shape(const size_t i, const MathVector<dim>& x) const
-		{
-			UG_THROW("NedelecLSFS:"
-						" Shapes are implemented for triangles and tetrahedra only.");
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathMatrix<dim,dim>& g, const size_t i, const MathVector<dim>& x) const
-		{
-			UG_THROW("NedelecLSFS:"
-						" Shapes are implemented for triangles and tetrahedra only.");
-		}
-};
+class NedelecLSFS;
 
 /// Nedelec (or Whitney-1) base function set for triangles
 template <>

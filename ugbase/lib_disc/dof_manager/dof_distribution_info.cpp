@@ -9,6 +9,7 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/subset_group.h"
 #include "lib_disc/reference_element/reference_element_util.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 
 #include "common/log.h"
 #include <iostream>
@@ -46,17 +47,22 @@ void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
 			}
 
 		//	get trial space
-			const CommonLocalDoFSet& clds = LocalDoFSetProvider::get(lfeid(fct));
+			const CommonLocalDoFSet& clds = LocalFiniteElementProvider::get_dofs(lfeid(fct));
 
 		//	get number of DoFs on the reference element need for the space
-			const size_t numDoF = clds.num_dof(roid);
-
-		//	overwrite max dim with dofs (if subset has that dimension)
-			if(dim_subset(si) > ReferenceElementDimension(roid))
-				m_vMaxDimToOrderDoFs[fct] = ReferenceElementDimension(roid);
+			const int numDoF = clds.num_dof(roid);
 
 		//	check that numDoFs specified by this roid
-			if(numDoF == 0) continue;
+			if(numDoF == NOT_SPECIFIED || m_vvNumDoFsOnROID[roid][si]){
+				m_vvNumDoFsOnROID[roid][si] = NOT_SPECIFIED;
+				m_vvvOffsets[roid][si][fct] = 0;
+				continue;
+			}
+
+		//	overwrite max dim with dofs (if subset has that dimension)
+			if(numDoF > 0)
+				if(dim_subset(si) > ReferenceElementDimension(roid))
+					m_vMaxDimToOrderDoFs[fct] = ReferenceElementDimension(roid);
 
 		//	set offset for each function defined in the subset
 			m_vvvOffsets[roid][si][fct] = m_vvNumDoFsOnROID[roid][si];
@@ -75,7 +81,7 @@ void DoFDistributionInfo::create_offsets()
 
 //	cache number of DoFs in a sub-geometric object
 	for(size_t fct = 0; fct < num_fct(); ++fct){
-		const CommonLocalDoFSet& lds = LocalDoFSetProvider::get(lfeid(fct));
+		const CommonLocalDoFSet& lds = LocalFiniteElementProvider::get_dofs(lfeid(fct));
 
 		for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid){
 			m_vNumDoFOnSubelem[roid].resize(num_fct());
@@ -120,11 +126,13 @@ void DoFDistributionInfo::create_offsets()
 		m_vMaxDoFsOnROID[roid] = 0;
 		for(int si = 0; si < num_subsets(); ++si)
 		{
-			m_vMaxDoFsOnROID[roid] = std::max(m_vMaxDoFsOnROID[roid],
-											  m_vvNumDoFsOnROID[roid][si]);
+			if(m_vvNumDoFsOnROID[roid][si] != NOT_SPECIFIED)
+				m_vMaxDoFsOnROID[roid] = std::max(m_vMaxDoFsOnROID[roid],
+												  (size_t)m_vvNumDoFsOnROID[roid][si]);
 
-			m_vvMaxDoFsInDimPerSubset[d][si] = std::max(m_vvMaxDoFsInDimPerSubset[d][si],
-			                                            m_vvNumDoFsOnROID[roid][si]);
+			if(m_vvNumDoFsOnROID[roid][si] != NOT_SPECIFIED)
+				m_vvMaxDoFsInDimPerSubset[d][si] = std::max(m_vvMaxDoFsInDimPerSubset[d][si],
+				                                            (size_t)m_vvNumDoFsOnROID[roid][si]);
 		}
 
 	//	compute maximum per dim objects

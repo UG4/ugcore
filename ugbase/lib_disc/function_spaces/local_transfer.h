@@ -10,7 +10,7 @@
 
 #include "lib_disc/function_spaces/local_transfer_interface.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 
 namespace ug{
@@ -235,7 +235,7 @@ class ElementLocalTransfer : public ILocalTransferAlgebra<TAlgebra>
 			//	get Reference Mapping
 			coarseMap = &ReferenceMappingProvider::get<dim, dim>(coarseRoid, vCornerCoarse);
 			for(size_t fct = 0; fct < mgDD.num_fct(); fct++){
-				const LocalShapeFunctionSet<dim>& lsfs = LocalShapeFunctionSetProvider::get<dim>(coarseRoid, m_vLFEID[fct]);
+				const LocalShapeFunctionSet<dim>& lsfs = LocalFiniteElementProvider::get<dim>(coarseRoid, m_vLFEID[fct]);
 				std::vector<MultiIndex<2> > vCoarseMultInd, vFineMultInd;
 				mgDD.inner_multi_indices(child, fct, vFineMultInd);
 				if (vFineMultInd.size()==0) continue;

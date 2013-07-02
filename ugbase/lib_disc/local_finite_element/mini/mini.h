@@ -9,19 +9,93 @@
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__MINI__MINI_BUBBLE__
 
 #include "../common/lagrange1d.h"
-#include "../local_shape_function_set.h"
+#include "../local_finite_element_provider.h"
 #include "../local_dof_set.h"
-#include "mini_local_dof.h"
 #include "lib_disc/common/multi_index.h"
 #include "common/util/provider.h"
 #include "common/util/metaprogramming_util.h"
 #include "lib_grid/grid/geometric_base_objects.h"
+#include "common/util/provider.h"
+#include "../local_dof_set.h"
+#include "lib_disc/reference_element/reference_element_util.h"
+#include "lib_disc/common/multi_index.h"
 
 namespace ug{
 
 /// Lagrange Shape Function Set without virtual functions and fixed order
 template <typename TRefElem>
 class MiniBubbleLSFS;
+
+
+/// MiniBubble Set (2D only!)
+template <typename TRefElem>
+class MiniBubbleLDS : public LocalDoFSet
+{
+	protected:
+	///	dimension of reference element
+		static const int refDim = TRefElem::dim;
+
+	public:
+	///	constructor
+		MiniBubbleLDS()
+		{
+			// get _the_ reference element
+			const TRefElem& rRefElem = Provider<TRefElem>::get();
+
+			if(refDim >= 2)
+			{
+				// face (or volume???)
+				//	set local DoFs (located at vertices+bubble)
+				nsh = rRefElem.num(0)+1;
+
+				m_vLocalDoF.resize(nsh);
+				for(size_t i = 0; i< nsh-1; ++i)
+					m_vLocalDoF[i] = LocalDoF(0, i, 0);
+
+				m_vLocalDoF[nsh-1] = LocalDoF(refDim, nsh-1, 0); // bubble located at element
+			}
+			else
+			{
+				// edge or vertex
+				nsh = refDim+1;
+				m_vLocalDoF.resize(nsh);
+				for(size_t i = 0; i< nsh-1; ++i)
+					m_vLocalDoF[i] = LocalDoF(0, i, 0);
+
+			}
+		}
+
+	///	returns the type of reference element
+		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
+
+	///	returns the total number of DoFs on the finite element
+		size_t num_dof() const {return nsh;};
+
+	///	returns the number of DoFs on a sub-geometric object type
+		size_t num_dof(ReferenceObjectID type) const
+		{
+			const int d = ReferenceElementDimension(type);
+			if (d==0) return 1;         // vertices
+			if (d == refDim)   return 1;    // element
+			return 0;
+		}
+
+	///	returns the dof storage
+		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF[dof];}
+
+	///	returns if the local dof position are exact
+		bool exact_position_available() const {return true;};
+
+	protected:
+	///	number of shapes
+		size_t nsh;
+
+	///	order
+		size_t p;
+
+	///	association to elements
+		std::vector<LocalDoF> m_vLocalDoF;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ReferenceEdge
@@ -417,251 +491,6 @@ class MiniBubbleLSFS<ReferenceTetrahedron>
 			}
 		}
 };
-
-
-////////////////////////////////////////////////////////////////////////////////
-//	ReferenceHexahedron
-//
-//  function space span {1,x,y,z,x^2-y^2,y^2-z^2}
-//
-////////////////////////////////////////////////////////////////////////////////
-
-template <>
-class MiniBubbleLSFS<ReferenceHexahedron>
-: public MiniBubbleLDS<ReferenceHexahedron>,
-  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferenceHexahedron>, 3>
-{
-	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
-	///	Dimension, where shape functions are defined
-		static const int dim = 3;
-
-	/// Number of shape functions
-		static const size_t nsh = 6;
-
-	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferenceHexahedron reference_element_type;
-
-	public:
-	///	Constructor
-		MiniBubbleLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
-		{
-			switch(i)
-			{
-
-				default: UG_THROW("MiniBubbleLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
-		{
-			// ReferenceHexahedron::check_position(x);
-
-			switch(i)
-			{
-
-				default: UG_THROW("MiniBubbleLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
-		{
-			// ReferenceHexahedron::check_position(x);
-
-			switch(i)
-			{
-
-				default: UG_THROW("MiniBubbleLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-};
-
-////////////////////////////////////////////////////////////////////////////////
-//	ReferencePrism
-//
-//  function space span {1,x,y,z,x^2-y^2-z^2}
-//
-////////////////////////////////////////////////////////////////////////////////
-
-template <>
-class MiniBubbleLSFS<ReferencePrism>
-: public MiniBubbleLDS<ReferencePrism>,
-  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferencePrism>, 3>
-{
-	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
-	///	Dimension, where shape functions are defined
-		static const int dim = 3;
-
-	/// Number of shape functions
-		static const size_t nsh = 5;
-	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferencePrism reference_element_type;
-
-	public:
-	///	Constructor
-		MiniBubbleLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
-		{
-			switch(i)
-			{
-
-				default: UG_THROW("MiniLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
-		{
-			// ReferencePrism::check_position(x);
-
-			switch(i)
-			{
-
-				default: UG_THROW("MiniLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
-		{
-			// ReferencePrism::check_position(x);
-
-			switch(i)
-			{
-
-				default: UG_THROW("MiniLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-};
-
-
-////////////////////////////////////////////////////////////////////////////////
-//	ReferencePyramid
-//
-//  function space span {1,x,y,z,x^2-y^2-z^2}
-//
-////////////////////////////////////////////////////////////////////////////////
-
-template <>
-class MiniBubbleLSFS<ReferencePyramid>
-: public MiniBubbleLDS<ReferencePyramid>,
-  public BaseLocalShapeFunctionSet<MiniBubbleLSFS<ReferencePyramid>, 3>
-{
-	public:
-	///	Order of Shape functions
-		static const size_t order = 1;
-
-	///	Dimension, where shape functions are defined
-		static const int dim = 3;
-
-	/// Number of shape functions
-		static const size_t nsh = 5;
-
-	public:
-	///	Shape type
-		typedef number shape_type;
-
-	///	Gradient type
-		typedef MathVector<dim> grad_type;
-
-	///	Reference Element type
-		typedef ReferencePrism reference_element_type;
-
-	public:
-	///	Constructor
-		MiniBubbleLSFS(){}
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::MINI, dim, 1);}
-
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return true;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return nsh;}
-
-	///	\copydoc ug::LocalShapeFunctionSet::position()
-		inline bool position(size_t i, MathVector<dim>& pos) const
-		{
-			switch(i)
-			{
-
-				default: UG_THROW("MiniBubbleLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
-		{
-			// ReferencePyramid::check_position(x);
-
-			switch(i)
-			{
-
-				default: UG_THROW("MiniBubbleLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-
-	///	\copydoc ug::LocalShapeFunctionSet::grad()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
-		{
-			// ReferencePyramid::check_position(x);
-
-			switch(i)
-			{
-
-				default: UG_THROW("MiniBubbleLSFS: shape function "<<i<<
-									" not found. Only "<<nsh<<" shapes present.");
-			}
-		}
-};
-
 
 } //namespace ug
 

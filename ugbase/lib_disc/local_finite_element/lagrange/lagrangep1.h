@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGEP1__LAGRANGEP1__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__LAGRANGEP1__LAGRANGEP1__
 
-#include "../local_shape_function_set.h"
+#include "../local_finite_element_provider.h"
 #include "../local_dof_set.h"
 #include "lagrange_local_dof.h"
 
@@ -54,9 +54,6 @@ class LagrangeP1
 	public:
 	///	constructor
 		LagrangeP1() : LagrangeLDS<TRefElem>(1) {}
-
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		LFEID type() const {return LFEID(LFEID::LAGRANGE, dim, 1);}
 
 	///	\copydoc ug::LocalShapeFunctionSet::continuous()
 		bool continuous() const {return true;}

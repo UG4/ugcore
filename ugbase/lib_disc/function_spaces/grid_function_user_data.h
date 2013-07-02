@@ -14,7 +14,7 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/quadrature/quadrature.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/user_data/std_user_data.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 
@@ -61,7 +61,7 @@ class GridFunctionNumberData
 
 		virtual bool continuous() const
 		{
-			return LocalShapeFunctionSetProvider::continuous(m_lfeID);
+			return LocalFiniteElementProvider::continuous(m_lfeID);
 		}
 
 		template <int refDim>
@@ -84,7 +84,7 @@ class GridFunctionNumberData
 			//	get trial space
 			try{
 				const LocalShapeFunctionSet<refDim>& rTrialSpace =
-						LocalShapeFunctionSetProvider::get<refDim>(roid, m_lfeID);
+						LocalFiniteElementProvider::get<refDim>(roid, m_lfeID);
 
 				//	memory for shapes
 				std::vector<number> vShape;
@@ -180,7 +180,7 @@ class GridFunctionVectorData
 	virtual bool continuous() const
 	{
 		for(int i = 0; i < dim; ++i)
-			if(!LocalShapeFunctionSetProvider::continuous(m_vlfeID[i]))
+			if(!LocalFiniteElementProvider::continuous(m_vlfeID[i]))
 				return false;
 		return true;
 	}
@@ -212,7 +212,7 @@ class GridFunctionVectorData
 				for(int d = 0; d < dim; ++d)
 				{
 					const LocalShapeFunctionSet<refDim>& rTrialSpace =
-							LocalShapeFunctionSetProvider::get<refDim>(roid, m_vlfeID[d]);
+							LocalFiniteElementProvider::get<refDim>(roid, m_vlfeID[d]);
 
 					//	evaluate at shapes at ip
 					rTrialSpace.shapes(vShape, vLocIP[ip]);
@@ -318,7 +318,7 @@ class GridFunctionGradientData
 		//	get trial space
 		try{
 			const LocalShapeFunctionSet<refDim>& rTrialSpace =
-					LocalShapeFunctionSetProvider::get<refDim>(roid, m_lfeID);
+					LocalFiniteElementProvider::get<refDim>(roid, m_lfeID);
 
 			//	storage for shape function at ip
 			std::vector<MathVector<refDim> > vLocGrad;
@@ -467,7 +467,7 @@ class GridFunctionGradientComponentData
 		//	get trial space
 		try {
 			const LocalShapeFunctionSet<refDim>& rTrialSpace =
-					LocalShapeFunctionSetProvider::get<refDim>( roid, m_lfeID );
+					LocalFiniteElementProvider::get<refDim>( roid, m_lfeID );
 
 			//	storage for shape function at ip
 			std::vector<MathVector<refDim> > vLocGrad;

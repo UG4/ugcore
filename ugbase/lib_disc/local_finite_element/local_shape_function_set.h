@@ -1,5 +1,5 @@
 /*
- * local_shape_function_set.h
+ * local_finite_element_provider.h
  *
  *  Created on: 12.05.2009
  *      Author: andreasvogel
@@ -16,7 +16,6 @@
 #include "common/math/ugmath.h"
 
 // library intern headers
-#include "lib_disc/reference_element/reference_element.h"
 #include "local_finite_element_id.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 
@@ -257,128 +256,6 @@ class BaseLocalShapeFunctionSet
 
 };
 
-
-////////////////////////////////////////////////////////////////////////////////
-//	Provider for local shape function sets
-////////////////////////////////////////////////////////////////////////////////
-
-// LocalShapeFunctionSetProvider
-/** class to provide local shape function sets
- *
- *	This class provides references to Local Shape functions sets.
- *	It is implemented as a Singleton.
- */
-class LocalShapeFunctionSetProvider {
-	private:
-	// 	disallow private constructor
-		LocalShapeFunctionSetProvider();
-
-	// disallow copy and assignment (intentionally left unimplemented)
-		LocalShapeFunctionSetProvider(const LocalShapeFunctionSetProvider&);
-		LocalShapeFunctionSetProvider& operator=(const LocalShapeFunctionSetProvider&);
-
-	// 	private destructor
-		~LocalShapeFunctionSetProvider();
-
-	// 	Singleton provider
-		static LocalShapeFunctionSetProvider& inst()
-		{
-			static LocalShapeFunctionSetProvider myInst;
-			return myInst;
-		};
-
-	private:
-	/// create the standard lagrange space
-	///	\{
-		template <typename TRefElem>
-		static void create_lagrange_set(const LFEID& id);
-		static void create_lagrange_set(ReferenceObjectID roid, const LFEID& id);
-	///	\}
-
-	/// create the piecewise-constant space
-	///	\{
-		template <typename TRefElem>
-		static void create_generic_sets(const LFEID& id);
-		static void create_generic_sets(ReferenceObjectID roid, const LFEID& id);
-	///	\}
-
-	private:
-	// 	return a map of element_trial_spaces
-		template <int dim, typename TShape, typename TGrad>
-		static std::map<LFEID, ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > >*
-		get_maps();
-
-	//	returns the continuous information
-		static std::map<LFEID, bool> m_mContSpace;
-
-	//	creates new set at runtime if available
-		static void create_set(ReferenceObjectID roid, const LFEID& id);
-
-	//	creates new set at runtime if available
-		static void create_set(const LFEID& id);
-
-	public:
-	/// register a local shape function set for a given reference element type
-	/**
-	 * This function is used to register a Local Shape Function set for an element
-	 * type and the corresponding local shape function set id.
-	 *
-	 * \param[in]		id 		Identifier for local shape function set
-	 * \param[in]		roid	Reference Object id
-	 * \param[in]		set		Local Shape Function Set to register
-	 */
-		template <int dim, typename TShape, typename TGrad>
-		static void	register_set(LFEID id,
-		           	             const ReferenceObjectID roid,
-		           	             ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> > set);
-
-	/// unregister a local shape function set for a given reference element type
-	/**
-	 *  This function is used to unregister a Local Shape Function set for an element
-	 * type and the corresponding local shape function set id from this Provider.
-	 *
-	 * \param[in]		id 		Identifier for local shape function set
-	 * \return			bool	true iff removal successful
-	 */
-		template <int dim, typename TShape, typename TGrad>
-		static bool unregister_set(LFEID id);
-
-	///	returns the Local Shape Function Set
-	/**
-	 *  This function returns the Local Shape Function Set for a reference element
-	 * type and an Identifier if a set has been registered for the identifier.
-	 * Else an exception is thrown.
-	 *
-	 * \param[in]	roid	Reference object id
-	 * \param[in]	id		Identifier for local shape function set
-	 * \return 		set		A const reference to the shape function set
-	 */
-	///\{
-		template <int dim, typename TShape, typename TGrad>
-		static const LocalShapeFunctionSet<dim, TShape, TGrad>&
-		get(ReferenceObjectID roid, LFEID id, bool bCreate = true);
-
-		template <int dim>
-		static const LocalShapeFunctionSet<dim>&
-		get(ReferenceObjectID roid, LFEID id, bool bCreate = true)
-			{return get<dim,number,MathVector<dim> >(roid, id, bCreate);};
-
-		template <int dim, typename TShape, typename TGrad>
-		static ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >
-		getptr(ReferenceObjectID roid, LFEID id, bool bCreate = true);
-
-		template <int dim>
-		static ConstSmartPtr<LocalShapeFunctionSet<dim> >
-		getptr(ReferenceObjectID roid, LFEID id, bool bCreate = true)
-			{return getptr<dim,number,MathVector<dim> >(roid, id, bCreate);};
-	///\}
-
-	///returns if a Local Shape Function Set is continuous
-		static bool continuous(const LFEID& id, bool bCreate = true);
-};
-
 } // namespace ug
-
-#include "local_shape_function_set_impl.h"
 
 #endif /* __H__UG__LIB_DISC__LOCAL_FINITE_ELEMENT__LOCAL_SHAPE_FUCNTION_SET__ */

@@ -14,7 +14,7 @@
 #include "lib_disc/domain_util.h"
 #include "lib_disc/common/subset_group.h"
 #include "lib_disc/common/groups_util.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "lib_disc/reference_element/reference_mapping.h"
 
@@ -139,7 +139,7 @@ void InterpolateOnElements(
 
 //	get trial space
 	const LocalShapeFunctionSet<dim>& trialSpace =
-			LocalShapeFunctionSetProvider::get<dim>(roid, id);
+			LocalFiniteElementProvider::get<dim>(roid, id);
 
 //	number of dofs on element
 	const size_t nsh = trialSpace.num_sh();

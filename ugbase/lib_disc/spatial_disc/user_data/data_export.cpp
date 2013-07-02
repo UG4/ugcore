@@ -44,7 +44,7 @@ void ValueDataExport<dim>::eval_and_deriv(number vValue[],
 //	request for trial space
 	try{
 	const LocalShapeFunctionSet<refDim>& rTrialSpace
-		 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
+		 = LocalFiniteElementProvider::get<refDim>(roid, lfeID);
 
 //	memory for shapes
 	std::vector<number> vShape;
@@ -85,7 +85,7 @@ bool ValueDataExport<dim>::continuous() const
 {
 	static const int _C_ = 0;
 	const LFEID& lfeID = this->function_group().local_finite_element_id(_C_);
-	return LocalShapeFunctionSetProvider::continuous(lfeID);
+	return LocalFiniteElementProvider::continuous(lfeID);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ void GradientDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
 //	request for trial space
 	try{
 	const LocalShapeFunctionSet<refDim>& rTrialSpace
-		 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
+		 = LocalFiniteElementProvider::get<refDim>(roid, lfeID);
 
 //	Reference Mapping
 	MathMatrix<dim, refDim> JTInv;
@@ -210,7 +210,7 @@ void VectorDataExport<dim>::eval_and_deriv(MathVector<dim> vValue[],
 	//	request for trial space
 		try{
 		const LocalShapeFunctionSet<refDim>& rTrialSpace
-			 = LocalShapeFunctionSetProvider::get<refDim>(roid, lfeID);
+			 = LocalFiniteElementProvider::get<refDim>(roid, lfeID);
 
 	//	memory for shapes
 		std::vector<number> vShape;
@@ -252,7 +252,7 @@ bool VectorDataExport<dim>::continuous() const
 {
 	for(size_t d = 0; d < dim; ++d){
 		const LFEID& lfeID = this->function_group().local_finite_element_id(d);
-		if(!LocalShapeFunctionSetProvider::continuous(lfeID)) return false;
+		if(!LocalFiniteElementProvider::continuous(lfeID)) return false;
 	}
 	return true;
 }

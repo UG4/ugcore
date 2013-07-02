@@ -805,7 +805,7 @@ update_local_data()
 	/////////////////////////
 
 	const LocalShapeFunctionSet<dim>& TrialSpace =
-		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
+		LocalFiniteElementProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
 
 	m_nsh = TrialSpace.num_sh();
 
@@ -986,7 +986,7 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 	rMapping.update(vCornerCoords);
 
 	const LocalShapeFunctionSet<dim>& TrialSpace =
-		LocalShapeFunctionSetProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
+		LocalFiniteElementProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
 
 //	loop requested subset
 	typename std::map<int, std::vector<BF> >::iterator it;
@@ -1146,7 +1146,7 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 	for (size_t i = 0; i < num_bf(); ++i)
 	{
 		const LocalShapeFunctionSet<ref_elem_type::dim>& TrialSpace =
-				LocalShapeFunctionSetProvider::
+				LocalFiniteElementProvider::
 					get<ref_elem_type::dim>
 					(ref_elem_type::REFERENCE_OBJECT_ID,
 					 LFEID(LFEID::LAGRANGE, ref_elem_type::dim, 1));

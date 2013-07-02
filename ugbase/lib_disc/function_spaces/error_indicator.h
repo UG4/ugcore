@@ -55,7 +55,7 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
 
 	//	get trial space
 		const LocalShapeFunctionSet<dim>& lsfs =
-				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::LAGRANGE, dim, 1));
+				LocalFiniteElementProvider::get<dim>(roid, LFEID(LFEID::LAGRANGE, dim, 1));
 
 	//	create a reference mapping
 		DimReferenceMapping<dim, dim>& map
@@ -155,7 +155,7 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 
 	//	get trial space
 		const LocalShapeFunctionSet<dim>& lsfs =
-				LocalShapeFunctionSetProvider::get<dim>(roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
+				LocalFiniteElementProvider::get<dim>(roid, LFEID(LFEID::CROUZEIX_RAVIART, dim, 1));
 
 	//	create a reference mapping
 		DimReferenceMapping<dim, dim>& map

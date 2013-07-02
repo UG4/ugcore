@@ -109,7 +109,7 @@ class MathVector<0, T>
 		{
 			m_data[0] = x;
 		}
-		MathVector(const MathVector<1, T>& v)	{assign(v);}
+		MathVector(const MathVector<0, T>& v)	{assign(v);}
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
@@ -146,7 +146,7 @@ class MathVector<0, T>
 		};
 
 	protected:
-		inline void assign(const MathVector<1, T>& v)	{m_data[0] = v.x;}
+		inline void assign(const MathVector<0, T>& v)	{m_data[0] = v.x;}
 
 };
 

@@ -40,10 +40,6 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 				<<geometry_traits<TElem>::REFERENCE_OBJECT_ID<<", but "
 				<<roid<<" requested.");
 
-	if(lfeID != m_rTrialSpace.type())
-		UG_THROW("FEGeometry::update: Geometry only for "
-				<<m_rTrialSpace.type()<<", but "<<lfeID<<" requested.");
-
 	if(orderQuad > m_rQuadRule.order())
 		UG_THROW("FEGeometry::update: Geometry only for order "
 				<< m_rQuadRule.order()<<", but order "<<
@@ -58,7 +54,6 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCorner,
        const LFEID& lfeID, size_t orderQuad)
 {
 //	check
-	UG_ASSERT(lfeID == m_rTrialSpace.type(), "Wrong type requested.");
 	UG_ASSERT(orderQuad <= m_rQuadRule.order(), "Wrong order requested.");
 
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");

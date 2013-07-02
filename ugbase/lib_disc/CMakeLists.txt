@@ -57,7 +57,7 @@ set(srcDiscretization	domain_util.cpp
 						local_finite_element/lagrange/lagrangep1.cpp
 						local_finite_element/lagrange/lagrange.cpp
 						local_finite_element/local_finite_element_id.cpp
-						local_finite_element/local_shape_function_set.cpp
+						local_finite_element/local_finite_element_provider.cpp
 						local_finite_element/local_dof_set.cpp
 						
 						operator/linear_operator/multi_grid_solver/mg_solver_util.cpp

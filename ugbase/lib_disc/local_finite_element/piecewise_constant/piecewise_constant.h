@@ -5,44 +5,24 @@
  * Author: Christian Wehner
  */
 
-#ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__PIECEWISE_CONSTANT__
-#define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__PIECEWISE_CONSTANT__
+#ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__PIECEWISE_CONSTANT__
+#define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__PIECEWISE_CONSTANT__
 
-#include "../common/lagrange1d.h"
-#include "../local_shape_function_set.h"
-#include "../local_dof_set.h"
-#include "piecewise_constant_local_dof.h"
-#include "lib_disc/common/multi_index.h"
 #include "common/util/provider.h"
-#include "common/util/metaprogramming_util.h"
 #include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_disc/local_finite_element/local_dof_set.h"
+#include "lib_disc/reference_element/reference_element_util.h"
 
 namespace ug{
 
 /// Elementwise constant shape functions
 template <typename TRefElem>
 class PiecewiseConstantLSFS
-	: public PiecewiseConstantLDS<TRefElem>,
-	  public BaseLocalShapeFunctionSet<PiecewiseConstantLSFS<TRefElem>, TRefElem::dim>
+	: public BaseLocalShapeFunctionSet<PiecewiseConstantLSFS<TRefElem>, TRefElem::dim>
 {
-	private:
-	///	base class
-		typedef BaseLocalShapeFunctionSet<PiecewiseConstantLSFS<TRefElem>, TRefElem::dim> base_type;
-
-	public:
-	///	Shape type
-		typedef typename base_type::shape_type shape_type;
-
-	///	Gradient type
-		typedef typename base_type::grad_type grad_type;
-
 	public:
 	///	Dimension, where shape functions are defined
 		static const int dim = TRefElem::dim;
-
-	protected:
-	///	barycenter
-		MathVector<dim> bary;
 
 	public:
 	///	Constructor
@@ -55,35 +35,62 @@ class PiecewiseConstantLSFS
             	bary += rRef.corner(j);
             }
             bary *= 1./rRef.num(0);
+
+            m_vLocalDoF = LocalDoF(dim, 0, 0);
 		}
 
-	///	\copydoc ug::LocalShapeFunctionSet::continuous()
-		inline bool continuous() const {return false;}
+	public:
+	///	\copydoc ug::DimLocalDoFSet::roid()
+		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 
-	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
-		inline size_t num_sh() const {return 1;}
+	///	\copydoc ug::DimLocalDoFSet::num_dof()
+		size_t num_dof() const {return 1;};
 
-	///	\copydoc ug::LocalShapeFunctionSet::position()
+	///	\copydoc ug::DimLocalDoFSet::num_dof()
+		size_t num_dof(ReferenceObjectID type) const
+		{
+			if (type == TRefElem::REFERENCE_OBJECT_ID)   return 1;
+			else return 0;
+		}
+
+	///	\copydoc ug::DimLocalDoFSet::local_dof()
+		const LocalDoF& local_dof(size_t dof) const {return m_vLocalDoF;}
+
+	///	\copydoc ug::DimLocalDoFSet::position()
 		inline bool position(size_t i, MathVector<dim>& pos) const
 		{
 			pos = bary; return true;
 		}
 
+	///	\copydoc ug::DimLocalDoFSet::exact_position_available()
+		bool exact_position_available() const {return true;};
+
+	public:
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		bool continuous() const {return false;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		size_t num_sh() const {return 1;}
+
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline number shape(const size_t i, const MathVector<dim>& x) const
+		number shape(const size_t i, const MathVector<dim>& x) const
 		{
 			return 1;
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
-		inline void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
+		void grad(MathVector<dim>& g, const size_t i, const MathVector<dim>& x) const
 		{
 			TRefElem::check_position(x);
 			VecSet(g, 0.0);
 		}
+
+	protected:
+		MathVector<dim> bary; ///< Barycenter
+		LocalDoF m_vLocalDoF; ///< association to elements
 };
 
 } //namespace ug
 
-#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__PIECEWISE_CONSTANT__ */
+#endif /* __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__PIECEWISE_CONSTANT__ */
 

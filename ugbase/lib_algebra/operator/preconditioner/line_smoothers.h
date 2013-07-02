@@ -21,6 +21,7 @@
 #include "lib_disc/dof_manager/ordering/lexorder.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_disc/common/groups_util.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
@@ -122,7 +123,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
-			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeID);
+			const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
 				const int numDoF = locDoF.num_dof((ReferenceObjectID)roid);
@@ -141,7 +142,7 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
-			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeID);
+			const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
 				if(locDoF.num_dof((ReferenceObjectID)roid) != 0){
@@ -275,7 +276,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
-			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeID);
+			const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
 				const int numDoF = locDoF.num_dof((ReferenceObjectID)roid);
@@ -294,7 +295,7 @@ void OrderDirectionZForDofDist(SmartPtr<DoFDistribution> dd,
 		for(size_t fct = 0; fct < dd->num_fct(); ++fct){
 
 			LFEID lfeID = dd->local_finite_element_id(fct);
-			const CommonLocalDoFSet& locDoF = LocalDoFSetProvider::get(lfeID);
+			const CommonLocalDoFSet& locDoF = LocalFiniteElementProvider::get_dofs(lfeID);
 
 			for(int roid = 0; roid < NUM_REFERENCE_OBJECTS; ++roid){
 				if(locDoF.num_dof((ReferenceObjectID)roid) != 0){

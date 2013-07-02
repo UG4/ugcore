@@ -35,9 +35,6 @@ class LagrangeLDS : public LocalDoFSet
 	///	sets the order
 		void set_order(size_t order);
 
-	///	\copydoc ug::LocalShapeFunctionSet::type()
-		inline LFEID type() const {return LFEID(LFEID::LAGRANGE, TRefElem::dim, p);}
-
 	///	returns the type of reference element
 		ReferenceObjectID roid() const {return TRefElem::REFERENCE_OBJECT_ID;}
 

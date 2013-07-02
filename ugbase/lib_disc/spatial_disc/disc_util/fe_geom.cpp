@@ -72,7 +72,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 //	request for trial space
 	try{
 	const LocalShapeFunctionSet<dim>& lsfs
-		 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
+		 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
 
 //	copy shape infos
 	m_nsh = lsfs.num_sh();
@@ -171,7 +171,7 @@ update_boundary_faces(GeometricObject* pElem,
 			= ReferenceElementProvider::get<dim>(roid);
 
 		const LocalShapeFunctionSet<dim>& rTrialSpace =
-			LocalShapeFunctionSetProvider::get<dim>(m_roid, m_lfeID);
+			LocalFiniteElementProvider::get<dim>(m_roid, m_lfeID);
 
 		//	loop requested subset
 		typename std::map<int, std::vector<BF> >::iterator it;

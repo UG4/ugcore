@@ -10,7 +10,7 @@
 
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_disc/quadrature/quadrature.h"
-#include "lib_disc/local_finite_element/local_shape_function_set.h"
+#include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/reference_element/reference_mapping.h"
 #include "common/util/provider.h"
@@ -108,7 +108,7 @@ class FEGeometry
 	/// update Geometry for corners
 		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
 		{
-			update(pElem, vCorner, m_rTrialSpace.type(), m_rQuadRule.order());
+			update(pElem, vCorner, LFEID(), m_rQuadRule.order());
 		}
 
 	/// update Geometry for corners

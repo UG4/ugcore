@@ -274,7 +274,7 @@ class ReferenceElementProvider
 // Reference Vertex
 ///////////////////////////////////////////////////////////////////////////////
 
-class ReferenceVertex : public DimReferenceElement<1>
+class ReferenceVertex : public DimReferenceElement<0>
 {
 	public:
 	///	type of reference element
