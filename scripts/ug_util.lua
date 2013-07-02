@@ -414,7 +414,7 @@ function util.PrintIgnoredArguments()
 		end
 	end
 	if pline ~= "" then
-		print("Ignored arguments:\n"..pline.."\n")
+		print("WARNING: Ignored arguments (or not parsed with util.GetParam/util.GetParamNumber/util.HasParamOption) :\n"..pline.."\n")
 	end
 end
 
