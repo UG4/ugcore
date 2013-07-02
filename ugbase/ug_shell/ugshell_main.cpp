@@ -313,7 +313,7 @@ int main(int argc, char* argv[])
 
 #ifdef UG_DEBUG
 			script::ParseBuffer("if util ~= nil and util.CheckAndPrintHelp ~= nil then util.CheckAndPrintHelp(\"\\n-help: Available Command Line Arguments:\") end\n"
-						"if util ~= nil and util.PrintIgnoredArguments ~= nil then util.PrintIgnoredArguments() end\n"
+						"if util ~= nil and util.PrintIgnoredArguments ~= nil then print(\"\") util.PrintIgnoredArguments() end\n"
 								, "");
 #endif
 
