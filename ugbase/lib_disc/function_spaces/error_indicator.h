@@ -207,6 +207,30 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 	}
 }
 
+template <int dim> struct face_type_traits
+{
+    typedef void face_type0;
+	typedef void face_type1;
+};
+
+template <> struct face_type_traits<1>
+{
+    typedef ReferenceVertex face_type0;
+	typedef ReferenceVertex face_type1;
+};
+
+template <> struct face_type_traits<2>
+{
+    typedef ReferenceEdge face_type0;
+	typedef ReferenceEdge face_type1;
+};
+
+template <> struct face_type_traits<3>
+{
+    typedef ReferenceTriangle face_type0;
+	typedef ReferenceQuadrilateral face_type1;
+};
+
 template <typename TFunction>
 void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
                      MultiGrid::AttachmentAccessor<
@@ -221,6 +245,9 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 	typedef typename element_type::side side_type;
 	
 	typename grid_type::template traits<side_type>::secure_container sides;
+	
+	typedef typename face_type_traits<dim>::face_type0 face_type0;
+	typedef typename face_type_traits<dim>::face_type1 face_type1;
 
 //	get position accessor
 	typename TFunction::domain_type::position_accessor_type& aaPos
@@ -228,18 +255,16 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 			
 	grid_type& grid = *u.domain()->grid();
 
-	domain_type& domain = *u.domain().get();
-
 //	some storage
 	MathMatrix<dim, dim> JTInv;
 	
 	std::vector<MathVector<dim> > vCorner;
+	std::vector<MathVector<dim> > sideCorners;
+	MathVector<dim> sideCoPos[dim+1];
 
 //	get iterator over elements
 	const_iterator iter = u.template begin<element_type>();
 	const_iterator iterEnd = u.template end<element_type>();
-	
-	DimCRFVGeometry<dim> geo;
 
 //	loop elements
 	for(; iter != iterEnd; ++iter)
@@ -257,9 +282,6 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 
 	//	get corners of element
 		CollectCornerCoordinates(vCorner, *elem, aaPos);
-		
-		//	evaluate finite volume geometry
-		geo.update(elem, &(vCorner[0]), domain.subset_handler().get());
 
 	//	compute size (volume) of element
 		const number elemSize = ElementSize<dim>(roid, &vCorner[0]);
@@ -278,9 +300,18 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 				faceValue+=BlockRef(u[ind[0][0]], ind[0][1]);
 			}
 			faceValue/=(number)numOfAsso;
-			const typename DimCRFVGeometry<dim>::SCV& scv = geo.scv(s);
+			MathVector<dim> normal;
+			CollectCornerCoordinates(sideCorners,*sides[s],aaPos);
+			for (size_t i=0;i<sideCorners.size();i++)
+				for (int d=0;d<dim;d++) sideCoPos[i][d] = sideCorners[i][d];
+			// faces have dim corners in 1d, 2d
+			// in 3d they have dim corners (triangle) or dim+1 corners (quadrilateral)
+			if ((int)sideCorners.size()==dim)
+				ElementNormal<face_type0,dim>(normal,sideCoPos);
+			else
+				ElementNormal<face_type1,dim>(normal,sideCoPos);
 			for (int d=0;d<dim;d++){
-				vGlobalGrad[d] += faceValue * scv.normal()[d]; 
+				vGlobalGrad[d] += faceValue * normal[d]; 
 			}
 		}
 		vGlobalGrad/=(number)elemSize;
