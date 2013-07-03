@@ -159,7 +159,8 @@ class SubLocalDoFSet : public DimLocalDoFSet<dim>
 					   const DimLocalDoFSet<setDim>& set)
 		   : m_roid(roid),
 			 m_bExactPos(set.exact_position_available()),
-			 m_bInit(false)
+			 m_bInit(false),
+			 m_vNumDoF(NUM_REFERENCE_OBJECTS, 0)
 		{
 			if(ReferenceElementDimension(roid) != dim)
 				UG_THROW("SubLocalDoFSet: templated Reference Dimension "<<dim<<
