@@ -150,7 +150,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObj
 
 //	get the vertices
 	std::vector<MathVector<TDomain::dim> > vVertPos;
-	switch(elem->reference_object_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: CollectCornerCoordinates(vVertPos, *static_cast<VertexBase*>(elem), domain, true); break;
 		case EDGE: CollectCornerCoordinates(vVertPos, *static_cast<EdgeBase*>(elem), domain, true); break;
@@ -296,7 +296,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* 
 
 //	get the vertices
 	std::vector<MathVector<TDomain::dim> > vVertPos;
-	switch(elem->reference_object_id())
+	switch(elem->base_object_id())
 	{
 		case VERTEX: CollectCornerCoordinates(vVertPos, *static_cast<VertexBase*>(elem), domain, true); break;
 		case EDGE: CollectCornerCoordinates(vVertPos, *static_cast<EdgeBase*>(elem), domain, true); break;
