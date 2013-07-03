@@ -495,6 +495,8 @@ void FlexLagrangeLSFS<ReferencePrism>::set_order(size_t order)
 	const size_t polSize = p+1;
 	m_vPolynom.resize(polSize);
 	m_vDPolynom.resize(polSize);
+	m_vTruncPolynom.resize(polSize);
+	m_vDTruncPolynom.resize(polSize);
 	m_vMultiIndex.resize(nsh);
 
 //	init polynomials
