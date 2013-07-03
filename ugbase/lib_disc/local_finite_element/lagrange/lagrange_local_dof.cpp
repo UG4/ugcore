@@ -178,7 +178,9 @@ size_t LagrangeNumDoFOnSub(const ReferenceObjectID elem,
 		case ROID_TETRAHEDRON:
 			if(sub == ROID_VERTEX)      return 1;
 			if(sub == ROID_EDGE) 	     return (p-1);
+			//	same as for a 2d triangle of order p-3
 			if(sub == ROID_TRIANGLE)    return ((p>2) ? BinomCoeff(p-1, p-3) : 0);
+			//	same as for a 3d tetrahedron of order p-4
 			if(sub == ROID_TETRAHEDRON) return ((p>3) ? BinomCoeff(p-1, p-4) : 0);
 			else return 0;
 		case ROID_PRISM:
