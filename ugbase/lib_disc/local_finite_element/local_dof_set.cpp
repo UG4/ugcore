@@ -109,7 +109,8 @@ void CommonLocalDoFSet::add(const LocalDoFSet& set)
 			&& roid != set.roid()) continue;
 
 	//	check that roid contained in element type
-		if(rRefElem.num(roid) == 0) continue;
+		if(ReferenceElementDimension(roid) <= set.dim() &&
+			rRefElem.num(roid) == 0) continue;
 
 	//	check if already value set and iff the same
 		if(m_vNumDoF[i] != NOT_SPECIFIED)
