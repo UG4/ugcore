@@ -20,7 +20,7 @@ namespace ug{
 
 class DoFDistributionInfo : public FunctionPattern
 {
-	protected:
+	public:
 		///	indication that function is not defined on a subset
 		enum{NOT_DEF_ON_SUBSET = (size_t) - 1};
 		///	indication that function is not defined on a subset
