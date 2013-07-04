@@ -29,7 +29,7 @@ namespace ug
 /**
  * returns -1 if the vertex was not found.
  */
-UG_API int GetVertexIndex(EdgeBase* e, VertexBase* v);
+UG_API int GetVertexIndex(EdgeVertices* e, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetVertexIndex
@@ -37,7 +37,7 @@ UG_API int GetVertexIndex(EdgeBase* e, VertexBase* v);
 /**
  * returns -1 if the vertex was not found.
  */
-UG_API int GetVertexIndex(Face* f, VertexBase* v);
+UG_API int GetVertexIndex(FaceVertices* f, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetVertexIndex
@@ -45,7 +45,7 @@ UG_API int GetVertexIndex(Face* f, VertexBase* v);
 /**
  * returns -1 if the vertex was not found.
  */
-UG_API int GetVertexIndex(Volume* vol, VertexBase* v);
+UG_API int GetVertexIndex(VolumeVertices* vol, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetConnectedVertex

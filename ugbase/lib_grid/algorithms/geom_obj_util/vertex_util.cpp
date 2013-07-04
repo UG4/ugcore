@@ -13,7 +13,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-int GetVertexIndex(EdgeBase* e, VertexBase* v)
+int GetVertexIndex(EdgeVertices* e, VertexBase* v)
 {
 	if(e->vertex(0) == v)
 		return 0;
@@ -23,7 +23,7 @@ int GetVertexIndex(EdgeBase* e, VertexBase* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
-int GetVertexIndex(Face* f, VertexBase* v)
+int GetVertexIndex(FaceVertices* f, VertexBase* v)
 {
 	uint numVrts = f->num_vertices();
 	for(uint i = 0; i < numVrts; ++i)
@@ -35,7 +35,7 @@ int GetVertexIndex(Face* f, VertexBase* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
-int GetVertexIndex(Volume* vol, VertexBase* v)
+int GetVertexIndex(VolumeVertices* vol, VertexBase* v)
 {
 	uint numVrts = vol->num_vertices();
 	for(uint i = 0; i < numVrts; ++i)
