@@ -664,4 +664,144 @@ template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoF
 template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain2d::dim>, size_t> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain3d::dim>, size_t> >& vPos);
 
+////////////////////////////////////////////////////////////////////////////////
+//	Checks correct DoF Positions
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain, typename TBaseElem>
+bool CheckDoFElem(ConstSmartPtr<TDomain> domain,
+                  ConstSmartPtr<DoFDistribution> dd,
+                  std::vector<MathVector<TDomain::dim> >& vPos)
+{
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+
+	bool bRes = true;
+
+//	vector for positions
+	std::vector<MathVector<TDomain::dim> > vElemPos;
+
+//	algebra indices vector
+	std::vector<MultiIndex<2> > ind;
+
+//	loop all subsets
+	for(int si = 0; si < dd->num_subsets(); ++si)
+	{
+	//	get iterators
+		iter = dd->begin<TBaseElem>(si);
+		iterEnd = dd->end<TBaseElem>(si);
+
+	//	loop all elements
+		for(;iter != iterEnd; ++iter)
+		{
+		//	get element
+			TBaseElem* elem = *iter;
+
+		//	loop all functions
+			for(size_t fct = 0; fct < dd->num_fct(); ++fct)
+			{
+			//	skip non-used function
+				if(!dd->is_def_in_subset(fct,si)) continue;
+
+			//	load indices associated with element function
+				dd->inner_multi_indices(elem, fct, ind);
+
+			//	load positions associated with element and function
+				InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
+				                 dd->local_finite_element_id(fct));
+
+				bool bWrite = false;
+				for(size_t sh = 0; sh < ind.size(); ++sh)
+				{
+					size_t index = ind[sh][0];
+
+					if(vPos[index] != MathVector<TDomain::dim>(-1)){
+							if(VecDistance(vPos[index], vElemPos[sh]) < 1e-10) continue;
+
+						if(!bWrite)
+							UG_LOG(" **** inner_multi_index (start) ******\n")
+						bWrite = true;
+						bRes = false;
+						UG_LOG("CheckDoFPositions "<<sh<<": inner_multi_indices: index: "
+						       <<index<<" at "<<vElemPos[sh]<<", but previously: "
+						       <<vPos[index]<<"\n");
+					}
+
+					vPos[index] = vElemPos[sh];
+
+				}
+
+				if(bWrite){
+					std::vector<MathVector<TDomain::dim> > vVertPos;
+					CollectCornerCoordinates(vVertPos, elem, *domain, true);
+					UG_LOG("From Elem "<<elem<<" ("<<elem->reference_object_id()<<"):\n")
+					for(size_t i = 0; i < vVertPos.size(); ++i)
+						UG_LOG("with corner "<<i<<": "<<vVertPos[i]<<"\n");
+					UG_LOG(" **** inner_multi_index (end) ******\n")
+				}
+
+				 /////////////////////////
+				//	load indices associated with element function
+					dd->multi_indices(elem, fct, ind);
+
+				//	load positions associated with element and function
+					DoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
+					                 dd->local_finite_element_id(fct));
+
+				//	write position
+					bWrite = false;
+					for(size_t sh = 0; sh < ind.size(); ++sh)
+					{
+						size_t index = ind[sh][0];
+
+						if(vPos[index] != MathVector<TDomain::dim>(-1)){
+							if(VecDistance(vPos[index], vElemPos[sh]) < 1e-10) continue;
+
+							if(!bWrite)
+								UG_LOG(" **** multi_index (start) ******\n")
+							bWrite = true;
+							bRes = false;
+							UG_LOG("CheckDoFPositions "<<sh<<": multi_indices: index: "
+								   <<index<<" at "<<vElemPos[sh]<<", but previously: "
+								   <<vPos[index]<<"\n");
+						}
+
+						vPos[index] = vElemPos[sh];
+					}
+
+					if(bWrite){
+						std::vector<MathVector<TDomain::dim> > vVertPos;
+						CollectCornerCoordinates(vVertPos, elem, *domain, true);
+						UG_LOG("From Elem "<<elem<<" ("<<elem->reference_object_id()<<"):\n")
+						for(size_t i = 0; i < vVertPos.size(); ++i)
+							UG_LOG("with corner "<<i<<": "<<vVertPos[i]<<"\n");
+						UG_LOG(" **** multi_index (end) ******\n")
+					}
+			}
+		}
+	}
+
+	return bRes;
+}
+
+template <typename TDomain>
+bool CheckDoFPositions(ConstSmartPtr<TDomain> domain,
+                       ConstSmartPtr<DoFDistribution> dd)
+{
+//	number of total dofs
+	int nr = dd->num_indices();
+	std::vector<MathVector<TDomain::dim> > vPos(nr, -1);
+
+//	extract for all element types
+	bool bRes = true;
+	if(dd->max_dofs(VERTEX)) bRes &= CheckDoFElem<TDomain, VertexBase>(domain, dd, vPos);
+	if(dd->max_dofs(EDGE)) bRes &= CheckDoFElem<TDomain, EdgeBase>(domain, dd, vPos);
+	if(dd->max_dofs(FACE)) bRes &= CheckDoFElem<TDomain, Face>(domain, dd, vPos);
+	if(dd->max_dofs(VOLUME)) bRes &= CheckDoFElem<TDomain, Volume>(domain, dd, vPos);
+	return bRes;
+}
+
+template bool CheckDoFPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd);
+template bool CheckDoFPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd);
+template bool CheckDoFPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd);
+
 } // end namespace ug

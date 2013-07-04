@@ -20,6 +20,7 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/function_spaces/grid_function_user_data.h"
+#include "lib_disc/function_spaces/dof_position_util.h"
 
 using namespace std;
 
@@ -138,6 +139,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ug::GridFunction<TDomain, TAlgebra> grid_function;
 		typedef SmartPtr< grid_function > function_pointer;
 		reg.add_function(name, static_cast<number (*)(function_pointer, std::string, std::string, std::string)>(&AverageFunctionDifference<TDomain, TAlgebra>), grp);
+	}
+
+	{
+		reg.add_function("CheckDoFPositions", static_cast<bool (*)(const TFct&)>(CheckDoFPositions<TFct>), grp);
 	}
 }
 

@@ -103,6 +103,20 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
                       const size_t fct,
                       std::vector<std::pair<MathVector<TDomain::dim>, size_t> >& vPosPair);
 
+/**
+ * Checks that DoF Positions equal wheather they are extracted by a macroelement
+ * or a subelement.
+ */
+/// \{
+template<typename TDomain>
+bool CheckDoFPositions(ConstSmartPtr<TDomain> domain, ConstSmartPtr<DoFDistribution> dd);
+
+template<typename TFunction>
+bool CheckDoFPositions(const TFunction &u)
+{
+	return CheckDoFPositions(u.domain(),u.dof_distribution());
+}
+/// \}
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__FUNCTION_SPACE__DOF_POSITION_UTIL__ */
