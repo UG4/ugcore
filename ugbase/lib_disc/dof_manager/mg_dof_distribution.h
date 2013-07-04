@@ -269,15 +269,13 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		template<typename TBaseElem, typename TSubBaseElem>
 		void indices(TBaseElem* elem, const ReferenceObjectID roid,
 		             LocalIndices& ind,
-		             const typename Grid::traits<TSubBaseElem>::secure_container& vElem,
-		             const Grid::SecureVertexContainer& vCorner) const;
+		             const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const;
 
 		/// extracts the indices of a subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>
 		void multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		                   size_t fct, std::vector<multi_index_type>& ind,
-		                   const typename Grid::traits<TSubBaseElem>::secure_container& vElem,
-		                   const Grid::SecureVertexContainer& vCorner, bool bHang) const;
+		                   const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const;
 
 
 		/// adds all algebra indices of an geom object to the LocalIndices

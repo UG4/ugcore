@@ -392,28 +392,27 @@ size_t MGDoFDistribution::algebra_indices(TBaseElem* elem,
 //	get all sub-elements and add indices on those
 	if(max_dofs(VERTEX) > 0)
 	{
-		//std::vector<VertexBase*> vElem;
-		Grid::SecureVertexContainer vElem;
-		m_pMG->associated_elements(vElem, elem);
-		extract_inner_algebra_indices<VertexBase>(vElem, ind);
+		Grid::SecureVertexContainer vVrt;
+		m_pMG->associated_elements(vVrt, elem);
+		extract_inner_algebra_indices<VertexBase>(vVrt, ind);
 	}
 	if(dim >= EDGE && max_dofs(EDGE) > 0)
 	{
-		Grid::SecureEdgeContainer vElem;
-		m_pMG->associated_elements(vElem, elem);
-		extract_inner_algebra_indices<EdgeBase>(vElem, ind);
+		Grid::SecureEdgeContainer vEdge;
+		m_pMG->associated_elements(vEdge, elem);
+		extract_inner_algebra_indices<EdgeBase>(vEdge, ind);
 	}
 	if(dim >= FACE && max_dofs(FACE) > 0)
 	{
-		Grid::SecureFaceContainer vElem;
-		m_pMG->associated_elements(vElem, elem);
-		extract_inner_algebra_indices<Face>(vElem, ind);
+		Grid::SecureFaceContainer vFace;
+		m_pMG->associated_elements(vFace, elem);
+		extract_inner_algebra_indices<Face>(vFace, ind);
 	}
 	if(dim >= VOLUME && max_dofs(VOLUME) > 0)
 	{
-		Grid::SecureVolumeContainer vElem;
-		m_pMG->associated_elements(vElem, elem);
-		extract_inner_algebra_indices<Volume>(vElem, ind);
+		Grid::SecureVolumeContainer vVol;
+		m_pMG->associated_elements(vVol, elem);
+		extract_inner_algebra_indices<Volume>(vVol, ind);
 	}
 
 //	return number of indices
@@ -424,8 +423,7 @@ template<typename TBaseElem, typename TSubBaseElem>
 void MGDoFDistribution::
 multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
               size_t fct, std::vector<multi_index_type>& ind,
-              const typename Grid::traits<TSubBaseElem>::secure_container& vElem,
-              const Grid::SecureVertexContainer& vCorner, bool bHang) const
+              const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const
 {
 //	get dimension of subelement
 	static const int d = TSubBaseElem::dim;
@@ -568,29 +566,29 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 	const ReferenceObjectID roid = elem->reference_object_id();
 
 //	get all sub-elements and add indices on those
-	Grid::SecureVertexContainer vCorner;
-	m_pMG->associated_elements_sorted(vCorner, elem);
-	if(max_dofs(VERTEX) > 0)
+	if(dim >= VERTEX && max_dofs(VERTEX) > 0)
 	{
-		multi_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner, vCorner, bHang);
+		Grid::SecureVertexContainer vCorner;
+		m_pMG->associated_elements_sorted(vCorner, elem);
+		multi_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner);
 	}
 	if(dim >= EDGE && max_dofs(EDGE) > 0)
 	{
-		Grid::SecureEdgeContainer vElem;
-		m_pMG->associated_elements_sorted(vElem, elem);
-		multi_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vElem, vCorner, bHang);
+		Grid::SecureEdgeContainer vEdge;
+		m_pMG->associated_elements_sorted(vEdge, elem);
+		multi_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vEdge);
 	}
 	if(dim >= FACE && max_dofs(FACE) > 0)
 	{
-		Grid::SecureFaceContainer vElem;
-		m_pMG->associated_elements_sorted(vElem, elem);
-		multi_indices<TBaseElem, Face>(elem, roid, fct, ind, vElem, vCorner, bHang);
+		Grid::SecureFaceContainer vFace;
+		m_pMG->associated_elements_sorted(vFace, elem);
+		multi_indices<TBaseElem, Face>(elem, roid, fct, ind, vFace);
 	}
 	if(dim >= VOLUME && max_dofs(VOLUME) > 0)
 	{
-		Grid::SecureVolumeContainer vElem;
-		m_pMG->associated_elements_sorted(vElem, elem);
-		multi_indices<TBaseElem, Volume>(elem, roid, fct, ind, vElem, vCorner, bHang);
+		Grid::SecureVolumeContainer vVol;
+		m_pMG->associated_elements_sorted(vVol, elem);
+		multi_indices<TBaseElem, Volume>(elem, roid, fct, ind, vVol);
 	}
 
 //	todo: add hanging nodes
@@ -654,8 +652,7 @@ void MGDoFDistribution::indices_on_vertex(TBaseElem* elem, const ReferenceObject
 template<typename TBaseElem, typename TSubBaseElem>
 void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
                                 LocalIndices& ind,
-                                const typename Grid::traits<TSubBaseElem>::secure_container& vElem,
-                                const Grid::SecureVertexContainer& vCorner) const
+                                const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const
 {
 //	dimension of subelement
 	static const int d = TSubBaseElem::dim;
@@ -816,32 +813,31 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 	ind.resize_fct(num_fct());
 	for(size_t fct = 0; fct < num_fct(); ++fct) ind.clear_dof(fct);
 
-//	get all sub-elements and add indices on those
-	Grid::SecureVertexContainer vCorner;
-	m_pMG->associated_elements_sorted(vCorner, elem);
-
 //	storage for (maybe needed) subelements
+	Grid::SecureVertexContainer vCorner;
 	Grid::SecureEdgeContainer vEdge;
 	Grid::SecureFaceContainer vFace;
 	Grid::SecureVolumeContainer vVol;
 
 //	collect elements, if needed
+	if(dim >= VERTEX)
+		if(max_dofs(VERTEX) > 0) m_pMG->associated_elements_sorted(vCorner, elem);
 	if(dim >= EDGE)
 		if(max_dofs(EDGE) > 0 || bHang) m_pMG->associated_elements_sorted(vEdge, elem);
 	if(dim >= FACE)
 		if(max_dofs(FACE) > 0 || bHang) m_pMG->associated_elements_sorted(vFace, elem);
 	if(dim >= VOLUME)
-		if(max_dofs(VOLUME) > 0 || bHang) m_pMG->associated_elements_sorted(vVol, elem);
+		if(max_dofs(VOLUME) > 0) m_pMG->associated_elements_sorted(vVol, elem);
 
 //	get reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();
 
 //	get regular dofs on all subelements and the element itself
 //	use specialized function for vertices (since only one position and one reference object)
-	if(max_dofs(VERTEX) > 0) 				  indices_on_vertex<TBaseElem>(elem, roid, ind, vCorner);
-	if(dim >= EDGE && max_dofs(EDGE) > 0) 	  indices<TBaseElem, EdgeBase>(elem, roid, ind, vEdge, vCorner);
-	if(dim >= FACE && max_dofs(FACE) > 0) 	  indices<TBaseElem, Face>(elem, roid, ind, vFace, vCorner);
-	if(dim >= VOLUME && max_dofs(VOLUME) > 0) indices<TBaseElem, Volume>(elem, roid, ind, vVol, vCorner);
+	if(dim >= VERTEX && max_dofs(VERTEX) > 0) indices_on_vertex<TBaseElem>(elem, roid, ind, vCorner);
+	if(dim >= EDGE && max_dofs(EDGE) > 0) 	  indices<TBaseElem, EdgeBase>(elem, roid, ind, vEdge);
+	if(dim >= FACE && max_dofs(FACE) > 0) 	  indices<TBaseElem, Face>(elem, roid, ind, vFace);
+	if(dim >= VOLUME && max_dofs(VOLUME) > 0) indices<TBaseElem, Volume>(elem, roid, ind, vVol);
 
 //	If no hanging dofs are required, we're done
 	if(!bHang) return;
