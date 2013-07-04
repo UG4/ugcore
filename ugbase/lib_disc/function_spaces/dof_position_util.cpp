@@ -71,12 +71,13 @@ bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObject
 		return true;
 	}
 */
-//	create a reference mapping
-	const DimReferenceMapping<refDim,dim>& map =
-					ReferenceMappingProvider::get<refDim,dim>(roid, vVertPos);
 
 //	get local dof set
 	const DimLocalDoFSet<refDim>& lds = LocalFiniteElementProvider::get_dofs<refDim>(roid, lfeID);
+
+//	create a reference mapping
+	 DimReferenceMapping<refDim,dim>& map =
+					ReferenceMappingProvider::get<refDim,dim>(roid, vVertPos);
 
 //	clear pos
 	vPos.clear();
@@ -225,13 +226,13 @@ bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID ro
 		return true;
 	}
 */
-//	create a reference mapping
-	const DimReferenceMapping<refDim,dim>& map =
-					ReferenceMappingProvider::get<refDim,dim>(roid, vVertPos);
-
 //	get local shape function set
 	const DimLocalDoFSet<refDim>& lds
 					= LocalFiniteElementProvider::get_dofs<refDim>(roid, lfeID);
+
+//	create a reference mapping
+	const DimReferenceMapping<refDim,dim>& map =
+					ReferenceMappingProvider::get<refDim,dim>(roid, vVertPos);
 
 //	clear pos
 	vPos.resize(lds.num_sh());
