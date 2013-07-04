@@ -26,54 +26,9 @@ template <int refDim, int dim>
 bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
                       const std::vector<MathVector<dim> >& vVertPos, const LFEID& lfeID)
 {
-//	\TODO: This is a lousy quick-hack. Remove, when dof pos on lower dim elemens
-	//		can be handeled correctly for non-lagrangian spaces.
-/*	if(lfeID == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
-	{
-		vPos.clear();
-		if(lfeID.dim() != refDim+1) return true;
-
-		MathVector<dim> center;
-		VecSet(center, 0.0);
-		for(size_t co = 0; co < vVertPos.size(); ++co)
-			VecAppend(center, vVertPos[co]);
-		VecScale(center, center, 1./(vVertPos.size()));
-
-		vPos.push_back(center);
-		return true;
-	}
-	if(lfeID == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0))
-	{
-		vPos.clear();
-		if(lfeID.dim() != refDim) return true;
-
-		MathVector<dim> center;
-		VecSet(center, 0.0);
-		for(size_t co = 0; co < vVertPos.size(); ++co)
-			VecAppend(center, vVertPos[co]);
-		VecScale(center, center, 1./(vVertPos.size()));
-
-		vPos.push_back(center);
-		return true;
-	}
-	if(lfeID == LFEID(LFEID::NEDELEC, dim, 1))
-	{
-		vPos.clear();
-		if(refDim != 1) return true;
-
-		MathVector<dim> center;
-		VecSet(center, 0.0);
-		for(size_t co = 0; co < vVertPos.size(); ++co)
-			VecAppend(center, vVertPos[co]);
-		VecScale(center, center, 1./(vVertPos.size()));
-
-		vPos.push_back(center);
-		return true;
-	}
-*/
-
 //	get local dof set
-	const DimLocalDoFSet<refDim>& lds = LocalFiniteElementProvider::get_dofs<refDim>(roid, lfeID);
+	const DimLocalDoFSet<refDim>& lds =
+					LocalFiniteElementProvider::get_dofs<refDim>(roid, lfeID);
 
 //	create a reference mapping
 	 DimReferenceMapping<refDim,dim>& map =
@@ -170,62 +125,6 @@ template <int refDim, int dim>
 bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
                  const std::vector<MathVector<dim> >& vVertPos, const LFEID& lfeID)
 {
-//	\TODO: This is a lousy quick-hack. Remove, when dof pos on lower dim elemens
-	//		can be handeled correctly for non-lagrangian spaces.
-/*	if(lfeID.type() == LFEID::CROUZEIX_RAVIART)
-	{
-		vPos.clear();
-
-		// case, that we are on a side
-		if(lfeID.dim() == refDim+1)
-		{
-			MathVector<dim> center;
-			VecSet(center, 0.0);
-			for(size_t co = 0; co < vVertPos.size(); ++co)
-				VecAppend(center, vVertPos[co]);
-			VecScale(center, center, 1./(vVertPos.size()));
-			vPos.push_back(center);
-			return true;
-		}
-
-		// case, that we are on elements with lower dim, than a side
-		if(lfeID.dim() > refDim+1) return true;
-
-		// case, that we are on element with higher dim than side (i.e. the volume element itself)
-		if(lfeID.dim() == refDim && lfeID.dim() == dim)
-		{
-			const ReferenceElement& refElem = ReferenceElementProvider::get(roid);
-
-			for(size_t side = 0; side < refElem.num(dim-1); ++side)
-			{
-				MathVector<dim> center;
-				VecSet(center, 0.0);
-				for(size_t co = 0; co < refElem.num(dim-1, side, VERTEX); ++co)
-					VecAppend(center, vVertPos[refElem.id(dim-1, side, VERTEX, co)]);
-				VecScale(center, center, 1./(refElem.num(dim-1)));
-				vPos.push_back(center);
-			}
-			return true;
-		}
-
-		// other cases should never happen
-		UG_THROW("Special case for Crouzeix-Raviart: case should not happen.");
-	}
-	if(lfeID.type() == LFEID::PIECEWISE_CONSTANT)
-	{
-		vPos.clear();
-		if(lfeID.dim() != refDim) return true;
-
-		MathVector<dim> center;
-		VecSet(center, 0.0);
-		for(size_t co = 0; co < vVertPos.size(); ++co)
-			VecAppend(center, vVertPos[co]);
-		VecScale(center, center, 1./(vVertPos.size()));
-
-		vPos.push_back(center);
-		return true;
-	}
-*/
 //	get local shape function set
 	const DimLocalDoFSet<refDim>& lds
 					= LocalFiniteElementProvider::get_dofs<refDim>(roid, lfeID);
@@ -309,25 +208,6 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* 
 //	forward
 	return DoFPosition<TDomain::dim>(vPos, roid, vVertPos, lfeID);
 }
-
-#ifdef UG_DIM_1
-template bool InnerDoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GeometricObject* elem, const Domain1d& domain, const LFEID& lfeID);
-template bool InnerDoFPosition<1>(std::vector<MathVector<1> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
-template bool DoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GeometricObject* elem, const Domain1d& domain, const LFEID& lfeID);
-template bool DoFPosition<1>(std::vector<MathVector<1> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
-#endif
-#ifdef UG_DIM_2
-template bool InnerDoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
-template bool InnerDoFPosition<2>(std::vector<MathVector<2> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
-template bool DoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
-template bool DoFPosition<2>(std::vector<MathVector<2> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
-#endif
-#ifdef UG_DIM_3
-template bool InnerDoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
-template bool InnerDoFPosition<3>(std::vector<MathVector<3> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
-template bool DoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
-template bool DoFPosition<3>(std::vector<MathVector<3> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -454,10 +334,6 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, vPos, pvMapGlobalToPatch);
 }
 
-template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
-template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
-template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
-
 ////////////////////////////////////////////////////////////////////////////////
 //	Extract (Positions, Index) Pairs
 ////////////////////////////////////////////////////////////////////////////////
@@ -576,10 +452,6 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, vPosPair);
 }
 
-template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain1d::dim>, size_t> >& vPos);
-template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain2d::dim>, size_t> >& vPos);
-template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain3d::dim>, size_t> >& vPos);
-
 ////////////////////////////////////////////////////////////////////////////////
 //	Extract (Positions, Index) Pairs for a single component
 ////////////////////////////////////////////////////////////////////////////////
@@ -659,10 +531,6 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, Face>(domain, dd, fct, vPosPair);
 	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, fct, vPosPair);
 }
-
-template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain1d::dim>, size_t> >& vPos);
-template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain2d::dim>, size_t> >& vPos);
-template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain3d::dim>, size_t> >& vPos);
 
 ////////////////////////////////////////////////////////////////////////////////
 //	Checks correct DoF Positions
@@ -800,8 +668,35 @@ bool CheckDoFPositions(ConstSmartPtr<TDomain> domain,
 	return bRes;
 }
 
+#ifdef UG_DIM_1
+template bool InnerDoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GeometricObject* elem, const Domain1d& domain, const LFEID& lfeID);
+template bool InnerDoFPosition<1>(std::vector<MathVector<1> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
+template bool DoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GeometricObject* elem, const Domain1d& domain, const LFEID& lfeID);
+template bool DoFPosition<1>(std::vector<MathVector<1> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
+template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain1d::dim>, size_t> >& vPos);
+template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain1d::dim>, size_t> >& vPos);
 template bool CheckDoFPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd);
+#endif
+#ifdef UG_DIM_2
+template bool InnerDoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
+template bool InnerDoFPosition<2>(std::vector<MathVector<2> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
+template bool DoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
+template bool DoFPosition<2>(std::vector<MathVector<2> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
+template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain2d::dim>, size_t> >& vPos);
+template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain2d::dim>, size_t> >& vPos);
 template bool CheckDoFPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd);
+#endif
+#ifdef UG_DIM_3
+template bool InnerDoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
+template bool InnerDoFPosition<3>(std::vector<MathVector<3> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
+template bool DoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
+template bool DoFPosition<3>(std::vector<MathVector<3> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
+template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain3d::dim>, size_t> >& vPos);
+template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain3d::dim>, size_t> >& vPos);
 template bool CheckDoFPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd);
+#endif
 
 } // end namespace ug
