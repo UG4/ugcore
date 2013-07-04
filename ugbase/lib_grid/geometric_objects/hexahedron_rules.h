@@ -29,7 +29,8 @@ const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 3}, {3, 0},
 ///	the local vertex indices of the given face
 const int FACE_VRT_INDS[][4] = {	{0, 1, 2, 3},	{0, 4, 5, 1},
 									{1, 5, 6, 2},	{2, 6, 7, 3},
-									{0, 3, 7, 4},	{4, 7, 6, 5}};
+									{3, 7, 4, 0},	{4, 7, 6, 5}};
+//									{0, 3, 7, 4},	{4, 7, 6, 5}};
 
 /// contains the index of the opposed face of each face
 const int OPPOSED_FACE[NUM_FACES] =	{5, 3, 4, 1, 2, 0};
@@ -41,7 +42,8 @@ const int OPPOSED_FACE[NUM_FACES] =	{5, 3, 4, 1, 2, 0};
  */
 const int OPPOSED_FACE_VRT_INDS[][4] =	{{4, 5, 6, 7},	{3, 7, 6, 2},
 									 	 {0, 4, 7, 3},	{1, 5, 4, 0},
-									 	 {1, 2, 6, 5},	{0, 3, 2, 1}};
+									 	 {2, 6, 5, 1},	{0, 3, 2, 1}};
+//									 	 {1, 2, 6, 5},	{0, 3, 2, 1}};
 
 
 /** for each vertex, a pair containing the object type (0: vrt, 1: edge, 2: face)

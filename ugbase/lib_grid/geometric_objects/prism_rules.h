@@ -28,7 +28,8 @@ const int EDGE_VRT_INDS[][2] = {	{0, 1}, {1, 2}, {2, 0},
 
 ///	the local vertex indices of the given face
 const int FACE_VRT_INDS[][4] = {	{0, 1, 2, -1},	{0, 3, 4, 1},
-									{1, 4, 5, 2},	{0, 2, 5, 3},
+//									{1, 4, 5, 2},	{0, 2, 5, 3},
+									{1, 4, 5, 2},	{2, 5, 3, 0},
 									{3, 5, 4, -1}};
 
 ///	the index of the face opposed to the given one. -1 if no face is opposed
