@@ -19,21 +19,11 @@ using namespace std;
 namespace ug{
 
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 //	ComputeOrientationOffset
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename TBaseElem>
-void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset, const size_t p,
-                              const ReferenceElement& rRefElem,
-                              const size_t nrEdge, const size_t numDoFsOnSub,
-                              const Grid::SecureVertexContainer& vCorner)
-{}
-
 
 /*
- * Orientation of an edge:
+ * Lagrange DoF Orientation of an Edge:
  * If DoFs are assigned to a lower-dimensional edge and we have a degree higher
  * than 2 (i.e. more than one DoF on the edge) orientation is required to
  * ensure continuity of the shape functions. This means, that each element
@@ -41,99 +31,59 @@ void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset, const size_t p
  * in global numbering.
  *
  * The idea is as follows: We induce a global ordering of dofs on the edge by
- * using the storage position of the vertices of the edge. By our own definition
- * we say, that dofs are always assigned in a line from the vertices with lower
- * storage position to the vertices with the higher one. Now, in the local ordering
- * of dofs on the reference element, the edge may have been a different numbering
- * for the corners.
+ * using the vertices of the edge itself. We define, that dofs are always
+ * assigned in a line from the vertex 0 to the vertex 1.
+ * Now, in the local ordering of dofs on the reference element, the edge may
+ * have been a different numbering for the corners.
  * Thus, we have to distinguish two case:
- * a) corner 0 in reference element numbering has the smaller storage position: in
- * 		this case we can simply use the usual offset numbering
- * b) corner 0 in reference element numbering has a bigger storage position: in
- * 		this case we have to use the reverse order as offset numbering
+ * a) Orientation matches: we can simply use the usual offset numbering
+ * b) Orientation mismatches: we have to use the reverse order as offset numbering
  */
-template <>
-void ComputeOrientationOffset<EdgeBase>
-(std::vector<size_t>& vOrientOffset, const size_t p,
- const ReferenceElement& rRefElem,
- const size_t nrEdge, const size_t numDoFsOnSub,
- const Grid::SecureVertexContainer& vCorner)
+bool OrientationMatches(const EdgeVertices& e1, const EdgeVertices& e2)
 {
-//	check
-	UG_ASSERT(p-1 == numDoFsOnSub, "Wrong number of dofs on sub");
-	UG_ASSERT(p > 2, "Orientation only needed for p > 2, but given p="<<p);
+	return e1.vertex(0) == e2.vertex(0);
+}
 
-//	compare the two corners of the edge
-	const size_t co0 = rRefElem.id(1, nrEdge, 0, 0);
-	const size_t co1 = rRefElem.id(1, nrEdge, 0, 1);
-
-//	resize the orientation array
-	vOrientOffset.resize(numDoFsOnSub);
+void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
+                              EdgeDescriptor& ed, EdgeBase* edge, const size_t p)
+{
+	vOrientOffset.reserve(p-1);
+	vOrientOffset.clear();
 
 //	the standard orientation is from co0 -> co1.
-//	we define to store the dofs that way if co0 has smaller address than
-//	co1. If this is not the case now, we have to invert the order.
-	if(vCorner[co0] < vCorner[co1])
+	if(OrientationMatches(ed, *edge))
 	{
-		for(size_t i = 0; i < numDoFsOnSub; ++i)
-			vOrientOffset[i] = i;
+		for(size_t i = 0; i < p-1; ++i)
+			vOrientOffset.push_back(i);
 	}
+//	... and for reverse order
 	else
 	{
-		for(size_t i = 0; i < numDoFsOnSub; ++i)
-			vOrientOffset[i] = (p-2)-i;
+		for(int i = ((int)p) - 2; i >= 0; --i)
+			vOrientOffset.push_back(i);
 	}
-};
+}
 
-
-
-
-static void MapFace(size_t& map_i, size_t& map_j,
-                    const size_t i, const size_t j,
-                    const int numCo, const size_t p,
-                    const int smallest, const int second)
+void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
+                              Face* face, EdgeBase* edge, size_t nrEdge,
+                              const size_t p)
 {
-	UG_ASSERT(i <= p, "Wrong index");
-	UG_ASSERT(j <= p, "Wrong index");
+	EdgeDescriptor ed;
+	face->edge_desc(nrEdge, ed);
+	ComputeOrientationOffset(vOrientOffset, ed, edge, p);
+}
 
-//	handle rotation
-	switch(numCo)
-	{
-		case 3:
-		{
-			switch(smallest)
-			{
-				case 0: map_i = i; map_j = j; break;
-				case 1: map_i = j; map_j = p-i-j; break;
-				case 2: map_i = p-i-j; map_j = i; break;
-				default: UG_THROW("Corner not found.");
-			}
-			break;
-		}
-		case 4:
-		{
-			switch(smallest)
-			{
-				case 0: map_i = i; map_j = j; break;
-				case 1: map_i = j; map_j = p-i; break;
-				case 2: map_i = p-i; map_j = p-j; break;
-				case 3: map_i = p-j; map_j = i; break;
-				default: UG_THROW("Corner not found.");
-			}
-			break;
-		}
-		default: UG_THROW("Num Corners not supported.");
-	}
-
-//	handle mirroring
-	if(second == (smallest+numCo-1)%numCo)
-	{
-		const size_t h = map_i; map_i = map_j; map_j = h;
-	}
-};
+void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
+                              Volume* vol, EdgeBase* edge, size_t nrEdge,
+                              const size_t p)
+{
+	EdgeDescriptor ed;
+	vol->edge_desc(nrEdge, ed);
+	ComputeOrientationOffset(vOrientOffset, ed, edge, p);
+}
 
 /*
- * Orientation of a Face:
+ * Lagrange DoF Orientation of a Face:
  * If DoFs are assigned to a lower-dimensional face and we have a degree higher
  * than 2 (i.e. more than one DoF on the face) orientation is required to
  * ensure continuity of the shape functions. This means, that each element
@@ -141,99 +91,142 @@ static void MapFace(size_t& map_i, size_t& map_j,
  * in global numbering.
  *
  * The idea of the ordering is as follows:
- * We define that DoFs are always assigned to the face in a prescribed order.
- * In ordr to do so, we find the vertex of the face with the smallest storage
- * position. Then we find the vertex, that is connected to the smallest vertex
- * by an edge, with the (second) smallest storage position. Thus, we have a
- * situation like this:
+ * DoFs are always assigned to the face in a natural order, i.e. in an order such
+ * that the numbering of the face itself gives the ordering. Now, give a 3d
+ * element with that face, the reference elements provides us with a numbering
+ * of the vertices of the face. This numbering must not match the natural ordering
+ * as present in the face itself.
+ * Now find the vertex-id (id0) of the face that matches the natural vertex 0 of
+ * the face itself, and the vertex-id (id1) of the natural vertex 1.
+ * On the natural face we have a situation like this:
  *
  *  	*						*--------*			^ j
  *  	|  \					|		 |			|
  *  	|    \				    |	     |			|
  * 		|      \				|		 |			|-----> i
  *  	*------ *				*--------*
- *  smallest   second		smallest	second
+ *  	id0     id1 			id0		id1
  *
- * In this picture all rotations and mirroring can appear. We define that the
- * DoFs on the face are always numbered in x direction first, continuing in the
- * next row in y direction, numbering in x again and continuing in y, etc.
- * E.g. this gives for a p = 4 element (showing only inner dofs):
+ * We define that the DoFs on the face are always numbered in x direction first,
+ * continuing in the next row in y direction, numbering in x again and
+ * continuing in y, etc. E.g. this gives (showing only inner dofs):
  *
  *  	*						*-------*			^ j
  *  	|5 \					| 6	7 8	|			|
  *  	|3 4 \					| 3 4 5	|			|
  * 		|0 1 2 \				| 0 1 2 |			|-----> i
  *  	*-------*				*-------*
- *  smallest   second		smallest	second
+ *  	id0     id1 			id0		id1
+ *        p = 5						p = 4
  *
- * Now, the face vertices of the given element have a local numbering vCo[] in
- * the reference element. The DoFs in the reference element meaning are ordered
- * as if vCo[0] was smallest and vCo[1] was second. Thus, now in real world,
- * these must not match and we have to find the orientation of the face. Smallest
- * and second is computed and than a mapping is set up.
+ * Now all rotations and mirroring can appear. This are resolved constructing
+ * a mapping.
  */
-template <>
-void ComputeOrientationOffset<Face>
-(std::vector<size_t>& vOrientOffset, const size_t p,
- const ReferenceElement& rRefElem,
- const size_t nrFace, const size_t numDoFsOnSub,
- const Grid::SecureVertexContainer& vCorner)
+
+static void MapLagrangeMultiIndexQuad(std::vector<size_t>& vOrientOffset,
+                                      const int id0, bool sameOrientation,
+                                      const size_t pOuter)
 {
-//	should only be called for p > 2, since else no orientation needed
-	UG_ASSERT(p > 2, "Orientation only needed for p > 2, but given p="<<p);
+//	in the inner, the number of dofs is as if it would be an element of order p-2.
+	const size_t p = pOuter-2;
 
 //	resize array
-	vOrientOffset.resize(numDoFsOnSub);
+	vOrientOffset.clear();
+	vOrientOffset.reserve((p+1)*(p+1));
 
-//	get corners of face
-	const int numCo = rRefElem.num(2, nrFace, 0);
-	std::vector<size_t> vCo(numCo);
-	for(int i = 0; i < numCo; ++i)
-		vCo[i] = rRefElem.id(2, nrFace, 0, i);
+//	loop mapped indices as required by rotated face
+	for(size_t mj = 0; mj <= p; ++mj){
+		for(size_t mi = 0; mi <= p; ++mi){
 
-//	find smallest
-	int smallest = 0;
-	for(int i = 1; i < numCo; ++i)
-		if(vCorner[ vCo[i] ] < vCorner[ vCo[smallest] ]) smallest = i;
+		//	get corresponding multiindex in "natural" numbering
+			size_t i,j;
+			switch(id0)
+			{
+				case 0: i = mi;   j = mj;   break;
+				case 1: i = mj;   j = p-mi; break;
+				case 2: i = p-mi; j = p-mj; break;
+				case 3: i = p-mj; j = mi;   break;
+				default: UG_THROW("Orientation Quad: Corner "<<id0<<" invalid.");
+			}
+			if(!sameOrientation) std::swap(i, j);
 
-//	find second smallest
-	int second = (smallest+numCo-1)%numCo;
-	const int next = (smallest+numCo+1)%numCo;
-	if(vCorner[ vCo[next] ] < vCorner[ vCo[second] ]) second = next;
-
-//	map the i,j
-	size_t map_i, map_j;
-
-//	in the inner, the number of dofs is as if it would be an element
-//	of degree p-2. We cache this here
-	const size_t pInner = p-2;
-
-//	loop 'y'-direction
-	size_t index = 0;
-	for(size_t j = 0; j <= pInner; ++j)
-	{
-	//	for a quadrilateral we have a quadratic loop, but for a
-	//	triangle we need to stop at the diagonal
-		const size_t off = ((vCo.size() == 3) ? j : 0);
-
-	//	loop 'x'-direction
-		for(size_t i = 0; i <= pInner-off; ++i)
-		{
-		//	map the index-pair (i,j)
-			MapFace(map_i, map_j, i, j, numCo, pInner, smallest, second);
-
-		//	linearize index and mapped index
-			const size_t mappedIndex = (p-1) * map_j + map_i;
-
-		//	check
-			UG_ASSERT(mappedIndex < numDoFsOnSub, "Wrong mapped index");
-			UG_ASSERT(index < numDoFsOnSub, "Wrong index");
+		//	linearize index
+			const size_t naturalIndex = (p+1) * j + i;
 
 		//	set mapping
-			vOrientOffset[index++] = mappedIndex;
+			vOrientOffset.push_back(naturalIndex);
 		}
 	}
 };
+
+static void MapLagrangeMultiIndexTriangle(std::vector<size_t>& vOrientOffset,
+                                          const int id0, bool sameOrientation,
+                                          const size_t pOuter)
+{
+//	in the inner, the number of dofs is as if it would be an element of order p-3.
+	const size_t p = pOuter-3;
+
+//	resize array
+	vOrientOffset.clear();
+
+//	loop mapped indices as required by rotated face
+	for(size_t mj = 0; mj <= p; ++mj){
+		for(size_t mi = 0; mi <= p-mj; ++mi){
+
+		//	get corresponding multiindex in "natural" numbering
+			size_t i,j;
+			switch(id0)
+			{
+				case 0: i = mi;      j = mj;      break;
+				case 1: i = mj;      j = p-mi-mj; break;
+				case 2: i = p-mi-mj; j = mi;      break;
+				default: UG_THROW("Orientation Triangle: Corner "<<id0<<" invalid.");
+			}
+			if(!sameOrientation) std::swap(i, j);
+
+		//	linearize index and mapped index
+			size_t naturalIndex = i;
+			for(size_t c = 0; c < j; ++c)
+				naturalIndex += (p+1-c);
+
+		//	set mapping
+			vOrientOffset.push_back(naturalIndex);
+		}
+	}
+};
+
+void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
+                              Volume* volume, Face* face, size_t nrFace,
+                              const size_t p)
+{
+//	get face descriptor
+	FaceDescriptor fd;
+	volume->face_desc(nrFace, fd);
+
+//	find id0 and orientation
+	const int numCo = face->num_vertices();
+	const int id0 = GetVertexIndex(&fd, face->vertex(0));
+	const int id1 = GetVertexIndex(&fd, face->vertex(1));
+	const bool sameOrientation = (id1 == (id0+1)%numCo);
+
+	switch(numCo){
+		case 3:
+			MapLagrangeMultiIndexTriangle(vOrientOffset, id0, sameOrientation, p);
+			break;
+		case 4:
+			MapLagrangeMultiIndexQuad(vOrientOffset, id0, sameOrientation, p);
+			break;
+		default: UG_THROW("No corner number "<<numCo<<" implemented.");
+	}
+};
+
+
+void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
+                              GeometricObject* volume, GeometricObject* face, size_t nrFace,
+                              const size_t p)
+{
+	UG_THROW("Should never be called!");
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -326,7 +319,7 @@ extract_inner_algebra_indices(TBaseElem* elem,
 {
 //	get roid type and subset index
 	const int si = m_spMGSH->get_subset_index(elem);
-	static const ReferenceObjectID roid = elem->reference_object_id();
+	const ReferenceObjectID roid = elem->reference_object_id();
 
 //	check if dofs present
 	if(num_dofs(roid,si) > 0)
@@ -459,15 +452,15 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		const size_t numDoFsOnSub = num_dofs(fct, subRoid);
 
 	//	a) Orientation required
-		if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1)
+		if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1
+				&& TSubBaseElem::dim < TBaseElem::dim)
 		{
 			std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
 		//	get the orientation for this subelement
-			ComputeOrientationOffset<TSubBaseElem>
-				(vOrientOffset, local_finite_element_id(fct).order(),
-				 ReferenceElementProvider::get(roid),
-				 	 i, numDoFsOnSub, vCorner);
+			ComputeOrientationOffset(vOrientOffset, elem, subElem, i,
+			                            lfeid(fct).order());
+			UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Wrong mapped index");
 
 			if(!m_bGrouped)
 			{
@@ -522,9 +515,6 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 //	clear if requested
 	if(bClear) ind.clear();
 
-//	get dimension
-	static const int d = TBaseElem::dim;
-
 //	get subset index
 	const int si = m_spMGSH->get_subset_index(elem);
 
@@ -532,7 +522,7 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 	if(!is_def_in_subset(fct, si)) return ind.size();
 
 //	get roid type
-	static const ReferenceObjectID roid = elem->reference_object_id();
+	const ReferenceObjectID roid = elem->reference_object_id();
 
 //	get number of DoFs in this sub-geometric object
 	const size_t numDoFsOnSub = num_dofs(fct,roid);
@@ -540,57 +530,23 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 //	check if dof given
 	if(numDoFsOnSub == 0) return ind.size();
 
-//	a) Orientation required:
-	if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1)
+//	Note: No orientation needed
+	if(!m_bGrouped)
 	{
-	//	get corners
-		Grid::SecureVertexContainer vCorner;
-		m_pMG->associated_elements(vCorner, elem);
-	//	get the orientation for this
-		std::vector<size_t> vOrientOffset(numDoFsOnSub);
-		ComputeOrientationOffset<TBaseElem>
-			(vOrientOffset, local_finite_element_id(fct).order(),
-			 ReferenceElementProvider::get(roid),
-			 0, numDoFsOnSub, vCorner);
+	//	compute index
+		const size_t index = obj_index(elem) + offset(roid,si,fct);
 
-		if(!m_bGrouped)
-		{
-		//	compute index
-			const size_t index = obj_index(elem) + offset(roid,si,fct);
-
-			for(size_t j = 0; j < numDoFsOnSub; ++j)
-				ind.push_back(multi_index_type(index+vOrientOffset[j],0));
-		}
-		else
-		{
-		//	compute index
-			const size_t comp = offset(roid,si,fct);
-			const size_t firstIndex = obj_index(elem);
-
-			for(size_t j = 0; j < numDoFsOnSub; ++j)
-				ind.push_back(multi_index_type(firstIndex, comp+vOrientOffset[j]));
-		}
+		for(size_t j = 0; j < numDoFsOnSub; ++j)
+			ind.push_back(multi_index_type(index+j,0));
 	}
-//	b) No orientation needed
 	else
 	{
-		if(!m_bGrouped)
-		{
-		//	compute index
-			const size_t index = obj_index(elem) + offset(roid,si,fct);
+	//	compute index
+		const size_t comp = offset(roid,si,fct);
+		const size_t firstIndex = obj_index(elem);
 
-			for(size_t j = 0; j < numDoFsOnSub; ++j)
-				ind.push_back(multi_index_type(index+j,0));
-		}
-		else
-		{
-		//	compute index
-			const size_t comp = offset(roid,si,fct);
-			const size_t firstIndex = obj_index(elem);
-
-			for(size_t j = 0; j < numDoFsOnSub; ++j)
-				ind.push_back(multi_index_type(firstIndex, comp+j));
-		}
+		for(size_t j = 0; j < numDoFsOnSub; ++j)
+			ind.push_back(multi_index_type(firstIndex, comp+j));
 	}
 
 //	done
@@ -735,17 +691,17 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 		//		This is also not needed for the highest dimension of a finite
 		//		element, since the dofs on this geometric object must not be
 		//		identified with other dofs.
-			if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1)
+			if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1
+					&& TSubBaseElem::dim < TBaseElem::dim)
 			{
 			//	vector storing the computed offsets. If in correct order,
 			//	this would be: [0, 1, 2, ...]. But this is usually not the
 			// 	case and the numbers 0 to numDoFsOnSub-1 are permuted
 				std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
-				ComputeOrientationOffset<TSubBaseElem>
-					(vOrientOffset, local_finite_element_id(fct).order(),
-					 ReferenceElementProvider::get(roid),
-					 i, numDoFsOnSub, vCorner);
+				ComputeOrientationOffset(vOrientOffset, elem, subElem, i,
+				                            lfeid(fct).order());
+				UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Wrong mapped index");
 
 				if(!m_bGrouped)
 				{
