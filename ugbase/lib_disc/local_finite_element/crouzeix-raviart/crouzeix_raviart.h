@@ -474,21 +474,21 @@ class CrouzeixRaviartLSFS<ReferencePyramid>
 		{
 			switch(i)
 			{
-				case 0:	pos[0] = 0.0;
-						pos[1] = 0.0;
+				case 0:	pos[0] = 0.5;
+						pos[1] = 0.5;
 						pos[2] = 0.0;return true;
-				case 1:	pos[0] = 1.0;
+				case 1:	pos[0] = 1.0/3.0;
 						pos[1] = 0.0;
-						pos[2] = 0.0; return true;
-				case 2:	pos[0] = 1.0;
-						pos[1] = 1.0;
-						pos[2] = 0.0; return true;
-				case 3: pos[0] = 0.0;
-						pos[1] = 1.0;
-						pos[2] = 0.0; return true;
+						pos[2] = 1.0/3.0; return true;
+				case 2:	pos[0] = 2.0/3.0;
+						pos[1] = 1.0/3.0;
+						pos[2] = 1.0/3.0; return true;
+				case 3: pos[0] = 1.0/3.0;
+						pos[1] = 2.0/3.0;
+						pos[2] = 1.0/3.0; return true;
 				case 4: pos[0] = 0.0;
-						pos[1] = 0.0;
-						pos[2] = 1.0; return true;
+						pos[1] = 1.0/3.0;
+						pos[2] = 1.0/3.0; return true;
 				default: UG_THROW("CrouzeixRaviartLSFS: shape function "<<i<<
 									" not found. Only "<<nsh<<" shapes present.");
 			}
