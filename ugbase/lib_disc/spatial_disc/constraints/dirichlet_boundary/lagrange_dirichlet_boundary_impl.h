@@ -294,7 +294,8 @@ template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_jacobian(matrix_type& J, const vector_type& u,
 		ConstSmartPtr<DoFDistribution> dd, number time,
-		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+		ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+		const number s_a0)
 {
 	extract_data();
 
@@ -417,7 +418,9 @@ template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
 adjust_defect(vector_type& d, const vector_type& u,
               ConstSmartPtr<DoFDistribution> dd, number time,
-              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
+              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
+			  const std::vector<number>* vScaleMass,
+			  const std::vector<number>* vScaleStiff)
 {
 	extract_data();
 

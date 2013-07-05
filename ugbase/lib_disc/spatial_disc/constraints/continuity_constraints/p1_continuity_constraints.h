@@ -40,11 +40,14 @@ class SymP1Constraints
 
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
-                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL);
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+   							 const number s_a0 = 1.0);
 
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
-                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL);
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+						   const std::vector<number>* vScaleMass = NULL,
+                           const std::vector<number>* vScaleStiff = NULL);
 
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
@@ -80,11 +83,14 @@ class OneSideP1Constraints
 
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
-                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL);
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+							 const number s_a0 = 1.0);
 
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
-                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL);
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+						   const std::vector<number>* vScaleMass = NULL,
+                           const std::vector<number>* vScaleStiff = NULL);
 
 		void adjust_rhs(vector_type& rhs, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
