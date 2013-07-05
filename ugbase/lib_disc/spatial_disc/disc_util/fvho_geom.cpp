@@ -1892,34 +1892,36 @@ update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 
 //////////////////////
 // FVGeometry
+#ifdef UG_DIM_1
+//template class DimFVGeometry<1, 1>;
+//template class DimFVGeometry<2, 1>;
+//template class DimFVGeometry<3, 1>;
+#endif
 
+#ifdef UG_DIM_2
 template class FVGeometry<1, Triangle, 2>;
 template class FVGeometry<1, Quadrilateral, 2>;
+template class FVGeometry<2, Triangle, 2>;
+template class FVGeometry<2, Quadrilateral, 2>;
+template class FVGeometry<3, Triangle, 2>;
+template class FVGeometry<3, Quadrilateral, 2>;
+
+template class DimFVGeometry<2, 2>;
+template class DimFVGeometry<3, 2>;
+#endif
+
+#ifdef UG_DIM_3
 template class FVGeometry<1, Tetrahedron, 3>;
 template class FVGeometry<1, Prism, 3>;
 template class FVGeometry<1, Hexahedron, 3>;
-
-template class FVGeometry<2, Triangle, 2>;
-template class FVGeometry<2, Quadrilateral, 2>;
 template class FVGeometry<2, Tetrahedron, 3>;
 template class FVGeometry<2, Prism, 3>;
 template class FVGeometry<2, Hexahedron, 3>;
-
-template class FVGeometry<3, Triangle, 2>;
-template class FVGeometry<3, Quadrilateral, 2>;
 template class FVGeometry<3, Tetrahedron, 3>;
 template class FVGeometry<3, Prism, 3>;
 template class FVGeometry<3, Hexahedron, 3>;
 
-//////////////////////
-// DimFVGeometry
-//template class DimFVGeometry<1, 1>;
-//template class DimFVGeometry<2, 1>;
-//template class DimFVGeometry<3, 1>;
-
-template class DimFVGeometry<2, 2>;
-template class DimFVGeometry<3, 2>;
-
 template class DimFVGeometry<3, 3>;
+#endif
 
 } // end namespace ug
