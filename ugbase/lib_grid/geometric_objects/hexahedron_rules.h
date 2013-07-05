@@ -60,7 +60,10 @@ const int OPPOSED_OBJECT[][NUM_VERTICES] = {{0, 6}, {0, 7}, {0, 4}, {0, 5},
 ///	returns the j-th edge of the i-th face
 const int FACE_EDGE_INDS[6][4] =
 					{{0, 1, 2, 3}, {4, 8, 5, 0}, {5, 9, 6, 1},
-					 {6, 10, 7, 2}, {3, 7, 11, 4}, {11, 10, 9, 8}};
+					 {6, 10, 7, 2}, {7, 11, 4, 3}, {11, 10, 9, 8}};
+//const int FACE_EDGE_INDS[6][4] =
+//					{{0, 1, 2, 3}, {4, 8, 5, 0}, {5, 9, 6, 1},
+//					 {6, 10, 7, 2}, {3, 7, 11, 4}, {11, 10, 9, 8}};
 
 ///	tells whether the i-th face contains the j-th edge
 const int FACE_CONTAINS_EDGE[][12] =	{{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},

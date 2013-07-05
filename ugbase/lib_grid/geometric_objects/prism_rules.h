@@ -60,7 +60,9 @@ const int QUADS[3] =	{1, 2, 3};
 
 ///	returns the j-th edge of the i-th face
 const int FACE_EDGE_INDS[5][4] =	{{0, 1, 2, -1}, {3, 6, 4, 0}, {4, 7, 5, 1},
-									 {2, 5, 8, 3}, {8, 7, 6, -1}};
+									 {5, 8, 3, 2}, {8, 7, 6, -1}};
+//const int FACE_EDGE_INDS[5][4] =	{{0, 1, 2, -1}, {3, 6, 4, 0}, {4, 7, 5, 1},
+//									 {2, 5, 8, 3}, {8, 7, 6, -1}};
 
 ///	tells whether the i-th face contains the j-th edge
 const int FACE_CONTAINS_EDGE[][9] =
