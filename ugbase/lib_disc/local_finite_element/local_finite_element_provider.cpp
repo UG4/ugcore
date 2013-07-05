@@ -208,7 +208,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<dim>
 						for(size_t offset = 0; offset < vLocalDoFID.size(); ++offset){
 
 							const LocalDoF* pLocalDoF = NULL;
-							size_t localDoFID;
+							size_t localDoFID = (size_t)-1;
 							for(size_t dof = 0; dof < vLocalDoFID.size(); ++dof){
 								if(set.local_dof(vLocalDoFID[dof]).offset() == offset){
 									pLocalDoF = &set.local_dof(vLocalDoFID[dof]);
@@ -547,31 +547,47 @@ create_sub_dof_set(ReferenceObjectID roid, const LFEID& id)
 	if(dim != id.dim())
 		UG_THROW("Dimension must match here, internal error. ("<<dim<<","<<id.dim()<<")");
 
+	// we like to have a DimLocalDoFSet for roid in dimension dim.
+	// Say roid has dimension rdim. If rdim == dim this must be implemented.
+	// If rdim < dim, this can be deduced from the implemented patterns for
+	// elements in dim if and only if some implementation is for a element that
+	// contains roid as a sub element
+
 	for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
 		const ReferenceObjectID elemRoid = (ReferenceObjectID) r;
 		const int elemDim = ReferenceElementDimension(elemRoid);
 
+		// we only take elements that are in the dimension of the space
 		if(elemDim != dim) continue;
 
+		// try to get the implementation, if not present skip
 		ConstSmartPtr<DimLocalDoFSet<dim> > set = get_dof_ptr<dim>(elemRoid, id);
 		if(set.invalid()) continue;
 
+		// see if element contains the roid
+		const ReferenceElement& rRefElem = ReferenceElementProvider::get(elemRoid);
+		if(rRefElem.num(roid) == 0) continue;
+
 		try{
+			// create the sub-dof-pattern
 			ConstSmartPtr<DimLocalDoFSet<rdim> > subSet =
 				ConstSmartPtr<DimLocalDoFSet<rdim> >(new SubLocalDoFSet<rdim>(roid, *set) );
 
+			// try to get an already registerd one
 			ConstSmartPtr<DimLocalDoFSet<rdim> > givenSubSet = get_dof_ptr<rdim>(roid, id, false);
 
+			// if already one set given, check equality
 			if(givenSubSet.valid()){
 				if(*givenSubSet != *subSet)
-					UG_THROW("LocalFiniteElementProvider::create_sub_dof_set: "
+					UG_THROW("LocalFiniteElementProvider::create_sub_dof_set:\n"
 							"Creating DimLocalDoFSet for "<<roid<<" and "<<id<<
-							". Already registered Set does not match with computed,"
-							" but this indicates that the LocalDoFSets have not "
-							"been implemented correctly. Check implementation."
-							"Sets are: Given:"<<*givenSubSet<<"\nvs. New:\n"<<*subSet);
+							".\nAlready registered Set does not match with computed,"
+							" but this indicates that the \nLocalDoFSets have not "
+							"been implemented correctly. Check implementation.\n"
+							"Sets are: \nGiven:\n"<<*givenSubSet<<"\nvs. New:\n"<<*subSet);
 			}
 			else {
+				// if correct, register set
 				register_set<rdim>(id, subSet);
 			}
 		}
