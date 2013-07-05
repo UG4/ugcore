@@ -283,7 +283,7 @@ static void Domain(Registry& reg, string grp)
 					"Loads a domain and performs global refinement", "No help");
 //	SaveDomain
 	reg.add_function("SaveDomain", &SaveDomain<TDomain>, grp,
-					"", "Domain # Filename|save-dialog",
+					"", "Domain # Filename|save-dialog| endings=[\"ugx\"]",
 					"Saves a domain", "No help");
 
 //	SavePartitionMap

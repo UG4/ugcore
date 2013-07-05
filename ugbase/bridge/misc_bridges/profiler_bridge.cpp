@@ -104,7 +104,7 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp,  
 	                 "", "bOutput", "if set to true and profiler available, profile stats are printed at the end of the program. true is default");
 	reg.add_function("WriteProfileData", &WriteProfileDataXML, grp,
-	                 "", "filename", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
+	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 }
 
 
