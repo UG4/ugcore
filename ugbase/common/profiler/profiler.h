@@ -7,64 +7,25 @@
 
 #ifdef UG_PROFILER
 
-#include <stack>
+
+#include <vector>
 
 #ifdef UG_PROFILER_SCOREP
 	#include <scorep/SCOREP_User.h>
 #endif
 
-class AutoProfileNode;
+#include "profilenode_management.h"
 
-class ProfileNodeManager
-{
-	public:
-		static void add(AutoProfileNode* node);
-		static void release_latest();
-
-	private:
-		ProfileNodeManager();
-		~ProfileNodeManager();
-		static ProfileNodeManager& inst();
-
-	private:
-		std::stack<AutoProfileNode*>	m_nodes;
-};
-
-class AutoProfileNode
-{
-	friend class ProfileNodeManager;
-
-	public:
-#ifdef UG_PROFILER_SHINY
-		AutoProfileNode();
-#endif
-#if defined(UG_PROFILER_SCALASCA) || defined(UG_PROFILER_VAMPIR)
-		AutoProfileNode(const char* name);
-#endif
-#ifdef UG_PROFILER_SCOREP
-		AutoProfileNode(SCOREP_User_RegionHandle name);
-#endif
-		~AutoProfileNode();
-
-	private:
-		void release();
-		inline bool is_active()		{return m_bActive;}
-
-	private:
-		bool m_bActive;
-#if defined(UG_PROFILER_SCALASCA) || defined(UG_PROFILER_VAMPIR)
-		const char* m_pName;
-#endif
-#ifdef UG_PROFILER_SCOREP
-		SCOREP_User_RegionHandle m_pHandle;
-#endif
-};
 
 #ifdef UG_PROFILER_SHINY
 
 //	this is just a wrapper-include for the shiny-profiler by Aidin Abedi
 	#define SHINY_PROFILER TRUE
 	#include "src/ShinyManager.h"
+	#include "src/ShinyNode.h"
+
+#include "shiny_call_logging.h"
+
 
 	/**	Helper makro used in PROFILE_BEGIN and PROFILE_FUNC.*/
 	#define PROFILE_BEGIN_AUTO_END(id, name, group, file, line)			\
@@ -80,7 +41,9 @@ class AutoProfileNode
 				&Shiny::ProfileNode::_dummy;				\
 															\
 			Shiny::ProfileManager::instance._beginNode(&cache, &__ShinyZone_##id);\
-		}
+		}\
+		PROFILE_LOG_CALL_START()
+
 
 	/**	Creates a new profile-environment with the given name.
 	 * Note that the profiled section automatically ends when the current

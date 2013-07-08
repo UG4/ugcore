@@ -48,7 +48,7 @@ if(NOT STATIC)
 endif(NOT STATIC)
 
 if(UG_PROFILER)
-	set(srcProfiler	profiler/profiler.cpp
+	set(srcProfiler	profiler/profilenode_management.cpp
 	                profiler/runtime_profile_info.cpp)	
 	set(sources ${sources} ${srcProfiler})
 endif(UG_PROFILER)

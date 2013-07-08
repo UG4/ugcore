@@ -29,12 +29,12 @@
 #endif
 
 using namespace std;
+#ifdef SHINY_CALL_LOGGING
+std::vector<ProfileCall> profileCalls;
+#endif
 
 namespace ug
 {
-
-
-
 
 #if SHINY_PROFILER
 
@@ -208,6 +208,10 @@ void UGProfileNode::PDXML_rec_write(ostream &s) const
 		s << "<file>" << SimplifyUG4Path(zone->file) << "</file>\n";
 		s << "<line>" << zone->line << "</line>\n";
 	}
+
+#ifdef SHINY_CALL_LOGGING
+	s << "<id>" << this << "</id>\n";
+#endif
 	 
 	s << "<hits>" << floor(get_avg_entry_count()) << "</hits>\n"
 	  << "<self>" << get_avg_self_time_ms() * 1000.0 << "</self>\n"
@@ -605,7 +609,32 @@ void WriteProfileDataXML(const char *filename)
 		f << "<core id=\"0\">\n";
 		
 		pnRoot->PDXML_rec_write(f);
-		f << "</core>\n";	
+		f << "</core>\n";
+
+#ifdef SHINY_CALL_LOGGING
+		f << "<log>\n";
+		int depth=0;
+		for(size_t i=0; i<profileCalls.size(); i++)
+		{
+			if(profileCalls[i].p == NULL)
+			{
+				f << "<stop>" << profileCalls[i].c << "</stop>\n";
+				f << "</call>\n";
+				depth--;
+			}
+			else
+			{
+				f << "<call>\n<start>" << profileCalls[i].c << "</start>\n<id>" << profileCalls[i].p << "</id>\n";
+				depth++;
+			}
+		}
+		for(int i=0; i<depth; i++)
+		{
+			f << "<stop>" << clock() << "</stop>\n";
+			f << "</call>\n";
+		}
+		f << "</log>\n";
+#endif
 		
 #ifdef UG_PARALLEL
 		if(bProfileAll)
