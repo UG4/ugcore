@@ -7,11 +7,12 @@
 #include <sstream>
 
 // include bridge
+#include "bindings/lua/lua_user_data.h"
 #include "bridge/bridge.h"
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
-
 #include "lib_disc/domain.h"
+#include "lib_disc/domain_traits.h"
 #include "lib_grid/lib_grid.h"
 //todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
@@ -672,6 +673,75 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 	refiner->mark(volumes.begin(), volumes.end(), RM_ANISOTROPIC);
 }
 
+
+template <class TDomain>
+void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refiner,
+											 double time, const char* luaCallbackName)
+{
+	typedef typename TDomain::grid_type TGrid;
+	typedef typename TDomain::subset_handler_type TSubsetHandler;
+	typedef typename TDomain::position_type TPos;
+	typedef typename TDomain::position_accessor_type TAAPos;
+	typedef typename domain_traits<TDomain::dim>::element_type TElem;
+	typedef typename TGrid::template traits<TElem>::iterator TIter;
+
+	TGrid& g = *dom.grid();
+	TSubsetHandler& sh = *dom.subset_handler();
+	TAAPos aaPos = dom.position_accessor();
+
+	LuaUserData<int, TDomain::dim, void>	callback(luaCallbackName);
+
+	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
+	{
+		TElem* e = *iter;
+		if(!g.has_children(e)){
+			int refine = 0;
+			TPos pos = CalculateCenter(e, aaPos);
+			callback.evaluate(refine, pos, time, sh.get_subset_index(e));
+			if(refine){
+				refiner->mark(e);
+			}
+		}
+	}
+}
+
+template <class TDomain>
+void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refiner,
+										  double time, const char* luaCallbackName)
+{
+	if(!refiner->coarsening_supported()){
+		UG_LOG("WARNING in MarkForCoarsen_ElementsByLuaCallback: "
+			   "Refiner doesn't support coarsening!\n");
+		return;
+	}
+
+	typedef typename TDomain::grid_type TGrid;
+	typedef typename TDomain::subset_handler_type TSubsetHandler;
+	typedef typename TDomain::position_type TPos;
+	typedef typename TDomain::position_accessor_type TAAPos;
+	typedef typename domain_traits<TDomain::dim>::element_type TElem;
+	typedef typename TGrid::template traits<TElem>::iterator TIter;
+
+	TGrid& g = *dom.grid();
+	TSubsetHandler& sh = *dom.subset_handler();
+	TAAPos aaPos = dom.position_accessor();
+
+	LuaUserData<int, TDomain::dim, void>	callback(luaCallbackName);
+
+	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
+	{
+		TElem* e = *iter;
+		if(!g.has_children(e)){
+			int coarsen = 0;
+			TPos pos = CalculateCenter(e, aaPos);
+			callback.evaluate(coarsen, pos, time, sh.get_subset_index(e));
+			if(coarsen){
+				refiner->mark(e, RM_COARSEN);
+			}
+		}
+	}
+}
+
 // end group refinement_bridge
 /// \}
 
@@ -798,7 +868,13 @@ static void Domain(Registry& reg, string grp)
 				"", "dom#refiner#sizeRatio")
 		.add_function("MarkForRefinement_AnisotropicElements2",
 				&MarkForRefinement_AnisotropicElements2<domain_type>, grp,
-				"", "dom#refiner#sizeRatio");
+				"", "dom#refiner#sizeRatio")
+		.add_function("MarkForRefinement_ElementsByLuaCallback",
+				&MarkForRefinement_ElementsByLuaCallback<domain_type>, grp,
+				"", "dom#refiner#time#callbackName")
+		.add_function("MarkForCoarsen_ElementsByLuaCallback",
+				&MarkForCoarsen_ElementsByLuaCallback<domain_type>, grp,
+				"", "dom#refiner#time#callbackName");
 
 //	register refinement projection handler and factories
 	{
@@ -824,6 +900,7 @@ static void Domain(Registry& reg, string grp)
 					"IRefinementCallback", "domain#x#y#z#radius")
 		.add_function("SubdivisionLoopProjector", &SubdivisionLoopProjector<TDomain>, grp,
 					"IRefinementCallback", "domain");
+
 }
 
 }; // end Functionality
