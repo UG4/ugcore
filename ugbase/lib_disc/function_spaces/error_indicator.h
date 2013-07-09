@@ -310,8 +310,9 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 				ElementNormal<face_type0,dim>(normal,sideCoPos);
 			else
 				ElementNormal<face_type1,dim>(normal,sideCoPos);
+			// computed normal points inwards, therefore subtract flux
 			for (int d=0;d<dim;d++){
-				vGlobalGrad[d] += faceValue * normal[d]; 
+				vGlobalGrad[d] -= faceValue * normal[d];
 			}
 		}
 		vGlobalGrad/=(number)elemSize;
