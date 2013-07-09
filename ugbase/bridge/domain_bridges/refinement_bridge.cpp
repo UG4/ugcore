@@ -689,15 +689,20 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 	TSubsetHandler& sh = *dom.subset_handler();
 	TAAPos aaPos = dom.position_accessor();
 
-	LuaUserData<int, TDomain::dim, void>	callback(luaCallbackName);
+	LuaFunction<int, number>	callback;
+//	we'll pass the following arguments: x, y, z, lvl, si, time
+	callback.set_lua_callback(luaCallbackName, 6);
 
 	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
 	{
 		TElem* e = *iter;
 		if(!g.has_children(e)){
 			int refine = 0;
-			TPos pos = CalculateCenter(e, aaPos);
-			callback.evaluate(refine, pos, time, sh.get_subset_index(e));
+			TPos tpos = CalculateCenter(e, aaPos);
+			vector3 pos;
+			VecCopy(pos, tpos, 0);
+			callback(refine, 6, pos.x, pos.y, pos.z, (number)g.get_level(e),
+					 (number)sh.get_subset_index(e), (number)time);
 			if(refine){
 				refiner->mark(e);
 			}
@@ -726,15 +731,20 @@ void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refin
 	TSubsetHandler& sh = *dom.subset_handler();
 	TAAPos aaPos = dom.position_accessor();
 
-	LuaUserData<int, TDomain::dim, void>	callback(luaCallbackName);
+	LuaFunction<int, number>	callback;
+//	we'll pass the following arguments: x, y, z, lvl, si, time
+	callback.set_lua_callback(luaCallbackName, 6);
 
 	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
 	{
 		TElem* e = *iter;
 		if(!g.has_children(e)){
 			int coarsen = 0;
-			TPos pos = CalculateCenter(e, aaPos);
-			callback.evaluate(coarsen, pos, time, sh.get_subset_index(e));
+			TPos tpos = CalculateCenter(e, aaPos);
+			vector3 pos;
+			VecCopy(pos, tpos, 0);
+			callback(coarsen, 6, pos.x, pos.y, pos.z, (number)g.get_level(e),
+					 (number)sh.get_subset_index(e), (number)time);
 			if(coarsen){
 				refiner->mark(e, RM_COARSEN);
 			}
