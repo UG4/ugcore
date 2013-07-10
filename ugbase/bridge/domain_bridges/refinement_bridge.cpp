@@ -676,8 +676,10 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 
 template <class TDomain>
 void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refiner,
-											 double time, const char* luaCallbackName)
+											 double time, size_t maxLvl,
+											 const char* luaCallbackName)
 {
+	PROFILE_FUNC();
 	typedef typename TDomain::grid_type TGrid;
 	typedef typename TDomain::subset_handler_type TSubsetHandler;
 	typedef typename TDomain::position_type TPos;
@@ -696,12 +698,16 @@ void MarkForRefinement_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> re
 	for(TIter iter = g.template begin<TElem>(); iter != g.template end<TElem>(); ++iter)
 	{
 		TElem* e = *iter;
+		size_t lvl = g.get_level(e);
+		if(lvl >= maxLvl)
+			continue;
+
 		if(!g.has_children(e)){
 			int refine = 0;
 			TPos tpos = CalculateCenter(e, aaPos);
 			vector3 pos;
 			VecCopy(pos, tpos, 0);
-			callback(refine, 6, pos.x, pos.y, pos.z, (number)g.get_level(e),
+			callback(refine, 6, pos.x, pos.y, pos.z, (number)lvl,
 					 (number)sh.get_subset_index(e), (number)time);
 			if(refine){
 				refiner->mark(e);
@@ -714,6 +720,7 @@ template <class TDomain>
 void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refiner,
 										  double time, const char* luaCallbackName)
 {
+	PROFILE_FUNC();
 	if(!refiner->coarsening_supported()){
 		UG_LOG("WARNING in MarkForCoarsen_ElementsByLuaCallback: "
 			   "Refiner doesn't support coarsening!\n");

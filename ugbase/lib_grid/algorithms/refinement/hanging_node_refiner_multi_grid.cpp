@@ -780,8 +780,6 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 			if(sel.get_selection_status(*iter) == HNCM_UNKNOWN)
 				vedges.push_back(*iter);
 		}
-
-		UG_LOG("Finished edge adjustment step\n");
 	}
 
 debug_save(sel, "coarsen_marks_03_irregularities_resolved");
