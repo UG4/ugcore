@@ -1,7 +1,7 @@
 /** \page pageUG4Cite Cite UG4
 
 If you are using \ug4 for your research you <b>have</b> to cite \ug4.
-Be also sure to cite papers for special methods you are using (solvers, geometry, discretizations etc.).
+Be also sure to cite papers for special methods you are using (solvers, geometry, discretizations, VRL, plugins etc.).
 
 \note You have to check this site before submitting a paper / printing your thesis for updates.
 
