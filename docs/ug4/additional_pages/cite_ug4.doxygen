@@ -1,0 +1,78 @@
+/** \page pageUG4Cite Cite UG4
+
+If you are using \ug4 for your research you <b>have</b> to cite \ug4.
+Be also sure to cite papers for special methods you are using (solvers, geometry, discretizations etc.).
+
+\note You have to check this site before submitting a paper / printing your thesis for updates.
+
+General ug4 papers 
+
+<ol>
+<li>
+Ingo Heppner, Michael Lampe, Arne Naegel, Sebastian Reiter, Martin Rupp, Andreas Vogel, Gabriel Wittum: 
+
+<b>Software Framework ug4: Parallel Multigrid on the Hermit Supercomputer</b>
+
+In: Wolfgang. E. Nagel and Dietmar H. Kroener and Michael M. Resch (Editors): High Performance Computing in Science and Engineering '12, Pages 435-449, Springer Berlin Heidelberg 2013.
+  
+<a href="http://dx.doi.org/10.1007/978-3-642-33374-3_32">URL</a>, DOI: 10.1007/978-3-642-33374-3_32
+
+BIBTEX:
+\verbatim
+@incollection{ug4_HLRS2012,
+  author={Ingo Heppner and Michael Lampe and Arne N\"agel and Sebastian Reiter and Martin Rupp and Andreas Vogel and Gabriel Wittum},
+  title={Software Framework ug4: Parallel Multigrid on the Hermit Supercomputer}, 
+  editor = {Wolfgang. E. Nagel and Dietmar H. Kr\"oner and Michael M. Resch}, 
+  booktitle= {High Performance Computing in Science and Engineering 2012}, 
+  publisher= {Springer Berlin Heidelberg},
+  pages={435--449},
+  doi={10.1007/978-3-642-33374-3_32},
+  url={http://dx.doi.org/10.1007/978-3-642-33374-3_32},
+  year = 2013
+}
+\endverbatim
+</li>
+
+<li>
+Andreas Vogel, Sebastian Reiter, Martin Rupp, Arne Naegel and Gabriel Wittum
+
+<b>UG 4 - A Novel Flexible Software System for Simulating PDE Based Models on High Performance Computers</b>
+
+In: Computation and Visualisation in Science. Submitted and accepted.
+
+BIBTEX:
+\verbatim
+@article{ug4_Vogel2012,
+	author = {Andreas Vogel and Sebastian Reiter and Martin Rupp and Arne N\"agel and Gabriel Wittum},
+	Journal = {Computation and Visualisation in Science},
+ 	Title = {UG 4 - A Novel Flexible Software System for Simulating PDE Based Models on High Performance Computers},
+ 	Year = {2012},
+ 	note = {submitted and accepted}
+}
+\endverbatim
+
+</li>
+
+<li>
+Sebastian Reiter, Andreas Vogel, Ingo Heppner, Martin Rupp and Gabriel Wittum
+
+<b>A Massively Parallel Geometric Multigrid Solver on Hierarchically Distributed Grids</b>
+
+In: Computation and Visualisation in Science. Submitted and accepted.
+
+BIBTEX:
+\verbatim
+@article{ug4_Reiter2012,
+	author = {Sebastian Reiter and Andreas Vogel and Ingo Heppner and Martin Rupp and Gabriel Wittum},
+	Journal = {Computation and Visualisation in Science},
+ 	Title = {A Massively Parallel Geometric Multigrid Solver on Hierarchically Distributed Grids},
+ 	Year = {2012},
+ 	note = {submitted and accepted}
+}
+\endverbatim
+</li>
+
+
+</ol>
+
+**/
