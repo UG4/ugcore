@@ -240,20 +240,23 @@ bool PeriodicBoundaryManager::check_periodicity(
 			"collections have different mg levels!")
 
 	for (size_t lvl = 0; lvl < goc1.num_levels(); lvl++) {
-		check_elements_periodicity<VertexBase>(goc1.begin<VertexBase>(lvl),
-				goc1.end<VertexBase>(lvl), s_vert, sh);
-		check_elements_periodicity<VertexBase>(goc2.begin<VertexBase>(lvl),
-				goc2.end<VertexBase>(lvl), s_vert, sh);
+		// check faces
+		check_elements_periodicity<Face>(goc1.begin<Face>(lvl),
+				goc1.end<Face>(lvl), s_face, sh);
+		check_elements_periodicity<Face>(goc2.begin<Face>(lvl),
+				goc2.end<Face>(lvl), s_face, sh);
 
+		// check edges
 		check_elements_periodicity<EdgeBase>(goc1.begin<EdgeBase>(lvl),
 				goc1.end<EdgeBase>(lvl), s_edge, sh);
 		check_elements_periodicity<EdgeBase>(goc2.begin<EdgeBase>(lvl),
 				goc2.end<EdgeBase>(lvl), s_edge, sh);
 
-		check_elements_periodicity<Face>(goc1.begin<Face>(lvl),
-				goc1.end<Face>(lvl), s_face, sh);
-		check_elements_periodicity<Face>(goc2.begin<Face>(lvl),
-				goc2.end<Face>(lvl), s_face, sh);
+		// check vertices
+		check_elements_periodicity<VertexBase>(goc1.begin<VertexBase>(lvl),
+				goc1.end<VertexBase>(lvl), s_vert, sh);
+		check_elements_periodicity<VertexBase>(goc2.begin<VertexBase>(lvl),
+				goc2.end<VertexBase>(lvl), s_vert, sh);
 	}
 
 	return true;
