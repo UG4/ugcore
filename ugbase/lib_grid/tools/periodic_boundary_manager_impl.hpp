@@ -153,6 +153,8 @@ void PeriodicBoundaryManager::print_identification() const {
 /**
  * TParent should be only of type VertexBase, EdgeBase, Face.
  * Volumes are not meant to be periodic.
+ *
+ * If replacesParent is true, e is meant to replace pParent
  */
 template <class TElem, class TParent>
 void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
@@ -176,17 +178,14 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 		TElem* parent = dynamic_cast<TElem*>(pParent);
 		if (parent) {
 			if (is_periodic(parent)) {
-				// if parent is master, set newly created item as new master
 				if (is_master(parent)) {
-					group(parent)->m_master = e;
-					// set group of e
-					set_group<TElem>(group(parent), e);
-					// reset group of old parent
-					set_group<TElem>(NULL, parent);
+					// if parent is master, set newly created item as new master
+					make_master(group(parent), e);
 				} else { // slave
 					// make newly created item a slave, since its parent is slave
 					make_slave<TElem>(group(parent), e);
-					set_group<TElem>(NULL, parent);
+					// remove parent from its group (and reset its status)
+					remove_slave(parent);
 				}
 			}
 		} else
@@ -211,6 +210,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 	if (is_master<TParent>(pParent)) {
 		// create new group for e, with e as master
 		Group<TElem>* newGroup = new Group<TElem>(e);
+		UG_ASSERT(group(e) == NULL, "element already has a group.")
 		set_group(newGroup, e);
 
 		// iterate over slaves of parent
@@ -219,6 +219,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 				parentSlaves->begin(); i_slave != parentSlaves->end();
 				++i_slave) {
 			TParent* parentSlave = *i_slave;
+			UG_ASSERT(parentSlave, "parent slave not valid")
 
 			// iterate over all children of parentSlave and make them slaves of e
 			// only matching children of type TElem are considered.
@@ -323,20 +324,24 @@ void PeriodicBoundaryManager::handle_deletion(TElem* e, TElem* replacedBy) {
 	if (is_master(e)) {
 		// if e is master, set its replacing element as new master
 		if (replacedBy) {
-			UG_ASSERT(!group(replacedBy),
+			UG_ASSERT(not group(replacedBy),
 					"replacing element is already in group")
-			group(e)->m_master = replacedBy;
+			make_master(group(e), replacedBy);
 		} else {
-			// todo whole group should be deleted
-			remove_group(group(e));
+			// delete a master completely...
+			set_group<TElem>(NULL, e);
+			UG_THROW("headless group condition")
 		}
 	} else { // slave
+		UG_ASSERT(is_slave(e), "e should be a slave")
 		Group<TElem>* g = group(e);
-		if(! remove_slave(e))
+		if(not remove_slave(e))
 			UG_THROW("slave not removed.")
 
-		if (replacedBy)
-			g->add_slave(replacedBy);
+		if (replacedBy) {
+			// then add replacing element to group
+			make_slave(g, replacedBy);
+		}
 	}
 }
 
@@ -344,8 +349,25 @@ template <class TElem>
 void PeriodicBoundaryManager::make_slave(Group<TElem>* g, TElem* slave) {
 	UG_ASSERT(m_pGrid->get_level(g->m_master) == m_pGrid->get_level(slave),
 			"level of slave and group mismatch")
+	UG_ASSERT(group(slave) != g, "trying to add a dublicate slave!")
+
+	// if slave is already engrouped, so remove it first
+	if(group(slave)) {
+		UG_LOG("slave already engrouped. removing it from former group\n")
+		remove_slave(slave);
+	}
+
 	g->add_slave(slave);
 	set_group(g, slave);
+}
+
+template <class TElem>
+void PeriodicBoundaryManager::make_master(Group<TElem>* g, TElem* new_master) {
+	// group has a master, reset its group
+	if(g->m_master) {
+		set_group<TElem>(NULL, g->m_master);
+	}
+	g->m_master = new_master;
 }
 
 template <class TElem>
@@ -357,6 +379,9 @@ bool PeriodicBoundaryManager::remove_slave(TElem* e) {
 			s.erase(pos);
 			set_group<TElem>(NULL, e);
 			// todo what if e was the last slave of of group?
+			if(s.empty()) {
+				UG_THROW("empty group leftover....")
+			}
 			return true;
 		}
 	}
@@ -365,8 +390,7 @@ bool PeriodicBoundaryManager::remove_slave(TElem* e) {
 
 template <class TElem>
 void PeriodicBoundaryManager::remove_group(Group<TElem>* g) {
-	if (!g)
-		return;
+	UG_ASSERT(g, "should remove invalid group")
 
 	// reset group pointers of all group members to NULL
 	set_group<TElem>(NULL, g->m_master);
@@ -396,9 +420,11 @@ void PeriodicBoundaryManager::merge_groups(Group<TElem>* g0, Group<TElem>* g1) {
 	for (SlaveIterator iter = slaves_g1.begin(); iter != slaves_g1.end();
 			++iter) {
 		TElem* e = *iter;
-		if (e && e != g0->m_master) {
+		UG_ASSERT(e, "slave not valid")
+		if (e != g0->m_master) {
 			make_slave(g0, e);
-		}
+		} else
+			UG_THROW("slave of g1 should is master of g0 (is this allowed?)")
 	}
 
 	// make old master slave of group g1
@@ -441,13 +467,12 @@ void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e) {
 	// set periodic status
 	if (g == NULL) {
 		get_periodic_status_accessor<TElem>()[e] = P_NOT_PERIODIC;
-		return;
+	} else {
+		if (g->m_master == e)
+			get_periodic_status_accessor<TElem>()[e] = P_MASTER;
+		else
+			get_periodic_status_accessor<TElem>()[e] = P_SLAVE;
 	}
-
-	if (g->m_master == e)
-		get_periodic_status_accessor<TElem>()[e] = P_MASTER;
-	else
-		get_periodic_status_accessor<TElem>()[e] = P_SLAVE;
 }
 
 template <class TElem>

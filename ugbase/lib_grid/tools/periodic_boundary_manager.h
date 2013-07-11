@@ -198,6 +198,10 @@ protected:
 	/// make element e slave of group g
 	template <class TElem> void make_slave(Group<TElem>* g, TElem* e);
 	template <class TElem> bool remove_slave(TElem* slave);
+
+	// make e a master of g
+	template <class TElem> void make_master(Group<TElem>* g, TElem* e);
+
 	template <class TElem> void merge_groups(Group<TElem>* g0, Group<TElem>* g1);
 
 	// get typed attachment accessor for group attachment
