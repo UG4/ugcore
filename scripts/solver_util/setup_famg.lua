@@ -37,11 +37,11 @@ util = util or {}
 --! example usage:
 --! \code
 --! ug_load_script("solver_util/setup_famg.lua")
---! precond = util.SetupFAMGPrecondition(LU(), GaussSeidel(), GaussSeidel())
+--! precond = util.SetupFAMGPreconditioner(LU(), GaussSeidel(), GaussSeidel())
 --! \endcode
 --! note that FAMG is a preconditioner, you can use it e.g. in a Linear Solver:
 --! \code
---! precond = util.SetupFAMGPrecondition()
+--! precond = util.SetupFAMGPreconditioner()
 --! linSolver = CG()
 --! linSolver:set_preconditioner(precond)
 --! linSolver:set_convergence_check(ConvCheck(40, 1e-16, 1e-9))
@@ -75,7 +75,7 @@ function util.SetupFAMGPreconditioner(base, presmoother, postsmoother)
 	amg:set_postsmoother(postsmoother)
 	
 	amg:set_num_presmooth(5)
-	amg:set_num_postsmooth(5)	
+	amg:set_num_postsmooth(5)
 	
 	amg:set_base_solver(base)
 
