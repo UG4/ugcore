@@ -142,19 +142,20 @@ Creates a preconditioner based on an abbreviated name
 ]]--
 util.GetPreconditioner = util.CreateFancyFunction(
 	{
-		{"name"},
-		{"jac_damp", 0.6},
-		{"gmg_approxSpace"},
-		{"gmg_disc"},
-		{"gmg_base", "lu"},
-		{"gmg_baseLevel", 0},
-		{"gmg_parallelBase", false},
-		{"gmg_smoother", "ilu"},
-		{"gmg_cycleType", 1},
-		{"gmg_numPreSmooth", 2},
-		{"gmg_numPostSmooth", 2},
-		{"gmg_restriction_post_process"},
-		{"gmg_prolongation_post_process"}
+		  {"name"}
+		, {"jac_damp", 0.6}
+		, {"gmg_approxSpace"}
+		, {"gmg_disc"}
+		, {"gmg_base", "lu"}
+		, {"gmg_baseLevel", 0}
+		, {"gmg_parallelBase", false}
+		, {"gmg_smoother", "ilu"}
+		, {"gmg_cycleType", 1}
+		, {"gmg_numPreSmooth", 2}
+		, {"gmg_numPostSmooth", 2}
+		, {"gmg_restriction_post_process"}
+		, {"gmg_prolongation_post_process"}
+		, {"ilut_threshold"}
 	},
 	function( name, jac_damp, gmg_approxSpace, gmg_disc, gmg_base, gmg_baseLevel, gmg_parallelBase, gmg_smoother, gmg_cycleType, gmg_numPreSmooth, gmg_numPostSmooth )
 		if not name then
@@ -227,7 +228,11 @@ util.GetPreconditioner = util.CreateFancyFunction(
 			return gmg
 			
 		elseif name == "ilut" then
-			return ILUT()
+			ilut = ILUT()
+			if ilut_threshold then
+				ilut:set_threshold( ilut_threshold )
+			end
+			return ilut
 		end
 	end
 )
@@ -237,10 +242,10 @@ Prepares the convergence check
 ]]--
 util.GetConvCheck = util.CreateFancyFunction(
 	{
-		{"default"},
-		{"maxSteps", 50},
-		{"reduction", 1e-10},
-		{"minDef", 1e-7}
+		  {"default"}
+		, {"maxSteps", 50}
+		, {"reduction", 1e-10}
+		, {"minDef", 1e-7}
 	},
 	function( default, maxSteps, reduction, minDef )
 -- 		print( "DBG >> Calling util.GetConvCheck with maxSteps="..maxSteps..", reduction="..reduction..", minDef="..minDef )
@@ -258,9 +263,9 @@ Creates a solver based on a name with given preconditioner and convergence check
 ]]--
 util.GetSolver = util.CreateFancyFunction(
 	{
-		{"name"},
-		{"precond", "ilu" },
-		{"convCheck", "default" }
+		  {"name"}
+		, {"precond", "ilu" }
+		, {"convCheck", "default" }
 	},
 	function( name, precond, convCheck )
 		if not name then
