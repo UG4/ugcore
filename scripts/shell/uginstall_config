@@ -123,9 +123,12 @@ my_setup2 ParaView
 my_setup2 metis
 my_setup2 parmetis
 
-
-# completion for bash
-complete -W "all cmake doxygen gcc gmp gnuplot GotoBLAS2 Metis mpfr mpc OpenMPI ParaView ParMetis" -o default -o nospace uginstall
+# completion for bash (for bash only)
+SHELLTYPE=`ps -o comm="" -p $$`
+case "$SHELLTYPE" in
+	*bash*) complete -W "all cmake doxygen gcc gmp gnuplot GotoBLAS2 Metis mpfr mpc OpenMPI ParaView ParMetis" -o default -o nospace uginstall
+	;;
+esac
 
 export PATH
 export C_INCLUDE_PATH	
