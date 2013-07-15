@@ -13,6 +13,7 @@
 #include "lib_disc/domain.h"
 #include "lib_grid/algorithms/debug_util.h"
 #include "common/assert.h"
+#include "pcl/pcl_base.h"
 
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/at.hpp>
@@ -571,6 +572,11 @@ void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
 	int si1 = sh.get_subset_index(sName1);
 	int si2 = sh.get_subset_index(sName2);
 
+#ifdef UG_PARALLEL
+	if(pcl::GetNumProcesses() > 1)
+		UG_THROW("sorry, in real parallel environment periodic bnds are not impled yet.")
+#endif
+
 	if (si1 == -1)
 		UG_THROW("IdentifySubsets: given subset name " << sName1 << " does not exist");
 	if (si2 == -1)
@@ -582,6 +588,12 @@ void IdentifySubsets(TDomain& dom, const char* sName1, const char* sName2) {
 /// performs geometric ident of periodic elements and master slave
 template <class TDomain>
 void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
+
+#ifdef UG_PARALLEL
+	if(pcl::GetNumProcesses() > 1)
+		UG_THROW("sorry, in real parallel environment periodic bnds are not impled yet.")
+#endif
+
 	if (sInd1 == -1 || sInd2 == -1) {
 		UG_THROW("IdentifySubsets: at least one invalid subset given!")
 	}
