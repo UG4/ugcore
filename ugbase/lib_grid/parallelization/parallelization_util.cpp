@@ -84,15 +84,16 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 	typedef typename TAPos::ValueType	TValue;
 	typedef VertexLayout::LevelLayout	VrtLevelLayout;
 	typedef EdgeLayout::LevelLayout		EdgeLevelLayout;
+	typedef FaceLayout::LevelLayout		FaceLevelLayout;
 
 	bool bSuccess = true;
+	const bool verbose = true;
 
 //	check the interfaces
 	pcl::InterfaceCommunicator<VertexLayout::LevelLayout> comVrt;
 	pcl::ProcessCommunicator procCom;
 
 	ToElementPosition<VertexBase, TAPos> toPosVrt(mg, aPos);
-	//boost::function<TValue (VertexBase*)> cbToPosVrt = toPosVrt;
 
 	UG_LOG("Testing horizontal vertex layouts...\n");
 	{
@@ -105,13 +106,15 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
 
 		for(int i = 0; i < globMaxLevel; ++i){
-			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			if(verbose){
+				UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			}
 			bSuccess &= pcl::TestLayout<VrtLevelLayout, TValue>(procCom, comVrt, masterLayout.layout_on_level(i),
-											slaveLayout.layout_on_level(i), false, toPosVrt, true);
+											slaveLayout.layout_on_level(i), verbose, toPosVrt, true);
 		}
 	}
 
-	UG_LOG("\nTesting vertical vertex layouts...\n");
+	UG_LOG("Testing vertical vertex layouts...\n");
 	{
 		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_V_MASTER);
 		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_V_SLAVE);
@@ -120,16 +123,17 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
 
 		for(int i = 0; i < globMaxLevel; ++i){
-			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			if(verbose){
+				UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			}
 			bSuccess &= pcl::TestLayout<VrtLevelLayout, TValue>(procCom, comVrt, masterLayout.layout_on_level(i),
-											slaveLayout.layout_on_level(i), false, toPosVrt, true);
+											slaveLayout.layout_on_level(i), verbose, toPosVrt, true);
 		}
 	}
 
 
 	pcl::InterfaceCommunicator<EdgeLayout::LevelLayout> comEdge;
 	ToElementPosition<EdgeBase, TAPos> toPosEdge(mg, aPos);
-	//boost::function<TValue (EdgeBase*)> cbToPosEdge = toPosEdge;
 
 	UG_LOG("Testing horizontal edge layouts...\n");
 	{
@@ -142,13 +146,15 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
 
 		for(int i = 0; i < globMaxLevel; ++i){
-			UG_LOG("Testing EdgeLayout on level " << i << ":" << endl);
+			if(verbose){
+				UG_LOG("Testing EdgeLayout on level " << i << ":" << endl);
+			}
 			bSuccess &= pcl::TestLayout<EdgeLevelLayout, TValue>(procCom, comEdge, masterLayout.layout_on_level(i),
-											slaveLayout.layout_on_level(i), false, toPosEdge, true);
+											slaveLayout.layout_on_level(i), verbose, toPosEdge, true);
 		}
 	}
 
-	UG_LOG("\nTesting vertical edge layouts...\n");
+	UG_LOG("Testing vertical edge layouts...\n");
 	{
 		EdgeLayout& masterLayout = glm.get_layout<EdgeBase>(INT_V_MASTER);
 		EdgeLayout& slaveLayout = glm.get_layout<EdgeBase>(INT_V_SLAVE);
@@ -157,12 +163,52 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
 
 		for(int i = 0; i < globMaxLevel; ++i){
-			UG_LOG("Testing EdgeLayout on level " << i << ":" << endl);
+			if(verbose){
+				UG_LOG("Testing EdgeLayout on level " << i << ":" << endl);
+			}
 			bSuccess &= pcl::TestLayout<EdgeLevelLayout, TValue>(procCom, comEdge, masterLayout.layout_on_level(i),
-											slaveLayout.layout_on_level(i), false, toPosEdge, true);
+											slaveLayout.layout_on_level(i), verbose, toPosEdge, true);
 		}
 	}
 
+	pcl::InterfaceCommunicator<FaceLayout::LevelLayout> comFace;
+	ToElementPosition<Face, TAPos> toPosFace(mg, aPos);
+
+	UG_LOG("Testing horizontal face layouts...\n");
+	{
+		FaceLayout& masterLayout = glm.get_layout<Face>(INT_H_MASTER);
+		FaceLayout& slaveLayout = glm.get_layout<Face>(INT_H_SLAVE);
+
+	//	we have to retrieve the max level of all layouts
+		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
+		int globMaxLevel = locMaxLevel;
+		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
+
+		for(int i = 0; i < globMaxLevel; ++i){
+			if(verbose){
+				UG_LOG("Testing FaceLayout on level " << i << ":" << endl);
+			}
+			bSuccess &= pcl::TestLayout<FaceLevelLayout, TValue>(procCom, comFace, masterLayout.layout_on_level(i),
+											slaveLayout.layout_on_level(i), verbose, toPosFace, true);
+		}
+	}
+
+	UG_LOG("Testing vertical edge layouts...\n");
+	{
+		FaceLayout& masterLayout = glm.get_layout<Face>(INT_V_MASTER);
+		FaceLayout& slaveLayout = glm.get_layout<Face>(INT_V_SLAVE);
+		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
+		int globMaxLevel = locMaxLevel;
+		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);
+
+		for(int i = 0; i < globMaxLevel; ++i){
+			if(verbose){
+				UG_LOG("Testing FaceLayout on level " << i << ":" << endl);
+			}
+			bSuccess &= pcl::TestLayout<FaceLevelLayout, TValue>(procCom, comFace, masterLayout.layout_on_level(i),
+											slaveLayout.layout_on_level(i), verbose, toPosFace, true);
+		}
+	}
 	return bSuccess;
 }
 

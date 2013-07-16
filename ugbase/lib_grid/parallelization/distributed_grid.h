@@ -237,8 +237,9 @@ class DistributedGridManager : public GridObserver
 		template <class TElem>
 		void element_to_be_erased(TElem* elem);
 
+	/**	Note that the content of the given vector may be extended during this method.*/
 		template <class TElem>
-		void create_missing_constrained_h_interfaces(const std::vector<TElem*>& newConstrainedElems);
+		void create_missing_constrained_h_interfaces(std::vector<TElem*>& newConstrainedElems);
 
 	protected:
 	///	Be careful when creating copies of ElementInfo.

@@ -32,7 +32,8 @@ class IRefiner
 {
 	public:
 		IRefiner(IRefinementCallback* refCallback = NULL) :
-			m_msgIdAdaption(-1), m_refCallback(refCallback), m_adaptionIsActive(false)	{}
+			m_msgIdAdaption(-1), m_refCallback(refCallback),
+			m_adaptionIsActive(false), m_debuggingEnabled(false)	{}
 
 		virtual ~IRefiner()	{}
 
@@ -134,6 +135,9 @@ class IRefiner
 	 * If you want to unset the file, either pass a NULL pointer or an empty string.*/
 		void set_adjusted_marks_debug_filename(const char* filename);
 
+		void enable_debugging(bool enable)	{m_debuggingEnabled = enable;}
+		bool debugging_enabled() const		{return m_debuggingEnabled;}
+
 	protected:
 	///	sets the message hub.
 	/**	A message hub is required, since it is used transmit messages regarding
@@ -152,6 +156,7 @@ class IRefiner
 		int						m_msgIdAdaption;
 		IRefinementCallback*	m_refCallback;
 		bool					m_adaptionIsActive;
+		bool					m_debuggingEnabled;
 		std::string				m_adjustedMarksDebugFilename;
 };
 

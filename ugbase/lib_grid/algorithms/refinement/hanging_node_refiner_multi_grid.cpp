@@ -14,6 +14,8 @@
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
+#include "lib_grid/parallelization/distributed_grid.h"
+#include "lib_grid/parallelization/parallelization_util.h"
 #endif
 
 //define PROFILE_HANGING_NODE_REFINER_MG if you want to profile
@@ -560,16 +562,18 @@ save_coarsen_marks_to_file(Selector& sel, const char* filename)
 void HangingNodeRefiner_MultiGrid::
 debug_save(Selector& sel, const char* filePrefix)
 {
-//	stringstream ss;
-//	ss << filePrefix << "_p";
-//	#ifdef UG_PARALLEL
-//		ss << pcl::GetProcRank();
-//	#else
-//		ss << "0";
-//	#endif
-//	ss << ".ugx";
-//	//UG_LOG("Saving coarsen debug marks: " << ss.str() << endl);
-//	save_coarsen_marks_to_file(sel, ss.str().c_str());
+	if(debugging_enabled()){
+		stringstream ss;
+		ss << filePrefix << "_p";
+		#ifdef UG_PARALLEL
+			ss << pcl::GetProcRank();
+		#else
+			ss << "0";
+		#endif
+		ss << ".ugx";
+		//UG_LOG("Saving coarsen debug marks: " << ss.str() << endl);
+		save_coarsen_marks_to_file(sel, ss.str().c_str());
+	}
 }
 
 ///	temporary method, which will be removed when debugging is done.
@@ -588,6 +592,24 @@ static void ContinuousDebugSave(Selector& sel)
 	SaveCoarsenMarksToFile(sel, ss.str().c_str());
 	++counter;
 }
+
+///	temporary method, which will be removed when debugging is done.
+static void ParallelLayoutDebugSave(MultiGrid& mg)
+{
+	static int counter = 0;
+	stringstream ss;
+	ss << "coarsen_parallel_layout_" << counter << "_p";
+	#ifdef UG_PARALLEL
+		ss << pcl::GetProcRank();
+	#else
+		ss << "0";
+	#endif
+	ss << ".ugx";
+	UG_LOG("Saving coarsen parallel layout: " << ss.str() << endl);
+	SaveParallelGridLayout(mg, ss.str().c_str(), 0.1);
+	++counter;
+}
+
 
 void HangingNodeRefiner_MultiGrid::
 collect_objects_for_coarsen()
@@ -677,17 +699,10 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 	//	if a constrained edge of a constraining edge won't be fully coarsened,
 	//	then the constraining edge may not be coarsened at all.
 		bool foundInvalid = false;
-		for(EdgeVec::iterator i_curEdge = vedges.begin();
-			i_curEdge != vedges.end(); ++i_curEdge)
+		for(Selector::traits<ConstrainingEdge>::iterator iter = sel.begin<ConstrainingEdge>();
+			iter != sel.end<EdgeBase>(); ++iter)
 		{
-			EdgeBase* e = *i_curEdge;
-			if(!sel.is_selected(e))
-				continue;
-
-			if(!e->is_constraining())
-				continue;
-
-			ConstrainingEdge* cge = static_cast<ConstrainingEdge*>(e);
+			ConstrainingEdge* cge = *iter;
 			for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
 				if(sel.get_selection_status(cge->constrained_edge(i)) != HNCM_ALL){
 					foundInvalid = true;
@@ -1125,7 +1140,8 @@ We have to handle elements as follows:
 
 			case HNCM_REPLACE:{
 			//	this should only not be set on constrained edges
-				assert(!elem->is_constrained());
+				UG_ASSERT(!elem->is_constrained(), "Edge should not be constrained: "
+						  << ElementDebugInfo(mg, elem));
 				if(elem->is_constraining()){
 				//	the constraining edge has to be transformed to a normal edge
 					mg.create_and_replace<Edge>(elem);
@@ -1244,6 +1260,11 @@ We have to handle elements as follows:
 						 "HangingNodeRefiner_MultiGrid::coarsen. Internal error.");
 				break;
 		}
+	}
+
+	debug_save(sel, "coarsen_marks_06_coarsening_done");
+	if(debugging_enabled()){
+		ParallelLayoutDebugSave(mg);
 	}
 
 	//ContinuousDebugSave(sel);

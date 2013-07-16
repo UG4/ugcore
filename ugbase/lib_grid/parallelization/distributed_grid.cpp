@@ -352,7 +352,7 @@ get_status(GeometricObject* go) const
 	switch(baseType)
 	{
 		case VERTEX:
-			return get_status(static_cast<VertexBase*>(go));;
+			return get_status(static_cast<VertexBase*>(go));
 		case EDGE:
 			return get_status(static_cast<EdgeBase*>(go));
 		case FACE:
@@ -692,42 +692,49 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		typedef typename Layout::Interface			Interface;
 		typedef typename Interface::const_iterator	InterfaceIter;
 
+	/**	Note that a reference to newConstrained is passed to the constructor
+	 * and that its content may be changed by some methods in this class.*/
 		ComPol_NewConstrainedVerticals(DistributedGridManager* dgm,
-									const std::vector<GeomObj*>& newConstrained) :
+									   std::vector<GeomObj*>& newConstrained) :
 			m_newConstrained(newConstrained),
 			m_dgm(dgm),
 			m_hash(newConstrained.size()),
 			m_localHMasterCount(0),
-			m_exchangeVMasterRanks(false)
+			m_exchangeVMasterRanks(false),
+			m_initialHandshake(false)
+			//m_checkHOrder(false)
 		{
-			vector<pair<int, size_t> >	interfaceEntries;
-
-		//	insert each new constrained into the hash. The value represents the
-		//	lowest connected vslave of each vmaster. Values of vslaves are set to -1.
+		//	insert each new constrained into the hash.
 			for(size_t i_nc = 0; i_nc < newConstrained.size(); ++i_nc){
 				GeomObj* e = newConstrained[i_nc];
-				if(m_dgm->contains_status(e, ES_H_MASTER)){
-					m_hash.add(Entry(pcl::GetProcRank(), m_localHMasterCount), e);
-					++m_localHMasterCount;
-				}
-				else if(m_dgm->contains_status(e, ES_V_MASTER)
-						&& !(m_dgm->contains_status(e, ES_H_SLAVE)))
-				{
-				//	find lowest connected vslave proc
-					m_dgm->collect_interface_entries(interfaceEntries, e, ES_V_MASTER);
-					UG_ASSERT(!interfaceEntries.empty(),
-							  "Elem with type " << e->base_object_id() << " at " <<
-							   GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), e)
-							   << " is marked as v-master but is not contained in a vslave interface!");
-					int lp = interfaceEntries.front().first;
-					for(size_t i = 1; i < interfaceEntries.size(); ++i)
-						lp = min(lp, interfaceEntries[i].first);
-
-					m_hash.add(Entry(lp, -1), e);
-				}
-				else
-					m_hash.add(Entry(-1, -1), e);
+				create_initial_hash_entry(e);
 			}
+		}
+
+		void create_initial_hash_entry(GeomObj* e)
+		{
+			if(m_dgm->contains_status(e, ES_H_MASTER)){
+				m_hash.add(Entry(pcl::GetProcRank(), m_localHMasterCount), e);
+				++m_localHMasterCount;
+			}
+			else if(m_dgm->contains_status(e, ES_V_MASTER)
+					&& (!m_dgm->contains_status(e, ES_H_SLAVE)))
+			{
+			//	find lowest connected vslave proc
+				vector<pair<int, size_t> >	interfaceEntries;
+				m_dgm->collect_interface_entries(interfaceEntries, e, ES_V_MASTER);
+				UG_ASSERT(!interfaceEntries.empty(),
+						  "Elem with type " << e->base_object_id() << " at " <<
+						   GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), e)
+						   << " is marked as v-master but is not contained in a vslave interface!");
+				int lp = interfaceEntries.front().first;
+				for(size_t i = 1; i < interfaceEntries.size(); ++i)
+					lp = min(lp, interfaceEntries[i].first);
+
+				m_hash.add(Entry(lp, -1), e);
+			}
+			else
+				m_hash.add(Entry(-1, -1), e);
 		}
 
 		virtual ~ComPol_NewConstrainedVerticals()	{}
@@ -756,6 +763,8 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 				}
 
 				if(m_exchangeVMasterRanks){
+					UG_ASSERT(!m_initialHandshake, "initial handshake and vmaster "
+								 "exchange may not be active at the same time.");
 					UG_ASSERT(m_dgm->contains_status(elem, ES_V_SLAVE),
 							  "Only v-slaves can communicate associated v-masters.");
 
@@ -794,32 +803,55 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 					std::pair<int, int> val;
 					Deserialize(buff, val);
 
-					UG_ASSERT(m_hash.has_entries(elem),
-							  "A matching element has to exist in the local procs "
-							  "new constrained list.");
+//					if(m_checkHOrder){
+//						if(!m_hash.has_entries(elem)){
+//							UG_THROW("No matching entry on proc " << pcl::GetProcRank()
+//									 << " for element " << ElementDebugInfo(*m_dgm->get_assigned_grid(), elem));
+//							Entry& entry = m_hash.first(elem);
+//							if((entry.hmasterProcInfo.first == val.first)
+//								&& (entry.hmasterProcInfo.second != val.second)){
+//								UG_THROW("H-Order mismatch on proc " << pcl::GetProcRank()
+//										<< " for element " << ElementDebugInfo(*m_dgm->get_assigned_grid(), elem));
+//							}
+//						}
+//					}
+//					else if(m_initialHandshake){
+					if(m_initialHandshake){
+						UG_ASSERT(!m_exchangeVMasterRanks, "initial handshake and vmaster "
+								 "exchange may not be active at the same time.");
+						if(!m_hash.has_entries(elem)){
+							create_initial_hash_entry(elem);
+							m_newConstrained.push_back(elem);
+						}
+					}
+					else{
+						UG_ASSERT(m_hash.has_entries(elem),
+								  "A matching element has to exist in the local procs "
+								  "new constrained list:"
+								  << ElementDebugInfo(*m_dgm->get_assigned_grid(), elem));
 
-				//	the entry whose second value is specified has the highest priority
-					Entry& entry = m_hash.first(elem);
-					if((entry.hmasterProcInfo.second == -1) && (val.first != -1))
-						entry.hmasterProcInfo = val;
+					//	the entry whose second value is specified has the highest priority
+						Entry& entry = m_hash.first(elem);
+						if((entry.hmasterProcInfo.second == -1) && (val.first != -1))
+							entry.hmasterProcInfo = val;
 
-					if(m_exchangeVMasterRanks){
-						UG_ASSERT(m_dgm->contains_status(elem, ES_V_MASTER),
-								  "Only v-masters can receive from associated v-slaves.");
-						if(entry.hmasterProcInfo.first == localProc){
-							int numOtherMasters;
-							Deserialize(buff, numOtherMasters);
-							entry.otherVMasterRanks.clear();
-							entry.otherVMasterRanks.reserve(numOtherMasters);
-							for(int i = 0; i < numOtherMasters; ++i){
-								int om;
-								Deserialize(buff, om);
-								entry.otherVMasterRanks.push_back(om);
-								UG_ASSERT(om != localProc, "Only other procs should arrive here!");
+						if(m_exchangeVMasterRanks){
+							UG_ASSERT(m_dgm->contains_status(elem, ES_V_MASTER),
+									  "Only v-masters can receive from associated v-slaves.");
+							if(entry.hmasterProcInfo.first == localProc){
+								int numOtherMasters;
+								Deserialize(buff, numOtherMasters);
+								entry.otherVMasterRanks.clear();
+								entry.otherVMasterRanks.reserve(numOtherMasters);
+								for(int i = 0; i < numOtherMasters; ++i){
+									int om;
+									Deserialize(buff, om);
+									entry.otherVMasterRanks.push_back(om);
+									UG_ASSERT(om != localProc, "Only other procs should arrive here!");
+								}
 							}
 						}
 					}
-
 					Deserialize(buff, index);
 				}
 				++counter;
@@ -833,36 +865,68 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		void exchange_data()
 		{
 			pcl::InterfaceCommunicator<TLayout> com;
+			GridLayoutMap& glm = m_dgm->grid_layout_map();
 
+		//	we perform an initial handshake between vmasters and vslaves, to make
+		//	sure, that both have matching elements in their hashes.
+			UG_DLOG(LIB_GRID, 3, "  Initial handshake: communicating vmasters->vslaves...\n");
+			m_initialHandshake = true;
+			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, *this);
+			com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, *this);
+			com.communicate();
+			m_initialHandshake = false;
+
+		//	In the setup phase the entries of all h-master nodes already received
+		//	their correct values (h-masters won't change).
+		//	If a v-master is not contained in a h-interface, it will assume that the
+		//	new h-master will be created at the lowest v-slave. This guess may however
+		//	be corrected in later communication steps.
+		//	h-slaves will only receive an invalid entry, since they don't have to
+		//	be adjusted at all and since they don't really contribute to the algorithm.
+
+		//	in the first communication step we notify v-slaves about what their
+		//	associated v-masters presume to be the new h-master. Most of the time
+		//	this is, however, only a guess by the v-masters -- only if they are a
+		//	h-master them selves, this guess should be right.
 			UG_DLOG(LIB_GRID, 3, "  communicating vmasters->vslaves...\n");
 			m_exchangeVMasterRanks = false;
-			GridLayoutMap& glm = m_dgm->grid_layout_map();
-			if(glm.has_layout<GeomObj>(INT_V_MASTER))
-				com.send_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
-			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
-				com.receive_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
+//			if(glm.has_layout<GeomObj>(INT_V_MASTER))
+//				com.send_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
+//			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
+//				com.receive_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
+			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, *this);
 			com.communicate();
 
+		//	v-slaves now know where their associated v-masters assume that the
+		//	associated h-master node lies. By checking (hmasterProcInfo.second == -1),
+		//	one knows that this was only a guess.
 		//	iterate over all entries. Those who contain the local proc as h-master
 		//	proc have to be supplied with a local h-master index (if none is present yet)
 			int localProc = pcl::GetProcRank();
 			for(size_t i = 0; i < m_newConstrained.size(); ++i){
 				GeomObj* elem = m_newConstrained[i];
-				Entry& entry = m_hash.first(elem);
-				if((entry.hmasterProcInfo.first == localProc)
-					&& (entry.hmasterProcInfo.second == -1))
-				{
-					entry.hmasterProcInfo.second = m_localHMasterCount++;
+				if(!m_dgm->contains_status(elem, ES_H_SLAVE)){
+					Entry& entry = m_hash.first(elem);
+					if((entry.hmasterProcInfo.first == localProc)
+						&& (entry.hmasterProcInfo.second == -1))
+					{
+						entry.hmasterProcInfo.second = m_localHMasterCount++;
+					}
 				}
 			}
 
+
 			UG_DLOG(LIB_GRID, 3, "  communicating vslaves->vmasters...\n");
 			m_exchangeVMasterRanks = true;
-			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
-				com.send_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
-			if(glm.has_layout<GeomObj>(INT_V_MASTER))
-				com.receive_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
+//			if(glm.has_layout<GeomObj>(INT_V_SLAVE))
+//				com.send_data(glm.get_layout<GeomObj>(INT_V_SLAVE), *this);
+//			if(glm.has_layout<GeomObj>(INT_V_MASTER))
+//				com.receive_data(glm.get_layout<GeomObj>(INT_V_MASTER), *this);
+			com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, *this);
 			com.communicate();
+			m_exchangeVMasterRanks = false;
+
+			//check_corresponding_h_order();
 		}
 
 	/**	returns a std::pair<int, int> where 'first' represents the h-master rank and
@@ -875,6 +939,49 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		std::vector<int>& other_v_masters(GeomObj* o)		{return m_hash.first(o).otherVMasterRanks;}
 
 	private:
+//		void check_corresponding_h_order()
+//		{
+//			pcl::InterfaceCommunicator<TLayout> com;
+//			GridLayoutMap& glm = m_dgm->grid_layout_map();
+//
+//		//	we perform an initial handshake between vmasters and vslaves, to make
+//		//	sure, that both have matching elements in their hashes.
+////			UG_LOG("\n DEBUG CHECK check_corresponding_h_order\n");
+////			for(size_t i = 0; i < m_newConstrained.size(); ++i){
+////				GeomObj* elem = m_newConstrained[i];
+////				if(vector3(0.015625, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////					UG_LOG("(0.015625, -0.25, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0.015625, -0.25, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////				}
+////				if(vector3(0, -0.265625, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////					UG_LOG("\n");
+////					UG_LOG("(0, -0.265625, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0, -0.265625, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////				}
+////				if(vector3(0, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////					UG_LOG("\n");
+////					UG_LOG("(0, -0.25, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0, -0.25, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////				}
+////				if(vector3(0.03125, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////					UG_LOG("\n");
+////					UG_LOG("(0.03125, -0.25, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0.03125, -0.25, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////				}
+////				if(vector3(0.15625, -0.28125, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////					UG_LOG("\n");
+////					UG_LOG("(0.15625, -0.28125, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0.15625, -0.28125, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////				}
+////			}
+//
+//			m_checkHOrder = true;
+//			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, *this);
+//			com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, *this);
+//			com.communicate();
+//			m_checkHOrder = false;
+//		}
+
 		struct Entry{
 			Entry(int hmasterRank, int localHMasterCount) :
 				hmasterProcInfo(hmasterRank, localHMasterCount)	{}
@@ -883,16 +990,18 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			std::vector<int> otherVMasterRanks;
 		};
 
-		const std::vector<GeomObj*>	m_newConstrained;
+		std::vector<GeomObj*>&	m_newConstrained;
 		DistributedGridManager* m_dgm;
 		Hash<Entry, GeomObj*>	m_hash;
 		int						m_localHMasterCount;
 		bool					m_exchangeVMasterRanks;
+		bool					m_initialHandshake;
+		//bool					m_checkHOrder;
 };
 
 template <class TElem>
 void DistributedGridManager::
-create_missing_constrained_h_interfaces(const vector<TElem*>& newConstrainedElems)
+create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 {
 //	some notes:
 //	The process on which the new hmaster lies is carefully chosen so that if an
@@ -922,12 +1031,15 @@ create_missing_constrained_h_interfaces(const vector<TElem*>& newConstrainedElem
 
 	for(size_t i_nce = 0; i_nce < newConstrainedElems.size(); ++i_nce){
 		TElem* e = newConstrainedElems[i_nce];
+	//	nothing to do for h-slave entries, since the h-master won't change.
+		if(contains_status(e, ES_H_SLAVE))
+			continue;
 
 		std::pair<int, int> hmasterInfo = compolHMasters.get_h_master_info(e);
 		int hmasterRank = hmasterInfo.first;
 		int hmasterOrder = hmasterInfo.second;
 
-		UG_ASSERT(hmasterRank != -1, "HMaster ranks have not been communicated properly");
+		UG_ASSERT(hmasterRank != -1, "A hmasterRank has to be provided!");
 		UG_ASSERT(hmasterOrder != -1, "HMaster orders have not been communicated properly");
 
 		if(hmasterRank == localRank){
@@ -975,10 +1087,28 @@ create_missing_constrained_h_interfaces(const vector<TElem*>& newConstrainedElem
 						elem_info(e).set_status(get_status(e) | ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
 					}
 				}
+
+				collect_interface_entries(vInterfaces, e, ES_V_MASTER);
+				for(size_t i_vm = 0; i_vm < vInterfaces.size(); ++i_vm){
+					int tp = vInterfaces[i_vm].first;
+				//	check whether a h-interface to that process exists already
+					bool hInterfaceExists = false;
+					for(size_t i_h = 0; i_h < hInterfaces.size(); ++i_h){
+						if(tp == hInterfaces[i_h].first){
+							hInterfaceExists = true;
+							break;
+						}
+					}
+
+					if(!hInterfaceExists){
+						scheduledElems.insert(make_pair(hmasterOrder, ScheduledElement(e, tp)));
+						elem_info(e).set_status(get_status(e) | ES_H_MASTER | ES_SCHEDULED_FOR_INTERFACE);
+					}
+				}
 			}
 		}
 		else if(contains_status(e, ES_V_MASTER)){
-			UG_ASSERT(!contains_status(e, ES_H_MASTER), "This proc should be considered as h-master proc!");
+			UG_ASSERT(!contains_status(e, ES_H_MASTER), "This proc should not be considered as h-master proc!");
 		//	create a hslaveinterface to the hmasterRank.
 			collect_interface_entries(hInterfaces, e, ES_H_SLAVE);
 			collect_interface_entries(hInterfaces, e, ES_H_MASTER, false);
