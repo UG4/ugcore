@@ -467,6 +467,8 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 
 		pcl::ProcessCommunicator procCom = procComAll.
 									create_sub_communicator(pdg.num_graph_vertices() > 0);
+	//	parmetis would have problems otherwise. The node-offset-map now matches procCom.
+		pdg.remove_empty_procs_from_node_offset_map();
 
 		if(!procCom.empty()){
 		//	partition the graph using parmetis

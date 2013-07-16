@@ -267,6 +267,21 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	UG_DLOG(LIB_GRID, 1, "ParallelDualGraph-stop generate_graph\n");
 }
 
+template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
+void ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
+remove_empty_procs_from_node_offset_map()
+{
+	if(m_nodeOffsetMap.size() < 2)
+		return;
+
+	std::vector<TIndexType>	offsets;
+	offsets.push_back(m_nodeOffsetMap[0]);
+	for(size_t i = 1; i < m_nodeOffsetMap.size(); ++i){
+		if(m_nodeOffsetMap[i] != offsets.back())
+			offsets.push_back(m_nodeOffsetMap[i]);
+	}
+	m_nodeOffsetMap.swap(offsets);
+}
 }// end of namespace
 
 #endif

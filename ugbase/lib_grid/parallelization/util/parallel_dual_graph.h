@@ -49,6 +49,13 @@ class ParallelDualGraph{
 		void generate_graph(int level, pcl::ProcessCommunicator procCom =
 											pcl::ProcessCommunicator(pcl::PCD_WORLD));
 
+	/// Removes entries for empty processes from the node-offset-map
+	/**	Some libraries (e.g. parmetis) can't handle empty processes. This method
+	 * can be used to remove those processes from the node-offset-map.
+	 * Make sure to use a communicator which only contains processes for which
+	 * num_graph_vertices() > 0 in a call to Parmetis after having used this method.*/
+		void remove_empty_procs_from_node_offset_map();
+
 	private:
 		void attach_data();
 		void detach_data();
