@@ -782,6 +782,9 @@ LinearProjector(TDomain* dom)
 			new TRefProj(*dom->grid(), dom->position_attachment()));
 }
 
+///	Creates a refinement projector which projects new vertices onto a sphere
+/** Specify a domain, the center of the sphere (cx, cy, cz), and the sphere's radius.
+ */
 template <class TDomain>
 SmartPtr<IRefinementCallback>
 SphereProjector(TDomain* dom, number x, number y, number z, number radius)
@@ -791,6 +794,23 @@ SphereProjector(TDomain* dom, number x, number y, number z, number radius)
 	VecCopy(v, vector3(x, y, z), 0);
 	return SmartPtr<TRefProj>(
 			new TRefProj(*dom->grid(), dom->position_attachment(), v, radius));
+}
+
+///	Creates a refinement projector which projects new vertices onto a cylinder
+/** Specify a domain, a point on the cylinder's axis (cx, cy, cz), the direction
+ * of the axis (ax, ay, az) and the cylinder's radius.
+ */
+template <class TDomain>
+SmartPtr<IRefinementCallback>
+CylinderProjector(TDomain* dom, number cx, number cy, number cz,
+				  number ax, number ay, number az, number radius)
+{
+	typedef RefinementCallbackCylinder<typename TDomain::position_attachment_type>	TRefProj;
+	typename TDomain::position_type c, a;
+	VecCopy(c, vector3(cx, cy, cz), 0);
+	VecCopy(a, vector3(ax, ay, az), 0);
+	return SmartPtr<TRefProj>(
+			new TRefProj(*dom->grid(), dom->position_attachment(), c, a, radius));
 }
 
 template <class TDomain>
@@ -914,7 +934,9 @@ static void Domain(Registry& reg, string grp)
 		.add_function("LinearProjector", &LinearProjector<TDomain>, grp,
 					"IRefinementCallback", "domain")
 		.add_function("SphereProjector", &SphereProjector<TDomain>, grp,
-					"IRefinementCallback", "domain#x#y#z#radius")
+					"IRefinementCallback", "domain#centerX#centerY#centerZ#radius")
+		.add_function("CylinderProjector", &CylinderProjector<TDomain>, grp,
+					"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ#radius")
 		.add_function("SubdivisionLoopProjector", &SubdivisionLoopProjector<TDomain>, grp,
 					"IRefinementCallback", "domain");
 

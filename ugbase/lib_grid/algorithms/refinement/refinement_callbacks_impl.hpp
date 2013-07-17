@@ -196,6 +196,101 @@ perform_projection(VertexBase* vrt, TElem* parent)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
+RefinementCallbackCylinder<TAPosition>::
+RefinementCallbackCylinder() :
+	m_pGrid(NULL)
+{
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+RefinementCallbackCylinder<TAPosition>::
+RefinementCallbackCylinder(Grid& grid, TAPosition& aPos,
+						 const typename TAPosition::ValueType& center,
+						 const typename TAPosition::ValueType& axis,
+						 number radius) :
+	m_pGrid(&grid),
+	m_center(center),
+	m_axis(axis),
+	m_radius(radius)
+{
+//	we have to make sure that aPos is attached at the grid.
+//	This is important to avoid crashes later on.
+	if(!grid.has_vertex_attachment(aPos))
+		grid.attach_to_vertices(aPos);
+	m_aaPos.access(grid, aPos);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+RefinementCallbackCylinder<TAPosition>::
+~RefinementCallbackCylinder()
+{
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void RefinementCallbackCylinder<TAPosition>::
+new_vertex(VertexBase* vrt, VertexBase* parent)
+{
+	perform_projection(vrt, parent);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void RefinementCallbackCylinder<TAPosition>::
+new_vertex(VertexBase* vrt, EdgeBase* parent)
+{
+	perform_projection(vrt, parent);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void RefinementCallbackCylinder<TAPosition>::
+new_vertex(VertexBase* vrt, Face* parent)
+{
+	perform_projection(vrt, parent);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+void RefinementCallbackCylinder<TAPosition>::
+new_vertex(VertexBase* vrt, Volume* parent)
+{
+	perform_projection(vrt, parent);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+int RefinementCallbackCylinder<TAPosition>::
+current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
+{
+	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
+template <class TElem>
+void RefinementCallbackCylinder<TAPosition>::
+perform_projection(VertexBase* vrt, TElem* parent)
+{
+	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+
+//	calculate the new position by linear interpolation and project that point
+//	onto the cylinder.
+	pos_type v = CalculateCenter(parent, m_aaPos);
+	pos_type proj;
+	ProjectPointToRay(proj, v, m_center, m_axis);
+	VecSubtract(v, v, proj);
+	VecNormalize(v, v);
+	VecScale(v, v, m_radius);
+	VecAdd(m_aaPos[vrt], proj, v);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
 RefinementCallbackSubdivBoundary<TAPosition>::
 RefinementCallbackSubdivBoundary()
 {

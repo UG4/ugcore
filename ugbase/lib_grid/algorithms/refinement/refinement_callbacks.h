@@ -129,6 +129,50 @@ class RefinementCallbackSphere : public IRefinementCallback
 		number										m_radius;
 };
 
+////////////////////////////////////////////////////////////////////////
+///	calculates new positions of vertices by projecting on a cylinder
+/**	Make sure to initialize the callback correctly. Use the same grid
+ *	on which the refinement-operations will be performed. Make sure
+ *	that aPos (given in the constructor) is attached to the vertices
+ *	of the grid.
+ *
+ *	An uninitialized refinement-callback may not be used during refinement.
+ */
+template <class TAPosition>
+class RefinementCallbackCylinder : public IRefinementCallback
+{
+	public:
+		RefinementCallbackCylinder();
+
+	///	make sure that aPos is attached to the vertices of the grid.
+		RefinementCallbackCylinder(Grid& grid, TAPosition& aPos,
+								   const typename TAPosition::ValueType& center,
+								   const typename TAPosition::ValueType& axis,
+								   number radius);
+
+		virtual ~RefinementCallbackCylinder();
+
+		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
+		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		virtual void new_vertex(VertexBase* vrt, Face* parent);
+		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+
+		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords);
+
+	protected:
+		template <class TElem>
+		void perform_projection(VertexBase* vrt, TElem* parent);
+
+	protected:
+		typedef typename TAPosition::ValueType		pos_type;
+
+		Grid* 										m_pGrid;
+		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
+		pos_type									m_center;
+		pos_type									m_axis;
+		number										m_radius;
+};
+
 
 class RefinementCallback_IntersectCylinder : public RefinementCallbackLinear<APosition>
 {
