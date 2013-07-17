@@ -14,6 +14,34 @@ This is even possible with a \em SVN server.
 
 For any questions email torbjoern@torbjoern-klatt.de
 
+<hr>
+\section secGitSVNWarning Warning on Usage
+
+\attention <strong>Please be aware that using \em SVN via \em Git is 
+and will always be like walking on crutches!</strong>
+
+This is due to the very nature of \em Git and \em SVN, which are completely different when
+it comes to dealing with commits, diffs and alike.
+
+The \ug4 \em SVN server uses special access right managment based on user roles and
+paths.
+\em Git can not and will never be able to deal with partial checkouts and partial commits.
+
+This problem surfaces, when the access rights to certain directories and paths are
+changed after commits have been done to those.
+You will get errors similar to the following when running `git svn fetch` or `git svn rebase`:
+
+\verbatim
+plugins/experimental/promesh/tools/remeshing_tools.h was not found in commit 30995e3b27a7cbff8908d1cc883b96ede9e2a694 (r10850)
+\endverbatim
+
+\attention Only use \em git-svn when you are very familiar with both \em Git and 
+\em SVN.
+As well keep in mind, that you might be forced to reinitiate your \em git-svn clone
+from scratch and copy your local \em Git branches to the new clone.
+None of the \ug4 maintainers will guarantee functionality or support beside basic
+\em SVN help.
+
 
 <hr>
 \section secGitSVNGeneral General Remarks on Git-SVN over Git-Only
