@@ -378,7 +378,7 @@ public:
     public:
         inline void check() const {A.check_row(row, i); }
         const_row_iterator(const SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) {A.add_iterator(row);}
-        const_row_iterator(const row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
+        const_row_iterator(const const_row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
         ~const_row_iterator() { A.remove_iterator(row); }
         const_row_iterator *operator ->() { return this; }
         const value_type &value() const { check(); return A.values[i];   }
