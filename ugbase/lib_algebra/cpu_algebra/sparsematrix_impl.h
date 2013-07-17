@@ -50,6 +50,11 @@ bool SparseMatrix<T>::resize_and_clear(size_t newRows, size_t newCols)
 	values.clear();
 	if(bNeedsValues) values.resize(newRows);
 	maxValues = 0;
+
+#ifdef CHECK_ROW_ITERATORS
+	nrOfRowIterators.clear();
+	nrOfRowIterators.resize(newRows, 0);
+#endif
 	return true;
 }
 
@@ -67,6 +72,9 @@ bool SparseMatrix<T>::resize_and_keep_values(size_t newRows, size_t newCols)
 		rowStart.resize(newRows+1, -1);
 		rowMax.resize(newRows);
 		rowEnd.resize(newRows, -1);
+#ifdef CHECK_ROW_ITERATORS
+		nrOfRowIterators.resize(newRows, 0);
+#endif
 		for(size_t i=oldrows; i<newRows; i++)
 		{
 			rowStart[i] = -1;
@@ -431,6 +439,8 @@ int SparseMatrix<T>::get_index(int r, int c)
 	}
 
 	// we did not find it, so we have to add it
+
+	check_row_modifiable(r);
 
 #ifndef NDEBUG
 	assert(index == rowEnd[r] || cols[index] > c);

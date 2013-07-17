@@ -24,6 +24,9 @@
 
 #define PROFILE_SPMATRIX(name) PROFILE_BEGIN_GROUP(name, "SparseMatrix algebra")
 
+#ifndef NDEBUG
+#define CHECK_ROW_ITERATORS
+#endif
 
 namespace ug{
 
@@ -208,6 +211,14 @@ public:
 		UG_ASSERT(r < num_rows() && c < num_cols(), "tried to access element (" << r << ", " << c << ") of " << num_rows() << " x " << num_cols() << " matrix.");
 	}
 
+	inline void check_row_modifiable(size_t r) const
+	{
+#ifdef CHECK_ROW_ITERATORS
+		UG_ASSERT(nrOfRowIterators[r] == 0, "row " << r << " is used by an iterator and should not be modified.")
+#endif
+	}
+
+
 	//! set matrix to Id*a
 	bool set(double a);
 
@@ -310,13 +321,22 @@ public:
 	 */
 
 
-	void add_iterator() const
+	void add_iterator(size_t row) const
 	{
+#ifdef CHECK_ROW_ITERATORS
+		nrOfRowIterators[row]++;
+#endif
 		iIterators++;
 	}
-	void remove_iterator() const
+	void remove_iterator(size_t row) const
 	{
+#ifdef CHECK_ROW_ITERATORS
+		nrOfRowIterators[row]--;
+		UG_ASSERT(nrOfRowIterators[row] >= 0, row);
+#endif
 		iIterators--;
+		UG_ASSERT(iIterators >= 0, row);
+
 	}
 	// a row_iterator has to suppport
 	// operator ++, operator +=, index() const, const value_type &value() const, value_type &value()
@@ -339,8 +359,9 @@ public:
         size_t i;
     public:
         inline void check() const {A.check_row(row, i); }
-        row_iterator(SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) { A.add_iterator(); }
-        ~row_iterator() { A.remove_iterator(); }
+        row_iterator(SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) { A.add_iterator(row); }
+        row_iterator(const row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
+        ~row_iterator() { A.remove_iterator(row); }
         row_iterator *operator ->() { return this; }
         value_type &value() { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i]; }
@@ -356,8 +377,9 @@ public:
         size_t i;
     public:
         inline void check() const {A.check_row(row, i); }
-        const_row_iterator(const SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) {A.add_iterator();}
-        ~const_row_iterator() { A.remove_iterator(); }
+        const_row_iterator(const SparseMatrix &_A, size_t _row, size_t _i) : A(_A), row(_row), i(_i) {A.add_iterator(row);}
+        const_row_iterator(const row_iterator &other) : A(other.A), row(other.row), i(other.i) { A.add_iterator(row); }
+        ~const_row_iterator() { A.remove_iterator(row); }
         const_row_iterator *operator ->() { return this; }
         const value_type &value() const { check(); return A.values[i];   }
         size_t index() const { check(); return A.cols[i];     }
@@ -536,6 +558,10 @@ protected:
     int maxValues;
     int m_numCols;
     mutable int iIterators;
+
+#ifdef CHECK_ROW_ITERATORS
+    mutable std::vector<int> nrOfRowIterators;
+#endif
 };
 
 
