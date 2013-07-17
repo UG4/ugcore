@@ -133,6 +133,8 @@ void SplitAddRow_Symmetric(TMatrix& A,
 		//	add the coupling to the constraining indices rows
 			for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
 			{
+				UG_ASSERT(vConstrainingIndex[k][i]!=constrainedIndex[i],
+						"Modifying 'this' (=conn referenced) matrix row is invalid!" << constrainedIndex[i]);
 				A(vConstrainingIndex[k][i], j) += block;
 				A(j, vConstrainingIndex[k][i]) += blockT;
 			}
