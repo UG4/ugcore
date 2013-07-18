@@ -785,8 +785,11 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 		}
 
 		broadcast_marks_horizontally(false, true, false);
-		//copy_marks_to_vmasters(false, true, false, false);
 		copy_marks_to_vslaves(false, true, true, true);
+	//	since h-interfaces do not always exist between v-master copies,
+	//	we have to perform an additional broadcast, to make sure, that all copies
+	//	have the correct marks.
+		broadcast_marks_vertically(false, true, false, false);
 
 	//	find edges which were marked as unknown and prepare qedges for the next run
 		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
@@ -1015,6 +1018,18 @@ We have to handle elements as follows:
 			case HNCM_REPLACE:{
 				assert(!elem->is_constrained());
 				if(elem->is_constraining()){
+					#ifdef UG_DEBUG
+					//	make sure that the associated constrained vertex will be removed
+						ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(elem);
+						if(cf->num_constrained_vertices() > 0){
+							VertexBase* hv = cf->constrained_vertex(0);
+							UG_ASSERT(sel.get_selection_status(hv) == HNCM_ALL,
+									  "A constraining face may only be replaced by a normal face"
+									  " during coarsening, if its constrained vertex will be removed."
+									  " At: " << ElementDebugInfo(mg, elem));
+						}
+					#endif
+
 				//	the constraining face has to be transformed to a normal face
 					switch(elem->reference_object_id()){
 						case ROID_TRIANGLE:
@@ -1144,6 +1159,18 @@ We have to handle elements as follows:
 						  << ElementDebugInfo(mg, elem));
 				if(elem->is_constraining()){
 				//	the constraining edge has to be transformed to a normal edge
+					#ifdef UG_DEBUG
+					//	make sure that the associated constrained vertex will be removed
+						ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(elem);
+						if(ce->num_constrained_vertices() > 0){
+							VertexBase* hv = ce->constrained_vertex(0);
+							UG_ASSERT(sel.get_selection_status(hv) == HNCM_ALL,
+									  "A constraining edge may only be replaced by a normal edge"
+									  " during coarsening, if its constrained vertex will be removed."
+									  " At: " << ElementDebugInfo(mg, elem));
+						}
+					#endif
+
 					mg.create_and_replace<Edge>(elem);
 				}
 				else{

@@ -698,7 +698,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 									   std::vector<GeomObj*>& newConstrained) :
 			m_newConstrained(newConstrained),
 			m_dgm(dgm),
-			m_hash(newConstrained.size()),
+			m_hash(newConstrained.size() + 97),
 			m_localHMasterCount(0),
 			m_exchangeVMasterRanks(false),
 			m_initialHandshake(false)

@@ -24,6 +24,10 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 					AVector3& aPos = aPosition,
 					AVector3& aNormFACE = aNormal);
 
+bool SaveGridToSTL(Grid& grid, const char* filename,
+					ISubsetHandler* pSH = NULL,
+					AVector3& aPos = aPosition);
+
 }
 
 #endif

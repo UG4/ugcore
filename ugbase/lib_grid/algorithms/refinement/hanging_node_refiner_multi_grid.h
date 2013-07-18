@@ -41,10 +41,11 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 		using HangingNodeRefinerBase::mark;
 
 		enum HNodeCoarsenMarks{
-			HNCM_REPLACE = HNRM_MAX + 1,
+			HNCM_FIRST = HNRM_MAX + 1,
 			HNCM_NO_NBRS,
 			HNCM_NONE,
 			HNCM_PARTIAL,
+			HNCM_REPLACE,
 			HNCM_ALL,
 			HNCM_UNKNOWN,
 			HNCM_INVALID
@@ -274,6 +275,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 		//virtual void assign_hnode_coarsen_marks();
 
 		virtual void broadcast_marks_horizontally(bool vertices, bool edges, bool faces)	{}
+		virtual void broadcast_marks_vertically(bool vertices, bool edges,
+												bool faces, bool volumes)	{}
 
 		virtual void copy_marks_to_vmasters(bool vertices, bool edges,
 											bool faces, bool volumes)			{}

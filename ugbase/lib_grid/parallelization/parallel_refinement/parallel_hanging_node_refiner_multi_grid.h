@@ -99,6 +99,9 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 		virtual void broadcast_marks_horizontally(bool vertices, bool edges, bool faces);
 
+		virtual void broadcast_marks_vertically(bool vertices, bool edges,
+												bool faces, bool volumes);
+
 		virtual void copy_marks_to_vmasters(bool vertices, bool edges,
 											bool faces, bool volumes);
 

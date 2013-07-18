@@ -95,6 +95,43 @@ class DistInfoSupplier{
 
 		ADistInfo dist_info_attachment()	{return m_aDistInfo;}
 
+		template <class TElem>
+		StringStreamTable get_debug_info(TElem* e)
+		{
+			const vector<TargetProcInfo>& di = get(e);
+			StringStreamTable t;
+			for(size_t i = 0; i < di.size(); ++i){
+				t(0, i+1) << "p" << di[i].procID;
+			}
+
+			size_t ri = 1;
+			t(ri, 0) << "normal";
+			for(size_t i = 0; i < di.size(); ++i)
+				t(ri, i+1) << ((di[i].interfaceState & IS_NORMAL) != 0);
+
+			ri = 2;
+			t(ri, 0) << "vmaster";
+			for(size_t i = 0; i < di.size(); ++i)
+				t(ri, i+1) << ((di[i].interfaceState & IS_VMASTER) != 0);
+
+			ri = 3;
+			t(ri, 0) << "vslave";
+			for(size_t i = 0; i < di.size(); ++i)
+				t(ri, i+1) << ((di[i].interfaceState & IS_VSLAVE) != 0);
+
+			ri = 4;
+			t(ri, 0) << "dummy";
+			for(size_t i = 0; i < di.size(); ++i)
+				t(ri, i+1) << ((di[i].interfaceState & IS_DUMMY) != 0);
+
+			ri = 5;
+			t(ri, 0) << "has parent";
+			for(size_t i = 0; i < di.size(); ++i)
+				t(ri, i+1) << ((di[i].interfaceState & HAS_PARENT) != 0);
+
+			return t;
+		}
+
 	private:
 	//	copy construction unsupported.
 		DistInfoSupplier(const DistInfoSupplier& di) : m_grid(di.m_grid) {}
@@ -1034,6 +1071,95 @@ static void AddTargetProcToDistInfos(MGSelector& msel,
 	UG_DLOG(LIB_GRID, 1, "dist-stop: AddTargetProcToDistInfos\n");
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	DistInfos are post-processed and some values are adjusted (primarily missing vslaves-marks are added)
+/**	In some situations a copy of an element may be marked as vmaster but some
+ * associated copies are neither marked as vmaster or vslave. This would be invalid
+ * and we have to mark those copies as vslaves in those situations.
+ *
+ * This occurs in situations where a low-dim element with copies
+ * on p1 and p2 (no v-interface) is distributed from p1 to a third process.
+ *
+ * This method should be called after the distribution infos have been synchronized.
+ * Since it performs the exactly same actions on all processes for synchronized
+ * dist-infos, no further communication is required afterwards.
+ */
+template <class TElem>
+static void PostProcessDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
+{
+//	iterate over all elements and check for each whether a copy is marked as vmaster.
+//	If this is the case, all other elements have to be in v-interfaces, too.
+//	If a copy isn't in a v-interface, it will be marked as vslave.
+	for(typename MultiGrid::traits<TElem>::iterator iter = mg.begin<TElem>();
+		iter != mg.end<TElem>(); ++iter)
+	{
+		TElem* e = *iter;
+		vector<TargetProcInfo>& di = distInfos.get(e);
+		if(di.size() < 2)
+			continue;
+
+		bool gotVMaster = false;
+		bool gotNeither = false;
+		for(size_t i = 0; i < di.size(); ++i){
+			TargetProcInfo& tpi = di[i];
+			if(tpi.interfaceState & IS_VMASTER){
+				gotVMaster = true;
+			}
+			else if(!(tpi.interfaceState & IS_VSLAVE)){
+				gotNeither = true;
+			}
+		}
+
+		if(gotVMaster && gotNeither){
+		//	those which have neither a vmaster or vslave mark have to be marked as vslaves.
+			for(size_t i = 0; i < di.size(); ++i){
+				TargetProcInfo& tpi = di[i];
+				if(!(tpi.interfaceState & (IS_VMASTER | IS_VSLAVE))){
+					tpi.interfaceState |= IS_VSLAVE;
+				}
+			}
+		}
+	}
+
+	#ifdef LG_DISTRIBUTION_DEBUG
+		UG_LOG("DEBUG: DUMMY CHECK\n");
+		for(typename MultiGrid::traits<TElem>::iterator iter = mg.begin<TElem>();
+			iter != mg.end<TElem>(); ++iter)
+		{
+			TElem* e = *iter;
+			vector<TargetProcInfo>& di = distInfos.get(e);
+
+			if(di.size() < 2)
+				continue;
+
+			bool allDummies = true;
+			for(size_t i = 0; i < di.size(); ++i){
+				TargetProcInfo& tpi = di[i];
+				bool isNormal = ((tpi.interfaceState & IS_NORMAL) != 0);
+				bool isVMaster = ((tpi.interfaceState & IS_VMASTER) != 0);
+				bool isVSlave = ((tpi.interfaceState & IS_VSLAVE) != 0);
+				bool isDummy = ((tpi.interfaceState & IS_DUMMY) != 0);
+				if(isNormal || isVMaster || isVSlave){
+					allDummies = false;
+					break;
+				}
+				else{
+					if(!isDummy){
+						UG_THROW("Element doesn't have a valid interface state: "
+								 << ElementDebugInfo(mg, e));
+					}
+				}
+			}
+			if(allDummies){
+				UG_THROW("The element (" << ElementDebugInfo(mg, e) << ") has only dummy marks:\n"
+						<< distInfos.get_debug_info(e));
+			}
+		}
+	#endif
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector& msel,
 						DistInfoSupplier& distInfos, const std::vector<int>* processMap,
@@ -1083,6 +1209,11 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 	SynchronizeDistInfos<EdgeBase>(mg, distInfos);
 	SynchronizeDistInfos<Face>(mg, distInfos);
 	SynchronizeDistInfos<Volume>(mg, distInfos);
+
+	PostProcessDistInfos<VertexBase>(mg, distInfos);
+	PostProcessDistInfos<EdgeBase>(mg, distInfos);
+	PostProcessDistInfos<Face>(mg, distInfos);
+	PostProcessDistInfos<Volume>(mg, distInfos);
 
 #ifdef LG_DISTRIBUTION_DEBUG
 	{
@@ -1210,6 +1341,12 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					minProc = tpi.procID;
 			}
 
+			UG_ASSERT((!createNormalHInterface)
+					  || (minRegularHMasterProc < pcl::GetNumProcesses()),
+					  "invalid h-master process. The local node (" << ElementDebugInfo(mg, e)
+					  << ") has the following flags:\n"
+					  << distInfos.get_debug_info(e) << "\n");
+
 		//	if one process is marked as vmaster but not as a vslave, then we have
 		//	to be careful if we adjust states on processes which are marked as
 		//	both vmaster and vslave.
@@ -1228,15 +1365,16 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			//	adjacent normal full-dimensional elements should thus exist and a
 			//	horizontal interface has to be built.
 				createNormalHInterface = true;
+				UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
 			}
-			else if((!(isVMaster || isVSlave)) && vMasterExists){
-			//	check whether a vmaster copy exists. If this is the case,
-			//	the element itself has to be a vslave.
-			//	This occurs in situations where a low-dim element with copies
-			//	on p1 and p2 (no v-interface) is distributed from p1 to a third process.
-			//	a v-interface on p1 will then be created and
-				isVSlave = true;
-			}
+//			else if((!(isVMaster || isVSlave)) && vMasterExists){
+//			//	check whether a vmaster copy exists. If this is the case,
+//			//	the element itself has to be a vslave.
+//			//	This occurs in situations where a low-dim element with copies
+//			//	on p1 and p2 (no v-interface) is distributed from p1 to a third process.
+//			//	a v-interface on p1 will then be created and
+//				isVSlave = true;
+//			}
 
 		//	dummies are only required where no normal or slave state is set
 			if(isDummy && (isNormal || isVSlave))
@@ -1269,10 +1407,11 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 						tpIsVMaster = false;
 
 					createNormalHInterface = true;
+					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
 				}
-				else if((!(tpIsVMaster || tpIsVSlave)) && vMasterExists){
-					tpIsVSlave = true;
-				}
+//				else if((!(tpIsVMaster || tpIsVSlave)) && vMasterExists){
+//					tpIsVSlave = true;
+//				}
 
 				if(tpIsDummy && (tpIsNormal || tpIsVSlave))
 					tpIsDummy = false;

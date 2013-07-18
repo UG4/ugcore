@@ -520,6 +520,7 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 				byte minVal = min(curVal, val);
 
 				if((minVal != ParallelHangingNodeRefiner_MultiGrid::HNCM_NO_NBRS)
+				   && (minVal > ParallelHangingNodeRefiner_MultiGrid::HNCM_FIRST)
 				   && (minVal < maxVal)
 				   && (maxVal == ParallelHangingNodeRefiner_MultiGrid::HNCM_ALL))
 				{
@@ -561,6 +562,41 @@ broadcast_marks_horizontally(bool vertices, bool edges, bool faces)
 		m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
 		m_intfComFACE.communicate();
 	}
+}
+
+void ParallelHangingNodeRefiner_MultiGrid::
+broadcast_marks_vertically(bool vertices, bool edges, bool faces, bool volumes)
+{
+	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
+	if(vertices){
+		ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector());
+		m_intfComVRT.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
+		m_intfComVRT.communicate();
+		m_intfComVRT.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER, comPol);
+		m_intfComVRT.communicate();
+	}
+	if(edges){
+		ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector());
+		m_intfComEDGE.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
+		m_intfComEDGE.communicate();
+		m_intfComEDGE.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER, comPol);
+		m_intfComEDGE.communicate();
+	}
+	if(faces){
+		ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector());
+		m_intfComFACE.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
+		m_intfComFACE.communicate();
+		m_intfComFACE.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER, comPol);
+		m_intfComFACE.communicate();
+	}
+	if(volumes){
+		ComPol_BroadcastCoarsenMarks<VolumeLayout>	comPol(get_refmark_selector());
+		m_intfComVOL.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
+		m_intfComVOL.communicate();
+		m_intfComVOL.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER, comPol);
+		m_intfComVOL.communicate();
+	}
+	copy_marks_to_vslaves(vertices, edges, faces, volumes);
 }
 
 bool ParallelHangingNodeRefiner_MultiGrid::

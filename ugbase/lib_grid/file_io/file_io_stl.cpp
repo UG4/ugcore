@@ -6,6 +6,7 @@
 #include "file_io_stl.h"
 #include "common/util/loader/loader_util.h"
 #include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/geom_obj_util/face_util.h"
 
 using namespace std;
 
@@ -154,6 +155,50 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 	delete[] BUFFER;
 	
 	return bSuccess;
+}
+
+bool SaveGridToSTL(Grid& grid, const char* filename,
+					ISubsetHandler* pSH,
+					AVector3& aPos)
+{
+	ofstream out(filename);
+	if(!out){
+		UG_LOG("Couldn't load file " << filename << "\n");
+		return false;
+	}
+
+	if(!grid.has_vertex_attachment(aPos)){
+		UG_LOG("Specified vertex-position attachment missing!\n");
+	}
+
+	if(grid.num<Quadrilateral>() > 0){
+		UG_LOG("WARNING: The specified grid contains quadrilaterals. "
+				"Those won't be written to the stl file!\n");
+	}
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+
+	const char* solidName = "stlFromUG4";
+	out << "solid " << solidName << endl;
+
+	for(typename Grid::traits<Triangle>::iterator iter = grid.begin<Triangle>();
+		iter != grid.end<Triangle>(); ++iter)
+	{
+		Triangle* f = *iter;
+		vector3 n;
+		CalculateNormal(n, f, aaPos);
+		out << "facet normal " << n.x << " " << n.y << " " << n.z << endl;
+		out << "outer loop" << endl;
+		for(size_t i = 0; i < 3; ++i){
+			vector3 v = aaPos[f->vertex(i)];
+			out << "vertex " << v.x << " " << v.y << " " << v.z << endl;
+		}
+		out << "endloop" << endl;
+		out << "endfacet" << endl;
+	}
+
+	out << "endsolid " << solidName << endl;
+	return true;
 }
 
 }
