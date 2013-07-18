@@ -47,7 +47,8 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 	private:
 	///	fills m_aNumChildren with child-counts from levels baseLvl to topLvl.
 	/**	Elements in topLvl have child-count 0.*/
-		void accumulate_child_counts(int baseLvl, int topLvl, AInt aInt);
+		void accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
+									 bool copyToVMastersOnBaseLvl = false);
 
 	/**	make sure that m_numChildren contains a valid number for all elements
 	 * on the given level!*/

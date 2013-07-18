@@ -15,6 +15,8 @@ using namespace std;
 
 namespace ug{
 
+static const int CHILD_WEIGHT = 1;
+
 template <int dim>
 Partitioner_Parmetis<dim>::
 Partitioner_Parmetis() :
@@ -88,6 +90,83 @@ supports_connection_weights() const
 	return true;
 }
 
+//template<int dim>
+//number Partitioner_Parmetis<dim>::
+//estimate_distribution_quality()
+//{
+////todo	Consider connection weights in the final quality!
+//	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+//	using std::min;
+//
+//	MultiGrid& mg = *m_mg;
+//	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
+//
+//	number minQuality = 1;
+//
+//	accumulate_child_counts(0, mg.top_level(), m_aNumChildren);
+//
+//	Table<stringstream> qualityOut;
+//
+////	calculate the quality estimate.
+////todo The quality of a level could be weighted by the total amount of elements
+////		in each level.
+//	for(size_t hlvl = 0; hlvl < m_processHierarchy->num_hierarchy_levels(); ++hlvl)
+//	{
+//		number quality = 1;
+//		size_t minLvl = m_processHierarchy->grid_base_level(hlvl);
+//
+//		if(minLvl > mg.top_level())
+//			break;
+//
+//		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
+//		bool processParticipates = false;
+//		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
+//		if(!procComAll.empty()){
+//			processParticipates = true;
+//			if(numProcs > 1){
+//				int localWeight = 0;
+//				for(ElemIter iter = mg.begin<elem_t>(minLvl);
+//					iter != mg.end<elem_t>(minLvl); ++iter)
+//				{
+//					if(!distGridMgr.is_ghost(*iter))
+//						localWeight += (1 + m_aaNumChildren[*iter]);//todo: use balance weights
+//				}
+//
+//				int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
+//				int maxWeight = procComAll.allreduce(localWeight, PCL_RO_MAX);
+//
+//				if(maxWeight > 0)
+//					quality = (number)minWeight / (number)maxWeight;
+//				else
+//					processParticipates = false;
+//			}
+//		}
+//
+//		minQuality = min(minQuality, quality);
+//
+//		if(verbose()){
+//			qualityOut(hlvl + 1, 1) << minLvl;
+//			qualityOut(hlvl + 1, 2) << numProcs;
+//			if(processParticipates)
+//				qualityOut(hlvl + 1, 3) << quality;
+//			else
+//				qualityOut(hlvl + 1, 3) << "idle";
+//		}
+//	}
+//
+//	if(verbose()){
+//		qualityOut(0, 1) << "grid level";
+//		qualityOut(0, 2) << "num procs";
+//		qualityOut(0, 3) << "estimated quality";
+//
+//		UG_LOG("Estimated distribution quality:\n" << qualityOut << "\n");
+//	}
+//
+////	the quality is a global property - we thus have to use the global minimum
+//	pcl::ProcessCommunicator comGlobal;
+//	return comGlobal.allreduce(minQuality, PCL_RO_MIN);
+//}
+
 template<int dim>
 number Partitioner_Parmetis<dim>::
 estimate_distribution_quality()
@@ -101,33 +180,24 @@ estimate_distribution_quality()
 
 	number minQuality = 1;
 
-	accumulate_child_counts(0, mg.top_level(), m_aNumChildren);
-
 	Table<stringstream> qualityOut;
 
-//	calculate the quality estimate.
-//todo The quality of a level could be weighted by the total amount of elements
-//		in each level.
-	for(size_t hlvl = 0; hlvl < m_processHierarchy->num_hierarchy_levels(); ++hlvl)
-	{
-		number quality = 1;
-		size_t minLvl = m_processHierarchy->grid_base_level(hlvl);
-
-		if(minLvl > mg.top_level())
-			break;
-
+//	calculate the quality in each level
+	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
+		size_t hlvl = m_processHierarchy->hierarchy_level_from_grid_level(lvl);
 		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
 		bool processParticipates = false;
 		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
+		number quality = 1;
 		if(!procComAll.empty()){
 			processParticipates = true;
 			if(numProcs > 1){
 				int localWeight = 0;
-				for(ElemIter iter = mg.begin<elem_t>(minLvl);
-					iter != mg.end<elem_t>(minLvl); ++iter)
+				for(ElemIter iter = mg.begin<elem_t>(lvl);
+					iter != mg.end<elem_t>(lvl); ++iter)
 				{
 					if(!distGridMgr.is_ghost(*iter))
-						localWeight += (1 + m_aaNumChildren[*iter]);//todo: use balance weights
+						localWeight++;
 				}
 
 				int minWeight = procComAll.allreduce(localWeight, PCL_RO_MIN);
@@ -143,12 +213,12 @@ estimate_distribution_quality()
 		minQuality = min(minQuality, quality);
 
 		if(verbose()){
-			qualityOut(hlvl + 1, 1) << minLvl;
-			qualityOut(hlvl + 1, 2) << numProcs;
+			qualityOut(lvl + 1, 1) << lvl;
+			qualityOut(lvl + 1, 2) << numProcs;
 			if(processParticipates)
-				qualityOut(hlvl + 1, 3) << quality;
+				qualityOut(lvl + 1, 3) << quality;
 			else
-				qualityOut(hlvl + 1, 3) << "idle";
+				qualityOut(lvl + 1, 3) << "idle";
 		}
 	}
 
@@ -167,7 +237,8 @@ estimate_distribution_quality()
 
 template<int dim>
 void Partitioner_Parmetis<dim>::
-accumulate_child_counts(int baseLvl, int topLvl, AInt aInt)
+accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
+						bool copyToVMastersOnBaseLvl)
 {
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start accumulate_child_counts\n");
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
@@ -201,7 +272,9 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt)
 			}
 		}
 
-		if(mg.is_parallel()){
+	//	since we perform load balancing on v-slaves, we don't have to inform
+	//	v-masters on the base-lvl
+		if(mg.is_parallel() && ((lvl > baseLvl) || copyToVMastersOnBaseLvl)){
 			GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 		//	communicate the child counts from v-slaves to v-masters, since the
 		//	latter havn't got children on their local processes.
@@ -212,7 +285,7 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt)
 			}
 			if(glm.has_layout<elem_t>(INT_V_MASTER)){
 				m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl),
-									 	compolCopy);
+										compolCopy);
 			}
 			m_intfcCom.communicate();
 		}
@@ -246,7 +319,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
 
-	accumulate_child_counts(baseLvl, mg.top_level(), m_aNumChildren);
+	//accumulate_child_counts(baseLvl, mg.top_level(), m_aNumChildren);
 
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
@@ -298,6 +371,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 				continue;
 			}
 		}
+
+		accumulate_child_counts(minLvl, maxLvl, m_aNumChildren);
 
 	//	we have to find out how many of the target processes already contain a grid.
 		int gotGrid = 0;
@@ -391,7 +466,7 @@ partition_level_metis(int lvl, int numTargetProcs)
 	if(lvl < (int)mg.top_level()){
 		vrtSizeMap.reserve(nVrts);
 		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
-			vrtSizeMap.push_back(m_aaNumChildren[*iter] + 1);
+			vrtSizeMap.push_back(CHILD_WEIGHT * m_aaNumChildren[*iter] + 1);
 
 		assert((int)vrtSizeMap.size() == nVrts);
 		pVrtSizeMap = &vrtSizeMap.front();
@@ -496,7 +571,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 			vrtSizeMap.reserve(nVrts);
 			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
 				if(pdg.was_considered(*iter))
-					vrtSizeMap.push_back(m_aaNumChildren[*iter] + 1);
+					vrtSizeMap.push_back(CHILD_WEIGHT * m_aaNumChildren[*iter] + 1);
 			}
 
 			vector<idx_t> adjwgt(pdg.num_graph_edges(), 1);
