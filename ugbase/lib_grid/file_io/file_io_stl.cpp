@@ -181,7 +181,7 @@ bool SaveGridToSTL(Grid& grid, const char* filename,
 	const char* solidName = "stlFromUG4";
 	out << "solid " << solidName << endl;
 
-	for(typename Grid::traits<Triangle>::iterator iter = grid.begin<Triangle>();
+	for(Grid::traits<Triangle>::iterator iter = grid.begin<Triangle>();
 		iter != grid.end<Triangle>(); ++iter)
 	{
 		Triangle* f = *iter;
