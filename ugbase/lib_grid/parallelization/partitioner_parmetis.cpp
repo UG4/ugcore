@@ -9,6 +9,7 @@
 #include "lib_grid/parallelization/util/compol_subset.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/graph/dual_graph.h"
+#include "lib_grid/algorithms/geom_obj_util/misc_util.h"
 #include "common/util/table.h"
 
 using namespace std;
@@ -16,6 +17,8 @@ using namespace std;
 namespace ug{
 
 static const int CHILD_WEIGHT = 1;
+static const int SIBLING_WEIGHT = 100;
+
 
 template <int dim>
 Partitioner_Parmetis<dim>::
@@ -472,11 +475,45 @@ partition_level_metis(int lvl, int numTargetProcs)
 		pVrtSizeMap = &vrtSizeMap.front();
 	}
 
+//	under some circumstances, we have to cluster siblings. This requires special
+//	edge weights...
+	idx_t* pAdjWgts = NULL;
+	vector<idx_t> adjwgts;
+	if(base_class::clustered_siblings_enabled()){
+	//	we have to weighten edges between siblings higher than between non-siblings
+		vector<elem_t*> elems;
+		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
+			elems.push_back(*iter);
+
+		adjwgts.resize(adjacencyMap.size(), 1);
+
+		UG_ASSERT(adjacencyMapStructure.size() >= 2,
+				  "There have to be at least 2 entries in the structure map if 1 vertex exists!");
+
+		for(size_t ivrt = 0; ivrt < adjacencyMapStructure.size() - 1; ++ivrt){
+			elem_t* e = elems[ivrt];
+			size_t edgesBegin = adjacencyMapStructure[ivrt];
+			size_t edgesEnd = adjacencyMapStructure[ivrt+1];
+
+			for(size_t ie = edgesBegin; ie != edgesEnd; ++ie){
+				elem_t* ce = elems[adjacencyMap[ie]];
+				side_t* side = GetSharedSide(mg, e, ce);
+				if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
+				//	e and ce should share the same parent, since the side shared
+				//	by e and ce has a parent of the same type as e and ce
+					adjwgts[ie] = SIBLING_WEIGHT;
+				}
+			}
+		}
+
+		pAdjWgts = &adjwgts.front();
+	}
+
 	UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
 	int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 										&adjacencyMapStructure.front(),
 										&adjacencyMap.front(),
-										NULL, pVrtSizeMap, NULL,
+										pVrtSizeMap, NULL, pAdjWgts,
 										&numParts, NULL, NULL, options,
 										&edgeCut, &partitionMap.front());
 	UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
@@ -497,9 +534,8 @@ partition_level_metis(int lvl, int numTargetProcs)
 //	constrained siblings. However, coarsening would be rather complicated in that
 //	case, since it is rather complicated to introduce constrained sibling elements if a
 //	previously unconstrained sibling is not located on the same process...
-//todo: clustering should already be considered during graph-partitioning.
 	if(base_class::clustered_siblings_enabled()){
-		UG_LOG("NOTE: Clustering siblings during partitioning.\n");
+		//UG_LOG("NOTE: Clustering siblings during partitioning.\n");
 		if(lvl > 0){
 		//	put all children in the subset of the first one.
 			for(ElemIter iter = mg.begin<elem_t>(lvl-1);
@@ -509,8 +545,9 @@ partition_level_metis(int lvl, int numTargetProcs)
 				size_t numChildren = mg.num_children<elem_t>(e);
 				if(numChildren > 1){
 					int partition = m_sh.get_subset_index(mg.get_child<elem_t>(e, 0));
-					for(size_t i = 1; i < numChildren; ++i)
+					for(size_t i = 1; i < numChildren; ++i){
 						m_sh.assign_subset(mg.get_child<elem_t>(e, i), partition);
+					}
 				}
 			}
 		}
@@ -574,7 +611,39 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 					vrtSizeMap.push_back(CHILD_WEIGHT * m_aaNumChildren[*iter] + 1);
 			}
 
-			vector<idx_t> adjwgt(pdg.num_graph_edges(), 1);
+			idx_t* pAdjWgts = NULL;
+			vector<idx_t> adjwgts;
+			if(base_class::clustered_siblings_enabled()){
+			//	we have to weighten edges between siblings higher than between non-siblings
+				adjwgts.resize(pdg.num_graph_edges(), 1);
+				idx_t* adjacencyMapStructure = pdg.adjacency_map_structure();
+				idx_t* adjacencyMap = pdg.adjacency_map();//global
+				int localOffset = pdg.parallel_offset_map()[procCom.get_local_proc_id()];
+
+				for(idx_t ivrt = 0; ivrt < nVrts; ++ivrt){
+					elem_t* e = pdg.get_element(ivrt);
+					size_t edgesBegin = adjacencyMapStructure[ivrt];
+					size_t edgesEnd = adjacencyMapStructure[ivrt+1];
+
+					for(size_t ie = edgesBegin; ie != edgesEnd; ++ie){
+					//	if the connected element doesn't lie on this process it
+					//	shouldn't be a sibling anyways...
+						int localInd = (int)adjacencyMap[ie] - localOffset;
+						if((localInd < 0) || (localInd >= (int)pdg.num_graph_vertices()))
+							continue;
+
+						elem_t* ce = pdg.get_element(localInd);
+						side_t* side = GetSharedSide(mg, e, ce);
+						if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
+						//	e and ce should share the same parent, since the side shared
+						//	by e and ce has a parent of the same type as e and ce
+							adjwgts[ie] = SIBLING_WEIGHT;
+						}
+					}
+				}
+
+				pAdjWgts = &adjwgts.front();
+			}
 
 			assert((int)vrtSizeMap.size() == nVrts);
 			pVrtSizeMap = &vrtSizeMap.front();
@@ -585,7 +654,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 				int metisRet =	ParMETIS_V3_PartKway(pdg.parallel_offset_map(),
 													pdg.adjacency_map_structure(),
 													pdg.adjacency_map(),
-													pVrtSizeMap, &adjwgt.front(), &wgtFlag,
+													pVrtSizeMap, pAdjWgts, &wgtFlag,
 													&numFlag, &nConstraints,
 													&numParts, &tpwgts.front(), &ubvec, partOptions,
 													&edgeCut, &partitionMap.front(),
@@ -602,7 +671,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 				int metisRet =	ParMETIS_V3_AdaptiveRepart(pdg.parallel_offset_map(),
 													pdg.adjacency_map_structure(),
 													pdg.adjacency_map(),
-													pVrtSizeMap, pVrtSizeMap, &adjwgt.front(), &wgtFlag,
+													pVrtSizeMap, pVrtSizeMap, pAdjWgts, &wgtFlag,
 													&numFlag, &nConstraints,
 													&numParts, &tpwgts.front(), &ubvec,
 													&comVsRedistRation, refineOptions,
@@ -645,7 +714,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 //	previously unconstrained sibling is not located on the same process...
 //todo: clustering should already be considered during graph-partitioning.
 	if(base_class::clustered_siblings_enabled()){
-		UG_LOG("NOTE: Clustering siblings during partitioning.\n");
+		//UG_LOG("NOTE: Clustering siblings during partitioning.\n");
 		if(lvl > 0){
 		//	put all children in the subset of the first one.
 			for(ElemIter iter = mg.begin<elem_t>(lvl-1);
@@ -655,8 +724,9 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 				size_t numChildren = mg.num_children<elem_t>(e);
 				if(numChildren > 1){
 					int partition = m_sh.get_subset_index(mg.get_child<elem_t>(e, 0));
-					for(size_t i = 1; i < numChildren; ++i)
+					for(size_t i = 1; i < numChildren; ++i){
 						m_sh.assign_subset(mg.get_child<elem_t>(e, i), partition);
+					}
 				}
 			}
 		}

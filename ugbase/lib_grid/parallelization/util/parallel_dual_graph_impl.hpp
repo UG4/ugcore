@@ -142,14 +142,17 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 
 //	init the indices and count ghosts and normal elements on the fly
 	size_t numElems = 0;
+	m_elems.clear();
 	{
 		for(ElemIterator iter = mg.begin<Elem>(level);
 			iter != mg.end<Elem>(level); ++iter)
 		{
 			if(distGridMgr.is_ghost(*iter))
 				aaInd[*iter] = -1;
-			else
+			else{
 				aaInd[*iter] = numElems++;
+				m_elems.push_back(*iter);
+			}
 		}
 	}
 

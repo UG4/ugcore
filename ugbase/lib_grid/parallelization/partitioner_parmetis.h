@@ -22,6 +22,7 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 	public:
 		typedef IPartitioner<dim> base_class;
 		typedef typename base_class::elem_t	elem_t;
+		typedef typename elem_t::side		side_t;
 
 		using base_class::verbose;
 

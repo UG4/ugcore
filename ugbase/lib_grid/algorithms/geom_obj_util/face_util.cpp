@@ -27,6 +27,7 @@ int GetFaceIndex(Volume* vol, Face* f)
 	return -1;
 }
 
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
 void CalculateNormal(vector3& vNormOut, FaceVertices* face,

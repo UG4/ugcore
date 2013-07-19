@@ -19,6 +19,15 @@ namespace ug
  * @{
  */
 
+
+////////////////////////////////////////////////////////////////////////////////////////////
+///	returns the shared side between the two elements or NULL if no such side exists.
+template <class TElem>
+UG_API
+typename TElem::side*
+GetSharedSide(Grid& grid, TElem* e1, TElem* e2);
+
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateGeometricObjectCenter
 ///	calculates the center for arbitrary geometric object

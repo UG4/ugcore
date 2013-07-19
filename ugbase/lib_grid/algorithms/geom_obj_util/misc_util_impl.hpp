@@ -14,6 +14,34 @@
 
 namespace ug
 {
+
+////////////////////////////////////////////////////////////////////////////////////////////
+template <class TElem>
+UG_API
+typename TElem::side*
+GetSharedSide(Grid& grid, TElem* e1, TElem* e2)
+{
+	if(!TElem::HAS_SIDES)
+		return NULL;
+
+	typedef typename TElem::side	side_t;
+	typename Grid::traits<side_t>::secure_container	sides1;
+	typename Grid::traits<side_t>::secure_container	sides2;
+
+	grid.associated_elements(sides1, e1);
+	grid.associated_elements(sides2, e2);
+
+	for(size_t i1 = 0; i1 < sides1.size(); ++i1){
+		for(size_t i2 = 0; i2 < sides2.size(); ++i2){
+			if(sides1[i1] == sides2[i2])
+				return sides1[i1];
+		}
+	}
+
+	return NULL;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateGeometricObjectCenter
 template<class TAAPosVRT>

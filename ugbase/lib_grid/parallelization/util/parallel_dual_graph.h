@@ -13,8 +13,11 @@
 namespace ug
 {
 
-///	Generates the parralel dual graph of a MultiGrid as, e.g., required by Parmetis.
-/** \todo	The current implementation has support for MultiGrids only.
+///	Generates the parralel dual graph of a MultiGrid as, e.g., required by Parmetis
+/** Indices on elements of TGeomBaseObj are distributed in the order in which
+ * one iterates over those elements in the associated mg starting at level 0.
+ * Note that only elements which were considered are associated with a index.
+ * \todo	The current implementation has support for MultiGrids only.
  * 			Support for flat grids should be added.*/
 template <class TGeomBaseObj, class TIndexType,
 		  class TConnectingObj = typename TGeomBaseObj::side>
@@ -41,6 +44,12 @@ class ParallelDualGraph{
 	 * changed since the last call to generate_graph.*/
 		bool was_considered(TGeomBaseObj* o);
 
+	///	returns the graph-vertex for the given index
+		TGeomBaseObj* get_element(size_t gvrtIndex)		{return m_elems[gvrtIndex];}
+
+	///	returns the graph-vertex index of the given element
+		TIndexType get_index(TGeomBaseObj* elem)		{return m_aaElemIndex[elem];}
+
 	///	generates the graph for the given level.
 	/**	Use adjacency_map_structure, adjacency_map, parallel_offset_map and
 	 * num_graph_vertices to access the generated graph.
@@ -66,6 +75,7 @@ class ParallelDualGraph{
 		typedef Attachment<std::vector<int> >	AElemIndices;
 
 		MultiGrid*				m_pMG;
+		std::vector<TGeomBaseObj*>	m_elems;
 		std::vector<TIndexType> m_adjacencyMapStructure;
 		std::vector<TIndexType> m_adjacencyMap;
 		std::vector<TIndexType> m_nodeOffsetMap;
