@@ -1,10 +1,23 @@
 # included from ug_includes.cmake
 ########################################
 # PROFILER
+
+if(NOT("${PROFILER}" STREQUAL "Shiny") AND SHINY_CALL_LOGGING)
+    message(FATAL_ERROR " Shiny Call Logging activated but not Shiny. Use cmake -DPROFILER=Shiny ..")
+endif()
+
+
 if(NOT("${PROFILER}" STREQUAL "None"))
     if("${PROFILER}" STREQUAL "Shiny")
     	add_definitions(-DUG_PROFILER_SHINY)    
      	set(UG_PROFILER_SHINY ON)               # add Cmake variable
+     	   
+     	# PROFILE_BRIDGE
+        if(SHINY_CALL_LOGGING)
+        	add_definitions(-DSHINY_CALL_LOGGING)
+        	message(" -- Info: Shiny Call Logging activated.")
+        endif(SHINY_CALL_LOGGING)
+             	
         
     # Scalasca
     elseif("${PROFILER}" STREQUAL "Scalasca")
