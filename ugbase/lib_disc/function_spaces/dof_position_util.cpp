@@ -23,7 +23,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <int refDim, int dim>
-bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
+bool InnerDoFPositionElem(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
                       const std::vector<MathVector<dim> >& vVertPos, const LFEID& lfeID)
 {
 //	get local dof set
@@ -90,9 +90,9 @@ bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObject
 	switch(ReferenceElementDimension(roid))
 	{
 		case VERTEX: return InnerDoFPositionVertex<dim>(vPos, roid, vCornerCoord, lfeID);
-		case EDGE:   return InnerDoFPosition<1,dim>(vPos, roid, vCornerCoord, lfeID);
-		case FACE:   return InnerDoFPosition<2,dim>(vPos, roid, vCornerCoord, lfeID);
-		case VOLUME: return InnerDoFPosition<3,dim>(vPos, roid, vCornerCoord, lfeID);
+		case EDGE:   return InnerDoFPositionElem<1,dim>(vPos, roid, vCornerCoord, lfeID);
+		case FACE:   return InnerDoFPositionElem<2,dim>(vPos, roid, vCornerCoord, lfeID);
+		case VOLUME: return InnerDoFPositionElem<3,dim>(vPos, roid, vCornerCoord, lfeID);
 		default: UG_THROW("Base Object type not found.");
 	}
 }
@@ -122,7 +122,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObj
 
 
 template <int refDim, int dim>
-bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
+bool DoFPositionElem(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
                  const std::vector<MathVector<dim> >& vVertPos, const LFEID& lfeID)
 {
 //	get local shape function set
@@ -180,9 +180,9 @@ bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID ro
 	switch(ReferenceElementDimension(roid))
 	{
 		case VERTEX: return DoFPositionVertex<dim>(vPos, roid, vCornerCoord, lfeID);
-		case EDGE:   return DoFPosition<1,dim>(vPos, roid, vCornerCoord, lfeID);
-		case FACE:   return DoFPosition<2,dim>(vPos, roid, vCornerCoord, lfeID);
-		case VOLUME: return DoFPosition<3,dim>(vPos, roid, vCornerCoord, lfeID);
+		case EDGE:   return DoFPositionElem<1,dim>(vPos, roid, vCornerCoord, lfeID);
+		case FACE:   return DoFPositionElem<2,dim>(vPos, roid, vCornerCoord, lfeID);
+		case VOLUME: return DoFPositionElem<3,dim>(vPos, roid, vCornerCoord, lfeID);
 		default: UG_THROW("Base Object type not found.");
 	}
 }
