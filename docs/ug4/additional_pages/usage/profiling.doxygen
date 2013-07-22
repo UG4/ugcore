@@ -47,7 +47,7 @@ with Open MPI 1.3 and higher.
 that must be inserted into the code manually. Choosing a compiler those marks
 are defined for the requested profiler API. The external profilers Scalasca, Vampir
 and ScoreP also provide a automatic instrumentation facility, that inserts
-profiling marks in every function automatically. However, using C++ this error-prone
+profiling marks in every function automatically. However, using C++ this is error-prone
 and not usable with ug4, since all inline functions are profiled resulting in
 far to many profiling marks, hugh runtime overhead and even not starting binaries
 due to buffer size restrictions.
@@ -87,7 +87,7 @@ In addition the scalsca compiler-wrapper must be used when building the code.
 Make sure you have the <tt>scalasca</tt> binary in your PATH and run cmake with
 
 \verbatim
-CC="scalasca -instrument -comp=none -user mpicc" CCX="scalasca -instrument -comp=none -user mpicxx" cmake -DPROFILER=Scalasca ..."
+CC="scalasca -instrument -comp=none -user mpicc" CXX="scalasca -instrument -comp=none -user mpicxx" cmake -DPROFILER=Scalasca ...
 \endverbatim
 
 Note, that the compiler is only set at the very first cmake run and not changed
@@ -115,7 +115,7 @@ In addition the vampirtrace compiler-wrapper must be used when building the code
 Make sure you have the <tt>vtcc, vtcxx</tt> binary in your PATH and run cmake with
 
 \verbatim
-CC="vtcc" CCX="vtcxx" cmake -DPROFILER=Vampir ..."
+CC="vtcc" CXX="vtcxx" cmake -DPROFILER=Vampir ...
 \endverbatim
 
 Note, that the compiler is only set at the very first cmake run and not changed
@@ -134,7 +134,7 @@ In addition the scorep compiler-wrapper must be used when building the code.
 Make sure you have the <tt>scorep</tt> binary in your PATH and run cmake with
 
 \verbatim
-CC="scorep --user --nocompiler mpicc" CCX="scorep --user --nocompiler mpicxx" cmake -DPROFILER=ScoreP ..."
+CC="scorep --user --nocompiler mpicc" CXX="scorep --user --nocompiler mpicxx" cmake -DPROFILER=ScoreP ...
 \endverbatim
 
 Note, that the compiler is only set at the very first cmake run and not changed
