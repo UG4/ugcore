@@ -15,6 +15,8 @@
 #endif
 
 #include "profilenode_management.h"
+#include "shiny_call_logging.h"
+
 
 
 #ifdef UG_PROFILER_SHINY
@@ -23,8 +25,6 @@
 	#define SHINY_PROFILER TRUE
 	#include "src/ShinyManager.h"
 	#include "src/ShinyNode.h"
-
-#include "shiny_call_logging.h"
 
 
 	/**	Helper makro used in PROFILE_BEGIN and PROFILE_FUNC.*/
