@@ -162,7 +162,7 @@ collect_objects_for_refine()
 				//	non-degenerated edge
 				//	make sure it is selected
 					if(BaseClass::get_mark(e) != RM_REFINE)
-						mark(e, RM_REFINE);
+						BaseClass::mark(e, RM_REFINE);
 
 				//	this edge possibly connects to an unselected degenerated neighbor.
 				//	If this is the case, we'll have to mark it and push it to the queue.
@@ -179,7 +179,7 @@ collect_objects_for_refine()
 				}
 				else{
 				//	degenerated edge. unmark it
-					mark(e, RM_NONE);
+					BaseClass::mark(e, RM_NONE);
 					++numDeg;
 				}
 			}
@@ -188,7 +188,7 @@ collect_objects_for_refine()
 			if(numDeg == edges.size()){
 				BaseClass::mark(f, RM_REFINE);
 				for(size_t i = 0; i < edges.size(); ++i)
-					mark(edges[i], RM_REFINE);
+					BaseClass::mark(edges[i], RM_REFINE);
 			}
 		}
 
