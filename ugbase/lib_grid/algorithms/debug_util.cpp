@@ -118,20 +118,6 @@ void PrintAttachmentInfo(Grid& grid)
 	PrintAttachmentInfo<Volume>(grid);
 }
 
-
-vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem)
-{
-	switch(elem->base_object_id()){
-		case VERTEX:	return GetGeometricObjectCenter(g, static_cast<VertexBase*>(elem));
-		case EDGE:		return GetGeometricObjectCenter(g, static_cast<EdgeBase*>(elem));
-		case FACE:		return GetGeometricObjectCenter(g, static_cast<Face*>(elem));
-		case VOLUME:	return GetGeometricObjectCenter(g, static_cast<Volume*>(elem));
-		default:		UG_THROW("Unknown base object type."); break;
-	}
-	return vector3(0, 0, 0);
-}
-
-
 template <class TElem>
 static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 {

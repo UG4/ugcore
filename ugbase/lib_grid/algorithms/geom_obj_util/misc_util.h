@@ -37,6 +37,19 @@ inline
 typename TAAPosVRT::ValueType
 CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT);
 
+
+////////////////////////////////////////////////////////////////////////
+///	returns the weighted center of the vertices of the given geometric object
+/** TAAWeightVRT has to be an attachment to the vertices of the grid in which
+ * the object is contained, with ValueType number (or compatible).
+ */
+template<class TAAPosVRT, class TAAWeightVRT>
+UG_API
+inline
+typename TAAPosVRT::ValueType
+CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT,
+								TAAWeightVRT& aaWeight);
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateCenter
 ///	calculates the center for a set of elements

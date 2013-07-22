@@ -224,8 +224,7 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 			CollectAssociated(faces, grid, vrt);
 			for(size_t i = 0; i < faces.size(); ++i)
 			{
-				VecAdd(v, v, CalculateGeometricObjectCenter(
-								grid.get_opposing_object(vrt, faces[i]), aaPos));
+				VecAdd(v, v, CalculateCenter(grid.get_opposing_object(vrt, faces[i]), aaPos));
 				++num;
 			}
 
@@ -233,8 +232,7 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 				CollectAssociated(vols, grid, vrt);
 				for(size_t i = 0; i < vols.size(); ++i)
 				{
-					VecAdd(v, v, CalculateGeometricObjectCenter(
-									grid.get_opposing_object(vrt, vols[i]), aaPos));
+					VecAdd(v, v, CalculateCenter(grid.get_opposing_object(vrt, vols[i]), aaPos));
 					++num;
 				}
 			}

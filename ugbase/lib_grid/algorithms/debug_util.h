@@ -50,7 +50,7 @@ void PrintAttachmentInfo(Grid& grid);
  */
 template <class TElem>
 vector3 GetGeometricObjectCenter(Grid& g, TElem* elem);
-
+inline vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem);
 /** \} */
 
 

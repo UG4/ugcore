@@ -1121,7 +1121,8 @@ We have to handle elements as follows:
 					switch(parent->base_object_id()){
 						case EDGE:{
 								EdgeBase* edgeParent = dynamic_cast<EdgeBase*>(parent);
-								UG_ASSERT(edgeParent, "Severe type error!");
+								UG_ASSERT(edgeParent, "Severe type error during coarsing - bad parent type: "
+										  << ElementDebugInfo(mg, elem));
 
 							//	check whether the parent is already constraining
 								ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(edgeParent);
@@ -1135,14 +1136,16 @@ We have to handle elements as follows:
 							//	to a constraining face during the face-coarsening step. If it hasn't
 							//	been converted, then the somethings wrong with the selection states.
 								ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent);
-								UG_ASSERT(cf, "The parent face have been transformed"
-										  " to a constraining face already!");
+								UG_ASSERT(cf, "The parent face should have been transformed"
+										  " to a constraining face already: "
+										  << ElementDebugInfo(mg, cf));
 								cf->add_constrained_object(cde);
 								cde->set_constraining_object(cf);
 								continue;
 							}break;
 						default:
-							UG_THROW("Unsupported parent type during partial coarsening");
+							UG_THROW("Unsupported parent type during partial coarsening: "
+									 << ElementDebugInfo(mg, parent));
 							break;
 					}
 				}
@@ -1192,7 +1195,8 @@ We have to handle elements as follows:
 
 			default:
 				UG_THROW("Bad selection mark on edge during "
-						 "HangingNodeRefiner_MultiGrid::coarsen. Internal error.");
+						 "HangingNodeRefiner_MultiGrid::coarsen. Internal error: "
+						 << ElementDebugInfo(mg, elem));
 				break;
 		}
 	}
@@ -1237,7 +1241,7 @@ We have to handle elements as follows:
 				//	the parent may not be a constrained object
 					UG_ASSERT(!parent->is_constrained(),
 							  "An element with a constrained parent may not be marked"
-							  " for partial coarsening!");
+							  " for partial coarsening: " << ElementDebugInfo(mg, parent));
 
 				//	if the parent is an edge or a face, the vertex will be converted
 				//	to a hanging-vertex
@@ -1246,9 +1250,11 @@ We have to handle elements as follows:
 						//	the parent already has to be a constraining edge, due to
 						//	the operations performed during edge-coarsening
 							ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(parent);
-							UG_ASSERT(ce, "The parent edge already has to be constraining!");
+							UG_ASSERT(ce, "The parent edge already has to be constraining: "
+										  << ElementDebugInfo(mg, parent));
 							UG_ASSERT(ce->num_constrained_vertices() == 0,
-									  "The parent edge may not yet have any constrained vertices");
+									  "The parent edge may not yet have any constrained vertices: "
+									  << ElementDebugInfo(mg, parent));
 
 							ce->add_constrained_object(hv);
 							hv->set_constraining_object(ce);
@@ -1259,9 +1265,11 @@ We have to handle elements as follows:
 						//	the parent already has to be a constraining face, due to
 						//	the operations performed during face-coarsening
 							ConstrainingFace* cf = dynamic_cast<ConstrainingFace*>(parent);
-							UG_ASSERT(cf, "The parent face already has to be constraining!");
+							UG_ASSERT(cf, "The parent face already has to be constraining: "
+										  << ElementDebugInfo(mg, parent));
 							UG_ASSERT(cf->num_constrained_vertices() == 0,
-									  "The parent face may not yet have any constrained vertices");
+									  "The parent face may not yet have any constrained vertices: "
+									  << ElementDebugInfo(mg, parent));
 
 							cf->add_constrained_object(hv);
 							hv->set_constraining_object(cf);
@@ -1270,7 +1278,7 @@ We have to handle elements as follows:
 
 						default:
 							UG_THROW("Unsupported parent type during partial"
-									 " vertex coarsening!");
+									 " vertex coarsening: " << ElementDebugInfo(mg, parent));
 							break;
 					}
 				}
@@ -1284,7 +1292,8 @@ We have to handle elements as follows:
 
 			default:
 				UG_THROW("Bad selection mark on vertex during "
-						 "HangingNodeRefiner_MultiGrid::coarsen. Internal error.");
+						 "HangingNodeRefiner_MultiGrid::coarsen. Internal error: "
+						 << ElementDebugInfo(mg, elem));
 				break;
 		}
 	}
