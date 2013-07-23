@@ -28,10 +28,10 @@
 #include "pcl/pcl.h"
 #endif
 
+#include "profile_call.h"
+
+
 using namespace std;
-#ifdef SHINY_CALL_LOGGING
-std::vector<ProfileCall> profileCalls;
-#endif
 
 namespace ug
 {
@@ -246,7 +246,7 @@ string UGProfileNode::print_node(double fullMs, double fullMem, size_t offset) c
 		if(strlen(zone->name) > (PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) )
 			s << "@... " << zone->name+strlen(zone->name)-(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset-5);
 		else
-			s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
+			s << left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
 
 		const char *name = zone->name+1;
 		const char *p = strchr(name, ':'); // search for line number
@@ -263,15 +263,15 @@ string UGProfileNode::print_node(double fullMs, double fullMem, size_t offset) c
 			for(size_t i=0; i<str.size(); i++) if(str[i] == '\t') str[i] = ' ';
 			s << "\n";
 			if(offset)	s << setw(offset) << " ";
-			s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) <<
+			s << left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) <<
 					cut(str.c_str(), PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
 		}
 	}
 	else
-		s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
+		s << left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset) << cut(zone->name, PROFILER_BRIDGE_OUTPUT_WIDTH_NAME-offset);
 
 	// entry count
-	s <<	right << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
+	s <<	right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(get_avg_entry_count()) << " " <<
 			setprecision(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME-1);
 
 	// self time
@@ -362,7 +362,7 @@ string UGProfileNode::groups() const
 		string name = gs[i];
 		double time = mapGroups[name];
 		const Shiny::TimeUnit *unit = Shiny::GetTimeUnit(time);
-		s << left << std::setw(20) << name
+		s << left << setw(20) << name
 		  << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME) << time * unit->invTickFreq << " " <<
 			left << setw(2) << unit->suffix;
 #ifdef UG_PARALLEL
@@ -487,7 +487,7 @@ void WriteCompressedProfileData(const char *filename)
 #define PROFILE_NODE_MAX_TIME_PER_CALL_MS 0.01
 #endif
 
-void UGProfileNode::check_for_too_small_nodes(double fullMs, std::map<string, const UGProfileNode *> &list) const
+void UGProfileNode::check_for_too_small_nodes(double fullMs, map<string, const UGProfileNode *> &list) const
 {
 	// also don't check nodes which require less time than 0.01% of the whole problem
 	if(get_avg_total_time_ms() < 0.01*0.01*fullMs) return;
@@ -533,7 +533,7 @@ void UGProfileNode::CheckForTooSmallNodes()
 
 	if(fullMs > 1)
 	{
-		std::map<string, const UGProfileNode *> list;
+		map<string, const UGProfileNode *> list;
 		pnRoot->check_for_too_small_nodes(fullMs, list);
 
 		if(list.size() != 0)
@@ -547,16 +547,16 @@ void UGProfileNode::CheckForTooSmallNodes()
 					right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << "hits" << " " <<
 					setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+4) << "total  " << " " <<
 					setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME+5) << "total/hits\n";
-			for(std::map<string, const UGProfileNode *>::iterator it = list.begin();
+			for(map<string, const UGProfileNode *>::iterator it = list.begin();
 					it != list.end(); ++it)
 			{
 				const UGProfileNode *p = it->second;
 				if(p->zone->file != NULL)
 					s << SimplifyUG4Path(p->zone->file) << ":" << p->zone->line << " : \n";
 
-				s << left << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << p->zone->name << " ";
+				s << left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_NAME) << p->zone->name << " ";
 				// entry count
-				s <<	right << std::setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(p->get_avg_entry_count()) << " " <<
+				s <<	right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_HIT) << floor(p->get_avg_entry_count()) << " " <<
 						setprecision(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME-1);
 
 				// total time
@@ -588,7 +588,7 @@ void WriteProfileDataXML(const char *filename)
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
 #ifdef UG_PARALLEL
 	bool bProfileAll = false; // for the moment
-	typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >
+	typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, vector> >
 		IndexLayout;
 
 	pcl::InterfaceCommunicator<IndexLayout> ic;
@@ -639,7 +639,7 @@ void WriteProfileDataXML(const char *filename)
 #ifdef UG_PARALLEL
 		if(bProfileAll)
 		{
-			std::vector<ug::BinaryBuffer> buffers(pcl::GetNumProcesses()-1);
+			vector<ug::BinaryBuffer> buffers(pcl::GetNumProcesses()-1);
 			for(int i=1; i<pcl::GetNumProcesses(); i++)
 				ic.receive_raw(i, buffers[i-1]);
 			ic.communicate();
@@ -748,7 +748,7 @@ void PrintLUA()
 			file.getline(buf, 512);
 			double time = lineNr >= v.size() ? 0.0 : v[lineNr];
 			const Shiny::TimeUnit *unit = Shiny::GetTimeUnit(time);
-			cout << std::resetiosflags( ::std::ios::scientific ) <<
+			cout << resetiosflags( ::ios::scientific ) <<
 					left << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_TIME)
 					<< time * unit->invTickFreq << " " <<
 				left << setw(2) << unit->suffix << " " <<

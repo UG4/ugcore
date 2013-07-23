@@ -62,6 +62,10 @@ if(UG_PROFILER_SHINY)
 	set(sources ${sources} ${srcShiny})
 endif(UG_PROFILER_SHINY)
 
+if(SHINY_CALL_LOGGING)
+    set(sources ${sources} profiler/shiny_call_logging.cpp)
+endif(SHINY_CALL_LOGGING)
+
 # add support for UGProfileNode any case
 set(sources ${sources} profiler/profile_node.cpp)
 

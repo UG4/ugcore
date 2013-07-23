@@ -9,20 +9,14 @@
 #define SHINY_CALL_LOGGING_H_
 
 #ifdef SHINY_CALL_LOGGING
-struct ProfileCall
-{
-	ProfileCall(Shiny::ProfileNode *_p)
-	{
-		p = _p;
-		c = clock();
-	}
-	Shiny::ProfileNode *p;
-	clock_t c;
-};
 
-extern std::vector<ProfileCall> profileCalls;
-#define PROFILE_LOG_CALL_START() profileCalls.push_back(ProfileCall(Shiny::ProfileManager::instance._curNode));
-#define PROFILE_LOG_CALL_END() profileCalls.push_back(ProfileCall(NULL));
+namespace ug{
+void ShinyCallLoggingStart();
+void ShinyCallLoggingEnd();
+}
+
+#define PROFILE_LOG_CALL_START() ug::ShinyCallLoggingStart()
+#define PROFILE_LOG_CALL_END() ug::ShinyCallLoggingEnd()
 
 #else
 #define PROFILE_LOG_CALL_START()
