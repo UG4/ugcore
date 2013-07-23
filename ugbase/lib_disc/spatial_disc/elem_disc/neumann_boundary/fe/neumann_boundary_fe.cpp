@@ -27,9 +27,6 @@ template<typename TDomain>
 void NeumannBoundaryFE<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
-	if(bNonRegularGrid)
-		UG_THROW("NeumannBoundaryFE: Hanging Nodes not implemented.");
-
 //	check number
 	if(vLfeID.size() != 1)
 		UG_THROW("NeumannBoundaryFE: needs exactly 1 function.");
