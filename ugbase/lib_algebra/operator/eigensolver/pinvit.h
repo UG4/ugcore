@@ -304,7 +304,7 @@ public:
 	 */
 	int apply()
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 		UG_LOG("Eigensolver\n");
 		DenseMatrix<VariableArray2<double> > rA;
 		DenseMatrix<VariableArray2<double> > rB;
@@ -611,7 +611,7 @@ public:
 private:
 	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr, vector_type &oldX, bool bConverged)
 	{
-		PROFILE_FUNC_GROUP("debug")
+		PROFILE_FUNC_GROUP("debug");
 		write_debug(x, ("pinvit_it_" + ToString(iteration) + "_ev_" + ToString(i)).c_str());
 		write_debug(defect, ("pinvit_it_" + ToString(iteration) + "_defect_" + ToString(i)).c_str());
 		if(!bConverged)
@@ -621,7 +621,7 @@ private:
 
 	double B_norm(vector_type &x)
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 		if(m_pB != NULL)
 			return EnergyNorm(x, *m_pB);
 		else
@@ -630,7 +630,7 @@ private:
 
 	void normalize_approximations()
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 		for(size_t i=0; i< px.size(); i++)
 			px(i) *= 1/ B_norm(px(i));
 	}
@@ -668,7 +668,7 @@ private:
 	 */
 	void compute_rayleigh_and_defect(vector_type &x, double &lambda, vector_type &defect, double &defectNorm)
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 // a. compute rayleigh quotients
 		// lambda = <x, Ax>/<x,x>
 		// todo: replace with MatMult
@@ -722,7 +722,7 @@ private:
 	void print_eigenvalues_and_defect(int iteration, const std::vector<double> &vDefectNorm,
 			std::vector<double> &vOldDefectNorm, const std::vector<double> &vLambda)
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 		UG_LOG("=====================================================================================\n");
 		UG_LOG("iteration " << iteration << "\n");
 
@@ -761,7 +761,7 @@ private:
 			SmartPtrVector<vector_type> &pTestVectors, std::vector<std::string> &vTestVectorDescription,
 			const std::vector<double> &vDefectNorm)
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 		pTestVectors.clear();
 		vTestVectorDescription.clear();
 		if(m_iPINVIT == 1)
@@ -836,7 +836,7 @@ private:
 	 */
 	void get_linear_independent_rows(DenseMatrix<VariableArray2<double> > mat, std::vector<bool> &bLinearIndependent)
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 		// Remove linear depended vectors
 		bLinearIndependent.resize(mat.num_rows(), true);
 		for(size_t i=0; i<mat.num_rows(); i++)
@@ -862,7 +862,7 @@ private:
 	template<typename T>
 	void remove_unused(T &v, const std::vector<bool> vbUse)
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 		T tmp;
 		tmp = v;
 		v.clear();
@@ -896,7 +896,7 @@ private:
 			DenseMatrix<VariableArray2<double> > &rB, SmartPtrVector<vector_type> &pTestVectors,
 			std::vector<std::string> &vTestVectorDescription)
 	{
-		PINVIT_PROFILE_FUNC()
+		PINVIT_PROFILE_FUNC();
 		// 1. calculate W as a subset of the testvectors so that those are linear B-independent
 
 		size_t iNrOfTestVectors = pTestVectors.size();
