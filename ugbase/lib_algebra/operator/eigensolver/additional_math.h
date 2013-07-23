@@ -49,7 +49,7 @@ template<typename vector_type, typename densematrix_type>
 void MultiScalProd(vector_type &px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
-	PINVIT_PROFILE_FUNC()
+	PINVIT_PROFILE_FUNC();
 	UG_ASSERT(0, "");
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
 	for(size_t r=0; r<n; r++)
@@ -64,7 +64,7 @@ void MultiScalProd(vector_type &px,
 template<typename matrix_type, typename vector_type>
 double EnergyProd(vector_type &v1, matrix_type &A, vector_type &v2, vector_type &tmp)
 {
-	PINVIT_PROFILE_FUNC()
+	PINVIT_PROFILE_FUNC();
 
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator pc;
@@ -106,7 +106,7 @@ void MultiEnergyProd(matrix_type &A,
 			SmartPtrVector<vector_type> &px,
 			DenseMatrix<densematrix_type> &rA, size_t n)
 {
-	PINVIT_PROFILE_FUNC()
+	PINVIT_PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator pc;
 #endif
