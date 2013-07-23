@@ -17,8 +17,13 @@ cmake -DDEBUG_LOGS=ON ..
 
 It works like this: In your LUA-Script, you add the line
 \code
-GetLogAssistant():set_debug_level("MAIN", 2)
+set_debug(debugID.MAIN, 2)
 \endcode
+
+Note that the debugID structure is supported by the UGIDE code completion so you are more aware of which debugIDs exist or not.
+
+Alternatively, you can use the old version of this: <tt> GetLogAssistant():set_debug_level("MAIN", 2)</tt>
+Internally, it is <tt>debugID.MAIN = "MAIN"</tt>.
 
 Now the debug level for the \em DebugID MAIN is set to 2. Now in the C++ code,
 you can do logging with UG_LOG, using some ostream functionality like in cout:
@@ -64,10 +69,30 @@ void myFunction()
 \endcode
 and set the debug level in lua
 \code
-GetLogAssistant():set_debug_level("MYAPP", 1)
+set_debug(debugID.MYAPP, 1)
 \endcode
+
+Alternatively <tt>GetLogAssistant():set_debug_level("MYAPP", 1)</tt>.
+
 Note the difference between the DebugID object DID_MYAPP and its associated string "MYAPP" - you can use for both the same, 
 of course.
+
+You can also subdivide Debug IDs: Say you have an app called "MYAPP" and some subfunctions "FUNC1" and "FUNC2". Then 
+
+\code
+#include "common/log.h"
+DebugID DID_MYAPP_FUNC1("MYAPP.FUNC1");
+DebugID DID_MYAPP_FUNC2("MYAPP.FUNC2");
+\endcode
+Now you can do
+\code
+set_debug(debugID.MYAPP, 2)  --- sets debug level of MYAPP.FUNC1 and MYAPP.FUNC1 to 2
+set_debug(debugID.MYAPP.FUNC1, 1)  --- sets MYAPP.FUNC1 to 1
+\endcode
+
+
+
+
 \sa ug::LogAssistant, UG_LOG, UG_DLOG
 
 \section secDebuggingUG4CPP Debugging UG4 with gdb
