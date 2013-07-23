@@ -166,7 +166,8 @@ pre_refine()
 	for(VertexBaseIterator iter = m_selMarkedElements.begin<VertexBase>();
 		iter != m_selMarkedElements.end<VertexBase>(); ++iter)
 	{
-		UG_ASSERT(!mg.has_children(*iter), "Only vertices without children should be selected.");
+		UG_ASSERT(!mg.has_children(*iter), "Only vertices without children should be selected."
+				  << ElementDebugInfo(mg, *iter));
 		if(marked_refine(*iter) && refinement_is_allowed(*iter)){
 			VertexBase* vrt = *mg.create<Vertex>(*iter);
 			if(m_refCallback)
@@ -784,12 +785,36 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 			}
 		}
 
-		broadcast_marks_horizontally(false, true, false);
-		copy_marks_to_vslaves(false, true, true, true);
+		if(debugging_enabled()){
+			ContinuousDebugSave(sel);
+		}
+
 	//	since h-interfaces do not always exist between v-master copies,
 	//	we have to perform an additional broadcast, to make sure, that all copies
 	//	have the correct marks.
-		broadcast_marks_vertically(false, true, false, false);
+
+	//TODO: THIS CAN RESULT IN AN ENDLESS LOOP... MAKE SURE THAT ALL COPIES HAVE THE SAME MARKS!
+	//		SIMPLY COPYING SLAVES TO MASTERS IS NOT ENOUGH, SINCE MASTER-ENTRIES MAY
+	//		NOT BE UP TO DATE. EVENTUALLY ONE COULD TRY TO GUARANTEE, THAT MASTER-ENTRIES ARE
+	//		FINE
+
+/*		broadcast_marks_horizontally(false, true, false);
+		if(debugging_enabled()){
+			ContinuousDebugSave(sel);
+		}*/
+//
+//		copy_marks_to_vslaves(false, true, true, true);
+//
+//		if(debugging_enabled()){
+//			ContinuousDebugSave(sel);
+//		}
+
+		broadcast_marks_vertically(false, true, true, true, true);
+		if(debugging_enabled()){
+			ContinuousDebugSave(sel);
+		}
+
+
 
 	//	find edges which were marked as unknown and prepare qedges for the next run
 		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
@@ -859,7 +884,8 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 		if(GeometricObject* parent = mg.get_parent(e)){
 			bool isConstrained = e->is_constrained();
 			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
-			   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+				(sel.get_selection_status(*iter) == HNCM_PARTIAL))
+			   //((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
 			{
 				if(!sel.is_selected(parent))
 					sel.select(parent, HNCM_REPLACE);
@@ -874,7 +900,8 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 		if(GeometricObject* parent = mg.get_parent(e)){
 			bool isConstrained = e->is_constrained();
 			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
-			   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+				(sel.get_selection_status(*iter) == HNCM_PARTIAL))
+			   //((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
 			{
 				if(!sel.is_selected(parent))
 					sel.select(parent, HNCM_REPLACE);

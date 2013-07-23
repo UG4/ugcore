@@ -97,10 +97,12 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 	///	allows to check whether a distributed grid contains volumes
 		virtual bool contains_volumes();
 
-		virtual void broadcast_marks_horizontally(bool vertices, bool edges, bool faces);
+		virtual void broadcast_marks_horizontally(bool vertices, bool edges, bool faces,
+												  bool allowDeselection = false);
 
 		virtual void broadcast_marks_vertically(bool vertices, bool edges,
-												bool faces, bool volumes);
+												bool faces, bool volumes,
+												bool allowDeselection = false);
 
 		virtual void copy_marks_to_vmasters(bool vertices, bool edges,
 											bool faces, bool volumes);

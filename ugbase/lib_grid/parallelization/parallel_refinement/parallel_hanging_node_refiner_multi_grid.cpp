@@ -475,8 +475,8 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		typedef typename Layout::Interface			Interface;
 		typedef typename Interface::const_iterator	InterfaceIter;
 
-		ComPol_BroadcastCoarsenMarks(Selector& sel)
-			 :	m_sel(sel)
+		ComPol_BroadcastCoarsenMarks(Selector& sel, bool allowDeselection = false)
+			 :	m_sel(sel), m_allowDeselection(allowDeselection)
 		{}
 
 		virtual int
@@ -519,7 +519,11 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 				byte maxVal = max(curVal, val);
 				byte minVal = min(curVal, val);
 
-				if((minVal != ParallelHangingNodeRefiner_MultiGrid::HNCM_NO_NBRS)
+				if(m_allowDeselection && (minVal == SE_NONE)){
+					m_sel.deselect(elem);
+					continue;
+				}
+				else if((minVal != ParallelHangingNodeRefiner_MultiGrid::HNCM_NO_NBRS)
 				   && (minVal > ParallelHangingNodeRefiner_MultiGrid::HNCM_FIRST)
 				   && (minVal < maxVal)
 				   && (maxVal == ParallelHangingNodeRefiner_MultiGrid::HNCM_ALL))
@@ -535,28 +539,29 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 		Selector& m_sel;
+		bool m_allowDeselection;
 };
 
 void ParallelHangingNodeRefiner_MultiGrid::
-broadcast_marks_horizontally(bool vertices, bool edges, bool faces)
+broadcast_marks_horizontally(bool vertices, bool edges, bool faces, bool allowDeselection)
 {
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 	if(vertices){
-		ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector());
+		ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector(), allowDeselection);
 		m_intfComVRT.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
 		m_intfComVRT.communicate();
 		m_intfComVRT.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
 		m_intfComVRT.communicate();
 	}
 	if(edges){
-		ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector());
+		ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector(), allowDeselection);
 		m_intfComEDGE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
 		m_intfComEDGE.communicate();
 		m_intfComEDGE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
 		m_intfComEDGE.communicate();
 	}
 	if(faces){
-		ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector());
+		ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector(), allowDeselection);
 		m_intfComFACE.exchange_data(layoutMap, INT_H_SLAVE, INT_H_MASTER, comPol);
 		m_intfComFACE.communicate();
 		m_intfComFACE.exchange_data(layoutMap, INT_H_MASTER, INT_H_SLAVE, comPol);
@@ -565,38 +570,33 @@ broadcast_marks_horizontally(bool vertices, bool edges, bool faces)
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
-broadcast_marks_vertically(bool vertices, bool edges, bool faces, bool volumes)
+broadcast_marks_vertically(bool vertices, bool edges, bool faces, bool volumes,
+						   bool allowDeselection)
 {
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 	if(vertices){
-		ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector());
+		ComPol_BroadcastCoarsenMarks<VertexLayout>	comPol(get_refmark_selector(), allowDeselection);
 		m_intfComVRT.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
-		m_intfComVRT.communicate();
-		m_intfComVRT.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER, comPol);
 		m_intfComVRT.communicate();
 	}
 	if(edges){
-		ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector());
+		ComPol_BroadcastCoarsenMarks<EdgeLayout>	comPol(get_refmark_selector(), allowDeselection);
 		m_intfComEDGE.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
-		m_intfComEDGE.communicate();
-		m_intfComEDGE.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER, comPol);
 		m_intfComEDGE.communicate();
 	}
 	if(faces){
-		ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector());
+		ComPol_BroadcastCoarsenMarks<FaceLayout>	comPol(get_refmark_selector(), allowDeselection);
 		m_intfComFACE.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
-		m_intfComFACE.communicate();
-		m_intfComFACE.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER, comPol);
 		m_intfComFACE.communicate();
 	}
 	if(volumes){
-		ComPol_BroadcastCoarsenMarks<VolumeLayout>	comPol(get_refmark_selector());
+		ComPol_BroadcastCoarsenMarks<VolumeLayout>	comPol(get_refmark_selector(), allowDeselection);
 		m_intfComVOL.exchange_data(layoutMap, INT_V_MASTER, INT_V_SLAVE, comPol);
 		m_intfComVOL.communicate();
-		m_intfComVOL.exchange_data(layoutMap, INT_V_SLAVE, INT_V_MASTER, comPol);
-		m_intfComVOL.communicate();
 	}
-	copy_marks_to_vslaves(vertices, edges, faces, volumes);
+
+	broadcast_marks_horizontally(vertices, edges, faces, allowDeselection);
+	copy_marks_to_vmasters(vertices, edges, faces, volumes);
 }
 
 bool ParallelHangingNodeRefiner_MultiGrid::
