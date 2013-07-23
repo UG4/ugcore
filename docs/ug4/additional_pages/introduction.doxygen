@@ -22,13 +22,25 @@ Features are:
     multigrids in 1, 2 and 3 dimensions.
     Supported element types are vertices, edges, triangles, quadrilaterals, 
     tetrahedrons, hexahedrons, prisms and pyramids. 
-
+    
+  - A flexible algebra independent from grid and discretization designed to
+  	swap the core functions to support double/single precission, 
+  	systems of equations and GPGPUs. A flexible Sparse Matrix with the ability
+  	to change the structure and do efficient computations at any time allowing
+  	easy integration of very flexible discretization strategies and numerical
+  	procedures.
+  	
   - A parallelization layer based on MPI which allows efficient communication
     on distributed hierarchical graphs.
     Scalability has been shown for up to 256ki processes &mdash; more to come...
 
+  - Efficient parallel solvers: Iterative Solvers, Preconditioners, Geometric and 
+  	Algebraic Multgrid, Sparse LU Decomposition and more.
+
   - ug4 extends the lua scripting language, which allows to control the entire
-    simulation from powerful and easily readable scripts.
+    simulation from powerful and easily readable scripts. A plugin for the popular
+    development editor framework eclipse supports provides
+    syntax highlighting, checking and code completion.
 
   - Through the <em>Visual Reflection Library</em> users can run and control an
     entire simulation through a modern graphical interface.
@@ -43,13 +55,15 @@ Features are:
     available in \ug4's script and in the <em>Visual Reflection Library</em>.
 
   - \ug4 is backed up by several powerful tools like \em ProMesh (meshing 
-    software) or the \em ConnectionViewer (used to inspect matrix connections).
-
+    software), the \em ConnectionViewer (used to inspect matrix connections),
+    or the integrated profiler (Shiny extended by output and analyzation tools).
+  	
   - Simulation results can be stored and interpreted by widely spread 
     visualization toolkits like the \em VTK based \em ParaView.
 
   - \ug4 is a cross-platform tool and supports \em Linux, \em MacOSX and 
     <em>Microsoft Windows</em>.
+
 
 
 Take a look at the current release for more information:
