@@ -34,6 +34,9 @@ class ActiveSet
 	///	Type of grid function
 		typedef GridFunction<TDomain, TAlgebra> function_type;
 
+	///	base element type of associated domain
+		typedef typename domain_traits<TDomain::dim>::geometric_base_object TBaseElem;
+
 	public:
 	///	constructor
 		ActiveSet() : m_bCons(false), m_spContactDisc(NULL) {
@@ -43,7 +46,7 @@ class ActiveSet
 		};
 
 	///	sets constraint/obstacle
-		void set_constraint(vector_type& cons) {m_ConsVec = cons; m_bCons = true;}
+		void set_constraint(ConstSmartPtr<function_type> cons) {m_spConsGF = cons; m_bCons = true;}
 
 	///	sets an contact discretization in order to use contact-disc dependent funcs
 		void set_contactDisc(SmartPtr<IContactDisc<TDomain, function_type> > contact)
@@ -54,8 +57,13 @@ class ActiveSet
 	///	checks the distance to the prescribed obstacle/constraint
 		bool check_dist_to_obs(vector_type& u);
 
+		template <typename TElem, typename TIterator>
+		void ActiveIndexElem(TIterator iterBegin,
+				TIterator iterEnd, const function_type& u,
+				function_type& contactForce);
+
 	///	determines the active indices
-		bool active_index(vector_type& u, vector_type& contactForce);
+		bool active_index(function_type& u, function_type& contactForce);
 
 	///	computes the contact forces for a given contact disc
 		void contactForces(function_type& contactForce, function_type& rhs,
@@ -63,7 +71,7 @@ class ActiveSet
 
 	///	computes the contact forces via the residuum
 		void contactForcesRes(vector_type& contactForce, const matrix_type& mat,
-				const vector_type& u, const vector_type& rhs);
+				const vector_type& u, vector_type& rhs);
 
 	///	checks if all constraints are fulfilled & the activeSet remained unchanged
 		bool check_conv(const vector_type& u, const size_t step);
@@ -72,7 +80,7 @@ class ActiveSet
 		vector<SmartPtr<MultiIndex<2> > >  activeMultiIndices()
 		{
 			createVecOfPointers();
-			return m_vActiveSetSP;
+			return m_vActiveSetGlobSP;
 		};
 
 	private:
@@ -83,19 +91,22 @@ class ActiveSet
 		///	#fcts for value_type
 		size_t m_nrFcts;
 
-		/// vector describing a constraint
-		vector_type m_ConsVec;
+		/// pointer to a gridfunction describing a constraint
+		ConstSmartPtr<function_type> m_spConsGF;
 		bool m_bCons;
 
 		///	pointer to an contact-Disc
 		SmartPtr<IContactDisc<TDomain, function_type> > m_spContactDisc;
 
+		///	vector of possible contact subsets
+		vector<int> m_vSubsetsOfContact;
+
 		///	vector of the current active set of MultiIndices (DoF,Fct)
-		vector<MultiIndex<2> > m_vActiveSet;
+		vector<MultiIndex<2> > m_vActiveSetGlob;
 		///	vector remembering the active set of MultiIndices (DoF,Fct)
-		vector<MultiIndex<2> > m_vActiveSetOld;
+		vector<MultiIndex<2> > m_vActiveSetGlobOld;
 		///	vector of pointers to active set needed for lua-call
-		vector<SmartPtr<MultiIndex<2> > > m_vActiveSetSP;
+		vector<SmartPtr<MultiIndex<2> > > m_vActiveSetGlobSP;
 };
 
 } // namespace ug
