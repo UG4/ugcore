@@ -37,7 +37,7 @@ class GeomProvider
 
 	protected:
 		/// private constructor
-		GeomProvider() {}
+		GeomProvider() {m_mLFEIDandOrder.clear();}
 
 		/// singleton provider
 		static GeomProvider<TGeom>& inst() {
@@ -62,20 +62,25 @@ class GeomProvider
 		};
 
 		/// vector holding instances
-		static std::map<LFEIDandQuadOrder, TGeom*> m_mLFEIDandOrder;
+		typedef std::map<LFEIDandQuadOrder, TGeom*> MapType;
+		static MapType m_mLFEIDandOrder;
 
 		/// returns class based on identifier
 		static TGeom& get_class(const LFEID lfeID, const int quadOrder) {
-			typedef std::map<LFEIDandQuadOrder, TGeom*> MapType;
 
 			LFEIDandQuadOrder key(lfeID, quadOrder);
 
-			typedef std::pair<typename std::map<LFEIDandQuadOrder,TGeom*>::iterator,bool> ret_type;
+			typedef std::pair<typename MapType::iterator,bool> ret_type;
 			ret_type ret = m_mLFEIDandOrder.insert(std::pair<LFEIDandQuadOrder,TGeom*>(key,NULL));
 
 			// newly inserted, need construction of data
 			if(ret.second == true){
-				ret.first->second = new TGeom();
+				if(ret.first->second != NULL){
+					UG_THROW("Newly inserted element must have Pointer = NULL");
+				}
+				else{
+					ret.first->second = new TGeom();
+				}
 			}
 
 			return *ret.first->second;

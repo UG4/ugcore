@@ -54,6 +54,12 @@ class QuadratureRule{
 		typedef number weight_type;
 
 	public:
+	///	constructor
+		QuadratureRule() :
+			m_pvPoint(NULL), m_pvWeight(NULL),
+			m_numPoints(0), m_order(0)
+		{}
+
 	///	number of integration points
 		inline size_t size() const {return m_numPoints;}
 
