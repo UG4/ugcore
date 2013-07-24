@@ -365,11 +365,11 @@ double CMesh::calculate_volume_gauss() {
 		uint b = triangles[i].b;
 		uint c = triangles[i].c;
 		
-		//printf("%f %f %f\n", vertices[b].x, vertices[b].y, vertices[b].z);
+		//printf("%f %f %f\n", vertices[b].x(), vertices[b].y(), vertices[b].z());
 		
-		double x = (vertices[b].y - vertices[a].y) * (vertices[c].z - vertices[a].z) - (vertices[b].z - vertices[a].z) * (vertices[c].y - vertices[a].y);
-		double y = (vertices[b].z - vertices[a].z) * (vertices[c].x - vertices[a].x) - (vertices[b].x - vertices[a].x) * (vertices[c].z - vertices[a].z);
-		double z = (vertices[b].x - vertices[a].x) * (vertices[c].y - vertices[a].y) - (vertices[b].y - vertices[a].y) * (vertices[c].x - vertices[a].x);
+		double x = (vertices[b].y() - vertices[a].y()) * (vertices[c].z() - vertices[a].z()) - (vertices[b].z() - vertices[a].z()) * (vertices[c].y() - vertices[a].y());
+		double y = (vertices[b].z() - vertices[a].z()) * (vertices[c].x() - vertices[a].x()) - (vertices[b].x() - vertices[a].x()) * (vertices[c].z() - vertices[a].z());
+		double z = (vertices[b].x() - vertices[a].x()) * (vertices[c].y() - vertices[a].y()) - (vertices[b].y() - vertices[a].y()) * (vertices[c].x() - vertices[a].x());
 		
 		double length = sqrt(x * x + y * y + z * z);
 		
@@ -381,9 +381,9 @@ double CMesh::calculate_volume_gauss() {
 	 �	y /= length; 
  �		z /= length;
 			
-			double sx = (vertices[a].x + vertices[b].x + vertices[c].x) / 3.0;
-			double sy = (vertices[a].y + vertices[b].y + vertices[c].y) / 3.0;
-			double sz = (vertices[a].z + vertices[b].z + vertices[c].z) / 3.0;
+			double sx = (vertices[a].x() + vertices[b].x() + vertices[c].x()) / 3.0;
+			double sy = (vertices[a].y() + vertices[b].y() + vertices[c].y()) / 3.0;
+			double sz = (vertices[a].z() + vertices[b].z() + vertices[c].z()) / 3.0;
 			
 			volume += 1.0 / 3.0 * surface * (sx * x + sy * y + sz * z);
 		

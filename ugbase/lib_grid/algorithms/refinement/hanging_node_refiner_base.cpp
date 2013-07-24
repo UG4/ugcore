@@ -1289,7 +1289,7 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 	vector3* pCorners = NULL;
 	if((v->num_vertices() == 4) && m_refCallback){
 		for(size_t i = 0; i < 4; ++i){
-			m_refCallback->current_pos(&corners[i].x, v->vertex(i), 3);
+			m_refCallback->current_pos(&corners[i].x(), v->vertex(i), 3);
 		}
 		pCorners = corners;
 	}

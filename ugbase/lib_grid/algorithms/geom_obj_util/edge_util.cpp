@@ -277,9 +277,9 @@ int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
 		//	we'll assume that the edge lies in the xy plane and return its normal
 		vector3 dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
-		vNormOut.x = dir.y;
-		vNormOut.y = -dir.x;
-		vNormOut.z = 0;
+		vNormOut.x() = dir.y();
+		vNormOut.y() = -dir.x();
+		vNormOut.z() = 0;
 		VecNormalize(vNormOut, vNormOut);
 		}break;
 	
@@ -321,9 +321,9 @@ int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
 		//	we'll assume that the edge lies in the xy plane and return its normal
 		vector3 dir;
 		VecSubtract(dir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
-		vNormOut.x = dir.y;
-		vNormOut.y = -dir.x;
-		vNormOut.z = 0;
+		vNormOut.x() = dir.y();
+		vNormOut.y() = -dir.x();
+		vNormOut.z() = 0;
 		}break;
 	
 	case 1: //	if there is one face, the normal will be set to the faces normal

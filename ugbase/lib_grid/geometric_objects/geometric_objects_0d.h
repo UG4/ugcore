@@ -115,13 +115,13 @@ class UG_API ConstrainedVertex : public VertexBase
 		}
 
 		inline const vector2& get_local_coordinates() const	{return m_localCoord;}
-		inline number get_local_coordinate_1() const		{return m_localCoord.x;}
-		inline number get_local_coordinate_2() const		{return m_localCoord.y;}
+		inline number get_local_coordinate_1() const		{return m_localCoord.x();}
+		inline number get_local_coordinate_2() const		{return m_localCoord.y();}
 
-		inline void set_local_coordinates(number x, number y)		{m_localCoord.x = x; m_localCoord.y = y;}
+		inline void set_local_coordinates(number x, number y)		{m_localCoord.x() = x; m_localCoord.y() = y;}
 		inline void set_local_coordinates(const vector2& coords)	{m_localCoord = coords;}
-		inline void set_local_coordinate_1(number coord) 			{m_localCoord.x = coord;}
-		inline void set_local_coordinate_2(number coord) 			{m_localCoord.y = coord;}
+		inline void set_local_coordinate_1(number coord) 			{m_localCoord.x() = coord;}
+		inline void set_local_coordinate_2(number coord) 			{m_localCoord.y() = coord;}
 
 	protected:
 		GeometricObject*	m_constrainingObj;

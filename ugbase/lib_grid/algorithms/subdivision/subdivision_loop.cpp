@@ -64,18 +64,18 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 
 			chi = 1.0 / (0.375 / b + valence);
 
-			if(aaPos[v].x == aaPos[e->vertex(0)].x && aaPos[v].y == aaPos[e->vertex(0)].y && aaPos[v].z == aaPos[e->vertex(0)].z)
+			if(aaPos[v].x() == aaPos[e->vertex(0)].x() && aaPos[v].y() == aaPos[e->vertex(0)].y() && aaPos[v].z() == aaPos[e->vertex(0)].z())
 			{
-				x += aaPos[e->vertex(1)].x;
-				y += aaPos[e->vertex(1)].y;
-				z += aaPos[e->vertex(1)].z;
+				x += aaPos[e->vertex(1)].x();
+				y += aaPos[e->vertex(1)].y();
+				z += aaPos[e->vertex(1)].z();
 			}
 
 			else
 			{
-				x += aaPos[e->vertex(0)].x;
-				y += aaPos[e->vertex(0)].y;
-				z += aaPos[e->vertex(0)].z;
+				x += aaPos[e->vertex(0)].x();
+				y += aaPos[e->vertex(0)].y();
+				z += aaPos[e->vertex(0)].z();
 			}
 		}
 
@@ -83,13 +83,13 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 		y*=chi;
 		z*=chi;
 
-		aaProjPos[v].x = aaPos[v].x * (1.0 - (float)valence * chi);
-		aaProjPos[v].y = aaPos[v].y * (1.0 - (float)valence * chi);
-		aaProjPos[v].z = aaPos[v].z * (1.0 - (float)valence * chi);
+		aaProjPos[v].x() = aaPos[v].x() * (1.0 - (float)valence * chi);
+		aaProjPos[v].y() = aaPos[v].y() * (1.0 - (float)valence * chi);
+		aaProjPos[v].z() = aaPos[v].z() * (1.0 - (float)valence * chi);
 
-		aaProjPos[v].x += x;
-		aaProjPos[v].y += y;
-		aaProjPos[v].z += z;
+		aaProjPos[v].x() += x;
+		aaProjPos[v].y() += y;
+		aaProjPos[v].z() += z;
 	}
 
 	return true;

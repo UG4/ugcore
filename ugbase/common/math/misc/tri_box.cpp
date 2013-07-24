@@ -50,19 +50,19 @@
 
 #define EPS 10e-5
 #define SIGN3( A ) \
-	  (((A).x < EPS) ? 4 : 0 | ((A).x > -EPS) ? 32 : 0 | \
-	   ((A).y < EPS) ? 2 : 0 | ((A).y > -EPS) ? 16 : 0 | \
-	   ((A).z < EPS) ? 1 : 0 | ((A).z > -EPS) ? 8 : 0)
+	  (((A).x() < EPS) ? 4 : 0 | ((A).x() > -EPS) ? 32 : 0 | \
+	   ((A).y() < EPS) ? 2 : 0 | ((A).y() > -EPS) ? 16 : 0 | \
+	   ((A).z() < EPS) ? 1 : 0 | ((A).z() > -EPS) ? 8 : 0)
 
 #define CROSS( A, B, C ) { \
-  (C).x =  (A).y * (B).z - (A).z * (B).y; \
-  (C).y = -(A).x * (B).z + (A).z * (B).x; \
-  (C).z =  (A).x * (B).y - (A).y * (B).x; \
+  (C).x() =  (A).y() * (B).z() - (A).z() * (B).y(); \
+  (C).y() = -(A).x() * (B).z() + (A).z() * (B).x(); \
+  (C).z() =  (A).x() * (B).y() - (A).y() * (B).x(); \
    }
 #define SUB( A, B, C ) { \
-  (C).x =  (A).x - (B).x; \
-  (C).y =  (A).y - (B).y; \
-  (C).z =  (A).z - (B).z; \
+  (C).x() =  (A).x() - (B).x(); \
+  (C).y() =  (A).y() - (B).y(); \
+  (C).z() =  (A).z() - (B).z(); \
    }
 #define LERP( A, B, C) ((B)+(A)*((C)-(B)))
 #define MIN3(a,b,c) ((((a)<(b))&&((a)<(c))) ? (a) : (((b)<(c)) ? (b) : (c)))
@@ -95,12 +95,12 @@ int FacePlane(const vector3& p)
 	int outcode;
 
 	outcode = 0;
-	if (p.x >  .5) outcode |= 0x01;
-	if (p.x < -.5) outcode |= 0x02;
-	if (p.y >  .5) outcode |= 0x04;
-	if (p.y < -.5) outcode |= 0x08;
-	if (p.z >  .5) outcode |= 0x10;
-	if (p.z < -.5) outcode |= 0x20;
+	if (p.x() >  .5) outcode |= 0x01;
+	if (p.x() < -.5) outcode |= 0x02;
+	if (p.y() >  .5) outcode |= 0x04;
+	if (p.y() < -.5) outcode |= 0x08;
+	if (p.z() >  .5) outcode |= 0x10;
+	if (p.z() < -.5) outcode |= 0x20;
    
 	return(outcode);
 }
@@ -117,18 +117,18 @@ int Bevel2d(const vector3& p)
 	int outcode;
 
 	outcode = 0;
-	if ( p.x + p.y > 1.0) outcode |= 0x001;
-	if ( p.x - p.y > 1.0) outcode |= 0x002;
-	if (-p.x + p.y > 1.0) outcode |= 0x004;
-	if (-p.x - p.y > 1.0) outcode |= 0x008;
-	if ( p.x + p.z > 1.0) outcode |= 0x010;
-	if ( p.x - p.z > 1.0) outcode |= 0x020;
-	if (-p.x + p.z > 1.0) outcode |= 0x040;
-	if (-p.x - p.z > 1.0) outcode |= 0x080;
-	if ( p.y + p.z > 1.0) outcode |= 0x100;
-	if ( p.y - p.z > 1.0) outcode |= 0x200;
-	if (-p.y + p.z > 1.0) outcode |= 0x400;
-	if (-p.y - p.z > 1.0) outcode |= 0x800;
+	if ( p.x() + p.y() > 1.0) outcode |= 0x001;
+	if ( p.x() - p.y() > 1.0) outcode |= 0x002;
+	if (-p.x() + p.y() > 1.0) outcode |= 0x004;
+	if (-p.x() - p.y() > 1.0) outcode |= 0x008;
+	if ( p.x() + p.z() > 1.0) outcode |= 0x010;
+	if ( p.x() - p.z() > 1.0) outcode |= 0x020;
+	if (-p.x() + p.z() > 1.0) outcode |= 0x040;
+	if (-p.x() - p.z() > 1.0) outcode |= 0x080;
+	if ( p.y() + p.z() > 1.0) outcode |= 0x100;
+	if ( p.y() - p.z() > 1.0) outcode |= 0x200;
+	if (-p.y() + p.z() > 1.0) outcode |= 0x400;
+	if (-p.y() - p.z() > 1.0) outcode |= 0x800;
 	return(outcode);
 }
 
@@ -143,14 +143,14 @@ int Bevel3d(const vector3& p)
 	int outcode;
 
 	outcode = 0;
-	if (( p.x + p.y + p.z) > 1.5) outcode |= 0x01;
-	if (( p.x + p.y - p.z) > 1.5) outcode |= 0x02;
-	if (( p.x - p.y + p.z) > 1.5) outcode |= 0x04;
-	if (( p.x - p.y - p.z) > 1.5) outcode |= 0x08;
-	if ((-p.x + p.y + p.z) > 1.5) outcode |= 0x10;
-	if ((-p.x + p.y - p.z) > 1.5) outcode |= 0x20;
-	if ((-p.x - p.y + p.z) > 1.5) outcode |= 0x40;
-	if ((-p.x - p.y - p.z) > 1.5) outcode |= 0x80;
+	if (( p.x() + p.y() + p.z()) > 1.5) outcode |= 0x01;
+	if (( p.x() + p.y() - p.z()) > 1.5) outcode |= 0x02;
+	if (( p.x() - p.y() + p.z()) > 1.5) outcode |= 0x04;
+	if (( p.x() - p.y() - p.z()) > 1.5) outcode |= 0x08;
+	if ((-p.x() + p.y() + p.z()) > 1.5) outcode |= 0x10;
+	if ((-p.x() + p.y() - p.z()) > 1.5) outcode |= 0x20;
+	if ((-p.x() - p.y() + p.z()) > 1.5) outcode |= 0x40;
+	if ((-p.x() - p.y() - p.z()) > 1.5) outcode |= 0x80;
 	return(outcode);
 }
 
@@ -165,9 +165,9 @@ int CheckPoint(const vector3& p1, const vector3& p2, number alpha, long mask)
 {
 	vector3 plane_point;
 
-	plane_point.x = LERP(alpha, p1.x, p2.x);
-	plane_point.y = LERP(alpha, p1.y, p2.y);
-	plane_point.z = LERP(alpha, p1.z, p2.z);
+	plane_point.x() = LERP(alpha, p1.x(), p2.x());
+	plane_point.y() = LERP(alpha, p1.y(), p2.y());
+	plane_point.z() = LERP(alpha, p1.z(), p2.z());
 	return(FacePlane(plane_point) & mask);
 }
 
@@ -184,17 +184,17 @@ int CheckLine(const vector3& p1, const vector3& p2, int outcode_diff)
 {
 
    if ((0x01 & outcode_diff) != 0)
-      if (CheckPoint(p1,p2,( .5f-p1.x)/(p2.x-p1.x),0x3e) == INSIDE) return(INSIDE);
+      if (CheckPoint(p1,p2,( .5f-p1.x())/(p2.x()-p1.x()),0x3e) == INSIDE) return(INSIDE);
    if ((0x02 & outcode_diff) != 0)
-      if (CheckPoint(p1,p2,(-.5f-p1.x)/(p2.x-p1.x),0x3d) == INSIDE) return(INSIDE);
+      if (CheckPoint(p1,p2,(-.5f-p1.x())/(p2.x()-p1.x()),0x3d) == INSIDE) return(INSIDE);
    if ((0x04 & outcode_diff) != 0) 
-      if (CheckPoint(p1,p2,( .5f-p1.y)/(p2.y-p1.y),0x3b) == INSIDE) return(INSIDE);
+      if (CheckPoint(p1,p2,( .5f-p1.y())/(p2.y()-p1.y()),0x3b) == INSIDE) return(INSIDE);
    if ((0x08 & outcode_diff) != 0) 
-      if (CheckPoint(p1,p2,(-.5f-p1.y)/(p2.y-p1.y),0x37) == INSIDE) return(INSIDE);
+      if (CheckPoint(p1,p2,(-.5f-p1.y())/(p2.y()-p1.y()),0x37) == INSIDE) return(INSIDE);
    if ((0x10 & outcode_diff) != 0) 
-      if (CheckPoint(p1,p2,( .5f-p1.z)/(p2.z-p1.z),0x2f) == INSIDE) return(INSIDE);
+      if (CheckPoint(p1,p2,( .5f-p1.z())/(p2.z()-p1.z()),0x2f) == INSIDE) return(INSIDE);
    if ((0x20 & outcode_diff) != 0) 
-      if (CheckPoint(p1,p2,(-.5f-p1.z)/(p2.z-p1.z),0x1f) == INSIDE) return(INSIDE);
+      if (CheckPoint(p1,p2,(-.5f-p1.z())/(p2.z()-p1.z()),0x1f) == INSIDE) return(INSIDE);
    return(OUTSIDE);
 }
 
@@ -213,12 +213,12 @@ int PointTriangleIntersection(const vector3& p, const TRI& t)
 	//	First, a quick bounding-box test:                               
 	//  If P is outside triangle bbox, there cannot be an intersection. 
 	//
-	if (p.x > MAX3(t.m_P[0].x, t.m_P[1].x, t.m_P[2].x)) return(OUTSIDE);  
-	if (p.y > MAX3(t.m_P[0].y, t.m_P[1].y, t.m_P[2].y)) return(OUTSIDE);
-	if (p.z > MAX3(t.m_P[0].z, t.m_P[1].z, t.m_P[2].z)) return(OUTSIDE);
-	if (p.x < MIN3(t.m_P[0].x, t.m_P[1].x, t.m_P[2].x)) return(OUTSIDE);
-	if (p.y < MIN3(t.m_P[0].y, t.m_P[1].y, t.m_P[2].y)) return(OUTSIDE);
-	if (p.z < MIN3(t.m_P[0].z, t.m_P[1].z, t.m_P[2].z)) return(OUTSIDE);
+	if (p.x() > MAX3(t.m_P[0].x(), t.m_P[1].x(), t.m_P[2].x())) return(OUTSIDE);  
+	if (p.y() > MAX3(t.m_P[0].y(), t.m_P[1].y(), t.m_P[2].y())) return(OUTSIDE);
+	if (p.z() > MAX3(t.m_P[0].z(), t.m_P[1].z(), t.m_P[2].z())) return(OUTSIDE);
+	if (p.x() < MIN3(t.m_P[0].x(), t.m_P[1].x(), t.m_P[2].x())) return(OUTSIDE);
+	if (p.y() < MIN3(t.m_P[0].y(), t.m_P[1].y(), t.m_P[2].y())) return(OUTSIDE);
+	if (p.z() < MIN3(t.m_P[0].z(), t.m_P[1].z(), t.m_P[2].z())) return(OUTSIDE);
 
 	///
 	//	For each triangle side, make a vector out of it by subtracting vertexes; 
@@ -335,18 +335,18 @@ int TriCubeIntersection(const TRI& t)
 	//	 the intersection is inside the cube.  If so, we continue by    
 	//	 doing a point/triangle intersection.                           
 	//	 Do this for all four diagonals.                                
-	d = norm.x * t.m_P[0].x + norm.y * t.m_P[0].y + norm.z * t.m_P[0].z;
-	hitpp.x = hitpp.y = hitpp.z = d / (norm.x + norm.y + norm.z);
-	if (fabs(hitpp.x) <= 0.5)
+	d = norm.x() * t.m_P[0].x() + norm.y() * t.m_P[0].y() + norm.z() * t.m_P[0].z();
+	hitpp.x() = hitpp.y() = hitpp.z() = d / (norm.x() + norm.y() + norm.z());
+	if (fabs(hitpp.x()) <= 0.5)
 		if (PointTriangleIntersection(hitpp,t) == INSIDE) return(INSIDE);
-	hitpn.z = -(hitpn.x = hitpn.y = d / (norm.x + norm.y - norm.z));
-	if (fabs(hitpn.x) <= 0.5)
+	hitpn.z() = -(hitpn.x() = hitpn.y() = d / (norm.x() + norm.y() - norm.z()));
+	if (fabs(hitpn.x()) <= 0.5)
 		if (PointTriangleIntersection(hitpn,t) == INSIDE) return(INSIDE);
-	hitnp.y = -(hitnp.x = hitnp.z = d / (norm.x - norm.y + norm.z));
-	if (fabs(hitnp.x) <= 0.5)
+	hitnp.y() = -(hitnp.x() = hitnp.z() = d / (norm.x() - norm.y() + norm.z()));
+	if (fabs(hitnp.x()) <= 0.5)
 		if (PointTriangleIntersection(hitnp,t) == INSIDE) return(INSIDE);
-	hitnn.y = hitnn.z = -(hitnn.x = d / (norm.x - norm.y - norm.z));
-	if (fabs(hitnn.x) <= 0.5)
+	hitnn.y() = hitnn.z() = -(hitnn.x() = d / (norm.x() - norm.y() - norm.z()));
+	if (fabs(hitnn.x()) <= 0.5)
 		if (PointTriangleIntersection(hitnn,t) == INSIDE) return(INSIDE);
 
 	///
@@ -380,33 +380,33 @@ bool TriangleBoxIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 	//	Compute the scale and transform required to make BBox
 	//	a voxel
 	//
-	Trans.x= (boxMax.x + boxMin.x) / 2;
-	Trans.y= (boxMax.y + boxMin.y) / 2;
-	Trans.z= (boxMax.z + boxMin.z) / 2;
+	Trans.x() = (boxMax.x() + boxMin.x()) / 2;
+	Trans.y() = (boxMax.y() + boxMin.y()) / 2;
+	Trans.z() = (boxMax.z() + boxMin.z()) / 2;
 
 	VecSubtract(TransMax, boxMax, Trans);
 	
-	if(TransMax.x != 0)
-		Scale.x= 0.5f / TransMax.x;
-	if(TransMax.y != 0)
-		Scale.y= 0.5f / TransMax.y;
-	if(TransMax.z != 0)
-		Scale.z= 0.5f / TransMax.z;
+	if(TransMax.x() != 0)
+		Scale.x() = 0.5f / TransMax.x();
+	if(TransMax.y() != 0)
+		Scale.y() = 0.5f / TransMax.y();
+	if(TransMax.z() != 0)
+		Scale.z() = 0.5f / TransMax.z();
 
 	///
 	//	Put the triangle in voxel space
 	//	
-	TestTri.m_P[0].x= (p0.x - Trans.x) * Scale.x;
-	TestTri.m_P[0].y= (p0.y - Trans.y) * Scale.y;
-	TestTri.m_P[0].z= (p0.z - Trans.z) * Scale.z;
+	TestTri.m_P[0].x() = (p0.x() - Trans.x()) * Scale.x();
+	TestTri.m_P[0].y() = (p0.y() - Trans.y()) * Scale.y();
+	TestTri.m_P[0].z() = (p0.z() - Trans.z()) * Scale.z();
 
-	TestTri.m_P[1].x= (p1.x - Trans.x) * Scale.x;
-	TestTri.m_P[1].y= (p1.y - Trans.y) * Scale.y;
-	TestTri.m_P[1].z= (p1.z - Trans.z) * Scale.z;
+	TestTri.m_P[1].x() = (p1.x() - Trans.x()) * Scale.x();
+	TestTri.m_P[1].y() = (p1.y() - Trans.y()) * Scale.y();
+	TestTri.m_P[1].z() = (p1.z() - Trans.z()) * Scale.z();
 	
-	TestTri.m_P[2].x= (p2.x - Trans.x) * Scale.x;
-	TestTri.m_P[2].y= (p2.y - Trans.y) * Scale.y;
-	TestTri.m_P[2].z= (p2.z - Trans.z) * Scale.z;
+	TestTri.m_P[2].x() = (p2.x() - Trans.x()) * Scale.x();
+	TestTri.m_P[2].y() = (p2.y() - Trans.y()) * Scale.y();
+	TestTri.m_P[2].z() = (p2.z() - Trans.z()) * Scale.z();
 
 	///
 	//	Test against the voxel

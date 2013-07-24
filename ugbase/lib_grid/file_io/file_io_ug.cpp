@@ -572,7 +572,7 @@ static bool WriteLGM(Grid& grid,
 	out << endl << "#Point-Info" << endl;
 	for(VertexBaseIterator iter = SurfVrtSel.begin(); iter != SurfVrtSel.end(); ++iter)
 	{
-		out << aaPos[*iter].x << " " << aaPos[*iter].y << " " << aaPos[*iter].z << ";" << endl;
+		out << aaPos[*iter].x() << " " << aaPos[*iter].y() << " " << aaPos[*iter].z() << ";" << endl;
 	}
 
 //	close out file
@@ -685,7 +685,7 @@ static bool WriteNG(Grid& grid,
 //++nodeCount;//ONLY FOR DEBUG
 
 	//	write the boundary-vertex position data
-		out << "B " << aaPos[v].x << " " << aaPos[v].y << " " << aaPos[v].z << endl;
+		out << "B " << aaPos[v].x() << " " << aaPos[v].y() << " " << aaPos[v].z() << endl;
 		out << "	";
 
 	//	iterate through all lines
@@ -736,7 +736,7 @@ static bool WriteNG(Grid& grid,
 					}
 
 					out << " S " << shFaces.get_subset_index(f) << " " << faceInd;
-					out << " " << vCoord.x << " " << vCoord.y;
+					out << " " << vCoord.x() << " " << vCoord.y();
 
 					faceFlags[shFaces.get_subset_index(f)] = true;
 				}
@@ -759,7 +759,7 @@ static bool WriteNG(Grid& grid,
 //out << "# node-id: " << nodeCount << endl;//ONLY FOR DEBUG
 //++nodeCount;//ONLY FOR DEBUG
 		//	write the position data of the inner vertices
-			out << "I " << aaPos[v].x << " " << aaPos[v].y << " " << aaPos[v].z << ";" << endl;
+			out << "I " << aaPos[v].x() << " " << aaPos[v].y() << " " << aaPos[v].z() << ";" << endl;
 		}
 	}
 
@@ -1132,7 +1132,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 		{
 		//	only write the point if it lies on a line
 			if(aaInt[*iter] != -1)
-				out << aaPos[*iter].x << " " << aaPos[*iter].y << ";" << endl;
+				out << aaPos[*iter].x() << " " << aaPos[*iter].y() << ";" << endl;
 		}
 	}
 
@@ -1168,7 +1168,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 				//	it is. write it to the file
 					out << "B ";
 				//	position:
-					out << aaPos[p].x << " " << aaPos[p].y;
+					out << aaPos[p].x() << " " << aaPos[p].y();
 				//	connected lines
 				//	make sure that each is only used once
 					set<int> encounteredLines;
@@ -1214,7 +1214,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 				if(aaInt[p] == -1)
 				{
 				//	write the point
-					out << "I " << aaPos[p].x << " " << aaPos[p].y << ";" << endl;
+					out << "I " << aaPos[p].x() << " " << aaPos[p].y() << ";" << endl;
 					aaInt[p] = numNGVertexs++;
 				}
 			}

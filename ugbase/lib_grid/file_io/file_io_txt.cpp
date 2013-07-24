@@ -44,9 +44,9 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 		{
 			int Index;
 			in >> Index;
-			in >> aaPos[*iter].x;
-			in >> aaPos[*iter].y;
-			in >> aaPos[*iter].z;
+			in >> aaPos[*iter].x();
+			in >> aaPos[*iter].y();
+			in >> aaPos[*iter].z();
 		}
 	}
 
@@ -92,9 +92,9 @@ bool SaveGridToTXT(Grid& grid, const char* filename, AVector3& aPos)
 
 		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
 		{
-			out << counter << " " << 	aaPos[*iter].x << " " <<
-										aaPos[*iter].y << " " <<
-										aaPos[*iter].z << endl;
+			out << counter << " " << 	aaPos[*iter].x() << " " <<
+										aaPos[*iter].y() << " " <<
+										aaPos[*iter].z() << endl;
 
 			aaInt[*iter] = counter++;
 		}

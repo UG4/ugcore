@@ -1,6 +1,6 @@
 // created by Sebastian Reiter
 // s.b.reiter@googlemail.com
-// 04.02.2012 (d.m.y)
+// 04.02.2012 (d.m.y())
 //
 // this code was originally created for a private project of mine,
 // may however be freely used in ug.

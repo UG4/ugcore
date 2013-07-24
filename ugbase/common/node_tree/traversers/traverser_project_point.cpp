@@ -177,12 +177,12 @@ handle_collision_edges(CollisionEdgesNode* colEdgesNode)
 			VecScaleAdd(m_closestPoint, 1. - t, p1, t, p2);
 			
 		//	reset the box
-			m_boxMin.x = m_point.x - distance * 1.01;			
-			m_boxMin.y = m_point.y - distance * 1.01;
-			m_boxMin.z = m_point.z - distance * 1.01;
-			m_boxMax.x = m_point.x + distance * 1.01;
-			m_boxMax.y = m_point.y + distance * 1.01;
-			m_boxMax.z = m_point.z + distance * 1.01;
+			m_boxMin.x() = m_point.x() - distance * 1.01;			
+			m_boxMin.y() = m_point.y() - distance * 1.01;
+			m_boxMin.z() = m_point.z() - distance * 1.01;
+			m_boxMax.x() = m_point.x() + distance * 1.01;
+			m_boxMax.y() = m_point.y() + distance * 1.01;
+			m_boxMax.z() = m_point.z() + distance * 1.01;
 		}
 	}
 }
@@ -229,12 +229,12 @@ handle_collision_triangles(CollisionTrianglesNode* colTrisNode)
 			m_closestPoint = vTmp;
 			
 		//	reset the box
-			m_boxMin.x = m_point.x - distance * 1.01;			
-			m_boxMin.y = m_point.y - distance * 1.01;
-			m_boxMin.z = m_point.z - distance * 1.01;
-			m_boxMax.x = m_point.x + distance * 1.01;
-			m_boxMax.y = m_point.y + distance * 1.01;
-			m_boxMax.z = m_point.z + distance * 1.01;
+			m_boxMin.x() = m_point.x() - distance * 1.01;			
+			m_boxMin.y() = m_point.y() - distance * 1.01;
+			m_boxMin.z() = m_point.z() - distance * 1.01;
+			m_boxMax.x() = m_point.x() + distance * 1.01;
+			m_boxMax.y() = m_point.y() + distance * 1.01;
+			m_boxMax.z() = m_point.z() + distance * 1.01;
 		}
 	}
 }

@@ -324,7 +324,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		vector3* pCorners = NULL;
 		if((v->num_vertices() == 4) && refCallback){
 			for(size_t i = 0; i < 4; ++i){
-				refCallback->current_pos(&corners[i].x, v->vertex(i), 3);
+				refCallback->current_pos(&corners[i].x(), v->vertex(i), 3);
 			}
 			pCorners = &corners.front();
 		}

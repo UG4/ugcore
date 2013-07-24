@@ -681,7 +681,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 				for(VertexBaseIterator iter = tgrid.vertices_begin();
 					iter != tgrid.vertices_end(); ++iter, ++counter)
 				{
-					taaPos[*iter] = vector3(vrts2d[counter].x, vrts2d[counter].y, 0);
+					taaPos[*iter] = vector3(vrts2d[counter].x(), vrts2d[counter].y(), 0);
 				}
 
 				SaveGridToFile(tgrid, ss2d.str().c_str(), aPosition);

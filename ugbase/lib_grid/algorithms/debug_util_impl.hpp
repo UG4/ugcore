@@ -24,12 +24,12 @@ vector3 GetGeometricObjectCenter(Grid& g, TElem* elem)
 	else if(g.has_vertex_attachment(aPosition2)){
 		Grid::VertexAttachmentAccessor<APosition2> aaPos(g, aPosition2);
 		vector2 v = CalculateCenter(elem, aaPos);
-		return vector3(v.x, v.y, 0);
+		return vector3(v.x(), v.y(), 0);
 	}
 	if(g.has_vertex_attachment(aPosition1)){
 		Grid::VertexAttachmentAccessor<APosition1> aaPos(g, aPosition1);
 		vector1 v = CalculateCenter(elem, aaPos);
-		return vector3(v.x, 0, 0);
+		return vector3(v.x(), 0, 0);
 	}
 
 	UG_LOG("GetGeometricObjectCenter failed! No standard position attachment found.\n");

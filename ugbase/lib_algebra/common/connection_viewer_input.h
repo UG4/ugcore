@@ -52,9 +52,9 @@ bool ReadMatrix(std::string filename, matrix_type &matrix, std::vector<MathVecto
 			return false;
 		}
 
-		matfile >> grid[i].x >> grid[i].y;
-		if(dimension==3) matfile >> grid[i].z;
-		else grid[i].z = 0;
+		matfile >> grid[i].x() >> grid[i].y();
+		if(dimension==3) matfile >> grid[i].z();
+		else grid[i].z() = 0;
 	}
 
 	int printStringsInWindow;

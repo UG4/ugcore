@@ -323,11 +323,11 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 		Vertex* v = *grid.create<Vertex>();
 	//	read the coordinates
 //TODO:	make sure that everything is ok.
-		aaPos[v].x = atof(tok);
+		aaPos[v].x() = atof(tok);
 		tok = strtok(NULL, delim);
-		aaPos[v].y = atof(tok);
+		aaPos[v].y() = atof(tok);
 		tok = strtok(NULL, delim);
-		aaPos[v].z = atof(tok);
+		aaPos[v].z() = atof(tok);
 
 	//	store the vertex in an array
 		vVrts.push_back(v);
@@ -619,9 +619,9 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 		for(VertexBaseIterator iter = grid.begin<VertexBase>();
 			iter != grid.end<VertexBase>(); ++iter)
 		{
-			out << aaPos[*iter].x << " ";
-			out << aaPos[*iter].y << " ";
-			out << aaPos[*iter].z << endl;
+			out << aaPos[*iter].x() << " ";
+			out << aaPos[*iter].y() << " ";
+			out << aaPos[*iter].z() << endl;
 		}
 	//	done - write end sign
 		out << "$" << endl;

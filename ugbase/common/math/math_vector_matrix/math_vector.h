@@ -113,8 +113,8 @@ class MathVector<0, T>
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
-		MathVector& operator+= (const MathVector& v) {m_data[0] += v.x; return *this;}
-		MathVector& operator-= (const MathVector& v) {m_data[0] -= v.x; return *this;}
+		MathVector& operator+= (const MathVector& v) {m_data[0] += v.x(); return *this;}
+		MathVector& operator-= (const MathVector& v) {m_data[0] -= v.x(); return *this;}
 
 		// operations with scalar
 		MathVector& operator=  (const value_type& val) {m_data[0] =  val;return *this;}
@@ -124,7 +124,7 @@ class MathVector<0, T>
 		MathVector& operator/= (const value_type& val) {m_data[0] /= val;return *this;}
 
 		// scalar product
-		value_type operator* (const MathVector& v) const {return m_data[0] * v.x;}
+		value_type operator* (const MathVector& v) const {return m_data[0] * v.x();}
 
 		inline std::size_t size() const								{return 1;}
 
@@ -134,19 +134,12 @@ class MathVector<0, T>
 		inline value_type& operator[](std::size_t index)				{return m_data[0];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[0];}
 
-	public:
-		union
-		{
-			struct
-			{
-				value_type x;
-			};
+		inline value_type& x()						{return m_data[0];}
+		inline const value_type& x() const			{return m_data[0];}
 
-			value_type m_data[1];
-		};
-
+		value_type m_data[1];
 	protected:
-		inline void assign(const MathVector<0, T>& v)	{m_data[0] = v.x;}
+		inline void assign(const MathVector<0, T>& v)	{m_data[0] = v.x();}
 
 };
 
@@ -171,8 +164,8 @@ class MathVector<1, T>
 
 		// operations with other vectors
 		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
-		MathVector& operator+= (const MathVector& v) {m_data[0] += v.x; return *this;}
-		MathVector& operator-= (const MathVector& v) {m_data[0] -= v.x; return *this;}
+		MathVector& operator+= (const MathVector& v) {m_data[0] += v.x(); return *this;}
+		MathVector& operator-= (const MathVector& v) {m_data[0] -= v.x(); return *this;}
 
 		// operations with scalar
 		MathVector& operator=  (const value_type& val) {m_data[0] =  val;return *this;}
@@ -182,7 +175,7 @@ class MathVector<1, T>
 		MathVector& operator/= (const value_type& val) {m_data[0] /= val;return *this;}
 
 		// scalar product
-		value_type operator* (const MathVector& v) const {return m_data[0] * v.x;}
+		value_type operator* (const MathVector& v) const {return m_data[0] * v.x();}
 
 		inline std::size_t size() const								{return 1;}
 
@@ -192,19 +185,12 @@ class MathVector<1, T>
 		inline value_type& operator[](std::size_t index)				{return m_data[0];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[0];}
 
-	public:
-		union
-		{
-			struct
-			{
-				value_type x;
-			};
+		inline value_type& x()						{return m_data[0];}
+		inline const value_type& x() const			{return m_data[0];}
 
-			value_type m_data[1];
-		};
-
+		value_type m_data[1];
 	protected:
-		inline void assign(const MathVector<1, T>& v)	{m_data[0] = v.x;}
+		inline void assign(const MathVector<1, T>& v)	{m_data[0] = v.x();}
 
 };
 
@@ -252,21 +238,15 @@ class MathVector<2, T>
 		inline value_type& operator[](std::size_t index)				{return m_data[index];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
 
-	public:
-		union
-		{
-			struct
-			{
-				value_type x;
-				value_type y;
-			};
+		inline value_type& x()						{return m_data[0];}
+		inline const value_type& x() const			{return m_data[0];}
 
-			value_type m_data[2];
-		};
+		inline value_type& y()						{return m_data[1];}
+		inline const value_type& y() const			{return m_data[1];}
 
+		value_type m_data[2];
 	protected:
 		inline void assign(const MathVector<2,T>& v)	{m_data[0] = v.coord(0);m_data[1] = v.coord(1);}
-
 };
 
 /**
@@ -314,18 +294,16 @@ class MathVector<3, T>
 		inline value_type& operator[](std::size_t index)				{return m_data[index];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
 
-	public:
-		union
-		{
-			struct
-			{
-				value_type x;
-				value_type y;
-				value_type z;
-			};
+		inline value_type& x()						{return m_data[0];}
+		inline const value_type& x() const			{return m_data[0];}
 
-			value_type m_data[3];
-		};
+		inline value_type& y()						{return m_data[1];}
+		inline const value_type& y() const			{return m_data[1];}
+
+		inline value_type& z()						{return m_data[2];}
+		inline const value_type& z() const			{return m_data[2];}
+
+		value_type m_data[3];
 	protected:
 		inline void assign(const MathVector<3,T>& v)	{m_data[0] = v.coord(0);
 												 m_data[1] = v.coord(1);
@@ -379,20 +357,19 @@ class MathVector<4, T>
 		inline value_type& operator[](std::size_t index)				{return m_data[index];}
 		inline const value_type& operator[](std::size_t index) const	{return m_data[index];}
 
-	public:
-		union
-		{
-			struct
-			{
-				value_type x;
-				value_type y;
-				value_type z;
-				value_type w;
-			};
+		inline value_type& x()						{return m_data[0];}
+		inline const value_type& x() const			{return m_data[0];}
 
-			value_type m_data[4];
-		};
+		inline value_type& y()						{return m_data[1];}
+		inline const value_type& y() const			{return m_data[1];}
 
+		inline value_type& z()						{return m_data[2];}
+		inline const value_type& z() const			{return m_data[2];}
+
+		inline value_type& w()						{return m_data[3];}
+		inline const value_type& w() const			{return m_data[3];}
+
+		value_type m_data[4];
 	protected:
 		inline void assign(const MathVector<4,T>& v)	{m_data[0] = v.coord(0);
 												 m_data[1] = v.coord(1);

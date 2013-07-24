@@ -86,12 +86,12 @@ static bool PerformTetrahedralization(Grid& grid,
 		//	this behaviour yet.
 		//TODO: Think about how the following code could be improved.
 
-			in.pointlist[counter * 3] = (float)v.x;
-			in.pointlist[counter * 3 + 1] = (float)v.y;
-			in.pointlist[counter * 3 + 2] = (float)v.z;
-			//in.pointlist[counter * 3] = v.x;
-			//in.pointlist[counter * 3 + 1] = v.y;
-			//in.pointlist[counter * 3 + 2] = v.z;
+			in.pointlist[counter * 3] = (float)v.x();
+			in.pointlist[counter * 3 + 1] = (float)v.y();
+			in.pointlist[counter * 3 + 2] = (float)v.z();
+			//in.pointlist[counter * 3] = v.x();
+			//in.pointlist[counter * 3 + 1] = v.y();
+			//in.pointlist[counter * 3 + 2] = v.z();
 		}
 	}
 
@@ -186,9 +186,9 @@ static bool PerformTetrahedralization(Grid& grid,
 		for(VertexBaseIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter, ++counter)
 		{
-			aaPos[*iter].x = out.pointlist[counter*3];
-			aaPos[*iter].y = out.pointlist[counter*3+1];
-			aaPos[*iter].z = out.pointlist[counter*3+2];
+			aaPos[*iter].x() = out.pointlist[counter*3];
+			aaPos[*iter].y() = out.pointlist[counter*3+1];
+			aaPos[*iter].z() = out.pointlist[counter*3+2];
 			vVrts[counter] = *iter;
 			if(counter == out.numberofpoints -1){
 				UG_LOG("WARNING: Unused points may remain!\n");
@@ -199,9 +199,9 @@ static bool PerformTetrahedralization(Grid& grid,
 		for(; counter < out.numberofpoints; ++counter)
 		{
 			Vertex* v = *grid.create<Vertex>();
-			aaPos[v].x = out.pointlist[counter*3];
-			aaPos[v].y = out.pointlist[counter*3+1];
-			aaPos[v].z = out.pointlist[counter*3+2];
+			aaPos[v].x() = out.pointlist[counter*3];
+			aaPos[v].y() = out.pointlist[counter*3+1];
+			aaPos[v].z() = out.pointlist[counter*3+2];
 			vVrts[counter] = v;
 		}
 	}
@@ -299,12 +299,12 @@ static bool PerformRetetrahedralization(Grid& grid,
 		//	this behaviour yet.
 		//TODO: Think about how the following code could be improved.
 
-			in.pointlist[counter * 3] = (float)v.x;
-			in.pointlist[counter * 3 + 1] = (float)v.y;
-			in.pointlist[counter * 3 + 2] = (float)v.z;
-			//in.pointlist[counter * 3] = v.x;
-			//in.pointlist[counter * 3 + 1] = v.y;
-			//in.pointlist[counter * 3 + 2] = v.z;
+			in.pointlist[counter * 3] = (float)v.x();
+			in.pointlist[counter * 3 + 1] = (float)v.y();
+			in.pointlist[counter * 3 + 2] = (float)v.z();
+			//in.pointlist[counter * 3] = v.x();
+			//in.pointlist[counter * 3 + 1] = v.y();
+			//in.pointlist[counter * 3 + 2] = v.z();
 		}
 	}
 
@@ -399,9 +399,9 @@ static bool PerformRetetrahedralization(Grid& grid,
 		for(VertexBaseIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter, ++counter)
 		{
-			aaPos[*iter].x = out.pointlist[counter*3];
-			aaPos[*iter].y = out.pointlist[counter*3+1];
-			aaPos[*iter].z = out.pointlist[counter*3+2];
+			aaPos[*iter].x() = out.pointlist[counter*3];
+			aaPos[*iter].y() = out.pointlist[counter*3+1];
+			aaPos[*iter].z() = out.pointlist[counter*3+2];
 			vVrts[counter] = *iter;
 			if(counter == out.numberofpoints -1){
 				UG_LOG("WARNING: Unused points may remain!\n");
@@ -412,9 +412,9 @@ static bool PerformRetetrahedralization(Grid& grid,
 		for(; counter < out.numberofpoints; ++counter)
 		{
 			Vertex* v = *grid.create<Vertex>();
-			aaPos[v].x = out.pointlist[counter*3];
-			aaPos[v].y = out.pointlist[counter*3+1];
-			aaPos[v].z = out.pointlist[counter*3+2];
+			aaPos[v].x() = out.pointlist[counter*3];
+			aaPos[v].y() = out.pointlist[counter*3+1];
+			aaPos[v].z() = out.pointlist[counter*3+2];
 			vVrts[counter] = v;
 		}
 	}

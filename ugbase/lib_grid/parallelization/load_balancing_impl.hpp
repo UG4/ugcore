@@ -248,9 +248,9 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	VecCopy(min, tmin, 0);
 	VecCopy(max, tmax, 0);
 
-	number width = max.x - min.x;
-	number height = max.y - min.y;
-	number depth = max.z - min.z;
+	number width = max.x() - min.x();
+	number height = max.y() - min.y();
+	number depth = max.z() - min.z();
 
 	if((width < SMALL) && numCellsX > 1){
 		UG_LOG("Can't execute PartitionElements_Rectangle: Geometry has no width.\n");
@@ -278,13 +278,13 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	//	get the cell index
 		int xInd = 0;
 		if(numCellsX > 1)
-				xInd = (int)((number)numCellsX * (center.x - min.x) / width);
+				xInd = (int)((number)numCellsX * (center.x() - min.x()) / width);
 		int yInd = 0;
 		if(numCellsY > 1)
-			yInd = (int)((number)numCellsY * (center.y - min.y) / height);
+			yInd = (int)((number)numCellsY * (center.y() - min.y()) / height);
 		int zInd = 0;
 		if(numCellsZ > 1)
-			zInd = (int)((number)numCellsZ * (center.z - min.z) / depth);
+			zInd = (int)((number)numCellsZ * (center.z() - min.z()) / depth);
 
 	//	calculate the subset index (one could think of several alternatives here)
 		int si = zInd * numCellsX * numCellsY + yInd * numCellsX + xInd;

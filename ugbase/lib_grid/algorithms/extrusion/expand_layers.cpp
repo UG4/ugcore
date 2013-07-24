@@ -522,9 +522,9 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 					CalculateBoundaryVertexNormal2D(nOut, grid, vrt, aaPos);
 
 				//	flip it by 90 degrees
-					number tmp = nOut.x;
-					nOut.x = -nOut.y;
-					nOut.y = tmp;
+					number tmp = nOut.x();
+					nOut.x() = -nOut.y();
+					nOut.y() = tmp;
 
 					UG_LOG("nOut: " << nOut << endl);
 

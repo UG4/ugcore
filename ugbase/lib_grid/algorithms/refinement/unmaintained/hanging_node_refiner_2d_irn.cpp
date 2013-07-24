@@ -17,8 +17,8 @@ namespace ug
 /*
 static void PrintEdgeCoords(EdgeBase* e, Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
-	LOG("(" << aaPos[e->vertex(0)].x << ", " << aaPos[e->vertex(0)].y <<
-			"), (" << aaPos[e->vertex(1)].x << ", " << aaPos[e->vertex(1)].y << ")");
+	LOG("(" << aaPos[e->vertex(0)].x() << ", " << aaPos[e->vertex(0)].y() <<
+			"), (" << aaPos[e->vertex(1)].x() << ", " << aaPos[e->vertex(1)].y() << ")");
 }
 
 static void PrintConstrainingEdgeInfo(ConstrainingEdge* ce, Grid::VertexAttachmentAccessor<APosition>& aaPos)
@@ -35,7 +35,7 @@ static void PrintConstrainingEdgeInfo(ConstrainingEdge* ce, Grid::VertexAttachme
 	for(VertexBaseIterator vrtIter = ce->constrained_vertices_begin();
 		vrtIter != ce->constrained_vertices_end(); ++vrtIter)
 	{
-		LOG("pos: (" << aaPos[*vrtIter].x << ", " << aaPos[*vrtIter].y << ")");
+		LOG("pos: (" << aaPos[*vrtIter].x() << ", " << aaPos[*vrtIter].y() << ")");
 		HangingVertex* hv = dynamic_cast<HangingVertex*>(*vrtIter);
 		if(hv)
 		{
@@ -1124,7 +1124,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 		for(VertexBaseIterator vrtIter = ce->constrained_vertices_begin();
 			vrtIter != ce->constrained_vertices_end(); ++vrtIter)
 		{
-			//LOG("pos: (" << m_aaPos[*vrtIter].x << ", " << m_aaPos[*vrtIter].y << ")");
+			//LOG("pos: (" << m_aaPos[*vrtIter].x() << ", " << m_aaPos[*vrtIter].y() << ")");
 			ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(*vrtIter);
 			if(hv)
 			{

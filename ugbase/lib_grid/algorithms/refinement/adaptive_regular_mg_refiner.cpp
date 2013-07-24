@@ -350,7 +350,7 @@ create_closure_elements_3d()
 			vector3* pCorners = NULL;
 			if((elem->num_vertices() == 4) && m_refCallback){
 				for(size_t i = 0; i < 4; ++i){
-					m_refCallback->current_pos(&corners[i].x, vrts[i], 3);
+					m_refCallback->current_pos(&corners[i].x(), vrts[i], 3);
 				}
 				pCorners = corners;
 			}

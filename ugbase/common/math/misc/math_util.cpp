@@ -62,10 +62,10 @@ bool TriangleCircumcenter(vector2& centerOut, const vector2& p1,
 	}
 
 //	swap normal-coefficients
-	swap(n1.x, n1.y);
-	n1.x *= -1.;
-	swap(n2.x, n2.y);
-	n2.x *= -1.;
+	swap(n1.x(), n1.y());
+	n1.x() *= -1.;
+	swap(n2.x(), n2.y());
+	n2.x() *= -1.;
 
 //	calculate intersection of the two lines
 	number t0, t1;
@@ -295,8 +295,8 @@ bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
 		TransposedMatVecMult(vTmpOut, matOrtho, vTmpIn);
 		
 	//	trivial projection
-		pointSetOut[i].x = vTmpOut.x;
-		pointSetOut[i].y = vTmpOut.y;
+		pointSetOut[i].x() = vTmpOut.x();
+		pointSetOut[i].y() = vTmpOut.y();
 	}
 
 //	done. return true.
@@ -314,11 +314,11 @@ bool RayRayIntersection3d(vector3& aOut, vector3& bOut,
 	VecAdd(q0, p0, dir0);
 	VecAdd(q1, p1, dir1);
 
-	IntersectLineSegments(p0.x, p0.y, p0.z, q0.x, q0.y, q0.z,
-						  p1.x, p1.y, p1.z, q1.x, q1.y, q1.z,
+	IntersectLineSegments(p0.x(), p0.y(), p0.z(), q0.x(), q0.y(), q0.z(),
+						  p1.x(), p1.y(), p1.z(), q1.x(), q1.y(), q1.z(),
 						  true, SMALL,
-						  aOut.x, aOut.y, aOut.z, bOut.x, bOut.y, bOut.z,
-						  vNear.x, vNear.y, vNear.z, vAB.x, vAB.y, vAB.z,
+						  aOut.x(), aOut.y(), aOut.z(), bOut.x(), bOut.y(), bOut.z(),
+						  vNear.x(), vNear.y(), vNear.z(), vAB.x(), vAB.y(), vAB.z(),
 						  trueIntersection);
 
 	return trueIntersection;
@@ -332,11 +332,11 @@ bool LineLineIntersection3d(vector3& aOut, vector3& bOut,
 	vector3 vNear, vAB;
 	bool trueIntersection;
 
-	IntersectLineSegments(a1.x, a1.y, a1.z, a2.x, a2.y, a2.z,
-						  b1.x, b1.y, b1.z, b2.x, b2.y, b2.z,
+	IntersectLineSegments(a1.x(), a1.y(), a1.z(), a2.x(), a2.y(), a2.z(),
+						  b1.x(), b1.y(), b1.z(), b2.x(), b2.y(), b2.z(),
 						  false, SMALL,
-						  aOut.x, aOut.y, aOut.z, bOut.x, bOut.y, bOut.z,
-						  vNear.x, vNear.y, vNear.z, vAB.x, vAB.y, vAB.z,
+						  aOut.x(), aOut.y(), aOut.z(), bOut.x(), bOut.y(), bOut.z(),
+						  vNear.x(), vNear.y(), vNear.z(), vAB.x(), vAB.y(), vAB.z(),
 						  trueIntersection);
 
 	return trueIntersection;
@@ -348,11 +348,11 @@ number DistanceLineToLine(const vector3& a1, const vector3& a2,
 	vector3 vA, vB, vNear, vAB;
 	bool trueIntersection;
 
-	IntersectLineSegments(a1.x, a1.y, a1.z, a2.x, a2.y, a2.z,
-						  b1.x, b1.y, b1.z, b2.x, b2.y, b2.z,
+	IntersectLineSegments(a1.x(), a1.y(), a1.z(), a2.x(), a2.y(), a2.z(),
+						  b1.x(), b1.y(), b1.z(), b2.x(), b2.y(), b2.z(),
 						  false, SMALL,
-						  vA.x, vA.y, vA.z, vB.x, vB.y, vB.z,
-						  vNear.x, vNear.y, vNear.z, vAB.x, vAB.y, vAB.z,
+						  vA.x(), vA.y(), vA.z(), vB.x(), vB.y(), vB.z(),
+						  vNear.x(), vNear.y(), vNear.z(), vAB.x(), vAB.y(), vAB.z(),
 						  trueIntersection);
 
 	return VecLength(vAB);
@@ -392,19 +392,19 @@ bool RayCylinderIntersection(number& tMinOut, number& tMaxOut, const vector3& ra
 
 //	get the parameter at which vr lies on the given ray
 	number t = 0;
-	if(fabs(rayDir.x) >= fabs(rayDir.y)){
-		if(fabs(rayDir.x) >= fabs(rayDir.z)){
-			if(rayDir.x == 0)
+	if(fabs(rayDir.x()) >= fabs(rayDir.y())){
+		if(fabs(rayDir.x()) >= fabs(rayDir.z())){
+			if(rayDir.x() == 0)
 				return false;
-			t = (vr.x - rayFrom.x) / rayDir.x;
+			t = (vr.x() - rayFrom.x()) / rayDir.x();
 		}
 		else
-			t = (vr.z - rayFrom.z) / rayDir.z;
+			t = (vr.z() - rayFrom.z()) / rayDir.z();
 	}
-	else if(fabs(rayDir.y) >= fabs(rayDir.z))
-		t = (vr.y - rayFrom.y) / rayDir.y;
+	else if(fabs(rayDir.y()) >= fabs(rayDir.z()))
+		t = (vr.y() - rayFrom.y()) / rayDir.y();
 	else
-		t = (vr.z - rayFrom.z) / rayDir.z;
+		t = (vr.z() - rayFrom.z()) / rayDir.z();
 
 	tMinOut = t - scaleFac;
 	tMaxOut = t + scaleFac;

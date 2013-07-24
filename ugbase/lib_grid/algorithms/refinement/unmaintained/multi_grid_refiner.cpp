@@ -157,7 +157,7 @@ void MultiGridRefiner::refine()
 			{
 				aaPos[nVrt] = aaPos[v];
 			//	change z-coord to visualise the hierarchy
-				//aaPos[nVrt].z += 0.01;
+				//aaPos[nVrt].z() += 0.01;
 			}
 		}
 	}
@@ -195,7 +195,7 @@ void MultiGridRefiner::refine()
 					VecScaleAdd(aaPos[nVrt], 0.5, aaPos[e->vertex(0)],
 											0.5, aaPos[e->vertex(1)]);
 				//	change z-coord to visualise the hierarchy
-					//aaPos[nVrt].z += 0.01;
+					//aaPos[nVrt].z() += 0.01;
 				}
 
 			//	split the edge
@@ -264,7 +264,7 @@ void MultiGridRefiner::refine()
 						if(aaPos.valid()){
 							aaPos[newVrt] = CalculateCenter(f, aaPos);
 						//	change z-coord to visualise the hierarchy
-							//aaPos[newVrt].z += 0.01;
+							//aaPos[newVrt].z() += 0.01;
 						}
 					}
 

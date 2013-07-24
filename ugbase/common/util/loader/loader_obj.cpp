@@ -213,18 +213,18 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 						if(lstParams.size() != 3)
 							continue;
 						PIter = lstParams.begin();
-						pActMaterial->m_vDiffuse.x = atof((*PIter).c_str());
+						pActMaterial->m_vDiffuse.x() = atof((*PIter).c_str());
 						PIter++;
-						pActMaterial->m_vDiffuse.y = atof((*PIter).c_str());
+						pActMaterial->m_vDiffuse.y() = atof((*PIter).c_str());
 						PIter++;
-						pActMaterial->m_vDiffuse.z = atof((*PIter).c_str());
+						pActMaterial->m_vDiffuse.z() = atof((*PIter).c_str());
 					}
 					else if(strCommand == colorAlpha)
 					{
 						if(lstParams.size() != 1)
 							continue;
 						PIter = lstParams.begin();
-						pActMaterial->m_fAlpha = pActMaterial->m_vDiffuse.w = atof((*PIter).c_str());
+						pActMaterial->m_fAlpha = pActMaterial->m_vDiffuse.w() = atof((*PIter).c_str());
 					}
 					else if(strCommand == textureDiffuse)
 					{
@@ -242,11 +242,11 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 				continue;
 			vector3 v;
 			PIter = lstParams.begin();
-			v.x = atof((*PIter).c_str());
+			v.x() = atof((*PIter).c_str());
 			PIter++;
-			v.y = atof((*PIter).c_str());
+			v.y() = atof((*PIter).c_str());
 			PIter++;
-			v.z = atof((*PIter).c_str());
+			v.z() = atof((*PIter).c_str());
 			m_vPoints.push_back(v);
 		}
 		else if(strCommand == strNorm)
@@ -260,9 +260,9 @@ bool LoaderObj::load_file(const char* strFilename, bool convertQuadsToTris)
 				continue;
 			vector2 v;
 			PIter = lstParams.begin();
-			v.x = atof((*PIter).c_str());
+			v.x() = atof((*PIter).c_str());
 			PIter++;
-			v.y = -atof((*PIter).c_str());
+			v.y() = -atof((*PIter).c_str());
 			m_vTexCoords.push_back(v);
 		}
 		else if(strCommand == strFace){

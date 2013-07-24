@@ -34,8 +34,8 @@ void CalculatePolychainEdgeNormals(vector2* edgeNormalsOut, vector2* polyChain,
 	VecNormalize(e, e);
 	
 	for(size_t i = 0; i < polyChainSize; ++i){
-		edgeNormalsOut[i].x = e.y;
-		edgeNormalsOut[i].y = -e.x;
+		edgeNormalsOut[i].x() = e.y();
+		edgeNormalsOut[i].y() = -e.x();
 		
 	//	calculate the next edge (the normal in the next iteration
 	//	will be calculated for this edge)
@@ -54,8 +54,8 @@ void CalculatePolychainEdgeNormals(vector2* edgeNormalsOut, vector2* polyChain,
 	{
 	//	we have to invert the normals
 		for(size_t i = 0; i < polyChainSize; ++i){
-			edgeNormalsOut[i].x = -edgeNormalsOut[i].x;
-			edgeNormalsOut[i].y = -edgeNormalsOut[i].y;
+			edgeNormalsOut[i].x() = -edgeNormalsOut[i].x();
+			edgeNormalsOut[i].y() = -edgeNormalsOut[i].y();
 		}
 	}
 }
@@ -172,10 +172,10 @@ bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
 		//	the bounding rect of the points
 			vector2 vMin;
 			vector2 vMax;
-			vMin.x = min(p0.x, min(p1.x, p2.x));
-			vMin.y = min(p0.y, min(p1.y, p2.y));
-			vMax.x = max(p0.x, max(p1.x, p2.x));
-			vMax.y = max(p0.y, max(p1.y, p2.y));
+			vMin.x() = min(p0.x(), min(p1.x(), p2.x()));
+			vMin.y() = min(p0.y(), min(p1.y(), p2.y()));
+			vMax.x() = max(p0.x(), max(p1.x(), p2.x()));
+			vMax.y() = max(p0.y(), max(p1.y(), p2.y()));
 			
 		//	only consider points that lie in the box
 //TODO: replace this with a tree lookup.
@@ -212,8 +212,8 @@ bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
 				vector2 eNew;
 				VecSubtract(eNew, polyChain[ci.outVrt], polyChain[ci.inVrt]);
 				vector2 nNew;
-				nNew.x = eNew.y;
-				nNew.y = -eNew.x;
+				nNew.x() = eNew.y();
+				nNew.y() = -eNew.x();
 			//	make sure that the normal points into the right direction.
 				vector2 vTestNorm;
 				VecAdd(vTestNorm, vNormals[ci.inVrt], vNormals[ci.myVrt]);
@@ -277,7 +277,7 @@ bool TriangleFill(Grid& grid, EdgeBaseIterator edgesBegin,
 //TODO: perform a more elaborated projection!
 	for(size_t i = 0; i < vrtPolyChain.size(); ++i){
 		vector3& v = aaPos[vrtPolyChain[i]];
-		polyChain2D[i] = vector2(v.x, v.y);
+		polyChain2D[i] = vector2(v.x(), v.y());
 	}
 */	
 
@@ -311,9 +311,9 @@ bool TriangleFill(Grid& grid, EdgeBaseIterator edgesBegin,
 		VecAdd(aaPos[vrt1], aaPos[vrtPolyChain[i]], aaPos[vrtPolyChain[(i+1)%vrtPolyChain.size()]]);
 		VecScale(aaPos[vrt1], aaPos[vrt1], 0.5);
 		
-		aaPos[vrt2].x = aaPos[vrt1].x + vNormals[i].x * 0.1;
-		aaPos[vrt2].y = aaPos[vrt1].y + vNormals[i].y * 0.1;
-		aaPos[vrt2].z = aaPos[vrt1].z;
+		aaPos[vrt2].x() = aaPos[vrt1].x() + vNormals[i].x() * 0.1;
+		aaPos[vrt2].y() = aaPos[vrt1].y() + vNormals[i].y() * 0.1;
+		aaPos[vrt2].z() = aaPos[vrt1].z();
 	}
 	return true;
 */

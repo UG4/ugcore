@@ -68,8 +68,8 @@ struct SweepLineEdge
 
 	vector2 direction() const
 	{
-		return vector2(m_v2->vrtPtr->x - m_v1->vrtPtr->x,
-						m_v2->vrtPtr->y - m_v1->vrtPtr->y);
+		return vector2(m_v2->vrtPtr->x() - m_v1->vrtPtr->x(),
+						m_v2->vrtPtr->y() - m_v1->vrtPtr->y());
 	}
 
 	bool contains(const SweepLineVertex* v)
@@ -92,10 +92,10 @@ typedef multimap<number, SweepLineEdge*> MapEdgeCuts;
 
 inline bool cmp_slv(const SweepLineVertex& v1, const SweepLineVertex& v2)
 {
-	if(v1.vrtPtr->y > v2.vrtPtr->y)
+	if(v1.vrtPtr->y() > v2.vrtPtr->y())
 		return true;
-	else if(v1.vrtPtr->y == v2.vrtPtr->y)
-		if(v1.vrtPtr->x < v2.vrtPtr->x)
+	else if(v1.vrtPtr->y() == v2.vrtPtr->y())
+		if(v1.vrtPtr->x() < v2.vrtPtr->x())
 			return true;
 	return false;
 }
@@ -123,7 +123,7 @@ number CalculateRightBendVal(vector2& dirOut,
 	VecNormalize(dirOut, dirOut);
 
 //	automatically normalized
-	vector2 lastNorm(lastDir.y, -lastDir.x);
+	vector2 lastNorm(lastDir.y(), -lastDir.x());
 
 //	calculate the value for this configuration.
 //	the result will be between -1 and 1.
@@ -242,17 +242,17 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 	//	based on lastDir and nextDir we can assign the new status to lastVrt, if none has been
 	//	previously assigned.
 		if(lastVrt->m_status == SLVS_NONE){
-			if(lastDir.y > 0){
-				if(nextDir.y < 0){
+			if(lastDir.y() > 0){
+				if(nextDir.y() < 0){
 					if(bestNormDot < 0)
 						lastVrt->m_status = SLVS_START;
 					else
 						lastVrt->m_status = SLVS_SPLIT;
 				}
-				else if(nextDir.y > 0)
+				else if(nextDir.y() > 0)
 					lastVrt->m_status = SLVS_REGULAR;
 				else{
-					if(nextDir.x < 0)
+					if(nextDir.x() < 0)
 						lastVrt->m_status = SLVS_REGULAR;
 					else
 						lastVrt->m_status = SLVS_SPLIT;
@@ -269,17 +269,17 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 					}
 				}
 			}
-			else if(lastDir.y < 0){	//	lastDir.y < 0 from now on
-				if(nextDir.y > 0){
+			else if(lastDir.y() < 0){	//	lastDir.y() < 0 from now on
+				if(nextDir.y() > 0){
 					if(bestNormDot > 0)
 						lastVrt->m_status = SLVS_MERGE;
 					else
 						lastVrt->m_status = SLVS_END;
 				}
-				else if(nextDir.y < 0)
+				else if(nextDir.y() < 0)
 					lastVrt->m_status = SLVS_REGULAR;
 				else{
-					if(nextDir.x > 0)
+					if(nextDir.x() > 0)
 						lastVrt->m_status = SLVS_REGULAR;
 					else
 						lastVrt->m_status = SLVS_MERGE;
@@ -296,15 +296,15 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 					}
 				}
 			}
-			else{ // lastDir.y == 0 from now on
-				if(lastDir.x < 0){
-					if(nextDir.y >= 0)
+			else{ // lastDir.y() == 0 from now on
+				if(lastDir.x() < 0){
+					if(nextDir.y() >= 0)
 						lastVrt->m_status = SLVS_REGULAR;
 					else
 						lastVrt->m_status = SLVS_START;
 				}
 				else{
-					if(nextDir.y <= 0)
+					if(nextDir.y() <= 0)
 						lastVrt->m_status = SLVS_REGULAR;
 					else
 						lastVrt->m_status = SLVS_END;
@@ -338,15 +338,15 @@ bool CreateSweepLineStructs(vector<SweepLineVertex>& vrtsOut,
 			for(size_t j = 0; j < vrt.connections.size(); ++j){
 				SweepLineVertex& connVrt = *(vrt.connections[j]->get_connected(&vrt));
 
-				if(connVrt.vrtPtr->x > vrt.vrtPtr->x)
+				if(connVrt.vrtPtr->x() > vrt.vrtPtr->x())
 					gotRight = true;
 
-				if(connVrt.vrtPtr->y < vrt.vrtPtr->y)
+				if(connVrt.vrtPtr->y() < vrt.vrtPtr->y())
 					gotLower = true;
-				else if(connVrt.vrtPtr->y > vrt.vrtPtr->y)
+				else if(connVrt.vrtPtr->y() > vrt.vrtPtr->y())
 					gotUpper = true;
 				else{
-					if(connVrt.vrtPtr->x > vrt.vrtPtr->x)
+					if(connVrt.vrtPtr->x() > vrt.vrtPtr->x())
 						gotEqualYRight = true;
 					else
 						gotEqualYLeft = true;
@@ -454,22 +454,22 @@ bool SweepLineEdgeIntersectsSweepLine(number& xOut,
 									  number sweepLineY)
 {
 //	first check whether both points lie above or below the sweepline
-	if((edge.m_v1->vrtPtr->y < sweepLineY)
-	   && (edge.m_v2->vrtPtr->y < sweepLineY))
+	if((edge.m_v1->vrtPtr->y() < sweepLineY)
+	   && (edge.m_v2->vrtPtr->y() < sweepLineY))
 	   return false;
 
-	if((edge.m_v1->vrtPtr->y >= sweepLineY)
-	   && (edge.m_v2->vrtPtr->y >= sweepLineY))
+	if((edge.m_v1->vrtPtr->y() >= sweepLineY)
+	   && (edge.m_v2->vrtPtr->y() >= sweepLineY))
 	   return false;
 
 	vector2 dir = edge.direction();
-	if(dir.y != 0){
-		number s = (sweepLineY - edge.m_v1->vrtPtr->y) / dir.y;
+	if(dir.y() != 0){
+		number s = (sweepLineY - edge.m_v1->vrtPtr->y()) / dir.y();
 		//if((s >= 0) && (s <= 1.)){
 		if(s < 0) s = 0;
 		if(s > 1.) s = 1.;
 
-		xOut = edge.m_v1->vrtPtr->x + s * dir.x;
+		xOut = edge.m_v1->vrtPtr->x() + s * dir.x();
 		return true;
 	}
 
@@ -485,7 +485,7 @@ SweepLineEdge* GetEdgeOnTheLeft(MapEdgeCuts& edgeCuts, SweepLineVertex& v)
 	for(MapEdgeCuts::iterator iter = edgeCuts.begin();
 		iter != edgeCuts.end(); ++iter)
 	{
-		if(iter->first < v.vrtPtr->x){
+		if(iter->first < v.vrtPtr->x()){
 			if(!iter->second->contains(&v)){
 				bool takeNew = true;
 			//	if a second edge with identical cut exists (this can happen
@@ -496,15 +496,15 @@ SweepLineEdge* GetEdgeOnTheLeft(MapEdgeCuts& edgeCuts, SweepLineVertex& v)
 					//	check whether iter->second points farther to the right.
 						vector2 dirOld = leftEdge->direction();
 						vector2 dirNew = iter->second->direction();
-						if(dirOld.y > 0)
+						if(dirOld.y() > 0)
 							VecScale(dirOld, dirOld, -1);
-						if(dirNew.y > 0)
+						if(dirNew.y() > 0)
 							VecScale(dirNew, dirNew, -1);
 
 						VecNormalize(dirOld, dirOld);
 						VecNormalize(dirNew, dirNew);
 
-						if(dirOld.x > dirNew.x)
+						if(dirOld.x() > dirNew.x())
 							takeNew = false;
 					}
 				}
@@ -541,7 +541,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 	for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt){
 		SweepLineVertex& v = vrts[i_vrt];
 
-		number sweepLineY = v.vrtPtr->y;
+		number sweepLineY = v.vrtPtr->y();
 	//	update the edgeCutsMap.
 		MapEdgeCuts	tmap;
 		for(MapEdgeCuts::iterator iter = edgeCuts.begin();
@@ -571,19 +571,19 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 			//	Note that at least one edge with has exterior to its right
 			//	will be added.
 				for(size_t i = 0; i < v.connections.size(); ++i){
-					edgeCuts.insert(make_pair(v.vrtPtr->x, v.connections[i]));
+					edgeCuts.insert(make_pair(v.vrtPtr->x(), v.connections[i]));
 					v.connections[i]->m_helper = &v;
 					/*
 					if((v.connections[i]->m_status == SLES_RIM)
 					   && (v.connections[i]->m_v1 == &v))
 					{
-						edgeCuts.insert(make_pair(v.vrtPtr->x, v.connections[i]));
+						edgeCuts.insert(make_pair(v.vrtPtr->x(), v.connections[i]));
 						v.connections[i]->m_helper = &v;
 					}
 					else if(v.connections[i]->m_status != SLES_RIM){
 					//	inner edges that go down have to be added, too
-						if(v.connections[i]->get_connected(&v)->vrtPtr->y < v.vrtPtr->y){
-							edgeCuts.insert(make_pair(v.vrtPtr->x, v.connections[i]));
+						if(v.connections[i]->get_connected(&v)->vrtPtr->y() < v.vrtPtr->y()){
+							edgeCuts.insert(make_pair(v.vrtPtr->x(), v.connections[i]));
 							v.connections[i]->m_helper = &v;
 						}
 					}*/
@@ -645,10 +645,10 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 
 						vector2 dir = incoming->direction();
 						bool areaIsToTheRight = false;
-						if(dir.y < 0)
+						if(dir.y() < 0)
 							areaIsToTheRight = true;
-						else if(dir.y == 0){
-							if(dir.x > 0)
+						else if(dir.y() == 0){
+							if(dir.x() > 0)
 								areaIsToTheRight = true;
 						}
 
@@ -684,7 +684,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 								return false;
 							}
 
-							edgeCuts.insert(make_pair(v.vrtPtr->x, outgoing));
+							edgeCuts.insert(make_pair(v.vrtPtr->x(), outgoing));
 							outgoing->m_helper = &v;
 						}
 						else{ //	area is on the left
@@ -727,10 +727,10 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							}
 
 						//	make sure that the edge is really an incoming edge
-							if(conn->vrtPtr->y < v.vrtPtr->y)
+							if(conn->vrtPtr->y() < v.vrtPtr->y())
 								continue;
-							else if(conn->vrtPtr->y == v.vrtPtr->y){
-								if(conn->vrtPtr->x > v.vrtPtr->x)
+							else if(conn->vrtPtr->y() == v.vrtPtr->y()){
+								if(conn->vrtPtr->x() > v.vrtPtr->x())
 									continue;
 							}
 
@@ -773,15 +773,15 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 							SweepLineVertex* conn = outgoing.get_connected(&v);
 
 						//	make sure that the edge is really an outgoing edge
-							if(conn->vrtPtr->y > v.vrtPtr->y)
+							if(conn->vrtPtr->y() > v.vrtPtr->y())
 								continue;
-							else if(conn->vrtPtr->y == v.vrtPtr->y){
-								if(conn->vrtPtr->x < v.vrtPtr->x)
+							else if(conn->vrtPtr->y() == v.vrtPtr->y()){
+								if(conn->vrtPtr->x() < v.vrtPtr->x())
 									continue;
 							}
 
 						//	ok. it is outgoing
-							edgeCuts.insert(make_pair(v.vrtPtr->x, v.connections[i]));
+							edgeCuts.insert(make_pair(v.vrtPtr->x(), v.connections[i]));
 							outgoing.m_helper = &v;
 						}
 					}
@@ -815,7 +815,7 @@ bool SweepLine_CreateMonotones(vector<SweepLineVertex>& vrts,
 					for(size_t i = 0; i < v.connections.size(); ++i){
 						if((!v.isRimVertex) || (v.connections[i]->m_v1 == &v))
 						{
-							edgeCuts.insert(make_pair(v.vrtPtr->x, v.connections[i]));
+							edgeCuts.insert(make_pair(v.vrtPtr->x(), v.connections[i]));
 							v.connections[i]->m_helper = &v;
 						}
 					}
@@ -932,8 +932,8 @@ bool TriangleFill_SweepLine(vector<int>& facesOut,
 //	for axis aligned geometries (which occur quite often...)
 	vector<vector2> srcVrts(srcVrtsOrig.size());
 	for(size_t i = 0; i < srcVrtsOrig.size(); ++i){
-		srcVrts[i].x = (float)(srcVrtsOrig[i].x);
-		srcVrts[i].y = (float)(srcVrtsOrig[i].y - 0.333213214 * srcVrtsOrig[i].x);
+		srcVrts[i].x() = (float)(srcVrtsOrig[i].x());
+		srcVrts[i].y() = (float)(srcVrtsOrig[i].y() - 0.333213214 * srcVrtsOrig[i].x());
 	}
 
 //	create an array with SweepLineVertices
@@ -1132,7 +1132,7 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 					//	check whether the triangle can be build
 						vector2 dir;
 						VecSubtract(dir, *v1->vrtPtr, *cur->vrtPtr);
-						vector2 norm(dir.y, -dir.x);
+						vector2 norm(dir.y(), -dir.x());
 						VecNormalize(norm, norm);
 						VecSubtract(dir, *v2->vrtPtr, *v1->vrtPtr);
 						VecNormalize(dir, dir);
@@ -1217,10 +1217,10 @@ for(SweepLineEdgeIter iter = edges.begin(); iter != edges.end(); ++iter){
 			}
 
 		//	if a new edge has been found which points upwards, we're done, too
-			if(newDir.y > 0){
+			if(newDir.y() > 0){
 				break;
 			}
-			else if((newDir.y == 0) && (newDir.x < 0)){
+			else if((newDir.y() == 0) && (newDir.x() < 0)){
 				break;
 			}
 

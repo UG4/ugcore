@@ -68,9 +68,9 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 				
 				vector3 v;
 			//	read the position
-				v.x = atof(paramVec[1].c_str());
-				v.y = atof(paramVec[2].c_str());
-				v.z = atof(paramVec[3].c_str());
+				v.x() = atof(paramVec[1].c_str());
+				v.y() = atof(paramVec[2].c_str());
+				v.z() = atof(paramVec[3].c_str());
 				
 				positions.push_back(v);
 			}
@@ -91,9 +91,9 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 				}
 				
 			//	read the normal
-				n.x = atof(paramVec[2].c_str());
-				n.y = atof(paramVec[3].c_str());
-				n.z = atof(paramVec[4].c_str());
+				n.x() = atof(paramVec[2].c_str());
+				n.y() = atof(paramVec[3].c_str());
+				n.z() = atof(paramVec[4].c_str());
 			}
 			else if(str.find("outer") == 0){
 				bool ok = false;
@@ -187,11 +187,11 @@ bool SaveGridToSTL(Grid& grid, const char* filename,
 		Triangle* f = *iter;
 		vector3 n;
 		CalculateNormal(n, f, aaPos);
-		out << "facet normal " << n.x << " " << n.y << " " << n.z << endl;
+		out << "facet normal " << n.x() << " " << n.y() << " " << n.z() << endl;
 		out << "outer loop" << endl;
 		for(size_t i = 0; i < 3; ++i){
 			vector3 v = aaPos[f->vertex(i)];
-			out << "vertex " << v.x << " " << v.y << " " << v.z << endl;
+			out << "vertex " << v.x() << " " << v.y() << " " << v.z() << endl;
 		}
 		out << "endloop" << endl;
 		out << "endfacet" << endl;

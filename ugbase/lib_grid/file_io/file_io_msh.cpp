@@ -58,7 +58,7 @@ bool LoadGridFromMSH(Grid& grid, const char* filename,
 			int ind;
 			vector3 p;
 			for(int i = 0; i < numNodes; ++i){
-				in >> ind >> p.x >> p.y >> p.z;
+				in >> ind >> p.x() >> p.y() >> p.z();
 				
 				if(in.fail()){
 					UG_LOG("LoadGridFromMSH: bad format in $NODES\n");
@@ -188,9 +188,9 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 		{
 			int Index;
 			in >> Index;
-			in >> aaPos[*iter].x;
-			in >> aaPos[*iter].y;
-			in >> aaPos[*iter].z;
+			in >> aaPos[*iter].x();
+			in >> aaPos[*iter].y();
+			in >> aaPos[*iter].z();
 		}
 	}
 

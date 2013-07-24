@@ -1,6 +1,6 @@
 // created by Sebastian Reiter
 // s.b.reiter@googlemail.com
-// 18.02.2012 (d.m.y)
+// 18.02.2012 (d.m.y())
 
 #ifndef __H__UG_crc32__
 #define __H__UG_crc32__

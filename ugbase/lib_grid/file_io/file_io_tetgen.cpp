@@ -165,9 +165,9 @@ bool ImportGridFromTETGEN(Grid& grid,
 
 		//	read index and coords
 			in >> index;
-			in >> aaPosVRT[v].x;
-			in >> aaPosVRT[v].y;
-			in >> aaPosVRT[v].z;
+			in >> aaPosVRT[v].x();
+			in >> aaPosVRT[v].y();
+			in >> aaPosVRT[v].z();
 
 		//	read attributes
 			if(numAttribs > 0)
@@ -363,9 +363,9 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++, counter++)
 		{
 			aaIntVRT[*iter] = counter;
-			out << counter << " " <<	aaPos[*iter].x << " " <<
-										aaPos[*iter].y << " " <<
-										aaPos[*iter].z;
+			out << counter << " " <<	aaPos[*iter].x() << " " <<
+										aaPos[*iter].y() << " " <<
+										aaPos[*iter].z();
 
 		//	write attributes:
 			for(uint i = 0; i < vaaFloatVRT.size(); ++i)
@@ -419,9 +419,9 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		out << vHoles.size() << endl;
 		for(uint i = 0; i < vHoles.size(); ++i)
 		{
-			out << i << " " <<	vHoles[i].x << " " <<
-								vHoles[i].y << " " <<
-								vHoles[i].z << endl;
+			out << i << " " <<	vHoles[i].x() << " " <<
+								vHoles[i].y() << " " <<
+								vHoles[i].z() << endl;
 		}
 	}
 	else
@@ -438,9 +438,9 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		out << vRegionPositions.size() << endl;
 		for(uint i = 0; i < vRegionPositions.size(); ++i)
 		{
-			out << i << " " << 	vRegionPositions[i].x << " " <<
-								vRegionPositions[i].y << " " <<
-								vRegionPositions[i].z;
+			out << i << " " << 	vRegionPositions[i].x() << " " <<
+								vRegionPositions[i].y() << " " <<
+								vRegionPositions[i].z();
 
 			if(pvRegionAttributes != NULL)
 				out << " " << (*pvRegionAttributes)[i];
@@ -514,9 +514,9 @@ bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
 		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++, counter++)
 		{
 			aaIntVRT[*iter] = counter;
-			out << counter << " " <<	aaPos[*iter].x << " " <<
-										aaPos[*iter].y << " " <<
-										aaPos[*iter].z;
+			out << counter << " " <<	aaPos[*iter].x() << " " <<
+										aaPos[*iter].y() << " " <<
+										aaPos[*iter].z();
 
 		//	write attributes:
 			for(uint i = 0; i < vaaFloatVRT.size(); ++i)

@@ -665,10 +665,10 @@ create_constrained_vertices(std::vector<VertexBase*>& vrtsOut,
 		vector3 localCoords(0, 0, 0);
 		switch(conObjType){
 			case 1:	// an edge. read one local coord
-				ss >> localCoords.x;
+				ss >> localCoords.x();
 				break;
 			case 2: // a face. read two local coords
-				ss >> localCoords.x >> localCoords.y;
+				ss >> localCoords.x() >> localCoords.y();
 				break;
 			default:
 				break;
@@ -693,7 +693,7 @@ create_constrained_vertices(std::vector<VertexBase*>& vrtsOut,
 		aaPos[vrt] = v;
 		
 	//	set local coordinates
-		vrt->set_local_coordinates(localCoords.x, localCoords.y);
+		vrt->set_local_coordinates(localCoords.x(), localCoords.y());
 		
 	//	add the constraining object id and index to the list
 		constrainingObjsOut.push_back(std::make_pair(conObjType, conObjIndex));

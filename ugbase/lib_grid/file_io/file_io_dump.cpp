@@ -49,9 +49,9 @@ static bool ReadTriangles(Grid& grid, ifstream& in,
 				for(int i = 0; i < 3; ++i)
 				{
 					v[i] = *grid.create<Vertex>();
-					aaPos[v[i]].x = atof(paramVec[i*3].c_str());
-					aaPos[v[i]].y = atof(paramVec[i*3 + 1].c_str());
-					aaPos[v[i]].z = atof(paramVec[i*3 + 2].c_str());
+					aaPos[v[i]].x() = atof(paramVec[i*3].c_str());
+					aaPos[v[i]].y() = atof(paramVec[i*3 + 1].c_str());
+					aaPos[v[i]].z() = atof(paramVec[i*3 + 2].c_str());
 				}
 			//	create a triangle
 				grid.create<Triangle>(TriangleDescriptor(v[0], v[1], v[2]));
@@ -108,9 +108,9 @@ static bool ReadTetrahedrons(Grid& grid, ifstream& in,
 				for(int i = 0; i < 4; ++i)
 				{
 					v[i] = *grid.create<Vertex>();
-					aaPos[v[i]].x = atof(paramVec[i*3].c_str());
-					aaPos[v[i]].y = atof(paramVec[i*3 + 1].c_str());
-					aaPos[v[i]].z = atof(paramVec[i*3 + 2].c_str());
+					aaPos[v[i]].x() = atof(paramVec[i*3].c_str());
+					aaPos[v[i]].y() = atof(paramVec[i*3 + 1].c_str());
+					aaPos[v[i]].z() = atof(paramVec[i*3 + 2].c_str());
 				}
 			//	create a triangle
 				grid.create<Tetrahedron>(TetrahedronDescriptor(v[0], v[1], v[2], v[3]));

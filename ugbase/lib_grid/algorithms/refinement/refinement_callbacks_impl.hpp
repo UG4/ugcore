@@ -349,8 +349,8 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 			pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], parent)];
 			vector3 w = subdiv.ref_even_crease_weights();
 			
-			VecScaleAdd(m_aaTargetPos[vrt], w.x, aaPos[parent],
-						w.y, p0, w.z, p1);
+			VecScaleAdd(m_aaTargetPos[vrt], w.x(), aaPos[parent],
+						w.y(), p0, w.z(), p1);
 		}
 		else{
 			m_aaTargetPos[vrt] = aaPos[parent];
@@ -375,8 +375,8 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 	
 	if(is_crease_edge(parent)){
 		vector2 wghts = subdiv.ref_odd_crease_weights();
-		VecScaleAdd(m_aaTargetPos[vrt], wghts.x, aaPos[parent->vertex(0)],
-					wghts.y, aaPos[parent->vertex(1)]);
+		VecScaleAdd(m_aaTargetPos[vrt], wghts.x(), aaPos[parent->vertex(0)],
+					wghts.y(), aaPos[parent->vertex(1)]);
 	}
 	else{
 		m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
@@ -497,8 +497,8 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 			pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], parent)];
 			vector3 w = subdiv.ref_even_crease_weights();
 			
-			VecScaleAdd(m_aaTargetPos[vrt], w.x, aaPos[parent],
-						w.y, p0, w.z, p1);
+			VecScaleAdd(m_aaTargetPos[vrt], w.x(), aaPos[parent],
+						w.y(), p0, w.z(), p1);
 		}
 		else{
 			m_aaTargetPos[vrt] = aaPos[vrt];
@@ -563,8 +563,8 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 
 	if(is_crease_edge(parent)){
 		vector2 wghts = subdiv.ref_odd_crease_weights();
-		VecScaleAdd(m_aaTargetPos[vrt], wghts.x, aaPos[parent->vertex(0)],
-					wghts.y, aaPos[parent->vertex(1)]);
+		VecScaleAdd(m_aaTargetPos[vrt], wghts.x(), aaPos[parent->vertex(0)],
+					wghts.y(), aaPos[parent->vertex(1)]);
 	}
 	else{
 	//	apply loop-subdivision on inner elements
@@ -625,8 +625,8 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 				}
 				
 				VecScaleAdd(m_aaTargetPos[vrt],
-							wghts.x, aaPos[v[0]], wghts.y, aaPos[v[1]],
-							wghts.z, aaPos[v[2]], wghts.w, aaPos[v[3]]);
+							wghts.x(), aaPos[v[0]], wghts.y(), aaPos[v[1]],
+							wghts.z(), aaPos[v[2]], wghts.w(), aaPos[v[3]]);
 				
 			}
 			else

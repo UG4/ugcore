@@ -972,10 +972,10 @@ void AssignSubsetColors(ISubsetHandler& sh)
 	{
 		SubsetInfo& si = sh.subset_info(i);
 		vector3 col = GetColorFromStandardPalette(i);
-		si.color.x = col.x;
-		si.color.y = col.y;
-		si.color.z = col.z;
-		si.color.w = 1.f;
+		si.color.x() = col.x();
+		si.color.y() = col.y();
+		si.color.z() = col.z();
+		si.color.w() = 1.f;
 	}
 }
 

@@ -55,8 +55,8 @@ class SubdivRules_PLoop
 			{return vector4(0.375, 0.375, 0.125, 0.125);}
 		
 	///	weights of an odd vertex on an inner edge that is connected to a crease.
-	/**	The weight for the vertex on the crease is in v.x, the inner edge vertex
-	 *	in v.y and the two indirectly connected vertex weights are in v.z and v.w.
+	/**	The weight for the vertex on the crease is in v.x(), the inner edge vertex
+	 *	in v.y() and the two indirectly connected vertex weights are in v.z() and v.w.
 	 *	creaseValence specifies the number of associated edges of the crease vertex.
 	 *
 	 *	Rules are taken from:
@@ -110,10 +110,10 @@ class SubdivRules_PLoop
 					oddWeights = ref_odd_inner_weights(nbrInfo.creaseValence);
 				}
 				
-				nbrWgtsOut[i] += oddWeights.x * wnbrProj;
-				centerWgtOut += oddWeights.y * wnbrProj;
-				nbrWgtsOut[next_ind(i, numNbrs)] += oddWeights.z * wnbrProj;
-				nbrWgtsOut[prev_ind(i, numNbrs)] += oddWeights.w * wnbrProj;
+				nbrWgtsOut[i] += oddWeights.x() * wnbrProj;
+				centerWgtOut += oddWeights.y() * wnbrProj;
+				nbrWgtsOut[next_ind(i, numNbrs)] += oddWeights.z() * wnbrProj;
+				nbrWgtsOut[prev_ind(i, numNbrs)] += oddWeights.w() * wnbrProj;
 			}
 			
 			

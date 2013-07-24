@@ -1151,7 +1151,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 			{
 				vector3 n;
 				CalculateNormal(n, *iter, aaPos);
-				if(n.z <= 0){
+				if(n.z() <= 0){
 					UG_LOG("ATTENTION: Illegal triangle created in step " << stepCount << "\n");
 					return false;
 				}

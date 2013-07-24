@@ -112,7 +112,7 @@ bool ImportGridFromNG(Grid& grid,
 //	if we're in 2d, set all z-coords to 0
 	if(n->dim == 2){
 		for(size_t i = 0; i < vVertices.size(); ++i)
-			aaPosition[vVertices[i]].z = 0;
+			aaPosition[vVertices[i]].z() = 0;
 	}
 
 //	create the elements

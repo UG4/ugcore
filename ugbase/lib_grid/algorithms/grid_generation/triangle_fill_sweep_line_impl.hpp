@@ -43,7 +43,7 @@ bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 			if(!grid.is_marked(vrt)){
 				aaInt[vrt] = (int)vrts.size();
 				vrts.push_back(aaPos[vrt]);
-				//vrts.push_back(vector2(aaPos[vrt].x, aaPos[vrt].y));
+				//vrts.push_back(vector2(aaPos[vrt].x(), aaPos[vrt].y()));
 				vrtPtrs.push_back(vrt);
 				grid.mark(vrt);
 			}

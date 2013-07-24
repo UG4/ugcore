@@ -463,9 +463,9 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
 	number m[3][3];
 	number b[3];
 
-	m[0][0] = p1.x - p0.x;	m[0][1] = p2.x - p0.x;	m[0][2] = -vDir.x;	b[0] = vFrom.x - p0.x;
-	m[1][0] = p1.y - p0.y;	m[1][1] = p2.y - p0.y;	m[1][2] = -vDir.y;	b[1] = vFrom.y - p0.y;
-	m[2][0] = p1.z - p0.z;	m[2][1] = p2.z - p0.z;	m[2][2] = -vDir.z;	b[2] = vFrom.z - p0.z;
+	m[0][0] = p1.x() - p0.x();	m[0][1] = p2.x() - p0.x();	m[0][2] = -vDir.x();	b[0] = vFrom.x() - p0.x();
+	m[1][0] = p1.y() - p0.y();	m[1][1] = p2.y() - p0.y();	m[1][2] = -vDir.y();	b[1] = vFrom.y() - p0.y();
+	m[2][0] = p1.z() - p0.z();	m[2][1] = p2.z() - p0.z();	m[2][2] = -vDir.z();	b[2] = vFrom.z() - p0.z();
 
 	int i1, i2, i3, j;
 	number fac;
@@ -534,9 +534,9 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
 
 		if((bc1Out >=-SMALL ) && (bc2Out >= -SMALL ) && ((bc1Out + bc2Out) <= 1.+SMALL))
 		{
-			vOut.x = vFrom.x + tOut*vDir.x;
-			vOut.y = vFrom.y + tOut*vDir.y;
-			vOut.z = vFrom.z + tOut*vDir.z;
+			vOut.x() = vFrom.x() + tOut*vDir.x();
+			vOut.y() = vFrom.y() + tOut*vDir.y();
+			vOut.z() = vFrom.z() + tOut*vDir.z();
 			return true;
 		}
 	}
@@ -562,11 +562,11 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 	number t1, t2;
 	bool bMinMaxSet = false;
 	
-	if(fabs(rayDir.x) > SMALL)
+	if(fabs(rayDir.x()) > SMALL)
 	{
 		//get xNear and xFar
-		t1 = (boxMin.x - rayFrom.x) / rayDir.x;
-		t2 = (boxMax.x - rayFrom.x) / rayDir.x;
+		t1 = (boxMin.x() - rayFrom.x()) / rayDir.x();
+		t2 = (boxMax.x() - rayFrom.x()) / rayDir.x();
 		if(t1 > t2)
 			std::swap(t1, t2);
 		tMin	= t1;
@@ -575,17 +575,17 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 	}
 	else
 	{
-		if(rayFrom.x < boxMin.x)
+		if(rayFrom.x() < boxMin.x())
 			return false;
-		if(rayFrom.x > boxMax.x)
+		if(rayFrom.x() > boxMax.x())
 			return false;
 	}
 	
-	if(fabs(rayDir.y) > SMALL)
+	if(fabs(rayDir.y()) > SMALL)
 	{
 		//get yNear and yFar
-		t1 = (boxMin.y - rayFrom.y) / rayDir.y;
-		t2 = (boxMax.y - rayFrom.y) / rayDir.y;
+		t1 = (boxMin.y() - rayFrom.y()) / rayDir.y();
+		t2 = (boxMax.y() - rayFrom.y()) / rayDir.y();
 		if(t1 > t2)
 			std::swap(t1, t2);
 		if(bMinMaxSet)
@@ -607,17 +607,17 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 	}
 	else
 	{
-		if(rayFrom.y < boxMin.y)
+		if(rayFrom.y() < boxMin.y())
 			return false;
-		if(rayFrom.y > boxMax.y)
+		if(rayFrom.y() > boxMax.y())
 			return false;		
 	}
 	
-	if(fabs(rayDir.z) > SMALL)
+	if(fabs(rayDir.z()) > SMALL)
 	{
 		//get zNear and zFar
-		t1 = (boxMin.z - rayFrom.z) / rayDir.z;
-		t2 = (boxMax.z - rayFrom.z) / rayDir.z;
+		t1 = (boxMin.z() - rayFrom.z()) / rayDir.z();
+		t2 = (boxMax.z() - rayFrom.z()) / rayDir.z();
 		if(t1 > t2)
 			std::swap(t1, t2);
 		if(bMinMaxSet)
@@ -639,9 +639,9 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 	}
 	else
 	{
-		if(rayFrom.z < boxMin.z)
+		if(rayFrom.z() < boxMin.z())
 			return false;
-		if(rayFrom.z > boxMax.z)
+		if(rayFrom.z() > boxMax.z())
 			return false;		
 	}
 	
@@ -824,24 +824,24 @@ bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
 	
 	
 	VecSubtract(e, v1, v0);
-	edgeNorm.x = e.y;
-	edgeNorm.y = -e.x;
+	edgeNorm.x() = e.y();
+	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v2, v0);
 	VecSubtract(tv2, v, v0);
 	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
 		return false;
 
 	VecSubtract(e, v2, v1);
-	edgeNorm.x = e.y;
-	edgeNorm.y = -e.x;
+	edgeNorm.x() = e.y();
+	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v0, v1);
 	VecSubtract(tv2, v, v1);
 	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
 		return false;
 
 	VecSubtract(e, v0, v2);
-	edgeNorm.x = e.y;
-	edgeNorm.y = -e.x;
+	edgeNorm.x() = e.y();
+	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v1, v2);
 	VecSubtract(tv2, v, v2);
 	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
@@ -866,32 +866,32 @@ bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 
 
 	VecSubtract(e, v1, v0);
-	edgeNorm.x = e.y;
-	edgeNorm.y = -e.x;
+	edgeNorm.x() = e.y();
+	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v2, v0);
 	VecSubtract(tv2, v, v0);
 	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
 		return false;
 
 	VecSubtract(e, v2, v1);
-	edgeNorm.x = e.y;
-	edgeNorm.y = -e.x;
+	edgeNorm.x() = e.y();
+	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v3, v1);
 	VecSubtract(tv2, v, v1);
 	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
 		return false;
 
 	VecSubtract(e, v3, v2);
-	edgeNorm.x = e.y;
-	edgeNorm.y = -e.x;
+	edgeNorm.x() = e.y();
+	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v0, v2);
 	VecSubtract(tv2, v, v2);
 	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
 		return false;
 
 	VecSubtract(e, v0, v3);
-	edgeNorm.x = e.y;
-	edgeNorm.y = -e.x;
+	edgeNorm.x() = e.y();
+	edgeNorm.y() = -e.x();
 	VecSubtract(tv1, v1, v3);
 	VecSubtract(tv2, v, v3);
 	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)

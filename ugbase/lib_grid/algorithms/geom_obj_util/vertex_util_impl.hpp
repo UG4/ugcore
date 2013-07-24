@@ -78,8 +78,8 @@ void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 
 			//	the normal pointing outwards is clearly defined from the
 			//	orientation of the edge descriptor
-				nOut.x += aaPos[ed.vertex(1)].y - aaPos[ed.vertex(0)].y;
-				nOut.y += aaPos[ed.vertex(0)].x - aaPos[ed.vertex(1)].x;
+				nOut.x() += aaPos[ed.vertex(1)].y() - aaPos[ed.vertex(0)].y();
+				nOut.y() += aaPos[ed.vertex(0)].x() - aaPos[ed.vertex(1)].x();
 			}
 		}
 	}

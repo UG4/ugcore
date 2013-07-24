@@ -153,7 +153,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 			out << endl << " ";
 		}
 
-		out << " " << aaPos[*iter].x << ",";
+		out << " " << aaPos[*iter].x() << ",";
 	}
 
 //	y
@@ -164,7 +164,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 			endlCounter = 1;
 			out << endl << " ";
 		}
-		out << " " << aaPos[*iter].y << ",";
+		out << " " << aaPos[*iter].y() << ",";
 	}
 
 //	z
@@ -179,7 +179,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 			}
 		}
 
-		out << " " << aaPos[*iter].z;
+		out << " " << aaPos[*iter].z();
 	}
 	out << " ;" << endl << endl;
 

@@ -282,8 +282,8 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 			Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
 			for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter, ++counter)
 			{
-				out << "v " << aaPos[*iter].x << " " << aaPos[*iter].y << " " <<
-								aaPos[*iter].z << endl;
+				out << "v " << aaPos[*iter].x() << " " << aaPos[*iter].y() << " " <<
+								aaPos[*iter].z() << endl;
 				aaInt[*iter] = counter;
 			}
 		}
@@ -295,8 +295,8 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 			Grid::VertexAttachmentAccessor<AVector2> aaTex(grid, *paTexCoord);
 			for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
 			{
-				out << "vt " << aaTex[*iter].x << " " <<
-								aaTex[*iter].y << " 0.0" << endl;
+				out << "vt " << aaTex[*iter].x() << " " <<
+								aaTex[*iter].y() << " 0.0" << endl;
 			}
 		}
 
@@ -361,8 +361,8 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		{
 			vector4& vD = (*pvMaterials)[i].m_vDiffuse;
 			out << "newmtl " << (*pvMaterials)[i].m_strName << endl;
-			out << "Kd " << vD.x << " " << vD.y << " " << vD.z << endl;
-			out << "d " << vD.w << endl;
+			out << "Kd " << vD.x() << " " << vD.y() << " " << vD.z() << endl;
+			out << "d " << vD.w() << endl;
 			if((*pvMaterials)[i].m_strTextureDiffuse.size() > 0)
 				out << "map_Kd " << (*pvMaterials)[i].m_strTextureDiffuse << endl;
 		}

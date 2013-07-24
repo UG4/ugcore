@@ -104,7 +104,7 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 					pos_type& p0 = aaPos[GetConnectedVertex(nbrs[0], v)];
 					pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], v)];
 					vector3 w = subdiv.proj_crease_weights();
-					VecScaleAdd(aaProjPos[v], w.x, aaPos[v], w.y, p0, w.z, p1);
+					VecScaleAdd(aaProjPos[v], w.x(), aaPos[v], w.y(), p0, w.z(), p1);
 				}
 				else
 					aaProjPos[v] = aaPos[v];
@@ -243,7 +243,7 @@ ProjectToLimitSubdivBoundary(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 				pos_type& p0 = aaPos[GetConnectedVertex(nbrs[0], v)];
 				pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], v)];
 				vector3 w = subdiv.proj_crease_weights();
-				VecScaleAdd(aaProjPos[v], w.x, aaPos[v], w.y, p0, w.z, p1);
+				VecScaleAdd(aaProjPos[v], w.x(), aaPos[v], w.y(), p0, w.z(), p1);
 			}
 			else
 				aaProjPos[v] = aaPos[v];
