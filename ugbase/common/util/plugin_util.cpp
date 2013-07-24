@@ -27,7 +27,7 @@ bool PluginLoaded(const string &name)
 	return find(loadedPluginNames.begin(), loadedPluginNames.end(), name) != loadedPluginNames.end();
 }
 
-bool LoadPlugins(const char* pluginPath, string parentGroup)
+bool LoadPlugins(const char* pluginPath, string parentGroup, bridge::Registry& reg)
 {
 	PROFILE_FUNC();
 	typedef void (*FctInitPlugin)(ug::bridge::Registry*, string);
@@ -38,8 +38,6 @@ bool LoadPlugins(const char* pluginPath, string parentGroup)
 	vector<string> files;
 
 	GetFilesInDirectory(files, pluginPath);
-
-	bridge::Registry& reg = bridge::GetUGRegistry();
 
 	string prefixStr = GetDynamicLibraryPrefix();
 	string suffixStr = string(".").append(GetDynamicLibrarySuffix());

@@ -42,6 +42,7 @@ elseif("${TARGET}" STREQUAL "libug4")
 elseif("${TARGET}" STREQUAL "libgrid")
 	set(targetLibraryName grid)
 	set(buildGrid ON)
+	set(buildRegistry ON)
 
 elseif("${TARGET}" STREQUAL "ugplugin")
 	set(buildAlgebra ON)

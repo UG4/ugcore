@@ -7,6 +7,7 @@
 
 #include <string>
 #include "common/ug_config.h"
+#include "registry/registry.h"
 
 namespace ug
 {
@@ -15,7 +16,8 @@ namespace ug
 /// \{
 
 ///	Loads all plugins in the given path.
-UG_API bool LoadPlugins(const char* pluginPath, std::string parentGroup);
+UG_API bool LoadPlugins(const char* pluginPath, std::string parentGroup,
+						bridge::Registry& reg);
 UG_API bool UnloadPlugins();
 UG_API bool PluginLoaded(const std::string &name);
 

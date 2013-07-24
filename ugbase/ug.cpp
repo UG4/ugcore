@@ -214,8 +214,10 @@ bool UGInitPlugins()
 		InitializeEmbeddedPlugins(&bridge::GetUGRegistry(), "ug4/");
 		return true;
 	#else
-		if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/"))	return true;
-		else																	return false;
+		if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/", bridge::GetUGRegistry()))
+			return true;
+		else
+			return false;
 	#endif
 }
 #else
