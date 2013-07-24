@@ -1880,16 +1880,23 @@ bool DistributeGrid(MultiGrid& mg,
 			}
 		}
 
+		GDIST_PROFILE(gdist_ErasingObjects);
 		EraseSelectedObjects(msel);
+		GDIST_PROFILE_END();
 	}
 	else{
 	//	nothing remains on the local process...
+		GDIST_PROFILE(gdist_ClearGeometry);
 		mg.clear_geometry();
+		GDIST_PROFILE_END();
 	}
 
-//	the grid layout map will be rebuilt from scratch
-	glm.clear();
-
+	{
+		GDIST_PROFILE(gdist_ClearLayoutMap);
+	//	the grid layout map will be rebuilt from scratch
+		glm.clear();
+		GDIST_PROFILE_END();
+	}
 	GDIST_PROFILE_END();
 
 ////////////////////////////////
