@@ -24,6 +24,7 @@ using namespace ug::script;
 
 #define UG_LUA_BINDINGS_THROW(L) \
 			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n"); \
+			ug_throw_error(); \
 			UG_LUA_THROW_EMPTY(L);
 
 #define UG_LUA_BINDINGS_CATCH(str)\
@@ -33,7 +34,7 @@ using namespace ug::script;
 		catch(UGError& err){ \
 			UG_LOG(errSymb << "EXCEPTION: UGError thrown\n");\
 			UG_LOG(UGErrorTraceback(err) << "\n"); \
-			UG_LOG(errSymb << str); \
+			UG_LOG(errSymb << str << "\n"); \
 			UG_LUA_BINDINGS_THROW(L)\
 		}\
 		catch(std::exception& ex)\
