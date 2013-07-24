@@ -280,6 +280,9 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 	//	reference object type
 		ReferenceObjectID roid = elem->reference_object_id();
 
+		const DimReferenceElement<dim>& rRefElem
+				= ReferenceElementProvider::get<dim>(roid);
+
 	//	get corners of element
 		CollectCornerCoordinates(vCorner, *elem, aaPos);
 
@@ -301,18 +304,17 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 			}
 			faceValue/=(number)numOfAsso;
 			MathVector<dim> normal;
-			CollectCornerCoordinates(sideCorners,*sides[s],aaPos);
-			for (size_t i=0;i<sideCorners.size();i++)
-				for (int d=0;d<dim;d++) sideCoPos[i][d] = sideCorners[i][d];
+			size_t numSideCo = rRefElem.num(dim-1,s,0);
+			for (size_t j=0;j<numSideCo;j++)
+				sideCoPos[j] = vCorner[rRefElem.id(dim-1,s,0,j)];
 			// faces have dim corners in 1d, 2d
 			// in 3d they have dim corners (triangle) or dim+1 corners (quadrilateral)
-			if ((int)sideCorners.size()==dim)
+			if ((int)numSideCo==dim)
 				ElementNormal<face_type0,dim>(normal,sideCoPos);
 			else
 				ElementNormal<face_type1,dim>(normal,sideCoPos);
-			// computed normal points inwards, therefore subtract flux
 			for (int d=0;d<dim;d++){
-				vGlobalGrad[d] -= faceValue * normal[d];
+				vGlobalGrad[d] += faceValue * normal[d];
 			}
 		}
 		vGlobalGrad/=(number)elemSize;
