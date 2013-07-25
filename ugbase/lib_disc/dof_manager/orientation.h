@@ -10,24 +10,47 @@
 
 #include <vector>
 #include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_disc/local_finite_element/local_finite_element_id.h"
 
 namespace ug{
 
+/// returns the orientation offsets if required
+/**
+ * If more than on DoF is located on a geometric sub-element for some Local
+ * finite element space, the DoF order must be orientated sometimes in order to
+ * ensure continuity of the spaces (only spaces with some continuity requirement
+ * place dofs on sub elements). This can only be the case when the sub-element
+ * is of lower dimension than the LFE-Space.
+ *
+ * This function computes the orientation offsets if required. I.e. if orientation
+ * is needed, the size of the output-vector will be equal to the number of dofs
+ * on the subelement and contain the numbers {0, ..., numDoFsOnSub-1} in the
+ * order the dofs must be sorted. If no orientation is required, the vector is
+ * returned empty
+ *
+ * @param vOrientOffset		orientation offset (or empty if no orientation required)
+ * @param Elem				the element
+ * @param SubElem			the sub-element where dofs are to be oriented
+ * @param nrSub				the number of the sub-element in reference element counting
+ * @param lfeid				the local finite element space
+ */
+/// \{
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
                               GeometricObject* Elem, GeometricObject* SubElem, size_t nrSub,
-                              const size_t p);
+                              const LFEID& lfeid);
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
                               Volume* volume, Face* face, size_t nrFace,
-                              const size_t p);
+                              const LFEID& lfeid);
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
                               Volume* vol, EdgeBase* edge, size_t nrEdge,
-                              const size_t p);
+                              const LFEID& lfeid);
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
                               Face* face, EdgeBase* edge, size_t nrEdge,
-                              const size_t p);
+                              const LFEID& lfeid);
+/// \}
 
 } // end namespace ug
 

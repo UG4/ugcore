@@ -247,8 +247,7 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 			std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
 		//	get the orientation for this subelement
-			ComputeOrientationOffset(vOrientOffset, elem, subElem, i,
-			                            lfeid(fct).order());
+			ComputeOrientationOffset(vOrientOffset, elem, subElem, i, lfeid(fct));
 			UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Wrong mapped index");
 
 			if(!m_bGrouped)
@@ -487,8 +486,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 			// 	case and the numbers 0 to numDoFsOnSub-1 are permuted
 				std::vector<size_t> vOrientOffset(numDoFsOnSub);
 
-				ComputeOrientationOffset(vOrientOffset, elem, subElem, i,
-				                            lfeid(fct).order());
+				ComputeOrientationOffset(vOrientOffset, elem, subElem, i, lfeid(fct));
 				UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Wrong mapped index");
 
 				if(!m_bGrouped)

@@ -12,7 +12,7 @@ namespace ug{
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//	ComputeOrientationOffset
+//	Lagrange Offsets
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
@@ -37,8 +37,8 @@ bool OrientationMatches(const EdgeVertices& e1, const EdgeVertices& e2)
 	return e1.vertex(0) == e2.vertex(0);
 }
 
-void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              EdgeDescriptor& ed, EdgeBase* edge, const size_t p)
+void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
+                                      EdgeDescriptor& ed, EdgeBase* edge, const size_t p)
 {
 	vOrientOffset.reserve(p-1);
 	vOrientOffset.clear();
@@ -57,22 +57,22 @@ void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
 	}
 }
 
-void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              Face* face, EdgeBase* edge, size_t nrEdge,
-                              const size_t p)
+void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
+                                      Face* face, EdgeBase* edge, size_t nrEdge,
+                                      const size_t p)
 {
 	EdgeDescriptor ed;
 	face->edge_desc(nrEdge, ed);
-	ComputeOrientationOffset(vOrientOffset, ed, edge, p);
+	ComputeOrientationOffsetLagrange(vOrientOffset, ed, edge, p);
 }
 
-void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              Volume* vol, EdgeBase* edge, size_t nrEdge,
-                              const size_t p)
+void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
+                                      Volume* vol, EdgeBase* edge, size_t nrEdge,
+                                      const size_t p)
 {
 	EdgeDescriptor ed;
 	vol->edge_desc(nrEdge, ed);
-	ComputeOrientationOffset(vOrientOffset, ed, edge, p);
+	ComputeOrientationOffsetLagrange(vOrientOffset, ed, edge, p);
 }
 
 /*
@@ -188,9 +188,9 @@ static void MapLagrangeMultiIndexTriangle(std::vector<size_t>& vOrientOffset,
 	}
 };
 
-void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              Volume* volume, Face* face, size_t nrFace,
-                              const size_t p)
+void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
+                                      Volume* volume, Face* face, size_t nrFace,
+                                      const size_t p)
 {
 //	get face descriptor
 	FaceDescriptor fd;
@@ -213,12 +213,74 @@ void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
 	}
 };
 
+void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
+                                      GeometricObject* volume, GeometricObject* face, size_t nrFace,
+                                      const size_t p)
+{
+	UG_THROW("Should never be called.")
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// General Implementation
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename TBaseElem, typename TSubBaseElem>
+void ComputeOrientationOffsetGeneric(std::vector<size_t>& vOrientOffset,
+                                     TBaseElem* elem, TSubBaseElem* sub, size_t nrSub,
+                                     const LFEID& lfeid)
+{
+	vOrientOffset.clear();
+
+	// if subelem higher dim than elem, no orientation
+	if(TSubBaseElem::dim >= TBaseElem::dim) return;
+
+	switch(lfeid.type()){
+		// lagrange: orientate
+		case LFEID::LAGRANGE:
+			// only orientate if sub-dim < fct-space dim
+			if(!(TSubBaseElem::dim < lfeid.dim())) return;
+
+			// only orientate for p > 2, (else only max 1 DoF on sub)
+			if(lfeid.order() <= 2) return;
+
+			// orientate
+			ComputeOrientationOffsetLagrange(vOrientOffset, elem, sub, nrSub, lfeid.order());
+			break;
+
+		// other cases: no orientation
+		default: return;
+	}
+}
+
+
+void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
+                              Volume* vol, Face* face, size_t nrFace,
+                              const LFEID& lfeid)
+{
+	ComputeOrientationOffsetGeneric(vOrientOffset, vol, face, nrFace, lfeid);
+}
+
+void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
+                              Volume* vol, EdgeBase* edge, size_t nrEdge,
+                              const LFEID& lfeid)
+{
+	ComputeOrientationOffsetGeneric(vOrientOffset, vol, edge, nrEdge, lfeid);
+}
+
+void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
+                              Face* face, EdgeBase* edge, size_t nrEdge,
+                              const LFEID& lfeid)
+{
+	ComputeOrientationOffsetGeneric(vOrientOffset, face, edge, nrEdge, lfeid);
+}
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
                               GeometricObject* Elem, GeometricObject* SubElem, size_t nrSub,
-                              const size_t p)
+                              const LFEID& lfeid)
 {
-	UG_THROW("Should never be called!");
+//	general case: no offset needed
+	vOrientOffset.clear();
 }
 
 } // end namespace ug
