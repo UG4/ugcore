@@ -60,10 +60,6 @@ class DoFDistributionInfo : public FunctionPattern
 		int num_dofs(size_t fct, const ReferenceObjectID roid) const {return m_vNumDoFOnSubelem[roid][fct];}
 
 
-		/// returns maximal dimension where to dofs must be ordered
-		int max_dim_to_order_dofs(size_t fct) const {return m_vMaxDimToOrderDoFs[fct];}
-
-
 		///	prints informations
 		void print_local_dof_statistic(int verboseLev) const;
 
@@ -95,9 +91,6 @@ class DoFDistributionInfo : public FunctionPattern
 
 		///	maximum number of DoFs on geometric objects in a dimension per subset
 		std::vector<size_t> m_vvMaxDoFsInDimPerSubset[NUM_GEOMETRIC_BASE_OBJECTS];
-
-		///	maximum dimensions where dofs must be ordered
-		std::vector<int> m_vMaxDimToOrderDoFs;
 
 		///	number Dofs for local DoF set and subelement of element
 		std::vector<int> m_vNumDoFOnSubelem[NUM_REFERENCE_OBJECTS];
@@ -191,9 +184,6 @@ class DoFDistributionInfoProvider{
 		///	returns the number of dofs on a subelement of an element
 		int num_dofs(size_t fct, const ReferenceObjectID roid) const {return m_spDDI->num_dofs(fct, roid);}
 
-
-		/// returns maximal dimension where to dofs must be ordered
-		int max_dim_to_order_dofs(size_t fct) const {return m_spDDI->max_dim_to_order_dofs(fct);}
 
 		///	prints statistic on local dof distribution
 		void print_local_dof_statistic() const {print_local_dof_statistic(1);}

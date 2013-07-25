@@ -59,11 +59,6 @@ void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
 				continue;
 			}
 
-		//	overwrite max dim with dofs (if subset has that dimension)
-			if(numDoF > 0)
-				if(dim_subset(si) > ReferenceElementDimension(roid))
-					m_vMaxDimToOrderDoFs[fct] = ReferenceElementDimension(roid);
-
 		//	set offset for each function defined in the subset
 			m_vvvOffsets[roid][si][fct] = m_vvNumDoFsOnROID[roid][si];
 
@@ -76,9 +71,6 @@ void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
 void DoFDistributionInfo::create_offsets()
 {
 	PROFILE_FUNC();
-//	function infos
-	m_vMaxDimToOrderDoFs.resize(num_fct(), 0);
-
 //	cache number of DoFs in a sub-geometric object
 	for(size_t fct = 0; fct < num_fct(); ++fct){
 		const CommonLocalDoFSet& lds = LocalFiniteElementProvider::get_dofs(lfeid(fct));

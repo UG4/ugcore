@@ -216,8 +216,8 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
               size_t fct, std::vector<multi_index_type>& ind,
               const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const
 {
-//	get dimension of subelement
-	static const int d = TSubBaseElem::dim;
+//	storage for offsets
+	std::vector<size_t> vOrientOffset;
 
 //	loop passed elements
 	for(size_t i = 0; i < vElem.size(); ++i)
@@ -240,55 +240,42 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 	//	get number of DoFs in this sub-geometric object
 		const size_t numDoFsOnSub = num_dofs(fct, subRoid);
 
-	//	a) Orientation required
-		if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1
-				&& TSubBaseElem::dim < TBaseElem::dim)
+	//	get the orientation for this subelement
+		ComputeOrientationOffset(vOrientOffset, elem, subElem, i, lfeid(fct));
+
+		UG_ASSERT(vOrientOffset.size() == numDoFsOnSub ||
+		          vOrientOffset.empty(), "Something wrong with orientation");
+
+		if(!m_bGrouped)
 		{
-			std::vector<size_t> vOrientOffset(numDoFsOnSub);
+		//	compute index
+			const size_t index = obj_index(subElem) + offset(subRoid,si,fct);
 
-		//	get the orientation for this subelement
-			ComputeOrientationOffset(vOrientOffset, elem, subElem, i, lfeid(fct));
-			UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Wrong mapped index");
-
-			if(!m_bGrouped)
-			{
-			//	compute index
-				const size_t index = obj_index(subElem) + offset(subRoid,si,fct);
-
+			if(vOrientOffset.empty()){
 				for(size_t j = 0; j < numDoFsOnSub; ++j)
-					ind.push_back(multi_index_type(index+vOrientOffset[j],0));
+					ind.push_back(multi_index_type(index + j,0));
 			}
-			else
-			{
-			//	compute index
-				const size_t comp = offset(subRoid,si,fct);
-				const size_t firstIndex = obj_index(subElem);
-
+			else{
 				for(size_t j = 0; j < numDoFsOnSub; ++j)
-					ind.push_back(multi_index_type(firstIndex, comp+vOrientOffset[j]));
+					ind.push_back(multi_index_type(index + vOrientOffset[j],0));
 			}
 		}
-	//	b) No Orientation required
 		else
 		{
-			if(!m_bGrouped)
-			{
-			//	compute index
-				const size_t index = obj_index(subElem) + offset(subRoid,si,fct);
+		//	compute index
+			const size_t comp = offset(subRoid,si,fct);
+			const size_t firstIndex = obj_index(subElem);
 
+			if(vOrientOffset.empty()){
 				for(size_t j = 0; j < numDoFsOnSub; ++j)
-					ind.push_back(multi_index_type(index+j,0));
+					ind.push_back(multi_index_type(firstIndex, comp + j));
 			}
-			else
-			{
-			//	compute index
-				const size_t comp = offset(subRoid,si,fct);
-				const size_t firstIndex = obj_index(subElem);
+			else{
+				for(size_t j = 0; j < numDoFsOnSub; ++j)
+					ind.push_back(multi_index_type(firstIndex, comp + vOrientOffset[j]));
+			}
+		}
 
-				for(size_t j = 0; j < numDoFsOnSub; ++j)
-					ind.push_back(multi_index_type(firstIndex, comp+j));
-			}
-		} // end switch "Orientation required"
 	} // end loop sub elements
 
 //	return number of indices
@@ -444,8 +431,8 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
                                 LocalIndices& ind,
                                 const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const
 {
-//	dimension of subelement
-	static const int d = TSubBaseElem::dim;
+//	storage for offsets
+	std::vector<size_t> vOrientOffset;
 
 //	add normal dofs
 	for(size_t i = 0; i < vElem.size(); ++i)
@@ -468,66 +455,47 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 		//	get number of DoFs in this sub-geometric object
 			const size_t numDoFsOnSub = num_dofs(fct,subRoid);
 
-		//	a)	Orientation is required: Thus, we compute the offsets, that are
-		//		no longer in the usual order [0, 1, 2, ...]. Orientation is
-		//		required if there are more than 1 dof on a subelement of a
-		//		finite element and thus, when gluing two elements together,
-		//		also the dofs on the subelements have to fit in order to
-		//		guarantee continuity. This is not needed for Vertices, since there
-		//		no distinction can be made when all dofs are at the same position.
-		//		This is also not needed for the highest dimension of a finite
-		//		element, since the dofs on this geometric object must not be
-		//		identified with other dofs.
-			if(d <= max_dim_to_order_dofs(fct) && numDoFsOnSub > 1
-					&& TSubBaseElem::dim < TBaseElem::dim)
+		//	Orientation is required: Thus, we compute the offsets, that are
+		//	no longer in the usual order [0, 1, 2, ...]. Orientation is
+		//	required if there are more than 1 dof on a subelement of a
+		//	finite element and thus, when gluing two elements together,
+		//	also the dofs on the subelements have to fit in order to
+		//	guarantee continuity. This is not needed for Vertices, since there
+		//	no distinction can be made when all dofs are at the same position.
+		//	This is also not needed for the highest dimension of a finite
+		//	element, since the dofs on this geometric object must not be
+		//	identified with other dofs.
+			ComputeOrientationOffset(vOrientOffset, elem, subElem, i, lfeid(fct));
+
+			UG_ASSERT(vOrientOffset.size() == numDoFsOnSub ||
+			          vOrientOffset.empty(), "Something wrong with orientation");
+
+			if(!m_bGrouped)
 			{
-			//	vector storing the computed offsets. If in correct order,
-			//	this would be: [0, 1, 2, ...]. But this is usually not the
-			// 	case and the numbers 0 to numDoFsOnSub-1 are permuted
-				std::vector<size_t> vOrientOffset(numDoFsOnSub);
+				const size_t index = obj_index(subElem) + offset(subRoid,si,fct);
 
-				ComputeOrientationOffset(vOrientOffset, elem, subElem, i, lfeid(fct));
-				UG_ASSERT(vOrientOffset.size() == numDoFsOnSub, "Wrong mapped index");
-
-				if(!m_bGrouped)
-				{
-					const size_t index = obj_index(subElem) + offset(subRoid,si,fct);
+				if(vOrientOffset.empty()){
 					for(size_t j = 0; j < numDoFsOnSub; ++j)
-						ind.push_back_index(fct, index+vOrientOffset[j]);
-				}
-				else
-				{
-				//	compute index
-					const size_t index = obj_index(subElem);
-					const size_t comp = offset(subRoid,si,fct);
-
+						ind.push_back_index(fct, index + j);
+				}else {
 					for(size_t j = 0; j < numDoFsOnSub; ++j)
-						ind.push_back_multi_index(fct, index, comp+vOrientOffset[j]);
+						ind.push_back_index(fct, index + vOrientOffset[j]);
 				}
 			}
-		//	b)	No orientation needed
 			else
 			{
-				if(!m_bGrouped)
-				{
-				//	compute index
-					const size_t index = obj_index(subElem) + offset(subRoid,si,fct);
+			//	compute index
+				const size_t index = obj_index(subElem);
+				const size_t comp = offset(subRoid,si,fct);
 
-				//	add dof to local indices
+				if(vOrientOffset.empty()){
 					for(size_t j = 0; j < numDoFsOnSub; ++j)
-						ind.push_back_index(fct, index+j);
-				}
-				else
-				{
-				//	compute index
-					const size_t index = obj_index(subElem);
-					const size_t comp = offset(subRoid,si,fct);
-
-				//	add dof to local indices
+						ind.push_back_multi_index(fct, index, comp + j);
+				}else{
 					for(size_t j = 0; j < numDoFsOnSub; ++j)
-						ind.push_back_multi_index(fct, index, comp+j);
+						ind.push_back_multi_index(fct, index, comp + vOrientOffset[j]);
 				}
-			} // end switch "Orientation needed"
+			}
 		} // end loop functions
 	} // end loop subelement
 
