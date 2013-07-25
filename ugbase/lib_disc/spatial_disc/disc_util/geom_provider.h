@@ -39,6 +39,9 @@ class GeomProvider
 		/// private constructor
 		GeomProvider() {m_mLFEIDandOrder.clear();}
 
+		/// destructor
+		~GeomProvider() {clear_geoms();}
+
 		/// singleton provider
 		static GeomProvider<TGeom>& inst() {
 			static GeomProvider<TGeom> inst;
