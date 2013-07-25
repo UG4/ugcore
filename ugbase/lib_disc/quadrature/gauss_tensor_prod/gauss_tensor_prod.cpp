@@ -23,9 +23,8 @@ GaussQuadratureTriangle::GaussQuadratureTriangle(size_t order)
 
 	m_order = std::min(quadRule.order(), quadRule10.order());
 	m_numPoints = quadRule10.size() * quadRule.size();
-	MathVector<dim>* pvPoint = NULL; number* pvWeight = NULL;
-	m_pvPoint = pvPoint = new position_type[m_numPoints];
-	m_pvWeight = pvWeight = new weight_type[m_numPoints];
+	position_type* pvPoint = new position_type[m_numPoints];
+	weight_type* pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt = 0;
 	for(size_t i = 0; i < quadRule.size(); i++){
@@ -35,6 +34,8 @@ GaussQuadratureTriangle::GaussQuadratureTriangle(size_t order)
 			pvWeight[cnt] = quadRule.weight(i) * quadRule10.weight(j);
 		}
 	}
+	m_pvPoint = pvPoint;
+	m_pvWeight = pvWeight;
 };
 
 GaussQuadratureTriangle::~GaussQuadratureTriangle()
@@ -49,9 +50,8 @@ GaussQuadratureQuadrilateral::GaussQuadratureQuadrilateral(size_t order)
 
 	m_order = std::min(quadRule.order(), quadRule.order());
 	m_numPoints = quadRule.size() * quadRule.size();
-	MathVector<dim>* pvPoint = NULL; number* pvWeight = NULL;
-	m_pvPoint = pvPoint = new position_type[m_numPoints];
-	m_pvWeight = pvWeight = new weight_type[m_numPoints];
+	position_type* pvPoint = new position_type[m_numPoints];
+	weight_type* pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt  = 0;
 	for(size_t i = 0; i < quadRule.size(); i ++) {
@@ -61,7 +61,8 @@ GaussQuadratureQuadrilateral::GaussQuadratureQuadrilateral(size_t order)
 			pvWeight[cnt] = quadRule.weight(i) * quadRule.weight(j);
 		}
 	}
-
+	m_pvPoint = pvPoint;
+	m_pvWeight = pvWeight;
 };
 
 GaussQuadratureQuadrilateral::~GaussQuadratureQuadrilateral()
@@ -76,9 +77,8 @@ GaussQuadratureHexahedron::GaussQuadratureHexahedron(size_t order)
 
 	m_order = std::min(quadRule.order(), std::min(quadRule.order(), quadRule.order()));
 	m_numPoints = quadRule.size() * quadRule.size() * quadRule.size();
-	MathVector<dim>* pvPoint = NULL; number* pvWeight = NULL;
-	m_pvPoint = pvPoint = new position_type[m_numPoints];
-	m_pvWeight = pvWeight = new weight_type[m_numPoints];
+	position_type* pvPoint = new position_type[m_numPoints];
+	weight_type* pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt  = 0;
 	for(size_t i = 0; i < quadRule.size(); i ++) {
@@ -91,7 +91,8 @@ GaussQuadratureHexahedron::GaussQuadratureHexahedron(size_t order)
 			}
 		}
 	}
-
+	m_pvPoint = pvPoint;
+	m_pvWeight = pvWeight;
 };
 
 GaussQuadratureHexahedron::~GaussQuadratureHexahedron()
@@ -108,9 +109,8 @@ GaussQuadratureTetrahedron::GaussQuadratureTetrahedron(size_t order)
 
 	m_order = std::min(quadRule.order(), std::min(quadRule10.order(), quadRule20.order()));
 	m_numPoints = quadRule.size() * quadRule10.size() * quadRule20.size();
-	MathVector<dim>* pvPoint = NULL; number* pvWeight = NULL;
-	m_pvPoint = pvPoint = new position_type[m_numPoints];
-	m_pvWeight = pvWeight = new weight_type[m_numPoints];
+	position_type* pvPoint = new position_type[m_numPoints];
+	weight_type* pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt = 0;
 	for(size_t i = 0; i < quadRule20.size(); i++) {
@@ -123,7 +123,8 @@ GaussQuadratureTetrahedron::GaussQuadratureTetrahedron(size_t order)
 			}
 		}
 	}
-
+	m_pvPoint = pvPoint;
+	m_pvWeight = pvWeight;
 };
 
 GaussQuadratureTetrahedron::~GaussQuadratureTetrahedron()
@@ -139,9 +140,8 @@ GaussQuadraturePrism::GaussQuadraturePrism(size_t order)
 
 	m_order = std::min(quadRule.order(), quadRule10.order());
 	m_numPoints = quadRule10.size() * quadRule.size() * quadRule.size();
-	MathVector<dim>* pvPoint = NULL; number* pvWeight = NULL;
-	m_pvPoint = pvPoint = new position_type[m_numPoints];
-	m_pvWeight = pvWeight = new weight_type[m_numPoints];
+	position_type* pvPoint = new position_type[m_numPoints];
+	weight_type* pvWeight = new weight_type[m_numPoints];
 
 	size_t cnt = 0;
 	for(size_t i = 0; i < quadRule10.size(); i++) {
@@ -154,7 +154,8 @@ GaussQuadraturePrism::GaussQuadraturePrism(size_t order)
 			}
 		}
 	}
-
+	m_pvPoint = pvPoint;
+	m_pvWeight = pvWeight;
 };
 
 GaussQuadraturePrism::~GaussQuadraturePrism()
@@ -169,9 +170,8 @@ GaussQuadraturePyramid::GaussQuadraturePyramid(size_t order)
 
 	m_order = quadRule.order();
 	m_numPoints = quadRule.size() * 2;
-	MathVector<dim>* pvPoint = NULL; number* pvWeight = NULL;
-	m_pvPoint = pvPoint = new position_type[m_numPoints];
-	m_pvWeight = pvWeight = new weight_type[m_numPoints];
+	position_type* pvPoint = new position_type[m_numPoints];
+	weight_type* pvWeight = new weight_type[m_numPoints];
 
 	MathVector<3> Tet1Co[4];
 	Tet1Co[0] = MathVector<3>(0,0,0);
@@ -202,6 +202,8 @@ GaussQuadraturePyramid::GaussQuadraturePyramid(size_t order)
 		map2.local_to_global(pvPoint[cnt], quadRule.point(j));
 		pvWeight[cnt] = quadRule.weight(j) * map2.sqrt_gram_det(quadRule.point(j));
 	}
+	m_pvPoint = pvPoint;
+	m_pvWeight = pvWeight;
 };
 
 GaussQuadraturePyramid::~GaussQuadraturePyramid()
