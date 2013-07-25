@@ -7,7 +7,6 @@
 	- \ref secLGAbout "About"
 	- \ref secLGWhatIsIt "What is libGrid?"
 	- \ref secLGFeatures "Main features?"
-	- \ref secLGCompilation "How to compile libGrid?"
 	- \ref secLGUsage "Usage"
 
 <hr>
@@ -75,19 +74,6 @@ Combined with the possibility to dynamically add data to a grid at runtime, thos
 observers are a powerful tool to create stable, robust and modular code. 
 \sa ug::Selector, \sa ug::SubsetHandler, \sa ug::MGSubsetHandler
 
-<hr>
-\section secLGCompilation How to compile libGrid
-libGrid can be build using CMAKE (http://www.cmake.org/).
-	- download the current source-distribution of cmake
-	- build and install it (configure; make; install;)
-	- change directory to libGrids root directory (../libGrid)
-	- create a new build directory (mkdir build)
-	- change directory to the build directory (cd build)
-	- call cmake with libGrids path (cmake ../)
-	- call make
- 
-You should now find all generated libs in libGrid/lib and
-the executable in libGrid/bin.
 
 <hr>
 \section secLGUsage Usage
