@@ -60,6 +60,9 @@ class QuadratureRule{
 			m_numPoints(0), m_order(0)
 		{}
 
+	///	destructor
+		virtual ~QuadratureRule() {}
+
 	///	number of integration points
 		inline size_t size() const {return m_numPoints;}
 
