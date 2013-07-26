@@ -2,11 +2,13 @@
 // s.b.reiter@gmail.com
 // Feb 25, 2013 (d,m,y)
 
+#include <algorithm>
 #include "load_balancer.h"
 #include "load_balancer_util.h"
 #include "distribution.h"
 #include "partitioner_bisection.h"
 #include "distributed_grid.h"
+#include "lib_grid/parallelization/parallelization_util.h"
 
 #ifdef UG_PARMETIS
 #include "partitioner_parmetis.h"
@@ -305,6 +307,8 @@ template<int dim>
 void LoadBalancer<dim>::
 rebalance()
 {
+	GDIST_PROFILE_FUNC();
+
 	UG_DLOG(LIB_GRID, 1, "LoadBalancer-start rebalance\n");
 	if(!m_partitioner.valid()){
 		UG_THROW("LoadBalancer::rebalance can only be performed with a valid partitioner!");
@@ -363,6 +367,46 @@ rebalance()
 	UG_DLOG(LIB_GRID, 1, "LoadBalancer-stop rebalance\n");
 }
 
+template<int dim>
+void LoadBalancer<dim>::
+create_quality_record(const char* label)
+{
+	std::vector<number>	lvlQualities;
+	bool isVerbose = m_partitioner->verbose();
+	m_partitioner->set_verbose(false);
+	m_partitioner->estimate_distribution_quality(&lvlQualities);
+	m_partitioner->set_verbose(isVerbose);
+
+	size_t ri = max<size_t>(2, m_qualityRecords.num_rows());
+	m_qualityRecords(ri, 0) << label;
+	for(size_t i = 0; i < lvlQualities.size(); ++i){
+		m_qualityRecords(ri, i+1) << lvlQualities[i];
+	}
+}
+
+template<int dim>
+void LoadBalancer<dim>::
+print_quality_records()
+{
+//	fill header first
+	if(m_qualityRecords(0, 0).str().empty()){
+		m_qualityRecords(0, 0) << "level:";
+	}
+	for(size_t i = 1; i < m_qualityRecords.num_cols(); ++i){
+		if(m_qualityRecords(0, i).str().empty())
+			m_qualityRecords(0, i) << i-1;
+	}
+	if(m_qualityRecords(1, 0).str().empty()){
+		m_qualityRecords(1, 0) << "procs:";
+	}
+	for(size_t i = 1; i < m_qualityRecords.num_cols(); ++i){
+		if(m_qualityRecords(1, i).str().empty())
+			m_qualityRecords(1, i) << m_processHierarchy->num_global_procs_involved(
+									  m_processHierarchy->hierarchy_level_from_grid_level(i-1));
+	}
+
+	UG_LOG(m_qualityRecords << "\n");
+}
 
 template class LoadBalancer<1>;
 template class LoadBalancer<2>;

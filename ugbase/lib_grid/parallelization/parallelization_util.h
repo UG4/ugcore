@@ -8,6 +8,17 @@
 #include "distributed_grid.h"
 #include <boost/function.hpp>
 
+#define PROFILE_GRID_DISTRIBUTION
+#ifdef PROFILE_GRID_DISTRIBUTION
+	#define GDIST_PROFILE_FUNC()	PROFILE_FUNC_GROUP("gdist")
+	#define GDIST_PROFILE(name)	PROFILE_BEGIN_GROUP(name, "gdist")
+	#define GDIST_PROFILE_END()	PROFILE_END()
+#else
+	#define GDIST_PROFILE_FUNC()
+	#define GDIST_PROFILE(name)
+	#define GDIST_PROFILE_END()
+#endif
+
 namespace ug
 {
 /// \addtogroup lib_grid_parallelization

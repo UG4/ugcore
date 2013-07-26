@@ -69,7 +69,7 @@ supports_connection_weights() const
 
 template<int dim>
 number Partitioner_Bisection<dim>::
-estimate_distribution_quality()
+estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 {
 //todo	Consider connection weights in the final quality!
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
@@ -80,14 +80,20 @@ estimate_distribution_quality()
 
 	number minQuality = 1;
 
+	if(pLvlQualitiesOut)
+		pLvlQualitiesOut->clear();
+
 //	calculate the quality estimate.
 //todo The quality of a level could be weighted by the total amount of elements
 //		in each level.
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
 		size_t hlvl = m_processHierarchy->hierarchy_level_from_grid_level(lvl);
 		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
-		if(numProcs <= 1)
+		if(numProcs <= 1){
+			if(pLvlQualitiesOut)
+				pLvlQualitiesOut->push_back(1.0);
 			continue;
+		}
 
 		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
 		if(!procComAll.empty()){
@@ -105,8 +111,14 @@ estimate_distribution_quality()
 			if(maxWeight > 0){
 				number quality = (number)minWeight / (number)maxWeight;
 				minQuality = min(minQuality, quality);
+				if(pLvlQualitiesOut)
+					pLvlQualitiesOut->push_back(quality);
 			}
+			else if(pLvlQualitiesOut)
+				pLvlQualitiesOut->push_back(-1);
 		}
+		else if(pLvlQualitiesOut)
+			pLvlQualitiesOut->push_back(-1);
 	}
 
 	pcl::ProcessCommunicator comGlobal;

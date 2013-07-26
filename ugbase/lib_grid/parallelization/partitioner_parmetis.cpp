@@ -7,23 +7,22 @@
 #include "distributed_grid.h"
 #include "lib_grid/parallelization/util/compol_copy_attachment.h"
 #include "lib_grid/parallelization/util/compol_subset.h"
+#include "lib_grid/parallelization/parallelization_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/algorithms/graph/dual_graph.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"
 #include "common/util/table.h"
-
 using namespace std;
 
 namespace ug{
 
-static const int CHILD_WEIGHT = 1;
-static const int SIBLING_WEIGHT = 100;
-
-
 template <int dim>
 Partitioner_Parmetis<dim>::
 Partitioner_Parmetis() :
-	m_mg(NULL)
+	m_mg(NULL),
+	m_childWeight(1),
+	m_siblingWeight(100),
+	m_regardAllChildren(false)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_balanceWeights = SPBalanceWeights(new StdBalanceWeights<dim>);
@@ -172,8 +171,9 @@ supports_connection_weights() const
 
 template<int dim>
 number Partitioner_Parmetis<dim>::
-estimate_distribution_quality()
+estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 {
+	GDIST_PROFILE_FUNC();
 //todo	Consider connection weights in the final quality!
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	using std::min;
@@ -184,6 +184,9 @@ estimate_distribution_quality()
 	number minQuality = 1;
 
 	Table<stringstream> qualityOut;
+
+	if(pLvlQualitiesOut)
+		pLvlQualitiesOut->clear();
 
 //	calculate the quality in each level
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
@@ -211,6 +214,13 @@ estimate_distribution_quality()
 				else
 					processParticipates = false;
 			}
+		}
+
+		if(pLvlQualitiesOut){
+			if(processParticipates)
+				pLvlQualitiesOut->push_back(quality);
+			else
+				pLvlQualitiesOut->push_back(-1);
 		}
 
 		minQuality = min(minQuality, quality);
@@ -243,6 +253,7 @@ void Partitioner_Parmetis<dim>::
 accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 						bool copyToVMastersOnBaseLvl)
 {
+	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start accumulate_child_counts\n");
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 
@@ -263,7 +274,7 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 						mg.end<elem_t>(topLvl), 0);
 
 
-	for(int lvl = topLvl - 1; lvl >= baseLvl; --lvl){
+	for(int lvl = topLvl-1; lvl >= baseLvl; --lvl){
 		for(ElemIter iter = mg.begin<elem_t>(lvl);
 			iter != mg.end<elem_t>(lvl); ++iter)
 		{
@@ -300,6 +311,7 @@ template<int dim>
 void Partitioner_Parmetis<dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
+	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start rebalance\n");
 
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
@@ -322,14 +334,15 @@ partition(size_t baseLvl, size_t elementThreshold)
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
 
-	//accumulate_child_counts(baseLvl, mg.top_level(), m_aNumChildren);
+	if(m_regardAllChildren)
+		accumulate_child_counts(baseLvl, mg.top_level(), m_aNumChildren);
 
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
 	for(size_t hlevel = 0; hlevel < m_processHierarchy->num_hierarchy_levels(); ++ hlevel)
 	{
 		int minLvl = m_processHierarchy->grid_base_level(hlevel);
-		int maxLvl = (int)mg.num_levels() - 1;
+		int maxLvl = mg.top_level();
 		if(hlevel + 1 < m_processHierarchy->num_hierarchy_levels()){
 			maxLvl = min<int>(maxLvl,
 						(int)m_processHierarchy->grid_base_level(hlevel + 1) - 1);
@@ -357,6 +370,9 @@ partition(size_t baseLvl, size_t elementThreshold)
 		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlevel);
 		pcl::ProcessCommunicator globalCom;
 
+		if(!m_regardAllChildren)
+			accumulate_child_counts(minLvl, maxLvl, m_aNumChildren);
+
 	//	check whether there are enough elements to perform partitioning
 		if(elementThreshold > 0){
 			int numLocalElems = mg.num<elem_t>(minLvl);
@@ -374,8 +390,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 				continue;
 			}
 		}
-
-		accumulate_child_counts(minLvl, maxLvl, m_aNumChildren);
 
 	//	we have to find out how many of the target processes already contain a grid.
 		int gotGrid = 0;
@@ -431,6 +445,7 @@ template<int dim>
 void Partitioner_Parmetis<dim>::
 partition_level_metis(int lvl, int numTargetProcs)
 {
+	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition_level_metis\n");
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	assert(m_mg);
@@ -468,8 +483,9 @@ partition_level_metis(int lvl, int numTargetProcs)
 	vector<idx_t> vrtSizeMap;
 	if(lvl < (int)mg.top_level()){
 		vrtSizeMap.reserve(nVrts);
-		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
-			vrtSizeMap.push_back(CHILD_WEIGHT * m_aaNumChildren[*iter] + 1);
+		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+			vrtSizeMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
+		}
 
 		assert((int)vrtSizeMap.size() == nVrts);
 		pVrtSizeMap = &vrtSizeMap.front();
@@ -501,7 +517,7 @@ partition_level_metis(int lvl, int numTargetProcs)
 				if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
 				//	e and ce should share the same parent, since the side shared
 				//	by e and ce has a parent of the same type as e and ce
-					adjwgts[ie] = SIBLING_WEIGHT;
+					adjwgts[ie] = m_siblingWeight;
 				}
 			}
 		}
@@ -524,8 +540,9 @@ partition_level_metis(int lvl, int numTargetProcs)
 
 //	assign partition-subsets from graph-colors
 	int counter = 0;
-	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
+	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
 		m_sh.assign_subset(*iter, partitionMap[counter++]);
+	}
 
 
 //	clustered siblings help to ensure that all vertices which are connected to
@@ -562,6 +579,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 						 const pcl::ProcessCommunicator& procComAll,
 						 ParallelDualGraph<elem_t, idx_t>& pdg)
 {
+	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition_level_parmetis\n");
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	assert(m_mg);
@@ -608,7 +626,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 			vrtSizeMap.reserve(nVrts);
 			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
 				if(pdg.was_considered(*iter))
-					vrtSizeMap.push_back(CHILD_WEIGHT * m_aaNumChildren[*iter] + 1);
+					vrtSizeMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
 			}
 
 			idx_t* pAdjWgts = NULL;
@@ -637,7 +655,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 						if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
 						//	e and ce should share the same parent, since the side shared
 						//	by e and ce has a parent of the same type as e and ce
-							adjwgts[ie] = SIBLING_WEIGHT;
+							adjwgts[ie] = m_siblingWeight;
 						}
 					}
 				}
@@ -758,6 +776,27 @@ const std::vector<int>* Partitioner_Parmetis<dim>::
 get_process_map() const
 {
 	return NULL;
+}
+
+template<int dim>
+void Partitioner_Parmetis<dim>::
+set_child_weight(int w)
+{
+	m_childWeight = w;
+}
+
+template<int dim>
+void Partitioner_Parmetis<dim>::
+set_sibling_weight(int w)
+{
+	m_siblingWeight = w;
+}
+
+template<int dim>
+void Partitioner_Parmetis<dim>::
+set_regard_all_children(bool regardAll)
+{
+	m_regardAllChildren = regardAll;
 }
 
 template class Partitioner_Parmetis<1>;

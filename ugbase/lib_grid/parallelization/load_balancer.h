@@ -9,6 +9,7 @@
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/tools/partition_map.h"
 #include "lib_grid/algorithms/serialization.h"
+#include "common/util/table.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl_process_communicator.h"
@@ -121,8 +122,13 @@ class IPartitioner{
 	/**	\} */
 
 	/** The returned distribution quality represents the global quality and thus
-	 * is the same for all processes.*/
-		virtual number estimate_distribution_quality() = 0;
+	 * is the same for all processes.
+	 * You may optionally specify the pointer to a std::vector which will be filled
+	 * with the distribution-qualities for each level. By default the pointer is
+	 * set to NULL and no level-qualities are thus returned.
+	 * If a process doesn't participate on a given level and process, it will write -1
+	 * to the corresponding entry in pLvlQualitiesOut.*/
+		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL) = 0;
 
 		virtual void partition(size_t baseLvl, size_t elementThreshold) = 0;
 
@@ -134,7 +140,7 @@ class IPartitioner{
 	 * global proc-rank.*/
 		virtual const std::vector<int>* get_process_map() const = 0;
 
-		void set_verbose(bool verbose)	{m_verbose = true;}
+		void set_verbose(bool verbose)	{m_verbose = verbose;}
 		bool verbose() const			{return m_verbose;}
 
 	private:
@@ -220,6 +226,9 @@ class LoadBalancer{
 		virtual void add_serializer(SPGridDataSerializer cb)	{m_serializer.add(cb);}
 	/**	\} */
 
+		void create_quality_record(const char* label);
+		void print_quality_records();
+
 	private:
 		typedef Attachment<MathVector<dim> >		APos;
 		typedef SmartPtr<IPartitioner<dim> >		SPPartitioner;
@@ -235,6 +244,7 @@ class LoadBalancer{
 		SPBalanceWeights	m_balanceWeights;
 		SPConnectionWeights	m_connectionWeights;
 		GridDataSerializationHandler	m_serializer;
+		StringStreamTable	m_qualityRecords;
 		bool m_createVerticalInterfaces;
 };
 

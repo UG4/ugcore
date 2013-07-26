@@ -27,7 +27,7 @@ class Partitioner_Bisection : public IPartitioner<dim>{
 		virtual bool supports_connection_weights() const;
 		virtual bool supports_repartitioning() const			{return false;}
 
-		virtual number estimate_distribution_quality();
+		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL);
 
 		virtual void partition(size_t baseLvl, size_t elementThreshold);
 

@@ -38,12 +38,17 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		virtual bool supports_connection_weights() const;
 		virtual bool supports_repartitioning() const			{return true;}
 
-		virtual number estimate_distribution_quality();
+		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL);
 
 		virtual void partition(size_t baseLvl, size_t elementThreshold);
 
 		virtual SubsetHandler& get_partitions();
 		virtual const std::vector<int>* get_process_map() const;
+
+
+		void set_regard_all_children(bool regardAll);
+		void set_child_weight(int w);
+		void set_sibling_weight(int w);
 
 	private:
 	///	fills m_aNumChildren with child-counts from levels baseLvl to topLvl.
@@ -75,6 +80,10 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		SPConnectionWeights	m_connectionWeights;
 		SPProcessHierarchy	m_processHierarchy;
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;
+
+		int	m_childWeight;
+		int	m_siblingWeight;
+		bool m_regardAllChildren;
 };
 
 

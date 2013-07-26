@@ -86,7 +86,8 @@ static void Domain(Registry& reg, string grp)
 		{
 			typedef IPartitioner<TDomain::dim> T;
 			string name = string("IPartitioner").append(suffix);
-			reg.add_class_<T>(name, grp);
+			reg.add_class_<T>(name, grp)
+				.add_method("set_verbose", &T::set_verbose);
 			reg.add_class_to_group(name, "IPartitioner", tag);
 		}
 
@@ -107,6 +108,9 @@ static void Domain(Registry& reg, string grp)
 			string name = string("Partitioner_Parmetis").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 				.add_constructor()
+				.add_method("set_regard_all_children", &T::set_regard_all_children)
+				.add_method("set_child_weight", &T::set_child_weight)
+				.add_method("set_sibling_weight", &T::set_sibling_weight)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Partitioner_Parmetis", tag);
 		}
@@ -123,7 +127,9 @@ static void Domain(Registry& reg, string grp)
 					.add_method("rebalance", &T::rebalance)
 					.add_method("set_balance_threshold", &T::set_balance_threshold)
 					.add_method("set_element_threshold", &T::set_element_threshold)
-					.add_method("set_partitioner", &T::set_partitioner);
+					.add_method("set_partitioner", &T::set_partitioner)
+					.add_method("create_quality_record", &T::create_quality_record)
+					.add_method("print_quality_records", &T::print_quality_records);
 
 			reg.add_class_to_group(name, "LoadBalancer", tag);
 		}

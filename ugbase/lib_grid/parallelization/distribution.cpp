@@ -16,17 +16,6 @@
 //#define LG_DISTRIBUTION_DEBUG
 //#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 3
 
-#define PROFILE_GRID_DISTRIBUTION
-#ifdef PROFILE_GRID_DISTRIBUTION
-	#define GDIST_PROFILE_FUNC()	PROFILE_FUNC_GROUP("gdist")
-	#define GDIST_PROFILE(name)	PROFILE_BEGIN_GROUP(name, "gdist")
-	#define GDIST_PROFILE_END()	PROFILE_END()
-#else
-	#define GDIST_PROFILE_FUNC()
-	#define GDIST_PROFILE(name)
-	#define GDIST_PROFILE_END()
-#endif
-
 
 using namespace std;
 
