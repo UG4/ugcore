@@ -225,7 +225,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	}
 
 //	calculate the bounding box
-	vector_t tmin, tmax;
+	vector_t tmin(0), tmax(0);
 	{
 		grid.begin_marking();
 		vector<VertexBase*>	vrts, associatedVrts;

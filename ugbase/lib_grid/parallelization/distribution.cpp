@@ -651,131 +651,131 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 ////////////////////////////////////////////////////////////////////////////////
 /**	selects unselected constraining elements of all selected constrained elements
  * and associated unselected low-dim elems.*/
-static void SelectAssociatedConstrainingElements(MGSelector& msel,
-								ISelector::status_t status = ISelector::SELECTED)
-{
-	UG_DLOG(LIB_GRID, 1, "dist-start: SelectAssociatedConstrainingElements\n");
-	GDIST_PROFILE_FUNC();
-
-	const bool selectAll = true;
-
-//	constrained triangles
-	{
-		typedef ConstrainedTriangle TElem;
-		typedef MGSelector::traits<TElem>::iterator TIter;
-		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-			for(TIter iter = msel.begin<TElem>(lvl);
-				iter != msel.end<TElem>(lvl); ++iter)
-			{
-				ConstrainedFace* e = *iter;
-				if(GeometricObject* cg = e->get_constraining_object()){
-				//	we won't select pure v-masters!
-//					if(msel.get_selection_status(cg) == IS_VMASTER)
-//						continue;
-
-					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-					if(selectAll || !msel.is_selected(cg)){
-						msel.select(cg, nstate);
-						UG_ASSERT(dynamic_cast<ConstrainingFace*>(cg),
-								  "constraining object of a face has to be a "
-								  "ConstrainingFace!");
-						SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
-					}
-				}
-			}
-		}
-	}
-
-//	constrained quadrilaterals
-	{
-		typedef ConstrainedQuadrilateral TElem;
-		typedef MGSelector::traits<TElem>::iterator TIter;
-		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-			for(TIter iter = msel.begin<TElem>(lvl);
-				iter != msel.end<TElem>(lvl); ++iter)
-			{
-				ConstrainedFace* e = *iter;
-				if(GeometricObject* cg = e->get_constraining_object()){
-				//	we won't select pure v-masters!
-//					if(msel.get_selection_status(cg) == IS_VMASTER)
-//						continue;
-
-					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-					if(selectAll || !msel.is_selected(cg)){
-						msel.select(cg, nstate);
-						UG_ASSERT(dynamic_cast<Face*>(cg),
-								  "constraining object of a face has to be a "
-								  "Face!");
-						SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
-					}
-				}
-			}
-		}
-	}
-
-//	constrained edges
-	{
-		typedef ConstrainedEdge TElem;
-		typedef MGSelector::traits<TElem>::iterator TIter;
-		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-			for(TIter iter = msel.begin<TElem>(lvl);
-				iter != msel.end<TElem>(lvl); ++iter)
-			{
-				ConstrainedEdge* e = *iter;
-				if(GeometricObject* cg = e->get_constraining_object()){
-				//	we won't select pure v-masters!
-//					if(msel.get_selection_status(cg) == IS_VMASTER)
-//						continue;
-
-					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-					if(selectAll || !msel.is_selected(cg)){
-						msel.select(cg, nstate);
-						switch(cg->base_object_id()){
-						case EDGE:
-							SelectAssociatedSides(msel, static_cast<EdgeBase*>(cg), nstate);
-							break;
-						case FACE:
-							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-
-//	constrained vertices
-	{
-		typedef ConstrainedVertex TElem;
-		typedef MGSelector::traits<TElem>::iterator TIter;
-		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-			for(TIter iter = msel.begin<TElem>(lvl);
-				iter != msel.end<TElem>(lvl); ++iter)
-			{
-				ConstrainedVertex* e = *iter;
-				if(GeometricObject* cg = e->get_constraining_object()){
-				//	we won't select pure v-masters!
-//					if(msel.get_selection_status(cg) == IS_VMASTER)
-//						continue;
-
-					ISelector::status_t nstate = status | msel.get_selection_status(cg);
-					if(selectAll || !msel.is_selected(cg)){
-						msel.select(cg, nstate);
-						switch(cg->base_object_id()){
-						case EDGE:
-							SelectAssociatedSides(msel, static_cast<EdgeBase*>(cg), nstate);
-							break;
-						case FACE:
-							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectAssociatedConstrainingElements\n");
-}
+//static void SelectAssociatedConstrainingElements(MGSelector& msel,
+//								ISelector::status_t status = ISelector::SELECTED)
+//{
+//	UG_DLOG(LIB_GRID, 1, "dist-start: SelectAssociatedConstrainingElements\n");
+//	GDIST_PROFILE_FUNC();
+//
+//	const bool selectAll = true;
+//
+////	constrained triangles
+//	{
+//		typedef ConstrainedTriangle TElem;
+//		typedef MGSelector::traits<TElem>::iterator TIter;
+//		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+//			for(TIter iter = msel.begin<TElem>(lvl);
+//				iter != msel.end<TElem>(lvl); ++iter)
+//			{
+//				ConstrainedFace* e = *iter;
+//				if(GeometricObject* cg = e->get_constraining_object()){
+//				//	we won't select pure v-masters!
+////					if(msel.get_selection_status(cg) == IS_VMASTER)
+////						continue;
+//
+//					ISelector::status_t nstate = status | msel.get_selection_status(cg);
+//					if(selectAll || !msel.is_selected(cg)){
+//						msel.select(cg, nstate);
+//						UG_ASSERT(dynamic_cast<ConstrainingFace*>(cg),
+//								  "constraining object of a face has to be a "
+//								  "ConstrainingFace!");
+//						SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+////	constrained quadrilaterals
+//	{
+//		typedef ConstrainedQuadrilateral TElem;
+//		typedef MGSelector::traits<TElem>::iterator TIter;
+//		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+//			for(TIter iter = msel.begin<TElem>(lvl);
+//				iter != msel.end<TElem>(lvl); ++iter)
+//			{
+//				ConstrainedFace* e = *iter;
+//				if(GeometricObject* cg = e->get_constraining_object()){
+//				//	we won't select pure v-masters!
+////					if(msel.get_selection_status(cg) == IS_VMASTER)
+////						continue;
+//
+//					ISelector::status_t nstate = status | msel.get_selection_status(cg);
+//					if(selectAll || !msel.is_selected(cg)){
+//						msel.select(cg, nstate);
+//						UG_ASSERT(dynamic_cast<Face*>(cg),
+//								  "constraining object of a face has to be a "
+//								  "Face!");
+//						SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+////	constrained edges
+//	{
+//		typedef ConstrainedEdge TElem;
+//		typedef MGSelector::traits<TElem>::iterator TIter;
+//		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+//			for(TIter iter = msel.begin<TElem>(lvl);
+//				iter != msel.end<TElem>(lvl); ++iter)
+//			{
+//				ConstrainedEdge* e = *iter;
+//				if(GeometricObject* cg = e->get_constraining_object()){
+//				//	we won't select pure v-masters!
+////					if(msel.get_selection_status(cg) == IS_VMASTER)
+////						continue;
+//
+//					ISelector::status_t nstate = status | msel.get_selection_status(cg);
+//					if(selectAll || !msel.is_selected(cg)){
+//						msel.select(cg, nstate);
+//						switch(cg->base_object_id()){
+//						case EDGE:
+//							SelectAssociatedSides(msel, static_cast<EdgeBase*>(cg), nstate);
+//							break;
+//						case FACE:
+//							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
+//							break;
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+////	constrained vertices
+//	{
+//		typedef ConstrainedVertex TElem;
+//		typedef MGSelector::traits<TElem>::iterator TIter;
+//		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
+//			for(TIter iter = msel.begin<TElem>(lvl);
+//				iter != msel.end<TElem>(lvl); ++iter)
+//			{
+//				ConstrainedVertex* e = *iter;
+//				if(GeometricObject* cg = e->get_constraining_object()){
+//				//	we won't select pure v-masters!
+////					if(msel.get_selection_status(cg) == IS_VMASTER)
+////						continue;
+//
+//					ISelector::status_t nstate = status | msel.get_selection_status(cg);
+//					if(selectAll || !msel.is_selected(cg)){
+//						msel.select(cg, nstate);
+//						switch(cg->base_object_id()){
+//						case EDGE:
+//							SelectAssociatedSides(msel, static_cast<EdgeBase*>(cg), nstate);
+//							break;
+//						case FACE:
+//							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
+//							break;
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//	UG_DLOG(LIB_GRID, 1, "dist-stop: SelectAssociatedConstrainingElements\n");
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
