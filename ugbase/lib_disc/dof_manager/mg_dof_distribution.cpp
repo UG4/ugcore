@@ -126,7 +126,7 @@ extract_inner_algebra_indices(TBaseElem* elem,
 				if(!is_def_in_subset(fct, si)) continue;
 
 			//	get number of DoFs in this sub-geometric object
-				const size_t numDoFsOnSub = num_dofs(fct,roid);
+				const size_t numDoFsOnSub = num_fct_dofs(fct,roid,si);
 
 			//	compute index
 				const size_t index = firstIndex + offset(roid,si,fct);
@@ -238,7 +238,7 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		if(num_dofs(subRoid,si) == 0) continue;
 
 	//	get number of DoFs in this sub-geometric object
-		const size_t numDoFsOnSub = num_dofs(fct, subRoid);
+		const size_t numDoFsOnSub = num_fct_dofs(fct, subRoid, si);
 
 	//	get the orientation for this subelement
 		ComputeOrientationOffset(vOrientOffset, elem, subElem, i, lfeid(fct));
@@ -300,7 +300,7 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 	const ReferenceObjectID roid = elem->reference_object_id();
 
 //	get number of DoFs in this sub-geometric object
-	const size_t numDoFsOnSub = num_dofs(fct,roid);
+	const size_t numDoFsOnSub = num_fct_dofs(fct,roid,si);
 
 //	check if dof given
 	if(numDoFsOnSub == 0) return ind.size();
@@ -399,7 +399,7 @@ void MGDoFDistribution::indices_on_vertex(TBaseElem* elem, const ReferenceObject
 			if(!is_def_in_subset(fct, si)) continue;
 
 		//	get number of DoFs in this sub-geometric object
-			const size_t numDoFsOnSub = num_dofs(fct,subRoid);
+			const size_t numDoFsOnSub = num_fct_dofs(fct,subRoid,si);
 
 		//	Always no orientation needed
 			if(!m_bGrouped)
@@ -453,7 +453,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 			if(!is_def_in_subset(fct, si)) continue;
 
 		//	get number of DoFs in this sub-geometric object
-			const size_t numDoFsOnSub = num_dofs(fct,subRoid);
+			const size_t numDoFsOnSub = num_fct_dofs(fct,subRoid,si);
 
 		//	Orientation is required: Thus, we compute the offsets, that are
 		//	no longer in the usual order [0, 1, 2, ...]. Orientation is

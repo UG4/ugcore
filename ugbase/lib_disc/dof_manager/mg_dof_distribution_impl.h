@@ -96,11 +96,6 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 //	if no dofs on this subset for the roid, do nothing
 	if(num_dofs(roid,si) == 0) return false;
-	if(num_dofs(roid,si) == DoFDistributionInfo::NOT_SPECIFIED) {
-		UG_THROW("DoFDistribution: Trying to add dof to element of type "<<roid<<
-		         " on Subset "<<si<<", but not all function spaces seem to "
-		         "implement the element type.");
-	}
 
 	bool master = false;
 
@@ -167,11 +162,6 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 //	if no dofs on this subset for the roid, do nothing
 	if(num_dofs(roid,si) == 0) return false;
-	if(num_dofs(roid,si) == DoFDistributionInfo::NOT_SPECIFIED) {
-		UG_THROW("DoFDistribution: Trying to add dof to element of type "<<roid<<
-		         " on Subset "<<si<<", but not all function spaces seem to "
-		         "implement the element type.");
-	}
 
 	bool master = false;
 
@@ -246,11 +236,6 @@ add_from_free(TBaseObject* obj, const ReferenceObjectID roid, const int si,
 
 //	if no dofs on this subset for the roid, do nothing
 	if(num_dofs(roid,si) == 0) return false;
-	if(num_dofs(roid,si) == DoFDistributionInfo::NOT_SPECIFIED) {
-		UG_THROW("DoFDistribution: Trying to add dof to element of type "<<roid<<
-		         " on Subset "<<si<<", but not all function spaces seem to "
-		         "implement the element type.");
-	}
 
 	bool master = false;
 

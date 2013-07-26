@@ -28,109 +28,134 @@ void DoFDistributionInfo::init()
 	create_offsets();
 }
 
-void DoFDistributionInfo::create_offsets(ReferenceObjectID roid)
-{
-	PROFILE_FUNC();
-// 	loop subsets
-	for(int si = 0; si < num_subsets(); ++si)
-	{
-	//	reset
-		m_vvNumDoFsOnROID[roid][si] = 0;
-
-	//	loop functions
-		for(size_t fct = 0; fct < num_fct(); ++fct)
-		{
-		//	if function is not defined, we leave the offset as invalid.
-			if(!is_def_in_subset(fct, si)) {
-				m_vvvOffsets[roid][si][fct] = NOT_DEF_ON_SUBSET;
-				continue;
-			}
-
-		//	get trial space
-			const CommonLocalDoFSet& clds = LocalFiniteElementProvider::get_dofs(lfeid(fct));
-
-		//	get number of DoFs on the reference element need for the space
-			const int numDoF = clds.num_dof(roid);
-
-		//	check that numDoFs specified by this roid
-			if(numDoF == NOT_SPECIFIED || m_vvNumDoFsOnROID[roid][si] == NOT_SPECIFIED){
-				m_vvNumDoFsOnROID[roid][si] = NOT_SPECIFIED;
-				m_vvvOffsets[roid][si][fct] = 0;
-				continue;
-			}
-
-		//	set offset for each function defined in the subset
-			m_vvvOffsets[roid][si][fct] = m_vvNumDoFsOnROID[roid][si];
-
-		//	increase number of DoFs per type on this subset
-			m_vvNumDoFsOnROID[roid][si] += numDoF;
-		}
-	}
-}
 
 void DoFDistributionInfo::create_offsets()
 {
 	PROFILE_FUNC();
-//	cache number of DoFs in a sub-geometric object
-	for(size_t fct = 0; fct < num_fct(); ++fct){
-		const CommonLocalDoFSet& lds = LocalFiniteElementProvider::get_dofs(lfeid(fct));
 
-		for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid){
-			m_vNumDoFOnSubelem[roid].resize(num_fct());
-			m_vNumDoFOnSubelem[roid][fct] = lds.num_dof((ReferenceObjectID)roid);
+	/////////////////////////////////////////////
+	// resize arrays and reset values to zero
+	/////////////////////////////////////////////
+
+//	resize for subsets
+	for(int gbo = VERTEX; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo){
+		m_vMaxDoFsInDim[gbo] = 0;
+		m_vvMaxDoFsInDimPerSubset[gbo].clear();
+		m_vvMaxDoFsInDimPerSubset[gbo].resize(num_subsets(), 0);
+	}
+
+	for(int roid = ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid){
+		m_vMaxDoFsOnROID[roid] = 0;
+		m_vvNumDoFsOnROIDPerSubset[roid].clear();
+		m_vvNumDoFsOnROIDPerSubset[roid].resize(num_subsets(), 0);
+	}
+
+//	resize function infos
+	m_vFctInfo.clear();
+	m_vFctInfo.resize(num_fct());
+
+	for(size_t fct = 0; fct < num_fct(); ++fct){
+
+		for(int gbo = VERTEX; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo){
+			m_vFctInfo[fct].vMaxDoFsInDim[gbo] = 0;
+			m_vFctInfo[fct].vvMaxDoFsInDimPerSubset[gbo].clear();
+			m_vFctInfo[fct].vvMaxDoFsInDimPerSubset[gbo].resize(num_subsets(), 0);
+		}
+
+		for(int roid = ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid){
+			m_vFctInfo[fct].vMaxDoFsOnROID[roid] = 0;
+			m_vFctInfo[fct].vvNumDoFsOnROIDPerSubset[roid].clear();
+			m_vFctInfo[fct].vvNumDoFsOnROIDPerSubset[roid].resize(num_subsets(), 0);
+
+			m_vFctInfo[fct].vvOffsets[roid].resize(num_subsets(), NOT_DEF_ON_SUBSET);
 		}
 	}
 
-//	loop all reference element to resize the arrays
-	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
+	/////////////////////////////////////////////
+	// compute values
+	/////////////////////////////////////////////
+
+//	loop reference element by reference element
+	for(int r = ROID_VERTEX; r < NUM_REFERENCE_OBJECTS; ++r)
 	{
-	//	clear offsets
-		m_vvvOffsets[roid].clear();
-		m_vvNumDoFsOnROID[roid].clear();
+	//	get reference element and dimension
+		const ReferenceObjectID roid = (ReferenceObjectID) r;
+		const int d = ReferenceElementDimension(roid);
 
-	//	resize for all subsets
-		m_vvvOffsets[roid].resize(num_subsets());
-		m_vvNumDoFsOnROID[roid].resize(num_subsets(), 0);
-
-	//	resize for each function
-		for(int si = 0; si < num_subsets(); ++si)
-			m_vvvOffsets[roid][si].resize(num_fct());
-	}
-
-//	loop all reference element, but not vertices (no disc there)
-	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
-		create_offsets((ReferenceObjectID) roid);
-
-//	reset dimension maximum
-	for(size_t d=0; d < NUM_GEOMETRIC_BASE_OBJECTS; ++d)
-	{
-		m_vMaxDoFsInDim[d] = 0;
-		m_vvMaxDoFsInDimPerSubset[d].resize(num_subsets(), 0);
-	}
-
-//	get max number of dofs per roid
-	for(int roid=ROID_VERTEX; roid < NUM_REFERENCE_OBJECTS; ++roid)
-	{
-	//	lets find out the maximum number of DoFs for objects in dimension
-		const int d = ReferenceElementDimension((ReferenceObjectID)roid);
-
-	// 	lets find out the maximum number for a type on all subsets
-		m_vMaxDoFsOnROID[roid] = 0;
+	//	loop subsets and functions
 		for(int si = 0; si < num_subsets(); ++si)
 		{
-			if(m_vvNumDoFsOnROID[roid][si] != NOT_SPECIFIED)
-				m_vMaxDoFsOnROID[roid] = std::max(m_vMaxDoFsOnROID[roid],
-												  (size_t)m_vvNumDoFsOnROID[roid][si]);
+			for(size_t fct = 0; fct < num_fct(); ++fct)
+			{
+			//	get dof info for space
+				const CommonLocalDoFSet& lds =
+							LocalFiniteElementProvider::get_dofs(lfeid(fct));
 
-			if(m_vvNumDoFsOnROID[roid][si] != NOT_SPECIFIED)
-				m_vvMaxDoFsInDimPerSubset[d][si] = std::max(m_vvMaxDoFsInDimPerSubset[d][si],
-				                                            (size_t)m_vvNumDoFsOnROID[roid][si]);
-		}
+			//	function info
+				FctInfo& fi = m_vFctInfo[fct];
 
-	//	compute maximum per dim objects
-		m_vMaxDoFsInDim[d] = std::max(m_vMaxDoFsInDim[d],
-		                              m_vMaxDoFsOnROID[roid]);
-	}
+			//	get numDoFs on (fct,roid,si)
+				size_t numFctDoFOnROIDPerSubset = 0;
+
+			//	if number specified by the space, set it
+				if(lds.num_dof(roid) != CommonLocalDoFSet::NOT_SPECIFIED)
+					numFctDoFOnROIDPerSubset = (size_t)lds.num_dof(roid);
+
+			//	if function not defined on subset, number of DoFs is zero
+				if(!is_def_in_subset(fct, si))
+					numFctDoFOnROIDPerSubset = 0;
+
+
+				///// Infos on fct //////
+
+
+				// set num DoFs (always >= 0)
+				fi.vvNumDoFsOnROIDPerSubset[roid][si] = numFctDoFOnROIDPerSubset;
+
+				// get fct maximum on roid on whole grid (always >= 0)
+				fi.vMaxDoFsOnROID[roid] =
+					std::max(fi.vMaxDoFsOnROID[roid], numFctDoFOnROIDPerSubset);
+
+				// get fct maximum in dimension per subset (always >= 0)
+				fi.vvMaxDoFsInDimPerSubset[d][si] =
+					std::max(fi.vvMaxDoFsInDimPerSubset[d][si], numFctDoFOnROIDPerSubset);
+
+				// get fct maximum in dimension on whole grid (always >= 0)
+				fi.vMaxDoFsInDim[d] =
+					std::max(fi.vMaxDoFsInDim[d], numFctDoFOnROIDPerSubset);
+
+
+				///// Summarize over functions //////
+
+				//	set offset for each function defined in the subset
+				fi.vvOffsets[roid][si] = m_vvNumDoFsOnROIDPerSubset[roid][si];
+
+				// count number of dofs on (roid, si)
+				m_vvNumDoFsOnROIDPerSubset[roid][si] += numFctDoFOnROIDPerSubset;
+
+			} // end fct
+		} // end subset
+
+
+		// loop subsets and sum up global maxima
+		for(int si = 0; si < num_subsets(); ++si)
+		{
+			const size_t numDoFOnROIDPerSubset = m_vvNumDoFsOnROIDPerSubset[roid][si];
+
+			// get maximum in dimension on whole grid (always >= 0)
+			m_vMaxDoFsOnROID[roid] =
+				std::max(m_vMaxDoFsOnROID[roid], numDoFOnROIDPerSubset);
+
+			// get maximum in dimension per subset (always >= 0)
+			m_vvMaxDoFsInDimPerSubset[d][si] =
+				std::max(m_vvMaxDoFsInDimPerSubset[d][si], numDoFOnROIDPerSubset);
+
+			// get maximum on roid on whole grid (always >= 0)
+			m_vMaxDoFsInDim[d] =
+				std::max(m_vMaxDoFsInDim[d], numDoFOnROIDPerSubset);
+		} // end subset
+
+	} // end roid
 }
 
 void DoFDistributionInfo::print_local_dof_statistic(int verboseLev) const
@@ -211,7 +236,7 @@ void DoFDistributionInfo::print_local_dof_statistic(int verboseLev) const
 		UG_LOG(" " << setw(16) << roid << " |");
 		UG_LOG("   "<<setw(4) << m_vMaxDoFsOnROID[roid] << "    |");
 		for(int si = 0; si < num_subsets(); ++si)
-			UG_LOG("   "<<setw(4) << m_vvNumDoFsOnROID[roid][si] << "    |");
+			UG_LOG("   "<<setw(4) << m_vvNumDoFsOnROIDPerSubset[roid][si] << "    |");
 
 		UG_LOG("\n");
 	}
