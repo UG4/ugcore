@@ -21,7 +21,7 @@ Partitioner_Parmetis<dim>::
 Partitioner_Parmetis() :
 	m_mg(NULL),
 	m_childWeight(1),
-	m_siblingWeight(100),
+	m_siblingWeight(2),
 	m_regardAllChildren(false)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
