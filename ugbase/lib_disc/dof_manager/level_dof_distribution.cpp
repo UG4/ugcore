@@ -493,7 +493,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 				const ReferenceObjectID roid = (ReferenceObjectID) i;
 				if(num_dofs(roid,si) == 0) continue;
 				if(numDoFs == 0) {numDoFs = num_dofs(roid,si); continue;}
-				if(num_dofs(roid,si) != (int)numDoFs)
+				if(num_dofs(roid,si) != numDoFs)
 					UG_THROW("LevelDoFDistribution::get_connections: "
 							"Currently only implemented iff same number of DoFs on"
 							" all geometric objects in all subsets: \n"
