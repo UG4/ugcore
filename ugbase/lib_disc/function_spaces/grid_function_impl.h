@@ -279,36 +279,41 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 
 	// before coarsening: restrict values
 	if(msg.coarsening() && msg.step_begins()){
-		Grid& grid = *domain()->grid();
-		typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
-		if(m_spDDI->max_dofs(VERTEX)){
-			ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-			pcl::InterfaceCommunicator<VertexLayout> com;
-			com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-							  INT_V_SLAVE, INT_V_MASTER, compol);
-			com.communicate();
-		}
-		if(m_spDDI->max_dofs(EDGE)){
-			ComPol_CopyAttachment<EdgeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-			pcl::InterfaceCommunicator<EdgeLayout> com;
-			com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-							  INT_V_SLAVE, INT_V_MASTER, compol);
-			com.communicate();
-		}
-		if(m_spDDI->max_dofs(FACE)){
-			ComPol_CopyAttachment<FaceLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-			pcl::InterfaceCommunicator<FaceLayout> com;
-			com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-							  INT_V_SLAVE, INT_V_MASTER, compol);
-			com.communicate();
-		}
-		if(m_spDDI->max_dofs(VOLUME)){
-			ComPol_CopyAttachment<VolumeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-			pcl::InterfaceCommunicator<VolumeLayout> com;
-			com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-							  INT_V_SLAVE, INT_V_MASTER, compol);
-			com.communicate();
-		}
+		#ifdef UG_PARALLEL
+		//	since ghosts may exist in a parallel environment and since those ghosts
+		//	may be removed during coarsening, we have to make sure, that the correct
+		//	values are stored in those ghosts before restriction is performed.
+			Grid& grid = *domain()->grid();
+			typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
+			if(m_spDDI->max_dofs(VERTEX)){
+				ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+				pcl::InterfaceCommunicator<VertexLayout> com;
+				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+								  INT_V_SLAVE, INT_V_MASTER, compol);
+				com.communicate();
+			}
+			if(m_spDDI->max_dofs(EDGE)){
+				ComPol_CopyAttachment<EdgeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+				pcl::InterfaceCommunicator<EdgeLayout> com;
+				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+								  INT_V_SLAVE, INT_V_MASTER, compol);
+				com.communicate();
+			}
+			if(m_spDDI->max_dofs(FACE)){
+				ComPol_CopyAttachment<FaceLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+				pcl::InterfaceCommunicator<FaceLayout> com;
+				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+								  INT_V_SLAVE, INT_V_MASTER, compol);
+				com.communicate();
+			}
+			if(m_spDDI->max_dofs(VOLUME)){
+				ComPol_CopyAttachment<VolumeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+				pcl::InterfaceCommunicator<VolumeLayout> com;
+				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+								  INT_V_SLAVE, INT_V_MASTER, compol);
+				com.communicate();
+			}
+		#endif
 		m_spAdaptGridFct->do_restrict(msg);
 	}
 
