@@ -367,8 +367,8 @@ grid(Grid& gridOut, size_t index,
 				
 				default:
 				{
-					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining vertex"
-							<< " at " << GetGeometricObjectCenter(grid, hv) << "\n");
+//					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining vertex"
+//							<< " at " << GetGeometricObjectCenter(grid, hv) << "\n");
 					break;
 				}
 			}
@@ -425,8 +425,8 @@ grid(Grid& gridOut, size_t index,
 				
 				default:
 				{
-					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining edge"
-							<< " at " << GetGeometricObjectCenter(grid, ce) << "\n");
+//					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining edge"
+//							<< " at " << GetGeometricObjectCenter(grid, ce) << "\n");
 					break;
 				}
 			}
@@ -465,8 +465,8 @@ grid(Grid& gridOut, size_t index,
 				
 				default:
 				{
-					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining triangle"
-							<< " at " << GetGeometricObjectCenter(grid, cdf) << "\n");
+//					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining triangle"
+//							<< " at " << GetGeometricObjectCenter(grid, cdf) << "\n");
 					break;
 				}
 			}
@@ -505,8 +505,8 @@ grid(Grid& gridOut, size_t index,
 				
 				default:
 				{
-					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining quadrilateral"
-							<< " at " << GetGeometricObjectCenter(grid, cdf) << "\n");
+//					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining quadrilateral"
+//							<< " at " << GetGeometricObjectCenter(grid, cdf) << "\n");
 					break;
 				}
 			}
