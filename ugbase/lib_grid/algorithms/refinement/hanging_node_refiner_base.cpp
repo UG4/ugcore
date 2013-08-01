@@ -12,7 +12,7 @@
 
 //define PROFILE_HANGING_NODE_REFINER if you want to profile
 //the refinement code.
-//#define PROFILE_HANGING_NODE_REFINER
+#define PROFILE_HANGING_NODE_REFINER
 #ifdef PROFILE_HANGING_NODE_REFINER
 	#define HNODE_PROFILE_FUNC()	PROFILE_FUNC()
 	#define HNODE_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
@@ -293,21 +293,26 @@ void HangingNodeRefinerBase::perform_refinement()
 	vector<Face*>	 	vFaces;
 	vector<Volume*>		vVols;
 
+	HNODE_PROFILE_BEGIN(href_AdjustingMarks);
 //	fills the queues with the elements that have to be refined.
 	collect_objects_for_refine();
 //	assigns hnode marks
 	assign_hnode_marks();
+	HNODE_PROFILE_END();
 
 //	if a debug file was specified, we'll now save the marks to that file
 	if(!m_adjustedMarksDebugFilename.empty())
 		save_marks_to_file(m_adjustedMarksDebugFilename.c_str());
 
 //	call pre_refine to allow derived classes to perform some actions
+	HNODE_PROFILE_BEGIN(href_PreRefine);
 	pre_refine();
+	HNODE_PROFILE_END();
 
 ////////////////////////////////
 //	ConstrainedVertices
 	UG_DLOG(LIB_GRID, 1, "  constrained vertices.\n");
+	HNODE_PROFILE_BEGIN(href_ConstrainedVertices);
 	for(ConstrainedVertexIterator iter = m_selMarkedElements.begin<ConstrainedVertex>();
 		iter != m_selMarkedElements.end<ConstrainedVertex>();)
 	{
@@ -315,10 +320,12 @@ void HangingNodeRefinerBase::perform_refinement()
 		++iter;
 		process_constrained_vertex(cdv);
 	}
+	HNODE_PROFILE_END();
 
 ////////////////////////////////
 //	ConstrainedEdges
 	UG_DLOG(LIB_GRID, 1, "  constrained edges.\n");
+	HNODE_PROFILE_BEGIN(href_ConstrainedEdges);
 	for(ConstrainedEdgeIterator iter = m_selMarkedElements.begin<ConstrainedEdge>();
 		iter != m_selMarkedElements.end<ConstrainedEdge>();)
 	{
@@ -326,11 +333,13 @@ void HangingNodeRefinerBase::perform_refinement()
 		++iter;
 		process_constrained_edge(cde);
 	}
+	HNODE_PROFILE_END();
 
-	UG_DLOG(LIB_GRID, 1, "  constraining edges.\n");
 ////////////////////////////////
 //	ConstrainingEdges
 //	iterate through scheduled cg-edges
+	UG_DLOG(LIB_GRID, 1, "  constraining edges.\n");
+	HNODE_PROFILE_BEGIN(href_ConstrainingEdges);
 	{
 		ConstrainingEdgeIterator iter = m_selMarkedElements.begin<ConstrainingEdge>();
 		while(iter != m_selMarkedElements.end<ConstrainingEdge>()){
@@ -339,11 +348,13 @@ void HangingNodeRefinerBase::perform_refinement()
 			process_constraining_edge(cge);
 		}
 	}
+	HNODE_PROFILE_END();
 
-	UG_DLOG(LIB_GRID, 1, "  normal edges.\n");
 ////////////////////////////////
 //	Normal Edges
 //	iterate through scheduled edges
+	UG_DLOG(LIB_GRID, 1, "  normal edges.\n");
+	HNODE_PROFILE_BEGIN(href_NormalEdges);
 	{
 		EdgeIterator iter = m_selMarkedElements.begin<Edge>();
 		while(iter != m_selMarkedElements.end<Edge>())
@@ -362,10 +373,12 @@ void HangingNodeRefinerBase::perform_refinement()
 			}
 		}
 	}
+	HNODE_PROFILE_END();
 
 
 ////////////////////////////////
 //	Faces
+	HNODE_PROFILE_BEGIN(href_ConstrainedFaces);
 	UG_DLOG(LIB_GRID, 1, "  constrained triangles.\n");
 	for(ConstrainedTriangleIterator iter = m_selMarkedElements.begin<ConstrainedTriangle>();
 		iter != m_selMarkedElements.end<ConstrainedTriangle>();)
@@ -383,7 +396,9 @@ void HangingNodeRefinerBase::perform_refinement()
 		++iter;
 		process_constrained_face(cdf);
 	}
+	HNODE_PROFILE_END();
 
+	HNODE_PROFILE_BEGIN(href_ConstrainingFaces);
 	UG_DLOG(LIB_GRID, 1, "  constraining triangles.\n");
 //	constraining triangles
 	{
@@ -405,7 +420,9 @@ void HangingNodeRefinerBase::perform_refinement()
 			process_constraining_face(cgf);
 		}
 	}
+	HNODE_PROFILE_END();
 
+	HNODE_PROFILE_BEGIN(href_NormalFaces);
 	UG_DLOG(LIB_GRID, 1, "  normal triangles.\n");
 //	normal triangles
 	{
@@ -441,10 +458,12 @@ void HangingNodeRefinerBase::perform_refinement()
 				refine_face_with_normal_vertex(f);
 		}
 	}
+	HNODE_PROFILE_END();
 
 ////////////////////////////////
 //	Volumes
 	UG_DLOG(LIB_GRID, 1, "  volumes.\n");
+	HNODE_PROFILE_BEGIN(href_Volumes);
 	{
 		VolumeIterator iter = m_selMarkedElements.begin<Volume>();
 		while(iter != m_selMarkedElements.end<Volume>()){
@@ -454,28 +473,35 @@ void HangingNodeRefinerBase::perform_refinement()
 				refine_volume_with_normal_vertex(vol);
 		}
 	}
+	HNODE_PROFILE_END();
 
 	UG_DLOG(LIB_GRID, 1, "  refinement done.\n");
 
 
 ////////////////////////////////
 //	call post_refine to allow derived classes to perform some actions
+	HNODE_PROFILE_BEGIN(href_PostRefine);
 	post_refine();
+	HNODE_PROFILE_END();
 
 
 ////////////////////////////////
 //	Clean up
 //	clear the refinement-callback if necessary
+	HNODE_PROFILE_BEGIN(href_CleanUp);
 	if(localRefCallbackSet){
 		delete m_refCallback;
 		m_refCallback = NULL;
 	}
 
 	clear_marks();
+	HNODE_PROFILE_END();
 	UG_DLOG(LIB_GRID, 1, "  done.\n");
 
 //	notify the grid's message hub that refinement ends
+	HNODE_PROFILE_BEGIN(href_AdaptionEndsMessage);
 	grid.message_hub()->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
+	HNODE_PROFILE_END();
 }
 
 template <class TElem>
@@ -829,8 +855,6 @@ process_constraining_edge(ConstrainingEdge* cge)
 void HangingNodeRefinerBase::
 refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
-	HNODE_PROFILE_FUNC();
-
 	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
 
 //	the grid
@@ -854,8 +878,6 @@ refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 void HangingNodeRefinerBase::
 refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
-	HNODE_PROFILE_FUNC();
-
 	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
 
 	Grid& grid = *m_pGrid;
@@ -899,8 +921,6 @@ refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 void HangingNodeRefinerBase::
 refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 {
-	HNODE_PROFILE_FUNC();
-
 	UG_ASSERT(refinement_is_allowed(f), "Refinement of given face not allowed!");
 
 //UG_LOG("refine_face_with_normal_vertex\n");
@@ -949,8 +969,6 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 void HangingNodeRefinerBase::
 refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 {
-	HNODE_PROFILE_FUNC();
-
 	UG_ASSERT(refinement_is_allowed(f), "Refinement of given face not allowed!");
 
 //UG_LOG("refine_face_with_hanging_vertex\n");
@@ -1134,7 +1152,6 @@ process_constrained_face(ConstrainedFace* cdf)
 void HangingNodeRefinerBase::
 process_constraining_face(ConstrainingFace* cgf)
 {
-	HNODE_PROFILE_FUNC();
 	Grid& grid = *m_pGrid;
 /*
 	size_t numVrts = cgf->num_vertices();
@@ -1217,8 +1234,6 @@ process_constraining_face(ConstrainingFace* cgf)
 void HangingNodeRefinerBase::
 refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 {
-	HNODE_PROFILE_FUNC();
-
 	UG_ASSERT(refinement_is_allowed(v), "Refinement of given volume not allowed!");
 
 	Grid& grid = *m_pGrid;
