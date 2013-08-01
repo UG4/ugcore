@@ -148,7 +148,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 			CT_TO_CONSTRAINING = 3
 		};
 
-		ComPol_AdjustType(Selector& sel, DistributedGridManager& distGridMgr)
+		ComPol_AdjustType(ISelector& sel, DistributedGridManager& distGridMgr)
 			 :	m_sel(sel), m_distGridMgr(distGridMgr)
 		{}
 
@@ -161,9 +161,9 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 		virtual bool
 		collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			const int TO_NORMAL = HangingNodeRefinerBase::HNRM_TO_NORMAL;
-			const int TO_CONSTRAINED = HangingNodeRefinerBase::HNRM_TO_CONSTRAINED;
-			const int TO_CONSTRAINING = HangingNodeRefinerBase::HNRM_TO_CONSTRAINING;
+			const int TO_NORMAL = HangingNodeRefiner_MultiGrid::HNRM_TO_NORMAL;
+			const int TO_CONSTRAINED = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINED;
+			const int TO_CONSTRAINING = HangingNodeRefiner_MultiGrid::HNRM_TO_CONSTRAINING;
 
 		//	search for entries which changed their constrained/constraining status
 			UG_ASSERT(m_distGridMgr.get_assigned_grid(),
@@ -262,7 +262,7 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 		}
 
 	private:
-		Selector& 				m_sel;
+		ISelector& 				m_sel;
 		DistributedGridManager&	m_distGridMgr;
 };
 
@@ -475,7 +475,7 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 		typedef typename Layout::Interface			Interface;
 		typedef typename Interface::const_iterator	InterfaceIter;
 
-		ComPol_BroadcastCoarsenMarks(Selector& sel, bool allowDeselection = false)
+		ComPol_BroadcastCoarsenMarks(ISelector& sel, bool allowDeselection = false)
 			 :	m_sel(sel), m_allowDeselection(allowDeselection)
 		{}
 
@@ -538,7 +538,7 @@ class ComPol_BroadcastCoarsenMarks : public pcl::ICommunicationPolicy<TLayout>
 			return true;
 		}
 
-		Selector& m_sel;
+		ISelector& m_sel;
 		bool m_allowDeselection;
 };
 

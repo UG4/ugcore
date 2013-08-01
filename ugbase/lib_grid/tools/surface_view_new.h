@@ -44,18 +44,19 @@ class SurfaceView
 			typedef ConstSurfaceViewElementIterator<TElem>	const_iterator;
 		};
 
-		enum SurfaceState{
-			SS_NONE = 0,
-			SS_SURFACE = 1,
-			SS_HIDDEN = 1<<1,
-			SS_SHADOW = SS_SURFACE | SS_HIDDEN,
-			SS_SHADOWING = 1<<2
-//			SS_SHADOW_WITH_ONE_CHILD = 1<<3 | SS_SHADOW,
-//			SS_SHADOW_WITH_MANY_CHILDREN = 1<<4 | SS_SHADOW,
-//			SS_GHOST = 1<<5
+		enum SurfaceConstants{
+			UNASSIGNED = 0,
+			PURE_SURFACE = 1,
+			SHADOWING = 1 << 1,
+			SHADOW_COPY = 1 << 2,
+			SHADOW_NONCOPY = 1 << 3,
+
+			SHADOW = SHADOW_COPY | SHADOW_NONCOPY,
+			SURFACE = PURE_SURFACE | SHADOWING | SHADOW,
+			SURFACE_NONCOPY = PURE_SURFACE | SHADOWING | SHADOW_NONCOPY
 		};
-		typedef Flag<SurfaceState, byte, SS_NONE>	SurfaceFlag;
-		typedef Attachment<SurfaceFlag>				ASurfaceState;
+		typedef Flag<SurfaceConstants, byte, SS_NONE>	SurfaceState;
+		typedef Attachment<SurfaceState>				ASurfaceState;
 
 	public:
 		SurfaceView(SmartPtr<MGSubsetHandler> spMGSH,
@@ -78,28 +79,36 @@ class SurfaceView
 	///	iterators of grid level
 	///	\{
 		template <class TElem>
-		typename traits<TElem>::iterator begin(int si, const GridLevel& gl);
+		typename traits<TElem>::iterator
+		begin(int si, const GridLevel& gl, SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
-		typename traits<TElem>::iterator end(int si, const GridLevel& gl);
+		typename traits<TElem>::iterator
+		end(int si, const GridLevel& gl, SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
-		typename traits<TElem>::const_iterator begin(int si, const GridLevel& gl) const;
+		typename traits<TElem>::const_iterator
+		begin(int si, const GridLevel& gl, SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 
 		template <class TElem>
-		typename traits<TElem>::const_iterator end(int si, const GridLevel& gl) const;
+		typename traits<TElem>::const_iterator
+		end(int si, const GridLevel& gl, SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 
 		template <class TElem>
-		typename traits<TElem>::iterator begin(const GridLevel& gl);
+		typename traits<TElem>::iterator
+		begin(const GridLevel& gl, SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
-		typename traits<TElem>::iterator end(const GridLevel& gl);
+		typename traits<TElem>::iterator
+		end(const GridLevel& gl, SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
-		typename traits<TElem>::const_iterator begin(const GridLevel& gl) const;
+		typename traits<TElem>::const_iterator
+		begin(const GridLevel& gl, SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 
 		template <class TElem>
-		typename traits<TElem>::const_iterator end(const GridLevel& gl) const;
+		typename traits<TElem>::const_iterator
+		end(const GridLevel& gl, SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 	///	\}
 
 
@@ -107,76 +116,92 @@ class SurfaceView
 	///	\{
 		template <class TElem>
 		typename traits<TElem>::iterator
-		surface_begin(int lvl = TOPLEVEL, bool withGhosts = false);
+		surface_begin(int lvl = TOPLEVEL, bool withGhosts = false,
+					  SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		surface_end(int lvl = TOPLEVEL, bool withGhosts = false);
+		surface_end(int lvl = TOPLEVEL, bool withGhosts = false,
+					SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		surface_begin(int lvl = TOPLEVEL, bool withGhosts = false) const;
+		surface_begin(int lvl = TOPLEVEL, bool withGhosts = false,
+					  SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		surface_end(int lvl = TOPLEVEL, bool withGhosts = false) const;
+		surface_end(int lvl = TOPLEVEL, bool withGhosts = false,
+					SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 	///	\}
 
 	///	iterators over subset of surface grid w.r.t to level 'lvl
 	///	 \{
 		template <class TElem>
 		typename traits<TElem>::iterator
-		surface_begin(int si, int lvl = TOPLEVEL, bool withGhosts = false);
+		surface_begin(int si, int lvl = TOPLEVEL, bool withGhosts = false,
+					  SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		surface_end(int si, int lvl = TOPLEVEL, bool withGhosts = false);
+		surface_end(int si, int lvl = TOPLEVEL, bool withGhosts = false,
+					SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		surface_begin(int si, int lvl = TOPLEVEL, bool withGhosts = false) const;
+		surface_begin(int si, int lvl = TOPLEVEL, bool withGhosts = false,
+					  SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		surface_end(int si, int lvl = TOPLEVEL, bool withGhosts = false) const;
+		surface_end(int si, int lvl = TOPLEVEL, bool withGhosts = false,
+					SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 	///	\}
 
 	///	iterators over whole level grid w.r.t to level 'lvl'
 	///	\{
 		template <class TElem>
 		typename traits<TElem>::iterator
-		level_begin(int lvl, bool withGhosts = false);
+		level_begin(int lvl, bool withGhosts = false,
+					SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		level_end(int lvl, bool withGhosts = false);
+		level_end(int lvl, bool withGhosts = false,
+				  SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		level_begin(int lvl, bool withGhosts = false) const;
+		level_begin(int lvl, bool withGhosts = false,
+					SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		level_end(int lvl, bool withGhosts = false) const;
+		level_end(int lvl, bool withGhosts = false,
+				  SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 	///	\}
 
 	///	iterators over subset of level grid w.r.t to level 'lvl
 	///	 \{
 		template <class TElem>
 		typename traits<TElem>::iterator
-		level_begin(int si, int lvl, bool withGhosts = false);
+		level_begin(int si, int lvl, bool withGhosts = false,
+					SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		level_end(int si, int lvl, bool withGhosts = false);
+		level_end(int si, int lvl, bool withGhosts = false,
+				  SurfaceState validSurfStates = SURFACE_NONCOPY);
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		level_begin(int si, int lvl, bool withGhosts = false) const;
+		level_begin(int si, int lvl, bool withGhosts = false,
+					SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		level_end(int si, int lvl, bool withGhosts = false) const;
+		level_end(int si, int lvl, bool withGhosts = false,
+				  SurfaceState validSurfStates = SURFACE_NONCOPY) const;
 	///	\}
 
 	///	returns the level in grid hierarchy of an element in the surface
@@ -192,10 +217,10 @@ class SurfaceView
 	 * \sa SurfaceView::is_shadowed, SurfaceView::is_shadowing
 	 * \{ */
 		template <class TGeomObj>
-		inline bool is_surface_element(TGeomObj* obj) const;
+		inline bool is_pure_surface_element(TGeomObj* obj) const;
 
 		template <class TGeomObj>
-		inline bool is_surface_element(TGeomObj* obj, int topLevel) const;
+		inline bool is_pure_surface_element(TGeomObj* obj, int topLevel) const;
 	/** \} */
 
 	///	returns if the element is ghost
@@ -240,7 +265,7 @@ class SurfaceView
 	 *
 	 * \note a protected non-const version exists, which returns a reference to the state.*/
 		template <class TElem>
-		SurfaceFlag surface_state(TElem* elem) const		{return m_aaSurfState[elem];}
+		SurfaceState surface_state(TElem* elem) const		{return m_aaSurfState[elem];}
 
 	///	returns the adjacend elements w.r.t. the surface view
 		template <typename TElem, typename TBaseElem>
@@ -265,7 +290,8 @@ class SurfaceView
 				SurfaceViewElementIterator(SurfaceView* surfView,
 				                           int fromSubset, int toSubset,
 				                           int startLvl, int topLvl,
-				                           bool start, bool withGhosts);
+				                           bool start, bool withGhosts,
+				                           SurfaceState validStates);
 
 			public:
 				this_type operator ++()	{increment(); return *this;}
@@ -304,6 +330,7 @@ class SurfaceView
 				typename geometry_traits<TElem>::iterator m_iterEndSection;
 				SurfaceView* m_surfView;
 				bool m_bWithGhosts;
+				SurfaceState m_validSurfStates;
 		};
 
 	///	Const iterator to traverse the surface of a multi-grid hierarchy
@@ -326,7 +353,8 @@ class SurfaceView
 				ConstSurfaceViewElementIterator(const SurfaceView* surfView,
 				                                int fromSubset, int toSubset,
 				                                int startLvl, int topLvl,
-				                                bool start, bool withGhosts);
+				                                bool start, bool withGhosts,
+				                                SurfaceState validStates);
 
 			public:
 				this_type operator ++()	{increment(); return *this;}
@@ -365,6 +393,7 @@ class SurfaceView
 				typename geometry_traits<TElem>::const_iterator m_iterEndSection;
 				const SurfaceView* m_surfView;
 				bool m_bWithGhosts;
+				SurfaceState m_validSurfStates;
 			};
 
 	private:
@@ -386,7 +415,7 @@ class SurfaceView
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <class TElem, class TSide>
 		void mark_sides_as_surface_or_shadow(TElem* elem,
-											 byte surfaceState = SS_SURFACE);
+											 byte surfaceState = PURE_SURFACE);
 
 		template <class TElem>
 		void mark_shadowing(bool markSides = false);
@@ -396,7 +425,7 @@ class SurfaceView
 		void adjust_parallel_surface_states();
 
 		template <class TElem>
-		SurfaceFlag& surface_state(TElem* elem)		{return m_aaSurfState[elem];}
+		SurfaceState& surface_state(TElem* elem)		{return m_aaSurfState[elem];}
 
 //		template <class TElem>
 //		void set_surface_state(TElem* elem, byte ss)	{m_aaElemSurfState[elem] = ss;}

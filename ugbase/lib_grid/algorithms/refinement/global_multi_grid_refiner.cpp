@@ -119,8 +119,14 @@ void GlobalMultiGridRefiner::perform_refinement()
 		}
 	}
 
+	if(mg.num_levels() == 0)
+		return;
+
 //	the old top level
 	int oldTopLevel = mg.num_levels() - 1;
+	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS,
+													mg.get_geometric_objects(oldTopLevel)));
+
 	UG_DLOG(LIB_GRID, 1, "REFINER: reserving memory...");
 
 //	reserve enough memory to speed up the algo
@@ -393,6 +399,9 @@ void GlobalMultiGridRefiner::perform_refinement()
 		delete m_refCallback;
 		m_refCallback = NULL;
 	}
+
+	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS,
+													mg.get_geometric_objects(oldTopLevel)));
 
 	UG_DLOG(LIB_GRID, 1, "  refinement done.");
 }

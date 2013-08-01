@@ -25,49 +25,28 @@ IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
                     SmartPtr<grid_type> spMG,
                     const AlgebraType& algebraType)
-:	 DoFDistributionInfoProvider(),
-     m_spMG(spMG),
- 	 m_spMGSH(spMGSH),
- 	 m_spDoFDistributionInfo(new DoFDistributionInfo(spMGSH)),
- 	 m_bAdaptionIsActive(false),
-	 m_algebraType(algebraType)
-#ifdef UG_PARALLEL
-	, m_pDistGridMgr(NULL)
-#endif
 {
-	this->set_dof_distribution_info(m_spDoFDistributionInfo);
-
-//	get blocksize of algebra
-	const int blockSize = m_algebraType.blocksize();
-
-//	a)	If blocksize fixed and > 1, we need grouping in dof manager. Thus,
-//		the dofmanager hopefully fits (i.e. same number of grouped
-//		dofs everywhere.)
-	if(blockSize > 1) m_bGrouped = true;
-//	b) 	If blocksize flexible, we group
-	else if (blockSize == AlgebraType::VariableBlockSize) m_bGrouped = true;
-//	c)	If blocksize == 1, we do not group. This will allow us to handle
-//		this case for any problem.
-	else if (blockSize == 1) m_bGrouped = false;
-	else
-		UG_THROW("Cannot determine blocksize of Algebra.");
-
-	register_at_adaption_msg_hub();
+	init(spMGSH, spMG, algebraType);
 }
 
 IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
                     SmartPtr<grid_type> spMG)
-	: DoFDistributionInfoProvider(),
-	  m_spMG(spMG),
-	  m_spMGSH(spMGSH),
-	  m_spDoFDistributionInfo(new DoFDistributionInfo(spMGSH)),
-	  m_bAdaptionIsActive(false),
-	  m_algebraType(DefaultAlgebra::get())
-#ifdef UG_PARALLEL
-	, m_pDistGridMgr(NULL)
-#endif
 {
+	init(spMGSH, spMG, DefaultAlgebra::get());
+}
+
+void IApproximationSpace::
+init(SmartPtr<subset_handler_type> spMGSH,
+     SmartPtr<grid_type> spMG,
+     const AlgebraType& algebraType)
+{
+	m_spMG = spMG;
+	m_spMGSH = spMGSH;
+	m_spDoFDistributionInfo = SmartPtr<DoFDistributionInfo>(new DoFDistributionInfo(spMGSH));
+	m_algebraType = algebraType;
+	m_bAdaptionIsActive = false;
+
 	this->set_dof_distribution_info(m_spDoFDistributionInfo);
 
 //	get blocksize of algebra
@@ -85,8 +64,10 @@ IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
 	else
 		UG_THROW("Cannot determine blocksize of Algebra.");
 
+//	this class listens to the grid-adaption-messages
 	register_at_adaption_msg_hub();
 }
+
 
 IApproximationSpace::
 ~IApproximationSpace()
@@ -182,82 +163,6 @@ add(const char* name, const char* fetype, const char* subsets)
 	add(TokenizeTrimString(name), fetype, TokenizeTrimString(subsets));
 }
 
-
-
-void IApproximationSpace::register_at_adaption_msg_hub()
-{
-//	register function for grid adaption
-	SPMessageHub msgHub = m_spMGSH->multi_grid()->message_hub();
-	m_spGridAdaptionCallbackID =
-		msgHub->register_class_callback(this,
-		&ug::IApproximationSpace::grid_changed_callback);
-
-	m_spGridDistributionCallbackID =
-		msgHub->register_class_callback(this,
-		&ug::IApproximationSpace::grid_distribution_callback);
-}
-
-void IApproximationSpace::
-grid_changed_callback(const GridMessage_Adaption& msg)
-{
-	if(msg.adaption_begins())
-		m_bAdaptionIsActive = true;
-
-	else if(m_bAdaptionIsActive){
-		if(msg.adaptive()){
-			if(msg.adaption_ends())
-			{
-				defragment();
-				m_bAdaptionIsActive = false;
-			}
-		}
-	}
-
-	else{
-		UG_THROW("Before any grid-adaption may be performed, the approximation"
-				" space has to be informed that grid-adaption shall begin. "
-				"You may use IRefiner::grid_adaption_begins() or schedule "
-				"an appropriate message to the associated grids message-hub.");
-	}
-}
-
-void IApproximationSpace::
-grid_distribution_callback(const GridMessage_Distribution& msg)
-{
-	switch(msg.msg()){
-		case GMDT_DISTRIBUTION_STARTS:
-			if(m_spLevMGDD.valid())
-				m_spLevMGDD->begin_parallel_redistribution();
-			if(m_spTopSurfDD.valid())
-				m_spTopSurfDD->begin_parallel_redistribution();
-
-			for(size_t i = 0; i < m_vSurfDD.size(); ++i){
-				if(m_vSurfDD[i].valid())
-					m_vSurfDD[i]->begin_parallel_redistribution();
-			}
-			break;
-
-		case GMDT_GRID_SERIALIZATION_DONE:
-			if(m_spSurfaceView.valid())
-				m_spSurfaceView->refresh_surface_states();
-
-			if(m_spLevMGDD.valid())
-				m_spLevMGDD->end_parallel_redistribution();
-			if(m_spTopSurfDD.valid())
-				m_spTopSurfDD->end_parallel_redistribution();
-
-			for(size_t i = 0; i < m_vSurfDD.size(); ++i){
-				if(m_vSurfDD[i].valid())
-					m_vSurfDD[i]->end_parallel_redistribution();
-			}
-
-			defragment();
-			break;
-
-		default:
-			break;
-	}
-}
 
 bool IApproximationSpace::levels_enabled() const
 {
@@ -378,27 +283,79 @@ void IApproximationSpace::init_top_surface()
 	top_surf_dd_required();
 }
 
-void IApproximationSpace::defragment()
+void IApproximationSpace::reinit()
 {
 	PROFILE_FUNC();
 //	update surface view
 	if(m_spSurfaceView.valid())
 		m_spSurfaceView->refresh_surface_states();
 
-//	defragment level dd
+//	level dd
 	if(m_spLevMGDD.valid())
 		if(num_levels() > m_vLevDD.size())
 			level_dd_required(m_vLevDD.size(), num_levels()-1);
 
-	for(size_t lev = 0; lev < m_vLevDD.size(); ++lev)
-		if(m_vLevDD[lev].valid()) m_vLevDD[lev]->defragment();
+	if(m_spLevMGDD.valid())
+		m_spLevMGDD->reinit();
 
-//	defragment top dd
-	if(m_spTopSurfDD.valid()) m_spTopSurfDD->defragment();
+//	top dd
+	if(m_spTopSurfDD.valid()) m_spTopSurfDD->reinit();
 
-//	defragment surface dd
+//	surface dd
 	for(size_t lev = 0; lev < m_vSurfDD.size(); ++lev)
-		if(m_vSurfDD[lev].valid()) m_vSurfDD[lev]->defragment();
+		if(m_vSurfDD[lev].valid()) m_vSurfDD[lev]->reinit();
+}
+
+
+void IApproximationSpace::register_at_adaption_msg_hub()
+{
+//	register function for grid adaption
+	SPMessageHub msgHub = m_spMGSH->multi_grid()->message_hub();
+	m_spGridAdaptionCallbackID =
+		msgHub->register_class_callback(this,
+		&ug::IApproximationSpace::grid_changed_callback);
+
+	m_spGridDistributionCallbackID =
+		msgHub->register_class_callback(this,
+		&ug::IApproximationSpace::grid_distribution_callback);
+}
+
+void IApproximationSpace::
+grid_changed_callback(const GridMessage_Adaption& msg)
+{
+	if(msg.adaption_begins())
+		m_bAdaptionIsActive = true;
+
+	else if(m_bAdaptionIsActive){
+			if(msg.adaption_ends())
+			{
+				reinit();
+				m_bAdaptionIsActive = false;
+			}
+	}
+
+	else{
+		UG_THROW("Before any grid-adaption may be performed, the approximation"
+				" space has to be informed that grid-adaption shall begin. "
+				"You may use IRefiner::grid_adaption_begins() or schedule "
+				"an appropriate message to the associated grids message-hub.");
+	}
+}
+
+void IApproximationSpace::
+grid_distribution_callback(const GridMessage_Distribution& msg)
+{
+	switch(msg.msg()){
+		case GMDT_DISTRIBUTION_STARTS:
+			break;
+
+		case GMDT_DISTRIBUTION_STOPS:
+			reinit();
+			break;
+
+		default:
+			break;
+	}
 }
 
 void IApproximationSpace::
@@ -802,10 +759,6 @@ ApproximationSpace(SmartPtr<domain_type> domain)
 		UG_THROW("Domain, passed to ApproximationSpace, is invalid.");
 	if(!m_spMGSH.valid())
 		UG_THROW("SubsetHandler, passed to ApproximationSpace, is invalid.");
-
-#ifdef UG_PARALLEL
-	this->set_dist_grid_mgr(domain->distributed_grid_manager());
-#endif
 };
 
 template <typename TDomain>
@@ -818,10 +771,6 @@ ApproximationSpace(SmartPtr<domain_type> domain, const AlgebraType& algebraType)
 		UG_THROW("Domain, passed to ApproximationSpace, is invalid.");
 	if(!m_spMGSH.valid())
 		UG_THROW("SubsetHandler, passed to ApproximationSpace, is invalid.");
-
-#ifdef UG_PARALLEL
-	this->set_dist_grid_mgr(domain->distributed_grid_manager());
-#endif
 };
 
 } // end namespace ug

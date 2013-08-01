@@ -301,6 +301,19 @@ write_grid_solution_piece(VTKFileWriter& File,
 	write_points_cells_piece<TFunction>
 	(File, aaVrtIndex, u.domain()->position_accessor(), grid, u, si, dim, numVert, numElem, numConn);
 
+//	add all components if 'selectAll' chosen
+	if(m_bSelectAll){
+		for(size_t fct = 0; fct < u.num_fct(); ++fct){
+			if(!vtk_name_used(u.name(fct).c_str())){
+				if(LocalFiniteElementProvider::continuous(u.local_finite_element_id(fct))){
+					select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
+				}else{
+					select_element(u.name(fct).c_str(), u.name(fct).c_str());
+				}
+			}
+		}
+	}
+
 //	write nodal data
 	write_nodal_values_piece(File, u, time, grid, si, dim, numVert);
 
@@ -1070,13 +1083,6 @@ void VTKOutput<TDim>::
 write_nodal_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
                          int si, int dim, int numVert)
 {
-//	add all components if 'selectAll' chosen
-	if(m_bSelectAll)
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-			if(!vtk_name_used(u.name(fct).c_str()))
-				if(LocalFiniteElementProvider::continuous(u.local_finite_element_id(fct)))
-					select_nodal(u.name(fct).c_str(), u.name(fct).c_str());
-
 	if(!m_vSymbFct.empty()){
 		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
 				m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){
@@ -1439,13 +1445,6 @@ void VTKOutput<TDim>::
 write_cell_values_piece(VTKFileWriter& File, TFunction& u, number time, Grid& grid,
                          int si, int dim, int numElem)
 {
-//	add all components if 'selectAll' chosen
-	if(m_bSelectAll)
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-			if(!vtk_name_used(u.name(fct).c_str()))
-				if(!LocalFiniteElementProvider::continuous(u.local_finite_element_id(fct)))
-					select_element(u.name(fct).c_str(), u.name(fct).c_str());
-
 	if(!m_vSymbFct.empty()){
 		for(std::map<std::string, std::vector<std::string> >::const_iterator iter =
 				m_vSymbFct.begin(); iter != m_vSymbFct.end(); ++iter){

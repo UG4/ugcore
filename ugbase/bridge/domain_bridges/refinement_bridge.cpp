@@ -183,16 +183,28 @@ static void MarkForRefinement_All(SmartPtr<IRefiner> ref)
 	ref->mark(g->volumes_begin(), g->volumes_end());
 }
 
+static RefinementMark StringToRefinementMark(std::string markType)
+{
+	TrimString(markType);
+	std::transform(markType.begin(), markType.end(), markType.begin(), ::tolower);
+	if(markType == "refine") return RM_REFINE;
+	if(markType == "coarsen") return RM_COARSEN;
+
+	UG_THROW("StringToRefinementMark: non-supported type: "<<markType);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all vertices in the given d-dimensional sphere.
 template <class TDomain>
-void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
-									const typename TDomain::position_type& center,
-									number radius)
+void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
+                                      const typename TDomain::position_type& center,
+                                      number radius, std::string markType)
 {
 	PROFILE_FUNC_GROUP("grid");
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
+
+	RefinementMark rmMark = StringToRefinementMark(markType);
 
 //	make sure that the refiner was created for the given domain
 	if(refiner->get_associated_grid() != dom.grid().get()){
@@ -221,11 +233,19 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 			CollectAssociated(vFaces, grid, *iter);
 			CollectAssociated(vVols, grid, *iter);
 
-			refiner->mark(vEdges.begin(), vEdges.end());
-			refiner->mark(vFaces.begin(), vFaces.end());
-			refiner->mark(vVols.begin(), vVols.end());
+			refiner->mark(vEdges.begin(), vEdges.end(), rmMark);
+			refiner->mark(vFaces.begin(), vFaces.end(), rmMark);
+			refiner->mark(vVols.begin(), vVols.end(), rmMark);
 		}
 	}
+}
+
+template <class TDomain>
+void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
+                                        const typename TDomain::position_type& center,
+                                        number radius)
+{
+	MarkForAdaption_VerticesInSphere(dom, refiner, center, radius, "refine");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -287,13 +307,16 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 ///	Marks all elements which have vertices in the given d-dimensional cube.
 /**	Make sure that TAPos is an attachment of vector_t position types.*/
 template <class TDomain>
-void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
+void MarkForAdaption_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& min,
-									const typename TDomain::position_type& max)
+									const typename TDomain::position_type& max,
+									std::string markType)
 {
 	PROFILE_FUNC_GROUP("grid");
 	typedef typename TDomain::position_type 			position_type;
 	typedef typename TDomain::position_accessor_type	position_accessor_type;
+
+	RefinementMark rmMark = StringToRefinementMark(markType);
 
 //	make sure that the refiner was created for the given domain
 	if(refiner->get_associated_grid() != dom.grid().get()){
@@ -331,11 +354,19 @@ void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 			CollectAssociated(vFaces, grid, *iter);
 			CollectAssociated(vVols, grid, *iter);
 
-			refiner->mark(vEdges.begin(), vEdges.end());
-			refiner->mark(vFaces.begin(), vFaces.end());
-			refiner->mark(vVols.begin(), vVols.end());
+			refiner->mark(vEdges.begin(), vEdges.end(), rmMark);
+			refiner->mark(vFaces.begin(), vFaces.end(), rmMark);
+			refiner->mark(vVols.begin(), vVols.end(), rmMark);
 		}
 	}
+}
+
+template <class TDomain>
+void MarkForRefinement_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
+									const typename TDomain::position_type& min,
+									const typename TDomain::position_type& max)
+{
+	MarkForAdaption_VerticesInCube(dom, refiner, min, max, "refine");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -888,6 +919,9 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("MarkForRefinement_VerticesInSphere",
 				&MarkForRefinement_VerticesInSphere<domain_type>, grp,
 				"", "dom#refiner#center#radius")
+		.add_function("MarkForAdaption_VerticesInSphere",
+				&MarkForAdaption_VerticesInSphere<domain_type>, grp,
+				"", "dom#refiner#center#radius#adaption_type")
 		.add_function("MarkForRefinement_EdgesInSphere",
 				&MarkForRefinement_ElementsInSphere<domain_type, EdgeBase>, grp,
 				"", "dom#refiner#center#radius")
@@ -900,6 +934,9 @@ static void Domain(Registry& reg, string grp)
 		.add_function("MarkForRefinement_VerticesInCube",
 				&MarkForRefinement_VerticesInCube<domain_type>, grp,
 				"", "dom#refiner#min#max")
+		.add_function("MarkForAdaption_VerticesInCube",
+				&MarkForAdaption_VerticesInCube<domain_type>, grp,
+				"", "dom#refiner#min#max#adaption_type")
 		.add_function("MarkForRefinement_AnisotropicElements",
 				&MarkForRefinement_AnisotropicElements<domain_type>, grp,
 				"", "dom#refiner#sizeRatio")

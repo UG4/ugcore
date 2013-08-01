@@ -11,14 +11,12 @@
 #include "lib_grid/tools/surface_view.h"
 #include "lib_disc/domain_traits.h"
 #include "mg_dof_distribution.h"
-#include "managing_dof_distribution.h"
-#include "lib_disc/function_spaces/local_transfer_interface.h"
 
 namespace ug{
 
+class IGridFunction;
 
-class DoFDistribution : virtual public DoFDistributionInfoProvider,
-						public ManagingDoFDistribution
+class DoFDistribution : virtual public DoFDistributionInfoProvider
 {
 	public:
 	///	constructor
@@ -58,9 +56,6 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider,
 
 		///	renames the indices
 		virtual void permute_indices(const std::vector<size_t>& vIndNew) = 0;
-
-		/// sets redistribution of grid after grid adaption
-		virtual void set_redistribution(bool bRedistribution) = 0;
 
 	public:
 		template <typename TElem>
@@ -180,19 +175,34 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider,
 #endif
 
 	public:
-	///	add a transfer callback
-		void add_transfer(SmartPtr<ILocalTransfer> transfer);
+	///	registers a grid function for adaptation management
+		void manage_grid_function(IGridFunction& gridFct);
 
-	///	add a transfer callback
-		void remove_transfer(SmartPtr<ILocalTransfer> transfer);
+	///	unregisters a grid function for adaptation management
+		void unmanage_grid_function(IGridFunction& gridFct);
 
-	///	add a transfer callback
-		void clear_transfers();
+	public:
+	///	permutes values in managed functions, if indices permuted
+		void permute_values(const std::vector<size_t>& vIndNew);
+
+	///	swaps values in managed functions, if indices swapped
+		void copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
+		                                         bool bDisjunct);
+
+	///	changes values in managed functions, number of indices changed
+		void resize_values(size_t newSize);
 
 	protected:
-	///	list of prolongations
-		std::vector<SmartPtr<ILocalTransfer> >m_vProlongation[NUM_GEOMETRIC_BASE_OBJECTS];
-		std::vector<SmartPtr<ILocalTransfer> >m_vRestriction[NUM_GEOMETRIC_BASE_OBJECTS];
+	///	managed grid functions
+	/**
+	 * This vector holds a pointer to all grid functions, that should be
+	 * managed (i.e. adapted), when the dof distribution is changed.
+	 * NOTE:	No SmartPtr is used here on purpose. The GridFunction stores a
+	 * 			SmartPtr to the DoFDistribution. If we would use a SmartPtr
+	 * 			here those objects would reference each other and would never
+	 * 			be deleted.
+	 */
+		std::vector<IGridFunction*> m_vpGridFunction;
 
 	protected:
 	///	MultiGrid Level DoF Distribution

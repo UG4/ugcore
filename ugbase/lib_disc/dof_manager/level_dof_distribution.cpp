@@ -23,11 +23,11 @@ LevelMGDoFDistribution(SmartPtr<MultiGrid> spMG,
 	 	MGDoFDistribution(spMG, spMGSH, spDDInfo, bGrouped)
 {
 	if(num_levels() > 0) level_required(num_levels()-1);
-	init();
+	reinit();
 }
 
 template <typename TBaseElem>
-void LevelMGDoFDistribution::init()
+void LevelMGDoFDistribution::reinit()
 {
 	PROFILE_FUNC();
 	typedef typename geometry_traits<TBaseElem>::iterator iterator;
@@ -63,30 +63,24 @@ void LevelMGDoFDistribution::init()
 	} // end level
 }
 
-void LevelMGDoFDistribution::init()
+void LevelMGDoFDistribution::reinit()
 {
 	level_required(num_levels() - 1);
 
-	if(max_dofs(0) > 0) init<VertexBase>();
-	if(max_dofs(1) > 0) init<EdgeBase>();
-	if(max_dofs(2) > 0) init<Face>();
-	if(max_dofs(3) > 0) init<Volume>();
-
-#ifdef UG_PARALLEL
-	m_pDistGridMgr = m_spMG->distributed_grid_manager();
-	for(int l = 0; l < num_levels(); ++l)
-		create_layouts_and_communicator(l);
-#endif
-}
-
-void LevelMGDoFDistribution::redistribute_dofs()
-{
 	for(int l = 0; l < num_levels(); ++l){
-		lev_info(l).clear_all();
+		lev_info(l).clear();
 		lev_info(l).vNumIndexOnSubset.resize(num_subsets(), 0);
 	}
 
-	init();
+	if(max_dofs(VERTEX)) reinit<VertexBase>();
+	if(max_dofs(EDGE)) reinit<EdgeBase>();
+	if(max_dofs(FACE)) reinit<Face>();
+	if(max_dofs(VOLUME)) reinit<Volume>();
+
+#ifdef UG_PARALLEL
+	for(int l = 0; l < num_levels(); ++l)
+		create_layouts_and_communicator(l);
+#endif
 
 	for(int l = 0; l < num_levels(); ++l){
 		if(m_managingDoFDists[l])
@@ -95,62 +89,10 @@ void LevelMGDoFDistribution::redistribute_dofs()
 }
 
 
-template <typename TBaseElem>
-void LevelMGDoFDistribution::
-add_unassigned_elements()
-{
-	PROFILE_FUNC();
-	typedef typename geometry_traits<TBaseElem>::iterator iterator;
-	static const int dim = TBaseElem::dim;
 
-//	check if indices in the dimension
-	if(max_dofs(dim) == 0) return;
-
-	for(int l = 0; l < num_levels(); ++l){
-		for(int si = 0; si < num_subsets(); ++si){
-		// 	skip if no dofs to be distributed
-			if(max_dofs(dim, si) == 0) continue;
-
-		// 	loop elems
-			for(iterator iter = m_spMGSH->begin<TBaseElem>(si,l);
-				iter != m_spMGSH->end<TBaseElem>(si,l); ++iter)
-			{
-				TBaseElem* elem = *iter;
-				if(obj_index(elem) != NOT_YET_ASSIGNED)
-					continue;
-
-				const ReferenceObjectID roid = elem->reference_object_id();
-				add_from_free(elem, roid, si, m_vLev[l]);
-			}
-		} // end subset
-	} // end level
-}
 
 void LevelMGDoFDistribution::
-parallel_redistribution_ended()
-{
-	level_required(num_levels() - 1);
-
-	if(max_dofs(0) > 0) add_unassigned_elements<VertexBase>();
-	if(max_dofs(1) > 0) add_unassigned_elements<EdgeBase>();
-	if(max_dofs(2) > 0) add_unassigned_elements<Face>();
-	if(max_dofs(3) > 0) add_unassigned_elements<Volume>();
-
-	for(int l = 0; l < num_levels(); ++l){
-		if(m_managingDoFDists[l])
-			m_managingDoFDists[l]->resize_values(lev_info(l).sizeIndexSet);
-	}
-
-//	DEFRAGMENT HAS TO BE CALLED EXTERNALLY! OR EXECUTE THE FOLLOWING CODE
-//#ifdef UG_PARALLEL
-//	for(int l = 0; l < num_levels(); ++l)
-//		create_layouts_and_communicator(l);
-//#endif
-
-}
-
-void LevelMGDoFDistribution::
-register_managing_dof_distribution(ManagingDoFDistribution* mdd, int lvl)
+manage_dof_distribution(DoFDistribution* mdd, int lvl)
 {
 	level_required(lvl);
 	m_managingDoFDists[lvl] = mdd;
@@ -217,7 +159,7 @@ void LevelMGDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 {
 	PROFILE_FUNC();
 //	get the grid layout map
-	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
+	GridLayoutMap& layoutMap = m_spMG->distributed_grid_manager()->grid_layout_map();
 
 //	check if layout present
 	if(!layoutMap.has_layout<TBaseElem>(keyType)) return;
@@ -270,118 +212,6 @@ void LevelMGDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 }
 #endif
 
-template <typename TBaseElem>
-void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& vReplaced, int l)
-{
-	typedef typename geometry_traits<TBaseElem>::iterator iterator;
-	static const int dim = TBaseElem::dim;
-
-	if(l < 0 || l >= num_levels())
-		UG_THROW("Level does not exist.");
-
-//	if nothing to do, continue
-	if(!m_vLev[l].free_index_available()) return;
-
-	for(int si = 0; si < num_subsets(); ++si)
-	{
-	// 	skip if no dofs to be distributed
-		if(max_dofs(dim, si) == 0) continue;
-
-	//	get iterators of elems
-		iterator iter = m_spMGSH->begin<TBaseElem>(si,l);
-		iterator iterEnd = m_spMGSH->end<TBaseElem>(si,l);
-
-	// 	loop elems
-		for(; iter != iterEnd; ++iter)
-		{
-		// 	get vertex
-			TBaseElem* elem = *iter;
-
-		//	get roid
-			const ReferenceObjectID roid = elem->reference_object_id();
-
-		//	check correct index and replace if needed
-			MGDoFDistribution::defragment(elem, roid, si, m_vLev[l], vReplaced);
-		}
-	} // end subset
-}
-
-void LevelMGDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& vReplaced, int lev)
-{
-	PROFILE_FUNC();
-	level_required(lev);
-
-	if(max_dofs(0) > 0) defragment<VertexBase>(vReplaced, lev);
-	if(max_dofs(1) > 0) defragment<EdgeBase>(vReplaced, lev);
-	if(max_dofs(2) > 0) defragment<Face>(vReplaced, lev);
-	if(max_dofs(3) > 0) defragment<Volume>(vReplaced, lev);
-
-//	check that only invalid indices left
-	for(size_t m=1;m<lev_info(lev).max_multiplicity();m++)
-		for(LevInfo<std::vector<size_t> >::iterator it = lev_info(lev).begin(m); it != lev_info(lev).end(m); ++it)
-			UG_ASSERT(*it >= lev_info(lev).numIndex, "After defragment still index in "
-								  "valid range present in free index container.");
-
-//	clear container
-	for(size_t m=1;m<lev_info(lev).max_multiplicity();m++){
-		lev_info(lev).sizeIndexSet -= lev_info(lev).num_free_index(m);
-		lev_info(lev).clear(m);
-	}
-
-	for(size_t m=1;m<lev_info(lev).max_multiplicity();m++){
-		if(lev_info(lev).free_index_available(m))
-			UG_THROW("Internal error: Still free indices available after "
-						"defragment: " <<  lev_info(lev).num_free_index(m));
-	}
-
-	if(lev_info(lev).numIndex != lev_info(lev).sizeIndexSet)
-		UG_THROW("Internal error: numIndex and sizeIndexSet must be "
-						"equal after defragment, since the index set does not "
-						"contain holes anymore. But numIndex = "<<lev_info(lev).numIndex
-						<<", sizeIndexSet = "<<lev_info(lev).sizeIndexSet);
-}
-
-template <typename TBaseElem>
-inline void LevelMGDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
-                        bool replacesParent)
-{
-	if(max_dofs(TBaseElem::BASE_OBJECT_ID) == 0)
-		return;
-
-//	check level
-	const int lev = m_spMGSH->get_level(obj);
-	level_required(lev);
-
-//	add indices
-	add_from_free(obj,
-	              obj->reference_object_id(),
-	              m_spMGSH->get_subset_index(obj),
-	              m_vLev[lev]);
-}
-
-template <typename TBaseElem>
-inline void LevelMGDoFDistribution::obj_to_be_erased(TBaseElem* obj,TBaseElem* replacedBy)
-{
-	if(max_dofs(TBaseElem::BASE_OBJECT_ID) == 0)
-		return;
-
-//	add indices
-	erase(obj,
-	      obj->reference_object_id(),
-	      m_spMGSH->get_subset_index(obj),
-	      m_vLev[m_spMGSH->get_level(obj)]);
-}
-
-void LevelMGDoFDistribution::vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent, bool replacesParent) {obj_created(vrt, pParent, replacesParent);}
-void LevelMGDoFDistribution::edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent, bool replacesParent) {obj_created(e, pParent, replacesParent);}
-void LevelMGDoFDistribution::face_created(Grid* grid, Face* f, GeometricObject* pParent, bool replacesParent) {obj_created(f, pParent, replacesParent);}
-void LevelMGDoFDistribution::volume_created(Grid* grid, Volume* vol, GeometricObject* pParent, bool replacesParent) {obj_created(vol, pParent, replacesParent);}
-
-void LevelMGDoFDistribution::vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy) {obj_to_be_erased(vrt, replacedBy);}
-void LevelMGDoFDistribution::edge_to_be_erased(Grid* grid, EdgeBase* e, EdgeBase* replacedBy) {obj_to_be_erased(e, replacedBy);}
-void LevelMGDoFDistribution::face_to_be_erased(Grid* grid, Face* f, Face* replacedBy) {obj_to_be_erased(f, replacedBy);}
-void LevelMGDoFDistribution::volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy) {obj_to_be_erased(vol, replacedBy);}
-
 ////////////////////////////////////////////////////////////////////////////////
 // LevelDoFDistribution
 ////////////////////////////////////////////////////////////////////////////////
@@ -393,13 +223,13 @@ LevelDoFDistribution(SmartPtr<LevelMGDoFDistribution> spLevMGDD,
 	 	DoFDistribution(*spLevMGDD, spSurfView, GridLevel(level, GridLevel::LEVEL, true)),
 		m_spMGDD(spLevMGDD), m_spSurfView(spSurfView)
 {
-	spLevMGDD->register_managing_dof_distribution(this, level);
+	spLevMGDD->manage_dof_distribution(this, level);
 };
 
 LevelDoFDistribution::
 ~LevelDoFDistribution()
 {
-	m_spMGDD->register_managing_dof_distribution(NULL, grid_level().level());
+	m_spMGDD->manage_dof_distribution(NULL, grid_level().level());
 }
 
 template <typename TBaseElem>
@@ -555,7 +385,7 @@ void LevelMGDoFDistribution::level_required(int level)
 //	resize info vector
 	// note: use push_back instead of resize to avoid same smartptr in every class
 	while((int)m_vLev.size() <= level){
-		m_vLev.push_back(LevInfo<>());
+		m_vLev.push_back(LevInfo());
 	}
 //	m_vLev.resize(level+1, LevInfo<>());
 
@@ -583,26 +413,6 @@ permute_indices(const std::vector<size_t>& vIndNew)
 
 //	permute values in managed grid functions
 	permute_values(vIndNew);
-}
-
-void LevelDoFDistribution::
-defragment()
-{
-	PROFILE_FUNC();
-//	defragment
-	std::vector<std::pair<size_t,size_t> > vReplaced;
-	m_spMGDD->defragment(vReplaced, grid_level().level());
-
-//	adapt managed vectors
-	if(!vReplaced.empty())
-		copy_values(vReplaced, true);
-
-//	num indices may have changed
-	resize_values(num_indices());
-
-#ifdef UG_PARALLEL
-	m_spMGDD->create_layouts_and_communicator(grid_level().level());
-#endif
 }
 
 

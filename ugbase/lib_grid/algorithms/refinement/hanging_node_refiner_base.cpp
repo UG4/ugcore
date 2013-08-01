@@ -9,6 +9,7 @@
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/file_io/file_io.h"
 #include "ref_mark_adjusters/std_hnode_adjuster.h"
+#include "lib_grid/tools/selector_multi_grid.h"
 
 //define PROFILE_HANGING_NODE_REFINER if you want to profile
 //the refinement code.
@@ -27,8 +28,8 @@
 using namespace std;
 
 namespace ug{
-
-HangingNodeRefinerBase::
+template <class TSelector>
+HangingNodeRefinerBase<TSelector>::
 HangingNodeRefinerBase(IRefinementCallback* refCallback) :
 	IRefiner(refCallback),
 	m_pGrid(NULL),
@@ -39,13 +40,15 @@ HangingNodeRefinerBase(IRefinementCallback* refCallback) :
 	add_ref_mark_adjuster(StdHNodeAdjuster::create());
 }
 
-HangingNodeRefinerBase::
+template <class TSelector>
+HangingNodeRefinerBase<TSelector>::
 HangingNodeRefinerBase(const HangingNodeRefinerBase&)
 {
 	throw(UGError("no copy construction allowed."));
 }
 
-HangingNodeRefinerBase::
+template <class TSelector>
+HangingNodeRefinerBase<TSelector>::
 ~HangingNodeRefinerBase()
 {
 	if(m_pGrid)
@@ -54,8 +57,9 @@ HangingNodeRefinerBase::
 	}
 }
 
-void HangingNodeRefinerBase::
-set_grid(Grid* grid)
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
+set_grid(typename TSelector::grid_type* grid)
 {
 	if(m_pGrid)
 	{
@@ -74,12 +78,14 @@ set_grid(Grid* grid)
 	}
 }
 
-void HangingNodeRefinerBase::grid_to_be_destroyed(Grid* grid)
+template <class TSelector> void
+HangingNodeRefinerBase<TSelector>::grid_to_be_destroyed(Grid* grid)
 {
 	m_pGrid = NULL;
 }
 
-void HangingNodeRefinerBase::clear_marks()
+template <class TSelector> void
+HangingNodeRefinerBase<TSelector>::clear_marks()
 {
 	m_selMarkedElements.clear();
 	m_newlyMarkedRefVrts.clear();
@@ -88,7 +94,9 @@ void HangingNodeRefinerBase::clear_marks()
 	m_newlyMarkedRefVols.clear();
 }
 
-bool HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
+template <class TSelector>
+bool HangingNodeRefinerBase<TSelector>::
+mark(VertexBase* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
 	if(get_mark(v) != refMark){
@@ -102,7 +110,8 @@ bool HangingNodeRefinerBase::mark(VertexBase* v, RefinementMark refMark)
 	return false;
 }
 
-bool HangingNodeRefinerBase::mark(EdgeBase* e, RefinementMark refMark)
+template <class TSelector>
+bool HangingNodeRefinerBase<TSelector>::mark(EdgeBase* e, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
 	if(get_mark(e) != refMark){
@@ -116,7 +125,8 @@ bool HangingNodeRefinerBase::mark(EdgeBase* e, RefinementMark refMark)
 	return false;
 }
 
-bool HangingNodeRefinerBase::mark(Face* f, RefinementMark refMark)
+template <class TSelector>
+bool HangingNodeRefinerBase<TSelector>::mark(Face* f, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
 
@@ -131,7 +141,8 @@ bool HangingNodeRefinerBase::mark(Face* f, RefinementMark refMark)
 	return false;
 }
 
-bool HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
+template <class TSelector>
+bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
 	if(get_mark(v) != refMark){
@@ -145,37 +156,41 @@ bool HangingNodeRefinerBase::mark(Volume* v, RefinementMark refMark)
 	return false;
 }
 
-
-RefinementMark HangingNodeRefinerBase::
+template <class TSelector>
+RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(VertexBase* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
 							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
 }
 
-RefinementMark HangingNodeRefinerBase::
+template <class TSelector>
+RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(EdgeBase* e)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
 							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
 }
 
-RefinementMark HangingNodeRefinerBase::
+template <class TSelector>
+RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Face* f)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(f)
 							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
 }
 
-RefinementMark HangingNodeRefinerBase::
+template <class TSelector>
+RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Volume* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
 							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
 }
 
-
-bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
+template <class TSelector>
+bool HangingNodeRefinerBase<TSelector>::
+save_marks_to_file(const char* filename)
 {
 	UG_DLOG(LIB_GRID, 1, "  saving marks to file...\n");
 	if(!m_pGrid){
@@ -185,50 +200,59 @@ bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
 	Grid& g = *m_pGrid;
 	SubsetHandler sh(g);
 
-	AssignGridToSubset(g, sh, 3);
+	AssignGridToSubset(g, sh, 4);
 
-	Selector& sel = get_refmark_selector();
+	selector_t& sel = get_refmark_selector();
 
 	for(VertexBaseIterator iter = g.vertices_begin(); iter != g.vertices_end(); ++iter){
-		Selector::status_t status = sel.get_selection_status(*iter);
+		typename selector_t::status_t status = sel.get_selection_status(*iter);
 		switch(status){
+			case RM_NONE: break;
 			case RM_REFINE: sh.assign_subset(*iter, 0); break;
 			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
 			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
+			default: sh.assign_subset(*iter, 3); break;
 		}
 	}
 
 	for(EdgeBaseIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
-		Selector::status_t status = sel.get_selection_status(*iter);
+		typename selector_t::status_t status = sel.get_selection_status(*iter);
 		switch(status){
+			case RM_NONE: break;
 			case RM_REFINE: sh.assign_subset(*iter, 0); break;
 			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
 			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
+			default: sh.assign_subset(*iter, 3); break;
 		}
 	}
 
 	for(FaceIterator iter = g.faces_begin(); iter != g.faces_end(); ++iter){
-		Selector::status_t status = sel.get_selection_status(*iter);
+		typename selector_t::status_t status = sel.get_selection_status(*iter);
 		switch(status){
+			case RM_NONE: break;
 			case RM_REFINE: sh.assign_subset(*iter, 0); break;
 			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
 			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
+			default: sh.assign_subset(*iter, 3); break;
 		}
 	}
 
 	for(VolumeIterator iter = g.volumes_begin(); iter != g.volumes_end(); ++iter){
-		Selector::status_t status = sel.get_selection_status(*iter);
+		typename  selector_t::status_t status = sel.get_selection_status(*iter);
 		switch(status){
+			case RM_NONE: break;
 			case RM_REFINE: sh.assign_subset(*iter, 0); break;
 			case RM_ANISOTROPIC: sh.assign_subset(*iter, 1); break;
 			case RM_COARSEN: sh.assign_subset(*iter, 2); break;
+			default: sh.assign_subset(*iter, 3); break;
 		}
 	}
 
 	sh.subset_info(0).name = "refine regular";
 	sh.subset_info(1).name = "refine anisotropic";
 	sh.subset_info(2).name = "coarsen";
-	sh.subset_info(3).name = "no marks";
+	sh.subset_info(3).name = "combi-mark";
+	sh.subset_info(4).name = "no marks";
 
 	AssignSubsetColors(sh);
 
@@ -238,7 +262,8 @@ bool HangingNodeRefinerBase::save_marks_to_file(const char* filename)
 		return SaveGridToFile(g, sh, filename);
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 enable_node_dependency_order_1(bool bEnable)
 {
 	m_nodeDependencyOrder1 = bEnable;
@@ -247,7 +272,8 @@ enable_node_dependency_order_1(bool bEnable)
 	}
 }
 
-void HangingNodeRefinerBase::perform_refinement()
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::perform_refinement()
 {
 	HNODE_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "performing hanging-node-refine:\n");
@@ -259,9 +285,6 @@ void HangingNodeRefinerBase::perform_refinement()
 		throw(UGError("selector not initialized properly. Use HangingNodeRefinerBase::set_grid."));
 
 	Grid& grid = *m_pGrid;
-
-//	notify the grid's message hub that refinement begins
-	grid.message_hub()->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS));
 
 //	check if a refinement-callback is set.
 //	if not, we'll automatically set one, if a position attachment is available
@@ -296,13 +319,26 @@ void HangingNodeRefinerBase::perform_refinement()
 	HNODE_PROFILE_BEGIN(href_AdjustingMarks);
 //	fills the queues with the elements that have to be refined.
 	collect_objects_for_refine();
+
 //	assigns hnode marks
 	assign_hnode_marks();
 	HNODE_PROFILE_END();
 
+//	{
+//		UG_LOG("DEBUG SAVE...\n");
+//		static int refselCount = 0;
+//		stringstream ss;
+//		ss << "refselbefore_" << refselCount << ".ugx";
+//		save_marks_to_file(ss.str().c_str());
+//		++refselCount;
+//	}
+
 //	if a debug file was specified, we'll now save the marks to that file
 	if(!m_adjustedMarksDebugFilename.empty())
 		save_marks_to_file(m_adjustedMarksDebugFilename.c_str());
+
+	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS,
+										m_selMarkedElements.get_geometric_objects()));
 
 //	call pre_refine to allow derived classes to perform some actions
 	HNODE_PROFILE_BEGIN(href_PreRefine);
@@ -313,8 +349,9 @@ void HangingNodeRefinerBase::perform_refinement()
 //	ConstrainedVertices
 	UG_DLOG(LIB_GRID, 1, "  constrained vertices.\n");
 	HNODE_PROFILE_BEGIN(href_ConstrainedVertices);
-	for(ConstrainedVertexIterator iter = m_selMarkedElements.begin<ConstrainedVertex>();
-		iter != m_selMarkedElements.end<ConstrainedVertex>();)
+	for(typename selector_t::template traits<ConstrainedVertex>::iterator
+			iter = m_selMarkedElements.template begin<ConstrainedVertex>();
+		iter != m_selMarkedElements.template end<ConstrainedVertex>();)
 	{
 		ConstrainedVertex* cdv = *iter;
 		++iter;
@@ -326,11 +363,14 @@ void HangingNodeRefinerBase::perform_refinement()
 //	ConstrainedEdges
 	UG_DLOG(LIB_GRID, 1, "  constrained edges.\n");
 	HNODE_PROFILE_BEGIN(href_ConstrainedEdges);
-	for(ConstrainedEdgeIterator iter = m_selMarkedElements.begin<ConstrainedEdge>();
-		iter != m_selMarkedElements.end<ConstrainedEdge>();)
+	for(typename selector_t::template traits<ConstrainedEdge>::iterator iter =
+			m_selMarkedElements.template begin<ConstrainedEdge>();
+		iter != m_selMarkedElements.template end<ConstrainedEdge>();)
 	{
 		ConstrainedEdge* cde = *iter;
 		++iter;
+		if(marked_to_normal(cde))
+			remove_hmark(cde, RM_REFINE);
 		process_constrained_edge(cde);
 	}
 	HNODE_PROFILE_END();
@@ -341,11 +381,18 @@ void HangingNodeRefinerBase::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  constraining edges.\n");
 	HNODE_PROFILE_BEGIN(href_ConstrainingEdges);
 	{
-		ConstrainingEdgeIterator iter = m_selMarkedElements.begin<ConstrainingEdge>();
-		while(iter != m_selMarkedElements.end<ConstrainingEdge>()){
+		typename selector_t::template traits<ConstrainingEdge>::iterator iter =
+			m_selMarkedElements.template begin<ConstrainingEdge>();
+
+		while(iter != m_selMarkedElements.template end<ConstrainingEdge>()){
 			ConstrainingEdge* cge = *iter;
 			++iter;
-			process_constraining_edge(cge);
+			if(marked_to_normal(cge))
+				remove_hmark(cge, RM_REFINE);
+		//	if a constraining edge was previously created through replacement of
+		//	a constrained edge, we won't process it here
+			if(!marked_to_constraining(cge))
+				process_constraining_edge(cge);
 		}
 	}
 	HNODE_PROFILE_END();
@@ -356,14 +403,18 @@ void HangingNodeRefinerBase::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  normal edges.\n");
 	HNODE_PROFILE_BEGIN(href_NormalEdges);
 	{
-		EdgeIterator iter = m_selMarkedElements.begin<Edge>();
-		while(iter != m_selMarkedElements.end<Edge>())
+		typename selector_t::template traits<Edge>::iterator
+			iter = m_selMarkedElements.template begin<Edge>();
+		while(iter != m_selMarkedElements.template end<Edge>())
 		{
 			Edge* e = *iter;
 			++iter;
 
-			if(!refinement_is_allowed(e))
+		//	a normal edge may have previously been created by replacing a
+		//	constrained or constraining edge. Those edges won't be considered here
+			if((!refinement_is_allowed(e)) || marked_to_normal(e)){
 				continue;
+			}
 
 			if(marked_to_constraining(e)){
 				refine_edge_with_hanging_vertex(e);
@@ -375,25 +426,30 @@ void HangingNodeRefinerBase::perform_refinement()
 	}
 	HNODE_PROFILE_END();
 
-
 ////////////////////////////////
 //	Faces
 	HNODE_PROFILE_BEGIN(href_ConstrainedFaces);
 	UG_DLOG(LIB_GRID, 1, "  constrained triangles.\n");
-	for(ConstrainedTriangleIterator iter = m_selMarkedElements.begin<ConstrainedTriangle>();
-		iter != m_selMarkedElements.end<ConstrainedTriangle>();)
+	for(typename selector_t::template traits<ConstrainedTriangle>::iterator
+			iter = m_selMarkedElements.template begin<ConstrainedTriangle>();
+		iter != m_selMarkedElements.template end<ConstrainedTriangle>();)
 	{
 		ConstrainedTriangle* cdf = *iter;
 		++iter;
+		if(marked_to_normal(cdf))
+			remove_hmark(cdf, RM_REFINE);
 		process_constrained_face(cdf);
 	}
 
-	UG_DLOG(LIB_GRID, 1, "  constrained triangles.\n");
-	for(ConstrainedQuadrilateralIterator iter = m_selMarkedElements.begin<ConstrainedQuadrilateral>();
-		iter != m_selMarkedElements.end<ConstrainedQuadrilateral>();)
+	UG_DLOG(LIB_GRID, 1, "  constrained quadrilaterals.\n");
+	for(typename selector_t::template traits<ConstrainedQuadrilateral>::iterator
+			iter = m_selMarkedElements.template begin<ConstrainedQuadrilateral>();
+		iter != m_selMarkedElements.template end<ConstrainedQuadrilateral>();)
 	{
 		ConstrainedQuadrilateral* cdf = *iter;
 		++iter;
+		if(marked_to_normal(cdf))
+			remove_hmark(cdf, RM_REFINE);
 		process_constrained_face(cdf);
 	}
 	HNODE_PROFILE_END();
@@ -402,22 +458,34 @@ void HangingNodeRefinerBase::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  constraining triangles.\n");
 //	constraining triangles
 	{
-		ConstrainingTriangleIterator iter = m_selMarkedElements.begin<ConstrainingTriangle>();
-		while(iter != m_selMarkedElements.end<ConstrainingTriangle>()){
+		typename selector_t::template traits<ConstrainingTriangle>::iterator
+			iter = m_selMarkedElements.template begin<ConstrainingTriangle>();
+		while(iter != m_selMarkedElements.template end<ConstrainingTriangle>()){
 			ConstrainingTriangle* cgf = *iter;
 			++iter;
-			process_constraining_face(cgf);
+			if(marked_to_normal(cgf))
+				remove_hmark(cgf, RM_REFINE);
+		//	if a constraining face was previously created through replacement of
+		//	a constrained face, we won't process it here
+			if(!marked_to_constraining(cgf))
+				process_constraining_face(cgf);
 		}
 	}
 
 	UG_DLOG(LIB_GRID, 1, "  constraining quadrilaterals.\n");
 //	constraining quadrilaterals
 	{
-		ConstrainingQuadrilateralIterator iter = m_selMarkedElements.begin<ConstrainingQuadrilateral>();
-		while(iter != m_selMarkedElements.end<ConstrainingQuadrilateral>()){
+		typename selector_t::template traits<ConstrainingQuadrilateral>::iterator
+			iter = m_selMarkedElements.template begin<ConstrainingQuadrilateral>();
+		while(iter != m_selMarkedElements.template end<ConstrainingQuadrilateral>()){
 			ConstrainingQuadrilateral* cgf = *iter;
 			++iter;
-			process_constraining_face(cgf);
+			if(marked_to_normal(cgf))
+				remove_hmark(cgf, RM_REFINE);
+		//	if a constraining face was previously created through replacement of
+		//	a constrained face, we won't process it here
+			if(!marked_to_constraining(cgf))
+				process_constraining_face(cgf);
 		}
 	}
 	HNODE_PROFILE_END();
@@ -426,13 +494,17 @@ void HangingNodeRefinerBase::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  normal triangles.\n");
 //	normal triangles
 	{
-		TriangleIterator iter = m_selMarkedElements.begin<Triangle>();
-		while(iter != m_selMarkedElements.end<Triangle>()){
+		typename selector_t::template traits<Triangle>::iterator
+			iter = m_selMarkedElements.template begin<Triangle>();
+		while(iter != m_selMarkedElements.template end<Triangle>()){
 			Face* f = *iter;
 			++iter;
 
-			if(!refinement_is_allowed(f))
+		//	a normal face may have previously been created by replacing a
+		//	constrained or constraining face. Those faces won't be considered here
+			if((!refinement_is_allowed(f)) || marked_to_normal(f)){
 				continue;
+			}
 
 			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
@@ -444,13 +516,17 @@ void HangingNodeRefinerBase::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  normal quadrilaterals.\n");
 //	normal quadrilaterals
 	{
-		QuadrilateralIterator iter = m_selMarkedElements.begin<Quadrilateral>();
-		while(iter != m_selMarkedElements.end<Quadrilateral>()){
+		typename selector_t::template traits<Quadrilateral>::iterator
+			iter = m_selMarkedElements.template begin<Quadrilateral>();
+		while(iter != m_selMarkedElements.template end<Quadrilateral>()){
 			Face* f = *iter;
 			++iter;
 
-			if(!refinement_is_allowed(f))
+		//	a normal face may have previously been created by replacing a
+		//	constrained or constraining face. Those faces won't be considered here
+			if((!refinement_is_allowed(f)) || marked_to_normal(f)){
 				continue;
+			}
 
 			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
@@ -465,18 +541,19 @@ void HangingNodeRefinerBase::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  volumes.\n");
 	HNODE_PROFILE_BEGIN(href_Volumes);
 	{
-		VolumeIterator iter = m_selMarkedElements.begin<Volume>();
-		while(iter != m_selMarkedElements.end<Volume>()){
+		typename selector_t::template traits<Volume>::iterator
+			iter = m_selMarkedElements.template begin<Volume>();
+		while(iter != m_selMarkedElements.template end<Volume>()){
 			Volume* vol = *iter;
 			++iter;
-			if(refinement_is_allowed(vol))
+			if(refinement_is_allowed(vol)){
 				refine_volume_with_normal_vertex(vol);
+			}
 		}
 	}
 	HNODE_PROFILE_END();
 
 	UG_DLOG(LIB_GRID, 1, "  refinement done.\n");
-
 
 ////////////////////////////////
 //	call post_refine to allow derived classes to perform some actions
@@ -484,6 +561,53 @@ void HangingNodeRefinerBase::perform_refinement()
 	post_refine();
 	HNODE_PROFILE_END();
 
+
+
+////////////////////////////////
+//	before calling the refinement callback, we make sure that only elements are
+//	marked, which actually received new children
+	for(typename selector_t::template traits<VertexBase>::iterator
+			iter = m_selMarkedElements.template begin<VertexBase>();
+			iter != m_selMarkedElements.template end<VertexBase>();)
+	{
+		VertexBase* e = *iter;
+		++iter;
+		if(!marked_refine(e))
+			m_selMarkedElements.deselect(e);
+	}
+	for(typename selector_t::template traits<EdgeBase>::iterator
+			iter = m_selMarkedElements.template begin<EdgeBase>();
+			iter != m_selMarkedElements.template end<EdgeBase>();)
+	{
+		EdgeBase* e = *iter;
+		++iter;
+		if(!marked_refine(e))
+			m_selMarkedElements.deselect(e);
+	}
+	for(typename selector_t::template traits<Face>::iterator
+			iter = m_selMarkedElements.template begin<Face>();
+			iter != m_selMarkedElements.template end<Face>();)
+	{
+		Face* e = *iter;
+		++iter;
+		if(!marked_refine(e))
+			m_selMarkedElements.deselect(e);
+	}
+
+//	{
+//		UG_LOG("DEBUG SAVE...\n");
+//		static int refselCount = 0;
+//		stringstream ss;
+//		ss << "refselafter_" << refselCount << ".ugx";
+//		save_marks_to_file(ss.str().c_str());
+//		++refselCount;
+//	}
+
+//	notify the grid's message hub that refinement ends
+	HNODE_PROFILE_BEGIN(href_AdaptionEndsMessage);
+	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS,
+										m_selMarkedElements.get_geometric_objects()));
+	HNODE_PROFILE_END();
 
 ////////////////////////////////
 //	Clean up
@@ -493,24 +617,19 @@ void HangingNodeRefinerBase::perform_refinement()
 		delete m_refCallback;
 		m_refCallback = NULL;
 	}
-
 	clear_marks();
 	HNODE_PROFILE_END();
 	UG_DLOG(LIB_GRID, 1, "  done.\n");
-
-//	notify the grid's message hub that refinement ends
-	HNODE_PROFILE_BEGIN(href_AdaptionEndsMessage);
-	grid.message_hub()->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
-	HNODE_PROFILE_END();
 }
 
+template <class TSelector>
 template <class TElem>
-bool HangingNodeRefinerBase::remove_coarsen_marks()
+bool HangingNodeRefinerBase<TSelector>::remove_coarsen_marks()
 {
-	typedef typename geometry_traits<TElem>::iterator	ElemIter;
+	typedef typename selector_t::template traits<TElem>::iterator	ElemIter;
 	bool removedCoarsenMark = false;
-	for(ElemIter iter = m_selMarkedElements.begin<TElem>();
-		iter != m_selMarkedElements.end<TElem>();)
+	for(ElemIter iter = m_selMarkedElements.template begin<TElem>();
+		iter != m_selMarkedElements.template end<TElem>();)
 	{
 		TElem* e = *iter;
 		++iter;
@@ -523,7 +642,8 @@ bool HangingNodeRefinerBase::remove_coarsen_marks()
 	return removedCoarsenMark;
 }
 
-void HangingNodeRefinerBase::collect_objects_for_refine()
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 {
 	HNODE_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "hnode_ref-start: collect_objects_for_refine\n");
@@ -548,14 +668,14 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	std::vector<Face*>			newlyMarkedFaces;
 	std::vector<Volume*>		newlyMarkedVols;
 
-	newlyMarkedVrts.assign(m_selMarkedElements.begin<VertexBase>(),
-						   m_selMarkedElements.end<VertexBase>());
-	newlyMarkedEdges.assign(m_selMarkedElements.begin<EdgeBase>(),
-							m_selMarkedElements.end<EdgeBase>());
-	newlyMarkedFaces.assign(m_selMarkedElements.begin<Face>(),
-							m_selMarkedElements.end<Face>());
-	newlyMarkedVols.assign(m_selMarkedElements.begin<Volume>(),
-						   m_selMarkedElements.end<Volume>());
+	newlyMarkedVrts.assign(m_selMarkedElements.template begin<VertexBase>(),
+						   m_selMarkedElements.template end<VertexBase>());
+	newlyMarkedEdges.assign(m_selMarkedElements.template begin<EdgeBase>(),
+							m_selMarkedElements.template end<EdgeBase>());
+	newlyMarkedFaces.assign(m_selMarkedElements.template begin<Face>(),
+							m_selMarkedElements.template end<Face>());
+	newlyMarkedVols.assign(m_selMarkedElements.template begin<Volume>(),
+						   m_selMarkedElements.template end<Volume>());
 
 	bool continueAdjustment = true;
 	bool firstAdjustment = true;
@@ -599,7 +719,8 @@ void HangingNodeRefinerBase::collect_objects_for_refine()
 	UG_DLOG(LIB_GRID, 1, "hnode_ref-stop: collect_objects_for_refine\n");
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 assign_hnode_marks()
 {
 	UG_DLOG(LIB_GRID, 1, "  assigning hnode marks...\n");
@@ -617,8 +738,8 @@ assign_hnode_marks()
 	Grid& grid = *m_pGrid;
 
 	if(grid.num<Volume>() > 0){
-		for(FaceIterator iter = m_selMarkedElements.begin<Face>();
-			iter != m_selMarkedElements.end<Face>(); ++iter)
+		for(sel_face_iter iter = m_selMarkedElements.template begin<Face>();
+			iter != m_selMarkedElements.template end<Face>(); ++iter)
 		{
 			Face* f = *iter;
 			CollectAssociated(vols, grid, f);
@@ -635,8 +756,9 @@ assign_hnode_marks()
 	//	make sure, that constrained faces, edges and vertices of selected
 	//	constraining faces will be converted to normal edges, if they are not
 	//	yet marked and to constraining edges, if they are marked.
-		for(ConstrainingTriangleIterator iter = m_selMarkedElements.begin<ConstrainingTriangle>();
-			iter != m_selMarkedElements.end<ConstrainingTriangle>(); ++iter)
+		for(typename selector_t::template traits<ConstrainingTriangle>::iterator
+				iter = m_selMarkedElements.template begin<ConstrainingTriangle>();
+			iter != m_selMarkedElements.template end<ConstrainingTriangle>(); ++iter)
 		{
 			ConstrainingTriangle* cgf = *iter;
 			if(marked_refine(cgf)){
@@ -660,8 +782,9 @@ assign_hnode_marks()
 			}
 		}
 
-		for(ConstrainingQuadrilateralIterator iter = m_selMarkedElements.begin<ConstrainingQuadrilateral>();
-			iter != m_selMarkedElements.end<ConstrainingQuadrilateral>(); ++iter)
+		for(typename selector_t::template traits<ConstrainingQuadrilateral>::iterator
+				iter = m_selMarkedElements.template begin<ConstrainingQuadrilateral>();
+			iter != m_selMarkedElements.template end<ConstrainingQuadrilateral>(); ++iter)
 		{
 			ConstrainingQuadrilateral* cgf = *iter;
 			if(marked_refine(cgf)){
@@ -687,8 +810,8 @@ assign_hnode_marks()
 	}
 	
 	if(grid.num<Face>() > 0){
-		for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
+		for(sel_edge_iter iter = m_selMarkedElements.template begin<EdgeBase>();
+			iter != m_selMarkedElements.template end<EdgeBase>(); ++iter)
 		{
 			EdgeBase* e = *iter;
 			CollectAssociated(faces, grid, e);
@@ -706,8 +829,9 @@ assign_hnode_marks()
 			}
 		}
 
-		for(ConstrainingEdgeIterator iter = m_selMarkedElements.begin<ConstrainingEdge>();
-			iter != m_selMarkedElements.end<ConstrainingEdge>(); ++iter)
+		for(typename selector_t::template traits<ConstrainingEdge>::iterator
+				iter = m_selMarkedElements.template begin<ConstrainingEdge>();
+			iter != m_selMarkedElements.template end<ConstrainingEdge>(); ++iter)
 		{
 			ConstrainingEdge* cge = *iter;
 			if(marked_refine(cge)){
@@ -728,7 +852,8 @@ assign_hnode_marks()
 
 ////////////////////////////////////////////////////////////////////////
 //	implementation of refine-methods.
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 process_constrained_vertex(ConstrainedVertex* cdv)
 {
 
@@ -773,7 +898,8 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 	}
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 process_constrained_edge(ConstrainedEdge* cde)
 {
 	GeometricObject* constrObj = cde->get_constraining_object();
@@ -807,7 +933,8 @@ process_constrained_edge(ConstrainedEdge* cde)
 	}
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 process_constraining_edge(ConstrainingEdge* cge)
 {
 /*	HNODE_PROFILE_FUNC();
@@ -852,7 +979,8 @@ process_constraining_edge(ConstrainingEdge* cge)
 	set_center_vertex(cge, centerVrt);*/
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
@@ -875,7 +1003,8 @@ refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 	grid.register_element(vEdges[1], e);
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
@@ -918,7 +1047,8 @@ refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 	}
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(f), "Refinement of given face not allowed!");
@@ -966,7 +1096,8 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 	set_center_vertex(f, nVrt);
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(f), "Refinement of given face not allowed!");
@@ -1116,7 +1247,8 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 	}
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 process_constrained_face(ConstrainedFace* cdf)
 {
 	GeometricObject* constrObj = cdf->get_constraining_object();
@@ -1149,7 +1281,8 @@ process_constrained_face(ConstrainedFace* cdf)
 	}
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 process_constraining_face(ConstrainingFace* cgf)
 {
 	Grid& grid = *m_pGrid;
@@ -1231,7 +1364,8 @@ process_constraining_face(ConstrainingFace* cgf)
 		set_center_vertex(nFace, centerVrt);
 }
 
-void HangingNodeRefinerBase::
+template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
 refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(v), "Refinement of given volume not allowed!");
@@ -1326,5 +1460,8 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 	for(uint i = 0; i < vVolumes.size(); ++i)
 		grid.register_element(vVolumes[i], v);
 }
+
+template class HangingNodeRefinerBase<Selector>;
+template class HangingNodeRefinerBase<MGSelector>;
 
 }// end of namespace

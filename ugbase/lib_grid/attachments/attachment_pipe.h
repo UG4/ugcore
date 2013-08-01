@@ -529,7 +529,7 @@ class UG_API AttachmentAccessor
 				return m_pContainer->get_elem(index);
 			}
 */
-		inline bool valid()
+		inline bool valid() const
 			{return m_pContainer != NULL;}
 
 		inline void invalidate()

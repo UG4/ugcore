@@ -34,7 +34,7 @@ class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>
 		ComPol_CopyAttachment();
 		
 	///	Calls set_target internally.
-		ComPol_CopyAttachment(Grid& grid, TAttachment& attachment);
+		ComPol_CopyAttachment(Grid& grid, TAttachment attachment);
 
 		virtual ~ComPol_CopyAttachment()	{}
 		
@@ -77,7 +77,7 @@ ComPol_CopyAttachment()
 ////////////////////////////////////////////////////////////////////////
 template <class TNodeLayout, class TAttachment>
 ComPol_CopyAttachment<TNodeLayout, TAttachment>::
-ComPol_CopyAttachment(Grid& grid, TAttachment& attachment)
+ComPol_CopyAttachment(Grid& grid, TAttachment attachment)
 {
 	set_attachment(grid, attachment);
 }

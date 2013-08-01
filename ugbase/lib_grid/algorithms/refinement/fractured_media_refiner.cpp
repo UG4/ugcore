@@ -120,7 +120,7 @@ collect_objects_for_refine()
 //	Furthermore we'll push degenerated faces, which are connected to the current
 //	face through a regular edge to the queue (only unprocessed ones).
 
-	Selector& sel = BaseClass::get_refmark_selector();
+	typename BaseClass::selector_t& sel = BaseClass::get_refmark_selector();
 
 //	some helpers
 	vector<EdgeBase*> edges;

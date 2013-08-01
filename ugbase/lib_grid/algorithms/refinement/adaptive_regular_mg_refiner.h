@@ -30,6 +30,7 @@ namespace ug
 class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 {
 	public:
+		typedef HangingNodeRefiner_MultiGrid BaseClass;
 		using HangingNodeRefiner_MultiGrid::mark;
 
 	public:

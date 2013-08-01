@@ -11,99 +11,81 @@
 #include "grid_function.h"
 
 #include "lib_algebra/algebra_type.h"
+#include "adaption_surface_grid_function.h"
+#include "lib_grid/algorithms/serialization.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
 	#include "lib_algebra/parallelization/parallelization.h"
+	#include "lib_grid/parallelization/util/compol_copy_attachment.h"
 #endif
 
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
-// GridFunction
+// GridFunction : init
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
-GridFunction(SmartPtr<approximation_space_type> approxSpace,
+GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
              SmartPtr<DoFDistribution> spDoFDistr, bool bManage)
- : m_spDD(spDoFDistr), m_spApproxSpace(approxSpace)
 {
-	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
-
-	if(bManage)
-		m_spDD->manage_grid_function(*this);
-
-	check_algebra();
-	resize_values(num_indices());
-#ifdef UG_PARALLEL
-//	set layouts
-	this->set_layouts(m_spDD->layouts());
-
-//	set storage type
-	this->set_storage_type(PST_UNDEFINED);
-#endif
+	init(spApproxSpace, spDoFDistr, bManage);
 };
 
 template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>::
-GridFunction(SmartPtr<approximation_space_type> approxSpace, bool bManage)
-	: m_spDD(approxSpace->surface_dof_distribution()),
-	  m_spApproxSpace(approxSpace)
+GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, bool bManage)
 {
-	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
+	init(spApproxSpace, spApproxSpace->surface_dof_distribution(), bManage);
+};
 
-	if(bManage)
-		m_spDD->manage_grid_function(*this);
+template <typename TDomain, typename TAlgebra>
+GridFunction<TDomain, TAlgebra>::
+GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, int level, bool bManage)
+{
+	init(spApproxSpace, spApproxSpace->surface_dof_distribution(level), bManage);
+};
 
+template <typename TDomain, typename TAlgebra>
+GridFunction<TDomain, TAlgebra>::
+GridFunction(SmartPtr<approximation_space_type> spApproxSpace, const GridLevel& gl, bool bManage)
+{
+	init(spApproxSpace, spApproxSpace->dof_distribution(gl), bManage);
+};
+
+template <typename TDomain, typename TAlgebra>
+void
+GridFunction<TDomain, TAlgebra>::
+init(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
+     SmartPtr<DoFDistribution> spDoFDistr, bool bManage)
+{
+	m_spApproxSpace = spApproxSpace;
+	m_spDD = spDoFDistr;
 	m_bManaged = bManage;
+	this->set_dof_distribution_info(m_spApproxSpace->dof_distribution_info());
+	m_spAdaptGridFct = NULL;
 
+//	check correct passings
+	if(m_spDD.invalid()) UG_THROW("GridFunction: DoF Distribution is null.");
+	if(m_spApproxSpace.invalid()) UG_THROW("GridFunction: ApproxSpace is null.");
+
+//	check correct choice of compile-time algebra
 	check_algebra();
+
+//	resize the vector to correct size
 	resize_values(num_indices());
-#ifdef UG_PARALLEL
-//	set layouts
-	this->set_layouts(m_spDD->layouts());
 
-//	set storage type
-	this->set_storage_type(PST_UNDEFINED);
-#endif
-};
-
-template <typename TDomain, typename TAlgebra>
-GridFunction<TDomain, TAlgebra>::
-GridFunction(SmartPtr<approximation_space_type> approxSpace, int level, bool bManage)
-	: m_spDD(approxSpace->surface_dof_distribution(level)),
-	  m_spApproxSpace(approxSpace)
-{
-	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
-
-	if(bManage)
+	if(bManage) {
+		//	registered as managed by dof distribution
 		m_spDD->manage_grid_function(*this);
 
-	check_algebra();
-	resize_values(num_indices());
-#ifdef UG_PARALLEL
-//	set layouts
-	this->set_layouts(m_spDD->layouts());
+		//	register to observe grid
+		register_at_adaption_msg_hub();
+	}
 
-//	set storage type
-	this->set_storage_type(PST_UNDEFINED);
-#endif
-};
 
-template <typename TDomain, typename TAlgebra>
-GridFunction<TDomain, TAlgebra>::
-GridFunction(SmartPtr<approximation_space_type> approxSpace, const GridLevel& gl, bool bManage)
-	: m_spDD(approxSpace->dof_distribution(gl)),
-	  m_spApproxSpace(approxSpace)
-{
-	if(!m_spDD.valid()) UG_THROW("DoF Distribution is null.");
-
-	if(bManage)
-		m_spDD->manage_grid_function(*this);
-
-	check_algebra();
-	resize_values(num_indices());
 #ifdef UG_PARALLEL
 //	set layouts
 	this->set_layouts(m_spDD->layouts());
@@ -139,50 +121,61 @@ GridFunction<TDomain, TAlgebra>::check_algebra()
 	}
 }
 
-template <typename TDomain, typename TAlgebra>
-template <typename TElem>
-bool
-GridFunction<TDomain, TAlgebra>::
-dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
-{
-	return DoFPosition(vPos, elem, *domain(),
-	                   this->local_finite_element_id(fct),
-	                   this->dim(fct));
-};
-
-template <typename TDomain,typename TAlgebra>
-template <typename TElem>
-bool
-GridFunction<TDomain, TAlgebra>::
-inner_dof_positions(TElem* elem, size_t fct, std::vector<MathVector<dim> >& vPos) const
-{
-	return InnerDoFPosition(vPos, elem, *domain(),
-	                        this->local_finite_element_id(fct),
-	                        this->dim(fct));
-};
+////////////////////////////////////////////////////////////////////////////////
+// GridFunction : cloning
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
 void
 GridFunction<TDomain, TAlgebra>::
 clone_pattern(const this_type& v)
 {
-// 	copy approximation space
-	m_spApproxSpace = v.m_spApproxSpace;
-
-//	assign dof distribution (resizes vector)
-	this->m_spDD = v.m_spDD;
-
-//	resize the vector
-	resize_values(v.size());
+//	init normally
+	init(v.m_spApproxSpace, v.m_spDD, v.m_bManaged);
 
 #ifdef UG_PARALLEL
-//	set layouts
-	this->set_layouts(v.layouts());
-
 //	copy storage type
 	this->set_storage_type(v.get_storage_mask());
 #endif
 };
+
+
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::assign(const vector_type& v)
+{
+//	check size
+	if(v.size() != vector_type::size())
+		UG_THROW("GridFunction: Assigned vector has incorrect size.");
+
+//	assign vector
+	*(dynamic_cast<vector_type*>(this)) = v;
+
+#ifdef UG_PARALLEL
+//	copy storage type
+	this->set_storage_type(v.get_storage_mask());
+#endif
+}
+
+template <typename TDomain, typename TAlgebra>
+void GridFunction<TDomain, TAlgebra>::assign(const this_type& v)
+{
+//	clone pattern
+	clone_pattern(v);
+
+//  copy values
+	*(dynamic_cast<vector_type*>(this)) = *dynamic_cast<const vector_type*>(&v);
+}
+
+template <typename TDomain, typename TAlgebra>
+GridFunction<TDomain, TAlgebra>*
+GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
+{
+	return new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, m_spDD, m_bManaged);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// GridFunction : dof distribution callbacks
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
 void
@@ -251,91 +244,193 @@ copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,bool bDisju
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// GridFunction : grid adaption
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename TDomain, typename TAlgebra>
-void GridFunction<TDomain, TAlgebra>::assign(const vector_type& v)
+void
+GridFunction<TDomain, TAlgebra>::
+register_at_adaption_msg_hub()
 {
-//	check size
-	if(v.size() != vector_type::size())
-		UG_THROW("GridFunction: Assigned vector has incorrect size.");
+//	register function for grid adaption
+	SPMessageHub msgHub = domain()->grid()->message_hub();
+	m_spGridAdaptionCallbackID =
+		msgHub->register_class_callback(this,
+		&this_type::grid_changed_callback);
 
-//	assign vector
-	*(dynamic_cast<vector_type*>(this)) = v;
-
-#ifdef UG_PARALLEL
-//	set layouts
-	this->set_layouts(v.layouts());
-
-//	copy storage type
-	this->set_storage_type(v.get_storage_mask());
-#endif
+	m_spGridDistributionCallbackID =
+		msgHub->register_class_callback(this,
+		&this_type::grid_distribution_callback);
 }
 
 template <typename TDomain, typename TAlgebra>
-void GridFunction<TDomain, TAlgebra>::assign(const this_type& v)
+void
+GridFunction<TDomain, TAlgebra>::
+grid_changed_callback(const GridMessage_Adaption& msg)
 {
-// 	copy approximation space
-	m_spApproxSpace = v.m_spApproxSpace;
+	// before adaption begins: copy values into grid attachments
+	if(msg.adaption_begins()){
+		// prepare
+		m_spAdaptGridFct = SmartPtr<AdaptionSurfaceGridFunction<TDomain> >(
+							new AdaptionSurfaceGridFunction<TDomain>(this->domain()));
+		m_spAdaptGridFct->copy_from_surface(*this);
+	}
 
-//	assign dof distribution (resizes vector)
-	this->m_spDD = v.m_spDD;
+	// before coarsening: restrict values
+	if(msg.coarsening() && msg.step_begins()){
+		Grid& grid = *domain()->grid();
+		typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
+		if(m_spDDI->max_dofs(VERTEX)){
+			ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+			pcl::InterfaceCommunicator<VertexLayout> com;
+			com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+							  INT_V_SLAVE, INT_V_MASTER, compol);
+			com.communicate();
+		}
+		if(m_spDDI->max_dofs(EDGE)){
+			ComPol_CopyAttachment<EdgeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+			pcl::InterfaceCommunicator<EdgeLayout> com;
+			com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+							  INT_V_SLAVE, INT_V_MASTER, compol);
+			com.communicate();
+		}
+		if(m_spDDI->max_dofs(FACE)){
+			ComPol_CopyAttachment<FaceLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+			pcl::InterfaceCommunicator<FaceLayout> com;
+			com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+							  INT_V_SLAVE, INT_V_MASTER, compol);
+			com.communicate();
+		}
+		if(m_spDDI->max_dofs(VOLUME)){
+			ComPol_CopyAttachment<VolumeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+			pcl::InterfaceCommunicator<VolumeLayout> com;
+			com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+							  INT_V_SLAVE, INT_V_MASTER, compol);
+			com.communicate();
+		}
+		m_spAdaptGridFct->do_restrict(msg);
+	}
 
-	if(v.m_bManaged==true)
-		this->m_spDD->manage_grid_function(*this);
+	// after refinement: prolongate values
+	if(msg.refinement() && msg.step_ends()){
+		m_spAdaptGridFct->prolongate(msg);
+	}
 
-//	resize the vector
-	resize_values(v.size());
+	// at end of adaption: copy values back into algebra vector
+	if(msg.adaption_ends())
+	{
+		// all grid functions must resize to the current number of dofs
+		resize_values(num_indices());
 
-//  copy values
-	*(dynamic_cast<vector_type*>(this)) = *dynamic_cast<const vector_type*>(&v);
+		#ifdef UG_PARALLEL
+		//	set layouts
+		this->set_layouts(m_spDD->layouts());
+		#endif
 
-#ifdef UG_PARALLEL
-//	set layouts
-	this->set_layouts(v.layouts());
 
-//	copy storage type
-	this->set_storage_type(v.get_storage_mask());
-#endif
+		m_spAdaptGridFct->copy_to_surface(*this);
+		m_spAdaptGridFct = NULL;
+	}
 }
 
 template <typename TDomain, typename TAlgebra>
-GridFunction<TDomain, TAlgebra>*
-GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
+void
+GridFunction<TDomain, TAlgebra>::
+grid_distribution_callback(const GridMessage_Distribution& msg)
 {
-	GridFunction<TDomain, TAlgebra>* v
-		= new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, this->m_spDD);
-	v->resize_values(this->size());
-#ifdef UG_PARALLEL
-	v->set_layouts(this->layouts());
-	v->set_storage_type(PST_UNDEFINED);
-#endif
-	return v;
-}
+	#ifdef UG_PARALLEL
+	GridDataSerializationHandler& sh = msg.serialization_handler();
 
+	switch(msg.msg()){
+		case GMDT_DISTRIBUTION_STARTS:{
+			m_preDistStorageType = this->get_storage_mask();
+			if(!this->has_storage_type(PST_CONSISTENT)){
+				this->change_storage_type(PST_CONSISTENT);
+			}
 
-template <typename TDomain, typename TAlgebra>
-void GridFunction<TDomain, TAlgebra>::
-add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > spTransfer)
-{
-	spTransfer->set_vector(this);
-	m_spDD->add_transfer(spTransfer);
-}
+			m_spAdaptGridFct = SmartPtr<AdaptionSurfaceGridFunction<TDomain> >(
+						new AdaptionSurfaceGridFunction<TDomain>(this->domain(), false));
+			m_spAdaptGridFct->copy_from_surface(*this);
+			Grid& grid = *domain()->grid();
 
-template <typename TDomain, typename TAlgebra>
-void GridFunction<TDomain, TAlgebra>::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
-{
-	m_spDD->add_transfer(spTransfer);
-}
+			typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
 
-template <typename TDomain, typename TAlgebra>
-void GridFunction<TDomain, TAlgebra>::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
-{
-	m_spDD->remove_transfer(spTransfer);
-}
+			if(m_spDDI->max_dofs(VERTEX)){
+			//todo:	this communication is only required, while vmasters are being sent
+			//		to target processes during redistribution. This however isn't necessary!
+				ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+				pcl::InterfaceCommunicator<VertexLayout> com;
+				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+								  INT_V_SLAVE, INT_V_MASTER, compol);
+				com.communicate();
 
-template <typename TDomain, typename TAlgebra>
-void GridFunction<TDomain, TAlgebra>::clear_transfers()
-{
-	m_spDD->clear_transfers();
+				sh.add(GeomObjAttachmentSerializer<VertexBase, AValues>::
+							create(grid, m_spAdaptGridFct->value_attachment()));
+			}
+			if(m_spDDI->max_dofs(EDGE)){
+			//todo:	this communication is only required, while vmasters are being sent
+			//		to target processes during redistribution. This however isn't necessary!
+				ComPol_CopyAttachment<EdgeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+				pcl::InterfaceCommunicator<EdgeLayout> com;
+				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+								  INT_V_SLAVE, INT_V_MASTER, compol);
+				com.communicate();
+
+				sh.add(GeomObjAttachmentSerializer<EdgeBase, AValues>::
+							create(grid, m_spAdaptGridFct->value_attachment()));
+			}
+			if(m_spDDI->max_dofs(FACE)){
+			//todo:	this communication is only required, while vmasters are being sent
+			//		to target processes during redistribution. This however isn't necessary!
+				ComPol_CopyAttachment<FaceLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+				pcl::InterfaceCommunicator<FaceLayout> com;
+				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+								  INT_V_SLAVE, INT_V_MASTER, compol);
+
+				sh.add(GeomObjAttachmentSerializer<Face, AValues>::
+							create(grid, m_spAdaptGridFct->value_attachment()));
+			}
+			if(m_spDDI->max_dofs(VOLUME)){
+			//todo:	this communication is only required, while vmasters are being sent
+			//		to target processes during redistribution. This however isn't necessary!
+				ComPol_CopyAttachment<VolumeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
+				pcl::InterfaceCommunicator<VolumeLayout> com;
+				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
+								  INT_V_SLAVE, INT_V_MASTER, compol);
+
+				sh.add(GeomObjAttachmentSerializer<Volume, AValues>::
+							create(grid, m_spAdaptGridFct->value_attachment()));
+			}
+		}break;
+
+		case GMDT_DISTRIBUTION_STOPS:
+			// all grid functions must resize to the current number of dofs
+			resize_values(num_indices());
+
+			#ifdef UG_PARALLEL
+			//	set layouts
+			this->set_layouts(m_spDD->layouts());
+			#endif
+
+			m_spAdaptGridFct->copy_to_surface(*this);
+			m_spAdaptGridFct = NULL;
+
+			if(m_preDistStorageType != this->get_storage_mask()){
+				if((m_preDistStorageType & PST_ADDITIVE) == PST_ADDITIVE)
+					this->change_storage_type(PST_ADDITIVE);
+				else if((m_preDistStorageType & PST_UNIQUE) == PST_UNIQUE)
+					this->change_storage_type(PST_UNIQUE);
+				else{
+					UG_THROW("Can't reestablish storage type!");
+				}
+			}
+			break;
+
+		default:
+			break;
+	}
+	#endif
 }
 
 } // end namespace ug

@@ -78,19 +78,19 @@ void IRefiner::refine()
 		}
 
 	//	now post a message, which informs that refinement begins
-		if(adaptivity_supported())
-			m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS));
-		else
-			m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS));
+//		if(adaptivity_supported())
+//			m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS));
+//		else
+//			m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS));
 
 	//	now perform refinement
 		perform_refinement();
 
 	//	post a message that refinement has been finished
-		if(adaptivity_supported())
-			m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
-		else
-			m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS));
+//		if(adaptivity_supported())
+//			m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS));
+//		else
+//			m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS));
 
 	//	and finally - if we posted an adaption-begins message, then we'll post
 	//	an adaption ends message, too.
@@ -120,19 +120,19 @@ bool IRefiner::coarsen()
 	}
 
 //	now post a message, which informs that coarsening begins
-	if(adaptivity_supported())
-		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS));
-	else
-		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_COARSENING_BEGINS));
+//	if(adaptivity_supported())
+//		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS));
+//	else
+//		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_COARSENING_BEGINS));
 
 //	now perform coarsening
 	bool retVal = perform_coarsening();
 
 //	post a message that coarsening has been finished
-	if(adaptivity_supported())
-		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_ENDS));
-	else
-		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_COARSENING_ENDS));
+//	if(adaptivity_supported())
+//		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_ENDS));
+//	else
+//		m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_COARSENING_ENDS));
 
 //	and finally - if we posted an adaption-begins message, then we'll post
 //	an adaption ends message, too.

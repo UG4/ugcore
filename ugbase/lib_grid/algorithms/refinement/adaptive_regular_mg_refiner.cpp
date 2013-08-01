@@ -384,7 +384,7 @@ get_parents_of_marked_closure_elements(std::vector<GeometricObject*>& parents,
 	UG_ASSERT(multi_grid(), "A multi grid has to be assigned to the refiner.");
 	MultiGrid& mg = *multi_grid();
 
-	typedef typename Selector::traits<TElem>::iterator	TIter;
+	typedef typename BaseClass::selector_t::template traits<TElem>::iterator	TIter;
 	for(TIter iter = m_selMarkedElements.begin<TElem>();
 		iter != m_selMarkedElements.end<TElem>(); ++iter)
 	{

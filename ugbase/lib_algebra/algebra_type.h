@@ -34,6 +34,9 @@ class AlgebraType
 		enum {VariableBlockSize = -1};
 
 	public:
+	///	empty constructor
+		AlgebraType();
+
 	///	constructor for fix blocksize
 		AlgebraType(Type type, int blockSize);
 

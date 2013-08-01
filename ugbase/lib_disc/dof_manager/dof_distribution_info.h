@@ -172,6 +172,9 @@ class DoFDistributionInfoProvider{
 		///	returns subset name
 		std::string subset_name(int si) const {return m_spDDI->subset_name(si);}
 
+		/// returns the subset id
+		int subset_id_by_name(const char* name) const {return m_spDDI->subset_id_by_name(name);}
+
 		///	returns subset group by name
 		SubsetGroup subset_grp_by_name(const char* names) const;
 

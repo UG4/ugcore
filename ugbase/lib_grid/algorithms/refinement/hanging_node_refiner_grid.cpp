@@ -12,7 +12,7 @@ namespace ug{
 
 HangingNodeRefiner_Grid::
 HangingNodeRefiner_Grid(IRefinementCallback* refCallback) :
-	HangingNodeRefinerBase(refCallback),
+	BaseClass(refCallback),
 	m_pGrid(NULL),
 	m_aVertex(false)
 {
@@ -22,7 +22,7 @@ HangingNodeRefiner_Grid(IRefinementCallback* refCallback) :
 HangingNodeRefiner_Grid::
 HangingNodeRefiner_Grid(Grid& grid,
 						IRefinementCallback* refCallback) :
-	HangingNodeRefinerBase(refCallback),
+	BaseClass(refCallback),
 	m_pGrid(NULL),
 	m_aVertex(false)
 {
@@ -51,7 +51,7 @@ void HangingNodeRefiner_Grid::
 set_grid(Grid* grid)
 {
 //	call base class implementation
-	HangingNodeRefinerBase::set_grid(grid);
+	BaseClass::set_grid(grid);
 
 //	clear own attachments
 	if(m_pGrid)
@@ -76,28 +76,28 @@ set_grid(Grid* grid)
 bool HangingNodeRefiner_Grid::mark(VertexBase* v, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
-		return HangingNodeRefinerBase::mark(v, refMark);
+		return BaseClass::mark(v, refMark);
 	return false;
 }
 
 bool HangingNodeRefiner_Grid::mark(EdgeBase* e, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
-		return HangingNodeRefinerBase::mark(e, refMark);
+		return BaseClass::mark(e, refMark);
 	return false;
 }
 
 bool HangingNodeRefiner_Grid::mark(Face* f, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
-		return HangingNodeRefinerBase::mark(f, refMark);
+		return BaseClass::mark(f, refMark);
 	return false;
 }
 
 bool HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
-		return HangingNodeRefinerBase::mark(v, refMark);
+		return BaseClass::mark(v, refMark);
 	return false;
 }
 
@@ -190,7 +190,7 @@ void HangingNodeRefiner_Grid::
 process_constraining_edge(ConstrainingEdge* e)
 {
 //	call original implementation
-	HangingNodeRefinerBase::process_constraining_edge(e);
+	BaseClass::process_constraining_edge(e);
 
 //	if there are no faces, the edge can be erased
 	if(m_pGrid->num_faces() == 0)
@@ -201,7 +201,7 @@ void HangingNodeRefiner_Grid::
 refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 {
 //	call original implementation
-	HangingNodeRefinerBase::refine_edge_with_normal_vertex(e, newCornerVrts);
+	BaseClass::refine_edge_with_normal_vertex(e, newCornerVrts);
 
 //	if there are no faces, the edge can be erased
 	if(m_pGrid->num_faces() == 0)
@@ -212,7 +212,7 @@ void HangingNodeRefiner_Grid::
 refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 {
 //	call original implementation
-	HangingNodeRefinerBase::refine_face_with_normal_vertex(f, newCornerVrts);
+	BaseClass::refine_face_with_normal_vertex(f, newCornerVrts);
 
 //	if there are no volumes, the face can be erased
 	if(m_pGrid->num_volumes() == 0)
@@ -223,7 +223,7 @@ void HangingNodeRefiner_Grid::
 process_constraining_face(ConstrainingFace* f)
 {
 //	call original implementation
-	HangingNodeRefinerBase::process_constraining_face(f);
+	BaseClass::process_constraining_face(f);
 
 //	if there are no volumes, the face can be erased
 	if(m_pGrid->num_volumes() == 0)
@@ -234,7 +234,7 @@ void HangingNodeRefiner_Grid::
 refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 {
 //	call original implementation
-	HangingNodeRefinerBase::refine_volume_with_normal_vertex(v, newCornerVrts);
+	BaseClass::refine_volume_with_normal_vertex(v, newCornerVrts);
 
 //	erase the volume
 	m_pGrid->erase(v);

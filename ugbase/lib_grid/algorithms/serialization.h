@@ -259,10 +259,10 @@ class GeomObjAttachmentSerializer :
 {
 	public:
 		static SmartPtr<GeomObjDataSerializer<TGeomObj> >
-		create(Grid& g, TAttachment& a)
+		create(Grid& g, TAttachment a)
 		{return SmartPtr<GeomObjDataSerializer<TGeomObj> >(new GeomObjAttachmentSerializer(g, a));}
 
-		GeomObjAttachmentSerializer(Grid& g, TAttachment& a) :
+		GeomObjAttachmentSerializer(Grid& g, TAttachment a) :
 			m_aa(g, a, true)	{}
 
 		virtual ~GeomObjAttachmentSerializer() {};

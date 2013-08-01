@@ -37,7 +37,7 @@ namespace ug{
 
 HangingNodeRefiner_MultiGrid::
 HangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback) :
-	HangingNodeRefinerBase(refCallback),
+	BaseClass(refCallback),
 	m_pMG(NULL)
 {
 	add_ref_mark_adjuster(MGHNodeAdjuster::create());
@@ -46,7 +46,7 @@ HangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback) :
 HangingNodeRefiner_MultiGrid::
 HangingNodeRefiner_MultiGrid(MultiGrid& mg,
 						IRefinementCallback* refCallback) :
-	HangingNodeRefinerBase(refCallback),
+	BaseClass(refCallback),
 	m_pMG(NULL)
 {
 	add_ref_mark_adjuster(MGHNodeAdjuster::create());
@@ -75,7 +75,7 @@ void HangingNodeRefiner_MultiGrid::
 set_grid(MultiGrid* mg)
 {
 //	call base class implementation
-	HangingNodeRefinerBase::set_grid(mg);
+	BaseClass::set_grid(mg);
 
 	m_pMG = mg;
 }
@@ -121,7 +121,7 @@ pre_refine()
 //	Resize the attachment containers
 
 	{
-		Selector& sel = get_refmark_selector();
+		selector_t& sel = get_refmark_selector();
 
 		MGHNODE_PROFILE_BEGIN(MGHNode_ReserveAttachmentMemory);
 
@@ -163,7 +163,7 @@ pre_refine()
 
 
 //	create a child vertex for each marked vertex
-	for(VertexBaseIterator iter = m_selMarkedElements.begin<VertexBase>();
+	for(sel_vrt_iter iter = m_selMarkedElements.begin<VertexBase>();
 		iter != m_selMarkedElements.end<VertexBase>(); ++iter)
 	{
 		UG_ASSERT(!mg.has_children(*iter), "Only vertices without children should be selected."
@@ -180,7 +180,7 @@ void HangingNodeRefiner_MultiGrid::
 process_constraining_edge(ConstrainingEdge* cge)
 {
 //	call base implementation to perform refinement
-	HangingNodeRefinerBase::process_constraining_edge(cge);
+	BaseClass::process_constraining_edge(cge);
 
 //	the constrained edge is now a normal edge
 	UG_ASSERT(marked_to_normal(cge), "A constraining has to be converted to a"
@@ -199,7 +199,7 @@ refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 	collect_child_corners(childCorners, e);
 
 //	call original implementation
-	HangingNodeRefinerBase::refine_edge_with_normal_vertex(e, &childCorners.front());
+	BaseClass::refine_edge_with_normal_vertex(e, &childCorners.front());
 }
 
 void HangingNodeRefiner_MultiGrid::
@@ -210,7 +210,7 @@ refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 	collect_child_corners(childCorners, e);
 
 //	call original implementation
-	HangingNodeRefinerBase::refine_edge_with_hanging_vertex(e, &childCorners.front());
+	BaseClass::refine_edge_with_hanging_vertex(e, &childCorners.front());
 }
 
 void HangingNodeRefiner_MultiGrid::
@@ -221,7 +221,7 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 	collect_child_corners(childCorners, f);
 
 //	call original implementation
-	HangingNodeRefinerBase::refine_face_with_normal_vertex(f, &childCorners.front());
+	BaseClass::refine_face_with_normal_vertex(f, &childCorners.front());
 }
 
 void HangingNodeRefiner_MultiGrid::
@@ -232,7 +232,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 	collect_child_corners(childCorners, f);
 
 //	call original implementation
-	HangingNodeRefinerBase::refine_face_with_hanging_vertex(f, &childCorners.front());
+	BaseClass::refine_face_with_hanging_vertex(f, &childCorners.front());
 }
 
 void HangingNodeRefiner_MultiGrid::
@@ -243,7 +243,7 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 	collect_child_corners(childCorners, v);
 
 //	call original implementation
-	HangingNodeRefinerBase::refine_volume_with_normal_vertex(v, &childCorners.front());
+	BaseClass::refine_volume_with_normal_vertex(v, &childCorners.front());
 }
 
 VertexBase* HangingNodeRefiner_MultiGrid::
@@ -293,10 +293,10 @@ void HangingNodeRefiner_MultiGrid::
 restrict_selection_to_surface_coarsen_elements()
 {
 	MultiGrid& mg = *m_pMG;
-	Selector& sel = get_refmark_selector();
+	selector_t& sel = get_refmark_selector();
 
-	for(typename Selector::traits<TElem>::iterator iter = sel.begin<TElem>();
-		iter != sel.end<TElem>();)
+	for(typename selector_t::template traits<TElem>::iterator iter = sel.template begin<TElem>();
+		iter != sel.template end<TElem>();)
 	{
 		TElem* e = *iter;
 		++iter;
@@ -330,7 +330,7 @@ restrict_selection_to_coarsen_families()
 {
 	typedef typename TElem::geometric_base_object	TBaseElem;
 	MultiGrid& mg = *m_pMG;
-	Selector& sel = get_refmark_selector();
+	selector_t& sel = get_refmark_selector();
 
 //	coarsening is only performed for complete families. If some siblings aren't
 //	selected for coarsening, the whole family may not be coarsened. All siblings
@@ -341,7 +341,7 @@ restrict_selection_to_coarsen_families()
 //	parent, but is not marked itself, then it is clear that it is not a valid
 //	candidate.
 	mg.begin_marking();
-	for(typename Selector::traits<TElem>::iterator iter = sel.begin<TElem>();
+	for(typename selector_t::traits<TElem>::iterator iter = sel.begin<TElem>();
 		iter != sel.end<TElem>();)
 	{
 		TElem* e = *iter;
@@ -470,7 +470,7 @@ static void DeselectFamily(ISelector& sel, MultiGrid& mg, GeometricObject* elem)
 }
 
 
-static void SaveCoarsenMarksToFile(Selector& sel, const char* filename)
+static void SaveCoarsenMarksToFile(ISelector& sel, const char* filename)
 {
 	assert(sel.grid());
 	Grid& g = *sel.grid();
@@ -479,7 +479,7 @@ static void SaveCoarsenMarksToFile(Selector& sel, const char* filename)
 
 	AssignGridToSubset(g, sh, 8);
 	for(VertexBaseIterator iter = g.vertices_begin(); iter != g.vertices_end(); ++iter){
-		Selector::status_t status = sel.get_selection_status(*iter);
+		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
 			case HangingNodeRefiner_MultiGrid::HNCM_ALL: sh.assign_subset(*iter, 1); break;
@@ -493,7 +493,7 @@ static void SaveCoarsenMarksToFile(Selector& sel, const char* filename)
 	}
 
 	for(EdgeBaseIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
-		Selector::status_t status = sel.get_selection_status(*iter);
+		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
 			case HangingNodeRefiner_MultiGrid::HNCM_ALL: sh.assign_subset(*iter, 1); break;
@@ -507,7 +507,7 @@ static void SaveCoarsenMarksToFile(Selector& sel, const char* filename)
 	}
 
 	for(FaceIterator iter = g.faces_begin(); iter != g.faces_end(); ++iter){
-		Selector::status_t status = sel.get_selection_status(*iter);
+		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
 			case HangingNodeRefiner_MultiGrid::HNCM_ALL: sh.assign_subset(*iter, 1); break;
@@ -521,7 +521,7 @@ static void SaveCoarsenMarksToFile(Selector& sel, const char* filename)
 	}
 
 	for(VolumeIterator iter = g.volumes_begin(); iter != g.volumes_end(); ++iter){
-		Selector::status_t status = sel.get_selection_status(*iter);
+		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
 			case HangingNodeRefiner_MultiGrid::HNCM_ALL: sh.assign_subset(*iter, 1); break;
@@ -553,7 +553,7 @@ static void SaveCoarsenMarksToFile(Selector& sel, const char* filename)
 }
 
 void HangingNodeRefiner_MultiGrid::
-save_coarsen_marks_to_file(Selector& sel, const char* filename)
+save_coarsen_marks_to_file(ISelector& sel, const char* filename)
 {
 	SaveCoarsenMarksToFile(sel, filename);
 }
@@ -561,7 +561,7 @@ save_coarsen_marks_to_file(Selector& sel, const char* filename)
 
 ///	temporary method, which will be removed when debugging is done.
 void HangingNodeRefiner_MultiGrid::
-debug_save(Selector& sel, const char* filePrefix)
+debug_save(ISelector& sel, const char* filePrefix)
 {
 	if(debugging_enabled()){
 		stringstream ss;
@@ -578,7 +578,7 @@ debug_save(Selector& sel, const char* filePrefix)
 }
 
 ///	temporary method, which will be removed when debugging is done.
-static void ContinuousDebugSave(Selector& sel)
+static void ContinuousDebugSave(ISelector& sel)
 {
 	static int counter = 0;
 	stringstream ss;
@@ -613,12 +613,29 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 
 
 void HangingNodeRefiner_MultiGrid::
-collect_objects_for_coarsen()
+collect_objects_for_coarsen(bool scheduleCoarseningBeginsMessage)
 {
 	MultiGrid& mg = *m_pMG;
-	Selector& sel = get_refmark_selector();
+	selector_t& sel = get_refmark_selector();
+
+	bool gotVols = contains_volumes();
+	bool gotFaces = contains_faces();
+	bool gotEdges = contains_edges();
 
 debug_save(sel, "coarsen_marks_01_start");
+//	deselect all elements of lower dimension, since we currently can't handle them correctly...
+//todo:	A more sophisticated approach could be used. E.g. only deselect elements if they
+//		are connected to an element of higher dimension.
+	if(gotVols)
+		sel.clear<Face>();
+
+	if(gotFaces)
+		sel.clear<EdgeBase>();
+
+	if(gotEdges)
+		sel.clear<VertexBase>();
+
+debug_save(sel, "coarsen_marks_01.5_only_full_dim_selected");
 	restrict_selection_to_surface_coarsen_elements();
 	copy_marks_to_vmasters(true, true, true, true);
 	restrict_selection_to_coarsen_families();
@@ -638,9 +655,6 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 	Grid::edge_traits::secure_container edges;
 	Grid::face_traits::secure_container	faces;
 	Grid::volume_traits::secure_container vols;
-
-	bool gotVols = contains_volumes();
-	bool gotFaces = contains_faces();
 
 //	make sure that coarsening won't generate constraining edges with more than
 //	one constrained vertex.
@@ -688,7 +702,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 		copy_marks_to_vmasters(false, true, false, false);
 
 	//	clear all edges which are marked with HNCM_NONE from the selection
-		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
 			iter != sel.end<EdgeBase>();)
 		{
 			EdgeBase* e = *iter;
@@ -700,8 +714,8 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 	//	if a constrained edge of a constraining edge won't be fully coarsened,
 	//	then the constraining edge may not be coarsened at all.
 		bool foundInvalid = false;
-		for(Selector::traits<ConstrainingEdge>::iterator iter = sel.begin<ConstrainingEdge>();
-			iter != sel.end<EdgeBase>(); ++iter)
+		for(selector_t::traits<ConstrainingEdge>::iterator iter = sel.begin<ConstrainingEdge>();
+			iter != sel.end<ConstrainingEdge>(); ++iter)
 		{
 			ConstrainingEdge* cge = *iter;
 			for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
@@ -729,7 +743,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 	//	invalid mark.
 		copy_marks_to_vmasters(false, true, false, false);
 
-		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
 			iter != sel.end<EdgeBase>();)
 		{
 			EdgeBase* e = *iter;
@@ -745,15 +759,31 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 							DeselectFamily(sel, mg, parent);
 							mg.associated_elements(edges, parent);
 							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-								if(sel.is_selected(edges[i_edge]))
-									sel.select(edges[i_edge], HNCM_UNKNOWN);
-								for(size_t i = 0; i < mg.num_children<EdgeBase>(edges[i_edge]); ++i){
-									EdgeBase* child = mg.get_child<EdgeBase>(edges[i_edge], i);
+								EdgeBase* e = edges[i_edge];
+								if(sel.is_selected(e))
+									sel.select(e, HNCM_UNKNOWN);
+								for(size_t i = 0; i < mg.num_children<EdgeBase>(e); ++i){
+									EdgeBase* child = mg.get_child<EdgeBase>(e, i);
 									if(sel.is_selected(child)){
 										sel.select(child, HNCM_UNKNOWN);
 									}
 								}
 							}
+
+						//	we also have to mark edge-children of side-faces as unknown
+							mg.associated_elements(faces, parent);
+							for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+								Face* f = faces[i_face];
+								if(sel.is_selected(f))
+									sel.select(f, HNCM_UNKNOWN);
+								for(size_t i = 0; i < mg.num_children<EdgeBase>(f); ++i){
+									EdgeBase* child = mg.get_child<EdgeBase>(f, i);
+									if(sel.is_selected(child)){
+										sel.select(child, HNCM_UNKNOWN);
+									}
+								}
+							}
+
 						}
 					}
 				}
@@ -792,23 +822,6 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 	//	since h-interfaces do not always exist between v-master copies,
 	//	we have to perform an additional broadcast, to make sure, that all copies
 	//	have the correct marks.
-
-	//TODO: THIS CAN RESULT IN AN ENDLESS LOOP... MAKE SURE THAT ALL COPIES HAVE THE SAME MARKS!
-	//		SIMPLY COPYING SLAVES TO MASTERS IS NOT ENOUGH, SINCE MASTER-ENTRIES MAY
-	//		NOT BE UP TO DATE. EVENTUALLY ONE COULD TRY TO GUARANTEE, THAT MASTER-ENTRIES ARE
-	//		FINE
-
-/*		broadcast_marks_horizontally(false, true, false);
-		if(debugging_enabled()){
-			ContinuousDebugSave(sel);
-		}*/
-//
-//		copy_marks_to_vslaves(false, true, true, true);
-//
-//		if(debugging_enabled()){
-//			ContinuousDebugSave(sel);
-//		}
-
 		broadcast_marks_vertically(false, true, true, true, true);
 		if(debugging_enabled()){
 			ContinuousDebugSave(sel);
@@ -817,7 +830,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 
 
 	//	find edges which were marked as unknown and prepare qedges for the next run
-		for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
 			iter != sel.end<EdgeBase>(); ++iter)
 		{
 			if(sel.get_selection_status(*iter) == HNCM_UNKNOWN)
@@ -835,7 +848,7 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 	copy_marks_to_vmasters(true, false, true, false);
 
 	if(gotVols){
-		for(Selector::traits<Face>::iterator iter = sel.begin<Face>();
+		for(selector_t::traits<Face>::iterator iter = sel.begin<Face>();
 			iter != sel.end<Face>();)
 		{
 			Face* f = *iter;
@@ -851,7 +864,7 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 		}
 	}
 
-	for(Selector::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
+	for(selector_t::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
 		iter != sel.end<VertexBase>();)
 	{
 		VertexBase* v = *iter;
@@ -872,20 +885,28 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 
 
+//	ATTENTION:	We post the message that coarsening begins at this point, since
+//				we don't want REPLACE elements to be selected and thus contained
+//				in the specified geometric-object-collection.
+	if(scheduleCoarseningBeginsMessage){
+		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS,
+										m_selMarkedElements.get_geometric_objects()));
+	}
+
+
 //	select unselected constraining edges and faces of selected constrained
 //	edges and faces with HNCM_REPLACE to indicate, that they have to be
 //	transformed to a normal edge
 //	mark parents of normal and constraining edges and faces which were marked for
 //	partial refinement with a replace mark
-	for(Selector::traits<EdgeBase>::iterator
+	for(selector_t::traits<EdgeBase>::iterator
 		iter = sel.begin<EdgeBase>(); iter != sel.end<EdgeBase>(); ++iter)
 	{
 		EdgeBase* e = *iter;
 		if(GeometricObject* parent = mg.get_parent(e)){
 			bool isConstrained = e->is_constrained();
 			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
-				(sel.get_selection_status(*iter) == HNCM_PARTIAL))
-			   //((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+			    ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
 			{
 				if(!sel.is_selected(parent))
 					sel.select(parent, HNCM_REPLACE);
@@ -893,15 +914,14 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 		}
 	}
 
-	for(Selector::traits<Face>::iterator
+	for(selector_t::traits<Face>::iterator
 		iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter)
 	{
 		Face* e = *iter;
 		if(GeometricObject* parent = mg.get_parent(e)){
 			bool isConstrained = e->is_constrained();
 			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
-				(sel.get_selection_status(*iter) == HNCM_PARTIAL))
-			   //((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+			   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
 			{
 				if(!sel.is_selected(parent))
 					sel.select(parent, HNCM_REPLACE);
@@ -950,10 +970,10 @@ We have to handle elements as follows:
 		return false;
 
 	MultiGrid& mg = *m_pMG;
-	Selector& sel = get_refmark_selector();
+	selector_t& sel = get_refmark_selector();
 
-	collect_objects_for_coarsen();
-//	assign_hnode_coarsen_marks();
+//	We let collect-objects-for-coarsen schedule the message that coarsening begins
+	collect_objects_for_coarsen(true);
 
 //	if a debug file was specified, we'll now save the marks to that file
 	if(!m_adjustedMarksDebugFilename.empty())
@@ -969,7 +989,7 @@ We have to handle elements as follows:
 
 ////////////////////
 //	FACES
-	for(Selector::traits<Face>::iterator iter = sel.begin<Face>();
+	for(selector_t::traits<Face>::iterator iter = sel.begin<Face>();
 		iter != sel.end<Face>();)
 	{
 		Face* elem = *iter;
@@ -1111,7 +1131,7 @@ We have to handle elements as follows:
 
 ////////////////////
 //	EDGES
-	for(Selector::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+	for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
 		iter != sel.end<EdgeBase>();)
 	{
 		EdgeBase* elem = *iter;
@@ -1230,7 +1250,7 @@ We have to handle elements as follows:
 
 ////////////////////
 //	VERTICES
-	for(Selector::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
+	for(selector_t::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
 		iter != sel.end<VertexBase>();)
 	{
 		VertexBase* elem = *iter;
@@ -1333,6 +1353,8 @@ We have to handle elements as follows:
 	//ContinuousDebugSave(sel);
 //	inform derived classes that coarsening is done
 	post_coarsen();
+	clear_marks();
+	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS));
 
 	return true;
 }

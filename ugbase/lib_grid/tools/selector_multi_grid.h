@@ -14,6 +14,7 @@
 #include "selector_interface.h"
 #include "../multi_grid.h"
 #include "../lib_grid_messages.h"
+#include "selection_iterator.h"
 
 namespace ug
 {
@@ -82,7 +83,95 @@ class UG_API MGSelector : public ISelector
 		typedef ISelector	BaseClass;
 		typedef MultiGrid	grid_type;
 		
-	public:
+	/** This iterator is used by MGSelector to provide iteration across all levels.
+	 * The TMGSelector and TLevelIterator template argument allows to use this
+	 * iterator for const and non-const use.*/
+		template <class TElem, class TMGSelector, class TLevelIterator>
+		class MGSelectionIterator
+		{
+			public:
+				typedef MGSelectionIterator										this_type;
+				typedef std::forward_iterator_tag	iterator_category;
+				typedef size_t						difference_type;
+				typedef TElem**						pointer;
+				typedef TElem*						value_type;
+				typedef value_type&					reference;
+
+				MGSelectionIterator() : m_sel(NULL), m_lvl(0)	{}
+
+			///	copy constructor that allows creation of const-iterators from non-const iterators
+				MGSelectionIterator(const MGSelectionIterator<TElem, MGSelector,
+									typename geometry_traits<TElem>::iterator>& iter)
+				{
+					m_sel = iter.m_sel;
+					m_lvl = iter.m_lvl;
+					m_iter = iter.m_iter;
+				}
+
+				this_type operator ++()	{increment(); return *this;}
+				this_type operator ++(int unused)	{this_type i = *this; increment(); return i;}
+
+				bool operator ==(const this_type& iter) const {return equal(iter);}
+				bool operator !=(const this_type& iter) const {return !equal(iter);}
+
+				value_type operator *()	{return dereference();}
+
+			private:
+				friend class MGSelector;
+		//		friend class MGSelectionIterator<TElem, const MGSelector,
+		//										 typename MGSelector::traits<TElem>::const_level_iterator>;
+				typedef TLevelIterator level_iterator;
+
+				MGSelectionIterator(TMGSelector* sel, int lvl,
+									level_iterator iter)
+				{
+					m_sel = sel;
+					m_lvl = lvl;
+					m_iter = iter;
+				}
+
+				inline bool equal(const this_type& other) const
+				{
+					return m_iter == other.m_iter;
+				}
+
+			///	returns next valid iterator
+				void increment()
+				{
+					++m_iter;
+					while((m_iter == m_sel->template end<TElem>(m_lvl))
+						  && (m_lvl + 1 < m_sel->num_levels()))
+					{
+						++m_lvl;
+						m_iter = m_sel->template begin<TElem>(m_lvl);
+					}
+				}
+
+			///	dereference
+				inline value_type dereference() const
+				{
+					return *m_iter;
+				}
+
+			private:
+				TMGSelector*	m_sel;
+				size_t			m_lvl;
+				level_iterator	m_iter;
+		};
+
+	///	The traits class holds some important types for each element-type
+		template <class TElem>
+		struct traits{
+			typedef TElem*											value_t;
+			typedef typename geometry_traits<TElem>::iterator		level_iterator;
+			typedef typename geometry_traits<TElem>::const_iterator	const_level_iterator;
+			typedef MGSelectionIterator<TElem, MGSelector,
+										level_iterator>				iterator;
+			typedef MGSelectionIterator<TElem, const MGSelector,
+										const_level_iterator>		const_iterator;
+		};
+
+
 		MGSelector(uint supportedElements = SE_ALL);
 		MGSelector(MultiGrid& grid, uint supportedElements = SE_ALL);
 		virtual ~MGSelector();
@@ -110,7 +199,15 @@ class UG_API MGSelector : public ISelector
 	//	is required to avoid virtual method calls during construction.
 		void disable_element_support(uint shElements);
 
-		inline uint num_levels()	{return m_levels.size();}
+		inline size_t num_levels() const	{return m_levels.size();}
+		inline size_t top_level() const
+		{
+			size_t l = m_levels.size();
+			if(l == 0)
+				return 0;
+			else
+				return l - 1;
+		}
 
 		virtual void clear();
 
@@ -123,14 +220,14 @@ class UG_API MGSelector : public ISelector
 		inline void clear(int level);
 
 		template <class TElem>
-		inline uint num(int level);
+		inline size_t num(int level);
 		
-		inline uint num(int level);
+		inline size_t num(int level);
 
 		template <class TElem>
-		inline uint num();
+		inline size_t num();
 		
-		inline uint num();
+		inline size_t num();
 
 	//	empty
 		inline bool empty(int level);
@@ -145,31 +242,47 @@ class UG_API MGSelector : public ISelector
 
 	//	begin
 		template <class TElem>
-		inline typename geometry_traits<TElem>::iterator
+		inline typename traits<TElem>::iterator
+		begin();
+
+		template <class TElem>
+		inline typename traits<TElem>::const_iterator
+		begin() const;
+
+		template <class TElem>
+		inline typename traits<TElem>::level_iterator
 		begin(int level);
 
 		template <class TElem>
-		inline typename geometry_traits<TElem>::const_iterator
+		inline typename traits<TElem>::const_level_iterator
 		begin(int level) const;
 		
 	//	end
 		template <class TElem>
-		inline typename geometry_traits<TElem>::iterator
+		inline typename traits<TElem>::iterator
+		end();
+
+		template <class TElem>
+		inline typename traits<TElem>::const_iterator
+		end() const;
+
+		template <class TElem>
+		inline typename traits<TElem>::level_iterator
 		end(int level);
 		
 		template <class TElem>
-		inline typename geometry_traits<TElem>::const_iterator
+		inline typename traits<TElem>::const_level_iterator
 		end(int level) const;
 
 	//	convenience begin and end
-		inline VertexBaseIterator vertices_begin(int level)	{return begin<VertexBase>(level);}
-		inline VertexBaseIterator vertices_end(int level)	{return end<VertexBase>(level);}
-		inline EdgeBaseIterator edges_begin(int level)		{return begin<EdgeBase>(level);}
-		inline EdgeBaseIterator edges_end(int level)		{return end<EdgeBase>(level);}
-		inline FaceIterator faces_begin(int level)			{return begin<Face>(level);}
-		inline FaceIterator faces_end(int level)			{return end<Face>(level);}
-		inline VolumeIterator volumes_begin(int level)		{return begin<Volume>(level);}
-		inline VolumeIterator volumes_end(int level)		{return end<Volume>(level);}
+		inline traits<VertexBase>::level_iterator	vertices_begin(int level)	{return begin<VertexBase>(level);}
+		inline traits<VertexBase>::level_iterator	vertices_end(int level)		{return end<VertexBase>(level);}
+		inline traits<EdgeBase>::level_iterator		edges_begin(int level)		{return begin<EdgeBase>(level);}
+		inline traits<EdgeBase>::level_iterator		edges_end(int level)		{return end<EdgeBase>(level);}
+		inline traits<Face>::level_iterator			faces_begin(int level)		{return begin<Face>(level);}
+		inline traits<Face>::level_iterator			faces_end(int level)		{return end<Face>(level);}
+		inline traits<Volume>::level_iterator		volumes_begin(int level)	{return begin<Volume>(level);}
+		inline traits<Volume>::level_iterator		volumes_end(int level)		{return end<Volume>(level);}
 
 	///	returns the first selected element of the given type on the specified level.
 	/**	Make sure that elements of the given type exist!
@@ -249,7 +362,7 @@ class UG_API MGSelector : public ISelector
 	 * \{
 	 */
 		inline VertexSectionContainer::iterator
-		get_iterator(VertexBase* o)
+		get_level_iterator(VertexBase* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected.");
 			return section_container<VertexBase>(m_pMultiGrid->get_level(o)).
@@ -257,7 +370,7 @@ class UG_API MGSelector : public ISelector
 		}
 
 		inline EdgeSectionContainer::iterator
-		get_iterator(EdgeBase* o)
+		get_level_iterator(EdgeBase* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
 			return section_container<EdgeBase>(m_pMultiGrid->get_level(o)).
@@ -265,7 +378,7 @@ class UG_API MGSelector : public ISelector
 		}
 
 		inline FaceSectionContainer::iterator
-		get_iterator(Face* o)
+		get_level_iterator(Face* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
 			return section_container<Face>(m_pMultiGrid->get_level(o)).
@@ -273,7 +386,7 @@ class UG_API MGSelector : public ISelector
 		}
 
 		inline VolumeSectionContainer::iterator
-		get_iterator(Volume* o)
+		get_level_iterator(Volume* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
 			return section_container<Volume>(m_pMultiGrid->get_level(o)).

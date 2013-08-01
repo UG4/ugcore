@@ -269,12 +269,16 @@ void ISelector::vertex_created(Grid* grid, VertexBase* vrt,
 		else if((pParent != NULL) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VERTEX){
-					if(is_selected(static_cast<VertexBase*>(pParent)))
-						select(vrt);
+					select(vrt, get_selection_status(static_cast<VertexBase*>(pParent)));
 				}
 			}
-			else if(is_selected(pParent))
-				select(vrt);
+			else
+				select(vrt, get_selection_status(pParent));
+		}
+		else if(replacesParent){
+			UG_ASSERT(pParent, "A parent has to exist if it shall be replaced");
+			UG_ASSERT(dynamic_cast<VertexBase*>(pParent), "Only parents of the same type may be replaced.");
+			select(vrt, get_selection_status(static_cast<VertexBase*>(pParent)));
 		}
 	}
 }
@@ -310,12 +314,16 @@ void ISelector::edge_created(Grid* grid, EdgeBase* edge,
 		else if((pParent != NULL) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == EDGE){
-					if(is_selected(static_cast<EdgeBase*>(pParent)))
-						select(edge);
+					select(edge, get_selection_status(static_cast<EdgeBase*>(pParent)));
 				}
 			}
-			else if(is_selected(pParent))
-				select(edge);
+			else
+				select(edge, get_selection_status(pParent));
+		}
+		else if(replacesParent){
+			UG_ASSERT(pParent, "A parent has to exist if it shall be replaced");
+			UG_ASSERT(dynamic_cast<EdgeBase*>(pParent), "Only parents of the same type may be replaced.");
+			select(edge, get_selection_status(static_cast<EdgeBase*>(pParent)));
 		}
 	}
 }
@@ -351,12 +359,16 @@ void ISelector::face_created(Grid* grid, Face* face,
 		else if((pParent != NULL) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == FACE){
-					if(is_selected(static_cast<Face*>(pParent)))
-						select(face);
+					select(face, get_selection_status(static_cast<Face*>(pParent)));
 				}
 			}
-			else if(is_selected(pParent))
-				select(face);
+			else
+				select(face, get_selection_status(pParent));
+		}
+		else if(replacesParent){
+			UG_ASSERT(pParent, "A parent has to exist if it shall be replaced");
+			UG_ASSERT(dynamic_cast<Face*>(pParent), "Only parents of the same type may be replaced.");
+			select(face, get_selection_status(static_cast<Face*>(pParent)));
 		}
 	}
 }
@@ -392,12 +404,16 @@ void ISelector::volume_created(Grid* grid, Volume* vol,
 		else if((pParent != NULL) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VOLUME){
-					if(is_selected(static_cast<Volume*>(pParent)))
-						select(vol);
+					select(vol, get_selection_status(static_cast<Volume*>(pParent)));
 				}
 			}
-			else if(is_selected(pParent))
-				select(vol);
+			else
+				select(vol, get_selection_status(pParent));
+		}
+		else if(replacesParent){
+			UG_ASSERT(pParent, "A parent has to exist if it shall be replaced");
+			UG_ASSERT(dynamic_cast<Volume*>(pParent), "Only parents of the same type may be replaced.");
+			select(vol, get_selection_status(static_cast<Volume*>(pParent)));
 		}
 	}
 }

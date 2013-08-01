@@ -6,6 +6,8 @@
 #define __H__UG__lib_grid_messages__
 
 #include "common/util/message_hub.h"
+#include "lib_grid/grid/geometric_object_collection.h"
+#include "lib_grid/algorithms/serialization.h"
 
 namespace ug
 {
@@ -63,7 +65,12 @@ class GridMessage_Adaption : public MessageHub::IMessage
 		GridMessage_Adaption(GridMessageAdaptionType adaptionType) :
 			m_adaptionType(adaptionType)	{}
 
-		GridMessageAdaptionType refinement_type() const	{return m_adaptionType;}
+		GridMessage_Adaption(GridMessageAdaptionType adaptionType,
+							 const GeometricObjectCollection& affectedElements) :
+			m_adaptionType(adaptionType),
+			m_affectedElements(affectedElements){}
+
+		GridMessageAdaptionType adaption_type() const	{return m_adaptionType;}
 
 	///	tells whether grid adaption has just been started or has been finished.
 	/**	Note that begins and ends may both be false. An adaption consists of
@@ -94,8 +101,29 @@ class GridMessage_Adaption : public MessageHub::IMessage
 	/**	This is always false if adaption_begins() or adaption_ends() returns true*/
 		bool coarsening() const;
 
+	///	returns the geometric-object-collection, which holds lists with affected elements.
+	/**	- REFINEMENT_BEGINS: Elements on which new elements will occur or which are
+	 * 						 transformed to a new element type (e.g. constrained/constraining)
+	 *	- REFINEMENT_ENDS: Elements which were refined.
+	 *	- COARSENING_BEGINS: Elements which will be removed or replaced during coarsening
+	 *
+	 *	For all other adaption types, the geometric-object-collection should be empty and
+	 *	should be ignored.
+	 *
+	 *	\note	during refinement only elements on which a new child was actually created
+	 *			are considered to be affected. Elements which were replaced by elements
+	 *			of a different type are not considered in the list of affected elements.
+	 *
+	 *	\note	(THIS MAY CHANGE SOON!) Some of the elements marked for coarsening may
+	 *			actually only be replaced by a normal/constraining/constrained element.
+	 *			Note that elements may be marked during coarsening which actually have children
+	 *			themselves, even if not all of those children are removed during coarsening
+	 *			(e.g. edges which are replaced by constraining edges).*/
+		const GeometricObjectCollection& affected_elements() const {return m_affectedElements;}
+
 	protected:
-		GridMessageAdaptionType	m_adaptionType;
+		GridMessageAdaptionType		m_adaptionType;
+		GeometricObjectCollection	m_affectedElements;
 };
 
 
@@ -103,20 +131,28 @@ class GridMessage_Adaption : public MessageHub::IMessage
 enum GridMessageDistributionType{
 	GMDT_NONE,
 	GMDT_DISTRIBUTION_STARTS,
-	GMDT_GRID_SERIALIZATION_DONE,
-	GMDT_DATA_SERIALIZATION_DONE
+	GMDT_DISTRIBUTION_STOPS
 };
 
 class GridMessage_Distribution : public MessageHub::IMessage
 {
 	public:
-		GridMessage_Distribution(GridMessageDistributionType msg = GMDT_NONE) :
-			m_msg(msg)	{}
+		GridMessage_Distribution(GridMessageDistributionType msg,
+								 GridDataSerializationHandler& gdsh) :
+			m_msg(msg),
+			m_serializationHandler(gdsh)
+		{}
 
 		GridMessageDistributionType msg() const	{return m_msg;}
 
+		GridDataSerializationHandler& serialization_handler() const
+		{
+			return m_serializationHandler;
+		}
+
 	private:
-		GridMessageDistributionType	m_msg;
+		GridMessageDistributionType		m_msg;
+		GridDataSerializationHandler&	m_serializationHandler;
 };
 
 

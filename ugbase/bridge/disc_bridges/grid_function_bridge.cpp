@@ -75,12 +75,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("assign", static_cast<void (TFct::*)(const vector_type&)>(&TFct::assign),
 						"Success", "Vector")
 			.add_method("clone", &TFct::clone)
-			.add_method("add_transfer", static_cast<void (TFct::*)(SmartPtr<ILocalTransferAlgebra<TAlgebra> >)>(&TFct::add_transfer))
-			.add_method("add_transfer", static_cast<void (TFct::*)(SmartPtr<ILocalTransfer>)>(&TFct::add_transfer))
-			.add_method("remove_transfer", &TFct::remove_transfer)
-			.add_method("clear_transfers", &TFct::clear_transfers)
 			.add_method("grid_level", &TFct::grid_level)
-			.add_method("set_redistribution", &TFct::set_redistribution)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunction", tag);
 	}
@@ -255,7 +250,6 @@ static void Common(Registry& reg, string grp)
 		.add_method("init_levels", &T::init_levels)
 		.add_method("init_surfaces", &T::init_surfaces)
 		.add_method("init_top_surface", &T::init_top_surface)
-		.add_method("defragment", &T::defragment)
 
 		.add_method("clear", &T::clear)
 		.add_method("add_fct", static_cast<void (T::*)(const char*, const char*, int, const char*)>(&T::add),

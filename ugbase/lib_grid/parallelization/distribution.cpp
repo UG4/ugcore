@@ -7,6 +7,7 @@
 #include "common/util/table.h"
 #include "distribution.h"
 #include "distributed_grid.h"
+#include "lib_grid/tools/selector_multi_grid.h"
 #include "lib_grid/algorithms/selection_util.h"
 #include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
@@ -537,7 +538,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //	constraining triangles
 	{
 		typedef ConstrainingTriangle TElem;
-		typedef MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::level_iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -577,7 +578,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //	constraining quadrilaterals
 	{
 		typedef ConstrainingQuadrilateral TElem;
-		typedef MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::level_iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -617,7 +618,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //	constraining edges
 	{
 		typedef ConstrainingEdge TElem;
-		typedef MGSelector::traits<TElem>::iterator TIter;
+		typedef MGSelector::traits<TElem>::level_iterator TIter;
 		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 			for(TIter iter = msel.begin<TElem>(lvl);
 				iter != msel.end<TElem>(lvl); ++iter)
@@ -662,7 +663,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 ////	constrained triangles
 //	{
 //		typedef ConstrainedTriangle TElem;
-//		typedef MGSelector::traits<TElem>::iterator TIter;
+//		typedef MGSelector::traits<TElem>::level_iterator TIter;
 //		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 //			for(TIter iter = msel.begin<TElem>(lvl);
 //				iter != msel.end<TElem>(lvl); ++iter)
@@ -689,7 +690,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 ////	constrained quadrilaterals
 //	{
 //		typedef ConstrainedQuadrilateral TElem;
-//		typedef MGSelector::traits<TElem>::iterator TIter;
+//		typedef MGSelector::traits<TElem>::level_iterator TIter;
 //		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 //			for(TIter iter = msel.begin<TElem>(lvl);
 //				iter != msel.end<TElem>(lvl); ++iter)
@@ -716,7 +717,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 ////	constrained edges
 //	{
 //		typedef ConstrainedEdge TElem;
-//		typedef MGSelector::traits<TElem>::iterator TIter;
+//		typedef MGSelector::traits<TElem>::level_iterator TIter;
 //		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 //			for(TIter iter = msel.begin<TElem>(lvl);
 //				iter != msel.end<TElem>(lvl); ++iter)
@@ -747,7 +748,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 ////	constrained vertices
 //	{
 //		typedef ConstrainedVertex TElem;
-//		typedef MGSelector::traits<TElem>::iterator TIter;
+//		typedef MGSelector::traits<TElem>::level_iterator TIter;
 //		for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
 //			for(TIter iter = msel.begin<TElem>(lvl);
 //				iter != msel.end<TElem>(lvl); ++iter)
@@ -800,7 +801,7 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
 	Grid::edge_traits::secure_container edges;
 
 	for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-		for(MGSelector::traits<VertexBase>::iterator iter = msel.begin<VertexBase>(lvl);
+		for(MGSelector::traits<VertexBase>::level_iterator iter = msel.begin<VertexBase>(lvl);
 			iter != msel.end<VertexBase>(lvl); ++iter)
 		{
 			VertexBase* vrt = *iter;
@@ -849,7 +850,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 
 //	we start on the highest level and go downwards to avoid side
 //	effects from repeated selection adjustment.
-	typedef typename MGSelector::traits<TElem>::iterator TIter;
+	typedef typename MGSelector::traits<TElem>::level_iterator TIter;
 	for(int lvl = (int)msel.num_levels() - 1; lvl >= 0 ; --lvl){
 		for(TIter iter = msel.begin<TElem>(lvl);
 			iter != msel.end<TElem>(lvl); ++iter)
@@ -1541,8 +1542,9 @@ bool DistributeGrid(MultiGrid& mg,
 	}
 
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution starts\n");
+	GridDataSerializationHandler	userDataSerializer;
 	SPMessageHub msgHub = mg.message_hub();
-	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS));
+	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS, userDataSerializer));
 
 	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 	GridLayoutMap& glm = distGridMgr.grid_layout_map();
@@ -1688,6 +1690,8 @@ bool DistributeGrid(MultiGrid& mg,
 			distInfoSerializer.serialize(out, msel.get_geometric_objects());
 			serializer.write_infos(out);
 			serializer.serialize(out, msel.get_geometric_objects());
+			userDataSerializer.write_infos(out);
+			userDataSerializer.serialize(out, msel.get_geometric_objects());
 
 		//	write a magic number for debugging purposes
 			out.write((char*)&magicNumber2, sizeof(int));
@@ -1893,6 +1897,7 @@ bool DistributeGrid(MultiGrid& mg,
 	GDIST_PROFILE(gdist_Deserialize);
 	distInfoSerializer.deserialization_starts();
 	serializer.deserialization_starts();
+	userDataSerializer.deserialization_starts();
 
 	vector<VertexBase*>	vrts;
 	vector<EdgeBase*> edges;
@@ -1928,6 +1933,12 @@ bool DistributeGrid(MultiGrid& mg,
 		serializer.deserialize(in, edges.begin(), edges.end());
 		serializer.deserialize(in, faces.begin(), faces.end());
 		serializer.deserialize(in, vols.begin(), vols.end());
+
+		userDataSerializer.read_infos(in);
+		userDataSerializer.deserialize(in, vrts.begin(), vrts.end());
+		userDataSerializer.deserialize(in, edges.begin(), edges.end());
+		userDataSerializer.deserialize(in, faces.begin(), faces.end());
+		userDataSerializer.deserialize(in, vols.begin(), vols.end());
 
 	//	read the magic number and make sure that it matches our magicNumber
 		tmp = 0;
@@ -1977,12 +1988,14 @@ bool DistributeGrid(MultiGrid& mg,
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
-	msgHub->post_message(GridMessage_Distribution(GMDT_GRID_SERIALIZATION_DONE));
+	//msgHub->post_message(GridMessage_Distribution(GMDT_GRID_SERIALIZATION_DONE));
 
 //	we'll inform deserializers now, that deserialization is complete.
 	distInfoSerializer.deserialization_done();
 	serializer.deserialization_done();
-	msgHub->post_message(GridMessage_Distribution(GMDT_DATA_SERIALIZATION_DONE));
+	userDataSerializer.deserialization_done();
+	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS, userDataSerializer));
+	//msgHub->post_message(GridMessage_Distribution(GMDT_DATA_SERIALIZATION_DONE));
 
 	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");
 	GDIST_PROFILE_END();

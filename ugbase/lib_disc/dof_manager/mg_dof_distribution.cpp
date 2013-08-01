@@ -31,46 +31,20 @@ MGDoFDistribution(SmartPtr<MultiGrid> spMG,
                   bool bGrouped)
 	: DoFDistributionInfoProvider(spDDInfo),
       m_bGrouped(bGrouped),
-	  m_strictSubsetChecks(true),
-	  m_parallelRedistributionMode(false),
 	  m_spMG(spMG),
 	  m_pMG(spMG.get()),
 	  m_spMGSH(spMGSH)
 {
 	check_subsets();
 	init_attachments();
-	register_observer();
 };
 
 MGDoFDistribution::
 ~MGDoFDistribution()
 {
 	clear_attachments();
-	unregister_observer();
 }
 
-void MGDoFDistribution::
-begin_parallel_redistribution()
-{
-	UG_ASSERT(!parallel_redistribution_mode(),
-			  "The dof distribution must not be in parallel distribution mode when"
-			  " begin_parallel_redistribution is called.");
-
-	m_parallelRedistributionMode = true;
-	m_strictSubsetChecks = false;
-}
-
-void MGDoFDistribution::
-end_parallel_redistribution()
-{
-	UG_ASSERT(parallel_redistribution_mode(),
-			  "The dof distribution has to be in parallel distribution mode when"
-			  " end_parallel_redistribution is called.");
-
-	m_parallelRedistributionMode = false;
-	m_strictSubsetChecks = true;
-	parallel_redistribution_ended();
-}
 
 void MGDoFDistribution::check_subsets()
 {
@@ -742,29 +716,18 @@ size_t MGDoFDistribution::inner_algebra_indices(GeometricObject* elem, std::vect
 	}
 }
 
-void MGDoFDistribution::register_observer()
+bool MGDoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
+                            const int si, LevInfo& li)
 {
-	int type = OT_GRID_OBSERVER;
-
-	if(max_dofs(VERTEX)) type |= OT_VERTEX_OBSERVER;
-	if(max_dofs(EDGE)) type |= OT_EDGE_OBSERVER;
-	if(max_dofs(FACE)) type |= OT_FACE_OBSERVER;
-	if(max_dofs(VOLUME)) type |= OT_VOLUME_OBSERVER;
-
-#ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1){
-	//	to correctly support parallel coarsening we have to register the dof-distribution
-	//	as a full observer.
-		type = OT_FULL_OBSERVER;
+	switch(elem->base_object_id())
+	{
+		case VERTEX: return add(static_cast<VertexBase*>(elem), roid, si, li);
+		case EDGE: return add(static_cast<EdgeBase*>(elem), roid, si, li);
+		case FACE: return add(static_cast<Face*>(elem), roid, si, li);
+		case VOLUME: return add(static_cast<Volume*>(elem), roid, si, li);
+		default: UG_THROW("Geometric Base element not found.");
 	}
-#endif
-
-	multi_grid()->register_observer(this, type);
-}
-
-void MGDoFDistribution::unregister_observer()
-{
-	multi_grid()->unregister_observer(this);
+	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

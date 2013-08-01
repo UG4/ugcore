@@ -95,6 +95,9 @@ class FunctionPattern
 			return SubsetGroup(subset_handler(), TokenizeString(names));
 		}
 
+	/// returns the subset id
+		int subset_id_by_name(const char* name) const;
+
 	///	dimension of subset
 		int dim_subset(int si) const {return DimensionOfSubset(*m_spSH, si);}
 

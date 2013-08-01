@@ -60,10 +60,13 @@ namespace ug
  *
  * \sa ug::HangingNodeRefiner_Grid, ug::HangingNodeRefiner_MultiGrid
  */
+template <class TSelector>
 class HangingNodeRefinerBase : public IRefiner, public GridObserver
 {
 	public:
 		using IRefiner::mark;
+
+		typedef TSelector	selector_t;
 
 	/**	additional mark to RefinementMarks. Used to flag whether an element
 	 * will be refined with constraining.*/
@@ -115,6 +118,11 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		void add_ref_mark_adjuster(SPIRefMarkAdjuster adjuster)		{m_refMarkAdjusters.push_back(adjuster);}
 
 	protected:
+		typedef typename TSelector::template traits<VertexBase>::iterator	sel_vrt_iter;
+		typedef typename TSelector::template traits<EdgeBase>::iterator		sel_edge_iter;
+		typedef typename TSelector::template traits<Face>::iterator			sel_face_iter;
+		typedef typename TSelector::template traits<Volume>::iterator		sel_vol_iter;
+
 	///	performs refinement on the marked elements.
 	/**
 	 * The grid's message hub is informed using a "GridAdaption" message,
@@ -158,7 +166,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 *
 	 *  Please note that this method is not declared virtual, since it
 	 *  is called during construction and destruction.*/
-		void set_grid(Grid* grid);
+		void set_grid(typename TSelector::grid_type* grid);
 
 	///	marks unmarked elements that have to be refined due to marked neighbors.
 	/**
@@ -284,6 +292,13 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 						m_selMarkedElements.get_selection_status(elem) | mark);
 		}
 
+		template <class TElem>
+		inline void remove_hmark(TElem* elem, uint mark)
+		{
+			m_selMarkedElements.select(elem,
+						m_selMarkedElements.get_selection_status(elem) & (~mark));
+		}
+
 	///	removes coarsen marks from the selection
 	/**	Note that derived classes are not informed about those deselections!*/
 		template <class TElem>
@@ -291,14 +306,14 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	///	returns the selector which is internally used to mark elements.
 	/**	Be sure to use it carefully!*/
-		Selector& get_refmark_selector()	{return m_selMarkedElements;}
+		TSelector& get_refmark_selector()	{return m_selMarkedElements;}
 
 	private:
 	///	private copy constructor to avoid copy construction
 		HangingNodeRefinerBase(const HangingNodeRefinerBase&);
 
 	protected:
-		Selector							m_selMarkedElements;
+		TSelector							m_selMarkedElements;
 		std::vector<SPIRefMarkAdjuster>		m_refMarkAdjusters;
 
 	private:

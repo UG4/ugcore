@@ -62,7 +62,7 @@ MGSelector::clear()
 }
 
 template <class TElem>
-inline uint 
+inline size_t
 MGSelector::num(int level)
 {
 	const int sInd = get_section_index<TElem>();
@@ -72,7 +72,7 @@ MGSelector::num(int level)
 		return section_container<TElem>(level).num_elements(sInd);
 }
 
-inline uint 
+inline size_t
 MGSelector::num(int level)
 {
 	return num<VertexBase>(level) + num<EdgeBase>(level)
@@ -80,16 +80,16 @@ MGSelector::num(int level)
 }
 
 template <class TElem>
-inline uint 
+inline size_t
 MGSelector::num()
 {
-	uint n = 0;
-	for(uint i = 0; i < num_levels(); ++i)
+	size_t n = 0;
+	for(size_t i = 0; i < num_levels(); ++i)
 		n += num<TElem>(i);
 	return n;
 }
 
-inline uint 
+inline size_t
 MGSelector::num()
 {
 	return num<VertexBase>() + num<EdgeBase>()
@@ -125,7 +125,35 @@ MGSelector::empty()
 
 //	begin
 template <class TElem>
-inline typename geometry_traits<TElem>::iterator
+inline typename MGSelector::traits<TElem>::iterator
+MGSelector::begin()
+{
+//	get the begin iterator of the first level which is not empty.
+//	if all levels are empty the returned iterator is equal to the end iterator
+//	of the top-level.
+	size_t lvl = 0;
+	while(empty<TElem>(lvl) && (lvl < top_level()))
+		++lvl;
+
+	return typename MGSelector::traits<TElem>::iterator(this, lvl, begin<TElem>(lvl));
+}
+
+template <class TElem>
+inline typename MGSelector::traits<TElem>::const_iterator
+MGSelector::begin() const
+{
+	//	get the begin iterator of the first level which is not empty.
+//	if all levels are empty the returned iterator is equal to the end iterator
+//	of the top-level.
+	size_t lvl = 0;
+	while(empty<TElem>(lvl) && (lvl < top_level()))
+		++lvl;
+
+	return typename MGSelector::traits<TElem>::const_iterator(this, lvl, begin<TElem>(lvl));
+}
+
+template <class TElem>
+inline typename MGSelector::traits<TElem>::level_iterator
 MGSelector::begin(int level)
 {
 	const int sInd = get_section_index<TElem>();
@@ -139,7 +167,7 @@ MGSelector::begin(int level)
 }
 
 template <class TElem>
-inline typename geometry_traits<TElem>::const_iterator
+inline typename MGSelector::traits<TElem>::const_level_iterator
 MGSelector::begin(int level) const
 {
 	const int sInd = get_section_index<TElem>();
@@ -152,8 +180,25 @@ MGSelector::begin(int level) const
 					section_container<TElem>(level).section_begin(sInd));
 }
 
+
 template <class TElem>
-inline typename geometry_traits<TElem>::iterator
+inline typename MGSelector::traits<TElem>::iterator
+MGSelector::end()
+{
+	size_t l = top_level();
+	return typename MGSelector::traits<TElem>::iterator(this, l, end<TElem>(l));
+}
+
+template <class TElem>
+inline typename MGSelector::traits<TElem>::const_iterator
+MGSelector::end() const
+{
+	size_t l = top_level();
+	return typename MGSelector::traits<TElem>::const_iterator(this, l, end<TElem>(l));
+}
+
+template <class TElem>
+inline typename MGSelector::traits<TElem>::level_iterator
 MGSelector::end(int level)
 {
 	const int sInd = get_section_index<TElem>();
@@ -167,7 +212,7 @@ MGSelector::end(int level)
 }
 
 template <class TElem>
-inline typename geometry_traits<TElem>::const_iterator
+inline typename MGSelector::traits<TElem>::const_level_iterator
 MGSelector::end(int level) const
 {
 	const int sInd = get_section_index<TElem>();
@@ -214,7 +259,7 @@ const typename Grid::traits<TElem>::SectionContainer&
 MGSelector::
 section_container(int level) const
 {
-	assert((level >= 0) && (level < m_levels.size()) && "bad level index.");
+	assert((level >= 0) && (level < (int)m_levels.size()) && "bad level index.");
 	const Level* lev = m_levels[level];
 	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
 			section_container(lev->m_vertices, lev->m_edges, lev->m_faces, lev->m_volumes);

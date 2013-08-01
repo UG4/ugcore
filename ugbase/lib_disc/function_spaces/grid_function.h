@@ -11,7 +11,6 @@
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 #include "lib_disc/dof_manager/function_pattern.h"
 #include "lib_disc/common/local_algebra.h"
-#include "local_transfer_interface.h"
 #include "approximation_space.h"
 
 namespace ug{
@@ -71,6 +70,8 @@ class IGridFunction
 		virtual void resize_values(size_t s, number defaultValue = 0.0) = 0;
 };
 
+template <typename TDomain> class AdaptionSurfaceGridFunction;
+
 /// represents numerical solutions on a grid using an algebraic vector
 /**
  * A grid function brings approximation space and algebra together. For a given
@@ -85,7 +86,8 @@ class IGridFunction
 template <typename TDomain, typename TAlgebra>
 class GridFunction
 	: 	public TAlgebra::vector_type,
-	  	public IGridFunction
+	  	public IGridFunction,
+	  	public DoFDistributionInfoProvider
 {
 	public:
 	///	This type
@@ -144,21 +146,27 @@ class GridFunction
 
 	public:
 	/// Initializing Constructor
-		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace,
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 		             SmartPtr<DoFDistribution> spDoFDistr, bool bManage = true);
 
 	/// Initializing Constructor using surface dof distribution
-		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace, bool bManage = true);
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, bool bManage = true);
 
 	/// Initializing Constructor using surface dof distribution on a level
-		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace, int level, bool bManage = true);
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, int level, bool bManage = true);
 
 	/// Initializing Constructor using a grid level
-		GridFunction(SmartPtr<ApproximationSpace<TDomain> > approxSpace, const GridLevel& gl, bool bManage = true);
+		GridFunction(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace, const GridLevel& gl, bool bManage = true);
 
+	protected:
 	///	checks the algebra
 		void check_algebra();
 
+	///	inits the grid function
+		void init(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
+		          SmartPtr<DoFDistribution> spDoFDistr, bool bManage);
+
+	public:
 	/// Copy constructor
 		GridFunction(const this_type& v) : IGridFunction(v) {assign(v);}
 
@@ -180,16 +188,6 @@ class GridFunction
 	///	assigns the values of a vector
 		void assign(const vector_type& v);
 
-	///	\copydoc IGridFunction::resize_values
-		virtual void resize_values(size_t s, number defaultValue = 0.0);
-
-	///	\copydoc IGridFunction::permute_values
-		virtual	void permute_values(const std::vector<size_t>& vIndNew);
-
-	///	\copydoc IGridFunction::copy_values
-		virtual void copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
-		                         bool bDisjunct = false);
-
 	/// Destructor
 		virtual ~GridFunction() {m_spDD->unmanage_grid_function(*this);}
 
@@ -202,46 +200,6 @@ class GridFunction
 
 	///	returns the grid level
 		const GridLevel& grid_level() {return m_spDD->grid_level();}
-
-	/// number of discrete functions
-		size_t num_fct() const {return m_spDD->num_fct();}
-
-	/// number of discrete functions on subset si
-		size_t num_fct(int si) const {return m_spDD->num_fct(si);}
-
-	/// returns the trial space of the discrete function fct
-		LFEID local_finite_element_id(size_t fct) const
-			{return m_spDD->local_finite_element_id(fct);}
-
-	/// returns the name of the discrete function nr_fct
-		std::string name(size_t fct) const {return m_spDD->name(fct);}
-
-	///	returns subset id by name
-		size_t subset_id_by_name(const char* name) const {return this->subset_grp_by_name(name)[0];}
-
-	///	returns subset group by name
-		SubsetGroup subset_grp_by_name(const char* names) const {return m_spDD->subset_grp_by_name(names);}
-
-	/// returns fct id by name
-		size_t fct_id_by_name(const char* name) const{return m_spDD->fct_id_by_name(name);}
-
-	///	returns a function group to a string of functions
-		FunctionGroup fct_grp_by_name(const char* names) const {return m_spDD->fct_grp_by_name(names);}
-
-	/// returns the dimension in which solution lives
-		int get_dim(size_t fct) const {return m_spDD->dim(fct);}
-
-	///	returns function pattern
-		ConstSmartPtr<FunctionPattern> function_pattern() const {return m_spDD->function_pattern();}
-
-	/// returns true if the discrete function nr_fct is defined on subset s
-		bool is_def_in_subset(size_t fct, int si) const {return m_spDD->is_def_in_subset(fct, si);}
-
-	/// returns true if the discrete function nr_fct is defined everywhere
-		bool is_def_everywhere(size_t fct) const {return m_spDD->is_def_everywhere(fct);}
-
-	/// number of subsets
-		int num_subsets() const {return m_spDD->num_subsets();}
 
 	/// iterator for elements where this grid function is defined
 	/// \{
@@ -275,12 +233,6 @@ class GridFunction
 
 	/// return the number of dofs distributed on subset si
 		size_t num_indices(int si) const {return m_spDD->num_indices(si);}
-
-	/// returns the maximum number of dofs on grid objects in a dimension on a subset
-		size_t max_dofs(const int dim, const int si) const {return m_spDD->max_dofs(dim,si);}
-
-	/// return the maximum number of dofs on grid objects in a dimension
-		size_t max_dofs(const int dim) const {return m_spDD->max_dofs(dim);}
 
 	/// get all indices of the element
 		template <typename TElem>
@@ -321,38 +273,37 @@ class GridFunction
 		ConstSmartPtr<ApproximationSpace<TDomain> > approx_space() const {return m_spApproxSpace;}
 
 	public:
-	///	returns the position of the dofs of a function if available
-		template <typename TElem>
-		bool dof_positions(TElem* elem, size_t fct,
-		                   std::vector<MathVector<dim> >& vPos) const;
-
-		template <typename TElem>
-		bool inner_dof_positions(TElem* elem, size_t fct,
-		                         std::vector<MathVector<dim> >& vPos) const;
-
-	public:
-	///	add a transfer callback
-		void add_transfer(SmartPtr<ILocalTransferAlgebra<TAlgebra> > transfer);
-
-	///	add a transfer callback
-		void add_transfer(SmartPtr<ILocalTransfer> transfer);
-
-	///	add a transfer callback
-		void remove_transfer(SmartPtr<ILocalTransfer> transfer);
-
-	///	add a transfer callback
-		void clear_transfers();
-
 	/// return m_bManaged
 		bool managed(){return m_bManaged;}
 		
-		void set_redistribution(bool bRedistribute){
-			m_spDD->set_redistribution(bRedistribute);
-		}
+	///	\copydoc IGridFunction::resize_values
+		virtual void resize_values(size_t s, number defaultValue = 0.0);
+
+	///	\copydoc IGridFunction::permute_values
+		virtual	void permute_values(const std::vector<size_t>& vIndNew);
+
+	///	\copydoc IGridFunction::copy_values
+		virtual void copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
+		                         bool bDisjunct = false);
 
 	protected:
-	///	registered transfers
-		std::vector<SmartPtr<ILocalTransfer> > m_vTransfer;
+	///	message hub id
+		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
+		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
+
+	///	registers at message hub for grid adaption
+		void register_at_adaption_msg_hub();
+
+	/**	this callback is called by the message hub, when a grid change has been
+	 * performed. It will call all necessary actions in order to keep the grid
+	 * correct for computations.*/
+		void grid_changed_callback(const GridMessage_Adaption& msg);
+
+	///	called during parallel redistribution
+		void grid_distribution_callback(const GridMessage_Distribution& msg);
+
+	/// adaption grid function for temporary storage of values in grid
+		SmartPtr<AdaptionSurfaceGridFunction<TDomain> > m_spAdaptGridFct;
 
 	protected:
 	///	DoF Distribution this GridFunction relies on
@@ -363,6 +314,9 @@ class GridFunction
 
 	/// boolean for DoF Distribution management of grid function
 		bool m_bManaged;
+
+	///	stores the storage-type from before redistribution
+		uint m_preDistStorageType;
 };
 
 template <typename TDomain, typename TAlgebra>

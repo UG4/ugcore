@@ -88,7 +88,7 @@ void InterpolateOnVertices(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 			for(size_t i = 0; i < ind.size(); ++i)
 			{
 			//	set value
-				BlockRef((*spGridFct)[ind[i][0]], ind[i][1]) = val;
+				DoFRef(*spGridFct, ind[i]) = val;
 			}
 		}
 	}
@@ -190,7 +190,7 @@ void InterpolateOnElements(
 			(*spInterpolFunction)(val, glob_pos, time, si);
 
 		//	set value
-			BlockRef((*spGridFct)[ind[i][0]], ind[i][1]) = val;
+			DoFRef(*spGridFct, ind[i]) = val;
 		}
 	}
 }

@@ -21,10 +21,10 @@ namespace ug{
 // Lev Info
 ///////////////////////////////////////////////////////////////////////////////
 
-struct LevInfoBase
+struct LevInfo
 {
 ///	constructor
-	LevInfoBase() : numIndex(0), sizeIndexSet(0)
+	LevInfo() : numIndex(0)
 #ifdef UG_PARALLEL
 	,spAlgebraLayouts(new AlgebraLayouts)
 #endif
@@ -35,10 +35,6 @@ struct LevInfoBase
 
 /// number of distributed indices on each subset
 	std::vector<size_t> vNumIndexOnSubset;
-
-///	number of largest index used, i.e. (0, ..., m_sizeIndexSet-1) available,
-///	but maybe some indices are not used
-	size_t sizeIndexSet;
 
 #ifdef UG_PARALLEL
 	protected:
@@ -59,25 +55,9 @@ struct LevInfoBase
 #ifdef UG_PARALLEL
 		spAlgebraLayouts->clear();
 #endif
-		numIndex = sizeIndexSet = 0;
+		numIndex = 0;
 		vNumIndexOnSubset.clear();
 	}
-};
-
-template <typename TContainer = std::vector<size_t> >
-struct LevInfo : public LevInfoBase
-{
-///	returns if free index available
-	inline bool free_index_available(size_t multiplicity) const;
-
-///	returns number of free index available
-	inline size_t num_free_index(size_t multiplicity) const;
-
-///	returns a free index
-	inline size_t pop_free_index(size_t multiplicity);
-
-///	adds a free index, returns if index has not been contained before
-	inline bool push_free_index(size_t index,size_t multiplicity);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,22 +77,6 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		                  bool bGrouped);
 
 		~MGDoFDistribution();
-
-	///	Notify the dof-distribution that parallel redistribution is taking place
-	/** During parallel redistribution, element creation and deletion have to be
-	 * handled slightly different from other cases (e.g. refinement).
-	 *
-	 * When calling begin_parallel_redistribution, make sure to also call the
-	 * matching end_parallel_redistribution.
-	 *
-	 * \warning	It is crucial that the dof-distribution will be defragmented after
-	 * 			end_parallel_redistribution was called. Parallel interfaces
-	 * 			and associated vectors are in an inconsistent state otherwise.
-	 * \{ */
-		void begin_parallel_redistribution();
-		void end_parallel_redistribution();
-		inline bool parallel_redistribution_mode()	{return m_parallelRedistributionMode;}
-	/** \} */
 
 		///	returns the multigrid
 		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
@@ -297,86 +261,11 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		 * \param[in]		si			Subset of Geometric Object
 		 * \param[in,out]	li			Level Information about Indices
 		 */
-		template <typename TBaseObject, typename T>
+		template <typename TBaseObject>
 		bool add(TBaseObject* obj, const ReferenceObjectID roid,
-		         const int si, LevInfo<T>& li);
-		template <typename T>
+		         const int si, LevInfo& li);
 		bool add(GeometricObject* obj, const ReferenceObjectID roid,
-		         const int si, LevInfo<T>& li);
-
-		template <typename TBaseObject, typename T>
-				bool add(TBaseObject* obj, const ReferenceObjectID roid,
-				         const int si, LevInfo<T>& li,std::vector<std::pair<size_t,size_t> >& vReplaced);
-
-		template <typename T>
-		bool add(GeometricObject* obj, const ReferenceObjectID roid,
-		         const int si, LevInfo<T>& li,std::vector<std::pair<size_t,size_t> >& vReplaced);
-
-		/**
-		 * adds indices to a geometric object. Tries to reuse free indices.
-		 *
-		 * \param[in]		obj			Geometric Object
-		 * \param[in]		roid		Reference Object id
-		 * \param[in]		si			Subset of Geometric Object
-		 * \param[in,out]	li			Level Information about Indices
-		 */
-		template <typename TBaseObject, typename T>
-		bool add_from_free(TBaseObject* obj, const ReferenceObjectID roid,
-		                   const int si, LevInfo<T>& li);
-		template <typename T>
-		bool add_from_free(GeometricObject* obj, const ReferenceObjectID roid,
-		                   const int si, LevInfo<T>& li);
-
-		/**
-		 * removes indices from the geometric object. The freed index (the
-		 * produced hole in the index set) is stored in vFreeIndex
-		 *
-		 * \param[in]		obj					Geometric Object
-		 * \param[in]		roid				Reference Object id
-		 * \param[in]		si					Subset of Geometric Object
-		 * \param[in,out]	li			Level Information about Indices
-		 */
-		template <typename TBaseObject, typename T>
-		void erase(TBaseObject* obj, const ReferenceObjectID roid,
-		           const int si, LevInfo<T>& li);
-		template <typename T>
-		void erase(GeometricObject* obj, const ReferenceObjectID roid,
-		           const int si, LevInfo<T>& li);
-
-		/**
-		 * checks if the indices on the geometric object are in the range of the
-		 * index set. If this is not the case, the index is replaced by a hole
-		 * in the index set. The replacement of indices is remembered in the
-		 * vReplaced vector by adding the pair (oldIndex, newIndex) at the end.
-		 *
-		 * \param[in]		obj			Geometric Object
-		 * \param[in]		roid		Reference Object id
-		 * \param[in]		si			Subset of Geometric Object
-		 * \param[in,out]	li			Level Information about Indices
-		 * \param[in,out]	vReplaced	pairs of replaced indices
-		 *
-		 * \returns true if index has been replaced, false else
-		 */
-		template <typename TBaseObject, typename T>
-		bool defragment(TBaseObject* obj, const ReferenceObjectID roid, const int si,
-		                LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced);
-		template <typename T>
-		void defragment(GeometricObject* obj, const ReferenceObjectID roid, const int si,
-		                LevInfo<T>& li, std::vector<std::pair<size_t, size_t> >& vReplaced);
-
-		/**
-		 * Derived classes should iterate over all elements and add those whose
-		 * dof-entry has not yet been assigned (whose index equals NOT_YET_ASSIGNED)
-		 */
-		virtual void parallel_redistribution_ended() = 0;
-
-		/**
-		 * copies the indices from one geometric object to another one. This
-		 * method is usually called, if an object of the grid is replaced by a
-		 * similar one.
-		 */
-		template <class TElemNew, class TElemOld>
-		inline void copy(TElemNew* objNew, TElemOld* objOld);
+		         const int si, LevInfo& li);
 
 		///	checks that subset assigment is ok
 		void check_subsets();
@@ -386,12 +275,6 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 
 		/// removes the attachments
 		void clear_attachments();
-
-		///	registers this class as a grid observer
-		void register_observer();
-
-		///	unregisters this class as a grid observer
-		void unregister_observer();
 
 		///	returns first algebra index of a geometric object
 		/// \{
@@ -415,33 +298,11 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 	///	grouping
 		bool m_bGrouped;
 
-	/**	those variables control, how the manager reacts on the creation of new elements.
-	 *	If strictSubsetChecks are enabled, the manager will throw UGError if a
-	 *	created element isn't contained in a subset.
-	 *	If strictSubsetChecks are disabled, it will assign a pseudo dof index to
-	 *	elements which are not contained in any subset.
-	 *	During parallel redistribution, special behavior is required when erasing
-	 *	elements. This is because erased elements will be inserted on other
-	 *	processes again. Parents of erased elements thus won't be contained in
-	 *	the surface view. When parallelRedistributionMode is active,
-	 *	strictSubsetChecks are most likely disabled.
-	 *	\{ */
-		bool m_strictSubsetChecks;
-		bool m_parallelRedistributionMode;
-	/**	\} */
-
 		MessageHub::SPCallbackId	m_callbackId_GridCreation;
-
-	///	indication that function is not defined on a subset
-		//enum{NOT_DEF_ON_SUBSET = (size_t) - 1};
-	///	indication that function is not defined on a subset
-		enum{NOT_YET_ASSIGNED = (size_t) - 2};
 
 	///	Multi Grid
 		SmartPtr<MultiGrid> m_spMG;
 		MultiGrid* m_pMG;
-
-	///	Subset Handler
 		SmartPtr<MGSubsetHandler> m_spMGSH;
 
 	///	Attachment type
@@ -463,159 +324,6 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		face_attachment_accessor_type m_aaIndexFACE;
 		volume_attachment_accessor_type m_aaIndexVOL;
 	///	\}
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Lev Info
-///////////////////////////////////////////////////////////////////////////////
-
-template <>
-struct LevInfo<std::vector<size_t> > : public LevInfoBase
-{
-	typedef std::vector<size_t>::iterator iterator;
-	typedef std::vector<size_t>::const_iterator const_iterator;
-
-///	returns if free index available
-	inline bool free_index_available(size_t multiplicity) const
-	{
-		if (vvFreeIndex.size()<=multiplicity) return false;
-		return !vvFreeIndex[multiplicity].empty();
-	}
-
-	inline bool free_index_available() const
-	{
-		bool available = false;
-		for (size_t i=0;i<vvFreeIndex.size();i++){
-			if (vvFreeIndex[i].empty()==false){
-				available = true;
-				break;
-			}
-		}
-		return available;
-	}
-
-///	returns number of free index available
-	inline size_t num_free_index(size_t multiplicity) const
-	{
-		return vvFreeIndex[multiplicity].size();
-	}
-
-///	returns a free index
-	inline size_t pop_free_index(size_t multiplicity)
-	{
-		if(vvFreeIndex.size() <= multiplicity)
-			vvFreeIndex.resize(multiplicity+1);
-
-		const size_t index = vvFreeIndex[multiplicity].back();
-		vvFreeIndex[multiplicity].pop_back();
-		return index;
-	}
-
-///	adds a free index, returns if index has not been contained before
-	inline bool push_free_index(size_t index, size_t multiplicity)
-	{
-		if(vvFreeIndex.size() <= multiplicity)
-					vvFreeIndex.resize(multiplicity+1);
-
-		vvFreeIndex[multiplicity].push_back(index);
-		return true;
-	}
-
-///	returns iterators
-///	\{
-	inline iterator begin(size_t multiplicity) {return vvFreeIndex[multiplicity].begin();}
-	inline iterator end(size_t multiplicity) {return vvFreeIndex[multiplicity].end();}
-	inline const_iterator begin(size_t multiplicity) const {return vvFreeIndex[multiplicity].begin();}
-	inline const_iterator end(size_t multiplicity) const {return vvFreeIndex[multiplicity].end();}
-///	\}
-
-///	clear container
-	void clear(size_t multiplicity){vvFreeIndex[multiplicity].clear();}
-	void clear_all() {
-		for (size_t i=0;i<vvFreeIndex.size();i++) clear(i);
-		LevInfoBase::clear();
-	}
-	
-	size_t max_multiplicity(){return vvFreeIndex.size();}
-
-	protected:
-	std::vector<std::vector<size_t> > vvFreeIndex;
-};
-
-template <>
-struct LevInfo<std::set<size_t> > : public LevInfoBase
-{
-	typedef std::set<size_t>::iterator iterator;
-	typedef std::set<size_t>::const_iterator const_iterator;
-
-///	returns if free index available
-	inline bool free_index_available(size_t multiplicity) const
-	{
-		if(vvFreeIndex.size() <= multiplicity) return false;
-		return !vvFreeIndex[multiplicity].empty();
-	}
-
-///	returns if free index available
-	inline bool free_index_available() const
-	{
-		bool available = false;
-		for (size_t i=0;i<vvFreeIndex.size();i++){
-			if (vvFreeIndex[i].empty()==false){
-				available = true;
-				break;
-			}
-		}
-		return available;
-	}
-
-///	returns number of free index available
-	inline size_t num_free_index(size_t multiplicity) const
-	{
-		if(vvFreeIndex.size() <= multiplicity) return 0;
-		return vvFreeIndex[multiplicity].size();
-	}
-
-///	returns a free index
-	inline size_t pop_free_index(size_t multiplicity)
-	{
-		if(vvFreeIndex.size() <= multiplicity)
-			vvFreeIndex.resize(multiplicity+1);
-		const size_t index = *vvFreeIndex[multiplicity].begin();
-		vvFreeIndex[multiplicity].erase(vvFreeIndex[multiplicity].begin());
-		return index;
-	}
-
-///	adds a free index, returns if index has not been contained before
-	inline bool push_free_index(size_t index,size_t multiplicity)
-	{
-		if(vvFreeIndex.size() <= multiplicity)
-					vvFreeIndex.resize(multiplicity+1);
-	//	already contained, just return flag
-		if(vvFreeIndex[multiplicity].find(index) != vvFreeIndex[multiplicity].end()) return false;
-
-		vvFreeIndex[multiplicity].insert(index); return true;
-	}
-
-///	returns iterators
-///	\{
-	inline iterator begin(size_t multiplicity) {return vvFreeIndex[multiplicity].begin();}
-	inline iterator end(size_t multiplicity) {return vvFreeIndex[multiplicity].end();}
-	inline const_iterator begin(size_t multiplicity) const {return vvFreeIndex[multiplicity].begin();}
-	inline const_iterator end(size_t multiplicity) const {return vvFreeIndex[multiplicity].end();}
-///	\}
-
-///	clear container
-	void clear(size_t multiplicity){vvFreeIndex[multiplicity].clear();}
-	void clear_all() {
-		for (size_t i=0;i<vvFreeIndex.size();i++) clear(i);
-		LevInfoBase::clear();
-	}
-
-	size_t max_multiplicity(){return vvFreeIndex.size();}
-
-	protected:
-	std::vector<std::set<size_t> > vvFreeIndex;
 };
 
 } // end namespace ug

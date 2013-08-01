@@ -6,44 +6,54 @@
  */
 
 #include "dof_distribution.h"
+#include "lib_disc/function_spaces/grid_function.h"
 
 namespace ug{
 
-void DoFDistribution::add_transfer(SmartPtr<ILocalTransfer> spTransfer)
-{
-	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
-	{
-		if(spTransfer->prolongation_needed((GeometricBaseObject)gbo)){
-			m_vProlongation[gbo].push_back(spTransfer);
-		}
 
-		if(spTransfer->restriction_needed((GeometricBaseObject)gbo))
-			m_vRestriction[gbo].push_back(spTransfer);
-	}
+////////////////////////////////////////////////////////////////////////////////
+// DoFDistribution
+////////////////////////////////////////////////////////////////////////////////
+
+
+void DoFDistribution::manage_grid_function(IGridFunction& gridFct)
+{
+//	if already registered, we're done
+	if(std::find(m_vpGridFunction.begin(), m_vpGridFunction.end(), &gridFct)
+		!= m_vpGridFunction.end())
+		return;
+
+//	add to managed functions
+	m_vpGridFunction.push_back(&gridFct);
 }
 
-void DoFDistribution::remove_transfer(SmartPtr<ILocalTransfer> spTransfer)
+void DoFDistribution::unmanage_grid_function(IGridFunction& gridFct)
 {
-	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
-	{
-		m_vProlongation[gbo].erase(std::remove(m_vProlongation[gbo].begin(),
-		                                       m_vProlongation[gbo].end(),
-		                                       spTransfer),
-		                                       m_vProlongation[gbo].end());
-		m_vRestriction[gbo].erase(std::remove(m_vRestriction[gbo].begin(),
-		                                      m_vRestriction[gbo].end(),
-		                                       spTransfer),
-		                                       m_vRestriction[gbo].end());
-	}
+	m_vpGridFunction.erase(
+	std::remove(m_vpGridFunction.begin(), m_vpGridFunction.end(), &gridFct)
+	, m_vpGridFunction.end());
 }
 
-void DoFDistribution::clear_transfers()
+void DoFDistribution::permute_values(const std::vector<size_t>& vIndNew)
 {
-	for(int gbo = 0; gbo < NUM_GEOMETRIC_BASE_OBJECTS; ++gbo)
-	{
-		m_vProlongation[gbo].clear();
-		m_vRestriction[gbo].clear();
-	}
+//	swap values of handled grid functions
+	for(size_t i = 0; i < m_vpGridFunction.size(); ++i)
+		m_vpGridFunction[i]->permute_values(vIndNew);
+}
+
+void DoFDistribution::copy_values(const std::vector<std::pair<size_t, size_t> >& vIndexMap,
+                                         bool bDisjunct)
+{
+//	swap values of handled grid functions
+	for(size_t i = 0; i < m_vpGridFunction.size(); ++i)
+		m_vpGridFunction[i]->copy_values(vIndexMap, bDisjunct);
+}
+
+void DoFDistribution::resize_values(size_t newSize)
+{
+//	swap values of handled grid functions
+	for(size_t i = 0; i < m_vpGridFunction.size(); ++i)
+		m_vpGridFunction[i]->resize_values(newSize);
 }
 
 } // end namespace ug

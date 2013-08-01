@@ -53,6 +53,12 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 		                    SmartPtr<grid_type>,
 		                    const AlgebraType& algebraType);
 
+	protected:
+	///	initializing
+		void init(SmartPtr<subset_handler_type> spMGSH,
+		          SmartPtr<grid_type> spMG, const AlgebraType& algebraType);
+
+	public:
 	///	Destructor
 		~IApproximationSpace();
 
@@ -157,6 +163,10 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 		ConstSmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl) const;
 
 
+	///	returns dof distribution info
+		ConstSmartPtr<DoFDistributionInfo> dof_distribution_info() const {return m_spDoFDistributionInfo;}
+
+
 	///	prints statistic about DoF Distribution
 		void print_statistic(int verboseLev = 1) const;
 
@@ -189,10 +199,6 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	returns if surfaces are enabled
 		bool surfaces_enabled() const;
 
-
-	///	defragments the index set of the DoF Distribution
-		void defragment();
-
 	protected:
 	///	creates level DoFDistribution if needed
 		void level_dd_required(size_t fromLevel, size_t toLevel);
@@ -216,6 +222,15 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	prints statistic about DoF Distribution
 		void print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const;
 
+	protected:
+	///	reinits all data after grid adaption
+		void reinit();
+
+	///	message hub id
+		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
+		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
+		bool m_bAdaptionIsActive;
+
 	///	registers at message hub for grid adaption
 		void register_at_adaption_msg_hub();
 
@@ -226,11 +241,6 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 
 	///	called during parallel redistribution
 		void grid_distribution_callback(const GridMessage_Distribution& msg);
-
-	///	sets the distributed grid manager
-#ifdef UG_PARALLEL
-		void set_dist_grid_mgr(DistributedGridManager* pDistGrdMgr) {m_pDistGridMgr = pDistGrdMgr;}
-#endif
 
 	protected:
 	/// multigrid, where elements are stored
@@ -260,19 +270,8 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	Surface View
 		SmartPtr<SurfaceView> m_spSurfaceView;
 
-	///	message hub id
-		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
-		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
-
-		bool m_bAdaptionIsActive;
-
 	///	suitable algebra type for the index distribution pattern
 		AlgebraType m_algebraType;
-
-#ifdef UG_PARALLEL
-	///	Pointer to GridManager
-		DistributedGridManager* m_pDistGridMgr;
-#endif
 };
 
 /// base class for approximation spaces without type of algebra or dof distribution

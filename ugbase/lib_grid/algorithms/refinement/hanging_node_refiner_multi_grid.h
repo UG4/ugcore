@@ -6,6 +6,7 @@
 #define __H__UG__HANGIN_NODE_REFINER_MULTI_GRID__
 
 #include "hanging_node_refiner_base.h"
+#include "lib_grid/tools/selector_multi_grid.h"
 
 namespace ug
 {
@@ -35,10 +36,11 @@ namespace ug
  *
  * \sa ug::HangingNodeRefinerBase, ug::HangingNodeRefiner_Grid
  */
-class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
+class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 {
 	public:
-		using HangingNodeRefinerBase::mark;
+		typedef HangingNodeRefinerBase<MGSelector>	BaseClass;
+		using BaseClass::mark;
 
 		enum HNodeCoarsenMarks{
 			HNCM_FIRST = HNRM_MAX + 1,
@@ -93,8 +95,8 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	 */
 		virtual bool perform_coarsening();
 
-		void save_coarsen_marks_to_file(Selector& sel, const char* filename);
-		void debug_save(Selector& sel, const char* filename);
+		void save_coarsen_marks_to_file(ISelector& sel, const char* filename);
+		void debug_save(ISelector& sel, const char* filename);
 
 	///	a callback that allows to deny refinement of special vertices
 		virtual bool refinement_is_allowed(VertexBase* elem);
@@ -228,8 +230,10 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 	/**	This method is responsible to mark all elements that shall be coarsened.
 	 * Only sub-surface elements may be coarsened. If a sub-surface element has
 	 * a side, which is not a sub-surface element, then the element may not be
-	 * coarsened.*/
-		virtual void collect_objects_for_coarsen();
+	 * coarsened.
+	 * If scheduleCoarseningBeginsMessage is set to true, the method will schedule
+	 * a GridMessage_Adaption message which indicates that coarsening begins.*/
+		virtual void collect_objects_for_coarsen(bool scheduleCoarseningBeginsMessage = false);
 
 
 	////////////////////////////////////////

@@ -8,6 +8,7 @@
 #include <stack>
 #include "lib_grid/lg_base.h"
 #include "common/ug_config.h"
+#include "lib_grid/tools/selector_multi_grid.h"
 
 namespace ug
 {

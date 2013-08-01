@@ -25,13 +25,14 @@ set(srcDiscretization	domain_util.cpp
 						dof_manager/mg_dof_distribution.cpp
 						dof_manager/level_dof_distribution.cpp
 						dof_manager/surface_dof_distribution.cpp
-						dof_manager/managing_dof_distribution.cpp
 						dof_manager/ordering/cuthill_mckee.cpp
 						dof_manager/ordering/lexorder.cpp
 
                         function_spaces/approximation_space.cpp
                         function_spaces/dof_position_util.cpp
                         function_spaces/grid_function.cpp
+                        function_spaces/adaption_surface_grid_function.cpp
+                        function_spaces/local_transfer_interface.cpp
 
                         io/vtkoutput.cpp
 

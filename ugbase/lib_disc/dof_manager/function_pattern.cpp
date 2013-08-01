@@ -111,4 +111,15 @@ size_t FunctionPattern::fct_id_by_name(const char* name) const
 	UG_THROW("Function name "<<name<<" not found in pattern.");
 }
 
+int FunctionPattern::subset_id_by_name(const char* name) const
+{
+	for(int i = 0; i < m_spSH->num_subsets(); ++i)
+	{
+		if(m_spSH->subset_info(i).name == name)
+			return i;
+	}
+
+	UG_THROW("Subset name "<<name<<" not found in Subset Handler.");
+}
+
 } // end namespace ug

@@ -22,10 +22,6 @@
 #include "lib_disc/parallelization/domain_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
-#ifdef UG_PARALLEL
-	#include "lib_disc/parallelization/domain_load_balancer.h"
-#endif
-
 
 using namespace std;
 
@@ -93,32 +89,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T>(name, domDiscGrp);
 		reg.add_class_to_group(name, "IDiscretizationItem", tag);
 	}
-
-//	DomainDistribution
-	{
-		typedef ug::GridFunction<TDomain, TAlgebra> TFct;
-		reg.add_function("DistributeDomain",
-			static_cast<bool (*)(TDomain&, PartitionMap&, bool, std::vector<SmartPtr<TFct> >)>(
-				&DistributeDomain<TDomain, TFct>),
-			grp);
-		//note that an overload of this method exists, registered in domain_bridges/domain_bridge
-	}
-
-//	LoadBalancer
-#ifdef UG_PARALLEL
-	{
-		typedef ug::GridFunction<TDomain, TAlgebra> TFct;
-		string name = string("DomainLoadBalancer").append(suffix);
-		typedef DomainLoadBalancer<TDomain, TFct> T;
-		typedef LoadBalancer<TDomain::dim> TBase;
-		reg.add_class_<T, TBase>(name, domDiscGrp)
-			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
-			.add_method("add_serializer", static_cast<void (T::*)(SmartPtr<TFct>)>(&T::add_serializer))
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "DomainLoadBalancer", tag);
-	}
-#endif
-
 }
 
 /**

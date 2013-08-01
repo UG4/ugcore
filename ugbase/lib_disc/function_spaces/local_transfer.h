@@ -5,343 +5,560 @@
  *      Author: Andreas Vogel, Christian Wehner
  */
 
-#ifndef LOCAL_TRANSFER_H_
-#define LOCAL_TRANSFER_H_
+#ifndef __H__UG__LIB_DISC__FUNCTION_SPACS__LOCAL_TRANSFER__
+#define __H__UG__LIB_DISC__FUNCTION_SPACS__LOCAL_TRANSFER__
 
-#include "lib_disc/function_spaces/local_transfer_interface.h"
-#include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "local_transfer_interface.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
-#include "lib_disc/function_spaces/grid_function_util.h"
+#include "lib_disc/domain_util.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
+#include "lib_disc/function_spaces/dof_position_util.h"
 
 namespace ug{
 
-template <typename TAlgebra>
-class P1LocalTransfer : public ILocalTransferAlgebra<TAlgebra>
+
+template <typename TDomain>
+class PiecewiseConstantElemTransfer
+	: public ElemProlongationBase<TDomain, PiecewiseConstantElemTransfer<TDomain> >
+	, public ElemRestrictionBase<TDomain, PiecewiseConstantElemTransfer<TDomain> >
 {
 	public:
-		typedef typename TAlgebra::vector_type vector_type;
-		using ILocalTransferAlgebra<TAlgebra>::m_pVec;
+		PiecewiseConstantElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-	public:
-	///	Constructor, indicating to transfer only one component
-		P1LocalTransfer(size_t fct) : m_fct(fct) {}
-
-	///	returns if prolongation is performed on type
-		virtual bool prolongation_needed(GeometricBaseObject gbo) const
-		{
-			return (gbo == VERTEX);
-		}
-
-	///	returns if restriction is performed on type
-		virtual bool restriction_needed(GeometricBaseObject gbo) const
-		{
-			return (gbo == VERTEX);
-		}
-
-		void prolongate_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const
-		{
-			std::vector<MultiIndex<2> > vFineMI;
-			std::vector<MultiIndex<2> > vCoarseMI;
-			switch(parent->reference_object_id())
-			{
-				case ROID_VERTEX:
-				{
-					VertexBase* pParent = static_cast<VertexBase*>(parent);
-					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
-					mgDD.inner_multi_indices(pParent, m_fct, vCoarseMI);
-
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]) =
-								BlockRef((*m_pVec)[ vCoarseMI[i][0] ], vCoarseMI[i][1]);
-				}
-				break;
-				case ROID_EDGE:
-				{
-					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]) = 0.0;
-
-					EdgeBase* pParent = static_cast<EdgeBase*>(parent);
-					for(size_t i = 0; i < pParent->num_vertices(); ++i)
-					{
-						VertexBase* edgeVrt = pParent->vertex(i);
-						mgDD.inner_multi_indices(edgeVrt, m_fct, vCoarseMI);
-
-						for(size_t i = 0; i < vFineMI.size(); ++i)
-							BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1])
-							+= 0.5 * BlockRef((*m_pVec)[ vCoarseMI[i][0] ], vCoarseMI[i][1]);
-					}
-				}
-				break;
-				case ROID_QUADRILATERAL:
-				{
-					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]) = 0.0;
-
-					Face* pParent = static_cast<Face*>(parent);
-					for(size_t i = 0; i < pParent->num_vertices(); ++i)
-					{
-						VertexBase* faceVrt = pParent->vertex(i);
-						mgDD.inner_multi_indices(faceVrt, m_fct, vCoarseMI);
-
-						for(size_t i = 0; i < vFineMI.size(); ++i)
-							BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1])
-							+= 0.25 * BlockRef((*m_pVec)[ vCoarseMI[i][0] ], vCoarseMI[i][1]);
-					}
-				}
-				break;
-				case ROID_HEXAHEDRON:
-				{
-					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]) = 0.0;
-
-					Volume* pParent = static_cast<Volume*>(parent);
-					for(size_t i = 0; i < pParent->num_vertices(); ++i)
-					{
-						VertexBase* hexVrt = pParent->vertex(i);
-						mgDD.inner_multi_indices(hexVrt, m_fct, vCoarseMI);
-
-						for(size_t i = 0; i < vFineMI.size(); ++i)
-							BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1])
-							+= 0.125 * BlockRef((*m_pVec)[ vCoarseMI[i][0] ], vCoarseMI[i][1]);
-					}
-				}
-				break;
-				case ROID_TRIANGLE:
-				case ROID_TETRAHEDRON:
-				case ROID_PRISM:
-				case ROID_PYRAMID: /*nothing to do in those cases */ break;
-				default: UG_THROW("Reference Object type not found.");
-			}
-		}
-		void prolongate_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
-		void prolongate_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
-		void prolongate_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
-
-		void restrict_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const
-		{
-			std::vector<MultiIndex<2> > vFineMI;
-			std::vector<MultiIndex<2> > vCoarseMI;
-			switch(parent->reference_object_id())
-			{
-				case ROID_VERTEX:
-				{
-					VertexBase* pParent = static_cast<VertexBase*>(parent);
-					mgDD.inner_multi_indices(vrt, m_fct, vFineMI);
-					mgDD.inner_multi_indices(pParent, m_fct, vCoarseMI);
-
-					for(size_t i = 0; i < vFineMI.size(); ++i)
-						BlockRef((*m_pVec)[ vCoarseMI[i][0] ], vCoarseMI[i][1]) =
-								BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]);
-				}
-				break;
-				case ROID_EDGE:
-				case ROID_TRIANGLE:
-				case ROID_QUADRILATERAL:
-				case ROID_TETRAHEDRON:
-				case ROID_PRISM:
-				case ROID_PYRAMID:
-				case ROID_HEXAHEDRON: /*nothing to do in those cases */ break;
-				default: UG_THROW("Reference Object type not found.");
-			}
-		}
-		void restrict_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
-		void restrict_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
-		void restrict_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {}
-
-	protected:
-		size_t m_fct;
-};
-
-template <typename TAlgebra,typename TGridFunction>
-class ElementLocalTransfer : public ILocalTransferAlgebra<TAlgebra>
-{
-		///	domain type
-		typedef typename TGridFunction::domain_type domain_type;
-	
-		///	world dimension
-		static const int dim = domain_type::dim;
-	
-		/// element type
-		typedef typename TGridFunction::template dim_traits<dim>::geometric_base_object elem_type;
-	
-		///	grid type
-		typedef typename domain_type::grid_type grid_type;
-	public:
-		typedef typename TAlgebra::vector_type vector_type;
-		using ILocalTransferAlgebra<TAlgebra>::m_pVec;
-	private:
-		elem_type* m_coarseElem;
-		ReferenceObjectID m_coarseRoid;
-		LocalVector m_coarseLocU;
-		typedef DimReferenceMapping<dim, dim> DimReferenceMapping_type;
-		DimReferenceMapping<dim, dim>* m_coarseMap;
-		ConstSmartPtr<domain_type> m_spDomain;
-		std::vector<LFEID> m_vLFEID;
-		typedef LocalShapeFunctionSet<dim> lsfs_type;
-		grid_type* m_grid;
-	public:
-		///	Constructor
-		ElementLocalTransfer(SmartPtr<TGridFunction> spGridFct)
-		{
-			m_spDomain = spGridFct->domain();
-			m_vLFEID.resize(spGridFct->num_fct());
-			for(size_t fct = 0; fct < spGridFct->num_fct(); ++fct)
-					m_vLFEID[fct] = spGridFct->local_finite_element_id(fct);
-			domain_type& domain = *spGridFct->domain().get();
-			grid_type& grid = *domain.grid();
-			m_grid = &grid;
-		}
-		
-		///	returns if prolongation is performed on type
-		virtual bool prolongation_needed(GeometricBaseObject gbo) const
-		{
-			return true;
-		}
-		
-		///	returns if restriction is performed on type
-		virtual bool restriction_needed(GeometricBaseObject gbo) const
-		{
-			return true;
-		}
-
-		void prolongate_values_general(GeometricObject* child, GeometricObject* parent, const MGDoFDistribution& mgDD) const
-		{		
-			std::vector<MultiIndex<2> > vFineMI;
-			std::vector<MultiIndex<2> > vCoarseMI;
-			typename grid_type::template traits<elem_type>::secure_container assoElements;
-			elem_type* coarseElem;
-			ReferenceObjectID coarseRoid;
-			LocalVector coarseLocU;
-			typedef DimReferenceMapping<dim, dim> DimReferenceMapping_type;
-			DimReferenceMapping<dim, dim>* coarseMap;
-			coarseElem = dynamic_cast<elem_type*>(parent);
-			if (coarseElem==NULL){
-				m_grid->associated_elements(assoElements,parent);
-				coarseElem =  assoElements[0];
-			}
-			coarseRoid = (ReferenceObjectID) coarseElem->reference_object_id();
-			// 	get local values for parent (coarse element)
-			LocalIndices ind;
-			mgDD.indices(coarseElem, ind, false);
-			coarseLocU.resize(ind);
-			// 	read local values of u in coarse element
-			GetLocalVector(coarseLocU, *m_pVec);
-			//	get corner coordinates
-			std::vector<MathVector<dim> > vCornerCoarse;
-			CollectCornerCoordinates(vCornerCoarse, *coarseElem, *m_spDomain);
-			//	get Reference Mapping
-			coarseMap = &ReferenceMappingProvider::get<dim, dim>(coarseRoid, vCornerCoarse);
-			for(size_t fct = 0; fct < mgDD.num_fct(); fct++){
-				const LocalShapeFunctionSet<dim>& lsfs = LocalFiniteElementProvider::get<dim>(coarseRoid, m_vLFEID[fct]);
-				std::vector<MultiIndex<2> > vCoarseMultInd, vFineMultInd;
-				mgDD.inner_multi_indices(child, fct, vFineMultInd);
-				if (vFineMultInd.size()==0) continue;
-				std::vector<MathVector<dim> > vDoFPos, vLocPos;
-				DoFPosition(vDoFPos, child, *m_spDomain, m_vLFEID[fct]);
-				//	get local position of DoF
-				vLocPos.resize(vDoFPos.size());
-				for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
-				coarseMap->global_to_local(vLocPos, vDoFPos);
-				std::vector<std::vector<number> > vvShape;
-				//	evaluate coarse shape fct at fine local point
-				lsfs.shapes(vvShape, vLocPos);
-				for(size_t ip = 0; ip < vFineMultInd.size(); ++ip){
-					number interValue = 0;
-					for(size_t sh = 0; sh < vvShape[ip].size(); ++sh){
-						interValue += vvShape[ip][sh] * coarseLocU(fct,sh);
-					}
-					BlockRef((*m_pVec)[ vFineMultInd[ip][0] ], vFineMultInd[ip][1]) = interValue;
-				}
-			}
+		virtual bool perform_prolongation_on(GeometricBaseObject gbo) {
+			if(m_lfeid.dim() == gbo) return true;
+			return false;
 		}
 
 		template <typename TElem>
-		void restrict_values_by_averaging(GeometricObject* child, GeometricObject* parent, const MGDoFDistribution& mgDD) const
+		void prolongate(TElem* parent,
+		                TransferValueAccessor& vValueChild,
+		                TransferValueAccessor& vValueParent)
 		{
-			size_t numChild = m_grid->template num_children<TElem>(parent);
-			std::vector<TElem*> vChild(numChild);
-			for(size_t c = 0; c < numChild; ++c)
-				vChild[c] = m_grid->template get_child<TElem>(parent,c);
-			LocalIndices parentInd;
-			mgDD.indices(parent, parentInd, false);
-			for (size_t fct=0;fct<mgDD.num_fct();fct++){
-				std::vector<MultiIndex<2> > vCoarseMultInd;
-				mgDD.inner_multi_indices(parent, fct, vCoarseMultInd);
-				if (vCoarseMultInd.size()==0) continue;
-				std::vector<MultiIndex<2> > vFineMultInd;
-				size_t numChildDof=0;
-				number value=0;
-				for (size_t c=0;c<numChild;c++){
-					TElem* child = vChild[c];
-					mgDD.inner_multi_indices(child, fct, vFineMultInd);
-					// sum up
-					for (size_t ip=0;ip<vFineMultInd.size();ip++){
-						value+=BlockRef((*m_pVec)[ vFineMultInd[ip][0] ], vFineMultInd[ip][1]);
-						numChildDof++;
-					}
-				}
-				// average
-				value/=(number)numChildDof;
-				for (size_t parentIp=0;parentIp<vCoarseMultInd.size();parentIp++){
-					BlockRef((*m_pVec)[ vCoarseMultInd[parentIp][0] ], vCoarseMultInd[parentIp][1]) = value;
-				}
-				// overwrite child values with interpolated value
-				for (size_t c=0;c<numChild;c++){
-					TElem* child = vChild[c];
-					mgDD.inner_multi_indices(child, fct, vFineMultInd);
-					// sum up
-					for (size_t ip=0;ip<vFineMultInd.size();ip++){
-						BlockRef((*m_pVec)[ vFineMultInd[ip][0] ], vFineMultInd[ip][1]) = value;
-					}
-				}
+			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
+			const int numChild = mg->num_children<TElem>(parent);
+
+			vValueParent.access_inner(parent);
+			for(int c = 0; c < numChild; ++c){
+				TElem* child = mg->get_child<TElem>(parent, c);
+
+				vValueChild.access_inner(child);
+				vValueChild[0] = vValueParent[0];
 			}
 		}
 
-		// from p1 transfer
-		void restrict_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const
+		virtual bool perform_restriction_on(GeometricBaseObject gbo) {
+			if(m_lfeid.dim() == gbo) return true;
+			return false;
+		}
+
+		template <typename TElem>
+		void do_restrict(TElem* parent,
+		                TransferValueAccessor& vValueChild,
+		                TransferValueAccessor& vValueParent)
 		{
-			switch(parent->reference_object_id())
-			{
-				case ROID_VERTEX:
-				{
-					VertexBase* pParent = static_cast<VertexBase*>(parent);
-					for(size_t fct = 0; fct < mgDD.num_fct(); fct++){
-						std::vector<MultiIndex<2> > vFineMI;
-						std::vector<MultiIndex<2> > vCoarseMI;
-						mgDD.inner_multi_indices(vrt, fct, vFineMI);
-						if (vFineMI.size()==0) continue;
-						mgDD.inner_multi_indices(pParent, fct, vCoarseMI);
-						if (vCoarseMI.size()==0) continue;
-						for(size_t i = 0; i < vFineMI.size(); ++i)
-							BlockRef((*m_pVec)[ vCoarseMI[i][0] ], vCoarseMI[i][1]) =
-							BlockRef((*m_pVec)[ vFineMI[i][0] ], vFineMI[i][1]);
-					}
-				}
+			const MultiGrid* mg = IElemRestriction<TDomain>::m_spGrid.get();
+			const int numChild = mg->num_children<TElem>(parent);
+
+			vValueParent.access_inner(parent);
+			UG_ASSERT(vValueParent.size()==1, "Exactly one DoF for Piecewise-Constant")
+			vValueParent[0] = 0.0;
+
+			for(int c = 0; c < numChild; ++c){
+				TElem* child = mg->get_child<TElem>(parent, c);
+
+				vValueChild.access_inner(child);
+				UG_ASSERT(vValueChild.size()==1, "Exactly one DoF for Piecewise-Constant")
+				vValueParent[0] += vValueChild[0];
+			}
+			vValueParent[0] *= (1./numChild);
+		}
+
+	protected:
+		LFEID m_lfeid;
+};
+
+template <typename TDomain>
+class P1LagrangeElemTransfer
+	: public ElemProlongationBase<TDomain, P1LagrangeElemTransfer<TDomain> >
+	, public ElemRestrictionBase<TDomain, P1LagrangeElemTransfer<TDomain> >
+{
+	public:
+		P1LagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
+
+		virtual bool perform_prolongation_on(GeometricBaseObject gbo) {
+			if(m_lfeid.dim() < gbo) return false;
+			return true;
+		}
+
+		template <typename TElem>
+		void prolongate(TElem* parent,
+		                TransferValueAccessor& vValueChild,
+		                TransferValueAccessor& vValueParent)
+		{
+			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
+			const int numChild = mg->num_children<VertexBase>(parent);
+			if(numChild == 0) return;
+			if(numChild != 1) UG_THROW("Max child Vertex must be 1");
+
+			VertexBase* child = mg->get_child<VertexBase>(parent, 0);
+
+			vValueChild.access_inner(child);
+			vValueParent.access_closure(parent);
+
+			const int numVrt = vValueParent.size();
+			UG_ASSERT(numVrt > 0, "Element without Vertex?!");
+
+			vValueChild[0] = vValueParent[0];
+			for(int i = 1; i < numVrt; ++i)
+				vValueChild[0] += vValueParent[i];
+			vValueChild[0] *= 1.0/numVrt;
+		}
+
+		virtual bool perform_restriction_on(GeometricBaseObject gbo){
+			if(gbo == VERTEX) return true;
+			return false;
+		}
+
+		void do_restrict(GeometricObject* parent,
+		                 TransferValueAccessor& vValueChild,
+		                 TransferValueAccessor& vValueParent)
+		{
+			UG_THROW("Should not be called.")
+		}
+
+		void do_restrict(VertexBase* parent,
+		                 TransferValueAccessor& vValueChild,
+		                 TransferValueAccessor& vValueParent)
+		{
+			const MultiGrid* mg = IElemRestriction<TDomain>::m_spGrid.get();
+			const int numChild = mg->num_children<VertexBase>(parent);
+			if(numChild != 1) UG_THROW("Num child Vertex must be 1");
+
+			VertexBase* child = mg->get_child<VertexBase>(parent, 0);
+
+			vValueChild.access_inner(child);
+			vValueParent.access_closure(parent);
+
+			vValueParent[0] = vValueChild[0];
+		}
+
+	protected:
+		LFEID m_lfeid;
+};
+
+
+template <typename TDomain>
+class StdLagrangeElemTransfer
+	: public ElemProlongationBase<TDomain,StdLagrangeElemTransfer<TDomain> >
+	, public ElemRestrictionBase<TDomain,StdLagrangeElemTransfer<TDomain> >
+{
+	public:
+	///	world dimension
+		static const int dim = TDomain::dim;
+
+	public:
+		StdLagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
+
+		virtual bool perform_prolongation_on(GeometricBaseObject gbo) {
+			if(m_lfeid.order() == 1 && gbo != VERTEX) return false;
+			if(m_lfeid.dim() < gbo) return false;
+			return true;
+		}
+
+		template <typename TElem>
+		void prolongate(TElem* parent,
+		                TransferValueAccessor& vValueChild,
+		                TransferValueAccessor& vValueParent)
+		{
+			static const int pdim = TElem::dim;
+
+		//	get reference object ids
+			const ReferenceObjectID parentRoid = parent->reference_object_id();
+
+		//	access the values
+			vValueParent.access_closure(parent);
+
+		//	get vertices if required by some prolongation
+			std::vector<MathVector<dim> > vCornerParent;
+			CollectCornerCoordinates(vCornerParent, *parent, *IElemProlongation<TDomain>::m_spDomain);
+
+		//	get local finite element trial spaces
+			const LocalShapeFunctionSet<pdim>& lsfs =
+					LocalFiniteElementProvider::get<pdim>(parentRoid, m_lfeid);
+
+		//	prolongate to all children with dimension pdim and lower
+			switch(pdim){
+				case 3: prolongate<TElem,Volume>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+				case 2: prolongate<TElem,Face>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+				case 1: prolongate<TElem,EdgeBase>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+						prolongate<TElem,VertexBase>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
 				break;
-				case ROID_EDGE:
-				case ROID_TRIANGLE:
-				case ROID_QUADRILATERAL:
-				case ROID_TETRAHEDRON:
-				case ROID_PRISM:
-				case ROID_PYRAMID:
-				case ROID_HEXAHEDRON: /*nothing to do in those cases */ break;
-				default: UG_THROW("Reference Object type not found.");
+				default: UG_THROW("Dimension "<<pdim<<" not supported");
 			}
 		}
 
-	
-		void prolongate_values(VertexBase* vrt, GeometricObject* parent, const MGDoFDistribution& mgDD) const{ prolongate_values_general(vrt,parent,mgDD); }
-		void prolongate_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {prolongate_values_general(elem,parent,mgDD); }
-		void prolongate_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const { prolongate_values_general(elem,parent,mgDD);}
-		void prolongate_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {prolongate_values_general(elem,parent,mgDD);}
-		void restrict_values(EdgeBase* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {restrict_values_by_averaging<EdgeBase>(elem,parent,mgDD);}
-		void restrict_values(Face* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {restrict_values_by_averaging<EdgeBase>(elem,parent,mgDD);}
-		void restrict_values(Volume* elem, GeometricObject* parent, const MGDoFDistribution& mgDD) const {restrict_values_by_averaging<EdgeBase>(elem,parent,mgDD);}
-	};
+		template <typename TParent, typename TChild>
+		void prolongate(TParent* parent,
+		                TransferValueAccessor& vValueChild,
+		                TransferValueAccessor& vValueParent,
+		                const LocalShapeFunctionSet<TParent::dim>& lsfs,
+		                std::vector<MathVector<dim> > vCornerParent,
+		                const ReferenceObjectID parentRoid)
+		{
+			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
+			static const int pdim = TParent::dim;
+
+		//	 number of children of the base type
+			const int numChild = mg->num_children<TChild>(parent);
+
+		//	loop all children
+			for(int c = 0; c < numChild; ++c)
+			{
+			//	get child
+				TChild* child = mg->get_child<TChild>(parent, c);
+
+			//	access the values
+				vValueChild.access_inner(child);
+
+			//	global positions of fine dofs
+				std::vector<MathVector<dim> > vDoFPos;
+				InnerDoFPosition(vDoFPos, child, *IElemProlongation<TDomain>::m_spDomain, m_lfeid);
+
+			//	get Reference Mapping
+				DimReferenceMapping<pdim, dim>& map =
+					ReferenceMappingProvider::get<pdim, dim>(parentRoid, vCornerParent);
+
+			//	get local position of DoF
+				std::vector<MathVector<pdim> > vLocPos(vDoFPos.size(), 0.0);
+				map.global_to_local(vLocPos, vDoFPos);
+
+			//	evaluate coarse shape fct at fine local point
+				std::vector<std::vector<number> > vvShape;
+				lsfs.shapes(vvShape, vLocPos);
+
+			//	sum up interpolated values
+				for(size_t csh = 0; csh < vValueChild.size(); ++csh){
+					vValueChild[csh] = 0.0;
+					for(size_t psh = 0; psh < vValueParent.size(); ++psh)
+						vValueChild[csh] += vvShape[csh][psh] * vValueParent[psh];
+				}
+			}
+		}
+
+
+		virtual void prolongate(VertexBase* parent)
+		{
+			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
+			TransferValueAccessor& vValueChild = *IElemProlongation<TDomain>::m_vValueChild;
+            TransferValueAccessor& vValueParent = *IElemProlongation<TDomain>::m_vValueParent;
+
+		//	access the values
+			vValueParent.access_closure(parent);
+
+		//	 number of children of the base type
+			const int numChild = mg->num_children<VertexBase>(parent);
+			if(numChild == 0) return;
+			if(numChild != 1) UG_THROW("Num child Vertex must be 1");
+
+		//	get child
+			VertexBase* child = mg->get_child<VertexBase>(parent, 0);
+
+		//	access the values
+			vValueChild.access_inner(child);
+
+		//	copy value
+			vValueChild[0] = vValueParent[0];
+		}
+
+
+		virtual bool perform_restriction_on(GeometricBaseObject gbo) {
+			if(m_lfeid.dim() < gbo) return false;
+			return true;
+		}
+
+		template <typename TElem>
+		void do_restrict(TElem* parent,
+		                TransferValueAccessor& vValueChild,
+		                TransferValueAccessor& vValueParent)
+		{
+		//	access the values
+			vValueParent.access_inner(parent);
+
+		//	global positions of fine dofs
+			std::vector<MathVector<dim> > vDoFPos;
+			InnerDoFPosition(vDoFPos, parent, *IElemRestriction<TDomain>::m_spDomain, m_lfeid);
+
+			const MultiGrid* mg = IElemRestriction<TDomain>::m_spGrid.get();
+
+		//	 number of children of the base type
+			const int numChild = mg->num_children<TElem>(parent);
+
+		//	loop all children
+			for(size_t ip = 0; ip < vDoFPos.size(); ++ip)
+			{
+				int c = 0;
+				for(; c < numChild; ++c)
+				{
+				//	get child
+					TElem* child = mg->get_child<TElem>(parent, c);
+
+				//	global positions of fine dofs
+					std::vector<MathVector<dim> > vChildDoFPos;
+					DoFPosition(vChildDoFPos, child, *IElemRestriction<TDomain>::m_spDomain, m_lfeid);
+
+				//	check if pos matches
+					int cip = -1;
+					for(size_t i = 0; i < vChildDoFPos.size(); ++i)
+						if(VecDistanceSq(vChildDoFPos[i], vDoFPos[ip]) < 1e-8)
+							cip = i;
+
+				//	if not found in this child, continue
+					if(cip == -1) continue;
+
+				//	access the values
+					vValueChild.access_closure(child);
+
+				//	sum up interpolated values
+					vValueParent[ip] = vValueChild[cip];
+
+					break;
+				}
+			//	check that DoF found
+				if(c == numChild)
+					UG_THROW("Lagrange-Element-Coarsening: Cannot find DoF position "
+							"in child elems for "<<ip<<"'s Pos: "<<vDoFPos[ip])
+			}
+
+		}
+
+
+		virtual void do_restrict(VertexBase* parent)
+		{
+			const MultiGrid* mg = IElemRestriction<TDomain>::m_spGrid.get();
+			const int numChild = mg->num_children<VertexBase>(parent);
+			if(numChild != 1) UG_THROW("Num child Vertex must be 1");
+
+			TransferValueAccessor& vValueChild = *IElemRestriction<TDomain>::m_vValueChild;
+            TransferValueAccessor& vValueParent = *IElemRestriction<TDomain>::m_vValueParent;
+
+			VertexBase* child = mg->get_child<VertexBase>(parent, 0);
+
+			vValueChild.access_inner(child);
+			vValueParent.access_inner(parent);
+
+			vValueParent[0] = vValueChild[0];
+		}
+
+
+	protected:
+		LFEID m_lfeid;
+};
+
+
+template <typename TDomain>
+class CrouzeixRaviartElemTransfer
+	: public ElemProlongationBase<TDomain, CrouzeixRaviartElemTransfer<TDomain> >
+	, public ElemRestrictionBase<TDomain, CrouzeixRaviartElemTransfer<TDomain> >
+{
+	public:
+	///	world dimension
+		static const int dim = TDomain::dim;
+
+	public:
+		CrouzeixRaviartElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
+
+		virtual bool perform_prolongation_on(GeometricBaseObject gbo) {
+		//	prolongation from elems that have a side as child
+			if(m_lfeid.dim()-1 == gbo) return true;
+			if(m_lfeid.dim()   == gbo) return true;
+			return false;
+		}
+
+		void prolongate(VertexBase* parent,
+						TransferValueAccessor& vValueChild,
+						TransferValueAccessor& vValueParent)
+		{
+			UG_THROW("No implementation for Vertex and Crouzeix-Raviart.")
+		}
+
+		template <typename TParent>
+		void prolongate(TParent* parent,
+						TransferValueAccessor& vValueChild,
+						TransferValueAccessor& vValueParent)
+		{
+			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
+		//	a) prolongation from a side
+			if(TParent::dim == m_lfeid.dim()-1){
+				typedef typename TParent::sideof TElem;
+				typedef TParent TSide;
+
+			//	get child sides
+				const int numChild = mg->num_children<TParent>(parent);
+				if(numChild == 0) return;
+
+			//	get childs
+				std::vector<TSide*> vChildSide(numChild);
+				for(int c = 0; c < numChild; ++c)
+					vChildSide[c] = mg->get_child<TParent>(parent, c);
+
+			// 	get associated macro elements, this elem is a side of
+				typename Grid::traits<TElem>::secure_container vElem;
+				const_cast<MultiGrid*>(mg)->associated_elements(vElem, parent);
+				std::vector<TElem*> vParentElem(vElem.size());
+				for(size_t p = 0; p < vElem.size(); ++p)
+					vParentElem[p] = vElem[p];
+
+			//	call prolongation
+				prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
+			}
+
+		//	b) prolongation from a element
+			if(TParent::dim == m_lfeid.dim()){
+				typedef TParent TElem;
+				typedef typename TParent::side TSide;
+
+			//	get child sides
+				const int numChild = mg->num_children<TSide>(parent);
+				if(numChild == 0) return;
+
+			//	get childs
+				std::vector<TSide*> vChildSide(numChild);
+				for(int c = 0; c < numChild; ++c)
+					vChildSide[c] = mg->get_child<TSide>(parent, c);
+
+			// 	get associated macro elements, this elem is a side of
+				std::vector<TElem*> vParentElem(1);
+				vParentElem[0] = parent;
+
+			//	call prolongation
+				prolongate<TSide>(vParentElem, vChildSide, vValueChild, vValueParent);
+			}
+		};
+
+		template <typename TSide>
+		void prolongate(const std::vector<typename TSide::sideof*>& vParentElem,
+						const std::vector<TSide*>& vChildSide,
+						TransferValueAccessor& vValueChild,
+						TransferValueAccessor& vValueParent)
+		{
+		// 	get associated macro elements, this elem is a side of
+			typedef typename TSide::sideof TElem;
+			if(vParentElem.size() > 2)
+				UG_THROW("More than 2 Elements share a side.")
+
+		//	reset values to zero
+			for(size_t c = 0; c < vChildSide.size(); ++c){
+				vValueChild.access_inner(vChildSide[c]);
+				for(size_t csh = 0; csh < vValueChild.size(); ++csh)
+					vValueChild[csh] = 0.0;
+			}
+
+		//	loop parent Elems
+			for(size_t p = 0; p < vParentElem.size(); ++p)
+			{
+			//	get parent elem
+				TElem* parentElem = vParentElem[p];
+
+			//	get reference object ids
+				static const int pdim = TElem::dim;
+				const ReferenceObjectID parentRoid = parentElem->reference_object_id();
+
+			//	access the values
+				vValueParent.access_closure(parentElem);
+
+			//	get vertices if required by some prolongation
+				std::vector<MathVector<dim> > vCornerParent;
+				CollectCornerCoordinates(vCornerParent, *parentElem, *IElemProlongation<TDomain>::m_spDomain);
+
+			//	get local finite element trial spaces
+				const LocalShapeFunctionSet<pdim>& lsfs =
+						LocalFiniteElementProvider::get<pdim>(parentRoid, m_lfeid);
+
+			//	loop child sides
+				for(size_t c = 0; c < vChildSide.size(); ++c)
+				{
+				//	get child side
+					TSide* childSide = vChildSide[c];
+
+				//	access the value
+					vValueChild.access_inner(childSide);
+
+				//	global positions of fine dofs
+					std::vector<MathVector<dim> > vDoFPos;
+					InnerDoFPosition(vDoFPos, childSide, *IElemProlongation<TDomain>::m_spDomain, m_lfeid);
+
+				//	get Reference Mapping
+					DimReferenceMapping<pdim, dim>& map =
+						ReferenceMappingProvider::get<pdim, dim>(parentRoid, vCornerParent);
+
+				//	get local position of DoF
+					std::vector<MathVector<pdim> > vLocPos(vDoFPos.size(), 0.0);
+					map.global_to_local(vLocPos, vDoFPos);
+
+				//	evaluate coarse shape fct at fine local point
+					std::vector<std::vector<number> > vvShape;
+					lsfs.shapes(vvShape, vLocPos);
+
+				//	sum up interpolated values
+					for(size_t csh = 0; csh < vValueChild.size(); ++csh){
+						for(size_t psh = 0; psh < vValueParent.size(); ++psh)
+							vValueChild[csh] += (1./vParentElem.size()) *
+												vvShape[csh][psh] * vValueParent[psh];
+					}
+				}
+			}
+		}
+
+		virtual bool perform_restriction_on(GeometricBaseObject gbo) {
+		//	restriction only on sides
+			if(m_lfeid.dim()-1 == gbo) return true;
+			return false;
+		}
+
+		template <typename TParent>
+		void do_restrict(TParent* parent,
+		                 TransferValueAccessor& vValueChild,
+		                 TransferValueAccessor& vValueParent)
+		{
+			const MultiGrid* mg = IElemRestriction<TDomain>::m_spGrid.get();
+
+			if(TParent::dim != m_lfeid.dim()-1)
+				UG_THROW("Only restrict on sides.")
+
+		//	get child sides
+			const int numChild = mg->num_children<TParent>(parent);
+			if(numChild == 0) return;
+
+		//	access the values
+			vValueParent.access_inner(parent);
+			UG_ASSERT(vValueParent.size() == 1, "Num DoFs per Side must be 1 for CR");
+
+		//	reset values
+			vValueParent[0] = 0.0;
+
+		//	get childs
+			for(int c = 0; c < numChild; ++c)
+			{
+			//	get child side
+				TParent* childSide = mg->get_child<TParent>(parent, c);
+
+			//	access the value
+				vValueChild.access_inner(childSide);
+				UG_ASSERT(vValueChild.size() == 1, "Num DoFs per Side must be 1 for CR");
+
+			//	sum up values
+				vValueParent[0] += vValueChild[0];
+			}
+
+			vValueParent[0] *= (1./numChild);
+		}
+
+	protected:
+		LFEID m_lfeid;
+};
+
 
 } // end namespace ug
 
-#endif /* LOCAL_TRANSFER_H_ */
+#endif /* __H__UG__LIB_DISC__FUNCTION_SPACS__LOCAL_TRANSFER__ */

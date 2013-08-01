@@ -29,15 +29,14 @@ SurfaceDoFDistribution(SmartPtr<MultiGrid> spMG,
 		 	MGDoFDistribution(spMG, spMGSH, spDDInfo, bGrouped),
 		 	DoFDistribution(*this, spSurfView, GridLevel(level, GridLevel::SURFACE, false)),
 		 	m_spSurfView(spSurfView),
-		 	m_level(level),
-		 	m_bRedistribute(false)
+		 	m_level(level)
 {
-	init();
+	reinit();
 }
 
 
 template <typename TBaseElem>
-void SurfaceDoFDistribution::init()
+void SurfaceDoFDistribution::reinit()
 {
 	typedef typename traits<TBaseElem>::iterator iterator;
 	static const int dim = TBaseElem::dim;
@@ -63,281 +62,40 @@ void SurfaceDoFDistribution::init()
 			const ReferenceObjectID roid = elem->reference_object_id();
 			add(elem, roid, si, m_levInfo);
 
-		//	b) if copy exists, copy also to parent and grand-parents and ... etc.
-			//\todo: save this execution in non-adaptive case
-			TBaseElem* parent = parent_if_shadowed_copy(elem);
-			while(parent){
-				copy(parent, elem);
+		//	b) if shadow exists, handle also to parent and grand-parents and ... etc.
+			TBaseElem* parent = dynamic_cast<TBaseElem*>(this->m_spMG->get_parent(elem));
+			while(parent && m_spSurfView->is_shadowed(parent)){
+
+				// if it is a copy element: assign same index
+				if(this->m_spMG->template num_children<TBaseElem>(parent) == 1){
+					obj_index(parent) = obj_index(elem);
+				}
+				// if no copy, assign new index
+				else{
+					add(parent, roid, si, m_levInfo);
+				}
+
 				elem = parent;
-				parent = parent_if_shadowed_copy(elem);
+				parent = dynamic_cast<TBaseElem*>(this->m_spMG->get_parent(elem));
 			}
-		}
-	} // end subset
-}
 
-void SurfaceDoFDistribution::init()
-{
-	m_levInfo.vNumIndexOnSubset.resize(num_subsets());
-
-	if(max_dofs(VERTEX) > 0) init<VertexBase>();
-	if(max_dofs(EDGE) > 0)   init<EdgeBase>();
-	if(max_dofs(FACE) > 0)   init<Face>();
-	if(max_dofs(VOLUME) > 0) init<Volume>();
-
-#ifdef UG_PARALLEL
-	m_pDistGridMgr = m_spMG->distributed_grid_manager();
-	create_layouts_and_communicator();
-#endif
-}
-
-template <typename TBaseElem>
-void SurfaceDoFDistribution::reinit(std::vector<std::pair<size_t,size_t> >& vReplaced)
-{
-	typedef typename traits<TBaseElem>::iterator iterator;
-	static const int dim = TBaseElem::dim;
-
-	for(int si = 0; si < num_subsets(); ++si)
-	{
-	// 	skip if no dofs to be distributed
-		if(max_dofs(dim, si) == 0) continue;
-
-	//	get iterators of elems
-		iterator iter = begin<TBaseElem>(si);
-		iterator iterEnd = end<TBaseElem>(si);
-
-	// 	loop elems
-		for(; iter != iterEnd; ++iter)
-		{
-		// 	get vertex
-			TBaseElem* elem = *iter;
-
-		//	a) add new indices
-
-		//	add element
-			const ReferenceObjectID roid = elem->reference_object_id();
-			add(elem, roid, si, m_levInfo,vReplaced);
-
-		//	b) if copy exists, copy also to parent and grand-parents and ... etc.
-			//\todo: save this execution in non-adaptive case
-			TBaseElem* parent = parent_if_shadowed_copy(elem);
-			while(parent){
-				copy(parent, elem);
-				elem = parent;
-				parent = parent_if_shadowed_copy(elem);
-			}
 		}
 	} // end subset
 }
 
 void SurfaceDoFDistribution::reinit()
 {
-	m_levInfo.clear_all();
+	m_levInfo.clear();
+	m_levInfo.vNumIndexOnSubset.resize(num_subsets());
 
-	std::vector<std::pair<size_t,size_t> > vReplaced;
-
-	if(max_dofs(VERTEX) > 0) reinit<VertexBase>(vReplaced);
-	if(max_dofs(EDGE) > 0)   reinit<EdgeBase>(vReplaced);
-	if(max_dofs(FACE) > 0)   reinit<Face>(vReplaced);
-	if(max_dofs(VOLUME) > 0) reinit<Volume>(vReplaced);
-
-	//	adapt managed vectors
-	if(!vReplaced.empty())
-		copy_values(vReplaced, false);
+	if(max_dofs(VERTEX)) reinit<VertexBase>();
+	if(max_dofs(EDGE))   reinit<EdgeBase>();
+	if(max_dofs(FACE))   reinit<Face>();
+	if(max_dofs(VOLUME)) reinit<Volume>();
 
 #ifdef UG_PARALLEL
-	m_pDistGridMgr = m_spMG->distributed_grid_manager();
 	create_layouts_and_communicator();
 #endif
-
-}
-
-void SurfaceDoFDistribution::redistribute_dofs(bool bReinit)
-{
-	m_levInfo.clear_all();
-	m_sFreeIndex.clear();
-
-	if (bReinit==false)
-		init();
-	else
-		reinit();
-
-	resize_values(num_indices());
-}
-
-template <typename TBaseElem>
-void SurfaceDoFDistribution::
-add_unassigned_elements()
-{
-	typedef typename MGSubsetHandler::traits<TBaseElem>::iterator iterator;
-	static const int dim = TBaseElem::dim;
-
-//	really ugly things can happen. Imagine the following:
-//	A ghost (vmaster, not in h-interface) is encountered. Such elements never have
-//	a surface-dof and aren't contained in the surface view either. Well - that's fine.
-//	They can however have a parent which has surface state shadowed. This parent
-//	isn't contained in the surface-view either and hasn't received a dof-index
-//	(which it needs) since its child is a ghost.
-//	here we thus iterate over all elements of the mgSH and assign dofs to all unassigned
-//	surface and shadowed elements.
-//	Since we'll rework the SurfaceDoFDistribution, this not perfectly performant
-//	fix should be ok for now - especially since it is only used during redistribution.
-
-	SurfaceView& surfView = *m_spSurfView;
-	MGSubsetHandler& sh = *surfView.subset_handler();
-	int topLvl = (int)sh.num_levels() - 1;
-
-	for(int si = 0; si < sh.num_subsets(); ++si){
-	// 	skip if no dofs to be distributed
-		if(max_dofs(dim, si) == 0) continue;
-
-		for(int lvl = topLvl; lvl >= 0; --lvl){
-		//	start at the top and traverse the levels down to the base level
-			for(iterator iter = sh.begin<TBaseElem>(si, lvl);
-				iter != sh.end<TBaseElem>(si, lvl); ++iter)
-			{
-				TBaseElem* e = *iter;
-
-				if((obj_index(e) == NOT_YET_ASSIGNED)
-				   && (!surfView.is_ghost(e))
-				   && (surfView.is_surface_element(e) || surfView.is_shadowed(e)))
-			   {
-
-					const ReferenceObjectID roid = e->reference_object_id();
-					add_from_free(e, roid, si, m_levInfo);
-
-					TBaseElem* parent = parent_if_shadowed_copy(e);
-					while(parent){
-						copy(parent, e);
-						e = parent;
-						parent = parent_if_shadowed_copy(e);
-					}
-			   }
-			}
-		}
-	} // end subset
-}
-
-template <typename TBaseElem>
-void SurfaceDoFDistribution::
-remove_ghost_entries()
-{
-	#ifdef UG_PARALLEL
-		UG_ASSERT(m_pMG->distributed_grid_manager(),
-				  "A distributed grid manager has to be present in a parallel environment.");
-		DistributedGridManager& dgm = *m_pMG->distributed_grid_manager();
-		GridLayoutMap& glm = dgm.grid_layout_map();
-		typedef typename GridLayoutMap::Types<TBaseElem>::Layout	TLayout;
-		typedef typename TLayout::Interface							TInterface;
-
-		if(glm.has_layout<TBaseElem>(INT_V_MASTER)){
-			TLayout& masterLayout = glm.get_layout<TBaseElem>(INT_V_MASTER);
-			for(size_t lvl = 0; lvl < masterLayout.num_levels(); ++lvl){
-				for(typename TLayout::iterator iter = masterLayout.begin(lvl);
-					iter != masterLayout.end(lvl); ++iter)
-				{
-					TInterface& intfc = masterLayout.interface(iter);
-					for(typename TInterface::iterator eiter = intfc.begin();
-						eiter != intfc.end(); ++eiter)
-					{
-						TBaseElem* e = intfc.get_element(eiter);
-						size_t objInd = obj_index(e);
-						if(dgm.is_ghost(e)
-						   && (objInd != NOT_YET_ASSIGNED))
-						{
-//						//	DEBUG
-//							if(VecDistanceSq(GetGeometricObjectCenter(*m_spMG, e), vector3(0.5625, 0.0625, 0)) < SMALL){
-//								UG_LOG("DEBUG: encountered problematic object on level " << m_spMG->get_level(e) << "\n");
-//							}
-
-						//	we have to erase the object from the distribution
-							erase(e, e->reference_object_id(),
-								  m_spMGSH->get_subset_index(e),
-								  m_levInfo);
-
-						//	set the index of the object and of all its parent
-						//	copies to NOT_YET_ASSIGNED
-							TBaseElem* telem = e;
-							while(telem){
-								obj_index(telem) = NOT_YET_ASSIGNED;
-								telem = parent_if_copy(telem);
-							}
-						}
-					}
-				}
-			}
-		}
-	#endif
-}
-
-void SurfaceDoFDistribution::
-parallel_redistribution_ended()
-{
-	m_levInfo.vNumIndexOnSubset.resize(num_subsets(), 0);
-
-	if(max_dofs(VERTEX) > 0) remove_ghost_entries<VertexBase>();
-	if(max_dofs(EDGE) > 0)   remove_ghost_entries<EdgeBase>();
-	if(max_dofs(FACE) > 0)   remove_ghost_entries<Face>();
-	if(max_dofs(VOLUME) > 0) remove_ghost_entries<Volume>();
-
-	if(max_dofs(VERTEX) > 0) add_unassigned_elements<VertexBase>();
-	if(max_dofs(EDGE) > 0)   add_unassigned_elements<EdgeBase>();
-	if(max_dofs(FACE) > 0)   add_unassigned_elements<Face>();
-	if(max_dofs(VOLUME) > 0) add_unassigned_elements<Volume>();
-
-	resize_values(lev_info().sizeIndexSet);
-
-// DEBUG CHECKS... REMOVE THOSE AS SOON AS EVERYTHING WORKS STABLE
-////	iterate over all vertices and check whether all required indices are assigned
-//	UG_LOG("DEBUG: Performing check of dof-indices\n");
-//	for(Grid::vertex_traits::iterator iter = m_spMG->begin<VertexBase>();
-//		iter != m_spMG->end<VertexBase>(); ++iter)
-//	{
-//		if(m_spSurfView->is_ghost(*iter)) continue;
-//		if(m_spSurfView->is_surface_element(*iter) || m_spSurfView->is_shadowed(*iter))
-//		{
-//			if(obj_index(*iter) == NOT_YET_ASSIGNED){
-//				UG_LOG_ALL_PROCS("ERROR: UNASSIGNED SURFACE VERTEX FOUND: "
-//						<< ElementDebugInfo(*m_pMG, *iter)
-//						<< " on proc " << pcl::GetProcRank() << endl);
-//			}
-//		}
-//	}
-//	UG_LOG("DEBUG: Check done.\n");
-//
-////	iterate over all edges in the surface view and check whether all vertices are assigned
-//	for(typename traits<EdgeBase>::iterator iter = begin<EdgeBase>();
-//		iter != end<EdgeBase>(); ++iter)
-//	{
-//		if(m_spSurfView->is_ghost(*iter)) continue;
-//		EdgeBase* e = *iter;
-//		for(size_t i = 0; i < e->num_vertices(); ++i){
-//			if(obj_index(e->vertex(i)) == NOT_YET_ASSIGNED){
-//				UG_LOG("ERROR: UNASSIGNED SURFACE-EDGE-VERTEX FOUND AT: "
-//						<< GetGeometricObjectCenter(*m_pMG, e->vertex(i)) << endl);
-//			}
-//		}
-//	}
-//
-////	iterate over all faces in the surface view and check whether all vertices are assigned
-//	for(typename traits<Face>::iterator iter = begin<Face>();
-//		iter != end<Face>(); ++iter)
-//	{
-//		if(m_spSurfView->is_ghost(*iter)) continue;
-//		Face* e = *iter;
-//		for(size_t i = 0; i < e->num_vertices(); ++i){
-//			if(obj_index(e->vertex(i)) == NOT_YET_ASSIGNED){
-//				UG_LOG("ERROR: UNASSIGNED SURFACE-FACE-VERTEX FOUND AT: "
-//						<< GetGeometricObjectCenter(*m_pMG, e->vertex(i)) << endl);
-//			}
-//		}
-//	}
-
-//	DEFRAGMENT HAS TO BE CALLED EXTERNALLY! OR EXECUTE THE FOLLOWING CODE
-//	#ifdef UG_PARALLEL
-//		create_layouts_and_communicator();
-//	#endif
-//
-//	resize_values(lev_info().sizeIndexSet);
 }
 
 
@@ -395,7 +153,7 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
                                                       int keyType)
 {
 //	get the grid layout map
-	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
+	GridLayoutMap& layoutMap = m_spMG->distributed_grid_manager()->grid_layout_map();
 
 //	check if layout present
 	if(!layoutMap.has_layout<TBaseElem>(keyType)) return;
@@ -470,336 +228,6 @@ void SurfaceDoFDistribution::add_indices_from_layouts(IndexLayout& indexLayout,
 	}
 }
 #endif
-
-template <typename TBaseElem>
-bool SurfaceDoFDistribution::defragment(std::vector<std::pair<size_t,size_t> >& vReplaced)
-{
-	typedef typename traits<TBaseElem>::iterator iterator;
-	static const int dim = TBaseElem::dim;
-
-//	if nothing to do, return
-	if(!lev_info().free_index_available()) return true;
-
-	int numElem = 0;
-//	loop subsets
-	for(int si = 0; si < num_subsets(); ++si)
-	{
-	// 	skip if no DoFs to be distributed
-		if(max_dofs(dim, si) == 0) continue;
-
-		iterator iter = begin<TBaseElem>(si);
-		iterator iterEnd = end<TBaseElem>(si);
-
-	// 	loop elems
-		for(; iter != iterEnd; ++iter)
-		{
-		// 	get element
-			TBaseElem* elem = *iter;
-
-			numElem++;
-
-		//	get roid
-			const ReferenceObjectID roid = elem->reference_object_id();
-
-		//	only for elements with dofs
-			if(num_dofs(roid, si) == 0) continue;
-
-		//	check correct index and replace if needed
-			if (MGDoFDistribution::defragment(elem, roid, si, lev_info(), vReplaced)==false) return false;
-
-		//	if copy exists, copy also to parent and grand-parents and ... etc.
-			//\todo: save this execution in non-adaptive case
-			TBaseElem* parent = parent_if_shadowed_copy(elem);
-			while(parent){
-				copy(parent, elem);
-				elem = parent;
-				parent = parent_if_shadowed_copy(elem);
-			}
-		}
-	}
-	return true;
-}
-
-void SurfaceDoFDistribution::defragment()
-{
-//	defragment
-	std::vector<std::pair<size_t,size_t> > vReplaced;
-	bool valid = true;
-
-	if (m_bRedistribute==false){
-		if(max_dofs(VERTEX) > 0) valid=defragment<VertexBase>(vReplaced);
-		if((max_dofs(EDGE) > 0)&&(valid==true)) valid=defragment<EdgeBase>(vReplaced);
-		if((max_dofs(FACE) > 0)&&(valid==true)) valid=defragment<Face>(vReplaced);
-		if((max_dofs(VOLUME) > 0)&&(valid==true)) valid=defragment<Volume>(vReplaced);
-	} else valid=false;
-
-	// if no valid index set redistribute
-	if (valid==false){
-		redistribute_dofs(true);
-	} else {
-		//	check that only invalid indices left
-		for(size_t m=1;m<lev_info().max_multiplicity();m++)
-			for(LevInfo<std::set<size_t> >::iterator it = lev_info().begin(m); it != lev_info().end(m); ++it)
-				UG_ASSERT(*it >= lev_info().numIndex, "After defragment still index in "
-				          	  	  	  	  "valid range present in free index container.");
-
-		//	clear container
-		for(size_t m=1;m<lev_info().max_multiplicity();m++){
-			lev_info().sizeIndexSet -= lev_info().num_free_index(m);
-			lev_info().clear(m);
-		}
-
-		for(size_t m=1;m<lev_info().max_multiplicity();m++)
-			if(lev_info().free_index_available(m))
-				UG_THROW("Internal error: Still free indices available after "
-								"defragment: " <<  lev_info().num_free_index(m));
-
-		if(lev_info().numIndex != lev_info().sizeIndexSet)
-			UG_THROW("Internal error: numIndex and sizeIndexSet must be "
-								"equal after defragment, since the index set does not "
-								"contain holes anymore. But numIndex = "<<lev_info().numIndex
-								<<", sizeIndexSet = "<<lev_info().sizeIndexSet);
-
-		//	adapt managed vectors
-		if(!vReplaced.empty())
-			copy_values(vReplaced, true);
-
-		//	num indices may have changed
-		resize_values(num_indices());
-
-		#ifdef UG_PARALLEL
-			create_layouts_and_communicator();
-		#endif
-	}
-}
-
-template <typename TBaseElem>
-inline void SurfaceDoFDistribution::obj_created(TBaseElem* obj, GeometricObject* pParent,
-                        bool replacesParent)
-{
-	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
-
-	if(max_dofs(gbo) == 0)
-		return;
-
-//	case 1: if replacesParent == true, only an obj (e.g. HangingVertex)
-//			is replaced by a similar obj (e.g. Vertex). This case is
-//			handled in obj_to_be_erased(), that will be called in addition
-//			to this callback with replacedBy != NULL.
-	if(replacesParent) return;
-
-//	case 2: A real insertion in the multigrid: add indices
-	if(parallel_redistribution_mode()){
-		if(TBaseElem* parent = parent_if_copy(obj))
-			copy(obj, parent);
-		else
-			obj_index(obj) = NOT_YET_ASSIGNED;
-	}
-	else{
-		if(add(obj,
-				obj->reference_object_id(),
-				m_spMGSH->get_subset_index(obj),
-				m_levInfo))
-		{
-		//	the insertion changed the size of the index range. Thus, we have to
-		//	resize the managed vectors. We do this now, since a transfer callback
-		//	may be listen to the object creation and will interpolate the values. Thus,
-		//	the vector entries must already be valid.
-			resize_values(lev_info().sizeIndexSet);
-
-		//	the parent, that will be covered after the creation, will no longer be part
-		//	of the surface. But we still need the values for the transfer callbacks.
-		//	Therefore, we leave the "old" indices attached and valid for the moment.
-		//	All prolongation callbacks are invoked now
-			if(pParent){
-				for(size_t i = 0; i < m_vProlongation[gbo].size(); ++i)
-					m_vProlongation[gbo][i]->prolongate_values(obj, pParent, *this);
-			}
-		}
-	}
-	
-	if (m_bRedistribute==true) return;
-
-//	Now we remember that the indices on the parent object must be removed when
-//	defragmentation is called. We do this only, if the parent is of same
-//	base element type. This is possible, since for each refined element, there
-//	is at least one "finer" element, that will be inserted, of same base type.
-	TBaseElem* parent = parent_if_same_type(obj);
-	if(parent)
-	{
-		if(obj_index(parent) != NOT_YET_ASSIGNED){
-			erase(parent,
-				  parent->reference_object_id(),
-				  m_spMGSH->get_subset_index(parent),
-				  m_levInfo);
-		}
-
-	//	copy the index from the newly created object to its parent and grand parents.
-	//	this is important to correctly erase ghost copies when redistribution is done
-		TBaseElem* telem = parent;
-		while(telem){
-			copy(telem, obj);
-			telem = parent_if_copy(telem);
-		}
-	}
-
-}
-
-template <typename TElem>
-void SurfaceDoFDistribution::
-add_unassigned_sides(TElem* e)
-{
-	if(!TElem::HAS_SIDES)
-		return;
-
-	typedef typename TElem::side TSide;
-	typename Grid::traits<TSide>::secure_container	sides;
-	m_spMG->associated_elements(sides, e);
-	for(size_t i = 0; i < sides.size(); ++i){
-		TSide * s = sides[i];
-		if(max_dofs(TSide::BASE_OBJECT_ID) > 0){
-			if(obj_index(s) == NOT_YET_ASSIGNED){
-				add_from_free(s, s->reference_object_id(),
-							  m_spMGSH->get_subset_index(s), m_levInfo);
-				TSide* ts = s;
-				while(ts){
-					copy(ts, s);
-					ts = parent_if_shadowed_copy(ts);
-				}
-			}
-		}
-		add_unassigned_sides(s);
-	}
-}
-
-template <typename TBaseElem>
-inline void SurfaceDoFDistribution::
-obj_to_be_erased(TBaseElem* obj, TBaseElem* replacedBy)
-{
-	const static int gbo = geometry_traits<TBaseElem>::BASE_OBJECT_ID;
-
-	if((!parallel_redistribution_mode()) && replacedBy && replacedBy->is_constrained())
-	{
-		size_t oldSize = lev_info().sizeIndexSet;
-		if(max_dofs(TBaseElem::BASE_OBJECT_ID) > 0){
-			if(obj_index(obj) == NOT_YET_ASSIGNED)
-			{
-			//	the element has to receive a valid index and it's parents too,
-			//	since those are shadowed elements now
-				add_from_free(replacedBy, replacedBy->reference_object_id(),
-							  m_spMGSH->get_subset_index(replacedBy), m_levInfo);
-				TBaseElem* telem = replacedBy;
-				while(telem){
-					copy(telem, replacedBy);
-					telem = parent_if_shadowed_copy(telem);
-				}
-				add_unassigned_sides(replacedBy);
-			}
-			else
-				copy(replacedBy, obj);
-		}
-		else
-			add_unassigned_sides(replacedBy);
-
-		if(lev_info().sizeIndexSet > oldSize)
-			resize_values(lev_info().sizeIndexSet);
-
-		return;
-	}
-
-	if(max_dofs(TBaseElem::BASE_OBJECT_ID) == 0)
-		return;
-
-//	case 1: Only replacement. Just copy indices from one obj to the other
-	if(replacedBy){
-		copy(replacedBy, obj);
-		return;
-	}
-
-//	different behavior is required for element erasure during adaption and
-//	during redistribution.
-//	When an element is removed during redistribution, it will be inserted on
-//	another process later on. This means, that parents of the removed element
-//	on the local process won't be contained in the surface grid after
-//	redistribution is done...
-	if(!parallel_redistribution_mode()){
-		GeometricObject* parent = get_parent(obj);
-	//	case 2: Element disappears, but parent is identical. Thus, the parent
-	//			has the same indices attached. All indices remain valid on
-	//			every surface level. No resizement in the index set must be
-	//			performed.
-		if(parent_if_copy(obj)) {
-			size_t objIndex = obj_index(obj);
-			if(!m_spSurfView->is_surface_element(obj)){
-			//	obj is not a member of the surface view and hasn't got a valid index.
-			//	It's parent, however, becomes a member of the surface view when obj
-			//	is erased and therefore has to be added to the surface view.
-			//todo: PERFORM SOME KIND OF RESTRICTION!!!
-				size_t oldSize = lev_info().sizeIndexSet;
-				add_from_free(parent, parent->reference_object_id(),
-							  m_spMGSH->get_subset_index(parent), m_levInfo);
-				TBaseElem* telem = static_cast<TBaseElem*>(parent);
-				while(telem){
-					copy(telem, obj);
-					telem = parent_if_copy(telem);
-				}
-				if(lev_info().sizeIndexSet > oldSize)
-					resize_values(lev_info().sizeIndexSet);
-				return;
-			}
-			else if(objIndex == obj_index(parent)){
-				return;
-			}
-			else{
-				copy(parent, obj);
-				return;
-			}
-		}
-
-	//	case 3: The object that will be erased has no identical parent on the
-	//			coarser grid. In this case we have to remove the index from
-	//			the index set.
-
-	//	All prolongation callbacks are invoked now
-		if(parent){
-			for(size_t i = 0; i < m_vRestriction[gbo].size(); ++i){
-				m_vRestriction[gbo][i]->restrict_values(obj, parent, *this);
-			}
-		}
-	}
-
-//	remember that index from object is now no longer in index set
-	if((!m_spMG->has_children(obj))/*m_spSurfView->is_surface_element(obj)*/
-	   &&(obj_index(obj) != NOT_YET_ASSIGNED))
-	{
-		erase(obj,
-			  obj->reference_object_id(),
-			  m_spMGSH->get_subset_index(obj),
-			  m_levInfo);
-
-		if(parallel_redistribution_mode()){
-		//	set the index of the object and of all its parent copies to NOT_YET_ASSIGNED
-		//	this is important to correctly erase ghost copies when the redistribution is done
-			TBaseElem* telem = obj;
-			while(telem){
-				obj_index(telem) = NOT_YET_ASSIGNED;
-				telem = parent_if_copy(telem);
-			}
-		}
-	}
-}
-
-
-void SurfaceDoFDistribution::vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent, bool replacesParent) {obj_created<VertexBase>(vrt, pParent, replacesParent);}
-void SurfaceDoFDistribution::edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent, bool replacesParent) {obj_created<EdgeBase>(e, pParent, replacesParent);}
-void SurfaceDoFDistribution::face_created(Grid* grid, Face* f, GeometricObject* pParent, bool replacesParent) {obj_created<Face>(f, pParent, replacesParent);}
-void SurfaceDoFDistribution::volume_created(Grid* grid, Volume* vol, GeometricObject* pParent, bool replacesParent) {obj_created<Volume>(vol, pParent, replacesParent);}
-
-void SurfaceDoFDistribution::vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy) {obj_to_be_erased<VertexBase>(vrt, replacedBy);}
-void SurfaceDoFDistribution::edge_to_be_erased(Grid* grid, EdgeBase* e, EdgeBase* replacedBy) {obj_to_be_erased<EdgeBase>(e, replacedBy);}
-void SurfaceDoFDistribution::face_to_be_erased(Grid* grid, Face* f, Face* replacedBy) {obj_to_be_erased<Face>(f, replacedBy);}
-void SurfaceDoFDistribution::volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy) {obj_to_be_erased<Volume>(vol, replacedBy);}
-
 
 template <typename TBaseElem>
 void SurfaceDoFDistribution::
@@ -929,7 +357,7 @@ void SurfaceDoFDistribution::permute_indices(const std::vector<size_t>& vNewInd)
 		//\todo: save this execution in non-adaptive case
 		TBaseElem* parent = parent_if_shadowed_copy(elem);
 		while(parent){
-			copy(parent, elem);
+			obj_index(parent) = obj_index(elem);
 			elem = parent;
 			parent = parent_if_shadowed_copy(elem);
 		}

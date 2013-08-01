@@ -23,10 +23,11 @@ namespace ug
  *
  * \sa ug::HangingNodeRefinerBase, ug::HangingNodeRefiner_Grid
  */
-class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
+class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 {
 	public:
-		using HangingNodeRefinerBase::mark;
+		typedef HangingNodeRefinerBase<Selector> BaseClass;
+		using HangingNodeRefinerBase<Selector>::mark;
 
 	public:
 		HangingNodeRefiner_Grid(IRefinementCallback* refCallback = NULL);

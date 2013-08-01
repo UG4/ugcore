@@ -82,18 +82,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_function("Restrict", &Restrict<TDomain, TAlgebra>, grp);
 	}
 	
-	typedef GridFunction<TDomain, TAlgebra> TFunction;
-
-//	ElementLocalTransfer
-	{
-		typedef ElementLocalTransfer<TAlgebra,TFunction> T;
-		typedef ILocalTransferAlgebra<TAlgebra> TBase;
-		string name = string("ElementLocalTransfer").append(suffix);
-		reg.add_class_<T, TBase>(name)
-			.template add_constructor<void (*)(SmartPtr<TFunction>)>("grid function")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ElementLocalTransfer", tag);
-	}
 }
 
 /**
@@ -145,26 +133,6 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	ILocalTransferAlgebra
-	{
-		typedef ILocalTransferAlgebra<TAlgebra> T;
-		typedef ILocalTransfer TBase;
-		string name = string("ILocalTransferAlgebra").append(suffix);
-		reg.add_class_<T, TBase>(name)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ILocalTransferAlgebra", tag);
-	}
-
-//	P1LocalTransfer
-	{
-		typedef P1LocalTransfer<TAlgebra> T;
-		typedef ILocalTransferAlgebra<TAlgebra> TBase;
-		string name = string("P1LocalTransfer").append(suffix);
-		reg.add_class_<T, TBase>(name)
-			.template add_constructor<void (*)(size_t)>("fct")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "P1LocalTransfer", tag);
-	}
 }
 
 /**
@@ -177,10 +145,6 @@ static void Algebra(Registry& reg, string grp)
  */
 static void Common(Registry& reg, string grp)
 {
-//	ILocalTransfer
-	{
-		reg.add_class_<ILocalTransfer>("ILocalTransfer");
-	}
 }
 
 }; // end Functionality

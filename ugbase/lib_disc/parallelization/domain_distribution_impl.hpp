@@ -13,7 +13,6 @@
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
 	#include "lib_grid/parallelization/parallelization.h"
-	#include "grid_function_serializer.h"
 #endif
 
 
@@ -467,58 +466,6 @@ static bool DistributeDomain(TDomain& domainOut,
 	GridDataSerializationHandler serializer;
 	serializer.add(posSerializer);
 	serializer.add(shSerializer);
-
-//	now call redistribution
-	DistributeGrid(*pGrid, shPart, serializer, createVerticalInterfaces,
-				   &partitionMap.get_target_proc_vec());
-
-	PCL_PROFILE_END();
-#endif
-
-//	in the serial case there's nothing to do.
-	return true;
-}
-
-
-template <typename TDomain, typename TGridFct>
-static bool DistributeDomain(TDomain& domainOut,
-							 PartitionMap& partitionMap,
-							 bool createVerticalInterfaces,
-							 std::vector<SmartPtr<TGridFct> > gridFcts)
-{
-	PROFILE_FUNC_GROUP("parallelization");
-//todo	Use a process-communicator to restrict communication
-
-	typedef typename TDomain::position_attachment_type	position_attachment_type;
-//	make sure that the input is fine
-	typedef typename TDomain::grid_type GridType;
-	typedef typename TDomain::subset_handler_type SubsetHandlerType;
-	SmartPtr<GridType> pGrid = domainOut.grid();
-	SubsetHandler& shPart = partitionMap.get_partition_handler();
-
-	if(shPart.grid() != pGrid.get()){
-		partitionMap.assign_grid(*pGrid);
-	}
-
-#ifdef UG_PARALLEL
-//todo:	check whether all target-processes in partitionMap are in the valid range.
-	PCL_PROFILE(RedistributeDomain);
-
-//	data serialization
-	SPVertexDataSerializer posSerializer =
-			GeomObjAttachmentSerializer<VertexBase, position_attachment_type>::
-								create(*pGrid, domainOut.position_attachment());
-
-	SPGridDataSerializer shSerializer = SubsetHandlerSerializer::
-											create(*domainOut.subset_handler());
-
-	GridDataSerializationHandler serializer;
-	serializer.add(posSerializer);
-	serializer.add(shSerializer);
-
-	for(size_t i = 0; i < gridFcts.size(); ++i){
-		serializer.add(GridFunctionSerializer<TGridFct>::create(pGrid.get(), gridFcts[i]));
-	}
 
 //	now call redistribution
 	DistributeGrid(*pGrid, shPart, serializer, createVerticalInterfaces,

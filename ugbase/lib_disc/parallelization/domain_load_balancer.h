@@ -6,12 +6,11 @@
 #define __H__UG__domain_load_balancer__
 
 #include "lib_grid/parallelization/load_balancer.h"
-#include "grid_function_serializer.h"
 
 namespace ug{
 
 ///	A small wrapper for LoadBalancer which adds comfort methods to balance and distribute domains.
-template <class TDomain, class TGridFct>
+template <class TDomain>
 class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 {
 	typedef LoadBalancer<TDomain::dim> base_class;
@@ -30,14 +29,6 @@ class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 
 			base_class::add_serializer(
 				SubsetHandlerSerializer::create(*dom->subset_handler()));
-		}
-
-	///	grid functions added through this method are distributed along with the domain.
-	/**	Make sure that added grid functions are consistent when distribution is performed!*/
-		void add_serializer(SmartPtr<TGridFct> gridFct)
-		{
-			base_class::add_serializer(GridFunctionSerializer<TGridFct>::
-											create(m_dom->grid().get(), gridFct));
 		}
 
 	private:

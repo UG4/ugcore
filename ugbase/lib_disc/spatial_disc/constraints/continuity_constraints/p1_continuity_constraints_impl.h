@@ -30,9 +30,11 @@ void SetInterpolation(TMatrix& A,
 	for(size_t i = 0; i < constrainedIndex.size(); ++i)
 	{
 	//	remove all couplings
+		{
 		const row_iterator iterEnd = A.end_row(constrainedIndex[i]);
 		for(row_iterator conn = A.begin_row(constrainedIndex[i]); conn != iterEnd; ++conn)
 			conn.value() = 0.0;
+		}
 
 	//	set diag of row to identity
 		A(constrainedIndex[i], constrainedIndex[i]) = 1.0;

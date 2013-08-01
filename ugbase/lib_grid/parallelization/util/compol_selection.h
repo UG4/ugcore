@@ -24,7 +24,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 	/**	Through the parameters select and deselect one may specify whether
 	 * a process selects and/or deselects elements based on the received
 	 * selection status.*/
-		ComPol_Selection(Selector& sel, bool select = true, bool deselect = true)
+		ComPol_Selection(ISelector& sel, bool select = true, bool deselect = true)
 			 :	m_sel(sel), m_bSelectAllowed(select), m_bDeselectAllowed(deselect)
 		{}
 
@@ -70,7 +70,7 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		inline bool select_allowed()	{return m_bSelectAllowed;}
 		inline bool deselect_allowed()	{return m_bDeselectAllowed;}
 
-		Selector& m_sel;
+		ISelector& m_sel;
 		bool m_bSelectAllowed;
 		bool m_bDeselectAllowed;
 };
@@ -91,7 +91,7 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 		typedef typename Layout::Interface			Interface;
 		typedef typename Interface::const_iterator	InterfaceIter;
 
-		ComPol_EnableSelectionStateBits(Selector& sel, byte stateBits)
+		ComPol_EnableSelectionStateBits(ISelector& sel, byte stateBits)
 			 :	m_sel(sel), m_stateBits(stateBits)
 		{}
 
@@ -131,7 +131,7 @@ class ComPol_EnableSelectionStateBits : public pcl::ICommunicationPolicy<TLayout
 			return true;
 		}
 
-		Selector& m_sel;
+		ISelector& m_sel;
 		byte m_stateBits;
 };
 

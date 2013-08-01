@@ -10,6 +10,11 @@
 
 namespace ug{
 
+AlgebraType::AlgebraType()
+	: m_type(CPU), m_blockSize(VariableBlockSize)
+{
+}
+
 AlgebraType::AlgebraType(Type type, int blockSize)
 	: m_type(type), m_blockSize(blockSize)
 {

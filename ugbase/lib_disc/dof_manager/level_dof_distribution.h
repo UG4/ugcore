@@ -10,7 +10,6 @@
 
 #include "dof_distribution.h"
 #include "mg_dof_distribution.h"
-#include "managing_dof_distribution.h"
 #include "lib_disc/domain_traits.h"
 
 namespace ug{
@@ -26,90 +25,20 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 		                       ConstSmartPtr<DoFDistributionInfo> spDDInfo,
 		                       bool bGrouped);
 
-	///	removes holes in the index set
-	/**
-	 * This method removes holes in the index set such that the index set is
-	 * contiguous. Therefore, free indices are replaced by those at the end
-	 * of the index set. The replacement is stored in the vReplaced vector (and
-	 * may be used to adjust associated data, e.g. a grid vector).
-	 *
-	 * \param[in,out]	vReplaced	vector with all pairs of replacements
-	 */
-		void defragment(std::vector<std::pair<size_t,size_t> >& vReplaced, int lev);
-
-	///	redistributes all dofs. Resizes associated level vectors afterwards.
-		virtual void redistribute_dofs();
-
-	///	register a ManagingDoFDistribution for a given level
+	///	register to manage a DoFDistribution for a given level
 	/**	Those dof-distributions will be informed, whenever redistribute_dofs is
 	 * executed.
 	 * This method is e.g. used by LevelDoFDistribution.*/
-		void register_managing_dof_distribution(ManagingDoFDistribution* mdd, int lvl);
+		void manage_dof_distribution(DoFDistribution* mdd, int lvl);
+
+	public:
+	///	initializes the indices
+		void reinit();
 
 	protected:
 	///	initializes the indices
-		void init();
-
-	///	initializes the indices
 		template <typename TBaseElem>
-		void init();
-
-	/**
-	 * Iterate over all elements and adds those whose
-	 * dof-entry has not yet been assigned (whose index equals NOT_YET_ASSIGNED)*/
-		template <typename TBaseElem>
-		void add_unassigned_elements();
-
-	///	called by base class when parallel redistribution is done
-		virtual void parallel_redistribution_ended();
-
-	///	removes holes in the index set
-	/**
-	 * This method removes holes in the index set such that the index set is
-	 * contiguous. Therefore, free indices are replaced by those at the end
-	 * of the index set. The replacement is stored in the vReplaced vector (and
-	 * may be used to adjust associated data, e.g. a grid vector).
-	 *
-	 * \param[in,out]	vReplaced	vector with all pairs of replacements
-	 */
-		template <typename TBaseElem>
-		void defragment(std::vector<std::pair<size_t,size_t> >& vReplaced, int lev);
-
-	///	adds indices to created objects
-	/**
-	 * When an element is inserted into the grid, this function is called an
-	 * adds needed indices to the grid object.
-	 */
-		template <typename TBaseElem>
-		inline void obj_created(TBaseElem* obj, GeometricObject* pParent = NULL,
-		                        bool replacesParent = false);
-
-	///	removes indices, when a grid element is removed
-	/**
-	 * When a grid element is removed from the grid, this function is called
-	 * and takes care about the indices. All indices associated with the element
-	 * are removed and stored in a free index container, counters are adjusted.
-	 * In general the removal of a grid element will lead to holes in the index
-	 * set. Those can be removed by calling defragment.
-	 *
-	 * \param[in]		obj		grid object that will be removed
-	 */
-		template <typename TBaseElem>
-		inline void obj_to_be_erased(TBaseElem* obj, TBaseElem* replacedBy = NULL);
-
-	public:
-		/// grid observer callbacks
-		/// \{
-		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL, bool replacesParent = false);
-		virtual void edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent = NULL, bool replacesParent = false);
-		virtual void face_created(Grid* grid, Face* f, GeometricObject* pParent = NULL, bool replacesParent = false);
-		virtual void volume_created(Grid* grid, Volume* vol, GeometricObject* pParent = NULL, bool replacesParent = false);
-
-		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy = NULL);
-		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e, EdgeBase* replacedBy = NULL);
-		virtual void face_to_be_erased(Grid* grid, Face* f, Face* replacedBy = NULL);
-		virtual void volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy = NULL);
-		/// \}
+		void reinit();
 
 	protected:
 		///	returns the number of indices on whole level
@@ -133,12 +62,12 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 		void level_required(int level);
 
 	///	informations for each level
-		std::vector<LevInfo<> > m_vLev;
+		std::vector<LevInfo> m_vLev;
 
-		LevInfo<>& lev_info(int lev) {return m_vLev[lev];}
-		const LevInfo<>& lev_info(int lev) const {return m_vLev[lev];}
+		LevInfo& lev_info(int lev) {return m_vLev[lev];}
+		const LevInfo& lev_info(int lev) const {return m_vLev[lev];}
 
-		std::vector<ManagingDoFDistribution*>	m_managingDoFDists;
+		std::vector<DoFDistribution*>	m_managingDoFDists;
 
 #ifdef UG_PARALLEL
 	///	returns the algebra layouts
@@ -153,9 +82,6 @@ class LevelMGDoFDistribution : public MGDoFDistribution
 
 		template <typename TBaseElem>
 		void add_indices_from_layouts(IndexLayout& indexLayout, InterfaceNodeTypes keyType, int l);
-
-	protected:
-		DistributedGridManager* m_pDistGridMgr;
 #endif
 };
 
@@ -182,12 +108,6 @@ class LevelDoFDistribution :  public DoFDistribution
 
 	///	renames the indices
 		void permute_indices(const std::vector<size_t>& vIndNew);
-
-	///	removes holes in index set
-		void defragment();
-
-	/// only needed in surface dof distribution, here it does nothing
-		void set_redistribution(bool bRedistribute){};
 
 #ifdef UG_PARALLEL
 	public:

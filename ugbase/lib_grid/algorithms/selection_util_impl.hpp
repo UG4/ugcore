@@ -265,7 +265,7 @@ void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 template <class TElem, class TSelector>
 void AssignSelectionStateToSides(TSelector& sel, bool recursive)
 {
-	typedef typename TSelector::template traits<TElem>::iterator TIter;
+	typedef typename TSelector::template traits<TElem>::level_iterator TIter;
 	typedef typename TElem::side TSide;
 
 	UG_ASSERT(sel.grid(), "A selector has to operate on a grid");
