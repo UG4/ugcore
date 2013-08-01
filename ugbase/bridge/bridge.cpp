@@ -194,6 +194,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_DomainDisc(reg, parentGroup);
 		RegisterBridge_GridFunction(reg, parentGroup);
 		RegisterBridge_Interpolate(reg, parentGroup);
+		RegisterBridge_Evaluate(reg, parentGroup);
 		RegisterBridge_MaxError(reg, parentGroup);
 		RegisterBridge_Ordering(reg, parentGroup);
 		RegisterBridge_UserData(reg, parentGroup);

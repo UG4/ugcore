@@ -108,6 +108,7 @@ void RegisterBridge_Integrate(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_DomainDisc(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_GridFunction(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Interpolate(Registry& reg, std::string grp = UG4_GRP);
+void RegisterBridge_Evaluate(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_MaxError(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Ordering(Registry& reg, std::string grp = UG4_GRP);
 #endif

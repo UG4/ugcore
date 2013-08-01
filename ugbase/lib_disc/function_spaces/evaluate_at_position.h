@@ -87,10 +87,6 @@ number Evaluate_at_vertex2D(number pos_x, number pos_y,
 	}
 	VertexBase* vrt = *chosen;
 	spGridFct->multi_indices(vrt, fct, ind);
-		if(ind.size()>0)
-		{
-			UG_THROW("Only one component supported.");
-		}
 	return 	BlockRef((*spGridFct)[ind[0][0]], ind[0][1]);
 
 }
