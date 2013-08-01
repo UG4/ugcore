@@ -183,7 +183,7 @@ void AdditiveToUnique(	TVector* pVec,
 template <typename TVector>
 void SetLayoutValues(	TVector* pVec,
                      	const IndexLayout& layout,
-                     	number val)
+                     	typename TVector::value_type val)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	interface iterators
