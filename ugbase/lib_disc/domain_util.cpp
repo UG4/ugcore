@@ -45,7 +45,6 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 			string shName = additionalSHNames[i_name];
 			for(size_t i_sh = 0; i_sh < ugxReader.num_subset_handlers(0); ++i_sh){
 				if(shName == ugxReader.get_subset_handler_name(0, i_sh)){
-					UG_LOG("Adding additional subset handler " << shName << endl);
 					ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
 				}
 			}
@@ -64,19 +63,15 @@ void SaveDomain(TDomain& domain, const char* filename)
 {
 	if(GetFilenameExtension(string(filename)) == string("ugx")){
 		GridWriterUGX ugxWriter;
-		UG_LOG("adding grid...\n");
 		ugxWriter.add_grid(*domain.grid(), "defGrid", domain.position_attachment());
-		UG_LOG("adding default subset handler...\n");
 		ugxWriter.add_subset_handler(*domain.subset_handler(), "defSH", 0);
 
 		vector<string> additionalSHNames = domain.additional_subset_handler_names();
 		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
 			const char* shName = additionalSHNames[i_name].c_str();
-			UG_LOG("adding additional subset handler '" << shName << "'\n");
 			ugxWriter.add_subset_handler(*domain.additional_subset_handler(shName), shName, 0);
 		}
 
-		UG_LOG("Writing to file...\n");
 		if(!ugxWriter.write_to_file(filename)){
 			UG_THROW("Couldn't save domain to the specified file: " << filename);
 		}
