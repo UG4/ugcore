@@ -7,8 +7,11 @@
 
 #include "domain_util.h"
 #include "domain_traits.h"
+#include "common/util/string_util.h"
 #include "lib_grid/file_io/file_io.h"
 #include "lib_grid/algorithms/geom_obj_util/misc_util.h"
+
+using namespace std;
 
 namespace ug{
 
@@ -22,7 +25,33 @@ void LoadDomain(TDomain& domain, const char* filename)
 template <typename TDomain>
 void LoadDomain(TDomain& domain, const char* filename, int procId)
 {
-	if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
+	if(GetFilenameExtension(string(filename)) == string("ugx")){
+		GridReaderUGX ugxReader;
+		if(!ugxReader.parse_file(filename)){
+			UG_THROW("ERROR in LoadDomain: File not found: " << filename);
+		}
+
+		if(ugxReader.num_grids() < 1){
+			UG_THROW("ERROR in LoadGridFromUGX: File contains no grid.");
+		}
+
+		ugxReader.grid(*domain.grid(), 0, domain.position_attachment());
+
+		if(ugxReader.num_subset_handlers(0) > 0)
+			ugxReader.subset_handler(*domain.subset_handler(), 0, 0);
+
+		vector<string> additionalSHNames = domain.additional_subset_handler_names();
+		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
+			string shName = additionalSHNames[i_name];
+			for(size_t i_sh = 0; i_sh < ugxReader.num_subset_handlers(0); ++i_sh){
+				if(shName == ugxReader.get_subset_handler_name(0, i_sh)){
+					UG_LOG("Adding additional subset handler " << shName << endl);
+					ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
+				}
+			}
+		}
+	}
+	else if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
 						 filename, domain.position_attachment(), procId))
 	{
 		UG_THROW("LoadDomain: Could not load file: "<<filename);
@@ -33,43 +62,30 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 template <typename TDomain>
 void SaveDomain(TDomain& domain, const char* filename)
 {
-	if(!SaveGridToFile(*domain.grid(), *domain.subset_handler(),
+	if(GetFilenameExtension(string(filename)) == string("ugx")){
+		GridWriterUGX ugxWriter;
+		UG_LOG("adding grid...\n");
+		ugxWriter.add_grid(*domain.grid(), "defGrid", domain.position_attachment());
+		UG_LOG("adding default subset handler...\n");
+		ugxWriter.add_subset_handler(*domain.subset_handler(), "defSH", 0);
+
+		vector<string> additionalSHNames = domain.additional_subset_handler_names();
+		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
+			const char* shName = additionalSHNames[i_name].c_str();
+			UG_LOG("adding additional subset handler '" << shName << "'\n");
+			ugxWriter.add_subset_handler(*domain.additional_subset_handler(shName), shName, 0);
+		}
+
+		UG_LOG("Writing to file...\n");
+		if(!ugxWriter.write_to_file(filename)){
+			UG_THROW("Couldn't save domain to the specified file: " << filename);
+		}
+	}
+	else if(!SaveGridToFile(*domain.grid(), *domain.subset_handler(),
 						  filename, domain.position_attachment()))
 		UG_THROW("SaveDomain: Could not save to file: "<<filename);
 }
 
-// writes domain to *.ugx file
-template <typename TDomain>
-void WriteDomainToUGX(const char* filename, const TDomain& domain)
-{
-	// filename
-	std::string strName = filename;
-
-	// check filename
-	if(strName.find(" ") != std::string::npos)
-		UG_THROW("Filename must not include spaces. Cannot write domain.");
-
-	// check if filename has already ending (if not add it)
-	if(strName.find(".ugx") == std::string::npos)
-	{
-		if(strName.find(".") != std::string::npos)
-		{
-			UG_THROW("Filename must not include dots. Cannot write domain.");
-		}
-		else
-		{
-			strName = strName + ".ugx";
-		}
-	}
-
-	TDomain* pDomain = const_cast<TDomain*>(&domain);
-
-	// save grid
-	if(!SaveGridToUGX(*pDomain->grid(), *pDomain->subset_handler(), strName.c_str()))
-	{
-		UG_THROW("WriteDomainToUGX: Cannot save grid.");
-	}
-}
 
 template <typename TDomain>
 number MaxElementDiameter(TDomain& domain, int level)
@@ -79,11 +95,6 @@ number MaxElementDiameter(TDomain& domain, int level)
 	                           domain.grid()->template begin<TElem>(level),
 	                           domain.grid()->template end<TElem>(level));
 }
-
-
-template void WriteDomainToUGX<Domain1d>(const char* filename, const Domain1d& domain);
-template void WriteDomainToUGX<Domain2d>(const char* filename, const Domain2d& domain);
-template void WriteDomainToUGX<Domain3d>(const char* filename, const Domain3d& domain);
 
 template void LoadDomain<Domain1d>(Domain1d& domain, const char* filename);
 template void LoadDomain<Domain2d>(Domain2d& domain, const char* filename);

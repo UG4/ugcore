@@ -80,9 +80,9 @@ class GridWriterUGX
 		bool add_grid(Grid& grid, const char* name,
 					  TPositionAttachment& aPos);
 
-		template <class TPositionAttachment>
-		void add_grid(MultiGrid& mg, const char* name,
-					  TPositionAttachment& aPos);
+//		template <class TPositionAttachment>
+//		void add_grid(MultiGrid& mg, const char* name,
+//					  TPositionAttachment& aPos);
 
 		void add_subset_handler(ISubsetHandler& sh, const char* name,
 								size_t refGridIndex);

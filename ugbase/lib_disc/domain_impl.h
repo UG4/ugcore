@@ -260,6 +260,55 @@ update_domain_info()
 	m_domainInfo.set_info(elemType, numElemsOnLvl, locNumElemsOnLvl, numLocalGhosts, subsetDims);
 }
 
+template <typename TGrid, typename TSubsetHandler>
+bool IDomain<TGrid,TSubsetHandler>::
+create_additional_subset_handler(std::string name)
+{
+	if(m_additionalSH[name].valid())
+		return false;
+
+	m_additionalSH[name] = SmartPtr<TSubsetHandler>(new TSubsetHandler(*m_spGrid));
+	return true;
+}
+
+template <typename TGrid, typename TSubsetHandler>
+std::vector<std::string> IDomain<TGrid,TSubsetHandler>::
+additional_subset_handler_names() const
+{
+	typedef typename std::map<std::string, SmartPtr<TSubsetHandler> >::const_iterator iterator_t;
+	std::vector<std::string> names;
+	for(iterator_t iter = m_additionalSH.begin(); iter != m_additionalSH.end(); ++iter){
+		if(iter->second.valid())
+			names.push_back(iter->first);
+	}
+	return names;
+}
+
+template <typename TGrid, typename TSubsetHandler>
+SmartPtr<TSubsetHandler> IDomain<TGrid,TSubsetHandler>::
+additional_subset_handler(std::string name)
+{
+	SmartPtr<TSubsetHandler> sp = m_additionalSH[name];
+	if(!sp.valid()){
+		UG_THROW("Requested additional subset handler with name '" << name
+				 << "' doesn't exist in the given domain!");
+	}
+	return sp;
+}
+
+template <typename TGrid, typename TSubsetHandler>
+const ConstSmartPtr<TSubsetHandler> IDomain<TGrid,TSubsetHandler>::
+additional_subset_handler(std::string name) const
+{
+	SmartPtr<TSubsetHandler> sp = m_additionalSH[name];
+	if(!sp.valid()){
+		UG_THROW("Requested additional subset handler with name '" << name
+				 << "' doesn't exist in the given domain!");
+	}
+	return sp;
+}
+
+
 #ifdef UG_PARALLEL
 template <typename TGrid, typename TSubsetHandler>
 template <class TElem>

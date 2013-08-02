@@ -32,21 +32,6 @@ void SaveDomain(TDomain& domain, const char* filename);
 
 
 ////////////////////////////////////////////////////////////////////////
-/// writes domain to *.ugx file
-/** Writes a domain to *.ugx format
- *
- * This function writes a domain to a ugx-file.
- *
- * \param[in] 	filename		Filename
- * \param[in]	domain			Domain that is written to file
- * \return 		true			if successful
- * 				false			if error occurred
- */
-template <typename TDomain>
-void WriteDomainToUGX(const char* filename, const TDomain& domain);
-
-
-////////////////////////////////////////////////////////////////////////
 ///	returns the corner coordinates of a geometric object
 /** Returns the corner coordinated of a geometric object in a vector
  *

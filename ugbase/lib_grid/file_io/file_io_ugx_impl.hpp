@@ -99,12 +99,12 @@ add_grid(Grid& grid, const char* name,
 	return true;
 }
 
-template <class TPositionAttachment>
-void GridWriterUGX::
-add_grid(MultiGrid& mg, const char* name,
-		 TPositionAttachment& aPos)
-{
-}
+//template <class TPositionAttachment>
+//void GridWriterUGX::
+//add_grid(MultiGrid& mg, const char* name,
+//		 TPositionAttachment& aPos)
+//{
+//}
 
 template <class TAttachment>
 void GridWriterUGX::

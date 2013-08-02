@@ -258,9 +258,6 @@ static void Domain(Registry& reg, string grp)
 		string name = string("Domain").append(suffix);
 		reg.add_class_<TDomain, TBase>(name, grp)
 			.add_constructor()
-//			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (TDomain::*)()>(&TDomain::subset_handler))
-//			.add_method("grid", static_cast<SmartPtr<MultiGrid> (TDomain::*)()>(&TDomain::grid))
-//			.add_method("get_dim", static_cast<int (TDomain::*)() const>(&TDomain::get_dim))
 			.add_method("empty", &TDomain::empty)
 			.set_construct_as_smart_pointer(true);
 
@@ -376,10 +373,15 @@ static void Common(Registry& reg, string grp)
 	{
 		typedef IDomain<> T;
 		reg.add_class_<T>("IDomain", grp)
-			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (T::*)()>(&T::subset_handler))
-			.add_method("grid", static_cast<SmartPtr<MultiGrid> (T::*)()>(&T::grid), "grid")
-			.add_method("get_dim", static_cast<int (T::*)() const>(&T::get_dim))
 			.add_method("domain_info", &T::domain_info, "DomainInfo")
+			.add_method("get_dim", static_cast<int (T::*)() const>(&T::get_dim))
+			.add_method("grid", static_cast<SmartPtr<MultiGrid> (T::*)()>(&T::grid), "grid")
+			.add_method("subset_handler", static_cast<SmartPtr<MGSubsetHandler> (T::*)()>(&T::subset_handler))
+			.add_method("create_additional_subset_handler", &T::create_additional_subset_handler, "bool")
+			.add_method("additional_subset_handler_names", &T::additional_subset_handler_names, "vector<string>")
+			.add_method("additional_subset_handler",
+					static_cast<SmartPtr<MGSubsetHandler> (T::*)(string)>(&T::additional_subset_handler),
+					"SubsetHandler")
 			.set_construct_as_smart_pointer(true);
 	}
 

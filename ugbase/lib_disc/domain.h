@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__DOMAIN__
 
 #include "lib_grid/algorithms/subset_util.h"
+#include <map>
 
 #ifdef UG_PARALLEL
 #include "lib_grid/parallelization/distributed_grid.h"
@@ -138,9 +139,26 @@ class IDomain
 	///	returns Distributed Grid Manager
 		inline DistributedGridManager* distributed_grid_manager()	{return m_spGrid->distributed_grid_manager();}
 
+	///	creates an additional subset-handler with the given name
+	/**	If this subset-handler is created before the domain is loaded from a file,
+	 * the contents of the handler will be filled with the contents of the
+	 * file's subset-handler-node with the same name.*/
+		bool create_additional_subset_handler(std::string name);
+
+	///	returns a list with the names of additional subset handlers
+		std::vector<std::string> additional_subset_handler_names() const;
+
+	///	returns an additional subset handler Subset Handler
+		SmartPtr<TSubsetHandler> additional_subset_handler(std::string name);
+
+	///	const access to Subset Handler
+		const ConstSmartPtr<TSubsetHandler> additional_subset_handler(std::string name) const;
+
 	protected:
 		SmartPtr<TGrid> m_spGrid;			///< Grid
 		SmartPtr<TSubsetHandler> m_spSH;	///< Subset Handler
+		std::map<std::string, SmartPtr<TSubsetHandler> >	m_additionalSH; ///< additional subset handlers
+
 		MessageHub::SPCallbackId m_spGridAdaptionCallbackID;
 		MessageHub::SPCallbackId m_spGridCreationCallbackID;
 		MessageHub::SPCallbackId m_spGridDistributionCallbackID;
