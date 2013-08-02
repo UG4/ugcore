@@ -26,6 +26,21 @@ namespace ug
 class SurfaceView;
 
 ////////////////////////////////////////////////////////////////////////////////
+///	This checks whether oneof the standard grid paths contains the specified file.
+/**	The checking order is the following:
+ * 		- absolute path
+ * 		- relative path regarding the current script path (PathProvider::get_current_path())
+ * 		- relative path regarding ug's grid path (PathProvider::get_path(GRID_PATH))
+ *
+ * the full path (including the filename) at which the file was found will be written
+ * to filenameOut.
+ *
+ * \return true if a file was found at one of the specified locations
+ */
+bool FindFileInStandardGridPaths(std::string& filenameOut, const char* filename);
+
+
+////////////////////////////////////////////////////////////////////////////////
 ///	Loads a grid from a file. Position data is written to the specified attachment.
 /**
  * Make sure that the given position attachment is either of type AVector1,

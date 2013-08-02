@@ -25,40 +25,40 @@ void LoadDomain(TDomain& domain, const char* filename)
 template <typename TDomain>
 void LoadDomain(TDomain& domain, const char* filename, int procId)
 {
-//	todo: Commented code has to be extended with path-searching!
+	if(GetFilenameExtension(string(filename)) == string("ugx")){
+		domain.grid()->message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS, procId));
+		string nfilename;
+		if(FindFileInStandardGridPaths(nfilename, filename)){
+			GridReaderUGX ugxReader;
+			if(!ugxReader.parse_file(nfilename.c_str())){
+				UG_THROW("An error occured while parsing '" << nfilename << "'");
+			}
 
-//	if(GetFilenameExtension(string(filename)) == string("ugx")){
-//		GridReaderUGX ugxReader;
-//		if(!ugxReader.parse_file(filename)){
-//			UG_THROW("ERROR in LoadDomain: File not found: " << filename);
-//		}
-//
-//		if(ugxReader.num_grids() < 1){
-//			UG_THROW("ERROR in LoadGridFromUGX: File contains no grid.");
-//		}
-//
-//		ugxReader.grid(*domain.grid(), 0, domain.position_attachment());
-//
-//		if(ugxReader.num_subset_handlers(0) > 0)
-//			ugxReader.subset_handler(*domain.subset_handler(), 0, 0);
-//
-//		vector<string> additionalSHNames = domain.additional_subset_handler_names();
-//		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
-//			string shName = additionalSHNames[i_name];
-//			for(size_t i_sh = 0; i_sh < ugxReader.num_subset_handlers(0); ++i_sh){
-//				if(shName == ugxReader.get_subset_handler_name(0, i_sh)){
-//					ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
-//				}
-//			}
-//		}
-//	}
-//	else if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
-//						 filename, domain.position_attachment(), procId))
-//	{
-//		UG_THROW("LoadDomain: Could not load file: "<<filename);
-//	}
+			if(ugxReader.num_grids() < 1){
+				UG_THROW("ERROR in LoadGridFromUGX: File contains no grid.");
+			}
 
-	if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
+			ugxReader.grid(*domain.grid(), 0, domain.position_attachment());
+
+			if(ugxReader.num_subset_handlers(0) > 0)
+				ugxReader.subset_handler(*domain.subset_handler(), 0, 0);
+
+			vector<string> additionalSHNames = domain.additional_subset_handler_names();
+			for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
+				string shName = additionalSHNames[i_name];
+				for(size_t i_sh = 0; i_sh < ugxReader.num_subset_handlers(0); ++i_sh){
+					if(shName == ugxReader.get_subset_handler_name(0, i_sh)){
+						ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
+					}
+				}
+			}
+		}
+		else{
+			UG_THROW("ERROR in LoadDomain: File not found: " << filename);
+		}
+		domain.grid()->message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
+	}
+	else if(!LoadGridFromFile(*domain.grid(), *domain.subset_handler(),
 						 filename, domain.position_attachment(), procId))
 	{
 		UG_THROW("LoadDomain: Could not load file: "<<filename);
@@ -69,27 +69,22 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 template <typename TDomain>
 void SaveDomain(TDomain& domain, const char* filename)
 {
-//	todo: Commented code has to be extended with path-searching!
+	if(GetFilenameExtension(string(filename)) == string("ugx")){
+		GridWriterUGX ugxWriter;
+		ugxWriter.add_grid(*domain.grid(), "defGrid", domain.position_attachment());
+		ugxWriter.add_subset_handler(*domain.subset_handler(), "defSH", 0);
 
-//	if(GetFilenameExtension(string(filename)) == string("ugx")){
-//		GridWriterUGX ugxWriter;
-//		ugxWriter.add_grid(*domain.grid(), "defGrid", domain.position_attachment());
-//		ugxWriter.add_subset_handler(*domain.subset_handler(), "defSH", 0);
-//
-//		vector<string> additionalSHNames = domain.additional_subset_handler_names();
-//		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
-//			const char* shName = additionalSHNames[i_name].c_str();
-//			ugxWriter.add_subset_handler(*domain.additional_subset_handler(shName), shName, 0);
-//		}
-//
-//		if(!ugxWriter.write_to_file(filename)){
-//			UG_THROW("Couldn't save domain to the specified file: " << filename);
-//		}
-//	}
-//	else if(!SaveGridToFile(*domain.grid(), *domain.subset_handler(),
-//						  filename, domain.position_attachment()))
-//		UG_THROW("SaveDomain: Could not save to file: "<<filename);
-	if(!SaveGridToFile(*domain.grid(), *domain.subset_handler(),
+		vector<string> additionalSHNames = domain.additional_subset_handler_names();
+		for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
+			const char* shName = additionalSHNames[i_name].c_str();
+			ugxWriter.add_subset_handler(*domain.additional_subset_handler(shName), shName, 0);
+		}
+
+		if(!ugxWriter.write_to_file(filename)){
+			UG_THROW("Couldn't save domain to the specified file: " << filename);
+		}
+	}
+	else if(!SaveGridToFile(*domain.grid(), *domain.subset_handler(),
 						  filename, domain.position_attachment()))
 		UG_THROW("SaveDomain: Could not save to file: "<<filename);
 }

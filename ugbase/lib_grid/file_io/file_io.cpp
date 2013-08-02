@@ -22,6 +22,35 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////////////
+bool FindFileInStandardGridPaths(std::string& filenameOut, const char* filename)
+{
+	filenameOut = filename;
+	if(FileExists(filenameOut.c_str()))
+		return true;
+
+
+//	Now check whether the file was specified relative to the current
+//	working directory
+	filenameOut = PathProvider::get_current_path();
+	filenameOut.append("/").append(filename);
+
+	if(FileExists(filenameOut.c_str()))
+		return true;
+
+//	now check the grid path
+	filenameOut = PathProvider::get_path(GRID_PATH);
+	filenameOut.append("/").append(filename);
+
+	if(FileExists(filenameOut.c_str()))
+		return true;
+
+//	filename couldn't be located
+	filenameOut = "";
+	return false;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 //	this method performs the actual loading.
 static bool LoadGrid3d_IMPL(Grid& grid, ISubsetHandler* pSH,
 					   const char* filename, AVector3& aPos)
@@ -125,31 +154,11 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 	grid.message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS, procId));
 	bool retVal = false;
 	if(loadingGrid){
-		bool fileExists = true;
-	//	check the default file first
-		string tfile = filename;
-		if(!FileExists(tfile.c_str())){
-		//	Now check whether the file was specified relative to the current
-		//	working directory
-			tfile = PathProvider::get_current_path();
-			tfile.append("/").append(filename);
-
-			if(!FileExists(tfile.c_str())){
-			//	now check the grid path
-				tfile = PathProvider::get_path(GRID_PATH);
-				tfile.append("/").append(filename);
-
-				if(!FileExists(tfile.c_str())){
-				//	The file couldn't be located.
-					fileExists = false;
-				}
-			}
-		}
-
 	//	Now perform the actual loading.
 	//	first all load methods, which do accept template position types are
 	//	handled. Then all those which only work with 3d position types are processed.
-		if(fileExists){
+		string tfile;
+		if(FindFileInStandardGridPaths(tfile, filename)){
 			if(tfile.find(".ugx") != string::npos){
 				if(psh)
 					retVal = LoadGridFromUGX(grid, *psh, tfile.c_str(), aPos);
