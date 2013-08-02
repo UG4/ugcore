@@ -27,34 +27,43 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 {
 	if(GetFilenameExtension(string(filename)) == string("ugx")){
 		domain.grid()->message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STARTS, procId));
-		string nfilename;
-		if(FindFileInStandardGridPaths(nfilename, filename)){
-			GridReaderUGX ugxReader;
-			if(!ugxReader.parse_file(nfilename.c_str())){
-				UG_THROW("An error occured while parsing '" << nfilename << "'");
-			}
 
-			if(ugxReader.num_grids() < 1){
-				UG_THROW("ERROR in LoadGridFromUGX: File contains no grid.");
-			}
+		bool loadingGrid = true;
+		#ifdef UG_PARALLEL
+			if((procId != -1) && (pcl::GetProcRank() != procId))
+				loadingGrid = false;
+		#endif
 
-			ugxReader.grid(*domain.grid(), 0, domain.position_attachment());
+		if(loadingGrid){
+			string nfilename;
+			if(FindFileInStandardGridPaths(nfilename, filename)){
+				GridReaderUGX ugxReader;
+				if(!ugxReader.parse_file(nfilename.c_str())){
+					UG_THROW("An error occured while parsing '" << nfilename << "'");
+				}
 
-			if(ugxReader.num_subset_handlers(0) > 0)
-				ugxReader.subset_handler(*domain.subset_handler(), 0, 0);
+				if(ugxReader.num_grids() < 1){
+					UG_THROW("ERROR in LoadGridFromUGX: File contains no grid.");
+				}
 
-			vector<string> additionalSHNames = domain.additional_subset_handler_names();
-			for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
-				string shName = additionalSHNames[i_name];
-				for(size_t i_sh = 0; i_sh < ugxReader.num_subset_handlers(0); ++i_sh){
-					if(shName == ugxReader.get_subset_handler_name(0, i_sh)){
-						ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
+				ugxReader.grid(*domain.grid(), 0, domain.position_attachment());
+
+				if(ugxReader.num_subset_handlers(0) > 0)
+					ugxReader.subset_handler(*domain.subset_handler(), 0, 0);
+
+				vector<string> additionalSHNames = domain.additional_subset_handler_names();
+				for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name){
+					string shName = additionalSHNames[i_name];
+					for(size_t i_sh = 0; i_sh < ugxReader.num_subset_handlers(0); ++i_sh){
+						if(shName == ugxReader.get_subset_handler_name(0, i_sh)){
+							ugxReader.subset_handler(*domain.additional_subset_handler(shName), i_sh, 0);
+						}
 					}
 				}
 			}
-		}
-		else{
-			UG_THROW("ERROR in LoadDomain: File not found: " << filename);
+			else{
+				UG_THROW("ERROR in LoadDomain: File not found: " << filename);
+			}
 		}
 		domain.grid()->message_hub()->post_message(GridMessage_Creation(GMCT_CREATION_STOPS, procId));
 	}
