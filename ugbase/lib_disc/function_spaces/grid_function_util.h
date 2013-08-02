@@ -20,7 +20,7 @@
 #include "lib_disc/dof_manager/mg_dof_distribution.h"
 #include <vector>
 #include <string>
-#include "lib_algebra/common/matrixio/matrix_io.h"
+#include "lib_algebra/common/matrixio/matrix_io_mtx.h"
 #include "lib_algebra/common/connection_viewer_output.h"
 #include "lib_algebra/common/csv_gnuplot_output.h"
 #include "lib_disc/spatial_disc/user_data/user_data.h"
@@ -175,6 +175,75 @@ void SaveVectorDiffForConnectionViewer(
 //	forward
 	PROFILE_FUNC();
 	WriteVectorToConnectionViewer(filename, A.get_matrix(), u, u, &compareVec);
+}
+
+// from connection_viewer_input.h
+// with additional checks
+template<typename vector_type>
+bool ReadVector(std::string filename, vector_type &vec,int dim)
+{
+    Progress p;
+	std::cout << " Reading std::vector from " <<  filename << "... ";
+	std::fstream matfile(filename.c_str(), std::ios::in);
+	if(matfile.is_open() == false) { std::cout << "failed.\n"; return false; }
+
+	int version=-1, dimension=-1, gridsize;
+
+	matfile >> version;
+	matfile >> dimension;
+	matfile >> gridsize;
+
+	assert(version == 1);
+	assert(dimension == dim);
+	// todo check positions and not just size
+	assert(gridsize == (int)vec.size());
+	
+
+	PROGRESS_START(prog, gridsize*2, "ReadVector " << dimension << "d from " << filename << " , " << gridsize << " x " << gridsize);
+	for(int i=0; i<gridsize; i++)
+	{
+		if(i%100) { PROGRESS_UPDATE(prog, i); }
+		if(matfile.eof())
+		{
+			std::cout << " failed.\n";
+			assert(0);
+			return false;
+		}
+		double x, y, z;
+		matfile >> x >> y;
+		if(dimension==3) matfile >> z;
+	}
+
+	int printStringsInWindow;
+	matfile >> printStringsInWindow;
+
+	// vec.resize(gridsize);
+	bool bEOF = matfile.eof();
+	while(!bEOF)
+	{
+		int from, to; double value;
+		char c = matfile.peek();
+		if(c == -1 || c == 'c' || c == 'v' || matfile.eof())
+			break;
+
+		matfile >> from >> to >> value;
+		assert(from == to);
+		vec[from] = value;
+		if(from%100) { PROGRESS_UPDATE(prog, from); }
+		bEOF = matfile.eof();
+	}
+	return true;
+}
+
+// load vector that has been saved in connection viewer format and write it
+// into grid function
+template<typename TGridFunction>
+void LoadVector(TGridFunction& u,const char* filename){
+	PROFILE_FUNC();
+	typename TGridFunction::algebra_type::vector_type b;
+	b.resize(u.num_indices());
+	ReadVector(filename,b,TGridFunction::dim);
+	u.assign(b);
 }
 
 // Same as before, but for comma separated value (CSV)

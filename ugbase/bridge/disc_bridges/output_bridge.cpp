@@ -173,6 +173,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 				grp, "", "vec#matrix#Filename|save-dialog|endings=[\"vec\"]", "save vector as .vec for ConnectionViewer, use matrix connections as a \"grid\"");
 		reg.add_function("SaveVectorDiffForConnectionViewer", static_cast<void (*)(function_type& , function_type& , matOp&, const char*)>(&SaveVectorDiffForConnectionViewer<function_type>), grp,
 				grp, "", "vecA#veccB#matrix#Filename|save-dialog|endings=[\"vec\"]", "compare two vectors a and b and save difference in .vec for ConnectionViewer, use matrix connections as a \"grid\"");
+		reg.add_function("LoadVector", static_cast<void (*)(function_type& ,const char*)>(&LoadVector<function_type>),
+				grp, "", "vec#Filename|save-dialog|endings=[\"vec\"]", "save vector as .vec for ConnectionViewer");
 	}
 
 //	SaveVectorCSV
