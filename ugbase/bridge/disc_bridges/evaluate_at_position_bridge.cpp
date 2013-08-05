@@ -102,7 +102,7 @@ number EvaluateAtClosestVertex(const std::vector<number>& globPos,
 {
 	static const int dim = TGridFunction::dim;
 
-	if(globPos.size() != dim)
+	if((int)globPos.size() != dim)
 		UG_THROW("Dimension is "<<dim<<", but passed.");
 
 	MathVector<dim> pos;
