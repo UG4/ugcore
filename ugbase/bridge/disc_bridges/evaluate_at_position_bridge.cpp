@@ -35,20 +35,27 @@ template <typename TGridFunction>
 number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
                            SmartPtr<TGridFunction> spGridFct,
                            size_t fct,
-                           const SubsetGroup& ssGrp)
+                           const SubsetGroup& ssGrp,
+                           typename TGridFunction::domain_type::subset_handler_type* sh)
 {
 
 //	domain type and position_type
 	typedef typename TGridFunction::domain_type domain_type;
 	typedef typename domain_type::position_type position_type;
-
+	typedef typename domain_type::grid_type grid_type;
+	typedef typename domain_type::subset_handler_type subset_handler_type;
 // get position accessor
+	domain_type* dom = spGridFct->domain().get();
+	grid_type* grid = dom->grid().get();
+
+	subset_handler_type* domSH = dom->subset_handler().get();
+
 	const typename domain_type::position_accessor_type& aaPos
-										= spGridFct->domain()->position_accessor();
+										= dom->position_accessor();
 
 	std::vector<MultiIndex<2> > ind;
-	typename TGridFunction::template dim_traits<0>::const_iterator iterEnd, iter,chosen;
-	double min_distance;
+	typename subset_handler_type::template traits<VertexBase>::const_iterator iterEnd, iter,chosen;
+	double minDistanceSq;
 
 	bool bInit = false;
 	for(size_t i = 0; i < ssGrp.size(); ++i)
@@ -56,36 +63,39 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 	//	get subset index
 		const int si = ssGrp[i];
 
-	//	skip if function is not defined in subset
-		if(!spGridFct->is_def_in_subset(fct, si)) continue;
-
 	// 	iterate over all elements
-		iterEnd = spGridFct->template end<VertexBase>(si);
-		iter = spGridFct->template begin<VertexBase>(si);
-		for(; iter != iterEnd; ++iter)
-		{
-		//	get element
-			VertexBase* vrt = *iter;
+		for(size_t lvl = 0; lvl < sh->num_levels(); ++lvl){
+			iterEnd = sh->template end<VertexBase>(si, lvl);
+			iter = sh->template begin<VertexBase>(si, lvl);
+			for(; iter != iterEnd; ++iter)
+			{
+			//	get element
+				VertexBase* vrt = *iter;
+				if(grid->has_children(vrt)) continue;
 
-		//	global position
-			if(!bInit)
-			{
-				bInit = true;
-				min_distance = VecDistance(globPos, aaPos[vrt]);
-				chosen = iter;
-			}
-			else
-			{
-				double buffer = VecDistance(globPos, aaPos[vrt]);
-				if(buffer<min_distance)
+				int domSI = domSH->get_subset_index(vrt);
+
+			//	skip if function is not defined in subset
+				if(!spGridFct->is_def_in_subset(fct, domSI)) continue;
+
+			//	global position
+				if(!bInit)
 				{
-					min_distance = buffer;
+					bInit = true;
+					minDistanceSq = VecDistanceSq(globPos, aaPos[vrt]);
 					chosen = iter;
+				}
+				else
+				{
+					double buffer = VecDistanceSq(globPos, aaPos[vrt]);
+					if(buffer < minDistanceSq)
+					{
+						minDistanceSq = buffer;
+						chosen = iter;
+					}
 				}
 			}
 		}
-
-
 	}
 
 	VertexBase* vrt = *chosen;
@@ -96,19 +106,11 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 
 
 template <typename TGridFunction>
-number EvaluateAtClosestVertex(const std::vector<number>& globPos,
+number EvaluateAtClosestVertex(const MathVector<TGridFunction::dim>& pos,
                                   SmartPtr<TGridFunction> spGridFct, const char* cmp,
-                                  const char* subsets)
+                                  const char* subsets,
+                                  SmartPtr<typename TGridFunction::domain_type::subset_handler_type> sh)
 {
-	static const int dim = TGridFunction::dim;
-
-	if((int)globPos.size() != dim)
-		UG_THROW("Dimension is "<<dim<<", but passed.");
-
-	MathVector<dim> pos;
-	for(size_t i = 0; i < globPos.size(); ++i)
-		pos[i] = globPos[i];
-
 //	get function id of name
 	const size_t fct = spGridFct->fct_id_by_name(cmp);
 
@@ -118,7 +120,7 @@ number EvaluateAtClosestVertex(const std::vector<number>& globPos,
 
 
 //	create subset group
-	SubsetGroup ssGrp(spGridFct->domain()->subset_handler());
+	SubsetGroup ssGrp(sh);
 	if(subsets != NULL)
 	{
 		ssGrp.add(TokenizeString(subsets));
@@ -129,8 +131,7 @@ number EvaluateAtClosestVertex(const std::vector<number>& globPos,
 		ssGrp.add_all();
 	}
 
-	return EvaluateAtVertex<TGridFunction>(pos, spGridFct, fct, ssGrp);
-
+	return EvaluateAtVertex<TGridFunction>(pos, spGridFct, fct, ssGrp, sh.get());
 }
 
 
@@ -163,7 +164,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 	{
 	//	reg.add_function("Integral", static_cast<number (*)(SmartPtr<UserData<number,dim> >, SmartPtr<TFct>, const char*, number, int)>(&Integral<TFct>), grp, "Integral", "Data#GridFunction#Subsets#Time#QuadOrder");
 
-		reg.add_function("EvaluateAtClosestVertex", static_cast<number (*)(const std::vector<number>&, SmartPtr<TFct>, const char*, const char*)>(&EvaluateAtClosestVertex<TFct>),grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets");
+		//reg.add_function("EvaluateAtClosestVertex", static_cast<number (*)(const std::vector<number>&, SmartPtr<TFct>, const char*, const char*)>(&EvaluateAtClosestVertex<TFct>),grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets");
+		reg.add_function("EvaluateAtClosestVertex", &EvaluateAtClosestVertex<TFct>, grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets");
 
 	}
 }
