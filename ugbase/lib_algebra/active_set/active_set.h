@@ -46,9 +46,13 @@ class ActiveSet
 		};
 
 	///	sets constraint/obstacle
-		void set_constraint(ConstSmartPtr<function_type> cons) {m_spConsGF = cons; m_bCons = true;}
+		void set_constraint(ConstSmartPtr<function_type> cons) {
+			m_spConsGF = cons; m_bCons = true;
+			//	if cons-GF is defined on a subset,
+			//	which is not a boundary-subset -> UG_LOG
+		}
 
-	///	sets an contact discretization in order to use contact-disc dependent funcs
+	///	sets a contact discretization in order to use contact-disc dependent funcs
 		void set_contactDisc(SmartPtr<IContactDisc<TDomain, function_type> > contact)
 		{m_spContactDisc = contact;};
 
@@ -59,11 +63,12 @@ class ActiveSet
 
 		template <typename TElem, typename TIterator>
 		void ActiveIndexElem(TIterator iterBegin,
-				TIterator iterEnd, const function_type& u,
-				function_type& contactForce);
+				TIterator iterEnd, function_type& u,
+				function_type& rhs, function_type& contactForce);
 
 	///	determines the active indices
-		bool active_index(function_type& u, function_type& contactForce);
+		bool active_index(function_type& u, function_type& rhs, function_type& contactForce,
+				function_type& gap);
 
 	///	computes the contact forces for a given contact disc
 		void contactForces(function_type& contactForce, function_type& rhs,
@@ -73,8 +78,12 @@ class ActiveSet
 		void contactForcesRes(vector_type& contactForce, const matrix_type& mat,
 				const vector_type& u, vector_type& rhs);
 
+		template <typename TElem, typename TIterator>
+		bool ActiveSetConvCheckElem(TIterator iterBegin,
+				TIterator iterEnd, function_type& u);
+
 	///	checks if all constraints are fulfilled & the activeSet remained unchanged
-		bool check_conv(const vector_type& u, const size_t step);
+		bool check_conv(function_type& u, const size_t step);
 
 	///	method used for lua-call in order to pass the ActiveSet to assemble-funcs
 		vector<SmartPtr<MultiIndex<2> > >  activeMultiIndices()
@@ -95,7 +104,7 @@ class ActiveSet
 		ConstSmartPtr<function_type> m_spConsGF;
 		bool m_bCons;
 
-		///	pointer to an contact-Disc
+		///	pointer to a contact-Disc
 		SmartPtr<IContactDisc<TDomain, function_type> > m_spContactDisc;
 
 		///	vector of possible contact subsets
