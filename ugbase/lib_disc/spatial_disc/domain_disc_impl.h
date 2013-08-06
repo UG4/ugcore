@@ -764,17 +764,14 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
 void DomainDiscretization<TDomain, TAlgebra>::
-adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
-		const vector_type& val, ConstSmartPtr<DoFDistribution> dd)
+adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices)
 {
 	std::vector<SmartPtr<MultiIndex<2> > >::iterator iter;
 
 	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
 	{
 		MultiIndex<2> multiIndex = **iter;
-
 		SetDirichletRow(mat, multiIndex[0], multiIndex[1]);
-		BlockRef(rhs[multiIndex[0]], multiIndex[1]) = BlockRef(val[multiIndex[0]], multiIndex[1]);
 	}
 }
 
@@ -1361,8 +1358,8 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
 void DomainDiscretization<TDomain, TAlgebra>::
-adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
-		const vector_type& val, number time, ConstSmartPtr<DoFDistribution> dd)
+adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
+		 number time)
 {
 	//	currently there is no difference to the stationary variant of this method
 	//	therefore one could call the stationary impl here
@@ -1371,9 +1368,7 @@ adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<Multi
 	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
 	{
 		MultiIndex<2> multiIndex = **iter;
-
 		SetDirichletRow(mat, multiIndex[0], multiIndex[1]);
-		BlockRef(rhs[multiIndex[0]], multiIndex[1]) = BlockRef(val[multiIndex[0]], multiIndex[1]);
 	}
 }
 

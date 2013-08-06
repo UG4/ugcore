@@ -99,22 +99,15 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		virtual void adjust_solution(vector_type& u, const GridLevel& gl) = 0;
 		virtual void adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
-		/// sets dirichlet rows and values in matrix resp. right hand side vector
+		/// sets dirichlet rows in matrix
 		/**
 		 * For a given set of indices, 'vActiveIndices', the matrix rows corresponding to these
-		 * indices are set to identity (Dirichlet-row) and the entries of the right-hand-side
-		 * vector are set to the Dirichlet-values
+		 * indices are set to identity (Dirichlet-row)
 		 *
 		 * \param[out] 	mat				Mass-/Stiffness- Matrix
-		 * \param[out] 	rhs				Right-Hand-Side
 		 * \param[in]	vActiveIndices	vector of active Indices
-		 * \param[in]	val				dirichlet values
-		 * \param[in]	gl				grid level
 		 */
-		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices, const vector_type& val, const GridLevel& gl) = 0;
-		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices, const vector_type& val, ConstSmartPtr<DoFDistribution> dd) = 0;
+		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices) = 0;
 
 		/// assembles the mass matrix
 		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, const GridLevel& gl) = 0;
@@ -265,28 +258,18 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		void adjust_solution(vector_type& u, number time)
 		{adjust_solution(u,time, GridLevel());}
 
-	/// sets dirichlet rows and values in matrix resp. right hand side vector
+	/// sets dirichlet rows in matrix
 	/**
 	 * For a given set of indices, 'vActiveIndices', the matrix rows corresponding to these
-	 * indices are set to identity (Dirichlet-row) and the entries of the right-hand-side
-	 * vector are set to the Dirichlet-values
+	 * indices are set to identity (Dirichlet-row)
 	 *
 	 * \param[out] 	mat				Mass-/Stiffness- Matrix
-	 * \param[out] 	rhs				Right-Hand-Side
 	 * \param[in]	vActiveIndices	vector of active Indices
-	 * \param[in]	val				dirichlet values
 	 * \param[in]  	time			time of next (to be computed) timestep
-	 * \param[in]	gl				grid level
 	 */
-		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
-				const vector_type& val, number time, const GridLevel& gl) = 0;
-		virtual void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
-				const vector_type& val, number time, ConstSmartPtr<DoFDistribution> dd) = 0;
-		
-	///	adjust matrix and rhs on surface level
-		void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
-				const vector_type& val, number time)
-		{adjust_matrix_rhs(mat, rhs, vActiveIndices, val, time, GridLevel());}
+		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
+				number time) = 0;
+
 
 	/// finishes timestep
 	/**

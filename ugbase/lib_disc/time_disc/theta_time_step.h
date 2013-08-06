@@ -81,9 +81,7 @@ class MultiStepTimeDiscretization
 
 		void adjust_solution(vector_type& u, const GridLevel& gl);
 
-		void adjust_matrix_rhs(matrix_type& mat, vector_type& rhs,
-				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
-				const vector_type& val, const GridLevel& gl);
+		void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices);
 
 	protected:
 	///	updates the scaling factors, returns the future time
