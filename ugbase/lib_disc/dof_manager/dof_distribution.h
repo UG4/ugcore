@@ -77,31 +77,47 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider
 	/// iterator for elements where dofs are defined
 	/// \{
 		template <typename TElem>
-		typename traits<TElem>::iterator begin() {return m_spSurfView->begin<TElem>(m_level);}
+		typename traits<TElem>::iterator
+		begin(SurfaceView::SurfaceState validSurfStates = SurfaceView::SURFACE_AND_SHADOWING)
+		{return m_spSurfView->begin<TElem>(m_level, validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::iterator end() {return m_spSurfView->end<TElem>(m_level);}
+		typename traits<TElem>::iterator
+		end(SurfaceView::SurfaceState validSurfStates = SurfaceView::SURFACE_AND_SHADOWING)
+		{return m_spSurfView->end<TElem>(m_level, validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator begin() const {return m_spSurfView->begin<TElem>(m_level);}
+		typename traits<TElem>::const_iterator
+		begin(SurfaceView::SurfaceState validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+		{return m_spSurfView->begin<TElem>(m_level, validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator end() const {return m_spSurfView->end<TElem>(m_level);}
+		typename traits<TElem>::const_iterator
+		end(SurfaceView::SurfaceState validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+		{return m_spSurfView->end<TElem>(m_level, validSurfStates);}
 	///	\}
 
 	/// iterator for elements where dofs are defined
 	/// \{
 		template <typename TElem>
-		typename traits<TElem>::iterator begin(int si) {return m_spSurfView->begin<TElem>(si, m_level);}
+		typename traits<TElem>::iterator
+		begin(int si, SurfaceView::SurfaceState validSurfStates = SurfaceView::SURFACE_AND_SHADOWING)
+		{return m_spSurfView->begin<TElem>(si, m_level, validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::iterator end(int si) {return m_spSurfView->end<TElem>(si, m_level);}
+		typename traits<TElem>::iterator
+		end(int si, SurfaceView::SurfaceState validSurfStates = SurfaceView::SURFACE_AND_SHADOWING)
+		{return m_spSurfView->end<TElem>(si, m_level, validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator begin(int si) const {return m_spSurfView->begin<TElem>(si, m_level);}
+		typename traits<TElem>::const_iterator
+		begin(int si, SurfaceView::SurfaceState validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+		{return m_spSurfView->begin<TElem>(si, m_level, validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator end(int si) const {return m_spSurfView->end<TElem>(si, m_level);}
+		typename traits<TElem>::const_iterator
+		end(int si, SurfaceView::SurfaceState validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+		{return m_spSurfView->end<TElem>(si, m_level, validSurfStates);}
 	///	\}
 
 	///	returns the adjacend elements

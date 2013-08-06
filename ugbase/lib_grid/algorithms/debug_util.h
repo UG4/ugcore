@@ -6,6 +6,7 @@
 #define __H__UG__LIB_GIRD__DEBUG_UTIL__
 
 #include "lib_grid/lg_base.h"
+#include "lib_grid/tools/surface_view.h"
 
 namespace ug
 {
@@ -115,6 +116,10 @@ bool CheckElementConsistency(MultiGrid& mg, Face* f);
  */
 template <class TElem>
 std::string ElementDebugInfo(const Grid& grid, TElem* e);
+
+
+///	Performs some tests on a surface-view (checks iterators vs surface-states)
+//void CheckSurfaceViewConsistency(SurfaceView& sv);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

@@ -894,4 +894,29 @@ bool CheckElementConsistency(MultiGrid& mg, Face* f)
 	return success;
 }
 
+
+//
+//void CheckSurfaceViewConsistency(SurfaceView& sv)
+//{
+//	typedef VertexBase TElem;
+//
+//	MultiGrid& mg = *sv.subset_handler()->multi_grid();
+//
+//	int numSurfStateElems = 0;
+//	for(MultiGrid::traits<TElem>::iterator iter = mg.begin<TElem>();
+//		iter != mg.end<TElem>(); ++iter)
+//	{
+//		TElem* e = *iter;
+////		if(sv.is_surface_element() && !sv.is_ghost())
+//	}
+//
+//	size_t numSurfIterElems = 0;
+//	for(SurfaceView::traits<TElem>::iterator iter = sv.surface_begin<TElem>();
+//		iter != sv.surface_end<TElem>(); ++iter)
+//	{
+//		++numSurfIterElems;
+//	}
+//
+//}
+
 }// end of namespace

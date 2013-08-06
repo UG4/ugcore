@@ -50,7 +50,8 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 			for(InterfaceIter iter = intfc.begin(); iter != intfc.end(); ++iter)
 			{
 				Element elem = intfc.get_element(iter);
-				buff.write((char*)&m_aaESS[elem], sizeof(byte));
+				byte val = m_aaESS[elem].get();
+				buff.write((char*)&val, sizeof(byte));
 			}
 			return true;
 		}
@@ -63,13 +64,14 @@ class ComPol_GatherSurfaceStates : public pcl::ICommunicationPolicy<TLayout>
 				Element elem = intfc.get_element(iter);
 				byte nv;
 				buff.read((char*)&nv, sizeof(byte));
-				m_aaESS[elem] |= nv;
+				if(nv > m_aaESS[elem].get())
+					m_aaESS[elem] = nv;
 			}
 			return true;
 		}
 
 	protected:
-		MultiGrid&															m_mg;
+		MultiGrid&													m_mg;
 		MultiElementAttachmentAccessor<SurfaceView::ASurfaceState>	m_aaESS;
 };
 
@@ -147,10 +149,10 @@ refresh_surface_states()
 	MultiGrid& mg = *m_pMG;
 
 //	reset surface states of all elements. Initially, we'll set all states to hidden
-	SetAttachmentValues(m_aaSurfState, mg.begin<VertexBase>(), mg.end<VertexBase>(), SS_NONE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<EdgeBase>(), mg.end<EdgeBase>(), SS_NONE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<Face>(), mg.end<Face>(), SS_NONE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<Volume>(), mg.end<Volume>(), SS_NONE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<VertexBase>(), mg.end<VertexBase>(), UNASSIGNED);
+	SetAttachmentValues(m_aaSurfState, mg.begin<EdgeBase>(), mg.end<EdgeBase>(), UNASSIGNED);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Face>(), mg.end<Face>(), UNASSIGNED);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Volume>(), mg.end<Volume>(), UNASSIGNED);
 
 //	iterate through all levels of the mgsh
 	for(size_t level = 0; level < mg.num_levels(); ++level){
@@ -162,72 +164,64 @@ refresh_surface_states()
 			TElem* elem = *iter;
 
 			if(is_local_surface_view_element(elem)){
-				surface_state(elem).set(SS_SURFACE);
+				surface_state(elem).set(PURE_SURFACE);
 				mark_sides_as_surface_or_shadow<TElem, typename TElem::side>(elem);
-				if(GeometricObject* p = m_pMG->get_parent(elem))
-					surface_state(p).add(SS_HIDDEN);
 			}
 		}
 	}
 
 //	make sure that all constrained elements are surface view members
-//todo: This may have to be remvoed if constrained elements are always in h-interfaces anyways
+//	(think e.g. of constrained ghost elements)
 	for(ConstrainedTriangleIterator iter = mg.begin<ConstrainedTriangle>();
 		iter != mg.end<ConstrainedTriangle>(); ++iter)
 	{
 		Face* elem = *iter;
-		surface_state(elem).set(SS_SURFACE);
-		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SS_SURFACE | SS_SHADOWING);
+		surface_state(elem).set(SHADOWING);
+		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SHADOWING);
 		if(GeometricObject* p = m_pMG->get_parent(elem))
-			surface_state(p).add(SS_HIDDEN);
+			surface_state(p).set(SHADOW_NONCOPY);
 	}
 	for(ConstrainedQuadrilateralIterator iter = mg.begin<ConstrainedQuadrilateral>();
 		iter != mg.end<ConstrainedQuadrilateral>(); ++iter)
 	{
 		Face* elem = *iter;
-		surface_state(elem).set(SS_SURFACE);
-		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SS_SURFACE | SS_SHADOWING);
+		surface_state(elem).set(SHADOWING);
+		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SHADOWING);
 		if(GeometricObject* p = m_pMG->get_parent(elem))
-			surface_state(p).add(SS_HIDDEN);
+			surface_state(p).set(SHADOW_NONCOPY);
 	}
 	for(ConstrainedEdgeIterator iter = mg.begin<ConstrainedEdge>();
 		iter != mg.end<ConstrainedEdge>(); ++iter)
 	{
 		EdgeBase* elem = *iter;
-		surface_state(elem).set(SS_SURFACE);
-		mark_sides_as_surface_or_shadow<EdgeBase, VertexBase>(elem, SS_SURFACE | SS_SHADOWING);
+		surface_state(elem).set(SHADOWING);
+		mark_sides_as_surface_or_shadow<EdgeBase, VertexBase>(elem, SHADOWING);
 		if(GeometricObject* p = m_pMG->get_parent(elem))
-			surface_state(p).add(SS_HIDDEN);
+			surface_state(p).set(SHADOW_NONCOPY);
 	}
 
-//	DebugSave(*m_pMG, *this, "surf_01_initial_assignment");
-
-//	we have to make sure that all copies have the same surface states on all processes
-	adjust_parallel_surface_states<VertexBase>();
-	adjust_parallel_surface_states<EdgeBase>();
-	adjust_parallel_surface_states<Face>();
-	adjust_parallel_surface_states<Volume>();
-
-//	DebugSave(*m_pMG, *this, "surf_02_first_communication");
 
 //	we now have to mark all shadowing elements.
 //	Only low dimensional elements can be shadows.
 //	Perform assignment on higher dimensional elements first, since lower
 //	dimensional elements may shadow higher dimensional elements...
 	if(TElem::HAS_SIDES){
+	//	communicate states between all processes
+	//	this is necessary here, since mark_shadowing relies on correct SHADOWED marks.
+		adjust_parallel_surface_states<VertexBase>();
+		adjust_parallel_surface_states<EdgeBase>();
+		adjust_parallel_surface_states<Face>();
+		adjust_parallel_surface_states<Volume>();
 		mark_shadowing<typename TElem::side>(true);
 	}
 
 //	DebugSave(*m_pMG, *this, "surf_03_shadowings_marked");
 
-//	again we have to make sure that all copies have the same surface states on all processes
+//	communicate states between all processes
 	adjust_parallel_surface_states<VertexBase>();
 	adjust_parallel_surface_states<EdgeBase>();
 	adjust_parallel_surface_states<Face>();
 	adjust_parallel_surface_states<Volume>();
-
-
-//	DebugSave(*m_pMG, *this, "surf_04_second_communication");
 }
 
 template <class TElem, class TSide>
@@ -242,17 +236,19 @@ mark_sides_as_surface_or_shadow(TElem* elem, byte surfaceState)
 	m_pMG->associated_elements(sides, elem);
 	for(size_t i = 0; i < sides.size(); ++i){
 		TSide* s = sides[i];
-		if(surface_state(s) == SS_NONE){
-			surface_state(s).set(surfaceState);
-			if(m_pMG->has_children(s))
-				surface_state(s).add(SS_HIDDEN);
-//			else if(GeometricObject* p = m_pMG->get_parent(s))
-//				set_surface_state(p, surface_state(p) | SS_HIDDEN);
+		if(surface_state(s) == UNASSIGNED){
+			size_t numChildren = m_pMG->num_children<TSide>(s);
+			if(numChildren == 0)
+				surface_state(s).set(surfaceState);
+			else if(numChildren == 1)
+				surface_state(s).set(SHADOW_COPY);
+			else
+				surface_state(s).set(SHADOW_NONCOPY);
 		}
 	}
 
 	if(TSide::HAS_SIDES)
-		mark_sides_as_surface_or_shadow<TElem, typename TSide::side>(elem);
+		mark_sides_as_surface_or_shadow<TElem, typename TSide::side>(elem, surfaceState);
 }
 
 template <class TElem>
@@ -267,12 +263,13 @@ mark_shadowing(bool markSides)
 		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
-			if((surface_state(e) == SS_NONE) || (surface_state(e) == SS_HIDDEN))
+			if(surface_state(e).contains(UNASSIGNED))
 				continue;
 
 			GeometricObject* p = mg.get_parent(e);
-			if(p && is_shadowed(p)){
-				surface_state(e).add(SS_SHADOWING);
+			if(p && (surface_state(p).contains(SHADOW_COPY) || surface_state(p).contains(SHADOW_NONCOPY))){
+				surface_state(e).add(SHADOWING);
+				surface_state(e).remove(PURE_SURFACE);
 			}
 		}
 	}
@@ -281,28 +278,6 @@ mark_shadowing(bool markSides)
 		mark_shadowing<typename TElem::side>(markSides);
 	}
 }
-
-//template <class TElem>
-//void SurfaceView::
-//mark_ghosts()
-//{
-//	#ifdef UG_PARALLEL
-//		typedef typename GridLayoutMap::Types<TElem>::Layout	Layout;
-//
-//		GridLayoutMap& glm = m_distGridMgr->grid_layout_map();
-//		ComPol_GatherSurfaceStates<Layout>	cpAdjust(*m_pMG, m_aaSurfState);
-//		pcl::InterfaceCommunicator<Layout> com;
-//		com.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, cpAdjust);
-//	//	the v-communication is only required if constrained ghosts can be surface elements.
-//		com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, cpAdjust);
-//		com.communicate();
-//
-//		ComPol_CopyAttachment<Layout, AByte> cpCopyStates(*m_pMG, m_aSurfState);
-//		com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, cpCopyStates);
-//		com.communicate();
-//
-//	#endif
-//}
 
 template <class TElem>
 void SurfaceView::
@@ -323,6 +298,7 @@ adjust_parallel_surface_states()
 		com.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, cpCopyStates);
 		com.communicate();
 
+	//todo:	communicate final marks to v-masters? (if one wants to iterate over ghosts...)
 	#endif
 }
 

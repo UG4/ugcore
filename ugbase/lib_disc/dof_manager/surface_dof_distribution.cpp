@@ -41,46 +41,100 @@ void SurfaceDoFDistribution::reinit()
 	typedef typename traits<TBaseElem>::iterator iterator;
 	static const int dim = TBaseElem::dim;
 
+//	in order to also cater for some seldom occurring parallel cases, we have
+//	to perform a slightly cumbersome iteration here. The basic idea is the following:
+//	Each PURE_SURFACE element requires a dof. Furthermore all SHADOWING elements
+//	which are not SHADOWED require a dof. SHADWOED_NONCOPY elements also require
+//	a dof and SHADOWED_COPY elements have to copy their dofs from their SHADOWING
+//	element.
+//	In parallel, however, a problem occurs. The associated SHADOWING element of
+//	a SHADOW_COPY element does not necessarily exist on the same process
+//	(should occur on vertices only).
+//	We thus can't simply iterate over PURE_SURFACE | SHADOWING and pass values on
+//	to parents. Instead we have to iterate over all candidates and also give a
+//	dof to SHADOW_COPY elements which don't have children.
+
+	SurfaceView& sv = *m_spSurfView;
+	MultiGrid& mg = *m_spMG;
+
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-	// 	skip if no dofs to be distributed
+	// 	skip if no dofs shall exist on the given subset
 		if(max_dofs(dim, si) == 0) continue;
 
-	//	get iterators of elems
-		iterator iter = begin<TBaseElem>(si);
-		iterator iterEnd = end<TBaseElem>(si);
+	//	iterate over all surface elements (including shadows)
+		iterator iter = begin<TBaseElem>(si, SurfaceView::ALL);
+		iterator iterEnd = end<TBaseElem>(si, SurfaceView::ALL);
 
-	// 	loop elems
-		for(; iter != iterEnd; ++iter)
-		{
-		// 	get vertex
+		for(; iter != iterEnd; ++iter){
 			TBaseElem* elem = *iter;
-
-		//	a) add new indices
-
-		//	add element
-			const ReferenceObjectID roid = elem->reference_object_id();
-			add(elem, roid, si, m_levInfo);
-
-		//	b) if shadow exists, handle also to parent and grand-parents and ... etc.
-			TBaseElem* parent = dynamic_cast<TBaseElem*>(this->m_spMG->get_parent(elem));
-			while(parent && m_spSurfView->is_shadowed(parent)){
-
-				// if it is a copy element: assign same index
-				if(this->m_spMG->template num_children<TBaseElem>(parent) == 1){
-					obj_index(parent) = obj_index(elem);
-				}
-				// if no copy, assign new index
-				else{
-					add(parent, roid, si, m_levInfo);
-				}
-
-				elem = parent;
-				parent = dynamic_cast<TBaseElem*>(this->m_spMG->get_parent(elem));
+			SurfaceView::SurfaceState state = sv.get_surface_state(elem);
+			bool createDoF = true;
+			if(state.contains(SurfaceView::SHADOW_COPY)){
+			//	only if the element hasn't got children locally, we'll assign a dof.
+				if(mg.has_children(elem))
+					createDoF = false;
+			}
+			else{
+			//	PURE_SURFACE or SHADOWING (but not SHADOW_COPY) or SHADOW_NONCOPY
+				UG_ASSERT(!state.contains(SurfaceView::SHADOWING | SurfaceView::SHADOW_NONCOPY),
+						 "Only SHADOW_COPY elements may have shadowed parents.");
+				createDoF = true;
 			}
 
+			if(createDoF){
+			//	create a dof and copy it down to SHADOW_COPY parents
+				const ReferenceObjectID roid = elem->reference_object_id();
+				add(elem, roid, si, m_levInfo);
+
+				TBaseElem* p = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
+				while(p && sv.get_surface_state(p).contains(SurfaceView::SHADOW_COPY)){
+					obj_index(p) = obj_index(elem);
+					p = dynamic_cast<TBaseElem*>(mg.get_parent(p));
+				}
+			}
 		}
 	} // end subset
+
+//	OLD IMPLEMENTATION - TO BE DELETED - DOESN'T WORK IN SOME RARE PARALLEL CASES
+//	for(int si = 0; si < num_subsets(); ++si)
+//	{
+//	// 	skip if no dofs to be distributed
+//		if(max_dofs(dim, si) == 0) continue;
+//
+//	//	get iterators of elems
+//		iterator iter = begin<TBaseElem>(si);
+//		iterator iterEnd = end<TBaseElem>(si);
+//
+//	// 	loop elems
+//		for(; iter != iterEnd; ++iter)
+//		{
+//		// 	get vertex
+//			TBaseElem* elem = *iter;
+//
+//		//	a) add new indices
+//			const ReferenceObjectID roid = elem->reference_object_id();
+//			add(elem, roid, si, m_levInfo);
+//
+//		//	b) if shadow exists, handle also to parent and grand-parents and ... etc.
+//			TBaseElem* parent = dynamic_cast<TBaseElem*>(this->m_spMG->get_parent(elem));
+//			while(parent && m_spSurfView->is_shadowed(parent)){
+//
+//				// if it is a copy element: assign same index
+//				if(this->m_spMG->template num_children<TBaseElem>(parent) == 1){
+//					obj_index(parent) = obj_index(elem);
+//				}
+//				// if no copy, assign new index
+//				else{
+//					add(parent, roid, si, m_levInfo);
+//				}
+//
+//				elem = parent;
+//				parent = dynamic_cast<TBaseElem*>(this->m_spMG->get_parent(elem));
+//			}
+//
+//		}
+//	} // end subset
 }
 
 void SurfaceDoFDistribution::reinit()

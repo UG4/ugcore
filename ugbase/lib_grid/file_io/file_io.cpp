@@ -544,18 +544,20 @@ template <class TElem>
 static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView& sv,
 											MultiGrid& mg)
 {
-	const char* subsetNames[] = {"none", "surface", "hidden", "shadow", "pure-shadowing",
-								 "shadowing"};
-
-	for(int i = 0; i < 6; ++i)
-		sh.subset_info(i).name = subsetNames[i];
-
 	typedef typename Grid::traits<TElem>::iterator TIter;
 	for(TIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
 		TElem* e = *iter;
 
-		sh.assign_subset(e, sv.surface_state(e).get());
+		sh.assign_subset(e, sv.get_surface_state(e).get());
 	}
+	for(int i = 0; i < sh.num_subsets(); ++i)
+		sh.subset_info(i).name = "unknown";
+	sh.subset_info(SurfaceView::UNASSIGNED).name = "unassigned";
+	sh.subset_info(SurfaceView::PURE_SURFACE).name = "pure-surface";
+	sh.subset_info(SurfaceView::SHADOWING).name = "shadowing";
+	sh.subset_info(SurfaceView::SHADOW_COPY).name = "shadow-copy";
+	sh.subset_info(SurfaceView::SHADOW_NONCOPY).name = "shadow-noncopy";
+	//EraseEmptySubsets(sh);
 }
 
 bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,

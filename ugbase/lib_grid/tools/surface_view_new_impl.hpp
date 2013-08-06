@@ -646,14 +646,14 @@ end(const GridLevel& gl, SurfaceState validSurfStates) const
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class TGeomObj>
-bool SurfaceView::is_pure_surface_element(TGeomObj* obj) const
+bool SurfaceView::is_surface_element(TGeomObj* obj) const
 {
 	SurfaceState surfState = surface_state(obj);
 	return surfState.contains(PURE_SURFACE);
 }
 
 template <class TGeomObj>
-bool SurfaceView::is_pure_surface_element(TGeomObj* obj, int topLevel) const
+bool SurfaceView::is_surface_element(TGeomObj* obj, int topLevel) const
 {
 	int lvl = get_level(obj);
 	if((topLevel > -1) && (lvl > topLevel))

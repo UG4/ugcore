@@ -217,10 +217,10 @@ class SurfaceView
 	 * \sa SurfaceView::is_shadowed, SurfaceView::is_shadowing
 	 * \{ */
 		template <class TGeomObj>
-		inline bool is_pure_surface_element(TGeomObj* obj) const;
+		inline bool is_surface_element(TGeomObj* obj) const;
 
 		template <class TGeomObj>
-		inline bool is_pure_surface_element(TGeomObj* obj, int topLevel) const;
+		inline bool is_surface_element(TGeomObj* obj, int topLevel) const;
 	/** \} */
 
 	///	returns if the element is ghost

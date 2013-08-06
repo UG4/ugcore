@@ -39,6 +39,7 @@ class Flag{
 		Flag(const Flag& flag)	: m_value(flag.m_value)	{}
 
 		bool contains(TStorageType flag) const	{return (m_value & flag) == flag;}
+		bool contains(const Flag& flag) const	{return (m_value & flag.m_value) == flag.m_value;}
 
 		Flag& set(TStorageType flag)			{m_value = flag; return *this;}
 		Flag& add(TStorageType flag)			{m_value |= flag; return *this;}
@@ -56,6 +57,9 @@ class Flag{
 
 		bool operator== (const Flag& flag) const	{return m_value == flag.m_value;}
 		bool operator== (TStorageType val) const	{return m_value == val;}
+
+		bool operator!= (const Flag& flag) const	{return m_value != flag.m_value;}
+		bool operator!= (TStorageType val) const	{return m_value != val;}
 
 	private:
 		TStorageType	m_value;
