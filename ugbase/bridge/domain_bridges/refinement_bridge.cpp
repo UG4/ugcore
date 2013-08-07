@@ -790,6 +790,60 @@ void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refin
 	}
 }
 
+
+template <class TDomain, class TSubsetHandler>
+void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
+										TSubsetHandler& sh, int subsetIndex)
+{
+	PROFILE_FUNC();
+
+	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(subsetIndex);
+
+	int elemType = dom.domain_info().element_type();
+
+	switch(elemType){
+		case VERTEX:{
+			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+				for(GeometricObjectCollection::traits<VertexBase>::iterator iter = goc.begin<VertexBase>(lvl);
+					iter != goc.end<VertexBase>(lvl); ++iter)
+				{
+					refiner.mark(*iter);
+				}
+			}
+		}break;
+
+		case EDGE:{
+			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+				for(GeometricObjectCollection::traits<EdgeBase>::iterator iter = goc.begin<EdgeBase>(lvl);
+					iter != goc.end<EdgeBase>(lvl); ++iter)
+				{
+					refiner.mark(*iter);
+				}
+			}
+		}break;
+
+		case FACE:{
+			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+				for(GeometricObjectCollection::traits<Face>::iterator iter = goc.begin<Face>(lvl);
+					iter != goc.end<Face>(lvl); ++iter)
+				{
+					refiner.mark(*iter);
+				}
+			}
+		}break;
+
+		case VOLUME:{
+			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+				for(GeometricObjectCollection::traits<Volume>::iterator iter = goc.begin<Volume>(lvl);
+					iter != goc.end<Volume>(lvl); ++iter)
+				{
+					refiner.mark(*iter);
+				}
+			}
+		}break;
+	}
+}
+
 // end group refinement_bridge
 /// \}
 
@@ -948,7 +1002,13 @@ static void Domain(Registry& reg, string grp)
 				"", "dom#refiner#time#callbackName")
 		.add_function("MarkForCoarsen_ElementsByLuaCallback",
 				&MarkForCoarsen_ElementsByLuaCallback<domain_type>, grp,
-				"", "dom#refiner#time#callbackName");
+				"", "dom#refiner#time#callbackName")
+		.add_function("MarkForRefinement_ElementsInSubset",
+				&MarkForRefinement_ElementsInSubset<domain_type, SubsetHandler>, grp,
+				"", "dom#refiner#subsetHandler#subsetIndex")
+		.add_function("MarkForRefinement_ElementsInSubset",
+				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler>, grp,
+				"", "dom#refiner#subsetHandler#subsetIndex");
 
 //	register refinement projection handler and factories
 	{
