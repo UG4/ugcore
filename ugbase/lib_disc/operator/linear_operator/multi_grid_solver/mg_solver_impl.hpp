@@ -156,6 +156,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	//	scale correction
 		c *= kappa;
 
+		write_surface_debug(d, "GMG_Defect_Out_Before_Recalculation");
 	//	scaling case -> recompute updated defect
 		m_spSurfaceMat->matmul_minus(d, c);
 	}

@@ -55,11 +55,11 @@ typename geometry_traits<TElem>::const_iterator
 MultiGridSubsetHandler::
 begin(int subsetIndex, int level) const
 {
-	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
+	UG_ASSERT(subsetIndex >= 0, "-1 is not a valid subset index when accessing iterators!");
+	if(subsetIndex >= (int)num_subsets_in_list() || level >= (int)num_levels())
+		return end<TElem>(subsetIndex, level);
 
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
-			"ERROR in SubsetHandler::begin(): bad subset index.");
-	assert((level < (int)num_levels()) && "bad level index.");
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if(sectionInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
@@ -74,11 +74,13 @@ typename geometry_traits<TElem>::const_iterator
 MultiGridSubsetHandler::
 end(int subsetIndex, int level) const
 {
-	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
+	UG_ASSERT(subsetIndex >= 0, "-1 is not a valid subset index when accessing iterators!");
+	if(subsetIndex >= (int)num_subsets_in_list() || level >= (int)num_levels()){
+		static typename geometry_traits<TElem>::const_iterator dummyEndIter;
+		return dummyEndIter;
+	}
 
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
-			"ERROR in SubsetHandler::end(): bad subset index.");
-	assert((level < (int)num_levels()) && "bad level index.");
+	const int sectionInd = geometry_traits<TElem>::CONTAINER_SECTION;
 
 	if(sectionInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(

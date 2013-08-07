@@ -744,7 +744,8 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 	if(clearContainer) vAssElem.clear();
 
 //	collect associated on this level
-	CollectAssociated(vAssElem, *m_pMG, elem, false);
+	if(is_surface_element(elem))
+		CollectAssociated(vAssElem, *m_pMG, elem, false);
 
 //	if at border of a level grid, there may be connections of the "shadow" element
 //	to surface elements on the coarser level. These must be taken into account.

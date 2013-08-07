@@ -22,8 +22,8 @@ void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMappi
 	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
 
 //	iterators for subset
-	iter_type iter = surfaceDD->begin<TElem>();
-	iter_type iterEnd = surfaceDD->end<TElem>();
+	iter_type iter = surfaceDD->begin<TElem>(SurfaceView::ALL);
+	iter_type iterEnd = surfaceDD->end<TElem>(SurfaceView::ALL);
 
 //	vector of indices
 	std::vector<size_t> surfaceInd, levelInd;
@@ -61,40 +61,40 @@ void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMappi
 			UG_ASSERT(surfaceInd[i] < levelMapping.size(), "Index to large.");
 			levelMapping[surfaceInd[i]] = levelInd[i];
 		}
-
-	//	same for shadows
-		TElem* parent = surfaceView.parent_if_copy(elem);
-		while(parent && surfaceView.is_shadowed(parent))
-		{
-		//	get level of element in hierarchy
-			int level = surfaceView.get_level(parent);
-
-		//	get corresponding level matrix for element
-			UG_ASSERT(level < (int)vSurfLevelMapping.size(), "Level missing");
-			std::vector<int>& levelMapping = vSurfLevelMapping[level];
-
-		//	check that level is correct
-			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, "
-					"									that is not passed.");
-
-		//	extract all algebra indices for the element on level
-			UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
-			vLevelDD[level]->inner_algebra_indices(parent, levelInd);
-
-		//	check that index sets have same cardinality
-			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
-
-		//	copy all elements of the matrix
-			for(size_t i = 0; i < surfaceInd.size(); ++i)
-			{
-				UG_ASSERT(surfaceInd[i] < levelMapping.size(), "Index to large.");
-				levelMapping[surfaceInd[i]] = levelInd[i];
-			}
-
-		//	next shadow
-			elem = parent;
-			parent = surfaceView.parent_if_copy(elem);
-		}
+//
+//	//	same for shadows
+//		TElem* parent = surfaceView.parent_if_copy(elem);
+//		while(parent && surfaceView.is_shadowed(parent))
+//		{
+//		//	get level of element in hierarchy
+//			int level = surfaceView.get_level(parent);
+//
+//		//	get corresponding level matrix for element
+//			UG_ASSERT(level < (int)vSurfLevelMapping.size(), "Level missing");
+//			std::vector<int>& levelMapping = vSurfLevelMapping[level];
+//
+//		//	check that level is correct
+//			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, "
+//					"									that is not passed.");
+//
+//		//	extract all algebra indices for the element on level
+//			UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
+//			vLevelDD[level]->inner_algebra_indices(parent, levelInd);
+//
+//		//	check that index sets have same cardinality
+//			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
+//
+//		//	copy all elements of the matrix
+//			for(size_t i = 0; i < surfaceInd.size(); ++i)
+//			{
+//				UG_ASSERT(surfaceInd[i] < levelMapping.size(), "Index to large.");
+//				levelMapping[surfaceInd[i]] = levelInd[i];
+//			}
+//
+//		//	next shadow
+//			elem = parent;
+//			parent = surfaceView.parent_if_copy(elem);
+//		}
 
 	}
 }
