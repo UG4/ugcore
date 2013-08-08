@@ -179,14 +179,14 @@ void Selector::erase_from_list(Volume* elem)
 }
 
 //	geometric-object-collection
-GeometricObjectCollection Selector::get_geometric_objects()
+GeometricObjectCollection Selector::get_geometric_objects() const
 {
 //TODO: ugly casts! GenericElementSelector should store its selected elements
 //		in a GeometricObjectSectionContainer!
-	return GeometricObjectCollection(&m_vertices,
-									&m_edges,
-									&m_faces,
-									&m_volumes);
+	return GeometricObjectCollection(const_cast<VertexSectionContainer*>(&m_vertices),
+									 const_cast<EdgeSectionContainer*>(&m_edges),
+									 const_cast<FaceSectionContainer*>(&m_faces),
+									 const_cast<VolumeSectionContainer*>(&m_volumes));
 }
 
 /*

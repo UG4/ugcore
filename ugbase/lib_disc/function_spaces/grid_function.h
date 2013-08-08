@@ -204,20 +204,24 @@ class GridFunction
 	/// iterator for elements where this grid function is defined
 	/// \{
 		template <typename TElem>
-		typename traits<TElem>::const_iterator begin() const
-			{return m_spDD->template begin<TElem>();}
+		typename traits<TElem>::const_iterator
+		begin(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+			{return m_spDD->template begin<TElem>(validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator end() const
-			{return m_spDD->template end<TElem>();}
+		typename traits<TElem>::const_iterator
+		end(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+			{return m_spDD->template end<TElem>(validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator begin(int si) const
-			{return m_spDD->template begin<TElem>(si);}
+		typename traits<TElem>::const_iterator
+		begin(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+			{return m_spDD->template begin<TElem>(si, validSurfStates);}
 
 		template <typename TElem>
-		typename traits<TElem>::const_iterator end(int si) const
-			{return m_spDD->template end<TElem>(si);}
+		typename traits<TElem>::const_iterator
+		end(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+			{return m_spDD->template end<TElem>(si, validSurfStates);}
 	/// \}
 
 	///	returns the adjacend elements

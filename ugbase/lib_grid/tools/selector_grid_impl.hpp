@@ -149,33 +149,33 @@ Selector::back()
 
 
 inline size_t Selector::
-num_levels()
+num_levels() const
 {
 	return 1;
 }
 
 inline uint Selector::
-num(size_t)
+num(size_t) const
 {
 	return num();
 }
 
 template <class TElem>
 inline size_t Selector::
-num(size_t)
+num(size_t) const
 {
 	return num<TElem>();
 }
 
 inline bool Selector::
-empty(size_t)
+empty(size_t) const
 {
 	return empty();
 }
 
 template <class TElem>
 inline bool Selector::
-empty(size_t)
+empty(size_t) const
 {
 	return empty<TElem>();
 }

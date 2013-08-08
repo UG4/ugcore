@@ -69,29 +69,20 @@ void SurfaceDoFDistribution::reinit()
 		for(; iter != iterEnd; ++iter){
 			TBaseElem* elem = *iter;
 			SurfaceView::SurfaceState state = sv.get_surface_state(elem);
-			bool createDoF = true;
 			if(state.contains(SurfaceView::SHADOW_COPY)){
 			//	only if the element hasn't got children locally, we'll assign a dof.
 				if(mg.has_children(elem))
-					createDoF = false;
-			}
-			else{
-			//	PURE_SURFACE or SHADOWING (but not SHADOW_COPY) or SHADOW_NONCOPY
-				UG_ASSERT(!state.contains(SurfaceView::SHADOWING | SurfaceView::SHADOW_NONCOPY),
-						 "Only SHADOW_COPY elements may have shadowed parents.");
-				createDoF = true;
+					continue;
 			}
 
-			if(createDoF){
-			//	create a dof and copy it down to SHADOW_COPY parents
-				const ReferenceObjectID roid = elem->reference_object_id();
-				add(elem, roid, si, m_levInfo);
+		//	create a dof and copy it down to SHADOW_COPY parents
+			const ReferenceObjectID roid = elem->reference_object_id();
+			add(elem, roid, si, m_levInfo);
 
-				TBaseElem* p = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
-				while(p && sv.get_surface_state(p).contains(SurfaceView::SHADOW_COPY)){
-					obj_index(p) = obj_index(elem);
-					p = dynamic_cast<TBaseElem*>(mg.get_parent(p));
-				}
+			TBaseElem* p = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
+			while(p && sv.get_surface_state(p).contains(SurfaceView::SHADOW_COPY)){
+				obj_index(p) = obj_index(elem);
+				p = dynamic_cast<TBaseElem*>(mg.get_parent(p));
 			}
 		}
 	} // end subset

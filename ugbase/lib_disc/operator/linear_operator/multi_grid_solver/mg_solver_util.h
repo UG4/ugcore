@@ -184,7 +184,7 @@ void ProjectLevelToSurface(TVector& surfaceVector,
 			TElem* elem = *iter;
 
 		//	skip shadows
-			if(surfaceView.is_shadowed(elem)) continue;
+			//if(surfaceView.is_shadowed(elem)) continue;
 
 		//	get level of element in hierarchy
 			int level = surfaceView.get_level(elem);
@@ -332,9 +332,6 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 		{
 		//	get element
 			TBaseElem* pElem = *iter;
-
-		//	skip non-shadows
-			if(!surfView.is_shadowed(pElem)) continue;
 
 		// 	get child (i.e. shadow)
 			TBaseElem* pShadowing = surfView.child_if_copy(pElem);

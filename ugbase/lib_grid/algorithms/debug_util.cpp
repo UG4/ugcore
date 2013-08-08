@@ -852,7 +852,9 @@ bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e)
 					break;
 				}
 			}
-			UG_ASSERT(constrainedEdgeMatch, "no matching child found to constrained edge");
+			if(!constrainedEdgeMatch){
+				UG_THROW("no matching child found to constrained edge");
+			}
 		}
 
 		CheckElementConsistency(mg, cge->constrained_vertex(0));

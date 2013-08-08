@@ -220,25 +220,25 @@ class UG_API MGSelector : public ISelector
 		inline void clear(int level);
 
 		template <class TElem>
-		inline size_t num(int level);
+		inline size_t num(int level) const;
 		
-		inline size_t num(int level);
+		inline size_t num(int level) const;
 
 		template <class TElem>
-		inline size_t num();
+		inline size_t num() const;
 		
-		inline size_t num();
+		inline size_t num() const;
 
 	//	empty
-		inline bool empty(int level);
+		inline bool empty(int level) const;
 
 		template <class TElem>
-		inline bool empty(int level);
+		inline bool empty(int level) const;
 
-		inline bool empty();
+		inline bool empty() const;
 
 		template <class TElem>
-		inline bool empty();
+		inline bool empty() const;
 
 	//	begin
 		template <class TElem>
@@ -295,7 +295,7 @@ class UG_API MGSelector : public ISelector
 		template <class TElem> TElem* back(int level);
 		
 	//	geometric-object-collection
-		virtual GeometricObjectCollection get_geometric_objects();
+		virtual GeometricObjectCollection get_geometric_objects() const;
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver
@@ -305,6 +305,18 @@ class UG_API MGSelector : public ISelector
 	*/
 		virtual void grid_to_be_destroyed(Grid* grid);
 		
+	///	returns true if the selector contains vertices
+		virtual bool contains_vertices() const	{return num<VertexBase>() > 0;}
+
+	///	returns true if the selector contains edges
+		virtual bool contains_edges() const		{return num<EdgeBase>() > 0;}
+
+	///	returns true if the selector contains faces
+		virtual bool contains_faces() const		{return num<Face>() > 0;}
+
+	///	returns true if the selector contains volumes
+		virtual bool contains_volumes() const	{return num<Volume>() > 0;}
+
 	protected:
 		void clear_lists();
 

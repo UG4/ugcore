@@ -148,7 +148,7 @@ class UG_API ISelector : public GridObserver
 		inline Grid* grid() const		{return m_pGrid;}
 
 	///	returns a geometric object collection, containing all selected objects
-		virtual GeometricObjectCollection get_geometric_objects() = 0;
+		virtual GeometricObjectCollection get_geometric_objects() const = 0;
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
@@ -217,6 +217,18 @@ class UG_API ISelector : public GridObserver
 
 		virtual void volumes_to_be_merged(Grid* grid, Volume* target,
 										 Volume* elem1, Volume* elem2);
+
+	///	returns true if the selector contains vertices
+		virtual bool contains_vertices() const = 0;
+
+	///	returns true if the selector contains edges
+		virtual bool contains_edges() const = 0;
+
+	///	returns true if the selector contains faces
+		virtual bool contains_faces() const = 0;
+
+	///	returns true if the selector contains volumes
+		virtual bool contains_volumes() const = 0;
 
 	protected:
 		typedef Grid::traits<VertexBase>::AttachedElementList	AttachedVertexList;

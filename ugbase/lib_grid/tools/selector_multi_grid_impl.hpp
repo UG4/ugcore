@@ -63,17 +63,20 @@ MGSelector::clear()
 
 template <class TElem>
 inline size_t
-MGSelector::num(int level)
+MGSelector::num(int level) const
 {
 	const int sInd = get_section_index<TElem>();
-	if(sInd < 0)
-		return section_container<TElem>(level).num_elements();
-	else
-		return section_container<TElem>(level).num_elements(sInd);
+	if(level < (int)num_levels()){
+		if(sInd < 0)
+			return section_container<TElem>(level).num_elements();
+		else
+			return section_container<TElem>(level).num_elements(sInd);
+	}
+	return 0;
 }
 
 inline size_t
-MGSelector::num(int level)
+MGSelector::num(int level) const
 {
 	return num<VertexBase>(level) + num<EdgeBase>(level)
 			+ num<Face>(level) + num<Volume>(level);
@@ -81,7 +84,7 @@ MGSelector::num(int level)
 
 template <class TElem>
 inline size_t
-MGSelector::num()
+MGSelector::num() const
 {
 	size_t n = 0;
 	for(size_t i = 0; i < num_levels(); ++i)
@@ -90,7 +93,7 @@ MGSelector::num()
 }
 
 inline size_t
-MGSelector::num()
+MGSelector::num() const
 {
 	return num<VertexBase>() + num<EdgeBase>()
 			+ num<Face>() + num<Volume>();
@@ -98,27 +101,27 @@ MGSelector::num()
 
 //	empty
 inline bool 
-MGSelector::empty(int level)
+MGSelector::empty(int level) const
 {
 	return num(level) == 0;
 }
 
 template <class TElem>
 inline bool 
-MGSelector::empty(int level)
+MGSelector::empty(int level) const
 {
 	return num<TElem>(level) == 0;
 }
 
 inline bool 
-MGSelector::empty()
+MGSelector::empty() const
 {
 	return num() == 0;
 }
 
 template <class TElem>
 inline bool 
-MGSelector::empty()
+MGSelector::empty() const
 {
 	return num<TElem>() == 0;
 }

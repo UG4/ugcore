@@ -12,6 +12,7 @@
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/tools/subset_handler_interface.h"
+#include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/geometric_objects/geometric_objects.h"
 
@@ -86,6 +87,9 @@ class GridWriterUGX
 
 		void add_subset_handler(ISubsetHandler& sh, const char* name,
 								size_t refGridIndex);
+
+		void add_selector(ISelector& sel, const char* name,
+						  size_t refGridIndex);
 
 		template <class TAttachment>
 		void add_vertex_attachment(const TAttachment& attachment,
@@ -205,6 +209,10 @@ class GridWriterUGX
 								   const ISubsetHandler& sh,
 								   size_t si);
 
+		template <class TGeomObj>
+		rapidxml::xml_node<>*
+		create_selector_element_node(const char* name, const ISelector& sel);
+
 	protected:
 	///	entries are stored for each grid.
 	/**	an entry holds a pointer to a grid together with its xml_node.*/
@@ -241,6 +249,9 @@ class GridReaderUGX
 		GridReaderUGX();
 		virtual ~GridReaderUGX();
 
+	///	parses an xml file
+		bool parse_file(const char* filename);
+
 	///	returns the number of grids
 		inline size_t num_grids() const	{return m_entries.size();}
 
@@ -266,9 +277,14 @@ class GridReaderUGX
 								size_t subsetHandlerIndex,
 								size_t refGridIndex);
 
-	///	parses an xml file
-		bool parse_file(const char* filename);
+	///	returns the number of selectors for the given grid
+		size_t num_selectors(size_t refGridIndex) const;
 
+	///	returns the name of the given selector
+		const char* get_selector_name(size_t refGridIndex, size_t selectorIndex) const;
+
+	///	fills the given selector
+		bool selector(ISelector& selOut, size_t selectorIndex, size_t refGridIndex);
 
 	protected:
 		struct SubsetHandlerEntry
@@ -279,6 +295,14 @@ class GridReaderUGX
 			ISubsetHandler*			sh;
 		};
 
+		struct SelectorEntry
+		{
+			SelectorEntry(rapidxml::xml_node<>* n) : node(n), sel(NULL) {}
+
+			rapidxml::xml_node<>* 	node;
+			ISelector*				sel;
+		};
+
 		struct GridEntry
 		{
 			GridEntry(rapidxml::xml_node<>* n) : node(n), grid(NULL), mg(NULL)	{}
@@ -287,10 +311,11 @@ class GridReaderUGX
 			Grid* 		grid;
 			MultiGrid* 	mg;
 			std::vector<SubsetHandlerEntry>	subsetHandlerEntries;
-			std::vector<VertexBase*> 	vertices;
-			std::vector<EdgeBase*> 		edges;
-			std::vector<Face*>			faces;
-			std::vector<Volume*>		volumes;
+			std::vector<SelectorEntry>		selectorEntries;
+			std::vector<VertexBase*> 		vertices;
+			std::vector<EdgeBase*> 			edges;
+			std::vector<Face*>				faces;
+			std::vector<Volume*>			volumes;
 		};
 
 	protected:
@@ -376,6 +401,12 @@ class GridReaderUGX
 										 rapidxml::xml_node<>* subsetNode,
 										 int subsetIndex,
 										 std::vector<TGeomObj*>& vElems);
+
+		template <class TGeomObj>
+		bool read_selector_elements(ISelector& selOut,
+									 const char* elemNodeName,
+									 rapidxml::xml_node<>* selNode,
+									 std::vector<TGeomObj*>& vElems);
 
 	protected:
 	///	the xml_document which stores the data

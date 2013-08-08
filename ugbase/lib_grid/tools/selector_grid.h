@@ -161,7 +161,7 @@ class UG_API Selector : public ISelector
 		template <class TElem> TElem* back();
 
 	//	geometric-object-collection
-		virtual GeometricObjectCollection get_geometric_objects();
+		virtual GeometricObjectCollection get_geometric_objects() const;
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver
@@ -171,19 +171,19 @@ class UG_API Selector : public ISelector
 	////////////////////////////////////////
 	//	for compatibility with MGSelector
 	///	always returns 1
-		inline size_t num_levels();
+		inline size_t num_levels() const;
 		
 	///	calls num();
-		inline uint num(size_t);
+		inline uint num(size_t) const;
 	///	calls num<TElem>();
-		template <class TElem> inline size_t num(size_t);
+		template <class TElem> inline size_t num(size_t) const;
 		
 	//	empty
 	///	calls empty();
-		inline bool empty(size_t);
+		inline bool empty(size_t) const;
 	//	calls empty<TElem>();
 		template <class TElem>
-		inline bool empty(size_t);
+		inline bool empty(size_t) const;
 
 	//	begin
 	///	calls begin<TElem>();
@@ -197,6 +197,17 @@ class UG_API Selector : public ISelector
 		inline typename geometry_traits<TElem>::iterator
 		end(size_t);
 
+	///	returns true if the selector contains vertices
+		virtual bool contains_vertices() const	{return num<VertexBase>() > 0;}
+
+	///	returns true if the selector contains edges
+		virtual bool contains_edges() const		{return num<EdgeBase>() > 0;}
+
+	///	returns true if the selector contains faces
+		virtual bool contains_faces() const		{return num<Face>() > 0;}
+
+	///	returns true if the selector contains volumes
+		virtual bool contains_volumes() const	{return num<Volume>() > 0;}
 
 	protected:
 		using ISelector::AttachedVertexList;

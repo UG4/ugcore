@@ -230,8 +230,8 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 	std::vector<size_t> ind;
 
 //	get iterators
-	iter = dd->begin<VertexBase>();
-	iterEnd = dd->end<VertexBase>();
+	iter = dd->begin<VertexBase>(SurfaceView::ALL);
+	iterEnd = dd->end<VertexBase>(SurfaceView::ALL);
 
 //	loop all vertices
 	for(;iter != iterEnd; ++iter)

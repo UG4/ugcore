@@ -180,6 +180,74 @@ create_subset_element_node(const char* name, const ISubsetHandler& sh,
 	}
 }
 
+template <class TGeomObj>
+rapidxml::xml_node<>* GridWriterUGX::
+create_selector_element_node(const char* name, const ISelector& sel)
+{
+//	the stringstream to which we'll write the data
+	stringstream ss;
+
+	if(sel.grid()){
+	//	access the grid
+		Grid& grid = *sel.grid();
+
+	//	access the attachment
+		Grid::AttachmentAccessor<TGeomObj, AInt> aaInd(grid, m_aInt);
+		if(aaInd.valid()){
+			GeometricObjectCollection goc = sel.get_geometric_objects();
+			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+				for(typename geometry_traits<TGeomObj>::iterator iter =
+					goc.begin<TGeomObj>(lvl); iter != goc.end<TGeomObj>(lvl); ++iter)
+				{
+					ss << aaInd[*iter] << " " << (int)sel.get_selection_status(*iter) << " ";
+				}
+			}
+		}
+	}
+
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, name, nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, name);
+	}
+}
+
+void GridWriterUGX::
+add_selector(ISelector& sel, const char* name, size_t refGridIndex)
+{
+//	get the node of the referenced grid
+	if(refGridIndex >= m_vEntries.size()){
+		UG_LOG("GridWriterUGX::add_selector: bad refGridIndex. Aborting.\n");
+		return;
+	}
+
+	xml_node<>* parentNode = m_vEntries[refGridIndex].node;
+
+//	create the selector node
+	xml_node<>* ndSel = m_doc.allocate_node(node_element, "selector");
+	ndSel->append_attribute(m_doc.allocate_attribute("name", name));
+
+//	add the selector node to the grid-node.
+	parentNode->append_node(ndSel);
+
+//	add elements
+	if(sel.contains_vertices())
+		ndSel->append_node(create_selector_element_node<VertexBase>("vertices", sel));
+	if(sel.contains_edges())
+		ndSel->append_node(create_selector_element_node<EdgeBase>("edges", sel));
+	if(sel.contains_faces())
+		ndSel->append_node(create_selector_element_node<Face>("faces", sel));
+	if(sel.contains_volumes())
+		ndSel->append_node(create_selector_element_node<Volume>("volumes", sel));
+}
+
+
 void GridWriterUGX::
 init_grid_attachments(Grid& grid)
 {
@@ -844,6 +912,116 @@ read_subset_handler_elements(ISubsetHandler& shOut,
 	return true;
 }
 
+
+///	returns the number of selectors for the given grid
+size_t GridReaderUGX::
+num_selectors(size_t refGridIndex) const
+{
+//	access the referred grid-entry
+	if(refGridIndex >= m_entries.size()){
+		UG_LOG("GridReaderUGX::num_selectors: bad refGridIndex. Aborting.\n");
+		return 0;
+	}
+
+	return m_entries[refGridIndex].selectorEntries.size();
+}
+
+///	returns the name of the given selector
+const char* GridReaderUGX::
+get_selector_name(size_t refGridIndex, size_t selectorIndex) const
+{
+	assert(refGridIndex < num_grids() && "Bad refGridIndex!");
+	const GridEntry& ge = m_entries[refGridIndex];
+	assert(selectorIndex < ge.selectorEntries.size() && "Bad selectorIndex!");
+
+	xml_attribute<>* attrib = ge.selectorEntries[selectorIndex].node->first_attribute("name");
+	if(attrib)
+		return attrib->value();
+	return NULL;
+}
+
+///	fills the given selector
+bool GridReaderUGX::
+selector(ISelector& selOut, size_t selectorIndex, size_t refGridIndex)
+{
+//	access the referred grid-entry
+	if(refGridIndex >= m_entries.size()){
+		UG_LOG("GridReaderUGX::selector: bad refGridIndex. Aborting.\n");
+		return false;
+	}
+
+	GridEntry& gridEntry = m_entries[refGridIndex];
+
+//	get the referenced subset-handler entry
+	if(selectorIndex >= gridEntry.selectorEntries.size()){
+		UG_LOG("GridReaderUGX::selector: bad selectorIndex. Aborting.\n");
+		return false;
+	}
+
+	SelectorEntry& selEntry = gridEntry.selectorEntries[selectorIndex];
+	selEntry.sel = &selOut;
+
+	xml_node<>* selectorNode = selEntry.node;
+
+//	read elements of this subset
+	read_selector_elements<VertexBase>(selOut, "vertices",
+										selectorNode,
+										gridEntry.vertices);
+	read_selector_elements<EdgeBase>(selOut, "edges",
+										selectorNode,
+										gridEntry.edges);
+	read_selector_elements<Face>(selOut, "faces",
+									selectorNode,
+									gridEntry.faces);
+	read_selector_elements<Volume>(selOut, "volumes",
+									selectorNode,
+									gridEntry.volumes);
+
+	return true;
+}
+
+template <class TGeomObj>
+bool GridReaderUGX::
+read_selector_elements(ISelector& selOut, const char* elemNodeName,
+				   	   rapidxml::xml_node<>* selNode,
+				   	   std::vector<TGeomObj*>& vElems)
+{
+	xml_node<>* elemNode = selNode->first_node(elemNodeName);
+
+	while(elemNode)
+	{
+	//	read the indices
+		stringstream ss(elemNode->value(), ios_base::in);
+
+		size_t index;
+		int state;
+
+		while(!ss.eof()){
+			ss >> index;
+			if(ss.fail())
+				continue;
+
+			ss >> state;
+			if(ss.fail())
+				continue;
+
+			if(index < vElems.size()){
+				selOut.select(vElems[index], state);
+			}
+			else{
+				UG_LOG("Bad element index in subset-node " << elemNodeName <<
+						": " << index << ". Ignoring element.\n");
+				return false;
+			}
+		}
+
+	//	get next element node
+		elemNode = elemNode->next_sibling(elemNodeName);
+	}
+	return true;
+}
+
+
 bool GridReaderUGX::
 parse_file(const char* filename)
 {
@@ -890,6 +1068,13 @@ new_document_parsed()
 		while(curSHNode){
 			gridEntry.subsetHandlerEntries.push_back(SubsetHandlerEntry(curSHNode));
 			curSHNode = curSHNode->next_sibling("subset_handler");
+		}
+
+	//	collect associated selectors
+		xml_node<>* curSelNode = curNode->first_node("selector");
+		while(curSelNode){
+			gridEntry.selectorEntries.push_back(SelectorEntry(curSelNode));
+			curSelNode = curSelNode->next_sibling("selector");
 		}
 
 		curNode = curNode->next_sibling("grid");
