@@ -170,35 +170,38 @@ refresh_surface_states()
 		}
 	}
 
+//NOTE: THE CODE BELOW SHOULD BE REMOVED SOMEWHEN SOON!
+//		Since all copies of constrained elements are in h-interfaces (always!)
+//		the code below shouldn't be required any more.
 //	make sure that all constrained elements are surface view members
 //	(think e.g. of constrained ghost elements)
-	for(ConstrainedTriangleIterator iter = mg.begin<ConstrainedTriangle>();
-		iter != mg.end<ConstrainedTriangle>(); ++iter)
-	{
-		Face* elem = *iter;
-		surface_state(elem).set(SHADOWING);
-		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SHADOWING);
-		if(GeometricObject* p = m_pMG->get_parent(elem))
-			surface_state(p).set(SHADOW_NONCOPY);
-	}
-	for(ConstrainedQuadrilateralIterator iter = mg.begin<ConstrainedQuadrilateral>();
-		iter != mg.end<ConstrainedQuadrilateral>(); ++iter)
-	{
-		Face* elem = *iter;
-		surface_state(elem).set(SHADOWING);
-		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SHADOWING);
-		if(GeometricObject* p = m_pMG->get_parent(elem))
-			surface_state(p).set(SHADOW_NONCOPY);
-	}
-	for(ConstrainedEdgeIterator iter = mg.begin<ConstrainedEdge>();
-		iter != mg.end<ConstrainedEdge>(); ++iter)
-	{
-		EdgeBase* elem = *iter;
-		surface_state(elem).set(SHADOWING);
-		mark_sides_as_surface_or_shadow<EdgeBase, VertexBase>(elem, SHADOWING);
-		if(GeometricObject* p = m_pMG->get_parent(elem))
-			surface_state(p).set(SHADOW_NONCOPY);
-	}
+//	for(ConstrainedTriangleIterator iter = mg.begin<ConstrainedTriangle>();
+//		iter != mg.end<ConstrainedTriangle>(); ++iter)
+//	{
+//		Face* elem = *iter;
+//		surface_state(elem).set(SHADOWING);
+//		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SHADOWING);
+//		if(GeometricObject* p = m_pMG->get_parent(elem))
+//			surface_state(p).set(SHADOW_NONCOPY);
+//	}
+//	for(ConstrainedQuadrilateralIterator iter = mg.begin<ConstrainedQuadrilateral>();
+//		iter != mg.end<ConstrainedQuadrilateral>(); ++iter)
+//	{
+//		Face* elem = *iter;
+//		surface_state(elem).set(SHADOWING);
+//		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SHADOWING);
+//		if(GeometricObject* p = m_pMG->get_parent(elem))
+//			surface_state(p).set(SHADOW_NONCOPY);
+//	}
+//	for(ConstrainedEdgeIterator iter = mg.begin<ConstrainedEdge>();
+//		iter != mg.end<ConstrainedEdge>(); ++iter)
+//	{
+//		EdgeBase* elem = *iter;
+//		surface_state(elem).set(SHADOWING);
+//		mark_sides_as_surface_or_shadow<EdgeBase, VertexBase>(elem, SHADOWING);
+//		if(GeometricObject* p = m_pMG->get_parent(elem))
+//			surface_state(p).set(SHADOW_NONCOPY);
+//	}
 
 
 //	we now have to mark all shadowing elements.
