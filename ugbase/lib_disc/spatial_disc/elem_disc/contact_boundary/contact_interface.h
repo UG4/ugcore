@@ -12,7 +12,6 @@
 #include "common/common.h"
 
 // library intern headers
-#include "lib_disc/domain_traits.h"
 #include "lib_disc/common/multi_index.h"
 
 namespace ug{
@@ -30,12 +29,6 @@ class IContactDisc
 
 	///	World dimension
 		static const int dim = TDomain::dim;
-
-	///	Position type
-		typedef typename TDomain::position_type position_type;
-
-	///	base element type of associated domain
-		typedef typename domain_traits<dim>::geometric_base_object TBaseElem;
 
 	public:
 		IContactDisc(){};

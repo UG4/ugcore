@@ -175,7 +175,7 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 	//	here the ordering of the corners in the reference element is exploited
 	//	in order to compute the outer normal later on
 		for (int i = 0; i < (int)vCorner.size(); ++i)
-			sideCoPos[i] = vCorner[rRefElem.id(dim-1,0,0,i)];
+			sideCoPos[i] = vCorner[rRefElem.id(dim-1, 0, 0, i)];
 
 		if ((int)vCorner.size() == dim)
 		{
@@ -395,11 +395,6 @@ void ActiveSet<TDomain, TAlgebra>::contactForces(function_type& contactforce,
 	if(m_vActiveSetGlob.size() != 0.0)
 	{
 		UG_LOG("activeDoFs in ActiveSet:contactForces " << m_vActiveSetGlob.size() << "\n");
-
-		if ((*m_spConsGF).size() != contactforce.size())
-			UG_THROW("ConstraintGridFunction and contactForce need to be "
-					"of same size in ActiveSet:contactForces \n");
-
 		m_spContactDisc->contactForces(contactforce, u, m_vActiveSetGlob, m_vSubsetsOfContact);
 	}
 }
@@ -501,7 +496,7 @@ bool ActiveSet<TDomain, TAlgebra>::ActiveSetConvCheckElem(TIterator iterBegin,
 	//	here the ordering of the corners in the reference element is exploited
 	//	in order to compute the outer normal later on
 		for (int i = 0; i < (int)vCorner.size(); ++i)
-			sideCoPos[i] = vCorner[rRefElem.id(dim-1,0,0,i)];
+			sideCoPos[i] = vCorner[rRefElem.id(dim-1, 0, 0, i)];
 
 		if ((int)vCorner.size() == dim)
 			ElementNormal<face_type0, dim>(normal, sideCoPos);
