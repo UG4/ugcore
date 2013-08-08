@@ -139,7 +139,10 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 
 		virtual void reset_entry(size_t index)
 			{
-				m_vData[index] = m_defaultValue;
+				if(m_bDefaultValueSet)
+					m_vData[index] = m_defaultValue;
+				else
+					m_vData[index] = ValueType();
 			}
 
 		virtual void defragment(size_t* pNewIndices, size_t numValidElements)
