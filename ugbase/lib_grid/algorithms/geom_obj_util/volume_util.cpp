@@ -308,25 +308,6 @@ number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 	return TetrahedronVolume;
 }
 
-bool
-ContainsPoint(Volume* vol, const vector3& p,
-			  Grid::VertexAttachmentAccessor<APosition>& aaPos)
-{
-//	iterate over face descriptors of the sides and check whether the point
-//	lies inside or outside
-	FaceDescriptor fd;
-	vector3 n, dir;
-
-	for(size_t i = 0; i < vol->num_faces(); ++i){
-		vol->face_desc(i, fd);
-		CalculateNormalNoNormalize(n, &fd, aaPos);
-		VecSubtract(dir, aaPos[fd.vertex(0)], p);
-
-		if(VecDot(dir, n) < 0)
-			return false;
-	}
-	return true;
-}
 
 void InsertCenterVertex(Grid& g, Volume* vol, VertexBase* vrt, bool eraseOldVol)
 {

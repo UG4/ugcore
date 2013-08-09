@@ -317,10 +317,9 @@ CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 /**	\note	The method only works properly, if the point and the face are located
  * 			in the same x-y-plane.
  */
-template <class vector_t>
+template <class vector_t, class TAAPos>
 UG_API bool
-ContainsPoint(const FaceVertices* f, const vector_t& p,
-			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos);
+ContainsPoint(const FaceVertices* f, const vector_t& p, TAAPos& aaPos);
 
 
 ////////////////////////////////////////////////////////////////////////

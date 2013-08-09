@@ -83,9 +83,9 @@ PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 /** \note	This method assumes that the given volume element is convex and
  * 			has planar sides.
  */
+template <class TAAPos>
 UG_API bool
-ContainsPoint(Volume* vol, const vector3& p,
-			  Grid::VertexAttachmentAccessor<APosition>& aaPos);
+ContainsPoint(Volume* vol, const vector3& p, TAAPos& aaPos);
 
 
 ////////////////////////////////////////////////////////////////////////

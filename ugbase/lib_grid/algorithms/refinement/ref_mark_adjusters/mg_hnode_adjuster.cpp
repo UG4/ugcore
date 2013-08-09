@@ -28,7 +28,6 @@ ref_marks_changed(IRefiner& ref,
 //	select all associated vertices of marked objects,
 //	since we have to create new vertices in the next levels of the hierarchies.
 //	only vertices which do not already have child vertices are selected.
-
 	for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 		EdgeBase* e = edges[i_edge];
 		for(size_t i = 0; i < e->num_vertices(); ++i){
@@ -50,6 +49,52 @@ ref_marks_changed(IRefiner& ref,
 		for(size_t i = 0; i < v->num_vertices(); ++i){
 			if(!mg.has_children(v->vertex(i)))
 				ref.mark(v->vertex(i));
+		}
+	}
+
+
+//	since we have to make sure that surface elements which meet at a vertex have
+//	a level-distance of at most 1, we now mark parent vertices of marked vertices
+//	which are connected to a constrained edge.
+//	Those marked parents are then used to mark associated edges, faces and volumes
+	Grid::edge_traits::secure_container assEdges;
+	Grid::face_traits::secure_container assFaces;
+	Grid::volume_traits::secure_container assVols;
+	for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt){
+		VertexBase* vrt = vrts[i_vrt];
+		if(vrt->is_constrained())
+			continue;
+
+		if(mg.num_child_vertices(vrt) > 0){
+		//	we have to mark all associated edges, faces and volumes
+			mg.associated_elements(assEdges, vrt);
+			for(size_t i = 0; i < assEdges.size(); ++i)
+				ref.mark(assEdges[i]);
+			mg.associated_elements(assFaces, vrt);
+			for(size_t i = 0; i < assFaces.size(); ++i)
+				ref.mark(assFaces[i]);
+			mg.associated_elements(assVols, vrt);
+			for(size_t i = 0; i < assVols.size(); ++i)
+				ref.mark(assVols[i]);
+		}
+		else{
+		//	note that vrt is not necessarily a surface vertex here in a parallel environment.
+		//	If we find an associated constraining edge, it is, however, a surface vertex.
+			VertexBase* parent = dynamic_cast<VertexBase*>(mg.get_parent(vrt));
+			if(!parent)
+				continue;
+
+			bool gotConstraining = false;
+			mg.associated_elements(assEdges, vrt);
+			for(size_t i = 0; i < assEdges.size(); ++i){
+				if(assEdges[i]->is_constrained()){
+					gotConstraining = true;
+					break;
+				}
+			}
+
+			if(gotConstraining)
+				ref.mark(parent);
 		}
 	}
 }

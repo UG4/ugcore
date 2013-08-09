@@ -100,7 +100,7 @@ mark(VertexBase* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
 	if(get_mark(v) != refMark){
-		if(refinement_is_allowed(v)){
+		if(refinement_is_allowed(v) || m_adjustingRefMarks){
 			m_selMarkedElements.select(v, refMark);
 			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
 				m_newlyMarkedRefVrts.push_back(v);

@@ -166,8 +166,6 @@ pre_refine()
 	for(sel_vrt_iter iter = m_selMarkedElements.begin<VertexBase>();
 		iter != m_selMarkedElements.end<VertexBase>(); ++iter)
 	{
-		UG_ASSERT(!mg.has_children(*iter), "Only vertices without children should be selected."
-				  << ElementDebugInfo(mg, *iter));
 		if(marked_refine(*iter) && refinement_is_allowed(*iter)){
 			VertexBase* vrt = *mg.create<Vertex>(*iter);
 			if(m_refCallback)
@@ -546,8 +544,12 @@ static void SaveCoarsenMarksToFile(ISelector& sel, const char* filename)
 	AssignSubsetColors(sh);
 
 
-	if(MultiGrid* mg = dynamic_cast<MultiGrid*>(&g))
-		SaveGridHierarchyTransformed(*mg, sh, filename, 0.1);
+	if(MultiGrid* mg = dynamic_cast<MultiGrid*>(&g)){
+		if(mg->num<Volume>() > 0)
+			SaveGridHierarchyTransformed(*mg, sh, filename, 3);
+		else
+			SaveGridHierarchyTransformed(*mg, sh, filename, 0.1);
+	}
 	else
 		SaveGridToFile(g, sh, filename);
 }
@@ -607,10 +609,336 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 	#endif
 	ss << ".ugx";
 	UG_LOG("Saving coarsen parallel layout: " << ss.str() << endl);
-	SaveParallelGridLayout(mg, ss.str().c_str(), 0.1);
+	if(mg.num<Volume>() > 0)
+		SaveParallelGridLayout(mg, ss.str().c_str(), 3);
+	else
+		SaveParallelGridLayout(mg, ss.str().c_str(), 0.1);
 	++counter;
 }
 
+
+//void HangingNodeRefiner_MultiGrid::
+//collect_objects_for_coarsen(bool scheduleCoarseningBeginsMessage)
+//{
+//	MultiGrid& mg = *m_pMG;
+//	selector_t& sel = get_refmark_selector();
+//
+//	bool gotVols = contains_volumes();
+//	bool gotFaces = contains_faces();
+//	bool gotEdges = contains_edges();
+//
+//debug_save(sel, "coarsen_marks_01_start");
+////	deselect all elements of lower dimension, since we currently can't handle them correctly...
+////todo:	A more sophisticated approach could be used. E.g. only deselect elements if they
+////		are connected to an element of higher dimension.
+//	if(gotVols)
+//		sel.clear<Face>();
+//
+//	if(gotFaces)
+//		sel.clear<EdgeBase>();
+//
+//	if(gotEdges)
+//		sel.clear<VertexBase>();
+//
+//debug_save(sel, "coarsen_marks_01.5_only_full_dim_selected");
+//	restrict_selection_to_surface_coarsen_elements();
+//	copy_marks_to_vmasters(true, true, true, true);
+//	restrict_selection_to_coarsen_families();
+//	copy_marks_to_vslaves(true, true, true, true);
+//
+//	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>(), HNCM_UNKNOWN);
+//	SelectAssociatedEdges(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_UNKNOWN);
+//	broadcast_marks_horizontally(false, true, false);
+//	copy_marks_to_vmasters(false, true, false, false);
+//
+//debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
+//
+//	typedef vector<EdgeBase*> EdgeVec;
+//	EdgeVec vedges;
+//	vedges.assign(sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+//
+//	Grid::edge_traits::secure_container edges;
+//	Grid::face_traits::secure_container	faces;
+//	Grid::volume_traits::secure_container vols;
+//
+////	make sure that coarsening won't generate constraining edges with more than
+////	one constrained vertex.
+//	bool running = gotVols || gotFaces;
+//	while(running){
+//	//	classify unknown edges
+//		for(EdgeVec::iterator iter = vedges.begin(); iter != vedges.end(); ++iter)
+//		{
+//			EdgeBase* e = *iter;
+//
+//			if(sel.get_selection_status(e) == HNCM_UNKNOWN){
+//				size_t numSel = 0;
+//				size_t numNbrs = 0;
+//				if(gotVols){
+//					mg.associated_elements(vols, e);
+//					numNbrs = vols.size();
+//					for(size_t i = 0; i < numNbrs; ++i){
+//						if(sel.is_selected(vols[i]))
+//							++numSel;
+//					}
+//				}
+//				else if(gotFaces){
+//					mg.associated_elements(faces, e);
+//					numNbrs = faces.size();
+//					for(size_t i = 0; i < numNbrs; ++i){
+//						if(sel.is_selected(faces[i]))
+//							++numSel;
+//					}
+//				}
+//
+//				if(numNbrs > 0){
+//					if(numSel == 0)
+//						sel.select(e, HNCM_NONE);
+//					else if(numSel < numNbrs)
+//						sel.select(e, HNCM_PARTIAL);
+//					else
+//						sel.select(e, HNCM_ALL);
+//				}
+//				else
+//					sel.select(e, HNCM_NO_NBRS);
+//			}
+//		}
+//
+//		broadcast_marks_horizontally(false, true, false);
+//		copy_marks_to_vmasters(false, true, false, false);
+//
+//	//	clear all edges which are marked with HNCM_NONE from the selection
+//		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+//			iter != sel.end<EdgeBase>();)
+//		{
+//			EdgeBase* e = *iter;
+//			++iter;
+//			if(sel.get_selection_status(e) == HNCM_NONE)
+//				sel.deselect(e);
+//		}
+//
+//	//	if a constrained edge of a constraining edge won't be fully coarsened,
+//	//	then the constraining edge may not be coarsened at all.
+//		bool foundInvalid = false;
+//		for(selector_t::traits<ConstrainingEdge>::iterator iter = sel.begin<ConstrainingEdge>();
+//			iter != sel.end<ConstrainingEdge>(); ++iter)
+//		{
+//			ConstrainingEdge* cge = *iter;
+//			for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
+//				if(sel.get_selection_status(cge->constrained_edge(i)) != HNCM_ALL){
+//					foundInvalid = true;
+//					sel.select(cge, HNCM_INVALID);
+//					break;
+//				}
+//			}
+//		}
+//
+//	//	has anybody found an invalid parent? If not, exit adjustment.
+//		if(!one_proc_true(foundInvalid)){
+//			running = false;
+//			break;
+//		}
+//
+//	//	clear the current candidate vector
+//		vedges.clear();
+//
+//
+//	//	exchange invalid marks
+//	//	we have to copy them to vmasters, since constraining ghost edges don't
+//	//	have an associated constrained edge from which they could obtain their
+//	//	invalid mark.
+//		copy_marks_to_vmasters(false, true, false, false);
+//
+//		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+//			iter != sel.end<EdgeBase>();)
+//		{
+//			EdgeBase* e = *iter;
+//			++iter;
+//			if(sel.get_selection_status(e) == HNCM_INVALID){
+//				if(gotVols){
+//					mg.associated_elements(vols, e);
+//					for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){
+//						if(!sel.is_selected(vols[i_vol]))
+//							continue;
+//						GeometricObject* parent = mg.get_parent(vols[i_vol]);
+//						if(parent){
+//							DeselectFamily(sel, mg, parent);
+//							mg.associated_elements(edges, parent);
+//							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+//								EdgeBase* e = edges[i_edge];
+//								if(sel.is_selected(e))
+//									sel.select(e, HNCM_UNKNOWN);
+//								for(size_t i = 0; i < mg.num_children<EdgeBase>(e); ++i){
+//									EdgeBase* child = mg.get_child<EdgeBase>(e, i);
+//									if(sel.is_selected(child)){
+//										sel.select(child, HNCM_UNKNOWN);
+//									}
+//								}
+//							}
+//
+//						//	we also have to mark edge-children of side-faces as unknown
+//							mg.associated_elements(faces, parent);
+//							for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+//								Face* f = faces[i_face];
+//								if(sel.is_selected(f))
+//									sel.select(f, HNCM_UNKNOWN);
+//								for(size_t i = 0; i < mg.num_children<EdgeBase>(f); ++i){
+//									EdgeBase* child = mg.get_child<EdgeBase>(f, i);
+//									if(sel.is_selected(child)){
+//										sel.select(child, HNCM_UNKNOWN);
+//									}
+//								}
+//							}
+//
+//						}
+//					}
+//				}
+//				else if(gotFaces){
+//					mg.associated_elements(faces, e);
+//					for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+//						if(!sel.is_selected(faces[i_face]))
+//							continue;
+//						GeometricObject* parent = mg.get_parent(faces[i_face]);
+//						if(parent){
+//							DeselectFamily(sel, mg, parent);
+//							mg.associated_elements(edges, parent);
+//							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+//								if(sel.is_selected(edges[i_edge]))
+//									sel.select(edges[i_edge], HNCM_UNKNOWN);
+//								for(size_t i = 0; i < mg.num_children<EdgeBase>(edges[i_edge]); ++i){
+//									EdgeBase* child = mg.get_child<EdgeBase>(edges[i_edge], i);
+//									if(sel.is_selected(child)){
+//										sel.select(child, HNCM_UNKNOWN);
+//									}
+//								}
+//							}
+//						}
+//					}
+//				}
+//
+//			//	mark the formerly invalid edge as unknown
+//				sel.select(e, HNCM_UNKNOWN);
+//			}
+//		}
+//
+//		if(debugging_enabled()){
+//			ContinuousDebugSave(sel);
+//		}
+//
+//	//	since h-interfaces do not always exist between v-master copies,
+//	//	we have to perform an additional broadcast, to make sure, that all copies
+//	//	have the correct marks.
+//		broadcast_marks_vertically(false, true, true, true, true);
+//		if(debugging_enabled()){
+//			ContinuousDebugSave(sel);
+//		}
+//
+//
+//
+//	//	find edges which were marked as unknown and prepare qedges for the next run
+//		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+//			iter != sel.end<EdgeBase>(); ++iter)
+//		{
+//			if(sel.get_selection_status(*iter) == HNCM_UNKNOWN)
+//				vedges.push_back(*iter);
+//		}
+//	}
+//
+//debug_save(sel, "coarsen_marks_03_irregularities_resolved");
+//
+////	finally classify faces and vertices
+//	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_ALL);
+//	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>(), HNCM_ALL);
+//
+//	broadcast_marks_horizontally(true, false, true);
+//	copy_marks_to_vmasters(true, false, true, false);
+//
+//	if(gotVols){
+//		for(selector_t::traits<Face>::iterator iter = sel.begin<Face>();
+//			iter != sel.end<Face>();)
+//		{
+//			Face* f = *iter;
+//			++iter;
+//
+//			mg.associated_elements(vols, f);
+//			for(size_t i = 0; i < vols.size(); ++i){
+//				if(!sel.is_selected(vols[i])){
+//					sel.select(f, HNCM_PARTIAL);
+//					break;
+//				}
+//			}
+//		}
+//	}
+//
+//	for(selector_t::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
+//		iter != sel.end<VertexBase>();)
+//	{
+//		VertexBase* v = *iter;
+//		++iter;
+//
+//		mg.associated_elements(edges, v);
+//		for(size_t i = 0; i < edges.size(); ++i){
+//			if(sel.get_selection_status(edges[i]) != HNCM_ALL){
+//				sel.select(v, HNCM_PARTIAL);
+//				break;
+//			}
+//		}
+//	}
+//
+//	broadcast_marks_horizontally(true, false, true);
+//	copy_marks_to_vmasters(true, false, true, false);
+//
+//debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
+//
+//
+////	ATTENTION:	We post the message that coarsening begins at this point, since
+////				we don't want REPLACE elements to be selected and thus contained
+////				in the specified geometric-object-collection.
+//	if(scheduleCoarseningBeginsMessage){
+//		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS,
+//										m_selMarkedElements.get_geometric_objects()));
+//	}
+//
+//
+////	select unselected constraining edges and faces of selected constrained
+////	edges and faces with HNCM_REPLACE to indicate, that they have to be
+////	transformed to a normal edge
+////	mark parents of normal and constraining edges and faces which were marked for
+////	partial refinement with a replace mark
+//	for(selector_t::traits<EdgeBase>::iterator
+//		iter = sel.begin<EdgeBase>(); iter != sel.end<EdgeBase>(); ++iter)
+//	{
+//		EdgeBase* e = *iter;
+//		if(GeometricObject* parent = mg.get_parent(e)){
+//			bool isConstrained = e->is_constrained();
+//			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
+//			    ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+//			{
+//				if(!sel.is_selected(parent))
+//					sel.select(parent, HNCM_REPLACE);
+//			}
+//		}
+//	}
+//
+//	for(selector_t::traits<Face>::iterator
+//		iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter)
+//	{
+//		Face* e = *iter;
+//		if(GeometricObject* parent = mg.get_parent(e)){
+//			bool isConstrained = e->is_constrained();
+//			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
+//			   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+//			{
+//				if(!sel.is_selected(parent))
+//					sel.select(parent, HNCM_REPLACE);
+//			}
+//		}
+//	}
+//
+//	broadcast_marks_horizontally(false, true, true);
+//	copy_marks_to_vmasters(false, true, true, false);
+//
+//debug_save(sel, "coarsen_marks_05_adjustment_done");
+//}
 
 void HangingNodeRefiner_MultiGrid::
 collect_objects_for_coarsen(bool scheduleCoarseningBeginsMessage)
@@ -635,35 +963,36 @@ debug_save(sel, "coarsen_marks_01_start");
 	if(gotEdges)
 		sel.clear<VertexBase>();
 
-debug_save(sel, "coarsen_marks_01.5_only_full_dim_selected");
 	restrict_selection_to_surface_coarsen_elements();
 	copy_marks_to_vmasters(true, true, true, true);
 	restrict_selection_to_coarsen_families();
 	copy_marks_to_vslaves(true, true, true, true);
 
-	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>(), HNCM_UNKNOWN);
-	SelectAssociatedEdges(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_UNKNOWN);
-	broadcast_marks_horizontally(false, true, false);
-	copy_marks_to_vmasters(false, true, false, false);
+	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>(), HNCM_UNKNOWN);
+	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>(), HNCM_UNKNOWN);
+	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_UNKNOWN);
+	broadcast_marks_horizontally(true, false, false);
+	copy_marks_to_vmasters(true, false, false, false);
 
 debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 
-	typedef vector<EdgeBase*> EdgeVec;
-	EdgeVec vedges;
-	vedges.assign(sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+	typedef vector<VertexBase*> VrtVec;
+	VrtVec vvrts;
+	vvrts.assign(sel.begin<VertexBase>(), sel.end<VertexBase>());
 
+	Grid::vertex_traits::secure_container vrts;
 	Grid::edge_traits::secure_container edges;
 	Grid::face_traits::secure_container	faces;
 	Grid::volume_traits::secure_container vols;
 
-//	make sure that coarsening won't generate constraining edges with more than
-//	one constrained vertex.
+//	make sure that coarsening won't generate situations in which surface elements
+//	which meet at a common vertex have a level difference of more than 1.
 	bool running = gotVols || gotFaces;
 	while(running){
-	//	classify unknown edges
-		for(EdgeVec::iterator iter = vedges.begin(); iter != vedges.end(); ++iter)
+	//	classify unknown vertices
+		for(VrtVec::iterator iter = vvrts.begin(); iter != vvrts.end(); ++iter)
 		{
-			EdgeBase* e = *iter;
+			VertexBase* e = *iter;
 
 			if(sel.get_selection_status(e) == HNCM_UNKNOWN){
 				size_t numSel = 0;
@@ -698,55 +1027,52 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 			}
 		}
 
-		broadcast_marks_horizontally(false, true, false);
-		copy_marks_to_vmasters(false, true, false, false);
+		broadcast_marks_horizontally(true, false, false);
+		copy_marks_to_vmasters(true, false, false, false);
 
-	//	clear all edges which are marked with HNCM_NONE from the selection
-		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-			iter != sel.end<EdgeBase>();)
+	//	clear all vertices which are marked with HNCM_NONE from the selection
+		for(selector_t::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
+			iter != sel.end<VertexBase>();)
 		{
-			EdgeBase* e = *iter;
+			VertexBase* e = *iter;
 			++iter;
 			if(sel.get_selection_status(e) == HNCM_NONE)
 				sel.deselect(e);
 		}
 
-	//	if a constrained edge of a constraining edge won't be fully coarsened,
-	//	then the constraining edge may not be coarsened at all.
+	//	if a vertex has a child which will not be fully coarsed then the
+	//	vertex itself may not be coarsened at all (nor neighboring elements)
 		bool foundInvalid = false;
-		for(selector_t::traits<ConstrainingEdge>::iterator iter = sel.begin<ConstrainingEdge>();
-			iter != sel.end<ConstrainingEdge>(); ++iter)
+		for(selector_t::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
+			iter != sel.end<VertexBase>(); ++iter)
 		{
-			ConstrainingEdge* cge = *iter;
-			for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
-				if(sel.get_selection_status(cge->constrained_edge(i)) != HNCM_ALL){
-					foundInvalid = true;
-					sel.select(cge, HNCM_INVALID);
-					break;
-				}
+			VertexBase* e = *iter;
+			VertexBase* c = mg.get_child_vertex(e);
+			if(c && sel.get_selection_status(c) != HNCM_ALL){
+				foundInvalid = true;
+				sel.select(e, HNCM_INVALID);
 			}
 		}
 
-	//	has anybody found an invalid parent? If not, exit adjustment.
+	//	has anybody marked an element as invalid? If not, exit adjustment.
 		if(!one_proc_true(foundInvalid)){
 			running = false;
 			break;
 		}
 
 	//	clear the current candidate vector
-		vedges.clear();
-
+		vvrts.clear();
 
 	//	exchange invalid marks
-	//	we have to copy them to vmasters, since constraining ghost edges don't
-	//	have an associated constrained edge from which they could obtain their
-	//	invalid mark.
-		copy_marks_to_vmasters(false, true, false, false);
+	//	we have to copy them to vmasters, since in some situations there may be
+	//	ghost-vertices which are shadows of vertices which lie on the rim of a level...
+		copy_marks_to_vmasters(true, false, false, false);
 
-		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-			iter != sel.end<EdgeBase>();)
+	//	we have to deselect all families which are connected to invalid vertices
+		for(selector_t::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
+			iter != sel.end<VertexBase>();)
 		{
-			EdgeBase* e = *iter;
+			VertexBase* e = *iter;
 			++iter;
 			if(sel.get_selection_status(e) == HNCM_INVALID){
 				if(gotVols){
@@ -757,30 +1083,41 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 						GeometricObject* parent = mg.get_parent(vols[i_vol]);
 						if(parent){
 							DeselectFamily(sel, mg, parent);
-							mg.associated_elements(edges, parent);
-							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-								EdgeBase* e = edges[i_edge];
-								if(sel.is_selected(e))
-									sel.select(e, HNCM_UNKNOWN);
-								for(size_t i = 0; i < mg.num_children<EdgeBase>(e); ++i){
-									EdgeBase* child = mg.get_child<EdgeBase>(e, i);
-									if(sel.is_selected(child)){
-										sel.select(child, HNCM_UNKNOWN);
-									}
+							mg.associated_elements(vrts, parent);
+							for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt){
+								VertexBase* vrt = vrts[i_vrt];
+								if(sel.is_selected(vrt))
+									sel.select(vrt, HNCM_UNKNOWN);
+
+								VertexBase* c = mg.get_child_vertex(vrt);
+								if(c && sel.is_selected(c)){
+									sel.select(c, HNCM_UNKNOWN);
 								}
 							}
 
-						//	we also have to mark edge-children of side-faces as unknown
+						//	we also have to mark vertex-children of side-faces
+						//	and side-edges as unknown
+							mg.associated_elements(edges, parent);
+							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
+								EdgeBase* edge = edges[i_edge];
+								if(sel.is_selected(edge))
+									sel.select(edge, HNCM_UNKNOWN);
+
+								VertexBase* c = mg.get_child_vertex(edge);
+								if(c && sel.is_selected(c)){
+									sel.select(c, HNCM_UNKNOWN);
+								}
+							}
+
 							mg.associated_elements(faces, parent);
 							for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 								Face* f = faces[i_face];
 								if(sel.is_selected(f))
 									sel.select(f, HNCM_UNKNOWN);
-								for(size_t i = 0; i < mg.num_children<EdgeBase>(f); ++i){
-									EdgeBase* child = mg.get_child<EdgeBase>(f, i);
-									if(sel.is_selected(child)){
-										sel.select(child, HNCM_UNKNOWN);
-									}
+
+								VertexBase* c = mg.get_child_vertex(f);
+								if(c && sel.is_selected(c)){
+									sel.select(c, HNCM_UNKNOWN);
 								}
 							}
 
@@ -795,22 +1132,35 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 						GeometricObject* parent = mg.get_parent(faces[i_face]);
 						if(parent){
 							DeselectFamily(sel, mg, parent);
+							mg.associated_elements(vrts, parent);
+							for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt){
+								VertexBase* vrt = vrts[i_vrt];
+								if(sel.is_selected(vrt))
+									sel.select(vrt, HNCM_UNKNOWN);
+
+								VertexBase* c = mg.get_child_vertex(vrt);
+								if(c && sel.is_selected(c)){
+									sel.select(c, HNCM_UNKNOWN);
+								}
+							}
+
+						//	we also have to mark vertex-children of side-edges
 							mg.associated_elements(edges, parent);
 							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-								if(sel.is_selected(edges[i_edge]))
-									sel.select(edges[i_edge], HNCM_UNKNOWN);
-								for(size_t i = 0; i < mg.num_children<EdgeBase>(edges[i_edge]); ++i){
-									EdgeBase* child = mg.get_child<EdgeBase>(edges[i_edge], i);
-									if(sel.is_selected(child)){
-										sel.select(child, HNCM_UNKNOWN);
-									}
+								EdgeBase* edge = edges[i_edge];
+								if(sel.is_selected(edge))
+									sel.select(edge, HNCM_UNKNOWN);
+
+								VertexBase* c = mg.get_child_vertex(edge);
+								if(c && sel.is_selected(c)){
+									sel.select(c, HNCM_UNKNOWN);
 								}
 							}
 						}
 					}
 				}
 
-			//	mark the formerly invalid edge as unknown
+			//	mark the formerly invalid vertex as unknown
 				sel.select(e, HNCM_UNKNOWN);
 			}
 		}
@@ -822,30 +1172,37 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 	//	since h-interfaces do not always exist between v-master copies,
 	//	we have to perform an additional broadcast, to make sure, that all copies
 	//	have the correct marks.
-		broadcast_marks_vertically(false, true, true, true, true);
+		broadcast_marks_vertically(true, true, true, true, true);
 		if(debugging_enabled()){
 			ContinuousDebugSave(sel);
 		}
 
 
 
-	//	find edges which were marked as unknown and prepare qedges for the next run
-		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-			iter != sel.end<EdgeBase>(); ++iter)
+	//	find vertices which were marked as unknown and prepare the candidates array for the next run
+		for(selector_t::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
+			iter != sel.end<VertexBase>(); ++iter)
 		{
 			if(sel.get_selection_status(*iter) == HNCM_UNKNOWN)
-				vedges.push_back(*iter);
+				vvrts.push_back(*iter);
 		}
 	}
 
 debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 
-//	finally classify faces and vertices
+//	finally classify faces and edges
 	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_ALL);
-	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>(), HNCM_ALL);
+	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>(), HNCM_ALL);
 
-	broadcast_marks_horizontally(true, false, true);
-	copy_marks_to_vmasters(true, false, true, false);
+//	we only have to communicate face marks if volumes exist
+	if(gotVols){
+		broadcast_marks_horizontally(false, true, true);
+		copy_marks_to_vmasters(false, true, true, false);
+	}
+	else{
+		broadcast_marks_horizontally(false, true, false);
+		copy_marks_to_vmasters(false, true, false, false);
+	}
 
 	if(gotVols){
 		for(selector_t::traits<Face>::iterator iter = sel.begin<Face>();
@@ -862,25 +1219,47 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 				}
 			}
 		}
+
+		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+			iter != sel.end<EdgeBase>();)
+		{
+			EdgeBase* e = *iter;
+			++iter;
+
+			mg.associated_elements(vols, e);
+			for(size_t i = 0; i < vols.size(); ++i){
+				if(!sel.is_selected(vols[i])){
+					sel.select(e, HNCM_PARTIAL);
+					break;
+				}
+			}
+		}
 	}
+	else if(gotFaces){
+		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
+			iter != sel.end<EdgeBase>();)
+		{
+			EdgeBase* e = *iter;
+			++iter;
 
-	for(selector_t::traits<VertexBase>::iterator iter = sel.begin<VertexBase>();
-		iter != sel.end<VertexBase>();)
-	{
-		VertexBase* v = *iter;
-		++iter;
-
-		mg.associated_elements(edges, v);
-		for(size_t i = 0; i < edges.size(); ++i){
-			if(sel.get_selection_status(edges[i]) != HNCM_ALL){
-				sel.select(v, HNCM_PARTIAL);
-				break;
+			mg.associated_elements(faces, e);
+			for(size_t i = 0; i < faces.size(); ++i){
+				if(!sel.is_selected(faces[i])){
+					sel.select(e, HNCM_PARTIAL);
+					break;
+				}
 			}
 		}
 	}
 
-	broadcast_marks_horizontally(true, false, true);
-	copy_marks_to_vmasters(true, false, true, false);
+	if(gotVols){
+		broadcast_marks_horizontally(false, true, true);
+		copy_marks_to_vmasters(false, true, true, false);
+	}
+	else{
+		broadcast_marks_horizontally(false, true, false);
+		copy_marks_to_vmasters(false, true, false, false);
+	}
 
 debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 
@@ -914,23 +1293,31 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 		}
 	}
 
-	for(selector_t::traits<Face>::iterator
-		iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter)
-	{
-		Face* e = *iter;
-		if(GeometricObject* parent = mg.get_parent(e)){
-			bool isConstrained = e->is_constrained();
-			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
-			   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
-			{
-				if(!sel.is_selected(parent))
-					sel.select(parent, HNCM_REPLACE);
+	if(gotVols){
+		for(selector_t::traits<Face>::iterator
+			iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter)
+		{
+			Face* e = *iter;
+			if(GeometricObject* parent = mg.get_parent(e)){
+				bool isConstrained = e->is_constrained();
+				if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
+				   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
+				{
+					if(!sel.is_selected(parent))
+						sel.select(parent, HNCM_REPLACE);
+				}
 			}
 		}
 	}
 
-	broadcast_marks_horizontally(false, true, true);
-	copy_marks_to_vmasters(false, true, true, false);
+	if(gotVols){
+		broadcast_marks_horizontally(false, true, true);
+		copy_marks_to_vmasters(false, true, true, false);
+	}
+	else{
+		broadcast_marks_horizontally(false, true, false);
+		copy_marks_to_vmasters(false, true, false, false);
+	}
 
 debug_save(sel, "coarsen_marks_05_adjustment_done");
 }

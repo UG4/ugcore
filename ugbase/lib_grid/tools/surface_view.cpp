@@ -271,8 +271,15 @@ mark_shadowing(bool markSides)
 
 			GeometricObject* p = mg.get_parent(e);
 			if(p && (surface_state(p).contains(SHADOW_COPY) || surface_state(p).contains(SHADOW_NONCOPY))){
-				surface_state(e).add(SHADOWING);
-				surface_state(e).remove(PURE_SURFACE);
+				if(surface_state(e).contains(SHADOW_COPY)){
+					UG_THROW("SHADOWING-SHADOW_COPY encountered: "
+							 << ElementDebugInfo(mg, e) << endl);
+				}
+				if(surface_state(e).contains(SHADOW_NONCOPY)){
+					UG_THROW("SHADOWING-SHADOW_NONCOPY encountered: "
+							 << ElementDebugInfo(mg, e) << endl);
+				}
+				surface_state(e).set(SHADOWING);
 			}
 		}
 	}

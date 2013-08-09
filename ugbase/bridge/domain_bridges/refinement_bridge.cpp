@@ -791,58 +791,53 @@ void MarkForCoarsen_ElementsByLuaCallback(TDomain& dom, SmartPtr<IRefiner> refin
 }
 
 
-template <class TDomain, class TSubsetHandler>
+template <class TDomain, class TSubsetHandler, class TElem>
 void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
 										TSubsetHandler& sh, int subsetIndex)
 {
 	PROFILE_FUNC();
+	typedef typename GeometricObjectCollection::traits<TElem>::iterator iterator_t;
 
 	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(subsetIndex);
 
-	int elemType = dom.domain_info().element_type();
-
-	switch(elemType){
-		case VERTEX:{
-			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
-				for(GeometricObjectCollection::traits<VertexBase>::iterator iter = goc.begin<VertexBase>(lvl);
-					iter != goc.end<VertexBase>(lvl); ++iter)
-				{
-					refiner.mark(*iter);
-				}
-			}
-		}break;
-
-		case EDGE:{
-			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
-				for(GeometricObjectCollection::traits<EdgeBase>::iterator iter = goc.begin<EdgeBase>(lvl);
-					iter != goc.end<EdgeBase>(lvl); ++iter)
-				{
-					refiner.mark(*iter);
-				}
-			}
-		}break;
-
-		case FACE:{
-			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
-				for(GeometricObjectCollection::traits<Face>::iterator iter = goc.begin<Face>(lvl);
-					iter != goc.end<Face>(lvl); ++iter)
-				{
-					refiner.mark(*iter);
-				}
-			}
-		}break;
-
-		case VOLUME:{
-			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
-				for(GeometricObjectCollection::traits<Volume>::iterator iter = goc.begin<Volume>(lvl);
-					iter != goc.end<Volume>(lvl); ++iter)
-				{
-					refiner.mark(*iter);
-				}
-			}
-		}break;
+	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
+		for(iterator_t iter = goc.begin<TElem>(lvl);
+			iter != goc.end<TElem>(lvl); ++iter)
+		{
+			refiner.mark(*iter);
+		}
 	}
 }
+
+
+template <class TDomain, class TElem>
+void MarkForAdaption_ElementsContainingPoint(TDomain& dom, IRefiner& refiner,
+											   number x, number y, number z,
+											   std::string markType)
+{
+	PROFILE_FUNC();
+	typedef typename TDomain::grid_type TGrid;
+	typedef typename TDomain::position_type TPos;
+	typedef typename TDomain::position_accessor_type TAAPos;
+	typedef typename TGrid::template traits<TElem>::iterator TIter;
+
+	RefinementMark rmMark = StringToRefinementMark(markType);
+
+	vector3 p3(x, y, z);
+	TPos p;
+	VecCopy(p, p3, 0);
+
+	TGrid& g = *dom.grid();
+	TAAPos aaPos = dom.position_accessor();
+
+	for(TIter iter = g.template begin<TElem>();
+		iter != g.template end<TElem>(); ++iter)
+	{
+		if(ContainsPoint(*iter, p, aaPos))
+			refiner.mark(*iter, rmMark);
+	}
+}
+
 
 // end group refinement_bridge
 /// \}
@@ -1004,11 +999,31 @@ static void Domain(Registry& reg, string grp)
 				&MarkForCoarsen_ElementsByLuaCallback<domain_type>, grp,
 				"", "dom#refiner#time#callbackName")
 		.add_function("MarkForRefinement_ElementsInSubset",
-				&MarkForRefinement_ElementsInSubset<domain_type, SubsetHandler>, grp,
-				"", "dom#refiner#subsetHandler#subsetIndex")
-		.add_function("MarkForRefinement_ElementsInSubset",
-				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler>, grp,
-				"", "dom#refiner#subsetHandler#subsetIndex");
+				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler,
+							typename domain_traits<TDomain::dim>::element_type>,
+				grp, "", "dom#refiner#subsetHandler#subsetIndex")
+		.add_function("MarkForRefinement_VerticesInSubset",
+				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, VertexBase>,
+				grp, "", "dom#refiner#subsetHandler#subsetIndex")
+		.add_function("MarkForRefinement_EdgesInSubset",
+				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, EdgeBase>,
+				grp, "", "dom#refiner#subsetHandler#subsetIndex")
+		.add_function("MarkForRefinement_FacesInSubset",
+				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Face>,
+				grp, "", "dom#refiner#subsetHandler#subsetIndex")
+		.add_function("MarkForRefinement_VolumesInSubset",
+				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Volume>,
+				grp, "", "dom#refiner#subsetHandler#subsetIndex")
+		.add_function("MarkForAdaption_EdgesContainingPoint",
+				&MarkForAdaption_ElementsContainingPoint<domain_type, EdgeBase>,
+				grp, "", "dom#refiner#x#y#z#markType")
+		.add_function("MarkForAdaption_FacesContainingPoint",
+				&MarkForAdaption_ElementsContainingPoint<domain_type, Face>,
+				grp, "", "dom#refiner#x#y#z#markType");
+//		.add_function("MarkForRefinement_VolumesContainingPoint",
+//				&MarkForAdaption_ElementsContainingPoint<domain_type, Volume>,
+//				grp, "", "dom#refiner#x#y#z#markType");
+
 
 //	register refinement projection handler and factories
 	{

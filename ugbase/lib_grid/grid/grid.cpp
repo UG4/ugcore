@@ -30,6 +30,7 @@ Grid::Grid() :
 	m_aEdgeContainer("Grid_EdgeContainer", false),
 	m_aFaceContainer("Grid_FaceContainer", false),
 	m_aVolumeContainer("Grid_VolumeContainer", false),
+	m_bMarking(false),
 	m_aMark("Grid_Mark", false)
 {
 	m_hashCounter = 0;
@@ -45,6 +46,7 @@ Grid::Grid(uint options) :
 	m_aEdgeContainer("Grid_EdgeContainer", false),
 	m_aFaceContainer("Grid_FaceContainer", false),
 	m_aVolumeContainer("Grid_VolumeContainer", false),
+	m_bMarking(false),
 	m_aMark("Grid_Mark", false)
 {
 	m_hashCounter = 0;
@@ -60,6 +62,7 @@ Grid::Grid(const Grid& grid) :
 	m_aEdgeContainer("Grid_EdgeContainer", false),
 	m_aFaceContainer("Grid_FaceContainer", false),
 	m_aVolumeContainer("Grid_VolumeContainer", false),
+	m_bMarking(false),
 	m_aMark("Grid_Mark", false)
 {
 	m_hashCounter = 0;

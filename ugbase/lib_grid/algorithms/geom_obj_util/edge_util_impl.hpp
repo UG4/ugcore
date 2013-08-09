@@ -467,10 +467,9 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 	grid.detach_from_edges(aIsCandidate);
 }
 
-template <class vector_t>
+template <class vector_t, class TAAPos>
 UG_API bool
-ContainsPoint(const EdgeVertices* e, const vector_t& p,
-			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos)
+ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos& aaPos)
 {
 	number center = (aaPos[e->vertex(0)].x() + aaPos[e->vertex(1)].x()) / 2.;
 	number rad = fabs(aaPos[e->vertex(1)].x() - aaPos[e->vertex(0)].x()) / 2.;

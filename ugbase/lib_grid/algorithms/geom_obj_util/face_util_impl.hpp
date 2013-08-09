@@ -188,10 +188,9 @@ CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class vector_t>
+template <class vector_t, class TAAPos>
 bool
-ContainsPoint(const FaceVertices* f, const vector_t& p,
-			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos)
+ContainsPoint(const FaceVertices* f, const vector_t& p, TAAPos& aaPos)
 {
 	switch(f->num_vertices()){
 		case 3: return PointIsInsideTriangle(p, aaPos[f->vertex(0)],
