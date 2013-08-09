@@ -1013,13 +1013,13 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
 		.add_function("MarkForRefinement_VolumesInSubset",
 				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Volume>,
-				grp, "", "dom#refiner#subsetHandler#subsetIndex")
-		.add_function("MarkForAdaption_EdgesContainingPoint",
-				&MarkForAdaption_ElementsContainingPoint<domain_type, EdgeBase>,
-				grp, "", "dom#refiner#x#y#z#markType")
-		.add_function("MarkForAdaption_FacesContainingPoint",
-				&MarkForAdaption_ElementsContainingPoint<domain_type, Face>,
-				grp, "", "dom#refiner#x#y#z#markType");
+				grp, "", "dom#refiner#subsetHandler#subsetIndex");
+//		.add_function("MarkForAdaption_EdgesContainingPoint",
+//				&MarkForAdaption_ElementsContainingPoint<domain_type, EdgeBase>,
+//				grp, "", "dom#refiner#x#y#z#markType")
+//		.add_function("MarkForAdaption_FacesContainingPoint",
+//				&MarkForAdaption_ElementsContainingPoint<domain_type, Face>,
+//				grp, "", "dom#refiner#x#y#z#markType");
 //		.add_function("MarkForRefinement_VolumesContainingPoint",
 //				&MarkForAdaption_ElementsContainingPoint<domain_type, Volume>,
 //				grp, "", "dom#refiner#x#y#z#markType");
