@@ -285,7 +285,8 @@ mark_shadowing(bool markSides)
 						  (!surface_state(e).contains(SHADOW_NONCOPY)),
 						  "SHADOWING-SHADOW_NONCOPY encountered: " << ElementDebugInfo(mg, e));
 				#endif
-				surface_state(e).set(SHADOWING);
+				surface_state(e).add(SHADOWING);
+				surface_state(e).remove(PURE_SURFACE);
 			}
 		}
 	}
