@@ -493,6 +493,51 @@ static bool PerformValidityCheck(DistributedGridManager& dgm)
 #endif //LG_DISTRIBUTION_DEBUG
 
 ////////////////////////////////////////////////////////////////////////////////
+template <class TElem>
+void AdjustGhostSelection(MGSelector& msel, ISelector::status_t status)
+{
+	DistributedGridManager& dgm = *msel.grid()->distributed_grid_manager();
+	GridLayoutMap& glm = dgm.grid_layout_map();
+
+	if(!glm.has_layout<TElem>(INT_V_MASTER))
+		return;
+
+	typedef typename GridLayoutMap::Types<TElem>::Layout	Layout;
+	typedef typename Layout::iterator						LIter;
+	typedef typename Layout::Interface						Interface;
+	typedef typename Interface::iterator					IIter;
+
+	Layout& layout = glm.get_layout<TElem>(INT_V_MASTER);
+	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
+		for(LIter liter = layout.begin(lvl); liter != layout.end(lvl); ++liter){
+			Interface& intfc = layout.interface(liter);
+			for(IIter iiter = intfc.begin(); iiter != intfc.end(); ++iiter){
+				TElem* e = intfc.get_element(iiter);
+				if(dgm.is_ghost(e)){
+					msel.select(e, status);
+				}
+			}
+		}
+	}
+}
+
+void AdjustGhostSelection(MGSelector& msel, ISelector::status_t status)
+{
+	UG_LOG("DEBUG: AdjustGhostSelection, #sel-vrts before: " << msel.num<VertexBase>() << endl);
+	Grid& g = *msel.grid();
+	if(g.num_vertices())
+		AdjustGhostSelection<VertexBase>(msel, status);
+	if(g.num_edges())
+		AdjustGhostSelection<EdgeBase>(msel, status);
+	if(g.num_faces())
+		AdjustGhostSelection<Face>(msel, status);
+	if(g.num_volumes())
+		AdjustGhostSelection<Volume>(msel, status);
+	UG_LOG("DEBUG: AdjustGhostSelection, #sel-vrts after: " << msel.num<VertexBase>() << endl);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 ///	Recursively selects unselected sides.
 template <class TElem>
 static void SelectAssociatedSides(MGSelector& msel, TElem* e,
@@ -1681,6 +1726,7 @@ bool DistributeGrid(MultiGrid& mg,
 			msel.clear();
 			SelectElementsForTargetPartition(msel, shPartition, partInd,
 										 localPartition, createVerticalInterfaces);
+			AdjustGhostSelection(msel, ISelector::DESELECTED);
 
 			SerializeMultiGridElements(mg, msel.get_geometric_objects(), aaInt, out, &aaID);
 

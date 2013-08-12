@@ -362,48 +362,18 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 			typedef typename AdaptionSurfaceGridFunction<TDomain>::AValues AValues;
 
 			if(m_spDDI->max_dofs(VERTEX)){
-			//todo:	this communication is only required, while vmasters are being sent
-			//		to target processes during redistribution. This however isn't necessary!
-				ComPol_CopyAttachment<VertexLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-				pcl::InterfaceCommunicator<VertexLayout> com;
-				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-								  INT_V_SLAVE, INT_V_MASTER, compol);
-				com.communicate();
-
 				sh.add(GeomObjAttachmentSerializer<VertexBase, AValues>::
 							create(grid, m_spAdaptGridFct->value_attachment()));
 			}
 			if(m_spDDI->max_dofs(EDGE)){
-			//todo:	this communication is only required, while vmasters are being sent
-			//		to target processes during redistribution. This however isn't necessary!
-				ComPol_CopyAttachment<EdgeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-				pcl::InterfaceCommunicator<EdgeLayout> com;
-				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-								  INT_V_SLAVE, INT_V_MASTER, compol);
-				com.communicate();
-
 				sh.add(GeomObjAttachmentSerializer<EdgeBase, AValues>::
 							create(grid, m_spAdaptGridFct->value_attachment()));
 			}
 			if(m_spDDI->max_dofs(FACE)){
-			//todo:	this communication is only required, while vmasters are being sent
-			//		to target processes during redistribution. This however isn't necessary!
-				ComPol_CopyAttachment<FaceLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-				pcl::InterfaceCommunicator<FaceLayout> com;
-				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-								  INT_V_SLAVE, INT_V_MASTER, compol);
-
 				sh.add(GeomObjAttachmentSerializer<Face, AValues>::
 							create(grid, m_spAdaptGridFct->value_attachment()));
 			}
 			if(m_spDDI->max_dofs(VOLUME)){
-			//todo:	this communication is only required, while vmasters are being sent
-			//		to target processes during redistribution. This however isn't necessary!
-				ComPol_CopyAttachment<VolumeLayout, AValues> compol(grid, m_spAdaptGridFct->value_attachment());
-				pcl::InterfaceCommunicator<VolumeLayout> com;
-				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
-								  INT_V_SLAVE, INT_V_MASTER, compol);
-
 				sh.add(GeomObjAttachmentSerializer<Volume, AValues>::
 							create(grid, m_spAdaptGridFct->value_attachment()));
 			}
