@@ -271,14 +271,20 @@ mark_shadowing(bool markSides)
 
 			GeometricObject* p = mg.get_parent(e);
 			if(p && (surface_state(p).contains(SHADOW_COPY) || surface_state(p).contains(SHADOW_NONCOPY))){
-				if(surface_state(e).contains(SHADOW_COPY)){
-					UG_THROW("SHADOWING-SHADOW_COPY encountered: "
-							 << ElementDebugInfo(mg, e) << endl);
-				}
-				if(surface_state(e).contains(SHADOW_NONCOPY)){
-					UG_THROW("SHADOWING-SHADOW_NONCOPY encountered: "
-							 << ElementDebugInfo(mg, e) << endl);
-				}
+				#ifdef UG_PARALLEL
+				//	The following assertions make sure that during gmg no values have to
+				//	be copied across v-interfaces during add-contribution-of-shadows.
+				//	However, when a closure is used, shadowing shadows do currently exist
+				//	and this is why the assertion is only triggered for parallel cases
+				//	(in which closure isn't assumed to work anyways).
+				//	The assertion probably shouldn't be done here but directly in the gmg.
+				UG_ASSERT((pcl::GetNumProcesses() == 1) ||
+						  (!surface_state(e).contains(SHADOW_COPY)),
+						  "SHADOWING-SHADOW_COPY encountered: " << ElementDebugInfo(mg, e));
+				UG_ASSERT((pcl::GetNumProcesses() == 1) ||
+						  (!surface_state(e).contains(SHADOW_NONCOPY)),
+						  "SHADOWING-SHADOW_NONCOPY encountered: " << ElementDebugInfo(mg, e));
+				#endif
 				surface_state(e).set(SHADOWING);
 			}
 		}
