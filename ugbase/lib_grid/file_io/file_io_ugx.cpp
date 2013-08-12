@@ -84,19 +84,31 @@ void GridWriterUGX::
 add_subset_attributes(rapidxml::xml_node<>* targetNode,
 					  ISubsetHandler& sh, size_t subsetIndex)
 {
-	stringstream ss;
 	const SubsetInfo& si = sh.subset_info(subsetIndex);
-//	write color
-	for(size_t i = 0; i < 4; ++i){
-		ss << si.color[i] << " ";
-	}
-
+//	write name
 	targetNode->append_attribute(m_doc.allocate_attribute("name", si.name.c_str()));
 
-//	allocate a string and erase last character(' ')
-	char* colorData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
-	colorData[ss.str().size()-1] = 0;
-	targetNode->append_attribute(m_doc.allocate_attribute("color", colorData));
+//	write color
+	{
+		stringstream ss;
+		for(size_t i = 0; i < 4; ++i){
+			ss << si.color[i] << " ";
+		}
+
+
+	//	allocate a string and erase last character(' ')
+		char* colorData = m_doc.allocate_string(ss.str().c_str(), ss.str().size() );
+		colorData[ss.str().size() - 1] = 0;
+		targetNode->append_attribute(m_doc.allocate_attribute("color", colorData));
+	}
+//	write state
+	{
+		stringstream ss;
+		ss << (size_t)si.subsetState;
+		char* stateData = m_doc.allocate_string(ss.str().c_str(), ss.str().size() + 1);
+		stateData[ss.str().size()] = 0;
+		targetNode->append_attribute(m_doc.allocate_attribute("state", stateData));
+	}
 }
 
 void GridWriterUGX::
@@ -851,21 +863,33 @@ subset_handler(ISubsetHandler& shOut,
 				ss >> si.color[i];
 		}
 
+		attrib = subsetNode->first_attribute("state");
+		if(attrib){
+			stringstream ss(attrib->value(), ios_base::in);
+			size_t state;
+			ss >> state;
+			si.subsetState = (uint)state;
+		}
+
 		shOut.set_subset_info(subsetInd, si);
 
 	//	read elements of this subset
-		read_subset_handler_elements<VertexBase>(shOut, "vertices",
+		if(shOut.elements_are_supported(SHE_VERTEX))
+			read_subset_handler_elements<VertexBase>(shOut, "vertices",
+													 subsetNode, subsetInd,
+													 gridEntry.vertices);
+		if(shOut.elements_are_supported(SHE_EDGE))
+			read_subset_handler_elements<EdgeBase>(shOut, "edges",
+													 subsetNode, subsetInd,
+													 gridEntry.edges);
+		if(shOut.elements_are_supported(SHE_FACE))
+			read_subset_handler_elements<Face>(shOut, "faces",
 												 subsetNode, subsetInd,
-												 gridEntry.vertices);
-		read_subset_handler_elements<EdgeBase>(shOut, "edges",
+												 gridEntry.faces);
+		if(shOut.elements_are_supported(SHE_VOLUME))
+			read_subset_handler_elements<Volume>(shOut, "volumes",
 												 subsetNode, subsetInd,
-												 gridEntry.edges);
-		read_subset_handler_elements<Face>(shOut, "faces",
-											 subsetNode, subsetInd,
-											 gridEntry.faces);
-		read_subset_handler_elements<Volume>(shOut, "volumes",
-											 subsetNode, subsetInd,
-											 gridEntry.volumes);
+												 gridEntry.volumes);
 	//	next subset
 		subsetNode = subsetNode->next_sibling("subset");
 		++subsetInd;
@@ -964,18 +988,22 @@ selector(ISelector& selOut, size_t selectorIndex, size_t refGridIndex)
 	xml_node<>* selectorNode = selEntry.node;
 
 //	read elements of this subset
-	read_selector_elements<VertexBase>(selOut, "vertices",
+	if(selOut.elements_are_supported(SHE_VERTEX))
+		read_selector_elements<VertexBase>(selOut, "vertices",
+											selectorNode,
+											gridEntry.vertices);
+	if(selOut.elements_are_supported(SHE_EDGE))
+		read_selector_elements<EdgeBase>(selOut, "edges",
+											selectorNode,
+											gridEntry.edges);
+	if(selOut.elements_are_supported(SHE_FACE))
+		read_selector_elements<Face>(selOut, "faces",
 										selectorNode,
-										gridEntry.vertices);
-	read_selector_elements<EdgeBase>(selOut, "edges",
+										gridEntry.faces);
+	if(selOut.elements_are_supported(SHE_VOLUME))
+		read_selector_elements<Volume>(selOut, "volumes",
 										selectorNode,
-										gridEntry.edges);
-	read_selector_elements<Face>(selOut, "faces",
-									selectorNode,
-									gridEntry.faces);
-	read_selector_elements<Volume>(selOut, "volumes",
-									selectorNode,
-									gridEntry.volumes);
+										gridEntry.volumes);
 
 	return true;
 }
