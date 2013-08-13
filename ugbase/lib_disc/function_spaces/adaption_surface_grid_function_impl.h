@@ -10,6 +10,7 @@
 
 #include "adaption_surface_grid_function.h"
 #include "common/profiler/profiler.h"
+#include "lib_grid/algorithms/debug_util.h"
 
 #define GFUNCADAPT_PROFILE_FUNC()	PROFILE_FUNC_GROUP("gfunc-adapt")
 
@@ -46,8 +47,8 @@ copy_from_surface(const GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 	ConstSmartPtr<SurfaceView> spSurfView = rSurfaceFct.approx_space()->surface_view();
 	ConstSmartPtr<MultiGrid> spGrid = m_spDomain->grid();
 	typedef typename GridFunction<TDomain,TAlgebra>::template traits<TElem>::const_iterator iter_type;
-	iter_type iter = rSurfaceFct.template begin<TElem>();
-	iter_type iterEnd = rSurfaceFct.template end<TElem>();
+	iter_type iter = rSurfaceFct.template begin<TElem>(SurfaceView::ALL);
+	iter_type iterEnd = rSurfaceFct.template end<TElem>(SurfaceView::ALL);
 
 	for( ; iter != iterEnd; ++iter){
 
@@ -100,8 +101,7 @@ copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct, TElem* elem)
 
 	UG_ASSERT(vvVal.size() == m_spDDInfo->num_fct(), "Array says numFct: "<<
 	          vvVal.size()<<", but should be "<<m_spDDInfo->num_fct()<<" on "
-	          << elem->reference_object_id() << " of level "<<
-	          m_spDomain->grid()->get_level(elem));
+	          << ElementDebugInfo(*m_spDomain->grid(), elem));
 
 	for(size_t fct = 0; fct < vvVal.size(); ++fct){
 
@@ -127,8 +127,8 @@ copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 	ConstSmartPtr<MultiGrid> spGrid = m_spDomain->grid();
 
 	typedef typename GridFunction<TDomain,TAlgebra>::template traits<TElem>::const_iterator iter_type;
-	iter_type iter = rSurfaceFct.template begin<TElem>();
-	iter_type iterEnd = rSurfaceFct.template end<TElem>();
+	iter_type iter = rSurfaceFct.template begin<TElem>(SurfaceView::ALL);
+	iter_type iterEnd = rSurfaceFct.template end<TElem>(SurfaceView::ALL);
 
 	for( ; iter != iterEnd; ++iter)
 	{

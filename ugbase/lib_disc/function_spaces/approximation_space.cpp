@@ -18,6 +18,8 @@
 #include "lib_disc/dof_manager/surface_dof_distribution.h"
 #include "grid_function.h"
 
+//	for debugging only:
+//#include "lib_grid/file_io/file_io.h"
 
 namespace ug{
 
@@ -304,6 +306,15 @@ void IApproximationSpace::reinit()
 //	surface dd
 	for(size_t lev = 0; lev < m_vSurfDD.size(); ++lev)
 		if(m_vSurfDD[lev].valid()) m_vSurfDD[lev]->reinit();
+
+//	{
+//		static int counter = 0;
+//		std::stringstream ss;
+//		ss << "refreshed-surface-view-" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+//		UG_LOG("PERFORMING SURFACE VIEW DEBUG SAVE IN IApproximationSpace::reinit...\n");
+//		SaveSurfaceViewTransformed(*m_spMG, *m_spSurfaceView, ss.str().c_str(), 0.1);
+//		++counter;
+//	}
 }
 
 

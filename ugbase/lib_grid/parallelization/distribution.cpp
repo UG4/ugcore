@@ -2031,6 +2031,20 @@ bool DistributeGrid(MultiGrid& mg,
 		PerformValidityCheck(distGridMgr);
 	#endif
 
+////	DEBUGGING...
+//	{
+//		static int counter = 0;
+//		stringstream ss;
+//		ss << "parallel-grid-layout-after-redist-" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+//		UG_LOG("DEBUG SAVE OF PARALLEL GRID LAYOUT IN DistributeGrid\n");
+//		SaveParallelGridLayout(mg, ss.str().c_str(), 0.1);
+//		++counter;
+//
+//		if(!TestGridLayoutMap(mg, glm)){
+//			UG_THROW("TestGridLayoutMap failed after redistribution!");
+//		}
+//	}
+
 //	execute callbacks for external postprocessing
 	GDIST_PROFILE(gdist_ExternalPostProcessing);
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");

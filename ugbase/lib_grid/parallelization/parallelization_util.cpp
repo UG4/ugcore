@@ -209,7 +209,7 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 											slaveLayout.layout_on_level(i), verbose, toPosFace, true);
 		}
 	}
-	return bSuccess;
+	return pcl::AllProcsTrue(bSuccess);
 }
 
 bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm)
