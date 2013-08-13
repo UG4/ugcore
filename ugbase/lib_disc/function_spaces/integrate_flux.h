@@ -133,7 +133,7 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 
 	//	integrate elements of subset
 		try{
-		for(int d = 0; d < ssGrp.dim(i); ++d)
+		for(int d = 0; d < ssGrp.dim(i)+1; ++d)
 		{
 			if(d==0) 	  IntegrateDiscFlux<TGridFunction, 0>(vValue, Defect, fctGrp, si);
 			else if(d==1) IntegrateDiscFlux<TGridFunction, 1>(vValue, Defect, fctGrp, si);
