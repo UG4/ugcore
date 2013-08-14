@@ -323,8 +323,7 @@ access_inner(GeometricObject* elem)
 {
 	UG_ASSERT(m_fct < m_rASGF.m_aaValue[elem].size(), "Only storage for "
 	          <<m_rASGF.m_aaValue[elem].size()<<" fcts, but fct-cmp "
-	          <<m_fct<<" requested on "<<elem->reference_object_id() <<
-	          " on level "<<m_rASGF.m_spDomain->grid()->get_level(elem))
+	          <<m_fct<<" requested on "<< ElementDebugInfo(*m_rASGF.m_spDomain->grid(), elem))
 	std::vector<number>& vVal = m_rASGF.m_aaValue[elem][m_fct];
 	m_Val.resize(vVal.size());
 	for(size_t i = 0; i < vVal.size(); ++i)
@@ -349,8 +348,7 @@ access_closure(TBaseElem* elem)
 		TSubBaseElem* subElem = vSubElem[i];
 		UG_ASSERT(m_fct < m_rASGF.m_aaValue[subElem].size(), "Only storage for "
 		          <<m_rASGF.m_aaValue[subElem].size()<<" fcts, but fct-cmp "
-		          <<m_fct<<" requested on "<<subElem->reference_object_id() <<
-		          " on level "<<m_rASGF.m_spDomain->grid()->get_level(subElem))
+		          <<m_fct<<" requested on "<<ElementDebugInfo(*m_rASGF.m_spDomain->grid(), subElem))
 		std::vector<number>& vVal = m_rASGF.m_aaValue[subElem][m_fct];
 
 	//	get the orientation for this subelement
