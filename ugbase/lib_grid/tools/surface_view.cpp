@@ -266,8 +266,8 @@ mark_shadowing(bool markSides)
 		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
-//			if(surface_state(e).contains(UNASSIGNED))
-//				continue;
+			if(surface_state(e).contains(UNASSIGNED))
+				continue;
 
 			GeometricObject* p = mg.get_parent(e);
 			if(p && (surface_state(p).contains(SHADOW_COPY) || surface_state(p).contains(SHADOW_NONCOPY))){
