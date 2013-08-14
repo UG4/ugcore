@@ -96,124 +96,12 @@ void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 
 
 ////////////////////////////////////////////////////////////////////////
-//	AssignAssociatedVerticesToSubsets
-///	Assigns associated vertices of elements of type TElem in sh to sh.
-/**
- * Make sure that TElem is not of type VertexBase or any derivate.
- *
- * The method iterates over all elements of type TElem in sh and
- * assigns associated vertices to sh. The target subset-index is taken
- * from srcIndHandler.
- *
- * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
- * compatible types.
- *
- * This method is e.g. used for SurfaceView creation.
- */
-template <class TElem, class TSubsetHandler>
-void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
-									const ISubsetHandler& srcIndHandler);
-
-////////////////////////////////////////////////////////////////////////
-//	AssignAssociatedEdgesToSubsets
-///	Assigns associated edges of elements of type TElem in sh to sh.
-/**
- * Make sure that TElem is not of type EdgeBase or any derivate.
- *
- * The method iterates over all elements of type TElem in sh and
- * assigns associated edges to sh. The target subset-index is taken
- * from srcIndHandler.
- *
- * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
- * compatible types.
- *
- * This method is e.g. used for SurfaceView creation.
- */
-template <class TElem, class TSubsetHandler>
-void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
-									const ISubsetHandler& srcIndHandler);
-
-////////////////////////////////////////////////////////////////////////
-//	AssignAssociatedFacesToSubsets
-///	Assigns associated faces of elements of type TElem in sh to sh.
-/**
- * Make sure that TElem is not of type Face or any derivate.
- *
- * The method iterates over all elements of type TElem in sh and
- * assigns associated faces to sh. The target subset-index is taken
- * from srcIndHandler.
- *
- * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
- * compatible types.
- *
- * This method is e.g. used for SurfaceView creation.
- */
-template <class TElem, class TSubsetHandler>
-void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
-									const ISubsetHandler& srcIndHandler);
-
-////////////////////////////////////////////////////////////////////////
-//	AssignAssociatedFacesToSubsets
-///	Assigns associated sides of elements of type TElem in sh to sh.
-/**
- * The method iterates over all elements of type TElem in sh and
- * assigns associated sides to sh. The target subset-index is taken
- * from srcIndHandler.
- *
- * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
- * compatible types.
- *
- * This method is e.g. used for SurfaceView creation.
- */
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
-void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
-									const TSubsetHandlerSrc& srcIndHandler);
-
-////////////////////////////////////////////////////////////////////////
-//	AssignAssociatedLowerDimElems
-///	Assigns associated elements of elements of type TElem in sh to sh.
-/**
- * The method iterates over all elements of type TElem in sh and assigns
- * associated elements of lower dimension to sh. The subset-index to
- * which those elements are assigned are taken from srcIndHandler.
- *
- * Associated elements that are assigned to sh and have a subset-index
- * of -1 in srcIndHandler are assigned to the subset at alternativeSubsetIndex.
- *
- * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
- * compatible types.
- *
- * This method is e.g. used for SurfaceView creation.
- */
-template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
-void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
-									const TSubsetHandlerSrc& srcIndHandler);
-
-////////////////////////////////////////////////////////////////////////
-//	CreateSurfaceView
-///	Collects all elements between iterBegin and iterEnd that don't have any children.
-/**
- * DEPRECIATED
- *
- * Elements which are on the surface of the multi-grid-hierarchy
- * (elements that don't have children) are assigned to a subset of the
- * shSurfaceViewOut. The subset-index is taken from sh.
- *
- * TIterator has to be an STL compatible iterator, whose value-type is a
- * pointer to a VertexBase, EdgeBase, Face, Volume or derived class.
- *
- * make sure that all elements between iterBegin and iterEnd are members
- * of the given MultiGrid.
- *
- * This method will extend the surface-view. The caller is responsible for
- * clearing it before calling this method.
- */
-/*
+///	copies subset-indices to side-elements
+/**	Indices can be copied to all sides or to unassigned sides only.*/
 template <class TIterator>
-void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
-						ISubsetHandler& sh, TIterator iterBegin,
-						TIterator iterEnd);
-*/
+void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
+							TIterator elemsEnd, bool toUnassignedOnly);
+
 ////////////////////////////////////////////////////////////////////////
 //	AdjustSubsetsForLgmNg
 ///	reorders subsets in a way that allows for easy export to lgm-ng.
@@ -467,6 +355,101 @@ void AssignSubsetsByElementType(ISubsetHandler& sh);
 template <class TAAPosVRT>
 UG_API
 number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos);
+
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedVerticesToSubsets
+///	Assigns associated vertices of elements of type TElem in sh to sh.
+/**
+ * Make sure that TElem is not of type VertexBase or any derivate.
+ *
+ * The method iterates over all elements of type TElem in sh and
+ * assigns associated vertices to sh. The target subset-index is taken
+ * from srcIndHandler.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
+ */
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler);
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedEdgesToSubsets
+///	Assigns associated edges of elements of type TElem in sh to sh.
+/**
+ * Make sure that TElem is not of type EdgeBase or any derivate.
+ *
+ * The method iterates over all elements of type TElem in sh and
+ * assigns associated edges to sh. The target subset-index is taken
+ * from srcIndHandler.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
+ */
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler);
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedFacesToSubsets
+///	Assigns associated faces of elements of type TElem in sh to sh.
+/**
+ * Make sure that TElem is not of type Face or any derivate.
+ *
+ * The method iterates over all elements of type TElem in sh and
+ * assigns associated faces to sh. The target subset-index is taken
+ * from srcIndHandler.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
+ */
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler);
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedFacesToSubsets
+///	Assigns associated sides of elements of type TElem in sh to sh.
+/**
+ * The method iterates over all elements of type TElem in sh and
+ * assigns associated sides to sh. The target subset-index is taken
+ * from srcIndHandler.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
+ */
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler);
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedLowerDimElems
+///	Assigns associated elements of elements of type TElem in sh to sh.
+/**
+ * The method iterates over all elements of type TElem in sh and assigns
+ * associated elements of lower dimension to sh. The subset-index to
+ * which those elements are assigned are taken from srcIndHandler.
+ *
+ * Associated elements that are assigned to sh and have a subset-index
+ * of -1 in srcIndHandler are assigned to the subset at alternativeSubsetIndex.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ *
+ * This method is e.g. used for SurfaceView creation.
+ */
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler);
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

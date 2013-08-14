@@ -62,6 +62,257 @@ void MakeSubsetsConsecutive(SubsetHandler& sh)
 ///	Erases all subsets which do not contain any geometric objects
 void EraseEmptySubsets(ISubsetHandler& sh);
 
+
+template <class TElem>
+void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh,
+									  bool appendAtEnd)
+{
+	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, appendAtEnd,
+												IsNotInSubset(sh, -1));
+}
+
+template <class TElem>
+void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
+										Selector& sel, bool appendAtEnd)
+{
+	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, appendAtEnd,
+												IsSelected(sel));
+}
+
+template <class TElem>
+void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
+					bool appendAtEnd,
+					boost::function<bool (typename TElem::lower_dim_base_object*)>
+						cbIsSeparator)
+
+{
+	using namespace std;
+
+//	the element type of separating elements
+	typedef typename TElem::lower_dim_base_object	TSide;
+
+//	assign all elements to subset -1
+	sh.assign_subset(grid.begin<TElem>(), grid.end<TElem>(), -1);
+
+//	we'll keep all unassigned volumes in a selector.
+	Selector sel(grid);
+	sel.select(grid.begin<TElem>(), grid.end<TElem>());
+
+//	those vectors will be used to gather element neighbours.
+	vector<TSide*> vSides;
+	vector<TElem*> vElems;
+
+//	this stack contains all volumes that we still have to check for neighbours.
+	stack<TElem*> stkElems;
+
+//	now - while there are unassigned elements.
+	int subsetIndex = 0;
+	if(appendAtEnd)
+		subsetIndex = sh.num_subsets();
+	
+	while(!sel.empty())
+	{
+	//	choose the element with which we want to start
+	//	TODO: if material-points are supplied, this should be the
+	//		the element that contains the i-th material point.
+		stkElems.push(*sel.begin<TElem>());
+		while(!stkElems.empty())
+		{
+			TElem* elem = stkElems.top();
+			stkElems.pop();
+		//	if the volume is unselected it has already been processed.
+			if(!sel.is_selected(elem))
+				continue;
+			sel.deselect(elem);
+
+		//	assign elem to its new subset
+			sh.assign_subset(elem, subsetIndex);
+
+		//	check neighbour-elements, whether they belong to the same subset.
+		//	iterate through the sides of the element
+			for(uint i = 0; i < elem->num_sides(); ++i)
+			{
+			//	get the i-th side
+				TSide* side = grid.get_side(elem, i);
+
+			//	check whether the side is regarded as a separator.
+			//	If not, we'll add all associated elements.
+				if(!cbIsSeparator(side))
+				{
+					CollectAssociated(vElems, grid, side);
+
+				//	add all elements that are still selected (elem is not selected anymore).
+					for(uint j = 0; j < vElems.size(); ++j)
+					{
+						if(sel.is_selected(vElems[j]))
+							stkElems.push(vElems[j]);
+					}
+				}
+			}
+		}
+	//	the stack is empty. increase subset index.
+		subsetIndex++;
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////
+template <class TIterator>
+void CopySubsetIndicesToSides(ISubsetHandler& sh, TIterator elemsBegin,
+							TIterator elemsEnd, bool toUnassignedOnly)
+{
+	typedef typename PtrTypeToGeomObjBaseType<typename TIterator::value_type>::base_type TElem;
+	typedef typename TElem::side TSide;
+
+	if(!TElem::HAS_SIDES)
+		return;
+
+	UG_ASSERT(sh.grid(), "No grid assigned to subset-handler");
+
+	Grid& grid = *sh.grid();
+
+	typename Grid::traits<TSide>::secure_container	sides;
+	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
+		TElem* e = *iter;
+
+		int si = sh.get_subset_index(e);
+
+		grid.associated_elements(sides, e);
+		for(size_t i = 0; i < sides.size(); ++i){
+			TSide* s = sides[i];
+			if(toUnassignedOnly){
+				if(sh.get_subset_index(s) == -1)
+					sh.assign_subset(s, si);
+			}
+			else
+				sh.assign_subset(s, si);
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////
+template <class TElem, class TSubsetHandler>
+void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
+{
+	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
+
+//	access the grid on which sh operates.
+	if(!sh.grid())
+		return;
+
+	Grid& grid = *sh.grid();
+
+//	first make sure, that all elems are assigned to a subset, since
+//	those won't be processed later on.
+
+//	num is not part of ISubsetHandler and thus causes problems, if sh has type ISubsetHandler
+	//if(sh.template num<TElem>() != grid.num<TElem>()){
+		for(ElemIter iter = grid.begin<TElem>();
+			iter != grid.end<TElem>(); ++iter)
+		{
+			if(sh.get_subset_index(*iter) == -1)
+				sh.assign_subset(*iter, si);
+		}
+	//}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TSubsetHandler>
+void AdjustSubsetsForSimulation(TSubsetHandler& sh,
+								bool preserveExistingSubsets)
+{
+//	access the grid on which sh operates.
+	if(!sh.grid())
+		return;
+
+	Grid& grid = *sh.grid();
+	Selector sel(grid);
+
+	if(grid.num_volumes() > 0){
+	//	deselect all elements of lower dimension, if existing subsets are
+	//	not to be preserved.
+		if(!preserveExistingSubsets){
+			sh.assign_subset(grid.begin<Face>(), grid.end<Face>(), -1);
+			sh.assign_subset(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), -1);
+			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
+		}
+
+		AssignUnassignedElemsToSubset<Volume>(sh, GetFirstFreeSubset(sh));
+		AssignSidesToSubsets<Volume>(sh);
+
+		SelectInterfaceElements(sel, sh, grid.begin<Face>(), grid.end<Face>());
+		SelectBoundaryElements(sel, grid.begin<Face>(), grid.end<Face>());
+		SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>());
+		SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
+
+		AssignSidesToSubsets<Face>(sh, &sel);
+		AssignSidesToSubsets<EdgeBase>(sh, &sel);
+
+	//	finally assign vertices on edge interfaces
+		sel.clear<EdgeBase>();
+		sel.clear<VertexBase>();
+		SelectInterfaceElements(sel, sh, grid.begin<EdgeBase>(),
+								grid.end<EdgeBase>(), true);
+		sel.clear<Face>();
+		SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+
+		AssignSidesToSubsets<EdgeBase>(sh, &sel);
+	}
+	else if(grid.num_faces() > 0){
+	//	deselect all elements of lower dimension, if existing subsets are
+	//	not to be preserved.
+		if(!preserveExistingSubsets){
+			sh.assign_subset(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), -1);
+			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
+		}
+
+		AssignUnassignedElemsToSubset<Face>(sh, GetFirstFreeSubset(sh));
+		AssignSidesToSubsets<Face>(sh);
+
+		SelectInterfaceElements(sel, sh, grid.begin<EdgeBase>(), grid.end<EdgeBase>());
+		SelectBoundaryElements(sel, grid.begin<EdgeBase>(), grid.end<EdgeBase>());
+		SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+
+		AssignSidesToSubsets<EdgeBase>(sh, &sel);
+	}
+	else if(grid.num_edges() > 0){
+	//	deselect all elements of lower dimension, if existing subsets are
+	//	not to be preserved.
+		if(!preserveExistingSubsets){
+			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
+		}
+
+		AssignUnassignedElemsToSubset<EdgeBase>(sh, GetFirstFreeSubset(sh));
+		AssignSidesToSubsets<EdgeBase>(sh);
+	}
+	else{
+		AssignUnassignedElemsToSubset<VertexBase>(sh, GetFirstFreeSubset(sh));
+	}
+
+//	erase empty subsets again
+	EraseEmptySubsets(sh);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TAAPosVRT>
+number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
+{
+	number sum = 0.;
+	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
+
+	if (goc.num<Face>(lvl) == 0) {
+		UG_WARNING("WARNING: Given subset doesn't contain any faces on given level.");
+	} else {
+		typedef geometry_traits<Face>::const_iterator CIT;
+		for (CIT cit = goc.faces_begin(lvl); cit != goc.faces_end(lvl); cit++)
+			sum += FaceArea(*cit, aaPos);
+	}
+
+	return sum;
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	AssignAssociatedVerticesToSubset
 template <class TIterator>
@@ -226,238 +477,6 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 {
 	AssignAssociatedLowerDimElemsToSubsets<TElem>(sh,
 											srcIndHandler, TElem());
-}
-/*
-////////////////////////////////////////////////////////////////////////
-//	CreateSurfaceView
-template <class TIterator>
-void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
-						ISubsetHandler& sh, TIterator iterBegin,
-						TIterator iterEnd)
-{
-	UG_LOG("This version of CreateSurfaceView is DEPRECIATED!\n");
-	while(iterBegin != iterEnd)
-	{
-		if(!mg.has_children(*iterBegin)){
-			shSurfaceViewOut.assign_subset(*iterBegin,
-									sh.get_subset_index(*iterBegin));
-		}
-		++iterBegin;
-	}
-}
-*/
-template <class TElem>
-void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh,
-									  bool appendAtEnd)
-{
-	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, appendAtEnd,
-												IsNotInSubset(sh, -1));
-}
-
-template <class TElem>
-void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
-										Selector& sel, bool appendAtEnd)
-{
-	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, appendAtEnd,
-												IsSelected(sel));
-}
-
-template <class TElem>
-void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
-					bool appendAtEnd,
-					boost::function<bool (typename TElem::lower_dim_base_object*)>
-						cbIsSeparator)
-
-{
-	using namespace std;
-
-//	the element type of separating elements
-	typedef typename TElem::lower_dim_base_object	TSide;
-
-//	assign all elements to subset -1
-	sh.assign_subset(grid.begin<TElem>(), grid.end<TElem>(), -1);
-
-//	we'll keep all unassigned volumes in a selector.
-	Selector sel(grid);
-	sel.select(grid.begin<TElem>(), grid.end<TElem>());
-
-//	those vectors will be used to gather element neighbours.
-	vector<TSide*> vSides;
-	vector<TElem*> vElems;
-
-//	this stack contains all volumes that we still have to check for neighbours.
-	stack<TElem*> stkElems;
-
-//	now - while there are unassigned elements.
-	int subsetIndex = 0;
-	if(appendAtEnd)
-		subsetIndex = sh.num_subsets();
-	
-	while(!sel.empty())
-	{
-	//	choose the element with which we want to start
-	//	TODO: if material-points are supplied, this should be the
-	//		the element that contains the i-th material point.
-		stkElems.push(*sel.begin<TElem>());
-		while(!stkElems.empty())
-		{
-			TElem* elem = stkElems.top();
-			stkElems.pop();
-		//	if the volume is unselected it has already been processed.
-			if(!sel.is_selected(elem))
-				continue;
-			sel.deselect(elem);
-
-		//	assign elem to its new subset
-			sh.assign_subset(elem, subsetIndex);
-
-		//	check neighbour-elements, whether they belong to the same subset.
-		//	iterate through the sides of the element
-			for(uint i = 0; i < elem->num_sides(); ++i)
-			{
-			//	get the i-th side
-				TSide* side = grid.get_side(elem, i);
-
-			//	check whether the side is regarded as a separator.
-			//	If not, we'll add all associated elements.
-				if(!cbIsSeparator(side))
-				{
-					CollectAssociated(vElems, grid, side);
-
-				//	add all elements that are still selected (elem is not selected anymore).
-					for(uint j = 0; j < vElems.size(); ++j)
-					{
-						if(sel.is_selected(vElems[j]))
-							stkElems.push(vElems[j]);
-					}
-				}
-			}
-		}
-	//	the stack is empty. increase subset index.
-		subsetIndex++;
-	}
-}
-
-
-////////////////////////////////////////////////////////////////////////
-template <class TElem, class TSubsetHandler>
-void AssignUnassignedElemsToSubset(TSubsetHandler& sh, int si)
-{
-	typedef typename geometry_traits<TElem>::iterator 	ElemIter;
-
-//	access the grid on which sh operates.
-	if(!sh.grid())
-		return;
-
-	Grid& grid = *sh.grid();
-
-//	first make sure, that all elems are assigned to a subset, since
-//	those won't be processed later on.
-
-//	num is not part of ISubsetHandler and thus causes problems, if sh has type ISubsetHandler
-	//if(sh.template num<TElem>() != grid.num<TElem>()){
-		for(ElemIter iter = grid.begin<TElem>();
-			iter != grid.end<TElem>(); ++iter)
-		{
-			if(sh.get_subset_index(*iter) == -1)
-				sh.assign_subset(*iter, si);
-		}
-	//}
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TSubsetHandler>
-void AdjustSubsetsForSimulation(TSubsetHandler& sh,
-								bool preserveExistingSubsets)
-{
-//	access the grid on which sh operates.
-	if(!sh.grid())
-		return;
-
-	Grid& grid = *sh.grid();
-	Selector sel(grid);
-
-	if(grid.num_volumes() > 0){
-	//	deselect all elements of lower dimension, if existing subsets are
-	//	not to be preserved.
-		if(!preserveExistingSubsets){
-			sh.assign_subset(grid.begin<Face>(), grid.end<Face>(), -1);
-			sh.assign_subset(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), -1);
-			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
-		}
-
-		AssignUnassignedElemsToSubset<Volume>(sh, GetFirstFreeSubset(sh));
-		AssignSidesToSubsets<Volume>(sh);
-
-		SelectInterfaceElements(sel, sh, grid.begin<Face>(), grid.end<Face>());
-		SelectBoundaryElements(sel, grid.begin<Face>(), grid.end<Face>());
-		SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>());
-		SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
-
-		AssignSidesToSubsets<Face>(sh, &sel);
-		AssignSidesToSubsets<EdgeBase>(sh, &sel);
-
-	//	finally assign vertices on edge interfaces
-		sel.clear<EdgeBase>();
-		sel.clear<VertexBase>();
-		SelectInterfaceElements(sel, sh, grid.begin<EdgeBase>(),
-								grid.end<EdgeBase>(), true);
-		sel.clear<Face>();
-		SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
-
-		AssignSidesToSubsets<EdgeBase>(sh, &sel);
-	}
-	else if(grid.num_faces() > 0){
-	//	deselect all elements of lower dimension, if existing subsets are
-	//	not to be preserved.
-		if(!preserveExistingSubsets){
-			sh.assign_subset(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), -1);
-			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
-		}
-
-		AssignUnassignedElemsToSubset<Face>(sh, GetFirstFreeSubset(sh));
-		AssignSidesToSubsets<Face>(sh);
-
-		SelectInterfaceElements(sel, sh, grid.begin<EdgeBase>(), grid.end<EdgeBase>());
-		SelectBoundaryElements(sel, grid.begin<EdgeBase>(), grid.end<EdgeBase>());
-		SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
-
-		AssignSidesToSubsets<EdgeBase>(sh, &sel);
-	}
-	else if(grid.num_edges() > 0){
-	//	deselect all elements of lower dimension, if existing subsets are
-	//	not to be preserved.
-		if(!preserveExistingSubsets){
-			sh.assign_subset(grid.begin<VertexBase>(), grid.end<VertexBase>(), -1);
-		}
-
-		AssignUnassignedElemsToSubset<EdgeBase>(sh, GetFirstFreeSubset(sh));
-		AssignSidesToSubsets<EdgeBase>(sh);
-	}
-	else{
-		AssignUnassignedElemsToSubset<VertexBase>(sh, GetFirstFreeSubset(sh));
-	}
-
-//	erase empty subsets again
-	EraseEmptySubsets(sh);
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAAPosVRT>
-number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
-{
-	number sum = 0.;
-	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
-
-	if (goc.num<Face>(lvl) == 0) {
-		UG_WARNING("WARNING: Given subset doesn't contain any faces on given level.");
-	} else {
-		typedef geometry_traits<Face>::const_iterator CIT;
-		for (CIT cit = goc.faces_begin(lvl); cit != goc.faces_end(lvl); cit++)
-			sum += FaceArea(*cit, aaPos);
-	}
-
-	return sum;
 }
 
 }//	end of namespace
