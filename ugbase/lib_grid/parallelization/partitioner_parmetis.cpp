@@ -615,7 +615,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 			vector<idx_t> partitionMap(nVrts);
 			vector<real_t> tpwgts(numParts, 1. / (number)numParts);
 			real_t ubvec = 1.05;
-			real_t comVsRedistRation = 1000;
+			real_t comVsRedistRation = 0.1;
 
 		//todo: consider specified balance and connection weights!
 
