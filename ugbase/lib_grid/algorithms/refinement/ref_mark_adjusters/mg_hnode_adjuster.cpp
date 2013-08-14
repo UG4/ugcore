@@ -94,7 +94,7 @@ ref_marks_changed(IRefiner& ref,
 			}
 
 			if(gotConstraining)
-				ref.mark(parent);
+				ref.mark(parent, RM_DUMMY);
 		}
 	}
 }

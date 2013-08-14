@@ -102,7 +102,7 @@ mark(VertexBase* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v) || m_adjustingRefMarks){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_DUMMY)))
 				m_newlyMarkedRefVrts.push_back(v);
 			return true;
 		}
@@ -117,7 +117,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(EdgeBase* e, RefinementMark refMark
 	if(get_mark(e) != refMark){
 		if(refinement_is_allowed(e)){
 			m_selMarkedElements.select(e, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_DUMMY)))
 				m_newlyMarkedRefEdges.push_back(e);
 			return true;
 		}
@@ -133,7 +133,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Face* f, RefinementMark refMark)
 	if(get_mark(f) != refMark){
 		if(refinement_is_allowed(f)){
 			m_selMarkedElements.select(f, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_DUMMY)))
 				m_newlyMarkedRefFaces.push_back(f);
 			return true;
 		}
@@ -148,7 +148,7 @@ bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 	if(get_mark(v) != refMark){
 		if(refinement_is_allowed(v)){
 			m_selMarkedElements.select(v, refMark);
-			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC)))
+			if(m_adjustingRefMarks && (refMark & (RM_REFINE | RM_ANISOTROPIC | RM_DUMMY)))
 				m_newlyMarkedRefVols.push_back(v);
 			return true;
 		}
@@ -161,7 +161,7 @@ RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(VertexBase* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
+							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
@@ -169,7 +169,7 @@ RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(EdgeBase* e)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
+							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
@@ -177,7 +177,7 @@ RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Face* f)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(f)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
+							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>
@@ -185,7 +185,7 @@ RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(Volume* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
-							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN));
+							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN | RM_DUMMY));
 }
 
 template <class TSelector>

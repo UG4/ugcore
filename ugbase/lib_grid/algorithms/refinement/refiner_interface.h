@@ -20,6 +20,7 @@ enum RefinementMark{
 	RM_REFINE = 1,							///< regular refinement is performed
 	RM_ANISOTROPIC = RM_REFINE | 1 << 1,	///< anisotropic refinement is performed
 	RM_COARSEN = 1 << 2,		///< the element is coarsened (only valid for adaptive multi-grid refinement)
+	RM_DUMMY = 1 << 3,			///< used internally during mark-adjustment
 	RM_MAX						///< the highest constant in RefinementMark. Should always be smaller than 128!
 };
 
