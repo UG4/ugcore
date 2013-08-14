@@ -20,6 +20,8 @@
 
 //	for debugging only:
 //#include "lib_grid/file_io/file_io.h"
+//#define APPROX_SPACE_PERFORM_CHANGED_GRID_DEBUG_SAVES
+//#define APPROX_SPACE_PERFORM_DISTRIBUTED_GRID_DEBUG_SAVES
 
 namespace ug{
 
@@ -306,15 +308,6 @@ void IApproximationSpace::reinit()
 //	surface dd
 	for(size_t lev = 0; lev < m_vSurfDD.size(); ++lev)
 		if(m_vSurfDD[lev].valid()) m_vSurfDD[lev]->reinit();
-
-//	{
-//		static int counter = 0;
-//		std::stringstream ss;
-//		ss << "refreshed-surface-view-" << counter << "-p" << pcl::GetProcRank() << ".ugx";
-//		UG_LOG("PERFORMING SURFACE VIEW DEBUG SAVE IN IApproximationSpace::reinit...\n");
-//		SaveSurfaceViewTransformed(*m_spMG, *m_spSurfaceView, ss.str().c_str(), 0.1);
-//		++counter;
-//	}
 }
 
 
@@ -342,6 +335,27 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 			{
 				reinit();
 				m_bAdaptionIsActive = false;
+
+				#ifdef APPROX_SPACE_PERFORM_CHANGED_GRID_DEBUG_SAVES
+					{
+						static int counter = 0;
+						std::stringstream ss;
+						ss << "grid-changed-surface-view" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+						UG_LOG("PERFORMING SURFACE VIEW DEBUG SAVE IN IApproximationSpace::grid_changed_callback: " << ss.str() << "\n");
+						SaveSurfaceViewTransformed(*m_spMG, *m_spSurfaceView, ss.str().c_str(), 0.1);
+						++counter;
+					}
+					{
+						#ifdef UG_PARALLEL
+							static int counter = 0;
+							std::stringstream ss;
+							ss << "grid-changed-parallel-layout-" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+							UG_LOG("PERFORMING GRID LAYOUT DEBUG SAVE IN IApproximationSpace::grid_changed_callback: " << ss.str() << "\n");
+							SaveParallelGridLayout(*m_spMG, ss.str().c_str(), 0.1);
+							++counter;
+						#endif
+					}
+				#endif
 			}
 	}
 
@@ -362,6 +376,26 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 
 		case GMDT_DISTRIBUTION_STOPS:
 			reinit();
+			#ifdef APPROX_SPACE_PERFORM_DISTRIBUTED_GRID_DEBUG_SAVES
+				{
+					static int counter = 0;
+					std::stringstream ss;
+					ss << "grid-distributed-surface-view" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+					UG_LOG("PERFORMING SURFACE VIEW DEBUG SAVE IN IApproximationSpace::grid_distribution_callback: " << ss.str() << "\n");
+					SaveSurfaceViewTransformed(*m_spMG, *m_spSurfaceView, ss.str().c_str(), 0.1);
+					++counter;
+				}
+				{
+					#ifdef UG_PARALLEL
+						static int counter = 0;
+						std::stringstream ss;
+						ss << "grid-distributed-parallel-layout-" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+						UG_LOG("PERFORMING GRID LAYOUT DEBUG SAVE IN IApproximationSpace::grid_distribution_callback: " << ss.str() << "\n");
+						SaveParallelGridLayout(*m_spMG, ss.str().c_str(), 0.1);
+						++counter;
+					#endif
+				}
+			#endif
 			break;
 
 		default:
