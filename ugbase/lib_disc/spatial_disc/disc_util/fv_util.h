@@ -137,18 +137,59 @@ struct fv1_traits_ReferenceFace2d : public fv1_traits_ReferenceFace
 
 struct fv1_traits_ReferenceFace3d : public fv1_traits_ReferenceFace
 {
+	template <typename TElem>
+	static void NormalOnSCVF_Face(MathVector<3>& outNormal,
+							 const MathVector<3>* vSCVFCorner,
+							 const MathVector<3>* vElemCorner)
+	{
+		// compute Normal to Face (right-handed)
+		MathVector<3> ElemNormal;
+		ElementNormal<TElem,3>(ElemNormal, vElemCorner);
+
+		// compute a Point such that the triangle given by vSCVFCorner and p
+		// has the following property:
+		// a) The new Triangle is normal to the ElementFace
+		// b) The new Triangle contains the scvf
+		MathVector<3> p;
+		VecAdd(p, vSCVFCorner[0], ElemNormal);
+
+		MathVector<3> vNewTriangleCorner[3];
+		vNewTriangleCorner[0] = vSCVFCorner[0];
+		vNewTriangleCorner[1] = vSCVFCorner[1];
+		vNewTriangleCorner[2] = p;
+
+		// now compute Normal to new triangle. This Normal will be normal to
+		// the scvf and within the original element
+		ElementNormal<ReferenceTriangle, 3>(outNormal, vNewTriangleCorner);
+
+		// scale to normal to the size of the scvf
+		const number size = VecDistance(vSCVFCorner[0], vSCVFCorner[1]);
+		VecNormalize(outNormal, outNormal);
+		VecScale(outNormal, outNormal, size);
+	}
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
-		/*{UG_THROW("Not implemented");}*/
-		{ElementNormal<ReferenceQuadrilateral,3>(outNormal, vSCVFCorner);}	// mbreit: is that correct?
+		{UG_THROW("Not implemented.")}
 };
 
 template <> struct fv1_traits<ReferenceTriangle, 2> : public fv1_traits_ReferenceFace2d{};
-template <> struct fv1_traits<ReferenceTriangle, 3> : public fv1_traits_ReferenceFace3d{};
+template <> struct fv1_traits<ReferenceTriangle, 3> : public fv1_traits_ReferenceFace
+{
+	static void NormalOnSCVF(MathVector<3>& outNormal,
+							 const MathVector<3>* vSCVFCorner,
+							 const MathVector<3>* vElemCorner)
+		{fv1_traits_ReferenceFace3d::NormalOnSCVF_Face<ReferenceTriangle>(outNormal, vSCVFCorner, vElemCorner);}
+};
 
 template <> struct fv1_traits<ReferenceQuadrilateral, 2> : public fv1_traits_ReferenceFace2d{};
-template <> struct fv1_traits<ReferenceQuadrilateral, 3> : public fv1_traits_ReferenceFace3d{};
+template <> struct fv1_traits<ReferenceQuadrilateral, 3> : public fv1_traits_ReferenceFace
+{
+	static void NormalOnSCVF(MathVector<3>& outNormal,
+							 const MathVector<3>* vSCVFCorner,
+							 const MathVector<3>* vElemCorner)
+		{fv1_traits_ReferenceFace3d::NormalOnSCVF_Face<ReferenceQuadrilateral>(outNormal, vSCVFCorner, vElemCorner);}
+};
 
 /////////////////////////
 // 3D Reference Element
