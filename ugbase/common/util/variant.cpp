@@ -280,6 +280,9 @@ const void* Variant::to_const_pointer() const
 	if(m_type == VT_CONST_POINTER)
 		return m_constptr;
 
+	if(m_type == VT_POINTER)
+		return const_cast<const void*>(m_pointer);
+
 	UG_THROW("Variant: can't convert " << type_name() << " to const pointer.");
 }
 
@@ -295,6 +298,9 @@ ConstSmartPtr<void> Variant::to_const_smart_pointer() const
 {
 	if(m_type == VT_CONST_SMART_POINTER)
 		return *m_constsmartptr;
+
+	if(m_type == VT_SMART_POINTER)
+		return *m_smartptr;
 
 	UG_THROW("Variant: can't convert " << type_name() << " to const smart pointer.");
 }
