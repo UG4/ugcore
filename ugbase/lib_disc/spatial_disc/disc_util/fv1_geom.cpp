@@ -532,19 +532,11 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 //	compute global midpoints
 	ComputeMidPoints<worldDim, ref_elem_type, maxMid>(m_rRefElem, m_vvGloMid[0], m_vvGloMid);
 
-	UG_LOG("GEOM: Elem:\n");
-	for(size_t p = 0; p < m_rRefElem.num(0); ++p)
-		UG_LOG("GEOM: corner: "<<p<<" at "<<vCornerCoords[p]<< "\n");
-
 // 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 	// 	copy local corners of scvf
 		CopyCornerByMidID<worldDim, maxMid>(m_vSCVF[i].vGloPos, m_vSCVF[i].vMidID, m_vvGloMid, SCVF::numCo);
-
-		UG_LOG("GEOM: scvf "<<i<<":\n");
-		for(size_t p = 0; p < SCVF::numCo; ++p)
-			UG_LOG("GEOM:  scvf co: "<<p<<" at "<<m_vSCVF[i].vGloPos[p]<<"\n");
 
 	// 	integration point
 		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, SCVF::numCo);
