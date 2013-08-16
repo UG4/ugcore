@@ -1,6 +1,27 @@
 -- load balancing util
 -- created by Sebastian Reiter
+-- August 2013
 -- s.b.reiter@gmail.com
+
+--[[!
+\file scripts/util/load_balancing_util.lua
+\defgroup scripts_util_loadbalancing Load Balancing Utility
+\ingroup scripts_util
+\brief Parses parameters related to load-balancing and creates a load-balancer accordingly
+\author Sebastian Reiter
+
+All variables and functions in this script are contained in the namespace 'balancer'.
+A set of global parameters with initial values is defined together with the methods
+balancer.ParseParameters(), which is used to overwrite those initial values with
+user-specified parameters, and balancer.CreateLoadBalancer(domain) which creates
+a load-balancer for the specified domain according to the global parameters.
+
+If you want to overwrite the default parameter values in your script, make sure to
+assign them before calling balancer.ParseParameters but after loading this utility
+file.
+\{
+]]--
+
 
 ug_load_script("ug_util.lua")
 
@@ -21,6 +42,7 @@ balancer.regardAllChildren	= false
 balancer.partitioner		= "parmetis"
 
 
+--! Parses user-specified parameters related to load-balancing.
 function balancer.ParseParameters()
 	balancer.maxLvl			= util.GetParamNumber("-maxLvl", balancer.maxLvl,
 								"The maximum level allowed. Elements in this level won't be refined")
@@ -50,6 +72,9 @@ function balancer.ParseParameters()
 end
 
 
+--! Creates a load-balancer for the given domain. The returned class is of the type
+--! DomainLoadBalancer. The current set of global parameters in the balancer namespace
+--! steers the creation.
 function balancer.CreateLoadBalancer(domain)
 	local loadBalancer = nil
 	local numComputeProcs = GetNumProcesses()
@@ -110,3 +135,7 @@ function balancer.CreateLoadBalancer(domain)
 	
 	return loadBalancer
 end
+
+--[[!
+\}
+]]--
