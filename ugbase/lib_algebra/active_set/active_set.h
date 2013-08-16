@@ -71,8 +71,7 @@ class ActiveSet
 				function_type& gap);
 
 	///	computes the contact forces for a given contact disc
-		void contactForces(function_type& contactForce, function_type& rhs,
-				const function_type& u);
+		void contactForces(function_type& contactForce, const function_type& u);
 
 	///	computes the contact forces via the residuum
 		void contactForcesRes(vector_type& contactForce, const matrix_type& mat,

@@ -262,10 +262,10 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 					UG_LOG("locU_n_scaled:" << locU_n_scaled << "\n");
 				}
 
-				//	-1.0 * locCF corresponds to the lagrange multiplier lambda, c.f. Hintermueller/Ito/Kunisch(2003)
-				complementaryVal = -1.0 * locCF(fct ,dof) + locU(fct, dof) - locCons(fct, dof);
+				//	locCF corresponds to the lagrange multiplier lambda, c.f. Hintermueller/Ito/Kunisch(2003)
+				complementaryVal = locCF(fct ,dof) + locU(fct, dof) - locCons(fct, dof);
 				UG_LOG("complementaryVal: " << complementaryVal << "\n");
-				complementaryVal_n_scaled = -1.0 * locCF(fct ,dof) + locU_n_scaled - locCons(fct, dof);
+				complementaryVal_n_scaled = locCF(fct ,dof) + locU_n_scaled - locCons(fct, dof);
 				UG_LOG("complementaryVal_n_scaled: " << complementaryVal_n_scaled << "\n");
 
 				if (complementaryVal_n_scaled <= 1e-10)
@@ -385,7 +385,7 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 //	computes the contact forces for a given contact discretization
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::contactForces(function_type& contactforce,
-		function_type& rhs, const function_type& u)
+		const function_type& u)
 {
 	//	check that contact disc is set
 	if (m_spContactDisc.invalid())
@@ -437,7 +437,7 @@ void ActiveSet<TDomain, TAlgebra>::contactForcesRes(vector_type& contactforce,
 
 			//	contactForce = rhs - Mat * u;
 			BlockRef(contactforce[dof],fct) = BlockRef(rhs[dof],fct) - BlockRef(mat_u[dof],fct);
-			//BlockRef(rhs[dof],fct) = BlockRef(rhs[dof],fct) + BlockRef(contactforce[dof],fct);
+			//BlockRef(rhs[dof],fct) = BlockRef(rhs[dof],fct) - BlockRef(contactforce[dof],fct);
 		}
 
 		UG_LOG("new contactforce-values computed \n");
@@ -515,7 +515,8 @@ bool ActiveSet<TDomain, TAlgebra>::ActiveSetConvCheckElem(TIterator iterBegin,
 	//	loop over DoFs in element and store all activeMultiIndex-pairs in vector
 		size_t nFctElem = indU.num_fct();
 
-		number gap_value, locU_n, NormNormal, locU_n_scaled;
+		number gap_value, locU_n, locU_n_scaled;
+		number NormNormal = VecLength(normal);
 
 		for(size_t fct = 0; fct < nFctElem; ++fct)
 		{
@@ -526,13 +527,16 @@ bool ActiveSet<TDomain, TAlgebra>::ActiveSetConvCheckElem(TIterator iterBegin,
 				for(int i = 0; i < dim; ++i)
 					locUDof[i] = locU(i, dof);
 
+				UG_LOG("locUDof" << locUDof << "\n");
 				locU_n = VecDot(locUDof, normal);
-				NormNormal = VecLength(normal);
 				locU_n_scaled = locU_n / NormNormal;
 
-				gap_value = locCons(fct, dof) - locU_n_scaled;
+				UG_LOG("locCons(" << fct << "," << dof << "): " << locCons(fct, dof) << "\n");
+				UG_LOG("locU_n_scaled(" << fct << "," << dof << "): " << locU_n_scaled << "\n");
+				gap_value = locU_n_scaled - locCons(fct, dof); // - locU_n_scaled;
 
-				if (gap_value < -1e-10){
+				UG_LOG("gap_value(" << fct << "," << dof << "): " << gap_value << "\n");
+				if (gap_value > 1e-10){
 					//	i.e.: m_spConsGF < u
 					//	constraint is violated
 					return false;
@@ -621,8 +625,9 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const size_t ste
 		//	activeSet remains unchanged & constraint is fulfilled for all indices
 		return true;
 	}
-
-	return false;
+	else{
+		return false;
+	}
 }
 
 template <typename TDomain, typename TAlgebra>
