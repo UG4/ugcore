@@ -930,7 +930,9 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 	for(int lev = m_topLev; lev != m_baseLev; --lev)
 	{
-		copy_to_vertical_masters(*m_vLevData[lev]->u);
+		#ifdef UG_PARALLEL
+			copy_to_vertical_masters(*m_vLevData[lev]->u);
+		#endif
 
 	//	skip void level
 		if(m_vLevData[lev]->num_indices() == 0 ||
@@ -941,9 +943,11 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
 					"solution to coarse grid function of level "<<lev-1<<".\n");
 	}
-	if(m_baseLev != m_topLev){
-		copy_to_vertical_masters(*m_vLevData[m_baseLev]->u);
-	}
+	#ifdef UG_PARALLEL
+		if(m_baseLev != m_topLev){
+			copy_to_vertical_masters(*m_vLevData[m_baseLev]->u);
+		}
+	#endif
 
 	GMG_PROFILE_END();
 
