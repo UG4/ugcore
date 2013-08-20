@@ -18,6 +18,7 @@
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/preconditioner/preconditioners.h"
+#include "lib_algebra/operator/preconditioner/ilut_scalar.h"
 using namespace std;
 
 namespace ug{
@@ -128,7 +129,21 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILUT", tag);
 	}
-
+//	ILU Threshold Scalar
+	{
+		typedef ILUTScalarPreconditioner<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("ILUTScalar").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Scalar Incomplete LU Decomposition with threshold")
+			.add_constructor()
+			.template add_constructor<void (*)(number)>("threshold parameter")
+			.add_method("set_threshold", &T::set_threshold,
+						"", "threshold", "sets threshold of incomplete LU factorisation")
+			.add_method("set_info", &T::set_info,
+						"", "info", "sets storage information output")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ILUTScalar", tag);
+	}
 //	LinearIteratorProduct
 	{
 		typedef LinearIteratorProduct<vector_type, vector_type> T;
