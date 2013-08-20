@@ -47,9 +47,12 @@ public:
 
 	value_type &operator() (size_t r, size_t c)
 	{
-			return BlockRef(m_src(r, c), m_subr, m_subc);
+		return BlockRef(m_src(r, c), m_subr, m_subc);
 	};
-	const value_type &operator () (size_t r, size_t c)  const {return (r,c);}
+	const value_type &operator () (size_t r, size_t c)  const
+	{
+		return BlockRef(m_src(r, c), m_subr, m_subc);
+	}
 
 	//! returns number of rows
 	size_t num_rows() const
