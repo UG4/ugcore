@@ -195,7 +195,7 @@ void SplitAddRow_OneSide(TMatrix& A,
 				A(j, vConstrainingIndex[k][i]) += blockT;
 
 		//	coupling due to one side adding
-			const block_type& block = conn.value();
+			block_type block = conn.value();
 			A(addTo, j) += block;
 
 		//	set the splitted coupling to zero
