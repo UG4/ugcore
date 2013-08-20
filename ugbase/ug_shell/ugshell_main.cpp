@@ -59,12 +59,12 @@ void SharedLibrariesLoaded()
 // main
 int main(int argc, char* argv[])
 {			
+	PROFILE_FUNC();
+	PROFILE_BEGIN(ugshellInit);
+
 	#ifdef UG_PARALLEL
 		pcl::Init(&argc, &argv);
 	#endif
-
-	PROFILE_FUNC();
-	PROFILE_BEGIN(ugshellInit);
 
 
 //	check if an output-process has been specified
@@ -316,7 +316,6 @@ int main(int argc, char* argv[])
 						"if util ~= nil and util.PrintIgnoredArguments ~= nil then print(\"\") util.PrintIgnoredArguments() end\n"
 								, "");
 #endif
-
 			if(FindParam("-noquit", argc, argv))
 				runInteractiveShell = true;
 			else
