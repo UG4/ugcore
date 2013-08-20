@@ -15,6 +15,8 @@
 #endif
 #include "common/progress.h"
 #include "common/util/ostream_util.h"
+
+#include "lib_algebra/algebra_common/vector_util.h"
 namespace ug{
 
 template <typename TAlgebra>
@@ -141,6 +143,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					// so that A(i,k) is zero.
 					// safe A(i,k)/U(k,k) in con, (later L(i,k) )
 					block_type &d = con[i_it].dValue = con[i_it].dValue / ukk;
+					UG_ASSERT(BlockMatrixFiniteAndNotTooBig(d, 1e40), "i = " << i << " " << d);
 
 					typename matrix_type::row_iterator k_it = m_U.begin_row(k); // upper row iterator
 					++k_it; // skip diag
@@ -162,6 +165,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 							typename matrix_type::connection 
 								c(k_it.index(), k_it.value() * d * -1.0);
 							
+							UG_ASSERT(BlockMatrixFiniteAndNotTooBig(c.dValue, 1e40), "i = " << i << " " << c.dValue);
 							if(BlockNorm(c.dValue) > dmax * m_eps)
 							{
 								// insert sorted

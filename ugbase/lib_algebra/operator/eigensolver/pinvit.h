@@ -131,6 +131,33 @@ private:
 	size_t m_currentAdditionalCorrections;
 
 public:
+	string tostring()
+	{
+		std::stringstream ss;
+		ss << "PINVIT Eigensolver by Martin Rupp / G-CSC 2013." <<
+				"\n\tMaxIterations = " << m_maxIterations <<
+				"\n\tPrecision = " << m_dPrecision <<
+				"\n\tMinimumDefectToCalcCorrection = " << m_dMinimumDefectToCalcCorrection <<
+				"\n\tNumber of EV = " << px.size() <<
+				"\n\tPINVIT = " << m_iPINVIT << " = ";
+		if(m_iPINVIT == 1)
+			 ss << "Preconditioned Inverse Block Iteration [Neymeyr]";
+		else if(m_iPINVIT==2) ss << "Preconditioned Block Gradient Method";
+		else if(m_iPINVIT==3) ss << "LOBPCG (locally optimal block preconditioned gradient) [Knyazew]";
+		else if(m_iPINVIT>=4) ss << "gerneralized method PINVIT-method looking back " << m_iPINVIT-1 << " ev approximations.";
+
+		if(m_additionalEigenvectorsToKeep>0)
+		{
+			ss << "\n\tAdditionaly storing " << m_additionalEigenvectorsToKeep << " eigenvectors";
+		}
+		if(m_bUseAdditionalCorrections)
+			ss << "\n\tUsing additional Corrections.";
+
+		ss << "\n";
+		return ss.str();
+
+	}
+
 	PINVIT()
 	{
 		m_pA = NULL;
@@ -305,7 +332,7 @@ public:
 	int apply()
 	{
 		PINVIT_PROFILE_FUNC();
-		UG_LOG("Eigensolver\n");
+		UG_LOG(tostring() << "\nInitializing... ");
 		DenseMatrix<VariableArray2<double> > rA;
 		DenseMatrix<VariableArray2<double> > rB;
 		DenseMatrix<VariableArray2<double> > r_ev;
@@ -355,7 +382,11 @@ public:
 
 		std::vector<std::string> vTestVectorDescription;
 
+		UG_LOG("done.\n");
+		UG_LOG("PINVIT: Initializing preconditioner... ");
 		m_spPrecond->init(m_pA);
+		UG_LOG("done.\n");
+
 #ifdef UG_PARALLEL
 		pcl::ProcessCommunicator pc;
 #endif
@@ -801,7 +832,7 @@ private:
 					}
 				}
 				else
-				{	UG_LOG("WARNING ev [" << i << "] not normal or too big");	}
+				{	UG_LOG("WARNING ev [" << i << "] not normal or too big\n");	}
 			}
 
 			for(size_t i=0; i<numCorrections; i++)
@@ -812,7 +843,9 @@ private:
 					vTestVectorDescription.push_back(vCorrectionName[i]);
 				}
 				else
-				{	UG_LOG("WARNING correction [" << i << "] not normal or too big");	}
+				{
+					UG_LOG("WARNING correction [" << i << "] not normal or too big\n");
+				}
 			}
 
 		}
@@ -824,7 +857,7 @@ private:
 				vTestVectorDescription.push_back(std::string("additional [") + ToString(i) + std::string("]") );
 			}
 			else
-			{	UG_LOG("WARNING additional [" << i << "] not normal or too big");	}
+			{	UG_LOG("WARNING additional [" << i << "] not normal or too big\n");	}
 		}
 	}
 
@@ -944,6 +977,8 @@ private:
 
 
 	}
+
+
 
 
 };

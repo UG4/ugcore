@@ -15,22 +15,44 @@
 #endif
 
 namespace ug{
-template<typename TVector>
-bool IsFiniteAndNotTooBig(const TVector &v, double tooBigValue=1e24)
+
+template<typename TBlock>
+bool BlockVectorFiniteAndNotTooBig(TBlock &v, double tooBigValue=1e24)
 {
-	for(size_t i=0; i<v.size(); i++)
+	for(size_t j=0; j< GetSize(v); j++)
 	{
-		for(size_t j=0; j< GetSize(v[i]); j++)
-		{
-			double d = BlockRef(v[i], j);
-			if(d > tooBigValue || d < -tooBigValue || isfinite(d) == false)
+		double d = BlockRef(v, j);
+		if(d > tooBigValue || d < -tooBigValue || std::isfinite(d) == false)
 				return false;
-		}
 	}
 	return true;
 }
 
+template<typename TBlock>
+bool BlockMatrixFiniteAndNotTooBig(TBlock &m, double tooBigValue=1e24)
+{
+	for(size_t r=0; r<GetRows(m); r++)
+		for(size_t c=0; c< GetCols(m); c++)
+		{
+			double d = BlockRef(m, r, c);
+			if(d > tooBigValue || d < -tooBigValue || std::isfinite(d) == false)
+					return false;
+		}
+
+	return true;
+}
+
+
 template<typename TVector>
+bool IsFiniteAndNotTooBig(const TVector &v, double tooBigValue=1e24)
+{
+	for(size_t i=0; i<v.size(); i++)
+		if(BlockVectorFiniteAndNotTooBig(v[i], tooBigValue) == false)
+			return false;
+	return true;
+}
+
+/*template<typename TVector>
 bool IsFinite(const TVector &v)
 {
 	for(size_t i=0; i<v.size(); i++)
@@ -43,7 +65,7 @@ bool IsFinite(const TVector &v)
 		}
 	}
 	return true;
-}
+}*/
 
 #ifdef UG_PARALLEL
 template<typename TVector>
