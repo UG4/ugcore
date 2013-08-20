@@ -111,6 +111,7 @@ static void Domain(Registry& reg, string grp)
 				.add_method("set_regard_all_children", &T::set_regard_all_children)
 				.add_method("set_child_weight", &T::set_child_weight)
 				.add_method("set_sibling_weight", &T::set_sibling_weight)
+				.add_method("set_itr_factor", &T::set_itr_factor)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Partitioner_Parmetis", tag);
 		}

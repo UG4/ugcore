@@ -22,6 +22,7 @@ Partitioner_Parmetis() :
 	m_mg(NULL),
 	m_childWeight(1),
 	m_siblingWeight(2),
+	m_comVsRedistRatio(1000),
 	m_regardAllChildren(false)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
@@ -615,7 +616,7 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 			vector<idx_t> partitionMap(nVrts);
 			vector<real_t> tpwgts(numParts, 1. / (number)numParts);
 			real_t ubvec = 1.05;
-			real_t comVsRedistRation = 0.1;
+			real_t comVsRedistRation = m_comVsRedistRatio;
 
 		//todo: consider specified balance and connection weights!
 
@@ -790,6 +791,13 @@ void Partitioner_Parmetis<dim>::
 set_sibling_weight(int w)
 {
 	m_siblingWeight = w;
+}
+
+template<int dim>
+void Partitioner_Parmetis<dim>::
+set_itr_factor(float itr)
+{
+	m_comVsRedistRatio = itr;
 }
 
 template<int dim>

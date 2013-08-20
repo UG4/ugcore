@@ -284,6 +284,9 @@ presmooth(size_t lev)
 //	copy the values from the whole grid level to the smoothing patch.
 	m_vLevData[lev]->copy_defect_to_smooth_patch();
 
+	write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_BeforePreSmooth", lev);
+	write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_BeforePreSmooth", lev);
+
 // 	pre-smoothing
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
 	GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());
@@ -295,6 +298,9 @@ presmooth(size_t lev)
 		return false;
 	}
 	GMG_PROFILE_END();
+
+	write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_AfterPreSmooth", lev);
+	write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_AfterPreSmooth", lev);
 
 //	now copy the values of d back to the whole grid, since the restriction
 //	acts on the whole grid. Since we will perform an addition of the vertical
@@ -732,12 +738,8 @@ lmgc(size_t lev)
 		{
 			m_vLevData[lev]->c->set(0.0); // <<<< only for debug
 		//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
-			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_BeforePreSmooth", lev);
-			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_BeforePreSmooth", lev);
 			if(!presmooth(lev))
 				return false;
-			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_AfterPreSmooth", lev);
-			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_AfterPreSmooth", lev);
 
 		//	UG_LOG("Before restriction:\n");	log_level_data(lev);
 			if(!restriction(lev))
@@ -928,6 +930,8 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 	for(int lev = m_topLev; lev != m_baseLev; --lev)
 	{
+		copy_to_vertical_masters(*m_vLevData[lev]->u);
+
 	//	skip void level
 		if(m_vLevData[lev]->num_indices() == 0 ||
 			m_vLevData[lev-1]->num_indices() == 0) continue;
@@ -937,7 +941,21 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
 					"solution to coarse grid function of level "<<lev-1<<".\n");
 	}
+	if(m_baseLev != m_topLev){
+		copy_to_vertical_masters(*m_vLevData[m_baseLev]->u);
+	}
+
 	GMG_PROFILE_END();
+
+	if(!m_spDebugWriter.invalid()){
+		write_surface_debug(u, "surface_solution");
+		std::vector<vector_type*> lvlSol = level_solutions();
+		for(size_t i = 0; i < lvlSol.size(); ++i){
+			if(lvlSol[i])
+				write_level_debug(*lvlSol[i], "projected_solution", i);
+		}
+	}
+
 
 //	init common
 	if(!init_common())
@@ -2087,7 +2105,6 @@ gather_vertical(vector_type& d)
 	PROFILE_FUNC_GROUP("gmg");
 
 //	send vertical-slaves -> vertical-masters
-//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
 
 	if(!d.layouts()->vertical_slave().empty()){
@@ -2163,7 +2180,6 @@ gather_vertical_copy(vector_type& d)
 	PROFILE_FUNC_GROUP("gmg");
 
 //	send vertical-slaves -> vertical-masters
-//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
 	ComPol_VecCopy<vector_type> cpVecCopy(&d);
 	if(!d.layouts()->vertical_slave().empty()){
@@ -2200,7 +2216,6 @@ gather_on_ghosts(vector_type& d, vector_type& tmp, std::vector<int>& mapGlobalTo
 	UG_ASSERT(d.size() == tmp.size(), "d and tmp have to be of the same size!");
 
 //	send vertical-slaves -> vertical-masters
-//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
 	tmp = d;
 	ComPol_VecAdd<vector_type> cpVecAdd(&tmp);
@@ -2257,7 +2272,6 @@ broadcast_vertical(vector_type& t)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - broadcast_vertical\n");
 	PROFILE_FUNC_GROUP("gmg");
 //	send vertical-masters -> vertical-slaves
-//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 	ComPol_VecCopy<vector_type> cpVecCopy(&t);
 	if(!t.layouts()->vertical_slave().empty())
@@ -2292,7 +2306,6 @@ broadcast_vertical_add(vector_type& d)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - broadcast_vertical\n");
 	PROFILE_FUNC_GROUP("gmg");
 //	send vertical-masters -> vertical-slaves
-//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 
 //	deadly v-interfaces of crossing death make the resulting defect consistent
@@ -2369,8 +2382,7 @@ copy_to_horizontal_slaves(vector_type& c)
 {
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_horizontal_slaves\n");
 	PROFILE_FUNC_GROUP("gmg");
-//	send vertical-masters -> vertical-slaves
-//	one proc may not have both, a vertical-slave- and vertical-master-layout.
+
 	GMG_PROFILE_BEGIN(GMG_CopyToHorizontalSlaves);
 	ComPol_VecCopy<vector_type> cpVecCopy(&c);
 	if(!c.layouts()->slave().empty())
@@ -2383,6 +2395,29 @@ copy_to_horizontal_slaves(vector_type& c)
 	m_Com.communicate();
 	GMG_PROFILE_END();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_horizontal_slaves\n");
+}
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+copy_to_vertical_masters(vector_type& c)
+{
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
+	PROFILE_FUNC_GROUP("gmg");
+//	send vertical-slaves -> vertical-masters
+	GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
+	ComPol_VecCopy<vector_type> cpVecCopy(&c);
+
+	if(!c.layouts()->vertical_master().empty())
+		m_Com.receive_data(c.layouts()->vertical_master(), cpVecCopy);
+
+	if(!c.layouts()->vertical_slave().empty())
+		m_Com.send_data(c.layouts()->vertical_slave(), cpVecCopy);
+
+//	communicate
+	m_Com.communicate();
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
 }
 
 #endif

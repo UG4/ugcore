@@ -29,14 +29,15 @@ balancer = balancer or {}
 
 balancer.maxLvl 		= 100
 balancer.firstDistLvl	= -1
-balancer.firstDistProcs	= 2
+balancer.firstDistProcs	= 256
 balancer.redistSteps	= 2
-balancer.redistProcs	= 2
+balancer.redistProcs	= 256
 
 balancer.parallelElementThreshold = 16
 balancer.qualityThreshold	= 0.8
 balancer.childWeight		= 2
 balancer.siblingWeight		= 2
+balancer.itrFactor			= 1000
 balancer.regardAllChildren	= false
 
 balancer.partitioner		= "parmetis"
@@ -64,11 +65,37 @@ function balancer.ParseParameters()
 									"Children of elements in distribution levels are weighted with this number. integer number >= 1")
 	balancer.siblingWeight		= util.GetParamNumber("-siblingWeight", balancer.siblingWeight,
 									"Siblings always have to be located on 1 proc. This is considered during redistribution with this weight. integer number >= 1")
+	balancer.itrFactor			= util.GetParamNumber("-itrFactor", balancer.itrFactor,
+									"Weights the cost of communication versus redistribution. "..
+									"Values in the range from 0.000001 to 1000000. A low value means that "..
+									"communication time is considered low compared to redistribution time while "..
+									"a high value means the contrary. Default is 1000.")
 	balancer.regardAllChildren	= util.HasParamOption("-regardAllChildren",
 									"Regard all children during partitioning to calculate the weight of a parent")
 
 	balancer.partitioner		= util.GetParam("-partitioner", balancer.partitioner,
 									"(Options: parmetis, bisection) The partitioner which will be used during repartitioning.")
+end
+
+--! Prints the balancing parameters
+function balancer.PrintParameters()
+	print(" load balancing parameters:")
+	print("    maxLvl                   = " .. balancer.maxLvl)
+	print("    firstDistLvl             = " .. balancer.firstDistLvl)
+	print("    firstDistProcs           = " .. balancer.firstDistProcs)
+	print("    redistSteps              = " .. balancer.redistSteps)
+	print("    redistProcs              = " .. balancer.redistProcs)
+	print("    parallelElementThreshold = " .. balancer.parallelElementThreshold)
+	print("    qualityThreshold         = " .. balancer.qualityThreshold)
+	print("    childWeight              = " .. balancer.childWeight)
+	print("    siblingWeight            = " .. balancer.siblingWeight)
+	print("    itrFactor                = " .. balancer.itrFactor)
+	if balancer.regardAllChildren == true then
+		print("    regardAllChildren          active")
+	else
+		print("    regardAllChildren          inactive")
+	end
+	print("    partitioner              = " .. balancer.partitioner)
 end
 
 
@@ -88,6 +115,7 @@ function balancer.CreateLoadBalancer(domain)
 				local partitioner = Partitioner_Parmetis()
 				partitioner:set_child_weight(balancer.childWeight)
 				partitioner:set_sibling_weight(balancer.siblingWeight)
+				partitioner:set_itr_factor(balancer.itrFactor)
 				partitioner:set_verbose(false)
 				partitioner:set_regard_all_children(balancer.regardAllChildren)
 				loadBalancer:set_partitioner(partitioner)
@@ -108,20 +136,30 @@ function balancer.CreateLoadBalancer(domain)
 		
 	--	todo: use a more sophisticated algorithm to add distribution levels
 		local lvl = balancer.redistSteps
+		local procsTotal = 1
 		if balancer.firstDistLvl ~= -1 then
-			loadBalancer:add_distribution_level(balancer.firstDistLvl,
-												balancer.firstDistProcs)
+			local numNew = balancer.firstDistProcs
+			if(numNew > numComputeProcs) then
+				numNew = numComputeProcs
+			end
+			loadBalancer:add_distribution_level(balancer.firstDistLvl, numNew)
 			lvl = balancer.firstDistLvl + balancer.redistSteps
+			procsTotal = numNew
 		end
 		
 		if balancer.redistSteps > 0 then
 			local numNewProcs = balancer.redistProcs
-			local procsTotal = 1
 			--while procsTotal < numComputeProcs do
 			for i = 1, balancer.maxLvl do
-				procsTotal = procsTotal * numNewProcs
-				if procsTotal <= numComputeProcs then
+				if procsTotal * numNewProcs <= numComputeProcs then
 					loadBalancer:add_distribution_level(lvl, numNewProcs)
+					procsTotal = procsTotal * numNewProcs
+				elseif procsTotal <= numComputeProcs then
+					local numNew = math.floor(numComputeProcs / procsTotal)
+					if(numNew > 0) then
+						loadBalancer:add_distribution_level(lvl, numNew)
+						procsTotal = procsTotal * numNew
+					end
 				else
 					loadBalancer:add_distribution_level(lvl, 1)
 				end

@@ -103,6 +103,56 @@ function util.CheckSubsets(dom, neededSubsets)
 	return true
 end
 
+
+--! Creates a new domain and loads the specified grid. The method then performs
+--! numRefs global refinements.
+--! A list of subset-names can be specified which have to be present in the loaded grid.
+--! The method returns the created domain.
+--! @note Some paramters are optional. nil is a valid value for each optional parameter.
+--! @return	(Domain) the created domain
+--! @param gridName	(string) The filename of the grid which shall be loaded.
+--!					The grid is searched in a path relative to the current path
+--!					first. If it isn't found there, the path is interpreted as
+--!					an absolute path. If the grid still can't be found, the method
+--!					tries to load it from UG_BASE/data/grids.
+--! @param numRefs	(int) The total number of global refinements
+--! @param numPreRefs	(int) The number of refinements that are performed before
+--!						distribution.
+--! @param neededSubsets	(optional, list of strings) The subsets that are required
+--!							by the simulation. If not all those subsets are present,
+--!							the method aborts. Default is an empty list.
+function util.CreateDomain(gridName, numRefs, neededSubsets)
+
+	-- create Instance of a Domain
+	local dom = Domain()
+	
+	-- load domain
+	LoadDomain(dom, gridName)
+	
+	-- Create a refiner instance. This is a factory method
+	-- which automatically creates a parallel refiner if required.
+	local refiner = nil
+	if numRefs > 0 then
+		refiner = GlobalDomainRefiner(dom)
+		for i=1,numRefs do
+			refiner:refine()
+		end
+		delete(refiner)
+	end
+	
+	-- check whether required subsets are present
+	if neededSubsets ~= nil then
+		if util.CheckSubsets(dom, neededSubsets) == false then 
+			print("Something wrong with required subsets. Aborting.");
+			exit();
+		end
+	end
+	
+	-- return the created domain
+	return dom
+end
+
+
 --! Creates a new domain and loads the specified grid. The method then performs
 --! numPreRefs refinements before it distributes the domain onto the available
 --! processes. The partitioning method can be chosen through distributionMethod.
@@ -206,6 +256,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	-- return the created domain
 	return dom
 end
+
 
 --------------------------------------------------------------------------------
 -- some auxiliary functions

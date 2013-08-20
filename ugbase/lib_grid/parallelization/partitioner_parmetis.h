@@ -50,6 +50,12 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		void set_child_weight(int w);
 		void set_sibling_weight(int w);
 
+	///	Weights the cost of communication versus redistribution.
+	/**	values in the range from 0.000001 to 1000000. A low value means that
+	 * communication time is considered low compared to redistribution time while
+	 * a high value means the contrary. Default is 1000.*/
+		void set_itr_factor(float itr);
+
 	private:
 	///	fills m_aNumChildren with child-counts from levels baseLvl to topLvl.
 	/**	Elements in topLvl have child-count 0.*/
@@ -83,6 +89,7 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 
 		int	m_childWeight;
 		int	m_siblingWeight;
+		float m_comVsRedistRatio;
 		bool m_regardAllChildren;
 };
 
