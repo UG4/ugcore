@@ -523,14 +523,14 @@ class LocalMatrix
 	///	returns the number of currently accessible (restricted) functions
 		size_t num_row_fct() const
 		{
-			if(m_pRowFuncMap == NULL) return m_pRowFuncMap->num_fct();
+			if(m_pRowFuncMap != NULL) return m_pRowFuncMap->num_fct();
 			return m_CplMatAcc.num_rows();
 		}
 
 	///	returns the number of currently accessible (restricted) functions
 		size_t num_col_fct() const
 		{
-			if(m_pColFuncMap == NULL) return m_pColFuncMap->num_fct();
+			if(m_pColFuncMap != NULL) return m_pColFuncMap->num_fct();
 			return m_CplMatAcc.num_cols();
 		}
 
