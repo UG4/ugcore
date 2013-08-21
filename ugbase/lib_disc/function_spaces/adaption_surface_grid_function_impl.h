@@ -57,15 +57,6 @@ copy_from_surface(const GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 
 		// copy indices to attachment
 		copy_from_surface(rSurfaceFct, elem);
-
-		// get shadows if present and copy their values
-		TElem* parent = dynamic_cast<TElem*>(spGrid->get_parent(elem));
-		while(parent && spSurfView->is_shadowed(parent)){
-			copy_from_surface(rSurfaceFct, parent);
-			elem = parent;
-			parent = dynamic_cast<TElem*>(spGrid->get_parent(elem));
-		}
-
 	}
 }
 
@@ -135,14 +126,6 @@ copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 		TElem* elem = *iter;
 
 		copy_to_surface(rSurfaceFct, elem);
-
-		// get shadows if present and copy their values
-		TElem* parent = dynamic_cast<TElem*>(spGrid->get_parent(elem));
-		while(parent && spSurfView->is_shadowed(parent)){
-			copy_to_surface(rSurfaceFct, parent);
-			elem = parent;
-			parent = dynamic_cast<TElem*>(spGrid->get_parent(elem));
-		}
 	}
 }
 
