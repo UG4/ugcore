@@ -71,8 +71,13 @@ void SurfaceDoFDistribution::reinit()
 			SurfaceView::SurfaceState state = sv.get_surface_state(elem);
 			if(state.contains(SurfaceView::SHADOW_COPY)){
 			//	only if the element hasn't got children locally, we'll assign a dof.
-				if(mg.has_children(elem))
-					continue;
+//				if(mg.has_children(elem))
+//					continue;
+				if(mg.num_children<TBaseElem>(elem) > 0){
+					TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
+					if(sv.get_surface_state(child).contains(SurfaceView::SHADOWING))
+						continue;
+				}
 			}
 
 		//	create a dof and copy it down to SHADOW_COPY parents
