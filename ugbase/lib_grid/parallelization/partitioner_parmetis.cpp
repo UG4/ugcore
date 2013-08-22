@@ -386,8 +386,24 @@ partition(size_t baseLvl, size_t elementThreshold)
 				}
 			//	we can't perform partitioning on this hierarchy level.
 			//	Simply assign all elements of this hierarchy level to the local proc.
-				for(int i = minLvl; i <= maxLvl; ++i)
+				ComPol_Subset<layout_t>	compolSHCopy(m_sh, true);
+				for(int i = minLvl; i <= maxLvl; ++i){
 					m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
+				//	communicate vslave->vmaster
+					if(mg.is_parallel()){
+						GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
+						if(glm.has_layout<elem_t>(INT_V_MASTER)){
+							m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(i),
+												 compolSHCopy);
+						}
+						if(glm.has_layout<elem_t>(INT_V_SLAVE)){
+							m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(i),
+													compolSHCopy);
+						}
+					}				
+				}
+				if(mg.is_parallel())
+					m_intfcCom.communicate();
 				continue;
 			}
 		}
@@ -411,13 +427,15 @@ partition(size_t baseLvl, size_t elementThreshold)
 		}
 
 	//	assign partitions to all children in this hierarchy level
-		for(int lvl = minLvl; lvl < maxLvl; ++lvl){
-			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
-			{
-				size_t numChildren = mg.num_children<elem_t>(*iter);
-				int si = m_sh.get_subset_index(*iter);
-				for(size_t i = 0; i < numChildren; ++i)
-					m_sh.assign_subset(mg.get_child<elem_t>(*iter, i), si);
+		for(int lvl = minLvl; lvl <= maxLvl; ++lvl){
+			if(lvl < maxLvl){
+				for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
+				{
+					size_t numChildren = mg.num_children<elem_t>(*iter);
+					int si = m_sh.get_subset_index(*iter);
+					for(size_t i = 0; i < numChildren; ++i)
+						m_sh.assign_subset(mg.get_child<elem_t>(*iter, i), si);
+				}
 			}
 
 			if(mg.is_parallel()){
