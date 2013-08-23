@@ -55,9 +55,9 @@ EOF
 	cat >> job.sh << EOF
 # @ job_type = bluegene
 # @ bg_connection = TORUS
-# @ bg_size = $npe
+# @ bg_size = $nnodes
 # @ queue
-runjob --np $npe -exe $executable -args $args
+runjob --np $npe --ranks-per-node $nppnmax: $executable $args
 EOF
 
 	echo job.sh
@@ -76,8 +76,8 @@ EOF
 
 function UJS_GetOptions
 {
-	nppnmax=4
-	pemax=1024
+	nppnmax=16
+	pemax=65536
 }
 
 
