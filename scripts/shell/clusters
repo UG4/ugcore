@@ -30,6 +30,8 @@ elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
 
 	source $scriptpath/schedulers/jugene
 	
+elif [ $UGSUBMIT_TYPE == "Juqueen" ]; then
+	source $scriptpath/schedulers/juqueen
 elif [ $UGSUBMIT_TYPE == "mpi" ]; then
 
 	source $scriptpath/schedulers/mpi

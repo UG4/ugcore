@@ -1,0 +1,94 @@
+######################################################################
+#                            Juqueen
+#-------------------------------------------------------------------
+# http://cizeta.gcsc.uni-frankfurt.de/job/ug-doc/doxygen/page_u_g4_parallel_ju_queen.html
+######################################################################
+
+function UJS_Submit
+{
+	echo ""; echo "On Juqueen, using ll_submit"
+	
+	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
+	
+	if [ $interactive == true ]; then
+		echo "interactive mode is not supported at the moment"
+	fi
+
+	cat > $outdir/job.sh << EOF
+# @ job_name = $jobname
+# @ comment = $executable $args
+# @ error = $outdir/job.error
+# @ output = $outdir/job.output
+# @ environment = COPY_ALL
+# @ wall_clock_limit = $walltime
+EOF
+	if [ $mail == true ]; then 
+		if [ -z "$UGSUBMIT_EMAIL" ]; then
+			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			exit
+		fi
+
+		JugeneNotification="never"
+		if [ $mailStart == true ]; then
+			JugeneNotification="start"
+		fi
+		if [ $mailEnd == true ]; then
+			if [ $JugeneNotification == "never" ]; then
+				JugeneNotification="stop"
+			else
+				JugeneNotification="always"
+			fi
+		fi
+		if [ $mailError == true ]; then
+			if [ $JugeneNotification == "never" ]; then
+				JugeneNotification="error"
+			else
+				JugeneNotification="always"
+			fi
+		fi	 
+		
+		cat >> job.sh << EOF
+# @ notification = $JugeneNotification
+# @ notify_user = $UGSUBMIT_EMAIL
+EOF
+	fi
+	cat >> job.sh << EOF
+# @ job_type = bluegene
+# @ bg_connection = TORUS
+# @ bg_size = $npe
+# @ queue
+runjob --np $npe -exe $executable -args $args
+EOF
+
+	echo job.sh
+	if [ $test == true ]; then
+		echo "test. not executing."
+		echo $outdir/job.sh ":"
+		cat $outdir/job.sh
+		cd $outdir/..
+		#rm -rf $outdir/
+		exit
+	fi
+	
+#todo: uncomment next line, get jobid=
+ ll_submit $outdir/job.sh
+}
+
+function UJS_GetOptions
+{
+	nppnmax=4
+	pemax=1024
+}
+
+
+function UJS_Info
+{
+	echo "Using Jugene"
+	echo "to be implemented"
+}
+
+function UJS_Cancel
+{
+	echo "Using Jugene"
+	echo "to be implemented. kill job $1"
+}
