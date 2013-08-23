@@ -63,15 +63,10 @@ static string cut(const char *p, size_t L)
 }
 
 
-// note: for some really strange reason, shiny multiplies every time by 0.9 when you call PROFILER_UPDATE
-// and since update(0.9) is called at least once at the end of UGFinalize, we need to compensate for that
-// (WE do call update with damping = 1.0 of course)
-#define SHINY_DAMPING_FACTOR 0.9
-
 double UGProfileNode::get_avg_entry_count() const
 {
 	if(!valid()) return 0.0;
-	return data.entryCount.avg; // * SHINY_DAMPING_FACTOR;
+	return data.entryCount.avg;
 }
 
 double UGProfileNode::get_avg_self_time_ms() const
@@ -87,13 +82,13 @@ double UGProfileNode::get_avg_total_time_ms() const
 double UGProfileNode::get_avg_self_time() const
 {
 	if(!valid()) return 0.0;
-	return data.selfTicks.avg * SHINY_DAMPING_FACTOR;
+	return data.selfTicks.avg;
 }
 
 double UGProfileNode::get_avg_total_time() const
 {
 	if(!valid()) return 0.0;
-	return data.totalTicksAvg() * SHINY_DAMPING_FACTOR;
+	return data.totalTicksAvg();
 }
 
 double UGProfileNode::get_self_mem() const
