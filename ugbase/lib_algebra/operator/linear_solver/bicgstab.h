@@ -70,8 +70,7 @@ class BiCGStab
 		//	check correct storage type in parallel
 			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				UG_THROW("BiCGStabSolver::apply_return_defect:"
-								"Inadequate storage format of Vectors.");
+				UG_THROW("BiCGStab: Inadequate storage format of Vectors.");
 			#endif
 
 		// 	build defect:  b := b - A*x
@@ -94,8 +93,7 @@ class BiCGStab
 		//	convert b to unique (should already be unique due to norm calculation)
 			#ifdef UG_PARALLEL
 			if(!b.change_storage_type(PST_UNIQUE))
-				UG_THROW("BiCGStab::apply_return_defect: "
-								"Cannot convert b to unique vector.");
+				UG_THROW("BiCGStab: Cannot convert b to unique vector.");
 			#endif
 
 		//	needed variables
@@ -120,8 +118,7 @@ class BiCGStab
 				// 	make r additive unique
 					#ifdef UG_PARALLEL
 					if(!r.change_storage_type(PST_UNIQUE))
-						UG_THROW("BiCGStab::apply_return_defect: "
-										"Cannot convert r to unique vector.");
+						UG_THROW("BiCGStab: Cannot convert r to unique vector.");
 					#endif
 
 				//	set start vectors
@@ -138,9 +135,8 @@ class BiCGStab
 			//	check values
 				if(rhoOld == 0.0 || omega == 0.0)
 				{
-					UG_LOG("BiCGStab::apply_return_defect: "
-							"rho= "<<rhoOld<<" and omega= "<<omega<<" are invalid "
-							"values. Aborting iteration.\n");
+					UG_LOG("BiCGStab: Method breakdown with  rho = "<<rhoOld<<
+					       " and omega = "<<omega<<". Aborting iteration.\n");
 					return false;
 				}
 
@@ -162,8 +158,7 @@ class BiCGStab
 				// 	apply q = M^-1 * p
 					if(!preconditioner()->apply(q, p))
 					{
-						UG_LOG("ERROR in 'BiCGStab::apply_return_defect': "
-								"Cannot apply preconditioner. Aborting.\n");
+						UG_LOG("BiCGStab: Cannot apply preconditioner. Aborting.\n");
 						return false;
 					}
 				}
@@ -175,8 +170,7 @@ class BiCGStab
 				// 	make q consistent
 					#ifdef UG_PARALLEL
 					if(!q.change_storage_type(PST_CONSISTENT))
-						UG_THROW("BiCGStab::apply_return_defect: "
-										"Cannot convert q to consistent vector.");
+						UG_THROW("BiCGStab: Cannot convert q to consistent vector.");
 					#endif
 				}
 
@@ -186,8 +180,7 @@ class BiCGStab
 			// 	make v unique
 				#ifdef UG_PARALLEL
 				if(!v.change_storage_type(PST_UNIQUE))
-					UG_THROW("BiCGStab::apply_return_defect: "
-									"Cannot convert v to unique vector.");
+					UG_THROW("BiCGStab: Cannot convert v to unique vector.");
 				#endif
 
 			//	alpha = (v,r)
@@ -196,9 +189,8 @@ class BiCGStab
 			//	check validity of alpha
 				if(alpha == 0.0)
 				{
-					UG_LOG("ERROR in 'BiCGStab::apply_return_defect': "
-							"alpha= "<<alpha<<" is an invalid value."
-							" Aborting iteration.\n");
+					UG_LOG("BiCGStab: Method breakdown: alpha = "<<alpha<<
+					       " is an invalid value. Aborting iteration.\n");
 					return false;
 				}
 
@@ -228,8 +220,7 @@ class BiCGStab
 				// 	apply q = M^-1 * t
 					if(!preconditioner()->apply(q, s))
 					{
-						UG_LOG("ERROR in 'BiCGStab::apply_return_defect': "
-								"Cannot apply preconditioner. Aborting.\n");
+						UG_LOG("BiCGStab: Cannot apply preconditioner. Aborting.\n");
 						return false;
 					}
 				}
@@ -241,8 +232,7 @@ class BiCGStab
 				// 	make q consistent
 					#ifdef UG_PARALLEL
 					if(!q.change_storage_type(PST_CONSISTENT))
-						UG_THROW("BiCGStab::apply_return_defect: "
-										"Cannot convert q to consistent vector.");
+						UG_THROW("BiCGStab: Cannot convert q to consistent vector.");
 					#endif
 				}
 
@@ -252,8 +242,7 @@ class BiCGStab
 			// 	make t unique
 				#ifdef UG_PARALLEL
 				if(!t.change_storage_type(PST_UNIQUE))
-					UG_THROW("BiCGStab::apply_return_defect: "
-									"Cannot convert t to unique vector.");
+					UG_THROW("BiCGStab: Cannot convert t to unique vector.");
 				#endif
 
 			// 	tt = (t,t)
@@ -265,9 +254,8 @@ class BiCGStab
 			//	check tt
 				if(tt == 0.0)
 				{
-					UG_LOG("ERROR in 'BiCGStab::apply_return_defect': "
-							"tt= "<<tt<<" is an invalid value. "
-							"Aborting iteration.\n");
+					UG_LOG("BiCGStab: Method breakdown tt = "<<tt<<" is an "
+							"invalid value. Aborting iteration.\n");
 					return false;
 				}
 
