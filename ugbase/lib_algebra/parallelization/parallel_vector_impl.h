@@ -365,6 +365,12 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 	VecScaleAdd((T&)dest, alpha1, (const T&)v1, alpha2, (const T&)v2, alpha3, (const T&)v3);
 }
 
+// returns scal<a, b>
+template<typename T>
+inline double VecProd(const ParallelVector<T> &a, const ParallelVector<T> &b)
+{
+	return const_cast<ParallelVector<T>* >(&a)->dotprod(b);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 

@@ -98,7 +98,7 @@ class BiCGStab
 			#endif
 
 		//	needed variables
-			number rhoOld=1,rho=1,alpha=1, omega=1;
+			number rho=1,alpha=1, omega=1;
 
 		//	restart flag (set to true at first run)
 			bool bRestart = true;
@@ -130,11 +130,14 @@ class BiCGStab
 					v = 0.0;
 
 				//	set start values
-					rhoOld = alpha = omega = 1.0;
+					rho = alpha = omega = 1.0;
 
 				//	remove restart flag
 					bRestart = false;
 				}
+
+			// 	remember current rho
+				const number rhoOld = rho;
 
 			// 	Compute rho new
 				rho = VecProd(r0, r);
@@ -255,9 +258,6 @@ class BiCGStab
 
 			// 	check convergence
 				convergence_check()->update(r);
-
-			// 	remember current rho
-				rhoOld = rho;
 			}
 
 		//	print ending output
@@ -281,12 +281,6 @@ class BiCGStab
 			convergence_check()->set_info(s);
 		}
 
-	protected:
-	///	computes the vector product
-		number VecProd(vector_type& a, vector_type& b)
-		{
-			return a.dotprod(b);
-		}
 };
 
 } // end namespace ug
