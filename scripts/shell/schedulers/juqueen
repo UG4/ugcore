@@ -6,7 +6,7 @@
 
 function UJS_Submit
 {
-	echo ""; echo "On Juqueen, using ll_submit"
+	echo ""; echo "On Juqueen, using llsubmit"
 	
 	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	
@@ -28,27 +28,27 @@ EOF
 			exit
 		fi
 
-		JugeneNotification="never"
+		JuqueenNotification="never"
 		if [ $mailStart == true ]; then
-			JugeneNotification="start"
+			JuqueenNotification="start"
 		fi
 		if [ $mailEnd == true ]; then
-			if [ $JugeneNotification == "never" ]; then
-				JugeneNotification="stop"
+			if [ $JuqueenNotification == "never" ]; then
+				JuqueenNotification="stop"
 			else
-				JugeneNotification="always"
+				JuqueenNotification="always"
 			fi
 		fi
 		if [ $mailError == true ]; then
-			if [ $JugeneNotification == "never" ]; then
-				JugeneNotification="error"
+			if [ $JuqueenNotification == "never" ]; then
+				JuqueenNotification="error"
 			else
-				JugeneNotification="always"
+				JuqueenNotification="always"
 			fi
 		fi	 
 		
 		cat >> job.sh << EOF
-# @ notification = $JugeneNotification
+# @ notification = $JuqueenNotification
 # @ notify_user = $UGSUBMIT_EMAIL
 EOF
 	fi
@@ -71,7 +71,7 @@ EOF
 	fi
 	
 #todo: uncomment next line, get jobid=
- ll_submit $outdir/job.sh
+ llsubmit $outdir/job.sh
 }
 
 function UJS_GetOptions
@@ -83,12 +83,12 @@ function UJS_GetOptions
 
 function UJS_Info
 {
-	echo "Using Jugene"
-	echo "to be implemented"
+	echo "Using llq on Juqueen for user $USER"
+	llq -u $USER
 }
 
 function UJS_Cancel
 {
-	echo "Using Jugene"
-	echo "to be implemented. kill job $1"
+	echo "Using llcancel on Juqueen"
+	llcancel $1
 }
