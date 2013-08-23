@@ -22,13 +22,14 @@ function UJS_Submit
 # @ environment = COPY_ALL
 # @ wall_clock_limit = $walltime
 EOF
+
+	JuqueenNotification="never"
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
 			echo "please set UGSUBMIT_EMAIL or specify email with -email".
 			exit
 		fi
 
-		JuqueenNotification="never"
 		if [ $mailStart == true ]; then
 			JuqueenNotification="start"
 		fi
@@ -46,12 +47,13 @@ EOF
 				JuqueenNotification="always"
 			fi
 		fi	 
+	fi
 		
 		cat >> job.sh << EOF
 # @ notification = $JuqueenNotification
 # @ notify_user = $UGSUBMIT_EMAIL
 EOF
-	fi
+
 	cat >> job.sh << EOF
 # @ job_type = bluegene
 # @ bg_connection = TORUS
