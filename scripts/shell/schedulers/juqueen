@@ -56,10 +56,10 @@ EOF
 
 	cat >> job.sh << EOF
 # @ job_type = bluegene
-# @ bg_connection = TORUS
+# @ bg_connectivity = TORUS
 # @ bg_size = $nnodes
 # @ queue
-runjob --np $npe --ranks-per-node $nppnmax: $executable $args
+runjob --np $npe --ranks-per-node $nppnmax : $executable $args
 EOF
 
 	echo job.sh
