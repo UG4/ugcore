@@ -200,6 +200,15 @@ set(number w, ParallelStorageType type)
 }
 
 template <typename TVector>
+number
+ParallelVector<TVector>::
+operator = (number d)
+{
+	this->set(d);
+	return d;
+}
+
+template <typename TVector>
 bool
 ParallelVector<TVector>::
 set_random(number from, number to, ParallelStorageType type)

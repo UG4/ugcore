@@ -73,68 +73,74 @@ class BiCGStab
 				UG_THROW("BiCGStab: Inadequate storage format of Vectors.");
 			#endif
 
-		// 	build defect:  b := b - A*x
+		// 	build defect:  r := b - A*x
 			linear_operator()->apply_sub(b, x);
+			vector_type& r = b;
 
 		// 	create vectors
-			SmartPtr<vector_type> spR = b.clone_without_values(); vector_type& r = *spR;
-			SmartPtr<vector_type> spP = b.clone_without_values(); vector_type& p = *spP;
-			SmartPtr<vector_type> spV = b.clone_without_values(); vector_type& v = *spV;
-			SmartPtr<vector_type> spT = b.clone_without_values(); vector_type& t = *spT;
-			SmartPtr<vector_type> spS = b.clone_without_values(); vector_type& s = *spS;
+			SmartPtr<vector_type> spR = r.clone_without_values(); vector_type& r0 = *spR;
+			SmartPtr<vector_type> spP = r.clone_without_values(); vector_type& p = *spP;
+			SmartPtr<vector_type> spV = r.clone_without_values(); vector_type& v = *spV;
+			SmartPtr<vector_type> spT = r.clone_without_values(); vector_type& t = *spT;
+			SmartPtr<vector_type> spS = r.clone_without_values(); vector_type& s = *spS;
 			SmartPtr<vector_type> spQ = x.clone_without_values(); vector_type& q = *spQ;
 
 		//	prepare convergence check
 			prepare_conv_check();
 
 		//	compute start defect norm
-			convergence_check()->start(b);
+			convergence_check()->start(r);
 
 		//	convert b to unique (should already be unique due to norm calculation)
 			#ifdef UG_PARALLEL
-			if(!b.change_storage_type(PST_UNIQUE))
+			if(!r.change_storage_type(PST_UNIQUE))
 				UG_THROW("BiCGStab: Cannot convert b to unique vector.");
 			#endif
 
 		//	needed variables
 			number rhoOld=1,rho=1,alpha=1, omega=1;
 
+		//	restart flag (set to true at first run)
+			bool bRestart = true;
+
 		// 	Iteration loop
 			while(!convergence_check()->iteration_ended())
 			{
 			//	check if start values have to be set
-				if(convergence_check()->step() == 0 /*or restart*/)
+				if(bRestart)
 				{
 				//	if at restart recompute start defect
 					if(convergence_check()->step() != 0)
 					{
-						convergence_check()->update(b);
+						convergence_check()->update(r);
 						if(convergence_check()->iteration_ended()) break;
 					}
 
 				// 	reset vectors
-					r = b;
+					r0 = r;
 
 				// 	make r additive unique
 					#ifdef UG_PARALLEL
-					if(!r.change_storage_type(PST_UNIQUE))
+					if(!r0.change_storage_type(PST_UNIQUE))
 						UG_THROW("BiCGStab: Cannot convert r to unique vector.");
 					#endif
 
 				//	set start vectors
-					p.set(0.0);
-					v.set(0.0);
+					p = 0.0;
+					v = 0.0;
 
 				//	set start values
 					rhoOld = alpha = omega = 1.0;
+
+				//	remove restart flag
+					bRestart = false;
 				}
 
 			// 	Compute rho new
-				rho = VecProd(b, r);
+				rho = VecProd(r0, r);
 
 			//	check values
-				if(rhoOld == 0.0 || omega == 0.0)
-				{
+				if(rhoOld == 0.0 || omega == 0.0){
 					UG_LOG("BiCGStab: Method breakdown with  rho = "<<rhoOld<<
 					       " and omega = "<<omega<<". Aborting iteration.\n");
 					return false;
@@ -143,28 +149,17 @@ class BiCGStab
 			// 	Compute new beta
 				const number beta = (rho/rhoOld) * (alpha/omega);
 
-			// 	scale p := beta * p
-				p *= beta;
+			//	update p = r + beta * p - beta * omega * v
+				VecScaleAdd(p, 1.0, r, beta, p, -beta*omega, v);
 
-			// 	add b to p (p:= p + b)
-				p += b;
-
-			// 	subtract: p := p - beta * omega * v
-				VecScaleAppend(p, v, (-1)*beta*omega);
-
-			// 	Precondition
-				if(preconditioner().valid())
-				{
-				// 	apply q = M^-1 * p
-					if(!preconditioner()->apply(q, p))
-					{
+			// 	apply q = M^-1 * p ...
+				if(preconditioner().valid()){
+					if(!preconditioner()->apply(q, p)){
 						UG_LOG("BiCGStab: Cannot apply preconditioner. Aborting.\n");
 						return false;
 					}
-				}
-				else
-				{
-				// 	copy q = p
+			// 	... or copy q = p
+				} else{
 					q = p;
 
 				// 	make q consistent
@@ -184,11 +179,10 @@ class BiCGStab
 				#endif
 
 			//	alpha = (v,r)
-				alpha = VecProd(v, r);
+				alpha = VecProd(v, r0);
 
 			//	check validity of alpha
-				if(alpha == 0.0)
-				{
+				if(alpha == 0.0){
 					UG_LOG("BiCGStab: Method breakdown: alpha = "<<alpha<<
 					       " is an invalid value. Aborting iteration.\n");
 					return false;
@@ -198,35 +192,27 @@ class BiCGStab
 				alpha = rho/alpha;
 
 			// 	add: x := x + alpha * q
-				VecScaleAppend(x, q, alpha);
+				VecScaleAdd(x, 1.0, x, alpha, q);
 
-			// 	set s := b
-				s = b;
-
-			// 	update s := s - alpha*v
-				VecScaleAppend(s, v, (-1)*alpha);
+			//  compute s = r - alpha*v
+				VecScaleAdd(s, 1.0, r, -alpha, v);
 
 			// 	check convergence
 				convergence_check()->update(s);
-				if(convergence_check()->iteration_ended())
-				{
-				//	set output to last defect
-					b = s; break;
+
+			//	if finished: set output to last defect and exist loop
+				if(convergence_check()->iteration_ended()){
+					r = s; break;
 				}
 
-			//	apply preconditioner
-				if(preconditioner().valid())
-				{
-				// 	apply q = M^-1 * t
-					if(!preconditioner()->apply(q, s))
-					{
+			// 	apply q = M^-1 * t ...
+				if(preconditioner().valid()){
+					if(!preconditioner()->apply(q, s)){
 						UG_LOG("BiCGStab: Cannot apply preconditioner. Aborting.\n");
 						return false;
 					}
-				}
-				else
-				{
-				// 	set q:=s
+			// 	... or set q:=s
+				}else{
 					q = s;
 
 				// 	make q consistent
@@ -252,8 +238,7 @@ class BiCGStab
 				omega = VecProd(s, t);
 
 			//	check tt
-				if(tt == 0.0)
-				{
+				if(tt == 0.0){
 					UG_LOG("BiCGStab: Method breakdown tt = "<<tt<<" is an "
 							"invalid value. Aborting iteration.\n");
 					return false;
@@ -263,16 +248,13 @@ class BiCGStab
 				omega = omega/tt;
 
 			// 	add: x := x + omega * q
-				VecScaleAppend(x, q, omega);
+				VecScaleAdd(x, 1.0, x, omega, q);
 
-			// 	set b := s
-				b = s;
-
-			// 	update of b:  b:= b - omega*t
-				VecScaleAppend(b, t, (-1)*omega);
+			//  compute r = s - omega*t
+				VecScaleAdd(r, 1.0, s, -omega, t);
 
 			// 	check convergence
-				convergence_check()->update(b);
+				convergence_check()->update(r);
 
 			// 	remember current rho
 				rhoOld = rho;
@@ -300,28 +282,6 @@ class BiCGStab
 		}
 
 	protected:
-	///	adds a scaled vector to a second one
-		bool VecScaleAppend(vector_type& a, vector_type& b, number s)
-		{
-			#ifdef UG_PARALLEL
-			if(a.has_storage_type(PST_UNIQUE) && b.has_storage_type(PST_UNIQUE));
-			else if(a.has_storage_type(PST_CONSISTENT) && b.has_storage_type(PST_CONSISTENT));
-			else if (a.has_storage_type(PST_ADDITIVE) && b.has_storage_type(PST_ADDITIVE));
-			else
-			{
-				a.change_storage_type(PST_ADDITIVE);
-				b.change_storage_type(PST_ADDITIVE);
-			}
-			#endif
-
-            for(size_t i = 0; i < a.size(); ++i)
-            {
-            	// todo: move VecScaleAppend to ParallelVector
-            	VecScaleAdd(a[i], 1.0, a[i], s, b[i]);
-            }
-            return true;
-		}
-
 	///	computes the vector product
 		number VecProd(vector_type& a, vector_type& b)
 		{

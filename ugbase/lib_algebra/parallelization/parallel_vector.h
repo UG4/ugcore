@@ -117,6 +117,9 @@ class ParallelVector : public TVector
 	 */
 		inline number dotprod(const this_type& v);
 
+	/// assign number to whole Vector
+		number operator = (number d);
+
 	/// set all entries to value and the storage type
 		bool set(number w, ParallelStorageType type);
 
