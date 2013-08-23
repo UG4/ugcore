@@ -15,7 +15,7 @@
 #include "lib_grid/file_io/file_io.h"
 
 //#define LG_DISTRIBUTION_DEBUG
-//#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 3
+//#define LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM 40
 
 
 using namespace std;
@@ -270,25 +270,25 @@ static void SaveDistSelectorToFile(MGSelector& msel, const char* filename)
 	SubsetHandler sh(mg);
 
 	for(size_t lvl = 0; lvl < msel.num_levels(); ++lvl){
-		for(MGSelector::traits<Volume>::iterator iter = msel.begin<Volume>(lvl);
+		for(MGSelector::traits<Volume>::level_iterator iter = msel.begin<Volume>(lvl);
 			iter != msel.end<Volume>(lvl); ++iter)
 		{
 			sh.assign_subset(*iter, msel.get_selection_status(*iter));
 		}
 
-		for(MGSelector::traits<Face>::iterator iter = msel.begin<Face>(lvl);
+		for(MGSelector::traits<Face>::level_iterator iter = msel.begin<Face>(lvl);
 			iter != msel.end<Face>(lvl); ++iter)
 		{
 			sh.assign_subset(*iter, msel.get_selection_status(*iter));
 		}
 
-		for(MGSelector::traits<EdgeBase>::iterator iter = msel.begin<EdgeBase>(lvl);
+		for(MGSelector::traits<EdgeBase>::level_iterator iter = msel.begin<EdgeBase>(lvl);
 			iter != msel.end<EdgeBase>(lvl); ++iter)
 		{
 			sh.assign_subset(*iter, msel.get_selection_status(*iter));
 		}
 
-		for(MGSelector::traits<VertexBase>::iterator iter = msel.begin<VertexBase>(lvl);
+		for(MGSelector::traits<VertexBase>::level_iterator iter = msel.begin<VertexBase>(lvl);
 			iter != msel.end<VertexBase>(lvl); ++iter)
 		{
 			sh.assign_subset(*iter, msel.get_selection_status(*iter));
@@ -886,7 +886,7 @@ static void SelectChildrenOfSelectedShadowVertices(MGSelector& msel,
  * This method only works correctly if called for the elements of highest dimension.
  */
 template <class TElem>
-static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
+static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionForLocalProc)
 {
 	UG_DLOG(LIB_GRID, 1, "dist-start: AssignVerticalMasterAndSlaveStates\n");
 	GDIST_PROFILE_FUNC();
@@ -900,9 +900,11 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 	typedef typename MGSelector::traits<TElem>::level_iterator TIter;
 	for(int lvl = (int)msel.num_levels() - 1; lvl >= 0 ; --lvl){
 		for(TIter iter = msel.begin<TElem>(lvl);
-			iter != msel.end<TElem>(lvl); ++iter)
+			iter != msel.end<TElem>(lvl);)
 		{
 			TElem* e = *iter;
+			++iter;
+
 			if((msel.get_selection_status(e) & IS_VMASTER)
 				|| (msel.get_selection_status(e) & IS_VSLAVE))
 			{
@@ -913,7 +915,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 		//	assign vertical master states first
 			size_t numChildren = mg.num_children<TElem>(e);
 			GeometricObject* parent = mg.get_parent(e);
-			bool parentIsSelected = (lvl == 0);
+			bool parentIsSelected = false;
 			if(parent)
 				parentIsSelected = msel.is_selected(parent);
 
@@ -924,9 +926,13 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel)
 						msel.select(c, IS_VMASTER);
 				}
 			}
-			else{
-				if(parentIsSelected && distGridMgr.contains_status(e, ES_V_MASTER)){
+			else if(distGridMgr.contains_status(e, ES_V_MASTER)){
+				if(parentIsSelected || (partitionForLocalProc && (lvl == 0))){
 					msel.select(e, IS_VMASTER);
+					continue;
+				}
+				else{
+					msel.deselect(e);
 					continue;
 				}
 			}
@@ -1054,22 +1060,22 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 
 	if(mg.num<Volume>() > 0){
 		if(createVerticalInterfaces)
-			AssignVerticalMasterAndSlaveStates<Volume>(msel);
+			AssignVerticalMasterAndSlaveStates<Volume>(msel, partitionForLocalProc);
 		AssignSelectionStateToSides<Volume>(msel, true);
 	}
 	else if(mg.num<Face>() > 0){
 		if(createVerticalInterfaces)
-			AssignVerticalMasterAndSlaveStates<Face>(msel);
+			AssignVerticalMasterAndSlaveStates<Face>(msel, partitionForLocalProc);
 		AssignSelectionStateToSides<Face>(msel, true);
 	}
 	else if(mg.num<EdgeBase>() > 0){
 		if(createVerticalInterfaces)
-			AssignVerticalMasterAndSlaveStates<EdgeBase>(msel);
+			AssignVerticalMasterAndSlaveStates<EdgeBase>(msel, partitionForLocalProc);
 		AssignSelectionStateToSides<EdgeBase>(msel, true);
 	}
 	else if(mg.num<VertexBase>() > 0){
 		if(createVerticalInterfaces)
-			AssignVerticalMasterAndSlaveStates<VertexBase>(msel);
+			AssignVerticalMasterAndSlaveStates<VertexBase>(msel, partitionForLocalProc);
 	//	no sides to assign...
 	}
 
@@ -1198,13 +1204,22 @@ static void PostProcessDistInfos(MultiGrid& mg, DistInfoSupplier& distInfos)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+/**	\param partitionIsEmpty	If no elements are selected for a target-partition, the
+ * 							corresponding entry is set to false. This can happen even
+ * 							if shPartition contains elements for that partition:
+ * 							vmaster elements whose parents are not sent to the same
+ * 							partition don't have to be sent either and are thus ignored...
+ */
 static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector& msel,
 						DistInfoSupplier& distInfos, const std::vector<int>* processMap,
 						const pcl::ProcessCommunicator& procComm,
-						bool createVerticalInterfaces)
+						bool createVerticalInterfaces,
+						vector<bool>& partitionIsEmpty)
 {
 	UG_DLOG(LIB_GRID, 1, "dist-start: FillDistInfos\n");
 	GDIST_PROFILE_FUNC();
+
+	partitionIsEmpty.resize(shPartition.num_subsets());
 
 	for(int i_part = 0; i_part < shPartition.num_subsets(); ++i_part){
 
@@ -1218,19 +1233,23 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 		SelectElementsForTargetPartition(msel, shPartition, i_part,
 									 localPartition, createVerticalInterfaces);
 
-	//DEBUG:	temporarily save selection to a file
-		#ifdef LG_DISTRIBUTION_DEBUG
-		{
-			stringstream ss;
-			ss << "dist_selection_for_partition_" << i_part << ".ugx";
-			SaveDistSelectorToFile(msel, ss.str().c_str());
-		}
-		#endif
+		partitionIsEmpty[i_part] = msel.empty();
 
-		AddTargetProcToDistInfos<Volume>(msel, distInfos, targetProc);
-		AddTargetProcToDistInfos<Face>(msel, distInfos, targetProc);
-		AddTargetProcToDistInfos<EdgeBase>(msel, distInfos, targetProc);
-		AddTargetProcToDistInfos<VertexBase>(msel, distInfos, targetProc);
+		if(!partitionIsEmpty[i_part]){
+		//DEBUG:	temporarily save selection to a file
+			#ifdef LG_DISTRIBUTION_DEBUG
+			{
+				stringstream ss;
+				ss << "dist-selection-p" << pcl::GetProcRank() << "for-p"<< i_part << ".ugx";
+				SaveDistSelectorToFile(msel, ss.str().c_str());
+			}
+			#endif
+
+			AddTargetProcToDistInfos<Volume>(msel, distInfos, targetProc);
+			AddTargetProcToDistInfos<Face>(msel, distInfos, targetProc);
+			AddTargetProcToDistInfos<EdgeBase>(msel, distInfos, targetProc);
+			AddTargetProcToDistInfos<VertexBase>(msel, distInfos, targetProc);
+		}
 	}
 
 #ifdef LG_DISTRIBUTION_DEBUG
@@ -1644,9 +1663,10 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	FILL THE DISTRIBUTION INFOS (INVOLVES COMMUNICATION...)
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Fill distribution infos\n");
+	vector<bool> partitionIsEmpty;
 	DistInfoSupplier distInfos(mg);
 	FillDistInfos(mg, shPartition, msel, distInfos, processMap, procComm,
-				  createVerticalInterfaces);
+				  createVerticalInterfaces, partitionIsEmpty);
 
 //	DEBUG: output distInfos...
 	#ifdef LG_DISTRIBUTION_DEBUG
@@ -1670,7 +1690,11 @@ bool DistributeGrid(MultiGrid& mg,
 //	for each subset which is not emtpy we'll have to send data to
 //	the associated process.
 	for(int si = 0; si < shPartition.num_subsets(); ++si){
-		if(!shPartition.empty(si)){
+	//	instead of simply querying shPartition.empty(si), we'll check partitionIsEmpty[si],
+	//	since this array tells whether data is actually sent to a partition.
+	//	E.g. vmasters which are contained in shPartition are not necessarily sent
+	//	to the associated target process...
+		if(!partitionIsEmpty[si]){
 			int toProc = si;
 		//	if a process map exists, we'll use the associated process
 			if(processMap)
