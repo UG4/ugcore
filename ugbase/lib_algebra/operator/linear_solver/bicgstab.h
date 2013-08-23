@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 
 #include "lib_algebra/operator/interface/operator.h"
 #include "common/profiler/profiler.h"
@@ -53,12 +54,15 @@ class BiCGStab
 
 	public:
 	///	default constructor
-		BiCGStab() {};
+		BiCGStab() :
+			m_numRestarts(0), m_minOrtho(0.0)
+		{};
 
 	///	constructor setting the preconditioner and the convergence check
 		BiCGStab( SmartPtr<ILinearIterator<vector_type> > spPrecond,
 		          SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
-			: base_type(spPrecond, spConvCheck)
+			: base_type(spPrecond, spConvCheck),
+			  m_numRestarts(0), m_minOrtho(0.0)
 		{};
 
 	///	name of solver
@@ -98,7 +102,7 @@ class BiCGStab
 			#endif
 
 		//	needed variables
-			number rho=1,alpha=1, omega=1;
+			number rho = 1, alpha = 1, omega = 1, norm_r0 = 0.0;
 
 		//	restart flag (set to true at first run)
 			bool bRestart = true;
@@ -106,17 +110,19 @@ class BiCGStab
 		// 	Iteration loop
 			while(!convergence_check()->iteration_ended())
 			{
+			//	check for restart based on fixed step number restart
+				if(m_numRestarts > 0 &&
+					(convergence_check()->step() % m_numRestarts == 0)){
+					std::stringstream ss; ss <<
+					"Restarting: at every "<<m_numRestarts<<" Iterations";
+					convergence_check()->print_line(ss.str());
+					bRestart = true;
+				}
+
 			//	check if start values have to be set
 				if(bRestart)
 				{
-				//	if at restart recompute start defect
-					if(convergence_check()->step() != 0)
-					{
-						convergence_check()->update(r);
-						if(convergence_check()->iteration_ended()) break;
-					}
-
-				// 	reset vectors
+				// 	reset arbitrary vectors
 					r0 = r;
 
 				// 	make r additive unique
@@ -125,12 +131,16 @@ class BiCGStab
 						UG_THROW("BiCGStab: Cannot convert r to unique vector.");
 					#endif
 
-				//	set start vectors
-					p = 0.0;
-					v = 0.0;
+				//	set start vectors and alpha, omega:
+				//	This will lead to p = r, since beta = 0.0
+					p = 0.0; alpha = 0.0;
+					v = 0.0; omega = 1.0;
 
-				//	set start values
-					rho = alpha = omega = 1.0;
+				//	set rhoOld to 1 (rhoOld = rho, see below)
+					rho = 1.0;
+
+				//	remember start norm
+					norm_r0 = convergence_check()->defect();
 
 				//	remove restart flag
 					bRestart = false;
@@ -142,10 +152,21 @@ class BiCGStab
 			// 	Compute rho new
 				rho = VecProd(r0, r);
 
-			//	check values
-				if(rhoOld == 0.0 || omega == 0.0){
-					UG_LOG("BiCGStab: Method breakdown with  rho = "<<rhoOld<<
-					       " and omega = "<<omega<<". Aborting iteration.\n");
+			//	check for restart compare (r, r0) > m_minOrtho * ||r|| ||r0||
+				const number norm_r = convergence_check()->defect();
+				if(fabs(rho)/(norm_r * norm_r0) <= m_minOrtho){
+					std::stringstream ss; ss <<
+					"Restarting: Min Orthogonality "<<m_minOrtho<<" missed: "
+					<<"(r,r0)="<<fabs(rho)<<", ||r||="<<norm_r<<", ||r0||= "
+					<<norm_r0;
+					convergence_check()->print_line(ss.str());
+					bRestart = true;
+				}
+
+			//	check that rhoOld valid
+				if(rhoOld == 0.0){
+					UG_LOG("BiCGStab: Method breakdown with rhoOld = "<<rhoOld<<
+						   ". Aborting iteration.\n");
 					return false;
 				}
 
@@ -258,11 +279,25 @@ class BiCGStab
 
 			// 	check convergence
 				convergence_check()->update(r);
+
+			//	check values
+				if(omega == 0.0){
+					UG_LOG("BiCGStab: Method breakdown with omega = "<<omega<<
+					       ". Aborting iteration.\n");
+					return false;
+				}
 			}
 
 		//	print ending output
 			return convergence_check()->post();
 		}
+
+
+	///	sets to restart at given number of iteration steps
+		void set_restart(int numRestarts) {m_numRestarts = numRestarts;}
+
+	///	sets to restart if given orthogonality missed
+		void set_min_orthogonality(number minOrtho) {m_minOrtho = minOrtho;}
 
 	protected:
 	///	prepares the output of the convergence check
@@ -280,6 +315,13 @@ class BiCGStab
 				s = " (No Preconditioner) ";
 			convergence_check()->set_info(s);
 		}
+
+	protected:
+	/// restarts at every numRestarts steps (numRestarts <= 0 --> never)
+		int m_numRestarts;
+
+	///	minimal value in (0,1) accepted for Orthoginality before restart
+		number m_minOrtho;
 
 };
 

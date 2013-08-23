@@ -197,6 +197,14 @@ void StdConvCheck<TVector>::print_offset()
 }
 
 template <typename TVector>
+void StdConvCheck<TVector>::print_line(std::string line)
+{
+	print_offset();
+	UG_LOG(line << "\n");
+}
+
+
+template <typename TVector>
 bool StdConvCheck<TVector>::is_valid_number(number value)
 {
 	// (value >= std::numeric_limits<number>::min() ) == true if value > -infty

@@ -115,6 +115,9 @@ class IConvergenceCheck
 		/// sets info string
 		virtual void set_info(std::string name) = 0;
 
+		/// prints a line
+		virtual void print_line(std::string line) = 0;
+
 		/// clone the object
 		virtual SmartPtr<IConvergenceCheck<TVector> > clone() = 0;
 
@@ -174,6 +177,7 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		void set_name(std::string name) {m_name = name;}
 		void set_info(std::string info) {m_info = info;}
 		const std::vector<number> get_defects() const { return _defects;}
+		void print_line(std::string line);
 
 		virtual SmartPtr<IConvergenceCheck<TVector> > clone()
 		{

@@ -95,6 +95,12 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 			return newInst;
 		}
 
+		void print_line(std::string line)
+		{
+			print_offset();
+			UG_LOG(line << "\n");
+		}
+
 	protected:
 		void print_offset();
 		bool is_valid_number(number value);

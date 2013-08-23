@@ -128,6 +128,8 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("BiCGStab").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "BiCGStab Solver")
 			.add_constructor()
+			.add_method("set_restart", &T::set_restart)
+			.add_method("set_min_orthogonality", &T::set_min_orthogonality)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BiCGStab", tag);
 	}
