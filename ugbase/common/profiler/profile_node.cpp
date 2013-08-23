@@ -63,10 +63,12 @@ static string cut(const char *p, size_t L)
 }
 
 
+#define SHINY_DAMPING_FACTOR 1.0
+
 double UGProfileNode::get_avg_entry_count() const
 {
 	if(!valid()) return 0.0;
-	return data.entryCount.avg;
+	return data.entryCount.avg; // * SHINY_DAMPING_FACTOR;
 }
 
 double UGProfileNode::get_avg_self_time_ms() const
@@ -82,13 +84,13 @@ double UGProfileNode::get_avg_total_time_ms() const
 double UGProfileNode::get_avg_self_time() const
 {
 	if(!valid()) return 0.0;
-	return data.selfTicks.avg;
+	return data.selfTicks.avg * SHINY_DAMPING_FACTOR;
 }
 
 double UGProfileNode::get_avg_total_time() const
 {
 	if(!valid()) return 0.0;
-	return data.totalTicksAvg();
+	return data.totalTicksAvg() * SHINY_DAMPING_FACTOR;
 }
 
 double UGProfileNode::get_self_mem() const
