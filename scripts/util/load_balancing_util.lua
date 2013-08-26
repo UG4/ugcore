@@ -32,6 +32,7 @@ balancer.firstDistLvl	= -1
 balancer.firstDistProcs	= 256
 balancer.redistSteps	= 2
 balancer.redistProcs	= 256
+balancer.maxDistLvl		= balancer.maxLvl
 
 balancer.parallelElementThreshold = 4
 balancer.qualityThreshold	= 0.8
@@ -55,7 +56,8 @@ function balancer.ParseParameters()
 								"All levels with index = firstDistLvl + i * redistSteps, i = 0,1,...,n are considered redistribution levels")
 	balancer.redistProcs	= util.GetParamNumber("-redistProcs", balancer.redistProcs,
 								"The number of processes to which each process distributes grid-parts on each distribution level (i>0)")
-
+	balancer.maxDistLvl		= util.GetParamNumber("-maxDistLvl", balancer.maxDistLvl,
+								"The maximum distribtion level. elements in levels above won't be partitioned and distributed separately.")
 
 	balancer.parallelElementThreshold	= util.GetParamNumber("-parallelElementThreshold", balancer.parallelElementThreshold,
 											"No distribution is performed on a given level until each process can potentially receive 'parallelElementThreshold' elements.")
@@ -151,6 +153,9 @@ function balancer.CreateLoadBalancer(domain)
 			local numNewProcs = balancer.redistProcs
 			--while procsTotal < numComputeProcs do
 			for i = 1, balancer.maxLvl do
+				if lvl > balancer.maxDistLvl then
+					break
+				end
 				if procsTotal * numNewProcs <= numComputeProcs then
 					loadBalancer:add_distribution_level(lvl, numNewProcs)
 					procsTotal = procsTotal * numNewProcs
