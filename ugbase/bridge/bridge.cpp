@@ -47,8 +47,8 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 //	get tag of algebra type
 	const std::string& algTag = GetAlgebraTag(algType);
 	int blocksize = algType.blocksize();
-	if( (blocksize < 0 || blocksize > 4) && blocksize != AlgebraType::VariableBlockSize)
-		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4' and 'variable' are supported.");
+	if( (blocksize < 0 || blocksize > 5) && blocksize != AlgebraType::VariableBlockSize)
+		UG_THROW("ERROR in InitUG: Only Algebra Blocksizes '1x1', '2x2', '3x3', '4x4', '5x5' and 'variable' are supported.");
 	
 	if(algType.type() == AlgebraType::CPU)
 	{
