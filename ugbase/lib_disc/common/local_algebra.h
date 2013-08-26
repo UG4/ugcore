@@ -10,7 +10,7 @@
 
 //#define UG_LOCALALGEBRA_ASSERT(cond, exp)
 // include define below to assert arrays used in stabilization
-#define UG_LOCALALGEBRA_ASSERT(cond, exp) UG_ASSERT((cond), (exp))
+#define UG_LOCALALGEBRA_ASSERT(cond, exp) UG_ASSERT((cond), exp)
 
 #include <vector>
 
@@ -334,13 +334,15 @@ class LocalVector
 	///	checks correct fct index in debug mode
 		inline void check_fct(size_t fct) const
 		{
-			UG_LOCALALGEBRA_ASSERT(fct < num_fct(), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(fct < num_fct(), "Wrong index: fct: "<<fct<<
+									" of num_fct: "<<num_fct());
 		}
 	///	checks correct dof index in debug mode
 		inline void check_dof(size_t fct, size_t dof) const
 		{
 			check_fct(fct);
-			UG_LOCALALGEBRA_ASSERT(dof < num_dof(fct), "Wrong index.");
+			UG_LOCALALGEBRA_ASSERT(dof < num_dof(fct), "Wrong index: dof: "
+					<<dof<<", num_dof: "<<num_dof(fct)<<" of fct: "<<fct);
 		}
 	///	checks correct fct index in debug mode
 		inline void check_all_fct(size_t fct) const

@@ -263,7 +263,13 @@ update(const TFVGeom<TElem, dim>* geo,
 		const size_t up = (flux >= 0) ? scvf.from() : scvf.to();
 
 	//	Write Shapes
-		for(size_t sh = 0; sh < numSH; ++sh) conv_shape(ip, sh) = 0.0;
+		for(size_t sh = 0; sh < scvf.num_sh(); ++sh) conv_shape(ip, sh) = 0.0;
+
+	//	check: Currently hanging nodes not supported.
+	//	/todo: add support for hanging nodes
+		if(up >= scvf.num_sh())
+			UG_THROW("FullUpwind: Currently not implemented for hanging nodes.")
+
 		conv_shape(ip, up) = flux;
 
 	//	Write Derivatives if wanted
@@ -414,13 +420,11 @@ update(const TFVGeom<TElem, dim>* geo,
 		const number noUpFlux = (1.-m_weight)*flux;
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 			conv_shape(ip, sh) = noUpFlux * scvf.shape(sh);
-	//	this is introduced here, hopefully temporarily: The problem is, that
-	//	for hanging nodes the number of shape function is not the number of
-	//	corners, but scvf.num_sh() currently returns the number of corners.
-	//	this is actually enough to interpolate the function, but still we
-	//	should reset the interpolation adding for hanging dofs to zero
-		for(size_t sh = scvf.num_sh(); sh < numSH; sh++)
-			conv_shape(ip, sh) = 0.0;
+
+	//	check: Currently hanging nodes not supported.
+	//	/todo: add support for hanging nodes
+		if(up >= scvf.num_sh())
+			UG_THROW("FullUpwind: Currently not implemented for hanging nodes.")
 
 	//	add full upwind part of shapes
 		conv_shape(ip, up) += m_weight * flux;
@@ -579,6 +583,12 @@ update(const FV1Geometry<TElem, dim>* geo,
 		if(computeDeriv)
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				VecSet(D_vel(i, sh), 0.0);
+
+
+	//	check: Currently hanging nodes not supported.
+	//	/todo: add support for hanging nodes
+		if(from >= scvf.num_sh() || to >= scvf.num_sh())
+			UG_THROW("PartialUpwind: Currently not implemented for hanging nodes.")
 
 	///////////////////////////////////////////////////////////////////
 	//	Case 1:

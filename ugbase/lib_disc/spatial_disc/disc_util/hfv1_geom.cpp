@@ -458,6 +458,9 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 	/////////////////////////
 	m_rMapping.update(vCornerCoords);
 
+	const size_t num_sh = ref_elem_type::numCorners;
+	m_numSh = num_sh;
+
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 		m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].localIP);
@@ -469,7 +472,6 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 						(ref_elem_type::REFERENCE_OBJECT_ID,
 						 LFEID(LFEID::LAGRANGE, ref_elem_type::dim, 1));
 
-		const size_t num_sh = ref_elem_type::numCorners;
 		m_vSCVF[i].vShape.resize(num_sh);
 		m_vSCVF[i].localGrad.resize(num_sh);
 		m_vSCVF[i].globalGrad.resize(num_sh);
