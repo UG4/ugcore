@@ -90,6 +90,9 @@ class FixedConvergenceCheck : public IConvergenceCheck<TVector>
 		// returns the averaged convergence rate
 		virtual number avg_rate() const { UG_ASSERT(0, "not provided by FixedConvergenceCheck");  return 0;}
 
+		virtual void print_line(std::string line)
+		{
+		}
 		////////////////
 		// output style
 		////////////////
