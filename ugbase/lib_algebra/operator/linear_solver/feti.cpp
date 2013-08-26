@@ -1875,6 +1875,11 @@ template class LocalSchurComplement<CPUBlockAlgebra<4> >;
 template class PrimalSubassembledMatrixInverse<CPUBlockAlgebra<4> >;
 template class FETISolver<CPUBlockAlgebra<4> >;
 #endif
+#ifdef UG_CPU_5
+template class LocalSchurComplement<CPUBlockAlgebra<5> >;
+template class PrimalSubassembledMatrixInverse<CPUBlockAlgebra<5> >;
+template class FETISolver<CPUBlockAlgebra<5> >;
+#endif
 #ifdef UG_CPU_VAR
 template class LocalSchurComplement<CPUVariableBlockAlgebra>;
 template class PrimalSubassembledMatrixInverse<CPUVariableBlockAlgebra >;
