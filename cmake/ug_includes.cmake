@@ -73,7 +73,7 @@ set(dimOptions "1, 2, 3, ALL, \"1\;2\", \"1\;3\", \"2\;3\"")
 set(dimDefault "ALL")
 
 # Values for the CPU option
-set(cpuOptions "1, 2, 3, 4, VAR, ALL, \"2\;4\", \"1\;3\;4\" , ..." )
+set(cpuOptions "1, 2, 3, 4, 5, VAR, ALL, \"2\;4\", \"1\;3\;4\" , ..." )
 set(cpuDefault "ALL")
 
 # Values for the blas / lapack option

@@ -9,7 +9,9 @@ endif()
 if(CPU_ALGEBRA)
     MESSAGE(STATUS "Info: Using CPU Algebra.")
     if("${CPU}" STREQUAL "ALL")
-        # todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_VAR)!
+        # todo checks for 4, VAR (-DUG_CPU_4 -DUG_CPU_5 -DUG_CPU_VAR)!
+        # todo: This is somehow misleading "ALL" != all posibilities, but only
+        #       world 1-3. Should we fix this?!
         add_definitions(-DUG_CPU_1 -DUG_CPU_2 -DUG_CPU_3)
 
     else("${CPU}" STREQUAL "ALL")
@@ -17,10 +19,10 @@ if(CPU_ALGEBRA)
         # loop dims
         foreach(d ${CPU})
             # check if dim is valid
-            if(d GREATER 4 OR d LESS 1)
+            if(d GREATER 5 OR d LESS 1)
                 message(FATAL_ERROR "ERROR: Cannot build cpu blocksize ${d}. "
                                     "Valid options are: ${cpuOptions}")
-            endif(d GREATER 4 OR d LESS 1)
+            endif(d GREATER 5 OR d LESS 1)
 
             add_definitions(-DUG_CPU_${d})
         endforeach(d)

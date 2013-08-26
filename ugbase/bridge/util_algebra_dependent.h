@@ -57,7 +57,11 @@ typedef boost::mpl::list<
 #ifdef UG_CPU_4
 		CPUBlockAlgebra<4>,
 #endif
-		
+
+#ifdef UG_CPU_5
+		CPUBlockAlgebra<5>,
+#endif
+
 #ifdef UG_CPU_VAR
 		CPUVariableBlockAlgebra,
 #endif

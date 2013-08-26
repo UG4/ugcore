@@ -68,6 +68,10 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 	if(blocksize == 4)
 		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '4x4' is not compiled into binary.");
 #endif
+#ifndef UG_CPU_5
+	if(blocksize == 5)
+		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize '5x5' is not compiled into binary.");
+#endif
 #ifndef UG_CPU_VAR
 	if(blocksize == AlgebraType::VariableBlockSize)
 		UG_THROW("ERROR in InitUG: Requested Algebra CPU, Blocksize 'variable' is not compiled into binary.");

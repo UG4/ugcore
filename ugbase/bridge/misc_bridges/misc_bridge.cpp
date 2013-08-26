@@ -113,6 +113,12 @@ bool IsDefinedUG_CPU_4() { return true; }
 bool IsDefinedUG_CPU_4() { return false; }
 #endif
 
+#ifdef UG_CPU_5
+bool IsDefinedUG_CPU_5() { return true; }
+#else
+bool IsDefinedUG_CPU_5() { return false; }
+#endif
+
 #ifdef UG_CPU_VAR
 bool IsDefinedUG_CPU_VAR() { return true; }
 #else
@@ -310,17 +316,12 @@ void PrintBuildConfiguration()
 	// next pair
 	aux_str = "";
 	aux_str.append("CPU:               ");
-	if (IsDefinedUG_CPU_1() && IsDefinedUG_CPU_2() &&
-		IsDefinedUG_CPU_3() && IsDefinedUG_CPU_4() &&
-		IsDefinedUG_CPU_VAR()) {
-		aux_str.append("ALL");
-	} else {
-		aux_str.append( (IsDefinedUG_CPU_1() ? "1 " : "") );
-		aux_str.append( (IsDefinedUG_CPU_2() ? "2 " : "") );
-		aux_str.append( (IsDefinedUG_CPU_3() ? "3 " : "") );
-		aux_str.append( (IsDefinedUG_CPU_4() ? "4 " : "") );
-		aux_str.append( (IsDefinedUG_CPU_VAR() ? "VAR" : "") );
-	}
+	aux_str.append( (IsDefinedUG_CPU_1() ? "1 " : "") );
+	aux_str.append( (IsDefinedUG_CPU_2() ? "2 " : "") );
+	aux_str.append( (IsDefinedUG_CPU_3() ? "3 " : "") );
+	aux_str.append( (IsDefinedUG_CPU_4() ? "4 " : "") );
+	aux_str.append( (IsDefinedUG_CPU_5() ? "5 " : "") );
+	aux_str.append( (IsDefinedUG_CPU_VAR() ? "VAR" : "") );
 	UG_LOG(AppendSpacesToString(aux_str,40).append(""));
 
 	// We've decided so far not to display the following derived parameters!

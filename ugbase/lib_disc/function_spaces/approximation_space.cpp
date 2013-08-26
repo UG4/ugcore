@@ -790,7 +790,45 @@ void IApproximationSpace::surface_view_required()
 
 void IApproximationSpace::dof_distribution_info_required()
 {
+//	init dd-info (and fix the function pattern by that)
 	m_spDoFDistributionInfo->init();
+
+//	check that used algebra-type matches requirements
+//	get blocksize of algebra
+	const int blockSize = m_algebraType.blocksize();
+
+//	if blockSize is 1, we're fine if dd is non-grouped
+	if(blockSize == 1){
+		if(m_bGrouped == true)
+			UG_THROW("ApproximationSpace: Using grouped DD, but Algebra is 1x1.")
+	}
+
+//	if variable block algebra
+	else if(blockSize == AlgebraType::VariableBlockSize){
+		UG_THROW("ApproximationSpace: Variable algebra currently not supported.")
+	}
+
+//	if block algebra, check that number of sub-elements is zero or == blockSize
+	else if(blockSize > 1){
+		for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
+			const ReferenceObjectID roid = (ReferenceObjectID)r;
+
+			for(int si = 0; si < m_spDDI->num_subsets(); ++si){
+				const int  numDoFs = m_spDDI->num_dofs(roid, si);
+
+				if(numDoFs != 0 && numDoFs != blockSize)
+					UG_THROW("ApproximationSpace: Using Block-Algebra with "
+							"Blocksize "<<blockSize<<". Therefore, the number of"
+							" dofs on each ReferenceObject must equal the blocksize"
+							" or be zero. But number of dofs on "<<roid<<" in "
+							"subset "<<si<<" is "<<numDoFs<<".");
+			}
+		}
+	}
+
+//	catch other (invalid) settings
+	else
+		UG_THROW("Cannot determine blocksize of Algebra.");
 }
 
 
