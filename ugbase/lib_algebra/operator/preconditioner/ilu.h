@@ -142,6 +142,8 @@ bool FactorizeILUSorted(Matrix_type &A)
 	typedef typename Matrix_type::row_iterator row_iterator;
 	typedef typename Matrix_type::value_type block_type;
 
+	static const number __eps = 1e-50;
+
 	// for all rows
 	for(size_t i=1; i < A.num_rows(); i++)
 	{
@@ -159,8 +161,10 @@ bool FactorizeILUSorted(Matrix_type &A)
 			// safe A(i,k)/A(k,k) in A(i,k)
 			a_ik /= a_kk;
 
-			if(fabs(BlockNorm(A(k,k))) < 1e-15*BlockNorm(A(i,k)))
-				UG_THROW("Diag is Zero for k="<<k<<", cannot factorize ILU.");
+			if(fabs(BlockNorm(A(k,k))) < __eps * BlockNorm(A(i,k)))
+				UG_THROW("ILU: Blocknorm of diagonal is near-zero for k="<<k<<
+				         " with eps: "<<__eps<<", ||A_kk||="<<fabs(BlockNorm(A(k,k)))
+				         <<", ||A_ik||="<<BlockNorm(A(i,k)));
 
 			typename Matrix_type::row_iterator it_ij = it_k; // of row i
 			++it_ij; // skip a_ik
