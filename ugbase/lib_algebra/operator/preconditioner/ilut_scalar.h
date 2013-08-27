@@ -18,6 +18,7 @@
 
 #include "lib_algebra/algebra_common/vector_util.h"
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
+#include "lib_algebra/cpu_algebra_types.h"
 #include "ilut.h"
 
 namespace ug{
