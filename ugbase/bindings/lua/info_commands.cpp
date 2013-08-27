@@ -282,9 +282,9 @@ string FunctionInfo(lua_State *L, bool bComplete, const char *functionName)
 	LUA_STACK_CHECK(L, 0);
 	lua_pushvalue(L, -1);
 	lua_Debug ar;
-	lua_getinfo(L, ">Snlu", &ar);
+
 	std::stringstream ss;
-	if(ar.source)
+	if(lua_getinfo(L, ">Snlu", &ar) != 0 && ar.source)
 	{
 		if(bComplete)
 		{
@@ -540,8 +540,8 @@ string LuaGetScriptFunctionString(lua_State *L, int index)
 	LUA_STACK_CHECK(L, 0);
 	lua_pushvalue(L, index);
 	lua_Debug ar;
-	lua_getinfo(L, ">S", &ar);
-	if(ar.linedefined != -1)
+
+	if(lua_getinfo(L, ">S", &ar) != 0 && ar.linedefined != -1)
 	{
 
 		const char *p=GetFileLine(ar.source[0] == '@' ? ar.source+1 : ar.source,
@@ -592,23 +592,23 @@ void LuaPrintTable(lua_State *L, size_t iSpace, int index)
 
 	for(int i=0; i<len; i++)
 	{
-		int index = sorted[i].index;
+		int index2 = sorted[i].index;
 
 		UG_LOG(repeat(' ', iSpace));
 		UG_LOG(sorted[i].value);
-		UG_LOG(" (" << GetLuaTypeString(L, index) << ")");
-		if(lua_isfunction(L, index))
+		UG_LOG(" (" << GetLuaTypeString(L, index2) << ")");
+		if(lua_isfunction(L, index2))
 		{
-			UG_LOG(": " << LuaGetScriptFunctionString(L, index));
+			UG_LOG(": " << LuaGetScriptFunctionString(L, index2));
 		}
-		else if(lua_istable(L, index))
+		else if(lua_istable(L, index2))
 		{
 			UG_LOG(" = \n");
-			LuaPrintTable(L, iSpace+1, index);
+			LuaPrintTable(L, iSpace+1, index2);
 		}
 		else
 		{
-			const char * value = lua_tostring(L, index);
+			const char * value = lua_tostring(L, index2);
 			if(value) { UG_LOG(" = \"" << value << "\"") };
 		}
 		UG_LOG("\n");
@@ -659,8 +659,7 @@ void GetLuaGlobals(std::vector<std::string>  *functions,
 				{
 					lua_Debug ar;
 					lua_pushvalue(L, -1);
-					lua_getinfo(L, ">S", &ar);
-					if(ar.linedefined != -1) {
+					if(lua_getinfo(L, ">S", &ar) != 0 && ar.linedefined != -1) {
 						if(scriptFunctions) scriptFunctions->push_back(luastr);
 					}
 					else {
@@ -849,15 +848,15 @@ string GetLuaTypeString(lua_State* L, int index)
 	if(lua_isstring(L, index)) str.append("string/");
 
 	if(lua_istable(L, index)) {
-		lua_pushnil(L);
-		str.append("{");
+		//lua_pushnil(L);
+		//str.append("{");
 		/*bool bFirst = true;
 		while (lua_next(L, index) != 0) {
 			if(bFirst) {bFirst = false;} else {str.append(", ");};
 			str.append(GetLuaTypeString(L, -1));
 			lua_pop(L, 1);
 	   }*/
-		str.append("} (table)/");
+		str.append("table/");
 	}
 	if(lua_isthread(L, index)) str.append("thread/");
 	if(lua_isuserdata(L, index))
