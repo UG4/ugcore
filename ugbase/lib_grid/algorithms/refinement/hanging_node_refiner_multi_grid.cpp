@@ -943,6 +943,8 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 void HangingNodeRefiner_MultiGrid::
 collect_objects_for_coarsen(bool scheduleCoarseningBeginsMessage)
 {
+	PROFILE_FUNC()
+
 	MultiGrid& mg = *m_pMG;
 	selector_t& sel = get_refmark_selector();
 
@@ -1325,6 +1327,7 @@ debug_save(sel, "coarsen_marks_05_adjustment_done");
 bool HangingNodeRefiner_MultiGrid::
 perform_coarsening()
 {
+	PROFILE_FUNC();
 /*
 We have to handle elements as follows:
 
