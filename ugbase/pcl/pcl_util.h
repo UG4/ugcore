@@ -21,9 +21,12 @@
 ///	have called the barrier function.
 /**	Note that this barrier is only has effect, if the define PCL_DEBUG_BARRIER_ENABLED
  * is enabled.*/
-#define PCL_DEBUG_BARRIER(communicator) communicator.barrier()
+	#define PCL_DEBUG_BARRIER(communicator) communicator.barrier()
+	#define PCL_DEBUG_BARRIER_ALL()	{pcl::ProcessCommunicator com; com.barrier();}
+
 #else
-#define PCL_DEBUG_BARRIER(communicator)
+	#define PCL_DEBUG_BARRIER(communicator)
+	#define PCL_DEBUG_BARRIER_ALL()
 #endif
 
 namespace pcl

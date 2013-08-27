@@ -31,26 +31,31 @@ static bool PclDebugBarrierEnabled()
 #endif
 }
 
-bool PclAllProcsTrue(bool bTrue){
+static void PclDebugBarrierAll()
+{
+	PCL_DEBUG_BARRIER_ALL();
+}
+
+static bool PclAllProcsTrue(bool bTrue){
 	return pcl::AllProcsTrue(bTrue);
 }
 
 template<typename T>
-T ParallelMin(T t)
+static T ParallelMin(T t)
 {
 	pcl::ProcessCommunicator pc;
 	return pc.allreduce(t, PCL_RO_MIN);
 }
 
 template<typename T>
-T ParallelMax(T t)
+static T ParallelMax(T t)
 {
 	pcl::ProcessCommunicator pc;
 	return pc.allreduce(t, PCL_RO_MAX);
 }
 
 template<typename T>
-T ParallelSum(T t)
+static T ParallelSum(T t)
 {
 	pcl::ProcessCommunicator pc;
 	return pc.allreduce(t, PCL_RO_SUM);
@@ -63,6 +68,10 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 
 	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabled, grp,
 					"Enabled", "", "Returns the whether debug barriers are enabled.");
+
+	reg.add_function("PclDebugBarrierAll", &PclDebugBarrierAll, grp,
+					 "", "", "Synchronizes all parallel processes if the executable"
+							 "has been compiled with PCL_DEBUG_BARRIER=ON");
 
 	reg.add_function("GetNumProcesses", &pcl::GetNumProcesses, grp,
 					"NumProcs", "", "Returns the number of active processes.");
@@ -84,6 +93,11 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 #else // UG_PARALLEL
 
 static bool PclDebugBarrierEnabledDUMMY()
+{
+	return false;
+}
+
+static bool PclDebugBarrierAllDUMMY()
 {
 	return false;
 }
@@ -128,6 +142,10 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 
 	reg.add_function("PclDebugBarrierEnabled", &PclDebugBarrierEnabledDUMMY, grp,
 					"Enabled", "", "Returns the whether debug barriers are enabled.");
+
+	reg.add_function("PclDebugBarrierAll", &PclDebugBarrierAllDUMMY, grp,
+					 "", "", "Synchronizes all parallel processes if the executable"
+							 "has been compiled with PCL_DEBUG_BARRIER=ON");
 
 	reg.add_function("GetNumProcesses", &GetNumProcessesDUMMY, grp,
 					"NumProcs", "", "Returns the number of active processes.");

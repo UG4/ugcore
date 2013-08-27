@@ -289,7 +289,7 @@ presmooth(size_t lev)
 
 // 	pre-smoothing
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
-	GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());
+	//GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());	invalid communicator!?!
 	if(!smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PreSmoother, lev, m_numPreSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
@@ -553,7 +553,7 @@ postsmooth(size_t lev)
 //	We smooth the updated defect again. This means that we compute a
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
-	GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());
+	//GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());	//invalid communicator !?!
 	if(!smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PostSmoother, lev, m_numPostSmooth))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"
