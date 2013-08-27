@@ -139,6 +139,7 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 						const std::vector<int>& sendTo,
 						const ProcessCommunicator& involvedProcs)
 {
+	PCL_PROFILE_FUNC();
 //	we overwrite some data in recvFrom - thats why we need a copy
 	std::vector<int> recvFrom = recvFromTmp;
 	
@@ -201,6 +202,7 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 						  const std::vector<int>& sendTo, const std::vector<int>& sendBufSizes,
 						  const ProcessCommunicator& involvedProcs)
 {
+	PCL_PROFILE_FUNC();
 	assert(recvFrom.size() == recvBufSizes.size());
 	assert(sendTo.size() == sendBufSizes.size());
 	
@@ -269,6 +271,7 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 
 bool ParallelReadFile(string &filename, vector<char> &file, bool bText, bool bDistributedLoad, const ProcessCommunicator& pc)
 {
+	PCL_PROFILE_FUNC();
 	if(bDistributedLoad == false)
 		return ReadFile(filename.c_str(), file, bText);
 
