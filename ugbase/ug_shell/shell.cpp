@@ -125,19 +125,20 @@ int RunShell(const char *prompt)
 			if(buf.compare("exit")==0 || buf.compare("quit")==0)
 				break;
 
-			if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
-			{
-				bridge::UGTypeInfo(buf.c_str()+6);
-				continue;
-			}
+			ug_cacheline(buf);
+
 			if(buf[len-1]=='?')
 			{
 				buf.resize(len-1);
 				bridge::UGTypeInfo(buf.c_str());
 				continue;
 			}
-
-			ug_cacheline(buf);
+			if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
+			{
+				script::ParseBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
+				bridge::UGTypeInfo("PrintTemporaryObject");
+				continue;
+			}
 
 			try
 			{
@@ -244,7 +245,8 @@ debug_return DebugShell()
 		}
 		else if(len > 6 && strncmp(buf.c_str(), "print ", 6)==0 && buf[6] != '(')
 		{
-			bridge::UGTypeInfo(buf.c_str()+6);
+			script::ParseBuffer((std::string("PrintTemporaryObject=")+buf.substr(6)).c_str(), "debug shell");
+			bridge::UGTypeInfo("PrintTemporaryObject");
 			continue;
 		}
 
