@@ -70,6 +70,11 @@ ugpluginsgrep()
 {
 	fgrep -r "$1" $UG4_ROOT/plugins
 }
+ugcmakegrep()
+{
+	fgrep -r "$1" $UG4_ROOT/cmake
+}
+
 uggrep()
 {
 	fgrep -r "$1" $UG4_ROOT
@@ -82,6 +87,21 @@ ug4svnupdate()
 	cd -
 }
 
-source uginstall_config
+ugclearoutput()
+{
+	find . -name '*.pmat' | xargs rm
+	find . -name '*.mat' | xargs rm
+	find . -name '*.pvec' | xargs rm
+	find . -name '*.vec' | xargs rm
+	find . -name '*.pvtu' | xargs rm
+	find . -name '*.vtu' | xargs rm
+	find . -name '*.values' | xargs rm
+	find . -name '*.marks' | xargs rm
+	find . -name '*.ugx' | xargs rm
+}
 
 alias ugrelib="rm $UG4_ROOT/lib/*; rm $UG4_ROOT/bin/ugshell; rm $UG4_ROOT/bin/plugins/*"
+
+
+source uginstall_config
+
