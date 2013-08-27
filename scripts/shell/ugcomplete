@@ -273,6 +273,10 @@ None Shiny Scalasca Vampir \
 -DCPU_ALGEBRA= \
 -DUSE_LUA2C= \
 -DINTERNAL_MEMTRACKER= \
+-DSHINY_CALL_LOGGING= \
+-DProMesh= \
+-DSHTopology= \
+-DElectromagnetism= \
 $CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o default -o nospace ugcmake
 
 
