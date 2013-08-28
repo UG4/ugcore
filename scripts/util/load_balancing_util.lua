@@ -39,7 +39,6 @@ balancer.qualityThreshold	= 0.8
 balancer.childWeight		= 2
 balancer.siblingWeight		= 2
 balancer.itrFactor			= 1000
-balancer.regardAllChildren	= false
 
 balancer.partitioner		= "parmetis"
 
@@ -72,8 +71,6 @@ function balancer.ParseParameters()
 									"Values in the range from 0.000001 to 1000000. A low value means that "..
 									"communication time is considered low compared to redistribution time while "..
 									"a high value means the contrary. Default is 1000.")
-	balancer.regardAllChildren	= util.HasParamOption("-regardAllChildren",
-									"Regard all children during partitioning to calculate the weight of a parent")
 
 	balancer.partitioner		= util.GetParam("-partitioner", balancer.partitioner,
 									"(Options: parmetis, bisection) The partitioner which will be used during repartitioning.")
@@ -119,7 +116,6 @@ function balancer.CreateLoadBalancer(domain)
 				partitioner:set_sibling_weight(balancer.siblingWeight)
 				partitioner:set_itr_factor(balancer.itrFactor)
 				partitioner:set_verbose(false)
-				partitioner:set_regard_all_children(balancer.regardAllChildren)
 				loadBalancer:set_partitioner(partitioner)
 			else
 				print("ERROR: partitioner 'parmetis' specified in balancer.CreateLoadBalancer but ParMETIS isn't available.")

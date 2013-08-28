@@ -108,7 +108,6 @@ static void Domain(Registry& reg, string grp)
 			string name = string("Partitioner_Parmetis").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 				.add_constructor()
-				.add_method("set_regard_all_children", &T::set_regard_all_children)
 				.add_method("set_child_weight", &T::set_child_weight)
 				.add_method("set_sibling_weight", &T::set_sibling_weight)
 				.add_method("set_itr_factor", &T::set_itr_factor)

@@ -23,6 +23,8 @@ template <class TGeomBaseObj, class TIndexType,
 		  class TConnectingObj = typename TGeomBaseObj::side>
 class ParallelDualGraph{
 	public:
+		typedef typename std::vector<TGeomBaseObj*>::iterator	element_iterator_t;
+
 		ParallelDualGraph(MultiGrid* pmg = NULL);
 		~ParallelDualGraph();
 
@@ -46,6 +48,12 @@ class ParallelDualGraph{
 
 	///	returns the graph-vertex for the given index
 		TGeomBaseObj* get_element(size_t gvrtIndex)		{return m_elems[gvrtIndex];}
+
+	///	returns the begin-iterator to the elements corresponding to graph vertices*/
+		element_iterator_t elements_begin()				{return m_elems.begin();}
+
+	///	returns the begin-iterator to the elements corresponding to graph vertices*/
+		element_iterator_t elements_end()				{return m_elems.end();}
 
 	///	returns the graph-vertex index of the given element
 		TIndexType get_index(TGeomBaseObj* elem)		{return m_aaElemIndex[elem];}

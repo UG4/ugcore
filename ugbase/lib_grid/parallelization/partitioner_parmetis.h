@@ -45,8 +45,6 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		virtual SubsetHandler& get_partitions();
 		virtual const std::vector<int>* get_process_map() const;
 
-
-		void set_regard_all_children(bool regardAll);
 		void set_child_weight(int w);
 		void set_sibling_weight(int w);
 
@@ -62,15 +60,31 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		void accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 									 bool copyToVMastersOnBaseLvl = false);
 
+	/**	writes the number of children in childLvl of each element in baseLvl into
+	 *	the given int-attachment of the baseLvl elements.*/
+		void gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
+											bool copyToVMastersOnBaseLvl);
+
+	///	Fills the array vwgtsOut with multi-constraint weights for elements in base-lvl
+	/**	vwgtsOut will be resized to (#elemsInBaseLvl * (maxLvl-baseLvl+1)) resulting
+	 * in a multi-constraint weights vector for elements in base-level. The i-th constraint
+	 * of an element represents the weight of its child-elements in the i-th level.*/
+		template <class TIter>
+		void fill_multi_constraint_vertex_weights(std::vector<idx_t>& vwgtsOut,
+											 int baseLvl, int maxLvl, AInt aInt,
+											 bool fillVMastersOnBaseLvl,
+											 TIter baseElemsBegin, TIter baseElemsEnd,
+											 int numBaseElements);
+
 	/**	make sure that m_numChildren contains a valid number for all elements
 	 * on the given level!*/
-		void partition_level_metis(int lvl, int numTargetProcs);
+		void partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs);
 
 	/**	make sure that m_numChildren contains a valid number for all elements
 	 * on the given level!
 	 * The given procCom should contain all processes which are potentially
 	 * involved on the given level (before or after distribution).*/
-		void partition_level_parmetis(int lvl, int numTargetProcs,
+		void partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 									  const pcl::ProcessCommunicator& procComAll,
 									  ParallelDualGraph<elem_t, idx_t>& pdg);
 
@@ -90,7 +104,6 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		int	m_childWeight;
 		int	m_siblingWeight;
 		float m_comVsRedistRatio;
-		bool m_regardAllChildren;
 };
 
 

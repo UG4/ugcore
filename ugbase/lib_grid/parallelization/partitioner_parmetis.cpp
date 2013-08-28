@@ -22,8 +22,7 @@ Partitioner_Parmetis() :
 	m_mg(NULL),
 	m_childWeight(1),
 	m_siblingWeight(2),
-	m_comVsRedistRatio(1000),
-	m_regardAllChildren(false)
+	m_comVsRedistRatio(1000)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_balanceWeights = SPBalanceWeights(new StdBalanceWeights<dim>);
@@ -308,6 +307,106 @@ accumulate_child_counts(int baseLvl, int topLvl, AInt aInt,
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop accumulate_child_counts\n");
 }
 
+
+template <int dim>
+void Partitioner_Parmetis<dim>::
+gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
+								bool copyToVMastersOnBaseLvl)
+{
+	GDIST_PROFILE_FUNC();
+	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start gather_child_counts_from_level\n");
+	typedef typename Grid::traits<elem_t>::iterator ElemIter;
+
+	if(childLvl <= baseLvl)
+		return;
+
+	assert(m_mg);
+	assert(m_mg->is_parallel());
+	assert(m_mg->has_attachment<elem_t>(aInt));
+
+	MultiGrid& mg = *m_mg;
+	Grid::AttachmentAccessor<elem_t, AInt> aaNumChildren(mg, aInt);
+	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
+	ComPol_CopyAttachment<layout_t, AInt> compolCopy(mg, aInt);
+
+//	first write child-counts to elements on childLvl - 1
+	for(ElemIter iter = mg.begin<elem_t>(childLvl - 1);
+		iter != mg.end<elem_t>(childLvl - 1); ++iter)
+	{
+		elem_t* e = *iter;
+		aaNumChildren[e] = mg.num_children<elem_t>(e);
+	}
+
+	for(int lvl = childLvl - 2; lvl >= baseLvl; --lvl){
+	//	copy from v-slaves to vmasters
+		if(glm.has_layout<elem_t>(INT_V_SLAVE))
+			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
+								 compolCopy);
+		if(glm.has_layout<elem_t>(INT_V_MASTER))
+			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
+									compolCopy);
+		m_intfcCom.communicate();
+
+	//	accumulate child counts in parent elements on lvl
+		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
+		{
+			elem_t* e = *iter;
+			aaNumChildren[e] = 0;
+			size_t numChildren = mg.num_children<elem_t>(e);
+			for(size_t i = 0; i < numChildren; ++i)
+				aaNumChildren[e] += aaNumChildren[mg.get_child<elem_t>(e, i)];
+		}
+	}
+
+//	if child counts are required in vmasters on the base-level, copy them now...
+	if(copyToVMastersOnBaseLvl){
+		if(glm.has_layout<elem_t>(INT_V_SLAVE))
+			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(baseLvl),
+								 compolCopy);
+		if(glm.has_layout<elem_t>(INT_V_MASTER))
+			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(baseLvl),
+									compolCopy);
+		m_intfcCom.communicate();
+	}
+	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop gather_child_counts_from_level\n");
+}
+
+
+template<int dim>
+template<class TIter>
+void Partitioner_Parmetis<dim>::
+fill_multi_constraint_vertex_weights(vector<idx_t>& vwgtsOut,
+									 int baseLvl, int maxLvl, AInt aInt,
+									 bool fillVMastersOnBaseLvl,
+									 TIter baseElemsBegin, TIter baseElemsEnd,
+									 int numBaseElements)
+{
+	MultiGrid& mg = *m_mg;
+	Grid::AttachmentAccessor<elem_t, AInt> aaNumChildren(mg, aInt);
+
+	int ncons = maxLvl - baseLvl + 1;
+	vwgtsOut.resize(numBaseElements * ncons);
+
+//	write 1 into the base-level constraints
+	int wgtInd = 0;
+	const int wgtOffset = maxLvl - baseLvl + 1;
+
+	for(TIter iter = baseElemsBegin; iter != baseElemsEnd; ++iter, wgtInd += wgtOffset)
+	{
+		vwgtsOut[wgtInd] = 1;
+	}
+
+	for(int ci = 1; ci < ncons; ++ci){
+		gather_child_counts_from_level(baseLvl, baseLvl + ci, aInt, fillVMastersOnBaseLvl);
+		wgtInd = ci;
+		for(TIter iter = baseElemsBegin; iter != baseElemsEnd; ++iter, wgtInd += wgtOffset)
+		{
+			vwgtsOut[wgtInd] = aaNumChildren[*iter];
+		}
+	}
+}
+
+
 template<int dim>
 void Partitioner_Parmetis<dim>::
 partition(size_t baseLvl, size_t elementThreshold)
@@ -334,9 +433,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
-
-	if(m_regardAllChildren)
-		accumulate_child_counts(baseLvl, mg.top_level(), m_aNumChildren);
 
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
@@ -370,9 +466,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 	//	maxLvl = minLvl + 1.
 		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlevel);
 		pcl::ProcessCommunicator globalCom;
-
-		if(!m_regardAllChildren)
-			accumulate_child_counts(minLvl, maxLvl, m_aNumChildren);
 
 	//	check whether there are enough elements to perform partitioning
 		if(elementThreshold > 0){
@@ -420,10 +513,10 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 		if(numProcsWithGrid == 1){
 			if(gotGrid)
-				partition_level_metis(minLvl, numProcs);
+				partition_level_metis(minLvl, maxLvl, numProcs);
 		}
 		else{
-			partition_level_parmetis(minLvl, numProcs, procComAll, pdg);
+			partition_level_parmetis(minLvl, maxLvl, numProcs, procComAll, pdg);
 		}
 
 	//	assign partitions to all children in this hierarchy level
@@ -460,13 +553,14 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 template<int dim>
 void Partitioner_Parmetis<dim>::
-partition_level_metis(int lvl, int numTargetProcs)
+partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 {
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition_level_metis\n");
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
+	int lvl = baseLvl;
 
 //	here we'll store the dual graph
 	vector<idx_t> adjacencyMapStructure;
@@ -475,8 +569,6 @@ partition_level_metis(int lvl, int numTargetProcs)
 	ConstructDualGraphMGLevel<elem_t, idx_t>(adjacencyMapStructure, adjacencyMap,
 											 mg, lvl);
 
-	if(adjacencyMap.empty())
-		return;
 
  //note: using the option METIS_OPTION_DBGLVL could be useful for debugging.
 	idx_t options[METIS_NOPTIONS];
@@ -487,26 +579,29 @@ partition_level_metis(int lvl, int numTargetProcs)
 	//options[METIS_OPTION_CONTIG] = 1;	 //	request contiguous partitions
 
 	idx_t nVrts = (idx_t)adjacencyMapStructure.size() - 1;
-	idx_t nConstraints = 1;
 	idx_t edgeCut;
 	idx_t numParts = (idx_t)numTargetProcs;
 	vector<idx_t> partitionMap(nVrts);
 
 //todo: consider specified balance and connection weights!
+	idx_t nConstraints = maxLvl - baseLvl + 1;
+	vector<idx_t> vrtWgtMap;
+	fill_multi_constraint_vertex_weights(vrtWgtMap, baseLvl, maxLvl, m_aNumChildren, false,
+										 mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl),
+										 mg.num<elem_t>(baseLvl));
 
 //	create a weight map for the vertices based on the number of children+1
 //	for each graph-vertex. This is not necessary, if we're already on the top level
-	idx_t* pVrtSizeMap = NULL;
-	vector<idx_t> vrtSizeMap;
-	if(lvl < (int)mg.top_level()){
-		vrtSizeMap.reserve(nVrts);
-		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
-			vrtSizeMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
-		}
-
-		assert((int)vrtSizeMap.size() == nVrts);
-		pVrtSizeMap = &vrtSizeMap.front();
-	}
+//	accumulate_child_counts(baseLvl, maxLvl, m_aNumChildren);
+//	if(lvl < (int)mg.top_level()){
+//		vrtWgtMap.reserve(nVrts);
+//		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+//			vrtSizeMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
+//		}
+//
+//		assert((int)vrtSizeMap.size() == nVrts);
+//		pVrtWgtMap = &vrtWgtMap.front();
+//	}
 
 //	under some circumstances, we have to cluster siblings. This requires special
 //	edge weights...
@@ -542,11 +637,14 @@ partition_level_metis(int lvl, int numTargetProcs)
 		pAdjWgts = &adjwgts.front();
 	}
 
+	if(adjacencyMap.empty())
+		return;
+
 	UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
 	int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 										&adjacencyMapStructure.front(),
 										&adjacencyMap.front(),
-										pVrtSizeMap, NULL, pAdjWgts,
+										&vrtWgtMap.front(), NULL, pAdjWgts,
 										&numParts, NULL, NULL, options,
 										&edgeCut, &partitionMap.front());
 	UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
@@ -592,7 +690,7 @@ partition_level_metis(int lvl, int numTargetProcs)
 
 template<int dim>
 void Partitioner_Parmetis<dim>::
-partition_level_parmetis(int lvl, int numTargetProcs,
+partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 						 const pcl::ProcessCommunicator& procComAll,
 						 ParallelDualGraph<elem_t, idx_t>& pdg)
 {
@@ -601,12 +699,41 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
-
+	int lvl = baseLvl;
 	int localProc = pcl::GetProcRank();
+
 
 //	generate the parallel graph. H-Interface communication involved.
 	pdg.set_grid(m_mg);
 	pdg.generate_graph(lvl, procComAll);
+
+	idx_t partOptions[3]; partOptions[0] = 0;//default values
+	//idx_t refineOptions[4] = {1, 0, 0, PARMETIS_PSR_UNCOUPLED};
+	idx_t nConstraints = maxLvl - baseLvl + 1;
+	idx_t refineOptions[4]; refineOptions[0] = 0;
+	idx_t nVrts = pdg.num_graph_vertices();
+	idx_t edgeCut;
+	idx_t wgtFlag = 3;//vertices and edges are weighted
+	idx_t numFlag = 0;
+	idx_t numParts = (idx_t)numTargetProcs;
+	vector<idx_t> partitionMap(nVrts);
+	vector<real_t> tpwgts(numParts * nConstraints, 1. / (number)numParts);
+	vector<real_t> ubvec(nConstraints, 1.05);
+	real_t comVsRedistRation = m_comVsRedistRatio;
+
+//todo: consider specified balance and connection weights!
+	vector<idx_t> vrtWgtMap;
+	fill_multi_constraint_vertex_weights(vrtWgtMap, baseLvl, maxLvl, m_aNumChildren, false,
+										 pdg.elements_begin(), pdg.elements_end(),
+										 pdg.num_graph_vertices());
+
+//	create a weight map for the vertices based on the number of children+1
+//	accumulate_child_counts(baseLvl, maxLvl, m_aNumChildren);
+//	vrtWgtMap.reserve(nVrts);
+//	for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+//		if(pdg.was_considered(*iter))
+//			vrtWgtMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
+//	}
 
 	if(!procComAll.empty()){
 		UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << (int)pdg.num_graph_vertices()
@@ -618,34 +745,6 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 		pdg.remove_empty_procs_from_node_offset_map();
 
 		if(!procCom.empty()){
-		//	partition the graph using parmetis
-			//idx_t partOptions[3] = {1, 1, 0};
-			idx_t partOptions[3]; partOptions[0] = 0;//default values
-			//idx_t refineOptions[4] = {1, 0, 0, PARMETIS_PSR_UNCOUPLED};
-			idx_t refineOptions[4]; refineOptions[0] = 0;
-			idx_t nVrts = pdg.num_graph_vertices();
-			idx_t nConstraints = 1;
-			idx_t edgeCut;
-			idx_t wgtFlag = 3;//vertices and edges are weighted
-			idx_t numFlag = 0;
-			idx_t numParts = (idx_t)numTargetProcs;
-			vector<idx_t> partitionMap(nVrts);
-			vector<real_t> tpwgts(numParts, 1. / (number)numParts);
-			real_t ubvec = 1.05;
-			real_t comVsRedistRation = m_comVsRedistRatio;
-
-		//todo: consider specified balance and connection weights!
-
-		//	create a weight map for the vertices based on the number of children+1
-			idx_t* pVrtSizeMap = NULL;
-			//vector<idx_t> vrtSizeMap(nVrts, 1);
-			vector<idx_t> vrtSizeMap;
-			vrtSizeMap.reserve(nVrts);
-			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
-				if(pdg.was_considered(*iter))
-					vrtSizeMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
-			}
-
 			idx_t* pAdjWgts = NULL;
 			vector<idx_t> adjwgts;
 			if(base_class::clustered_siblings_enabled()){
@@ -680,18 +779,15 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 				pAdjWgts = &adjwgts.front();
 			}
 
-			assert((int)vrtSizeMap.size() == nVrts);
-			pVrtSizeMap = &vrtSizeMap.front();
-
 			MPI_Comm mpiCom = procCom.get_mpi_communicator();
 			if((int)procCom.size() != numTargetProcs){
 				UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
 				int metisRet =	ParMETIS_V3_PartKway(pdg.parallel_offset_map(),
 													pdg.adjacency_map_structure(),
 													pdg.adjacency_map(),
-													pVrtSizeMap, pAdjWgts, &wgtFlag,
+													&vrtWgtMap.front(), pAdjWgts, &wgtFlag,
 													&numFlag, &nConstraints,
-													&numParts, &tpwgts.front(), &ubvec, partOptions,
+													&numParts, &tpwgts.front(), &ubvec.front(), partOptions,
 													&edgeCut, &partitionMap.front(),
 													&mpiCom);
 				UG_DLOG(LIB_GRID, 1, "done\n");
@@ -702,13 +798,29 @@ partition_level_parmetis(int lvl, int numTargetProcs,
 				}
 			}
 			else{
+			//	defines the redistribution cost for each vertex
+			//	Since vrtWgtMap holds the number of children for each constraint on each level,
+			//	we can simply sum them up to retrieve the redistribution cost for that element
+			//todo: Better distributions may possibly be obtained if vrtSizeMap would contain 1
+			//		for all elements... Check that out!
+				vector<idx_t> vrtSizeMap;
+				vrtSizeMap.reserve(pdg.num_graph_vertices());
+				for(int ivrt = 0; ivrt < (int)vrtWgtMap.size(); ivrt += nConstraints){
+					idx_t size = 0;
+					for(int ic = 0; ic < (int)nConstraints; ++ic){
+						size += vrtWgtMap[ivrt + ic];
+					}
+					vrtSizeMap.push_back(size);
+				}
+
+
 				UG_DLOG(LIB_GRID, 1, "Calling ParMETIS_V3_AdaptiveRepart...");
 				int metisRet =	ParMETIS_V3_AdaptiveRepart(pdg.parallel_offset_map(),
 													pdg.adjacency_map_structure(),
 													pdg.adjacency_map(),
-													pVrtSizeMap, pVrtSizeMap, pAdjWgts, &wgtFlag,
+													&vrtWgtMap.front(), &vrtSizeMap.front(), pAdjWgts, &wgtFlag,
 													&numFlag, &nConstraints,
-													&numParts, &tpwgts.front(), &ubvec,
+													&numParts, &tpwgts.front(), &ubvec.front(),
 													&comVsRedistRation, refineOptions,
 													&edgeCut, &partitionMap.front(),
 													&mpiCom);
@@ -814,13 +926,6 @@ void Partitioner_Parmetis<dim>::
 set_itr_factor(float itr)
 {
 	m_comVsRedistRatio = itr;
-}
-
-template<int dim>
-void Partitioner_Parmetis<dim>::
-set_regard_all_children(bool regardAll)
-{
-	m_regardAllChildren = regardAll;
 }
 
 template class Partitioner_Parmetis<1>;
