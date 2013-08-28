@@ -119,6 +119,8 @@ private:
 	std::vector<double> lambda;
 	std::vector<bool> vbDirichlet;
 
+	double m_linearDependentEps;
+
 
 	bool m_bPrintProjectedEigenvalues;
 	bool m_bPrintProjectedEigenvectors;
@@ -175,8 +177,13 @@ public:
 
 		m_additionalEigenvectorsToKeep = 0;
 		m_currentAdditionalEigenvectors = 0;
+		m_linearDependentEps = 1e-6;
 	}
 
+	void set_linear_dependent_eps(double eps)
+	{
+		m_linearDependentEps = eps;
+	}
 	/**
 	 * adds a vector which should be used for eigenvalue computation
 	 * @param vec
@@ -323,6 +330,9 @@ public:
 		UG_ASSERT(px.size() > 0, "use add_vector to add some eigenvalue approximations");
 		CloneVector(t, px(0));
 		t.set(0.0);
+#ifdef UG_PARALEL
+		defect.set_storage_type(PST_CONSISTENT);
+#endif
 	}
 
 	/**
@@ -369,7 +379,8 @@ public:
 		for(size_t i=0; i<nEigenvalues; i++)
 		{
 			vCorr.push_back(create_approximation_vector() );
-			vOldX.push_back(create_approximation_vector() );
+			if(m_iPINVIT >= 3)
+				vOldX.push_back(create_approximation_vector() );
 		}
 
 		vCorrectionName.resize(nEigenvalues);
@@ -450,7 +461,10 @@ public:
 			get_testvectors(iteration, vCorr, vCorrectionName, numCorrections, vOldX, vAdditional, pTestVectors, vTestVectorDescription, vDefectNorm);
 
 			for(size_t i=0; i<nEigenvalues; i++)
-			{ 	write_debug(iteration, i, px(i), defect, vCorr(i), vOldX(i), vDefectNorm[i] < m_dPrecision); }
+			{
+				write_debug(iteration, i, px(i), defect, vCorr(i), vDefectNorm[i] < m_dPrecision);
+				if(vOldX.size() > i) write_debug_old(iteration, i, vOldX(i));
+			}
 
 			/*for(size_t i=0; i<vTestVectorDescription.size(); i++)
 			{	UG_LOG(vTestVectorDescription[i] << "\nEigenvalues");	} */
@@ -567,6 +581,9 @@ public:
 		for(size_t i=0; i<px.size(); i++)
 			px[i]->change_storage_type(PST_CONSISTENT);
 
+		for(size_t i=0; i<vOldX.size(); i++)
+			vOldX[i]->set_storage_type(PST_CONSISTENT);
+
 		for(size_t i=0; i<vAdditional.size(); i++)
 			vAdditional[i]->set_storage_type(PST_CONSISTENT);
 #endif
@@ -599,7 +616,8 @@ public:
 				/*for(int k=0; k<m_nrOfOld; k++)
 					vOldX[k][r][i] = vOldX[k][r][i];
 				vOldX[0][r][i] = (px[r])[i];*/
-				vOldX(r) [i] = px(r) [i];
+				if(vOldX.size()>0)
+					vOldX(r) [i] = px(r) [i];
 				// store new
 				px(r) [i] = x_tmp[r];
 			}
@@ -633,20 +651,24 @@ public:
 
 		for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
 		{
-			UG_ASSERT(r_lambda[i].imag() < 1e-8, "eigenvalue " << i << " is imaginary (" << r_lambda[i] << ")\n");
-			UG_ASSERT(r_lambda[i].real() > 1e-8, "eigenvalues " << i << "<= 0\n");
+			UG_ASSERT(r_lambda[i].imag() < 1e-4 && r_lambda[i].imag() > -1e-4, "eigenvalue " << i << " = " << r_lambda[i] << " is imaginary (" << r_lambda[i] << ")\n");
+			UG_ASSERT(r_lambda[i].real() > -1e-4, "eigenvalues " << i << " = " << r_lambda[i] << " < 0\n");
 		}
 
 	}
 
 private:
-	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr, vector_type &oldX, bool bConverged)
+	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr, bool bConverged)
 	{
 		PROFILE_FUNC_GROUP("debug");
 		write_debug(x, ("pinvit_it_" + ToString(iteration) + "_ev_" + ToString(i)).c_str());
 		write_debug(defect, ("pinvit_it_" + ToString(iteration) + "_defect_" + ToString(i)).c_str());
 		if(!bConverged)
 			write_debug(corr, ("pinvit_it_" + ToString(iteration) + "_corr_" + ToString(i)).c_str());
+	}
+
+	void write_debug_old(int iteration, int i, vector_type &oldX)
+	{
 		write_debug(oldX, ("pinvit_it_" + ToString(iteration) + "_old_" + ToString(i)).c_str());
 	}
 
@@ -820,6 +842,7 @@ private:
 					{
 						if(iteration != 0)
 						{
+							UG_ASSERT(vOldX.size() > i, "?");
 							pTestVectors.push_back(vOldX[i]);
 							vTestVectorDescription.push_back(std::string("old eigenvalue[") + ToString(i) + std::string("]") );
 						}
@@ -882,7 +905,7 @@ private:
 				for(size_t k=j+1; k<mat.num_rows(); k++)
 					mat(i,k) -= val*mat(j, k);
 			}
-			if(mat(i,i) < 1e-6) bLinearIndependent[i] = false;
+			if(mat(i,i) < m_linearDependentEps) bLinearIndependent[i] = false;
 			else bLinearIndependent[i] = true;
 		}
 	}

@@ -112,31 +112,45 @@ void MultiEnergyProd(matrix_type &A,
 #endif
 	UG_ASSERT(n == rA.num_rows() && n == rA.num_cols(), "");
 	vector_type t;
+
+#if 0
+	CloneVector(t, px(0));
+
+	for(size_t r=0; r<n; r++)
+	{
+//		t.set(0.0);
+	#ifdef UG_PARALLEL
+		px(r).change_storage_type(PST_CONSISTENT);
+	#endif
+		A.apply(t, px(r));
+		// tmp is additive, v1 is consistent
+		//UG_LOG("EnergyProd " << a << "\n");
+		for(size_t c=r; c<n; c++)
+		{
+			double a = px(c).dotprod(t);
+			rA(c, r) = rA(r, c) = a; //EnergyProd(px(r), A, px(c), t);
+		}
+	}
+
+#else
 	CloneVector(t, *px[0]);
 
+#ifdef UG_PARALLEL
+	for(size_t r=0; r<n; r++)
+		px[r]->change_storage_type(PST_CONSISTENT);
+#endif
 
 	for(size_t r=0; r<n; r++)
 	{
 		// todo: why is SparseMatrix<T>::apply not const ?!?
-#ifdef UG_PARALLEL
-		px[r]->change_storage_type(PST_CONSISTENT);
-#endif
 		A.apply(t, *px[r]);
-#ifdef UG_PARALLEL
-		t.change_storage_type(PST_CONSISTENT);
-#endif
+		// t additive
+
 		for(size_t c=r; c<n; c++)
-		{
-			//rA(r, c) = VecProd((*px[c]), t);
-			rA(r, c) = px[c]->dotprod(t);
-			//UG_LOG("MultiEnergyProd : (" << r << ", " << c << ") = " << rA(r, c) << "\n");
-		}
+			rA(c, r) = rA(r, c) = px[c]->dotprod(t);
 	}
 
-
-	for(size_t r=0; r<n; r++)
-		for(size_t c=0; c<r; c++)
-			rA(r,c) = rA(c, r);
+#endif
 }
 
 
