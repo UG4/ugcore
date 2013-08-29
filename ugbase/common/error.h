@@ -24,6 +24,10 @@ void ug_throw_error();
 #define UG_THROW(msg)		{ug_throw_error(); std::stringstream __ss; __ss << msg; \
 							throw(ug::UGError(__ss.str(),__FILE__,__LINE__));}
 
+/// UG_COND_THROW(cond, msg) : performs a UG_THROW(msg) if cond == true
+#define UG_COND_THROW(cond, msg) { if(cond) { UG_THROW(msg); } }
+
+
 #define UG_CATCH_THROW(msg)	catch(ug::UGError& err){std::stringstream __ss; __ss << msg;\
 							  err.push_msg(__ss.str(),__FILE__,__LINE__); throw(err);}
 
