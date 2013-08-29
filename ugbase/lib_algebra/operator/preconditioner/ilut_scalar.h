@@ -23,6 +23,8 @@
 
 namespace ug{
 
+
+
 template <typename TAlgebra>
 class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 {
@@ -184,20 +186,15 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 #ifdef UG_PARALLEL
 			m_d.set_storage_type(PST_ADDITIVE);
 			m_c.set_storage_type(PST_CONSISTENT);
-
-			/*AlgebraLayouts *p = new AlgebraLayouts;
-			p->proc_comm() = pcl::ProcessCommunicator(pcl::PCD_LOCAL);
-			SmartPtr<AlgebraLayouts> layouts(p);
-			m_c.set_layouts(c.layouts());
-			m_d.set_layouts(d.layouts());*/
+			m_c.set_layouts(CreateLocalAlgebraLayouts());
+			m_d.set_layouts(CreateLocalAlgebraLayouts());
 #endif
 			get_vector(m_d, d);
 			m_c.set(0.0);
 
 			//ApplyLinearSolver(mo, m_u, m_b, linearSolver);
-			//linearSolver.apply_return_defect(m_c, m_d);
-			ilut->apply(m_c, m_d);
-
+			linearSolver.apply_return_defect(m_c, m_d);
+			//ilut->apply(m_c, m_d);
 
 			set_vector(m_c, c);
 			return true;
