@@ -578,6 +578,7 @@ base_solve(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level " << lev << "\n");
+	try{
 //	get vectors used in smoothing operations. (This is needed if vertical
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
@@ -612,6 +613,7 @@ base_solve(size_t lev)
 
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			sc.set(0.0);
+			try{
 			if(!m_spBaseSolver->apply(sc, sd))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
@@ -620,6 +622,7 @@ base_solve(size_t lev)
 
 				return false;
 			}
+			}UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
 
 		//	*) if baseLevel == surfaceLevel, we need also need the updated defect
 		//	*) if adaptive case, we also need to update the defect, such that on the
@@ -676,6 +679,7 @@ base_solve(size_t lev)
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: Start serial base solver.\n");
 
 		//	compute coarse correction
+			try{
 			if(!m_spBaseSolver->apply(c, d))
 			{
 				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
@@ -684,6 +688,8 @@ base_solve(size_t lev)
 
 				return false;
 			}
+			}UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
+
 
 //todo: is update defect really useful here?
 		//	update defect
@@ -715,6 +721,9 @@ base_solve(size_t lev)
 #endif
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level " << lev << "\n");
+
+	}UG_CATCH_THROW("GMG: Base Solver failed.");
+
 //	we're done for the solution of the base solver
 	return true;
 
