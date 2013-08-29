@@ -172,7 +172,8 @@ GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 {
 	GridFunction<TDomain, TAlgebra>* p =
 		new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, m_spDD, m_bManaged);
-	p->resize(this->size());
+	if(p->size() != this->size())
+		p->resize(this->size());
 	return p;
 }
 
