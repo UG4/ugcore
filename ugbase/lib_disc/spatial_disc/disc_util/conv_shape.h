@@ -259,16 +259,33 @@ update(const TFVGeom<TElem, dim>* geo,
 	//	Compute flux
 		const number flux = VecDot(scvf.normal(), DarcyVelocity[ip]);
 
+		size_t from = scvf.from();
+		size_t to = scvf.to();
+
+	//	if e.g. hanging nodes are involved, no upwind can be performed...		
+		if((from >= scvf.num_sh()) || (to >= scvf.num_sh())){
+		//	No upwind...
+		//	Write Shapes
+			for(size_t sh = 0; sh < scvf.num_sh(); sh++)
+				conv_shape(ip, sh) = flux * scvf.shape(sh);
+
+			UG_ASSERT(scvf.num_sh() == numSH, "sh's have to match!");
+
+		//	Write Derivatives if wanted
+			if(computeDeriv){
+				for (size_t sh = 0; sh < scvf.num_sh(); sh++)
+					VecScale(D_vel(ip, sh), scvf.normal(), scvf.shape(sh));
+			}
+			
+			continue;
+		}
+		
+	//	Full upwind below...
 	//	Choose Upwind corner
-		const size_t up = (flux >= 0) ? scvf.from() : scvf.to();
+		size_t up = (flux >= 0) ? from : to;
 
 	//	Write Shapes
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh) conv_shape(ip, sh) = 0.0;
-
-	//	check: Currently hanging nodes not supported.
-	//	/todo: add support for hanging nodes
-		if(up >= scvf.num_sh())
-			UG_THROW("FullUpwind: Currently not implemented for hanging nodes.")
 
 		conv_shape(ip, up) = flux;
 
@@ -413,18 +430,34 @@ update(const TFVGeom<TElem, dim>* geo,
 	//	Compute flux
 		const number flux = VecDot(scvf.normal(), DarcyVelocity[ip]);
 
-	//	Choose Upwind corner
-		const size_t up = (flux >= 0) ? scvf.from() : scvf.to();
+		size_t from = scvf.from();
+		size_t to = scvf.to();
 
+	//	if e.g. hanging nodes are involved, no upwind can be performed...		
+		if((from >= scvf.num_sh()) || (to >= scvf.num_sh())){
+		//	No upwind...
+		//	Write Shapes
+			for(size_t sh = 0; sh < scvf.num_sh(); sh++)
+				conv_shape(ip, sh) = flux * scvf.shape(sh);
+
+			UG_ASSERT(scvf.num_sh() == numSH, "sh's have to match!");
+
+		//	Write Derivatives if wanted
+			if(computeDeriv){
+				for (size_t sh = 0; sh < scvf.num_sh(); sh++)
+					VecScale(D_vel(ip, sh), scvf.normal(), scvf.shape(sh));
+			}
+			
+			continue;
+		}
+		
+	//	Choose Upwind corner
+		size_t up = (flux >= 0) ? from : to;
+		
 	//	write no upwind part of shapes
 		const number noUpFlux = (1.-m_weight)*flux;
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 			conv_shape(ip, sh) = noUpFlux * scvf.shape(sh);
-
-	//	check: Currently hanging nodes not supported.
-	//	/todo: add support for hanging nodes
-		if(up >= scvf.num_sh())
-			UG_THROW("FullUpwind: Currently not implemented for hanging nodes.")
 
 	//	add full upwind part of shapes
 		conv_shape(ip, up) += m_weight * flux;
