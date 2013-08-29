@@ -406,6 +406,7 @@ public:
 		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
 		{
 
+//			UG_LOG("normalize...\n");
 			// 0. normalize
 			normalize_approximations();
 
@@ -417,8 +418,10 @@ public:
 			size_t numCorrections=0;
 			for(size_t i=0; i<nEigenvalues; i++)
 			{
+//				UG_LOG("compute rayleigh " << i << "...\n");
 				compute_rayleigh_and_defect(px(i), lambda[i], defect, vDefectNorm[i]);
 //				UG_LOG("EV " << i << " defect norm: " << vDefectNorm[i] << "\n");
+
 				if(vDefectNorm[i] < m_dPrecision)
 				{
 					nrofconverged++;
@@ -723,10 +726,6 @@ private:
 	{
 		PINVIT_PROFILE_FUNC();
 // a. compute rayleigh quotients
-		// lambda = <x, Ax>/<x,x>
-		// todo: replace with MatMult
-//				UG_LOG("m_pA has storage type "); PrintStorageType(*m_pA); UG_LOG(", and vector px[" << i << "] has storage type"); PrintStorageType(px[i]); UG_LOG("\n");
-		// px can be set to unique because of norm
 
 #ifdef UG_PARALLEL
 		x.change_storage_type(PST_CONSISTENT);
