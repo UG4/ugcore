@@ -170,7 +170,10 @@ template <typename TDomain, typename TAlgebra>
 GridFunction<TDomain, TAlgebra>*
 GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 {
-	return new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, m_spDD, m_bManaged);
+	GridFunction<TDomain, TAlgebra>* p =
+		new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, m_spDD, m_bManaged);
+	p->resize(this->size());
+	return p;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
