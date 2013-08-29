@@ -67,6 +67,7 @@ ug_add_parameter_completion()
 				i=$?
 			done < <(cat $filename | sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p')
 		fi
+	fi
 	return $i
 }
 
