@@ -606,6 +606,8 @@ typename TLayout::iterator find(TLayout &layout, int pid)
 	return layout.end();
 }
 
+SmartPtr<AlgebraLayouts> CreateLocalAlgebraLayouts();
+
 }//	end of namespace
 
 

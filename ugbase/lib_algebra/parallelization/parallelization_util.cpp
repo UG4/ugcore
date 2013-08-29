@@ -908,5 +908,13 @@ void CreateAllToAllFromMasterSlave(pcl::InterfaceCommunicator<IndexLayout> &comm
 			OLCoarseningSendLayout, OLCoarseningReceiveLayout);
 }
 
+SmartPtr<AlgebraLayouts> CreateLocalAlgebraLayouts()
+{
+	AlgebraLayouts *p = new AlgebraLayouts;
+	p->clear();
+	p->proc_comm() = pcl::ProcessCommunicator(pcl::PCD_LOCAL);
+	return SmartPtr<AlgebraLayouts>(p);
+}
+
 
 }// end of namespace
