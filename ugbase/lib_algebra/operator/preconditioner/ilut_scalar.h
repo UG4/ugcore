@@ -97,6 +97,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 			mat.resize_and_clear(m_size, m_size);
 			#ifdef UG_PARALLEL
 				mat.set_storage_type(PST_ADDITIVE);
+				mat.set_layouts(CreateLocalAlgebraLayouts());
 			#endif
 
 			for(size_t r=0; r<A.num_rows(); r++)
