@@ -37,6 +37,9 @@ class ActiveSet
 	///	base element type of associated domain
 		typedef typename domain_traits<TDomain::dim>::geometric_base_object TBaseElem;
 
+	///	domain dimension
+		static const int dim = TDomain::dim;
+
 	public:
 	///	constructor
 		ActiveSet() : m_bCons(false), m_spContactDisc(NULL) {
@@ -56,7 +59,7 @@ class ActiveSet
 		void set_contactDisc(SmartPtr<IContactDisc<TDomain, function_type> > contact)
 		{m_spContactDisc = contact;};
 
-		void prepare(vector_type& u);
+		void prepare(function_type& u);
 
 	///	checks the distance to the prescribed obstacle/constraint
 		bool check_dist_to_obs(vector_type& u);
@@ -78,11 +81,22 @@ class ActiveSet
 				const vector_type& u, vector_type& rhs);
 
 		template <typename TElem, typename TIterator>
-		bool ActiveSetConvCheckElem(TIterator iterBegin,
-				TIterator iterEnd, function_type& u);
+		bool ConvCheckElem(TIterator iterBegin,
+				TIterator iterEnd, function_type& u, const function_type& lambda);
 
 	///	checks if all constraints are fulfilled & the activeSet remained unchanged
-		bool check_conv(function_type& u, const size_t step);
+		bool check_conv(function_type& u, const function_type& lambda, const size_t step);
+
+		bool checkEqu(const matrix_type& mat,
+						const vector_type& u,
+						const vector_type& contactforce,
+						const vector_type& rhs);
+
+		template <typename TElem, typename TIterator>
+		void ass_lagrangeMatIElem(TIterator iterBegin,
+				TIterator iterEnd, matrix_type& lagrangeMatI);
+
+		void ass_lagrangeMatI(matrix_type& lagrangeMatI);
 
 	///	method used for lua-call in order to pass the ActiveSet to assemble-funcs
 		vector<SmartPtr<MultiIndex<2> > >  activeMultiIndices()
@@ -96,6 +110,10 @@ class ActiveSet
 		void createVecOfPointers();
 
 	private:
+		///	point to the DofDistribution on the whole domain
+		SmartPtr<DoFDistribution> m_spDD;
+		SmartPtr<TDomain> m_spDom;
+
 		///	#fcts for value_type
 		size_t m_nrFcts;
 

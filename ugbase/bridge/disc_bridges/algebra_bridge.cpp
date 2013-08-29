@@ -433,6 +433,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 					"complementary function computed")
 			.add_method("check_conv", &T::check_conv, "", "",
 					"activeIndexSet changed or not")
+			.add_method("check_eq", &T::checkEqu, "", "",
+						"check if all equations are fulfilled")
 			.add_method("activeMultiIndices", &T::activeMultiIndices, "", "",
 					"returns all active MultiIndices in a vector")
 			.set_construct_as_smart_pointer(true);
