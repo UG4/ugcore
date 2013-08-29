@@ -29,12 +29,17 @@ ProcessCommunicator(ProcessCommunicatorDefaults pcd)
 		case PCD_WORLD:
 			m_comm = SPCommWrapper(new CommWrapper(MPI_COMM_WORLD, false));
 			break;
+
+		case PCD_LOCAL:
+			// Do nothing since m_comm.valid() == false indicates that the ProcCom operates locally only.
+			break;
 	}
 }
 
 size_t ProcessCommunicator::
 size() const
 {
+	if(is_local()) return 1;
 	if(m_comm->m_mpiComm == MPI_COMM_NULL)
 		return 0;
 	
@@ -49,6 +54,7 @@ size() const
 int ProcessCommunicator::
 get_proc_id(size_t groupIndex) const
 {
+	if(is_local()) return pcl::GetProcRank();
 	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
 		return (int)groupIndex;
 	return m_comm->m_procs[groupIndex];
@@ -57,6 +63,7 @@ get_proc_id(size_t groupIndex) const
 int ProcessCommunicator::
 get_local_proc_id(int globalProcID) const
 {
+	if(is_local()) return 0;
 	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
 		return globalProcID;
 
@@ -83,6 +90,7 @@ ProcessCommunicator
 ProcessCommunicator::
 create_sub_communicator(bool participate) const
 {
+	UG_COND_THROW(is_local(), "not available");
 	PCL_PROFILE(pcl_ProcCom_create_sub_com);
 
 //	if the current communicator is empty theres nothing to do
@@ -138,6 +146,7 @@ ProcessCommunicator
 ProcessCommunicator::
 create_sub_communicator(vector<int> &newProcs) const
 {
+	UG_COND_THROW(is_local(), "not available");
 	if(newProcs.size() == 0)
 		return ProcessCommunicator(PCD_EMPTY);
 
@@ -238,19 +247,17 @@ ProcessCommunicator::
 allreduce(const void* sendBuf, void* recBuf, int count,
 		  DataType type, ReduceOperation op) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_allreduce);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::allreduce: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 
 	MPI_Allreduce(const_cast<void*>(sendBuf), recBuf, count, type, op, m_comm->m_mpiComm);
 }
 
 size_t ProcessCommunicator::allreduce(const size_t &t, pcl::ReduceOperation op) const
 {
+	if(is_local()) return t;
 	int ret, tt = (int)t;
 	allreduce(&tt, &ret, 1, PCL_DT_INT, op);
 	return (size_t)ret;
@@ -261,13 +268,10 @@ ProcessCommunicator::
 gather(const void* sendBuf, int sendCount, DataType sendType,
 	   void* recBuf, int recCount, DataType recType, int root) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_gather);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::gather: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::gather: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::gather: empty communicator.");
 	
 	MPI_Gather(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
 			   recCount, recType, root, m_comm->m_mpiComm);
@@ -279,13 +283,10 @@ gatherv(const void* sendBuf, int sendCount, DataType sendType,
 		void* recBuf, int* recCounts, int* displs,
 		DataType recType, int root) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_gatherv);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::gather: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::gather: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::gather: empty communicator.");
 
 	MPI_Gatherv(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
 				recCounts, displs, recType, root, m_comm->m_mpiComm);
@@ -296,13 +297,10 @@ ProcessCommunicator::
 allgather(const void* sendBuf, int sendCount, DataType sendType,
 		  void* recBuf, int recCount, DataType recType) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_allgather);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::allgather: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::allgather: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(), "ERROR in ProcessCommunicator::allgather: empty communicator.");
 	
 	MPI_Allgather(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
 				  recCount, recType, m_comm->m_mpiComm);
@@ -314,13 +312,10 @@ allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 			void* recBuf, int* recCounts, int* displs,
 			DataType recType) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_allgatherv);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::allgatherv: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::allgatherv: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::allgatherv: empty communicator.");
 	
 	MPI_Allgatherv(const_cast<void*>(sendBuf), sendCount, sendType, recBuf,
 				   recCounts, displs, recType, m_comm->m_mpiComm);
@@ -330,13 +325,10 @@ void
 ProcessCommunicator::
 send_data(void* pBuffer, int bufferSize, int destProc, int tag) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_send_data);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::send_data: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::send_data: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::send_data: empty communicator.");
 	
 	MPI_Request request;
 	
@@ -350,13 +342,10 @@ ProcessCommunicator::
 send_data(void* pBuffer, int* pBufferSegSizes,
 		  int* pRecProcMap, int numRecProcs, int tag) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_send_data__to_many);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::send_data: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::send_data: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::send_data: empty communicator.");
 
 //	send data
 	std::vector<MPI_Request> vSendRequests(numRecProcs);
@@ -376,13 +365,10 @@ void
 ProcessCommunicator::
 receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_recv_data);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::receive_data: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::receive_data: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::receive_data: empty communicator.");
 	
 	MPI_Request request;
 	
@@ -397,13 +383,10 @@ distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 				void* pBuffer, int* pBufferSegSizes,
 			  	int* pRecvProcMap, int numRecvProcs, int tag) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_distribute_data);
 
-	UG_ASSERT(!empty(),
-			"ERROR in ProcessCommunicator::distribute_data: empty communicator.");
-	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::distribute_data: empty communicator.\n");
-	}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::distribute_data: empty communicator.");
 
 //	used for mpi-communication.
 	std::vector<MPI_Request> vSendRequests(numRecvProcs);
@@ -440,6 +423,7 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 				void* sendBuf, int* sendSegSizes,
 				int* sendToRanks, int numSendTos) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_distribute_data__flex);
 
 //	small helper arrays
@@ -474,12 +458,14 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 void ProcessCommunicator::
 barrier() const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_barrier);
 	MPI_Barrier(m_comm->m_mpiComm);
 }
 
 void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int root) const
 {
+	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_Bcast);
 	//UG_LOG("broadcasting " << (root==pcl::GetProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
 	MPI_Bcast(v, size, type, root, m_comm->m_mpiComm);
@@ -487,6 +473,7 @@ void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int roo
 
 void ProcessCommunicator::broadcast(ug::BinaryBuffer &buf, int root) const
 {
+	if(is_local()) return;
 	if(pcl::GetProcRank() == root)
 	{
 		long size;
@@ -507,6 +494,7 @@ void ProcessCommunicator::broadcast(ug::BinaryBuffer &buf, int root) const
 
 void ProcessCommunicator::broadcast(size_t &s, int root) const
 {
+	if(is_local()) return;
 	unsigned long l = s;
 	broadcast(l);
 	s = l;

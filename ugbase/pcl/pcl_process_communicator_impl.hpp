@@ -16,6 +16,7 @@ gatherv(std::vector<TValue>& recBufOut,
 		 std::vector<TValue>& sendBuf, int root,
 		 std::vector<int>* pSizesOut, std::vector<int>* pOffsetsOut) const
 {
+	if(is_local()) return;
 	using namespace ug;
 
 //todo: One could declare a special MPI_Datatype and could thus
@@ -72,6 +73,7 @@ allgatherv(std::vector<TValue>& recBufOut,
 			std::vector<int>* pSizesOut,
 			std::vector<int>* pOffsetsOut) const
 {
+	if(is_local()) return;
 	using namespace ug;
 
 //todo: One could declare a special MPI_Datatype and could thus
@@ -124,6 +126,7 @@ template<typename T>
 T ProcessCommunicator::
 allreduce(const T &t, pcl::ReduceOperation op) const
 {
+	if(is_local()) return t;
 	T ret;
 	allreduce(&t, &ret, 1, DataTypeTraits<T>::get_data_type(), op);
 	return ret;
@@ -134,6 +137,7 @@ template<typename T>
 void ProcessCommunicator::
 allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const
 {
+	if(is_local()) { memcpy(pReceiveBuff, pSendBuff, count); return; }
 	allreduce(pSendBuff, pReceiveBuff, count, DataTypeTraits<T>::get_data_type(), op);
 }
 

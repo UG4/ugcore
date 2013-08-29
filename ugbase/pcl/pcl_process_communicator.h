@@ -23,8 +23,9 @@ namespace pcl
 ///	values that can be passed to a ProcessCommunicators constructor.
 enum ProcessCommunicatorDefaults
 {
-	PCD_EMPTY = 0,
-	PCD_WORLD = 1
+	PCD_EMPTY = 0, //< an empty communicator
+	PCD_WORLD = 1, //< a communicator to all available processes
+	PCD_LOCAL = 2  //< a local communicator, simulating current proc is the only proc
 };
 
 
@@ -46,10 +47,10 @@ class ProcessCommunicator
 		ProcessCommunicator(ProcessCommunicatorDefaults pcd = PCD_WORLD);
 		
 	///	returns true if the communicator is empty, false if not.
-		inline bool empty() const		{return m_comm->m_mpiComm == MPI_COMM_NULL;}
+		inline bool empty() const		{return !is_local() && m_comm->m_mpiComm == MPI_COMM_NULL;}
 
 	/// return true if the communicator is PCD_WORLD
-		inline bool is_world() const	{ return m_comm->m_mpiComm == MPI_COMM_WORLD; }
+		inline bool is_world() const	{ return !is_local() && m_comm->m_mpiComm == MPI_COMM_WORLD; }
 		
 	///	returns the size of the communicator
 		size_t size() const;
@@ -301,6 +302,7 @@ class ProcessCommunicator
 		void allreduce(const std::vector<T> &send,
 				std::vector<T> &receive, pcl::ReduceOperation op) const
 		{
+			if(is_local()) { receive = send; return; }
 			if(send.size() > 0){
 				receive.resize(send.size());
 				allreduce(&send[0], &receive[0], send.size(), op);
@@ -383,6 +385,9 @@ class ProcessCommunicator
 	private:
 	///	smart-pointer to an instance of a CommWrapper.
 		SPCommWrapper	m_comm;
+
+		bool is_local() const {return m_comm.valid() == false;}
+
 };
 
 // end group pcl
