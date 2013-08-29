@@ -2,9 +2,73 @@
 ######################################################################
 # ugcomplete
 #-------------------------------------------------------------------
-# author: Stefan Grein, Martin Rupp
+# author: Martin Rupp, Stefan Grein
 ######################################################################
 
+#####################################################
+# get all parameters to ug4 lua scripts:
+# they are formed like 
+#  util.GetParam("<parameter>"
+#  util.GetParamNumber("<parameter>"
+#  util.HasParamOption("<parameter>"
+#
+#  if ug_load_script is found, ug_add_parameter_completion is called recursively
+#  completionAllFiles is an array which prevents infinite loops
+ug_add_parameter_completion()
+{
+	local filename=$1
+	local word=$2
+	local i=$3
+
+	if [ -e $filename ]; then	
+######### check file is not already parsed
+		for (( j=0; j<completionNrOfFiles; j++ ))
+		do
+			if [ ${completionAllFiles[j]} = $filename ]; then
+				return $i
+			fi
+		done
+		completionAllFiles[completionNrOfFiles++]=$filename
+		
+		
+		# we only want "normal" words
+		echo $word | grep '^-[a-zA-Z0-9_]*$' > /dev/null
+		if [[ $? == 0 ]];
+		then
+		##### check for parameters in file
+			# open the file $filename,
+			# with sed, get all words with util.*(<word>)
+			while read line;
+			do
+				# we only want "normal" words
+				echo $line | grep '^-[a-zA-Z0-9_]*$' > /dev/null
+				if [[ $? == 0 ]];
+				then
+					# check if word is already in completions
+					b="0"
+					for (( j=0; j<i; j++ ))
+					do
+						if [ ${COMPREPLY[j]} = $line ]; then
+							b="1"
+						fi
+					done
+					if [ $b = "0" ]; then
+						COMPREPLY[i++]="$line";
+					fi
+				fi							
+			done < <(cat $filename | sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p')
+			
+		##### check for ug_load_script in file	
+			while read line;
+			do
+				# todo: other paths
+				filename2=$UG4_ROOT/scripts/$line
+				ug_add_parameter_completion $filename2 $word $i	
+				i=$?
+			done < <(cat $filename | sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p')
+		fi
+	return $i
+}
 
 ######################################################################
 # ugshell_complete is able to complete ugshell:
@@ -34,7 +98,7 @@ ugshell_complete() {
 	cd $curDir
 
 	
-	# get completions in directory $UG4_ROOT/apps/
+######### get completions in directory $UG4_ROOT/apps/ #########
 	if [ -d $UG4_ROOT/apps ] && [ $UG4_ROOT_absolute/apps != $curDir ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-ex" ];
 	then 		
 		cd $UG4_ROOT/apps
@@ -44,7 +108,7 @@ ugshell_complete() {
 		done < <(compgen -f -- $word)
 		cd $curDir
 
-	# get completions in directory $UG4_ROOT/data/grid
+######### get completions in directory $UG4_ROOT/data/grid #########
 	elif [ -d $UG4_ROOT/data/grids ] && [ $UG4_ROOT_absolute/data/grids != $curDir ] && [ ${COMP_WORDS[COMP_CWORD-1]} = "-grid" ];
 	then 
 		
@@ -54,19 +118,17 @@ ugshell_complete() {
 			[[ "${line##*.}" = "ugx" ]] && COMPREPLY[i++]=$line
 		done < <(compgen -f -- $word)  
 		cd $curDir
-
-	# get lua file completions
-	# get all parameters to ug4 lua scripts:
-	# they are formed like 
-	#  util.GetParam("<parameter>"
-	#  util.GetParamNumber("<parameter>"
-	#  util.HasParamOption("<parameter>"
+ 
+######### get lua file completions #########
 	else
+	
+	### file completions
 		while read line;
 		do 
 			COMPREPLY[i++]=$line
 		done < <(compgen -f -- "$word")  
 
+### -ex lua file found, then do parameter completion
 		for (( c=0; c<COMP_CWORD; c++ ))
 		do
 			if [ "${COMP_WORDS[$c]}" = "-ex" ]; then
@@ -77,32 +139,13 @@ ugshell_complete() {
 				else
 					continue
 				fi
-				# we only want "normal" words
-				echo $word | grep '^-[a-zA-Z0-9_]*$' > /dev/null
-				if [[ $? == 0 ]];
-				then
-					# open the file $filename,
-					# with sed, get all words with util.*(<word>)
-					while read line;
-					do
-						# we only want "normal" words
-						echo $line | grep '^-[a-zA-Z0-9_]*$' > /dev/null
-						if [[ $? == 0 ]];
-						then
-							# check if word is already in completions
-							b="0"
-							for (( j=0; j<i; j++ ))
-							do
-								if [ ${COMPREPLY[j]} = $line ]; then
-									b="1"
-								fi
-							done
-							if [ $b = "0" ]; then
-								COMPREPLY[i++]="$line";
-							fi
-						fi							
-					done < <(cat $filename | sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p')
-				fi
+				
+				completionAllFiles={}
+				completionNrOfFiles=0
+				
+				### we found a file, do parameter completion
+				ug_add_parameter_completion $filename $word $i
+				i=$?
 				break
 			fi
 		done
