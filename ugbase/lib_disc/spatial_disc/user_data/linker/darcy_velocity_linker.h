@@ -173,7 +173,7 @@ class DarcyVelocityLinker
 					for(size_t sh = 0; sh < this->num_sh(fct); ++sh)
 					{
 					//  DarcyVel_fct[sh] -= mu_fct_sh / mu * q
-						VecSubtract(vvvDeriv[ip][commonFct][sh], vDarcyVel[ip], -vDViscosity[sh] / vViscosity[ip]);
+						VecScaleAppend(vvvDeriv[ip][commonFct][sh], -vDViscosity[sh] / vViscosity[ip], vDarcyVel[ip]);
 					}
 				}
 
