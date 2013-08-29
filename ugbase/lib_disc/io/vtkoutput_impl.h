@@ -841,6 +841,10 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 	//	update the reference mapping for the corners
 		CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);
 
+	//	get subset
+		int theSI = si;
+		if(si < 0) theSI = u.domain()->subset_handler()->get_subset_index(elem);
+
 	//	get local solution if needed
 		if(bNeedFct)
 		{
@@ -859,7 +863,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 
 		//	compute data
 			try{
-				(*spData)(vValue, &vCorner[0], time, si, elem,
+				(*spData)(vValue, &vCorner[0], time, theSI, elem,
 							&vCorner[0], refElem.corners(), numCo, &locU, NULL);
 			}
 			UG_CATCH_THROW("VTK::write_nodal_data_elementwise: Cannot evaluate data.");
@@ -868,7 +872,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 		{
 		//	compute data
 			try{
-				(*spData)(vValue, &vCorner[0], time, si, numCo);
+				(*spData)(vValue, &vCorner[0], time, theSI, numCo);
 			}
 			UG_CATCH_THROW("VTK::write_nodal_data_elementwise: Cannot evaluate data.");
 		}
@@ -1226,6 +1230,10 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 	//	compute global integration points
 		AveragePositions(globIP, &vCorner[0], numCo);
 
+	//	get subset
+		int theSI = si;
+		if(si < 0) theSI = u.domain()->subset_handler()->get_subset_index(elem);
+
 	//	get local solution if needed
 		if(bNeedFct)
 		{
@@ -1244,7 +1252,7 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 
 		//	compute data
 			try{
-				(*spData)(value, globIP, time, si, elem,
+				(*spData)(value, globIP, time, theSI, elem,
 							&vCorner[0], localIP, &locU);
 			}
 			UG_CATCH_THROW("VTK::write_cell_data_elementwise: Cannot evaluate data.");
@@ -1253,7 +1261,7 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 		{
 		//	compute data
 			try{
-				(*spData)(value, globIP, time, si);
+				(*spData)(value, globIP, time, theSI);
 			}
 			UG_CATCH_THROW("VTK::write_cell_data_elementwise: Cannot evaluate data.");
 		}
