@@ -196,44 +196,11 @@ update_domain_info()
 	#endif
 
 //	the number of levels of the multi-grid is now equal on all processes
-	std::vector<int>	locNumElemsOnLvl;
-	locNumElemsOnLvl.reserve(mg.num_levels());
-
-	switch(elemType){
-		case VOLUME:
-			for(size_t i = 0; i < mg.num_levels(); ++i)
-				locNumElemsOnLvl.push_back(mg.template num<Volume>(i));
-			break;
-		case FACE:
-			for(size_t i = 0; i < mg.num_levels(); ++i)
-				locNumElemsOnLvl.push_back(mg.template num<Face>(i));
-			break;
-		case EDGE:
-			for(size_t i = 0; i < mg.num_levels(); ++i)
-				locNumElemsOnLvl.push_back(mg.template num<EdgeBase>(i));
-			break;
-		case VERTEX:
-			for(size_t i = 0; i < mg.num_levels(); ++i)
-				locNumElemsOnLvl.push_back(mg.template num<VertexBase>(i));
-			break;
-		default:
-			UG_THROW("Unknown base object type");
-			break;
-	}
-
-	std::vector<int>	numElemsOnLvl;
-	#ifdef UG_PARALLEL
-		numElemsOnLvl.resize(locNumElemsOnLvl.size());
-		commWorld.allreduce(locNumElemsOnLvl, numElemsOnLvl, PCL_RO_SUM);
-	#else
-		numElemsOnLvl = locNumElemsOnLvl;
-	#endif
 
 	std::vector<int>	subsetDims;
 	subsetDims.reserve(sh.num_subsets());
 	for(int i = 0; i < sh.num_subsets(); ++i)
 		subsetDims.push_back(sh.subset_info(i).get_property("dim").to_int());
-
 
 	std::vector<int> numLocalGhosts;
 	#ifdef UG_PARALLEL
@@ -257,7 +224,42 @@ update_domain_info()
 	#else
 		numLocalGhosts.resize(mg.num_levels(), 0);
 	#endif
-	m_domainInfo.set_info(elemType, numElemsOnLvl, locNumElemsOnLvl, numLocalGhosts, subsetDims);
+
+	std::vector<int>	numLocalElems;
+	numLocalElems.reserve(mg.num_levels());
+
+	switch(elemType){
+		case VOLUME:
+			for(size_t i = 0; i < mg.num_levels(); ++i)
+				numLocalElems.push_back(mg.template num<Volume>(i) - numLocalGhosts[i]);
+			break;
+		case FACE:
+			for(size_t i = 0; i < mg.num_levels(); ++i)
+				numLocalElems.push_back(mg.template num<Face>(i) - numLocalGhosts[i]);
+			break;
+		case EDGE:
+			for(size_t i = 0; i < mg.num_levels(); ++i)
+				numLocalElems.push_back(mg.template num<EdgeBase>(i) - numLocalGhosts[i]);
+			break;
+		case VERTEX:
+			for(size_t i = 0; i < mg.num_levels(); ++i)
+				numLocalElems.push_back(mg.template num<VertexBase>(i) - numLocalGhosts[i]);
+			break;
+		default:
+			UG_THROW("Unknown base object type");
+			break;
+	}
+
+	std::vector<int>	numGlobalElems;
+	#ifdef UG_PARALLEL
+	//	we have to sum local element counts excluding ghosts.
+		numGlobalElems.resize(numLocalElems.size());
+		commWorld.allreduce(numLocalElems, numGlobalElems, PCL_RO_SUM);
+	#else
+		numGlobalElems = numLocalElems;
+	#endif
+
+	m_domainInfo.set_info(elemType, numGlobalElems, numLocalElems, numLocalGhosts, subsetDims);
 }
 
 template <typename TGrid, typename TSubsetHandler>

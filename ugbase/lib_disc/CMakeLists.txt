@@ -11,7 +11,8 @@ project(P_LIB_DISCRETIZATION)
 
 include("../../cmake/ug_includes.cmake")
 
-set(srcDiscretization	domain_util.cpp
+set(srcDiscretization	domain.cpp
+						domain_util.cpp
 
                         common/function_group.cpp
 						common/subset_group.cpp

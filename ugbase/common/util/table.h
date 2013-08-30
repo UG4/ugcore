@@ -74,6 +74,8 @@ class Table
 		size_t num_rows() const;
 		size_t num_cols() const;
 		
+		std::string to_string() const;
+
 	private:
 		size_t m_numRows;
 		size_t m_numCols;

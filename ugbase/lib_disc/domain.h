@@ -33,8 +33,11 @@ class DomainInfo
 	public:
 		inline GeometricBaseObject element_type()	const			{return m_elementType;}
 		inline size_t num_levels() const							{return m_numElems.size();}
+	///	returns the global number of elements on the given level (excluding ghosts...)
 		inline int num_elements_on_level(size_t lvl) const			{return m_numElems[lvl];}
+	///	returns the local number of elements on the given level (excluding ghosts...)
 		inline int num_local_elements_on_level(size_t lvl) const	{return m_numLocalElems[lvl];}
+	///	returns the local number of ghosts on the given level
 		inline int num_local_ghosts_on_level(size_t lvl) const		{return m_numLocalGhosts[lvl];}
 
 		inline int num_subsets() const
@@ -51,10 +54,12 @@ class DomainInfo
 			 m_numLocalElems = numLocalElems; m_numLocalGhosts = numLocalGhosts;
 			 m_subsetDims = subsetDims;}
 
+		std::string to_string() const;
+
 	private:
 		GeometricBaseObject	m_elementType;
 		std::vector<int>	m_numElems;
-		std::vector<int>	m_numLocalElems;
+		std::vector<int>	m_numLocalElems;///< local number of elements excluding ghosts.
 		std::vector<int>	m_numLocalGhosts;
 		std::vector<int>	m_subsetDims;
 };
@@ -62,7 +67,7 @@ class DomainInfo
 
 /// describes a physical domain
 /**
- * A Domain collects and exports relevant informations about the
+ * A Domain collects and exports relevant information about the
  * physical domain, that is intended to be discretized. It will be used as
  * a template Parameter in several classes to distinguish at compile-time
  * between needed types and parameters. It mainly has a grid and a subset

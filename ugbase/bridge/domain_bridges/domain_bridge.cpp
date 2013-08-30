@@ -366,6 +366,7 @@ static void Common(Registry& reg, string grp)
 			.add_method("num_local_ghosts_on_level", &DomainInfo::num_local_ghosts_on_level)
 			.add_method("num_subsets", &DomainInfo::num_subsets)
 			.add_method("subset_dim", &DomainInfo::subset_dim)
+			.add_method("to_string", &DomainInfo::to_string)
 			.set_construct_as_smart_pointer(true);
 	}
 
