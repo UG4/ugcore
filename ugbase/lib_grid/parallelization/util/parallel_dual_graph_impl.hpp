@@ -124,6 +124,7 @@ template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
 void ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 generate_graph(int level, pcl::ProcessCommunicator procCom)
 {
+	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "ParallelDualGraph-start generate_graph\n");
 	UG_ASSERT(m_pMG, "A MultiGrid has to be set!");
 

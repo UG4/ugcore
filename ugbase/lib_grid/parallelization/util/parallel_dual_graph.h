@@ -9,6 +9,7 @@
 #include "lib_grid/lg_base.h"
 #include "pcl/pcl_process_communicator.h"
 #include "../distributed_grid.h"
+#include "../parallelization_util.h"
 
 namespace ug
 {
@@ -150,6 +151,7 @@ void ConstructParallelDualGraphMGLevel(
 		TGeomBaseObj** pGeomObjsOut = NULL,
 		NeighborhoodType nbhType = NHT_DEFAULT)
 {
+	GDIST_PROFILE_FUNC();
 	using namespace std;
 	typedef TGeomBaseObj Elem;
 	typedef typename geometry_traits<Elem>::iterator ElemIterator;

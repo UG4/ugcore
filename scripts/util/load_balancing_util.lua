@@ -155,7 +155,7 @@ function balancer.CreateLoadBalancer(domain)
 				if procsTotal * numNewProcs <= numComputeProcs then
 					loadBalancer:add_distribution_level(lvl, numNewProcs)
 					procsTotal = procsTotal * numNewProcs
-				elseif procsTotal <= numComputeProcs then
+				elseif procsTotal < numComputeProcs then
 					local numNew = math.floor(numComputeProcs / procsTotal)
 					if(numNew > 0) then
 						loadBalancer:add_distribution_level(lvl, numNew)

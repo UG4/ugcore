@@ -381,6 +381,7 @@ fill_multi_constraint_vertex_weights(vector<idx_t>& vwgtsOut,
 									 TIter baseElemsBegin, TIter baseElemsEnd,
 									 int numBaseElements)
 {
+	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
 	Grid::AttachmentAccessor<elem_t, AInt> aaNumChildren(mg, aInt);
 
@@ -641,12 +642,14 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 		return;
 
 	UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
+	GDIST_PROFILE(METIS);
 	int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
 										&adjacencyMapStructure.front(),
 										&adjacencyMap.front(),
 										&vrtWgtMap.front(), NULL, pAdjWgts,
 										&numParts, NULL, NULL, options,
 										&edgeCut, &partitionMap.front());
+	GDIST_PROFILE_END();
 	UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
 
 	if(metisRet != METIS_OK){
@@ -779,6 +782,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 				pAdjWgts = &adjwgts.front();
 			}
 
+			GDIST_PROFILE(PARMETIS);
 			MPI_Comm mpiCom = procCom.get_mpi_communicator();
 			if((int)procCom.size() != numTargetProcs){
 				UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
@@ -830,6 +834,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 							 << " while partitioning level " << lvl);
 				}
 			}
+			GDIST_PROFILE_END();
 
 		//	assign partition-subsets from graph-colors
 			int counter = 0;
@@ -861,6 +866,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 //	previously unconstrained sibling is not located on the same process...
 //todo: clustering should already be considered during graph-partitioning.
 	if(base_class::clustered_siblings_enabled()){
+		GDIST_PROFILE(cluster_siblings);
 		//UG_LOG("NOTE: Clustering siblings during partitioning.\n");
 		if(lvl > 0){
 		//	put all children in the subset of the first one.
