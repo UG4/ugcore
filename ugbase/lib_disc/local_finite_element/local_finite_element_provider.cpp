@@ -222,7 +222,7 @@ class SubLocalDoFSet : public DimLocalDoFSet<dim>
 										"exist. Check Implementation of LocalDoFSet ");
 
 						//	map local dof
-							MathVector<dim> locPos;
+							MathVector<dim> locPos(0.0);
 							MathVector<setDim> globPos;
 							set.position(localDoFID, globPos);
 
