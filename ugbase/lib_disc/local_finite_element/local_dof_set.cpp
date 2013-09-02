@@ -71,7 +71,7 @@ bool DimLocalDoFSet<TDim>::operator==(const DimLocalDoFSet<TDim>& v) const
 		position(dof, pos);
 		v.position(dof, vpos);
 
-		if(pos != vpos) return false;
+		if(VecDistance(pos, vpos) > 1e-9) return false;
 	}
 
 	return true;
