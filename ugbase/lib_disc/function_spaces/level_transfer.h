@@ -268,10 +268,6 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 				std::vector<MathVector<dim> > vCornerCoarse;
 				CollectCornerCoordinates(vCornerCoarse, *coarseElem, *uFine.domain());
 
-			//	get Reference Mapping
-				DimReferenceMapping<dim, dim>& map
-					= ReferenceMappingProvider::get<dim, dim>(coarseROID, vCornerCoarse);
-
 			//	loop children
 				for(size_t c = 0; c < vChild.size(); ++c)
 				{
@@ -286,6 +282,11 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 
 					UG_ASSERT(vDoFPos.size() == vFineMI.size(), "numDoFPos ("
 							  <<vDoFPos.size()<<") != numDoFs ("<<vFineMI.size()<<").");
+
+				//	get Reference Mapping
+					DimReferenceMapping<dim, dim>& map
+						= ReferenceMappingProvider::get<dim, dim>(coarseROID, vCornerCoarse);
+
 
 				//	get local position of DoF
 					vLocPos.resize(vDoFPos.size());
