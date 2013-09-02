@@ -59,7 +59,7 @@ EOF
 # @ bg_connectivity = TORUS
 # @ bg_size = $nnodes
 # @ queue
-runjob --np $npe --ranks-per-node $nppnmax : $executable $args
+runjob --np $npe --ranks-per-node $nppn : $executable $args
 EOF
 
 	echo job.sh
