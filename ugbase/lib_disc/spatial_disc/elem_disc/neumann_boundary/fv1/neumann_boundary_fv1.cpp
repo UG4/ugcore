@@ -27,8 +27,8 @@ template<typename TDomain>
 void NeumannBoundaryFV1<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
-	if(bNonRegularGrid)
-		UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
+	UG_COND_THROW(bNonRegularGrid && (TDomain::dim == 3),
+				  "NeumannBoundaryFV1: Hanging Nodes not implemented.");
 
 	if(vLfeID.size() != 1)
 		UG_THROW("NeumannBoundary: Need exactly 1 function.");
@@ -305,10 +305,7 @@ extract_bip(const TFVGeom& geo)
 template<>
 void NeumannBoundaryFV1<Domain1d>::register_all_funcs(bool bHang)
 {
-	if(!bHang){
-		register_func<Edge, FV1Geometry<Edge, dim> >();
-	}
-	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
+	register_func<Edge, FV1Geometry<Edge, dim> >();
 }
 #endif
 
@@ -316,11 +313,8 @@ void NeumannBoundaryFV1<Domain1d>::register_all_funcs(bool bHang)
 template<>
 void NeumannBoundaryFV1<Domain2d>::register_all_funcs(bool bHang)
 {
-	if(!bHang){
-		register_func<Triangle, FV1Geometry<Triangle, dim> >();
-		register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
-	}
-	else UG_THROW("NeumannBoundaryFV1: Hanging Nodes not implemented.");
+	register_func<Triangle, FV1Geometry<Triangle, dim> >();
+	register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
 }
 #endif
 

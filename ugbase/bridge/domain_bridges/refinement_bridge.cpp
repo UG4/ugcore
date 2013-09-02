@@ -839,6 +839,70 @@ void MarkForAdaption_ElementsContainingPoint(TDomain& dom, IRefiner& refiner,
 }
 
 
+template <class TDomain>
+void MarkForAdaption_ElementsTouchingSubset(TDomain& dom, IRefiner& refiner,
+											ISubsetHandler& sh, int subsetIndex,
+											std::string markType)
+{
+	PROFILE_FUNC();
+	typedef typename TDomain::grid_type TGrid;
+	typedef typename domain_traits<TDomain::dim>::element_type TElem;
+	typedef typename TGrid::template traits<TElem>::iterator TIter;
+
+	RefinementMark rmMark = StringToRefinementMark(markType);
+
+	TGrid& g = *dom.grid();
+
+	Grid::vertex_traits::secure_container	vrts;
+	Grid::edge_traits::secure_container		edges;
+	Grid::face_traits::secure_container		faces;
+
+	for(TIter iter = g.template begin<TElem>();
+		iter != g.template end<TElem>(); ++iter)
+	{
+		TElem* e = *iter;
+		bool gotOne = false;
+		if(VERTEX < TElem::BASE_OBJECT_ID){
+			g.associated_elements(vrts, e);
+			for(size_t i = 0; i < vrts.size(); ++i){
+				if(sh.get_subset_index(vrts[i]) == subsetIndex){
+					refiner.mark(e, rmMark);
+					gotOne = true;
+					break;
+				}
+			}
+			if(gotOne)
+				continue;
+		}
+		if(EDGE < TElem::BASE_OBJECT_ID){
+			g.associated_elements(edges, e);
+			for(size_t i = 0; i < edges.size(); ++i){
+				if(sh.get_subset_index(edges[i]) == subsetIndex){
+					refiner.mark(e, rmMark);
+					gotOne = true;
+					break;
+				}
+			}
+			if(gotOne)
+				continue;
+		}
+		if(FACE < TElem::BASE_OBJECT_ID){
+			g.associated_elements(faces, e);
+			for(size_t i = 0; i < faces.size(); ++i){
+				if(sh.get_subset_index(faces[i]) == subsetIndex){
+					refiner.mark(e, rmMark);
+					gotOne = true;
+					break;
+				}
+			}
+			if(gotOne)
+				continue;
+		}
+	}
+}
+
+
+
 // end group refinement_bridge
 /// \}
 
@@ -1013,7 +1077,10 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
 		.add_function("MarkForRefinement_VolumesInSubset",
 				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Volume>,
-				grp, "", "dom#refiner#subsetHandler#subsetIndex");
+				grp, "", "dom#refiner#subsetHandler#subsetIndex")
+		.add_function("MarkForAdaption_ElementsTouchingSubset",
+				&MarkForAdaption_ElementsTouchingSubset<domain_type>,
+				grp, "", "dom#refiner#subsetHandler#subsetIndex#strMark");
 //		.add_function("MarkForAdaption_EdgesContainingPoint",
 //				&MarkForAdaption_ElementsContainingPoint<domain_type, EdgeBase>,
 //				grp, "", "dom#refiner#x#y#z#markType")
