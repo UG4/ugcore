@@ -78,7 +78,7 @@ EOF
 
 function UJS_GetOptions
 {
-	nppnmax=16
+	nppnmax=32
 	pemax=65536
 }
 
