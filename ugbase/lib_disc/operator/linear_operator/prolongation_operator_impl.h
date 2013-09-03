@@ -257,6 +257,9 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 				//	get local position of DoF
 					vLocPos.resize(vDoFPos.size());
 					for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
+
+				//  update map coordinates because they have been changed in multi_indices
+					map.update(vCornerCoarse);
 					map.global_to_local(vLocPos, vDoFPos);
 
 				//	get all shape functions
@@ -274,7 +277,6 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 						}
 					}
 				}
-
 			}
 		}
 	}
