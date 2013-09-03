@@ -73,18 +73,18 @@ end
 for lev = minLev, maxLev do
 
 	write("\n>> Solving level "..lev..", #DoFs: "..u[lev]:size().."\n")
+ 	--WriteGridFunctionToVTK(u[lev], solPath.."sol_"..discType..p.."_l"..lev.."_start")
 	
 	newtonSolver:init(AssembledOperator(domainDisc, u[lev]:grid_level()))
 	if newtonSolver:apply(u[lev]) == false then
 		 print ("Newton solver apply failed."); exit();
 	end
 	write(">> Newton Solver done.\n")
-	--WriteGridFunctionToVTK(u[lev], "Sol"..lev)
+	--WriteGridFunctionToVTK(u[lev], solPath.."sol_"..discType..p.."_l"..lev)
 	
 	if lev < maxLev then	
 		Prolongate(u[lev+1], u[lev]);
 		write(">> Solution interpolated as start value for finer level.\n")
-		--WriteGridFunctionToVTK(u[lev+1], "Sol"..lev+1)
 	end
 end
 	
