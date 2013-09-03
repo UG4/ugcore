@@ -68,7 +68,7 @@ pbsMailtype=""
 # todo: option -nodir
 # todo: interactive mode
 
-echo "ujssubmit 0.2. (c) Goethe-Center for Scientific Computing 2012"
+echo "ujssubmit 0.2. (c) Goethe-Center for Scientific Computing 2012-2013"
 
 
 # complete -W "-test -nppn -cluster -walltime -mail-start -mail-end -mail-error -mail-arr -verbose -tail -i -dir -Jugene-mode -Jugene-mapfile -Jugene-verbose -Hermit-workspace" ugsubmit
@@ -98,43 +98,56 @@ function usage
 	echo "        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)"
 	echo "        -i                     : interactive (not fully supported)"
 	echo "        -dir                   : directory to use"
-	echo "		  -queue				 : the queue to use"
+	echo "        -queue                 : the queue to use"
 	echo " "
-	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, mpi, cekon, moab."
+	echo " Supported Cluster Types: NecNehalem, Hermit, Jugene, Juqueen, mpi, cekon, moab."
+	if [ -n "$UGSUBMIT_TYPE" ]; then 
+		echo " Only UGSUBMIT_TYPE=$UGSUBMIT_TYPE specific parameters are shown ! Set UGSUBMIT_TYPE=\"\" to see all."
+	fi
 	echo " "
-	echo " Jugene Parameters"
-	echo "        -Jugene-mode            : VN, DUAL or SMP. Default "$JugeneMode
-	echo "        -Jugene-mapfile         : Mapfile. Default "$JugeneMapfile
-	echo "        -Jugene-verbose         : Verbose Level. Default "$JugeneVerbose
-	echo ""
-	echo " Hermit Parameters"
-	echo "        -Hermit-workspace <days>: Use the Hermit Workspace mechanism for I/O. default 31"
-	echo "                                  https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism"
+	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Jugene" ]; then
+		echo " Jugene Parameters"
+		echo "        -Jugene-mode            : VN, DUAL or SMP. Default "$JugeneMode
+		echo "        -Jugene-mapfile         : Mapfile. Default "$JugeneMapfile
+		echo "        -Jugene-verbose         : Verbose Level. Default "$JugeneVerbose
+	fi
+	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Hermit" ]; then
+		echo ""
+		echo " Hermit Parameters"
+		echo "        -Hermit-workspace <days>: Use the Hermit Workspace mechanism for I/O. default 31"
+		echo "                                  https://wickie.hlrs.de/platforms/index.php/Workspace_mechanism"
+	fi
+	if [ -z "$UGSUBMIT_TYPE" ] || [ $UGSUBMIT_TYPE == "Juqueen" ]; then
+		echo ""
+		echo " Juqueen Parameters"
+		echo ""
+	fi
 	echo ""
 	echo " descr: The script creates a new folder relative to the current path with the name"
 	echo "        '<jobname>.<npe>' (where <npe> is the number of processes. In this new directory"
-	echo "        a file names 'info.txt' is created, to identify the job. Then, depending"
+	echo "        a file named 'info.txt' is created, to identify the job. Then, depending"
 	echo "        on the selected cluster type, a shell script is created and submitted to the"
 	echo "        job scheduling system. ugsubmit also sets a symbolic link lastRun to the newly"
     echo "        created directory. the file 'jobid' contains the job id."
 	echo "        A list of submitted jobs is created in the file 'ugjobs'."
 	echo " "
-	echo " exported environment variables:"
-	echo "        UGS_JOBNAME              : job name"
-    echo "        UGS_OUTDIR               : output directory"
-    echo "        UGS_NP                   : see <npe>"
-    echo "        UGS_NPPN                 : see -nppn"
-	echo "        UGS_MYDIR                : the directory ugsubmit is started from"
-
+	echo " exported environment variables to the script/program:"
+	echo "        UGS_JOBNAME            : job name"
+    echo "        UGS_OUTDIR             : output directory"
+    echo "        UGS_NP                 : see <npe>"
+    echo "        UGS_NPPN               : see -nppn"
+	echo "        UGS_MYDIR              : the directory ugsubmit is started from"
+	echo ""
+	echo " Environment Variables to control ugsubmit:"
 if [ -z "$UGSUBMIT_TYPE" ]; then
-   	echo "UGSUBMIT_TYPE is not set!"
+   	echo "        UGSUBMIT_TYPE is not set!"
 else
-	echo "UGSUBMIT_TYPE  = "$UGSUBMIT_TYPE 
+	echo "        UGSUBMIT_TYPE=\"$UGSUBMIT_TYPE\""
 fi
 if [ -z "$UGSUBMIT_EMAIL" ]; then
-	echo "UGSUBMIT_EMAIL is not set!"
+	echo "        UGSUBMIT_EMAIL is not set!"
 else
-   	echo "UGSUBMIT_EMAIL = "$UGSUBMIT_EMAIL
+   	echo "        UGSUBMIT_EMAIL=\""$UGSUBMIT_EMAIL\"
 fi
 
     exit 0;
