@@ -214,6 +214,20 @@ DenseMatrix<TStorage> operator *(number a, const DenseMatrix<TStorage> &b)
 }
 
 
+template<typename TStorage>
+DenseMatrix<TStorage> MatrixTranspose(const DenseMatrix<TStorage> &A)
+{
+	DenseMatrix<TStorage> At;
+	At.resize(A.num_cols(), A.num_rows());
+	for(size_t r=0; r < A.num_rows(); r++)
+		for(size_t c=0; c < A.num_cols(); c++)
+			At(c,r) = A(r, c);
+	return At;
+}
+
+
+inline double MatrixTranspose(const double &b)
+{return b;}
 // end group small_algebra
 /// \}
 
