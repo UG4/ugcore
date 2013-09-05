@@ -125,6 +125,10 @@ public:
 	this_type
 	operator - (const this_type &other ) const;
 	
+	inline
+	this_type
+	T()  const;
+
 ////// unary -
 	inline
 	this_type
@@ -134,9 +138,9 @@ public:
 
 	
 	// multiply
-	template<typename T>
-	DenseVector<T>
-	operator * (const DenseVector<T> &vec) const;
+	template<typename TStorage2>
+	DenseVector<TStorage2>
+	operator * (const DenseVector<TStorage2> &vec) const;
 
 	inline
 	this_type
@@ -157,16 +161,16 @@ public:
 	operator == (double t) const;
 
 	
-	template<typename T>
+	template<typename TStorage2>
 	inline
 	bool
-	operator == (const DenseMatrix<T> &t) const;
+	operator == (const DenseMatrix<TStorage2> &t) const;
 	
 ///// !=
-	template<typename T>
+	template<typename TStorage2>
 	inline
 	bool
-	operator != (const T &t) const;
+	operator != (const TStorage2 &t) const;
 
 ////// other
 	inline
@@ -184,9 +188,9 @@ public:
 	}
 
 	
-	template<typename T>
+	template<typename TStorage2>
 	void
-	subassign(size_t r, size_t c, const T &t)
+	subassign(size_t r, size_t c, const TStorage2 &t)
 	{
 		UG_ASSERT(r+t.num_rows() <= num_rows() && c+t.num_cols() <= num_cols(), "");
 		for(size_t r1=0; r1<t.num_rows(); r1++)
