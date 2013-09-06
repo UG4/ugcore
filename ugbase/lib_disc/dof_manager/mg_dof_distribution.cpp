@@ -477,7 +477,7 @@ void MGDoFDistribution::indices(TBaseElem* elem, const ReferenceObjectID roid,
 
 template <typename TConstraining, typename TConstrained, typename TBaseElem>
 void MGDoFDistribution::
-constrained_indices(LocalIndices& ind,
+constrained_vertex_indices(LocalIndices& ind,
                     const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const
 {
 //	loop all edges
@@ -517,6 +517,110 @@ constrained_indices(LocalIndices& ind,
 				{
 				//	compute index
 					const size_t index = obj_index(vrt);
+					const size_t comp = offset(subRoid,si,fct);
+
+				//	add dof to local indices
+					ind.push_back_multi_index(fct, index, comp);
+				}
+			}
+		}
+	}
+}
+
+template <typename TConstraining, typename TConstrained, typename TBaseElem>
+void MGDoFDistribution::
+constrained_edge_indices(LocalIndices& ind,
+                    const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const
+{
+	//	loop all edges
+	for(size_t i = 0; i < vSubElem.size(); ++i)
+	{
+	//	only constraining objects are of interest
+		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		if(constrainingObj == NULL) continue;
+
+	//  loop constraining edges
+		for(size_t i = 0; i != constrainingObj->num_constrained_edges(); ++i)
+		{
+			//	get edge
+			TConstrained* edg = constrainingObj->constrained_edge(i);
+
+			//	get roid
+			const ReferenceObjectID subRoid = edg->reference_object_id();
+
+			//	get subset index
+			int si = m_spMGSH->get_subset_index(edg);
+
+			//	loop functions
+			for(size_t fct = 0; fct < num_fct(); ++fct)
+			{
+			//	check that function is defined on subset
+				if(!is_def_in_subset(fct, si)) continue;
+
+				if(!m_bGrouped)
+				{
+				//	compute index
+					const size_t index = obj_index(edg) + offset(subRoid,si,fct);
+
+				//	add dof to local indices
+					ind.push_back_index(fct, index);
+				}
+				else
+				{
+				//	compute index
+					const size_t index = obj_index(edg);
+					const size_t comp = offset(subRoid,si,fct);
+
+				//	add dof to local indices
+					ind.push_back_multi_index(fct, index, comp);
+				}
+			}
+		}
+	}
+}
+
+template <typename TConstraining, typename TConstrained, typename TBaseElem>
+void MGDoFDistribution::
+constrained_face_indices(LocalIndices& ind,
+                    const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const
+{
+	//	loop all faces
+	for(size_t i = 0; i < vSubElem.size(); ++i)
+	{
+	//	only constraining objects are of interest
+		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		if(constrainingObj == NULL) continue;
+
+	//  loop constraining faces
+		for(size_t i = 0; i != constrainingObj->num_constrained_faces(); ++i)
+		{
+			//	get face
+			TConstrained* face = constrainingObj->constrained_face(i);
+
+			//	get roid
+			const ReferenceObjectID subRoid = face->reference_object_id();
+
+			//	get subset index
+			int si = m_spMGSH->get_subset_index(face);
+
+			//	loop functions
+			for(size_t fct = 0; fct < num_fct(); ++fct)
+			{
+			//	check that function is defined on subset
+				if(!is_def_in_subset(fct, si)) continue;
+
+				if(!m_bGrouped)
+				{
+				//	compute index
+					const size_t index = obj_index(face) + offset(subRoid,si,fct);
+
+				//	add dof to local indices
+					ind.push_back_index(fct, index);
+				}
+				else
+				{
+				//	compute index
+					const size_t index = obj_index(face);
 					const size_t comp = offset(subRoid,si,fct);
 
 				//	add dof to local indices
@@ -576,13 +680,24 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 //	get dofs on hanging vertices
 	if(max_dofs(VERTEX > 0))
 	{
-		if(dim >= EDGE) constrained_indices<ConstrainingEdge, VertexBase, EdgeBase>(ind, vEdge);
-		if(dim >= FACE) constrained_indices<ConstrainingQuadrilateral, VertexBase, Face>(ind, vFace);
+		if(dim >= EDGE) constrained_vertex_indices<ConstrainingEdge, VertexBase, EdgeBase>(ind, vEdge);
+		if(dim >= FACE) constrained_vertex_indices<ConstrainingQuadrilateral, VertexBase, Face>(ind, vFace);
+	}
+
+//	get dofs on hanging edges
+	if (max_dofs(EDGE) > 0){
+		if(dim >= EDGE) constrained_edge_indices<ConstrainingEdge, EdgeBase, EdgeBase>(ind, vEdge);
+		if(dim >= FACE) constrained_edge_indices<ConstrainingQuadrilateral, EdgeBase, Face>(ind, vFace);
+	}
+
+//  get dofs on hanging faces
+	if (max_dofs(FACE) > 0){
+		if(dim >= FACE) constrained_face_indices<ConstrainingQuadrilateral, Face, Face>(ind, vFace);
 	}
 
 //	todo: allow also constrained dofs on other elements
-	if(max_dofs(EDGE) || max_dofs(FACE) || max_dofs(VOLUME))
-		UG_THROW("Hanging DoFs are only implemented for P1 by this DoFManager.");
+//	if(max_dofs(EDGE) || max_dofs(FACE) || max_dofs(VOLUME))
+//		UG_THROW("Hanging DoFs are only implemented for P1 by this DoFManager.");
 
 //	we're done
 	return;

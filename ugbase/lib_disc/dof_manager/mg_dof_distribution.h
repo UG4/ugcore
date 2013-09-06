@@ -226,7 +226,15 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 
 		///	extract dofs on constrained objects
 		template <typename TConstraining, typename TConstrained, typename TBaseElem>
-		void constrained_indices(LocalIndices& ind,
+		void constrained_vertex_indices(LocalIndices& ind,
+		                         const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
+
+		template <typename TConstraining, typename TConstrained, typename TBaseElem>
+		void constrained_edge_indices(LocalIndices& ind,
+		                         const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
+
+		template <typename TConstraining, typename TConstrained, typename TBaseElem>
+		void constrained_face_indices(LocalIndices& ind,
 		                         const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
 
 		/// extracts the indices of the subelement of an element
