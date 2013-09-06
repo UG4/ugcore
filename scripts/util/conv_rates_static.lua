@@ -395,8 +395,10 @@ function util.computeConvRatesStatic(ConvRateSetup)
 				
 				write(">> Computing solution on level "..lev..".\n")
 				ConvRateSetup.computeSolution(u, lev, approxSpace, domainDisc, solver)
-				
 				write(">> Solver done.\n")
+				
+				WriteGridFunctionToVTK(u[lev], ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev)
+				write(">> Solution written to: "..ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev.."\n");	
 			end
 
 			--------------------------------------------------------------------
@@ -454,9 +456,6 @@ function util.computeConvRatesStatic(ConvRateSetup)
 					end
 				end
 								
-				-- write solution
-				WriteGridFunctionToVTK(u[lev], ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev)
-				write(">> Solution written to: "..ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev.."\n");	
 			end
 	
 			util.computeErrorRates(err)				 		
