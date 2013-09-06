@@ -175,13 +175,19 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 		util.writeAndScheduleGnuplotDataType(
 			err, discType, p, err.l2.exact.title, err.l2.exact.value, err.h1.exact.value, "exact")
 	end	
-	if err.bMaxLevel then
-		util.writeAndScheduleGnuplotDataType(
-			err, discType, p, err.l2.maxlevel.title, err.l2.maxlevel.value, err.h1.maxlevel.value, "maxlevel")
-	end	
 	if err.bPrevLevel then
 		util.writeAndScheduleGnuplotDataType(
 			err, discType, p, err.l2.prevlevel.title, err.l2.prevlevel.value, err.h1.prevlevel.value, "prevlevel")
+	end	
+	if err.bMaxLevel then
+		-- finest level compared to finest level is not senseful --> remove it
+		err.numDoFs[err.maxLev] = nil
+		err.h[err.maxLev] = nil
+		err.l2.maxlevel.value[err.maxLev] = nil
+		err.h1.maxlevel.value[err.maxLev] = nil
+		
+		util.writeAndScheduleGnuplotDataType(
+			err, discType, p, err.l2.maxlevel.title, err.l2.maxlevel.value, err.h1.maxlevel.value, "maxlevel")
 	end	
 end
 
@@ -281,7 +287,7 @@ function util.computeLinearStaticConvRatesForSpace(	err, dom, minLev, maxLev, di
 		end
 		
 		-- w.r.t max level solution
-		if err.bMaxLevel then 
+		if err.bMaxLevel and lev < maxLev then 
 		err.l2.maxlevel.value[lev] 	= L2Error(u[maxLev], "c", u[lev], "c", quadOrder)
 		err.h1.maxlevel.value[lev] 	= H1Error(u[maxLev], "c", u[lev], "c", quadOrder)
 		write(">> L2 l-lmax  on Level "..lev.." is "..string.format("%.3e", err.l2.maxlevel.value[lev]) .."\n");
