@@ -767,10 +767,11 @@ void DomainDiscretization<TDomain, TAlgebra>::
 adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices)
 {
 	std::vector<SmartPtr<MultiIndex<2> > >::iterator iter;
+	MultiIndex<2> multiIndex;
 
 	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
 	{
-		MultiIndex<2> multiIndex = **iter;
+		multiIndex = **iter;
 		SetDirichletRow(mat, multiIndex[0], multiIndex[1]);
 	}
 }

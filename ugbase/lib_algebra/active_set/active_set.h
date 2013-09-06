@@ -87,7 +87,7 @@ class ActiveSet
 	///	checks if all constraints are fulfilled & the activeSet remained unchanged
 		bool check_conv(function_type& u, const function_type& lambda, const size_t step);
 
-		bool checkEqu(const matrix_type& mat,
+		bool checkInequ(const matrix_type& mat,
 						const vector_type& u,
 						const vector_type& contactforce,
 						const vector_type& rhs);
@@ -127,9 +127,9 @@ class ActiveSet
 		///	vector of possible contact subsets
 		vector<int> m_vSubsetsOfContact;
 
-		///	vector of the current active set of MultiIndices (DoF,Fct)
+		///	vector of the current active set of global MultiIndices (DoF,Fct)
 		vector<MultiIndex<2> > m_vActiveSetGlob;
-		///	vector remembering the active set of MultiIndices (DoF,Fct)
+		///	vector remembering the active set of global MultiIndices (DoF,Fct)
 		vector<MultiIndex<2> > m_vActiveSetGlobOld;
 		///	vector of pointers to active set needed for lua-call
 		vector<SmartPtr<MultiIndex<2> > > m_vActiveSetGlobSP;
