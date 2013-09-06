@@ -16,6 +16,7 @@
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
+//#include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 
 
 using namespace std;
@@ -289,6 +290,61 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 
 	return true;
 }
+
+
+//bool TestNTree(const char* filename)
+//{
+//	PROFILE_FUNC_GROUP("grid");
+//	Grid g;
+//	SubsetHandler sh(g);
+//	APosition2	aPos2;
+//
+//	PROFILE_BEGIN(PROFTEST_loading);
+//	if(!LoadGridFromFile(g, sh, filename, aPos2)){
+//		UG_LOG("  could not load " << filename << endl);
+//		return false;
+//	}
+//	PROFILE_END();
+//
+//
+//	typedef lg_ntree<2, 2, Face*>	tree_t;
+//	tree_t	tree(g, aPos2);
+//	tree.create_tree(g.faces_begin(), g.faces_end());
+//
+////	find the leaf node in the lowest level. Traverse the tree breadth-first for this.
+//	queue<size_t>	nodes;
+//	const size_t nextLvl = -1;
+//	nodes.push(0);
+//	nodes.push(nextLvl);
+//	size_t curLvl = 0;
+//	while(!nodes.empty()){
+//		size_t node = nodes.front();
+//		nodes.pop();
+//
+//		UG_LOG("Node id: " << node << endl);
+//
+//		if(node == nextLvl){
+//			nodes.push(nextLvl);
+//			++curLvl;
+//			continue;
+//		}
+//
+//		size_t numChildren = tree.num_child_nodes(node);
+//		if(numChildren == 0){
+//		//	we found the leaf node
+//			UG_LOG("leaf node found on level " << curLvl << endl);
+//			break;
+//		}
+//		else{
+//			const size_t* child = tree.child_node_ids(node);
+//			for(size_t i = 0; i < numChildren; ++i)
+//				nodes.push(child[i]);
+//		}
+//	}
+//
+//	return true;
+//}
+
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -615,6 +671,8 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, VertexBase*)>(&CheckElementConsistency), grp)
 			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, EdgeBase*)>(&CheckElementConsistency), grp)
 			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Face*)>(&CheckElementConsistency), grp);
+
+//		reg.add_function("TestNTree", &TestNTree, grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

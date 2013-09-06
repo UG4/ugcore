@@ -61,6 +61,10 @@ template <class TNumber>
 TNumber
 clip(TNumber val, TNumber lowerBound, TNumber upperBound);
 
+////////////////////////////////////////////////////////////////////////
+///	returns the square of a value (val*val)
+template <class TNumber>
+inline TNumber sq(TNumber val);
 
 ////////////////////////////////////////////////////////////////////////
 ///	finds a normal to the given vector in 3d.

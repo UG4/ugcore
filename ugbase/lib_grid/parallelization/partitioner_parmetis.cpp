@@ -750,9 +750,9 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 		if(!procCom.empty()){
 			idx_t* pAdjWgts = NULL;
 			vector<idx_t> adjwgts;
+			adjwgts.resize(pdg.num_graph_edges(), 1);
 			if(base_class::clustered_siblings_enabled()){
 			//	we have to weighten edges between siblings higher than between non-siblings
-				adjwgts.resize(pdg.num_graph_edges(), 1);
 				idx_t* adjacencyMapStructure = pdg.adjacency_map_structure();
 				idx_t* adjacencyMap = pdg.adjacency_map();//global
 				int localOffset = pdg.parallel_offset_map()[procCom.get_local_proc_id()];
@@ -778,9 +778,8 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 						}
 					}
 				}
-
-				pAdjWgts = &adjwgts.front();
 			}
+			pAdjWgts = &adjwgts.front();
 
 			GDIST_PROFILE(PARMETIS);
 			MPI_Comm mpiCom = procCom.get_mpi_communicator();

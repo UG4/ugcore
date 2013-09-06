@@ -14,7 +14,6 @@
 #include "selector_interface.h"
 #include "../multi_grid.h"
 #include "../lib_grid_messages.h"
-#include "selection_iterator.h"
 
 namespace ug
 {

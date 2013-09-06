@@ -58,6 +58,13 @@ clip(TNumber val, TNumber lowerBound, TNumber upperBound)
 }
 
 ////////////////////////////////////////////////////////////////////////
+template <class TNumber>
+inline TNumber sq(TNumber val)
+{
+	return val * val;
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 void CalculateCenter(vector_t& centerOut, const vector_t* pointSet,
 					 size_t numPoints)
