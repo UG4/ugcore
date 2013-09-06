@@ -230,44 +230,13 @@ function util.computeLinearStaticConvRatesForSpace(	err, dom, minLev, maxLev, di
 	for lev = minLev, maxLev do
 		write("\n>> Computing Level "..lev..".\n")
 
-		-- set start values	
-		if lev > minLev then	
-			Prolongate(u[lev], u[lev-1]);
-			write(">> Solution interpolated as start value for finer level.\n")
-		else
-			u[lev]:set(0.0)
-			write(">> Solution set to zero on coarsest level.\n")	
-		end		
+		write(">> Preparing inital guess on level "..lev..".\n")
+		ConvRateSetup.prepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 		
-		-- create operator from discretization
-		local A = AssembledLinearOperator(domainDisc)
-		local b = GridFunction(approxSpace, lev)
-		write(">> Algebra created.\n")
+		write(">> Computing solution on level "..lev..".\n")
+		ConvRateSetup.computeSolution(u, lev, approxSpace, domainDisc, solver)
 		
-		-- 1. init operator
-		domainDisc:assemble_linear(A, b)
-		write(">> Matrix and Rhs assembled.\n")
-		
-		-- 2. set dirichlet values in start iterate
-		domainDisc:adjust_solution(u[lev])
-		write(">> Inital guess for solution prepared.\n")
-		
-		-- print matrix for test purpose
-		if debug == true then
-			SaveMatrixForConnectionViewer(u, A, "Stiffness_"..discType..p.."_l"..lev..".mat")
-			SaveVectorForConnectionViewer(b, "Rhs_"..discType..p.."_l"..lev..".vec")
-			write(">> Linear Equation system written for debug purpose.\n")
-		end
-		
-		-- 3. init solver for linear Operator
-		solver:init(A, u[lev])
-		write(">> Linear Solver initialized.\n")
-		
-		-- 4. apply solver
-		if solver:apply_return_defect(u[lev],b) ~= true then
-			write(">> Linear solver failed. Aborting."); exit();
-		end
-		write(">> Linear Solver done.\n")
+		write(">> Solver done.\n")
 	end
 
 	-- 5. compute error
@@ -314,6 +283,60 @@ function util.computeLinearStaticConvRatesForSpace(	err, dom, minLev, maxLev, di
 end
 
 
+function util.computeStaticConvRates_StdPrepareInitialGuess(u, lev, minLev, maxLev,
+															domainDisc, solver)
+
+	if lev > minLev then	
+		Prolongate(u[lev], u[lev-1]);
+		write(">> Solution interpolated as start value from coarser level.\n")
+	else
+		u[lev]:set(0.0)
+		write(">> Solution set to zero on coarsest level.\n")	
+	end		
+end
+
+
+function util.computeStaticConvRates_StdComputeLinearSolution(u, lev, approxSpace, domainDisc, solver)
+
+	-- create operator from discretization
+	local A = AssembledLinearOperator(domainDisc)
+	local b = GridFunction(approxSpace, lev)
+	write(">> Algebra created.\n")
+	
+	-- 1. init operator
+	domainDisc:assemble_linear(A, b)
+	write(">> Matrix and Rhs assembled.\n")
+	
+	-- 2. set dirichlet values in start iterate
+	domainDisc:adjust_solution(u[lev])
+	write(">> Inital guess for solution prepared.\n")
+	
+	-- print matrix for test purpose
+	if debug == true then
+		SaveMatrixForConnectionViewer(u, A, "Stiffness_"..discType..p.."_l"..lev..".mat")
+		SaveVectorForConnectionViewer(b, "Rhs_"..discType..p.."_l"..lev..".vec")
+		write(">> Linear Equation system written for debug purpose.\n")
+	end
+	
+	-- 3. init solver for linear Operator
+	solver:init(A, u[lev])
+	write(">> Linear Solver initialized.\n")
+	
+	-- 4. apply solver
+	if solver:apply_return_defect(u[lev],b) ~= true then
+		write(">> Linear solver failed. Aborting."); exit();
+	end
+end
+
+function util.computeStaticConvRates_StdComputeNonLinearSolution(u, lev, approxSpace, domainDisc, solver)
+
+	solver:init(AssembledOperator(domainDisc, u[lev]:grid_level()))
+	if solver:apply(u[lev]) == false then
+		 print (">> Newton solver apply failed."); exit();
+	end
+	write(">> Newton Solver done.\n")
+end
+
 function util.computeLinearStaticConvRates(ConvRateSetup)
 	
 	-- create directories
@@ -325,6 +348,16 @@ function util.computeLinearStaticConvRates(ConvRateSetup)
 	os.execute("mkdir " .. ConvRateSetup.plotPath.."single/")
 	os.execute("mkdir " .. ConvRateSetup.solPath)
 
+	-- check for methods
+	if ConvRateSetup.prepareInitialGuess == nil then
+		ConvRateSetup.prepareInitialGuess = 
+			util.computeStaticConvRates_StdPrepareInitialGuess
+	end
+	if ConvRateSetup.computeSolution == nil then
+		ConvRateSetup.computeSolution = 
+			util.computeStaticConvRates_StdComputeLinearSolution
+	end
+	
 	-- compute element size	
 	local dom = ConvRateSetup.createDomain()
 	local numRefs = dom:grid():num_levels() - 1;
