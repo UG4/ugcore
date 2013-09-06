@@ -19,7 +19,7 @@ function table.getArraySizes(t)
 		end
 	end
 	
-	if max == 0 then return 0,0 end
+	if max == 0 then return 0,0,false end
 	
 	local conseqMax = 0
 	for i = min, max do
@@ -28,7 +28,7 @@ function table.getArraySizes(t)
 		end
 	end
 
-	return min, conseqMax
+	return min, conseqMax, true
 end
 
 function table.print(data, style)
@@ -46,10 +46,13 @@ function table.print(data, style)
 	local minRows = 1e1000
 	local maxSize = {}
 	for col = 1,numCols do
-		local minRow, maxRow = table.getArraySizes(data[col])
-		minRows = math.min(minRows, minRow)
-		maxRows = math.max(maxRows, maxRow)		
+		local minRow, maxRow, bIsTable = table.getArraySizes(data[col])
 		
+		if bIsTable then
+			minRows = math.min(minRows, minRow)
+			maxRows = math.max(maxRows, maxRow)		
+		end
+			
 		maxSize[col] = 0
 		for row = minRow, maxRow do
 			local s = data[col][row];
