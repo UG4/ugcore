@@ -192,7 +192,7 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 end
 
 
-function util.computeLinearStaticConvRatesForSpace(	err, dom, minLev, maxLev, discType, p,
+function util.computeConvRatesStaticForSpace(	err, dom, minLev, maxLev, discType, p,
 													ConvRateSetup)	
 	print("\n")
 	print(">> -------------------------------------------------------------------")
@@ -337,7 +337,7 @@ function util.computeStaticConvRates_StdComputeNonLinearSolution(u, lev, approxS
 	write(">> Newton Solver done.\n")
 end
 
-function util.computeLinearStaticConvRates(ConvRateSetup)
+function util.computeConvRatesStatic(ConvRateSetup)
 	
 	-- create directories
 	if ConvRateSetup.plotPath == nil then  ConvRateSetup.plotPath = "plots/" end
@@ -413,7 +413,7 @@ function util.computeLinearStaticConvRates(ConvRateSetup)
 		
 			util.resetErrorRatesStorage(err, minLev, maxLev)
 		
-			util.computeLinearStaticConvRatesForSpace(err,
+			util.computeConvRatesStaticForSpace(err,
 				 		dom, minLev, maxLev, discType, p, 
 				 		ConvRateSetup)
 	
