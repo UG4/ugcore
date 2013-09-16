@@ -71,7 +71,7 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 
 		// set correction values for element indices to zero
 		for(size_t j = 0; j < numIndex; ++j){
-			c[vInd[j]] = 0;
+			//c[vInd[j]] = 0;
 		}
 
 		// fill local block matrix
@@ -87,7 +87,7 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 			};
 		}
 
-		// compute s[j] := d[j] - sum_k A(k,k)*c[k]
+		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
 		// note: element indices in the sum are excluded by setting c to zero
 		s.resize(numIndex);
 		for (size_t j = 0; j<numIndex; j++){
@@ -103,7 +103,7 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		x.resize(numIndex);
 		InverseMatMult(x,1,mat,s);
 		for (size_t j=0;j<numIndex;j++){
-			c[vInd[j]] = relax*x[j];
+			c[vInd[j]] += relax*x[j];
 		};
 	}
 }
@@ -199,7 +199,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 
 
 			typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
-			typedef typename GridFunction<TDomain, TAlgebra>::element_type Side;
+			typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
 
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1)
