@@ -48,7 +48,20 @@ class LU
 
 	public:
 	///	constructor
-		LU() : m_spOperator(NULL), m_mat() {};
+		LU() : m_spOperator(NULL), m_mat()
+		{
+#ifdef LAPACK_AVAILABLE
+			m_iMinimumForSparse = 4000;
+#else
+			m_iMinimumForSparse = 2000;
+#endif
+		};
+
+	///
+		void set_minimum_for_sparse(size_t N)
+		{
+			m_iMinimumForSparse=N;
+		}
 
 	///	returns name of solver
 		virtual const char* name() const {return "LU";}
@@ -106,9 +119,6 @@ class LU
 		}
 
 
-		bool m_bDense;
-		SmartPtr<ILUTScalarPreconditioner<algebra_type> > ilut_scalar;
-
 		bool init_sparse(const matrix_type &A)
 		{
 			m_bDense = false;
@@ -155,7 +165,7 @@ class LU
 				UG_ASSERT(nrOfRows == block_traits<typename matrix_type::value_type>::static_num_cols, "only square matrices supported");
 				m_size = A.num_rows() * nrOfRows;
 
-				if(m_size > 4000)
+				if(m_size > m_iMinimumForSparse)
 					init_sparse(A);
 				else
 					init_dense(A);
@@ -297,6 +307,10 @@ class LU
 		CPUAlgebra::vector_type m_u;
 		CPUAlgebra::vector_type m_b;
 		size_t m_size;
+
+		bool m_bDense;
+		SmartPtr<ILUTScalarPreconditioner<algebra_type> > ilut_scalar;
+		size_t m_iMinimumForSparse;
 };
 
 } // end namespace ug

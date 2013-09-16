@@ -152,6 +152,7 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("LU").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "LU-Decomposition exact solver")
 			.add_constructor()
+			.add_method("set_minimum_for_sparse", &T::set_minimum_for_sparse, "", "N")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LU", tag);
 	}
