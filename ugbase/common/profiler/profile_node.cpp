@@ -581,6 +581,7 @@ const UGProfileNode *UGProfileNode::get_root()
 
 void WriteProfileDataXML(const char *filename)
 {
+	clock_t curTime = clock();
 	ProfilerUpdate();
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
 #ifdef UG_PARALLEL
@@ -627,7 +628,7 @@ void WriteProfileDataXML(const char *filename)
 		}
 		for(int i=0; i<depth; i++)
 		{
-			f << "<stop>" << clock() << "</stop>\n";
+			f << "<stop>" << curTime << "</stop>\n";
 			f << "</call>\n";
 		}
 		f << "</log>\n";
