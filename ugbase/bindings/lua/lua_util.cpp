@@ -248,6 +248,7 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
 	{
 		PROFILE_BEGIN(lua_pcall);
 		error = lua_pcall(L, 0, 0, -2);
+		PROFILE_END();
 	}
 
 	if(error)
@@ -260,7 +261,6 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
 //		return false;
 	}
 
-	PROFILE_END();
 	return true;
 
 }
