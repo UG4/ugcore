@@ -229,13 +229,21 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		void constrained_vertex_indices(LocalIndices& ind,
 		                         const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
 
-		template <typename TConstraining, typename TConstrained, typename TBaseElem>
-		void constrained_edge_indices(LocalIndices& ind,
-		                         const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
+		template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
+		void constrained_edge_indices(TBaseElem* elem,LocalIndices& ind,
+		                         const typename Grid::traits<TSubElem>::secure_container& vSubElem) const;
 
-		template <typename TConstraining, typename TConstrained, typename TBaseElem>
-		void constrained_face_indices(LocalIndices& ind,
-		                         const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
+		template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
+		void constrained_face_indices(TBaseElem* elem,LocalIndices& ind,
+		                         const typename Grid::traits<TSubElem>::secure_container& vSubElem) const;
+
+		// sorts indices on constrained edges
+		template <typename TBaseElem,typename TConstraining, typename TConstrained>
+		void sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const;
+
+		// sorts indices on constrained faces
+		template <typename TBaseElem,typename TConstraining, typename TConstrained>
+		void sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const;
 
 		/// extracts the indices of the subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>

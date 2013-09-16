@@ -10,7 +10,10 @@
 #include "mg_dof_distribution_impl.h"
 #include "lib_disc/domain.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
-#include "lib_disc/reference_element/reference_element_util.h"
+#include "lib_disc/reference_element/reference_element.h"
+#include "lib_disc/reference_element/reference_element_traits.h"
+#include "lib_disc/reference_element/reference_mapping.h"
+#include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/common/groups_util.h"
 #include "common/util/string_util.h"
 #include "orientation.h"
@@ -527,10 +530,95 @@ constrained_vertex_indices(LocalIndices& ind,
 	}
 }
 
-template <typename TConstraining, typename TConstrained, typename TBaseElem>
+
+template <typename TBaseElem,typename TConstraining, typename TConstrained>
 void MGDoFDistribution::
-constrained_edge_indices(LocalIndices& ind,
-                    const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const
+sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const
+{
+	static const int dim = TBaseElem::dim;
+	ReferenceObjectID roid = elem->reference_object_id();
+	const DimReferenceElement<dim>& refElem
+		= ReferenceElementProvider::get<dim>(roid);
+	// get edge belonging to reference id vertex 0 on edge
+	const size_t vertexIndex = refElem.id(dim-1,objIndex,1,0);
+	sortedInd.resize(2);
+	VertexBase* vertex0 = NULL;
+	// get child of vertex
+	if (dim==2){
+		Face* baseElem = dynamic_cast<Face*>(elem);
+		UG_ASSERT(baseElem!=NULL,"wrong element type");
+		vertex0 = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
+	}
+	if (dim==3){
+		Volume* baseElem = dynamic_cast<Volume*>(elem);
+		UG_ASSERT(baseElem!=NULL,"wrong element type");
+		vertex0 = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
+	}
+	TConstrained* edg = constrainingObj->constrained_edge(0);
+	bool found = false;
+	for (size_t k=0;k<2;k++){
+		VertexBase* vrt = edg->vertex(k);
+		if (vrt==vertex0){
+			found = true;
+			break;
+		}
+	}
+	if (found==true){
+		sortedInd[0]=0;
+		sortedInd[1]=1;
+	} else {
+		sortedInd[0]=1;
+		sortedInd[1]=0;
+		// check
+		bool found2 = false;
+		TConstrained* otherEdge = constrainingObj->constrained_edge(1);
+		for (size_t k=0;k<2;k++){
+			VertexBase* vrt = otherEdge->vertex(k);
+			if (vrt==vertex0){
+				found2 = true;
+				break;
+			}
+		}
+		if (found2==false) UG_THROW("no edge found belonging to vertex 0\n");
+	}
+}
+
+template <typename TBaseElem,typename TConstraining, typename TConstrained>
+void MGDoFDistribution::
+sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const
+{
+	static const int dim = TBaseElem::dim;
+	ReferenceObjectID roid = elem->reference_object_id();
+	const DimReferenceElement<dim>& refElem
+			= ReferenceElementProvider::get<dim>(roid);
+	const size_t numVrt = constrainingObj->num_vertices();
+	sortedInd.resize(numVrt);
+	VertexBase* vrt = NULL;
+	Volume* baseElem = dynamic_cast<Volume*>(elem);
+	UG_ASSERT(baseElem!=NULL,"wrong element type");
+	for (size_t i=0;i<numVrt;i++){
+		const size_t vertexIndex = refElem.id(dim-1,objIndex,1,0);
+		vrt = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
+		// loop constrained faces to find face corresponding to vertex
+		bool found = false;
+		for (size_t j=0;j<numVrt;j++){
+			TConstrained* face = constrainingObj->constrained_face(j);
+			for (size_t k=0;k<face->num_vertices();k++){
+				if (face->vertex(k)==vrt){
+					found = true;
+					sortedInd[i] = j;
+					break;
+				}
+			}
+		}
+		if (found==false) UG_THROW("corresponding constrained object vertex not found");
+	}
+}
+
+template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
+void MGDoFDistribution::
+constrained_edge_indices(TBaseElem* elem,LocalIndices& ind,
+                    const typename Grid::traits<TSubElem>::secure_container& vSubElem) const
 {
 	//	loop all edges
 	for(size_t i = 0; i < vSubElem.size(); ++i)
@@ -539,11 +627,14 @@ constrained_edge_indices(LocalIndices& ind,
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 		if(constrainingObj == NULL) continue;
 
+		std::vector<size_t> sortedInd;
+		sort_constrained_edges<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
+
 	//  loop constraining edges
-		for(size_t i = 0; i != constrainingObj->num_constrained_edges(); ++i)
+		for(size_t j = 0; j != constrainingObj->num_constrained_edges(); ++j)
 		{
 			//	get edge
-			TConstrained* edg = constrainingObj->constrained_edge(i);
+			TConstrained* edg = constrainingObj->constrained_edge(sortedInd[j]);
 
 			//	get roid
 			const ReferenceObjectID subRoid = edg->reference_object_id();
@@ -579,10 +670,10 @@ constrained_edge_indices(LocalIndices& ind,
 	}
 }
 
-template <typename TConstraining, typename TConstrained, typename TBaseElem>
+template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
 void MGDoFDistribution::
-constrained_face_indices(LocalIndices& ind,
-                    const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const
+constrained_face_indices(TBaseElem* elem,LocalIndices& ind,
+                    const typename Grid::traits<TSubElem>::secure_container& vSubElem) const
 {
 	//	loop all faces
 	for(size_t i = 0; i < vSubElem.size(); ++i)
@@ -591,11 +682,14 @@ constrained_face_indices(LocalIndices& ind,
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
 		if(constrainingObj == NULL) continue;
 
+		std::vector<size_t> sortedInd;
+		sort_constrained_faces<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
+
 	//  loop constraining faces
-		for(size_t i = 0; i != constrainingObj->num_constrained_faces(); ++i)
+		for(size_t j = 0; j != constrainingObj->num_constrained_faces(); ++j)
 		{
 			//	get face
-			TConstrained* face = constrainingObj->constrained_face(i);
+			TConstrained* face = constrainingObj->constrained_face(sortedInd[j]);
 
 			//	get roid
 			const ReferenceObjectID subRoid = face->reference_object_id();
@@ -686,13 +780,13 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 
 //	get dofs on hanging edges
 	if (max_dofs(EDGE) > 0){
-		if(dim >= EDGE) constrained_edge_indices<ConstrainingEdge, EdgeBase, EdgeBase>(ind, vEdge);
-		if(dim >= FACE) constrained_edge_indices<ConstrainingQuadrilateral, EdgeBase, Face>(ind, vFace);
+		if(dim >= EDGE) constrained_edge_indices<TBaseElem,ConstrainingEdge, EdgeBase, EdgeBase>(elem,ind, vEdge);
+		if(dim >= FACE) constrained_edge_indices<TBaseElem,ConstrainingQuadrilateral, EdgeBase, Face>(elem,ind, vFace);
 	}
 
 //  get dofs on hanging faces
 	if (max_dofs(FACE) > 0){
-		if(dim >= FACE) constrained_face_indices<ConstrainingQuadrilateral, Face, Face>(ind, vFace);
+		if(dim >= FACE) constrained_face_indices<TBaseElem,ConstrainingQuadrilateral, Face, Face>(elem,ind, vFace);
 	}
 
 //	todo: allow also constrained dofs on other elements
