@@ -16,10 +16,10 @@ void ProfileNodeManager::
 release_latest()
 {
 	if(!inst().m_nodes.empty()){
-		PROFILE_LOG_CALL_END();
 		AutoProfileNode* node = inst().m_nodes.top();
 		inst().m_nodes.pop();
 		node->release();
+		PROFILE_LOG_CALL_END();
 	}
 }
 
