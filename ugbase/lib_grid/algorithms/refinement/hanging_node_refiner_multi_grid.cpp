@@ -943,7 +943,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 void HangingNodeRefiner_MultiGrid::
 collect_objects_for_coarsen(bool scheduleCoarseningBeginsMessage)
 {
-	PROFILE_FUNC()
+	PROFILE_FUNC();
 
 	MultiGrid& mg = *m_pMG;
 	selector_t& sel = get_refmark_selector();
