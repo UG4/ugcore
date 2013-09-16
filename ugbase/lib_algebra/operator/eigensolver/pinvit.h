@@ -133,7 +133,7 @@ private:
 	size_t m_currentAdditionalCorrections;
 
 public:
-	string tostring()
+	std::string tostring()
 	{
 		std::stringstream ss;
 		ss << "PINVIT Eigensolver by Martin Rupp / G-CSC 2013." <<
