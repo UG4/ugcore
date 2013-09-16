@@ -18,10 +18,9 @@ namespace ug{
 
 struct ProfileCall
 {
-	ProfileCall(Shiny::ProfileNode *_p)
+	ProfileCall(Shiny::ProfileNode *_p, clock_t c)
 	{
 		p = _p;
-		c = clock();
 	}
 	Shiny::ProfileNode *p;
 	clock_t c;

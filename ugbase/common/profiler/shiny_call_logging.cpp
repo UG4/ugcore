@@ -15,12 +15,12 @@ std::vector<ProfileCall> profileCalls;
 
 void ShinyCallLoggingStart()
 {
-	profileCalls.push_back(ProfileCall(Shiny::ProfileManager::instance._curNode));
+	profileCalls.push_back(ProfileCall(Shiny::ProfileManager::instance._curNode, clock()));
 }
 
 void ShinyCallLoggingEnd()
 {
-	profileCalls.push_back(ProfileCall(NULL));
+	profileCalls.push_back(ProfileCall(NULL, clock()));
 }
 
 }
