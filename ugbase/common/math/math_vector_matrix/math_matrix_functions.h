@@ -454,6 +454,17 @@ template <typename matrix_t>
 inline typename matrix_t::value_type
 MatMaxNorm(matrix_t& m);
 
+/// Computes maximum eigenvalue of a (symmetric) matrix
+template <size_t N, size_t M, typename T>
+inline typename MathMatrix<N,M,T>::value_type
+MaxAbsEigenvalue(const MathMatrix<M,N,T>& m);
+
+/// Computes minimum eigenvalue of a (symmetric) matrix
+template <size_t N, size_t M, typename T>
+inline typename MathMatrix<N,M,T>::value_type
+MaxAbsEigenvalue(const MathMatrix<M,N,T>& m);
+
+
 // end group math_matrix
 /// \}
 

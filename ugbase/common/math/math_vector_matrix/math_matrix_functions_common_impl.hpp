@@ -791,6 +791,47 @@ MatMaxNorm(matrix_t& m)
 	return max;
 }
 
+
+
+template <size_t N, size_t M, typename T>
+inline typename MathMatrix<N,M,T>::value_type
+MaxAbsEigenvalue(const MathMatrix<M,N,T>& m)
+{
+	UG_THROW("MaxAbsEigenvalue for matrix of size "<<N<<"x"<<M<<" not implemented.");
+}
+
+template <typename T>
+inline typename MathMatrix<1,1,T>::value_type
+MaxAbsEigenvalue(const MathMatrix<1,1,T>& m)
+{
+	const typename MathMatrix<1,1,T>::value_type val = m(0,0);
+	return fabs(val);
+}
+
+template <typename T>
+inline typename MathMatrix<2,2,T>::value_type
+MaxAbsEigenvalue(const MathMatrix<2,2,T>& m)
+{
+	typename MathMatrix<2,2,T>::value_type minus_p_half, val;
+	minus_p_half = m(0,0)+m(1,1);
+	val = minus_p_half*minus_p_half - (m(0,0)*m(1,1) - m(0,1)*m(1,0));
+	UG_ASSERT(val >= 0.0, "MaxAbsEigenvalues: Complex Eigenvalues???");
+
+	if (minus_p_half >=0.0) {return (minus_p_half + sqrt(val));}
+	else {return fabs(minus_p_half-sqrt(val));}
+}
+
+
+template <typename matrix_t>
+inline typename matrix_t::value_type
+MinAbsEigenvalue(matrix_t& m)
+{
+	matrix_t inv;
+	Inverse(inv, m);
+	typename matrix_t::value_type min=1.0/MaxAbsEigenvalue(inv);
+	return min;
+}
+
 } // end of namespace
 
 #endif /* __H__UG__COMMON__MATH_MATRIX_FUNCTIONS_COMMON_IMPL__ */
