@@ -88,6 +88,7 @@
 #include "spatial_disc/disc_util/fv_output.h"
 #include "spatial_disc/disc_util/fv_util.h"
 #include "spatial_disc/disc_util/hfv1_geom.h"
+#include "spatial_disc/disc_util/hfvcr_geom.h"
 
 #include "spatial_disc/elem_disc/elem_disc_interface.h"
 #include "spatial_disc/elem_disc/elem_disc_assemble_util.h"

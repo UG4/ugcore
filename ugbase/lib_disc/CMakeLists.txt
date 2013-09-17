@@ -72,6 +72,7 @@ set(srcDiscretization	domain.cpp
 						spatial_disc/disc_util/fv1_geom.cpp
 						spatial_disc/disc_util/fvcr_geom.cpp
 						spatial_disc/disc_util/hfv1_geom.cpp
+						spatial_disc/disc_util/hfvcr_geom.cpp
 						spatial_disc/user_data/data_evaluator.cpp
 						spatial_disc/user_data/data_export.cpp
 						
