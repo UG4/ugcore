@@ -166,9 +166,10 @@ class StandardLineSearch : public ILineSearch<TVector>
 				if(vRho.back() <= 1 - alpha * fabs(lambda))
 				{
 					converged = true;
-					break;
+					if(!m_bAcceptBest) break;
 				}
-				else lambda *= m_lambdaReduce;
+
+				lambda *= m_lambdaReduce;
 
 			//	check if maximum number of steps reached
 				if(k == m_maxSteps)
