@@ -259,6 +259,8 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 		write_debug(*spD, name.c_str());
 		std::string name2("NEWTON_Correction"); name2.append(ext);
 		write_debug(*spC, name2.c_str());
+		std::string name3("NEWTON_Solution"); name3.append(ext);
+		write_debug(u, name3.c_str());
 	}
 
 	// reset offset of output for linear solver to previous value
