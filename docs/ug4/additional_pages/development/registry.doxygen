@@ -401,7 +401,7 @@ class Test
 // register class "Test"
 reg.add_class_<Test>("Test", grp)
    .add_constructor()
-   .add_constructor<void (*)(const char*)>("Message");
+   .template add_constructor<void (*)(const char*)>("Message");
 \endcode
 
 The template argument of the <tt>add_constructor</tt> method must be a global 
