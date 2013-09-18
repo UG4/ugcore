@@ -119,9 +119,10 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 
 	// 	local indices and local algebra
 	LocalIndices ind, indCons;
-	LocalVector locU, locCF, locCons, locRhs;
+	LocalVector locU, locCF, locCons;
 
-	number complementaryVal, complementaryVal_n_scaled;
+	//number complementaryVal;
+	number complementaryVal_n_scaled;
 
 	//	TODO: eventuell ist es sinnvoll auch die aktiven Elemente zu speichern,
 	//	damit folgende Elem-loops (z.B. zur Berechnung der contactForces) verkleinert werden kšnnen!
@@ -174,12 +175,10 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 
 	//	loop over DoFs in element and store all activeMultiIndex-pairs in vector
 		size_t nFctElem = ind.num_fct();
-		//UG_LOG("#FctElem: " << nFctElem << "\n");
 
 		for(size_t fct = 0; fct < nFctElem; ++fct)
 		{
 			size_t nDoFsPerFctElem = ind.num_dof(fct);
-			//UG_LOG("#nDoFsPerFctElem: " << nDoFsPerFctElem << "\n");
 
 			for(size_t dof = 0; dof < nDoFsPerFctElem; ++dof)
 			{
@@ -189,16 +188,10 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 
 				number locU_n = VecDot(locUDof, normal);
 				number NormNormal = VecLength(normal);
-				//UG_LOG("NormNormal:" << NormNormal << "\n");
 				number locU_n_scaled = locU_n / NormNormal;
-				/*if (locU_n != 0.0)
-				{
-					UG_LOG("locU_n:" << locU_n << "\n");
-					UG_LOG("locU_n_scaled:" << locU_n_scaled << "\n");
-				}*/
 
 				//	locCF corresponds to the lagrange multiplier lambda, c.f. Hintermueller/Ito/Kunisch(2003)
-				complementaryVal = locCF(fct ,dof) + locU(fct, dof) - locCons(fct, dof);
+				//complementaryVal = locCF(fct ,dof) + locU(fct, dof) - locCons(fct, dof);
 				//UG_LOG("complementaryVal: " << complementaryVal << "\n");
 				complementaryVal_n_scaled = locCF(fct ,dof) + locU_n_scaled - locCons(fct, dof);
 				//UG_LOG("complementaryVal_n_scaled: " << complementaryVal_n_scaled << "\n");
@@ -266,8 +259,6 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 	m_vActiveSetGlobOld = m_vActiveSetGlob;
 	m_vActiveSetGlob.resize(0);
 
-	//UG_LOG("#subsets: " << m_spDD->num_subsets() << "\n");
-
 	//	1.) get all subsets on which the 'gap'-gridfunction is defined!
 	//	-> store them in vSubsetsOfContactForces
 	m_vSubsetsOfContact.resize(0);
@@ -283,6 +274,9 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 				break;
 			}
 	}
+
+	if (m_vSubsetsOfContact.size() == 0)
+		UG_LOG("No subsets chosen as possible contact subsets. \n");
 
 	UG_LOG("#sizeOfvSubsetsOfGap: " << m_vSubsetsOfContact.size() << "\n");
 
