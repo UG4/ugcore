@@ -71,13 +71,19 @@ class StandardLineSearch : public ILineSearch<TVector>
 	///	default constructor (setting default values)
 		StandardLineSearch()
 		 :	 m_maxSteps(10), m_lambdaStart(1.0), m_lambdaReduce(0.5),
-		  	 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(false), m_offset("")
+		  	 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(false), m_bCheckAll(false), m_offset("")
 			 {};
 
 	///	constructor
 		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest)
 		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce),
-			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_offset("")
+			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(false), m_offset("")
+			 {};
+
+	///	constructor
+		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool bAcceptBest, bool bCheckAll)
+		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce),
+			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(bCheckAll), m_offset("")
 			 {};
 
 	///	sets maximum number of line search steps
@@ -91,6 +97,9 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 	///	sets iff after max_steps the best try is used
 		void set_accept_best(bool bAcceptBest) {m_bAcceptBest = bAcceptBest;}
+
+	///	sets iff after max_steps the best try is used
+		void set_check_all(bool bCheckAll) {m_bCheckAll = bCheckAll;}
 
 	///	sets maximum allowed defect
 		void set_maximum_defect(number maxDef) {m_maxDefect = maxDef;}
@@ -166,7 +175,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 				if(vRho.back() <= 1 - alpha * fabs(lambda))
 				{
 					converged = true;
-					if(!m_bAcceptBest) break;
+					if(!m_bCheckAll) break;
 				}
 
 				lambda *= m_lambdaReduce;
@@ -266,6 +275,9 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 	///	accept best
 		bool m_bAcceptBest;
+
+	///	check all
+		bool m_bCheckAll;
 
 	/// number of spaces inserted before output
 		std::string m_offset;
