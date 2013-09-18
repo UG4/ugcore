@@ -142,7 +142,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					// add row k to row i by A(i, .) -= U(k,.)  A(i,k) / U(k,k)
 					// so that A(i,k) is zero.
 					// safe A(i,k)/U(k,k) in con, (later L(i,k) )
-					block_type &d = con[i_it].dValue = con[i_it].dValue / ukk;
+					con[i_it].dValue = con[i_it].dValue / ukk;
+					block_type d = con[i_it].dValue;
 					UG_ASSERT(BlockMatrixFiniteAndNotTooBig(d, 1e40), "i = " << i << " " << d);
 
 					typename matrix_type::row_iterator k_it = m_U.begin_row(k); // upper row iterator
