@@ -51,7 +51,7 @@ class LU
 		LU() : m_spOperator(NULL), m_mat()
 		{
 #ifdef LAPACK_AVAILABLE
-			m_iMinimumForSparse = 4000;
+			m_iMinimumForSparse = 8000;
 #else
 			m_iMinimumForSparse = 2000;
 #endif
