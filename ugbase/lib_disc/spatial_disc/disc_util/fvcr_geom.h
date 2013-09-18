@@ -491,6 +491,10 @@ class DimCRFVGeometry : public FVGeometryBase
 	/// update data for given element
 		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
+					
+	/// update data for given element
+		void update_geometric_data(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
 		void update_boundary_faces(GeometricObject* elem,
@@ -618,7 +622,6 @@ class DimCRFVGeometry : public FVGeometryBase
 		size_t m_nsh;
 
 		MathVector<dim> m_ipCoord[maxNumSCVF];
-		MathVector<dim> faceBaryCoord[maxNumSCV];
 		MathVector<dim> cornerCoord[maxNumCo];
 
 	///	SubControlVolumeFaces
@@ -1111,7 +1114,6 @@ class CRFVGeometry : public FVGeometryBase
 
 	private:
 		MathVector<dim> m_ipCoord[numSCVF];
-		MathVector<dim> faceBaryCoord[numSCV];
 
 		///	SubControlVolumeFaces
 		SCVF m_vSCVF[numSCVF];
@@ -1130,6 +1132,30 @@ class CRFVGeometry : public FVGeometryBase
 
 		///	Shape function set
 		const local_shape_fct_set_type& m_rTrialSpace;
+		
+		/// public hanging node interface for compatibility reasons
+	public:
+		class CONSTRAINED_DOF
+		{
+			public:
+				inline size_t constraining_dofs_index(size_t i) const {
+					return 0;
+				}
+				inline size_t constraining_dofs_weight(size_t i) const{
+					return 0;
+				}
+				inline size_t index() const{
+					return 0;
+				}
+				inline size_t num_constraining_dofs() const{
+					return 0;
+				}
+		};
+		inline size_t num_constrained_dofs() const {return 0;}
+		inline const CONSTRAINED_DOF& constrained_dof(size_t i) const
+			{return cd;}
+	private:
+		CONSTRAINED_DOF cd;
 };
 
 

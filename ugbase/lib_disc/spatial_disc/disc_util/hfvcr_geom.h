@@ -51,7 +51,7 @@ template <> struct hcrfv_traits<2, 2>
     typedef ReferenceTriangle scv_type;
     typedef ReferenceEdge face_type;
 	static const size_t maxNumSCVF = 8;
-	static const size_t maxNumSCV = 12;
+	static const size_t maxNumSCV = 8;
 	static const size_t maxNSH = maxNumSCV;
 	static const size_t maxNumCo = 4;
 };
@@ -61,7 +61,7 @@ template <> struct hcrfv_traits<2, 3>
     typedef ReferenceTriangle scv_type;
     typedef ReferenceEdge face_type;
 	static const size_t maxNumSCVF = 8;
-	static const size_t maxNumSCV = 12;
+	static const size_t maxNumSCV = 8;
 	static const size_t maxNSH = maxNumSCV;
 	static const size_t maxNumCo = 4;
 };
@@ -108,8 +108,8 @@ class HCRFVGeometry : public FVGeometryBase
 	///	dimension of world
 		static const int worldDim = TWorldDim;
 
-	///	Hanging node flag: this Geometry does not support hanging nodes
-		static const bool usesHangingNodes = false;
+	///	Hanging node flag: this geometry supports hanging nodes
+		static const bool usesHangingNodes = true;
 
 	/// flag indicating if local data may change
 		static const bool staticLocalData = true;
@@ -357,20 +357,30 @@ class HCRFVGeometry : public FVGeometryBase
 		{
 			public:
 				static const size_t maxNumConstrainingDofs = 4;
-				size_t constraining_dofs_ind(size_t i){
+				inline size_t constraining_dofs_index(size_t i) const{
 					return cDofInd[i];
 				}
-				size_t constraining_dofs_weight(size_t i){
+				inline number constraining_dofs_weight(size_t i) const{
 					return cDofWeights[i];
 				}
-				size_t index(){
+				inline size_t index() const{
 					return i;
 				}
+				inline size_t num_constraining_dofs() const{
+					return numConstrainingDofs;
+				}
 			private:
+				// 	let outer class access private members
+				friend class HCRFVGeometry<TElem, TWorldDim>;
+
 				//  constraining dofs indices
 				size_t cDofInd[maxNumConstrainingDofs];
-				size_t cDofWeights[maxNumConstrainingDofs];
+				//  weights
+				number cDofWeights[maxNumConstrainingDofs];
+				//  local index of dof in element
 				size_t i;
+				//  nr of constraining dofs
+				size_t numConstrainingDofs;
 		};
 
 	public:
@@ -383,6 +393,9 @@ class HCRFVGeometry : public FVGeometryBase
 	/// update data for given element
 		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
+
+	///	debug output
+		void print();
 								   
 		const MathVector<worldDim>* corners() const {return m_vCo;}							
 
@@ -401,11 +414,11 @@ class HCRFVGeometry : public FVGeometryBase
 			{UG_ASSERT(i < maxNumSCV, "Invalid Index."); return m_vSCV[i];}
 
 	/// number of constrained dofs
-		inline size_t num_constrained_dofs() {return numConstrDofs;}
+		inline size_t num_constrained_dofs() const {return numConstrainedDofs;}
 
 	/// const access to constrained dof i
 		inline const CONSTRAINED_DOF& constrained_dof(size_t i) const
-			{UG_ASSERT(i < numConstrDofs, "Invalid Index."); return m_vCD[i];}
+			{UG_ASSERT(i < numConstrainedDofs, "Invalid Index."); return m_vCD[i];}
 
 	/// number of shape functions
 		inline size_t num_sh() const {return nsh;};
@@ -473,7 +486,9 @@ class HCRFVGeometry : public FVGeometryBase
 		
 		size_t numSCV;
 		size_t numSCVF;
-		size_t numConstrDofs;
+		size_t numConstrainedDofs;
+		// numDofs number of all dofs including constraining and constrained dofs
+		size_t numDofs;
 
 		bool localUpdateNecessary;
 

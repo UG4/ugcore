@@ -43,7 +43,7 @@ update_local_data()
 	localBary*=1./(number)rRefElem.num(0);
 
 // 	set up local informations for SubControlVolumeFaces (scvf)
-// 	each scvf is associated to one edge of the element
+// 	each scvf is associated to one vertex (2d) / edge (3d) of the element
 	for(size_t i = 0; i < m_numSCVF; ++i)
 	{
 	//	this scvf separates the given edges/faces
@@ -60,7 +60,7 @@ update_local_data()
 	}
 
 // 	set up local informations for SubControlVolumes (scv)
-// 	each scv is associated to one corner of the element
+// 	each scv is associated to one edge(2d) / face(3d) of the element
 	for(size_t i = 0; i < m_numSCV; ++i)
 	{
 	//	store associated node
@@ -232,6 +232,76 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 	else update_boundary_faces(pElem, vCornerCoords, ish);
 }
 
+/// update geometric data for given element (no shapes)
+template <int TDim, int TWorldDim>
+void DimCRFVGeometry<TDim, TWorldDim>::
+update_geometric_data(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+{
+// 	If already update for this element, do nothing
+	if(m_pElem == pElem) return; else m_pElem = pElem;
+
+//	refresh local data, if different roid given
+	if(m_roid != pElem->reference_object_id())
+	{
+	//	remember new roid
+		m_roid = (ReferenceObjectID) pElem->reference_object_id();
+
+	//	update local data
+		update_local_data();
+	}
+
+//	get reference element
+	try{
+	const DimReferenceElement<dim>& rRefElem
+		= ReferenceElementProvider::get<dim>(m_roid);
+
+	//  compute barycenter coordinates
+	globalBary = vCornerCoords[0];
+	for (size_t j=1;j<rRefElem.num(0);j++){
+	   globalBary+=vCornerCoords[j];
+	}
+	globalBary*=1./(number)rRefElem.num(0);
+
+// 	compute global informations for scvf
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		for (size_t j=0;j<m_vSCVF[i].numCo-1;j++){
+			m_vSCVF[i].vGloPos[j]=vCornerCoords[rRefElem.id(dim-2,i,0,j)];
+		}
+		m_vSCVF[i].vGloPos[m_vSCVF[i].numCo-1]=globalBary;
+		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, m_vSCVF[i].numCo);
+		ElementNormal<face_type0,worldDim>(m_vSCVF[i].Normal,m_vSCVF[i].vGloPos);// face_type0 identical to scvf type
+	}
+
+// 	compute size of scv
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+		// side nodes in reverse order to fulfill standard element order
+		for (int j=0;j<m_vSCV[i].numCorners-1;j++){
+			m_vSCV[i].vGloPos[m_vSCV[i].numCorners-2-j]=vCornerCoords[rRefElem.id(dim-1,i,0,j)];
+		}
+		AveragePositions(m_vGlobUnkCoords[i], m_vSCV[i].vGloPos, m_vSCV[i].numCorners-1);
+		m_vSCV[i].vGlobIP = m_vGlobUnkCoords[i];
+		
+		m_vSCV[i].vGloPos[m_vSCV[i].numCorners-1]=globalBary;
+		// 	compute volume of scv and normal to associated element face
+		//CRSCVSizeAndNormal<dim>(m_vSCV[i].Vol,m_vSCV[i].Normal,m_vSCV[i].vGloPos,m_vSCV[i].numCorners);
+		if (m_vSCV[i].numCorners-1==dim){
+		     m_vSCV[i].Vol = ElementSize<scv_type0,worldDim>(m_vSCV[i].vGloPos);
+		     ElementNormal<face_type0, worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
+		} else { // m_vSCV[i].numCorners-2==dim , only possible in 3d (pyramid)
+		     m_vSCV[i].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[i].vGloPos);
+		     ElementNormal<face_type1,worldDim>(m_vSCV[i].Normal, m_vSCV[i].vGloPos);
+		};
+		// nodes are in reverse order therefore reverse sign to get outward normal
+		m_vSCV[i].Normal*=-1;
+	}
+	
+	}
+	UG_CATCH_THROW("DimCRFVGeometry: geometric update failed.");
+}
+
+
 template <int TDim, int TWorldDim>
 void DimCRFVGeometry<TDim, TWorldDim>::
 update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
@@ -365,7 +435,7 @@ update_local_data()
 	localBary*=1./(number)m_rRefElem.num(0);
 
 // 	set up local informations for SubControlVolumeFaces (scvf)
-// 	each scvf is associated to one edge of the element
+// 	each scvf is associated to one vertex (2d) / edge (3d) of the element
 	for(size_t i = 0; i < numSCVF; ++i)
 	{
 	//	this scvf separates the given edges/faces
@@ -382,7 +452,7 @@ update_local_data()
 	}
 
 // 	set up local informations for SubControlVolumes (scv)
-// 	each scv is associated to one corner of the element
+// 	each scv is associated to one edge (2d) / face (3d) of the element
 	for(size_t i = 0; i < numSCV; ++i)
 	{
 	//	store associated node
