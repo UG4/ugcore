@@ -540,7 +540,7 @@ sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 	const DimReferenceElement<dim>& refElem
 		= ReferenceElementProvider::get<dim>(roid);
 	// get edge belonging to reference id vertex 0 on edge
-	const size_t vertexIndex = refElem.id(dim-1,objIndex,1,0);
+	const size_t vertexIndex = refElem.id(1,objIndex,0,0);
 	sortedInd.resize(2);
 	VertexBase* vertex0 = NULL;
 	// get child of vertex
@@ -592,12 +592,14 @@ sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 	const DimReferenceElement<dim>& refElem
 			= ReferenceElementProvider::get<dim>(roid);
 	const size_t numVrt = constrainingObj->num_vertices();
-	sortedInd.resize(numVrt);
+	sortedInd.resize(4);
 	VertexBase* vrt = NULL;
 	Volume* baseElem = dynamic_cast<Volume*>(elem);
 	UG_ASSERT(baseElem!=NULL,"wrong element type");
+	bool handledFace[4];
+	if (numVrt==3) for (size_t i=0;i<numVrt;i++) handledFace[i]=false;
 	for (size_t i=0;i<numVrt;i++){
-		const size_t vertexIndex = refElem.id(dim-1,objIndex,1,0);
+		const size_t vertexIndex = refElem.id(2,objIndex,0,i);
 		vrt = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
 		// loop constrained faces to find face corresponding to vertex
 		bool found = false;
@@ -607,11 +609,21 @@ sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 				if (face->vertex(k)==vrt){
 					found = true;
 					sortedInd[i] = j;
+					handledFace[j] = true;
 					break;
 				}
 			}
 		}
 		if (found==false) UG_THROW("corresponding constrained object vertex not found");
+	}
+	// for triangle search for inner face
+	if (numVrt==3){
+		for (size_t i=0;i<4;i++){
+			if (handledFace[i]==false){
+				sortedInd[3]=i;
+				break;
+			}
+		}
 	}
 }
 

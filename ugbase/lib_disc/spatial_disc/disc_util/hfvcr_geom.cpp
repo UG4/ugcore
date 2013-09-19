@@ -237,6 +237,173 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 			numConstrainedDofs+=1;
 			localUpdateNecessary = true;
 		}
+	} else {
+		// dim = 3
+		std::vector<Face*> vFaces;
+		CollectFacesSorted(vFaces, grid, pElem);
+		for(size_t face = 0; face < vFaces.size(); ++face){
+			ConstrainingFace* constrainingObj = dynamic_cast<ConstrainingFace*>(vFaces[face]);
+			if(constrainingObj == NULL) continue;
+			// found constraining face
+			MathVector<worldDim> globalMidpoint = m_vSCV[face].vGlobIP;
+			MathVector<dim> localMidpoint = m_vSCV[face].vLocIP;
+			number faceVol = m_vSCV[face].Vol;
+			MathVector<worldDim> faceNormal = m_vSCV[face].Normal;
+			// get face corners and edges
+			size_t faceCo[4];
+			size_t faceEdge[4];
+			// number of corners of face = number of edges
+			size_t numFaceCo = m_rRefElem.num(2,face,0);
+			for (size_t j=0;j<numFaceCo;j++) faceCo[j] = m_rRefElem.id(2,face,0,j);
+			for (size_t j=0;j<numFaceCo;j++) faceEdge[j] = m_rRefElem.id(2,face,0,j);
+			// compute coordinates of each face and fill scv values
+			for (size_t i=0;i<numFaceCo;i++){
+				size_t co = faceCo[i];
+				size_t nOfEdges=0;
+				size_t nbEdges[2];
+				// find 2 edges in face belonging to node
+				for (size_t j=0;j<3;j++){
+					size_t candidate = m_rRefElem.id(0,co,1,j);
+					bool found = false;
+					for (size_t k=0;k<numFaceCo;k++){
+						if (faceEdge[k]==candidate){
+							found = true;
+							break;
+						}
+					}
+					if (found==true){
+						nbEdges[nOfEdges] = candidate;
+						nOfEdges++;
+						if (nOfEdges==2) break;
+					}
+				}
+				// first new scv replaces scv nr face
+				size_t ind = face;
+				// others are inserted at the end
+				if (i>0) ind = numSCV+i-1;
+				m_vSCV[ind].vGloPos[0] = vCornerCoords[co];
+				m_vSCV[ind].vLocPos[0] = m_rRefElem.corner(co);
+				for (int d=0;d<worldDim;d++){
+ 					 // edge 0 midpoint
+  					m_vSCV[ind].vGloPos[1][d] = 0.5 * ( vCornerCoords[m_rRefElem.id(1,nbEdges[0],0,0)][d] + vCornerCoords[m_rRefElem.id(1,nbEdges[0],0,1)][d] );
+					m_vSCV[ind].vLocPos[1][d] = 0.5 * ( m_rRefElem.corner(m_rRefElem.id(1,nbEdges[0],0,0))[d] + m_rRefElem.corner(m_rRefElem.id(1,nbEdges[0],0,1))[d] );
+					// edge 1 midpoint
+					m_vSCV[ind].vGloPos[numFaceCo-1][d] = 0.5 * ( vCornerCoords[m_rRefElem.id(1,nbEdges[1],0,0)][d] + vCornerCoords[m_rRefElem.id(1,nbEdges[1],0,1)][d] );
+					m_vSCV[ind].vLocPos[numFaceCo-1][d] = 0.5 * ( m_rRefElem.corner(m_rRefElem.id(1,nbEdges[1],0,0))[d] + m_rRefElem.corner(m_rRefElem.id(1,nbEdges[1],0,1))[d] );
+				}
+				if (numFaceCo==4) m_vSCV[ind].vGloPos[2] = globalMidpoint;
+				m_vSCV[ind].vGloPos[numFaceCo] = globalBary;
+				m_vSCV[ind].vLocPos[numFaceCo] = localBary;
+				m_vSCV[ind].numCorners = numFaceCo + 1;
+				AveragePositions(m_vGlobUnkCoords[ind], m_vSCV[ind].vGloPos, m_vSCV[ind].numCorners-1);
+				AveragePositions(m_vLocUnkCoords[ind], m_vSCV[ind].vLocPos, m_vSCV[ind].numCorners-1);
+				m_vSCV[ind].vLocIP = m_vLocUnkCoords[ind];
+				m_vSCV[ind].vGlobIP = m_vGlobUnkCoords[ind];
+				if (numFaceCo==3) m_vSCV[ind].Vol = ElementSize<scv_type0,worldDim>(m_vSCV[ind].vGloPos);
+				else m_vSCV[ind].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[ind].vGloPos);
+				m_vSCV[ind].Normal = faceNormal;
+				m_vSCV[ind].Normal *= (number) m_vSCV[ind].Vol / faceVol;
+				m_vSCV[ind].nodeID = numDofs+i;
+			}
+			// compute inner scv in triangular case
+			if (numFaceCo==3){
+				number volSum=m_vSCV[face].Vol;
+				for (size_t j=0;j<2;j++){
+					volSum+=m_vSCV[numSCV+j-1].Vol;
+				}
+				size_t ind = numSCV+3;
+				m_vSCV[ind].Vol = faceVol - volSum;
+				m_vSCV[ind].nodeID=numDofs+4;
+				m_vSCV[ind].Normal = faceNormal;
+				m_vSCV[ind].Normal *= (number) m_vSCV[ind].Vol / faceVol;
+				m_vSCV[ind].vGlobIP = m_vSCV[face].vGloPos[1];
+				m_vSCV[ind].vLocIP = m_vSCV[face].vLocPos[1];
+				for (size_t j=0;j<2;j++){
+					m_vSCV[ind].vGlobIP = m_vSCV[numSCV+j-1].vGloPos[1];
+					m_vSCV[ind].vLocIP = m_vSCV[numSCV+j-1].vLocPos[1];
+				}
+				m_vSCV[ind].vGlobIP *= (number)1.0/3.0;
+				m_vSCV[ind].vLocIP *= (number)1.0/3.0;
+				m_vGlobUnkCoords[ind] = m_vSCV[ind].vGlobIP;
+				m_vLocUnkCoords[ind] = m_vSCV[ind].vLocIP;
+				m_vSCV[ind].numCorners = numFaceCo + 1;
+			}
+			// compute inner scv in triangular case
+			if (numFaceCo==3){
+				for (size_t j=0;j<3;j++){
+					m_vSCVF[numSCVF].From = numDofs+j;
+					m_vSCVF[numSCVF].To = numDofs+3;
+					// first new scv replaces scv nr face
+					size_t ind = face;
+					// others are inserted at the end
+					if (j>0) ind = numSCV+j-1;
+					m_vSCVF[numSCVF].vLocPos[0] = m_vSCV[ind].vLocPos[1];
+					m_vSCVF[numSCVF].vLocPos[1] = m_vSCV[ind].vLocPos[2];
+					m_vSCVF[numSCVF].vLocPos[2] = localBary;
+					m_vSCVF[numSCVF].vGloPos[0] = m_vSCV[ind].vGloPos[1];
+					m_vSCVF[numSCVF].vGloPos[1] = m_vSCV[ind].vGloPos[2];
+					m_vSCVF[numSCVF].vGloPos[2] = globalBary;
+					ElementNormal<face_type0,worldDim>(m_vSCVF[numSCVF].Normal,m_vSCVF[numSCVF].vGloPos);
+					AveragePositions(m_vSCVF[numSCVF].globalIP,m_vSCVF[numSCVF].vGloPos,3);
+					AveragePositions(m_vSCVF[numSCVF].localIP,m_vSCVF[numSCVF].vLocPos,3);
+					// find direction of normal
+				}
+			}
+			// insert new scvfs, first the ones associated to edges of face
+			for (size_t i=0;i<3;i++){
+				size_t edge = faceEdge[i];
+				size_t from = m_vSCVF[edge].From;
+				size_t to   = m_vSCVF[edge].To;
+				MathVector<worldDim> normal = m_vSCVF[edge].Normal;
+				normal*=0.5;
+				size_t edgeCo[2];
+				size_t scvID[2];
+				for (size_t j=0;j<2;j++){
+					edgeCo[j] = m_rRefElem.id(1,edge,0,j);
+					// find corresponding face vertex (= corresponding scv index)
+					for (size_t k=0;k<2;k++){
+						if (faceCo[k]==edgeCo[j]){
+							scvID[j] = k;
+							break;
+						}
+					}
+				}
+				MathVector<worldDim> edgeMidGlob;
+				MathVector<dim> edgeMidLoc;
+				for (int d=0;d<worldDim;d++){
+					edgeMidGlob[d] = 0.5 * (vCornerCoords[edgeCo[0]][d]  + vCornerCoords[edgeCo[1]][d]);
+					edgeMidLoc[d] = 0.5 * (m_rRefElem.corner(edgeCo[0])[d] +  m_rRefElem.corner(edgeCo[1])[d]);
+				}
+				size_t ind = numSCVF + 2*i;
+				for (size_t j=0;j<2;j++){
+					if (from==face){
+						m_vSCVF[ind+j].From = scvID[j];
+						m_vSCVF[ind+j].To   = to;
+					} else {
+						m_vSCVF[ind+j].To 	= scvID[j];
+						m_vSCVF[ind+j].From = to;
+					}
+					m_vSCVF[ind+j].Normal = normal;
+					m_vSCVF[ind+j].vGloPos[0] = vCornerCoords[edgeCo[j]];
+					m_vSCVF[ind+j].vLocPos[0] = m_rRefElem.corner(edgeCo[j]);
+					m_vSCVF[ind+j].vGloPos[1] = edgeMidGlob;
+					m_vSCVF[ind+j].vLocPos[1] = edgeMidLoc;
+					m_vSCVF[ind+j].vGloPos[2] = globalBary;
+					m_vSCVF[ind+j].vLocPos[2] = localBary;
+					AveragePositions(m_vSCVF[ind+j].localIP, m_vSCVF[ind+j].vLocPos, m_vSCVF[ind+j].numCo);
+					AveragePositions(m_vSCVF[ind+j].globalIP, m_vSCVF[ind+j].vGloPos, m_vSCVF[ind+j].numCo);
+					m_rTrialSpace.shapes(&(m_vSCVF[numSCVF].vShape[0]), m_vSCVF[numSCVF].local_ip());
+					m_rTrialSpace.grads(&(m_vSCVF[numSCVF].vLocalGrad[0]), m_vSCVF[numSCVF].local_ip());
+				}
+			}
+			// insert remaining inner scvfs
+
+			numSCV+=3;
+			if (numFaceCo==3) numSCVF+=6; else numSCVF+=8;
+			numDofs+=numFaceCo;
+			numConstrainedDofs+=1;
+			localUpdateNecessary = true;
+		}
 	}
 
 
