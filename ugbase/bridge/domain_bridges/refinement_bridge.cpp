@@ -901,6 +901,21 @@ void MarkForAdaption_ElementsTouchingSubset(TDomain& dom, IRefiner& refiner,
 	}
 }
 
+template <class TDomain>
+void MarkForAdaption_ElementsTouchingSubsets(TDomain& dom, IRefiner& refiner,
+											 const char* subsets,
+											 std::string markType)
+{
+	ISubsetHandler& sh = *dom.subset_handler();
+	vector<string> vSubsets = TokenizeTrimString(std::string(subsets));
+	for(size_t i = 0; i < vSubsets.size(); ++i){
+		const int si = sh.get_subset_index(vSubsets[i].c_str());
+		if(si < 0)
+			UG_THROW("MarkForAdaption_ElementsTouchingSubsets: Subset '"<<vSubsets[i]<<"' not found");
+
+		MarkForAdaption_ElementsTouchingSubset(dom, refiner, sh, si, markType);
+	}
+}
 
 
 // end group refinement_bridge
@@ -1080,7 +1095,10 @@ static void Domain(Registry& reg, string grp)
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
 		.add_function("MarkForAdaption_ElementsTouchingSubset",
 				&MarkForAdaption_ElementsTouchingSubset<domain_type>,
-				grp, "", "dom#refiner#subsetHandler#subsetIndex#strMark");
+				grp, "", "dom#refiner#subsetHandler#subsetIndex#strMark")
+		.add_function("MarkForAdaption_ElementsTouchingSubsets",
+				&MarkForAdaption_ElementsTouchingSubsets<domain_type>,
+				grp, "", "dom#refiner#subsetHandler#subsetNames#strMark");
 //		.add_function("MarkForAdaption_EdgesContainingPoint",
 //				&MarkForAdaption_ElementsContainingPoint<domain_type, EdgeBase>,
 //				grp, "", "dom#refiner#x#y#z#markType")
