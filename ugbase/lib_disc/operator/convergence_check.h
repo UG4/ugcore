@@ -41,18 +41,61 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 {
 	public:
 	/// constructors
+	/// \{
 		CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx);
-
-	/// sets maximum number of iteration steps
-		void set_maximum_steps(int maxSteps) {m_maxSteps = maxSteps;}
+		CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
+		                   int maxSteps, number minDefect, number relReduction);
+	/// \}
 
 	/// set level of grid, where defect vectors come from
 		void set_level(int level);
 
-	///	sets the approximation space
-		void set_functions(const char* functionNames);
-		void set_minimum_defect(const std::vector<number> minDefect, number minDefectForRest = 1e-10);
-		void set_reduction(const std::vector<number> reduction, number reductionForRest = 1e-8);
+	/// sets maximum number of iteration steps
+		void set_maximum_steps(int maxSteps) {m_maxSteps = maxSteps;}
+
+	///	sets default values for non-explicitly specified cmps
+		void set_rest_check(number minDefect, number relReduction){
+			m_bCheckRest = true;
+			m_restMinDefect = minDefect; m_restRelReduction = relReduction;
+			update_rest_check();
+		}
+
+	///	disables rest check
+		void disable_rest_check(){m_bCheckRest = false; update_rest_check();}
+
+	///	sets check for single component
+	/// \{
+		void set_component_check(const std::string& vFctName,
+		                         const std::vector<number>& vMinDefect,
+		                         const std::vector<number>& vRelReduction);
+
+		void set_component_check(const std::vector<std::string>& vFctName,
+		                         const std::vector<number>& vMinDefect,
+		                         const std::vector<number>& vRelReduction);
+
+		void set_component_check(const std::vector<std::string>& vFctName,
+								 const number minDefect,
+								 const number relReduction);
+
+		void set_component_check(const std::string& fctName,
+								 const number minDefect,
+								 const number relReduction);
+	/// \}
+
+	///	sets check for all components in approximation space
+		void set_all_component_check(const number minDefect,
+		                             const number relReduction);
+
+	///	sets check for group of components
+	/// \{
+		void set_group_check(const std::vector<std::string>& vFctName,
+							 const number minDefect,
+							 const number relReduction);
+
+		void set_group_check(const std::string& fctNames,
+							 const number minDefect,
+							 const number relReduction);
+	/// \}
 
 	/// defect control
 		void start_defect(number initialDefect);
@@ -63,16 +106,11 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		bool post();
 
 	/// information about current status
-		number defect() const {return m_currentOverallDefect;};
 		int step() const {return m_currentStep;}
-		number reduction() const {return m_currentOverallDefect/m_initialOverallDefect;};
-		number rate() const {return m_currentOverallDefect/m_lastOverallDefect;}
-		number avg_rate() const {return std::pow((number)m_currentOverallDefect/m_initialOverallDefect,(number)1.0/m_currentStep);}
-
-	/// information about current status for single component
-		number defect(size_t fctIndex) const {return m_currentDefect[fctIndex];};
-		number reduction(size_t fctIndex) const {return m_currentDefect[fctIndex]/m_initialDefect[fctIndex];};
-		number previousDefect(size_t fctIndex) const {return m_lastDefect[fctIndex];};
+		number defect() const {return defect_all();};
+		number reduction() const {return defect_all()/initial_defect_all();};
+		number rate() const {return defect_all()/last_defect_all();}
+		number avg_rate() const {return std::pow(defect_all()/initial_defect_all(), 1.0/m_currentStep);}
 
 	/// output
 		int get_offset() const {return m_offset;};
@@ -85,85 +123,126 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		void set_verbose(bool level) {m_verbose = level;};
 
 	///	enables time measurement
-		void timeMeasurement(bool yesOrNo) {m_timeMeas = yesOrNo;};
+		void timeMeasurement(bool yesOrNo) {m_bTimeMeas = yesOrNo;};
 
-		virtual SmartPtr<IConvergenceCheck<TVector> > clone()
-		{
-			SmartPtr<CompositeConvCheck<TVector, TDomain> > newInst = new CompositeConvCheck<TVector, TDomain>(m_spApprox);
-			// use std assignment (implicit member-wise is fine here)
-			*newInst = *this;
-			return newInst;
-		}
+	///	clones this instance
+		virtual SmartPtr<IConvergenceCheck<TVector> > clone();
 
-		void print_line(std::string line)
-		{
-			print_offset();
-			UG_LOG(line << "\n");
-		}
+	///	prints a line using prefixes
+		void print_line(std::string line);
 
 	protected:
 		void print_offset();
 		bool is_valid_number(number value);
-		std::string fctName(size_t fctIndex) {return m_fctName[fctIndex];};
+		const std::string& fctName(size_t i) {return m_CmpInfo[i].name;};
 
 	///	extracts multi-indices for a fct-comp on a element type
 		template <typename TBaseElem>
-		void extract_multi_indices();
+		void extract_multi_indices(ConstSmartPtr<DoFDistribution> dd);
+
+	///	extracts multi-indices from dof distribution
+		void extract_multi_indices(ConstSmartPtr<DoFDistribution> dd);
 
 	/// calculates the 2-norm of the entries of the vector vec specified by index
-		number norm(const TVector& vec, std::vector<MultiIndex<2> > index);
+		number norm(const TVector& vec, const std::vector<MultiIndex<2> >& index);
 
 	protected:
-		// start defect
-		std::vector<number> m_initialDefect;
-		number m_initialOverallDefect;
+	///	ApproxSpace
+		SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
 
-		// current defect
-		std::vector<number> m_currentDefect;
-		number m_currentOverallDefect;
+		struct NativCmpInfo{
+			std::string name; 	///< Name of components
 
-		// defect of the previous step
-		std::vector<number> m_lastDefect;
-		number m_lastOverallDefect;
+			number initDefect;	///< Initial Defect of component
+			number currDefect;	///< Current Defect of component
+			number lastDefect;	///< Last Defect if component
 
-		// current step
+			std::vector<MultiIndex<2> > vMultiIndex; ///< associated indices
+		};
+
+	///	info on natural components
+		std::vector<NativCmpInfo> m_vNativCmpInfo;
+		size_t m_numAllDoFs;
+
+	///	returns defect for all components
+		number defect_all() const {
+			number defect = 0.0;
+			for(size_t fct = 0; fct < m_vNativCmpInfo.size(); ++fct)
+				defect += pow(m_vNativCmpInfo[fct].currDefect, 2);
+			return sqrt(defect);
+		}
+
+	///	returns last defect for all components
+		number last_defect_all() const {
+			number defect = 0.0;
+			for(size_t fct = 0; fct < m_vNativCmpInfo.size(); ++fct)
+				defect += pow(m_vNativCmpInfo[fct].lastDefect, 2);
+			return sqrt(defect);
+		}
+
+	///	returns initial defect for all components
+		number initial_defect_all() const {
+			number defect = 0.0;
+			for(size_t fct = 0; fct < m_vNativCmpInfo.size(); ++fct)
+				defect += pow(m_vNativCmpInfo[fct].initDefect, 2);
+			return sqrt(defect);
+		}
+
+	protected:
+		struct CmpInfo
+		{
+			CmpInfo() : isRest(false) {}
+
+			std::vector<int> vFct;	///< Index of components
+			std::string name; 		///< Name of components
+
+			number initDefect;	///< Initial Defect of component
+			number currDefect;	///< Current Defect of component
+			number lastDefect;	///< Last Defect if component
+
+			number minDefect;	///< Minimal required Defect of component
+			number relReduction;///< Relative reduction required for component
+
+			bool isRest; 	///< Shows, that this is group of remaining cmps
+		};
+
+	///	infos for each component
+		std::vector<CmpInfo> m_CmpInfo;
+
+	///	default Values
+		bool m_bCheckRest;
+		number m_restMinDefect;
+		number m_restRelReduction;
+		void update_rest_check();
+
+	/// current step
 		int m_currentStep;
 
-		// maximum number of steps to be performed
+	/// maximum number of steps to be performed
 		int m_maxSteps;
 
-		// absolute reduction to be reached for convergence
-		std::vector<number> m_minDefect;
-
-		// relative reduction to be reached for convergence
-		std::vector<number> m_relReduction;
-
 	protected:
-		// verbose level
+		/// verbose level
 		bool m_verbose;
 
-		// number of spaces inserted before output
+		/// number of spaces inserted before output
 		int m_offset;
 
-		// symbol for output appearance
+		/// symbol for output appearance
 		char m_symbol;
 
-		// name of iteration
+		/// name of iteration
 		std::string m_name;
 
-		// info for iteration (e.g. preconditioner type)
+		/// info for iteration (e.g. preconditioner type)
 		std::string m_info;
 
-	private:
-		SmartPtr<ApproximationSpace<TDomain> > m_spApprox;
-		bool m_timeMeas;
+	protected:
+		/// enables time measurement
+		bool m_bTimeMeas;
+
+		/// a stopwatch
 		Stopwatch m_stopwatch;
-		std::vector<std::vector<MultiIndex<2> > > m_vvMultiIndex;
-		std::vector<std::string> m_fctName;
-		FunctionGroup m_fctGrp;
-		ConstSmartPtr<DoFDistribution> m_dd;
-		int m_lvl;
-		bool m_bfunctionsSet;
 };
 
 } // end namespace ug

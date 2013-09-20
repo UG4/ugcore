@@ -365,20 +365,33 @@ static void DomainAlgebra(Registry& reg, string grp)
 		string name = string("CompositeConvCheck").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >)>("ApproximationSpace")
+			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, int, number, number)>("ApproximationSpace#maxSteps#minDefect#relReduction")
 			.add_method("set_level", (void (T::*)(int)) &T::set_level,
 			            "", "grid_level", "sets grid level where defect vectors come from")
-			.add_method("set_functions", (void (T::*)(const char*)) &T::set_functions,
-			            "", "functions", "sets functions to be evaluated individually as comma separated list")
 			.add_method("timeMeasurement", &T::timeMeasurement,
 			            "", "", "whether to perform a time measurement or not")
 			.add_method("set_maximum_steps", &T::set_maximum_steps, 
 			            "", "maximum steps|default|min=0;value=100")
-			.add_method("set_minimum_defect", (void (T::*)(const std::vector<number>, number)) &T::set_minimum_defect,
-			            "", "minimum defect for defined functions as comma separated list#minimum defect for rest|default|min=0D;value=1e-10")
-			.add_method("set_reduction", (void (T::*)(const std::vector<number>, number)) &T::set_reduction,
-			            "", "defect reduction for defined functions comma separated list#defect reduction for rest|default|min=0D;value=1e-08")
+			.add_method("set_component_check", (void (T::*)(const std::string&,const std::vector<number>&,const std::vector<number>&)) &T::set_component_check,
+						"", "Components#minDefect#relReduction")
+			.add_method("set_component_check", (void (T::*)(const std::vector<std::string>&,const std::vector<number>&,const std::vector<number>&)) &T::set_component_check,
+						"", "Components#minDefect#relReduction")
+			.add_method("set_component_check", (void (T::*)(const std::vector<std::string>&,const number,const number)) &T::set_component_check,
+						"", "Components#minDefect#relReduction")
+			.add_method("set_component_check", (void (T::*)(const std::string&,const number,const number)) &T::set_component_check,
+						"", "Components#minDefect#relReduction")
+			.add_method("set_all_component_check", (void (T::*)(const number,const number)) &T::set_all_component_check,
+						"", "minDefect#relReduction")
+			.add_method("set_group_check", (void (T::*)(const std::vector<std::string>&,const number,const number)) &T::set_group_check,
+						"", "ComponentGroup#minDefect#relReduction")
+			.add_method("set_group_check", (void (T::*)(const std::string&,const number,const number)) &T::set_group_check,
+						"", "ComponentGroup#minDefect#relReduction")
+			.add_method("disable_rest_check", &T::disable_rest_check,
+						"", "")
+			.add_method("set_rest_check", &T::set_rest_check,
+						"", "minDefect#relReduction")
 			.add_method("set_verbose", &T::set_verbose, 
-			            "", "Verbosity")
+						"", "Verbosity")
 			.add_method("defect", (number (T::*)(size_t) const) &T::defect, 
 			            "defect", "function index", "returns the current defect")
 			.add_method("step", &T::step,  

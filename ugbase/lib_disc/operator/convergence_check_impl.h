@@ -18,79 +18,104 @@ namespace ug{
 
 template <class TVector, class TDomain>
 CompositeConvCheck<TVector, TDomain>::
-CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > approx)
- :	 m_initialDefect(0), m_initialOverallDefect(0.0),
-  	 m_currentDefect(0), m_currentOverallDefect(0.0),
- 	 m_lastDefect(0), m_lastOverallDefect(0), m_currentStep(0), m_maxSteps(100),
- 	 m_minDefect(0),
- 	 m_relReduction(0),
-	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
-	 m_timeMeas(true),
-	 m_dd(NULL),
-	 m_lvl(GridLevel::TOPLEVEL),
-	 m_bfunctionsSet(false)
+CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
+ :	m_spApprox(spApproxSpace),
+  	m_bCheckRest(true), m_restMinDefect(1-12), m_restRelReduction(1-10),
+	m_currentStep(0), m_maxSteps(100),
+	m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
+	m_bTimeMeas(true)
 {
-	m_spApprox = approx;
-	m_dd = approx->surface_dof_distribution();
-
-	// compute indices for faster access later
-	m_vvMultiIndex.clear();
-	m_vvMultiIndex.resize(m_dd->num_fct());
-	if(m_dd->max_dofs(VERTEX)) extract_multi_indices<VertexBase>();
-	if(m_dd->max_dofs(FACE)) extract_multi_indices<EdgeBase>();
-	if(m_dd->max_dofs(EDGE)) extract_multi_indices<Face>();
-	if(m_dd->max_dofs(VOLUME)) extract_multi_indices<Volume>();
-
-	// store function name
-	for (size_t fi = 0; fi < m_dd->num_fct(); fi++)
-		m_fctName.push_back(m_dd->function_pattern()->name(fi));
+	set_level(GridLevel::TOPLEVEL);
 }
+
+template <class TVector, class TDomain>
+CompositeConvCheck<TVector, TDomain>::
+CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
+                   int maxSteps, number minDefect, number relReduction)
+ :	m_spApprox(spApproxSpace),
+  	m_bCheckRest(true), m_restMinDefect(minDefect), m_restRelReduction(relReduction),
+	m_currentStep(0), m_maxSteps(maxSteps),
+	m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
+	m_bTimeMeas(true)
+{
+	set_level(GridLevel::TOPLEVEL);
+}
+
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::set_level(int level)
+{
+	ConstSmartPtr<DoFDistribution> dd = m_spApprox->surface_dof_distribution(level);
+	extract_multi_indices(dd);
+
+	update_rest_check();
+}
+
 
 template <class TVector, class TDomain>
 template <typename TBaseElem>
 void CompositeConvCheck<TVector, TDomain>::
-extract_multi_indices()
+extract_multi_indices(ConstSmartPtr<DoFDistribution> dd)
 {
 	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterBegin, iterEnd;
 
 	//	get element iterator for current subset
-	iterBegin = m_dd->template begin<TBaseElem>();
-	iterEnd = m_dd->template end<TBaseElem>();
+	iterBegin = dd->template begin<TBaseElem>();
+	iterEnd = dd->template end<TBaseElem>();
 
 	// loop over all elements
 	std::vector<MultiIndex<2> > vInd;
 	for (iter = iterBegin; iter != iterEnd; ++iter)
 	{
-		for (size_t fi = 0; fi < m_dd->num_fct(); fi++)
+		for (size_t fi = 0; fi < dd->num_fct(); fi++)
 		{
 			// inner multi indices of the grid object for a function component
-			m_dd->inner_multi_indices(*iter, fi, vInd);
+			dd->inner_multi_indices(*iter, fi, vInd);
 
 			// remember multi indices
 			for (size_t dof = 0; dof < vInd.size(); dof++)
-				m_vvMultiIndex[fi].push_back(vInd[dof]);
+				m_vNativCmpInfo[fi].vMultiIndex.push_back(vInd[dof]);
 		}
 	}
 
 	// note: no duplicate indices possible
 }
 
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::
+extract_multi_indices(ConstSmartPtr<DoFDistribution> dd)
+{
+	// compute indices for faster access later
+	m_vNativCmpInfo.clear();
+	m_vNativCmpInfo.resize(dd->num_fct());
+	if(dd->max_dofs(VERTEX)) extract_multi_indices<VertexBase>(dd);
+	if(dd->max_dofs(FACE)) extract_multi_indices<EdgeBase>(dd);
+	if(dd->max_dofs(EDGE)) extract_multi_indices<Face>(dd);
+	if(dd->max_dofs(VOLUME)) extract_multi_indices<Volume>(dd);
+
+	for(size_t i = 0; i < m_vNativCmpInfo.size(); ++i)
+		m_vNativCmpInfo[i].name = dd->name(i);
+
+	m_numAllDoFs = 0;
+	for(size_t i = 0; i < m_vNativCmpInfo.size(); ++i)
+		m_numAllDoFs += m_vNativCmpInfo[i].vMultiIndex.size();
+}
 
 
 template <class TVector, class TDomain>
-number CompositeConvCheck<TVector, TDomain>::norm(const TVector& vec, std::vector<MultiIndex<2> > index)
+number CompositeConvCheck<TVector, TDomain>::
+norm(const TVector& vec, const std::vector<MultiIndex<2> >& vMultiIndex)
 {
 #ifdef UG_PARALLEL
 
 	// 	make vector d additive unique
-	if (!vec.has_storage_type(PST_UNIQUE) && !const_cast<TVector*>(&vec)->change_storage_type(PST_UNIQUE))
+	if (!const_cast<TVector*>(&vec)->change_storage_type(PST_UNIQUE))
 		UG_THROW("CompositeConvCheck::norm(): Cannot change ParallelStorageType to unique.");
 #endif
 
 	double norm = 0.0;
-	for (size_t dof = 0; dof < index.size(); ++dof)
+	for (size_t dof = 0; dof < vMultiIndex.size(); ++dof)
 	{
-		const number val = DoFRef(vec, index[dof]);
+		const number val = DoFRef(vec, vMultiIndex[dof]);
 		norm += (double) (val*val);
 	}
 
@@ -105,118 +130,209 @@ number CompositeConvCheck<TVector, TDomain>::norm(const TVector& vec, std::vecto
 
 
 template <class TVector, class TDomain>
-void CompositeConvCheck<TVector, TDomain>::set_level(int level)
+SmartPtr<IConvergenceCheck<TVector> > CompositeConvCheck<TVector, TDomain>::clone()
 {
-	// level must be set before chosing functions
-	if (m_bfunctionsSet) UG_THROW("Level must be set before functions are!");
-	m_lvl = level;
+	SmartPtr<CompositeConvCheck<TVector, TDomain> > newInst
+						= new CompositeConvCheck<TVector, TDomain>(m_spApprox);
 
-	// repeat construction actions, now with correct level
-	m_dd = m_spApprox->surface_dof_distribution(level);
+	// use std assignment (implicit member-wise is fine here)
+	*newInst = *this;
+	return newInst;
+}
 
-	// compute indices for faster access later
-	m_vvMultiIndex.clear();
-	m_vvMultiIndex.resize(m_dd->num_fct());
-	if(m_dd->max_dofs(VERTEX)) extract_multi_indices<VertexBase>();
-	if(m_dd->max_dofs(FACE)) extract_multi_indices<EdgeBase>();
-	if(m_dd->max_dofs(EDGE)) extract_multi_indices<Face>();
-	if(m_dd->max_dofs(VOLUME)) extract_multi_indices<Volume>();
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::
+set_component_check(const std::vector<std::string>& vFctName,
+                    const std::vector<number>& vMinDefect,
+                    const std::vector<number>& vRelReduction)
+{
+	if(vFctName.size() != vMinDefect.size() || vFctName.size() != vRelReduction.size())
+		UG_THROW("CompositeConvCheck: Please specify one value for each cmp.")
 
-	// store function name
-	for (size_t fi = 0; fi < m_dd->num_fct(); fi++)
-		m_fctName.push_back(m_dd->function_pattern()->name(fi));
+	for(size_t cmp = 0; cmp < vFctName.size(); ++cmp)
+		set_component_check(vFctName[cmp], vMinDefect[cmp], vRelReduction[cmp]);
+
+}
+
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::
+set_component_check(const std::string& vFctName,
+                    const std::vector<number>& vMinDefect,
+                    const std::vector<number>& vRelReduction)
+{
+	set_component_check(TokenizeTrimString(vFctName), vMinDefect, vRelReduction);
 }
 
 
 template <class TVector, class TDomain>
-void CompositeConvCheck<TVector, TDomain>::set_functions(const char* functionNames)
+void CompositeConvCheck<TVector, TDomain>::
+set_component_check(const std::vector<std::string>& vFctName,
+					 const number minDefect,
+					 const number relReduction)
 {
-	// get the functions specified by function names
-	try {m_fctGrp = m_dd->fct_grp_by_name(functionNames);}
-		UG_CATCH_THROW("At least one of the functions in '" << functionNames
-						<< "' is not contained in the approximation space (or something else was wrong).");
+	for(size_t cmp = 0; cmp < vFctName.size(); ++cmp)
+		set_component_check(vFctName[cmp], minDefect, relReduction);
+}
 
-
-	// remove unnecessary function names and indices / add 'rest' if necessary
-	std::vector<std::vector<MultiIndex<2> > > finalIndices(0);
-	std::vector<std::string> finalNames(0);
-	std::vector<bool> used(m_dd->num_fct(), false);
-	for (size_t i = 0; i < m_fctGrp.size(); i++)
-	{
-		finalIndices.push_back(m_vvMultiIndex[m_fctGrp[i]]);
-		finalNames.push_back(m_fctName[m_fctGrp[i]]);
-		used[m_fctGrp[i]] = true;
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::
+set_all_component_check(const number minDefect,
+                        const number relReduction)
+{
+	for(size_t fct = 0; fct < m_spApprox->num_fct(); ++fct){
+		std::string name = m_spApprox->name(fct);
+		set_component_check(name, minDefect, relReduction);
 	}
+}
 
-	std::vector<MultiIndex<2> > rest(0);
-	std::stringstream ss; ss << "rest (";
-	std::vector<std::string>::iterator itName = m_fctName.begin();
-	std::vector<std::vector<MultiIndex<2> > >::iterator itInd = m_vvMultiIndex.begin();
-	for (std::vector<bool>::iterator itUsed = used.begin(); itUsed != used.end(); itUsed++)
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::
+set_component_check(const std::string& fctNames,
+                    const number minDefect,
+                    const number relReduction)
+{
+	std::vector<std::string> vName = TokenizeTrimString(fctNames);
+
+	for(size_t i = 0; i < vName.size(); ++i)
 	{
-		if (!*itUsed)
-		{
-			if (rest.size()) ss << ", ";
-			ss << *itName;
-			rest.insert(rest.end(), itInd->begin(), itInd->end());
+		const int fct = m_spApprox->fct_id_by_name(vName[i].c_str());
+
+		// search for single component
+		size_t cmp = 0;
+		for(; cmp < m_CmpInfo.size(); ++cmp){
+
+			// not checking rest
+			if(m_CmpInfo[cmp].isRest) continue;
+
+			// only single valued checked
+			if(m_CmpInfo[cmp].vFct.size() != 1) continue;
+
+			// check if component found
+			if(m_CmpInfo[cmp].vFct[0] == fct)
+				break;
 		}
-		itInd++;
-		itName++;
+
+		// if not found add new one
+		if(cmp == m_CmpInfo.size())
+			m_CmpInfo.push_back(CmpInfo());
+
+		// set values
+		m_CmpInfo[cmp].isRest = false;
+		m_CmpInfo[cmp].vFct.clear();
+		m_CmpInfo[cmp].vFct.push_back(fct);
+		m_CmpInfo[cmp].name = vName[i];
+		m_CmpInfo[cmp].minDefect = minDefect;
+		m_CmpInfo[cmp].relReduction = relReduction;
 	}
-	ss << ")";
 
-	if (rest.size())
-	{
-		finalIndices.push_back(rest);
-		finalNames.push_back(ss.str());
-	}
-
-	m_vvMultiIndex = finalIndices;
-	m_fctName = finalNames;
-
-	m_bfunctionsSet = true;
+	// update rest values
+	update_rest_check();
 }
-
 
 template <class TVector, class TDomain>
-void CompositeConvCheck<TVector, TDomain>::set_minimum_defect(const std::vector<number> minDefect, number minDefectForRest)
+void CompositeConvCheck<TVector, TDomain>::
+set_group_check(const std::vector<std::string>& vFctName,
+                const number minDefect,
+                const number relReduction)
 {
-	// check if number of values is correct
-	if (minDefect.size() != m_fctGrp.size())
-	{
-		UG_THROW(	"The number of supplied values (" << minDefect.size() << ") does not match the number\n"
-					"of given function names (" << m_fctGrp.size() << "); perhaps you have forgot to call\n"
-					"CompositeConvCheck::set_functions prior to this method.");
+	std::vector<int> vFct(vFctName.size());
+	for(size_t i = 0; i < vFctName.size(); ++i){
+		std::string name = TrimString(vFctName[i]);
+		vFct[i] = m_spApprox->fct_id_by_name(name.c_str());
 	}
 
-	// save values
-	m_minDefect = minDefect;
+	// search for group
+	size_t cmp = 0;
+	for(; cmp < m_CmpInfo.size(); ++cmp){
 
-	// set minDefectForRest, if needed
-	if (m_fctGrp.size() < m_dd->num_fct())
-		m_minDefect.push_back(minDefectForRest);
+		// not checking rest
+		if(m_CmpInfo[cmp].isRest) continue;
+
+		// only single valued checked
+		if(m_CmpInfo[cmp].vFct.size() != vFct.size()) continue;
+
+		// check if component found
+		bool bFound = true;
+		for(size_t i = 0; i < vFct.size(); ++i){
+			if(m_CmpInfo[cmp].vFct[i] != vFct[i])
+				bFound = false;
+		}
+
+		if(bFound)	break;
+	}
+
+	// if not found add new one
+	if(cmp == m_CmpInfo.size())
+		m_CmpInfo.push_back(CmpInfo());
+
+	std::string name("");
+	for(size_t fct = 0; fct < vFct.size(); ++fct){
+		if(!name.empty()) name.append(", ");
+		name.append(m_vNativCmpInfo[vFct[fct]].name);
+	}
+
+	// set values
+	m_CmpInfo[cmp].isRest = false;
+	m_CmpInfo[cmp].vFct = vFct;
+	m_CmpInfo[cmp].name = name;
+	m_CmpInfo[cmp].minDefect = minDefect;
+	m_CmpInfo[cmp].relReduction = relReduction;
+
+	// update rest values
+	update_rest_check();
 }
-
 
 template <class TVector, class TDomain>
-void CompositeConvCheck<TVector, TDomain>::set_reduction(const std::vector<number> reduction, number reductionForRest)
+void CompositeConvCheck<TVector, TDomain>::
+set_group_check(const std::string& fctNames,
+                const number minDefect,
+                const number relReduction)
 {
-	// check if number of values is correct
-	if (reduction.size() != m_fctGrp.size())
-	{
-		UG_THROW(	"The number of supplied values (" << reduction.size() << ") does not match the number\n"
-					"of given function names (" << m_fctGrp.size() << "); perhaps you have forgot to call\n"
-					"CompositeConvCheck::set_functions prior to this method.");
-	}
-
-	// save values
-	m_relReduction = reduction;
-
-	// set reductionForRest, if needed
-	if (m_fctGrp.size() < m_dd->num_fct())
-		m_relReduction.push_back(reductionForRest);
+	set_group_check(TokenizeTrimString(fctNames), minDefect, relReduction);
 }
 
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::
+update_rest_check()
+{
+	// remove old rest
+	for(size_t cmp = 0; cmp < m_CmpInfo.size(); ++cmp)
+		if(m_CmpInfo[cmp].isRest)
+			m_CmpInfo.erase(m_CmpInfo.begin()+cmp);
+
+	// check if rest required
+	if(!m_bCheckRest) return;
+
+	// detect used functions
+	std::vector<bool> vUsed(m_vNativCmpInfo.size(), false);
+	for(size_t cmp = 0; cmp < m_CmpInfo.size(); ++cmp)
+	{
+		for(size_t i = 0; i < m_CmpInfo[cmp].vFct.size(); ++i)
+			vUsed[ m_CmpInfo[cmp].vFct[i] ] = true;
+	}
+
+	std::vector<int> vFct;
+	std::string name("");
+
+	for(size_t fct = 0; fct < vUsed.size(); ++fct){
+		if(vUsed[fct]) continue;
+
+		vFct.push_back(fct);
+		if(!name.empty()) name.append(", ");
+		name.append(m_vNativCmpInfo[fct].name);
+	}
+
+	// if no rest --> not added
+	if(vFct.empty()) return;
+
+	// add new rest
+	m_CmpInfo.push_back(CmpInfo());
+	m_CmpInfo.back().isRest = true;
+	m_CmpInfo.back().vFct = vFct;
+	m_CmpInfo.back().name = name;
+	m_CmpInfo.back().minDefect = m_restMinDefect;
+	m_CmpInfo.back().relReduction = m_restRelReduction;
+}
 
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::start_defect(number initialDefect)
@@ -232,31 +348,35 @@ template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 {
 	// assert correct number of dofs
-	size_t ndofs = 0;
-	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)	ndofs += m_vvMultiIndex[i].size();
-	if (vec.size() != ndofs)
+	if (vec.size() != m_numAllDoFs)
 	{
 		UG_THROW("Number of dofs in CompositeConvCheck does not match"
-		"number of dofs given in vector from algorithm (" << ndofs << ", but " << vec.size() << " given).\n"
-		"Make sure that you set the right grid level via set_level().")
+				"number of dofs given in vector from algorithm (" << m_numAllDoFs
+				<< ", but " << vec.size() << " given). \nMake sure that you set "
+						"the right grid level via set_level().")
 	}
 
 	// start time measurement
-	if (m_timeMeas)	m_stopwatch.start();
+	if (m_bTimeMeas)	m_stopwatch.start();
 
-	m_initialDefect.clear();
-	m_initialOverallDefect = 0.0;
-
-	// calculate the defect's 2-norm for each function
-	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)
-	{
-		number compDefect = norm(vec, m_vvMultiIndex[i]);
-		m_initialDefect.push_back(compDefect);
-		m_initialOverallDefect += pow(m_initialDefect.back(),2);
+	// update native defects
+	for (size_t fct = 0; fct < m_vNativCmpInfo.size(); fct++){
+		m_vNativCmpInfo[fct].initDefect = norm(vec, m_vNativCmpInfo[fct].vMultiIndex);
+		m_vNativCmpInfo[fct].currDefect = m_vNativCmpInfo[fct].initDefect;
 	}
-	m_initialOverallDefect = sqrt(m_initialOverallDefect);
-	m_currentDefect = m_initialDefect;
-	m_currentOverallDefect = m_initialOverallDefect;
+
+	// update grouped defects
+	for (size_t cmp = 0; cmp < m_CmpInfo.size(); cmp++){
+		CmpInfo& cmpInfo = m_CmpInfo[cmp];
+
+		cmpInfo.currDefect = 0.0;
+		for(size_t i = 0; i < cmpInfo.vFct.size(); ++i)
+			cmpInfo.currDefect += pow(m_vNativCmpInfo[cmpInfo.vFct[i]].currDefect, 2);
+		cmpInfo.currDefect = sqrt(cmpInfo.currDefect);
+
+		cmpInfo.initDefect = cmpInfo.currDefect;
+	}
+
 	m_currentStep = 0;
 
 	if (m_verbose)
@@ -295,16 +415,24 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 		}
 
 	//	start iteration output
-		print_offset(); UG_LOG("  Iter      Defect         Required          Rate         Reduction        Required      Function\n");
+		print_offset();
+		UG_LOG("  Iter      Defect        Required       Rate        "
+				"Reduction     Required     Component(s)\n");
 
-		print_offset(); UG_LOG(std::setw(4) << step() << ":    "
-								<< std::scientific << defect(0) <<  "    "<< m_minDefect[0]<<"      --------        -------       "
-								<< m_relReduction[0] << "    " << std::setw(0) << fctName(0) << "\n");
-		for (size_t i = 1; i < m_fctName.size(); i++)
+		for (size_t cmp = 0; cmp < m_CmpInfo.size(); cmp++)
 		{
-			print_offset(); UG_LOG("         "
-									<< std::scientific << defect(i) <<  "    "<< m_minDefect[i]<<"      --------        -------       "
-									<< m_relReduction[i] << "    " << fctName(i) << "\n");
+			CmpInfo& cmpInfo = m_CmpInfo[cmp];
+
+			print_offset();
+			if(cmp != 0) {UG_LOG("         " )}
+			else {UG_LOG(std::setw(4) << step() << ":    ");}
+
+			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ")
+			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6) )
+			UG_LOG(std::scientific << "  -----  " << "    ")
+			UG_LOG(std::scientific << "  --------  " << "    ")
+			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.relReduction << "    " << std::setprecision(6))
+			UG_LOG(std::scientific << cmpInfo.name << "\n");
 		}
 	}
 }
@@ -324,45 +452,58 @@ template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 {
 	// assert correct number of dofs
-	size_t ndofs = 0;
-	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)	ndofs += m_vvMultiIndex[i].size();
-	if (vec.size() != ndofs)
+	if (vec.size() != m_numAllDoFs)
 	{
 		UG_THROW("Number of dofs in CompositeConvCheck does not match"
-		"number of dofs given in vector from algorithm (" << ndofs << ", but " << vec.size() << " given).\n"
-		"Make sure that you set the right grid level via set_level().")
+				 "number of dofs given in vector from algorithm (" << m_numAllDoFs <<
+				 ", but " << vec.size() << " given). \nMake sure that you set the "
+				"right grid level via set_level().")
 	}
 
-	m_lastOverallDefect = m_currentOverallDefect;
-	m_lastDefect = m_currentDefect;
-	m_currentOverallDefect = 0.0;
-
-	// calculate the defect's 2-norm for each function
-	for (size_t i = 0; i < m_vvMultiIndex.size(); i++)
-	{
-		number compDefect = norm(vec,m_vvMultiIndex[i]);
-		m_currentDefect[i] = compDefect;
-		m_currentOverallDefect += m_currentDefect[i] * m_currentDefect[i];
+	// update native defects
+	for (size_t fct = 0; fct < m_vNativCmpInfo.size(); fct++){
+		m_vNativCmpInfo[fct].lastDefect = m_vNativCmpInfo[fct].currDefect;
+		m_vNativCmpInfo[fct].currDefect = norm(vec, m_vNativCmpInfo[fct].vMultiIndex);
 	}
-	m_currentOverallDefect = sqrt(m_currentOverallDefect);
+
+	// update grouped defects
+	for (size_t cmp = 0; cmp < m_CmpInfo.size(); cmp++){
+		CmpInfo& cmpInfo = m_CmpInfo[cmp];
+
+		cmpInfo.lastDefect = cmpInfo.currDefect;
+
+		cmpInfo.currDefect = 0.0;
+		for(size_t i = 0; i < cmpInfo.vFct.size(); ++i)
+			cmpInfo.currDefect += pow(m_vNativCmpInfo[cmpInfo.vFct[i]].currDefect, 2);
+		cmpInfo.currDefect = sqrt(cmpInfo.currDefect);
+	}
 
 	m_currentStep++;
 
 	if (m_verbose)
 	{
-		double pDefect = previousDefect(0);
-		if (pDefect==0) pDefect=1.0;
-		print_offset(); UG_LOG(std::setw(4) << step() << ":    "
-										<< std::scientific << defect(0) <<  "    "<< m_minDefect[0]<< "    " << defect(0)/pDefect
-										<< "    " << reduction(0) << "    "
-										<< m_relReduction[0] << "    " << std::setw(0) << fctName(0) << "\n");
-		for (size_t i = 1; i < m_fctName.size(); i++)
+		for (size_t cmp = 0; cmp < m_CmpInfo.size(); cmp++)
 		{
-			double pDefect = previousDefect(i);
-			if (pDefect==0) pDefect=1.0;
-			print_offset(); UG_LOG("         " << std::scientific << defect(i) <<  "    "<< m_minDefect[i]<< "    " << defect(i)/pDefect
-								<< "    " << reduction(i) << "    "
-								<< m_relReduction[i] << "    " << fctName(i) << "\n");
+			CmpInfo& cmpInfo = m_CmpInfo[cmp];
+
+			print_offset();
+			if(cmp != 0) {UG_LOG("         " )}
+			else {UG_LOG(std::setw(4) << step() << ":    ");}
+
+			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ")
+			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6))
+			if(cmpInfo.lastDefect != 0.0){
+				UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.currDefect / cmpInfo.lastDefect << "    "<< std::setprecision(6))
+			} else {
+				UG_LOG(std::scientific << "  -----  " << "    ")
+			}
+			if(cmpInfo.initDefect != 0.0){
+				UG_LOG(std::scientific << cmpInfo.currDefect / cmpInfo.initDefect << "    ")
+			} else {
+				UG_LOG(std::scientific << "  --------  " << "    ")
+			}
+			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.relReduction << "    " << std::setprecision(6))
+			UG_LOG(std::scientific << cmpInfo.name << "\n");
 		}
 	}
 }
@@ -371,13 +512,22 @@ void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 template <class TVector, class TDomain>
 bool CompositeConvCheck<TVector, TDomain>::iteration_ended()
 {
-	bool ended = true;
+	if (step() >= m_maxSteps) return true;
 
-	for (size_t i = 0; i < m_currentDefect.size(); i++)
+	bool ended = true;
+	for (size_t cmp = 0; cmp < m_CmpInfo.size(); cmp++)
 	{
-		if (!is_valid_number(m_currentDefect[i])) return true;
-		if (step() >= m_maxSteps) return true;
-		ended = ended && (defect(i) < m_minDefect[i] || reduction(i) < m_relReduction[i]);
+		CmpInfo& cmpInfo = m_CmpInfo[cmp];
+
+		if (!is_valid_number(cmpInfo.currDefect)) return true;
+
+		bool cmpFinished = false;
+		if(cmpInfo.currDefect < cmpInfo.minDefect) cmpFinished = true;
+		if(cmpInfo.initDefect != 0.0)
+			if((cmpInfo.currDefect/cmpInfo.initDefect) < cmpInfo.relReduction)
+				cmpFinished = true;
+
+		ended = ended && cmpFinished;
 	}
 
 	return ended;
@@ -387,68 +537,57 @@ bool CompositeConvCheck<TVector, TDomain>::iteration_ended()
 template <class TVector, class TDomain>
 bool CompositeConvCheck<TVector, TDomain>::post()
 {
-	if (m_timeMeas) m_stopwatch.stop();
+	if (m_bTimeMeas) m_stopwatch.stop();
 
 	bool success = true;
 
-	bool allValid = true;
-	std::vector<bool> valid (m_fctName.size(), true);
-	std::vector<bool> minDef (m_fctName.size(), true);
-	std::vector<bool> red (m_fctName.size(), true);
-
-	for (size_t i = 0; i < m_fctName.size(); i++)
-	{
-		if (!is_valid_number(m_currentDefect[i]))
-		{
-			valid[i] = false;
-			allValid = false;
-		}
-
-		minDef[i] = defect(i) < m_minDefect[i];
-		red[i] = reduction(i) < m_relReduction[i];
-		if ( !minDef[i]	&& !red[i]) success = false;
+	if (step() >= m_maxSteps){
+		print_offset();
+		UG_LOG("Maximum numbers of "<< m_maxSteps <<
+		       	  " iterations reached without convergence.\n");
+		success = false;
 	}
 
-	success &= allValid && step() <= m_maxSteps;
-
-	if (m_verbose)
+	for (size_t cmp = 0; cmp < m_CmpInfo.size(); cmp++)
 	{
-		if (!success)
-		{
-			if (!allValid)
-				for (size_t i = 0; i < m_fctName.size(); i++)
-					if (!valid[i])
-					{
-						print_offset(); UG_LOG("Current defect for '" << m_fctName[i] << "' is not a valid number.\n");
-					}
+		CmpInfo& cmpInfo = m_CmpInfo[cmp];
 
-			if (step() >= m_maxSteps)
-			{
-				print_offset(); UG_LOG("Maximum numbers of "<< m_maxSteps << " iterations reached without convergence.\n");
-			}
-		}
-		else
-		{
-			for (size_t i = 0; i < m_fctName.size(); i++)
-			{
-				if (minDef[i])
-				{
-					print_offset(); UG_LOG("Absolute defect norm of " << m_minDefect[i] << " for '"
-								<< m_fctName[i] << "' reached after " << step() << " steps.\n");
-				}
-
-				if (red[i])
-				{
-					print_offset(); UG_LOG("Relative reduction of " << m_relReduction[i] << " for '"
-								<< m_fctName[i] << "' reached after " << step() << " steps.\n");
-				}
+		if (!is_valid_number(cmpInfo.currDefect)){
+			success = false;
+			if(m_verbose){
+				print_offset();
+				UG_LOG("Current defect for '" << cmpInfo.name <<
+					   "' is not a valid number.\n");
 			}
 		}
 
+		bool cmpFinished = false;
+		if (cmpInfo.currDefect < cmpInfo.minDefect)
+		{
+			print_offset();
+			UG_LOG("Absolute defect    of " << cmpInfo.minDefect << " for '"
+			       << cmpInfo.name << "' reached after " << step() << " steps.\n");
+			cmpFinished = true;
+		}
+
+		if(cmpInfo.initDefect != 0.0){
+			if (cmpInfo.currDefect/cmpInfo.initDefect < cmpInfo.relReduction)
+			{
+				print_offset();
+				UG_LOG("Relative reduction of " << cmpInfo.relReduction << " for '"
+					   << cmpInfo.name << "' reached after " << step() << " steps.\n");
+				cmpFinished = true;
+			}
+		}
+
+		if(!cmpFinished) success = false;
+	}
+
+	if(m_verbose){
 		print_offset();
 		UG_LOG(repeat(m_symbol, 5));
 		std::stringstream tmsg;
-		if (m_timeMeas)
+		if (m_bTimeMeas)
 		{
 			number time = m_stopwatch.ms()/1000.0;
 			tmsg << " (t: " << std::setprecision(3) << time << "s;  t/it: "
@@ -474,6 +613,13 @@ void CompositeConvCheck<TVector, TDomain>::print_offset()
 	UG_LOG(m_symbol << " ");
 }
 
+template <class TVector, class TDomain>
+void CompositeConvCheck<TVector, TDomain>::print_line(std::string line)
+{
+	print_offset();
+	UG_LOG(line << "\n");
+}
+
 
 template <class TVector, class TDomain>
 bool CompositeConvCheck<TVector, TDomain>::is_valid_number(number value)
@@ -488,3 +634,4 @@ bool CompositeConvCheck<TVector, TDomain>::is_valid_number(number value)
 
 
 #endif /* __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK_IMPL__ */
+
