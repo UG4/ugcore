@@ -277,6 +277,13 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 						if (nOfEdges==2) break;
 					}
 				}
+				// in triangular case switch edges if necessary for correct orientation
+				if (numFaceCo==3){
+					if (faceEdge[i]==nbEdges[1]){
+						nbEdges[1] = nbEdges[0];
+						nbEdges[0] = faceEdge[i];
+					}
+				}
 				// first new scv replaces scv nr face
 				size_t ind = face;
 				// others are inserted at the end
@@ -328,27 +335,6 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 				m_vLocUnkCoords[ind] = m_vSCV[ind].vLocIP;
 				m_vSCV[ind].numCorners = numFaceCo + 1;
 			}
-			// compute inner scv in triangular case
-			if (numFaceCo==3){
-				for (size_t j=0;j<3;j++){
-					m_vSCVF[numSCVF].From = numDofs+j;
-					m_vSCVF[numSCVF].To = numDofs+3;
-					// first new scv replaces scv nr face
-					size_t ind = face;
-					// others are inserted at the end
-					if (j>0) ind = numSCV+j-1;
-					m_vSCVF[numSCVF].vLocPos[0] = m_vSCV[ind].vLocPos[1];
-					m_vSCVF[numSCVF].vLocPos[1] = m_vSCV[ind].vLocPos[2];
-					m_vSCVF[numSCVF].vLocPos[2] = localBary;
-					m_vSCVF[numSCVF].vGloPos[0] = m_vSCV[ind].vGloPos[1];
-					m_vSCVF[numSCVF].vGloPos[1] = m_vSCV[ind].vGloPos[2];
-					m_vSCVF[numSCVF].vGloPos[2] = globalBary;
-					ElementNormal<face_type0,worldDim>(m_vSCVF[numSCVF].Normal,m_vSCVF[numSCVF].vGloPos);
-					AveragePositions(m_vSCVF[numSCVF].globalIP,m_vSCVF[numSCVF].vGloPos,3);
-					AveragePositions(m_vSCVF[numSCVF].localIP,m_vSCVF[numSCVF].vLocPos,3);
-					// find direction of normal
-				}
-			}
 			// insert new scvfs, first the ones associated to edges of face
 			for (size_t i=0;i<3;i++){
 				size_t edge = faceEdge[i];
@@ -396,8 +382,63 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 					m_rTrialSpace.grads(&(m_vSCVF[numSCVF].vLocalGrad[0]), m_vSCVF[numSCVF].local_ip());
 				}
 			}
-			// insert remaining inner scvfs
-
+			// insert remaining inner scvfs into positions of edge associated scvs
+			// compute inner scvfs in triangular case
+			if (numFaceCo==3){
+				for (size_t j=0;j<3;j++){
+					// replaces edge associated scvf
+					size_t ii = faceEdge[j];
+					m_vSCVF[ii].From = numDofs+j;
+					m_vSCVF[ii].To = numDofs+3;
+					// first new scv replaces scv nr face
+					size_t ind = face;
+					// others are inserted at the end
+					if (j>0) ind = numSCV+j-1;
+					m_vSCVF[ii].vLocPos[0] = m_vSCV[ind].vLocPos[1];
+					m_vSCVF[ii].vLocPos[1] = m_vSCV[ind].vLocPos[2];
+					m_vSCVF[ii].vLocPos[2] = localBary;
+					m_vSCVF[ii].vGloPos[0] = m_vSCV[ind].vGloPos[1];
+					m_vSCVF[ii].vGloPos[1] = m_vSCV[ind].vGloPos[2];
+					m_vSCVF[ii].vGloPos[2] = globalBary;
+					ElementNormal<face_type0,worldDim>(m_vSCVF[ii].Normal,m_vSCVF[ii].vGloPos);
+					AveragePositions(m_vSCVF[ii].globalIP,m_vSCVF[ii].vGloPos,3);
+					AveragePositions(m_vSCVF[ii].localIP,m_vSCVF[ii].vLocPos,3);
+				}
+			}
+			// compute inner scvfs in quadrilateral case
+			if (numFaceCo==4){
+				for (size_t j=0;j<4;j++){
+					// replaces edge associated scvf
+					size_t ii = faceEdge[j];
+					m_vSCVF[ii].From = numDofs+j;
+					m_vSCVF[ii].To = numDofs + ((j+1) % 4);
+					for (int d=0;d<worldDim;d++){
+						m_vSCVF[ii].vLocPos[0][d] = 0.5*( m_rRefElem.corner(faceCo[j])[d] + m_rRefElem.corner(faceCo[j % 4])[d] );
+						m_vSCVF[ii].vGloPos[0][d] = 0.5*( vCornerCoords[faceCo[j]][d] + vCornerCoords[faceCo[j % 4]][d] );
+					}
+					m_vSCVF[ii].vLocPos[1] = localMidpoint;
+					m_vSCVF[ii].vGloPos[1] = globalMidpoint;
+					m_vSCVF[ii].vLocPos[2] = localBary;
+					m_vSCVF[ii].vGloPos[2] = globalBary;
+					ElementNormal<face_type0,worldDim>(m_vSCVF[ii].Normal,m_vSCVF[ii].vGloPos);
+					AveragePositions(m_vSCVF[ii].globalIP,m_vSCVF[ii].vGloPos,3);
+					AveragePositions(m_vSCVF[ii].localIP,m_vSCVF[ii].vLocPos,3);
+				}
+			}
+			// insert new constrained dof object
+			m_vCD[numConstrainedDofs].i = face;
+			m_vCD[numConstrainedDofs].numConstrainingDofs = 4;
+			for (size_t i=0;i<4;i++){
+				m_vCD[numConstrainedDofs].cDofInd[i] = numDofs+i;
+				size_t ind=face;
+				if (i>0) ind = numSCV+i-1;
+				m_vCD[numConstrainedDofs].cDofWeights[i] = m_vSCV[i].Vol / faceVol;
+			}
+			numSCV+=1;
+			numSCVF+=1;
+			numDofs+=2;
+			numConstrainedDofs+=1;
+			localUpdateNecessary = true;
 			numSCV+=3;
 			if (numFaceCo==3) numSCVF+=6; else numSCVF+=8;
 			numDofs+=numFaceCo;
@@ -458,7 +499,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
 //  debug output
-//	if (localUpdateNecessary==true) print();
+	if (localUpdateNecessary==true) print();
 
 }
 
@@ -502,6 +543,17 @@ void HCRFVGeometry<TElem, TWorldDim>::print()
 			UG_LOG(", local_grad="<<m_vSCVF[i].local_grad(sh));
 			UG_LOG("\n");
 		}
+	}
+	UG_LOG("\n");
+	UG_LOG("constrained dof indices:\n");
+	for (size_t i=0;i<numConstrainedDofs;i++){
+		UG_LOG("constrained index = " << m_vCD[i].i << "\n");
+		UG_LOG("constraining indices: ");
+		for (size_t j=0;j< m_vCD[i].numConstrainingDofs;j++) UG_LOG(m_vCD[i].cDofInd[j] << " ");
+		UG_LOG("\n");
+		UG_LOG("weights: ");
+		for (size_t j=0;j< m_vCD[i].numConstrainingDofs;j++) UG_LOG(m_vCD[i].cDofWeights[j] << " ");
+		UG_LOG("\n");
 	}
 	UG_LOG("\n");
 }
