@@ -1,13 +1,13 @@
 /*
- * convergence_check.cpp
+ * composite_conv_check.cpp
  *
  *      Author: M. Breit
  */
 
-#ifndef __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK_IMPL__
-#define __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK_IMPL__
+#ifndef __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK_IMPL__
+#define __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK_IMPL__
 
-#include "convergence_check.h"
+#include "composite_conv_check.h"
 #include "common/util/string_util.h"
 
 namespace ug{
@@ -633,5 +633,5 @@ bool CompositeConvCheck<TVector, TDomain>::is_valid_number(number value)
 } // end namespace ug
 
 
-#endif /* __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK_IMPL__ */
+#endif /* __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK_IMPL__ */
 

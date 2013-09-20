@@ -30,7 +30,7 @@
 #include "lib_disc/operator/non_linear_operator/newton_solver/newton.h"
 #include "lib_disc/operator/non_linear_operator/nl_gauss_seidel/nl_gauss_seidel.h"
 #include "lib_disc/operator/non_linear_operator/nl_jacobi/nl_jacobi.h"
-#include "lib_disc/operator/convergence_check.h"
+#include "lib_disc/operator/composite_conv_check.h"
 #include "lib_disc/spatial_disc/local_to_global/local_to_global_mapper.h"
 
 using namespace std;

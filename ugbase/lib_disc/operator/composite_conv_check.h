@@ -1,11 +1,11 @@
 /*
- * convergence_check.h
+ * composite_conv_check.h
  *
  *      Author: M. Breit
  */
 
-#ifndef __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK__
-#define __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK__
+#ifndef __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK__
+#define __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK__
 
 #include <ostream>
 #include <sstream>
@@ -247,6 +247,6 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 
 } // end namespace ug
 
-#include "convergence_check_impl.h"
+#include "composite_conv_check_impl.h"
 
-#endif /* __H__LIB_DISC__OPERATOR__CONVERGENCE_CHECK__ */
+#endif /* __H__LIB_DISC__OPERATOR__COMPOSITE_CONVERGENCE_CHECK__ */
