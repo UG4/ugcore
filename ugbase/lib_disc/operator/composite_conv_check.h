@@ -123,7 +123,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		void set_verbose(bool level) {m_verbose = level;};
 
 	///	enables time measurement
-		void timeMeasurement(bool yesOrNo) {m_bTimeMeas = yesOrNo;};
+		void set_time_measurement(bool yesOrNo) {m_bTimeMeas = yesOrNo;};
 
 	///	clones this instance
 		virtual SmartPtr<IConvergenceCheck<TVector> > clone();

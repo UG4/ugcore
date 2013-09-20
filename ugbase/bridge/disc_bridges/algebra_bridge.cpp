@@ -368,7 +368,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.template add_constructor<void (*)(SmartPtr<ApproximationSpace<TDomain> >, int, number, number)>("ApproximationSpace#maxSteps#minDefect#relReduction")
 			.add_method("set_level", (void (T::*)(int)) &T::set_level,
 			            "", "grid_level", "sets grid level where defect vectors come from")
-			.add_method("timeMeasurement", &T::timeMeasurement,
+			.add_method("set_time_measurement", &T::set_time_measurement,
 			            "", "", "whether to perform a time measurement or not")
 			.add_method("set_maximum_steps", &T::set_maximum_steps, 
 			            "", "maximum steps|default|min=0;value=100")
