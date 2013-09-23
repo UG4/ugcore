@@ -117,12 +117,6 @@ class ntree
 	 * \todo	Allow optional on-the-fly insertion of elements.*/
 		void add_element(const elem_t& elem);
 
-	///	estimates the balance quality of the tree in the range [0, 1].
-	/**	The returned value represents the ratio to the smallest leaf
-	 * (lowest level and smallest number of entries) to the maximum number of
-	 * entries, that a node on the same level and its children have.*/
-		//real_t estimate_balance_quality();
-
 	///	rebalances the whole tree
 	/**	The method returns false if some error occurred during rebalancing.*/
 		void rebalance();

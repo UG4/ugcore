@@ -2,6 +2,9 @@
 // s.b.reiter@gmail.com
 // Sep 3, 2013
 
+
+///	JUST AN EARLY MOCKUP - no implementation is yet provided...
+
 #ifndef __H__UG__kd_tree__
 #define __H__UG__kd_tree__
 
