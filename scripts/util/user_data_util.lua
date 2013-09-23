@@ -78,7 +78,10 @@ end
 --! functions user when '+/-' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_sum(lScale, l, rScale, r)
 	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
-			
+	
+	if l == nil or r == nil then
+		error("Error in '+' or '-': Added a nil value (possibly uninitialized value?)")
+	end
 		
 	---------------------------------------------------------
 	-- Check match of types for operands
@@ -164,6 +167,9 @@ end
 function __ug__UserNumber_mul(l, r)
 	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
 		
+	if l == nil or r == nil then
+		error("Error in '*' : nil value (possibly uninitialized value?)")
+	end
 	---------------------------------------------------------
 	-- Check match of types for operands
 	---------------------------------------------------------
@@ -172,18 +178,18 @@ function __ug__UserNumber_mul(l, r)
 	-- check for same data type
 	if rType ~= "" and lType ~= "" then
 		if rData ~= "Number" and lData ~= "Number" then
-			error("Error in '*' or '/': One Data Type of UserData must be number")
+			error("Error in '*': One Data Type of UserData must be number")
 		end
 	-- one operand is scalar value from lua
 	else
 		if rType == "" then
 			if not tonumber(r) then
-				error("Error in '*' or '/': Operand must be scalar number or UserData.")
+				error("Error in '*': Operand must be scalar number or UserData.")
 			end
 		end
 		if lType == "" then
 			if not tonumber(l) then
-				error("Error in '*' or '/': Operand must be scalar number or UserData.")
+				error("Error in '*': Operand must be scalar number or UserData.")
 			end
 		end		
 	end	
@@ -203,7 +209,10 @@ end
 --! functions user when '/' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_div(l, r)
 	local rType, lType, rDim, lDim, Dim, rData, lData, Data = __ug__CheckUserDataArgType(r, l)
-			
+		
+	if l == nil or r == nil then
+		error("Error in '/': nil value (possibly uninitialized value?)")
+	end	
 		
 	---------------------------------------------------------
 	-- Check match of types for operands
@@ -278,6 +287,10 @@ end
 
 --! functions user when '^' is called on an UserData (or a derived implementation)
 function __ug__UserNumber_pow(l, r)
+	if l == nil or r == nil then
+		error("Error in '^': nil value (possibly uninitialized value?)")
+	end	
+	
 	-- check that exponent is integer
 	if not tonumber(r) or not (r%1==0) then
 		error("Error in '^': Currently exponent must be plain lua integer")
