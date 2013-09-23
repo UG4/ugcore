@@ -6,6 +6,7 @@
 #define __H__UG__ntree_traverser__
 
 #include <algorithm>
+#include <utility>
 #include "ntree_traversal.h"
 
 namespace ug{
@@ -109,7 +110,7 @@ std::pair<size_t, size_t> GetMinMaxNumElements(const tree_t& tree, size_t lvl)
 {
 	Traverser_MinMaxNumElements<tree_t> t(lvl);
 	TraverseDepthFirst(tree, t);
-	return make_pair(t.min_num_elements(), t.max_num_elements());
+	return std::make_pair(t.min_num_elements(), t.max_num_elements());
 }
 
 }// end of namespace
