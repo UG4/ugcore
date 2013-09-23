@@ -328,7 +328,7 @@ adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_jacobian<VertexBase, TUserData>(vUserData, si, J, u, dd, time);
+			adjust_jacobian<Vertex, TUserData>(vUserData, si, J, u, dd, time);
 		if(dd->max_dofs(EDGE))
 			adjust_jacobian<EdgeBase, TUserData>(vUserData, si, J, u, dd, time);
 		if(dd->max_dofs(FACE))
@@ -453,7 +453,7 @@ adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_defect<VertexBase, TUserData>(vUserData, si, d, u, dd, time);
+			adjust_defect<Vertex, TUserData>(vUserData, si, d, u, dd, time);
 		if(dd->max_dofs(EDGE))
 			adjust_defect<EdgeBase, TUserData>(vUserData, si, d, u, dd, time);
 		if(dd->max_dofs(FACE))
@@ -576,7 +576,7 @@ adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_solution<VertexBase, TUserData>(vUserData, si, u, dd, time);
+			adjust_solution<Vertex, TUserData>(vUserData, si, u, dd, time);
 		if(dd->max_dofs(EDGE))
 			adjust_solution<EdgeBase, TUserData>(vUserData, si, u, dd, time);
 		if(dd->max_dofs(FACE))
@@ -696,7 +696,7 @@ adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_linear<VertexBase, TUserData>(vUserData, si, A, b, dd, time);
+			adjust_linear<Vertex, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd->max_dofs(EDGE))
 			adjust_linear<EdgeBase, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd->max_dofs(FACE))
@@ -825,7 +825,7 @@ adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(dd->max_dofs(VERTEX))
-			adjust_rhs<VertexBase, TUserData>(vUserData, si, b, u, dd, time);
+			adjust_rhs<Vertex, TUserData>(vUserData, si, b, u, dd, time);
 		if(dd->max_dofs(EDGE))
 			adjust_rhs<EdgeBase, TUserData>(vUserData, si, b, u, dd, time);
 		if(dd->max_dofs(FACE))
