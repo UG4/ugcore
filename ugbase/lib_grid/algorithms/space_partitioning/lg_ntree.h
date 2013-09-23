@@ -98,6 +98,18 @@ struct lg_ntree_traits_base
 					 	 	   const common_data_t& commonData)
 	{
 		return ContainsPoint(e, point, commonData.position_accessor());
+
+	//	todo: think about some fast-checks like the following (but faster!!!)
+	//	first check whether the bounding box contains the point, then perform
+	//	the exact check (slow e.g. for tetrahedrons...)
+//		typename common_data_t::position_accessor_t aaPos = commonData.position_accessor();
+//		box_t box(aaPos[e->vertex(0)], aaPos[e->vertex(1)]);
+//		for(size_t i = 2; i < e->num_vertices(); ++i)
+//			box = box_t(box, aaPos[e->vertex(i)]);
+//
+//		if(box.contains_point(point))
+//			return ContainsPoint(e, point, aaPos);
+//		return false;
 	}
 };
 
@@ -173,11 +185,11 @@ struct ntree_traits<3, 3, elem_t, NTreeGridData<3> > :
 
 
 
-template <int tree_dim, int world_dim, class elem_t>
-class lg_ntree : public ntree<tree_dim, world_dim, elem_t, NTreeGridData<world_dim> >
+template <int tree_dim, int world_dim, class grid_elem_t>
+class lg_ntree : public ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<world_dim> >
 {
 	public:
-		typedef ntree<tree_dim, world_dim, elem_t, NTreeGridData<world_dim> >	base_t;
+		typedef ntree<tree_dim, world_dim, grid_elem_t*, NTreeGridData<world_dim> >	base_t;
 		typedef typename NTreeGridData<world_dim>::position_attachment_t	position_attachment_t;
 
 		lg_ntree(Grid& grid, position_attachment_t aPos) :

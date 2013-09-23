@@ -308,7 +308,7 @@ bool TestNTree(const char* filename)
 	PROFILE_END();
 
 
-	typedef lg_ntree<3, 3, Volume*>	tree_t;
+	typedef lg_ntree<3, 3, Volume>	tree_t;
 	tree_t	tree(g, aPos);
 
 	PROFILE_BEGIN(ntree_creating_tree);
@@ -324,7 +324,7 @@ bool TestNTree(const char* filename)
 	UG_LOG("Max num elements: " << minMax.second << endl);
 
 
-	const size_t numPicks = 1000;
+	const size_t numPicks = 1000000;
 
 	UG_LOG("Picking elements for " << numPicks << " random points:\n");
 	Volume* e = NULL;
@@ -340,7 +340,7 @@ bool TestNTree(const char* filename)
 	}
 	PROFILE_END();
 
-	UG_LOG("  sucesses: " << numSuccesses << "\n");
+	UG_LOG("  successes: " << numSuccesses << "\n");
 	UG_LOG("  failures: " << numPicks - numSuccesses << "\n");
 	return true;
 }
