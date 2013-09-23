@@ -168,7 +168,7 @@ template <int tree_dim, int world_dim, class elem_t>
 class lg_ntree : public ntree<tree_dim, world_dim, elem_t, NTreeGridData<world_dim> >
 {
 	public:
-		typedef ntree<tree_dim, world_dim, elem_t, NTreeGridData<world_dim> >	tree_t;
+		typedef ntree<tree_dim, world_dim, elem_t, NTreeGridData<world_dim> >	base_t;
 		typedef typename NTreeGridData<world_dim>::position_attachment_t	position_attachment_t;
 
 		lg_ntree(Grid& grid, position_attachment_t aPos) :
@@ -178,20 +178,19 @@ class lg_ntree : public ntree<tree_dim, world_dim, elem_t, NTreeGridData<world_d
 		template <class TIterator>
 		void create_tree(TIterator elemsBegin, TIterator elemsEnd)
 		{
-			m_tree = tree_t();
-			m_tree.set_common_data(m_gridData);
+			base_t::set_common_data(m_gridData);
+
+			base_t::clear();
 
 			while(elemsBegin != elemsEnd){
-				m_tree.add_element(*elemsBegin);
+				base_t::add_element(*elemsBegin);
 				++elemsBegin;
 			}
 
-			m_tree.rebalance();
+			base_t::rebalance();
 		}
 
 	private:
-
-		tree_t						m_tree;
 		NTreeGridData<world_dim>	m_gridData;
 };
 

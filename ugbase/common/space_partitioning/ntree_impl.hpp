@@ -20,6 +20,16 @@ ntree()
 
 template <int tree_dim, int world_dim, class elem_t, class common_data_t>
 void ntree<tree_dim, world_dim, elem_t, common_data_t>::
+clear()
+{
+	m_nodes.clear();
+	m_nodes.resize(1);
+	m_nodes[0].level = 0;
+}
+
+
+template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+void ntree<tree_dim, world_dim, elem_t, common_data_t>::
 set_desc(const NTreeDesc& desc)
 {
 	m_desc = desc;
@@ -108,8 +118,7 @@ rebalance()
 {
 //	push all elements into the root node, calculate its bounding box
 //	and call split_leaf_node if the element threshold is surpassed.
-	m_nodes.clear();
-	m_nodes.resize(1);
+	clear();
 	Node& root = m_nodes.back();
 	if(!m_entries.empty()){
 		root.firstEntryInd = 0;
@@ -127,7 +136,6 @@ rebalance()
 		if(root.numEntries >= m_desc.splitThreshold)
 			split_leaf_node(0);
 	}
-	UG_LOG("rebalancing done...\n");
 }
 
 
@@ -180,6 +188,7 @@ split_leaf_node(size_t nodeIndex)
 	for(size_t i_child = 0; i_child < s_numChildren; ++i_child){
 		node.childNodeInd[i_child] = firstChild + i_child;
 		Node& childNode = m_nodes[firstChild + i_child];
+		childNode.level = node.level + 1;
 		childNode.tightBox = childBoxes[i_child];
 		update_loose_bounding_box(childNode);
 	}
@@ -283,6 +292,14 @@ calculate_center_of_mass(Node& node)
 
 template <int tree_dim, int world_dim, class elem_t, class common_data_t>
 size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
+num_nodes() const
+{
+	return m_nodes.size();
+}
+
+
+template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
 num_child_nodes(size_t nodeId) const
 {
 	assert(nodeId < m_nodes.size());
@@ -331,6 +348,14 @@ num_elements(size_t nodeId) const
 }
 
 template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+size_t ntree<tree_dim, world_dim, elem_t, common_data_t>::
+level(size_t nodeId) const
+{
+	assert(nodeId < m_nodes.size());
+	return m_nodes[nodeId].level;
+}
+
+template <int tree_dim, int world_dim, class elem_t, class common_data_t>
 const typename ntree<tree_dim, world_dim, elem_t, common_data_t>::box_t&
 ntree<tree_dim, world_dim, elem_t, common_data_t>::
 bounding_box(size_t nodeId) const
@@ -338,61 +363,6 @@ bounding_box(size_t nodeId) const
 	assert(nodeId < m_nodes.size());
 	return m_nodes[nodeId].looseBox;
 }
-
-
-//template <int tree_dim, int world_dim, class elem_t, class common_data_t>
-//template <class traverser_t>
-//void ntree<tree_dim, world_dim, elem_t, common_data_t>::
-//traverse(traverser_t& t) const
-//{
-//	t.traverse_tree(*this, size_t(0));
-//}
-//
-//template <int tree_dim, int world_dim, class elem_t, class common_data_t>
-//template <class traverser_t>
-//void ntree<tree_dim, world_dim, elem_t, common_data_t>::
-//traverse_node(traverser_t& t, size_t nodeId) const
-//{
-//	if(nodeId >= m_nodes.size())
-//		return;
-//
-//	const Node& node = m_nodes[nodeId];
-//	t.traverse_node(nodeId, node.looseBox, node.numEntries,
-//					node.childNodeInd[0] != s_invalidIndex);
-//}
-//
-//template <int tree_dim, int world_dim, class elem_t, class common_data_t>
-//template <class traverser_t>
-//void ntree<tree_dim, world_dim, elem_t, common_data_t>::
-//traverse_children(traverser_t& t, size_t nodeId) const
-//{
-//	if(nodeId >= m_nodes.size())
-//		return;
-//
-//	if(m_nodes[nodeId].childNodeInd[0] != s_invalidIndex){
-//		for(size_t i = 0; i < s_invalidIndex; ++i){
-//			size_t ci = m_nodes[nodeId].childNodeInd[i];
-//			const Node& cNode = m_nodes[ci];
-//			t.traverse_node(ci, cNode.looseBox, cNode.numEntries,
-//							cNode.childNodeInd[0] != s_invalidIndex);
-//		}
-//	}
-//}
-//
-//template <int tree_dim, int world_dim, class elem_t, class common_data_t>
-//template <class traverser_t>
-//void ntree<tree_dim, world_dim, elem_t, common_data_t>::
-//traverse_entries(traverser_t& t, size_t nodeId) const
-//{
-//	if(nodeId >= m_nodes.size())
-//		return;
-//
-//	for(size_t entryInd = m_nodes[nodeId].firstEntryInd; entryInd != s_invalidIndex;){
-//		const Entry& entry = m_entries[entryInd];
-//		entryInd = entry.nextEntryInd;
-//		t.traverse_element(entry.elem, m_commonData);
-//	}
-//}
 
 }// end of namespace
 

@@ -5,129 +5,112 @@
 #ifndef __H__UG__ntree_traverser__
 #define __H__UG__ntree_traverser__
 
+#include <algorithm>
+#include "ntree_traversal.h"
+
 namespace ug{
-//
-//template <class ntree_t>
-//class NTreeTraverser_EstimateQuality
-//{
-//	public:
-//		typedef typename ntree_t::traits		traits;
-//		typedef typename traits::real_t			real_t;
-//		typedef typename traits::vector_t		vector_t;
-//		typedef typename traits::box_t			box_t;
-//		typedef typename traits::elem_t			elem_t;
-//		typedef typename traits::common_data_t	common_data_t;
-//
-//		NTreeTraverser_EstimateQuality() :
-//			m_tree(NULL),
-//			m_minLeafNodeLvl(-1),
-//			m_curLvl(0),
-//			m_minMaxSet(false),
-//			m_minNumElems(0),
-//			m_maxNumElems(0),
-//			m_elemCounter(0),
-//			m_searchingMinLeafNode(true)
-//		{}
-//
-//		void traverse_tree(const ntree_t& tree, size_t rootNodeId)
-//		{
-//			m_searchingMinLeafNode = true;
-//			m_minLeafNodeLvl = -1;
-//			m_elemCounter = m_minNumElems = m_maxNumElems = 0;
-//			m_curLvl = 0;
-//			m_minMaxSet = false;
-//			m_tree = &tree;
-//
-//		//	find smallest leaf node
-//			m_tree->traverse_node(*this, rootNodeId);
-//
-//		//	if no smallest leaf-node was found, we'll exit right away...
-//			assert(m_minLeafNodeLvl >= 0);
-//			if(m_minLeafNodeLvl == -1)
-//				return;
-//
-//		//	now find min- and max-num-elems on m_minLeafNodeLvl (including descendants)
-//			m_searchingMinLeafNode = false;
-//			m_tree->traverse_node(*this, rootNodeId);
-//		}
-//
-//		void traverse_node(size_t nodeId, const box_t& box,
-//						   size_t numElements, bool hasChildren)
-//		{
-//			if(m_searchingMinLeafNode){
-//			//todo:	a breadth first search would be better here...
-//				if(!hasChildren){
-//					if(m_minLeafNodeLvl == -1)
-//						m_minLeafNodeLvl = m_curLvl;
-//					else
-//						m_minLeafNodeLvl = std::min(m_minLeafNodeLvl, m_curLvl);
-//				}
-//				else{
-//					++m_curLvl;
-//					if((m_minLeafNodeLvl == -1) || (m_curLvl < m_minLeafNodeLvl))
-//						m_tree->traverse_children(*this, nodeId);
-//					--m_curLvl;
-//				}
-//			}
-//			else{
-//				if(m_curLvl < m_minLeafNodeLvl){
-//					assert(hasChildren);
-//					++m_curLvl;
-//					m_tree->traverse_children(*this, nodeId);
-//					--m_curLvl;
-//				}
-//				else if(m_curLvl == m_minLeafNodeLvl){
-//				//	count children in this node and in all its descendants
-//					m_elemCounter = numElements;
-//					if(hasChildren){
-//						++m_curLvl;
-//						m_tree->traverse_children(*this, nodeId);
-//						--m_curLvl;
-//					}
-//					if(m_minMaxSet){
-//						m_minNumElems = std::min(m_minNumElems, m_elemCounter);
-//						m_maxNumElems = std::max(m_maxNumElems, m_elemCounter);
-//					}
-//					else{
-//						m_minNumElems = m_maxNumElems = m_elemCounter;
-//						m_minMaxSet = true;
-//					}
-//				}
-//				else{
-//					m_elemCounter += numElements;
-//					if(hasChildren){
-//						++m_curLvl;
-//						m_tree->traverse_children(*this, nodeId);
-//						--m_curLvl;
-//					}
-//				}
-//			}
-//		}
-//
-//	///	returns false since no more elements have to be examined
-//	/**	This method shouldn't ever be called in this traverser anyways!*/
-//		bool traverse_element(const elem_t& elem, const common_data_t& commonData)
-//		{return false;}
-//
-//
-//		size_t min_leaf_level() const	{return m_minLeafNodeLvl;}
-//		real_t quality() const
-//		{
-//			if(m_minNumElems == 0)
-//				return 0;
-//			return (real_t)m_minNumElems / (real_t)m_maxNumElems;
-//		}
-//
-//	private:
-//		const ntree_t*	m_tree;
-//		int 		m_minLeafNodeLvl;
-//		int			m_curLvl;
-//		bool		m_minMaxSet;
-//		size_t		m_minNumElems;
-//		size_t		m_maxNumElems;
-//		size_t		m_elemCounter;
-//		bool		m_searchingMinLeafNode;
-//};
+
+template <class tree_t>
+class Traverser_FindLowestLeafNodeLevel
+{
+	public:
+		Traverser_FindLowestLeafNodeLevel() :
+			m_lowestLeafNodeLvl(0)	{}
+
+		void begin_traversal(const tree_t& tree)
+		{
+			m_lowestLeafNodeLvl = 0;
+		}
+
+		bool visit_up(const tree_t& tree, size_t node)
+		{
+			if(tree.num_child_nodes(node) == 0){
+				m_lowestLeafNodeLvl = tree.level(node);
+				return ABORT_TRAVERSAL;
+			}
+			return TRAVERSE_CHILDREN;
+		}
+
+		void visit_down(const tree_t&, size_t)	{}
+
+		void end_traversal(const tree_t&)	{}
+
+		size_t result() const {return m_lowestLeafNodeLvl;}
+
+	private:
+		size_t m_lowestLeafNodeLvl;
+};
+
+template <class tree_t>
+size_t FindLowestLeafNodeLevel(const tree_t& tree)
+{
+	Traverser_FindLowestLeafNodeLevel<tree_t> t;
+	TraverseBreadthFirst(tree, t);
+	return t.result();
+}
+
+
+///	returns the minimum and maximum number of elements in all subtrees of nodes of the given level
+template <class tree_t>
+class Traverser_MinMaxNumElements
+{
+	public:
+		Traverser_MinMaxNumElements(size_t lvl) :
+			m_lvl(lvl), m_minNumElements(0), m_maxNumElements(0),
+			m_elemCount(0), m_firstEval(true)	{}
+
+		void begin_traversal(const tree_t& tree)
+		{
+			m_minNumElements = m_maxNumElements = 0;
+			m_elemCount = 0;
+			m_firstEval = true;
+		}
+
+		bool visit_up(const tree_t& tree, size_t node)
+		{
+			if(tree.level(node) == m_lvl)
+				m_elemCount = 0;
+
+			if(tree.level(node) >= m_lvl)
+				m_elemCount += tree.num_elements(node);
+
+			return TRAVERSE_CHILDREN;
+		}
+
+		void visit_down(const tree_t& tree, size_t node)
+		{
+			if(tree.level(node) == m_lvl){
+				if(m_firstEval){
+					m_minNumElements = m_maxNumElements= m_elemCount;
+					m_firstEval = false;
+				}
+				else{
+					m_minNumElements = std::min(m_minNumElements, m_elemCount);
+					m_maxNumElements = std::max(m_maxNumElements, m_elemCount);
+				}
+			}
+		}
+
+		void end_traversal(const tree_t&)	{}
+
+		size_t min_num_elements() const {return m_minNumElements;}
+		size_t max_num_elements() const {return m_maxNumElements;}
+
+	private:
+		size_t m_lvl;
+		size_t m_minNumElements;
+		size_t m_maxNumElements;
+		size_t m_elemCount;
+		bool m_firstEval;
+};
+
+template <class tree_t>
+std::pair<size_t, size_t> GetMinMaxNumElements(const tree_t& tree, size_t lvl)
+{
+	Traverser_MinMaxNumElements<tree_t> t(lvl);
+	TraverseDepthFirst(tree, t);
+	return make_pair(t.min_num_elements(), t.max_num_elements());
+}
 
 }// end of namespace
 

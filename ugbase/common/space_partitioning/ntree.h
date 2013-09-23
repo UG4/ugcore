@@ -88,6 +88,8 @@ class ntree
 
 		ntree();
 
+		void clear();
+
 	///	sets the balancing-parameters of the tree. Triggers a rebalance
 	/** \todo	Only trigger a rebalance if new values require it.*/
 		void set_desc(const NTreeDesc& desc);
@@ -124,6 +126,9 @@ class ntree
 	/**	The method returns false if some error occurred during rebalancing.*/
 		void rebalance();
 
+	///	returns the total number of nodes in the tree
+		size_t num_nodes() const;
+
 	///	returns the number of children of a node
 		size_t num_child_nodes(size_t nodeId) const;
 
@@ -141,24 +146,11 @@ class ntree
 	///	returns the number of elements that the given node contains
 		size_t num_elements(size_t nodeId) const;
 
+	///	returns the number tree-level in which the node is located
+		size_t level(size_t nodeId) const;
+
 	///	returns the smallest box which contains all elements of the given node
 		const box_t& bounding_box(size_t nodeId) const;
-
-//	///	traverses the tree with the given traverser
-//		template <class traverser_t>
-//		void traverse(traverser_t& t) const;
-//
-//	///	traverses the node with the given id
-//		template <class traverser_t>
-//		void traverse_node(traverser_t& t, size_t nodeId) const;
-//
-//	///	traverses the children of a given node
-//		template <class traverser_t>
-//		void traverse_children(traverser_t& t, size_t nodeId) const;
-//
-//	///	traverses the entries of a given node
-//		template <class traverser_t>
-//		void traverse_entries(traverser_t& t, size_t nodeId) const;
 
 	private:
 	///	static template implementation to raise n to the power exponent
@@ -194,10 +186,12 @@ class ntree
 			size_t		firstEntryInd; ///< index into m_entries. s_invalidIndex: no entry
 			size_t		lastEntryInd; ///< index into m_entries. s_invalidIndex: no entry
 			size_t		numEntries; ///< number of entries in the node
+			size_t		level;
 			box_t		tightBox; ///< tight bounding box - disjunct partition of the root box
 			box_t		looseBox; ///< loose bounding box - contains all bounding boxes of its entries
 
-			Node() : firstEntryInd(s_invalidIndex), lastEntryInd(s_invalidIndex), numEntries(0)
+			Node() : firstEntryInd(s_invalidIndex), lastEntryInd(s_invalidIndex),
+					 numEntries(0), level(s_invalidIndex)
 			{
 				tightBox = looseBox;
 				for(size_t i = 0; i < s_numChildren; ++i)
@@ -205,7 +199,8 @@ class ntree
 			}
 
 			Node(const Node& n) : firstEntryInd(n.firstEntryInd), lastEntryInd(n.lastEntryInd),
-								  numEntries(n.numEntries), tightBox(n.tightBox), looseBox(n.looseBox)
+								  numEntries(n.numEntries), level(n.level),
+								  tightBox(n.tightBox), looseBox(n.looseBox)
 			{
 				for(size_t i = 0; i < s_numChildren; ++i)
 					childNodeInd[i] = n.childNodeInd[i];
@@ -237,7 +232,6 @@ class ntree
 		std::vector<Node>		m_nodes; ///< m_nodes[0] is always considered to be the root node.
 		std::vector<Entry>		m_entries;
 		size_t					m_numDelayedElements;
-
 };
 
 
