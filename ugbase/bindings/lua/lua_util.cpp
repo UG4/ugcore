@@ -222,8 +222,8 @@ void ReleaseDefaultLuaState()
 /// error function to be used for lua_pcall
 int luaCallStackError( lua_State *L )
 {
-	//UG_LOG("Error: " << lua_tostring(L, -1) << ". ");
-    //UG_LOG("call stack:\n"); ug::bridge::LuaStackTrace(L);
+	UG_LOG("LUA-ERROR! Call stack:\n");
+    ug::bridge::LuaStackTrace();
     return 1;
 }
 
