@@ -414,10 +414,9 @@ void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class vector_t>
+template <class vector_t, class TAAPos>
 UG_API bool
-ContainsPoint(const VertexBase* v, const vector_t& p,
-			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos)
+ContainsPoint(const VertexBase* v, const vector_t& p, TAAPos aaPos)
 {
 	const vector_t& pv = aaPos[v];
 	for(size_t i = 0; i < vector_t::Size; ++i){

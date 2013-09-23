@@ -1,6 +1,6 @@
 // created by Sebastian Reiter
 // s.b.reiter@gmail.com
-// Sep 5, 2013 (d,m,y)
+// Sep 5, 2013
 
 #ifndef __H__UG__ntree_iterator__
 #define __H__UG__ntree_iterator__
@@ -22,7 +22,7 @@ class const_ntree_element_iterator
 		typedef value_type&						reference;
 
 		const_ntree_element_iterator() : m_entries(NULL), m_entryInd(s_invalidIndex)	{}
-		const_ntree_element_iterator(entry_t* entries, size_t entryInd) :
+		const_ntree_element_iterator(const entry_t* entries, size_t entryInd) :
 			m_entries(entries), m_entryInd(entryInd)	{}
 
 		this_type operator ++()							{increment(); return *this;}
@@ -53,8 +53,8 @@ class const_ntree_element_iterator
 	///	marks an index as invalid
 		static const size_t s_invalidIndex = -1;
 
-		entry_t*	m_entries;
-		entry_t		m_entryInd;
+		const entry_t*	m_entries;
+		size_t			m_entryInd;
 };
 
 }// end of namespace

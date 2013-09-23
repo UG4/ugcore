@@ -12,7 +12,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPos>
 bool
-ContainsPoint(Volume* vol, const vector3& p, TAAPos& aaPos)
+ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos)
 {
 //	iterate over face descriptors of the sides and check whether the point
 //	lies inside or outside

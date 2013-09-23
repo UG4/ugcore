@@ -42,9 +42,8 @@ struct ntree_traits
 
 ////	todo: the following methods should go into special traverser traits.
 ///** required for ContainsPointTraverser.*/
-//	bool entry_contains_point(const elem_t& e, const vector_t& point,
-//								const elem_data_t& elemData,
-//								const common_data_t& commonData);
+	static bool contains_point(const elem_t& e, const vector_t& point,
+							   const common_data_t& commonData);
 //
 ///**	required for ClosestEntriesTraverser.*/
 //	real_t distance_point_to_entry(const elem_t& e, const vector_t& point,
@@ -73,13 +72,15 @@ struct NTreeDesc{
 ///	The n-tree class can be used to construct e.g. loose quadtrees (tree_dim = 2)
 ///	or octrees (tree_dim = 3)
 /**	world_dim has to be at least as large as tree_dim*/
-template <int tree_dim, int world_dim, class elem_t, class common_data_t>
+template <int tree_dim, int world_dim, class TElem, class TCommonData>
 class ntree
 {
 	private:
 		struct Entry;
 
 	public:
+		typedef TElem										elem_t;
+		typedef TCommonData									common_data_t;
 		typedef ntree_traits<tree_dim, world_dim, elem_t, common_data_t> traits;
 		typedef typename traits::real_t						real_t;
 		typedef typename traits::vector_t					vector_t;

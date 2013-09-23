@@ -351,10 +351,9 @@ void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
  * is of no particular use, except for completeness regarding the use
  * of ConatinsPoint in template-programming.
  */
-template <class vector_t>
+template <class vector_t, class TAAPos>
 UG_API bool
-ContainsPoint(const VertexBase* v, const vector_t& p,
-			  Grid::VertexAttachmentAccessor<Attachment<vector_t> >& aaPos);
+ContainsPoint(const VertexBase* v, const vector_t& p, TAAPos aaPos);
 
 /// @} // end of doxygen defgroup command
 

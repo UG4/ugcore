@@ -85,7 +85,7 @@ PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
  */
 template <class TAAPos>
 UG_API bool
-ContainsPoint(Volume* vol, const vector3& p, TAAPos& aaPos);
+ContainsPoint(Volume* vol, const vector3& p, TAAPos aaPos);
 
 
 ////////////////////////////////////////////////////////////////////////

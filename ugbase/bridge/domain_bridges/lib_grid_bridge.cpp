@@ -298,19 +298,22 @@ bool TestNTree(const char* filename)
 	PROFILE_FUNC_GROUP("grid");
 	Grid g;
 	SubsetHandler sh(g);
-	APosition2	aPos2;
+	APosition aPos = aPosition;
 
-	PROFILE_BEGIN(PROFTEST_loading);
-	if(!LoadGridFromFile(g, sh, filename, aPos2)){
+	PROFILE_BEGIN(ntree_loading);
+	if(!LoadGridFromFile(g, sh, filename, aPos)){
 		UG_LOG("  could not load " << filename << endl);
 		return false;
 	}
 	PROFILE_END();
 
 
-	typedef lg_ntree<2, 2, Face*>	tree_t;
-	tree_t	tree(g, aPos2);
-	tree.create_tree(g.faces_begin(), g.faces_end());
+	typedef lg_ntree<3, 3, Volume*>	tree_t;
+	tree_t	tree(g, aPos);
+
+	PROFILE_BEGIN(ntree_creating_tree);
+	tree.create_tree(g.volumes_begin(), g.volumes_end());
+	PROFILE_END();
 
 	size_t lvl = FindLowestLeafNodeLevel(tree);
 
@@ -320,76 +323,25 @@ bool TestNTree(const char* filename)
 	UG_LOG("Min num elements: " << minMax.first << endl);
 	UG_LOG("Max num elements: " << minMax.second << endl);
 
-//
-////	find the leaf node in the lowest level. Traverse the tree breadth-first for this.
-//	size_t evalLvl = 0;
-//	{
-//		queue<size_t>	nodes;
-//		nodes.push(0);
-//		while(!nodes.empty()){
-//			size_t node = nodes.front();
-//			nodes.pop();
-//
-//			size_t numChildren = tree.num_child_nodes(node);
-//			if(numChildren == 0){
-//			//	we found the leaf node
-//				evalLvl = tree.level(node);
-//				UG_LOG("leaf node found on level " << evalLvl << endl);
-//				break;
-//			}
-//			else{
-//				const size_t* child = tree.child_node_ids(node);
-//				for(size_t i = 0; i < numChildren; ++i)
-//					nodes.push(child[i]);
-//			}
-//		}
-//	}
-//
-////	find min- and max-number of elements in curLvl
-//	size_t minNumElems = 0;
-//	size_t maxNumElems = 0;
-//	{
-//	//	now iterate depth-first to accumulate child-counts
-//		stack<size_t> nodes;
-//		nodes.push(0);
-//		bool firstEval = true;
-//		size_t curNumElems = 0;
-//		while(!nodes.empty()){
-//			size_t node = nodes.top();
-//			nodes.pop();
-//
-//			size_t nodeLvl = tree.level(node);
-//			if(nodeLvl == evalLvl){
-//				curNumElems = 0;
-//				firstEval = true;
-//			}
-//
-//			if(nodeLvl >= evalLvl)
-//				curNumElems += tree.num_elements(node);
-//
-//			size_t numChildren = tree.num_child_nodes(node);
-//			if(numChildren > 0){
-//				const size_t* child = tree.child_node_ids(node);
-//				for(size_t i = 0; i < numChildren; ++i)
-//					nodes.push(child[i]);
-//			}
-//
-//			if(nodeLvl == evalLvl){
-//				if(firstEval){
-//					minNumElems = maxNumElems = curNumElems;
-//					firstEval = false;
-//				}
-//				else{
-//					minNumElems = min(minNumElems, curNumElems);
-//					maxNumElems = max(maxNumElems, curNumElems);
-//				}
-//			}
-//		}
-//	}
-//
-//	UG_LOG("minNumElems: " << minNumElems << endl);
-//	UG_LOG("maxNumElems: " << maxNumElems << endl);
 
+	const size_t numPicks = 1000;
+
+	UG_LOG("Picking elements for " << numPicks << " random points:\n");
+	Volume* e = NULL;
+	size_t numSuccesses = 0;
+
+	PROFILE_BEGIN(ntree_picking_elements);
+	for(size_t i = 0; i < numPicks; ++i){
+		//vector2 p(urand<number>(-1, 1), urand<number>(-1, 1));
+		vector3 p(urand<number>(-1, 1), urand<number>(-1, 1), urand<number>(-1, 1));
+		if(FindContainingElement(e, tree, p)){
+			++numSuccesses;
+		}
+	}
+	PROFILE_END();
+
+	UG_LOG("  sucesses: " << numSuccesses << "\n");
+	UG_LOG("  failures: " << numPicks - numSuccesses << "\n");
 	return true;
 }
 

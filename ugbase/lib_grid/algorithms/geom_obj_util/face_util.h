@@ -319,7 +319,7 @@ CalculateCenter(const FaceVertices* f, TAAPosVRT& aaPos, TAAWeightVRT& aaWeight)
  */
 template <class vector_t, class TAAPos>
 UG_API bool
-ContainsPoint(const FaceVertices* f, const vector_t& p, TAAPos& aaPos);
+ContainsPoint(const FaceVertices* f, const vector_t& p, TAAPos aaPos);
 
 
 ////////////////////////////////////////////////////////////////////////

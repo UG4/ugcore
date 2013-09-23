@@ -53,31 +53,34 @@ void TraverseBreadthFirst(const tree_t& tree, traverser_t& traverser)
 	traverser.end_traversal(tree);
 }
 
+template <class tree_t, class traverser_t>
+int
+TraverseDepthFirstRecursion(const tree_t& tree, traverser_t& traverser, int curNode)
+{
+	int state = traverser.visit_up(tree, curNode);
+	switch(state){
+		case TRAVERSE_CHILDREN:{
+			size_t numChildren = tree.num_child_nodes(curNode);
+			const size_t* child = tree.child_node_ids(curNode);
+			for(size_t i = 0; i < numChildren; ++i){
+				int childState = TraverseDepthFirstRecursion(tree, traverser, child[i]);
+				if(childState == ABORT_TRAVERSAL){
+					traverser.visit_down(tree, curNode);
+					return ABORT_TRAVERSAL;
+				}
+			}
+		} break;
+	}
+	traverser.visit_down(tree, curNode);
+	return state;
+}
 
 template <class tree_t, class traverser_t>
-void TraverseDepthFirst(const tree_t& tree, traverser_t& traverser,
-						int curNode = -1)
+void TraverseDepthFirst(const tree_t& tree, traverser_t& traverser)
 {
-	if(curNode < 0){
-		traverser.begin_traversal(tree);
-		TraverseDepthFirst(tree, traverser, 0);
-		traverser.end_traversal(tree);
-	}
-	else{
-		int state = traverser.visit_up(tree, curNode);
-		switch(state){
-			case TRAVERSE_CHILDREN:{
-				size_t numChildren = tree.num_child_nodes(curNode);
-				const size_t* child = tree.child_node_ids(curNode);
-				for(size_t i = 0; i < numChildren; ++i)
-					TraverseDepthFirst(tree, traverser, child[i]);
-			} break;
-			case ABORT_TRAVERSAL:
-				return;
-			default: break;
-		}
-		traverser.visit_down(tree, curNode);
-	}
+	traverser.begin_traversal(tree);
+	TraverseDepthFirstRecursion(tree, traverser, 0);
+	traverser.end_traversal(tree);
 }
 
 }// end of namespace

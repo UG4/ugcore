@@ -374,7 +374,7 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
  */
 template <class vector_t, class TAAPos>
 UG_API bool
-ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos& aaPos);
+ContainsPoint(const EdgeVertices* e, const vector_t& p, TAAPos aaPos);
 
 /// @} // end of doxygen defgroup command
 

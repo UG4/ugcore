@@ -8,6 +8,7 @@
 #include "common/space_partitioning/ntree.h"
 #include "common/space_partitioning/ntree_traverser.h"
 #include "common/math/misc/shapes.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 
 namespace ug{
 
@@ -36,6 +37,8 @@ class NTreeGridData
 					  "Make sure to pass an instance of NTreeGridData to lg_ntree::set_common_data");
 			return m_aaPos[v];
 		}
+
+		position_accessor_t position_accessor() const	{return m_aaPos;}
 
 		Grid* grid_ptr() const	{return m_pGrid;}
 
@@ -89,6 +92,12 @@ struct lg_ntree_traits_base
 	static void merge_boxes(box_t& boxOut, const box_t& box1, const box_t& box2)
 	{
 		boxOut = box_t(box1, box2);
+	}
+
+	static bool contains_point(const elem_t& e, const vector_t& point,
+					 	 	   const common_data_t& commonData)
+	{
+		return ContainsPoint(e, point, commonData.position_accessor());
 	}
 };
 
@@ -149,11 +158,11 @@ struct ntree_traits<3, 3, elem_t, NTreeGridData<3> > :
 							vector_t(box.max.x(), splitPoint.y(), splitPoint.z()));
 		boxesOut[2] = box_t(vector_t(box.min.x(), splitPoint.y(), box.min.z()),
 							vector_t(splitPoint.x(), box.max.y(), splitPoint.z()));
-		boxesOut[3] = box_t(splitPoint,
+		boxesOut[3] = box_t(vector_t(splitPoint.x(), splitPoint.y(), box.min.z()),
 							vector_t(box.max.x(), box.max.y(), splitPoint.z()));
 
 		boxesOut[4] = box_t(vector_t(box.min.x(), box.min.y(), splitPoint.z()),
-							splitPoint);
+							vector_t(splitPoint.x(), splitPoint.y(), box.max.z()));
 		boxesOut[5] = box_t(vector_t(splitPoint.x(), box.min.y(), splitPoint.z()),
 							vector_t(box.max.x(), splitPoint.y(), box.max.z()));
 		boxesOut[6] = box_t(vector_t(box.min.x(), splitPoint.y(), splitPoint.z()),
