@@ -163,6 +163,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 
 	write_surface_debug(d, "GMG_Defect_Out");
 	write_surface_debug(c, "GMG_Correction_Out");
+	write_surface_debug(*m_spSurfaceMat, "GMG_SurfaceStiffness");
 
 //	increase dbg counter
 	if(m_spDebugWriter.valid()) m_dbgIterCnt++;

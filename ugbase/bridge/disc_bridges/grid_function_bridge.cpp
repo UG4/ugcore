@@ -21,6 +21,7 @@
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/function_spaces/grid_function_user_data.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
+#include "lib_disc/function_spaces/grid_function_global_user_data.h"
 
 using namespace std;
 
@@ -123,7 +124,18 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GridFunctionGradientComponentData", tag);
 	}
-	
+
+//	GlobalGridFunctionNumberData
+	{
+		string name = string("GlobalGridFunctionNumberData").append(suffix);
+		typedef GlobalGridFunctionNumberData<TFct> T;
+		typedef CplUserData<number, dim> TBase;
+		reg.add_class_<T, TBase>(name, grp)
+			.template add_constructor<void (*)(SmartPtr<TFct>, const char*)>("GridFunction#Component")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "GlobalGridFunctionNumberData", tag);
+	}
+
 //	AverageFunctionDifference
 	{
 	// function signature:

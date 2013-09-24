@@ -439,6 +439,9 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	hierarchy-sections which contain levels higher than baseLvl
 	for(size_t hlevel = 0; hlevel < m_processHierarchy->num_hierarchy_levels(); ++ hlevel)
 	{
+		UG_LOG("Debug-Barrier in partition for hlvl " << hlevel << "\n");
+		PCL_DEBUG_BARRIER_ALL();
+
 		int minLvl = m_processHierarchy->grid_base_level(hlevel);
 		int maxLvl = mg.top_level();
 		if(hlevel + 1 < m_processHierarchy->num_hierarchy_levels()){
@@ -510,7 +513,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		int numProcsWithGrid = globalCom.allreduce(gotGrid, PCL_RO_SUM);
 
 		if(numProcsWithGrid == 0)
-			continue;
+			break;
 
 		if(numProcsWithGrid == 1){
 			if(gotGrid)
@@ -546,6 +549,9 @@ partition(size_t baseLvl, size_t elementThreshold)
 				m_intfcCom.communicate();
 			}
 		}
+
+		if(maxLvl >= (int)mg.top_level())
+			break;
 	}
 
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop rebalance\n");
@@ -698,13 +704,17 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 						 ParallelDualGraph<elem_t, idx_t>& pdg)
 {
 	GDIST_PROFILE_FUNC();
+
+	UG_LOG("Debug Barrier in partition_level_parmetis\n");
+	PCL_DEBUG_BARRIER(procComAll);
+
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition_level_parmetis\n");
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 	int lvl = baseLvl;
-	int localProc = pcl::GetProcRank();
-
+	//int localProc = pcl::GetProcRank();
+	int localProc= procComAll.get_local_proc_id();
 
 //	generate the parallel graph. H-Interface communication involved.
 	pdg.set_grid(m_mg);

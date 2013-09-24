@@ -115,6 +115,21 @@ struct lg_ntree_traits_base
 
 
 template <class elem_t>
+struct ntree_traits<1, 1, elem_t, NTreeGridData<1> > :
+	public lg_ntree_traits_base<1, 1, elem_t, NTreeGridData<1> >
+{
+	typedef MathVector<1>			vector_t;
+	typedef AABox<vector_t>			box_t;
+
+	static void split_box(box_t* boxesOut, const box_t& box, const vector_t& splitPoint)
+	{
+		boxesOut[0] = box_t(box.min, splitPoint);
+		boxesOut[1] = box_t(splitPoint, box.max);
+	}
+};
+
+
+template <class elem_t>
 struct ntree_traits<2, 2, elem_t, NTreeGridData<2> > :
 	public lg_ntree_traits_base<2, 2, elem_t, NTreeGridData<2> >
 {
