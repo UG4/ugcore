@@ -117,13 +117,13 @@ grid_adaption_callback(const GridMessage_Adaption& msg)
 		m_adaptionIsActive = true;
 
 	else if(m_adaptionIsActive){
-		if(msg.adaptive()){
+		//if(msg.adaptive()){
 			if(msg.adaption_ends())
 			{
 				update_domain_info();
 				m_adaptionIsActive = false;
 			}
-		}
+		//}
 	}
 
 	else{
