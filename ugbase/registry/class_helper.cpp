@@ -285,8 +285,7 @@ string FunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const cha
 
 	ss << thefunc.name();
 
-	PrintParametersIn<ExportedFunctionBase>(thefunc, highlightclassname);
-
+	ss << PrintParametersIn<ExportedFunctionBase>(thefunc, highlightclassname);
 
 	if(isConst) ss << " const";
 	if(bPrintHelp)
