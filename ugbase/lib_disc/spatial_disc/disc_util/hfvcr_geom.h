@@ -1,5 +1,5 @@
 /*
- * fvcr_geom.h
+ * hfvcr_geom.h
  *
  *  Created on: 17.09.2013
  *      Author: Christian Wehner
@@ -382,6 +382,16 @@ class HCRFVGeometry : public FVGeometryBase
 				//  nr of constraining dofs
 				size_t numConstrainingDofs;
 		};
+	
+		class HandledEdge
+		{
+		public:
+			size_t index;
+			size_t associatedSCV[2];
+			size_t scvfIndex;
+			// indicates if the handled side is from or to
+			bool from;
+		};
 
 	public:
 	/// construct object and initialize local values and sizes
@@ -471,6 +481,8 @@ class HCRFVGeometry : public FVGeometryBase
 
 		/// constrained Dofs
 		CONSTRAINED_DOF m_vCD[maxNumSCV];
+	
+		std::vector<HandledEdge> handledEdges;
 
 		///	pointer to current element
 		TElem* m_pElem;
@@ -491,6 +503,8 @@ class HCRFVGeometry : public FVGeometryBase
 		size_t numDofs;
 
 		bool localUpdateNecessary;
+	
+		static const size_t deleted = 117;
 
 };
 

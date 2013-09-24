@@ -530,7 +530,7 @@ constrained_vertex_indices(LocalIndices& ind,
 	}
 }
 
-
+// sort constrained edges by association to reference object vertices of coarse edge
 template <typename TBaseElem,typename TConstraining, typename TConstrained>
 void MGDoFDistribution::
 sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const
@@ -546,12 +546,10 @@ sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 	// get child of vertex
 	if (dim==2){
 		Face* baseElem = dynamic_cast<Face*>(elem);
-		UG_ASSERT(baseElem!=NULL,"wrong element type");
 		vertex0 = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
 	}
 	if (dim==3){
 		Volume* baseElem = dynamic_cast<Volume*>(elem);
-		UG_ASSERT(baseElem!=NULL,"wrong element type");
 		vertex0 = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
 	}
 	TConstrained* edg = constrainingObj->constrained_edge(0);
@@ -583,6 +581,7 @@ sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 	}
 }
 
+// sort constrained faces as given by association to reference object vertices of coarse faces
 template <typename TBaseElem,typename TConstraining, typename TConstrained>
 void MGDoFDistribution::
 sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstraining* constrainingObj,size_t objIndex) const
@@ -595,9 +594,6 @@ sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 	sortedInd.resize(4);
 	VertexBase* vrt = NULL;
 	Volume* baseElem = dynamic_cast<Volume*>(elem);
-	UG_ASSERT(baseElem!=NULL,"wrong element type");
-	bool handledFace[4];
-	if (numVrt==3) for (size_t i=0;i<numVrt;i++) handledFace[i]=false;
 	for (size_t i=0;i<numVrt;i++){
 		const size_t vertexIndex = refElem.id(2,objIndex,0,i);
 		vrt = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
@@ -609,21 +605,31 @@ sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 				if (face->vertex(k)==vrt){
 					found = true;
 					sortedInd[i] = j;
-					handledFace[j] = true;
 					break;
 				}
 			}
 		}
 		if (found==false) UG_THROW("corresponding constrained object vertex not found");
 	}
-	// for triangle search for inner face
-	if (numVrt==3){
-		for (size_t i=0;i<4;i++){
-			if (handledFace[i]==false){
-				sortedInd[3]=i;
-				break;
+	// for triangle refinement inner face is still missing, it should be constrained_face(3)
+	if (numVrt==3){ 
+		// check if it is not face 3
+		for (size_t i=0;i<3;i++) if (sortedInd[i]==3) {
+			bool found = false;
+			for (size_t j=0;j<3;j++){
+				for (size_t k=0;k<3;k++){
+					if (sortedInd[k]==j){ 
+						found = true;
+						break;
+					}
+				}
+				if (found==false){ 
+					sortedInd[3]=j;
+					return;
+				}
 			}
 		}
+		sortedInd[3]=3;
 	}
 }
 
@@ -692,8 +698,9 @@ constrained_face_indices(TBaseElem* elem,LocalIndices& ind,
 	{
 	//	only constraining objects are of interest
 		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		
 		if(constrainingObj == NULL) continue;
-
+		
 		std::vector<size_t> sortedInd;
 		sort_constrained_faces<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
 
@@ -793,11 +800,13 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 //	get dofs on hanging edges
 	if (max_dofs(EDGE) > 0){
 		if(dim >= EDGE) constrained_edge_indices<TBaseElem,ConstrainingEdge, EdgeBase, EdgeBase>(elem,ind, vEdge);
+		if(dim >= FACE) constrained_edge_indices<TBaseElem,ConstrainingTriangle, EdgeBase, Face>(elem,ind, vFace);
 		if(dim >= FACE) constrained_edge_indices<TBaseElem,ConstrainingQuadrilateral, EdgeBase, Face>(elem,ind, vFace);
 	}
 
 //  get dofs on hanging faces
 	if (max_dofs(FACE) > 0){
+		if(dim >= FACE) constrained_face_indices<TBaseElem,ConstrainingTriangle, Face, Face>(elem,ind, vFace);
 		if(dim >= FACE) constrained_face_indices<TBaseElem,ConstrainingQuadrilateral, Face, Face>(elem,ind, vFace);
 	}
 
@@ -808,7 +817,6 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 //	we're done
 	return;
 }
-
 
 
 template <typename TBaseElem>
