@@ -279,7 +279,7 @@ string PrintParametersOut(const ExportedFunctionBase &thefunc)
 string FunctionInfo(const ExportedFunctionBase &thefunc, bool isConst, const char *classname, const char *highlightclassname, bool bPrintHelp)
 {
 	std::stringstream ss;
-	PrintParametersOut(thefunc);
+	ss << PrintParametersOut(thefunc);
 	if(classname)
 		ss << classname << ":";
 
