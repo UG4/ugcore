@@ -293,8 +293,15 @@ extract_bip(const TFVGeom& geo)
 		}
 	}
 
-	import.set_local_ips(&vLocIP[0], vLocIP.size());
-	import.set_global_ips(&vGloIP[0], vGloIP.size());
+	if(vLocIP.empty())
+		import.set_local_ips(NULL, 0);
+	else
+		import.set_local_ips(&vLocIP[0], vLocIP.size());
+
+	if(vGloIP.empty())
+		import.set_global_ips(NULL, 0);
+	else
+		import.set_global_ips(&vGloIP[0], vGloIP.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
