@@ -403,7 +403,12 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 
 	///	returns all values for a series
 		const TData* values(size_t s) const
-			{check_series(s); return &(m_vvValue[s][0]);}
+			{
+				check_series(s);
+				if(m_vvValue[s].empty())
+					return NULL;
+				return &(m_vvValue[s][0]);
+			}
 
 	///	returns the value at ip
 		TData& value(size_t s, size_t ip)
@@ -411,7 +416,12 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 
 	///	returns all values for a series
 		TData* values(size_t s)
-			{check_series(s); return &(m_vvValue[s][0]);}
+			{
+				check_series(s);
+				if(m_vvValue[s].empty())
+					return NULL;
+				return &(m_vvValue[s][0]);
+			}
 
 	///	returns flag, if data is evaluated (for conditional data)
 		bool defined(size_t s, size_t ip) const
