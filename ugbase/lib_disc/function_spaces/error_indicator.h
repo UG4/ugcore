@@ -478,6 +478,7 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<typename TFunction::elem
 						  TFunction& u,
 						  number refTol,
 						  number coarsenTol,
+						  int minLevel,
 						  int maxLevel)
 {
 	typedef typename TFunction::element_type element_type;
@@ -503,7 +504,7 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<typename TFunction::elem
 	//	marks for coarsening
 		if((coarsenTol >= 0)
 			&& (aaError[elem] < coarsenTol)
-			&& (u.domain()->grid()->get_level(elem) > 0))
+			&& (u.domain()->grid()->get_level(elem) > minLevel))
 		{
 			refiner.mark(elem, RM_COARSEN);
 			numMarkedCoarse++;
@@ -577,6 +578,7 @@ void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
                                        const char* fctName,
                                        number refTol,
                                        number coarsenTol,
+                                       int minLvl,
                                        int maxLevel)
 {
 //	types
@@ -609,7 +611,7 @@ void MarkForAdaption_AbsoluteGradientIndicator(IRefiner& refiner,
 	}
 
 // 	Mark elements for refinement
-	MarkElementsAbsolute(aaError, refiner, u, refTol, coarsenTol, maxLevel);
+	MarkElementsAbsolute(aaError, refiner, u, refTol, coarsenTol, minLvl, maxLevel);
 
 // 	detach error field
 	pMG->template detach_from<element_type>(aError);
