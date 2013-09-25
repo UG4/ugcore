@@ -40,7 +40,7 @@ void MultiEnergyProd(const SparseMatrix<mat_type> &A,
 
 inline bool absCompare(double a, double b)
 {
-	return abs(a) < abs(b);
+	return fabs(a) < fabs(b);
 }
 
 
