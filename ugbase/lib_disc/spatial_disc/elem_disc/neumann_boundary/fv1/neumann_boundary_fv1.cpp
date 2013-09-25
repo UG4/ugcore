@@ -293,15 +293,18 @@ extract_bip(const TFVGeom& geo)
 		}
 	}
 
-	if(vLocIP.empty())
-		import.set_local_ips(NULL, 0);
-	else
-		import.set_local_ips(&vLocIP[0], vLocIP.size());
+//	either both are empty or none is empty
+	UG_ASSERT((vLocIP.empty() && vGloIP.empty()) || (!(vLocIP.empty() || vGloIP.empty())),
+			  "Either vLocIP and vGloIP both have to be empty or both have to be filled!");
 
-	if(vGloIP.empty())
+	if(vLocIP.empty()){
+		import.set_local_ips(NULL, 0);
 		import.set_global_ips(NULL, 0);
-	else
+	}
+	else{
+		import.set_local_ips(&vLocIP[0], vLocIP.size());
 		import.set_global_ips(&vGloIP[0], vGloIP.size());
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
