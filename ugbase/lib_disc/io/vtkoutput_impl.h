@@ -37,6 +37,59 @@
 namespace ug{
 
 template <int TDim>
+void VTKOutput<TDim>::
+write_item_to_file(VTKFileWriter& File, float data) {
+	if(m_bBinary){
+		File << (float) data;
+	} else {
+		File << (float) data << ' ';
+	}
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+write_item_to_file(VTKFileWriter& File, double data) {
+	if(m_bBinary){
+		File << (float) data;
+	} else {
+		File << (float) data << ' ';
+	}
+}
+
+// fill position data up with zeros if dim < 3.
+template <int TDim>
+void VTKOutput<TDim>::
+write_item_to_file(VTKFileWriter& File, const ug::MathVector<1>& data) {
+	if(m_bBinary){
+		File << (float) data[0] << (float) 0.f << (float) 0.f;
+	} else {
+		File << (float) data[0] << ' ' << (float) 0.f << ' ' << (float) 0.f << ' ';
+	}
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+write_item_to_file(VTKFileWriter& File, const ug::MathVector<2>& data) {
+	if(m_bBinary){
+		File << (float) data[0] << (float) data[1] << (float) 0.f;
+	} else {
+		File << (float) data[0] << ' ' << (float) data[1] << ' ' << (float) 0.f << ' ';
+	}
+}
+
+template <int TDim>
+void VTKOutput<TDim>::
+write_item_to_file(VTKFileWriter& File, const ug::MathVector<3>& data) {
+	if(m_bBinary){
+		File << (float) data[0] << (float) data[1] << (float) data[2];
+	} else {
+		File << (float) data[0] << ' ' << (float) data[1] << ' ' << (float) data[2] << ' ';
+	}
+}
+
+
+
+template <int TDim>
 template <typename TFunction>
 void VTKOutput<TDim>::
 print(const char* filename, TFunction& u, int step, number time, bool makeConsistent)
@@ -449,9 +502,7 @@ write_points_elementwise(VTKFileWriter& File,
 			aaVrtIndex[v] = n++;
 
 		//	get position of vertex and write position to stream
-			File << aaPos[v];
-			if(!m_bBinary)
-				File << ' ';
+			write_item_to_file(File, aaPos[v]);
 		}
 	}
 }
@@ -890,9 +941,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 			grid.mark(v);
 
 		//	loop all components
-			File << vValue[co];
-			if(!m_bBinary)
-				File << ' ';
+			write_item_to_file(File, vValue[co]);
 		}
 	}
 
@@ -1014,22 +1063,15 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 						  << GetGeometricObjectCenter(grid, v));
 
 			//	flush stream
-				File << (float) BlockRef(u[index], alpha);
-				if(!m_bBinary)
-					File << ' ';
+				write_item_to_file(File, BlockRef(u[index], alpha));
 			}
 
 
 
 		//	fill with zeros up to 3d if vector type
 			if(vFct.size() != 1) {
-				// fixme avoid double spaces
-				if(!m_bBinary)
-					File << ' ';
 				for(size_t i = vFct.size(); i < 3; ++i) {
-					File << (float) 0.f;
-					if(!m_bBinary)
-						File << ' ';
+					write_item_to_file(File, 0.f);
 				}
 			}
 		}
@@ -1266,9 +1308,7 @@ write_cell_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 			UG_CATCH_THROW("VTK::write_cell_data_elementwise: Cannot evaluate data.");
 		}
 
-		File << value;
-		if(!m_bBinary)
-			File << ' ';
+		write_item_to_file(File, value);
 	}
 
 }
@@ -1388,22 +1428,15 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 			}
 
 		//	flush stream
-			File << (float) ipVal;
-			if(!m_bBinary)
-				File << ' ';
+			write_item_to_file(File, ipVal);
 		}
 
-		if(!m_bBinary)
-			File << ' ';
-
 	//	fill with zeros up to 3d if vector type
-		if(vFct.size() != 1)
+		if(vFct.size() != 1){
 			for(size_t i = vFct.size(); i < 3; ++i) {
-				File << (float) 0.f;
-				if(!m_bBinary)
-					File << ' ';
+				write_item_to_file(File, 0.f);
 			}
-
+		}
 	}
 	}
 	UG_CATCH_THROW("VTK: Could not find Shape function Set.");

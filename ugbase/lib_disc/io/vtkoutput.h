@@ -663,6 +663,20 @@ protected:
 	///	returns true if name for vtk-component is already used
 		bool vtk_name_used(const char* name) const;
 
+	///	writes data to stream
+	/**
+	 * The purpose of the function is to convert a double data to float, since
+	 * in the vtk-format Float32 is used.
+	 */
+	/// \{
+		inline void write_item_to_file(VTKFileWriter& File, float data);
+		inline void write_item_to_file(VTKFileWriter& File, double data);
+		inline void write_item_to_file(VTKFileWriter& File, const ug::MathVector<1>& data);
+		inline void write_item_to_file(VTKFileWriter& File, const ug::MathVector<2>& data);
+		inline void write_item_to_file(VTKFileWriter& File, const ug::MathVector<3>& data);
+	/// \}
+
+
 	protected:
 	///	scheduled components to be printed
 		bool m_bSelectAll;
@@ -689,10 +703,6 @@ protected:
 	///	map storing the time points
 		std::map<std::string, std::vector<number> > m_mTimestep;
 };
-
-VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<1>& data);
-VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<2>& data);
-VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<3>& data);
 
 } // namespace ug
 

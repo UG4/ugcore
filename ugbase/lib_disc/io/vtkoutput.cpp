@@ -9,35 +9,6 @@
 
 namespace ug{
 
-// fill position data up with zeros if dim < 3.
-VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<1>& data) {
-	if (File.format() == VTKFileWriter::base64_binary) {
-		File << (float) data[0] << (float) 0.f << (float) 0.f;
-	} else if (File.format() == VTKFileWriter::normal) {
-		File << (float) data[0] << ' ' << (float) 0.f << ' ' << (float) 0.f;
-	}
-	return File;
-}
-
-VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<2>& data) {
-	if (File.format() == VTKFileWriter::base64_binary) {
-		File << (float) data[0] << (float) data[1] << (float) 0.f;
-	} else if (File.format() == VTKFileWriter::normal) {
-		File << (float) data[0] << ' ' << (float) data[1] << ' ' << (float) 0.f;
-	}
-	return File;
-}
-
-VTKFileWriter& operator <<(VTKFileWriter& File, const ug::MathVector<3>& data) {
-	if (File.format() == VTKFileWriter::base64_binary) {
-		File << (float) data[0] << (float) data[1] << (float) data[2];
-	} else if (File.format() == VTKFileWriter::normal) {
-		File << (float) data[0] << ' ' << (float) data[1] << ' ' << (float) data[2];
-	}
-
-	return File;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //	Domain Output
 ////////////////////////////////////////////////////////////////////////////////
