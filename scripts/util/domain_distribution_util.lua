@@ -60,6 +60,18 @@ function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 		end
 	end
 	
+	if dom:domain_info():num_elements_on_level(distributionLevel) < numTargetProcs then
+		print("\nERROR in DistributeDomain:")
+		print("    Currently there have to be at least as many elements in the")
+		print("    distribution level as there are target processes.")
+		print("    Consider increasing numPreRefs!")
+		print("    num elements on level " .. distributionLevel .. ": "
+			.. dom:domain_info():num_elements_on_level(distributionLevel))
+		print("    num target processes: " .. numTargetProcs)
+		print("")
+		exit()
+	end
+	
 	if partitioningMethod == "bisection" then
 		if distributionLevel < dom:grid():num_levels() - 1 then
 			print("WARNING in util.DistributeDomain: 'bisection' can currently "
