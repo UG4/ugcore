@@ -66,6 +66,6 @@ fi
 w=$(((w*10)/charWidthFactor10))
 h=$(((h*10)/charHeightFactor10))
 
-xterm -geometry ${w}x$h+$x+$y -e $1
+xterm -hold -geometry ${w}x$h+$x+$y -e $1
 
 
