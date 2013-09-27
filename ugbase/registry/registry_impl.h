@@ -6,6 +6,7 @@
 #define __H__UG_BRIDGE__REGISTRY_IMPL__
 
 #include "registry_util.h"
+#include "common/util/typename.h"
 
 namespace ug{
 namespace bridge
@@ -14,6 +15,18 @@ namespace bridge
 //////////////////////
 // global functions
 //////////////////////
+template<typename TClass>
+struct AddTypeName
+{
+	static void add(std::string &s)
+	{
+	#ifdef UG_POSIX
+		if(s.length() != 0)
+			s += std::string(", ");
+		s += std::string("C++ Name: ") + TypeName<TClass>();
+	#endif
+	}
+};
 
 template<class TFunc>
 Registry& Registry::
@@ -101,7 +114,7 @@ check_base_class(const std::string& className)
 	if(typeid(TClass) == typeid(TBaseClass))
 	{
 		UG_THROW_REGISTRY_ERROR(className,
-		"Trying to register class '"<<className
+		"Trying to register class '"<< className
 				<< "' that derives from itself.");
 	}
 
@@ -149,6 +162,7 @@ add_class_(std::string className, std::string group, std::string tooltip)
 //	new class pointer
 	ExportedClass<TClass>* newClass = NULL;
 
+	AddTypeName<TClass>::add(tooltip);
 	newClass = new ExportedClass<TClass>(className, group, tooltip);
 
 //	add new class to list of classes
@@ -194,6 +208,8 @@ add_class_(std::string className, std::string group, std::string tooltip)
 
 //	new class pointer
 	ExportedClass<TClass>* newClass = NULL;
+
+	AddTypeName<TClass>::add(tooltip);
 
 //	try creation of new class
 	newClass = new ExportedClass<TClass>(className, group, tooltip);
@@ -247,6 +263,8 @@ add_class_(std::string className, std::string group, std::string tooltip)
 
 //	new class pointer
 	ExportedClass<TClass>* newClass = NULL;
+
+	AddTypeName<TClass>::add(tooltip);
 
 //	try creation of new class
 	newClass = new ExportedClass<TClass>(className, group, tooltip);
