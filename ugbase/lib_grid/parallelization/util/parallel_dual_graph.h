@@ -67,12 +67,11 @@ class ParallelDualGraph{
 		void generate_graph(int level, pcl::ProcessCommunicator procCom =
 											pcl::ProcessCommunicator(pcl::PCD_WORLD));
 
-	/// Removes entries for empty processes from the node-offset-map
-	/**	Some libraries (e.g. parmetis) can't handle empty processes. This method
-	 * can be used to remove those processes from the node-offset-map.
-	 * Make sure to use a communicator which only contains processes for which
-	 * num_graph_vertices() > 0 in a call to Parmetis after having used this method.*/
-		void remove_empty_procs_from_node_offset_map();
+	///	returns a process communicator which only contains processes which contain an element.
+	/**	\note	the parallel-offset-map is built with respect to this process-communicator.
+	 * \note	this process communicator does not necessarily resemble the communicator
+	 * 			specified in generate_graph.*/
+		pcl::ProcessCommunicator process_communicator() const	{return m_procCom;}
 
 	private:
 		void attach_data();
@@ -83,6 +82,7 @@ class ParallelDualGraph{
 		typedef Attachment<int>					AElemIndex;
 		typedef Attachment<std::vector<int> >	AElemIndices;
 
+		pcl::ProcessCommunicator	m_procCom;
 		MultiGrid*				m_pMG;
 		std::vector<TGeomBaseObj*>	m_elems;
 		std::vector<TIndexType> m_adjacencyMapStructure;

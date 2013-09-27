@@ -439,9 +439,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	hierarchy-sections which contain levels higher than baseLvl
 	for(size_t hlevel = 0; hlevel < m_processHierarchy->num_hierarchy_levels(); ++ hlevel)
 	{
-		UG_LOG("Debug-Barrier in partition for hlvl " << hlevel << "\n");
-		PCL_DEBUG_BARRIER_ALL();
-
 		int minLvl = m_processHierarchy->grid_base_level(hlevel);
 		int maxLvl = mg.top_level();
 		if(hlevel + 1 < m_processHierarchy->num_hierarchy_levels()){
@@ -705,7 +702,6 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 {
 	GDIST_PROFILE_FUNC();
 
-	UG_LOG("Debug Barrier in partition_level_parmetis\n");
 	PCL_DEBUG_BARRIER(procComAll);
 
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition_level_parmetis\n");
@@ -713,8 +709,6 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 	int lvl = baseLvl;
-	//int localProc = pcl::GetProcRank();
-	int localProc= procComAll.get_local_proc_id();
 
 //	generate the parallel graph. H-Interface communication involved.
 	pdg.set_grid(m_mg);
@@ -740,6 +734,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 										 pdg.elements_begin(), pdg.elements_end(),
 										 pdg.num_graph_vertices());
 
+//	(THE CODE BELOW WAS REPLACED BY THE CODE ABOVE...)
 //	create a weight map for the vertices based on the number of children+1
 //	accumulate_child_counts(baseLvl, maxLvl, m_aNumChildren);
 //	vrtWgtMap.reserve(nVrts);
@@ -748,109 +743,104 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 //			vrtWgtMap.push_back(m_childWeight * m_aaNumChildren[*iter] + 1);
 //	}
 
-	if(!procComAll.empty()){
-		UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << (int)pdg.num_graph_vertices()
-							<< ", #edges: " << (int)pdg.num_graph_edges() << "\n");
+	UG_DLOG(LIB_GRID, 2, "  parallel dual graph #vrts: " << (int)pdg.num_graph_vertices()
+						<< ", #edges: " << (int)pdg.num_graph_edges() << "\n");
 
-		pcl::ProcessCommunicator procCom = procComAll.
-									create_sub_communicator(pdg.num_graph_vertices() > 0);
-	//	parmetis would have problems otherwise. The node-offset-map now matches procCom.
-		pdg.remove_empty_procs_from_node_offset_map();
+	pcl::ProcessCommunicator procCom = pdg.process_communicator();
 
-		if(!procCom.empty()){
-			idx_t* pAdjWgts = NULL;
-			vector<idx_t> adjwgts;
-			adjwgts.resize(pdg.num_graph_edges(), 1);
-			if(base_class::clustered_siblings_enabled()){
-			//	we have to weighten edges between siblings higher than between non-siblings
-				idx_t* adjacencyMapStructure = pdg.adjacency_map_structure();
-				idx_t* adjacencyMap = pdg.adjacency_map();//global
-				int localOffset = pdg.parallel_offset_map()[procCom.get_local_proc_id()];
+	if(!procCom.empty()){
+		idx_t* pAdjWgts = NULL;
+		vector<idx_t> adjwgts;
+		adjwgts.resize(pdg.num_graph_edges(), 1);
+		if(base_class::clustered_siblings_enabled()){
+		//	we have to weighten edges between siblings higher than between non-siblings
+			idx_t* adjacencyMapStructure = pdg.adjacency_map_structure();
+			idx_t* adjacencyMap = pdg.adjacency_map();//global
+			int localOffset = pdg.parallel_offset_map()[procCom.get_local_proc_id()];
 
-				for(idx_t ivrt = 0; ivrt < nVrts; ++ivrt){
-					elem_t* e = pdg.get_element(ivrt);
-					size_t edgesBegin = adjacencyMapStructure[ivrt];
-					size_t edgesEnd = adjacencyMapStructure[ivrt+1];
+			for(idx_t ivrt = 0; ivrt < nVrts; ++ivrt){
+				elem_t* e = pdg.get_element(ivrt);
+				size_t edgesBegin = adjacencyMapStructure[ivrt];
+				size_t edgesEnd = adjacencyMapStructure[ivrt+1];
 
-					for(size_t ie = edgesBegin; ie != edgesEnd; ++ie){
-					//	if the connected element doesn't lie on this process it
-					//	shouldn't be a sibling anyways...
-						int localInd = (int)adjacencyMap[ie] - localOffset;
-						if((localInd < 0) || (localInd >= (int)pdg.num_graph_vertices()))
-							continue;
+				for(size_t ie = edgesBegin; ie != edgesEnd; ++ie){
+				//	if the connected element doesn't lie on this process it
+				//	shouldn't be a sibling anyways...
+					int localInd = (int)adjacencyMap[ie] - localOffset;
+					if((localInd < 0) || (localInd >= (int)pdg.num_graph_vertices()))
+						continue;
 
-						elem_t* ce = pdg.get_element(localInd);
-						side_t* side = GetSharedSide(mg, e, ce);
-						if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
-						//	e and ce should share the same parent, since the side shared
-						//	by e and ce has a parent of the same type as e and ce
-							adjwgts[ie] = m_siblingWeight;
-						}
+					elem_t* ce = pdg.get_element(localInd);
+					side_t* side = GetSharedSide(mg, e, ce);
+					if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
+					//	e and ce should share the same parent, since the side shared
+					//	by e and ce has a parent of the same type as e and ce
+						adjwgts[ie] = m_siblingWeight;
 					}
 				}
 			}
-			pAdjWgts = &adjwgts.front();
+		}
+		pAdjWgts = &adjwgts.front();
 
-			GDIST_PROFILE(PARMETIS);
-			MPI_Comm mpiCom = procCom.get_mpi_communicator();
-			if((int)procCom.size() != numTargetProcs){
-				UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
-				int metisRet =	ParMETIS_V3_PartKway(pdg.parallel_offset_map(),
-													pdg.adjacency_map_structure(),
-													pdg.adjacency_map(),
-													&vrtWgtMap.front(), pAdjWgts, &wgtFlag,
-													&numFlag, &nConstraints,
-													&numParts, &tpwgts.front(), &ubvec.front(), partOptions,
-													&edgeCut, &partitionMap.front(),
-													&mpiCom);
-				UG_DLOG(LIB_GRID, 1, "done\n");
+		GDIST_PROFILE(PARMETIS);
+		MPI_Comm mpiCom = procCom.get_mpi_communicator();
+		if((int)procCom.size() != numTargetProcs){
+			UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
+			int metisRet =	ParMETIS_V3_PartKway(pdg.parallel_offset_map(),
+												pdg.adjacency_map_structure(),
+												pdg.adjacency_map(),
+												&vrtWgtMap.front(), pAdjWgts, &wgtFlag,
+												&numFlag, &nConstraints,
+												&numParts, &tpwgts.front(), &ubvec.front(), partOptions,
+												&edgeCut, &partitionMap.front(),
+												&mpiCom);
+			UG_DLOG(LIB_GRID, 1, "done\n");
 
-				if(metisRet != METIS_OK){
-					UG_THROW("ParMETIS_V3_PartKway failed on process " << localProc
-							 << " while partitioning level " << lvl);
-				}
+			if(metisRet != METIS_OK){
+				UG_THROW("ParMETIS_V3_PartKway failed on process " << pcl::GetProcRank()
+						 << " while partitioning level " << lvl);
 			}
-			else{
-			//	defines the redistribution cost for each vertex
-			//	Since vrtWgtMap holds the number of children for each constraint on each level,
-			//	we can simply sum them up to retrieve the redistribution cost for that element
-			//todo: Better distributions may possibly be obtained if vrtSizeMap would contain 1
-			//		for all elements... Check that out!
-				vector<idx_t> vrtSizeMap;
-				vrtSizeMap.reserve(pdg.num_graph_vertices());
-				for(int ivrt = 0; ivrt < (int)vrtWgtMap.size(); ivrt += nConstraints){
-					idx_t size = 0;
-					for(int ic = 0; ic < (int)nConstraints; ++ic){
-						size += vrtWgtMap[ivrt + ic];
-					}
-					vrtSizeMap.push_back(size);
+		}
+		else{
+		//	defines the redistribution cost for each vertex
+		//	Since vrtWgtMap holds the number of children for each constraint on each level,
+		//	we can simply sum them up to retrieve the redistribution cost for that element
+		//todo: Better distributions may possibly be obtained if vrtSizeMap would contain 1
+		//		for all elements... Check that out!
+			vector<idx_t> vrtSizeMap;
+			vrtSizeMap.reserve(pdg.num_graph_vertices());
+			for(int ivrt = 0; ivrt < (int)vrtWgtMap.size(); ivrt += nConstraints){
+				idx_t size = 0;
+				for(int ic = 0; ic < (int)nConstraints; ++ic){
+					size += vrtWgtMap[ivrt + ic];
 				}
-
-
-				UG_DLOG(LIB_GRID, 1, "Calling ParMETIS_V3_AdaptiveRepart...");
-				int metisRet =	ParMETIS_V3_AdaptiveRepart(pdg.parallel_offset_map(),
-													pdg.adjacency_map_structure(),
-													pdg.adjacency_map(),
-													&vrtWgtMap.front(), &vrtSizeMap.front(), pAdjWgts, &wgtFlag,
-													&numFlag, &nConstraints,
-													&numParts, &tpwgts.front(), &ubvec.front(),
-													&comVsRedistRation, refineOptions,
-													&edgeCut, &partitionMap.front(),
-													&mpiCom);
-				UG_DLOG(LIB_GRID, 1, "done\n");
-				if(metisRet != METIS_OK){
-					UG_THROW("Parmetis_V3_RefineKWay failed on process " << localProc
-							 << " while partitioning level " << lvl);
-				}
+				vrtSizeMap.push_back(size);
 			}
-			GDIST_PROFILE_END();
 
-		//	assign partition-subsets from graph-colors
-			int counter = 0;
-			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
-				if(pdg.was_considered(*iter))
-					m_sh.assign_subset(*iter, partitionMap[counter++]);
+
+			UG_DLOG(LIB_GRID, 1, "Calling ParMETIS_V3_AdaptiveRepart...");
+			int metisRet =	ParMETIS_V3_AdaptiveRepart(pdg.parallel_offset_map(),
+												pdg.adjacency_map_structure(),
+												pdg.adjacency_map(),
+												&vrtWgtMap.front(), &vrtSizeMap.front(), pAdjWgts, &wgtFlag,
+												&numFlag, &nConstraints,
+												&numParts, &tpwgts.front(), &ubvec.front(),
+												&comVsRedistRation, refineOptions,
+												&edgeCut, &partitionMap.front(),
+												&mpiCom);
+			UG_DLOG(LIB_GRID, 1, "done\n");
+			if(metisRet != METIS_OK){
+				UG_THROW("Parmetis_V3_RefineKWay failed on process " << pcl::GetProcRank()
+						 << " while partitioning level " << lvl);
 			}
+		}
+		GDIST_PROFILE_END();
+
+	//	assign partition-subsets from graph-colors
+		int counter = 0;
+		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter){
+			if(pdg.was_considered(*iter))
+				m_sh.assign_subset(*iter, partitionMap[counter++]);
 		}
 	}
 

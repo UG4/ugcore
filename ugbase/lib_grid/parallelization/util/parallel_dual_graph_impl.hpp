@@ -15,6 +15,7 @@ namespace ug{
 template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
 ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
 ParallelDualGraph(MultiGrid* pmg) :
+	m_procCom(pcl::PCD_EMPTY),
 	m_pMG(NULL)
 {
 	if(pmg)
@@ -157,25 +158,28 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 		}
 	}
 
+//	generate a local procCom, which only contains processes which actually contain elements.
+	m_procCom = procCom.create_sub_communicator(numElems > 0);
+
 //	generate the nodeOffsetMap and determine the localNodeOffset
 	UG_DLOG(LIB_GRID, 2, "ParallelDualGraph-generate_graph: gathering element numbers\n");
 	m_nodeOffsetMap.clear();
 	int localNodeOffset = 0;
 
-	if(!procCom.empty()){
+	if(!m_procCom.empty()){
 		int numElemsTmp = (int)numElems;
-		vector<int> elemCounts(procCom.size());
-			procCom.allgather(&numElemsTmp, 1, PCL_DT_INT,
+		vector<int> elemCounts(m_procCom.size());
+			m_procCom.allgather(&numElemsTmp, 1, PCL_DT_INT,
 							  &elemCounts.front(), 1, PCL_DT_INT);
 
-		m_nodeOffsetMap.resize(procCom.size() + 1);
+		m_nodeOffsetMap.resize(m_procCom.size() + 1);
 		int numElemsTotal = 0;
 		for(size_t i = 0; i < elemCounts.size(); ++i){
 			m_nodeOffsetMap[i] = numElemsTotal;
 			numElemsTotal += elemCounts[i];
 		}
 		m_nodeOffsetMap[elemCounts.size()] = numElemsTotal;
-		localNodeOffset = m_nodeOffsetMap[procCom.get_local_proc_id()];
+		localNodeOffset = m_nodeOffsetMap[m_procCom.get_local_proc_id()];
 
 		UG_DLOG(LIB_GRID, 2, "ParallelDualGraph-generate_graph: gathering indices of connected elements\n");
 	//	we have to gather indices of connected elements in connecting elements.
@@ -224,6 +228,7 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	UG_DLOG(LIB_GRID, 2, "ParallelDualGraph-generate_graph: building adjacency structure\n");
 //	init the adjacencyMapStructure
 	m_adjacencyMapStructure.resize(numElems + 1);
+	m_adjacencyMapStructure[0] = 0;
 	m_adjacencyMap.clear();
 
 //	generate adjacency structure.
@@ -271,21 +276,6 @@ generate_graph(int level, pcl::ProcessCommunicator procCom)
 	UG_DLOG(LIB_GRID, 1, "ParallelDualGraph-stop generate_graph\n");
 }
 
-template <class TGeomBaseObj, class TIndexType, class TConnectingObj>
-void ParallelDualGraph<TGeomBaseObj, TIndexType, TConnectingObj>::
-remove_empty_procs_from_node_offset_map()
-{
-	if(m_nodeOffsetMap.size() < 2)
-		return;
-
-	std::vector<TIndexType>	offsets;
-	offsets.push_back(m_nodeOffsetMap[0]);
-	for(size_t i = 1; i < m_nodeOffsetMap.size(); ++i){
-		if(m_nodeOffsetMap[i] != offsets.back())
-			offsets.push_back(m_nodeOffsetMap[i]);
-	}
-	m_nodeOffsetMap.swap(offsets);
-}
 }// end of namespace
 
 #endif
