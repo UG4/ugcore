@@ -12,6 +12,7 @@
 #include <string>
 
 #include "class_name_provider.h"
+#include "common/util/typename.h"
 
 namespace ug{
 namespace bridge{
@@ -151,7 +152,7 @@ void ClassNameProvider<TClass>::set_foreward_declared()
 {
 //	build default name using typeinfo
 	std::string name("[[");
-	name.append(typeid(TClass).name());
+	name.append( TypeName<TClass>() );
 	name.append(" (undeclared) ]]");
 
 //	set this as current name, but remember pre-declaration
