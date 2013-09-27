@@ -650,6 +650,11 @@ class ExportedClass : public ExportedClassBaseImpl
 	///	class-hierarchy
 		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
 
+		template<typename T>
+		ExportedClass<TClass>& add_(T t)
+		{
+			return t.add_to(*this);
+		}
 	/// Method registration
 	/**
 	 * @param methodName the name of the method to appear in the registry
