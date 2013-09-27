@@ -17,6 +17,7 @@ set(srcCommon	log.cpp
 				util/base64_file_writer.cpp
 				util/binary_buffer.cpp
 				util/binary_stream.cpp
+				util/demangle.cpp
 				util/crc32.cpp
         		util/file_util.cpp
         		util/loader/loader_util.cpp
@@ -27,6 +28,7 @@ set(srcCommon	log.cpp
         		util/string_util.cpp
         		util/table.cpp
 				util/variant.cpp
+				util/histogramm.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp
 				math/misc/tri_box.cpp
