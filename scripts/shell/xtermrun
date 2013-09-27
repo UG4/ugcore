@@ -19,6 +19,8 @@ else
 	np=$OMPI_MCA_ns_nds_num_procs
 fi
 
+[[ $PID == 0 ]] && echo "MaxWidth = $maxw, MaxHeight = $maxh, dx = $dx, dy = $dy"
+
 # adjust windows for 2/4/8/16 procs (or less)
 if [  $np -le 2 ]; then
 	w=$((maxw/2))
@@ -51,10 +53,10 @@ h=$(((h*10)/charHeightFactor10))
 # adding/removing -hold or +hold
 
 if [[ `uname` == 'Darwin' ]]; then
-	echo "On Apple, using xterm without hold"
+	[[ $PID == 0 ]] && echo "On Apple, using xterm without hold"
 	xterm -geometry ${w}x$h+$x+$y -e $2
 else
-	echo "Not on Apple, using xterm -hold"
+	[[ $PID == 0 ]] && echo "Not on Apple, using xterm -hold"
 	xterm -hold -geometry ${w}x$h+$x+$y -e $2
 fi
 
