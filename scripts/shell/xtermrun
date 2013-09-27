@@ -3,33 +3,12 @@
 # this is a helper script for xprun
 # this scripts adjusts the xwindow size and position so for 4 mpi task, 4 windows fit on screen
 
-# all you need to specify is the height and the width of your display, for example, if you have a
-# screen that is 1280x800 pixels:
-# maxw = 1280
-# maxh = 800
-# you can adjust deplacements with dx and dy, for example, if you have a second screen.
-# if windows are overlapping, you might have to adjust charWidth/HeightFactor10.
+# Parameters
+# $1 = xtermgeometry file
+# $2 = command to execute.
 
-maxw=1280
-maxh=800
-dx=0
-dy=0
-charWidthFactor10=62
-charHeightFactor10=141
-
-if [ "$HOSTNAME" == "braeburn.gcsc.uni-frankfurt.de" ]; then 
-maxw=1920
-maxh=1200
-dx=1700
-dy=0
-fi
-
-#if [ "$HOSTNAME" == "AG-Queisser-Mac-Pro.local" ]; then 
-#maxw=1920
-#maxh=1200
-#fi
-
-#if echo "$HOSTNAME" | grep '\w*.gcsc.uni-frankfurt.de' >/dev/null ; then dis=1 ; fi
+# get the geometry from the file xtermgeometry
+source $1
 
 # get PID/numprocs
 if [ -z $OMPI_MCA_ns_nds_num_procs ]; then
@@ -66,6 +45,17 @@ fi
 w=$(((w*10)/charWidthFactor10))
 h=$(((h*10)/charHeightFactor10))
 
-xterm -hold -geometry ${w}x$h+$x+$y -e $1
+# parameter -hold is needed on Non-Apple Systems to prevent the
+# windows from being closed automatically.
+# If you have problems with the close behaviour, try
+# adding/removing -hold or +hold
+
+if [[ `uname` == 'Darwin' ]]; then
+	echo "On Apple, using xterm without hold"
+	xterm -geometry ${w}x$h+$x+$y -e $2
+else
+	echo "Not on Apple, using xterm -hold"
+	xterm -hold -geometry ${w}x$h+$x+$y -e $2
+fi
 
 

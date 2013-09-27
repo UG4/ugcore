@@ -1,0 +1,27 @@
+# all you need to specify is the height and the width of your display, for example, if you have a
+# screen that is 1280x800 pixels:
+# maxw = 1280
+# maxh = 800
+# you can adjust deplacements with dx and dy, for example, if you have a second screen.
+# if windows are overlapping, you might have to adjust charWidth/HeightFactor10.
+
+maxw=1280
+maxh=800
+dx=0
+dy=0
+charWidthFactor10=62
+charHeightFactor10=141
+
+if [ "$HOSTNAME" == "braeburn.gcsc.uni-frankfurt.de" ]; then 
+maxw=1920
+maxh=1200
+dx=1700
+dy=0
+fi
+
+#if [ "$HOSTNAME" == "AG-Queisser-Mac-Pro.local" ]; then 
+#maxw=1920
+#maxh=1200
+#fi
+
+#if echo "$HOSTNAME" | grep '\w*.gcsc.uni-frankfurt.de' >/dev/null ; then dis=1 ; fi

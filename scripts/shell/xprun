@@ -14,9 +14,11 @@ function usage
 	echo "Usage: xprun {nrOfprocessors} {program} {arg1} {arg2} {..}"
 	echo "   This script opens e.g. 4 xterm windows and adjusts size & position so that they fit on the screen"
 	echo "   Inside the windows, a mpi program is started."
-	echo "   To adjust window position and max size, see xtermrun."	
+	echo "   To adjust window position and max size, see xtermgeometry (and xtermrun)."	
 	echo "   You can access your PID by the variable \$PID"
 	echo "   Example: xprun 4 echo 'hello, world! i am processor \$PID'"	
+	echo " "
+	echo " Troubleshooting: If you have problems with windows closing / not closing, see xtermrun."
 	exit 0
 }
 
@@ -58,5 +60,5 @@ EOF
 scriptDir=`dirname ${BASH_SOURCE[0]}`
 
 chmod +x $runfile
-mpirun -np $np $scriptDir/xtermrun $runfile
+mpirun -np $np $scriptDir/xtermrun $scriptDir/xtermgeometry $runfile
 rm $runfile
