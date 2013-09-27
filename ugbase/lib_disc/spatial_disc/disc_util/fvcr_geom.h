@@ -670,6 +670,8 @@ class CRFVGeometry : public FVGeometryBase
 
 	///	number of SubControlVolumeFaces
 		static const size_t numSCVF = ref_elem_type::numEdges;
+		
+		static const size_t maxNumSCVF = ref_elem_type::numEdges;
 
 	public:
 	///	order
