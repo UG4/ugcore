@@ -107,6 +107,17 @@ class UGError
 		std::vector<unsigned long> m_vLine; //< Line stack
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// some basic assertions
+#define THROW_IF_NOT_EQUAL(s1, s2) { UG_COND_THROW(s1 != s2, "missmatch: " << UG_TO_STRING(s1) << " = " << s1 << "  !=  " << UG_TO_STRING(s2) << " = " << s2 << "."); }
+#define THROW_IF_NOT_EQUAL_3(s1, s2, s3) { THROW_IF_NOT_EQUAL(s1, s2); THROW_IF_NOT_EQUAL(s1, s3); }
+#define THROW_IF_NOT_EQUAL_4(s1, s2, s3, s4) { THROW_IF_NOT_EQUAL(s1, s2); THROW_IF_NOT_EQUAL(s1, s3); THROW_IF_NOT_EQUAL(s1, s4); }
+
+#define ASSERT_EQUAL(s1, s2) { UG_COND_THROW(s1 != s2, "missmatch: " << UG_TO_STRING(s1) << " = " << s1 << "  !=  " << UG_TO_STRING(s2) << " = " << s2 << "."); }
+#define ASSERT_EQUAL_3(s1, s2, s3) { ASSERT_EQUAL(s1, s2); ASSERT_EQUAL(s1, s3); }
+#define ASSERT_EQUAL_4(s1, s2, s3, s4) { ASSERT_EQUAL(s1, s2); ASSERT_EQUAL(s1, s3); ASSERT_EQUAL(s1, s4); }
+
+
 // end group ugbase_common
 /// \}
 

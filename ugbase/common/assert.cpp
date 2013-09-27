@@ -10,8 +10,8 @@
 #include "assert.h"
 #include <stdlib.h>
 #ifdef UG_POSIX
+#include "util/demangle.h"
 #include <execinfo.h>
-#include <cxxabi.h>
 #endif
 #include <string>
 #include <sstream>
@@ -30,49 +30,6 @@ using namespace std;
 
 
 
-#ifdef UG_POSIX
-/**
- * demangles C++ function names like _ZZ12ug_backtracev = ug_backtrace().
- * also demangles them when they appear "in between", make sure they are
- * seperated by ' ', '\n' or '\t' and start with _.
- * @param str mangled string, containing stuff like _ZZ12ug_backtracev
- * @return the demangled string
- */
-string demangle(const char *str)
-{
-	stringstream ss;
-	char lastc=0x00;
-    string s;
-	int status;
-	for(char c = *str; c != 0x00; c = *(++str))	
-	{
-		// mangled names start with _ . consider only if last sign was space or tab or newline
-		if(c == '_' && (lastc==' ' || lastc == '\n' || lastc == '\t'))
-		{
-			s = "_";
-			// add all characters to the string until space, tab or newline
-			for(c = *(++str); c != 0x00; c = *(++str))			
-			{
-				if(c == ' ' || c == '\n' || c == '\t')
-					break;
-				s += c;
-			}
-			// some compilers add an additional _ in front. skip it.
-			const char *p = s.c_str();
-			if(s.length() > 2 && s[1] == '_') p = p+1;
-			char *realname = abi::__cxa_demangle(p, 0, 0, &status);
-			if(status==0)
-				ss << realname; // demangle successfull
-			else
-				ss << s; // demangling failed, print normal string
-			free(realname);
-		}
-		ss << c;
-		lastc =c;
-	}
-	return ss.str();
-}
-#endif
 
 void lua_backtrace()
 {
@@ -126,7 +83,7 @@ string get_gcc_backtrace()
 	strings = backtrace_symbols (array, size);
 
 	for (size_t i = 0; i < size; i++)
-		ss << i << ":\n" << demangle(strings[i]);
+		ss << i << ":\n" << ug::demangle_block(strings[i]);
 	free (strings);
 	ss << "\n";
 	return ss.str();
