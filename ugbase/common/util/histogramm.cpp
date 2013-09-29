@@ -6,6 +6,7 @@
  */
 
 #include "histogramm.h"
+#include <algorithm>    // std::sort
 #include <sstream>
 #include <iomanip> // setprecision
 
