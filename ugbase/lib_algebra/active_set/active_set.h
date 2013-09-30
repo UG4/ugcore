@@ -62,7 +62,7 @@ class ActiveSet
 		void prepare(function_type& u);
 
 	///	checks the distance to the prescribed obstacle/constraint
-		bool check_dist_to_obs(vector_type& u);
+		//bool check_dist_to_obs(vector_type& u);
 
 		template <typename TElem, typename TIterator>
 		void ActiveIndexElem(TIterator iterBegin,

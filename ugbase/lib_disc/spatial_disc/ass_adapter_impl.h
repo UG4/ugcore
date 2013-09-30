@@ -66,7 +66,6 @@ void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index,
 
 	if (index == m_assIndex.index)
 	{
-		// block : 1x1 (CPU=1), 3x3 (CPU=3)
 		typename matrix_type::value_type& block = mat(0,0);
 
 		BlockRef(block, alpha, alpha) = 1.0;

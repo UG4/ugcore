@@ -50,7 +50,7 @@ void ActiveSet<TDomain, TAlgebra>::prepare(function_type& u)
 	m_spDom = u.domain();
 }
 
-template <typename TDomain, typename TAlgebra>
+/*template <typename TDomain, typename TAlgebra>
 bool ActiveSet<TDomain, TAlgebra>::check_dist_to_obs(vector_type& u)
 {
 	//	STILL IN PROGRESS: u sollte hier reference-position + Startlšsung sein!
@@ -80,9 +80,9 @@ bool ActiveSet<TDomain, TAlgebra>::check_dist_to_obs(vector_type& u)
 	}
 
 	return geometry_cut_by_cons;
-}
+}*/
 
-//	determines a vector of global (dof,fct)-pairs, which are active (wrt. an obstacle-constraint)
+//	builds up a vector of global (dof,fct)-pairs, which are active (wrt. an obstacle-constraint)
 template <typename TDomain, typename TAlgebra>
 template <typename TElem, typename TIterator>
 void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
@@ -114,7 +114,7 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 
 	//	storage for corner coordinates
 	MathVector<dim> normal;
-	std::vector<MathVector<dim> > vCorner;
+	vector<MathVector<dim> > vCorner;
 	MathVector<dim> sideCoPos[dim+1];
 
 	// 	local indices and local algebra
@@ -175,56 +175,44 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 
 	//	loop over DoFs in element and store all activeMultiIndex-pairs in vector
 		size_t nFctElem = ind.num_fct();
+		number NormNormal = VecLength(normal);
 
 		for(size_t fct = 0; fct < nFctElem; ++fct)
 		{
 			size_t nDoFsPerFctElem = ind.num_dof(fct);
-
 			for(size_t dof = 0; dof < nDoFsPerFctElem; ++dof)
 			{
 				MathVector<dim> locUDof;
 				for(int i = 0; i < dim; ++i)
 					locUDof[i] = locU(i, dof);
 
-				number locU_n = VecDot(locUDof, normal);
-				number NormNormal = VecLength(normal);
-				number locU_n_scaled = locU_n / NormNormal;
-
-				//	locCF corresponds to the lagrange multiplier lambda, c.f. Hintermueller/Ito/Kunisch(2003)
-				//complementaryVal = locCF(fct ,dof) + locU(fct, dof) - locCons(fct, dof);
-				//UG_LOG("complementaryVal: " << complementaryVal << "\n");
+				//	locCF corresponds to the lagrange multiplier lambda,
+				//	c.f. Hintermueller/Ito/Kunisch(2003)
+				number locU_n_scaled = VecDot(locUDof, normal) / NormNormal;
 				complementaryVal_n_scaled = locCF(fct ,dof) + locU_n_scaled - locCons(fct, dof);
-				//UG_LOG("complementaryVal_n_scaled: " << complementaryVal_n_scaled << "\n");
 
-				//if (complementaryVal <= 1e-10)
-				if (complementaryVal_n_scaled <= 1e-10)
-				{
+				if (complementaryVal_n_scaled <= 1e-10){
 					locCF(fct,dof) = 0.0;
 				}
 				else
 				{
-					//	mark MultiIndex-pair (dof,fct) as active
-					const size_t globIndex = ind.index(fct, dof);
-					const size_t globComp = ind.comp(fct, dof);
-					DoFIndex newActiveIndex(globIndex, globComp);
-
-					bool bAlreadyActive = false;
-
 					//	create list of active global MultiIndex-pairs. Only those pairs should be attached
 					//	which are not already a member of the 'activeSetGlob'-vector
-					for (vector<DoFIndex>::iterator itSet = m_vActiveSetGlob.begin();
-							itSet < m_vActiveSetGlob.end(); ++itSet)
+					bool bAlreadyActive = false;
+					for (vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
+							itActiveInd < m_vActiveSetGlob.end(); ++itActiveInd)
 					{
-						DoFIndex activeIndex = *itSet;
-						if (activeIndex == newActiveIndex)
+						if ((*itActiveInd)[0] == ind.index(fct, dof)
+								&& (*itActiveInd)[1] == ind.comp(fct, dof))
 							bAlreadyActive = true;
 					}
 
 					if (!bAlreadyActive)
 					{
+						DoFIndex newActiveIndex(ind.index(fct, dof), ind.comp(fct, dof));
 						m_vActiveSetGlob.push_back(newActiveIndex);
 
-						BlockRef(rhs[globIndex], globComp) = locCons.value(fct,dof);
+						BlockRef(rhs[ind.index(fct, dof)], ind.comp(fct, dof)) = locCons.value(fct,dof);
 					}
 				}
 			} // end(dof)
@@ -239,6 +227,7 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 
 }
 
+//	builds up a vector of global (dof,fct)-pairs, which are active (wrt. an obstacle-constraint)
 template <typename TDomain, typename TAlgebra>
 bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 		function_type& rhs, function_type& contactForce, function_type& gap)
@@ -280,7 +269,7 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 	UG_LOG("#sizeOfvSubsetsOfGap: " << m_vSubsetsOfContact.size() << "\n");
 
 	//	2.) loop over all elements of the possible contact subsets
-	for (std::vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
+	for (vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
 			siContact != m_vSubsetsOfContact.end(); ++siContact)
 	{
 		//UG_LOG("siContact: " << *siContact << "\n");
@@ -316,17 +305,15 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 	else return false;
 }
 
+//	sets a Dirichlet row for all active Indices
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::
-adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices)
+adjust_matrix(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices)
 {
-	std::vector<SmartPtr<DoFIndex> >::iterator iter;
-	DoFIndex multiIndex;
-
-	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
+	for (vector<SmartPtr<DoFIndex> >::iterator itActiveInd = vActiveIndices.begin();
+			itActiveInd < vActiveIndices.end(); ++itActiveInd)
 	{
-		multiIndex = **iter;
-		SetDirichletRow(mat, multiIndex);
+		SetDirichletRow(mat, **itActiveInd);
 	}
 }
 
@@ -359,7 +346,7 @@ void ActiveSet<TDomain, TAlgebra>::ass_lagrangeMatIElem(TIterator iterBegin,
 
 	//	some storage
 	MathVector<dim> sideCoPos[dim+1];
-	std::vector<MathVector<dim> > vCorner;
+	vector<MathVector<dim> > vCorner;
 
 	// 	local indices and local algebra
 	LocalIndices ind; LocalMatrix locLagrangeMatI;
@@ -422,7 +409,7 @@ void ActiveSet<TDomain, TAlgebra>::ass_lagrangeMatIElem(TIterator iterBegin,
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::ass_lagrangeMatI(matrix_type& lagrangeMatI)
 {
-	for (std::vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
+	for (vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
 				siContact != m_vSubsetsOfContact.end(); ++siContact)
 	{
 		UG_LOG("siContact: " << *siContact << "\n");
@@ -484,18 +471,12 @@ void ActiveSet<TDomain, TAlgebra>::contactForcesRes(vector_type& contactforce,
 		//(*spRes).resize(u.size());
 
 		//	loop MultiIndex-pairs in activeSet-vector
-		for (vector<DoFIndex>::iterator it = m_vActiveSetGlob.begin();
-				it < m_vActiveSetGlob.end(); ++it)
+		for (vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
+				itActiveInd < m_vActiveSetGlob.end(); ++itActiveInd)
 		{
 			//	compute contact forces for active multiIndices
-
-			//	get active (DoF,fct)-pairs out of m_vActiveSetGlob
-			DoFIndex activeMultiIndex = *it;
-
 			//	contactForce = rhs - Mat * u;
-			//DoFRef((*spRes), activeMultiIndex) = DoFRef(rhs, activeMultiIndex) - DoFRef((*spMat_u), activeMultiIndex);
-			DoFRef(contactforce, activeMultiIndex) = DoFRef(rhs, activeMultiIndex) - DoFRef((*spMat_u), activeMultiIndex);
-			//DoFRef(rhs, activeMultiIndex) = DoFRef(rhs, activeMultiIndex) - DoFRef(contactforce, activeMultiIndex);
+			DoFRef(contactforce, *itActiveInd) = DoFRef(rhs, *itActiveInd) - DoFRef((*spMat_u), *itActiveInd);
 		}
 
 		/*#ifdef UG_PARALLEL
@@ -535,9 +516,8 @@ bool ActiveSet<TDomain, TAlgebra>::ConvCheckElem(TIterator iterBegin,
 			= u.domain()->position_accessor();
 
 	//	storage for corner coordinates
-	MathVector<dim> normal;
-	std::vector<MathVector<dim> > vCorner;
-	MathVector<dim> sideCoPos[dim+1];
+	vector<MathVector<dim> > vCorner;
+	MathVector<dim> sideCoPos[dim+1], normal;
 
 	// 	local indices and local algebra
 	LocalIndices ind, indCons;
@@ -578,8 +558,7 @@ bool ActiveSet<TDomain, TAlgebra>::ConvCheckElem(TIterator iterBegin,
 		GetLocalVector(locLambda, lambda);
 
 		size_t nFctElem = ind.num_fct();
-
-		number gap_value, locU_n, locU_n_scaled, kktcond;
+		number gap_value, locU_n_scaled, kktcond;
 		number NormNormal = VecLength(normal);
 
 		for(size_t fct = 0; fct < nFctElem; ++fct)
@@ -590,9 +569,7 @@ bool ActiveSet<TDomain, TAlgebra>::ConvCheckElem(TIterator iterBegin,
 				MathVector<dim> locUDof;
 				for(int i = 0; i < dim; ++i)
 					locUDof[i] = locU(i, dof);
-
-				locU_n = VecDot(locUDof, normal);
-				locU_n_scaled = locU_n / NormNormal;
+				locU_n_scaled = VecDot(locUDof, normal) / NormNormal;
 
 				gap_value =	locU_n_scaled - locCons(fct, dof);
 				if (gap_value > 1e-06){
@@ -629,7 +606,7 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const function_t
 			"of step " << step << " ! \n");
 
 	bool bConstraintViolated = false;
-	for (std::vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
+	for (vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
 			siContact != m_vSubsetsOfContact.end(); ++siContact)
 	{
 		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *siContact);
@@ -670,19 +647,16 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const function_t
 	{
 		UG_LOG("Old and new active Set have the same number of members \n");
 
-		vector<DoFIndex>::iterator it = m_vActiveSetGlob.begin();
+		vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
 
-		for (vector<DoFIndex>::iterator itOld = m_vActiveSetGlobOld.begin();
-				itOld < m_vActiveSetGlobOld.end(); ++itOld)
+		for (vector<DoFIndex>::iterator itActiveIndOld = m_vActiveSetGlobOld.begin();
+				itActiveIndOld < m_vActiveSetGlobOld.end(); ++itActiveIndOld)
 		{
-			DoFIndex multiIndexOld = *itOld;
-			DoFIndex multiIndex = *it;
-
-			if (multiIndex != multiIndexOld)
+			if (*itActiveInd != *itActiveIndOld)
 				return false;
 
-			++it;
-		} // itOld
+			++itActiveInd;
+		} // itActiveIndOld
 
 		//	activeSet remains unchanged & constraint is fulfilled for all indices
 		return true;
@@ -729,6 +703,7 @@ bool ActiveSet<TDomain, TAlgebra>::checkInequ(const matrix_type& mat,
 
 	return true;
 }
+
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::createVecOfPointers()
 {

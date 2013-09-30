@@ -181,7 +181,7 @@ class AssAdapter
 	public:
 
 	///	default LocalToGlobalMapper
-		LocalToGlobalMapper<TAlgebra> 	m_pMapperCommon;
+		LocalToGlobalMapper<TAlgebra> m_pMapperCommon;
 	///	LocalToGlobalMapper
 		ILocalToGlobalMapper<TAlgebra>* m_pMapper;
 
@@ -189,7 +189,7 @@ class AssAdapter
 		BoolMarker* m_pBoolMarker;
 
 	///	selector used to set a list of elements for the assembling
-		Selector* 	m_pSelector;
+		Selector* m_pSelector;
 
 	///	index-wise assembling
 		struct AssIndex{
@@ -199,7 +199,7 @@ class AssAdapter
 		};
 
 	///	object for index-wise assemble routine
-		AssIndex 	m_assIndex;
+		AssIndex m_assIndex;
 
 	/// forces the assembling to regard the grid as regular
 		bool m_bForceRegGrid;

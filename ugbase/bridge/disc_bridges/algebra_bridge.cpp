@@ -437,8 +437,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_constraint", &T::set_constraint, "", "constraint")
 			.add_method("set_contactDisc", &T::set_contactDisc, "", "contactDisc")
 			.add_method("prepare", &T::prepare, "", "prepare")
-			.add_method("check_dist_to_obs", &T::check_dist_to_obs, "", "",
-					"is distance to obs >= 0")
 			.add_method("active_index", &T::active_index, "", "",
 					"is index active or not, stores activeSetList")
 			.add_method("adjust_matrix", &T::adjust_matrix, "", "",
