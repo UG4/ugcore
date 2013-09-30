@@ -29,6 +29,7 @@ std::string scientificStr(double d, int width)
 
 std::string HistogrammString(std::vector<double> values)
 {
+	if(values.size() == 0) return "";
 	std::stringstream ss;
 	std::sort(values.begin(), values.end());
 
