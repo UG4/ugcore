@@ -240,7 +240,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 		DoFDistribution::traits<VertexBase>::const_iterator iterEnd 	= dd->end<VertexBase>(si);
 
 	//	create Multiindex
-		std::vector<MultiIndex<2> >  multInd;
+		std::vector<DoFIndex>  multInd;
 
 	//	for readin
 		MathVector<1> val;
@@ -349,7 +349,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
            	    ConstSmartPtr<DoFDistribution> dd, number time)
 {
 	//	create Multiindex
-	std::vector<MultiIndex<2> >  multInd;
+	std::vector<DoFIndex>  multInd;
 
 //	dummy for readin
 	typename TUserData::value_type val;
@@ -402,7 +402,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 						this->m_pAssAdapter->adjust_matrix(J, multInd[j][0], multInd[j][1]);
 					}
 					else{
-						SetDirichletRow(J, multInd[j][0], multInd[j][1]);
+						SetDirichletRow(J, multInd[j]);
 					}
 				}
 			}
@@ -474,7 +474,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
               ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
-	std::vector<MultiIndex<2> >  multInd;
+	std::vector<DoFIndex>  multInd;
 
 //	dummy for readin
 	typename TUserData::value_type val;
@@ -530,7 +530,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 					}
 					else{
 						//	set zero for dirichlet values
-						BlockRef(d[multInd[j][0]], multInd[j][1]) = 0.0;
+						DoFRef(d, multInd[j]) = 0.0;
 					}
 				}
 			}
@@ -596,7 +596,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
                 vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
-	std::vector<MultiIndex<2> >  multInd;
+	std::vector<DoFIndex>  multInd;
 
 //	value readin
 	typename TUserData::value_type val;
@@ -648,7 +648,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 					}
 					else{
 						//	set zero for dirichlet values
-						BlockRef(u[multInd[j][0]], multInd[j][1]) = val[f];
+						DoFRef(u, multInd[j]) = val[f];
 					}
 				}
 			}
@@ -717,7 +717,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
               ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
-	std::vector<MultiIndex<2> >  multInd;
+	std::vector<DoFIndex>  multInd;
 
 //	readin value
 	typename TUserData::value_type val;
@@ -775,9 +775,9 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 					}
 					else{
 						//	set dirichlet row
-							SetDirichletRow(A, index, alpha);
+							SetDirichletRow(A, multInd[j]);
 						//	set dirichlet value in rhs
-							BlockRef(b[index], alpha) = val[f];
+							DoFRef(b, multInd[j]) = val[f];
 					}
 				}
 			}
@@ -846,7 +846,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
            ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
-	std::vector<MultiIndex<2> >  multInd;
+	std::vector<DoFIndex>  multInd;
 
 //	readin value
 	typename TUserData::value_type val;
@@ -899,7 +899,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 						this->m_pAssAdapter->adjust_vector(b, index, alpha, val[f]);
 					}
 					else{
-						BlockRef(b[index], alpha) = val[f];
+						DoFRef(b, multInd[j]) = val[f];
 					}
 
 				}

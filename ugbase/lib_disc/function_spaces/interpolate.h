@@ -55,7 +55,7 @@ void InterpolateOnVertices(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 	const typename domain_type::position_accessor_type& aaPos
 										= spGridFct->domain()->position_accessor();
 
-	std::vector<MultiIndex<2> > ind;
+	std::vector<DoFIndex> ind;
 	typename TGridFunction::template dim_traits<0>::const_iterator iterEnd, iter;
 
 	for(size_t i = 0; i < ssGrp.size(); ++i)
@@ -168,7 +168,7 @@ void InterpolateOnElements(
 		mapping.update(&vCorner[0]);
 
 	//	get multiindices of element
-		std::vector<MultiIndex<2> > ind;
+		std::vector<DoFIndex> ind;
 		spGridFct->multi_indices(elem, fct, ind);
 
 	//	check multi indices

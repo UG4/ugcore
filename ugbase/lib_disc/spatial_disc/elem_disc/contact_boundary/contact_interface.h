@@ -37,7 +37,7 @@ class IContactDisc
 		virtual ~IContactDisc() {}
 
 		virtual void contactForces(TGridFunction& force, const TGridFunction& u,
-				std::vector<MultiIndex<2> > vActiveSet, std::vector<int> vActiveSubsets) = 0;
+				std::vector<DoFIndex> vActiveSet, std::vector<int> vActiveSubsets) = 0;
 };
 
 } //end namespace ug

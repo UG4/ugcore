@@ -22,7 +22,7 @@ template <typename TElem, typename TAlgebra>
 void AdaptionSurfaceGridFunction<TDomain>::
 copy_from_surface(const GridFunction<TDomain,TAlgebra>& rSurfaceFct, TElem* elem)
 {
-	std::vector<MultiIndex<2> > vInd;
+	std::vector<DoFIndex> vInd;
 	const size_t numFct = m_spDDInfo->num_fct();
 
 	std::vector<std::vector<number> >& vvVal = m_aaValue[elem];
@@ -87,7 +87,7 @@ template <typename TElem, typename TAlgebra>
 void AdaptionSurfaceGridFunction<TDomain>::
 copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct, TElem* elem)
 {
-	std::vector<MultiIndex<2> > vInd;
+	std::vector<DoFIndex> vInd;
 	const std::vector<std::vector<number> >& vvVal = m_aaValue[elem];
 
 	UG_ASSERT(vvVal.size() == m_spDDInfo->num_fct(), "Array says numFct: "<<

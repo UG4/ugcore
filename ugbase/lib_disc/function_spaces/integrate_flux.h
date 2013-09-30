@@ -41,7 +41,7 @@ void IntegrateDiscFlux(std::vector<number>& vValue,
 		UG_THROW("IntegrateDiscFlux: number of values and number of function mismatch.");
 
 //	allocate memory for indices
-	std::vector<std::vector<MultiIndex<2> > > vInd(fctGrp.size());
+	std::vector<std::vector<DoFIndex> > vInd(fctGrp.size());
 
 //	loop elements of subset
 	for( ; iter != iterEnd; ++iter)
@@ -56,7 +56,7 @@ void IntegrateDiscFlux(std::vector<number>& vValue,
 	//	sum values
 		for(size_t f = 0; f < fctGrp.size(); ++f)
 			for(size_t i = 0; i < vInd[f].size(); ++i)
-				vValue[f] += BlockRef( rDefect[ vInd[f][i][0] ], vInd[f][i][1]);
+				vValue[f] += DoFRef( rDefect, vInd[f][i]);
 	}
 }
 

@@ -1019,7 +1019,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 		File << VTKFileWriter::normal;
 
 //	index vector
-	std::vector<MultiIndex<2> > vMultInd;
+	std::vector<DoFIndex> vMultInd;
 
 //	get iterators
 	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
@@ -1055,15 +1055,8 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 							"component to vtk, exactly one DoF must be "
 							"given in a vertex.");
 
-			//	get index and subindex
-				const size_t index = vMultInd[0][0];
-				const size_t alpha = vMultInd[0][1];
-
-				UG_ASSERT(index < u.size(), "Bad index in vertex at "
-						  << GetGeometricObjectCenter(grid, v));
-
 			//	flush stream
-				write_item_to_file(File, BlockRef(u[index], alpha));
+				write_item_to_file(File, DoFRef(u, vMultInd[0]));
 			}
 
 
@@ -1372,7 +1365,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 	static const size_t numCo = ref_elem_type::numCorners;
 
 //	index vector
-	std::vector<MultiIndex<2> > vMultInd;
+	std::vector<DoFIndex> vMultInd;
 
 //	get iterators
 	typedef typename IteratorProvider<TFunction>::template traits<TElem>::const_iterator const_iterator;
@@ -1420,11 +1413,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 			number ipVal = 0.0;
 			for(size_t sh = 0; sh < vNsh[f]; ++sh)
 			{
-			//	get index and subindex
-				const size_t index = vMultInd[sh][0];
-				const size_t alpha = vMultInd[sh][1];
-
-				ipVal += BlockRef(u[index], alpha) * vvShape[f][sh];
+				ipVal += DoFRef(u, vMultInd[sh]) * vvShape[f][sh];
 			}
 
 		//	flush stream

@@ -626,7 +626,7 @@ class L2ErrorIntegrand
 			const size_t num_sh = rTrialSpace.num_sh();
 
 		//	get multiindices of element
-			std::vector<MultiIndex<2> > ind;  // 	aux. index array
+			std::vector<DoFIndex> ind;  // 	aux. index array
 			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
@@ -825,7 +825,7 @@ class L2DiffIntegrand
 					LocalFiniteElementProvider::get<elemDim>(coarseROID, m_coarseLFEID);
 
 		//	get multiindices of element
-			std::vector<MultiIndex<2> > vFineMI, vCoarseMI;
+			std::vector<DoFIndex> vFineMI, vCoarseMI;
 			m_spFineGridFct->multi_indices(pFineElem, m_fineFct, vFineMI);
 			m_spCoarseGridFct->multi_indices(pCoarseElem, m_coarseFct, vCoarseMI);
 
@@ -993,7 +993,7 @@ class H1ErrorIntegrand
 			const size_t num_sh = rTrialSpace.num_sh();
 
 		//	get multiindices of element
-			std::vector<MultiIndex<2> > ind;  // 	aux. index array
+			std::vector<DoFIndex> ind;  // 	aux. index array
 			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
@@ -1214,7 +1214,7 @@ class H1DiffIntegrand
 					LocalFiniteElementProvider::get<elemDim>(coarseROID, m_coarseLFEID);
 
 		//	get multiindices of element
-			std::vector<MultiIndex<2> > vFineMI, vCoarseMI;
+			std::vector<DoFIndex> vFineMI, vCoarseMI;
 			m_spFineGridFct->multi_indices(pFineElem, m_fineFct, vFineMI);
 			m_spCoarseGridFct->multi_indices(pCoarseElem, m_coarseFct, vCoarseMI);
 
@@ -1383,7 +1383,7 @@ class L2FuncIntegrand
 
 		//	get multiindices of element
 
-			std::vector<MultiIndex<2> > ind;  // 	aux. index array
+			std::vector<DoFIndex> ind;  // 	aux. index array
 			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
@@ -1401,7 +1401,7 @@ class L2FuncIntegrand
 				{
 					//	get value at shape point (e.g. corner for P1 fct)
 					//	and add shape fct at ip * value at shape
-					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
+					const number valSH = DoFRef((*m_spGridFct), ind[sh]);
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
 				}
 
@@ -1504,7 +1504,7 @@ class StdFuncIntegrand
 
 		//	get multiindices of element
 
-			std::vector<MultiIndex<2> > ind;  // 	aux. index array
+			std::vector<DoFIndex> ind;  // 	aux. index array
 			m_spGridFct->multi_indices(pElem, m_fct, ind);
 
 		//	check multi indices
@@ -1522,7 +1522,7 @@ class StdFuncIntegrand
 				{
 					//	get value at shape point (e.g. corner for P1 fct)
 					//	and add shape fct at ip * value at shape
-					const number valSH = BlockRef((*m_spGridFct)[ind[sh][0]], ind[sh][1]);
+					const number valSH = DoFRef((*m_spGridFct), ind[sh]);
 					approxSolIP += valSH * rTrialSpace.shape(sh, vLocIP[ip]);
 				}
 
@@ -1560,14 +1560,14 @@ number StdFuncIntegralOnVertex(SmartPtr<TGridFunction> spGridFct,
 	//	get element
 		geometric_base_object* pElem = *iter;
 
-		std::vector<MultiIndex<2> > ind;  // 	aux. index array
+		std::vector<DoFIndex> ind;  // 	aux. index array
 		spGridFct->multi_indices(pElem, fct, ind);
 
 	// 	compute approximated solution at integration point
 		number value = 0.0;
 		for(size_t sh = 0; sh < ind.size(); ++sh)
 		{
-			value += BlockRef((*spGridFct)[ind[sh][0]], ind[sh][1]);
+			value += DoFRef((*spGridFct), ind[sh]);
 		}
 
 	//	add to global sum
@@ -2047,7 +2047,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 						"Cannot update Finite Volume Geometry.");
 
 		//	get fct multi-indeces of element
-			std::vector<MultiIndex<2> > ind;
+			std::vector<DoFIndex> ind;
 			u.multi_indices(elem, fct, ind);
 
 		//	specify, which subsets are boundary
@@ -2079,7 +2079,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 					MathVector<dim> grad; VecSet(grad, 0.0);
 					for(size_t sh = 0; sh < bf.num_sh(); ++sh)
 					{
-						const number fctVal = BlockRef(u[ind[sh][0]], ind[sh][1]);
+						const number fctVal = DoFRef(u, ind[sh]);
 
 						VecScaleAdd(grad, 1.0, grad, fctVal, bf.global_grad(sh));
 					}

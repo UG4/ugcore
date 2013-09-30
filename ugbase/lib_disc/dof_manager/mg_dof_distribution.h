@@ -68,7 +68,7 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 {
 	public:
 	//	type of multi index
-		typedef MultiIndex<2> multi_index_type;
+		typedef DoFIndex multi_index_type;
 
 	public:
 		MGDoFDistribution(SmartPtr<MultiGrid> spMG,

@@ -96,7 +96,7 @@ class GridFunctionNumberData
 					rTrialSpace.shapes(vShape, vLocIP[ip]);
 
 					//	get multiindices of element
-					std::vector<MultiIndex<2> > ind;
+					std::vector<DoFIndex> ind;
 					m_spGridFct->multi_indices(elem, m_fct, ind);
 
 					// 	compute solution at integration point
@@ -218,7 +218,7 @@ class GridFunctionVectorData
 					rTrialSpace.shapes(vShape, vLocIP[ip]);
 
 					//	get multiindices of element
-					std::vector<MultiIndex<2> > ind;
+					std::vector<DoFIndex> ind;
 					m_spGridFct->multi_indices(elem, m_vfct[d], ind);
 
 					// 	compute solution at integration point
@@ -334,7 +334,7 @@ class GridFunctionGradientData
 				rTrialSpace.grads(vLocGrad, vLocIP[ip]);
 
 				//	get multiindices of element
-				std::vector<MultiIndex<2> > ind;
+				std::vector<DoFIndex > ind;
 				m_spGridFct->multi_indices(elem, m_fct, ind);
 
 				//	compute grad at ip
@@ -484,7 +484,7 @@ class GridFunctionGradientComponentData
 				rTrialSpace.grads( vLocGrad, vLocIP[ip] );
 
 				//	get multiindices of element
-				std::vector<MultiIndex<2> > ind;
+				std::vector<DoFIndex> ind;
 				m_spGridFct->multi_indices( elem, m_fct, ind );
 
 				//	compute grad at ip

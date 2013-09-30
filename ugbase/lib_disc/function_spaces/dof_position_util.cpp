@@ -267,7 +267,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 	std::vector<MathVector<TDomain::dim> > vElemPos;
 
 //	algebra indices vector
-	std::vector<MultiIndex<2> > ind;
+	std::vector<DoFIndex> ind;
 
 //	loop all subsets
 	for(int si = 0; si < dd->num_subsets(); ++si)
@@ -388,7 +388,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 	std::vector<MathVector<TDomain::dim> > vElemPos;
 
 //	algebra indices vector
-	std::vector<MultiIndex<2> > ind;
+	std::vector<DoFIndex> ind;
 
 //	loop all subsets
 	for(int si = 0; si < dd->num_subsets(); ++si)
@@ -469,7 +469,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 	std::vector<MathVector<TDomain::dim> > vElemPos;
 
 //	algebra indices vector
-	std::vector<MultiIndex<2> > ind;
+	std::vector<DoFIndex> ind;
 
 //	a pair
 	std::pair<MathVector<TDomain::dim>, size_t> pair;
@@ -549,7 +549,7 @@ bool CheckDoFElem(ConstSmartPtr<TDomain> domain,
 	std::vector<MathVector<TDomain::dim> > vElemPos;
 
 //	algebra indices vector
-	std::vector<MultiIndex<2> > ind;
+	std::vector<DoFIndex> ind;
 
 //	loop all subsets
 	for(int si = 0; si < dd->num_subsets(); ++si)

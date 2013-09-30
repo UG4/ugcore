@@ -428,10 +428,6 @@ assemble_defect(vector_type& d,
 		} UG_CATCH_THROW("Cannot modify solution.");
 	}
 
-	//UG_LOG("modify in 'domain_disc' Vorher: " << BlockRef((*pModifyU)[576],0) << "\t" << BlockRef((*pModifyU)[576],1)<< "\n");
-
-
-
 //	create list of all subsets
 	try{
 		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
@@ -764,15 +760,15 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
 void DomainDiscretization<TDomain, TAlgebra>::
-adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices)
+adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices)
 {
-	std::vector<SmartPtr<MultiIndex<2> > >::iterator iter;
-	MultiIndex<2> multiIndex;
+	std::vector<SmartPtr<DoFIndex> >::iterator iter;
+	DoFIndex multiIndex;
 
 	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
 	{
 		multiIndex = **iter;
-		SetDirichletRow(mat, multiIndex[0], multiIndex[1]);
+		SetDirichletRow(mat, multiIndex);
 	}
 }
 
@@ -1028,11 +1024,6 @@ assemble_defect(vector_type& d,
 		}
 		} UG_CATCH_THROW("'DomainDiscretization: Cannot modify solution.");
 	}
-
-
-	//UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyMemory->solution(0))[144],0) << "\t" << BlockRef((*pModifyMemory->solution(0))[144],1)<< "\n");
-
-	//UG_LOG("modify in 'domain_disc' Nachher: " << BlockRef((*pModifyU->solution(0))[144],0) << "\t" << BlockRef((*pModifyU->solution(0))[144],1)<< "\n");
 
 //	loop subsets
 	for(size_t i = 0; i < unionSubsets.size(); ++i)
@@ -1359,17 +1350,17 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra>
 void DomainDiscretization<TDomain, TAlgebra>::
-adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
+adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices,
 		 number time)
 {
 	//	currently there is no difference to the stationary variant of this method
 	//	therefore one could call the stationary impl here
-	std::vector<SmartPtr<MultiIndex<2> > >::iterator iter;
+	std::vector<SmartPtr<DoFIndex> >::iterator iter;
 
 	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
 	{
-		MultiIndex<2> multiIndex = **iter;
-		SetDirichletRow(mat, multiIndex[0], multiIndex[1]);
+		DoFIndex multiIndex = **iter;
+		SetDirichletRow(mat, multiIndex);
 	}
 }
 

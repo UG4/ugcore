@@ -95,7 +95,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		{adjust_solution(u, dd(gl));}
 
 	/// \copydoc IAssemble::adjust_matrix()
-		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices);
+		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices);
 
 	///	wrapper for GridFunction
 	/// \{
@@ -183,7 +183,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		{adjust_solution(u, time, dd(gl));}
 
 	/// \copydoc IDomainDiscretization::adjust_matrix()
-		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
+		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices,
 				number time);
 
 	/// \copydoc IDomainDiscretization::finish_timestep()

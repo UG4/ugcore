@@ -95,11 +95,11 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
 			VertexBase* vert = elem->vertex(sh);
 
 		//	get of of vertex
-			std::vector<MultiIndex<2> > ind;
+			std::vector<DoFIndex> ind;
 			u.inner_multi_indices(vert, fct, ind);
 
 		//	scale global gradient
-			vGlobalGrad[sh] *= BlockRef(u[ind[0][0]], ind[0][1]);
+			vGlobalGrad[sh] *= DoFRef(u, ind[0]);
 
 		//	sum up
 			MidGrad += vGlobalGrad[sh];
@@ -192,11 +192,11 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 			MatVecMult(vGlobalGrad[sh], JTInv, vLocalGrad[sh]);
 
 		//	get of of vertex
-			std::vector<MultiIndex<2> > ind;
+			std::vector<DoFIndex> ind;
 			u.inner_multi_indices(sides[sh], fct, ind);
 
 		//	scale global gradient
-			vGlobalGrad[sh] *= BlockRef(u[ind[0][0]], ind[0][1]);
+			vGlobalGrad[sh] *= DoFRef(u, ind[0]);
 
 		//	sum up
 			MidGrad += vGlobalGrad[sh];
@@ -298,9 +298,9 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 			number faceValue = 0;
 			size_t numOfAsso = assoElements.size();
 			for (size_t i=0;i<numOfAsso;i++){
-				std::vector<MultiIndex<2> > ind;
+				std::vector<DoFIndex> ind;
 				u.inner_multi_indices(assoElements[i], fct, ind);
-				faceValue+=BlockRef(u[ind[0][0]], ind[0][1]);
+				faceValue+=DoFRef(u, ind[0]);
 			}
 			faceValue/=(number)numOfAsso;
 			MathVector<dim> normal;

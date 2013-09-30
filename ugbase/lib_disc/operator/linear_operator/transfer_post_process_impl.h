@@ -56,7 +56,7 @@ post_process(vector_type& u)
 	const int dim = TDomain::dim;
 	const DoFDistribution& dd = *m_spApproxSpace->level_dof_distribution(m_level.level());
 
-	std::vector<MultiIndex<2> > vMultInd;
+	std::vector<DoFIndex> vMultInd;
 
 //  iterators
 	typedef typename DoFDistribution::template dim_traits<dim>::const_iterator const_iterator;

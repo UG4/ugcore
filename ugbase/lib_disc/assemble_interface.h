@@ -166,7 +166,7 @@ class IAssemble
 		 * \param[in]	vActiveIndices	vector of active Indices
 		 */
 		virtual void adjust_matrix(matrix_type& mat,
-				std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices) = 0;
+				std::vector<SmartPtr<DoFIndex> > vActiveIndices) = 0;
 
 
 	///	assembles mass matrix

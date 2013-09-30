@@ -56,7 +56,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 //	clear restricted vector
 	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
 
-	std::vector<MultiIndex<2> > coarseMultInd, fineMultInd;
+	std::vector<DoFIndex> coarseMultInd, fineMultInd;
 
 //  iterators
 	typedef DoFDistribution::traits<VertexBase>::const_iterator const_iterator;
@@ -168,7 +168,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 //	clear restricted vector
 	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
 
-	std::vector<MultiIndex<2> > vCoarseMultInd, vFineMultInd;
+	std::vector<DoFIndex> vCoarseMultInd, vFineMultInd;
 
 //	vector of local finite element ids
 	std::vector<LFEID> vLFEID(fineDD.num_fct());

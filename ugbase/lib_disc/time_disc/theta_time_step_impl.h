@@ -138,7 +138,7 @@ adjust_solution(vector_type& u, const GridLevel& gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices)
+adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_matrix, "discretization MultiStepTimeDiscretization");
 //	adjust matrix

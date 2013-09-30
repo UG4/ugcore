@@ -102,7 +102,7 @@ static void Algebra(Registry& reg, string parentGroup)
 			.add_method("assemble_mass_matrix", static_cast<void (T::*)(matrix_type&, const vector_type&)>(&T::assemble_mass_matrix),"", "M#u", "assembles mass matrix on surface grid")
 			.add_method("adjust_solution", static_cast<void (T::*)(vector_type&)>(&T::adjust_solution))
 			.add_method("adjust_solution", static_cast<void (T::*)(vector_type&, const GridLevel&)>(&T::adjust_solution))
-			.add_method("adjust_matrix", static_cast<void (T::*)(matrix_type&, std::vector<SmartPtr<MultiIndex<2> > >)>(&T::adjust_matrix));
+			.add_method("adjust_matrix", static_cast<void (T::*)(matrix_type&, std::vector<SmartPtr<DoFIndex> >)>(&T::adjust_matrix));
 		reg.add_class_to_group(name, "IAssemble", tag);
 	}
 

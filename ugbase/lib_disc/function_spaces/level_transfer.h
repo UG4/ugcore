@@ -189,7 +189,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 		UG_THROW("ProlongateElemwise: fine level must be >= coarse level.");
 
 //	storage
-	std::vector<MultiIndex<2> > vCoarseMI, vFineMI;
+	std::vector<DoFIndex> vCoarseMI, vFineMI;
 
 //	vector of local finite element ids
 	SmartPtr<DoFDistribution> fineDD = uFine.dof_distribution();
@@ -431,7 +431,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 		UG_THROW("RestrictElemwise: fine level must be >= coarse level.");
 
 //	storage
-	std::vector<MultiIndex<2> > vCoarseMI, vFineMI;
+	std::vector<DoFIndex> vCoarseMI, vFineMI;
 
 //	vector of local finite element ids
 	SmartPtr<DoFDistribution> fineDD = uFine.dof_distribution();

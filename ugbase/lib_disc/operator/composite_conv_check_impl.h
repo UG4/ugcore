@@ -63,7 +63,7 @@ extract_multi_indices(ConstSmartPtr<DoFDistribution> dd)
 	iterEnd = dd->template end<TBaseElem>();
 
 	// loop over all elements
-	std::vector<MultiIndex<2> > vInd;
+	std::vector<DoFIndex> vInd;
 	for (iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		for (size_t fi = 0; fi < dd->num_fct(); fi++)
@@ -103,7 +103,7 @@ extract_multi_indices(ConstSmartPtr<DoFDistribution> dd)
 
 template <class TVector, class TDomain>
 number CompositeConvCheck<TVector, TDomain>::
-norm(const TVector& vec, const std::vector<MultiIndex<2> >& vMultiIndex)
+norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 {
 #ifdef UG_PARALLEL
 

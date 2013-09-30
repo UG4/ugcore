@@ -372,7 +372,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 			{
 				//	call ProjectVectorCorrection
 
-				/*std::vector<MultiIndex<2> > vActiveSet;
+				/*std::vector<DoFIndex> vActiveSet;
 				value_type diff;
 				diff = u[i] - m_ConsVec[i];
 				//	get number of unknowns per value_type
@@ -389,12 +389,12 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 						bool MultiIndex_is_in_activeSet = false;
 						penetrate = true;
 
-						std::vector<MultiIndex<2> >::iterator iter;
+						std::vector<DoFIndex>::iterator iter;
 
 						//	adds MultiIndex-pair (i,fct) to vActiveSet
 						for (iter = vActiveSet.begin(); iter != vActiveSet.end(); ++iter)
 						{
-							MultiIndex<2> activeMultiIndex = *iter;
+							DoFIndex activeMultiIndex = *iter;
 
 							if (activeMultiIndex[0] == i && activeMultiIndex[1] == fct)
 								MultiIndex_is_in_activeSet = true;
@@ -404,7 +404,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 						if (!MultiIndex_is_in_activeSet)
 						{
-							MultiIndex<2> activeMultiIndex(i,fct);
+							DoFIndex activeMultiIndex(i,fct);
 							vActiveSet.push_back(activeMultiIndex);
 							//activeSet_changed = true;
 						}

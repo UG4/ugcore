@@ -144,7 +144,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 		void extract_multi_indices(ConstSmartPtr<DoFDistribution> dd);
 
 	/// calculates the 2-norm of the entries of the vector vec specified by index
-		number norm(const TVector& vec, const std::vector<MultiIndex<2> >& index);
+		number norm(const TVector& vec, const std::vector<DoFIndex>& index);
 
 	protected:
 	///	ApproxSpace
@@ -157,7 +157,7 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 			number currDefect;	///< Current Defect of component
 			number lastDefect;	///< Last Defect if component
 
-			std::vector<MultiIndex<2> > vMultiIndex; ///< associated indices
+			std::vector<DoFIndex> vMultiIndex; ///< associated indices
 		};
 
 	///	info on natural components

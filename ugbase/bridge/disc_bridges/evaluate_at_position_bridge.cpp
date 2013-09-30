@@ -53,7 +53,7 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 	const typename domain_type::position_accessor_type& aaPos
 										= dom->position_accessor();
 
-	std::vector<MultiIndex<2> > ind;
+	std::vector<DoFIndex> ind;
 	typename subset_handler_type::template traits<VertexBase>::const_iterator iterEnd, iter,chosen;
 	double minDistanceSq;
 

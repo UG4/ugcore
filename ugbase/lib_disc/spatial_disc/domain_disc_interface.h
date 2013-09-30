@@ -107,7 +107,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 		 * \param[out] 	mat				Mass-/Stiffness- Matrix
 		 * \param[in]	vActiveIndices	vector of active Indices
 		 */
-		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices) = 0;
+		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices) = 0;
 
 		/// assembles the mass matrix
 		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, const GridLevel& gl) = 0;
@@ -267,7 +267,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	 * \param[in]	vActiveIndices	vector of active Indices
 	 * \param[in]  	time			time of next (to be computed) timestep
 	 */
-		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<MultiIndex<2> > > vActiveIndices,
+		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex > > vActiveIndices,
 				number time) = 0;
 
 

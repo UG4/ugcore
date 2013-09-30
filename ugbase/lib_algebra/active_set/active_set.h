@@ -99,7 +99,7 @@ class ActiveSet
 		void ass_lagrangeMatI(matrix_type& lagrangeMatI);
 
 	///	method used for lua-call in order to pass the ActiveSet to assemble-funcs
-		vector<SmartPtr<MultiIndex<2> > >  activeMultiIndices()
+		vector<SmartPtr<DoFIndex> >  activeMultiIndices()
 		{
 			createVecOfPointers();
 			return m_vActiveSetGlobSP;
@@ -128,11 +128,11 @@ class ActiveSet
 		vector<int> m_vSubsetsOfContact;
 
 		///	vector of the current active set of global MultiIndices (DoF,Fct)
-		vector<MultiIndex<2> > m_vActiveSetGlob;
+		vector<DoFIndex> m_vActiveSetGlob;
 		///	vector remembering the active set of global MultiIndices (DoF,Fct)
-		vector<MultiIndex<2> > m_vActiveSetGlobOld;
+		vector<DoFIndex> m_vActiveSetGlobOld;
 		///	vector of pointers to active set needed for lua-call
-		vector<SmartPtr<MultiIndex<2> > > m_vActiveSetGlobSP;
+		vector<SmartPtr<DoFIndex> > m_vActiveSetGlobSP;
 };
 
 } // namespace ug

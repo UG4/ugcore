@@ -206,18 +206,17 @@ void ActiveSet<TDomain, TAlgebra>::ActiveIndexElem(TIterator iterBegin,
 					//	mark MultiIndex-pair (dof,fct) as active
 					const size_t globIndex = ind.index(fct, dof);
 					const size_t globComp = ind.comp(fct, dof);
-					MultiIndex<2> newActiveIndex(globIndex, globComp);
+					DoFIndex newActiveIndex(globIndex, globComp);
 
 					bool bAlreadyActive = false;
 
 					//	create list of active global MultiIndex-pairs. Only those pairs should be attached
 					//	which are not already a member of the 'activeSetGlob'-vector
-					for (vector<MultiIndex<2> >::iterator itSet = m_vActiveSetGlob.begin();
+					for (vector<DoFIndex>::iterator itSet = m_vActiveSetGlob.begin();
 							itSet < m_vActiveSetGlob.end(); ++itSet)
 					{
-						MultiIndex<2> activeIndex = *itSet;
-						if ((activeIndex[0] == newActiveIndex[0])
-								&& (activeIndex[1] == newActiveIndex[1]))
+						DoFIndex activeIndex = *itSet;
+						if (activeIndex == newActiveIndex)
 							bAlreadyActive = true;
 					}
 
@@ -471,21 +470,18 @@ void ActiveSet<TDomain, TAlgebra>::contactForcesRes(vector_type& contactforce,
 		//(*spRes).resize(u.size());
 
 		//	loop MultiIndex-pairs in activeSet-vector
-		for (vector<MultiIndex<2> >::iterator it = m_vActiveSetGlob.begin();
+		for (vector<DoFIndex>::iterator it = m_vActiveSetGlob.begin();
 				it < m_vActiveSetGlob.end(); ++it)
 		{
 			//	compute contact forces for active multiIndices
 
 			//	get active (DoF,fct)-pairs out of m_vActiveSetGlob
-			MultiIndex<2> activeMultiIndex = *it;
-
-			size_t dof = activeMultiIndex[0];
-			size_t fct = activeMultiIndex[1];
+			DoFIndex activeMultiIndex = *it;
 
 			//	contactForce = rhs - Mat * u;
-			//BlockRef((*spRes)[dof],fct) = BlockRef(rhs[dof],fct) - BlockRef((*spMat_u)[dof],fct);
-			BlockRef(contactforce[dof],fct) = BlockRef(rhs[dof],fct) - BlockRef((*spMat_u)[dof],fct);
-			//BlockRef(rhs[dof],fct) = BlockRef(rhs[dof],fct) - BlockRef(contactforce[dof],fct);
+			//DoFRef((*spRes), activeMultiIndex) = DoFRef(rhs, activeMultiIndex) - DoFRef((*spMat_u), activeMultiIndex);
+			DoFRef(contactforce, activeMultiIndex) = DoFRef(rhs, activeMultiIndex) - DoFRef((*spMat_u), activeMultiIndex);
+			//DoFRef(rhs, activeMultiIndex) = DoFRef(rhs, activeMultiIndex) - DoFRef(contactforce, activeMultiIndex);
 		}
 
 		/*#ifdef UG_PARALLEL
@@ -660,16 +656,15 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const function_t
 	{
 		UG_LOG("Old and new active Set have the same number of members \n");
 
-		vector<MultiIndex<2> >::iterator it = m_vActiveSetGlob.begin();
+		vector<DoFIndex>::iterator it = m_vActiveSetGlob.begin();
 
-		for (vector<MultiIndex<2> >::iterator itOld = m_vActiveSetGlobOld.begin();
+		for (vector<DoFIndex>::iterator itOld = m_vActiveSetGlobOld.begin();
 				itOld < m_vActiveSetGlobOld.end(); ++itOld)
 		{
-			MultiIndex<2> multiIndexOld = *itOld;
-			MultiIndex<2> multiIndex = *it;
+			DoFIndex multiIndexOld = *itOld;
+			DoFIndex multiIndex = *it;
 
-			if ((multiIndex[0] != multiIndexOld[0])
-					|| (multiIndex[1] != multiIndexOld[1]))
+			if (multiIndex != multiIndexOld)
 				return false;
 
 			++it;
@@ -725,9 +720,9 @@ void ActiveSet<TDomain, TAlgebra>::createVecOfPointers()
 {
 	m_vActiveSetGlobSP.resize(m_vActiveSetGlob.size());
 
-	vector<MultiIndex<2> >::iterator it = m_vActiveSetGlob.begin();
+	vector<DoFIndex>::iterator it = m_vActiveSetGlob.begin();
 
-	for (vector<SmartPtr<MultiIndex<2> > >::iterator itSP = m_vActiveSetGlobSP.begin();
+	for (vector<SmartPtr<DoFIndex> >::iterator itSP = m_vActiveSetGlobSP.begin();
 				itSP < m_vActiveSetGlobSP.end(); ++itSP)
 	{
 		*itSP = &*it;

@@ -227,36 +227,39 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
 //	degree of freedom access using multi indices
 ////////////////////////////////////////////////////////////////////////////////
 
+/// type of DoF-Index used to identify an DoF in the Algebra
+typedef MultiIndex<2> DoFIndex;
+
 template <typename TMatrix>
 inline number&
-DoFRef(TMatrix& mat, const MultiIndex<2>& iInd, const MultiIndex<2>& jInd)
+DoFRef(TMatrix& mat, const DoFIndex& iInd, const DoFIndex& jInd)
 {
 	return BlockRef(mat(iInd[0], jInd[0]), iInd[1], jInd[1]);
 }
 
 template <typename TMatrix>
 inline const number&
-DoFRef(const TMatrix& mat, const MultiIndex<2>& iInd, const MultiIndex<2>& jInd)
+DoFRef(const TMatrix& mat, const DoFIndex& iInd, const DoFIndex& jInd)
 {
 	return BlockRef(mat(iInd[0], jInd[0]), iInd[1], jInd[1]);
 }
 
 template <typename TVector>
 inline number&
-DoFRef(TVector& vec, const MultiIndex<2>& ind)
+DoFRef(TVector& vec, const DoFIndex& ind)
 {
 	return BlockRef(vec[ind[0]], ind[1]);
 }
 
 template <typename TVector>
 inline const number&
-DoFRef(const TVector& vec, const MultiIndex<2>& ind)
+DoFRef(const TVector& vec, const DoFIndex& ind)
 {
 	return BlockRef(vec[ind[0]], ind[1]);
 }
 
 template <typename TMatrix>
-void SetDirichletRow(TMatrix& mat, const MultiIndex<2>& ind)
+void SetDirichletRow(TMatrix& mat, const DoFIndex& ind)
 {
 	SetDirichletRow(mat, ind[0], ind[1]);
 }

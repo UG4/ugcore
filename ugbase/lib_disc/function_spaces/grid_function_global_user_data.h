@@ -104,7 +104,7 @@ class GlobalGridFunctionNumberData
 				rTrialSpace.shapes(vShape, locPos);
 
 			//	get multiindices of element
-				std::vector<MultiIndex<2> > ind;
+				std::vector<DoFIndex> ind;
 				m_spGridFct->multi_indices(elem, m_fct, ind);
 
 			// 	compute solution at integration point

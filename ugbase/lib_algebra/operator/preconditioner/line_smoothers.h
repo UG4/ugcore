@@ -347,7 +347,7 @@ void collectStretchedElementIndices(ConstSmartPtr<TDomain> domain,
 	std::vector<MathVector<TDomain::dim> > vElemPos;
 
 //	algebra indices vector
-	std::vector<MultiIndex<2> > ind;
+	std::vector<DoFIndex> ind;
 	
 	const typename TDomain::position_accessor_type& aaPos = domain->position_accessor();
 
@@ -372,7 +372,7 @@ void collectStretchedElementIndices(ConstSmartPtr<TDomain> domain,
 				std::vector<EdgeBase*> vEdge;
 				CollectEdgesSorted(vEdge, domain->grid, elem);
 				std::vector<number> edgeLength(vEdge.size());
-				std::vector<MultiIndex<2> > ind;
+				std::vector<DoFIndex> ind;
 				MathVector<TDomain::dim> vCoord[2];
 				for (size_t i=0;i<vEdge.size();i++){
 					for (size_t j=0;j<2;j++) vCoord[i] = aaPos[vEdge[i]->vertex(i)];

@@ -321,7 +321,7 @@ number AverageFunctionDifference(
 	for( gridFctIterator iter = spGridFct->template begin<VertexBase>((int)subSetID); 
 	       iter != spGridFct->template end<VertexBase>((int)subSetID); ++iter ) {
 		// get multi_indices for the two functions on given subset
-		std::vector< MultiIndex<2> > indFct1, indFct2;
+		std::vector< DoFIndex > indFct1, indFct2;
 		spGridFct->template multi_indices<VertexBase>( *iter, fct1ID, indFct1 );
 		spGridFct->template multi_indices<VertexBase>( *iter, fct2ID, indFct2 );
 
