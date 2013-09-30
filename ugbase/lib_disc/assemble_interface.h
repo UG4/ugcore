@@ -157,18 +157,6 @@ class IAssemble
 		void adjust_solution(vector_type& u)
 		{adjust_solution(u, GridLevel());}
 
-		/// sets dirichlet rows in matrix
-		/**
-		 * For a given set of indices, 'vActiveIndices', the matrix rows corresponding to these
-		 * indices are set to identity (Dirichlet-row)
-		 *
-		 * \param[out] 	mat				Mass-/Stiffness- Matrix
-		 * \param[in]	vActiveIndices	vector of active Indices
-		 */
-		virtual void adjust_matrix(matrix_type& mat,
-				std::vector<SmartPtr<DoFIndex> > vActiveIndices) = 0;
-
-
 	///	assembles mass matrix
 		virtual void assemble_mass_matrix(matrix_type& M, const vector_type& u, const GridLevel& gl)
 		{UG_THROW("IAssemble: assemble_mass_matrix not implemented.");}

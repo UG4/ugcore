@@ -316,6 +316,20 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 	else return false;
 }
 
+template <typename TDomain, typename TAlgebra>
+void ActiveSet<TDomain, TAlgebra>::
+adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices)
+{
+	std::vector<SmartPtr<DoFIndex> >::iterator iter;
+	DoFIndex multiIndex;
+
+	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
+	{
+		multiIndex = **iter;
+		SetDirichletRow(mat, multiIndex);
+	}
+}
+
 //	computes the contact forces for a given contact discretization
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::contactForces(function_type& contactforce,

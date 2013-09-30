@@ -94,9 +94,6 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		virtual void adjust_solution(vector_type& u, const GridLevel& gl)
 		{adjust_solution(u, dd(gl));}
 
-	/// \copydoc IAssemble::adjust_matrix()
-		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices);
-
 	///	wrapper for GridFunction
 	/// \{
 		void assemble_jacobian(matrix_type& J, GridFunction<TDomain, TAlgebra>& u)
@@ -181,10 +178,6 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		virtual void adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd);
 		virtual void adjust_solution(vector_type& u, number time, const GridLevel& gl)
 		{adjust_solution(u, time, dd(gl));}
-
-	/// \copydoc IDomainDiscretization::adjust_matrix()
-		virtual void adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices,
-				number time);
 
 	/// \copydoc IDomainDiscretization::finish_timestep()
 		virtual void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol, ConstSmartPtr<DoFDistribution> dd);

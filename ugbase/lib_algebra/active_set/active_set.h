@@ -73,7 +73,9 @@ class ActiveSet
 		bool active_index(function_type& u, function_type& rhs, function_type& contactForce,
 				function_type& gap);
 
-	///	computes the contact forces for a given contact disc
+		void adjust_matrix(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices);
+
+		///	computes the contact forces for a given contact disc
 		void contactForces(function_type& contactForce, const function_type& u);
 
 	///	computes the contact forces via the residuum

@@ -755,23 +755,6 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 	} UG_CATCH_THROW("Cannot adjust solution.");
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// set Dirichlet matrix-rows resp. Dirichlet values (stationary)
-///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
-adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices)
-{
-	std::vector<SmartPtr<DoFIndex> >::iterator iter;
-	DoFIndex multiIndex;
-
-	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
-	{
-		multiIndex = **iter;
-		SetDirichletRow(mat, multiIndex);
-	}
-}
-
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 //  Time Dependent (instationary)
@@ -1343,25 +1326,6 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 			}
 	}
 	} UG_CATCH_THROW(" Cannot adjust solution.");
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// set Dirichlet matrix-rows resp. Dirichlet values (instationary)
-///////////////////////////////////////////////////////////////////////////////
-template <typename TDomain, typename TAlgebra>
-void DomainDiscretization<TDomain, TAlgebra>::
-adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices,
-		 number time)
-{
-	//	currently there is no difference to the stationary variant of this method
-	//	therefore one could call the stationary impl here
-	std::vector<SmartPtr<DoFIndex> >::iterator iter;
-
-	for (iter = vActiveIndices.begin(); iter < vActiveIndices.end(); ++iter)
-	{
-		DoFIndex multiIndex = **iter;
-		SetDirichletRow(mat, multiIndex);
-	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////

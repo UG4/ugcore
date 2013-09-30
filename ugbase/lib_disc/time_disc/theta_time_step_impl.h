@@ -138,17 +138,6 @@ adjust_solution(vector_type& u, const GridLevel& gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-adjust_matrix(matrix_type& mat, std::vector<SmartPtr<DoFIndex> > vActiveIndices)
-{
-	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_adjust_matrix, "discretization MultiStepTimeDiscretization");
-//	adjust matrix
-	try{
-		this->m_spDomDisc->adjust_matrix(mat, vActiveIndices, m_futureTime);
-	}UG_CATCH_THROW("ThetaTimeStep: Cannot adjust matrix.");
-}
-
-template <typename TAlgebra>
-void MultiStepTimeDiscretization<TAlgebra>::
 assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_linear, "discretization MultiStepTimeDiscretization");
