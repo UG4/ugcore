@@ -154,9 +154,9 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		virtual int type() const = 0;
 
 	///	sets the assemble adapter for the constraints
-		void ass_adapter(AssAdapter<TAlgebra>* assAdapter = NULL)
+		void set_ass_adapter(ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapter = NULL)
 		{
-			m_pAssAdapter = assAdapter;
+			m_spAssAdapter = spAssAdapter;
 		}
 
 	protected:
@@ -171,7 +171,7 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
 
 	///	Assemble adapter
-		AssAdapter<TAlgebra>* m_pAssAdapter;
+		ConstSmartPtr<AssAdapter<TAlgebra> > m_spAssAdapter;
 
 };
 

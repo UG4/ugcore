@@ -277,7 +277,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 			  const std::vector<number>* vScaleMass,
 			  const std::vector<number>* vScaleStiff)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
 
@@ -323,7 +323,7 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_rhs(vector_type& rhs, const vector_type& u,
            ConstSmartPtr<DoFDistribution> dd, number time)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
 
@@ -370,7 +370,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				const number s_a0)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
 
@@ -418,7 +418,7 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<DoFDistribution> dd, number time)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
 
@@ -469,7 +469,7 @@ SymP1Constraints<TDomain,TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
                 number time)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
 
@@ -581,7 +581,7 @@ adjust_defect(vector_type& d, const vector_type& u,
      		  const std::vector<number>* vScaleMass,
               const std::vector<number>* vScaleStiff)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for OneSideP1Constraints \n");
 
@@ -635,7 +635,7 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_rhs(vector_type& rhs, const vector_type& u,
            ConstSmartPtr<DoFDistribution> dd, number time)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for OneSideP1Constraints \n");
 
@@ -690,7 +690,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				const number s_a0)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for OneSideP1Constraints \n");
 
@@ -746,7 +746,7 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_linear(matrix_type& mat, vector_type& rhs,
               ConstSmartPtr<DoFDistribution> dd, number time)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for OneSideP1Constraints \n");
 
@@ -805,7 +805,7 @@ OneSideP1Constraints<TDomain,TAlgebra>::
 adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
                 number time)
 {
-	if(this->m_pAssAdapter->m_assIndex.index_set)
+	if(this->m_spAssAdapter->m_assIndex.index_set)
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for OneSideP1Constraints \n");
 

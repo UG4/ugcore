@@ -14,7 +14,7 @@ namespace ug{
 
 template <typename TAlgebra>
 void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
-		vector_type& vec)
+                                  vector_type& vec)	const
 {
 	if (m_assIndex.index_set){ vec.resize(1);}
 	else{
@@ -26,7 +26,7 @@ void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 
 template <typename TAlgebra>
 void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
-		matrix_type& mat)
+								  matrix_type& mat) const
 {
 	if (m_assIndex.index_set){ mat.resize_and_clear(1, 1);
 	}
@@ -38,8 +38,8 @@ void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 
 template <typename TAlgebra>
 template <typename TElem>
-void AssAdapter<TAlgebra>::elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd,
-    	int si, std::vector<TElem*>& elems)
+void AssAdapter<TAlgebra>::collect_selected_elements(std::vector<TElem*>& vElem,
+                                                     ConstSmartPtr<DoFDistribution> dd, int si) const
 {
 	if (!m_pSelector)
 		UG_THROW("Selector-iterator not set!")
@@ -51,12 +51,12 @@ void AssAdapter<TAlgebra>::elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd,
 		iter != sel->end<TElem>(); ++iter)
 	{
 		if(sh.get_subset_index(*iter) == si)
-			elems.push_back(*iter);
+			vElem.push_back(*iter);
 	}
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& ind)
+void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& ind) const
 {
 	UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");
@@ -77,7 +77,7 @@ void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& ind)
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const DoFIndex& ind, const double val)
+void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const DoFIndex& ind, const double val) const
 {
 	UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");

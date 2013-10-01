@@ -169,7 +169,10 @@ class IAssemble
 		void assemble_stiffness_matrix(matrix_type& A, const vector_type& u)
 		{assemble_stiffness_matrix(A,u,GridLevel());}
 
-		virtual AssAdapter<TAlgebra>& ass_adapter() = 0;
+	/// \{
+		virtual SmartPtr<AssAdapter<TAlgebra> > ass_adapter() = 0;
+		virtual ConstSmartPtr<AssAdapter<TAlgebra> > ass_adapter() const = 0;
+	/// \}
 
 	///	returns the number of constraints
 		virtual size_t num_constraints() const = 0;

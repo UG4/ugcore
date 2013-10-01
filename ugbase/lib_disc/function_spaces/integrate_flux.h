@@ -94,20 +94,20 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 
 //	remember enabled-flags
 	//	get assemble adapter
-	AssAdapter<typename TGridFunction::algebra_type>& assAdapt = spAssemble->ass_adapter();
-	const int ElemTypesEnabled = assAdapt.elem_discs_enabled();
-	const int ConstraintTypesEnabled = assAdapt.constraints_enabled();
+	SmartPtr<AssAdapter<typename TGridFunction::algebra_type> > spAssAdapt = spAssemble->ass_adapter();
+	const int ElemTypesEnabled = spAssAdapt->elem_discs_enabled();
+	const int ConstraintTypesEnabled = spAssAdapt->constraints_enabled();
 
 //	remove bnd components
-	assAdapt.enable_elem_discs(ElemTypesEnabled & (~EDT_BND));
-	assAdapt.enable_constraints(ConstraintTypesEnabled & (~CT_DIRICHLET));
+	spAssAdapt->enable_elem_discs(ElemTypesEnabled & (~EDT_BND));
+	spAssAdapt->enable_constraints(ConstraintTypesEnabled & (~CT_DIRICHLET));
 
 //	compute defect
 	spAssemble->assemble_defect(Defect, *spGridFct);
 
 //	reset flags to original status
-	assAdapt.enable_elem_discs(ElemTypesEnabled);
-	assAdapt.enable_constraints(ConstraintTypesEnabled);
+	spAssAdapt->enable_elem_discs(ElemTypesEnabled);
+	spAssAdapt->enable_constraints(ConstraintTypesEnabled);
 
 //	reset value
 	std::vector<number> vValue(fctGrp.size(), 0);

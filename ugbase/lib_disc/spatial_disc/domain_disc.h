@@ -55,7 +55,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 	public:
 	///	default Constructor
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
-			m_spApproxSpace(pApproxSpace)
+			m_spApproxSpace(pApproxSpace), m_spAssAdapter(new AssAdapter<TAlgebra>)
 		{};
 
 		virtual ~DomainDiscretization() {};
@@ -203,7 +203,10 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		{assemble_stiffness_matrix(A, u, dd(gl));}
 
 	public:
-		virtual AssAdapter<TAlgebra>& ass_adapter() {return m_AssAdapter;}
+	/// \{
+		virtual SmartPtr<AssAdapter<TAlgebra> > ass_adapter() {return m_spAssAdapter;}
+		virtual ConstSmartPtr<AssAdapter<TAlgebra> > ass_adapter() const {return m_spAssAdapter;}
+	/// \}
 
 	public:
 	/// adds an element discretization to the assembling process
@@ -296,7 +299,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		SmartPtr<approx_space_type> m_spApproxSpace;
 		
 	///	this object provides tools to adapt the assemble routine
-		AssAdapter<TAlgebra> m_AssAdapter;
+		SmartPtr<AssAdapter<TAlgebra> > m_spAssAdapter;
 };
 
 /// @}

@@ -99,11 +99,11 @@ class AssAdapter
 
 	/// LocalToGlobalMapper-function calls
 		void AddLocalVec(vector_type& vec, const LocalVector& lvec,
-				ConstSmartPtr<DoFDistribution> dd)
+		                 ConstSmartPtr<DoFDistribution> dd) const
 		{ m_pMapper->AddLocalVec(vec, lvec, dd);}
 
 		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat,
-				ConstSmartPtr<DoFDistribution> dd)
+		                         ConstSmartPtr<DoFDistribution> dd) const
 		{ m_pMapper->AddLocalMatToGlobal(mat, lmat, dd);}
 
 
@@ -144,7 +144,7 @@ class AssAdapter
 			m_assIndex.index = ind; m_assIndex.index_set = index_set;
 		}
 	///	checks whether the assemble index is set or not
-		size_t is_ass_index_set() const {return m_assIndex.index_set;}
+		bool is_ass_index_set() const {return m_assIndex.index_set;}
 
 
 	/// forces the assembling to consider the grid as regular
@@ -164,18 +164,17 @@ class AssAdapter
 
 
 	///	resize functions used in assemble funcs
-		void resize(ConstSmartPtr<DoFDistribution> dd, vector_type& vec);
-		void resize(ConstSmartPtr<DoFDistribution> dd, matrix_type& mat);
+		void resize(ConstSmartPtr<DoFDistribution> dd, vector_type& vec) const;
+		void resize(ConstSmartPtr<DoFDistribution> dd, matrix_type& mat) const;
 
 	///	gets the element iterator from the Selector
 		template <typename TElem>
-		void elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd, int si,
-				std::vector<TElem*>& elems);
+		void collect_selected_elements(std::vector<TElem*>& vElem, ConstSmartPtr<DoFDistribution> dd, int si) const;
 
 	///	only one index will be set to Dirichlet in case of index-wise assembling
 	///	instead of setting a complete matrix row to Dirichlet
-		void adjust_matrix(matrix_type& mat, const DoFIndex& ind);
-		void adjust_vector(vector_type& vec, const DoFIndex& ind, const double val);
+		void adjust_matrix(matrix_type& mat, const DoFIndex& ind) const;
+		void adjust_vector(vector_type& vec, const DoFIndex& ind, const double val) const;
 
 	public:
 

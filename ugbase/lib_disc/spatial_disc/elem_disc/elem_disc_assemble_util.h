@@ -52,7 +52,7 @@ namespace ug {
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Stiffness matrix
  * \param[in]		u				solution
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -64,7 +64,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u,
-                        	AssAdapter<TAlgebra>& assAdapt)
+                        	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -96,8 +96,8 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -125,7 +125,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	//	send local to global matrix
 		try{
-			assAdapt.AddLocalMatToGlobal(A,locA,dd);
+			spAssAdapt->AddLocalMatToGlobal(A,locA,dd);
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot add local matrix.");
 	}
@@ -149,26 +149,26 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                         	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u,
-                        	AssAdapter<TAlgebra>& assAdapt)
+                        	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleStiffnessMatrix<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, A, u, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, A, u, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleStiffnessMatrix<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, A, u, assAdapt);
+					bNonRegularGrid, A, u, spAssAdapt);
 	}
 }
 
@@ -187,7 +187,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	M				Mass matrix
  * \param[in]		u				solution
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -199,7 +199,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u,
-					AssAdapter<TAlgebra>& assAdapt)
+					ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -232,8 +232,8 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -261,7 +261,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// send local to global matrix
 		try{
-			assAdapt.AddLocalMatToGlobal(M, locM, dd);
+			spAssAdapt->AddLocalMatToGlobal(M, locM, dd);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot add local matrix.");
 	}
@@ -285,26 +285,26 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u,
-					AssAdapter<TAlgebra>& assAdapt)
+					ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleMassMatrix<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, M, u, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, M, u, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleMassMatrix<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, M, u, assAdapt);
+					bNonRegularGrid, M, u, spAssAdapt);
 	}
 }
 
@@ -324,7 +324,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	J				jacobian
  * \param[in]		u				solution
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -336,7 +336,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					AssAdapter<TAlgebra>& assAdapt)
+					ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -369,8 +369,8 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -400,7 +400,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// send local to global matrix
 		try{
-			assAdapt.AddLocalMatToGlobal(J, locJ, dd);
+			spAssAdapt->AddLocalMatToGlobal(J, locJ, dd);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot add local matrix.");
 	}
@@ -424,26 +424,26 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					AssAdapter<TAlgebra>& assAdapt)
+					ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleJacobian<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, J, u, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, J, u, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleJacobian<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, J, u, assAdapt);
+					bNonRegularGrid, J, u, spAssAdapt);
 	}
 }
 
@@ -465,7 +465,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in,out]	J				jacobian
  * \param[in]		vSol			current and previous solutions
  * \param[in]		s_a0			scaling factor for stiffness part
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -478,7 +478,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					typename TAlgebra::matrix_type& J,
 					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 					number s_a0,
-					AssAdapter<TAlgebra>& assAdapt)
+					ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -521,8 +521,8 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -568,7 +568,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// send local to global matrix
 		try{
-			assAdapt.AddLocalMatToGlobal(J, locJ, dd);
+			spAssAdapt->AddLocalMatToGlobal(J, locJ, dd);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot add local matrix.");
 
@@ -595,25 +595,25 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					typename TAlgebra::matrix_type& J,
 					ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 					number s_a0,
-					AssAdapter<TAlgebra>& assAdapt)
+					ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 	
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleJacobian<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, J, vSol, s_a0, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, J, vSol, s_a0, spAssAdapt);
 	}
 	else
 	{
 		AssembleJacobian<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, J, vSol, s_a0, assAdapt);
+					bNonRegularGrid, J, vSol, s_a0, spAssAdapt);
 	}
 }
 
@@ -633,7 +633,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	d				defect
  * \param[in]		u				solution
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -645,7 +645,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -678,8 +678,8 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -718,7 +718,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// 	send local to global defect
 		try{
-			assAdapt.AddLocalVec(d, locD, dd);
+			spAssAdapt->AddLocalVec(d, locD, dd);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot add local vector.");
 	}
@@ -742,26 +742,26 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleDefect<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, d, u, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, d, u, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleDefect<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, d, u, assAdapt);
+					bNonRegularGrid, d, u, spAssAdapt);
 	}
 }
 
@@ -783,7 +783,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		vScaleMass		scaling factors for mass part
  * \param[in]		vScaleStiff		scaling factors for stiffness part
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -797,7 +797,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
-				AssAdapter<TAlgebra>& assAdapt)
+				ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -844,8 +844,8 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -930,7 +930,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// 	send local to global defect
 		try{
-			assAdapt.AddLocalVec(d, locD, dd);
+			spAssAdapt->AddLocalVec(d, locD, dd);
 		}
 		UG_CATCH_THROW("(instationary) AssembleDefect: Cannot add local vector.");
 	}
@@ -956,26 +956,26 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
 				const std::vector<number>& vScaleMass,
 				const std::vector<number>& vScaleStiff,
-				AssAdapter<TAlgebra>& assAdapt)
+				ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 		
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleDefect<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleDefect<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, assAdapt);
+					bNonRegularGrid, d, vSol, vScaleMass, vScaleStiff, spAssAdapt);
 	}
 }
 
@@ -995,7 +995,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	A				Matrix
  * \param[in,out]	rhs				Right-hand side
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -1007,7 +1007,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1040,8 +1040,8 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1076,8 +1076,8 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// 	send local to global matrix & rhs
 		try{
-			assAdapt.AddLocalMatToGlobal(A, locA, dd);
-			assAdapt.AddLocalVec(rhs, locRhs, dd);
+			spAssAdapt->AddLocalMatToGlobal(A, locA, dd);
+			spAssAdapt->AddLocalVec(rhs, locRhs, dd);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot add local vector/matrix.");
 	}
@@ -1101,26 +1101,26 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleLinear<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, A, rhs, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, A, rhs, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleLinear<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, A, rhs, assAdapt);
+					bNonRegularGrid, A, rhs, spAssAdapt);
 	}
 }
 
@@ -1158,7 +1158,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1205,8 +1205,8 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1313,8 +1313,8 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 		// 	send local to global matrix & rhs
 			try{
-				assAdapt.AddLocalMatToGlobal(A, locA, dd);
-				assAdapt.AddLocalVec(rhs, locRhs, dd);
+				spAssAdapt->AddLocalMatToGlobal(A, locA, dd);
+				spAssAdapt->AddLocalVec(rhs, locRhs, dd);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot add local vector/matrix.");
 	}
@@ -1341,26 +1341,26 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleLinear<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleLinear<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
+					bNonRegularGrid, A, rhs, vSol, vScaleMass, vScaleStiff, spAssAdapt);
 	}
 }
 
@@ -1380,7 +1380,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in,out]	rhs				Right-hand side
  * \param[in]		u				solution
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -1392,7 +1392,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1425,8 +1425,8 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1456,7 +1456,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// 	send local to global rhs
 		try{
-			assAdapt.AddLocalVec(rhs, locRhs, dd);
+			spAssAdapt->AddLocalVec(rhs, locRhs, dd);
 		}
 		UG_CATCH_THROW("AssembleRhs: Cannot add local vector.");
 	}
@@ -1480,26 +1480,26 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleRhs<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, rhs, u, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, rhs, u, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleRhs<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, rhs, u, assAdapt);
+					bNonRegularGrid, rhs, u, spAssAdapt);
 	}
 }
 
@@ -1521,7 +1521,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		vSol			current and previous solutions
  * \param[in]		vScaleMass		scaling factors for mass part
  * \param[in]		vScaleStiff		scaling factors for stiffness part
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -1535,7 +1535,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1582,8 +1582,8 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1669,7 +1669,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 		// 	send local to global rhs
 			try{
-				assAdapt.AddLocalVec(rhs, locRhs, dd);
+				spAssAdapt->AddLocalVec(rhs, locRhs, dd);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot add local vector.");
 	}
@@ -1695,26 +1695,26 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
                	const std::vector<number>& vScaleMass,
                	const std::vector<number>& vScaleStiff,
-               	AssAdapter<TAlgebra>& assAdapt)
+               	ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		AssembleRhs<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		AssembleRhs<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, assAdapt);
+					bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, spAssAdapt);
 	}
 }
 
@@ -1733,7 +1733,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in]		vSol			current and previous solutions
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -1744,7 +1744,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 				TIterator iterEnd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-                AssAdapter<TAlgebra>& assAdapt)
+                ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1785,8 +1785,8 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1820,26 +1820,26 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<DoFDistribution> dd,
                	int si, bool bNonRegularGrid,
                 ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-                AssAdapter<TAlgebra>& assAdapt)
+                ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		PrepareTimestep<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, vSol, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, vSol, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		PrepareTimestep<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, vSol, assAdapt);
+					bNonRegularGrid, vSol, spAssAdapt);
 	}
 }
 
@@ -1858,7 +1858,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
  * \param[in]		si				subset index
  * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
  * \param[in]		vSol			current and previous solutions
- * \param[in]		assAdapt		assemble adapter
+ * \param[in]		spAssAdapt		assemble adapter
  */
 template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
 void
@@ -1869,7 +1869,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			   TIterator iterEnd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-               AssAdapter<TAlgebra>& assAdapt)
+               ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 // 	check if at least on element exist, else return
 	if(iterBegin == iterEnd) return;
@@ -1911,8 +1911,8 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(assAdapt.m_pBoolMarker)
-			if(!assAdapt.m_pBoolMarker->is_marked(elem)) continue;
+		if(spAssAdapt->m_pBoolMarker)
+			if(!spAssAdapt->m_pBoolMarker->is_marked(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1946,26 +1946,26 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                ConstSmartPtr<DoFDistribution> dd,
                int si, bool bNonRegularGrid,
                ConstSmartPtr<VectorTimeSeries<typename TAlgebra::vector_type> > vSol,
-               AssAdapter<TAlgebra>& assAdapt)
+               ConstSmartPtr<AssAdapter<TAlgebra> > spAssAdapt)
 {
 	//	check if only some elements are selected
-	if(assAdapt.m_pSelector)
+	if(spAssAdapt->m_pSelector)
 	{
-		std::vector<TElem*> elems;
-		assAdapt.elemIter_fromSel(dd,si,elems);
+		std::vector<TElem*> vElem;
+		spAssAdapt->collect_selected_elements(vElem, dd, si);
 
 		//	assembling is carried out only over those elements
 		//	which are selected and in subset si
 		FinishTimestep<TElem,TDomain,TAlgebra>
-			(vElemDisc, spDomain, dd, elems.begin(), elems.end(), si,
-			 bNonRegularGrid, vSol, assAdapt);
+			(vElemDisc, spDomain, dd, vElem.begin(), vElem.end(), si,
+			 bNonRegularGrid, vSol, spAssAdapt);
 	}
 	else
 	{
 		//	general case: assembling over all elements in subset si
 		FinishTimestep<TElem,TDomain,TAlgebra>
 			(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si), si,
-					bNonRegularGrid, vSol, assAdapt);
+					bNonRegularGrid, vSol, spAssAdapt);
 	}
 }
 
