@@ -869,10 +869,16 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 
 		//	we perform an initial handshake between vmasters and vslaves, to make
 		//	sure, that both have matching elements in their hashes.
-			UG_DLOG(LIB_GRID, 3, "  Initial handshake: communicating vmasters->vslaves...\n");
+			UG_DLOG(LIB_GRID, 3, "  Initial handshake\n");
 			m_initialHandshake = true;
 			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, *this);
 			com.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, *this);
+			com.communicate();
+		//	This extra communication step is required for the rare cases, in which
+		//	only a vslave was registered as new-constrained. It most likely wouldn't
+		//	be necessary if one would guarantee, that lower dimensional elements
+		//	of vmasters are always vmasters again.
+			com.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, *this);
 			com.communicate();
 			m_initialHandshake = false;
 

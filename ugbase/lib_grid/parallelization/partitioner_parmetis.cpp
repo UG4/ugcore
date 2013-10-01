@@ -486,6 +486,11 @@ partition(size_t baseLvl, size_t elementThreshold)
 			UG_ASSERT(mg.num<VertexBase>(minLvl) == 0,
 					  "Process " << localProc
 					  << " shouldn't contain vertices on this level: " << minLvl);
+					  
+		//	since we communicate with elements in maxLvl below, this assertion has to hold.
+			UG_ASSERT(mg.num<elem_t>(maxLvl) == 0,
+					  "Process " << localProc
+					  << " shouldn't contain elements on this level: " << maxLvl);
 
 			UG_LOG("  Not contained in hlevel\n");
 			continue;
