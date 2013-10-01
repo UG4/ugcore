@@ -431,15 +431,31 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	m_sh.clear();
 
+	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
+	UG_ASSERT(!(glm.has_layout<elem_t>(INT_H_MASTER) || glm.has_layout<elem_t>(INT_H_SLAVE)),
+			  "Elements for which a partitioning is generated may not be contained in"
+			  " H-Interfaces!");
+
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
 
+//	UG_LOG("New Partitioning. Local elements (including ghosts): " << mg.num<elem_t>() << endl);
+
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
+	pcl::ProcessCommunicator globCom;
 	for(size_t hlevel = 0; hlevel < m_processHierarchy->num_hierarchy_levels(); ++ hlevel)
 	{
+//		UG_LOG("h-level: " << hlevel << endl);
+	//	make sure that certain processes don't get ahead of others...
+		if(hlevel > 0)
+			globCom.barrier();
+
 		int minLvl = m_processHierarchy->grid_base_level(hlevel);
+		if(minLvl > (int)mg.top_level())
+			break;
+
 		int maxLvl = mg.top_level();
 		if(hlevel + 1 < m_processHierarchy->num_hierarchy_levels()){
 			maxLvl = min<int>(maxLvl,
@@ -450,74 +466,72 @@ partition(size_t baseLvl, size_t elementThreshold)
 			minLvl = (int)baseLvl;
 
 		if(maxLvl < minLvl)
-			continue;
+			break;
 
-		int numProcs = m_processHierarchy->num_global_procs_involved(hlevel);
 
-		if(numProcs <= 1){
+		int numProcsOnLvl = m_processHierarchy->num_global_procs_involved(hlevel);
+
+		if(numProcsOnLvl <= 1){
 			for(int i = minLvl; i <= maxLvl; ++i)
 				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
 			continue;
 		}
 
-	//	note that even if a process is yet used on a given hierarchy level, it may
-	//	still contain some low dimensional dummy elements in h-interfaces. We thus
-	//	continue execution on a process even if it is not originally involved in
-	//	redistribution on this hlevel. Note that this is only a problem if
-	//	maxLvl = minLvl + 1.
-		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlevel);
-		pcl::ProcessCommunicator globalCom;
 
-	//	check whether there are enough elements to perform partitioning
-		if(elementThreshold > 0){
-			int numLocalElems = mg.num<elem_t>(minLvl);
-			int numGlobalElems = globalCom.allreduce(numLocalElems, PCL_RO_SUM);
+		pcl::ProcessCommunicator hlvlCom = m_processHierarchy->global_proc_com(hlevel);
+		if(hlvlCom.empty()){
+		//	the local level is not contained in the current hlvl of the proc-hierarchy.
+		//	make sure that it doesn't contain any elements, since we would most likely
+		//	get problems during h- or v-interface communication later on.
+			UG_ASSERT(mg.num<VertexBase>(minLvl) == 0,
+					  "Process " << localProc
+					  << " shouldn't contain vertices on this level: " << minLvl);
 
-			if(numGlobalElems / numProcs < (int)elementThreshold){
-				if(verbose()){
-					UG_LOG("No partitioning performed for level " << minLvl
-							<< ": Not enough elements.\n");
-				}
-			//	we can't perform partitioning on this hierarchy level.
-			//	Simply assign all elements of this hierarchy level to the local proc.
-				ComPol_Subset<layout_t>	compolSHCopy(m_sh, true);
-				for(int i = minLvl; i <= maxLvl; ++i){
-					m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
-				//	communicate vslave->vmaster
-					if(mg.is_parallel()){
-						GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
-						if(glm.has_layout<elem_t>(INT_V_MASTER)){
-							m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(i),
-												 compolSHCopy);
-						}
-						if(glm.has_layout<elem_t>(INT_V_SLAVE)){
-							m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(i),
-													compolSHCopy);
-						}
-					}				
-				}
-				if(mg.is_parallel())
-					m_intfcCom.communicate();
-				continue;
-			}
+			UG_LOG("  Not contained in hlevel\n");
+			continue;
 		}
 
-	//	we have to find out how many of the target processes already contain a grid.
+	//	adjust the number of target processes so that each receives at least
+	//	#elementThreshold elements.
+		int numGhosts = 0;
+		if(glm.has_layout<elem_t>(INT_V_MASTER)){
+			numGhosts = glm.get_layout<elem_t>(INT_V_MASTER).
+							layout_on_level(minLvl).num_interface_elements();
+		}
+
+		int numLocalElems = (int)mg.num<elem_t>(minLvl) - numGhosts;
+		int numTargetProcs = numProcsOnLvl;
+		if(elementThreshold > 0){
+			int numGlobalElems = hlvlCom.allreduce(numLocalElems, PCL_RO_SUM);
+			numTargetProcs = clip<int>(numGlobalElems / elementThreshold, 1, numProcsOnLvl);
+		}
+
+//		UG_LOG("  numTargetProcs: " << numTargetProcs << endl);
+		if(numTargetProcs == 1){
+		//	all elements have to be sent to process 0
+			for(int i = minLvl; i <= maxLvl; ++i)
+				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
+			continue;
+		}
+
+	//	we have to find out how many of the level's processes already contain a grid.
 		int gotGrid = 0;
-		if(mg.num<elem_t>(minLvl) > 0)
+		if(numLocalElems > 0)
 			gotGrid = 1;
 
-		int numProcsWithGrid = globalCom.allreduce(gotGrid, PCL_RO_SUM);
+		int numProcsWithGrid = hlvlCom.allreduce(gotGrid, PCL_RO_SUM);
+
+//		UG_LOG("  numProcsWithGrid: " << numProcsWithGrid << endl);
 
 		if(numProcsWithGrid == 0)
 			break;
 
 		if(numProcsWithGrid == 1){
 			if(gotGrid)
-				partition_level_metis(minLvl, maxLvl, numProcs);
+				partition_level_metis(minLvl, maxLvl, numTargetProcs);
 		}
 		else{
-			partition_level_parmetis(minLvl, maxLvl, numProcs, procComAll, pdg);
+			partition_level_parmetis(minLvl, maxLvl, numTargetProcs, hlvlCom, pdg);
 		}
 
 	//	assign partitions to all children in this hierarchy level
@@ -546,9 +560,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 				m_intfcCom.communicate();
 			}
 		}
-
-		if(maxLvl >= (int)mg.top_level())
-			break;
 	}
 
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop rebalance\n");
@@ -714,9 +725,15 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 	pdg.set_grid(m_mg);
 	pdg.generate_graph(lvl, procComAll);
 
-	idx_t partOptions[3]; partOptions[0] = 0;//default values
+	idx_t partOptions[3];
+	partOptions[0] = 0;//default values
+//	partOptions[0] = 1;
+//	partOptions[1] = 127;
+//	partOptions[2] = 1;
+
 	//idx_t refineOptions[4] = {1, 0, 0, PARMETIS_PSR_UNCOUPLED};
-	idx_t nConstraints = maxLvl - baseLvl + 1;
+//	idx_t nConstraints = maxLvl - baseLvl + 1;
+	int nConstraints = 1;
 	idx_t refineOptions[4]; refineOptions[0] = 0;
 	idx_t nVrts = pdg.num_graph_vertices();
 	idx_t edgeCut;
@@ -782,10 +799,27 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 		}
 		pAdjWgts = &adjwgts.front();
 
+//		UG_LOG("parallel offset map: ");
+//		for(size_t i = 0; i <= procCom.size(); ++i){
+//			UG_LOG(" " << pdg.parallel_offset_map()[i]);
+//		}
+//		UG_LOG(endl);
+//		UG_LOG("vertex edge offsets: ");
+//		for(size_t i = 0; i <= pdg.num_graph_vertices(); ++i){
+//			UG_LOG(" " << pdg.adjacency_map_structure()[i]);
+//		}
+//		UG_LOG(endl);
+//		UG_LOG("connected vertices: ");
+//		for(size_t i = 0; i < pdg.num_graph_edges(); ++i){
+//			UG_LOG(" " << pdg.adjacency_map()[i]);
+//		}
+//		UG_LOG(endl);
+
 		GDIST_PROFILE(PARMETIS);
 		MPI_Comm mpiCom = procCom.get_mpi_communicator();
 		if((int)procCom.size() != numTargetProcs){
-			UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
+			//UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
+//			UG_LOG("Calling Parmetis_V3_PartKWay...\n");
 			int metisRet =	ParMETIS_V3_PartKway(pdg.parallel_offset_map(),
 												pdg.adjacency_map_structure(),
 												pdg.adjacency_map(),
@@ -818,7 +852,8 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 			}
 
 
-			UG_DLOG(LIB_GRID, 1, "Calling ParMETIS_V3_AdaptiveRepart...");
+			//UG_DLOG(LIB_GRID, 1, "Calling ParMETIS_V3_AdaptiveRepart...");
+//			UG_LOG("Calling ParMETIS_V3_AdaptiveRepart...\n");
 			int metisRet =	ParMETIS_V3_AdaptiveRepart(pdg.parallel_offset_map(),
 												pdg.adjacency_map_structure(),
 												pdg.adjacency_map(),
@@ -843,6 +878,8 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 				m_sh.assign_subset(*iter, partitionMap[counter++]);
 		}
 	}
+
+//	UG_LOG("PARMETIS DONE\n");
 
 //	copy subset indices from vertical slaves to vertical masters,
 //	since partitioning was only performed on vslaves
