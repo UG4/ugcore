@@ -84,7 +84,7 @@ class AssemblingTuner
 		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
 		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL)
 		{
-			m_assIndex.index_set = false;
+			m_bSingleAssembleIndex = false;
 			m_pMapper = &m_pMapperCommon;
 		}
 
@@ -138,29 +138,48 @@ class AssemblingTuner
 	 * \param[in]	ind			size_t
 	 * \param[in]	index_set	bool
 	 */
-		void set_ass_index(){ set_ass_index(0, false);}
-		void set_ass_index(size_t ind, bool index_set = true)
+		void disable_single_index_assembling() {m_bSingleAssembleIndex = false;}
+		void set_single_index_assembling(size_t ind)
 		{
-			m_assIndex.index = ind; m_assIndex.index_set = index_set;
+			m_SingleAssIndex = ind; m_bSingleAssembleIndex = true;
 		}
+
 	///	checks whether the assemble index is set or not
-		bool is_ass_index_set() const {return m_assIndex.index_set;}
+		bool single_index_assembling_enabled() const {return m_bSingleAssembleIndex;}
+
+
+	///	enables the usage of modify solution
+		void enable_modify_solution(bool bEnable) {m_bModifySolutionImplemented = bEnable;}
+
+	///	checks whether the assemble index is set or not
+		bool modify_solution_enabled() const {return m_bModifySolutionImplemented;}
 
 
 	/// forces the assembling to consider the grid as regular
-		void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
+		void set_force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
 
-	///	returns if constraints enabled
-		int constraints_enabled() const {return m_ConstraintTypesEnabled;}
+	/// returns if assembling is to considered as regular grid
+		bool regular_grid_forced() const {return m_bForceRegGrid;}
+
 
 	///	enables constraints
 		void enable_constraints(int bEnableTypes) {m_ConstraintTypesEnabled = bEnableTypes;}
 
-	///	returns type of boundary elem discs enabled
-		int elem_discs_enabled() const {return m_ElemTypesEnabled;}
+	///	returns flags of enabled constraints
+		int enabled_constraints() const {return m_ConstraintTypesEnabled;}
 
-	///	enables boundary elem discs
+	///	returns if constraint type enabled
+		bool constraint_type_enabled(int type) const {return (type & m_ConstraintTypesEnabled);}
+
+
+	///	enables elem discs
 		void enable_elem_discs(int bEnableTypes) {m_ElemTypesEnabled = bEnableTypes;}
+
+	///	returns flags of enabled elem discs
+		int enabled_elem_discs() const {return m_ElemTypesEnabled;}
+
+	///	returns if elem disc type enabled
+		bool elem_disc_type_enabled(int type) const {return (type & m_ElemTypesEnabled);}
 
 
 	///	resize functions used in assemble funcs
@@ -171,15 +190,22 @@ class AssemblingTuner
 		template <typename TElem>
 		void collect_selected_elements(std::vector<TElem*>& vElem, ConstSmartPtr<DoFDistribution> dd, int si) const;
 
+	///	returns if only selected elements used for assembling
+		bool selected_elements_used() const {return (m_pSelector != NULL);}
+
+	///	returns if element is to be used in assembling
+		template <typename TElem>
+		bool element_used(TElem* elem) const;
+
 	///	only one index will be set to Dirichlet in case of index-wise assembling
 	///	instead of setting a complete matrix row to Dirichlet
 		void adjust_matrix(matrix_type& mat, const DoFIndex& ind) const;
 		void adjust_vector(vector_type& vec, const DoFIndex& ind, const double val) const;
 
-	public:
-
+	protected:
 	///	default LocalToGlobalMapper
 		LocalToGlobalMapper<TAlgebra> m_pMapperCommon;
+
 	///	LocalToGlobalMapper
 		ILocalToGlobalMapper<TAlgebra>* m_pMapper;
 
@@ -189,15 +215,9 @@ class AssemblingTuner
 	///	selector used to set a list of elements for the assembling
 		Selector* m_pSelector;
 
-	///	index-wise assembling
-		struct AssIndex{
-			///	current index
-			size_t index;
-			bool index_set;
-		};
-
 	///	object for index-wise assemble routine
-		AssIndex m_assIndex;
+		bool m_bSingleAssembleIndex;
+		size_t m_SingleAssIndex;
 
 	/// forces the assembling to regard the grid as regular
 		bool m_bForceRegGrid;

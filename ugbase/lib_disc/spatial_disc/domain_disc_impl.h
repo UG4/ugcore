@@ -34,7 +34,7 @@ void DomainDiscretization<TDomain, TAlgebra>::update_elem_discs()
 	{
 		m_vDomainElemDisc[i]->set_approximation_space(m_spApproxSpace);
 
-		if(!(m_vDomainElemDisc[i]->type() & m_spAssTuner->m_ElemTypesEnabled)) continue;
+		if(!(m_spAssTuner->elem_disc_type_enabled(m_vDomainElemDisc[i]->type()))) continue;
 		m_vElemDisc.push_back(m_vDomainElemDisc[i].get());
 	}
 }
@@ -98,7 +98,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -144,7 +144,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -200,7 +200,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -246,7 +246,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -294,12 +294,12 @@ assemble_jacobian(matrix_type& J,
 //	pre process -  modifies the solution, used for computing the defect
 	const vector_type* pModifyU = &u;
 	SmartPtr<vector_type> pModifyMemory = NULL;
-	if( m_spAssTuner->m_bModifySolutionImplemented ){
+	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = u.clone();
 		pModifyU = pModifyMemory.get();
 		try{
 		for(int type = 1; type < CT_ALL; type = type << 1){
-			if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
 				if(m_vConstraint[i]->type() & type)
 					m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
@@ -327,7 +327,7 @@ assemble_jacobian(matrix_type& J,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -373,7 +373,7 @@ assemble_jacobian(matrix_type& J,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -415,12 +415,12 @@ assemble_defect(vector_type& d,
 //	pre process -  modifies the solution, used for computing the defect
 	const vector_type* pModifyU = &u;
 	SmartPtr<vector_type> pModifyMemory = NULL;
-	if( m_spAssTuner->m_bModifySolutionImplemented ){
+	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = u.clone();
 		pModifyU = pModifyMemory.get();
 		try{
 		for(int type = 1; type < CT_ALL; type = type << 1){
-			if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
 				if(m_vConstraint[i]->type() & type)
 					m_vConstraint[i]->modify_solution(*pModifyMemory, u, dd);
@@ -446,7 +446,7 @@ assemble_defect(vector_type& d,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -492,7 +492,7 @@ assemble_defect(vector_type& d,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -547,7 +547,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -593,7 +593,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -649,7 +649,7 @@ assemble_rhs(vector_type& rhs,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -695,7 +695,7 @@ assemble_rhs(vector_type& rhs,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -737,13 +737,13 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 	vType[1] = CT_CONSTRAINTS;
 
 	// if assembling is carried out at one DoF only, u needs to be resized
-	if (m_spAssTuner->m_assIndex.index_set) u.resize(1);
+	if (m_spAssTuner->single_index_assembling_enabled()) u.resize(1);
 
 	try{
 //	constraints
 	for(size_t i = 0; i < vType.size(); ++i){
 		int type = vType[i];
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -795,7 +795,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -872,12 +872,12 @@ assemble_jacobian(matrix_type& J,
 //	pre process -  modifies the solution, used for computing the defect
 	ConstSmartPtr<VectorTimeSeries<vector_type> > pModifyU = vSol;
 	SmartPtr<VectorTimeSeries<vector_type> > pModifyMemory = NULL;
-	if( m_spAssTuner->m_bModifySolutionImplemented ){
+	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = vSol->clone();
 		pModifyU = pModifyMemory;
 		try{
 		for(int type = 1; type < CT_ALL; type = type << 1){
-			if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
 				if(m_vConstraint[i]->type() & type)
 					m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
@@ -900,7 +900,7 @@ assemble_jacobian(matrix_type& J,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -946,7 +946,7 @@ assemble_jacobian(matrix_type& J,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -995,12 +995,12 @@ assemble_defect(vector_type& d,
 //	pre process -  modifies the solution, used for computing the defect
 	ConstSmartPtr<VectorTimeSeries<vector_type> > pModifyU = vSol;
 	SmartPtr<VectorTimeSeries<vector_type> > pModifyMemory = NULL;
-	if( m_spAssTuner->m_bModifySolutionImplemented ){
+	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = vSol->clone();
 		pModifyU = pModifyMemory;
 		try{
 		for(int type = 1; type < CT_ALL; type = type << 1){
-			if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+			if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 			for(size_t i = 0; i < m_vConstraint.size(); ++i)
 				if(m_vConstraint[i]->type() & type)
 					m_vConstraint[i]->modify_solution(pModifyMemory, vSol, dd);
@@ -1021,7 +1021,7 @@ assemble_defect(vector_type& d,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -1067,7 +1067,7 @@ assemble_defect(vector_type& d,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -1124,7 +1124,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -1171,7 +1171,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -1230,7 +1230,7 @@ assemble_rhs(vector_type& rhs,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
@@ -1277,7 +1277,7 @@ assemble_rhs(vector_type& rhs,
 //	post process
 	try{
 	for(int type = 1; type < CT_ALL; type = type << 1){
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -1310,14 +1310,14 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 	vType[1] = CT_CONSTRAINTS;
 
 	// if assembling is carried out at one DoF only, u needs to be resized
-	if (m_spAssTuner->m_assIndex.index_set) u.resize(1);
+	if (m_spAssTuner->single_index_assembling_enabled()) u.resize(1);
 
 	try{
 
 //	constraints
 	for(size_t i = 0; i < vType.size(); ++i){
 		int type = vType[i];
-		if(!(type & m_spAssTuner->m_ConstraintTypesEnabled)) continue;
+		if(!(m_spAssTuner->constraint_type_enabled(type))) continue;
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			if(m_vConstraint[i]->type() & type)
 			{
@@ -1362,7 +1362,7 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
 
 	//	overrule by regular grid if required
-		if(m_spAssTuner->m_bForceRegGrid) bNonRegularGrid = false;
+		if(m_spAssTuner->regular_grid_forced()) bNonRegularGrid = false;
 
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;

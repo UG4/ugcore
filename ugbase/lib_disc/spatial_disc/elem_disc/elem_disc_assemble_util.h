@@ -96,8 +96,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -152,7 +151,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                         	ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -232,8 +231,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -288,7 +286,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -369,8 +367,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -427,7 +424,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -521,8 +518,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -598,7 +594,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 					ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -678,8 +674,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -745,7 +740,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -844,8 +839,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -959,7 +953,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 				ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -1040,8 +1034,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1104,7 +1097,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -1205,8 +1198,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1344,7 +1336,7 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -1425,8 +1417,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1483,7 +1474,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -1582,8 +1573,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1698,7 +1688,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                	ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -1785,8 +1775,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1823,7 +1812,7 @@ PrepareTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                 ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);
@@ -1911,8 +1900,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
 
 	//	check if elem is skipped from assembling
-		if(spAssTuner->m_pBoolMarker)
-			if(!spAssTuner->m_pBoolMarker->is_marked(elem)) continue;
+		if(!spAssTuner->element_used(elem)) continue;
 
 	// 	get global indices
 		dd->indices(elem, ind, Eval.use_hanging());
@@ -1949,7 +1937,7 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
                ConstSmartPtr<AssemblingTuner<TAlgebra> > spAssTuner)
 {
 	//	check if only some elements are selected
-	if(spAssTuner->m_pSelector)
+	if(spAssTuner->selected_elements_used())
 	{
 		std::vector<TElem*> vElem;
 		spAssTuner->collect_selected_elements(vElem, dd, si);

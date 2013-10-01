@@ -270,7 +270,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 
 			// 	check if assembling has been carried out with respect to one index only.
 			//	For that case the matrix has been resized to a block-matrix at one DoF.
-				if(this->m_spAssTuner->is_ass_index_set()){
+				if(this->m_spAssTuner->single_index_assembling_enabled()){
 					this->m_spAssTuner->adjust_matrix(mat, multInd[0]);
 				}
 				else{
@@ -395,7 +395,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssTuner->is_ass_index_set()){
+					if(this->m_spAssTuner->single_index_assembling_enabled()){
 						this->m_spAssTuner->adjust_matrix(J, multInd[j]);
 					}
 					else{
@@ -522,7 +522,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the defect vector has been resized to a block-vector
 				//	at one DoF.
-					if(this->m_spAssTuner->is_ass_index_set()){
+					if(this->m_spAssTuner->single_index_assembling_enabled()){
 						this->m_spAssTuner->adjust_vector(d, multInd[j], 0.0);
 					}
 					else{
@@ -640,7 +640,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the solution vector u has been resized
 				//	to a block-vector at one DoF.
-					if(this->m_spAssTuner->is_ass_index_set()){
+					if(this->m_spAssTuner->single_index_assembling_enabled()){
 						this->m_spAssTuner->adjust_vector(u, multInd[j], val[f]);
 					}
 					else{
@@ -762,7 +762,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssTuner->is_ass_index_set())
+					if(this->m_spAssTuner->single_index_assembling_enabled())
 					{
 						this->m_spAssTuner->adjust_matrix(A, multInd[j]);
 						this->m_spAssTuner->adjust_vector(b, multInd[j], val[f]);
@@ -886,7 +886,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssTuner->is_ass_index_set()){
+					if(this->m_spAssTuner->single_index_assembling_enabled()){
 						this->m_spAssTuner->adjust_vector(b, multInd[j], val[f]);
 					}
 					else{

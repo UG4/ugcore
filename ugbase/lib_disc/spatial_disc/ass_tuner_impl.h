@@ -16,7 +16,7 @@ template <typename TAlgebra>
 void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
                                   vector_type& vec)	const
 {
-	if (m_assIndex.index_set){ vec.resize(1);}
+	if (m_bSingleAssembleIndex){ vec.resize(1);}
 	else{
 		const size_t numIndex = dd->num_indices();
 		vec.resize(numIndex);
@@ -28,13 +28,24 @@ template <typename TAlgebra>
 void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 								  matrix_type& mat) const
 {
-	if (m_assIndex.index_set){ mat.resize_and_clear(1, 1);
+	if (m_bSingleAssembleIndex){ mat.resize_and_clear(1, 1);
 	}
 	else{
 		const size_t numIndex = dd->num_indices();
 		mat.resize_and_clear(numIndex, numIndex);
 	}
 }
+
+template <typename TAlgebra>
+template <typename TElem>
+bool AssemblingTuner<TAlgebra>::element_used(TElem* elem) const
+{
+	if(m_pBoolMarker)
+		if(!m_pBoolMarker->is_marked(elem)) return false;
+
+	return true;
+}
+
 
 template <typename TAlgebra>
 template <typename TElem>
@@ -65,7 +76,7 @@ void AssemblingTuner<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& 
 
 	const size_t index = ind[0];
 	const size_t alpha = ind[1];
-	if (index == m_assIndex.index)
+	if (index == m_SingleAssIndex)
 	{
 		typename matrix_type::value_type& block = mat(0,0);
 
@@ -84,7 +95,7 @@ void AssemblingTuner<TAlgebra>::adjust_vector(vector_type& vec, const DoFIndex& 
 
 	const size_t index = ind[0];
 	const size_t alpha = ind[1];
-	if (index == m_assIndex.index){
+	if (index == m_SingleAssIndex){
 		BlockRef(vec[0], alpha) = val;
 	}
 }

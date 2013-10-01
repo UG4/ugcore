@@ -340,7 +340,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 			m_spAss->ass_tuner()->set_selector(&m_sel);
 
 			//	assemble only with respect to DoF i (causes resizing of matrices/vectors)
-			m_spAss->ass_tuner()->set_ass_index(i);
+			m_spAss->ass_tuner()->set_single_index_assembling(i);
 			m_map.set_ass_index(i);
 
 			try{
@@ -423,7 +423,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//	set mapping, selector and ass_index to NULL
 		m_spAss->ass_tuner()->set_mapping();
 		m_spAss->ass_tuner()->set_selector();
-		m_spAss->ass_tuner()->set_ass_index();
+		m_spAss->ass_tuner()->disable_single_index_assembling();
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
 		m_N->prepare(u);

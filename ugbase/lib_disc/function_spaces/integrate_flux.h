@@ -95,8 +95,8 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 //	remember enabled-flags
 	//	get assemble adapter
 	SmartPtr<AssemblingTuner<typename TGridFunction::algebra_type> > spAssTuner = spAssemble->ass_tuner();
-	const int ElemTypesEnabled = spAssTuner->elem_discs_enabled();
-	const int ConstraintTypesEnabled = spAssTuner->constraints_enabled();
+	const int ElemTypesEnabled = spAssTuner->enabled_elem_discs();
+	const int ConstraintTypesEnabled = spAssTuner->enabled_constraints();
 
 //	remove bnd components
 	spAssTuner->enable_elem_discs(ElemTypesEnabled & (~EDT_BND));
