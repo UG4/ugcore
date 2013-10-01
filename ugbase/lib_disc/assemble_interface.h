@@ -9,7 +9,7 @@
 
 #include "lib_grid/tools/selector_grid.h"
 #include "lib_grid/tools/grid_level.h"
-#include "lib_disc/spatial_disc/ass_adapter.h"
+#include "lib_disc/spatial_disc/ass_tuner.h"
 
 namespace ug{
 
@@ -170,8 +170,8 @@ class IAssemble
 		{assemble_stiffness_matrix(A,u,GridLevel());}
 
 	/// \{
-		virtual SmartPtr<AssAdapter<TAlgebra> > ass_adapter() = 0;
-		virtual ConstSmartPtr<AssAdapter<TAlgebra> > ass_adapter() const = 0;
+		virtual SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() = 0;
+		virtual ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const = 0;
 	/// \}
 
 	///	returns the number of constraints

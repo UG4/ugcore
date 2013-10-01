@@ -55,7 +55,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 	public:
 	///	default Constructor
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
-			m_spApproxSpace(pApproxSpace), m_spAssAdapter(new AssAdapter<TAlgebra>)
+			m_spApproxSpace(pApproxSpace), m_spAssTuner(new AssemblingTuner<TAlgebra>)
 		{};
 
 		virtual ~DomainDiscretization() {};
@@ -204,8 +204,8 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 
 	public:
 	/// \{
-		virtual SmartPtr<AssAdapter<TAlgebra> > ass_adapter() {return m_spAssAdapter;}
-		virtual ConstSmartPtr<AssAdapter<TAlgebra> > ass_adapter() const {return m_spAssAdapter;}
+		virtual SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() {return m_spAssTuner;}
+		virtual ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const {return m_spAssTuner;}
 	/// \}
 
 	public:
@@ -299,7 +299,7 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		SmartPtr<approx_space_type> m_spApproxSpace;
 		
 	///	this object provides tools to adapt the assemble routine
-		SmartPtr<AssAdapter<TAlgebra> > m_spAssAdapter;
+		SmartPtr<AssemblingTuner<TAlgebra> > m_spAssTuner;
 };
 
 /// @}

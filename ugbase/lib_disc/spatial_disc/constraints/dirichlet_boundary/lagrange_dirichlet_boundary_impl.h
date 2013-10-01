@@ -270,8 +270,8 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 
 			// 	check if assembling has been carried out with respect to one index only.
 			//	For that case the matrix has been resized to a block-matrix at one DoF.
-				if(this->m_spAssAdapter->is_ass_index_set()){
-					this->m_spAssAdapter->adjust_matrix(mat, multInd[0]);
+				if(this->m_spAssTuner->is_ass_index_set()){
+					this->m_spAssTuner->adjust_matrix(mat, multInd[0]);
 				}
 				else{
 					SetDirichletRow(mat, multInd[0]);
@@ -395,8 +395,8 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssAdapter->is_ass_index_set()){
-						this->m_spAssAdapter->adjust_matrix(J, multInd[j]);
+					if(this->m_spAssTuner->is_ass_index_set()){
+						this->m_spAssTuner->adjust_matrix(J, multInd[j]);
 					}
 					else{
 						SetDirichletRow(J, multInd[j]);
@@ -522,8 +522,8 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the defect vector has been resized to a block-vector
 				//	at one DoF.
-					if(this->m_spAssAdapter->is_ass_index_set()){
-						this->m_spAssAdapter->adjust_vector(d, multInd[j], 0.0);
+					if(this->m_spAssTuner->is_ass_index_set()){
+						this->m_spAssTuner->adjust_vector(d, multInd[j], 0.0);
 					}
 					else{
 						//	set zero for dirichlet values
@@ -640,8 +640,8 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the solution vector u has been resized
 				//	to a block-vector at one DoF.
-					if(this->m_spAssAdapter->is_ass_index_set()){
-						this->m_spAssAdapter->adjust_vector(u, multInd[j], val[f]);
+					if(this->m_spAssTuner->is_ass_index_set()){
+						this->m_spAssTuner->adjust_vector(u, multInd[j], val[f]);
 					}
 					else{
 						//	set zero for dirichlet values
@@ -762,10 +762,10 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssAdapter->is_ass_index_set())
+					if(this->m_spAssTuner->is_ass_index_set())
 					{
-						this->m_spAssAdapter->adjust_matrix(A, multInd[j]);
-						this->m_spAssAdapter->adjust_vector(b, multInd[j], val[f]);
+						this->m_spAssTuner->adjust_matrix(A, multInd[j]);
+						this->m_spAssTuner->adjust_vector(b, multInd[j], val[f]);
 					}
 					else{
 						//	set dirichlet row
@@ -886,8 +886,8 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 
 				// 	check if assembling has been carried out with respect to one index only.
 				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssAdapter->is_ass_index_set()){
-						this->m_spAssAdapter->adjust_vector(b, multInd[j], val[f]);
+					if(this->m_spAssTuner->is_ass_index_set()){
+						this->m_spAssTuner->adjust_vector(b, multInd[j], val[f]);
 					}
 					else{
 						DoFRef(b, multInd[j]) = val[f];

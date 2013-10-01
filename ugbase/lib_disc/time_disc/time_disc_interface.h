@@ -135,8 +135,8 @@ class ITimeDiscretization : public IAssemble<TAlgebra>
 	private:
 	///	returns the assemble adapter
 	/// \{
-		SmartPtr<AssAdapter<TAlgebra> > ass_adapter() {return m_spDomDisc->ass_adapter();}
-		ConstSmartPtr<AssAdapter<TAlgebra> > ass_adapter() const {return m_spDomDisc->ass_adapter();}
+		SmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() {return m_spDomDisc->ass_tuner();}
+		ConstSmartPtr<AssemblingTuner<TAlgebra> > ass_tuner() const {return m_spDomDisc->ass_tuner();}
 	/// \}
 };
 

@@ -1,12 +1,12 @@
 /*
- * ass_adapter.h
+ * ass_tuner.h
  *
  *  Created on: 04.02.2013
  *      Author: raphaelprohl, Andreas Vogel
  */
 
-#ifndef ASS_ADAPTER_H_
-#define ASS_ADAPTER_H_
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER__
 
 #include "lib_grid/tools/bool_marker.h"
 #include "lib_grid/tools/selector_grid.h"
@@ -61,9 +61,9 @@ class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
 		~LocalToGlobalMapper() {};
 };
 
-/// The AssAdapter class combines tools to adapt the assemble routine
+/// The AssemblingTuner class combines tools to adapt the assemble routine
 template <typename TAlgebra>
-class AssAdapter
+class AssemblingTuner
 {
 	public:
 	///	Algebra type
@@ -80,7 +80,7 @@ class AssAdapter
 
 	public:
 	/// constructor
-		AssAdapter(): m_pBoolMarker(NULL), m_pSelector(NULL),
+		AssemblingTuner(): m_pBoolMarker(NULL), m_pSelector(NULL),
 		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
 		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL)
 		{
@@ -215,6 +215,6 @@ class AssAdapter
 
 } // end namespace ug
 
-#include "ass_adapter_impl.h"
+#include "ass_tuner_impl.h"
 
-#endif /* ASS_ADAPTER_H_ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER__ */

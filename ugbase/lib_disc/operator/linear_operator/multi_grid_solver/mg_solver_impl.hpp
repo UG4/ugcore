@@ -1257,8 +1257,8 @@ init_level_operator()
 		{
 		//	set this selector to the assembling, such that only those elements
 		//	will be assembled and force grid to be considered as regular
-			m_spAss->ass_adapter()->set_marker(&m_NonGhostMarker);
-			m_spAss->ass_adapter()->force_regular_grid(true);
+			m_spAss->ass_tuner()->set_marker(&m_NonGhostMarker);
+			m_spAss->ass_tuner()->force_regular_grid(true);
 
 		//	init level operator
 			try{
@@ -1268,8 +1268,8 @@ init_level_operator()
 						" Cannot init operator for level "<< lev << ".\n");
 
 		//	remove force flag
-			m_spAss->ass_adapter()->force_regular_grid(false);
-			m_spAss->ass_adapter()->set_marker(NULL);
+			m_spAss->ass_tuner()->force_regular_grid(false);
+			m_spAss->ass_tuner()->set_marker(NULL);
 
 		//	copy the matrix into a new (smaller) one
 			SmartPtr<matrix_type> mat = m_vLevData[lev]->spLevMat;
@@ -1300,13 +1300,13 @@ init_level_operator()
 			(((int)lev == m_baseLev) && (m_bBaseParallel == false)))
 		{
 		//	init level operator
-			m_spAss->ass_adapter()->force_regular_grid(true);
+			m_spAss->ass_tuner()->force_regular_grid(true);
 			try{
 			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
-			m_spAss->ass_adapter()->force_regular_grid(false);
+			m_spAss->ass_tuner()->force_regular_grid(false);
 		}
 	//	else we can forget about the whole-level matrix, since the needed
 	//	smoothing matrix is stored in SmoothMat
@@ -1986,7 +1986,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 	//	now set this selector to the assembling, such that only those elements
 	//	will be assembled
-		m_spAss->ass_adapter()->set_marker(&sel);
+		m_spAss->ass_tuner()->set_marker(&sel);
 
 	//	create a surface matrix
 		matrix_type surfMat;
@@ -2008,7 +2008,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		write_surface_debug(surfMat, ss.str().c_str());
 
 	//	remove the selector from the assembling procedure
-		m_spAss->ass_adapter()->set_marker(NULL);
+		m_spAss->ass_tuner()->set_marker(NULL);
 
 	//	project
 		try{

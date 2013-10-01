@@ -1,19 +1,19 @@
 /*
- * ass_adapter_impl.h
+ * ass_tuner_impl.h
  *
  *  Created on: 01.03.2013
  *      Author:	raphaelprohl
  */
 
-#ifndef ASS_ADAPTER_IMPL_H_
-#define ASS_ADAPTER_IMPL_H_
+#ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER_IMPL__
+#define __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER_IMPL__
 
-#include "ass_adapter.h"
+#include "ass_tuner.h"
 
 namespace ug{
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
+void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
                                   vector_type& vec)	const
 {
 	if (m_assIndex.index_set){ vec.resize(1);}
@@ -25,7 +25,7 @@ void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
+void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 								  matrix_type& mat) const
 {
 	if (m_assIndex.index_set){ mat.resize_and_clear(1, 1);
@@ -38,7 +38,7 @@ void AssAdapter<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 
 template <typename TAlgebra>
 template <typename TElem>
-void AssAdapter<TAlgebra>::collect_selected_elements(std::vector<TElem*>& vElem,
+void AssemblingTuner<TAlgebra>::collect_selected_elements(std::vector<TElem*>& vElem,
                                                      ConstSmartPtr<DoFDistribution> dd, int si) const
 {
 	if (!m_pSelector)
@@ -56,7 +56,7 @@ void AssAdapter<TAlgebra>::collect_selected_elements(std::vector<TElem*>& vElem,
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& ind) const
+void AssemblingTuner<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& ind) const
 {
 	UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");
@@ -77,7 +77,7 @@ void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& ind) 
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const DoFIndex& ind, const double val) const
+void AssemblingTuner<TAlgebra>::adjust_vector(vector_type& vec, const DoFIndex& ind, const double val) const
 {
 	UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");
@@ -92,4 +92,4 @@ void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const DoFIndex& ind, 
 
 } // end namespace ug
 
-#endif /* ASS_ADAPTER_IMPL_H_ */
+#endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER_IMPL__ */

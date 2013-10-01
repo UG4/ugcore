@@ -323,7 +323,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	while(!m_spConvCheck->iteration_ended())
 	{
 		//bool activeSet_changed = false;
-		m_spAss->ass_adapter()->set_mapping(&m_map);
+		m_spAss->ass_tuner()->set_mapping(&m_map);
 
 		//	loop all DoFs
 		for (size_t i = 0; i < u.size(); i++)
@@ -337,10 +337,10 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 			//	by passing the selector to the assembling the assemble operators
 			//	are build up only by looping over the elements which has been selected
-			m_spAss->ass_adapter()->set_selector(&m_sel);
+			m_spAss->ass_tuner()->set_selector(&m_sel);
 
 			//	assemble only with respect to DoF i (causes resizing of matrices/vectors)
-			m_spAss->ass_adapter()->set_ass_index(i);
+			m_spAss->ass_tuner()->set_ass_index(i);
 			m_map.set_ass_index(i);
 
 			try{
@@ -421,9 +421,9 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//	break;
 
 		//	set mapping, selector and ass_index to NULL
-		m_spAss->ass_adapter()->set_mapping();
-		m_spAss->ass_adapter()->set_selector();
-		m_spAss->ass_adapter()->set_ass_index();
+		m_spAss->ass_tuner()->set_mapping();
+		m_spAss->ass_tuner()->set_selector();
+		m_spAss->ass_tuner()->set_ass_index();
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
 		m_N->prepare(u);
