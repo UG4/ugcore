@@ -116,13 +116,13 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 // 	if already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
 	
-// get grid
+//  get grid
 	Grid& grid = *(ish->grid());
 
 //  update local data if some of it has been overwritten by constrained object scv/scvf
 	if (localUpdateNecessary) update_local_data();
 
-	//  compute barycenter coordinates
+//  compute barycenter coordinates
 	globalBary = vCornerCoords[0];
 	m_vCo[0] = vCornerCoords[0];
 	for (size_t j=1;j<m_rRefElem.num(0);j++){

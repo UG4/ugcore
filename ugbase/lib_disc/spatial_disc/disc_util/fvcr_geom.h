@@ -31,6 +31,7 @@
 
 #include "fv_geom_base.h"
 #include "fv_util.h"
+#include "hfvcr_geom.h"
 
 namespace ug{
 
@@ -139,6 +140,7 @@ class DimCRFVGeometry : public FVGeometryBase
 	public:
 	///	used traits
 		typedef crfv_traits<TDim, TDim> traits;
+		typedef hcrfv_traits<TDim, TDim> htraits;
 
 	public:
 	///	dimension of reference element
@@ -158,7 +160,7 @@ class DimCRFVGeometry : public FVGeometryBase
 		static const int order = 1;
 
 	///	number of SubControlVolumes
-		static const size_t maxNumSCV = traits::maxNumSCV;
+		static const size_t maxNumSCV = htraits::maxNumSCV;
 
 	///	traits
 		typedef typename crfv_traits<TWorldDim,TWorldDim>::scv_type scv_type0;
@@ -167,10 +169,10 @@ class DimCRFVGeometry : public FVGeometryBase
 	    typedef typename crfv_traits<TWorldDim,TWorldDim+1>::face_type face_type1;
 
 	///	max number of SubControlVolumeFaces
-		static const size_t maxNumSCVF = traits::maxNumSCVF;
+		static const size_t maxNumSCVF = htraits::maxNumSCVF;
 
 	/// max number of shape functions
-		static const size_t maxNSH = traits::maxNSH;
+		static const size_t maxNSH = htraits::maxNSH;
 
 		static const size_t maxNumCo = traits::maxNumCo;
 
@@ -480,6 +482,46 @@ class DimCRFVGeometry : public FVGeometryBase
 				MathMatrix<worldDim,dim> JtInv; // Jacobian transposed at ip
 				number detj; // Jacobian det at ip
 		};
+		
+		class CONSTRAINED_DOF
+		{
+			public:
+				static const size_t maxNumConstrainingDofs = 4;
+				inline size_t constraining_dofs_index(size_t i) const{
+					return cDofInd[i];
+				}
+				inline number constraining_dofs_weight(size_t i) const{
+					return cDofWeights[i];
+				}
+				inline size_t index() const{
+					return i;
+				}
+				inline size_t num_constraining_dofs() const{
+					return numConstrainingDofs;
+				}
+			private:
+				// 	let outer class access private members
+				friend class DimCRFVGeometry<dim, worldDim>;
+
+				//  constraining dofs indices
+				size_t cDofInd[maxNumConstrainingDofs];
+				//  weights
+				number cDofWeights[maxNumConstrainingDofs];
+				//  local index of dof in element
+				size_t i;
+				//  nr of constraining dofs
+				size_t numConstrainingDofs;
+		};
+	
+		class HandledEdge
+		{
+		public:
+			size_t index;
+			size_t associatedSCV[2];
+			size_t scvfIndex;
+			// indicates if the handled side is from or to
+			bool from;
+		};
 
 	public:
 	/// construct object and initialize local values and sizes
@@ -490,6 +532,10 @@ class DimCRFVGeometry : public FVGeometryBase
 
 	/// update data for given element
 		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		            const ISubsetHandler* ish = NULL);
+					
+	/// update data for given element
+		void update_hanging(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 					
 	/// update data for given element
@@ -514,6 +560,13 @@ class DimCRFVGeometry : public FVGeometryBase
 	/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
+			
+	/// number of constrained dofs
+		inline size_t num_constrained_dofs() const {return m_numConstrainedDofs;}
+
+	/// const access to constrained dof i
+		inline const CONSTRAINED_DOF& constrained_dof(size_t i) const
+			{UG_ASSERT(i < m_numConstrainedDofs, "Invalid Index."); return m_vCD[i];}
 
 	/// number of shape functions
 		inline size_t num_sh() const {return m_nsh;};
@@ -604,13 +657,21 @@ class DimCRFVGeometry : public FVGeometryBase
 
 	protected:
 		std::map<int, std::vector<BF> > m_mapVectorBF;
-
+		
+		/// constrained Dofs
+		CONSTRAINED_DOF m_vCD[maxNumSCV];
+		
+		std::vector<HandledEdge> handledEdges;
+		
 	private:
 	///	pointer to current element
 		GeometricObject* m_pElem;
 
 	///	current reference object id
 		ReferenceObjectID m_roid;
+		
+	/// current reference element
+		DimReferenceElement<dim> m_rRefElem;
 
 	///	current number of scv
 		size_t m_numSCV;
@@ -629,6 +690,13 @@ class DimCRFVGeometry : public FVGeometryBase
 
 	///	SubControlVolumes
 		SCV m_vSCV[maxNumSCV];
+		
+	/// numDofs number of all dofs including constraining and constrained dofs	
+		size_t m_numDofs;
+		
+		size_t m_numConstrainedDofs;
+
+		static const size_t deleted = 117;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
