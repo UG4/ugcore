@@ -56,14 +56,15 @@ void AssAdapter<TAlgebra>::elemIter_fromSel(ConstSmartPtr<DoFDistribution> dd,
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index,
-		const size_t alpha)
+void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& ind)
 {
 	UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");
 	UG_ASSERT(mat.num_cols() == 1, "#cols needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");
 
+	const size_t index = ind[0];
+	const size_t alpha = ind[1];
 	if (index == m_assIndex.index)
 	{
 		typename matrix_type::value_type& block = mat(0,0);
@@ -76,12 +77,13 @@ void AssAdapter<TAlgebra>::adjust_matrix(matrix_type& mat, const size_t index,
 }
 
 template <typename TAlgebra>
-void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const size_t index,
-		const size_t alpha, const double val)
+void AssAdapter<TAlgebra>::adjust_vector(vector_type& vec, const DoFIndex& ind, const double val)
 {
 	UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");
 
+	const size_t index = ind[0];
+	const size_t alpha = ind[1];
 	if (index == m_assIndex.index){
 		BlockRef(vec[0], alpha) = val;
 	}

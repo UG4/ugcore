@@ -174,9 +174,8 @@ class AssAdapter
 
 	///	only one index will be set to Dirichlet in case of index-wise assembling
 	///	instead of setting a complete matrix row to Dirichlet
-		void adjust_matrix(matrix_type& mat, const size_t index, const size_t alpha);
-		void adjust_vector(vector_type& vec, const size_t index, const size_t alpha,
-				const double val);
+		void adjust_matrix(matrix_type& mat, const DoFIndex& ind);
+		void adjust_vector(vector_type& vec, const DoFIndex& ind, const double val);
 
 	public:
 
