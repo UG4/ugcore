@@ -320,10 +320,10 @@ number AverageFunctionDifference(
 	typedef typename GridFunction<TDomain, TAlgebra>::template traits<VertexBase>::const_iterator gridFctIterator;
 	for( gridFctIterator iter = spGridFct->template begin<VertexBase>((int)subSetID); 
 	       iter != spGridFct->template end<VertexBase>((int)subSetID); ++iter ) {
-		// get multi_indices for the two functions on given subset
+		// get dof_indices for the two functions on given subset
 		std::vector< DoFIndex > indFct1, indFct2;
-		spGridFct->template multi_indices<VertexBase>( *iter, fct1ID, indFct1 );
-		spGridFct->template multi_indices<VertexBase>( *iter, fct2ID, indFct2 );
+		spGridFct->template dof_indices<VertexBase>( *iter, fct1ID, indFct1 );
+		spGridFct->template dof_indices<VertexBase>( *iter, fct2ID, indFct2 );
 
 		// calculate the difference between the two functions at this grid point
 		sum += DoFRef( *spGridFct, indFct1[0] ) - DoFRef( *spGridFct, indFct2[0] );

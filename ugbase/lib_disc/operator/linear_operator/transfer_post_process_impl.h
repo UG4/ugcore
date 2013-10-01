@@ -104,7 +104,7 @@ post_process(vector_type& u)
 				if(!dd.is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				dd.inner_multi_indices(elem, fct, vMultInd);
+				dd.inner_dof_indices(elem, fct, vMultInd);
 
 			//	sum up value
 				for(size_t i = 0; i < vMultInd.size(); ++i)
@@ -138,7 +138,7 @@ post_process(vector_type& u)
 				if(!dd.is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				dd.inner_multi_indices(elem, fct, vMultInd);
+				dd.inner_dof_indices(elem, fct, vMultInd);
 
 			//	sum up value
 				for(size_t i = 0; i < vMultInd.size(); ++i)

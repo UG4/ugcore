@@ -386,7 +386,7 @@ void collectStretchedElementIndices(ConstSmartPtr<TDomain> domain,
 				};
 				if (maxedgelength/minedgelength>alpha){
 					//	load indices associated with element function
-					dd->inner_multi_indices(elem, fct, ind);
+					dd->inner_dof_indices(elem, fct, ind);
 
 					//	load positions associated with element and function
 					InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),

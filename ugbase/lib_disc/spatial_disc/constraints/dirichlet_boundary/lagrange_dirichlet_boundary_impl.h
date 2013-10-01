@@ -265,7 +265,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 				const size_t fct = userData[i]->fct[0];
 
 			//	get multi indices
-				if(dd->inner_multi_indices(vertex, fct, multInd) != 1)
+				if(dd->inner_dof_indices(vertex, fct, multInd) != 1)
 					return;
 
 			// 	check if assembling has been carried out with respect to one index only.
@@ -377,7 +377,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
 
 			//	get multi indices
-				dd->inner_multi_indices(elem, fct, multInd);
+				dd->inner_dof_indices(elem, fct, multInd);
 
 			//	get dof position
 				if(TUserData::isConditional){
@@ -502,7 +502,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 				const LFEID& lfeID = dd->local_finite_element_id(fct);
 
 			//	get multi indices
-				dd->inner_multi_indices(elem, fct, multInd);
+				dd->inner_dof_indices(elem, fct, multInd);
 
 			//	get dof position
 				if(TUserData::isConditional){
@@ -627,7 +627,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
 
 			//	get multi indices
-				dd->inner_multi_indices(elem, fct, multInd);
+				dd->inner_dof_indices(elem, fct, multInd);
 
 				UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
 
@@ -748,7 +748,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
 
 			//	get multi indices
-				dd->inner_multi_indices(elem, fct, multInd);
+				dd->inner_dof_indices(elem, fct, multInd);
 
 				UG_ASSERT(multInd.size() == vPos.size(),
 						  "Mismatch: numInd="<<multInd.size()<<", numPos="
@@ -874,7 +874,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 				InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
 
 			//	get multi indices
-				dd->inner_multi_indices(elem, fct, multInd);
+				dd->inner_dof_indices(elem, fct, multInd);
 
 				UG_ASSERT(multInd.size() == vPos.size(), "Size mismatch");
 

@@ -138,10 +138,10 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 
 	///	extracts multi-indices for a fct-comp on a element type
 		template <typename TBaseElem>
-		void extract_multi_indices(ConstSmartPtr<DoFDistribution> dd);
+		void extract_dof_indices(ConstSmartPtr<DoFDistribution> dd);
 
 	///	extracts multi-indices from dof distribution
-		void extract_multi_indices(ConstSmartPtr<DoFDistribution> dd);
+		void extract_dof_indices(ConstSmartPtr<DoFDistribution> dd);
 
 	/// calculates the 2-norm of the entries of the vector vec specified by index
 		number norm(const TVector& vec, const std::vector<DoFIndex>& index);

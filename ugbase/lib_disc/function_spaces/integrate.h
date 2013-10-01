@@ -627,7 +627,7 @@ class L2ErrorIntegrand
 
 		//	get multiindices of element
 			std::vector<DoFIndex> ind;  // 	aux. index array
-			m_spGridFct->multi_indices(pElem, m_fct, ind);
+			m_spGridFct->dof_indices(pElem, m_fct, ind);
 
 		//	check multi indices
 			if(ind.size() != num_sh)
@@ -826,8 +826,8 @@ class L2DiffIntegrand
 
 		//	get multiindices of element
 			std::vector<DoFIndex> vFineMI, vCoarseMI;
-			m_spFineGridFct->multi_indices(pFineElem, m_fineFct, vFineMI);
-			m_spCoarseGridFct->multi_indices(pCoarseElem, m_coarseFct, vCoarseMI);
+			m_spFineGridFct->dof_indices(pFineElem, m_fineFct, vFineMI);
+			m_spCoarseGridFct->dof_indices(pCoarseElem, m_coarseFct, vCoarseMI);
 
 		//	loop all integration points
 			for(size_t ip = 0; ip < numIP; ++ip)
@@ -994,7 +994,7 @@ class H1ErrorIntegrand
 
 		//	get multiindices of element
 			std::vector<DoFIndex> ind;  // 	aux. index array
-			m_spGridFct->multi_indices(pElem, m_fct, ind);
+			m_spGridFct->dof_indices(pElem, m_fct, ind);
 
 		//	check multi indices
 			if(ind.size() != num_sh)
@@ -1215,8 +1215,8 @@ class H1DiffIntegrand
 
 		//	get multiindices of element
 			std::vector<DoFIndex> vFineMI, vCoarseMI;
-			m_spFineGridFct->multi_indices(pFineElem, m_fineFct, vFineMI);
-			m_spCoarseGridFct->multi_indices(pCoarseElem, m_coarseFct, vCoarseMI);
+			m_spFineGridFct->dof_indices(pFineElem, m_fineFct, vFineMI);
+			m_spCoarseGridFct->dof_indices(pCoarseElem, m_coarseFct, vCoarseMI);
 
 			std::vector<MathVector<elemDim> > vFineLocGradient(vFineMI.size());
 			std::vector<MathVector<elemDim> > vCoarseLocGradient(vCoarseMI.size());
@@ -1384,7 +1384,7 @@ class L2FuncIntegrand
 		//	get multiindices of element
 
 			std::vector<DoFIndex> ind;  // 	aux. index array
-			m_spGridFct->multi_indices(pElem, m_fct, ind);
+			m_spGridFct->dof_indices(pElem, m_fct, ind);
 
 		//	check multi indices
 			if(ind.size() != num_sh)
@@ -1505,7 +1505,7 @@ class StdFuncIntegrand
 		//	get multiindices of element
 
 			std::vector<DoFIndex> ind;  // 	aux. index array
-			m_spGridFct->multi_indices(pElem, m_fct, ind);
+			m_spGridFct->dof_indices(pElem, m_fct, ind);
 
 		//	check multi indices
 			if(ind.size() != num_sh)
@@ -1561,7 +1561,7 @@ number StdFuncIntegralOnVertex(SmartPtr<TGridFunction> spGridFct,
 		geometric_base_object* pElem = *iter;
 
 		std::vector<DoFIndex> ind;  // 	aux. index array
-		spGridFct->multi_indices(pElem, fct, ind);
+		spGridFct->dof_indices(pElem, fct, ind);
 
 	// 	compute approximated solution at integration point
 		number value = 0.0;
@@ -2048,7 +2048,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 
 		//	get fct multi-indeces of element
 			std::vector<DoFIndex> ind;
-			u.multi_indices(elem, fct, ind);
+			u.dof_indices(elem, fct, ind);
 
 		//	specify, which subsets are boundary
 			for(size_t s = 0; s < bndSSGrp.size(); ++s)

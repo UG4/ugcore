@@ -97,7 +97,7 @@ class GridFunctionNumberData
 
 					//	get multiindices of element
 					std::vector<DoFIndex> ind;
-					m_spGridFct->multi_indices(elem, m_fct, ind);
+					m_spGridFct->dof_indices(elem, m_fct, ind);
 
 					// 	compute solution at integration point
 					vValue[ip] = 0.0;
@@ -219,7 +219,7 @@ class GridFunctionVectorData
 
 					//	get multiindices of element
 					std::vector<DoFIndex> ind;
-					m_spGridFct->multi_indices(elem, m_vfct[d], ind);
+					m_spGridFct->dof_indices(elem, m_vfct[d], ind);
 
 					// 	compute solution at integration point
 					vValue[ip][d] = 0.0;
@@ -335,7 +335,7 @@ class GridFunctionGradientData
 
 				//	get multiindices of element
 				std::vector<DoFIndex > ind;
-				m_spGridFct->multi_indices(elem, m_fct, ind);
+				m_spGridFct->dof_indices(elem, m_fct, ind);
 
 				//	compute grad at ip
 				VecSet(locGrad, 0.0);
@@ -485,7 +485,7 @@ class GridFunctionGradientComponentData
 
 				//	get multiindices of element
 				std::vector<DoFIndex> ind;
-				m_spGridFct->multi_indices( elem, m_fct, ind );
+				m_spGridFct->dof_indices( elem, m_fct, ind );
 
 				//	compute grad at ip
 				VecSet( locGrad, 0.0 );

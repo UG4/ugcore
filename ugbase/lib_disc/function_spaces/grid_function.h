@@ -245,13 +245,13 @@ class GridFunction
 
 	/// get multi indices on an finite element in canonical order
 		template <typename TElem>
-		size_t multi_indices(TElem* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const
-			{return m_spDD->multi_indices(elem, fct, ind, bHang, bClear);}
+		size_t dof_indices(TElem* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const
+			{return m_spDD->dof_indices(elem, fct, ind, bHang, bClear);}
 
 	/// get multi indices on an geometric object in canonical order
 		template <typename TElem>
-		size_t inner_multi_indices(TElem* elem, size_t fct,	std::vector<multi_index_type>& ind, bool bClear = true) const
-			{return m_spDD->inner_multi_indices(elem, fct, ind, bClear);}
+		size_t inner_dof_indices(TElem* elem, size_t fct,	std::vector<multi_index_type>& ind, bool bClear = true) const
+			{return m_spDD->inner_dof_indices(elem, fct, ind, bClear);}
 
 	/// get algebra indices on an geometric object in canonical order
 		template <typename TElem>

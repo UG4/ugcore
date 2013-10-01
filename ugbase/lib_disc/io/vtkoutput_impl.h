@@ -1048,7 +1048,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 			for(size_t i = 0; i < vFct.size(); ++i)
 			{
 			//	get multi index of vertex for the function
-				if(u.inner_multi_indices(v, vFct[i], vMultInd) != 1)
+				if(u.inner_dof_indices(v, vFct[i], vMultInd) != 1)
 					UG_THROW("VTK:write_nodal_values_elementwise: "
 							"The function component "<<vFct[i]<<" has "<<
 							vMultInd.size()<<" DoFs in  a vertex. To write a "
@@ -1405,7 +1405,7 @@ write_cell_values_elementwise(VTKFileWriter& File, TFunction& u,
 		for(size_t f = 0; f < vFct.size(); ++f)
 		{
 		//	get multi index of vertex for the function
-			if(u.multi_indices(elem, vFct[f], vMultInd) != vNsh[f])
+			if(u.dof_indices(elem, vFct[f], vMultInd) != vNsh[f])
 				UG_THROW("VTK:write_cell_values_elementwise: "
 						"Number of shape functions for component "<<vFct[f]<<
 						" does not match number of DoFs");

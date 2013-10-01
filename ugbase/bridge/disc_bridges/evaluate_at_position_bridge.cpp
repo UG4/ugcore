@@ -99,7 +99,7 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 	}
 
 	VertexBase* vrt = *chosen;
-	spGridFct->inner_multi_indices(vrt, fct, ind);
+	spGridFct->inner_dof_indices(vrt, fct, ind);
 	return 	DoFRef(*spGridFct, ind[0]);
 
 }

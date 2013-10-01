@@ -289,7 +289,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 				if(!dd->is_def_in_subset(fct,si)) continue;
 
 			//	load indices associated with element function
-				dd->inner_multi_indices(elem, fct, ind);
+				dd->inner_dof_indices(elem, fct, ind);
 
 			//	load positions associated with element and function
 				InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
@@ -410,7 +410,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 				if(!dd->is_def_in_subset(fct,si)) continue;
 
 			//	load indices associated with element function
-				dd->inner_multi_indices(elem, fct, ind);
+				dd->inner_dof_indices(elem, fct, ind);
 
 			//	load positions associated with element and function
 				InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
@@ -491,7 +491,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 			TBaseElem* elem = *iter;
 
 		//	load indices associated with element function
-			dd->inner_multi_indices(elem, fct, ind);
+			dd->inner_dof_indices(elem, fct, ind);
 
 		//	load positions associated with element and function
 			InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
@@ -571,7 +571,7 @@ bool CheckDoFElem(ConstSmartPtr<TDomain> domain,
 				if(!dd->is_def_in_subset(fct,si)) continue;
 
 			//	load indices associated with element function
-				dd->inner_multi_indices(elem, fct, ind);
+				dd->inner_dof_indices(elem, fct, ind);
 
 			//	load positions associated with element and function
 				InnerDoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
@@ -589,7 +589,7 @@ bool CheckDoFElem(ConstSmartPtr<TDomain> domain,
 							UG_LOG(" **** inner_multi_index (start) ******\n")
 						bWrite = true;
 						bRes = false;
-						UG_LOG("CheckDoFPositions "<<sh<<": inner_multi_indices: index: "
+						UG_LOG("CheckDoFPositions "<<sh<<": inner_dof_indices: index: "
 						       <<index<<" at "<<vElemPos[sh]<<", but previously: "
 						       <<vPos[index]<<"\n");
 					}
@@ -609,7 +609,7 @@ bool CheckDoFElem(ConstSmartPtr<TDomain> domain,
 
 				 /////////////////////////
 				//	load indices associated with element function
-					dd->multi_indices(elem, fct, ind);
+					dd->dof_indices(elem, fct, ind);
 
 				//	load positions associated with element and function
 					DoFPosition(vElemPos, elem, *(const_cast<TDomain*>(domain.get())),
@@ -628,7 +628,7 @@ bool CheckDoFElem(ConstSmartPtr<TDomain> domain,
 								UG_LOG(" **** multi_index (start) ******\n")
 							bWrite = true;
 							bRes = false;
-							UG_LOG("CheckDoFPositions "<<sh<<": multi_indices: index: "
+							UG_LOG("CheckDoFPositions "<<sh<<": dof_indices: index: "
 								   <<index<<" at "<<vElemPos[sh]<<", but previously: "
 								   <<vPos[index]<<"\n");
 						}

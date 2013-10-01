@@ -90,7 +90,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 				if(!fineDD.is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				fineDD.inner_multi_indices(fineVrt, fct, fineMultInd);
+				fineDD.inner_dof_indices(fineVrt, fct, fineMultInd);
 
 			//	detect type of father
 				switch(roid)
@@ -98,7 +98,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 					case ROID_VERTEX:
 						{
 							VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
-							coarseDD.inner_multi_indices(vrt, fct, coarseMultInd);
+							coarseDD.inner_dof_indices(vrt, fct, coarseMultInd);
 							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 1.0;
 							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
@@ -107,7 +107,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 						for(int i = 0; i < 2; ++i)
 						{
 							EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
-							coarseDD.inner_multi_indices(edge->vertex(i), fct, coarseMultInd);
+							coarseDD.inner_dof_indices(edge->vertex(i), fct, coarseMultInd);
 							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.5;
 							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
@@ -116,7 +116,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 						for(int i = 0; i < 4; ++i)
 						{
 							Face* face = dynamic_cast<Face*>(parent);
-							coarseDD.inner_multi_indices(face->vertex(i), fct, coarseMultInd);
+							coarseDD.inner_dof_indices(face->vertex(i), fct, coarseMultInd);
 							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.25;
 							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
@@ -125,7 +125,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 						for(int i = 0; i < 8; ++i)
 						{
 							Volume* hexaeder = dynamic_cast<Volume*>(parent);
-							coarseDD.inner_multi_indices(hexaeder->vertex(i), fct, coarseMultInd);
+							coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, coarseMultInd);
 							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.125;
 							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
@@ -217,7 +217,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 				//	check that fct defined on subset
 				if(!coarseDD.is_def_in_subset(fct, si)) continue;
 				//  get global indices
-				coarseDD.multi_indices(coarseElem, fct, vCoarseMultInd);
+				coarseDD.dof_indices(coarseElem, fct, vCoarseMultInd);
 
 				// piecewise constant elements
 				if (vLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT){
@@ -226,7 +226,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 					{
 						Element* child = vChild[c];
 						//	fine dof indices
-						fineDD.multi_indices(child, fct, vFineMultInd);
+						fineDD.dof_indices(child, fct, vFineMultInd);
 						DoFRef(mat, vFineMultInd[0], vCoarseMultInd[0]) =  1.0;
 						vIsRestricted[vCoarseMultInd[0][0]] = true;
 					}
@@ -255,7 +255,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 						for(size_t c = 0; c < vChild.size(); ++c){
 							Side* childSide = grid.get_child<Side,Side>(side,  c);
 							//	fine dof indices
-							fineDD.inner_multi_indices(childSide, fct, vFineMultInd);
+							fineDD.inner_dof_indices(childSide, fct, vFineMultInd);
 							//	global positions of fine dofs
 							std::vector<MathVector<dim> > vDoFPos, vLocPos;
 							DoFPosition(vDoFPos, childSide, *spDomain, vLFEID[fct]);
@@ -289,7 +289,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 					for(size_t c = 0; c < numChild; ++c){
 						Side* childSide = grid.get_child<Side,Element>(coarseElem,c);
 						//	fine dof indices
-						fineDD.inner_multi_indices(childSide, fct, vFineMultInd);
+						fineDD.inner_dof_indices(childSide, fct, vFineMultInd);
 						//	global positions of fine dofs
 						std::vector<MathVector<dim> > vDoFPos, vLocPos;
 						DoFPosition(vDoFPos, childSide, *spDomain, vLFEID[fct]);
@@ -327,7 +327,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 					Element* child = vChild[c];
 
 				//	fine dof indices
-					fineDD.multi_indices(child, fct, vFineMultInd);
+					fineDD.dof_indices(child, fct, vFineMultInd);
 
 				//	global positions of fine dofs
 					std::vector<MathVector<dim> > vDoFPos, vLocPos;
@@ -340,7 +340,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 					vLocPos.resize(vDoFPos.size());
 					for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
 
-				//  update map coordinates because they have been changed in multi_indices
+				//  update map coordinates because they have been changed in dof_indices
 					map.update(vCornerCoarse);
 					map.global_to_local(vLocPos, vDoFPos);
 

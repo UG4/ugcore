@@ -85,7 +85,7 @@ void MaxErrorOnVertices(number& globalMaxError,SmartPtr<UserData<number, TGridFu
 			(*spInterpolFunction)(val, glob_pos, time, si);
 
 		//	get multiindices of element
-			spGridFct->multi_indices(vrt, fct, ind);
+			spGridFct->dof_indices(vrt, fct, ind);
 
 		// 	loop all dofs
 			for(size_t i = 0; i < ind.size(); ++i)
@@ -173,7 +173,7 @@ void MaxErrorOnElements(
 
 	//	get multiindices of element
 		std::vector<DoFIndex> ind;
-		spGridFct->multi_indices(elem, fct, ind);
+		spGridFct->dof_indices(elem, fct, ind);
 
 	//	check multi indices
 		if(ind.size() != nsh)

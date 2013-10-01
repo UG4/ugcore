@@ -258,7 +258,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 				if(!coarseDD->is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				coarseDD->multi_indices(coarseElem, fct, vCoarseMI);
+				coarseDD->dof_indices(coarseElem, fct, vCoarseMI);
 
 			//	get local finite element trial spaces
 				const LocalShapeFunctionSet<dim>& lsfs
@@ -274,7 +274,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 					Element* child = vChild[c];
 
 				//	fine dof indices
-					fineDD->multi_indices(child, fct, vFineMI);
+					fineDD->dof_indices(child, fct, vFineMI);
 
 				//	global positions of fine dofs
 					std::vector<MathVector<dim> > vDoFPos, vLocPos;
@@ -497,7 +497,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 				if(!coarseDD->is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				coarseDD->inner_multi_indices(coarseElem, fct, vCoarseMI);
+				coarseDD->inner_dof_indices(coarseElem, fct, vCoarseMI);
 
 			//	global positions of fine dofs
 				std::vector<MathVector<dim> > vDoFPos;
@@ -539,7 +539,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 						map.global_to_local(vLocPos, vDoFPos[ip]);
 
 					//	fine dof indices
-						fineDD->multi_indices(fineElem, fct, vFineMI);
+						fineDD->dof_indices(fineElem, fct, vFineMI);
 
 					//	get all shape functions
 						std::vector<number> vShape;

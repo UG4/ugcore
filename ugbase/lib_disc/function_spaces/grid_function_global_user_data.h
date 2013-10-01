@@ -105,7 +105,7 @@ class GlobalGridFunctionNumberData
 
 			//	get multiindices of element
 				std::vector<DoFIndex> ind;
-				m_spGridFct->multi_indices(elem, m_fct, ind);
+				m_spGridFct->dof_indices(elem, m_fct, ind);
 
 			// 	compute solution at integration point
 				value = 0.0;

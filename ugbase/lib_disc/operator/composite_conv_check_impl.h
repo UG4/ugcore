@@ -45,7 +45,7 @@ template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::set_level(int level)
 {
 	ConstSmartPtr<DoFDistribution> dd = m_spApprox->surface_dof_distribution(level);
-	extract_multi_indices(dd);
+	extract_dof_indices(dd);
 
 	update_rest_check();
 }
@@ -54,7 +54,7 @@ void CompositeConvCheck<TVector, TDomain>::set_level(int level)
 template <class TVector, class TDomain>
 template <typename TBaseElem>
 void CompositeConvCheck<TVector, TDomain>::
-extract_multi_indices(ConstSmartPtr<DoFDistribution> dd)
+extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 {
 	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterBegin, iterEnd;
 
@@ -69,7 +69,7 @@ extract_multi_indices(ConstSmartPtr<DoFDistribution> dd)
 		for (size_t fi = 0; fi < dd->num_fct(); fi++)
 		{
 			// inner multi indices of the grid object for a function component
-			dd->inner_multi_indices(*iter, fi, vInd);
+			dd->inner_dof_indices(*iter, fi, vInd);
 
 			// remember multi indices
 			for (size_t dof = 0; dof < vInd.size(); dof++)
@@ -82,15 +82,15 @@ extract_multi_indices(ConstSmartPtr<DoFDistribution> dd)
 
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::
-extract_multi_indices(ConstSmartPtr<DoFDistribution> dd)
+extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 {
 	// compute indices for faster access later
 	m_vNativCmpInfo.clear();
 	m_vNativCmpInfo.resize(dd->num_fct());
-	if(dd->max_dofs(VERTEX)) extract_multi_indices<VertexBase>(dd);
-	if(dd->max_dofs(FACE)) extract_multi_indices<EdgeBase>(dd);
-	if(dd->max_dofs(EDGE)) extract_multi_indices<Face>(dd);
-	if(dd->max_dofs(VOLUME)) extract_multi_indices<Volume>(dd);
+	if(dd->max_dofs(VERTEX)) extract_dof_indices<VertexBase>(dd);
+	if(dd->max_dofs(FACE)) extract_dof_indices<EdgeBase>(dd);
+	if(dd->max_dofs(EDGE)) extract_dof_indices<Face>(dd);
+	if(dd->max_dofs(VOLUME)) extract_dof_indices<Volume>(dd);
 
 	for(size_t i = 0; i < m_vNativCmpInfo.size(); ++i)
 		m_vNativCmpInfo[i].name = dd->name(i);

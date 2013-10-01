@@ -51,7 +51,7 @@ void IntegrateDiscFlux(std::vector<number>& vValue,
 
 	//	get multi-indices of elem
 		for(size_t f = 0; f < fctGrp.size(); ++f)
-			rDefect.inner_multi_indices(elem, fctGrp[f], vInd[f]);
+			rDefect.inner_dof_indices(elem, fctGrp[f], vInd[f]);
 
 	//	sum values
 		for(size_t f = 0; f < fctGrp.size(); ++f)

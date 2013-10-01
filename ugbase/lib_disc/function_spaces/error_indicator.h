@@ -96,7 +96,7 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
 
 		//	get of of vertex
 			std::vector<DoFIndex> ind;
-			u.inner_multi_indices(vert, fct, ind);
+			u.inner_dof_indices(vert, fct, ind);
 
 		//	scale global gradient
 			vGlobalGrad[sh] *= DoFRef(u, ind[0]);
@@ -193,7 +193,7 @@ void ComputeGradientCrouzeixRaviart(TFunction& u, size_t fct,
 
 		//	get of of vertex
 			std::vector<DoFIndex> ind;
-			u.inner_multi_indices(sides[sh], fct, ind);
+			u.inner_dof_indices(sides[sh], fct, ind);
 
 		//	scale global gradient
 			vGlobalGrad[sh] *= DoFRef(u, ind[0]);
@@ -299,7 +299,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 			size_t numOfAsso = assoElements.size();
 			for (size_t i=0;i<numOfAsso;i++){
 				std::vector<DoFIndex> ind;
-				u.inner_multi_indices(assoElements[i], fct, ind);
+				u.inner_dof_indices(assoElements[i], fct, ind);
 				faceValue+=DoFRef(u, ind[0]);
 			}
 			faceValue/=(number)numOfAsso;

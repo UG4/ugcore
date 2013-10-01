@@ -189,7 +189,7 @@ size_t MGDoFDistribution::algebra_indices(TBaseElem* elem,
 
 template<typename TBaseElem, typename TSubBaseElem>
 void MGDoFDistribution::
-multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
+dof_indices(TBaseElem* elem, const ReferenceObjectID roid,
               size_t fct, std::vector<multi_index_type>& ind,
               const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const
 {
@@ -260,7 +260,7 @@ multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 }
 
 template<typename TBaseElem>
-size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
+size_t MGDoFDistribution::inner_dof_indices(TBaseElem* elem, size_t fct,
                                               std::vector<multi_index_type>& ind,
                                               bool bClear) const
 {
@@ -307,7 +307,7 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 
 template <typename TConstraining, typename TConstrained, typename TBaseElem>
 void MGDoFDistribution::
-constrained_vertex_multi_indices(size_t fct,std::vector<multi_index_type>& ind,
+constrained_vertex_dof_indices(size_t fct,std::vector<multi_index_type>& ind,
                     const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const
 {
 	//	loop all edges
@@ -365,7 +365,7 @@ constrained_vertex_multi_indices(size_t fct,std::vector<multi_index_type>& ind,
 
 template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
 void MGDoFDistribution::
-constrained_edge_multi_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
+constrained_edge_dof_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
                     const typename Grid::traits<TSubElem>::secure_container& vSubElem) const
 {
 	//	storage for offsets
@@ -440,7 +440,7 @@ constrained_edge_multi_indices(TBaseElem* elem,size_t fct,std::vector<multi_inde
 
 template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
 void MGDoFDistribution::
-constrained_face_multi_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
+constrained_face_dof_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
                     const typename Grid::traits<TSubElem>::secure_container& vSubElem) const
 {
 	//	storage for offsets
@@ -515,7 +515,7 @@ constrained_face_multi_indices(TBaseElem* elem,size_t fct,std::vector<multi_inde
 
 
 template<typename TBaseElem>
-size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
+size_t MGDoFDistribution::dof_indices(TBaseElem* elem, size_t fct,
                                         std::vector<multi_index_type>& ind,
                                         bool bHang, bool bClear) const
 {
@@ -546,10 +546,10 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 
 //	get regular dofs on all subelements and the element itself
 //	use specialized function for vertices (since only one position and one reference object)
-	if(dim >= VERTEX && max_dofs(VERTEX) > 0) multi_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner);
-	if(dim >= EDGE && max_dofs(EDGE) > 0) 	  multi_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vEdge);
-	if(dim >= FACE && max_dofs(FACE) > 0) 	  multi_indices<TBaseElem, Face>(elem, roid, fct, ind, vFace);
-	if(dim >= VOLUME && max_dofs(VOLUME) > 0) multi_indices<TBaseElem, Volume>(elem, roid, fct, ind, vVol);
+	if(dim >= VERTEX && max_dofs(VERTEX) > 0) dof_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner);
+	if(dim >= EDGE && max_dofs(EDGE) > 0) 	  dof_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vEdge);
+	if(dim >= FACE && max_dofs(FACE) > 0) 	  dof_indices<TBaseElem, Face>(elem, roid, fct, ind, vFace);
+	if(dim >= VOLUME && max_dofs(VOLUME) > 0) dof_indices<TBaseElem, Volume>(elem, roid, fct, ind, vVol);
 
 //	If no hanging dofs are required, we're done
 	if(!bHang) return ind.size();
@@ -557,21 +557,21 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 	//	get dofs on hanging vertices
 	if(max_dofs(VERTEX > 0))
 	{
-		if(dim >= EDGE) constrained_vertex_multi_indices<ConstrainingEdge, VertexBase, EdgeBase>(fct,ind,vEdge);
-		if(dim >= FACE) constrained_vertex_multi_indices<ConstrainingQuadrilateral, VertexBase, Face>(fct,ind,vFace);
+		if(dim >= EDGE) constrained_vertex_dof_indices<ConstrainingEdge, VertexBase, EdgeBase>(fct,ind,vEdge);
+		if(dim >= FACE) constrained_vertex_dof_indices<ConstrainingQuadrilateral, VertexBase, Face>(fct,ind,vFace);
 	}
 
 //	get dofs on hanging edges
 	if (max_dofs(EDGE) > 0){
-		if(dim >= EDGE) constrained_edge_multi_indices<TBaseElem,ConstrainingEdge, EdgeBase, EdgeBase>(elem,fct,ind, vEdge);
-		if(dim >= FACE) constrained_edge_multi_indices<TBaseElem,ConstrainingTriangle, EdgeBase, Face>(elem,fct,ind, vFace);
-		if(dim >= FACE) constrained_edge_multi_indices<TBaseElem,ConstrainingQuadrilateral, EdgeBase, Face>(elem,fct,ind, vFace);
+		if(dim >= EDGE) constrained_edge_dof_indices<TBaseElem,ConstrainingEdge, EdgeBase, EdgeBase>(elem,fct,ind, vEdge);
+		if(dim >= FACE) constrained_edge_dof_indices<TBaseElem,ConstrainingTriangle, EdgeBase, Face>(elem,fct,ind, vFace);
+		if(dim >= FACE) constrained_edge_dof_indices<TBaseElem,ConstrainingQuadrilateral, EdgeBase, Face>(elem,fct,ind, vFace);
 	}
 
 //  get dofs on hanging faces
 	if (max_dofs(FACE) > 0){
-		if(dim >= FACE) constrained_face_multi_indices<TBaseElem,ConstrainingTriangle, Face, Face>(elem,fct,ind,vFace);
-		if(dim >= FACE) constrained_face_multi_indices<TBaseElem,ConstrainingQuadrilateral, Face, Face>(elem,fct,ind,vFace);
+		if(dim >= FACE) constrained_face_dof_indices<TBaseElem,ConstrainingTriangle, Face, Face>(elem,fct,ind,vFace);
+		if(dim >= FACE) constrained_face_dof_indices<TBaseElem,ConstrainingQuadrilateral, Face, Face>(elem,fct,ind,vFace);
 	}
 		
 //	return number of indices
@@ -1110,30 +1110,30 @@ void MGDoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool b
 	}
 }
 
-size_t MGDoFDistribution::multi_indices(GeometricObject* elem, size_t fct,
+size_t MGDoFDistribution::dof_indices(GeometricObject* elem, size_t fct,
                                         std::vector<multi_index_type>& ind,
                                         bool bHang, bool bClear) const
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return multi_indices(static_cast<VertexBase*>(elem), fct, ind, bHang, bClear);
-		case EDGE: return multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
-		case FACE: return multi_indices(static_cast<Face*>(elem), fct, ind, bHang, bClear);
-		case VOLUME: return multi_indices(static_cast<Volume*>(elem), fct, ind, bHang, bClear);
+		case VERTEX: return dof_indices(static_cast<VertexBase*>(elem), fct, ind, bHang, bClear);
+		case EDGE: return dof_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
+		case FACE: return dof_indices(static_cast<Face*>(elem), fct, ind, bHang, bClear);
+		case VOLUME: return dof_indices(static_cast<Volume*>(elem), fct, ind, bHang, bClear);
 		default: UG_THROW("Geometric Base element not found.");
 	}
 }
 
-size_t MGDoFDistribution::inner_multi_indices(GeometricObject* elem, size_t fct,
+size_t MGDoFDistribution::inner_dof_indices(GeometricObject* elem, size_t fct,
                                               std::vector<multi_index_type>& ind,
                                               bool bClear) const
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return inner_multi_indices(static_cast<VertexBase*>(elem), fct, ind, bClear);
-		case EDGE: return inner_multi_indices(static_cast<EdgeBase*>(elem), fct, ind, bClear);
-		case FACE: return inner_multi_indices(static_cast<Face*>(elem), fct, ind, bClear);
-		case VOLUME: return inner_multi_indices(static_cast<Volume*>(elem), fct, ind, bClear);
+		case VERTEX: return inner_dof_indices(static_cast<VertexBase*>(elem), fct, ind, bClear);
+		case EDGE: return inner_dof_indices(static_cast<EdgeBase*>(elem), fct, ind, bClear);
+		case FACE: return inner_dof_indices(static_cast<Face*>(elem), fct, ind, bClear);
+		case VOLUME: return inner_dof_indices(static_cast<Volume*>(elem), fct, ind, bClear);
 		default: UG_THROW("Geometric Base element not found.");
 	}
 }
@@ -1186,15 +1186,15 @@ template void MGDoFDistribution::indices<EdgeBase>(EdgeBase*, LocalIndices&, boo
 template void MGDoFDistribution::indices<Face>(Face*, LocalIndices&, bool) const;
 template void MGDoFDistribution::indices<Volume>(Volume*, LocalIndices&, bool) const;
 
-template size_t MGDoFDistribution::multi_indices<VertexBase>(VertexBase*, size_t, std::vector<multi_index_type>&, bool, bool) const;
-template size_t MGDoFDistribution::multi_indices<EdgeBase>(EdgeBase*, size_t, std::vector<multi_index_type>&, bool, bool) const;
-template size_t MGDoFDistribution::multi_indices<Face>(Face*, size_t, std::vector<multi_index_type>&, bool, bool) const;
-template size_t MGDoFDistribution::multi_indices<Volume>(Volume*, size_t, std::vector<multi_index_type>&, bool, bool) const;
+template size_t MGDoFDistribution::dof_indices<VertexBase>(VertexBase*, size_t, std::vector<multi_index_type>&, bool, bool) const;
+template size_t MGDoFDistribution::dof_indices<EdgeBase>(EdgeBase*, size_t, std::vector<multi_index_type>&, bool, bool) const;
+template size_t MGDoFDistribution::dof_indices<Face>(Face*, size_t, std::vector<multi_index_type>&, bool, bool) const;
+template size_t MGDoFDistribution::dof_indices<Volume>(Volume*, size_t, std::vector<multi_index_type>&, bool, bool) const;
 
-template size_t MGDoFDistribution::inner_multi_indices<VertexBase>(VertexBase*, size_t,std::vector<multi_index_type>&, bool) const;
-template size_t MGDoFDistribution::inner_multi_indices<EdgeBase>(EdgeBase*, size_t,std::vector<multi_index_type>&, bool) const;
-template size_t MGDoFDistribution::inner_multi_indices<Face>(Face*, size_t,std::vector<multi_index_type>&, bool) const;
-template size_t MGDoFDistribution::inner_multi_indices<Volume>(Volume*, size_t,std::vector<multi_index_type>&, bool) const;
+template size_t MGDoFDistribution::inner_dof_indices<VertexBase>(VertexBase*, size_t,std::vector<multi_index_type>&, bool) const;
+template size_t MGDoFDistribution::inner_dof_indices<EdgeBase>(EdgeBase*, size_t,std::vector<multi_index_type>&, bool) const;
+template size_t MGDoFDistribution::inner_dof_indices<Face>(Face*, size_t,std::vector<multi_index_type>&, bool) const;
+template size_t MGDoFDistribution::inner_dof_indices<Volume>(Volume*, size_t,std::vector<multi_index_type>&, bool) const;
 
 template size_t MGDoFDistribution::algebra_indices<VertexBase>(VertexBase*,	std::vector<size_t>&, bool) const;
 template size_t MGDoFDistribution::algebra_indices<EdgeBase>(EdgeBase*,	std::vector<size_t>&, bool) const;

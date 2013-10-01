@@ -32,7 +32,7 @@ copy_from_surface(const GridFunction<TDomain,TAlgebra>& rSurfaceFct, TElem* elem
 
 		std::vector<number>& vVal = vvVal[fct];
 
-		rSurfaceFct.inner_multi_indices(elem, fct, vInd);
+		rSurfaceFct.inner_dof_indices(elem, fct, vInd);
 		vVal.resize(vInd.size());
 		for(size_t i = 0; i < vInd.size(); ++i)
 			vVal[i] = DoFRef(rSurfaceFct, vInd[i]);
@@ -97,7 +97,7 @@ copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct, TElem* elem)
 	for(size_t fct = 0; fct < vvVal.size(); ++fct){
 
 		const std::vector<number>& vVal = vvVal[fct];
-		rSurfaceFct.inner_multi_indices(elem, fct, vInd);
+		rSurfaceFct.inner_dof_indices(elem, fct, vInd);
 
 		UG_ASSERT(vVal.size() == vInd.size(), "Stored dofs are "<<vVal.size()<<
 		          ", but fct "<<fct<<" has "<<vInd.size()<<" dofs on "<<
