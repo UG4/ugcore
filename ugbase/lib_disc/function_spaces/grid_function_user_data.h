@@ -498,14 +498,25 @@ class GridFunctionGradientComponentData
 				MatVecMult( vValueVec[ip], JTInv, locGrad );
 
 				vValue[ip] = vValueVec[ip][m_component];
+
+				if(bDeriv){
+					for( size_t ip = 0; ip < nip; ++ip ) {
+						UG_ASSERT(vvvDeriv[ip].size() == 1,
+						          "Single component expected, but "<<vvvDeriv[ip].size())
+						UG_ASSERT(vvvDeriv[ip][0].size() == vLocGrad.size(),
+						          "Wrong number sh: "<<vvvDeriv[ip][0].size()<<", but expected: "<<vLocGrad.size())
+
+						for( size_t sh = 0; sh < vLocGrad.size(); ++sh ) {
+							MatVecMult( vValueVec[ip], JTInv, vLocGrad[sh] );
+							vvvDeriv[ip][0][sh] = vValueVec[ip][m_component];
+						}
+					}
+				}
 			}
 		}
 		UG_CATCH_THROW("GridFunctionNumberData: Shape Function Set missing for"
 				" Reference Object: "<<roid<<", Trial Space: "
 				<<m_lfeID<<", refDim="<<refDim);
-
-		if(bDeriv)
-			UG_THROW("Not implemented.");
 	}
 };
 
