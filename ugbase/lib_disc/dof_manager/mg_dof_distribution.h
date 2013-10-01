@@ -256,7 +256,21 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		void multi_indices(TBaseElem* elem, const ReferenceObjectID roid,
 		                   size_t fct, std::vector<multi_index_type>& ind,
 		                   const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const;
-
+						   
+		/// multi indices on constrained vertices
+		template <typename TConstraining, typename TConstrained, typename TBaseElem>
+		void constrained_vertex_multi_indices(size_t fct,std::vector<multi_index_type>& ind,
+									const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
+		
+		/// multi indices on constrained edges
+		template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
+		void constrained_edge_multi_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
+									const typename Grid::traits<TSubElem>::secure_container& vSubElem) const;
+		
+		/// multi indices on constrained faces
+		template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
+		void constrained_face_multi_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
+									const typename Grid::traits<TSubElem>::secure_container& vSubElem) const;
 
 		/// adds all algebra indices of an geom object to the LocalIndices
 		template <typename TBaseElem>

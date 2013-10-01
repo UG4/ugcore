@@ -305,6 +305,215 @@ size_t MGDoFDistribution::inner_multi_indices(TBaseElem* elem, size_t fct,
 	return ind.size();
 }
 
+template <typename TConstraining, typename TConstrained, typename TBaseElem>
+void MGDoFDistribution::
+constrained_vertex_multi_indices(size_t fct,std::vector<multi_index_type>& ind,
+                    const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const
+{
+	//	loop all edges
+	for(size_t i = 0; i < vSubElem.size(); ++i)
+	{
+	//	only constraining objects are of interest
+		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		if(constrainingObj == NULL) continue;
+		
+		//	get subset index
+		const int si = m_spMGSH->get_subset_index(vSubElem[i]);
+
+	//	loop constraining vertices
+		for(size_t j = 0; j != constrainingObj->num_constrained_vertices(); ++j)
+		{
+		//	get vertex
+			TConstrained* vrt = constrainingObj->constrained_vertex(j);
+
+		//	get roid
+			const ReferenceObjectID subRoid = vrt->reference_object_id();
+			
+		//	check if dof given
+			if(num_dofs(subRoid,si) == 0) continue;
+
+		//	get subset index
+			int si = m_spMGSH->get_subset_index(vrt);
+		
+		//	check that function is defined on subset
+			if(!is_def_in_subset(fct, si)) continue;
+			
+		//	get number of DoFs in this sub-geometric object
+			const size_t numDoFsOnSub = num_fct_dofs(fct, subRoid, si);
+
+			if(!m_bGrouped)
+			{
+			//	compute index
+				const size_t index = obj_index(vrt) + offset(subRoid,si,fct);
+
+				for (size_t k=0;k<numDoFsOnSub;k++)
+					ind.push_back(multi_index_type(index + k,0));
+			}
+			else
+			{
+			//	compute index
+				const size_t index = obj_index(vrt);
+				const size_t comp = offset(subRoid,si,fct);
+
+			//	add dof to local indices
+				for(size_t k = 0; k < numDoFsOnSub; ++k)
+					ind.push_back(multi_index_type(index, comp + k));
+			}
+		}
+	}
+}
+
+template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
+void MGDoFDistribution::
+constrained_edge_multi_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
+                    const typename Grid::traits<TSubElem>::secure_container& vSubElem) const
+{
+	//	storage for offsets
+	std::vector<size_t> vOrientOffset;
+
+	//	loop all edges
+	for(size_t i = 0; i < vSubElem.size(); ++i)
+	{
+	//	only constraining objects are of interest
+		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		if(constrainingObj == NULL) continue;
+
+		std::vector<size_t> sortedInd;
+		sort_constrained_edges<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
+		
+	//	get the orientation for this subelement
+		ComputeOrientationOffset(vOrientOffset, elem, constrainingObj, i, lfeid(fct));
+
+	//  loop constraining edges
+		for(size_t j = 0; j != constrainingObj->num_constrained_edges(); ++j)
+		{
+			//	get edge
+			TConstrained* edg = constrainingObj->constrained_edge(sortedInd[j]);
+
+			//	get roid
+			const ReferenceObjectID subRoid = edg->reference_object_id();
+
+			//	get subset index
+			int si = m_spMGSH->get_subset_index(edg);
+
+			
+			//	check that function is defined on subset
+			if(!is_def_in_subset(fct, si)) continue;
+			
+			//	check if dof given
+			if(num_dofs(subRoid,si) == 0) continue;
+			
+			const size_t numDoFsOnSub=num_fct_dofs(fct, subRoid, si);
+
+			if(!m_bGrouped)
+			{
+			//	compute index
+				const size_t index = obj_index(edg) + offset(subRoid,si,fct);
+
+				if(vOrientOffset.empty()){
+					for(size_t k = 0; k < numDoFsOnSub; ++k)
+						ind.push_back(multi_index_type(index + k,0));
+				}
+				else{
+					for(size_t k = 0; k < numDoFsOnSub; ++k)
+						ind.push_back(multi_index_type(index + vOrientOffset[k],0));
+				}
+			}
+			else
+			{
+				//	compute index
+				const size_t index = obj_index(edg);
+				const size_t comp = offset(subRoid,si,fct);
+				
+				if(vOrientOffset.empty()){
+				for(size_t k = 0; k < numDoFsOnSub; ++k)
+					ind.push_back(multi_index_type(index, comp + k));
+				}
+				else{
+					for(size_t k = 0; k < numDoFsOnSub; ++k)
+						ind.push_back(multi_index_type(index, comp + vOrientOffset[k]));
+				}
+			}
+		}
+	}
+}
+
+template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
+void MGDoFDistribution::
+constrained_face_multi_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
+                    const typename Grid::traits<TSubElem>::secure_container& vSubElem) const
+{
+	//	storage for offsets
+	std::vector<size_t> vOrientOffset;
+
+	//	loop all edges
+	for(size_t i = 0; i < vSubElem.size(); ++i)
+	{
+	//	only constraining objects are of interest
+		TConstraining* constrainingObj = dynamic_cast<TConstraining*>(vSubElem[i]);
+		if(constrainingObj == NULL) continue;
+
+		std::vector<size_t> sortedInd;
+		sort_constrained_faces<TBaseElem,TConstraining,TConstrained>(sortedInd,elem,constrainingObj,i);
+		
+	//	get the orientation for this subelement
+		ComputeOrientationOffset(vOrientOffset, elem, constrainingObj, i, lfeid(fct));
+
+	//  loop constraining edges
+		for(size_t j = 0; j != constrainingObj->num_constrained_faces(); ++j)
+		{
+			//	get face
+			TConstrained* face = constrainingObj->constrained_face(sortedInd[j]);
+
+			//	get roid
+			const ReferenceObjectID subRoid = face->reference_object_id();
+
+			//	get subset index
+			int si = m_spMGSH->get_subset_index(face);
+
+			
+			//	check that function is defined on subset
+			if(!is_def_in_subset(fct, si)) continue;
+			
+			//	check if dof given
+			if(num_dofs(subRoid,si) == 0) continue;
+			
+			const size_t numDoFsOnSub=num_fct_dofs(fct, subRoid, si);
+
+			if(!m_bGrouped)
+			{
+			//	compute index
+				const size_t index = obj_index(face) + offset(subRoid,si,fct);
+
+				if(vOrientOffset.empty()){
+					for(size_t k = 0; k < numDoFsOnSub; ++k)
+						ind.push_back(multi_index_type(index + k,0));
+				}
+				else{
+					for(size_t k = 0; k < numDoFsOnSub; ++k)
+						ind.push_back(multi_index_type(index + vOrientOffset[k],0));
+				}
+			}
+			else
+			{
+				//	compute index
+				const size_t index = obj_index(face);
+				const size_t comp = offset(subRoid,si,fct);
+				
+				if(vOrientOffset.empty()){
+				for(size_t k = 0; k < numDoFsOnSub; ++k)
+					ind.push_back(multi_index_type(index, comp + k));
+				}
+				else{
+					for(size_t k = 0; k < numDoFsOnSub; ++k)
+						ind.push_back(multi_index_type(index, comp + vOrientOffset[k]));
+				}
+			}
+		}
+	}
+}
+
+
 template<typename TBaseElem>
 size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
                                         std::vector<multi_index_type>& ind,
@@ -318,39 +527,53 @@ size_t MGDoFDistribution::multi_indices(TBaseElem* elem, size_t fct,
 
 //	reference object id
 	const ReferenceObjectID roid = elem->reference_object_id();
+	
+//	storage for (maybe needed) subelements
+	Grid::SecureVertexContainer vCorner;
+	Grid::SecureEdgeContainer vEdge;
+	Grid::SecureFaceContainer vFace;
+	Grid::SecureVolumeContainer vVol;
 
-//	get all sub-elements and add indices on those
-	if(dim >= VERTEX && max_dofs(VERTEX) > 0)
-	{
-		Grid::SecureVertexContainer vCorner;
-		m_pMG->associated_elements_sorted(vCorner, elem);
-		multi_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner);
-	}
-	if(dim >= EDGE && max_dofs(EDGE) > 0)
-	{
-		Grid::SecureEdgeContainer vEdge;
-		m_pMG->associated_elements_sorted(vEdge, elem);
-		multi_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vEdge);
-	}
-	if(dim >= FACE && max_dofs(FACE) > 0)
-	{
-		Grid::SecureFaceContainer vFace;
-		m_pMG->associated_elements_sorted(vFace, elem);
-		multi_indices<TBaseElem, Face>(elem, roid, fct, ind, vFace);
-	}
-	if(dim >= VOLUME && max_dofs(VOLUME) > 0)
-	{
-		Grid::SecureVolumeContainer vVol;
-		m_pMG->associated_elements_sorted(vVol, elem);
-		multi_indices<TBaseElem, Volume>(elem, roid, fct, ind, vVol);
-	}
+//	collect elements, if needed
+	if(dim >= VERTEX)
+		if(max_dofs(VERTEX) > 0) m_pMG->associated_elements_sorted(vCorner, elem);
+	if(dim >= EDGE)
+		if(max_dofs(EDGE) > 0 || bHang) m_pMG->associated_elements_sorted(vEdge, elem);
+	if(dim >= FACE)
+		if(max_dofs(FACE) > 0 || bHang) m_pMG->associated_elements_sorted(vFace, elem);
+	if(dim >= VOLUME)
+		if(max_dofs(VOLUME) > 0) m_pMG->associated_elements_sorted(vVol, elem);
 
-//	todo: add hanging nodes
+//	get regular dofs on all subelements and the element itself
+//	use specialized function for vertices (since only one position and one reference object)
+	if(dim >= VERTEX && max_dofs(VERTEX) > 0) multi_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner);
+	if(dim >= EDGE && max_dofs(EDGE) > 0) 	  multi_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vEdge);
+	if(dim >= FACE && max_dofs(FACE) > 0) 	  multi_indices<TBaseElem, Face>(elem, roid, fct, ind, vFace);
+	if(dim >= VOLUME && max_dofs(VOLUME) > 0) multi_indices<TBaseElem, Volume>(elem, roid, fct, ind, vVol);
+
 //	If no hanging dofs are required, we're done
 	if(!bHang) return ind.size();
 
-	UG_THROW("Hanging DoFs are currently not supported by this DoFManager.");
+	//	get dofs on hanging vertices
+	if(max_dofs(VERTEX > 0))
+	{
+		if(dim >= EDGE) constrained_vertex_multi_indices<ConstrainingEdge, VertexBase, EdgeBase>(fct,ind,vEdge);
+		if(dim >= FACE) constrained_vertex_multi_indices<ConstrainingQuadrilateral, VertexBase, Face>(fct,ind,vFace);
+	}
 
+//	get dofs on hanging edges
+	if (max_dofs(EDGE) > 0){
+		if(dim >= EDGE) constrained_edge_multi_indices<TBaseElem,ConstrainingEdge, EdgeBase, EdgeBase>(elem,fct,ind, vEdge);
+		if(dim >= FACE) constrained_edge_multi_indices<TBaseElem,ConstrainingTriangle, EdgeBase, Face>(elem,fct,ind, vFace);
+		if(dim >= FACE) constrained_edge_multi_indices<TBaseElem,ConstrainingQuadrilateral, EdgeBase, Face>(elem,fct,ind, vFace);
+	}
+
+//  get dofs on hanging faces
+	if (max_dofs(FACE) > 0){
+		if(dim >= FACE) constrained_face_multi_indices<TBaseElem,ConstrainingTriangle, Face, Face>(elem,fct,ind,vFace);
+		if(dim >= FACE) constrained_face_multi_indices<TBaseElem,ConstrainingQuadrilateral, Face, Face>(elem,fct,ind,vFace);
+	}
+		
 //	return number of indices
 	return ind.size();
 }
@@ -491,10 +714,10 @@ constrained_vertex_indices(LocalIndices& ind,
 		if(constrainingObj == NULL) continue;
 
 	//	loop constraining vertices
-		for(size_t i = 0; i != constrainingObj->num_constrained_vertices(); ++i)
+		for(size_t j = 0; j != constrainingObj->num_constrained_vertices(); ++j)
 		{
 		//	get vertex
-			TConstrained* vrt = constrainingObj->constrained_vertex(i);
+			TConstrained* vrt = constrainingObj->constrained_vertex(j);
 
 		//	get roid
 			const ReferenceObjectID subRoid = vrt->reference_object_id();
@@ -809,10 +1032,6 @@ void MGDoFDistribution::indices(TBaseElem* elem, LocalIndices& ind, bool bHang) 
 		if(dim >= FACE) constrained_face_indices<TBaseElem,ConstrainingTriangle, Face, Face>(elem,ind, vFace);
 		if(dim >= FACE) constrained_face_indices<TBaseElem,ConstrainingQuadrilateral, Face, Face>(elem,ind, vFace);
 	}
-
-//	todo: allow also constrained dofs on other elements
-//	if(max_dofs(EDGE) || max_dofs(FACE) || max_dofs(VOLUME))
-//		UG_THROW("Hanging DoFs are only implemented for P1 by this DoFManager.");
 
 //	we're done
 	return;
