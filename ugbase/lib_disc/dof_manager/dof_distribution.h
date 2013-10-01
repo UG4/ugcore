@@ -132,9 +132,6 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider
 		}
 
 	public:
-	///	type of multiindices
-		typedef MGDoFDistribution::multi_index_type multi_index_type;
-
 	///	returns all indices of the element
 	///	\{
 		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const{m_rMGDD.indices(elem,ind, bHang);}
@@ -146,20 +143,20 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider
 
 	/// get multi indices (Element + Closure of Element)
 	/// \{
-		size_t dof_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
-		size_t dof_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
-		size_t dof_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
-		size_t dof_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
-		size_t dof_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
+		size_t dof_indices(GeometricObject* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
+		size_t dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
+		size_t dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
+		size_t dof_indices(Face* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
+		size_t dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang = false, bool bClear = true) const{return m_rMGDD.dof_indices(elem,fct,ind,bHang,bClear);}
 	/// \}
 
 	/// get multi indices (only inner part of Element)
 	/// \{
-		size_t inner_dof_indices(GeometricObject* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
-		size_t inner_dof_indices(VertexBase* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
-		size_t inner_dof_indices(EdgeBase* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
-		size_t inner_dof_indices(Face* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
-		size_t inner_dof_indices(Volume* elem, size_t fct, std::vector<multi_index_type>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
+		size_t inner_dof_indices(GeometricObject* elem, size_t fct, std::vector<DoFIndex>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
+		size_t inner_dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
+		size_t inner_dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
+		size_t inner_dof_indices(Face* elem, size_t fct, std::vector<DoFIndex>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
+		size_t inner_dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind, bool bClear = true) const{return m_rMGDD.inner_dof_indices(elem,fct,ind,bClear);}
 	/// \}
 
 	/// get algebra indices (Element + Closure of Element)

@@ -67,10 +67,6 @@ struct LevInfo
 class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public GridObserver
 {
 	public:
-	//	type of multi index
-		typedef DoFIndex multi_index_type;
-
-	public:
 		MGDoFDistribution(SmartPtr<MultiGrid> spMG,
 						  SmartPtr<MGSubsetHandler> spMGSH,
 						  ConstSmartPtr<DoFDistributionInfo> spDDInfo,
@@ -134,10 +130,10 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		 */
 		template<typename TBaseElem>
 		size_t dof_indices(TBaseElem* elem, size_t fct,
-		                     std::vector<multi_index_type>& ind,
+		                     std::vector<DoFIndex>& ind,
 		                     bool bHang = false, bool bClear = true) const;
 		size_t dof_indices(GeometricObject* elem, size_t fct,
-		                     std::vector<multi_index_type>& ind,
+		                     std::vector<DoFIndex>& ind,
 		                     bool bHang = false, bool bClear = true) const;
 
 		/// extracts all multiindices of a function in the inner (sorted)
@@ -155,10 +151,10 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		 */
 		template<typename TBaseElem>
 		size_t inner_dof_indices(TBaseElem* elem, size_t fct,
-		                           std::vector<multi_index_type>& ind,
+		                           std::vector<DoFIndex>& ind,
 		                           bool bClear = true) const;
 		size_t inner_dof_indices(GeometricObject* elem, size_t fct,
-		                           std::vector<multi_index_type>& ind,
+		                           std::vector<DoFIndex>& ind,
 		                           bool bClear = true) const;
 
 		/// extracts all algebra indices of an element (not sorted)
@@ -254,22 +250,22 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		/// extracts the indices of a subelement of an element
 		template<typename TBaseElem, typename TSubBaseElem>
 		void dof_indices(TBaseElem* elem, const ReferenceObjectID roid,
-		                   size_t fct, std::vector<multi_index_type>& ind,
+		                   size_t fct, std::vector<DoFIndex>& ind,
 		                   const typename Grid::traits<TSubBaseElem>::secure_container& vElem) const;
 						   
 		/// multi indices on constrained vertices
 		template <typename TConstraining, typename TConstrained, typename TBaseElem>
-		void constrained_vertex_dof_indices(size_t fct,std::vector<multi_index_type>& ind,
+		void constrained_vertex_dof_indices(size_t fct,std::vector<DoFIndex>& ind,
 									const typename Grid::traits<TBaseElem>::secure_container& vSubElem) const;
 		
 		/// multi indices on constrained edges
 		template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
-		void constrained_edge_dof_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
+		void constrained_edge_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& ind,
 									const typename Grid::traits<TSubElem>::secure_container& vSubElem) const;
 		
 		/// multi indices on constrained faces
 		template <typename TBaseElem,typename TConstraining, typename TConstrained, typename TSubElem>
-		void constrained_face_dof_indices(TBaseElem* elem,size_t fct,std::vector<multi_index_type>& ind,
+		void constrained_face_dof_indices(TBaseElem* elem,size_t fct,std::vector<DoFIndex>& ind,
 									const typename Grid::traits<TSubElem>::secure_container& vSubElem) const;
 
 		/// adds all algebra indices of an geom object to the LocalIndices

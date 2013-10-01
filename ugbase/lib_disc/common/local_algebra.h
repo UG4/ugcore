@@ -30,9 +30,6 @@ class LocalIndices
 	///	Component type used by algebra
 		typedef index_type comp_type;
 
-	///	Type of multi index
-		typedef MathVector<2, size_t> multi_index_type;
-
 	public:
 	///	Default Constructor
 		LocalIndices() {};
@@ -82,7 +79,7 @@ class LocalIndices
 		void push_back_multi_index(size_t fct, size_t index, size_t comp)
 		{
 			check_fct(fct);
-			m_vvIndex[fct].push_back(multi_index_type(index,comp));
+			m_vvIndex[fct].push_back(DoFIndex(index,comp));
 		}
 
 	///	clears all fct
@@ -107,7 +104,7 @@ class LocalIndices
 		}
 
 	/// global algebra multi-index for (fct, dof)
-		const multi_index_type& multi_index(size_t fct, size_t dof) const
+		const DoFIndex& multi_index(size_t fct, size_t dof) const
 		{
 			check_dof(fct, dof);
 			return m_vvIndex[fct][dof];
@@ -156,7 +153,7 @@ class LocalIndices
 
 	protected:
 	// 	Mapping (fct, dof) -> local index
-		std::vector<std::vector<multi_index_type> > m_vvIndex;
+		std::vector<std::vector<DoFIndex> > m_vvIndex;
 
 	//	Local finite element ids
 		std::vector<LFEID> m_vLFEID;
