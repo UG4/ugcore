@@ -327,7 +327,7 @@ bool WriteMatrixPar(std::string filename, const Matrix_type &A,
  * \param dimensions	Dimensions of Positions
  */
 template<typename Vector_type, typename postype>
-void WriteVector(std::string filename, const Vector_type &b, postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+void WriteVector(std::string filename, const Vector_type &b, const postype *positions, int dimensions, const Vector_type *compareVec=NULL)
 {
 	PROFILE_FUNC_GROUP("debug");
 
@@ -345,7 +345,7 @@ void WriteVector(std::string filename, const Vector_type &b, postype *positions,
 }
 
 template<typename Vector_type, typename postype>
-void WriteVectorPar(std::string filename, const Vector_type &b, postype *positions, int dimensions, const Vector_type *compareVec=NULL)
+void WriteVectorPar(std::string filename, const Vector_type &b, const postype *positions, int dimensions, const Vector_type *compareVec=NULL)
 {
 	WriteVector(GetParallelName(b, filename), b, positions, dimensions, compareVec);
 }
