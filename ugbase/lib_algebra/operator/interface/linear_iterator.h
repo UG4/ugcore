@@ -44,7 +44,7 @@ namespace ug{
  * 		when the iterator has been initialized.
  *
  * This splitting has been made, since initialization may be computationally
- * expansive. Thus, the user of this class has the choice when to call this
+ * expensive. Thus, the user of this class has the choice when to call this
  * initialization. E.g. when the operator is applied several times the init of
  * the iterator is only needed once.
  *
