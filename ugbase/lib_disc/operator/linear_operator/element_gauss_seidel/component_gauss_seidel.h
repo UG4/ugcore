@@ -54,7 +54,7 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		// get all dof indices on obj associated to cmps
 		vCmpInd.clear();
 		for(size_t f = 0; f < vCmp.size(); ++f)
-			c.dof_indices(groupObj, vCmp[f], vCmpInd, false, false);
+			c.inner_dof_indices(groupObj, vCmp[f], vCmpInd, false);
 
 		// check if equation present
 		if(vCmpInd.empty()) continue;
@@ -76,16 +76,9 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 
 		// get number of indices on patch
 		const size_t numIndex = vCmpInd.size() + vInd.size();
-		const size_t numCmpIndex = vCmpInd.size();
-		const size_t numRemainIndex = vInd.size();
 
 		// concat all indices
 		vInd.insert(vInd.end(), vCmpInd.begin(), vCmpInd.end());
-
-		UG_LOG("Num Index    : "<<numIndex<<" --- "<<vInd.size()<<"\n");
-		UG_LOG("vCmpInd      : "<<numCmpIndex<<"\n");
-		UG_LOG("vRemainCmpInd: "<<numRemainIndex<<"\n");
-		UG_LOG("---------\n")
 
 		// fill local block matrix
 		mat.resize(numIndex, numIndex);
@@ -96,13 +89,18 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 			for (size_t k = 0; k < numIndex; k++)
 				mat(j,k) = DoFRef(A, vInd[j], vInd[k]);
 
-
 		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
+		// note: the loop over k is the whole matrix row (not only selected indices)
+		typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
+		const static int blockSize = TAlgebra::blockSize;
 		s.resize(numIndex);
 		for (size_t j = 0; j<numIndex; j++){
-			s[j] = DoFRef(d, vInd[j]);
-			for(size_t k = 0; k < numIndex; ++k)
-				s[j] -= mat(j,k) * DoFRef(c, vInd[k]);
+			typename TAlgebra::vector_type::value_type sj = d[vInd[j][0]];
+			for(const_row_iterator it = A.begin_row(vInd[j][0]);
+									it != A.end_row(vInd[j][0]) ; ++it){
+				MatMultAdd(sj, 1.0, sj, -1.0, it.value(), c[it.index()]);
+			};
+			s.subassign(j*blockSize,sj);
 		};
 
 		// solve block
@@ -221,17 +219,8 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 				if(std::find(vCmp.begin(), vCmp.end(), f) == vCmp.end())
 					vRemainCmp.push_back(f);
 
-			UG_LOG(vCmp.size() <<" Cmps are: ");
-			for(size_t i = 0; i < vCmp.size(); ++i)
-				UG_LOG(vCmp[i]<< ",");
-			UG_LOG("\n")
-
-			UG_LOG(vRemainCmp.size() <<" vRemainCmp are: ");
-			for(size_t i = 0; i < vRemainCmp.size(); ++i)
-				UG_LOG(vRemainCmp[i]<< ",");
-			UG_LOG("\n")
-
 			const vector_type* pD = &d;
+			const matrix_type* pMat = pOp.get();
 
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1){
@@ -239,6 +228,7 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 				SmartPtr<vector_type> spDtmp = d.clone();
 				spDtmp->change_storage_type(PST_UNIQUE);
 				pD = spDtmp.get();
+				pMat = &m_A;
 			}
 #endif
 
@@ -246,18 +236,13 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 			std::vector<bool> vLoopDim(dim+1, false);
 			for(int d = 0; d <= dim; ++d)
 				for(size_t f = 0; f < vCmp.size(); ++f)
-					if(ddinfo->max_fct_dofs(f, d) > 0)
+					if(ddinfo->max_fct_dofs(vCmp[f], d) > 0)
 						vLoopDim[d] = true;
 
-
-			for(int d = 0; d <= dim; ++d)
-				UG_LOG("Loop dim "<<d<<": "<<(vLoopDim[d] ? "true" : "false"));
-
-
-			if(vLoopDim[VERTEX]) ComponentGaussSeidelStep<VertexBase,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax, vCmp, vRemainCmp);
-			if(vLoopDim[EDGE]) ComponentGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax, vCmp, vRemainCmp);
-			if(vLoopDim[FACE]) ComponentGaussSeidelStep<Face,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax, vCmp, vRemainCmp);
-			if(vLoopDim[VOLUME]) ComponentGaussSeidelStep<Volume,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax, vCmp, vRemainCmp);
+			if(vLoopDim[VERTEX]) ComponentGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
+			if(vLoopDim[EDGE]) ComponentGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
+			if(vLoopDim[FACE]) ComponentGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
+			if(vLoopDim[VOLUME]) ComponentGaussSeidelStep<Volume,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
 
 #ifdef UG_PARALLEL
 			 pC->set_storage_type(PST_UNIQUE);

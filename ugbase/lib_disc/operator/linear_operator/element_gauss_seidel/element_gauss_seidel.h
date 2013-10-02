@@ -69,11 +69,6 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		// get number of indices on patch
 		const size_t numIndex = vInd.size();
 
-		// set correction values for element indices to zero
-		for(size_t j = 0; j < numIndex; ++j){
-			//c[vInd[j]] = 0;
-		}
-
 		// fill local block matrix
 		bool bFound;
 		mat.resize(numIndex, numIndex);
@@ -88,7 +83,7 @@ void ElementGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		}
 
 		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
-		// note: element indices in the sum are excluded by setting c to zero
+		// note: the loop over k is the whole matrix row (not only selected indices)
 		s.resize(numIndex);
 		for (size_t j = 0; j<numIndex; j++){
 			typename TAlgebra::vector_type::value_type sj = d[vInd[j]];
