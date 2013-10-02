@@ -150,9 +150,24 @@ class MultiIndex<2, size_t>
 
 		bool operator!=(const MultiIndex& o) const
 		{
-			return !(*this==o);
+			return (m_indices[0] != o[0]) || (m_indices[1] != o[1]);
 		}
 
+		bool operator<(const MultiIndex& o) const
+		{
+			if(m_indices[0] < o[0]) return true;
+			if(m_indices[0] == o[0])
+				if(m_indices[1] < o[1]) return true;
+			return false;
+		}
+
+		bool operator>(const MultiIndex& o) const
+		{
+			if(m_indices[0] > o[0]) return true;
+			if(m_indices[0] == o[0])
+				if(m_indices[1] > o[1]) return true;
+			return false;
+		}
 
 	private:
 		single_index_type m_indices[2];

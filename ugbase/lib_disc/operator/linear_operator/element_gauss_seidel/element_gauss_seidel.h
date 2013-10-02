@@ -202,6 +202,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
 
 			const vector_type* pD = &d;
+			const matrix_type* pMat = pOp.get();
 
 #ifdef UG_PARALLEL
 			if(pcl::GetNumProcesses() > 1){
@@ -209,13 +210,14 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 				SmartPtr<vector_type> spDtmp = d.clone();
 				spDtmp->change_storage_type(PST_UNIQUE);
 				pD = spDtmp.get();
+				pMat = &m_A;
 			}
 #endif
-			if		(m_type == "element") ElementGaussSeidelStep<Element,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax);
-			else if	(m_type == "side") ElementGaussSeidelStep<Side,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax);
-			else if	(m_type == "face") ElementGaussSeidelStep<Face,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax);
-			else if	(m_type == "edge") ElementGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax);
-			else if	(m_type == "vertex") ElementGaussSeidelStep<VertexBase,TDomain,TAlgebra>(m_A, *pC, *pD, m_relax);
+			if		(m_type == "element") ElementGaussSeidelStep<Element,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
+			else if	(m_type == "side") ElementGaussSeidelStep<Side,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
+			else if	(m_type == "face") ElementGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
+			else if	(m_type == "edge") ElementGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
+			else if	(m_type == "vertex") ElementGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
 			else UG_THROW("ElementGaussSeidel: wrong patch type '"<<m_type<<"'."
 						 " Options: element, side, face, edge, vertex.")
 
