@@ -854,8 +854,8 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 				vPosRootSchurSorted[vPosRootSchur[i].ind1] = vPosRootSchur[i].pos;
 
 		//	create algebra debug writer
-			AlgebraDebugWriter<algebra_type, 2> dbgWriter2d;
-			dbgWriter2d.set_positions(&vPosRootSchurSorted[0], newVecSize);
+			AlgebraDebugWriter<algebra_type> dbgWriter2d;
+			dbgWriter2d.set_positions(vPosRootSchurSorted);
 
 		//	write matrix
 			dbgWriter2d.write_matrix(m_spRootSchurComplementOp->get_matrix(),
