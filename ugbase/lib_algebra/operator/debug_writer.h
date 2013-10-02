@@ -11,9 +11,23 @@
 #include "common/math/ugmath.h"
 #include "common/profiler/profiler.h"
 
+
 namespace ug{
 
-/// base class for all vetor debug writer
+/// Interface for providing vertex positions
+template <size_t dim>
+class IPositionProvider
+{
+public:
+	/// Assigns position information to given vector
+	/** \param vec vector to be modified
+	 * todo: change to assign_positions () const?*/
+	virtual bool get_positions(std::vector<MathVector<dim> >&vec) = 0;
+	virtual ~IPositionProvider() {}
+};
+
+
+/// base class for all vector debug writer
 /**
  * This is the base class for debug output of algebraic vectors
  */
@@ -47,6 +61,14 @@ class IVectorDebugWriter
 		void set_positions(const std::vector<MathVector<dim> >& vPos)
 		{
 			get_pos(Int2Type<dim>()) = vPos; m_currentDim = dim;
+		}
+
+	///	employs a position provider to set the current positions
+		template <int dim>
+		void set_positions(IPositionProvider<dim> & provider)
+		{
+			provider.get_positions(get_pos(Int2Type<dim>()));
+			m_currentDim = dim;
 		}
 
 	/// virtual destructor

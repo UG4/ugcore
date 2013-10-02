@@ -9,22 +9,14 @@
 
 namespace ug{
 
+/// Interface for modifying a vector (e.g, setting Dirichlet values, ...)
+/** sa GridFunctionVectorWriterDirichlet0*/
 template <typename vector_type>
 class IVectorWriter
 {
 	public:
 	///	write vector
 		virtual bool update(vector_type &vec) = 0;
-
-		/*virtual bool update() = 0;
-
-		void clear();
-
-		vector_type& get_vector(size_t i) {return m_vVec[i];}
-
-		size_t num_vector() {return m_vVec.size();}
-
-		number weight(size_t i) {..}*/
 
 		/// virtual destructor
 		virtual ~IVectorWriter(){}
@@ -35,13 +27,6 @@ class IVectorWriter
 };
 
 
-template <size_t dim>
-class IPositionProvider
-{
-public:
-	virtual bool get_positions(std::vector<MathVector<dim> >&vec) = 0;
-	virtual ~IPositionProvider() {}
-};
 
 
 

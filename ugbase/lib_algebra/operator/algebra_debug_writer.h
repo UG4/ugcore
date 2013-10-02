@@ -14,9 +14,10 @@
 
 namespace ug{
 
-template <typename TAlgebra, int dim>
-class AlgebraDebugWriter
-	: public IDebugWriter<TAlgebra>
+
+/// Debug writer for connection viewer (based on algebraic information + vector positions only)
+template <typename TAlgebra>
+class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 {
 	public:
 	///	type of matrix
@@ -28,71 +29,77 @@ class AlgebraDebugWriter
 	///	type of matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-	///	type of positions
-		typedef MathVector<dim> position_type;
+	/// type of base
+		typedef IDebugWriter<TAlgebra> base_type;
 
 	public:
 	///	Constructor
-		AlgebraDebugWriter() : m_pPositions(NULL),  m_numPos(-1)
-		{}
-
-	///	sets the function
-		void set_positions(position_type* pos, int n)
-		{
-			m_pPositions = pos;
-			m_numPos = n;
-		}
+		AlgebraDebugWriter() : base_type() {}
 
 	///	write vector
 		virtual void write_vector(const vector_type& vec,
 		                          const char* filename)
 		{
-		//	check
-			if(m_pPositions == NULL)
-				UG_THROW("'AlgebraDebugWriter::write_vector':"
-						" No reference positions set.\n");
-
-		//	check number of positions
-			if(vec.size() != (size_t)m_numPos)
-				UG_THROW("'AlgebraDebugWriter::write_vector':"
-						" Number of positions does not match.\n");
-
-		//	write to file
-			ConnectionViewer::WriteVectorPar<vector_type, position_type>
-				(filename, vec, m_pPositions, dim);
+			switch (base_type::current_dimension())
+			{
+				case 1: write_vector_dim<1>(vec, filename); break;
+				case 2: write_vector_dim<2>(vec, filename); break;
+				case 3: write_vector_dim<3>(vec, filename); break;
+				default: UG_ASSERT(0, "Dimension not implemented.");
+			}
 		}
 
 	///	write matrix
 		virtual void write_matrix(const matrix_type& mat,
 		                          const char* filename)
 		{
-		//	check
-			if(m_pPositions == NULL)
-				UG_THROW("'AlgebraDebugWriter::write_matrix':"
-						" No reference positions set.\n");
-
-		//	check number of positions
-			if(mat.num_rows() != (size_t)m_numPos || mat.num_cols() != (size_t)m_numPos)
-				UG_THROW("'AlgebraDebugWriter::write_matrix':"
-						" Number of positions does not match.\n");
-
 		//	check name
 			if( !FileTypeIs( filename, ".mat" ) ) {
 				UG_THROW( "Only '.mat' format supported for matrices, but"
 				          " filename is '" << filename << "'.");
 			}
+		// write to file
+			switch (base_type::current_dimension())
+			{
+				case 1: write_matrix_dim<1>(mat, filename); break;
+				case 2: write_matrix_dim<2>(mat, filename); break;
+				case 3: write_matrix_dim<3>(mat, filename); break;
+				default: UG_ASSERT(0, "Dimension not implemented.");
+			}
 
-		//	write to file
-			ConnectionViewer::WriteMatrixPar<matrix_type, position_type>
-				( filename, mat, m_pPositions, dim);
+		}
+	private:
+		/// auxiliary function for vectors
+		template <int dim>
+		void write_vector_dim(const vector_type& vec, const char* filename)
+		{
+			const std::vector<MathVector<dim> > &posvec = base_type::template get_positions<dim>();
+			// check size
+			if(vec.size() != posvec.size())
+				UG_THROW("'AlgebraDebugWriter::write_vector':"
+						 " Number of positions does not match.\n");
+
+			// write connection viewer output to file
+			ConnectionViewer::WriteVectorPar<vector_type, MathVector<dim> >(filename, vec, &posvec[0], dim);
+
 		}
 
-	protected:
-	//	Positions used in output
-		position_type* m_pPositions;
+		/// auxiliary function for matrices
+		template <int dim>
+		void write_matrix_dim(const matrix_type& mat,
+				                          const char* filename)
+		{
+			const std::vector<MathVector<dim> > &posvec = base_type::template get_positions<dim>();
+		// check size
+			if(mat.num_rows() > posvec.size() || mat.num_cols() > posvec.size())
+							UG_THROW("'AlgebraDebugWriter::write_matrix':"
+									" Number of positions does not match.\n");
+			// write to connection viewer
+			ConnectionViewer::WriteMatrixPar<matrix_type, MathVector<dim> >
+								( filename, mat, &base_type::template get_positions<dim>()[0], dim);
 
-	//	number of positions
-		int m_numPos;
+		}
+
 };
 
 } // end namespace ug
