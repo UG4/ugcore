@@ -2,7 +2,7 @@
  * ass_tuner_impl.h
  *
  *  Created on: 01.03.2013
- *      Author:	raphaelprohl
+ *      Author:	raphaelprohl, Andreas Vogel
  */
 
 #ifndef __H__UG__LIB_DISC__SPATIAL_DISC__ASS_TUNER_IMPL__
@@ -16,7 +16,7 @@ template <typename TAlgebra>
 void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
                                   vector_type& vec)	const
 {
-	if (m_bSingleAssembleIndex){ vec.resize(1);}
+	if (single_DoFindex_assembling_enabled()){ vec.resize(1);}
 	else{
 		const size_t numIndex = dd->num_indices();
 		vec.resize(numIndex);
@@ -28,7 +28,7 @@ template <typename TAlgebra>
 void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 								  matrix_type& mat) const
 {
-	if (m_bSingleAssembleIndex){ mat.resize_and_clear(1, 1);
+	if (single_DoFindex_assembling_enabled()){ mat.resize_and_clear(1, 1);
 	}
 	else{
 		const size_t numIndex = dd->num_indices();
@@ -67,36 +67,40 @@ void AssemblingTuner<TAlgebra>::collect_selected_elements(std::vector<TElem*>& v
 }
 
 template <typename TAlgebra>
-void AssemblingTuner<TAlgebra>::adjust_matrix(matrix_type& mat, const DoFIndex& ind) const
+void AssemblingTuner<TAlgebra>::setDirichletRow(matrix_type& mat, const DoFIndex& ind) const
 {
-	UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for setting Dirichlet "
-			"in an index-wise manner.");
-	UG_ASSERT(mat.num_cols() == 1, "#cols needs to be 1 for setting Dirichlet "
-			"in an index-wise manner.");
-
-	const size_t index = ind[0];
-	const size_t alpha = ind[1];
-	if (index == m_SingleAssIndex)
+	// 	check if assembling has been carried out with respect to one index only.
+	//	For that case assembling-matrices have been resized to a block-matrix at one DoF only.
+	if(single_DoFindex_assembling_enabled())
 	{
-		typename matrix_type::value_type& block = mat(0,0);
+		UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for setting Dirichlet "
+								"in an index-wise manner.");
+		UG_ASSERT(mat.num_cols() == 1, "#cols needs to be 1 for setting Dirichlet "
+				"in an index-wise manner.");
 
-		BlockRef(block, alpha, alpha) = 1.0;
-		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta){
-			if(beta != alpha) BlockRef(block, alpha, beta) = 0.0;
-		}
+		if (ind == m_SingleAssDoFIndex)
+			SetDirichletRow(mat, ind);
+	}
+	else{
+		SetDirichletRow(mat, ind);
 	}
 }
 
 template <typename TAlgebra>
-void AssemblingTuner<TAlgebra>::adjust_vector(vector_type& vec, const DoFIndex& ind, const double val) const
+void AssemblingTuner<TAlgebra>::setDirichletVal(vector_type& vec, const DoFIndex& ind, const double val) const
 {
-	UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet "
+	//	check if assembling has been carried out with respect to one index only.
+	//	For that case assembling-vectors have been resized to a block-vector at one DoF only.
+	if(single_DoFindex_assembling_enabled())
+	{
+		UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet "
 			"in an index-wise manner.");
 
-	const size_t index = ind[0];
-	const size_t alpha = ind[1];
-	if (index == m_SingleAssIndex){
-		BlockRef(vec[0], alpha) = val;
+		if (ind == m_SingleAssDoFIndex)
+			DoFRef(vec, ind) = val;
+	}
+	else{
+		DoFRef(vec, ind) = val;
 	}
 }
 

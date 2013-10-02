@@ -84,7 +84,7 @@ class AssemblingTuner
 		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
 		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL)
 		{
-			m_bSingleAssembleIndex = false;
+			m_bSingleAssDoFIndex = false;
 			m_pMapper = &m_pMapperCommon;
 		}
 
@@ -131,21 +131,20 @@ class AssemblingTuner
 
 	///	sets an index for which the assembling should be carried out
 	/**
-	 * This methods sets a boolean if an index-wise assemble routine should be used.
+	 * This methods sets a boolean if an DoFindex-wise assemble routine should be used.
 	 * This proceeding is e.g. useful for a nonlinear Gauss-Seidel or nonlinear
 	 * Jacobi solver. The specific index is passed.
 	 *
-	 * \param[in]	ind			size_t
-	 * \param[in]	index_set	bool
+	 * \param[in]	ind			DoFIndex
 	 */
-		void disable_single_index_assembling() {m_bSingleAssembleIndex = false;}
-		void set_single_index_assembling(size_t ind)
+		void disable_single_DoFindex_assembling() {m_bSingleAssDoFIndex = false;}
+		void set_single_DoFindex_assembling(const DoFIndex& ind)
 		{
-			m_SingleAssIndex = ind; m_bSingleAssembleIndex = true;
+			m_SingleAssDoFIndex = ind; m_bSingleAssDoFIndex = true;
 		}
 
-	///	checks whether the assemble index is set or not
-		bool single_index_assembling_enabled() const {return m_bSingleAssembleIndex;}
+	///	checks whether the assemble DoFindex is set or not
+		bool single_DoFindex_assembling_enabled() const {return m_bSingleAssDoFIndex;}
 
 
 	///	enables the usage of modify solution
@@ -199,8 +198,8 @@ class AssemblingTuner
 
 	///	only one index will be set to Dirichlet in case of index-wise assembling
 	///	instead of setting a complete matrix row to Dirichlet
-		void adjust_matrix(matrix_type& mat, const DoFIndex& ind) const;
-		void adjust_vector(vector_type& vec, const DoFIndex& ind, const double val) const;
+		void setDirichletRow(matrix_type& mat, const DoFIndex& ind) const;
+		void setDirichletVal(vector_type& vec, const DoFIndex& ind, const double val) const;
 
 	protected:
 	///	default LocalToGlobalMapper
@@ -215,9 +214,9 @@ class AssemblingTuner
 	///	selector used to set a list of elements for the assembling
 		Selector* m_pSelector;
 
-	///	object for index-wise assemble routine
-		bool m_bSingleAssembleIndex;
-		size_t m_SingleAssIndex;
+	///	object for DoFindex-wise assemble routine
+		bool m_bSingleAssDoFIndex;
+		DoFIndex m_SingleAssDoFIndex;
 
 	/// forces the assembling to regard the grid as regular
 		bool m_bForceRegGrid;

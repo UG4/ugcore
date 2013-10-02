@@ -35,7 +35,7 @@ class LocalToGlobalMapper_NL_GS : public ILocalToGlobalMapper<TAlgebra>
 
 	public:
 	///	default constructor
-		LocalToGlobalMapper_NL_GS() {m_assIndex = 0;}
+		LocalToGlobalMapper_NL_GS() {}//m_assemblingDoFIndex = 0;}
 
 	///	adds a local vector to the global rhs
 		void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd);
@@ -43,14 +43,14 @@ class LocalToGlobalMapper_NL_GS : public ILocalToGlobalMapper<TAlgebra>
 	///	adds a local matrix to the global matrix
 		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd);
 
-	/// sets assemble index
-		void set_ass_index(const size_t assIndex){ m_assIndex = assIndex;}
+	/// sets assembling index
+		void set_assemblingDoFindex(const DoFIndex assIndex){ m_assemblingDoFIndex = assIndex;}
 
 	///	destructor
 		~LocalToGlobalMapper_NL_GS() {};
 
 	private:
-		size_t m_assIndex;
+		DoFIndex m_assemblingDoFIndex;
 };
 
 template <typename TDomain, typename TAlgebra>

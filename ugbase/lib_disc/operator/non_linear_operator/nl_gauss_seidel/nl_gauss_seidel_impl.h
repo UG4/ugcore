@@ -64,13 +64,12 @@ void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalVec(vector_type& vec,
 		for(size_t dof=0; dof < lvec.num_all_dof(fct); ++dof)
 		{
 			const size_t index = ind.index(fct,dof);
-			if (index == m_assIndex)
-			{
-				const size_t comp = ind.comp(fct,dof);
+			const size_t comp = ind.comp(fct,dof);
+			if ((index == m_assemblingDoFIndex[0])
+					&& (comp == m_assemblingDoFIndex[1]))
 				BlockRef(vec[0], comp) += lvec.value(fct,dof);
-			}
-
 		}
+
 }
 
 template <typename TAlgebra>
@@ -84,22 +83,25 @@ void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalMatToGlobal(matrix_type& mat,
 		for(size_t dof1=0; dof1 < lmat.num_all_row_dof(fct1); ++dof1)
 		{
 			const size_t rowIndex = rowInd.index(fct1,dof1);
-			if (rowIndex != m_assIndex)
-				continue;
-
 			const size_t rowComp = rowInd.comp(fct1,dof1);
-			for(size_t fct2=0; fct2 < lmat.num_all_col_fct(); ++fct2)
-				for(size_t dof2=0; dof2 < lmat.num_all_col_dof(fct2); ++dof2)
-				{
-					const size_t colIndex = colInd.index(fct2,dof2);
-					if (colIndex == m_assIndex)
+
+			if ((rowIndex == m_assemblingDoFIndex[0])
+					&& (rowComp == m_assemblingDoFIndex[1]))
+			{
+				for(size_t fct2=0; fct2 < lmat.num_all_col_fct(); ++fct2)
+					for(size_t dof2=0; dof2 < lmat.num_all_col_dof(fct2); ++dof2)
 					{
+						const size_t colIndex = colInd.index(fct2,dof2);
 						const size_t colComp = colInd.comp(fct2,dof2);
-						BlockRef(mat(0, 0), rowComp, colComp)
+
+						if ((colIndex == m_assemblingDoFIndex[0])
+								&& (colComp == m_assemblingDoFIndex[1]))
+							BlockRef(mat(0, 0), rowComp, colComp)
 									+= lmat.value(fct1,dof1,fct2,dof2);
 					}
-				}
+			}
 		}
+
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -328,6 +330,9 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//	loop all DoFs
 		for (size_t i = 0; i < u.size(); i++)
 		{
+			value_type uVal;
+			size_t nrFcts = GetSize(uVal);
+
 			// 	Compute Jacobian J(u) using the updated u-components
 
 			//	since we only need J(i,i) and d(i) in every DoF loop,
@@ -340,8 +345,11 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 			m_spAss->ass_tuner()->set_selector(&m_sel);
 
 			//	assemble only with respect to DoF i (causes resizing of matrices/vectors)
-			m_spAss->ass_tuner()->set_single_index_assembling(i);
-			m_map.set_ass_index(i);
+			DoFIndex assDoFindex(i,0); //DoFIndex assDoFindex(i,fct);
+			m_spAss->ass_tuner()->set_single_DoFindex_assembling(assDoFindex);
+			//m_spAss->ass_tuner()->set_single_DoFindex_assembling(i);
+			//m_map.set_assemblingDoFindex(i);
+			m_map.set_assemblingDoFindex(assDoFindex);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
@@ -423,7 +431,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//	set mapping, selector and ass_index to NULL
 		m_spAss->ass_tuner()->set_mapping();
 		m_spAss->ass_tuner()->set_selector();
-		m_spAss->ass_tuner()->disable_single_index_assembling();
+		m_spAss->ass_tuner()->disable_single_DoFindex_assembling();
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
 		m_N->prepare(u);

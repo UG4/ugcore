@@ -268,15 +268,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 				if(dd->inner_dof_indices(vertex, fct, multInd) != 1)
 					return;
 
-			// 	check if assembling has been carried out with respect to one index only.
-			//	For that case the matrix has been resized to a block-matrix at one DoF.
-				if(this->m_spAssTuner->single_index_assembling_enabled()){
-					this->m_spAssTuner->adjust_matrix(mat, multInd[0]);
-				}
-				else{
-					SetDirichletRow(mat, multInd[0]);
-				}
-
+				this->m_spAssTuner->SetDirichletRow(mat, multInd[0]);
 			}
 		}
 	}
@@ -393,14 +385,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 					}
 
-				// 	check if assembling has been carried out with respect to one index only.
-				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssTuner->single_index_assembling_enabled()){
-						this->m_spAssTuner->adjust_matrix(J, multInd[j]);
-					}
-					else{
-						SetDirichletRow(J, multInd[j]);
-					}
+					this->m_spAssTuner->setDirichletRow(J, multInd[j]);
 				}
 			}
 		}
@@ -519,16 +504,8 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 					}
 
-				// 	check if assembling has been carried out with respect to one index only.
-				//	For that case the defect vector has been resized to a block-vector
-				//	at one DoF.
-					if(this->m_spAssTuner->single_index_assembling_enabled()){
-						this->m_spAssTuner->adjust_vector(d, multInd[j], 0.0);
-					}
-					else{
-						//	set zero for dirichlet values
-						DoFRef(d, multInd[j]) = 0.0;
-					}
+					//	set zero for dirichlet values
+					this->m_spAssTuner->setDirichletVal(d, multInd[j], 0.0);
 				}
 			}
 		}
@@ -637,16 +614,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 				//  get dirichlet value
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
-				// 	check if assembling has been carried out with respect to one index only.
-				//	For that case the solution vector u has been resized
-				//	to a block-vector at one DoF.
-					if(this->m_spAssTuner->single_index_assembling_enabled()){
-						this->m_spAssTuner->adjust_vector(u, multInd[j], val[f]);
-					}
-					else{
-						//	set zero for dirichlet values
-						DoFRef(u, multInd[j]) = val[f];
-					}
+					this->m_spAssTuner->setDirichletVal(u, multInd[j], val[f]);
 				}
 			}
 		}
@@ -760,19 +728,8 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if function is dirichlet and read value
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
-				// 	check if assembling has been carried out with respect to one index only.
-				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssTuner->single_index_assembling_enabled())
-					{
-						this->m_spAssTuner->adjust_matrix(A, multInd[j]);
-						this->m_spAssTuner->adjust_vector(b, multInd[j], val[f]);
-					}
-					else{
-						//	set dirichlet row
-							SetDirichletRow(A, multInd[j]);
-						//	set dirichlet value in rhs
-							DoFRef(b, multInd[j]) = val[f];
-					}
+					this->m_spAssTuner->setDirichletRow(A, multInd[j]);
+					this->m_spAssTuner->setDirichletVal(b, multInd[j], val[f]);
 				}
 			}
 		}
@@ -884,14 +841,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if function is dirichlet and read value
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
-				// 	check if assembling has been carried out with respect to one index only.
-				//	For that case the matrix has been resized to a block-matrix at one DoF.
-					if(this->m_spAssTuner->single_index_assembling_enabled()){
-						this->m_spAssTuner->adjust_vector(b, multInd[j], val[f]);
-					}
-					else{
-						DoFRef(b, multInd[j]) = val[f];
-					}
+					this->m_spAssTuner->setDirichletVal(b, multInd[j], val[f]);
 
 				}
 			}
