@@ -536,7 +536,7 @@ class DimCRFVGeometry : public FVGeometryBase
 					
 	/// update data for given element
 		void update_hanging(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL);
+		            const ISubsetHandler* ish = NULL,bool keepSCV=false);
 					
 	/// update data for given element
 		void update_geometric_data(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,

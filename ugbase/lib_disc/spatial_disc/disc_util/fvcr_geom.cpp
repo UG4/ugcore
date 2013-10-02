@@ -236,7 +236,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 /// update data checking for hanging nodes for given element
 template <int TDim, int TWorldDim>
 void DimCRFVGeometry<TDim, TWorldDim>::
-update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish,bool keepSCV)
 {
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
@@ -335,13 +335,19 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 				if (m_vSCVF[edgeCo[j]].To==side) m_vSCVF[edgeCo[j]].To=m_numDofs+j;
 			}
 			// set up new scvs
-			// scv "side" gets replaced by new one
-			m_vSCV[side].Normal *= 0.5;
-			m_vSCV[side].Vol *= 0.5;
-			m_vSCV[side].nodeID = m_numDofs;
-			m_vSCV[side].vGlobIP = m_vGlobUnkCoords[side];
-			m_vSCV[side].vLocIP = m_vLocUnkCoords[side];
-			m_vSCV[side].numSH = rTrialSpace.num_sh();
+			// keepSCV parameter specifies if scv "side" gets replaced by new one
+			size_t ind=side;
+			size_t keepOffset=0;
+ 			if (keepSCV){ 
+				ind=m_numSCV+1;
+				keepOffset=1;
+			}
+			m_vSCV[ind].Normal *= 0.5;
+			m_vSCV[ind].Vol *= 0.5;
+			m_vSCV[ind].nodeID = m_numDofs;
+			m_vSCV[ind].vGlobIP = m_vGlobUnkCoords[side];
+			m_vSCV[ind].vLocIP = m_vLocUnkCoords[side];
+			m_vSCV[ind].numSH = rTrialSpace.num_sh();
 			rTrialSpace.shapes(&(m_vSCV[side].vShape[0]), m_vSCV[side].local_ip());
 			rTrialSpace.grads(&(m_vSCV[side].vLocalGrad[0]), m_vSCV[side].local_ip());
 			// second scv inserted at the end
@@ -373,7 +379,7 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 			m_vCD[m_numConstrainedDofs].cDofInd[1] = m_numDofs+1;
 			m_vCD[m_numConstrainedDofs].cDofWeights[0] = 0.5;
 			m_vCD[m_numConstrainedDofs].cDofWeights[1] = 0.5;
-			m_numSCV+=1;
+			m_numSCV+=1+keepOffset;
 			m_numSCVF+=1;
 			m_numDofs+=2;
 			m_numConstrainedDofs+=1;
@@ -399,6 +405,9 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 			size_t numFaceCo = m_rRefElem.num(2,face,0);
 			for (size_t j=0;j<numFaceCo;j++) faceCo[j] = m_rRefElem.id(2,face,0,j);
 			for (size_t j=0;j<numFaceCo;j++) faceEdge[j] = m_rRefElem.id(2,face,1,j);
+			number volSum=0;
+			size_t keepOffset=0;
+			if (keepSCV) keepOffset=1;
 			// compute coordinates of each face and fill scv values
 			for (size_t i=0;i<numFaceCo;i++){
 				size_t co = faceCo[i];
@@ -427,10 +436,13 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 						nbEdges[0] = faceEdge[i];
 					}
 				}
-				// first new scv replaces scv nr face
-				size_t ind = face;
+				// keepSCV parameter specifies if scv "side" gets replaced by new one
+				size_t ind = m_numSCV+i-1+keepOffset;
+				if (i==0){
+					if (keepSCV) ind=m_numSCV;
+					else ind = face;
+				}
 				// others are inserted at the end
-				if (i>0) ind = m_numSCV+i-1;
 				m_vSCV[ind].vGloPos[0] = vCornerCoords[co];
 				m_vSCV[ind].vLocPos[0] = m_rRefElem.corner(co);
 				for (int d=0;d<worldDim;d++){
@@ -453,6 +465,7 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 				if (numFaceCo==3) m_vSCV[ind].Vol = ElementSize<scv_type0,worldDim>(m_vSCV[ind].vGloPos);
 				else m_vSCV[ind].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[ind].vGloPos);
 				if (m_vSCV[ind].Vol<0) m_vSCV[ind].Vol *= -1;
+				volSum+=m_vSCV[ind].Vol;
 				m_vSCV[ind].Normal = faceNormal;
 				m_vSCV[ind].Normal *= (number) m_vSCV[ind].Vol / faceVol;
 				rTrialSpace.shapes(&(m_vSCV[ind].vShape[0]), m_vSCV[ind].local_ip());
@@ -461,11 +474,7 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 			}
 			// compute inner scv in triangular case
 			if (numFaceCo==3){
-				number volSum=m_vSCV[face].Vol;
-				for (size_t j=0;j<2;j++){
-					volSum+=m_vSCV[m_numSCV+j].Vol;
-				}
-				size_t ind = m_numSCV+2;
+				size_t ind = m_numSCV+2+keepOffset;
 				m_vSCV[ind].Vol = faceVol - volSum;
 				m_vSCV[ind].nodeID=m_numDofs+3;
 				m_vSCV[ind].Normal = faceNormal;
@@ -610,7 +619,7 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 				if (i>0) ind = m_numSCV+i-1;
 				m_vCD[m_numConstrainedDofs].cDofWeights[i] = (number)m_vSCV[ind].Vol / faceVol;
 			}
-			m_numSCV+=3;
+			m_numSCV+=3+keepOffset;
 			m_numDofs+=4;
 			m_numConstrainedDofs+=1;
 			m_roid = ROID_UNKNOWN;
