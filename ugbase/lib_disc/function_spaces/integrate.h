@@ -1415,17 +1415,16 @@ class L2FuncIntegrand
 		};
 };
 
-/// interpolates a function on the whole domain or on some subsets
 /**
  * This function computes the L2-norm of a grid function.
  *
- * \param[in]		u1			grid function
- * \param[in]		u2			grid function
- * \param[in]		name		symbolic name of function
- * \param[in]		time		time point
+ * \param[in]		spGridFct	grid function
+ * \param[in]		cmp			symbolic name of function
  * \param[in]		quadOrder	order of quadrature rule
  * \param[in]		subsets		subsets, where to interpolate
- * \returns			number 		l2-norm of difference
+ * 								(NULL indicates that all full-dimensional subsets
+ * 								shall be considered)
+ * \returns			number 		l2-norm
  */
 template <typename TGridFunction>
 number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
@@ -1443,6 +1442,20 @@ number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 		= CreateSmartPtr(new L2FuncIntegrand<TGridFunction>(spGridFct, fct));
 
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
+}
+
+/**
+ * This function computes the L2-norm of a grid function on all full-dim subsets.
+ *
+ * \param[in]		spGridFct	grid function
+ * \param[in]		cmp			symbolic name of function
+ * \param[in]		quadOrder	order of quadrature rule
+ * \returns			number 		l2-norm
+ */
+template <typename TGridFunction>
+number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp, int quadOrder)
+{
+	return L2Norm(spGridFct, cmp, quadOrder, NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

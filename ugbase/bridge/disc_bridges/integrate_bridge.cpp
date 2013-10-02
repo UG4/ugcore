@@ -113,6 +113,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	L2Norm
 	{
 		reg.add_function("L2Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int, const char*)>(&L2Norm<TFct>),grp);
+		reg.add_function("L2Norm",static_cast<number (*)(SmartPtr<TFct>, const char*, int)>(&L2Norm<TFct>),grp);
 	}
 
 //	IntegrateNormalGradientOnManifold
