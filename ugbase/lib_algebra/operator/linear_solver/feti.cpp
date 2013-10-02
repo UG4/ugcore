@@ -854,11 +854,11 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 				vPosRootSchurSorted[vPosRootSchur[i].ind1] = vPosRootSchur[i].pos;
 
 		//	create algebra debug writer
-			AlgebraDebugWriter<algebra_type> dbgWriter2d;
-			dbgWriter2d.set_positions(vPosRootSchurSorted);
+			AlgebraDebugWriter<algebra_type> dbgWriter;
+			dbgWriter.template set_positions<2>(vPosRootSchurSorted);
 
 		//	write matrix
-			dbgWriter2d.write_matrix(m_spRootSchurComplementOp->get_matrix(),
+			dbgWriter.write_matrix(m_spRootSchurComplementOp->get_matrix(),
 										 "RootSchurComplementMatrix.mat");
 		}
 	}
