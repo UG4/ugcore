@@ -4,6 +4,7 @@
 #include "../small_matrix/densematrix.h"
 #include "../small_matrix/densevector.h"
 #include "../small_matrix/block_dense.h"
+#include "lapack.h"
 #include <vector>
 
 namespace ug{
@@ -17,7 +18,7 @@ bool InvertNdyn(DenseMatrix<T> &mat)
 
 	int info = getrf(mat.num_rows(), mat.num_cols(), &mat(0,0), mat.num_rows(), &interchange[0]);
 	//UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": SparseMatrix singular in U(i,i)" : ": i-th argument had an illegal value"));
-	if(info == 0) return false;
+	if(info != 0) return false;
 
 	// calc work size
 	double worksize; int iWorksize = -1;
@@ -29,7 +30,7 @@ bool InvertNdyn(DenseMatrix<T> &mat)
 
 	info = getri(mat.num_rows(), &mat(0,0), mat.num_rows(), &interchange[0], &work[0], iWorksize);
 	//UG_ASSERT(info == 0, "");
-	if(info == 0) return false;
+	if(info != 0) return false;
 
 	return true;
 }
@@ -41,7 +42,7 @@ bool Invert(DenseMatrix<FixedArray2<T, TUnknowns, TUnknowns> > &mat)
 
 	int info = getrf(mat.num_rows(), mat.num_cols(), &mat(0,0), mat.num_rows(), interchange);
 	UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": Matrix singular in mat(i,i)" : ": i-th argument had an illegal value"));
-	if(info == 0) return false;
+	if(info != 0) return false;
 
 	// calc work size
 	// todo: make this static
@@ -55,7 +56,7 @@ bool Invert(DenseMatrix<FixedArray2<T, TUnknowns, TUnknowns> > &mat)
 
 	info = getri(mat.num_rows(), &mat(0,0), mat.num_rows(), interchange, &work[0], iWorksize);
 	UG_ASSERT(info == 0, "");
-	if(info == 0) return false;
+	if(info != 0) return false;
 
 	return true;
 }
