@@ -157,6 +157,100 @@ bool HangingNodeRefinerBase<TSelector>::mark(Volume* v, RefinementMark refMark)
 }
 
 template <class TSelector>
+void HangingNodeRefinerBase<TSelector>::
+mark_neighborhood(size_t numIterations)
+{
+	if(!m_pGrid)
+		return;
+
+	typedef typename TSelector::template traits<VertexBase>::iterator	SelVrtIter;
+	typedef typename TSelector::template traits<EdgeBase>::iterator		SelEdgeIter;
+	typedef typename TSelector::template traits<Face>::iterator			SelFaceIter;
+	typedef typename TSelector::template traits<Volume>::iterator		SelVolIter;
+
+	Grid::edge_traits::secure_container		edges;
+	Grid::face_traits::secure_container		faces;
+	Grid::volume_traits::secure_container	vols;
+
+	TSelector& sel = m_selMarkedElements;
+	Grid& g = *m_pGrid;
+
+//todo:	Speed could be improved by only considering newly marked elements after each iteration.
+	for(size_t iteration = 0; iteration < numIterations; ++iteration){
+	//	first we'll select all vertices which are connected to marked elements
+		for(SelEdgeIter iter = sel.template begin<EdgeBase>();
+			iter != sel.template end<EdgeBase>(); ++iter)
+		{
+			EdgeBase* e = *iter;
+			sel.select(e->vertex(0), sel.get_selection_status(e));
+			sel.select(e->vertex(1), sel.get_selection_status(e));
+		}
+
+		for(SelFaceIter iter = sel.template begin<Face>();
+			iter != sel.template end<Face>(); ++iter)
+		{
+			Face* f = *iter;
+			ISelector::status_t s = sel.get_selection_status(f);
+			Face::ConstVertexArray faceVrts = f->vertices();
+			for(size_t i = 0; i < f->num_vertices(); ++i)
+				sel.select(faceVrts[i], s);
+		}
+
+		for(SelVolIter iter = sel.template begin<Volume>();
+			iter != sel.template end<Volume>(); ++iter)
+		{
+			Volume* vol = *iter;
+			ISelector::status_t s = sel.get_selection_status(vol);
+			Volume::ConstVertexArray volVrts = vol->vertices();
+			for(size_t i = 0; i < vol->num_vertices(); ++i)
+				sel.select(volVrts[i], s);
+		}
+
+	//	if we're in a parallel environment, we have to broadcast the current selection
+		sel.broadcast_selection_states();
+
+	//	mark all associated elements of marked vertices
+		for(SelVrtIter iter = sel.template begin<VertexBase>();
+			iter != sel.template end<VertexBase>(); ++iter)
+		{
+			ISelector::status_t s = sel.get_selection_status(*iter);
+			RefinementMark rm = RM_NONE;
+			switch(s){
+				case RM_REFINE:	rm = RM_REFINE; break;
+				case RM_ANISOTROPIC: rm = RM_ANISOTROPIC; break;
+				case RM_COARSEN: rm = RM_COARSEN; break;
+				default: break;
+			}
+
+			g.associated_elements(edges, *iter);
+			for(size_t i = 0; i < edges.size(); ++i)
+				mark(edges[i], rm);
+
+			g.associated_elements(faces, *iter);
+			for(size_t i = 0; i < faces.size(); ++i)
+				mark(faces[i], rm);
+
+			g.associated_elements(vols, *iter);
+			for(size_t i = 0; i < vols.size(); ++i)
+				mark(vols[i], rm);
+		}
+
+	//	since we selected vertices which possibly may not be refined, we have to
+	//	deselect those now.
+		for(SelVrtIter iter = sel.template begin<VertexBase>();
+			iter != sel.template end<VertexBase>();)
+		{
+			VertexBase* vrt = *iter;
+			++iter;
+
+			if(!refinement_is_allowed(vrt))
+				sel.deselect(vrt);
+		}
+	}
+
+}
+
+template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
 get_mark(VertexBase* v)
 {

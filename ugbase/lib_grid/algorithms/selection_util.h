@@ -179,16 +179,17 @@ void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 						   ISelector::status_t status = ISelector::SELECTED);
 
 
-////////////////////////////////////////////////////////////////////////
-///	selects associated geometric objects of selected ones.
-UG_API
-void SelectAssociatedGeometricObjects(Selector& sel,
-							  ISelector::status_t status = ISelector::SELECTED);
+//////////////////////////////////////////////////////////////////////////
+/////	selects associated geometric objects of selected ones.
+//UG_API
+//void SelectAssociatedGeometricObjects(Selector& sel,
+//							  ISelector::status_t status = ISelector::SELECTED);
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects associated geometric objects of selected ones on each level.
+template <class TSelector>
 UG_API
-void SelectAssociatedGeometricObjects(MGSelector& msel,
+void SelectAssociatedGeometricObjects(TSelector& sel,
 							  ISelector::status_t status = ISelector::SELECTED);
 
 
@@ -259,8 +260,10 @@ void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
  *
  * \todo: Performance can be improved. See implementation.
  */
+template <class TSelector>
 UG_API
-void ExtendSelection(Selector& sel, size_t extSize);
+void ExtendSelection(TSelector& sel, size_t extSize,
+					 ISelector::status_t status = ISelector::SELECTED);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Extends the selection around selected objects until selected sides are reached.

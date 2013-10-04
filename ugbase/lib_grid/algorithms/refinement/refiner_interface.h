@@ -74,6 +74,12 @@ class IRefiner
 	 * (VertexBase, EdgeBase, Face, Volume) and calls the appropriate mark method.*/
 		virtual bool mark(GeometricObject* o, RefinementMark refMark = RM_REFINE);
 
+	///	marks the neighborhood of currently marked elements.
+	/**	In each step direct neighbors of currently marked elements are selected.
+	 * The number of iterations thus specifies the width of the neighborhood which
+	 * will be marked.*/
+		virtual void mark_neighborhood(size_t numIterations)	{}
+
 	///	Returns the mark of a given element. Default returns RM_REFINE
 	/**	\{ */
 		virtual RefinementMark get_mark(VertexBase* v)	{return RM_REFINE;}

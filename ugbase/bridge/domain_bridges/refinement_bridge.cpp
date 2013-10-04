@@ -29,6 +29,21 @@ namespace ug{
  */
 
 ////////////////////////////////////////////////////////////////////////////////
+///	Returns a refinement mark, given a string describing it.
+/**	Valid parameters are: "refine", "coarsen"*/
+static RefinementMark StringToRefinementMark(std::string markType)
+{
+	TrimString(markType);
+	std::transform(markType.begin(), markType.end(), markType.begin(), ::tolower);
+	if(markType == "refine") return RM_REFINE;
+	if(markType == "coarsen") return RM_COARSEN;
+
+	UG_THROW("StringToRefinementMark: non-supported type: "<<markType);
+	return RM_NONE;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 ///	Creates a global domain refiner.
 /**	Automatically chooses whether a parallel refiner is required.*/
 template <typename TDomain>
@@ -114,6 +129,7 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 	return SmartPtr<GlobalFracturedMediaRefiner>(ref);
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 /// marks face for anisotropic refinement, if it contains edges below given sizeRatio
 /**
@@ -181,16 +197,6 @@ static void MarkForRefinement_All(SmartPtr<IRefiner> ref)
 	ref->mark(g->edges_begin(), g->edges_end());
 	ref->mark(g->faces_begin(), g->faces_end());
 	ref->mark(g->volumes_begin(), g->volumes_end());
-}
-
-static RefinementMark StringToRefinementMark(std::string markType)
-{
-	TrimString(markType);
-	std::transform(markType.begin(), markType.end(), markType.begin(), ::tolower);
-	if(markType == "refine") return RM_REFINE;
-	if(markType == "coarsen") return RM_COARSEN;
-
-	UG_THROW("StringToRefinementMark: non-supported type: "<<markType);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

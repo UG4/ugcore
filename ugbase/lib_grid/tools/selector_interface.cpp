@@ -4,6 +4,11 @@
 
 #include "lib_grid/algorithms/attachment_util.h"
 #include "selector_interface.h"
+#ifdef UG_PARALLEL
+	#include "lib_grid/parallelization/distributed_grid.h"
+	#include "lib_grid/parallelization/util/compol_selection.h"
+#endif
+
 
 namespace ug
 {
@@ -199,6 +204,83 @@ void ISelector::set_grid(Grid* grid)
 		m_supportedElements = SE_NONE;
 		enable_element_support(tmpOpts);
 	}
+}
+
+
+#ifdef UG_PARALLEL
+template <class TIntfcCom>
+void ISelector::broadcast_selection_states(bool deselect,
+										   bool includeGhosts,
+										   TIntfcCom& icom)
+{
+	DistributedGridManager& dgm = *m_pGrid->distributed_grid_manager();
+	GridLayoutMap& glm = dgm.grid_layout_map();
+
+	if(deselect){
+		ComPol_Selection<typename TIntfcCom::Layout> compol(*this, false, true);
+		if(includeGhosts){
+		//	if ghosts shall be included, we will first have to make sure that
+		//	copies in h-interfaces know about the selection state of associated
+		//	ghosts
+			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compol);
+			icom.communicate();
+		}
+
+	//	gather selection state at h-master
+		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compol);
+		icom.communicate();
+
+	//	copy it to all h-slaves
+		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compol);
+		icom.communicate();
+
+		if(includeGhosts){
+		//	if ghosts shall be included, we will now have to copy the values back
+		//	to those ghosts
+			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compol);
+			icom.communicate();
+		}
+	}
+	else{
+		ComPol_EnableSelectionStateBits<typename TIntfcCom::Layout> compol(*this, 0xFF);
+		if(includeGhosts){
+		//	if ghosts shall be included, we will first have to make sure that
+		//	copies in h-interfaces know about the selection state of associated
+		//	ghosts
+			icom.exchange_data(glm, INT_V_MASTER, INT_V_SLAVE, compol);
+			icom.communicate();
+		}
+
+	//	gather selection state at h-master
+		icom.exchange_data(glm, INT_H_SLAVE, INT_H_MASTER, compol);
+		icom.communicate();
+
+	//	copy it to all h-slaves
+		icom.exchange_data(glm, INT_H_MASTER, INT_H_SLAVE, compol);
+		icom.communicate();
+
+		if(includeGhosts){
+		//	if ghosts shall be included, we will now have to copy the values back
+		//	to those ghosts
+			icom.exchange_data(glm, INT_V_SLAVE, INT_V_MASTER, compol);
+			icom.communicate();
+		}
+	}
+}
+#endif
+
+void ISelector::broadcast_selection_states(bool deselect,
+										   bool includeGhosts)
+{
+#ifdef UG_PARALLEL
+	if(!m_pGrid)
+		return;
+
+	broadcast_selection_states(deselect, includeGhosts, m_icomVRT);
+	broadcast_selection_states(deselect, includeGhosts, m_icomEDGE);
+	broadcast_selection_states(deselect, includeGhosts, m_icomFACE);
+	broadcast_selection_states(deselect, includeGhosts, m_icomVOL);
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////

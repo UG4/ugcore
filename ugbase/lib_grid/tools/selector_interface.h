@@ -8,6 +8,12 @@
 #include <cassert>
 #include "lib_grid/grid/grid.h"
 
+#ifdef UG_PARALLEL
+	#include "lib_grid/parallelization/parallel_grid_layout.h"
+	#include "pcl/pcl_interface_communicator.h"
+#endif
+
+
 namespace ug
 {
 /** \ingroup lib_grid_tools
@@ -230,6 +236,20 @@ class UG_API ISelector : public GridObserver
 	///	returns true if the selector contains volumes
 		virtual bool contains_volumes() const = 0;
 
+	///	broadcasts the current selection
+	/**	This method is only interesting for parallel algorithms.
+	 * By setting 'deselect' to true, all copies of an element will be deselected if
+	 * one or more copies already were deselected.
+	 *
+	 * If 'deselect' is false (this is the default), the selection-states of all
+	 * copies of an element will be united and applied to all copies of that element.
+	 *
+	 * Set 'includeGhosts' to true, to also broadcast the selection-state to
+	 * ghost-copies. Default is false.
+	 */
+		virtual void broadcast_selection_states(bool deselect = false,
+												bool includeGhosts = false);
+
 	protected:
 		typedef Grid::traits<VertexBase>::AttachedElementList	AttachedVertexList;
 		typedef Grid::traits<EdgeBase>::AttachedElementList		AttachedEdgeList;
@@ -294,6 +314,12 @@ class UG_API ISelector : public GridObserver
 	private:
 		ISelector(const ISelector& sel){};///<	Copy Constructor not yet implemented!
 
+		#ifdef UG_PARALLEL
+			template <class TIntfcCom>
+			void broadcast_selection_states(bool deselect, bool includeGhosts,
+											TIntfcCom& icom);
+		#endif
+
 	protected:
 		Grid*	m_pGrid;
 		uint	m_supportedElements;
@@ -309,6 +335,13 @@ class UG_API ISelector : public GridObserver
 		Grid::AttachmentAccessor<EdgeBase, AUChar>		m_aaSelEDGE;
 		Grid::AttachmentAccessor<Face, AUChar>			m_aaSelFACE;
 		Grid::AttachmentAccessor<Volume, AUChar>		m_aaSelVOL;
+
+		#ifdef UG_PARALLEL
+			pcl::InterfaceCommunicator<VertexLayout>	m_icomVRT;
+			pcl::InterfaceCommunicator<EdgeLayout>		m_icomEDGE;
+			pcl::InterfaceCommunicator<FaceLayout>		m_icomFACE;
+			pcl::InterfaceCommunicator<VolumeLayout>	m_icomVOL;
+		#endif
 };
 
 /// \}

@@ -490,6 +490,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_method("coarsen", &IRefiner::coarsen)
 			.add_method("save_marks_to_file", &IRefiner::save_marks_to_file, "", "filename")
 			.add_method("set_adjusted_marks_debug_filename", &IRefiner::set_adjusted_marks_debug_filename, "", "filename")
+			.add_method("mark_neighborhood", &IRefiner::mark_neighborhood, "", "numIterations")
 			.add_method("clear_marks", &IRefiner::clear_marks)
 			.add_method("set_refinement_callback", &IRefiner::set_refinement_callback)
 			.add_method("enable_debugging", &IRefiner::enable_debugging);

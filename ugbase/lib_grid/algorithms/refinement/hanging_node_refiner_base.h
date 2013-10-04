@@ -104,6 +104,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE);
 	/**	\} */
 
+	///	Marks the neighborhood of the current selection.
+	/**	\sa ISelector::mark_neighborhood*/
+		virtual void mark_neighborhood(size_t numIterations);
+
 	///	Returns the mark of a given element.
 	/**	\{ */
 		virtual RefinementMark get_mark(VertexBase* v);

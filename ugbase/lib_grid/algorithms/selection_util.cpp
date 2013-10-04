@@ -154,9 +154,44 @@ void InvertSelection(TSelector& sel)
 					grid.end<Volume>());
 }
 
+//////////////////////////////////////////////////////////////////////////
+////	SelectAssociatedGeometricObjects
+//void SelectAssociatedGeometricObjects(Selector& sel, ISelector::status_t status)
+//{
+//	if(!sel.grid()){
+//		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
+//		return;
+//	}
+//
+//	Grid& grid = *sel.grid();
+//
+////	select associated elements of selected elements
+//	SelectAssociatedFaces(sel, sel.begin<Volume>(),
+//						  sel.end<Volume>(), status);
+//	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+//	//	if faces are not automatically generated, there may be edges connected
+//	//	to the volume, which are not connected to a face. Same goes for vertices.
+//		SelectAssociatedEdges(sel, sel.begin<Volume>(),
+//							  sel.end<Volume>(), status);
+//		if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
+//			SelectAssociatedVertices(sel, sel.begin<Volume>(),
+//									 sel.end<Volume>(), status);
+//	}
+//
+//	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>(), status);
+//	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+//		SelectAssociatedVertices(sel, sel.begin<Face>(),
+//								 sel.end<Face>(), status);
+//
+//	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(),
+//							 sel.end<EdgeBase>(), status);
+//}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGeometricObjects
-void SelectAssociatedGeometricObjects(Selector& sel, ISelector::status_t status)
+template <class TSelector>
+void SelectAssociatedGeometricObjects(TSelector& sel, ISelector::status_t status)
 {
 	if(!sel.grid()){
 		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
@@ -165,63 +200,36 @@ void SelectAssociatedGeometricObjects(Selector& sel, ISelector::status_t status)
 	
 	Grid& grid = *sel.grid();
 	
-//	select associated elements of selected elements
-	SelectAssociatedFaces(sel, sel.begin<Volume>(),
-						  sel.end<Volume>(), status);
-	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
-	//	if faces are not automatically generated, there may be edges connected
-	//	to the volume, which are not connected to a face. Same goes for vertices.
-		SelectAssociatedEdges(sel, sel.begin<Volume>(),
-							  sel.end<Volume>(), status);
-		if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
-			SelectAssociatedVertices(sel, sel.begin<Volume>(),
-									 sel.end<Volume>(), status);
-	}
-	
-	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>(), status);
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
-		SelectAssociatedVertices(sel, sel.begin<Face>(),
-								 sel.end<Face>(), status);
-		
-	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(),
-							 sel.end<EdgeBase>(), status);
-}
-
-
-////////////////////////////////////////////////////////////////////////
-//	SelectAssociatedGeometricObjects
-void SelectAssociatedGeometricObjects(MGSelector& msel, ISelector::status_t status)
-{
-	if(!msel.multi_grid()){
-		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
-		return;
-	}
-	
-	Grid& grid = *msel.multi_grid();
-	
 //	select associated elements of selected elements on each level
-	for(size_t i = 0; i < msel.num_levels(); ++i)
+	for(size_t i = 0; i < sel.num_levels(); ++i)
 	{
-		SelectAssociatedFaces(msel, msel.begin<Volume>(i),
-							  msel.end<Volume>(i), status);
+		SelectAssociatedFaces(sel, sel.template begin<Volume>(i),
+							  sel.template end<Volume>(i), status);
 		if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
-			SelectAssociatedEdges(msel, msel.begin<Volume>(i),
-								  msel.end<Volume>(i), status);
+			SelectAssociatedEdges(sel, sel.template begin<Volume>(i),
+								  sel.template end<Volume>(i), status);
 			if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
-				SelectAssociatedVertices(msel, msel.begin<Volume>(i),
-										 msel.end<Volume>(i), status);
+				SelectAssociatedVertices(sel, sel.template begin<Volume>(i),
+										 sel.template end<Volume>(i), status);
 		}
 		
-		SelectAssociatedEdges(msel, msel.begin<Face>(i),
-							  msel.end<Face>(i), status);
+		SelectAssociatedEdges(sel, sel.template begin<Face>(i),
+							  sel.template end<Face>(i), status);
 		if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
-			SelectAssociatedVertices(msel, msel.begin<Face>(i),
-									 msel.end<Face>(i), status);
+			SelectAssociatedVertices(sel, sel.template begin<Face>(i),
+									 sel.template end<Face>(i), status);
 			
-		SelectAssociatedVertices(msel, msel.begin<EdgeBase>(i),
-								 msel.end<EdgeBase>(i), status);
+		SelectAssociatedVertices(sel, sel.template begin<EdgeBase>(i),
+								 sel.template end<EdgeBase>(i), status);
 	}
 }
+
+template void SelectAssociatedGeometricObjects<Selector>(Selector& sel,
+													ISelector::status_t status);
+template void SelectAssociatedGeometricObjects<MGSelector>(MGSelector& sel,
+													ISelector::status_t status);
+
+
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectParents
@@ -243,7 +251,8 @@ static void SelectParents(MultiGrid& mg, MGSelector& msel,
 
 ////////////////////////////////////////////////////////////////////////
 //	ExtendSelection
-void ExtendSelection(Selector& sel, size_t extSize)
+template <class TSelector>
+void ExtendSelection(TSelector& sel, size_t extSize, ISelector::status_t status)
 {
 	if(!sel.grid()){
 		UG_LOG("ERROR in ExtendSelection: Selector has to be assigned to a grid.\n");
@@ -266,34 +275,36 @@ void ExtendSelection(Selector& sel, size_t extSize)
 //		During the loop only newly selected elements should be checked for associated elements.
 
 	//	select associated elements
-		SelectAssociatedGeometricObjects(sel);
-	
+		SelectAssociatedGeometricObjects(sel, status);
+
 	//	iterate over all selected vertices.
-		for(VertexBaseIterator iter = sel.begin<VertexBase>();
-			iter != sel.end<VertexBase>(); ++iter)
-		{
-			VertexBase* vrt = *iter;
-		//	all marked vertices have already been processed.
-			if(!grid.is_marked(vrt)){
-				grid.mark(vrt);
-				
-			//	select associated volumes, faces and edges.
-				for(Grid::AssociatedEdgeIterator asIter = grid.associated_edges_begin(vrt);
-					asIter != grid.associated_edges_end(vrt); ++asIter)
-				{
-					sel.select(*asIter);
-				}
-				
-				for(Grid::AssociatedFaceIterator asIter = grid.associated_faces_begin(vrt);
-					asIter != grid.associated_faces_end(vrt); ++asIter)
-				{
-					sel.select(*asIter);
-				}
-				
-				for(Grid::AssociatedVolumeIterator asIter = grid.associated_volumes_begin(vrt);
-					asIter != grid.associated_volumes_end(vrt); ++asIter)
-				{
-					sel.select(*asIter);
+		for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl){
+			for(VertexBaseIterator iter = sel.template begin<VertexBase>(lvl);
+				iter != sel.template end<VertexBase>(lvl); ++iter)
+			{
+				VertexBase* vrt = *iter;
+			//	all marked vertices have already been processed.
+				if(!grid.is_marked(vrt)){
+					grid.mark(vrt);
+
+				//	select associated volumes, faces and edges.
+					for(Grid::AssociatedEdgeIterator asIter = grid.associated_edges_begin(vrt);
+						asIter != grid.associated_edges_end(vrt); ++asIter)
+					{
+						sel.select(*asIter, status);
+					}
+
+					for(Grid::AssociatedFaceIterator asIter = grid.associated_faces_begin(vrt);
+						asIter != grid.associated_faces_end(vrt); ++asIter)
+					{
+						sel.select(*asIter, status);
+					}
+
+					for(Grid::AssociatedVolumeIterator asIter = grid.associated_volumes_begin(vrt);
+						asIter != grid.associated_volumes_end(vrt); ++asIter)
+					{
+						sel.select(*asIter, status);
+					}
 				}
 			}
 		}
@@ -301,6 +312,13 @@ void ExtendSelection(Selector& sel, size_t extSize)
 	
 	grid.end_marking();
 }
+
+template void ExtendSelection<Selector>(Selector& sel, size_t extSize,
+										ISelector::status_t status);
+template void ExtendSelection<MGSelector>(MGSelector& sel, size_t extSize,
+										  ISelector::status_t status);
+
+
 
 template <class TGeomObj>
 void SelectionFill(Selector& sel,
