@@ -268,7 +268,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 				if(dd->inner_dof_indices(vertex, fct, multInd) != 1)
 					return;
 
-				this->m_spAssTuner->SetDirichletRow(mat, multInd[0]);
+				this->m_spAssTuner->set_dirichlet_row(mat, multInd[0]);
 			}
 		}
 	}
@@ -385,7 +385,7 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
 						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 					}
 
-					this->m_spAssTuner->setDirichletRow(J, multInd[j]);
+					this->m_spAssTuner->set_dirichlet_row(J, multInd[j]);
 				}
 			}
 		}
@@ -505,7 +505,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
 					}
 
 					//	set zero for dirichlet values
-					this->m_spAssTuner->setDirichletVal(d, multInd[j], 0.0);
+					this->m_spAssTuner->set_dirichlet_val(d, multInd[j], 0.0);
 				}
 			}
 		}
@@ -614,7 +614,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
 				//  get dirichlet value
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
-					this->m_spAssTuner->setDirichletVal(u, multInd[j], val[f]);
+					this->m_spAssTuner->set_dirichlet_val(u, multInd[j], val[f]);
 				}
 			}
 		}
@@ -728,8 +728,8 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if function is dirichlet and read value
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
-					this->m_spAssTuner->setDirichletRow(A, multInd[j]);
-					this->m_spAssTuner->setDirichletVal(b, multInd[j], val[f]);
+					this->m_spAssTuner->set_dirichlet_row(A, multInd[j]);
+					this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
 				}
 			}
 		}
@@ -841,7 +841,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 				// 	check if function is dirichlet and read value
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
-					this->m_spAssTuner->setDirichletVal(b, multInd[j], val[f]);
+					this->m_spAssTuner->set_dirichlet_val(b, multInd[j], val[f]);
 
 				}
 			}

@@ -330,8 +330,8 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//	loop all DoFs
 		for (size_t i = 0; i < u.size(); i++)
 		{
-			value_type uVal;
-			size_t nrFcts = GetSize(uVal);
+			//value_type uVal;
+			//size_t nrFcts = GetSize(uVal);
 
 			// 	Compute Jacobian J(u) using the updated u-components
 
@@ -346,10 +346,10 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 			//	assemble only with respect to DoF i (causes resizing of matrices/vectors)
 			DoFIndex assDoFindex(i,0); //DoFIndex assDoFindex(i,fct);
-			m_spAss->ass_tuner()->set_single_DoFindex_assembling(assDoFindex);
-			//m_spAss->ass_tuner()->set_single_DoFindex_assembling(i);
+			m_spAss->ass_tuner()->set_single_dof_index_assembling(assDoFindex);
+			//m_spAss->ass_tuner()->set_single_dof_index_assembling(i);
 			//m_map.set_assemblingDoFindex(i);
-			m_map.set_assemblingDoFindex(assDoFindex);
+			m_map.set_assembling_dof_index(assDoFindex);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
@@ -431,7 +431,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//	set mapping, selector and ass_index to NULL
 		m_spAss->ass_tuner()->set_mapping();
 		m_spAss->ass_tuner()->set_selector();
-		m_spAss->ass_tuner()->disable_single_DoFindex_assembling();
+		m_spAss->ass_tuner()->disable_single_dof_index_assembling();
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
 		m_N->prepare(u);

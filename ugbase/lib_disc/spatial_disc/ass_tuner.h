@@ -137,14 +137,14 @@ class AssemblingTuner
 	 *
 	 * \param[in]	ind			DoFIndex
 	 */
-		void disable_single_DoFindex_assembling() {m_bSingleAssDoFIndex = false;}
-		void set_single_DoFindex_assembling(const DoFIndex& ind)
+		void disable_single_dof_index_assembling() {m_bSingleAssDoFIndex = false;}
+		void set_single_dof_index_assembling(const DoFIndex& ind)
 		{
 			m_SingleAssDoFIndex = ind; m_bSingleAssDoFIndex = true;
 		}
 
 	///	checks whether the assemble DoFindex is set or not
-		bool single_DoFindex_assembling_enabled() const {return m_bSingleAssDoFIndex;}
+		bool single_dof_index_assembling_enabled() const {return m_bSingleAssDoFIndex;}
 
 
 	///	enables the usage of modify solution
@@ -198,8 +198,8 @@ class AssemblingTuner
 
 	///	only one index will be set to Dirichlet in case of index-wise assembling
 	///	instead of setting a complete matrix row to Dirichlet
-		void setDirichletRow(matrix_type& mat, const DoFIndex& ind) const;
-		void setDirichletVal(vector_type& vec, const DoFIndex& ind, const double val) const;
+		void set_dirichlet_row(matrix_type& mat, const DoFIndex& ind) const;
+		void set_dirichlet_val(vector_type& vec, const DoFIndex& ind, const double val) const;
 
 	protected:
 	///	default LocalToGlobalMapper

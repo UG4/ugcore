@@ -44,7 +44,7 @@ class LocalToGlobalMapper_NL_GS : public ILocalToGlobalMapper<TAlgebra>
 		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd);
 
 	/// sets assembling index
-		void set_assemblingDoFindex(const DoFIndex assIndex){ m_assemblingDoFIndex = assIndex;}
+		void set_assembling_dof_index(const DoFIndex assIndex){ m_assemblingDoFIndex = assIndex;}
 
 	///	destructor
 		~LocalToGlobalMapper_NL_GS() {};
