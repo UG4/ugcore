@@ -124,7 +124,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	//	send local to global matrix
 		try{
-			spAssTuner->AddLocalMatToGlobal(A,locA,dd);
+			spAssTuner->add_local_mat_to_global(A,locA,dd);
 		}
 		UG_CATCH_THROW("AssembleStiffnessMatrix: Cannot add local matrix.");
 	}
@@ -259,7 +259,7 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// send local to global matrix
 		try{
-			spAssTuner->AddLocalMatToGlobal(M, locM, dd);
+			spAssTuner->add_local_mat_to_global(M, locM, dd);
 		}
 		UG_CATCH_THROW("AssembleMassMatrix: Cannot add local matrix.");
 	}
@@ -397,7 +397,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// send local to global matrix
 		try{
-			spAssTuner->AddLocalMatToGlobal(J, locJ, dd);
+			spAssTuner->add_local_mat_to_global(J, locJ, dd);
 		}
 		UG_CATCH_THROW("(stationary) AssembleJacobian: Cannot add local matrix.");
 	}
@@ -564,7 +564,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// send local to global matrix
 		try{
-			spAssTuner->AddLocalMatToGlobal(J, locJ, dd);
+			spAssTuner->add_local_mat_to_global(J, locJ, dd);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot add local matrix.");
 
@@ -713,7 +713,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// 	send local to global defect
 		try{
-			spAssTuner->AddLocalVec(d, locD, dd);
+			spAssTuner->add_local_vec_to_global(d, locD, dd);
 		}
 		UG_CATCH_THROW("(stationary) AssembleDefect: Cannot add local vector.");
 	}
@@ -924,7 +924,7 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// 	send local to global defect
 		try{
-			spAssTuner->AddLocalVec(d, locD, dd);
+			spAssTuner->add_local_vec_to_global(d, locD, dd);
 		}
 		UG_CATCH_THROW("(instationary) AssembleDefect: Cannot add local vector.");
 	}
@@ -1069,8 +1069,8 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// 	send local to global matrix & rhs
 		try{
-			spAssTuner->AddLocalMatToGlobal(A, locA, dd);
-			spAssTuner->AddLocalVec(rhs, locRhs, dd);
+			spAssTuner->add_local_mat_to_global(A, locA, dd);
+			spAssTuner->add_local_vec_to_global(rhs, locRhs, dd);
 		}
 		UG_CATCH_THROW("(stationary) AssembleLinear: Cannot add local vector/matrix.");
 	}
@@ -1305,8 +1305,8 @@ AssembleLinear(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 		// 	send local to global matrix & rhs
 			try{
-				spAssTuner->AddLocalMatToGlobal(A, locA, dd);
-				spAssTuner->AddLocalVec(rhs, locRhs, dd);
+				spAssTuner->add_local_mat_to_global(A, locA, dd);
+				spAssTuner->add_local_vec_to_global(rhs, locRhs, dd);
 			}
 			UG_CATCH_THROW("(instationary) AssembleLinear: Cannot add local vector/matrix.");
 	}
@@ -1447,7 +1447,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	// 	send local to global rhs
 		try{
-			spAssTuner->AddLocalVec(rhs, locRhs, dd);
+			spAssTuner->add_local_vec_to_global(rhs, locRhs, dd);
 		}
 		UG_CATCH_THROW("AssembleRhs: Cannot add local vector.");
 	}
@@ -1659,7 +1659,7 @@ AssembleRhs(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 		// 	send local to global rhs
 			try{
-				spAssTuner->AddLocalVec(rhs, locRhs, dd);
+				spAssTuner->add_local_vec_to_global(rhs, locRhs, dd);
 			}
 			UG_CATCH_THROW("(instationary) AssembleRhs: Cannot add local vector.");
 	}

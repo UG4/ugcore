@@ -68,8 +68,8 @@ class NLJacobiSolver
 		SmartPtr<IConvergenceCheck<vector_type> > m_spConvCheck;
 		number m_damp;
 
-		SmartPtr<AssembledOperator<algebra_type> > m_N;
-		SmartPtr<AssembledLinearOperator<algebra_type> > m_J;
+		SmartPtr<AssembledOperator<algebra_type> > m_spAssOp;
+		SmartPtr<AssembledLinearOperator<algebra_type> > m_spJ;
 		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
 		///	call counter

@@ -56,7 +56,7 @@ class ActiveSet
 		}
 
 	///	sets a contact discretization in order to use contact-disc dependent funcs
-		void set_contactDisc(SmartPtr<IContactDisc<TDomain, function_type> > contact)
+		void set_contact_disc(SmartPtr<IContactDisc<TDomain, function_type> > contact)
 		{m_spContactDisc = contact;};
 
 		void prepare(function_type& u);
@@ -65,7 +65,7 @@ class ActiveSet
 		//bool check_dist_to_obs(vector_type& u);
 
 		template <typename TElem, typename TIterator>
-		void ActiveIndexElem(TIterator iterBegin,
+		void active_index_elem(TIterator iterBegin,
 				TIterator iterEnd, function_type& u,
 				function_type& rhs, function_type& contactForce);
 
@@ -75,41 +75,40 @@ class ActiveSet
 
 		void adjust_matrix(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices);
 
-		///	computes the contact forces for a given contact disc
+	///	computes the contact forces for a given contact disc
 		void contactForces(function_type& contactForce, const function_type& u);
 
-	///	computes the contact forces via the residuum
-		void contactForcesRes(vector_type& contactForce, const matrix_type& mat,
+	///	computes the lagrange multiplier by means of
+	/// the residuum (lagMult = rhs - mat * u)
+		void residual_lagrange_mult(vector_type& lagMult, const matrix_type& mat,
 				const vector_type& u, vector_type& rhs);
 
 		template <typename TElem, typename TIterator>
-		bool ConvCheckElem(TIterator iterBegin,
+		bool check_conv_elem(TIterator iterBegin,
 				TIterator iterEnd, function_type& u, const function_type& lambda);
 
 	///	checks if all constraints are fulfilled & the activeSet remained unchanged
 		bool check_conv(function_type& u, const function_type& lambda, const size_t step);
 
-		bool checkInequ(const matrix_type& mat,
-						const vector_type& u,
-						const vector_type& contactforce,
-						const vector_type& rhs);
+		bool check_inequ(const matrix_type& mat, const vector_type& u,
+						const vector_type& contactforce, const vector_type& rhs);
 
 		template <typename TElem, typename TIterator>
-		void ass_lagrangeMatIElem(TIterator iterBegin,
-				TIterator iterEnd, matrix_type& lagrangeMatI);
+		void lagrange_mat_inv_elem(TIterator iterBegin,
+				TIterator iterEnd, matrix_type& lagrangeMatInv);
 
-		void ass_lagrangeMatI(matrix_type& lagrangeMatI);
+		void lagrange_mat_inv(matrix_type& lagrangeMatInv);
 
 	///	method used for lua-call in order to pass the ActiveSet to assemble-funcs
-		vector<SmartPtr<DoFIndex> >  activeMultiIndices()
+		vector<SmartPtr<DoFIndex> > active_dof_indices()
 		{
-			createVecOfPointers();
+			create_vec_of_pointers();
 			return m_vActiveSetGlobSP;
 		};
 
 	private:
 	///	creates a list of pointers to the active Indices for lua-registry
-		void createVecOfPointers();
+		void create_vec_of_pointers();
 
 	private:
 		///	point to the DofDistribution on the whole domain

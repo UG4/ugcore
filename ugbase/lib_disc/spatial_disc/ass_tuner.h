@@ -50,11 +50,11 @@ class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
 		LocalToGlobalMapper() {}
 
 	///	adds a local vector to the global one
-		void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
+		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
 			{ AddLocalVector(vec,lvec);}
 
 	///	adds a local matrix to the global one
-		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
+		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
 			{ AddLocalMatrixToGlobal(mat,lmat);}
 
 	///	destructor
@@ -84,7 +84,7 @@ class AssemblingTuner
 		m_bForceRegGrid(false), m_bModifySolutionImplemented(false),
 		m_ConstraintTypesEnabled(CT_ALL), m_ElemTypesEnabled(EDT_ALL)
 		{
-			m_bSingleAssDoFIndex = false;
+			m_bSingleAssIndex = false;
 			m_pMapper = &m_pMapperCommon;
 		}
 
@@ -98,13 +98,13 @@ class AssemblingTuner
 		}
 
 	/// LocalToGlobalMapper-function calls
-		void AddLocalVec(vector_type& vec, const LocalVector& lvec,
+		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec,
 		                 ConstSmartPtr<DoFDistribution> dd) const
-		{ m_pMapper->AddLocalVec(vec, lvec, dd);}
+		{ m_pMapper->add_local_vec_to_global(vec, lvec, dd);}
 
-		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat,
+		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat,
 		                         ConstSmartPtr<DoFDistribution> dd) const
-		{ m_pMapper->AddLocalMatToGlobal(mat, lmat, dd);}
+		{ m_pMapper->add_local_mat_to_global(mat, lmat, dd);}
 
 
 	///	sets a marker to exclude elements from assembling
@@ -137,14 +137,14 @@ class AssemblingTuner
 	 *
 	 * \param[in]	ind			DoFIndex
 	 */
-		void disable_single_dof_index_assembling() {m_bSingleAssDoFIndex = false;}
-		void set_single_dof_index_assembling(const DoFIndex& ind)
+		void disable_single_index_assembling() {m_bSingleAssIndex = false;}
+		void set_single_index_assembling(const size_t index)
 		{
-			m_SingleAssDoFIndex = ind; m_bSingleAssDoFIndex = true;
+			m_SingleAssIndex = index; m_bSingleAssIndex = true;
 		}
 
 	///	checks whether the assemble DoFindex is set or not
-		bool single_dof_index_assembling_enabled() const {return m_bSingleAssDoFIndex;}
+		bool single_index_assembling_enabled() const {return m_bSingleAssIndex;}
 
 
 	///	enables the usage of modify solution
@@ -215,8 +215,8 @@ class AssemblingTuner
 		Selector* m_pSelector;
 
 	///	object for DoFindex-wise assemble routine
-		bool m_bSingleAssDoFIndex;
-		DoFIndex m_SingleAssDoFIndex;
+		bool m_bSingleAssIndex;
+		size_t m_SingleAssIndex;
 
 	/// forces the assembling to regard the grid as regular
 		bool m_bForceRegGrid;

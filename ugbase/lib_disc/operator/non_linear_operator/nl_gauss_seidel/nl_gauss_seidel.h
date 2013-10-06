@@ -21,7 +21,7 @@
 namespace ug {
 
 template <typename TAlgebra>
-class LocalToGlobalMapper_NL_GS : public ILocalToGlobalMapper<TAlgebra>
+class LocalToGlobalMapperNLGS : public ILocalToGlobalMapper<TAlgebra>
 {
 	public:
 	///	Algebra type
@@ -35,22 +35,22 @@ class LocalToGlobalMapper_NL_GS : public ILocalToGlobalMapper<TAlgebra>
 
 	public:
 	///	default constructor
-		LocalToGlobalMapper_NL_GS() {}//m_assemblingDoFIndex = 0;}
+		LocalToGlobalMapperNLGS() {}
 
 	///	adds a local vector to the global rhs
-		void AddLocalVec(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd);
+		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd);
 
 	///	adds a local matrix to the global matrix
-		void AddLocalMatToGlobal(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd);
+		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd);
 
 	/// sets assembling index
-		void set_assembling_dof_index(const DoFIndex assIndex){ m_assemblingDoFIndex = assIndex;}
+		void set_assembling_index(const size_t assIndex){ m_assemblingIndex = assIndex;}
 
 	///	destructor
-		~LocalToGlobalMapper_NL_GS() {};
+		~LocalToGlobalMapperNLGS() {};
 
 	private:
-		DoFIndex m_assemblingDoFIndex;
+		size_t m_assemblingIndex;
 };
 
 template <typename TDomain, typename TAlgebra>
@@ -131,8 +131,8 @@ class NLGaussSeidelSolver
 
 		SmartPtr<IConvergenceCheck<vector_type> > m_spConvCheck;
 
-		SmartPtr<AssembledOperator<algebra_type> > m_N;
-		SmartPtr<AssembledLinearOperator<algebra_type> > m_J_block;
+		SmartPtr<AssembledOperator<algebra_type> > m_spAssOp;
+		SmartPtr<AssembledLinearOperator<algebra_type> > m_spJBlock;
 		SmartPtr<IAssemble<TAlgebra> > m_spAss;
 
 		///	damping factor
@@ -166,7 +166,7 @@ class NLGaussSeidelSolver
 		Selector m_sel;
 
 		///	LocalToGlobal-Mapper which accounts for index-wise assembling
-		LocalToGlobalMapper_NL_GS<TAlgebra> m_map;
+		LocalToGlobalMapperNLGS<TAlgebra> m_map;
 };
 
 }

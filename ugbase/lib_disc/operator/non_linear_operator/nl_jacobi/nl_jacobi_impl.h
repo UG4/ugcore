@@ -80,14 +80,14 @@ set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 template <typename TAlgebra>
 bool
 NLJacobiSolver<TAlgebra>::
-init(SmartPtr<IOperator<vector_type> > N)
+init(SmartPtr<IOperator<vector_type> > op)
 {
 	NL_JACOBI_PROFILE_BEGIN(NL_JACOBISolver_init);
-	m_N = N.template cast_dynamic<AssembledOperator<TAlgebra> >();
-	if(m_N.invalid())
+	m_spAssOp = op.template cast_dynamic<AssembledOperator<TAlgebra> >();
+	if(m_spAssOp.invalid())
 		UG_THROW("NLJacobiSolver: currently only works for AssembledDiscreteOperator.");
 
-	m_spAss = m_N->discretization();
+	m_spAss = m_spAssOp->discretization();
 	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
@@ -109,9 +109,9 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	m_dgbCall++;
 
 //	Jacobian
-	if(m_J.invalid() || m_J->discretization() != m_spAss) {
-		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
-		m_J->set_level(m_N->level());
+	if(m_spJ.invalid() || m_spJ->discretization() != m_spAss) {
+		m_spJ = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
+		m_spJ->set_level(m_spAssOp->level());
 	}
 
 //	create tmp vectors
@@ -120,14 +120,14 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 //	Set dirichlet values
 	try{
-		m_N->prepare(u);
+		m_spAssOp->prepare(u);
 	}
 	UG_CATCH_THROW("NLJacobiSolver::apply: Prepare of Operator failed.");
 
 // 	Compute first Defect d = L(u)
 	try{
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeDefect1);
-		m_N->apply(*spD, u);
+		m_spAssOp->apply(*spD, u);
 		NL_JACOBI_PROFILE_END();
 	}UG_CATCH_THROW("NLJacobiSolver::apply: "
 			"Computation of Start-Defect failed.");
@@ -143,7 +143,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 // 	start convergence check
 	m_spConvCheck->start(*spD);
 
-	matrix_type& J = m_J->get_matrix();
+	matrix_type& J = m_spJ->get_matrix();
 
 //	loop iteration
 	while(!m_spConvCheck->iteration_ended())
@@ -161,7 +161,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		// 	Compute Jacobian J(u)
 		try{
 			NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeJacobian);
-			m_J->init(u);
+			m_spJ->init(u);
 			NL_JACOBI_PROFILE_END();
 		}UG_CATCH_THROW("NLJacobiSolver::apply: "
 				"Initialization of Jacobian failed.");
@@ -169,7 +169,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		//	Write Jacobian for debug
 		std::string matname("NLJacobi_Jacobian");
 		matname.append(ext);
-		write_debug(m_J->get_matrix(), matname.c_str());
+		write_debug(m_spJ->get_matrix(), matname.c_str());
 
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIInvertBlocks);
 		//	loop all DoFs
@@ -186,8 +186,8 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 	// 	compute new Defect
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIComputeDefect);
-		m_N->prepare(u);
-		m_N->apply(*spD, u);
+		m_spAssOp->prepare(u);
+		m_spAssOp->apply(*spD, u);
 		NL_JACOBI_PROFILE_END();
 
 	//	update counter

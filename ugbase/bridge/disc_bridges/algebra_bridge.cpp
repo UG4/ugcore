@@ -435,22 +435,22 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("set_constraint", &T::set_constraint, "", "constraint")
-			.add_method("set_contactDisc", &T::set_contactDisc, "", "contactDisc")
+			.add_method("set_contact_disc", &T::set_contact_disc, "", "contactDisc")
 			.add_method("prepare", &T::prepare, "", "prepare")
 			.add_method("active_index", &T::active_index, "", "",
 					"is index active or not, stores activeSetList")
 			.add_method("adjust_matrix", &T::adjust_matrix, "", "",
 					"sets dirichlet constraints for active DoFs")
 			.add_method("contactForces", &T::contactForces, "", "",
-					"complementary function computed")
-			.add_method("contactForcesRes", &T::contactForcesRes, "", "",
-					"complementary function computed")
+					"computes lagrange multiplier")
+			.add_method("residual_lagrange_mult", &T::residual_lagrange_mult, "", "",
+					"computes lagrange multiplier")
 			.add_method("check_conv", &T::check_conv, "", "",
 					"activeIndexSet changed or not")
-			.add_method("check_ineq", &T::checkInequ, "", "",
-						"check if all inequations are fulfilled")
-			.add_method("activeMultiIndices", &T::activeMultiIndices, "", "",
-					"returns all active MultiIndices in a vector")
+			.add_method("check_ineq", &T::check_inequ, "", "",
+						"check if all inequalities are fulfilled")
+			.add_method("active_dof_indices", &T::active_dof_indices, "", "",
+					"returns all active_dof_indices in a vector")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ActiveSet", tag);
 	}

@@ -16,7 +16,7 @@ template <typename TAlgebra>
 void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
                                   vector_type& vec)	const
 {
-	if (single_dof_index_assembling_enabled()){ vec.resize(1);}
+	if (single_index_assembling_enabled()){ vec.resize(1);}
 	else{
 		const size_t numIndex = dd->num_indices();
 		vec.resize(numIndex);
@@ -28,7 +28,7 @@ template <typename TAlgebra>
 void AssemblingTuner<TAlgebra>::resize(ConstSmartPtr<DoFDistribution> dd,
 								  matrix_type& mat) const
 {
-	if (single_dof_index_assembling_enabled()){ mat.resize_and_clear(1, 1);
+	if (single_index_assembling_enabled()){ mat.resize_and_clear(1, 1);
 	}
 	else{
 		const size_t numIndex = dd->num_indices();
@@ -71,15 +71,15 @@ void AssemblingTuner<TAlgebra>::set_dirichlet_row(matrix_type& mat, const DoFInd
 {
 	// 	check if assembling has been carried out with respect to one index only.
 	//	For that case assembling-matrices have been resized to a block-matrix at one DoF only.
-	if(single_dof_index_assembling_enabled())
+	if(single_index_assembling_enabled())
 	{
-		UG_ASSERT(mat.num_rows() == 1, "#rows needs to be 1 for setting Dirichlet "
-								"in an index-wise manner.");
-		UG_ASSERT(mat.num_cols() == 1, "#cols needs to be 1 for setting Dirichlet "
-				"in an index-wise manner.");
+		if (mat.num_rows() != 1 || mat.num_cols() != 1)
+			UG_THROW("#rows and #cols need to be 1 for setting dirichlet rows"
+					" in an index-wise manner.")
 
-		if (ind == m_SingleAssDoFIndex)
-			SetDirichletRow(mat, ind);
+		const size_t index = ind[0];
+		if (index == m_SingleAssIndex)
+			SetDirichletRow(mat, 0, ind[1]);
 	}
 	else{
 		SetDirichletRow(mat, ind);
@@ -91,16 +91,15 @@ void AssemblingTuner<TAlgebra>::set_dirichlet_val(vector_type& vec, const DoFInd
 {
 	//	check if assembling has been carried out with respect to one index only.
 	//	For that case assembling-vectors have been resized to a block-vector at one DoF only.
-	if(single_dof_index_assembling_enabled())
+	if(single_index_assembling_enabled())
 	{
-		UG_ASSERT(vec.size() == 1, "vector-size needs to be 1 for setting Dirichlet "
-			"in an index-wise manner.");
+		if(vec.size() != 1)
+			UG_THROW("vector-size needs to be 1 for setting dirichlet values"
+					" in an index-wise manner.");
 
-		UG_LOG("single_dof_index_enabled().set_dirichlet_val m_SingleAssDoFIndex: " << m_SingleAssDoFIndex << "\n");
-		UG_LOG("single_dof_index_enabled().set_dirichlet_val ind: " << ind << "\n");
-
-		if(ind == m_SingleAssDoFIndex)
-			DoFRef(vec, ind) = val;
+		const size_t index = ind[0];
+		if(index == m_SingleAssIndex)
+			BlockRef(vec[0], ind[1]) = val;
 	}
 	else{
 		DoFRef(vec, ind) = val;

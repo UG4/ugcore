@@ -55,7 +55,7 @@ namespace ug{
 
 
 template <typename TAlgebra>
-void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalVec(vector_type& vec,
+void LocalToGlobalMapperNLGS<TAlgebra>::add_local_vec_to_global(vector_type& vec,
 		const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd)
 {
 	const LocalIndices& ind = lvec.get_indices();
@@ -64,16 +64,17 @@ void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalVec(vector_type& vec,
 		for(size_t dof=0; dof < lvec.num_all_dof(fct); ++dof)
 		{
 			const size_t index = ind.index(fct,dof);
-			const size_t comp = ind.comp(fct,dof);
-			if ((index == m_assemblingDoFIndex[0])
-					&& (comp == m_assemblingDoFIndex[1]))
+			if (index == m_assemblingIndex)
+			{
+				const size_t comp = ind.comp(fct,dof);
 				BlockRef(vec[0], comp) += lvec.value(fct,dof);
+			}
 		}
 
 }
 
 template <typename TAlgebra>
-void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalMatToGlobal(matrix_type& mat,
+void LocalToGlobalMapperNLGS<TAlgebra>::add_local_mat_to_global(matrix_type& mat,
 		const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
 {
 	const LocalIndices& rowInd = lmat.get_row_indices();
@@ -83,21 +84,20 @@ void LocalToGlobalMapper_NL_GS<TAlgebra>::AddLocalMatToGlobal(matrix_type& mat,
 		for(size_t dof1=0; dof1 < lmat.num_all_row_dof(fct1); ++dof1)
 		{
 			const size_t rowIndex = rowInd.index(fct1,dof1);
-			const size_t rowComp = rowInd.comp(fct1,dof1);
 
-			if ((rowIndex == m_assemblingDoFIndex[0])
-					&& (rowComp == m_assemblingDoFIndex[1]))
+			if (rowIndex == m_assemblingIndex)
 			{
+				const size_t rowComp = rowInd.comp(fct1,dof1);
 				for(size_t fct2=0; fct2 < lmat.num_all_col_fct(); ++fct2)
 					for(size_t dof2=0; dof2 < lmat.num_all_col_dof(fct2); ++dof2)
 					{
 						const size_t colIndex = colInd.index(fct2,dof2);
-						const size_t colComp = colInd.comp(fct2,dof2);
-
-						if ((colIndex == m_assemblingDoFIndex[0])
-								&& (colComp == m_assemblingDoFIndex[1]))
+						if (colIndex == m_assemblingIndex)
+						{
+							const size_t colComp = colInd.comp(fct2,dof2);
 							BlockRef(mat(0, 0), rowComp, colComp)
 									+= lmat.value(fct1,dof1,fct2,dof2);
+						}
 					}
 			}
 		}
@@ -139,14 +139,14 @@ set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck)
 template <typename TDomain, typename TAlgebra>
 bool
 NLGaussSeidelSolver<TDomain, TAlgebra>::
-init(SmartPtr<IOperator<vector_type> > N)
+init(SmartPtr<IOperator<vector_type> > op)
 {
 	NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELSolver_init);
-	m_N = N.template cast_dynamic<AssembledOperator<TAlgebra> >();
-	if(m_N.invalid())
+	m_spAssOp = op.template cast_dynamic<AssembledOperator<TAlgebra> >();
+	if(m_spAssOp.invalid())
 		UG_THROW("NLGaussSeidelSolver: currently only works for AssembledDiscreteOperator.");
 
-	m_spAss = m_N->discretization();
+	m_spAss = m_spAssOp->discretization();
 	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
@@ -154,7 +154,7 @@ init(SmartPtr<IOperator<vector_type> > N)
 	if(m_spApproxSpace.invalid())
 		UG_THROW("NLGaussSeidelSolver::prepare: Approximation Space not set.");
 
-	m_gridLevel = m_N->level();
+	m_gridLevel = m_spAssOp->level();
 
 	//	set DoF distribution type
 	if(m_gridLevel.type() == GridLevel::LEVEL)
@@ -276,9 +276,9 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 				" 'NLGaussSeidelSolver::init'-call is necessary!");
 
 	//	Jacobian
-	if(m_J_block.invalid() || m_J_block->discretization() != m_spAss) {
-		m_J_block = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
-		m_J_block->set_level(m_gridLevel);
+	if(m_spJBlock.invalid() || m_spJBlock->discretization() != m_spAss) {
+		m_spJBlock = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
+		m_spJBlock->set_level(m_gridLevel);
 	}
 
 	//	create tmp vectors
@@ -291,14 +291,14 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 	//	Set dirichlet values
 	try{
-		m_N->prepare(u);
+		m_spAssOp->prepare(u);
 	}
 	UG_CATCH_THROW("NLGaussSeidelSolver::apply: Prepare of Operator failed.");
 
 	// 	Compute first Defect d = L(u)
 	try{
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeDefect1);
-		m_N->apply(*spD, u);
+		m_spAssOp->apply(*spD, u);
 		NL_GAUSSSEIDEL_PROFILE_END();
 	}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
 			"Computation of Start-Defect failed.");
@@ -319,7 +319,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 	typename TDomain::grid_type& grid = *dom.grid();
 	m_sel.assign_grid(grid);
 
-	matrix_type& J_block = m_J_block->get_matrix();
+	matrix_type& JBlock = m_spJBlock->get_matrix();
 
 	//	loop iteration
 	while(!m_spConvCheck->iteration_ended())
@@ -327,12 +327,9 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//bool activeSet_changed = false;
 		m_spAss->ass_tuner()->set_mapping(&m_map);
 
-		//	loop all DoFs
+		//	loop all indizes
 		for (size_t i = 0; i < u.size(); i++)
 		{
-			//value_type uVal;
-			//size_t nrFcts = GetSize(uVal);
-
 			// 	Compute Jacobian J(u) using the updated u-components
 
 			//	since we only need J(i,i) and d(i) in every DoF loop,
@@ -344,30 +341,27 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 			//	are build up only by looping over the elements which has been selected
 			m_spAss->ass_tuner()->set_selector(&m_sel);
 
-			//	assemble only with respect to DoF i (causes resizing of matrices/vectors)
-			DoFIndex assDoFindex(i,0); //DoFIndex assDoFindex(i,fct);
-			m_spAss->ass_tuner()->set_single_dof_index_assembling(assDoFindex);
-			//m_spAss->ass_tuner()->set_single_dof_index_assembling(i);
-			//m_map.set_assemblingDoFindex(i);
-			m_map.set_assembling_dof_index(assDoFindex);
+			//	assemble only with respect to index i (causes resizing of matrices/vectors)
+			m_spAss->ass_tuner()->set_single_index_assembling(i);
+			m_map.set_assembling_index(i);
 
 			try{
 				NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeJacobian);
-				m_J_block->init(u);
+				m_spJBlock->init(u);
 				NL_GAUSSSEIDEL_PROFILE_END();
 			}UG_CATCH_THROW("NLGaussSeidelSolver::apply: "
 					"Initialization of Jacobian failed.");
 
 			//	get i-th block of defect d: d(i) =: m_d_block
 			NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
-			m_N->apply(*spDBlock, u);
+			m_spAssOp->apply(*spDBlock, u);
 			NL_GAUSSSEIDEL_PROFILE_END();
 
 			//	get i,i-th block of J: J(i,i)
 			//	depending on the AlgebraType J(i,i) is a 1x1, 2x2, 3x3 Matrix
 			//	m_c_i = m_damp * d_i /J_ii
 			NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELInvertJ);
-				InverseMatMult((*spC)[0], m_damp, J_block(0,0) , (*spDBlock)[0]);
+				InverseMatMult((*spC)[0], m_damp, JBlock(0,0) , (*spDBlock)[0]);
 			NL_GAUSSSEIDEL_PROFILE_END();
 
 			// 	update i-th block of solution
@@ -431,11 +425,11 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 		//	set mapping, selector and ass_index to NULL
 		m_spAss->ass_tuner()->set_mapping();
 		m_spAss->ass_tuner()->set_selector();
-		m_spAss->ass_tuner()->disable_single_dof_index_assembling();
+		m_spAss->ass_tuner()->disable_single_index_assembling();
 
 		NL_GAUSSSEIDEL_PROFILE_BEGIN(NL_GAUSSSEIDELComputeLastCompDefect);
-		m_N->prepare(u);
-		m_N->apply(*spD, u);
+		m_spAssOp->prepare(u);
+		m_spAssOp->apply(*spD, u);
 		NL_GAUSSSEIDEL_PROFILE_END();
 
 		//	update counter

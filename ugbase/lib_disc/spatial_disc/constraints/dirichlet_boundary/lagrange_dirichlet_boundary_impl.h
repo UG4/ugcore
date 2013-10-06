@@ -240,7 +240,7 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 		DoFDistribution::traits<VertexBase>::const_iterator iterEnd 	= dd->end<VertexBase>(si);
 
 	//	create Multiindex
-		std::vector<DoFIndex>  multInd;
+		std::vector<DoFIndex> multInd;
 
 	//	for readin
 		MathVector<1> val;
@@ -337,8 +337,8 @@ adjust_jacobian(const std::vector<TUserData*>& vUserData, int si,
                 matrix_type& J, const vector_type& u,
            	    ConstSmartPtr<DoFDistribution> dd, number time)
 {
-	//	create Multiindex
-	std::vector<DoFIndex>  multInd;
+//	create Multiindex
+	std::vector<DoFIndex> multInd;
 
 //	dummy for readin
 	typename TUserData::value_type val;
@@ -456,7 +456,7 @@ adjust_defect(const std::vector<TUserData*>& vUserData, int si,
               ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
-	std::vector<DoFIndex>  multInd;
+	std::vector<DoFIndex> multInd;
 
 //	dummy for readin
 	typename TUserData::value_type val;
@@ -570,7 +570,7 @@ adjust_solution(const std::vector<TUserData*>& vUserData, int si,
                 vector_type& u, ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
-	std::vector<DoFIndex>  multInd;
+	std::vector<DoFIndex> multInd;
 
 //	value readin
 	typename TUserData::value_type val;
@@ -682,7 +682,7 @@ adjust_linear(const std::vector<TUserData*>& vUserData, int si,
               ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
-	std::vector<DoFIndex>  multInd;
+	std::vector<DoFIndex> multInd;
 
 //	readin value
 	typename TUserData::value_type val;
@@ -797,7 +797,7 @@ adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
            ConstSmartPtr<DoFDistribution> dd, number time)
 {
 //	create Multiindex
-	std::vector<DoFIndex>  multInd;
+	std::vector<DoFIndex> multInd;
 
 //	readin value
 	typename TUserData::value_type val;

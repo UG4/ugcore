@@ -737,7 +737,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd)
 	vType[1] = CT_CONSTRAINTS;
 
 	// if assembling is carried out at one DoF only, u needs to be resized
-	if (m_spAssTuner->single_dof_index_assembling_enabled()) u.resize(1);
+	if (m_spAssTuner->single_index_assembling_enabled()) u.resize(1);
 
 	try{
 //	constraints
@@ -1310,7 +1310,7 @@ adjust_solution(vector_type& u, number time, ConstSmartPtr<DoFDistribution> dd)
 	vType[1] = CT_CONSTRAINTS;
 
 	// if assembling is carried out at one DoF only, u needs to be resized
-	if (m_spAssTuner->single_dof_index_assembling_enabled()) u.resize(1);
+	if (m_spAssTuner->single_index_assembling_enabled()) u.resize(1);
 
 	try{
 
