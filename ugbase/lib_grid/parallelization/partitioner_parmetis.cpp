@@ -737,8 +737,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 //	partOptions[2] = 1;
 
 	//idx_t refineOptions[4] = {1, 0, 0, PARMETIS_PSR_UNCOUPLED};
-//	idx_t nConstraints = maxLvl - baseLvl + 1;
-	int nConstraints = 1;
+	idx_t nConstraints = maxLvl - baseLvl + 1;
 	idx_t refineOptions[4]; refineOptions[0] = 0;
 	idx_t nVrts = pdg.num_graph_vertices();
 	idx_t edgeCut;
