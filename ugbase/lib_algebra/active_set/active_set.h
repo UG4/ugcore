@@ -8,7 +8,7 @@
 #ifndef ACTIVE_SET_H_
 #define ACTIVE_SET_H_
 
-#include "lib_disc/spatial_disc/elem_disc/contact_boundary/contact_interface.h"
+#include "lib_algebra/active_set/lagrange_multiplier_disc_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
 using namespace std;
@@ -42,22 +42,23 @@ class ActiveSet
 
 	public:
 	///	constructor
-		ActiveSet() : m_bCons(false), m_spContactDisc(NULL) {
+		ActiveSet() : m_bObs(false), m_spLagMultDisc(NULL) {
 			//	specifies the number of fcts
 			value_type u_val;
 			m_nrFcts = GetSize(u_val);
 		};
 
-	///	sets constraint/obstacle
-		void set_constraint(ConstSmartPtr<function_type> cons) {
-			m_spConsGF = cons; m_bCons = true;
+	///	sets obstacle gridfunction, which limits the solution u
+		void set_obstacle(ConstSmartPtr<function_type> obs) {
+			m_spObs = obs; m_bObs = true;
 			//	if cons-GF is defined on a subset,
 			//	which is not a boundary-subset -> UG_LOG
 		}
 
-	///	sets a contact discretization in order to use contact-disc dependent funcs
-		void set_contact_disc(SmartPtr<IContactDisc<TDomain, function_type> > contact)
-		{m_spContactDisc = contact;};
+	///	sets a discretization in order to compute the lagrange multiplier
+		void set_lagrange_multiplier_disc(
+				SmartPtr<ILagrangeMultiplierDisc<TDomain, function_type> > lagMultDisc)
+		{m_spLagMultDisc = lagMultDisc;};
 
 		void prepare(function_type& u);
 
@@ -67,16 +68,16 @@ class ActiveSet
 		template <typename TElem, typename TIterator>
 		void active_index_elem(TIterator iterBegin,
 				TIterator iterEnd, function_type& u,
-				function_type& rhs, function_type& contactForce);
+				function_type& rhs, function_type& lagrangeMult);
 
 	///	determines the active indices
-		bool active_index(function_type& u, function_type& rhs, function_type& contactForce,
+		bool active_index(function_type& u, function_type& rhs, function_type& lagrangeMult,
 				function_type& gap);
 
-		void adjust_matrix(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices);
+		void set_dirichlet_rows(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices);
 
-	///	computes the contact forces for a given contact disc
-		void contactForces(function_type& contactForce, const function_type& u);
+	///	computes the lagrange multiplier for a given disc
+		void lagrange_multiplier(function_type& lagrangeMult, const function_type& u);
 
 	///	computes the lagrange multiplier by means of
 	/// the residuum (lagMult = rhs - mat * u)
@@ -91,7 +92,7 @@ class ActiveSet
 		bool check_conv(function_type& u, const function_type& lambda, const size_t step);
 
 		bool check_inequ(const matrix_type& mat, const vector_type& u,
-						const vector_type& contactforce, const vector_type& rhs);
+						const vector_type& lagrangeMult, const vector_type& rhs);
 
 		template <typename TElem, typename TIterator>
 		void lagrange_mat_inv_elem(TIterator iterBegin,
@@ -119,14 +120,14 @@ class ActiveSet
 		size_t m_nrFcts;
 
 		/// pointer to a gridfunction describing a constraint
-		ConstSmartPtr<function_type> m_spConsGF;
-		bool m_bCons;
+		ConstSmartPtr<function_type> m_spObs;
+		bool m_bObs;
 
-		///	pointer to a contact-Disc
-		SmartPtr<IContactDisc<TDomain, function_type> > m_spContactDisc;
+		///	pointer to a lagrangeMultiplier-Disc
+		SmartPtr<ILagrangeMultiplierDisc<TDomain, function_type> > m_spLagMultDisc;
 
-		///	vector of possible contact subsets
-		vector<int> m_vSubsetsOfContact;
+		///	vector of possible active zones
+		vector<int> m_vSubsetsOfActiveZones;
 
 		///	vector of the current active set of global MultiIndices (DoF,Fct)
 		vector<DoFIndex> m_vActiveSetGlob;

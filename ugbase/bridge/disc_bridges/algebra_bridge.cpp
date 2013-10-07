@@ -17,6 +17,7 @@
 
 // discretization interfaces
 #include "lib_algebra/active_set/active_set.h"
+#include "lib_algebra/active_set/lagrange_multiplier_disc_interface.h"
 #include "lib_algebra/operator/convergence_check.h"
 #include "lib_algebra/operator/matrix_operator_functions.h"
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
@@ -428,20 +429,32 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "NLGaussSeidelSolver", tag);
 	}
 
+	//	LagrangeMultiplierDisc base class
+	typedef GridFunction<TDomain, TAlgebra> function_type;
+	{
+		typedef ILagrangeMultiplierDisc<TDomain, function_type> T;
+		string name = string("ILagrangeMultiplierDisc").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ILagrangeMultiplierDisc", tag);
+	}
+
 	//	ActiveSet
 	{
 		typedef ActiveSet<TDomain, TAlgebra> T;
 		string name = string("ActiveSet").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
-			.add_method("set_constraint", &T::set_constraint, "", "constraint")
-			.add_method("set_contact_disc", &T::set_contact_disc, "", "contactDisc")
+			.add_method("set_obstacle", &T::set_obstacle, "", "sets limiting "
+					"obstacle constraint")
+			.add_method("set_lagrange_multiplier_disc", &T::set_lagrange_multiplier_disc, "",
+					"discretization to compute the lagrange multiplier")
 			.add_method("prepare", &T::prepare, "", "prepare")
 			.add_method("active_index", &T::active_index, "", "",
 					"is index active or not, stores activeSetList")
-			.add_method("adjust_matrix", &T::adjust_matrix, "", "",
-					"sets dirichlet constraints for active DoFs")
-			.add_method("contactForces", &T::contactForces, "", "",
+			.add_method("set_dirichlet_rows", &T::set_dirichlet_rows, "", "",
+					"sets dirichlet rows for active DoFs")
+			.add_method("lagrange_multiplier", &T::lagrange_multiplier, "", "",
 					"computes lagrange multiplier")
 			.add_method("residual_lagrange_mult", &T::residual_lagrange_mult, "", "",
 					"computes lagrange multiplier")

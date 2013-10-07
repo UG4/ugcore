@@ -61,13 +61,13 @@ bool ActiveSet<TDomain, TAlgebra>::check_dist_to_obs(vector_type& u)
 	for(size_t i = 0; i < u.size(); i++)
 	{
 		UG_LOG("u(" << i << "):" << u[i] << "\n");
-		UG_LOG("m_spConsGF(" << i << "):" << (*m_spConsGF)[i] << "\n");
-		dist = (*m_spConsGF)[i] - u[i];
+		UG_LOG("m_spObs(" << i << "):" << (*m_spObs)[i] << "\n");
+		dist = (*m_spObs)[i] - u[i];
 		UG_LOG("dist:" << dist << "\n");
 		//TODO: anstatt u muss hier die geometrische Info einflie§en!
 		for (size_t fct = 0; fct < m_nrFcts; fct++)
 		{
-			if (BlockRef(dist,fct) < 0.0) // i.e.: u < m_spConsGF
+			if (BlockRef(dist,fct) < 0.0) // i.e.: u < m_spObs
 			{
 				geometry_cut_by_cons = true;
 				break;
@@ -118,8 +118,8 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 	MathVector<dim> sideCoPos[dim+1];
 
 	// 	local indices and local algebra
-	LocalIndices ind, indCons;
-	LocalVector locU, locLM, locCons;
+	LocalIndices ind, indObs;
+	LocalVector locU, locLM, locObs;
 	number complementaryVal;
 
 	//	TODO: eventuell ist es sinnvoll auch die aktiven Elemente zu speichern,
@@ -162,18 +162,18 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 		countElem++;
 
 	// 	get global indices
-		u.indices(*iter, ind); (*m_spConsGF).indices(*iter, indCons);
+		u.indices(*iter, ind); (*m_spObs).indices(*iter, indObs);
 
 	// 	adapt local algebra
-		locU.resize(ind); locLM.resize(ind); locCons.resize(indCons);
+		locU.resize(ind); locLM.resize(ind); locObs.resize(indObs);
 
 	// 	read local values of u and lagrangeMult
 		GetLocalVector(locU, u); GetLocalVector(locLM, lagrangeMult);
-		GetLocalVector(locCons, *m_spConsGF);
+		GetLocalVector(locObs, *m_spObs);
 
 	//	loop over DoFs in element and store all activeMultiIndex-pairs in vector
 		size_t nrFctElem = ind.num_fct();
-		number NormNormal = VecLength(normal);
+		number normOfNormal = VecLength(normal);
 
 		for(size_t fct = 0; fct < nrFctElem; ++fct)
 		{
@@ -186,8 +186,8 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 
 				//	locLM corresponds to the lagrange multiplier lambda,
 				//	c.f. Hintermueller/Ito/Kunisch(2003)
-				number locUNormal = VecDot(locUDof, normal) / NormNormal;
-				complementaryVal = locLM(fct ,dof) + locUNormal - locCons(fct, dof);
+				number locUNormal = VecDot(locUDof, normal) / normOfNormal;
+				complementaryVal = locLM(fct ,dof) + locUNormal - locObs(fct, dof);
 
 				if (complementaryVal <= 1e-10){
 					locLM(fct,dof) = 0.0;
@@ -210,7 +210,7 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 						DoFIndex newActiveIndex(ind.index(fct, dof), ind.comp(fct, dof));
 						m_vActiveSetGlob.push_back(newActiveIndex);
 
-						BlockRef(rhs[ind.index(fct, dof)], ind.comp(fct, dof)) = locCons.value(fct,dof);
+						BlockRef(rhs[ind.index(fct, dof)], ind.comp(fct, dof)) = locObs.value(fct,dof);
 					}
 				}
 			} // end(dof)
@@ -233,7 +233,7 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 	//	note: the active-index search is restricted
 	//	to constraint of the form u * n <= consGF
 
-	if(!m_bCons)
+	if(!m_bObs)
 		UG_THROW("No constraint set in ActiveSet \n");
 
 	if (u.num_indices() != rhs.num_indices() || u.num_indices() != lagrangeMult.num_indices() )
@@ -247,13 +247,13 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 
 	//	1.) get all subsets on which the 'gap'-gridfunction is defined!
 	//	-> store them in vSubsetsOflagrangeMults
-	m_vSubsetsOfContact.resize(0);
+	m_vSubsetsOfActiveZones.resize(0);
 	//TODO: it is only necessary to loop over all BoundarySubsets!
 	for (int si = 0; si < m_spDD->num_subsets(); si++){
 		for (size_t fct = 0; fct < gap.num_fct(); fct++)
 			if (gap.is_def_in_subset(fct, si))
 			{
-				m_vSubsetsOfContact.push_back(si);
+				m_vSubsetsOfActiveZones.push_back(si);
 				//	'break' is necessary to ensure that 'si' is
 				//	only added once when several fcts of
 				//	'gap' are defined in subset 'si'!
@@ -261,17 +261,17 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 			}
 	}
 
-	if (m_vSubsetsOfContact.size() == 0)
-		UG_LOG("No subsets chosen as possible contact subsets. \n");
+	if (m_vSubsetsOfActiveZones.size() == 0)
+		UG_LOG("No subsets chosen as possible active subsets. \n");
 
-	UG_LOG("#sizeOfvSubsetsOfGap: " << m_vSubsetsOfContact.size() << "\n");
+	UG_LOG("#sizeOfvSubsetsOfGap: " << m_vSubsetsOfActiveZones.size() << "\n");
 
-	//	2.) loop over all elements of the possible contact subsets
-	for (vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
-			siContact != m_vSubsetsOfContact.end(); ++siContact)
+	//	2.) loop over all elements of the possible active subsets
+	for (vector<int>::iterator activeSI = m_vSubsetsOfActiveZones.begin();
+			activeSI != m_vSubsetsOfActiveZones.end(); ++activeSI)
 	{
-		//UG_LOG("siContact: " << *siContact << "\n");
-		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *siContact);
+		//UG_LOG("activeSI: " << *activeSI << "\n");
+		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
 		//UG_LOG("subsetDim: " << subsetDim << "\n");
 
 		//	3.) get localU out of u for each element and
@@ -282,20 +282,20 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 			break;
 		case 1:
 			active_index_elem<Edge>
-				(m_spDD->template begin<Edge>(*siContact),
-						m_spDD->template end<Edge>(*siContact), u, rhs, lagrangeMult);
+				(m_spDD->template begin<Edge>(*activeSI),
+						m_spDD->template end<Edge>(*activeSI), u, rhs, lagrangeMult);
 			break;
 		case 2:
 			active_index_elem<Triangle>
-				(m_spDD->template begin<Triangle>(*siContact),
-						m_spDD->template end<Triangle>(*siContact), u, rhs, lagrangeMult);
+				(m_spDD->template begin<Triangle>(*activeSI),
+						m_spDD->template end<Triangle>(*activeSI), u, rhs, lagrangeMult);
 			active_index_elem<Quadrilateral>
-				(m_spDD->template begin<Quadrilateral>(*siContact),
-						m_spDD->template end<Quadrilateral>(*siContact), u, rhs, lagrangeMult);
+				(m_spDD->template begin<Quadrilateral>(*activeSI),
+						m_spDD->template end<Quadrilateral>(*activeSI), u, rhs, lagrangeMult);
 			break;
 		default:
 			UG_THROW("ActiveSet::active_index:"
-				"SubsetDimension "<< subsetDim <<" (subset="<< *siContact <<") not supported.");
+				"SubsetDimension "<< subsetDim <<" (subset="<< *activeSI <<") not supported.");
 		}
 	}
 
@@ -306,7 +306,7 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 //	sets a Dirichlet row for all active Indices
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::
-adjust_matrix(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices)
+set_dirichlet_rows(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices)
 {
 	for (vector<SmartPtr<DoFIndex> >::iterator itActiveInd = vActiveIndices.begin();
 			itActiveInd < vActiveIndices.end(); ++itActiveInd){
@@ -314,20 +314,20 @@ adjust_matrix(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices)
 	}
 }
 
-//	computes the contact forces for a given contact discretization
+//	computes the lagrange multiplier for a given discretization
 template <typename TDomain, typename TAlgebra>
-void ActiveSet<TDomain, TAlgebra>::contactForces(function_type& lagrangeMult,
+void ActiveSet<TDomain, TAlgebra>::lagrange_multiplier(function_type& lagrangeMult,
 		const function_type& u)
 {
-	//	check that contact disc is set
-	if (m_spContactDisc.invalid())
-		UG_THROW("No contact discretization set in "
-					"ActiveSet:contactForces \n");
+	//	check that lagrange multiplier disc is set
+	if (m_spLagMultDisc.invalid())
+		UG_THROW("No discretization set to compute the lagrange multiplier (in "
+					"ActiveSet:lagrange_multiplier) \n");
 
 	if(m_vActiveSetGlob.size() != 0.0)
 	{
-		UG_LOG("activeDoFs in ActiveSet:contactForces " << m_vActiveSetGlob.size() << "\n");
-		m_spContactDisc->contactForces(lagrangeMult, u, m_vActiveSetGlob, m_vSubsetsOfContact);
+		UG_LOG("activeDoFs in ActiveSet:lagrange_multiplier " << m_vActiveSetGlob.size() << "\n");
+		m_spLagMultDisc->lagrange_multiplier(lagrangeMult, u, m_vActiveSetGlob, m_vSubsetsOfActiveZones);
 	}
 }
 
@@ -385,7 +385,7 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 		else
 			ElementNormal<face_type1, dim>(normal, sideCoPos);
 		UG_LOG("normal in lagrange_mat_inv_elem: " << normal << "\n");
-		//number normNormal = VecLength(normal);
+		//number normOfNormal = VecLength(normal);
 
 		try{
 			geo.update(elem, sideCoPos, LFEID(LFEID::LAGRANGE, dim, 1), 1);
@@ -397,7 +397,7 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 			for(size_t sh = 0; sh < geo.num_sh(); ++sh)
 				for (size_t i = 0; i < (size_t) dim; ++i)
 					loclagrangeMatInv(i, sh, i, sh) += 1.0/(geo.weight(ip) * geo.shape(ip, sh));
-			// * normal[i] / normNormal;
+			// * normal[i] / normOfNormal;
 
 		AddLocalMatrixToGlobal(lagrangeMatInv, loclagrangeMatInv);
 	}
@@ -406,11 +406,11 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv(matrix_type& lagrangeMatInv)
 {
-	for (vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
-				siContact != m_vSubsetsOfContact.end(); ++siContact)
+	for (vector<int>::iterator activeSI = m_vSubsetsOfActiveZones.begin();
+				activeSI != m_vSubsetsOfActiveZones.end(); ++activeSI)
 	{
-		UG_LOG("siContact: " << *siContact << "\n");
-		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *siContact);
+		UG_LOG("activeSI: " << *activeSI << "\n");
+		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
 		UG_LOG("subsetDim: " << subsetDim << "\n");
 
 		//	3.) get localU out of u for each element and
@@ -421,17 +421,17 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv(matrix_type& lagrangeMatInv)
 			break;
 		case 1:
 			lagrange_mat_inv_elem<Edge>
-				(m_spDD->template begin<Edge>(*siContact), m_spDD->template end<Edge>(*siContact), lagrangeMatInv);
+				(m_spDD->template begin<Edge>(*activeSI), m_spDD->template end<Edge>(*activeSI), lagrangeMatInv);
 			break;
 		case 2:
 			lagrange_mat_inv_elem<Triangle>
-				(m_spDD->template begin<Triangle>(*siContact), m_spDD->template end<Triangle>(*siContact), lagrangeMatInv);
+				(m_spDD->template begin<Triangle>(*activeSI), m_spDD->template end<Triangle>(*activeSI), lagrangeMatInv);
 			lagrange_mat_inv_elem<Quadrilateral>
-				(m_spDD->template begin<Quadrilateral>(*siContact), m_spDD->template end<Quadrilateral>(*siContact), lagrangeMatInv);
+				(m_spDD->template begin<Quadrilateral>(*activeSI), m_spDD->template end<Quadrilateral>(*activeSI), lagrangeMatInv);
 			break;
 		default:
 			UG_THROW("ActiveSet::lagrange_mat_inv:"
-				"SubsetDimension "<<subsetDim<<" (subset="<<*siContact<<") not supported.");
+				"SubsetDimension "<<subsetDim<<" (subset="<<*activeSI<<") not supported.");
 		}
 	}
 }
@@ -442,7 +442,7 @@ void ActiveSet<TDomain, TAlgebra>::residual_lagrange_mult(vector_type& lagMult,
 		const vector_type& u,
 		vector_type& rhs)
 {
-	// 	only if some indices are active we need to compute contact forces
+	// 	only if some indices are active the lagrange multiplier is computed
 	if(m_vActiveSetGlob.size() != 0.0)
 	{
 		if (u.size() != lagMult.size())
@@ -516,8 +516,8 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 	MathVector<dim> sideCoPos[dim+1], normal;
 
 	// 	local indices and local algebra
-	LocalIndices ind, indCons;
-	LocalVector locU, locCons, locLambda;
+	LocalIndices ind, indObs;
+	LocalVector locU, locObs, locLambda;
 
 	// 	Loop over all elements on active subsets
 	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
@@ -544,18 +544,18 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 			ElementNormal<face_type1, dim>(normal, sideCoPos);
 
 	// 	get global indices
-		u.indices(*iter, ind); (*m_spConsGF).indices(*iter, indCons);
+		u.indices(*iter, ind); (*m_spObs).indices(*iter, indObs);
 
 	// 	adapt local algebra
-		locU.resize(ind); locCons.resize(indCons); locLambda.resize(ind);
+		locU.resize(ind); locObs.resize(indObs); locLambda.resize(ind);
 
 	// 	read local values of u and lagrangeMult
-		GetLocalVector(locU, u); GetLocalVector(locCons, *m_spConsGF);
+		GetLocalVector(locU, u); GetLocalVector(locObs, *m_spObs);
 		GetLocalVector(locLambda, lambda);
 
 		size_t nrFctElem = ind.num_fct();
 		number gapValue, locUNormal, kktcond;
-		number NormNormal = VecLength(normal);
+		number normOfNormal = VecLength(normal);
 
 		for(size_t fct = 0; fct < nrFctElem; ++fct)
 		{
@@ -565,11 +565,11 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 				MathVector<dim> locUDof;
 				for(int i = 0; i < dim; ++i)
 					locUDof[i] = locU(i, dof);
-				locUNormal = VecDot(locUDof, normal) / NormNormal;
+				locUNormal = VecDot(locUDof, normal) / normOfNormal;
 
-				gapValue =	locUNormal - locCons(fct, dof);
+				gapValue =	locUNormal - locObs(fct, dof);
 				if (gapValue > 1e-06){
-					//	i.e.: m_spConsGF < u
+					//	i.e.: m_spObs < u
 					//	constraint is violated
 					return false;
 				}
@@ -602,36 +602,36 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const function_t
 			"of step " << step << " ! \n");
 
 	bool bConstraintViolated = false;
-	for (vector<int>::iterator siContact = m_vSubsetsOfContact.begin();
-			siContact != m_vSubsetsOfContact.end(); ++siContact)
+	for (vector<int>::iterator activeSI = m_vSubsetsOfActiveZones.begin();
+			activeSI != m_vSubsetsOfActiveZones.end(); ++activeSI)
 	{
-		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *siContact);
+		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
 		switch(subsetDim)
 		{
 		case 0:
 			break;
 		case 1:
 			if (!check_conv_elem<Edge>
-				(m_spDD->template begin<Edge>(*siContact), m_spDD->template end<Edge>(*siContact),
+				(m_spDD->template begin<Edge>(*activeSI), m_spDD->template end<Edge>(*activeSI),
 						u, lambda))
 			{bConstraintViolated = true;}
 
 			break;
 		case 2:
 			if (!check_conv_elem<Triangle>
-				(m_spDD->template begin<Triangle>(*siContact),
-						m_spDD->template end<Triangle>(*siContact), u, lambda))
+				(m_spDD->template begin<Triangle>(*activeSI),
+						m_spDD->template end<Triangle>(*activeSI), u, lambda))
 			{bConstraintViolated = true;}
 
 			if (!check_conv_elem<Quadrilateral>
-				(m_spDD->template begin<Quadrilateral>(*siContact),
-						m_spDD->template end<Quadrilateral>(*siContact), u, lambda))
+				(m_spDD->template begin<Quadrilateral>(*activeSI),
+						m_spDD->template end<Quadrilateral>(*activeSI), u, lambda))
 			{bConstraintViolated = true;}
 
 			break;
 		default:
 			UG_THROW("ActiveSet::check_conv:"
-				"SubsetDimension "<< subsetDim <<" (subset="<< *siContact <<") not supported.");
+				"SubsetDimension "<< subsetDim <<" (subset="<< *activeSI <<") not supported.");
 		}
 
 		if (bConstraintViolated)
