@@ -362,7 +362,7 @@ restriction(size_t lev)
 		write_level_debug(cd, "GMG_Def_RestrictedNoPP", lev-1);
 	//	apply post processes
 		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
-			m_vLevData[lev]->vRestrictionPP[i]->post_process(cd);
+			m_vLevData[lev]->vRestrictionPP[i]->post_process(m_vLevData[lev-1]->d);
 		write_level_debug(cd, "GMG_Def_RestrictedWithPP", lev-1);
 	}
 
@@ -418,7 +418,7 @@ prolongation(size_t lev)
 
 	//	apply post processes
 		for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
-			m_vLevData[lev]->vProlongationPP[i]->post_process(tmp);
+			m_vLevData[lev]->vProlongationPP[i]->post_process(m_vLevData[lev]->t);
 	}
 
 //	PARALLEL CASE: Receive values of correction for vertical slaves

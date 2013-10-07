@@ -37,9 +37,6 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 	DenseMatrix< VariableArray2<number> > mat;
 	std::vector<DoFIndex> vCmpInd, vInd;
 	
-	// set all vector entries to zero
-	c.set(0.0);
-
 	typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
 	std::vector<Element*> vElem;
 
@@ -238,6 +235,9 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 				for(size_t f = 0; f < vCmp.size(); ++f)
 					if(ddinfo->max_fct_dofs(vCmp[f], d) > 0)
 						vLoopDim[d] = true;
+
+			// set all vector entries to zero
+			c.set(0.0);
 
 			if(vLoopDim[VERTEX]) ComponentGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
 			if(vLoopDim[EDGE]) ComponentGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);

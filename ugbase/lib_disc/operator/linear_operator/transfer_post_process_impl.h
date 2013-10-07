@@ -11,6 +11,7 @@
 #include "transfer_post_process.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/common/geometry_util.h"
+#include "lib_disc/function_spaces/integrate.h"
 
 namespace ug{
 
@@ -23,132 +24,77 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 void AverageComponent<TDomain, TAlgebra>::set_levels(GridLevel level)
 {
-	m_level = level;
-
-	if(m_level.type() != GridLevel::LEVEL)
-		UG_THROW("AverageComponent<TDomain, TAlgebra>::set_levels:"
-				" Can only project between level dof distributions, but "<<m_level);
 }
 
 template <typename TDomain, typename TAlgebra>
 void AverageComponent<TDomain, TAlgebra>::init()
 {
-	if(!m_spApproxSpace.valid())
-		UG_THROW("AverageComponent<TDomain, TAlgebra>::init: "
-				"Approximation Space not set. Cannot init Projection.");
-
-//	read functions
-	try{
-		m_fctGrp.clear();
-		m_fctGrp.set_function_pattern(m_spApproxSpace->dof_distribution_info());
-		m_fctGrp.add(TokenizeString(m_symbFct));
-	}
-	UG_CATCH_THROW("AverageComponent: Cannot parse functions for p.");
-
-	m_bInit = true;
 }
 
 template <typename TDomain, typename TAlgebra>
 void AverageComponent<TDomain, TAlgebra>::
-post_process(vector_type& u)
+post_process(SmartPtr<vector_type> spU)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	const int dim = TDomain::dim;
-	const DoFDistribution& dd = *m_spApproxSpace->level_dof_distribution(m_level.level());
 
-	std::vector<DoFIndex> vMultInd;
+	SmartPtr<GridFunction<TDomain, TAlgebra> > spGF
+					= spU.template cast_dynamic<GridFunction<TDomain, TAlgebra> >();
 
-//  iterators
-	typedef typename DoFDistribution::template dim_traits<dim>::const_iterator const_iterator;
-	typedef typename DoFDistribution::template dim_traits<dim>::geometric_base_object Element;
-	const_iterator iter, iterBegin, iterEnd;
+	if(spGF.invalid())
+		UG_THROW("AverageComponent: expects correction to be a GridFunction.");
 
-//	check piecewise-constant
-	for(size_t f = 0; f < m_fctGrp.size(); f++)
-	{
-		const size_t fct = m_fctGrp[f];
-		if(dd.local_finite_element_id(fct).type() != LFEID::PIECEWISE_CONSTANT)
-			UG_THROW("Only implemented for piecewise constant.");
-	}
+	ConstSmartPtr<DoFDistributionInfo> ddinfo =
+								spGF->approx_space()->dof_distribution_info();
+
+	std::vector<std::string> vCmp = TokenizeTrimString(m_symbFct);
+	if(vCmp.empty())
+		UG_THROW("AverageComponent: No components set.")
 
 //	compute integral of components
-	std::vector<number> vIntegral(m_fctGrp.size(), 0.0);
-	std::vector<number> vArea(m_fctGrp.size(), 0.0);
-	std::vector<MathVector<dim> > vCorner;
+	const number area = Integral(1.0, spGF);
+	std::vector<number> vIntegral(vCmp.size(), 0.0);
+	for(size_t f = 0; f < vCmp.size(); f++)
+		vIntegral[f] = Integral(spGF, vCmp[f].c_str());
 
-//  loop subsets on fine level
-	for(int si = 0; si < dd.num_subsets(); ++si)
+//	subtract value
+	for(size_t f = 0; f < vCmp.size(); f++)
 	{
-		iterBegin = dd.template begin<Element>(si);
-		iterEnd = dd.template end<Element>(si);
+		const number sub = vIntegral[f] / area;
+		const size_t fct = spGF->fct_id_by_name(vCmp[f].c_str());
 
-	//  loop vertices for fine level subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
+		if(ddinfo->max_fct_dofs(fct, VERTEX)) subtract_value<VertexBase>(spGF, fct, sub);
+		if(ddinfo->max_fct_dofs(fct, EDGE)) subtract_value<EdgeBase>(spGF, fct, sub);
+		if(ddinfo->max_fct_dofs(fct, FACE)) subtract_value<Face>(spGF, fct, sub);
+		if(ddinfo->max_fct_dofs(fct, VOLUME)) subtract_value<Volume>(spGF, fct, sub);
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TBaseElem>
+void AverageComponent<TDomain, TAlgebra>::
+subtract_value(SmartPtr<GridFunction<TDomain, TAlgebra> > spGF, size_t fct, number sub)
+{
+	typedef typename GridFunction<TDomain, TAlgebra>::template traits<TBaseElem>::const_iterator iter_type;
+
+	iter_type iter = spGF->template begin<TBaseElem>();
+	iter_type iterEnd = spGF->template end<TBaseElem>();
+
+//  loop elems
+	std::vector<DoFIndex> vMultInd;
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get element
+		TBaseElem* elem = *iter;
+
+	//  get global indices
+		spGF->inner_dof_indices(elem, fct, vMultInd);
+
+	//	sum up value
+		for(size_t i = 0; i < vMultInd.size(); ++i)
 		{
-		//	get element
-			Element* elem = *iter;
-
-		//	get corners of element
-			CollectCornerCoordinates(vCorner, *elem, *m_spApproxSpace->domain());
-
-		//	size of element
-			const number elemSize = ElementSize<dim>(elem->reference_object_id(), &vCorner[0]);
-
-		//	loop all components
-			for(size_t f = 0; f < m_fctGrp.size(); f++)
-			{
-			//	get fct index
-				const size_t fct = m_fctGrp[f];
-
-			//	check that fct defined on subset
-				if(!dd.is_def_in_subset(fct, si)) continue;
-
-			//  get global indices
-				dd.inner_dof_indices(elem, fct, vMultInd);
-
-			//	sum up value
-				for(size_t i = 0; i < vMultInd.size(); ++i)
-				{
-					vArea[f] += elemSize;
-					vIntegral[f] += DoFRef(u, vMultInd[i]) * elemSize;
-				}
-			}
+			DoFRef(*spGF, vMultInd[i]) -= sub;
 		}
 	}
-
-//  loop subsets on fine level
-	for(int si = 0; si < dd.num_subsets(); ++si)
-	{
-		iterBegin = dd.template begin<Element>(si);
-		iterEnd = dd.template end<Element>(si);
-
-	//  loop vertices for fine level subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		//	get element
-			Element* elem = *iter;
-
-		//	loop all components
-			for(size_t f = 0; f < m_fctGrp.size(); f++)
-			{
-			//	get fct index
-				const size_t fct = m_fctGrp[f];
-
-			//	check that fct defined on subset
-				if(!dd.is_def_in_subset(fct, si)) continue;
-
-			//  get global indices
-				dd.inner_dof_indices(elem, fct, vMultInd);
-
-			//	sum up value
-				for(size_t i = 0; i < vMultInd.size(); ++i)
-				{
-					DoFRef(u, vMultInd[i]) -= vIntegral[f] / vArea[f];
-				}
-			}
-		}
-	}
-
 }
 
 template <typename TDomain, typename TAlgebra>

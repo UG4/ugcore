@@ -56,10 +56,14 @@ class AverageComponent :
 		virtual void init();
 
 	/// apply Operator, interpolate function
-		virtual void post_process(vector_type& u);
+		virtual void post_process(SmartPtr<vector_type> spU);
 
 	///	returns new instance with same setting
 		virtual SmartPtr<ITransferPostProcess<TAlgebra> > clone();
+
+	protected:
+		template <typename TBaseElem>
+		void subtract_value(SmartPtr<GridFunction<TDomain, TAlgebra> > spGF, size_t fct, number sub);
 
 	protected:
 	///	symbolic function names

@@ -80,7 +80,7 @@ class ITransferPostProcess
 		virtual void init() = 0;
 
 	/// apply post process
-		virtual void post_process(vector_type& u) = 0;
+		virtual void post_process(SmartPtr<vector_type> spU) = 0;
 
 	///	Clone
 		virtual SmartPtr<ITransferPostProcess<TAlgebra> > clone() = 0;
