@@ -94,7 +94,7 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 	// 	check if at least an element exists, else return
 	if(iterBegin == iterEnd) return;
 
-	int countElem = 0;
+	int elemCounter = 0;
 
 	static const int dim = function_type::dim;
 	typedef typename function_type::domain_type domain_type;
@@ -159,7 +159,7 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 			UG_LOG("sideCoPos: " << sideCoPos[i] << "\n");
 		UG_LOG("normal: " << normal << "\n");*/
 
-		countElem++;
+		elemCounter++;
 
 	// 	get global indices
 		u.indices(*iter, ind); (*m_spObs).indices(*iter, indObs);
@@ -221,7 +221,7 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 
 		UG_LOG("#activeDoFFctPairs global: " << m_vActiveSetGlob.size() << "\n");
 	} // end(elem)
-	UG_LOG("#elems: " << countElem << "\n");
+	UG_LOG("#elems: " << elemCounter << "\n");
 
 }
 
@@ -413,8 +413,6 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv(matrix_type& lagrangeMatInv)
 		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
 		UG_LOG("subsetDim: " << subsetDim << "\n");
 
-		//	3.) get localU out of u for each element and
-		//	4.) store the active (local) dof,fct-pair in m_vActiveSet
 		switch(subsetDim)
 		{
 		case 0:
@@ -644,7 +642,6 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const function_t
 		UG_LOG("Old and new active Set have the same number of members \n");
 
 		vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
-
 		for (vector<DoFIndex>::iterator itActiveIndOld = m_vActiveSetGlobOld.begin();
 				itActiveIndOld < m_vActiveSetGlobOld.end(); ++itActiveIndOld)
 		{
@@ -685,7 +682,6 @@ bool ActiveSet<TDomain, TAlgebra>::check_inequ(const matrix_type& mat,
 		MatMult(*spMat_u, 1.0, mat, u);
 	#endif
 
-
 	for (size_t i = 0; i < u.size(); ++i)
 	{
 		//if (lambda[i] < -1e-06)
@@ -706,7 +702,6 @@ void ActiveSet<TDomain, TAlgebra>::create_vec_of_pointers()
 	m_vActiveSetGlobSP.resize(m_vActiveSetGlob.size());
 
 	vector<DoFIndex>::iterator it = m_vActiveSetGlob.begin();
-
 	for (vector<SmartPtr<DoFIndex> >::iterator itSP = m_vActiveSetGlobSP.begin();
 				itSP < m_vActiveSetGlobSP.end(); ++itSP)
 	{

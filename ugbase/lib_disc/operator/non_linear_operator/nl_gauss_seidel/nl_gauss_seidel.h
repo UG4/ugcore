@@ -38,10 +38,12 @@ class LocalToGlobalMapperNLGS : public ILocalToGlobalMapper<TAlgebra>
 		LocalToGlobalMapperNLGS() {}
 
 	///	adds a local vector to the global rhs
-		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd);
+		void add_local_vec_to_global(vector_type& vec, const LocalVector& lvec,
+				ConstSmartPtr<DoFDistribution> dd);
 
 	///	adds a local matrix to the global matrix
-		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd);
+		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat,
+				ConstSmartPtr<DoFDistribution> dd);
 
 	/// sets assembling index
 		void set_assembling_index(const size_t assIndex){ m_assemblingIndex = assIndex;}
@@ -102,13 +104,13 @@ class NLGaussSeidelSolver
 	///	sets constraint/obstacle
 		void set_constraint(const vector_type& cons) {m_ConsVec = cons; m_bProjectedGS = true;}
 
-	/// This operator inverts the Operator N: Y -> X
-		virtual bool init(SmartPtr<IOperator<vector_type> > N);
+	/// This operator inverts the Operator op: Y -> X
+		virtual bool init(SmartPtr<IOperator<vector_type> > op);
 
 	/// prepare Operator
 		virtual bool prepare(vector_type& u);
 
-	/// apply Operator, i.e. N^{-1}(0) = u
+	/// apply Operator, i.e. op^{-1}(0) = u
 		virtual bool apply(vector_type& u);
 
 	private:

@@ -235,7 +235,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 		// 	adapt local algebra
 		locU.resize(ind);
 
-		bool elem_in_list = false;
+		bool elemInList = false;
 
 		for(size_t fct=0; fct < locU.num_all_fct(); ++fct)
 			for(size_t dof=0; dof < locU.num_all_dof(fct); ++dof)
@@ -246,11 +246,11 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 				for(ListIter listIter = m_vElemList[globIndex].begin();
 						listIter != m_vElemList[globIndex].end(); ++listIter)
 					if (*listIter == *elemIter)
-						elem_in_list = true;
+						elemInList = true;
 
 				//	only add the element *elemIter to the globIndex-th elemList,
 				//	if the list does not incorporate the element already
-				if (!elem_in_list) m_vElemList[globIndex].push_back(*elemIter);
+				if (!elemInList) m_vElemList[globIndex].push_back(*elemIter);
 
 			} //end (dof)
 	} //end (elem)

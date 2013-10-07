@@ -172,7 +172,8 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 		write_debug(m_spJ->get_matrix(), matname.c_str());
 
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBIInvertBlocks);
-		//	loop all DoFs
+
+		//	loop all indizes
 		for (size_t i = 0; i < u.size(); i++)
 		{
 			//	get i,i-th block of J: J(i,i)

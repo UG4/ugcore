@@ -51,7 +51,7 @@ class ActiveSet
 	///	sets obstacle gridfunction, which limits the solution u
 		void set_obstacle(ConstSmartPtr<function_type> obs) {
 			m_spObs = obs; m_bObs = true;
-			//	if cons-GF is defined on a subset,
+			//	if 'obs'-gridfunction is defined on a subset,
 			//	which is not a boundary-subset -> UG_LOG
 		}
 
@@ -91,8 +91,9 @@ class ActiveSet
 	///	checks if all constraints are fulfilled & the activeSet remained unchanged
 		bool check_conv(function_type& u, const function_type& lambda, const size_t step);
 
+	///	checks if all inequalities are fulfilled
 		bool check_inequ(const matrix_type& mat, const vector_type& u,
-						const vector_type& lagrangeMult, const vector_type& rhs);
+					const vector_type& lagrangeMult, const vector_type& rhs);
 
 		template <typename TElem, typename TIterator>
 		void lagrange_mat_inv_elem(TIterator iterBegin,
@@ -112,14 +113,14 @@ class ActiveSet
 		void create_vec_of_pointers();
 
 	private:
-		///	point to the DofDistribution on the whole domain
+		///	pointer to the DofDistribution on the whole domain
 		SmartPtr<DoFDistribution> m_spDD;
 		SmartPtr<TDomain> m_spDom;
 
-		///	#fcts for value_type
+		///	number of functions
 		size_t m_nrFcts;
 
-		/// pointer to a gridfunction describing a constraint
+		/// pointer to a gridfunction describing an obstacle-constraint
 		ConstSmartPtr<function_type> m_spObs;
 		bool m_bObs;
 
@@ -129,9 +130,9 @@ class ActiveSet
 		///	vector of possible active zones
 		vector<int> m_vSubsetsOfActiveZones;
 
-		///	vector of the current active set of global MultiIndices (DoF,Fct)
+		///	vector of the current active set of global DoFIndices
 		vector<DoFIndex> m_vActiveSetGlob;
-		///	vector remembering the active set of global MultiIndices (DoF,Fct)
+		///	vector remembering the active set of global DoFIndices
 		vector<DoFIndex> m_vActiveSetGlobOld;
 		///	vector of pointers to active set needed for lua-call
 		vector<SmartPtr<DoFIndex> > m_vActiveSetGlobSP;

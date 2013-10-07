@@ -48,13 +48,13 @@ class NLJacobiSolver
 		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
 		void set_damp(number damp) {m_damp = damp;}
 
-		/// This operator inverts the Operator N: Y -> X
-		virtual bool init(SmartPtr<IOperator<vector_type> > N);
+		/// This operator inverts the Operator op: Y -> X
+		virtual bool init(SmartPtr<IOperator<vector_type> > op);
 
 		/// prepare Operator
 		virtual bool prepare(vector_type& u);
 
-		/// apply Operator, i.e. N^{-1}(0) = u
+		/// apply Operator, i.e. op^{-1}(0) = u
 		virtual bool apply(vector_type& u);
 
 	private:
