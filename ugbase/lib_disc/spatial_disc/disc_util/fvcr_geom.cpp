@@ -105,6 +105,7 @@ update_local_data()
 		m_vLocSCVF_IP[i] = scvf(i).local_ip();
 		
 	m_numConstrainedDofs = 0;
+	m_numConstrainedSCVF = 0;
 }
 
 
@@ -236,7 +237,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 /// update data checking for hanging nodes for given element
 template <int TDim, int TWorldDim>
 void DimCRFVGeometry<TDim, TWorldDim>::
-update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish,bool keepSCV)
+update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish,bool keepSCV,bool keepSCVF)
 {
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
@@ -321,38 +322,52 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 			for (size_t j=0;j<2;j++) edgeCo[j] = m_rRefElem.id(1,side,0,j);
 			// compute dof positions on constraining edge,
 			// replace dof "side" with first and insert second at the end
+			// set up new scvs
+			// keepSCV parameter specifies if scv "side" gets replaced by new one
+			size_t ind=side;
+			size_t keepOffset=0;
+			MathVector<worldDim> normal = m_vSCV[side].Normal;
+			normal*=0.5;
+			number vol    = 0.5*m_vSCV[side].Vol;
+ 			if (keepSCV){ 
+				ind=m_numSCV+1;
+				keepOffset=1;
+			}
 			for (int d=0;d<worldDim;d++)
-				m_vGlobUnkCoords[side][d] = 0.5 * (vCornerCoords[edgeCo[0]][d] + globalMidpoint[d]);
+				m_vGlobUnkCoords[ind][d] = 0.5 * (vCornerCoords[edgeCo[0]][d] + globalMidpoint[d]);
 			for (int d=0;d<dim;d++)
-				m_vLocUnkCoords[side][d] = 0.5 * (m_rRefElem.corner(edgeCo[0])[d] + localMidpoint[d]);
+				m_vLocUnkCoords[ind][d] = 0.5 * (m_rRefElem.corner(edgeCo[0])[d] + localMidpoint[d]);
 			for (int d=0;d<worldDim;d++)
 				m_vGlobUnkCoords[m_numSCV][d] = 0.5 * (vCornerCoords[edgeCo[1]][d] + globalMidpoint[d]);
 			for (int d=0;d<dim;d++)
 				m_vLocUnkCoords[m_numSCV][d] = 0.5 * (m_rRefElem.corner(edgeCo[1])[d] + localMidpoint[d]);
 			// handle corresponding scvfs
+			// if keepSCVF copy them into constrained scvf array
+			if (keepSCVF){
+				for (size_t j=0;j<2;j++){
+					m_vConstrainedSCVF[m_numConstrainedSCVF+j] = m_vSCVF[edgeCo[j]];
+					if (m_vConstrainedSCVF[edgeCo[j]].To==side){
+						m_vConstrainedSCVF[edgeCo[j]].From=side;
+						m_vConstrainedSCVF[edgeCo[j]].Normal*=-1;
+					}
+				}
+				m_numConstrainedSCVF += 2;
+			}
 			for (size_t j=0;j<2;j++){
 				if (m_vSCVF[edgeCo[j]].From==side) m_vSCVF[edgeCo[j]].From=m_numDofs+j;
 				if (m_vSCVF[edgeCo[j]].To==side) m_vSCVF[edgeCo[j]].To=m_numDofs+j;
 			}
-			// set up new scvs
-			// keepSCV parameter specifies if scv "side" gets replaced by new one
-			size_t ind=side;
-			size_t keepOffset=0;
- 			if (keepSCV){ 
-				ind=m_numSCV+1;
-				keepOffset=1;
-			}
-			m_vSCV[ind].Normal *= 0.5;
-			m_vSCV[ind].Vol *= 0.5;
+			m_vSCV[ind].Normal = normal;
+			m_vSCV[ind].Vol = vol;
 			m_vSCV[ind].nodeID = m_numDofs;
-			m_vSCV[ind].vGlobIP = m_vGlobUnkCoords[side];
-			m_vSCV[ind].vLocIP = m_vLocUnkCoords[side];
+			m_vSCV[ind].vGlobIP = m_vGlobUnkCoords[ind];
+			m_vSCV[ind].vLocIP = m_vLocUnkCoords[ind];
 			m_vSCV[ind].numSH = rTrialSpace.num_sh();
-			rTrialSpace.shapes(&(m_vSCV[side].vShape[0]), m_vSCV[side].local_ip());
-			rTrialSpace.grads(&(m_vSCV[side].vLocalGrad[0]), m_vSCV[side].local_ip());
+			rTrialSpace.shapes(&(m_vSCV[ind].vShape[0]), m_vSCV[ind].local_ip());
+			rTrialSpace.grads(&(m_vSCV[ind].vLocalGrad[0]), m_vSCV[ind].local_ip());
 			// second scv inserted at the end
-			m_vSCV[m_numSCV].Normal = m_vSCV[side].Normal;
-			m_vSCV[m_numSCV].Vol = m_vSCV[side].Vol;
+			m_vSCV[m_numSCV].Normal = normal;
+			m_vSCV[m_numSCV].Vol = vol;
 			m_vSCV[m_numSCV].nodeID = m_numDofs+1;
 			m_vSCV[m_numSCV].vGlobIP = m_vGlobUnkCoords[m_numSCV];
 			m_vSCV[m_numSCV].vLocIP = m_vLocUnkCoords[m_numSCV];
@@ -386,7 +401,7 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 			m_roid = ROID_UNKNOWN;
 		}
 	} else {
-		// dim = 3
+		// dim == 3
 		std::vector<Face*> vFaces;
 		CollectFacesSorted(vFaces, grid, pElem);
 		handledEdges.clear();
@@ -493,6 +508,18 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 				m_vSCV[ind].numSH = rTrialSpace.num_sh();
 				rTrialSpace.shapes(&(m_vSCV[ind].vShape[0]), m_vSCV[ind].local_ip());
 				rTrialSpace.grads(&(m_vSCV[ind].vLocalGrad[0]), m_vSCV[ind].local_ip());
+			}
+			// copy scvfs into constrained scvfs
+			if (keepSCVF){
+				for (size_t i=0;i<numFaceCo;i++){
+					size_t edge = faceEdge[i];
+					m_vConstrainedSCVF[m_numConstrainedSCVF+i] = m_vSCVF[edge];
+					if (m_vConstrainedSCVF[m_numConstrainedSCVF+i].To==face){
+						m_vConstrainedSCVF[m_numConstrainedSCVF+i].From=face;
+						m_vConstrainedSCVF[m_numConstrainedSCVF+i].Normal*=-1;
+					}
+				}
+				m_numConstrainedSCVF += numFaceCo;
 			}
 			// insert new scvfs, first the ones associated to edges of face
 			for (size_t i=0;i<numFaceCo;i++){

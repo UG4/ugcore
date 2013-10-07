@@ -116,13 +116,13 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 // 	if already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
 	
-//  get grid
+// get grid
 	Grid& grid = *(ish->grid());
 
 //  update local data if some of it has been overwritten by constrained object scv/scvf
 	if (localUpdateNecessary) update_local_data();
 
-//  compute barycenter coordinates
+	//  compute barycenter coordinates
 	globalBary = vCornerCoords[0];
 	m_vCo[0] = vCornerCoords[0];
 	for (size_t j=1;j<m_rRefElem.num(0);j++){
@@ -167,6 +167,14 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 	}
 
 //  check for hanging nodes
+	UG_LOG("||||||||||||||||||||||||||||||||||\n");
+	UG_LOG("||||||||||||||||||||||||||||||||||\n");
+	UG_LOG("||||||||||||||||||||||||||||||||||\n");
+	UG_LOG("||||||||||||||||||||||||||||||||||\n");
+	UG_LOG("||||||||||||||||||||||||||||||||||\n");
+	UG_LOG("||||||||||||||||||||||||||||||||||\n");
+	UG_LOG("||||||||||||||||||||||||||||||||||\n");
+	UG_LOG("||||||||||||||||||||||||||||||||||\n");
 	if (dim==2){
 		std::vector<EdgeBase*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
@@ -242,9 +250,60 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 		std::vector<Face*> vFaces;
 		CollectFacesSorted(vFaces, grid, pElem);
 		handledEdges.clear();
+		UG_LOG(handledEdges.size() << "\n");
 		for(size_t face = 0; face < vFaces.size(); ++face){
 			ConstrainingFace* constrainingObj = dynamic_cast<ConstrainingFace*>(vFaces[face]);
 			if(constrainingObj == NULL) continue;
+			print();
+			UG_LOG("------------------------------\n");
+			UG_LOG("co=[");
+//			if (vCornerCoords.size()==4){
+				size_t ind[8]={0,1,2,0,3,1,2,3};
+				for (size_t i=0;i<8;i++){
+					UG_LOG(vCornerCoords[ind[i]][0]	<< "," << vCornerCoords[ind[i]][1] << "," << vCornerCoords[ind[i]][2] << ";");
+				}
+//			}
+			UG_LOG("];\n");
+			UG_LOG("hold off;plot3(co(:,1),co(:,2),co(:,3),'-');hold on;\n");
+			UG_LOG("plot3(co(1,1),co(1,2),co(1,3),'or');\n");
+			UG_LOG("plot3(co(2,1),co(2,2),co(2,3),'ok');\n");
+			UG_LOG("plot3(co(3,1),co(3,2),co(3,3),'og');\n");
+			// debug output
+			UG_LOG("vco=[");
+			for (size_t i=0;i<numSCV;i++){
+				UG_LOG(m_vGlobUnkCoords[i][0]	<< "," << m_vGlobUnkCoords[i][1] << "," << m_vGlobUnkCoords[i][2] << ";");
+			}
+			UG_LOG("];\n");
+			UG_LOG("plot3(vco(:,1),vco(:,2),vco(:,3),'o');hold on;\n");
+			UG_LOG("plot3(vco(1,1),vco(1,2),vco(1,3),'+r');\n");
+			UG_LOG("plot3(vco(2,1),vco(2,2),vco(2,3),'+k');\n");
+			UG_LOG("plot3(vco(3,1),vco(3,2),vco(3,3),'+g');\n");
+			UG_LOG("################################################################################################################\n");
+			UG_LOG("################################################################################################################\n");
+			UG_LOG("################################################################################################################\n");
+			UG_LOG("################################################################################################################\n");
+			for (size_t i=0;i<numSCVF;i++){
+				UG_LOG("sco"<< i << "=[");
+				for (size_t j=0;j<4;j++){
+					UG_LOG(m_vSCVF[i].vGloPos[j % 3][0] << "," << m_vSCVF[i].vGloPos[j % 3][1] << "," << m_vSCVF[i].vGloPos[j % 3][2] << ";");
+				}
+				UG_LOG("];\n");
+				UG_LOG("plot3(sco"<<i<<"(:,1),sco"<<i<<"(:,2),sco"<<i<<"(:,3),'r-');\n");
+				UG_LOG("ip"<< i <<"=[" << m_vSCVF[i].globalIP[0] << "," << m_vSCVF[i].globalIP[1] << "," << m_vSCVF[i].globalIP[2] << "];\n");
+				UG_LOG("plot3(ip"<<i<<"(1),ip"<<i<<"(2),ip"<<i<<"(3),'+r');\n");
+				UG_LOG("n"<< i <<"=[" << m_vSCVF[i].Normal[0] << "," << m_vSCVF[i].Normal[1] << "," << m_vSCVF[i].Normal[2] << "];\n");
+				UG_LOG("plot3([ip"<<i<<"(1),ip"<<i<<"(1)+n"<<i<<"(1)],[ip"<<i<<"(2),ip"<<i<<"(2)+n"<<i<<"(2)],[ip"<<i<<"(3),ip"<<i<<"(3)+n"<<i<<"(3)],'-xb');\n");
+				UG_LOG("from=" << m_vSCVF[i].From << ";to=" << m_vSCVF[i].To << ";\n");
+				if (m_vSCVF[i].From<4) UG_LOG("from=" << m_vSCVF[i].From+1 << ";\n");
+				if (m_vSCVF[i].To<4) UG_LOG("to=" << m_vSCVF[i].To+1 << ";\n");
+				UG_LOG("cc(1,:)=vco(from,:);\n");
+				UG_LOG("cc(2,:)=ip"<<i<<";\n");
+				UG_LOG("cc(3,:)=vco(to,:);\n");
+				UG_LOG("plot3(cc(1:2,1),cc(1:2,2),cc(1:2,3),'-or');");
+				UG_LOG("plot3(cc(2:3,1),cc(2:3,2),cc(2:3,3),'-ob');\n");
+				UG_LOG("################################################################################################################\n");
+			}
+			UG_LOG("---------------------------------------------------------------------------------------------------------\n");
 			// found constraining face
 			MathVector<worldDim> globalMidpoint = m_vSCV[face].vGlobIP;
 			MathVector<dim> localMidpoint = m_vSCV[face].vLocIP;
@@ -263,7 +322,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 				size_t nOfEdges=0;
 				size_t nbEdges[2];
 				// find 2 edges in face belonging to node
-				for (size_t j=0;j<m_rRefElem.num(0,co,1);j++){
+				for (size_t j=0;j<3;j++){
 					size_t candidate = m_rRefElem.id(0,co,1,j);
 					bool found = false;
 					for (size_t k=0;k<numFaceCo;k++){
@@ -309,7 +368,6 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 				m_vSCV[ind].vGlobIP = m_vGlobUnkCoords[ind];
 				if (numFaceCo==3) m_vSCV[ind].Vol = ElementSize<scv_type0,worldDim>(m_vSCV[ind].vGloPos);
 				else m_vSCV[ind].Vol = ElementSize<scv_type1,worldDim>(m_vSCV[ind].vGloPos);
-				if (m_vSCV[ind].Vol<0) m_vSCV[ind].Vol *= -1;
 				m_vSCV[ind].Normal = faceNormal;
 				m_vSCV[ind].Normal *= (number) m_vSCV[ind].Vol / faceVol;
 				m_rTrialSpace.shapes(&(m_vSCV[ind].vShape[0]), m_vSCV[ind].local_ip());
@@ -342,10 +400,14 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 				m_rTrialSpace.grads(&(m_vSCV[ind].vLocalGrad[0]), m_vSCV[ind].local_ip());
 			}
 			// insert new scvfs, first the ones associated to edges of face
+			UG_LOG("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			UG_LOG("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
 			for (size_t i=0;i<numFaceCo;i++){
 				size_t edge = faceEdge[i];
+				UG_LOG("edge " << edge << "\n");
 				size_t from = m_vSCVF[edge].From;
 				size_t to   = m_vSCVF[edge].To;
+				UG_LOG(" from = " << from << " to = " << to << "\n");
 				MathVector<worldDim> normal = m_vSCVF[edge].Normal;
 				normal*=0.5;
 				size_t edgeCo[2];
@@ -356,6 +418,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 					for (size_t k=0;k<numFaceCo;k++){
 						if (faceCo[k]==edgeCo[j]){
 							scvID[j] = numDofs+k;
+							UG_LOG("id " << j << " = " << scvID[j] << "\n");
 							break;
 						}
 					}
@@ -364,14 +427,19 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 				if (numConstrainedDofs>0){
 					bool found=false;
 					for (size_t j=0;j<handledEdges.size();j++){
+						UG_LOG("hEdg ind" << handledEdges[j].index << "\n");
 						if (handledEdges[j].index==edge){
+							UG_LOG("edge " << edge << " handled\n");
 							HandledEdge& hE=handledEdges[j];
+							UG_LOG("from " << m_vSCVF[hE.scvfIndex].From << "\n");
+							UG_LOG("to " << m_vSCVF[hE.scvfIndex].To << "\n");
 							found=true;
 							// set new from/to values
 							for (size_t k=0;k<2;k++){
 								if (hE.from){
 									m_vSCVF[hE.scvfIndex+k].To=scvID[k];	
 								} else {
+									UG_LOG(hE.scvfIndex+k << "\n");
 									m_vSCVF[hE.scvfIndex+k].From=scvID[k];
 								}
 							}
@@ -392,6 +460,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 					edgeMidLoc[d] = 0.5 * (m_rRefElem.corner(edgeCo[0])[d] +  m_rRefElem.corner(edgeCo[1])[d]);
 				}
 				for (size_t j=0;j<2;j++){
+					UG_LOG("nSCVF " << numSCVF << "\n");
 					hEdge.associatedSCV[j] = scvID[j];
 					if (from==face){
 						m_vSCVF[numSCVF].From = scvID[j];
@@ -402,6 +471,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 						m_vSCVF[numSCVF].To 	= scvID[j];
 						hEdge.from=false;
 					}
+					UG_LOG(numSCVF << " : new from = " << m_vSCVF[numSCVF].From << " to = " << m_vSCVF[numSCVF].To << "\n");
 					m_vSCVF[numSCVF].Normal = normal;
 					m_vSCVF[numSCVF].vGloPos[0] = vCornerCoords[edgeCo[j]];
 					m_vSCVF[numSCVF].vLocPos[0] = m_rRefElem.corner(edgeCo[j]);
@@ -416,7 +486,10 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 					numSCVF++;
 				}
 				handledEdges.push_back(hEdge);
+				UG_LOG("hEdge size " << handledEdges.size() << "\n");
 			}
+			UG_LOG("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
+			UG_LOG("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
 			// scvfs inside the face
 			// insert remaining inner scvfs into positions of edge associated scvs
 			for (size_t j=0;j<numFaceCo;j++){
@@ -438,11 +511,11 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 					m_vSCVF[ii].vGloPos[1] = m_vSCV[ind].vGloPos[2];
 				}else{
 					// compute inner scvfs in quadrilateral case
-					m_vSCVF[ii].To = numDofs+j;
-					m_vSCVF[ii].From = numDofs + ((j+1) % 4);
+					m_vSCVF[ii].From = numDofs+j;
+					m_vSCVF[ii].To = numDofs + ((j+1) % 4);
 					for (int d=0;d<worldDim;d++){
-						m_vSCVF[ii].vLocPos[0][d] = 0.5*( m_rRefElem.corner(faceCo[j])[d] + m_rRefElem.corner(faceCo[(j+1) % 4])[d] );
-						m_vSCVF[ii].vGloPos[0][d] = 0.5*( vCornerCoords[faceCo[j]][d] + vCornerCoords[faceCo[(j+1) % 4]][d] );
+						m_vSCVF[ii].vLocPos[0][d] = 0.5*( m_rRefElem.corner(faceCo[j])[d] + m_rRefElem.corner(faceCo[j % 4])[d] );
+						m_vSCVF[ii].vGloPos[0][d] = 0.5*( vCornerCoords[faceCo[j]][d] + vCornerCoords[faceCo[j % 4]][d] );
 					}
 					m_vSCVF[ii].vLocPos[1] = localMidpoint;
 					m_vSCVF[ii].vGloPos[1] = globalMidpoint;
@@ -468,6 +541,41 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 			numDofs+=4;
 			numConstrainedDofs+=1;
 			localUpdateNecessary = true;
+			// debug output
+			UG_LOG("vco=[");
+			for (size_t i=0;i<numSCV;i++){
+				UG_LOG(m_vGlobUnkCoords[i][0]	<< "," << m_vGlobUnkCoords[i][1] << "," << m_vGlobUnkCoords[i][2] << ";");
+			}
+			UG_LOG("];\n");
+			UG_LOG("plot3(vco(:,1),vco(:,2),vco(:,3),'o');hold on;\n");
+			UG_LOG("plot3(vco(1,1),vco(1,2),vco(1,3),'+r');\n");
+			UG_LOG("plot3(vco(2,1),vco(2,2),vco(2,3),'+k');\n");
+			UG_LOG("plot3(vco(3,1),vco(3,2),vco(3,3),'+g');\n");
+			UG_LOG("################################################################################################################\n");
+			UG_LOG("################################################################################################################\n");
+			UG_LOG("################################################################################################################\n");
+			UG_LOG("################################################################################################################\n");
+			for (size_t i=0;i<numSCVF;i++){
+				UG_LOG("sco"<< i << "=[");
+				for (size_t j=0;j<4;j++){
+					UG_LOG(m_vSCVF[i].vGloPos[j % 3][0] << "," << m_vSCVF[i].vGloPos[j % 3][1] << "," << m_vSCVF[i].vGloPos[j % 3][2] << ";");
+				}
+				UG_LOG("];\n");
+				UG_LOG("plot3(sco"<<i<<"(:,1),sco"<<i<<"(:,2),sco"<<i<<"(:,3),'r-');\n");
+				UG_LOG("ip"<< i <<"=[" << m_vSCVF[i].globalIP[0] << "," << m_vSCVF[i].globalIP[1] << "," << m_vSCVF[i].globalIP[2] << "];\n");
+				UG_LOG("plot3(ip"<<i<<"(1),ip"<<i<<"(2),ip"<<i<<"(3),'+r');\n");
+				UG_LOG("n"<< i <<"=[" << m_vSCVF[i].Normal[0] << "," << m_vSCVF[i].Normal[1] << "," << m_vSCVF[i].Normal[2] << "];\n");
+				UG_LOG("plot3([ip"<<i<<"(1),ip"<<i<<"(1)+n"<<i<<"(1)],[ip"<<i<<"(2),ip"<<i<<"(2)+n"<<i<<"(2)],[ip"<<i<<"(3),ip"<<i<<"(3)+n"<<i<<"(3)],'-xb');\n");
+				UG_LOG("from=" << m_vSCVF[i].From << ";to=" << m_vSCVF[i].To << ";\n");
+				if (m_vSCVF[i].From<4) UG_LOG("from=" << m_vSCVF[i].From+1 << ";\n");
+				if (m_vSCVF[i].To<4) UG_LOG("to=" << m_vSCVF[i].To+1 << ";\n");
+				UG_LOG("cc(1,:)=vco(from,:);\n");
+				UG_LOG("cc(2,:)=ip"<<i<<";\n");
+				UG_LOG("cc(3,:)=vco(to,:);\n");
+				UG_LOG("plot3(cc(1:2,1),cc(1:2,2),cc(1:2,3),'-or');");
+				UG_LOG("plot3(cc(2:3,1),cc(2:3,2),cc(2:3,3),'-ob');\n");
+				UG_LOG("################################################################################################################\n");
+			}
 		}
 	}
 
@@ -523,8 +631,8 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
 
 //  debug output
-//	if (localUpdateNecessary==true) print();
-	
+	if (localUpdateNecessary==true) print();
+
 }
 
 
@@ -540,6 +648,15 @@ void HCRFVGeometry<TElem, TWorldDim>::print()
 		UG_LOG(", local_pos="<< m_vSCV[i].local_ip());
 		UG_LOG(", global_pos="<< m_vSCV[i].global_ip());
 		UG_LOG(", vol=" << m_vSCV[i].volume());
+	//	UG_LOG("\n    localCorner=" << m_vSCV[i].m_vLocPos[0]);
+	//	UG_LOG(", localSide1=" << m_vSCV[i].m_vLocPos[1]);
+	//	UG_LOG(", localCenter=" << m_vSCV[i].m_vLocPos[2]);
+	//	UG_LOG(", localSide2=" << m_vSCV[i].m_vLocPos[3]);
+	//	UG_LOG("\n    globalCorner=" << m_vSCV[i].m_vGloPos[0]);
+	//	UG_LOG(", globalSide1=" << m_vSCV[i].m_vGloPos[1]);
+	//	UG_LOG(", globalCenter=" << m_vSCV[i].m_vGloPos[2]);
+	//	UG_LOG(", globalSide2=" << m_vSCV[i].m_vGloPos[3]);
+
 		UG_LOG("\n");
 	}
 	UG_LOG("\n");

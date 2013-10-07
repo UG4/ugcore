@@ -260,6 +260,28 @@ class DimCRFVGeometry : public FVGeometryBase
 			/// return glbal corner number i
 				inline const MathVector<worldDim>& global_corner(size_t co) const
 					{UG_ASSERT(co < num_corners(), "Invalid index."); return vGloPos[co];}
+			
+			public:
+				inline void operator = (const SCVF &s)
+				{
+					From = s.from();
+					To   = s.to();
+					localIP = s.local_ip();
+					globalIP = s.global_ip();
+					Normal = s.normal();
+					JtInv = s.JTInv();
+					detj = s.detJ();
+					numSH = s.num_sh();
+					for (size_t i=0;i<numSH;i++){
+						vLocalGrad[i] = s.global_grad(i);
+						vGlobalGrad[i] = s.global_grad(i);
+						vShape[i] = s.shape(i);
+					}
+					for (size_t i=0;i<numCo;i++){
+						vLocPos[i] = s.local_corner(i);
+						vGloPos[i] = s.global_corner(i);
+					}
+				}
 
 			private:
 			// 	let outer class access private members
@@ -536,7 +558,7 @@ class DimCRFVGeometry : public FVGeometryBase
 					
 	/// update data for given element
 		void update_hanging(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
-		            const ISubsetHandler* ish = NULL,bool keepSCV=false);
+		            const ISubsetHandler* ish = NULL,bool keepSCV=false,bool keepSCVF=false);
 					
 	/// update data for given element
 		void update_geometric_data(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
@@ -567,6 +589,9 @@ class DimCRFVGeometry : public FVGeometryBase
 	/// const access to constrained dof i
 		inline const CONSTRAINED_DOF& constrained_dof(size_t i) const
 			{UG_ASSERT(i < m_numConstrainedDofs, "Invalid Index."); return m_vCD[i];}
+	
+	/// number of constrained dof scvfs
+		inline size_t num_constrained_scvf(){return m_numConstrainedSCVF;}
 
 	/// number of shape functions
 		inline size_t num_sh() const {return m_nsh;};
@@ -687,6 +712,9 @@ class DimCRFVGeometry : public FVGeometryBase
 
 	///	SubControlVolumeFaces
 		SCVF m_vSCVF[maxNumSCVF];
+	
+	/// SubControlVolumeFaces for constrained dofs
+		SCVF m_vConstrainedSCVF[maxNumSCVF];
 
 	///	SubControlVolumes
 		SCV m_vSCV[maxNumSCV];
@@ -695,6 +723,8 @@ class DimCRFVGeometry : public FVGeometryBase
 		size_t m_numDofs;
 		
 		size_t m_numConstrainedDofs;
+	
+		size_t m_numConstrainedSCVF;
 
 		static const size_t deleted = 117;
 };
