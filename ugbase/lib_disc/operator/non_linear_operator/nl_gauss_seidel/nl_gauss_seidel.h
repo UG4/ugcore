@@ -45,6 +45,9 @@ class LocalToGlobalMapperNLGS : public ILocalToGlobalMapper<TAlgebra>
 		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat,
 				ConstSmartPtr<DoFDistribution> dd);
 
+	///	modifies local solution vector for adapted defect computation
+		 void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd){}
+
 	/// sets assembling index
 		void set_assembling_index(const size_t assIndex){ m_assemblingIndex = assIndex;}
 
