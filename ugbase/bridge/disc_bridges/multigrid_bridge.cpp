@@ -157,6 +157,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
 		.template add_constructor<void (*)(const std::string&)>("Cmps")
 		.template add_constructor<void (*)(number, const std::string&)>("relax#Cmps")
+		.template add_constructor<void (*)(number, const std::string&, const std::vector<int>&, const std::vector<number>&)>("relax#Cmps")
 		.add_method("set_relax", &T::set_relax, "", "relax")
 		.add_method("set_cmps", &T::set_relax, "", "Cmps")
 		.set_construct_as_smart_pointer(true);

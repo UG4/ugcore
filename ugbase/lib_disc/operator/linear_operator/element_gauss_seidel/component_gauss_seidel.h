@@ -86,6 +86,8 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 			for (size_t k = 0; k < numIndex; k++)
 				mat(j,k) = DoFRef(A, vInd[j], vInd[k]);
 
+		for(size_t cnt = 0; cnt < vCmpInd.size(); ++cnt){
+
 		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
 		// note: the loop over k is the whole matrix row (not only selected indices)
 		typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
@@ -106,6 +108,7 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		for (size_t j=0;j<numIndex;j++){
 			DoFRef(c, vInd[j]) += relax*x[j];
 		};
+		}
 	}
 }
 
@@ -147,15 +150,18 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 	///	constructor setting relaxation and type
 		ComponentGaussSeidel(number relax, const std::string& cmps) : m_relax(relax), m_cmps(cmps) {};
 
+	///	constructor setting relaxation and type
+		ComponentGaussSeidel(number relax, const std::string& cmps,
+		                     const std::vector<int>& vSmooth, const std::vector<number>& vDamp)
+		: m_relax(relax), m_cmps(cmps), m_vSmooth(vSmooth), m_vDamp(vDamp) {};
+
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			SmartPtr<ComponentGaussSeidel<TDomain, TAlgebra> >
-							newInst(new ComponentGaussSeidel<TDomain, TAlgebra>(m_cmps));
+							newInst(new ComponentGaussSeidel<TDomain, TAlgebra>(m_relax, m_cmps, m_vSmooth, m_vDamp));
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
-			newInst->set_relax(m_relax);
-			newInst->set_cmps(m_cmps);
 			return newInst;
 		}
 
@@ -237,12 +243,36 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 						vLoopDim[d] = true;
 
 			// set all vector entries to zero
-			c.set(0.0);
+			pC->set(0.0);
 
-			if(vLoopDim[VERTEX]) ComponentGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
-			if(vLoopDim[EDGE]) ComponentGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
-			if(vLoopDim[FACE]) ComponentGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
-			if(vLoopDim[VOLUME]) ComponentGaussSeidelStep<Volume,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
+			if(m_vSmooth.empty()){
+
+				if(vLoopDim[VERTEX]) ComponentGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
+				if(vLoopDim[EDGE]) ComponentGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
+				if(vLoopDim[FACE]) ComponentGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
+				if(vLoopDim[VOLUME]) ComponentGaussSeidelStep<Volume,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
+			}
+			else{
+				for(size_t i = 0; i < m_vSmooth.size(); ++i){
+
+					const int d = m_vSmooth[i];
+					number damp = m_relax;
+
+					if(d < (int)m_vDamp.size())
+						damp *= m_vDamp[d];
+
+					if(!vLoopDim[d]) continue;
+
+					switch(d){
+						case VERTEX: ComponentGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, damp, vCmp, vRemainCmp); break;
+						case EDGE: ComponentGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, damp, vCmp, vRemainCmp); break;
+						case FACE: ComponentGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, damp, vCmp, vRemainCmp); break;
+						case VOLUME: ComponentGaussSeidelStep<Volume,TDomain,TAlgebra>(*pMat, *pC, *pD, damp, vCmp, vRemainCmp); break;
+						default: UG_THROW("Not implemented.")
+					}
+				}
+			}
+
 
 #ifdef UG_PARALLEL
 			 pC->set_storage_type(PST_UNIQUE);
@@ -263,6 +293,10 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 
 	///	components, whose matrix row must be fulfilled completely on gs-block
 		std::string m_cmps;
+
+	/// smooth order
+		std::vector<int> m_vSmooth;
+		std::vector<number> m_vDamp;
 };
 
 } // end namespace ug
