@@ -45,6 +45,9 @@ class ILocalToGlobalMapper
 		virtual void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat,
 				ConstSmartPtr<DoFDistribution> dd) = 0;
 
+	///	modifies local solution vector for adapted defect computation
+		virtual void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd) = 0;
+
 	///	virtual destructor
 		virtual ~ILocalToGlobalMapper() {};
 
