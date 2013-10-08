@@ -57,6 +57,9 @@ class LocalToGlobalMapper : public ILocalToGlobalMapper<TAlgebra>
 		void add_local_mat_to_global(matrix_type& mat, const LocalMatrix& lmat, ConstSmartPtr<DoFDistribution> dd)
 			{ AddLocalMatrixToGlobal(mat,lmat);}
 
+	///	modifies local solution vector for adapted defect computation
+		void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec, ConstSmartPtr<DoFDistribution> dd){};
+
 	///	destructor
 		~LocalToGlobalMapper() {};
 };
@@ -106,7 +109,9 @@ class AssemblingTuner
 		                         ConstSmartPtr<DoFDistribution> dd) const
 		{ m_pMapper->add_local_mat_to_global(mat, lmat, dd);}
 
-
+		void modify_LocalSol(LocalVector& vecMod, const LocalVector& lvec,
+		                         ConstSmartPtr<DoFDistribution> dd) const
+		{ m_pMapper->modify_LocalSol(vecMod, lvec, dd);}
 	///	sets a marker to exclude elements from assembling
 	/**
 	 * This methods sets a marker. Only elements that are marked will be
