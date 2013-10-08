@@ -70,7 +70,7 @@ class ActiveSet
 				TIterator iterEnd, function_type& u,
 				function_type& rhs, function_type& lagrangeMult);
 
-	///	determines the active indices
+	///	determines the active indices, stores them in a vector and sets dirichlet values in rhs for active indices
 		bool active_index(function_type& u, function_type& rhs, function_type& lagrangeMult,
 				function_type& gap);
 
@@ -127,8 +127,14 @@ class ActiveSet
 		///	pointer to a lagrangeMultiplier-Disc
 		SmartPtr<ILagrangeMultiplierDisc<TDomain, function_type> > m_spLagMultDisc;
 
-		///	vector of possible active zones
-		vector<int> m_vSubsetsOfActiveZones;
+		///	vector of possible active subsets
+		vector<int> m_vActiveSubsets;
+
+		/*template <typename TElem>
+		struct activeElemAndLocInd{
+			TElem* pElem; 						// pointer to active elem
+			vector<vector<size_t> > vlocInd; 	// vector of local active indices
+		};*/
 
 		///	vector of the current active set of global DoFIndices
 		vector<DoFIndex> m_vActiveSetGlob;

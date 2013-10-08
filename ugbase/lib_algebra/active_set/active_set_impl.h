@@ -98,13 +98,6 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 
 	static const int dim = function_type::dim;
 	typedef typename function_type::domain_type domain_type;
-	typedef typename domain_type::grid_type grid_type;
-	typedef typename function_type::element_type element_type;
-	typedef typename element_type::side side_type;
-
-	typename grid_type::template traits<side_type>::secure_container sides;
-	typename grid_type::template traits<element_type>::secure_container assoElements;
-
 	typedef typename face_type_traits<dim>::face_type0 face_type0;
 	typedef typename face_type_traits<dim>::face_type1 face_type1;
 
@@ -113,17 +106,16 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 			= u.domain()->position_accessor();
 
 	//	storage for corner coordinates
-	MathVector<dim> normal;
 	vector<MathVector<dim> > vCorner;
-	MathVector<dim> sideCoPos[dim+1];
+	MathVector<dim> sideCoPos[dim+1], normal;
 
 	// 	local indices and local algebra
 	LocalIndices ind, indObs;
 	LocalVector locU, locLM, locObs;
 	number complementaryVal;
 
-	//	TODO: eventuell ist es sinnvoll auch die aktiven Elemente zu speichern,
-	//	damit folgende Elem-loops (z.B. zur Berechnung der lagrangeMults) verkleinert werden kšnnen!
+	//	TODO: it could be more efficient to store the active elements
+	//	and its active local indices as well
 
 	// 	Loop over all elements on active subsets
 	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
@@ -174,13 +166,13 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 	//	loop over DoFs in element and store all activeMultiIndex-pairs in vector
 		size_t nrFctElem = ind.num_fct();
 		number normOfNormal = VecLength(normal);
+		MathVector<dim> locUDof;
 
 		for(size_t fct = 0; fct < nrFctElem; ++fct)
 		{
-			size_t nDoFsPerFctElem = ind.num_dof(fct);
-			for(size_t dof = 0; dof < nDoFsPerFctElem; ++dof)
+			size_t nrDoFsPerFctElem = ind.num_dof(fct);
+			for(size_t dof = 0; dof < nrDoFsPerFctElem; ++dof)
 			{
-				MathVector<dim> locUDof;
 				for(int i = 0; i < dim; ++i)
 					locUDof[i] = locU(i, dof);
 
@@ -226,13 +218,13 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 }
 
 //	builds up a vector of global (dof,fct)-pairs, which are active (wrt. an obstacle-constraint)
+//	and sets dirichlet values in rhs for active indices
 template <typename TDomain, typename TAlgebra>
 bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 		function_type& rhs, function_type& lagrangeMult, function_type& gap)
 {
 	//	note: the active-index search is restricted
 	//	to constraint of the form u * n <= consGF
-
 	if(!m_bObs)
 		UG_THROW("No constraint set in ActiveSet \n");
 
@@ -247,13 +239,13 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 
 	//	1.) get all subsets on which the 'gap'-gridfunction is defined!
 	//	-> store them in vSubsetsOflagrangeMults
-	m_vSubsetsOfActiveZones.resize(0);
+	m_vActiveSubsets.resize(0);
 	//TODO: it is only necessary to loop over all BoundarySubsets!
 	for (int si = 0; si < m_spDD->num_subsets(); si++){
 		for (size_t fct = 0; fct < gap.num_fct(); fct++)
 			if (gap.is_def_in_subset(fct, si))
 			{
-				m_vSubsetsOfActiveZones.push_back(si);
+				m_vActiveSubsets.push_back(si);
 				//	'break' is necessary to ensure that 'si' is
 				//	only added once when several fcts of
 				//	'gap' are defined in subset 'si'!
@@ -261,21 +253,21 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 			}
 	}
 
-	if (m_vSubsetsOfActiveZones.size() == 0)
+	if (m_vActiveSubsets.size() == 0)
 		UG_LOG("No subsets chosen as possible active subsets. \n");
 
-	UG_LOG("#sizeOfvSubsetsOfGap: " << m_vSubsetsOfActiveZones.size() << "\n");
+	UG_LOG("#sizeOfvActiveSubsets: " << m_vActiveSubsets.size() << "\n");
 
 	//	2.) loop over all elements of the possible active subsets
-	for (vector<int>::iterator activeSI = m_vSubsetsOfActiveZones.begin();
-			activeSI != m_vSubsetsOfActiveZones.end(); ++activeSI)
+	for (vector<int>::iterator activeSI = m_vActiveSubsets.begin();
+			activeSI != m_vActiveSubsets.end(); ++activeSI)
 	{
 		//UG_LOG("activeSI: " << *activeSI << "\n");
 		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
 		//UG_LOG("subsetDim: " << subsetDim << "\n");
 
 		//	3.) get localU out of u for each element and
-		//	4.) store the active (global) dof,fct-pair in m_vActiveSetGlob
+		//	4.) store the active global (dof,fct)-pair in m_vActiveSetGlob
 		switch(subsetDim)
 		{
 		case 0:
@@ -327,7 +319,8 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_multiplier(function_type& lagrangeMu
 	if(m_vActiveSetGlob.size() != 0.0)
 	{
 		UG_LOG("activeDoFs in ActiveSet:lagrange_multiplier " << m_vActiveSetGlob.size() << "\n");
-		m_spLagMultDisc->lagrange_multiplier(lagrangeMult, u, m_vActiveSetGlob, m_vSubsetsOfActiveZones);
+		//TODO: pass localActiveElemAndIndex here!!!
+		m_spLagMultDisc->lagrange_multiplier(lagrangeMult, u, m_vActiveSetGlob, m_vActiveSubsets);
 	}
 }
 
@@ -342,7 +335,7 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 	typename TDomain::position_accessor_type& aaPos = m_spDom->position_accessor();
 
 	//	some storage
-	MathVector<dim> sideCoPos[dim+1];
+	MathVector<dim> sideCoPos[dim+1], normal;
 	vector<MathVector<dim> > vCorner;
 
 	// 	local indices and local algebra
@@ -379,7 +372,6 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 		for (int i = 0; i < (int)vCorner.size(); ++i)
 			sideCoPos[i] = vCorner[rRefElem.id(dim-1, 0, 0, i)];
 
-		MathVector<dim> normal;
 		if ((int)vCorner.size() == dim)
 			ElementNormal<face_type0, dim>(normal, sideCoPos);
 		else
@@ -406,8 +398,8 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv(matrix_type& lagrangeMatInv)
 {
-	for (vector<int>::iterator activeSI = m_vSubsetsOfActiveZones.begin();
-				activeSI != m_vSubsetsOfActiveZones.end(); ++activeSI)
+	for (vector<int>::iterator activeSI = m_vActiveSubsets.begin();
+				activeSI != m_vActiveSubsets.end(); ++activeSI)
 	{
 		UG_LOG("activeSI: " << *activeSI << "\n");
 		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
@@ -495,13 +487,6 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 {
 	static const int dim = function_type::dim;
 	typedef typename function_type::domain_type domain_type;
-	typedef typename domain_type::grid_type grid_type;
-	typedef typename function_type::element_type element_type;
-	typedef typename element_type::side side_type;
-
-	typename grid_type::template traits<side_type>::secure_container sides;
-	typename grid_type::template traits<element_type>::secure_container assoElements;
-
 	typedef typename face_type_traits<dim>::face_type0 face_type0;
 	typedef typename face_type_traits<dim>::face_type1 face_type1;
 
@@ -554,13 +539,13 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 		size_t nrFctElem = ind.num_fct();
 		number gapValue, locUNormal, kktcond;
 		number normOfNormal = VecLength(normal);
+		MathVector<dim> locUDof;
 
 		for(size_t fct = 0; fct < nrFctElem; ++fct)
 		{
-			size_t nDoFsPerFctElem = ind.num_dof(fct);
-			for(size_t dof = 0; dof < nDoFsPerFctElem; ++dof)
+			size_t nrDoFsPerFctElem = ind.num_dof(fct);
+			for(size_t dof = 0; dof < nrDoFsPerFctElem; ++dof)
 			{
-				MathVector<dim> locUDof;
 				for(int i = 0; i < dim; ++i)
 					locUDof[i] = locU(i, dof);
 				locUNormal = VecDot(locUDof, normal) / normOfNormal;
@@ -592,64 +577,53 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const function_t
 		return false;
 
 	//	NOW TWO CHECKS WILL BE PERFORMED TO ENSURE CONVERGENCE:
-	//	1. 	Is the constraint violated by any multiIndex?
-	//	2. 	Did some multiIndices change from 'active' to 'inactive' or vice versa
+	//	1. 	Did some multiIndices change from 'active' to 'inactive' or vice versa
 	//		in the last iteration-step?
+	//	2. 	Is the constraint violated for any DoFIndex?
 
 	UG_LOG(m_vActiveSetGlob.size() << " indices are active at the begin "
 			"of step " << step << " ! \n");
 
-	bool bConstraintViolated = false;
-	for (vector<int>::iterator activeSI = m_vSubsetsOfActiveZones.begin();
-			activeSI != m_vSubsetsOfActiveZones.end(); ++activeSI)
-	{
-		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
-		switch(subsetDim)
-		{
-		case 0:
-			break;
-		case 1:
-			if (!check_conv_elem<Edge>
-				(m_spDD->template begin<Edge>(*activeSI), m_spDD->template end<Edge>(*activeSI),
-						u, lambda))
-			{bConstraintViolated = true;}
-
-			break;
-		case 2:
-			if (!check_conv_elem<Triangle>
-				(m_spDD->template begin<Triangle>(*activeSI),
-						m_spDD->template end<Triangle>(*activeSI), u, lambda))
-			{bConstraintViolated = true;}
-
-			if (!check_conv_elem<Quadrilateral>
-				(m_spDD->template begin<Quadrilateral>(*activeSI),
-						m_spDD->template end<Quadrilateral>(*activeSI), u, lambda))
-			{bConstraintViolated = true;}
-
-			break;
-		default:
-			UG_THROW("ActiveSet::check_conv:"
-				"SubsetDimension "<< subsetDim <<" (subset="<< *activeSI <<") not supported.");
-		}
-
-		if (bConstraintViolated)
-			return false;
-	}
-
 	//	check if activeSet has changed
-	if (m_vActiveSetGlob.size() == m_vActiveSetGlobOld.size())
+	if (m_vActiveSetGlob == m_vActiveSetGlobOld)
 	{
-		UG_LOG("Old and new active Set have the same number of members \n");
-
-		vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
-		for (vector<DoFIndex>::iterator itActiveIndOld = m_vActiveSetGlobOld.begin();
-				itActiveIndOld < m_vActiveSetGlobOld.end(); ++itActiveIndOld)
+		//	check if constraint is fulfilled
+		bool bConstraintViolated = false;
+		for (vector<int>::iterator activeSI = m_vActiveSubsets.begin();
+				activeSI != m_vActiveSubsets.end(); ++activeSI)
 		{
-			if (*itActiveInd != *itActiveIndOld)
-				return false;
+			const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), *activeSI);
+			switch(subsetDim)
+			{
+			case 0:
+				break;
+			case 1:
+				if (!check_conv_elem<Edge>
+					(m_spDD->template begin<Edge>(*activeSI), m_spDD->template end<Edge>(*activeSI),
+							u, lambda))
+				{bConstraintViolated = true;}
 
-			++itActiveInd;
-		} // itActiveIndOld
+				break;
+			case 2:
+				if (!check_conv_elem<Triangle>
+					(m_spDD->template begin<Triangle>(*activeSI),
+							m_spDD->template end<Triangle>(*activeSI), u, lambda))
+				{bConstraintViolated = true;}
+
+				if (!check_conv_elem<Quadrilateral>
+					(m_spDD->template begin<Quadrilateral>(*activeSI),
+							m_spDD->template end<Quadrilateral>(*activeSI), u, lambda))
+				{bConstraintViolated = true;}
+
+				break;
+			default:
+				UG_THROW("ActiveSet::check_conv:"
+					"SubsetDimension "<< subsetDim <<" (subset="<< *activeSI <<") not supported.");
+			}
+
+			if (bConstraintViolated)
+				return false;
+		}
 
 		//	activeSet remains unchanged & constraint is fulfilled for all indices
 		return true;
@@ -667,8 +641,8 @@ bool ActiveSet<TDomain, TAlgebra>::check_inequ(const matrix_type& mat,
 				const vector_type& rhs)
 {
 	if (u.size() != lambda.size())
-				UG_THROW("Temporarily u and lambda need to be "
-						"of same size in ActiveSet:check_inequ \n");
+		UG_THROW("Temporarily u and lambda need to be "
+				"of same size in ActiveSet:check_inequ \n");
 
 	SmartPtr<vector_type> spMat_u = u.clone_without_values();
 	SmartPtr<vector_type> spRes = u.clone_without_values();
