@@ -782,6 +782,35 @@ bool CheckVectorInvertible(const ParallelVector<TVector> &v)
 #endif
 
 
+template<typename TSparseMatrix>
+struct DenseMatrixFromSparseMatrix
+{
+	typedef DenseMatrix<VariableArray2<typename TSparseMatrix::value_type> > type;
+};
+
+template<typename TSparseMatrix>
+typename DenseMatrixFromSparseMatrix<TSparseMatrix>::type &
+GetDenseFromSparse(typename DenseMatrixFromSparseMatrix<TSparseMatrix>::type &A, const TSparseMatrix &S)
+{
+
+	typedef typename TSparseMatrix::const_row_iterator sparse_row_iterator;
+	size_t n = S.num_rows();
+//	PROGRESS_START(prog, n, "GetDenseFromSparse " << n);
+	A.resize(n,n);
+	for(size_t r=0; r<n; r++)
+	{
+//		PROGRESS_UPDATE(prog, r);
+		for(sparse_row_iterator it = S.begin_row(r); it != S.end_row(r); ++it)
+			A(r, it.index()) = it.value();
+	}
+//	PROGRESS_FINISH(prog);
+	return A;
+}
+
+
+
+
+
 /// @}
 } // end namespace ug
 
