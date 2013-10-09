@@ -13,6 +13,9 @@
 #ifndef __H__UG__COMMON__DENSEMATRIX_IMPL_H__
 #define __H__UG__COMMON__DENSEMATRIX_IMPL_H__
 
+#include "print.h"
+#include "../blocks.h"
+
 // constructors
 namespace ug{
 
@@ -250,7 +253,7 @@ DenseMatrix<TStorage>::operator * (const DenseVector<TStorage2> &vec) const
 {
 	UG_ASSERT(num_cols() == vec.size(), "");
 	DenseVector<TStorage2> erg;
-	erg.resize(vec.size());
+	erg.resize(num_rows());
 
 	for(size_t r=0; r < num_rows(); r++)
 	{
@@ -328,19 +331,7 @@ bool DenseMatrix<TStorage>::operator != (const T2 &t) const
 template<typename TStorage>
 void DenseMatrix<TStorage>::maple_print(const char *name)
 {
-	UG_LOG(name << " = matrix([");
-	for(size_t r=0; r<num_rows(); ++r)
-	{
-		if(r > 0) UG_LOG(", ");
-		UG_LOG("[");
-		for(size_t c=0; c<num_cols(); ++c)
-		{
-			if(c > 0) UG_LOG(", ");
-			UG_LOG(entry(r, c));
-		}
-		UG_LOG("]");
-	}
-	UG_LOG("]);\n");
+	UG_LOG(MatlabString(*this, name));
 }
 
 
@@ -409,7 +400,6 @@ Deserialize(std::istream &buff, const DenseMatrix<VariableArray2<T> > &mat)
 		for(size_t c=0; c<cols; c++)
 			BlockDeserialize(buff, mat(r, c));
 }
-
 
 } // namespace ug
 
