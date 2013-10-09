@@ -11,9 +11,10 @@ typedef int lapack_ftnlen;
 
 
 inline double dabs(double a) { return a > 0 ? a : -a; }
-
+/*
 extern "C"
 {
+
 	// factor system *GETRF
 void dsytrs_(char *uplo, int *n, int *nrhs, double *a, int *lda,
              int *ipivot, double *b, int *ldb, int *info);
@@ -28,7 +29,6 @@ inline lapack_int sytrs(char uplo, int n, int nrhs, double *a, int  lda,
     return info;
 }
 
-namespace ug{
 bool SolveDeficit2(DenseMatrix< VariableArray2<double> > &A,
 		DenseVector<VariableArray1<double> > &x, DenseVector<VariableArray1<double> > &rhs)
 {
@@ -52,8 +52,9 @@ bool SolveDeficit2(DenseMatrix< VariableArray2<double> > &A,
 
 		}
 
-}
+}*/
 
+namespace ug{
 
 /*
 |   free variable
