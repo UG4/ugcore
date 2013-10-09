@@ -24,13 +24,14 @@ set(src_Algebra	 ${src_Algebra}
 	algebra_type.cpp
 	common/connection_viewer_output.cpp
 	common/connection_viewer_input.cpp
+	small_algebra/solve_deficit.cpp
 	 )
 add_subdirectory(common/matrixio)
 
 if(PARALLEL)
 	# add parallelization
 	set(src_Algebra	 ${src_Algebra}
-						operator/linear_solver/feti.cpp
+	    				operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp
 						parallelization/parallel_coloring.cpp						
 						parallelization/global_layout.cpp
