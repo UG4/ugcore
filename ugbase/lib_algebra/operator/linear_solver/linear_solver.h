@@ -89,7 +89,7 @@ class LinearSolver
 				char ext[20]; sprintf(ext, "_iter%03d", ++loopCnt);
 
 			// 	Compute a correction c := B*d using one iterative step
-			// 	Internally the defect is updated d := d - A*c = d - A*(x+c)
+			// 	Internally the defect is updated d := d - A*c = b - A*(x+c)
 				if(preconditioner().valid()) {
 					LS_PROFILE_BEGIN(LS_ApplyPrecond);
 
@@ -114,10 +114,10 @@ class LinearSolver
 				name = std::string("LS_Solution_"); name.append(ext).append(".vec");
 				write_debug(x, name.c_str());
 
-			// 	compute new defect (in parallel) d := d - A*c
-				LS_PROFILE_BEGIN(LS_ComputeNewDefect);
+			// 	compute norm of new defect (in parallel)
+				LS_PROFILE_BEGIN(LS_ComputeNewDefectNorm);
 				convergence_check()->update(d);
-				LS_PROFILE_END(); //LS_ComputeNewDefect
+				LS_PROFILE_END(); //LS_ComputeNewDefectNorm
 			}
 
 		//	write some information when ending the iteration
