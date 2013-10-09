@@ -66,11 +66,10 @@ public:
 				densemat.num_rows(), &interchange[0]);
 		if(info != 0)
 		{
-			UG_LOG("ERROR in 'DenseMatrixInverse::invert': ");
 			if(info > 0)
-				UG_LOG(" Matrix singular in U(i,i), with i="<<info<<"\n");
+			{UG_THROW("ERROR in 'DenseMatrixInverse::invert': Matrix singular in U(i,i), with i="<<info<<"\n");}
 			if(info < 0)
-				UG_LOG(" i-th argument had had illegal value, with i="<<info<<"\n");
+			{UG_THROW("ERROR in 'DenseMatrixInverse::invert':  i-th argument had had illegal value, with i="<<info<<"\n");}
 		}
 		return info == 0;
 	}
