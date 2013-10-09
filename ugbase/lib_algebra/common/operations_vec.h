@@ -143,7 +143,7 @@ inline double VecProd(const vector_t &a, const vector_t &b)
 
 //! calculates s += norm_2^2(a)
 template<typename vector_t>
-inline void VecNormSquaredAdd(const vector_t &a, const vector_t &b, double &sum)
+inline void VecNormSquaredAdd(const vector_t &a, double &sum)
 {
 	for(int i=0; i<a.size(); i++)
 		VecNormSquaredAdd(a[i], sum);
@@ -151,7 +151,7 @@ inline void VecNormSquaredAdd(const vector_t &a, const vector_t &b, double &sum)
 
 //! returns norm_2^2(a)
 template<typename vector_t>
-inline double VecNormSquared(const vector_t &a, const vector_t &b)
+inline double VecNormSquared(const vector_t &a)
 {
 	double sum=0;
 	VecNormSquaredAdd(a, sum);
