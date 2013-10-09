@@ -363,6 +363,13 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 			m_vSCV[ind].vGlobIP = m_vGlobUnkCoords[ind];
 			m_vSCV[ind].vLocIP = m_vLocUnkCoords[ind];
 			m_vSCV[ind].numSH = rTrialSpace.num_sh();
+			m_vSCV[ind].vGloPos[0]=vCornerCoords[edgeCo[0]];
+			m_vSCV[ind].vGloPos[1]=globalMidpoint;
+			m_vSCV[ind].vGloPos[2]=globalBary;
+			m_vSCV[ind].vLocPos[0]=m_rRefElem.corner(edgeCo[0]);
+			m_vSCV[ind].vLocPos[1]=localMidpoint;
+			m_vSCV[ind].vLocPos[2]=localBary;
+			m_vSCV[ind].numCorners = 3;
 			rTrialSpace.shapes(&(m_vSCV[ind].vShape[0]), m_vSCV[ind].local_ip());
 			rTrialSpace.grads(&(m_vSCV[ind].vLocalGrad[0]), m_vSCV[ind].local_ip());
 			// second scv inserted at the end
@@ -372,6 +379,13 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 			m_vSCV[m_numSCV].vGlobIP = m_vGlobUnkCoords[m_numSCV];
 			m_vSCV[m_numSCV].vLocIP = m_vLocUnkCoords[m_numSCV];
 			m_vSCV[m_numSCV].numSH = rTrialSpace.num_sh();
+			m_vSCV[m_numSCV].vGloPos[0]=vCornerCoords[edgeCo[1]];
+			m_vSCV[m_numSCV].vGloPos[1]=globalMidpoint;
+			m_vSCV[m_numSCV].vGloPos[2]=globalBary;
+			m_vSCV[m_numSCV].vLocPos[0]=m_rRefElem.corner(edgeCo[1]);
+			m_vSCV[m_numSCV].vLocPos[1]=localMidpoint;
+			m_vSCV[m_numSCV].vLocPos[2]=localBary;
+			m_vSCV[m_numSCV].numCorners = 3;
 			rTrialSpace.shapes(&(m_vSCV[m_numSCV].vShape[0]), m_vSCV[m_numSCV].local_ip());
 			rTrialSpace.grads(&(m_vSCV[m_numSCV].vLocalGrad[0]), m_vSCV[m_numSCV].local_ip());
 			// insert new scvf
