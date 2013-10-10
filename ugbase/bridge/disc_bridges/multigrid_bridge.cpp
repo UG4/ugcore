@@ -25,6 +25,7 @@
 #include "lib_disc/operator/linear_operator/multi_grid_solver/mg_solver.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/element_gauss_seidel.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/component_gauss_seidel.h"
+#include "lib_disc/operator/linear_operator/proj_gauss_seidel/proj_gauss_seidel.h"
 
 using namespace std;
 
@@ -163,6 +164,18 @@ static void DomainAlgebra(Registry& reg, string grp)
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ComponentGaussSeidel", tag);
 	}
+
+	//	ProjGaussSeidel
+	{
+		typedef ProjGaussSeidel<TDomain, TAlgebra> T;
+		typedef ILinearIterator<vector_type> TBase;
+		string name = string("ProjGaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+		.add_constructor()
+		.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ProjGaussSeidel", tag);
+	}
+
 
 }
 
