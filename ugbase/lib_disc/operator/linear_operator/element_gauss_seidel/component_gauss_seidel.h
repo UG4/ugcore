@@ -60,6 +60,22 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		c.collect_associated(vElem, groupObj);
 
 		// get all algebraic indices on element
+		if(TGroupObj::dim <= VERTEX){
+			std::vector<EdgeBase*> vSub;
+			c.collect_associated(vSub, groupObj);
+			for(size_t i = 0; i < vSub.size(); ++i)
+				for(size_t f = 0; f < vCmp.size(); ++f)
+					c.inner_dof_indices(vSub[i], vCmp[f], vCmpInd, false);
+		}
+		if(TGroupObj::dim <= EDGE){
+			std::vector<Face*> vSub;
+			c.collect_associated(vSub, groupObj);
+			for(size_t i = 0; i < vSub.size(); ++i)
+				for(size_t f = 0; f < vCmp.size(); ++f)
+					c.inner_dof_indices(vSub[i], vCmp[f], vCmpInd, false);
+		}
+
+		// get all algebraic indices on element
 		vInd.clear();
 		for(size_t i = 0; i < vElem.size(); ++i)
 			for(size_t f = 0; f < vRemainCmp.size(); ++f)
@@ -74,6 +90,9 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		// get number of indices on patch
 		const size_t numIndex = vCmpInd.size() + vInd.size();
 
+//		UG_LOG("CGS in dim: "<<TGroupObj::dim<<", #p: "<<vCmpInd.size()<<
+//		       ", v: "<<vInd.size()<<" ("<<vInd.size()/2<<" each)\n")
+
 		// concat all indices
 		vInd.insert(vInd.end(), vCmpInd.begin(), vCmpInd.end());
 
@@ -85,8 +104,6 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		for (size_t j = 0; j < numIndex; j++)
 			for (size_t k = 0; k < numIndex; k++)
 				mat(j,k) = DoFRef(A, vInd[j], vInd[k]);
-
-		for(size_t cnt = 0; cnt < vCmpInd.size(); ++cnt){
 
 		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
 		// note: the loop over k is the whole matrix row (not only selected indices)
@@ -108,7 +125,6 @@ void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
 		for (size_t j=0;j<numIndex;j++){
 			DoFRef(c, vInd[j]) += relax*x[j];
 		};
-		}
 	}
 }
 
