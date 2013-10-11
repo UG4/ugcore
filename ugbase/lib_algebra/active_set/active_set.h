@@ -17,6 +17,28 @@ namespace ug {
 
 /// Active Set method
 /**
+ *	The active Set method is a well-known method in constrained optimization theory.
+ *	A general formulation for these problems reads
+ *
+ *		min_{x \in \mathbb{R}^n} f(x)
+ *
+ *		s.t.
+ *			c_i(x) = 0, 	i \in E
+ *			c_i(x) >= 0		i \in I,
+ *
+ *	where f, c_i are smooth, real-valued functions on a subset of \mathbb{R}^n.
+ *	I (set of inequality constraints) and E (set of equality constraints)
+ *	are two finite sets of indices. f is called objective function.
+ *
+ *	The active Set A is defined as:
+ *
+ *		A(x) := E \cup { i \in I | c_i(x) = 0},
+ *
+ *	i.e. for i \in I the inequality constraint is said to be active, if c_i(x) = 0.
+ *	Otherwise (c_i(x) > 0) it is called inactive.
+ *
+ *	...
+ *
  *
  * References:
  * <ul>
