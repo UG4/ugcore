@@ -10,6 +10,7 @@
 
 #include "domain.h"
 #include "common/serialization.h"
+#include "common/profiler/profiler.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl_process_communicator.h"
@@ -60,6 +61,8 @@ template <typename TGrid, typename TSubsetHandler>
 void IDomain<TGrid,TSubsetHandler>::
 update_subset_infos(int rootProc)
 {
+	PROFILE_FUNC();
+
 	TSubsetHandler& sh = *m_spSH;
 	for(int i = 0; i < sh.num_subsets(); ++i){
 		int dim = -1;
@@ -162,6 +165,8 @@ template <typename TGrid, typename TSubsetHandler>
 void IDomain<TGrid,TSubsetHandler>::
 update_domain_info()
 {
+	PROFILE_FUNC();
+
 	TGrid& mg = *m_spGrid;
 	TSubsetHandler& sh = *m_spSH;
 

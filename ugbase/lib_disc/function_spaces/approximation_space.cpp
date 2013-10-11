@@ -9,6 +9,8 @@
 #include "lib_disc/domain.h"
 #include "lib_disc/common/groups_util.h"
 #include "common/util/string_util.h"
+#include "common/profiler/profiler.h"
+
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
 #endif
@@ -370,6 +372,7 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 void IApproximationSpace::
 grid_distribution_callback(const GridMessage_Distribution& msg)
 {
+	PROFILE_FUNC();
 	switch(msg.msg()){
 		case GMDT_DISTRIBUTION_STARTS:
 			break;

@@ -13,6 +13,7 @@
 #include "lib_algebra/algebra_type.h"
 #include "adaption_surface_grid_function.h"
 #include "lib_grid/algorithms/serialization.h"
+#include "common/profiler/profiler.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
@@ -348,6 +349,8 @@ void
 GridFunction<TDomain, TAlgebra>::
 grid_distribution_callback(const GridMessage_Distribution& msg)
 {
+	PROFILE_FUNC();
+
 	#ifdef UG_PARALLEL
 	GridDataSerializationHandler& sh = msg.serialization_handler();
 
@@ -403,27 +406,31 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 		}break;
 
 		case GMDT_DISTRIBUTION_STOPS:
-			// all grid functions must resize to the current number of dofs
-			resize_values(num_indices());
+			{
+				PROFILE_BEGIN(grid_func_distribution_stops)
+				// all grid functions must resize to the current number of dofs
+				resize_values(num_indices());
 
-			#ifdef UG_PARALLEL
-			//	set layouts
-			this->set_layouts(m_spDD->layouts());
-			#endif
+				#ifdef UG_PARALLEL
+				//	set layouts
+				this->set_layouts(m_spDD->layouts());
+				#endif
 
-			m_spAdaptGridFct->copy_to_surface(*this);
-			m_spAdaptGridFct = NULL;
+				m_spAdaptGridFct->copy_to_surface(*this);
+				m_spAdaptGridFct = NULL;
 
-			if(m_preDistStorageType != this->get_storage_mask()){
-				if((m_preDistStorageType & PST_ADDITIVE) == PST_ADDITIVE)
-					this->change_storage_type(PST_ADDITIVE);
-				else if((m_preDistStorageType & PST_UNIQUE) == PST_UNIQUE)
-					this->change_storage_type(PST_UNIQUE);
-				else{
-					UG_THROW("Can't reestablish storage type!");
+				if(m_preDistStorageType != this->get_storage_mask()){
+					if((m_preDistStorageType & PST_ADDITIVE) == PST_ADDITIVE)
+						this->change_storage_type(PST_ADDITIVE);
+					else if((m_preDistStorageType & PST_UNIQUE) == PST_UNIQUE)
+						this->change_storage_type(PST_UNIQUE);
+					else{
+						UG_THROW("Can't reestablish storage type!");
+					}
 				}
-			}
-			break;
+
+				PROFILE_END();
+			}break;
 
 		default:
 			break;

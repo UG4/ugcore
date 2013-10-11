@@ -543,7 +543,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	//	reset local algebra
 		locJ = 0.0;
 
-		EL_PROFILE_BEGIN(Elem_add_JA);
+		//EL_PROFILE_BEGIN(Elem_add_JA);
 		// 	Assemble JA
 		try
 		{
@@ -553,7 +553,7 @@ AssembleJacobian(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 			Eval.add_jac_A_elem(locJ, locU, elem, vCornerCoords, PT_STATIONARY);
 		}
 		UG_CATCH_THROW("(instationary) AssembleJacobian: Cannot compute Jacobian (A).");
-		EL_PROFILE_END();
+		//EL_PROFILE_END();
 
 	// 	Assemble JM
 		try
