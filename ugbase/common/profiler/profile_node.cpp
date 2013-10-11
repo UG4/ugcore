@@ -882,6 +882,11 @@ void WriteProfileDataXML(const char *filename)
 	return;
 }
 
+void WriteProfileDataXML(const char *filename, int procId)
+{
+	return;
+}
+
 bool GetProfilerAvailable()
 {
 	return false;
