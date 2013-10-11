@@ -58,6 +58,35 @@ class LocalToGlobalMapperNLGS : public ILocalToGlobalMapper<TAlgebra>
 		size_t m_assemblingIndex;
 };
 
+/// Nonlinear GaussSeidel-method
+/**
+ * 	Let L(u) denote a nonlinear functional of n components (l_1,...,l_n).
+ * 	Then the basic step of the nonlinear GaussSeidel method is to solve the
+ * 	i-th equation
+ *
+ * 	l_i(u_1^{k+1},...,u_{i-1}^{k+1},u_i,u_{i+1}^{k},...,u_{n}^{k}) = 0
+ *
+ * 	for u_i and to set u_i^{k+1} = u_i. Here k denotes the iteration-index.
+ * 	Note, that the already computed, updated values (.)^{k+1} are used in this
+ * 	method.
+ * 	Thus, in order to obtain u^{k+1} from u^k, we solve successively the n
+ * 	dimensional nonlinear equations for i = 1,...,n. Here this is done
+ * 	by a scalar newton step for every i. But every other scalar nonlinear method
+ * 	could be applied as well.
+ *
+ * 	Using a damped version of the nonlinear GaussSeidel method (= nonlinear
+ * 	SOR-method) results in the following update of the variables
+ *
+ * 	u_i^{k+1} = u_i^k + damp * (u_i -u_i^k).
+ *
+ * References:
+ * <ul>
+ * <li> J. M. Ortega and W. C. Rheinbolt. Iterative Solution of nonlinear equations in several variables.(1970)
+ * </ul>
+ *
+ *  \tparam 	TDomain			Domain type
+ *  \tparam 	TAlgebra		Algebra type
+ */
 template <typename TDomain, typename TAlgebra>
 class NLGaussSeidelSolver
 	: public IOperatorInverse<typename TAlgebra::vector_type>,
@@ -102,10 +131,16 @@ class NLGaussSeidelSolver
 
 		void set_approximation_space(SmartPtr<approx_space_type> spApproxSpace)
 		{m_spApproxSpace = spApproxSpace;}
+
 		void set_convergence_check(SmartPtr<IConvergenceCheck<vector_type> > spConvCheck);
+
 		void set_damp(const number damp) {m_damp = damp;}
-	///	sets constraint/obstacle
+
 		void set_constraint(const vector_type& cons) {m_ConsVec = cons; m_bProjectedGS = true;}
+
+	///////////////////////////////////////////////////////////////////////////
+	//	OperatorInverse interface methods
+	///////////////////////////////////////////////////////////////////////////
 
 	/// This operator inverts the Operator op: Y -> X
 		virtual bool init(SmartPtr<IOperator<vector_type> > op);

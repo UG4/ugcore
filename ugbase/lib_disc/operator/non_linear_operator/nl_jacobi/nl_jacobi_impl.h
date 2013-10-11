@@ -6,26 +6,6 @@
  *  	newton_impl.h by Andreas Vogel)
  *
  * 	Author: raphaelprohl
- *
- * 	Nonlinear Jacobi-method: (c.f. "Iterative Solution of nonlinear
- * 				equations in several variables" by Ortega/Rheinboldt)
- *
- * 	Let L(u) denote a nonlinear functional of n components (l_1,...,l_n).
- * 	Then the basic step of the nonlinear Jacobi method is to solve the
- * 	i-th equation
- *
- * 	l_i(u_1^{k},...,u_{i-1}^{k},u_i,u_{i+1}^{k},...,u_{n}^{k}) = 0
- *
- * 	for u_i and to set u_i^{k+1} = u_i. Here k denotes the iteration-index.
- * 	Thus, in order to obtain u^{k+1} from u^k, we solve successively the n
- * 	dimensional nonlinear equations for i = 1,...,n. Here this is done
- * 	by a scalar newton step for every i. But every other scalar nonlinear
- * 	method could be applied as well.
- *
- * 	Using a damped version of the nonlinear jacobi method results in the
- * 	following update of the variables
- *
- * 	u_i^{k+1} = u_i^k + damp * (u_i -u_i^k).
  */
 
 #ifndef NL_JACOBI_IMPL_H_

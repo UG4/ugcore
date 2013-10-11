@@ -15,6 +15,17 @@ using namespace std;
 
 namespace ug {
 
+/// Active Set method
+/**
+ *
+ * References:
+ * <ul>
+ * <li> J. Nocedal and S. J. Wright. Numerical optimization.(2000)
+ * </ul>
+ *
+ *  \tparam 	TDomain			Domain type
+ *  \tparam 	TAlgebra		Algebra type
+ */
 template <typename TDomain, typename TAlgebra>
 class ActiveSet
 {
