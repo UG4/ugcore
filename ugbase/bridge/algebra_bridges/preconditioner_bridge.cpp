@@ -181,6 +181,16 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DiagVanka", tag);
 	}
 	
+//	ProjGaussSeidel
+	{
+		typedef ProjGaussSeidel<TAlgebra> T;
+		typedef ILinearIterator<vector_type> TBase;
+		string name = string("ProjGaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+		.add_constructor()
+		.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ProjGaussSeidel", tag);
+	}
 }
 	
 
