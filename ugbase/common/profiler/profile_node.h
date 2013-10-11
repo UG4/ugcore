@@ -184,10 +184,10 @@ bool GetProfilerAvailable();
 void WriteProfileDataXML(const char *filename);
 
 ///	Writes profile data to the specified file
-/**	Writes profile data of all procs (gatherFromAllProcs == true) or of proc 0
- * (gatherFromAllProcs == false) to the specified file
+/**	Writes profile data of all procs (procId == -1) or of specified proc
+ * (procId >= 0) to the specified file
  */
-void WriteProfileDataXML(const char *filename, bool gatherFromAllProcs);
+void WriteProfileDataXML(const char *filename, int procId);
 }
 
 

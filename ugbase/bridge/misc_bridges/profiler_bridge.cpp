@@ -108,7 +108,7 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 					 grp,
 	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 	reg.add_function("WriteProfileData",
-					 static_cast<void (*)(const char*, bool)>(&WriteProfileDataXML),
+					 static_cast<void (*)(const char*, int)>(&WriteProfileDataXML),
 					 grp,
 	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 }

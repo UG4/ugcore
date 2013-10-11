@@ -582,20 +582,39 @@ const UGProfileNode *UGProfileNode::get_root()
 
 void WriteProfileDataXML(const char *filename)
 {
-	WriteProfileDataXML(filename, false);
+	WriteProfileDataXML(filename, 0);
 }
 
-void WriteProfileDataXML(const char *filename, bool gatherFromAllProcs)
+void WriteProfileDataXML(const char *filename, int procId)
 {
+	#ifdef UG_PARALLEL
+		UG_COND_THROW(procId >= pcl::GetNumProcesses(),
+					  "Bad process id: " << procId << ". Maximum allowed is "
+					  << pcl::GetNumProcesses() - 1);
+	#else
+		UG_COND_THROW(procId >0,
+					  "Bad process id: " << procId
+					  << ". Only one process available (with id 0)");
+	#endif
+
 	clock_t curTime = clock();
 	ProfilerUpdate();
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
+
+//	procId represents the id of the process which will write the file.
+//	if all processes are considered (procId < 0), then process 0 will write the file.
+	bool gatherFromAllProcs = false;
+	if(procId < 0){
+		gatherFromAllProcs = true;
+		procId = 0;
+	}
+
 #ifdef UG_PARALLEL
 	typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, vector> >
 		IndexLayout;
 
 	pcl::InterfaceCommunicator<IndexLayout> ic;
-	if(pcl::GetProcRank()==0)
+	if(pcl::GetProcRank() == procId)
 	{
 #endif
 		fstream f(filename, ios::out);
@@ -609,7 +628,7 @@ void WriteProfileDataXML(const char *filename, bool gatherFromAllProcs)
 		f << "</AdditionalInfo>\n";
 		f << "<basepath>" << PathProvider::get_path(ROOT_PATH) << "</basepath>\n";
 
-		f << "<core id=\"0\">\n";
+		f << "<core id=\""<<procId<<"\">\n";
 		
 		pnRoot->PDXML_rec_write(f);
 		f << "</core>\n";
@@ -669,7 +688,7 @@ void WriteProfileDataXML(const char *filename, bool gatherFromAllProcs)
 			pnRoot->PDXML_rec_write(ss);
 			BinaryBuffer buf;
 			Serialize(buf, ss.str());
-			ic.send_raw(0, buf.buffer(), buf.write_pos(), false);
+			ic.send_raw(procId, buf.buffer(), buf.write_pos(), false);
 			ic.communicate();
 		}
 	}	
