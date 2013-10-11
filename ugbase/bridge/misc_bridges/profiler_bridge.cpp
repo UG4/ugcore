@@ -103,7 +103,13 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 	                 "true if profiler available");
 	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp,  
 	                 "", "bOutput", "if set to true and profiler available, profile stats are printed at the end of the program. true is default");
-	reg.add_function("WriteProfileData", &WriteProfileDataXML, grp,
+	reg.add_function("WriteProfileData",
+					 static_cast<void (*)(const char*)>(&WriteProfileDataXML),
+					 grp,
+	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
+	reg.add_function("WriteProfileData",
+					 static_cast<void (*)(const char*, bool)>(&WriteProfileDataXML),
+					 grp,
 	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 }
 

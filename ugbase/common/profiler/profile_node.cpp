@@ -579,13 +579,18 @@ const UGProfileNode *UGProfileNode::get_root()
 	return reinterpret_cast<const UGProfileNode*> (node);
 }
 
+
 void WriteProfileDataXML(const char *filename)
+{
+	WriteProfileDataXML(filename, false);
+}
+
+void WriteProfileDataXML(const char *filename, bool gatherFromAllProcs)
 {
 	clock_t curTime = clock();
 	ProfilerUpdate();
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
 #ifdef UG_PARALLEL
-	bool bProfileAll = false; // for the moment
 	typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, vector> >
 		IndexLayout;
 
@@ -635,7 +640,7 @@ void WriteProfileDataXML(const char *filename)
 #endif
 		
 #ifdef UG_PARALLEL
-		if(bProfileAll)
+		if(gatherFromAllProcs)
 		{
 			vector<ug::BinaryBuffer> buffers(pcl::GetNumProcesses()-1);
 			for(int i=1; i<pcl::GetNumProcesses(); i++)
@@ -658,7 +663,7 @@ void WriteProfileDataXML(const char *filename)
 	}	
 	else		
 	{
-		if(bProfileAll)
+		if(gatherFromAllProcs)
 		{
 			stringstream ss;
 			pnRoot->PDXML_rec_write(ss);

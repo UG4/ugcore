@@ -179,7 +179,15 @@ private:
 
 const UGProfileNode *GetProfileNode(const char *name);
 bool GetProfilerAvailable();
+
+///	Writes profile data of process 0 to the specified file
 void WriteProfileDataXML(const char *filename);
+
+///	Writes profile data to the specified file
+/**	Writes profile data of all procs (gatherFromAllProcs == true) or of proc 0
+ * (gatherFromAllProcs == false) to the specified file
+ */
+void WriteProfileDataXML(const char *filename, bool gatherFromAllProcs);
 }
 
 
