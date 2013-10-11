@@ -19,7 +19,7 @@
 
 namespace ug{
 
-static const int MAXBLOCKSIZE = 19;
+static const int MAXBLOCKSIZE = 53;
 
 template<typename Matrix_type, typename Vector_type>
 bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, number relax)
@@ -56,6 +56,7 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, numb
 			x[it.index()] = 0;
 			blocksize++;
 		};
+		if (blocksize>MAXBLOCKSIZE) UG_THROW("MAXBLOCKSIZE too small\n");
 		mat.resize(blocksize,blocksize);
 		s.resize(blocksize);
 		localx.resize(blocksize);
@@ -139,6 +140,7 @@ bool Diag_Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b,
 			};
 			blocksize++;
 		};
+		if (blocksize>MAXBLOCKSIZE) UG_THROW("MAXBLOCKSIZE too small\n");
 		// remark: blocksize is without pressure variable, so actual blocksize is blocksize+1
 		block_type a_ii = A(i,i);
 		typename Vector_type::value_type s_i = b[i];
