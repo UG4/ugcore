@@ -19,7 +19,7 @@
 
 namespace ug{
 
-static const int MAXBLOCKSIZE = 53;
+static const size_t MAXBLOCKSIZE = 53;
 
 template<typename Matrix_type, typename Vector_type>
 bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, number relax)
