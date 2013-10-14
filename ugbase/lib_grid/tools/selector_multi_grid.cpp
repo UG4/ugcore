@@ -104,13 +104,13 @@ void MGSelector::enable_element_support(uint shElements)
 		m_pMultiGrid->attach_to_vertices(m_aSharedEntryVRT);
 
 	if((shElements & SE_EDGE) && (!elements_are_supported(SE_EDGE)))
-		m_pMultiGrid->attach_to_vertices(m_aSharedEntryEDGE);
+		m_pMultiGrid->attach_to_edges(m_aSharedEntryEDGE);
 
 	if((shElements & SE_FACE) && (!elements_are_supported(SE_FACE)))
-		m_pMultiGrid->attach_to_vertices(m_aSharedEntryFACE);
+		m_pMultiGrid->attach_to_faces(m_aSharedEntryFACE);
 
 	if((shElements & SE_VOLUME) && (!elements_are_supported(SE_VOLUME)))
-		m_pMultiGrid->attach_to_vertices(m_aSharedEntryVOL);
+		m_pMultiGrid->attach_to_volumes(m_aSharedEntryVOL);
 
 	for(size_t i = 0; i < m_levels.size(); ++i){
 		Level& lvl = *m_levels[i];
@@ -155,13 +155,13 @@ void MGSelector::disable_element_support(uint shElements)
 		m_pMultiGrid->detach_from_vertices(m_aSharedEntryVRT);
 
 	if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE))
-		m_pMultiGrid->detach_from_vertices(m_aSharedEntryEDGE);
+		m_pMultiGrid->detach_from_edges(m_aSharedEntryEDGE);
 
 	if((shElements & SE_FACE) && elements_are_supported(SE_FACE))
-		m_pMultiGrid->detach_from_vertices(m_aSharedEntryFACE);
+		m_pMultiGrid->detach_from_faces(m_aSharedEntryFACE);
 
 	if((shElements & SE_VOLUME) && elements_are_supported(SE_VOLUME))
-		m_pMultiGrid->detach_from_vertices(m_aSharedEntryVOL);
+		m_pMultiGrid->detach_from_volumes(m_aSharedEntryVOL);
 
 	ISelector::disable_element_support(shElements);
 }

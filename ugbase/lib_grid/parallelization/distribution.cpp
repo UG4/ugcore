@@ -53,7 +53,7 @@ typedef Attachment<vector<TargetProcInfo> >	ADistInfo;
  */
 class DistInfoSupplier{
 	public:
-		DistInfoSupplier(Grid& grid) : m_grid(grid)
+		DistInfoSupplier(Grid& grid) : m_grid(grid), m_aDistInfo("distribution-info")
 		{
 			m_grid.attach_to_all(m_aDistInfo);
 			m_aaDistInfoVRT.access(grid, m_aDistInfo);
@@ -1711,7 +1711,7 @@ bool DistributeGrid(MultiGrid& mg,
 //	SERIALIZE THE GRID, THE GLOBAL IDS AND THE DISTRIBUTION INFOS.
 	GDIST_PROFILE(gdist_Serialization);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Serialization\n");
-	AInt aLocalInd;
+	AInt aLocalInd("distribution-tmp-local-index");
 	mg.attach_to_all(aLocalInd);
 	MultiElementAttachmentAccessor<AInt> aaInt(mg, aLocalInd);
 

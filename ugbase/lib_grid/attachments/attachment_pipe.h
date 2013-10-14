@@ -220,7 +220,7 @@ template <class T> class UG_API AttachmentDataContainer : public IAttachmentData
 class UG_API IAttachment : public UID
 {
 	public:
-		IAttachment() : m_name("")   {}
+		IAttachment() : m_name("undefined")   {}
 		IAttachment(const char* name) : m_name(name)
 			{assert(m_name);}
 
