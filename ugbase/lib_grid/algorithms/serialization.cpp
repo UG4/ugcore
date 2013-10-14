@@ -8,6 +8,8 @@
 #include "serialization.h"
 #include "common/serialization.h"
 #include "debug_util.h"
+#include "common/util/new_hash.h"
+#include "common/util/hash.h"
 
 using namespace std;
 
@@ -1419,32 +1421,34 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 	SRLZ_PROFILE(srlz_settingUpHashes);
 //	create hashes for existing geometric objects
-	Hash<VertexBase*, GeomObjID>	vrtHash((int)(1.1f * (float)mg.num<VertexBase>()));
-	Hash<EdgeBase*, GeomObjID>		edgeHash((int)(1.1f * (float)mg.num<EdgeBase>()));
-	Hash<Face*, GeomObjID>			faceHash((int)(1.1f * (float)mg.num<Face>()));
-	Hash<Volume*, GeomObjID>		volHash((int)(1.1f * (float)mg.num<Volume>()));
-	typedef Hash<VertexBase*, GeomObjID>::Iterator	VrtHashIter;
-	typedef Hash<EdgeBase*, GeomObjID>::Iterator	EdgeHashIter;
-	typedef Hash<Face*, GeomObjID>::Iterator		FaceHashIter;
-	typedef Hash<Volume*, GeomObjID>::Iterator		VolHashIter;
+	NewHash<GeomObjID, VertexBase*>	vrtHash((int)(1.1f * (float)mg.num<VertexBase>()));
+	NewHash<GeomObjID, EdgeBase*>	edgeHash((int)(1.1f * (float)mg.num<EdgeBase>()));
+	NewHash<GeomObjID, Face*>		faceHash((int)(1.1f * (float)mg.num<Face>()));
+	NewHash<GeomObjID, Volume*>		volHash((int)(1.1f * (float)mg.num<Volume>()));
+
+	vrtHash.reserve(mg.num<VertexBase>());
+	edgeHash.reserve(mg.num<EdgeBase>());
+	faceHash.reserve(mg.num<Face>());
+	volHash.reserve(mg.num<Volume>());
+
 
 	if(paaID){
 	//	add existing elements to the hashes
 		for(VertexBaseIterator iter = mg.begin<VertexBase>();
 			iter != mg.end<VertexBase>(); ++iter)
-		{vrtHash.add(*iter, (*paaID)[*iter]);}
+		{vrtHash.insert((*paaID)[*iter], *iter);}
 
 		for(EdgeBaseIterator iter = mg.begin<EdgeBase>();
 			iter != mg.end<EdgeBase>(); ++iter)
-		{edgeHash.add(*iter, (*paaID)[*iter]);}
+		{edgeHash.insert((*paaID)[*iter], *iter);}
 
 		for(FaceIterator iter = mg.begin<Face>();
 			iter != mg.end<Face>(); ++iter)
-		{faceHash.add(*iter, (*paaID)[*iter]);}
+		{faceHash.insert((*paaID)[*iter], *iter);}
 
 		for(VolumeIterator iter = mg.begin<Volume>();
 			iter != mg.end<Volume>(); ++iter)
-		{volHash.add(*iter, (*paaID)[*iter]);}
+		{volHash.insert((*paaID)[*iter], *iter);}
 	}
 	SRLZ_PROFILE_END();
 
@@ -1487,13 +1491,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								VrtHashIter hiter = vrtHash.begin(id);
-								if(hiter != vrtHash.end(id)){
-									assert(dynamic_cast<Vertex*>(*hiter));
-									vVrts.push_back(*hiter);
+								VertexBase* oldVrt;
+								if(vrtHash.get_entry(oldVrt, id)){
+									assert(dynamic_cast<Vertex*>(oldVrt));
+									vVrts.push_back(oldVrt);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldVrt)))
+										mg.associate_parent(oldVrt, parent);
 									continue;
 								}
 								UG_ASSERT(!(parent && mg.num_children<VertexBase>(parent)),
@@ -1541,27 +1545,27 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								VrtHashIter hiter = vrtHash.begin(id);
-								if(hiter != vrtHash.end(id)){
-									assert(dynamic_cast<ConstrainedVertex*>(*hiter));
-									vVrts.push_back(*hiter);
+								VertexBase* oldVrt;
+								if(vrtHash.get_entry(oldVrt, id)){
+									assert(dynamic_cast<ConstrainedVertex*>(oldVrt));
+									vVrts.push_back(oldVrt);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter))){
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldVrt))){
+										mg.associate_parent(oldVrt, parent);
 									//	make sure that constrained/constraining relations are fine
 										switch(parent->base_object_id()){
 											case EDGE:{
 												ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(parent);
 												UG_ASSERT(cge, "Constraining edge has to be of type ConstrainingEdge");
-												cge->add_constrained_object(*hiter);
-												static_cast<ConstrainedVertex*>(*hiter)->set_constraining_object(cge);
+												cge->add_constrained_object(oldVrt);
+												static_cast<ConstrainedVertex*>(oldVrt)->set_constraining_object(cge);
 											}break;
 
 											case FACE:{
 												ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
 												UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
-												cgf->add_constrained_object(*hiter);
-												static_cast<ConstrainedVertex*>(*hiter)->set_constraining_object(cgf);
+												cgf->add_constrained_object(oldVrt);
+												static_cast<ConstrainedVertex*>(oldVrt)->set_constraining_object(cgf);
 											}break;
 
 											default:
@@ -1621,13 +1625,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								EdgeHashIter hiter = edgeHash.begin(id);
-								if(hiter != edgeHash.end(id)){
-									assert(dynamic_cast<Edge*>(*hiter));
-									vEdges.push_back(*hiter);
+								EdgeBase* oldEdge;
+								if(edgeHash.get_entry(oldEdge, id)){
+									assert(dynamic_cast<Edge*>(oldEdge));
+									vEdges.push_back(oldEdge);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldEdge)))
+										mg.associate_parent(oldEdge, parent);
 									continue;
 								}
 							}
@@ -1659,13 +1663,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								EdgeHashIter hiter = edgeHash.begin(id);
-								if(hiter != edgeHash.end(id)){
-									assert(dynamic_cast<ConstrainingEdge*>(*hiter));
-									vEdges.push_back(*hiter);
+								EdgeBase* oldEdge;
+								if(edgeHash.get_entry(oldEdge, id)){
+									assert(dynamic_cast<ConstrainingEdge*>(oldEdge));
+									vEdges.push_back(oldEdge);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldEdge)))
+										mg.associate_parent(oldEdge, parent);
 									continue;
 								}
 							}
@@ -1705,27 +1709,27 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								EdgeHashIter hiter = edgeHash.begin(id);
-								if(hiter != edgeHash.end(id)){
-									assert(dynamic_cast<ConstrainedEdge*>(*hiter));
-									vEdges.push_back(*hiter);
+								EdgeBase* oldEdge;
+								if(edgeHash.get_entry(oldEdge, id)){
+									assert(dynamic_cast<ConstrainedEdge*>(oldEdge));
+									vEdges.push_back(oldEdge);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter))){
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldEdge))){
+										mg.associate_parent(oldEdge, parent);
 									//	make sure that constrained/constraining relations are fine
 										switch(parent->base_object_id()){
 											case EDGE:{
 												ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(parent);
 												UG_ASSERT(cge, "Constraining edge has to be of type ConstrainingEdge");
-												cge->add_constrained_object(*hiter);
-												static_cast<ConstrainedEdge*>(*hiter)->set_constraining_object(cge);
+												cge->add_constrained_object(oldEdge);
+												static_cast<ConstrainedEdge*>(oldEdge)->set_constraining_object(cge);
 											}break;
 
 											case FACE:{
 												ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
 												UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
-												cgf->add_constrained_object(*hiter);
-												static_cast<ConstrainedEdge*>(*hiter)->set_constraining_object(cgf);
+												cgf->add_constrained_object(oldEdge);
+												static_cast<ConstrainedEdge*>(oldEdge)->set_constraining_object(cgf);
 											}break;
 
 											default:
@@ -1789,13 +1793,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								FaceHashIter hiter = faceHash.begin(id);
-								if(hiter != faceHash.end(id)){
-									assert(dynamic_cast<Triangle*>(*hiter));
-									vFaces.push_back(*hiter);
+								Face* oldFace;
+								if(faceHash.get_entry(oldFace, id)){
+									assert(dynamic_cast<Triangle*>(oldFace));
+									vFaces.push_back(oldFace);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldFace)))
+										mg.associate_parent(oldFace, parent);
 									continue;
 								}
 							}
@@ -1832,13 +1836,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								FaceHashIter hiter = faceHash.begin(id);
-								if(hiter != faceHash.end(id)){
-									assert(dynamic_cast<Quadrilateral*>(*hiter));
-									vFaces.push_back(*hiter);
+								Face* oldFace;
+								if(faceHash.get_entry(oldFace, id)){
+									assert(dynamic_cast<Quadrilateral*>(oldFace));
+									vFaces.push_back(oldFace);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldFace)))
+										mg.associate_parent(oldFace, parent);
 									continue;
 								}
 							}
@@ -1875,13 +1879,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								FaceHashIter hiter = faceHash.begin(id);
-								if(hiter != faceHash.end(id)){
-									assert(dynamic_cast<ConstrainingFace*>(*hiter));
-									vFaces.push_back(*hiter);
+								Face* oldFace;
+								if(faceHash.get_entry(oldFace, id)){
+									assert(dynamic_cast<ConstrainingFace*>(oldFace));
+									vFaces.push_back(oldFace);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldFace)))
+										mg.associate_parent(oldFace, parent);
 									continue;
 								}
 							}
@@ -1923,20 +1927,20 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								FaceHashIter hiter = faceHash.begin(id);
-								if(hiter != faceHash.end(id)){
-									assert(dynamic_cast<ConstrainedFace*>(*hiter));
-									vFaces.push_back(*hiter);
+								Face* oldFace;
+								if(faceHash.get_entry(oldFace, id)){
+									assert(dynamic_cast<ConstrainedFace*>(oldFace));
+									vFaces.push_back(oldFace);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter))){
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldFace))){
+										mg.associate_parent(oldFace, parent);
 									//	make sure that constrained/constraining relations are fine
 										UG_ASSERT(parent->base_object_id() == FACE,
 												  "Only faces may constrain faces");
 										ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
 										UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
-										cgf->add_constrained_object(*hiter);
-										static_cast<ConstrainedFace*>(*hiter)->set_constraining_object(cgf);
+										cgf->add_constrained_object(oldFace);
+										static_cast<ConstrainedFace*>(oldFace)->set_constraining_object(cgf);
 									}
 									continue;
 								}
@@ -1986,13 +1990,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								FaceHashIter hiter = faceHash.begin(id);
-								if(hiter != faceHash.end(id)){
-									assert(dynamic_cast<ConstrainingFace*>(*hiter));
-									vFaces.push_back(*hiter);
+								Face* oldFace;
+								if(faceHash.get_entry(oldFace, id)){
+									assert(dynamic_cast<ConstrainingFace*>(oldFace));
+									vFaces.push_back(oldFace);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldFace)))
+										mg.associate_parent(oldFace, parent);
 									continue;
 								}
 							}
@@ -2038,21 +2042,21 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								FaceHashIter hiter = faceHash.begin(id);
-								if(hiter != faceHash.end(id)){
-									UG_ASSERT(dynamic_cast<ConstrainedFace*>(*hiter),
+								Face* oldFace;
+								if(faceHash.get_entry(oldFace, id)){
+									UG_ASSERT(dynamic_cast<ConstrainedFace*>(oldFace),
 											"Face should be constrained! gid: " << id);
-									vFaces.push_back(*hiter);
+									vFaces.push_back(oldFace);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter))){
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldFace))){
+										mg.associate_parent(oldFace, parent);
 									//	make sure that constrained/constraining relations are fine
 										UG_ASSERT(parent->base_object_id() == FACE,
 												  "Only faces may constrain faces");
 										ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(parent);
 										UG_ASSERT(cgf, "Constraining face has to be of type ConstrainingFace");
-										cgf->add_constrained_object(*hiter);
-										static_cast<ConstrainedFace*>(*hiter)->set_constraining_object(cgf);
+										cgf->add_constrained_object(oldFace);
+										static_cast<ConstrainedFace*>(oldFace)->set_constraining_object(cgf);
 									}
 									continue;
 								}
@@ -2104,13 +2108,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								VolHashIter hiter = volHash.begin(id);
-								if(hiter != volHash.end(id)){
-									assert(dynamic_cast<Tetrahedron*>(*hiter));
-									vVols.push_back(*hiter);
+								Volume* oldVol;
+								if(volHash.get_entry(oldVol, id)){
+									assert(dynamic_cast<Tetrahedron*>(oldVol));
+									vVols.push_back(oldVol);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldVol)))
+										mg.associate_parent(oldVol, parent);
 									continue;
 								}
 							}
@@ -2153,13 +2157,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								VolHashIter hiter = volHash.begin(id);
-								if(hiter != volHash.end(id)){
-									assert(dynamic_cast<Hexahedron*>(*hiter));
-									vVols.push_back(*hiter);
+								Volume* oldVol;
+								if(volHash.get_entry(oldVol, id)){
+									assert(dynamic_cast<Hexahedron*>(oldVol));
+									vVols.push_back(oldVol);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldVol)))
+										mg.associate_parent(oldVol, parent);
 									continue;
 								}
 							}
@@ -2200,13 +2204,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								VolHashIter hiter = volHash.begin(id);
-								if(hiter != volHash.end(id)){
-									assert(dynamic_cast<Prism*>(*hiter));
-									vVols.push_back(*hiter);
+								Volume* oldVol;
+								if(volHash.get_entry(oldVol, id)){
+									assert(dynamic_cast<Prism*>(oldVol));
+									vVols.push_back(oldVol);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldVol)))
+										mg.associate_parent(oldVol, parent);
 									continue;
 								}
 							}
@@ -2246,13 +2250,13 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								VolHashIter hiter = volHash.begin(id);
-								if(hiter != volHash.end(id)){
-									assert(dynamic_cast<Pyramid*>(*hiter));
-									vVols.push_back(*hiter);
+								Volume* oldVol;
+								if(volHash.get_entry(oldVol, id)){
+									assert(dynamic_cast<Pyramid*>(oldVol));
+									vVols.push_back(oldVol);
 								//	make sure that its parent is registered
-									if(parent && (!mg.get_parent(*hiter)))
-										mg.associate_parent(*hiter, parent);
+									if(parent && (!mg.get_parent(oldVol)))
+										mg.associate_parent(oldVol, parent);
 									continue;
 								}
 							}
