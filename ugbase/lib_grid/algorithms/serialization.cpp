@@ -8,7 +8,7 @@
 #include "serialization.h"
 #include "common/serialization.h"
 #include "debug_util.h"
-#include "common/util/new_hash.h"
+#include "common/util/hash.h"
 
 using namespace std;
 
@@ -1420,10 +1420,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 	SRLZ_PROFILE(srlz_settingUpHashes);
 //	create hashes for existing geometric objects
-	NewHash<GeomObjID, VertexBase*>	vrtHash((int)(1.1f * (float)mg.num<VertexBase>()));
-	NewHash<GeomObjID, EdgeBase*>	edgeHash((int)(1.1f * (float)mg.num<EdgeBase>()));
-	NewHash<GeomObjID, Face*>		faceHash((int)(1.1f * (float)mg.num<Face>()));
-	NewHash<GeomObjID, Volume*>		volHash((int)(1.1f * (float)mg.num<Volume>()));
+	Hash<GeomObjID, VertexBase*>	vrtHash((int)(1.1f * (float)mg.num<VertexBase>()));
+	Hash<GeomObjID, EdgeBase*>	edgeHash((int)(1.1f * (float)mg.num<EdgeBase>()));
+	Hash<GeomObjID, Face*>		faceHash((int)(1.1f * (float)mg.num<Face>()));
+	Hash<GeomObjID, Volume*>		volHash((int)(1.1f * (float)mg.num<Volume>()));
 
 	vrtHash.reserve(mg.num<VertexBase>());
 	edgeHash.reserve(mg.num<EdgeBase>());

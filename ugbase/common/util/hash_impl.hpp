@@ -2,19 +2,19 @@
 // s.b.reiter@gmail.com
 // oct 2013
 
-#ifndef __H__UG__new_hash_impl__
-#define __H__UG__new_hash_impl__
+#ifndef __H__UG__hash_impl__
+#define __H__UG__hash_impl__
 
 #include <cassert>
 #include <algorithm>
 #include "common/error.h"
-#include "new_hash.h"
+#include "hash.h"
 
 namespace ug{
 
 template <class TKey, class TValue>
-NewHash<TKey, TValue>::
-NewHash() :
+Hash<TKey, TValue>::
+Hash() :
 	m_numEntries(0),
 	m_firstUnusedEntry(s_invalidIndex)
 {
@@ -23,8 +23,8 @@ NewHash() :
 
 
 template <class TKey, class TValue>
-NewHash<TKey, TValue>::
-NewHash(size_t hashSize) :
+Hash<TKey, TValue>::
+Hash(size_t hashSize) :
 	m_numEntries(0),
 	m_firstUnusedEntry(s_invalidIndex)
 {
@@ -33,7 +33,7 @@ NewHash(size_t hashSize) :
 
 
 template <class TKey, class TValue>
-void NewHash<TKey, TValue>::
+void Hash<TKey, TValue>::
 resize_hash(size_t size)
 {
 //todo: This method could be more efficient by reusing memory in m_hashList...
@@ -72,7 +72,7 @@ resize_hash(size_t size)
 
 
 template <class TKey, class TValue>
-size_t NewHash<TKey, TValue>::
+size_t Hash<TKey, TValue>::
 hash_size() const
 {
 	return m_hashList.size();
@@ -80,7 +80,7 @@ hash_size() const
 
 
 template <class TKey, class TValue>
-void NewHash<TKey, TValue>::
+void Hash<TKey, TValue>::
 reserve(size_t size)
 {
 	m_entries.reserve(size);
@@ -88,7 +88,7 @@ reserve(size_t size)
 
 
 template <class TKey, class TValue>
-size_t NewHash<TKey, TValue>::
+size_t Hash<TKey, TValue>::
 capacity() const
 {
 	return m_entries.capacity();
@@ -96,7 +96,7 @@ capacity() const
 
 
 template <class TKey, class TValue>
-void NewHash<TKey, TValue>::
+void Hash<TKey, TValue>::
 clear()
 {
 	using namespace std;
@@ -109,7 +109,7 @@ clear()
 
 
 template <class TKey, class TValue>
-bool NewHash<TKey, TValue>::
+bool Hash<TKey, TValue>::
 empty() const
 {
 	return m_numEntries == 0;
@@ -117,7 +117,7 @@ empty() const
 
 
 template <class TKey, class TValue>
-bool NewHash<TKey, TValue>::
+bool Hash<TKey, TValue>::
 has_entry(const key_t& key) const
 {
 	return find_entry(key) != s_invalidIndex;
@@ -125,7 +125,7 @@ has_entry(const key_t& key) const
 
 
 template <class TKey, class TValue>
-TValue& NewHash<TKey, TValue>::
+TValue& Hash<TKey, TValue>::
 get_entry(const key_t& key)
 {
 	size_t eind = find_entry(key);
@@ -140,7 +140,7 @@ get_entry(const key_t& key)
 
 
 template <class TKey, class TValue>
-const TValue& NewHash<TKey, TValue>::
+const TValue& Hash<TKey, TValue>::
 get_entry(const key_t& key) const
 {
 	size_t eind = find_entry(key);
@@ -154,7 +154,7 @@ get_entry(const key_t& key) const
 }
 
 template <class TKey, class TValue>
-bool NewHash<TKey, TValue>::
+bool Hash<TKey, TValue>::
 get_entry(TValue& valOut, const key_t& key) const
 {
 	size_t eind = find_entry(key);
@@ -168,7 +168,7 @@ get_entry(TValue& valOut, const key_t& key) const
 
 
 template <class TKey, class TValue>
-void NewHash<TKey, TValue>::
+void Hash<TKey, TValue>::
 insert(const key_t& key, const value_t& val)
 {
 	size_t eind = m_firstUnusedEntry;
@@ -196,7 +196,7 @@ insert(const key_t& key, const value_t& val)
 
 
 template <class TKey, class TValue>
-void NewHash<TKey, TValue>::
+void Hash<TKey, TValue>::
 erase(const key_t& key)
 {
 	size_t hi = hash_index(key);
@@ -232,7 +232,7 @@ erase(const key_t& key)
 
 
 template <class TKey, class TValue>
-typename NewHash<TKey, TValue>::iterator NewHash<TKey, TValue>::
+typename Hash<TKey, TValue>::iterator Hash<TKey, TValue>::
 begin(const key_t& key)
 {
 	if(empty())
@@ -242,21 +242,21 @@ begin(const key_t& key)
 
 
 template <class TKey, class TValue>
-typename NewHash<TKey, TValue>::iterator NewHash<TKey, TValue>::
+typename Hash<TKey, TValue>::iterator Hash<TKey, TValue>::
 end(const key_t& key)
 {
 	return iterator(key, NULL, s_invalidIndex);
 }
 
 template <class TKey, class TValue>
-size_t NewHash<TKey, TValue>::
+size_t Hash<TKey, TValue>::
 hash_index(const key_t& key) const
 {
 	return hash_key(key) % m_hashList.size();
 }
 
 template <class TKey, class TValue>
-size_t NewHash<TKey, TValue>::
+size_t Hash<TKey, TValue>::
 find_entry(const key_t& key) const
 {
 	size_t hi = hash_index(key);

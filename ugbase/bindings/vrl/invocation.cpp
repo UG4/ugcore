@@ -4,7 +4,7 @@
 #include <string>
 
 #include "common/util/string_util.h"
-#include "common/util/new_hash.h"
+#include "common/util/hash.h"
 
 namespace ug {
 namespace vrl {
@@ -31,13 +31,13 @@ namespace invocation {
 //	return signature.str();
 //}
 
-//static ug::NewHash<std::string, const ug::bridge::ClassNameNode*> classNameNodes;
-static ug::NewHash<std::string, const ug::bridge::IExportedClass*> classes;
+//static ug::Hash<std::string, const ug::bridge::ClassNameNode*> classNameNodes;
+static ug::Hash<std::string, const ug::bridge::IExportedClass*> classes;
 
 void initClasses(ug::bridge::Registry &reg) {
 	using namespace ug::bridge;
 
-	classes = ug::NewHash<std::string, const ug::bridge::IExportedClass*>(reg.num_classes()*2);
+	classes = ug::Hash<std::string, const ug::bridge::IExportedClass*>(reg.num_classes()*2);
 	classes.reserve(reg.num_classes());
 
 	// only classes, no groups !

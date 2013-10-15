@@ -3,7 +3,7 @@
 // y09 m05 d28
 
 #include "extrude.h"
-#include "common/util/new_hash.h"
+#include "common/util/hash.h"
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"
 #include "lib_grid/algorithms/geom_obj_util/volume_util.h"
 
@@ -49,7 +49,7 @@ void Extrude(Grid& grid,
 		return;
 
 //	the hash:
-	typedef NewHash<uint, VertexBase*> VertexHash;
+	typedef Hash<uint, VertexBase*> VertexHash;
 	VertexHash vrtHash(hashSize);
 	vrtHash.reserve(hashSize);
 

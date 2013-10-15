@@ -25,6 +25,7 @@ template <typename TKey> size_t hash_key(const TKey& key)
 }
 
 /** \} */
+/** \} */
 
 }// end of namespace
 

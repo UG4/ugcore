@@ -2,8 +2,8 @@
 // s.b.reiter@gmail.com
 // oct 2013
 
-#ifndef __H__UG__new_hash__
-#define __H__UG__new_hash__
+#ifndef __H__UG__hash__
+#define __H__UG__hash__
 
 #include <vector>
 #include <utility>
@@ -12,26 +12,11 @@
 
 namespace ug{
 
-/// \addtogroup ugbase_common_util
-/// \{
-
-///	returns a hash-key (unsigned int) given some key-value.
-/**	The hashing method can be specialized for different key types.
- * A default implementation exists, which casts each key to a size_t.
- * \{
+///	An associative container for key-value pairs, which provides fast access using hash-keys
+/**	\addtogroup ugbase_common_util
  */
-//template <typename TKey> size_t hash_key(const TKey& key);
-//
-//template <typename TKey> size_t hash_key(const TKey& key)
-//{
-//	return (size_t)key;
-//}
-/** \} */
-
-
-
 template <class TKey, class TValue>
-class NewHash
+class Hash
 {
 	private:
 		struct Entry;
@@ -42,8 +27,8 @@ class NewHash
 		typedef hash_iterator<key_t, value_t, Entry>		iterator;
 //		typedef const_hash_iterator<key_t, value_t, Entry>	const_iterator;
 
-		NewHash();
-		NewHash(size_t hashSize);
+		Hash();
+		Hash(size_t hashSize);
 
 		void resize_hash(size_t size);
 		size_t hash_size() const;
@@ -116,6 +101,6 @@ class NewHash
 }// end of namespace
 
 
-#include "new_hash_impl.hpp"
+#include "hash_impl.hpp"
 
 #endif

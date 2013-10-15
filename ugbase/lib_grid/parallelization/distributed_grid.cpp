@@ -4,7 +4,7 @@
 
 #include "distributed_grid.h"
 #include "common/serialization.h"
-#include "common/util/new_hash.h"
+#include "common/util/hash.h"
 #include "pcl/pcl_interface_communicator.h"
 #include "lib_grid/algorithms/debug_util.h"
 
@@ -1000,7 +1000,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 
 		std::vector<GeomObj*>&	m_newConstrained;
 		DistributedGridManager* m_dgm;
-		NewHash<GeomObj*, Entry>	m_hash;
+		Hash<GeomObj*, Entry>	m_hash;
 		int						m_localHMasterCount;
 		bool					m_exchangeVMasterRanks;
 		bool					m_initialHandshake;

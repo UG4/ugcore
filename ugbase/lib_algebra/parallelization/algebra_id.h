@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 #include <map>
-#include "common/util/new_hash.h"
+#include "common/util/hash.h"
 #include "pcl/pcl.h"
 
 namespace ug{
@@ -36,7 +36,7 @@ template<>
 size_t hash_key<AlgebraID>(const AlgebraID& key);
 
 typedef std::vector<AlgebraID>	AlgebraIDVec;
-typedef NewHash<AlgebraID, size_t>	AlgebraIDHashList;
+typedef Hash<AlgebraID, size_t>	AlgebraIDHashList;
 
 std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
 
