@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <string>
 #include "pcl_layout_util.h"
-#include "common/util/hash.h"
 #include "pcl_base.h"
 #include "pcl_communication_structs.h"
 #include "common/util/binary_buffer.h"

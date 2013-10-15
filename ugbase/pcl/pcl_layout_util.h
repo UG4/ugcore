@@ -6,7 +6,7 @@
 #define __H__PCL__pcl_layout_util__
 
 #include <vector>
-#include "common/util/hash.h"
+#include "common/util/new_hash.h"
 #include "pcl_communication_structs.h"
 
 
@@ -122,7 +122,8 @@ void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
 	elemsOut.clear();
 
 //	we'll use a hash to make sure that each element only exists once
-	ug::Hash<int, TElem> hash(layout.num_interface_elements());
+	ug::NewHash<TElem, int> hash(layout.num_interface_elements());
+	hash.reserve(layout.num_interface_elements());
 
 //	iterate over all interfaces
 	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
@@ -135,9 +136,9 @@ void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
 				iter != interface.end(); ++iter)
 			{
 			//	check whether the entry already exists in the hash
-				if(!hash.has_entries(interface.get_element(iter))){
+				if(!hash.has_entry(interface.get_element(iter))){
 				//	we don't care about the value
-					hash.add(0, interface.get_element(iter));
+					hash.insert(interface.get_element(iter), 0);
 					elemsOut.push_back(interface.get_element(iter));
 				}
 			}

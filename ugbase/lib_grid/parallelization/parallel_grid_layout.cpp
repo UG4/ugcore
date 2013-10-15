@@ -9,7 +9,7 @@ namespace ug{
 AGeomObjID 	aGeomObjID("globalID", false);
 
 template <>
-unsigned long hash_key<GeomObjID>(const GeomObjID& key)
+size_t hash_key<GeomObjID>(const GeomObjID& key)
 {
 //	of course this hash does not completly avoid collisions.
 //	One should check whether the chosen key is fine.

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <ostream>
 #include "lib_grid/grid/geometric_base_objects.h"
+#include "common/util/hash_function.h"
 
 namespace ug{
 
@@ -43,7 +44,7 @@ extern AGeomObjID aGeomObjID;
 ///	generates a hash key for a GeomObjID.
 /**	\todo Check distribution quality.*/
 template <>
-unsigned long hash_key<GeomObjID>(const GeomObjID& key);
+size_t hash_key<GeomObjID>(const GeomObjID& key);
 
 }// end of namespace
 

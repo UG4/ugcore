@@ -5,6 +5,7 @@
 #ifndef __H__UG__hash_iterator__
 #define __H__UG__hash_iterator__
 
+#include <cassert>
 namespace ug{
 
 ///	this iterator is used by the hash class to provide access to the elements of a given key

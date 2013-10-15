@@ -4,7 +4,7 @@
 
 #include "distributed_grid.h"
 #include "common/serialization.h"
-#include "common/util/hash.h"
+#include "common/util/new_hash.h"
 #include "pcl/pcl_interface_communicator.h"
 #include "lib_grid/algorithms/debug_util.h"
 
@@ -704,6 +704,8 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			m_initialHandshake(false)
 			//m_checkHOrder(false)
 		{
+			m_hash.reserve(newConstrained.size() * 1.5);
+
 		//	insert each new constrained into the hash.
 			for(size_t i_nc = 0; i_nc < newConstrained.size(); ++i_nc){
 				GeomObj* e = newConstrained[i_nc];
@@ -714,7 +716,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		void create_initial_hash_entry(GeomObj* e)
 		{
 			if(m_dgm->contains_status(e, ES_H_MASTER)){
-				m_hash.add(Entry(pcl::GetProcRank(), m_localHMasterCount), e);
+				m_hash.insert(e, Entry(pcl::GetProcRank(), m_localHMasterCount));
 				++m_localHMasterCount;
 			}
 			else if(m_dgm->contains_status(e, ES_V_MASTER)
@@ -731,10 +733,10 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 				for(size_t i = 1; i < interfaceEntries.size(); ++i)
 					lp = min(lp, interfaceEntries[i].first);
 
-				m_hash.add(Entry(lp, -1), e);
+				m_hash.insert(e, Entry(lp, -1));
 			}
 			else
-				m_hash.add(Entry(-1, -1), e);
+				m_hash.insert(e, Entry(-1, -1));
 		}
 
 		virtual ~ComPol_NewConstrainedVerticals()	{}
@@ -755,9 +757,9 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			{
 				bool sendVMasterRanks = false;
 				Element elem = interface.get_element(iter);
-				if(m_hash.has_entries(elem)){
+				if(m_hash.has_entry(elem)){
 					Serialize(buff, counter);
-					Entry& entry = m_hash.first(elem);
+					Entry& entry = m_hash.get_entry(elem);
 					Serialize(buff, entry.hmasterProcInfo);
 					sendVMasterRanks = (entry.hmasterProcInfo.first == targetProc);
 				}
@@ -804,10 +806,10 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 					Deserialize(buff, val);
 
 //					if(m_checkHOrder){
-//						if(!m_hash.has_entries(elem)){
+//						if(!m_hash.has_entry(elem)){
 //							UG_THROW("No matching entry on proc " << pcl::GetProcRank()
 //									 << " for element " << ElementDebugInfo(*m_dgm->get_assigned_grid(), elem));
-//							Entry& entry = m_hash.first(elem);
+//							Entry& entry = m_hash.get_entry(elem);
 //							if((entry.hmasterProcInfo.first == val.first)
 //								&& (entry.hmasterProcInfo.second != val.second)){
 //								UG_THROW("H-Order mismatch on proc " << pcl::GetProcRank()
@@ -819,19 +821,19 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 					if(m_initialHandshake){
 						UG_ASSERT(!m_exchangeVMasterRanks, "initial handshake and vmaster "
 								 "exchange may not be active at the same time.");
-						if(!m_hash.has_entries(elem)){
+						if(!m_hash.has_entry(elem)){
 							create_initial_hash_entry(elem);
 							m_newConstrained.push_back(elem);
 						}
 					}
 					else{
-						UG_ASSERT(m_hash.has_entries(elem),
+						UG_ASSERT(m_hash.has_entry(elem),
 								  "A matching element has to exist in the local procs "
 								  "new constrained list:"
 								  << ElementDebugInfo(*m_dgm->get_assigned_grid(), elem));
 
 					//	the entry whose second value is specified has the highest priority
-						Entry& entry = m_hash.first(elem);
+						Entry& entry = m_hash.get_entry(elem);
 						if((entry.hmasterProcInfo.second == -1) && (val.first != -1))
 							entry.hmasterProcInfo = val;
 
@@ -912,7 +914,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			for(size_t i = 0; i < m_newConstrained.size(); ++i){
 				GeomObj* elem = m_newConstrained[i];
 				if(!m_dgm->contains_status(elem, ES_H_SLAVE)){
-					Entry& entry = m_hash.first(elem);
+					Entry& entry = m_hash.get_entry(elem);
 					if((entry.hmasterProcInfo.first == localProc)
 						&& (entry.hmasterProcInfo.second == -1))
 					{
@@ -938,11 +940,11 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 	/**	returns a std::pair<int, int> where 'first' represents the h-master rank and
 	 * where 'second' defines the order in which entries have to be added to
 	 * the h-interface.*/
-		std::pair<int, int> get_h_master_info(GeomObj* o)	{return m_hash.first(o).hmasterProcInfo;}
+		std::pair<int, int> get_h_master_info(GeomObj* o)	{return m_hash.get_entry(o).hmasterProcInfo;}
 
 	/**	returns the array of other v-master procs which build an interface to the local proc,
 	 * if the local proc will be the new h-master proc and if it is also a v-master proc.*/
-		std::vector<int>& other_v_masters(GeomObj* o)		{return m_hash.first(o).otherVMasterRanks;}
+		std::vector<int>& other_v_masters(GeomObj* o)		{return m_hash.get_entry(o).otherVMasterRanks;}
 
 	private:
 //		void check_corresponding_h_order()
@@ -956,28 +958,28 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 ////			for(size_t i = 0; i < m_newConstrained.size(); ++i){
 ////				GeomObj* elem = m_newConstrained[i];
 ////				if(vector3(0.015625, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
-////					UG_LOG("(0.015625, -0.25, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
-////					UG_LOG("(0.015625, -0.25, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////					UG_LOG("(0.015625, -0.25, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0.015625, -0.25, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
 ////				if(vector3(0, -0.265625, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("\n");
-////					UG_LOG("(0, -0.265625, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
-////					UG_LOG("(0, -0.265625, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////					UG_LOG("(0, -0.265625, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0, -0.265625, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
 ////				if(vector3(0, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("\n");
-////					UG_LOG("(0, -0.25, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
-////					UG_LOG("(0, -0.25, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////					UG_LOG("(0, -0.25, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0, -0.25, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
 ////				if(vector3(0.03125, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("\n");
-////					UG_LOG("(0.03125, -0.25, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
-////					UG_LOG("(0.03125, -0.25, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////					UG_LOG("(0.03125, -0.25, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0.03125, -0.25, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
 ////				if(vector3(0.15625, -0.28125, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("\n");
-////					UG_LOG("(0.15625, -0.28125, 0) h-master: " << m_hash.first(elem).hmasterProcInfo.first << "\n");
-////					UG_LOG("(0.15625, -0.28125, 0) h-order: " << m_hash.first(elem).hmasterProcInfo.second << "\n");
+////					UG_LOG("(0.15625, -0.28125, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
+////					UG_LOG("(0.15625, -0.28125, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
 ////			}
 //
@@ -998,7 +1000,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 
 		std::vector<GeomObj*>&	m_newConstrained;
 		DistributedGridManager* m_dgm;
-		Hash<Entry, GeomObj*>	m_hash;
+		NewHash<GeomObj*, Entry>	m_hash;
 		int						m_localHMasterCount;
 		bool					m_exchangeVMasterRanks;
 		bool					m_initialHandshake;

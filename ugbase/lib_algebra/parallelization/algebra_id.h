@@ -33,7 +33,7 @@ struct AlgebraID : public std::pair<int, size_t>
 };
 
 template<>
-unsigned long hash_key<AlgebraID>(const AlgebraID& key);
+size_t hash_key<AlgebraID>(const AlgebraID& key);
 
 typedef std::vector<AlgebraID>	AlgebraIDVec;
 typedef NewHash<AlgebraID, size_t>	AlgebraIDHashList;

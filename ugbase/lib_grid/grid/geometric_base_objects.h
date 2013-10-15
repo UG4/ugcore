@@ -14,7 +14,7 @@
 #include "common/assert.h"
 #include "lib_grid/attachments/attachment_pipe.h"
 #include "lib_grid/attachments/attached_list.h"
-#include "common/util/hash.h"
+#include "common/util/hash_function.h"
 #include "common/allocators/small_object_allocator.h"
 #include "common/math/ugmath_types.h"
 #include "common/util/pointer_const_array.h"
@@ -873,7 +873,7 @@ struct PtrTypeToGeomObjBaseType<Volume*>
 //	hash-funtions for vertices
 ///	returns the hash-value of the vertex.
 template <>
-unsigned long hash_key<PVertexBase>(const PVertexBase& key);
+size_t hash_key<PVertexBase>(const PVertexBase& key);
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for edges
@@ -885,17 +885,17 @@ unsigned long hash_key<PVertexBase>(const PVertexBase& key);
  * are the same.
  */
 template <>
-unsigned long hash_key<PEdgeVertices>(const PEdgeVertices& key);
+size_t hash_key<PEdgeVertices>(const PEdgeVertices& key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /** \sa hash_key<PEdgeVertices>*/
 template <>
-unsigned long hash_key<PEdgeBase>(const PEdgeBase& key);
+size_t hash_key<PEdgeBase>(const PEdgeBase& key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /** \sa hash_key<PEdgeVertices>*/
 template <>
-unsigned long hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key);
+size_t hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key);
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for faces
@@ -907,17 +907,17 @@ unsigned long hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key);
  * are the same.
  */
 template <>
-unsigned long hash_key<PFaceVertices>(const PFaceVertices& key);
+size_t hash_key<PFaceVertices>(const PFaceVertices& key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /**\sa hash_key<PFaceVertices>*/
 template <>
-unsigned long hash_key<PFace>(const PFace& key);
+size_t hash_key<PFace>(const PFace& key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /**\sa hash_key<PFaceVertices>*/
 template <>
-unsigned long hash_key<PFaceDescriptor>(const PFaceDescriptor& key);
+size_t hash_key<PFaceDescriptor>(const PFaceDescriptor& key);
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for volumes
@@ -929,17 +929,17 @@ unsigned long hash_key<PFaceDescriptor>(const PFaceDescriptor& key);
  * are the same.
  */
 template <>
-unsigned long hash_key<PVolumeVertices>(const PVolumeVertices& key);
+size_t hash_key<PVolumeVertices>(const PVolumeVertices& key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /**\sa hash_key<PVolumeVertices>*/
 template <>
-unsigned long hash_key<PVolume>(const PVolume& key);
+size_t hash_key<PVolume>(const PVolume& key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /**\sa hash_key<PVolumeVertices>*/
 template <>
-unsigned long hash_key<PVolumeDescriptor>(const PVolumeDescriptor& key);
+size_t hash_key<PVolumeDescriptor>(const PVolumeDescriptor& key);
 
 }//	end of namespace
 

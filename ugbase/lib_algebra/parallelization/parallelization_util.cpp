@@ -16,7 +16,7 @@ using namespace pcl;
 namespace ug{
 
 template<>
-unsigned long hash_key<AlgebraID>(const AlgebraID& key)
+size_t hash_key<AlgebraID>(const AlgebraID& key)
 {
 	const unsigned long factor = 1000000;
 	const unsigned long ind = (unsigned long)key.index_on_master();

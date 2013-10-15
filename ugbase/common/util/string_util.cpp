@@ -174,7 +174,7 @@ bool Contains(const string& str, const string& search) {
 }
 
 //sreiter - Implementation is copied from some book or website. Can't remember...
-template <> unsigned long hash_key(const string& key)
+template <> size_t hash_key(const string& key)
 {
 
 	unsigned long hash = 5381;

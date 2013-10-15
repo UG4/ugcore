@@ -125,6 +125,21 @@ has_entry(const key_t& key) const
 
 
 template <class TKey, class TValue>
+TValue& NewHash<TKey, TValue>::
+get_entry(const key_t& key)
+{
+	size_t eind = find_entry(key);
+	assert((eind != s_invalidIndex) && "No such entry. Check existance with has_entry first!");
+
+	if(eind == s_invalidIndex){
+		UG_THROW("No entry exists for the specified key. Please call 'has_entry' first"
+				" or use the alternate version of 'get_entry', which returns a bool.");
+	}
+	return m_entries[eind].value;
+}
+
+
+template <class TKey, class TValue>
 const TValue& NewHash<TKey, TValue>::
 get_entry(const key_t& key) const
 {
@@ -133,7 +148,7 @@ get_entry(const key_t& key) const
 
 	if(eind == s_invalidIndex){
 		UG_THROW("No entry exists for the specified key. Please call 'has_entry' first"
-				" or use the alternative version of 'get_entry', which returns a bool.");
+				" or use the alternate version of 'get_entry', which returns a bool.");
 	}
 	return m_entries[eind].value;
 }

@@ -9,7 +9,6 @@
 #include "common/serialization.h"
 #include "debug_util.h"
 #include "common/util/new_hash.h"
-#include "common/util/hash.h"
 
 using namespace std;
 

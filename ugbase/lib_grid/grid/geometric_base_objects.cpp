@@ -191,7 +191,7 @@ static inline unsigned long HashKey(const VolumeVertices* key)
 //	hash-funtions for vertices
 //	returns the hash-value of the vertex.
 template <>
-unsigned long hash_key<PVertexBase>(const PVertexBase& key)
+size_t hash_key<PVertexBase>(const PVertexBase& key)
 {
 	return (unsigned long)key->get_hash_value();
 }
@@ -199,19 +199,19 @@ unsigned long hash_key<PVertexBase>(const PVertexBase& key)
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for edges
 template <>
-unsigned long hash_key<PEdgeVertices>(const PEdgeVertices& key)
+size_t hash_key<PEdgeVertices>(const PEdgeVertices& key)
 {
 	return HashKey(key);
 }
 
 template <>
-unsigned long hash_key<PEdgeBase>(const PEdgeBase& key)
+size_t hash_key<PEdgeBase>(const PEdgeBase& key)
 {
 	return HashKey(key);
 }
 
 template <>
-unsigned long hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key)
+size_t hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key)
 {
 	return HashKey(key);
 }
@@ -219,19 +219,19 @@ unsigned long hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key)
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for faces
 template <>
-unsigned long hash_key<PFaceVertices>(const PFaceVertices& key)
+size_t hash_key<PFaceVertices>(const PFaceVertices& key)
 {
 	return HashKey(key);
 }
 
 template <>
-unsigned long hash_key<PFace>(const PFace& key)
+size_t hash_key<PFace>(const PFace& key)
 {
 	return HashKey(key);
 }
 
 template <>
-unsigned long hash_key<PFaceDescriptor>(const PFaceDescriptor& key)
+size_t hash_key<PFaceDescriptor>(const PFaceDescriptor& key)
 {
 	return HashKey(key);
 }
@@ -239,19 +239,19 @@ unsigned long hash_key<PFaceDescriptor>(const PFaceDescriptor& key)
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for volumes
 template <>
-unsigned long hash_key<PVolumeVertices>(const PVolumeVertices& key)
+size_t hash_key<PVolumeVertices>(const PVolumeVertices& key)
 {
 	return HashKey(key);
 }
 
 template <>
-unsigned long hash_key<PVolume>(const PVolume& key)
+size_t hash_key<PVolume>(const PVolume& key)
 {
 	return HashKey(key);
 }
 
 template <>
-unsigned long hash_key<PVolumeDescriptor>(const PVolumeDescriptor& key)
+size_t hash_key<PVolumeDescriptor>(const PVolumeDescriptor& key)
 {
 	return HashKey(key);
 }

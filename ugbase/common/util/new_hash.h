@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 #include "hash_iterator.h"
+#include "hash_function.h"
 
 namespace ug{
 
@@ -70,6 +71,8 @@ class NewHash
 
 		bool empty() const;
 		bool has_entry(const key_t& key) const;
+
+		value_t& get_entry(const key_t& key);
 		const value_t& get_entry(const key_t& key) const;
 		bool get_entry(value_t& valOut, const key_t& key) const;
 

@@ -9,32 +9,10 @@
 #include <cassert>
 #include <iostream>
 #include <utility>
+#include "hash_function.h"
 
 namespace ug
 {
-
-/// \addtogroup ugbase_common_util
-/// \{
-
-///	The hashing method can be specialized for different types.
-/**	A default implementation exists, which casts each key
- * to a unsigned long.
- * \{
- */
-template <typename TKey> unsigned long hash_key(const TKey& key);
-
-template <typename TKey> unsigned long hash_key(const TKey& key)
-{
-	return (unsigned long)key;
-}
-
-/** \} */
-
-/*
-template <> inline unsigned long
-hash_key<unsigned int>(const unsigned int& key)
-{return (unsigned long)key;}
-*/
 
 ///	a generic Hash class
 template <class TVal, class TKey> class Hash

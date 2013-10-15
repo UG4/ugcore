@@ -9,7 +9,6 @@
 #include <list>
 #include <map>
 #include <algorithm>
-#include "common/util/hash.h"
 #include "pcl/pcl_communication_structs.h"
 #include "lib_grid/grid/geometric_base_objects.h"
 #include "geometric_object_id.h"

@@ -9,7 +9,7 @@
 #include <algorithm> 
 #include <sstream>
 #include <cctype>
-#include "hash.h"
+#include "hash_function.h"
 #include "common/ug_config.h"
 
 namespace ug{
@@ -114,7 +114,7 @@ UG_API std::string AppendSpacesToString(std::string& str, int totalLength);
  * \returns hash key for given \c key
  * \note Implementation is copied from some book or website. Can't remember... (sreiter)
  */
-template <> UG_API unsigned long hash_key(const std::string& str);
+template <> UG_API size_t hash_key(const std::string& str);
 
 /**
  * \brief determines last occurrence of '/' or '\'
