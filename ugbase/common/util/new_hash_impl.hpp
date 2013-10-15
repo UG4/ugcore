@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include "common/error.h"
 #include "new_hash.h"
 
 namespace ug{
@@ -126,10 +127,11 @@ get_entry(const key_t& key) const
 	size_t eind = find_entry(key);
 	assert((eind != s_invalidIndex) && "No such entry. Check existance with has_entry first!");
 
-	if(eind == s_invalidIndex)
-		return value_t();
-	else
-		return m_entries[eind].value;
+	if(eind == s_invalidIndex){
+		UG_THROW("No entry exists for the specified key. Please call 'has_entry' first"
+				" or use the alternative version of 'get_entry', which returns a bool.");
+	}
+	return m_entries[eind].value;
 }
 
 template <class TKey, class TValue>

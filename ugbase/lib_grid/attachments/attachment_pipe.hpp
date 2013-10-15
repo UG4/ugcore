@@ -164,7 +164,7 @@ attach(TAttachment& attachment,
 				insert(m_attachmentEntryContainer.end(),
 						AttachmentEntry(pClonedAttachment,
 						pClonedContainer, options));
-		m_attachmentEntryIteratorHash.add(iter, pClonedAttachment->id());
+		m_attachmentEntryIteratorHash.insert(pClonedAttachment->id(), iter);
 	}
 	else
 	{
@@ -187,7 +187,7 @@ attach(IAttachment& attachment, uint options)
 		IAttachmentDataContainer* pClonedContainer = pClonedAttachment->create_container();
 		pClonedContainer->resize(get_container_size());
 		AttachmentEntryIterator iter = m_attachmentEntryContainer.insert(m_attachmentEntryContainer.end(), AttachmentEntry(pClonedAttachment, pClonedContainer, options));
-		m_attachmentEntryIteratorHash.add(iter, pClonedAttachment->id());
+		m_attachmentEntryIteratorHash.insert(pClonedAttachment->id(), iter);
 	}
 	else
 	{
@@ -202,7 +202,7 @@ detach(IAttachment& attachment)
 {
 	if(has_attachment(attachment))
 	{
-		AttachmentEntryIterator iter = m_attachmentEntryIteratorHash.first(attachment.id());
+		AttachmentEntryIterator iter = m_attachmentEntryIteratorHash.get_entry(attachment.id());
 		delete ((*iter).m_pAttachment);
 		((*iter).m_pAttachment) = NULL;
 		delete((*iter).m_pContainer);
@@ -217,7 +217,7 @@ bool
 AttachmentPipe<TElem, TElemHandler>::
 has_attachment(IAttachment& attachment) const
 {
-	return m_attachmentEntryIteratorHash.has_entries(attachment.id());
+	return m_attachmentEntryIteratorHash.has_entry(attachment.id());
 }
 
 
@@ -229,10 +229,7 @@ get_data_array(TAttachment& attachment)
 {
 	if(has_attachment(attachment))
 		return get_data_container(attachment)->get_ptr();
-/*
-		return ((typename TAttachment::ContainerType*)
-				m_attachmentEntryIteratorHash.first(attachment.id())->m_pContainer)->get_ptr();
-*/
+
 	return NULL;
 }
 
@@ -241,8 +238,9 @@ IAttachmentDataContainer*
 AttachmentPipe<TElem, TElemHandler>::
 get_data_container(IAttachment& attachment) const
 {
-	if(has_attachment(attachment))
-		return (*m_attachmentEntryIteratorHash.first(attachment.id())).m_pContainer;
+	AttachmentEntryIterator iter;
+	if(m_attachmentEntryIteratorHash.get_entry(iter, attachment.id()))
+		return iter->m_pContainer;
 	return NULL;
 }
 
@@ -252,9 +250,9 @@ typename TAttachment::ContainerType*
 AttachmentPipe<TElem, TElemHandler>::
 get_data_container(TAttachment& attachment)
 {
-	if(has_attachment(attachment))
-		return ((typename TAttachment::ContainerType*)
-				m_attachmentEntryIteratorHash.first(attachment.id())->m_pContainer);
+	AttachmentEntryIterator iter;
+	if(m_attachmentEntryIteratorHash.get_entry(iter, attachment.id()))
+		return static_cast<typename TAttachment::ContainerType*>(iter->m_pContainer);
 	return NULL;
 }
 

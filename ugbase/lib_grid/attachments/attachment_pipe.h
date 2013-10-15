@@ -12,7 +12,7 @@
 #include "common/static_assert.h"
 #include "common/types.h"
 #include "common/util/uid.h"
-#include "common/util/hash.h"
+#include "common/util/new_hash.h"
 #include "common/ug_config.h"
 #include "page_container.h"
 
@@ -323,7 +323,7 @@ class UG_API AttachmentPipe
 		typedef std::list<AttachmentEntry>			AttachmentEntryContainer;
 		typedef AttachmentEntryContainer::iterator	AttachmentEntryIterator;
 		typedef AttachmentEntryContainer::const_iterator	ConstAttachmentEntryIterator;
-		typedef Hash<AttachmentEntryIterator, uint>		AttachmentEntryIteratorHash;
+		typedef NewHash<uint, AttachmentEntryIterator>		AttachmentEntryIteratorHash;
 		typedef attachment_traits<TElem, TElemHandler>	atraits;
 
 	public:
