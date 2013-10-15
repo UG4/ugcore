@@ -369,7 +369,7 @@ enable_node_dependency_order_1(bool bEnable)
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::perform_refinement()
 {
-	HNODE_PROFILE_FUNC();
+	HNODE_PROFILE_BEGIN(perform_hnode_refinement);
 	UG_DLOG(LIB_GRID, 1, "performing hanging-node-refine:\n");
 
 	if(!m_pGrid)
