@@ -4,7 +4,7 @@
 #include <string>
 
 #include "common/util/string_util.h"
-#include "common/util/hash.h"
+#include "common/util/new_hash.h"
 
 namespace ug {
 namespace vrl {
@@ -31,19 +31,19 @@ namespace invocation {
 //	return signature.str();
 //}
 
-//static ug::Hash<const ug::bridge::ClassNameNode*, std::string> classNameNodes;
-static ug::Hash<const ug::bridge::IExportedClass*, std::string> classes;
+//static ug::NewHash<std::string, const ug::bridge::ClassNameNode*> classNameNodes;
+static ug::NewHash<std::string, const ug::bridge::IExportedClass*> classes;
 
 void initClasses(ug::bridge::Registry &reg) {
 	using namespace ug::bridge;
 
-	classes = ug::Hash<const ug::bridge::IExportedClass*,
-			std::string > (reg.num_classes()*2);
+	classes = ug::NewHash<std::string, const ug::bridge::IExportedClass*>(reg.num_classes()*2);
+	classes.reserve(reg.num_classes());
 
 	// only classes, no groups !
 	for (unsigned int i = 0; i < reg.num_classes(); i++) {
 		const ug::bridge::IExportedClass* c = &reg.get_class(i);
-		classes.add(c, c->name());
+		classes.insert(c->name(), c);
 	}
 }
 
@@ -283,7 +283,7 @@ const ug::bridge::IExportedClass* getExportedClassPtrByName(
 		ug::bridge::Registry* reg,
 		std::string className) {
 
-	return classes.first(className);
+	return classes.get_entry(className);
 }
 
 const ug::bridge::ClassNameNode* getClassNodePtrByName(
@@ -294,7 +294,7 @@ const ug::bridge::ClassNameNode* getClassNodePtrByName(
 		return NULL;
 	}
 
-	return &classes.first(className)->class_name_node();
+	return &classes.get_entry(className)->class_name_node();
 }
 
 } // invocation::

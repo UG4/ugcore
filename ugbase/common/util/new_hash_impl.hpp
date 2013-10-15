@@ -36,30 +36,34 @@ template <class TKey, class TValue>
 void NewHash<TKey, TValue>::
 resize_hash(size_t size)
 {
+//todo: This method could be more efficient by reusing memory in m_hashList...
+
 //	create a new hash and insert all existing items into it
 //	when creating the hash-list, we'll reserve some additional memory to
 //	avoid frequent reallocations.
 //	note: during the first resize no additional memory will be allocated.
 	using namespace std;
 	vector<pair<size_t, size_t> > newHashList;
-	newHashList.resize(max<size_t>(1, m_hashList.size() + size),
+	newHashList.resize(max<size_t>(1, size),
 					   make_pair<size_t, size_t>(s_invalidIndex, s_invalidIndex));
 
-	for(size_t i = 0; i < m_hashList.size(); ++i){
-		size_t curInd = m_hashList[i].first;
-		while(curInd != s_invalidIndex){
-			Entry& e = m_entries[curInd];
-			size_t hi = hash_key(e.key) % size;
+	if(m_numEntries > 0){
+		for(size_t i = 0; i < m_hashList.size(); ++i){
+			size_t curInd = m_hashList[i].first;
+			while(curInd != s_invalidIndex){
+				Entry& e = m_entries[curInd];
+				size_t hi = hash_key(e.key) % size;
 
-			if(newHashList[hi].first == s_invalidIndex)
-				newHashList[hi].first = newHashList[hi].second = curInd;
-			else{
-				m_entries[newHashList[hi].second].next = curInd;
-				newHashList[hi].second = curInd;
+				if(newHashList[hi].first == s_invalidIndex)
+					newHashList[hi].first = newHashList[hi].second = curInd;
+				else{
+					m_entries[newHashList[hi].second].next = curInd;
+					newHashList[hi].second = curInd;
+				}
+
+				curInd = e.next;
+				e.next = s_invalidIndex;
 			}
-
-			curInd = e.next;
-			e.next = s_invalidIndex;
 		}
 	}
 

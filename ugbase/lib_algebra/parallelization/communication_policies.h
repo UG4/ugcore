@@ -1016,11 +1016,10 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 
 				//	if gID exists on this process, then add the connection to
 				//	the matrix.
-					AlgebraIDHashList::Iterator ibegin, iend;
-					m_algIDHash.get_iterators(ibegin, iend, gID);
-					if(ibegin != iend){
-					//	add connection between index and *ibegin to matrix
-						m_rMat(index, *ibegin) += block;
+					size_t conInd;
+					if(m_algIDHash.get_entry(conInd, gID)){
+					//	add connection between index and conInd to matrix
+						m_rMat(index, conInd) += block;
 					}
 				}
 			}

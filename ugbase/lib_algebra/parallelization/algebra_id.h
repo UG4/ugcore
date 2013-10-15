@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 #include <map>
-#include "common/util/hash.h"
+#include "common/util/new_hash.h"
 #include "pcl/pcl.h"
 
 namespace ug{
@@ -36,7 +36,7 @@ template<>
 unsigned long hash_key<AlgebraID>(const AlgebraID& key);
 
 typedef std::vector<AlgebraID>	AlgebraIDVec;
-typedef Hash<size_t, AlgebraID>	AlgebraIDHashList;
+typedef NewHash<AlgebraID, size_t>	AlgebraIDHashList;
 
 std::ostream& operator<<(std::ostream &out, const AlgebraID &ID);
 
@@ -48,11 +48,12 @@ inline void GenerateAlgebraIDHashList(AlgebraIDHashList &hash, AlgebraIDVec& alg
 //	We'll resize the hash to the number of algebraIDs, in order to have a
 //	hopefully good mapping...
 	hash.clear();
-	hash.set_hash_size(algebraIDs.size());
+	hash.resize_hash(algebraIDs.size());
+	hash.reserve(algebraIDs.size());
 
 //	now add all ids. We use the algebraID as key and the local index as value
 	for(size_t i = 0; i < algebraIDs.size(); ++i)
-		hash.add(i, algebraIDs[i]);
+		hash.insert(algebraIDs[i], i);
 }
 
 } // end namespace ug
