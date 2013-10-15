@@ -3,7 +3,7 @@
 // y09 m05 d28
 
 #include "extrude.h"
-#include "common/util/hash.h"
+#include "common/util/new_hash.h"
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"
 #include "lib_grid/algorithms/geom_obj_util/volume_util.h"
 
@@ -49,8 +49,9 @@ void Extrude(Grid& grid,
 		return;
 
 //	the hash:
-	typedef Hash<VertexBase*, uint> VertexHash;
+	typedef NewHash<uint, VertexBase*> VertexHash;
 	VertexHash vrtHash(hashSize);
+	vrtHash.reserve(hashSize);
 
 //	we'll record created faces in this vector, since we have to fix the
 //	orientation later on (only if pvEdgesInOut has been specified).
@@ -82,7 +83,7 @@ void Extrude(Grid& grid,
 		//	use the attachment_data_index of the old one as key.
 		//	WARNING: this is only secure as long as nobody calls defragment while the hash is active!
 			VertexBase* v = *grid.create<Vertex>(vOld);
-			vrtHash.add(v, grid.get_attachment_data_index(vOld));
+			vrtHash.insert(grid.get_attachment_data_index(vOld), v);
 
 		//	calculate new position
 			aaPos[v] = aaPos[vOld];
@@ -112,12 +113,10 @@ void Extrude(Grid& grid,
 
 			for(uint j = 0; j < 2; ++j)
 			{
-				if(vrtHash.has_entries(grid.get_attachment_data_index(e->vertex(j))))
-					v[j] = vrtHash.first(grid.get_attachment_data_index(e->vertex(j)));
-				else
+				if(!vrtHash.get_entry(v[j], grid.get_attachment_data_index(e->vertex(j))))
 				{
 					v[j] = *grid.create<Vertex>(e->vertex(j));
-					vrtHash.add(v[j], grid.get_attachment_data_index(e->vertex(j)));
+					vrtHash.insert(grid.get_attachment_data_index(e->vertex(j)), v[j]);
 				//	calculate new position
 					aaPos[v[j]] = aaPos[e->vertex(j)];
 					VecAdd(aaPos[v[j]], aaPos[v[j]], direction);
@@ -165,14 +164,9 @@ void Extrude(Grid& grid,
 			for(uint j = 0; j < numVrts; ++j)
 			{
 				uint oldVrtInd = grid.get_attachment_data_index(f->vertex(j));
-				if(vrtHash.has_entries(oldVrtInd))
-				{
-					v[j] = vrtHash.first(oldVrtInd);
-				}
-				else
-				{
+				if(!vrtHash.get_entry(v[j], oldVrtInd)){
 					v[j] = *grid.create<Vertex>(f->vertex(j));
-					vrtHash.add(v[j], oldVrtInd);
+					vrtHash.insert(oldVrtInd, v[j]);
 				//	calculate new position
 					aaPos[v[j]] = aaPos[f->vertex(j)];
 					VecAdd(aaPos[v[j]], aaPos[v[j]], direction);
