@@ -37,7 +37,27 @@ namespace ug {
  *	i.e. for i \in I the inequality constraint is said to be active, if c_i(x) = 0.
  *	Otherwise (c_i(x) > 0) it is called inactive.
  *
- *	...
+ *	A common approach to treat the inequality constraints is its reformulation as
+ *	equations by using so called complementarity functions, see e.g. C.Hager und B. I. Wohlmuth:
+ *	"Hindernis- und Kontaktprobleme" for a simple introduction into this topic.
+ *	By means of complementarity functions, constraints of the form
+ *
+ *		a >= 0, b >= 0, a * b = 0
+ *
+ *	with a, b \in \mathbb{R}^n can be reformulated as
+ *
+ *		C(a,b) = 0,
+ *
+ *	with C: \mathbb{R}^n x \mathbb{R}^n -> \mathbb{R}^n being an appropriate complementarity function.
+ *	The value of C indicates, whether the index is active or inactive (see method 'active_index').
+ *	Thus, it determines in every step the set of active indices, for which the original system
+ *	of equations needs to be adapted. The influence of these active indices on the original system
+ *	of equations ( K * u = f, with K: system-matrix; u, f vectors) can be modelled by means of a
+ *	lagrange multiplier '\lambda'. \lambda can either be defined by the residual ( \lambda := f - K * u,
+ *	see method 'residual_lagrange_mult') or by a problem-dependent computation (see method 'lagrange_multiplier').
+ *
+ *	In every Active Set step a linear or linearized system is solved. The algorithm stops when the active
+ *	and inactive Set remains unchanged (see method 'check_conv').
  *
  *
  * References:
