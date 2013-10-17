@@ -71,6 +71,18 @@ inline typename DenseMatrix<T1>::value_type Sum1Mat1(const DenseMatrix<T1> &mat)
 	return ret;
 }
 
+template<typename T1>
+inline double matTrace(const DenseMatrix<T1> d)
+{
+	double tr=0.0;
+	const size_t rk = (mat.num_rows() < mat.num_cols()) ? mat.num_rows() : mat.num_cols();
+	for (size_t k = 0; k<rk; k++)
+	{
+		tr += mat(k, k);
+	}
+	return tr;
+}
+
 inline double Sum1Mat1(double d)
 {
 	return d;
