@@ -73,6 +73,18 @@ public:
 	{
 		return data.size();
 	}
+
+	void print() const
+	{
+		for(const_iterator it=begin(); it != end(); ++it)
+		{
+			//if(BlockNorm(it.value()) == 0.0) continue;
+			UG_LOG("(" << it.index() << " -> " << it.value() << ")");
+		}
+
+		UG_LOG("\n");
+	}
+
 };
 
 }
