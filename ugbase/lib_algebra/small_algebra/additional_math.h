@@ -71,7 +71,6 @@ inline typename DenseMatrix<T1>::value_type Sum1Mat1(const DenseMatrix<T1> &mat)
 	return ret;
 }
 
-template<>
 inline double matTrace(const double d)
 {
 	return d;
