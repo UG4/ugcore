@@ -688,21 +688,67 @@ void MarkForAdaption_GradientJumpIndicator(IRefiner& refiner,
 // 	Compute error on elements
 	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, dim, 1))
 		ComputeGradientLagrange1(u, fct, aaGrad);
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
+		ComputeGradientCrouzeixRaviart(u, fct, aaGrad);
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0))
+		ComputeGradientPiecewiseConstant(u,fct,aaGrad);
 	else{
-		if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
-			ComputeGradientCrouzeixRaviart(u, fct, aaGrad);
-		else{
-			if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0)){
-				ComputeGradientPiecewiseConstant(u,fct,aaGrad);
-			} else {
-				UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
-			}
-		}
+		UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
 	}
 	computeGradientJump(u,aaGrad,aaError);
 	
 // 	Mark elements for refinement
 	MarkElements(aaError, refiner, u, TOL, refineFrac, coarseFrac, maxLevel);
+
+// 	detach error field
+	pMG->template detach_from<element_type>(aError);
+};
+
+template <typename TDomain, typename TAlgebra>
+void MarkForAdaption_AbsoluteGradientJumpIndicator(IRefiner& refiner,
+                                       GridFunction<TDomain, TAlgebra>& u,
+                                       const char* fctName,
+                                       number refTol,
+                                       number coarsenTol,
+                                       int minLvl,
+                                       int maxLevel)
+{
+//	types
+	typedef GridFunction<TDomain, TAlgebra> TFunction;
+	typedef typename TFunction::domain_type::grid_type grid_type;
+	typedef typename TFunction::element_type element_type;
+	const int dim = TFunction::dim;
+
+//	function id
+	const size_t fct = u.fct_id_by_name(fctName);
+
+//	get multigrid
+	SmartPtr<grid_type> pMG = u.domain()->grid();
+
+// 	attach error field
+	typedef Attachment<number> ANumber;
+	ANumber aGrad;
+	pMG->template attach_to<element_type>(aGrad);
+	MultiGrid::AttachmentAccessor<element_type, ANumber> aaGrad(*pMG, aGrad);
+	
+	ANumber aError;
+	pMG->template attach_to<element_type>(aError);
+	MultiGrid::AttachmentAccessor<element_type, ANumber> aaError(*pMG, aError);
+
+// 	Compute error on elements
+	if (u.local_finite_element_id(fct) == LFEID(LFEID::LAGRANGE, dim, 1))
+		ComputeGradientLagrange1(u, fct, aaGrad);
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::CROUZEIX_RAVIART, dim, 1))
+		ComputeGradientCrouzeixRaviart(u, fct, aaGrad);
+	else if (u.local_finite_element_id(fct) == LFEID(LFEID::PIECEWISE_CONSTANT, dim, 0))
+		ComputeGradientPiecewiseConstant(u,fct,aaGrad);
+	else{
+		UG_THROW("Non-supported finite element type " << u.local_finite_element_id(fct) << "\n");
+	}
+	computeGradientJump(u,aaGrad,aaError);
+	
+// 	Mark elements for refinement
+	MarkElementsAbsolute(aaError, refiner, u, refTol, coarsenTol, minLvl, maxLevel);
 
 // 	detach error field
 	pMG->template detach_from<element_type>(aError);

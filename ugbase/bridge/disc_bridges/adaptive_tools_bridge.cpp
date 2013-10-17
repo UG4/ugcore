@@ -70,6 +70,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 	//	MarkForAdaption_GradientJumpIndicator
 		reg.add_function("MarkForAdaption_GradientJumpIndicator",
 						 &MarkForAdaption_GradientJumpIndicator<TDomain, TAlgebra>, grp);
+						 
+	 //	MarkForAdaption_AbsoluteGradientJumpIndicator
+		reg.add_function("MarkForAdaption_AbsoluteGradientJumpIndicator",
+						 &MarkForAdaption_AbsoluteGradientJumpIndicator<TDomain, TAlgebra>, grp);
 	}
 
 //	Prolongate
