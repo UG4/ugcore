@@ -47,6 +47,34 @@ void TranslateDomain(TDomain& dom, ISelector& sel, const vector3& offset)
 	}
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+///	Scales selected elements around the given center.
+template <class TDomain>
+void ScaleDomain(TDomain& dom, const vector3& center, const vector3& scale)
+
+{
+	typedef typename TDomain::position_type pos_t;
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	typedef typename TDomain::grid_type	grid_t;
+	typedef typename grid_t::template traits<VertexBase>::iterator	vrt_iterator_t;
+
+	grid_t& g = *dom.grid();
+	pos_t c, s;
+	VecCopy(c, center, 0);
+	VecCopy(s, scale, 1);
+
+//	perform the scaling
+	for(vrt_iterator_t iter = g.template begin<VertexBase>();
+		iter != g.template end<VertexBase>(); ++iter)
+	{
+		pos_t& v = aaPos[*iter];
+		for(size_t j = 0; j < pos_t::Size; ++j)
+			v[j] = c[j] + (v[j] - c[j]) * s[j];
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ///	Scales selected elements around the given center.
 template <class TDomain>
@@ -224,7 +252,12 @@ static void Domain(Registry& reg, string grp)
 	typedef typename TDomain::position_type		pos_type;
 
 	reg.add_function("TranslateDomain", &TranslateDomain<domain_type>, grp, "", "dom#sel#offset");
-	reg.add_function("ScaleDomain", &ScaleDomain<domain_type>, grp, "", "dom#sel#center#scale");
+	reg.add_function("ScaleDomain",
+			static_cast<void (*)(domain_type&, const vector3&, const vector3&)>
+				(&ScaleDomain<domain_type>), grp, "", "dom#center#scale");
+	reg.add_function("ScaleDomain",
+			static_cast<void (*)(domain_type&, ISelector&, const vector3&, const vector3&)>
+				(&ScaleDomain<domain_type>), grp, "", "dom#sel#center#scale");
 	reg.add_function("ScaleDomainSqrtWeighting", &ScaleDomainSqrtWeighting<domain_type>, grp, "", "dom#sel#center#scale");
 	reg.add_function("ScaleDomainWeighting", &ScaleDomainWeighting<domain_type>, grp, "", "dom#sel#center#scale");
 	reg.add_function("ScaleDomainSquaredWeighting", &ScaleDomainSquaredWeighting<domain_type>, grp, "", "dom#sel#center#scale");
