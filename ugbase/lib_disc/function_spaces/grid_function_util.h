@@ -34,6 +34,33 @@
 
 namespace ug {
 
+template<typename TDomain>
+void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  ConstSmartPtr<DoFDistribution> dd, const std::vector<int>* pvMapGlobalToPatch=NULL)
+{
+/*
+	std::vector<size_t> fctIndex;
+	std::vector<std::string> fctNames;
+
+	ExtractAlgebraIndices<TDomain>(domain, dd, fctIndex, pvMapGlobalToPatch);
+
+	size_t numFct = dd->num_fct();
+	fctNames.resize(numFct);
+	for(size_t i=0; i<numFct; i++)
+		fctNames[i] = dd->name(i);
+
+	name.append(".indices");
+	std::fstream file(name.c_str(), std::ios::out);
+
+	//std::cout << "name is " << name << "\n";
+	file << "NUMDOF " << fctNames.size() << "\n";
+	for(size_t i=0; i<numFct; i++)
+		file << fctNames[i] << "\n";
+
+	for(size_t i=0; i<fctIndex.size(); i++)
+		file << fctIndex[i] << "\n";
+		//*/
+}
+
 template<class TFunction>
 void WriteMatrixToConnectionViewer(const char *filename,
 		const typename TFunction::algebra_type::matrix_type &A,
@@ -56,6 +83,9 @@ void WriteMatrixToConnectionViewer(const char *filename,
 		ConnectionViewer::WriteMatrixPar( filename, A, (MathVector<dim>*)NULL, dim );
 	else
 		ConnectionViewer::WriteMatrixPar( filename, A, &vPos[0], dim );
+
+	WriteAlgebraIndices(filename, u.domain(),u.dof_distribution(), NULL);
+
 }
 
 template<typename TGridFunction>
@@ -438,6 +468,7 @@ public:
 		}
 
 		//	write to file
+		extract_algebra_indices(name);
 		if(m_gridLevel == m_coarseGridLevel){
 			if(mat.num_rows() != mat.num_cols())
 				UG_THROW("DebugWriter: grid level the same, but non-square matrix.");
@@ -472,6 +503,12 @@ public:
 	}
 
 protected:
+
+	void extract_algebra_indices(std::string name)
+	{
+		WriteAlgebraIndices<TDomain>(name, m_spApproxSpace->domain(), m_spApproxSpace->dof_distribution(m_gridLevel), m_pvMapGlobalToPatch);
+	}
+
 	///	reads the positions
 	void extract_positions(const GridLevel& gridLevel) {
 		//	extract positions for this grid function

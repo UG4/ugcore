@@ -170,6 +170,7 @@ class DoFDistribution : virtual public DoFDistributionInfoProvider
 
 	/// get algebra indices (only inner part of Element)
 	/// \{
+		size_t inner_algebra_indices_for_fct(GeometricObject* elem, std::vector<size_t>& ind, bool bClear, int fct) const{return m_rMGDD.inner_algebra_indices_for_fct(elem,ind,bClear,fct);}
 		size_t inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.inner_algebra_indices(elem,ind,bClear);}
 		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.inner_algebra_indices(elem,ind,bClear);}
 		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear = true) const{return m_rMGDD.inner_algebra_indices(elem,ind,bClear);}

@@ -116,6 +116,12 @@ bool CheckDoFPositions(const TFunction &u)
 {
 	return CheckDoFPositions(u.domain(),u.dof_distribution());
 }
+
+template <typename TDomain>
+void ExtractAlgebraIndices(ConstSmartPtr<TDomain> domain,
+                      ConstSmartPtr<DoFDistribution> dd,
+                      std::vector<size_t> &fctIndex,
+                      const std::vector<int>* pvMapGlobalToPatch);
 /// \}
 } // end namespace ug
 

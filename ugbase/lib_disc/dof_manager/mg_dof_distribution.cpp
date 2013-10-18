@@ -146,6 +146,51 @@ size_t MGDoFDistribution::inner_algebra_indices(TBaseElem* elem,
 	return extract_inner_algebra_indices(elem, ind);
 }
 
+// this function could be merged with inner_algebra_indices with additional
+// default paramter e.g. selectedFct==-1 -> all functions.
+size_t MGDoFDistribution::inner_algebra_indices_for_fct(GeometricObject* elem,
+                                                std::vector<size_t>& ind,
+                                                bool bClear, int fct) const
+{
+//	clear indices
+	if(bClear) ind.clear();
+
+//	get roid type and subset index
+	const int si = m_spMGSH->get_subset_index(elem);
+	const ReferenceObjectID roid = elem->reference_object_id();
+
+//	check if dofs present
+	if(num_dofs(roid,si) > 0)
+	{
+	//	get index
+		const size_t firstIndex = obj_index(elem);
+
+		if(!m_bGrouped)
+		{
+		//	check that function is def on subset
+			if(!is_def_in_subset(fct, si)) return ind.size();
+
+		//	get number of DoFs in this sub-geometric object
+			const size_t numDoFsOnSub = num_fct_dofs(fct,roid,si);
+
+		//	compute index
+			const size_t index = firstIndex + offset(roid,si,fct);
+
+		//	add dof to local indices
+			for(size_t j = 0; j < numDoFsOnSub; ++j)
+				ind.push_back(index+j);
+		}
+		else
+		{
+		//	add dof to local indices
+			ind.push_back(firstIndex);
+		}
+	}
+
+//	return number of indices
+	return ind.size();
+}
+
 template<typename TBaseElem>
 size_t MGDoFDistribution::algebra_indices(TBaseElem* elem,
                                           std::vector<size_t>& ind,

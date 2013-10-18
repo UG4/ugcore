@@ -174,6 +174,9 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		size_t algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind,
 		                       bool bClear = true) const;
 
+		size_t inner_algebra_indices_for_fct(GeometricObject* elem, std::vector<size_t>& ind,
+							bool bClear, int fct) const;
+
 		/// extracts all algebra indices in the inner of the element (not sorted)
 		/**
 		 * All Algebra-Indices of the element (excluding the subelements) are
