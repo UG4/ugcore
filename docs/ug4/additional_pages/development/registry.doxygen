@@ -99,7 +99,6 @@ Hello World !
 ug:> 
 \endverbatim
 
-
 <hr>
 \section secSTHowToRegisterClasses How to register Classes and Methods
 
@@ -195,6 +194,22 @@ The additional information you specify can be accessed in various ways:
 <li> In the VRL
 <li> In the ugshell with e.g. <tt>CG?</tt> or <tt>TypeInfo("CG")</tt> (also in LUA scripts) 
 </ul>
+
+<hr>
+\section secSTSupportedTypes Supported and not supported types
+Supported Basic Types BT are : 
+\code
+bool, int, size_t, float, double, const char *, std::string
+\endcode
+UT = User Defined Types. <br>
+pUT = Set consisting of <tt>T*, const T*, SmartPtr<T>, ConstSmartPtr<T></tt> of User Defined Types T in UT. <br>
+
+Then the supported types for parameters and return values are
+- all types T in BT or pUT,
+- <tt>std::vector<T>, std::vector<T>&, const std::vector<T></tt> of all T in BT or pUT,
+
+ 
+\note char is not a supported type. use int instead.
 
 <hr>
 \section secSTHowToSpecifyVRLInformation How to specify VRL information for parameters
@@ -347,14 +362,29 @@ reg.add_class_<Derived, Base>("Derived", grp)
    .add_constructor();
 \endcode
 
-
 <hr>
-\section secSTHowToRegisterOverloadedMethods How to register Overloaded Methods
+\section secSTHowToRegisterOverloadedFunctions How to register Overloaded Functions
 
-When a method (or function) is overloaded, the compiler can not find the method
+When function is overloaded, the compiler can not find the function
 you want to register by only passing the method pointer.
 You have to explicitly specify the method signature to choose between the 
 possibilities:
+
+
+\code
+int MyGlobalFunction(int parameter1, int parameter2);
+bool MyGlobalFunction();
+\endcode
+
+\code
+// register MyGlobalFunction overloads
+reg.add_function("MyGlobalFunction", static_cast<int (*)(int parameter1, int parameter2)>(&MyGlobalFunction));
+reg.add_function("MyGlobalFunction", static_cast<bool (*)()>(&MyGlobalFunction));
+\endcode
+
+
+<hr>
+\section secSTHowToRegisterOverloadedMethods How to register Overloaded Methods
 
 \code
 class Test
@@ -381,7 +411,7 @@ reg.add_class_<Test>("Test", grp)
 
 Constructors with parameters and several (overloaded) Constructors are also 
 possible.
-Since it is impossible to take the function point of a constructor the special 
+Since it is impossible to take the function pointer of a constructor the special 
 method <tt>add_constructor<SignatureFunction>(...)</tt> must be used. 
 
 \code
@@ -422,5 +452,6 @@ ExportedClass<TClass>& add_constructor(std::string paramInfos = "",
 \arg \c tooltip &mdash; some information about the usage of the constructor
 \arg \c help &mdash; help informations
 \arg \c options &mdash; style option of the constructor itself (for visualisation)
+
 
 */
