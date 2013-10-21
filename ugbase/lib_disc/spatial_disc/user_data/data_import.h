@@ -156,7 +156,8 @@ class DataImport : public IDataImport<dim>
 			m_id(ROID_UNKNOWN),
 			m_seriesID(-1),	m_spUserData(NULL), m_vValue(NULL),
 			m_numIP(0), m_spDependentUserData(NULL)
-		{clear_fct();}
+		{clear_fct();
+		}
 
 	///	Destructor
 		~DataImport();
