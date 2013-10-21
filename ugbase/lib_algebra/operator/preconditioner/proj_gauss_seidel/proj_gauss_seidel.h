@@ -58,7 +58,7 @@ class ProjGaussSeidel:
 	///	preprocess checks if matrix is diagonal invertible
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp);
 
-	///	computes a new correction c = B*d and project on the underlying constraint
+	///	computes a new correction c = B*d and projects on the underlying constraint
 	/**
 	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
 	 * It can only be called, when the preprocess has been done.
@@ -68,7 +68,7 @@ class ProjGaussSeidel:
 	 * \param[in]	d			defect
 	 * \returns		bool		success flag
 	 */
-		bool gs_step_and_projection(vector_type& c, const matrix_type& A, const vector_type& d);
+		bool gs_step_with_projection(vector_type& c, const matrix_type& mat, const vector_type& d);
 
 	///////////////////////////////////////////////////////////////////////////
 	//	Linear Solver interface methods

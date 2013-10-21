@@ -95,7 +95,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 template <typename TAlgebra>
 bool
 ProjGaussSeidel<TAlgebra>::
-gs_step_and_projection(vector_type& c, const matrix_type& A, const vector_type& d)
+gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type& d)
 {
 	//	TODO: matrix_type correct or MatrixOperator<matrix_type, vector_type>?
 	typename vector_type::value_type s;
@@ -148,40 +148,12 @@ apply(vector_type &c, const vector_type& d)
 		return false;
 	}
 
-	//	reset vector
-	m_vActiveIndices.resize(0);
-
-	//	perform a forward GaussSeidel-step: c = (D-L)^-1 * d, project on the underlying constraint
-	//	and store the indices, which satisfy the constraint with equality, in the vector vActiveIndices
-
+	//	Check parallel status
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1)
-	{
-	//	make defect unique
-		SmartPtr<vector_type> spDtmp = d.clone();
-		spDtmp->change_storage_type(PST_UNIQUE);
-
-		if(!gs_step_and_projection(c, *m_spMat, *spDtmp)) return false;
-		c.set_storage_type(PST_UNIQUE);
-		return true;
-	}
-	else
+	if(!d.has_storage_type(PST_ADDITIVE))
+		UG_THROW(name() << "::apply: Wrong parallel "
+					   "storage format. Defect must be additive.");
 #endif
-	{
-		if(!gs_step_and_projection(c, *m_spMat, d)) return false;
-#ifdef UG_PARALLEL
-		c.set_storage_type(PST_UNIQUE);
-#endif
-		return true;
-	}
-}
-
-template <typename TAlgebra>
-bool
-ProjGaussSeidel<TAlgebra>::
-apply_update_defect(vector_type &c, vector_type& d)
-{
-	PROFILE_FUNC_GROUP("projGS");
 
 	//	check sizes
 	if(d.size() != m_spMat->num_rows())
@@ -196,6 +168,47 @@ apply_update_defect(vector_type &c, vector_type& d)
 	if(d.size() != m_lastSol.size())
 			UG_THROW("Vector [d size= "<<d.size()<<", m_lastSol size = "
 					   <<m_lastSol.size()<< "] sizes have to match!");
+	//	reset vector
+	m_vActiveIndices.resize(0);
+
+	//	perform a forward GaussSeidel-step: c = (D-L)^-1 * d, project on the underlying constraint
+	//	and store the indices, which satisfy the constraint with equality, in the vector vActiveIndices
+
+#ifdef UG_PARALLEL
+	if(pcl::GetNumProcesses() > 1)
+	{
+	//	make defect unique
+		SmartPtr<vector_type> spDtmp = d.clone();
+		spDtmp->change_storage_type(PST_UNIQUE);
+
+		if(!gs_step_with_projection(c, *m_spMat, *spDtmp)) return false;
+		c.set_storage_type(PST_UNIQUE);
+	}
+	else
+#endif
+	{
+		if(!gs_step_with_projection(c, *m_spMat, d)) return false;
+#ifdef UG_PARALLEL
+		c.set_storage_type(PST_UNIQUE);
+#endif
+	}
+
+//	Correction is always consistent
+#ifdef 	UG_PARALLEL
+	if(!c.change_storage_type(PST_CONSISTENT))
+		UG_THROW(name() << "::apply': Cannot change "
+				"parallel storage type of correction to consistent.");
+#endif
+
+	return true;
+}
+
+template <typename TAlgebra>
+bool
+ProjGaussSeidel<TAlgebra>::
+apply_update_defect(vector_type &c, vector_type& d)
+{
+	PROFILE_FUNC_GROUP("projGS");
 
 	//	compute new correction and perform the projection
 	//	(adjusting the solution m_lastSol to the underlying constraint)
