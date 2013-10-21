@@ -14,7 +14,9 @@
 
 #ifdef UG_PARALLEL
 	#include "lib_grid/parallelization/load_balancer.h"
+	#include "lib_grid/parallelization/load_balancer_util.h"
 	#include "lib_grid/parallelization/partitioner_bisection.h"
+	#include "lib_disc/parallelization/domain_load_balancer.h"
 	#ifdef UG_PARMETIS
 		#include "lib_grid/parallelization/partitioner_parmetis.h"
 	#endif
@@ -65,6 +67,23 @@ struct Functionality
 static void Common(Registry& reg, string grp) {
 	reg.add_function("MetisIsAvailable", &MetisIsAvailable, grp);
 	reg.add_function("ParmetisIsAvailable", &ParmetisIsAvailable, grp);
+
+	#ifdef UG_PARALLEL
+	{
+		typedef ProcessHierarchy T;
+		reg.add_class_<T>("ProcessHierarchy", grp)
+			.add_constructor()
+			.add_method("empty", &T::empty)
+			.add_method("add_hierarchy_level", &T::add_hierarchy_level)
+			.add_method("num_hierarchy_levels", &T::num_hierarchy_levels)
+			.add_method("num_global_procs_involved", &T::num_global_procs_involved)
+			.add_method("grid_base_level", &T::grid_base_level)
+			.add_method("hierarchy_level_from_grid_level", &T::hierarchy_level_from_grid_level)
+			.add_method("cluster_procs", &T::cluster_procs)
+			.add_method("to_string", &T::to_string)
+			.set_construct_as_smart_pointer(true);
+	}
+	#endif
 }
 
 /**
@@ -118,12 +137,12 @@ static void Domain(Registry& reg, string grp)
 
 		{
 		//	Note that this class does not feature a constructor.
-		//	One normally uses the derived class DomainLoadBalancer, registered
-		//	in bridge/disc_bridges/domain_disc_bridge.cpp
+		//	One normally uses the derived class DomainLoadBalancer
 			typedef LoadBalancer<TDomain::dim> T;
 			string name = string("LoadBalancer").append(suffix);
 			reg.add_class_<T>(name, grp)
-					.add_method("add_distribution_level", &T::add_distribution_level)
+					//.add_method("add_distribution_level", &T::add_distribution_level)
+					.add_method("set_process_hierarchy", &T::set_process_hierarchy)
 					.add_method("rebalance", &T::rebalance)
 					.add_method("set_balance_threshold", &T::set_balance_threshold)
 					.add_method("set_element_threshold", &T::set_element_threshold)
@@ -133,6 +152,21 @@ static void Domain(Registry& reg, string grp)
 
 			reg.add_class_to_group(name, "LoadBalancer", tag);
 		}
+
+		{
+			string name = string("DomainLoadBalancer").append(suffix);
+			typedef DomainLoadBalancer<TDomain> T;
+			typedef LoadBalancer<TDomain::dim> TBase;
+			reg.add_class_<T, TBase>(name, grp)
+				.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "DomainLoadBalancer", tag);
+		}
+
+		reg.add_function("CreateProcessHierarchy", &CreateProcessHierarchy<TDomain>, grp,
+						 "ProcessHierarchy", "Domain, minNumElemsPerProcPerLvl, "
+						 "maxNumRedistProcs, maxNumProcs");
+
 	#endif
 }
 

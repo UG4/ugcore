@@ -9,6 +9,7 @@
 #include "partitioner_bisection.h"
 #include "distributed_grid.h"
 #include "lib_grid/parallelization/parallelization_util.h"
+#include "common/util/table.h"
 
 #ifdef UG_PARMETIS
 #include "partitioner_parmetis.h"
@@ -116,6 +117,12 @@ init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl, size_t numProcsP
 	}
 }
 
+bool ProcessHierarchy::
+empty() const
+{
+	return m_levels.empty();
+}
+
 size_t ProcessHierarchy::
 num_hierarchy_levels() const
 {
@@ -163,6 +170,20 @@ cluster_procs(size_t hierarchyLevel) const
 	return get_hlevel_info(hierarchyLevel).clusterProcs;
 }
 
+std::string ProcessHierarchy::
+to_string() const
+{
+	StringStreamTable table;
+	table(0, 0) << "lvl:";
+	table(1, 0) << "procs:";
+	for(size_t i = 0; i < m_levels.size(); ++i){
+		table(0, i + 1) << m_levels[i].gridLvl;
+		table(1, i + 1) << m_levels[i].numGlobalProcsInUse;
+	}
+
+	return table.to_string();
+}
+
 //pcl::ProcessCommunicator ProcessHierarchy::
 //cluster_proc_com(size_t hierarchyLevel)
 //{
@@ -181,7 +202,7 @@ LoadBalancer() :
 	m_elementThreshold(1),
 	m_createVerticalInterfaces(true)
 {
-	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
+	m_processHierarchy = ProcessHierarchy::create();
 	m_balanceWeights = SPBalanceWeights(new StdBalanceWeights<dim>);
 	m_connectionWeights = SPConnectionWeights(new StdConnectionWeights<dim>);
 
@@ -235,11 +256,18 @@ set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
 	m_connectionWeights = conWeights;
 }
 
+//template<int dim>
+//void LoadBalancer<dim>::
+//add_distribution_level(size_t lvl, size_t numProcsPerProc)
+//{
+//	m_processHierarchy->add_hierarchy_level(lvl, numProcsPerProc);
+//}
+
 template<int dim>
 void LoadBalancer<dim>::
-add_distribution_level(size_t lvl, size_t numProcsPerProc)
+set_process_hierarchy(SPProcessHierarchy procHierarchy)
 {
-	m_processHierarchy->add_hierarchy_level(lvl, numProcsPerProc);
+	m_processHierarchy = procHierarchy;
 }
 
 template<int dim>
@@ -310,9 +338,11 @@ rebalance()
 	GDIST_PROFILE_FUNC();
 
 	UG_DLOG(LIB_GRID, 1, "LoadBalancer-start rebalance\n");
-	if(!m_partitioner.valid()){
-		UG_THROW("LoadBalancer::rebalance can only be performed with a valid partitioner!");
-	}
+	UG_COND_THROW(!m_partitioner.valid(),
+				  "LoadBalancer::rebalance can only be performed with a valid partitioner!");
+
+	UG_COND_THROW(m_processHierarchy->empty(),
+				  "A Process-Hierarchy has to be specifed for rebalancing");
 
 	m_balanceWeights->set_grid(m_mg, m_aPos);
 	m_connectionWeights->set_grid(m_mg, m_aPos);

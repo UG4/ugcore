@@ -18,13 +18,18 @@
 
 namespace ug{
 
+class ProcessHierarchy;
+typedef SmartPtr<ProcessHierarchy> SPProcessHierarchy;
+
 class ProcessHierarchy{
 	public:
-		virtual ~ProcessHierarchy();
+		static SPProcessHierarchy create()	{return SPProcessHierarchy(new ProcessHierarchy);}
+		~ProcessHierarchy();
 
 	//todo:	add a proc list for more sophisticated hierarchy levels
 		void add_hierarchy_level(size_t gridLvl, size_t numProcsPerProc);
 
+		bool empty() const;
 		size_t num_hierarchy_levels() const;
 		size_t num_global_procs_involved(size_t hierarchyLevel) const;
 		size_t grid_base_level(size_t hierarchyLevel) const;
@@ -39,6 +44,9 @@ class ProcessHierarchy{
 	 * hierarchyLevel in which the local process is included.*/
 		//pcl::ProcessCommunicator cluster_proc_com(size_t hierarchyLevel);
 		const std::vector<int>& cluster_procs(size_t hierarchyLevel) const;
+
+	///	Returns a string which describes the hierarchy layout.
+		std::string to_string() const;
 
 	protected:
 		struct HLevelInfo{
@@ -59,8 +67,6 @@ class ProcessHierarchy{
 	private:
 		std::vector<HLevelInfo>	m_levels;
 };
-
-typedef SmartPtr<ProcessHierarchy> SPProcessHierarchy;
 
 
 template <int dim>
@@ -177,13 +183,16 @@ class LoadBalancer{
 	 * \note connection weights are only used if the given partitioner supports them.*/
 	 	virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights);
 
-	///	Inserts a new distribution level on which the grid may be redistributed
-	/** Use this method to map a region of levels to a subset of the active processes.
-	 * Very useful for hierarchical distribution. Elements between the given level
-	 * and the level specified in the next cut are distributed between the given
-	 * number of processes only.
-	 * The new level has to lie above the level added before.*/
-		virtual void add_distribution_level(size_t lvl, size_t numProcsPerProc);
+//	///	Inserts a new distribution level on which the grid may be redistributed
+//	/** Use this method to map a region of levels to a subset of the active processes.
+//	 * Very useful for hierarchical distribution. Elements between the given level
+//	 * and the level specified in the next cut are distributed between the given
+//	 * number of processes only.
+//	 * The new level has to lie above the level added before.*/
+//		virtual void add_distribution_level(size_t lvl, size_t numProcsPerProc);
+
+	///	Defines the process hierarchy which will be used during the following calls of rebalance
+	 	virtual void set_process_hierarchy(SPProcessHierarchy procHierarchy);
 
 	///	If the balance falls below the given threshold, then rebalance will perform redistribution
 	/**	Set to 0.9 by default.*/

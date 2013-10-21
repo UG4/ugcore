@@ -6,8 +6,31 @@
 #define __H__UG__domain_load_balancer__
 
 #include "lib_grid/parallelization/load_balancer.h"
+#include "lib_grid/parallelization/load_balancer_util.h"
 
 namespace ug{
+
+///	Creates a process-hierarchy that fullfills the given conditions.
+template <class TDomain>
+SPProcessHierarchy
+CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
+					   size_t maxNumRedistProcs, size_t maxNumProcs)
+{
+	const DomainInfo& domInf = dom.domain_info();
+	std::vector<size_t> numElemsOnLvl;
+	numElemsOnLvl.reserve(domInf.num_levels());
+	for(size_t i = 0; i < domInf.num_levels(); ++i)
+		numElemsOnLvl.push_back(domInf.num_elements_on_level(i));
+
+	if(numElemsOnLvl.empty()){
+		return ProcessHierarchy::create();
+	}
+
+	return CreateProcessHierarchy(&numElemsOnLvl.front(), numElemsOnLvl.size(),
+								  minNumElemsPerProcPerLvl, maxNumRedistProcs,
+								  maxNumProcs);
+}
+
 
 ///	A small wrapper for LoadBalancer which adds comfort methods to balance and distribute domains.
 template <class TDomain>

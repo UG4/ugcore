@@ -38,7 +38,8 @@ class Partitioner_Bisection : public IPartitioner<dim>{
 		MultiGrid* m_mg;
 		Attachment<MathVector<dim> > m_aPos;
 		SubsetHandler 		m_sh;
-		SPProcessHierarchy	m_processHierarchy;
+		ProcessHierarchy	m_processHierarchy;
+		SPProcessHierarchy	m_nextProcessHierarchy;
 		std::vector<int>	m_procMap;
 		int m_highestRedistLevel;
 };

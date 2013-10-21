@@ -40,6 +40,8 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 
 		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL);
 
+	/**	Pass NULL to newProcHierarchy, to indicate, that the last process hierarchy
+	 * shall be reused.*/
 		virtual void partition(size_t baseLvl, size_t elementThreshold);
 
 		virtual SubsetHandler& get_partitions();
@@ -98,7 +100,8 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		Grid::AttachmentAccessor<elem_t, AInt>	m_aaNumChildren;
 		SPBalanceWeights	m_balanceWeights;
 		SPConnectionWeights	m_connectionWeights;
-		SPProcessHierarchy	m_processHierarchy;
+		ProcessHierarchy	m_processHierarchy;
+		SPProcessHierarchy	m_nextProcessHierarchy;
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;
 
 		int	m_childWeight;

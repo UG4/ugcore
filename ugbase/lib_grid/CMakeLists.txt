@@ -104,6 +104,7 @@ if(PARALLEL)
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_grid_layout.cpp
 							parallelization/load_balancer.cpp
+							parallelization/load_balancer_util.cpp
 							parallelization/load_balancing.cpp
 							parallelization/partitioner_bisection.cpp
 							parallelization/parallel_refinement/parallel_global_fractured_media_refiner.cpp

@@ -264,19 +264,6 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_to_group(name, "Domain", tag);
 	}
 
-//	LoadBalancer
-#ifdef UG_PARALLEL
-	{
-		string name = string("DomainLoadBalancer").append(suffix);
-		typedef DomainLoadBalancer<TDomain> T;
-		typedef LoadBalancer<TDomain::dim> TBase;
-		reg.add_class_<T, TBase>(name, grp)
-			.template add_constructor<void (*)(SmartPtr<TDomain>)>("Domain")
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "DomainLoadBalancer", tag);
-	}
-#endif
-
 
 // 	MaxElementDiameter
 	reg.add_function("MaxElementDiameter", static_cast<number (*)(TDomain&, int)>(

@@ -9,6 +9,13 @@
 
 namespace ug{
 
+///	Creates a process-hierarchy that fullfills the given conditions.
+SPProcessHierarchy
+CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
+					   size_t minNumElemsPerProcPerLvl, size_t maxNumRedistProcs,
+					   size_t maxNumProcs);
+
+
 template <int dim>
 class StdConnectionWeights : public ConnectionWeights<dim>{
 	public:

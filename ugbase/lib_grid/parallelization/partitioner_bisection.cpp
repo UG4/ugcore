@@ -16,7 +16,7 @@ Partitioner_Bisection() :
 	m_mg(NULL),
 	m_highestRedistLevel(-1)
 {
-	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
+	m_processHierarchy.add_hierarchy_level(0, 1);
 }
 
 template<int dim>
@@ -38,7 +38,7 @@ template<int dim>
 void Partitioner_Bisection<dim>::
 set_process_hierarchy(SPProcessHierarchy procHierarchy)
 {
-	m_processHierarchy = procHierarchy;
+	m_nextProcessHierarchy = procHierarchy;
 }
 
 template<int dim>
@@ -87,15 +87,15 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 //todo The quality of a level could be weighted by the total amount of elements
 //		in each level.
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		size_t hlvl = m_processHierarchy->hierarchy_level_from_grid_level(lvl);
-		int numProcs = m_processHierarchy->num_global_procs_involved(hlvl);
+		size_t hlvl = m_processHierarchy.hierarchy_level_from_grid_level(lvl);
+		int numProcs = m_processHierarchy.num_global_procs_involved(hlvl);
 		if(numProcs <= 1){
 			if(pLvlQualitiesOut)
 				pLvlQualitiesOut->push_back(1.0);
 			continue;
 		}
 
-		pcl::ProcessCommunicator procComAll = m_processHierarchy->global_proc_com(hlvl);
+		pcl::ProcessCommunicator procComAll = m_processHierarchy.global_proc_com(hlvl);
 		if(!procComAll.empty()){
 			int localWeight = 0;
 			for(ElemIter iter = mg.begin<elem_t>(lvl);
@@ -140,16 +140,22 @@ partition(size_t baseLvl, size_t elementThreshold)
 	for(int i = 0; i < (int)baseLvl; ++i)
 		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 
+	const ProcessHierarchy* newProcHierarchy;
+	if(m_nextProcessHierarchy.valid())
+		newProcHierarchy = m_nextProcessHierarchy.get();
+	else
+		newProcHierarchy = &m_processHierarchy;
+
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
 	m_procMap.clear();
-	for(size_t hlevel = 0; hlevel < m_processHierarchy->num_hierarchy_levels(); ++ hlevel)
+	for(size_t hlevel = 0; hlevel < newProcHierarchy->num_hierarchy_levels(); ++ hlevel)
 	{
-		int minLvl = m_processHierarchy->grid_base_level(hlevel);
+		int minLvl = newProcHierarchy->grid_base_level(hlevel);
 		int maxLvl = (int)mg.top_level();
-		if(hlevel + 1 < m_processHierarchy->num_hierarchy_levels()){
+		if(hlevel + 1 < newProcHierarchy->num_hierarchy_levels()){
 			maxLvl = min<int>(maxLvl,
-						(int)m_processHierarchy->grid_base_level(hlevel + 1) - 1);
+						(int)newProcHierarchy->grid_base_level(hlevel + 1) - 1);
 		}
 
 		if(minLvl < (int)baseLvl)
@@ -158,7 +164,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		if(maxLvl < minLvl)
 			continue;
 
-		const std::vector<int>& clusterProcs = m_processHierarchy->cluster_procs(hlevel);
+		const std::vector<int>& clusterProcs = newProcHierarchy->cluster_procs(hlevel);
 
 		int numProcs = (int)clusterProcs.size();
 
@@ -257,6 +263,11 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	make sure that everybody knows about the highestRedistLevel!
 	pcl::ProcessCommunicator com;
 	m_highestRedistLevel = com.allreduce(m_highestRedistLevel, PCL_RO_MAX);
+
+	if(m_nextProcessHierarchy.valid()){
+		m_processHierarchy = *m_nextProcessHierarchy;
+		m_nextProcessHierarchy = SPProcessHierarchy(NULL);
+	}
 }
 
 

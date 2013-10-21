@@ -140,10 +140,12 @@ function balancer.CreateLoadBalancer(domain)
 			if(numNew > numComputeProcs) then
 				numNew = numComputeProcs
 			end
-			loadBalancer:add_distribution_level(balancer.firstDistLvl, numNew)
+			processHierarchy:add_hierarchy_level(balancer.firstDistLvl, numNew)
 			lvl = balancer.firstDistLvl + balancer.redistSteps
 			procsTotal = numNew
 		end
+
+		local processHierarchy = ProcessHierarchy()
 		
 		if balancer.redistSteps > 0 then
 			local numNewProcs = balancer.redistProcs
@@ -153,23 +155,25 @@ function balancer.CreateLoadBalancer(domain)
 					break
 				end
 				if procsTotal * numNewProcs <= numComputeProcs then
-					loadBalancer:add_distribution_level(lvl, numNewProcs)
+					processHierarchy:add_hierarchy_level(lvl, numNewProcs)
 					procsTotal = procsTotal * numNewProcs
 				elseif procsTotal < numComputeProcs then
 					local numNew = math.floor(numComputeProcs / procsTotal)
 					if(numNew > 0) then
-						loadBalancer:add_distribution_level(lvl, numNew)
+						processHierarchy:add_hierarchy_level(lvl, numNew)
 						procsTotal = procsTotal * numNew
 					end
 				else
-					loadBalancer:add_distribution_level(lvl, 1)
+					processHierarchy:add_hierarchy_level(lvl, 1)
 				end
 				lvl = lvl + balancer.redistSteps
 			end
 		elseif balancer.firstDistLvl < 0 then
-			loadBalancer:add_distribution_level(0, numComputeProcs)
+			processHierarchy:add_hierarchy_level(0, numComputeProcs)
 			loadBalancer:rebalance()
 		end
+		
+		loadBalancer:set_process_hierarchy(processHierarchy);
 	end
 	
 	return loadBalancer
