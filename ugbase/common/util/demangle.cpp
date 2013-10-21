@@ -6,9 +6,12 @@
  */
 #ifdef UG_POSIX
 #include <cxxabi.h>
-#include <sstream>
-#include <stdlib.h>
 #endif
+
+#include <sstream>
+#include <string>
+#include <stdlib.h>
+
 using namespace std;
 namespace ug{
 
