@@ -127,7 +127,7 @@ class ActiveSet
 		bool active_index(function_type& u, function_type& rhs, function_type& lagrangeMult,
 				function_type& gap);
 
-		void set_dirichlet_rows(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices);
+		void set_dirichlet_rows(matrix_type& mat);
 
 	///	computes the lagrange multiplier for a given disc
 		void lagrange_multiplier(function_type& lagrangeMult, const function_type& u);
@@ -153,17 +153,6 @@ class ActiveSet
 				TIterator iterEnd, matrix_type& lagrangeMatInv);
 
 		void lagrange_mat_inv(matrix_type& lagrangeMatInv);
-
-	///	method used for lua-call in order to pass the ActiveSet to assemble-funcs
-		vector<SmartPtr<DoFIndex> > active_dof_indices()
-		{
-			create_vec_of_pointers();
-			return m_vActiveSetGlobSP;
-		};
-
-	private:
-	///	creates a list of pointers to the active Indices for lua-registry
-		void create_vec_of_pointers();
 
 	private:
 		///	pointer to the DofDistribution on the whole domain
@@ -193,8 +182,6 @@ class ActiveSet
 		vector<DoFIndex> m_vActiveSetGlob;
 		///	vector remembering the active set of global DoFIndices
 		vector<DoFIndex> m_vActiveSetGlobOld;
-		///	vector of pointers to active set needed for lua-call
-		vector<SmartPtr<DoFIndex> > m_vActiveSetGlobSP;
 };
 
 } // namespace ug

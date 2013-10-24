@@ -298,11 +298,11 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 //	sets a Dirichlet row for all active Indices
 template <typename TDomain, typename TAlgebra>
 void ActiveSet<TDomain, TAlgebra>::
-set_dirichlet_rows(matrix_type& mat, vector<SmartPtr<DoFIndex> > vActiveIndices)
+set_dirichlet_rows(matrix_type& mat)
 {
-	for (vector<SmartPtr<DoFIndex> >::iterator itActiveInd = vActiveIndices.begin();
-			itActiveInd < vActiveIndices.end(); ++itActiveInd){
-		SetDirichletRow(mat, **itActiveInd);
+	for (vector<DoFIndex>::iterator itActiveInd = m_vActiveSetGlob.begin();
+			itActiveInd < m_vActiveSetGlob.end(); ++itActiveInd){
+		SetDirichletRow(mat, *itActiveInd);
 	}
 }
 
@@ -668,21 +668,6 @@ bool ActiveSet<TDomain, TAlgebra>::check_inequ(const matrix_type& mat,
 	}
 
 	return true;
-}
-
-template <typename TDomain, typename TAlgebra>
-void ActiveSet<TDomain, TAlgebra>::create_vec_of_pointers()
-{
-	m_vActiveSetGlobSP.resize(m_vActiveSetGlob.size());
-
-	vector<DoFIndex>::iterator it = m_vActiveSetGlob.begin();
-	for (vector<SmartPtr<DoFIndex> >::iterator itSP = m_vActiveSetGlobSP.begin();
-				itSP < m_vActiveSetGlobSP.end(); ++itSP)
-	{
-		*itSP = &*it;
-		++it;
-	}
-
 }
 
 }; // namespace ug

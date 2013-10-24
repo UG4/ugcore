@@ -462,8 +462,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 					"activeIndexSet changed or not")
 			.add_method("check_ineq", &T::check_inequ, "", "",
 						"check if all inequalities are fulfilled")
-			.add_method("active_dof_indices", &T::active_dof_indices, "", "",
-					"returns all active_dof_indices in a vector")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ActiveSet", tag);
 	}
