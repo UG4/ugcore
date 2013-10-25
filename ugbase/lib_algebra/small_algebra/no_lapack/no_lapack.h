@@ -1,4 +1,5 @@
 #include "lu_decomp.h"
+#include "nolapack_invert.h"
 
 #ifndef __H__UG__CPU_ALGEBRA__NO_LAPACK_H__
 #define __H__UG__CPU_ALGEBRA__NO_LAPACK_H__
