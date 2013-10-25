@@ -421,6 +421,13 @@ partition(size_t baseLvl, size_t elementThreshold)
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition\n");
 
+	UG_LOG("Partitioning - current process hierarchy:\n");
+	UG_LOG(m_processHierarchy.to_string() << endl);
+	if(m_nextProcessHierarchy.valid()){
+		UG_LOG("Partitioning - next process hierarchy:\n");
+		UG_LOG(m_nextProcessHierarchy->to_string() << endl);
+	}
+
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 
 	assert(m_mg);
@@ -484,32 +491,79 @@ partition(size_t baseLvl, size_t elementThreshold)
 		int numProcsOnLvl = newProcHierarchy->num_global_procs_involved(hlevel);
 
 		if(numProcsOnLvl <= 1){
+			int targetProcId = 0;
 			for(int i = minLvl; i <= maxLvl; ++i)
-				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
+				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), targetProcId);
 			continue;
 		}
 
 
-	//	since the old and new hierarchy may be different, we'll get the old hlevel
-	//	using the current grid level
-		size_t gridLvl = newProcHierarchy->grid_base_level(hlevel);
-		pcl::ProcessCommunicator hlvlCom = m_processHierarchy.global_proc_com(
-									m_processHierarchy.hierarchy_level_from_grid_level(gridLvl));
-		if(hlvlCom.empty()){
-		//	the local level is not contained in the current hlvl of the proc-hierarchy.
-		//	make sure that it doesn't contain any elements, since we would most likely
-		//	get problems during h- or v-interface communication later on.
-			UG_ASSERT(mg.num<VertexBase>(minLvl) == 0,
-					  "Process " << localProc
-					  << " shouldn't contain vertices on this level: " << minLvl);
-					  
-		//	since we communicate with elements in maxLvl below, this assertion has to hold.
-			UG_ASSERT(mg.num<elem_t>(maxLvl) == 0,
-					  "Process " << localProc
-					  << " shouldn't contain elements on this level: " << maxLvl);
+//	//	since the old and new hierarchy may be different, we'll get the old hlevel
+//	//	using the current grid level
+//		size_t gridLvl = newProcHierarchy->grid_base_level(hlevel);
+//		size_t oldHLvl = m_processHierarchy.hierarchy_level_from_grid_level(gridLvl);
+//		pcl::ProcessCommunicator hlvlCom = m_processHierarchy.global_proc_com(oldHLvl);
+//		if(hlvlCom.empty()){
+//			int oldMinLvl = m_processHierarchy.grid_base_level(oldHLvl);
+//			if(oldMinLvl < (int)baseLvl)
+//				oldMinLvl = (int)baseLvl;
+//			int oldMaxLvl = mg.top_level();
+//			if(oldHLvl + 1 < m_processHierarchy.num_hierarchy_levels()){
+//				oldMaxLvl = min<int>(oldMaxLvl,
+//							(int)m_processHierarchy.grid_base_level(oldHLvl + 1) - 1);
+//			}
+//
+//		//	the local level is not contained in the current hlvl of the proc-hierarchy.
+//		//	make sure that it doesn't contain any elements, since we would most likely
+//		//	get problems during h- or v-interface communication later on.
+//			UG_COND_THROW(mg.num<VertexBase>(oldMinLvl) > 0,
+//					  "Process " << localProc
+//					  << " shouldn't contain vertices on this level: " << oldMinLvl);
+//
+//		//	since we communicate with elements in maxLvl below, this assertion has to hold.
+//			UG_COND_THROW(mg.num<elem_t>(oldMaxLvl) > 0,
+//					  "Process " << localProc
+//					  << " shouldn't contain elements on this level: " << oldMaxLvl);
+//			continue;
+//		}
 
-			UG_LOG("  Not contained in hlevel\n");
-			continue;
+	//	create a communicator for all processes which participate in load-balancing
+	//	on this h-level. If the old and new process hierarchies match, this is the same
+	//	as the old-hierarchies global-proc-com. If they don't match, we have to communicate...
+
+		pcl::ProcessCommunicator hlvlCom;
+		if(m_nextProcessHierarchy.valid()){
+		//	check if this process contains vertices between minLvl and maxLvl
+			bool containsVrts = false;
+			for(int i = minLvl; i <= maxLvl; ++i){
+				if(mg.num<VertexBase>(i) != 0){
+					containsVrts = true;
+					continue;
+				}
+			}
+
+			pcl::ProcessCommunicator globalCom;
+			hlvlCom = globalCom.create_sub_communicator(containsVrts);
+
+			if(!containsVrts)
+				continue;
+		}
+		else{
+			hlvlCom = m_processHierarchy.global_proc_com(hlevel);
+			if(hlvlCom.empty()){
+			//	the local level is not contained in the current hlvl of the proc-hierarchy.
+			//	make sure that it doesn't contain any elements, since we would most likely
+			//	get problems during h- or v-interface communication later on.
+				UG_COND_THROW(mg.num<VertexBase>(minLvl) > 0,
+						  "Process " << localProc
+						  << " shouldn't contain vertices on this level: " << minLvl);
+
+			//	since we communicate with elements in maxLvl below, this assertion has to hold.
+				UG_COND_THROW(mg.num<elem_t>(maxLvl) > 0,
+						  "Process " << localProc
+						  << " shouldn't contain elements on this level: " << maxLvl);
+				continue;
+			}
 		}
 
 	//	adjust the number of target processes so that each receives at least
@@ -548,8 +602,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 			break;
 
 		if(numProcsWithGrid == 1){
-			if(gotGrid)
-				partition_level_metis(minLvl, maxLvl, numTargetProcs);
+			//if(gotGrid)
+			partition_level_metis(minLvl, maxLvl, numTargetProcs);
 		}
 		else{
 			partition_level_parmetis(minLvl, maxLvl, numTargetProcs, hlvlCom, pdg);
@@ -678,22 +732,21 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 		pAdjWgts = &adjwgts.front();
 	}
 
-	if(adjacencyMap.empty())
-		return;
+	if(!adjacencyMap.empty()){
+		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
+		GDIST_PROFILE(METIS);
+		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
+											&adjacencyMapStructure.front(),
+											&adjacencyMap.front(),
+											&vrtWgtMap.front(), NULL, pAdjWgts,
+											&numParts, NULL, NULL, options,
+											&edgeCut, &partitionMap.front());
+		GDIST_PROFILE_END();
+		UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
 
-	UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
-	GDIST_PROFILE(METIS);
-	int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
-										&adjacencyMapStructure.front(),
-										&adjacencyMap.front(),
-										&vrtWgtMap.front(), NULL, pAdjWgts,
-										&numParts, NULL, NULL, options,
-										&edgeCut, &partitionMap.front());
-	GDIST_PROFILE_END();
-	UG_DLOG(LIB_GRID, 1, "METIS DONE\n");
-
-	if(metisRet != METIS_OK){
-		UG_THROW("METIS FAILED while partitioning the grid on level " << lvl);
+		if(metisRet != METIS_OK){
+			UG_THROW("METIS FAILED while partitioning the grid on level " << lvl);
+		}
 	}
 
 //	assign partition-subsets from graph-colors
@@ -702,6 +755,19 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 		m_sh.assign_subset(*iter, partitionMap[counter++]);
 	}
 
+//	copy subset indices from vertical slaves to vertical masters,
+//	since partitioning was only performed on vslaves
+//	this is only important if e.g. process 0 has only ghosts and process 1 has all slaves.
+	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
+	ComPol_Subset<layout_t>	compolSHCopy(m_sh, true);
+
+	if(glm.has_layout<elem_t>(INT_V_SLAVE))
+		m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl),
+							 compolSHCopy);
+	if(glm.has_layout<elem_t>(INT_V_MASTER))
+		m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl),
+						 	 	compolSHCopy);
+	m_intfcCom.communicate();
 
 //	clustered siblings help to ensure that all vertices which are connected to
 //	a constrained vertex through are on the same process as the constrained vertex.

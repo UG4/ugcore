@@ -22,8 +22,10 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 	if(maxNumRedistProcs > maxNumProcs)
 		maxNumRedistProcs = maxNumProcs;
 
-	if((numLvls == 0) || (maxNumProcs == 0) || (maxNumRedistProcs == 0))
+	if((numLvls == 0) || (maxNumProcs == 0) || (maxNumRedistProcs == 0)){
+		procH->add_hierarchy_level(0, 1);
 		return procH;
+	}
 
 //	find the level with the most elements first
 	size_t largestLvl = 0;
@@ -35,8 +37,10 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 
 //	get the number of processes onto which the largest level shall be distributed
 	size_t maxNumElemsTotal = numElemsOnLvl[largestLvl];
-	if(maxNumElemsTotal == 0)
+	if(maxNumElemsTotal == 0){
+		procH->add_hierarchy_level(0, 1);
 		return procH;
+	}
 
 	size_t numProcsInvolved = min<size_t>(maxNumElemsTotal / minNumElemsPerProcPerLvl,
 										  maxNumProcs);
@@ -49,8 +53,10 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 		++numDistLvls;
 	}
 
-	if(numDistLvls == 0)
+	if(numDistLvls == 0){
+		procH->add_hierarchy_level(0, 1);
 		return procH;
+	}
 
 //	find out to how many processes we'll distribute on each distribution level
 	size_t numRedistProcs = std::pow(numProcsInvolved, 1./(double)numDistLvls) + SMALL;

@@ -261,7 +261,7 @@ struct LuaParsing<bool>{
 		return lua_toboolean(L, index);
 	}
 	static void push(lua_State* L, bool data){
-		return lua_pushboolean(L, (data ? 1 : 0));
+		lua_pushboolean(L, (data ? 1 : 0));
 	}
 };
 
@@ -274,7 +274,7 @@ struct LuaParsing<int>{
 		return lua_tointeger(L, index);
 	}
 	static void push(lua_State* L, int data){
-		return lua_pushnumber(L, data);
+		lua_pushnumber(L, data);
 	}
 };
 
@@ -287,7 +287,7 @@ struct LuaParsing<size_t>{
 		return lua_tointeger(L, index);
 	}
 	static void push(lua_State* L, size_t data){
-		return lua_pushnumber(L, data);
+		lua_pushnumber(L, data);
 	}
 };
 
@@ -300,7 +300,7 @@ struct LuaParsing<float>{
 		return lua_tonumber(L, index);
 	}
 	static void push(lua_State* L, float data){
-		return lua_pushnumber(L, data);
+		lua_pushnumber(L, data);
 	}
 };
 
@@ -313,7 +313,7 @@ struct LuaParsing<double>{
 		return lua_tonumber(L, index);
 	}
 	static void push(lua_State* L, double data){
-		return lua_pushnumber(L, data);
+		lua_pushnumber(L, data);
 	}
 };
 
@@ -326,7 +326,7 @@ struct LuaParsing<const char*>{
 		return lua_tostring(L, index);
 	}
 	static void push(lua_State* L, const char* data){
-		return lua_pushstring(L, data);
+		lua_pushstring(L, data);
 	}
 };
 
@@ -339,7 +339,7 @@ struct LuaParsing<std::string>{
 		return std::string(lua_tostring(L, index));
 	}
 	static void push(lua_State* L, std::string data){
-		return lua_pushstring(L, data.c_str());
+		lua_pushstring(L, data.c_str());
 	}
 };
 
@@ -349,7 +349,7 @@ struct LuaParsing<const std::string&>{
 		return lua_isstring(L, index);
 	}
 	static void push(lua_State* L, const std::string& data){
-		return lua_pushstring(L, data.c_str());
+		lua_pushstring(L, data.c_str());
 	}
 };
 
