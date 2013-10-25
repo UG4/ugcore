@@ -5,6 +5,8 @@
 #include <cmath>
 #include "load_balancer_util.h"
 
+using namespace std;
+
 namespace ug{
 
 SPProcessHierarchy
@@ -45,28 +47,19 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 	size_t numProcsInvolved = min<size_t>(maxNumElemsTotal / minNumElemsPerProcPerLvl,
 										  maxNumProcs);
 
-//	find out how many distribution-levels are required
-	size_t numDistLvls = 0;
-	size_t curNumProcs = 1;
-	while((curNumProcs < numProcsInvolved) && (numDistLvls < numLvls)){
-		curNumProcs *= maxNumRedistProcs;
-		++numDistLvls;
-	}
-
-	if(numDistLvls == 0){
-		procH->add_hierarchy_level(0, 1);
-		return procH;
-	}
-
-//	find out to how many processes we'll distribute on each distribution level
-	size_t numRedistProcs = std::pow(numProcsInvolved, 1./(double)numDistLvls) + SMALL;
-
 //	finally, create the process hierarchy
-	curNumProcs = 1;
+	size_t curNumProcs = 1;
 	int lastDistLvl = -2;
 	for(size_t lvl = 0; lvl < numLvls; ++lvl){
-		if(procH->num_hierarchy_levels() > numDistLvls)
-			break;
+//		if(procH->num_hierarchy_levels() > numDistLvls)
+//			break;
+
+		int numRedistProcs = maxNumRedistProcs;
+		if(curNumProcs * numRedistProcs > numProcsInvolved){
+			numRedistProcs = numProcsInvolved / curNumProcs;
+			if(numRedistProcs <= 1)
+				break;
+		}
 
 		if((curNumProcs * numRedistProcs * minNumElemsPerProcPerLvl <= numElemsOnLvl[lvl])
 			&& ((int)lvl - lastDistLvl > 1))

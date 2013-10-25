@@ -34,7 +34,7 @@ balancer.redistSteps	= 2
 balancer.redistProcs	= 256
 balancer.maxDistLvl		= balancer.maxLvl
 
-balancer.parallelElementThreshold = 16
+balancer.parallelElementThreshold = 32
 balancer.qualityThreshold	= 0.8
 balancer.childWeight		= 2
 balancer.siblingWeight		= 2
