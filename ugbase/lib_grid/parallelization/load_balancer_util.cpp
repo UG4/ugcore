@@ -47,13 +47,10 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 	size_t numProcsInvolved = min<size_t>(maxNumElemsTotal / minNumElemsPerProcPerLvl,
 										  maxNumProcs);
 
-//	finally, create the process hierarchy
+//	create the process hierarchy
 	size_t curNumProcs = 1;
 	int lastDistLvl = -2;
 	for(size_t lvl = 0; lvl < numLvls; ++lvl){
-//		if(procH->num_hierarchy_levels() > numDistLvls)
-//			break;
-
 		int numRedistProcs = maxNumRedistProcs;
 		if(curNumProcs * numRedistProcs > numProcsInvolved){
 			numRedistProcs = numProcsInvolved / curNumProcs;
@@ -67,6 +64,26 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 			lastDistLvl = (int)lvl;
 			procH->add_hierarchy_level(lvl, numRedistProcs);
 			curNumProcs *= numRedistProcs;
+		}
+	}
+
+	if(lastDistLvl < 0){
+		procH->add_hierarchy_level(0, 1);
+		return procH;
+	}
+
+//	check whether we have to perform redistributions to ensure quality
+	const int qualityRedistMinNumLvls = 5;
+	int numQualityRedists = (numLvls - lastDistLvl) / qualityRedistMinNumLvls;
+
+	if(numQualityRedists > 0){
+		int redistStepSize = (numLvls - lastDistLvl) / (numQualityRedists + 1);
+		if(redistStepSize < 2)
+			redistStepSize = 2;
+
+		for(int i = 1; i <= numQualityRedists; ++i){
+			int lvl = lastDistLvl + i * redistStepSize;
+			procH->add_hierarchy_level(lvl, 1);
 		}
 	}
 
