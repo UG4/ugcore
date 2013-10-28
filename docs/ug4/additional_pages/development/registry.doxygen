@@ -206,10 +206,11 @@ pUT = Set consisting of <tt>T*, const T*, SmartPtr<T>, ConstSmartPtr<T></tt> of 
 
 Then the supported types for parameters and return values are
 - all types T in BT or pUT,
-- <tt>std::vector<T>, std::vector<T>&, const std::vector<T></tt> of all T in BT or pUT,
+- <tt>std::vector<T>, const std::vector<T></tt> of all T in BT or pUT,
 
  
-\note char is not a supported type. use int instead.
+\note <tt>char</tt> is not a supported type. use int instead.
+\note <tt>std::vector<T>&</tt> is not supported
 
 <hr>
 \section secSTHowToSpecifyVRLInformation How to specify VRL information for parameters
