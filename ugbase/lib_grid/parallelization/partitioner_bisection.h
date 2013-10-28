@@ -19,9 +19,12 @@ class Partitioner_Bisection : public IPartitioner<dim>{
 		virtual ~Partitioner_Bisection();
 
 		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
-		virtual void set_process_hierarchy(SPProcessHierarchy procHierarchy);
+		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> >);
 		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> >);
+
+		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
+		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
 
 		virtual bool supports_balance_weights() const;
 		virtual bool supports_connection_weights() const;
@@ -38,7 +41,7 @@ class Partitioner_Bisection : public IPartitioner<dim>{
 		MultiGrid* m_mg;
 		Attachment<MathVector<dim> > m_aPos;
 		SubsetHandler 		m_sh;
-		ProcessHierarchy	m_processHierarchy;
+		SPProcessHierarchy	m_processHierarchy;
 		SPProcessHierarchy	m_nextProcessHierarchy;
 		std::vector<int>	m_procMap;
 		int m_highestRedistLevel;

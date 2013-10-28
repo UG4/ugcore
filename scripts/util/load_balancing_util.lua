@@ -173,7 +173,7 @@ function balancer.CreateLoadBalancer(domain)
 			loadBalancer:rebalance()
 		end
 		
-		loadBalancer:set_process_hierarchy(processHierarchy);
+		loadBalancer:set_next_process_hierarchy(processHierarchy);
 	end
 	
 	return loadBalancer

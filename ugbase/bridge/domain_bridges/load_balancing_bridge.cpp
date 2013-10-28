@@ -142,7 +142,7 @@ static void Domain(Registry& reg, string grp)
 			string name = string("LoadBalancer").append(suffix);
 			reg.add_class_<T>(name, grp)
 					//.add_method("add_distribution_level", &T::add_distribution_level)
-					.add_method("set_process_hierarchy", &T::set_process_hierarchy)
+					.add_method("set_next_process_hierarchy", &T::set_next_process_hierarchy)
 					.add_method("rebalance", &T::rebalance)
 					.add_method("set_balance_threshold", &T::set_balance_threshold)
 					.add_method("set_element_threshold", &T::set_element_threshold)

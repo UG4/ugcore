@@ -265,7 +265,7 @@ set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
 
 template<int dim>
 void LoadBalancer<dim>::
-set_process_hierarchy(SPProcessHierarchy procHierarchy)
+set_next_process_hierarchy(SPProcessHierarchy procHierarchy)
 {
 	m_processHierarchy = procHierarchy;
 }
@@ -347,7 +347,7 @@ rebalance()
 	m_balanceWeights->set_grid(m_mg, m_aPos);
 	m_connectionWeights->set_grid(m_mg, m_aPos);
 	m_partitioner->set_grid(m_mg, m_aPos);
-	m_partitioner->set_process_hierarchy(m_processHierarchy);
+	m_partitioner->set_next_process_hierarchy(m_processHierarchy);
 	m_partitioner->set_connection_weights(m_connectionWeights);
 	m_partitioner->set_balance_weights(m_balanceWeights);
 
@@ -406,35 +406,38 @@ create_quality_record(const char* label)
 	m_partitioner->set_verbose(false);
 	m_partitioner->estimate_distribution_quality(&lvlQualities);
 	m_partitioner->set_verbose(isVerbose);
+	ConstSPProcessHierarchy procH = m_partitioner->current_process_hierarchy();
 
-	size_t ri = max<size_t>(2, m_qualityRecords.num_rows());
-	m_qualityRecords(ri, 0) << label;
-	for(size_t i = 0; i < lvlQualities.size(); ++i){
-		m_qualityRecords(ri, i+1) << lvlQualities[i];
+//	fill header first
+	if(m_qualityRecords(0, 0).str().empty()){
+		m_qualityRecords(0, 0) << "level:";
+	}
+	for(size_t i = 0; (i + 1) < lvlQualities.size(); ++i){
+		if(m_qualityRecords(0, 2*i + 1).str().empty())
+			m_qualityRecords(0, 2*i + 1) << i;
+	}
+
+	if(procH.valid()){
+		size_t ri = max<size_t>(1, m_qualityRecords.num_rows());
+		m_qualityRecords(ri, 0) << label;
+		for(size_t i = 0; i < lvlQualities.size(); ++i){
+			size_t hlvl = procH->hierarchy_level_from_grid_level(i);
+
+			if(i == procH->grid_base_level(hlvl)){
+			//	redistribution takes place on this level
+				m_qualityRecords(ri, 2*i+1) << "(p" << procH->num_global_procs_involved(hlvl) << ")";
+			}
+			else
+				m_qualityRecords(ri, 2*i+1) << "-";
+			m_qualityRecords(ri, 2*i+2) << lvlQualities[i];
+		}
 	}
 }
 
 template<int dim>
 void LoadBalancer<dim>::
-print_quality_records()
+print_quality_records() const
 {
-//	fill header first
-	if(m_qualityRecords(0, 0).str().empty()){
-		m_qualityRecords(0, 0) << "level:";
-	}
-	for(size_t i = 1; i < m_qualityRecords.num_cols(); ++i){
-		if(m_qualityRecords(0, i).str().empty())
-			m_qualityRecords(0, i) << i-1;
-	}
-	if(m_qualityRecords(1, 0).str().empty()){
-		m_qualityRecords(1, 0) << "procs:";
-	}
-	for(size_t i = 1; i < m_qualityRecords.num_cols(); ++i){
-		if(m_qualityRecords(1, i).str().empty())
-			m_qualityRecords(1, i) << m_processHierarchy->num_global_procs_involved(
-									  m_processHierarchy->hierarchy_level_from_grid_level(i-1));
-	}
-
 	UG_LOG(m_qualityRecords << "\n");
 }
 

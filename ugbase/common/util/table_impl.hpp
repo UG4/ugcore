@@ -6,6 +6,8 @@
 
 #include <iomanip>
 #include <cassert>
+#include "common/error.h"
+#include "common/log.h"
 
 namespace ug{
 
@@ -81,10 +83,10 @@ template <class T>
 T& Table<T>::operator() (size_t rowInd, size_t colInd)
 {
 	if(rowInd >= num_rows())
-		add_rows(rowInd - num_rows() + 1);
+		add_rows((rowInd + 1) - num_rows());
 
 	if(colInd >= num_cols())
-		add_cols(colInd - num_cols() + 1);
+		add_cols((colInd + 1) - num_cols());
 
 	return *m_data[rowInd][colInd];
 }
@@ -92,8 +94,8 @@ T& Table<T>::operator() (size_t rowInd, size_t colInd)
 template <class T>
 const T& Table<T>::operator() (size_t rowInd, size_t colInd) const
 {
-	assert(rowInd < num_rows());
-	assert(colInd < num_cols());
+	UG_COND_THROW(rowInd >= num_rows(), "Bad row index: " << rowInd << "! Only " << num_rows() << " rows exist.");
+	UG_COND_THROW(colInd >= num_cols(), "Bad col index: " << colInd << "! Only " << num_cols() << " cols exist.");
 	return *m_data[rowInd][colInd];
 }
 
@@ -165,11 +167,27 @@ std::ostream& operator << (std::ostream& os, const Table<T>& table)
 
 
 template <class T>
+inline
 std::string EntryToString(const Table<T>& table, size_t rowInd, size_t colInd)
 {
 	std::stringstream ss;
 	ss << table(rowInd, colInd);
 	return ss.str();
+}
+
+
+inline
+std::string EntryToString(const Table<std::string>& table,
+						  size_t rowInd, size_t colInd)
+{
+	return table(rowInd, colInd);
+}
+
+inline
+std::string EntryToString(const Table<std::stringstream>& table,
+						  size_t rowInd, size_t colInd)
+{
+	return table(rowInd, colInd).str();
 }
 
 }//	end of namespace

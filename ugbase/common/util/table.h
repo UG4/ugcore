@@ -105,8 +105,11 @@ std::ostream& operator << (std::ostream& os, const Table<T>& table);
 template <class T>
 std::string EntryToString(const Table<T>& table, size_t rowInd, size_t colInd);
 
+inline
 std::string EntryToString(const Table<std::string>& table,
 						  size_t rowInd, size_t colInd);
+
+inline
 std::string EntryToString(const Table<std::stringstream>& table,
 						  size_t rowInd, size_t colInd);
 

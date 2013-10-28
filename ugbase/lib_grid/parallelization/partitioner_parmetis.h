@@ -30,9 +30,12 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		virtual ~Partitioner_Parmetis();
 
 		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos);
-		virtual void set_process_hierarchy(SPProcessHierarchy procHierarchy);
+		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 		virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights);
 		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights);
+
+		virtual ConstSPProcessHierarchy current_process_hierarchy() const;
+		virtual ConstSPProcessHierarchy next_process_hierarchy() const;
 
 		virtual bool supports_balance_weights() const;
 		virtual bool supports_connection_weights() const;
@@ -100,7 +103,7 @@ class Partitioner_Parmetis : public IPartitioner<dim>{
 		Grid::AttachmentAccessor<elem_t, AInt>	m_aaNumChildren;
 		SPBalanceWeights	m_balanceWeights;
 		SPConnectionWeights	m_connectionWeights;
-		ProcessHierarchy	m_processHierarchy;
+		SPProcessHierarchy	m_processHierarchy;
 		SPProcessHierarchy	m_nextProcessHierarchy;
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;
 

@@ -24,7 +24,8 @@ Partitioner_Parmetis() :
 	m_siblingWeight(2),
 	m_comVsRedistRatio(1000)
 {
-	m_processHierarchy.add_hierarchy_level(0, 1);
+	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
+	m_processHierarchy->add_hierarchy_level(0, 1);
 	m_balanceWeights = SPBalanceWeights(new StdBalanceWeights<dim>);
 	m_connectionWeights = SPConnectionWeights(new StdConnectionWeights<dim>);
 }
@@ -59,7 +60,7 @@ set_grid(MultiGrid* mg, Attachment<MathVector<dim> >)
 
 template<int dim>
 void Partitioner_Parmetis<dim>::
-set_process_hierarchy(SPProcessHierarchy procHierarchy)
+set_next_process_hierarchy(SPProcessHierarchy procHierarchy)
 {
 	m_nextProcessHierarchy = procHierarchy;
 }
@@ -77,6 +78,23 @@ set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights)
 {
 	m_connectionWeights = conWeights;
 }
+
+
+template<int dim>
+ConstSPProcessHierarchy Partitioner_Parmetis<dim>::
+current_process_hierarchy() const
+{
+	return m_processHierarchy;
+}
+
+
+template<int dim>
+ConstSPProcessHierarchy Partitioner_Parmetis<dim>::
+next_process_hierarchy() const
+{
+	return m_nextProcessHierarchy;
+}
+
 
 template<int dim>
 bool Partitioner_Parmetis<dim>::
@@ -192,7 +210,7 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 	if(m_nextProcessHierarchy.valid())
 		procH = m_nextProcessHierarchy.get();
 	else
-		procH = &m_processHierarchy;
+		procH = m_processHierarchy.get();
 
 //	calculate the quality in each level
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
@@ -421,12 +439,12 @@ partition(size_t baseLvl, size_t elementThreshold)
 	GDIST_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-start partition\n");
 
-	UG_LOG("Partitioning - current process hierarchy:\n");
-	UG_LOG(m_processHierarchy.to_string() << endl);
-	if(m_nextProcessHierarchy.valid()){
-		UG_LOG("Partitioning - next process hierarchy:\n");
-		UG_LOG(m_nextProcessHierarchy->to_string() << endl);
-	}
+//	UG_LOG("Partitioning - current process hierarchy:\n");
+//	UG_LOG(m_processHierarchy->to_string() << endl);
+//	if(m_nextProcessHierarchy.valid()){
+//		UG_LOG("Partitioning - next process hierarchy:\n");
+//		UG_LOG(m_nextProcessHierarchy->to_string() << endl);
+//	}
 
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 
@@ -455,30 +473,30 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 //	UG_LOG("New Partitioning. Local elements (including ghosts): " << mg.num<elem_t>() << endl);
 
-	const ProcessHierarchy* newProcHierarchy;
+	const ProcessHierarchy* procH;
 	if(m_nextProcessHierarchy.valid())
-		newProcHierarchy = m_nextProcessHierarchy.get();
+		procH = m_nextProcessHierarchy.get();
 	else
-		newProcHierarchy = &m_processHierarchy;
+		procH = m_processHierarchy.get();
 
 //	iterate through all hierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
 	pcl::ProcessCommunicator globCom;
-	for(size_t hlevel = 0; hlevel < newProcHierarchy->num_hierarchy_levels(); ++ hlevel)
+	for(size_t hlevel = 0; hlevel < procH->num_hierarchy_levels(); ++ hlevel)
 	{
 //		UG_LOG("h-level: " << hlevel << endl);
 	//	make sure that certain processes don't get ahead of others...
 		if(hlevel > 0)
 			globCom.barrier();
 
-		int minLvl = newProcHierarchy->grid_base_level(hlevel);
+		int minLvl = procH->grid_base_level(hlevel);
 		if(minLvl > (int)mg.top_level())
 			break;
 
 		int maxLvl = mg.top_level();
-		if(hlevel + 1 < newProcHierarchy->num_hierarchy_levels()){
+		if(hlevel + 1 < procH->num_hierarchy_levels()){
 			maxLvl = min<int>(maxLvl,
-						(int)newProcHierarchy->grid_base_level(hlevel + 1) - 1);
+						(int)procH->grid_base_level(hlevel + 1) - 1);
 		}
 
 		if(minLvl < (int)baseLvl)
@@ -488,7 +506,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			break;
 
 
-		int numProcsOnLvl = newProcHierarchy->num_global_procs_involved(hlevel);
+		int numProcsOnLvl = procH->num_global_procs_involved(hlevel);
 
 		if(numProcsOnLvl <= 1){
 			int targetProcId = 0;
@@ -500,7 +518,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 //	//	since the old and new hierarchy may be different, we'll get the old hlevel
 //	//	using the current grid level
-//		size_t gridLvl = newProcHierarchy->grid_base_level(hlevel);
+//		size_t gridLvl = procH->grid_base_level(hlevel);
 //		size_t oldHLvl = m_processHierarchy.hierarchy_level_from_grid_level(gridLvl);
 //		pcl::ProcessCommunicator hlvlCom = m_processHierarchy.global_proc_com(oldHLvl);
 //		if(hlvlCom.empty()){
@@ -549,7 +567,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 				continue;
 		}
 		else{
-			hlvlCom = m_processHierarchy.global_proc_com(hlevel);
+			hlvlCom = m_processHierarchy->global_proc_com(hlevel);
 			if(hlvlCom.empty()){
 			//	the local level is not contained in the current hlvl of the proc-hierarchy.
 			//	make sure that it doesn't contain any elements, since we would most likely
@@ -638,7 +656,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 	}
 
 	if(m_nextProcessHierarchy.valid()){
-		m_processHierarchy = *m_nextProcessHierarchy;
+		*m_processHierarchy = *m_nextProcessHierarchy;
 		m_nextProcessHierarchy = SPProcessHierarchy(NULL);
 	}
 

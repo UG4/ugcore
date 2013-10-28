@@ -20,6 +20,7 @@ namespace ug{
 
 class ProcessHierarchy;
 typedef SmartPtr<ProcessHierarchy> SPProcessHierarchy;
+typedef ConstSmartPtr<ProcessHierarchy> ConstSPProcessHierarchy;
 
 class ProcessHierarchy{
 	public:
@@ -107,9 +108,12 @@ class IPartitioner{
 		virtual ~IPartitioner()	{}
 
 		virtual void set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos) = 0;
-		virtual void set_process_hierarchy(SPProcessHierarchy procHierarchy) = 0;
+		virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy) = 0;
 		virtual void set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights) = 0;
 		virtual void set_connection_weights(SmartPtr<ConnectionWeights<dim> > conWeights) = 0;
+
+		virtual ConstSPProcessHierarchy current_process_hierarchy() const = 0;
+		virtual ConstSPProcessHierarchy next_process_hierarchy() const = 0;
 
 		virtual bool supports_balance_weights() const = 0;
 		virtual bool supports_connection_weights() const = 0;
@@ -192,7 +196,7 @@ class LoadBalancer{
 //		virtual void add_distribution_level(size_t lvl, size_t numProcsPerProc);
 
 	///	Defines the process hierarchy which will be used during the following calls of rebalance
-	 	virtual void set_process_hierarchy(SPProcessHierarchy procHierarchy);
+	 	virtual void set_next_process_hierarchy(SPProcessHierarchy procHierarchy);
 
 	///	If the balance falls below the given threshold, then rebalance will perform redistribution
 	/**	Set to 0.9 by default.*/
@@ -236,7 +240,7 @@ class LoadBalancer{
 	/**	\} */
 
 		void create_quality_record(const char* label);
-		void print_quality_records();
+		void print_quality_records() const;
 
 	private:
 		typedef Attachment<MathVector<dim> >		APos;
