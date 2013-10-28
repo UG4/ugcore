@@ -345,7 +345,7 @@ void ExtractAlgebraIndices2(ConstSmartPtr<TDomain> domain,
 
 //	algebra indices vector
 	std::vector<size_t> ind;
-	size_t index;
+
 //	loop all subsets
 	for(int si = 0; si < dd->num_subsets(); ++si)
 	{

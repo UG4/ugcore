@@ -26,7 +26,6 @@ set(srcCommon	log.cpp
 				util/ostream_buffer_splitter.cpp
 				util/parameter_parsing.cpp
         		util/string_util.cpp
-        		util/table.cpp
 				util/variant.cpp
 				util/histogramm.cpp
 				math/math_vector_matrix/math_matrix.cpp
