@@ -178,6 +178,7 @@ template <> struct ParameterInfo::PushType<std::vector<double> >		{static void p
 template <> struct ParameterInfo::PushType<std::vector<const char*> >	{static void push(ParameterInfo* This){This->_push_vector_type<const char*>();}};
 template <> struct ParameterInfo::PushType<std::vector<std::string> >	{static void push(ParameterInfo* This){This->_push_vector_type<std::string>();}};
 
+/* Note: we do not support non-const references, since the bindings do not support the back-copy into the the binded language
 template <> struct ParameterInfo::PushType<std::vector<bool>&>			{static void push(ParameterInfo* This){This->_push_vector_type<bool>();}};
 template <> struct ParameterInfo::PushType<std::vector<int>&>			{static void push(ParameterInfo* This){This->_push_vector_type<int>();}};
 template <> struct ParameterInfo::PushType<std::vector<size_t>&>		{static void push(ParameterInfo* This){This->_push_vector_type<size_t>();}};
@@ -185,6 +186,7 @@ template <> struct ParameterInfo::PushType<std::vector<float>&>			{static void p
 template <> struct ParameterInfo::PushType<std::vector<double>&>		{static void push(ParameterInfo* This){This->_push_vector_type<double>();}};
 template <> struct ParameterInfo::PushType<std::vector<const char*>&>	{static void push(ParameterInfo* This){This->_push_vector_type<const char*>();}};
 template <> struct ParameterInfo::PushType<std::vector<std::string>&>	{static void push(ParameterInfo* This){This->_push_vector_type<std::string>();}};
+*/
 
 template <> struct ParameterInfo::PushType<const std::vector<bool>&>		{static void push(ParameterInfo* This){This->_push_vector_type<bool>();}};
 template <> struct ParameterInfo::PushType<const std::vector<int>&>			{static void push(ParameterInfo* This){This->_push_vector_type<int>();}};
@@ -196,19 +198,19 @@ template <> struct ParameterInfo::PushType<const std::vector<std::string>&>	{sta
 
 // implementation for std::vector, std::vector& and const std::vector&  (registered types)
 template <typename TClass> struct ParameterInfo::PushType<std::vector<TClass*> >	{static void push(ParameterInfo* This){This->_push_vector_type<void*, TClass>();}};
-template <typename TClass> struct ParameterInfo::PushType<std::vector<TClass*>& >	{static void push(ParameterInfo* This){This->_push_vector_type<void*, TClass>();}};
+//template <typename TClass> struct ParameterInfo::PushType<std::vector<TClass*>& >	{static void push(ParameterInfo* This){This->_push_vector_type<void*, TClass>();}};
 template <typename TClass> struct ParameterInfo::PushType<const std::vector<TClass*>&>	{static void push(ParameterInfo* This){This->_push_vector_type<void*, TClass>();}};
 
 template <typename TClass> struct ParameterInfo::PushType<std::vector<const TClass*> >	{static void push(ParameterInfo* This){This->_push_vector_type<const void*, TClass>();}};
-template <typename TClass> struct ParameterInfo::PushType<std::vector<const TClass*>& >	{static void push(ParameterInfo* This){This->_push_vector_type<const void*, TClass>();}};
+//template <typename TClass> struct ParameterInfo::PushType<std::vector<const TClass*>& >	{static void push(ParameterInfo* This){This->_push_vector_type<const void*, TClass>();}};
 template <typename TClass> struct ParameterInfo::PushType<const std::vector<const TClass*>&>	{static void push(ParameterInfo* This){This->_push_vector_type<const void*, TClass>();}};
 
 template <typename TClass> struct ParameterInfo::PushType<std::vector<SmartPtr<TClass> > >	{static void push(ParameterInfo* This){This->_push_vector_type<SmartPtr<void>, TClass>();}};
-template <typename TClass> struct ParameterInfo::PushType<std::vector<SmartPtr<TClass> >& >	{static void push(ParameterInfo* This){This->_push_vector_type<SmartPtr<void>, TClass>();}};
+//template <typename TClass> struct ParameterInfo::PushType<std::vector<SmartPtr<TClass> >& >	{static void push(ParameterInfo* This){This->_push_vector_type<SmartPtr<void>, TClass>();}};
 template <typename TClass> struct ParameterInfo::PushType<const std::vector<SmartPtr<TClass> >&>	{static void push(ParameterInfo* This){This->_push_vector_type<SmartPtr<void>, TClass>();}};
 
 template <typename TClass> struct ParameterInfo::PushType<std::vector<ConstSmartPtr<TClass> > >	{static void push(ParameterInfo* This){This->_push_vector_type<ConstSmartPtr<void>, TClass>();}};
-template <typename TClass> struct ParameterInfo::PushType<std::vector<ConstSmartPtr<TClass> >& >	{static void push(ParameterInfo* This){This->_push_vector_type<ConstSmartPtr<void>, TClass>();}};
+//template <typename TClass> struct ParameterInfo::PushType<std::vector<ConstSmartPtr<TClass> >& >	{static void push(ParameterInfo* This){This->_push_vector_type<ConstSmartPtr<void>, TClass>();}};
 template <typename TClass> struct ParameterInfo::PushType<const std::vector<ConstSmartPtr<TClass> >&>	{static void push(ParameterInfo* This){This->_push_vector_type<ConstSmartPtr<void>, TClass>();}};
 
 
@@ -467,6 +469,7 @@ template <> struct ParameterStack::PushType<std::vector<double> >		{static void 
 template <> struct ParameterStack::PushType<std::vector<const char*> >	{static void push(ParameterStack* This, const std::vector<const char*>& spVec)	{This->push(SmartPtr<std::vector<const char*> >(new std::vector<const char*>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<std::string> >	{static void push(ParameterStack* This, const std::vector<std::string>& spVec)	{This->push(SmartPtr<std::vector<std::string> >(new std::vector<std::string>(spVec)));}};
 
+/* Note: we do not support non-const references, since the bindings do not support the back-copy into the the binded language
 template <> struct ParameterStack::PushType<std::vector<bool>& >		{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<int>& >			{static void push(ParameterStack* This, const std::vector<int>& spVec)			{This->push(SmartPtr<std::vector<int> >(new std::vector<int>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<size_t>& >		{static void push(ParameterStack* This, const std::vector<size_t>& spVec)		{This->push(SmartPtr<std::vector<size_t> >(new std::vector<size_t>(spVec)));}};
@@ -474,6 +477,7 @@ template <> struct ParameterStack::PushType<std::vector<float>& >		{static void 
 template <> struct ParameterStack::PushType<std::vector<double>& >		{static void push(ParameterStack* This, const std::vector<double>& spVec)		{This->push(SmartPtr<std::vector<double> >(new std::vector<double>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<const char*>& >	{static void push(ParameterStack* This, const std::vector<const char*>& spVec)	{This->push(SmartPtr<std::vector<const char*> >(new std::vector<const char*>(spVec)));}};
 template <> struct ParameterStack::PushType<std::vector<std::string>& >	{static void push(ParameterStack* This, const std::vector<std::string>& spVec)	{This->push(SmartPtr<std::vector<std::string> >(new std::vector<std::string>(spVec)));}};
+*/
 
 template <> struct ParameterStack::PushType<const std::vector<bool>& >			{static void push(ParameterStack* This, const std::vector<bool>& spVec)			{This->push(SmartPtr<std::vector<bool> >(new std::vector<bool>(spVec)));}};
 template <> struct ParameterStack::PushType<const std::vector<int>& >			{static void push(ParameterStack* This, const std::vector<int>& spVec)			{This->push(SmartPtr<std::vector<int> >(new std::vector<int>(spVec)));}};
@@ -493,19 +497,19 @@ template <class T> struct ParameterStack::PushType<ConstSmartPtr<T> >	{static vo
 
 // convert to std::vector, std::vector& and const std::vector& (registered types)
 template<class T> struct ParameterStack::PushType<std::vector<T*> >		 	{static void push(ParameterStack* This, const std::vector<T*>& data)	{This->_push_pointer_vector<void*, T*, T>(data);}};
-template<class T> struct ParameterStack::PushType<std::vector<T*>& >		{static void push(ParameterStack* This, const std::vector<T*>& data)	{This->_push_pointer_vector<void*, T*, T>(data);}};
+//template<class T> struct ParameterStack::PushType<std::vector<T*>& >		{static void push(ParameterStack* This, const std::vector<T*>& data)	{This->_push_pointer_vector<void*, T*, T>(data);}};
 template<class T> struct ParameterStack::PushType<const std::vector<T*>&>	{static void push(ParameterStack* This, const std::vector<T*>& data)	{This->_push_pointer_vector<void*, T*, T>(data);}};
 
 template<class T> struct ParameterStack::PushType<std::vector<const T*> >		{static void push(ParameterStack* This, const std::vector<const T*>& data)	{This->_push_pointer_vector<const void*, const T*, T>(data);}};
-template<class T> struct ParameterStack::PushType<std::vector<const T*>& >		{static void push(ParameterStack* This, const std::vector<const T*>& data)	{This->_push_pointer_vector<const void*, const T*, T>(data);}};
+//template<class T> struct ParameterStack::PushType<std::vector<const T*>& >		{static void push(ParameterStack* This, const std::vector<const T*>& data)	{This->_push_pointer_vector<const void*, const T*, T>(data);}};
 template<class T> struct ParameterStack::PushType<const std::vector<const T*>&>	{static void push(ParameterStack* This, const std::vector<const T*>& data)	{This->_push_pointer_vector<const void*, const T*, T>(data);}};
 
 template<class T> struct ParameterStack::PushType<std::vector<SmartPtr<T> > >		{static void push(ParameterStack* This, const std::vector<SmartPtr<T> >& data)	{This->_push_pointer_vector<SmartPtr<void>, SmartPtr<T>, T>(data);}};
-template<class T> struct ParameterStack::PushType<std::vector<SmartPtr<T> >& >		{static void push(ParameterStack* This, const std::vector<SmartPtr<T> >& data)	{This->_push_pointer_vector<SmartPtr<void>, SmartPtr<T>, T>(data);}};
+//template<class T> struct ParameterStack::PushType<std::vector<SmartPtr<T> >& >		{static void push(ParameterStack* This, const std::vector<SmartPtr<T> >& data)	{This->_push_pointer_vector<SmartPtr<void>, SmartPtr<T>, T>(data);}};
 template<class T> struct ParameterStack::PushType<const std::vector<SmartPtr<T> >&>	{static void push(ParameterStack* This, const std::vector<SmartPtr<T> >& data)	{This->_push_pointer_vector<SmartPtr<void>, SmartPtr<T>, T>(data);}};
 
 template<class T> struct ParameterStack::PushType<std::vector<ConstSmartPtr<T> > >		{static void push(ParameterStack* This, const std::vector<ConstSmartPtr<T> >& data)	{This->_push_pointer_vector<ConstSmartPtr<void>, ConstSmartPtr<T>, T>(data);}};
-template<class T> struct ParameterStack::PushType<std::vector<ConstSmartPtr<T> >& >		{static void push(ParameterStack* This, const std::vector<ConstSmartPtr<T> >& data)	{This->_push_pointer_vector<ConstSmartPtr<void>, ConstSmartPtr<T>, T>(data);}};
+//template<class T> struct ParameterStack::PushType<std::vector<ConstSmartPtr<T> >& >		{static void push(ParameterStack* This, const std::vector<ConstSmartPtr<T> >& data)	{This->_push_pointer_vector<ConstSmartPtr<void>, ConstSmartPtr<T>, T>(data);}};
 template<class T> struct ParameterStack::PushType<const std::vector<ConstSmartPtr<T> >&>{static void push(ParameterStack* This, const std::vector<ConstSmartPtr<T> >& data)	{This->_push_pointer_vector<ConstSmartPtr<void>, ConstSmartPtr<T>, T>(data);}};
 
 
@@ -546,6 +550,7 @@ template<> struct ParameterStack::ToType<std::vector<double> >		{static std::vec
 template<> struct ParameterStack::ToType<std::vector<const char*> >	{static std::vector<const char*> to(const ParameterStack* This, int index)	{return This->_to_native_vector<const char*>(index);}};
 template<> struct ParameterStack::ToType<std::vector<std::string> >	{static std::vector<std::string> to(const ParameterStack* This, int index)	{return This->_to_native_vector<std::string>(index);}};
 
+/* Note: we do not support non-const references, since the bindings do not support the back-copy into the the binded language
 template<> struct ParameterStack::ToType<std::vector<bool>&>		{static std::vector<bool>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<bool>(index);}};
 template<> struct ParameterStack::ToType<std::vector<int>&>			{static std::vector<int>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<int>(index);}};
 template<> struct ParameterStack::ToType<std::vector<size_t>&>		{static std::vector<size_t>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<size_t>(index);}};
@@ -553,6 +558,7 @@ template<> struct ParameterStack::ToType<std::vector<float>&>		{static std::vect
 template<> struct ParameterStack::ToType<std::vector<double>&>		{static std::vector<double>& to(const ParameterStack* This, int index)		{return This->_to_native_vector<double>(index);}};
 template<> struct ParameterStack::ToType<std::vector<const char*>&>	{static std::vector<const char*>& to(const ParameterStack* This, int index)	{return This->_to_native_vector<const char*>(index);}};
 template<> struct ParameterStack::ToType<std::vector<std::string>&>	{static std::vector<std::string>& to(const ParameterStack* This, int index)	{return This->_to_native_vector<std::string>(index);}};
+*/
 
 template<> struct ParameterStack::ToType<const std::vector<bool>&>			{static const std::vector<bool>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<bool>(index);}};
 template<> struct ParameterStack::ToType<const std::vector<int>&>			{static const std::vector<int>& to(const ParameterStack* This, int index)			{return This->_to_native_vector<int>(index);}};
@@ -564,19 +570,19 @@ template<> struct ParameterStack::ToType<const std::vector<std::string>&>	{stati
 
 // convert to std::vector, std::vector& and const std::vector& (registered types)
 template<class T> struct ParameterStack::ToType<std::vector<T*> >{static std::vector<T*> to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, T*, void*>(index);}};
-template<class T> struct ParameterStack::ToType<std::vector<T*>& >{static std::vector<T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, T*, void*>(index);}};
+//template<class T> struct ParameterStack::ToType<std::vector<T*>& >{static std::vector<T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, T*, void*>(index);}};
 template<class T> struct ParameterStack::ToType<const std::vector<T*>&>{static const std::vector<T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, T*, void*>(index);}};
 
 template<class T> struct ParameterStack::ToType<std::vector<const T*> >{static std::vector<const T*> to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, const T*, const void*>(index);}};
-template<class T> struct ParameterStack::ToType<std::vector<const T*>& >{static std::vector<const T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, const T*, const void*>(index);}};
+//template<class T> struct ParameterStack::ToType<std::vector<const T*>& >{static std::vector<const T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, const T*, const void*>(index);}};
 template<class T> struct ParameterStack::ToType<const std::vector<const T*>&>{static const std::vector<const T*>& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, const T*, const void*>(index);}};
 
 template<class T> struct ParameterStack::ToType<std::vector<SmartPtr<T> > >{static std::vector<SmartPtr<T> > to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, SmartPtr<T>, SmartPtr<void> >(index);}};
-template<class T> struct ParameterStack::ToType<std::vector<SmartPtr<T> >& >{static std::vector<SmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, SmartPtr<T>, SmartPtr<void> >(index);}};
+//template<class T> struct ParameterStack::ToType<std::vector<SmartPtr<T> >& >{static std::vector<SmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, SmartPtr<T>, SmartPtr<void> >(index);}};
 template<class T> struct ParameterStack::ToType<const std::vector<SmartPtr<T> >&>{static const std::vector<SmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, SmartPtr<T>, SmartPtr<void> >(index);}};
 
 template<class T> struct ParameterStack::ToType<std::vector<ConstSmartPtr<T> > >{static std::vector<ConstSmartPtr<T> > to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, ConstSmartPtr<T>, ConstSmartPtr<void> >(index);}};
-template<class T> struct ParameterStack::ToType<std::vector<ConstSmartPtr<T> >& >{static std::vector<ConstSmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, ConstSmartPtr<T>, ConstSmartPtr<void> >(index);}};
+//template<class T> struct ParameterStack::ToType<std::vector<ConstSmartPtr<T> >& >{static std::vector<ConstSmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, ConstSmartPtr<T>, ConstSmartPtr<void> >(index);}};
 template<class T> struct ParameterStack::ToType<const std::vector<ConstSmartPtr<T> >&>{static const std::vector<ConstSmartPtr<T> >& to(const ParameterStack* This, int index){return This->_to_pointer_vector<T, ConstSmartPtr<T>, ConstSmartPtr<void> >(index);}};
 
 // convert to std::vector for void pointer (registered types)
