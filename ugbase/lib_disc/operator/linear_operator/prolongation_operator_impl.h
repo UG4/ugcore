@@ -364,6 +364,103 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 	}
 }
 
+template <typename TDomain, typename TAlgebra>
+void scalePressureValues(typename TAlgebra::matrix_type& mat,number scaleFactor,
+                                     const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
+                                     ConstSmartPtr<TDomain> spDomain,
+                                     std::vector<bool>& vIsRestricted)
+{
+	PROFILE_FUNC_GROUP("gmg");
+//	dimension
+	const int dim = TDomain::dim;
+
+//  get subsethandler and grid
+	MultiGrid& grid = *const_cast<MultiGrid*>(&coarseDD.multi_grid());
+
+//  get number of dofs on different levels
+	const size_t numFineDoFs = fineDD.num_indices();
+	const size_t numCoarseDoFs = coarseDD.num_indices();
+
+//	check if grid distribution has dofs, otherwise skip creation since father
+//	elements may not exist in parallel.
+	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
+
+//  resize matrix
+	if(!mat.resize_and_clear(numFineDoFs, numCoarseDoFs))
+		UG_THROW("AssembleStdProlongationForP1Lagrange:"
+				"Cannot resize Interpolation Matrix.");
+
+//	clear restricted vector
+	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
+
+	std::vector<DoFIndex> vCoarseMultInd, vFineMultInd;
+
+//	vector of local finite element ids
+	std::vector<LFEID> vLFEID(fineDD.num_fct());
+	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
+		vLFEID[fct] = fineDD.local_finite_element_id(fct);
+
+//  iterators
+	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
+	typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object Element;
+	typedef typename Element::side Side;
+	const_iterator iter, iterBegin, iterEnd;
+
+//  loop subsets on fine level
+	for(int si = 0; si < coarseDD.num_subsets(); ++si)
+	{
+		iterBegin = coarseDD.template begin<Element>(si);
+		iterEnd = coarseDD.template end<Element>(si);
+
+	//  loop vertices for fine level subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get element
+			Element* coarseElem = *iter;
+
+		//  get children
+			const size_t numChild = grid.num_children<Element, Element>(coarseElem);
+			if(numChild == 0) continue;
+
+			std::vector<Element*> vChild(numChild);
+			for(size_t c = 0; c < vChild.size(); ++c)
+				vChild[c] = grid.get_child<Element, Element>(coarseElem,  c);
+
+		//	type of coarse element
+			const ReferenceObjectID roid = coarseElem->reference_object_id();
+
+		//	get corner coordinates
+			std::vector<MathVector<dim> > vCornerCoarse;
+			CollectCornerCoordinates(vCornerCoarse, *coarseElem, *spDomain);
+
+		//	get Reference Mapping
+			DimReferenceMapping<dim, dim>& map = ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoarse);
+
+		//	loop all components
+			for(size_t fct = 0; fct < coarseDD.num_fct(); fct++)
+			{
+				//	check that fct defined on subset
+				if(!coarseDD.is_def_in_subset(fct, si)) continue;
+				//  get global indices
+				coarseDD.dof_indices(coarseElem, fct, vCoarseMultInd);
+
+				// piecewise constant elements
+				if (vLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT){
+					//	loop children
+					for(size_t c = 0; c < vChild.size(); ++c)
+					{
+						Element* child = vChild[c];
+						//	fine dof indices
+						fineDD.dof_indices(child, fct, vFineMultInd);
+						DoFRef(mat, vFineMultInd[0], vCoarseMultInd[0]) *= scaleFactor;
+					}
+					continue;
+				}
+			}
+		}
+	}
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -486,6 +583,20 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
 					"Error while setting dirichlet defect to zero.");
 
+
+// 	check CR functions
+	bool bCROnly = true;
+	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
+		if(m_spApproxSpace->local_finite_element_id(fct).type() != LFEID::CROUZEIX_RAVIART &&
+			m_spApproxSpace->local_finite_element_id(fct).type() != LFEID::PIECEWISE_CONSTANT)
+			bCROnly = false;
+
+	if(bCROnly){
+		ScaleLayoutValues(&uFine, uFine.layouts()->master(), 0.5);
+		ScaleLayoutValues(&uFine, uFine.layouts()->slave(), 0.5);
+		AdditiveToConsistent(&uFine, uFine.layouts()->master(), uFine.layouts()->slave(),
+		                     &uFine.layouts()->comm());
+	}
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -504,11 +615,18 @@ do_restrict(vector_type& uCoarse, const vector_type& uFine)
 	UG_ASSERT(uFine.size() >= m_matrix.num_rows(),  "Vector ["<<uFine.size()<<"] must be >= Row size "<<m_matrix.num_rows());
 	UG_ASSERT(uCoarse.size() >= m_matrix.num_cols(),"Vector ["<<uCoarse.size()<<"] must be >= Col size "<<m_matrix.num_cols());
 
+//	scalePressureValues<TDomain, TAlgebra>(m_matrix,1, *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),  *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
+	//			m_spApproxSpace->domain(),
+		//                                     m_vIsRestricted);
+
 //	Apply transposed matrix
 	if(!m_matrix.apply_transposed(uTmp, uFine))
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply_transposed:"
 				" Cannot apply transposed matrix.");
 
+//	scalePressureValues<TDomain, TAlgebra>(m_matrix,1, *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),  *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
+	//		m_spApproxSpace->domain(),
+	  //                                   m_vIsRestricted);
 	uTmp *= m_dampRes;
 
 //	Copy only restricted values

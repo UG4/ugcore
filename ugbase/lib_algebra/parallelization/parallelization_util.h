@@ -209,6 +209,41 @@ void SetLayoutValues(	TVector* pVec,
 	}
 }
 
+/// scales the values of a vector by a given number only on the layout indices
+/**
+ * \param[in,out]		pVec			Vector
+ * \param[in]			layout			Layout
+ * \param[in]			scale			Scaling factor
+ */
+template <typename TVector>
+void ScaleLayoutValues(	TVector* pVec,
+                     	const IndexLayout& layout,
+                     	number scale)
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+//	interface iterators
+	typename IndexLayout::const_iterator iter = layout.begin();
+	typename IndexLayout::const_iterator end = layout.end();
+
+//	iterate over interfaces
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		const typename IndexLayout::Interface& interface = layout.interface(iter);
+
+	//	loop over indices
+		for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+		{
+		//  get index
+			const size_t index = interface.get_element(iter);
+
+		//	set value of vector to zero
+			(*pVec)[index] *= scale;
+		}
+	}
+}
+
 
 /// changes parallel storage type from consistent to unique
 /**
