@@ -364,6 +364,24 @@ function util.GetParamNumber(name, return_if_unavailable, description)
 	end	
 end
 
+--! util.GetParamBool
+--! use with CommandLine to get boolean option, like -useAMG true
+--! @param return_if_unavailable returned value if 'name' is not present (default nil)
+--! @param description description for 'name' (default nil)
+--! @return the number after the parameter 'name' or return_if_unavailable if 'name' was not present/no number
+--! unlike util.HasParamOption , you must specify a value for your optionn, like -useAMG 1
+--! possible values are (false): 0, n, false, (true) 1, y, j, true
+function util.GetParamBool(name, return_if_unavailable, description)
+	local r = util.GetParam(name, nil, description)
+	if r == "0" or r == "false" or r == "n" then
+		return false
+	elseif r == "1" or r == "true" or r == "y" or r == "j" then
+		return true
+	else
+		return return_if_unavailable
+	end
+end
+
 --! util.HasParamOption
 --! use with CommandLine to get option, like -useAMG
 --! @param name option in argv to search for
@@ -438,6 +456,8 @@ end
 
 --! lists all command line arguments which were provided but could not be used.
 function util.PrintIgnoredArguments()
+	if bPrintIgnoredArgumentsCalled then return end
+	bPrintIgnoredArgumentsCalled = true
 	local pline = ""
 	for i=1, ugargc do
 		if (util.argUsed == nil or util.argUsed[i] == nil) and 
