@@ -119,14 +119,19 @@ gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type&
 		//	perform projection: check whether the temporary solution u_{s-1/2}
 		//	fulfills the underlying constraint or not
 		if (tmpSol > 0.0){
+			//	the 'tmpSol' is valid with respect to all constraints
 			m_lastSol[i] = tmpSol;
+			m_vInactiveIndices.push_back(i);
 		}
 		else
 		{
-			//	set new solution u_s to zero
+			//	a constraint is not fulfilled
 
 			//	adjust correction c := u_s - u_{s-1} = 0 - u_{s-1}
 			c[i] = - m_lastSol[i];
+
+			//	set new solution u_s to zero
+			//	and store the current index in a vector for further treatment
 			m_lastSol[i] = 0.0;
 			m_vActiveIndices.push_back(i);
 		}
@@ -168,8 +173,8 @@ apply(vector_type &c, const vector_type& d)
 	if(d.size() != m_lastSol.size())
 			UG_THROW("Vector [d size= "<<d.size()<<", m_lastSol size = "
 					   <<m_lastSol.size()<< "] sizes have to match!");
-	//	reset vector
-	m_vActiveIndices.resize(0);
+	//	reset vectors
+	m_vActiveIndices.resize(0); m_vInactiveIndices.resize(0);
 
 	//	perform a forward GaussSeidel-step: c = (D-L)^-1 * d, project on the underlying constraint
 	//	and store the indices, which satisfy the constraint with equality, in the vector vActiveIndices
@@ -191,6 +196,15 @@ apply(vector_type &c, const vector_type& d)
 #ifdef UG_PARALLEL
 		c.set_storage_type(PST_UNIQUE);
 #endif
+	}
+
+//	apply scaling
+	const number kappa = this->damping()->damping(c, d, m_spMat.template cast_dynamic<ILinearOperator<vector_type> >());
+	if(kappa != 1.0){
+		//	damp only those indices which are inactive
+		for (std::vector<size_t>::iterator itInactiveInd = m_vInactiveIndices.begin();
+				itInactiveInd <  m_vInactiveIndices.end(); ++itInactiveInd)
+			c[*itInactiveInd] *= kappa;
 	}
 
 //	Correction is always consistent
@@ -231,17 +245,6 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 
 	return true;
-}
-
-template <typename TAlgebra>
-SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >
-ProjGaussSeidel<TAlgebra>::
-clone()
-{
-	SmartPtr<ProjGaussSeidel<TAlgebra> > clone(
-		new ProjGaussSeidel<TAlgebra>());
-
-	return clone;
 }
 
 } // end namespace ug

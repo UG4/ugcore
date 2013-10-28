@@ -40,7 +40,6 @@ template <typename TAlgebra>
 class ProjGaussSeidel:
 	public ILinearIterator<typename TAlgebra::vector_type>
 {
-
 	public:
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -53,7 +52,9 @@ class ProjGaussSeidel:
 
 	public:
 	/// constructor
-		ProjGaussSeidel(): m_spMat(NULL), m_bInit(false){ m_vActiveIndices.resize(0); };
+		ProjGaussSeidel(): m_spMat(NULL), m_bInit(false){
+			m_vActiveIndices.resize(0);
+			m_vInactiveIndices.resize(0);};
 
 	///	preprocess checks if matrix is diagonal invertible
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp);
@@ -90,11 +91,16 @@ class ProjGaussSeidel:
 		virtual bool apply_update_defect(vector_type& c, vector_type& d);
 
 	///	Clone
-		SmartPtr<ILinearIterator<vector_type> > clone();
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
+		{
+			SmartPtr<ProjGaussSeidel<TAlgebra> > newInst(
+					new ProjGaussSeidel<TAlgebra>());
+			newInst->set_damp(this->damping());
+			return newInst;
+		}
 
-		///	Destructor
-		~ProjGaussSeidel()
-		{};
+	///	Destructor
+		~ProjGaussSeidel(){};
 
 	private:
 	/// operator to invert
@@ -106,8 +112,9 @@ class ProjGaussSeidel:
 	/// init flag indicating if init has been called
 		bool m_bInit;
 
-	///	storage for the indices, which satisfy the constraints with equality
-		std::vector<size_t> m_vActiveIndices;
+	///	store the indices, which satisfy the constraints with equality in m_vActiveIndices.
+	///	Other indices are stored in m_vInactiveIndices.
+		std::vector<size_t> m_vActiveIndices; std::vector<size_t> m_vInactiveIndices;
 };
 
 } // end namespace ug
