@@ -24,7 +24,7 @@ Alternatively, you can use the arguments <tt>-cluster=Hermit</tt> and <tt>-email
 Now you can run a job like this:
 
 \verbatim
-Hermit [~/ug4/bin] ugsubmit 64 -mail-all --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 9
+Hermit [~/ug4/bin] ugsubmit 64 -mail-all -walltime 00:30:00 --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 9
 \endverbatim
 
 and you get this output
@@ -62,6 +62,7 @@ ugsubmit 256  -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 6 -numRefs 10
 ugsubmit 1024 -mail-end --- ./ugshell -ex laplace.lua -numPreRefs 7 -numRefs 11
 \endverbatim
 
+\note The Default Walltime is 00:10:00, thats 10 minutes. After that, your job will be canceled. 
 
 <hr>
 \section secOtherScripts Other Scripts, Improvements
