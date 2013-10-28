@@ -585,6 +585,7 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 
 
 // 	check CR functions
+#ifdef UG_PARALLEL
 	bool bCROnly = true;
 	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
 		if(m_spApproxSpace->local_finite_element_id(fct).type() != LFEID::CROUZEIX_RAVIART &&
@@ -597,6 +598,7 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 		AdditiveToConsistent(&uFine, uFine.layouts()->master(), uFine.layouts()->slave(),
 		                     &uFine.layouts()->comm());
 	}
+#endif
 }
 
 template <typename TDomain, typename TAlgebra>
