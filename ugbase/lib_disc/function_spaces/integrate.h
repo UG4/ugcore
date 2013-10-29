@@ -1766,6 +1766,138 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 	return integral;
 }
 
+
+template <int WorldDim, int dim, typename TConstIterator>
+number IntegralNormalComponentOnManifoldGeneral(
+		TConstIterator iterBegin,
+		TConstIterator iterEnd,
+		typename domain_traits<WorldDim>::position_accessor_type& aaPos,
+		const ISubsetHandler* ish,
+		IIntegrand<MathVector<WorldDim>, WorldDim>& integrand,
+		const SubsetGroup& bndSSGrp,
+		int quadOrder,
+		Grid& grid)
+{
+//	reset the result
+	number integral = 0;
+
+//	note: this iterator is for the base elements, e.g. Face and not
+//			for the special type, e.g. Triangle, Quadrilateral
+	TConstIterator iter = iterBegin;
+
+//	this is the base element type (e.g. Face). This is the type when the
+//	iterators above are dereferenciated.
+	typedef typename domain_traits<dim>::element_type Element;
+	typedef typename domain_traits<dim>::side_type Side;
+
+//	vector of corner coordinates of element corners (to be filled for each elem)
+	std::vector<MathVector<WorldDim> > vCorner;
+	std::vector<int> vSubsetIndex;
+
+// 	iterate over all elements
+	for(; iter != iterEnd; ++iter)
+	{
+	//	get element
+		Element* pElem = *iter;
+
+	//	get all corner coordinates
+		CollectCornerCoordinates(vCorner, *pElem, aaPos, true);
+
+	//	get reference object id
+		const ReferenceObjectID elemRoid = pElem->reference_object_id();
+
+	//	get sides
+		typename Grid::traits<Side>::secure_container vSide;
+		grid.associated_elements_sorted(vSide, pElem);
+		vSubsetIndex.resize(vSide.size());
+		for(size_t i = 0; i < vSide.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vSide[i]);
+
+		DimReferenceMapping<dim, WorldDim>& rMapping
+			= ReferenceMappingProvider::get<dim, WorldDim>(elemRoid, vCorner);
+
+		const DimReferenceElement<dim>& rRefElem
+			= ReferenceElementProvider::get<dim>(elemRoid);
+
+	//	loop sub elements
+		for(size_t side = 0; side < vSide.size(); ++side)
+		{
+		//	check if side used
+			if(!bndSSGrp.contains(vSubsetIndex[side])) continue;
+
+		//	get side
+			Side* pSide = vSide[side];
+
+			std::vector<MathVector<WorldDim> > vSideCorner(rRefElem.num(dim-1, side, 0));
+			std::vector<MathVector<dim> > vLocalSideCorner(rRefElem.num(dim-1, side, 0));
+			for(size_t co = 0; co < vSideCorner.size(); ++co){
+				vSideCorner[co] = vCorner[rRefElem.id(dim-1, side, 0, co)];
+				vLocalSideCorner[co] = rRefElem.corner(rRefElem.id(dim-1, side, 0, co));
+			}
+
+		//	side quad rule
+			const ReferenceObjectID sideRoid = pSide->reference_object_id();
+			const QuadratureRule<dim-1>& rSideQuadRule
+					= QuadratureRuleProvider<dim-1>::get(sideRoid, quadOrder);
+
+		// 	normal
+			MathVector<WorldDim> Normal;
+			ElementNormal<WorldDim>(sideRoid, Normal, &vSideCorner[0]);
+
+		//	quadrature points
+			const number* vWeight = rSideQuadRule.weights();
+			const size_t nip = rSideQuadRule.size();
+			std::vector<MathVector<dim> > vLocalIP(nip);
+			std::vector<MathVector<dim> > vGlobalIP(nip);
+
+			DimReferenceMapping<dim-1, dim>& map
+				= ReferenceMappingProvider::get<dim-1, dim>(sideRoid, vLocalSideCorner);
+
+			for(size_t ip = 0; ip < nip; ++ip)
+				map.local_to_global(vLocalIP[ip], rSideQuadRule.point(ip));
+
+			for(size_t ip = 0; ip < nip; ++ip)
+				rMapping.local_to_global(vGlobalIP[ip], vLocalIP[ip]);
+
+		//	compute transformation matrices
+			std::vector<MathMatrix<dim-1, WorldDim> > vJT(nip);
+			map.jacobian_transposed(&(vJT[0]), rSideQuadRule.points(), nip);
+
+			std::vector<MathMatrix<dim, WorldDim> > vElemJT(nip);
+			rMapping.jacobian_transposed(&(vElemJT[0]), &vLocalIP[0], nip);
+
+			std::vector<MathVector<WorldDim> > vValue(nip);
+
+		//	compute integrand values at integration points
+			try
+			{
+				integrand.values(&vValue[0], &vGlobalIP[0],
+								 pElem, &vCorner[0], &vLocalIP[0],
+								 &(vElemJT[0]),
+								 nip);
+			}
+			UG_CATCH_THROW("IntegralNormalComponentOnManifold: Unable to compute values of "
+							"integrand at integration point.");
+
+		//	loop integration points
+			for(size_t ip = 0; ip < nip; ++ip)
+			{
+			//	get quadrature weight
+				const number weightIP = vWeight[ip];
+
+			//	get determinate of mapping
+				const number det = SqrtGramDeterminant(vJT[ip]);
+
+			//	add contribution of integration point
+				integral +=  VecDot(vValue[ip], Normal) * weightIP * det;
+			}
+		} // end bf
+	} // end elem
+
+//	return the summed integral contributions of all elements
+	return integral;
+}
+
 template <typename TGridFunction, int dim>
 number IntegralNormalComponentOnManifoldSubset(SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand,
                                  SmartPtr<TGridFunction> spGridFct,
@@ -1774,18 +1906,26 @@ number IntegralNormalComponentOnManifoldSubset(SmartPtr<IIntegrand<MathVector<TG
 //	integrate elements of subset
 	typedef typename TGridFunction::template dim_traits<dim>::geometric_base_object geometric_base_object;
 	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
+	static const int WorldDim = TGridFunction::dim;
 
 	spIntegrand->set_subset(si);
 
-	if(quadOrder > 2)
-		UG_THROW("IntegrateOverManifold: Currently only middle point rule implemented.");
-
-	return IntegralNormalComponentOnManifoldUsingFV1Geom<TGridFunction::dim,dim,const_iterator>
+	if(quadOrder == 1)
+		return IntegralNormalComponentOnManifoldUsingFV1Geom<WorldDim,dim,const_iterator>
 					(spGridFct->template begin<geometric_base_object>(si),
 	                 spGridFct->template end<geometric_base_object>(si),
 	                 spGridFct->domain()->position_accessor(),
 	                 spGridFct->domain()->subset_handler().get(),
 	                 *spIntegrand, bndSSGrp);
+	else{
+		UG_LOG(" #### IntegralNormalComponentOnManifoldSubset ####:\n")
+		return IntegralNormalComponentOnManifoldGeneral<WorldDim,dim,const_iterator>
+					(spGridFct->template begin<geometric_base_object>(si),
+	                 spGridFct->template end<geometric_base_object>(si),
+	                 spGridFct->domain()->position_accessor(),
+	                 spGridFct->domain()->subset_handler().get(),
+	                 *spIntegrand, bndSSGrp, quadOrder, *spGridFct->domain()->grid());
+	}
 }
 
 template <typename TGridFunction>
