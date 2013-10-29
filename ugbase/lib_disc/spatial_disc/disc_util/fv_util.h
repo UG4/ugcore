@@ -170,7 +170,9 @@ struct fv1_traits_ReferenceFace3d : public fv1_traits_ReferenceFace
 	static void NormalOnSCVF(MathVector<3>& outNormal,
 							 const MathVector<3>* vSCVFCorner,
 							 const MathVector<3>* vElemCorner)
-		{UG_THROW("Not implemented.")}
+		{
+			UG_THROW("not implemented.")
+		}
 };
 
 template <> struct fv1_traits<ReferenceTriangle, 2> : public fv1_traits_ReferenceFace2d{};
@@ -230,7 +232,20 @@ template <> struct fv1_dim_traits<1, 2> : public fv1_traits<ReferenceEdge, 2> {}
 template <> struct fv1_dim_traits<1, 3> : public fv1_traits<ReferenceEdge, 3> {};
 
 template <> struct fv1_dim_traits<2, 2> : public fv1_traits_ReferenceFace2d {};
-template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d {};
+template <> struct fv1_dim_traits<2, 3> : public fv1_traits_ReferenceFace3d {
+	static void NormalOnSCVF(MathVector<3>& outNormal,
+							 const MathVector<3>* vSCVFCorner,
+							 const MathVector<3>* vElemCorner)
+	{
+		// Little bit dirty, but should be correct:
+		// Even if the true element has more than three vertices (quadrilateral),
+		// we only need three to compute the direction of the normal ElemNormal in NormalOnSCVF_Face,
+		// the norm is not needed!
+		fv1_traits_ReferenceFace3d::NormalOnSCVF_Face<ReferenceTriangle>(outNormal, vSCVFCorner, vElemCorner);
+		//UG_THROW("Not implemented.")
+	}
+
+};
 
 template <> struct fv1_dim_traits<3, 3>	: public fv1_traits_ReferenceVolume {};
 
