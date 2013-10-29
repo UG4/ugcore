@@ -412,7 +412,7 @@ create_quality_record(const char* label)
 	if(m_qualityRecords(0, 0).str().empty()){
 		m_qualityRecords(0, 0) << "level:";
 	}
-	for(size_t i = 0; (i + 1) < lvlQualities.size(); ++i){
+	for(size_t i = 0; i < lvlQualities.size(); ++i){
 		if(m_qualityRecords(0, 2*i + 1).str().empty())
 			m_qualityRecords(0, 2*i + 1) << i;
 	}

@@ -924,9 +924,9 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 //		}
 //		UG_LOG(endl);
 
-		GDIST_PROFILE(PARMETIS);
 		MPI_Comm mpiCom = procCom.get_mpi_communicator();
 		if((int)procCom.size() != numTargetProcs){
+			GDIST_PROFILE(PARMETIS_V3_PartKway);
 			//UG_DLOG(LIB_GRID, 1, "Calling Parmetis_V3_PartKWay...");
 //			UG_LOG("Calling Parmetis_V3_PartKWay...\n");
 			int metisRet =	ParMETIS_V3_PartKway(pdg.parallel_offset_map(),
@@ -945,6 +945,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 			}
 		}
 		else{
+			GDIST_PROFILE(PARMETIS_V3_AdaptiveRepart);
 		//	defines the redistribution cost for each vertex
 		//	Since vrtWgtMap holds the number of children for each constraint on each level,
 		//	we can simply sum them up to retrieve the redistribution cost for that element
@@ -978,7 +979,6 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 						 << " while partitioning level " << lvl);
 			}
 		}
-		GDIST_PROFILE_END();
 
 	//	assign partition-subsets from graph-colors
 		int counter = 0;
