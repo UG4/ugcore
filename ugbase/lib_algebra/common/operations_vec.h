@@ -145,7 +145,7 @@ inline double VecProd(const vector_t &a, const vector_t &b)
 template<typename vector_t>
 inline void VecNormSquaredAdd(const vector_t &a, double &sum)
 {
-	for(int i=0; i<a.size(); i++)
+	for(size_t i=0; i<a.size(); i++)
 		VecNormSquaredAdd(a[i], sum);
 }
 
