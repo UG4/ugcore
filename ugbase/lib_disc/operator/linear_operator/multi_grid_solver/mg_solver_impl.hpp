@@ -413,6 +413,14 @@ init()
 	UG_CATCH_THROW("AssembledMultiGridCycle: Initialization of Level Operator failed.");
 	GMG_PROFILE_END();
 
+//	assemble missing coarse grid matrix contribution (only in adaptive case)
+	try{
+		if(m_bAdaptive)
+			init_missing_coarse_grid_coupling(m_pSurfaceSol);
+	}
+	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
+					"missing coarse grid coupling.");
+
 //	write computed level matrices for debug purpose
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev){
 		if(!m_vLevData[lev]->has_ghosts())
@@ -444,14 +452,6 @@ init()
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init Transfer (Prolongation/Restriction).");
 	GMG_PROFILE_END();
-
-//	assemble missing coarse grid matrix contribution (only in adaptive case)
-	try{
-		if(m_bAdaptive)
-			init_missing_coarse_grid_coupling(m_pSurfaceSol);
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
-					"missing coarse grid coupling.");
 
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init(u)");
 
@@ -1756,12 +1756,6 @@ project_level_to_surface(vector_type& surfVec,
 		//	write value
 			surfVec[surfIndex] = topVec[levIndex];
 		}
-		for(size_t surfIndex = m_vSurfToTopMap.size(); surfIndex < surfVec.size(); ++surfIndex)
-		{
-		//	write value
-			surfVec[surfIndex] = topVec[surfIndex];
-		}
-
 
 #ifdef UG_PARALLEL
 		//	copy storage type into all vectors
@@ -1806,8 +1800,6 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 	if(!m_bAdaptive){
 		vector_type& topVec = *(vLevelVec[m_topLev]);
 
-	//	UG_LOG("topVec: "<<topVec.size()<<", m_vSurfToTopMap:"<<m_vSurfToTopMap.size()<<"surfVec: "<<surfVec.size()<<"\n");
-
 		for(size_t surfIndex = 0; surfIndex < m_vSurfToTopMap.size(); ++surfIndex)
 		{
 		//	get corresponding level index
@@ -1815,11 +1807,6 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 
 		//	write value
 			topVec[levIndex] = surfVec[surfIndex];
-		}
-		for(size_t surfIndex = m_vSurfToTopMap.size(); surfIndex < surfVec.size(); ++surfIndex)
-		{
-		//	write value
-			topVec[surfIndex] = surfVec[surfIndex];
 		}
 
 #ifdef UG_PARALLEL
