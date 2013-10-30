@@ -151,6 +151,10 @@ class VectorDebugWritingObject
 		ConstSmartPtr<IVectorDebugWriter<vector_type> > vector_debug_writer() const {return m_spVectorDebugWriter;}
 
 	protected:
+		virtual void write_debug(const vector_type& vec, std::string filename)
+		{
+			write_debug(vec, filename.c_str());
+		}
 	///	writing debug output for a vector (if debug writer set)
 		virtual void write_debug(const vector_type& vec, const char* filename)
 		{
