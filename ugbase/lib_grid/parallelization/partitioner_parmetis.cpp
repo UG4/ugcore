@@ -716,41 +716,41 @@ partition_level_metis(int baseLvl, int maxLvl, int numTargetProcs)
 //		pVrtWgtMap = &vrtWgtMap.front();
 //	}
 
-//	under some circumstances, we have to cluster siblings. This requires special
-//	edge weights...
-	idx_t* pAdjWgts = NULL;
-	vector<idx_t> adjwgts;
-	if(base_class::clustered_siblings_enabled()){
-	//	we have to weighten edges between siblings higher than between non-siblings
-		vector<elem_t*> elems;
-		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
-			elems.push_back(*iter);
+	if(adjacencyMap.size() > 1){
+	//	under some circumstances, we have to cluster siblings. This requires special
+	//	edge weights...
+		idx_t* pAdjWgts = NULL;
+		vector<idx_t> adjwgts;
+		if(base_class::clustered_siblings_enabled()){
+		//	we have to weighten edges between siblings higher than between non-siblings
+			vector<elem_t*> elems;
+			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
+				elems.push_back(*iter);
 
-		adjwgts.resize(adjacencyMap.size(), 1);
+			adjwgts.resize(adjacencyMap.size(), 1);
 
-		UG_ASSERT(adjacencyMapStructure.size() >= 2,
-				  "There have to be at least 2 entries in the structure map if 1 vertex exists!");
+			UG_ASSERT(adjacencyMapStructure.size() >= 2,
+					  "There have to be at least 2 entries in the structure map if 1 vertex exists!");
 
-		for(size_t ivrt = 0; ivrt < adjacencyMapStructure.size() - 1; ++ivrt){
-			elem_t* e = elems[ivrt];
-			size_t edgesBegin = adjacencyMapStructure[ivrt];
-			size_t edgesEnd = adjacencyMapStructure[ivrt+1];
+			for(size_t ivrt = 0; ivrt < adjacencyMapStructure.size() - 1; ++ivrt){
+				elem_t* e = elems[ivrt];
+				size_t edgesBegin = adjacencyMapStructure[ivrt];
+				size_t edgesEnd = adjacencyMapStructure[ivrt+1];
 
-			for(size_t ie = edgesBegin; ie != edgesEnd; ++ie){
-				elem_t* ce = elems[adjacencyMap[ie]];
-				side_t* side = GetSharedSide(mg, e, ce);
-				if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
-				//	e and ce should share the same parent, since the side shared
-				//	by e and ce has a parent of the same type as e and ce
-					adjwgts[ie] = m_siblingWeight;
+				for(size_t ie = edgesBegin; ie != edgesEnd; ++ie){
+					elem_t* ce = elems[adjacencyMap[ie]];
+					side_t* side = GetSharedSide(mg, e, ce);
+					if(side && (mg.parent_type(side) == elem_t::BASE_OBJECT_ID)){
+					//	e and ce should share the same parent, since the side shared
+					//	by e and ce has a parent of the same type as e and ce
+						adjwgts[ie] = m_siblingWeight;
+					}
 				}
 			}
+
+			pAdjWgts = &adjwgts.front();
 		}
 
-		pAdjWgts = &adjwgts.front();
-	}
-
-	if(!adjacencyMap.empty()){
 		UG_DLOG(LIB_GRID, 1, "CALLING METIS\n");
 		GDIST_PROFILE(METIS);
 		int metisRet =	METIS_PartGraphKway(&nVrts, &nConstraints,
