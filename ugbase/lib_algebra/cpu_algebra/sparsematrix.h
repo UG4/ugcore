@@ -140,6 +140,15 @@ public:
 			const number &alpha1, const vector_t &v1,
 			const number &beta1, const vector_t &w1) const;
 
+	//! calculated dest = beta1*A*w1 . For empty rows, dest will not be changed
+	template<typename vector_t>
+	bool apply_ignore_zero_rows(vector_t &dest,
+			const number &beta1, const vector_t &w1) const;
+
+	//! calculated dest = beta1*A*w1 . For empty cols of A (=empty rows of A^T), dest will not be changed
+	template<typename vector_t>
+	bool apply_transposed_ignore_zero_rows(vector_t &dest,
+			const number &beta1, const vector_t &w1) const;
 
 	// DEPRECATED!
 	//! calculate res = A x
