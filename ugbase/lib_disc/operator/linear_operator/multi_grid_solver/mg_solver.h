@@ -59,27 +59,13 @@ class AssembledMultiGridCycle :
 	///	Matrix type
 		typedef typename algebra_type::matrix_type matrix_type;
 
-	public:
-	/// constructor setting approximation space
-		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-			m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(approxSpace),
-			m_topLev(GridLevel::TOPLEVEL), m_surfaceLev(GridLevel::TOPLEVEL),
-			m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
-			m_numPreSmooth(2), m_numPostSmooth(2),
-			m_bAdaptive(true),
-			m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
-			m_spPostSmootherPrototype(m_spPreSmootherPrototype),
-			m_spProjectionPrototype(new InjectionTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
-			m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
-			m_spRestrictionPrototype(m_spProlongationPrototype),
-			m_spBaseSolver(new LU<TAlgebra>()),
-			m_NonGhostMarker(*m_spApproxSpace->domain()->grid()),
-			m_spDebugWriter(NULL), m_dbgIterCnt(0)
-		{};
-
 	///////////////////////////////////////////////////////////////////////////
 	//	Setup
 	///////////////////////////////////////////////////////////////////////////
+
+	public:
+	/// constructor setting approximation space
+		AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	/// sets the assembling procedure that is used to compute coarse grid matrices
 		void set_discretization(SmartPtr<IAssemble<TAlgebra> > spAss)
@@ -170,14 +156,7 @@ class AssembledMultiGridCycle :
 		SmartPtr<ILinearIterator<vector_type> > clone();
 
 	///	Destructor
-		~AssembledMultiGridCycle()
-		{
-			//top_level_required(0);
-			for(size_t i = 0; i < m_vLevData.size(); ++i)
-				delete m_vLevData[i];
-
-			m_vLevData.clear();
-		};
+		~AssembledMultiGridCycle();
 
  	protected:
  	/// compute correction on level and update defect
@@ -312,20 +291,7 @@ class AssembledMultiGridCycle :
 		struct LevData
 		{
 		//	constructor
-			LevData()
-			: spLevDD(0),
-			  m_spApproxSpace(0),
-			  spLevMat(new MatrixOperator<matrix_type, vector_type>),
-			  spSmoothMat(new MatrixOperator<matrix_type, vector_type>),
-			  PreSmoother(0), PostSmoother(0),
-			  Projection(0), Prolongation(0), Restriction(0),
-			  vProlongationPP(0), vRestrictionPP(0),
-			  u(0), c(0), d(0), t(0),
-			  su(0), sc(0), sd(0), st(0)
-#ifdef UG_PARALLEL
-			  ,spSmoothLayouts(0)
-#endif
-			{};
+			LevData();
 
 		//	prepares the grid level data for appication
 			void update(size_t lev,
