@@ -46,6 +46,36 @@ class LinearSolver
 	///	returns the name of the solver
 		virtual const char* name() const {return "Iterative Linear Solver";}
 
+		/**
+		 * Compute a correction c := B*d using one iterative step
+		 * Internally the defect is updated d := d - A*c = b - A*(x+c)
+		 * @param c
+		 * @param d
+		 */
+		bool compute_correction(vector_type &c, vector_type &d)
+		{
+			if(preconditioner().valid()) {
+				LS_PROFILE_BEGIN(LS_ApplyPrecond);
+
+				if(!preconditioner()->apply_update_defect(c, d))
+				{
+					UG_LOG("ERROR in 'LinearSolver::apply': Iterator "
+							"Operator applied incorrectly. Aborting.\n");
+					return false;
+				}
+				LS_PROFILE_END(); //LS_ApplyPrecond
+			}
+			return true;
+		}
+
+		void write_debugXCD(vector_type &x, vector_type &c, vector_type &d, int loopCnt, bool bWriteC)
+		{
+			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+			write_debug(d, std::string("LS_Defect_") + ext + ".vec");
+			if(bWriteC) write_debug(c, std::string("LS_Correction_") + ext + ".vec");
+			write_debug(x, std::string("LS_Solution_") + ext + ".vec");
+		}
+
 	///	solves the system and returns the last defect
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
@@ -77,42 +107,19 @@ class LinearSolver
 			LS_PROFILE_END();
 
 			int loopCnt = 0;
-			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
-			std::string name("LS_Defect_"); name.append(ext).append(".vec");
-			write_debug(d, name.c_str());
-			name = std::string("LS_Solution_"); name.append(ext).append(".vec");
-			write_debug(x, name.c_str());
+			write_debugXCD(x, c, d, loopCnt, false);
 
-			// 	Iteration loop
+		// 	Iteration loop
 			while(!convergence_check()->iteration_ended())
 			{
-				char ext[20]; sprintf(ext, "_iter%03d", ++loopCnt);
-
-			// 	Compute a correction c := B*d using one iterative step
-			// 	Internally the defect is updated d := d - A*c = b - A*(x+c)
-				if(preconditioner().valid()) {
-					LS_PROFILE_BEGIN(LS_ApplyPrecond);
-
-					if(!preconditioner()->apply_update_defect(c, d))
-					{
-						UG_LOG("ERROR in 'LinearSolver::apply': Iterator "
-								"Operator applied incorrectly. Aborting.\n");
-						return false;
-					}
-					LS_PROFILE_END(); //LS_ApplyPrecond
-				}
+				if( !compute_correction(c, d) ) return false;
 
 			// 	add correction to solution: x += c
 				LS_PROFILE_BEGIN(LS_AddCorrection);
 				x += c;
 				LS_PROFILE_END(); //LS_AddCorrection
 
-				name = std::string("LS_Defect_"); name.append(ext).append(".vec");
-				write_debug(d, name.c_str());
-				name = std::string("LS_Correction_"); name.append(ext).append(".vec");
-				write_debug(c, name.c_str());
-				name = std::string("LS_Solution_"); name.append(ext).append(".vec");
-				write_debug(x, name.c_str());
+				write_debugXCD(x, c, d, ++loopCnt, true);
 
 			// 	compute norm of new defect (in parallel)
 				LS_PROFILE_BEGIN(LS_ComputeNewDefectNorm);
