@@ -19,6 +19,7 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/damping.h"
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
+#include "lib_algebra/operator/linear_solver/auto_linear_solver.h"
 #include "lib_algebra/operator/linear_solver/cg.h"
 #include "lib_algebra/operator/linear_solver/bicgstab.h"
 #include "lib_algebra/operator/linear_solver/gmres.h"
@@ -109,7 +110,20 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearSolver", tag);
 	}
+// 	LinearSolver
+	{
+		typedef AutoLinearSolver<vector_type> T;
+		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
+		string name = string("AutoLinearSolver").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Auto Linear Solver")
+			.add_constructor()
+			.template add_constructor<void (*)(double, double)>("reductionAlwaysAccept#worseThenAverage")
+			.add_method("set_reduction_always_accept", &T::set_reduction_always_accept)
+			.add_method("set_reinit_when_worse_then_average", &T::set_reinit_when_worse_then_average)
+			.set_construct_as_smart_pointer(true);
 
+		reg.add_class_to_group(name, "AutoLinearSolver", tag);
+	}
 // 	CG Solver
 	{
 		typedef CG<vector_type> T;
@@ -140,7 +154,7 @@ static void Algebra(Registry& reg, string grp)
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
 		string name = string("GMRES").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "GMRES Solver")
-			.template add_constructor<void (*)(size_t)>()
+			.template add_constructor<void (*)(size_t)>("restart")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GMRES", tag);
 	}
