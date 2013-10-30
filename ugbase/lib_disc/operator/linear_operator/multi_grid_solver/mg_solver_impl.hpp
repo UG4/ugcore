@@ -152,7 +152,8 @@ apply(vector_type &c, const vector_type& d)
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply project_level_to_surface... \n");
 	try{
 		project_level_to_surface(c, const_level_corrections());
-	} UG_CATCH_THROW("AssembledMultiGridCycle::apply: Project c Level -> Surface failed.");
+	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::apply: Project c Level -> Surface failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
 
 //	apply scaling
@@ -182,7 +183,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 //			defect is kept up to date when traversing the grid. At the end of
 //			the iteration the updated defect is stored in the level defects and
 //			could be projected back to the surface in order to get an updated
-//			surface defect. This is, however, not done. For this reasons:
+//			surface defect. This is, however, not done. For these reasons:
 //			a) A Matrix-Vector operation is not very expensive
 //			b) In a 2d adaptive case, the update is difficult, but can be
 //				performed. But if the implementation is incorrect, this will
@@ -215,8 +216,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 }
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -224,35 +224,24 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 	try{
 
+//	get assembling
 	SmartPtr<AssembledLinearOperator<TAlgebra> > spALO =
 			J.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
-	if(spALO.valid()){
-//		if(m_pAss == NULL){
-			m_spAss = spALO->discretization();
-//		}
-	}
+	if(spALO.valid())
+		m_spAss = spALO->discretization();
 
 // 	Cast Operator
 	m_spSurfaceMat = J.template cast_dynamic<matrix_type>();
-
-//	Check that Operator type is correct
 	if(m_spSurfaceMat.invalid())
 		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
+//	Check Approx Space
 	if(!m_spApproxSpace.valid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Approximation Space not set.\n");
-		return false;
-	}
+		UG_THROW("AssembledMultiGridCycle::init: Approximation Space not set.");
 
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"No grid level in Approximation Space.\n");
-		return false;
-	}
+		UG_THROW("AssembledMultiGridCycle:init: No grid levels");
 
 //	get current toplevel
 	const GridFunction<TDomain, TAlgebra>* pSol =
@@ -283,10 +272,6 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	}
 	else{
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "#level-dofs: "
-				<< m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices());
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, ", #surface-dofs: "
-				<< m_spApproxSpace->surface_dof_distribution()->num_indices() << "\n");
 		m_bAdaptive = true;
 	}
 
@@ -301,11 +286,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	#endif
 
 	if(!m_spProjectionPrototype.valid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
-				"Projection not set, although problem nonlinear.\n");
-		return false;
-	}
+		UG_THROW("AssembledMultiGridCycle::init: Projection not set.");
 
 //	init mapping from surface level to top level in case of full refinement
 	if(!m_bAdaptive)
@@ -319,12 +300,10 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 //	Create Projection
 	GMG_PROFILE_BEGIN(GMG_InitProjection);
-	if(!init_projection())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
-				"Initialization of Projection failed.\n");
-		return false;
+	try{
+		init_projection();
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::init: Initialization of Projection failed.");
 	GMG_PROFILE_END();
 
 //	project
@@ -371,21 +350,19 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 
 //	init common
-	if(!init_common())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Cannot init common part.\n");
-		return false;
+	try{
+		init_common();
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init common part.");
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
-	if(m_bAdaptive)
-		if(!init_missing_coarse_grid_coupling(&u))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-					"Cannot init missing coarse grid coupling.\n");
-			return false;
+	if(m_bAdaptive){
+		try{
+			init_missing_coarse_grid_coupling(&u);
 		}
+		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
+				"missing coarse grid coupling.");
+	}
 
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init(u)");
 
@@ -395,8 +372,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 }
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > L)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -487,22 +463,20 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	}
 
 //	init common
-	if(!init_common())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"Cannot init common part.\n");
-		return false;
+	try{
+		init_common();
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init common part.");
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
 	GMG_PROFILE_BEGIN(GMG_AssMissingCoarseMat);
-	if(m_bAdaptive)
-		if(!init_missing_coarse_grid_coupling(NULL))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-					"Cannot init missing coarse grid coupling.\n");
-			return false;
+	if(m_bAdaptive){
+		try{
+			init_missing_coarse_grid_coupling(NULL);
 		}
+		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init missing "
+						"coarse grid coupling.");
+	}
 	GMG_PROFILE_END();
 
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init()");
@@ -515,8 +489,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_common()
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -524,59 +497,32 @@ init_common()
 
 //	Perform some checks:
 	if(m_spAss.invalid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Discretization not set.\n");
-		return false;
-	}
+		UG_THROW("AssembledMultiGridCycle::init: Discretization not set.");
+
 	if(m_spBaseSolver.invalid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Base Solver not set.\n");
-		return false;
-	}
-	if(!m_spPreSmootherPrototype.valid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"PreSmoother not set.\n");
-		return false;
-	}
-	if(!m_spPostSmootherPrototype.valid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"PostSmoother not set.\n");
-		return false;
-	}
-	if(!m_spProlongationPrototype.valid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Prolongation not set.\n");
-		return false;
-	}
-	if(!m_spRestrictionPrototype.valid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Restriction not set.\n");
-		return false;
-	}
+		UG_THROW("AssembledMultiGridCycle::init: Base Solver not set.");
+
+	if(m_spPreSmootherPrototype.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: PreSmoother not set.");
+
+	if(m_spPostSmootherPrototype.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: PostSmoother not set.");
+
+	if(m_spProlongationPrototype.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: Prolongation not set.");
+
+	if(m_spRestrictionPrototype.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: Restriction not set.");
 
 	if(m_baseLev > m_topLev)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Base Level can not be greater than surface level.\n");
-		return false;
-	}
+		UG_THROW("AssembledMultiGridCycle::init: Base Level can not be greater than surface level.");
 
 //	Assemble coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
 	try{
-		if(!init_level_operator()){
-			UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
-					"Cannot init Coarse Grid Operator.\n");
-			return false;
-		}
-	} UG_CATCH_THROW("AssembledMultiGridCycle: Initialization of Level Operator "
-					"failed.");
+		init_level_operator();
+	}
+	UG_CATCH_THROW("AssembledMultiGridCycle: Initialization of Level Operator failed.");
 	GMG_PROFILE_END();
 
 //	write computed level matrices for debug purpose
@@ -589,43 +535,34 @@ init_common()
 
 //	Init smoother for coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_InitSmoother);
-	if(!init_smoother())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
-				"Cannot init Smoother.\n");
-		return false;
+	try{
+		init_smoother();
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init Smoother.");
 	GMG_PROFILE_END();
 
 //	Init base solver
 	GMG_PROFILE_BEGIN(GMG_InitBaseSolver);
-	if(!init_base_solver())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
-				"Cannot init Base Solver.\n");
-		return false;
+	try{
+		init_base_solver();
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init Base Solver.");
 	GMG_PROFILE_END();
 
 // 	Create Interpolation
 	GMG_PROFILE_BEGIN(GMG_InitProlongation);
-	if(!init_transfer())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init_common': "
-				"Cannot init Transfer (Prolongation/Restriction).\n");
-		return false;
+	try{
+		init_transfer();
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init Transfer (Prolongation/Restriction).");
 	GMG_PROFILE_END();
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_common\n");
-	return true;
 }
 
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_level_operator()
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -705,14 +642,11 @@ init_level_operator()
 		GMG_PROFILE_END();
 	}
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_linear_level_operator\n");
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_transfer()
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -769,14 +703,11 @@ init_transfer()
 		}
 	}
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_transfer\n");
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_projection()
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -797,14 +728,11 @@ init_projection()
 		m_vLevData[lev]->Projection->init();
 	}
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_projection\n");
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_smoother()
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -823,38 +751,27 @@ init_smoother()
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing pre-smoother\n");
 		if(!m_vLevData[lev]->PreSmoother->init(spSmoothMat, u))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
-					" Cannot init pre-smoother for level "<< lev << ".\n");
-			return false;
-		}
+			UG_THROW("AssembledMultiGridCycle::init: Cannot init pre-smoother for level "<<lev);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing post-smoother\n");
 		if(m_vLevData[lev]->PreSmoother.get() != m_vLevData[lev]->PostSmoother.get())
 		{
 			if(!m_vLevData[lev]->PostSmoother->init(spSmoothMat, u))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::init_smoother':"
-						" Cannot init post-smoother for level "<< lev << ".\n");
-				return false;
-			}
+				UG_THROW("AssembledMultiGridCycle::init: Cannot init post-smoother for level "<<lev);
 		}
 	}
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_smoother\n");
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_base_solver()
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_base_solver\n");
 //	skip void level
-	if(m_vLevData[m_baseLev]->num_indices() == 0) return true;
+	if(m_vLevData[m_baseLev]->num_indices() == 0) return;
 
 #ifdef UG_PARALLEL
 //	check, if a gathering base solver is required:
@@ -886,11 +803,8 @@ init_base_solver()
 			{
 			//	we init the base solver with the whole grid matrix
 				if(!m_spBaseSolver->init(m_vLevData[m_baseLev]->spLevMat, *m_vLevData[m_baseLev]->u))
-				{
-					UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
-							" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
-					return false;
-				}
+					UG_THROW("AssembledMultiGridCycle::init: Cannot init base "
+							"solver on baselevel "<< m_baseLev);
 			}
 		}
 	//todo:	it could make sense to communicate here, to make sure that all processes
@@ -912,21 +826,15 @@ init_base_solver()
 		//write_level_debug(*spSmoothMat, "GMG_BaseSolver_Matrix", m_baseLev);
 
 		if(!m_spBaseSolver->init(spSmoothMat, u))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::init_base_solver':"
-					" Cannot init base solver on baselevel "<< m_baseLev << ".\n");
-			return false;
-		}
+			UG_THROW("AssembledMultiGridCycle::init: Cannot init base solver "
+					"on baselevel "<< m_baseLev);
 	}
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_base_solver\n");
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_missing_coarse_grid_coupling(const vector_type* u)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -938,7 +846,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 //	if the grid is fully refined, nothing to do
 	if(!m_bAdaptive){
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling (non-adaptive)" << "\n");
-		return true;
+		return;
 	}
 
 //	get the surface view
@@ -1018,9 +926,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling " << "\n");
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

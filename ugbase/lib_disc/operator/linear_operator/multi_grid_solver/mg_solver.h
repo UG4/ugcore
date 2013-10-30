@@ -193,22 +193,22 @@ class AssembledMultiGridCycle :
 		void top_level_required(size_t topLevel);
 
 	///	initializes common part
-		bool init_common();
+		void init_common();
 
 	///	initializes the smoother and base solver
-		bool init_smoother();
+		void init_smoother();
 
 	///	initializes the coarse grid matrices
-		bool init_level_operator();
+		void init_level_operator();
 
 	///	initializes the smoother and base solver
-		bool init_base_solver();
+		void init_base_solver();
 
 	///	initializes the prolongation
-		bool init_transfer();
+		void init_transfer();
 
 	///	initializes the prolongation
-		bool init_projection();
+		void init_projection();
 
 	///	projects a grid function from the surface to the levels
 		void project_surface_to_level(std::vector<vector_type*> vLevelFunc,
@@ -221,7 +221,7 @@ class AssembledMultiGridCycle :
 	///	assembles the missing matrix part on the coarse level, that must be
 	///	added if the correction has been computed to ensure a correctly updated
 	///	defect. (i.e. assembles A^c, with d^f -= A^c * c^c)
-		bool init_missing_coarse_grid_coupling(const vector_type* u);
+		void init_missing_coarse_grid_coupling(const vector_type* u);
 
 	///	checks if all necessary pointers have been set
 		bool check_setting() const;
