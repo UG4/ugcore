@@ -99,13 +99,7 @@ clone()
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 ~AssembledMultiGridCycle()
-{
-	//top_level_required(0);
-	for(size_t i = 0; i < m_vLevData.size(); ++i)
-		delete m_vLevData[i];
-
-	m_vLevData.clear();
-};
+{};
 
 ////////////////////////////////////////////////////////////////////////////////
 // apply and init
@@ -294,12 +288,10 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
 
 //	Allocate memory for given top level
-	if(!top_level_required(m_topLev))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
-				" Cannot allocate memory. Aborting.\n");
-		return false;
+	try{
+		top_level_required(m_topLev);
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot allocate memory.");
 
 //	check, if grid is full-refined
 //todo:	make sure that there are no vertical masters in topLevel. Otherwise
@@ -473,12 +465,10 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 //	Allocate memory for given top level
 	GMG_PROFILE_BEGIN(GMG_CreateLevelStorage);
-	if(!top_level_required(m_topLev))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
-				" Cannot allocate memory. Aborting.\n");
-		return false;
+	try{
+		top_level_required(m_topLev);
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot allocate memory")
 	GMG_PROFILE_END();
 
 //	check, if grid is full-refined
@@ -1063,22 +1053,18 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 top_level_required(size_t topLevel)
 {
 	PROFILE_FUNC_GROUP("gmg");
 
 //	allocated level if needed
-	while(num_levels() <= topLevel)
-	{
-		m_vLevData.push_back(new LevData);
+	while(num_levels() <= topLevel){
+		m_vLevData.push_back(SmartPtr<LevData>(new LevData));
 	}
 
 //	free level if needed
-	while(num_levels() > topLevel+1)
-	{
-		delete m_vLevData.back();
+	while(num_levels() > topLevel+1){
 		m_vLevData.pop_back();
 	}
 
@@ -1099,9 +1085,6 @@ top_level_required(size_t topLevel)
 		                       m_vspRestrictionPostProcess,
 		                       m_NonGhostMarker);
 	}
-
-//	we're done
-	return true;
 }
 
 

@@ -190,7 +190,7 @@ class AssembledMultiGridCycle :
 		size_t num_levels() const {return m_vLevData.size();}
 
 	///	allocates the memory
-		bool top_level_required(size_t topLevel);
+		void top_level_required(size_t topLevel);
 
 	///	initializes common part
 		bool init_common();
@@ -434,7 +434,7 @@ class AssembledMultiGridCycle :
 		};
 
 	///	storage for all level
-		std::vector<LevData*> m_vLevData;
+		std::vector<SmartPtr<LevData> > m_vLevData;
 
 	///	bool marker of non-ghosts
 		BoolMarker m_NonGhostMarker;
