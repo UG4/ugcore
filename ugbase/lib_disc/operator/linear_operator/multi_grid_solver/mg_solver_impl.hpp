@@ -292,19 +292,9 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
-	
-//	Compute the number of the extra dofs (the dofs with no geometrical positions)
-//todo:	Remove this here and implement the management of these dofs in the
-//		DoFDistribution class.
-	size_t numExtraDofs = 0;
-	const size_t numDoFs = m_spSurfaceMat->num_rows();
-	const size_t numIndices
-		= m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices();
-	if(numIndices < numDoFs)
-		numExtraDofs = numDoFs - numIndices;
-	
+
 //	Allocate memory for given top level
-	if(!top_level_required(m_topLev, numExtraDofs))
+	if(!top_level_required(m_topLev))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
 				" Cannot allocate memory. Aborting.\n");
@@ -481,19 +471,9 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
 
-//	Compute the number of the extra dofs (the dofs with no geometrical positions)
-//todo:	Remove this here and implement the management of these dofs in the
-//		DoFDistribution class.
-	size_t numExtraDofs = 0;
-	const size_t numDoFs = m_spSurfaceMat->num_rows();
-	const size_t numIndices
-		= m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices();
-	if(numIndices < numDoFs)
-		numExtraDofs = numDoFs - numIndices;
-	
 //	Allocate memory for given top level
 	GMG_PROFILE_BEGIN(GMG_CreateLevelStorage);
-	if(!top_level_required(m_topLev, numExtraDofs))
+	if(!top_level_required(m_topLev))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init':"
 				" Cannot allocate memory. Aborting.\n");
@@ -1085,7 +1065,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 template <typename TDomain, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TDomain, TAlgebra>::
-top_level_required(size_t topLevel, size_t numExtraDofs)
+top_level_required(size_t topLevel)
 {
 	PROFILE_FUNC_GROUP("gmg");
 
@@ -1117,8 +1097,7 @@ top_level_required(size_t topLevel, size_t numExtraDofs)
 		                       *m_spRestrictionPrototype,
 		                       m_vspProlongationPostProcess,
 		                       m_vspRestrictionPostProcess,
-		                       m_NonGhostMarker,
-		                       numExtraDofs);
+		                       m_NonGhostMarker);
 	}
 
 //	we're done
@@ -1165,8 +1144,7 @@ update(size_t lev,
        ITransferOperator<TAlgebra>& restriction,
        std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
        std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP,
-       BoolMarker& nonGhostMarker,
-       size_t numExtraDoFs)
+       BoolMarker& nonGhostMarker)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	get dof distribution
@@ -1182,7 +1160,7 @@ update(size_t lev,
 //	enlarge the vectors on the number of the extra dofs
 //todo: Remove it here and implement the management of the extra dofs in the
 //		DoFDistribution class
-	const size_t numIndex = spLevDD->num_indices() + numExtraDoFs;
+	const size_t numIndex = spLevDD->num_indices();
 	u->resize(numIndex);
 	c->resize(numIndex);
 	d->resize(numIndex);
@@ -1190,11 +1168,9 @@ update(size_t lev,
 
 //	prepare level operator
 #ifdef UG_PARALLEL
-	if(numIndex == 0){
-	//	default storage types for c and d to avoid incompatible types.
-		c->set_storage_type(PST_CONSISTENT);
-		d->set_storage_type(PST_ADDITIVE);
-	}
+//	default storage types for c and d to avoid incompatible types.
+	c->set_storage_type(PST_CONSISTENT);
+	d->set_storage_type(PST_ADDITIVE);
 	spLevMat->set_layouts(spLevDD->layouts());
 #endif
 
@@ -1209,20 +1185,6 @@ update(size_t lev,
 	if(Prolongation.invalid()) Prolongation = prolongation.clone();
 	if(&prolongation == &restriction)	Restriction = Prolongation;
 	else{if(Restriction.invalid()) Restriction = restriction.clone();}
-
-
-//	The following version of the code above should be used if a varying smoother
-//	should be supported
-/*	PreSmoother = presmoother.clone();
-	if(&postsmoother == &presmoother) PostSmoother = PreSmoother;
-	else PostSmoother = postsmoother.clone();
-
-	Projection = projection.clone();
-
-//	restriction only created if not the same operator
-	Prolongation = prolongation.clone();
-	if(&prolongation == &restriction)	Restriction = Prolongation;
-	else Restriction = restriction.clone();*/
 
 	vProlongationPP.clear();
 	for(size_t i = 0; i < vprolongationPP.size(); ++i)
@@ -1252,13 +1214,6 @@ update(size_t lev,
 //	smoothing vectors and matrices of smaller size are created and assembled.
 //	Please note that smoothing is performed on vertical slaves.
 #ifdef UG_PARALLEL
-//	copy the layouts into the level vectors
-//	note: not needed anymore, layouts are set by GridFunction
-/*	u->set_layouts(spLevDD->layouts());
-	c->set_layouts(spLevDD->layouts());
-	d.set_layouts(spLevDD->layouts());
-	t.set_layouts(spLevDD->layouts());*/
-
 //	if no vertical masters, there can be no ghost and we're ready. By ghosts
 //	we denote vertical masters, that are not horizontal master/slave
 	if(spLevDD->layouts()->vertical_master().empty())
@@ -1299,13 +1254,6 @@ update(size_t lev,
 	//	since in the patch we store the mapping index
 		vMapPatchToGlobal.push_back(j);
 	}
-
-//	the extra dofs are not included in the patch, so this extension should
-//	not work in the present version
-//todo: Remove it here and implement the management of the extra dofs in the
-//		DoFDistribution class
-	if (numExtraDoFs != 0)
-		UG_THROW ("DoFs with no geometrical position are not implemented in the parallel case");
 
 //	now we know the size of the smoothing patch index set and resize help vectors
 //	by the preceeding 's' the relation to the smoothing is indicated
