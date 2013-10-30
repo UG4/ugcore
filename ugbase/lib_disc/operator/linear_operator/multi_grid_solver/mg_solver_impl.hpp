@@ -285,12 +285,30 @@ init()
 		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
 //	Check Approx Space
-	if(!m_spApproxSpace.valid())
+	if(m_spApproxSpace.invalid())
 		UG_THROW("AssembledMultiGridCycle::init: Approximation Space not set.");
 
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
 		UG_THROW("AssembledMultiGridCycle:init: No grid levels");
+
+	if(m_spAss.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: Discretization not set.");
+
+	if(m_spBaseSolver.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: Base Solver not set.");
+
+	if(m_spPreSmootherPrototype.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: PreSmoother not set.");
+
+	if(m_spPostSmootherPrototype.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: PostSmoother not set.");
+
+	if(m_spProlongationPrototype.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: Prolongation not set.");
+
+	if(m_spRestrictionPrototype.invalid())
+		UG_THROW("AssembledMultiGridCycle::init: Restriction not set.");
 
 //	get current toplevel
 	const GridFunction<TDomain, TAlgebra>* pSol =
@@ -301,6 +319,9 @@ init()
 
 	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
+
+	if(m_baseLev > m_topLev)
+		UG_THROW("AssembledMultiGridCycle::init: Base Level can not be greater than surface level.");
 
 //	Allocate memory for given top level
 	try{
@@ -347,64 +368,6 @@ init()
 		GMG_PROFILE_END();
 	}
 
-//	Create Projection
-	GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
-	try{
-		if(m_pSurfaceSol) {
-
-			init_projection();
-
-			project_surface_to_level(level_solutions(), *m_pSurfaceSol);
-
-			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
-			for(int lev = m_topLev; lev != m_baseLev; --lev)
-			{
-				#ifdef UG_PARALLEL
-					copy_to_vertical_masters(*m_vLevData[lev]->u);
-				#endif
-
-			//	skip void level
-				if(m_vLevData[lev]->num_indices() == 0 ||
-					m_vLevData[lev-1]->num_indices() == 0) continue;
-
-				try{
-					m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->u, *m_vLevData[lev]->u);
-				} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
-							"solution to coarse grid function of level "<<lev-1<<".\n");
-			}
-			#ifdef UG_PARALLEL
-				if(m_baseLev != m_topLev){
-					copy_to_vertical_masters(*m_vLevData[m_baseLev]->u);
-				}
-			#endif
-			GMG_PROFILE_END();
-		}
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::init: Projection of Surface Solution failed.");
-	GMG_PROFILE_END();
-
-//	Perform some checks:
-	if(m_spAss.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Discretization not set.");
-
-	if(m_spBaseSolver.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Base Solver not set.");
-
-	if(m_spPreSmootherPrototype.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: PreSmoother not set.");
-
-	if(m_spPostSmootherPrototype.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: PostSmoother not set.");
-
-	if(m_spProlongationPrototype.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Prolongation not set.");
-
-	if(m_spRestrictionPrototype.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Restriction not set.");
-
-	if(m_baseLev > m_topLev)
-		UG_THROW("AssembledMultiGridCycle::init: Base Level can not be greater than surface level.");
-
 //	Assemble coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
 	try{
@@ -412,22 +375,6 @@ init()
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle: Initialization of Level Operator failed.");
 	GMG_PROFILE_END();
-
-//	assemble missing coarse grid matrix contribution (only in adaptive case)
-	try{
-		if(m_bAdaptive)
-			init_missing_coarse_grid_coupling(m_pSurfaceSol);
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
-					"missing coarse grid coupling.");
-
-//	write computed level matrices for debug purpose
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev){
-		if(!m_vLevData[lev]->has_ghosts())
-			write_level_debug(*m_vLevData[lev]->spLevMat, "LevelMatrix", lev);
-		else
-			write_smooth_level_debug(*m_vLevData[lev]->spSmoothMat, "LevelMatrix", lev);
-	}
 
 //	Init smoother for coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_InitSmoother);
@@ -465,6 +412,42 @@ init_level_operator()
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_linear_level_operator\n");
+
+//	Create Projection
+	GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
+	try{
+		if(m_pSurfaceSol) {
+
+			init_projection();
+
+			project_surface_to_level(level_solutions(), *m_pSurfaceSol);
+
+			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
+			for(int lev = m_topLev; lev != m_baseLev; --lev)
+			{
+				#ifdef UG_PARALLEL
+					copy_to_vertical_masters(*m_vLevData[lev]->u);
+				#endif
+
+			//	skip void level
+				if(m_vLevData[lev]->num_indices() == 0 ||
+					m_vLevData[lev-1]->num_indices() == 0) continue;
+
+				try{
+					m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->u, *m_vLevData[lev]->u);
+				} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
+							"solution to coarse grid function of level "<<lev-1<<".\n");
+			}
+			#ifdef UG_PARALLEL
+				if(m_baseLev != m_topLev){
+					copy_to_vertical_masters(*m_vLevData[m_baseLev]->u);
+				}
+			#endif
+			GMG_PROFILE_END();
+		}
+	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::init: Projection of Surface Solution failed.");
+	GMG_PROFILE_END();
 
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
@@ -540,7 +523,119 @@ init_level_operator()
 		GMG_PROFILE_END();
 	}
 
+//	write computed level matrices for debug purpose
+	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev){
+		if(!m_vLevData[lev]->has_ghosts())
+			write_level_debug(*m_vLevData[lev]->spLevMat, "LevelMatrix", lev);
+		else
+			write_smooth_level_debug(*m_vLevData[lev]->spSmoothMat, "LevelMatrix", lev);
+	}
+
+//	assemble missing coarse grid matrix contribution (only in adaptive case)
+	try{
+		if(m_bAdaptive)
+			init_missing_coarse_grid_coupling(m_pSurfaceSol);
+	}
+	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
+					"missing coarse grid coupling.");
+
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_linear_level_operator\n");
+}
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_missing_coarse_grid_coupling(const vector_type* u)
+{
+	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_missing_coarse_grid_coupling " << "\n");
+//	clear matrices
+	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
+		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(0,0);
+
+//	if the grid is fully refined, nothing to do
+	if(!m_bAdaptive){
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling (non-adaptive)" << "\n");
+		return;
+	}
+
+//	get the surface view
+	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
+
+//	create storage for matrices on the grid levels
+	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
+	{
+	//	get dof distributions on levels
+		ConstSmartPtr<DoFDistribution> dd
+							= m_spApproxSpace->level_dof_distribution(lev);
+
+	//	resize the matrix
+		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(dd->num_indices(),
+		                                               dd->num_indices());
+	}
+
+//	level dof distributions
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD =
+								m_spApproxSpace->level_dof_distributions();
+
+//	surface dof distribution
+	ConstSmartPtr<DoFDistribution> surfDD =
+								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
+
+//	create mappings
+	std::vector<std::vector<int> > vSurfLevelMapping;
+
+	CreateSurfaceToLevelMapping(vSurfLevelMapping, vLevelDD, surfDD, surfView);
+
+//	loop all levels to compute the missing contribution
+	BoolMarker sel(*m_spApproxSpace->domain()->grid());
+	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
+	{
+	//	select all elements, that have a shadow as a subelement, but are not itself
+	//	a shadow
+		sel.clear();
+		SelectNonShadowsAdjacentToShadowsOnLevel(sel, surfView, lev);
+
+	//	now set this selector to the assembling, such that only those elements
+	//	will be assembled
+		m_spAss->ass_tuner()->set_marker(&sel);
+
+	//	create a surface matrix
+		matrix_type surfMat;
+
+		GridLevel surfLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE);
+
+	//	assemble the surface jacobian only for selected elements
+		if(u)
+			m_spAss->assemble_jacobian(surfMat, *u, surfLevel);
+		else
+		{
+		//	\todo: not use tmp vector here
+			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices());
+			m_spAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
+		}
+
+	//	write matrix for debug purpose
+		std::stringstream ss; ss << "MissingSurfMat_" << lev;
+		write_surface_debug(surfMat, ss.str().c_str());
+
+	//	remove the selector from the assembling procedure
+		m_spAss->ass_tuner()->set_marker(NULL);
+
+	//	project
+		try{
+			CopyMatrixSurfaceToLevel(m_vLevData[lev]->CoarseGridContribution,
+		                             vSurfLevelMapping[lev],
+		                             surfMat);
+		}
+		UG_CATCH_THROW("AssembledMultiGridCycle::init_missing_coarse_grid_coupling: "
+					"Projection of matrix from surface to level failed.");
+	}
+
+//	write matrix for debug purpose
+	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
+		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling " << "\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -731,101 +826,6 @@ init_base_solver()
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_base_solver\n");
 }
 
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_missing_coarse_grid_coupling(const vector_type* u)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_missing_coarse_grid_coupling " << "\n");
-//	clear matrices
-	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
-		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(0,0);
-
-//	if the grid is fully refined, nothing to do
-	if(!m_bAdaptive){
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling (non-adaptive)" << "\n");
-		return;
-	}
-
-//	get the surface view
-	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
-
-//	create storage for matrices on the grid levels
-	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
-	{
-	//	get dof distributions on levels
-		ConstSmartPtr<DoFDistribution> dd
-							= m_spApproxSpace->level_dof_distribution(lev);
-
-	//	resize the matrix
-		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(dd->num_indices(),
-		                                               dd->num_indices());
-	}
-
-//	level dof distributions
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD =
-								m_spApproxSpace->level_dof_distributions();
-
-//	surface dof distribution
-	ConstSmartPtr<DoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
-
-//	create mappings
-	std::vector<std::vector<int> > vSurfLevelMapping;
-
-	CreateSurfaceToLevelMapping(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-
-//	loop all levels to compute the missing contribution
-	BoolMarker sel(*m_spApproxSpace->domain()->grid());
-	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
-	{
-	//	select all elements, that have a shadow as a subelement, but are not itself
-	//	a shadow
-		sel.clear();
-		SelectNonShadowsAdjacentToShadowsOnLevel(sel, surfView, lev);
-
-	//	now set this selector to the assembling, such that only those elements
-	//	will be assembled
-		m_spAss->ass_tuner()->set_marker(&sel);
-
-	//	create a surface matrix
-		matrix_type surfMat;
-
-		GridLevel surfLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE);
-
-	//	assemble the surface jacobian only for selected elements
-		if(u)
-			m_spAss->assemble_jacobian(surfMat, *u, surfLevel);
-		else
-		{
-		//	\todo: not use tmp vector here
-			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices());
-			m_spAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
-		}
-
-	//	write matrix for debug purpose
-		std::stringstream ss; ss << "MissingSurfMat_" << lev;
-		write_surface_debug(surfMat, ss.str().c_str());
-
-	//	remove the selector from the assembling procedure
-		m_spAss->ass_tuner()->set_marker(NULL);
-
-	//	project
-		try{
-			CopyMatrixSurfaceToLevel(m_vLevData[lev]->CoarseGridContribution,
-		                             vSurfLevelMapping[lev],
-		                             surfMat);
-		}
-		UG_CATCH_THROW("AssembledMultiGridCycle::init_missing_coarse_grid_coupling: "
-					"Projection of matrix from surface to level failed.");
-	}
-
-//	write matrix for debug purpose
-	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
-		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
-
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling " << "\n");
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Init Level Data
