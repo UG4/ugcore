@@ -446,13 +446,12 @@ init()
 	GMG_PROFILE_END();
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
-	if(m_bAdaptive){
-		try{
+	try{
+		if(m_bAdaptive)
 			init_missing_coarse_grid_coupling(m_pSurfaceSol);
-		}
-		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
-				"missing coarse grid coupling.");
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
+					"missing coarse grid coupling.");
 
 	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init(u)");
 
