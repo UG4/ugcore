@@ -222,16 +222,65 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init(J, u)\n");
 
-	try{
-
-//	get assembling
+	// try to extract assembling routine
 	SmartPtr<AssembledLinearOperator<TAlgebra> > spALO =
 			J.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
-	if(spALO.valid())
+	if(spALO.valid()){
 		m_spAss = spALO->discretization();
+	}
+
+	// Store Surface Matrix
+	m_spSurfaceMat = J.template cast_dynamic<matrix_type>();
+
+	// Store Surface Solution
+	m_pSurfaceSol = &u;
+
+	// call init
+	init();
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init(J, u)\n");
+	return true;
+}
+
+template <typename TDomain, typename TAlgebra>
+bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+init(SmartPtr<ILinearOperator<vector_type> > L)
+{
+	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init(L)\n");
+
+	// try to extract assembling routine
+	SmartPtr<AssembledLinearOperator<TAlgebra> > spALO =
+			L.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
+	if(spALO.valid()){
+		m_spAss = spALO->discretization();
+	}
+
+	// Store Surface Matrix
+	m_spSurfaceMat = L.template cast_dynamic<matrix_type>();
+
+	// Store Surface Solution
+	m_pSurfaceSol = NULL;
+
+	// call init
+	init();
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init(L)\n");
+	return true;
+}
+
+
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init()
+{
+	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_common\n");
+
+	try{
 
 // 	Cast Operator
-	m_spSurfaceMat = J.template cast_dynamic<matrix_type>();
 	if(m_spSurfaceMat.invalid())
 		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
 
@@ -245,7 +294,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 //	get current toplevel
 	const GridFunction<TDomain, TAlgebra>* pSol =
-		dynamic_cast<const GridFunction<TDomain, TAlgebra>*>(&u);
+		dynamic_cast<const GridFunction<TDomain, TAlgebra>*>(m_pSurfaceSol);
 	if(pSol){
 		m_surfaceLev = pSol->dof_distribution()->grid_level().level();
 	}
@@ -299,201 +348,40 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	}
 
 //	Create Projection
-	GMG_PROFILE_BEGIN(GMG_InitProjection);
+	GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
 	try{
-		init_projection();
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::init: Initialization of Projection failed.");
-	GMG_PROFILE_END();
+		if(m_pSurfaceSol) {
 
-//	project
-	GMG_PROFILE_BEGIN(GMG_ProjectSolutionFromSurface);
-	try{
-		project_surface_to_level(level_solutions(), u);
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::init: Projection u Surf -> Level failed.");
-	GMG_PROFILE_END();
+			init_projection();
 
-// 	Project solution from surface grid to coarser grid levels
-	GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
-	for(int lev = m_topLev; lev != m_baseLev; --lev)
-	{
-		#ifdef UG_PARALLEL
-			copy_to_vertical_masters(*m_vLevData[lev]->u);
-		#endif
+			project_surface_to_level(level_solutions(), *m_pSurfaceSol);
 
-	//	skip void level
-		if(m_vLevData[lev]->num_indices() == 0 ||
-			m_vLevData[lev-1]->num_indices() == 0) continue;
+			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
+			for(int lev = m_topLev; lev != m_baseLev; --lev)
+			{
+				#ifdef UG_PARALLEL
+					copy_to_vertical_masters(*m_vLevData[lev]->u);
+				#endif
 
-		try{
-			m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->u, *m_vLevData[lev]->u);
-		} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
-					"solution to coarse grid function of level "<<lev-1<<".\n");
-	}
-	#ifdef UG_PARALLEL
-		if(m_baseLev != m_topLev){
-			copy_to_vertical_masters(*m_vLevData[m_baseLev]->u);
-		}
-	#endif
+			//	skip void level
+				if(m_vLevData[lev]->num_indices() == 0 ||
+					m_vLevData[lev-1]->num_indices() == 0) continue;
 
-	GMG_PROFILE_END();
-
-	if(!m_spDebugWriter.invalid()){
-		write_surface_debug(u, "surface_solution");
-		std::vector<vector_type*> lvlSol = level_solutions();
-		for(size_t i = 0; i < lvlSol.size(); ++i){
-			if(lvlSol[i])
-				write_level_debug(*lvlSol[i], "projected_solution", i);
+				try{
+					m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->u, *m_vLevData[lev]->u);
+				} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
+							"solution to coarse grid function of level "<<lev-1<<".\n");
+			}
+			#ifdef UG_PARALLEL
+				if(m_baseLev != m_topLev){
+					copy_to_vertical_masters(*m_vLevData[m_baseLev]->u);
+				}
+			#endif
+			GMG_PROFILE_END();
 		}
 	}
-
-
-//	init common
-	try{
-		init_common();
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init common part.");
-
-//	assemble missing coarse grid matrix contribution (only in adaptive case)
-	if(m_bAdaptive){
-		try{
-			init_missing_coarse_grid_coupling(&u);
-		}
-		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
-				"missing coarse grid coupling.");
-	}
-
-	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init(u)");
-
-//	we're done
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init(J, u)\n");
-	return true;
-}
-
-template <typename TDomain, typename TAlgebra>
-bool AssembledMultiGridCycle<TDomain, TAlgebra>::
-init(SmartPtr<ILinearOperator<vector_type> > L)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init(L)\n");
-
-	try{
-
-	SmartPtr<AssembledLinearOperator<TAlgebra> > spALO =
-			L.template cast_dynamic<AssembledLinearOperator<TAlgebra> >();
-	if(spALO.valid()){
-//		if(m_pAss == NULL){
-			m_spAss = spALO->discretization();
-//		}
-	}
-
-// 	Cast Operator
-	m_spSurfaceMat = L.template cast_dynamic<matrix_type>();
-
-//	Check that Operator type is correct
-	if(m_spSurfaceMat.invalid())
-		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
-
-	if(!m_spApproxSpace.valid())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init_common': "
-				"Approximation Space not set.\n");
-		return false;
-	}
-
-//	check that grid given
-	if(m_spApproxSpace->num_levels() == 0)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
-				"No grid level in Approximation Space.\n");
-		return false;
-	}
-
-//	get current toplevel
-	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
-	else m_topLev = m_spApproxSpace->num_levels() - 1;
-
-//	Allocate memory for given top level
-	GMG_PROFILE_BEGIN(GMG_CreateLevelStorage);
-	try{
-		top_level_required(m_topLev);
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot allocate memory")
+	UG_CATCH_THROW("AssembledMultiGridCycle::init: Projection of Surface Solution failed.");
 	GMG_PROFILE_END();
-
-//	check, if grid is full-refined
-//todo:	make sure that there are no vertical masters in topLevel. Otherwise
-//		the grid can not be considered fully refined.
-//todo: Even if there are vrtMasters and m_bFullRefined is false and the top
-//		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
-	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
-		m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices())
-	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
-		m_bAdaptive = false;
-	}
-	else{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "#level-dofs: "
-				<< m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices());
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, ", #surface-dofs: "
-				<< m_spApproxSpace->surface_dof_distribution()->num_indices() << "\n");
-		m_bAdaptive = true;
-	}
-
-//	m_bAdaptive should describe whether the global grid is adaptive or not.
-//	Otherwise different paths may be executed during solving, which may lead to
-//	unmatched parallel communication calls.
-//todo:	Eventually the multigrid is only executed on a subset of processes.
-//		A process communicator would thus make sense, which defines this subset.
-//		Use that in the call below.
-	#ifdef UG_PARALLEL
-		m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
-	#endif
-
-//	init mapping from surface level to top level in case of full refinement
-	if(!m_bAdaptive)
-	{
-		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
-		CreateSurfaceToToplevelMap(m_vSurfToTopMap,
-									   m_spApproxSpace->surface_dof_distribution(m_surfaceLev),
-									   m_spApproxSpace->level_dof_distribution(m_topLev));
-		GMG_PROFILE_END();
-	}
-
-//	init common
-	try{
-		init_common();
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init common part.");
-
-//	assemble missing coarse grid matrix contribution (only in adaptive case)
-	GMG_PROFILE_BEGIN(GMG_AssMissingCoarseMat);
-	if(m_bAdaptive){
-		try{
-			init_missing_coarse_grid_coupling(NULL);
-		}
-		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init missing "
-						"coarse grid coupling.");
-	}
-	GMG_PROFILE_END();
-
-	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init()");
-
-//	we're done
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init(L)\n");
-	return true;
-}
-
-
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_common()
-{
-	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_common\n");
 
 //	Perform some checks:
 	if(m_spAss.invalid())
@@ -556,6 +444,17 @@ init_common()
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init Transfer (Prolongation/Restriction).");
 	GMG_PROFILE_END();
+
+//	assemble missing coarse grid matrix contribution (only in adaptive case)
+	if(m_bAdaptive){
+		try{
+			init_missing_coarse_grid_coupling(m_pSurfaceSol);
+		}
+		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
+				"missing coarse grid coupling.");
+	}
+
+	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init(u)");
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_common\n");
 }

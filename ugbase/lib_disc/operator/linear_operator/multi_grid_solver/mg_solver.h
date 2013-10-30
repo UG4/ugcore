@@ -193,7 +193,7 @@ class AssembledMultiGridCycle :
 		void top_level_required(size_t topLevel);
 
 	///	initializes common part
-		void init_common();
+		void init();
 
 	///	initializes the smoother and base solver
 		void init_smoother();
@@ -229,6 +229,9 @@ class AssembledMultiGridCycle :
 	protected:
 	/// operator to invert (surface grid)
 		SmartPtr<matrix_type> m_spSurfaceMat;
+
+	///	Solution on surface grid
+		const vector_type* m_pSurfaceSol;
 
 	///	assembling routine for coarse grid matrices
 		SmartPtr<IAssemble<TAlgebra> > m_spAss;
