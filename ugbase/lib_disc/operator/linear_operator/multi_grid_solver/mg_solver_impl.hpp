@@ -106,58 +106,31 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 apply(vector_type &c, const vector_type& d)
 {
 	PROFILE_FUNC_GROUP("gmg");
-//	temporary vector for defect
-	vector_type dTmp; dTmp.resize(d.size());
 
-//	copy defect
-	dTmp = d;
-
-//	work on copy
-	return apply_update_defect(c, dTmp);
-}
-
-template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-apply_update_defect(vector_type &c, vector_type& d)
-{
-	PROFILE_FUNC_GROUP("gmg");
 	try{
 // 	Check if surface level has been chosen correctly
 //	Please note, that the approximation space returns the global number of levels,
 //	i.e. the maximum of levels among all processes.
 	if(m_topLev >= (int)m_spApproxSpace->num_levels())
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
-				" SurfaceLevel " << m_topLev << " does not exist.\n");
-		return false;
-	}
+		UG_THROW("AssembledMultiGridCycle::apply: SurfaceLevel "<<m_topLev<<" does not exist.");
 
 // 	Check if base level has been choose correctly
 	if(m_baseLev > m_topLev)
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect':"
-				"Base level must be smaller or equal to surface Level.\n");
-		return false;
-	}
+		UG_THROW("AssembledMultiGridCycle::apply: Base level must be smaller or equal to surface Level.");
 
+//	debug output
 	write_surface_debug(d, "GMG_Defect_In");
 
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
 	try{
-	if(!project_surface_to_level(level_defects(), d))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Projection of defect to level failed.\n");
-		return false;
+		project_surface_to_level(level_defects(), d);
 	}
-	} UG_CATCH_THROW("AssembledMultiGridCycle: Project Surface -> Level failed.");
+	UG_CATCH_THROW("AssembledMultiGridCycle::apply: Project d Surf -> Level failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
 
 // 	Perform one multigrid cycle
@@ -178,62 +151,66 @@ apply_update_defect(vector_type &c, vector_type& d)
 	GMG_PROFILE_BEGIN(GMG_ProjectCorrectionFromLevelToSurface);
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply project_level_to_surface... \n");
 	try{
-	if(!project_level_to_surface(c, const_level_corrections()))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Projection of correction to surface failed.\n");
-		return false;
-	}
-	} UG_CATCH_THROW("AssembledMultiGridCycle: Project c Level -> Surface failed.");
+		project_level_to_surface(c, const_level_corrections());
+	} UG_CATCH_THROW("AssembledMultiGridCycle::apply: Project c Level -> Surface failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
 
 //	apply scaling
 	const number kappa = this->damping()->damping(c, d, m_spSurfaceMat.template cast_dynamic<ILinearOperator<vector_type> >());
+	if(kappa != 1.0) c *= kappa;
 
-//	NOTE: It is impossible to ensure, that assembled level matrices and
-//		  the surface matrix have the same couplings (not even to inner points)
-//		  This is due to the fact, that e.g. finite volume geometries are
-//		  computed using different integration points. (Hanging fv used triangles
-//		  as scvf in 3d, while normal fv use quads). Therefore, the updated
-//		  defect is only approximately the correct defect. In order to return the
-//		  correct defect, we must recompute the defect here in the adaptive case.
-	if((kappa == 1.0) && (!m_bAdaptive))
-	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply recompute defect (non adaptive)... \n");
-	//	project defect from level to surface
-		GMG_PROFILE_BEGIN(GMG_ProjectDefectFromLevelToSurface);
-		try{
-		if(!project_level_to_surface(d, const_level_defects()))
-		{
-			UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-					"Projection of defect to surface failed.\n");
-			return false;
-		}
-		} UG_CATCH_THROW("AssembledMultiGridCycle: Project d Level -> Surface failed.");
-		GMG_PROFILE_END(); //GMGApply_ProjectDefectFromLevelToSurface
-	}
-	else
-	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply recompute defect (adaptive)... \n");
-	//	scale correction
-		c *= kappa;
-
-		write_surface_debug(d, "GMG_Defect_Out_Before_Recalculation");
-	//	scaling case -> recompute updated defect
-		m_spSurfaceMat->matmul_minus(d, c);
-	}
-
-	write_surface_debug(d, "GMG_Defect_Out");
+//	debug output
 	write_surface_debug(c, "GMG_Correction_Out");
 	write_surface_debug(*m_spSurfaceMat, "GMG_SurfaceStiffness");
 
 //	increase dbg counter
 	if(m_spDebugWriter.valid()) m_dbgIterCnt++;
 
-	} UG_CATCH_THROW("AssembledMultiGridCycle: Application failed.");
+	} UG_CATCH_THROW("AssembledMultiGridCycle::apply: Application failed.");
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply done. \n");
+	return true;
+}
+
+template <typename TDomain, typename TAlgebra>
+bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+apply_update_defect(vector_type &c, vector_type& d)
+{
+	PROFILE_FUNC_GROUP("gmg");
+
+//	NOTE: 	This is the implementation of a multiplicative Multigrid. Thus, the
+//			defect is kept up to date when traversing the grid. At the end of
+//			the iteration the updated defect is stored in the level defects and
+//			could be projected back to the surface in order to get an updated
+//			surface defect. This is, however, not done. For this reasons:
+//			a) A Matrix-Vector operation is not very expensive
+//			b) In a 2d adaptive case, the update is difficult, but can be
+//				performed. But if the implementation is incorrect, this will
+//				hardly be detected.
+//			c) In a 3d adaptive case, it is impossible to ensure, that assembled
+//				level matrices and the surface matrix have the same couplings
+//				(not even to inner points). This is due to the fact, that e.g.
+//				finite volume geometries are computed using different
+//				integration points. (Hanging fv used triangles as scvf in 3d,
+//				while normal fv use quads). Therefore, the updated defect is
+//				only approximately the correct defect. In order to return the
+//				correct defect, we must recompute the defect in the
+//				adaptive case.
+//			d) If scaling of the correction is performed, the defect must be
+//				recomputed anyway. Thus, only scale=1.0 allows optimizing.
+//			e) Updated defects are only needed in LinearIterativeSolvers. In
+//				Krylov-Methods (CG, BiCGStab, ...) only the correction is
+//				needed. We optimize for that case.
+
+//	compute correction
+	if(!apply(c, d)) return false;
+
+//	update defect: d = d - A*c
+	m_spSurfaceMat->matmul_minus(d, c);
+
+//	write for debugging
+	write_surface_debug(d, "GMG_Defect_Out");
+
 	return true;
 }
 
@@ -352,12 +329,10 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 //	project
 	GMG_PROFILE_BEGIN(GMG_ProjectSolutionFromSurface);
-	if(!project_surface_to_level(level_solutions(), u))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': "
-				"Projection of solution to level failed.\n");
-		return false;
+	try{
+		project_surface_to_level(level_solutions(), u);
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::init: Projection u Surf -> Level failed.");
 	GMG_PROFILE_END();
 
 // 	Project solution from surface grid to coarser grid levels
@@ -1948,8 +1923,7 @@ lmgc(size_t lev)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 project_level_to_surface(vector_type& surfVec,
                          std::vector<const vector_type*> vLevelVec)
 {
@@ -1995,14 +1969,10 @@ project_level_to_surface(vector_type& surfVec,
 		ProjectLevelToSurface(surfVec, surfDD, surfView,
 								  vLevelVec, vLevelDD, m_baseLev);
 	}
-
-//	we're done
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 project_surface_to_level(std::vector<vector_type*> vLevelVec,
                          const vector_type& surfVec)
 {
@@ -2060,9 +2030,7 @@ project_surface_to_level(std::vector<vector_type*> vLevelVec,
 		ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfVec, surfDD, *surfView, m_baseLev);
 	}
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop project_surface_to_level\n");
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

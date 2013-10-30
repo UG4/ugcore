@@ -211,11 +211,11 @@ class AssembledMultiGridCycle :
 		bool init_projection();
 
 	///	projects a grid function from the surface to the levels
-		bool project_surface_to_level(std::vector<vector_type*> vLevelFunc,
+		void project_surface_to_level(std::vector<vector_type*> vLevelFunc,
 		                              const vector_type& surfFunc);
 
 	///	projects a grid function from the levels to the surface
-		bool project_level_to_surface(vector_type& surfFunc,
+		void project_level_to_surface(vector_type& surfFunc,
 		                              std::vector<const vector_type*> vLevelFunc);
 
 	///	assembles the missing matrix part on the coarse level, that must be
