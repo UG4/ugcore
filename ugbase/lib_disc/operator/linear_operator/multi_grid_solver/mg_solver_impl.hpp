@@ -318,19 +318,16 @@ init()
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
 
 	if(m_baseLev > m_topLev)
-		UG_THROW("AssembledMultiGridCycle::init: Base Level can not be greater than surface level.");
-
-//	Allocate memory for given top level
-	try{
-		top_level_required(m_topLev);
-	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot allocate memory.");
+		UG_THROW("AssembledMultiGridCycle::init: Base Level greater than Surface level.");
 
 //	check, if grid is full-refined
 //todo:	make sure that there are no vertical masters in topLevel. Otherwise
 //		the grid can not be considered fully refined.
 //todo: Even if there are vrtMasters and m_bFullRefined is false and the top
 //		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
+//todo:	Eventually the multigrid is only executed on a subset of processes.
+//		A process communicator would thus make sense, which defines this subset.
+//		Use that in the call below.
 	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
 		m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices())
 	{
@@ -341,19 +338,15 @@ init()
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
 		m_bAdaptive = true;
 	}
-
-//	m_bAdaptive should describe whether the global grid is adaptive or not.
-//	Otherwise different paths may be executed during solving, which may lead to
-//	unmatched parallel communication calls.
-//todo:	Eventually the multigrid is only executed on a subset of processes.
-//		A process communicator would thus make sense, which defines this subset.
-//		Use that in the call below.
 	#ifdef UG_PARALLEL
-		m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
+	m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
 	#endif
 
-	if(!m_spProjectionPrototype.valid())
-		UG_THROW("AssembledMultiGridCycle::init: Projection not set.");
+//	Allocate memory for given top level
+	try{
+		top_level_required(m_topLev);
+	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot allocate memory.");
 
 //	init mapping from surface level to top level in case of full refinement
 	if(!m_bAdaptive)
@@ -414,6 +407,9 @@ init_level_operator()
 	GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
 	try{
 		if(m_pSurfaceSol) {
+
+			if(!m_spProjectionPrototype.valid())
+				UG_THROW("AssembledMultiGridCycle::init: Projection not set.");
 
 			init_projection();
 
