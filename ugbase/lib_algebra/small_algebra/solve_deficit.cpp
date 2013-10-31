@@ -176,7 +176,7 @@ bool SolveDeficit(DenseMatrix< VariableArray2<double> > &A,
 	{
 		double d=A(i,i);
 		double s=0;
-		for(int k=i+1; k<A.num_cols(); k++)
+		for(size_t k=i+1; k<A.num_cols(); k++)
 			s += A(i,k)*x[interchange[k]];
 		x[interchange[i]] = (rhs[i] - s)/d;
 	}
