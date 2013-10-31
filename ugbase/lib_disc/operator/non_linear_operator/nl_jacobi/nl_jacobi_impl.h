@@ -130,12 +130,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 	{
 		// 	set correction c = 0
 		NL_JACOBI_PROFILE_BEGIN(NL_JACOBISetCorretionZero);
-		if(!spC->set(0.0))
-		{
-			UG_LOG("ERROR in 'NLJacobiSolver::apply':"
-					" Cannot reset correction to zero.\n");
-			return false;
-		}
+		spC->set(0.0);
 		NL_JACOBI_PROFILE_END();
 
 		// 	Compute Jacobian J(u)

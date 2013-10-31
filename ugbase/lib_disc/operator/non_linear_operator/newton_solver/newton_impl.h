@@ -160,12 +160,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 	{
 	// 	set c = 0
 		NEWTON_PROFILE_BEGIN(NewtonSetCorretionZero);
-		if(!spC->set(0.0))
-		{
-			UG_LOG("ERROR in 'NewtonSolver::apply':"
-					" Cannot reset correction to zero.\n");
-			return false;
-		}
+		spC->set(0.0);
 		NEWTON_PROFILE_END();
 
 		for(size_t i = 0; i < m_innerStepUpdate.size(); ++i)
