@@ -96,11 +96,11 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("Vector").append(suffix);
 		reg.add_class_<vector_type>(name, grp)
 		.add_constructor()
-		.add_method("set|hide=true", (bool (vector_type::*)(number))&vector_type::set,
+		.add_method("set|hide=true", (void (vector_type::*)(number))&vector_type::set,
 								"Success", "Number")
 		.add_method("size|hide=true", (size_t (vector_type::*)() const)&vector_type::size,
 								"Size", "")
-		.add_method("set_random|hide=true", (bool (vector_type::*)(number, number))&vector_type::set_random,
+		.add_method("set_random|hide=true", (void (vector_type::*)(number, number))&vector_type::set_random,
 								"Success", "Number")
 		.add_method("print|hide=true", &vector_type::p)
 		.set_construct_as_smart_pointer(true);
@@ -320,6 +320,7 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("reduction", &T::reduction, "reduction", "", "returns the current relative reduction")
 			.add_method("iteration_ended", &T::iteration_ended)
 			.add_method("previous_defect", &T::previous_defect)
+			.add_method("avg_rate", &T::avg_rate, "", "returns the average convergence rate")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvCheck", tag);
 	}

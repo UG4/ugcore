@@ -14,6 +14,7 @@
 #include "../common/operations.h"
 #include "common/util/smart_pointer.h"
 #include <vector>
+#include "../vector_interface/ivector.h"
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////
@@ -25,12 +26,14 @@ namespace ug{
 
 //!
 template <typename TValueType>
-class Vector
+class Vector : public IVector
 {
 public:
 	typedef TValueType value_type;
 	//typedef subvector<value_type> subvector_type;
 	typedef Vector<TValueType> vector_type;
+
+	IVECTOR_TO_VEC_FUNCTIONS(vector_type)
 
 	//! constructor
 	Vector();
@@ -51,9 +54,9 @@ public:
 
 public:
 	//! create a vector with specific size
-	bool create(size_t size);
+	void create(size_t size);
 	//! create as a copy of other vector
-	bool create(const Vector &v);
+	void create(const Vector &v);
 	
 	//! clones the vector (deep-copy) including values
 	SmartPtr<vector_type> clone() const;
@@ -87,8 +90,7 @@ public:
 		reserve_exactly(newCapacity, bCopyValues);
 	}
 	
-	
-	size_t capacity()
+	size_t capacity() const
 	{
 		return m_capacity;
 	}
@@ -113,8 +115,8 @@ public:
 	//! assign double d to whole Vector
 	double operator = (double d);
 	//! assign double d to whole Vector
-	bool set(double d) { operator = (d); return true; }
-	bool set_random(double from, double to);
+	void set(double d) { operator = (d);}
+	void set_random(double from, double to);
 
 	/** add/set/get a local vector
 	 *
@@ -123,14 +125,14 @@ public:
 	 * - index(size_t i)		- global index for component i
 	 * - operator[](size_t i)	- access to value of component i
 	 */
-	template <typename V> bool add(const V& u);
-	template <typename V> bool set(const V& u);
-	template <typename V> bool get(V& u) const;
+	template <typename V> void add(const V& u);
+	template <typename V> void set(const V& u);
+	template <typename V> void get(V& u) const;
 
 
-	bool add(const value_type *u, const size_t *indices, size_t nr);
-	bool set(const value_type *u, const size_t *indices, size_t nr);
-	bool get(value_type *u, const size_t *indices, size_t nr) const;
+	void add(const value_type *u, const size_t *indices, size_t nr);
+	void set(const value_type *u, const size_t *indices, size_t nr);
+	void get(value_type *u, const size_t *indices, size_t nr) const;
 
 
 	//template<typename T> inline void apply(Operation_type op, const T &t);
@@ -140,10 +142,9 @@ public:
 	inline void operator += (const Vector &v);
 	inline void operator -= (const Vector &v);
 
-	inline bool operator *= (const number &a)
+	inline void operator *= (const number &a)
 	{
 		for(size_t i=0; i<size(); i++) values[i] *= a;
-		return true;
 	}
 
 	//! return sqrt(sum values[i]^2) (euclidian norm)
@@ -191,7 +192,7 @@ protected:
 	virtual vector_type* virtual_clone_without_values() const;
 
 private:
-	bool destroy();
+	void destroy();
 
 	size_t m_size;			///< size of the vector (vector is from 0..size-1)
 	size_t m_capacity;		///< size of the vector (vector is from 0..size-1)

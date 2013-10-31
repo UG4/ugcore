@@ -102,8 +102,8 @@ public:
 	 * \param newCols new nr of cols
 	 * \return
 	 */
-	bool resize_and_clear(size_t newRows, size_t newCols);
-	bool resize_and_keep_values(size_t newRows, size_t newCols);
+	void resize_and_clear(size_t newRows, size_t newCols);
+	void resize_and_keep_values(size_t newRows, size_t newCols);
 
 	/**
 	 * \brief write in a empty SparseMatrix (this) the transpose SparseMatrix of B.
@@ -111,7 +111,7 @@ public:
 	 * \param scale		an optional scaling
 	 * \return			true on success
 	 */
-	bool set_as_transpose_of(const SparseMatrix<value_type> &B, double scale=1.0);
+	void set_as_transpose_of(const SparseMatrix<value_type> &B, double scale=1.0);
 
 	/**
 	 * \brief create/recreate this as a copy of SparseMatrix B
@@ -119,7 +119,7 @@ public:
 	 * \param scale		an optional scaling
 	 * \return			true on success
 	 */
-	bool set_as_copy_of(const SparseMatrix<value_type> &B, double scale=1.0);
+	void set_as_copy_of(const SparseMatrix<value_type> &B, double scale=1.0);
 	SparseMatrix<value_type> &operator = (const SparseMatrix<value_type> &B)
 	{
 		set_as_copy_of(B);
@@ -130,24 +130,24 @@ public:
 public:
 	//! calculate dest = alpha1*v1 + beta1*A*w1 (A = this matrix)
 	template<typename vector_t>
-	bool axpy(vector_t &dest,
+	void axpy(vector_t &dest,
 			const number &alpha1, const vector_t &v1,
 			const number &beta1, const vector_t &w1) const;
 
 	//! calculate dest = alpha1*v1 + beta1*A^T*w1 (A = this matrix)
 	template<typename vector_t>
-	bool axpy_transposed(vector_t &dest,
+	void axpy_transposed(vector_t &dest,
 			const number &alpha1, const vector_t &v1,
 			const number &beta1, const vector_t &w1) const;
 
 	//! calculated dest = beta1*A*w1 . For empty rows, dest will not be changed
 	template<typename vector_t>
-	bool apply_ignore_zero_rows(vector_t &dest,
+	void apply_ignore_zero_rows(vector_t &dest,
 			const number &beta1, const vector_t &w1) const;
 
 	//! calculated dest = beta1*A*w1 . For empty cols of A (=empty rows of A^T), dest will not be changed
 	template<typename vector_t>
-	bool apply_transposed_ignore_zero_rows(vector_t &dest,
+	void apply_transposed_ignore_zero_rows(vector_t &dest,
 			const number &beta1, const vector_t &w1) const;
 
 	// DEPRECATED!
@@ -156,7 +156,8 @@ public:
 		template<typename Vector_type>
 		bool apply(Vector_type &res, const Vector_type &x) const
 		{
-			return axpy(res, 0.0, res, 1.0, x);
+			axpy(res, 0.0, res, 1.0, x);
+			return true;
 		}
 
 		//! calculate res = A.T x
@@ -164,7 +165,8 @@ public:
 		template<typename Vector_type>
 		bool apply_transposed(Vector_type &res, const Vector_type &x) const
 		{
-			return axpy_transposed(res, 0.0, res, 1.0, x);
+			axpy_transposed(res, 0.0, res, 1.0, x);
+			return true;
 		}
 
 		// matmult_minus is deprecated because of axpy(res, 1.0, res, -1.0, x);
@@ -172,7 +174,8 @@ public:
 		template<typename Vector_type>
 		bool matmul_minus(Vector_type &res, const Vector_type &x) const
 		{
-			return axpy(res, 1.0, res, -1.0, x);
+			axpy(res, 1.0, res, -1.0, x);
+			return true;
 		}
 
 
@@ -184,7 +187,7 @@ public:
 	 */
 	inline bool is_isolated(size_t i) const;
 
-	bool scale(double d);
+	void scale(double d);
 	SparseMatrix<value_type> &operator *= (double d) { scale(d); return *this; }
 
 	// submatrix set/get functions
@@ -229,7 +232,7 @@ public:
 
 
 	//! set matrix to Id*a
-	bool set(double a);
+	void set(double a);
 
 	/** operator() (size_t r, size_t c) const
 	 * access connection (r, c)

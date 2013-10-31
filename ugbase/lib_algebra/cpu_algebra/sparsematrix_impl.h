@@ -37,7 +37,7 @@ SparseMatrix<T>::SparseMatrix()
 }
 
 template<typename T>
-bool SparseMatrix<T>::resize_and_clear(size_t newRows, size_t newCols)
+void SparseMatrix<T>::resize_and_clear(size_t newRows, size_t newCols)
 {
 	PROFILE_SPMATRIX(SparseMatrix_resize_and_clear);
 	rowStart.clear(); rowStart.resize(newRows+1, -1);
@@ -55,11 +55,10 @@ bool SparseMatrix<T>::resize_and_clear(size_t newRows, size_t newCols)
 	nrOfRowIterators.clear();
 	nrOfRowIterators.resize(newRows, 0);
 #endif
-	return true;
 }
 
 template<typename T>
-bool SparseMatrix<T>::resize_and_keep_values(size_t newRows, size_t newCols)
+void SparseMatrix<T>::resize_and_keep_values(size_t newRows, size_t newCols)
 {
 	PROFILE_SPMATRIX(SparseMatrix_resize_and_keep_values);
 	//UG_LOG("SparseMatrix resize " << newRows << "x" << newCols << "\n");
@@ -85,12 +84,11 @@ bool SparseMatrix<T>::resize_and_keep_values(size_t newRows, size_t newCols)
 		copyToNewSize(get_nnz_max_cols(newCols), newCols);
 
 	m_numCols = newCols;
-	return true;
 }
 
 
 template<typename T>
-bool SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, double scale)
+void SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, double scale)
 {
 	PROFILE_SPMATRIX(SparseMatrix_set_as_transpose_of);
 	resize_and_clear(B.num_cols(), B.num_rows());
@@ -121,7 +119,6 @@ bool SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, dou
 		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it)
 			operator()(it.index(), r) = scale*it.value();
 	// todo: sort rows
-	return true;
 }
 
 template<typename T>
@@ -135,7 +132,7 @@ inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::val
 
 template<typename T>
 template<typename vector_t>
-bool SparseMatrix<T>::apply_ignore_zero_rows(vector_t &dest,
+void SparseMatrix<T>::apply_ignore_zero_rows(vector_t &dest,
 		const number &beta1, const vector_t &w1) const
 {
 	for(size_t i=0; i < num_rows(); i++)
@@ -158,7 +155,7 @@ bool SparseMatrix<T>::apply_ignore_zero_rows(vector_t &dest,
 // calculate dest = alpha1*v1 + beta1*A*w1 (A = this matrix)
 template<typename T>
 template<typename vector_t>
-bool SparseMatrix<T>::axpy(vector_t &dest,
+void SparseMatrix<T>::axpy(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
@@ -202,13 +199,12 @@ bool SparseMatrix<T>::axpy(vector_t &dest,
 			mat_mult_add_row(i, dest[i], beta1, w1);
 		}
 	}
-	return true;
 }
 
 // calculate dest = alpha1*v1 + beta1*A^T*w1 (A = this matrix)
 template<typename T>
 template<typename vector_t>
-bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
+void SparseMatrix<T>::axpy_transposed(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
@@ -234,13 +230,12 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 				MatMultTransposedAdd(dest[conn.index()], 1.0, dest[conn.index()], beta1, conn.value(), w1[i]);
 		}
 	}
-	return true;
 }
 
 
 template<typename T>
 template<typename vector_t>
-bool SparseMatrix<T>::apply_transposed_ignore_zero_rows(vector_t &dest,
+void SparseMatrix<T>::apply_transposed_ignore_zero_rows(vector_t &dest,
 		const number &beta1, const vector_t &w1) const
 {
 	for(size_t i=0; i<num_rows(); i++)
@@ -261,7 +256,7 @@ bool SparseMatrix<T>::apply_transposed_ignore_zero_rows(vector_t &dest,
 
 
 template<typename T>
-bool SparseMatrix<T>::set(double a)
+void SparseMatrix<T>::set(double a)
 {
 	PROFILE_SPMATRIX(SparseMatrix_set);
 	check_fragmentation();
@@ -273,8 +268,6 @@ bool SparseMatrix<T>::set(double a)
 			else
 				it.value() = 0.0;
 		}
-
-	return true;
 }
 
 
@@ -334,26 +327,24 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 
 
 template<typename T>
-bool SparseMatrix<T>::set_as_copy_of(const SparseMatrix<T> &B, double scale)
+void SparseMatrix<T>::set_as_copy_of(const SparseMatrix<T> &B, double scale)
 {
 	//PROFILE_SPMATRIX(SparseMatrix_set_as_copy_of);
 	resize_and_clear(B.num_rows(), B.num_cols());
 	for(size_t i=0; i < B.num_rows(); i++)
 		for(const_row_iterator it = B.begin_row(i); it != B.end_row(i); ++it)
 			operator()(i, it.index()) = scale*it.value();
-	return true;
 }
 
 
 
 template<typename T>
-bool SparseMatrix<T>::scale(double d)
+void SparseMatrix<T>::scale(double d)
 {
 	//PROFILE_SPMATRIX(SparseMatrix_scale);
 	for(size_t i=0; i < num_rows(); i++)
 		for(row_iterator it = begin_row(i); it != end_row(i); ++it)
 			it.value() *= d;
-	return true;
 }
 
 
