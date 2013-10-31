@@ -1199,7 +1199,8 @@ static int LuaToStringDefault(lua_State *L)
 	ParameterStack out;
 	char buf[255];
 	sprintf(buf, "%s: %p", c->name().c_str(), c);
-	out.push(buf);
+	string b = buf;
+	out.push(b);
 	return ParamsToLuaStack(out, L);
 }
 
