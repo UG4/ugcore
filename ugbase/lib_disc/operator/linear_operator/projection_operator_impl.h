@@ -42,9 +42,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	const size_t numCoarseDoFs = coarseDD.num_indices();
 
 // 	resize matrix
-	if(!mat.resize_and_clear(numCoarseDoFs, numFineDoFs))
-		UG_THROW("AssembleInjectionForP1Lagrange: "
-				"Cannot resize Interpolation Matrix.");
+	mat.resize_and_clear(numCoarseDoFs, numFineDoFs);
 
 	std::vector<size_t> coarseInd, fineInd;
 
@@ -132,9 +130,7 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 	const size_t numCoarseDoFs = coarseDD.num_indices();
 
 // 	resize matrix
-	if(!mat.resize_and_clear(numCoarseDoFs, numFineDoFs))
-		UG_THROW("AssembleInjectionByAverageOfChildren: "
-				"Cannot resize Interpolation Matrix.");
+	mat.resize_and_clear(numCoarseDoFs, numFineDoFs);
 
 	if(coarseDD.max_dofs(VERTEX)) AssembleInjectionByAverageOfChildren<0, TAlgebra>(mat, coarseDD, fineDD);
 	if(coarseDD.max_dofs(EDGE)) AssembleInjectionByAverageOfChildren<1, TAlgebra>(mat, coarseDD, fineDD);

@@ -49,9 +49,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
 
 //  resize matrix
-	if(!mat.resize_and_clear(numFineDoFs, numCoarseDoFs))
-		UG_THROW("AssembleStdProlongationForP1Lagrange:"
-				"Cannot resize Interpolation Matrix.");
+	mat.resize_and_clear(numFineDoFs, numCoarseDoFs);
 
 //	clear restricted vector
 	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
@@ -161,9 +159,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
 
 //  resize matrix
-	if(!mat.resize_and_clear(numFineDoFs, numCoarseDoFs))
-		UG_THROW("AssembleStdProlongationForP1Lagrange:"
-				"Cannot resize Interpolation Matrix.");
+	mat.resize_and_clear(numFineDoFs, numCoarseDoFs);
 
 //	clear restricted vector
 	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
