@@ -79,8 +79,7 @@ apply(TPVector &res, const TPVector &x) const
 	}
 
 //	apply on single process vector
-	if(!TMatrix::axpy(res, 0.0, res, 1.0, x))
-		return false;
+	TMatrix::axpy(res, 0.0, res, 1.0, x);
 
 //	set outgoing vector to additive storage
 	switch(type)
@@ -123,8 +122,7 @@ apply_transposed(TPVector &res, const TPVector &x) const
 	}
 
 //	apply on single process vector
-	if(!TMatrix::axpy_transposed(res, 0.0, res, 1.0, x))
-		return false;
+	TMatrix::axpy_transposed(res, 0.0, res, 1.0, x);
 
 //	set outgoing vector to additive storage
 	switch(type)
@@ -163,8 +161,7 @@ matmul_minus(TPVector &res, const TPVector &x) const
 	}
 
 //	apply on single process vector
-	if(!TMatrix::axpy(res, 1.0, res, -1.0, x))
-		return false;
+	TMatrix::axpy(res, 1.0, res, -1.0, x);
 
 //	set outgoing vector to additive storage
 //	(it could have been PST_UNIQUE before)

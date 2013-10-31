@@ -174,29 +174,29 @@ change_storage_type(ParallelStorageType type)
 }
 
 template <typename TVector>
-bool
+void
 ParallelVector<TVector>::
 set(number w, ParallelStorageType type)
 {
 	PROFILE_FUNC_GROUP("algebra");
-	if(type == PST_UNDEFINED) return false;
+	if(type == PST_UNDEFINED) return;
 
 	// set all local vector to value. Therefore parallel vector is consistent
-	if(!TVector::set(w)) return false;
+	TVector::set(w);
 	set_storage_type(PST_CONSISTENT);
 
 	// if w == 0.0, we have all types
 	if(w == 0.0){
 		add_storage_type(PST_ADDITIVE);
 		add_storage_type(PST_UNIQUE);
-		return true;
+		return;
 	}
 
 	// consistent required
-	if(type & PST_CONSISTENT) return true;
+	if(type & PST_CONSISTENT) return;
 
 	// additive or additive unique
-	return change_storage_type(PST_UNIQUE);
+	change_storage_type(PST_UNIQUE);
 }
 
 template <typename TVector>
@@ -209,17 +209,17 @@ operator = (number d)
 }
 
 template <typename TVector>
-bool
+void
 ParallelVector<TVector>::
 set_random(number from, number to, ParallelStorageType type)
 {
 	PROFILE_FUNC_GROUP("algebra");
 	// set all local vector to value. Therefore parallel vector is consistent
-	if(!TVector::set_random(from, to)) return false;
+	TVector::set_random(from, to);
 	set_storage_type(PST_ADDITIVE);
 
 	// additive or additive unique
-	return change_storage_type(type);
+	change_storage_type(type);
 }
 
 template <typename TVector>

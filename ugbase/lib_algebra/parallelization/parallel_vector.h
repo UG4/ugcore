@@ -121,14 +121,14 @@ class ParallelVector : public TVector
 		number operator = (number d);
 
 	/// set all entries to value and the storage type
-		bool set(number w, ParallelStorageType type);
+		void set(number w, ParallelStorageType type);
 
 	///	sets all entries to a value and the storage type to consistent
-		bool set(number w){return set(w, PST_CONSISTENT);}
+		void set(number w){return set(w, PST_CONSISTENT);}
 
 	/// set all entries to a random number (overwrites TVector::set_random(number from, number to))
-		bool set_random(number from, number to, ParallelStorageType type);
-		bool set_random(number from, number to){return set_random(from, to, PST_CONSISTENT);}
+		void set_random(number from, number to, ParallelStorageType type);
+		void set_random(number from, number to){return set_random(from, to, PST_CONSISTENT);}
 
 	///	assignment
 		this_type &operator =(const this_type &v);
