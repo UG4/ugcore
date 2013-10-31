@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__JACOBI__
 
 #include "lib_algebra/operator/interface/preconditioner.h"
+#include "lib_algebra/cpu_algebra/vector.h"
 
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"

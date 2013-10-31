@@ -12,9 +12,10 @@
 #include <sstream>
 #include <string>
 #include "common/profiler/profiler.h"
-#include "mg_solver_util.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/dof_manager/dof_manager_util.h"
+#include "lib_disc/operator/linear_operator/prolongation_operator.h"
+#include "lib_disc/operator/linear_operator/projection_operator.h"
 
 #include "mg_solver.h"
 

@@ -1,11 +1,11 @@
 /*
- * mg_solver_util.cpp
+ * mg_solver.cpp
  *
  *  Created on: 02.08.2011
  *      Author: andreasvogel
  */
 
-#include "mg_solver_util.h"
+#include "mg_solver.h"
 
 namespace ug{
 

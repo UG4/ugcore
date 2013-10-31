@@ -63,7 +63,7 @@ set(srcDiscretization	domain.cpp
 						local_finite_element/local_finite_element_provider.cpp
 						local_finite_element/local_dof_set.cpp
 						
-						operator/linear_operator/multi_grid_solver/mg_solver_util.cpp
+						operator/linear_operator/multi_grid_solver/mg_solver.cpp
 					
 						spatial_disc/subset_assemble_util.cpp
 						spatial_disc/elem_disc/elem_disc_interface.cpp
