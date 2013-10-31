@@ -84,7 +84,7 @@ template <class TPtr>
 inline bool PointerConstArray<TPtr>::
 empty() const
 {
-	return m_size != 0;
+	return m_size == 0;
 }
 
 template <class TPtr>

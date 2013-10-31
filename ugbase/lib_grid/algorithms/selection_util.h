@@ -219,6 +219,14 @@ void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 						 TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
+/// Selects edges which at which triangles meet in a large angle
+template <class TEdgeIterator>
+void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+						number minAngle, APosition aVrtPos,
+						bool ignoreBoundaryEdges = true,
+						ISelector::status_t state = ISelector::SELECTED);
+
+////////////////////////////////////////////////////////////////////////
 ///	selects sides that are only adjacent to one of the given inner elements
 /**
  * This algorithm uses Grid::mark.

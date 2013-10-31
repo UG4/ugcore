@@ -324,6 +324,57 @@ void SelectInnerElements(ISelector& sel, TElemIterator elemsBegin,
 	}
 }
 
+
+////////////////////////////////////////////////////////////////////////
+template <class TEdgeIterator>
+void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+						number minAngle, APosition aPos,
+						bool ignoreBoundaryEdges, ISelector::status_t state)
+{
+	if(!sel.grid())
+		return;
+
+	Grid& grid = *sel.grid();
+
+//	get the position accessor
+	if(!grid.has_vertex_attachment(aPos))
+		return;
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+
+//	we'll store face normals in those vectors:
+	vector3 n[2];
+
+//	associated faces are stored in this array
+	Face* f[2];
+
+//	all dot-products between normals lower than minDot mark a crease.
+	number minDot = cos(minAngle * 3.14159265 / 180.f);
+
+//	iterate through the edges
+	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
+	{
+		EdgeBase* e = *iter;
+		if(!(ignoreBoundaryEdges && IsBoundaryEdge2D(grid, e))){
+		//	get the associated faces
+		//	all edges that do not have exactly 2 associated edges
+		//	are regarded as crease-edges
+			if(GetAssociatedFaces(f, grid, e, 2) == 2){
+			//	get the normals of the associated faces
+				CalculateNormal(n[0], f[0], aaPos);
+				CalculateNormal(n[1], f[1], aaPos);
+			//	if the dot-product is lower than minDot, then the edge is a crease edge.
+				if(VecDot(n[0], n[1]) < minDot)
+					sel.select(e, state);
+			}
+			else{
+				sel.select(e, state);
+			}
+		}
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 template <class TIter>
 void SelectAreaBoundary(ISelector& sel, const TIter begin, const TIter end)
