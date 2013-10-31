@@ -1189,7 +1189,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 	return -1;
 }
 /**
- * a default __tostring method which shows clasname: \<adress\>
+ * a default __tostring method which shows classname: \<adress\>
  * @param L
  * @return nr of parameters (its one string)
  */
