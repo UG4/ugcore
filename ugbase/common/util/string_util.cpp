@@ -307,16 +307,6 @@ string GetFileLine(const char *filename, size_t line)
 	return GetFileLines(filename, line, line, false);
 }
 
-string XMLStringEscape(string s)
-{
-	s = ReplaceAll(s, "&", "&amp;");
-	s = ReplaceAll(s, "\"", "&quot;");
-	s = ReplaceAll(s, "\'", "&apos;");
-	s = ReplaceAll(s, "<", "&lt;");
-	s = ReplaceAll(s, ">", "&gt;");
-	return s;
-}
-
 bool WildcardMatch(const char *str, const char *pattern)
 {
 	int strLen = strlen(str);
@@ -359,6 +349,15 @@ bool WildcardMatch(const char *str, const char *pattern)
 	return true;
 }
 
+string XMLStringEscape(string s)
+{
+	s = ReplaceAll(s, "&", "&amp;");
+	s = ReplaceAll(s, "\"", "&quot;");
+	s = ReplaceAll(s, "\'", "&apos;");
+	s = ReplaceAll(s, "<", "&lt;");
+	s = ReplaceAll(s, ">", "&gt;");
+	return s;
+}
 
 }
 

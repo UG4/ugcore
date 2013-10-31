@@ -306,6 +306,18 @@ UG_API std::string XMLStringEscape(std::string s);
  */
 UG_API bool WildcardMatch(const char *str, const char *pattern);
 
+/**
+ * this function replaces XML special characters with their escaped versions:
+ * & -> &amp;
+ * " -> &quot;
+ * ' -> "&apos;
+ * < -> &lt;
+ * > -> &gt;
+ * @param s a normal text
+ * @return a text where special XML characters are escaped
+ */
+UG_API std::string XMLStringEscape(std::string s);
+
 // end group ugbase_common_util_strings
 /// \}
 
