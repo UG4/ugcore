@@ -78,3 +78,8 @@ You can install most of this with \ref pageUginstall.
 
 If you need fortran/gfortran on Mountain Lion: http://web.mit.edu/mfloyd/www/computing/mac/gfortran/, <tt>sudo ln -s /usr/bin/gfortran-4.2 /usr/bin/gfortran</tt>.
 */
+<hr>
+\section secInstallMac109 MacOS X 10.9
+<hr>
+In order to use UG4 with MacOS X 10.9 Commandline Tools should be installed properly. This can be done be entering the following command into Terminal:
+"xcode-select --install"
