@@ -14,7 +14,7 @@
 #include "../common/operations.h"
 #include "common/util/smart_pointer.h"
 #include <vector>
-#include "../vector_interface/ivector.h"
+//#include "../vector_interface/ivector.h"
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////
@@ -26,14 +26,14 @@ namespace ug{
 
 //!
 template <typename TValueType>
-class Vector : public IVector
+class Vector //: public IVector
 {
 public:
 	typedef TValueType value_type;
 	//typedef subvector<value_type> subvector_type;
 	typedef Vector<TValueType> vector_type;
 
-	IVECTOR_TO_VEC_FUNCTIONS(vector_type)
+//	IVECTOR_TO_VEC_FUNCTIONS(vector_type)
 
 	//! constructor
 	Vector();
