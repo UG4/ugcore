@@ -151,6 +151,7 @@ bool SparseMatrix<T>::apply_ignore_zero_rows(vector_t &dest,
 			// res[i] += conn.value() * x[conn.index()];
 			MatMultAdd(dest[i], 1.0, dest[i], beta1, conn.value(), w1[conn.index()]);
 	}
+	return true;
 }
 
 
@@ -255,6 +256,7 @@ bool SparseMatrix<T>::apply_transposed_ignore_zero_rows(vector_t &dest,
 				MatMultTransposedAdd(dest[conn.index()], 1.0, dest[conn.index()], beta1, conn.value(), w1[i]);
 		}
 	}
+	return true;
 }
 
 
