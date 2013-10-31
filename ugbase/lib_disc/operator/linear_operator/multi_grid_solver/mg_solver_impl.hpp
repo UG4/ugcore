@@ -138,13 +138,9 @@ apply(vector_type &c, const vector_type& d)
 	GMG_PROFILE_BEGIN(GMG_lmgc);
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply lmgc (on level " << m_topLev << ")... \n");
 	try{
-	if(!lmgc(m_topLev))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::apply_update_defect': "
-				"Cannot perform multi grid cycle on TopLevel "<<m_topLev<<".\n");
-		return false;
+		lmgc(m_topLev);
 	}
-	} UG_CATCH_THROW("AssembledMultiGridCycle: lmgc failed.");
+	UG_CATCH_THROW("AssembledMultiGridCycle: lmgc failed.");
 	GMG_PROFILE_END(); //GMGApply_lmgc
 
 //	project correction from level to surface
@@ -1098,8 +1094,7 @@ update(size_t lev,
 
 // perform the smoothing
 template <typename TDomain, typename TAlgebra>
-bool
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 smooth(vector_type& c, vector_type& d, vector_type& tmp,
        MatrixOperator<matrix_type, vector_type>& A,
        ILinearIterator<vector_type>& S,
@@ -1111,7 +1106,7 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 	if(d.size() == 0){
 	//	since no parallel communication takes place in this method, we may
 	//	return immediately, if d is empty.
-		return true;
+		return;
 	}
 
 // 	smooth nu times
@@ -1124,11 +1119,8 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 		//	a)  Compute t = B*d with some iterator B
 		//	b) 	Update Defect d := d - A * t
 			if(!S.apply_update_defect(tmp, d))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Smoothing step "
-						<< i+1 << " on level " << lev << " failed.\n");
-				return false;
-			}
+				UG_THROW("AssembledMultiGridCycle::smooth: Smoothing step "
+						<< i+1 << " on level " << lev << " failed.");
 
 		// 	add correction of smoothing step to level correction
 		//	(Note: we do not work on c directly here, since we update the defect
@@ -1144,11 +1136,8 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 		//	a)  Compute t = B*d with some iterator B
 
 			if(!S.apply(tmp, d))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::smooth': Smoothing step "
-						<< i+1 << " on level " << lev << " failed.\n");
-				return false;
-			}
+				UG_THROW("AssembledMultiGridCycle::smooth: Smoothing step "
+						<< i+1 << " on level " << lev << " failed.");
 
 		//	get surface view
 			const SurfaceView& surfView = *m_spApproxSpace->surface_view();
@@ -1172,13 +1161,11 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 		}
 	}
 
-//	we're done
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - smooth on level " << lev << "\n");
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 presmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -1211,14 +1198,11 @@ presmooth(size_t lev)
 
 // 	pre-smoothing
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
-	//GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());	invalid communicator!?!
-	if(!smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PreSmoother, lev, m_numPreSmooth))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Pre-Smoothing on "
-				"level " << lev << " failed. "
-				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-		return false;
+	try{
+		smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PreSmoother, lev, m_numPreSmooth);
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Pre-Smoothing on "
+					"level " << lev << " failed. ");
 	GMG_PROFILE_END();
 
 	write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_AfterPreSmooth", lev);
@@ -1233,12 +1217,11 @@ presmooth(size_t lev)
 //NOTE: Since we do not copy the correction back from the smooth patch, the resulting
 //		correction will be zero in all entries, if ghosts were present on a process.
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level " << lev << "\n");
-	return true;
 }
 
 
 template <typename TDomain, typename TAlgebra>
-bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 restriction(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -1275,9 +1258,9 @@ restriction(size_t lev)
 		GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 		try{
 			m_vLevData[lev]->Restriction->do_restrict(cd, d);
-		} UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Restriction of "
-					"Defect from level "<<lev<<" to "<<lev-1<<" failed. "
-					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
+		}
+		UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Restriction of "
+					"Defect from level "<<lev<<" to "<<lev-1<<" failed. ");
 		GMG_PROFILE_END();
 
 		write_level_debug(cd, "GMG_Def_RestrictedNoPP", lev-1);
@@ -1288,11 +1271,10 @@ restriction(size_t lev)
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level " << lev << "\n");
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation(size_t lev)
 {
 
@@ -1303,7 +1285,7 @@ prolongation(size_t lev)
 //	Get vectors defined on whole grid (including ghosts) on this level
 //	denote by: c = Correction, d = Defect, tmp = Help vector
 	#ifdef UG_PARALLEL
-		vector_type& d = *m_vLevData[lev]->d;
+	vector_type& d = *m_vLevData[lev]->d;
 	#endif
 
 	vector_type& tmp = *m_vLevData[lev]->t;
@@ -1332,7 +1314,8 @@ prolongation(size_t lev)
 		GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
 		try{
 			m_vLevData[lev]->Prolongation->prolongate(tmp, cc);
-		} UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Prolongation from"
+		}
+		UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Prolongation from"
 					" level " << lev-1 << " to " << lev << " failed. "
 					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 		GMG_PROFILE_END();
@@ -1348,8 +1331,8 @@ prolongation(size_t lev)
 //	since dummies may exist, we'll copy the broadcasted correction to h-slave
 //	interfaces (dummies are always h-slaves)
 	#ifdef UG_PARALLEL
-		broadcast_vertical(tmp);
-		//copy_to_horizontal_slaves(tmp);
+	broadcast_vertical(tmp);
+	//copy_to_horizontal_slaves(tmp);
 	#endif
 	write_level_debug(tmp, "GMG_Prol_CoarseGridCorr", lev);
 
@@ -1373,10 +1356,10 @@ prolongation(size_t lev)
 	write_level_debug(*m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
 	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeBroadcastSmooth", lev);
 	#ifdef UG_PARALLEL
-		broadcast_vertical_add(d);
-		SetLayoutValues(&d, d.layouts()->vertical_master(), 0);
+	broadcast_vertical_add(d);
+	SetLayoutValues(&d, d.layouts()->vertical_master(), 0);
 
-		m_vLevData[lev]->copy_defect_to_smooth_patch();
+	m_vLevData[lev]->copy_defect_to_smooth_patch();
 	#endif
 	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeUpdate", lev);
 
@@ -1400,11 +1383,8 @@ prolongation(size_t lev)
 		cTmp.set(0.0);
 		if(cc.size() > 0){
 			if(!m_vLevData[lev-1]->CoarseGridContribution.apply(cTmp, cc))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Could not compute"
-						" missing update defect contribution on level "<<lev-1<<".\n");
-				return false;
-			}
+				UG_THROW("AssembledMultiGridCycle::lmgc: Could not compute"
+						" missing update defect contribution on level "<<lev-1);
 		}
 
 	//	cTmp is additive but we need a consistent correction
@@ -1445,11 +1425,10 @@ prolongation(size_t lev)
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level " << lev << "\n");
-	return true;
 }
 
 template <typename TDomain, typename TAlgebra>
-bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 postsmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -1475,14 +1454,11 @@ postsmooth(size_t lev)
 //	We smooth the updated defect again. This means that we compute a
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
-	//GMG_PARALLEL_DEBUG_BARRIER(sd.layouts()->proc_comm());	//invalid communicator !?!
-	if(!smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PostSmoother, lev, m_numPostSmooth))
-	{
-		UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Post-Smoothing on"
-				" level " << lev << " failed. "
-				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-		return false;
+	try{
+		smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PostSmoother, lev, m_numPostSmooth);
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Post-Smoothing on"
+					" level " << lev << " failed. ")
 	GMG_PROFILE_END();
 
 //	## PROJECT DEFECT, CORRECTION BACK TO WHOLE GRID FOR RESTRICTION
@@ -1490,12 +1466,11 @@ postsmooth(size_t lev)
 	m_vLevData[lev]->copy_correction_from_smooth_patch();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level " << lev << "\n");
-	return true;
 }
 
 // performs the base solving
 template <typename TDomain, typename TAlgebra>
-bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 base_solve(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -1536,15 +1511,12 @@ base_solve(size_t lev)
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			sc.set(0.0);
 			try{
-			if(!m_spBaseSolver->apply(sc, sd))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
-						" base level " << lev << " failed. "
-						"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-
-				return false;
+				if(!m_spBaseSolver->apply(sc, sd))
+					UG_THROW("AssembledMultiGridCycle::lmgc: Base solver on base "
+							"level " << lev << " failed. (BaseLev="<<m_baseLev<<
+							", TopLev="<<m_topLev<<")");
 			}
-			}UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
+			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
 
 		//	*) if baseLevel == surfaceLevel, we need also need the updated defect
 		//	*) if adaptive case, we also need to update the defect, such that on the
@@ -1602,15 +1574,12 @@ base_solve(size_t lev)
 
 		//	compute coarse correction
 			try{
-			if(!m_spBaseSolver->apply(c, d))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Base solver on"
-						" base level " << lev << " failed. "
-						"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-
-				return false;
+				if(!m_spBaseSolver->apply(c, d))
+					UG_THROW("AssembledMultiGridCycle::lmgc: Base solver on"
+							" base level " << lev << " failed. "
+							"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
 			}
-			}UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
+			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
 
 
 //todo: is update defect really useful here?
@@ -1644,16 +1613,13 @@ base_solve(size_t lev)
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level " << lev << "\n");
 
-	}UG_CATCH_THROW("GMG: Base Solver failed.");
-
-//	we're done for the solution of the base solver
-	return true;
-
+	}
+	UG_CATCH_THROW("GMG: Base Solver failed.");
 }
 
 // performs a  multi grid cycle on the level
 template <typename TDomain, typename TAlgebra>
-bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 lmgc(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -1668,58 +1634,68 @@ lmgc(size_t lev)
 		for(int i = 0; i < m_cycleType; ++i)
 		{
 			m_vLevData[lev]->c->set(0.0); // <<<< only for debug
+
 		//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
-			if(!presmooth(lev))
-				return false;
+			try{
+				presmooth(lev);
+			}
+			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: presmooth failed on level "<<lev);
 
 		//	UG_LOG("Before restriction:\n");	log_level_data(lev);
-			if(!restriction(lev))
-				return false;
+			try{
+				restriction(lev);
+			}
+			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: restriction failed on level "<<lev);
 
 			write_level_debug(*m_vLevData[lev]->d, "GMG__TestDefectBeforeLMGCRecursion", lev);
 
-			if(!lmgc(lev-1))
-			{
-				UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Linear multi"
-						" grid cycle on level " << lev-1 << " failed. "
-						"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-				return false;
+			try{
+				lmgc(lev-1);
 			}
+			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Linear multi grid "
+							"cycle on level "<<lev-1<<" failed. (BaseLev="<<
+							m_baseLev<<", TopLev="<<m_topLev<<").");
 
 			write_level_debug(*m_vLevData[lev]->d, "GMG__TestDefectAfterLMGCRecursion", lev);
 
 		//	UG_LOG("Before prolongation:\n");	log_level_data(lev);
-			if(!prolongation(lev))
-				return false;
+			try{
+				prolongation(lev);
+			}
+			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: prolongation failed on level "<<lev);
 
 		//	UG_LOG("Before postsmooth:\n");	log_level_data(lev);
 		//	note that the correction and defect at this time is are stored in
 		//	the smooth-vectors only, if v-masters are present...
 			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_BeforePostSmooth", lev);
 			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_BeforePostSmooth", lev);
-			if(!postsmooth(lev))
-				return false;
+			try{
+				postsmooth(lev);
+			}
+			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: postsmooth failed on level "<<lev);
 			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_AfterPostSmooth", lev);
 			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_AfterPostSmooth", lev);
 
 		//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
 		}
+
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << "\n");
-		return true;
 	}
 
 //	if the base level has been reached, the coarse problem is solved exactly
 	else if((int)lev == m_baseLev)
 	{
-		bool baseSolverSuccess = base_solve(lev);
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (base solver executed)\n");
-		return baseSolverSuccess;
-	}
+		try{
+			base_solve(lev);
+		}
+		UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: basesolver failed on level "<<lev);
 
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (base solver executed)\n");
+	}
 //	this case should never happen.
-	UG_LOG("ERROR in 'AssembledMultiGridCycle::lmgc': Level index below "
-			" 'baseLevel' in lmgc. Aborting.\n");
-	return false;
+	else {
+		UG_THROW("AssembledMultiGridCycle::lmgc: Level index below baseLevel.");
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

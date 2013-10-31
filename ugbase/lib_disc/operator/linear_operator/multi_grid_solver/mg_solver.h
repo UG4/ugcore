@@ -160,29 +160,29 @@ class AssembledMultiGridCycle :
 
  	protected:
  	/// compute correction on level and update defect
-		bool lmgc(size_t lev);
+		void lmgc(size_t lev);
 
 	////////////////////////////////////////////////////////////////
 	//	The methods in this section rely on each other and should be called in sequence
 	///	performs presmoothing on the given level
-		bool presmooth(size_t lev);
+		void presmooth(size_t lev);
 
 	///	performs restriction on to the level below
-		bool restriction(size_t lev);
+		void restriction(size_t lev);
 
 	///	performs prolongation to the level above
-		bool prolongation(size_t lev);
+		void prolongation(size_t lev);
 
 	///	performs postsmoothin
-		bool postsmooth(size_t lev);
+		void postsmooth(size_t lev);
 	//	end of section
 	////////////////////////////////////////////////////////////////
 
 	///	compute base solver
-		bool base_solve(size_t lev);
+		void base_solve(size_t lev);
 
 	/// performs smoothing on level l, nu times
-		bool smooth(vector_type& c, vector_type& d, vector_type& t,
+		void smooth(vector_type& c, vector_type& d, vector_type& t,
 		            MatrixOperator<matrix_type, vector_type>& A,
 		            ILinearIterator<vector_type>& S, size_t lev, int nu);
 
@@ -222,9 +222,6 @@ class AssembledMultiGridCycle :
 	///	added if the correction has been computed to ensure a correctly updated
 	///	defect. (i.e. assembles A^c, with d^f -= A^c * c^c)
 		void init_missing_coarse_grid_coupling(const vector_type* u);
-
-	///	checks if all necessary pointers have been set
-		bool check_setting() const;
 
 	protected:
 	/// operator to invert (surface grid)
