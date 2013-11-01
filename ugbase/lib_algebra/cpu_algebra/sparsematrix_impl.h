@@ -138,11 +138,8 @@ void SparseMatrix<T>::apply_ignore_zero_rows(vector_t &dest,
 	for(size_t i=0; i < num_rows(); i++)
 	{
 		const_row_iterator conn = begin_row(i);
-		if(conn == end_row(i))
-		{
-			dest[i] = 0.0;
-			continue;
-		}
+		if(conn == end_row(i)) continue;
+
 		MatMult(dest[i], beta1, conn.value(), w1[conn.index()]);
 		for(++conn; conn != end_row(i); ++conn)
 			// res[i] += conn.value() * x[conn.index()];
