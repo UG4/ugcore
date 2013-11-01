@@ -14,6 +14,7 @@
 #
 #  if ug_load_script is found, ug_add_parameter_completion is called recursively
 #  completionAllFiles is an array which prevents infinite loops
+#####################################################
 ug_add_parameter_completion()
 {
 	local filename=$1
@@ -30,10 +31,9 @@ ug_add_parameter_completion()
 		done
 		completionAllFiles[completionNrOfFiles++]=$filename
 		
-		
-		# we only want "normal" words
-		echo $word | grep '^-[a-zA-Z0-9_]*$' > /dev/null
-		if [[ $? == 0 ]];
+		# don't use echo $word | grep "^-[A-Za-z0-9_]*$" here!!! 
+		# we only want "normal" words which don't interfere with sed
+		if [[ $word =~ ^-[A-Za-z0-9_]*$ ]];
 		then
 		##### check for parameters in file
 			# open the file $filename,
@@ -41,8 +41,7 @@ ug_add_parameter_completion()
 			while read line;
 			do
 				# we only want "normal" words
-				echo $line | grep '^-[a-zA-Z0-9_]*$' > /dev/null
-				if [[ $? == 0 ]];
+				if [[ $line =~ ^-[A-Za-z0-9_]*$ ]];
 				then
 					# check if word is already in completions
 					b="0"
@@ -81,7 +80,9 @@ ug_add_parameter_completion()
 #    and the like, so you get a list of accepted command line parameters.
 # 
 # to use the completion, set UG4_ROOT and source ug4/shell/scripts/ugcomplete or ugbash
-ugshell_complete() {
+#####################################################
+ugshell_complete()
+{
 	local word="${COMP_WORDS[COMP_CWORD]}"
   	local i=0
 	local filename  
@@ -153,11 +154,18 @@ ugshell_complete() {
 	fi
 }
 
+
+# ugshell completion
+
+complete -o plusdirs -F ugshell_complete -o nospace ugshell
+
+
+
 ######################################################################
 # ugshell_complete_gdb 
 #-----------------------
 # bash completion when using gdb --args ugshell
-#
+######################################################################
 ugshell_complete_gdb()
 {
 	for (( c=0; c<COMP_CWORD; c++ ))
@@ -169,11 +177,14 @@ ugshell_complete_gdb()
   	done
 }
 
+# gdb completion
+complete -W "--args" -F ugshell_complete_gdb -o nospace gdb
+
 ######################################################################
 # ugshell_complete_ugsubmit 
 #---------------------------
 # bash completion when using ugsubmit <params> --- ugshell 
-#
+######################################################################
 ugshell_complete_ugsubmit()
 {
 	for (( c=0; c<COMP_CWORD; c++ ))
@@ -189,11 +200,16 @@ ugshell_complete_ugsubmit()
   	done
 }
 
+# ugsubmit completion
+complete -W "-test -nppn -cluster -name -walltime -email -mail-start -mail-end -mail-error -mail-all -verbose -tail -i -dir -queue" \
+ -F ugshell_complete_ugsubmit -o nospace ugsubmit
+
+
 ######################################################################
 # ugshell_complete_external 
 #---------------------------
 # bash completion when using mpirun -np 4 ugshell 
-#
+######################################################################
 ugshell_complete_external()
 {
 	for (( c=0; c<=COMP_CWORD; c++ ))
@@ -209,19 +225,10 @@ ugshell_complete_external()
   	done
 }
 
-# ugshell completion
-complete -o plusdirs -F ugshell_complete -o nospace ugshell
 
-# gdb completion
-complete -W "--args" -F ugshell_complete_gdb -o nospace gdb
 
 # mpirun completion
 complete -W "-np ugshell" -F ugshell_complete_external -o nospace mpirun
-
-# ugsubmit completion
-complete -W "-test -nppn -cluster -name -walltime -email -mail-start -mail-end -mail-error -mail-all -verbose -tail -i -dir -queue" \
- -F ugshell_complete_ugsubmit -o nospace ugsubmit
-
 
 ######################################################################
 # cmake completion
@@ -321,6 +328,7 @@ None Shiny Scalasca Vampir \
 -DProMesh= \
 -DSHTopology= \
 -DElectromagnetism= \
+-DGPU_ALGEBRA= \
 $CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o default -o nospace ugcmake
 
 
