@@ -36,6 +36,7 @@ ug_add_parameter_completion()
 		
 		if [[ $word =~ ^-[A-Za-z0-9_]*$ ]];
 		then
+			# save result in variable, otherwise "too many open files" error
 			local texx
 			texx=`sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p' < $filename`			
 		
