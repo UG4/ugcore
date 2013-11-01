@@ -52,32 +52,6 @@ TBaseElem* MGDoFDistribution::child_if_copy(TBaseElem* elem) const
 	return multi_grid()->template get_child<TBaseElem>(elem, 0);
 }
 
-
-inline size_t& MGDoFDistribution::obj_index(GeometricObject* obj)
-{
-	switch(obj->base_object_id())
-	{
-		case VERTEX: return obj_index(static_cast<VertexBase*>(obj));
-		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
-		case FACE:   return obj_index(static_cast<Face*>(obj));
-		case VOLUME: return obj_index(static_cast<Volume*>(obj));
-		default: UG_THROW("Base Object type not found.");
-	}
-}
-
-inline const size_t& MGDoFDistribution::obj_index(GeometricObject* obj) const
-{
-	switch(obj->base_object_id())
-	{
-		case VERTEX: return obj_index(static_cast<VertexBase*>(obj));
-		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
-		case FACE:   return obj_index(static_cast<Face*>(obj));
-		case VOLUME: return obj_index(static_cast<Volume*>(obj));
-		default: UG_THROW("Base Object type not found.");
-	}
-};
-
-
 template <typename TBaseObject>
 bool MGDoFDistribution::
 add(TBaseObject* obj, const ReferenceObjectID roid, const int si, LevInfo& li)

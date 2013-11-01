@@ -31,22 +31,23 @@ MGDoFDistribution::
 MGDoFDistribution(SmartPtr<MultiGrid> spMG,
                   SmartPtr<MGSubsetHandler> spMGSH,
 				  ConstSmartPtr<DoFDistributionInfo> spDDInfo,
-                  bool bGrouped)
+                  bool bGrouped,
+                  SmartPtr<DoFIndexStorage> spDoFIndexStorage)
 	: DoFDistributionInfoProvider(spDDInfo),
       m_bGrouped(bGrouped),
 	  m_spMG(spMG),
 	  m_pMG(spMG.get()),
-	  m_spMGSH(spMGSH)
+	  m_spMGSH(spMGSH),
+	  m_spDoFIndexStorage(spDoFIndexStorage)
 {
+	if(m_spDoFIndexStorage.invalid())
+		m_spDoFIndexStorage = SmartPtr<DoFIndexStorage>(new DoFIndexStorage(spMG, spDDInfo));
+
 	check_subsets();
-	init_attachments();
 };
 
 MGDoFDistribution::
-~MGDoFDistribution()
-{
-	clear_attachments();
-}
+~MGDoFDistribution() {}
 
 
 void MGDoFDistribution::check_subsets()
@@ -1103,45 +1104,6 @@ changable_indices(std::vector<size_t>& vIndex,
 	}
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// MGDoFDistribution: DoF Handling
-
-
-void MGDoFDistribution::init_attachments()
-{
-//	attach DoFs to vertices
-	if(max_dofs(VERTEX)) {
-		multi_grid()->attach_to<VertexBase>(m_aIndex);
-		m_aaIndexVRT.access(*m_pMG, m_aIndex);
-	}
-	if(max_dofs(EDGE)) {
-		multi_grid()->attach_to<EdgeBase>(m_aIndex);
-		m_aaIndexEDGE.access(*m_pMG, m_aIndex);
-	}
-	if(max_dofs(FACE)) {
-		multi_grid()->attach_to<Face>(m_aIndex);
-		m_aaIndexFACE.access(*m_pMG, m_aIndex);
-	}
-	if(max_dofs(VOLUME)) {
-		multi_grid()->attach_to<Volume>(m_aIndex);
-		m_aaIndexVOL.access(*m_pMG, m_aIndex);
-	}
-}
-
-void MGDoFDistribution::clear_attachments()
-{
-//	detach DoFs
-	if(m_aaIndexVRT.valid()) multi_grid()->detach_from<VertexBase>(m_aIndex);
-	if(m_aaIndexEDGE.valid()) multi_grid()->detach_from<EdgeBase>(m_aIndex);
-	if(m_aaIndexFACE.valid()) multi_grid()->detach_from<Face>(m_aIndex);
-	if(m_aaIndexVOL.valid()) multi_grid()->detach_from<Volume>(m_aIndex);
-
-	m_aaIndexVRT.invalidate();
-	m_aaIndexEDGE.invalidate();
-	m_aaIndexFACE.invalidate();
-	m_aaIndexVOL.invalidate();
-}
 
 void MGDoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool bHang) const
 {

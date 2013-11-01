@@ -14,6 +14,7 @@
 #include "lib_disc/common/local_algebra.h"
 #include "dof_distribution_info.h"
 #include "lib_algebra/parallelization/algebra_layouts.h"
+#include "dof_index_storage.h"
 
 namespace ug{
 
@@ -70,7 +71,8 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		MGDoFDistribution(SmartPtr<MultiGrid> spMG,
 						  SmartPtr<MGSubsetHandler> spMGSH,
 						  ConstSmartPtr<DoFDistributionInfo> spDDInfo,
-		                  bool bGrouped);
+		                  bool bGrouped,
+		                  SmartPtr<DoFIndexStorage> spDoFIndexStorage = NULL);
 
 		~MGDoFDistribution();
 
@@ -299,29 +301,10 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		///	checks that subset assigment is ok
 		void check_subsets();
 
-		/// initializes the attachments
-		void init_attachments();
-
-		/// removes the attachments
-		void clear_attachments();
-
-		///	returns first algebra index of a geometric object
-		/// \{
-		inline size_t& obj_index(GeometricObject* obj);
-		inline size_t& obj_index(VertexBase* vrt) 	{return m_aaIndexVRT[vrt];}
-		inline size_t& obj_index(EdgeBase* ed) 		{return m_aaIndexEDGE[ed];}
-		inline size_t& obj_index(Face* face)     	{return m_aaIndexFACE[face];}
-		inline size_t& obj_index(Volume* vol)     	{return m_aaIndexVOL[vol];}
-		/// \}
-
-		///	const access to first algebra index of a geometric object
-		/// \{
-		inline const size_t& obj_index(GeometricObject* obj) const;
-		inline const size_t& obj_index(VertexBase* vrt) const {return m_aaIndexVRT[vrt];}
-		inline const size_t& obj_index(EdgeBase* ed)    const {return m_aaIndexEDGE[ed];}
-		inline const size_t& obj_index(Face* face)      const {return m_aaIndexFACE[face];}
-		inline const size_t& obj_index(Volume* vol)     const {return m_aaIndexVOL[vol];}
-		/// \}
+		template <typename TElem>
+		inline size_t& obj_index(TElem* obj) {return m_spDoFIndexStorage->obj_index(obj);}
+		template <typename TElem>
+		inline const size_t& obj_index(TElem* obj) const {return m_spDoFIndexStorage->obj_index(obj);}
 
 	protected:
 	///	grouping
@@ -333,26 +316,7 @@ class MGDoFDistribution : virtual public DoFDistributionInfoProvider, public Gri
 		SmartPtr<MultiGrid> m_spMG;
 		MultiGrid* m_pMG;
 		SmartPtr<MGSubsetHandler> m_spMGSH;
-
-	///	Attachment type
-		typedef ug::Attachment<size_t> ADoF;
-		ADoF m_aIndex;
-
-	///	Attachment Accessors
-	///	\{
-		typedef Grid::AttachmentAccessor<VertexBase, ADoF> vertex_attachment_accessor_type;
-		typedef Grid::AttachmentAccessor<EdgeBase, ADoF> edge_attachment_accessor_type;
-		typedef Grid::AttachmentAccessor<Face, ADoF> face_attachment_accessor_type;
-		typedef Grid::AttachmentAccessor<Volume, ADoF> volume_attachment_accessor_type;
-	/// \}
-
-	///	Attachments
-	///	\{
-		vertex_attachment_accessor_type m_aaIndexVRT;
-		edge_attachment_accessor_type m_aaIndexEDGE;
-		face_attachment_accessor_type m_aaIndexFACE;
-		volume_attachment_accessor_type m_aaIndexVOL;
-	///	\}
+		SmartPtr<DoFIndexStorage> m_spDoFIndexStorage;
 };
 
 } // end namespace ug

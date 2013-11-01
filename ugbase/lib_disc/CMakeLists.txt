@@ -21,6 +21,7 @@ set(srcDiscretization	domain.cpp
 
 						dof_manager/function_pattern.cpp
 						dof_manager/orientation.cpp
+						dof_manager/dof_index_storage.cpp
 						dof_manager/dof_distribution_info.cpp
 						dof_manager/dof_distribution.cpp
 						dof_manager/mg_dof_distribution.cpp
