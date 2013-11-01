@@ -70,7 +70,7 @@ ug_add_parameter_completion()
 				# todo: other paths
 				filename2=$UG4_ROOT/scripts/$line
 				ug_add_parameter_completion $filename2 $word $i	#
-				#i=$?
+				i=$?
 			done			
 		fi
 	fi
