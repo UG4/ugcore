@@ -118,12 +118,7 @@ gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type&
 
 		//	perform projection: check whether the temporary solution u_{s-1/2}
 		//	fulfills the underlying constraint or not
-		if (tmpSol > 0.0){
-			//	the 'tmpSol' is valid with respect to all constraints
-			m_lastSol[i] = tmpSol;
-			m_vInactiveIndices.push_back(i);
-		}
-		else
+		if (tmpSol < 0.0)
 		{
 			//	a constraint is not fulfilled
 
@@ -134,6 +129,12 @@ gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type&
 			//	and store the current index in a vector for further treatment
 			m_lastSol[i] = 0.0;
 			m_vActiveIndices.push_back(i);
+		}
+		else
+		{
+			//	the 'tmpSol' is valid with respect to all constraints
+			m_lastSol[i] = tmpSol;
+			m_vInactiveIndices.push_back(i);
 		}
 	}
 
@@ -223,6 +224,9 @@ ProjGaussSeidel<TAlgebra>::
 apply_update_defect(vector_type &c, vector_type& d)
 {
 	PROFILE_FUNC_GROUP("projGS");
+
+	//	set correction to zero
+	c.set(0.0);
 
 	//	compute new correction and perform the projection
 	//	(adjusting the solution m_lastSol to the underlying constraint)
