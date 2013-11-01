@@ -373,15 +373,12 @@ init()
 	UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot allocate memory.");
 
 //	init mapping from surface level to top level in case of full refinement
-	if(!m_bAdaptive)
-	{
-		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
-		CreateSurfaceToToplevelMap(m_vSurfToTopMap,
-									   m_spApproxSpace->surface_dof_distribution(m_surfaceLev),
-									   m_spApproxSpace->level_dof_distribution(m_topLev));
-		GMG_PROFILE_END();
+	GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
+	try{
+		init_surface_to_level_mapping();
 	}
-	init_surface_to_level_mapping();
+	UG_CATCH_THROW("AssembledMultiGridCycle: Cannot create SurfaceToLevelMap.")
+	GMG_PROFILE_END();
 
 //	Assemble coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
@@ -523,10 +520,34 @@ init_level_operator()
 		//	in case of full refinement we simply copy the matrix (with correct numbering)
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 			SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
-			SmartPtr<matrix_type> surfMat = m_spSurfaceMat;
+			ConstSmartPtr<matrix_type> surfMat = m_spSurfaceMat;
 
-			levMat->resize_and_clear( surfMat->num_rows(), surfMat->num_cols());
-			CopyMatrixByMapping(*levMat, m_vSurfToTopMap, *surfMat);
+			//	loop all mapped indices
+			levMat->resize_and_clear(surfMat->num_rows(), surfMat->num_cols());
+			for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
+			{
+			//	get mapped level index
+				UG_ASSERT(m_vSurfToLevelMap[surfFrom].level == m_topLev,
+				          "All surface Indices must be on top level for full-ref.")
+				const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].index;
+
+			//	loop all connections of the surface dof to other surface dofs
+			//	and copy the matrix coupling into the level matrix
+				typedef typename matrix_type::const_row_iterator const_row_iterator;
+				const_row_iterator conn = surfMat->begin_row(surfFrom);
+				const_row_iterator connEnd = surfMat->end_row(surfFrom);
+				for( ;conn != connEnd; ++conn){
+				//	get corresponding level connection index
+					size_t lvlTo = m_vSurfToLevelMap[conn.index()].index;
+
+				//	copy connection to level matrix
+					(*levMat)(lvlFrom, lvlTo) = conn.value();
+				}
+			}
+
+			#ifdef UG_PARALLEL
+			levMat->set_storage_type(surfMat->get_storage_mask());
+			#endif
 
 			GMG_PROFILE_END();
 			continue;

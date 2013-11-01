@@ -11,78 +11,8 @@ namespace ug{
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// SurfaceToToplevelMap
+// SelectNonShadowsAdjacentToShadowsOnLevel
 ////////////////////////////////////////////////////////////////////////////////
-
-/// creates a mapping levIndex = vMap[surfIndex];
-template <typename TElem>
-static void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
-                                       ConstSmartPtr<DoFDistribution> surfDD,
-                                       ConstSmartPtr<DoFDistribution> topDD)
-{
-	PROFILE_FUNC_GROUP("gmg");
-//	type of element iterator
-	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
-
-//	vector of indices
-	std::vector<size_t> surfaceInd, levelInd;
-
-	for(int si = 0; si < surfDD->num_subsets(); ++si)
-	{
-	//	iterators for subset
-		iter_type iter = surfDD->begin<TElem>(si);
-		iter_type iterEnd = surfDD->end<TElem>(si);
-
-	//	loop all elements of type
-		for( ; iter != iterEnd; ++iter)
-		{
-		//	get elem
-			TElem* elem = *iter;
-
-		//	extract all algebra indices for the element on surface
-			surfDD->inner_algebra_indices(elem, surfaceInd);
-
-		//	extract all algebra indices for the element on level
-			topDD->inner_algebra_indices(elem, levelInd);
-
-		//	check that index sets have same cardinality
-			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
-
-		//	copy all elements of the vector
-			for(size_t i = 0; i < surfaceInd.size(); ++i)
-			{
-			//	copy entries into level vector
-				vMap[surfaceInd[i]] = levelInd[i];
-			}
-		}
-	}
-}
-
-void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
-                                ConstSmartPtr<DoFDistribution> surfDD,
-                                ConstSmartPtr<DoFDistribution> topDD)
-{
-	PROFILE_FUNC_GROUP("gmg");
-//	check full refinement
-	if(surfDD->num_indices() != topDD->num_indices())
-		UG_THROW("CreateSurfaceToToplevelMap: This function can only"
-				" be applied to a full refined grid, where the surface is the "
-				" top level.");
-
-//	resize mapping
-	vMap.resize(surfDD->num_indices(), 10000555);
-
-// 	add dofs on elements
-	if(surfDD->max_dofs(VERTEX))
-		CreateSurfaceToToplevelMap<VertexBase>(vMap, surfDD, topDD);
-	if(surfDD->max_dofs(EDGE))
-		CreateSurfaceToToplevelMap<EdgeBase>(vMap, surfDD, topDD);
-	if(surfDD->max_dofs(FACE))
-		CreateSurfaceToToplevelMap<Face>(vMap, surfDD, topDD);
-	if(surfDD->max_dofs(VOLUME))
-		CreateSurfaceToToplevelMap<Volume>(vMap, surfDD, topDD);
-}
-
 
 void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
                                               const SurfaceView& surfView,

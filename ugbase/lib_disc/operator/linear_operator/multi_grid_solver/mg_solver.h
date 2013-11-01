@@ -261,9 +261,8 @@ class AssembledMultiGridCycle :
 	///	flag indicating if grid is full refined
 		bool m_bAdaptive;
 
-	///	mapping from surface to top level (only valid in case of full refinement)
-		std::vector<size_t> m_vSurfToTopMap;
-
+	///	Structure used to realize Surface to Level mapping
+	/// \{
 		struct LevelIndex{
 			LevelIndex() : index(-1), level(-1) {}
 			LevelIndex(size_t index_, int level_) : index(index_), level(level_) {}
@@ -274,6 +273,7 @@ class AssembledMultiGridCycle :
 		template <typename TElem>
 		void init_surface_to_level_mapping();
 		void init_surface_to_level_mapping();
+	/// \}
 
 	///	prototype for pre-smoother
 		SmartPtr<ILinearIterator<vector_type> > m_spPreSmootherPrototype;
@@ -617,14 +617,6 @@ class AssembledMultiGridCycle :
 	///	counter for debug, to distinguish the iterations
 		int m_dbgIterCnt;
 };
-
-////////////////////////////////////////////////////////////////////////////////
-// SurfaceToToplevelMap
-////////////////////////////////////////////////////////////////////////////////
-
-void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
-							 ConstSmartPtr<DoFDistribution> surfDD,
-							 ConstSmartPtr<DoFDistribution> topDD);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Operation on Shadows/Shadowing
