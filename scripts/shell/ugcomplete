@@ -81,8 +81,12 @@ ug_add_parameter_completion()
 # 
 # to use the completion, set UG4_ROOT and source ug4/shell/scripts/ugcomplete or ugbash
 #####################################################
+in_ugshell_complete=0
 ugshell_complete()
 {
+	# fix "RE error: illegal byte sequence" problem
+	unset LANG
+		
 	local word="${COMP_WORDS[COMP_CWORD]}"
   	local i=0
 	local filename  
