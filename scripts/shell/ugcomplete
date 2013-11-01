@@ -33,13 +33,17 @@ ug_add_parameter_completion()
 		
 		# don't use echo $word | grep "^-[A-Za-z0-9_]*$" here!!! 
 		# we only want "normal" words which don't interfere with sed
+		
 		if [[ $word =~ ^-[A-Za-z0-9_]*$ ]];
 		then
+			local texx
+			texx=`sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p' < $filename`			
+		
 		##### check for parameters in file
 			# open the file $filename,
 			# with sed, get all words with util.*(<word>)
-			while read line;
-			do
+			for line in $texx
+			do			
 				# we only want "normal" words
 				if [[ $line =~ ^-[A-Za-z0-9_]*$ ]];
 				then
@@ -55,16 +59,18 @@ ug_add_parameter_completion()
 						COMPREPLY[i++]="$line";
 					fi
 				fi							
-			done < <(cat $filename | sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p')
+			done
+			
+			texx=`sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p' < $filename`
 			
 		##### check for ug_load_script in file	
-			while read line;
-			do
+			for line in $texx
+			do	
 				# todo: other paths
 				filename2=$UG4_ROOT/scripts/$line
-				ug_add_parameter_completion $filename2 $word $i	
-				i=$?
-			done < <(cat $filename | sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p')
+				ug_add_parameter_completion $filename2 $word $i	#
+				#i=$?
+			done			
 		fi
 	fi
 	return $i
@@ -81,9 +87,8 @@ ug_add_parameter_completion()
 # 
 # to use the completion, set UG4_ROOT and source ug4/shell/scripts/ugcomplete or ugbash
 #####################################################
-in_ugshell_complete=0
 ugshell_complete()
-{
+{	
 	# fix "RE error: illegal byte sequence" problem
 	unset LANG
 		
@@ -150,7 +155,11 @@ ugshell_complete()
 				completionNrOfFiles=0
 				
 				### we found a file, do parameter completion
+				local IFS_BAK=$IFS
+				IFS=$'\n'			
 				ug_add_parameter_completion $filename $word $i
+				
+				IFS=$IFS_BAK
 				i=$?
 				break
 			fi
