@@ -886,6 +886,28 @@ template <typename TElem>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_surface_to_level_mapping()
 {
+/*	This Method is used to create a caching the transfer between surface and
+ * 	level grid functions. Note, that in the adaptive case the surface grid is
+ * 	distributed over several levels (all elements that do not have children). But
+ * 	even in the full refinement case the surface level and the top level may
+ * 	not have the same index pattern, since a different sorting may be used (however
+ * 	the number of indices must be equal in the full-ref case).
+ * 	In every case, each surface index has a corresponding index on some level
+ * 	of the level grid functions. In this method this index is looked up and
+ * 	stored in a vector (for fast access). I.e. for every surface index i, the
+ * 	corresponding index in the level grid function is stored in m_vSurfToLevelMap[i]
+ * 	together with the level of the grid function. Using this mapping copying
+ * 	between surface <-> levels is implemented. Note: When Shadow-Copy are present
+ * 	the dof manager usually assigns the same surface index to both, shadowing and
+ * 	shadow-copy. Thus, there exist more than one corresponding level index for
+ * 	such a surface index. In this case the shadowing index is used in the mapping
+ * 	since this index will have the correct value at the end of the multigrid
+ * 	cycle and at startup the projection to the level is necessary only to shadowing,
+ * 	because shadows will get their value by transfer between the level. In order
+ * 	to get the map this way, the surface loop below is only performed on
+ * 	SURFACE_NONCOPY elements.
+ */
+
 	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
 	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD = m_spApproxSpace->level_dof_distributions();
 	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->surface_dof_distribution(m_surfaceLev);

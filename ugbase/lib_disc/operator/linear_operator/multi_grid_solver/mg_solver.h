@@ -464,30 +464,6 @@ class AssembledMultiGridCycle :
 			return vVec;
 		}
 
-		std::vector<const vector_type*> const_level_corrections() const
-		{
-			std::vector<const vector_type*> vVec;
-			for(size_t i = 0; i < m_vLevData.size(); ++i)
-			{
-				if(m_vLevData[i]->num_smooth_indices() > 0)
-					vVec.push_back(m_vLevData[i]->c.get());
-				else vVec.push_back(NULL);
-			}
-			return vVec;
-		}
-
-		std::vector<vector_type*> level_solutions()
-		{
-			std::vector<vector_type*> vVec;
-			for(size_t i = 0; i < m_vLevData.size(); ++i)
-			{
-				if(m_vLevData[i]->num_smooth_indices() > 0)
-					vVec.push_back(m_vLevData[i]->u.get());
-				else vVec.push_back(NULL);
-			}
-			return vVec;
-		}
-
 #ifdef UG_PARALLEL
 	/**
 	 *	gathers the vector using vertical interfaces.
