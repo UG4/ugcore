@@ -220,14 +220,6 @@ class AssembledMultiGridCycle :
 	///	initializes the prolongation
 		void init_projection();
 
-	///	projects a grid function from the surface to the levels
-		void project_surface_to_level(std::vector<vector_type*> vLevelFunc,
-		                              const vector_type& surfFunc);
-
-	///	projects a grid function from the levels to the surface
-		void project_level_to_surface(vector_type& surfFunc,
-		                              std::vector<const vector_type*> vLevelFunc);
-
 	///	assembles the missing matrix part on the coarse level, that must be
 	///	added if the correction has been computed to ensure a correctly updated
 	///	defect. (i.e. assembles A^c, with d^f -= A^c * c^c)
@@ -271,6 +263,17 @@ class AssembledMultiGridCycle :
 
 	///	mapping from surface to top level (only valid in case of full refinement)
 		std::vector<size_t> m_vSurfToTopMap;
+
+		struct LevelIndex{
+			LevelIndex() : index(-1), level(-1) {}
+			LevelIndex(size_t index_, int level_) : index(index_), level(level_) {}
+			size_t index;
+			int level;
+		};
+		std::vector<LevelIndex> m_vSurfToLevelMap;
+		template <typename TElem>
+		void init_surface_to_level_mapping();
+		void init_surface_to_level_mapping();
 
 	///	prototype for pre-smoother
 		SmartPtr<ILinearIterator<vector_type> > m_spPreSmootherPrototype;
@@ -622,261 +625,6 @@ class AssembledMultiGridCycle :
 void CreateSurfaceToToplevelMap(std::vector<size_t>& vMap,
 							 ConstSmartPtr<DoFDistribution> surfDD,
 							 ConstSmartPtr<DoFDistribution> topDD);
-
-////////////////////////////////////////////////////////////////////////////////
-// Projections
-////////////////////////////////////////////////////////////////////////////////
-
-/// projects surface function to level functions
-/**
-* This function copies the values of a vector defined for the surface grid
-* to the vectors corresponding to the level grids. It loops all elements of the
-* surface grid and copies the values for all DoFs on the element.
-*
-* \param[in]	si				Subset index
-* \param[out]	vLevelVector	level vectors
-* \param[in]	vLevelDD		DoF distribution on levels
-* \param[in]	surfaceVector	surface vector
-* \param[in]	surfaceDD		DoF distribution on surface
-* \param[in]	surfaceView		Surface view
-*
-* \tparam		TElem					element type to process
-* \tparam		TVector					vector type
-* \tparam		TDoFDistributionImpl	type of DoF distribution
-*/
-template <typename TElem, typename TVector>
-void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
-						std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD,
-						const TVector& surfaceVector,
-						ConstSmartPtr<DoFDistribution> surfaceDD,
-						const SurfaceView& surfaceView,
-						const int baseLvl = 0)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	//	type of element iterator
-	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
-
-	//	vector of indices
-	std::vector<size_t> surfaceInd, levelInd;
-
-	//	loop all elements of type
-	for(int si = 0; si < surfaceDD->num_subsets(); ++si)
-	{
-	//	iterators for subset
-		iter_type iter = surfaceDD->begin<TElem>(si);
-		iter_type iterEnd = surfaceDD->end<TElem>(si);
-
-		for( ; iter != iterEnd; ++iter)
-		{
-		//	get elem
-			TElem* elem = *iter;
-
-		//	get level of element in hierarchy
-			int level = surfaceView.get_level(elem);
-
-		//	make sure that we're not below baseLvl
-			if(level < baseLvl)
-				continue;
-
-		//	get corresponding level vector for element
-			UG_ASSERT(vLevelVector[level] != NULL, "Vector missing on level " << level);
-			TVector& levelVector = *(vLevelVector[level]);
-
-		//	extract all algebra indices for the element on surface
-			surfaceDD->inner_algebra_indices(elem, surfaceInd);
-
-		//	check that level is correct
-			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
-
-		//	extract all algebra indices for the element on level
-			UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
-			vLevelDD[level]->inner_algebra_indices(elem, levelInd);
-
-		//	check that index sets have same cardinality
-			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
-
-		//	copy all elements of the vector
-			for(size_t i = 0; i < surfaceInd.size(); ++i)
-			{
-			//	copy entries into level vector
-				levelVector[levelInd[i]] = surfaceVector[surfaceInd[i]];
-			}
-		}
-	}
-}
-
-/// projects surface function to level functions
-template <typename TVector>
-void ProjectSurfaceToLevel(const std::vector<TVector*>& vLevelVector,
-						std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD,
-						const TVector& surfVector,
-						ConstSmartPtr<DoFDistribution> surfDD,
-						const SurfaceView& surfView,
-						const int baseLvl = 0)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	//	check, that levelFuntions and level DoFDistributions are the same number
-	if(vLevelVector.size() > vLevelDD.size())
-		UG_THROW("ProjectSurfaceToLevel: Number of level Vectors ("
-				<< vLevelVector.size() <<") greater that level DoF Distributions ("
-				<< vLevelDD.size() << "). Aborting.\n");
-
-	//	forward for all BaseObject types
-	if(surfDD->max_dofs(VERTEX))
-		ProjectSurfaceToLevel<VertexBase, TVector>
-					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
-	if(surfDD->max_dofs(EDGE))
-		ProjectSurfaceToLevel<EdgeBase, TVector>
-					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
-	if(surfDD->max_dofs(FACE))
-		ProjectSurfaceToLevel<Face, TVector>
-					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
-	if(surfDD->max_dofs(VOLUME))
-		ProjectSurfaceToLevel<Volume, TVector>
-					(vLevelVector, vLevelDD, surfVector, surfDD, surfView, baseLvl);
-
-	#ifdef UG_PARALLEL
-	//	copy storage type into all vectors
-	for(size_t lev = 0; lev < vLevelVector.size(); ++lev)
-		if(vLevelVector[lev] != NULL)
-			vLevelVector[lev]->set_storage_type(surfVector.get_storage_mask());
-	#endif
-}
-
-/// projects surface function to level functions
-template <typename TElem, typename TVector>
-void ProjectLevelToSurface(TVector& surfaceVector,
-						ConstSmartPtr<DoFDistribution> surfaceDD,
-						const SurfaceView& surfaceView,
-					   const std::vector<const TVector*>& vLevelVector,
-					   std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD,
-						const int baseLevel = 0)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	//	type of element iterator
-	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
-
-	//	vector of indices
-	std::vector<size_t> surfaceInd, levelInd;
-
-	//	loop all elements of type
-	for(int si = 0; si < surfaceDD->num_subsets(); ++si)
-	{
-	//	iterators for subset
-		iter_type iter = surfaceDD->begin<TElem>(si);
-		iter_type iterEnd = surfaceDD->end<TElem>(si);
-
-		for( ; iter != iterEnd; ++iter)
-		{
-		//	get elem
-			TElem* elem = *iter;
-
-		//	skip shadows
-			//if(surfaceView.is_shadowed(elem)) continue;
-
-		//	get level of element in hierarchy
-			int level = surfaceView.get_level(elem);
-
-		//	make sure that we're not below base-level
-			if(level < baseLevel)
-				continue;
-
-		//	extract all algebra indices for the element on surface
-			surfaceDD->inner_algebra_indices(elem, surfaceInd);
-
-		//	get corresponding level vector for element
-			const TVector& levelVector = *(vLevelVector[level]);
-
-		//	check that level is correct
-			UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, that is not passed.");
-
-		//	extract all algebra indices for the element on level
-			UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
-			vLevelDD[level]->inner_algebra_indices(elem, levelInd);
-
-		//	check that index sets have same cardinality
-			UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
-
-		//	copy all elements of the vector
-			for(size_t i = 0; i < surfaceInd.size(); ++i)
-			{
-			//	copy entries into level vector
-				surfaceVector[surfaceInd[i]] = levelVector[levelInd[i]];
-			}
-		}
-	}
-}
-
-/// projects surface function to level functions
-template <typename TVector>
-void ProjectLevelToSurface(TVector& surfVector,
-						ConstSmartPtr<DoFDistribution> surfDD,
-						const SurfaceView& surfView,
-						const std::vector<const TVector*>& vLevelVector,
-						std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD,
-						const int baseLevel = 0)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	//	check, that levelFuntions and level DoFDistributions are the same number
-	if(vLevelVector.size() > vLevelDD.size())
-		UG_THROW("ProjectLevelToSurface: Number of level Vectors ("
-				<< vLevelVector.size() <<") greater than DoF Distributions ("
-				<< vLevelDD.size() << "). Aborting.\n");
-
-	//	forward for all BaseObject types
-	if(surfDD->max_dofs(VERTEX))
-		ProjectLevelToSurface<VertexBase, TVector>
-					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD->max_dofs(EDGE))
-		ProjectLevelToSurface<EdgeBase, TVector>
-					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD->max_dofs(FACE))
-		ProjectLevelToSurface<Face, TVector>
-					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-	if(surfDD->max_dofs(VOLUME))
-		ProjectLevelToSurface<Volume, TVector>
-					(surfVector, surfDD, surfView, vLevelVector, vLevelDD, baseLevel);
-
-	#ifdef UG_PARALLEL
-	//	copy storage type into surf vector
-	if(vLevelVector.size() > 0)
-	{
-	//	flag if at least on vector given
-		bool bFound = false;
-
-		uint type = PST_UNDEFINED;
-	//	find first valid vector and get its type
-		for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)
-			if(vLevelVector[lev] != NULL && vLevelVector[lev]->size() > 0)
-			{
-				type = vLevelVector[lev]->get_storage_mask();
-				bFound = true;
-			}
-
-	//	get intersection of types
-		for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)
-			if(vLevelVector[lev] != NULL && vLevelVector[lev]->size() > 0)
-				type = type & vLevelVector[lev]->get_storage_mask();
-
-	//	check if union is defined
-		if(type == PST_UNDEFINED && bFound == true)
-		{
-			UG_LOG("ERROR in 'ProjectLevelToSurface': storage type of level"
-					" vectors is not ok. Must have at least on common type."
-					" (e.g. additive/unique for all, or consistent for all)\n"
-					" Types in levels are:\n");
-			for(size_t lev = baseLevel; lev < vLevelVector.size(); ++lev)
-				if(vLevelVector[lev] != NULL)
-					UG_LOG("  lev "<<lev<<": "<<vLevelVector[lev]->get_storage_mask()<<"\n");
-			UG_THROW("Cannot Project Level to Surface.")
-		}
-
-	//	set type of surface vector to common base
-		surfVector.set_storage_type(type);
-	}
-	#endif
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Operation on Shadows/Shadowing

@@ -128,7 +128,23 @@ apply(vector_type &c, const vector_type& d)
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
 	try{
-		project_surface_to_level(level_defects(), d);
+		for(size_t lev = 0; lev < m_vLevData.size(); ++lev){
+			if(m_vLevData[lev]->d.valid()){
+				// \todo: Check why setting to zero is necessary in adaptive
+				//		  case. This should not be the case
+				m_vLevData[lev]->d->set(0.0);
+				#ifdef UG_PARALLEL
+				m_vLevData[lev]->d->set_storage_type(d.get_storage_mask());
+				#endif
+			}
+		}
+
+		for(size_t i = 0; i < m_vSurfToLevelMap.size(); ++i){
+			const int level = m_vSurfToLevelMap[i].level;
+			const size_t index = m_vSurfToLevelMap[i].index;
+
+			(*(m_vLevData[level]->d))[index] = d[i];
+		}
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle::apply: Project d Surf -> Level failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
@@ -147,7 +163,16 @@ apply(vector_type &c, const vector_type& d)
 	GMG_PROFILE_BEGIN(GMG_ProjectCorrectionFromLevelToSurface);
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply project_level_to_surface... \n");
 	try{
-		project_level_to_surface(c, const_level_corrections());
+		for(size_t i = 0; i < m_vSurfToLevelMap.size(); ++i){
+			const int level = m_vSurfToLevelMap[i].level;
+			const size_t index = m_vSurfToLevelMap[i].index;
+
+			 c[i] = (*(m_vLevData[level]->c))[index];
+		}
+
+		#ifdef UG_PARALLEL
+		c.set_storage_type(PST_CONSISTENT);
+		#endif
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle::apply: Project c Level -> Surface failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
@@ -356,6 +381,7 @@ init()
 									   m_spApproxSpace->level_dof_distribution(m_topLev));
 		GMG_PROFILE_END();
 	}
+	init_surface_to_level_mapping();
 
 //	Assemble coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
@@ -412,7 +438,23 @@ init_level_operator()
 
 			init_projection();
 
-			project_surface_to_level(level_solutions(), *m_pSurfaceSol);
+			for(size_t lev = 0; lev < m_vLevData.size(); ++lev){
+				if(m_vLevData[lev]->u.valid()){
+					// \todo: Check why setting to zero is necessary in adaptive
+					//		  case. This should not be the case
+					m_vLevData[lev]->u->set(0.0);
+					#ifdef UG_PARALLEL
+					m_vLevData[lev]->u->set_storage_type(m_pSurfaceSol->get_storage_mask());
+					#endif
+				}
+			}
+
+			for(size_t i = 0; i < m_vSurfToLevelMap.size(); ++i){
+				const int level = m_vSurfToLevelMap[i].level;
+				const size_t index = m_vSurfToLevelMap[i].index;
+
+				(*(m_vLevData[level]->u))[index] = (*m_pSurfaceSol)[i];
+			}
 
 			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 			for(int lev = m_topLev; lev != m_baseLev; --lev)
@@ -816,6 +858,57 @@ init_base_solver()
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_base_solver\n");
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TElem>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_surface_to_level_mapping()
+{
+	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD = m_spApproxSpace->level_dof_distributions();
+	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
+
+//	iterators for subset
+	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
+	iter_type iter = surfDD->begin<TElem>(SurfaceView::SURFACE_NONCOPY);
+	iter_type iterEnd = surfDD->end<TElem>(SurfaceView::SURFACE_NONCOPY);
+
+//	vector of indices
+	std::vector<size_t> vSurfInd, vLevelInd;
+
+//	loop all elements of type
+	for( ; iter != iterEnd; ++iter){
+	//	get elem and its level
+		TElem* elem = *iter;
+		const int level = spSurfView->get_level(elem);
+
+	//	extract all algebra indices for the element on surface and level
+		surfDD->inner_algebra_indices(elem, vSurfInd);
+		vLevelDD[level]->inner_algebra_indices(elem, vLevelInd);
+		UG_ASSERT(vSurfInd.size() == vLevelInd.size(), "Number of indices does not match.");
+
+	//	set mapping index
+		for(size_t i = 0; i < vSurfInd.size(); ++i){
+			m_vSurfToLevelMap[vSurfInd[i]] = LevelIndex(vLevelInd[i], level);
+		}
+	}
+}
+
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_surface_to_level_mapping()
+{
+	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
+
+	m_vSurfToLevelMap.resize(0);
+	m_vSurfToLevelMap.resize(surfDD->num_indices());
+
+	if(surfDD->max_dofs(VERTEX)) init_surface_to_level_mapping<VertexBase>();
+	if(surfDD->max_dofs(EDGE))   init_surface_to_level_mapping<EdgeBase>();
+	if(surfDD->max_dofs(FACE))   init_surface_to_level_mapping<Face>();
+	if(surfDD->max_dofs(VOLUME)) init_surface_to_level_mapping<Volume>();
 }
 
 
@@ -1692,108 +1785,6 @@ lmgc(size_t lev)
 	else {
 		UG_THROW("AssembledMultiGridCycle::lmgc: Level index below baseLevel.");
 	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Projection Methods
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-project_level_to_surface(vector_type& surfVec,
-                         std::vector<const vector_type*> vLevelVec)
-{
-	PROFILE_FUNC_GROUP("gmg");
-//	level dof distributions
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD =
-								m_spApproxSpace->level_dof_distributions();
-
-//	surface dof distribution
-	ConstSmartPtr<DoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
-
-//	surface view
-	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
-
-//	Now we can project the surface vector to the levels
-//	Note: even in case of full refinement this is necessary, since the ordering
-//		  of DoFs may differ between surface grid and top level
-	if(!m_bAdaptive){
-		const vector_type& topVec = *(vLevelVec[m_topLev]);
-		for(size_t surfIndex = 0; surfIndex < m_vSurfToTopMap.size(); ++surfIndex)
-		{
-		//	get corresponding level index
-			const size_t levIndex = m_vSurfToTopMap[surfIndex];
-
-		//	write value
-			surfVec[surfIndex] = topVec[levIndex];
-		}
-
-#ifdef UG_PARALLEL
-		//	copy storage type into all vectors
-			surfVec.set_storage_type(topVec.get_storage_mask());
-#endif
-	}
-	else
-	{
-		ProjectLevelToSurface(surfVec, surfDD, surfView,
-								  vLevelVec, vLevelDD, m_baseLev);
-	}
-}
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-project_surface_to_level(std::vector<vector_type*> vLevelVec,
-                         const vector_type& surfVec)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start project_surface_to_level\n");
-
-//	level dof distributions
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD =
-								m_spApproxSpace->level_dof_distributions();
-
-//	surface dof distribution
-	ConstSmartPtr<DoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
-
-//	surface view
-	ConstSmartPtr<SurfaceView> surfView = m_spApproxSpace->surface_view();
-
-//	reset vectors
-//	\todo: Is this really necessary ?
-	for(size_t lev = 0; lev < vLevelVec.size(); ++lev)
-		if(vLevelVec[lev] != NULL)
-			vLevelVec[lev]->set(0.0);
-
-//	Now we can project the surface vector to the levels
-//	Note: even in case of full refinement this is necessary, since the ordering
-//		  of DoFs may differ between surface grid and top level
-	if(!m_bAdaptive){
-		vector_type& topVec = *(vLevelVec[m_topLev]);
-
-		for(size_t surfIndex = 0; surfIndex < m_vSurfToTopMap.size(); ++surfIndex)
-		{
-		//	get corresponding level index
-			const size_t levIndex = m_vSurfToTopMap[surfIndex];
-
-		//	write value
-			topVec[levIndex] = surfVec[surfIndex];
-		}
-
-#ifdef UG_PARALLEL
-		//	copy storage type into all vectors
-			for(size_t lev = 0; lev < vLevelVec.size(); ++lev)
-				if(vLevelVec[lev] != NULL)
-					vLevelVec[lev]->set_storage_type(surfVec.get_storage_mask());
-#endif
-	}
-	else
-	{
-		ProjectSurfaceToLevel(vLevelVec, vLevelDD, surfVec, surfDD, *surfView, m_baseLev);
-	}
-
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop project_surface_to_level\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
