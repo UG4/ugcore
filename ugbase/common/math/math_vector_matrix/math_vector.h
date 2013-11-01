@@ -409,6 +409,13 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N,T>& v)
 }
 
 template <typename T>
+std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<0,T>& v)
+{
+	outStream << "(empty)";
+	return outStream;
+}
+
+template <typename T>
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1,T>& v)
 {
 	outStream << "(" << v[0] << ")";
