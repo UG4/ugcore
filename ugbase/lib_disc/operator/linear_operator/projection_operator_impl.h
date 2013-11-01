@@ -252,9 +252,11 @@ do_restrict(vector_type& uCoarse, const vector_type& uFine)
 			  m_matrix.num_rows() <<"] sizes have to match!");
 
 //	Apply matrix
-	if(!m_matrix.apply(uCoarse, uFine))
-		UG_THROW("InjectionTransfer::apply_transposed:"
-				" Cannot apply transposed matrix.");
+	try{
+		m_matrix.apply_ignore_zero_rows(uCoarse, 1.0, uFine);
+	}
+	UG_CATCH_THROW("InjectionTransfer::apply_transposed:"
+						" Cannot apply transposed matrix.");
 }
 
 
