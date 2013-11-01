@@ -388,6 +388,12 @@ bool operator== (const MathVector<N,T>& v, const MathVector<N,T>& w)
 	return true;
 }
 
+template <typename T>
+bool operator== (const MathVector<0,T>& v, const MathVector<0,T>& w)
+{
+	return true;
+}
+
 template <std::size_t N, typename T>
 bool operator!= (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
