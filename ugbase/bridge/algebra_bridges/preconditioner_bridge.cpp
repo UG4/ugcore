@@ -168,6 +168,17 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
 	}
 
+	//	SOR
+	{
+		typedef SOR<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("SOR").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "SOR Preconditioner")
+		.add_constructor()
+		.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SOR", tag);
+	}
+
 //	ILU
 	{
 		typedef ILU<TAlgebra> T;
