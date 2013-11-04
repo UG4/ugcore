@@ -913,9 +913,18 @@ init_surface_to_level_mapping()
 	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
 
 //	iterators for subset
+	// \todo: The loop below should only be on SURFACE_NONCOPY, since the
+	//		 copy-shadows have the same indices as their shadowing. In such a
+	//		 case the child index (shadowing) must win - this is only ensured by
+	//		 the details of the implementation of the iterator - looping from base level
+	//		 up through the multigrid. However, this could be realized by
+	//		 looping only non-copy elements. But it seems, that on a process
+	//		 the shadow-copy may exist without its shadowing. In such a case
+	//		 the mapping is invalid. To fix this, the loop is extended temporarily
+	//		 below.
 	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
-	iter_type iter = surfDD->begin<TElem>(SurfaceView::SURFACE_NONCOPY);
-	iter_type iterEnd = surfDD->end<TElem>(SurfaceView::SURFACE_NONCOPY);
+	iter_type iter = surfDD->begin<TElem>(SurfaceView::ALL);
+	iter_type iterEnd = surfDD->end<TElem>(SurfaceView::ALL);
 
 //	vector of indices
 	std::vector<size_t> vSurfInd, vLevelInd;
