@@ -99,27 +99,20 @@ void DoFDistribution::check_subsets()
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TBaseObject>
-bool DoFDistribution::
+void DoFDistribution::
 add(TBaseObject* obj, const ReferenceObjectID roid, const int si)
 {
 	UG_ASSERT(si >= 0, "Invalid subset index passed");
 
 //	if no dofs on this subset for the roid, do nothing
-	if(num_dofs(roid,si) == 0) return false;
+	if(num_dofs(roid,si) == 0) return;
 
+//	check for periodicity
 	bool master = false;
-
-	if(m_spMG->has_periodic_boundaries())
-	{
+	if(m_spMG->has_periodic_boundaries()){
 		PeriodicBoundaryManager& pbm = *m_spMG->periodic_boundary_manager();
-		// ignore slaves
-		if(pbm.is_slave(obj))
-			return false;
-
-		if(pbm.is_master(obj))
-		{
-			master = true;
-		}
+		if(pbm.is_slave(obj)) return; // ignore slaves
+		if(pbm.is_master(obj)) master = true;
 	}
 
 //	compute the number of indices needed on the Geometric object
@@ -136,20 +129,18 @@ add(TBaseObject* obj, const ReferenceObjectID roid, const int si)
 	m_numIndex += numNewIndex;
 	m_vNumIndexOnSubset[si] += numNewIndex;
 
-	// if obj is a master, assign all its slaves
+// 	if obj is a master, assign all its slaves
 	if(master) {
 		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveContainer SlaveContainer;
 		typedef typename PeriodicBoundaryManager::Group<TBaseObject>::SlaveIterator SlaveIterator;
 		SlaveContainer& slaves = *m_spMG->periodic_boundary_manager()->slaves(obj);
 		size_t master_index = obj_index(obj);
-		for(SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
-		{
+		for(SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter){
 			obj_index(*iter) = master_index;
 		}
 	}
-
-	return true;
 }
+
 template <typename TBaseElem>
 size_t DoFDistribution::
 extract_inner_algebra_indices(TBaseElem* elem,
@@ -1164,20 +1155,6 @@ changable_indices(std::vector<size_t>& vIndex,
 	//	add to index list
 		vIndex.push_back(adjInd);
 	}
-}
-
-bool DoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
-                            const int si)
-{
-	switch(elem->base_object_id())
-	{
-		case VERTEX: return add(static_cast<VertexBase*>(elem), roid, si);
-		case EDGE: return add(static_cast<EdgeBase*>(elem), roid, si);
-		case FACE: return add(static_cast<Face*>(elem), roid, si);
-		case VOLUME: return add(static_cast<Volume*>(elem), roid, si);
-		default: UG_THROW("Geometric Base element not found.");
-	}
-	return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

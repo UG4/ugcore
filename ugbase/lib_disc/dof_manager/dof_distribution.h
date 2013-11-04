@@ -354,13 +354,10 @@ class DoFDistribution : public DoFDistributionInfoProvider
 
 	protected:
 		/// adds indices to a geometric object
-		/// \{
 		template <typename TBaseObject>
-		bool add(TBaseObject* obj, const ReferenceObjectID roid, const int si);
-		bool add(GeometricObject* obj, const ReferenceObjectID roid, const int si);
-		/// \}
+		void add(TBaseObject* obj, const ReferenceObjectID roid, const int si);
 
-		///	checks that subset assigment is ok
+		///	checks that subset assignment is ok
 		void check_subsets();
 
 		/// returns the index assigned to a grid object
