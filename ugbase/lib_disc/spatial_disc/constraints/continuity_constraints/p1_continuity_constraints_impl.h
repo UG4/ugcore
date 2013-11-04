@@ -298,7 +298,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -344,7 +344,7 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -391,7 +391,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -439,7 +439,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -490,7 +490,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -606,7 +606,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 #ifdef UG_PARALLEL
 		std::sort(vConstrainingVrt.begin(), vConstrainingVrt.end(), sortVertexPos);
@@ -660,7 +660,7 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -715,7 +715,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -771,7 +771,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();
@@ -826,7 +826,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 		ConstrainedVertex* hgVrt = *iter;
 
 	//	get constraining vertices
-		CollectConstraining(vConstrainingVrt, dd->multi_grid(), hgVrt);
+		CollectConstraining(vConstrainingVrt, *dd->multi_grid(), hgVrt);
 
 	//	resize constraining indices
 		vConstrainingInd.clear();

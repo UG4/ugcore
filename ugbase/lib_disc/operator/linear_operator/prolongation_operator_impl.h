@@ -38,7 +38,7 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 				"Interpolation only implemented for Lagrange P1 functions.");
 
 //  get subsethandler and grid
-	const MultiGrid& grid = coarseDD.multi_grid();
+	const MultiGrid& grid = *coarseDD.multi_grid();
 
 //  get number of dofs on different levels
 	const size_t numFineDoFs = fineDD.num_indices();
@@ -148,7 +148,7 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 	const int dim = TDomain::dim;
 
 //  get subsethandler and grid
-	MultiGrid& grid = *const_cast<MultiGrid*>(&coarseDD.multi_grid());
+	MultiGrid& grid = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
 
 //  get number of dofs on different levels
 	const size_t numFineDoFs = fineDD.num_indices();
@@ -510,16 +510,16 @@ void StdTransfer<TDomain, TAlgebra>::init()
 		{
 			AssembleStdProlongationForP1Lagrange<TAlgebra>
 			(m_matrix,
-			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
-			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
+			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
+			 *m_spApproxSpace->dof_distribution(m_fineLevel),
 			 m_vIsRestricted);
 		}
 		else
 		{
 			AssembleStdProlongationElementwise<TDomain, TAlgebra>
 			(m_matrix,
-			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
-			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()),
+			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
+			 *m_spApproxSpace->dof_distribution(m_fineLevel),
 			 m_spApproxSpace->domain(),
 			 m_vIsRestricted);
 		}

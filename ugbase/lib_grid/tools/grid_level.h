@@ -52,6 +52,12 @@ class GridLevel
 	///	returns if ghosts are considered as part of the level
 		bool with_ghosts() const {return m_bWithGhosts;}
 
+	///	returns if type is level
+		bool is_level() const {return type() == LEVEL;}
+
+	///	returns if type is surface
+		bool is_surface() const {return type() == SURFACE;}
+
 	///	operator ==
 		bool operator==(const GridLevel& rhs) const {
 			return (this->level() == rhs.level() && this->type() == rhs.type()
@@ -108,8 +114,12 @@ inline std::ostream& operator<<(std::ostream& out,	const GridLevel& v)
 	else if(v.type() == GridLevel::LEVEL) out << "(level, ";
 	else UG_THROW("type of GridLevel not found.");
 
-	if(v.level() == GridLevel::TOPLEVEL) out << "toplevel)";
-	else out << v.level() << ')';
+	if(v.level() == GridLevel::TOPLEVEL) out << "toplevel, ";
+	else out << v.level() << ", ";
+
+	if(v.with_ghosts() == true) out << "ghosts)";
+	else out << "no ghosts)";
+
 	return out;
 }
 

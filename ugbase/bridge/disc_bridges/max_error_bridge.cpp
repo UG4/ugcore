@@ -17,7 +17,6 @@
 #include "bridge/util_domain_algebra_dependent.h"
 
 // lib_disc includes
-#include "lib_disc/dof_manager/surface_dof_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/max_error.h"
 

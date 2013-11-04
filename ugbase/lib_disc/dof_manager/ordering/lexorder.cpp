@@ -207,14 +207,11 @@ void OrderLex(ApproximationSpace<TDomain>& approxSpace, const char *order)
 {
 	// TODO: decode order input
 
-	//	order levels
-	if(approxSpace.levels_enabled())
-		for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-			OrderLexForDofDist<TDomain>(approxSpace.level_dof_distribution(lev), approxSpace.domain());
+	std::vector<SmartPtr<DoFDistribution> >& vDD =
+			approxSpace.dof_distributions();
 
-	//	order surface
-	if(approxSpace.top_surface_enabled())
-		OrderLexForDofDist<TDomain>(approxSpace.surface_dof_distribution(), approxSpace.domain());
+	for(size_t i = 0; i < vDD.size(); ++i)
+		OrderLexForDofDist<TDomain>(vDD[i], approxSpace.domain());
 }
 
 #ifdef UG_DIM_1

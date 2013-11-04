@@ -12,6 +12,7 @@
 #include "lib_disc/dof_manager/function_pattern.h"
 #include "lib_disc/common/local_algebra.h"
 #include "approximation_space.h"
+#include "lib_disc/dof_manager/dof_distribution.h"
 
 namespace ug{
 

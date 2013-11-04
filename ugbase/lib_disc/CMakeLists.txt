@@ -24,9 +24,6 @@ set(srcDiscretization	domain.cpp
 						dof_manager/dof_index_storage.cpp
 						dof_manager/dof_distribution_info.cpp
 						dof_manager/dof_distribution.cpp
-						dof_manager/mg_dof_distribution.cpp
-						dof_manager/level_dof_distribution.cpp
-						dof_manager/surface_dof_distribution.cpp
 						dof_manager/ordering/cuthill_mckee.cpp
 						dof_manager/ordering/lexorder.cpp
 

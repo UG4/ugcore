@@ -352,8 +352,8 @@ init()
 //todo:	Eventually the multigrid is only executed on a subset of processes.
 //		A process communicator would thus make sense, which defines this subset.
 //		Use that in the call below.
-	if(m_spApproxSpace->level_dof_distribution(m_topLev)->num_indices() ==
-		m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices())
+	if(m_spApproxSpace->dof_distribution(GridLevel(m_topLev, GridLevel::LEVEL, true))->num_indices() ==
+		m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE))->num_indices())
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
 		m_bAdaptive = false;
@@ -498,7 +498,7 @@ init_level_operator()
 
 		//	init level operator
 			try{
-			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL, true));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
@@ -562,7 +562,7 @@ init_level_operator()
 		//	init level operator
 			m_spAss->ass_tuner()->set_force_regular_grid(true);
 			try{
-			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL));
+			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL, true));
 			}
 			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
 						" Cannot init operator for level "<< lev << ".\n");
@@ -616,25 +616,25 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 //	get the surface view
 	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_vLevData.size());
+
 //	create storage for matrices on the grid levels
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
 	//	get dof distributions on levels
 		ConstSmartPtr<DoFDistribution> dd
-							= m_spApproxSpace->level_dof_distribution(lev);
+							= m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true));
+
+		vLevelDD[lev] = dd;
 
 	//	resize the matrix
 		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(dd->num_indices(),
 		                                               dd->num_indices());
 	}
 
-//	level dof distributions
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD =
-								m_spApproxSpace->level_dof_distributions();
-
 //	surface dof distribution
 	ConstSmartPtr<DoFDistribution> surfDD =
-								m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
+								m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 //	create mappings
 	std::vector<std::vector<int> > vSurfLevelMapping;
@@ -665,7 +665,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		else
 		{
 		//	\todo: not use tmp vector here
-			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->surface_dof_distribution(m_surfaceLev)->num_indices());
+			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE))->num_indices());
 			m_spAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
 		}
 
@@ -713,11 +713,11 @@ init_transfer()
 			bOneOperator = true;
 
 	//	set levels
-		m_vLevData[lev]->Prolongation->set_levels(GridLevel(lev-1, GridLevel::LEVEL),
-		                                          GridLevel(lev, GridLevel::LEVEL));
+		m_vLevData[lev]->Prolongation->set_levels(GridLevel(lev-1, GridLevel::LEVEL, true),
+		                                          GridLevel(lev, GridLevel::LEVEL, true));
 		if(!bOneOperator)
-			m_vLevData[lev]->Restriction->set_levels(GridLevel(lev-1, GridLevel::LEVEL),
-			                                         GridLevel(lev, GridLevel::LEVEL));
+			m_vLevData[lev]->Restriction->set_levels(GridLevel(lev-1, GridLevel::LEVEL, true),
+			                                         GridLevel(lev, GridLevel::LEVEL, true));
 
 	//	add all dirichlet post processes
 		m_vLevData[lev]->Prolongation->clear_constraints();
@@ -740,13 +740,13 @@ init_transfer()
 
 		for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
 		{
-			m_vLevData[lev]->vProlongationPP[i]->set_levels(GridLevel(lev, GridLevel::LEVEL));
+			m_vLevData[lev]->vProlongationPP[i]->set_levels(GridLevel(lev, GridLevel::LEVEL, true));
 			m_vLevData[lev]->vProlongationPP[i]->init();
 		}
 
 		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
 		{
-			m_vLevData[lev]->vRestrictionPP[i]->set_levels(GridLevel(lev-1, GridLevel::LEVEL));
+			m_vLevData[lev]->vRestrictionPP[i]->set_levels(GridLevel(lev-1, GridLevel::LEVEL, true));
 			m_vLevData[lev]->vRestrictionPP[i]->init();
 		}
 	}
@@ -769,8 +769,8 @@ init_projection()
 		   m_vLevData[lev-1]->num_indices() == 0) continue;
 
 	//	set levels
-		m_vLevData[lev]->Projection->set_levels(GridLevel(lev-1, GridLevel::LEVEL),
-		                                        GridLevel(lev, GridLevel::LEVEL));
+		m_vLevData[lev]->Projection->set_levels(GridLevel(lev-1, GridLevel::LEVEL, true),
+		                                        GridLevel(lev, GridLevel::LEVEL, true));
 
 	//	init projection
 		m_vLevData[lev]->Projection->init();
@@ -909,8 +909,10 @@ init_surface_to_level_mapping()
  */
 
 	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD = m_spApproxSpace->level_dof_distributions();
-	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(num_levels());
+	for(size_t lev = 0; lev < num_levels(); ++lev)
+		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true));
+	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 //	iterators for subset
 	// \todo: The loop below should only be on SURFACE_NONCOPY, since the
@@ -952,7 +954,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_surface_to_level_mapping()
 {
-	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->surface_dof_distribution(m_surfaceLev);
+	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 	m_vSurfToLevelMap.resize(0);
 	m_vSurfToLevelMap.resize(surfDD->num_indices());
@@ -989,7 +991,7 @@ top_level_required(size_t topLevel)
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
 		m_vLevData[lev]->update(lev,
-		                       m_spApproxSpace->level_dof_distribution(lev),
+		                       m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true)),
 		                       m_spApproxSpace,
 		                       m_spAss,
 		                       *m_spPreSmootherPrototype,
@@ -1549,8 +1551,12 @@ prolongation(size_t lev)
 		#endif
 		write_level_debug(*m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
+		std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(num_levels());
+		for(size_t l = 0; l < num_levels(); ++l)
+			vLevelDD[l] = m_spApproxSpace->dof_distribution(GridLevel(l, GridLevel::LEVEL, true));
+
 		AddProjectionOfShadows(level_defects(),
-							   m_spApproxSpace->level_dof_distributions(),
+		                       vLevelDD,
 							   cTmp, m_vLevData[lev-1]->spLevDD,
 							   lev -1,
 							   -1.0,

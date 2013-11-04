@@ -136,9 +136,9 @@ init(SmartPtr<IOperator<vector_type> > op)
 
 	//	set DoF distribution type
 	if(m_gridLevel.type() == GridLevel::LEVEL)
-		m_spLevDD = m_spApproxSpace->level_dof_distribution(m_gridLevel.level());
+		m_spLevDD = m_spApproxSpace->dof_distribution(m_gridLevel);
 	else if (m_gridLevel.type() == GridLevel::SURFACE)
-		m_spSurfDD = m_spApproxSpace->surface_dof_distribution(m_gridLevel.level());
+		m_spSurfDD = m_spApproxSpace->dof_distribution(m_gridLevel);
 	else
 		UG_THROW("Grid Level not recognized.");
 

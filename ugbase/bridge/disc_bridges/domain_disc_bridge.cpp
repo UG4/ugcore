@@ -18,7 +18,6 @@
 // lib_disc includes
 #include "lib_disc/domain.h"
 #include "lib_disc/spatial_disc/domain_disc.h"
-#include "lib_disc/dof_manager/surface_dof_distribution.h"
 #include "lib_disc/parallelization/domain_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"
 

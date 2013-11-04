@@ -195,8 +195,10 @@ void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse)
 	PROFILE_FUNC();
 //	get adjacency graph
 	std::vector<std::vector<size_t> > vvConnection;
-	if(!dofDistr.get_connections(vvConnection))
-		UG_THROW("OrderCuthillMcKee: No adjacency graph available.");
+	try{
+		dofDistr.get_connections(vvConnection);
+	}
+	UG_CATCH_THROW("OrderCuthillMcKee: No adjacency graph available.");
 
 //	get mapping for cuthill-mckee order
 	std::vector<size_t> vNewIndex;
@@ -209,14 +211,11 @@ void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse)
 template <typename TDomain>
 void OrderCuthillMcKee(ApproximationSpace<TDomain>& approxSpace, bool bReverse)
 {
-//	order levels
-	if(approxSpace.levels_enabled())
-		for(size_t lev = 0; lev < approxSpace.num_levels(); ++lev)
-			OrderCuthillMcKee(*approxSpace.level_dof_distribution(lev), bReverse);
+	std::vector<SmartPtr<DoFDistribution> >& vDD =
+			approxSpace.dof_distributions();
 
-//	order surface
-	if(approxSpace.top_surface_enabled())
-		OrderCuthillMcKee(*approxSpace.surface_dof_distribution(), bReverse);
+	for(size_t i = 0; i < vDD.size(); ++i)
+		OrderCuthillMcKee(*vDD[i], bReverse);
 }
 
 #ifdef UG_DIM_1

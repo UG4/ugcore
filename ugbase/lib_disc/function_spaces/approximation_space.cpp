@@ -15,9 +15,7 @@
 	#include "pcl/pcl.h"
 #endif
 
-#include "lib_disc/dof_manager/mg_dof_distribution.h"
-#include "lib_disc/dof_manager/level_dof_distribution.h"
-#include "lib_disc/dof_manager/surface_dof_distribution.h"
+#include "lib_disc/dof_manager/dof_distribution.h"
 #include "grid_function.h"
 
 //	for debugging only:
@@ -26,6 +24,10 @@
 //#define APPROX_SPACE_PERFORM_DISTRIBUTED_GRID_DEBUG_SAVES
 
 namespace ug{
+
+////////////////////////////////////////////////////////////////////////////////
+// IApproximationSpace
+////////////////////////////////////////////////////////////////////////////////
 
 IApproximationSpace::
 IApproximationSpace(SmartPtr<subset_handler_type> spMGSH,
@@ -78,21 +80,14 @@ init(SmartPtr<subset_handler_type> spMGSH,
 IApproximationSpace::
 ~IApproximationSpace()
 {
-	m_vLevDD.clear();
-	m_vSurfDD.clear();
-
-	if(m_spTopSurfDD.valid())
-		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>(NULL);
-
-	if(m_spLevMGDD.valid())
-		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>(NULL);
-
 	if(m_spSurfaceView.valid())
 		m_spSurfaceView = SmartPtr<SurfaceView>(NULL);
 }
 
 
-
+////////////////////////////////////////////////////////////////////////////////
+// add
+////////////////////////////////////////////////////////////////////////////////
 
 void IApproximationSpace::
 add(const std::vector<std::string>& vName, const char* fetype, int order)
@@ -169,125 +164,124 @@ add(const char* name, const char* fetype, const char* subsets)
 	add(TokenizeTrimString(name), fetype, TokenizeTrimString(subsets));
 }
 
-
-bool IApproximationSpace::levels_enabled() const
-{
-	return !m_vLevDD.empty();
-}
-
-bool IApproximationSpace::top_surface_enabled() const
-{
-	return m_spTopSurfDD.valid();
-}
-
-bool IApproximationSpace::surfaces_enabled() const
-{
-	return !m_vSurfDD.empty();
-}
-
-
-std::vector<ConstSmartPtr<DoFDistribution> >
-IApproximationSpace::surface_dof_distributions() const
-{
-	std::vector<ConstSmartPtr<DoFDistribution> > vDD;
-	if(num_levels() == 0) return vDD;
-
-	const_cast<IApproximationSpace*>(this)->surf_dd_required(0,num_levels()-1);
-	vDD.resize(m_vSurfDD.size());
-	for(size_t i = 0; i < m_vSurfDD.size(); ++i)
-		vDD[i] = m_vSurfDD[i];
-	return vDD;
-}
+////////////////////////////////////////////////////////////////////////////////
+// DoFDistributions
+////////////////////////////////////////////////////////////////////////////////
 
 SmartPtr<DoFDistribution>
-IApproximationSpace::surface_dof_distribution(int level)
+IApproximationSpace::dof_distribution(const GridLevel& gl, bool bCreate)
 {
-	if(level != GridLevel::TOPLEVEL){
-		surf_dd_required(level,level); return m_vSurfDD[level];
-	}
+	for(size_t i = 0; i < m_vDD.size(); ++i)
+		if(m_vDD[i]->grid_level() == gl)
+			return m_vDD[i];
 
-	else{
-		top_surf_dd_required();
-		return m_spTopSurfDD;
-	}
+	if(!bCreate)
+		UG_THROW("ApproxSpace: Could not create the DoFDistribution to GridLevel "<<gl);
+
+	create_dof_distribution(gl);
+
+	return dof_distribution(gl, false);
 }
 
 ConstSmartPtr<DoFDistribution>
-IApproximationSpace::surface_dof_distribution(int level) const
+IApproximationSpace::dof_distribution(const GridLevel& gl, bool bCreate) const
 {
-	return const_cast<IApproximationSpace*>(this)->surface_dof_distribution(level);
-}
-
-std::vector<ConstSmartPtr<DoFDistribution> >
-IApproximationSpace::level_dof_distributions() const
-{
-	std::vector<ConstSmartPtr<DoFDistribution> > vDD;
-	if(num_levels() == 0) return vDD;
-
-	const_cast<IApproximationSpace*>(this)->level_dd_required(0,num_levels()-1);
-	vDD.resize(m_vLevDD.size());
-	for(size_t i = 0; i < m_vLevDD.size(); ++i)
-		vDD[i] = m_vLevDD[i];
-	return vDD;
-}
-
-SmartPtr<DoFDistribution>
-IApproximationSpace::level_dof_distribution(int level)
-{
-	level_dd_required(level,level); return m_vLevDD[level];
-}
-
-ConstSmartPtr<DoFDistribution>
-IApproximationSpace::level_dof_distribution(int level) const
-{
-	const_cast<IApproximationSpace*>(this)->level_dd_required(level,level);
-	return m_vLevDD[level];
-}
-
-
-SmartPtr<DoFDistribution>
-IApproximationSpace::dof_distribution(const GridLevel& gl)
-{
-	if(gl.type() == GridLevel::LEVEL)
-		return level_dof_distribution(gl.level());
-	else if (gl.type() == GridLevel::SURFACE)
-		return surface_dof_distribution(gl.level());
-	else
-		UG_THROW("Invalid Grid Level requested: "<<gl);
-}
-
-ConstSmartPtr<DoFDistribution>
-IApproximationSpace::dof_distribution(const GridLevel& gl) const
-{
-	if(gl.type() == GridLevel::LEVEL)
-		return level_dof_distribution(gl.level());
-	else if (gl.type() == GridLevel::SURFACE)
-		return surface_dof_distribution(gl.level());
-	else
-		UG_THROW("Invalid Grid Level requested: "<<gl);
+	return const_cast<IApproximationSpace*>(this)->dof_distribution(gl, bCreate);
 }
 
 void IApproximationSpace::init_levels()
 {
 	PROFILE_FUNC();
-	if(num_levels() > 0)
-		level_dd_required(0, num_levels()-1);
+	for(size_t lvl = 0; lvl < num_levels(); ++lvl)
+		create_dof_distribution(GridLevel(lvl, GridLevel::LEVEL, true));
 }
 
 void IApproximationSpace::init_surfaces()
 {
 	PROFILE_FUNC();
-	if(num_levels() > 0){
-		surf_dd_required(0, num_levels()-1);
-		top_surf_dd_required();
-	}
+	for(size_t lvl = 0; lvl < num_levels(); ++lvl)
+		create_dof_distribution(GridLevel(lvl, GridLevel::SURFACE, false));
+
+	init_top_surface();
 }
 
 void IApproximationSpace::init_top_surface()
 {
 	PROFILE_FUNC();
-	top_surf_dd_required();
+	create_dof_distribution(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE, false));
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// DoFDistribution Creation
+////////////////////////////////////////////////////////////////////////////////
+
+void IApproximationSpace::create_dof_distribution(const GridLevel& gl)
+{
+
+	dof_distribution_info_required();
+	surface_view_required();
+
+	// todo: reuse DoFIndexStorage in case of Level
+	SmartPtr<DoFDistribution> spDD = SmartPtr<DoFDistribution>(new
+		DoFDistribution(m_spMG, m_spMGSH, m_spDoFDistributionInfo,
+						m_spSurfaceView, gl, m_bGrouped));
+
+	m_vDD.push_back(spDD);
+}
+
+void IApproximationSpace::surface_view_required()
+{
+//	allocate surface view if needed
+	if(!m_spSurfaceView.valid())
+		m_spSurfaceView = SmartPtr<SurfaceView>(new SurfaceView(m_spMGSH));
+}
+
+void IApproximationSpace::dof_distribution_info_required()
+{
+//	init dd-info (and fix the function pattern by that)
+	m_spDoFDistributionInfo->init();
+
+//	check that used algebra-type matches requirements
+//	get blocksize of algebra
+	const int blockSize = m_algebraType.blocksize();
+
+//	if blockSize is 1, we're fine if dd is non-grouped
+	if(blockSize == 1){
+		if(m_bGrouped == true)
+			UG_THROW("ApproximationSpace: Using grouped DD, but Algebra is 1x1.")
+	}
+
+//	if variable block algebra
+	else if(blockSize == AlgebraType::VariableBlockSize){
+		UG_THROW("ApproximationSpace: Variable algebra currently not supported.")
+	}
+
+//	if block algebra, check that number of sub-elements is zero or == blockSize
+	else if(blockSize > 1){
+		for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
+			const ReferenceObjectID roid = (ReferenceObjectID)r;
+
+			for(int si = 0; si < m_spDDI->num_subsets(); ++si){
+				const int  numDoFs = m_spDDI->num_dofs(roid, si);
+
+				if(numDoFs != 0 && numDoFs != blockSize)
+					UG_THROW("ApproximationSpace: Using Block-Algebra with "
+							"Blocksize "<<blockSize<<". Therefore, the number of"
+							" dofs on each ReferenceObject must equal the blocksize"
+							" or be zero. But number of dofs on "<<roid<<" in "
+							"subset "<<si<<" is "<<numDoFs<<".");
+			}
+		}
+	}
+
+//	catch other (invalid) settings
+	else
+		UG_THROW("Cannot determine blocksize of Algebra.");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Grid-Change Handling
+////////////////////////////////////////////////////////////////////////////////
 
 void IApproximationSpace::reinit()
 {
@@ -296,22 +290,11 @@ void IApproximationSpace::reinit()
 	if(m_spSurfaceView.valid())
 		m_spSurfaceView->refresh_surface_states();
 
-//	level dd
-	if(m_spLevMGDD.valid())
-		if(num_levels() > m_vLevDD.size())
-			level_dd_required(m_vLevDD.size(), num_levels()-1);
-
-	if(m_spLevMGDD.valid())
-		m_spLevMGDD->reinit();
-
-//	top dd
-	if(m_spTopSurfDD.valid()) m_spTopSurfDD->reinit();
-
-//	surface dd
-	for(size_t lev = 0; lev < m_vSurfDD.size(); ++lev)
-		if(m_vSurfDD[lev].valid()) m_vSurfDD[lev]->reinit();
+//	reinit all existing dof distributions
+	for(size_t i = 0; i < m_vDD.size(); ++i){
+		m_vDD[i]->reinit();
+	}
 }
-
 
 void IApproximationSpace::register_at_adaption_msg_hub()
 {
@@ -405,6 +388,10 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 			break;
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Statistic
+////////////////////////////////////////////////////////////////////////////////
 
 void IApproximationSpace::
 print_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const
@@ -562,8 +549,11 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	UG_LOG(":\n");
 
 //	check, what to print
-	bool bPrintSurface = !m_vSurfDD.empty() || m_spTopSurfDD.valid();
-	bool bPrintLevel = !m_vLevDD.empty();
+	bool bPrintSurface = false, bPrintLevel = false;
+	for(size_t i = 0; i < m_vDD.size(); ++i){
+		if(m_vDD[i]->grid_level().is_level()) bPrintLevel = true;
+		if(m_vDD[i]->grid_level().is_surface()) bPrintSurface = true;
+	}
 
 //	Write header line
 	if(bPrintLevel || bPrintSurface)
@@ -577,10 +567,11 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	if(bPrintLevel)
 	{
 		UG_LOG("  Level  |\n");
-		for(size_t l = 0; l < m_vLevDD.size(); ++l)
-		{
-			UG_LOG("  " << std::setw(5) << l << "  |");
-			print_statistic(level_dof_distribution(l), verboseLev);
+		for(size_t i = 0; i < m_vDD.size(); ++i){
+			if(!m_vDD[i]->grid_level().is_level()) continue;
+
+			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level()  << "  |");
+			print_statistic(m_vDD[i], verboseLev);
 			UG_LOG(std::endl);
 		}
 	}
@@ -589,20 +580,21 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	if(bPrintSurface)
 	{
 		UG_LOG(" Surface |\n");
-		if(!m_vSurfDD.empty())
-		{
-			for(size_t l = 0; l < m_vSurfDD.size(); ++l)
-			{
-				UG_LOG("  " << std::setw(5) << l << "  |");
-				print_statistic(surface_dof_distribution(l), verboseLev);
-				UG_LOG(std::endl);
-			}
+		for(size_t i = 0; i < m_vDD.size(); ++i){
+			if(!m_vDD[i]->grid_level().is_surface()) continue;
+			if(m_vDD[i]->grid_level().level() == GridLevel::TOPLEVEL) continue;
+
+			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level() << "  |");
+			print_statistic(m_vDD[i], verboseLev);
+			UG_LOG(std::endl);
 		}
 
-		if(m_spTopSurfDD.valid())
-		{
+		for(size_t i = 0; i < m_vDD.size(); ++i){
+			if(!m_vDD[i]->grid_level().is_surface()) continue;
+			if(m_vDD[i]->grid_level().level() != GridLevel::TOPLEVEL) continue;
+
 			UG_LOG("     top |");
-			print_statistic(surface_dof_distribution(GridLevel::TOPLEVEL), verboseLev);
+			print_statistic(m_vDD[i], verboseLev);
 			UG_LOG(std::endl);
 		}
 	}
@@ -635,10 +627,11 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	if(bPrintLevel)
 	{
 		UG_LOG("  Level  |\n");
-		for(size_t l = 0; l < m_vLevDD.size(); ++l)
-		{
-			UG_LOG("  " << std::setw(5) << l << "  |");
-			print_parallel_statistic(level_dof_distribution(l), verboseLev);
+		for(size_t i = 0; i < m_vDD.size(); ++i){
+			if(!m_vDD[i]->grid_level().is_level()) continue;
+
+			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level()  << "  |");
+			print_parallel_statistic(m_vDD[i], verboseLev);
 			UG_LOG(std::endl);
 		}
 	}
@@ -647,20 +640,21 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	if(bPrintSurface)
 	{
 		UG_LOG(" Surface |\n");
-		if(!m_vSurfDD.empty())
-		{
-			for(size_t l = 0; l < m_vSurfDD.size(); ++l)
-			{
-				UG_LOG("  " << std::setw(5) << l << "  |");
-				print_parallel_statistic(surface_dof_distribution(l), verboseLev);
-				UG_LOG(std::endl);
-			}
+		for(size_t i = 0; i < m_vDD.size(); ++i){
+			if(!m_vDD[i]->grid_level().is_surface()) continue;
+			if(m_vDD[i]->grid_level().level() == GridLevel::TOPLEVEL) continue;
+
+			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level() << "  |");
+			print_parallel_statistic(m_vDD[i], verboseLev);
+			UG_LOG(std::endl);
 		}
 
-		if(m_spTopSurfDD.valid())
-		{
+		for(size_t i = 0; i < m_vDD.size(); ++i){
+			if(!m_vDD[i]->grid_level().is_surface()) continue;
+			if(m_vDD[i]->grid_level().level() != GridLevel::TOPLEVEL) continue;
+
 			UG_LOG("     top |");
-			print_parallel_statistic(surface_dof_distribution(GridLevel::TOPLEVEL), verboseLev);
+			print_parallel_statistic(m_vDD[i], verboseLev);
 			UG_LOG(std::endl);
 		}
 	}
@@ -688,23 +682,22 @@ void IApproximationSpace::print_layout_statistic(int verboseLev) const
 	UG_LOG("----------------------------------------------------------\n");
 
 //	Write Infos for Levels
-	for(size_t l = 0; l < m_vLevDD.size(); ++l)
-	{
-		UG_LOG(" " << std::setw(5)<< l << " | ");
-		PrintLayoutStatistic(level_dof_distribution(l));
+	for(size_t i = 0; i < m_vDD.size(); ++i){
+		if(!m_vDD[i]->grid_level().is_level()) continue;
+
+		UG_LOG(" " << std::setw(5)<< m_vDD[i]->grid_level().level() << " | ");
+		PrintLayoutStatistic(m_vDD[i]);
 		UG_LOG(std::endl);
 	}
 
 //	Write Infos for Surface Grid
-	if(!m_vSurfDD.empty())
-	{
-		UG_LOG(" Surf  |\n");
-		for(size_t l = 0; l < m_vLevDD.size(); ++l)
-		{
-			UG_LOG(" " << std::setw(5)<< l << " | ");
-			PrintLayoutStatistic(surface_dof_distribution(l));
-			UG_LOG(std::endl);
-		}
+	UG_LOG(" Surf  |\n");
+	for(size_t i = 0; i < m_vDD.size(); ++i){
+		if(!m_vDD[i]->grid_level().is_surface()) continue;
+
+		UG_LOG(" " << std::setw(5)<< m_vDD[i]->grid_level().level() << " | ");
+		PrintLayoutStatistic(m_vDD[i]);
+		UG_LOG(std::endl);
 	}
 
 #else
@@ -712,128 +705,9 @@ void IApproximationSpace::print_layout_statistic(int verboseLev) const
 #endif
 }
 
-void IApproximationSpace::level_dd_required(size_t fromLevel, size_t toLevel)
-{
-//	check correct arguments
-	if(fromLevel > toLevel)
-		UG_THROW("fromLevel must be smaller than toLevel");
-
-//	check level
-	if(toLevel >= this->num_levels())
-		UG_THROW("Required Level "<<toLevel<<", but only "<<
-					   this->num_levels()<<" in the MultiGrid.");
-
-	dof_distribution_info_required();
-
-//	if not yet MGLevelDD allocated
-	if(!m_spLevMGDD.valid()){
-		m_spLevMGDD = SmartPtr<LevelMGDoFDistribution>
-					(new LevelMGDoFDistribution(m_spMG, m_spMGSH, m_spDoFDistributionInfo,
-					                            m_bGrouped));
-	}
-
-//	resize level
-	if(m_vLevDD.size() < toLevel+1) m_vLevDD.resize(toLevel+1, NULL);
-
-	surface_view_required();
-
-//	allocate Level DD if needed
-	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
-	{
-		if(!m_vLevDD[lvl].valid()){
-			m_vLevDD[lvl] = SmartPtr<LevelDoFDistribution>
-							(new LevelDoFDistribution(m_spLevMGDD, m_spSurfaceView, lvl));
-		}
-	}
-}
-
-void IApproximationSpace::surf_dd_required(size_t fromLevel, size_t toLevel)
-{
-//	check correct arguments
-	if(fromLevel > toLevel)
-		UG_THROW("fromLevel must be smaller than toLevel");
-
-//	resize level
-	if(m_vSurfDD.size() < toLevel+1) m_vSurfDD.resize(toLevel+1, NULL);
-
-	dof_distribution_info_required();
-	surface_view_required();
-
-//	allocate Level DD if needed
-	for(size_t lvl = fromLevel; lvl <= toLevel; ++lvl)
-	{
-		if(!m_vSurfDD[lvl].valid()){
-			m_vSurfDD[lvl] = SmartPtr<SurfaceDoFDistribution>
-							(new SurfaceDoFDistribution(m_spMG, m_spMGSH, m_spDoFDistributionInfo,
-									m_spSurfaceView, lvl, m_bGrouped));
-		}
-	}
-}
-
-void IApproximationSpace::top_surf_dd_required()
-{
-	dof_distribution_info_required();
-	surface_view_required();
-						 
-//	allocate Level DD if needed
-	if(!m_spTopSurfDD.valid()){
-		m_spTopSurfDD = SmartPtr<SurfaceDoFDistribution>
-							(new SurfaceDoFDistribution(
-									m_spMG, m_spMGSH, m_spDoFDistributionInfo,
-									m_spSurfaceView, GridLevel::TOPLEVEL, m_bGrouped));
-	}
-}
-
-void IApproximationSpace::surface_view_required()
-{
-//	allocate surface view if needed
-	if(!m_spSurfaceView.valid())
-		m_spSurfaceView = SmartPtr<SurfaceView>(new SurfaceView(m_spMGSH));
-}
-
-void IApproximationSpace::dof_distribution_info_required()
-{
-//	init dd-info (and fix the function pattern by that)
-	m_spDoFDistributionInfo->init();
-
-//	check that used algebra-type matches requirements
-//	get blocksize of algebra
-	const int blockSize = m_algebraType.blocksize();
-
-//	if blockSize is 1, we're fine if dd is non-grouped
-	if(blockSize == 1){
-		if(m_bGrouped == true)
-			UG_THROW("ApproximationSpace: Using grouped DD, but Algebra is 1x1.")
-	}
-
-//	if variable block algebra
-	else if(blockSize == AlgebraType::VariableBlockSize){
-		UG_THROW("ApproximationSpace: Variable algebra currently not supported.")
-	}
-
-//	if block algebra, check that number of sub-elements is zero or == blockSize
-	else if(blockSize > 1){
-		for(int r = 0; r < NUM_REFERENCE_OBJECTS; ++r){
-			const ReferenceObjectID roid = (ReferenceObjectID)r;
-
-			for(int si = 0; si < m_spDDI->num_subsets(); ++si){
-				const int  numDoFs = m_spDDI->num_dofs(roid, si);
-
-				if(numDoFs != 0 && numDoFs != blockSize)
-					UG_THROW("ApproximationSpace: Using Block-Algebra with "
-							"Blocksize "<<blockSize<<". Therefore, the number of"
-							" dofs on each ReferenceObject must equal the blocksize"
-							" or be zero. But number of dofs on "<<roid<<" in "
-							"subset "<<si<<" is "<<numDoFs<<".");
-			}
-		}
-	}
-
-//	catch other (invalid) settings
-	else
-		UG_THROW("Cannot determine blocksize of Algebra.");
-}
-
+////////////////////////////////////////////////////////////////////////////////
+// ApproximationSpace
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain>
 ApproximationSpace<TDomain>::
@@ -861,6 +735,12 @@ ApproximationSpace(SmartPtr<domain_type> domain, const AlgebraType& algebraType)
 
 } // end namespace ug
 
+#ifdef UG_DIM_1
 template class ug::ApproximationSpace<ug::Domain1d>;
+#endif
+#ifdef UG_DIM_2
 template class ug::ApproximationSpace<ug::Domain2d>;
+#endif
+#ifdef UG_DIM_3
 template class ug::ApproximationSpace<ug::Domain3d>;
+#endif

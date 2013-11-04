@@ -44,7 +44,7 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 template <class TVector, class TDomain>
 void CompositeConvCheck<TVector, TDomain>::set_level(int level)
 {
-	ConstSmartPtr<DoFDistribution> dd = m_spApprox->surface_dof_distribution(level);
+	ConstSmartPtr<DoFDistribution> dd = m_spApprox->dof_distribution(GridLevel(level, GridLevel::SURFACE));
 	extract_dof_indices(dd);
 
 	update_rest_check();

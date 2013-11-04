@@ -17,7 +17,7 @@
 #include "lib_algebra/operator/vector_writer.h"
 #include "lib_disc/io/vtkoutput.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
-#include "lib_disc/dof_manager/mg_dof_distribution.h"
+#include "lib_disc/dof_manager/dof_distribution.h"
 #include <vector>
 #include <string>
 #include "lib_algebra/common/matrixio/matrix_io_mtx.h"
@@ -571,8 +571,7 @@ protected:
 			typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 			TGridFunction vtkFunc(
 					m_spApproxSpace,
-					m_spApproxSpace->level_dof_distribution(
-							m_gridLevel.level()));
+					m_spApproxSpace->dof_distribution(m_gridLevel));
 			vtkFunc.resize_values(vec.size());
 			vtkFunc.assign(vec);
 			VTKOutput<dim> out;
@@ -581,8 +580,7 @@ protected:
 			typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 			TGridFunction vtkFunc(
 					m_spApproxSpace,
-					m_spApproxSpace->surface_dof_distribution(
-							m_gridLevel.level()));
+					m_spApproxSpace->dof_distribution(m_gridLevel));
 			vtkFunc.resize_values(vec.size());
 			vtkFunc.assign(vec);
 			VTKOutput<dim> out;
@@ -769,11 +767,11 @@ public:
 		size_t numDoFs = 0;
 		GridLevel gl;
 		if (m_level == (size_t) -1) {
-			numDoFs = m_pApproxSpace->surface_dof_distribution()->num_indices();
+			numDoFs = m_pApproxSpace->dof_distribution(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE))->num_indices();
 			gl = GridLevel();
 		} else {
 			numDoFs =
-					m_pApproxSpace->level_dof_distribution(m_level)->num_indices();
+					m_pApproxSpace->dof_distribution(GridLevel(m_level, GridLevel::LEVEL, true))->num_indices();
 			gl = GridLevel(m_level, GridLevel::LEVEL);
 		}
 		vec.resize(numDoFs);

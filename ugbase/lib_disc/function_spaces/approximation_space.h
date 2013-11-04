@@ -9,9 +9,7 @@
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__APPROXIMATION_SPACE__
 
 #include "lib_disc/dof_manager/dof_distribution_info.h"
-#include "lib_disc/dof_manager/mg_dof_distribution.h"
-#include "lib_disc/dof_manager/level_dof_distribution.h"
-#include "lib_disc/dof_manager/surface_dof_distribution.h"
+#include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_grid/tools/surface_view.h"
 #include "lib_algebra/algebra_type.h"
 
@@ -131,41 +129,27 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	returns the number of level
 		size_t num_levels() const {return m_spMGSH->num_levels();}
 
+	///	returns the approximation space
+		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfaceView;}
+
 	///	returns if dofs are grouped
 		bool grouped() const {return m_bGrouped;}
 
 
-	///	returns the level dof distributions
-		std::vector<ConstSmartPtr<DoFDistribution> >	surface_dof_distributions() const;
-
-	///	returns the level dof distribution
-		SmartPtr<DoFDistribution> surface_dof_distribution(int level = GridLevel::TOPLEVEL);
-
-	///	returns the level dof distribution
-		ConstSmartPtr<DoFDistribution> surface_dof_distribution(int level = GridLevel::TOPLEVEL) const;
-
-	///	returns the surface view
-		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfaceView;}
-
-	///	returns the level dof distributions
-		std::vector<ConstSmartPtr<DoFDistribution> > level_dof_distributions() const;
-
-	///	returns the level dof distribution
-		SmartPtr<DoFDistribution> level_dof_distribution(int level);
-
-	///	returns the level dof distribution
-		ConstSmartPtr<DoFDistribution> level_dof_distribution(int level) const;
+	///	returns dof distribution for a level
+		SmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl, bool bCreate = true);
 
 	///	returns dof distribution for a level
-		SmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl);
+		ConstSmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl, bool bCreate = true) const;
 
-	///	returns dof distribution for a level
-		ConstSmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl) const;
-
+	///	returns all currently created dof distributions
+		std::vector<SmartPtr<DoFDistribution> >& dof_distributions() {return m_vDD;}
 
 	///	returns dof distribution info
-		ConstSmartPtr<DoFDistributionInfo> dof_distribution_info() const {return m_spDoFDistributionInfo;}
-
+	/// \{
+		ConstSmartPtr<DoFDistributionInfo> ddinfo() const {return m_spDoFDistributionInfo;}
+		ConstSmartPtr<DoFDistributionInfo> dof_distribution_info() const {return ddinfo();}
+	///	\}
 
 	///	prints statistic about DoF Distribution
 		void print_statistic(int verboseLev = 1) const;
@@ -189,25 +173,9 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	initializes all top surface dof distributions
 		void init_top_surface();
 
-
-	///	returns if levels are enabled
-		bool levels_enabled() const;
-
-	///	returns if top surface is enabled
-		bool top_surface_enabled() const;
-
-	///	returns if surfaces are enabled
-		bool surfaces_enabled() const;
-
 	protected:
-	///	creates level DoFDistribution if needed
-		void level_dd_required(size_t fromLevel, size_t toLevel);
-
-	///	creates surface DoFDistribution if needed
-		void surf_dd_required(size_t fromLevel, size_t toLevel);
-
-	///	creates surface DoFDistribution if needed
-		void top_surf_dd_required();
+	///	creates a dof distribution
+		void create_dof_distribution(const GridLevel& gl);
 
 	///	creates surface SurfaceView if needed
 		void surface_view_required();
@@ -249,29 +217,21 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	/// subsethandler, where elements are stored
 		SmartPtr<MGSubsetHandler> m_spMGSH;
 
+	///	Surface View
+		SmartPtr<SurfaceView> m_spSurfaceView;
+
+	///	suitable algebra type for the index distribution pattern
+		AlgebraType m_algebraType;
+
 	///	flag if DoFs should be grouped
 		bool m_bGrouped;
 
 	///	DofDistributionInfo
 		SmartPtr<DoFDistributionInfo> m_spDoFDistributionInfo;
 
+	protected:
 	///	MG Level DoF Distribution
-		SmartPtr<LevelMGDoFDistribution> m_spLevMGDD;
-
-	///	all Level DoF Distributions
-		std::vector<SmartPtr<LevelDoFDistribution> > m_vLevDD;
-
-	///	all Surface DoF Distributions
-		std::vector<SmartPtr<SurfaceDoFDistribution> > m_vSurfDD;
-
-	///	top Surface DoF Distributions
-		SmartPtr<SurfaceDoFDistribution> m_spTopSurfDD;
-
-	///	Surface View
-		SmartPtr<SurfaceView> m_spSurfaceView;
-
-	///	suitable algebra type for the index distribution pattern
-		AlgebraType m_algebraType;
+		std::vector<SmartPtr<DoFDistribution> > m_vDD;
 };
 
 /// base class for approximation spaces without type of algebra or dof distribution

@@ -35,7 +35,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 					"Interpolation only implemented for Lagrange P1 functions.");
 
 // 	get MultiGrid
-	const MultiGrid& grid = coarseDD.multi_grid();
+	const MultiGrid& grid = *coarseDD.multi_grid();
 
 // 	get number of dofs on different levels
 	const size_t numFineDoFs = fineDD.num_indices();
@@ -83,7 +83,7 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 {
 	PROFILE_FUNC_GROUP("gmg");
 // 	get MultiGrid
-	const MultiGrid& grid = coarseDD.multi_grid();
+	const MultiGrid& grid = *coarseDD.multi_grid();
 
 	std::vector<size_t> coarseInd, fineInd;
 
@@ -189,15 +189,15 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 		{
 			AssembleInjectionForP1Lagrange<TAlgebra>
 			(m_matrix,
-			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
-			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()));
+			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
+			 *m_spApproxSpace->dof_distribution(m_fineLevel));
 		}
 		else
 		{
 			AssembleInjectionByAverageOfChildren<TAlgebra>
 			(m_matrix,
-			 *m_spApproxSpace->level_dof_distribution(m_coarseLevel.level()),
-			 *m_spApproxSpace->level_dof_distribution(m_fineLevel.level()));
+			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
+			 *m_spApproxSpace->dof_distribution(m_fineLevel));
 		}
 
 	} UG_CATCH_THROW("InjectionTransfer::init():"
