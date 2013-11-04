@@ -21,7 +21,7 @@ namespace ug{
 
 class IGridFunction;
 
-class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
+class DoFDistribution : public DoFDistributionInfoProvider
 {
 	public:
 		///	constructor
@@ -39,24 +39,13 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		ConstSmartPtr<SurfaceView> surface_view() const {return m_spSurfView;}
 
 		///	returns the multigrid
+		/// \{
 		SmartPtr<MultiGrid> multi_grid() {return m_spMG;}
 		ConstSmartPtr<MultiGrid> multi_grid() const {return m_spMG;}
+		/// \}
 
 		///	returns grid level
-		const GridLevel& grid_level() const {return m_level;}
-
-
-		///	returns if dofs are grouped
-		bool grouped() const {return m_bGrouped;}
-
-		///	returns blocksize
-		std::string blocksize() const {return "?";}
-
-		/// return the number of dofs distributed
-		size_t num_indices() const {return m_numIndex;}
-
-		/// return the number of dofs distributed on subset si
-		size_t num_indices(int si) const {return m_vNumIndexOnSubset[si];}
+		const GridLevel& grid_level() const {return m_gridLevel;}
 
 	public:
 		template <typename TElem>
@@ -75,56 +64,74 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 			typedef typename SurfaceView::traits<geometric_base_object>::const_iterator const_iterator;
 		};
 
-	/// iterator for elements where dofs are defined
-	/// \{
+		/// iterator for elements where dofs are defined
+		/// \{
 		template <typename TElem>
 		typename traits<TElem>::iterator
 		begin(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING)
-		{return m_spSurfView->begin<TElem>(m_level, validSurfStates);}
+		{return m_spSurfView->begin<TElem>(m_gridLevel, validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::iterator
 		end(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING)
-		{return m_spSurfView->end<TElem>(m_level, validSurfStates);}
+		{return m_spSurfView->end<TElem>(m_gridLevel, validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		begin(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
-		{return m_spSurfView->begin<TElem>(m_level, validSurfStates);}
+		{return m_spSurfView->begin<TElem>(m_gridLevel, validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		end(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
-		{return m_spSurfView->end<TElem>(m_level, validSurfStates);}
-	///	\}
+		{return m_spSurfView->end<TElem>(m_gridLevel, validSurfStates);}
+		///	\}
 
-	/// iterator for elements where dofs are defined
-	/// \{
+		/// iterator for elements where dofs are defined
+		/// \{
 		template <typename TElem>
 		typename traits<TElem>::iterator
 		begin(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING)
-		{return m_spSurfView->begin<TElem>(si, m_level, validSurfStates);}
+		{return m_spSurfView->begin<TElem>(si, m_gridLevel, validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::iterator
 		end(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING)
-		{return m_spSurfView->end<TElem>(si, m_level, validSurfStates);}
+		{return m_spSurfView->end<TElem>(si, m_gridLevel, validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		begin(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
-		{return m_spSurfView->begin<TElem>(si, m_level, validSurfStates);}
+		{return m_spSurfView->begin<TElem>(si, m_gridLevel, validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
 		end(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
-		{return m_spSurfView->end<TElem>(si, m_level, validSurfStates);}
-	///	\}
+		{return m_spSurfView->end<TElem>(si, m_gridLevel, validSurfStates);}
+		///	\}
+
+		///	returns the adjacent elements
+		template <typename TElem, typename TBaseElem>
+		void collect_associated(std::vector<TBaseElem*>& vAssElem,
+								TElem* elem, bool clearContainer = true) const{
+			if(grid_level().is_level())
+				CollectAssociated(vAssElem, *m_pMG, elem, clearContainer);
+			else{
+				m_spSurfView->collect_associated(vAssElem, elem, clearContainer);
+			}
+		}
 
 	public:
-		/// writes the local finite element ids to LocalIndeces
-		void local_finite_element_ids(LocalIndices& ind) const;
+		///	returns if dofs are grouped
+		bool grouped() const {return m_bGrouped;}
 
+		/// return the number of dofs distributed
+		size_t num_indices() const {return m_numIndex;}
+
+		/// return the number of dofs distributed on subset si
+		size_t num_indices(int si) const {return m_vNumIndexOnSubset[si];}
+
+	public:
 		/// extracts all indices of the element (sorted)
 		/**
 		 * All Indices of the element (including the subelements) are extracted
@@ -146,11 +153,7 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const;
 		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const;
 		/// \}
-	protected:
-		template <typename TBaseElem>
-		void _indices(TBaseElem* elem, LocalIndices& ind, bool bHang = false) const;
 
-	public:
 		/// extracts all multiindices for a function (sorted)
 		/**
 		 * All Multi-Indices of a function living on the element (including the
@@ -180,13 +183,7 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		size_t dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                   bool bHang = false, bool bClear = true) const;
 		/// \}
-	protected:
-		template<typename TBaseElem>
-		size_t _dof_indices(TBaseElem* elem, size_t fct,
-		                     std::vector<DoFIndex>& ind,
-		                     bool bHang = false, bool bClear = true) const;
 
-	public:
 		/// extracts all multiindices of a function in the inner (sorted)
 		/**
 		 * All Multi-Indices of a function living on the element (including the
@@ -212,13 +209,7 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		size_t inner_dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                         bool bClear = true) const;
 		/// \}
-	protected:
-		template<typename TBaseElem>
-		size_t _inner_dof_indices(TBaseElem* elem, size_t fct,
-		                           std::vector<DoFIndex>& ind,
-		                           bool bClear = true) const;
 
-	public:
 		/// extracts all algebra indices of an element (not sorted)
 		/**
 		 * All Algebra-Indices of the element (including the subelements) are
@@ -230,6 +221,7 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		 * \param[out]		ind			vector of algebra indices
 		 * \param[in]		bClear		flag if vector has to be clear before insertion
 		 */
+		/// \{
 		size_t algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind,
 		                       bool bClear = true) const;
 		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind,
@@ -240,13 +232,8 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		                       bool bClear = true) const;
 		size_t algebra_indices(Volume* elem, std::vector<size_t>& ind,
 		                       bool bClear = true) const;
+		/// \}
 
-	protected:
-		template<typename TBaseElem>
-		size_t _algebra_indices(TBaseElem* elem,	std::vector<size_t>& ind,
-		                       bool bClear = true) const;
-
-	public:
 		size_t inner_algebra_indices_for_fct(GeometricObject* elem, std::vector<size_t>& ind,
 							bool bClear, int fct) const;
 
@@ -261,6 +248,7 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		 * \param[out]		ind			vector of algebra indices
 		 * \param[in]		bClear		flag if vector has to be clear before insertion
 		 */
+		/// \{
 		size_t inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;
 		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind,
@@ -271,19 +259,35 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		                             bool bClear = true) const;
 		size_t inner_algebra_indices(Volume* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;
+		/// \}
 
 	protected:
+		template <typename TBaseElem>
+		void _indices(TBaseElem* elem, LocalIndices& ind, bool bHang = false) const;
+
+		template<typename TBaseElem>
+		size_t _dof_indices(TBaseElem* elem, size_t fct,
+		                     std::vector<DoFIndex>& ind,
+		                     bool bHang = false, bool bClear = true) const;
+
+		template<typename TBaseElem>
+		size_t _inner_dof_indices(TBaseElem* elem, size_t fct,
+		                           std::vector<DoFIndex>& ind,
+		                           bool bClear = true) const;
+
+		template<typename TBaseElem>
+		size_t _algebra_indices(TBaseElem* elem,	std::vector<size_t>& ind,
+		                       bool bClear = true) const;
+
 		template<typename TBaseElem>
 		size_t _inner_algebra_indices(TBaseElem* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;
 
-	protected:
 	///	returns indices, that can be changed on the element
 		template <typename TBaseElem>
 		void changable_indices(std::vector<size_t>& vIndex,
 		                       const std::vector<TBaseElem*>& vElem) const;
 
-	protected:
 		///	extracts the indices of the vertices
 		template<typename TBaseElem>
 		void indices_on_vertex(TBaseElem* elem, const ReferenceObjectID roid,
@@ -349,17 +353,12 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		                                   std::vector<size_t>& ind) const;
 
 	protected:
-		/**
-		 * adds indices to a geometric object.
-		 *
-		 * \param[in]		obj			Geometric Object
-		 * \param[in]		roid		Reference Object id
-		 * \param[in]		si			Subset of Geometric Object
-		 * \param[in,out]	li			Level Information about Indices
-		 */
+		/// adds indices to a geometric object
+		/// \{
 		template <typename TBaseObject>
 		bool add(TBaseObject* obj, const ReferenceObjectID roid, const int si);
 		bool add(GeometricObject* obj, const ReferenceObjectID roid, const int si);
+		/// \}
 
 		///	checks that subset assigment is ok
 		void check_subsets();
@@ -368,6 +367,7 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		/// \{
 		template <typename TElem>
 		inline size_t& obj_index(TElem* obj) {return m_spDoFIndexStorage->obj_index(obj);}
+
 		template <typename TElem>
 		inline const size_t& obj_index(TElem* obj) const {return m_spDoFIndexStorage->obj_index(obj);}
 		/// \}
@@ -375,9 +375,6 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 	protected:
 		///	grouping
 		bool m_bGrouped;
-
-		/// message callback id
-		MessageHub::SPCallbackId	m_callbackId_GridCreation;
 
 		///	Multi Grid
 		SmartPtr<MultiGrid> m_spMG;
@@ -390,10 +387,17 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		SmartPtr<SurfaceView> m_spSurfView;
 
 		///	Grid level
-		GridLevel m_level;
+		GridLevel m_gridLevel;
 
 		/// DoF-Index Memory Storage
 		SmartPtr<DoFIndexStorage> m_spDoFIndexStorage;
+
+	protected:
+		/// number of distributed indices on whole domain
+		size_t m_numIndex;
+
+		/// number of distributed indices on each subset
+		std::vector<size_t> m_vNumIndexOnSubset;
 
 	public:
 		/// returns the connections
@@ -402,9 +406,17 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 		///	renames the indices
 		void permute_indices(const std::vector<size_t>& vIndNew);
 
+		///	initializes the indices
+		void reinit();
+
 	protected:
+		///	initializes the indices
+		template <typename TBaseElem>
+		void reinit();
+
 		template <typename TBaseElem>
 		void permute_indices(const std::vector<size_t>& vNewInd);
+
 		template <typename TBaseElem>
 		void get_connections(std::vector<std::vector<size_t> >& vvConnection) const;
 
@@ -438,137 +450,26 @@ class DoFDistribution : public DoFDistributionInfoProvider, public GridObserver
 	 */
 		std::vector<IGridFunction*> m_vpGridFunction;
 
-	protected:
-		/// number of distributed indices on whole domain
-		size_t m_numIndex;
-
-		/// number of distributed indices on each subset
-		std::vector<size_t> m_vNumIndexOnSubset;
-
-		#ifdef UG_PARALLEL
-		protected:
-		///	algebra layouts
-		SmartPtr<AlgebraLayouts> spAlgebraLayouts;
-
+#ifdef UG_PARALLEL
 		public:
 		///	returns algebra layouts
 		///	\{
 		ConstSmartPtr<AlgebraLayouts> layouts() const 	{return spAlgebraLayouts;}
 		SmartPtr<AlgebraLayouts> layouts() 				{return spAlgebraLayouts;}
 		///	\}
-		#endif
-
-		///	register to manage a DoFDistribution for a given level
-		/**	Those dof-distributions will be informed, whenever redistribute_dofs is
-		 * executed.
-		 * This method is e.g. used by LevelDoFDistribution.*/
-		void manage_dof_distribution(DoFDistribution* mdd, int lvl);
-
-	public:
-		///	initializes the indices
-		void reinit();
 
 	protected:
-		///	initializes the indices
-		template <typename TBaseElem>
-		void reinit();
+		///	algebra layouts
+		SmartPtr<AlgebraLayouts> spAlgebraLayouts;
 
-	protected:
-		std::vector<DoFDistribution*>	m_managingDoFDists;
+		void reinit_layouts_and_communicator();
 
-		#ifdef UG_PARALLEL
-		void create_layouts_and_communicator(int l);
-
-		void create_index_layout(IndexLayout& layout, InterfaceNodeTypes keyType, int l);
-
-		template <typename TBaseElem>
-		void add_indices_from_layouts(IndexLayout& indexLayout, InterfaceNodeTypes keyType, int l);
-		#endif
-
-	protected:
-		///	returns parent != NULL, if it is a copy and shadowed by elem
-		template <typename TBaseElem>
-		TBaseElem* parent_if_shadowed_copy(TBaseElem* elem) const;
-
-		///	returns parent != NULL, if available
-		template <typename TBaseElem>
-		GeometricObject* get_parent(TBaseElem* elem) const;
-
-		///	returns parent != NULL, if is copy in sense of Multigrid
-		template <typename TBaseElem>
-		TBaseElem* parent_if_copy(TBaseElem* elem) const;
-
-		///	returns parent != NULL, if of same base object type
-		template <typename TBaseElem>
-		TBaseElem* parent_if_same_type(TBaseElem* elem) const;
-
-		///	returns child != NULL, if is copy in sense of Multigrid
-		template <typename TBaseElem>
-		TBaseElem* child_if_copy(TBaseElem* elem) const;
-
-	public:
-		///	returns the adjacend elements
-		template <typename TElem, typename TBaseElem>
-		void collect_associated(std::vector<TBaseElem*>& vAssElem,
-								TElem* elem, bool clearContainer = true) const{
-			if(grid_level().type() == GridLevel::LEVEL)
-				CollectAssociated(vAssElem, *m_pMG, elem, clearContainer);
-			else{
-				m_spSurfView->collect_associated(vAssElem, elem, clearContainer);
-			}
-		}
-
-	#ifdef UG_PARALLEL
-	protected:
-		void create_layouts_and_communicator();
-
-		void create_index_layout(IndexLayout& layout, int keyType);
+		void reinit_index_layout(IndexLayout& layout, int keyType);
 
 		template <typename TBaseElem>
 		void add_indices_from_layouts(IndexLayout& indexLayout, int keyType);
-	#endif
+#endif
 };
-
-
-template <typename TBaseElem>
-TBaseElem* DoFDistribution::parent_if_shadowed_copy(TBaseElem* elem) const
-{
-	TBaseElem* parent = parent_if_copy(elem);
-	if(parent && m_spSurfView->is_shadowed(parent))
-		return parent;
-	return NULL;
-}
-
-template <typename TBaseElem>
-GeometricObject* DoFDistribution::get_parent(TBaseElem* elem) const
-{
-	return multi_grid()->get_parent(elem);
-}
-
-template <typename TBaseElem>
-TBaseElem* DoFDistribution::parent_if_copy(TBaseElem* elem) const
-{
-	GeometricObject* pParent = multi_grid()->get_parent(elem);
-	TBaseElem* parent = dynamic_cast<TBaseElem*>(pParent);
-	if(parent != NULL &&
-		multi_grid()->template num_children<TBaseElem>(parent) == 1) return parent;
-	else return NULL;
-}
-
-template <typename TBaseElem>
-TBaseElem* DoFDistribution::parent_if_same_type(TBaseElem* elem) const
-{
-	GeometricObject* pParent = multi_grid()->get_parent(elem);
-	return dynamic_cast<TBaseElem*>(pParent);
-}
-
-template <typename TBaseElem>
-TBaseElem* DoFDistribution::child_if_copy(TBaseElem* elem) const
-{
-	if(multi_grid()->template num_children<TBaseElem>(elem) != 1) return NULL;
-	return multi_grid()->template get_child<TBaseElem>(elem, 0);
-}
-
 
 } // end namespace ug
 

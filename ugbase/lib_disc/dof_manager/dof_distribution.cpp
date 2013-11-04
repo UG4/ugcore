@@ -44,7 +44,7 @@ DoFDistribution(SmartPtr<MultiGrid> spMG,
 	  m_pMG(m_spMG.get()),
 	  m_spMGSH(spMGSH),
 	  m_spSurfView(spSurfView),
-	  m_level(level),
+	  m_gridLevel(level),
 	  m_spDoFIndexStorage(spDoFIndexStorage),
 	  m_numIndex(0)
 {
@@ -1082,13 +1082,6 @@ constrained_face_indices(TBaseElem* elem,LocalIndices& ind,
 	}
 }
 
-void DoFDistribution::local_finite_element_ids(LocalIndices& ind) const
-{
-	ind.resize_fct(num_fct());
-	for(size_t fct = 0; fct < num_fct(); ++fct)
-		ind.set_lfeID(fct, local_finite_element_id(fct));
-}
-
 template<typename TBaseElem>
 void DoFDistribution::_indices(TBaseElem* elem, LocalIndices& ind, bool bHang) const
 {
@@ -1173,73 +1166,6 @@ changable_indices(std::vector<size_t>& vIndex,
 	}
 }
 
-
-void DoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool bHang) const
-{
-	switch(elem->base_object_id())
-	{
-		case VERTEX: return indices(static_cast<VertexBase*>(elem), ind, bHang);
-		case EDGE: return indices(static_cast<EdgeBase*>(elem), ind, bHang);
-		case FACE: return indices(static_cast<Face*>(elem), ind, bHang);
-		case VOLUME: return indices(static_cast<Volume*>(elem), ind, bHang);
-		default: UG_THROW("Geometric Base element not found.");
-	}
-}
-
-size_t DoFDistribution::dof_indices(GeometricObject* elem, size_t fct,
-                                        std::vector<DoFIndex>& ind,
-                                        bool bHang, bool bClear) const
-{
-	switch(elem->base_object_id())
-	{
-		case VERTEX: return dof_indices(static_cast<VertexBase*>(elem), fct, ind, bHang, bClear);
-		case EDGE: return dof_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
-		case FACE: return dof_indices(static_cast<Face*>(elem), fct, ind, bHang, bClear);
-		case VOLUME: return dof_indices(static_cast<Volume*>(elem), fct, ind, bHang, bClear);
-		default: UG_THROW("Geometric Base element not found.");
-	}
-}
-
-size_t DoFDistribution::inner_dof_indices(GeometricObject* elem, size_t fct,
-                                              std::vector<DoFIndex>& ind,
-                                              bool bClear) const
-{
-	switch(elem->base_object_id())
-	{
-		case VERTEX: return inner_dof_indices(static_cast<VertexBase*>(elem), fct, ind, bClear);
-		case EDGE: return inner_dof_indices(static_cast<EdgeBase*>(elem), fct, ind, bClear);
-		case FACE: return inner_dof_indices(static_cast<Face*>(elem), fct, ind, bClear);
-		case VOLUME: return inner_dof_indices(static_cast<Volume*>(elem), fct, ind, bClear);
-		default: UG_THROW("Geometric Base element not found.");
-	}
-}
-
-size_t DoFDistribution::algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind,
-                                          bool bClear) const
-{
-	switch(elem->base_object_id())
-	{
-		case VERTEX: return algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
-		case EDGE: return algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
-		case FACE: return algebra_indices(static_cast<Face*>(elem), ind, bClear);
-		case VOLUME: return algebra_indices(static_cast<Volume*>(elem), ind, bClear);
-		default: UG_THROW("Geometric Base element not found.");
-	}
-}
-
-size_t DoFDistribution::inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind,
-                                                bool bClear) const
-{
-	switch(elem->base_object_id())
-	{
-		case VERTEX: return inner_algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
-		case EDGE: return inner_algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
-		case FACE: return inner_algebra_indices(static_cast<Face*>(elem), ind, bClear);
-		case VOLUME: return inner_algebra_indices(static_cast<Volume*>(elem), ind, bClear);
-		default: UG_THROW("Geometric Base element not found.");
-	}
-}
-
 bool DoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
                             const int si)
 {
@@ -1255,32 +1181,89 @@ bool DoFDistribution::add(GeometricObject* elem, const ReferenceObjectID roid,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// template instantiations
+// forwarding fcts
 ///////////////////////////////////////////////////////////////////////////////
+
 void DoFDistribution::indices(VertexBase* elem, LocalIndices& ind, bool bHang) const {_indices<VertexBase>(elem, ind, bHang);}
 void DoFDistribution::indices(EdgeBase* elem, LocalIndices& ind, bool bHang) const {_indices<EdgeBase>(elem, ind, bHang);}
 void DoFDistribution::indices(Face* elem, LocalIndices& ind, bool bHang) const {_indices<Face>(elem, ind, bHang);}
 void DoFDistribution::indices(Volume* elem, LocalIndices& ind, bool bHang) const {_indices<Volume>(elem, ind, bHang);}
+void DoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool bHang) const
+{
+	switch(elem->base_object_id())
+	{
+		case VERTEX: return indices(static_cast<VertexBase*>(elem), ind, bHang);
+		case EDGE: return indices(static_cast<EdgeBase*>(elem), ind, bHang);
+		case FACE: return indices(static_cast<Face*>(elem), ind, bHang);
+		case VOLUME: return indices(static_cast<Volume*>(elem), ind, bHang);
+		default: UG_THROW("Geometric Base element not found.");
+	}
+}
 
 size_t DoFDistribution::dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<VertexBase>(elem, fct, ind, bHang, bClear);}
 size_t DoFDistribution::dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<EdgeBase>(elem, fct, ind, bHang, bClear);}
 size_t DoFDistribution::dof_indices(Face* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<Face>(elem, fct, ind, bHang, bClear);}
 size_t DoFDistribution::dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<Volume>(elem, fct, ind, bHang, bClear);}
+size_t DoFDistribution::dof_indices(GeometricObject* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const
+{
+	switch(elem->base_object_id())
+	{
+		case VERTEX: return dof_indices(static_cast<VertexBase*>(elem), fct, ind, bHang, bClear);
+		case EDGE: return dof_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
+		case FACE: return dof_indices(static_cast<Face*>(elem), fct, ind, bHang, bClear);
+		case VOLUME: return dof_indices(static_cast<Volume*>(elem), fct, ind, bHang, bClear);
+		default: UG_THROW("Geometric Base element not found.");
+	}
+}
 
 size_t DoFDistribution::inner_dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<VertexBase>(elem, fct, ind, bHang);}
 size_t DoFDistribution::inner_dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<EdgeBase>(elem, fct, ind, bHang);}
 size_t DoFDistribution::inner_dof_indices(Face* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<Face>(elem, fct, ind, bHang);}
 size_t DoFDistribution::inner_dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<Volume>(elem, fct, ind, bHang);}
+size_t DoFDistribution::inner_dof_indices(GeometricObject* elem, size_t fct, std::vector<DoFIndex>& ind, bool bClear) const
+{
+	switch(elem->base_object_id())
+	{
+		case VERTEX: return inner_dof_indices(static_cast<VertexBase*>(elem), fct, ind, bClear);
+		case EDGE: return inner_dof_indices(static_cast<EdgeBase*>(elem), fct, ind, bClear);
+		case FACE: return inner_dof_indices(static_cast<Face*>(elem), fct, ind, bClear);
+		case VOLUME: return inner_dof_indices(static_cast<Volume*>(elem), fct, ind, bClear);
+		default: UG_THROW("Geometric Base element not found.");
+	}
+}
+
 
 size_t DoFDistribution::algebra_indices(VertexBase* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<VertexBase>(elem, ind, bClear);}
 size_t DoFDistribution::algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<EdgeBase>(elem, ind, bClear);}
 size_t DoFDistribution::algebra_indices(Face* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<Face>(elem, ind, bClear);}
 size_t DoFDistribution::algebra_indices(Volume* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<Volume>(elem, ind, bClear);}
+size_t DoFDistribution::algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind, bool bClear) const
+{
+	switch(elem->base_object_id())
+	{
+		case VERTEX: return algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
+		case EDGE: return algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
+		case FACE: return algebra_indices(static_cast<Face*>(elem), ind, bClear);
+		case VOLUME: return algebra_indices(static_cast<Volume*>(elem), ind, bClear);
+		default: UG_THROW("Geometric Base element not found.");
+	}
+}
 
 size_t DoFDistribution::inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<VertexBase>(elem, ind, bClear);}
 size_t DoFDistribution::inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<EdgeBase>(elem, ind, bClear);}
 size_t DoFDistribution::inner_algebra_indices(Face* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<Face>(elem, ind, bClear);}
 size_t DoFDistribution::inner_algebra_indices(Volume* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<Volume>(elem, ind, bClear);}
+size_t DoFDistribution::inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind, bool bClear) const
+{
+	switch(elem->base_object_id())
+	{
+		case VERTEX: return inner_algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
+		case EDGE: return inner_algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
+		case FACE: return inner_algebra_indices(static_cast<Face*>(elem), ind, bClear);
+		case VOLUME: return inner_algebra_indices(static_cast<Volume*>(elem), ind, bClear);
+		default: UG_THROW("Geometric Base element not found.");
+	}
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1437,13 +1420,13 @@ void DoFDistribution::reinit()
 	if(max_dofs(VOLUME)) reinit<Volume>();
 
 #ifdef UG_PARALLEL
-	create_layouts_and_communicator();
+	reinit_layouts_and_communicator();
 #endif
 }
 
 
 #ifdef UG_PARALLEL
-void DoFDistribution::create_layouts_and_communicator()
+void DoFDistribution::reinit_layouts_and_communicator()
 {
 	pcl::ProcessCommunicator commWorld;
 
@@ -1466,13 +1449,13 @@ void DoFDistribution::create_layouts_and_communicator()
 //	CREATE INDEX LAYOUTS ON LEVEL
 //  -----------------------------------
 
-	create_index_layout(layouts()->master(), INT_H_MASTER);
-	create_index_layout(layouts()->slave(), INT_H_SLAVE);
+	reinit_index_layout(layouts()->master(), INT_H_MASTER);
+	reinit_index_layout(layouts()->slave(), INT_H_SLAVE);
 
 //	vertical layouts
 	if(grid_level().with_ghosts()){
-		create_index_layout(layouts()->vertical_master(), INT_V_MASTER);
-		create_index_layout(layouts()->vertical_slave(), INT_V_SLAVE);
+		reinit_index_layout(layouts()->vertical_master(), INT_V_MASTER);
+		reinit_index_layout(layouts()->vertical_slave(), INT_V_SLAVE);
 	}
 	else{
 		layouts()->vertical_master().clear();
@@ -1480,7 +1463,7 @@ void DoFDistribution::create_layouts_and_communicator()
 	}
 }
 
-void DoFDistribution::create_index_layout(IndexLayout& layout, int keyType)
+void DoFDistribution::reinit_index_layout(IndexLayout& layout, int keyType)
 {
 //	clear layout
 	layout.clear();
@@ -1521,7 +1504,7 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 	if(grid_level().type() == GridLevel::SURFACE){
 	//	choose level, that must be looped
 		int toLev = layoutMap.get_layout<TBaseElem>(keyType).num_levels() - 1;
-		if(m_level == GridLevel::TOPLEVEL) {if(toLev < 0) toLev = 0;}
+		if(m_gridLevel == GridLevel::TOPLEVEL) {if(toLev < 0) toLev = 0;}
 		else toLev = grid_level().level();
 
 	//	loop all level
@@ -1731,7 +1714,7 @@ void DoFDistribution::permute_indices(const std::vector<size_t>& vNewInd)
 	if(max_dofs(VOLUME)) permute_indices<Volume>(vNewInd);
 
 #ifdef UG_PARALLEL
-	create_layouts_and_communicator();
+	reinit_layouts_and_communicator();
 #endif
 
 //	permute indices in associated vectors
