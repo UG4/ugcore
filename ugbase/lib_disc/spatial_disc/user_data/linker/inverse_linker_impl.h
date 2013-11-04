@@ -102,6 +102,7 @@ evaluate (number& value,
 		(*m_vpDivisorData[c])(valDivisor, globIP, time, si);
 		(*m_vpDividendData[c])(valDividend, globIP, time, si);
 		UG_ASSERT(valDivisor!=0, "DIVISOR IS 0");
+		UG_COND_THROW(valDivisor==0, "DIVISOR IS 0");
 
 		value *= valDividend/valDivisor;
 	}
@@ -166,13 +167,14 @@ eval_and_deriv(number vValue[],
 		vValue[ip] = 1.0;
 
 	//	add contribution of each summand
-		for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
+		for(size_t c2 = 0; c2 < m_vpDivisorData.size(); ++c2)
 		{
-			UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
-			vValue[ip] *= dividend_value(c,s,ip)/divisor_value(c,s,ip);
+			UG_COND_THROW(CloseToZero(divisor_value(c2,s,ip)), "DIVISOR IS 0");
+			vValue[ip] *= dividend_value(c2,s,ip)/divisor_value(c2,s,ip);
 		}
 	}
 
+//	compute value
 //	check if derivative is required
 	if(!bDeriv || this->zero_derivative()) return;
 
@@ -183,14 +185,34 @@ eval_and_deriv(number vValue[],
 //	clear all derivative values
 	this->set_zero(vvvDeriv, nip);
 
+// (dividend/divisor)' = (u/v)' = (u'v - uv')/v^2  = u'/v - uv'/v^2
+//
+// now u = prod_i u_i and v = prod_i v_i
+// set nu_i = prod_{j != i} u_j  and  nv_i = prod_{j != i} v_j
+// note that prod_i u_i = u_j nu_j  for all j.
+// then u'_i = sum_j  nu_j u_j'
+//
+// (u/v)' = ((sum_j  nu_j u_j') prod_i v_i - (sum_j  nv_j v_j') prod_i u_i ) / prod_i v_i^2
+// 		  = ((sum_j  nu_j u_j' v_j nv_j - sum_j  nv_j v_j' u_j nu_j ) / v_j^2 nv_j^2
+//        =  sum_j (  nu_j / nv_j  * (u_j' v_j - u_j v_j') / v_j^2 )
+
+
 //	loop all inputs
 	for(size_t c = 0; c < m_vpDivisorData.size(); ++c)
 	{
-	//	check if Divisor has derivative
-		if(!m_vpDivisorData[c]->zero_derivative())
+		for(size_t ip = 0; ip < nip; ++ip)
 		{
-			for(size_t ip = 0; ip < nip; ++ip)
+			double vValue = 1.0; // vValue = nu_j / nv_j = prod_{k ! = j} u_k/v_k
+			for(size_t c2 = 0; c2 < m_vpDivisorData.size(); ++c2)
 			{
+				if(c == c2) continue;
+				vValue *= dividend_value(c2,s,ip)/divisor_value(c2,s,ip);
+			}
+
+		//	check if Divisor has derivative
+			if(!m_vpDivisorData[c]->zero_derivative())
+			{
+
 			//	loop functions
 				for(size_t fct = 0; fct < divisor_num_fct(c); ++fct)
 				{
@@ -202,8 +224,13 @@ eval_and_deriv(number vValue[],
 					{
 						if(dividend_value(c,s,ip)!=0)
 						{
-							UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
-							vvvDeriv[ip][commonFct][sh] += vValue[ip] / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*(-1.0)*(dividend_value(c,s,ip))/divisor_value(c,s,ip)/divisor_value(c,s,ip)*divisor_deriv(c, s, ip, fct, sh);
+
+							vvvDeriv[ip][commonFct][sh] +=
+									vValue *
+									(-1.0)*
+									(dividend_value(c,s,ip))/divisor_value(c,s,ip)/divisor_value(c,s,ip)
+									*divisor_deriv(c, s, ip, fct, sh);
+							UG_COND_THROW(IsFiniteAndNotTooBig(vvvDeriv[ip][commonFct][sh])==false, "");
 						}
 						else
 							vvvDeriv[ip][commonFct][sh] += 0;
@@ -212,13 +239,11 @@ eval_and_deriv(number vValue[],
 					}
 				}
 			}
-		}
 
-	//	check if Dividend has derivative
-		if(!m_vpDividendData[c]->zero_derivative())
-		{
-			for(size_t ip = 0; ip < nip; ++ip)
+		//	check if Dividend has derivative
+			if(!m_vpDividendData[c]->zero_derivative())
 			{
+
 			//	loop functions
 				for(size_t fct = 0; fct < dividend_num_fct(c); ++fct)
 				{
@@ -230,8 +255,10 @@ eval_and_deriv(number vValue[],
 					{
 						if(dividend_value(c,s,ip)!=0)
 						{
-							UG_ASSERT(divisor_value(c,s,ip)!=0, "DIVISOR IS 0");
-							vvvDeriv[ip][commonFct][sh] += vValue[ip] / (dividend_value(c,s,ip)/divisor_value(c,s,ip))*dividend_deriv(c, s, ip, fct, sh)/divisor_value(c,s,ip);
+							vvvDeriv[ip][commonFct][sh] +=
+									vValue
+									* dividend_deriv(c, s, ip, fct, sh) / divisor_value(c,s,ip);
+							UG_COND_THROW(IsFiniteAndNotTooBig(vvvDeriv[ip][commonFct][sh])==false, "");
 						}
 						else
 							vvvDeriv[ip][commonFct][sh] += 0;
@@ -243,8 +270,12 @@ eval_and_deriv(number vValue[],
 					}
 				}
 			}
+
 		}
+
+
 	}
+
 }
 
 
