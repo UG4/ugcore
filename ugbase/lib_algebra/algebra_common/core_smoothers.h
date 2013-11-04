@@ -28,7 +28,7 @@ namespace ug
  * \sa gs_step_UR, sgs_step
  */
 template<typename Matrix_type, typename Vector_type>
-bool gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
+void gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
 	// gs LL has preconditioning matrix
 	// (D-L)^{-1}
@@ -46,8 +46,6 @@ bool gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		// x[i] = s/A(i,i)
 		InverseMatMult(x[i], 1.0, A(i,i), s);
 	}
-
-	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,13 +58,13 @@ bool gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
  * \sa gs_step_LL, sgs_step
  */
 template<typename Matrix_type, typename Vector_type>
-bool gs_step_UR(const Matrix_type &A, Vector_type &x, const Vector_type &b)
+void gs_step_UR(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
 	// gs UR has preconditioning matrix
 	// (D-U)^{-1}
 	typename Vector_type::value_type s;
 
-	if(x.size() == 0) return true;
+	if(x.size() == 0) return;
 	size_t i = x.size()-1;
 	do
 	{
@@ -82,7 +80,6 @@ bool gs_step_UR(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		InverseMatMult(x[i], 1.0, diag.value(), s);
 	} while(i-- != 0);
 
-	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +92,7 @@ bool gs_step_UR(const Matrix_type &A, Vector_type &x, const Vector_type &b)
  * \sa gs_step_LL, gs_step_LL
  */
 template<typename Matrix_type, typename Vector_type>
-bool sgs_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
+void sgs_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
 	// sgs has preconditioning matrix
 	// (D-U)^{-1} D (D-L)^{-1}
@@ -109,8 +106,6 @@ bool sgs_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 
 	// x3 = (D-U)^{-1} x2
 	gs_step_UR(A, x, x);
-
-	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,16 +118,15 @@ bool sgs_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
  * \param damp the damping factor
   */
 template<typename Matrix_type, typename Vector_type>
-bool diag_step(const Matrix_type& A, Vector_type& x, const Vector_type& b, number damp)
+void diag_step(const Matrix_type& A, Vector_type& x, const Vector_type& b, number damp)
 {
 	//exit(3);
-	UG_ASSERT(x.size() == b.size() && x.size() == A.num_rows(), x << ", " << b << " and " << A << " need to have same size.");
+	UG_ASSERT(x.size() == b.size() && x.size() == A.num_rows(), x << ", " << b <<
+			" and " << A << " need to have same size.");
 
 	for(size_t i=0; i < x.size(); i++)
 		// x[i] = damp * b[i]/A(i,i)
 		InverseMatMult(x[i], damp, A(i,i), b[i]);
-
-	return true;
 }
 
 /// @}

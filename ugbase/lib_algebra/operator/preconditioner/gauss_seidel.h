@@ -107,14 +107,14 @@ class GaussSeidel : public IPreconditioner<TAlgebra>
 				SmartPtr<vector_type> spDtmp = d.clone();
 				spDtmp->change_storage_type(PST_UNIQUE);
 
-				if(!gs_step_LL(m_A, c, *spDtmp)) return false;
+				gs_step_LL(m_A, c, *spDtmp);
 				c.set_storage_type(PST_UNIQUE);
 				return true;
 			}
 			else
 #endif
 			{
-				if(!gs_step_LL(*pOp, c, d)) return false;
+				gs_step_LL(*pOp, c, d);
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);
 #endif
@@ -220,14 +220,14 @@ class BackwardGaussSeidel : public IPreconditioner<TAlgebra>
 				dhelp.resize(d.size()); dhelp = d;
 				dhelp.change_storage_type(PST_UNIQUE);
 
-				if(!gs_step_UR(m_A, c, dhelp)) return false;
+				gs_step_UR(m_A, c, dhelp);
 				c.set_storage_type(PST_UNIQUE);
 				return true;
 			}
 			else
 #endif
 			{
-				if(!gs_step_UR(*pOp, c, d)) return false;
+				gs_step_UR(*pOp, c, d);
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);
 #endif
@@ -331,14 +331,14 @@ class SymmetricGaussSeidel : public IPreconditioner<TAlgebra>
 				dhelp.resize(d.size()); dhelp = d;
 				dhelp.change_storage_type(PST_UNIQUE);
 
-				if(!sgs_step(m_A, c, dhelp)) return false;
+				sgs_step(m_A, c, dhelp);
 				c.set_storage_type(PST_UNIQUE);
 				return true;
 			}
 			else
 #endif
 			{
-				if(!sgs_step(*pOp, c, d)) return false;
+				sgs_step(*pOp, c, d);
 #ifdef UG_PARALLEL
 				c.set_storage_type(PST_UNIQUE);
 #endif
