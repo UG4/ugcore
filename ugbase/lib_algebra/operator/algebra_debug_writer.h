@@ -75,7 +75,7 @@ class AlgebraDebugWriter : public IDebugWriter<TAlgebra>
 		{
 			const std::vector<MathVector<dim> > &posvec = base_type::template get_positions<dim>();
 			// check size
-			if(vec.size() != posvec.size())
+			if(vec.size() > posvec.size())
 				UG_THROW("'AlgebraDebugWriter::write_vector':"
 						 " Number of positions does not match.\n");
 
