@@ -11,7 +11,7 @@
 #include "inverse_linker.h"
 #include "linker_traits.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
-
+#include "common/util/number_util.h"
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
