@@ -130,7 +130,7 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_<T,TBase>(name, grp, "Jacobi Preconditioner")
 			.add_constructor()
 			.template add_constructor<void (*)(number)>("DampingFactor")
-			.add_method("set_block", &T::set_block, "", "block", "if true, use block smoothing (default), else diagonal smoothing")
+			//.add_method("set_block", &T::set_block, "", "block", "if true, use block smoothing (default), else diagonal smoothing")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "Jacobi", tag);
 	}
