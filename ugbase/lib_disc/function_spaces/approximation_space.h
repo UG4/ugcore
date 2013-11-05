@@ -143,7 +143,7 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 		ConstSmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl, bool bCreate = true) const;
 
 	///	returns all currently created dof distributions
-		std::vector<SmartPtr<DoFDistribution> >& dof_distributions() {return m_vDD;}
+		std::vector<SmartPtr<DoFDistribution> > dof_distributions() {return m_vDD;}
 
 	///	returns dof distribution info
 	/// \{
@@ -232,6 +232,12 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	protected:
 	///	MG Level DoF Distribution
 		std::vector<SmartPtr<DoFDistribution> > m_vDD;
+
+	///	Index Storage for Level (ghost / noghost)
+	///	\{
+		SmartPtr<DoFIndexStorage> m_spDoFIndexStrgForLevelNoGhost;
+		SmartPtr<DoFIndexStorage> m_spDoFIndexStrgForLevelWithGhost;
+	/// \}
 };
 
 /// base class for approximation spaces without type of algebra or dof distribution

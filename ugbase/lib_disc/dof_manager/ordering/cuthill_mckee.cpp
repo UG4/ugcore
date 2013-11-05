@@ -211,7 +211,7 @@ void OrderCuthillMcKee(DoFDistribution& dofDistr, bool bReverse)
 template <typename TDomain>
 void OrderCuthillMcKee(ApproximationSpace<TDomain>& approxSpace, bool bReverse)
 {
-	std::vector<SmartPtr<DoFDistribution> >& vDD = approxSpace.dof_distributions();
+	std::vector<SmartPtr<DoFDistribution> > vDD = approxSpace.dof_distributions();
 
 	for(size_t i = 0; i < vDD.size(); ++i)
 		OrderCuthillMcKee(*vDD[i], bReverse);

@@ -207,8 +207,7 @@ void OrderLex(ApproximationSpace<TDomain>& approxSpace, const char *order)
 {
 	// TODO: decode order input
 
-	std::vector<SmartPtr<DoFDistribution> >& vDD =
-			approxSpace.dof_distributions();
+	std::vector<SmartPtr<DoFDistribution> > vDD = approxSpace.dof_distributions();
 
 	for(size_t i = 0; i < vDD.size(); ++i)
 		OrderLexForDofDist<TDomain>(vDD[i], approxSpace.domain());
