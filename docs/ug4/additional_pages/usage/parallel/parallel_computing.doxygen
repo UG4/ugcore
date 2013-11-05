@@ -21,7 +21,9 @@ Be aware that you can also run this if you don't have 4 cores. This might be han
 
 If you have a lot of cores (and sufficient RAM) you can also speed up compiling by using <tt>make -j4</tt>, see \ref secBuildUG4Make.
 
-See also \ref pageugsubmit .
+The recommended way to submit jobs is to use ugsubmit. See here \ref pageugsubmit .
+Using ugsubmit has a lot of advantages: Its more convenient and you will be able to use your scripts on a lot of clusters. 
+ 
 <hr>
 \section secParallelComputingGeneral General Information about Parallel Computing
 <hr>
@@ -135,5 +137,87 @@ if GetProcessRank() == 0 then
 end
  \endcode
  \note Think about where you save data and where you get data from. Try if your script is also working from other directories.
+
+
+<hr>
+\section secBashCombination ugsubmit in other scripts
+You can use ugsubmit \em in other scripts. Lets say you have a script myapp/myscript.lua, and you want to run this script with 
+numRefs = 4 .. 8, parameters co2start = {0.1, 0.2, 0.3}, param2 = {-1, 0, 1}, useExtendedModel = {true, false}.
+
+First thing is you have to adjust your script (if not already done) so it takes the input from the command line, e.g.
+\code
+ugshell -ex myapp/myscript.lua -numRefs 4 -co2start 0.2 -param2 1 -useExtendedModel
+\endcode
+
+For this, you use util.HasParamOption, util.GetParam, and util.GetParamNumber, so in your script: 
+\code
+-- beginning of the script
+co2start = util.GetParamNumber("-co2start", 1, "start co2 concentration") --- 1 is default value
+param2 = util.GetParamNumber("-param2", 0, "parameter 2 for the model") --- 0 is default value
+useExtendedModel = util.HasParamOption("-useExtendedModel", "if true, use extended model (nonlinear)") --- false is default value
+
+numRefs = util.GetParamNumber("-numRefs", 4, "number of refinements") 
+
+-- rest of the script
+\endcode
+
+Then you can use a bash named e.g. myLargeRun.sh script like this
+
+\code
+for numRefs in 4 5 6 7 8
+do
+	for co2start in 0.1 0.2 0.3
+	do
+		for param2 in -1 0 1
+		do
+			ugsubmit 64 --- ugshell -ex myapp/myscript.lua -numRefs $numRefs -co2start $co2start -param2 $param2 -useExtendedModel
+			ugsubmit 64 --- ugshell -ex myapp/myscript.lua -numRefs $numRefs -co2start $co2start -param2 $param2
+		done
+	done
+done
+\endcode
+
+Now when you run myLargeRun.sh (bash myLargeRun.sh) the script starts a total of 5*3*3*2 = 60 jobs with ugsubmit.
+
+Note that you can use your myLargeRun.sh also on other clusters! So once set up, you save a lot of work with ugsubmit and bash.
+
+\subsection secParallelOutdirDate A directory for your results
+
+Here's a bash script to create a run directory which is named by the current date so that you can use it with outdir (see \ref secParallelComputingInputOutput) 
+
+\code
+# create a variable with the date e.g. $HOME/results/run_2013-11-05-09.55.26
+myOutDir=$HOME/results/run_`date +%Y-%m-%d-%H.%M.%S``
+mkdir $HOME/results
+mkdir $myOutDir
+for i in {3..6}
+do
+   ugsubmit 64 --- ugshell -ex mycheck.lua -outdir $myOutDir/ -logtofile $myOutDir/mycheck${i} -numRefs $i
+done
+\endcode
+
+\subsection secParallelStats A simple method to produce combined statistics 
+(see also <a href="stats__util_8lua.html">stats_util.lua</a>)
+\code
+-- needs ug_load_script("ug_util.lua")
+if GetProcessRank() == 0 then
+	stats = {	
+	{ "procs", GetNumProcesses() },
+	{ "numRefs", numRefs },
+	{ "param1", param1},
+	{ "dim", dim},
+	{ "gridName", gridName},
+	{ "concentration", integrate_conc( elemDisc_rna_ribo:value(), "rna_ribo_3d" , u, time, false ) },
+	{ "date", os.date("y%Ym%md%d") },
+	{ "SVN Revision", GetSVNRevision()},
+	{"host",GetBuildHostname()},
+	{"commandline", util.GetCommandLine() } } 
+	}
+	
+	util.writeFileStats(stats, outdir.."stats.txt")
+end
+\endcode
+This will produce a file named "stats.txt" in the outdir, where each run can save the values it produced by appending it to the file. At the end you will have a table which is readable by Excel or (Mac) Numbers.
+
   
  */
