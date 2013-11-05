@@ -38,7 +38,7 @@ ug_add_parameter_completion()
 		then
 			# save result in variable, otherwise "too many open files" error
 			local texx
-			texx=`sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p' < $filename`			
+			texx=`LANG=C sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p' < $filename`			
 		
 		##### check for parameters in file
 			# open the file $filename,
@@ -62,7 +62,7 @@ ug_add_parameter_completion()
 				fi							
 			done
 			
-			texx=`sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p' < $filename`
+			texx=`LANG=C sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p' < $filename`
 			
 		##### check for ug_load_script in file	
 			for line in $texx
@@ -91,7 +91,6 @@ ug_add_parameter_completion()
 ugshell_complete()
 {	
 	# fix "RE error: illegal byte sequence" problem
-	unset LANG
 		
 	local word="${COMP_WORDS[COMP_CWORD]}"
   	local i=0
