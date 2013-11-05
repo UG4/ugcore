@@ -18,6 +18,8 @@
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "grid_function.h"
 
+#include <algorithm> // std::sort
+
 //	for debugging only:
 //#include "lib_grid/file_io/file_io.h"
 //#define APPROX_SPACE_PERFORM_CHANGED_GRID_DEBUG_SAVES
@@ -183,11 +185,30 @@ IApproximationSpace::dof_distribution(const GridLevel& gl, bool bCreate)
 	return dof_distribution(gl, false);
 }
 
+SmartPtr<DoFDistribution>
+IApproximationSpace::dd(const GridLevel& gl, bool bCreate)
+{
+	return dof_distribution(gl, bCreate);
+}
+
 ConstSmartPtr<DoFDistribution>
 IApproximationSpace::dof_distribution(const GridLevel& gl, bool bCreate) const
 {
 	return const_cast<IApproximationSpace*>(this)->dof_distribution(gl, bCreate);
 }
+
+ConstSmartPtr<DoFDistribution>
+IApproximationSpace::dd(const GridLevel& gl, bool bCreate) const
+{
+	return dof_distribution(gl, bCreate);
+}
+
+std::vector<SmartPtr<DoFDistribution> >
+IApproximationSpace::dof_distributions() const
+{
+	return m_vDD;
+}
+
 
 void IApproximationSpace::init_levels()
 {
@@ -215,18 +236,41 @@ void IApproximationSpace::init_top_surface()
 // DoFDistribution Creation
 ////////////////////////////////////////////////////////////////////////////////
 
+bool SortDD(SmartPtr<DoFDistribution> spDD1, SmartPtr<DoFDistribution> spDD2){
+	return spDD1->grid_level() < spDD2->grid_level();
+}
+
 void IApproximationSpace::create_dof_distribution(const GridLevel& gl)
 {
 
 	dof_distribution_info_required();
 	surface_view_required();
 
-	// todo: reuse DoFIndexStorage in case of Level
+//	get DoFIndexStorage if it is reusable
+	SmartPtr<DoFIndexStorage> spIndexStrg;
+	if(gl.is_level()){
+		if(gl.with_ghosts()){
+			if(m_spDoFIndexStrgForLevelWithGhost.invalid())
+				m_spDoFIndexStrgForLevelWithGhost = SmartPtr<DoFIndexStorage>(
+						new DoFIndexStorage(m_spMG, m_spDoFDistributionInfo));
+			spIndexStrg = m_spDoFIndexStrgForLevelWithGhost;
+		}
+		else{
+			if(m_spDoFIndexStrgForLevelNoGhost.invalid())
+				m_spDoFIndexStrgForLevelNoGhost = SmartPtr<DoFIndexStorage>(
+						new DoFIndexStorage(m_spMG, m_spDoFDistributionInfo));
+			spIndexStrg = m_spDoFIndexStrgForLevelNoGhost;
+		}
+	}
+
+//	create DoFDistribution
 	SmartPtr<DoFDistribution> spDD = SmartPtr<DoFDistribution>(new
 		DoFDistribution(m_spMG, m_spMGSH, m_spDoFDistributionInfo,
-						m_spSurfaceView, gl, m_bGrouped));
+						m_spSurfaceView, gl, m_bGrouped, spIndexStrg));
 
+//	add to list and sort
 	m_vDD.push_back(spDD);
+	std::sort(m_vDD.begin(), m_vDD.end(), SortDD);
 }
 
 void IApproximationSpace::surface_view_required()

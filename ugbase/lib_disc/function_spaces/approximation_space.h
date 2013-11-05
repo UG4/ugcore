@@ -136,14 +136,20 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 		bool grouped() const {return m_bGrouped;}
 
 
-	///	returns dof distribution for a level
+	///	returns dof distribution for a grid level
+	/// \{
 		SmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl, bool bCreate = true);
+		SmartPtr<DoFDistribution> dd(const GridLevel& gl, bool bCreate = true);
+	/// \}
 
-	///	returns dof distribution for a level
+	///	returns dof distribution for a grid level
+	/// \{
 		ConstSmartPtr<DoFDistribution> dof_distribution(const GridLevel& gl, bool bCreate = true) const;
+		ConstSmartPtr<DoFDistribution> dd(const GridLevel& gl, bool bCreate = true) const;
+	/// \}
 
 	///	returns all currently created dof distributions
-		std::vector<SmartPtr<DoFDistribution> > dof_distributions() {return m_vDD;}
+		std::vector<SmartPtr<DoFDistribution> > dof_distributions() const;
 
 	///	returns dof distribution info
 	/// \{
