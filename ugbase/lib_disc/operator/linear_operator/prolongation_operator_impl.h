@@ -371,7 +371,7 @@ void scalePressureValues(typename TAlgebra::matrix_type& mat,number scaleFactor,
 	const int dim = TDomain::dim;
 
 //  get subsethandler and grid
-	MultiGrid& grid = *const_cast<MultiGrid*>(&coarseDD.multi_grid());
+	MultiGrid& grid = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
 
 //  get number of dofs on different levels
 	const size_t numFineDoFs = fineDD.num_indices();
