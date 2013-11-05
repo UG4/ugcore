@@ -8,6 +8,7 @@
 #ifndef __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__
 #define __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__
 
+#include <iomanip>      // std::setw
 
 namespace ug{
 
@@ -15,19 +16,22 @@ class GridLevel
 {
 	public:
 	///	indicates that always top level should be used
-		enum{TOPLEVEL = -1};
+		enum{TOP = -1};
 
 	///	type of view
-		enum ViewType{SURFACE = 0, LEVEL = 1};
+		enum ViewType{LEVEL = 0, SURFACE = 1};
 
 	public:
 	///	constructor creation surface grid
-		GridLevel() : m_level(TOPLEVEL), m_type(SURFACE), m_bWithGhosts(false) {}
+		GridLevel() : m_level(TOP), m_type(SURFACE), m_bWithGhosts(false) {}
 
 	///	constructor
 		GridLevel(int level, ViewType type, bool bWithGhosts = false)
 			: m_level(level), m_type(type), m_bWithGhosts(bWithGhosts)
-		{}
+		{
+			if(type == SURFACE && bWithGhosts)
+				UG_THROW("GridLevel: Surface only with Ghosts possible.");
+		}
 
 	///	constructor
 		GridLevel(int level)
@@ -50,7 +54,10 @@ class GridLevel
 		ViewType type() const {return m_type;}
 
 	///	returns if ghosts are considered as part of the level
-		bool with_ghosts() const {return m_bWithGhosts;}
+		bool ghosts() const {return m_bWithGhosts;}
+
+	///	returns if top level
+		bool top() const {return level() == TOP;}
 
 	///	returns if type is level
 		bool is_level() const {return type() == LEVEL;}
@@ -61,7 +68,7 @@ class GridLevel
 	///	operator ==
 		bool operator==(const GridLevel& rhs) const {
 			return (this->level() == rhs.level() && this->type() == rhs.type()
-					&& this->with_ghosts() == rhs.with_ghosts());
+					&& this->ghosts() == rhs.ghosts());
 		}
 
 	///	operator !=
@@ -72,21 +79,23 @@ class GridLevel
 	///	operator <
 		bool operator<(const GridLevel& rhs) const
 		{
-			if(this->with_ghosts() != rhs.with_ghosts())
-				return this->with_ghosts();
-			else if(this->type() != rhs.type())
-				return this->type() < rhs.type();
-			else return this->level() < rhs.level();
+			if(this->type() != rhs.type()) return this->type() < rhs.type();
+			if(this->ghosts() != rhs.ghosts()) return !this->ghosts();
+			if(this->level() == rhs.level()) return false;
+			if(this->level() == TOP) return false;
+			if(rhs.level() == TOP) return true;
+			return this->level() < rhs.level();
 		}
 
 	///	operator >
 		bool operator>(const GridLevel& rhs) const
 		{
-			if(this->with_ghosts() != rhs.with_ghosts())
-				return !this->with_ghosts();
-			else if(this->type() != rhs.type())
-				return this->type() > rhs.type();
-			else return this->level() > rhs.level();
+			if(this->type() != rhs.type()) return this->type() > rhs.type();
+			if(this->ghosts() != rhs.ghosts()) return this->ghosts();
+			if(this->level() == rhs.level()) return false;
+			if(this->level() == TOP) return true;
+			if(rhs.level() == TOP) return false;
+			return this->level() > rhs.level();
 		}
 
 	///	operator <=
@@ -110,15 +119,15 @@ class GridLevel
 /// writes to the output stream
 inline std::ostream& operator<<(std::ostream& out,	const GridLevel& v)
 {
-	if(v.type() == GridLevel::SURFACE) out << "(surface, ";
-	else if(v.type() == GridLevel::LEVEL) out << "(level, ";
-	else UG_THROW("type of GridLevel not found.");
+	if(v.is_surface()) out << "(surf, ";
+	else if(v.is_level()) out << "(lev,  ";
+	else UG_THROW("GridLevel: type of GridLevel not found.");
 
-	if(v.level() == GridLevel::TOPLEVEL) out << "toplevel, ";
-	else out << v.level() << ", ";
+	if(v.top()) out << "top";
+	else out << std::setw(3) << v.level();
 
-	if(v.with_ghosts() == true) out << "ghosts)";
-	else out << "no ghosts)";
+	if(v.ghosts() == true) out << ", g)";
+	else out << ")";
 
 	return out;
 }

@@ -1430,7 +1430,7 @@ void DoFDistribution::reinit_layouts_and_communicator()
 	reinit_index_layout(layouts()->slave(), INT_H_SLAVE);
 
 //	vertical layouts
-	if(grid_level().with_ghosts()){
+	if(grid_level().ghosts()){
 		reinit_index_layout(layouts()->vertical_master(), INT_V_MASTER);
 		reinit_index_layout(layouts()->vertical_slave(), INT_V_SLAVE);
 	}
@@ -1481,7 +1481,7 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 	if(grid_level().type() == GridLevel::SURFACE){
 	//	choose level, that must be looped
 		int toLev = layoutMap.get_layout<TBaseElem>(keyType).num_levels() - 1;
-		if(m_gridLevel == GridLevel::TOPLEVEL) {if(toLev < 0) toLev = 0;}
+		if(m_gridLevel == GridLevel::TOP) {if(toLev < 0) toLev = 0;}
 		else toLev = grid_level().level();
 
 	//	loop all level

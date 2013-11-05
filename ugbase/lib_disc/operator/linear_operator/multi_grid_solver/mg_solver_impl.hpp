@@ -51,7 +51,7 @@ template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(approxSpace),
-	m_topLev(GridLevel::TOPLEVEL), m_surfaceLev(GridLevel::TOPLEVEL),
+	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
 	m_numPreSmooth(2), m_numPostSmooth(2),
 	m_bAdaptive(true),
@@ -338,7 +338,7 @@ init()
 		m_surfaceLev = pSol->dof_distribution()->grid_level().level();
 	}
 
-	if(m_surfaceLev != GridLevel::TOPLEVEL) m_topLev = m_surfaceLev;
+	if(m_surfaceLev != GridLevel::TOP) m_topLev = m_surfaceLev;
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
 
 	if(m_baseLev > m_topLev)
@@ -657,7 +657,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	//	create a surface matrix
 		matrix_type surfMat;
 
-		GridLevel surfLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE);
+		GridLevel surfLevel(GridLevel::TOP, GridLevel::SURFACE);
 
 	//	assemble the surface jacobian only for selected elements
 		if(u)
@@ -1996,7 +1996,7 @@ write_surface_debug(const vector_type& vec, const char* filename)
 
 //	write
 	GridLevel gridLev = dbgWriter->grid_level();
-	dbgWriter->set_grid_level(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE));
+	dbgWriter->set_grid_level(GridLevel(GridLevel::TOP, GridLevel::SURFACE));
 	dbgWriter->write_vector(vec, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop write_surface_debug(vec): " << filename << "\n");
@@ -2027,7 +2027,7 @@ write_surface_debug(const matrix_type& mat, const char* filename)
 
 //	write
 	GridLevel gridLev = dbgWriter->grid_level();
-	dbgWriter->set_grid_level(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE));
+	dbgWriter->set_grid_level(GridLevel(GridLevel::TOP, GridLevel::SURFACE));
 	dbgWriter->write_matrix(mat, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop write_surface_debug(mat): " << filename << "\n");

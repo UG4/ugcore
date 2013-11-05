@@ -25,7 +25,7 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
 	m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
 	m_bTimeMeas(true)
 {
-	set_level(GridLevel::TOPLEVEL);
+	set_level(GridLevel::TOP);
 }
 
 template <class TVector, class TDomain>
@@ -38,7 +38,7 @@ CompositeConvCheck(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 	m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
 	m_bTimeMeas(true)
 {
-	set_level(GridLevel::TOPLEVEL);
+	set_level(GridLevel::TOP);
 }
 
 template <class TVector, class TDomain>

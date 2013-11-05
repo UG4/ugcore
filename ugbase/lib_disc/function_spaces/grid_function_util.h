@@ -415,7 +415,7 @@ public:
 
 	///	sets to toplevel on surface
 	void reset() {
-		set_grid_level(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE));
+		set_grid_level(GridLevel(GridLevel::TOP, GridLevel::SURFACE));
 		m_pvMapGlobalToPatch = NULL;
 	}
 
@@ -767,7 +767,7 @@ public:
 		size_t numDoFs = 0;
 		GridLevel gl;
 		if (m_level == (size_t) -1) {
-			numDoFs = m_pApproxSpace->dof_distribution(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE))->num_indices();
+			numDoFs = m_pApproxSpace->dof_distribution(GridLevel(GridLevel::TOP, GridLevel::SURFACE))->num_indices();
 			gl = GridLevel();
 		} else {
 			numDoFs =

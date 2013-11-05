@@ -34,7 +34,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
 
 //	check
-	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+	if(fineTopLevel == GridLevel::TOP || coarseTopLevel == GridLevel::TOP)
 		UG_THROW("ProlongateP1: Top Level not supported.")
 	if(fineTopLevel < coarseTopLevel)
 		UG_THROW("ProlongateP1: fine level must be >= coarse level.");
@@ -183,7 +183,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
 
 //	check
-	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+	if(fineTopLevel == GridLevel::TOP || coarseTopLevel == GridLevel::TOP)
 		UG_THROW("ProlongateElemwise: Top Level not supported.")
 	if(fineTopLevel < coarseTopLevel)
 		UG_THROW("ProlongateElemwise: fine level must be >= coarse level.");
@@ -328,7 +328,7 @@ void Prolongate(GridFunction<TDomain, TAlgebra>& uFine,
 //	get grid levels
 	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
 	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
-	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+	if(fineTopLevel == GridLevel::TOP || coarseTopLevel == GridLevel::TOP)
 		UG_THROW("Prolongate: Top Level not supported.")
 	if(fineTopLevel < coarseTopLevel)
 		UG_THROW("Prolongate: fine level must be >= coarse level.");
@@ -375,7 +375,7 @@ void RestrictP1(GridFunction<TDomain, TAlgebra>& uCoarse,
 	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
 
 //	check
-	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+	if(fineTopLevel == GridLevel::TOP || coarseTopLevel == GridLevel::TOP)
 		UG_THROW("RestrictP1: Top Level not supported.")
 	if(fineTopLevel < coarseTopLevel)
 		UG_THROW("RestrictP1: fine level must be >= coarse level.");
@@ -425,7 +425,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
 
 //	check
-	if(fineTopLevel == GridLevel::TOPLEVEL || coarseTopLevel == GridLevel::TOPLEVEL)
+	if(fineTopLevel == GridLevel::TOP || coarseTopLevel == GridLevel::TOP)
 		UG_THROW("RestrictElemwise: Top Level not supported.")
 	if(fineTopLevel < coarseTopLevel)
 		UG_THROW("RestrictElemwise: fine level must be >= coarse level.");
@@ -577,7 +577,7 @@ void Restrict(GridFunction<TDomain, TAlgebra>& uCoarse,
 //	get grid levels
 	const int coarseTopLevel = uCoarse.dof_distribution()->grid_level().level();
 	const int fineTopLevel = uFine.dof_distribution()->grid_level().level();
-	if(coarseTopLevel == GridLevel::TOPLEVEL || fineTopLevel == GridLevel::TOPLEVEL)
+	if(coarseTopLevel == GridLevel::TOP || fineTopLevel == GridLevel::TOP)
 		UG_THROW("Restrict: Top Level not supported.")
 	if(coarseTopLevel > fineTopLevel)
 		UG_THROW("Restrict: fine level must be >= coarse level.");

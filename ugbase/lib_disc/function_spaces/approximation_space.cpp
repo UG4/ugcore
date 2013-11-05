@@ -19,6 +19,8 @@
 #include "grid_function.h"
 
 #include <algorithm> // std::sort
+#include <sstream> // std::stringstream
+using namespace std;
 
 //	for debugging only:
 //#include "lib_grid/file_io/file_io.h"
@@ -229,7 +231,7 @@ void IApproximationSpace::init_surfaces()
 void IApproximationSpace::init_top_surface()
 {
 	PROFILE_FUNC();
-	create_dof_distribution(GridLevel(GridLevel::TOPLEVEL, GridLevel::SURFACE, false));
+	create_dof_distribution(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -249,7 +251,7 @@ void IApproximationSpace::create_dof_distribution(const GridLevel& gl)
 //	get DoFIndexStorage if it is reusable
 	SmartPtr<DoFIndexStorage> spIndexStrg;
 	if(gl.is_level()){
-		if(gl.with_ghosts()){
+		if(gl.ghosts()){
 			if(m_spDoFIndexStrgForLevelWithGhost.invalid())
 				m_spDoFIndexStrgForLevelWithGhost = SmartPtr<DoFIndexStorage>(
 						new DoFIndexStorage(m_spMG, m_spDoFDistributionInfo));
@@ -626,7 +628,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 		UG_LOG(" Surface |\n");
 		for(size_t i = 0; i < m_vDD.size(); ++i){
 			if(!m_vDD[i]->grid_level().is_surface()) continue;
-			if(m_vDD[i]->grid_level().level() == GridLevel::TOPLEVEL) continue;
+			if(m_vDD[i]->grid_level().level() == GridLevel::TOP) continue;
 
 			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level() << "  |");
 			print_statistic(m_vDD[i], verboseLev);
@@ -635,7 +637,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 
 		for(size_t i = 0; i < m_vDD.size(); ++i){
 			if(!m_vDD[i]->grid_level().is_surface()) continue;
-			if(m_vDD[i]->grid_level().level() != GridLevel::TOPLEVEL) continue;
+			if(m_vDD[i]->grid_level().level() != GridLevel::TOP) continue;
 
 			UG_LOG("     top |");
 			print_statistic(m_vDD[i], verboseLev);
@@ -686,7 +688,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 		UG_LOG(" Surface |\n");
 		for(size_t i = 0; i < m_vDD.size(); ++i){
 			if(!m_vDD[i]->grid_level().is_surface()) continue;
-			if(m_vDD[i]->grid_level().level() == GridLevel::TOPLEVEL) continue;
+			if(m_vDD[i]->grid_level().level() == GridLevel::TOP) continue;
 
 			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level() << "  |");
 			print_parallel_statistic(m_vDD[i], verboseLev);
@@ -695,7 +697,7 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 
 		for(size_t i = 0; i < m_vDD.size(); ++i){
 			if(!m_vDD[i]->grid_level().is_surface()) continue;
-			if(m_vDD[i]->grid_level().level() != GridLevel::TOPLEVEL) continue;
+			if(m_vDD[i]->grid_level().level() != GridLevel::TOP) continue;
 
 			UG_LOG("     top |");
 			print_parallel_statistic(m_vDD[i], verboseLev);
@@ -705,44 +707,39 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 #endif
 }
 
-#ifdef UG_PARALLEL
-static void PrintLayoutStatistic(ConstSmartPtr<DoFDistribution> dd)
-{
-	UG_LOG(std::setw(8) << NumIndices(dd->layouts()->master()) <<" | ");
-	UG_LOG(std::setw(8) << NumIndices(dd->layouts()->slave()) <<" | ");
-	UG_LOG(std::setw(12) << NumIndices(dd->layouts()->vertical_master()) <<" | ");
-	UG_LOG(std::setw(12) << NumIndices(dd->layouts()->vertical_slave()));
-}
-#endif
-
 void IApproximationSpace::print_layout_statistic(int verboseLev) const
 {
 #ifdef UG_PARALLEL
-//	Write info
-	UG_LOG("Layouts on Process " <<  GetLogAssistant().get_output_process() << ":\n");
+	static const int LEVEL = 14;
+	static const int NUMBER = 12;
+	static const int SEP = 3;
+	static const int LINE = LEVEL + 4*NUMBER + 4*SEP;
+	static const char* sSep = " | ";
 
 //	Write header line
-	UG_LOG(" Level |  Master  |  Slave   | vert. Master | vert. Slave\n");
-	UG_LOG("----------------------------------------------------------\n");
+	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
+	stringstream ss; ss << " Index Layouts on Proc " <<
+	GetLogAssistant().get_output_process() << " of "<< pcl::GetNumProcesses()
+	<< " Procs: " << repeat(' ', 15);
+	UG_LOG(sSep << setw(LINE)<<ss.str() << sSep << endl);
+
+	UG_LOG(sSep << setw(LEVEL) << "GridLevel  " << sSep);
+	UG_LOG(setw(NUMBER) << "Master  " << sSep);
+	UG_LOG(setw(NUMBER) << "Slave  " << sSep);
+	UG_LOG(setw(NUMBER) << "vert. Master" << sSep);
+	UG_LOG(setw(NUMBER) << "vert. Slave" << sSep << endl);
+	UG_LOG(" |-" << repeat('-', LINE) << "-| " << endl);
 
 //	Write Infos for Levels
 	for(size_t i = 0; i < m_vDD.size(); ++i){
-		if(!m_vDD[i]->grid_level().is_level()) continue;
-
-		UG_LOG(" " << std::setw(5)<< m_vDD[i]->grid_level().level() << " | ");
-		PrintLayoutStatistic(m_vDD[i]);
-		UG_LOG(std::endl);
+		stringstream ss; ss << m_vDD[i]->grid_level();
+		UG_LOG(sSep << setw(LEVEL) << std::left << ss.str() << std::right << sSep);
+		UG_LOG(setw(NUMBER) << NumIndices(m_vDD[i]->layouts()->master()) << sSep);
+		UG_LOG(setw(NUMBER) << NumIndices(m_vDD[i]->layouts()->slave()) << sSep);
+		UG_LOG(setw(NUMBER) << NumIndices(m_vDD[i]->layouts()->vertical_master()) << sSep);
+		UG_LOG(setw(NUMBER) << NumIndices(m_vDD[i]->layouts()->vertical_slave()) << sSep << endl);
 	}
-
-//	Write Infos for Surface Grid
-	UG_LOG(" Surf  |\n");
-	for(size_t i = 0; i < m_vDD.size(); ++i){
-		if(!m_vDD[i]->grid_level().is_surface()) continue;
-
-		UG_LOG(" " << std::setw(5)<< m_vDD[i]->grid_level().level() << " | ");
-		PrintLayoutStatistic(m_vDD[i]);
-		UG_LOG(std::endl);
-	}
+	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
 
 #else
 	UG_LOG(" No Layouts in sequential code.\n");
