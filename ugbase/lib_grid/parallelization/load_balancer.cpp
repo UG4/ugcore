@@ -87,6 +87,8 @@ create_cluster_communicator(size_t hlvl, size_t gridLvl, size_t numProcsPerProc)
 void ProcessHierarchy::
 init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl, size_t numProcsPerProc)
 {
+	UG_ASSERT(numProcsPerProc > 0, "each proc has to distribute to at least 1 new process");
+
 	clusterProcs.clear();
 	if(hlvl == 0){
 		clusterProcs.reserve(numProcsPerProc);
@@ -103,11 +105,12 @@ init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl, size_t numProcsP
 		return;
 	}
 
+
 //	calculate the root process for this cluster and create the group based on rootProc
 	int localProc = pcl::GetProcRank();
 	int rootProc = localProc;
 	if(localProc >= (int)parentLvl.numGlobalProcsInUse)
-		rootProc = localProc / (int)parentLvl.numGlobalProcsInUse;
+		rootProc = (localProc - (int)parentLvl.numGlobalProcsInUse) / ((int)numProcsPerProc - 1);
 
 	clusterProcs.push_back(rootProc);
 	int firstNewProc = (int)parentLvl.numGlobalProcsInUse + rootProc * ((int)numProcsPerProc - 1);

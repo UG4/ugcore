@@ -16,6 +16,7 @@
 	#include "lib_grid/parallelization/load_balancer.h"
 	#include "lib_grid/parallelization/load_balancer_util.h"
 	#include "lib_grid/parallelization/partitioner_bisection.h"
+	#include "lib_grid/parallelization/partitioner_dynamic_bisection.h"
 	#include "lib_disc/parallelization/domain_load_balancer.h"
 	#ifdef UG_PARMETIS
 		#include "lib_grid/parallelization/partitioner_parmetis.h"
@@ -118,6 +119,16 @@ static void Domain(Registry& reg, string grp)
 				.add_constructor()
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Partitioner_Bisection", tag);
+		}
+
+		{
+			typedef IPartitioner<TDomain::dim> TBase;
+			typedef Partitioner_DynamicBisection<TDomain::dim> T;
+			string name = string("Partitioner_DynamicBisection").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+				.add_constructor()
+				.set_construct_as_smart_pointer(true);
+			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
 		}
 
 		#ifdef UG_PARMETIS

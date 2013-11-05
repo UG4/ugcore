@@ -73,7 +73,7 @@ function balancer.ParseParameters()
 									"a high value means the contrary. Default is 1000.")
 
 	balancer.partitioner		= util.GetParam("-partitioner", balancer.partitioner,
-									"(Options: parmetis, bisection) The partitioner which will be used during repartitioning.")
+									"(Options: parmetis, bisection, dynBisection) The partitioner which will be used during repartitioning.")
 end
 
 --! Prints the balancing parameters
@@ -124,6 +124,10 @@ function balancer.CreateLoadBalancer(domain)
 		elseif(balancer.partitioner == "bisection") then
 			print("SORRY: partitioner 'bisection' currently isn't available due to lazyness...")
 			exit()
+		elseif(balancer.partitioner == "dynBisection") then
+			local partitioner = Partitioner_DynamicBisection()
+			partitioner:set_verbose(false)
+			loadBalancer:set_partitioner(partitioner)
 		else
 			print("ERROR: Unknown partitioner specified in balancer.CreateLoadBalancer")
 			exit()
