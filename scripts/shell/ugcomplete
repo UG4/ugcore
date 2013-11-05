@@ -90,7 +90,9 @@ ug_add_parameter_completion()
 #####################################################
 ugshell_complete()
 {	
-	# fix "RE error: illegal byte sequence" problem
+	# "RE error: illegal byte sequence" problem occurs when LANG environment is wrong.
+	# it is now set to LANG=C temporarily (see texx line above)
+	# we maybe have to change this when we are using UTF8 for files or similar
 		
 	local word="${COMP_WORDS[COMP_CWORD]}"
   	local i=0
