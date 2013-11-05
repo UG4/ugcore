@@ -164,10 +164,7 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 		void print_statistic() const {print_statistic(1);}
 
 	///	prints statistic on layouts
-		void print_layout_statistic(int verboseLev = 1) const;
-
-	///	prints statistic on layouts
-		void print_layout_statistic() const {print_layout_statistic(1);}
+		void print_layout_statistic() const;
 
 
 	///	initializes all level dof distributions
@@ -188,13 +185,6 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 
 	///	create dof distribution info
 		void dof_distribution_info_required();
-
-	protected:
-	///	prints number of dofs
-		void print_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const;
-
-	///	prints statistic about DoF Distribution
-		void print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const;
 
 	protected:
 	///	reinits all data after grid adaption

@@ -439,31 +439,6 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 // Statistic
 ////////////////////////////////////////////////////////////////////////////////
 
-void IApproximationSpace::
-print_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const
-{
-//	Total number of DoFs
-	UG_LOG(std::setw(10) << ConvertNumber(dd->num_indices(),10,6) << " | ");
-
-	const int blockSize = DefaultAlgebra::get().blocksize();
-
-//	Overall block size
-	if(blockSize != AlgebraType::VariableBlockSize) {UG_LOG(std::setw(8)  << blockSize);}
-	else {UG_LOG("variable");}
-	UG_LOG("  | " );
-
-//	Subset informations
-	if(verboseLev >= 1)
-	{
-		for(int si = 0; si < dd->num_subsets(); ++si)
-		{
-			UG_LOG( " (" << dd->subset_name(si) << ",");
-			UG_LOG(std::setw(8) << ConvertNumber(dd->num_indices(si),8,4) << ") ");
-
-		}
-	}
-}
-
 #ifdef UG_PARALLEL
 static size_t NumIndices(const IndexLayout& Layout)
 {
@@ -475,8 +450,8 @@ static size_t NumIndices(const IndexLayout& Layout)
 }
 #endif
 
-void IApproximationSpace::
-print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) const
+static void ComputeParallelIndices(size_t& numDoFs, std::vector<size_t>& vNumDoFSubset,
+									 ConstSmartPtr<DoFDistribution> dd)
 {
 #ifdef UG_PARALLEL
 //	Get Process communicator;
@@ -557,157 +532,117 @@ print_parallel_statistic(ConstSmartPtr<DoFDistribution> dd, int verboseLev) cons
 	}
 	else
 	{
-		UG_LOG(" Unable to compute informations.");
+//		UG_LOG(" Unable to compute informations.");
 		return;
 	}
 
 //	Total number of DoFs (last arg of 'ConvertNumber()' ("precision") is total
 //  width - 4 (two for binary prefix, two for space and decimal point)
-	UG_LOG(std::setw(10) << ConvertNumber(tNumGlobal[0],10,6) <<" | ");
+	numDoFs = tNumGlobal[0];
 
-//	Overall block size
-	const int blockSize = DefaultAlgebra::get().blocksize();
-	if(blockSize != AlgebraType::VariableBlockSize) {UG_LOG(std::setw(8)  << blockSize);}
-	else {UG_LOG("variable");}
-	UG_LOG("  | " );
-
-//	Subset informations
-	if(verboseLev>=1)
-	{
-		for(int si = 0; si < dd->num_subsets(); ++si)
-		{
-			UG_LOG( " (" << dd->subset_name(si) << ",");
-			UG_LOG(std::setw(8) << ConvertNumber(tNumGlobal[si+1],8,4) << ") ");
-		}
-	}
+	vNumDoFSubset.resize(dd->num_subsets());
+	for(int si = 0; si < dd->num_subsets(); ++si)
+		vNumDoFSubset[si] = tNumGlobal[si+1];
 #endif
 }
 
 
 void IApproximationSpace::print_statistic(int verboseLev) const
 {
-//	Write info
-	UG_LOG("Statistic on DoF-Distribution");
+	static const int LEVEL = 14;
+	static const int NUMBER = 12;
+	static const int SUBSET = 12;
+	static const char* sSep = " | ";
+
+//	DD info
+	stringstream ssDD; ssDD<<"DoF-Distribution";
 #ifdef UG_PARALLEL
-	UG_LOG(" on process " << pcl::GetProcRank() <<
-	       " of " << pcl::GetNumProcesses() << " processes");
+	ssDD<<" on Proc "<<pcl::GetProcRank()<<" of "<< pcl::GetNumProcesses()<<" Procs";
 #endif
-	UG_LOG(":\n");
 
-//	check, what to print
-	bool bPrintSurface = false, bPrintLevel = false;
-	for(size_t i = 0; i < m_vDD.size(); ++i){
-		if(m_vDD[i]->grid_level().is_level()) bPrintLevel = true;
-		if(m_vDD[i]->grid_level().is_surface()) bPrintSurface = true;
-	}
+//	Algebra Info
+	const int blockSize = DefaultAlgebra::get().blocksize();
+	stringstream ssAlgebra; ssAlgebra << "Algebra: ";
+	if(blockSize != AlgebraType::VariableBlockSize) ssAlgebra<<"Block "<<blockSize;
+	else ssAlgebra <<"Flex";
 
-//	Write header line
-	if(bPrintLevel || bPrintSurface)
-	{
-		UG_LOG("         |   Total   | BlockSize | ");
-		if(verboseLev >= 1) UG_LOG("(Subset, DoFs) ");
-		UG_LOG("\n");
-	}
-
-//	Write Infos for Levels
-	if(bPrintLevel)
-	{
-		UG_LOG("  Level  |\n");
-		for(size_t i = 0; i < m_vDD.size(); ++i){
-			if(!m_vDD[i]->grid_level().is_level()) continue;
-
-			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level()  << "  |");
-			print_statistic(m_vDD[i], verboseLev);
-			UG_LOG(std::endl);
+//	Table Header
+	stringstream ssHead;
+	ssHead << setw(LEVEL) << "GridLevel  " << sSep;
+	ssHead << setw(NUMBER) << "# Index" << sSep;
+	if(verboseLev >= 1) {
+		for(int si = 0; si < this->num_subsets(); ++si){
+			if(si > 0) ssHead << sSep;
+			ssHead << setw(SUBSET) << this->subset_name(si);
 		}
 	}
+	const int LINE = ssHead.str().size();
 
-//	Write Infos for Surface Grid
-	if(bPrintSurface)
-	{
-		UG_LOG(" Surface |\n");
-		for(size_t i = 0; i < m_vDD.size(); ++i){
-			if(!m_vDD[i]->grid_level().is_surface()) continue;
-			if(m_vDD[i]->grid_level().level() == GridLevel::TOP) continue;
-
-			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level() << "  |");
-			print_statistic(m_vDD[i], verboseLev);
-			UG_LOG(std::endl);
-		}
-
-		for(size_t i = 0; i < m_vDD.size(); ++i){
-			if(!m_vDD[i]->grid_level().is_surface()) continue;
-			if(m_vDD[i]->grid_level().level() != GridLevel::TOP) continue;
-
-			UG_LOG("     top |");
-			print_statistic(m_vDD[i], verboseLev);
-			UG_LOG(std::endl);
-		}
-	}
+	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
+	UG_LOG(sSep << std::left << setw(LINE) << ssDD.str() << std::right << sSep << endl);
+	UG_LOG(sSep << std::left << setw(LINE) << ssAlgebra.str() << std::right << sSep << endl);
+	UG_LOG(sSep << setw(LINE) << ssHead.str() << sSep << endl);
+	UG_LOG(" |-" << repeat('-', LINE) << "-| " << endl);
 
 //	if nothing printed
-	if(!bPrintLevel && ! bPrintSurface)
-	{
-		UG_LOG(	"   No DoFs distributed yet (done automatically). \n"
-				"   In order to force DoF creation use \n"
-				"   ApproximationSpace::init_levels() or "
-				"ApproximationSpace::init_surfaces().\n\n");
+	if(m_vDD.empty()){
+		UG_LOG(std::left);
+		UG_LOG(sSep << setw(LINE) << "No DoFDistributions created."<<sSep<<endl);
+		UG_LOG(sSep << setw(LINE) << "NOTE: DoFDistributions are created on request."<<sSep<<endl);
+		UG_LOG(sSep << setw(LINE) << "      However, you may force creation using:"<<sSep<<endl);
+		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_levels()"<<sSep<<endl);
+		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_surfaces()"<<sSep<<endl);
+		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_top_surface()"<<sSep<<endl);
+		return;
 	}
+
+//	Print Infos
+	for(size_t i = 0; i < m_vDD.size(); ++i){
+		stringstream ss; ss << m_vDD[i]->grid_level();
+		UG_LOG(sSep<<setw(LEVEL) << std::left << ss.str() << std::right << sSep);
+		UG_LOG(setw(NUMBER) << ConvertNumber(m_vDD[i]->num_indices(),NUMBER,6) << sSep);
+		if(verboseLev >= 1){
+			for(int si = 0; si < m_vDD[i]->num_subsets(); ++si)
+				UG_LOG(setw(SUBSET) << ConvertNumber(m_vDD[i]->num_indices(si),SUBSET,4) << sSep);
+		}
+		UG_LOG(endl);
+	}
+	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
 
 #ifdef UG_PARALLEL
 //	only in case of more than 1 proc
 	if(pcl::GetNumProcesses() < 2) return;
 
+	ssDD.str(""); ssDD<<"DoF-Distribution all Procs";
+
 //	header
-	UG_LOG("Statistic on DoFDistribution on all Processes (m= master, s=slave):\n");
+	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
+	UG_LOG(sSep << std::left << setw(LINE) << ssDD.str() << std::right << sSep << endl);
+	UG_LOG(sSep << std::left << setw(LINE) << ssAlgebra.str() << std::right << sSep << endl);
+	UG_LOG(sSep << setw(LINE) << ssHead.str() << sSep << endl);
+	UG_LOG(" |-" << repeat('-', LINE) << "-| " << endl);
 
-//	Write header line
-	if(bPrintLevel || bPrintSurface)
-	{
-		UG_LOG("         |   Total   | BlockSize | ");
-		if(verboseLev >= 1) UG_LOG("(Subset, DoFs) ");
-		UG_LOG("\n");
-	}
+//	Print Infos
+	for(size_t i = 0; i < m_vDD.size(); ++i){
+		size_t numDoF; std::vector<size_t> vNumDoF;
+		ComputeParallelIndices(numDoF, vNumDoF, m_vDD[i]);
+		stringstream ss; ss << m_vDD[i]->grid_level();
+		UG_LOG(sSep<<setw(LEVEL) << std::left << ss.str() << std::right << sSep);
 
-//	Write Infos for Levels
-	if(bPrintLevel)
-	{
-		UG_LOG("  Level  |\n");
-		for(size_t i = 0; i < m_vDD.size(); ++i){
-			if(!m_vDD[i]->grid_level().is_level()) continue;
-
-			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level()  << "  |");
-			print_parallel_statistic(m_vDD[i], verboseLev);
-			UG_LOG(std::endl);
+		if(!vNumDoF.empty()) {
+		UG_LOG(setw(NUMBER) << ConvertNumber(numDoF,NUMBER,6) << sSep);
+		if(verboseLev >= 1){
+			for(size_t si = 0; si < vNumDoF.size(); ++si)
+				UG_LOG(setw(SUBSET) << ConvertNumber(vNumDoF[si],SUBSET,4) << sSep);
 		}
-	}
-
-//	Write Infos for Surface Grid
-	if(bPrintSurface)
-	{
-		UG_LOG(" Surface |\n");
-		for(size_t i = 0; i < m_vDD.size(); ++i){
-			if(!m_vDD[i]->grid_level().is_surface()) continue;
-			if(m_vDD[i]->grid_level().level() == GridLevel::TOP) continue;
-
-			UG_LOG("  " << std::setw(5) << m_vDD[i]->grid_level().level() << "  |");
-			print_parallel_statistic(m_vDD[i], verboseLev);
-			UG_LOG(std::endl);
 		}
-
-		for(size_t i = 0; i < m_vDD.size(); ++i){
-			if(!m_vDD[i]->grid_level().is_surface()) continue;
-			if(m_vDD[i]->grid_level().level() != GridLevel::TOP) continue;
-
-			UG_LOG("     top |");
-			print_parallel_statistic(m_vDD[i], verboseLev);
-			UG_LOG(std::endl);
-		}
+		UG_LOG(endl);
 	}
+	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
 #endif
 }
 
-void IApproximationSpace::print_layout_statistic(int verboseLev) const
+void IApproximationSpace::print_layout_statistic() const
 {
 #ifdef UG_PARALLEL
 	static const int LEVEL = 14;
