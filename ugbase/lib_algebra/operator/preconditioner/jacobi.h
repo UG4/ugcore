@@ -17,6 +17,47 @@
 
 namespace ug{
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+///		Jacobi-Iteration
+/**
+ * Here, the Jacobi-iteration is described for solving the linear equation
+ *
+ * 		\f$ A * x = b.			A \in R^{nxn}, x \in R^n, b \in R^n \f$.
+ *
+ * 	Most of the common linear iteration-methods base on the decomposition of A into
+ * 	its diagonal (D) and strict-upper(-U) and strict-lower part (-L),
+ *
+ * 		\f$ A = D - L - U \f$.
+ *
+ * 	Among others, W. Hackbusch ('Iterative Loesung grosser Gleichungssysteme'),
+ * 	distinguishes three different forms for describing a linear iteration scheme.
+ * 	The general 'first normal-form' of a linear iteration scheme takes the form
+ *
+ * 		\f$ x^{m+1} = M * x^m + N * b \f$,
+ *
+ * 	with some Matrices \f$ M \f$ and \f$ N \in R^{nxn} \f$. m denotes the iteration index.
+ * 	The general 'second normal-form' of a linear iteration scheme takes the form
+ *
+ * 		\f$ x^{m+1} = x^m + N * (A * x^m - b) \f$.
+ *
+ * 	Those linear iteration schemes, which can be represented by the second normal-form
+ * 	are the linear, consistent iteration schemes.
+ * 	And, finally, the general 'third normal-form' of a linear iteration scheme takes the form
+ *
+ * 		\f$ W * (x^m - x^{m+1}) = A * x^m - b \f$,
+ *
+ * 	with some Matrix \f$ W \in R^{nxn} \f$.
+ *
+ *	The matrix of the second normal-form for the Jacobi-method takes the simple form
+ *
+ *		\f$ N = (D)^{-1} \f$. 			.
+ *
+ *	References:
+ * <ul>
+ * <li> W. Hackbusch. Iterative Loesung grosser Gleichungssysteme
+ * </ul>
+ */
+
 ///	Jacobi Preconditioner
 template <typename TAlgebra>
 class Jacobi : public IPreconditioner<TAlgebra>
