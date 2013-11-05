@@ -573,7 +573,8 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 	if(verboseLev >= 1) {
 		for(int si = 0; si < this->num_subsets(); ++si){
 			if(si > 0) ssHead << sSep;
-			ssHead << setw(SUBSET) << this->subset_name(si);
+			stringstream name; name << si << ": "<< this->subset_name(si);
+			ssHead << setw(SUBSET) << SnipString(name.str(), SUBSET, 2);
 		}
 	}
 	const int LINE = ssHead.str().size();
@@ -593,6 +594,8 @@ void IApproximationSpace::print_statistic(int verboseLev) const
 		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_levels()"<<sSep<<endl);
 		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_surfaces()"<<sSep<<endl);
 		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_top_surface()"<<sSep<<endl);
+		UG_LOG(std::right);
+		UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
 		return;
 	}
 

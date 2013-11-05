@@ -75,6 +75,17 @@ UG_API void RemoveWhitespaceFromString(std::string& string);
 UG_API std::string TrimString(const std::string& str);
 
 /**
+ * \brief creates a truncated string and may add truncation symbol at end
+ * \param[in] string 		the string to modify
+ * \param[in] totalSize		the total size of snippet
+ * \param[in] replaceLast	the number of last chars to be replaced by symbol
+ * \param[in] replace		the replace symbol
+ * \return the modified string
+ */
+UG_API std::string SnipString(const std::string& str, size_t totalSize,
+                              size_t replaceLast = 0, const char replace = '.');
+
+/**
  * \brief returns the number of digits of an integer (expressed with base 10)
  * \details Determines the number of digits for the passed base-10 number.
  *   A minus sign is ignored.

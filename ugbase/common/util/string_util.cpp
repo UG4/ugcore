@@ -64,6 +64,18 @@ string TrimString(const string& str)
 	return str.substr(start, end - start + 1);
 }
 
+string SnipString(const string& str, size_t totalSize,
+                  size_t replaceLast, const char replace)
+{
+	if(str.size() <= totalSize) return str;
+
+	string s = str.substr(0, totalSize);
+	int r = totalSize - replaceLast;
+	if(r <= 0) return s;
+	s.replace(r, replaceLast, replaceLast, replace);
+	return s;
+}
+
 int NumberOfDigits(int n)
 {
 //	a 0 has 1 digit
