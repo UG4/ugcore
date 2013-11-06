@@ -159,8 +159,7 @@ template<int dim>
 void Partitioner_DynamicBisection<dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
-	UG_LOG("Dynamic Bisection Partitioning begins...\n");
-
+	GDIST_PROFILE_FUNC();
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 
 	assert(m_mg);
@@ -231,15 +230,14 @@ partition(size_t baseLvl, size_t elementThreshold)
 	}
 
 	mg.detach_from<elem_t>(aInt);
-	UG_LOG("Dynamic Bisection Partitioning ends...\n");
 
 //	debugging
-	static int execCounter = 0;
-	stringstream ss;
-	ss << "partition-map-" << execCounter << "-p" << pcl::GetProcRank() << ".ugx";
-	AssignSubsetColors(m_sh);
-	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 0.1);
-	++execCounter;
+//	static int execCounter = 0;
+//	stringstream ss;
+//	ss << "partition-map-" << execCounter << "-p" << pcl::GetProcRank() << ".ugx";
+//	AssignSubsetColors(m_sh);
+//	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 0.1);
+//	++execCounter;
 }
 
 
@@ -247,6 +245,7 @@ template <int dim>
 void Partitioner_DynamicBisection<dim>::
 copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 {
+	GDIST_PROFILE_FUNC();
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	MultiGrid& mg = *m_mg;
 //	assign partitions to all children in this hierarchy level
@@ -281,6 +280,7 @@ void Partitioner_DynamicBisection<dim>::
 perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 				  AInt aChildCount, pcl::ProcessCommunicator com)
 {
+	GDIST_PROFILE_FUNC();
 	typedef typename MultiGrid::traits<elem_t>::iterator iter_t;
 
 //	clear subset-assignment on partitionLvl
@@ -379,6 +379,7 @@ bisect_elements(ISubsetHandler& partitionSH, const vector<elem_t*>& elems,
 				int maxNumChildren, int numTargetProcs, int firstProc,
 				AInt aChildCount, pcl::ProcessCommunicator& com)
 {
+	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
 
 	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(mg, aChildCount);
@@ -469,6 +470,7 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 							int maxNumChildren, AInt aChildCount,
 							pcl::ProcessCommunicator& com)
 {
+	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
 	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(mg, aChildCount);
 	Grid::VertexAttachmentAccessor<apos_t> aaPos(mg, m_aPos);
