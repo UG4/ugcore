@@ -193,6 +193,10 @@ class BaseReferenceMapping
 			MathMatrix<dim, worldDim> JInv;
 			MathVector<worldDim> dist, compGlobPos;
 
+		// initialising data
+			for(int d = 0; d < dim; ++d)
+				locPos[d] = 0.0;
+
 			for (size_t i = 0; i < maxIter; ++i) {
 
 			//	f(x) := \phi(x) - x_{glob}
