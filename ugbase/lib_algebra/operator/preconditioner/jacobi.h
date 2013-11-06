@@ -38,7 +38,7 @@ namespace ug{
  * 	with some Matrices \f$ M \f$ and \f$ N \in R^{nxn} \f$. m denotes the iteration index.
  * 	The general 'second normal-form' of a linear iteration scheme takes the form
  *
- * 		\f$ x^{m+1} = x^m + N * (A * x^m - b) \f$.
+ * 		\f$ x^{m+1} = x^m - N * (A * x^m - b) \f$.
  *
  * 	Those linear iteration schemes, which can be represented by the second normal-form
  * 	are the linear, consistent iteration schemes.
@@ -46,11 +46,15 @@ namespace ug{
  *
  * 		\f$ W * (x^m - x^{m+1}) = A * x^m - b \f$,
  *
- * 	with some Matrix \f$ W \in R^{nxn} \f$.
+ * 	with some Matrix \f$ W \in R^{nxn} \f$. Therefore it holds, that N = W^{-1}.
+ * 	Introducing the correction \f$ c{m+1} := x^{m+1} - x^m \f$ and the defect
+ * 	\f$ d^m := b - A * x^m \f$ the third normal-form can be rewritten as
  *
- *	The matrix of the second normal-form for the Jacobi-method takes the simple form
+ * 		\f$ W * c = d \f$.
  *
- *		\f$ N = (D)^{-1} \f$. 			.
+ *	The matrix of the third normal-form for the Jacobi-method takes the simple form
+ *
+ *		\f$ W = D \f$. 			.
  *
  *	References:
  * <ul>
