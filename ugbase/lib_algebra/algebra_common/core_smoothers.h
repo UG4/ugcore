@@ -44,23 +44,19 @@ namespace ug
  *
  * 	Those linear iteration schemes, which can be represented by the second normal-form
  * 	are the linear, consistent iteration schemes.
- * 	And, finally, the general 'third normal-form' of a linear iteration scheme takes the form
  *
- * 		\f$ W * (x^m - x^{m+1}) = A * x^m - b \f$,
- *
- * 	with some Matrix \f$ W \in R^{nxn} \f$. Therefore it holds, that N = W^{-1}.
  * 	Introducing the correction \f$ c{m+1} := x^{m+1} - x^m \f$ and the defect
- * 	\f$ d^m := b - A * x^m \f$ the third normal-form can be rewritten as
+ * 	\f$ d^m := b - A * x^m \f$ the second normal-form can be rewritten as
  *
- * 		\f$ W * c = d \f$.
+ * 		\f$ c = N * d \f$.
  *
  *	Below, methods for the (forward) Gauss-Seidel step, the backward Gauss-Seidel step and the symmetric
  *	Gauss-Seidel step are implemented ('gs_step_LL', 'gs_step_UR' resp. 'sgs_step').
- *	The matrix of the third normal-form is
+ *	The matrices of the second normal-form are
  *
- *		\f$ W = (D-L)\f$ 				for the (forward) Gauss-Seidel step,
- *		\f$ W = (D-U)\f$ 				for the backward Gauss-Seidel step and
- *		\f$ W = (D-L)D^{-1}(D-U) \f$	for the symmetric Gauss-Seidel step.
+ *		\f$ N = (D-L)^{-1}\f$ 				for the (forward) Gauss-Seidel step,
+ *		\f$ N = (D-U)^{-1}\f$ 				for the backward Gauss-Seidel step and
+ *		\f$ N = (D-u)^{-1}D(D-U)^{-1} \f$	for the symmetric Gauss-Seidel step.
  *
  *	References:
  * <ul>
@@ -75,8 +71,8 @@ namespace ug
 //	gs_step_LL
 /** \brief Performs a forward gauss-seidel-step, that is, solve on the lower left of A.
  * Using gs_step_LL within a preconditioner-scheme leads to the fact that we get the correction
- * by successive inserting the already computed values of c in W * c = d, with c being the correction
- * and d being the defect. W denotes the matrix of the third normal-form of a linear iteration
+ * by successive inserting the already computed values of c in c = N * d, with c being the correction
+ * and d being the defect. N denotes the matrix of the second normal-form of a linear iteration
  * scheme.
  *
 * \param A Matrix \f$A = D - L - U\f$
@@ -88,7 +84,6 @@ template<typename Matrix_type, typename Vector_type>
 void gs_step_LL(const Matrix_type &A, Vector_type &c, const Vector_type &d, const number relaxFactor)
 {
 	// gs LL has preconditioning matrix N = (D-L)^{-1}
-	// but here we use the third normal-form to compute c! (W * c = d with W = D - L)
 
 	typename Vector_type::value_type s;
 
@@ -115,8 +110,8 @@ void gs_step_LL(const Matrix_type &A, Vector_type &c, const Vector_type &d, cons
 /**
  * \brief Performs a backward gauss-seidel-step, that is, solve on the upper right of A.
  * Using gs_step_UR within a preconditioner-scheme leads to the fact that we get the correction
- * by successive inserting the already computed values of c in W * c = d, with c being the correction
- * and d being the defect. W denotes the matrix of the third normal-form of a linear iteration
+ * by successive inserting the already computed values of c in c = N * d, with c being the correction
+ * and d being the defect. N denotes the matrix of the second normal-form of a linear iteration
  * scheme.
  *
  * \param A Matrix \f$A = D - L - U\f$
@@ -128,7 +123,6 @@ template<typename Matrix_type, typename Vector_type>
 void gs_step_UR(const Matrix_type &A, Vector_type &c, const Vector_type &d, const number relaxFactor)
 {
 	// gs UR has preconditioning matrix N = (D-U)^{-1}
-	// but here we use the third normal-form to compute c! (W * c = d with W = D - U)
 
 	typename Vector_type::value_type s;
 
@@ -155,8 +149,8 @@ void gs_step_UR(const Matrix_type &A, Vector_type &c, const Vector_type &d, cons
 /**
  * \brief Performs a symmetric gauss-seidel step.
  * Using sgs_step within a preconditioner-scheme leads to the fact that we get the correction
- * by successive inserting the already computed values of c in W * c = d, with c being the correction
- * and d being the defect. W denotes the matrix of the third normal-form of a linear iteration
+ * by successive inserting the already computed values of c in c = N * d, with c being the correction
+ * and d being the defect. N denotes the matrix of the second normal-form of a linear iteration
  * scheme.
  *
  * \param A Matrix \f$A = D - L - R\f$
@@ -168,7 +162,6 @@ template<typename Matrix_type, typename Vector_type>
 void sgs_step(const Matrix_type &A, Vector_type &c, const Vector_type &d, const number relaxFactor)
 {
 	// sgs has preconditioning matrix N = (D-U)^{-1} D (D-L)^{-1}
-	// but here we use the third normal-form to compute c! (W * c = d with W = D - U)
 
 	// c1 = (D-L)^{-1} d
 	gs_step_LL(A, c, d, relaxFactor);
