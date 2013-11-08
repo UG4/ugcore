@@ -7,7 +7,7 @@ if( NOT "${PROFILER}" STREQUAL "Shiny" AND SHINY_CALL_LOGGING)
 endif( NOT "${PROFILER}" STREQUAL "Shiny" AND SHINY_CALL_LOGGING)
 
 
-if(NOT("${PROFILER}" STREQUAL "None"))
+if(NOT "${PROFILER}" STREQUAL "None")
     if("${PROFILER}" STREQUAL "Shiny")
     	add_definitions(-DUG_PROFILER_SHINY)    
      	set(UG_PROFILER_SHINY ON)               # add Cmake variable
@@ -109,7 +109,7 @@ if(NOT("${PROFILER}" STREQUAL "None"))
 	add_definitions(-DUG_PROFILER)    # add to c++ flags
 	set(UG_PROFILER ON)               # add Cmake variable
 	
-endif(NOT("${PROFILER}" STREQUAL "None"))
+endif(NOT "${PROFILER}" STREQUAL "None")
 
 ########################################
 # PROFILE_PCL
