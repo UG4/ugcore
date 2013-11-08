@@ -2,9 +2,9 @@
 ########################################
 # PROFILER
 
-if(NOT("${PROFILER}" STREQUAL "Shiny") AND SHINY_CALL_LOGGING)
+if((NOT "${PROFILER}" STREQUAL "Shiny") AND SHINY_CALL_LOGGING)
     message(FATAL_ERROR " Shiny Call Logging activated but not Shiny. Use cmake -DPROFILER=Shiny ..")
-endif(NOT("${PROFILER}" STREQUAL "Shiny") AND SHINY_CALL_LOGGING)
+endif((NOT "${PROFILER}" STREQUAL "Shiny") AND SHINY_CALL_LOGGING)
 
 
 if(NOT("${PROFILER}" STREQUAL "None"))
