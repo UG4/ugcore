@@ -102,6 +102,7 @@ elseif(WIN32 OR CYGWIN)
 else(UNIX AND NOT CYGWIN)
 	message(STATUS "YOUR OS MAY NOT BE FULLY SUPPORTED (NOT UNIX???). File functions may be not working.")
 	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
+	set(sources ${sources} util/os_dependent_impl/os_info_linux.cpp)
 endif(UNIX AND NOT CYGWIN)
 
 
