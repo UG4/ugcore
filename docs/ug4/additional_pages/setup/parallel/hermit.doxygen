@@ -61,7 +61,7 @@ module swap $(module li 2>&1 | awk '/PrgEnv/{print $2}') PrgEnv-gnu
 
 Then you start cmake with a \ref secCMake_ToolchainFiles :
 \verbatim
-cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/hermit_gcc.cmake ..
+cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/hermit.cmake ..
 \endverbatim
 
 
