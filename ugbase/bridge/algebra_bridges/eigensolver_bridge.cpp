@@ -55,10 +55,6 @@ static void Algebra(Registry& reg, string grp)
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 
-//	typedefs for this algebra
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
-
 #ifdef LAPACK_AVAILABLE
 	{
 		string name = string("EigenSolver").append(suffix);
@@ -91,9 +87,9 @@ static void Algebra(Registry& reg, string grp)
 #endif
 	{
 		string name = string("OperatorInverseIterator").append(suffix);
-		typedef ILinearIterator<typename TAlgebra::vector_type> TBase;
-		typedef OperatorInverseIterator<TAlgebra> T;
 		typedef typename TAlgebra::vector_type vector_type;
+		typedef ILinearIterator<vector_type> TBase;
+		typedef OperatorInverseIterator<TAlgebra> T;
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type>  >)>( "opInv")
 			.set_construct_as_smart_pointer(true);

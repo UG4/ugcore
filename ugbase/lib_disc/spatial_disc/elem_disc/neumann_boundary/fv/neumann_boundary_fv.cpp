@@ -98,7 +98,6 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 
 //	register subsetIndex at Geometry
 	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID,m_order);
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 
 	try{
 		geo.update_local(roid, m_lfeID);
@@ -134,7 +133,6 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 //	clear imports, since we will set them afterwards
 	this->clear_imports();
 
-	typedef typename NeumannBoundaryFV<TDomain>::NumberData T;
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 //	set lin defect fct for imports

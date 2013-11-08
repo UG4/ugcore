@@ -1298,7 +1298,6 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 	GDIST_PROFILE_FUNC();
 
 	typedef typename MultiGrid::traits<TElem>::iterator	TIter;
-	typedef typename GridLayoutMap::Types<TElem>::Interface	TInterface;
 
 
 	int localProcID = pcl::GetProcRank();

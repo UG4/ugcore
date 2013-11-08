@@ -47,8 +47,6 @@ struct RegisterDomainAlgebraDependent
 	{
 		RegAlgebra(Registry& reg, std::string grp)
 		{
-			typedef typename boost::mpl::front<DomainList>::type DomainType;
-
 			static const bool algebraIsEmpty = boost::mpl::empty<CurrAlgebraList>::value;
 			typename boost::mpl::if_c<algebraIsEmpty, RegEnd, RegNextDomainAlgebra<CurrAlgebraList> >::type (reg,grp);
 		}
