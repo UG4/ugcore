@@ -100,7 +100,8 @@ elseif(WIN32 OR CYGWIN)
 	#endif(MINGW)
 	
 else(UNIX AND NOT CYGWIN)
-	message(STATUS "YOUR OS IS NOT FULLY SUPPORTED. Methods in common/os_dependent won't be available!")
+	message(STATUS "YOUR OS MAY NOT BE FULLY SUPPORTED (NOT UNIX???). File functions may be not working.")
+	set(sources ${sources}	util/os_dependent_impl/file_util_posix.cpp)
 endif(UNIX AND NOT CYGWIN)
 
 
