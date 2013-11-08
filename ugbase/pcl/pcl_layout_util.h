@@ -88,7 +88,6 @@ void CollectElements(std::vector<typename TLayout::Element>& elemsOut,
 					bool clearContainer = true)
 {
 	typedef typename TLayout::Interface Interface;
-	typedef typename TLayout::Element TElem;
 
 //	clear the return value
 	if(clearContainer) elemsOut.clear();

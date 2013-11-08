@@ -399,7 +399,6 @@ void scalePressureValues(typename TAlgebra::matrix_type& mat,number scaleFactor,
 //  iterators
 	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
 	typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object Element;
-	typedef typename Element::side Side;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level

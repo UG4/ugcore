@@ -62,7 +62,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	typedef
 	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
 	typedef ApproximationSpace<TDomain> approximation_space_type;
 
 	grp.append("/MultiGrid");
@@ -178,7 +177,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 template <typename TAlgebra>
 static void Algebra(Registry& reg, string grp)
 {
-	typedef typename TAlgebra::vector_type vector_type;
 	string suffix = GetAlgebraSuffix<TAlgebra>();
 	string tag = GetAlgebraTag<TAlgebra>();
 

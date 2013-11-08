@@ -353,7 +353,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 {
 	//	typedefs for Vector and Matrix
 	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
 
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();

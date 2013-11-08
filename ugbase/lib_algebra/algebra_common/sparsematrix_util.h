@@ -62,8 +62,6 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	M.resize_and_clear(A.num_rows(), C.num_cols());
 
 
-
-	typedef typename A_type::value_type avalue;
 	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
 
 	typedef UnsortedSparseVector<typename ABC_type::value_type> RowType;
@@ -151,7 +149,6 @@ void CreateAsMultiplyOf(AB_type &M, const A_type &A, const B_type &B)
 	typedef typename A_type::const_row_iterator cAiterator;
 	typedef typename B_type::const_row_iterator cBiterator;
 	typedef UnsortedSparseVector<typename AB_type::value_type> RowType;
-	typedef typename RowType::iterator RowIterator;
 
 	RowType row(B.num_cols());
 

@@ -58,7 +58,6 @@ struct RegisterDomainAlgebraDependent
 	{
 		RegNextDomain(Registry& reg, std::string grp)
 		{
-			typedef typename boost::mpl::front<DomainList>::type DomainType;
 			typedef typename boost::mpl::pop_front<DomainList>::type NextDomainList;
 
 			RegAlgebra<AlgebraList>(reg,grp);
