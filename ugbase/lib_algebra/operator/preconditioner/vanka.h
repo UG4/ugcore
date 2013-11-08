@@ -53,7 +53,6 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, numb
 
 		for(typename Matrix_type::const_row_iterator it = A.begin_row(i); it != A.end_row(i) ; ++it){
 			blockind[blocksize] = it.index();
-			x[it.index()] = 0;
 			blocksize++;
 		};
 		if (blocksize>MAXBLOCKSIZE) UG_THROW("MAXBLOCKSIZE too small\n");
@@ -75,7 +74,7 @@ bool Vanka_step(const Matrix_type &A, Vector_type &x, const Vector_type &b, numb
 		// solve block
 		InverseMatMult(localx,1,mat,s);
 		for (size_t j=0;j<blocksize;j++){
-			x[blockind[j]] = relax*localx[j];
+			x[blockind[j]] += relax*localx[j];
 		};
 	}
 
