@@ -55,6 +55,10 @@ cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> ..
 
 Toolchain files are located in <tt>cmake/toolchain</tt>.
 
+\note if you already set other cmake settings before or e.g. tipped "cmake .." you first need to remove all files in your build-directory 
+by the command "rm -rf *" and then call cmake with the toolchainfile by "cmake -DCMAKE_TOOLCHAIN_FILE=<TOOLCHAINFILE> .."!
+
+
 \subsection secStaticBuild Static Builds 
 ug4 is using external libraries and distributes some of its own codes into libraries (e.g. plugins).
 There are two ways of dealing with libraries:
