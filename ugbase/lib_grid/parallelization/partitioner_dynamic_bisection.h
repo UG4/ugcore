@@ -19,6 +19,7 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		typedef typename base_class::elem_t	elem_t;
 		typedef MathVector<dim>				vector_t;
 		typedef Attachment<vector_t>		apos_t;
+		typedef Grid::VertexAttachmentAccessor<apos_t>	aapos_t;
 		typedef typename GridLayoutMap::Types<elem_t>::Layout::LevelLayout	layout_t;
 
 		Partitioner_DynamicBisection();
@@ -44,14 +45,30 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		virtual const std::vector<int>* get_process_map() const;
 
 	private:
+		enum constants{
+			UNCLASSIFIED = 0,
+			LEFT = 1,
+			RIGHT = 1 << 1,
+			CUTTING = LEFT | RIGHT,
+			TOTAL,
+			NUM_CONSTANTS
+		};
+
 		void copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl);
 		void perform_bisection(int minLvl, int maxLvl, int partitionLvl);
 		void perform_bisection(int numTargetProcs, int minLvl, int maxLvl,
 							   int partitionLvl, AInt aChildCount,
 							   pcl::ProcessCommunicator com);
-		void bisect_elements(ISubsetHandler& partitionSH, const std::vector<elem_t*>& elems,
+		void control_bisection(ISubsetHandler& partitionSH, const std::vector<elem_t*>& elems,
 							 int maxNumChildren, int numTargetProcs, int firstProc,
 							 AInt aChildCount, pcl::ProcessCommunicator& com);
+
+		void bisect_elements(std::vector<elem_t*>& elemsLeftOut,
+							std::vector<elem_t*>& elemsRightOut,
+							const std::vector<elem_t*>& elems, number ratioLeft,
+							AInt aChildCount, int maxNumChildren,
+							pcl::ProcessCommunicator& com, int cutRecursion);
+
 		void calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 										 vector_t& boxMaxOut, const std::vector<elem_t*>& elems,
 										 int maxNumChildren, AInt aChildCount,
@@ -59,8 +76,18 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		void gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
 											bool copyToVMastersOnBaseLvl);
 
+		int classify_elem(elem_t* e, int splitDim, number splitValue);
+
+		number find_split_value(const std::vector<elem_t*>& elems, int splitDim,
+								number splitRatio, number initialGuess,
+								number minValue, number maxValue,
+								size_t maxIterations, AInt aChildCount,
+								pcl::ProcessCommunicator& com);
+
+
 		MultiGrid*								m_mg;
-		Attachment<vector_t>					m_aPos;
+		apos_t									m_aPos;
+		aapos_t									m_aaPos;
 		SubsetHandler 							m_sh;
 		SPProcessHierarchy						m_processHierarchy;
 		SPProcessHierarchy						m_nextProcessHierarchy;

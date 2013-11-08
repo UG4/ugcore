@@ -37,6 +37,7 @@ set_grid(MultiGrid* mg, Attachment<MathVector<dim> > aPos)
 	m_mg = mg;
 	m_sh.assign_grid(m_mg);
 	m_aPos = aPos;
+	m_aaPos.access(*m_mg, m_aPos);
 }
 
 template<int dim>
@@ -334,8 +335,8 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 
 		if(!com.empty()){
 			maxNumChildren = com.allreduce(maxNumChildren, PCL_RO_MAX);
-			bisect_elements(m_sh, elems, maxNumChildren, numTargetProcs,
-							0, aChildCount, com);
+			control_bisection(m_sh, elems, maxNumChildren, numTargetProcs,
+							  0, aChildCount, com);
 		}
 	}
 
@@ -375,26 +376,61 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 
 template <int dim>
 void Partitioner_DynamicBisection<dim>::
-bisect_elements(ISubsetHandler& partitionSH, const vector<elem_t*>& elems,
-				int maxNumChildren, int numTargetProcs, int firstProc,
-				AInt aChildCount, pcl::ProcessCommunicator& com)
+control_bisection(ISubsetHandler& partitionSH, const vector<elem_t*>& elems,
+				  int maxNumChildren, int numTargetProcs, int firstProc,
+				  AInt aChildCount, pcl::ProcessCommunicator& com)
 {
+	GDIST_PROFILE_FUNC();
+
+	int numTargetProcsLeft = numTargetProcs / 2;
+	int numTargetProcsRight = numTargetProcs - numTargetProcsLeft;
+	number ratioLeft = (number)numTargetProcsLeft / (number)numTargetProcs;
+
+	vector<elem_t*>	elemsLeft, elemsRight;
+	elemsLeft.reserve(elems.size() * ratioLeft * 1.1);
+	elemsRight.reserve(elems.size() * (1. - ratioLeft) * 1.1);
+
+	bisect_elements(elemsLeft, elemsRight, elems, ratioLeft, aChildCount,
+					maxNumChildren, com, 0);
+
+//	UG_LOG("\n");
+
+	if(numTargetProcs == 2){
+		partitionSH.assign_subset(elemsLeft.begin(), elemsLeft.end(), firstProc);
+		partitionSH.assign_subset(elemsRight.begin(), elemsRight.end(), firstProc + 1);
+	}
+	else if(numTargetProcs == 3){
+		partitionSH.assign_subset(elemsLeft.begin(), elemsLeft.end(), firstProc);
+		control_bisection(partitionSH, elemsRight, maxNumChildren, 2, firstProc + 1,
+						  aChildCount, com);
+	}
+	else if(numTargetProcs > 3){
+		control_bisection(partitionSH, elemsLeft, maxNumChildren, numTargetProcsLeft,
+						  firstProc, aChildCount, com);
+		control_bisection(partitionSH, elemsRight, maxNumChildren, numTargetProcsRight,
+						  firstProc + numTargetProcsLeft, aChildCount, com);
+	}
+	else{
+		UG_THROW("At least 2 target processes have to be specified for a bisection");
+	}
+}
+
+
+template<int dim>
+void Partitioner_DynamicBisection<dim>::
+bisect_elements(std::vector<elem_t*>& elemsLeftOut, std::vector<elem_t*>& elemsRightOut,
+		   const std::vector<elem_t*>& elems, number ratioLeft, AInt aChildCount,
+		   int maxNumChildren, pcl::ProcessCommunicator& com, int cutRecursion)
+{
+//	UG_LOG("Performing bisection with ratio: " << ratioLeft << endl);
 	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
 
 	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(mg, aChildCount);
-	Grid::VertexAttachmentAccessor<apos_t> aaPos(mg, m_aPos);
 
 	vector_t gCenter, gBoxMin, gBoxMax;
 	calculate_global_dimensions(gCenter, gBoxMin, gBoxMax, elems,
 								maxNumChildren, aChildCount, com);
-
-//todo	Adjust center if numTargetProcs can't be divided by 2
-//		this can e.g. be done by performing some iterations of the following algo:
-//		- After an initial splitValue and minSplit and maxSplit values have been chosen:
-//		- count elements left and right of splitValue.
-//		- adjust splitValue, minSplit and maxSplit values using interval-bisection
-//		- repeat with step 2
 
 //	split the array into 2 sub-arrays along the global-box's largest dimension
 	int splitDim = 0;
@@ -403,62 +439,80 @@ bisect_elements(ISubsetHandler& partitionSH, const vector<elem_t*>& elems,
 			splitDim = i;
 	}
 
-	number splitValue = gCenter[splitDim];
+	number splitValue = find_split_value(elems, splitDim, ratioLeft, gCenter[splitDim],
+										 gBoxMin[splitDim], gBoxMax[splitDim],
+										 10, aChildCount, com);
 
-	if(numTargetProcs == 2){
-		for(size_t i = 0; i < elems.size(); ++i){
-			elem_t* e = elems[i];
-			if(CalculateCenter(e, aaPos)[splitDim] <= splitValue){
-				//partitionSH.assign_subset(e, procMap[firstProc]);
-				partitionSH.assign_subset(e, firstProc);
-			}
-			else{
-				//partitionSH.assign_subset(e, procMap[firstProc + 1]);
-				partitionSH.assign_subset(e, firstProc + 1);
-			}
-		}
-	}
-	else if(numTargetProcs == 3){
-		vector<elem_t*>	elemsRight;
-		elemsRight.reserve(elems.size() * 0.55);
-		for(size_t i = 0; i < elems.size(); ++i){
-			elem_t* e = elems[i];
-			if(CalculateCenter(e, aaPos)[splitDim] <= splitValue){
-				//partitionSH.assign_subset(e, procMap[firstProc]);
-				partitionSH.assign_subset(e, firstProc);
-			}
-			else{
-				elemsRight.push_back(e);
-			}
-		}
-		bisect_elements(partitionSH, elemsRight, maxNumChildren, 2, firstProc + 1,
-						aChildCount, com);
-	}
-	else if(numTargetProcs > 3){
-		vector<elem_t*>	elemsLeft, elemsRight;
-		elemsLeft.reserve(elems.size() * 0.55);
-		elemsRight.reserve(elems.size() * 0.55);
+//	UG_LOG("BBox: " << gBoxMin << ", " << gBoxMax << endl);
+//	UG_LOG("splitDim: " << splitDim << ", splitValue: " << splitValue << endl);
+
+	if(cutRecursion < dim - 1){
+		vector<elem_t*> elemsCut;
+
+		int weights[3] = {0, 0, 0};
 
 		for(size_t i = 0; i < elems.size(); ++i){
 			elem_t* e = elems[i];
-			if(CalculateCenter(e, aaPos)[splitDim] <= splitValue){
-				elemsLeft.push_back(e);
-			}
-			else{
-				elemsRight.push_back(e);
+			int loc = classify_elem(e, splitDim, splitValue);
+			switch(loc){
+				case LEFT:
+					elemsLeftOut.push_back(e);
+					weights[0] += aaChildCount[e];
+					break;
+				case RIGHT:
+					elemsRightOut.push_back(e);
+					weights[1] += aaChildCount[e];
+					break;
+				case CUTTING:
+					elemsCut.push_back(e);
+					weights[2] += aaChildCount[e];
+					break;
+				default:
+					UG_THROW("INVALID CLASSIFICATION DURING BISECTION\n");
+					break;
 			}
 		}
 
-		int numTargetProcsLeft = numTargetProcs / 2;
-		int numTargetProcsRight = numTargetProcs - numTargetProcsLeft;
+		int gWeights[3];
+		com.allreduce(weights, gWeights, 3, PCL_RO_SUM);
 
-		bisect_elements(partitionSH, elemsLeft, maxNumChildren, numTargetProcsLeft,
-						firstProc, aChildCount, com);
-		bisect_elements(partitionSH, elemsRight, maxNumChildren, numTargetProcsRight,
-						firstProc + numTargetProcsLeft, aChildCount, com);
+		//	calculate the number of elements which have to go to the left side
+		int gWTotal = gWeights[0] + gWeights[1] + gWeights[2];
+		int gMissingLeft = ratioLeft * gWTotal - gWeights[0];
+		int gMissingRight = (1. - ratioLeft) * gWTotal - gWeights[1];
+
+//		UG_LOG("weights left:  " << gWeights[0] << endl);
+//		UG_LOG("weights right: " << gWeights[1] << endl);
+//		UG_LOG("weights cut:   " << gWeights[2] << endl);
+
+	//	bisect the cutting elements
+		if(gMissingLeft <= 0){
+		//	add all cut-elements to the right side
+			for(size_t i = 0; i < elemsCut.size(); ++i)
+				elemsRightOut.push_back(elemsCut[i]);
+			return;
+		}
+
+		if(gMissingRight <= 0){
+		//	add all cut-elements to the left side
+			for(size_t i = 0; i < elemsCut.size(); ++i)
+				elemsLeftOut.push_back(elemsCut[i]);
+			return;
+		}
+
+		number newRatioLeft = (number)gMissingLeft / (number)(gMissingLeft + gMissingRight);
+		bisect_elements(elemsLeftOut, elemsRightOut, elemsCut, newRatioLeft, aChildCount,
+						maxNumChildren, com, cutRecursion + 1);
 	}
 	else{
-		UG_THROW("At least 2 target processes have to be specified for a bisection");
+	//	perform a simple bisection
+		for(size_t i = 0; i < elems.size(); ++i){
+			elem_t* e = elems[i];
+			if(CalculateCenter(e, m_aaPos)[splitDim] <= splitValue)
+				elemsLeftOut.push_back(e);
+			else
+				elemsRightOut.push_back(e);
+		}
 	}
 }
 
@@ -473,7 +527,6 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
 	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(mg, aChildCount);
-	Grid::VertexAttachmentAccessor<apos_t> aaPos(mg, m_aPos);
 
 	number totalWeight = 0;
 	vector_t center;
@@ -485,11 +538,11 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	VecSet(maxCorner, 0);
 
 	if(!elems.empty())
-		minCorner = maxCorner = CalculateCenter(elems.front(), aaPos);
+		minCorner = maxCorner = CalculateCenter(elems.front(), m_aaPos);
 
 	for(size_t i = 0; i < elems.size(); ++i){
 		elem_t* e = elems[i];
-		vector_t p = CalculateCenter(e, aaPos);
+		vector_t p = CalculateCenter(e, m_aaPos);
 		number w = (number)aaChildCount[e] / maxNumChildren;
 		VecScaleAdd(center, 1, center, w, p);
 		totalWeight += w;
@@ -503,7 +556,7 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	}
 
 //	UG_LOG("num elems: " << elems.size() << endl);
-//	UG_LOG("local center: ");
+//	UG_LOG("local BBox: " << minCorner << ", " << maxCorner << endl);
 //	if(totalWeight > 0 && elems.size() > 0){
 //		vector_t tmpCenter;
 //		VecScale(tmpCenter, center, 1./(totalWeight * (number)elems.size()));
@@ -668,6 +721,91 @@ get_process_map() const
 {
 	return NULL;
 }
+
+
+template<int dim>
+int Partitioner_DynamicBisection<dim>::
+classify_elem(elem_t* e, int splitDim, number splitValue)
+{
+	typename elem_t::ConstVertexArray vrts = e->vertices();
+	const size_t numVrts = e->num_vertices();
+
+//	count the number of elements which are completely on the left or on the
+//	right of the splitting plane
+	int location = UNCLASSIFIED;
+	for(size_t i = 0; i < numVrts; ++i){
+		number vrtVal = m_aaPos[vrts[i]][splitDim];
+		if(vrtVal < splitValue)
+			location |= LEFT;
+		else if(vrtVal > splitValue)
+			location |= RIGHT;
+		else
+			location |= CUTTING;
+	}
+
+	return location;
+}
+
+
+template<int dim>
+number Partitioner_DynamicBisection<dim>::
+find_split_value(const std::vector<elem_t*>& elems, int splitDim,
+				 number splitRatio, number initialGuess,
+				 number minValue, number maxValue,
+				 size_t maxIterations, AInt aChildCount,
+				 pcl::ProcessCommunicator& com)
+{
+	if(splitRatio < SMALL)
+		return minValue + SMALL;
+	if(splitRatio > 1. - SMALL)
+		return maxValue - SMALL;
+
+	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(*m_mg, aChildCount);
+
+	number splitValue = initialGuess;
+	for(size_t iteration = 0; iteration < maxIterations; ++iteration){
+		int numElems[NUM_CONSTANTS];
+		for(int i = 0; i < NUM_CONSTANTS; ++i)
+			numElems[i] = 0;
+
+		for(size_t i = 0; i < elems.size(); ++i){
+			elem_t* e = elems[i];
+			int location = classify_elem(e, splitDim, splitValue);
+			numElems[location] += aaChildCount[e];
+			numElems[TOTAL] += aaChildCount[e];
+		}
+
+		int gNumElems[NUM_CONSTANTS];
+		com.allreduce(numElems, gNumElems, NUM_CONSTANTS, PCL_RO_SUM);
+
+	//	check whether both sides are below the splitRatio
+		if(gNumElems[TOTAL] > 0){
+			bool leftOk = ((number)gNumElems[LEFT] / (number)gNumElems[TOTAL] <= splitRatio);
+			bool rightOk = ((number)gNumElems[RIGHT] / (number)gNumElems[TOTAL] <= (1. - splitRatio));
+
+			if(!leftOk){
+				//UG_LOG("left with ratio: " << (number)gNumElems[LEFT] / (number)gNumElems[TOTAL] << endl);
+			//	move the split-value to the left
+				maxValue = splitValue;
+				splitValue = (minValue + splitValue) / 2.;
+			}
+			else if(!rightOk){
+				//UG_LOG("right with ratio: " << (number)gNumElems[RIGHT] / (number)gNumElems[TOTAL] << endl);
+			//	move the split-value to the right
+				minValue = splitValue;
+				splitValue = (splitValue + maxValue) / 2.;
+			}
+			else{
+				//UG_LOG("Found split-value after " << iteration + 1 << " iterations\n");
+				return splitValue;
+			}
+		}
+	}
+
+	UG_LOG("No perfect split-value found!\n");
+	return splitValue;
+}
+
 
 template class Partitioner_DynamicBisection<1>;
 template class Partitioner_DynamicBisection<2>;
