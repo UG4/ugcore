@@ -67,9 +67,8 @@ class ProjGaussSeidel:
 	 * \param[out]	c			correction
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
 	 * \param[in]	d			defect
-	 * \returns		bool		success flag
 	 */
-		bool gs_step_with_projection(vector_type& c, const matrix_type& mat, const vector_type& d);
+		void gs_step_with_projection(vector_type& c, const matrix_type& mat, const vector_type& d);
 
 	///////////////////////////////////////////////////////////////////////////
 	//	Linear Solver interface methods

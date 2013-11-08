@@ -93,7 +93,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 }
 
 template <typename TAlgebra>
-bool
+void
 ProjGaussSeidel<TAlgebra>::
 gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type& d)
 {
@@ -137,8 +137,6 @@ gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type&
 			m_vInactiveIndices.push_back(i);
 		}
 	}
-
-	return true;
 }
 
 template <typename TAlgebra>
@@ -187,13 +185,13 @@ apply(vector_type &c, const vector_type& d)
 		SmartPtr<vector_type> spDtmp = d.clone();
 		spDtmp->change_storage_type(PST_UNIQUE);
 
-		if(!gs_step_with_projection(c, *m_spMat, *spDtmp)) return false;
+		gs_step_with_projection(c, *m_spMat, *spDtmp);
 		c.set_storage_type(PST_UNIQUE);
 	}
 	else
 #endif
 	{
-		if(!gs_step_with_projection(c, *m_spMat, d)) return false;
+		gs_step_with_projection(c, *m_spMat, d);
 #ifdef UG_PARALLEL
 		c.set_storage_type(PST_UNIQUE);
 #endif
