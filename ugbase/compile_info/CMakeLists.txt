@@ -23,7 +23,7 @@ set(infoFileName ${CMAKE_BINARY_DIR}/compile_info_vars.cpp)
 #	on windows we currently don't support updated compile-infos.
 #	check out, whether this can be improved using special windows-scripting...
 
-unset(infoFileFound CACHE)
+set(infoFileFound "infoFileFound-NOTFOUND")
 find_file(infoFileFound compile_info_vars.cpp PATHS ${CMAKE_BINARY_DIR})
 
 if(${infoFileFound} STREQUAL "infoFileFound-NOTFOUND")
