@@ -6,7 +6,9 @@
  */
 
 #include "dof_count.h"
-#include "pcl/pcl_process_communicator.h"
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_process_communicator.h"
+#endif
 
 namespace ug{
 
