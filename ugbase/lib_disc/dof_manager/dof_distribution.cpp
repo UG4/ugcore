@@ -1288,7 +1288,7 @@ void DoFDistribution::resize_values(size_t newSize)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// SurfaceDoFDistribution
+// Init DoFs
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -1557,6 +1557,77 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 	}
 }
 #endif
+
+////////////////////////////////////////////////////////////////////////////////
+// DoF Statistic
+////////////////////////////////////////////////////////////////////////////////
+
+
+template <typename TBaseElem>
+void DoFDistribution::sum_dof_count(DoFCount& cnt) const
+{
+	typedef typename traits<TBaseElem>::const_iterator iterator;
+
+	const SurfaceView& sv = *m_spSurfView;
+	const MultiGrid& mg = *m_spMG;
+	DistributedGridManager* spDstGrdMgr = sv.subset_handler()->grid()->distributed_grid_manager();
+
+//	get iterators of elems
+	iterator iter = begin<TBaseElem>();
+	iterator iterEnd = end<TBaseElem>();
+
+// 	loop elems
+	for(; iter != iterEnd; ++iter){
+		TBaseElem* elem = *iter;
+		const ReferenceObjectID roid = elem->reference_object_id();
+		const int si = sv.subset_handler()->get_subset_index(elem);
+
+		// Surface State
+		SurfaceView::SurfaceState SurfaceState = SurfaceView::PURE_SURFACE;
+		if(grid_level().is_surface()) {
+			SurfaceState = sv.get_surface_state(elem);
+			if(SurfaceState == SurfaceView::UNASSIGNED)
+				SurfaceState = SurfaceView::PURE_SURFACE;
+		}
+
+		if(SurfaceState.contains(SurfaceView::SHADOW_COPY)){
+			if(mg.num_children<TBaseElem>(elem) > 0){
+				TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
+				if(sv.get_surface_state(child).contains(SurfaceView::SHADOWING))
+					continue;
+			}
+		}
+
+		// Interface State
+		byte InterfaceState = ES_NONE;
+		if(spDstGrdMgr) InterfaceState = spDstGrdMgr->get_status(elem);
+
+		// loop all functions
+		for(size_t fct = 0; fct < num_fct(); ++fct){
+
+			const size_t numDoF = num_fct_dofs(fct,roid,si);
+
+			cnt.add(fct, si, SurfaceState, InterfaceState, numDoF);
+		}
+	}
+}
+
+DoFCount DoFDistribution::dof_count() const
+{
+	DoFCount cnt(grid_level(), dof_distribution_info());
+
+	if(max_dofs(VERTEX)) sum_dof_count<VertexBase>(cnt);
+	if(max_dofs(EDGE)) sum_dof_count<EdgeBase>(cnt);
+	if(max_dofs(FACE)) sum_dof_count<Face>(cnt);
+	if(max_dofs(VOLUME)) sum_dof_count<Volume>(cnt);
+
+	return cnt;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Permutation of indices
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename TBaseElem>
 void DoFDistribution::

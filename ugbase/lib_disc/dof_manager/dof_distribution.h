@@ -12,6 +12,7 @@
 #include "lib_disc/domain_traits.h"
 #include "lib_disc/common/local_algebra.h"
 #include "dof_index_storage.h"
+#include "dof_count.h"
 
 #ifdef UG_PARALLEL
 #include "lib_algebra/parallelization/algebra_layouts.h"
@@ -466,6 +467,14 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		template <typename TBaseElem>
 		void add_indices_from_layouts(IndexLayout& indexLayout, int keyType);
 #endif
+
+	public:
+		DoFCount dof_count() const;
+
+	protected:
+		template <typename TBaseElem>
+		void sum_dof_count(DoFCount& cnt) const;
+
 };
 
 } // end namespace ug

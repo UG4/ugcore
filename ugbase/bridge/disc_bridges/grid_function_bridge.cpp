@@ -254,7 +254,7 @@ static void Common(Registry& reg, string grp)
 	typedef IApproximationSpace T;
 	typedef DoFDistributionInfoProvider TBase;
 	reg.add_class_<T, TBase>("IApproximationSpace", grp)
-		.add_method("print_statistic", static_cast<void (T::*)(int) const>(&T::print_statistic))
+		.add_method("print_statistic", static_cast<void (T::*)(std::string) const>(&T::print_statistic))
 		.add_method("print_statistic", static_cast<void (T::*)() const>(&T::print_statistic))
 		.add_method("print_layout_statistic", static_cast<void (T::*)() const>(&T::print_layout_statistic))
 		.add_method("num_levels", &T::num_levels)

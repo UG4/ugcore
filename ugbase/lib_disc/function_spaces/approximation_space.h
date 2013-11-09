@@ -158,10 +158,10 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	\}
 
 	///	prints statistic about DoF Distribution
-		void print_statistic(int verboseLev = 1) const;
+		void print_statistic(std::string flags) const;
 
 	///	prints statistic about DoF Distribution
-		void print_statistic() const {print_statistic(1);}
+		void print_statistic() const;
 
 	///	prints statistic on layouts
 		void print_layout_statistic() const;

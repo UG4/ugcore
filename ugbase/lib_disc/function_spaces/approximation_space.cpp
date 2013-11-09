@@ -215,15 +215,17 @@ IApproximationSpace::dof_distributions() const
 void IApproximationSpace::init_levels()
 {
 	PROFILE_FUNC();
-	for(size_t lvl = 0; lvl < num_levels(); ++lvl)
-		create_dof_distribution(GridLevel(lvl, GridLevel::LEVEL, true));
+	for(size_t lvl = 0; lvl < num_levels(); ++lvl){
+		dof_distribution(GridLevel(lvl, GridLevel::LEVEL, false));
+		dof_distribution(GridLevel(lvl, GridLevel::LEVEL, true));
+	}
 }
 
 void IApproximationSpace::init_surfaces()
 {
 	PROFILE_FUNC();
 	for(size_t lvl = 0; lvl < num_levels(); ++lvl)
-		create_dof_distribution(GridLevel(lvl, GridLevel::SURFACE, false));
+		dof_distribution(GridLevel(lvl, GridLevel::SURFACE, false));
 
 	init_top_surface();
 }
@@ -231,7 +233,7 @@ void IApproximationSpace::init_surfaces()
 void IApproximationSpace::init_top_surface()
 {
 	PROFILE_FUNC();
-	create_dof_distribution(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false));
+	dof_distribution(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -439,6 +441,304 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 // Statistic
 ////////////////////////////////////////////////////////////////////////////////
 
+void PrintDoFCount(const vector<DoFCount>& vDC,
+                   const string& sInfo,
+                   const string& sAlgebra,
+                   const string& sflags)
+{
+	const bool bPrintCmps = (sflags.find("component") != string::npos);
+	const bool bPrintInterface = (sflags.find("interface") != string::npos);
+	const bool bPrintSurface = (sflags.find("surface") != string::npos);
+	const bool bPrintSubset = (sflags.find("subset") != string::npos);
+
+//	check for output
+	if(vDC.size() == 0)
+		UG_THROW("Expected something to print.")
+
+//	constants for size of output
+	static const int LEVEL = 14;
+	static const int COMPONENT = 7;
+	static const int INTERFACE = 8;
+	static const int SURFACE = 12;
+	static const int NUMBER = 12;
+	static const char* sSep = " | ";
+	static const char* sLeft = "| ";
+	static const char* sRight = " |";
+
+//	constants for selection
+	static const int ALL_FCT = DoFCount::ALL_FCT;
+	static const int ALL_SUBSET = DoFCount::ALL_SUBSET;
+	static const byte ALL_ES = DoFCount::ALL_ES;
+	static const byte ALL_SS = DoFCount::ALL_SS;
+	static const byte UNIQUE_ES = DoFCount::UNIQUE_ES;
+	static const byte UNIQUE_SS = DoFCount::UNIQUE_SS;
+
+//	Table Header
+	stringstream ssHead;
+	ssHead << setw(LEVEL) << "GridLevel  " << sSep;
+
+//	Components
+	vector<pair<string,int> > vCmp;
+	vCmp.push_back(pair<string,int>("all", ALL_FCT));
+	if(bPrintCmps){
+		ssHead << setw(COMPONENT) << "Comps" << sSep;
+		for(int fct = 0; fct < (int)vDC[0].num_fct(); ++fct){
+			stringstream name; name << fct << ": "<< vDC[0].name(fct);
+			vCmp.push_back(pair<string,int>(SnipString(name.str(), COMPONENT, 2), fct));
+		}
+	}
+
+//	Interface
+	if(bPrintInterface) {
+		ssHead << setw(INTERFACE) << "Parallel" << sSep;
+	}
+
+//	Surface
+	if(bPrintSurface) {
+		ssHead << setw(SURFACE) << "Surface" << sSep;
+	}
+
+//	Subsets
+	ssHead << setw(NUMBER) << "Domain";
+	vector<int> vSubset; vSubset.push_back(ALL_SUBSET);
+	if(bPrintSubset) {
+		for(int si = 0; si < vDC[0].num_subsets(); ++si){
+			stringstream name; name << si << ": "<< vDC[0].subset_name(si);
+			ssHead << sSep << setw(NUMBER) << SnipString(name.str(), NUMBER, 2);
+			vSubset.push_back(si);
+		}
+	}
+
+//	size of a line
+	int LINE = ssHead.str().size();
+	if(LINE < 76) LINE = 76;
+
+	UG_LOG(sLeft << repeat('-', LINE) << sRight << endl);
+	UG_LOG(sLeft << left << setw(LINE) << sInfo << right << sRight << endl);
+	UG_LOG(sLeft << left << setw(LINE) << sAlgebra << right << sRight << endl);
+	UG_LOG(sLeft << setw(LINE) << "" << sRight << endl);
+	UG_LOG(sLeft << setw(LINE) << left << ssHead.str() << right << sRight << endl);
+	UG_LOG(sLeft << repeat('-', LINE) << sRight << endl);
+
+
+//	Loop Level
+	for(size_t i = 0; i < vDC.size(); ++i){
+
+		const DoFCount& dc = vDC[i];
+		const GridLevel gl = dc.grid_level();
+		stringstream ssGL; ssGL << gl;
+
+	//	always print unique (w.r.t interface) number
+		vector<pair<string, byte> > vInIS;
+		vInIS.push_back(pair<string,byte>("unique",UNIQUE_ES));
+		vector<pair<string, byte> > vContainsIS;
+
+	//	if PrintInterface: add more output
+		if(bPrintInterface){
+			vContainsIS.push_back(pair<string,byte>("m (&)",ES_H_MASTER));
+			vContainsIS.push_back(pair<string,byte>("s (&)",ES_H_SLAVE));
+			vInIS.push_back(pair<string,byte>("all",ALL_ES));
+
+		//	if grid level with ghost: add more output
+			if(gl.is_level() && gl.ghosts()){
+				vContainsIS.push_back(pair<string,byte>("vm (&)",ES_V_MASTER));
+				vContainsIS.push_back(pair<string,byte>("vs (&)",ES_V_SLAVE));
+				vInIS.push_back(pair<string,byte>("no (x)",ES_NONE));
+				vInIS.push_back(pair<string,byte>("m (x)",ES_H_MASTER));
+				vInIS.push_back(pair<string,byte>("s (x)",ES_H_SLAVE));
+				vInIS.push_back(pair<string,byte>("vm (x)",ES_V_MASTER));
+				vInIS.push_back(pair<string,byte>("vs (x)", ES_V_SLAVE));
+				vInIS.push_back(pair<string,byte>("m+vm (x)", ES_H_MASTER | ES_V_MASTER));
+				vInIS.push_back(pair<string,byte>("m+vs (x)", ES_H_MASTER | ES_V_SLAVE));
+				vInIS.push_back(pair<string,byte>("s+vm (x)", ES_H_SLAVE | ES_V_MASTER));
+				vInIS.push_back(pair<string,byte>("s+vs (x)", ES_H_SLAVE | ES_V_SLAVE));
+			}
+		}
+
+	//	always print unique (w.r.t. surface) number
+		vector<pair<string, byte> > vInSS;
+		if(gl.is_surface())
+			vInSS.push_back(pair<string,byte>("unique",UNIQUE_SS));
+		else
+			vInSS.push_back(pair<string,byte>("---",UNIQUE_SS));
+
+	//	if PrintSurface and a surface level: add more output
+		if(bPrintSurface && gl.is_surface()){
+			vInSS.push_back(pair<string,byte>("all",ALL_SS));
+			vInSS.push_back(pair<string,byte>("pure",SurfaceView::PURE_SURFACE));
+			vInSS.push_back(pair<string,byte>("shadowing",SurfaceView::SHADOWING));
+			vInSS.push_back(pair<string,byte>("shadow-cpy",SurfaceView::SHADOW_COPY));
+			vInSS.push_back(pair<string,byte>("shadow-nocpy",SurfaceView::SHADOW_NONCOPY));
+		}
+
+		UG_LOG(sLeft<<setw(LEVEL) << left << ssGL.str() << right);
+		stringstream ss; ss << sLeft<<setw(LEVEL)<<"";
+		string LvlBegin(ss.str());
+
+	// 	Loop Comps
+		for(size_t cmp = 0; cmp < vCmp.size(); ++cmp){
+
+			string LineBegin(LvlBegin);
+
+		//	write component at first appearance
+			const int fct = vCmp[cmp].second;
+			if(bPrintCmps) {
+				if(cmp > 0) UG_LOG(LvlBegin);
+				UG_LOG(sSep<<setw(COMPONENT) << left << vCmp[cmp].first << right);
+				stringstream ss; ss <<sSep << setw(COMPONENT)<<"";
+				LineBegin.append(ss.str());
+			}
+
+			bool bPrintBegin = false;
+
+		//	print interface numbers
+			for(size_t is = 0; is < vInIS.size(); ++is){
+				for(size_t ss = 0; ss < vInSS.size(); ++ss){
+					if(bPrintBegin) {UG_LOG(LineBegin);} else bPrintBegin = true;
+					if(bPrintInterface) UG_LOG(sSep << setw(INTERFACE) << vInIS[is].first);
+					if(bPrintSurface) UG_LOG(sSep << setw(SURFACE) << vInSS[ss].first);
+					for(size_t si = 0; si < vSubset.size(); ++si)
+						UG_LOG(sSep << setw(NUMBER) << ConvertNumber(dc.num(fct,vSubset[si],vInSS[ss].second,vInIS[is].second),NUMBER,4));
+					UG_LOG(sRight << endl);
+				}
+			}
+
+			for(size_t is = 0; is < vContainsIS.size(); ++is){
+				for(size_t ss = 0; ss < vInSS.size(); ++ss){
+					if(bPrintBegin) {UG_LOG(LineBegin);} else bPrintBegin = true;
+					if(bPrintInterface) UG_LOG(sSep << setw(INTERFACE) << vContainsIS[is].first);
+					if(bPrintSurface) UG_LOG(sSep << setw(SURFACE) << vInSS[ss].first);
+					for(size_t si = 0; si < vSubset.size(); ++si)
+						UG_LOG(sSep << setw(NUMBER) << ConvertNumber(dc.num_contains(fct,vSubset[si],vInSS[ss].second,vContainsIS[is].second),NUMBER,4));
+					UG_LOG(sRight << endl);
+				}
+			}
+		}
+	}
+
+	UG_LOG(sLeft << repeat('-', LINE) << sRight << endl);
+
+	UG_LOG(left);
+	if(sflags.find("legend") != string::npos){
+		UG_LOG(sLeft<<setw(LINE)<<" GridLevel: underlying grid part"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"            lev  = level view (all elems in a grid level)"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"            surf = surface view of a level"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"                 = all elems in level + elems without child in lower levels"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"            top  = top surface (leaf elems)"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"            g    = with ghost elems"<<sRight<<endl);
+
+		if(bPrintCmps){
+			UG_LOG(sLeft<<setw(LINE)<<" Comps: DoFs in single components"<<sRight<<endl);
+		}
+
+		if(bPrintInterface){
+			UG_LOG(sLeft<<setw(LINE)<<" Parallel:  DoFs in parallel interfaces"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"            (x) = DoFs exactly matching parallel state"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"            (&) = DoFs containing parallel state"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"            m = (horiz.) master, s = (horiz.) slave"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"            vm = vert. master, vs = vert. slave"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"            no = not contained in interface"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"            all = all DoFs"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"            unique = neglecting DoF copies (as if serial run)"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"                   = no + m (&) + vs (x)"<<sRight<<endl);
+		}
+
+		if(bPrintSurface){
+			UG_LOG(sLeft<<setw(LINE)<<" Surface:  DoFs in surface states (matching state exactly)"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"           pure = inner surface DoF"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"           shadowing = Shadowing"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"           shadow-cpy = Shadow Copy (i.e. has same type shadowing)"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"           shadow-nocpy = Shadow Non-Copy (i.e. has not same type shadowing)"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"           all = all DoFs"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"           unique = number of uniquely numbered DoFs"<<sRight<<endl);
+			UG_LOG(sLeft<<setw(LINE)<<"                  = pure + shadowing + shadow-nocpy"<<sRight<<endl);
+		}
+
+		UG_LOG(sLeft<<setw(LINE)<<" Domain: DoFs on whole domain"<<sRight<<endl);
+		if(bPrintSubset){
+			UG_LOG(sLeft<<setw(LINE)<<" Subset: DoFs on subset only"<<sRight<<endl);
+		}
+
+		UG_LOG(sLeft<<setw(LINE)<<""<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<" Call options: print_statistic(\"opt1, opt2, ...\")"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"   proc:      show DoFs for single proc"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"   subset:    show DoFs per subset"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"   interface: show DoFs per parallel interface"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"   surface:   show DoFs per surface state"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"   component: show DoFs per component"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"   legend:    show this legend"<<sRight<<endl);
+		UG_LOG(sLeft<<setw(LINE)<<"   all:       enable all options"<<sRight<<endl);
+	} else {
+		UG_LOG(sLeft << setw(LINE) << "For Legend and Options: print_statistic(\"legend\")."<< sRight << endl);
+	}
+	UG_LOG(right);
+
+	UG_LOG(sLeft << repeat('-', LINE) << sRight << endl);
+}
+
+void IApproximationSpace::print_statistic() const
+{
+	print_statistic("subset");
+}
+
+void IApproximationSpace::print_statistic(std::string flags) const
+{
+//	if nothing printed
+	if(m_vDD.empty()){
+		static const char* sLeft = " | ";
+		static const char* sRight = " | ";
+		const int LINE = 60;
+		UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
+		UG_LOG(left);
+		UG_LOG(sLeft << setw(LINE) << "No DoFDistributions created."<<sRight<<endl);
+		UG_LOG(sLeft << setw(LINE) << "NOTE: DoFDistributions are created only on request."<<sRight<<endl);
+		UG_LOG(sLeft << setw(LINE) << "      However, you may force creation using:"<<sRight<<endl);
+		UG_LOG(sLeft << setw(LINE) << "       - ApproximationSpace::init_levels()"<<sRight<<endl);
+		UG_LOG(sLeft << setw(LINE) << "       - ApproximationSpace::init_surfaces()"<<sRight<<endl);
+		UG_LOG(sLeft << setw(LINE) << "       - ApproximationSpace::init_top_surface()"<<sRight<<endl);
+		UG_LOG(right);
+		UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
+		return;
+	}
+
+//	Get DoF Counts
+	vector<DoFCount> vDC(m_vDD.size());
+	for(size_t i = 0; i < vDC.size(); ++i)
+		vDC[i] = m_vDD[i]->dof_count();
+
+	string sflags = ToLower(flags);
+	if(sflags.find("all") != string::npos)
+		sflags = string("proc, subset, interface, surface, component, legend");
+
+	stringstream ssDDOneProc; ssDDOneProc<<" Number of DoFs";
+	int numProcs = 1;
+#ifdef UG_PARALLEL
+	numProcs = pcl::GetNumProcesses();
+	ssDDOneProc<<" (Proc: "<<pcl::GetProcRank()<<" of "<< pcl::GetNumProcesses()<<")";
+#endif
+
+	bool bPrintOneProc = false;
+	if(sflags.find("proc") != string::npos) bPrintOneProc = true;
+	if(numProcs == 1) bPrintOneProc = false;
+
+//	Algebra Info
+	const int blockSize = DefaultAlgebra::get().blocksize();
+	stringstream ssAlgebra; ssAlgebra << " Algebra: ";
+	if(blockSize != AlgebraType::VariableBlockSize)
+		ssAlgebra<<"Block "<<blockSize<<" (devide by "<<blockSize<<" for #Index)";
+	else ssAlgebra <<"Flex";
+
+//	Print infos
+	if(bPrintOneProc)
+		PrintDoFCount(vDC, ssDDOneProc.str(), ssAlgebra.str(), sflags);
+
+	for(size_t i = 0; i < vDC.size(); ++i)
+		vDC[i].allreduce_values();
+
+	PrintDoFCount(vDC, " Number of DoFs (All Procs)", ssAlgebra.str(), sflags);
+}
+
+
 #ifdef UG_PARALLEL
 static size_t NumIndices(const IndexLayout& Layout)
 {
@@ -449,201 +749,6 @@ static size_t NumIndices(const IndexLayout& Layout)
 	return sum;
 }
 #endif
-
-static void ComputeParallelIndices(size_t& numDoFs, std::vector<size_t>& vNumDoFSubset,
-									 ConstSmartPtr<DoFDistribution> dd)
-{
-#ifdef UG_PARALLEL
-//	Get Process communicator;
-	const pcl::ProcessCommunicator& pCom = dd->layouts()->proc_comm();
-
-//	hack since pcl does not support much constness
-	DoFDistribution* nonconstDD = const_cast<DoFDistribution*>(dd.get());
-
-//	compute local dof numbers of all masters; this the number of all dofs
-//	minus the number of all slave dofs (double counting of slaves can not
-//	occur, since each slave is only slave of one master), minus the number of
-//	all vertical master dofs (double counting can occure, since a vertical master
-//	can be in a horizontal slave interface.
-//	Therefore: 	if there are no vert. master dofs, we can simply calculate the
-//				number of DoFs by counting. If there are vert. master dofs
-//				we need to remove doubles when counting.
-	int numMasterDoF;
-	if(NumIndices(dd->layouts()->vertical_master()) > 0)
-	{
-	//	create vector of vertical masters and horiz. slaves, since those are
-	//	not reguarded as masters on the dd. All others are masters. (Especially,
-	//	also vertical slaves are masters w.r.t. computing like smoothing !!)
-		std::vector<IndexLayout::Element> vIndex;
-		CollectElements(vIndex, nonconstDD->layouts()->vertical_master());
-		CollectElements(vIndex, nonconstDD->layouts()->slave(), false);
-
-	//	sort vector and remove doubles
-		std::sort(vIndex.begin(), vIndex.end());
-		vIndex.erase(std::unique(vIndex.begin(), vIndex.end()),
-		                         vIndex.end());
-
-	//	now remove all horizontal masters, since they are still master though
-	//	in the vert master interface
-		std::vector<IndexLayout::Element> vIndex2;
-		CollectElements(vIndex2, nonconstDD->layouts()->master());
-		for(size_t i = 0; i < vIndex2.size(); ++i)
-			vIndex.erase(std::remove(vIndex.begin(), vIndex.end(), vIndex2[i]),
-			             vIndex.end());
-
-	//	the remaining DoFs are the "slaves"
-		numMasterDoF = dd->num_indices() - vIndex.size();
-	}
-	else
-	{
-	//	easy case: only subtract masters from slaves
-		numMasterDoF = dd->num_indices() - NumIndices(dd->layouts()->slave());
-	}
-
-//	global and local values
-//	we use uint64 here instead of size_t since the communication via
-//	mpi does not support the usage of size_t.
-	std::vector<uint64> tNumGlobal, tNumLocal;
-
-//	write number of Masters on this process
-	tNumLocal.push_back(numMasterDoF);
-
-//	write local number of dof in a subset for all subsets. For simplicity, we
-//	only communicate the total number of dofs (i.e. master+slave)
-//	\todo: count slaves in subset and subtract them to get only masters
-	for(int si = 0; si < dd->num_subsets(); ++si)
-		tNumLocal.push_back(dd->num_indices(si));
-
-//	resize receive array
-	tNumGlobal.resize(tNumLocal.size());
-
-//	sum up over processes
-	if(!pCom.empty())
-	{
-		pCom.allreduce(&tNumLocal[0], &tNumGlobal[0], tNumGlobal.size(),
-		               PCL_DT_UNSIGNED_LONG_LONG, PCL_RO_SUM);
-	}
-	else if (pcl::GetNumProcesses() == 1)
-	{
-		for(size_t i = 0; i < tNumGlobal.size(); ++i)
-		{
-			tNumGlobal[i] = tNumLocal[i];
-		}
-	}
-	else
-	{
-//		UG_LOG(" Unable to compute informations.");
-		return;
-	}
-
-//	Total number of DoFs (last arg of 'ConvertNumber()' ("precision") is total
-//  width - 4 (two for binary prefix, two for space and decimal point)
-	numDoFs = tNumGlobal[0];
-
-	vNumDoFSubset.resize(dd->num_subsets());
-	for(int si = 0; si < dd->num_subsets(); ++si)
-		vNumDoFSubset[si] = tNumGlobal[si+1];
-#endif
-}
-
-
-void IApproximationSpace::print_statistic(int verboseLev) const
-{
-	static const int LEVEL = 14;
-	static const int NUMBER = 12;
-	static const int SUBSET = 12;
-	static const char* sSep = " | ";
-
-//	DD info
-	stringstream ssDD; ssDD<<"DoF-Distribution";
-#ifdef UG_PARALLEL
-	ssDD<<" on Proc "<<pcl::GetProcRank()<<" of "<< pcl::GetNumProcesses()<<" Procs";
-#endif
-
-//	Algebra Info
-	const int blockSize = DefaultAlgebra::get().blocksize();
-	stringstream ssAlgebra; ssAlgebra << "Algebra: ";
-	if(blockSize != AlgebraType::VariableBlockSize) ssAlgebra<<"Block "<<blockSize;
-	else ssAlgebra <<"Flex";
-
-//	Table Header
-	stringstream ssHead;
-	ssHead << setw(LEVEL) << "GridLevel  " << sSep;
-	ssHead << setw(NUMBER) << "# Index" << sSep;
-	if(verboseLev >= 1) {
-		for(int si = 0; si < this->num_subsets(); ++si){
-			if(si > 0) ssHead << sSep;
-			stringstream name; name << si << ": "<< this->subset_name(si);
-			ssHead << setw(SUBSET) << SnipString(name.str(), SUBSET, 2);
-		}
-	}
-	const int LINE = ssHead.str().size();
-
-	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
-	UG_LOG(sSep << std::left << setw(LINE) << ssDD.str() << std::right << sSep << endl);
-	UG_LOG(sSep << std::left << setw(LINE) << ssAlgebra.str() << std::right << sSep << endl);
-	UG_LOG(sSep << setw(LINE) << ssHead.str() << sSep << endl);
-	UG_LOG(" |-" << repeat('-', LINE) << "-| " << endl);
-
-//	if nothing printed
-	if(m_vDD.empty()){
-		UG_LOG(std::left);
-		UG_LOG(sSep << setw(LINE) << "No DoFDistributions created."<<sSep<<endl);
-		UG_LOG(sSep << setw(LINE) << "NOTE: DoFDistributions are created on request."<<sSep<<endl);
-		UG_LOG(sSep << setw(LINE) << "      However, you may force creation using:"<<sSep<<endl);
-		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_levels()"<<sSep<<endl);
-		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_surfaces()"<<sSep<<endl);
-		UG_LOG(sSep << setw(LINE) << "       - ApproximationSpace::init_top_surface()"<<sSep<<endl);
-		UG_LOG(std::right);
-		UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
-		return;
-	}
-
-//	Print Infos
-	for(size_t i = 0; i < m_vDD.size(); ++i){
-		stringstream ss; ss << m_vDD[i]->grid_level();
-		UG_LOG(sSep<<setw(LEVEL) << std::left << ss.str() << std::right << sSep);
-		UG_LOG(setw(NUMBER) << ConvertNumber(m_vDD[i]->num_indices(),NUMBER,6) << sSep);
-		if(verboseLev >= 1){
-			for(int si = 0; si < m_vDD[i]->num_subsets(); ++si)
-				UG_LOG(setw(SUBSET) << ConvertNumber(m_vDD[i]->num_indices(si),SUBSET,4) << sSep);
-		}
-		UG_LOG(endl);
-	}
-	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
-
-#ifdef UG_PARALLEL
-//	only in case of more than 1 proc
-	if(pcl::GetNumProcesses() < 2) return;
-
-	ssDD.str(""); ssDD<<"DoF-Distribution all Procs";
-
-//	header
-	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
-	UG_LOG(sSep << std::left << setw(LINE) << ssDD.str() << std::right << sSep << endl);
-	UG_LOG(sSep << std::left << setw(LINE) << ssAlgebra.str() << std::right << sSep << endl);
-	UG_LOG(sSep << setw(LINE) << ssHead.str() << sSep << endl);
-	UG_LOG(" |-" << repeat('-', LINE) << "-| " << endl);
-
-//	Print Infos
-	for(size_t i = 0; i < m_vDD.size(); ++i){
-		size_t numDoF; std::vector<size_t> vNumDoF;
-		ComputeParallelIndices(numDoF, vNumDoF, m_vDD[i]);
-		stringstream ss; ss << m_vDD[i]->grid_level();
-		UG_LOG(sSep<<setw(LEVEL) << std::left << ss.str() << std::right << sSep);
-
-		if(!vNumDoF.empty()) {
-		UG_LOG(setw(NUMBER) << ConvertNumber(numDoF,NUMBER,6) << sSep);
-		if(verboseLev >= 1){
-			for(size_t si = 0; si < vNumDoF.size(); ++si)
-				UG_LOG(setw(SUBSET) << ConvertNumber(vNumDoF[si],SUBSET,4) << sSep);
-		}
-		}
-		UG_LOG(endl);
-	}
-	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
-#endif
-}
 
 void IApproximationSpace::print_layout_statistic() const
 {
@@ -671,7 +776,7 @@ void IApproximationSpace::print_layout_statistic() const
 //	Write Infos for Levels
 	for(size_t i = 0; i < m_vDD.size(); ++i){
 		stringstream ss; ss << m_vDD[i]->grid_level();
-		UG_LOG(sSep << setw(LEVEL) << std::left << ss.str() << std::right << sSep);
+		UG_LOG(sSep << setw(LEVEL) << left << ss.str() << right << sSep);
 		UG_LOG(setw(NUMBER) << NumIndices(m_vDD[i]->layouts()->master()) << sSep);
 		UG_LOG(setw(NUMBER) << NumIndices(m_vDD[i]->layouts()->slave()) << sSep);
 		UG_LOG(setw(NUMBER) << NumIndices(m_vDD[i]->layouts()->vertical_master()) << sSep);
