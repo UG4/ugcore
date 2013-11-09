@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__DOF_MANAGER__DOF_COUNT__
 
 #include "lib_grid/tools/surface_view.h"
+#include "lib_grid/parallelization/distributed_grid.h"
 #include "dof_distribution_info.h"
 
 namespace ug{
