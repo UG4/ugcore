@@ -5,8 +5,8 @@
  *      Author: anaegel
  */
 
-#ifndef SCALAR_VECTOR_ADAPTER_HH_
-#define SCALAR_VECTOR_ADAPTER_HH_
+#ifndef SCALAR_SUBVECTOR_ADAPTER_HH_
+#define SCALAR_SUBVECTOR_ADAPTER_HH_
 
 #include <cstdlib>
 
@@ -14,28 +14,51 @@
 #include "lib_algebra/lib_algebra_impl.h"
 #include "lib_algebra/cpu_algebra_types.h"
 
-
-using namespace ug;
+#include "lib_algebra/small_algebra/blocks.h"
+namespace ug{
 
 // provides an interface for matrix of algebra type B for matrices originally of algebra type A
 // allows to access a CPUBlockAlgebra (AT) as a scalar CPUAlgebra (ST)
 
-template<class AT, class ST>
+template<class InVT, class ST>
+class ConstScalarSubVectorAdapter{
+public:
+	typedef InVT encapsulated_vector_type;
+	typedef typename ST::vector_type::value_type value_type;
+	static const int blockSize = block_traits<typename InVT::value_type>::static_size;
+
+	ConstScalarSubVectorAdapter(const encapsulated_vector_type& vec, size_t alpha) : m_src(vec), m_alpha(alpha) {};
+
+	inline const value_type &operator [] (size_t i) const
+	{ return BlockRef(m_src[i], m_alpha); }
+
+	void print(const char * const text = NULL) const
+	{ m_src.print(text);}
+
+	size_t size() const
+	{ return (m_src.size());}
+
+private:
+	const encapsulated_vector_type &m_src;
+	const size_t m_alpha;
+};
+
+template<class InVT, class ST>
 class ScalarSubVectorAdapter{
 
 public:
-	typedef typename AT::vector_type encapsulated_vector_type;
+	typedef InVT encapsulated_vector_type;
 	typedef typename ST::vector_type::value_type value_type;
-	static const int blockSize = AT::blockSize;
-
-	//typedef typename ST::vector_type::const_row_iterator const_row_iterator;
+	static const int blockSize = block_traits<typename InVT::value_type>::static_size;
+	//typedef typename ST::vector_type::const_row_iterator const_row_iterator
 
 	ScalarSubVectorAdapter(encapsulated_vector_type& vec, size_t alpha) : m_src(vec), m_alpha(alpha) {};
 
 	inline value_type &operator [] (size_t i)
-	{ return BlockRef(m_src[i], alpha);}
+	{ return BlockRef(m_src[i], m_alpha); }
 
-	inline const value_type &operator [] (size_t i) const { return (i);}
+	inline const value_type &operator [] (size_t i) const
+	{ return BlockRef(m_src[i], m_alpha); }
 
 	void resize(size_t newSize, bool bCopyValues=true)
 	{
@@ -49,6 +72,8 @@ public:
 	{
 		m_src.print(text);
 	}
+
+	size_t size() const {return (m_src.size());}
 private:
 	encapsulated_vector_type &m_src;
 	const size_t m_alpha;
@@ -57,9 +82,10 @@ private:
 
 // partielle Spezialisierung fuer CPUAlgebra
 template<>
-ScalarSubVectorAdapter<CPUAlgebra, CPUAlgebra>::value_type&
-ScalarSubVectorAdapter<CPUAlgebra, CPUAlgebra>::operator [] (size_t i)
+ScalarSubVectorAdapter<CPUAlgebra::vector_type, CPUAlgebra>::value_type&
+ScalarSubVectorAdapter<CPUAlgebra::vector_type, CPUAlgebra>::operator [] (size_t i)
 { return m_src[i]; }
 
+} // namespace ug
 
 #endif /* SPARSEMATRIXPROXY_HH_ */

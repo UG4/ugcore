@@ -50,8 +50,7 @@ public:
 		m_src.print(text);
 	}
 
-	size_t size()
-	{return (m_src.size()*blockSize);}
+	size_t size() const {return (m_src.size()*blockSize);}
 private:
 	encapsulated_vector_type &m_src;
 };

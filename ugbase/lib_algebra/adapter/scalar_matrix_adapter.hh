@@ -35,8 +35,8 @@ public:
 
 	ScalarMatrixAdapter(encapsulated_matrix_type& mat) : m_src(mat), m_const(mat) {};
 
-	bool resize_and_clear(size_t newRows, size_t newCols)
-	{return m_src.resize_and_clear(newRows/blockSize, newCols/blockSize);}
+	void resize_and_clear(size_t newRows, size_t newCols)
+	{ m_src.resize_and_clear(newRows/blockSize, newCols/blockSize);}
 
 	bool resize_and_keep_values(size_t newRows, size_t newCols)
 	{return m_src.resize_and_keep_values(newRows/blockSize, newCols/blockSize);}
