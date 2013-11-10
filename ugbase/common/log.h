@@ -311,8 +311,8 @@ inline std::string ConvertNumberSI (uint64_t size, unsigned int width,
  * UG_LOG(msg)  		- prints a message to the normal output stream
  */
 #ifdef UG_FOR_VRL
-	#define VRL_LOG(msg) {std::stringstream ss;ss << "" << msg;\
-						  ug::vrl::MessageBuffer::addMessage(ss.str());}
+	#define VRL_LOG(msg) {std::stringstream __ss; __ss << "" << msg;\
+						  ug::vrl::MessageBuffer::addMessage(__ss.str());}
 #else
 	#define VRL_LOG(msg)
 #endif
