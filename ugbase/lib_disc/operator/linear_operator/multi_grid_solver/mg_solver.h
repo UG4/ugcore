@@ -472,21 +472,6 @@ class AssembledMultiGridCycle :
 		void gather_vertical(vector_type& d);
 
 	/**
-	 *	gathers the vector using vertical interfaces.
-	 *	Entries are copied from vslaves to vmasters
-	 */
-		void gather_vertical_copy(vector_type& d);
-
-	/**
-	 *	gathers the vector using vertical interfaces.
-	 *	Only ghost values are adjusted. The specified tmp vector is for internal
-	 *	calculations only and has to be of the same size as d!
-	 *	mapGlobalToPatch either has to be empty or of the same size as d.
-	 */
-		void gather_on_ghosts(vector_type& d, vector_type& tmp,
-					std::vector<int>& mapGlobalToPatch);
-
-	/**
 	 *	broadcasts the vector using vertical interfaces.
 	 */
 		void broadcast_vertical(vector_type& t);
@@ -495,9 +480,6 @@ class AssembledMultiGridCycle :
 	 *	broadcasts and adds the vector using vertical interfaces.
 	 */
 		void broadcast_vertical_add(vector_type& t);
-
-	///	copies values from h-masters to h-slaves
-		void copy_to_horizontal_slaves(vector_type& c);
 
 	///	copies values from h-masters to h-slaves
 		void copy_to_vertical_masters(vector_type& c);

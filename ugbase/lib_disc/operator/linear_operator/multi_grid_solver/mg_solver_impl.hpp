@@ -1475,7 +1475,6 @@ prolongation(size_t lev)
 //	interfaces (dummies are always h-slaves)
 	#ifdef UG_PARALLEL
 	broadcast_vertical(tmp);
-	//copy_to_horizontal_slaves(tmp);
 	#endif
 	write_level_debug(tmp, "GMG_Prol_CoarseGridCorr", lev);
 
@@ -2088,75 +2087,6 @@ log_level_data(size_t lvl)
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef UG_PARALLEL
-//template <typename TDomain, typename TAlgebra>
-//bool
-//AssembledMultiGridCycle<TDomain, TAlgebra>::
-//gather_vertical(vector_type& d)
-//{
-//	PROFILE_FUNC_GROUP("gmg");
-////	start with resume as true, i.e. process will continue computation
-////	on the coarser level
-//	bool resume = true;
-//
-////	send vertical-slaves -> vertical-masters
-////	one proc may not have both, a vertical-slave- and vertical-master-layout.
-//	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
-//	ComPol_VecAdd<vector_type> cpVecAdd(&d);
-//	if(!d.layouts()->vertical_slave().empty()){
-//	//	do not resume if vertical slaves are present
-//		resume = false;
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		  " Going down: SENDS vert. dofs.\n");
-//
-//	//	schedule Sending of DoFs of vertical slaves
-//		m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
-//	}
-//	else if(!d.layouts()->vertical_master().empty()){
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
-//
-//	//	schedule Receive of DoFs on vertical masters
-//		m_Com.receive_data(d.layouts()->vertical_master(), cpVecAdd);
-//	}
-//
-////	perform communication
-//	m_Com.communicate();
-//	GMG_PROFILE_END();
-//
-//	return resume;
-//}
-//
-//template <typename TDomain, typename TAlgebra>
-//void
-//AssembledMultiGridCycle<TDomain, TAlgebra>::
-//broadcast_vertical(vector_type& t)
-//{
-//	PROFILE_FUNC_GROUP("gmg");
-////	send vertical-masters -> vertical-slaves
-////	one proc may not have both, a vertical-slave- and vertical-master-layout.
-//	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
-//	ComPol_VecCopy<vector_type> cpVecCopy(&t);
-//	if(!t.layouts()->vertical_slave().empty())
-//	{
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
-//
-//	//	schedule slaves to receive correction
-//		m_Com.receive_data(t.layouts()->vertical_slave(), cpVecCopy);
-//	}
-//	else if(!t.layouts()->vertical_master().empty())
-//	{
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going up: SENDS vert. dofs.\n");
-//
-//	//	schedule masters to send correction
-//		m_Com.send_data(t.layouts()->vertical_master(), cpVecCopy);
-//	}
-//
-////	communicate
-//	m_Com.communicate();
-//	GMG_PROFILE_END();
-//}
 template <typename TDomain, typename TAlgebra>
 void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
@@ -2232,98 +2162,6 @@ gather_vertical(vector_type& d)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical\n");
 }
 
-template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-gather_vertical_copy(vector_type& d)
-{
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - gather_vertical_copy\n");
-	PROFILE_FUNC_GROUP("gmg");
-
-//	send vertical-slaves -> vertical-masters
-	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
-	ComPol_VecCopy<vector_type> cpVecCopy(&d);
-	if(!d.layouts()->vertical_slave().empty()){
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		  " Going down: SENDS vert. dofs.\n");
-
-	//	schedule Sending of DoFs of vertical slaves
-		m_Com.send_data(d.layouts()->vertical_slave(), cpVecCopy);
-	}
-
-	if(!d.layouts()->vertical_master().empty()){
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
-
-	//	schedule Receive of DoFs on vertical masters
-		m_Com.receive_data(d.layouts()->vertical_master(), cpVecCopy);
-	}
-
-//	perform communication
-	m_Com.communicate();
-	GMG_PROFILE_END();
-
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical_copy\n");
-}
-
-template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-gather_on_ghosts(vector_type& d, vector_type& tmp, std::vector<int>& mapGlobalToPatch)
-{
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - gather_vertical\n");
-	PROFILE_FUNC_GROUP("gmg");
-
-	UG_ASSERT(d.size() == tmp.size(), "d and tmp have to be of the same size!");
-
-//	send vertical-slaves -> vertical-masters
-	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
-	tmp = d;
-	ComPol_VecAdd<vector_type> cpVecAdd(&tmp);
-	if(!d.layouts()->vertical_slave().empty()){
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		  " Going down: SENDS vert. dofs.\n");
-
-	//	schedule Sending of DoFs of vertical slaves
-		m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
-	}
-
-	if(!d.layouts()->vertical_master().empty()){
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
-
-	//	schedule Receive of DoFs on vertical masters
-		m_Com.receive_data(d.layouts()->vertical_master(), cpVecAdd);
-	}
-
-//	perform communication
-	m_Com.communicate();
-
-//	add values from tmp to ghost
-	UG_ASSERT((mapGlobalToPatch.size() == 0) || mapGlobalToPatch.size() == d.size(),
-			"mapGlobalToPatch either has to be empty or of the same size as d");
-
-//	we'll iterate over all vertical masters, since ghosts are a subset of those.
-	typename IndexLayout::iterator intfcIter = d.layouts()->vertical_master().begin();
-	typename IndexLayout::iterator intfcIterEnd = d.layouts()->vertical_master().end();
-
-	for(; intfcIter != intfcIterEnd; ++intfcIter){
-		typename IndexLayout::Interface& intfc =
-								d.layouts()->vertical_master().interface(intfcIter);
-
-		for(typename IndexLayout::Interface::iterator iter = intfc.begin();
-				iter != intfc.end(); ++iter)
-		{
-			const size_t i = intfc.get_element(iter);
-			if(mapGlobalToPatch[i] == -1){
-				d[i] += tmp[i];
-			}
-		}
-	}
-	GMG_PROFILE_END();
-
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical\n");
-}
 
 template <typename TDomain, typename TAlgebra>
 void
@@ -2434,28 +2272,6 @@ broadcast_vertical_add(vector_type& d)
 
 	GMG_PROFILE_END();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - broadcast_vertical\n");
-}
-
-template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-copy_to_horizontal_slaves(vector_type& c)
-{
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_horizontal_slaves\n");
-	PROFILE_FUNC_GROUP("gmg");
-
-	GMG_PROFILE_BEGIN(GMG_CopyToHorizontalSlaves);
-	ComPol_VecCopy<vector_type> cpVecCopy(&c);
-	if(!c.layouts()->slave().empty())
-		m_Com.receive_data(c.layouts()->slave(), cpVecCopy);
-
-	if(!c.layouts()->master().empty())
-		m_Com.send_data(c.layouts()->master(), cpVecCopy);
-
-//	communicate
-	m_Com.communicate();
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_horizontal_slaves\n");
 }
 
 template <typename TDomain, typename TAlgebra>
