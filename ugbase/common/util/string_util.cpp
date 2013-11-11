@@ -371,5 +371,33 @@ string XMLStringEscape(string s)
 	return s;
 }
 
+
+string ConfigShift(string s)
+{
+	if(s.find("\n") == string::npos)
+		return s;
+
+	stringstream ss;
+	ss << "\n";
+	bool bNewLine = true;
+	for(size_t k=0; k<s.length(); k++)
+	{
+		if(s[k] == '\n')
+		{
+			if(k == s.length()-1) return ss.str();
+			bNewLine=true;
+		}
+		else if(bNewLine)
+		{
+			ss << " | ";
+			bNewLine = false;
+		}
+		ss << s[k];
+	}
+	return ss.str();
+}
+
+
+
 }
 

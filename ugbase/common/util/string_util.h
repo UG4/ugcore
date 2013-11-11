@@ -332,6 +332,27 @@ UG_API std::string XMLStringEscape(std::string s);
 // end group ugbase_common_util_strings
 /// \}
 
+/**
+ * \brief returns a "shifted" string
+ * one-line strings are not shifted
+ * two line strings are shifted like this: input:
+ * "MyLine1\nMyLine2\n"
+ * Output:
+ * "\n | MyLine1\n | MyLine2"
+ * note that they get an additional \n at the beginning, and
+ * doubled \n and \n at the end are removed, so you can use
+ * ConfigShift like this
+ * \code
+ * strstr << 	"MySubcomponent = " << ConfigShift(comp1.config_string()) << "\n"
+ * 				"MySubcomponent2 = " << ConfigShift(comp2.config_string()) << "\n"
+ * \endcode
+ * Depending on comp1.config_string(), this results in
+ * "MySubcomponent1 = sub1 ... " or "MySubcomponent =\n | sub1.1\n | sub1.2 ..."
+ * @param[in] s
+ * @return shifted string
+ */
+UG_API std::string ConfigShift(std::string s);
+
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/
