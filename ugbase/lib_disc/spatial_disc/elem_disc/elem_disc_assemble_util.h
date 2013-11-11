@@ -687,14 +687,16 @@ AssembleDefect(	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 
 	//  ANALOG to 'domain_disc_elem()' -  modifies the solution, used
 	//	for computing the defect
-		LocalVector& modLocU = locU;
-		if( spAssTuner->modify_solution_enabled() ){
+		if( spAssTuner->modify_solution_enabled() )
+		{
+			LocalVector& modLocU = locU;
 			try{
 				spAssTuner->modify_LocalSol(modLocU, locU, dd);
 			} UG_CATCH_THROW("Cannot modify local solution.");
+
+		// recopy modified LocalVector:
+			locU = modLocU;
 		}
-	// recopy modified LocalVector:
-		locU = modLocU;
 
 	// 	prepare element
 		try
