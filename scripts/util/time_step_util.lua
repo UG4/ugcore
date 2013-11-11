@@ -127,6 +127,11 @@ function util.SolveNonlinearTimeProblem(
 	-- create time disc
 	local timeDisc = util.CreateTimeDisc(domainDisc, timeScheme, orderOrTheta)
 	
+	
+	-- print newtonSolver setup	
+	print("SolveNonlinearTimeProblem, Newton Solver setup:")
+	print(newtonSolver:config_string())
+	
 	-- start
 	local time = startTime
 	local step = 0
@@ -294,6 +299,11 @@ function util.SolveLinearTimeProblem(
 		print("Aborting")
 		exit()
 	end
+	
+	
+	-- print newtonSolver setup	
+	print("SolveLinearTimeProblem, Linear Solver setup:")
+	print(linSolver:config_string())
 	
 	-- start
 	local time = startTime
