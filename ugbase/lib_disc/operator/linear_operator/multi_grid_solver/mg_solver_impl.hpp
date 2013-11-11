@@ -61,7 +61,6 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
-	m_NonGhostMarker(*m_spApproxSpace->domain()->grid()),
 	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
 
@@ -430,49 +429,41 @@ init_level_operator()
 	try{
 		if(m_pSurfaceSol) {
 
-			if(!m_spProjectionPrototype.valid())
-				UG_THROW("AssembledMultiGridCycle::init: Projection not set.");
+			#ifdef UG_PARALLEL
+			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT))
+				UG_THROW("AssembledMultiGridCycle::init: Can only project "
+						"a consistent solution. Make sure to pass a consistent on.");
+			#endif
 
 			init_projection();
-
-			for(size_t lev = 0; lev < m_vLevData.size(); ++lev){
-				if(m_vLevData[lev]->u.valid()){
-					// \todo: Check why setting to zero is necessary in adaptive
-					//		  case. This should not be the case
-					m_vLevData[lev]->u->set(0.0);
-					#ifdef UG_PARALLEL
-					m_vLevData[lev]->u->set_storage_type(m_pSurfaceSol->get_storage_mask());
-					#endif
-				}
-			}
 
 			for(size_t i = 0; i < m_vSurfToLevelMap.size(); ++i){
 				const int level = m_vSurfToLevelMap[i].level;
 				const size_t index = m_vSurfToLevelMap[i].index;
 
-				(*(m_vLevData[level]->u))[index] = (*m_pSurfaceSol)[i];
+				(*(m_vLevData[level]->t))[index] = (*m_pSurfaceSol)[i];
 			}
 
 			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 			for(int lev = m_topLev; lev != m_baseLev; --lev)
 			{
 				#ifdef UG_PARALLEL
-					copy_to_vertical_masters(*m_vLevData[lev]->u);
+				copy_to_vertical_masters(*m_vLevData[lev]->t);
 				#endif
 
-			//	skip void level
-				if(m_vLevData[lev]->num_indices() == 0 ||
-					m_vLevData[lev-1]->num_indices() == 0) continue;
-
 				try{
-					m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->u, *m_vLevData[lev]->u);
+					m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->t, *m_vLevData[lev]->t);
 				} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
 							"solution to coarse grid function of level "<<lev-1<<".\n");
+
+				#ifdef UG_PARALLEL
+				m_vLevData[lev]->t->set_storage_type(m_pSurfaceSol->get_storage_mask());
+				#endif
 			}
 			#ifdef UG_PARALLEL
-				if(m_baseLev != m_topLev){
-					copy_to_vertical_masters(*m_vLevData[m_baseLev]->u);
-				}
+			if(m_baseLev != m_topLev){
+				copy_to_vertical_masters(*m_vLevData[m_baseLev]->t);
+			}
 			#endif
 			GMG_PROFILE_END();
 		}
@@ -483,47 +474,33 @@ init_level_operator()
 // 	Create coarse level operators
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip void level
-		if(m_vLevData[lev]->num_indices() == 0) continue;
-
 		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
-	//	if ghosts are present we have to assemble the matrix only on non-ghosts
-	//	for the smoothing matrices
-		if(m_vLevData[lev]->has_ghosts())
+		LevData& ld = *m_vLevData[lev];
+
+	//	In Full-Ref case we can copy the Matrix from the surface
+		const bool bCpyFromSurface = (!m_bAdaptive && (lev == m_vLevData.size()));
+
+		if(!bCpyFromSurface)
 		{
-		//	set this selector to the assembling, such that only those elements
-		//	will be assembled and force grid to be considered as regular
-			m_spAss->ass_tuner()->set_marker(&m_NonGhostMarker);
-			m_spAss->ass_tuner()->set_force_regular_grid(true);
+			for(size_t i = 0; i < ld.vMapPatchToGlobal.size(); ++i)
+				(*(ld.st))[i] = (*(ld.t))[ ld.vMapPatchToGlobal[i] ];
+			ld.st->set_storage_type(ld.t->get_storage_mask());
 
-		//	init level operator
 			try{
-			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL, true));
-			}
-			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-						" Cannot init operator for level "<< lev << ".\n");
-
-		//	remove force flag
+			m_spAss->ass_tuner()->set_force_regular_grid(true);
+			m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(lev, GridLevel::LEVEL, false));
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
-			m_spAss->ass_tuner()->set_marker(NULL);
-
-		//	copy the matrix into a new (smaller) one
-			SmartPtr<matrix_type> mat = m_vLevData[lev]->spLevMat;
-			SmartPtr<matrix_type> smoothMat = m_vLevData[lev]->spSmoothMat;
-
-			const size_t numSmoothIndex = m_vLevData[lev]->num_smooth_indices();
-			smoothMat->resize_and_clear(numSmoothIndex, numSmoothIndex);
-			CopyMatrixByMapping(*smoothMat, m_vLevData[lev]->vMapGlobalToPatch, *mat);
+			}
+			UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init operator "
+							"for level "<<lev);
 		}
-		else if((lev == m_vLevData.size() - 1) && (!m_bAdaptive))
+		else
 		{
 		//	in case of full refinement we simply copy the matrix (with correct numbering)
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
-			SmartPtr<matrix_type> levMat = m_vLevData[lev]->spLevMat;
-			ConstSmartPtr<matrix_type> surfMat = m_spSurfaceMat;
 
-			//	loop all mapped indices
-			levMat->resize_and_clear(surfMat->num_rows(), surfMat->num_cols());
+		//	loop all mapped indices
+			ld.A->resize_and_clear(m_spSurfaceMat->num_rows(), m_spSurfaceMat->num_cols());
 			for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
 			{
 			//	get mapped level index
@@ -534,56 +511,63 @@ init_level_operator()
 			//	loop all connections of the surface dof to other surface dofs
 			//	and copy the matrix coupling into the level matrix
 				typedef typename matrix_type::const_row_iterator const_row_iterator;
-				const_row_iterator conn = surfMat->begin_row(surfFrom);
-				const_row_iterator connEnd = surfMat->end_row(surfFrom);
+				const_row_iterator conn = m_spSurfaceMat->begin_row(surfFrom);
+				const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
 				for( ;conn != connEnd; ++conn){
 				//	get corresponding level connection index
 					size_t lvlTo = m_vSurfToLevelMap[conn.index()].index;
 
 				//	copy connection to level matrix
-					(*levMat)(lvlFrom, lvlTo) = conn.value();
+					(*ld.A)(lvlFrom, lvlTo) = conn.value();
 				}
 			}
 
 			#ifdef UG_PARALLEL
-			levMat->set_storage_type(surfMat->get_storage_mask());
+			ld.A->set_storage_type(m_spSurfaceMat->get_storage_mask());
 			#endif
 
 			GMG_PROFILE_END();
-			continue;
 		}
-	//	if no ghosts are present we can simply use the whole grid. If the base
-	//	solver is carried out in serial (gathering to some processes), we have
-	//	to assemble the assemble the coarse grid matrix on the whole grid as
-	//	well
-		if(!m_vLevData[lev]->has_ghosts() ||
-			(((int)lev == m_baseLev) && (m_bBaseParallel == false)))
-		{
-		//	init level operator
-			m_spAss->ass_tuner()->set_force_regular_grid(true);
-			try{
-			m_spAss->assemble_jacobian(*m_vLevData[lev]->spLevMat, *m_vLevData[lev]->u, GridLevel(lev, GridLevel::LEVEL, true));
-			}
-			UG_CATCH_THROW("ERROR in 'AssembledMultiGridCycle:init_linear_level_operator':"
-						" Cannot init operator for level "<< lev << ".\n");
-			m_spAss->ass_tuner()->set_force_regular_grid(false);
-		}
-	//	else we can forget about the whole-level matrix, since the needed
-	//	smoothing matrix is stored in SmoothMat
-		else
-		{
-			m_vLevData[lev]->spLevMat->resize_and_clear(0,0);
-		}
-
 		GMG_PROFILE_END();
+	}
+
+//	if no ghosts are present we can simply use the whole grid. If the base
+//	solver is carried out in serial (gathering to some processes), we have
+//	to assemble the assemble the coarse grid matrix on the whole grid as
+//	well
+	LevData& ld = *m_vLevData[m_baseLev];
+	if(!m_bBaseParallel)
+	{
+		try{
+		if(spBaseSolverMat.invalid())
+			spBaseSolverMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(new MatrixOperator<matrix_type, vector_type>);
+		m_spAss->ass_tuner()->set_force_regular_grid(true);
+		m_spAss->assemble_jacobian(*spBaseSolverMat, *ld.t, GridLevel(m_baseLev, GridLevel::LEVEL, true));
+		m_spAss->ass_tuner()->set_force_regular_grid(false);
+		}
+		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init operator "
+						"base level operator");
+	}
+//	else we can forget about the whole-level matrix, since the needed
+//	smoothing matrix is stored in SmoothMat
+	else
+	{
+		for(size_t i = 0; i < ld.vMapPatchToGlobal.size(); ++i)
+			(*(ld.st))[i] = (*(ld.t))[ ld.vMapPatchToGlobal[i] ];
+		ld.st->set_storage_type(ld.t->get_storage_mask());
+
+		try{
+		m_spAss->ass_tuner()->set_force_regular_grid(true);
+		m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(m_baseLev, GridLevel::LEVEL, false));
+		m_spAss->ass_tuner()->set_force_regular_grid(false);
+		}
+		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init operator "
+						"for level "<<m_baseLev);
 	}
 
 //	write computed level matrices for debug purpose
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev){
-		if(!m_vLevData[lev]->has_ghosts())
-			write_level_debug(*m_vLevData[lev]->spLevMat, "LevelMatrix", lev);
-		else
-			write_smooth_level_debug(*m_vLevData[lev]->spSmoothMat, "LevelMatrix", lev);
+		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrix", lev);
 	}
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
@@ -616,79 +600,60 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 //	get the surface view
 	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_vLevData.size());
-
 //	create storage for matrices on the grid levels
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_vLevData.size());
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
-	{
-	//	get dof distributions on levels
-		ConstSmartPtr<DoFDistribution> dd
-							= m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true));
-
-		vLevelDD[lev] = dd;
-
-	//	resize the matrix
-		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(dd->num_indices(),
-		                                               dd->num_indices());
-	}
+		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true));;
 
 //	surface dof distribution
 	ConstSmartPtr<DoFDistribution> surfDD =
-								m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
+			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 //	create mappings
 	std::vector<std::vector<int> > vSurfLevelMapping;
-
 	CreateSurfaceToLevelMapping(vSurfLevelMapping, vLevelDD, surfDD, surfView);
 
 //	loop all levels to compute the missing contribution
 	BoolMarker sel(*m_spApproxSpace->domain()->grid());
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 	{
-	//	select all elements, that have a shadow as a subelement, but are not itself
-	//	a shadow
+	//	select all elements, that have a shadow as a subelement, but are not
+	//	itself a shadow -  we assemble on those elements only
 		sel.clear();
 		SelectNonShadowsAdjacentToShadowsOnLevel(sel, surfView, lev);
 
-	//	now set this selector to the assembling, such that only those elements
-	//	will be assembled
-		m_spAss->ass_tuner()->set_marker(&sel);
-
 	//	create a surface matrix
 		matrix_type surfMat;
-
-		GridLevel surfLevel(GridLevel::TOP, GridLevel::SURFACE);
+		GridLevel surfLevel(m_surfaceLev, GridLevel::SURFACE);
 
 	//	assemble the surface jacobian only for selected elements
-		if(u)
+		m_spAss->ass_tuner()->set_marker(&sel);
+		if(u){
 			m_spAss->assemble_jacobian(surfMat, *u, surfLevel);
-		else
-		{
+		}else{
 		//	\todo: not use tmp vector here
-			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE))->num_indices());
+			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->dof_distribution(surfLevel)->num_indices());
 			m_spAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
 		}
+		m_spAss->ass_tuner()->set_marker(NULL);
 
 	//	write matrix for debug purpose
 		std::stringstream ss; ss << "MissingSurfMat_" << lev;
 		write_surface_debug(surfMat, ss.str().c_str());
 
-	//	remove the selector from the assembling procedure
-		m_spAss->ass_tuner()->set_marker(NULL);
-
 	//	project
 		try{
-			CopyMatrixSurfaceToLevel(m_vLevData[lev]->CoarseGridContribution,
+		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(vLevelDD[lev]->num_indices(),
+		                                                         vLevelDD[lev]->num_indices());
+		CopyMatrixSurfaceToLevel(m_vLevData[lev]->CoarseGridContribution,
 		                             vSurfLevelMapping[lev],
 		                             surfMat);
 		}
 		UG_CATCH_THROW("AssembledMultiGridCycle::init_missing_coarse_grid_coupling: "
 					"Projection of matrix from surface to level failed.");
-	}
 
-//	write matrix for debug purpose
-	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
+	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling " << "\n");
 }
@@ -779,24 +744,18 @@ init_smoother()
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_smoother\n");
 
 // 	Init smoother
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip void level
-		if(m_vLevData[lev]->num_indices() == 0) continue;
+		LevData& ld = *m_vLevData[lev];
 
-	//	get smooth matrix and vector
-		vector_type& u = m_vLevData[lev]->get_smooth_solution();
-		SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
-				m_vLevData[lev]->get_smooth_mat();
-
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing pre-smoother\n");
-		if(!m_vLevData[lev]->PreSmoother->init(spSmoothMat, u))
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing pre-smoother on lev "<<lev<<"\n");
+		if(!m_vLevData[lev]->PreSmoother->init(ld.A, *ld.st))
 			UG_THROW("AssembledMultiGridCycle::init: Cannot init pre-smoother for level "<<lev);
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing post-smoother\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing post-smoother on lev "<<lev<<"\n");
 		if(m_vLevData[lev]->PreSmoother.get() != m_vLevData[lev]->PostSmoother.get())
 		{
-			if(!m_vLevData[lev]->PostSmoother->init(spSmoothMat, u))
+			if(!m_vLevData[lev]->PostSmoother->init(ld.A, *ld.st))
 				UG_THROW("AssembledMultiGridCycle::init: Cannot init post-smoother for level "<<lev);
 		}
 	}
@@ -842,7 +801,7 @@ init_base_solver()
 			else
 			{
 			//	we init the base solver with the whole grid matrix
-				if(!m_spBaseSolver->init(m_vLevData[m_baseLev]->spLevMat, *m_vLevData[m_baseLev]->u))
+				if(!m_spBaseSolver->init(spBaseSolverMat, *m_vLevData[m_baseLev]->t))
 					UG_THROW("AssembledMultiGridCycle::init: Cannot init base "
 							"solver on baselevel "<< m_baseLev);
 			}
@@ -858,14 +817,9 @@ init_base_solver()
 	if(m_bBaseParallel)
 #endif
 	{
-	//	get smooth matrix and vector
-		vector_type& u = m_vLevData[m_baseLev]->get_smooth_solution();
-		SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
-				m_vLevData[m_baseLev]->get_smooth_mat();
+		LevData& ld = *m_vLevData[m_baseLev];
 
-		//write_level_debug(*spSmoothMat, "GMG_BaseSolver_Matrix", m_baseLev);
-
-		if(!m_spBaseSolver->init(spSmoothMat, u))
+		if(!m_spBaseSolver->init(ld.A, *ld.st))
 			UG_THROW("AssembledMultiGridCycle::init: Cannot init base solver "
 					"on baselevel "<< m_baseLev);
 	}
@@ -958,6 +912,58 @@ init_surface_to_level_mapping()
 }
 
 
+template <typename TDomain, typename TAlgebra>
+template <typename TElem>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_noghost_to_ghost_mapping(	std::vector<size_t>& vNoGhostToGhostMap,
+								ConstSmartPtr<DoFDistribution> spNoGhostDD,
+								ConstSmartPtr<DoFDistribution> spGhostDD)
+{
+	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
+	iter_type iter = spNoGhostDD->begin<TElem>();
+	iter_type iterEnd = spNoGhostDD->end<TElem>();
+
+//	vector of indices
+	std::vector<size_t> vGhostInd, vNoGhostInd;
+
+//	loop all elements of type
+	for( ; iter != iterEnd; ++iter){
+	//	get elem
+		TElem* elem = *iter;
+
+	//	extract all algebra indices for the element
+		  spGhostDD->inner_algebra_indices(elem, vGhostInd);
+		spNoGhostDD->inner_algebra_indices(elem, vNoGhostInd);
+		UG_ASSERT(vGhostInd.size() == vNoGhostInd.size(), "Number of indices does not match.");
+
+	//	set mapping index
+		for(size_t i = 0; i < vNoGhostInd.size(); ++i){
+			vNoGhostToGhostMap[vNoGhostInd[i]] = vGhostInd[i];
+		}
+	}
+}
+
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_noghost_to_ghost_mapping(int lev)
+{
+	ConstSmartPtr<DoFDistribution> spNoGhostDD =
+			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
+	ConstSmartPtr<DoFDistribution> spGhostDD =
+			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true));
+
+	std::vector<size_t>& vMapPatchToGlobal = m_vLevData[lev]->vMapPatchToGlobal;
+	vMapPatchToGlobal.resize(0);
+	vMapPatchToGlobal.resize(spNoGhostDD->num_indices());
+
+	if(spNoGhostDD->max_dofs(VERTEX)) init_noghost_to_ghost_mapping<VertexBase>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
+	if(spNoGhostDD->max_dofs(EDGE))   init_noghost_to_ghost_mapping<EdgeBase>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
+	if(spNoGhostDD->max_dofs(FACE))   init_noghost_to_ghost_mapping<Face>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
+	if(spNoGhostDD->max_dofs(VOLUME)) init_noghost_to_ghost_mapping<Volume>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Init Level Data
 ////////////////////////////////////////////////////////////////////////////////
@@ -979,11 +985,9 @@ top_level_required(size_t topLevel)
 	}
 
 //	reinit all levels
-	m_NonGhostMarker.clear();
 	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
 	{
 		m_vLevData[lev]->update(lev,
-		                       m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true)),
 		                       m_spApproxSpace,
 		                       m_spAss,
 		                       *m_spPreSmootherPrototype,
@@ -992,33 +996,22 @@ top_level_required(size_t topLevel)
 		                       *m_spProlongationPrototype,
 		                       *m_spRestrictionPrototype,
 		                       m_vspProlongationPostProcess,
-		                       m_vspRestrictionPostProcess,
-		                       m_NonGhostMarker);
+		                       m_vspRestrictionPostProcess);
+
+		init_noghost_to_ghost_mapping(lev);
 	}
 }
-
-
-template <typename TDomain, typename TAlgebra>
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-LevData::~LevData()
-{}
 
 template <typename TDomain, typename TAlgebra>
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 LevData::
 LevData()
-: spLevDD(0),
-  m_spApproxSpace(0),
-  spLevMat(new MatrixOperator<matrix_type, vector_type>),
-  spSmoothMat(new MatrixOperator<matrix_type, vector_type>),
+: A(new MatrixOperator<matrix_type, vector_type>),
   PreSmoother(0), PostSmoother(0),
   Projection(0), Prolongation(0), Restriction(0),
   vProlongationPP(0), vRestrictionPP(0),
-  u(0), c(0), d(0), t(0),
-  su(0), sc(0), sd(0), st(0)
-#ifdef UG_PARALLEL
-  ,spSmoothLayouts(0)
-#endif
+  c(0), d(0), t(0),
+  sc(0), sd(0), st(0)
 {};
 
 
@@ -1027,8 +1020,7 @@ void
 AssembledMultiGridCycle<TDomain, TAlgebra>::
 LevData::
 update(size_t lev,
-       SmartPtr<DoFDistribution> levDD,
-       SmartPtr<ApproximationSpace<TDomain> > approxSpace,
+       SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
        SmartPtr<IAssemble<TAlgebra> > spAss,
        ILinearIterator<vector_type>& presmoother,
        ILinearIterator<vector_type>& postsmoother,
@@ -1036,36 +1028,30 @@ update(size_t lev,
        ITransferOperator<TAlgebra>& prolongation,
        ITransferOperator<TAlgebra>& restriction,
        std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
-       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP,
-       BoolMarker& nonGhostMarker)
+       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP)
 {
 	PROFILE_FUNC_GROUP("gmg");
-//	get dof distribution
-	spLevDD = levDD;
-	m_spApproxSpace = approxSpace;
 
 //	resize vectors for operations on whole grid level
-	if(u.invalid()) u = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
-	if(c.invalid()) c = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
-	if(d.invalid()) d = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
-	if(t.invalid()) t = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, spLevDD, false));
+	typedef GridFunction<TDomain, TAlgebra> GF;
+	GridLevel glGhosts = GridLevel(lev, GridLevel::LEVEL, true);
+	c = SmartPtr<GF>(new GF(spApproxSpace, glGhosts, false));
+	d = SmartPtr<GF>(new GF(spApproxSpace, glGhosts, false));
+	t = SmartPtr<GF>(new GF(spApproxSpace, glGhosts, false));
 
-//	enlarge the vectors on the number of the extra dofs
-//todo: Remove it here and implement the management of the extra dofs in the
-//		DoFDistribution class
-	const size_t numIndex = spLevDD->num_indices();
-	u->resize(numIndex);
-	c->resize(numIndex);
-	d->resize(numIndex);
-	t->resize(numIndex);
+	GridLevel gl = GridLevel(lev, GridLevel::LEVEL, false);
+	sc = SmartPtr<GF>(new GF(spApproxSpace, gl, false));
+	sd = SmartPtr<GF>(new GF(spApproxSpace, gl, false));
+	st = SmartPtr<GF>(new GF(spApproxSpace, gl, false));
 
-//	prepare level operator
-#ifdef UG_PARALLEL
-//	default storage types for c and d to avoid incompatible types.
+	//	default storage types for c and d to avoid incompatible types.
+	#ifdef UG_PARALLEL
 	c->set_storage_type(PST_CONSISTENT);
 	d->set_storage_type(PST_ADDITIVE);
-	spLevMat->set_layouts(spLevDD->layouts());
-#endif
+	sc->set_storage_type(PST_CONSISTENT);
+	sd->set_storage_type(PST_ADDITIVE);
+	A->set_layouts(sc->layouts());
+	#endif
 
 //	post smoother only created if not the same operator
 	if(PreSmoother.invalid()) PreSmoother = presmoother.clone();
@@ -1086,142 +1072,8 @@ update(size_t lev,
 	vRestrictionPP.clear();
 	for(size_t i = 0; i < vrestrictionPP.size(); ++i)
 			vRestrictionPP.push_back(vrestrictionPP[i]->clone());
-
-	GridLevel gl = GridLevel(lev, GridLevel::LEVEL, false);
-	su = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, gl, false));
-	sc = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, gl, false));
-	sd = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, gl, false));
-	st = SmartPtr<GridFunction<TDomain, TAlgebra> >(new GridFunction<TDomain, TAlgebra>(approxSpace, gl, false));
-
-//	IN PARALLEL:
-//	In the parallel case one may have vertical slaves/masters. Those are needed
-//	when the grid hierarchy ends at a certain point on one process but is still
-//	continued on another. In this case the values are transfered from the
-//	valishing processor and copied to another. In addition it may happen, that
-//	at a certain level a process only starts to have a grid elements and the
-//	values are copied from another process to this process.
-//	While these parts of the grid is needed for the transfer of correction or
-//	defect between the grid levels, on those elements no smoothing is performed.
-//	Therefore, if vertical masters are present only on the part of the grid
-//	without vertical masters is smoothed. To account for this, in addition
-//	smoothing vectors and matrices of smaller size are created and assembled.
-//	Please note that smoothing is performed on vertical slaves.
-#ifdef UG_PARALLEL
-//	if no vertical masters, there can be no ghost and we're ready. By ghosts
-//	we denote vertical masters, that are not horizontal master/slave
-	if(spLevDD->layouts()->vertical_master().empty())
-	{
-		m_numSmoothIndices = numIndex;
-		return;
-	}
-
-//	If ghosts are present we create the infrastructure for this. This includes
-//	the creation of Smoother on a smaller patch and required vectors/matrices
-//	Also a mapping between the index set on the whole grid and the index set
-//	on the smoothing patch must be created
-
-//	** 1. **: We create the mapping between the index sets
-//	create a vector of size of the whole grid with 1 everywhere
-	vMapGlobalToPatch.clear(); vMapGlobalToPatch.resize(numIndex, 1);
-
-//	set the vector to -1 where vertical masters are present, the set all
-//	indices back to 1 where the index is also a horizontal master/slave
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts()->vertical_master(), -1);
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts()->master(), 1);
-	SetLayoutValues(&vMapGlobalToPatch, spLevDD->layouts()->slave(), 1);
-
-//	now we create the two mapping:
-//	vMapGlobalToPatch: mapping (whole grid index -> patch index): the non-ghost indices
-//	are mapped to a patch index, while the ghosts are flagged by a -1 index
-//	vMapPatchToGlobal: mapping (patch index -> whole grid index): For each patch index the
-//	corresponding whole grid index is stored
-	vMapPatchToGlobal.clear();
-	for(size_t j = 0; j < vMapGlobalToPatch.size(); ++j)
-	{
-	//	if the index is still negative (i.e. ghost, leave index at -1)
-		if(vMapGlobalToPatch[j] == -1) continue;
-
-	//	if the index is a non-ghost set the new index
-		vMapGlobalToPatch[j] = vMapPatchToGlobal.size();
-
-	//	since in the patch we store the mapping index
-		vMapPatchToGlobal.push_back(j);
-	}
-
-//	now we know the size of the smoothing patch index set and resize help vectors
-//	by the preceeding 's' the relation to the smoothing is indicated
-	const size_t numSmoothIndex = vMapPatchToGlobal.size();
-	m_numSmoothIndices = numSmoothIndex;
-
-	// \todo: This is not correct here: DoFIndices on elements on smooth patch are still
-	//		  as in level numbering, but vector size must be restricted. It is
-	//		  necessary to add a different DoFDistribution for this type of
-	//		  dofs. In order to keep current (algebraic) solvers running, this
-	//		  resize is still performed at this point.
-	su->resize(numSmoothIndex);
-	sc->resize(numSmoothIndex);
-	sd->resize(numSmoothIndex);
-	st->resize(numSmoothIndex);
-
-	if(numSmoothIndex == 0){
-	//	set default storage types to avoid incompatibilities
-		sc->set_storage_type(PST_CONSISTENT);
-		sd->set_storage_type(PST_ADDITIVE);
-	}
-
-//	** 2. **: We have to create new layouts for the smoothers since on the
-//	smoothing patch the indices are labeled differently.
-//	copy layouts
-	spSmoothLayouts = SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
-	spSmoothLayouts->master() = spLevDD->layouts()->master();
-	spSmoothLayouts->slave() = spLevDD->layouts()->slave();
-	spSmoothLayouts->comm() = spLevDD->layouts()->comm();
-	spSmoothLayouts->proc_comm() = spLevDD->layouts()->proc_comm();
-
-//	Replace indices in the layout with the smaller (smoothing patch) indices
-	ReplaceIndicesInLayout(spSmoothLayouts->master(), vMapGlobalToPatch);
-	ReplaceIndicesInLayout(spSmoothLayouts->slave(), vMapGlobalToPatch);
-
-//	replace old layouts by new modified ones
-	sc->set_layouts(spSmoothLayouts);
-	su->set_layouts(spSmoothLayouts);
-	sd->set_layouts(spSmoothLayouts);
-	st->set_layouts(spSmoothLayouts);
-
-//	set the layouts in the smooth matrix
-	spSmoothMat->set_layouts(spSmoothLayouts);
-
-//	** 3. **: Since smoothing is only performed on non-ghost elements, the
-//	corresoding operator must be assembled only on those elements. So we
-//	use a selector to mark all non-ghosts and assemble on those later
-//	get distributed Grid manager
-	DistributedGridManager* pDstGrdMgr
-		= m_spApproxSpace->domain()->distributed_grid_manager();
-
-//	select all ghost geometric objects
-	for(int si = 0; si < spLevDD->num_subsets(); ++si)
-	{
-		SelectNonGhosts<VertexBase>(nonGhostMarker, *pDstGrdMgr,
-								 spLevDD->template begin<VertexBase>(si),
-								 spLevDD->template end<VertexBase>(si));
-		SelectNonGhosts<EdgeBase>(nonGhostMarker, *pDstGrdMgr,
-								 spLevDD->template begin<EdgeBase>(si),
-								 spLevDD->template end<EdgeBase>(si));
-		SelectNonGhosts<Face>(nonGhostMarker, *pDstGrdMgr,
-								 spLevDD->template begin<Face>(si),
-								 spLevDD->template end<Face>(si));
-		SelectNonGhosts<Volume>(nonGhostMarker, *pDstGrdMgr,
-								 spLevDD->template begin<Volume>(si),
-								 spLevDD->template end<Volume>(si));
-	}
-
-#else //PARALLEL
-
-//	We have to smooth on the entire level
-	m_numSmoothIndices = numIndex;
-
-#endif
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Cycle - Methods
@@ -1280,13 +1132,9 @@ smooth(vector_type& c, vector_type& d, vector_type& tmp,
 			//write_level_debug(tmp, "GMG_AdaptCorBeforeSetZero", lev);
 
 		//	First we reset the correction to zero on the patch boundary.
-			if(m_vLevData[lev]->has_ghosts())
-				SetZeroOnShadowing(tmp, m_vLevData[lev]->spLevDD, surfView,
-								   &m_vLevData[lev]->vMapGlobalToPatch);
-			else
-				SetZeroOnShadowing(tmp, m_vLevData[lev]->spLevDD, surfView);
+			SetZeroOnShadowing(tmp, m_vLevData[lev]->sc->dof_distribution(), surfView);
 
-			//write_level_debug(tmp, "GMG_AdaptCorAfterSetZero", lev);
+			write_level_debug(tmp, "GMG_AdaptCorAfterSetZero", lev);
 
 		//	now, we can update the defect with this correction ...
 			A.apply_sub(d, tmp);
@@ -1311,13 +1159,13 @@ presmooth(size_t lev)
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
 //	smoothing is performed)
-	vector_type& sd = m_vLevData[lev]->get_smooth_defect();
-	vector_type& sc = m_vLevData[lev]->get_smooth_correction();
-	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
+	vector_type& sd = *m_vLevData[lev]->sd;
+	vector_type& sc = *m_vLevData[lev]->sc;
+	vector_type& sTmp = *m_vLevData[lev]->st;
 
 //	get smoother on this level and corresponding operator
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
-		m_vLevData[lev]->get_smooth_mat();
+		m_vLevData[lev]->A;
 
 // 	reset correction to zero on this level
 	sc.set(0.0);
@@ -1328,8 +1176,9 @@ presmooth(size_t lev)
 //	copy the values from the whole grid level to the smoothing patch.
 	m_vLevData[lev]->copy_defect_to_smooth_patch();
 
-	write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_BeforePreSmooth", lev);
-	write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_BeforePreSmooth", lev);
+//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
+	write_smooth_level_debug(sd, "GMG_Def_BeforePreSmooth", lev);
+	write_smooth_level_debug(sc, "GMG_Cor_BeforePreSmooth", lev);
 
 // 	pre-smoothing
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
@@ -1340,14 +1189,16 @@ presmooth(size_t lev)
 					"level " << lev << " failed. ");
 	GMG_PROFILE_END();
 
-	write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_AfterPreSmooth", lev);
-	write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_AfterPreSmooth", lev);
+	write_smooth_level_debug(sd, "GMG_Def_AfterPreSmooth", lev);
+	write_smooth_level_debug(sc, "GMG_Cor_AfterPreSmooth", lev);
 
 //	now copy the values of d back to the whole grid, since the restriction
 //	acts on the whole grid. Since we will perform an addition of the vertical
 //	slaves to the vertical masters, we will thereby set the values on ghosts nodes
 //	to zero.
 	m_vLevData[lev]->copy_defect_from_smooth_patch(true);
+
+//	UG_LOG("After presmooth:\n");	log_level_data(lev);
 
 //NOTE: Since we do not copy the correction back from the smooth patch, the resulting
 //		correction will be zero in all entries, if ghosts were present on a process.
@@ -1429,9 +1280,9 @@ prolongation(size_t lev)
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
 //	smoothing is performed)
-	vector_type& sd = m_vLevData[lev]->get_smooth_defect();
-	vector_type& sc = m_vLevData[lev]->get_smooth_correction();
-	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
+	vector_type& sd = *m_vLevData[lev]->sd;
+	vector_type& sc = *m_vLevData[lev]->sc;
+	vector_type& sTmp = *m_vLevData[lev]->st;
 
 //	Lets get a reference to the coarser level correction, defect, help vector
 	UG_ASSERT(lev > 0, "prolongatoin can't be applied on level 0.");
@@ -1440,25 +1291,22 @@ prolongation(size_t lev)
 
 //	get smoothing operator on this level
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
-		m_vLevData[lev]->get_smooth_mat();
+		m_vLevData[lev]->A;
 
 //	## INTERPOLATE CORRECTION
-	if((cc.size() > 0) && (tmp.size() > 0)){
-	//	now we can interpolate the coarse grid correction from the coarse level
-	//	to the fine level
-		GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
-		try{
-			m_vLevData[lev]->Prolongation->prolongate(tmp, cc);
-		}
-		UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Prolongation from"
-					" level " << lev-1 << " to " << lev << " failed. "
-					"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
-		GMG_PROFILE_END();
-
-	//	apply post processes
-		for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
-			m_vLevData[lev]->vProlongationPP[i]->post_process(m_vLevData[lev]->t);
+	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
+	try{
+		m_vLevData[lev]->Prolongation->prolongate(tmp, cc);
 	}
+	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Prolongation from"
+				" level " << lev-1 << " to " << lev << " failed. "
+				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+	GMG_PROFILE_END();
+
+//	apply post processes
+	for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
+		m_vLevData[lev]->vProlongationPP[i]->post_process(m_vLevData[lev]->t);
+
 
 //	PARALLEL CASE: Receive values of correction for vertical slaves
 //	If there are vertical slaves/masters on the coarser level, we now copy
@@ -1548,7 +1396,7 @@ prolongation(size_t lev)
 
 		AddProjectionOfShadows(level_defects(),
 		                       vLevelDD,
-							   cTmp, m_vLevData[lev-1]->spLevDD,
+							   cTmp, m_vLevData[lev-1]->c->dof_distribution(),
 							   lev -1,
 							   -1.0,
 							   surfView);
@@ -1558,7 +1406,7 @@ prolongation(size_t lev)
 			//d.change_storage_type(PST_ADDITIVE);
 			m_vLevData[lev]->copy_defect_to_smooth_patch();
 		#endif
-		write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_Prolongated", lev);
+		write_smooth_level_debug(sd, "GMG_Def_Prolongated", lev);
 		//write_level_debug(cTmp, "GMG_Prol_CorrAdaptAdding", lev-1);
 	}
 
@@ -1575,14 +1423,13 @@ postsmooth(size_t lev)
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
 //	smoothing is performed)
-	vector_type& sd = m_vLevData[lev]->get_smooth_defect();
-	vector_type& sc = m_vLevData[lev]->get_smooth_correction();
-	vector_type& sTmp = m_vLevData[lev]->get_smooth_tmp();
+	vector_type& sd = *m_vLevData[lev]->sd;
+	vector_type& sc = *m_vLevData[lev]->sc;
+	vector_type& sTmp = *m_vLevData[lev]->st;
 
-//	get smoother on this level and corresponding operator
+//	get smoothing operator on this level
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
-		m_vLevData[lev]->get_smooth_mat();
-
+		m_vLevData[lev]->A;
 
 // 	## POST-SMOOTHING
 //	before we smooth, we want to make sure that sd is additive unique. This
@@ -1618,8 +1465,8 @@ base_solve(size_t lev)
 //	masters are present, since no smoothing is performed on those. In that case
 //	only on a smaller part of the grid level - the smoothing patch - the
 //	smoothing is performed)
-	vector_type& sd = m_vLevData[lev]->get_smooth_defect();
-	vector_type& sc = m_vLevData[lev]->get_smooth_correction();
+	vector_type& sd = *m_vLevData[lev]->sd;
+	vector_type& sc = *m_vLevData[lev]->sc;
 
 //	SOLVE BASE PROBLEM
 //	Here we distinguish two possibilities:
@@ -1666,7 +1513,7 @@ base_solve(size_t lev)
 			{
 			//	get smoothing matrix
 				SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat
-					= m_vLevData[lev]->get_smooth_mat();
+					= m_vLevData[lev]->A;
 
 			//	UPDATE DEFECT
 				spSmoothMat->apply_sub(sd, sc);
@@ -1723,7 +1570,7 @@ base_solve(size_t lev)
 //todo: is update defect really useful here?
 		//	update defect
 			if(m_baseLev == m_topLev)
-				m_vLevData[m_baseLev]->spLevMat->apply_sub(d, c);
+				m_vLevData[m_baseLev]->A->apply_sub(d, c);
 			GMG_PROFILE_END();
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG serial base solver done.\n");
 		}
@@ -1796,25 +1643,25 @@ lmgc(size_t lev)
 
 			write_level_debug(*m_vLevData[lev]->d, "GMG__TestDefectAfterLMGCRecursion", lev);
 
-		//	UG_LOG("Before prolongation:\n");	log_level_data(lev);
+	//		UG_LOG("Before prolongation:\n");	log_level_data(lev);
 			try{
 				prolongation(lev);
 			}
 			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: prolongation failed on level "<<lev);
 
-		//	UG_LOG("Before postsmooth:\n");	log_level_data(lev);
+	//		UG_LOG("Before postsmooth:\n");	log_level_data(lev);
 		//	note that the correction and defect at this time is are stored in
 		//	the smooth-vectors only, if v-masters are present...
-			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_BeforePostSmooth", lev);
-			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_BeforePostSmooth", lev);
+			write_smooth_level_debug(*m_vLevData[lev]->sd, "GMG_Def_BeforePostSmooth", lev);
+			write_smooth_level_debug(*m_vLevData[lev]->sc, "GMG_Cor_BeforePostSmooth", lev);
 			try{
 				postsmooth(lev);
 			}
 			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: postsmooth failed on level "<<lev);
-			write_smooth_level_debug(m_vLevData[lev]->get_smooth_defect(), "GMG_Def_AfterPostSmooth", lev);
-			write_smooth_level_debug(m_vLevData[lev]->get_smooth_correction(), "GMG_Cor_AfterPostSmooth", lev);
+			write_smooth_level_debug(*m_vLevData[lev]->sd, "GMG_Def_AfterPostSmooth", lev);
+			write_smooth_level_debug(*m_vLevData[lev]->sc, "GMG_Cor_AfterPostSmooth", lev);
 
-		//	UG_LOG("After postsmooth:\n");	log_level_data(lev);
+	//		UG_LOG("After postsmooth:\n");	log_level_data(lev);
 		}
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << "\n");
@@ -1863,9 +1710,7 @@ write_smooth_level_debug(const vector_type& vec, const char* filename, size_t le
 
 //	write
 	GridLevel gridLev = dbgWriter->grid_level();
-	dbgWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL));
-	if(m_vLevData[lev]->has_ghosts())
-		dbgWriter->set_map_global_to_patch(&m_vLevData[lev]->vMapGlobalToPatch);
+	dbgWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL, false));
 	dbgWriter->write_vector(vec, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
 	dbgWriter->set_map_global_to_patch(NULL);
@@ -1894,9 +1739,7 @@ write_smooth_level_debug(const matrix_type& mat, const char* filename, size_t le
 
 //	write
 	GridLevel gridLev = dbgWriter->grid_level();
-	dbgWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL));
-	if(m_vLevData[lev]->has_ghosts())
-		dbgWriter->set_map_global_to_patch(&m_vLevData[lev]->vMapGlobalToPatch);
+	dbgWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL, false));
 	dbgWriter->write_matrix(mat, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
 	dbgWriter->set_map_global_to_patch(NULL);
@@ -2036,8 +1879,8 @@ log_level_data(size_t lvl)
 	LevData& ld = *m_vLevData[lvl];
 	UG_LOG(prefix << "local d norm: " << sqrt(VecProd(*ld.d, *ld.d)) << std::endl);
 	UG_LOG(prefix << "local c norm: " << sqrt(VecProd(*ld.c, *ld.c)) << std::endl);
-	UG_LOG(prefix << "local smooth_d norm: " << sqrt(VecProd(ld.get_smooth_defect(), ld.get_smooth_defect())) << std::endl);
-	UG_LOG(prefix << "local smooth_c norm: " << sqrt(VecProd(ld.get_smooth_correction(), ld.get_smooth_correction())) << std::endl);
+	UG_LOG(prefix << "local smooth_d norm: " << sqrt(VecProd(*ld.sd, *ld.sd)) << std::endl);
+	UG_LOG(prefix << "local smooth_c norm: " << sqrt(VecProd(*ld.sc, *ld.sc)) << std::endl);
 
 	#ifdef UG_PARALLEL
 		uint oldStorageMask = ld.d->get_storage_mask();
@@ -2056,21 +1899,21 @@ log_level_data(size_t lvl)
 		else if(oldStorageMask & PST_CONSISTENT)
 			ld.c->change_storage_type(PST_CONSISTENT);
 
-		oldStorageMask = ld.get_smooth_defect().get_storage_mask();
-		norm = ld.get_smooth_defect().norm();
+		oldStorageMask = ld.sd->get_storage_mask();
+		norm = ld.sd->norm();
 		UG_LOG(prefix << "parallel smooth defect norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
-			ld.get_smooth_defect().change_storage_type(PST_ADDITIVE);
+			ld.sd->change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
-			ld.get_smooth_defect().change_storage_type(PST_CONSISTENT);
+			ld.sd->change_storage_type(PST_CONSISTENT);
 
-		oldStorageMask = ld.get_smooth_correction().get_storage_mask();
-		norm = ld.get_smooth_correction().norm();
+		oldStorageMask = ld.sc->get_storage_mask();
+		norm = ld.sc->norm();
 		UG_LOG(prefix << "parallel smooth correction norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
-			ld.get_smooth_correction().change_storage_type(PST_ADDITIVE);
+			ld.sc->change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
-			ld.get_smooth_correction().change_storage_type(PST_CONSISTENT);
+			ld.sc->change_storage_type(PST_CONSISTENT);
 	#endif
 }
 

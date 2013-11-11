@@ -230,7 +230,7 @@ class AssembledMultiGridCycle :
 
 	protected:
 	/// operator to invert (surface grid)
-		SmartPtr<matrix_type> m_spSurfaceMat;
+		ConstSmartPtr<matrix_type> m_spSurfaceMat;
 
 	///	Solution on surface grid
 		const vector_type* m_pSurfaceSol;
@@ -278,6 +278,13 @@ class AssembledMultiGridCycle :
 		void init_surface_to_level_mapping();
 	/// \}
 
+	///	init mapping from noghost -> w/ ghost
+		template <typename TElem>
+		void init_noghost_to_ghost_mapping(	std::vector<size_t>& vNoGhostToGhostMap,
+		                                   	ConstSmartPtr<DoFDistribution> spNoGhostDD,
+		                                   	ConstSmartPtr<DoFDistribution> spGhostDD);
+		void init_noghost_to_ghost_mapping(int lev);
+
 	///	prototype for pre-smoother
 		SmartPtr<ILinearIterator<vector_type> > m_spPreSmootherPrototype;
 
@@ -311,7 +318,6 @@ class AssembledMultiGridCycle :
 
 		//	prepares the grid level data for appication
 			void update(size_t lev,
-			            SmartPtr<DoFDistribution> levelDD,
 			            SmartPtr<ApproximationSpace<TDomain> > approxSpace,
 			            SmartPtr<IAssemble<TAlgebra> > spAss,
 			            ILinearIterator<vector_type>& presmoother,
@@ -320,41 +326,17 @@ class AssembledMultiGridCycle :
 			            ITransferOperator<TAlgebra>& prolongation,
 			            ITransferOperator<TAlgebra>& restriction,
 			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
-			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP,
-			            BoolMarker& nonGhostMarker);
-
-		//	returns if ghosts are present on the level
-			bool has_ghosts() const {return num_smooth_indices() != num_indices();}
-
-		//	number of smoothing indices
-			size_t num_smooth_indices() const {return m_numSmoothIndices;}
+			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP);
 
 		//	number of indices on whole level
-			size_t num_indices() const
-				{UG_ASSERT(spLevDD.valid(), "Missing LevDD"); return spLevDD->num_indices();}
-
-		//	returns the smoothing matrix (depends if smooth patch needed or not)
-			SmartPtr<MatrixOperator<matrix_type, vector_type> >
-			get_smooth_mat()
-			{
-				if(has_ghosts()) return spSmoothMat;
-				else return spLevMat;
-			}
-
-		//	returns the vectors used for smoothing (patch only vectors)
-			vector_type& get_smooth_solution() {if(has_ghosts()) return *su; else return *u;}
-			vector_type& get_smooth_defect() {if(has_ghosts()) return *sd; else return *d;}
-			vector_type& get_smooth_correction(){if(has_ghosts()) return *sc; else return *c;}
-			vector_type& get_smooth_tmp(){if(has_ghosts()) return *st; else return *t;}
+			size_t num_indices() const {return c->num_indices();}
 
 		//	copies values of defect to smoothing patch
 			void copy_defect_to_smooth_patch()
 			{
 				#ifdef UG_PARALLEL
-				if(has_ghosts()) {
-					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*sd)[i] = (*d)[ vMapPatchToGlobal[i] ];
-					sd->set_storage_type(d->get_storage_mask());
-				}
+				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*sd)[i] = (*d)[ vMapPatchToGlobal[i] ];
+				sd->set_storage_type(d->get_storage_mask());
 				#endif
 			}
 
@@ -362,10 +344,8 @@ class AssembledMultiGridCycle :
 			void copy_tmp_to_smooth_patch()
 			{
 				#ifdef UG_PARALLEL
-				if(has_ghosts()) {
-					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*st)[i] = (*t)[ vMapPatchToGlobal[i] ];
-					st->set_storage_type(t->get_storage_mask());
-				}
+				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*st)[i] = (*t)[ vMapPatchToGlobal[i] ];
+				st->set_storage_type(t->get_storage_mask());
 				#endif
 			}
 
@@ -373,11 +353,9 @@ class AssembledMultiGridCycle :
 			void copy_defect_from_smooth_patch(bool clearGhosts = false)
 			{
 				#ifdef UG_PARALLEL
-				if(has_ghosts()) {
-					if(clearGhosts) d->set(0.0);
-					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*d)[ vMapPatchToGlobal[i] ] = (*sd)[i];
-					d->set_storage_type(sd->get_storage_mask());
-				}
+				if(clearGhosts) d->set(0.0);
+				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*d)[ vMapPatchToGlobal[i] ] = (*sd)[i];
+				d->set_storage_type(sd->get_storage_mask());
 				#endif
 			}
 
@@ -385,29 +363,15 @@ class AssembledMultiGridCycle :
 			void copy_correction_from_smooth_patch(bool clearGhosts = false)
 			{
 				#ifdef UG_PARALLEL
-				if(has_ghosts()) {
-					if(clearGhosts) c->set(0.0);
-					for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*c)[ vMapPatchToGlobal[i] ] = (*sc)[i];
-					c->set_storage_type(sc->get_storage_mask());
-				}
+				if(clearGhosts) c->set(0.0);
+				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*c)[ vMapPatchToGlobal[i] ] = (*sc)[i];
+				c->set_storage_type(sc->get_storage_mask());
 				#endif
 			}
 
-		//	destructor
-			~LevData();
-
 			public:
-		//	level DoF Distribution
-			SmartPtr<DoFDistribution> spLevDD;
-
-		//	Approximation Space
-			SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-
-		//	matrix operator for whole grid level
-			SmartPtr<MatrixOperator<matrix_type, vector_type> > spLevMat;
-
-		//	matrix for smoothing on smoothing patch of grid level
-			SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat;
+		//	matrix operator
+			SmartPtr<MatrixOperator<matrix_type, vector_type> > A;
 
 		//	smoother
 			SmartPtr<ILinearIterator<vector_type> > PreSmoother;
@@ -425,42 +389,29 @@ class AssembledMultiGridCycle :
             std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vRestrictionPP;
 
 		//	vectors needed
-			SmartPtr<GridFunction<TDomain, TAlgebra> > u, c, d, t;
+			SmartPtr<GridFunction<TDomain, TAlgebra> > c, d, t;
 
 		//	vectors needed for smoothing
-			SmartPtr<GridFunction<TDomain, TAlgebra> > su, sc, sd, st;
+			SmartPtr<GridFunction<TDomain, TAlgebra> > sc, sd, st;
 
 		//	missing coarse grid correction
 			matrix_type CoarseGridContribution;
 
 		///	maps global indices (including ghosts) to patch indices (no ghosts included).
-		/**	maps are only filled if ghosts are present on the given level.
-		 * \{ */
 			std::vector<size_t> vMapPatchToGlobal;
-			std::vector<int> vMapGlobalToPatch;
-		/** \} */
-
-		//	number of smooth indices
-			size_t m_numSmoothIndices;
-
-#ifdef UG_PARALLEL
-		//	interfaces needed for smoothing
-			SmartPtr<AlgebraLayouts> spSmoothLayouts;
-#endif
 		};
+
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > spBaseSolverMat;
 
 	///	storage for all level
 		std::vector<SmartPtr<LevData> > m_vLevData;
-
-	///	bool marker of non-ghosts
-		BoolMarker m_NonGhostMarker;
 
 		std::vector<vector_type*> level_defects()
 		{
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
-				if(m_vLevData[i]->num_smooth_indices() > 0)
+				if(m_vLevData[i]->num_indices() > 0)
 					vVec.push_back(m_vLevData[i]->d.get());
 				else vVec.push_back(NULL);
 			}
@@ -694,8 +645,7 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 template <typename TBaseElem, typename TVector>
 void SetZeroOnShadowing(TVector& vec,
 					 ConstSmartPtr<DoFDistribution> dd,
-					 const SurfaceView& surfView,
-					 const std::vector<int>* pmapGlobalToPatch = NULL)
+					 const SurfaceView& surfView)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	//	indices
@@ -712,57 +662,20 @@ void SetZeroOnShadowing(TVector& vec,
 		iterEnd = dd->end<TBaseElem>(si);
 
 	// 	loop nodes of fine subset
-		if(pmapGlobalToPatch){
-			const std::vector<int>& mapGlobalToPatch = *pmapGlobalToPatch;
+		for(; iter != iterEnd; ++iter)
+		{
+		//	get vertex
+			TBaseElem* vrt = *iter;
 
-			for(; iter != iterEnd; ++iter)
-			{
-			//	get vertex
-				TBaseElem* vrt = *iter;
+			if(!surfView.is_shadowing(vrt))
+				continue;
 
-				if(!surfView.is_shadowing(vrt))
-					continue;
+		// 	get global indices
+			dd->inner_algebra_indices(vrt, ind);
 
-			// 	get global indices
-				dd->inner_algebra_indices(vrt, ind);
-
-			//	set vector entries to zero
-				for(size_t i = 0; i < ind.size(); ++i)
-				{
-					UG_ASSERT(ind[i] < mapGlobalToPatch.size(),
-							 "mapGlobalToPatch is too small on level " << dd->grid_level() << "."
-							 << "size: " << mapGlobalToPatch.size() << ", "
-							 << "index: " << ind[i]
-							 << ", at " << GetGeometricObjectCenter(
-									 *const_cast<MultiGrid*>(surfView.subset_handler()->multi_grid()), vrt)
-							 << ", on level " << surfView.subset_handler()->multi_grid()->get_level(vrt));
-					UG_ASSERT((mapGlobalToPatch[ind[i]] >= 0) && (mapGlobalToPatch[ind[i]] < (int)vec.size()),
-							  "Some problem with mapGlobalToPatch... probably trying to set a ghost to zero? "
-							  << "mapGlobalToPatch[ind[i]] = " << mapGlobalToPatch[ind[i]]
-							  << ", num patch indices " << vec.size()
-							  << ", at " << GetGeometricObjectCenter(
-									  *const_cast<MultiGrid*>(surfView.subset_handler()->multi_grid()), vrt)
-							  << ", on level " << surfView.subset_handler()->multi_grid()->get_level(vrt));
-					vec[mapGlobalToPatch[ind[i]]] = 0.0;
-				}
-			}
-		}
-		else{
-			for(; iter != iterEnd; ++iter)
-			{
-			//	get vertex
-				TBaseElem* vrt = *iter;
-
-				if(!surfView.is_shadowing(vrt))
-					continue;
-
-			// 	get global indices
-				dd->inner_algebra_indices(vrt, ind);
-
-			//	set vector entries to zero
-				for(size_t i = 0; i < ind.size(); ++i)				{
-					vec[ind[i]] = 0.0;
-				}
+		//	set vector entries to zero
+			for(size_t i = 0; i < ind.size(); ++i)				{
+				vec[ind[i]] = 0.0;
 			}
 		}
 	}
@@ -780,18 +693,13 @@ void SetZeroOnShadowing(TVector& vec,
 template <typename TVector>
 void SetZeroOnShadowing(TVector& vec,
 					 ConstSmartPtr<DoFDistribution> dd,
-					 const SurfaceView& surfView,
-					 const std::vector<int>* pmapGlobalToPatch = NULL)
+					 const SurfaceView& surfView)
 {
 	//	forward for all BaseObject types
-	if(dd->max_dofs(VERTEX))
-		SetZeroOnShadowing<VertexBase, TVector>(vec, dd, surfView, pmapGlobalToPatch);
-	if(dd->max_dofs(EDGE))
-		SetZeroOnShadowing<EdgeBase, TVector>(vec, dd, surfView, pmapGlobalToPatch);
-	if(dd->max_dofs(FACE))
-		SetZeroOnShadowing<Face, TVector>(vec, dd, surfView, pmapGlobalToPatch);
-	if(dd->max_dofs(VOLUME))
-		SetZeroOnShadowing<Volume, TVector>(vec, dd, surfView, pmapGlobalToPatch);
+	if(dd->max_dofs(VERTEX)) SetZeroOnShadowing<VertexBase, TVector>(vec, dd, surfView);
+	if(dd->max_dofs(EDGE))   SetZeroOnShadowing<EdgeBase, TVector>(vec, dd, surfView);
+	if(dd->max_dofs(FACE))   SetZeroOnShadowing<Face, TVector>(vec, dd, surfView);
+	if(dd->max_dofs(VOLUME)) SetZeroOnShadowing<Volume, TVector>(vec, dd, surfView);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -805,25 +713,6 @@ void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfV
 void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 										   const SurfaceView& surfView,
 										   int level);
-
-#ifdef UG_PARALLEL
-template <typename TElemBase, typename TIter>
-void SelectNonGhosts(BoolMarker& sel,
-				  DistributedGridManager& dstGrMgr,
-				  TIter iter,
-				  TIter iterEnd)
-{
-	//	loop all base elems
-	for(; iter != iterEnd; ++iter)
-	{
-	//	get element
-		TElemBase* elem = *iter;
-
-	//	select ghosts
-		if(!dstGrMgr.is_ghost(elem)) sel.mark(elem);
-	}
-}
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Matrix Copy operations

@@ -43,7 +43,7 @@ class IDamping
 	 * @param spLinOp		the operator
 	 * @return				the damping
 	 */
-		virtual number damping(const Y& c, const X& d, SmartPtr<ILinearOperator<Y,X> > spLinOp) = 0;
+		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const = 0;
 
 	///	returns if the damping is constant
 	/**
@@ -52,10 +52,10 @@ class IDamping
 	 *
 	 * @return true if constant damping
 	 */
-		virtual bool constant_damping() = 0;
+		virtual bool constant_damping() const = 0;
 
 	///	returns the constant damping, throws exception if non-constant damping
-		virtual number damping() = 0;
+		virtual number damping() const = 0;
 
 	///	virtual destructor
 		virtual ~IDamping() {}
@@ -78,19 +78,19 @@ class ConstantDamping : public IDamping<X,Y>
 		ConstantDamping(number factor) : m_factor(factor) {}
 
 	///	returns the constant damping factor
-		virtual number damping(const Y& c, const X& d, SmartPtr<ILinearOperator<Y,X> > spLinOp)
+		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const
 		{
 			return m_factor;
 		}
 
 	///	returns the constant damping factor
-		virtual number damping()
+		virtual number damping() const
 		{
 			return m_factor;
 		}
 
 	///	returns if damping is constant
-		virtual bool constant_damping() {return true;};
+		virtual bool constant_damping() const {return true;};
 
 		virtual std::string config_string() const
 		{
@@ -107,10 +107,10 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 {
 	public:
 	///	returns the damping factor
-		virtual number damping(const Y& c, const X& d, SmartPtr<ILinearOperator<Y,X> > spLinOp)
+		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const
 		{
 			X Ac; Ac.create(d.size());
-			spLinOp->apply(Ac, c);
+			spLinOp.cast_const()->apply(Ac, c);
 
 		//	Compute scaling
 			const number kappa = VecProd(d, Ac) / VecProd(Ac, Ac);
@@ -122,10 +122,10 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 		}
 
 	///	returns if damping is constant
-		virtual bool constant_damping() {return false;};
+		virtual bool constant_damping() const {return false;};
 
 	///	returns the constant damping factor
-		virtual number damping()
+		virtual number damping() const
 		{
 			UG_THROW("MinimalResiduumDamping: non-constant damping.");
 		}
@@ -142,10 +142,10 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 {
 	public:
 	///	returns the damping factor
-		virtual number damping(const Y& c, const X& d, SmartPtr<ILinearOperator<Y,X> > spLinOp)
+		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const
 		{
 			X Ac; Ac.create(d.size());
-			spLinOp->apply(Ac, c);
+			spLinOp.cast_const()->apply(Ac, c);
 
 		//	Compute scaling
 			const number kappa = VecProd(d,c) / VecProd(Ac, c);
@@ -157,10 +157,10 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 		}
 
 	///	returns if damping is constant
-		virtual bool constant_damping() {return false;};
+		virtual bool constant_damping() const {return false;};
 
 	///	returns the constant damping factor
-		virtual number damping()
+		virtual number damping() const
 		{
 			UG_THROW("MinimalEnergyDamping: non-constant damping.");
 		}
