@@ -2289,6 +2289,8 @@ copy_to_vertical_masters(vector_type& c)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
 }
 
+#endif
+
 template <typename TDomain, typename TAlgebra>
 std::string
 AssembledMultiGridCycle<TDomain, TAlgebra>::
@@ -2315,8 +2317,6 @@ config_string() const
 	return ss.str();
 
 }
-
-#endif
 
 } // namespace ug
 
