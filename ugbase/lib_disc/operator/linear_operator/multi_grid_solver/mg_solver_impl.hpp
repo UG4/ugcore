@@ -703,10 +703,6 @@ init_transfer()
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip void level
-		if(m_vLevData[lev]->num_indices() == 0 ||
-		   m_vLevData[lev-1]->num_indices() == 0) continue;
-
 	//	check if same operator for prolongation and restriction used
 		bool bOneOperator = false;
 		if(m_vLevData[lev]->Prolongation.get() ==  m_vLevData[lev]->Restriction.get())
@@ -764,10 +760,6 @@ init_projection()
 //	loop all levels
 	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
 	{
-	//	skip void level
-		if(m_vLevData[lev]->num_indices() == 0 ||
-		   m_vLevData[lev-1]->num_indices() == 0) continue;
-
 	//	set levels
 		m_vLevData[lev]->Projection->set_levels(GridLevel(lev-1, GridLevel::LEVEL, true),
 		                                        GridLevel(lev, GridLevel::LEVEL, true));
