@@ -74,7 +74,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			m_info = info;
 		}
 		
-		virtual std::string tostring() const
+		virtual std::string config_string() const
 		{
 			std::stringstream ss ; ss << "ILUT(threshold = " << m_eps << ")";
 			if(m_eps == 0.0) ss << " = Sparse LU";
