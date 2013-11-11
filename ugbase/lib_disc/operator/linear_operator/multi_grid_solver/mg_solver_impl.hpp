@@ -484,7 +484,9 @@ init_level_operator()
 		{
 			for(size_t i = 0; i < ld.vMapPatchToGlobal.size(); ++i)
 				(*(ld.st))[i] = (*(ld.t))[ ld.vMapPatchToGlobal[i] ];
+			#ifdef UG_PARALLEL
 			ld.st->set_storage_type(ld.t->get_storage_mask());
+			#endif
 
 			try{
 			m_spAss->ass_tuner()->set_force_regular_grid(true);
@@ -554,7 +556,9 @@ init_level_operator()
 	{
 		for(size_t i = 0; i < ld.vMapPatchToGlobal.size(); ++i)
 			(*(ld.st))[i] = (*(ld.t))[ ld.vMapPatchToGlobal[i] ];
+		#ifdef UG_PARALLEL
 		ld.st->set_storage_type(ld.t->get_storage_mask());
+		#endif
 
 		try{
 		m_spAss->ass_tuner()->set_force_regular_grid(true);
