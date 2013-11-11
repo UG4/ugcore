@@ -293,8 +293,9 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 						mg.end<elem_t>(partitionLvl), 0);
 
 //	arrays on which we'll perform partitioning
-	vector<elem_t*>	elems;
-	elems.reserve(mg.num<elem_t>(partitionLvl));
+//	vector<elem_t*>	elems;
+	m_entries.reserve(mg.num<elem_t>(partitionLvl));
+	ElemList elems(m_entries);
 
 	vector<int> origSubsetIndices;
 	if(partitionLvl < minLvl){
@@ -316,6 +317,7 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 
 	//	now collect elements on partitionLvl, which have children in i_lvl but
 	//	have not yet been partitioned.
+		m_entries.clear();
 		elems.clear();
 		int maxNumChildren = 0;// per element on partitionLvl
 		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
@@ -325,7 +327,8 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 			if((aaChildCount[elem] > 0) && (m_sh.get_subset_index(elem) == -1)
 				&& ((!pdgm) || (!pdgm->is_ghost(elem))))
 			{
-				elems.push_back(elem);
+				m_entries.push_back(Entry(elem));
+				elems.add(m_entries.size() - 1);
 				maxNumChildren = max(maxNumChildren, aaChildCount[elem]);
 			}
 		}
@@ -376,7 +379,7 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 
 template <int dim>
 void Partitioner_DynamicBisection<dim>::
-control_bisection(ISubsetHandler& partitionSH, const vector<elem_t*>& elems,
+control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
 				  int maxNumChildren, int numTargetProcs, int firstProc,
 				  AInt aChildCount, pcl::ProcessCommunicator& com)
 {
@@ -386,21 +389,26 @@ control_bisection(ISubsetHandler& partitionSH, const vector<elem_t*>& elems,
 	int numTargetProcsRight = numTargetProcs - numTargetProcsLeft;
 	number ratioLeft = (number)numTargetProcsLeft / (number)numTargetProcs;
 
-	vector<elem_t*>	elemsLeft, elemsRight;
-	elemsLeft.reserve(elems.size() * ratioLeft * 1.1);
-	elemsRight.reserve(elems.size() * (1. - ratioLeft) * 1.1);
+	ElemList elemsLeft(elems.entries()), elemsRight(elems.entries());
 
+	size_t numElemsIn = elems.size();
 	bisect_elements(elemsLeft, elemsRight, elems, ratioLeft, aChildCount,
 					maxNumChildren, com, 0);
 
-//	UG_LOG("\n");
+	UG_COND_THROW(numElemsIn != elemsLeft.size() + elemsRight.size(),
+				  "Not all elements have been assigned to one of the two sides: "
+				  << "in: " << numElemsIn << ", left: " << elemsLeft.size()
+				  << ", right: " << elemsRight.size());
 
 	if(numTargetProcs == 2){
-		partitionSH.assign_subset(elemsLeft.begin(), elemsLeft.end(), firstProc);
-		partitionSH.assign_subset(elemsRight.begin(), elemsRight.end(), firstProc + 1);
+		for(size_t i = elemsLeft.first(); i != s_invalidIndex; i = elemsLeft.next(i))
+			partitionSH.assign_subset(elemsLeft.elem(i), firstProc);
+		for(size_t i = elemsRight.first(); i != s_invalidIndex; i = elemsRight.next(i))
+			partitionSH.assign_subset(elemsRight.elem(i), firstProc + 1);
 	}
 	else if(numTargetProcs == 3){
-		partitionSH.assign_subset(elemsLeft.begin(), elemsLeft.end(), firstProc);
+		for(size_t i = elemsLeft.first(); i != s_invalidIndex; i = elemsLeft.next(i))
+			partitionSH.assign_subset(elemsLeft.elem(i), firstProc);
 		control_bisection(partitionSH, elemsRight, maxNumChildren, 2, firstProc + 1,
 						  aChildCount, com);
 	}
@@ -418,9 +426,9 @@ control_bisection(ISubsetHandler& partitionSH, const vector<elem_t*>& elems,
 
 template<int dim>
 void Partitioner_DynamicBisection<dim>::
-bisect_elements(std::vector<elem_t*>& elemsLeftOut, std::vector<elem_t*>& elemsRightOut,
-		   const std::vector<elem_t*>& elems, number ratioLeft, AInt aChildCount,
-		   int maxNumChildren, pcl::ProcessCommunicator& com, int cutRecursion)
+bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
+		   	    ElemList& elems, number ratioLeft, AInt aChildCount,
+		   	    int maxNumChildren, pcl::ProcessCommunicator& com, int cutRecursion)
 {
 //	UG_LOG("Performing bisection with ratio: " << ratioLeft << endl);
 	GDIST_PROFILE_FUNC();
@@ -447,39 +455,47 @@ bisect_elements(std::vector<elem_t*>& elemsLeftOut, std::vector<elem_t*>& elemsR
 //	UG_LOG("splitDim: " << splitDim << ", splitValue: " << splitValue << endl);
 
 	if(cutRecursion < dim - 1){
-		vector<elem_t*> elemsCut;
+		ElemList elemsCut(elems.entries());
 
 		int weights[3] = {0, 0, 0};
 
-		for(size_t i = 0; i < elems.size(); ++i){
-			elem_t* e = elems[i];
+		for(size_t i = elems.first(); i != s_invalidIndex;){
+			elem_t* e = elems.elem(i);
+			size_t iNext = elems.next(i);
+
 			int loc = classify_elem(e, splitDim, splitValue);
 			switch(loc){
 				case LEFT:
-					elemsLeftOut.push_back(e);
+					elemsLeftOut.add(i);
 					weights[0] += aaChildCount[e];
 					break;
 				case RIGHT:
-					elemsRightOut.push_back(e);
+					elemsRightOut.add(i);
 					weights[1] += aaChildCount[e];
 					break;
 				case CUTTING:
-					elemsCut.push_back(e);
+					elemsCut.add(i);
 					weights[2] += aaChildCount[e];
 					break;
 				default:
 					UG_THROW("INVALID CLASSIFICATION DURING BISECTION\n");
 					break;
 			}
+
+			i = iNext;
 		}
+
+	//	since all elements from the elems list have been assigned to other arrays,
+	//	we have to clear elems, since it would be invalid anyways
+		elems.clear();
 
 		int gWeights[3];
 		com.allreduce(weights, gWeights, 3, PCL_RO_SUM);
 
 		//	calculate the number of elements which have to go to the left side
 		int gWTotal = gWeights[0] + gWeights[1] + gWeights[2];
-		int gMissingLeft = ratioLeft * gWTotal - gWeights[0];
-		int gMissingRight = (1. - ratioLeft) * gWTotal - gWeights[1];
+		int gMissingLeft = int(ratioLeft * gWTotal - gWeights[0]);
+		int gMissingRight = int((1. - ratioLeft) * gWTotal - gWeights[1]);
 
 //		UG_LOG("weights left:  " << gWeights[0] << endl);
 //		UG_LOG("weights right: " << gWeights[1] << endl);
@@ -488,15 +504,24 @@ bisect_elements(std::vector<elem_t*>& elemsLeftOut, std::vector<elem_t*>& elemsR
 	//	bisect the cutting elements
 		if(gMissingLeft <= 0){
 		//	add all cut-elements to the right side
-			for(size_t i = 0; i < elemsCut.size(); ++i)
-				elemsRightOut.push_back(elemsCut[i]);
+			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
+				size_t iNext = elemsCut.next(i);
+				elemsRightOut.add(i);
+				i = iNext;
+			}
+			elemsCut.clear();
 			return;
 		}
 
 		if(gMissingRight <= 0){
 		//	add all cut-elements to the left side
-			for(size_t i = 0; i < elemsCut.size(); ++i)
-				elemsLeftOut.push_back(elemsCut[i]);
+			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
+				size_t iNext = elemsCut.next(i);
+				elemsLeftOut.add(i);
+				i = iNext;
+			}
+
+			elemsCut.clear();
 			return;
 		}
 
@@ -506,12 +531,14 @@ bisect_elements(std::vector<elem_t*>& elemsLeftOut, std::vector<elem_t*>& elemsR
 	}
 	else{
 	//	perform a simple bisection
-		for(size_t i = 0; i < elems.size(); ++i){
-			elem_t* e = elems[i];
+		for(size_t i = elems.first(); i != s_invalidIndex;){
+			size_t iNext = elems.next(i);
+			elem_t* e = elems.elem(i);
 			if(CalculateCenter(e, m_aaPos)[splitDim] <= splitValue)
-				elemsLeftOut.push_back(e);
+				elemsLeftOut.add(i);
 			else
-				elemsRightOut.push_back(e);
+				elemsRightOut.add(i);
+			i = iNext;
 		}
 	}
 }
@@ -520,7 +547,7 @@ bisect_elements(std::vector<elem_t*>& elemsLeftOut, std::vector<elem_t*>& elemsR
 template <int dim>
 void Partitioner_DynamicBisection<dim>::
 calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
-							vector_t& boxMaxOut, const vector<elem_t*>& elems,
+							vector_t& boxMaxOut, const ElemList& elems,
 							int maxNumChildren, AInt aChildCount,
 							pcl::ProcessCommunicator& com)
 {
@@ -538,10 +565,10 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	VecSet(maxCorner, 0);
 
 	if(!elems.empty())
-		minCorner = maxCorner = CalculateCenter(elems.front(), m_aaPos);
+		minCorner = maxCorner = CalculateCenter(elems.elem(elems.first()), m_aaPos);
 
-	for(size_t i = 0; i < elems.size(); ++i){
-		elem_t* e = elems[i];
+	for(size_t i = elems.first(); i != s_invalidIndex; i = elems.next(i)){
+		elem_t* e = elems.elem(i);
 		vector_t p = CalculateCenter(e, m_aaPos);
 		number w = (number)aaChildCount[e] / maxNumChildren;
 		VecScaleAdd(center, 1, center, w, p);
@@ -749,7 +776,7 @@ classify_elem(elem_t* e, int splitDim, number splitValue)
 
 template<int dim>
 number Partitioner_DynamicBisection<dim>::
-find_split_value(const std::vector<elem_t*>& elems, int splitDim,
+find_split_value(const ElemList& elems, int splitDim,
 				 number splitRatio, number initialGuess,
 				 number minValue, number maxValue,
 				 size_t maxIterations, AInt aChildCount,
@@ -768,8 +795,8 @@ find_split_value(const std::vector<elem_t*>& elems, int splitDim,
 		for(int i = 0; i < NUM_CONSTANTS; ++i)
 			numElems[i] = 0;
 
-		for(size_t i = 0; i < elems.size(); ++i){
-			elem_t* e = elems[i];
+		for(size_t i = elems.first(); i != s_invalidIndex; i = elems.next(i)){
+			elem_t* e = elems.elem(i);
 			int location = classify_elem(e, splitDim, splitValue);
 			numElems[location] += aaChildCount[e];
 			numElems[TOTAL] += aaChildCount[e];

@@ -54,23 +54,73 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 			NUM_CONSTANTS
 		};
 
+		static const size_t s_invalidIndex = -1;
+
+		struct Entry{
+			elem_t* elem;
+			size_t	next;
+			Entry(elem_t* e) : elem(e), next(s_invalidIndex)	{}
+		};
+
+		struct ElemList{
+			ElemList(std::vector<Entry>& entries) :
+				m_entries(entries), m_first(s_invalidIndex), m_last(s_invalidIndex), m_num(0)	{}
+
+			void add(size_t entryInd)
+			{
+				if(m_first == s_invalidIndex){
+					m_first = m_last = entryInd;
+					m_num = 1;
+				}
+				else{
+					m_entries[m_last].next = entryInd;
+					m_last = entryInd;
+					++m_num;
+				}
+				m_entries[entryInd].next = s_invalidIndex;
+			}
+
+			void clear()
+			{
+				m_first = m_last = s_invalidIndex;
+				m_num = 0;
+			}
+
+			size_t size() const	{return m_num;}
+			bool empty() const {return m_num == 0;}
+
+			size_t first() const				{return m_first;}
+			size_t last() const					{return m_last;}
+			size_t next(size_t entryInd) const	{return m_entries[entryInd].next;}
+			elem_t* elem(size_t entryInd) const	{return m_entries[entryInd].elem;}
+
+			std::vector<Entry>& entries()		{return m_entries;}
+
+			private:
+				std::vector<Entry>& m_entries;
+				size_t m_first;
+				size_t m_last;
+				size_t m_num;
+		};
+
+
 		void copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl);
 		void perform_bisection(int minLvl, int maxLvl, int partitionLvl);
 		void perform_bisection(int numTargetProcs, int minLvl, int maxLvl,
 							   int partitionLvl, AInt aChildCount,
 							   pcl::ProcessCommunicator com);
-		void control_bisection(ISubsetHandler& partitionSH, const std::vector<elem_t*>& elems,
+		void control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
 							 int maxNumChildren, int numTargetProcs, int firstProc,
 							 AInt aChildCount, pcl::ProcessCommunicator& com);
 
-		void bisect_elements(std::vector<elem_t*>& elemsLeftOut,
-							std::vector<elem_t*>& elemsRightOut,
-							const std::vector<elem_t*>& elems, number ratioLeft,
+		void bisect_elements(ElemList& elemsLeftOut,
+							ElemList& elemsRightOut,
+							ElemList& elems, number ratioLeft,
 							AInt aChildCount, int maxNumChildren,
 							pcl::ProcessCommunicator& com, int cutRecursion);
 
 		void calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
-										 vector_t& boxMaxOut, const std::vector<elem_t*>& elems,
+										 vector_t& boxMaxOut, const ElemList& elems,
 										 int maxNumChildren, AInt aChildCount,
 										 pcl::ProcessCommunicator& com);
 		void gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
@@ -78,7 +128,7 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 
 		int classify_elem(elem_t* e, int splitDim, number splitValue);
 
-		number find_split_value(const std::vector<elem_t*>& elems, int splitDim,
+		number find_split_value(const ElemList& elems, int splitDim,
 								number splitRatio, number initialGuess,
 								number minValue, number maxValue,
 								size_t maxIterations, AInt aChildCount,
@@ -92,6 +142,7 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		SPProcessHierarchy						m_processHierarchy;
 		SPProcessHierarchy						m_nextProcessHierarchy;
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;
+		std::vector<Entry>						m_entries;
 
 };
 }// end of namespace

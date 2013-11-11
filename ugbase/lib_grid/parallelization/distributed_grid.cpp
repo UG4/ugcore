@@ -704,7 +704,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			m_initialHandshake(false)
 			//m_checkHOrder(false)
 		{
-			m_hash.reserve(newConstrained.size() * 1.5);
+			m_hash.reserve(size_t(newConstrained.size() * 1.5));
 
 		//	insert each new constrained into the hash.
 			for(size_t i_nc = 0; i_nc < newConstrained.size(); ++i_nc){
