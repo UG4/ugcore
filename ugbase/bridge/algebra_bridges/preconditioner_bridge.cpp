@@ -27,6 +27,8 @@ namespace ug{
 /*
  *
 
+		restartfilename = "uNewtonSolution_T_"..step.."_p_"..GetProcessRank()..".ug4vector"
+
   		restartStep = util.GetParamNumber("-restartStep", 0)
 		-- apply newton solver
 		if step < restartStep then
