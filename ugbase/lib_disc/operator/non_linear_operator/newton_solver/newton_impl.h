@@ -13,6 +13,7 @@
 
 #include "newton.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
+#include "common/util/string_util.h"
 
 #define PROFILE_NEWTON
 #ifdef PROFILE_NEWTON
@@ -376,6 +377,23 @@ void NewtonSolver<TAlgebra>::write_debug(const matrix_type& mat, const char* fil
 //	write
 	typedef DebugWritingObject<TAlgebra> base_writer_type;
 	base_writer_type::write_debug(mat, name.c_str());
+}
+
+template <typename TAlgebra>
+std::string NewtonSolver<TAlgebra>::config_string() const
+{
+	std::stringstream ss;
+	ss << "NewtonSolver\n";
+	ss << " LinearSolver: ";
+	if(m_spLinearSolver.valid())	ss << ConfigShift(m_spLinearSolver->config_string()) << "\n";
+	else							ss << " NOT SET!\n";
+	ss << " ConvergenceCheck: ";
+	if(m_spConvCheck.valid())		ss << ConfigShift(m_spConvCheck->config_string()) << "\n";
+	else							ss << " NOT SET!\n";
+	ss << " LineSearch: ";
+	if(m_spLineSearch.valid())		ss << ConfigShift(m_spLineSearch->config_string()) << "\n";
+	else							ss << " not set.\n";
+	return ss.str();
 }
 
 

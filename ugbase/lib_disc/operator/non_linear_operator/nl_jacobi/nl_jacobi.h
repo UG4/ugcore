@@ -75,6 +75,19 @@ class NLJacobiSolver
 
 		void set_damp(number damp) {m_damp = damp;}
 
+	///	returns information about configuration parameters
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "NonlinearJacobiSolver( damp = " << m_damp << ")\n";
+			ss << " ConvergenceCheck: ";
+			if(m_spConvCheck.valid())	ss << ConfigShift(m_spConvCheck->config_string()) << "\n";
+			else						ss << " NOT SET!\n";
+
+			return ss.str();
+
+		}
+
 	///////////////////////////////////////////////////////////////////////////
 	//	OperatorInverse interface methods
 	///////////////////////////////////////////////////////////////////////////

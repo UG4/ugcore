@@ -2289,6 +2289,33 @@ copy_to_vertical_masters(vector_type& c)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
 }
 
+template <typename TDomain, typename TAlgebra>
+std::string
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+config_string() const
+{
+	std::stringstream ss;
+	ss << "GeometricMultigrid (";
+	if(m_cycleType == 1) ss << "V-Cycle";
+	else if(m_cycleType == 2) ss << "W-Cycle";
+	else ss << " " << m_cycleType << "-Cycle";
+	ss << ")\n";
+
+	if(m_spPreSmootherPrototype==m_spPostSmootherPrototype)
+		ss 	<< " Smoother (" << m_numPreSmooth << "x pre, " << m_numPostSmooth << "x post): "
+			<< ConfigShift(m_spPreSmootherPrototype->config_string());
+	else
+	{
+		ss << " Presmoother (" << m_numPreSmooth << "x): " << ConfigShift(m_spPreSmootherPrototype->config_string());
+		ss << " Postsmoother ( " << m_numPostSmooth << "x): " << ConfigShift(m_spPostSmootherPrototype->config_string());
+	}
+	ss << "\n";
+	ss << " Basesolver ( Baselevel = " << m_baseLev << ", parallel = " << (m_bBaseParallel ? "true" : "false") << "): ";
+	ss << ConfigShift(m_spBaseSolver->config_string());
+	return ss.str();
+
+}
+
 #endif
 
 } // namespace ug

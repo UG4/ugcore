@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <sstream>
 
 #include "common/common.h"
 
@@ -55,6 +56,16 @@ class ILineSearch
 		                    vector_type& u, vector_type& p,
 		                    vector_type& d, number defect) = 0;
 
+	///	returns information about configuration parameters
+		/**
+		 * this should return necessary information about parameters and possibly
+		 * calling config_string of subcomponents.
+		 *
+		 * \returns std::string	necessary information about configuration parameters
+		 */
+
+		virtual std::string config_string() const = 0;
+
 	/// virtual destructor
 		virtual ~ILineSearch() {}
 };
@@ -85,6 +96,16 @@ class StandardLineSearch : public ILineSearch<TVector>
 		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce),
 			 m_maxDefect(1e+10), m_verbose(true), m_bAcceptBest(bAcceptBest), m_bCheckAll(bCheckAll), m_offset("")
 			 {};
+
+	///	returns information about configuration parameters
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "StandardLineSearch( maxSteps = " << m_maxSteps << ", lambdaStart = " << m_lambdaStart << ", lambdaReduce = " << m_lambdaReduce << ", accept best = " <<
+					(m_bAcceptBest ? "true" : "false") << " check all = " << (m_bCheckAll ? "true" : "false");
+			return ss.str();
+
+		}
 
 	///	sets maximum number of line search steps
 		void set_maximum_steps(int steps) {m_maxSteps = steps;}

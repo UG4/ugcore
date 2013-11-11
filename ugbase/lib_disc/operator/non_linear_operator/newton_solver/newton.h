@@ -73,6 +73,16 @@ class NewtonSolver
 	/// apply Operator, i.e. N^{-1}(0) = u
 		virtual bool apply(vector_type& u);
 
+	///	returns information about configuration parameters
+		/**
+		 * this should return necessary information about parameters and possibly
+		 * calling config_string of subcomponents.
+		 *
+		 * \returns std::string	necessary information about configuration parameters
+		 */
+
+		virtual std::string config_string() const;
+
 	/// prints average linear solver convergence
 		void print_average_convergence() const;
 

@@ -131,6 +131,16 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 	///	prints a line using prefixes
 		void print_line(std::string line);
 
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "CompositeConvCheck( max steps = " << m_maxSteps << ")";
+			ss << " Components:\n";
+			for(size_t i=0; i<m_CmpInfo.size(); i++)
+				ss << " | " << m_CmpInfo[i].config_string() << "\n";
+			return ss.str();
+		}
+
 	protected:
 		void print_offset();
 		bool is_valid_number(number value);
@@ -204,6 +214,16 @@ class CompositeConvCheck : public IConvergenceCheck<TVector>
 			number relReduction;///< Relative reduction required for component
 
 			bool isRest; 	///< Shows, that this is group of remaining cmps
+
+			std::string config_string() const
+			{
+				std::stringstream ss;
+				if(isRest) ss << "[Remaining Components]";
+				else ss << "Component " << name;
+				ss << ": minDefect = " << minDefect << ", relReduction = " << relReduction;
+				return ss.str();
+			}
+
 		};
 
 	///	infos for each component

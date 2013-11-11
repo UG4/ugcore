@@ -150,6 +150,9 @@ class AssembledMultiGridCycle :
 	///	name
 		virtual const char* name() const {return "Geometric MultiGrid";}
 
+	///	returns information about configuration parameters
+		virtual std::string config_string() const;
+
 	/// Prepare for Operator J(u) and linearization point u (current solution)
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u);
 

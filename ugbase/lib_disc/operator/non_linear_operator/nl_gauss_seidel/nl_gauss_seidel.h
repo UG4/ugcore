@@ -151,6 +151,18 @@ class NLGaussSeidelSolver
 	/// apply Operator, i.e. op^{-1}(0) = u
 		virtual bool apply(vector_type& u);
 
+	///	returns information about configuration parameters
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "NonlinearGaussSeidelSolver( damp = " << m_damp << ")\n";
+			ss << " ConvergenceCheck: ";
+			if(m_spConvCheck.valid())	ss << ConfigShift(m_spConvCheck->config_string()) << "\n";
+			else							ss << " NOT SET!\n";
+
+			return ss.str();
+		}
+
 	private:
 	///	help functions for debug output
 	///	\{
