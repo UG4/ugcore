@@ -216,7 +216,8 @@ static void Algebra(Registry& reg, string grp)
 		string name = string("ILinearIterator").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("set_damp", static_cast<void (T::*)(number)>(&T::set_damp))
-			.add_method("set_damp", static_cast<void (T::*)(SmartPtr<IDamping<vector_type> >)>(&T::set_damp));
+			.add_method("set_damp", static_cast<void (T::*)(SmartPtr<IDamping<vector_type> >)>(&T::set_damp))
+			.add_method("config_string", &T::config_string);
 		reg.add_class_to_group(name, "ILinearIterator", tag);
 	}
 
@@ -244,7 +245,8 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("convergence_check", static_cast<ConstSmartPtr<IConvergenceCheck<vector_type> > (T::*)() const>(&T::convergence_check))
 			.add_method("defect", &T::defect)
 			.add_method("step", &T::step)
-			.add_method("reduction", &T::reduction);
+			.add_method("reduction", &T::reduction)
+			.add_method("config_string", &T::config_string);
 		reg.add_class_to_group(name, "ILinearOperatorInverse", tag);
 	}
 
@@ -291,7 +293,8 @@ static void Algebra(Registry& reg, string grp)
 	{
 		typedef IConvergenceCheck<vector_type> T;
 		string name = string("IConvergenceCheck").append(suffix);
-		reg.add_class_<T>(name, grp);
+		reg.add_class_<T>(name, grp)
+				.add_method("config_string", &T::config_string);
 		reg.add_class_to_group(name, "IConvergenceCheck", tag);
 	}
 

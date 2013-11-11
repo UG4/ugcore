@@ -217,6 +217,7 @@ static void Algebra(Registry& reg, string parentGroup)
 			.add_method("clear_inner_step_update", &T::clear_inner_step_update, "clear inner step update", "")
 			.add_method("add_step_update", &T::add_step_update, "data update called before every Newton step", "")
 			.add_method("clear_step_update", &T::clear_step_update, "clear step update", "")
+			.add_method("config_string", &T::config_string)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NewtonSolver", tag);
 	}
@@ -236,6 +237,7 @@ static void Algebra(Registry& reg, string parentGroup)
 			.add_method("init", &T::init, "success", "op")
 			.add_method("prepare", &T::prepare, "success", "u")
 			.add_method("apply", &T::apply, "success", "u")
+			.add_method("config_string", &T::config_string)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NLJacobiSolver", tag);
 	}
@@ -424,6 +426,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("init", &T::init, "success", "op")
 			.add_method("prepare", &T::prepare, "success", "u")
 			.add_method("apply", &T::apply, "success", "u")
+			.add_method("config_string", &T::config_string)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "NLGaussSeidelSolver", tag);
 	}
