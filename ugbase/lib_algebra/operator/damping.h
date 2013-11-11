@@ -59,6 +59,15 @@ class IDamping
 
 	///	virtual destructor
 		virtual ~IDamping() {}
+
+	///	returns information about configuration parameters
+		/**
+		 * this should return necessary information about parameters and possibly
+		 * calling config_string of subcomponents.
+		 *
+		 * \returns std::string	necessary information about configuration parameters
+		 */
+		virtual std::string config_string() const = 0;
 };
 
 /// constant damping factor
@@ -82,6 +91,11 @@ class ConstantDamping : public IDamping<X,Y>
 
 	///	returns if damping is constant
 		virtual bool constant_damping() {return true;};
+
+		virtual std::string config_string() const
+		{
+			std::stringstream ss; ss << "ConstantDamping(" << m_factor << ")"; return ss.str();
+		}
 
 	protected:
 		number m_factor; ///< constant damping factor
@@ -115,6 +129,11 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 		{
 			UG_THROW("MinimalResiduumDamping: non-constant damping.");
 		}
+
+		virtual std::string config_string() const
+		{
+			return "MinimalResiduumDamping";
+		}
 };
 
 /// damping computed based on the minimal energy
@@ -144,6 +163,11 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 		virtual number damping()
 		{
 			UG_THROW("MinimalEnergyDamping: non-constant damping.");
+		}
+
+		virtual std::string config_string() const
+		{
+			return "MinimalEnergyDamping";
 		}
 };
 

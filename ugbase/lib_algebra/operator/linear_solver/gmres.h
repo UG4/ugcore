@@ -239,6 +239,15 @@ class GMRES
 			return convergence_check()->post();
 		}
 
+	public:
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "GMRes ( restart = " << m_restart << ")\n";
+			ss << base_type::config_string_preconditioner_convergence_check();
+			return ss.str();
+		}
+
 	protected:
 	///	prepares the output of the convergence check
 		void prepare_conv_check()

@@ -46,6 +46,7 @@ class IPreconditionedLinearOperatorInverse
 
 	protected:
 		using base_type::linear_operator;
+		using base_type::m_spConvCheck;
 
 	public:
 		using VectorDebugWritingObject<X>::write_debug;
@@ -138,6 +139,27 @@ class IPreconditionedLinearOperatorInverse
 
 		//	return
 			return bRes;
+		}
+
+	///	returns config information of convergence check and preconditioner
+		std::string config_string_preconditioner_convergence_check() const
+		{
+			std::stringstream ss;
+			ss << " Convergence Check: ";
+			if(m_spConvCheck.valid()) ss << ConfigShift(m_spConvCheck->config_string()) << "\n";
+			else ss << "  NOT SET!\n";
+			ss << " Preconditioner: ";
+			if(m_spPrecond.valid()) ss << ConfigShift(m_spPrecond->config_string()) << "\n";
+			else ss << "  NOT SET!\n";
+			return ss.str();
+		}
+
+	///	returns information about configuration parameters
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << name() << "\n" << config_string_preconditioner_convergence_check();
+			return ss.str();
 		}
 
 	///	for debug: computes norm again after whole calculation of apply

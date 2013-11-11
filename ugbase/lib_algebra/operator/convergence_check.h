@@ -122,6 +122,16 @@ class IConvergenceCheck
 
 		/// virtual destructor
 		virtual ~IConvergenceCheck() {};
+
+		///	returns information about configuration parameters
+		/**
+		 * this should return necessary information about parameters and possibly
+		 * calling config_string of subcomponents.
+		 *
+		 * \returns std::string	necessary information about configuration parameters
+		 */
+
+		virtual std::string config_string() const = 0;
 };
 
 
@@ -162,6 +172,13 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		bool iteration_ended();
 
 		bool post();
+
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "StdConvCheck( max steps = " << m_maxSteps << ", min defect = " << m_minDefect << ", relative reduction = " << m_relReduction << ")";
+			return ss.str();
+		}
 
 		number reduction() const {return m_currentDefect/m_initialDefect;};
 		number defect() const {return m_currentDefect;};

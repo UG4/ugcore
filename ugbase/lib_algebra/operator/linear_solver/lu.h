@@ -291,6 +291,17 @@ class LU
 			return true;
 		}
 
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "LU Decomposition: Direct Solver for Linear Equation Systems.\n";
+			ss << " Minimum Entries for Sparse LU: " << m_iMinimumForSparse;
+			if(m_iMinimumForSparse==0)
+				ss << " (= always Sparse LU)";
+			return ss.str();
+		}
+
+
 	///	Destructor
 		virtual ~LU() {};
 

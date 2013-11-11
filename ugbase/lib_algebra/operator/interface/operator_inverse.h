@@ -10,6 +10,7 @@
 
 #include "common/util/smart_pointer.h"
 #include "operator.h"
+#include <string>
 
 namespace ug{
 
@@ -91,6 +92,15 @@ class IOperatorInverse
 
 	/// virtual destructor
 		virtual ~IOperatorInverse() {};
+
+	///	returns information about configuration parameters
+	/**
+	 * this should return necessary information about parameters and possibly
+	 * calling config_string of subcomponents.
+	 *
+	 * \returns std::string	necessary information about configuration parameters
+	 */
+		virtual std::string config_string() const = 0;
 };
 
 

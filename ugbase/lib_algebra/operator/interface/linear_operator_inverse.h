@@ -85,6 +85,16 @@ class ILinearOperatorInverse
 	 */
 		virtual const char* name() const = 0;
 
+
+	///	returns information about configuration parameters
+	/**
+	 * this should return necessary information about parameters and possibly
+	 * calling config_string of subcomponents.
+	 *
+	 * \returns std::string	necessary information about configuration parameters
+	 */
+		virtual std::string config_string() const { return name(); }
+
 	/// initializes for the inverse for a linear operator
 	/**
 	 * This method passes the operator L that is inverted by this operator. In

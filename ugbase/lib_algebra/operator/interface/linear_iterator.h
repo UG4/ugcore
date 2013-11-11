@@ -153,6 +153,11 @@ class ILinearIterator
 	///	constructor
 		ILinearIterator() {set_damp(1.0);};
 
+		virtual std::string config_string() const
+		{
+			std::stringstream ss; ss << name() << "( damping = " << m_spDamping->config_string() << ")"; return ss.str();
+		}
+
 	protected:
 	///	the scaling
 		SmartPtr<IDamping<X,Y> > m_spDamping;

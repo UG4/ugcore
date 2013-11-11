@@ -316,6 +316,14 @@ class BiCGStab
 			convergence_check()->set_info(s);
 		}
 
+	public:
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "BiCGStab( restart = " << m_numRestarts << ", min_orthogonality = " << m_minOrtho << ")\n";
+			ss << base_type::config_string_preconditioner_convergence_check();
+			return ss.str();
+		}
 	protected:
 	/// restarts at every numRestarts steps (numRestarts <= 0 --> never)
 		int m_numRestarts;

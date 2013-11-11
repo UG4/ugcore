@@ -110,6 +110,13 @@ class FixedConvergenceCheck : public IConvergenceCheck<TVector>
 			return newInst;
 		}
 
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "FixedConvergenceCheck( fix # steps = " << m_numIterations << ")";
+			return ss.str();
+		}
+
 		/// virtual destructor
 		virtual ~FixedConvergenceCheck() {};
 
