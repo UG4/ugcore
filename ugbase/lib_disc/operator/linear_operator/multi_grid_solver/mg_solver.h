@@ -334,8 +334,8 @@ class AssembledMultiGridCycle :
 		//	copies values of defect to smoothing patch
 			void copy_defect_to_smooth_patch()
 			{
-				#ifdef UG_PARALLEL
 				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*sd)[i] = (*d)[ vMapPatchToGlobal[i] ];
+				#ifdef UG_PARALLEL
 				sd->set_storage_type(d->get_storage_mask());
 				#endif
 			}
@@ -343,8 +343,8 @@ class AssembledMultiGridCycle :
 		//	copies values of tmp to smoothing patch
 			void copy_tmp_to_smooth_patch()
 			{
-				#ifdef UG_PARALLEL
 				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*st)[i] = (*t)[ vMapPatchToGlobal[i] ];
+				#ifdef UG_PARALLEL
 				st->set_storage_type(t->get_storage_mask());
 				#endif
 			}
@@ -352,9 +352,9 @@ class AssembledMultiGridCycle :
 		//	copies values of defect from smoothing patch
 			void copy_defect_from_smooth_patch(bool clearGhosts = false)
 			{
-				#ifdef UG_PARALLEL
 				if(clearGhosts) d->set(0.0);
 				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*d)[ vMapPatchToGlobal[i] ] = (*sd)[i];
+				#ifdef UG_PARALLEL
 				d->set_storage_type(sd->get_storage_mask());
 				#endif
 			}
@@ -362,39 +362,39 @@ class AssembledMultiGridCycle :
 		//	copies values of defect to smoothing patch
 			void copy_correction_from_smooth_patch(bool clearGhosts = false)
 			{
-				#ifdef UG_PARALLEL
 				if(clearGhosts) c->set(0.0);
 				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*c)[ vMapPatchToGlobal[i] ] = (*sc)[i];
+				#ifdef UG_PARALLEL
 				c->set_storage_type(sc->get_storage_mask());
 				#endif
 			}
 
 			public:
-		//	matrix operator
+		///	Level matrix operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > A;
 
-		//	smoother
+		///	Smoother
 			SmartPtr<ILinearIterator<vector_type> > PreSmoother;
 			SmartPtr<ILinearIterator<vector_type> > PostSmoother;
 
-		//	projection operator
+		///	Projection operator
 			SmartPtr<ITransferOperator<TAlgebra> > Projection;
 
-		//	transfer operator
+		///	Transfer operator
 			SmartPtr<ITransferOperator<TAlgebra> > Prolongation;
 			SmartPtr<ITransferOperator<TAlgebra> > Restriction;
 
-		//	transfer post process
+		///	transfer post process
             std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vProlongationPP;
             std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vRestrictionPP;
 
-		//	vectors needed
+		///	vectors needed (including ghosts, for transfer)
 			SmartPtr<GridFunction<TDomain, TAlgebra> > c, d, t;
 
-		//	vectors needed for smoothing
+		///	vectors needed (no-ghosts, for smoothing)
 			SmartPtr<GridFunction<TDomain, TAlgebra> > sc, sd, st;
 
-		//	missing coarse grid correction
+		///	missing coarse grid correction
 			matrix_type CoarseGridContribution;
 
 		///	maps global indices (including ghosts) to patch indices (no ghosts included).
@@ -419,20 +419,13 @@ class AssembledMultiGridCycle :
 		}
 
 #ifdef UG_PARALLEL
-	/**
-	 *	gathers the vector using vertical interfaces.
-	 *	Entries are summed at vmasters.
-	 */
+	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
 		void gather_vertical(vector_type& d);
 
-	/**
-	 *	broadcasts the vector using vertical interfaces.
-	 */
+	/// broadcasts the vector using vertical interfaces.
 		void broadcast_vertical(vector_type& t);
 
-	/**
-	 *	broadcasts and adds the vector using vertical interfaces.
-	 */
+	/// broadcasts and adds the vector using vertical interfaces.
 		void broadcast_vertical_add(vector_type& t);
 
 	///	copies values from h-masters to h-slaves
