@@ -197,7 +197,7 @@ class GridFunction
 		ConstSmartPtr<DoFDistribution> dof_distribution() const {return m_spDD;}
 
 	///	returns the grid level
-		const GridLevel& grid_level() {return m_spDD->grid_level();}
+		const GridLevel& grid_level() const {return m_spDD->grid_level();}
 
 	/// iterator for elements where this grid function is defined
 	/// \{

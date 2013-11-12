@@ -217,8 +217,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* 
 template <typename TDomain>
 void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
                             ConstSmartPtr<DoFDistribution> dd,
-                            std::vector<MathVector<TDomain::dim> >& vPos,
-                            const std::vector<int>* pvMapGlobalToPatch)
+                            std::vector<MathVector<TDomain::dim> >& vPos)
 {
 //	get position accessor
 	const typename TDomain::position_accessor_type& aaPos = domain->position_accessor();
@@ -245,11 +244,7 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 	//	write position
 		for(size_t i = 0; i < ind.size(); ++i)
 		{
-			size_t index = ind[i];
-			if(pvMapGlobalToPatch){
-				if((*pvMapGlobalToPatch)[index] < 0) continue;
-				index = (*pvMapGlobalToPatch)[index];
-			}
+			const size_t index = ind[i];
 			vPos[index] = aaPos[v];
 		}
 	}
@@ -258,8 +253,7 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 template <typename TDomain, typename TBaseElem>
 void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
                           ConstSmartPtr<DoFDistribution> dd,
-                          std::vector<MathVector<TDomain::dim> >& vPos,
-                          const std::vector<int>* pvMapGlobalToPatch)
+                          std::vector<MathVector<TDomain::dim> >& vPos)
 {
 	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
 
@@ -303,11 +297,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 			//	write position
 				for(size_t sh = 0; sh < ind.size(); ++sh)
 				{
-					size_t index = ind[sh][0];
-					if(pvMapGlobalToPatch){
-						if((*pvMapGlobalToPatch)[index] < 0) continue;
-						index = (*pvMapGlobalToPatch)[index];
-					}
+					const size_t index = ind[sh][0];
 					vPos[index] = vElemPos[sh];
 				}
 			}
@@ -318,8 +308,7 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 template <typename TDomain>
 void ExtractPositions(ConstSmartPtr<TDomain> domain,
                       ConstSmartPtr<DoFDistribution> dd,
-                      std::vector<MathVector<TDomain::dim> >& vPos,
-                      const std::vector<int>* pvMapGlobalToPatch)
+                      std::vector<MathVector<TDomain::dim> >& vPos)
 {
 //	number of total dofs
 	int nr = dd->num_indices();
@@ -328,18 +317,17 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 	vPos.resize(nr);
 
 //	extract for all element types
-	if(dd->max_dofs(VERTEX)) ExtractPositionsVertex<TDomain>(domain, dd, vPos, pvMapGlobalToPatch);
-	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, EdgeBase>(domain, dd, vPos, pvMapGlobalToPatch);
-	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, Face>(domain, dd, vPos, pvMapGlobalToPatch);
-	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, vPos, pvMapGlobalToPatch);
+	if(dd->max_dofs(VERTEX)) ExtractPositionsVertex<TDomain>(domain, dd, vPos);
+	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, EdgeBase>(domain, dd, vPos);
+	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, Face>(domain, dd, vPos);
+	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, vPos);
 }
 
 
 template <typename TDomain, typename TBaseElem>
 void ExtractAlgebraIndices2(ConstSmartPtr<TDomain> domain,
                   ConstSmartPtr<DoFDistribution> dd,
-                  std::vector<size_t>& fctIndex,
-                  const std::vector<int>* pvMapGlobalToPatch)
+                  std::vector<size_t>& fctIndex)
 {
 	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
 
@@ -370,11 +358,7 @@ void ExtractAlgebraIndices2(ConstSmartPtr<TDomain> domain,
 
 				for(size_t sh = 0; sh < ind.size(); ++sh)
 				{
-					size_t index = ind[sh];
-					if(pvMapGlobalToPatch){
-						if((*pvMapGlobalToPatch)[index] < 0) continue;
-						index = (*pvMapGlobalToPatch)[index];
-					}
+					const size_t index = ind[sh];
 					if(index < fctIndex.size())
 						fctIndex[index] = fct;
 				}
@@ -387,8 +371,7 @@ void ExtractAlgebraIndices2(ConstSmartPtr<TDomain> domain,
 template <typename TDomain>
 void ExtractAlgebraIndices(ConstSmartPtr<TDomain> domain,
                       ConstSmartPtr<DoFDistribution> dd,
-                      std::vector<size_t> &fctIndex,
-                      const std::vector<int>* pvMapGlobalToPatch)
+                      std::vector<size_t> &fctIndex)
 {
 //	number of total dofs
 	int nr = dd->num_indices();
@@ -397,10 +380,10 @@ void ExtractAlgebraIndices(ConstSmartPtr<TDomain> domain,
 	fctIndex.resize(nr);
 
 //	extract for all element types
-	if(dd->max_dofs(VERTEX)) ExtractAlgebraIndices2<TDomain, VertexBase>(domain, dd, fctIndex, pvMapGlobalToPatch);
-	if(dd->max_dofs(EDGE)) ExtractAlgebraIndices2<TDomain, EdgeBase>(domain, dd, fctIndex, pvMapGlobalToPatch);
-	if(dd->max_dofs(FACE)) ExtractAlgebraIndices2<TDomain, Face>(domain, dd, fctIndex, pvMapGlobalToPatch);
-	if(dd->max_dofs(VOLUME)) ExtractAlgebraIndices2<TDomain, Volume>(domain, dd, fctIndex, pvMapGlobalToPatch);
+	if(dd->max_dofs(VERTEX)) ExtractAlgebraIndices2<TDomain, VertexBase>(domain, dd, fctIndex);
+	if(dd->max_dofs(EDGE)) ExtractAlgebraIndices2<TDomain, EdgeBase>(domain, dd, fctIndex);
+	if(dd->max_dofs(FACE)) ExtractAlgebraIndices2<TDomain, Face>(domain, dd, fctIndex);
+	if(dd->max_dofs(VOLUME)) ExtractAlgebraIndices2<TDomain, Volume>(domain, dd, fctIndex);
 }
 
 
@@ -743,36 +726,33 @@ template bool InnerDoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, Geom
 template bool InnerDoFPosition<1>(std::vector<MathVector<1> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
 template bool DoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GeometricObject* elem, const Domain1d& domain, const LFEID& lfeID);
 template bool DoFPosition<1>(std::vector<MathVector<1> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
-template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain1d::dim>, size_t> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain1d::dim>, size_t> >& vPos);
 template bool CheckDoFPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd);
-template void ExtractAlgebraIndices<Domain1d>(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex,
-		const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractAlgebraIndices<Domain1d>(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex);
 #endif
 #ifdef UG_DIM_2
 template bool InnerDoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
 template bool InnerDoFPosition<2>(std::vector<MathVector<2> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
 template bool DoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
 template bool DoFPosition<2>(std::vector<MathVector<2> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
-template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain2d::dim>, size_t> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain2d::dim>, size_t> >& vPos);
 template bool CheckDoFPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd);
-template void ExtractAlgebraIndices<Domain2d>(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex,
-		const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractAlgebraIndices<Domain2d>(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex);
 #endif
 #ifdef UG_DIM_3
 template bool InnerDoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
 template bool InnerDoFPosition<3>(std::vector<MathVector<3> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
 template bool DoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
 template bool DoFPosition<3>(std::vector<MathVector<3> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
-template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos, const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain3d::dim>, size_t> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, const size_t fct, std::vector<std::pair<MathVector<Domain3d::dim>, size_t> >& vPos);
 template bool CheckDoFPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd);
-template void ExtractAlgebraIndices<Domain3d>(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex,
-		const std::vector<int>* pvMapGlobalToPatch);
+template void ExtractAlgebraIndices<Domain3d>(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex);
 
 #endif
 

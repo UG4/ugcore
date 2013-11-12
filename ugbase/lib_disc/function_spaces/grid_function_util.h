@@ -35,7 +35,7 @@
 namespace ug {
 
 template<typename TDomain>
-void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  ConstSmartPtr<DoFDistribution> dd, const std::vector<int>* pvMapGlobalToPatch=NULL)
+void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  ConstSmartPtr<DoFDistribution> dd)
 {
 /*
 	std::vector<size_t> fctIndex;
@@ -84,7 +84,7 @@ void WriteMatrixToConnectionViewer(const char *filename,
 	else
 		ConnectionViewer::WriteMatrixPar( filename, A, &vPos[0], dim );
 
-	WriteAlgebraIndices(filename, u.domain(),u.dof_distribution(), NULL);
+	WriteAlgebraIndices(filename, u.domain(),u.dof_distribution());
 
 }
 
@@ -396,7 +396,7 @@ public:
 	GridFunctionDebugWriter(
 			SmartPtr<ApproximationSpace<TDomain> > spApproxSpace) :
 			m_baseDir("."), m_spApproxSpace(spApproxSpace), bConnViewerOut(
-					true), bVTKOut(true), m_printConsistent(true), m_pvMapGlobalToPatch(NULL) {
+					true), bVTKOut(true), m_printConsistent(true) {
 		reset();
 	}
 
@@ -416,11 +416,6 @@ public:
 	///	sets to toplevel on surface
 	void reset() {
 		set_grid_level(GridLevel(GridLevel::TOP, GridLevel::SURFACE));
-		m_pvMapGlobalToPatch = NULL;
-	}
-
-	void set_map_global_to_patch(const std::vector<int>* pvMapGlobalToPatch){
-		m_pvMapGlobalToPatch = pvMapGlobalToPatch;
 	}
 
 	/// set the base directory for output files (.vec and .mat)
@@ -482,10 +477,6 @@ public:
 				ConnectionViewer::WriteMatrixPar(name.c_str(), mat, &vPos[0], dim);
 		}
 		else{
-			if(m_pvMapGlobalToPatch){
-				UG_LOG("Cannot write on different levels using MapGlobalToPatch. Skipping.\n");
-				return;
-			}
 			extract_positions(m_gridLevel);
 			std::vector<MathVector<dim> >& vFinePos =
 					this->template get_positions<dim>();
@@ -506,7 +497,7 @@ protected:
 
 	void extract_algebra_indices(std::string name)
 	{
-		WriteAlgebraIndices<TDomain>(name, m_spApproxSpace->domain(), m_spApproxSpace->dof_distribution(m_gridLevel), m_pvMapGlobalToPatch);
+		WriteAlgebraIndices<TDomain>(name, m_spApproxSpace->domain(), m_spApproxSpace->dof_distribution(m_gridLevel));
 	}
 
 	///	reads the positions
@@ -519,7 +510,7 @@ protected:
 		ExtractPositions<TDomain>(
 				m_spApproxSpace->domain(),
 				m_spApproxSpace->dof_distribution(gridLevel),
-				vPos, m_pvMapGlobalToPatch);
+				vPos);
 	}
 
 	///	write vector
@@ -554,11 +545,6 @@ protected:
 		//	check name
 		std::string name(m_baseDir); name.append("/").append(filename);
 
-		if(m_pvMapGlobalToPatch){
-			UG_LOG("Cannot write to vtk using MapGlobalToPatch. Skipping.\n");
-			return;
-		}
-
 		if (!FileExists(m_baseDir.c_str())) {
 			UG_WARNING("GridFunctionDebugWriter::write_vector_to_vtk: directory "
 						<< m_baseDir << "does not exist.");
@@ -567,26 +553,14 @@ protected:
 			name = "./"; name.append(filename);
 		}
 
-		if (m_gridLevel.type() == GridLevel::LEVEL) {
-			typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-			TGridFunction vtkFunc(
-					m_spApproxSpace,
-					m_spApproxSpace->dof_distribution(m_gridLevel));
-			vtkFunc.resize_values(vec.size());
-			vtkFunc.assign(vec);
-			VTKOutput<dim> out;
-			out.print(filename, vtkFunc, m_printConsistent);
-		} else if (m_gridLevel.type() == GridLevel::SURFACE) {
-			typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-			TGridFunction vtkFunc(
-					m_spApproxSpace,
-					m_spApproxSpace->dof_distribution(m_gridLevel));
-			vtkFunc.resize_values(vec.size());
-			vtkFunc.assign(vec);
-			VTKOutput<dim> out;
-			out.print(filename, vtkFunc, m_printConsistent);
-		} else
-			UG_THROW("Cannot find grid level.");
+		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
+		TGridFunction vtkFunc(
+				m_spApproxSpace,
+				m_spApproxSpace->dof_distribution(m_gridLevel));
+		vtkFunc.resize_values(vec.size());
+		vtkFunc.assign(vec);
+		VTKOutput<dim> out;
+		out.print(filename, vtkFunc, m_printConsistent);
 	}
 
 protected:
@@ -604,9 +578,6 @@ protected:
 
 	//	current grid level
 	GridLevel m_gridLevel, m_coarseGridLevel;
-
-	//	mapping to smaller index set (-1 indicates dropping)
-	const std::vector<int>* m_pvMapGlobalToPatch;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

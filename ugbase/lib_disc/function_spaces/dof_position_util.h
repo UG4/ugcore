@@ -54,8 +54,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
  */
 template<typename TDomain>
 void ExtractPositions(ConstSmartPtr<TDomain> domain, ConstSmartPtr<DoFDistribution> dd,
-                      std::vector<MathVector<TDomain::dim> >& vPos,
-                      const std::vector<int>* pvMapGlobalToPatch = NULL);
+                      std::vector<MathVector<TDomain::dim> >& vPos);
 
 /**
  * extracts the positions of the degrees of freedom and stores them into the
@@ -120,8 +119,7 @@ bool CheckDoFPositions(const TFunction &u)
 template <typename TDomain>
 void ExtractAlgebraIndices(ConstSmartPtr<TDomain> domain,
                       ConstSmartPtr<DoFDistribution> dd,
-                      std::vector<size_t> &fctIndex,
-                      const std::vector<int>* pvMapGlobalToPatch);
+                      std::vector<size_t> &fctIndex);
 /// \}
 } // end namespace ug
 

@@ -198,7 +198,7 @@ class AssembledMultiGridCycle :
 		void base_solve(size_t lev);
 
 	/// performs smoothing on level l, nu times
-		void smooth(vector_type& c, vector_type& d, vector_type& t,
+		void smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 		            MatrixOperator<matrix_type, vector_type>& A,
 		            ILinearIterator<vector_type>& S, size_t lev, int nu);
 
@@ -335,10 +335,10 @@ class AssembledMultiGridCycle :
             std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vRestrictionPP;
 
 		///	vectors needed (including ghosts, for transfer)
-			SmartPtr<GridFunction<TDomain, TAlgebra> > c, d, t;
+			SmartPtr<GF> c, d, t;
 
 		///	vectors needed (no-ghosts, for smoothing)
-			SmartPtr<GridFunction<TDomain, TAlgebra> > sc, sd, st;
+			SmartPtr<GF> sc, sd, st;
 
 		///	missing coarse grid correction
 			matrix_type CoarseGridContribution;
@@ -354,13 +354,13 @@ class AssembledMultiGridCycle :
 		std::vector<SmartPtr<LevData> > m_vLevData;
 
 	///	copies vector to smoothing patch using cached mapping
-		void copy_ghost_to_noghost(SmartPtr<GridFunction<TDomain, TAlgebra> > spVecTo,
-		                           ConstSmartPtr<GridFunction<TDomain, TAlgebra> > spVecFrom,
+		void copy_ghost_to_noghost(SmartPtr<GF> spVecTo,
+		                           ConstSmartPtr<GF> spVecFrom,
 		                           const std::vector<size_t>& vMapPatchToGlobal);
 
 	///	copies vector from smoothing patch using cached mapping
-		void copy_noghost_to_ghost(SmartPtr<GridFunction<TDomain, TAlgebra> > spVecTo,
-								   ConstSmartPtr<GridFunction<TDomain, TAlgebra> > spVecFrom,
+		void copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
+								   ConstSmartPtr<GF> spVecFrom,
 								   const std::vector<size_t>& vMapPatchToGlobal);
 
 		std::vector<vector_type*> level_defects()
@@ -401,7 +401,7 @@ class AssembledMultiGridCycle :
 	 *
 	 * \param[in]	debugWriter		Debug Writer to use
 	 */
-		void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
+		void set_debug(SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > spDebugWriter)
 		{
 			m_spDebugWriter = spDebugWriter;
 		}
@@ -412,11 +412,11 @@ class AssembledMultiGridCycle :
 	 * This method writes the level vector to a debug file, if a debug writer
 	 * has been set.
 	 *
-	 * \param[in]		vec			Level Vector to write for debug purpose
-	 * \param[in]		filename	Filename
-	 * \param[in]		level		grid level corresponding to the vector
+	 * \param[in]		spGF		Level Vector to write for debug purpose
+	 * \param[in]		name		Filename
 	 */
-		void write_smooth_level_debug(const vector_type& vec, const char* filename, size_t lev);
+		void write_debug(ConstSmartPtr<GF> spGF, std::string name);
+		void write_debug(const GF& rGF, std::string name);
 
 	///	writes debug output for a level matrix only on smooth path
 	/**
@@ -424,21 +424,10 @@ class AssembledMultiGridCycle :
 	 * has been set.
 	 *
 	 * \param[in]		mat			Level Matrix to write for debug purpose
-	 * \param[in]		filename	Filename
+	 * \param[in]		name		Filename
 	 * \param[in]		level		grid level corresponding to the matrix
 	 */
-		void write_smooth_level_debug(const matrix_type& mat, const char* filename, size_t lev);
-
-	///	writes debug output for a level vector
-	/**
-	 * This method writes the level vector to a debug file, if a debug writer
-	 * has been set.
-	 *
-	 * \param[in]		vec			Level Vector to write for debug purpose
-	 * \param[in]		filename	Filename
-	 * \param[in]		level		grid level corresponding to the vector
-	 */
-		void write_level_debug(const vector_type& vec, const char* filename, size_t lev);
+		void write_smooth_level_debug(const matrix_type& mat, std::string name, size_t lev);
 
 	///	writes debug output for a level matrix
 	/**
@@ -446,20 +435,10 @@ class AssembledMultiGridCycle :
 	 * has been set.
 	 *
 	 * \param[in]		mat			Level Matrix to write for debug purpose
-	 * \param[in]		filename	Filename
+	 * \param[in]		name		Filename
 	 * \param[in]		level		grid level corresponding to the matrix
 	 */
-		void write_level_debug(const matrix_type& mat, const char* filename, size_t lev);
-
-	///	writes debug output for a surface vector
-	/**
-	 * This method writes the surface vector to a debug file, if a debug writer
-	 * has been set.
-	 *
-	 * \param[in]		vec			Level Vector to write for debug purpose
-	 * \param[in]		filename	Filename
-	 */
-		void write_surface_debug(const vector_type& vec, const char* filename);
+		void write_level_debug(const matrix_type& mat, std::string name, size_t lev);
 
 	///	writes debug output for a surface matrix
 	/**
@@ -467,15 +446,15 @@ class AssembledMultiGridCycle :
 	 * has been set.
 	 *
 	 * \param[in]		mat			Level Matrix to write for debug purpose
-	 * \param[in]		filename	Filename
+	 * \param[in]		name		Filename
 	 */
-		void write_surface_debug(const matrix_type& mat, const char* filename);
+		void write_surface_debug(const matrix_type& mat, std::string name);
 
 	///	logs a level-data-struct to the terminal
-		void log_level_data(size_t lvl);
+		void log_debug_data(int lvl, std::string name);
 
 	///	Debug Writer
-		SmartPtr<IDebugWriter<algebra_type> > m_spDebugWriter;
+		SmartPtr<GridFunctionDebugWriter<TDomain, TAlgebra> > m_spDebugWriter;
 
 	///	counter for debug, to distinguish the iterations
 		int m_dbgIterCnt;
