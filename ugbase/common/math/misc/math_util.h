@@ -541,6 +541,19 @@ bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
 							const vector_t& v1, const vector_t& v2);
 
 ////////////////////////////////////////////////////////////////////////
+///	Returns true if the point lies inside or on a side of the given triangle
+/**
+ * This method should only be used if v, v0, v1, and v2 do lie in the same
+ * x-y-plane.
+ *
+ * The method has a higher accuracy than PointIsInsideTriangle, however it also
+ * has a higher performance overhead.
+ */
+template <class vector_t>
+bool PointIsInsideTriangle_HighAcc(const vector_t& v, const vector_t& v0,
+								   const vector_t& v1, const vector_t& v2);
+
+////////////////////////////////////////////////////////////////////////
 ///	Returns true if the point lies inside or on the boundary of a quadrilateral
 /**
  * This method should only be used if v, v0, v1, v2, and v3 do lie in the same
