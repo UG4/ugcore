@@ -44,20 +44,28 @@ class ProjGaussSeidel:
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	///	Vector type
-		typedef typename algebra_type::vector_type vector_type;
-
 	///	Matrix type
 		typedef typename algebra_type::matrix_type matrix_type;
 
+	///	Vector type
+		typedef typename algebra_type::vector_type vector_type;
+
+	///	Value type
+		typedef typename vector_type::value_type value_type;
+
 	public:
 	/// constructor
-		ProjGaussSeidel(): m_spMat(NULL), m_bInit(false){
+		ProjGaussSeidel(): m_bObs(false), m_spMat(NULL), m_bInit(false){
 			m_vActiveIndices.resize(0);
-			m_vInactiveIndices.resize(0);};
+			m_vInactiveIndices.resize(0);
+			m_relax = 1.0;};
 
 	///	preprocess checks if matrix is diagonal invertible
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp);
+
+	///	set constraint/obstacle value g (for u >= g)
+		void set_obstacle_value(SmartPtr<vector_type> obsVal){
+			m_spVecOfObsValues = obsVal; m_bObs = true;}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
 	/**
@@ -69,6 +77,9 @@ class ProjGaussSeidel:
 	 * \param[in]	d			defect
 	 */
 		void gs_step_with_projection(vector_type& c, const matrix_type& mat, const vector_type& d);
+
+	///	set relaxation parameter to define a SOR-method
+		void set_sor_relax(number relaxFactor){ m_relax = relaxFactor;}
 
 	///////////////////////////////////////////////////////////////////////////
 	//	Linear Solver interface methods
@@ -102,6 +113,12 @@ class ProjGaussSeidel:
 		~ProjGaussSeidel(){};
 
 	private:
+	/// flag indicating if obstacle values are set
+		bool m_bObs;
+
+	///	constraint/obstacle value
+		SmartPtr<vector_type> m_spVecOfObsValues;
+
 	/// operator to invert
 		SmartPtr<matrix_type> m_spMat;
 
@@ -114,6 +131,9 @@ class ProjGaussSeidel:
 	///	store the indices, which satisfy the constraints with equality in m_vActiveIndices.
 	///	Other indices are stored in m_vInactiveIndices.
 		std::vector<size_t> m_vActiveIndices; std::vector<size_t> m_vInactiveIndices;
+
+	///	relaxation parameter
+		number m_relax;
 };
 
 } // end namespace ug

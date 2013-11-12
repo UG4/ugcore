@@ -261,8 +261,12 @@ static void Algebra(Registry& reg, string grp)
 		typedef ILinearIterator<vector_type> TBase;
 		string name = string("ProjGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
-		.add_constructor()
-		.set_construct_as_smart_pointer(true);
+			.add_constructor()
+			.add_method("set_obstacle_value", &T::set_obstacle_value,
+				"", "obstacle value", "sets obstacle value")
+			.add_method("set_sor_relax", &T::set_sor_relax,
+				"", "sor relaxation", "sets sor relaxation parameter")
+			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ProjGaussSeidel", tag);
 	}
 }

@@ -76,6 +76,10 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 //	remember, that operator has been initialized
 	m_bInit = true;
 
+// 	init vector of obstacle values and init values with zero
+	if (!m_bObs)
+		m_spVecOfObsValues = u.clone_without_values();
+
 	//} UG_CATCH_THROW("ProjGaussSeidel: Init failure for init(u)");
 	return true;
 }
@@ -98,8 +102,8 @@ ProjGaussSeidel<TAlgebra>::
 gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type& d)
 {
 	//	TODO: matrix_type correct or MatrixOperator<matrix_type, vector_type>?
-	typename vector_type::value_type s;
-	typename vector_type::value_type tmpSol;
+	value_type s, tmpSol, obsVal;
+	const number relaxFactor = m_relax;
 
 	for(size_t i = 0; i < c.size(); i++)
 	{
@@ -110,24 +114,29 @@ gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type&
 			// s -= it.value() * x[it.index()];
 			MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()]);
 
-		//	c[i] = s / A(i,i)
-		InverseMatMult(c[i], 1.0, A(i,i), s);
+		//	c[i] = relaxFactor * s / A(i,i)
+		InverseMatMult(c[i], relaxFactor, A(i,i), s);
 
-		//	compute temporary solution tmpSol := u_{s-1/2} = u_{s-1} + c
+		//	compute temporary solution (solution of a common (forward) GaussSeidel-step)
+		//	tmpSol := u_{s-1/2} = u_{s-1} + c
 		tmpSol = m_lastSol[i] + c[i];
+
+		//	get i-th obstacle value
+		obsVal = (*m_spVecOfObsValues)[i];
 
 		//	perform projection: check whether the temporary solution u_{s-1/2}
 		//	fulfills the underlying constraint or not
-		if (tmpSol < 0.0)
+		if ((tmpSol - obsVal) < 0.0)
 		{
 			//	a constraint is not fulfilled
 
-			//	adjust correction c := u_s - u_{s-1} = 0 - u_{s-1}
-			c[i] = - m_lastSol[i];
+			//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
+			// TODO: need to be replaced by c[i] = ConsValue - m_lastSol[i];
+			c[i] = (*m_spVecOfObsValues)[i] - m_lastSol[i];
 
-			//	set new solution u_s to zero
+			//	set new solution u_s to the obstacle value
 			//	and store the current index in a vector for further treatment
-			m_lastSol[i] = 0.0;
+			m_lastSol[i] = (*m_spVecOfObsValues)[i];
 			m_vActiveIndices.push_back(i);
 		}
 		else
@@ -136,6 +145,8 @@ gs_step_with_projection(vector_type& c, const matrix_type& A, const vector_type&
 			m_lastSol[i] = tmpSol;
 			m_vInactiveIndices.push_back(i);
 		}
+
+		//UG_LOG("m_lastSol[" << i << "]: " << m_lastSol[i] << "\n");
 	}
 }
 
@@ -175,7 +186,7 @@ apply(vector_type &c, const vector_type& d)
 	//	reset vectors
 	m_vActiveIndices.resize(0); m_vInactiveIndices.resize(0);
 
-	//	perform a forward GaussSeidel-step: c = (D-L)^-1 * d, project on the underlying constraint
+	//	perform a forward GaussSeidel-step: c = (D-L)^-1 * d, then project on the underlying constraint
 	//	and store the indices, which satisfy the constraint with equality, in the vector vActiveIndices
 
 #ifdef UG_PARALLEL
@@ -223,14 +234,37 @@ apply_update_defect(vector_type &c, vector_type& d)
 {
 	PROFILE_FUNC_GROUP("projGS");
 
+	/*for(size_t i = 0; i < m_spMat->num_rows(); i++)
+	{
+		for(size_t j = 0; j < m_spMat->num_cols(); j++)
+		{
+			UG_LOG("A(" << i << "," << j << "]: " << (*m_spMat)(i,j) << "\n");
+		}
+	}*/
+
 	//	set correction to zero
 	c.set(0.0);
 
+	/*for(size_t i = 0; i < m_lastSol.size(); i++)
+	{
+		UG_LOG("m_lastSol[" << i << "]: " << m_lastSol[i] << "\n");
+	}*/
+
 	//	compute new correction and perform the projection
-	//	(adjusting the solution m_lastSol to the underlying constraint)
+	//	(and update of the solution m_lastSol under consideration of the constraint)
 	if(!apply(c, d)) return false;
 
-	// 	update defect d := d - A*c = b - A*(x+c) (= b - A*x_new)
+	/*for(size_t i = 0; i < c.size(); i++)
+	{
+		UG_LOG("c[" << i << "]: " << c[i] << "\n");
+	}
+
+	for(size_t i = 0; i < d.size(); i++)
+	{
+		UG_LOG("d[" << i << "]: " << d[i] << "\n");
+	}*/
+
+	// 	update defect d := d - A*c (= b - A*(x+c) = b - A*x_new)
 	if(!m_spMat->matmul_minus(d, c))
 	{
 		UG_LOG("ERROR in '"<<name()<<"::apply_update_defect': "
@@ -238,13 +272,27 @@ apply_update_defect(vector_type &c, vector_type& d)
 		return false;
 	}
 
-	//	adjust defect due to constraint/active indices
+	/*for(size_t i = 0; i < d.size(); i++)
+	{
+		UG_LOG("d_nachUpdate[" << i << "]: " << d[i] << "\n");
+	}*/
+
+	//	adjust defect of the active indices due to the constraint.
 	for (std::vector<size_t>::iterator itActiveInd = m_vActiveIndices.begin();
 			itActiveInd < m_vActiveIndices.end(); ++itActiveInd)
 	{
-		if (d[*itActiveInd] > 0.0)
+		UG_LOG("activeIndex: " << *itActiveInd << "\n");
+
+		//	check, if Ax <= b. For that case the new defect is set to zero,
+		//	since all equations/constraints are fulfilled
+		if (d[*itActiveInd] < 0.0)
 			d[*itActiveInd] = 0.0;
 	}
+
+	/*for(size_t i = 0; i < d.size(); i++)
+	{
+		UG_LOG("d_nachActiveIndUpdate[" << i << "]: " << d[i] << "\n");
+	}*/
 
 	return true;
 }
