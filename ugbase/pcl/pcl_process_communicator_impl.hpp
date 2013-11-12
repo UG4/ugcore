@@ -119,14 +119,40 @@ allgatherv(std::vector<TValue>& recBufOut,
 }
 
 
+template<typename T>
+T ProcessCommunicator::
+reduce(const T &t, pcl::ReduceOperation op, int rootProc) const
+{
+	T ret;
+	reduce(&t, &ret, 1, DataTypeTraits<T>::get_data_type(), op, rootProc);
+	return ret;
+}
 
+template<typename T>
+void ProcessCommunicator::
+reduce(const T *pSendBuff, T *pReceiveBuff, size_t count,
+		  pcl::ReduceOperation op, int rootProc) const
+{
+	reduce(pSendBuff, pReceiveBuff, count, DataTypeTraits<T>::get_data_type(),
+		   op, rootProc);
+}
+
+template<typename T>
+void ProcessCommunicator::
+reduce(const std::vector<T> &send, std::vector<T> &receive,
+	   pcl::ReduceOperation op, int rootProc) const
+{
+	if(send.size() > 0){
+		receive.resize(send.size());
+		reduce(&send[0], &receive[0], send.size(), op, rootProc);
+	}
+}
 
 
 template<typename T>
 T ProcessCommunicator::
 allreduce(const T &t, pcl::ReduceOperation op) const
 {
-	if(is_local()) return t;
 	T ret;
 	allreduce(&t, &ret, 1, DataTypeTraits<T>::get_data_type(), op);
 	return ret;
@@ -137,9 +163,20 @@ template<typename T>
 void ProcessCommunicator::
 allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const
 {
-	if(is_local()) { memcpy(pReceiveBuff, pSendBuff, count); return; }
 	allreduce(pSendBuff, pReceiveBuff, count, DataTypeTraits<T>::get_data_type(), op);
 }
+
+template<typename T>
+void ProcessCommunicator::
+allreduce(const std::vector<T> &send, std::vector<T> &receive,
+		  pcl::ReduceOperation op) const
+{
+	if(send.size() > 0){
+		receive.resize(send.size());
+		allreduce(&send[0], &receive[0], send.size(), op);
+	}
+}
+
 
 
 template<typename T>

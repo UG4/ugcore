@@ -29,8 +29,7 @@ enum ProcessCommunicatorDefaults
 };
 
 
-/**
- * A ProcessCommunicator is a very lightweight object that can be passed
+/** A ProcessCommunicator is a very lightweight object that can be passed
  * by value. Creation using the constructor is a lightweight operation too.
  * Creating a new communicator using create_sub_communicator however requires
  * communication and thus shouldn't be unnecessarily called.
@@ -81,6 +80,7 @@ class ProcessCommunicator
 		static ProcessCommunicator create_communicator(size_t first, size_t num);
 	/** \} */
 		
+
 	///	performs MPI_Gather on the processes of the communicator.
 	/**	This method synchronises involved processes.
 	 * \param sendBuf starting address of send buffer (choice)
@@ -89,8 +89,7 @@ class ProcessCommunicator
 	 * \param recBuf only significant for root process. All gathered data is written here.
 	 * \param recCount number of elements received from each process (integer)
 	 * \param recType data type of receive buffer elements (handle)
-	 * \param root The rank of the process that receives all the data.
-	 */
+	 * \param root The rank of the process that receives all the data.*/
 		void gather(const void* sendBuf, int sendCount, DataType sendType,
 					void* recBuf, int recCount, DataType recType, int root) const;
 
@@ -110,8 +109,7 @@ class ProcessCommunicator
 	 * 					(Only significant at root)
 	 * \param recType 	data type of receive buffer elements (handle).
 	 * 					(Only significant at root)
-	 * \param root The rank of the process that receives all the data.
-	 */
+	 * \param root The rank of the process that receives all the data.*/
 		void gatherv(const void* sendBuf, int sendCount, DataType sendType,
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType, int root) const;
@@ -130,8 +128,7 @@ class ProcessCommunicator
 	 *
 	 * Note that recBufOut, pSizesOut and pOffsetsOut will be resized as required.
 	 *
-	 * Please note that this method communicates twice.
-	 */
+	 * Please note that this method communicates twice.*/
 		template<class TValue>
 		void gatherv(std::vector<TValue>& recBufOut,
 					 std::vector<TValue>& sendBuf, int root,
@@ -145,8 +142,7 @@ class ProcessCommunicator
 	 * \param sendType data type of send buffer elements (handle)
 	 * \param recBuf starting address of receive buffer (choice)
 	 * \param recCount number of elements received from any process (integer)
-	 * \param recType data type of receive buffer elements (handle)
-	 */
+	 * \param recType data type of receive buffer elements (handle)*/
 		void allgather(const void* sendBuf, int sendCount, DataType sendType,
 					   void* recBuf, int recCount, DataType recType) const;
 
@@ -158,8 +154,7 @@ class ProcessCommunicator
 	 * \param recCounts 	integer array (of length group size) containing the number of elements that are received from each process
 	 * \param recBuf starting address of receive buffer (choice)
 	 * \param displs 	integer array (of length group size). Entry i specifies the displacement (relative to recvbuf ) at which to place the incoming data from process i
-	 * \param recType 	data type of receive buffer elements (handle)
-	 */
+	 * \param recType 	data type of receive buffer elements (handle)*/
 		void allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType) const;
@@ -177,18 +172,126 @@ class ProcessCommunicator
 	 *
 	 * Note that recBufOut, pSizesOut and pOffsetsOut will be resized as required.
 	 *
-	 * Please note that this method communicates twice.
-	 */
+	 * Please note that this method communicates twice.*/
 		template<class TValue>
 		void allgatherv(std::vector<TValue>& recBufOut,
 						std::vector<TValue>& sendBuf,
 						std::vector<int>* pSizesOut = NULL,
 						std::vector<int>* pOffsetsOut = NULL) const;
 
+		
+	///	performs MPI_Reduce on the processes of the communicator.
+	/**	This method synchronises involved processes.*/
+		void reduce(const void* sendBuf, void* recBuf, int count,
+					DataType type, ReduceOperation op, int rootProc) const;
+
+	/** simplified reduce for size=1. calls reduce for parameter t, and then returns the result
+	 * compiler error for unsupported datatypes
+	 * \param t the input parameter
+	 * \param op the Reduce Operation
+	 * \param rootProc	the process onto which the result will be reduced.
+	 * \return the reduced result*/
+		template<typename T>
+		T reduce(const T &t, pcl::ReduceOperation op, int rootProc) const;
+
+	/** simplified reduce for buffers.
+	 * \param pSendBuff the input buffer
+	 * \param pReceiveBuff the output buffer
+	 * \param count number of elements in the input/output buffers
+	 * \param op the Reduce Operation
+	 * \param rootProc	the process onto which the result will be reduced.*/
+		template<typename T>
+		void reduce(const T *pSendBuff, T *pReceiveBuff, size_t count,
+					pcl::ReduceOperation op, int rootProc) const;
+
+	/** simplified reduce for std::vector. The receive-buffer is automatically
+	 * resized as required.*/
+		template<typename T>
+		void reduce(const std::vector<T> &send, std::vector<T> &receive,
+					   pcl::ReduceOperation op, int rootProc) const;
+
+	///	overload for size_t
+		size_t reduce(const size_t &t, pcl::ReduceOperation op, int rootProc) const;
+
+	///	performs MPI_Allreduce on the processes of the communicator.
+	/**	This method synchronises involved processes.*/
+		void allreduce(const void* sendBuf, void* recBuf, int count,
+					   DataType type, ReduceOperation op) const;
+
+	/** simplified allreduce for size=1. calls allreduce for parameter t,
+	 * and then returns the result.
+	 * \param t the input parameter
+	 * \param op the Reduce Operation
+	 * \return the reduced result*/
+		template<typename T>
+		T allreduce(const T &t, pcl::ReduceOperation op) const;
+
+	///	overload for size_t
+		size_t allreduce(const size_t &t, pcl::ReduceOperation op) const;
+
+	/** simplified allreduce for buffers.
+	 * \param pSendBuff the input buffer
+	 * \param pReceiveBuff the output buffer
+	 * \param count number of elements in the input/output buffers
+	 * \param op the Reduce Operation*/
+		template<typename T>
+		void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count,
+					   pcl::ReduceOperation op) const;
+
+	/** simplified allreduce for std::vector. The receive-buffer is automatically
+	 * resized as required.*/
+		template<typename T>
+		void allreduce(const std::vector<T> &send, std::vector<T> &receive,
+					   pcl::ReduceOperation op) const;
+
+
+	/** performs a MPI_Bcast
+	 * @param v		pointer to data
+	 * @param size	size of data
+	 * @param type	type of data
+	 * @param root	root process, that distributes data*/
+		void broadcast(void *v, size_t size, DataType type, int root=0) const;
+
+	/** simplified broadcast for supported datatypes
+	 * compiler error for unsupported datatypes
+	 * you can cast to unsigned char to broadcast arbitrary fixed data
+	 * @param p		pointer to data
+	 * @param size	number of T elements the pointer p is pointing to. default 1
+	 * @param root	process that distributes data (default 0)*/
+		template<typename T>
+		inline void broadcast(T *p, size_t size=1, int root=0) const;
+
+	/** Bcast for objects
+	 * @param v		object to be broadcasted (uses Serialize/Deserialize)
+	 * @param root	process that distributes data (default 0)
+	 * @sa Serialize, Deserialize*/
+		template<typename T>
+		inline void broadcast(T &t, int root=0) const;
+
+	/// broadcast function for directly supported types
+		template<typename T>
+		inline void broadcast(T &t, int root, DataTypeDirectlySupported d) const;
+	/// broadcast function for indirectly supported types (using Serialize/Deserialize)
+		template<typename T>
+		void broadcast(T &t, int root, DataTypeIndirectlySupported d) const;
+
+	/// overload for size_t
+		void broadcast(size_t &s, int root=0) const;
+
+	/** broadcast of BinaryBuffers
+	 * @param buf	Binary buffer in/out
+	 * @param root	root processor*/
+		void broadcast(ug::BinaryBuffer &buf, int root=0) const;
+
+
+	///	this method will not return until all processes in the communicator have called it.
+		void barrier() const;
+
+
 	///	sends data with the given tag to the specified process.
 	/**	This method waits until the data has been sent.*/
 		void send_data(void* pBuffer, int bufferSize, int destProc, int tag) const;
-		
+
 	///	sends data in different blocks of pBuffer to the processes in pRecProcMap.
 	/**	This method synchronises involved processes.
 	 *	Call receive_data on the processes in pRecProcMap to receive the sent data.
@@ -201,19 +304,16 @@ class ProcessCommunicator
 	 *	\param numRecProcs: The number of processes to which data shall be send.
 	 *						Note that pBufferSegSizes and pRecProcMap have to have
 	 *						numRecProcs entries.
-	 *	\param tag: A tag that tags the message. Use the same tag in receive_data.
-	 */
+	 *	\param tag: A tag that tags the message. Use the same tag in receive_data.*/
 		void send_data(void* pBuffer, int* pBufferSegSizes,
 					   int* pRecProcMap, int numRecProcs, int tag) const;
-							 
+
 	///	receives data from srcPrc with the specified tag.
-	/**	This method waits until the data has been received
-	 */
+	/**	This method waits until the data has been received*/
 		void receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag) const;
 
 	///	sends and receives data to / from multiple processes.
-	/**
-	 * \param pBufferOut: Received data is written to this buffer.
+	/** \param pBufferOut: Received data is written to this buffer.
 	 *					  Make sure that this buffer is big enough (sum of all seg-sizes).
 	 * \param pBufferOutSegSizes: i-th entry corresponds to the size of the i-th
 	 *							  segment of pBufferOut.
@@ -230,8 +330,7 @@ class ProcessCommunicator
 	 *						to the size of pBufferSegSizes and to the number of
 	 *						segments in pBuffer.
 	 * \param tag: This tag will be used to identify send and received messages.
-	 *			   Default: 1
-	 */
+	 *			   Default: 1*/
 		void distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
 							 int* pSenderProcMap, int numSenderProcs,
 							 void* pBuffer, int* pBufferSegSizes,
@@ -260,107 +359,11 @@ class ProcessCommunicator
 	 * 						sendToRanks. Has to have size numSendTos.
 	 * \param sendToRanks	An array of process ids, which defines to where
 	 * 						data shall be sent. Has to have size numSendTos.
-	 * \param numSendTos	Specifies to how many processes data will be sent.
-	 */
+	 * \param numSendTos	Specifies to how many processes data will be sent.*/
 		void distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 							int* recvFromRanks, int numRecvFroms,
 							void* sendBuf, int* sendSegSizes,
 							int* sendToRanks, int numSendTos) const;
-
-
-
-	///	performs MPI_Allreduce on the processes of the communicator.
-	/**	This method synchronises involved processes.
-	 */
-		void allreduce(const void* sendBuf, void* recBuf, int count,
-					   DataType type, ReduceOperation op) const;
-
-	/**
-	 * simplified allreduce for size=1. calls allreduce for parameter t, and then returns the result
-	 * compiler error for unsupported datatypes
-	 * \param t the input parameter
-	 * \param op the Reduce Operation
-	 * \return the reduced result
-	 */
-		template<typename T>
-		T allreduce(const T &t, pcl::ReduceOperation op) const;
-
-	///	overload for size_t
-		size_t allreduce(const size_t &t, pcl::ReduceOperation op) const;
-
-	/**
-	 * simplified allreduce for buffers.
-	 * \param pSendBuff the input buffer
-	 * \param pReceiveBuff the output buffer
-	 * \param count number of elements in the input/output buffers
-	 * \param op the Reduce Operation
-	 */
-		template<typename T>
-		void allreduce(const T *pSendBuff, T *pReceiveBuff, size_t count, pcl::ReduceOperation op) const;
-
-		template<typename T>
-		void allreduce(const std::vector<T> &send,
-				std::vector<T> &receive, pcl::ReduceOperation op) const
-		{
-			if(is_local()) { receive = send; return; }
-			if(send.size() > 0){
-				receive.resize(send.size());
-				allreduce(&send[0], &receive[0], send.size(), op);
-			}
-		}
-
-	/**
-	 * performs a MPI_Bcast
-	 * @param v		pointer to data
-	 * @param size	size of data
-	 * @param type	type of data
-	 * @param root	root process, that distributes data
-	 */
-		void broadcast(void *v, size_t size, DataType type, int root=0) const;
-
-
-
-	/**
-	 * simplified broadcast for supported datatypes
-	 * compiler error for unsupported datatypes
-	 * you can cast to unsigned char to broadcast arbitrary fixed data
-	 * @param p		pointer to data
-	 * @param size	number of T elements the pointer p is pointing to. default 1
-	 * @param root	process that distributes data (default 0)
-	 */
-		template<typename T>
-		inline void broadcast(T *p, size_t size=1, int root=0) const;
-
-	/**
-	 * Bcast for objects
-	 * @param v		object to be broadcasted (uses Serialize/Deserialize)
-	 * @param root	process that distributes data (default 0)
-	 * @sa Serialize, Deserialize
-	 */
-		template<typename T>
-		inline void broadcast(T &t, int root=0) const;
-
-	/// broadcast function for directly supported types
-		template<typename T>
-		inline void broadcast(T &t, int root, DataTypeDirectlySupported d) const;
-	/// broadcast function for indirectly supported types (using Serialize/Deserialize)
-		template<typename T>
-		void broadcast(T &t, int root, DataTypeIndirectlySupported d) const;
-
-	/// overload for size_t
-		void broadcast(size_t &s, int root=0) const;
-
-	/**
-	 * broadcast of BinaryBuffers
-	 * @param buf	Binary buffer in/out
-	 * @param root	root processor
-	 */
-		void broadcast(ug::BinaryBuffer &buf, int root=0) const;
-
-
-	///	this method will not return until all processes in the communicator have called it.
-		void barrier() const;
-
 	private:
 	///	holds an mpi-communicator.
 	/**	A variable stores whether the communicator has to be freed when the

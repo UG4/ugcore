@@ -242,24 +242,48 @@ create_communicator(size_t first, size_t num)
 	return newProcComm;
 }
 
+
+void
+ProcessCommunicator::
+reduce(const void* sendBuf, void* recBuf, int count,
+	   DataType type, ReduceOperation op, int rootProc) const
+{
+	PCL_PROFILE(pcl_ProcCom_reduce);
+	if(is_local()) {memcpy(recBuf, sendBuf, count); return;}
+	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::reduce: empty communicator.");
+
+	MPI_Reduce(const_cast<void*>(sendBuf), recBuf, count, type, op, rootProc, m_comm->m_mpiComm);
+}
+
+
+size_t ProcessCommunicator::
+reduce(const size_t &t, pcl::ReduceOperation op, int rootProc) const
+{
+	if(is_local()) return t;
+	uint64 ret, tt = (uint64)t;
+	reduce(&tt, &ret, 1, PCL_DT_UNSIGNED_LONG_LONG, op, rootProc);
+	return (size_t)ret;
+}
+
+
 void
 ProcessCommunicator::
 allreduce(const void* sendBuf, void* recBuf, int count,
 		  DataType type, ReduceOperation op) const
 {
-	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_allreduce);
-
+	if(is_local()) {memcpy(recBuf, sendBuf, count); return;}
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 
 	MPI_Allreduce(const_cast<void*>(sendBuf), recBuf, count, type, op, m_comm->m_mpiComm);
 }
 
-size_t ProcessCommunicator::allreduce(const size_t &t, pcl::ReduceOperation op) const
+size_t ProcessCommunicator::
+allreduce(const size_t &t, pcl::ReduceOperation op) const
 {
 	if(is_local()) return t;
-	int ret, tt = (int)t;
-	allreduce(&tt, &ret, 1, PCL_DT_INT, op);
+	uint64 ret, tt = (uint64)t;
+	allreduce(&tt, &ret, 1, PCL_DT_UNSIGNED_LONG_LONG, op);
 	return (size_t)ret;
 }
 
