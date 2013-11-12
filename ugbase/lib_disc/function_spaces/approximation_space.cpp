@@ -683,6 +683,8 @@ void IApproximationSpace::print_statistic() const
 
 void IApproximationSpace::print_statistic(std::string flags) const
 {
+	PROFILE_FUNC();
+
 //	if nothing printed
 	if(m_vDD.empty()){
 		static const char* sLeft = " | ";
@@ -702,9 +704,11 @@ void IApproximationSpace::print_statistic(std::string flags) const
 	}
 
 //	Get DoF Counts
+	PROFILE_BEGIN(CountLocalDoFStatistic);
 	vector<DoFCount> vDC(m_vDD.size());
 	for(size_t i = 0; i < vDC.size(); ++i)
 		vDC[i] = m_vDD[i]->dof_count();
+	PROFILE_END();
 
 	string sflags = ToLower(flags);
 	if(sflags.find("all") != string::npos)
@@ -729,13 +733,19 @@ void IApproximationSpace::print_statistic(std::string flags) const
 	else ssAlgebra <<"Flex";
 
 //	Print infos
+	PROFILE_BEGIN(PrintLocalDoFStatistic);
 	if(bPrintOneProc)
 		PrintDoFCount(vDC, ssDDOneProc.str(), ssAlgebra.str(), sflags);
+	PROFILE_END();
 
+	PROFILE_BEGIN(CountGlobalDoFStatistic);
 	for(size_t i = 0; i < vDC.size(); ++i)
 		vDC[i].allreduce_values();
+	PROFILE_END();
 
+	PROFILE_BEGIN(PrintGlobalDoFStatistic);
 	PrintDoFCount(vDC, " Number of DoFs (All Procs)", ssAlgebra.str(), sflags);
+	PROFILE_END();
 }
 
 

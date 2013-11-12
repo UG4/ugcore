@@ -37,6 +37,7 @@ void DoFCount::add(int fct, int si, SurfaceView::SurfaceState ss, byte is, uint6
 
 void DoFCount::allreduce_values()
 {
+	PROFILE_FUNC();
 	for(size_t fct = 0; fct < vvCmpSubset.size(); ++fct)
 		for(size_t si = 0; si < vvCmpSubset[fct].size(); ++si)
 			vvCmpSubset[fct][si].allreduce_values();
@@ -92,6 +93,7 @@ DoFCount::Cnt::Cnt()
 
 void DoFCount::Cnt::allreduce_values()
 {
+	PROFILE_FUNC();
 	for(size_t i = 0; i < vNumSS.size(); ++i)
 		vNumSS[i].allreduce_values();
 }
@@ -212,6 +214,7 @@ DoFCount::Cnt::PCnt::PCnt()
 
 void DoFCount::Cnt::PCnt::allreduce_values()
 {
+	PROFILE_FUNC();
 #ifdef UG_PARALLEL
 	pcl::ProcessCommunicator commWorld;
 

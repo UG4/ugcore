@@ -1614,6 +1614,7 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 
 DoFCount DoFDistribution::dof_count() const
 {
+	PROFILE_FUNC();
 	DoFCount cnt(grid_level(), dof_distribution_info());
 
 	if(max_dofs(VERTEX)) sum_dof_count<VertexBase>(cnt);
