@@ -69,6 +69,9 @@ class AssembledMultiGridCycle :
 	///	Matrix type
 		typedef typename algebra_type::matrix_type matrix_type;
 
+	///	Grid Function type
+		typedef GridFunction<TDomain, TAlgebra> GF;
+
 	///////////////////////////////////////////////////////////////////////////
 	//	Setup
 	///////////////////////////////////////////////////////////////////////////
@@ -203,7 +206,7 @@ class AssembledMultiGridCycle :
 		size_t num_levels() const {return m_vLevData.size();}
 
 	///	allocates the memory
-		void top_level_required(size_t topLevel);
+		void init_level_memory(int baseLev, int topLev);
 
 	///	initializes common part
 		void init();
@@ -313,22 +316,6 @@ class AssembledMultiGridCycle :
 
 		struct LevData
 		{
-		//	constructor
-			LevData();
-
-		//	prepares the grid level data for application
-			void update(size_t lev,
-			            SmartPtr<ApproximationSpace<TDomain> > approxSpace,
-			            SmartPtr<IAssemble<TAlgebra> > spAss,
-			            ILinearIterator<vector_type>& presmoother,
-			            ILinearIterator<vector_type>& postsmoother,
-			            ITransferOperator<TAlgebra>& projection,
-			            ITransferOperator<TAlgebra>& prolongation,
-			            ITransferOperator<TAlgebra>& restriction,
-			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
-			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP);
-
-			public:
 		///	Level matrix operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > A;
 
@@ -360,6 +347,7 @@ class AssembledMultiGridCycle :
 			std::vector<size_t> vMapPatchToGlobal;
 		};
 
+	///	Matrix for gathered base solver
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > spBaseSolverMat;
 
 	///	storage for all level
@@ -368,34 +356,12 @@ class AssembledMultiGridCycle :
 	///	copies vector to smoothing patch using cached mapping
 		void copy_ghost_to_noghost(SmartPtr<GridFunction<TDomain, TAlgebra> > spVecTo,
 		                           ConstSmartPtr<GridFunction<TDomain, TAlgebra> > spVecFrom,
-		                           const std::vector<size_t>& vMapPatchToGlobal)
-		{
-			UG_ASSERT(vMapPatchToGlobal.size() == spVecTo->size(),
-			          "Mapping range ("<<vMapPatchToGlobal.size()<<") != "
-			          "To-Vec-Size ("<<spVecTo->size()<<")");
-
-			for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i)
-				(*spVecTo)[i] = (*spVecFrom)[ vMapPatchToGlobal[i] ];
-			#ifdef UG_PARALLEL
-			spVecTo->set_storage_type(spVecFrom->get_storage_mask());
-			#endif
-		}
+		                           const std::vector<size_t>& vMapPatchToGlobal);
 
 	///	copies vector from smoothing patch using cached mapping
 		void copy_noghost_to_ghost(SmartPtr<GridFunction<TDomain, TAlgebra> > spVecTo,
 								   ConstSmartPtr<GridFunction<TDomain, TAlgebra> > spVecFrom,
-								   const std::vector<size_t>& vMapPatchToGlobal)
-		{
-			UG_ASSERT(vMapPatchToGlobal.size() == spVecFrom->size(),
-					  "Mapping domain ("<<vMapPatchToGlobal.size()<<") != "
-					  "From-Vec-Size ("<<spVecFrom->size()<<")");
-
-			for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i)
-				(*spVecTo)[ vMapPatchToGlobal[i] ] = (*spVecFrom)[i];
-			#ifdef UG_PARALLEL
-			spVecTo->set_storage_type(spVecFrom->get_storage_mask());
-			#endif
-		}
+								   const std::vector<size_t>& vMapPatchToGlobal);
 
 		std::vector<vector_type*> level_defects()
 		{

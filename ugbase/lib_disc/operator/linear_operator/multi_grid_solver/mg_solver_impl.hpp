@@ -367,7 +367,7 @@ init()
 
 //	Allocate memory for given top level
 	try{
-		top_level_required(m_topLev);
+		init_level_memory(m_baseLev, m_topLev);
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot allocate memory.");
 
@@ -960,114 +960,106 @@ init_noghost_to_ghost_mapping(int lev)
 }
 
 
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+copy_ghost_to_noghost(SmartPtr<GridFunction<TDomain, TAlgebra> > spVecTo,
+                      ConstSmartPtr<GridFunction<TDomain, TAlgebra> > spVecFrom,
+                      const std::vector<size_t>& vMapPatchToGlobal)
+{
+	UG_ASSERT(vMapPatchToGlobal.size() == spVecTo->size(),
+	          "Mapping range ("<<vMapPatchToGlobal.size()<<") != "
+	          "To-Vec-Size ("<<spVecTo->size()<<")");
+
+	for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i)
+		(*spVecTo)[i] = (*spVecFrom)[ vMapPatchToGlobal[i] ];
+	#ifdef UG_PARALLEL
+	spVecTo->set_storage_type(spVecFrom->get_storage_mask());
+	#endif
+}
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+copy_noghost_to_ghost(SmartPtr<GridFunction<TDomain, TAlgebra> > spVecTo,
+                      ConstSmartPtr<GridFunction<TDomain, TAlgebra> > spVecFrom,
+                      const std::vector<size_t>& vMapPatchToGlobal)
+{
+	UG_ASSERT(vMapPatchToGlobal.size() == spVecFrom->size(),
+			  "Mapping domain ("<<vMapPatchToGlobal.size()<<") != "
+			  "From-Vec-Size ("<<spVecFrom->size()<<")");
+
+	for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i)
+		(*spVecTo)[ vMapPatchToGlobal[i] ] = (*spVecFrom)[i];
+	#ifdef UG_PARALLEL
+	spVecTo->set_storage_type(spVecFrom->get_storage_mask());
+	#endif
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Init Level Data
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-top_level_required(size_t topLevel)
+init_level_memory(int baseLev, int topLev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 
-//	allocated level if needed
-	while(num_levels() <= topLevel){
-		m_vLevData.push_back(SmartPtr<LevData>(new LevData));
-	}
+	m_vLevData.resize(0);
+	m_vLevData.resize(topLev+1);
 
-//	free level if needed
-	while(num_levels() > topLevel+1){
-		m_vLevData.pop_back();
-	}
-
-//	reinit all levels
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+	for(int lev = baseLev; lev <= topLev; ++lev)
 	{
-		m_vLevData[lev]->update(lev,
-		                       m_spApproxSpace,
-		                       m_spAss,
-		                       *m_spPreSmootherPrototype,
-		                       *m_spPostSmootherPrototype,
-		                       *m_spProjectionPrototype,
-		                       *m_spProlongationPrototype,
-		                       *m_spRestrictionPrototype,
-		                       m_vspProlongationPostProcess,
-		                       m_vspRestrictionPostProcess);
+		m_vLevData[lev] = SmartPtr<LevData>(new LevData);
+		LevData& ld = *m_vLevData[lev];
+
+		GridLevel glGhosts = GridLevel(lev, GridLevel::LEVEL, true);
+		ld.c = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
+		ld.d = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
+		ld.t = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
+
+		GridLevel gl = GridLevel(lev, GridLevel::LEVEL, false);
+		ld.sc = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
+		ld.sd = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
+		ld.st = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
+
+		ld.A = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
+				new MatrixOperator<matrix_type, vector_type>);
+
+		//	default storage types for c and d to avoid incompatible types.
+		// \todo: check if really necessary
+		#ifdef UG_PARALLEL
+		ld.c->set_storage_type(PST_CONSISTENT);
+		ld.d->set_storage_type(PST_ADDITIVE);
+		ld.sc->set_storage_type(PST_CONSISTENT);
+		ld.sd->set_storage_type(PST_ADDITIVE);
+		ld.A->set_layouts(ld.sc->layouts());
+		#endif
+
+		ld.PreSmoother = m_spPreSmootherPrototype->clone();
+		if(m_spPreSmootherPrototype == m_spPostSmootherPrototype)
+			ld.PostSmoother = ld.PreSmoother;
+		else
+			ld.PostSmoother = m_spPostSmootherPrototype->clone();
+
+		ld.Projection = m_spProjectionPrototype->clone();
+
+		ld.Prolongation = m_spProlongationPrototype->clone();
+		if(m_spProlongationPrototype == m_spRestrictionPrototype)
+			ld.Restriction = ld.Prolongation;
+		else
+			ld.Restriction = m_spRestrictionPrototype->clone();
+
+		ld.vProlongationPP.clear();
+		for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
+			ld.vProlongationPP.push_back(m_vspProlongationPostProcess[i]->clone());
+
+		ld.vRestrictionPP.clear();
+		for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
+				ld.vRestrictionPP.push_back(m_vspRestrictionPostProcess[i]->clone());
 
 		init_noghost_to_ghost_mapping(lev);
 	}
-}
-
-template <typename TDomain, typename TAlgebra>
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-LevData::
-LevData()
-: A(new MatrixOperator<matrix_type, vector_type>),
-  PreSmoother(0), PostSmoother(0),
-  Projection(0), Prolongation(0), Restriction(0),
-  vProlongationPP(0), vRestrictionPP(0),
-  c(0), d(0), t(0),
-  sc(0), sd(0), st(0)
-{};
-
-
-template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-LevData::
-update(size_t lev,
-       SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
-       SmartPtr<IAssemble<TAlgebra> > spAss,
-       ILinearIterator<vector_type>& presmoother,
-       ILinearIterator<vector_type>& postsmoother,
-       ITransferOperator<TAlgebra>& projection,
-       ITransferOperator<TAlgebra>& prolongation,
-       ITransferOperator<TAlgebra>& restriction,
-       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
-       std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP)
-{
-	PROFILE_FUNC_GROUP("gmg");
-
-//	resize vectors for operations on whole grid level
-	typedef GridFunction<TDomain, TAlgebra> GF;
-	GridLevel glGhosts = GridLevel(lev, GridLevel::LEVEL, true);
-	c = SmartPtr<GF>(new GF(spApproxSpace, glGhosts, false));
-	d = SmartPtr<GF>(new GF(spApproxSpace, glGhosts, false));
-	t = SmartPtr<GF>(new GF(spApproxSpace, glGhosts, false));
-
-	GridLevel gl = GridLevel(lev, GridLevel::LEVEL, false);
-	sc = SmartPtr<GF>(new GF(spApproxSpace, gl, false));
-	sd = SmartPtr<GF>(new GF(spApproxSpace, gl, false));
-	st = SmartPtr<GF>(new GF(spApproxSpace, gl, false));
-
-	//	default storage types for c and d to avoid incompatible types.
-	#ifdef UG_PARALLEL
-	c->set_storage_type(PST_CONSISTENT);
-	d->set_storage_type(PST_ADDITIVE);
-	sc->set_storage_type(PST_CONSISTENT);
-	sd->set_storage_type(PST_ADDITIVE);
-	A->set_layouts(sc->layouts());
-	#endif
-
-//	post smoother only created if not the same operator
-	if(PreSmoother.invalid()) PreSmoother = presmoother.clone();
-	if(&postsmoother == &presmoother) PostSmoother = PreSmoother;
-	else{if(PostSmoother.invalid()) PostSmoother = postsmoother.clone();}
-
-	if(Projection.invalid()) Projection = projection.clone();
-
-//	restriction only created if not the same operator
-	if(Prolongation.invalid()) Prolongation = prolongation.clone();
-	if(&prolongation == &restriction)	Restriction = Prolongation;
-	else{if(Restriction.invalid()) Restriction = restriction.clone();}
-
-	vProlongationPP.clear();
-	for(size_t i = 0; i < vprolongationPP.size(); ++i)
-			vProlongationPP.push_back(vprolongationPP[i]->clone());
-
-	vRestrictionPP.clear();
-	for(size_t i = 0; i < vrestrictionPP.size(); ++i)
-			vRestrictionPP.push_back(vrestrictionPP[i]->clone());
 }
 
 
