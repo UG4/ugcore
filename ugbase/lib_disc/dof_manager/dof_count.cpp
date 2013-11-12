@@ -129,15 +129,21 @@ DoFCount::Cnt::Cnt()
 void DoFCount::Cnt::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
-	for(size_t i = 0; i < vNumSS.size(); ++i)
-		vNumSS[i].collect_values(vNum);
+	vNumSS[SurfaceView::UNASSIGNED].collect_values(vNum);
+	vNumSS[SurfaceView::PURE_SURFACE].collect_values(vNum);
+	vNumSS[SurfaceView::SHADOWING].collect_values(vNum);
+	vNumSS[SurfaceView::SHADOW_COPY].collect_values(vNum);
+	vNumSS[SurfaceView::SHADOW_NONCOPY].collect_values(vNum);
 }
 
 void DoFCount::Cnt::set_values(const std::vector<uint64>& vNum, size_t& cnt)
 {
 	PROFILE_FUNC();
-	for(size_t i = 0; i < vNumSS.size(); ++i)
-		vNumSS[i].set_values(vNum, cnt);
+	vNumSS[SurfaceView::UNASSIGNED].set_values(vNum, cnt);
+	vNumSS[SurfaceView::PURE_SURFACE].set_values(vNum, cnt);
+	vNumSS[SurfaceView::SHADOWING].set_values(vNum, cnt);
+	vNumSS[SurfaceView::SHADOW_COPY].set_values(vNum, cnt);
+	vNumSS[SurfaceView::SHADOW_NONCOPY].set_values(vNum, cnt);
 }
 
 
