@@ -829,7 +829,7 @@ bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
 	vector_t edgeNorm;	// the normal of the examined edge
 	vector_t tv1, tv2;	// the direction of a tri-point to v
 	
-	
+
 	VecSubtract(e, v1, v0);
 	edgeNorm.x() = e.y();
 	edgeNorm.y() = -e.x();
