@@ -46,14 +46,17 @@ void DoFCount::sum_values_over_procs(int proc)
 	collect_values(vNumLocal);
 
 	// sum
-	if(proc == -1 || true){
+	if(proc == -1){
 		std::vector<uint64> vNumGlobal(vNumLocal.size());
 		commWorld.allreduce(&vNumLocal[0], &vNumGlobal[0], vNumLocal.size(),
 							PCL_DT_UNSIGNED_LONG_LONG, PCL_RO_SUM);
 		set_values(vNumGlobal);
 	}
 	else{
-		UG_THROW("Implement reduce")
+		std::vector<uint64> vNumGlobal(vNumLocal.size());
+		commWorld.reduce(&vNumLocal[0], &vNumGlobal[0], vNumLocal.size(),
+							PCL_DT_UNSIGNED_LONG_LONG, PCL_RO_SUM, proc);
+		set_values(vNumGlobal);
 	}
 #endif
 }
@@ -255,8 +258,8 @@ void DoFCount::Cnt::PCnt::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
 	for(byte l = 0; l <= ES_MAX; ++l){
-//		if(l & (ES_V_MASTER | ES_V_SLAVE)) continue;
-//		if(l & (ES_H_MASTER | ES_H_SLAVE)) continue;
+		if((l & (ES_V_MASTER | ES_V_SLAVE)) == (ES_V_MASTER | ES_V_SLAVE)) continue;
+		if((l & (ES_H_MASTER | ES_H_SLAVE)) == (ES_H_MASTER | ES_H_SLAVE)) continue;
 
 		vNum.push_back(vNumIS[l]);
 	}
@@ -265,15 +268,12 @@ void DoFCount::Cnt::PCnt::collect_values(std::vector<uint64>& vNum) const
 void DoFCount::Cnt::PCnt::set_values(const std::vector<uint64>& vNum, size_t& cnt)
 {
 	PROFILE_FUNC();
-	size_t used = 0;
 	for(byte l = 0; l <= ES_MAX; ++l){
-//		if(l & (ES_V_MASTER | ES_V_SLAVE)) continue;
-//		if(l & (ES_H_MASTER | ES_H_SLAVE)) continue;
+		if((l & (ES_V_MASTER | ES_V_SLAVE)) == (ES_V_MASTER | ES_V_SLAVE)) continue;
+		if((l & (ES_H_MASTER | ES_H_SLAVE)) == (ES_H_MASTER | ES_H_SLAVE)) continue;
 
-		vNumIS[l] = vNum[cnt + l]; ++used;
+		vNumIS[l] = vNum[cnt++];
 	}
-
-	cnt += used;
 }
 
 } // end namespace ug
