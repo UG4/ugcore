@@ -422,7 +422,7 @@ string FilenameStringEscape(string s)
 			|| (c >= 'A' && c <= 'Z')
 			|| (c >= 'a' && c <= 'z')
 			|| c == '.' || c == '-' || c == '_'
-			|| c == '+')
+			|| c == '+' || c == '=')
 		{
 			ss << c;
 		}
