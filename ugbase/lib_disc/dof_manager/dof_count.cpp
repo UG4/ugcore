@@ -35,12 +35,44 @@ void DoFCount::add(int fct, int si, SurfaceView::SurfaceState ss, byte is, uint6
 	vvCmpSubset[fct][si].add(numDoF, ss, is);
 }
 
-void DoFCount::allreduce_values()
+void DoFCount::sum_values_over_procs(int proc)
+{
+	PROFILE_FUNC();
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator commWorld;
+
+	// collect all serial values
+	std::vector<uint64> vNumLocal;
+	collect_values(vNumLocal);
+
+	// sum
+	if(proc == -1 || true){
+		std::vector<uint64> vNumGlobal(vNumLocal.size());
+		commWorld.allreduce(&vNumLocal[0], &vNumGlobal[0], vNumLocal.size(),
+							PCL_DT_UNSIGNED_LONG_LONG, PCL_RO_SUM);
+		set_values(vNumGlobal);
+	}
+	else{
+		UG_THROW("Implement reduce")
+	}
+#endif
+}
+
+void DoFCount::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
 	for(size_t fct = 0; fct < vvCmpSubset.size(); ++fct)
 		for(size_t si = 0; si < vvCmpSubset[fct].size(); ++si)
-			vvCmpSubset[fct][si].allreduce_values();
+			vvCmpSubset[fct][si].collect_values(vNum);
+}
+
+void DoFCount::set_values(const std::vector<uint64>& vNum)
+{
+	PROFILE_FUNC();
+	size_t cnt = 0;
+	for(size_t fct = 0; fct < vvCmpSubset.size(); ++fct)
+		for(size_t si = 0; si < vvCmpSubset[fct].size(); ++si)
+			vvCmpSubset[fct][si].set_values(vNum, cnt);
 }
 
 uint64 DoFCount::num(int fct, int si, SurfaceView::SurfaceState ss, byte is) const
@@ -91,11 +123,18 @@ DoFCount::Cnt::Cnt()
 	vNumSS.resize(DoFCount::SS_MAX + 1);
 }
 
-void DoFCount::Cnt::allreduce_values()
+void DoFCount::Cnt::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
 	for(size_t i = 0; i < vNumSS.size(); ++i)
-		vNumSS[i].allreduce_values();
+		vNumSS[i].collect_values(vNum);
+}
+
+void DoFCount::Cnt::set_values(const std::vector<uint64>& vNum, size_t& cnt)
+{
+	PROFILE_FUNC();
+	for(size_t i = 0; i < vNumSS.size(); ++i)
+		vNumSS[i].set_values(vNum, cnt);
 }
 
 
@@ -212,20 +251,29 @@ DoFCount::Cnt::PCnt::PCnt()
 	vNumIS.resize(DoFCount::ES_MAX + 1, 0);
 }
 
-void DoFCount::Cnt::PCnt::allreduce_values()
+void DoFCount::Cnt::PCnt::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
-#ifdef UG_PARALLEL
-	pcl::ProcessCommunicator commWorld;
+	for(byte l = 0; l <= ES_MAX; ++l){
+//		if(l & (ES_V_MASTER | ES_V_SLAVE)) continue;
+//		if(l & (ES_H_MASTER | ES_H_SLAVE)) continue;
 
-	std::vector<uint64> tNumGlobal(vNumIS.size());
+		vNum.push_back(vNumIS[l]);
+	}
+}
 
-	commWorld.allreduce(&vNumIS[0], &tNumGlobal[0], vNumIS.size(),
-	                    PCL_DT_UNSIGNED_LONG_LONG, PCL_RO_SUM);
+void DoFCount::Cnt::PCnt::set_values(const std::vector<uint64>& vNum, size_t& cnt)
+{
+	PROFILE_FUNC();
+	size_t used = 0;
+	for(byte l = 0; l <= ES_MAX; ++l){
+//		if(l & (ES_V_MASTER | ES_V_SLAVE)) continue;
+//		if(l & (ES_H_MASTER | ES_H_SLAVE)) continue;
 
-	for(size_t i = 0; i < vNumIS.size(); ++i)
-		vNumIS[i] = tNumGlobal[i];
-#endif
+		vNumIS[l] = vNum[cnt + l]; ++used;
+	}
+
+	cnt += used;
 }
 
 } // end namespace ug

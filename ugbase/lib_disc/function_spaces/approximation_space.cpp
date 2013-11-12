@@ -740,7 +740,7 @@ void IApproximationSpace::print_statistic(std::string flags) const
 
 	PROFILE_BEGIN(CountGlobalDoFStatistic);
 	for(size_t i = 0; i < vDC.size(); ++i)
-		vDC[i].allreduce_values();
+		vDC[i].sum_values_over_procs(ug::GetLogAssistant().get_output_process());
 	PROFILE_END();
 
 	PROFILE_BEGIN(PrintGlobalDoFStatistic);
