@@ -667,6 +667,20 @@ function AssertPluginsLoaded(pluginNamesList)
 	
 end
 
+
+function util.GetUniqueFilenameFromCommandLine()
+	local ret=""
+	for i = 1, ugargc do
+		ret = ret.." "..ugargv[i]		
+	end
+	ret = FilenameStringEscape(ret)
+	if GetNumProcesses() > 1 then
+		return ret.."_numProcs_"..GetNumProcesses()
+	else
+		return ret
+	end
+end
+
 -- end group scripts_util
 --[[!  
 \} 

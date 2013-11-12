@@ -412,6 +412,27 @@ double GetClockS()
 }
 
 
+string FilenameStringEscape(string s)
+{
+	stringstream ss;
+	for(int i=0; i<s.length(); i++)
+	{
+		char c = s[i];
+		if( (c >= '0' && c <= '9' )
+			|| (c >= 'A' && c <= 'Z')
+			|| (c >= 'a' && c <= 'z')
+			|| c == '.' || c == '-' || c == '_'
+			|| c == '+')
+		{
+			ss << c;
+		}
+		else
+		{
+			ss << '_';
+		}
+	}
+	return ss.str();
+}
 
 void RegisterBridge_Misc(Registry &reg, string parentGroup)
 {
@@ -443,7 +464,6 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		//reg.add_function("SetDebugLevel", &SetDebugLevel, grp);
 		reg.add_function("GetClockS", &GetClockS, grp);
 		reg.add_function("PrintLUA", &PrintLUA, grp);
-
 	}
 
 	{
@@ -479,10 +499,13 @@ void RegisterBridge_Misc(Registry &reg, string parentGroup)
 		reg.add_function("GetCompileDate", &GetCompileDate, grp);
 		reg.add_function("GetBuildHostname", &GetBuildHostname, grp);
 
-		reg.add_function("LevenshteinDistance", &LevenshteinDistance, grp);
-		reg.add_function("WildcardMatch", &WildcardMatch, grp);
+		reg.add_function("LevenshteinDistance", &LevenshteinDistance, grp, "Levenshtein distance of s1 and s2", "s1#s2");
+		reg.add_function("WildcardMatch", &WildcardMatch, grp, "true if match", "str#pattern");
+		reg.add_function("ReplaceAll", &ReplaceAll, grp, "replace string", "target#old#new");
+		reg.add_function("XMLStringEscape", &XMLStringEscape, grp, "string usable in XML files", "str");
+		reg.add_function("FilenameStringEscape", &FilenameStringEscape, grp, "string usable as filename", "str");
 		
-		reg.add_function("ug_backtrace", &ug_backtrace, grp);
+		reg.add_function("ug_backtrace", &ug_backtrace, grp, "", "", "prints lua/shiny/gcc backtrace information");
 		
 		
 	}
