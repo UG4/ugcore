@@ -1244,40 +1244,16 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation(size_t lev)
 {
-
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level " << lev << "\n");
-//	Get all needed vectors and operators
 
-//	Get vectors defined on whole grid (including ghosts) on this level
-//	denote by: c = Correction, d = Defect, tmp = Help vector
-	#ifdef UG_PARALLEL
-	vector_type& d = *m_vLevData[lev]->d;
-	#endif
-
-	vector_type& tmp = *m_vLevData[lev]->t;
-
-//	get vectors used in smoothing operations. (This is needed if vertical
-//	masters are present, since no smoothing is performed on those. In that case
-//	only on a smaller part of the grid level - the smoothing patch - the
-//	smoothing is performed)
-	vector_type& sd = *m_vLevData[lev]->sd;
-	vector_type& sc = *m_vLevData[lev]->sc;
-	vector_type& sTmp = *m_vLevData[lev]->st;
-
-//	Lets get a reference to the coarser level correction, defect, help vector
-	UG_ASSERT(lev > 0, "prolongatoin can't be applied on level 0.");
-	vector_type& cc = *m_vLevData[lev-1]->c;
-	vector_type& cTmp = *m_vLevData[lev-1]->t;
-
-//	get smoothing operator on this level
-	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
-		m_vLevData[lev]->A;
+	LevData& lf = *m_vLevData[lev];
+	LevData& lc = *m_vLevData[lev-1];
 
 //	## INTERPOLATE CORRECTION
 	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
 	try{
-		m_vLevData[lev]->Prolongation->prolongate(tmp, cc);
+		lf.Prolongation->prolongate(*lf.t, *lc.c);
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Prolongation from"
 				" level " << lev-1 << " to " << lev << " failed. "
@@ -1285,9 +1261,8 @@ prolongation(size_t lev)
 	GMG_PROFILE_END();
 
 //	apply post processes
-	for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
-		m_vLevData[lev]->vProlongationPP[i]->post_process(m_vLevData[lev]->t);
-
+	for(size_t i = 0; i < lf.vProlongationPP.size(); ++i)
+		lf.vProlongationPP[i]->post_process(lf.t);
 
 //	PARALLEL CASE: Receive values of correction for vertical slaves
 //	If there are vertical slaves/masters on the coarser level, we now copy
@@ -1295,19 +1270,19 @@ prolongation(size_t lev)
 //	since dummies may exist, we'll copy the broadcasted correction to h-slave
 //	interfaces (dummies are always h-slaves)
 	#ifdef UG_PARALLEL
-	broadcast_vertical(tmp);
+	broadcast_vertical(*lf.t);
 	#endif
-	write_level_debug(tmp, "GMG_Prol_CoarseGridCorr", lev);
+	write_level_debug(*lf.t, "GMG_Prol_CoarseGridCorr", lev);
 
 //	## PROJECT COARSE GRID CORRECTION ONTO SMOOTH AREA
-	m_vLevData[lev]->copy_tmp_to_smooth_patch();
+	copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
 
 // 	## ADD COARSE GRID CORRECTION
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
-	if(sc.size() > 0){
+	if(lf.sc->size() > 0){
 	//	if ensures that no incompatible storage types are added in the case of
 	//	empty vectors.
-		sc += sTmp;
+		(*lf.sc) += (*lf.st);
 	}
 	GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
 
@@ -1316,21 +1291,20 @@ prolongation(size_t lev)
 //	that v-masters have the whole value and v-slaves are all 0 (in d. sd may differ).
 //	we thus have to transport all values back to v-slaves and have to make sure
 //	that d is additive again.
-	write_level_debug(*m_vLevData[lev]->d, "GMG_Prol_BeforeBroadcast", lev);
-	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeBroadcastSmooth", lev);
+	write_level_debug(*lf.d, "GMG_Prol_BeforeBroadcast", lev);
+	write_smooth_level_debug(*lf.sd, "GMG_Def_Prol_BeforeBroadcastSmooth", lev);
 	#ifdef UG_PARALLEL
-	broadcast_vertical_add(d);
-	SetLayoutValues(&d, d.layouts()->vertical_master(), 0);
-
-	m_vLevData[lev]->copy_defect_to_smooth_patch();
+	broadcast_vertical_add(*lf.d);
+	SetLayoutValues(&(*lf.d), lf.d->layouts()->vertical_master(), 0);
+	copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
 	#endif
-	write_smooth_level_debug(sd, "GMG_Def_Prol_BeforeUpdate", lev);
+	write_smooth_level_debug(*lf.sd, "GMG_Def_Prol_BeforeUpdate", lev);
 
 //	the correction has changed c := c + t. Thus, we also have to update
 //	the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
-	if(sd.size() > 0){
-		spSmoothMat->apply_sub(sd, sTmp);
+	if(lf.sd->size() > 0){
+		lf.A->apply_sub(*lf.sd, *lf.st);
 	}
 	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
 
@@ -1343,52 +1317,46 @@ prolongation(size_t lev)
 	//	defect on this level still corresponds to the updated defect, we need
 	//	to add if here. This is done in three steps:
 	//	a) Compute the coarse update of the defect induced by missing coupling
-		cTmp.set(0.0);
-		if(cc.size() > 0){
-			if(!m_vLevData[lev-1]->CoarseGridContribution.apply(cTmp, cc))
+		lc.t->set(0.0);
+		if(lc.c->size() > 0){
+			if(!lc.CoarseGridContribution.apply(*lc.t, *lc.c))
 				UG_THROW("AssembledMultiGridCycle::lmgc: Could not compute"
 						" missing update defect contribution on level "<<lev-1);
 		}
 
-	//	cTmp is additive but we need a consistent correction
+	//	lc.t is additive but we need a consistent correction
 		#ifdef UG_PARALLEL
-			cTmp.set_storage_type(PST_ADDITIVE);
-			//cTmp.change_storage_type(PST_CONSISTENT);
+		lc.t->set_storage_type(PST_ADDITIVE);
 		#endif
-
-		write_level_debug(cTmp, "GMG_AdaptiveCoarseGridContribution", lev - 1);
-
-	//	get surface view
-		const SurfaceView& surfView = *m_spApproxSpace->surface_view();
+		write_level_debug(*lc.t, "GMG_AdaptiveCoarseGridContribution", lev - 1);
 
 	//	b) interpolate the coarse defect up
 	//	since we add a consistent correction, we need a consistent defect to which
 	//	we add the values.
 		#ifdef UG_PARALLEL
-			m_vLevData[lev]->copy_defect_from_smooth_patch();
-			write_level_debug(*m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorrAdditive", lev);
-			//d.change_storage_type(PST_CONSISTENT);
+		copy_noghost_to_ghost(lf.d, lf.sd, lf.vMapPatchToGlobal);
+		write_level_debug(*lf.d, "GMG_Prol_DefOnlyCoarseCorrAdditive", lev);
 		#endif
-		write_level_debug(*m_vLevData[lev]->d, "GMG_Prol_DefOnlyCoarseCorr", lev);
+		write_level_debug(*lf.d, "GMG_Prol_DefOnlyCoarseCorr", lev);
 
 		std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(num_levels());
 		for(size_t l = 0; l < num_levels(); ++l)
 			vLevelDD[l] = m_spApproxSpace->dof_distribution(GridLevel(l, GridLevel::LEVEL, true));
 
+		const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 		AddProjectionOfShadows(level_defects(),
 		                       vLevelDD,
-							   cTmp, m_vLevData[lev-1]->c->dof_distribution(),
-							   lev -1,
+							   *dynamic_cast<vector_type*>(lc.t.get()),
+							   lc.t->dof_distribution(),
+							   lev-1,
 							   -1.0,
 							   surfView);
 
 		//	copy defect to smooth patch
 		#ifdef UG_PARALLEL
-			//d.change_storage_type(PST_ADDITIVE);
-			m_vLevData[lev]->copy_defect_to_smooth_patch();
+		copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
 		#endif
-		write_smooth_level_debug(sd, "GMG_Def_Prolongated", lev);
-		//write_level_debug(cTmp, "GMG_Prol_CorrAdaptAdding", lev-1);
+		write_smooth_level_debug(*lf.sd, "GMG_Def_Prolongated", lev);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level " << lev << "\n");
