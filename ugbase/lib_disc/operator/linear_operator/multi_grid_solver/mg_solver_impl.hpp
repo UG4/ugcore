@@ -121,11 +121,11 @@ apply(vector_type& rC, const vector_type& rD)
 //	Please note, that the approximation space returns the global number of levels,
 //	i.e. the maximum of levels among all processes.
 	if(m_topLev >= (int)m_spApproxSpace->num_levels())
-		UG_THROW("AssembledMultiGridCycle::apply: SurfaceLevel "<<m_topLev<<" does not exist.");
+		UG_THROW("GMG::apply: SurfaceLevel "<<m_topLev<<" does not exist.");
 
 // 	Check if base level has been choose correctly
 	if(m_baseLev > m_topLev)
-		UG_THROW("AssembledMultiGridCycle::apply: Base level must be smaller or equal to surface Level.");
+		UG_THROW("GMG::apply: Base level must be smaller or equal to surface Level.");
 
 //	debug output
 	write_debug(d, "Defect_In");
@@ -151,7 +151,7 @@ apply(vector_type& rC, const vector_type& rD)
 			(*(m_vLevData[level]->d))[index] = d[i];
 		}
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::apply: Project d Surf -> Level failed.");
+	UG_CATCH_THROW("GMG::apply: Project d Surf -> Level failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
 
 // 	Perform one multigrid cycle
@@ -161,7 +161,7 @@ apply(vector_type& rC, const vector_type& rD)
 	try{
 		lmgc(m_topLev);
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle: lmgc failed.");
+	UG_CATCH_THROW("GMG: lmgc failed.");
 	GMG_PROFILE_END(); //GMGApply_lmgc
 
 //	project correction from level to surface
@@ -179,7 +179,7 @@ apply(vector_type& rC, const vector_type& rD)
 		c.set_storage_type(PST_CONSISTENT);
 		#endif
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::apply: Project c Level -> Surface failed.");
+	UG_CATCH_THROW("GMG::apply: Project c Level -> Surface failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
 
 //	apply scaling
@@ -193,7 +193,7 @@ apply(vector_type& rC, const vector_type& rD)
 //	increase dbg counter
 	if(m_spDebugWriter.valid()) m_dbgIterCnt++;
 
-	} UG_CATCH_THROW("AssembledMultiGridCycle::apply: Application failed.");
+	} UG_CATCH_THROW("GMG::apply: Application failed.");
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply done. \n");
 	return true;
@@ -311,33 +311,33 @@ init()
 
 // 	Cast Operator
 	if(m_spSurfaceMat.invalid())
-		UG_THROW("AssembledMultiGridCycle:init: Can not cast Operator to Matrix.");
+		UG_THROW("GMG:init: Can not cast Operator to Matrix.");
 
 //	Check Approx Space
 	if(m_spApproxSpace.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Approximation Space not set.");
+		UG_THROW("GMG::init: Approximation Space not set.");
 
 //	check that grid given
 	if(m_spApproxSpace->num_levels() == 0)
-		UG_THROW("AssembledMultiGridCycle:init: No grid levels");
+		UG_THROW("GMG:init: No grid levels");
 
 	if(m_spAss.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Discretization not set.");
+		UG_THROW("GMG::init: Discretization not set.");
 
 	if(m_spBaseSolver.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Base Solver not set.");
+		UG_THROW("GMG::init: Base Solver not set.");
 
 	if(m_spPreSmootherPrototype.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: PreSmoother not set.");
+		UG_THROW("GMG::init: PreSmoother not set.");
 
 	if(m_spPostSmootherPrototype.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: PostSmoother not set.");
+		UG_THROW("GMG::init: PostSmoother not set.");
 
 	if(m_spProlongationPrototype.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Prolongation not set.");
+		UG_THROW("GMG::init: Prolongation not set.");
 
 	if(m_spRestrictionPrototype.invalid())
-		UG_THROW("AssembledMultiGridCycle::init: Restriction not set.");
+		UG_THROW("GMG::init: Restriction not set.");
 
 //	get current toplevel
 	const GF* pSol = dynamic_cast<const GF*>(m_pSurfaceSol);
@@ -349,7 +349,7 @@ init()
 	else m_topLev = m_spApproxSpace->num_levels() - 1;
 
 	if(m_baseLev > m_topLev)
-		UG_THROW("AssembledMultiGridCycle::init: Base Level greater than Surface level.");
+		UG_THROW("GMG::init: Base Level greater than Surface level.");
 
 //	check, if grid is full-refined
 //todo:	make sure that there are no vertical masters in topLevel. Otherwise
@@ -377,14 +377,14 @@ init()
 	try{
 		init_level_memory(m_baseLev, m_topLev);
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot allocate memory.");
+	UG_CATCH_THROW("GMG::init: Cannot allocate memory.");
 
 //	init mapping from surface level to top level in case of full refinement
 	GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
 	try{
 		init_surface_to_level_mapping();
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle: Cannot create SurfaceToLevelMap.")
+	UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
 	GMG_PROFILE_END();
 
 //	Assemble coarse grid operators
@@ -392,7 +392,7 @@ init()
 	try{
 		init_level_operator();
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle: Initialization of Level Operator failed.");
+	UG_CATCH_THROW("GMG: Initialization of Level Operator failed.");
 	GMG_PROFILE_END();
 
 //	Init smoother for coarse grid operators
@@ -400,7 +400,7 @@ init()
 	try{
 		init_smoother();
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init Smoother.");
+	UG_CATCH_THROW("GMG:init: Cannot init Smoother.");
 	GMG_PROFILE_END();
 
 //	Init base solver
@@ -408,7 +408,7 @@ init()
 	try{
 		init_base_solver();
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init Base Solver.");
+	UG_CATCH_THROW("GMG:init: Cannot init Base Solver.");
 	GMG_PROFILE_END();
 
 // 	Create Interpolation
@@ -416,10 +416,10 @@ init()
 	try{
 		init_transfer();
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init Transfer (Prolongation/Restriction).");
+	UG_CATCH_THROW("GMG:init: Cannot init Transfer (Prolongation/Restriction).");
 	GMG_PROFILE_END();
 
-	} UG_CATCH_THROW("AssembledMultiGridCycle: Init failure for init(u)");
+	} UG_CATCH_THROW("GMG: Init failure for init(u)");
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_common\n");
 }
@@ -439,7 +439,7 @@ init_level_operator()
 
 			#ifdef UG_PARALLEL
 			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT))
-				UG_THROW("AssembledMultiGridCycle::init: Can only project "
+				UG_THROW("GMG::init: Can only project "
 						"a consistent solution. Make sure to pass a consistent on.");
 			#endif
 
@@ -461,7 +461,7 @@ init_level_operator()
 
 				try{
 					m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->t, *m_vLevData[lev]->t);
-				} UG_CATCH_THROW("AssembledMultiGridCycle::init: Cannot project "
+				} UG_CATCH_THROW("GMG::init: Cannot project "
 							"solution to coarse grid function of level "<<lev-1<<".\n");
 
 				#ifdef UG_PARALLEL
@@ -476,7 +476,7 @@ init_level_operator()
 			GMG_PROFILE_END();
 		}
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::init: Projection of Surface Solution failed.");
+	UG_CATCH_THROW("GMG::init: Projection of Surface Solution failed.");
 	GMG_PROFILE_END();
 
 // 	Create coarse level operators
@@ -497,7 +497,7 @@ init_level_operator()
 			m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(lev, GridLevel::LEVEL, false));
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
 			}
-			UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init operator "
+			UG_CATCH_THROW("GMG:init: Cannot init operator "
 							"for level "<<lev);
 		}
 		else
@@ -551,7 +551,7 @@ init_level_operator()
 		m_spAss->assemble_jacobian(*spBaseSolverMat, *ld.t, GridLevel(m_baseLev, GridLevel::LEVEL, true));
 		m_spAss->ass_tuner()->set_force_regular_grid(false);
 		}
-		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init operator "
+		UG_CATCH_THROW("GMG:init: Cannot init operator "
 						"base level operator");
 	}
 //	else we can forget about the whole-level matrix, since the needed
@@ -565,7 +565,7 @@ init_level_operator()
 		m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(m_baseLev, GridLevel::LEVEL, false));
 		m_spAss->ass_tuner()->set_force_regular_grid(false);
 		}
-		UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init operator "
+		UG_CATCH_THROW("GMG:init: Cannot init operator "
 						"for level "<<m_baseLev);
 	}
 
@@ -579,7 +579,7 @@ init_level_operator()
 		if(m_bAdaptive)
 			init_missing_coarse_grid_coupling(m_pSurfaceSol);
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle:init: Cannot init "
+	UG_CATCH_THROW("GMG:init: Cannot init "
 					"missing coarse grid coupling.");
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_linear_level_operator\n");
@@ -653,7 +653,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		                             vSurfLevelMapping[lev],
 		                             surfMat);
 		}
-		UG_CATCH_THROW("AssembledMultiGridCycle::init_missing_coarse_grid_coupling: "
+		UG_CATCH_THROW("GMG::init_missing_coarse_grid_coupling: "
 					"Projection of matrix from surface to level failed.");
 
 		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
@@ -754,13 +754,13 @@ init_smoother()
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing pre-smoother on lev "<<lev<<"\n");
 		if(!m_vLevData[lev]->PreSmoother->init(ld.A, *ld.st))
-			UG_THROW("AssembledMultiGridCycle::init: Cannot init pre-smoother for level "<<lev);
+			UG_THROW("GMG::init: Cannot init pre-smoother for level "<<lev);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing post-smoother on lev "<<lev<<"\n");
 		if(m_vLevData[lev]->PreSmoother.get() != m_vLevData[lev]->PostSmoother.get())
 		{
 			if(!m_vLevData[lev]->PostSmoother->init(ld.A, *ld.st))
-				UG_THROW("AssembledMultiGridCycle::init: Cannot init post-smoother for level "<<lev);
+				UG_THROW("GMG::init: Cannot init post-smoother for level "<<lev);
 		}
 	}
 
@@ -806,7 +806,7 @@ init_base_solver()
 			{
 			//	we init the base solver with the whole grid matrix
 				if(!m_spBaseSolver->init(spBaseSolverMat, *m_vLevData[m_baseLev]->t))
-					UG_THROW("AssembledMultiGridCycle::init: Cannot init base "
+					UG_THROW("GMG::init: Cannot init base "
 							"solver on baselevel "<< m_baseLev);
 			}
 		}
@@ -824,7 +824,7 @@ init_base_solver()
 		LevData& ld = *m_vLevData[m_baseLev];
 
 		if(!m_spBaseSolver->init(ld.A, *ld.st))
-			UG_THROW("AssembledMultiGridCycle::init: Cannot init base solver "
+			UG_THROW("GMG::init: Cannot init base solver "
 					"on baselevel "<< m_baseLev);
 	}
 
@@ -1102,7 +1102,7 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 		//	a)  Compute t = B*d with some iterator B
 		//	b) 	Update Defect d := d - A * t
 			if(!S.apply_update_defect(*st, *sd))
-				UG_THROW("AssembledMultiGridCycle::smooth: Smoothing step "
+				UG_THROW("GMG::smooth: Smoothing step "
 						<< i+1 << " on level " << lev << " failed.");
 
 		// 	add correction of smoothing step to level correction
@@ -1119,7 +1119,7 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 		//	a)  Compute t = B*d with some iterator B
 
 			if(!S.apply(*st, *sd))
-				UG_THROW("AssembledMultiGridCycle::smooth: Smoothing step "
+				UG_THROW("GMG::smooth: Smoothing step "
 						<< i+1 << " on level " << lev << " failed.");
 
 		//	get surface view
@@ -1164,7 +1164,7 @@ presmooth(size_t lev)
 	try{
 		smooth(ld.sc, ld.sd, ld.st, *ld.A, *ld.PreSmoother, lev, m_numPreSmooth);
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Pre-Smoothing on "
+	UG_CATCH_THROW("GMG::lmgc: Pre-Smoothing on "
 					"level " << lev << " failed. ");
 	GMG_PROFILE_END();
 
@@ -1214,7 +1214,7 @@ restriction(size_t lev)
 		try{
 			m_vLevData[lev]->Restriction->do_restrict(*lc.d, *lf.d);
 		}
-		UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Restriction of "
+		UG_CATCH_THROW("GMG::lmgc: Restriction of "
 					"Defect from level "<<lev<<" to "<<lev-1<<" failed. ");
 		GMG_PROFILE_END();
 
@@ -1243,7 +1243,7 @@ prolongation(size_t lev)
 	try{
 		lf.Prolongation->prolongate(*lf.t, *lc.c);
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Prolongation from"
+	UG_CATCH_THROW("GMG::lmgc: Prolongation from"
 				" level " << lev-1 << " to " << lev << " failed. "
 				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 	GMG_PROFILE_END();
@@ -1308,7 +1308,7 @@ prolongation(size_t lev)
 		lc.t->set(0.0);
 		if(lc.c->size() > 0){
 			if(!lc.CoarseGridContribution.apply(*lc.t, *lc.c))
-				UG_THROW("AssembledMultiGridCycle::lmgc: Could not compute"
+				UG_THROW("GMG::lmgc: Could not compute"
 						" missing update defect contribution on level "<<lev-1);
 		}
 
@@ -1365,7 +1365,7 @@ postsmooth(size_t lev)
 	try{
 		smooth(ld.sc, ld.sd, ld.st, *ld.A, *ld.PostSmoother, lev, m_numPostSmooth);
 	}
-	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Post-Smoothing on"
+	UG_CATCH_THROW("GMG::lmgc: Post-Smoothing on"
 					" level " << lev << " failed. ")
 	GMG_PROFILE_END();
 
@@ -1414,7 +1414,7 @@ base_solve(size_t lev)
 			ld.sc->set(0.0);
 			try{
 				if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
-					UG_THROW("AssembledMultiGridCycle::lmgc: Base solver on base "
+					UG_THROW("GMG::lmgc: Base solver on base "
 							"level " << lev << " failed. (BaseLev="<<m_baseLev<<
 							", TopLev="<<m_topLev<<")");
 			}
@@ -1472,7 +1472,7 @@ base_solve(size_t lev)
 		//	compute coarse correction
 			try{
 				if(!m_spBaseSolver->apply(*ld.c, *ld.d))
-					UG_THROW("AssembledMultiGridCycle::lmgc: Base solver on"
+					UG_THROW("GMG::lmgc: Base solver on"
 							" base level " << lev << " failed. "
 							"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
 			}
@@ -1536,18 +1536,18 @@ lmgc(size_t lev)
 			try{
 				presmooth(lev);
 			}
-			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: presmooth failed on level "<<lev);
+			UG_CATCH_THROW("GMG::lmgc: presmooth failed on level "<<lev);
 
 			log_debug_data(lev, "BeforeRestrict");
 			try{
 				restriction(lev);
 			}
-			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: restriction failed on level "<<lev);
+			UG_CATCH_THROW("GMG::lmgc: restriction failed on level "<<lev);
 
 			try{
 				lmgc(lev-1);
 			}
-			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Linear multi grid "
+			UG_CATCH_THROW("GMG::lmgc: Linear multi grid "
 							"cycle on level "<<lev-1<<" failed. (BaseLev="<<
 							m_baseLev<<", TopLev="<<m_topLev<<").");
 
@@ -1555,13 +1555,13 @@ lmgc(size_t lev)
 			try{
 				prolongation(lev);
 			}
-			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: prolongation failed on level "<<lev);
+			UG_CATCH_THROW("GMG::lmgc: prolongation failed on level "<<lev);
 
 			log_debug_data(lev, "BeforePostSmooth");
 			try{
 				postsmooth(lev);
 			}
-			UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: postsmooth failed on level "<<lev);
+			UG_CATCH_THROW("GMG::lmgc: postsmooth failed on level "<<lev);
 			log_debug_data(lev, "AfterPostSmooth");
 		}
 
@@ -1574,13 +1574,13 @@ lmgc(size_t lev)
 		try{
 			base_solve(lev);
 		}
-		UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: basesolver failed on level "<<lev);
+		UG_CATCH_THROW("GMG::lmgc: basesolver failed on level "<<lev);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (base solver executed)\n");
 	}
 //	this case should never happen.
 	else {
-		UG_THROW("AssembledMultiGridCycle::lmgc: Level index below baseLevel.");
+		UG_THROW("GMG::lmgc: Level index below baseLevel.");
 	}
 }
 
