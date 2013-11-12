@@ -482,11 +482,7 @@ init_level_operator()
 
 		if(!bCpyFromSurface)
 		{
-			for(size_t i = 0; i < ld.vMapPatchToGlobal.size(); ++i)
-				(*(ld.st))[i] = (*(ld.t))[ ld.vMapPatchToGlobal[i] ];
-			#ifdef UG_PARALLEL
-			ld.st->set_storage_type(ld.t->get_storage_mask());
-			#endif
+			copy_ghost_to_noghost(ld.st, ld.t, ld.vMapPatchToGlobal);
 
 			try{
 			m_spAss->ass_tuner()->set_force_regular_grid(true);
@@ -554,11 +550,7 @@ init_level_operator()
 //	smoothing matrix is stored in SmoothMat
 	else
 	{
-		for(size_t i = 0; i < ld.vMapPatchToGlobal.size(); ++i)
-			(*(ld.st))[i] = (*(ld.t))[ ld.vMapPatchToGlobal[i] ];
-		#ifdef UG_PARALLEL
-		ld.st->set_storage_type(ld.t->get_storage_mask());
-		#endif
+		copy_ghost_to_noghost(ld.st, ld.t, ld.vMapPatchToGlobal);
 
 		try{
 		m_spAss->ass_tuner()->set_force_regular_grid(true);
@@ -1157,52 +1149,37 @@ presmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level " << lev << "\n");
-//	Get all needed vectors and operators
 
-//	get vectors used in smoothing operations. (This is needed if vertical
-//	masters are present, since no smoothing is performed on those. In that case
-//	only on a smaller part of the grid level - the smoothing patch - the
-//	smoothing is performed)
-	vector_type& sd = *m_vLevData[lev]->sd;
-	vector_type& sc = *m_vLevData[lev]->sc;
-	vector_type& sTmp = *m_vLevData[lev]->st;
-
-//	get smoother on this level and corresponding operator
-	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
-		m_vLevData[lev]->A;
+	LevData& ld = *m_vLevData[lev];
 
 // 	reset correction to zero on this level
-	sc.set(0.0);
+	ld.sc->set(0.0);
 
 //	We start the multi grid cycle on this level by smoothing the defect. This
 //	means that we compute a correction c, such that the defect is "smoother".
 //	If ghosts are present in parallel, we only smooth on a patch. Thus we first
 //	copy the values from the whole grid level to the smoothing patch.
-	m_vLevData[lev]->copy_defect_to_smooth_patch();
-
-//	UG_LOG("Before presmooth:\n");	log_level_data(lev);
-	write_smooth_level_debug(sd, "GMG_Def_BeforePreSmooth", lev);
-	write_smooth_level_debug(sc, "GMG_Cor_BeforePreSmooth", lev);
+	copy_ghost_to_noghost(ld.sd, ld.d, ld.vMapPatchToGlobal);
 
 // 	pre-smoothing
+	write_smooth_level_debug(*ld.sd, "GMG_Def_BeforePreSmooth", lev);
+	write_smooth_level_debug(*ld.sc, "GMG_Cor_BeforePreSmooth", lev);
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
 	try{
-		smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PreSmoother, lev, m_numPreSmooth);
+		smooth(*ld.sc, *ld.sd, *ld.st, *ld.A, *ld.PreSmoother, lev, m_numPreSmooth);
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Pre-Smoothing on "
 					"level " << lev << " failed. ");
 	GMG_PROFILE_END();
-
-	write_smooth_level_debug(sd, "GMG_Def_AfterPreSmooth", lev);
-	write_smooth_level_debug(sc, "GMG_Cor_AfterPreSmooth", lev);
+	write_smooth_level_debug(*ld.sd, "GMG_Def_AfterPreSmooth", lev);
+	write_smooth_level_debug(*ld.sc, "GMG_Cor_AfterPreSmooth", lev);
 
 //	now copy the values of d back to the whole grid, since the restriction
 //	acts on the whole grid. Since we will perform an addition of the vertical
 //	slaves to the vertical masters, we will thereby set the values on ghosts nodes
 //	to zero.
-	m_vLevData[lev]->copy_defect_from_smooth_patch(true);
-
-//	UG_LOG("After presmooth:\n");	log_level_data(lev);
+	ld.d->set(0.0);
+	copy_noghost_to_ghost(ld.d, ld.sd, ld.vMapPatchToGlobal);
 
 //NOTE: Since we do not copy the correction back from the smooth patch, the resulting
 //		correction will be zero in all entries, if ghosts were present on a process.
@@ -1423,36 +1400,22 @@ postsmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level " << lev << "\n");
-//	get vectors used in smoothing operations. (This is needed if vertical
-//	masters are present, since no smoothing is performed on those. In that case
-//	only on a smaller part of the grid level - the smoothing patch - the
-//	smoothing is performed)
-	vector_type& sd = *m_vLevData[lev]->sd;
-	vector_type& sc = *m_vLevData[lev]->sc;
-	vector_type& sTmp = *m_vLevData[lev]->st;
 
-//	get smoothing operator on this level
-	SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat =
-		m_vLevData[lev]->A;
-
-// 	## POST-SMOOTHING
-//	before we smooth, we want to make sure that sd is additive unique. This
-//	results in dummies having value 0.
-	//sd.change_storage_type(PST_UNIQUE);
+	LevData& ld = *m_vLevData[lev];
 
 //	We smooth the updated defect again. This means that we compute a
 //	correction c, such that the defect is "smoother".
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
 	try{
-		smooth(sc, sd, sTmp, *spSmoothMat, *m_vLevData[lev]->PostSmoother, lev, m_numPostSmooth);
+		smooth(*ld.sc, *ld.sd, *ld.st, *ld.A, *ld.PostSmoother, lev, m_numPostSmooth);
 	}
 	UG_CATCH_THROW("AssembledMultiGridCycle::lmgc: Post-Smoothing on"
 					" level " << lev << " failed. ")
 	GMG_PROFILE_END();
 
 //	## PROJECT DEFECT, CORRECTION BACK TO WHOLE GRID FOR RESTRICTION
-	m_vLevData[lev]->copy_defect_from_smooth_patch();
-	m_vLevData[lev]->copy_correction_from_smooth_patch();
+	copy_noghost_to_ghost(ld.d, ld.sd, ld.vMapPatchToGlobal);
+	copy_noghost_to_ghost(ld.c, ld.sc, ld.vMapPatchToGlobal);
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level " << lev << "\n");
 }
@@ -1465,12 +1428,8 @@ base_solve(size_t lev)
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level " << lev << "\n");
 	try{
-//	get vectors used in smoothing operations. (This is needed if vertical
-//	masters are present, since no smoothing is performed on those. In that case
-//	only on a smaller part of the grid level - the smoothing patch - the
-//	smoothing is performed)
-	vector_type& sd = *m_vLevData[lev]->sd;
-	vector_type& sc = *m_vLevData[lev]->sc;
+
+	LevData& ld = *m_vLevData[lev];
 
 //	SOLVE BASE PROBLEM
 //	Here we distinguish two possibilities:
@@ -1480,27 +1439,25 @@ base_solve(size_t lev)
 
 //	CASE a): We solve the problem in parallel (or normally for sequential code)
 #ifdef UG_PARALLEL
-//	vector defined on whole grid (including ghosts) on this level
-	vector_type& d = *m_vLevData[lev]->d;
 
 	if( m_bBaseParallel ||
-	   (d.layouts()->vertical_slave().empty() &&
-		d.layouts()->vertical_master().empty()))
+	   (ld.d->layouts()->vertical_slave().empty() &&
+		ld.d->layouts()->vertical_master().empty()))
 	{
 #endif
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering serial basesolver branch.\n");
-		if(m_vLevData[lev]->num_indices()){
+		if(ld.num_indices()){
 		//	LIFTING c TO SOLVING AREA
-			m_vLevData[lev]->copy_defect_to_smooth_patch();
+			copy_ghost_to_noghost(ld.sd, ld.d, ld.vMapPatchToGlobal);
 
 			#ifdef UG_PARALLEL
-				write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
+			write_level_debug(*ld.d, "GMG_Def_BeforeBaseSolver", lev);
 			#endif
 
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
-			sc.set(0.0);
+			ld.sc->set(0.0);
 			try{
-				if(!m_spBaseSolver->apply(sc, sd))
+				if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
 					UG_THROW("AssembledMultiGridCycle::lmgc: Base solver on base "
 							"level " << lev << " failed. (BaseLev="<<m_baseLev<<
 							", TopLev="<<m_topLev<<")");
@@ -1515,23 +1472,21 @@ base_solve(size_t lev)
 		//	   on the higher level
 			if(m_baseLev == m_topLev || m_bAdaptive)
 			{
-			//	get smoothing matrix
-				SmartPtr<MatrixOperator<matrix_type, vector_type> > spSmoothMat
-					= m_vLevData[lev]->A;
-
 			//	UPDATE DEFECT
-				spSmoothMat->apply_sub(sd, sc);
+				ld.A->apply_sub(*ld.sd, *ld.sc);
 
 			//	copy back to whole grid
-				m_vLevData[lev]->copy_defect_from_smooth_patch(true);
+				ld.d->set(0.0);
+				copy_noghost_to_ghost(ld.d, ld.sd, ld.vMapPatchToGlobal);
 				#ifdef UG_PARALLEL
-					write_level_debug(d, "GMG_Def_AfterBaseSolver", lev);
+				write_level_debug(*ld.d, "GMG_Def_AfterBaseSolver", lev);
 				#endif
 			}
 
 		//	PROJECT CORRECTION BACK TO WHOLE GRID FOR PROLONGATION
-			m_vLevData[lev]->copy_correction_from_smooth_patch(true);
-			write_level_debug(*m_vLevData[lev]->c, "GMG_Cor_AfterBaseSolver", lev);
+			ld.c->set(0.0);
+			copy_noghost_to_ghost(ld.c, ld.sc, ld.vMapPatchToGlobal);
+			write_level_debug(*ld.c, "GMG_Cor_AfterBaseSolver", lev);
 			GMG_PROFILE_END();
 		}
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting serial basesolver branch.\n");
@@ -1542,28 +1497,25 @@ base_solve(size_t lev)
 	else
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering parallel basesolver branch.\n");
-	//	get whole grid correction
-		vector_type& c = *m_vLevData[lev]->c;
-
-		write_level_debug(d, "GMG_Def_BeforeGatherInBaseSolver", lev);
 
 	//	gather the defect
-		gather_vertical(d);
+		write_level_debug(*ld.d, "GMG_Def_BeforeGatherInBaseSolver", lev);
+		gather_vertical(*ld.d);
 
 	//	Reset correction
-		c.set(0.0);
+		ld.c->set(0.0);
 
-		write_level_debug(d, "GMG_Def_BeforeBaseSolver", lev);
+		write_level_debug(*ld.d, "GMG_Def_BeforeBaseSolver", lev);
 
 	//	check, if this proc continues, else idle
-		if(d.layouts()->vertical_slave().empty())
+		if(ld.d->layouts()->vertical_slave().empty())
 		{
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: Start serial base solver.\n");
 
 		//	compute coarse correction
 			try{
-				if(!m_spBaseSolver->apply(c, d))
+				if(!m_spBaseSolver->apply(*ld.c, *ld.d))
 					UG_THROW("AssembledMultiGridCycle::lmgc: Base solver on"
 							" base level " << lev << " failed. "
 							"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
@@ -1574,26 +1526,26 @@ base_solve(size_t lev)
 //todo: is update defect really useful here?
 		//	update defect
 			if(m_baseLev == m_topLev)
-				m_vLevData[m_baseLev]->A->apply_sub(d, c);
+				ld.A->apply_sub(*ld.d, *ld.c);
 			GMG_PROFILE_END();
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG serial base solver done.\n");
 		}
 
 
 	//	broadcast the correction
-		broadcast_vertical(c);
-		c.set_storage_type(PST_CONSISTENT);
-		write_level_debug(c, "GMG_Cor_AfterBaseSolver", lev);
+		broadcast_vertical(*ld.c);
+		ld.c->set_storage_type(PST_CONSISTENT);
+		write_level_debug(*ld.c, "GMG_Cor_AfterBaseSolver", lev);
 
 //todo: is update defect really useful here?
 	//	if baseLevel == surfaceLevel, we need also d
 		//if((m_baseLev == m_topLev) || m_bAdaptive)
 		if(m_baseLev == m_topLev)
 		{
-			d.set_storage_type(PST_CONSISTENT);
-			broadcast_vertical(d);
-			d.change_storage_type(PST_ADDITIVE);
-			write_level_debug(d, "GMG_Def_AfterBaseSolver", lev);
+			ld.d->set_storage_type(PST_CONSISTENT);
+			broadcast_vertical(*ld.d);
+			ld.d->change_storage_type(PST_ADDITIVE);
+			write_level_debug(*ld.d, "GMG_Def_AfterBaseSolver", lev);
 		}
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting parallel basesolver branch.\n");
