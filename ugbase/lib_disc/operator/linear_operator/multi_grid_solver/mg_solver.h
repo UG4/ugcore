@@ -328,47 +328,6 @@ class AssembledMultiGridCycle :
 			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vprolongationPP,
 			            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > >& vrestrictionPP);
 
-		//	number of indices on whole level
-			size_t num_indices() const {return c->num_indices();}
-
-		//	copies values of defect to smoothing patch
-			void copy_defect_to_smooth_patch()
-			{
-				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*sd)[i] = (*d)[ vMapPatchToGlobal[i] ];
-				#ifdef UG_PARALLEL
-				sd->set_storage_type(d->get_storage_mask());
-				#endif
-			}
-
-		//	copies values of tmp to smoothing patch
-			void copy_tmp_to_smooth_patch()
-			{
-				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*st)[i] = (*t)[ vMapPatchToGlobal[i] ];
-				#ifdef UG_PARALLEL
-				st->set_storage_type(t->get_storage_mask());
-				#endif
-			}
-
-		//	copies values of defect from smoothing patch
-			void copy_defect_from_smooth_patch(bool clearGhosts = false)
-			{
-				if(clearGhosts) d->set(0.0);
-				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*d)[ vMapPatchToGlobal[i] ] = (*sd)[i];
-				#ifdef UG_PARALLEL
-				d->set_storage_type(sd->get_storage_mask());
-				#endif
-			}
-
-		//	copies values of defect to smoothing patch
-			void copy_correction_from_smooth_patch(bool clearGhosts = false)
-			{
-				if(clearGhosts) c->set(0.0);
-				for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i) (*c)[ vMapPatchToGlobal[i] ] = (*sc)[i];
-				#ifdef UG_PARALLEL
-				c->set_storage_type(sc->get_storage_mask());
-				#endif
-			}
-
 			public:
 		///	Level matrix operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > A;
@@ -443,8 +402,9 @@ class AssembledMultiGridCycle :
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
-				if(m_vLevData[i]->num_indices() > 0)
-					vVec.push_back(m_vLevData[i]->d.get());
+				if(m_vLevData[i]->d.valid())
+					if(m_vLevData[i]->d->num_indices() > 0)
+						vVec.push_back(m_vLevData[i]->d.get());
 				else vVec.push_back(NULL);
 			}
 			return vVec;

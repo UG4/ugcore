@@ -766,7 +766,7 @@ init_base_solver()
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_base_solver\n");
 //	skip void level
-	if(m_vLevData[m_baseLev]->num_indices() == 0) return;
+	if(m_vLevData[m_baseLev]->d->num_indices() == 0) return;
 
 #ifdef UG_PARALLEL
 //	check, if a gathering base solver is required:
@@ -1414,7 +1414,7 @@ base_solve(size_t lev)
 	{
 #endif
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering serial basesolver branch.\n");
-		if(ld.num_indices()){
+		if(ld.d->num_indices()){
 		//	LIFTING c TO SOLVING AREA
 			copy_ghost_to_noghost(ld.sd, ld.d, ld.vMapPatchToGlobal);
 
