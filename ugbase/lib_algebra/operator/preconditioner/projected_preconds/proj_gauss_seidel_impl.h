@@ -42,21 +42,21 @@ projected_precond_step(vector_type& c, const matrix_type& A, const vector_type& 
 		if(m_bLowerObs && (!m_bUpperObs))
 		{
 			//	only a lower obstacle is set
-			correction_for_lower_obs(c, i, tmpSol);
+			this->correction_for_lower_obs(c, i, tmpSol);
 			continue;
 		}
 
 		if((!m_bLowerObs) && m_bUpperObs)
 		{
 			//	only an upper obstacle is set
-			correction_for_upper_obs(c, i, tmpSol);
+			this->correction_for_upper_obs(c, i, tmpSol);
 			continue;
 		}
 
 		if(m_bLowerObs && m_bUpperObs)
 		{
 			//	a lower and an upper obstacle are set
-			correction_for_lower_and_upper_obs(c, i, tmpSol);
+			this->correction_for_lower_and_upper_obs(c, i, tmpSol);
 			continue;
 		}
 
