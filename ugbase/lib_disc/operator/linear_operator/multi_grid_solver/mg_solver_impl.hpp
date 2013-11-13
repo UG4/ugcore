@@ -1451,10 +1451,6 @@ base_solve(size_t lev)
 			}
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
 
-		//todo: is update defect really useful here?
-		//	update defect
-			if(m_baseLev == m_topLev)
-				ld.A->apply_sub(*ld.d, *ld.c);
 			GMG_PROFILE_END();
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG gathered base solver done.\n");
 		}
@@ -1464,16 +1460,6 @@ base_solve(size_t lev)
 		broadcast_vertical(*ld.c);
 		ld.c->set_storage_type(PST_CONSISTENT);
 		write_debug(ld.c, "Cor_AfterBaseSolver");
-
-	//todo: is update defect really useful here?
-	//	if baseLevel == surfaceLevel, we need also d
-		if(m_baseLev == m_topLev)
-		{
-			ld.d->set_storage_type(PST_CONSISTENT);
-			broadcast_vertical(*ld.d);
-			ld.d->change_storage_type(PST_ADDITIVE);
-			write_debug(ld.d, "Def_AfterBaseSolver");
-		}
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
