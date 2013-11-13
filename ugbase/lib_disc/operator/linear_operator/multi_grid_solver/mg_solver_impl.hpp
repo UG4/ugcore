@@ -1250,6 +1250,7 @@ prolongation(size_t lev)
 
 //	copy defect to smooth patch
 	copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
+	copy_ghost_to_noghost(lc.sc, lc.c, lc.vMapPatchToGlobal);
 
 //	## ADAPTIVE CASE
 //	in the adaptive case there is a small part of the coarse coupling that
@@ -1460,6 +1461,8 @@ base_solve(size_t lev)
 		broadcast_vertical(*ld.c);
 		ld.c->set_storage_type(PST_CONSISTENT);
 		write_debug(ld.c, "Cor_AfterBaseSolver");
+
+		copy_ghost_to_noghost(ld.sc, ld.c, ld.vMapPatchToGlobal);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
