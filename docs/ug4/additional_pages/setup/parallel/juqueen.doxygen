@@ -177,8 +177,15 @@ configuration file (<tt>~/.bashrc</tt> etc.).
 </li>
 </ul>
 
+
 <hr>
 \section secConfiguration_of_ug4_for_JuQueen Configuration of ug4 for JuQueen
+
+Make sure that the cmake module has been loadede. You can e.g. add
+\code
+	module load cmake
+\endcode
+to your .bashrc file or simply execute it manually.
 
 For \em JuQueen you have to "cross compile" and to do so use a specific 
 \ref secCMake_ToolchainFiles.
@@ -189,19 +196,6 @@ cmake -DSTATIC_BUILD=ON -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/juqueen.cmake 
 
 \ref secStaticBuild are your choice</strong> if you want to <strong>process very large jobs</strong>.
 Regarding the preferred build type "static" see also \ref secVery_large_jobs_on_JuQueen!
-
-\note
-For this to work a CMake version with special platform files for Blue Gene/Q is
-required, but the currently (October 2012) installed version on JuQueen does not
-(the FZJ support is asked to support appropriate platform files).
-In the meantime one can resort to a local installation of (the most recent version
-of) CMake, where appropriate platform files
-(e.g. http://www.cmake.org/Bug/bug_relationship_graph.php?bug_id=13512&graph=dependency)
-are copied into the <tt>Modules/Platform/</tt> sub directory, e.g.
-
-\code
-~/local/share/cmake-2.8/Modules/Platform/BlueGeneQ-*.cmake
-\endcode
 
 You can check your executable by running the (standard unix) <tt>ldd</tt> command ("list dynamic dependencies") on it:
 \code
@@ -218,12 +212,16 @@ For debugging a parallel application on JuQueen see \ref secDebuggingOnJuQueen
 <hr>
 \section secWorking_with_ug4_on_JuQueen Working with ug4 on JuQueen
 
-\warning Unfortunately up to now we observe some very strange crashes of \ug4 on JuQueen!
-Please ask I. Heppner for details.
-
 \subsection secBasic_job_handling Basic Job Handling
-\todo Please take the time and fill out the details in \c ugsubmit / \c uginfo / 
-\c ugcancel (\ref pageugsubmit).
+You can use \c ugsubmit / to run your jobs on JUQUEEN. Make sure to source
+ug4/trunk/scripts/shell/ugbash and to export the variables
+\code
+	export UGSUBMIT_TYPE=Juqueen
+	export UGSUBMIT_EMAIL=your@email.com
+\endcode
+e.g. in '.bashrc'.
+(of course you have to replace 'your@email.com' with your real email adress...)
+see also \ref pageugsubmit
 
 For some basic information see the
 <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/QuickIntroductionJuqueen.html">Quick Introduction</a>
@@ -234,6 +232,10 @@ details (everything else should become clear by examining the examples provided)
 <strong>Not possible</strong> in the moment!
 
 \subsubsection secBatch_jobs Batch jobs
+\note	\c ugsubmit / (\ref pageugsubmit) does the job of submitting jobs for you.
+		It is strongly recommendet to use it!
+		The following section is thus only of concern to people who want to submit jobs manually.
+
 Batch jobs are submitted with the <strong>\c llsubmit command</strong>.
 The command is typically executed in the directory where the ug4 executable resides ("ug4-bin"):
 \code

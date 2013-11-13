@@ -13,7 +13,7 @@
  To use the scripts described here, you have to set up ug4's \ref pageBashTools .
  
 \ref secugsubmit , \ref secuginfo and \ref secugcancel are scripts to unify the access to job schedulers over different clusters.<br>
-Supported clusters are <tt> NecNehalem, Hermit, Jugene, mpi, cekon, moab </tt>.<br>
+Supported clusters are <tt> NecNehalem, Hermit, Jugene, Juqueen, mpi, cekon, moab </tt>.<br>
 
 For this you can set some environment variables (here for bash)
 \verbatim

@@ -11,6 +11,7 @@
 # on different clusters. Supported Clusters are:
 # - cekon , G-CSC Frankfurt (SLURM, salloc)
 # - Jugene, Forschungszentrum Juelich (ll_submit)
+# - Juqueen, Forschungszentrum Juelich (ll_submit)
 # - Hermit, HLRS Stuttgart (qsub, aprun)
 # - NecNehalem, HLRS Stuttgart (qsub, mpirun)
 # - MOAB Workload Manager (msub, srun)
