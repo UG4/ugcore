@@ -368,9 +368,9 @@ class AssembledMultiGridCycle :
 			std::vector<vector_type*> vVec;
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
-				if(m_vLevData[i]->d.valid())
-					if(m_vLevData[i]->d->num_indices() > 0)
-						vVec.push_back(m_vLevData[i]->d.get());
+				if(m_vLevData[i]->sd.valid())
+					if(m_vLevData[i]->sd->num_indices() > 0)
+						vVec.push_back(m_vLevData[i]->sd.get());
 				else vVec.push_back(NULL);
 			}
 			return vVec;

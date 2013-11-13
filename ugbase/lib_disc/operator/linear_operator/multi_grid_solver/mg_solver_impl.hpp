@@ -607,7 +607,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 //	create storage for matrices on the grid levels
 	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_vLevData.size());
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
-		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true));;
+		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));;
 
 //	surface dof distribution
 	ConstSmartPtr<DoFDistribution> surfDD =
@@ -1248,8 +1248,10 @@ prolongation(size_t lev)
 	SetLayoutValues(&(*lf.d), lf.d->layouts()->vertical_master(), 0);
 	#endif
 
+//	copy defect to smooth patch
+	copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
+
 //	## ADAPTIVE CASE
-//	todo:	coarse grid correction on smooth patch, only?
 //	in the adaptive case there is a small part of the coarse coupling that
 //	has not been used to update the defect. In order to ensure, that the
 //	defect on this level still corresponds to the updated defect, we need
@@ -1257,37 +1259,34 @@ prolongation(size_t lev)
 	if(m_bAdaptive)
 	{
 	//	a) Compute the coarse update of the defect induced by missing coupling
-		lc.t->set(0.0);
-		if(lc.c->size() > 0){
-			if(!lc.CoarseGridContribution.apply(*lc.t, *lc.c))
+		lc.st->set(0.0);
+		if(lc.sc->size() > 0){
+			if(!lc.CoarseGridContribution.apply(*lc.st, *lc.sc))
 				UG_THROW("GMG::lmgc: Could not compute"
 						" missing update defect contribution on level "<<lev-1);
 		}
 
 	//	lc.t is additive but we need a consistent correction
 		#ifdef UG_PARALLEL
-		lc.t->set_storage_type(PST_ADDITIVE);
+		lc.st->set_storage_type(PST_ADDITIVE);
 		#endif
-		write_debug(lc.t, "AdaptiveCoarseGridContribution");
-		write_debug(lf.d, "Prol_DefOnlyCoarseCorr");
+		write_debug(lc.st, "AdaptiveCoarseGridContribution");
+		write_debug(lf.sd, "Prol_DefOnlyCoarseCorr");
 
 	//	b) interpolate the coarse defect up
 		std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(num_levels());
 		for(size_t l = 0; l < num_levels(); ++l)
-			vLevelDD[l] = m_spApproxSpace->dof_distribution(GridLevel(l, GridLevel::LEVEL, true));
+			vLevelDD[l] = m_spApproxSpace->dof_distribution(GridLevel(l, GridLevel::LEVEL, false));
 
 		const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 		AddProjectionOfShadows(level_defects(),
 							   vLevelDD,
-							   *dynamic_cast<vector_type*>(lc.t.get()),
-							   lc.t->dof_distribution(),
+							   *dynamic_cast<vector_type*>(lc.st.get()),
+							   lc.st->dof_distribution(),
 							   lev-1,
 							   -1.0,
 							   surfView);
 	}
-
-//	copy defect to smooth patch
-	copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
 
 //	## INTERPOLATE CORRECTION
 	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
