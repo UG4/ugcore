@@ -1084,7 +1084,7 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
        size_t lev, int nu)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - smooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - smooth on level "<<lev<<"\n");
 
 	if(sd->size() == 0){
 	//	since no parallel communication takes place in this method, we may
@@ -1103,7 +1103,7 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 		//	b) 	Update Defect d := d - A * t
 			if(!S.apply_update_defect(*st, *sd))
 				UG_THROW("GMG::smooth: Smoothing step "
-						<< i+1 << " on level " << lev << " failed.");
+						<< i+1 << " on level "<<lev<<" failed.");
 
 		// 	add correction of smoothing step to level correction
 		//	(Note: we do not work on c directly here, since we update the defect
@@ -1120,7 +1120,7 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 
 			if(!S.apply(*st, *sd))
 				UG_THROW("GMG::smooth: Smoothing step "
-						<< i+1 << " on level " << lev << " failed.");
+						<< i+1 << " on level "<<lev<<" failed.");
 
 		//	get surface view
 			const SurfaceView& surfView = *m_spApproxSpace->surface_view();
@@ -1138,7 +1138,7 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 		}
 	}
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - smooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - smooth on level "<<lev<<"\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1146,7 +1146,7 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 presmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level "<<lev<<"\n");
 
 	LevData& ld = *m_vLevData[lev];
 
@@ -1165,7 +1165,7 @@ presmooth(size_t lev)
 		smooth(ld.sc, ld.sd, ld.st, *ld.A, *ld.PreSmoother, lev, m_numPreSmooth);
 	}
 	UG_CATCH_THROW("GMG::lmgc: Pre-Smoothing on "
-					"level " << lev << " failed. ");
+					"level "<<lev<<" failed. ");
 	GMG_PROFILE_END();
 
 //	now copy the values of d back to the whole grid, since the restriction
@@ -1177,7 +1177,7 @@ presmooth(size_t lev)
 
 //NOTE: Since we do not copy the correction back from the smooth patch, the resulting
 //		correction will be zero in all entries, if ghosts were present on a process.
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level "<<lev<<"\n");
 }
 
 
@@ -1186,22 +1186,21 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 restriction(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
 
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
 
 //	## PARALLEL CASE: gather vertical
 	#ifdef UG_PARALLEL
-		write_debug(lf.d, "TestBeforeGather");
 	//	Send vertical slave values to master.
 	//	we have to make sure that d is additive after this operation and that it
 	//	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0)
+		write_debug(lf.d, "TestBeforeGather");
 		if(lf.d->size() > 0){
 			gather_vertical(*lf.d);
 			SetLayoutValues(&(*lf.d), lf.d->layouts()->vertical_slave(), 0);
 		}
-
 		write_debug(lf.d, "TestAfterGather");
 	#endif
 
@@ -1214,18 +1213,18 @@ restriction(size_t lev)
 		try{
 			m_vLevData[lev]->Restriction->do_restrict(*lc.d, *lf.d);
 		}
-		UG_CATCH_THROW("GMG::lmgc: Restriction of "
-					"Defect from level "<<lev<<" to "<<lev-1<<" failed. ");
+		UG_CATCH_THROW("GMG::lmgc: Restriction of Defect from level "<<lev<<
+		               " to "<<lev-1<<" failed.");
 		GMG_PROFILE_END();
 
-		write_debug(lc.d, "Def_RestrictedNoPP");
 	//	apply post processes
+		write_debug(lc.d, "Def_RestrictedNoPP");
 		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
 			m_vLevData[lev]->vRestrictionPP[i]->post_process(m_vLevData[lev-1]->d);
 		write_debug(lc.d, "Def_RestrictedWithPP");
 	}
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1233,7 +1232,7 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level "<<lev<<"\n");
 
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
@@ -1244,7 +1243,7 @@ prolongation(size_t lev)
 		lf.Prolongation->prolongate(*lf.t, *lc.c);
 	}
 	UG_CATCH_THROW("GMG::lmgc: Prolongation from"
-				" level " << lev-1 << " to " << lev << " failed. "
+				" level " << lev-1 << " to "<<lev<<" failed. "
 				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
 	GMG_PROFILE_END();
 
@@ -1321,10 +1320,7 @@ prolongation(size_t lev)
 	//	b) interpolate the coarse defect up
 	//	since we add a consistent correction, we need a consistent defect to which
 	//	we add the values.
-		#ifdef UG_PARALLEL
 		copy_noghost_to_ghost(lf.d, lf.sd, lf.vMapPatchToGlobal);
-		write_debug(lf.d, "Prol_DefOnlyCoarseCorrAdditive");
-		#endif
 		write_debug(lf.d, "Prol_DefOnlyCoarseCorr");
 
 		std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(num_levels());
@@ -1341,13 +1337,11 @@ prolongation(size_t lev)
 							   surfView);
 
 		//	copy defect to smooth patch
-		#ifdef UG_PARALLEL
 		copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
-		#endif
 		write_debug(lf.sd, "Def_Prolongated");
 	}
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1355,7 +1349,7 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 postsmooth(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level "<<lev<<"\n");
 
 	LevData& ld = *m_vLevData[lev];
 
@@ -1366,14 +1360,14 @@ postsmooth(size_t lev)
 		smooth(ld.sc, ld.sd, ld.st, *ld.A, *ld.PostSmoother, lev, m_numPostSmooth);
 	}
 	UG_CATCH_THROW("GMG::lmgc: Post-Smoothing on"
-					" level " << lev << " failed. ")
+					" level "<<lev<<" failed. ")
 	GMG_PROFILE_END();
 
 //	## PROJECT DEFECT, CORRECTION BACK TO WHOLE GRID FOR RESTRICTION
 	copy_noghost_to_ghost(ld.d, ld.sd, ld.vMapPatchToGlobal);
 	copy_noghost_to_ghost(ld.c, ld.sc, ld.vMapPatchToGlobal);
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level "<<lev<<"\n");
 }
 
 // performs the base solving
@@ -1382,7 +1376,7 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 base_solve(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level "<<lev<<"\n");
 	try{
 
 	LevData& ld = *m_vLevData[lev];
@@ -1395,28 +1389,22 @@ base_solve(size_t lev)
 
 //	CASE a): We solve the problem in parallel (or normally for sequential code)
 #ifdef UG_PARALLEL
-
 	if( m_bBaseParallel ||
 	   (ld.d->layouts()->vertical_slave().empty() &&
 		ld.d->layouts()->vertical_master().empty()))
 	{
 #endif
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering serial basesolver branch.\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering distributed basesolver branch.\n");
 		if(ld.d->num_indices()){
 		//	LIFTING c TO SOLVING AREA
 			copy_ghost_to_noghost(ld.sd, ld.d, ld.vMapPatchToGlobal);
-
-			#ifdef UG_PARALLEL
 			write_debug(ld.d, "Def_BeforeBaseSolver");
-			#endif
 
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			ld.sc->set(0.0);
 			try{
 				if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
-					UG_THROW("GMG::lmgc: Base solver on base "
-							"level " << lev << " failed. (BaseLev="<<m_baseLev<<
-							", TopLev="<<m_topLev<<")");
+					UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 			}
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
 
@@ -1434,9 +1422,7 @@ base_solve(size_t lev)
 			//	copy back to whole grid
 				ld.d->set(0.0);
 				copy_noghost_to_ghost(ld.d, ld.sd, ld.vMapPatchToGlobal);
-				#ifdef UG_PARALLEL
 				write_debug(ld.d, "Def_AfterBaseSolver");
-				#endif
 			}
 
 		//	PROJECT CORRECTION BACK TO WHOLE GRID FOR PROLONGATION
@@ -1445,23 +1431,22 @@ base_solve(size_t lev)
 			write_debug(ld.c, "Cor_AfterBaseSolver");
 			GMG_PROFILE_END();
 		}
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting serial basesolver branch.\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting distributed basesolver branch.\n");
 #ifdef UG_PARALLEL
 	}
 
 //	CASE b): We gather the processes, solve on one proc and distribute again
 	else
 	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering parallel basesolver branch.\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering gathered basesolver branch.\n");
 
 	//	gather the defect
 		write_debug(ld.d, "Def_BeforeGatherInBaseSolver");
 		gather_vertical(*ld.d);
+		write_debug(ld.d, "Def_BeforeBaseSolver");
 
 	//	Reset correction
 		ld.c->set(0.0);
-
-		write_debug(ld.d, "Def_BeforeBaseSolver");
 
 	//	check, if this proc continues, else idle
 		if(ld.d->layouts()->vertical_slave().empty())
@@ -1472,19 +1457,16 @@ base_solve(size_t lev)
 		//	compute coarse correction
 			try{
 				if(!m_spBaseSolver->apply(*ld.c, *ld.d))
-					UG_THROW("GMG::lmgc: Base solver on"
-							" base level " << lev << " failed. "
-							"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")");
+					UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 			}
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
 
-
-//todo: is update defect really useful here?
+		//todo: is update defect really useful here?
 		//	update defect
 			if(m_baseLev == m_topLev)
 				ld.A->apply_sub(*ld.d, *ld.c);
 			GMG_PROFILE_END();
-			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG serial base solver done.\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG gathered base solver done.\n");
 		}
 
 
@@ -1493,9 +1475,8 @@ base_solve(size_t lev)
 		ld.c->set_storage_type(PST_CONSISTENT);
 		write_debug(ld.c, "Cor_AfterBaseSolver");
 
-//todo: is update defect really useful here?
+	//todo: is update defect really useful here?
 	//	if baseLevel == surfaceLevel, we need also d
-		//if((m_baseLev == m_topLev) || m_bAdaptive)
 		if(m_baseLev == m_topLev)
 		{
 			ld.d->set_storage_type(PST_CONSISTENT);
@@ -1504,11 +1485,11 @@ base_solve(size_t lev)
 			write_debug(ld.d, "Def_AfterBaseSolver");
 		}
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting parallel basesolver branch.\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
 #endif
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
 
 	}
 	UG_CATCH_THROW("GMG: Base Solver failed.");
@@ -1520,7 +1501,7 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 lmgc(size_t lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - lmgc on level " << lev << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - lmgc on level "<<lev<<"\n");
 
 //	switch, if base level is reached. If so, call base Solver, else we will
 //	perform smoothing, restrict the defect and call the lower level; then,
@@ -1565,7 +1546,7 @@ lmgc(size_t lev)
 			log_debug_data(lev, "AfterPostSmooth");
 		}
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << "\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level "<<lev<<"\n");
 	}
 
 //	if the base level has been reached, the coarse problem is solved exactly
@@ -1576,7 +1557,7 @@ lmgc(size_t lev)
 		}
 		UG_CATCH_THROW("GMG::lmgc: basesolver failed on level "<<lev);
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level " << lev << " (base solver executed)\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level "<<lev<<" (base solver executed)\n");
 	}
 //	this case should never happen.
 	else {
