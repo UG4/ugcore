@@ -1237,14 +1237,64 @@ prolongation(size_t lev)
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
 
+//	## UPDATE DEFECT FOR COARSE GRID CORRECTION
+//	due to gathering during restriction, the defect is currently additive so
+//	that v-masters have the whole value and v-slaves are all 0 (in d. sd may differ).
+//	we thus have to transport all values back to v-slaves and have to make sure
+//	that d is additive again.
+	write_debug(lf.d, "Def_Prol_BeforeBroadcast");
+	#ifdef UG_PARALLEL
+	broadcast_vertical_add(*lf.d);
+	SetLayoutValues(&(*lf.d), lf.d->layouts()->vertical_master(), 0);
+	#endif
+
+//	## ADAPTIVE CASE
+//	todo:	coarse grid correction on smooth patch, only?
+//	in the adaptive case there is a small part of the coarse coupling that
+//	has not been used to update the defect. In order to ensure, that the
+//	defect on this level still corresponds to the updated defect, we need
+//	to add if here. This is done in two steps:
+	if(m_bAdaptive)
+	{
+	//	a) Compute the coarse update of the defect induced by missing coupling
+		lc.t->set(0.0);
+		if(lc.c->size() > 0){
+			if(!lc.CoarseGridContribution.apply(*lc.t, *lc.c))
+				UG_THROW("GMG::lmgc: Could not compute"
+						" missing update defect contribution on level "<<lev-1);
+		}
+
+	//	lc.t is additive but we need a consistent correction
+		#ifdef UG_PARALLEL
+		lc.t->set_storage_type(PST_ADDITIVE);
+		#endif
+		write_debug(lc.t, "AdaptiveCoarseGridContribution");
+		write_debug(lf.d, "Prol_DefOnlyCoarseCorr");
+
+	//	b) interpolate the coarse defect up
+		std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(num_levels());
+		for(size_t l = 0; l < num_levels(); ++l)
+			vLevelDD[l] = m_spApproxSpace->dof_distribution(GridLevel(l, GridLevel::LEVEL, true));
+
+		const SurfaceView& surfView = *m_spApproxSpace->surface_view();
+		AddProjectionOfShadows(level_defects(),
+							   vLevelDD,
+							   *dynamic_cast<vector_type*>(lc.t.get()),
+							   lc.t->dof_distribution(),
+							   lev-1,
+							   -1.0,
+							   surfView);
+	}
+
+//	copy defect to smooth patch
+	copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
+
 //	## INTERPOLATE CORRECTION
 	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
 	try{
 		lf.Prolongation->prolongate(*lf.t, *lc.c);
 	}
-	UG_CATCH_THROW("GMG::lmgc: Prolongation from"
-				" level " << lev-1 << " to "<<lev<<" failed. "
-				"(BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<")\n");
+	UG_CATCH_THROW("GMG::lmgc: Prolongation from level "<<lev-1<<" to "<<lev<<" failed.");
 	GMG_PROFILE_END();
 
 //	apply post processes
@@ -1273,20 +1323,6 @@ prolongation(size_t lev)
 	}
 	GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
 
-//	## UPDATE DEFECT FOR COARSE GRID CORRECTION
-//	due to gathering during restriction, the defect is currently additive so
-//	that v-masters have the whole value and v-slaves are all 0 (in d. sd may differ).
-//	we thus have to transport all values back to v-slaves and have to make sure
-//	that d is additive again.
-	write_debug(lf.d, "Def_Prol_BeforeBroadcast");
-	write_debug(lf.sd, "Def_Prol_BeforeBroadcastSmooth");
-	#ifdef UG_PARALLEL
-	broadcast_vertical_add(*lf.d);
-	SetLayoutValues(&(*lf.d), lf.d->layouts()->vertical_master(), 0);
-	copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
-	#endif
-	write_debug(lf.sd, "Def_Prol_BeforeUpdate");
-
 //	the correction has changed c := c + t. Thus, we also have to update
 //	the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
@@ -1294,52 +1330,7 @@ prolongation(size_t lev)
 		lf.A->apply_sub(*lf.sd, *lf.st);
 	}
 	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
-
-//	## ADAPTIVE CASE
-	if(m_bAdaptive)
-	{
-	//todo:	coarse grid correction on smooth patch, only?
-	//	in the adaptive case there is a small part of the coarse coupling that
-	//	has not been used to update the defect. In order to ensure, that the
-	//	defect on this level still corresponds to the updated defect, we need
-	//	to add if here. This is done in three steps:
-	//	a) Compute the coarse update of the defect induced by missing coupling
-		lc.t->set(0.0);
-		if(lc.c->size() > 0){
-			if(!lc.CoarseGridContribution.apply(*lc.t, *lc.c))
-				UG_THROW("GMG::lmgc: Could not compute"
-						" missing update defect contribution on level "<<lev-1);
-		}
-
-	//	lc.t is additive but we need a consistent correction
-		#ifdef UG_PARALLEL
-		lc.t->set_storage_type(PST_ADDITIVE);
-		#endif
-		write_debug(lc.t, "AdaptiveCoarseGridContribution");
-
-	//	b) interpolate the coarse defect up
-	//	since we add a consistent correction, we need a consistent defect to which
-	//	we add the values.
-		copy_noghost_to_ghost(lf.d, lf.sd, lf.vMapPatchToGlobal);
-		write_debug(lf.d, "Prol_DefOnlyCoarseCorr");
-
-		std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(num_levels());
-		for(size_t l = 0; l < num_levels(); ++l)
-			vLevelDD[l] = m_spApproxSpace->dof_distribution(GridLevel(l, GridLevel::LEVEL, true));
-
-		const SurfaceView& surfView = *m_spApproxSpace->surface_view();
-		AddProjectionOfShadows(level_defects(),
-		                       vLevelDD,
-							   *dynamic_cast<vector_type*>(lc.t.get()),
-							   lc.t->dof_distribution(),
-							   lev-1,
-							   -1.0,
-							   surfView);
-
-		//	copy defect to smooth patch
-		copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
-		write_debug(lf.sd, "Def_Prolongated");
-	}
+	write_debug(lf.sd, "Def_Prolongated");
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
 }
