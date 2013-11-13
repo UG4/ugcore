@@ -181,7 +181,7 @@ configuration file (<tt>~/.bashrc</tt> etc.).
 <hr>
 \section secConfiguration_of_ug4_for_JuQueen Configuration of ug4 for JuQueen
 
-Make sure that the cmake module has been loadede. You can e.g. add
+Make sure that the cmake module has been loaded. You can e.g. add
 \code
 	module load cmake
 \endcode
@@ -213,7 +213,7 @@ For debugging a parallel application on JuQueen see \ref secDebuggingOnJuQueen
 \section secWorking_with_ug4_on_JuQueen Working with ug4 on JuQueen
 
 \subsection secBasic_job_handling Basic Job Handling
-You can use \c ugsubmit / to run your jobs on JUQUEEN. Make sure to source
+You can use \c ugsubmit to run your jobs on JUQUEEN. Make sure to source
 ug4/trunk/scripts/shell/ugbash and to export the variables
 \code
 	export UGSUBMIT_TYPE=Juqueen
@@ -231,8 +231,14 @@ details (everything else should become clear by examining the examples provided)
 \subsubsection secInteractive_jobs Interactive jobs
 <strong>Not possible</strong> in the moment!
 
+
+
 \subsubsection secBatch_jobs Batch jobs
-\note	\c ugsubmit / (\ref pageugsubmit) does the job of submitting jobs for you.
+\warning 	Make sure to execute all batch jobs on the $WORK partition of Juqueen.
+			Access to $HOME from the compute-nodes is not only slow but will likely
+			cause other troubles, too.
+			
+\note	\c ugsubmit (\ref pageugsubmit) does the job of submitting jobs for you.
 		It is strongly recommendet to use it!
 		The following section is thus only of concern to people who want to submit jobs manually.
 
