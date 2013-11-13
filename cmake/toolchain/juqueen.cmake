@@ -46,6 +46,7 @@
 # Important: Setting the "cmake system name" will lead to automatic inclusion of
 # the corresponding platform files:
 set(CMAKE_SYSTEM_NAME BlueGeneQ-static)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/platform}
 
 # This option tells cmake/ug_includes.cmake to add the -dynamic option to the compiler flags.
 SET(enableDynamicOption OFF)
