@@ -14,6 +14,7 @@
 #include "lib_algebra/operator/preconditioner/ilut.h"
 #include "lib_algebra/operator/preconditioner/iterator_product.h"
 #include "lib_algebra/operator/preconditioner/vanka.h"
-#include "lib_algebra/operator/preconditioner/proj_gauss_seidel/proj_gauss_seidel.h"
+#include "lib_algebra/operator/preconditioner/projected_preconds/proj_precond_interface.h"
+#include "lib_algebra/operator/preconditioner/projected_preconds/proj_gauss_seidel.h"
 
 #endif /* __UG__PRECONDITIONERS_H__ */

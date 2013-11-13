@@ -255,20 +255,32 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DiagVanka", tag);
 	}
 	
+//	IProjPreconditioner
+	{
+		typedef IProjPreconditioner<TAlgebra> T;
+		typedef ILinearIterator<vector_type> TBase;
+		string name = string("IProjPreconditioner").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+			.add_method("set_lower_obstacle", &T::set_lower_obstacle,
+				"", "lower obstacle", "sets lower obstacle")
+			.add_method("set_upper_obstacle", &T::set_upper_obstacle,
+				"", "upper obstacle", "sets upper obstacle")
+			.add_method("set_sor_relax", &T::set_sor_relax,
+				"", "sor relaxation", "sets sor relaxation parameter");
+		reg.add_class_to_group(name, "IProjPreconditioner", tag);
+	}
+
 //	ProjGaussSeidel
 	{
 		typedef ProjGaussSeidel<TAlgebra> T;
-		typedef ILinearIterator<vector_type> TBase;
+		typedef IProjPreconditioner<TAlgebra> TBase;
 		string name = string("ProjGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
-			.add_method("set_obstacle_value", &T::set_obstacle_value,
-				"", "obstacle value", "sets obstacle value")
-			.add_method("set_sor_relax", &T::set_sor_relax,
-				"", "sor relaxation", "sets sor relaxation parameter")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ProjGaussSeidel", tag);
 	}
+
 }
 	
 
