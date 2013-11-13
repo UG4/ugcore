@@ -455,17 +455,20 @@ init_level_operator()
 			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 			for(int lev = m_topLev; lev != m_baseLev; --lev)
 			{
+				LevData& lf = *m_vLevData[lev];
+				LevData& lc = *m_vLevData[lev-1];
+
 				#ifdef UG_PARALLEL
-				copy_to_vertical_masters(*m_vLevData[lev]->t);
+				copy_to_vertical_masters(*lf.t);
 				#endif
 
 				try{
-					m_vLevData[lev]->Projection->do_restrict(*m_vLevData[lev-1]->t, *m_vLevData[lev]->t);
+					lf.Projection->do_restrict(*lc.t, *lf.t);
 				} UG_CATCH_THROW("GMG::init: Cannot project "
 							"solution to coarse grid function of level "<<lev-1<<".\n");
 
 				#ifdef UG_PARALLEL
-				m_vLevData[lev]->t->set_storage_type(m_pSurfaceSol->get_storage_mask());
+				lf.t->set_storage_type(m_pSurfaceSol->get_storage_mask());
 				#endif
 			}
 			#ifdef UG_PARALLEL
