@@ -70,8 +70,8 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		return false;
 	}
 
-//	remember solution //TODO: resize, ect. necessary?
-	m_lastSol = u;
+//	remember solution
+	m_lastSol = u.clone();
 
 //	remember, that operator has been initialized
 	m_bInit = true;
@@ -96,6 +96,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 		{
 			value_type lowerObsVal = (*m_spVecOfLowObsValues)[i];
 			value_type upperObsVal = (*m_spVecOfUpObsValues)[i];
+			//	TODO: comparsion right for CPU=3?
 			if (lowerObsVal - upperObsVal > 0.0)
 				UG_THROW("In IProjPreconditioner::init(J,u) " <<i<<"-th value of vector "
 					"of lower obstacle [value= "<<lowerObsVal<<"] needs to be lower "
@@ -131,27 +132,29 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 template <typename TAlgebra>
 void
 IProjPreconditioner<TAlgebra>::
-correction_for_lower_obs(vector_type& c, const size_t index, const value_type tmpSol)
+correction_for_lower_obs(vector_type& c, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th lower obstacle value
 	value_type lowerObsVal = (*m_spVecOfLowObsValues)[index];
+
+	//UG_LOG("lowerObsVal.size(): "<<lowerObsVal.size()<<"\n");
 
 	if ((tmpSol - lowerObsVal) < 0.0)
 	{
 		//	u_{s-1/2} < lowerObsValue (:the lower constraint is not fulfilled)
 
 		//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-		c[index] = (*m_spVecOfLowObsValues)[index] - m_lastSol[index];
+		c[index] = (*m_spVecOfLowObsValues)[index] - (*m_lastSol)[index];
 
 		//	set new solution u_s to the obstacle value
 		//	and store the current index in a vector for further treatment
-		m_lastSol[index] = (*m_spVecOfLowObsValues)[index];
+		(*m_lastSol)[index] = (*m_spVecOfLowObsValues)[index];
 		m_vActiveIndicesLow.push_back(index);
 	}
 	else
 	{
 		//	the 'tmpSol' is valid with respect to the lower constraints
-		m_lastSol[index] = tmpSol;
+		(*m_lastSol)[index] = tmpSol;
 		m_vInactiveIndices.push_back(index);
 	}
 }
@@ -159,7 +162,7 @@ correction_for_lower_obs(vector_type& c, const size_t index, const value_type tm
 template <typename TAlgebra>
 void
 IProjPreconditioner<TAlgebra>::
-correction_for_upper_obs(vector_type& c, const size_t index, const value_type tmpSol)
+correction_for_upper_obs(vector_type& c, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th upper obstacle value
 	value_type upperObsVal = (*m_spVecOfUpObsValues)[index];
@@ -169,17 +172,17 @@ correction_for_upper_obs(vector_type& c, const size_t index, const value_type tm
 		//	u_{s-1/2} > upperObsValue (:the upper constraint is not fulfilled)
 
 		//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-		c[index] = (*m_spVecOfUpObsValues)[index] - m_lastSol[index];
+		c[index] = (*m_spVecOfUpObsValues)[index] - (*m_lastSol)[index];
 
 		//	set new solution u_s to the obstacle value
 		//	and store the current index in a vector for further treatment
-		m_lastSol[index] = (*m_spVecOfUpObsValues)[index];
+		(*m_lastSol)[index] = (*m_spVecOfUpObsValues)[index];
 		m_vActiveIndicesUp.push_back(index);
 	}
 	else
 	{
 		//	the 'tmpSol' is valid with respect to the upper constraints
-		m_lastSol[index] = tmpSol;
+		(*m_lastSol)[index] = tmpSol;
 		m_vInactiveIndices.push_back(index);
 	}
 }
@@ -187,7 +190,7 @@ correction_for_upper_obs(vector_type& c, const size_t index, const value_type tm
 template <typename TAlgebra>
 void
 IProjPreconditioner<TAlgebra>::
-correction_for_lower_and_upper_obs(vector_type& c, const size_t index, const value_type tmpSol)
+correction_for_lower_and_upper_obs(vector_type& c, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th lower obstacle value
 	value_type upperObsVal = (*m_spVecOfUpObsValues)[index];
@@ -198,11 +201,11 @@ correction_for_lower_and_upper_obs(vector_type& c, const size_t index, const val
 		//	u_{s-1/2} > upperObsValue (:the upper constraint is not fulfilled)
 
 		//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-		c[index] = (*m_spVecOfUpObsValues)[index] - m_lastSol[index];
+		c[index] = (*m_spVecOfUpObsValues)[index] - (*m_lastSol)[index];
 
 		//	set new solution u_s to the obstacle value
 		//	and store the current index in a vector for further treatment
-		m_lastSol[index] = (*m_spVecOfUpObsValues)[index];
+		(*m_lastSol)[index] = (*m_spVecOfUpObsValues)[index];
 		m_vActiveIndicesUp.push_back(index);
 	}
 	else
@@ -212,17 +215,17 @@ correction_for_lower_and_upper_obs(vector_type& c, const size_t index, const val
 			//	u_{s-1/2} < lowerObsValue (:the lower constraint is not fulfilled)
 
 			//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-			c[index] = (*m_spVecOfLowObsValues)[index] - m_lastSol[index];
+			c[index] = (*m_spVecOfLowObsValues)[index] - (*m_lastSol)[index];
 
 			//	set new solution u_s to the obstacle value
 			//	and store the current index in a vector for further treatment
-			m_lastSol[index] = (*m_spVecOfLowObsValues)[index];
+			(*m_lastSol)[index] = (*m_spVecOfLowObsValues)[index];
 			m_vActiveIndicesLow.push_back(index);
 		}
 		else
 		{
 			//	the 'tmpSol' is valid with respect to all constraints
-			m_lastSol[index] = tmpSol;
+			(*m_lastSol)[index] = tmpSol;
 			m_vInactiveIndices.push_back(index);
 		}
 	}
@@ -286,9 +289,9 @@ apply(vector_type &c, const vector_type& d)
 	if(d.size() != c.size())
 		UG_THROW("Vector [d size= "<<d.size()<<", c size = "
 					   <<c.size()<< "] sizes have to match!");
-	if(d.size() != m_lastSol.size())
+	if(d.size() != (*m_lastSol).size())
 			UG_THROW("Vector [d size= "<<d.size()<<", m_lastSol size = "
-					   <<m_lastSol.size()<< "] sizes have to match!");
+					   <<(*m_lastSol).size()<< "] sizes have to match!");
 	//	reset vectors
 	m_vActiveIndicesLow.resize(0); m_vActiveIndicesUp.resize(0); m_vInactiveIndices.resize(0);
 

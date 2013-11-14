@@ -84,13 +84,13 @@ class IProjPreconditioner:
 
 	protected:
 	///	computes the correction for the case that only a lower obstacle is set, i.e. u >= g_low
-		void correction_for_lower_obs(vector_type& c, const size_t index, const value_type tmpSol);
+		void correction_for_lower_obs(vector_type& c, const size_t index, const value_type& tmpSol);
 
 	///	computes the correction for the case that only an upper obstacle is set, i.e. u <= g_up
-		void correction_for_upper_obs(vector_type& c, const size_t index, const value_type tmpSol);
+		void correction_for_upper_obs(vector_type& c, const size_t index, const value_type& tmpSol);
 
 	///	computes the correction for the case that a lower and an upper obstacle is set
-		void correction_for_lower_and_upper_obs(vector_type& c, const size_t index, const value_type tmpSol);
+		void correction_for_lower_and_upper_obs(vector_type& c, const size_t index, const value_type& tmpSol);
 
 	private:
 	///	adjust defect of the active indices for the case that a constraint/obstacle is set
@@ -101,7 +101,7 @@ class IProjPreconditioner:
 		bool m_bLowerObs, m_bUpperObs;
 
 	///	storage for last solution u
-		vector_type m_lastSol;
+		SmartPtr<vector_type> m_lastSol;
 
 	///	relaxation parameter
 		number m_relax;

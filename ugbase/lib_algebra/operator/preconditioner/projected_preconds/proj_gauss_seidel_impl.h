@@ -35,7 +35,7 @@ projected_precond_step(vector_type& c, const matrix_type& A, const vector_type& 
 
 		//	compute temporary solution (solution of a common (forward) GaussSeidel-step)
 		//	tmpSol := u_{s-1/2} = u_{s-1} + c
-		tmpSol = m_lastSol[i] + c[i];
+		tmpSol = (*m_lastSol)[i] + c[i];
 
 		//	perform a projection: check whether the temporary solution u_{s-1/2}
 		//	fulfills the underlying constraint(s) or not
