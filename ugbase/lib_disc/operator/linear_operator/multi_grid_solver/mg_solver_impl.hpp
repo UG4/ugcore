@@ -980,14 +980,6 @@ init_level_memory(int baseLev, int topLev)
 		ld.A = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
 				new MatrixOperator<matrix_type, vector_type>);
 
-		//	default storage types for c and d to avoid incompatible types.
-		// \todo: check if really necessary
-		#ifdef UG_PARALLEL
-		ld.sc->set_storage_type(PST_CONSISTENT);
-		ld.sd->set_storage_type(PST_ADDITIVE);
-		ld.A->set_layouts(ld.sc->layouts());
-		#endif
-
 		ld.PreSmoother = m_spPreSmootherPrototype->clone();
 		if(m_spPreSmootherPrototype == m_spPostSmootherPrototype)
 			ld.PostSmoother = ld.PreSmoother;
