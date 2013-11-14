@@ -281,7 +281,9 @@ string UGProfileNode::print_node(double fullMs, double fullMem, size_t offset) c
 			left << setw(2) << totalUnit->suffix << " " <<
 			right << setw(PROFILER_BRIDGE_OUTPUT_WIDTH_PERC) << floor(get_avg_total_time_ms() / fullMs * 100) << "%  ";
 	if(fullMem >= 0.0)
-		s << get_mem_info(fullMem) << zone->groups;
+		s << get_mem_info(fullMem);
+	if(zone->groups != NULL)
+		ss << zone->groups
 	return s.str();
 }
 
@@ -597,7 +599,7 @@ void WriteProfileDataXML(const char *filename, int procId)
 					  << ". Only one process available (with id 0)");
 	#endif
 
-	clock_t curTime = clock();
+	clock_t curTime = clock(); (void) curTime;
 	ProfilerUpdate();
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
 
