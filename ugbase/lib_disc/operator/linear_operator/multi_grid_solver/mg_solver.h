@@ -365,13 +365,14 @@ class AssembledMultiGridCycle :
 
 		std::vector<vector_type*> level_defects()
 		{
-			std::vector<vector_type*> vVec;
+			std::vector<vector_type*> vVec(m_vLevData.size(), NULL);
 			for(size_t i = 0; i < m_vLevData.size(); ++i)
 			{
-				if(m_vLevData[i]->sd.valid())
-					if(m_vLevData[i]->sd->num_indices() > 0)
-						vVec.push_back(m_vLevData[i]->sd.get());
-				else vVec.push_back(NULL);
+				if(m_vLevData[i]->sd.valid()){
+					if(m_vLevData[i]->sd->num_indices() > 0){
+						vVec[i] = m_vLevData[i]->sd.get();
+					}
+				}
 			}
 			return vVec;
 		}
@@ -487,6 +488,8 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 	PROFILE_FUNC_GROUP("gmg");
 	std::vector<size_t> fineInd, coarseInd;
 
+	UG_ASSERT(ddCoarse.valid(), "DD Coarse missing, lev: "<<level)
+
 	// 	iterators
 	typedef typename DoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
 	const_iterator iter, iterEnd;
@@ -510,6 +513,7 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 			int offset = 0;
 
 		// 	get global indices
+			UG_ASSERT(ddCoarse.valid(), "Invalid ddCoarse");
 			ddCoarse->inner_algebra_indices(pElem, coarseInd);
 
 		//	skip if not a copy
@@ -517,12 +521,29 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 			//	increase offset
 				++offset;
 
+				if(surfView.is_ghost(pShadowing)) break;
+
+				UG_ASSERT(vDDFine[level+offset].valid(), "Invalid vDDFine."<<
+				          "lev: "<<level<<", off: "<<offset);
+				UG_ASSERT(vFineVector[level+offset], "Invalid vFineVector."<<
+				          "lev: "<<level<<", off: "<<offset);
+
 			// 	get global indices
 				vDDFine[level+offset]->inner_algebra_indices(pShadowing, fineInd);
 
 			//	add coarse vector entries to fine vector entries
 				for(size_t i = 0; i < coarseInd.size(); ++i)
 				{
+					UG_ASSERT(fineInd[i] < vFineVector[level+offset]->size(),
+					          "On FineVec, lev "<<level<<", off:"<<offset<<
+					          "ind: "<<fineInd[i]<<", size: "<<
+					          vFineVector[level+offset]->size());
+
+					UG_ASSERT(coarseInd[i] < coarseVec.size(),
+							  "On coarseVec, lev "<<level<<", off:"<<offset<<
+							  "ind: "<<coarseInd[i]<<", size: "<<
+							  coarseVec.size());
+
 					VecScaleAdd((*vFineVector[level+offset])[fineInd[i]],
 								1.0, (*vFineVector[level+offset])[fineInd[i]],
 								scale, coarseVec[coarseInd[i]]);
@@ -534,6 +555,7 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 			}
 		}
 	}
+
 }
 
 template <typename TVector>
