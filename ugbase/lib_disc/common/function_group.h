@@ -153,7 +153,7 @@ class FunctionGroup
 
 /// describes a mapping between two local index sets
 /**
- * This class is used to define mapping between to index sets. The domain index
+ * This class is used to define a mapping between two index sets. The domain index
  * set must contain indices in consecutive order [0, ..., N],
  * while the codomain index set can have any size.
  */
