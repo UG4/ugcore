@@ -771,7 +771,7 @@ init_base_solver()
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_base_solver\n");
 //	skip void level
-	if(m_vLevData[m_baseLev]->d->num_indices() == 0) return;
+	if(m_vLevData[m_baseLev]->t->num_indices() == 0) return;
 
 #ifdef UG_PARALLEL
 //	check, if a gathering base solver is required:
@@ -781,7 +781,7 @@ init_base_solver()
 	//	given, we know, that still the grid is distributed. But, if no
 	//	vertical layouts are present in addition, we can not gather the vectors
 	//	to on proc. Write a warning an switch to distributed coarse solver
-		vector_type& d = *m_vLevData[m_baseLev]->d;
+		vector_type& d = *m_vLevData[m_baseLev]->t;
 	//	the base-solver only operates on normal and vertical-master elements...
 		if(d.layouts()->vertical_slave().empty()){
 			if((!d.layouts()->master().empty() || !d.layouts()->slave().empty()) &&
@@ -1020,7 +1020,6 @@ init_level_memory(int baseLev, int topLev)
 
 		GridLevel glGhosts = GridLevel(lev, GridLevel::LEVEL, true);
 		ld.c = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
-		ld.d = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
 		ld.t = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
 
 		GridLevel gl = GridLevel(lev, GridLevel::LEVEL, false);
@@ -1035,7 +1034,6 @@ init_level_memory(int baseLev, int topLev)
 		// \todo: check if really necessary
 		#ifdef UG_PARALLEL
 		ld.c->set_storage_type(PST_CONSISTENT);
-		ld.d->set_storage_type(PST_ADDITIVE);
 		ld.sc->set_storage_type(PST_CONSISTENT);
 		ld.sd->set_storage_type(PST_ADDITIVE);
 		ld.A->set_layouts(ld.sc->layouts());
@@ -1168,27 +1166,29 @@ restriction(size_t lev)
 	LevData& lc = *m_vLevData[lev-1];
 
 //	## PARALLEL CASE: gather vertical
-//	Send vertical slave values to master.
-//	we have to make sure that d is additive after this operation and that it
-//	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0)
-//	(We have to set all v-slaves with a local parent element to 0, since
-//	 otherwise restriction would't be performed on an additive defect. Since
-//	those are hard to detect, we simply set 0 in all v-slaves. [Indices could
-//	be hashed, though] Setting all v-slaves to zero, however, must be cured when
-//	coming back to this level again during the cycle. See prolongation.)
-	copy_noghost_to_ghost(lf.d, lf.sd, lf.vMapPatchToGlobal);
+//	v-slaves indicate, that part of the parent are stored on a different proc.
+//	Thus the values of the defect must be transfered to the v-masters and will
+//	have their parents on the proc of the master and must be restricted on
+//	that process. Thus we have to transfer the defect (currently stored
+//	additive in the noghost-vectors) to the v-masters. And have to make sure
+//	that d is additive after this operation. We do that by ensuring that it
+//	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0).
+//	We use a temporary vector including ghost, such that the no-ghost defect
+//	remains valid and can be used when the cycle comes back to this level.
+	lf.t->set(0.0);
+	copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
 	#ifdef UG_PARALLEL
-	if(lf.d->size() > 0){
-		gather_vertical(*lf.d);
-		SetLayoutValues(&(*lf.d), lf.d->layouts()->vertical_slave(), 0);
+	if(lf.t->size() > 0){
+		gather_vertical(*lf.t);
+		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_slave(), 0);
 	}
 	#endif
 
 //	Now we can restrict the defect from the fine level to the coarser level.
-	if((lc.d->size() > 0) && (lf.d->size() > 0)){
+	if((lc.sd->size() > 0) && (lf.t->size() > 0)){
 		GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 		try{
-			m_vLevData[lev]->Restriction->do_restrict(*lc.sd, *lf.d);
+			m_vLevData[lev]->Restriction->do_restrict(*lc.sd, *lf.t);
 		}
 		UG_CATCH_THROW("GMG::lmgc: Restriction of Defect from level "<<lev<<
 		               " to "<<lev-1<<" failed.");
@@ -1196,7 +1196,7 @@ restriction(size_t lev)
 
 	//	apply post processes
 		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
-			m_vLevData[lev]->vRestrictionPP[i]->post_process(m_vLevData[lev-1]->d);
+			m_vLevData[lev]->vRestrictionPP[i]->post_process(lc.sd);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
@@ -1211,18 +1211,6 @@ prolongation(size_t lev)
 
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
-
-//	due to gathering during restriction, the defect is currently additive so
-//	that v-masters have the whole value and v-slaves are all 0 (in d. sd may differ).
-//	we thus have to transport all values back to v-slaves and have to make sure
-//	that d is additive again.
-	#ifdef UG_PARALLEL
-	broadcast_vertical_add(*lf.d);
-	SetLayoutValues(&(*lf.d), lf.d->layouts()->vertical_master(), 0);
-	#endif
-
-//	copy defect to smooth patch
-	copy_ghost_to_noghost(lf.sd, lf.d, lf.vMapPatchToGlobal);
 
 //	## ADAPTIVE CASE
 //	in the adaptive case there is a small part of the coarse coupling that
@@ -1343,12 +1331,12 @@ base_solve(size_t lev)
 //	CASE a): We solve the problem in parallel (or normally for sequential code)
 #ifdef UG_PARALLEL
 	if( m_bBaseParallel ||
-	   (ld.d->layouts()->vertical_slave().empty() &&
-		ld.d->layouts()->vertical_master().empty()))
+	   (ld.t->layouts()->vertical_slave().empty() &&
+		ld.t->layouts()->vertical_master().empty()))
 	{
 #endif
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering distributed basesolver branch.\n");
-		if(ld.d->num_indices()){
+		if(ld.sd->num_indices()){
 
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			ld.sc->set(0.0);
@@ -1381,22 +1369,22 @@ base_solve(size_t lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering gathered basesolver branch.\n");
 
 	//	gather the defect
-		ld.d->set(0.0);
-		copy_noghost_to_ghost(ld.d, ld.sd, ld.vMapPatchToGlobal);
-		gather_vertical(*ld.d);
+		ld.t->set(0.0);
+		copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
+		gather_vertical(*ld.t);
 
 	//	Reset correction
 		ld.c->set(0.0);
 
 	//	check, if this proc continues, else idle
-		if(ld.d->layouts()->vertical_slave().empty())
+		if(ld.t->layouts()->vertical_slave().empty())
 		{
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: Start serial base solver.\n");
 
 		//	compute coarse correction
 			try{
-				if(!m_spBaseSolver->apply(*ld.c, *ld.d))
+				if(!m_spBaseSolver->apply(*ld.c, *ld.t))
 					UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 			}
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
@@ -1615,23 +1603,14 @@ log_debug_data(int lvl, std::string name)
 
 	LevData& ld = *m_vLevData[lvl];
 	if(bEnableSerialNorm){
-		UG_LOG(prefix << "local  d norm: " << sqrt(VecProd(*ld.d, *ld.d)) << std::endl);
 		UG_LOG(prefix << "local  c norm: " << sqrt(VecProd(*ld.c, *ld.c)) << std::endl);
 		UG_LOG(prefix << "local sd norm: " << sqrt(VecProd(*ld.sd, *ld.sd)) << std::endl);
 		UG_LOG(prefix << "local sc norm: " << sqrt(VecProd(*ld.sc, *ld.sc)) << std::endl);
 	}
 	if(bEnableParallelNorm){
 	#ifdef UG_PARALLEL
-		uint oldStorageMask = ld.d->get_storage_mask();
-		number norm = ld.d->norm();
-		UG_LOG(prefix << " d norm: " << norm << "\n");
-		if(oldStorageMask & PST_ADDITIVE)
-			ld.d->change_storage_type(PST_ADDITIVE);
-		else if(oldStorageMask & PST_CONSISTENT)
-			ld.d->change_storage_type(PST_CONSISTENT);
-
-		oldStorageMask = ld.c->get_storage_mask();
-		norm = ld.c->norm();
+		uint oldStorageMask = ld.c->get_storage_mask();
+		number norm = ld.c->norm();
 		UG_LOG(prefix << " c norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
 			ld.c->change_storage_type(PST_ADDITIVE);

@@ -335,7 +335,7 @@ class AssembledMultiGridCycle :
             std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vRestrictionPP;
 
 		///	vectors needed (including ghosts, for transfer)
-			SmartPtr<GF> c, d, t;
+			SmartPtr<GF> c, t;
 
 		///	vectors needed (no-ghosts, for smoothing)
 			SmartPtr<GF> sc, sd, st;
