@@ -1171,6 +1171,11 @@ restriction(size_t lev)
 //	Send vertical slave values to master.
 //	we have to make sure that d is additive after this operation and that it
 //	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0)
+//	(We have to set all v-slaves with a local parent element to 0, since
+//	 otherwise restriction would't be performed on an additive defect. Since
+//	those are hard to detect, we simply set 0 in all v-slaves. [Indices could
+//	be hashed, though] Setting all v-slaves to zero, however, must be cured when
+//	coming back to this level again during the cycle. See prolongation.)
 	copy_noghost_to_ghost(lf.d, lf.sd, lf.vMapPatchToGlobal);
 	#ifdef UG_PARALLEL
 	if(lf.d->size() > 0){
