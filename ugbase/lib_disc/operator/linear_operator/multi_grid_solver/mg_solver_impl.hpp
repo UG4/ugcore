@@ -52,7 +52,7 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(approxSpace),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
-	m_baseLev(0), m_bBaseParallel(true), m_cycleType(1),
+	m_baseLev(0), m_cycleType(1),
 	m_numPreSmooth(2), m_numPostSmooth(2),
 	m_bAdaptive(true),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
@@ -61,6 +61,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
+	m_bParallelBaseSolverIfAmbiguous(true),
 	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
 
@@ -540,30 +541,15 @@ init_level_operator()
 //	solver is carried out in serial (gathering to some processes), we have
 //	to assemble the assemble the coarse grid matrix on the whole grid as
 //	well
-	LevData& ld = *m_vLevData[m_baseLev];
-	if(!m_bBaseParallel)
+	if(m_bGatheredBaseUsed)
 	{
+		LevData& ld = *m_vLevData[m_baseLev];
 		try{
-		if(spBaseSolverMat.invalid())
-			spBaseSolverMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(new MatrixOperator<matrix_type, vector_type>);
 		m_spAss->ass_tuner()->set_force_regular_grid(true);
 		m_spAss->assemble_jacobian(*spBaseSolverMat, *ld.t, GridLevel(m_baseLev, GridLevel::LEVEL, true));
 		m_spAss->ass_tuner()->set_force_regular_grid(false);
 		}
-		UG_CATCH_THROW("GMG:init: Cannot init operator "
-						"base level operator");
-	}
-//	else we can forget about the whole-level matrix, since the needed
-//	smoothing matrix is stored in SmoothMat
-	else
-	{
-		try{
-		m_spAss->ass_tuner()->set_force_regular_grid(true);
-		m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(m_baseLev, GridLevel::LEVEL, false));
-		m_spAss->ass_tuner()->set_force_regular_grid(false);
-		}
-		UG_CATCH_THROW("GMG:init: Cannot init operator "
-						"for level "<<m_baseLev);
+		UG_CATCH_THROW("GMG:init: Cannot init operator base level operator");
 	}
 
 //	write computed level matrices for debug purpose
@@ -576,8 +562,7 @@ init_level_operator()
 		if(m_bAdaptive)
 			init_missing_coarse_grid_coupling(m_pSurfaceSol);
 	}
-	UG_CATCH_THROW("GMG:init: Cannot init "
-					"missing coarse grid coupling.");
+	UG_CATCH_THROW("GMG:init: Cannot init missing coarse grid coupling.");
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_linear_level_operator\n");
 }
@@ -770,59 +755,25 @@ init_base_solver()
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_base_solver\n");
+
 //	skip void level
 	if(m_vLevData[m_baseLev]->t->num_indices() == 0) return;
 
-#ifdef UG_PARALLEL
 //	check, if a gathering base solver is required:
-	if(!m_bBaseParallel)
+	if(m_bGatheredBaseUsed)
 	{
-	//	check if gathering base solver possible: If some horizontal layouts are
-	//	given, we know, that still the grid is distributed. But, if no
-	//	vertical layouts are present in addition, we can not gather the vectors
-	//	to on proc. Write a warning an switch to distributed coarse solver
-		vector_type& d = *m_vLevData[m_baseLev]->t;
-	//	the base-solver only operates on normal and vertical-master elements...
-		if(d.layouts()->vertical_slave().empty()){
-			if((!d.layouts()->master().empty() || !d.layouts()->slave().empty()) &&
-			   (d.layouts()->vertical_slave().empty() && d.layouts()->vertical_master().empty()))
-			{
-			//todo	add a check whether the base-solver supports parallel execution
-			//		and also make sure, that all processes change to parallel execution.
-			//		as soon as this is done, revert UG_THROW to UG_LOG and set m_bBaseParallel
-			//		to true, if the solver supports this...
-				UG_THROW("ERROR in 'AssembledMultiGridCycle::init_base_solver': "
-						" Cannot init distributed base solver on level "<< m_baseLev << ":\n"
-						" Base level distributed among processes and no possibility"
-						" of gathering (vert. interfaces) present. But a gathering"
-						" solving is required. Choose gmg:set_parallel_base_solver(true)"
-						" to avoid this error.\n");
-			//m_bBaseParallel = true;
-			}
-			else
-			{
-			//	we init the base solver with the whole grid matrix
-				if(!m_spBaseSolver->init(spBaseSolverMat, *m_vLevData[m_baseLev]->t))
-					UG_THROW("GMG::init: Cannot init base "
-							"solver on baselevel "<< m_baseLev);
-			}
-		}
-	//todo:	it could make sense to communicate here, to make sure that all processes
-	//		do the same thing and that exactly one is executing the serial base solver...
+	//	we init the base solver with the whole grid matrix
+		if(!m_spBaseSolver->init(spBaseSolverMat, *spGatheredBaseCorr))
+			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}
 
 //	\todo: add a check if base solver can be run in parallel. This needs to
 //		   introduce such a flag in the solver.
-//	in Serial or in case of a distributed coarse grid solver, we can simply use
-//	the smoothing matrices to set up the solver.
-	if(m_bBaseParallel)
-#endif
+	else
 	{
 		LevData& ld = *m_vLevData[m_baseLev];
-
 		if(!m_spBaseSolver->init(ld.A, *ld.st))
-			UG_THROW("GMG::init: Cannot init base solver "
-					"on baselevel "<< m_baseLev);
+			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_base_solver\n");
@@ -1019,7 +970,6 @@ init_level_memory(int baseLev, int topLev)
 		LevData& ld = *m_vLevData[lev];
 
 		GridLevel glGhosts = GridLevel(lev, GridLevel::LEVEL, true);
-		ld.c = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
 		ld.t = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
 
 		GridLevel gl = GridLevel(lev, GridLevel::LEVEL, false);
@@ -1033,7 +983,6 @@ init_level_memory(int baseLev, int topLev)
 		//	default storage types for c and d to avoid incompatible types.
 		// \todo: check if really necessary
 		#ifdef UG_PARALLEL
-		ld.c->set_storage_type(PST_CONSISTENT);
 		ld.sc->set_storage_type(PST_CONSISTENT);
 		ld.sd->set_storage_type(PST_ADDITIVE);
 		ld.A->set_layouts(ld.sc->layouts());
@@ -1063,6 +1012,52 @@ init_level_memory(int baseLev, int topLev)
 
 		init_noghost_to_ghost_mapping(lev);
 	}
+
+	m_bGatheredBaseUsed = false;
+#ifdef UG_PARALLEL
+//	if no vert-interfaces are present, we cannot gather, thus overruling the
+//	user choice
+	if(m_vLevData[baseLev]->t->layouts()->vertical_slave().empty() &&
+		m_vLevData[baseLev]->t->layouts()->vertical_master().empty()){
+		m_bGatheredBaseUsed = false;
+	} else {
+		m_bGatheredBaseUsed = !m_bParallelBaseSolverIfAmbiguous;
+	}
+#endif
+
+	if(m_bGatheredBaseUsed){
+		GridLevel glGhosts = GridLevel(baseLev, GridLevel::LEVEL, true);
+		spGatheredBaseCorr = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
+		spBaseSolverMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
+								new MatrixOperator<matrix_type, vector_type>);
+	} else {
+		spGatheredBaseCorr = NULL;
+		spBaseSolverMat = NULL;
+	}
+
+//	check if gathering base solver possible: If some horizontal layouts are
+//	given, we know, that still the grid is distributed. But, if no
+//	vertical layouts are present in addition, we can not gather the vectors
+//	to on proc. Write a warning an switch to distributed coarse solver
+#ifdef UG_PARALLEL
+	if(m_bGatheredBaseUsed)
+	{
+		vector_type& d = *m_vLevData[m_baseLev]->t;
+		if(d.layouts()->vertical_slave().empty())
+		{
+			if((!d.layouts()->master().empty() || !d.layouts()->slave().empty()) &&
+			   (d.layouts()->vertical_slave().empty() && d.layouts()->vertical_master().empty()))
+			{
+				UG_THROW("GMG::init: "
+						" Cannot init distributed base solver on level "<< m_baseLev << ":\n"
+						" Base level distributed among processes and no possibility"
+						" of gathering (vert. interfaces) present. But a gathering"
+						" solving is required. Choose gmg:set_parallel_base_solver(true)"
+						" to avoid this error.");
+			}
+		}
+	}
+#endif
 }
 
 
@@ -1329,12 +1324,8 @@ base_solve(size_t lev)
 //	   process and then again distributed
 
 //	CASE a): We solve the problem in parallel (or normally for sequential code)
-#ifdef UG_PARALLEL
-	if( m_bBaseParallel ||
-	   (ld.t->layouts()->vertical_slave().empty() &&
-		ld.t->layouts()->vertical_master().empty()))
+	if(!m_bGatheredBaseUsed)
 	{
-#endif
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering distributed basesolver branch.\n");
 		if(ld.sd->num_indices()){
 
@@ -1360,7 +1351,6 @@ base_solve(size_t lev)
 			GMG_PROFILE_END();
 		}
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting distributed basesolver branch.\n");
-#ifdef UG_PARALLEL
 	}
 
 //	CASE b): We gather the processes, solve on one proc and distribute again
@@ -1371,20 +1361,24 @@ base_solve(size_t lev)
 	//	gather the defect
 		ld.t->set(0.0);
 		copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
+		#ifdef UG_PARALLEL
 		gather_vertical(*ld.t);
+		#endif
 
 	//	Reset correction
-		ld.c->set(0.0);
+		spGatheredBaseCorr->set(0.0);
 
 	//	check, if this proc continues, else idle
+		#ifdef UG_PARALLEL
 		if(ld.t->layouts()->vertical_slave().empty())
+		#endif
 		{
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: Start serial base solver.\n");
 
 		//	compute coarse correction
 			try{
-				if(!m_spBaseSolver->apply(*ld.c, *ld.t))
+				if(!m_spBaseSolver->apply(*spGatheredBaseCorr, *ld.t))
 					UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 			}
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
@@ -1395,13 +1389,14 @@ base_solve(size_t lev)
 
 
 	//	broadcast the correction
-		broadcast_vertical(*ld.c);
-		ld.c->set_storage_type(PST_CONSISTENT);
-		copy_ghost_to_noghost(ld.sc, ld.c, ld.vMapPatchToGlobal);
+		#ifdef UG_PARALLEL
+		broadcast_vertical(*spGatheredBaseCorr);
+		spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
+		#endif
+		copy_ghost_to_noghost(ld.sc, spGatheredBaseCorr, ld.vMapPatchToGlobal);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
-#endif
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
 
@@ -1603,22 +1598,13 @@ log_debug_data(int lvl, std::string name)
 
 	LevData& ld = *m_vLevData[lvl];
 	if(bEnableSerialNorm){
-		UG_LOG(prefix << "local  c norm: " << sqrt(VecProd(*ld.c, *ld.c)) << std::endl);
 		UG_LOG(prefix << "local sd norm: " << sqrt(VecProd(*ld.sd, *ld.sd)) << std::endl);
 		UG_LOG(prefix << "local sc norm: " << sqrt(VecProd(*ld.sc, *ld.sc)) << std::endl);
 	}
 	if(bEnableParallelNorm){
 	#ifdef UG_PARALLEL
-		uint oldStorageMask = ld.c->get_storage_mask();
-		number norm = ld.c->norm();
-		UG_LOG(prefix << " c norm: " << norm << "\n");
-		if(oldStorageMask & PST_ADDITIVE)
-			ld.c->change_storage_type(PST_ADDITIVE);
-		else if(oldStorageMask & PST_CONSISTENT)
-			ld.c->change_storage_type(PST_CONSISTENT);
-
-		oldStorageMask = ld.t->get_storage_mask();
-		norm = ld.t->norm();
+		uint oldStorageMask = ld.t->get_storage_mask();
+		number norm = ld.t->norm();
 		UG_LOG(prefix << " t norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
 			ld.t->change_storage_type(PST_ADDITIVE);
@@ -1890,7 +1876,7 @@ config_string() const
 		ss << " Postsmoother ( " << m_numPostSmooth << "x): " << ConfigShift(m_spPostSmootherPrototype->config_string());
 	}
 	ss << "\n";
-	ss << " Basesolver ( Baselevel = " << m_baseLev << ", parallel = " << (m_bBaseParallel ? "true" : "false") << "): ";
+	ss << " Basesolver ( Baselevel = " << m_baseLev << ", parallel = " << (m_bParallelBaseSolverIfAmbiguous ? "true" : "false") << "): ";
 	ss << ConfigShift(m_spBaseSolver->config_string());
 	return ss.str();
 

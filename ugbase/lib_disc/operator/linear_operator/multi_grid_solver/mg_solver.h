@@ -95,7 +95,7 @@ class AssembledMultiGridCycle :
 			{m_spBaseSolver = baseSolver;}
 
 	///	sets if the base solver is applied in parallel
-		void set_parallel_base_solver(bool bParallel) {m_bBaseParallel = bParallel;}
+		void set_parallel_base_solver(bool bParallel) {m_bParallelBaseSolverIfAmbiguous = bParallel;}
 
 	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
 		void set_cycle_type(int type) {m_cycleType = type;}
@@ -252,9 +252,6 @@ class AssembledMultiGridCycle :
 	///	base level (where exact inverse is computed)
 		int m_baseLev;
 
-	///	flag, if to solve base problem in parallel
-		bool m_bBaseParallel;
-
 	///	cylce type (1 = V-cycle, 2 = W-cylcle, ...)
 		int m_cycleType;
 
@@ -334,11 +331,8 @@ class AssembledMultiGridCycle :
             std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vProlongationPP;
             std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vRestrictionPP;
 
-		///	vectors needed (including ghosts, for transfer)
-			SmartPtr<GF> c, t;
-
-		///	vectors needed (no-ghosts, for smoothing)
-			SmartPtr<GF> sc, sd, st;
+		///	vectors needed (sx = no-ghosts [for smoothing], t = for transfer)
+			SmartPtr<GF> sc, sd, st, t;
 
 		///	missing coarse grid correction
 			matrix_type CoarseGridContribution;
@@ -347,8 +341,17 @@ class AssembledMultiGridCycle :
 			std::vector<size_t> vMapPatchToGlobal;
 		};
 
+	///	flag, if to solve base problem in parallel when gathered and (!) parallel possible
+		bool m_bParallelBaseSolverIfAmbiguous;
+
+	///	flag if using parallel base solver
+		bool m_bGatheredBaseUsed;
+
 	///	Matrix for gathered base solver
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > spBaseSolverMat;
+
+	///	vector for gathered base solver
+		SmartPtr<GF> spGatheredBaseCorr;
 
 	///	storage for all level
 		std::vector<SmartPtr<LevData> > m_vLevData;
