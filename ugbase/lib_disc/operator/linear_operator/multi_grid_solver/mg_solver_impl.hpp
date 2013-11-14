@@ -382,6 +382,16 @@ init()
 	UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
 	GMG_PROFILE_END();
 
+//	init mapping from surface level to top level in case of full refinement
+	GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
+	try{
+		if(m_bAdaptive)
+			for(int lev = m_baseLev; lev <= m_topLev; ++lev)
+				collect_shadowing_indices(lev);
+	}
+	UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
+	GMG_PROFILE_END();
+
 //	Assemble coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
 	try{
@@ -851,6 +861,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_surface_to_level_mapping()
 {
+	PROFILE_FUNC_GROUP("gmg");
 	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 	m_vSurfToLevelMap.resize(0);
@@ -899,6 +910,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_noghost_to_ghost_mapping(int lev)
 {
+	PROFILE_FUNC_GROUP("gmg");
 	ConstSmartPtr<DoFDistribution> spNoGhostDD =
 			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
 	ConstSmartPtr<DoFDistribution> spGhostDD =
@@ -921,6 +933,7 @@ copy_ghost_to_noghost(SmartPtr<GF> spVecTo,
                       ConstSmartPtr<GF> spVecFrom,
                       const std::vector<size_t>& vMapPatchToGlobal)
 {
+	PROFILE_FUNC_GROUP("gmg");
 	UG_ASSERT(vMapPatchToGlobal.size() == spVecTo->size(),
 	          "Mapping range ("<<vMapPatchToGlobal.size()<<") != "
 	          "To-Vec-Size ("<<spVecTo->size()<<")");
@@ -938,6 +951,7 @@ copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
                       ConstSmartPtr<GF> spVecFrom,
                       const std::vector<size_t>& vMapPatchToGlobal)
 {
+	PROFILE_FUNC_GROUP("gmg");
 	UG_ASSERT(vMapPatchToGlobal.size() == spVecFrom->size(),
 			  "Mapping domain ("<<vMapPatchToGlobal.size()<<") != "
 			  "From-Vec-Size ("<<spVecFrom->size()<<")");
@@ -947,6 +961,54 @@ copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
 	#ifdef UG_PARALLEL
 	spVecTo->set_storage_type(spVecFrom->get_storage_mask());
 	#endif
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TElem>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+collect_shadowing_indices(std::vector<size_t>& vShadowing,
+                          ConstSmartPtr<DoFDistribution> spDD)
+{
+	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
+	iter_type iter = spDD->begin<TElem>();
+	iter_type iterEnd = spDD->end<TElem>();
+	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
+
+//	vector of indices
+	std::vector<size_t> vInd;
+
+//	loop all elements of type
+	for( ; iter != iterEnd; ++iter){
+	//	get elem
+		TElem* elem = *iter;
+
+	//	check if shadowing
+		if(!spSurfView->is_shadowing(elem)) continue;
+
+	// 	get global indices
+		spDD->inner_algebra_indices(elem, vInd);
+
+	//	add to list of shadowing indices
+		for(size_t i = 0; i < vInd.size(); ++i)
+			vShadowing.push_back(vInd[i]);
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+collect_shadowing_indices(int lev)
+{
+	PROFILE_FUNC_GROUP("gmg");
+	ConstSmartPtr<DoFDistribution> spDD =
+			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
+
+	std::vector<size_t>& vShadowing = m_vLevData[lev]->vShadowing;
+	vShadowing.clear();
+
+	if(spDD->max_dofs(VERTEX)) collect_shadowing_indices<VertexBase>(vShadowing, spDD);
+	if(spDD->max_dofs(EDGE))   collect_shadowing_indices<EdgeBase>(vShadowing, spDD);
+	if(spDD->max_dofs(FACE))   collect_shadowing_indices<Face>(vShadowing, spDD);
+	if(spDD->max_dofs(VOLUME)) collect_shadowing_indices<Volume>(vShadowing, spDD);
 }
 
 
@@ -1067,56 +1129,28 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - smooth on level "<<lev<<"\n");
 
-	if(sd->size() == 0){
-	//	since no parallel communication takes place in this method, we may
-	//	return immediately, if d is empty.
-		return;
-	}
+//	since no parallel communication takes place in this method, we may
+//	return immediately, if d is empty.
+	if(sd->size() == 0) return;
 
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
 	{
-	//	switch if adaptive case must be handled
-		if(!m_bAdaptive)
-		{
-		// 	Compute Correction of one smoothing step:
-		//	a)  Compute t = B*d with some iterator B
-		//	b) 	Update Defect d := d - A * t
-			if(!S.apply_update_defect(*st, *sd))
-				UG_THROW("GMG::smooth: Smoothing step "
-						<< i+1 << " on level "<<lev<<" failed.");
+	// 	Compute Correction of one smoothing step, but do not update defect
+	//	a)  Compute t = B*d with some iterator B
+		if(!S.apply(*st, *sd))
+			UG_THROW("GMG::smooth: Smoothing step "<<i+1<<" on level "<<lev<<" failed.");
 
-		// 	add correction of smoothing step to level correction
-		//	(Note: we do not work on c directly here, since we update the defect
-		//	       after every smoothing step. The summed up correction corresponds
-		//		   to the total correction of the whole smoothing.)
-			(*sc) += (*st);
-		}
-		else
-	//	This is the adaptive case. Here, we must ensure, that the added correction
-	//	is zero on the adaptively refined patch boundary of this level
-		{
-		// 	Compute Correction of one smoothing step, but do not update defect
-		//	a)  Compute t = B*d with some iterator B
+	//	b) reset the correction to zero on the patch boundary.
+		const std::vector<size_t>& vShadowing = m_vLevData[lev]->vShadowing;
+		for(size_t i = 0; i < vShadowing.size(); ++i)
+			(*st)[ vShadowing[i] ] = 0.0;
 
-			if(!S.apply(*st, *sd))
-				UG_THROW("GMG::smooth: Smoothing step "
-						<< i+1 << " on level "<<lev<<" failed.");
+	//	c) update the defect with this correction ...
+		A.apply_sub(*sd, *st);
 
-		//	get surface view
-			const SurfaceView& surfView = *m_spApproxSpace->surface_view();
-
-		//	First we reset the correction to zero on the patch boundary.
-			SetZeroOnShadowing(*st, m_vLevData[lev]->sc->dof_distribution(), surfView);
-
-			write_debug(st, "AdaptCorAfterSetZero");
-
-		//	now, we can update the defect with this correction ...
-			A.apply_sub(*sd, *st);
-
-		//	... and add the correction to to overall correction
-			(*sc) += (*st);
-		}
+	//	d) ... and add the correction to the overall correction
+		(*sc) += (*st);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - smooth on level "<<lev<<"\n");

@@ -279,11 +279,21 @@ class AssembledMultiGridCycle :
 	/// \}
 
 	///	init mapping from noghost -> w/ ghost
+	/// \{
 		template <typename TElem>
 		void init_noghost_to_ghost_mapping(	std::vector<size_t>& vNoGhostToGhostMap,
 		                                   	ConstSmartPtr<DoFDistribution> spNoGhostDD,
 		                                   	ConstSmartPtr<DoFDistribution> spGhostDD);
 		void init_noghost_to_ghost_mapping(int lev);
+	/// \}
+
+	///	collects all shadowing indices into the std::vector
+	/// \{
+		template <typename TElem>
+		void collect_shadowing_indices(std::vector<size_t>& vShadowing,
+		                               ConstSmartPtr<DoFDistribution> spDD);
+		void collect_shadowing_indices(int lev);
+	/// \}
 
 	///	prototype for pre-smoother
 		SmartPtr<ILinearIterator<vector_type> > m_spPreSmootherPrototype;
@@ -339,6 +349,9 @@ class AssembledMultiGridCycle :
 
 		///	maps global indices (including ghosts) to patch indices (no ghosts included).
 			std::vector<size_t> vMapPatchToGlobal;
+
+		/// list of shadowing indices
+			std::vector<size_t> vShadowing;
 		};
 
 	///	flag, if to solve base problem in parallel when gathered and (!) parallel possible
@@ -584,77 +597,6 @@ void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
 	if(ddCoarse->max_dofs(VOLUME))
 		AddProjectionOfShadows<Volume, TVector>
 					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
-}
-
-
-/**
-* This functions sets the values of a vector to zero, where the index
-* corresponds to a refine-patch boundary (i.e. the geomeric object is a
-* shadowing object) for an element type
-*
-* \param[out]	vec					grid vector
-* \param[in] 	dd					DoFDistribution
-* \param[in]	surfView			SurfaceView
-* \param[in]	pmapGlobalToPatch	(optional) mapping of global indices to patch indices
-*/
-template <typename TBaseElem, typename TVector>
-void SetZeroOnShadowing(TVector& vec,
-					 ConstSmartPtr<DoFDistribution> dd,
-					 const SurfaceView& surfView)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	//	indices
-	std::vector<size_t> ind;
-
-	// 	Vertex iterators
-	typedef typename DoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
-	const_iterator iter, iterEnd;
-
-	// 	loop subsets of fine level
-	for(int si = 0; si < dd->num_subsets(); ++si)
-	{
-		iter = dd->begin<TBaseElem>(si);
-		iterEnd = dd->end<TBaseElem>(si);
-
-	// 	loop nodes of fine subset
-		for(; iter != iterEnd; ++iter)
-		{
-		//	get vertex
-			TBaseElem* vrt = *iter;
-
-			if(!surfView.is_shadowing(vrt))
-				continue;
-
-		// 	get global indices
-			dd->inner_algebra_indices(vrt, ind);
-
-		//	set vector entries to zero
-			for(size_t i = 0; i < ind.size(); ++i)				{
-				vec[ind[i]] = 0.0;
-			}
-		}
-	}
-}
-
-/**
-* This functions sets the values of a vector to zero, where the index
-* corresponds to a refine-patch boundary (i.e. the geomeric object is a
-* shadowing object)
-*
-* \param[out]	vec				grid vector
-* \param[in] 	dd				DoFDistribution
-* \param[in]	surfView		SurfaceView
-*/
-template <typename TVector>
-void SetZeroOnShadowing(TVector& vec,
-					 ConstSmartPtr<DoFDistribution> dd,
-					 const SurfaceView& surfView)
-{
-	//	forward for all BaseObject types
-	if(dd->max_dofs(VERTEX)) SetZeroOnShadowing<VertexBase, TVector>(vec, dd, surfView);
-	if(dd->max_dofs(EDGE))   SetZeroOnShadowing<EdgeBase, TVector>(vec, dd, surfView);
-	if(dd->max_dofs(FACE))   SetZeroOnShadowing<Face, TVector>(vec, dd, surfView);
-	if(dd->max_dofs(VOLUME)) SetZeroOnShadowing<Volume, TVector>(vec, dd, surfView);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
