@@ -259,9 +259,41 @@ alias ugcmake=cmake
 
 UGCMAKE_INTERNAL="-DBUILTIN_BLAS= -DBUILTIN_LAPACK= -DDEBUG_FORMAT="
 
-# create this list with
-# cat $UG4_ROOT/debug/CMakeCache.txt | sed -n 's/^\([^/#][^:]*\):[^I].*/-D\1= \\/p'
-# add -DCMAKE_TOOLCHAIN_FILE= \
+# create with "ugcmake -DPRINT_PLUGINS_FOR_COMPLETION=ON .."
+COMPLETIONS_UG4_PLUGINS="\
+-Dd3f= \
+-DConvectionDiffusion= \
+-DLinearElastoPlasticity= \
+-Damg= \
+-DSHTopology= \
+-DBiogas= \
+-DBoutonGenerator= \
+-DcalciumDynamics= \
+-DChloridDiffusion= \
+-DCompressibleNavierStokes= \
+-DElectromagnetism= \
+-DElementQualityStatistics= \
+-DGridHierarchySmoothing= \
+-DIncompressibleNavierStokes= \
+-Djitsg= \
+-DLevelSet= \
+-DMembranePotentialMapping= \
+-DNeuronPlugin= \
+-DNonlinearElastoPlasticity= \
+-DParticleLadenFlow= \
+-DPlasmaMembrane= \
+-DProMesh= \
+-DReceptorKinetic= \
+-DSample= \
+-DSkin= \
+-DStructuredGrid= \
+-DSynapticCalciumDynamics= \
+-DTemplate= \
+-DTKDGenerator= \
+-DVesicleDynamics= \
+-DSG= \
+-DElectricCircuit= "
+
 complete -W "\
 ON \
 OFF \
@@ -273,7 +305,6 @@ None Shiny Scalasca Vampir \
 -DBUILTIN_BLAS= \
 -DBUILTIN_LAPACK= \
 -DBUILTIN_MPI= \
--DBiogas= \
 -DCMAKE_CXX_COMPILER= \
 -DCMAKE_CXX_FLAGS= \
 -DCMAKE_C_COMPILER= \
@@ -283,28 +314,18 @@ None Shiny Scalasca Vampir \
 -DCPU= \
 -DCUDA= \
 -DCXX11= \
--DConstantEquation= \
--DConvectionDiffusion= \
 -DDEBUG= \
 -DDEBUG_FORMAT= \
 -DDEBUG_LOGS= \
 -DDIM= \
 -DEMBEDDED_PLUGINS= \
--DElementQualityStatistics= \
--DGridHierarchySmoothing= \
 -DHLIBPRO= \
 -DHYPRE= \
 -DINTERNAL_BOOST= \
 -DLAPACK= \
 -DLAPACK_INCLUDE_PATH= \
 -DLAPACK_LIBRARIES= \
--DLevelSet= \
--DLinearElastoPlasticity= \
 -DMETIS= \
--DMembranePotentialMapping= \
--DNavierStokes= \
--DNeuronPlugin= \
--DNonlinearElastoPlasticity= \
 -DOPENMP= \
 -DPARALLEL= \
 -DPARMETIS= \
@@ -317,34 +338,20 @@ None Shiny Scalasca Vampir \
 -DPROFILER= \
 -DPROFILE_BRIDGE= \
 -DPROFILE_PCL= \
--DPlasmaMembrane= \
--DParticleLadenFlow= \
--DReceptorKinetic= \
 -DSHELLTYPE= \
 -DSTATIC= \
--DSample= \
--DStructuredGrid= \
 -DTARGET= \
 -DTETGEN= \
 -DTKDGenerator= \
--DTemplate= \
--DVoltageGatedChannels= \
--Damg= \
--DcalciumDynamics= \
--Dd3f= \
--Djitsg= \
--DStructuredGrid= \
 -DinfoFileFound= \
 -DCRS_ALGEBRA= \
 -DCPU_ALGEBRA= \
 -DUSE_LUA2C= \
 -DINTERNAL_MEMTRACKER= \
 -DSHINY_CALL_LOGGING= \
--DProMesh= \
--DSHTopology= \
--DElectromagnetism= \
 -DGPU_ALGEBRA= \
-$CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL"  -o default -o nospace ugcmake
+-DPRINT_PLUGINS_FOR_COMPLETION= \
+$CMAKE_COMPLETITIONS $UGCMAKE_INTERNAL $COMPLETIONS_UG4_PLUGINS"  -o default -o nospace ugcmake
 
 
 
