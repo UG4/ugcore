@@ -21,7 +21,7 @@
 #include <fstream>
 #include "compile_info/compile_info.h"
 #include "pcl/pcl_base.h"
-
+#include "common/error.h"
 #include "memtracker.h"
 
 #ifdef UG_PARALLEL
