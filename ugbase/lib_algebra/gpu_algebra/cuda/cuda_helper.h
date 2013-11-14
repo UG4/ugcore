@@ -23,6 +23,7 @@
 // Utilities and system includes
 #include "helper_cuda.h"
 #include "common/error.h"
+#include "common/log.h"
 
 #include <string>
 namespace ug{
