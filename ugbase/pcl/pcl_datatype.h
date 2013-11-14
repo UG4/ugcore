@@ -3,6 +3,9 @@
 // y2012m04d27
 #include "mpi.h"
 #include "common/types.h"
+#include "common/error.h"
+#ifndef __H__PCL__pcl_datatype__
+#define __H__PCL__pcl_datatype__
 
 namespace pcl
 {
@@ -100,7 +103,22 @@ public:
 	enum { directlySupported = true };
 };
 
+inline size_t GetSize(const DataType &t)
+{
+	if(t == PCL_DT_UNSIGNED_CHAR) return sizeof(unsigned char);
+	else if(t == PCL_DT_CHAR) return sizeof(char);
+	else if(t == PCL_DT_DOUBLE) return sizeof(double);
+	else if(t == PCL_DT_FLOAT) return sizeof(float);
+	else if(t == PCL_DT_INT) return sizeof(int);
+	else if(t == PCL_DT_LONG) return sizeof(long);
+	else if(t == PCL_DT_UNSIGNED_LONG) return sizeof(unsigned long);
+	UG_THROW("Datatype not supported: " << t << " ???");
+	return 1;
+}
+
 // end group pcl
 /// \}
 
 }
+
+#endif

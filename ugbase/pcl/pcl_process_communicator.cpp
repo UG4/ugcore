@@ -10,12 +10,14 @@
 #include "common/assert.h"
 #include "common/util/vector_util.h"
 #include "pcl_profiling.h"
+#include "pcl_datatype.h"
 
 using namespace std;
 using namespace ug;
 
 namespace pcl
 {
+
 
 ProcessCommunicator::
 ProcessCommunicator(ProcessCommunicatorDefaults pcd)
@@ -249,7 +251,7 @@ reduce(const void* sendBuf, void* recBuf, int count,
 	   DataType type, ReduceOperation op, int rootProc) const
 {
 	PCL_PROFILE(pcl_ProcCom_reduce);
-	if(is_local()) {memcpy(recBuf, sendBuf, count); return;}
+	if(is_local()) {memcpy(recBuf, sendBuf, count*GetSize(type)); return;}
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::reduce: empty communicator.");
 
 	MPI_Reduce(const_cast<void*>(sendBuf), recBuf, count, type, op, rootProc, m_comm->m_mpiComm);
@@ -265,14 +267,13 @@ reduce(const size_t &t, pcl::ReduceOperation op, int rootProc) const
 	return (size_t)ret;
 }
 
-
 void
 ProcessCommunicator::
 allreduce(const void* sendBuf, void* recBuf, int count,
 		  DataType type, ReduceOperation op) const
 {
 	PCL_PROFILE(pcl_ProcCom_allreduce);
-	if(is_local()) {memcpy(recBuf, sendBuf, count); return;}
+	if(is_local()) {memcpy(recBuf, sendBuf, count*GetSize(type)); return;}
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 
 	MPI_Allreduce(const_cast<void*>(sendBuf), recBuf, count, type, op, m_comm->m_mpiComm);
