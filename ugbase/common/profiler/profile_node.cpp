@@ -283,7 +283,7 @@ string UGProfileNode::print_node(double fullMs, double fullMem, size_t offset) c
 	if(fullMem >= 0.0)
 		s << get_mem_info(fullMem);
 	if(zone->groups != NULL)
-		ss << zone->groups
+		ss << zone->groups;
 	return s.str();
 }
 
