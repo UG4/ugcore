@@ -354,7 +354,7 @@ init()
 //todo:	Eventually the multigrid is only executed on a subset of processes.
 //		A process communicator would thus make sense, which defines this subset.
 //		Use that in the call below.
-	if(m_spApproxSpace->dof_distribution(GridLevel(m_topLev, GridLevel::LEVEL, true))->num_indices() ==
+	if(m_spApproxSpace->dof_distribution(GridLevel(m_topLev, GridLevel::LEVEL, false))->num_indices() ==
 		m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE))->num_indices())
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
@@ -428,10 +428,9 @@ init_level_operator()
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_linear_level_operator\n");
 
 //	Create Projection
-	GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
 	try{
 		if(m_pSurfaceSol) {
-
+			GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
 			#ifdef UG_PARALLEL
 			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT))
 				UG_THROW("GMG::init: Can only project "
@@ -446,59 +445,29 @@ init_level_operator()
 
 				(*(m_vLevData[level]->st))[index] = (*m_pSurfaceSol)[i];
 			}
-
-			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
-			for(int lev = m_topLev; lev != m_baseLev; --lev)
-			{
-				LevData& lf = *m_vLevData[lev];
-				LevData& lc = *m_vLevData[lev-1];
-
-				copy_noghost_to_ghost(lf.t, lf.st, lf.vMapPatchToGlobal);
-
-				#ifdef UG_PARALLEL
-				copy_to_vertical_masters(*lf.t);
-				#endif
-
-				try{
-					lf.Projection->do_restrict(*lc.st, *lf.t);
-				} UG_CATCH_THROW("GMG::init: Cannot project "
-							"solution to coarse grid function of level "<<lev-1<<".\n");
-
-				#ifdef UG_PARALLEL
-				lf.st->set_storage_type(m_pSurfaceSol->get_storage_mask());
-				#endif
-			}
-			#ifdef UG_PARALLEL
-			if(m_baseLev != m_topLev){
-				LevData& lc = *m_vLevData[m_baseLev];
-				copy_noghost_to_ghost(lc.t, lc.st, lc.vMapPatchToGlobal);
-				copy_to_vertical_masters(*lc.t);
-			}
-			#endif
 			GMG_PROFILE_END();
 		}
 	}
 	UG_CATCH_THROW("GMG::init: Projection of Surface Solution failed.");
-	GMG_PROFILE_END();
 
 // 	Create coarse level operators
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+	for(int lev = m_topLev; lev >= m_baseLev; --lev)
 	{
-		GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 		LevData& ld = *m_vLevData[lev];
 
 	//	In Full-Ref case we can copy the Matrix from the surface
-		const bool bCpyFromSurface = (!m_bAdaptive && (lev == m_vLevData.size()));
+		bool bCpyFromSurface = ((lev == m_topLev) && !m_bAdaptive);
 
 		if(!bCpyFromSurface)
 		{
+			GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 			try{
 			m_spAss->ass_tuner()->set_force_regular_grid(true);
 			m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(lev, GridLevel::LEVEL, false));
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
 			}
-			UG_CATCH_THROW("GMG:init: Cannot init operator "
-							"for level "<<lev);
+			UG_CATCH_THROW("GMG:init: Cannot init operator for level "<<lev);
+			GMG_PROFILE_END();
 		}
 		else
 		{
@@ -506,6 +475,8 @@ init_level_operator()
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 
 		//	loop all mapped indices
+			UG_ASSERT(m_spSurfaceMat->num_rows() == m_vSurfToLevelMap.size(),
+			          "Surface Matrix rows != Surf Level Indices")
 			ld.A->resize_and_clear(m_spSurfaceMat->num_rows(), m_spSurfaceMat->num_cols());
 			for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
 			{
@@ -521,7 +492,9 @@ init_level_operator()
 				const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
 				for( ;conn != connEnd; ++conn){
 				//	get corresponding level connection index
-					size_t lvlTo = m_vSurfToLevelMap[conn.index()].index;
+					UG_ASSERT(m_vSurfToLevelMap[conn.index()].level == m_topLev,
+					          "All surface Indices must be on top level for full-ref.")
+					const size_t lvlTo = m_vSurfToLevelMap[conn.index()].index;
 
 				//	copy connection to level matrix
 					(*ld.A)(lvlFrom, lvlTo) = conn.value();
@@ -530,11 +503,31 @@ init_level_operator()
 
 			#ifdef UG_PARALLEL
 			ld.A->set_storage_type(m_spSurfaceMat->get_storage_mask());
+			ld.A->set_layouts(m_spSurfaceMat->layouts());
 			#endif
-
 			GMG_PROFILE_END();
 		}
-		GMG_PROFILE_END();
+
+		if(m_pSurfaceSol && lev > m_baseLev)
+		{
+			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
+			LevData& lc = *m_vLevData[lev-1];
+
+			copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
+			#ifdef UG_PARALLEL
+			copy_to_vertical_masters(*ld.t);
+			#endif
+
+			try{
+				ld.Projection->do_restrict(*lc.st, *ld.t);
+			} UG_CATCH_THROW("GMG::init: Cannot project "
+						"solution to coarse grid function of level "<<lev-1<<".\n");
+
+			#ifdef UG_PARALLEL
+			lc.st->set_storage_type(m_pSurfaceSol->get_storage_mask());
+			#endif
+			GMG_PROFILE_END();
+		}
 	}
 
 //	if no ghosts are present we can simply use the whole grid. If the base
@@ -544,6 +537,12 @@ init_level_operator()
 	if(m_bGatheredBaseUsed)
 	{
 		LevData& ld = *m_vLevData[m_baseLev];
+
+		#ifdef UG_PARALLEL
+		copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
+		copy_to_vertical_masters(*ld.t);
+		#endif
+
 		try{
 		m_spAss->ass_tuner()->set_force_regular_grid(true);
 		m_spAss->assemble_jacobian(*spBaseSolverMat, *ld.t, GridLevel(m_baseLev, GridLevel::LEVEL, true));
