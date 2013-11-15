@@ -257,7 +257,7 @@ void GetNeighborhood_worker(const TMatrix &A, size_t node, size_t depth, std::ve
 {
 	if(depth==0) return;
 	size_t iSizeBefore = indices.size();
-	for(typename TMatrix::const_row_iterator it = A.begin_row(node); A.end_row(node); ++it)
+	for(typename TMatrix::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
 	{
 		if(it.value() == 0) continue;
 		if(bVisited[it.index()] == false)
