@@ -694,13 +694,13 @@ init_transfer()
 
 		for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
 		{
-			m_vLevData[lev]->vProlongationPP[i]->set_levels(GridLevel(lev, GridLevel::LEVEL, true));
+			m_vLevData[lev]->vProlongationPP[i]->set_levels(GridLevel(lev, GridLevel::LEVEL, false));
 			m_vLevData[lev]->vProlongationPP[i]->init();
 		}
 
 		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
 		{
-			m_vLevData[lev]->vRestrictionPP[i]->set_levels(GridLevel(lev-1, GridLevel::LEVEL, true));
+			m_vLevData[lev]->vRestrictionPP[i]->set_levels(GridLevel(lev-1, GridLevel::LEVEL, false));
 			m_vLevData[lev]->vRestrictionPP[i]->init();
 		}
 	}
