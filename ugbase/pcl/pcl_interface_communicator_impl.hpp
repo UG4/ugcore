@@ -368,13 +368,30 @@ extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 
 	extractor.end_layout_collection();
 }
-				
+
+
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 bool InterfaceCommunicator<TLayout>::
 communicate()
 {
+	bool retValue = communicate_and_resume();
+	wait();
+	return retValue;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+bool InterfaceCommunicator<TLayout>::
+communicate_and_resume()
+{
 	PCL_PROFILE(pcl_IntCom_communicate);
+
+	if(!(m_vSendRequests.empty() && m_vReceiveRequests.empty())){
+		UG_THROW("Can't communicate since a previous communication is still pending! "
+				 "Make sure to call wait() after each communicate_and_resume()!");
+	}
 
 	bool retVal = true;
 	
@@ -431,8 +448,8 @@ communicate()
 	size_t	numInStreams = m_curInProcs.size();
 
 //	used for mpi-communication.
-	std::vector<MPI_Request> vSendRequests(numOutStreams);
-	std::vector<MPI_Request> vReceiveRequests(numInStreams);
+	m_vSendRequests.resize(numOutStreams);
+	m_vReceiveRequests.resize(numInStreams);
 	
 
 ////////////////////////////////////////////////
@@ -513,7 +530,7 @@ communicate()
 			iter != m_curInProcs.end(); ++iter, ++counter)
 		{
 			MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
-					*iter, sizeTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
+					*iter, sizeTag, MPI_COMM_WORLD, &m_vReceiveRequests[counter]);
 		}
 
 	//	send buffer sizes
@@ -525,14 +542,14 @@ communicate()
 			streamSizes[counter] = (int)m_bufMapOut[*iter].write_pos();
 
 			MPI_Isend(&streamSizes[counter], sizeof(int), MPI_UNSIGNED_CHAR,
-					*iter, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
+					*iter, sizeTag, MPI_COMM_WORLD, &m_vSendRequests[counter]);
 		}
 
 	//	TODO: this can be improved:
 	//		instead of waiting for all, one could wait until one has finished and directly
 	//		start copying the data to the local receive buffer. Afterwards on could continue
 	//		by waiting for the next one etc...
-		Waitall(vReceiveRequests, vSendRequests);
+		Waitall(m_vReceiveRequests, m_vSendRequests);
 //		PROFILE_END();
 	}
 
@@ -592,7 +609,7 @@ communicate()
 		ug::BinaryBuffer& binBuf = m_bufMapIn[*iter];
 	//	receive the data
 		MPI_Irecv(binBuf.buffer(), vBufferSizesIn[counter], MPI_UNSIGNED_CHAR,
-				*iter, dataTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
+				*iter, dataTag, MPI_COMM_WORLD, &m_vReceiveRequests[counter]);
 	}
 
 	UG_DLOG(ug::LIB_PCL, 1, "\nsending to procs:");
@@ -608,16 +625,28 @@ communicate()
 				<< "(" << binBuf.write_pos() << ")");
 
 		MPI_Isend(binBuf.buffer(), binBuf.write_pos(), MPI_UNSIGNED_CHAR,
-				*iter, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
+				*iter, dataTag, MPI_COMM_WORLD, &m_vSendRequests[counter]);
 	}
 	UG_DLOG(ug::LIB_PCL, 1, "\n");
 
+//	reset m_bSendBuffersFixed for the next communication
+	m_bSendBuffersFixed = true;
+
+//	done
+	return retVal;
+}
+
+
+template <class TLayout>
+void InterfaceCommunicator<TLayout>::
+wait()
+{
 //	TODO: this can be improved:
 //		instead of waiting for all, one could wait until one has finished and directly
 //		start copying the data to the local receive buffer. Afterwards on could continue
 //		by waiting for the next one etc...
 	PCL_PROFILE(pcl_IntCom_MPIWait);
-	Waitall(vReceiveRequests, vSendRequests);
+	Waitall(m_vReceiveRequests, m_vSendRequests);
 	PCL_PROFILE_END();
 	PCL_PROFILE_END();
 	
@@ -680,13 +709,11 @@ communicate()
 
 	m_curOutProcs.clear();
 	m_extractorInfos.clear();
-
-//	reset m_bSendBuffersFixed
-	m_bSendBuffersFixed = true;
-	
-//	done
-	return retVal;
+	m_vSendRequests.clear();
+	m_vReceiveRequests.clear();
 }
+
+
 
 template <class TLayout>
 void InterfaceCommunicator<TLayout>::

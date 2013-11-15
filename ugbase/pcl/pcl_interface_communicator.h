@@ -175,13 +175,38 @@ class InterfaceCommunicator
 	///	sends and receives the collected data.
 	/**	The collected data will be send to the associated processes.
 	 *	The extract routines of the communication-policies which were registered
-	 *	through Communicator::await_data will be called with the received
+	 *	through Communicator::receive_data will be called with the received
+	 *	data. After all received data is processed, the communication-policies are
+	 *	released. Make sure that you will keep your communication-policies
+	 *	in memory until this point.
+	 *	\note	Calling communicate() is effectively the same as calling
+	 *			communicate_and_resume() directly followed by wait().*/
+		bool communicate();
+		
+
+	///	collects data and communicates it with other processes without waiting for receive
+	/**	Data will be collected from the communication-policies registered in send(...)
+	 * and communicated to other processes. The method however won't wait until the
+	 * data has arrived at its target processes and thus can't extract the received
+	 * data. This has to be done manually by calling wait().
+	 * \note	Instead of using communicate_and_resume() and wait() you could
+	 * 			simply call communicate. Separating communication and wait however
+	 * 			gives you the benefit of being able to continue with other calculations
+	 * 			while communication is performed.
+	 * \note	A call to communicate_and_resume() has to be followed by a call to wait().
+	 * 			You may not call communicate_and_resume() twice on a single communicator
+	 * 			without callin wait() in between.*/
+		bool communicate_and_resume();
+
+	///	waits for the data communicated by communicate_and_resume() and extracts it
+	/**	The extract routines of the communication-policies which were registered
+	 *	through Communicator::receive_data will be called with the received
 	 *	data. After all received data is processed, the communication-policies are
 	 *	released. Make sure that you will keep your communication-policies
 	 *	in memory until this point.*/
-		bool communicate();
-		
+		void wait();
 	
+
 	///	enables debugging of communication. This has a severe effect on performance!
 	/**	communication debugging will execute some code during communicate(), which
 	 * checks whether matching sends and receives have been scheduled with matching
@@ -314,6 +339,10 @@ class InterfaceCommunicator
 	///	holds information about the extractors that are awaiting data.
 		ExtractorInfoList	m_extractorInfos;
 		
+	///	used by communicate, communicate_and_resume and wait, to check whether communication is done.
+		std::vector<MPI_Request> m_vSendRequests;
+		std::vector<MPI_Request> m_vReceiveRequests;
+
 	///	This procComm holds the processes that shall participate during communication-debugging.
 		ProcessCommunicator	m_debugProcComm;
 		
