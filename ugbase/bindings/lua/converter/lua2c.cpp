@@ -106,14 +106,16 @@ bool LUA2C::createVM(const char *functionName)
 	UG_LOG("parsing " << functionName << "... ");
 	LUAParserClass parser;
 	if(parser.parse_luaFunction(functionName) == false)
-		return 0;
+		return false;
 
-	parser.createVM(vm);
+	if(parser.createVM(vm) == false)
+		return false;
 	vm.print();
 	m_iIn = vm.num_in();
 	m_iOut = vm.num_out();
 	bInitialized = true;
 	bVM = true;
+	return true;
 }
 
 
