@@ -260,6 +260,7 @@ class AssembledMultiGridCycle :
 
 	///	flag indicating if grid is full refined
 		bool m_bAdaptive;
+		int m_LocalFullRefLevel;
 
 	///	Structure used to realize Surface to Level mapping
 	/// \{

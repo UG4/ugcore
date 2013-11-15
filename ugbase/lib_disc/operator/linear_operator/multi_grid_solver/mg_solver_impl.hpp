@@ -803,21 +803,19 @@ init_surface_to_level_mapping()
 
 	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
 	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_topLev+1);
-	// \todo: only from baseLev
-	for(int lev = 0; lev <= m_topLev; ++lev)
+
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev)
 		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
 	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 //	iterators for subset
 	// \todo: The loop below should only be on SURFACE_NONCOPY, since the
 	//		 copy-shadows have the same indices as their shadowing. In such a
-	//		 case the child index (shadowing) must win - this is only ensured by
-	//		 the details of the implementation of the iterator - looping from base level
-	//		 up through the multigrid. However, this could be realized by
+	//		 case the child index (shadowing) must win. This could be realized by
 	//		 looping only non-copy elements. But it seems, that on a process
 	//		 the shadow-copy may exist without its shadowing. In such a case
 	//		 the mapping is invalid. To fix this, the loop is extended temporarily
-	//		 below.
+	//		 below and doubling of appearance is checked.
 	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
 	iter_type iter = surfDD->begin<TElem>(SurfaceView::ALL);
 	iter_type iterEnd = surfDD->end<TElem>(SurfaceView::ALL);
@@ -826,10 +824,24 @@ init_surface_to_level_mapping()
 	std::vector<size_t> vSurfInd, vLevelInd;
 
 //	loop all elements of type
-	for( ; iter != iterEnd; ++iter){
+	for( ; iter != iterEnd; ++iter)
+	{
 	//	get elem and its level
 		TElem* elem = *iter;
 		const int level = spSurfView->get_level(elem);
+
+	//	check that coarse grid covers whole domain. If this is not the case,
+	//	some surface indices are mapped to grid levels below baseLev. We
+	//	do not allow that.
+		if(level < m_baseLev)
+			UG_THROW("GMG::init: Some index of the surface grid is located on "
+					"level "<<level<<", which is below the choosen baseLev "<<
+					m_baseLev<<". This is not allowed, since otherwise the "
+					"gmg correction would only affect parts of the domain. Use"
+					"gmg:set_base_level(lvl) to cure this issue.");
+
+	//	remember minimal level, that contains a surface index on this proc
+		m_LocalFullRefLevel = std::min(m_LocalFullRefLevel, level);
 
 	//	extract all algebra indices for the element on surface and level
 		surfDD->inner_algebra_indices(elem, vSurfInd);
@@ -837,8 +849,12 @@ init_surface_to_level_mapping()
 		UG_ASSERT(vSurfInd.size() == vLevelInd.size(), "Number of indices does not match.");
 
 	//	set mapping index
-		for(size_t i = 0; i < vSurfInd.size(); ++i){
+		for(size_t i = 0; i < vSurfInd.size(); ++i)
+		{
+		//  check if some shadowing has already set the value
 			if(m_vSurfToLevelMap[vSurfInd[i]].level > level) continue;
+
+		//	store index + level
 			m_vSurfToLevelMap[vSurfInd[i]] = LevelIndex(vLevelInd[i], level);
 		}
 	}
@@ -854,11 +870,17 @@ init_surface_to_level_mapping()
 
 	m_vSurfToLevelMap.resize(0);
 	m_vSurfToLevelMap.resize(surfDD->num_indices());
+	m_LocalFullRefLevel = std::numeric_limits<int>::max();
 
 	if(surfDD->max_dofs(VERTEX)) init_surface_to_level_mapping<VertexBase>();
 	if(surfDD->max_dofs(EDGE))   init_surface_to_level_mapping<EdgeBase>();
 	if(surfDD->max_dofs(FACE))   init_surface_to_level_mapping<Face>();
 	if(surfDD->max_dofs(VOLUME)) init_surface_to_level_mapping<Volume>();
+
+	if(m_LocalFullRefLevel == std::numeric_limits<int>::max()){
+		UG_THROW("GMG: Seems, that grid is empty, but still using gmg.")
+	}
+
 }
 
 
