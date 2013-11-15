@@ -137,15 +137,24 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "Jacobi", tag);
 	}
 
+//	GaussSeidelBase
+	{
+		typedef GaussSeidelBase<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("GaussSeidelBase").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Base")
+			.add_method("set_sor_relax", &T::set_sor_relax,
+					"", "sor relaxation", "sets sor relaxation parameter");
+		reg.add_class_to_group(name, "GaussSeidelBase", tag);
+	}
+
 //	GaussSeidel
 	{
 		typedef GaussSeidel<TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		typedef GaussSeidelBase<TAlgebra> TBase;
 		string name = string("GaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Gauss-Seidel Preconditioner")
 			.add_constructor()
-			.add_method("set_sor_relax", &T::set_sor_relax,
-					"", "sor relaxation", "sets sor relaxation parameter")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GaussSeidel", tag);
 	}
@@ -153,13 +162,11 @@ static void Algebra(Registry& reg, string grp)
 //	Symmetric GaussSeidel
 	{
 		typedef SymmetricGaussSeidel<TAlgebra> T;
-		typedef IPreconditioner<TAlgebra> TBase;
+		typedef GaussSeidelBase<TAlgebra> TBase;
 		string name = string("SymmetricGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Symmetric Gauss Seidel Preconditioner")
-			.add_constructor()
-			.add_method("set_sor_relax", &T::set_sor_relax,
-						"", "ssor relaxation", "sets ssor relaxation parameter")
-			.set_construct_as_smart_pointer(true);
+				.add_constructor()
+				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SymmetricGaussSeidel", tag);
 	}
 
@@ -169,10 +176,8 @@ static void Algebra(Registry& reg, string grp)
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("BackwardGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Backward Gauss Seidel Preconditioner")
-			.add_constructor()
-			.add_method("set_sor_relax", &T::set_sor_relax,
-						"", "sor relaxation", "sets sor relaxation parameter")
-			.set_construct_as_smart_pointer(true);
+				.add_constructor()
+				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
 	}
 
