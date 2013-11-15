@@ -347,13 +347,6 @@ init()
 		UG_THROW("GMG::init: Base Level greater than Surface level.");
 
 //	check, if grid is full-refined
-//todo:	make sure that there are no vertical masters in topLevel. Otherwise
-//		the grid can not be considered fully refined.
-//todo: Even if there are vrtMasters and m_bFullRefined is false and the top
-//		level matrix can't be copied, an injective SurfToTopLevMapPatchToGlobal might be useful...
-//todo:	Eventually the multigrid is only executed on a subset of processes.
-//		A process communicator would thus make sense, which defines this subset.
-//		Use that in the call below.
 	if(m_spApproxSpace->dof_distribution(GridLevel(m_topLev, GridLevel::LEVEL, false))->num_indices() ==
 		m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE))->num_indices())
 	{
@@ -364,6 +357,9 @@ init()
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
 		m_bAdaptive = true;
 	}
+//todo:	Eventually the multigrid is only executed on a subset of processes.
+//		A process communicator would thus make sense, which defines this subset.
+//		Use that in the call below.
 	#ifdef UG_PARALLEL
 	m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
 	#endif
