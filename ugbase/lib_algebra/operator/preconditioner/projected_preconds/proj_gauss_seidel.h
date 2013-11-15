@@ -60,7 +60,7 @@ class ProjGaussSeidel:
 
 	public:
 	/// constructor
-		ProjGaussSeidel():IProjPreconditioner<TAlgebra>(){};
+		ProjGaussSeidel(): IProjPreconditioner<TAlgebra>(){};
 
 	///	name
 		const char* name() const {return "Projected GaussSeidel";}

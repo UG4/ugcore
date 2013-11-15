@@ -9,6 +9,7 @@
 #define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__PROJ_PRECOND_INTERFACE__
 
 #include "lib_algebra/operator/interface/linear_iterator.h"
+#include "lib_disc/common/multi_index.h"
 
 namespace ug{
 
@@ -118,7 +119,7 @@ class IProjPreconditioner:
 
 	///	store the indices, which satisfy the constraints with equality in m_vActiveIndices.
 	///	Other indices are stored in m_vInactiveIndices.
-		std::vector<size_t> m_vActiveIndicesLow, m_vActiveIndicesUp, m_vInactiveIndices;
+		std::vector<MultiIndex<2> > m_vActiveIndicesLow, m_vActiveIndicesUp, m_vInactiveIndices;
 };
 
 } // end namespace ug

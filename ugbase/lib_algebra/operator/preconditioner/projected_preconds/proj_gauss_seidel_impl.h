@@ -60,7 +60,6 @@ projected_precond_step(vector_type& c, const matrix_type& A, const vector_type& 
 			continue;
 		}
 
-		//UG_LOG("m_lastSol[" << i << "]: " << m_lastSol[i] << "\n");
 	}
 }
 
