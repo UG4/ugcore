@@ -40,8 +40,8 @@ using namespace std;
 
 namespace ug
 {
-	extern bool useLua2C;
-	extern bool useLua2VM;
+bool useLua2VM=false;
+bool useLua2C=false;
 
 namespace bridge
 {
