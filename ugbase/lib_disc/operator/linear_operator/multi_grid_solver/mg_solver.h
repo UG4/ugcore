@@ -384,20 +384,6 @@ class AssembledMultiGridCycle :
 								   ConstSmartPtr<GF> spVecFrom,
 								   const std::vector<size_t>& vMapPatchToGlobal);
 
-		std::vector<vector_type*> level_defects()
-		{
-			std::vector<vector_type*> vVec(m_vLevData.size(), NULL);
-			for(size_t i = 0; i < m_vLevData.size(); ++i)
-			{
-				if(m_vLevData[i]->sd.valid()){
-					if(m_vLevData[i]->sd->num_indices() > 0){
-						vVec[i] = m_vLevData[i]->sd.get();
-					}
-				}
-			}
-			return vVec;
-		}
-
 #ifdef UG_PARALLEL
 	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
 		void gather_vertical(vector_type& d);

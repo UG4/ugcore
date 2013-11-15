@@ -383,7 +383,7 @@ init()
 	GMG_PROFILE_END();
 
 //	init mapping from surface level to top level in case of full refinement
-	GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
+	GMG_PROFILE_BEGIN(GMG_CollectShadowing);
 	try{
 		if(m_bAdaptive)
 			for(int lev = m_baseLev; lev <= m_topLev; ++lev)
@@ -546,6 +546,7 @@ init_level_operator()
 //	well
 	if(m_bGatheredBaseUsed)
 	{
+		GMG_PROFILE_BEGIN(GMG_AssGatheredLevMat);
 		LevData& ld = *m_vLevData[m_baseLev];
 
 		#ifdef UG_PARALLEL
@@ -559,6 +560,7 @@ init_level_operator()
 		m_spAss->ass_tuner()->set_force_regular_grid(false);
 		}
 		UG_CATCH_THROW("GMG:init: Cannot init operator base level operator");
+		GMG_PROFILE_END();
 	}
 
 //	write computed level matrices for debug purpose
@@ -1251,9 +1253,11 @@ prolongation(size_t lev)
 //	defect on this level still corresponds to the updated defect, we need
 //	to add if here.
 	if(m_bAdaptive){
+		GMG_PROFILE_BEGIN(GMG_AddCoarseGridContribution);
 		// \todo: use apply_sub_ignore_zero_rows
 		lc.CoarseGridContribution.apply(*lf.st, *lc.sc);
 		(*lf.sd) += (*lf.st);
+		GMG_PROFILE_END();
 	}
 
 //	## INTERPOLATE CORRECTION
@@ -1263,10 +1267,6 @@ prolongation(size_t lev)
 	}
 	UG_CATCH_THROW("GMG::lmgc: Prolongation from level "<<lev-1<<" to "<<lev<<" failed.");
 	GMG_PROFILE_END();
-
-//	apply post processes
-	for(size_t i = 0; i < lf.vProlongationPP.size(); ++i)
-		lf.vProlongationPP[i]->post_process(lf.t);
 
 //	PARALLEL CASE: Receive values of correction for vertical slaves
 //	If there are vertical slaves/masters on the coarser level, we now copy
@@ -1279,6 +1279,10 @@ prolongation(size_t lev)
 
 //	## PROJECT COARSE GRID CORRECTION ONTO SMOOTH AREA
 	copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
+
+//	apply post processes
+	for(size_t i = 0; i < lf.vProlongationPP.size(); ++i)
+		lf.vProlongationPP[i]->post_process(lf.st);
 
 // 	## ADD COARSE GRID CORRECTION
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
