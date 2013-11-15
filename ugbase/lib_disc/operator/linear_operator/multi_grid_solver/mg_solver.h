@@ -385,10 +385,13 @@ class AssembledMultiGridCycle :
 								   const std::vector<size_t>& vMapPatchToGlobal);
 
 	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
-		void gather_vertical(vector_type& d);
+		void devide_vertical_slaves_by_number_of_masters(vector_type& d);
+
+	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
+		void add_to_vertical_masters(vector_type& d);
 
 	/// broadcasts the vector using vertical interfaces.
-		void copy_to_vertical_slaves(vector_type& t);
+		void copy_to_vertical_slaves(vector_type& c);
 
 	///	copies values from h-masters to h-slaves
 		void copy_to_vertical_masters(vector_type& c);
