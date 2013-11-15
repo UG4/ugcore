@@ -1250,9 +1250,7 @@ prolongation(size_t lev)
 //	to add if here.
 	if(m_bAdaptive){
 		GMG_PROFILE_BEGIN(GMG_AddCoarseGridContribution);
-		// \todo: use apply_sub_ignore_zero_rows
-		lc.CoarseGridContribution.apply(*lf.st, *lc.sc);
-		(*lf.sd) += (*lf.st);
+		lc.CoarseGridContribution.matmul_minus(*lf.sd, *lc.sc);
 		GMG_PROFILE_END();
 	}
 

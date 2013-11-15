@@ -384,7 +384,7 @@ class AssembledMultiGridCycle :
 								   ConstSmartPtr<GF> spVecFrom,
 								   const std::vector<size_t>& vMapPatchToGlobal);
 
-	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
+	/// a v-slave may have multiple v-masters, therefore: devide by multiplicity
 		void devide_vertical_slaves_by_number_of_masters(vector_type& d);
 
 	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
