@@ -286,6 +286,27 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "ProjGaussSeidel", tag);
 	}
 
+//	ProjBackwardGaussSeidel
+	{
+		typedef ProjBackwardGaussSeidel<TAlgebra> T;
+		typedef IProjPreconditioner<TAlgebra> TBase;
+		string name = string("ProjBackwardGaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ProjBackwardGaussSeidel", tag);
+	}
+
+//	ProjSymmetricGaussSeidel
+	{
+		typedef ProjSymmetricGaussSeidel<TAlgebra> T;
+		typedef IProjPreconditioner<TAlgebra> TBase;
+		string name = string("ProjSymmetricGaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ProjSymmetricGaussSeidel", tag);
+	}
 }
 	
 

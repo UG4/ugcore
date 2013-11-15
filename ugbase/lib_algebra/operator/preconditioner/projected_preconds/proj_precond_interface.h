@@ -14,6 +14,38 @@
 namespace ug{
 
 /// Interface for Projected Preconditioners
+/**
+ * 	The class provides an interface to define a preconditioner which can be applied to solve
+ * 	problems of the form
+ *
+ * 		A * u >= b				(I)
+ * 		u >= 0					(II)
+ * 		u^T * [A*u - b] = 0,	(III)
+ *
+ * 	where u, b are vectors and A is a matrix. '*' denotes componentwise multiplication.
+ * 	Similar problems, which e.g. only differ in the sign in (I) and/or (II) can be
+ * 	equivalently treated by these preconditioners.
+ *
+ * 	Note: Due to (II) the old solution needs to stored within this method.
+ *	This is a difference to the classical smoothers/preconditioners, which usually work
+ *	on the correction and the defect only.
+ *
+ * 	Since the problem formulation (I)-(III) consists of inequalities, the projected preconditioner
+ * 	performs a projection on such a constraint in every preconditioner-step.
+ * 	The projection can also be performed on several constraints. At the moment only constraints
+ * 	of the type
+ *
+ * 			u <= upObs 		(cf. 'set_upper_obstacle')
+ *
+ * 	and
+ *
+ * 			u >= lowObs 		(cf. 'set_lower_obstacle')
+ *
+ * 	can be set. Here, 'upObs' and 'lowObs' are user-defined functions, which need to be of the
+ * 	same size as the function of unknowns u.
+ *
+ *  \tparam 	TAlgebra		Algebra type
+ */
 template <typename TAlgebra>
 class IProjPreconditioner:
 	public ILinearIterator<typename TAlgebra::vector_type>
@@ -53,10 +85,10 @@ class IProjPreconditioner:
 	///	set relaxation parameter to define a SOR-method
 		void set_sor_relax(number relaxFactor){ m_relax = relaxFactor;}
 
-	///	computes a new correction c = B*d and projects on the underlying constraint
+	///	computes a new correction c = B*d and projects on the underlying constraint.
 	/**
-	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
-	 * It can only be called, when the preprocess has been done.
+	 * This method computes a new correction c = B*d. The matrix operator B is defined in the
+	 * particular inheritated sub-class. It can only be called, when the preprocess has been done.
 	 *
 	 * \param[out]	c			correction
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
