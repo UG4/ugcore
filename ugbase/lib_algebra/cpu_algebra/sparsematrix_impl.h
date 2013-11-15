@@ -117,7 +117,7 @@ void SparseMatrix<T>::set_as_transpose_of(const SparseMatrix<value_type> &B, dou
 
 	for(size_t r=0; r<B.num_rows(); r++)
 		for(const_row_iterator it = B.begin_row(r); it != B.end_row(r); ++it)
-			operator()(it.index(), r) = scale*it.value();
+			operator()(it.index(), r) = MatrixTranspose(scale*it.value());
 	// todo: sort rows
 }
 
