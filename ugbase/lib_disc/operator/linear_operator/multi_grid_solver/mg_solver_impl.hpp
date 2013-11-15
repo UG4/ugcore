@@ -1532,8 +1532,8 @@ devide_vertical_slaves_by_number_of_masters(vector_type& d)
 
 	GMG_PROFILE_END();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - devide_vertical_slaves_by_number_of_masters\n");
-}
 #endif
+}
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
