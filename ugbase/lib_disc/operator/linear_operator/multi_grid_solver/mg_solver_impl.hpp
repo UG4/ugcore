@@ -1206,15 +1206,18 @@ restriction(size_t lev)
 //	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0).
 //	We use a temporary vector including ghost, such that the no-ghost defect
 //	remains valid and can be used when the cycle comes back to this level.
-	lf.t->set(0.0); // todo: only on vmasters would be sufficient
-	copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
+
 	#ifdef UG_PARALLEL
+	SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
+	#endif
+	copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
 	if(lf.t->size() > 0){
 		devide_vertical_slaves_by_number_of_masters(*lf.t);
 		add_to_vertical_masters(*lf.t);
+		#ifdef UG_PARALLEL
 		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_slave(), 0);
+		#endif
 	}
-	#endif
 
 //	Now we can restrict the defect from the fine level to the coarser level.
 	if((lc.sd->size() > 0) && (lf.t->size() > 0)){
@@ -1367,7 +1370,9 @@ base_solve(size_t lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering gathered basesolver branch.\n");
 
 	//	gather the defect
-		ld.t->set(0.0); // todo: only on vmasters is sufficient
+		#ifdef UG_PARALLEL
+		SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), 0);
+		#endif
 		copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
 		devide_vertical_slaves_by_number_of_masters(*ld.t);
 		add_to_vertical_masters(*ld.t);
