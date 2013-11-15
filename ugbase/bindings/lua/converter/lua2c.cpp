@@ -19,13 +19,22 @@
 using namespace std;
 
 namespace ug{
+
+bool useLua2VM=false;
+bool useLua2C=false;
+
 namespace bridge {
     
 DebugID DID_LUA2C("LUA2C");
-
-
-#if 1
 bool LUA2C::create(const char *functionName)
+{
+	if(useLua2VM)
+		return createVM(functionName);
+	else
+		return createC(functionName);
+}
+
+bool LUA2C::createC(const char *functionName)
 {
 	UG_LOG("parsing " << functionName << "... ");
 	try{
@@ -90,8 +99,8 @@ bool LUA2C::create(const char *functionName)
 	}
 	
 }
-#else
-bool LUA2C::create(const char *functionName)
+
+bool LUA2C::createVM(const char *functionName)
 {
 	m_name = functionName;
 	UG_LOG("parsing " << functionName << "... ");
@@ -107,7 +116,7 @@ bool LUA2C::create(const char *functionName)
 	bVM = true;
 }
 
-#endif
+
 LUA2C::~LUA2C()
 {
     UG_DLOG(DID_LUA2C, 2, "removing " << m_name << "\n");		

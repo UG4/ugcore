@@ -12,6 +12,9 @@
 #include "lib_disc/spatial_disc/user_data/linker/linker_traits.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
+#include "info_commands.h"
+#include "common/util/number_util.h"
+
 #if 0
 #define PROFILE_CALLBACK() PROFILE_FUNC_GROUP("luacallback")
 #define PROFILE_CALLBACK_BEGIN(name) PROFILE_BEGIN_GROUP(name, "luacallback")
@@ -152,8 +155,8 @@ check_callback_returns(const char* callName, const bool bThrow)
 	if(numResults != retSize){
 		if(bThrow){
 			UG_THROW(name() << ": Number of return values incorrect "
-							"for callback '"<<callName<<"'. "
-							"Required: "<<retSize<<", passed: "<<numResults
+					"for callback\n"<<callName<< " (" << bridge::GetLUAScriptFunctionDefined(callName) << ")"
+							"\nRequired: "<<retSize<<", passed: "<<numResults
 							<<". Use signature as follows:\n"
 							<< signature());
 		}
@@ -166,7 +169,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 	if(!lua_traits<TData>::check(L)){
 		if(bThrow){
 			UG_THROW(name() << ": Data values type incorrect "
-							"for callback '"<<callName<<"'. "
+					"for callback\n"<<callName<< " (" << bridge::GetLUAScriptFunctionDefined(callName) << ")"
 							"Use signature as follows:\n"
 							<< signature());
 		}
@@ -179,7 +182,7 @@ check_callback_returns(const char* callName, const bool bThrow)
 	if(!lua_traits<TRet>::check(L, -retSize)){
 		if(bThrow){
 			UG_THROW("LuaUserData: Return values type incorrect "
-							"for callback '"<<callName<<"'. "
+					"for callback\n"<<callName<< " (" << bridge::GetLUAScriptFunctionDefined(callName) << ")"
 							"Use signature as follows:\n"
 							<< signature());
 		}
@@ -556,6 +559,7 @@ void LuaUserFunction<TData,dim,TDataIn>::operator() (TData& out, int numArgs, ..
         try{
 		//	read return value
 			lua_traits<TData>::read(m_L, out);
+			UG_COND_THROW(IsFiniteAndNotTooBig(out)==false, out);
 		}
 		UG_CATCH_THROW("LuaUserFunction::operator(...): Error while running "
 						"callback '" << m_cbValueName << "'");
@@ -638,6 +642,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_value(TData& out, const std::vecto
         try{
 		//	read return value
 			lua_traits<TData>::read(m_L, out);
+			UG_COND_THROW(IsFiniteAndNotTooBig(out)==false, out);
 		}
 		UG_CATCH_THROW("LuaUserFunction::eval_value(...): Error while "
 						"running callback '" << m_cbValueName << "'");
@@ -721,6 +726,7 @@ void LuaUserFunction<TData,dim,TDataIn>::eval_deriv(TData& out, const std::vecto
         try{
 		//	read return value
 			lua_traits<TData>::read(m_L, out);
+			UG_COND_THROW(IsFiniteAndNotTooBig(out)==false, out);
 		}
 		UG_CATCH_THROW("LuaUserFunction::eval_deriv(...): Error while "
 					"running callback '" << m_cbDerivName[arg] << "'");
@@ -747,6 +753,8 @@ evaluate (TData& value,
 
 //	evaluate data at ip
 	eval_value(value, vDataIn, globIP, time, si);
+
+	UG_COND_THROW(IsFiniteAndNotTooBig(value)==false, value);
 }
 
 template <typename TData, int dim, typename TDataIn>
@@ -774,6 +782,7 @@ evaluate(TData vValue[],
 
 	//	evaluate data at ip
 		eval_value(vValue[ip], vDataIn, vGlobIP[ip], time, si);
+		UG_COND_THROW(IsFiniteAndNotTooBig(vValue[ip])==false, vValue[ip]);
 	}
 }
 
@@ -844,6 +853,7 @@ eval_and_deriv(TData vValue[],
 					mult_add(vvvDeriv[ip][commonFct][dof],
 							 derivVal,
 							 m_vpDependData[c]->deriv(this->series_id(c,s), ip, fct, dof));
+					UG_COND_THROW(IsFiniteAndNotTooBig(vvvDeriv[ip][commonFct][dof])==false, vvvDeriv[ip][commonFct][dof]);
 				}
 			}
 		}
@@ -965,6 +975,7 @@ void LuaFunction<TData,TDataIn>::operator() (TData& out, int numArgs, ...)
 	try{
 	//	read return value
 		lua_traits<TData>::read(m_L, out);
+		UG_COND_THROW(IsFiniteAndNotTooBig(out)==false, out);
 	}
 	UG_CATCH_THROW("LuaFunction::operator(...): Error while running "
 					"callback '" << m_cbValueName << "'");

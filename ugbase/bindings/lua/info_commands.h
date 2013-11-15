@@ -139,6 +139,9 @@ UG_API void LuaStackTrace();
 /// returns the current file and line ( \sa LuaStackTrace ).
 UG_API std::string GetLuaFileAndLine(lua_State* L);
 
+/// returns file and line of defined script function
+std::string GetLUAScriptFunctionDefined(const char *functionName);
+
 }
 }
 						  

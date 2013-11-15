@@ -1327,6 +1327,7 @@ static int MetatableIndexer(lua_State*L)
 	//	check if some base class left; if not, return nil
 		if(qClassNameNodes.empty())
 		{
+			UG_LOG("LUA ERROR! Could not find member function \"" << lua_tostring(L, -1) << "\".\n");
 			lua_pushnil(L);
 			return 1;
 		}

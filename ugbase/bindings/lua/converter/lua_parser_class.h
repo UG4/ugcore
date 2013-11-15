@@ -145,7 +145,7 @@ public:
 	assert_local(size_t id)
 	{
 		if (!is_local(id))
-			err << "Error: " << get_name_for_id(id) << "not local!\n";
+			err << "Error: " << get_name_for_id(id) << " not local!\n";
 	}
 
 	bool

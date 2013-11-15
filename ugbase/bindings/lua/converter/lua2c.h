@@ -63,6 +63,8 @@ public:
 	}
 	
 	bool create(const char *functionName);
+	bool createVM(const char *functionName);
+	bool createC(const char *functionName);
 	
 	inline bool call(double *ret, double *in) const
 	{

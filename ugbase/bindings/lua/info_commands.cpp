@@ -41,6 +41,7 @@ using namespace std;
 namespace ug
 {
 	extern bool useLua2C;
+	extern bool useLua2VM;
 
 namespace bridge
 {
@@ -275,6 +276,37 @@ const std::vector<const char*> *GetClassNames(lua_State* L, const char *name)
 	const std::vector<const char*> *p = GetClassNames(L, -1);
 	lua_pop(L, 1); // remove global from stack;
 	return p;
+}
+
+string GetLUAScriptFunctionDefined(const char *functionName)
+{
+
+	lua_State* L = script::GetDefaultLuaState();
+	LUA_STACK_CHECK(L, 0);
+
+	string str = functionName;
+	GetLuaNamespace(L, str);
+
+	if(lua_isnil(L, -1) || lua_isfunction(L, -1)==false)
+	{
+		// it is nil
+		lua_pop(L, 1);
+		return "?";
+	}
+
+	lua_Debug ar;
+
+	if(lua_getinfo(L, ">Snlu", &ar) != 0 && ar.source)
+	{
+		const char *src = ar.source[0]=='@' ? ar.source+1 : ar.source;
+		std::stringstream ss;
+		ss << src << ":" << ar.linedefined << "-" << ar.lastlinedefined;
+		return ss.str();
+	}
+	else
+	{
+		return "?";
+	}
 }
 
 string FunctionInfo(lua_State *L, bool bComplete, const char *functionName)
@@ -1005,6 +1037,14 @@ void EnableLUA2C(bool b)
 	useLua2C=b;
 }
 
+void EnableLUA2VM(bool b)
+{
+#ifndef USE_LUA2C
+	UG_LOG("Warning: LUA2C not enabled. Enable with \"cmake -DUSE_LUA2C=ON ..\"\n")
+#endif
+	useLua2VM=b;
+}
+
 bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
 	stringstream grpSS; grpSS << parentGroup << "/Info";
@@ -1048,6 +1088,8 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 #endif
 		reg.add_function("EnableLUA2C", &EnableLUA2C, grp.c_str(), 
 		                 "", "bEnable", "");
+		reg.add_function("EnableLUA2VM", &EnableLUA2VM, grp.c_str(),
+				"", "bEnable", "");
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 

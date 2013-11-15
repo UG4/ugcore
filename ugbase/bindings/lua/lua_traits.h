@@ -7,10 +7,13 @@
 #ifndef LUA_TRAITS_H
 #define	LUA_TRAITS_H
 
+#include "common/util/number_util.h"
+
 namespace ug{
 ///////////////////////////////////////////////////////////////////////////////
 // Lua Traits
 ///////////////////////////////////////////////////////////////////////////////
+
 
 /// Helper to access a return value on the stack.
 /**	If the value can't be converted to a number, an error is thrown*/
@@ -18,7 +21,10 @@ inline number ReturnValueToNumber(lua_State* L, int index){
 	if(!lua_isnumber(L, index))
 		UG_THROW("ReturnValueToNumber: Data passed from Lua: "
 						"Can't convert return value to number!");
-	return lua_tonumber(L, index);
+	number a = lua_tonumber(L, index);
+	UG_COND_THROW(IsFiniteAndNotTooBig(a) == false, a << " not finite");
+	return a;
+
 }
 
 /// Helper to access a return value on the stack.
