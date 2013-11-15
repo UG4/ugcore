@@ -176,34 +176,31 @@ class AssembledMultiGridCycle :
 
  	protected:
  	/// compute correction on level and update defect
-		void lmgc(size_t lev);
+		void lmgc(int lev);
 
 	////////////////////////////////////////////////////////////////
 	//	The methods in this section rely on each other and should be called in sequence
 	///	performs presmoothing on the given level
-		void presmooth(size_t lev);
+		void presmooth(int lev);
 
 	///	performs restriction on to the level below
-		void restriction(size_t lev);
+		void restriction(int lev);
 
 	///	performs prolongation to the level above
-		void prolongation(size_t lev);
+		void prolongation(int lev);
 
 	///	performs postsmoothin
-		void postsmooth(size_t lev);
+		void postsmooth(int lev);
 	//	end of section
 	////////////////////////////////////////////////////////////////
 
 	///	compute base solver
-		void base_solve(size_t lev);
+		void base_solve(int lev);
 
 	/// performs smoothing on level l, nu times
 		void smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 		            MatrixOperator<matrix_type, vector_type>& A,
-		            ILinearIterator<vector_type>& S, size_t lev, int nu);
-
-	///	returns the number of allocated levels
-		size_t num_levels() const {return m_vLevData.size();}
+		            ILinearIterator<vector_type>& S, int lev, int nu);
 
 	///	allocates the memory
 		void init_level_memory(int baseLev, int topLev);
@@ -431,7 +428,7 @@ class AssembledMultiGridCycle :
 	 * \param[in]		name		Filename
 	 * \param[in]		level		grid level corresponding to the matrix
 	 */
-		void write_smooth_level_debug(const matrix_type& mat, std::string name, size_t lev);
+		void write_smooth_level_debug(const matrix_type& mat, std::string name, int lev);
 
 	///	writes debug output for a level matrix
 	/**
@@ -442,7 +439,7 @@ class AssembledMultiGridCycle :
 	 * \param[in]		name		Filename
 	 * \param[in]		level		grid level corresponding to the matrix
 	 */
-		void write_level_debug(const matrix_type& mat, std::string name, size_t lev);
+		void write_level_debug(const matrix_type& mat, std::string name, int lev);
 
 	///	writes debug output for a surface matrix
 	/**

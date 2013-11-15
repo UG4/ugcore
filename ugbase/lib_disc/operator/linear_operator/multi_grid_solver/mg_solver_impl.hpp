@@ -141,10 +141,10 @@ apply(vector_type& rC, const vector_type& rD)
 			(*(m_vLevData[level]->sd))[index] = d[i];
 		}
 #ifdef UG_PARALLEL
-		for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+		for(int lev = m_baseLev; lev <= m_topLev; ++lev)
 			m_vLevData[lev]->sd->set_storage_type(d.get_storage_mask());
 #endif
-		for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev)
+		for(int lev = m_baseLev; lev <= m_topLev; ++lev)
 			m_vLevData[lev]->sc->set(0.0);
 	}
 	UG_CATCH_THROW("GMG::apply: Project d Surf -> Level failed.");
@@ -556,7 +556,7 @@ init_level_operator()
 	}
 
 //	write computed level matrices for debug purpose
-	for(size_t lev = m_baseLev; lev < m_vLevData.size(); ++lev){
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
 		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrix", lev);
 	}
 
@@ -578,7 +578,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_missing_coarse_grid_coupling " << "\n");
 
 //	clear matrices
-	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev)
 		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(0,0);
 
 //	if the grid is fully refined, nothing to do
@@ -659,7 +659,7 @@ init_transfer()
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_transfer\n");
 
 //	loop all levels
-	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
+	for(int lev = m_baseLev+1; lev <= m_topLev; ++lev)
 	{
 	//	check if same operator for prolongation and restriction used
 		bool bOneOperator = false;
@@ -704,7 +704,7 @@ init_projection()
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_projection\n");
 
 //	loop all levels
-	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
+	for(int lev = m_baseLev+1; lev <= m_topLev; ++lev)
 	{
 	//	set levels
 		m_vLevData[lev]->Projection->set_levels(GridLevel(lev-1, GridLevel::LEVEL, false),
@@ -725,7 +725,7 @@ init_smoother()
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_smoother\n");
 
 // 	Init smoother
-	for(size_t lev = m_baseLev+1; lev < m_vLevData.size(); ++lev)
+	for(int lev = m_baseLev+1; lev <= m_topLev; ++lev)
 	{
 		LevData& ld = *m_vLevData[lev];
 
@@ -802,8 +802,9 @@ init_surface_to_level_mapping()
  */
 
 	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(num_levels());
-	for(size_t lev = 0; lev < num_levels(); ++lev)
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_topLev+1);
+	// \todo: only from baseLev
+	for(int lev = 0; lev <= m_topLev; ++lev)
 		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
 	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
@@ -1111,7 +1112,7 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
        MatrixOperator<matrix_type, vector_type>& A,
        ILinearIterator<vector_type>& S,
-       size_t lev, int nu)
+       int lev, int nu)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - smooth on level "<<lev<<"\n");
@@ -1145,7 +1146,7 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-presmooth(size_t lev)
+presmooth(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level "<<lev<<"\n");
@@ -1164,7 +1165,7 @@ presmooth(size_t lev)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-restriction(size_t lev)
+restriction(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
@@ -1215,7 +1216,7 @@ restriction(size_t lev)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-prolongation(size_t lev)
+prolongation(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level "<<lev<<"\n");
@@ -1275,7 +1276,7 @@ prolongation(size_t lev)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-postsmooth(size_t lev)
+postsmooth(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level "<<lev<<"\n");
@@ -1294,7 +1295,7 @@ postsmooth(size_t lev)
 // performs the base solving
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-base_solve(size_t lev)
+base_solve(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level "<<lev<<"\n");
@@ -1393,7 +1394,7 @@ base_solve(size_t lev)
 // performs a  multi grid cycle on the level
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-lmgc(size_t lev)
+lmgc(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - lmgc on level "<<lev<<"\n");
@@ -1634,7 +1635,7 @@ write_debug(const GF& rGF, std::string name)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_smooth_level_debug(const matrix_type& mat, std::string name, size_t lev)
+write_smooth_level_debug(const matrix_type& mat, std::string name, int lev)
 {
 	PROFILE_FUNC_GROUP("debug");
 
@@ -1654,7 +1655,7 @@ write_smooth_level_debug(const matrix_type& mat, std::string name, size_t lev)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_level_debug(const matrix_type& mat, std::string name, size_t lev)
+write_level_debug(const matrix_type& mat, std::string name, int lev)
 {
 	PROFILE_FUNC_GROUP("debug");
 
