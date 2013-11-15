@@ -291,7 +291,9 @@ class AssembledMultiGridCycle :
 	/// \{
 		template <typename TElem>
 		void collect_shadowing_indices(std::vector<size_t>& vShadowing,
-		                               ConstSmartPtr<DoFDistribution> spDD);
+		                               ConstSmartPtr<DoFDistribution> spDD,
+		                               std::vector<size_t>& vSurfShadowing,
+		                               ConstSmartPtr<DoFDistribution> spSurfDD);
 		void collect_shadowing_indices(int lev);
 	/// \}
 
@@ -344,14 +346,17 @@ class AssembledMultiGridCycle :
 		///	vectors needed (sx = no-ghosts [for smoothing], t = for transfer)
 			SmartPtr<GF> sc, sd, st, t;
 
-		///	missing coarse grid correction
-			matrix_type CoarseGridContribution;
-
 		///	maps global indices (including ghosts) to patch indices (no ghosts included).
 			std::vector<size_t> vMapPatchToGlobal;
 
 		/// list of shadowing indices
 			std::vector<size_t> vShadowing;
+
+		/// list of corresponding surface index to shadowing indices
+			std::vector<size_t> vSurfShadowing;
+
+		///	missing coarse grid correction
+			matrix_type CoarseGridContribution;
 		};
 
 	///	flag, if to solve base problem in parallel when gathered and (!) parallel possible
@@ -478,128 +483,6 @@ class AssembledMultiGridCycle :
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Operation on Shadows/Shadowing
-////////////////////////////////////////////////////////////////////////////////
-
-/**
-* This functions adds the shadow values from a coarser grid to the shadowing
-* DoFs on the finer grid.
-*
-* \param[out]	fineVec			fine grid vector
-* \param[out]	coarseVec		coarse grid vector
-* \param[in]	scale			scaling, when adding
-* \param[in] 	ddFine			dof distribution on fine space
-* \param[in] 	ddCoarse		dof distribution on coarse space
-* \param[in]	surfView		surface view
-*/
-template <typename TBaseElem, typename TVector>
-void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
-						 std::vector<ConstSmartPtr<DoFDistribution> > vDDFine,
-						 const TVector& coarseVec,
-						 ConstSmartPtr<DoFDistribution> ddCoarse,
-						 const int level,
-						 const number scale,
-						 const SurfaceView& surfView)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	std::vector<size_t> fineInd, coarseInd;
-
-	UG_ASSERT(ddCoarse.valid(), "DD Coarse missing, lev: "<<level)
-
-	// 	iterators
-	typedef typename DoFDistribution::traits<TBaseElem>::const_iterator const_iterator;
-	const_iterator iter, iterEnd;
-
-	// 	loop subsets of fine level
-	for(int si = 0; si < ddCoarse->num_subsets(); ++si)
-	{
-		iter = ddCoarse->begin<TBaseElem>(si);
-		iterEnd = ddCoarse->end<TBaseElem>(si);
-
-	// 	loop elements of coarse subset
-		for(; iter != iterEnd; ++iter)
-		{
-		//	get element
-			TBaseElem* pElem = *iter;
-
-		// 	get child (i.e. shadow)
-			TBaseElem* pShadowing = surfView.child_if_copy(pElem);
-
-		//	offset to count which child currently handling
-			int offset = 0;
-
-		// 	get global indices
-			UG_ASSERT(ddCoarse.valid(), "Invalid ddCoarse");
-			ddCoarse->inner_algebra_indices(pElem, coarseInd);
-
-		//	skip if not a copy
-			while(pShadowing){
-			//	increase offset
-				++offset;
-
-				if(surfView.is_ghost(pShadowing)) break;
-
-				UG_ASSERT(vDDFine[level+offset].valid(), "Invalid vDDFine."<<
-				          "lev: "<<level<<", off: "<<offset);
-				UG_ASSERT(vFineVector[level+offset], "Invalid vFineVector."<<
-				          "lev: "<<level<<", off: "<<offset);
-
-			// 	get global indices
-				vDDFine[level+offset]->inner_algebra_indices(pShadowing, fineInd);
-
-			//	add coarse vector entries to fine vector entries
-				for(size_t i = 0; i < coarseInd.size(); ++i)
-				{
-					UG_ASSERT(fineInd[i] < vFineVector[level+offset]->size(),
-					          "On FineVec, lev "<<level<<", off:"<<offset<<
-					          "ind: "<<fineInd[i]<<", size: "<<
-					          vFineVector[level+offset]->size());
-
-					UG_ASSERT(coarseInd[i] < coarseVec.size(),
-							  "On coarseVec, lev "<<level<<", off:"<<offset<<
-							  "ind: "<<coarseInd[i]<<", size: "<<
-							  coarseVec.size());
-
-					VecScaleAdd((*vFineVector[level+offset])[fineInd[i]],
-								1.0, (*vFineVector[level+offset])[fineInd[i]],
-								scale, coarseVec[coarseInd[i]]);
-				}
-
-			//	next child
-				pElem = pShadowing;
-				pShadowing = surfView.child_if_copy(pElem);
-			}
-		}
-	}
-
-}
-
-template <typename TVector>
-void AddProjectionOfShadows(const std::vector<TVector*>& vFineVector,
-						 std::vector<ConstSmartPtr<DoFDistribution> > vDDFine,
-						 const TVector& coarseVec,
-						 ConstSmartPtr<DoFDistribution> ddCoarse,
-						 const int level,
-						 const number scale,
-						 const SurfaceView& surfView)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	//	forward for all BaseObject types
-	if(ddCoarse->max_dofs(VERTEX))
-		AddProjectionOfShadows<VertexBase, TVector>
-					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
-	if(ddCoarse->max_dofs(EDGE))
-		AddProjectionOfShadows<EdgeBase, TVector>
-					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
-	if(ddCoarse->max_dofs(FACE))
-		AddProjectionOfShadows<Face, TVector>
-					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
-	if(ddCoarse->max_dofs(VOLUME))
-		AddProjectionOfShadows<Volume, TVector>
-					(vFineVector, vDDFine, coarseVec, ddCoarse, level, scale, surfView);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Selections
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -610,228 +493,6 @@ void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfV
 void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 										   const SurfaceView& surfView,
 										   int level);
-
-////////////////////////////////////////////////////////////////////////////////
-// Matrix Copy operations
-////////////////////////////////////////////////////////////////////////////////
-
-/// copies a matrix from a larger one into a smaller one
-/**
-* This function copies a matrix of a larger index set into a matrix with a
-* smaller (or equally sized) index set. The copying is performed using a
-* mapping between the index set, that returns smallIndex = vMap[largeIndex],
-* and a -1 if the largeIndex is dropped.
-*/
-template <typename TMatrix>
-void CopyMatrixByMapping(TMatrix& smallMat,
-					  const std::vector<int>& vMap,
-					  const TMatrix& origMat)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	//	check size
-	UG_ASSERT(vMap.size() == origMat.num_rows(), "Size must match.");
-	UG_ASSERT(vMap.size() == origMat.num_cols(), "Size must match.");
-
-	//	type of matrix row iterator
-	typedef typename TMatrix::const_row_iterator const_row_iterator;
-
-	//	loop all mapped indices
-	for(size_t origInd = 0; origInd < vMap.size(); ++origInd)
-	{
-	//	get mapped level index
-		const int smallInd = vMap[origInd];
-
-	//	skipped non-mapped indices (indicated by -1)
-		if(smallInd < 0) continue;
-
-	//	loop all connections of the surface dof to other surface dofs and copy
-	//	the matrix coupling into the level matrix
-
-		for(const_row_iterator conn = origMat.begin_row(origInd);
-								conn != origMat.end_row(origInd); ++conn)
-		{
-		//	get corresponding level connection index
-			const int smallConnIndex = vMap[conn.index()];
-
-		//	check that index is in small matrix, too
-			if(smallConnIndex < 0) continue;
-
-		//	copy connection to smaller matrix
-			smallMat(smallInd, smallConnIndex) = conn.value();
-		}
-	}
-
-	#ifdef UG_PARALLEL
-	smallMat.set_storage_type(origMat.get_storage_mask());
-	#endif
-}
-
-/// copies a matrix into a equally sized second one using a mapping
-/**
-* This function copies a matrix of a index set into a matrix with a
-* equally sized index set. The copying is performed using a
-* mapping between the index set, that returns newIndex = vMap[origIndex].
-*/
-template <typename TMatrix>
-void CopyMatrixByMapping(TMatrix& newMat,
-					  const std::vector<size_t>& vMap,
-					  const TMatrix& origMat)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	//	check size
-	UG_ASSERT(vMap.size() <= newMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_rows());
-	UG_ASSERT(vMap.size() <= newMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<newMat.num_cols());
-	UG_ASSERT(vMap.size() <= origMat.num_rows(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_rows());
-	UG_ASSERT(vMap.size() <= origMat.num_cols(), "Size must match. Map:"<<vMap.size()<<", mat:"<<origMat.num_cols());
-
-	newMat.resize_and_clear(origMat.num_rows(), origMat.num_cols());
-
-	//	type of matrix row iterator
-	typedef typename TMatrix::const_row_iterator const_row_iterator;
-
-	//	loop all mapped indices
-	for(size_t origInd = 0; origInd < vMap.size(); ++origInd)
-	{
-	//	get mapped level index
-		const size_t newInd = vMap[origInd];
-
-	//	loop all connections of the surface dof to other surface dofs and copy
-	//	the matrix coupling into the level matrix
-
-		for(const_row_iterator conn = origMat.begin_row(origInd);
-									conn != origMat.end_row(origInd); ++conn)
-		{
-			size_t newConnIndex = conn.index();
-
-		//	get corresponding level connection index
-			if(conn.index() < vMap.size())
-				newConnIndex = vMap[conn.index()];
-
-		//	copy connection to level matrix
-			newMat(newInd, newConnIndex) = conn.value();
-		}
-	}
-
-	#ifdef UG_PARALLEL
-	newMat.set_storage_type(origMat.get_storage_mask());
-	#endif
-}
-
-
-/// projects surface function to level functions
-template <typename TElem>
-void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMapping,
-                                 const std::vector<ConstSmartPtr<DoFDistribution> >& vLevelDD,
-                                 ConstSmartPtr<DoFDistribution> surfaceDD,
-                                 const SurfaceView& surfaceView)
-{
-//	type of element iterator
-	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
-
-//	iterators for subset
-	iter_type iter = surfaceDD->begin<TElem>(SurfaceView::ALL);
-	iter_type iterEnd = surfaceDD->end<TElem>(SurfaceView::ALL);
-
-//	vector of indices
-	std::vector<size_t> surfaceInd, levelInd;
-
-//	loop all elements of type
-	for( ; iter != iterEnd; ++iter)
-	{
-	//	get elem
-		TElem* elem = *iter;
-
-	//	extract all algebra indices for the element on surface
-		surfaceDD->inner_algebra_indices(elem, surfaceInd);
-
-	//	get level of element in hierarchy
-		int level = surfaceView.get_level(elem);
-
-	//	get corresponding level matrix for element
-		UG_ASSERT(level < (int)vSurfLevelMapping.size(), "Level missing");
-		std::vector<int>& levelMapping = vSurfLevelMapping[level];
-
-	//	check that level is correct
-		UG_ASSERT(level < (int)vLevelDD.size(), "Element of level detected, "
-				"									that is not passed.");
-
-	//	extract all algebra indices for the element on level
-		UG_ASSERT(vLevelDD[level].valid(), "DoF Distribution missing");
-		vLevelDD[level]->inner_algebra_indices(elem, levelInd);
-
-	//	check that index sets have same cardinality
-		UG_ASSERT(surfaceInd.size() == levelInd.size(), "Number of indices does not match.");
-
-	//	copy all elements of the matrix
-		for(size_t i = 0; i < surfaceInd.size(); ++i)
-		{
-			UG_ASSERT(surfaceInd[i] < levelMapping.size(), "Index to large.");
-			levelMapping[surfaceInd[i]] = levelInd[i];
-		}
-	}
-}
-
-/// creates a mapping of indices from the surface dof distribution to the level dof distribution
-inline void CreateSurfaceToLevelMapping(std::vector<std::vector<int> >& vSurfLevelMapping,
-                                        const std::vector<ConstSmartPtr<DoFDistribution> >& vLevelDD,
-                                        ConstSmartPtr<DoFDistribution> surfDD,
-                                        const SurfaceView& surfView)
-{
-//	resize the mapping
-	vSurfLevelMapping.clear();
-	vSurfLevelMapping.resize(vLevelDD.size());
-	for(size_t lev = 0; lev < vSurfLevelMapping.size(); ++lev)
-		vSurfLevelMapping[lev].resize(surfDD->num_indices(), -1);
-
-	if(surfDD->max_dofs(VERTEX))
-		CreateSurfaceToLevelMapping<VertexBase>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-	if(surfDD->max_dofs(EDGE))
-		CreateSurfaceToLevelMapping<EdgeBase>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-	if(surfDD->max_dofs(FACE))
-		CreateSurfaceToLevelMapping<Face>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-	if(surfDD->max_dofs(VOLUME))
-		CreateSurfaceToLevelMapping<Volume>(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-}
-
-/// projects surface function to level functions
-template <typename TMatrix>
-void CopyMatrixSurfaceToLevel(TMatrix& levelMatrix,
-                              const std::vector<int>& surfLevelMapping,
-                              const TMatrix& surfMatrix)
-{
-//	type of matrix row iterator
-	typedef typename TMatrix::const_row_iterator const_row_iterator;
-
-//	loop all mapped indices
-	for(size_t surfInd = 0; surfInd < surfLevelMapping.size(); ++surfInd)
-	{
-	//	get mapped level index
-		const int levelInd = surfLevelMapping[surfInd];
-
-	//	skipped non-mapped indices (indicated by -1)
-		if(levelInd < 0) continue;
-
-	//	loop all connections of the surface dof to other surface dofs and copy
-	//	the matrix coupling into the level matrix
-
-		for(const_row_iterator conn = surfMatrix.begin_row(surfInd);
-						conn != surfMatrix.end_row(surfInd); ++conn)
-		{
-		//	get corresponding level connection index
-			const int levelConnIndex = surfLevelMapping[conn.index()];
-
-		//	check that index is from same level, too
-			if(levelConnIndex < 0) continue;
-
-		//	copy connection to level matrix
-			levelMatrix(levelInd, levelConnIndex) = conn.value();
-		}
-	}
-
-#ifdef UG_PARALLEL
-	levelMatrix.set_storage_type(surfMatrix.get_storage_mask());
-#endif
-}
 
 } // end namespace ug
 

@@ -582,6 +582,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_missing_coarse_grid_coupling " << "\n");
+
 //	clear matrices
 	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
 		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(0,0);
@@ -595,23 +596,13 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 //	get the surface view
 	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 
-//	create storage for matrices on the grid levels
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_vLevData.size());
-	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
-		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));;
-
-//	surface dof distribution
-	ConstSmartPtr<DoFDistribution> surfDD =
-			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
-
-//	create mappings
-	std::vector<std::vector<int> > vSurfLevelMapping;
-	CreateSurfaceToLevelMapping(vSurfLevelMapping, vLevelDD, surfDD, surfView);
-
 //	loop all levels to compute the missing contribution
 	BoolMarker sel(*m_spApproxSpace->domain()->grid());
-	for(size_t lev = 0; lev < m_vLevData.size(); ++lev)
+	for(int lev = m_baseLev; lev < m_topLev; ++lev)
 	{
+		LevData& lc = *m_vLevData[lev];
+		LevData& lf = *m_vLevData[lev+1];
+
 	//	select all elements, that have a shadow as a subelement, but are not
 	//	itself a shadow -  we assemble on those elements only
 		sel.clear();
@@ -632,22 +623,35 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		}
 		m_spAss->ass_tuner()->set_marker(NULL);
 
-	//	write matrix for debug purpose
-		std::stringstream ss; ss << "MissingSurfMat_" << lev;
-		write_surface_debug(surfMat, ss.str().c_str());
+		UG_ASSERT(surfMat.num_rows() == m_vSurfToLevelMap.size(), "Size mismatch")
+		UG_ASSERT(surfMat.num_cols() == m_vSurfToLevelMap.size(), "Size mismatch")
 
-	//	project
-		try{
-		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(vLevelDD[lev]->num_indices(),
-		                                                         vLevelDD[lev]->num_indices());
-		CopyMatrixSurfaceToLevel(m_vLevData[lev]->CoarseGridContribution,
-		                             vSurfLevelMapping[lev],
-		                             surfMat);
+		lc.CoarseGridContribution.resize_and_clear(lf.sd->size(), lc.sc->size());
+
+		for(size_t i = 0; i< lf.vShadowing.size(); ++i)
+		{
+			const size_t lvlFrom = lf.vShadowing[i];
+			const size_t surfFrom = lf.vSurfShadowing[i];
+
+			typedef typename matrix_type::row_iterator row_iterator;
+			row_iterator conn = surfMat.begin_row(surfFrom);
+			row_iterator connEnd = surfMat.end_row(surfFrom);
+			for( ;conn != connEnd; ++conn)
+			{
+				const size_t surfTo = conn.index();
+				if(m_vSurfToLevelMap[surfTo].level != lev) continue;
+
+				const size_t lvlTo = m_vSurfToLevelMap[surfTo].index;
+
+				(lc.CoarseGridContribution)(lvlFrom, lvlTo) = conn.value();
+			}
 		}
-		UG_CATCH_THROW("GMG::init_missing_coarse_grid_coupling: "
-					"Projection of matrix from surface to level failed.");
 
+#ifdef UG_PARALLEL
+		lc.CoarseGridContribution.set_storage_type(surfMat.get_storage_mask());
+#endif
 		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
+		write_surface_debug(surfMat, std::string("MissingSurfMat_").append(ToString(lev)));
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling " << "\n");
@@ -851,6 +855,7 @@ init_surface_to_level_mapping()
 
 	//	set mapping index
 		for(size_t i = 0; i < vSurfInd.size(); ++i){
+			if(m_vSurfToLevelMap[vSurfInd[i]].level > level) continue;
 			m_vSurfToLevelMap[vSurfInd[i]] = LevelIndex(vLevelInd[i], level);
 		}
 	}
@@ -967,7 +972,9 @@ template <typename TDomain, typename TAlgebra>
 template <typename TElem>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 collect_shadowing_indices(std::vector<size_t>& vShadowing,
-                          ConstSmartPtr<DoFDistribution> spDD)
+                          ConstSmartPtr<DoFDistribution> spDD,
+                          std::vector<size_t>& vSurfShadowing,
+                          ConstSmartPtr<DoFDistribution> spSurfDD)
 {
 	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
 	iter_type iter = spDD->begin<TElem>();
@@ -975,7 +982,7 @@ collect_shadowing_indices(std::vector<size_t>& vShadowing,
 	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
 
 //	vector of indices
-	std::vector<size_t> vInd;
+	std::vector<size_t> vInd, vSurfInd;
 
 //	loop all elements of type
 	for( ; iter != iterEnd; ++iter){
@@ -987,10 +994,13 @@ collect_shadowing_indices(std::vector<size_t>& vShadowing,
 
 	// 	get global indices
 		spDD->inner_algebra_indices(elem, vInd);
+		spSurfDD->inner_algebra_indices(elem, vSurfInd);
 
 	//	add to list of shadowing indices
-		for(size_t i = 0; i < vInd.size(); ++i)
+		for(size_t i = 0; i < vInd.size(); ++i){
 			vShadowing.push_back(vInd[i]);
+			vSurfShadowing.push_back(vSurfInd[i]);
+		}
 	}
 }
 
@@ -1001,14 +1011,17 @@ collect_shadowing_indices(int lev)
 	PROFILE_FUNC_GROUP("gmg");
 	ConstSmartPtr<DoFDistribution> spDD =
 			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
+	ConstSmartPtr<DoFDistribution> spSurfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 	std::vector<size_t>& vShadowing = m_vLevData[lev]->vShadowing;
+	std::vector<size_t>& vSurfShadowing = m_vLevData[lev]->vSurfShadowing;
 	vShadowing.clear();
+	vSurfShadowing.clear();
 
-	if(spDD->max_dofs(VERTEX)) collect_shadowing_indices<VertexBase>(vShadowing, spDD);
-	if(spDD->max_dofs(EDGE))   collect_shadowing_indices<EdgeBase>(vShadowing, spDD);
-	if(spDD->max_dofs(FACE))   collect_shadowing_indices<Face>(vShadowing, spDD);
-	if(spDD->max_dofs(VOLUME)) collect_shadowing_indices<Volume>(vShadowing, spDD);
+	if(spDD->max_dofs(VERTEX)) collect_shadowing_indices<VertexBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
+	if(spDD->max_dofs(EDGE))   collect_shadowing_indices<EdgeBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
+	if(spDD->max_dofs(FACE))   collect_shadowing_indices<Face>(vShadowing, spDD, vSurfShadowing, spSurfDD);
+	if(spDD->max_dofs(VOLUME)) collect_shadowing_indices<Volume>(vShadowing, spDD, vSurfShadowing, spSurfDD);
 }
 
 
@@ -1236,40 +1249,11 @@ prolongation(size_t lev)
 //	in the adaptive case there is a small part of the coarse coupling that
 //	has not been used to update the defect. In order to ensure, that the
 //	defect on this level still corresponds to the updated defect, we need
-//	to add if here. This is done in two steps:
-	if(m_bAdaptive)
-	{
-	//	a) Compute the coarse update of the defect induced by missing coupling
-		lc.st->set(0.0);
-		if(lc.sc->size() > 0){
-			if(!lc.CoarseGridContribution.apply(*lc.st, *lc.sc))
-				UG_THROW("GMG::lmgc: Could not compute"
-						" missing update defect contribution on level "<<lev-1);
-		}
-
-	//	lc.t is additive but we need a consistent correction
-		#ifdef UG_PARALLEL
-		lc.st->set_storage_type(PST_ADDITIVE);
-		#endif
-
-	//	b) interpolate the coarse defect up
-		std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_vLevData.size(), NULL);
-		for(size_t l = 0; l < m_vLevData.size(); ++l){
-			if(m_vLevData[l]->sd.valid()){
-				if(m_vLevData[l]->sd->num_indices() > 0){
-					vLevelDD[l] = m_spApproxSpace->dof_distribution(GridLevel(l, GridLevel::LEVEL, false));
-				}
-			}
-		}
-
-		const SurfaceView& surfView = *m_spApproxSpace->surface_view();
-		AddProjectionOfShadows(level_defects(),
-							   vLevelDD,
-							   *dynamic_cast<vector_type*>(lc.st.get()),
-							   lc.st->dof_distribution(),
-							   lev-1,
-							   -1.0,
-							   surfView);
+//	to add if here.
+	if(m_bAdaptive){
+		// \todo: use apply_sub_ignore_zero_rows
+		lc.CoarseGridContribution.apply(*lf.st, *lc.sc);
+		(*lf.sd) += (*lf.st);
 	}
 
 //	## INTERPOLATE CORRECTION
