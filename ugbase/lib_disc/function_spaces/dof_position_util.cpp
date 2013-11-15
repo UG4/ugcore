@@ -338,8 +338,8 @@ void ExtractAlgebraIndices2(ConstSmartPtr<TDomain> domain,
 	for(int si = 0; si < dd->num_subsets(); ++si)
 	{
 	//	get iterators
-		iter = dd->begin<TBaseElem>(si);
-		iterEnd = dd->end<TBaseElem>(si);
+		iter = dd->begin<TBaseElem>(si, SurfaceView::ALL);
+		iterEnd = dd->end<TBaseElem>(si, SurfaceView::ALL);
 
 	//	loop all elements
 		for(;iter != iterEnd; ++iter)
@@ -405,8 +405,8 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 	typedef DoFDistribution::traits<VertexBase>::const_iterator const_iterator;
 
 //	loop all vertices
-	const_iterator iter = dd->begin<VertexBase>();
-	const_iterator iterEnd = dd->end<VertexBase>();
+	const_iterator iter = dd->begin<VertexBase>(SurfaceView::ALL);
+	const_iterator iterEnd = dd->end<VertexBase>(SurfaceView::ALL);
 
 //	algebra indices vector
 	std::vector<size_t> ind;
@@ -447,8 +447,8 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 	for(int si = 0; si < dd->num_subsets(); ++si)
 	{
 	//	get iterators
-		iter = dd->begin<TBaseElem>(si);
-		iterEnd = dd->end<TBaseElem>(si);
+		iter = dd->begin<TBaseElem>(si, SurfaceView::ALL);
+		iterEnd = dd->end<TBaseElem>(si, SurfaceView::ALL);
 
 	//	loop all elements
 		for(;iter != iterEnd; ++iter)
@@ -531,8 +531,8 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 	for(int si = 0; si < dd->num_subsets(); ++si)
 	{
 	//	get iterators
-		iter = dd->begin<TBaseElem>(si);
-		iterEnd = dd->end<TBaseElem>(si);
+		iter = dd->begin<TBaseElem>(si, SurfaceView::ALL);
+		iterEnd = dd->end<TBaseElem>(si, SurfaceView::ALL);
 
 	//	skip non-used function
 		if(!dd->is_def_in_subset(fct,si)) continue;
@@ -608,8 +608,8 @@ bool CheckDoFElem(ConstSmartPtr<TDomain> domain,
 	for(int si = 0; si < dd->num_subsets(); ++si)
 	{
 	//	get iterators
-		iter = dd->begin<TBaseElem>(si);
-		iterEnd = dd->end<TBaseElem>(si);
+		iter = dd->begin<TBaseElem>(si, SurfaceView::ALL);
+		iterEnd = dd->end<TBaseElem>(si, SurfaceView::ALL);
 
 	//	loop all elements
 		for(;iter != iterEnd; ++iter)
