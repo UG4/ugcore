@@ -267,8 +267,8 @@ void ExtractPositionsElem(ConstSmartPtr<TDomain> domain,
 	for(int si = 0; si < dd->num_subsets(); ++si)
 	{
 	//	get iterators
-		iter = dd->begin<TBaseElem>(si);
-		iterEnd = dd->end<TBaseElem>(si);
+		iter = dd->begin<TBaseElem>(si, SurfaceView::ALL);
+		iterEnd = dd->end<TBaseElem>(si, SurfaceView::ALL);
 
 	//	loop all elements
 		for(;iter != iterEnd; ++iter)
