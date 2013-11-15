@@ -99,7 +99,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef ITransferPostProcess<TAlgebra> TBase;
 		string name = string("AverageComponent").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
-			.template add_constructor<void (*)(SmartPtr<approximation_space_type>, const char*)>("Approximation Space#Components")
+			.template add_constructor<void (*)(const std::string&)>("Components")
+			.template add_constructor<void (*)(const std::vector<std::string>&)>("Components")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AverageComponent", tag);
 	}

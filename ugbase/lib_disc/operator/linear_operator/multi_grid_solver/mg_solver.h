@@ -339,10 +339,6 @@ class AssembledMultiGridCycle :
 			SmartPtr<ITransferOperator<TAlgebra> > Prolongation;
 			SmartPtr<ITransferOperator<TAlgebra> > Restriction;
 
-		///	transfer post process
-            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vProlongationPP;
-            std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > vRestrictionPP;
-
 		///	vectors needed (sx = no-ghosts [for smoothing], t = for transfer)
 			SmartPtr<GF> sc, sd, st, t;
 

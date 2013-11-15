@@ -22,20 +22,13 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-void AverageComponent<TDomain, TAlgebra>::set_levels(GridLevel level)
-{
-}
-
-template <typename TDomain, typename TAlgebra>
-void AverageComponent<TDomain, TAlgebra>::init()
-{
-}
-
-template <typename TDomain, typename TAlgebra>
 void AverageComponent<TDomain, TAlgebra>::
 post_process(SmartPtr<vector_type> spU)
 {
 	PROFILE_FUNC_GROUP("gmg");
+
+	if(m_vCmp.empty())
+		return;
 
 	SmartPtr<GridFunction<TDomain, TAlgebra> > spGF
 					= spU.template cast_dynamic<GridFunction<TDomain, TAlgebra> >();
@@ -46,21 +39,17 @@ post_process(SmartPtr<vector_type> spU)
 	ConstSmartPtr<DoFDistributionInfo> ddinfo =
 								spGF->approx_space()->dof_distribution_info();
 
-	std::vector<std::string> vCmp = TokenizeTrimString(m_symbFct);
-	if(vCmp.empty())
-		UG_THROW("AverageComponent: No components set.")
-
 //	compute integral of components
 	const number area = Integral(1.0, spGF);
-	std::vector<number> vIntegral(vCmp.size(), 0.0);
-	for(size_t f = 0; f < vCmp.size(); f++)
-		vIntegral[f] = Integral(spGF, vCmp[f].c_str());
+	std::vector<number> vIntegral(m_vCmp.size(), 0.0);
+	for(size_t f = 0; f < m_vCmp.size(); f++)
+		vIntegral[f] = Integral(spGF, m_vCmp[f].c_str());
 
 //	subtract value
-	for(size_t f = 0; f < vCmp.size(); f++)
+	for(size_t f = 0; f < m_vCmp.size(); f++)
 	{
 		const number sub = vIntegral[f] / area;
-		const size_t fct = spGF->fct_id_by_name(vCmp[f].c_str());
+		const size_t fct = spGF->fct_id_by_name(m_vCmp[f].c_str());
 
 		if(ddinfo->max_fct_dofs(fct, VERTEX)) subtract_value<VertexBase>(spGF, fct, sub);
 		if(ddinfo->max_fct_dofs(fct, EDGE)) subtract_value<EdgeBase>(spGF, fct, sub);
@@ -101,8 +90,7 @@ template <typename TDomain, typename TAlgebra>
 SmartPtr<ITransferPostProcess<TAlgebra> >
 AverageComponent<TDomain, TAlgebra>::clone()
 {
-	SmartPtr<AverageComponent> op(new AverageComponent(m_spApproxSpace, m_symbFct.c_str()));
-	return op;
+	return SmartPtr<AverageComponent>(new AverageComponent(m_vCmp));
 }
 
 } // end namespace ug

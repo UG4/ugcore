@@ -73,17 +73,8 @@ class ITransferPostProcess
 		typedef typename TAlgebra::vector_type vector_type;
 
 	public:
-	/// Set Levels for Post Process
-		virtual void set_levels(GridLevel level) = 0;
-
-	///	initialize the operator
-		virtual void init() = 0;
-
 	/// apply post process
 		virtual void post_process(SmartPtr<vector_type> spU) = 0;
-
-	///	Clone
-		virtual SmartPtr<ITransferPostProcess<TAlgebra> > clone() = 0;
 
 	///	virtual destructor
 		virtual ~ITransferPostProcess() {}

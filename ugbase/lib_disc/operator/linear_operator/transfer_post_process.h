@@ -37,24 +37,12 @@ class AverageComponent :
 
 	public:
 	///	Constructor setting approximation space
-		AverageComponent(
-				SmartPtr<ApproximationSpace<TDomain> > approxSpace,
-				const char* fcts) :
-			m_symbFct(fcts),
-			m_spApproxSpace(approxSpace), m_bInit(false)
-		{
-			init();
-		};
+		AverageComponent(const std::string& fcts){m_vCmp = TokenizeTrimString(fcts);};
 
-		virtual ~AverageComponent(){};
+	///	Constructor setting approximation space
+		AverageComponent(const std::vector<std::string>& vCmp){m_vCmp = vCmp;};
 
 	public:
-	///	Set levels
-		virtual void set_levels(GridLevel level);
-
-	///	initialize the operator
-		virtual void init();
-
 	/// apply Operator, interpolate function
 		virtual void post_process(SmartPtr<vector_type> spU);
 
@@ -67,19 +55,7 @@ class AverageComponent :
 
 	protected:
 	///	symbolic function names
-		std::string m_symbFct;
-
-	///	indices of selected functions
-		FunctionGroup m_fctGrp;
-
-	///	approximation space
-		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-
-	///	fine grid level
-		GridLevel m_level;
-
-	///	initialization flag
-		bool m_bInit;
+		std::vector<std::string> m_vCmp;
 };
 
 } // end namespace ug

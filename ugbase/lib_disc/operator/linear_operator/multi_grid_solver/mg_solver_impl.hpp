@@ -691,18 +691,6 @@ init_transfer()
 	//	init prolongation
 		m_vLevData[lev]->Prolongation->init();
 		if(!bOneOperator) m_vLevData[lev]->Restriction->init();
-
-		for(size_t i = 0; i < m_vLevData[lev]->vProlongationPP.size(); ++i)
-		{
-			m_vLevData[lev]->vProlongationPP[i]->set_levels(GridLevel(lev, GridLevel::LEVEL, false));
-			m_vLevData[lev]->vProlongationPP[i]->init();
-		}
-
-		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
-		{
-			m_vLevData[lev]->vRestrictionPP[i]->set_levels(GridLevel(lev-1, GridLevel::LEVEL, false));
-			m_vLevData[lev]->vRestrictionPP[i]->init();
-		}
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_transfer\n");
@@ -1062,14 +1050,6 @@ init_level_memory(int baseLev, int topLev)
 		else
 			ld.Restriction = m_spRestrictionPrototype->clone();
 
-		ld.vProlongationPP.clear();
-		for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
-			ld.vProlongationPP.push_back(m_vspProlongationPostProcess[i]->clone());
-
-		ld.vRestrictionPP.clear();
-		for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
-				ld.vRestrictionPP.push_back(m_vspRestrictionPostProcess[i]->clone());
-
 		init_noghost_to_ghost_mapping(lev);
 	}
 
@@ -1226,8 +1206,8 @@ restriction(size_t lev)
 		GMG_PROFILE_END();
 
 	//	apply post processes
-		for(size_t i = 0; i < m_vLevData[lev]->vRestrictionPP.size(); ++i)
-			m_vLevData[lev]->vRestrictionPP[i]->post_process(lc.sd);
+		for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
+			m_vspRestrictionPostProcess[i]->post_process(lc.sd);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
@@ -1273,8 +1253,8 @@ prolongation(size_t lev)
 	copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
 
 //	apply post processes
-	for(size_t i = 0; i < lf.vProlongationPP.size(); ++i)
-		lf.vProlongationPP[i]->post_process(lf.st);
+	for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
+		m_vspProlongationPostProcess[i]->post_process(lf.st);
 
 // 	## ADD COARSE GRID CORRECTION
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
