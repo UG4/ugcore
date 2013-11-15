@@ -180,8 +180,12 @@ class InterfaceCommunicator
 	 *	released. Make sure that you will keep your communication-policies
 	 *	in memory until this point.
 	 *	\note	Calling communicate() is effectively the same as calling
-	 *			communicate_and_resume() directly followed by wait().*/
-		bool communicate();
+	 *			communicate_and_resume() directly followed by wait().
+	 *	\param tag	For internal communications the provided tag is used. The
+	 *				default value is fine in most cases and normally only has to be
+	 *				adjusted if one performs multiple communications at the same time
+	 *				(e.g. with different communicators).*/
+		bool communicate(int tag = 749345);
 		
 
 	///	collects data and communicates it with other processes without waiting for receive
@@ -195,8 +199,12 @@ class InterfaceCommunicator
 	 * 			while communication is performed.
 	 * \note	A call to communicate_and_resume() has to be followed by a call to wait().
 	 * 			You may not call communicate_and_resume() twice on a single communicator
-	 * 			without callin wait() in between.*/
-		bool communicate_and_resume();
+	 * 			without callin wait() in between.
+	 * \param tag	For internal communications the provided tag is used. The
+	 *				default value is fine in most cases and normally only has to be
+	 *				adjusted if one performs multiple communications at the same time
+	 *				(e.g. with different communicators).*/
+		bool communicate_and_resume(int tag = 749345);
 
 	///	waits for the data communicated by communicate_and_resume() and extracts it
 	/**	The extract routines of the communication-policies which were registered
@@ -346,6 +354,10 @@ class InterfaceCommunicator
 	///	This procComm holds the processes that shall participate during communication-debugging.
 		ProcessCommunicator	m_debugProcComm;
 		
+	///	This is the tag for the currently performed communication.
+	/**	Set to -1 if no communication is currently performed.*/
+		int	m_curComTag;
+
 	///	true if the communication shall be debugged.
 		bool m_bDebugCommunication;
 		

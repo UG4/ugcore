@@ -373,9 +373,9 @@ extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 bool InterfaceCommunicator<TLayout>::
-communicate()
+communicate(int tag)
 {
-	bool retValue = communicate_and_resume();
+	bool retValue = communicate_and_resume(tag);	// use an arbitrary tag... (this is a little dangerous...)
 	wait();
 	return retValue;
 }
@@ -384,7 +384,7 @@ communicate()
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 bool InterfaceCommunicator<TLayout>::
-communicate_and_resume()
+communicate_and_resume(int tag)
 {
 	PCL_PROFILE(pcl_IntCom_communicate);
 
@@ -520,7 +520,7 @@ communicate_and_resume()
 	{
 		PCL_PROFILE(pcl_IntCom_communicateBufSizes);
 
-		int sizeTag = 189345;//	an arbitrary number
+		int sizeTag = tag;
 		int counter;
 		std::vector<int> streamSizes;
 
@@ -594,7 +594,7 @@ communicate_and_resume()
 ////////////////////////////////////////////////
 //	communicate data.
 	PCL_PROFILE(pcl_IntCom_communicateData);
-	int dataTag = 749345;//	an arbitrary number
+	int dataTag = tag;
 
 	UG_DLOG(ug::LIB_PCL, 1, "receiving from procs:");
 
