@@ -29,6 +29,15 @@
 namespace ug{
 std::string CUDAError(int err);
 
+template<typename T>
+inline void CudaCheckStatus(T status, const char * file, int line)
+{
+	unsigned int s = static_cast<unsigned int>(status );
+	UG_COND_THROW(status != 0, "CUDA error at " << file << ":" << line << " " << s << " = " << _cudaGetErrorEnum(status) );
+}
+
+#define CUDA_CHECK_STATUS(status ) CudaCheckStatus(status, __FILE__, __LINE__)
+
 #define CUDA_CHECK_SUCCESS(err, desc) \
 if(err != cudaSuccess)\
 {\

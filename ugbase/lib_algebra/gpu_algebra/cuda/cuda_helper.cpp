@@ -23,7 +23,6 @@ CUDAHelper::~CUDAHelper()
 }
 
 
-
 void CUDAHelper::init()
 {
 	//cudaDeviceReset();
@@ -40,11 +39,10 @@ void CUDAHelper::init()
 
     if (devID < 0)
     {
-        printf("no device found. exiting...\n");
-        exit(EXIT_SUCCESS);
+    	UG_THROW("no CUDA device found.\n");
     }
 
-    checkCudaErrors(cudaGetDeviceProperties(&deviceProp, devID));
+    CUDA_CHECK_STATUS(cudaGetDeviceProperties(&deviceProp, devID));
 
 
     // Statistics about the GPU device
@@ -52,9 +50,9 @@ void CUDAHelper::init()
     int version = (deviceProp.major * 0x10 + deviceProp.minor);
     if (version < 0x11)
     {
-        printf("%s: requires a minimum CUDA compute 1.1 capability\n", "amgframework");
+
         cudaDeviceReset();
-        exit(EXIT_SUCCESS);
+        UG_THROW("Requires a minimum CUDA compute 1.1 capability\n");
     }
     
     m_maxThreadsPerBlock = deviceProp.maxThreadsPerBlock;
@@ -83,18 +81,18 @@ void CUDAHelper::init()
       /* Get handle to the CUBLAS context */
     cublasHandle = 0;
     cublasStatus_t cublasStatus = cublasCreate(&cublasHandle);
-    if (checkCudaErrors(cublasStatus)) exit(EXIT_FAILURE);
+    CUDA_CHECK_STATUS(cublasStatus);
 
 #ifdef USE_CUSPARSE
     /* Get handle to the CUSPARSE context */
     cusparseHandle = 0;
     cusparseStatus_t cusparseStatus = cusparseCreate(&cusparseHandle);
-    if (checkCudaErrors(cusparseStatus)) exit(EXIT_FAILURE);
+    CUDA_CHECK_STATUS(cusparseStatus);
 
     cusparseMatDescr_t descr = 0;
     cusparseStatus = cusparseCreateMatDescr(&descr);
 
-    if (checkCudaErrors(cusparseStatus)) exit(EXIT_FAILURE);
+    CUDA_CHECK_STATUS(cusparseStatus);
 #endif
 	
 }
