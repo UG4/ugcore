@@ -120,6 +120,8 @@ class P1LagrangeElemTransfer
 			return false;
 		}
 
+		// the following line silences -Woverloaded-virtual
+		using ElemRestrictionBase<TDomain, P1LagrangeElemTransfer<TDomain> >::do_restrict;
 		void do_restrict(GeometricObject* parent,
 		                 TransferValueAccessor& vValueChild,
 		                 TransferValueAccessor& vValueParent)
@@ -375,6 +377,8 @@ class CrouzeixRaviartElemTransfer
 			return false;
 		}
 
+		// the following line silences -Woverloaded-virtual
+		using ElemProlongationBase<TDomain, CrouzeixRaviartElemTransfer<TDomain> >::prolongate;
 		void prolongate(VertexBase* parent,
 						TransferValueAccessor& vValueChild,
 						TransferValueAccessor& vValueParent)
