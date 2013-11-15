@@ -1488,6 +1488,145 @@ lmgc(size_t lev)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Parallel Communication
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef UG_PARALLEL
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+gather_vertical(vector_type& d)
+{
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - gather_vertical\n");
+	PROFILE_FUNC_GROUP("gmg");
+
+//	send vertical-slaves -> vertical-masters
+	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
+
+	if(!d.layouts()->vertical_slave().empty()){
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		  " Going down: SENDS vert. dofs.\n");
+
+	//	there may be v-slaves with multiple v-masters. We only want to send
+	//	a fraction to each master, to keep d additive.
+	//	count number of occurrances in v-interfaces
+		bool multiOccurance = false;
+		std::vector<number> occurence;
+		const IndexLayout& layout = d.layouts()->vertical_slave();
+
+		if(layout.num_interfaces() > 1){
+			occurence.resize(d.size(), 0);
+			for(IndexLayout::const_iterator iiter = layout.begin();
+				iiter != layout.end(); ++iiter)
+			{
+				const IndexLayout::Interface& itfc = layout.interface(iiter);
+				for(IndexLayout::Interface::const_iterator iter = itfc.begin();
+					iter != itfc.end(); ++iter)
+				{
+					const IndexLayout::Interface::Element& index = itfc.get_element(iter);
+
+					occurence[index] += 1;
+					if(occurence[index] > 1)
+						multiOccurance = true;
+				}
+			}
+
+		}
+		if(multiOccurance){
+		//todo: avoid copy tmp_d if possible.
+			vector_type tmp_d(d.size());
+			tmp_d.set_storage_type(d.get_storage_mask());
+		//	we'll copy adjusted values from d to the occurances vector
+			for(size_t i = 0; i < occurence.size(); ++i){
+				if(occurence[i] > 0) // others can be ignored since not communicated anyways
+					tmp_d[i] = d[i] * (1./occurence[i]);
+			}
+			ComPol_VecAdd<vector_type> cpVecAdd(&tmp_d);
+			m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
+		}
+		else{
+		//	schedule Sending of DoFs of vertical slaves
+			ComPol_VecAdd<vector_type> cpVecAdd(&d);
+			m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
+		}
+	}
+
+	ComPol_VecAdd<vector_type> cpVecAddRcv(&d); // has to exist until communicate was executed
+	if(!d.layouts()->vertical_master().empty()){
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
+
+	//	schedule Receive of DoFs on vertical masters
+		m_Com.receive_data(d.layouts()->vertical_master(), cpVecAddRcv);
+	}
+
+//	perform communication
+	m_Com.communicate();
+	GMG_PROFILE_END();
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical\n");
+}
+
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+broadcast_vertical(vector_type& t)
+{
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - broadcast_vertical\n");
+	PROFILE_FUNC_GROUP("gmg");
+//	send vertical-masters -> vertical-slaves
+	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
+	ComPol_VecCopy<vector_type> cpVecCopy(&t);
+	if(!t.layouts()->vertical_slave().empty())
+	{
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
+
+	//	schedule slaves to receive correction
+		m_Com.receive_data(t.layouts()->vertical_slave(), cpVecCopy);
+	}
+
+	if(!t.layouts()->vertical_master().empty())
+	{
+//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+//		 " Going up: SENDS vert. dofs.\n");
+
+	//	schedule masters to send correction
+		m_Com.send_data(t.layouts()->vertical_master(), cpVecCopy);
+	}
+
+//	communicate
+	m_Com.communicate();
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - broadcast_vertical\n");
+}
+
+template <typename TDomain, typename TAlgebra>
+void
+AssembledMultiGridCycle<TDomain, TAlgebra>::
+copy_to_vertical_masters(vector_type& c)
+{
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
+	PROFILE_FUNC_GROUP("gmg");
+//	send vertical-slaves -> vertical-masters
+	GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
+	ComPol_VecCopy<vector_type> cpVecCopy(&c);
+
+	if(!c.layouts()->vertical_master().empty())
+		m_Com.receive_data(c.layouts()->vertical_master(), cpVecCopy);
+
+	if(!c.layouts()->vertical_slave().empty())
+		m_Com.send_data(c.layouts()->vertical_slave(), cpVecCopy);
+
+//	communicate
+	m_Com.communicate();
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
+}
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
 // Debug Methods
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1650,223 +1789,6 @@ log_debug_data(int lvl, std::string name)
 	#endif
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// Parallel Communication
-////////////////////////////////////////////////////////////////////////////////
-
-#ifdef UG_PARALLEL
-template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-gather_vertical(vector_type& d)
-{
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - gather_vertical\n");
-	PROFILE_FUNC_GROUP("gmg");
-
-//	send vertical-slaves -> vertical-masters
-	GMG_PROFILE_BEGIN(GMG_GatherVerticalVector);
-
-	if(!d.layouts()->vertical_slave().empty()){
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		  " Going down: SENDS vert. dofs.\n");
-
-	//	there may be v-slaves with multiple v-masters. We only want to send
-	//	a fraction to each master, to keep d additive.
-	//	count number of occurrances in v-interfaces
-		bool multiOccurance = false;
-		std::vector<number> occurence;
-		const IndexLayout& layout = d.layouts()->vertical_slave();
-
-		if(layout.num_interfaces() > 1){
-			occurence.resize(d.size(), 0);
-			for(IndexLayout::const_iterator iiter = layout.begin();
-				iiter != layout.end(); ++iiter)
-			{
-				const IndexLayout::Interface& itfc = layout.interface(iiter);
-				for(IndexLayout::Interface::const_iterator iter = itfc.begin();
-					iter != itfc.end(); ++iter)
-				{
-					const IndexLayout::Interface::Element& index = itfc.get_element(iter);
-
-					occurence[index] += 1;
-					if(occurence[index] > 1)
-						multiOccurance = true;
-				}
-			}
-
-		}
-		if(multiOccurance){
-		//todo: avoid copy tmp_d if possible.
-			vector_type tmp_d(d.size());
-			tmp_d.set_storage_type(d.get_storage_mask());
-		//	we'll copy adjusted values from d to the occurances vector
-			for(size_t i = 0; i < occurence.size(); ++i){
-				if(occurence[i] > 0) // others can be ignored since not communicated anyways
-					tmp_d[i] = d[i] * (1./occurence[i]);
-			}
-			ComPol_VecAdd<vector_type> cpVecAdd(&tmp_d);
-			m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
-		}
-		else{
-		//	schedule Sending of DoFs of vertical slaves
-			ComPol_VecAdd<vector_type> cpVecAdd(&d);
-			m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
-		}
-	}
-
-	ComPol_VecAdd<vector_type> cpVecAddRcv(&d); // has to exist until communicate was executed
-	if(!d.layouts()->vertical_master().empty()){
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going down:  WAITS FOR RECIEVE of vert. dofs.\n");
-
-	//	schedule Receive of DoFs on vertical masters
-		m_Com.receive_data(d.layouts()->vertical_master(), cpVecAddRcv);
-	}
-
-//	perform communication
-	m_Com.communicate();
-	GMG_PROFILE_END();
-
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical\n");
-}
-
-
-template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-broadcast_vertical(vector_type& t)
-{
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - broadcast_vertical\n");
-	PROFILE_FUNC_GROUP("gmg");
-//	send vertical-masters -> vertical-slaves
-	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
-	ComPol_VecCopy<vector_type> cpVecCopy(&t);
-	if(!t.layouts()->vertical_slave().empty())
-	{
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
-
-	//	schedule slaves to receive correction
-		m_Com.receive_data(t.layouts()->vertical_slave(), cpVecCopy);
-	}
-
-	if(!t.layouts()->vertical_master().empty())
-	{
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going up: SENDS vert. dofs.\n");
-
-	//	schedule masters to send correction
-		m_Com.send_data(t.layouts()->vertical_master(), cpVecCopy);
-	}
-
-//	communicate
-	m_Com.communicate();
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - broadcast_vertical\n");
-}
-
-template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-broadcast_vertical_add(vector_type& d)
-{
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - broadcast_vertical\n");
-	PROFILE_FUNC_GROUP("gmg");
-//	send vertical-masters -> vertical-slaves
-	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
-
-//	deadly v-interfaces of crossing death make the resulting defect consistent
-//	so that we have to transform it to additive unique
-	if(!d.layouts()->vertical_master().empty()){
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		  " Going down: SENDS vert. dofs.\n");
-
-	//	there may be v-slaves with multiple v-masters. We only want to send
-	//	a fraction to each master, to keep d additive.
-	//	count number of occurrances in v-interfaces
-		bool multiOccurance = false;
-		std::vector<number> occurence;
-		const IndexLayout& layout = d.layouts()->vertical_master();
-
-		if(layout.num_interfaces() > 1){
-			occurence.resize(d.size(), 0);
-			for(IndexLayout::const_iterator iiter = layout.begin();
-				iiter != layout.end(); ++iiter)
-			{
-				const IndexLayout::Interface& itfc = layout.interface(iiter);
-				for(IndexLayout::Interface::const_iterator iter = itfc.begin();
-					iter != itfc.end(); ++iter)
-				{
-					const IndexLayout::Interface::Element& index = itfc.get_element(iter);
-
-					occurence[index] += 1;
-					if(occurence[index] > 1)
-						multiOccurance = true;
-				}
-			}
-
-		}
-		if(multiOccurance){
-		//todo: avoid copy tmp_d if possible.
-			vector_type tmp_d(d.size());
-			tmp_d.set_storage_type(d.get_storage_mask());
-		//	we'll copy adjusted values from d to the occurances vector
-			for(size_t i = 0; i < occurence.size(); ++i){
-				if(occurence[i] > 0) // others can be ignored since not communicated anyways
-					tmp_d[i] = d[i] * (1./occurence[i]);
-			}
-			ComPol_VecAdd<vector_type> cpVecAdd(&tmp_d);
-			m_Com.send_data(d.layouts()->vertical_master(), cpVecAdd);
-		}
-		else{
-		//	schedule Sending of DoFs of vertical slaves
-			ComPol_VecAdd<vector_type> cpVecAdd(&d);
-			m_Com.send_data(d.layouts()->vertical_master(), cpVecAdd);
-		}
-	}
-
-	ComPol_VecAdd<vector_type> cpVecAdd(&d);
-	if(!d.layouts()->vertical_slave().empty())
-	{
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
-
-	//	schedule slaves to receive correction
-		m_Com.receive_data(d.layouts()->vertical_slave(), cpVecAdd);
-	}
-
-//	communicate
-	m_Com.communicate();
-
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - broadcast_vertical\n");
-}
-
-template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-copy_to_vertical_masters(vector_type& c)
-{
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
-	PROFILE_FUNC_GROUP("gmg");
-//	send vertical-slaves -> vertical-masters
-	GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
-	ComPol_VecCopy<vector_type> cpVecCopy(&c);
-
-	if(!c.layouts()->vertical_master().empty())
-		m_Com.receive_data(c.layouts()->vertical_master(), cpVecCopy);
-
-	if(!c.layouts()->vertical_slave().empty())
-		m_Com.send_data(c.layouts()->vertical_slave(), cpVecCopy);
-
-//	communicate
-	m_Com.communicate();
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
-}
-
-#endif
 
 template <typename TDomain, typename TAlgebra>
 std::string

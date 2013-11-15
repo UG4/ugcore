@@ -391,9 +391,6 @@ class AssembledMultiGridCycle :
 	/// broadcasts the vector using vertical interfaces.
 		void broadcast_vertical(vector_type& t);
 
-	/// broadcasts and adds the vector using vertical interfaces.
-		void broadcast_vertical_add(vector_type& t);
-
 	///	copies values from h-masters to h-slaves
 		void copy_to_vertical_masters(vector_type& c);
 
