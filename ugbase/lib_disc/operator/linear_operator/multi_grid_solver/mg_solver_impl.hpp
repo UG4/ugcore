@@ -524,9 +524,7 @@ init_level_operator()
 			LevData& lc = *m_vLevData[lev-1];
 
 			copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
-			#ifdef UG_PARALLEL
 			copy_to_vertical_masters(*ld.t);
-			#endif
 
 			try{
 				ld.Projection->do_restrict(*lc.st, *ld.t);
@@ -549,10 +547,8 @@ init_level_operator()
 		GMG_PROFILE_BEGIN(GMG_AssGatheredLevMat);
 		LevData& ld = *m_vLevData[m_baseLev];
 
-		#ifdef UG_PARALLEL
 		copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
 		copy_to_vertical_masters(*ld.t);
-		#endif
 
 		try{
 		m_spAss->ass_tuner()->set_force_regular_grid(true);
@@ -1273,9 +1269,7 @@ prolongation(size_t lev)
 //	the correction values from the v-master DoFs to the v-slave	DoFs.
 //	since dummies may exist, we'll copy the broadcasted correction to h-slave
 //	interfaces (dummies are always h-slaves)
-	#ifdef UG_PARALLEL
-	broadcast_vertical(*lf.t);
-	#endif
+	copy_to_vertical_slaves(*lf.t);
 
 //	## PROJECT COARSE GRID CORRECTION ONTO SMOOTH AREA
 	copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
@@ -1374,9 +1368,7 @@ base_solve(size_t lev)
 	//	gather the defect
 		ld.t->set(0.0);
 		copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
-		#ifdef UG_PARALLEL
 		gather_vertical(*ld.t);
-		#endif
 
 	//	Reset correction
 		spGatheredBaseCorr->set(0.0);
@@ -1402,8 +1394,8 @@ base_solve(size_t lev)
 
 
 	//	broadcast the correction
+		copy_to_vertical_slaves(*spGatheredBaseCorr);
 		#ifdef UG_PARALLEL
-		broadcast_vertical(*spGatheredBaseCorr);
 		spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
 		#endif
 		copy_ghost_to_noghost(ld.sc, spGatheredBaseCorr, ld.vMapPatchToGlobal);
@@ -1491,12 +1483,11 @@ lmgc(size_t lev)
 // Parallel Communication
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef UG_PARALLEL
 template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 gather_vertical(vector_type& d)
 {
+#ifdef UG_PARALLEL
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - gather_vertical\n");
 	PROFILE_FUNC_GROUP("gmg");
 
@@ -1565,50 +1556,43 @@ gather_vertical(vector_type& d)
 	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - gather_vertical\n");
+#endif
 }
 
-
 template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
-broadcast_vertical(vector_type& t)
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+copy_to_vertical_slaves(vector_type& t)
 {
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - broadcast_vertical\n");
+#ifdef UG_PARALLEL
 	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_slaves\n");
+
 //	send vertical-masters -> vertical-slaves
 	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 	ComPol_VecCopy<vector_type> cpVecCopy(&t);
-	if(!t.layouts()->vertical_slave().empty())
-	{
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going up: WAITS FOR RECIEVE of vert. dofs.\n");
 
-	//	schedule slaves to receive correction
+	if(!t.layouts()->vertical_slave().empty())
 		m_Com.receive_data(t.layouts()->vertical_slave(), cpVecCopy);
-	}
 
 	if(!t.layouts()->vertical_master().empty())
-	{
-//		UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
-//		 " Going up: SENDS vert. dofs.\n");
-
-	//	schedule masters to send correction
 		m_Com.send_data(t.layouts()->vertical_master(), cpVecCopy);
-	}
 
 //	communicate
 	m_Com.communicate();
+
 	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - broadcast_vertical\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_slaves\n");
+#endif
 }
 
 template <typename TDomain, typename TAlgebra>
-void
-AssembledMultiGridCycle<TDomain, TAlgebra>::
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
 copy_to_vertical_masters(vector_type& c)
 {
+#ifdef UG_PARALLEL
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
 	PROFILE_FUNC_GROUP("gmg");
+
 //	send vertical-slaves -> vertical-masters
 	GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
 	ComPol_VecCopy<vector_type> cpVecCopy(&c);
@@ -1621,10 +1605,11 @@ copy_to_vertical_masters(vector_type& c)
 
 //	communicate
 	m_Com.communicate();
+
 	GMG_PROFILE_END();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
-}
 #endif
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Debug Methods

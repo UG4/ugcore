@@ -384,16 +384,16 @@ class AssembledMultiGridCycle :
 								   ConstSmartPtr<GF> spVecFrom,
 								   const std::vector<size_t>& vMapPatchToGlobal);
 
-#ifdef UG_PARALLEL
 	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
 		void gather_vertical(vector_type& d);
 
 	/// broadcasts the vector using vertical interfaces.
-		void broadcast_vertical(vector_type& t);
+		void copy_to_vertical_slaves(vector_type& t);
 
 	///	copies values from h-masters to h-slaves
 		void copy_to_vertical_masters(vector_type& c);
 
+#ifdef UG_PARALLEL
 	/// communicator
 		pcl::InterfaceCommunicator<IndexLayout> m_Com;
 #endif
