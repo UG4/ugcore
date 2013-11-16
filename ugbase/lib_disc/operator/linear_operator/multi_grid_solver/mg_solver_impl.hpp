@@ -876,11 +876,6 @@ init_surface_to_level_mapping()
 	if(surfDD->max_dofs(EDGE))   init_surface_to_level_mapping<EdgeBase>();
 	if(surfDD->max_dofs(FACE))   init_surface_to_level_mapping<Face>();
 	if(surfDD->max_dofs(VOLUME)) init_surface_to_level_mapping<Volume>();
-
-	if(m_LocalFullRefLevel == std::numeric_limits<int>::max()){
-		UG_THROW("GMG: Seems, that grid is empty, but still using gmg.")
-	}
-
 }
 
 
