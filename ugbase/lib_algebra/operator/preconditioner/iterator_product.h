@@ -46,6 +46,8 @@ class CombinedLinearIterator : public ILinearIterator<X,Y>
 
 		void add_iterator(SmartPtr<ILinearIterator<X,Y> > I) {m_vIterator.push_back(I);}
 
+		void add_iterator(SmartPtr<ILinearIterator<X,Y> > I,size_t nr) { for (size_t i=0;i<nr;i++) m_vIterator.push_back(I);}
+
 		//	Clone
 		virtual SmartPtr<ILinearIterator<X,Y> > clone() = 0;
 

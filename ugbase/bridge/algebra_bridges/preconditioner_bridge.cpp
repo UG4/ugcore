@@ -233,7 +233,10 @@ static void Algebra(Registry& reg, string grp)
 						"Linear Iterator consisting of several LinearIterations")
 				.add_constructor()
 				.template add_constructor<void (*)(const std::vector<SmartPtr<ILinearIterator<vector_type,vector_type> > >&)>()
-				.add_method("add_iteration", &T::add_iterator, "Add an iterator")
+				.add_method("add_iterator",static_cast<void (T::*)(SmartPtr<TBase>)>(&T::add_iterator),
+					"", "add iterator", "sets iterator")
+				.add_method("add_iterator",static_cast<void (T::*)(SmartPtr<TBase>,size_t nr)>(&T::add_iterator),
+					"", "add iterator", "sets iterator")	
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearIteratorProduct", tag);
 	}
@@ -247,7 +250,10 @@ static void Algebra(Registry& reg, string grp)
 						"Linear Iterator consisting of several LinearIterations")
 				.add_constructor()
 				.template add_constructor<void (*)(const std::vector<SmartPtr<ILinearIterator<vector_type,vector_type> > >&)>()
-				.add_method("add_iteration", &T::add_iterator, "Add an iterator")
+				.add_method("add_iterator",static_cast<void (T::*)(SmartPtr<TBase>)>(&T::add_iterator),
+					"", "add iterator", "sets iterator")
+				.add_method("add_iterator",static_cast<void (T::*)(SmartPtr<TBase>,size_t nr)>(&T::add_iterator),
+					"", "add iterator", "sets iterator")	
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearIteratorSum", tag);
 	}
