@@ -233,22 +233,26 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 				const LocalShapeFunctionSet<dim>& lsfs = LocalFiniteElementProvider::get<dim>(roid, vLFEID[fct]);
 
 				// Crouzeix-Raviart elements
-				if (vLFEID[fct].type() == LFEID::CROUZEIX_RAVIART){
+				if (vLFEID[fct].type() == LFEID::CROUZEIX_RAVIART)
+				{
 					//	loop side children of coarse sides
 					//  if there are coarse neighbour elements on a side the interpolation
 					//  is weighted with factor 0.5 else with factor 1
-					typename Grid::template traits<Side>::secure_container coarseSides;
-					grid.associated_elements(coarseSides,coarseElem);
-					for (size_t i=0;i<coarseSides.size();i++){
-						Side* side = coarseSides[i];
-						typename Grid::template traits<Element>::secure_container coarseNbEl;
-						grid.associated_elements(coarseNbEl,side);
-						number weight=0.5;
-						if (coarseNbEl.size()==1) weight=1;
+					typename Grid::template traits<Side>::secure_container vCoarseSides;
+					grid.associated_elements(vCoarseSides,coarseElem);
+
+					for (size_t i=0;i<vCoarseSides.size();i++)
+					{
+						Side* side = vCoarseSides[i];
+						typename Grid::template traits<Element>::secure_container vCoarseNeighbourElem;
+						grid.associated_elements(vCoarseNeighbourElem,side);
+						number weight = (1.0)/vCoarseNeighbourElem.size();
+
 						const size_t numChild = grid.num_children<Side,Side>(side);
 						if(numChild == 0) continue;
-						std::vector<Element*> vChild(numChild);
-						for(size_t c = 0; c < vChild.size(); ++c){
+
+						for(size_t c = 0; c < numChild; ++c)
+						{
 							Side* childSide = grid.get_child<Side,Side>(side,  c);
 							//	fine dof indices
 							fineDD.inner_dof_indices(childSide, fct, vFineMultInd);
