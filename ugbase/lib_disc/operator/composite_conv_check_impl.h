@@ -147,7 +147,7 @@ set_component_check(const std::vector<std::string>& vFctName,
                     const std::vector<number>& vRelReduction)
 {
 	if(vFctName.size() != vMinDefect.size() || vFctName.size() != vRelReduction.size())
-		UG_THROW("CompositeConvCheck: Please specify one value for each cmp.")
+		UG_THROW("CompositeConvCheck: Please specify one value for each cmp.");
 
 	for(size_t cmp = 0; cmp < vFctName.size(); ++cmp)
 		set_component_check(vFctName[cmp], vMinDefect[cmp], vRelReduction[cmp]);
@@ -353,7 +353,7 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 		UG_THROW("Number of dofs in CompositeConvCheck does not match"
 				"number of dofs given in vector from algorithm (" << m_numAllDoFs
 				<< ", but " << vec.size() << " given). \nMake sure that you set "
-						"the right grid level via set_level().")
+						"the right grid level via set_level().");
 	}
 
 	// start time measurement
@@ -406,7 +406,7 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 			UG_LOG(repeat(m_symbol, num_sym));
 			UG_LOG("  "<< m_info << "  ");
 			UG_LOG(repeat(' ', max_length-m_info.length()));
-			UG_LOG(repeat(m_symbol, space_left))
+			UG_LOG(repeat(m_symbol, space_left));
 			UG_LOG("\n");
 		}
 		else
@@ -424,14 +424,14 @@ void CompositeConvCheck<TVector, TDomain>::start(const TVector& vec)
 			CmpInfo& cmpInfo = m_CmpInfo[cmp];
 
 			print_offset();
-			if(cmp != 0) {UG_LOG("         " )}
+			if(cmp != 0) {UG_LOG("         " );}
 			else {UG_LOG(std::setw(4) << step() << ":    ");}
 
-			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ")
-			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6) )
-			UG_LOG(std::scientific << "  -----  " << "    ")
-			UG_LOG(std::scientific << "  --------  " << "    ")
-			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.relReduction << "    " << std::setprecision(6))
+			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ");
+			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6) );
+			UG_LOG(std::scientific << "  -----  " << "    ");
+			UG_LOG(std::scientific << "  --------  " << "    ");
+			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.relReduction << "    " << std::setprecision(6));
 			UG_LOG(std::scientific << cmpInfo.name << "\n");
 		}
 	}
@@ -457,7 +457,7 @@ void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 		UG_THROW("Number of dofs in CompositeConvCheck does not match"
 				 "number of dofs given in vector from algorithm (" << m_numAllDoFs <<
 				 ", but " << vec.size() << " given). \nMake sure that you set the "
-				"right grid level via set_level().")
+				"right grid level via set_level().");
 	}
 
 	// update native defects
@@ -487,22 +487,22 @@ void CompositeConvCheck<TVector, TDomain>::update(const TVector& vec)
 			CmpInfo& cmpInfo = m_CmpInfo[cmp];
 
 			print_offset();
-			if(cmp != 0) {UG_LOG("         " )}
+			if(cmp != 0) {UG_LOG("         " );}
 			else {UG_LOG(std::setw(4) << step() << ":    ");}
 
-			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ")
-			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6))
+			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ");
+			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6));
 			if(cmpInfo.lastDefect != 0.0){
-				UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.currDefect / cmpInfo.lastDefect << "    "<< std::setprecision(6))
+				UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.currDefect / cmpInfo.lastDefect << "    "<< std::setprecision(6));
 			} else {
-				UG_LOG(std::scientific << "  -----  " << "    ")
+				UG_LOG(std::scientific << "  -----  " << "    ");
 			}
 			if(cmpInfo.initDefect != 0.0){
-				UG_LOG(std::scientific << cmpInfo.currDefect / cmpInfo.initDefect << "    ")
+				UG_LOG(std::scientific << cmpInfo.currDefect / cmpInfo.initDefect << "    ");
 			} else {
-				UG_LOG(std::scientific << "  --------  " << "    ")
+				UG_LOG(std::scientific << "  --------  " << "    ");
 			}
-			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.relReduction << "    " << std::setprecision(6))
+			UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.relReduction << "    " << std::setprecision(6));
 			UG_LOG(std::scientific << cmpInfo.name << "\n");
 		}
 	}
