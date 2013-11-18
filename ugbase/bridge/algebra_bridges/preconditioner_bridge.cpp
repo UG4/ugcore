@@ -223,6 +223,7 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ILUTScalar", tag);
 	}
+
 //	LinearIteratorProduct
 	{
 		typedef LinearIteratorProduct<vector_type, vector_type> T;
@@ -231,11 +232,26 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_<T,TBase>(name, grp,
 						"Linear Iterator consisting of several LinearIterations")
 				.add_constructor()
+				.template add_constructor<void (*)(const std::vector<SmartPtr<ILinearIterator<vector_type,vector_type> > >&)>()
 				.add_method("add_iteration", &T::add_iterator, "Add an iterator")
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearIteratorProduct", tag);
 	}
-	
+
+//	LinearIteratorSum
+	{
+		typedef LinearIteratorSum<vector_type, vector_type> T;
+		typedef ILinearIterator<vector_type> TBase;
+		string name = string("LinearIteratorSum").append(suffix);
+		reg.add_class_<T,TBase>(name, grp,
+						"Linear Iterator consisting of several LinearIterations")
+				.add_constructor()
+				.template add_constructor<void (*)(const std::vector<SmartPtr<ILinearIterator<vector_type,vector_type> > >&)>()
+				.add_method("add_iteration", &T::add_iterator, "Add an iterator")
+				.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "LinearIteratorSum", tag);
+	}
+
 //	Vanka
 	{
 		typedef Vanka<TAlgebra> T;

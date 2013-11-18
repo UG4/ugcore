@@ -18,128 +18,181 @@
 
 namespace ug{
 
+/** Base class for ILinearIterators build from other ILinearIterators */
+template <typename X, typename Y>
+class CombinedLinearIterator : public ILinearIterator<X,Y>
+{
+	public:
+		CombinedLinearIterator() {};
+
+		CombinedLinearIterator(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
+			: m_vIterator(vIterator)
+		{};
+
+		//	Name of Iterator
+		virtual const char* name() const = 0;
+
+		// 	Prepare for Operator J(u) and linearization point u (current solution)
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) = 0;
+
+		// Prepare for Linear Operator L
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L) = 0;
+
+		// Compute correction
+		virtual bool apply(Y& c, const X& d) = 0;
+
+		// Compute correction and update defect
+		virtual bool apply_update_defect(Y& c, X& d) = 0;
+
+		void add_iterator(SmartPtr<ILinearIterator<X,Y> > I) {m_vIterator.push_back(I);}
+
+		//	Clone
+		virtual SmartPtr<ILinearIterator<X,Y> > clone() = 0;
+
+	protected:
+		std::vector<SmartPtr<ILinearIterator<X,Y> > > m_vIterator;
+};
+
+
 /** This operator is a product of ILinearIterator (multiplicative composition).*/
 template <typename X, typename Y>
-class LinearIteratorProduct : public ILinearIterator<X,Y>
+class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 {
-public:
-	// 	Domain space
-	typedef X domain_function_type;
+	protected:
+		typedef CombinedLinearIterator<X,Y> base_type;
+		using base_type::m_vIterator;
 
-	// 	Range space
-	typedef Y codomain_function_type;
+	public:
+		LinearIteratorProduct() {};
 
-public:
+		LinearIteratorProduct(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
+			: CombinedLinearIterator<X,Y>(vIterator)
+		{};
 
-	LinearIteratorProduct() {};
+		//	Name of Iterator
+		virtual const char* name() const {return "IteratorProduct";}
 
-	//	Name of Iterator
-	virtual const char* name() const {return "IteratorProduct";}
-
-	// 	Prepare for Operator J(u) and linearization point u (current solution)
-	virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) {
-		m_spOp = J;
-		const size_t max = m_vIterator.size();
-		for(size_t i=0; i<max; i++){
-			m_vIterator[i]->init(J,u);
+		// 	Prepare for Operator J(u) and linearization point u (current solution)
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) {
+			bool bRes = true;
+			for(size_t i = 0; i < m_vIterator.size(); i++){
+				bRes &= m_vIterator[i]->init(J,u);
+			}
+			return bRes;
 		}
-		return true;
 
-	}
-
-	// Prepare for Linear Operator L
-	virtual bool init(SmartPtr<ILinearOperator<Y,X> > L)
-	{
-		m_spOp = L;
-		const size_t max = m_vIterator.size();
-		for(size_t i=0; i<max; i++) {
-			m_vIterator[i]->init(L);
-		}
-		return true;
-
-	}
-
-	// Compute correction
-	virtual bool apply(Y& c, const X& d)
-	{
-		// create temporary defect and forward request
-		X dTmp;
-		dTmp.resize(d.size()); dTmp = d;
-
-		return apply_update_defect(c, dTmp);
-	}
-
-	// Compute correction and update defect
-	virtual bool apply_update_defect(Y& c, X& d)
-	{
-		Y cTmp;
-		cTmp.resize(c.size()); cTmp = c; // TODO: obsolete, replace by clone
-
-		const size_t max = m_vIterator.size();
-		for(size_t i=0; i<max; i++)
+		// Prepare for Linear Operator L
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L)
 		{
-			m_vIterator[i]->apply_update_defect(cTmp,d);
-			c+=cTmp;
+			bool bRes = true;
+			for(size_t i = 0; i < m_vIterator.size(); i++) {
+				bRes &= m_vIterator[i]->init(L);
+			}
+			return bRes;
 		}
-		return true;
-	}
 
-	void add_iterator(SmartPtr<ILinearIterator<X,Y> > I) {m_vIterator.push_back(I);}
+		// Compute correction
+		virtual bool apply(Y& c, const X& d)
+		{
+			// create temporary defect and forward request
+			SmartPtr<X> spDTmp = d.clone_without_values();
+			return apply_update_defect(c, *spDTmp);
+		}
 
-	//	Clone
-	virtual SmartPtr<ILinearIterator<X,Y> > clone() {UG_THROW("Not Implemented!"); return 0;}
+		// Compute correction and update defect
+		virtual bool apply_update_defect(Y& c, X& d)
+		{
+			SmartPtr<Y> spCTmp = c.clone_without_values();
 
-	// 	Destructor
-	virtual ~LinearIteratorProduct() {};
+			bool bRes = true;
+			c.set(0.0);
+			for(size_t i = 0; i < m_vIterator.size(); i++)
+			{
+				bRes &= m_vIterator[i]->apply_update_defect(*spCTmp,d);
+				c += (*spCTmp);
+			}
+			return bRes;
+		}
 
-protected:
-	SmartPtr<ILinearOperator<Y,X> > common_operator() {return m_spOp;}
-
-private:
-	std::vector<SmartPtr<ILinearIterator<X,Y> > > m_vIterator;
-	SmartPtr<ILinearOperator<Y,X> > m_spOp;
+		//	Clone
+		virtual SmartPtr<ILinearIterator<X,Y> > clone() {
+			return new LinearIteratorProduct(*this);
+		}
 };
 
 /** This operator is a sum of ILinearIterator (additive composition). */
 template <typename X, typename Y>
-class LinearIteratorSum: public LinearIteratorProduct<X,Y>
+class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 {
-public:
+	protected:
+		typedef CombinedLinearIterator<X,Y> base_type;
+		using base_type::m_vIterator;
 
-	LinearIteratorSum() {};
-	virtual const char* name() const {return "IteratorSum";}
+	public:
+		LinearIteratorSum() {};
 
-	// Compute correction
-	virtual bool apply(Y& c, const X& d)
-	{
-		// create temporary defect and forward request
-		Y cTmp;
-		cTmp.resize(c.size());
-		cTmp = c; // TODO: obsolete, replace by clone
+		LinearIteratorSum(const std::vector<SmartPtr<ILinearIterator<X,Y> > >& vIterator)
+			: CombinedLinearIterator<X,Y>(vIterator)
+		{};
 
+		//	Name of Iterator
+		virtual const char* name() const {return "IteratorProduct";}
 
-		// this part computes all corrections independently
-		c.set(0.0);
-		const size_t max = LinearIteratorProduct<X,Y>::m_vIterator.size();
-		for(size_t i=0; i<max; i++)
-		{
-			LinearIteratorProduct<X,Y>::m_vIterator[i]->apply(cTmp,d);
-			c+=cTmp;
+		// 	Prepare for Operator J(u) and linearization point u (current solution)
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) {
+			m_spOp = J;
+			bool bRes = true;
+			for(size_t i = 0; i < m_vIterator.size(); i++){
+				bRes &= m_vIterator[i]->init(J,u);
+			}
+			return bRes;
 		}
 
-		return true;
-	}
+		// Prepare for Linear Operator L
+		virtual bool init(SmartPtr<ILinearOperator<Y,X> > L)
+		{
+			m_spOp = L;
+			bool bRes = true;
+			for(size_t i = 0; i < m_vIterator.size(); i++) {
+				bRes &= m_vIterator[i]->init(L);
+			}
+			return bRes;
+		}
 
-	//	Compute correction and update defect
-	virtual bool apply_update_defect(Y& c, X& d)
-	{
-		apply(c, d);
+		// Compute correction
+		virtual bool apply(Y& c, const X& d)
+		{
+			// create temporary correction
+			SmartPtr<Y> spCTmp = c.clone_without_values();
 
-		// update defect
-		LinearIteratorProduct<X,Y>::common_operator()->apply_sub(d, c);
-		return true;
-	}
+			// this part computes all corrections independently
+			c.set(0.0);
 
+			bool bRes = true;
+			for(size_t i = 0; i < m_vIterator.size(); i++)
+			{
+				bRes &= m_vIterator[i]->apply(*spCTmp,d);
+				c += (*spCTmp);
+			}
+
+			return bRes;
+		}
+
+		//	Compute correction and update defect
+		virtual bool apply_update_defect(Y& c, X& d)
+		{
+			bool bRet = apply(c, d);
+			m_spOp->apply_sub(d, c);
+			return bRet;
+		}
+
+		//	Clone
+		virtual SmartPtr<ILinearIterator<X,Y> > clone() {
+			return new LinearIteratorSum(*this);
+		}
+
+	protected:
+		SmartPtr<ILinearOperator<Y,X> > m_spOp;
 };
 
 
