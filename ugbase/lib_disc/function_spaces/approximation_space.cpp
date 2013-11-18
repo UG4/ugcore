@@ -58,6 +58,7 @@ init(SmartPtr<subset_handler_type> spMGSH,
 	m_spDoFDistributionInfo = SmartPtr<DoFDistributionInfo>(new DoFDistributionInfo(spMGSH));
 	m_algebraType = algebraType;
 	m_bAdaptionIsActive = false;
+	m_RevCnt = RevisionCounter(this);
 
 	this->set_dof_distribution_info(m_spDoFDistributionInfo);
 
@@ -342,6 +343,9 @@ void IApproximationSpace::reinit()
 	for(size_t i = 0; i < m_vDD.size(); ++i){
 		m_vDD[i]->reinit();
 	}
+
+//	increase revision counter
+	++m_RevCnt;
 }
 
 void IApproximationSpace::register_at_adaption_msg_hub()

@@ -364,29 +364,43 @@ init()
 	m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
 	#endif
 
-//	Allocate memory for given top level
-	try{
-		init_level_memory(m_baseLev, m_topLev);
-	}
-	UG_CATCH_THROW("GMG::init: Cannot allocate memory.");
+	if(m_ApproxSpaceRevision != m_spApproxSpace->revision())
+	{
+	//	Allocate memory for given top level
+		try{
+			init_level_memory(m_baseLev, m_topLev);
+		}
+		UG_CATCH_THROW("GMG::init: Cannot allocate memory.");
 
-//	init mapping from surface level to top level in case of full refinement
-	GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
-	try{
-		init_surface_to_level_mapping();
-	}
-	UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
-	GMG_PROFILE_END();
+	//	init mapping from surface level to top level in case of full refinement
+		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
+		try{
+			init_surface_to_level_mapping();
+		}
+		UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
+		GMG_PROFILE_END();
 
-//	init mapping from surface level to top level in case of full refinement
-	GMG_PROFILE_BEGIN(GMG_CollectShadowing);
-	try{
-		if(m_bAdaptive)
-			for(int lev = m_baseLev; lev <= m_topLev; ++lev)
-				collect_shadowing_indices(lev);
+	//	init mapping from surface level to top level in case of full refinement
+		GMG_PROFILE_BEGIN(GMG_CollectShadowing);
+		try{
+			if(m_bAdaptive)
+				for(int lev = m_baseLev; lev <= m_topLev; ++lev)
+					collect_shadowing_indices(lev);
+		}
+		UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
+		GMG_PROFILE_END();
+
+	// 	Create Interpolation
+		GMG_PROFILE_BEGIN(GMG_InitProlongation);
+		try{
+			init_transfer();
+		}
+		UG_CATCH_THROW("GMG:init: Cannot init Transfer (Prolongation/Restriction).");
+		GMG_PROFILE_END();
+
+	//	remember revision counter of approx space
+		m_ApproxSpaceRevision = m_spApproxSpace->revision();
 	}
-	UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
-	GMG_PROFILE_END();
 
 //	Assemble coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
@@ -410,14 +424,6 @@ init()
 		init_base_solver();
 	}
 	UG_CATCH_THROW("GMG:init: Cannot init Base Solver.");
-	GMG_PROFILE_END();
-
-// 	Create Interpolation
-	GMG_PROFILE_BEGIN(GMG_InitProlongation);
-	try{
-		init_transfer();
-	}
-	UG_CATCH_THROW("GMG:init: Cannot init Transfer (Prolongation/Restriction).");
 	GMG_PROFILE_END();
 
 	} UG_CATCH_THROW("GMG: Init failure for init(u)");

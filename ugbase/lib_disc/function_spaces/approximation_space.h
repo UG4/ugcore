@@ -8,6 +8,7 @@
 #ifndef __H__UG__LIB_DISC__FUNCTION_SPACE__APPROXIMATION_SPACE__
 #define __H__UG__LIB_DISC__FUNCTION_SPACE__APPROXIMATION_SPACE__
 
+#include "lib_disc/common/revision_counter.h"
 #include "lib_disc/dof_manager/dof_distribution_info.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_grid/tools/surface_view.h"
@@ -176,6 +177,9 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	initializes all top surface dof distributions
 		void init_top_surface();
 
+	///	returns the current revision
+		const RevisionCounter& revision() const {return m_RevCnt;}
+
 	protected:
 	///	creates a dof distribution
 		void create_dof_distribution(const GridLevel& gl);
@@ -224,6 +228,9 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 
 	///	DofDistributionInfo
 		SmartPtr<DoFDistributionInfo> m_spDoFDistributionInfo;
+
+	///	revision counter
+		RevisionCounter m_RevCnt;
 
 	protected:
 	///	MG Level DoF Distribution

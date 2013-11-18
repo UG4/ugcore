@@ -262,6 +262,9 @@ class AssembledMultiGridCycle :
 		bool m_bAdaptive;
 		int m_LocalFullRefLevel;
 
+	///	approximation space revision of cached values
+		RevisionCounter m_ApproxSpaceRevision;
+
 	///	Structure used to realize Surface to Level mapping
 	/// \{
 		struct LevelIndex{
