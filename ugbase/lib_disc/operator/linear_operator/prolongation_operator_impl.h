@@ -15,19 +15,11 @@
 
 namespace ug{
 
-/**
- * This functions assembles the interpolation matrix between to
- * grid levels using only the Vertex degrees of freedom.
- *
- * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
- * \param[in] 	approxSpace		Approximation Space
- * \param[in]	coarseLevel		Coarse Level index
- * \param[in]	fineLevel		Fine Level index
- */
-template <typename TAlgebra>
-void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
-                                const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
-								std::vector<bool>& vIsRestricted)
+
+template <typename TDomain, typename TAlgebra>
+void StdTransfer<TDomain, TAlgebra>::
+assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
+                         const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
 {
 	PROFILE_FUNC_GROUP("gmg");
 // 	allow only lagrange P1 functions
@@ -50,9 +42,6 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 
 //  resize matrix
 	mat.resize_and_clear(numFineDoFs, numCoarseDoFs);
-
-//	clear restricted vector
-	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
 
 	std::vector<DoFIndex> coarseMultInd, fineMultInd;
 
@@ -98,7 +87,6 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 							VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
 							coarseDD.inner_dof_indices(vrt, fct, coarseMultInd);
 							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 1.0;
-							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
 						break;
 					case ROID_EDGE:
@@ -107,7 +95,6 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 							EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
 							coarseDD.inner_dof_indices(edge->vertex(i), fct, coarseMultInd);
 							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.5;
-							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
 						break;
 					case ROID_QUADRILATERAL:
@@ -116,7 +103,6 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 							Face* face = dynamic_cast<Face*>(parent);
 							coarseDD.inner_dof_indices(face->vertex(i), fct, coarseMultInd);
 							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.25;
-							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
 						break;
 					case ROID_HEXAHEDRON:
@@ -125,7 +111,6 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 							Volume* hexaeder = dynamic_cast<Volume*>(parent);
 							coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, coarseMultInd);
 							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.125;
-							vIsRestricted[coarseMultInd[0][0]] = true;
 						}
 						break;
 					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element Father"
@@ -138,10 +123,10 @@ void AssembleStdProlongationForP1Lagrange(typename TAlgebra::matrix_type& mat,
 
 
 template <typename TDomain, typename TAlgebra>
-void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
-                                     const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
-                                     ConstSmartPtr<TDomain> spDomain,
-                                     std::vector<bool>& vIsRestricted)
+void StdTransfer<TDomain, TAlgebra>::
+assemble_prolongation_elemwise(typename TAlgebra::matrix_type& mat,
+                               const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
+                               ConstSmartPtr<TDomain> spDomain)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	dimension
@@ -160,9 +145,6 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 
 //  resize matrix
 	mat.resize_and_clear(numFineDoFs, numCoarseDoFs);
-
-//	clear restricted vector
-	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
 
 	std::vector<DoFIndex> vCoarseMultInd, vFineMultInd;
 
@@ -224,7 +206,6 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 						//	fine dof indices
 						fineDD.dof_indices(child, fct, vFineMultInd);
 						DoFRef(mat, vFineMultInd[0], vCoarseMultInd[0]) =  1.0;
-						vIsRestricted[vCoarseMultInd[0][0]] = true;
 					}
 					continue;
 				}
@@ -278,7 +259,6 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 								for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
 								{
 									DoFRef(mat, vFineMultInd[ip], vCoarseMultInd[sh]) += weight*vvShape[ip][sh];
-									vIsRestricted[vCoarseMultInd[sh][0]] = true;
 								}
 							}
 						}
@@ -312,7 +292,6 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 							for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
 							{
 								DoFRef(mat, vFineMultInd[ip], vCoarseMultInd[sh]) = vvShape[ip][sh];
-								vIsRestricted[vCoarseMultInd[sh][0]] = true;
 							}
 						}
 					}
@@ -355,7 +334,6 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 						for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
 						{
 							DoFRef(mat, vFineMultInd[ip], vCoarseMultInd[sh]) = vvShape[ip][sh];
-							vIsRestricted[vCoarseMultInd[sh][0]] = true;
 						}
 					}
 				}
@@ -363,13 +341,6 @@ void AssembleStdProlongationElementwise(typename TAlgebra::matrix_type& mat,
 		}
 	}
 }
-
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-// 	StdTransfer
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
@@ -415,20 +386,18 @@ void StdTransfer<TDomain, TAlgebra>::init()
 	try{
 		if(P1LagrangeOnly)
 		{
-			AssembleStdProlongationForP1Lagrange<TAlgebra>
+			assemble_prolongation_p1
 			(m_matrix,
 			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
-			 *m_spApproxSpace->dof_distribution(m_fineLevel),
-			 m_vIsRestricted);
+			 *m_spApproxSpace->dof_distribution(m_fineLevel));
 		}
 		else
 		{
-			AssembleStdProlongationElementwise<TDomain, TAlgebra>
+			assemble_prolongation_elemwise
 			(m_matrix,
 			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
 			 *m_spApproxSpace->dof_distribution(m_fineLevel),
-			 m_spApproxSpace->domain(),
-			 m_vIsRestricted);
+			 m_spApproxSpace->domain());
 		}
 	} UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::init:"
 				"Cannot assemble interpolation matrix.");

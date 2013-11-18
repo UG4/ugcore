@@ -94,6 +94,13 @@ class StdTransfer :
 	///	debug writing of matrix
 		void write_debug(const matrix_type& mat, const char* filename);
 
+		void assemble_prolongation_elemwise(typename TAlgebra::matrix_type& mat,
+		                                    const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
+		                                    ConstSmartPtr<TDomain> spDomain);
+
+		void assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
+		                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
+
 	protected:
 	///	matrix to store prolongation
 		matrix_type m_matrix;
@@ -109,9 +116,6 @@ class StdTransfer :
 
 	///	coarse grid level
 		GridLevel m_coarseLevel;
-
-	///	restriction flag
-		std::vector<bool> m_vIsRestricted;
 
 	///	initialization flag
 		bool m_bInit;
