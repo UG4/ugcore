@@ -18,7 +18,7 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
+assemble_restriction_p1(typename TAlgebra::matrix_type& mat,
                          const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -36,12 +36,12 @@ assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
 	const size_t numFineDoFs = fineDD.num_indices();
 	const size_t numCoarseDoFs = coarseDD.num_indices();
 
+//  resize matrix
+	mat.resize_and_clear(numCoarseDoFs, numFineDoFs);
+
 //	check if grid distribution has dofs, otherwise skip creation since father
 //	elements may not exist in parallel.
 	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
-
-//  resize matrix
-	mat.resize_and_clear(numFineDoFs, numCoarseDoFs);
 
 	std::vector<DoFIndex> coarseMultInd, fineMultInd;
 
@@ -86,7 +86,7 @@ assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
 						{
 							VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
 							coarseDD.inner_dof_indices(vrt, fct, coarseMultInd);
-							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 1.0;
+							DoFRef(mat, coarseMultInd[0], fineMultInd[0]) = 1.0;
 						}
 						break;
 					case ROID_EDGE:
@@ -94,7 +94,7 @@ assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
 						{
 							EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
 							coarseDD.inner_dof_indices(edge->vertex(i), fct, coarseMultInd);
-							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.5;
+							DoFRef(mat, coarseMultInd[0], fineMultInd[0]) = 0.5;
 						}
 						break;
 					case ROID_QUADRILATERAL:
@@ -102,7 +102,7 @@ assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
 						{
 							Face* face = dynamic_cast<Face*>(parent);
 							coarseDD.inner_dof_indices(face->vertex(i), fct, coarseMultInd);
-							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.25;
+							DoFRef(mat, coarseMultInd[0], fineMultInd[0]) = 0.25;
 						}
 						break;
 					case ROID_HEXAHEDRON:
@@ -110,7 +110,7 @@ assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
 						{
 							Volume* hexaeder = dynamic_cast<Volume*>(parent);
 							coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, coarseMultInd);
-							DoFRef(mat, fineMultInd[0], coarseMultInd[0]) = 0.125;
+							DoFRef(mat, coarseMultInd[0], fineMultInd[0]) = 0.125;
 						}
 						break;
 					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element Father"
@@ -124,7 +124,7 @@ assemble_prolongation_p1(typename TAlgebra::matrix_type& mat,
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-assemble_prolongation_elemwise(typename TAlgebra::matrix_type& mat,
+assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
                                const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
                                ConstSmartPtr<TDomain> spDomain)
 {
@@ -139,12 +139,12 @@ assemble_prolongation_elemwise(typename TAlgebra::matrix_type& mat,
 	const size_t numFineDoFs = fineDD.num_indices();
 	const size_t numCoarseDoFs = coarseDD.num_indices();
 
+//  resize matrix
+	mat.resize_and_clear(numCoarseDoFs, numFineDoFs);
+
 //	check if grid distribution has dofs, otherwise skip creation since father
 //	elements may not exist in parallel.
 	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
-
-//  resize matrix
-	mat.resize_and_clear(numFineDoFs, numCoarseDoFs);
 
 	std::vector<DoFIndex> vCoarseMultInd, vFineMultInd;
 
@@ -205,7 +205,7 @@ assemble_prolongation_elemwise(typename TAlgebra::matrix_type& mat,
 						Element* child = vChild[c];
 						//	fine dof indices
 						fineDD.dof_indices(child, fct, vFineMultInd);
-						DoFRef(mat, vFineMultInd[0], vCoarseMultInd[0]) =  1.0;
+						DoFRef(mat, vCoarseMultInd[0], vFineMultInd[0]) =  1.0;
 					}
 					continue;
 				}
@@ -258,7 +258,7 @@ assemble_prolongation_elemwise(typename TAlgebra::matrix_type& mat,
 							{
 								for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
 								{
-									DoFRef(mat, vFineMultInd[ip], vCoarseMultInd[sh]) += weight*vvShape[ip][sh];
+									DoFRef(mat, vCoarseMultInd[sh], vFineMultInd[ip]) += weight*vvShape[ip][sh];
 								}
 							}
 						}
@@ -291,7 +291,7 @@ assemble_prolongation_elemwise(typename TAlgebra::matrix_type& mat,
 						{
 							for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
 							{
-								DoFRef(mat, vFineMultInd[ip], vCoarseMultInd[sh]) = vvShape[ip][sh];
+								DoFRef(mat, vCoarseMultInd[sh], vFineMultInd[ip]) = vvShape[ip][sh];
 							}
 						}
 					}
@@ -333,7 +333,7 @@ assemble_prolongation_elemwise(typename TAlgebra::matrix_type& mat,
 					{
 						for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
 						{
-							DoFRef(mat, vFineMultInd[ip], vCoarseMultInd[sh]) = vvShape[ip][sh];
+							DoFRef(mat, vCoarseMultInd[sh], vFineMultInd[ip]) = vvShape[ip][sh];
 						}
 					}
 				}
@@ -374,7 +374,7 @@ void StdTransfer<TDomain, TAlgebra>::init()
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::init: "
 				"Approximation Space not set. Cannot init Projection.");
 
-	m_matrix.resize_and_clear(0,0);
+	m_Restriction.resize_and_clear(0,0);
 
 // 	check only lagrange P1 functions
 	bool P1LagrangeOnly = true;
@@ -386,15 +386,15 @@ void StdTransfer<TDomain, TAlgebra>::init()
 	try{
 		if(P1LagrangeOnly)
 		{
-			assemble_prolongation_p1
-			(m_matrix,
+			assemble_restriction_p1
+			(m_Restriction,
 			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
 			 *m_spApproxSpace->dof_distribution(m_fineLevel));
 		}
 		else
 		{
-			assemble_prolongation_elemwise
-			(m_matrix,
+			assemble_restriction_elemwise
+			(m_Restriction,
 			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
 			 *m_spApproxSpace->dof_distribution(m_fineLevel),
 			 m_spApproxSpace->domain());
@@ -403,11 +403,11 @@ void StdTransfer<TDomain, TAlgebra>::init()
 				"Cannot assemble interpolation matrix.");
 
 	#ifdef UG_PARALLEL
-		m_matrix.set_storage_type(PST_CONSISTENT);
+		m_Restriction.set_storage_type(PST_CONSISTENT);
 	#endif
 
 	std::stringstream ss; ss<<"Prolongation_"<<m_coarseLevel.level()<<"_"<<m_fineLevel.level();
-	write_debug(m_matrix, ss.str().c_str());
+	write_debug(m_Restriction, ss.str().c_str());
 
 	m_bInit = true;
 }
@@ -423,11 +423,15 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 				" Operator not initialized.");
 
 //	Some Assertions
-	UG_ASSERT(uFine.size() >= m_matrix.num_rows(),  "Vector ["<<uFine.size()<<"] must be >= Row size "<<m_matrix.num_rows());
-	UG_ASSERT(uCoarse.size() >= m_matrix.num_cols(),"Vector ["<<uCoarse.size()<<"] must be >= Col size "<<m_matrix.num_cols());
+	if(uFine.size() != m_Restriction.num_cols())
+		UG_THROW("StdTransfer: Vector ["<<uFine.size()<<"] must be == Cols size "
+		         <<m_Restriction.num_cols());
+	if(uCoarse.size() != m_Restriction.num_rows())
+		UG_THROW("StdTransfer: Vector ["<<uCoarse.size()<<"] must be == Rows size "
+		         <<m_Restriction.num_rows());
 
 //	Apply Matrix
-	m_matrix.apply(uFine, uCoarse);
+	m_Restriction.apply_transposed(uFine, uCoarse);
 
 //	Set dirichlet nodes to zero again
 //	todo: We could handle this by eliminating dirichlet rows as well
@@ -475,12 +479,16 @@ do_restrict(vector_type& uCoarse, const vector_type& uFine)
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply_transposed:"
 				"Operator not initialized.");
 
-//	Some Assertions
-	UG_ASSERT(uFine.size() >= m_matrix.num_rows(),  "Vector ["<<uFine.size()<<"] must be >= Row size "<<m_matrix.num_rows());
-	UG_ASSERT(uCoarse.size() >= m_matrix.num_cols(),"Vector ["<<uCoarse.size()<<"] must be >= Col size "<<m_matrix.num_cols());
+//	Some Checks
+	if(uFine.size() != m_Restriction.num_cols())
+		UG_THROW("StdTransfer: Vector ["<<uFine.size()<<"] must be == Cols size "
+		         <<m_Restriction.num_cols());
+	if(uCoarse.size() != m_Restriction.num_rows())
+		UG_THROW("StdTransfer: Vector ["<<uCoarse.size()<<"] must be == Rows size "
+		         <<m_Restriction.num_rows());
 
 //	Apply transposed matrix
-	m_matrix.apply_transposed_ignore_zero_rows(uCoarse, m_dampRes, uFine);
+	m_Restriction.apply_ignore_zero_rows(uCoarse, m_dampRes, uFine);
 
 //	Set dirichlet nodes to zero again
 //	todo: We could handle this by eliminating dirichlet columns as well
