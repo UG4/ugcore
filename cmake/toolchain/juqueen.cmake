@@ -24,29 +24,19 @@
 ################################################################################
 #
 # Attention:
-# For this to work a CMake version with platform files for Blue Gene/Q is required!
+# For this to work a CMake version with platform files for Blue Gene/Q are required.
 # The currently (October 2012) installed version on JuQueen does not (the FZJ
 # support is asked to support one).
 #
-# In the meantime one can resort to a local installation of (the most recent
-# version of) CMake, where appropriate platform files are copied into the
-# 'Modules/Platform/' sub directory:
-#
-#  ~/local/share/cmake-2.8/Modules/Platform/BlueGeneQ-*.cmake
-#
-# The following is based on information from
-# 'https://code.google.com/p/elemental/source/browse/cmake/toolchains/BGQ-gnu-netlib.cmake',
-# utilising platform files from
+# In the meantime the Juqueen platform-files supplied with ug are used (located
+# in cmake/modules/Platform). Those stem from
 # 'http://www.cmake.org/Bug/bug_relationship_graph.php?bug_id=13512&graph=dependency'
-# (found 03092012), which are copied into the 'Modules/Platform/' directory of
-# a locally installed CMake, version 2.8.9 (installed 03092012).
-#
 ################################################################################
 
 # Important: Setting the "cmake system name" will lead to automatic inclusion of
 # the corresponding platform files:
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_SYSTEM_NAME BlueGeneQ-static)
-#set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 # This option tells cmake/ug_includes.cmake to add the -dynamic option to the compiler flags.
 SET(enableDynamicOption OFF)
