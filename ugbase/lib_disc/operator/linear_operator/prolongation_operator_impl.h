@@ -24,8 +24,8 @@ assemble_restriction_p1(typename TAlgebra::matrix_type& mat,
 	PROFILE_FUNC_GROUP("gmg");
 // 	allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
-		if(fineDD.local_finite_element_id(fct).type() != LFEID::LAGRANGE ||
-			fineDD.local_finite_element_id(fct).order() != 1)
+		if(fineDD.lfeid(fct).type() != LFEID::LAGRANGE ||
+			fineDD.lfeid(fct).order() != 1)
 			UG_THROW("AssembleStdProlongationForP1Lagrange:"
 				"Interpolation only implemented for Lagrange P1 functions.");
 
@@ -151,7 +151,7 @@ assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
 //	vector of local finite element ids
 	std::vector<LFEID> vLFEID(fineDD.num_fct());
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
-		vLFEID[fct] = fineDD.local_finite_element_id(fct);
+		vLFEID[fct] = fineDD.lfeid(fct);
 
 //  iterators
 	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
@@ -379,8 +379,8 @@ void StdTransfer<TDomain, TAlgebra>::init()
 // 	check only lagrange P1 functions
 	bool P1LagrangeOnly = true;
 	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
-		if(m_spApproxSpace->local_finite_element_id(fct).type() != LFEID::LAGRANGE ||
-			m_spApproxSpace->local_finite_element_id(fct).order() != 1)
+		if(m_spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
+			m_spApproxSpace->lfeid(fct).order() != 1)
 			P1LagrangeOnly = false;
 
 	try{
@@ -456,8 +456,8 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 #ifdef UG_PARALLEL
 	bool bCROnly = true;
 	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
-		if(m_spApproxSpace->local_finite_element_id(fct).type() != LFEID::CROUZEIX_RAVIART &&
-			m_spApproxSpace->local_finite_element_id(fct).type() != LFEID::PIECEWISE_CONSTANT)
+		if(m_spApproxSpace->lfeid(fct).type() != LFEID::CROUZEIX_RAVIART &&
+			m_spApproxSpace->lfeid(fct).type() != LFEID::PIECEWISE_CONSTANT)
 			bCROnly = false;
 
 	if(bCROnly){
