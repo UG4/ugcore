@@ -30,20 +30,20 @@ assemble_restriction_p1(typename TAlgebra::matrix_type& mat,
 				"Interpolation only implemented for Lagrange P1 functions.");
 
 //  get subsethandler and grid
-	const MultiGrid& grid = *coarseDD.multi_grid();
+	const MultiGrid& mg = *coarseDD.multi_grid();
 
 //  get number of dofs on different levels
-	const size_t numFineDoFs = fineDD.num_indices();
-	const size_t numCoarseDoFs = coarseDD.num_indices();
+	const size_t numFineIndex = fineDD.num_indices();
+	const size_t numCoarseIndex = coarseDD.num_indices();
 
 //  resize matrix
-	mat.resize_and_clear(numCoarseDoFs, numFineDoFs);
+	mat.resize_and_clear(numCoarseIndex, numFineIndex);
 
 //	check if grid distribution has dofs, otherwise skip creation since father
 //	elements may not exist in parallel.
-	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
+	if(numFineIndex == 0 || numCoarseIndex == 0) return;
 
-	std::vector<DoFIndex> coarseMultInd, fineMultInd;
+	std::vector<DoFIndex> vCoarseDoF, vFineDoF;
 
 //  iterators
 	typedef DoFDistribution::traits<VertexBase>::const_iterator const_iterator;
@@ -62,7 +62,7 @@ assemble_restriction_p1(typename TAlgebra::matrix_type& mat,
 			VertexBase* fineVrt = *iter;
 
 		//  get father
-			GeometricObject* parent = grid.get_parent(fineVrt);
+			GeometricObject* parent = mg.get_parent(fineVrt);
 
 			if(!parent)
 				continue;
@@ -77,42 +77,42 @@ assemble_restriction_p1(typename TAlgebra::matrix_type& mat,
 				if(!fineDD.is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				fineDD.inner_dof_indices(fineVrt, fct, fineMultInd);
+				fineDD.inner_dof_indices(fineVrt, fct, vFineDoF);
 
 			//	detect type of father
 				switch(roid)
 				{
 					case ROID_VERTEX:
-						{
-							VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
-							coarseDD.inner_dof_indices(vrt, fct, coarseMultInd);
-							DoFRef(mat, coarseMultInd[0], fineMultInd[0]) = 1.0;
-						}
-						break;
+					{
+						VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
+						coarseDD.inner_dof_indices(vrt, fct, vCoarseDoF);
+						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) = 1.0;
+					}
+					break;
 					case ROID_EDGE:
-						for(int i = 0; i < 2; ++i)
-						{
-							EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
-							coarseDD.inner_dof_indices(edge->vertex(i), fct, coarseMultInd);
-							DoFRef(mat, coarseMultInd[0], fineMultInd[0]) = 0.5;
-						}
-						break;
+					for(int i = 0; i < 2; ++i)
+					{
+						EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
+						coarseDD.inner_dof_indices(edge->vertex(i), fct, vCoarseDoF);
+						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) = 0.5;
+					}
+					break;
 					case ROID_QUADRILATERAL:
-						for(int i = 0; i < 4; ++i)
-						{
-							Face* face = dynamic_cast<Face*>(parent);
-							coarseDD.inner_dof_indices(face->vertex(i), fct, coarseMultInd);
-							DoFRef(mat, coarseMultInd[0], fineMultInd[0]) = 0.25;
-						}
-						break;
+					for(int i = 0; i < 4; ++i)
+					{
+						Face* face = dynamic_cast<Face*>(parent);
+						coarseDD.inner_dof_indices(face->vertex(i), fct, vCoarseDoF);
+						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) = 0.25;
+					}
+					break;
 					case ROID_HEXAHEDRON:
-						for(int i = 0; i < 8; ++i)
-						{
-							Volume* hexaeder = dynamic_cast<Volume*>(parent);
-							coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, coarseMultInd);
-							DoFRef(mat, coarseMultInd[0], fineMultInd[0]) = 0.125;
-						}
-						break;
+					for(int i = 0; i < 8; ++i)
+					{
+						Volume* hexaeder = dynamic_cast<Volume*>(parent);
+						coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, vCoarseDoF);
+						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) = 0.125;
+					}
+					break;
 					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element Father"
 									 "is of unsupported type "<<roid);
 				}
@@ -133,25 +133,29 @@ assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
 	const int dim = TDomain::dim;
 
 //  get subsethandler and grid
-	MultiGrid& grid = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
+	MultiGrid& mg = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
 
 //  get number of dofs on different levels
-	const size_t numFineDoFs = fineDD.num_indices();
-	const size_t numCoarseDoFs = coarseDD.num_indices();
+	const size_t numFineIndex = fineDD.num_indices();
+	const size_t numCoarseIndex = coarseDD.num_indices();
 
 //  resize matrix
-	mat.resize_and_clear(numCoarseDoFs, numFineDoFs);
+	mat.resize_and_clear(numCoarseIndex, numFineIndex);
 
 //	check if grid distribution has dofs, otherwise skip creation since father
 //	elements may not exist in parallel.
-	if(numFineDoFs == 0 || numCoarseDoFs == 0) return;
+	if(numFineIndex == 0 || numCoarseIndex == 0) return;
 
-	std::vector<DoFIndex> vCoarseMultInd, vFineMultInd;
+	std::vector<DoFIndex> vCoarseDoF, vFineDoF;
 
 //	vector of local finite element ids
 	std::vector<LFEID> vLFEID(fineDD.num_fct());
-	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct)
+	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct){
 		vLFEID[fct] = fineDD.lfeid(fct);
+		if(vLFEID[fct].dim() != dim)
+			UG_THROW("StdTransfer: elem-wise transfer currently only implemented"
+					" for non-manifold spaces.")
+	}
 
 //  iterators
 	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
@@ -172,12 +176,12 @@ assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
 			Element* coarseElem = *iter;
 
 		//  get children
-			const size_t numChild = grid.num_children<Element, Element>(coarseElem);
+			const size_t numChild = mg.num_children<Element, Element>(coarseElem);
 			if(numChild == 0) continue;
 
 			std::vector<Element*> vChild(numChild);
 			for(size_t c = 0; c < vChild.size(); ++c)
-				vChild[c] = grid.get_child<Element, Element>(coarseElem,  c);
+				vChild[c] = mg.get_child<Element, Element>(coarseElem,  c);
 
 		//	type of coarse element
 			const ReferenceObjectID roid = coarseElem->reference_object_id();
@@ -187,156 +191,134 @@ assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
 			CollectCornerCoordinates(vCornerCoarse, *coarseElem, *spDomain);
 
 		//	get Reference Mapping
-			DimReferenceMapping<dim, dim>& map = ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoarse);
+			DimReferenceMapping<dim, dim>& map =
+					ReferenceMappingProvider::get<dim, dim>(roid, vCornerCoarse);
 
 		//	loop all components
 			for(size_t fct = 0; fct < coarseDD.num_fct(); fct++)
 			{
-				//	check that fct defined on subset
+			//	check that fct defined on subset
 				if(!coarseDD.is_def_in_subset(fct, si)) continue;
-				//  get global indices
-				coarseDD.dof_indices(coarseElem, fct, vCoarseMultInd);
 
-				// piecewise constant elements
-				if (vLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT){
+			//  get global indices
+				coarseDD.dof_indices(coarseElem, fct, vCoarseDoF);
+
+			// 	piecewise constant elements
+				if (vLFEID[fct].type() == LFEID::PIECEWISE_CONSTANT)
+				{
 					//	loop children
 					for(size_t c = 0; c < vChild.size(); ++c)
 					{
 						Element* child = vChild[c];
-						//	fine dof indices
-						fineDD.dof_indices(child, fct, vFineMultInd);
-						DoFRef(mat, vCoarseMultInd[0], vFineMultInd[0]) =  1.0;
+						fineDD.dof_indices(child, fct, vFineDoF);
+						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) =  1.0;
 					}
+
 					continue;
-				}
+				} // end of piece-wise constant
 
-				//	get local finite element trial spaces
-				const LocalShapeFunctionSet<dim>& lsfs = LocalFiniteElementProvider::get<dim>(roid, vLFEID[fct]);
+			//	get local finite element trial spaces
+				const LocalShapeFunctionSet<dim>& lsfs =
+						LocalFiniteElementProvider::get<dim>(roid, vLFEID[fct]);
 
-				// Crouzeix-Raviart elements
+			// 	Crouzeix-Raviart elements
 				if (vLFEID[fct].type() == LFEID::CROUZEIX_RAVIART)
 				{
-					//	loop side children of coarse sides
-					//  if there are coarse neighbour elements on a side the interpolation
-					//  is weighted with factor 0.5 else with factor 1
-					typename Grid::template traits<Side>::secure_container vCoarseSides;
-					grid.associated_elements(vCoarseSides,coarseElem);
+				//	all fine sides
+					std::vector<Side*> vChildSide;
+					std::vector<number> vWeight;
 
-					for (size_t i=0;i<vCoarseSides.size();i++)
-					{
+				//	loop side children of coarse sides
+				//  if there are coarse neighbour elements on a side the interpolation
+				//  is weighted with factor 0.5 else with factor 1
+					typename Grid::template traits<Side>::secure_container vCoarseSides;
+					mg.associated_elements(vCoarseSides,coarseElem);
+
+					for (size_t i = 0; i < vCoarseSides.size() ;i++){
 						Side* side = vCoarseSides[i];
 						typename Grid::template traits<Element>::secure_container vCoarseNeighbourElem;
-						grid.associated_elements(vCoarseNeighbourElem,side);
-						number weight = (1.0)/vCoarseNeighbourElem.size();
+						mg.associated_elements(vCoarseNeighbourElem, side);
+						const number weight = (1.0)/vCoarseNeighbourElem.size();
 
-						const size_t numChild = grid.num_children<Side,Side>(side);
-						if(numChild == 0) continue;
-
-						for(size_t c = 0; c < numChild; ++c)
-						{
-							Side* childSide = grid.get_child<Side,Side>(side,  c);
-							//	fine dof indices
-							fineDD.inner_dof_indices(childSide, fct, vFineMultInd);
-							//	global positions of fine dofs
-							std::vector<MathVector<dim> > vDoFPos, vLocPos;
-							DoFPosition(vDoFPos, childSide, *spDomain, vLFEID[fct]);
-
-							//	get local position of DoF
-							vLocPos.resize(vDoFPos.size());
-							for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
-
-							map.update(vCornerCoarse);
-							map.global_to_local(vLocPos, vDoFPos);
-
-							//	get all shape functions
-							std::vector<std::vector<number> > vvShape;
-
-							//	evaluate coarse shape fct at fine local point
-							lsfs.shapes(vvShape, vLocPos);
-
-							for(size_t ip = 0; ip < vvShape.size(); ++ip)
-							{
-								for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
-								{
-									DoFRef(mat, vCoarseMultInd[sh], vFineMultInd[ip]) += weight*vvShape[ip][sh];
-								}
-							}
+						for(size_t c = 0; c < mg.num_children<Side,Side>(side); ++c){
+							vChildSide.push_back(mg.get_child<Side,Side>(side,  c));
+							vWeight.push_back(weight);
 						}
 					}
 
-					// loop fine sides inside coarse element
-					const size_t numChild = grid.num_children<Side,Element>(coarseElem);
-					for(size_t c = 0; c < numChild; ++c){
-						Side* childSide = grid.get_child<Side,Element>(coarseElem,c);
-						//	fine dof indices
-						fineDD.inner_dof_indices(childSide, fct, vFineMultInd);
-						//	global positions of fine dofs
-						std::vector<MathVector<dim> > vDoFPos, vLocPos;
+				//	loop inner child sides
+					for(size_t c = 0; c < mg.num_children<Side,Element>(coarseElem); ++c){
+						vChildSide.push_back(mg.get_child<Side,Element>(coarseElem,c));
+						vWeight.push_back(1.0);
+					}
+
+				// 	loop fine sides
+					for(size_t c = 0; c < vChildSide.size(); ++c)
+					{
+						Side* childSide = vChildSide[c];
+
+					//	fine dof indices
+						fineDD.inner_dof_indices(childSide, fct, vFineDoF);
+
+					//	global positions of fine dofs
+						std::vector<MathVector<dim> > vDoFPos;
 						DoFPosition(vDoFPos, childSide, *spDomain, vLFEID[fct]);
 
-						//	get local position of DoF
-						vLocPos.resize(vDoFPos.size());
-						for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
-
+					//	get local position of DoF
+						std::vector<MathVector<dim> > vLocPos(vDoFPos.size(), 0.0);
 						map.update(vCornerCoarse);
 						map.global_to_local(vLocPos, vDoFPos);
 
-						//	get all shape functions
+					//	evaluate coarse shape fct at fine local point
 						std::vector<std::vector<number> > vvShape;
-
-						//	evaluate coarse shape fct at fine local point
 						lsfs.shapes(vvShape, vLocPos);
 
+					//	add restriction
 						for(size_t ip = 0; ip < vvShape.size(); ++ip)
-						{
 							for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
-							{
-								DoFRef(mat, vCoarseMultInd[sh], vFineMultInd[ip]) = vvShape[ip][sh];
-							}
-						}
+								DoFRef(mat, vCoarseDoF[sh], vFineDoF[ip]) += vWeight[c] * vvShape[ip][sh];
 					}
+
 					continue;
 				} // end of Crouzeix-Raviart transfer
 
-			// other finite element types
-
-			//	loop children
-				for(size_t c = 0; c < vChild.size(); ++c)
+			// 	Lagrange elements
+				if (vLFEID[fct].type() == LFEID::LAGRANGE)
 				{
-					Element* child = vChild[c];
-
-				//	fine dof indices
-					fineDD.dof_indices(child, fct, vFineMultInd);
-
-				//	global positions of fine dofs
-					std::vector<MathVector<dim> > vDoFPos, vLocPos;
-					DoFPosition(vDoFPos, child, *spDomain, vLFEID[fct]);
-
-					UG_ASSERT(vDoFPos.size() == vFineMultInd.size(), "numDoFPos ("
-					          <<vDoFPos.size()<<") != numDoFs ("<<vFineMultInd.size()<<").");
-
-				//	get local position of DoF
-					vLocPos.resize(vDoFPos.size());
-					for(size_t ip = 0; ip < vLocPos.size(); ++ip) VecSet(vLocPos[ip], 0.0);
-
-				//  update map coordinates because they have been changed in dof_indices
-					map.update(vCornerCoarse);
-					map.global_to_local(vLocPos, vDoFPos);
-
-				//	get all shape functions
-					std::vector<std::vector<number> > vvShape;
-
-				//	evaluate coarse shape fct at fine local point
-					lsfs.shapes(vvShape, vLocPos);
-
-					for(size_t ip = 0; ip < vvShape.size(); ++ip)
+				//	loop children
+					for(size_t c = 0; c < vChild.size(); ++c)
 					{
-						for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
-						{
-							DoFRef(mat, vCoarseMultInd[sh], vFineMultInd[ip]) = vvShape[ip][sh];
-						}
+						Element* child = vChild[c];
+
+					//	fine dof indices
+						fineDD.dof_indices(child, fct, vFineDoF);
+
+					//	global positions of fine dofs
+						std::vector<MathVector<dim> > vDoFPos;
+						DoFPosition(vDoFPos, child, *spDomain, vLFEID[fct]);
+
+					//	get local position of DoF
+					//  update map coordinates because they have been changed in dof_indices
+						std::vector<MathVector<dim> > vLocPos(vDoFPos.size(), 0.0);
+						map.update(vCornerCoarse);
+						map.global_to_local(vLocPos, vDoFPos);
+
+					//	evaluate coarse shape fct at fine local point
+						std::vector<std::vector<number> > vvShape;
+						lsfs.shapes(vvShape, vLocPos);
+
+					//	set restriction
+						for(size_t ip = 0; ip < vvShape.size(); ++ip)
+							for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
+								DoFRef(mat, vCoarseDoF[sh], vFineDoF[ip]) = vvShape[ip][sh];
 					}
-				}
+
+					continue;
+				} // end of Lagrange transfer
+
+				// other finite element types
+				UG_THROW("StdTransfer: Local-Finite-Element: "<<vLFEID[fct]<<" is "
+				         "not supported by this Transfer.")
 			}
 		}
 	}
