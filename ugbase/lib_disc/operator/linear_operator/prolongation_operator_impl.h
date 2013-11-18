@@ -458,15 +458,7 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 	UG_ASSERT(uCoarse.size() >= m_matrix.num_cols(),"Vector ["<<uCoarse.size()<<"] must be >= Col size "<<m_matrix.num_cols());
 
 //	Apply Matrix
-	if(!m_matrix.apply(uFine, uCoarse))
-	{
-		std::stringstream ss;
-		ss << "StdTransfer<TDomain, TAlgebra>::apply: Cannot apply matrix. ";
-#ifdef UG_PARALLEL
-		ss << "(Type uCoarse = " <<uCoarse.get_storage_mask();
-#endif
-		UG_THROW(ss.str().c_str());
-	}
+	m_matrix.apply(uFine, uCoarse);
 
 //	Set dirichlet nodes to zero again
 //	todo: We could handle this by eliminating dirichlet rows as well
