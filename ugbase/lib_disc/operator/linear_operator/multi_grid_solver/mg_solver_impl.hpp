@@ -763,6 +763,18 @@ init_base_solver()
 //	check, if a gathering base solver is required:
 	if(m_bGatheredBaseUsed)
 	{
+		// \todo: handle this correctly in cases that v-slave are not all dofs
+		//	Note, that a level with v-slaves + a gathered base solver must
+		//	currently skip base-solving. It may be, that the base matrix
+		//	on the vslave-grid may not be invertible. Therefore, we skip this
+		//	init at this point. However, cases may be possible, that vslaves are
+		//	present on the proc, but in addition some normal or vmasters are
+		//	given as well. This case is not yet considered, but should be
+		//	implemented.
+		#ifdef UG_PARALLEL
+		if(!m_vLevData[m_baseLev]->t->layouts()->vertical_slave().empty()) return;
+		#endif
+
 	//	we init the base solver with the whole grid matrix
 		if(!m_spBaseSolver->init(spBaseSolverMat, *spGatheredBaseCorr))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
