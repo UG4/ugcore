@@ -78,6 +78,7 @@ class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) {
 			bool bRes = true;
 			for(size_t i = 0; i < m_vIterator.size(); i++){
+				if ((i>0) && (m_vIterator[i]==m_vIterator[i-1])) continue;
 				bRes &= m_vIterator[i]->init(J,u);
 			}
 			return bRes;
@@ -88,6 +89,7 @@ class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 		{
 			bool bRes = true;
 			for(size_t i = 0; i < m_vIterator.size(); i++) {
+				if ((i>0) && (m_vIterator[i]==m_vIterator[i-1])) continue;
 				bRes &= m_vIterator[i]->init(L);
 			}
 			return bRes;
@@ -145,6 +147,7 @@ class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 			m_spOp = J;
 			bool bRes = true;
 			for(size_t i = 0; i < m_vIterator.size(); i++){
+				if ((i>0) && (m_vIterator[i]==m_vIterator[i-1])) continue;
 				bRes &= m_vIterator[i]->init(J,u);
 			}
 			return bRes;
@@ -156,6 +159,7 @@ class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 			m_spOp = L;
 			bool bRes = true;
 			for(size_t i = 0; i < m_vIterator.size(); i++) {
+				if ((i>0) && (m_vIterator[i]==m_vIterator[i-1])) continue;
 				bRes &= m_vIterator[i]->init(L);
 			}
 			return bRes;
