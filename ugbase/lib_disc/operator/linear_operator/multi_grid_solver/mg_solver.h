@@ -159,7 +159,7 @@ class AssembledMultiGridCycle :
 	/// Prepare for Operator J(u) and linearization point u (current solution)
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u);
 
-	///	Prepare for Linear Operartor L
+	///	Prepare for Linear Operator L
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L);
 
 	///	Compute new correction c = B*d
