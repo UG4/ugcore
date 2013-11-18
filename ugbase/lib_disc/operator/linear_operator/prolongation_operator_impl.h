@@ -514,26 +514,12 @@ do_restrict(vector_type& uCoarse, const vector_type& uFine)
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply_transposed:"
 				"Operator not initialized.");
 
-	vector_type	uTmp; uTmp.resize(uCoarse.size());
-
 //	Some Assertions
 	UG_ASSERT(uFine.size() >= m_matrix.num_rows(),  "Vector ["<<uFine.size()<<"] must be >= Row size "<<m_matrix.num_rows());
 	UG_ASSERT(uCoarse.size() >= m_matrix.num_cols(),"Vector ["<<uCoarse.size()<<"] must be >= Col size "<<m_matrix.num_cols());
 
 //	Apply transposed matrix
-	if(!m_matrix.apply_transposed(uTmp, uFine))
-		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply_transposed:"
-				" Cannot apply transposed matrix.");
-
-	uTmp *= m_dampRes;
-
-//	Copy only restricted values
-//	This is needed in adaptive situations, where the defect that has been
-//	projected from the surface should remain and only hidden (i.e.
-//	indices with children) should be changed.
-	for(size_t i = 0; i < uTmp.size(); ++i)
-		if(m_vIsRestricted[i])
-			uCoarse[i] = uTmp[i];
+	m_matrix.apply_transposed_ignore_zero_rows(uCoarse, m_dampRes, uFine);
 
 //	Set dirichlet nodes to zero again
 //	todo: We could handle this by eliminating dirichlet columns as well
