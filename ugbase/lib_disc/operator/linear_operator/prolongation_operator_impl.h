@@ -333,6 +333,7 @@ set_identity_on_pure_surface(matrix_type& mat,
 	PROFILE_FUNC_GROUP("gmg");
 
 	std::vector<size_t> vCoarseIndex, vFineIndex;
+	const MultiGrid& mg = *coarseDD.multi_grid();
 
 //  iterators
 	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
@@ -341,14 +342,17 @@ set_identity_on_pure_surface(matrix_type& mat,
 //  loop subsets on fine level
 	for(int si = 0; si < coarseDD.num_subsets(); ++si)
 	{
-		iterBegin = coarseDD.template begin<TElem>(si, SurfaceView::PURE_SURFACE);
-		iterEnd = coarseDD.template end<TElem>(si, SurfaceView::PURE_SURFACE);
+		iterBegin = coarseDD.template begin<TElem>(si);
+		iterEnd = coarseDD.template end<TElem>(si);
 
 	//  loop vertices for fine level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
 		//	get element
 			TElem* coarseElem = *iter;
+
+			const size_t numChild = mg.num_children<TElem, TElem>(coarseElem);
+			if(numChild != 0) continue;
 
 		//	get indices
 			coarseDD.inner_algebra_indices(coarseElem, vCoarseIndex);
@@ -424,14 +428,15 @@ void StdTransfer<TDomain, TAlgebra>::init()
 	} UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::init:"
 				"Cannot assemble interpolation matrix.");
 
-	if(m_coarseLevel.is_surface())
+	if(m_coarseLevel.is_surface()){
 		set_identity_on_pure_surface(m_Restriction, coarseDD, fineDD);
+	}
 
 	#ifdef UG_PARALLEL
 	m_Restriction.set_storage_type(PST_CONSISTENT);
 	#endif
 
-	std::stringstream ss; ss<<"Prolongation_"<<m_coarseLevel.level()<<"_"<<m_fineLevel.level();
+	std::stringstream ss; ss<<"Restriction_"<<m_fineLevel.level()<<"_"<<m_coarseLevel.level();
 	write_debug(m_Restriction, ss.str().c_str());
 
 	m_bInit = true;
@@ -586,7 +591,7 @@ write_debug(const matrix_type& mat, const char* filename)
 
 //	write
 	GridLevel gridLev = dbgWriter->grid_level();
-	dbgWriter->set_grid_levels(m_coarseLevel, m_fineLevel);
+	dbgWriter->set_grid_levels(m_fineLevel, m_coarseLevel);
 	dbgWriter->write_matrix(mat, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
 }

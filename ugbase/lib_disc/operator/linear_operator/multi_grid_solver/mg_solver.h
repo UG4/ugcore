@@ -97,6 +97,12 @@ class AssembledMultiGridCycle :
 	///	sets if the base solver is applied in parallel
 		void set_parallel_base_solver(bool bParallel) {m_bParallelBaseSolverIfAmbiguous = bParallel;}
 
+	///	sets if copies should be used to emulate a full-refined grid
+		void set_emulate_full_refined_grid(bool bEmulate){
+			if(bEmulate) m_GridLevelType = GridLevel::SURFACE;
+			else m_GridLevelType = GridLevel::LEVEL;
+		}
+
 	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
 		void set_cycle_type(int type) {m_cycleType = type;}
 

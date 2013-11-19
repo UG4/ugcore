@@ -1654,10 +1654,11 @@ write_debug(const GF& rGF, std::string name)
 	std::stringstream ss; ss << std::setfill('0') << "GMG_" << name << "_";
 
 	if(gl.is_level()){
-		if(gl.ghosts()) ss << "gl" << std::setw(3) << gl.level();
-		else 			ss << "l" << std::setw(3) << gl.level();
+		if(gl.ghosts()) ss << "glev" << std::setw(3) << gl.level();
+		else 			ss << "lev" << std::setw(3) << gl.level();
 	} else if (gl.is_surface()){
-		ss << "surf";
+		if(gl.ghosts()) ss << "gsurf" << std::setw(3) << gl.level();
+		else 			ss << "surf" << std::setw(3) << gl.level();
 	} else {
 		UG_THROW("GMG: GridLevel not supported.")
 	}

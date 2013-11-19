@@ -28,10 +28,7 @@ class GridLevel
 	///	constructor
 		GridLevel(int level, ViewType type, bool bWithGhosts = false)
 			: m_level(level), m_type(type), m_bWithGhosts(bWithGhosts)
-		{
-			if(type == SURFACE && bWithGhosts)
-				UG_THROW("GridLevel: Surface only with Ghosts possible.");
-		}
+		{}
 
 	///	constructor
 		GridLevel(int level)
