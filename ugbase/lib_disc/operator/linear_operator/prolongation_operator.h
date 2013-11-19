@@ -94,12 +94,19 @@ class StdTransfer :
 	///	debug writing of matrix
 		void write_debug(const matrix_type& mat, const char* filename);
 
-		void assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
+		void assemble_restriction_elemwise(matrix_type& mat,
 		                                    const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
 		                                    ConstSmartPtr<TDomain> spDomain);
 
-		void assemble_restriction_p1(typename TAlgebra::matrix_type& mat,
+		void assemble_restriction_p1(matrix_type& mat,
 		                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
+
+		template <typename TElem>
+		void set_identity_on_pure_surface(matrix_type& mat,
+		                                  const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
+
+		void set_identity_on_pure_surface(matrix_type& mat,
+		                                  const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
 
 	protected:
 	///	matrix to store prolongation

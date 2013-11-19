@@ -18,7 +18,7 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-assemble_restriction_p1(typename TAlgebra::matrix_type& mat,
+assemble_restriction_p1(matrix_type& mat,
                          const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
 {
 	PROFILE_FUNC_GROUP("gmg");
@@ -124,7 +124,7 @@ assemble_restriction_p1(typename TAlgebra::matrix_type& mat,
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
+assemble_restriction_elemwise(matrix_type& mat,
                                const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
                                ConstSmartPtr<TDomain> spDomain)
 {
@@ -163,13 +163,13 @@ assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
 	typedef typename Element::side Side;
 	const_iterator iter, iterBegin, iterEnd;
 
-//  loop subsets on fine level
+//  loop subsets on coarse level
 	for(int si = 0; si < coarseDD.num_subsets(); ++si)
 	{
 		iterBegin = coarseDD.template begin<Element>(si);
 		iterEnd = coarseDD.template end<Element>(si);
 
-	//  loop vertices for fine level subset
+	//  loop elems on coarse level for subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
 		//	get element
@@ -325,6 +325,55 @@ assemble_restriction_elemwise(typename TAlgebra::matrix_type& mat,
 }
 
 template <typename TDomain, typename TAlgebra>
+template <typename TElem>
+void StdTransfer<TDomain, TAlgebra>::
+set_identity_on_pure_surface(matrix_type& mat,
+                             const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
+{
+	PROFILE_FUNC_GROUP("gmg");
+
+	std::vector<size_t> vCoarseIndex, vFineIndex;
+
+//  iterators
+	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	const_iterator iter, iterBegin, iterEnd;
+
+//  loop subsets on fine level
+	for(int si = 0; si < coarseDD.num_subsets(); ++si)
+	{
+		iterBegin = coarseDD.template begin<TElem>(si, SurfaceView::PURE_SURFACE);
+		iterEnd = coarseDD.template end<TElem>(si, SurfaceView::PURE_SURFACE);
+
+	//  loop vertices for fine level subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get element
+			TElem* coarseElem = *iter;
+
+		//	get indices
+			coarseDD.inner_algebra_indices(coarseElem, vCoarseIndex);
+			fineDD.inner_algebra_indices(coarseElem, vFineIndex);
+			UG_ASSERT(vCoarseIndex.size() == vFineIndex.size(), "Size mismatch");
+
+		//	set identity
+			for(size_t i = 0; i < vCoarseIndex.size(); ++i)
+				mat(vCoarseIndex[i], vFineIndex[i]) = 1.0;
+		}
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+void StdTransfer<TDomain, TAlgebra>::
+set_identity_on_pure_surface(matrix_type& mat,
+                             const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
+{
+	if(coarseDD.max_dofs(VERTEX)) set_identity_on_pure_surface<VertexBase>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(EDGE)) set_identity_on_pure_surface<EdgeBase>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(FACE)) set_identity_on_pure_surface<Face>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(VOLUME)) set_identity_on_pure_surface<Volume>(mat, coarseDD, fineDD);
+}
+
+template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
 set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 {
@@ -341,11 +390,10 @@ void StdTransfer<TDomain, TAlgebra>::set_levels(GridLevel coarseLevel, GridLevel
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::set_levels:"
 				" Can only project between successive level.");
 
-	if(m_fineLevel.type() != GridLevel::LEVEL ||
-	   m_coarseLevel.type() != GridLevel::LEVEL)
+	if(m_fineLevel.type() != m_coarseLevel.type())
 		UG_THROW("StdTransfer<TDomain, TAlgebra>::set_levels:"
-				" Can only project between level dof distributions, but fine="
-				<<m_fineLevel<<", coarse="<<m_coarseLevel);
+				" Can only project between dof distributions of same type, but "
+				"fine="<<m_fineLevel<<", coarse="<<m_coarseLevel);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -365,27 +413,22 @@ void StdTransfer<TDomain, TAlgebra>::init()
 			m_spApproxSpace->lfeid(fct).order() != 1)
 			P1LagrangeOnly = false;
 
+	const DoFDistribution& coarseDD = *m_spApproxSpace->dof_distribution(m_coarseLevel);
+	const DoFDistribution& fineDD = *m_spApproxSpace->dof_distribution(m_fineLevel);
 	try{
-		if(P1LagrangeOnly)
-		{
-			assemble_restriction_p1
-			(m_Restriction,
-			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
-			 *m_spApproxSpace->dof_distribution(m_fineLevel));
-		}
-		else
-		{
-			assemble_restriction_elemwise
-			(m_Restriction,
-			 *m_spApproxSpace->dof_distribution(m_coarseLevel),
-			 *m_spApproxSpace->dof_distribution(m_fineLevel),
-			 m_spApproxSpace->domain());
+		if(P1LagrangeOnly){
+			assemble_restriction_p1(m_Restriction, coarseDD, fineDD);
+		} else{
+			assemble_restriction_elemwise(m_Restriction, coarseDD, fineDD, m_spApproxSpace->domain());
 		}
 	} UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::init:"
 				"Cannot assemble interpolation matrix.");
 
+	if(m_coarseLevel.is_surface())
+		set_identity_on_pure_surface(m_Restriction, coarseDD, fineDD);
+
 	#ifdef UG_PARALLEL
-		m_Restriction.set_storage_type(PST_CONSISTENT);
+	m_Restriction.set_storage_type(PST_CONSISTENT);
 	#endif
 
 	std::stringstream ss; ss<<"Prolongation_"<<m_coarseLevel.level()<<"_"<<m_fineLevel.level();
