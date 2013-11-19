@@ -1,8 +1,8 @@
 /*
  * linear_solver.h
  *
- *  Created on: 22.02.2010
- *      Author: andreasvogel
+ *  Created on: 30.10.2013
+ *      Author: martin rupp
  */
 
 #ifndef __H__UG__LIB_DISC__OPERATOR__AUTO_LINEAR_OPERATOR__LINEAR_SOLVER__

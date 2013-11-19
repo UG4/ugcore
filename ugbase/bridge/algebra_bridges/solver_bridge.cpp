@@ -20,6 +20,7 @@
 #include "lib_algebra/operator/damping.h"
 #include "lib_algebra/operator/linear_solver/linear_solver.h"
 #include "lib_algebra/operator/linear_solver/auto_linear_solver.h"
+#include "lib_algebra/operator/linear_solver/analyzing_solver.h"
 #include "lib_algebra/operator/linear_solver/cg.h"
 #include "lib_algebra/operator/linear_solver/bicgstab.h"
 #include "lib_algebra/operator/linear_solver/gmres.h"
@@ -110,7 +111,9 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LinearSolver", tag);
 	}
-// 	LinearSolver
+
+
+// 	AutoLinearSolver
 	{
 		typedef AutoLinearSolver<vector_type> T;
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
@@ -124,7 +127,19 @@ static void Algebra(Registry& reg, string grp)
 
 		reg.add_class_to_group(name, "AutoLinearSolver", tag);
 	}
-// 	CG Solver
+
+// 	AnalyzingSolver
+	{
+		typedef AnalyzingSolver<matrix_type, vector_type> T;
+		typedef  ILinearOperatorInverse<vector_type> TBase;
+		string name = string("AnalyzingSolver").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "AnalyzingSolver")
+			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type> >)>("solver")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "AnalyzingSolver", tag);
+	}
+
+	// 	CG Solver
 	{
 		typedef CG<vector_type> T;
 		typedef IPreconditionedLinearOperatorInverse<vector_type> TBase;
