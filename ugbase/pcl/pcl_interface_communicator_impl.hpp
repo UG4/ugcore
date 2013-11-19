@@ -648,7 +648,6 @@ wait()
 	PCL_PROFILE(pcl_IntCom_MPIWait);
 	Waitall(m_vReceiveRequests, m_vSendRequests);
 	PCL_PROFILE_END();
-	PCL_PROFILE_END();
 	
 
 //	call the extractors with the received data
