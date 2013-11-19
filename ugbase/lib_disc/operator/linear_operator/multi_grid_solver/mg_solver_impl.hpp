@@ -418,11 +418,12 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_level_operator()
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_linear_level_operator\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_level_operator\n");
 
 //	Create Projection
 	try{
 		if(m_pSurfaceSol) {
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_level_operator: project sol\n");
 			GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
 			#ifdef UG_PARALLEL
 			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT))
@@ -439,6 +440,7 @@ init_level_operator()
 				(*(m_vLevData[level]->st))[index] = (*m_pSurfaceSol)[i];
 			}
 			GMG_PROFILE_END();
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_level_operator: project sol\n");
 		}
 	}
 	UG_CATCH_THROW("GMG::init: Projection of Surface Solution failed.");
@@ -453,6 +455,7 @@ init_level_operator()
 
 		if(!bCpyFromSurface)
 		{
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_level_operator: assemble on lev "<<lev<<"\n");
 			GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 			try{
 			if(m_GridLevelType == GridLevel::LEVEL)
@@ -463,10 +466,12 @@ init_level_operator()
 			}
 			UG_CATCH_THROW("GMG:init: Cannot init operator for level "<<lev);
 			GMG_PROFILE_END();
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_level_operator: assemble on lev "<<lev<<"\n");
 		}
 		else
 		{
 		//	in case of full refinement we simply copy the matrix (with correct numbering)
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_level_operator: copy mat on lev "<<lev<<"\n");
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 
 		//	loop all mapped indices
@@ -498,9 +503,10 @@ init_level_operator()
 
 			#ifdef UG_PARALLEL
 			ld.A->set_storage_type(m_spSurfaceMat->get_storage_mask());
-			ld.A->set_layouts(m_spSurfaceMat->layouts());
+			ld.A->set_layouts(ld.st->layouts());
 			#endif
 			GMG_PROFILE_END();
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_level_operator: copy mat on lev "<<lev<<"\n");
 		}
 
 		if(m_pSurfaceSol && lev > m_baseLev)
@@ -529,6 +535,7 @@ init_level_operator()
 //	well
 	if(m_bGatheredBaseUsed)
 	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
 		GMG_PROFILE_BEGIN(GMG_AssGatheredLevMat);
 		LevData& ld = *m_vLevData[m_baseLev];
 
@@ -543,6 +550,7 @@ init_level_operator()
 		}
 		UG_CATCH_THROW("GMG:init: Cannot init operator base level operator");
 		GMG_PROFILE_END();
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
 	}
 
 //	write computed level matrices for debug purpose
@@ -556,7 +564,7 @@ init_level_operator()
 	}
 	UG_CATCH_THROW("GMG:init: Cannot init missing coarse grid coupling.");
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_linear_level_operator\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_level_operator\n");
 }
 
 template <typename TDomain, typename TAlgebra>
