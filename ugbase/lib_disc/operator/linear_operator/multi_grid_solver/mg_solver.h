@@ -261,6 +261,9 @@ class AssembledMultiGridCycle :
 	///	lowest level containing surface geom obj (proc-locally)
 		int m_LocalFullRefLevel;
 
+	///	grid-view for level vectors
+		GridLevel::ViewType m_GridLevelType;
+
 	///	approximation space revision of cached values
 		RevisionCounter m_ApproxSpaceRevision;
 

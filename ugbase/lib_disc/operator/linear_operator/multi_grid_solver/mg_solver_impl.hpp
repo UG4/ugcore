@@ -54,6 +54,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(1),
 	m_numPreSmooth(2), m_numPostSmooth(2),
+	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
 	m_spProjectionPrototype(new InjectionTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
@@ -455,7 +456,7 @@ init_level_operator()
 			GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 			try{
 			m_spAss->ass_tuner()->set_force_regular_grid(true);
-			m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(lev, GridLevel::LEVEL, false));
+			m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(lev, m_GridLevelType, false));
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
 			}
 			UG_CATCH_THROW("GMG:init: Cannot init operator for level "<<lev);
@@ -534,7 +535,7 @@ init_level_operator()
 
 		try{
 		m_spAss->ass_tuner()->set_force_regular_grid(true);
-		m_spAss->assemble_jacobian(*spBaseSolverMat, *ld.t, GridLevel(m_baseLev, GridLevel::LEVEL, true));
+		m_spAss->assemble_jacobian(*spBaseSolverMat, *ld.t, GridLevel(m_baseLev, m_GridLevelType, true));
 		m_spAss->ass_tuner()->set_force_regular_grid(false);
 		}
 		UG_CATCH_THROW("GMG:init: Cannot init operator base level operator");
@@ -652,11 +653,11 @@ init_transfer()
 			bOneOperator = true;
 
 	//	set levels
-		m_vLevData[lev]->Prolongation->set_levels(GridLevel(lev-1, GridLevel::LEVEL, false),
-		                                          GridLevel(lev, GridLevel::LEVEL, true));
+		m_vLevData[lev]->Prolongation->set_levels(GridLevel(lev-1, m_GridLevelType, false),
+		                                          GridLevel(lev, m_GridLevelType, true));
 		if(!bOneOperator)
-			m_vLevData[lev]->Restriction->set_levels(GridLevel(lev-1, GridLevel::LEVEL, false),
-			                                         GridLevel(lev, GridLevel::LEVEL, true));
+			m_vLevData[lev]->Restriction->set_levels(GridLevel(lev-1, m_GridLevelType, false),
+			                                         GridLevel(lev, m_GridLevelType, true));
 
 	//	add all dirichlet post processes
 		m_vLevData[lev]->Prolongation->clear_constraints();
@@ -692,8 +693,8 @@ init_projection()
 	for(int lev = m_baseLev+1; lev <= m_topLev; ++lev)
 	{
 	//	set levels
-		m_vLevData[lev]->Projection->set_levels(GridLevel(lev-1, GridLevel::LEVEL, false),
-		                                        GridLevel(lev, GridLevel::LEVEL, true));
+		m_vLevData[lev]->Projection->set_levels(GridLevel(lev-1, m_GridLevelType, false),
+		                                        GridLevel(lev, m_GridLevelType, true));
 
 	//	init projection
 		m_vLevData[lev]->Projection->init();
@@ -802,7 +803,7 @@ init_surface_to_level_mapping()
 
 	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_topLev+1);
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev)
-		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
+		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, m_GridLevelType, false));
 
 	ConstSmartPtr<DoFDistribution> surfDD =
 			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
@@ -921,9 +922,9 @@ init_noghost_to_ghost_mapping(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	ConstSmartPtr<DoFDistribution> spNoGhostDD =
-			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
+			m_spApproxSpace->dof_distribution(GridLevel(lev, m_GridLevelType, false));
 	ConstSmartPtr<DoFDistribution> spGhostDD =
-			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, true));
+			m_spApproxSpace->dof_distribution(GridLevel(lev, m_GridLevelType, true));
 
 	std::vector<size_t>& vMapPatchToGlobal = m_vLevData[lev]->vMapPatchToGlobal;
 	vMapPatchToGlobal.resize(0);
@@ -1014,7 +1015,7 @@ collect_shadowing_indices(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	ConstSmartPtr<DoFDistribution> spDD =
-			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
+			m_spApproxSpace->dof_distribution(GridLevel(lev, m_GridLevelType, false));
 	ConstSmartPtr<DoFDistribution> spSurfDD =
 			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
@@ -1050,10 +1051,10 @@ init_level_memory(int baseLev, int topLev)
 		m_vLevData[lev] = SmartPtr<LevData>(new LevData);
 		LevData& ld = *m_vLevData[lev];
 
-		GridLevel glGhosts = GridLevel(lev, GridLevel::LEVEL, true);
+		GridLevel glGhosts = GridLevel(lev, m_GridLevelType, true);
 		ld.t = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
 
-		GridLevel gl = GridLevel(lev, GridLevel::LEVEL, false);
+		GridLevel gl = GridLevel(lev, m_GridLevelType, false);
 		ld.sc = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
 		ld.sd = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
 		ld.st = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
@@ -1091,7 +1092,7 @@ init_level_memory(int baseLev, int topLev)
 #endif
 
 	if(m_bGatheredBaseUsed){
-		GridLevel glGhosts = GridLevel(baseLev, GridLevel::LEVEL, true);
+		GridLevel glGhosts = GridLevel(baseLev, m_GridLevelType, true);
 		spGatheredBaseCorr = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
 		spBaseSolverMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
 								new MatrixOperator<matrix_type, vector_type>);
@@ -1671,7 +1672,7 @@ write_smooth_level_debug(const matrix_type& mat, std::string name, int lev)
 
 //	write
 	GridLevel currGL = m_spDebugWriter->grid_level();
-	m_spDebugWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL, false));
+	m_spDebugWriter->set_grid_level(GridLevel(lev,m_GridLevelType, false));
 	m_spDebugWriter->write_matrix(mat, ss.str().c_str());
 	m_spDebugWriter->set_grid_level(currGL);
 }
@@ -1691,7 +1692,7 @@ write_level_debug(const matrix_type& mat, std::string name, int lev)
 
 //	write
 	GridLevel currGL = m_spDebugWriter->grid_level();
-	m_spDebugWriter->set_grid_level(GridLevel(lev,GridLevel::LEVEL));
+	m_spDebugWriter->set_grid_level(GridLevel(lev,m_GridLevelType));
 	m_spDebugWriter->write_matrix(mat, ss.str().c_str());
 	m_spDebugWriter->set_grid_level(currGL);
 }
