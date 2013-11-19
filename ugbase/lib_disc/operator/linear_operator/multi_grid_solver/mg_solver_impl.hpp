@@ -828,7 +828,10 @@ init_surface_to_level_mapping()
 	{
 	//	get elem and its level
 		TElem* elem = *iter;
-		const int level = spSurfView->get_level(elem);
+		int level = spSurfView->get_level(elem);
+
+		if (m_GridLevelType == GridLevel::SURFACE)
+			level = m_topLev;
 
 	//	check that coarse grid covers whole domain. If this is not the case,
 	//	some surface indices are mapped to grid levels below baseLev. We
@@ -844,8 +847,8 @@ init_surface_to_level_mapping()
 		m_LocalFullRefLevel = std::min(m_LocalFullRefLevel, level);
 
 	//	extract all algebra indices for the element on surface and level
-		surfDD->inner_algebra_indices(elem, vSurfInd);
 		vLevelDD[level]->inner_algebra_indices(elem, vLevelInd);
+		surfDD->inner_algebra_indices(elem, vSurfInd);
 		UG_ASSERT(vSurfInd.size() == vLevelInd.size(), "Number of indices does not match.");
 
 	//	set mapping index
@@ -1024,7 +1027,7 @@ collect_shadowing_indices(int lev)
 	vShadowing.clear();
 	vSurfShadowing.clear();
 
-	if(lev >= m_LocalFullRefLevel) {
+	if(lev >= m_LocalFullRefLevel && m_GridLevelType != GridLevel::SURFACE) {
 		if(spDD->max_dofs(VERTEX)) collect_shadowing_indices<VertexBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
 		if(spDD->max_dofs(EDGE))   collect_shadowing_indices<EdgeBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
 		if(spDD->max_dofs(FACE))   collect_shadowing_indices<Face>(vShadowing, spDD, vSurfShadowing, spSurfDD);
