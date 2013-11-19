@@ -455,6 +455,8 @@ init_level_operator()
 		{
 			GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 			try{
+			if(m_GridLevelType == GridLevel::LEVEL)
+				m_spAss->ass_tuner()->set_force_regular_grid(true);
 			m_spAss->ass_tuner()->set_force_regular_grid(true);
 			m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(lev, m_GridLevelType, false));
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
@@ -534,7 +536,8 @@ init_level_operator()
 		copy_to_vertical_masters(*ld.t);
 
 		try{
-		m_spAss->ass_tuner()->set_force_regular_grid(true);
+		if(m_GridLevelType == GridLevel::LEVEL)
+			m_spAss->ass_tuner()->set_force_regular_grid(true);
 		m_spAss->assemble_jacobian(*spBaseSolverMat, *ld.t, GridLevel(m_baseLev, m_GridLevelType, true));
 		m_spAss->ass_tuner()->set_force_regular_grid(false);
 		}
