@@ -258,8 +258,7 @@ class AssembledMultiGridCycle :
 	///	number of Postsmooth steps
 		int m_numPostSmooth;
 
-	///	flag indicating if grid is full refined
-		bool m_bAdaptive;
+	///	lowest level containing surface geom obj (proc-locally)
 		int m_LocalFullRefLevel;
 
 	///	approximation space revision of cached values

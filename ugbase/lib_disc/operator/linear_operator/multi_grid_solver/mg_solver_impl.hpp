@@ -54,7 +54,6 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(1),
 	m_numPreSmooth(2), m_numPostSmooth(2),
-	m_bAdaptive(true),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
 	m_spProjectionPrototype(new InjectionTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
@@ -346,24 +345,6 @@ init()
 	if(m_baseLev > m_topLev)
 		UG_THROW("GMG::init: Base Level greater than Surface level.");
 
-//	check, if grid is full-refined
-	if(m_spApproxSpace->dof_distribution(GridLevel(m_topLev, GridLevel::LEVEL, false))->num_indices() ==
-		m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE))->num_indices())
-	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is non adaptive\n");
-		m_bAdaptive = false;
-	}
-	else{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "init_common - local grid is adaptive: ");
-		m_bAdaptive = true;
-	}
-//todo:	Eventually the multigrid is only executed on a subset of processes.
-//		A process communicator would thus make sense, which defines this subset.
-//		Use that in the call below.
-	#ifdef UG_PARALLEL
-	m_bAdaptive = pcl::OneProcTrue(m_bAdaptive);
-	#endif
-
 	if(m_ApproxSpaceRevision != m_spApproxSpace->revision())
 	{
 	//	Allocate memory for given top level
@@ -383,9 +364,8 @@ init()
 	//	init mapping from surface level to top level in case of full refinement
 		GMG_PROFILE_BEGIN(GMG_CollectShadowing);
 		try{
-			if(m_bAdaptive)
-				for(int lev = m_baseLev; lev <= m_topLev; ++lev)
-					collect_shadowing_indices(lev);
+			for(int lev = m_baseLev; lev <= m_topLev; ++lev)
+				collect_shadowing_indices(lev);
 		}
 		UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
 		GMG_PROFILE_END();
@@ -468,7 +448,7 @@ init_level_operator()
 		LevData& ld = *m_vLevData[lev];
 
 	//	In Full-Ref case we can copy the Matrix from the surface
-		bool bCpyFromSurface = ((lev == m_topLev) && !m_bAdaptive);
+		bool bCpyFromSurface = ((lev == m_topLev) && (lev <= m_LocalFullRefLevel));
 
 		if(!bCpyFromSurface)
 		{
@@ -568,8 +548,7 @@ init_level_operator()
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
 	try{
-		if(m_bAdaptive)
-			init_missing_coarse_grid_coupling(m_pSurfaceSol);
+		init_missing_coarse_grid_coupling(m_pSurfaceSol);
 	}
 	UG_CATCH_THROW("GMG:init: Cannot init missing coarse grid coupling.");
 
@@ -588,7 +567,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(0,0);
 
 //	if the grid is fully refined, nothing to do
-	if(!m_bAdaptive){
+	if(m_topLev <= m_LocalFullRefLevel){
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling (non-adaptive)" << "\n");
 		return;
 	}
@@ -598,7 +577,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 //	loop all levels to compute the missing contribution
 	BoolMarker sel(*m_spApproxSpace->domain()->grid());
-	for(int lev = m_baseLev; lev < m_topLev; ++lev)
+	for(int lev = m_LocalFullRefLevel; lev < m_topLev; ++lev)
 	{
 		LevData& lc = *m_vLevData[lev];
 		LevData& lf = *m_vLevData[lev+1];
@@ -820,11 +799,13 @@ init_surface_to_level_mapping()
  */
 
 	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
-	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_topLev+1);
 
+	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_topLev+1);
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev)
 		vLevelDD[lev] = m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
-	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
+
+	ConstSmartPtr<DoFDistribution> surfDD =
+			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 //	iterators for subset
 	// \todo: The loop below should only be on SURFACE_NONCOPY, since the
@@ -884,7 +865,8 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_surface_to_level_mapping()
 {
 	PROFILE_FUNC_GROUP("gmg");
-	ConstSmartPtr<DoFDistribution> surfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
+	ConstSmartPtr<DoFDistribution> surfDD =
+			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 	m_vSurfToLevelMap.resize(0);
 	m_vSurfToLevelMap.resize(surfDD->num_indices());
@@ -894,6 +876,10 @@ init_surface_to_level_mapping()
 	if(surfDD->max_dofs(EDGE))   init_surface_to_level_mapping<EdgeBase>();
 	if(surfDD->max_dofs(FACE))   init_surface_to_level_mapping<Face>();
 	if(surfDD->max_dofs(VOLUME)) init_surface_to_level_mapping<Volume>();
+
+	if(m_baseLev > m_LocalFullRefLevel)
+		UG_THROW("GMG: Base level "<<m_baseLev<<" does not cover whole grid. "
+		         <<"Highest full-ref level is "<<m_LocalFullRefLevel);
 }
 
 
@@ -1029,17 +1015,20 @@ collect_shadowing_indices(int lev)
 	PROFILE_FUNC_GROUP("gmg");
 	ConstSmartPtr<DoFDistribution> spDD =
 			m_spApproxSpace->dof_distribution(GridLevel(lev, GridLevel::LEVEL, false));
-	ConstSmartPtr<DoFDistribution> spSurfDD = m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
+	ConstSmartPtr<DoFDistribution> spSurfDD =
+			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
 	std::vector<size_t>& vShadowing = m_vLevData[lev]->vShadowing;
 	std::vector<size_t>& vSurfShadowing = m_vLevData[lev]->vSurfShadowing;
 	vShadowing.clear();
 	vSurfShadowing.clear();
 
-	if(spDD->max_dofs(VERTEX)) collect_shadowing_indices<VertexBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
-	if(spDD->max_dofs(EDGE))   collect_shadowing_indices<EdgeBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
-	if(spDD->max_dofs(FACE))   collect_shadowing_indices<Face>(vShadowing, spDD, vSurfShadowing, spSurfDD);
-	if(spDD->max_dofs(VOLUME)) collect_shadowing_indices<Volume>(vShadowing, spDD, vSurfShadowing, spSurfDD);
+	if(lev >= m_LocalFullRefLevel) {
+		if(spDD->max_dofs(VERTEX)) collect_shadowing_indices<VertexBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
+		if(spDD->max_dofs(EDGE))   collect_shadowing_indices<EdgeBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
+		if(spDD->max_dofs(FACE))   collect_shadowing_indices<Face>(vShadowing, spDD, vSurfShadowing, spSurfDD);
+		if(spDD->max_dofs(VOLUME)) collect_shadowing_indices<Volume>(vShadowing, spDD, vSurfShadowing, spSurfDD);
+	}
 }
 
 
@@ -1264,7 +1253,7 @@ prolongation(int lev)
 //	has not been used to update the defect. In order to ensure, that the
 //	defect on this level still corresponds to the updated defect, we need
 //	to add if here.
-	if(m_bAdaptive){
+	if(lev > m_LocalFullRefLevel){
 		GMG_PROFILE_BEGIN(GMG_AddCoarseGridContribution);
 		lc.CoarseGridContribution.matmul_minus(*lf.sd, *lc.sc);
 		GMG_PROFILE_END();
@@ -1359,13 +1348,12 @@ base_solve(int lev)
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
 
 		//	UPDATE DEFECT
-		//	*) if baseLevel == surfaceLevel, we need also need the updated defect
 		//	*) if adaptive case, we also need to update the defect, such that on the
 		//	   surface level the defect remains updated
 		//	*) Only for full refinement and real coarser level, we can forget about
 		//	   the defect on the base level, since only the correction is needed
 		//	   on the higher level
-			if(m_baseLev == m_topLev || m_bAdaptive){
+			if(lev >= m_LocalFullRefLevel){
 				ld.A->apply_sub(*ld.sd, *ld.sc);
 			}
 
