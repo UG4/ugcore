@@ -81,35 +81,35 @@ class SurfaceView
 	///	\{
 		template <class TElem>
 		typename traits<TElem>::iterator
-		begin(int si, const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
+		begin(int si, const GridLevel& gl, SurfaceConstants validSurfStates);
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		end(int si, const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
+		end(int si, const GridLevel& gl, SurfaceConstants validSurfStates);
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		begin(int si, const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
+		begin(int si, const GridLevel& gl, SurfaceConstants validSurfStates) const;
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		end(int si, const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
+		end(int si, const GridLevel& gl, SurfaceConstants validSurfStates) const;
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		begin(const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
+		begin(const GridLevel& gl, SurfaceConstants validSurfStates);
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		end(const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
+		end(const GridLevel& gl, SurfaceConstants validSurfStates);
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		begin(const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
+		begin(const GridLevel& gl, SurfaceConstants validSurfStates) const;
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		end(const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
+		end(const GridLevel& gl, SurfaceConstants validSurfStates) const;
 	///	\}
 
 	public:

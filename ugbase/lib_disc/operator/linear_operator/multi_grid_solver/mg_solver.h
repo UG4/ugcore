@@ -477,9 +477,6 @@ class AssembledMultiGridCycle :
 // Selections
 ////////////////////////////////////////////////////////////////////////////////
 
-/// selects all non-shadows, that are adjacent to a shadow in the multigrid
-void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfView);
-
 /// selects all non-shadows, that are adjacent to a shadow on a grid levels
 void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 										   const SurfaceView& surfView,
