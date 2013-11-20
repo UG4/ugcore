@@ -229,7 +229,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 			for (size_t i_child = 0;
 					i_child < mg.num_children<TElem>(parentSlave); ++i_child) {
 				TElem* c = mg.get_child<TElem>(parentSlave, i_child);
-				UG_ASSERT((!e->base_object_id() == VERTEX)
+				UG_ASSERT(!(e->base_object_id() == VERTEX)
 						  || (mg.num_children<TElem>(parentSlave) == 1),
 						  "At most one 1 vertex-child is currently allowed");
 				// We use a special case for vertices here, since the position
@@ -276,7 +276,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 		for (size_t i_child = 0; i_child < mg.num_children<TElem>(parentMaster);
 				++i_child) {
 			TElem* c = mg.get_child<TElem>(parentMaster, i_child);
-			UG_ASSERT((!e->base_object_id() == VERTEX)
+			UG_ASSERT(!(e->base_object_id() == VERTEX)
 					  || (mg.num_children<TElem>(parentMaster) == 1),
 					  "At most one 1 vertex-child is currently allowed");
 			// We use a special case for vertices here, since the position
