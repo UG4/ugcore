@@ -112,7 +112,7 @@ class SurfaceView
 		end(const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
 	///	\}
 
-
+	protected:
 	///	iterators over whole surface grid w.r.t to level 'lvl'
 	///	\{
 		template <class TElem>
@@ -205,6 +205,7 @@ class SurfaceView
 				  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
 	///	\}
 
+	public:
 	///	returns the level in grid hierarchy of an element in the surface
 		template <class TGeomObj>
 		inline int get_level(TGeomObj* obj) const;

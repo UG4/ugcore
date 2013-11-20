@@ -105,8 +105,9 @@ void SelectNonShadowsAdjacentToShadows(BoolMarker& sel, const SurfaceView& surfV
 	typename SurfaceView::template traits<TElemBase>::const_iterator iter, iterEnd;
 
 //	loop all base elems
-	iterEnd = surfView.surface_end<TElemBase>();
-	for(iter = surfView.surface_begin<TElemBase>(); iter != iterEnd; ++iter)
+	iterEnd = surfView.end<TElemBase>(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false));
+	iter = surfView.begin<TElemBase>(GridLevel(GridLevel::TOP, GridLevel::SURFACE, false));
+	for(; iter != iterEnd; ++iter)
 	{
 	//	get element
 		TElemBase* shadow = *iter;
