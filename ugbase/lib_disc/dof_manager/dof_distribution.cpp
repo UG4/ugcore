@@ -1646,9 +1646,10 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 // 	Iterators
 	typedef typename traits<TBaseElem>::const_iterator const_iterator;
 	const_iterator iterEnd = end<TBaseElem>();
+	const_iterator iter = begin<TBaseElem>();
 
 //	loop elem
-	for(const_iterator iter = begin<TBaseElem>(); iter != iterEnd; ++iter)
+	for(; iter != iterEnd; ++iter)
 	{
 	// 	Get elem
 		TBaseElem* elem = *iter;
@@ -1741,8 +1742,9 @@ void DoFDistribution::permute_indices(const std::vector<size_t>& vNewInd)
 // 	loop Vertices
 	typedef typename traits<TBaseElem>::const_iterator const_iterator;
 
-	const_iterator iterEnd = end<TBaseElem>();
-	for(const_iterator iter = begin<TBaseElem>(); iter != iterEnd; ++iter)
+	const_iterator iterEnd = end<TBaseElem>(SurfaceView::ALL);
+	const_iterator iter = begin<TBaseElem>(SurfaceView::ALL);
+	for(; iter != iterEnd; ++iter)
 	{
 	// 	get vertex
 		TBaseElem* elem = *iter;
