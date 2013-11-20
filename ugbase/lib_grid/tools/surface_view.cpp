@@ -85,7 +85,6 @@ is_local_surface_view_element(TElem* elem)
 	#ifdef UG_PARALLEL
 		return !(m_pMG->has_children(elem)
 				 || m_distGridMgr->is_ghost(elem));
-				//|| m_distGridMgr->contains_status(elem, ES_V_MASTER));
 	#else
 		return !m_pMG->has_children(elem);
 	#endif
@@ -96,14 +95,10 @@ refresh_surface_states()
 {
 //todo	we need a global max-dim!!! (empty processes have to do the right thing, too)
 	int maxElem = -1;
-	if(m_pMG->num<Volume>() > 0)
-		maxElem = VOLUME;
-	else if(m_pMG->num<Face>() > 0)
-		maxElem = FACE;
-	else if(m_pMG->num<EdgeBase>() > 0)
-		maxElem = EDGE;
-	else if(m_pMG->num<VertexBase>() > 0)
-		maxElem = VERTEX;
+	if(m_pMG->num<Volume>() > 0) maxElem = VOLUME;
+	else if(m_pMG->num<Face>() > 0) maxElem = FACE;
+	else if(m_pMG->num<EdgeBase>() > 0) maxElem = EDGE;
+	else if(m_pMG->num<VertexBase>() > 0) maxElem = VERTEX;
 
 	#ifdef UG_PARALLEL
 		pcl::ProcessCommunicator pc;
@@ -111,33 +106,13 @@ refresh_surface_states()
 	#endif
 
 	switch(maxElem){
-		case VOLUME:
-			refresh_surface_states<Volume>();
-			break;
-		case FACE:
-			refresh_surface_states<Face>();
-			break;
-		case EDGE:
-			refresh_surface_states<EdgeBase>();
-			break;
-		case VERTEX:
-			refresh_surface_states<VertexBase>();
-			break;
+		case VOLUME: refresh_surface_states<Volume>(); break;
+		case FACE:refresh_surface_states<Face>(); break;
+		case EDGE: refresh_surface_states<EdgeBase>(); break;
+		case VERTEX: refresh_surface_states<VertexBase>(); break;
 		default: break;
 	}
 }
-
-//static void DebugSave(MultiGrid& mg, SurfaceView& sv, const char* prefix)
-//{
-//	stringstream ss;
-//	ss << prefix;
-//#ifdef UG_PARALLEL
-//	ss << "_p" << pcl::GetProcRank();
-//#endif
-//	ss << ".ugx";
-//
-//	SaveSurfaceViewTransformed(mg, sv, ss.str().c_str(), 0.1);
-//}
 
 template <class TElem>
 void SurfaceView::
@@ -155,8 +130,8 @@ refresh_surface_states()
 	SetAttachmentValues(m_aaSurfState, mg.begin<Volume>(), mg.end<Volume>(), UNASSIGNED);
 
 //	iterate through all levels of the mgsh
-	for(size_t level = 0; level < mg.num_levels(); ++level){
-
+	for(size_t level = 0; level < mg.num_levels(); ++level)
+	{
 	//	iterate through all elements on that level
 		for(ElemIter iter = mg.begin<TElem>(level);
 			iter != mg.end<TElem>(level); ++iter)
@@ -169,40 +144,6 @@ refresh_surface_states()
 			}
 		}
 	}
-
-//NOTE: THE CODE BELOW SHOULD BE REMOVED SOMEWHEN SOON!
-//		Since all copies of constrained elements are in h-interfaces (always!)
-//		the code below shouldn't be required any more.
-//	make sure that all constrained elements are surface view members
-//	(think e.g. of constrained ghost elements)
-//	for(ConstrainedTriangleIterator iter = mg.begin<ConstrainedTriangle>();
-//		iter != mg.end<ConstrainedTriangle>(); ++iter)
-//	{
-//		Face* elem = *iter;
-//		surface_state(elem).set(SHADOWING);
-//		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SHADOWING);
-//		if(GeometricObject* p = m_pMG->get_parent(elem))
-//			surface_state(p).set(SHADOW_NONCOPY);
-//	}
-//	for(ConstrainedQuadrilateralIterator iter = mg.begin<ConstrainedQuadrilateral>();
-//		iter != mg.end<ConstrainedQuadrilateral>(); ++iter)
-//	{
-//		Face* elem = *iter;
-//		surface_state(elem).set(SHADOWING);
-//		mark_sides_as_surface_or_shadow<Face, EdgeBase>(elem, SHADOWING);
-//		if(GeometricObject* p = m_pMG->get_parent(elem))
-//			surface_state(p).set(SHADOW_NONCOPY);
-//	}
-//	for(ConstrainedEdgeIterator iter = mg.begin<ConstrainedEdge>();
-//		iter != mg.end<ConstrainedEdge>(); ++iter)
-//	{
-//		EdgeBase* elem = *iter;
-//		surface_state(elem).set(SHADOWING);
-//		mark_sides_as_surface_or_shadow<EdgeBase, VertexBase>(elem, SHADOWING);
-//		if(GeometricObject* p = m_pMG->get_parent(elem))
-//			surface_state(p).set(SHADOW_NONCOPY);
-//	}
-
 
 //	we now have to mark all shadowing elements.
 //	Only low dimensional elements can be shadows.
@@ -217,8 +158,6 @@ refresh_surface_states()
 		adjust_parallel_surface_states<Volume>();
 		mark_shadowing<typename TElem::side>(true);
 	}
-
-//	DebugSave(*m_pMG, *this, "surf_03_shadowings_marked");
 
 //	communicate states between all processes
 	adjust_parallel_surface_states<VertexBase>();

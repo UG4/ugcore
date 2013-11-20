@@ -112,99 +112,6 @@ class SurfaceView
 		end(const GridLevel& gl, SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
 	///	\}
 
-	protected:
-	///	iterators over whole surface grid w.r.t to level 'lvl'
-	///	\{
-		template <class TElem>
-		typename traits<TElem>::iterator
-		surface_begin(int lvl = TOPLEVEL, bool withGhosts = false,
-					  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
-
-		template <class TElem>
-		typename traits<TElem>::iterator
-		surface_end(int lvl = TOPLEVEL, bool withGhosts = false,
-					SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		surface_begin(int lvl = TOPLEVEL, bool withGhosts = false,
-					  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		surface_end(int lvl = TOPLEVEL, bool withGhosts = false,
-					SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
-	///	\}
-
-	///	iterators over subset of surface grid w.r.t to level 'lvl
-	///	 \{
-		template <class TElem>
-		typename traits<TElem>::iterator
-		surface_begin(int si, int lvl = TOPLEVEL, bool withGhosts = false,
-					  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
-
-		template <class TElem>
-		typename traits<TElem>::iterator
-		surface_end(int si, int lvl = TOPLEVEL, bool withGhosts = false,
-					SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		surface_begin(int si, int lvl = TOPLEVEL, bool withGhosts = false,
-					  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		surface_end(int si, int lvl = TOPLEVEL, bool withGhosts = false,
-					SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
-	///	\}
-
-	///	iterators over whole level grid w.r.t to level 'lvl'
-	///	\{
-		template <class TElem>
-		typename traits<TElem>::iterator
-		level_begin(int lvl, bool withGhosts = false,
-					SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
-
-		template <class TElem>
-		typename traits<TElem>::iterator
-		level_end(int lvl, bool withGhosts = false,
-				  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		level_begin(int lvl, bool withGhosts = false,
-					SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		level_end(int lvl, bool withGhosts = false,
-				  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
-	///	\}
-
-	///	iterators over subset of level grid w.r.t to level 'lvl
-	///	 \{
-		template <class TElem>
-		typename traits<TElem>::iterator
-		level_begin(int si, int lvl, bool withGhosts = false,
-					SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
-
-		template <class TElem>
-		typename traits<TElem>::iterator
-		level_end(int si, int lvl, bool withGhosts = false,
-				  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING);
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		level_begin(int si, int lvl, bool withGhosts = false,
-					SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		level_end(int si, int lvl, bool withGhosts = false,
-				  SurfaceConstants validSurfStates = SURFACE_AND_SHADOWING) const;
-	///	\}
-
 	public:
 	///	returns the level in grid hierarchy of an element in the surface
 		template <class TGeomObj>
@@ -289,11 +196,11 @@ class SurfaceView
 				friend class SurfaceView;
 				friend class ConstSurfaceViewElementIterator<TElem>;
 
-				SurfaceViewElementIterator(SurfaceView* surfView,
-				                           int fromSubset, int toSubset,
-				                           int startLvl, int topLvl,
-				                           bool start, bool withGhosts,
-				                           SurfaceState validStates);
+				SurfaceViewElementIterator(bool start,
+				                           SurfaceView* surfView,
+				                           const GridLevel& gl,
+				                           SurfaceState validStates,
+				                           int si = -1);
 
 			public:
 				this_type operator ++()	{increment(); return *this;}
@@ -323,16 +230,16 @@ class SurfaceView
 				inline TValue dereference() const;
 
 			private:
+				SurfaceView* m_pSurfView;
+				GridLevel m_gl;
+				SurfaceState m_validSurfStates;
 				int m_fromSI;
 				int m_toSI;
 				int m_si;
-				int m_lvl;
 				int m_topLvl;
+				int m_lvl;
 				typename geometry_traits<TElem>::iterator m_elemIter;
 				typename geometry_traits<TElem>::iterator m_iterEndSection;
-				SurfaceView* m_surfView;
-				bool m_bWithGhosts;
-				SurfaceState m_validSurfStates;
 		};
 
 	///	Const iterator to traverse the surface of a multi-grid hierarchy
@@ -352,11 +259,11 @@ class SurfaceView
 
 				friend class SurfaceView;
 
-				ConstSurfaceViewElementIterator(const SurfaceView* surfView,
-				                                int fromSubset, int toSubset,
-				                                int startLvl, int topLvl,
-				                                bool start, bool withGhosts,
-				                                SurfaceState validStates);
+				ConstSurfaceViewElementIterator(bool start,
+						                        const SurfaceView* surfView,
+						                        const GridLevel& gl,
+						                        SurfaceState validStates,
+						                        int si = -1);
 
 			public:
 				this_type operator ++()	{increment(); return *this;}
@@ -386,16 +293,16 @@ class SurfaceView
 				inline TValue dereference() const;
 
 			private:
+				const SurfaceView* m_pSurfView;
+				GridLevel m_gl;
+				SurfaceState m_validSurfStates;
 				int m_fromSI;
 				int m_toSI;
 				int m_si;
-				int m_lvl;
 				int m_topLvl;
+				int m_lvl;
 				typename geometry_traits<TElem>::const_iterator m_elemIter;
 				typename geometry_traits<TElem>::const_iterator m_iterEndSection;
-				const SurfaceView* m_surfView;
-				bool m_bWithGhosts;
-				SurfaceState m_validSurfStates;
 			};
 
 	private:
