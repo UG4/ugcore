@@ -157,7 +157,7 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 }
 
 template<int dim>
-void Partitioner_DynamicBisection<dim>::
+bool Partitioner_DynamicBisection<dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
 	GDIST_PROFILE_FUNC();
@@ -232,6 +232,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	mg.detach_from<elem_t>(aInt);
 
+	return true;
 //	debugging
 //	static int execCounter = 0;
 //	stringstream ss;

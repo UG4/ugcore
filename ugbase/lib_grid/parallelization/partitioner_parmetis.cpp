@@ -433,7 +433,7 @@ fill_multi_constraint_vertex_weights(vector<idx_t>& vwgtsOut,
 
 
 template<int dim>
-void Partitioner_Parmetis<dim>::
+bool Partitioner_Parmetis<dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
 	GDIST_PROFILE_FUNC();
@@ -661,6 +661,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 	}
 
 	UG_DLOG(LIB_GRID, 1, "Partitioner_Parmetis-stop partition\n");
+	return true;
 }
 
 

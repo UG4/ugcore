@@ -14,7 +14,8 @@ template <int dim>
 Partitioner_Bisection<dim>::
 Partitioner_Bisection() :
 	m_mg(NULL),
-	m_highestRedistLevel(-1)
+	m_highestRedistLevel(-1),
+	m_splitDim(0)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_processHierarchy->add_hierarchy_level(0, 1);
@@ -89,6 +90,7 @@ template<int dim>
 number Partitioner_Bisection<dim>::
 estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 {
+	PROFILE_BEGIN(PartitionerBisection_estimate_quality);
 //todo	Consider connection weights in the final quality!
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 	using std::min;
@@ -150,9 +152,10 @@ estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut)
 }
 
 template<int dim>
-void Partitioner_Bisection<dim>::
+bool Partitioner_Bisection<dim>::
 partition(size_t baseLvl, size_t elementThreshold)
 {
+	PROFILE_BEGIN(PartitionerBisection_partition);
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
 
 	assert(m_mg);
@@ -173,6 +176,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	iteprocHierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
 	m_procMap.clear();
+	int oldHighestRedistLevel = m_highestRedistLevel;
 	for(size_t hlevel = 0; hlevel < procH->num_hierarchy_levels(); ++ hlevel)
 	{
 		int minLvl = procH->grid_base_level(hlevel);
@@ -234,7 +238,9 @@ partition(size_t baseLvl, size_t elementThreshold)
 		}
 
 		PartitionElementsByRepeatedIntersection<elem_t, dim>(m_sh, mg, minLvl,
-															 numProcs, m_aPos);
+															 numProcs, m_aPos,
+															 m_splitDim);
+		m_splitDim = (m_splitDim + 1) % dim;
 
 	//	clustered siblings help to ensure that all vertices which are connected to
 	//	a constrained vertex through are on the same process as the constrained vertex.
@@ -292,6 +298,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 		*m_processHierarchy = *m_nextProcessHierarchy;
 		m_nextProcessHierarchy = SPProcessHierarchy(NULL);
 	}
+
+	return m_highestRedistLevel != oldHighestRedistLevel;
 }
 
 

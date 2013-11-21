@@ -101,6 +101,8 @@ end
 --! Creates a load-balancer for the given domain. The returned class is of the type
 --! DomainLoadBalancer. The current set of global parameters in the balancer namespace
 --! steers the creation.
+--! The returned balancer can then be used to perform dynamic load-balancing and
+--! rebalancing of adaptively refined grids.
 function balancer.CreateLoadBalancer(domain)
 	local loadBalancer = nil
 	local numComputeProcs = GetNumProcesses()
@@ -122,8 +124,9 @@ function balancer.CreateLoadBalancer(domain)
 				exit()
 			end
 		elseif(balancer.partitioner == "bisection") then
-			print("SORRY: partitioner 'bisection' currently isn't available due to lazyness...")
-			exit()
+			local partitioner = Partitioner_Bisection()
+			partitioner:set_verbose(false)
+			loadBalancer:set_partitioner(partitioner)
 		elseif(balancer.partitioner == "dynBisection") then
 			local partitioner = Partitioner_DynamicBisection()
 			partitioner:set_verbose(false)
@@ -137,6 +140,7 @@ function balancer.CreateLoadBalancer(domain)
 		loadBalancer:set_element_threshold(balancer.parallelElementThreshold)
 		
 	--	todo: use a more sophisticated algorithm to add distribution levels
+		local processHierarchy = ProcessHierarchy()
 		local lvl = balancer.redistSteps
 		local procsTotal = 1
 		if balancer.firstDistLvl ~= -1 then
@@ -148,8 +152,6 @@ function balancer.CreateLoadBalancer(domain)
 			lvl = balancer.firstDistLvl + balancer.redistSteps
 			procsTotal = numNew
 		end
-
-		local processHierarchy = ProcessHierarchy()
 		
 		if balancer.redistSteps > 0 then
 			local numNewProcs = balancer.redistProcs
@@ -168,7 +170,8 @@ function balancer.CreateLoadBalancer(domain)
 						procsTotal = procsTotal * numNew
 					end
 				else
-					processHierarchy:add_hierarchy_level(lvl, 1)
+					--processHierarchy:add_hierarchy_level(lvl, 1)
+					break;
 				end
 				lvl = lvl + balancer.redistSteps
 			end
@@ -182,7 +185,6 @@ function balancer.CreateLoadBalancer(domain)
 	
 	return loadBalancer
 end
-
 --[[!
 \}
 ]]--

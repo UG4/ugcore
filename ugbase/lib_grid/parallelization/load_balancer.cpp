@@ -370,28 +370,28 @@ rebalance()
 
 	if(m_balanceThreshold > distQuality)
 	{
-		UG_LOG("Redistributing...\n");
 		UG_DLOG(LIB_GRID, 1, "LoadBalancer-rebalance: partitioning...\n");
-		m_partitioner->partition(0, m_elementThreshold);
+		if(m_partitioner->partition(0, m_elementThreshold)){
+			UG_LOG("Redistributing...\n");
+			SubsetHandler& sh = m_partitioner->get_partitions();
+			if(sh.num<elem_t>() != m_mg->num<elem_t>()){
+				UG_THROW("All elements have to be assigned to subsets during partitioning! "
+						 << "Please check your partitioner!");
+			}
 
-		SubsetHandler& sh = m_partitioner->get_partitions();
-		if(sh.num<elem_t>() != m_mg->num<elem_t>()){
-			UG_THROW("All elements have to be assigned to subsets during partitioning! "
-					 << "Please check your partitioner!");
-		}
+			const std::vector<int>* procMap = m_partitioner->get_process_map();
 
-		const std::vector<int>* procMap = m_partitioner->get_process_map();
+			UG_DLOG(LIB_GRID, 1, "LoadBalancer-rebalance: distributing...\n");
+			if(!DistributeGrid(*m_mg, sh, m_serializer, m_createVerticalInterfaces, procMap))
+			{
+				UG_THROW("DistributeGrid failed!");
+			}
 
-		UG_DLOG(LIB_GRID, 1, "LoadBalancer-rebalance: distributing...\n");
-		if(!DistributeGrid(*m_mg, sh, m_serializer, m_createVerticalInterfaces, procMap))
-		{
-			UG_THROW("DistributeGrid failed!");
-		}
-
-		UG_LOG("Redistribution done\n");
-		number newDistQuality = m_partitioner->estimate_distribution_quality();
-		if(!m_partitioner->verbose()){
-			UG_LOG("Estimated distribution quality after redistribution: " << newDistQuality << "\n");
+			UG_LOG("Redistribution done\n");
+			number newDistQuality = m_partitioner->estimate_distribution_quality();
+			if(!m_partitioner->verbose()){
+				UG_LOG("Estimated distribution quality after redistribution: " << newDistQuality << "\n");
+			}
 		}
 	}
 	else{

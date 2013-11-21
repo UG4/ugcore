@@ -140,7 +140,11 @@ class IPartitioner{
 	 * to the corresponding entry in pLvlQualitiesOut.*/
 		virtual number estimate_distribution_quality(std::vector<number>* pLvlQualitiesOut = NULL) = 0;
 
-		virtual void partition(size_t baseLvl, size_t elementThreshold) = 0;
+	/**	If the partitioner returns false, no partition-map has been created and
+	 * no redistribution should be performed.
+	 * Note, that returning false is not a sign of an error - it may even be a
+	 * feature of a particular partitioner.*/
+		virtual bool partition(size_t baseLvl, size_t elementThreshold) = 0;
 
 		virtual SubsetHandler& get_partitions() = 0;
 

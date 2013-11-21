@@ -131,9 +131,8 @@ function util.CreateDomain(gridName, numRefs, neededSubsets)
 	
 	-- Create a refiner instance. This is a factory method
 	-- which automatically creates a parallel refiner if required.
-	local refiner = nil
 	if numRefs > 0 then
-		refiner = GlobalDomainRefiner(dom)
+		local refiner = GlobalDomainRefiner(dom)
 		for i=1,numRefs do
 			refiner:refine()
 		end
