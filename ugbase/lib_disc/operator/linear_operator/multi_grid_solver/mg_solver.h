@@ -317,7 +317,7 @@ class AssembledMultiGridCycle :
 	///	prototype for prolongation operator
 		SmartPtr<ITransferOperator<TAlgebra> > m_spProlongationPrototype;
 
-	///	prototype for prolongation operator
+	///	prototype for restriction operator
 		SmartPtr<ITransferOperator<TAlgebra> > m_spRestrictionPrototype;
 
 	///	prototpe for transfer post process
