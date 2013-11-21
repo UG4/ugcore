@@ -51,6 +51,9 @@ class ProcessCommunicator
 	/// return true if the communicator is PCD_WORLD
 		inline bool is_world() const	{ return !is_local() && m_comm->m_mpiComm == MPI_COMM_WORLD; }
 		
+	/// return true if the communicator is local, simulating current proc is the only proc
+		inline bool is_local() const {return m_comm.valid() == false;}
+
 	///	returns the size of the communicator
 		size_t size() const;
 		
@@ -388,10 +391,10 @@ class ProcessCommunicator
 	private:
 	///	smart-pointer to an instance of a CommWrapper.
 		SPCommWrapper	m_comm;
-
-		bool is_local() const {return m_comm.valid() == false;}
-
 };
+
+std::ostream &operator << (std::ostream &out, const ProcessCommunicator &processCommunicator);
+
 
 // end group pcl
 /// \}
@@ -402,4 +405,5 @@ class ProcessCommunicator
 //	include implementation
 #include "pcl_process_communicator_impl.hpp"
 
+std::ostream &operator << (std::ostream &out, const pcl::ProcessCommunicator &processCommunicator);
 #endif
