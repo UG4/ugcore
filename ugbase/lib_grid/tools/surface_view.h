@@ -33,16 +33,16 @@ class SurfaceView
 {
 	public:
 		enum SurfaceConstants{
-			UNASSIGNED = 1,
-			PURE_SURFACE = 1 << 1,
-			SHADOWING = 1 << 2,
-			SHADOW_COPY = 1 << 3,
-			SHADOW_NONCOPY = 1 << 4,
+			SHADOW_PURE = 1,
+			SURFACE_PURE = 1 << 1,
+			SURFACE_RIM = 1 << 2,
+			SHADOW_RIM_COPY = 1 << 3,
+			SHADOW_RIM_NONCOPY = 1 << 4,
 
-			SHADOW = SHADOW_COPY | SHADOW_NONCOPY,
-			ALL = PURE_SURFACE | SHADOWING | SHADOW,
-			SURFACE_AND_SHADOWING = PURE_SURFACE | SHADOWING,
-			SURFACE_NONCOPY = PURE_SURFACE | SHADOWING | SHADOW_NONCOPY
+			SHADOW = SHADOW_RIM_COPY | SHADOW_RIM_NONCOPY,
+			ALL = SURFACE_PURE | SURFACE_RIM | SHADOW,
+			SURFACE = SURFACE_PURE | SURFACE_RIM,
+			ALL_BUT_SHADOW_COPY = SURFACE_PURE | SURFACE_RIM | SHADOW_RIM_NONCOPY
 		};
 		typedef Flag<SurfaceConstants, byte, SS_NONE>	SurfaceState;
 		typedef Attachment<SurfaceState>				ASurfaceState;
@@ -319,7 +319,7 @@ class SurfaceView
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <class TElem, class TSide>
 		void mark_sides_as_surface_or_shadow(TElem* elem,
-											 byte surfaceState = PURE_SURFACE);
+											 byte surfaceState = SURFACE_PURE);
 
 		template <class TElem>
 		void mark_shadowing(bool markSides = false);

@@ -413,8 +413,8 @@ template <class TGeomObj>
 bool SurfaceView::is_surface_element(TGeomObj* obj) const
 {
 	SurfaceState surfState = surface_state(obj);
-	return (surfState.contains(PURE_SURFACE)
-			||	surfState.contains(SHADOWING))
+	return (surfState.contains(SURFACE_PURE)
+			||	surfState.contains(SURFACE_RIM))
 			&& (!is_shadowed(obj));
 }
 
@@ -456,7 +456,7 @@ bool SurfaceView::is_shadowed(TGeomObj* obj) const
 template <class TGeomObj>
 bool SurfaceView::is_shadowing(TGeomObj* obj) const
 {
-	return surface_state(obj).contains(SHADOWING);
+	return surface_state(obj).contains(SURFACE_RIM);
 }
 
 template <class TGeomObj>

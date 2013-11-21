@@ -203,22 +203,22 @@ class GridFunction
 	/// \{
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		begin(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+		begin(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE) const
 			{return m_spDD->template begin<TElem>(validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		end(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+		end(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE) const
 			{return m_spDD->template end<TElem>(validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		begin(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+		begin(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE) const
 			{return m_spDD->template begin<TElem>(si, validSurfStates);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		end(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_AND_SHADOWING) const
+		end(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE) const
 			{return m_spDD->template end<TElem>(si, validSurfStates);}
 	/// \}
 
