@@ -222,7 +222,7 @@ class AssembledMultiGridCycle :
 	///	initializes the smoother and base solver
 		void init_base_solver();
 
-	///	initializes the prolongation
+	///	initializes the transfers
 		void init_transfer();
 
 	///	initializes the prolongation
