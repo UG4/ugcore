@@ -12,7 +12,6 @@
 #include "pcl/pcl_base.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #endif
-#include <iostream>
 
 namespace ug{
 
@@ -108,10 +107,6 @@ class AlgebraLayouts : public HorizontalAlgebraLayouts
 		///	vertical slave index layout
 		IndexLayout verticalSlaveLayout;
 };
-
-std::ostream &operator << (std::ostream &out, const HorizontalAlgebraLayouts &layouts);
-std::ostream &operator << (std::ostream &out, const AlgebraLayouts &layouts);
-
 #endif
 
 } // end namespace ug
