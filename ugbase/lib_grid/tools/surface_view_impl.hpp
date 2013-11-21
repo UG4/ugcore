@@ -450,7 +450,7 @@ bool SurfaceView::is_ghost(TGeomObj* obj) const
 template <class TGeomObj>
 bool SurfaceView::is_shadowed(TGeomObj* obj) const
 {
-	return (surface_state(obj) & SHADOW) != 0;
+	return (surface_state(obj) & SHADOW_RIM) != 0;
 }
 
 template <class TGeomObj>
