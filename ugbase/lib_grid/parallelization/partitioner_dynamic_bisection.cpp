@@ -18,7 +18,9 @@ namespace ug{
 template <int dim>
 Partitioner_DynamicBisection<dim>::
 Partitioner_DynamicBisection() :
-	m_mg(NULL)
+	m_mg(NULL),
+	m_staticPartitioning(false),
+	m_highestRedistLevel(-1)
 {
 	m_processHierarchy = SPProcessHierarchy(new ProcessHierarchy);
 	m_processHierarchy->add_hierarchy_level(0, 1);
@@ -183,6 +185,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 //	iteprocHierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
+	int oldHighestRedistLvl = m_highestRedistLevel;	// only used if static_partitioning is enabled
 	for(size_t hlevel = 0; hlevel < procH->num_hierarchy_levels(); ++ hlevel)
 	{
 		int minLvl = procH->grid_base_level(hlevel);
@@ -206,25 +209,49 @@ partition(size_t baseLvl, size_t elementThreshold)
 			continue;
 		}
 
+
+		if(static_partitioning_enabled() && ((int)hlevel <= m_highestRedistLevel)){
+			for(int i = minLvl; i <= maxLvl; ++i)
+				m_sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
+			continue;
+		}
+
 	//	if clustered siblings are enabled, we'll perform partitioning on the level
 	//	below minLvl (if such a level exists). However, only the partition-map
 	//	of minLvl and levels above will be adjusted.
 		int partitionLvl = minLvl;
-		pcl::ProcessCommunicator com = procH->global_proc_com(hlevel);
+		pcl::ProcessCommunicator com(pcl::PCD_LOCAL);
+
 		if((minLvl > 0) && base_class::clustered_siblings_enabled()){
 			partitionLvl = minLvl - 1;
 			size_t partitionHLvl = m_processHierarchy->hierarchy_level_from_grid_level(partitionLvl);
-			com = m_processHierarchy->global_proc_com(partitionHLvl);
+			if(!static_partitioning_enabled())
+				com = m_processHierarchy->global_proc_com(partitionHLvl);
+		}
+		else if(!static_partitioning_enabled()){
+			com = procH->global_proc_com(hlevel);
 		}
 
-		perform_bisection(numProcs, minLvl, maxLvl, partitionLvl, aInt, com);
+		int numPartitions = numProcs;
+		if(static_partitioning_enabled())
+			numPartitions = (int)procH->cluster_procs(hlevel).size();
+
+		perform_bisection(numPartitions, minLvl, maxLvl, partitionLvl, aInt, com);
 
 		for(int i = minLvl; i < maxLvl; ++i){
 			copy_partitions_to_children(m_sh, i);
 		}
+
+		if(static_partitioning_enabled()){
+			m_procMap = procH->cluster_procs(hlevel);
+			m_highestRedistLevel = hlevel;
+		}
 	}
 
 //	make sure that everybody knows about the highestRedistLevel!
+	pcl::ProcessCommunicator globCom;
+	m_highestRedistLevel = globCom.allreduce(m_highestRedistLevel, PCL_RO_MAX);
+
 	if(m_nextProcessHierarchy.valid()){
 		*m_processHierarchy = *m_nextProcessHierarchy;
 		m_nextProcessHierarchy = SPProcessHierarchy(NULL);
@@ -232,7 +259,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	mg.detach_from<elem_t>(aInt);
 
-	return true;
 //	debugging
 //	static int execCounter = 0;
 //	stringstream ss;
@@ -240,6 +266,11 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	AssignSubsetColors(m_sh);
 //	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 0.1);
 //	++execCounter;
+
+	if(static_partitioning_enabled())
+		return m_highestRedistLevel != oldHighestRedistLvl;
+	else
+		return true;
 }
 
 
@@ -747,7 +778,10 @@ template<int dim>
 const std::vector<int>* Partitioner_DynamicBisection<dim>::
 get_process_map() const
 {
-	return NULL;
+	if(static_partitioning_enabled())
+		return &m_procMap;
+	else
+		return NULL;
 }
 
 
@@ -832,6 +866,20 @@ find_split_value(const ElemList& elems, int splitDim,
 
 	UG_LOG("No perfect split-value found!\n");
 	return splitValue;
+}
+
+template<int dim>
+void Partitioner_DynamicBisection<dim>::
+enable_static_partitioning(bool enable)
+{
+	m_staticPartitioning = true;
+}
+
+template<int dim>
+bool Partitioner_DynamicBisection<dim>::
+static_partitioning_enabled() const
+{
+	return m_staticPartitioning;
 }
 
 

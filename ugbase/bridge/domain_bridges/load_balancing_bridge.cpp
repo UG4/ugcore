@@ -127,6 +127,8 @@ static void Domain(Registry& reg, string grp)
 			string name = string("Partitioner_DynamicBisection").append(suffix);
 			reg.add_class_<T, TBase>(name, grp)
 				.add_constructor()
+				.add_method("enable_static_partitioning", &T::enable_static_partitioning)
+				.add_method("static_partitioning_enabled", &T::static_partitioning_enabled)
 				.set_construct_as_smart_pointer(true);
 			reg.add_class_to_group(name, "Partitioner_DynamicBisection", tag);
 		}

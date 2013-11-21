@@ -44,6 +44,13 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		virtual SubsetHandler& get_partitions();
 		virtual const std::vector<int>* get_process_map() const;
 
+	/**	static partitioning should be used if a globally refined multigrid is
+	 * is used throughout a simulation. Static partitioning drastically reduces
+	 * global communication. The drawback is, that static partitioning e.g.
+	 * can't be used to properly rebalance a distributed adaptive grid.*/
+		void enable_static_partitioning(bool enable);
+		bool static_partitioning_enabled() const;
+
 	private:
 		enum constants{
 			UNCLASSIFIED = 0,
@@ -144,6 +151,12 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;
 		std::vector<Entry>						m_entries;
 
+		bool	m_staticPartitioning;
+
+	//	the following parameters are only used if the partitioner operates in
+	//	static mode
+		std::vector<int>	m_procMap;
+		int 				m_highestRedistLevel;
 };
 }// end of namespace
 
