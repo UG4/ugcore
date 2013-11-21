@@ -24,7 +24,6 @@
 #include "lib_algebra/operator/preconditioner/jacobi.h"
 #include "lib_algebra/operator/linear_solver/lu.h"
 #include "lib_disc/dof_manager/dof_distribution.h"
-#include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/operator/linear_operator/transfer_interface.h"
 //only for debugging!!!
 #include "lib_grid/algorithms/debug_util.h"
