@@ -32,18 +32,41 @@ namespace ug{
 class SurfaceView
 {
 	public:
+		/**
+		 * Byte-Constants, that identify the SurfaceState of an grid-object.
+		 *
+		 * Every grid-object is in exactly one SurfaceState. In addition some
+		 * combinations of the states are named for an easier usage.
+		 *
+		 * IMPORTANT: The order of the byte-flags is currently crucial. Do not
+		 * 			  change them. See ComPol_GatherSurfaceStates.
+		 */
 		enum SurfaceConstants{
-			SHADOW_PURE = 1,
-			SURFACE_PURE = 1 << 1,
-			SURFACE_RIM = 1 << 2,
-			SHADOW_RIM_COPY = 1 << 3,
-			SHADOW_RIM_NONCOPY = 1 << 4,
+			// each grid-object has exactly on of these states (begin)
+			SHADOW_PURE = 1,               ///< full-covered (inner)
+			SURFACE_PURE = 1 << 1,         ///< surface, i.e., without children (inner)
+			SURFACE_RIM = 1 << 2,          ///< surface, i.e., without children (at rim)
+			SHADOW_RIM_COPY = 1 << 3,      ///< covered (at rim) with identical child
+			SHADOW_RIM_NONCOPY = 1 << 4,   ///< covered (at rim) with non-identical child(ren)
+			// each grid-object has exactly on of these states (end)
 
-			SHADOW_RIM = SHADOW_RIM_COPY | SHADOW_RIM_NONCOPY,
-			SHADOW = SHADOW_RIM | SHADOW_PURE,
-			SURFACE = SURFACE_PURE | SURFACE_RIM,
-			ALL_BUT_SHADOW_COPY = SURFACE | SHADOW_RIM_NONCOPY,
-			ALL = SURFACE | SHADOW_RIM
+			// combo-states with flags as in multi-grid (begin)
+			MG_SHADOW_RIM = SHADOW_RIM_COPY | SHADOW_RIM_NONCOPY,    //!< all rim-shadows
+			MG_SHADOW = MG_SHADOW_RIM | SHADOW_PURE,                 //!< all shadows
+			MG_SURFACE = SURFACE_PURE | SURFACE_RIM,                 //!< all surface
+			MG_ALL_BUT_SHADOW_COPY = MG_SURFACE | SHADOW_RIM_NONCOPY,//!< surface + rim-non-copy-shadows
+			MG_ALL = MG_SURFACE | MG_SHADOW_RIM,                     //!< all (except pure-shadow)
+			// combo-states with flags as in multi-grid (end)
+
+			TREAT_TOP_LVL_SHADOWS_AS_SURFACE = 1 << 5,  //! pseudo-state
+
+			// combo-states with flags as in level-view (begin)
+			SHADOW_RIM = MG_SHADOW_RIM | TREAT_TOP_LVL_SHADOWS_AS_SURFACE,
+			SHADOW = MG_SHADOW         | TREAT_TOP_LVL_SHADOWS_AS_SURFACE,
+			SURFACE = MG_SURFACE       | TREAT_TOP_LVL_SHADOWS_AS_SURFACE,
+			ALL_BUT_SHADOW_COPY = MG_ALL_BUT_SHADOW_COPY | TREAT_TOP_LVL_SHADOWS_AS_SURFACE,
+			ALL = MG_ALL               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE
+			// combo-states with flags as in level-view (end)
 		};
 		typedef Flag<SurfaceConstants, byte, SS_NONE>	SurfaceState;
 		typedef Attachment<SurfaceState>				ASurfaceState;

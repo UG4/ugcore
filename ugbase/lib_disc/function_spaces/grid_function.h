@@ -202,24 +202,40 @@ class GridFunction
 	/// iterator for elements where this grid function is defined
 	/// \{
 		template <typename TElem>
-		typename traits<TElem>::const_iterator
-		begin(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE) const
-			{return m_spDD->template begin<TElem>(validSurfStates);}
+		typename traits<TElem>::const_iterator begin() const
+			{return m_spDD->template begin<TElem>();}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		end(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE) const
-			{return m_spDD->template end<TElem>(validSurfStates);}
+		begin(SurfaceView::SurfaceConstants validStates) const
+			{return m_spDD->template begin<TElem>(validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator end() const
+			{return m_spDD->template end<TElem>();}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		begin(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE) const
-			{return m_spDD->template begin<TElem>(si, validSurfStates);}
+		end(SurfaceView::SurfaceConstants validStates) const
+			{return m_spDD->template end<TElem>(validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator begin(int si) const
+			{return m_spDD->template begin<TElem>(si);}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		end(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE) const
-			{return m_spDD->template end<TElem>(si, validSurfStates);}
+		begin(int si, SurfaceView::SurfaceConstants validStates) const
+			{return m_spDD->template begin<TElem>(si, validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator end(int si) const
+			{return m_spDD->template end<TElem>(si);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator
+		end(int si, SurfaceView::SurfaceConstants validStates) const
+			{return m_spDD->template end<TElem>(si, validStates);}
 	/// \}
 
 	///	returns the adjacend elements
