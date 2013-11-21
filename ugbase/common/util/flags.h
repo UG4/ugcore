@@ -41,6 +41,9 @@ class Flag{
 		bool contains(TStorageType flag) const	{return (m_value & flag) == flag;}
 		bool contains(const Flag& flag) const	{return (m_value & flag.m_value) == flag.m_value;}
 
+		bool partially_contains(TStorageType flag) const	{return (m_value & flag) != 0;}
+		bool partially_contains(const Flag& flag) const		{return (m_value & flag.m_value) != 0;}
+
 		Flag& set(TStorageType flag)			{m_value = flag; return *this;}
 		Flag& add(TStorageType flag)			{m_value |= flag; return *this;}
 		Flag& remove(TStorageType flag)			{m_value &= (~flag); return *this;}

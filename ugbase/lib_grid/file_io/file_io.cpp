@@ -510,36 +510,6 @@ bool SaveParallelGridLayout(MultiGrid& mg, const char* filename, number offset)
 	return writeSuccess;
 }
 
-//template <class TElem>
-//static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView& sv,
-//											MultiGrid& mg)
-//{
-//	const int siSurface = 0;
-//	const int siShadow = 1;
-//	const int siShadowing = 2;
-//	const int siHidden = 3;
-//
-//	const char* subsetNames[] = {"surface", "shadow", "shadowing", "not_in_surface"};
-//
-//	for(int i = 0; i < 4; ++i)
-//		sh.subset_info(i).name = subsetNames[i];
-//
-//	typedef typename Grid::traits<TElem>::iterator TIter;
-//	for(TIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
-//		TElem* e = *iter;
-//		int si = siHidden;
-//
-//		if(sv.is_shadowing(e))
-//			si = siShadowing;
-//		else if(sv.is_shadowed(e))
-//			si = siShadow;
-//		else if(sv.is_surface_element(e))
-//			si = siSurface;
-//
-//		sh.assign_subset(e, si);
-//	}
-//}
-
 template <class TElem>
 static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView& sv,
 											MultiGrid& mg)

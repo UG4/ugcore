@@ -58,14 +58,14 @@ class SurfaceView
 			MG_ALL = MG_SURFACE | MG_SHADOW_RIM,                     //!< all (except pure-shadow)
 			// combo-states with flags as in multi-grid (end)
 
-			TREAT_TOP_LVL_SHADOWS_AS_SURFACE = 1 << 5,  //! pseudo-state
+			TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE = 1 << 5,  //! pseudo-state
 
 			// combo-states with flags as in level-view (begin)
-			SHADOW_RIM = MG_SHADOW_RIM | TREAT_TOP_LVL_SHADOWS_AS_SURFACE,
-			SHADOW = MG_SHADOW         | TREAT_TOP_LVL_SHADOWS_AS_SURFACE,
-			SURFACE = MG_SURFACE       | TREAT_TOP_LVL_SHADOWS_AS_SURFACE,
-			ALL_BUT_SHADOW_COPY = MG_ALL_BUT_SHADOW_COPY | TREAT_TOP_LVL_SHADOWS_AS_SURFACE,
-			ALL = MG_ALL               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE
+			SHADOW_RIM = MG_SHADOW_RIM | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+			SHADOW = MG_SHADOW         | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+			SURFACE = MG_SURFACE       | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+			ALL_BUT_SHADOW_COPY = MG_ALL_BUT_SHADOW_COPY | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+			ALL = MG_ALL               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE
 			// combo-states with flags as in level-view (end)
 		};
 		typedef Flag<SurfaceConstants, byte, SS_NONE>	SurfaceState;

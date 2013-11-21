@@ -141,19 +141,20 @@ is_contained(TGeomObj* obj) const
 {
 	UG_ASSERT(m_pSurfView->get_level(obj) == m_lvl, "Wrong level");
 
-	if(m_validStates.contains(m_pSurfView->surface_state(obj)))
-		return true;
+	#ifdef UG_PARALLEL
+		if(!m_gl.ghosts() && m_pSurfView->is_ghost(obj)) return false;
+	#endif
 
-	if(m_lvl == m_topLvl){
-#ifdef UG_PARALLEL
-		if(m_gl.ghosts()) return true;
-		else return !m_pSurfView->is_ghost(obj);
-#else
-		return true;
-#endif
+	SurfaceState oss = m_pSurfView->surface_state(obj);
+
+	if( m_validStates.contains(TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
+		&& (m_lvl == m_topLvl)
+		&& oss.partially_contains(MG_SHADOW))
+	{
+		oss = SURFACE_PURE;
 	}
 
-	return false;
+	return m_validStates.contains(oss);
 }
 
 
@@ -306,19 +307,20 @@ is_contained(TGeomObj* obj) const
 {
 	UG_ASSERT(m_pSurfView->get_level(obj) == m_lvl, "Wrong level");
 
-	if(m_validStates.contains(m_pSurfView->surface_state(obj)))
-		return true;
+	#ifdef UG_PARALLEL
+		if(!m_gl.ghosts() && m_pSurfView->is_ghost(obj)) return false;
+	#endif
 
-	if(m_lvl == m_topLvl){
-#ifdef UG_PARALLEL
-		if(m_gl.ghosts()) return true;
-		else return !m_pSurfView->is_ghost(obj);
-#else
-		return true;
-#endif
+	SurfaceState oss = m_pSurfView->surface_state(obj);
+
+	if( m_validStates.contains(TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
+		&& (m_lvl == m_topLvl)
+		&& oss.partially_contains(MG_SHADOW))
+	{
+		oss = SURFACE_PURE;
 	}
 
-	return false;
+	return m_validStates.contains(oss);
 }
 
 
