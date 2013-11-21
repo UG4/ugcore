@@ -118,30 +118,11 @@ increment()
 		++m_elemIter;
 
 	//	check if end of section reached
-		while(m_elemIter == m_iterEndSection)
-		{
-		//	a) if still subsets left to loop on level
-			if(m_si < m_toSI)
-			{
-			//	increase subset, set new section iterators
-				++m_si;
-				m_elemIter = m_pSurfView->subset_handler()->begin<TElem>(m_si, m_lvl);
-				m_iterEndSection = m_pSurfView->subset_handler()->end<TElem>(m_si, m_lvl);
-			}
-		//	b) if still levels left to be looped
-			else if(m_lvl < m_topLvl)
-			{
-			//	increase level, reset subset to fromSubset, set new section iterators
-				++m_lvl;
-				m_si = m_fromSI;
-				m_elemIter = m_pSurfView->subset_handler()->begin<TElem>(m_si, m_lvl);
-				m_iterEndSection = m_pSurfView->subset_handler()->end<TElem>(m_si, m_lvl);
-			}
-		//	c) no section left, we're done (m_elemIter is end iterator now)
-			else {
+		if(m_elemIter == m_iterEndSection){
+			if(!increment_section())
 				return;
-			}
 		}
+
 	}while(!is_contained(*m_elemIter));
 }
 
@@ -303,29 +284,9 @@ increment()
 		++m_elemIter;
 
 	//	check if end of section reached
-		while(m_elemIter == m_iterEndSection)
-		{
-		//	a) if still subsets left to loop on level
-			if(m_si < m_toSI)
-			{
-			//	increase subset, set new section iterators
-				++m_si;
-				m_elemIter = m_pSurfView->subset_handler()->begin<TElem>(m_si, m_lvl);
-				m_iterEndSection = m_pSurfView->subset_handler()->end<TElem>(m_si, m_lvl);
-			}
-		//	b) if still levels left to be looped
-			else if(m_lvl < m_topLvl)
-			{
-			//	increase level, reset subset to fromSubset, set new section iterators
-				++m_lvl;
-				m_si = m_fromSI;
-				m_elemIter = m_pSurfView->subset_handler()->begin<TElem>(m_si, m_lvl);
-				m_iterEndSection = m_pSurfView->subset_handler()->end<TElem>(m_si, m_lvl);
-			}
-		//	c) no section left, we're done (m_elemIter is end iterator now)
-			else {
+		if(m_elemIter == m_iterEndSection){
+			if(!increment_section())
 				return;
-			}
 		}
 	}while(!is_contained(*m_elemIter));
 }
