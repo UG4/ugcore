@@ -94,6 +94,12 @@ void DoFDistribution::check_subsets()
 			   " is not possible, aborting.");
 }
 
+SurfaceView::SurfaceConstants DoFDistribution::defaultValidSurfState() const{
+	if(m_gridLevel.is_level()) return SurfaceView::ALL;
+	else if(m_gridLevel.is_surface()) return SurfaceView::SURFACE_NONCOPY;
+	else UG_THROW("DoFDistribution: GridLevel::type not valid.")
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // DoFDistribution: Index Access
 ////////////////////////////////////////////////////////////////////////////////

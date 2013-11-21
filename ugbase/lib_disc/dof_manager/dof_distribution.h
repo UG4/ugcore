@@ -68,48 +68,83 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		/// iterator for elements where dofs are defined
 		/// \{
 		template <typename TElem>
-		typename traits<TElem>::iterator
-		begin(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_NONCOPY)
-		{return m_spSurfView->begin<TElem>(m_gridLevel, validSurfStates);}
+		typename traits<TElem>::iterator begin()
+		{return m_spSurfView->begin<TElem>(m_gridLevel, defaultValidSurfState());}
 
 		template <typename TElem>
 		typename traits<TElem>::iterator
-		end(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_NONCOPY)
-		{return m_spSurfView->end<TElem>(m_gridLevel, validSurfStates);}
+		begin(SurfaceView::SurfaceConstants validStates)
+		{return m_spSurfView->begin<TElem>(m_gridLevel, validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::iterator end()
+		{return m_spSurfView->end<TElem>(m_gridLevel, defaultValidSurfState());}
+
+		template <typename TElem>
+		typename traits<TElem>::iterator
+		end(SurfaceView::SurfaceConstants validStates)
+		{return m_spSurfView->end<TElem>(m_gridLevel, validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator begin() const
+		{return m_spSurfView->begin<TElem>(m_gridLevel, defaultValidSurfState());}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		begin(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_NONCOPY) const
-		{return m_spSurfView->begin<TElem>(m_gridLevel, validSurfStates);}
+		begin(SurfaceView::SurfaceConstants validStates) const
+		{return m_spSurfView->begin<TElem>(m_gridLevel, validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator end() const
+		{return m_spSurfView->end<TElem>(m_gridLevel, defaultValidSurfState());}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		end(SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_NONCOPY) const
-		{return m_spSurfView->end<TElem>(m_gridLevel, validSurfStates);}
+		end(SurfaceView::SurfaceConstants validStates) const
+		{return m_spSurfView->end<TElem>(m_gridLevel, validStates);}
 		///	\}
 
 		/// iterator for elements where dofs are defined
 		/// \{
 		template <typename TElem>
-		typename traits<TElem>::iterator
-		begin(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_NONCOPY)
-		{return m_spSurfView->begin<TElem>(si, m_gridLevel, validSurfStates);}
+		typename traits<TElem>::iterator begin(int si)
+		{return m_spSurfView->begin<TElem>(si, m_gridLevel, defaultValidSurfState());}
 
 		template <typename TElem>
 		typename traits<TElem>::iterator
-		end(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_NONCOPY)
-		{return m_spSurfView->end<TElem>(si, m_gridLevel, validSurfStates);}
+		begin(int si, SurfaceView::SurfaceConstants validStates)
+		{return m_spSurfView->begin<TElem>(si, m_gridLevel, validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::iterator end(int si)
+		{return m_spSurfView->end<TElem>(si, m_gridLevel, defaultValidSurfState());}
+
+		template <typename TElem>
+		typename traits<TElem>::iterator
+		end(int si, SurfaceView::SurfaceConstants validStates)
+		{return m_spSurfView->end<TElem>(si, m_gridLevel, validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator begin(int si) const
+		{return m_spSurfView->begin<TElem>(si, m_gridLevel, defaultValidSurfState());}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		begin(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_NONCOPY) const
-		{return m_spSurfView->begin<TElem>(si, m_gridLevel, validSurfStates);}
+		begin(int si, SurfaceView::SurfaceConstants validStates) const
+		{return m_spSurfView->begin<TElem>(si, m_gridLevel, validStates);}
+
+		template <typename TElem>
+		typename traits<TElem>::const_iterator end(int si) const
+		{return m_spSurfView->end<TElem>(si, m_gridLevel, defaultValidSurfState());}
 
 		template <typename TElem>
 		typename traits<TElem>::const_iterator
-		end(int si, SurfaceView::SurfaceConstants validSurfStates = SurfaceView::SURFACE_NONCOPY) const
-		{return m_spSurfView->end<TElem>(si, m_gridLevel, validSurfStates);}
+		end(int si, SurfaceView::SurfaceConstants validStates) const
+		{return m_spSurfView->end<TElem>(si, m_gridLevel, validStates);}
 		///	\}
+
+		/// returns the default valid surface state
+		SurfaceView::SurfaceConstants defaultValidSurfState() const;
 
 		///	returns the adjacent elements
 		template <typename TElem, typename TBaseElem>

@@ -20,7 +20,7 @@ SurfaceViewElementIterator(bool start,
                            int si) :
 	m_pSurfView(sv),
 	m_gl(gl),
-	m_validSurfStates(validStates),
+	m_validStates(validStates),
 
 	m_fromSI( (si >= 0) ? si : 0 ),
 	m_toSI( (si >= 0) ? si : (sv->subset_handler()->num_subsets() - 1) ),
@@ -57,7 +57,7 @@ SurfaceView::SurfaceViewElementIterator<TElem>::
 SurfaceViewElementIterator() :
 	m_pSurfView(NULL),
 	m_gl(),
-	m_validSurfStates(0),
+	m_validStates(0),
 	m_fromSI(0),
 	m_toSI(0),
 	m_si(0),
@@ -141,7 +141,7 @@ is_contained(TGeomObj* obj) const
 {
 	UG_ASSERT(m_pSurfView->get_level(obj) == m_lvl, "Wrong level");
 
-	if(m_validSurfStates.contains(m_pSurfView->surface_state(obj)))
+	if(m_validStates.contains(m_pSurfView->surface_state(obj)))
 		return true;
 
 	if(m_lvl == m_topLvl){
@@ -167,7 +167,7 @@ ConstSurfaceViewElementIterator(const SurfaceView::SurfaceViewElementIterator<TE
 {
 	m_pSurfView = iter.m_pSurfView;
 	m_gl = iter.m_gl;
-	m_validSurfStates = iter.m_validSurfStates;
+	m_validStates = iter.m_validStates;
 	m_fromSI = iter.m_fromSI;
 	m_toSI = iter.m_toSI;
 	m_si = iter.m_si;
@@ -182,7 +182,7 @@ SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 ConstSurfaceViewElementIterator() :
 	m_pSurfView(0),
 	m_gl(),
-	m_validSurfStates(0),
+	m_validStates(0),
 	m_fromSI(0),
 	m_toSI(0),
 	m_si(0),
@@ -201,7 +201,7 @@ ConstSurfaceViewElementIterator(bool start,
                                 int si) :
 	m_pSurfView(sv),
 	m_gl(gl),
-	m_validSurfStates(validStates),
+	m_validStates(validStates),
 
 	m_fromSI( (si >= 0) ? si : 0 ),
 	m_toSI( (si >= 0) ? si : (sv->subset_handler()->num_subsets() - 1) ),
@@ -306,7 +306,7 @@ is_contained(TGeomObj* obj) const
 {
 	UG_ASSERT(m_pSurfView->get_level(obj) == m_lvl, "Wrong level");
 
-	if(m_validSurfStates.contains(m_pSurfView->surface_state(obj)))
+	if(m_validStates.contains(m_pSurfView->surface_state(obj)))
 		return true;
 
 	if(m_lvl == m_topLvl){
@@ -347,62 +347,62 @@ bool SurfaceView::is_adaptive() const
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
-begin(int si, const GridLevel& gl, SurfaceConstants validSurfStates)
+begin(int si, const GridLevel& gl, SurfaceState validStates)
 {
 	UG_ASSERT(si >= 0 && si < m_spMGSH->num_subsets(), "Invalid subset: "<<si);
-	return typename traits<TElem>::iterator(true, this, gl, validSurfStates, si);
+	return typename traits<TElem>::iterator(true, this, gl, validStates, si);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
-end(int si, const GridLevel& gl, SurfaceConstants validSurfStates)
+end(int si, const GridLevel& gl, SurfaceState validStates)
 {
 	UG_ASSERT(si >= 0 && si < m_spMGSH->num_subsets(), "Invalid subset: "<<si);
-	return typename traits<TElem>::iterator(false, this, gl, validSurfStates, si);
+	return typename traits<TElem>::iterator(false, this, gl, validStates, si);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-begin(int si, const GridLevel& gl, SurfaceConstants validSurfStates) const
+begin(int si, const GridLevel& gl, SurfaceState validStates) const
 {
 	UG_ASSERT(si >= 0 && si < m_spMGSH->num_subsets(), "Invalid subset: "<<si);
-	return typename traits<TElem>::const_iterator(true, this, gl, validSurfStates, si);
+	return typename traits<TElem>::const_iterator(true, this, gl, validStates, si);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-end(int si, const GridLevel& gl, SurfaceConstants validSurfStates) const
+end(int si, const GridLevel& gl, SurfaceState validStates) const
 {
 	UG_ASSERT(si >= 0 && si < m_spMGSH->num_subsets(), "Invalid subset: "<<si);
-	return typename traits<TElem>::const_iterator(false, this, gl, validSurfStates, si);
+	return typename traits<TElem>::const_iterator(false, this, gl, validStates, si);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
-begin(const GridLevel& gl, SurfaceConstants validSurfStates)
+begin(const GridLevel& gl, SurfaceState validStates)
 {
-	return typename traits<TElem>::iterator(true, this, gl, validSurfStates);
+	return typename traits<TElem>::iterator(true, this, gl, validStates);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::iterator SurfaceView::
-end(const GridLevel& gl, SurfaceConstants validSurfStates)
+end(const GridLevel& gl, SurfaceState validStates)
 {
-	return typename traits<TElem>::iterator(false, this, gl, validSurfStates);
+	return typename traits<TElem>::iterator(false, this, gl, validStates);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-begin(const GridLevel& gl, SurfaceConstants validSurfStates) const
+begin(const GridLevel& gl, SurfaceState validStates) const
 {
-	return typename traits<TElem>::const_iterator(true, this, gl, validSurfStates);
+	return typename traits<TElem>::const_iterator(true, this, gl, validStates);
 }
 
 template <class TElem>
 typename SurfaceView::traits<TElem>::const_iterator SurfaceView::
-end(const GridLevel& gl, SurfaceConstants validSurfStates) const
+end(const GridLevel& gl, SurfaceState validStates) const
 {
-	return typename traits<TElem>::const_iterator(false, this, gl, validSurfStates);
+	return typename traits<TElem>::const_iterator(false, this, gl, validStates);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

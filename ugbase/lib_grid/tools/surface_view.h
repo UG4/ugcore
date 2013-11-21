@@ -81,35 +81,35 @@ class SurfaceView
 	///	\{
 		template <class TElem>
 		typename traits<TElem>::iterator
-		begin(int si, const GridLevel& gl, SurfaceConstants validSurfStates);
+		begin(int si, const GridLevel& gl, SurfaceState validStates);
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		end(int si, const GridLevel& gl, SurfaceConstants validSurfStates);
+		end(int si, const GridLevel& gl, SurfaceState validStates);
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		begin(int si, const GridLevel& gl, SurfaceConstants validSurfStates) const;
+		begin(int si, const GridLevel& gl, SurfaceState validStates) const;
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		end(int si, const GridLevel& gl, SurfaceConstants validSurfStates) const;
+		end(int si, const GridLevel& gl, SurfaceState validStates) const;
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		begin(const GridLevel& gl, SurfaceConstants validSurfStates);
+		begin(const GridLevel& gl, SurfaceState validStates);
 
 		template <class TElem>
 		typename traits<TElem>::iterator
-		end(const GridLevel& gl, SurfaceConstants validSurfStates);
+		end(const GridLevel& gl, SurfaceState validStates);
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		begin(const GridLevel& gl, SurfaceConstants validSurfStates) const;
+		begin(const GridLevel& gl, SurfaceState validStates) const;
 
 		template <class TElem>
 		typename traits<TElem>::const_iterator
-		end(const GridLevel& gl, SurfaceConstants validSurfStates) const;
+		end(const GridLevel& gl, SurfaceState validStates) const;
 	///	\}
 
 	public:
@@ -232,7 +232,7 @@ class SurfaceView
 			private:
 				SurfaceView* m_pSurfView;
 				GridLevel m_gl;
-				SurfaceState m_validSurfStates;
+				SurfaceState m_validStates;
 				int m_fromSI;
 				int m_toSI;
 				int m_si;
@@ -295,7 +295,7 @@ class SurfaceView
 			private:
 				const SurfaceView* m_pSurfView;
 				GridLevel m_gl;
-				SurfaceState m_validSurfStates;
+				SurfaceState m_validStates;
 				int m_fromSI;
 				int m_toSI;
 				int m_si;
