@@ -139,8 +139,6 @@ template <class TGeomObj>
 bool SurfaceView::SurfaceViewElementIterator<TElem>::
 is_contained(TGeomObj* obj) const
 {
-	UG_ASSERT(m_pSurfView->get_level(obj) == m_lvl, "Wrong level");
-
 	#ifdef UG_PARALLEL
 		if(!m_gl.ghosts() && m_pSurfView->is_ghost(obj)) return false;
 	#endif
@@ -305,8 +303,6 @@ template <class TGeomObj>
 bool SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 is_contained(TGeomObj* obj) const
 {
-	UG_ASSERT(m_pSurfView->get_level(obj) == m_lvl, "Wrong level");
-
 	#ifdef UG_PARALLEL
 		if(!m_gl.ghosts() && m_pSurfView->is_ghost(obj)) return false;
 	#endif
@@ -321,26 +317,6 @@ is_contained(TGeomObj* obj) const
 	}
 
 	return m_validStates.contains(oss);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-//	implementation of SurfaceView
-////////////////////////////////////////////////////////////////////////////////
-
-SmartPtr<MGSubsetHandler> SurfaceView::subset_handler()
-{
-	return m_spMGSH;
-}
-
-ConstSmartPtr<MGSubsetHandler> SurfaceView::subset_handler() const
-{
-	return m_spMGSH;
-}
-
-bool SurfaceView::is_adaptive() const
-{
-	return m_adaptiveMG;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -408,8 +384,23 @@ end(const GridLevel& gl, SurfaceState validStates) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//	util fct
+//	implementation of SurfaceView
 ////////////////////////////////////////////////////////////////////////////////
+
+SmartPtr<MGSubsetHandler> SurfaceView::subset_handler()
+{
+	return m_spMGSH;
+}
+
+ConstSmartPtr<MGSubsetHandler> SurfaceView::subset_handler() const
+{
+	return m_spMGSH;
+}
+
+bool SurfaceView::is_adaptive() const
+{
+	return m_adaptiveMG;
+}
 
 template <class TGeomObj>
 bool SurfaceView::is_surface_element(TGeomObj* obj) const
@@ -461,12 +452,6 @@ bool SurfaceView::is_shadowing(TGeomObj* obj) const
 	return surface_state(obj).contains(SURFACE_RIM);
 }
 
-template <class TGeomObj>
-int SurfaceView::get_level(TGeomObj* obj) const
-{
-	return m_pMG->get_level(obj);
-}
-
 template <class TElem>
 bool SurfaceView::is_vmaster(TElem* elem) const
 {
@@ -485,21 +470,6 @@ TBaseElem* SurfaceView::parent_if_copy(TBaseElem* elem) const
 	if(parent != NULL &&
 		m_pMG->num_children<TBaseElem>(parent) == 1) return parent;
 	else return NULL;
-}
-
-template <typename TBaseElem>
-TBaseElem* SurfaceView::parent_if_same_type(TBaseElem* elem) const
-{
-	GeometricObject* pParent = m_pMG->get_parent(elem);
-	return dynamic_cast<TBaseElem*>(pParent);
-}
-
-///	returns child != NULL if copy
-template <typename TBaseElem>
-TBaseElem* SurfaceView::child_if_copy(TBaseElem* elem) const
-{
-	if(m_pMG->num_children<TBaseElem>(elem) != 1) return NULL;
-	return m_pMG->get_child<TBaseElem>(elem, 0);
 }
 
 template <typename TElem, typename TBaseElem>

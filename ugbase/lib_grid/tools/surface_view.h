@@ -86,13 +86,6 @@ class SurfaceView
 	///	returns if multigrid is adaptive
 		inline bool is_adaptive() const;
 
-	///	number of subsets
-		int num_subsets() const {return m_spMGSH->num_subsets();}
-
-	///	returns the level in grid hierarchy of an element in the surface
-		template <class TGeomObj>
-		inline int get_level(TGeomObj* obj) const;
-
 	///	returns if the element is contained in the surface view
 	/**	Retruns true e.g. for unshadowed constrained (hanging) vertices.
 	 * A top-level may optionally be specified. True is returned for all elements
@@ -131,14 +124,6 @@ class SurfaceView
 	///	returns parent != NULL if copy
 		template <typename TBaseElem>
 		inline TBaseElem* parent_if_copy(TBaseElem* elem) const;
-
-	///	returns parent != NULL if of same base object type
-		template <typename TBaseElem>
-		inline TBaseElem* parent_if_same_type(TBaseElem* elem) const;
-
-	///	returns child != NULL if copy
-		template <typename TBaseElem>
-		inline TBaseElem* child_if_copy(TBaseElem* elem) const;
 
 	///	refresh_surface_states must be called after a grid change
 		void refresh_surface_states();

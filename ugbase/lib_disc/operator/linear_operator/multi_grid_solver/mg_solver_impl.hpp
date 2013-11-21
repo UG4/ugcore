@@ -839,7 +839,7 @@ init_surface_to_level_mapping()
 	{
 	//	get elem and its level
 		TElem* elem = *iter;
-		int level = spSurfView->get_level(elem);
+		int level = m_spApproxSpace->domain()->grid()->get_level(elem);
 
 		if (m_GridLevelType == GridLevel::SURFACE)
 			level = m_topLev;
