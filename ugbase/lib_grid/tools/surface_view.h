@@ -9,7 +9,6 @@
 	#include "lib_grid/parallelization/distributed_grid.h"
 #endif
 
-#include <boost/iterator/iterator_facade.hpp>
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/tools/grid_level.h"
 #include "subset_handler_multi_grid.h"
@@ -33,17 +32,6 @@ namespace ug{
 class SurfaceView
 {
 	public:
-		enum{TOPLEVEL = -1};
-
-		template <class TElem> class SurfaceViewElementIterator;
-		template <class TElem> class ConstSurfaceViewElementIterator;
-
-		template <class TElem>
-		struct traits{
-			typedef SurfaceViewElementIterator<TElem>		iterator;
-			typedef ConstSurfaceViewElementIterator<TElem>	const_iterator;
-		};
-
 		enum SurfaceConstants{
 			UNASSIGNED = 1,
 			PURE_SURFACE = 1 << 1,
@@ -77,42 +65,6 @@ class SurfaceView
 	///	number of subsets
 		int num_subsets() const {return m_spMGSH->num_subsets();}
 
-	///	iterators of grid level
-	///	\{
-		template <class TElem>
-		typename traits<TElem>::iterator
-		begin(int si, const GridLevel& gl, SurfaceState validStates);
-
-		template <class TElem>
-		typename traits<TElem>::iterator
-		end(int si, const GridLevel& gl, SurfaceState validStates);
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		begin(int si, const GridLevel& gl, SurfaceState validStates) const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		end(int si, const GridLevel& gl, SurfaceState validStates) const;
-
-		template <class TElem>
-		typename traits<TElem>::iterator
-		begin(const GridLevel& gl, SurfaceState validStates);
-
-		template <class TElem>
-		typename traits<TElem>::iterator
-		end(const GridLevel& gl, SurfaceState validStates);
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		begin(const GridLevel& gl, SurfaceState validStates) const;
-
-		template <class TElem>
-		typename traits<TElem>::const_iterator
-		end(const GridLevel& gl, SurfaceState validStates) const;
-	///	\}
-
-	public:
 	///	returns the level in grid hierarchy of an element in the surface
 		template <class TGeomObj>
 		inline int get_level(TGeomObj* obj) const;
@@ -182,6 +134,9 @@ class SurfaceView
 								TElem* elem, bool clearContainer = true) const;
 
 	public:
+		template <class TElem> class SurfaceViewElementIterator;
+		template <class TElem> class ConstSurfaceViewElementIterator;
+
 	///	Iterator to traverse the surface of a multi-grid hierarchy
 		template <class TElem>
 		class SurfaceViewElementIterator
@@ -212,8 +167,7 @@ class SurfaceView
 				TValue operator *()	{return dereference();}
 
 			private:
-				friend class boost::iterator_core_access;
-
+			///	returns if this iterator equals another
 				inline bool equal(SurfaceViewElementIterator<TElem> const& other) const;
 
 			///	returns if valid element, i.e. contained in iterator loop
@@ -275,8 +229,7 @@ class SurfaceView
 				TValue operator *()	{return dereference();}
 
 			private:
-				friend class boost::iterator_core_access;
-
+			///	returns if this iterator equals another
 				inline bool equal(ConstSurfaceViewElementIterator<TElem> const& other) const;
 
 			///	returns if valid element, i.e. contained in iterator loop
@@ -304,6 +257,48 @@ class SurfaceView
 				typename geometry_traits<TElem>::const_iterator m_elemIter;
 				typename geometry_traits<TElem>::const_iterator m_iterEndSection;
 			};
+
+	public:
+		template <class TElem>
+		struct traits{
+			typedef SurfaceViewElementIterator<TElem>		iterator;
+			typedef ConstSurfaceViewElementIterator<TElem>	const_iterator;
+		};
+
+	///	iterators of grid level
+	///	\{
+		template <class TElem>
+		typename traits<TElem>::iterator
+		begin(int si, const GridLevel& gl, SurfaceState validStates);
+
+		template <class TElem>
+		typename traits<TElem>::iterator
+		end(int si, const GridLevel& gl, SurfaceState validStates);
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator
+		begin(int si, const GridLevel& gl, SurfaceState validStates) const;
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator
+		end(int si, const GridLevel& gl, SurfaceState validStates) const;
+
+		template <class TElem>
+		typename traits<TElem>::iterator
+		begin(const GridLevel& gl, SurfaceState validStates);
+
+		template <class TElem>
+		typename traits<TElem>::iterator
+		end(const GridLevel& gl, SurfaceState validStates);
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator
+		begin(const GridLevel& gl, SurfaceState validStates) const;
+
+		template <class TElem>
+		typename traits<TElem>::const_iterator
+		end(const GridLevel& gl, SurfaceState validStates) const;
+	///	\}
 
 	private:
 	///	returns true if the element is a surface element locally
@@ -338,12 +333,6 @@ class SurfaceView
 
 		template <class TElem>
 		SurfaceState& surface_state(TElem* elem)		{return m_aaSurfState[elem];}
-
-//		template <class TElem>
-//		void set_surface_state(TElem* elem, byte ss)	{m_aaElemSurfState[elem] = ss;}
-//
-//		template <class TElem>
-//		bool has_surface_state(TElem* elem, byte s) const	{return (surface_state(elem) & s) == s;}
 
 		template <class TElem>
 		bool is_vmaster(TElem* elem) const;
