@@ -140,7 +140,10 @@ bool SurfaceView::SurfaceViewElementIterator<TElem>::
 is_contained(TGeomObj* obj) const
 {
 	#ifdef UG_PARALLEL
-		if(!m_gl.ghosts() && m_pSurfView->is_ghost(obj)) return false;
+	if(m_pSurfView->is_ghost(obj)){
+		if(m_gl.ghosts() && (m_lvl == m_topLvl)) return true;
+		else return false;
+	}
 	#endif
 
 	SurfaceState oss = m_pSurfView->surface_state(obj);
@@ -304,7 +307,10 @@ bool SurfaceView::ConstSurfaceViewElementIterator<TElem>::
 is_contained(TGeomObj* obj) const
 {
 	#ifdef UG_PARALLEL
-		if(!m_gl.ghosts() && m_pSurfView->is_ghost(obj)) return false;
+	if(m_pSurfView->is_ghost(obj)){
+		if(m_gl.ghosts() && (m_lvl == m_topLvl)) return true;
+		else return false;
+	}
 	#endif
 
 	SurfaceState oss = m_pSurfView->surface_state(obj);
@@ -410,7 +416,10 @@ bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
 	const int topLvl = (gl.top() ? (subset_handler()->num_levels()-1) : gl.level());
 
 	#ifdef UG_PARALLEL
-		if(!gl.ghosts() && is_ghost(obj)) return false;
+	if(is_ghost(obj)){
+		if(gl.ghosts() && (lvl == topLvl)) return true;
+		else return false;
+	}
 	#endif
 
 	SurfaceState oss = surface_state(obj);
