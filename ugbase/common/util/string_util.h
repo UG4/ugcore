@@ -353,6 +353,13 @@ UG_API std::string XMLStringEscape(std::string s);
  */
 UG_API std::string ConfigShift(std::string s);
 
+template<typename T>
+inline std::string OstreamShift(const T &t)
+{
+	std::stringstream ss; ss << t;
+	return ConfigShift(ss.str());
+}
+
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/
