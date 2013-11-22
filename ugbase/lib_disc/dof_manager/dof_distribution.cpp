@@ -1482,53 +1482,15 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 //	vector for algebra indices
 	std::vector<size_t> vIndex;
 
-//	SURFACE
+//	find levels to loop
+	int lvlTo = (grid_level().top() ? (multi_grid()->num_levels()-1) : grid_level().level());
+	int lvlFrom = (grid_level().is_surface() ? 0 : lvlTo);
 
-	if(grid_level().type() == GridLevel::SURFACE){
-	//	choose level, that must be looped
-		int toLev = layoutMap.get_layout<TBaseElem>(keyType).num_levels() - 1;
-		if(m_gridLevel == GridLevel::TOP) {if(toLev < 0) toLev = 0;}
-		else toLev = grid_level().level();
-
-	//	loop all level
-		for(int lvl = 0; lvl <= toLev; ++lvl)
-		{
-		//	get element layout
-			TLayout& elemLayout = layoutMap.get_layout<TBaseElem>(keyType).layout_on_level(lvl);
-
-		//	iterate over all grid element interfaces
-			for(InterfaceIterator iIter = elemLayout.begin();
-				iIter != elemLayout.end(); ++iIter)
-			{
-			//	get a grid element interface
-				ElemInterface& elemInterface = elemLayout.interface(iIter);
-
-			//	get a corresponding index interface
-				IndexInterface& indexInterface = indexLayout.interface(elemLayout.proc_id(iIter));
-
-			//	iterate over entries in the grid element interface
-				for(ElemIterator eIter = elemInterface.begin();
-					eIter != elemInterface.end(); ++eIter)
-				{
-				//	get the grid element
-					typename ElemInterface::Element elem = elemInterface.get_element(eIter);
-
-				//	check if element is a surface element
-					if(!m_spSurfView->is_surface_element(elem)) continue;
-
-				//	add the indices to the interface
-					inner_algebra_indices(elem, vIndex);
-					for(size_t i = 0; i < vIndex.size(); ++i)
-						indexInterface.push_back(vIndex[i]);
-				}
-			}
-		}
-	}
-
-	// LEVEL
-	else if(grid_level().type() == GridLevel::LEVEL){
+//	loop all level
+	for(int lvl = lvlFrom; lvl <= lvlTo; ++lvl)
+	{
 	//	get element layout
-		TLayout& elemLayout = layoutMap.get_layout<TBaseElem>(keyType).layout_on_level(grid_level().level());
+		TLayout& elemLayout = layoutMap.get_layout<TBaseElem>(keyType).layout_on_level(lvl);
 
 	//	iterate over all grid element interfaces
 		for(InterfaceIterator iIter = elemLayout.begin();
@@ -1538,8 +1500,7 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 			ElemInterface& elemInterface = elemLayout.interface(iIter);
 
 		//	get a corresponding index interface
-			IndexInterface& indexInterface = indexLayout.interface(
-												elemLayout.proc_id(iIter));
+			IndexInterface& indexInterface = indexLayout.interface(elemLayout.proc_id(iIter));
 
 		//	iterate over entries in the grid element interface
 			for(ElemIterator eIter = elemInterface.begin();
@@ -1548,18 +1509,17 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 			//	get the grid element
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 
-			//	get the algebraic indices on the grid element
-				inner_algebra_indices(elem, vIndex);
+			//	check if element is a surface element
+				if(grid_level().is_surface())
+					if(!m_spSurfView->is_surface_element(elem))
+						continue;
 
 			//	add the indices to the interface
+				inner_algebra_indices(elem, vIndex);
 				for(size_t i = 0; i < vIndex.size(); ++i)
 					indexInterface.push_back(vIndex[i]);
 			}
 		}
-	}
-
-	else{
-		UG_THROW("DoFDistribion: GridLevel not supported.");
 	}
 }
 #endif
