@@ -92,14 +92,9 @@ class SurfaceView
 	 * in the top level, as long as they aren't ghosts. If you specify a topLevel < 0,
 	 * the topLevel parameter will be ignored and the method behaves as if no topLevel
 	 * was specified.
-	 * \sa SurfaceView::is_shadowed, SurfaceView::is_shadowing
-	 * \{ */
+	 * \sa SurfaceView::is_shadowed, SurfaceView::is_shadowing */
 		template <class TGeomObj>
 		inline bool is_surface_element(TGeomObj* obj) const;
-
-		template <class TGeomObj>
-		inline bool is_surface_element(TGeomObj* obj, int topLevel) const;
-	/** \} */
 
 	///	returns if the element is ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.*/
@@ -131,7 +126,7 @@ class SurfaceView
 	 *
 	 * \note a protected non-const version exists, which returns a reference to the state.*/
 		template <class TElem>
-		SurfaceState get_surface_state(TElem* elem) const		{return m_aaSurfState[elem];}
+		SurfaceState surface_state(TElem* elem) const {return m_aaSurfState[elem];}
 
 	///	returns the adjacend elements w.r.t. the surface view
 		template <typename TElem, typename TBaseElem>
@@ -332,9 +327,6 @@ class SurfaceView
 	///	adjusts surface states in a parallel environment
 		template <class TElem>
 		void adjust_parallel_surface_states();
-
-		template <class TElem>
-		SurfaceState surface_state(TElem* elem) const	{return m_aaSurfState[elem];}
 
 		template <class TElem>
 		SurfaceState& surface_state(TElem* elem)		{return m_aaSurfState[elem];}

@@ -405,29 +405,7 @@ bool SurfaceView::is_adaptive() const
 template <class TGeomObj>
 bool SurfaceView::is_surface_element(TGeomObj* obj) const
 {
-	SurfaceState surfState = surface_state(obj);
-	return (surfState.contains(SURFACE_PURE)
-			||	surfState.contains(SURFACE_RIM))
-			&& (!is_shadowed(obj));
-}
-
-template <class TGeomObj>
-bool SurfaceView::is_surface_element(TGeomObj* obj, int topLevel) const
-{
-	int lvl = get_level(obj);
-	if((topLevel > -1) && (lvl > topLevel))
-		return false;
-
-	if(is_surface_element(obj))
-		return true;
-
-	if(lvl == topLevel){
-		#ifdef UG_PARALLEL
-			return !m_distGridMgr->is_ghost(obj);
-		#else
-			return true;
-		#endif
-	}
+	return surface_state(obj).partially_contains(MG_SURFACE);
 }
 
 template <class TGeomObj>
@@ -443,7 +421,7 @@ bool SurfaceView::is_ghost(TGeomObj* obj) const
 template <class TGeomObj>
 bool SurfaceView::is_shadowed(TGeomObj* obj) const
 {
-	return (surface_state(obj) & SHADOW_RIM) != 0;
+	return surface_state(obj).partially_contains(MG_SHADOW_RIM);
 }
 
 template <class TGeomObj>

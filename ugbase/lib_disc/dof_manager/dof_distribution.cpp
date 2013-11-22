@@ -1323,7 +1323,7 @@ void DoFDistribution::reinit()
 	//	to parents. Instead we have to iterate over all candidates and also give a
 	//	dof to SHADOW_COPY elements which don't have children.
 
-		SurfaceView& sv = *m_spSurfView;
+		const SurfaceView& sv = *m_spSurfView;
 		MultiGrid& mg = *m_spMG;
 
 		for(int si = 0; si < num_subsets(); ++si)
@@ -1337,11 +1337,11 @@ void DoFDistribution::reinit()
 
 			for(; iter != iterEnd; ++iter){
 				TBaseElem* elem = *iter;
-				SurfaceView::SurfaceState state = sv.get_surface_state(elem);
+				SurfaceView::SurfaceState state = sv.surface_state(elem);
 				if(state.contains(SurfaceView::SHADOW_RIM_COPY)){
 					if(mg.num_children<TBaseElem>(elem) > 0){
 						TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
-						if(sv.get_surface_state(child).contains(SurfaceView::SURFACE_RIM))
+						if(sv.surface_state(child).contains(SurfaceView::SURFACE_RIM))
 							continue;
 					}
 				}
@@ -1351,7 +1351,7 @@ void DoFDistribution::reinit()
 				add(elem, roid, si);
 
 				TBaseElem* p = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
-				while(p && sv.get_surface_state(p).contains(SurfaceView::SHADOW_RIM_COPY)){
+				while(p && sv.surface_state(p).contains(SurfaceView::SHADOW_RIM_COPY)){
 					obj_index(p) = obj_index(elem);
 					p = dynamic_cast<TBaseElem*>(mg.get_parent(p));
 				}
@@ -1591,7 +1591,7 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 		// Surface State
 		SurfaceView::SurfaceState SurfaceState = SurfaceView::SURFACE_PURE;
 		if(grid_level().is_surface()) {
-			SurfaceState = sv.get_surface_state(elem);
+			SurfaceState = sv.surface_state(elem);
 			if(SurfaceState == SurfaceView::SHADOW_PURE)
 				SurfaceState = SurfaceView::SURFACE_PURE;
 		}
@@ -1599,7 +1599,7 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 		if(SurfaceState.contains(SurfaceView::SHADOW_RIM_COPY)){
 			if(mg.num_children<TBaseElem>(elem) > 0){
 				TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
-				if(sv.get_surface_state(child).contains(SurfaceView::SURFACE_RIM))
+				if(sv.surface_state(child).contains(SurfaceView::SURFACE_RIM))
 					continue;
 			}
 		}

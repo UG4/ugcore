@@ -518,7 +518,7 @@ static void AssignSubsetsBySurfaceViewState(SubsetHandler& sh, const SurfaceView
 	for(TIter iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
 		TElem* e = *iter;
 
-		sh.assign_subset(e, sv.get_surface_state(e).get());
+		sh.assign_subset(e, sv.surface_state(e).get());
 	}
 	for(int i = 0; i < sh.num_subsets(); ++i)
 		sh.subset_info(i).name = "unknown";
