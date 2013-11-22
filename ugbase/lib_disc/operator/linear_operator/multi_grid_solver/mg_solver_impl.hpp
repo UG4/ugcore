@@ -460,7 +460,6 @@ init_level_operator()
 			try{
 			if(m_GridLevelType == GridLevel::LEVEL)
 				m_spAss->ass_tuner()->set_force_regular_grid(true);
-			m_spAss->ass_tuner()->set_force_regular_grid(true);
 			m_spAss->assemble_jacobian(*ld.A, *ld.st, GridLevel(lev, m_GridLevelType, false));
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
 			}
