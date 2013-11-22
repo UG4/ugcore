@@ -71,9 +71,9 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	additional mark to RefinementMarks. Used to flag whether an element
 	 * will be refined with constraining.*/
 		enum HNodeRefMarks{
-			HNRM_TO_NORMAL = 		1 << 4,
-			HNRM_TO_CONSTRAINED =	1 << 5,
-			HNRM_TO_CONSTRAINING =	1 << 6,
+			HNRM_TO_NORMAL = 		1 << 5,
+			HNRM_TO_CONSTRAINED =	1 << 6,
+			HNRM_TO_CONSTRAINING =	1 << 7,
 			HNRM_MAX
 		};
 
@@ -212,8 +212,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	Refines the element. Corner vertices of the newly created element
 	 *  can be specified through newCornerVrts. newCornerVrts = NULL (default)
 	 *  means, that the corner vertices of the original element shall be taken.
-	 *  \{
-	 */
+	 *  \{ */
 		virtual void process_constrained_vertex(ConstrainedVertex* cdv);
 		virtual void process_constrained_edge(ConstrainedEdge* cde);
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
@@ -269,13 +268,16 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 
 		template <class TElem>
-		inline bool marked_refine(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_REFINE) == RM_REFINE;}
+		inline bool marked_copy(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_COPY) == RM_COPY;}
+
+		template <class TElem>
+		inline bool marked_refine(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & (RM_REFINE | RM_ANISOTROPIC)) != 0;}
 
 		template <class TElem>
 		inline bool marked_anisotropic(TElem* elem)			{return (m_selMarkedElements.get_selection_status(elem) & RM_ANISOTROPIC) == RM_ANISOTROPIC;}
 
 		template <class TElem>
-		inline bool marked_regular(TElem* elem)				{return marked_refine(elem) && (!marked_anisotropic(elem));}
+		inline bool marked_regular(TElem* elem)				{return marked_refine(elem) && (!(marked_anisotropic(elem) || marked_copy(elem)));}
 
 		template <class TElem>
 		inline bool marked_coarsen(TElem* elem)				{return (m_selMarkedElements.get_selection_status(elem) & RM_COARSEN) == RM_COARSEN;}

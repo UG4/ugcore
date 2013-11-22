@@ -130,7 +130,7 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 										 vector_t& boxMaxOut, const ElemList& elems,
 										 int maxNumChildren, AInt aChildCount,
 										 pcl::ProcessCommunicator& com);
-		void gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
+		void gather_weights_from_level(int baseLvl, int childLvl, AInt aInt,
 											bool copyToVMastersOnBaseLvl);
 
 		int classify_elem(elem_t* e, int splitDim, number splitValue);

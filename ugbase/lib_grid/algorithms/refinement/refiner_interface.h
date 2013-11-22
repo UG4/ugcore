@@ -17,11 +17,12 @@ namespace ug
 //	Make sure not to use refinement marks with a value of 128 or higher! Those
 enum RefinementMark{
 	RM_NONE = 0,							///< no refinement is performed
-	RM_REFINE = 1,							///< regular refinement is performed
-	RM_ANISOTROPIC = RM_REFINE | 1 << 1,	///< anisotropic refinement is performed
-	RM_COARSEN = 1 << 2,		///< the element is coarsened (only valid for adaptive multi-grid refinement)
-	RM_DUMMY = 1 << 3,			///< used internally during mark-adjustment
-	RM_MAX						///< the highest constant in RefinementMark. Should always be smaller than 128!
+	RM_COPY = 1,							///< EXPERIMENTAL! Copy-elements are copied to the next level during refinement. Ignored during coarsening.
+	RM_ANISOTROPIC = 1 << 1,				///< EXPERIMENTAL! anisotropic refinement is performed
+	RM_REFINE = 1 << 2,						///< regular refinement is performed
+	RM_COARSEN = 1 << 3,					///< the element is coarsened (only valid for adaptive multi-grid refinement)
+	RM_DUMMY = 1 << 4,						///< used internally during mark-adjustment
+	RM_MAX									///< the highest constant in RefinementMark. Should always be smaller than 128!
 };
 
 ///	The refiner interface allows to mark elements for refinement and to call refine.

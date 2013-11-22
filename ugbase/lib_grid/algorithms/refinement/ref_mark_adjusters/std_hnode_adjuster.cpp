@@ -22,16 +22,17 @@ static void mark_if_periodic(IRefiner& ref, TElem* e) {
 	if(!pbm.is_periodic(e))
 		return;
 
+	RefinementMark refMark = ref.get_mark(e);
 	if(pbm.is_master(e))
 	{
 		typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveContainer SlaveContainer;
 		typedef typename PeriodicBoundaryManager::Group<TElem>::SlaveIterator SlaveIterator;
 		SlaveContainer& slaves = *pbm.slaves(e);
 		for (SlaveIterator iter = slaves.begin(); iter != slaves.end(); ++iter)
-			ref.mark(*iter);
+			ref.mark(*iter, refMark);
 	}
 	else { // is slave
-		ref.mark(pbm.master(e));
+		ref.mark(pbm.master(e), refMark);
 	}
 }
 
@@ -137,7 +138,7 @@ ref_marks_changed(IRefiner& ref,
 //	FACES
 	for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 		Face* f = faces[i_face];
-
+		RefinementMark refMark = ref.get_mark(f);
 	//	check whether hangingNodeOrder1 is enabled. If so, we have to check
 	//	for associated hanging vertices and push them to qHVrts.
 		if(node_dependency_order_1_enabled()){
@@ -147,13 +148,11 @@ ref_marks_changed(IRefiner& ref,
 			}
 		}
 
-	//	if the face is not marked anisotropic, then
 	//	we have to make sure that all associated edges are marked.
-		if(ref.get_mark(f) != RM_ANISOTROPIC){
-			grid.associated_elements(assEdges, f);
-			for(size_t i = 0; i < assEdges.size(); ++i){
-				ref.mark(assEdges[i]);
-			}
+		grid.associated_elements(assEdges, f);
+		for(size_t i = 0; i < assEdges.size(); ++i){
+			if(refMark > ref.get_mark(assEdges[i]))
+				ref.mark(assEdges[i], refMark);
 		}
 
 	//	constrained and constraining faces require special treatment
@@ -186,18 +185,18 @@ ref_marks_changed(IRefiner& ref,
 //	VOLUMES
 	for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){
 		Volume* v = vols[i_vol];
+		RefinementMark refMark = ref.get_mark(v);
+	//	we have to make sure that all associated edges and faces are marked.
+		grid.associated_elements(assEdges, v);
+		for(size_t i = 0; i < assEdges.size(); ++i){
+			if(refMark > ref.get_mark(assEdges[i]))
+				ref.mark(assEdges[i], refMark);
+		}
 
-		if(ref.get_mark(v) != RM_ANISOTROPIC){
-		//	we have to make sure that all associated edges and faces are marked.
-			grid.associated_elements(assEdges, v);
-			for(size_t i = 0; i < assEdges.size(); ++i){
-				ref.mark(assEdges[i]);
-			}
-
-			grid.associated_elements(assFaces, v);
-			for(size_t i = 0; i < assFaces.size(); ++i){
-				ref.mark(assFaces[i]);
-			}
+		grid.associated_elements(assFaces, v);
+		for(size_t i = 0; i < assFaces.size(); ++i){
+			if(refMark > ref.get_mark(assFaces[i]))
+				ref.mark(assFaces[i], refMark);
 		}
 	}
 

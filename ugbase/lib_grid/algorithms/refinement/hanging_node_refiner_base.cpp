@@ -513,7 +513,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 			if(marked_to_constraining(e)){
 				refine_edge_with_hanging_vertex(e);
 			}
-			else if(marked_refine(e)){
+			else if(marked_refine(e) || marked_copy(e)){
 				refine_edge_with_normal_vertex(e);
 			}
 		}
@@ -602,7 +602,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
-			else if(marked_refine(f))
+			else if(marked_refine(f) || marked_copy(f))
 				refine_face_with_normal_vertex(f);
 		}
 	}
@@ -624,7 +624,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 
 			if(marked_to_constraining(f))
 				refine_face_with_hanging_vertex(f);
-			else if(marked_refine(f))
+			else if(marked_refine(f) || marked_copy(f))
 				refine_face_with_normal_vertex(f);
 		}
 	}
@@ -666,7 +666,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		VertexBase* e = *iter;
 		++iter;
-		if(!marked_refine(e))
+		if(!(marked_refine(e) || marked_copy(e)))
 			m_selMarkedElements.deselect(e);
 	}
 	for(typename selector_t::template traits<EdgeBase>::iterator
@@ -675,7 +675,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		EdgeBase* e = *iter;
 		++iter;
-		if(!marked_refine(e))
+		if(!(marked_refine(e) || marked_copy(e)))
 			m_selMarkedElements.deselect(e);
 	}
 	for(typename selector_t::template traits<Face>::iterator
@@ -684,7 +684,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	{
 		Face* e = *iter;
 		++iter;
-		if(!marked_refine(e))
+		if(!(marked_refine(e) || marked_copy(e)))
 			m_selMarkedElements.deselect(e);
 	}
 
@@ -1082,6 +1082,11 @@ refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 //	the grid
 	Grid& grid = *m_pGrid;
 
+	if((marked_copy(e) || marked_anisotropic(e)) && newCornerVrts){
+		grid.create_by_cloning(e, EdgeDescriptor(newCornerVrts[0], newCornerVrts[1]), e);
+		return;
+	}
+
 	Vertex* nVrt = *grid.create<Vertex>(e);
 	set_center_vertex(e, nVrt);
 
@@ -1153,7 +1158,9 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 	VertexBase* vNewEdgeVertices[MAX_FACE_VERTICES];
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
+	size_t numVrts = f->num_vertices();
 	size_t numEdges = f->num_edges();
+	bool noEdgeVrts = true;
 	for(size_t i = 0; i < numEdges; ++i){
 		EdgeBase* e = grid.get_edge(f, i);
 
@@ -1164,6 +1171,16 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 
 	//	assign the center vertex
 		vNewEdgeVertices[i] = get_center_vertex(e);
+		if(vNewEdgeVertices[i])
+			noEdgeVrts = false;
+	}
+
+	if((marked_copy(f) || (marked_anisotropic(f) && noEdgeVrts)) && newCornerVrts){
+		FaceDescriptor desc(numVrts);
+		for(size_t i = 0; i < numVrts; ++i)
+			desc.set_vertex(i, newCornerVrts[i]);
+		grid.create_by_cloning(f, desc, f);
+		return;
 	}
 
 //	we'll perform a regular refine
@@ -1474,12 +1491,24 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 //	collect all associated edges.
 
 	size_t numEdges = v->num_edges();
+	bool noEdgeVrts = true;
 	for(size_t i = 0; i < numEdges; ++i){
 		EdgeBase* e = grid.get_edge(v, i);
 		vNewEdgeVertices[i] = get_center_vertex(e);
+		if(vNewEdgeVertices[i])
+			noEdgeVrts = false;
 		UG_ASSERT(marked_anisotropic(v) || vNewEdgeVertices[i],
 					"In order to fully refine a volume, all edges have"
 					"to contain a new vertex!");
+	}
+
+	if((marked_copy(v) || (marked_anisotropic(v) && noEdgeVrts)) && newCornerVrts){
+		size_t numVrts = v->num_vertices();
+		VolumeDescriptor desc(numVrts);
+		for(size_t i = 0; i < numVrts; ++i)
+			desc.set_vertex(i, newCornerVrts[i]);
+		grid.create_by_cloning(v, desc, v);
+		return;
 	}
 
 	size_t numFaces = v->num_faces();

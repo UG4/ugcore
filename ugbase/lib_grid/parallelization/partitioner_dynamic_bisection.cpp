@@ -175,7 +175,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
-		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), localProc);
+		m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 
 	const ProcessHierarchy* procH;
 	if(m_nextProcessHierarchy.valid())
@@ -260,12 +260,12 @@ partition(size_t baseLvl, size_t elementThreshold)
 	mg.detach_from<elem_t>(aInt);
 
 //	debugging
-//	static int execCounter = 0;
-//	stringstream ss;
-//	ss << "partition-map-" << execCounter << "-p" << pcl::GetProcRank() << ".ugx";
-//	AssignSubsetColors(m_sh);
-//	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 0.1);
-//	++execCounter;
+	static int execCounter = 0;
+	stringstream ss;
+	ss << "partition-map-" << execCounter << "-p" << pcl::GetProcRank() << ".ugx";
+	AssignSubsetColors(m_sh);
+	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 0.1);
+	++execCounter;
 
 	if(static_partitioning_enabled())
 		return m_highestRedistLevel != oldHighestRedistLvl;
@@ -345,7 +345,7 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 
 //	iterate over all levels and gather child-counts in the partitionLvl
 	for(int i_lvl = maxLvl; i_lvl >= minLvl; --i_lvl){
-		gather_child_counts_from_level(partitionLvl, i_lvl, aChildCount, false);
+		gather_weights_from_level(partitionLvl, i_lvl, aChildCount, false);
 
 	//	now collect elements on partitionLvl, which have children in i_lvl but
 	//	have not yet been partitioned.
@@ -489,7 +489,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 	if(cutRecursion < dim - 1){
 		ElemList elemsCut(elems.entries());
 
-		int weights[3] = {0, 0, 0};
+		int weights[5] = {0, 0, 0, 0, 0};
 
 		for(size_t i = elems.first(); i != s_invalidIndex;){
 			elem_t* e = elems.elem(i);
@@ -508,6 +508,12 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 				case CUTTING:
 					elemsCut.add(i);
 					weights[2] += aaChildCount[e];
+				//	check whether the center is left or right, since we can
+				//	eventually avoid additional bisection
+					if(CalculateCenter(e, m_aaPos)[splitDim] < splitValue)
+						weights[3] += aaChildCount[e];
+					else
+						weights[4] += aaChildCount[e];
 					break;
 				default:
 					UG_THROW("INVALID CLASSIFICATION DURING BISECTION\n");
@@ -521,8 +527,8 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 	//	we have to clear elems, since it would be invalid anyways
 		elems.clear();
 
-		int gWeights[3];
-		com.allreduce(weights, gWeights, 3, PCL_RO_SUM);
+		int gWeights[5];
+		com.allreduce(weights, gWeights, 5, PCL_RO_SUM);
 
 		//	calculate the number of elements which have to go to the left side
 		int gWTotal = gWeights[0] + gWeights[1] + gWeights[2];
@@ -557,6 +563,28 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 			return;
 		}
 
+	//	if the ratios would be fine if one simply bisected by midpoints, we'll do that
+		number wLeft = gWeights[0] + gWeights[3];
+		number wRight = gWeights[1] + gWeights[4];
+		number ratio;
+		if(wLeft < wRight)	ratio = wLeft / wRight;
+		else				ratio = wRight / wLeft;
+
+		if(ratio > 0.99){
+			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
+				elem_t* e = elemsCut.elem(i);
+				size_t iNext = elemsCut.next(i);
+				if(CalculateCenter(e, m_aaPos)[splitDim] < splitValue)
+					elemsLeftOut.add(i);
+				else
+					elemsRightOut.add(i);
+				i = iNext;
+			}
+			elemsCut.clear();
+			return;
+		}
+
+	//	perform a recursion
 		number newRatioLeft = (number)gMissingLeft / (number)(gMissingLeft + gMissingRight);
 		bisect_elements(elemsLeftOut, elemsRightOut, elemsCut, newRatioLeft, aChildCount,
 						maxNumChildren, com, cutRecursion + 1);
@@ -705,22 +733,30 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 
 template <int dim>
 void Partitioner_DynamicBisection<dim>::
-gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
+gather_weights_from_level(int baseLvl, int childLvl, AInt aInt,
 							   bool copyToVMastersOnBaseLvl)
 {
 	GDIST_PROFILE_FUNC();
-	UG_DLOG(LIB_GRID, 1, "Partitioner_DynamicBisection-start gather_child_counts_from_level\n");
+	UG_DLOG(LIB_GRID, 1, "Partitioner_DynamicBisection-start gather_weights_from_level\n");
 	typedef typename Grid::traits<elem_t>::iterator ElemIter;
-
-	if(childLvl <= baseLvl)
-		return;
 
 	assert(m_mg);
 	assert(m_mg->is_parallel());
 	assert(m_mg->has_attachment<elem_t>(aInt));
 
 	MultiGrid& mg = *m_mg;
-	Grid::AttachmentAccessor<elem_t, AInt> aaNumChildren(mg, aInt);
+	Grid::AttachmentAccessor<elem_t, AInt> aaWeight(mg, aInt);
+
+
+	if(childLvl < baseLvl){
+		SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 0);
+		return;
+	}
+	else if(childLvl == baseLvl){
+		SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 1);
+		return;
+	}
+
 	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
 	ComPol_CopyAttachment<layout_t, AInt> compolCopy(mg, aInt);
 
@@ -729,7 +765,7 @@ gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
 		iter != mg.end<elem_t>(childLvl - 1); ++iter)
 	{
 		elem_t* e = *iter;
-		aaNumChildren[e] = mg.num_children<elem_t>(e);
+		aaWeight[e] = mg.num_children<elem_t>(e) + 1;
 	}
 
 	for(int lvl = childLvl - 2; lvl >= baseLvl; --lvl){
@@ -746,10 +782,10 @@ gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
 		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
 		{
 			elem_t* e = *iter;
-			aaNumChildren[e] = 0;
+			aaWeight[e] = 0;
 			size_t numChildren = mg.num_children<elem_t>(e);
 			for(size_t i = 0; i < numChildren; ++i)
-				aaNumChildren[e] += aaNumChildren[mg.get_child<elem_t>(e, i)];
+				aaWeight[e] += aaWeight[mg.get_child<elem_t>(e, i)];
 		}
 	}
 
@@ -763,7 +799,7 @@ gather_child_counts_from_level(int baseLvl, int childLvl, AInt aInt,
 									compolCopy);
 		m_intfcCom.communicate();
 	}
-	UG_DLOG(LIB_GRID, 1, "Partitioner_DynamicBisection-stop gather_child_counts_from_level\n");
+	UG_DLOG(LIB_GRID, 1, "Partitioner_DynamicBisection-stop gather_weights_from_level\n");
 }
 
 
@@ -864,7 +900,7 @@ find_split_value(const ElemList& elems, int splitDim,
 		}
 	}
 
-	UG_LOG("No perfect split-value found!\n");
+	//UG_LOG("No perfect split-value found!\n");
 	return splitValue;
 }
 
