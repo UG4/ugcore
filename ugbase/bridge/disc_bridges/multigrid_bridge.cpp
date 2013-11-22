@@ -77,6 +77,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("add_constraint", &T::add_constraint)
 			.add_method("set_debug", &T::set_debug)
+			.add_method("enable_p1_lagrange_optimization", &T::enable_p1_lagrange_optimization)
+			.add_method("p1_lagrange_optimization_enabled", &T::p1_lagrange_optimization_enabled)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "StdTransfer", tag);
 	}

@@ -410,12 +410,15 @@ void StdTransfer<TDomain, TAlgebra>::init()
 
 	m_Restriction.resize_and_clear(0,0);
 
-// 	check only lagrange P1 functions
-	bool P1LagrangeOnly = true;
-	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
-		if(m_spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
-			m_spApproxSpace->lfeid(fct).order() != 1)
-			P1LagrangeOnly = false;
+//	check only lagrange P1 functions
+	bool P1LagrangeOnly = false;
+	if(m_p1LagrangeOptimizationEnabled){
+		P1LagrangeOnly = true;
+		for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
+			if(m_spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
+				m_spApproxSpace->lfeid(fct).order() != 1)
+				P1LagrangeOnly = false;
+	}
 
 	const DoFDistribution& coarseDD = *m_spApproxSpace->dof_distribution(m_coarseLevel);
 	const DoFDistribution& fineDD = *m_spApproxSpace->dof_distribution(m_fineLevel);
@@ -550,6 +553,7 @@ StdTransfer<TDomain, TAlgebra>::clone()
 		op->add_constraint(m_vConstraint[i]);
 	op->set_restriction_damping(m_dampRes);
 	op->set_debug(m_spDebugWriter);
+	op->enable_p1_lagrange_optimization(p1_lagrange_optimization_enabled());
 	return op;
 }
 

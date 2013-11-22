@@ -24,6 +24,11 @@
 namespace ug{
 
 ///	Prologation Operator for P1 Approximation Spaces
+/**	By default a special optimization is performed for p1-lagrange-elements.
+ * This optimization is only valid if all elements have been refined with
+ * standard refinement rules. If closure elements are generated, this optimization
+ * has to be deactivated (use StdTransfer::enable_p1_lagrange_optimization(false)).
+ */
 template <typename TDomain, typename TAlgebra>
 class StdTransfer :
 	virtual public ITransferOperator<TAlgebra>
@@ -43,11 +48,14 @@ class StdTransfer :
 
 	public:
 	/// Default constructor
-		StdTransfer() : m_bInit(false), m_dampRes(1.0), m_spDebugWriter(NULL) {clear_constraints();};
+		StdTransfer() : m_bInit(false), m_p1LagrangeOptimizationEnabled(true),
+						m_dampRes(1.0), m_spDebugWriter(NULL)
+		{clear_constraints();};
 
 	///	Constructor setting approximation space
 		StdTransfer(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-			m_spApproxSpace(approxSpace), m_bInit(false), m_dampRes(1.0), m_spDebugWriter(NULL)
+			m_spApproxSpace(approxSpace), m_bInit(false),
+			m_p1LagrangeOptimizationEnabled(true), m_dampRes(1.0), m_spDebugWriter(NULL)
 		{clear_constraints();};
 
 	///	Set approximation space
@@ -76,6 +84,18 @@ class StdTransfer :
 
 	///	removes a post process
 		void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
+
+	///	enables/disables an assembling optimization for p1-lagrange elements
+	/**	The optimization is enabled by default. It can however only be used,
+	 * if all elements are refined with their standard refinement rule. If one
+	 * uses anisotropic refinement or refinement with closure, the optimization
+	 * should be disabled.
+	 * \todo	The normal assembling strategy should be optimized in such a way
+	 * 			that the p1-lagrange optimization is no longer required. This
+	 * 			however involves something like a ref-type-hash for each element,
+	 * 			which returns a unique number based on the types and order of children.*/
+		void enable_p1_lagrange_optimization(bool enable)	{m_p1LagrangeOptimizationEnabled = enable;}
+		bool p1_lagrange_optimization_enabled() const		{return m_p1LagrangeOptimizationEnabled;}
 
 	public:
 	///	initialize the operator
@@ -126,6 +146,9 @@ class StdTransfer :
 
 	///	initialization flag
 		bool m_bInit;
+
+	///	flag for p1-lagrange-optimization
+		bool m_p1LagrangeOptimizationEnabled;
 
 	///	damping parameter
 		number m_dampRes;
