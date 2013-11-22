@@ -546,4 +546,23 @@ ProcessCommunicator::CommWrapper::
 		MPI_Comm_free(&m_mpiComm);
 }
 
+
+std::ostream &operator << (std::ostream &out, const ProcessCommunicator &processCommunicator)
+{
+	out << "ProcessCommunicator";
+	if(processCommunicator.is_local()) out << " LOCAL";
+	else if(processCommunicator.empty()) out << " EMPTY";
+	else
+	{
+		if(processCommunicator.is_world()) out << " (WORLD)";
+		out << "size = " << processCommunicator.size();
+		out << ". involved procs: [ ";
+		for(size_t i=0; i<processCommunicator.size(); i++)
+			out << processCommunicator.get_proc_id(i) << " ";
+		out << "]";
+	}
+	return out;
+}
+
+
 }//	end of namespace pcl
