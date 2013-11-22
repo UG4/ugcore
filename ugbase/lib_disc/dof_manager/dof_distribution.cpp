@@ -1510,9 +1510,8 @@ add_indices_from_layouts(IndexLayout& indexLayout,int keyType)
 				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 
 			//	check if element is a surface element
-				if(grid_level().is_surface())
-					if(!m_spSurfView->is_surface_element(elem))
-						continue;
+				if(!m_spSurfView->is_contained(elem, grid_level(), SurfaceView::SURFACE))
+					continue;
 
 			//	add the indices to the interface
 				inner_algebra_indices(elem, vIndex);

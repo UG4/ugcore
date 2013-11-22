@@ -403,9 +403,26 @@ bool SurfaceView::is_adaptive() const
 }
 
 template <class TGeomObj>
-bool SurfaceView::is_surface_element(TGeomObj* obj) const
+bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
+                               SurfaceState validStates) const
 {
-	return surface_state(obj).partially_contains(MG_SURFACE);
+	const int lvl = m_pMG->get_level(obj);
+	const int topLvl = (gl.top() ? (subset_handler()->num_levels()-1) : gl.level());
+
+	#ifdef UG_PARALLEL
+		if(!gl.ghosts() && is_ghost(obj)) return false;
+	#endif
+
+	SurfaceState oss = surface_state(obj);
+
+	if( validStates.contains(TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE)
+		&& (lvl == topLvl)
+		&& oss.partially_contains(MG_SHADOW))
+	{
+		oss = SURFACE_PURE;
+	}
+
+	return validStates.contains(oss);
 }
 
 template <class TGeomObj>
@@ -447,8 +464,10 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 {
 	if(clearContainer) vAssElem.clear();
 
+	const GridLevel gl(GridLevel::TOP, GridLevel::SURFACE);
+
 //	collect associated on this level
-	if(is_surface_element(elem))
+	if(is_contained(elem, gl, SURFACE))
 		CollectAssociated(vAssElem, *m_pMG, elem, false);
 
 //	if at border of a level grid, there may be connections of the "shadow" element
@@ -471,7 +490,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 		//	if shadowed, not in surface view of the requested level
 		//todo:	it could make sense to pass the level of this SurfaceLevelView
 		//		to the is_surface_element method.
-			if(!is_surface_element(vCoarseElem[i])) continue;
+			if(!is_contained(vCoarseElem[i], gl, SURFACE)) continue;
 
 		//	else this must be added to adjacent elements
 			vAssElem.push_back(vCoarseElem[i]);
