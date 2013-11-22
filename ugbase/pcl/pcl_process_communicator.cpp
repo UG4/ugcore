@@ -549,12 +549,12 @@ ProcessCommunicator::CommWrapper::
 
 std::ostream &operator << (std::ostream &out, const ProcessCommunicator &processCommunicator)
 {
-	out << "ProcessCommunicator";
-	if(processCommunicator.is_local()) out << " LOCAL";
-	else if(processCommunicator.empty()) out << " EMPTY";
+	out << "ProcessCommunicator ";
+	if(processCommunicator.is_local()) out << "LOCAL";
+	else if(processCommunicator.empty()) out << "EMPTY";
 	else
 	{
-		if(processCommunicator.is_world()) out << " (WORLD)";
+		if(processCommunicator.is_world()) out << "(WORLD) ";
 		out << "size = " << processCommunicator.size();
 		out << ". involved procs: [ ";
 		for(size_t i=0; i<processCommunicator.size(); i++)
