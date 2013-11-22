@@ -121,10 +121,6 @@ class SurfaceView
 		template <class TGeomObj>
 		inline bool is_shadowing(TGeomObj* obj) const;
 
-	///	returns parent != NULL if copy
-		template <typename TBaseElem>
-		inline TBaseElem* parent_if_copy(TBaseElem* elem) const;
-
 	///	refresh_surface_states must be called after a grid change
 		void refresh_surface_states();
 

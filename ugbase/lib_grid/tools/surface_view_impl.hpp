@@ -462,16 +462,6 @@ bool SurfaceView::is_vmaster(TElem* elem) const
 	#endif
 }
 
-template <typename TBaseElem>
-TBaseElem* SurfaceView::parent_if_copy(TBaseElem* elem) const
-{
-	GeometricObject* pParent = m_pMG->get_parent(elem);
-	TBaseElem* parent = dynamic_cast<TBaseElem*>(pParent);
-	if(parent != NULL &&
-		m_pMG->num_children<TBaseElem>(parent) == 1) return parent;
-	else return NULL;
-}
-
 template <typename TElem, typename TBaseElem>
 void SurfaceView::
 collect_associated(std::vector<TBaseElem*>& vAssElem,
@@ -488,25 +478,25 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 
 	if(is_adaptive())
 	{
-	//	get parent
-		TElem* parent = parent_if_copy(elem);
+	//	get parent if copy
+		GeometricObject* pParent = m_pMG->get_parent(elem);
+		TElem* parent = dynamic_cast<TElem*>(pParent);
+		if(parent == NULL) return;
+		if(m_pMG->num_children<TBaseElem>(parent) != 1) return;
 
 	//	Get connected elements
-		if(parent != NULL)
+		std::vector<TBaseElem*> vCoarseElem;
+		CollectAssociated(vCoarseElem, *m_pMG, parent, true);
+
+		for(size_t i = 0; i < vCoarseElem.size(); ++i)
 		{
-			std::vector<TBaseElem*> vCoarseElem;
-			CollectAssociated(vCoarseElem, *m_pMG, parent, true);
+		//	if shadowed, not in surface view of the requested level
+		//todo:	it could make sense to pass the level of this SurfaceLevelView
+		//		to the is_surface_element method.
+			if(!is_surface_element(vCoarseElem[i])) continue;
 
-			for(size_t i = 0; i < vCoarseElem.size(); ++i)
-			{
-			//	if shadowed, not in surface view of the requested level
-			//todo:	it could make sense to pass the level of this SurfaceLevelView
-			//		to the is_surface_element method.
-				if(!is_surface_element(vCoarseElem[i])) continue;
-
-			//	else this must be added to adjacent elements
-				vAssElem.push_back(vCoarseElem[i]);
-			}
+		//	else this must be added to adjacent elements
+			vAssElem.push_back(vCoarseElem[i]);
 		}
 	}
 }
