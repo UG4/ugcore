@@ -649,7 +649,7 @@ end
 
 --! 
 --! @param pluginNamesList a list like {"amg", "d3f"} of plugins to check
-function AssertPluginsLoaded(pluginNamesList)
+function RequiredPlugins(pluginNamesList)
 	local notLoadedNames = ""
 	local cmakePluginString = ""
 	for i,v in pairs(pluginNamesList) do
@@ -664,6 +664,10 @@ function AssertPluginsLoaded(pluginNamesList)
 		exit()
 	end
 	
+end
+
+function AssertPluginsLoaded(pluginNamesList)
+	RequiredPlugins(pluginNamesList)
 end
 
 
