@@ -205,7 +205,7 @@ string GetNilWarning(lua_State* L, int offsetToFirstParam)
 			ss << errSymb << "WARNING: Argument " << indices[0] << " is nil, it is ";
 		else
 		{
-			ss << errSymb << "WARNING: Arguments";
+			ss << errSymb << "WARNING: Arguments ";
 			for(size_t i=0; i<indices.size()-1; i++)
 			{
 				if(i>0) ss << ", ";
