@@ -25,7 +25,8 @@ set(src_Algebra	 ${src_Algebra}
 	common/connection_viewer_output.cpp
 	common/connection_viewer_input.cpp
 	small_algebra/solve_deficit.cpp
-	 )
+	operator/preconditioner/line_smoothers.cpp
+	)
 add_subdirectory(common/matrixio)
 
 if(PARALLEL)

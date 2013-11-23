@@ -29,51 +29,17 @@
 
 namespace ug{
 
-// ORDER IN Y DIRECTION
-
-// Order for 1D
+// extern definition (in cpp file, avoiding conflicts)
 template<int dim>
-bool ComparePosDimYDir(const std::pair<MathVector<dim>, size_t> &p1,
-					   const std::pair<MathVector<dim>, size_t> &p2)
-{return false;}
+extern bool ComparePosDimYDir(const std::pair<MathVector<dim>, size_t> &p1,
+		   const std::pair<MathVector<dim>, size_t> &p2);
 
-template<>
-bool ComparePosDimYDir<1>(const std::pair<MathVector<1>, size_t> &p1,
-						  const std::pair<MathVector<1>, size_t> &p2)
-{
-	return (p1.first[0]<p2.first[0]);
-};
+template<int dim>
+extern bool ComparePosDimZDir(const std::pair<MathVector<dim>, size_t> &p1,
+					   const std::pair<MathVector<dim>, size_t> &p2);
 
-// Order for 2D
-template<>
-bool ComparePosDimYDir<2>(const std::pair<MathVector<2>, size_t> &p1,
-						  const std::pair<MathVector<2>, size_t> &p2)
-{
-	if (p1.first[0]==p2.first[0]) {
-		return (p1.first[1] < p2.first[1]);
-	}
-	else {
-		return (p1.first[0] < p2.first[0]);
-	}
-};
 
-// Order for 3D
-template<>
-bool ComparePosDimYDir<3>(const std::pair<MathVector<3>, size_t> &p1,
-						  const std::pair<MathVector<3>, size_t> &p2)
-{
-	if (p1.first[2]==p2.first[2]){
-		if (p1.first[0]==p2.first[0]) {
-			return (p1.first[1] < p2.first[1]);
-		}
-		else {
-			return (p1.first[0] < p2.first[0]);
-		}
-	}
-	else{
-		return (p1.first[2] < p2.first[2]);
-	}
-};
+// ORDER IN Y DIRECTION
 
 template<int dim>
 void ComputeDirectionYOrder(std::vector<std::pair<MathVector<dim>, size_t> >& vPos,std::vector<size_t>& indY)
@@ -185,50 +151,6 @@ void OrderDirectionYForDofDist(SmartPtr<DoFDistribution> dd,
 
 // ORDER IN Z DIRECTION
 
-// Order for 1D
-template<int dim>
-bool ComparePosDimZDir(const std::pair<MathVector<dim>, size_t> &p1,
-					   const std::pair<MathVector<dim>, size_t> &p2)
-{return false;}
-
-
-template<>
-bool ComparePosDimZDir<1>(const std::pair<MathVector<1>, size_t> &p1,
-						  const std::pair<MathVector<1>, size_t> &p2)
-{
-	return (p1.first[0]<p2.first[0]);
-};
-
-// Order for 2D
-template<>
-bool ComparePosDimZDir<2>(const std::pair<MathVector<2>, size_t> &p1,
-						  const std::pair<MathVector<2>, size_t> &p2)
-{
-	if (p1.first[0]==p2.first[0]) {
-		return (p1.first[1] < p2.first[1]);
-	}
-	else {
-		return (p1.first[0] < p2.first[0]);
-	}
-};
-
-// Order for 3D
-template<>
-bool ComparePosDimZDir<3>(const std::pair<MathVector<3>, size_t> &p1,
-						  const std::pair<MathVector<3>, size_t> &p2)
-{
-	if (p1.first[1]==p2.first[1]){
-		if (p1.first[0]==p2.first[0]) {
-			return (p1.first[2] < p2.first[2]);
-		}
-		else {
-			return (p1.first[0] < p2.first[0]);
-		}
-	}
-	else{
-		return (p1.first[1] < p2.first[1]);
-	}
-};
 
 template<int dim>
 void ComputeDirectionZOrder(std::vector<std::pair<MathVector<dim>, size_t> >& vPos,std::vector<size_t>& indZ)
