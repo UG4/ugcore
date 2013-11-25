@@ -16,7 +16,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 \section secInstallEclipseDownload Download Eclipse
 
 <ul>
-  <li>Download \em Eclipse from http://www.eclipse.org/downloads/ :
+  <li>Download \em Eclipse from http://www.eclipse.org/downloads/packages/eclipse-ide-cc-developers/keplersr1 :
     <em>Eclipse IDE for C/C++ Developers</em>
   </li>
   <li>Unzip \em Eclipse and move it to your "Application" folder</li>
@@ -30,8 +30,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
   <li>Install a \em Subversion plugin:
     <ol>
       <li><em>Help</em> -> <em>Install new Software</em></li>
-      <li>On Eclipse Helios, type <tt>Work with: http://download.eclipse.org/releases/helios</tt></li>
-      <li>On Eclipse Juno, type <tt>Work with: http://download.eclipse.org/releases/juno</tt></li>
+      <li>On Eclipse Kepler, type <tt>Work with: http://download.eclipse.org/releases/kepler</tt></li>
       <li>Choose the plugin <em>Collaboration</em> by setting checking the box</li>
       <li>Click \em Next </li>
       <li>Click \em Next </li>
