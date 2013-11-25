@@ -260,12 +260,12 @@ partition(size_t baseLvl, size_t elementThreshold)
 	mg.detach_from<elem_t>(aInt);
 
 //	debugging
-	static int execCounter = 0;
-	stringstream ss;
-	ss << "partition-map-" << execCounter << "-p" << pcl::GetProcRank() << ".ugx";
-	AssignSubsetColors(m_sh);
-	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 0.1);
-	++execCounter;
+//	static int execCounter = 0;
+//	stringstream ss;
+//	ss << "partition-map-" << execCounter << "-p" << pcl::GetProcRank() << ".ugx";
+//	AssignSubsetColors(m_sh);
+//	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 0.1);
+//	++execCounter;
 
 	if(static_partitioning_enabled())
 		return m_highestRedistLevel != oldHighestRedistLvl;
