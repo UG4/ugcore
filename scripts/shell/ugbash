@@ -65,25 +65,25 @@ chmod +x $UG4_ROOT/scripts/shell/xtermrun
 
 ugbasegrep()
 {
-	fgrep -r "$1" $UG4_ROOT/ugbase
+	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/ugbase
 }
 ugpluginsgrep()
 {
-	fgrep -r "$1" $UG4_ROOT/plugins
+	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/plugins
 }
 ugcmakegrep()
 {
-	fgrep -r "$1" $UG4_ROOT/cmake
+	fgrep --exclude-dir=".svn" -rI "$1" $UG4_ROOT/cmake
 }
 
 ugappsgrep()
 {
-	fgrep -r "$1" $UG4_ROOT/apps
+	fgrep --include="*\.lua" --include="*\.c" --include="*\.cpp" --include="*\.h" -rI "$1" $UG4_ROOT/apps
 }
 
 uggrep()
 {
-	fgrep -r "$1" $UG4_ROOT
+	fgrep --include="*\.lua" --include="*\.c*" --include="*\.h" --exclude-dir=".svn" -rI "$1" $UG4_ROOT
 }
 
 ug4svnupdate()
