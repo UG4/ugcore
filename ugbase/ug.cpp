@@ -16,11 +16,7 @@
 	#include "bridge/bridge.h"
 #endif
 #ifdef UG_PLUGINS
-	#ifdef UG_EMBEDDED_PLUGINS
-		#include "embedded_plugins.h"
-	#else
-		#include "common/util/plugin_util.h"
-	#endif
+	#include "common/util/plugin_util.h"
 #endif
 
 
@@ -192,11 +188,7 @@ void UGForceExit()
 {
 	UG_LOG("--- ABORTING UG EXECUTION ---\n");
 	#ifdef UG_PLUGINS
-		#ifdef UG_EMBEDDED_PLUGINS
-			//FinalizeEmbeddPlugins();
-		#else
-			// ? UnloadPlugins();
-		#endif
+		// ? UnloadPlugins();
 	#endif
 	UGFinalize();
 	exit(0);
@@ -210,15 +202,7 @@ void UGOutputProfileStatsOnExit(bool bEnable)
 #ifdef UG_PLUGINS
 bool UGInitPlugins()
 {
-	#ifdef UG_EMBEDDED_PLUGINS
-		InitializeEmbeddedPlugins(&bridge::GetUGRegistry(), "ug4/");
-		return true;
-	#else
-		if(LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/", bridge::GetUGRegistry()))
-			return true;
-		else
-			return false;
-	#endif
+	return LoadPlugins(PathProvider::get_path(PLUGIN_PATH).c_str(), "ug4/", bridge::GetUGRegistry());
 }
 #else
 bool UGInitPlugins()

@@ -44,9 +44,11 @@ endif(INTERNAL_MEMTRACKER)
 
 set(sources ${srcCommon})
 
-if(NOT STATIC_BUILD)
-    set(sources	${sources} util/plugin_util.cpp)
-endif(NOT STATIC_BUILD)
+if(STATIC_BUILD)
+	set(sources	${sources} util/plugin_util_static.cpp)
+else(STATIC_BUILD)
+    set(sources	${sources} util/plugin_util_dynamic.cpp)
+endif(STATIC_BUILD)
 
 if(UG_PROFILER)
 	set(srcProfiler	profiler/profilenode_management.cpp
