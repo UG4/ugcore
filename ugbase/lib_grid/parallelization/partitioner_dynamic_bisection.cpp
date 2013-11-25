@@ -168,7 +168,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 	m_sh.clear();
-	int localProc = pcl::GetProcRank();
+//	int localProc = pcl::GetProcRank();
 
 	AInt aInt;
 	mg.attach_to<elem_t>(aInt);
