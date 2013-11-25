@@ -23,9 +23,7 @@
 #include "registry/class_name_provider.h"
 #include "common/util/string_util.h"
 #ifdef UG_PLUGINS
-	#ifndef UG_EMBEDDED_PLUGINS
-		#include "common/util/plugin_util.h"
-	#endif
+	#include "common/util/plugin_util.h"
 #endif
 
 extern "C"
@@ -1011,8 +1009,7 @@ void ScriptPrintClassUsage(const char *classname)
 }
 
 #ifdef UG_PLUGINS
-#ifndef UG_EMBEDDED_PLUGINS
-bool AssertPluginLoaded(const char *name)
+bool PluginRequired(const char *name)
 {
 	if(PluginLoaded(name) == false)
 	{
@@ -1026,7 +1023,6 @@ bool AssertPluginLoaded(const char *name)
 	}
 	return true;
 }
-#endif
 #endif
 
 void EnableLUA2C(bool b)
@@ -1079,12 +1075,10 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		reg.add_function("HasClassGroup", &ScriptHasClassGroup, grp.c_str(), 
 		                 "true if class oder classGroup exists", "classGroupName", "can be used before instantiating a class");
 #ifdef UG_PLUGINS
-	#ifndef UG_EMBEDDED_PLUGINS
 		reg.add_function("PluginLoaded", &PluginLoaded, grp.c_str(), 
 		                 "true if plugin loaded", "pluginName", "pluginName as listed when using cmake ..");
-		reg.add_function("AssertPluginLoaded", &AssertPluginLoaded, grp.c_str(), 
+		reg.add_function("PluginRequired", &PluginRequired, grp.c_str(),
 		                 "true if plugin loaded", "pluginName", "throws an error if plugin not loaded, displays help string how to enable plugins via cmake -DpluginName=ON ..");
-	#endif
 #endif
 		reg.add_function("EnableLUA2C", &EnableLUA2C, grp.c_str(), 
 		                 "", "bEnable", "");

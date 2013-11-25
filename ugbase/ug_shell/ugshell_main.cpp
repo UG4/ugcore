@@ -350,11 +350,7 @@ int main(int argc, char* argv[])
 	// For using valgrind, you'll have to uncomment them.
 	//ReleaseDefaultLuaState();
 	#ifdef UG_PLUGINS
-		#ifdef UG_EMBEDDED_PLUGINS
-			//FinalizeEmbeddPlugins();
-		#else
-			//UnloadPlugins();
-		#endif
+		//UnloadPlugins();
 	#endif
 
 	PROFILE_END();
