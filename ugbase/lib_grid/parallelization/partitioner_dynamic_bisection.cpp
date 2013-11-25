@@ -479,12 +479,12 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 			splitDim = i;
 	}
 
+	//UG_LOG("BBox: " << gBoxMin << ", " << gBoxMax << ", Center: " << gCenter << endl);
 	number splitValue = find_split_value(elems, splitDim, ratioLeft, gCenter[splitDim],
 										 gBoxMin[splitDim], gBoxMax[splitDim],
 										 10, aChildCount, com);
 
-//	UG_LOG("BBox: " << gBoxMin << ", " << gBoxMax << endl);
-//	UG_LOG("splitDim: " << splitDim << ", splitValue: " << splitValue << endl);
+	//UG_LOG("splitDim: " << splitDim << ", splitValue: " << splitValue << endl);
 
 	if(cutRecursion < dim - 1){
 		ElemList elemsCut(elems.entries());
@@ -541,6 +541,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 
 	//	bisect the cutting elements
 		if(gMissingLeft <= 0){
+			//UG_LOG("Adding all to right\n");
 		//	add all cut-elements to the right side
 			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 				size_t iNext = elemsCut.next(i);
@@ -552,6 +553,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 		}
 
 		if(gMissingRight <= 0){
+			//UG_LOG("Adding all to left\n");
 		//	add all cut-elements to the left side
 			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 				size_t iNext = elemsCut.next(i);
@@ -571,6 +573,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 		else				ratio = wRight / wLeft;
 
 		if(ratio > 0.99){
+			//UG_LOG("direct cut bisection\n");
 			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 				elem_t* e = elemsCut.elem(i);
 				size_t iNext = elemsCut.next(i);
@@ -600,6 +603,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 				elemsRightOut.add(i);
 			i = iNext;
 		}
+		elems.clear();
 	}
 }
 
@@ -646,8 +650,8 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 //	UG_LOG("local BBox: " << minCorner << ", " << maxCorner << endl);
 //	if(totalWeight > 0 && elems.size() > 0){
 //		vector_t tmpCenter;
-//		VecScale(tmpCenter, center, 1./(totalWeight * (number)elems.size()));
-//		UG_LOG(tmpCenter << endl);
+//		VecScale(tmpCenter, center, 1./ totalWeight);
+//		UG_LOG("local center: " << tmpCenter << endl);
 //	}
 //	else{
 //		UG_LOG("---\n");
@@ -683,8 +687,11 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 
 	number totalNumElems = 0;
 	totalWeight = 0;
+	//UG_LOG("com.get_local_proc_id(): " << com.get_local_proc_id() << endl);
 	if(com.get_local_proc_id() == 0){
 		for(size_t i = 0; i < recvBuf.size(); i += comDataSize){
+			//UG_LOG("from proc " << i/comDataSize << ":\n");
+			//UG_LOG("  #elems: " << recvBuf[i + ofsNumElems] << endl);
 		//	ignore contributions of empty processes
 			if(recvBuf[i + ofsNumElems] == 0)
 				continue;
@@ -718,6 +725,7 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	if(totalWeight > 0)
 		VecScale(gCenter, gCenter, 1./totalWeight);
 
+	//UG_LOG("global center pre-com: " << gCenter << endl);
 //	broadcast the calculated center and bounding box to all involved processes.
 	vector_t broadcastData[3];
 	broadcastData[0] = gCenter;
@@ -729,6 +737,8 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	centerOut = broadcastData[0];
 	boxMinOut = broadcastData[1];
 	boxMaxOut = broadcastData[2];
+	//UG_LOG("global center post-com: " << centerOut << endl);
+
 }
 
 template <int dim>
@@ -853,6 +863,7 @@ find_split_value(const ElemList& elems, int splitDim,
 				 size_t maxIterations, AInt aChildCount,
 				 pcl::ProcessCommunicator& com)
 {
+	//UG_LOG("splitRatio: " << splitRatio << ", initialGuess: " << initialGuess << endl);
 	if(splitRatio < SMALL)
 		return minValue + SMALL;
 	if(splitRatio > 1. - SMALL)

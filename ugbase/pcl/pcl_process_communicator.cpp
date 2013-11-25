@@ -293,8 +293,8 @@ ProcessCommunicator::
 gather(const void* sendBuf, int sendCount, DataType sendType,
 	   void* recBuf, int recCount, DataType recType, int root) const
 {
-	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_gather);
+	if(is_local()) {memcpy(recBuf, sendBuf, recCount*GetSize(recType)); return;}
 
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::gather: empty communicator.");
 	
@@ -308,8 +308,8 @@ gatherv(const void* sendBuf, int sendCount, DataType sendType,
 		void* recBuf, int* recCounts, int* displs,
 		DataType recType, int root) const
 {
-	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_gatherv);
+	if(is_local()) {memcpy(recBuf, sendBuf, displs[0] + recCounts[0]*GetSize(recType)); return;}
 
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::gather: empty communicator.");
 
@@ -322,8 +322,8 @@ ProcessCommunicator::
 allgather(const void* sendBuf, int sendCount, DataType sendType,
 		  void* recBuf, int recCount, DataType recType) const
 {
-	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_allgather);
+	if(is_local()) {memcpy(recBuf, sendBuf, recCount*GetSize(recType)); return;}
 
 	UG_COND_THROW(empty(), "ERROR in ProcessCommunicator::allgather: empty communicator.");
 	
@@ -337,8 +337,8 @@ allgatherv(const void* sendBuf, int sendCount, DataType sendType,
 			void* recBuf, int* recCounts, int* displs,
 			DataType recType) const
 {
-	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_allgatherv);
+	if(is_local()) {memcpy(recBuf, sendBuf, displs[0] + recCounts[0]*GetSize(recType)); return;}
 
 	UG_COND_THROW(empty(),	"ERROR in ProcessCommunicator::allgatherv: empty communicator.");
 	
