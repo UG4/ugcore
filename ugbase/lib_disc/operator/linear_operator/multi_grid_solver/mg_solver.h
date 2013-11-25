@@ -403,6 +403,9 @@ class AssembledMultiGridCycle :
 	/// a v-slave may have multiple v-masters, therefore: devide by multiplicity
 		void devide_vertical_slaves_by_number_of_masters(vector_type& d);
 
+	/// a v-slave may have multiple v-masters, therefore: devide by multiplicity
+		void devide_vertical_slave_rows_by_number_of_masters(matrix_type& mat);
+
 	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
 		void add_to_vertical_masters(vector_type& d);
 

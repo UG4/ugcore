@@ -123,6 +123,95 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AddMultiplyOf:
+//-------------------------
+/**
+ * \brief Calculates M += A*B*C.
+ * \param M (in/out) Matrix M, M += A*B*C$
+ * \param A (in) Matrix A
+ * \param B (in) Matrix B
+ * \param C (in) Matrix C
+ *
+ * Complete formula for calculating M=A*B*C:
+ *  \f[
+ *  	 M_{ij} += \sum_{kl} A_{ik} * B_{kl} * C_{lj}
+ *  \f]
+ */
+template<typename ABC_type, typename A_type, typename B_type, typename C_type>
+void AddMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C, double epsilonTruncation=0.0)
+{
+	PROFILE_FUNC_GROUP("algebra");
+	UG_ASSERT(C.num_rows() == B.num_cols() && B.num_rows() == A.num_cols(), "sizes must match");
+
+	// check
+	if(M.num_rows() != A.num_rows())
+		UG_THROW("AddMultiplyOf: row sizes mismatch: M.num_rows = "<<
+		         M.num_rows()<<", A.num_rows = "<<A.num_rows());
+	if(M.num_cols() != C.num_cols())
+		UG_THROW("AddMultiplyOf: column sizes mismatch: M.num_cols = "<<
+		         M.num_cols()<<", C.num_cols = "<<C.num_cols());
+
+	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
+
+	typedef UnsortedSparseVector<typename ABC_type::value_type> RowType;
+	typedef typename RowType::iterator RowIterator;
+	RowType row(C.num_cols());;
+
+	std::vector<typename ABC_type::connection> con2;
+	//typename C_type::value_type cvalue;
+
+	typename ABC_type::connection c;
+
+	typedef typename A_type::const_row_iterator cAiterator;
+	typedef typename B_type::const_row_iterator cBiterator;
+	typedef typename C_type::const_row_iterator cCiterator;
+
+	// do
+	// M_{ij} = \sum_kl A_{ik} * B_{kl} * C_{lj}
+	for(size_t i=0; i < A.num_rows(); i++)
+	{
+		row.clear();
+		for(cAiterator itAik = A.begin_row(i); itAik != A.end_row(i); ++itAik)
+		{
+			if(itAik.value() == 0.0) continue;
+
+			size_t k = itAik.index();
+			for(cBiterator itBkl = B.begin_row(k); itBkl != B.end_row(k); ++itBkl)
+			{
+				if(itBkl.value() == 0.0) continue;
+				size_t l = itBkl.index();
+				// ab = A_{ik} * B_{kl}
+				AssignMult(ab, itAik.value(), itBkl.value());
+
+				for(cCiterator itClj = C.begin_row(l); itClj != C.end_row(l); ++itClj)
+				{
+					if(itClj.value() == 0.0) continue;
+					AddMult( row (itClj.index() ), ab, itClj.value());
+				}
+			}
+		}
+
+		if(epsilonTruncation != 0.0)
+		{
+			double m=0;
+			for(RowIterator it = row.begin(); it != row.end(); ++it)
+			{
+				double d = BlockNorm(it->value());
+				if(d > m) m = d;
+			}
+			m *= epsilonTruncation;
+			con2.clear();
+			for(RowIterator it = row.begin(); it != row.end(); ++it)
+				if( BlockNorm(it->value()) > m )
+					con2.push_back(*it);
+			M.add_matrix_row(i, &con2[0], con2.size());
+		}
+		else
+			M.add_matrix_row(i, row.unsorted_raw_ptr(), row.num_connections());
+	}
+
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -495,6 +584,42 @@ void SetRow(T &A, size_t i, size_t alpha, number val = 0.0)
 		{
 			BlockRef(block, alpha, beta) = val;
 		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SetRow:
+//-------------------------
+/**
+ * set value for (block-)row i.
+ * \param A (in) Matrix A
+ * \param i (in) row to scales
+ * \param val (in) value to be set
+ */
+template <typename T>
+void SetRow(T& A, size_t i, number val = 0.0)
+{
+	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	{
+		conn.value() = val;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ScaleRow:
+//-------------------------
+/**
+ * scales (block-)row i.
+ * \param A (in) Matrix A
+ * \param i (in) row to scales
+ * \param fac (in) Scaling factor
+ */
+template <typename T>
+void ScaleRow(T& A, size_t i, number fac)
+{
+	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	{
+		conn.value() *= fac;
 	}
 }
 

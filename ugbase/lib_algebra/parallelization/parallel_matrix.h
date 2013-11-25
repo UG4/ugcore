@@ -53,11 +53,11 @@ class ParallelMatrix : public TMatrix
 	public:
 	///	Default Constructor
 		ParallelMatrix()
-			: TMatrix(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(new HorizontalAlgebraLayouts)
+			: TMatrix(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(new AlgebraLayouts)
 		{}
 
 	///	Constructor setting the layouts
-		ParallelMatrix(SmartPtr<HorizontalAlgebraLayouts> layouts)
+		ParallelMatrix(SmartPtr<AlgebraLayouts> layouts)
 			: TMatrix(), m_type(PST_UNDEFINED), m_spAlgebraLayouts(layouts)
 		{}
 
@@ -66,10 +66,10 @@ class ParallelMatrix : public TMatrix
 		/////////////////////////
 
 	///	returns the algebra layouts
-		ConstSmartPtr<HorizontalAlgebraLayouts> layouts() const {return m_spAlgebraLayouts;}
+		ConstSmartPtr<AlgebraLayouts> layouts() const {return m_spAlgebraLayouts;}
 
 	///	sets the algebra layouts
-		void set_layouts(ConstSmartPtr<HorizontalAlgebraLayouts> layouts) {m_spAlgebraLayouts = layouts;}
+		void set_layouts(ConstSmartPtr<AlgebraLayouts> layouts) {m_spAlgebraLayouts = layouts;}
 
 	/// sets the storage type
 	/**	type may be any or-combination of constants enumerated in ug::ParallelStorageType.*/
@@ -119,7 +119,7 @@ class ParallelMatrix : public TMatrix
 		uint m_type;
 
 	/// algebra layouts and communicators
-		ConstSmartPtr<HorizontalAlgebraLayouts> m_spAlgebraLayouts;
+		ConstSmartPtr<AlgebraLayouts> m_spAlgebraLayouts;
 };
 
 //	predaclaration.

@@ -625,6 +625,7 @@ init_rap_operator()
 #ifdef UG_PARALLEL
 		spGhostA->set_layouts(lf.t->layouts());
 
+		devide_vertical_slave_rows_by_number_of_masters(*spGhostA);
 		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA);
 		if(!lf.t->layouts()->vertical_slave().empty())
 			m_Com.send_data(lf.t->layouts()->vertical_slave(), cpMatAdd);
@@ -637,7 +638,7 @@ init_rap_operator()
 		SetDirichletRow(*spGhostA, vIndex);
 #endif
 
-		CreateAsMultiplyOf(*lc.A, *R, *spGhostA, *P);
+		AddMultiplyOf(*lc.A, *R, *spGhostA, *P);
 	}
 
 	if(m_bGatheredBaseUsed)
@@ -1688,6 +1689,56 @@ devide_vertical_slaves_by_number_of_masters(vector_type& d)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - devide_vertical_slaves_by_number_of_masters\n");
 #endif
 }
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+devide_vertical_slave_rows_by_number_of_masters(matrix_type& mat)
+{
+#ifdef UG_PARALLEL
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - devide_vertical_slave_rows_by_number_of_masters\n");
+	PROFILE_FUNC_GROUP("gmg");
+
+	if(mat.layouts()->vertical_slave().empty()) return;
+
+	GMG_PROFILE_BEGIN(GMG_DevideSlaveRowByNumberOfMasters);
+
+//	there may be v-slaves with multiple v-masters. We only want to send
+//	a fraction to each master, to keep d additive.
+//	count number of occurrances in v-interfaces
+	bool multiOccurance = false;
+	std::vector<number> occurence;
+	const IndexLayout& layout = mat.layouts()->vertical_slave();
+
+	if(layout.num_interfaces() > 1){
+		occurence.resize(mat.num_rows(), 0);
+		for(IndexLayout::const_iterator iiter = layout.begin();
+			iiter != layout.end(); ++iiter)
+		{
+			const IndexLayout::Interface& itfc = layout.interface(iiter);
+			for(IndexLayout::Interface::const_iterator iter = itfc.begin();
+				iter != itfc.end(); ++iter)
+			{
+				const IndexLayout::Interface::Element& index = itfc.get_element(iter);
+
+				occurence[index] += 1;
+				if(occurence[index] > 1)
+					multiOccurance = true;
+			}
+		}
+	}
+
+	if(multiOccurance){
+		for(size_t i = 0; i < occurence.size(); ++i){
+			if(occurence[i] > 1)
+				ScaleRow(mat, i, (1./occurence[i]));
+		}
+	}
+
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - devide_vertical_slave_rows_by_number_of_masters\n");
+#endif
+}
+
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
