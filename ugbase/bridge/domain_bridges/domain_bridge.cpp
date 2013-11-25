@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 // include bridge
 #include "bridge/bridge.h"
@@ -221,6 +222,29 @@ static TElem* GetElementByCoordinate(TDomain& dom, number x, number y, number z)
 	return FindClosestByCoordinate<TElem>(v, g.template begin<TElem>(), g.template end<TElem>(), dom.position_accessor());
 }
 
+
+template <typename TDomain>
+static number GetMaxEdgeLength(TDomain& dom)
+{
+	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
+	typename TDomain::grid_type& g = *dom.grid();
+
+	number maxLenSq = 0;
+	for(EdgeBaseIterator eiter = g.template begin<EdgeBase>();
+		eiter != g.template end<EdgeBase>(); ++eiter)
+	{
+		maxLenSq = max(maxLenSq, EdgeLengthSq(*eiter, aaPos));
+	}
+
+#ifdef UG_PARALLEL
+	pcl::ProcessCommunicator com;
+	number gMaxLenSq = com.allreduce(maxLenSq, PCL_RO_MAX);
+	return sqrt(gMaxLenSq);
+#else
+	return sqrt(maxLenSq);
+#endif
+}
+
 // end group domain_bridge
 /// \}
 
@@ -326,6 +350,9 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("GetEdgeByCoordinate", &GetElementByCoordinate<TDomain, EdgeBase>, grp);
 	reg.add_function("GetFaceByCoordinate", &GetElementByCoordinate<TDomain, Face>, grp);
 	reg.add_function("GetVolumeByCoordinate", &GetElementByCoordinate<TDomain, Volume>, grp);
+
+//	geometry information
+	reg.add_function("GetMaxEdgeLength", &GetMaxEdgeLength<TDomain>, grp);
 
 //	debugging
 	reg.add_function("TestDomainInterfaces", &TestDomainInterfaces<TDomain>, grp);
