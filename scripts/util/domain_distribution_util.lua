@@ -36,7 +36,7 @@ util = util or {}
 function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 							   numTargetProcs, distributionLevel, wFct)
 	if GetNumProcesses() == 1 then
-		return
+		return true
 	end
 	
 	local partitionMap = PartitionMap()
