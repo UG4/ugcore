@@ -281,18 +281,43 @@ static void Algebra(Registry& reg, string grp)
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DiagVanka", tag);
 	}
-	
+
+//	ScalarObstacle
+	{
+		typedef ScalarObstacle<TAlgebra> T;
+		typedef IObstacleConstraint<TAlgebra> TBase;
+		string name = string("ScalarObstacle").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ScalarObstacle", tag);
+	}
+
+//	IObstacleConstraint
+	{
+		typedef IObstacleConstraint<TAlgebra> T;
+		string name = string("IObstacleConstraint").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.add_method("set_lower_obstacle", &T::set_lower_obstacle,
+				"", "lower obstacle", "sets lower obstacle")
+			.add_method("set_upper_obstacle", &T::set_upper_obstacle,
+				"", "upper obstacle", "sets upper obstacle");
+		reg.add_class_to_group(name, "IObstacleConstraint", tag);
+	}
+
 //	IProjPreconditioner
 	{
 		typedef IProjPreconditioner<TAlgebra> T;
 		typedef ILinearIterator<vector_type> TBase;
 		string name = string("IProjPreconditioner").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
-			.add_method("set_lower_obstacle", &T::set_lower_obstacle,
-				"", "lower obstacle", "sets lower obstacle")
-			.add_method("set_upper_obstacle", &T::set_upper_obstacle,
-				"", "upper obstacle", "sets upper obstacle")
-			.add_method("set_sor_relax", &T::set_sor_relax,
+			//.add_method("set_lower_obstacle", &T::set_lower_obstacle,
+			//	"", "lower obstacle", "sets lower obstacle")
+			//.add_method("set_upper_obstacle", &T::set_upper_obstacle,
+			//	"", "upper obstacle", "sets upper obstacle")
+				.add_method("set_obstacle_constraint", &T::set_obstacle_constraint,
+					"", "obstacle constraint", "sets an obstacle constraint")
+				.add_method("set_sor_relax", &T::set_sor_relax,
 				"", "sor relaxation", "sets sor relaxation parameter");
 		reg.add_class_to_group(name, "IProjPreconditioner", tag);
 	}

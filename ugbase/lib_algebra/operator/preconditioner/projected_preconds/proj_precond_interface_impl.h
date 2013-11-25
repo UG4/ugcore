@@ -76,8 +76,9 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 //	remember, that operator has been initialized
 	m_bInit = true;
 
+
 // 	init vector of obstacle values and init values with zero
-	if (!m_bLowerObs)
+/*	if (!m_bLowerObs)
 		m_spVecOfLowObsValues = u.clone_without_values();
 	if (!m_bUpperObs)
 		m_spVecOfUpObsValues = u.clone_without_values();
@@ -104,7 +105,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 						"[value= "<<upperObsVal<<"]!");
 			}
 		}
-	}
+	}*/
 
 //	(ugly) hint, that usual damping (x += damp * c) does not make sense for the projected
 //	GaussSeidel-method.
@@ -133,130 +134,10 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 template <typename TAlgebra>
 void
 IProjPreconditioner<TAlgebra>::
-correction_for_lower_obs(vector_type& c, const size_t index, const value_type& tmpSol)
-{
-	//	get index-th lower obstacle value
-	value_type lowerObsVal = (*m_spVecOfLowObsValues)[index];
-
-	UG_ASSERT(GetSize(tmpSol) == GetSize(lowerObsVal), "size of tmpSol and size "
-			"of lowerObsVal need to be the same");
-
-	for(size_t j = 0; j < GetSize(tmpSol); j++)
-	{
-		if ( (BlockRef(tmpSol, j) - BlockRef(lowerObsVal, j)) < 0.0)
-		{
-			//	u_{s-1/2} < lowerObsValue (:the lower constraint is not fulfilled)
-
-			//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-			BlockRef(c[index], j) = BlockRef(lowerObsVal, j) - BlockRef((*m_lastSol)[index], j);
-
-			//	set new solution u_s to the obstacle value
-			//	and store the current index in a vector for further treatment
-			BlockRef((*m_lastSol)[index], j) = BlockRef(lowerObsVal, j);
-			m_vActiveIndicesLow.push_back(MultiIndex<2>(index, j) );
-		}
-		else
-		{
-			//	the 'tmpSol' is valid with respect to the lower constraints
-			BlockRef((*m_lastSol)[index], j) = BlockRef(tmpSol, j);
-			m_vInactiveIndices.push_back(MultiIndex<2>(index, j) );
-		}
-	}
-}
-
-template <typename TAlgebra>
-void
-IProjPreconditioner<TAlgebra>::
-correction_for_upper_obs(vector_type& c, const size_t index, const value_type& tmpSol)
-{
-	//	get index-th upper obstacle value
-	value_type upperObsVal = (*m_spVecOfUpObsValues)[index];
-
-	UG_ASSERT(GetSize(tmpSol) == GetSize(upperObsVal), "size of tmpSol and size "
-			"of upperObsVal need to be the same");
-
-	for(size_t j = 0; j < GetSize(tmpSol); j++)
-	{
-		if ( (BlockRef(tmpSol, j) - BlockRef(upperObsVal, j)) > 0.0)
-		{
-			//	u_{s-1/2} > upperObsValue (:the upper constraint is not fulfilled)
-
-			//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-			BlockRef(c[index], j) = BlockRef(upperObsVal, j) - BlockRef((*m_lastSol)[index], j);
-
-			//	set new solution u_s to the obstacle value
-			//	and store the current index in a vector for further treatment
-			BlockRef((*m_lastSol)[index], j) = BlockRef(upperObsVal, j);
-			m_vActiveIndicesUp.push_back(MultiIndex<2>(index, j) );
-		}
-		else
-		{
-			//	the 'tmpSol' is valid with respect to the upper constraints
-			BlockRef((*m_lastSol)[index], j) = BlockRef(tmpSol, j);
-			m_vInactiveIndices.push_back(MultiIndex<2>(index, j) );
-		}
-	}
-}
-
-template <typename TAlgebra>
-void
-IProjPreconditioner<TAlgebra>::
-correction_for_lower_and_upper_obs(vector_type& c, const size_t index, const value_type& tmpSol)
-{
-	//	get index-th lower obstacle value
-	value_type upperObsVal = (*m_spVecOfUpObsValues)[index];
-	value_type lowerObsVal = (*m_spVecOfLowObsValues)[index];
-
-	UG_ASSERT(GetSize(tmpSol) == GetSize(upperObsVal), "size of tmpSol and size "
-			"of upperObsVal need to be the same");
-	UG_ASSERT(GetSize(tmpSol) == GetSize(lowerObsVal), "size of tmpSol and size "
-			"of lowerObsVal need to be the same");
-
-	for(size_t j = 0; j < GetSize(tmpSol); j++)
-	{
-		if ( (BlockRef(tmpSol, j) - BlockRef(upperObsVal, j)) > 0.0)
-		{
-			//	u_{s-1/2} > upperObsValue (:the upper constraint is not fulfilled)
-
-			//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-			BlockRef(c[index], j)  = BlockRef(upperObsVal, j) - BlockRef((*m_lastSol)[index], j);
-
-			//	set new solution u_s to the obstacle value
-			//	and store the current index in a vector for further treatment
-			BlockRef((*m_lastSol)[index], j) = BlockRef(upperObsVal, j);
-			m_vActiveIndicesUp.push_back(MultiIndex<2>(index, j) );
-		}
-		else
-		{
-			if ( (BlockRef(tmpSol, j) - BlockRef(lowerObsVal, j)) < 0.0)
-			{
-				//	u_{s-1/2} < lowerObsValue (:the lower constraint is not fulfilled)
-
-				//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-				BlockRef(c[index], j) = BlockRef(lowerObsVal, j) - BlockRef((*m_lastSol)[index], j);
-
-				//	set new solution u_s to the obstacle value
-				//	and store the current index in a vector for further treatment
-				BlockRef((*m_lastSol)[index], j) = BlockRef(lowerObsVal, j);
-				m_vActiveIndicesLow.push_back(MultiIndex<2>(index, j) );
-			}
-			else
-			{
-				//	the 'tmpSol' is valid with respect to all constraints
-				BlockRef((*m_lastSol)[index], j) = BlockRef(tmpSol, j);
-				m_vInactiveIndices.push_back(MultiIndex<2>(index, j) );
-			}
-		}
-	}
-}
-
-template <typename TAlgebra>
-void
-IProjPreconditioner<TAlgebra>::
 adjust_defect(vector_type& d)
 {
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_vActiveIndicesLow.begin();
-					itActiveInd < m_vActiveIndicesLow.end(); ++itActiveInd)
+	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_spObsConstraint->m_vActiveIndicesLow.begin();
+					itActiveInd < m_spObsConstraint->m_vActiveIndicesLow.end(); ++itActiveInd)
 	{
 		//	check, if Ax <= b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled
@@ -264,8 +145,8 @@ adjust_defect(vector_type& d)
 			BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) = 0.0;
 	}
 
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_vActiveIndicesUp.begin();
-				itActiveInd < m_vActiveIndicesUp.end(); ++itActiveInd)
+	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_spObsConstraint->m_vActiveIndicesUp.begin();
+				itActiveInd < m_spObsConstraint->m_vActiveIndicesUp.end(); ++itActiveInd)
 	{
 		//	check, if Ax >= b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled
@@ -307,8 +188,9 @@ apply(vector_type &c, const vector_type& d)
 	if(d.size() != (*m_lastSol).size())
 			UG_THROW("Vector [d size= "<<d.size()<<", m_lastSol size = "
 					   <<(*m_lastSol).size()<< "] sizes have to match!");
-	//	reset vectors
-	m_vActiveIndicesLow.resize(0); m_vActiveIndicesUp.resize(0); m_vInactiveIndices.resize(0);
+
+	//	reset active indices
+	m_spObsConstraint->reset_active_indices();
 
 	//	perform a forward GaussSeidel-step: c = (D-L)^-1 * d, then project on the underlying constraint
 	//	and store the indices, which satisfy the constraint with equality, in the vector vActiveIndices
@@ -320,13 +202,13 @@ apply(vector_type &c, const vector_type& d)
 		SmartPtr<vector_type> spDtmp = d.clone();
 		spDtmp->change_storage_type(PST_UNIQUE);
 
-		projected_precond_step(c, *m_spMat, *spDtmp);
+		projected_precond_step(c, *m_lastSol, *m_spMat, *spDtmp);
 		c.set_storage_type(PST_UNIQUE);
 	}
 	else
 #endif
 	{
-		projected_precond_step(c, *m_spMat, d);
+		projected_precond_step(c, *m_lastSol, *m_spMat, d);
 #ifdef UG_PARALLEL
 		c.set_storage_type(PST_UNIQUE);
 #endif
@@ -393,7 +275,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}*/
 
 	//	adjust defect of the active indices for the case that a constraint is set
-	if(m_bLowerObs || m_bUpperObs)
+	if(m_bObsCons)
 		adjust_defect(d);
 
 	/*for(size_t i = 0; i < d.size(); i++)

@@ -17,10 +17,17 @@ namespace ug{
  * The projected GaussSeidel method can be applied to problems of the form
  *
  * 		A * u >= b				(I)
- * 		u >= 0					(II)
- * 		u^T * [A*u - b] = 0,	(III)
+ * 		c(u) >= 0				(II)
+ * 		c(u)^T * [A*u - b] = 0,	(III)
  *
  * where u, b are vectors and A is a matrix. '*' denotes componentwise multiplication.
+ * c(u) denotes an obstacle-function, which depends on the solution vector u. One possible
+ * example for such an obstacle-function could be the scalar obstacle function
+ *
+ * 	u >= 0.
+ *
+ * The obstacle function c(u) is set by 'set_obstacle_constraint' in IProjPreconditioner.
+ *
  * Similar problems, which e.g. only differ in the sign in (I) and/or (II) can be
  * equivalently treated by the method.
  *
@@ -80,21 +87,18 @@ class ProjGaussSeidel:
 	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
 	 *
 	 * \param[out]	c			correction
+	 * \param[out]	sol			solution
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
 	 * \param[in]	d			defect
 	 */
-		void projected_precond_step(vector_type& c, const matrix_type& mat, const vector_type& d);
+		void projected_precond_step(vector_type& c, vector_type& sol, const matrix_type& mat, const vector_type& d);
 
 	///	Destructor
 		~ProjGaussSeidel(){};
 
-	protected:
-	/// flag indicating if an obstacle is set
-		using base_type::m_bLowerObs;
-		using base_type::m_bUpperObs;
-
-	///	storage for last solution u
-		using base_type::m_lastSol;
+	private:
+	///	obstacle constraint
+		using base_type::m_spObsConstraint;
 
 	///	relaxation parameter
 		using base_type::m_relax;
@@ -143,21 +147,18 @@ class ProjBackwardGaussSeidel:
 	 * It can only be called, when the preprocess has been done.
 	 *
 	 * \param[out]	c			correction
+	 * \param[out]	sol			solution
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
 	 * \param[in]	d			defect
 	 */
-		void projected_precond_step(vector_type& c, const matrix_type& mat, const vector_type& d);
+		void projected_precond_step(vector_type& c, vector_type& sol, const matrix_type& mat, const vector_type& d);
 
 	///	Destructor
 		~ProjBackwardGaussSeidel(){};
 
-	protected:
-	/// flag indicating if an obstacle is set
-		using base_type::m_bLowerObs;
-		using base_type::m_bUpperObs;
-
-	///	storage for last solution u
-		using base_type::m_lastSol;
+	private:
+	///	obstacle constraint
+		using base_type::m_spObsConstraint;
 
 	///	relaxation parameter
 		using base_type::m_relax;
@@ -206,21 +207,18 @@ class ProjSymmetricGaussSeidel:
 	 * It can only be called, when the preprocess has been done.
 	 *
 	 * \param[out]	c			correction
+	 * \param[out]	sol			solution
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
 	 * \param[in]	d			defect
 	 */
-		void projected_precond_step(vector_type& c, const matrix_type& mat, const vector_type& d);
+		void projected_precond_step(vector_type& c, vector_type& sol, const matrix_type& mat, const vector_type& d);
 
 	///	Destructor
 		~ProjSymmetricGaussSeidel(){};
 
-	protected:
-	/// flag indicating if an obstacle is set
-		using base_type::m_bLowerObs;
-		using base_type::m_bUpperObs;
-
-	///	storage for last solution u
-		using base_type::m_lastSol;
+	private:
+	///	obstacle constraint
+		using base_type::m_spObsConstraint;
 
 	///	relaxation parameter
 		using base_type::m_relax;
