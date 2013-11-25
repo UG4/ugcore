@@ -1051,8 +1051,8 @@ class ComPol_MatAddInnerInterfaceCouplings
 {
 	public:
 	///	Constructor setting the matrix
-		ComPol_MatAddInnerInterfaceCouplings(TMatrix& rMat)
-			: m_rMat(rMat)
+		ComPol_MatAddInnerInterfaceCouplings(TMatrix& rMat, bool bClearSended = false)
+			: m_rMat(rMat), m_bClearSent(bClearSended)
 		{}
 
 	///	writes the interface values into a buffer that will be sent
@@ -1100,6 +1100,10 @@ class ComPol_MatAddInnerInterfaceCouplings
 
 				//	write entry into buffer
 					Serialize(buff, a_ik);
+
+				//	clear sent values
+					if(m_bClearSent)
+						a_ik = 0.0;
 				}
 			}
 
@@ -1159,6 +1163,9 @@ class ComPol_MatAddInnerInterfaceCouplings
 	private:
 	//	pointer to current vector
 		TMatrix& m_rMat;
+
+	//	flag, indicating clearing of sended values
+		bool m_bClearSent;
 };
 
 

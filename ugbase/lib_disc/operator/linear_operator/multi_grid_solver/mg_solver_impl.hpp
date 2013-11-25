@@ -626,16 +626,12 @@ init_rap_operator()
 		spGhostA->set_layouts(lf.t->layouts());
 
 		devide_vertical_slave_rows_by_number_of_masters(*spGhostA);
-		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA);
-		if(!lf.t->layouts()->vertical_slave().empty())
-			m_Com.send_data(lf.t->layouts()->vertical_slave(), cpMatAdd);
-		if(!lf.t->layouts()->vertical_master().empty())
-			m_Com.receive_data(lf.t->layouts()->vertical_master(), cpMatAdd);
+		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, true);
+		if(!spGhostA->layouts()->vertical_slave().empty())
+			m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
+		if(!spGhostA->layouts()->vertical_master().empty())
+			m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
 		m_Com.communicate();
-
-		std::vector<IndexLayout::Element> vIndex;
-		CollectUniqueElements(vIndex,  lf.t->layouts()->vertical_slave());
-		SetDirichletRow(*spGhostA, vIndex);
 #endif
 
 		AddMultiplyOf(*lc.A, *R, *spGhostA, *P);
@@ -650,16 +646,13 @@ init_rap_operator()
 #ifdef UG_PARALLEL
 		spBaseSolverMat->set_layouts(ld.t->layouts());
 
-		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spBaseSolverMat);
-		if(!ld.t->layouts()->vertical_slave().empty())
-			m_Com.send_data(ld.t->layouts()->vertical_slave(), cpMatAdd);
-		if(!ld.t->layouts()->vertical_master().empty())
-			m_Com.receive_data(ld.t->layouts()->vertical_master(), cpMatAdd);
+		devide_vertical_slave_rows_by_number_of_masters(*spBaseSolverMat);
+		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spBaseSolverMat, true);
+		if(!spBaseSolverMat->layouts()->vertical_slave().empty())
+			m_Com.send_data(spBaseSolverMat->layouts()->vertical_slave(), cpMatAdd);
+		if(!spBaseSolverMat->layouts()->vertical_master().empty())
+			m_Com.receive_data(spBaseSolverMat->layouts()->vertical_master(), cpMatAdd);
 		m_Com.communicate();
-
-		std::vector<IndexLayout::Element> vIndex;
-		CollectUniqueElements(vIndex,  ld.t->layouts()->vertical_slave());
-		SetDirichletRow(*spBaseSolverMat, vIndex);
 #endif
 	}
 
