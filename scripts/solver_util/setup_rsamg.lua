@@ -32,7 +32,7 @@ util = util or {}
 --! \endcode
 --! \sa RSAMG
 function util.SetupRSAMGPreconditioner(base, presmoother, postsmoother)
-	AssertPluginLoaded("amg")
+	PluginRequired("amg")
 	if base == nil then
 		base = LU()
 	end
