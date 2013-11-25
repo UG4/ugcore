@@ -54,7 +54,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(1),
 	m_numPreSmooth(2), m_numPostSmooth(2),
-	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL),
+	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL), m_bUseRAP(false),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
 	m_spProjectionPrototype(new InjectionTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
@@ -386,7 +386,11 @@ init()
 //	Assemble coarse grid operators
 	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
 	try{
-		init_level_operator();
+		if(m_bUseRAP){
+			init_rap_operator();
+		} else {
+			assemble_level_operator();
+		}
 	}
 	UG_CATCH_THROW("GMG: Initialization of Level Operator failed.");
 	GMG_PROFILE_END();
@@ -415,15 +419,15 @@ init()
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_level_operator()
+assemble_level_operator()
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_level_operator\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start assemble_level_operator\n");
 
 //	Create Projection
 	try{
 		if(m_pSurfaceSol) {
-			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_level_operator: project sol\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: project sol\n");
 			GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
 			#ifdef UG_PARALLEL
 			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT))
@@ -440,7 +444,7 @@ init_level_operator()
 				(*(m_vLevData[level]->st))[index] = (*m_pSurfaceSol)[i];
 			}
 			GMG_PROFILE_END();
-			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_level_operator: project sol\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   assemble_level_operator: project sol\n");
 		}
 	}
 	UG_CATCH_THROW("GMG::init: Projection of Surface Solution failed.");
@@ -455,7 +459,7 @@ init_level_operator()
 
 		if(!bCpyFromSurface)
 		{
-			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_level_operator: assemble on lev "<<lev<<"\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: assemble on lev "<<lev<<"\n");
 			GMG_PROFILE_BEGIN(GMG_AssLevelMat);
 			try{
 			if(m_GridLevelType == GridLevel::LEVEL)
@@ -465,12 +469,12 @@ init_level_operator()
 			}
 			UG_CATCH_THROW("GMG:init: Cannot init operator for level "<<lev);
 			GMG_PROFILE_END();
-			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_level_operator: assemble on lev "<<lev<<"\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   assemble_level_operator: assemble on lev "<<lev<<"\n");
 		}
 		else
 		{
 		//	in case of full refinement we simply copy the matrix (with correct numbering)
-			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_level_operator: copy mat on lev "<<lev<<"\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: copy mat on lev "<<lev<<"\n");
 			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
 
 		//	loop all mapped indices
@@ -505,7 +509,7 @@ init_level_operator()
 			ld.A->set_layouts(ld.st->layouts());
 			#endif
 			GMG_PROFILE_END();
-			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_level_operator: copy mat on lev "<<lev<<"\n");
+			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   assemble_level_operator: copy mat on lev "<<lev<<"\n");
 		}
 
 		if(m_pSurfaceSol && lev > m_baseLev)
@@ -534,7 +538,7 @@ init_level_operator()
 //	well
 	if(m_bGatheredBaseUsed)
 	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
 		GMG_PROFILE_BEGIN(GMG_AssGatheredLevMat);
 		LevData& ld = *m_vLevData[m_baseLev];
 
@@ -549,7 +553,7 @@ init_level_operator()
 		}
 		UG_CATCH_THROW("GMG:init: Cannot init operator base level operator");
 		GMG_PROFILE_END();
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   assemble_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
 	}
 
 //	write computed level matrices for debug purpose
@@ -563,7 +567,107 @@ init_level_operator()
 	}
 	UG_CATCH_THROW("GMG:init: Cannot init missing coarse grid coupling.");
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_level_operator\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop assemble_level_operator\n");
+}
+
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_rap_operator()
+{
+	for(int lev = m_topLev; lev >= m_baseLev; --lev)
+	{
+		LevData& ld = *m_vLevData[lev];
+		ld.A->resize_and_clear(ld.st->size(), ld.st->size());
+		#ifdef UG_PARALLEL
+		ld.A->set_storage_type(m_spSurfaceMat->get_storage_mask());
+		ld.A->set_layouts(ld.st->layouts());
+		#endif
+	}
+
+	for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
+	{
+	//	get mapped level index
+		const int lvlFrom = m_vSurfToLevelMap[surfFrom].level;
+		const size_t indexFrom = m_vSurfToLevelMap[surfFrom].index;
+
+	//	loop all connections of the surface dof to other surface dofs
+	//	and copy the matrix coupling into the level matrix
+		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		const_row_iterator conn = m_spSurfaceMat->begin_row(surfFrom);
+		const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
+		for( ;conn != connEnd; ++conn){
+		//	get corresponding level connection index
+			const int lvlTo = m_vSurfToLevelMap[conn.index()].level;
+			const size_t indexTo = m_vSurfToLevelMap[conn.index()].index;
+
+			if(lvlTo != lvlFrom)
+				UG_THROW("GMG: rap currently only for full-refinement.")
+
+		//	copy connection to level matrix
+			(*(m_vLevData[lvlTo]->A))(indexFrom, indexTo) = conn.value();
+		}
+	}
+
+// 	Create coarse level operators
+	for(int lev = m_topLev; lev > m_baseLev; --lev)
+	{
+		LevData& lf = *m_vLevData[lev];
+		LevData& lc = *m_vLevData[lev-1];
+
+		SmartPtr<matrix_type> R = lf.Restriction->restriction();
+		SmartPtr<matrix_type> P = lf.Prolongation->prolongation();
+
+		SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
+		spGhostA->resize_and_clear(lf.t->size(), lf.t->size());
+		copy_noghost_to_ghost(spGhostA, lf.A, lf.vMapPatchToGlobal);
+
+#ifdef UG_PARALLEL
+		spGhostA->set_layouts(lf.t->layouts());
+
+		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA);
+		if(!lf.t->layouts()->vertical_slave().empty())
+			m_Com.send_data(lf.t->layouts()->vertical_slave(), cpMatAdd);
+		if(!lf.t->layouts()->vertical_master().empty())
+			m_Com.receive_data(lf.t->layouts()->vertical_master(), cpMatAdd);
+		m_Com.communicate();
+
+		std::vector<IndexLayout::Element> vIndex;
+		CollectUniqueElements(vIndex,  lf.t->layouts()->vertical_slave());
+		SetDirichletRow(*spGhostA, vIndex);
+#endif
+
+		CreateAsMultiplyOf(*lc.A, *R, *spGhostA, *P);
+	}
+
+	if(m_bGatheredBaseUsed)
+	{
+		LevData& ld = *m_vLevData[m_baseLev];
+
+		spBaseSolverMat->resize_and_clear(ld.t->size(), ld.t->size());
+		copy_noghost_to_ghost(spBaseSolverMat.template cast_dynamic<matrix_type>(), ld.A, ld.vMapPatchToGlobal);
+#ifdef UG_PARALLEL
+		spBaseSolverMat->set_layouts(ld.t->layouts());
+
+		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spBaseSolverMat);
+		if(!ld.t->layouts()->vertical_slave().empty())
+			m_Com.send_data(ld.t->layouts()->vertical_slave(), cpMatAdd);
+		if(!ld.t->layouts()->vertical_master().empty())
+			m_Com.receive_data(ld.t->layouts()->vertical_master(), cpMatAdd);
+		m_Com.communicate();
+
+		std::vector<IndexLayout::Element> vIndex;
+		CollectUniqueElements(vIndex,  ld.t->layouts()->vertical_slave());
+		SetDirichletRow(*spBaseSolverMat, vIndex);
+#endif
+	}
+
+//	write computed level matrices for debug purpose
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrix", lev);
+	}
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_rap_operator\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -983,6 +1087,40 @@ copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
 		(*spVecTo)[ vMapPatchToGlobal[i] ] = (*spVecFrom)[i];
 	#ifdef UG_PARALLEL
 	spVecTo->set_storage_type(spVecFrom->get_storage_mask());
+	#endif
+}
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+copy_noghost_to_ghost(SmartPtr<matrix_type> spMatTo,
+                      ConstSmartPtr<matrix_type> spMatFrom,
+                      const std::vector<size_t>& vMapPatchToGlobal)
+{
+	PROFILE_FUNC_GROUP("gmg");
+	UG_ASSERT(vMapPatchToGlobal.size() == spMatFrom->num_rows(),
+			  "Mapping domain ("<<vMapPatchToGlobal.size()<<") != "
+			  "From-Mat-Num-Rows ("<<spMatFrom->num_rows()<<")");
+	UG_ASSERT(vMapPatchToGlobal.size() == spMatFrom->num_cols(),
+			  "Mapping domain ("<<vMapPatchToGlobal.size()<<") != "
+			  "From-Mat-Num-Cols ("<<spMatFrom->num_cols()<<")");
+
+	for(size_t noghostFrom = 0; noghostFrom < vMapPatchToGlobal.size(); ++noghostFrom)
+	{
+		typedef typename matrix_type::const_row_iterator row_iter;
+		row_iter conn = spMatFrom->begin_row(noghostFrom);
+		row_iter connEnd = spMatFrom->end_row(noghostFrom);
+		for(; conn != connEnd; ++conn)
+		{
+			const typename matrix_type::value_type& block = conn.value();
+			size_t noghostTo = conn.index();
+
+			(*spMatTo)(vMapPatchToGlobal[noghostFrom], vMapPatchToGlobal[noghostTo])
+					= block;
+		}
+	}
+
+	#ifdef UG_PARALLEL
+	spMatTo->set_storage_type(spMatFrom->get_storage_mask());
 	#endif
 }
 

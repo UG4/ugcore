@@ -107,12 +107,19 @@ class StdTransfer :
 	/// apply transposed Operator, restrict function
 		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine);
 
+	///	returns prolongation as a matrix
+		virtual SmartPtr<matrix_type> prolongation();
+
+	///	returns restriction as a matrix
+		virtual SmartPtr<matrix_type> restriction();
+
 	///	returns new instance with same setting
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();
 
 	protected:
 	///	debug writing of matrix
-		void write_debug(const matrix_type& mat, const char* filename);
+		void write_debug(const matrix_type& mat, std::string filename,
+		                 const GridLevel& glFrom, const GridLevel& glTo);
 
 		void assemble_restriction_elemwise(matrix_type& mat,
 		                                    const DoFDistribution& coarseDD, const DoFDistribution& fineDD,

@@ -133,6 +133,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("add_restriction_post_process", &T::add_restriction_post_process,"", "Restriction Post Process")
 			.add_method("set_debug", &T::set_debug)
 			.add_method("set_emulate_full_refined_grid", &T::set_emulate_full_refined_grid)
+			.add_method("set_rap", &T::set_rap)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GeometricMultiGrid", tag);
 	}

@@ -102,6 +102,9 @@ class AssembledMultiGridCycle :
 			else m_GridLevelType = GridLevel::LEVEL;
 		}
 
+	///	sets if RAP - Product used to build coarse grid matrices
+		void set_rap(bool bRAP) {m_bUseRAP = bRAP;}
+
 	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
 		void set_cycle_type(int type) {m_cycleType = type;}
 
@@ -217,7 +220,8 @@ class AssembledMultiGridCycle :
 		void init_smoother();
 
 	///	initializes the coarse grid matrices
-		void init_level_operator();
+		void assemble_level_operator();
+		void init_rap_operator();
 
 	///	initializes the smoother and base solver
 		void init_base_solver();
@@ -268,6 +272,9 @@ class AssembledMultiGridCycle :
 
 	///	grid-view for level vectors
 		GridLevel::ViewType m_GridLevelType;
+
+	///	using RAP-Product (assemble coarse-grid matrices otherwise)
+		bool m_bUseRAP;
 
 	///	approximation space revision of cached values
 		RevisionCounter m_ApproxSpaceRevision;
@@ -387,6 +394,11 @@ class AssembledMultiGridCycle :
 		void copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
 								   ConstSmartPtr<GF> spVecFrom,
 								   const std::vector<size_t>& vMapPatchToGlobal);
+
+	///	copies matrix from smoothing patch using cached mapping
+		void copy_noghost_to_ghost(SmartPtr<matrix_type> spMatTo,
+		                           ConstSmartPtr<matrix_type> spMatFrom,
+		                           const std::vector<size_t>& vMapPatchToGlobal);
 
 	/// a v-slave may have multiple v-masters, therefore: devide by multiplicity
 		void devide_vertical_slaves_by_number_of_masters(vector_type& d);

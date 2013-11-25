@@ -279,6 +279,12 @@ void SetDirichletRow(TMatrix& mat, const DoFIndex& ind)
 	SetDirichletRow(mat, ind[0], ind[1]);
 }
 
+template <typename TMatrix>
+void SetRow(TMatrix& mat, const DoFIndex& ind, number val = 0.0)
+{
+	SetRow(mat, ind[0], ind[1], val);
+}
+
 }
 
 

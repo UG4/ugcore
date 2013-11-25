@@ -274,6 +274,252 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//	adjust TRANSFER
+////////////////////////////////////////////////////////////////////////////////
+
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_prolongation(matrix_type& P,
+                    ConstSmartPtr<DoFDistribution> ddFine,
+                    ConstSmartPtr<DoFDistribution> ddCoarse,
+                    number time)
+{
+	extract_data();
+
+	adjust_prolongation<CondNumberData>(m_mBNDNumberBndSegment, P, ddFine, ddCoarse, time);
+	adjust_prolongation<NumberData>(m_mNumberBndSegment, P, ddFine, ddCoarse, time);
+	adjust_prolongation<ConstNumberData>(m_mConstNumberBndSegment, P, ddFine, ddCoarse, time);
+
+	adjust_prolongation<VectorData>(m_mVectorBndSegment, P, ddFine, ddCoarse, time);
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TUserData>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_prolongation(const std::map<int, std::vector<TUserData*> >& mvUserData,
+                    matrix_type& P,
+                    ConstSmartPtr<DoFDistribution> ddFine,
+                    ConstSmartPtr<DoFDistribution> ddCoarse,
+                    number time)
+{
+//	loop boundary subsets
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
+	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
+	{
+	//	get subset index
+		const int si = (*iter).first;
+
+	//	get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData*>& vUserData = (*iter).second;
+
+	//	adapt jacobian for dofs in each base element type
+		try
+		{
+		if(ddFine->max_dofs(VERTEX)) adjust_prolongation<Vertex, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
+		if(ddFine->max_dofs(EDGE))   adjust_prolongation<EdgeBase, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
+		if(ddFine->max_dofs(FACE))   adjust_prolongation<Face, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
+		if(ddFine->max_dofs(VOLUME)) adjust_prolongation<Volume, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
+		}
+		UG_CATCH_THROW("DirichletBoundary::adjust_prolongation:"
+						" While calling 'adapt_prolongation' for TUserData, aborting.");
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TBaseElem, typename TUserData>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_prolongation(const std::vector<TUserData*>& vUserData, int si,
+                    matrix_type& P,
+                    ConstSmartPtr<DoFDistribution> ddFine,
+                    ConstSmartPtr<DoFDistribution> ddCoarse,
+                    number time)
+{
+//	create Multiindex
+	std::vector<DoFIndex> vFineDoF, vCoarseDoF;
+
+//	dummy for readin
+	typename TUserData::value_type val;
+
+//	position of dofs
+	std::vector<position_type> vPos;
+
+//	iterators
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = ddFine->begin<TBaseElem>(si);
+	iterEnd = ddFine->end<TBaseElem>(si);
+
+//	loop elements
+	for( ; iter != iterEnd; iter++)
+	{
+	//	get vertex
+		TBaseElem* elem = *iter;
+		GeometricObject* parent = m_spDomain->grid()->get_parent(elem);
+		if(!parent) continue;
+
+	//	loop dirichlet functions on this segment
+		for(size_t i = 0; i < vUserData.size(); ++i)
+		{
+			for(size_t f = 0; f < TUserData::numFct; ++f)
+			{
+			//	get function index
+				const size_t fct = vUserData[i]->fct[f];
+
+			//	get local finite element id
+				const LFEID& lfeID = ddFine->local_finite_element_id(fct);
+
+			//	get multi indices
+				ddFine->inner_dof_indices(elem, fct, vFineDoF);
+				ddCoarse->inner_dof_indices(parent, fct, vCoarseDoF);
+
+			//	get dof position
+				if(TUserData::isConditional){
+					InnerDoFPosition<TDomain>(vPos, elem, *m_spDomain, lfeID);
+					UG_ASSERT(vFineDoF.size() == vPos.size(), "Size mismatch");
+				}
+
+			//	loop dofs on element
+				for(size_t j = 0; j < vFineDoF.size(); ++j)
+				{
+				// 	check if function is dirichlet
+					if(TUserData::isConditional){
+						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
+					}
+
+					SetRow(P, vFineDoF[j], 0.0);
+				}
+
+				if(vFineDoF.size() > 0){
+					for(size_t k = 0; k < vCoarseDoF.size(); ++k){
+						DoFRef(P, vFineDoF[0], vCoarseDoF[k]) = 1.0;
+					}
+				}
+			}
+		}
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_restriction(matrix_type& R,
+					ConstSmartPtr<DoFDistribution> ddCoarse,
+					ConstSmartPtr<DoFDistribution> ddFine,
+					number time)
+{
+	extract_data();
+
+	adjust_restriction<CondNumberData>(m_mBNDNumberBndSegment, R, ddCoarse, ddFine, time);
+	adjust_restriction<NumberData>(m_mNumberBndSegment, R, ddCoarse, ddFine, time);
+	adjust_restriction<ConstNumberData>(m_mConstNumberBndSegment, R, ddCoarse, ddFine, time);
+
+	adjust_restriction<VectorData>(m_mVectorBndSegment, R, ddCoarse, ddFine, time);
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TUserData>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_restriction(const std::map<int, std::vector<TUserData*> >& mvUserData,
+                   matrix_type& R,
+                   ConstSmartPtr<DoFDistribution> ddCoarse,
+                   ConstSmartPtr<DoFDistribution> ddFine,
+                   number time)
+{
+//	loop boundary subsets
+	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
+	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
+	{
+	//	get subset index
+		const int si = (*iter).first;
+
+	//	get vector of scheduled dirichlet data on this subset
+		const std::vector<TUserData*>& vUserData = (*iter).second;
+
+	//	adapt jacobian for dofs in each base element type
+		try
+		{
+		if(ddFine->max_dofs(VERTEX)) adjust_restriction<Vertex, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
+		if(ddFine->max_dofs(EDGE))   adjust_restriction<EdgeBase, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
+		if(ddFine->max_dofs(FACE))   adjust_restriction<Face, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
+		if(ddFine->max_dofs(VOLUME)) adjust_restriction<Volume, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
+		}
+		UG_CATCH_THROW("DirichletBoundary::adjust_restriction:"
+						" While calling 'adjust_restriction' for TUserData, aborting.");
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+template <typename TBaseElem, typename TUserData>
+void DirichletBoundary<TDomain, TAlgebra>::
+adjust_restriction(const std::vector<TUserData*>& vUserData, int si,
+                   matrix_type& R,
+                   ConstSmartPtr<DoFDistribution> ddCoarse,
+                   ConstSmartPtr<DoFDistribution> ddFine,
+                   number time)
+{
+//	create Multiindex
+	std::vector<DoFIndex> vFineDoF, vCoarseDoF;
+
+//	dummy for readin
+	typename TUserData::value_type val;
+
+//	position of dofs
+	std::vector<position_type> vPos;
+
+//	iterators
+	typename DoFDistribution::traits<TBaseElem>::const_iterator iter, iterEnd;
+	iter = ddFine->begin<TBaseElem>(si);
+	iterEnd = ddFine->end<TBaseElem>(si);
+
+//	loop elements
+	for( ; iter != iterEnd; iter++)
+	{
+	//	get vertex
+		TBaseElem* elem = *iter;
+		GeometricObject* parent = m_spDomain->grid()->get_parent(elem);
+		if(!parent) continue;
+
+	//	loop dirichlet functions on this segment
+		for(size_t i = 0; i < vUserData.size(); ++i)
+		{
+			for(size_t f = 0; f < TUserData::numFct; ++f)
+			{
+			//	get function index
+				const size_t fct = vUserData[i]->fct[f];
+
+			//	get local finite element id
+				const LFEID& lfeID = ddFine->local_finite_element_id(fct);
+
+			//	get multi indices
+				ddFine->inner_dof_indices(elem, fct, vFineDoF);
+				ddCoarse->inner_dof_indices(parent, fct, vCoarseDoF);
+
+			//	get dof position
+				if(TUserData::isConditional){
+					InnerDoFPosition<TDomain>(vPos, parent, *m_spDomain, lfeID);
+					UG_ASSERT(vCoarseDoF.size() == vPos.size(), "Size mismatch");
+				}
+
+			//	loop dofs on element
+				for(size_t j = 0; j < vCoarseDoF.size(); ++j)
+				{
+				// 	check if function is dirichlet
+					if(TUserData::isConditional){
+						if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
+					}
+
+					SetRow(R, vCoarseDoF[j], 0.0);
+				}
+
+				if(vFineDoF.size() > 0){
+					for(size_t k = 0; k < vCoarseDoF.size(); ++k){
+						DoFRef(R, vCoarseDoF[k], vFineDoF[0]) = 1.0;
+					}
+				}
+			}
+		}
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //	adjust JACOBIAN

@@ -47,7 +47,7 @@ namespace ug{
 
 
 template <typename TMatrix>
-void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
+void MatAddSlaveRowsToMasterRowOverlap0(TMatrix& mat)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	using namespace std;
@@ -59,7 +59,7 @@ void MatCopySlaveRowsToMasterRowOverlap0(TMatrix& mat)
 	GenerateGlobalAlgebraIDs(comm, globalIDs, mat.num_rows(), masters, slaves);
 
 //	global ids are applied, now communicate...
-	ComPol_MatAddSlaveRowsToMasterOverlap0<TMatrix> comPolMatAdd(mat, globalIDs);
+	ComPol_MatAddRowsOverlap0<TMatrix> comPolMatAdd(mat, globalIDs);
 	comm.send_data(slaves, comPolMatAdd);
 	comm.receive_data(masters, comPolMatAdd);
 	comm.communicate();

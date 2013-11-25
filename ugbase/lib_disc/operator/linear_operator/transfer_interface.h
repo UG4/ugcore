@@ -30,6 +30,9 @@ class ITransferOperator
 	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
+	///	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
 	public:
 	/// Set Levels for Prolongation coarse -> fine
 		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
@@ -52,6 +55,16 @@ class ITransferOperator
 
 	/// Restricts vector, i.e. moves data from fine to coarse level
 		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine) = 0;
+
+	///	returns prolongation as a matrix
+		virtual SmartPtr<matrix_type> prolongation(){
+			UG_THROW("ITransferOperator: Matrix-prolongation not implemented.")
+		}
+
+	///	returns restriction as a matrix
+		virtual SmartPtr<matrix_type> restriction(){
+			UG_THROW("ITransferOperator: Matrix-restriction not implemented.")
+		}
 
 	///	Clone
 		virtual SmartPtr<ITransferOperator<TAlgebra> > clone() = 0;

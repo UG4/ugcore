@@ -476,6 +476,27 @@ bool IsCloseToBoundary(const T &A, size_t node, size_t distance)
 	return bFound;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * set value for row for entry (i,alpha).
+ * \param A (in) Matrix A
+ * \param i (in) row to set
+ * \param alpha the alpha index
+ * \param val the value to be set
+ */
+template <typename T>
+void SetRow(T &A, size_t i, size_t alpha, number val = 0.0)
+{
+	for(typename T::row_iterator conn = A.begin_row(i); conn != A.end_row(i); ++conn)
+	{
+		typename T::value_type& block = conn.value();
+		// block : 1x1 (CPU=1), 3x3 (CPU=3)
+		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+		{
+			BlockRef(block, alpha, beta) = val;
+		}
+	}
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

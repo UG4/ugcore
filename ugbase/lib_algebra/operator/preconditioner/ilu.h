@@ -330,7 +330,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 			// we use new instead (A.Vogel)
 			m_ILU = mat;
-			MatCopySlaveRowsToMasterRowOverlap0(m_ILU);
+			MatAddSlaveRowsToMasterRowOverlap0(m_ILU);
 
 		//	set zero on slaves
 			std::vector<IndexLayout::Element> vIndex;

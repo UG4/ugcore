@@ -922,7 +922,7 @@ void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
  * \tparam TMatrix	matrix type
  */
 template <class TMatrix>
-class ComPol_MatAddSlaveRowsToMasterOverlap0
+class ComPol_MatAddRowsOverlap0
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
@@ -930,7 +930,7 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 	/**
 	 * vGlobalID must have size >= mat.num_rows()
 	 */
-		ComPol_MatAddSlaveRowsToMasterOverlap0(TMatrix& rMat, AlgebraIDVec& vGlobalID)
+		ComPol_MatAddRowsOverlap0(TMatrix& rMat, AlgebraIDVec& vGlobalID)
 			: m_rMat(rMat), m_vGlobalID(vGlobalID)
 		{
 			UG_ASSERT(vGlobalID.size() >= m_rMat.num_rows(), "too few Global ids");
@@ -939,7 +939,7 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 	///	writes the interface values into a buffer that will be sent
 		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			PROFILE_BEGIN_GROUP(ComPol_MatAddSlaveRowsToMasterOverlap0_collect, "algebra parallelization");
+			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_collect, "algebra parallelization");
 			typedef typename TMatrix::row_iterator row_iterator;
 			typedef typename TMatrix::value_type block_type;
 
@@ -988,7 +988,7 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 	///	writes values from a buffer into the interface
 		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
 		{
-			PROFILE_BEGIN_GROUP(ComPol_MatAddSlaveRowsToMasterOverlap0_extract, "algebra parallelization");
+			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
 		//	block type of associated matrix
 			typedef typename TMatrix::value_type block_type;
 
@@ -1039,6 +1039,128 @@ class ComPol_MatAddSlaveRowsToMasterOverlap0
 		AlgebraIDHashList	m_algIDHash;
 
 };
+
+
+/// Comm-Pol to add matrix rows of inner-interface couplings
+/**
+ * \tparam TMatrix	matrix type
+ */
+template <class TMatrix>
+class ComPol_MatAddInnerInterfaceCouplings
+	: public pcl::ICommunicationPolicy<IndexLayout>
+{
+	public:
+	///	Constructor setting the matrix
+		ComPol_MatAddInnerInterfaceCouplings(TMatrix& rMat)
+			: m_rMat(rMat)
+		{}
+
+	///	writes the interface values into a buffer that will be sent
+		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(ComPol_MatAddInnerInterfaceCouplings_collect, "algebra parallelization");
+			typedef typename TMatrix::row_iterator row_iterator;
+			typedef typename TMatrix::value_type block_type;
+
+		//	build map
+			std::vector<int> vMapGlobToInterface(interface.size(), -1);
+			int k = 0;
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter, ++k){
+				vMapGlobToInterface[interface.get_element(iter)] = k;
+			}
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	get index
+				const size_t index = interface.get_element(iter);
+
+			//	count number of row entries
+				const row_iterator rowEnd = m_rMat.end_row(index);
+				size_t numRowEntry = 0;
+				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k){
+					if(vMapGlobToInterface[it_k.index()] < 0) continue;
+					numRowEntry++;
+				}
+
+			//	write number of row entries to stream
+				Serialize(buff, numRowEntry);
+
+			//	write entries and global id to stream
+				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k)
+				{
+					const size_t k = it_k.index();
+					if(vMapGlobToInterface[k] < 0) continue;
+					block_type& a_ik = it_k.value();
+
+				//	write global entry to buffer
+					Serialize(buff, vMapGlobToInterface[k]);
+
+				//	write entry into buffer
+					Serialize(buff, a_ik);
+				}
+			}
+
+		///	done
+			return true;
+		}
+
+		virtual bool
+		begin_layout_extraction(const Layout* pLayout)
+		{
+			return true;
+		}
+
+	///	writes values from a buffer into the interface
+		virtual bool extract(ug::BinaryBuffer& buff, const Interface& interface)
+		{
+			PROFILE_BEGIN_GROUP(ComPol_MatAddRowsOverlap0_extract, "algebra parallelization");
+		//	block type of associated matrix
+			typedef typename TMatrix::value_type block_type;
+
+		//	build map
+			std::vector<size_t> vMapInterfaceToGlob(interface.size());
+			int k = 0;
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter, ++k){
+				vMapInterfaceToGlob[k] = interface.get_element(iter);
+			}
+
+		//	we'll read blocks into this var
+			block_type block;
+			int interfaceID;
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	get index
+				const size_t index = interface.get_element(iter);
+
+			//	read the number of connections
+				size_t numConnections = 0;
+				Deserialize(buff, numConnections);
+
+			//	read each connection
+				for(size_t i_conn = 0; i_conn < numConnections; ++i_conn){
+					Deserialize(buff, interfaceID);
+					Deserialize(buff, block);
+
+					m_rMat(index, vMapInterfaceToGlob[interfaceID]) += block;
+				}
+			}
+
+		///	done
+			return true;
+		}
+
+	private:
+	//	pointer to current vector
+		TMatrix& m_rMat;
+};
+
 
 
 /// @}

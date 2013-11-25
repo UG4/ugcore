@@ -439,10 +439,63 @@ void StdTransfer<TDomain, TAlgebra>::init()
 	m_Restriction.set_storage_type(PST_CONSISTENT);
 	#endif
 
-	std::stringstream ss; ss<<"Restriction_"<<m_fineLevel.level()<<"_"<<m_coarseLevel.level();
-	write_debug(m_Restriction, ss.str().c_str());
-
+	write_debug(m_Restriction, "Restriction", m_fineLevel, m_coarseLevel);
 	m_bInit = true;
+}
+
+template <typename TDomain, typename TAlgebra>
+SmartPtr<typename TAlgebra::matrix_type>
+StdTransfer<TDomain, TAlgebra>::prolongation()
+{
+	ConstSmartPtr<DoFDistribution> spCoarseDD = m_spApproxSpace->dof_distribution(m_coarseLevel);
+	ConstSmartPtr<DoFDistribution> spFineDD = m_spApproxSpace->dof_distribution(m_fineLevel);
+
+	SmartPtr<matrix_type> R = SmartPtr<matrix_type>(new matrix_type);
+	assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, m_spApproxSpace->domain());
+	#ifdef UG_PARALLEL
+	R->set_storage_type(PST_CONSISTENT);
+	#endif
+	for(size_t i = 0; i < m_vConstraint.size(); ++i){
+		if (m_vConstraint[i]->type() & CT_DIRICHLET){
+			m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
+		}
+	}
+
+	SmartPtr<matrix_type> P = SmartPtr<matrix_type>(new matrix_type);
+	P->set_as_transpose_of(*R);
+	#ifdef UG_PARALLEL
+	P->set_storage_type(PST_CONSISTENT);
+	#endif
+
+	write_debug(*P, "P", m_coarseLevel, m_fineLevel);
+
+	return P;
+}
+
+template <typename TDomain, typename TAlgebra>
+SmartPtr<typename TAlgebra::matrix_type>
+StdTransfer<TDomain, TAlgebra>::restriction()
+{
+	ConstSmartPtr<DoFDistribution> spCoarseDD = m_spApproxSpace->dof_distribution(m_coarseLevel);
+	ConstSmartPtr<DoFDistribution> spFineDD = m_spApproxSpace->dof_distribution(m_fineLevel);
+
+	SmartPtr<matrix_type> R = SmartPtr<matrix_type>(new matrix_type);
+
+	assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, m_spApproxSpace->domain());
+
+	#ifdef UG_PARALLEL
+	R->set_storage_type(PST_CONSISTENT);
+	#endif
+
+	for(size_t i = 0; i < m_vConstraint.size(); ++i){
+		if (m_vConstraint[i]->type() & CT_DIRICHLET){
+			m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
+		}
+	}
+
+	write_debug(*R, "R", m_fineLevel, m_coarseLevel);
+
+	return R;
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -577,7 +630,8 @@ remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-write_debug(const matrix_type& mat, const char* filename)
+write_debug(const matrix_type& mat, std::string name,
+            const GridLevel& glFrom, const GridLevel& glTo)
 {
 	PROFILE_FUNC_GROUP("debug");
 //	if no debug writer set, we're done
@@ -591,11 +645,13 @@ write_debug(const matrix_type& mat, const char* filename)
 	if(dbgWriter.invalid()) return;
 
 //	add iter count to name
-	std::string name(filename); name.append(".mat");
+	name.append("_").append(ToString(glFrom.level()));
+	name.append("_").append(ToString(glTo.level()));
+	name.append(".mat");
 
 //	write
 	GridLevel gridLev = dbgWriter->grid_level();
-	dbgWriter->set_grid_levels(m_fineLevel, m_coarseLevel);
+	dbgWriter->set_grid_levels(glFrom, glTo);
 	dbgWriter->write_matrix(mat, name.c_str());
 	dbgWriter->set_grid_level(gridLev);
 }

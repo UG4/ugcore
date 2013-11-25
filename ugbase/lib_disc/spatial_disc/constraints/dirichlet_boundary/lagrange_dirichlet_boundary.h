@@ -126,6 +126,18 @@ class DirichletBoundary
 		void adjust_rhs(vector_type& b, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0);
 
+	///	sets constraints in prolongation
+		virtual void adjust_prolongation(matrix_type& P,
+										 ConstSmartPtr<DoFDistribution> ddFine,
+										 ConstSmartPtr<DoFDistribution> ddCoarse,
+										 number time = 0.0);
+
+	///	sets constraints in restriction
+		virtual void adjust_restriction(matrix_type& R,
+										ConstSmartPtr<DoFDistribution> ddCoarse,
+										ConstSmartPtr<DoFDistribution> ddFine,
+										number time = 0.0);
+
 	///	returns the type of the constraints
 		virtual int type() const {return CT_DIRICHLET;}
 
@@ -186,6 +198,34 @@ class DirichletBoundary
 		void adjust_rhs(const std::vector<TUserData*>& vUserData, int si,
 		                vector_type& b, const vector_type& u,
 		                ConstSmartPtr<DoFDistribution> dd, number time);
+
+		template <typename TUserData>
+		void adjust_prolongation(const std::map<int, std::vector<TUserData*> >& mvUserData,
+		                         matrix_type& P,
+		                         ConstSmartPtr<DoFDistribution> ddFine,
+		                         ConstSmartPtr<DoFDistribution> ddCoarse,
+		                         number time);
+
+		template <typename TBaseElem, typename TUserData>
+		void adjust_prolongation(const std::vector<TUserData*>& vUserData, int si,
+								matrix_type& P,
+								ConstSmartPtr<DoFDistribution> ddFine,
+								ConstSmartPtr<DoFDistribution> ddCoarse,
+								number time);
+
+		template <typename TUserData>
+		void adjust_restriction(const std::map<int, std::vector<TUserData*> >& mvUserData,
+							   matrix_type& R,
+							   ConstSmartPtr<DoFDistribution> ddCoarse,
+							   ConstSmartPtr<DoFDistribution> ddFine,
+							   number time);
+
+		template <typename TBaseElem, typename TUserData>
+		void adjust_restriction(const std::vector<TUserData*>& vUserData, int si,
+							   matrix_type& R,
+							   ConstSmartPtr<DoFDistribution> ddCoarse,
+							   ConstSmartPtr<DoFDistribution> ddFine,
+							   number time);
 
 	protected:
 	///	grouping for subset and non-conditional data
