@@ -9,6 +9,7 @@
 #define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__JACOBI__
 
 #include "lib_algebra/operator/interface/preconditioner.h"
+#include "lib_algebra/small_algebra/additional_math.h"
 #include "lib_algebra/cpu_algebra/vector.h"
 
 #ifdef UG_PARALLEL
@@ -98,12 +99,18 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			SmartPtr<Jacobi<algebra_type> > newInst(new Jacobi<algebra_type>());
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(damping());
+			newInst->set_block(m_bBlock);
 			return newInst;
 		}
 
 	///	Destructor
 		virtual ~Jacobi()
 		{};
+
+		void set_block(bool b)
+		{
+			m_bBlock = b;
+		}
 
 	protected:
 	///	Name of preconditioner
@@ -114,7 +121,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		{
 
 			PROFILE_BEGIN_GROUP(Jacobi_preprocess, "algebra Jacobi");
-#ifdef UG_PARALLEL
+
 			matrix_type &mat = *pOp;
 		// 	create help vector to apply diagonal
 			size_t size = mat.num_rows();
@@ -124,11 +131,11 @@ class Jacobi : public IPreconditioner<TAlgebra>
 				return false;
 			}
 
-		//	temporary vector for the diagonal
-			ParallelVector<Vector< typename matrix_type::value_type > > diag;
-
-		//	resize
+			//	resize
 			m_diagInv.resize(size);
+#ifdef UG_PARALLEL
+					//	temporary vector for the diagonal
+			ParallelVector<Vector< typename matrix_type::value_type > > diag;
 			diag.resize(size);
 
 		//	copy the layouts+communicator into the vector
@@ -143,23 +150,36 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			diag.set_storage_type(PST_ADDITIVE);
 			diag.change_storage_type(PST_CONSISTENT);
 
-		//	get damping in constant case to damp at once
-			number damp = 1.0;
-			if(damping()->constant_damping())
-				damp = damping()->damping();
 
 			if(diag.size() > 0)
 				if(CheckVectorInvertible(diag) == false)
 					return false;
 //			UG_ASSERT(CheckVectorInvertible(diag), "Jacobi: A has noninvertible diagonal");
 
-		// 	invert diagonal and multiply by damping
-			for(size_t i = 0; i < diag.size(); ++i)
-			{
-				diag[i] *= 1./damp;
-				GetInverse(m_diagInv[i], diag[i]);
-			}
 #endif
+
+//	get damping in constant case to damp at once
+			number damp = 1.0;
+			if(damping()->constant_damping())
+				damp = damping()->damping();
+
+			typename matrix_type::value_type m;
+		// 	invert diagonal and multiply by damping
+			for(size_t i = 0; i < mat.num_rows(); ++i)
+			{
+#ifdef UG_PARALLEL
+				typename matrix_type::value_type &d = diag[i];
+#else
+				typename matrix_type::value_type &d = mat(i,i);
+#endif
+				if(m_bBlock)
+					GetDiag(m, d);
+				else
+					m = d;
+				m *= 1./damp;
+				GetInverse(m_diagInv[i], m);
+			}
+
 		//	done
 			return true;
 		}
@@ -167,7 +187,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 			PROFILE_BEGIN_GROUP(Jacobi_step, "algebra Jacobi");
-#ifdef UG_PARALLEL
+
 		// 	multiply defect with diagonal, c = damp * D^{-1} * d
 		//	note, that the damping is already included in the inverse diagonal
 			for(size_t i = 0; i < m_diagInv.size(); ++i)
@@ -175,6 +195,8 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			// 	c[i] = m_diagInv[i] * d[i];
 				MatMult(c[i], 1.0, m_diagInv[i], d[i]);
 			}
+
+#ifdef UG_PARALLEL
 
 		// 	the computed correction is additive
 			c.set_storage_type(PST_ADDITIVE);
@@ -185,19 +207,6 @@ class Jacobi : public IPreconditioner<TAlgebra>
 				UG_LOG("ERROR in 'JacobiPreconditioner::apply': "
 						"Cannot change parallel status of correction to consistent.\n");
 				return false;
-			}
-#else
-			matrix_type &mat = *pOp;
-		//	get damping in constant case to damp at once
-			number damp = 1.0;
-			if(damping()->constant_damping())
-				damp = damping()->damping();
-
-		// 	apply iterator: c = B*d (damp is not used)
-			for(size_t i = 0; i < c.size(); ++i)
-			{
-			// 	c[i] = damp * d[i] / mat(i,i)
-				InverseMatMult(c[i], damp, mat(i,i), d[i]);
 			}
 #endif
 		//	done
@@ -227,15 +236,10 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			#endif
 
 		//	Check sizes
-			if(d.size() != m_spOperator->num_rows())
-				UG_THROW("Vector [size= "<<d.size()<<"] and Row [size= "
-				               <<this->m_spOperator->num_rows()<<"] sizes have to match!");
-			if(c.size() != m_spOperator->num_cols())
-				UG_THROW("Vector [size= "<<c.size()<<"] and Column [size= "
-				               <<m_spOperator->num_cols()<<"] sizes have to match!");
-			if(d.size() != c.size())
-				UG_THROW("Vector [d size= "<<d.size()<<", c size = "
-				               << c.size() << "] sizes have to match!");
+			THROW_IF_NOT_EQUAL(d.size(), m_spOperator->num_rows());
+			THROW_IF_NOT_EQUAL(c.size(), m_spOperator->num_cols());
+			THROW_IF_NOT_EQUAL(c.size(), m_spOperator->num_cols());
+			THROW_IF_NOT_EQUAL(c.size(), d.size());
 
 		// 	apply iterator: c = B*d
 			if(!step(m_spOperator, c, d))
@@ -264,13 +268,13 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		}
 
 	protected:
-#ifdef UG_PARALLEL
 	///	type of block-inverse
 		typedef typename block_traits<typename matrix_type::value_type>::inverse_type inverse_type;
 
 	///	storage of the inverse diagonal in parallel
 		std::vector<inverse_type> m_diagInv;
-#endif
+		bool m_bBlock;
+
 
 };
 
