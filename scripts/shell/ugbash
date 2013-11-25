@@ -60,6 +60,7 @@ chmod +x $UG4_ROOT/scripts/shell/uginstall
 chmod +x $UG4_ROOT/scripts/shell/sshfsmake
 
 chmod +x $UG4_ROOT/scripts/shell/xprun
+chmod +x $UG4_ROOT/scripts/shell/mpigdb1
 chmod +x $UG4_ROOT/scripts/shell/xtermrun
 
 ugbasegrep()
@@ -73,6 +74,11 @@ ugpluginsgrep()
 ugcmakegrep()
 {
 	fgrep -r "$1" $UG4_ROOT/cmake
+}
+
+ugappsgrep()
+{
+	fgrep -r "$1" $UG4_ROOT/apps
 }
 
 uggrep()
