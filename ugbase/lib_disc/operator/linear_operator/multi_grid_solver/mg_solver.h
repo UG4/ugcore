@@ -235,7 +235,8 @@ class AssembledMultiGridCycle :
 	///	assembles the missing matrix part on the coarse level, that must be
 	///	added if the correction has been computed to ensure a correctly updated
 	///	defect. (i.e. assembles A^c, with d^f -= A^c * c^c)
-		void init_missing_coarse_grid_coupling(const vector_type* u);
+		void assemble_missing_coarse_grid_coupling(const vector_type* u);
+		void init_rap_missing_coarse_grid_coupling();
 
 	protected:
 	/// operator to invert (surface grid)
@@ -288,9 +289,12 @@ class AssembledMultiGridCycle :
 			int level;
 		};
 		std::vector<LevelIndex> m_vSurfToLevelMap;
+		std::vector<LevelIndex> m_vSurfToLevelMapLowerLev;
 		template <typename TElem>
-		void init_surface_to_level_mapping();
-		void init_surface_to_level_mapping();
+		void init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
+		                                   bool bHigherLevWins = true);
+		void init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
+		                                   bool bHigherLevWins = true);
 	/// \}
 
 	///	init mapping from noghost -> w/ ghost

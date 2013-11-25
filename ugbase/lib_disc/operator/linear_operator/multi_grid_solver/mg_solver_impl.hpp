@@ -357,7 +357,13 @@ init()
 	//	init mapping from surface level to top level in case of full refinement
 		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
 		try{
-			init_surface_to_level_mapping();
+			init_surface_to_level_mapping(m_vSurfToLevelMap, true);
+
+			if(m_bUseRAP && (m_LocalFullRefLevel != m_topLev)){
+				init_surface_to_level_mapping(m_vSurfToLevelMapLowerLev, false);
+			} else {
+				m_vSurfToLevelMapLowerLev.resize(0);
+			}
 		}
 		UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
 		GMG_PROFILE_END();
@@ -563,113 +569,19 @@ assemble_level_operator()
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
 	try{
-		init_missing_coarse_grid_coupling(m_pSurfaceSol);
+		assemble_missing_coarse_grid_coupling(m_pSurfaceSol);
 	}
 	UG_CATCH_THROW("GMG:init: Cannot init missing coarse grid coupling.");
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop assemble_level_operator\n");
 }
 
-
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_rap_operator()
-{
-	for(int lev = m_topLev; lev >= m_baseLev; --lev)
-	{
-		LevData& ld = *m_vLevData[lev];
-		ld.A->resize_and_clear(ld.st->size(), ld.st->size());
-		#ifdef UG_PARALLEL
-		ld.A->set_storage_type(m_spSurfaceMat->get_storage_mask());
-		ld.A->set_layouts(ld.st->layouts());
-		#endif
-	}
-
-	for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
-	{
-	//	get mapped level index
-		const int lvlFrom = m_vSurfToLevelMap[surfFrom].level;
-		const size_t indexFrom = m_vSurfToLevelMap[surfFrom].index;
-
-	//	loop all connections of the surface dof to other surface dofs
-	//	and copy the matrix coupling into the level matrix
-		typedef typename matrix_type::const_row_iterator const_row_iterator;
-		const_row_iterator conn = m_spSurfaceMat->begin_row(surfFrom);
-		const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
-		for( ;conn != connEnd; ++conn){
-		//	get corresponding level connection index
-			const int lvlTo = m_vSurfToLevelMap[conn.index()].level;
-			const size_t indexTo = m_vSurfToLevelMap[conn.index()].index;
-
-			if(lvlTo != lvlFrom)
-				UG_THROW("GMG: rap currently only for full-refinement.")
-
-		//	copy connection to level matrix
-			(*(m_vLevData[lvlTo]->A))(indexFrom, indexTo) = conn.value();
-		}
-	}
-
-// 	Create coarse level operators
-	for(int lev = m_topLev; lev > m_baseLev; --lev)
-	{
-		LevData& lf = *m_vLevData[lev];
-		LevData& lc = *m_vLevData[lev-1];
-
-		SmartPtr<matrix_type> R = lf.Restriction->restriction();
-		SmartPtr<matrix_type> P = lf.Prolongation->prolongation();
-
-		SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
-		spGhostA->resize_and_clear(lf.t->size(), lf.t->size());
-		copy_noghost_to_ghost(spGhostA, lf.A, lf.vMapPatchToGlobal);
-
-#ifdef UG_PARALLEL
-		spGhostA->set_layouts(lf.t->layouts());
-
-		devide_vertical_slave_rows_by_number_of_masters(*spGhostA);
-		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, true);
-		if(!spGhostA->layouts()->vertical_slave().empty())
-			m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
-		if(!spGhostA->layouts()->vertical_master().empty())
-			m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
-		m_Com.communicate();
-#endif
-
-		AddMultiplyOf(*lc.A, *R, *spGhostA, *P);
-	}
-
-	if(m_bGatheredBaseUsed)
-	{
-		LevData& ld = *m_vLevData[m_baseLev];
-
-		spBaseSolverMat->resize_and_clear(ld.t->size(), ld.t->size());
-		copy_noghost_to_ghost(spBaseSolverMat.template cast_dynamic<matrix_type>(), ld.A, ld.vMapPatchToGlobal);
-#ifdef UG_PARALLEL
-		spBaseSolverMat->set_layouts(ld.t->layouts());
-
-		devide_vertical_slave_rows_by_number_of_masters(*spBaseSolverMat);
-		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spBaseSolverMat, true);
-		if(!spBaseSolverMat->layouts()->vertical_slave().empty())
-			m_Com.send_data(spBaseSolverMat->layouts()->vertical_slave(), cpMatAdd);
-		if(!spBaseSolverMat->layouts()->vertical_master().empty())
-			m_Com.receive_data(spBaseSolverMat->layouts()->vertical_master(), cpMatAdd);
-		m_Com.communicate();
-#endif
-	}
-
-//	write computed level matrices for debug purpose
-	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
-		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrix", lev);
-	}
-
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_rap_operator\n");
-}
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_missing_coarse_grid_coupling(const vector_type* u)
+assemble_missing_coarse_grid_coupling(const vector_type* u)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_missing_coarse_grid_coupling " << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - assemble_missing_coarse_grid_coupling " << "\n");
 
 //	clear matrices
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev)
@@ -677,7 +589,7 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 
 //	if the grid is fully refined, nothing to do
 	if(m_topLev <= m_LocalFullRefLevel){
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling (non-adaptive)" << "\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling (non-adaptive)" << "\n");
 		return;
 	}
 
@@ -738,12 +650,182 @@ init_missing_coarse_grid_coupling(const vector_type* u)
 #ifdef UG_PARALLEL
 		lc.CoarseGridContribution.set_storage_type(surfMat.get_storage_mask());
 #endif
-		write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
+		//write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
 		write_surface_debug(surfMat, std::string("MissingSurfMat_").append(ToString(lev)));
 	}
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_missing_coarse_grid_coupling " << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling " << "\n");
 }
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_rap_operator()
+{
+	for(int lev = m_topLev; lev >= m_baseLev; --lev)
+	{
+		LevData& ld = *m_vLevData[lev];
+		ld.A->resize_and_clear(ld.st->size(), ld.st->size());
+		#ifdef UG_PARALLEL
+		ld.A->set_storage_type(m_spSurfaceMat->get_storage_mask());
+		ld.A->set_layouts(ld.st->layouts());
+		#endif
+	}
+
+	for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
+	{
+	//	loop all connections of the surface dof to other surface dofs
+	//	and copy the matrix coupling into the level matrix
+		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		const_row_iterator conn = m_spSurfaceMat->begin_row(surfFrom);
+		const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
+		for( ;conn != connEnd; ++conn)
+		{
+		//	get mapped level index
+			int lvlFrom = m_vSurfToLevelMap[surfFrom].level;
+			size_t indexFrom = m_vSurfToLevelMap[surfFrom].index;
+
+		//	get corresponding level connection index
+			const size_t surfTo = conn.index();
+			int lvlTo = m_vSurfToLevelMap[surfTo].level;
+			size_t indexTo = m_vSurfToLevelMap[surfTo].index;
+
+			if(lvlTo > lvlFrom){
+				lvlTo = m_vSurfToLevelMapLowerLev[surfTo].level;
+				indexTo = m_vSurfToLevelMapLowerLev[surfTo].index;
+			}
+
+			if(lvlFrom > lvlTo){
+				lvlFrom = m_vSurfToLevelMapLowerLev[surfFrom].level;
+				indexFrom = m_vSurfToLevelMapLowerLev[surfFrom].index;
+			}
+
+			if(lvlTo != lvlFrom)
+				continue;
+
+		//	copy connection to level matrix
+			(*(m_vLevData[lvlTo]->A))(indexFrom, indexTo) = conn.value();
+		}
+	}
+
+//	write computed level matrices for debug purpose
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrixFromSurf", lev);
+	}
+
+// 	Create coarse level operators
+	for(int lev = m_topLev; lev > m_baseLev; --lev)
+	{
+		LevData& lf = *m_vLevData[lev];
+		LevData& lc = *m_vLevData[lev-1];
+
+		SmartPtr<matrix_type> R = lf.Restriction->restriction();
+		SmartPtr<matrix_type> P = lf.Prolongation->prolongation();
+
+		SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
+		spGhostA->resize_and_clear(lf.t->size(), lf.t->size());
+		copy_noghost_to_ghost(spGhostA, lf.A, lf.vMapPatchToGlobal);
+
+#ifdef UG_PARALLEL
+		spGhostA->set_layouts(lf.t->layouts());
+
+		devide_vertical_slave_rows_by_number_of_masters(*spGhostA);
+		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, true);
+		if(!spGhostA->layouts()->vertical_slave().empty())
+			m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
+		if(!spGhostA->layouts()->vertical_master().empty())
+			m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
+		m_Com.communicate();
+#endif
+
+		AddMultiplyOf(*lc.A, *R, *spGhostA, *P);
+	}
+
+	if(m_bGatheredBaseUsed)
+	{
+		LevData& ld = *m_vLevData[m_baseLev];
+
+		spBaseSolverMat->resize_and_clear(ld.t->size(), ld.t->size());
+		copy_noghost_to_ghost(spBaseSolverMat.template cast_dynamic<matrix_type>(), ld.A, ld.vMapPatchToGlobal);
+#ifdef UG_PARALLEL
+		spBaseSolverMat->set_storage_type(m_spSurfaceMat->get_storage_mask());
+		spBaseSolverMat->set_layouts(ld.t->layouts());
+
+		devide_vertical_slave_rows_by_number_of_masters(*spBaseSolverMat);
+		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spBaseSolverMat, true);
+		if(!spBaseSolverMat->layouts()->vertical_slave().empty())
+			m_Com.send_data(spBaseSolverMat->layouts()->vertical_slave(), cpMatAdd);
+		if(!spBaseSolverMat->layouts()->vertical_master().empty())
+			m_Com.receive_data(spBaseSolverMat->layouts()->vertical_master(), cpMatAdd);
+		m_Com.communicate();
+#endif
+	}
+
+//	write computed level matrices for debug purpose
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrix", lev);
+	}
+
+//	coarse grid contributions
+	try{
+		init_rap_missing_coarse_grid_coupling();
+	}
+	UG_CATCH_THROW("GMG:init: Cannot init missing coarse grid coupling.");
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_rap_operator\n");
+}
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_rap_missing_coarse_grid_coupling()
+{
+	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - assemble_missing_coarse_grid_coupling " << "\n");
+
+//	clear matrices
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+		LevData& ld = *m_vLevData[lev];
+		ld.CoarseGridContribution.resize_and_clear(0,0);
+	}
+
+//	if the grid is fully refined, nothing to do
+	if(m_topLev <= m_LocalFullRefLevel){
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling (non-adaptive)" << "\n");
+		return;
+	}
+
+	for(int lev = m_LocalFullRefLevel; lev < m_topLev; ++lev)
+	{
+		LevData& lc = *m_vLevData[lev];
+		LevData& lf = *m_vLevData[lev+1];
+#ifdef UG_PARALLEL
+		lc.CoarseGridContribution.set_storage_type(m_spSurfaceMat->get_storage_mask());
+#endif
+		lc.CoarseGridContribution.resize_and_clear(lf.sd->size(), lc.sc->size());
+
+		for(size_t i = 0; i< lf.vShadowing.size(); ++i)
+		{
+			const size_t lvlFrom = lf.vShadowing[i];
+			const size_t surfFrom = lf.vSurfShadowing[i];
+
+			typedef typename matrix_type::const_row_iterator const_row_iterator;
+			const_row_iterator conn = m_spSurfaceMat->begin_row(surfFrom);
+			const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
+			for( ;conn != connEnd; ++conn)
+			{
+				const size_t surfTo = conn.index();
+				if(m_vSurfToLevelMap[surfTo].level != lev) continue;
+
+				const size_t lvlTo = m_vSurfToLevelMap[surfTo].index;
+
+				(lc.CoarseGridContribution)(lvlFrom, lvlTo) = conn.value();
+			}
+		}
+	}
+
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling " << "\n");
+}
+
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
@@ -883,7 +965,8 @@ init_base_solver()
 template <typename TDomain, typename TAlgebra>
 template <typename TElem>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_surface_to_level_mapping()
+init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
+                              bool bHigherLevWins)
 {
 /*	This Method is used to create a caching the transfer between surface and
  * 	level grid functions. Note, that in the adaptive case the surface grid is
@@ -946,7 +1029,7 @@ init_surface_to_level_mapping()
 	//	do not allow that.
 		if(level < m_baseLev)
 			UG_THROW("GMG::init: Some index of the surface grid is located on "
-					"level "<<level<<", which is below the choosen baseLev "<<
+					"level "<<level<<", which is below the chosen baseLev "<<
 					m_baseLev<<". This is not allowed, since otherwise the "
 					"gmg correction would only affect parts of the domain. Use"
 					"gmg:set_base_level(lvl) to cure this issue.");
@@ -963,10 +1046,15 @@ init_surface_to_level_mapping()
 		for(size_t i = 0; i < vSurfInd.size(); ++i)
 		{
 		//  check if some shadowing has already set the value
-			if(m_vSurfToLevelMap[vSurfInd[i]].level > level) continue;
+			if(bHigherLevWins){
+				if(vSurfToLevelMap[vSurfInd[i]].level > level) continue;
+			} else {
+				if(vSurfToLevelMap[vSurfInd[i]].level >= 0 &&
+				   vSurfToLevelMap[vSurfInd[i]].level < level) continue;
+			}
 
 		//	store index + level
-			m_vSurfToLevelMap[vSurfInd[i]] = LevelIndex(vLevelInd[i], level);
+			vSurfToLevelMap[vSurfInd[i]] = LevelIndex(vLevelInd[i], level);
 		}
 	}
 }
@@ -974,20 +1062,21 @@ init_surface_to_level_mapping()
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_surface_to_level_mapping()
+init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
+                              bool bHigherLevWins)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	ConstSmartPtr<DoFDistribution> surfDD =
 			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
-	m_vSurfToLevelMap.resize(0);
-	m_vSurfToLevelMap.resize(surfDD->num_indices());
+	vSurfToLevelMap.resize(0);
+	vSurfToLevelMap.resize(surfDD->num_indices());
 	m_LocalFullRefLevel = std::numeric_limits<int>::max();
 
-	if(surfDD->max_dofs(VERTEX)) init_surface_to_level_mapping<VertexBase>();
-	if(surfDD->max_dofs(EDGE))   init_surface_to_level_mapping<EdgeBase>();
-	if(surfDD->max_dofs(FACE))   init_surface_to_level_mapping<Face>();
-	if(surfDD->max_dofs(VOLUME)) init_surface_to_level_mapping<Volume>();
+	if(surfDD->max_dofs(VERTEX)) init_surface_to_level_mapping<VertexBase>(vSurfToLevelMap, bHigherLevWins);
+	if(surfDD->max_dofs(EDGE))   init_surface_to_level_mapping<EdgeBase>(vSurfToLevelMap, bHigherLevWins);
+	if(surfDD->max_dofs(FACE))   init_surface_to_level_mapping<Face>(vSurfToLevelMap, bHigherLevWins);
+	if(surfDD->max_dofs(VOLUME)) init_surface_to_level_mapping<Volume>(vSurfToLevelMap, bHigherLevWins);
 
 	if(m_baseLev > m_LocalFullRefLevel)
 		UG_THROW("GMG: Base level "<<m_baseLev<<" does not cover whole grid. "
