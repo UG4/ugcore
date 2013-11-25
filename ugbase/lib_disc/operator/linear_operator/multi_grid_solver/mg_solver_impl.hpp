@@ -1361,9 +1361,6 @@ restriction(int lev)
 	if(lf.t->size() > 0){
 		devide_vertical_slaves_by_number_of_masters(*lf.t);
 		add_to_vertical_masters(*lf.t);
-		#ifdef UG_PARALLEL
-		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_slave(), 0);
-		#endif
 	}
 
 //	Now we can restrict the defect from the fine level to the coarser level.
@@ -1743,7 +1740,7 @@ add_to_vertical_masters(vector_type& d)
 
 //	send vertical-slaves -> vertical-masters
 	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
-	ComPol_VecAdd<vector_type> cpVecAdd(&d);
+	ComPol_VecAddSetZero<vector_type> cpVecAdd(&d);
 
 	if(!d.layouts()->vertical_slave().empty())
 		m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
