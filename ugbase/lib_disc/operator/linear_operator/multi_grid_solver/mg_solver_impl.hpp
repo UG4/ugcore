@@ -661,6 +661,9 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_rap_operator()
 {
+	PROFILE_FUNC_GROUP("gmg");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_rap_operator\n");
+
 	for(int lev = m_topLev; lev >= m_baseLev; --lev)
 	{
 		LevData& ld = *m_vLevData[lev];
@@ -671,6 +674,8 @@ init_rap_operator()
 		#endif
 	}
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_rap_operator: copy from surface\n");
+	GMG_PROFILE_BEGIN(GMG_CopyMatFromSurface);
 	for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
 	{
 	//	loop all connections of the surface dof to other surface dofs
@@ -706,6 +711,8 @@ init_rap_operator()
 			(*(m_vLevData[lvlTo]->A))(indexFrom, indexTo) = conn.value();
 		}
 	}
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_rap_operator: copy from surface\n");
 
 //	write computed level matrices for debug purpose
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
@@ -713,22 +720,27 @@ init_rap_operator()
 	}
 
 // 	Create coarse level operators
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_rap_operator: build rap\n");
+	GMG_PROFILE_BEGIN(GMG_BuildAllRAP);
 	for(int lev = m_topLev; lev > m_baseLev; --lev)
 	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_rap_operator: build rap on lev "<<lev<<"\n");
 		LevData& lf = *m_vLevData[lev];
 		LevData& lc = *m_vLevData[lev-1];
 
+		GMG_PROFILE_BEGIN(GMG_CreateRestrictionAndProlongation);
 		SmartPtr<matrix_type> R = lf.Restriction->restriction();
 		SmartPtr<matrix_type> P = lf.Prolongation->prolongation();
+		GMG_PROFILE_END();
 
+		GMG_PROFILE_BEGIN(GMG_CopyGhosts);
 		SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
 		spGhostA->resize_and_clear(lf.t->size(), lf.t->size());
 		copy_noghost_to_ghost(spGhostA, lf.A, lf.vMapPatchToGlobal);
-
 #ifdef UG_PARALLEL
 		spGhostA->set_layouts(lf.t->layouts());
 
-		devide_vertical_slave_rows_by_number_of_masters(*spGhostA);
+		divide_vertical_slave_rows_by_number_of_masters(*spGhostA);
 		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, true);
 		if(!spGhostA->layouts()->vertical_slave().empty())
 			m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
@@ -736,12 +748,19 @@ init_rap_operator()
 			m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
 		m_Com.communicate();
 #endif
+		GMG_PROFILE_END();
 
+		GMG_PROFILE_BEGIN(GMG_ComputeRAP);
 		AddMultiplyOf(*lc.A, *R, *spGhostA, *P);
+		GMG_PROFILE_END();
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_rap_operator: build rap on lev "<<lev<<"\n");
 	}
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_rap_operator: build rap\n");
 
 	if(m_bGatheredBaseUsed)
 	{
+		GMG_PROFILE_BEGIN(GMG_GatherFromBaseSolver);
 		LevData& ld = *m_vLevData[m_baseLev];
 
 		spBaseSolverMat->resize_and_clear(ld.t->size(), ld.t->size());
@@ -750,7 +769,7 @@ init_rap_operator()
 		spBaseSolverMat->set_storage_type(m_spSurfaceMat->get_storage_mask());
 		spBaseSolverMat->set_layouts(ld.t->layouts());
 
-		devide_vertical_slave_rows_by_number_of_masters(*spBaseSolverMat);
+		divide_vertical_slave_rows_by_number_of_masters(*spBaseSolverMat);
 		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spBaseSolverMat, true);
 		if(!spBaseSolverMat->layouts()->vertical_slave().empty())
 			m_Com.send_data(spBaseSolverMat->layouts()->vertical_slave(), cpMatAdd);
@@ -758,6 +777,7 @@ init_rap_operator()
 			m_Com.receive_data(spBaseSolverMat->layouts()->vertical_master(), cpMatAdd);
 		m_Com.communicate();
 #endif
+		GMG_PROFILE_END();
 	}
 
 //	write computed level matrices for debug purpose
@@ -779,7 +799,7 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_rap_missing_coarse_grid_coupling()
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - assemble_missing_coarse_grid_coupling " << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_rap_missing_coarse_grid_coupling " << "\n");
 
 //	clear matrices
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
@@ -789,7 +809,7 @@ init_rap_missing_coarse_grid_coupling()
 
 //	if the grid is fully refined, nothing to do
 	if(m_topLev <= m_LocalFullRefLevel){
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling (non-adaptive)" << "\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_rap_missing_coarse_grid_coupling (non-adaptive)" << "\n");
 		return;
 	}
 
@@ -823,7 +843,7 @@ init_rap_missing_coarse_grid_coupling()
 	}
 
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling " << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_rap_missing_coarse_grid_coupling " << "\n");
 }
 
 
@@ -1448,7 +1468,7 @@ restriction(int lev)
 	#endif
 	copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
 	if(lf.t->size() > 0){
-		devide_vertical_slaves_by_number_of_masters(*lf.t);
+		divide_vertical_slaves_by_number_of_masters(*lf.t);
 		add_to_vertical_masters(*lf.t);
 	}
 
@@ -1604,7 +1624,7 @@ base_solve(int lev)
 		SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), 0);
 		#endif
 		copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
-		devide_vertical_slaves_by_number_of_masters(*ld.t);
+		divide_vertical_slaves_by_number_of_masters(*ld.t);
 		add_to_vertical_masters(*ld.t);
 
 	//	Reset correction
@@ -1722,10 +1742,10 @@ lmgc(int lev)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-devide_vertical_slaves_by_number_of_masters(vector_type& d)
+divide_vertical_slaves_by_number_of_masters(vector_type& d)
 {
 #ifdef UG_PARALLEL
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - devide_vertical_slaves_by_number_of_masters\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - divide_vertical_slaves_by_number_of_masters\n");
 	PROFILE_FUNC_GROUP("gmg");
 
 	if(d.layouts()->vertical_slave().empty()) return;
@@ -1765,16 +1785,16 @@ devide_vertical_slaves_by_number_of_masters(vector_type& d)
 	}
 
 	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - devide_vertical_slaves_by_number_of_masters\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - divide_vertical_slaves_by_number_of_masters\n");
 #endif
 }
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-devide_vertical_slave_rows_by_number_of_masters(matrix_type& mat)
+divide_vertical_slave_rows_by_number_of_masters(matrix_type& mat)
 {
 #ifdef UG_PARALLEL
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - devide_vertical_slave_rows_by_number_of_masters\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - divide_vertical_slave_rows_by_number_of_masters\n");
 	PROFILE_FUNC_GROUP("gmg");
 
 	if(mat.layouts()->vertical_slave().empty()) return;
@@ -1814,7 +1834,7 @@ devide_vertical_slave_rows_by_number_of_masters(matrix_type& mat)
 	}
 
 	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - devide_vertical_slave_rows_by_number_of_masters\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - divide_vertical_slave_rows_by_number_of_masters\n");
 #endif
 }
 
