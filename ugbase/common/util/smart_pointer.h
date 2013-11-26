@@ -126,6 +126,16 @@ class SmartPtr
 			return !(this->operator==(sp));
 		}
 
+		template <class TPtr>
+		bool operator==(const ConstSmartPtr<TPtr, FreePolicy>& sp) const {
+			return (this->get() == sp.get());
+		}
+
+		template <class TPtr>
+		bool operator!=(const ConstSmartPtr<TPtr, FreePolicy>& sp) const {
+			return !(this->operator==(sp));
+		}
+
 	///	returns encapsulated pointer
 		T* get()				{return m_ptr;}
 
@@ -306,6 +316,16 @@ class ConstSmartPtr
 		}
 
 		bool operator!=(const ConstSmartPtr& sp) const {
+			return !(this->operator==(sp));
+		}
+
+		template <class TPtr>
+		bool operator==(const SmartPtr<TPtr, FreePolicy>& sp) const {
+			return (this->get() == sp.get());
+		}
+
+		template <class TPtr>
+		bool operator!=(const SmartPtr<TPtr, FreePolicy>& sp) const {
 			return !(this->operator==(sp));
 		}
 
