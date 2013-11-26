@@ -75,6 +75,14 @@ class InjectionTransfer :
 	///	removes a post process
 		void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
 
+	protected:
+		template <typename TElem>
+		void set_identity_on_pure_surface(matrix_type& mat,
+		                                  const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
+
+		void set_identity_on_pure_surface(matrix_type& mat,
+		                                  const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
+
 	public:
 	///	Init operator
 		virtual void init();

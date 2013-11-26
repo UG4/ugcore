@@ -138,6 +138,59 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 	if(coarseDD.max_dofs(VOLUME)) AssembleInjectionByAverageOfChildren<3, TAlgebra>(mat, coarseDD, fineDD);
 }
 
+template <typename TDomain, typename TAlgebra>
+template <typename TElem>
+void InjectionTransfer<TDomain, TAlgebra>::
+set_identity_on_pure_surface(matrix_type& mat,
+                             const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
+{
+	PROFILE_FUNC_GROUP("gmg");
+
+	std::vector<size_t> vCoarseIndex, vFineIndex;
+	const MultiGrid& mg = *coarseDD.multi_grid();
+
+//  iterators
+	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
+	const_iterator iter, iterBegin, iterEnd;
+
+//  loop subsets on fine level
+	for(int si = 0; si < coarseDD.num_subsets(); ++si)
+	{
+		iterBegin = coarseDD.template begin<TElem>(si);
+		iterEnd = coarseDD.template end<TElem>(si);
+
+	//  loop vertices for fine level subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get element
+			TElem* coarseElem = *iter;
+
+			const size_t numChild = mg.num_children<TElem, TElem>(coarseElem);
+			if(numChild != 0) continue;
+
+		//	get indices
+			coarseDD.inner_algebra_indices(coarseElem, vCoarseIndex);
+			fineDD.inner_algebra_indices(coarseElem, vFineIndex);
+			UG_ASSERT(vCoarseIndex.size() == vFineIndex.size(), "Size mismatch");
+
+		//	set identity
+			for(size_t i = 0; i < vCoarseIndex.size(); ++i)
+				mat(vCoarseIndex[i], vFineIndex[i]) = 1.0;
+		}
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+void InjectionTransfer<TDomain, TAlgebra>::
+set_identity_on_pure_surface(matrix_type& mat,
+                             const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
+{
+	if(coarseDD.max_dofs(VERTEX)) set_identity_on_pure_surface<VertexBase>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(EDGE)) set_identity_on_pure_surface<EdgeBase>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(FACE)) set_identity_on_pure_surface<Face>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(VOLUME)) set_identity_on_pure_surface<Volume>(mat, coarseDD, fineDD);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 // 	InjectionTransfer
@@ -162,11 +215,6 @@ set_levels(GridLevel coarseLevel, GridLevel fineLevel)
 	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
 		UG_THROW("InjectionTransfer::set_levels:"
 				" Can only project between successive level.");
-
-	if(m_fineLevel.type() != GridLevel::LEVEL ||
-	   m_coarseLevel.type() != GridLevel::LEVEL)
-		UG_THROW("InjectionTransfer::set_levels:"
-				" Can only project between level dof distributions.");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -202,6 +250,10 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 
 	} UG_CATCH_THROW("InjectionTransfer::init():"
 						" Cannot assemble interpolation matrix.");
+
+	if(m_coarseLevel.is_surface()){
+		set_identity_on_pure_surface(m_matrix, *m_spApproxSpace->dof_distribution(m_coarseLevel), *m_spApproxSpace->dof_distribution(m_fineLevel));
+	}
 
 	#ifdef UG_PARALLEL
 		m_matrix.set_storage_type(PST_CONSISTENT);
