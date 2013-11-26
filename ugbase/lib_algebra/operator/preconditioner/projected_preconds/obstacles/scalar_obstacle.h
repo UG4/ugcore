@@ -24,6 +24,9 @@ namespace ug{
  *
  * 	where u is the solution vector. Here, 'upObs' and 'lowObs' are user-defined functions,
  * 	which need to be of the same size as the function of unknowns u.
+ *
+ * 	Those obstacle functions can be used in combination with projected preconditioners. They
+ * 	should be passed to the preconditioner by 'IProjPreconditioner::set_obstacle_constraint'.
  */
 template <typename TAlgebra>
 class ScalarObstacle:
@@ -62,9 +65,11 @@ class ScalarObstacle:
 		~ScalarObstacle(){};
 
 	private:
+	///	vector of active Indices (for lower and upper constraint)
 		using base_type::m_vActiveIndicesLow;
 		using base_type::m_vActiveIndicesUp;
 
+	///	vector of obstacle values (for lower and upper constraint)
 		using base_type::m_spVecOfLowObsValues;
 		using base_type::m_spVecOfUpObsValues;
 };

@@ -28,8 +28,10 @@ namespace ug{
  * 	c is defined by creating a derived class of this interface and by specializing the way
  * 	the correction should be computed (cf. correction_for_lower_obs, correction_for_upper_obs,
  * 	correction_for_lower_and_upper_obs).
- * 	One simple example is the ScalarObstacle-class.
  *
+ * 	One simple example is the ScalarObstacle-class. Such an obstacle functions can be used in
+ * 	combination with projected preconditioners. They should be passed to the preconditioner
+ * 	by 'IProjPreconditioner::set_obstacle_constraint'.
  */
 template <typename TAlgebra>
 class IObstacleConstraint
@@ -60,6 +62,7 @@ class IObstacleConstraint
 		void set_upper_obstacle(SmartPtr<vector_type> upObs){
 			m_spVecOfUpObsValues = upObs; m_bUpperObs = true;}
 
+
 	///	is lower obstacle set
 		bool lower_obs_set(){return m_bLowerObs;}
 	///	is upper obstacle set
@@ -68,6 +71,21 @@ class IObstacleConstraint
 	///	resets the vectors storing the active indices
 		void reset_active_indices(){m_vActiveIndicesLow.resize(0); m_vActiveIndicesUp.resize(0);}
 
+	///	access to the vector of active indices wrt the lower obstacle constraint
+		std::vector<MultiIndex<2> > lower_active_indices()
+		{
+			//SmartPtr<std::vector<MultiIndex<2> > > spLowerActiveInd =
+			//&m_vActiveIndicesLow;
+			//return spLowerActiveInd;
+			return m_vActiveIndicesLow;
+		}
+
+	///	access to the vector of active indices wrt the upper obstacle constraint
+		std::vector<MultiIndex<2> > upper_active_indices(){return m_vActiveIndicesUp;}
+
+
+	///	init function checks the obstacle constraints with respect to consistency
+		void init(const vector_type& u);
 
 	///	computes the correction for the case that only a lower obstacle is set, i.e. u >= g_low
 		virtual void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol) = 0;
@@ -81,14 +99,13 @@ class IObstacleConstraint
 	///	Destructor
 		virtual ~IObstacleConstraint(){};
 
-	public:
-	///	store the indices, which satisfy the constraints (lower resp upper constraint)
-	/// with equality in m_vActiveIndices.
-		std::vector<MultiIndex<2> > m_vActiveIndicesLow, m_vActiveIndicesUp;
-
 	protected:
 	///	pointer to constraint/obstacle values
 		SmartPtr<vector_type> m_spVecOfLowObsValues, m_spVecOfUpObsValues;
+
+	///	store the indices, which satisfy the constraints (lower resp upper constraint)
+	/// with equality in m_vActiveIndices.
+		std::vector<MultiIndex<2> > m_vActiveIndicesLow, m_vActiveIndicesUp;
 
 	private:
 	/// flag indicating if an obstacle is set
@@ -96,6 +113,9 @@ class IObstacleConstraint
 };
 
 } // end namespace ug
+
+// include implementation
+#include "obstacle_constraint_interface_impl.h"
 
 #endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__OBSTACLE_CONSTRAINT_INTERFACE__ */
 

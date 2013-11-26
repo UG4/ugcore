@@ -76,36 +76,9 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 //	remember, that operator has been initialized
 	m_bInit = true;
 
-
-// 	init vector of obstacle values and init values with zero
-/*	if (!m_bLowerObs)
-		m_spVecOfLowObsValues = u.clone_without_values();
-	if (!m_bUpperObs)
-		m_spVecOfUpObsValues = u.clone_without_values();
-
-//	check, that lower obstacle is <= upper obstacle (for all indices)
-	if (m_bLowerObs && m_bUpperObs)
-	{
-		if ((*m_spVecOfLowObsValues).size() != (*m_spVecOfUpObsValues).size())
-			UG_THROW("In IProjPreconditioner::init(J,u) :Vector of lower obstacle values [size= "
-					<<(*m_spVecOfLowObsValues).size()<<"] and "
-					" Vector of upper obstacle values [size= "
-					<<(*m_spVecOfUpObsValues).size()<<"] sizes have to match!");
-
-		for(size_t i = 0; i < (*m_spVecOfLowObsValues).size(); i++)
-		{
-			value_type lowerObsVal = (*m_spVecOfLowObsValues)[i];
-			value_type upperObsVal = (*m_spVecOfUpObsValues)[i];
-			for(size_t j = 0; j < GetSize(lowerObsVal); j++)
-			{
-				if (BlockRef(lowerObsVal, j) - BlockRef(upperObsVal, j) > 0.0)
-					UG_THROW("In IProjPreconditioner::init(J,u) " <<i<<"-th index and "<<j<<"-th"
-						" component of vector of lower obstacle [value= "<<lowerObsVal<<"] needs "
-						"to be lower equal the "<<i<<"-th value of vector of upper obstacle "
-						"[value= "<<upperObsVal<<"]!");
-			}
-		}
-	}*/
+//	init the obstacle constraint class
+	if(m_bObsCons)
+		m_spObsConstraint->init(u);
 
 //	(ugly) hint, that usual damping (x += damp * c) does not make sense for the projected
 //	GaussSeidel-method.
@@ -136,8 +109,13 @@ void
 IProjPreconditioner<TAlgebra>::
 adjust_defect(vector_type& d)
 {
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_spObsConstraint->m_vActiveIndicesLow.begin();
-					itActiveInd < m_spObsConstraint->m_vActiveIndicesLow.end(); ++itActiveInd)
+	//SmartPtr<std::vector<MultiIndex<2> > > spLowerActiveInd
+
+	//std::vector<MultiIndex<2> > vActiveIndLow = *(m_spObsConstraint->lower_active_indices());
+	//std::vector<MultiIndex<2> > vActiveIndLow = m_spObsConstraint->lower_active_indices();
+
+	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_spObsConstraint->lower_active_indices().begin();
+					itActiveInd < m_spObsConstraint->lower_active_indices().end(); ++itActiveInd)
 	{
 		//	check, if Ax <= b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled
@@ -145,8 +123,8 @@ adjust_defect(vector_type& d)
 			BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) = 0.0;
 	}
 
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_spObsConstraint->m_vActiveIndicesUp.begin();
-				itActiveInd < m_spObsConstraint->m_vActiveIndicesUp.end(); ++itActiveInd)
+	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_spObsConstraint->upper_active_indices().begin();
+				itActiveInd < m_spObsConstraint->upper_active_indices().end(); ++itActiveInd)
 	{
 		//	check, if Ax >= b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled

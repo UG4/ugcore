@@ -26,12 +26,13 @@ namespace ug{
  *
  * 	u >= 0.
  *
- * The obstacle function c(u) is set by 'set_obstacle_constraint' in IProjPreconditioner.
+ * The obstacle function c(u) is defined by creating an instance of IObstacleConstraint, which is
+ * passed to the projected preconditioner by the method 'IProjPreconditioner::set_obstacle_constraint'.
  *
  * Similar problems, which e.g. only differ in the sign in (I) and/or (II) can be
  * equivalently treated by the method.
  *
- * Note: Due to (II) the old solution needs to stored within this method.
+ * Note: Due to (II) the old solution needs to be stored within this method.
  * This is a difference to the classical smoothers/preconditioners, which usually work
  * on the correction and the defect only.
  *
