@@ -128,7 +128,7 @@ class IProjPreconditioner:
 		bool m_bObsCons;
 
 	/// operator to invert
-		SmartPtr<matrix_type> m_spMat;
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spMat;
 
 	/// init flag indicating if init has been called
 		bool m_bInit;

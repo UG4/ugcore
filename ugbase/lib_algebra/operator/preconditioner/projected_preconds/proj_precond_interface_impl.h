@@ -57,7 +57,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	//try{
 
 // 	cast operator and remember it
-	m_spMat = J.template cast_dynamic<matrix_type>();
+	m_spMat = J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 
 //	check that operator type is correct
 	if(m_spMat.invalid())
@@ -82,7 +82,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 //	(ugly) hint, that usual damping (x += damp * c) does not make sense for the projected
 //	GaussSeidel-method.
-	const number kappa = this->damping()->damping(u, u, m_spMat.template cast_dynamic<ILinearOperator<vector_type> >());
+	const number kappa = this->damping()->damping(u, u, m_spMat);
 	if(kappa != 1.0){
 		UG_THROW("IProjPreconditioner::set_damp': Ususal damping is not possible "
 				"for IProjPreconditioner! Use 'set_sor_relax' instead!");
