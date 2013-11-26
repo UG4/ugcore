@@ -72,16 +72,10 @@ class IObstacleConstraint
 		void reset_active_indices(){m_vActiveIndicesLow.resize(0); m_vActiveIndicesUp.resize(0);}
 
 	///	access to the vector of active indices wrt the lower obstacle constraint
-		std::vector<MultiIndex<2> > lower_active_indices()
-		{
-			//SmartPtr<std::vector<MultiIndex<2> > > spLowerActiveInd =
-			//&m_vActiveIndicesLow;
-			//return spLowerActiveInd;
-			return m_vActiveIndicesLow;
-		}
+		SmartPtr<std::vector<MultiIndex<2> > > lower_active_indices(){return m_spLowerActiveInd;}
 
 	///	access to the vector of active indices wrt the upper obstacle constraint
-		std::vector<MultiIndex<2> > upper_active_indices(){return m_vActiveIndicesUp;}
+		SmartPtr<std::vector<MultiIndex<2> > > upper_active_indices(){return m_spUpperActiveInd;}
 
 
 	///	init function checks the obstacle constraints with respect to consistency
@@ -103,13 +97,17 @@ class IObstacleConstraint
 	///	pointer to constraint/obstacle values
 		SmartPtr<vector_type> m_spVecOfLowObsValues, m_spVecOfUpObsValues;
 
-	///	store the indices, which satisfy the constraints (lower resp upper constraint)
-	/// with equality in m_vActiveIndices.
-		std::vector<MultiIndex<2> > m_vActiveIndicesLow, m_vActiveIndicesUp;
+	///	pointer to vector of active indices
+		SmartPtr<std::vector<MultiIndex<2> > > m_spLowerActiveInd;
+		SmartPtr<std::vector<MultiIndex<2> > > m_spUpperActiveInd;
 
 	private:
 	/// flag indicating if an obstacle is set
 		bool m_bLowerObs, m_bUpperObs;
+
+	///	store the indices, which satisfy the constraints (lower resp. upper constraint)
+	/// with equality in m_vActiveIndices.
+		std::vector<MultiIndex<2> > m_vActiveIndicesLow, m_vActiveIndicesUp;
 };
 
 } // end namespace ug

@@ -109,13 +109,8 @@ void
 IProjPreconditioner<TAlgebra>::
 adjust_defect(vector_type& d)
 {
-	//SmartPtr<std::vector<MultiIndex<2> > > spLowerActiveInd
-
-	//std::vector<MultiIndex<2> > vActiveIndLow = *(m_spObsConstraint->lower_active_indices());
-	//std::vector<MultiIndex<2> > vActiveIndLow = m_spObsConstraint->lower_active_indices();
-
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_spObsConstraint->lower_active_indices().begin();
-					itActiveInd < m_spObsConstraint->lower_active_indices().end(); ++itActiveInd)
+	for (std::vector<MultiIndex<2> >::iterator itActiveInd = (*(m_spObsConstraint->lower_active_indices())).begin();
+					itActiveInd < (*(m_spObsConstraint->lower_active_indices())).end(); ++itActiveInd)
 	{
 		//	check, if Ax <= b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled
@@ -123,8 +118,8 @@ adjust_defect(vector_type& d)
 			BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) = 0.0;
 	}
 
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = m_spObsConstraint->upper_active_indices().begin();
-				itActiveInd < m_spObsConstraint->upper_active_indices().end(); ++itActiveInd)
+	for (std::vector<MultiIndex<2> >::iterator itActiveInd = (*(m_spObsConstraint->upper_active_indices())).begin();
+				itActiveInd < (*(m_spObsConstraint->upper_active_indices())).end(); ++itActiveInd)
 	{
 		//	check, if Ax >= b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled

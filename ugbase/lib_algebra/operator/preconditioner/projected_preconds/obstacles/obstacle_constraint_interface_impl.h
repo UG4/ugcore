@@ -45,6 +45,10 @@ IObstacleConstraint<TAlgebra>::init(const vector_type& u)
 			}
 		}
 	}
+
+//	init pointer to vector of active indices
+	m_spLowerActiveInd = &m_vActiveIndicesLow;
+	m_spUpperActiveInd = &m_vActiveIndicesUp;
 }
 
 } // end namespace ug

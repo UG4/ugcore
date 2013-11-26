@@ -65,9 +65,9 @@ class ScalarObstacle:
 		~ScalarObstacle(){};
 
 	private:
-	///	vector of active Indices (for lower and upper constraint)
-		using base_type::m_vActiveIndicesLow;
-		using base_type::m_vActiveIndicesUp;
+	///	pointer to vector of active Indices (for lower and upper constraint)
+		using base_type::m_spLowerActiveInd;
+		using base_type::m_spUpperActiveInd;
 
 	///	vector of obstacle values (for lower and upper constraint)
 		using base_type::m_spVecOfLowObsValues;

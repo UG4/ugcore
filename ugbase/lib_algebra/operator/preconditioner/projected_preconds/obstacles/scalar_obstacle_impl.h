@@ -35,7 +35,8 @@ correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t inde
 			//	set new solution u_s to the obstacle value
 			//	and store the current index in a vector for further treatment
 			BlockRef(lastSol[index], j) = BlockRef(lowerObsVal, j);
-			m_vActiveIndicesLow.push_back(MultiIndex<2>(index, j) );
+			//m_vActiveIndicesLow.push_back(MultiIndex<2>(index, j) );
+			(*m_spLowerActiveInd).push_back(MultiIndex<2>(index, j) );
 		}
 		else
 		{
@@ -68,7 +69,7 @@ correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t inde
 			//	set new solution u_s to the obstacle value
 			//	and store the current index in a vector for further treatment
 			BlockRef(lastSol[index], j) = BlockRef(upperObsVal, j);
-			m_vActiveIndicesUp.push_back(MultiIndex<2>(index, j) );
+			(*m_spUpperActiveInd).push_back(MultiIndex<2>(index, j) );
 		}
 		else
 		{
@@ -104,7 +105,7 @@ correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const s
 			//	set new solution u_s to the obstacle value
 			//	and store the current index in a vector for further treatment
 			BlockRef(lastSol[index], j) = BlockRef(upperObsVal, j);
-			m_vActiveIndicesUp.push_back(MultiIndex<2>(index, j) );
+			(*m_spUpperActiveInd).push_back(MultiIndex<2>(index, j) );
 		}
 		else
 		{
@@ -118,7 +119,7 @@ correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const s
 				//	set new solution u_s to the obstacle value
 				//	and store the current index in a vector for further treatment
 				BlockRef(lastSol[index], j) = BlockRef(lowerObsVal, j);
-				m_vActiveIndicesLow.push_back(MultiIndex<2>(index, j) );
+				(*m_spLowerActiveInd).push_back(MultiIndex<2>(index, j) );
 			}
 			else
 			{
