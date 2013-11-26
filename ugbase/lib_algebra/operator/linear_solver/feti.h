@@ -79,7 +79,7 @@ class FetiLayouts
 		FetiLayouts() {}
 
 	//	assigns standard layouts, creates the feti layouts
-		void create_layouts(ConstSmartPtr<HorizontalAlgebraLayouts> stdLayouts,
+		void create_layouts(ConstSmartPtr<AlgebraLayouts> stdLayouts,
 		                    size_t numIndices,
 		                    pcl::IDomainDecompositionInfo& DDInfo,
 		                    bool bDebug = false)
@@ -88,7 +88,7 @@ class FetiLayouts
 			if(numIndices == 0) return;
 
 			m_spStdLayouts = stdLayouts;
-			m_spInnerLayouts = SmartPtr<HorizontalAlgebraLayouts>(new HorizontalAlgebraLayouts());
+			m_spInnerLayouts = SmartPtr<AlgebraLayouts>(new AlgebraLayouts());
 
 		//	create FETI Layouts:
  // 	\todo: For some documentation info see mail by S. Reiter, 30. Januar 2011 16:10:52 MEZ
@@ -390,10 +390,10 @@ class FetiLayouts
 
 	protected:
 	//	Standard Layouts
-		ConstSmartPtr<HorizontalAlgebraLayouts> m_spStdLayouts;
+		ConstSmartPtr<AlgebraLayouts> m_spStdLayouts;
 
 	//	Layouts and Communicator for Inner variables
-		SmartPtr<HorizontalAlgebraLayouts> m_spInnerLayouts;
+		SmartPtr<AlgebraLayouts> m_spInnerLayouts;
 
 	//	Layouts for Dual variables
 		IndexLayout m_masterDualLayout;
