@@ -447,19 +447,7 @@ template <typename TDomain, typename TAlgebra>
 SmartPtr<typename TAlgebra::matrix_type>
 StdTransfer<TDomain, TAlgebra>::prolongation()
 {
-	ConstSmartPtr<DoFDistribution> spCoarseDD = m_spApproxSpace->dof_distribution(m_coarseLevel);
-	ConstSmartPtr<DoFDistribution> spFineDD = m_spApproxSpace->dof_distribution(m_fineLevel);
-
-	SmartPtr<matrix_type> R = SmartPtr<matrix_type>(new matrix_type);
-	assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, m_spApproxSpace->domain());
-	#ifdef UG_PARALLEL
-	R->set_storage_type(PST_CONSISTENT);
-	#endif
-	for(size_t i = 0; i < m_vConstraint.size(); ++i){
-		if (m_vConstraint[i]->type() & CT_DIRICHLET){
-			m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
-		}
-	}
+	SmartPtr<matrix_type> R = restriction();
 
 	SmartPtr<matrix_type> P = SmartPtr<matrix_type>(new matrix_type);
 	P->set_as_transpose_of(*R);
@@ -481,7 +469,22 @@ StdTransfer<TDomain, TAlgebra>::restriction()
 
 	SmartPtr<matrix_type> R = SmartPtr<matrix_type>(new matrix_type);
 
-	assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, m_spApproxSpace->domain());
+	bool P1LagrangeOnly = false;
+	if(m_p1LagrangeOptimizationEnabled){
+		P1LagrangeOnly = true;
+		for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
+			if(m_spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
+				m_spApproxSpace->lfeid(fct).order() != 1)
+				P1LagrangeOnly = false;
+	}
+
+	if(P1LagrangeOnly){
+		assemble_restriction_p1(*R, *spCoarseDD, *spFineDD);
+	} else{
+		assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, m_spApproxSpace->domain());
+	}
+
+	write_debug(*R, "RwoConstr", m_fineLevel, m_coarseLevel);
 
 	#ifdef UG_PARALLEL
 	R->set_storage_type(PST_CONSISTENT);
