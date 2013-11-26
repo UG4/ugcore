@@ -83,7 +83,7 @@ class SmartPtr
 	 *	to T*.*/
 		template <class TPtr>
 		SmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
-			m_ptr(static_cast<T*>(sp.get_nonconst())),
+			m_ptr(sp.get_nonconst()),
 			m_refCount(sp.refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -165,6 +165,13 @@ class SmartPtr
 			else return SmartPtr<TDest, FreePolicy>(NULL);
 		}
 
+	///
+		template <class TDest>
+		bool is_of_type() const
+		{
+			return dynamic_cast<TDest*>(m_ptr) != NULL;
+		}
+
 	///	performs a const cast
 		ConstSmartPtr<T, FreePolicy> cast_const() const;
 
@@ -232,7 +239,7 @@ class ConstSmartPtr
 	 *	to T*.*/
 		template <class TPtr>
 		ConstSmartPtr(const SmartPtr<TPtr, FreePolicy>& sp) :
-			m_ptr(static_cast<const T*>(sp.get())),
+			m_ptr(sp.get()),
 			m_refCount(sp.refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -240,7 +247,7 @@ class ConstSmartPtr
 
 		template <class TPtr>
 		ConstSmartPtr(const ConstSmartPtr<TPtr, FreePolicy>& sp) :
-			m_ptr(static_cast<const T*>(sp.get())),
+			m_ptr(sp.get()),
 			m_refCount(sp.refcount_ptr())
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -339,6 +346,13 @@ class ConstSmartPtr
 	///	performs a const cast
 		SmartPtr<T, FreePolicy> cast_const() const{
 			return SmartPtr<T, FreePolicy>(const_cast<T*>(m_ptr), m_refCount);
+		}
+
+	///
+		template <class TDest>
+		bool is_of_type() const
+		{
+			return dynamic_cast<TDest*>(m_ptr) != NULL;
 		}
 
 	///	WARNING: this method is DANGEROUS!
