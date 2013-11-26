@@ -1,0 +1,56 @@
+#!/bin/bash
+# mpigdb1 by Martin Rupp (martin.rupp@gcsc.uni-frankfurt.de). (c) GCSC 2013
+
+function usage 
+{
+	echo "Usage: mpigdb1 {nrOfprocessors} {pid which to debug} {program} {arg1} {arg2} {..}"
+	echo " Example: mpigdb1 4 0 ugshell -ex bla.lua'"	
+}
+
+if ! [[ "$1" =~ ^[0-9]+$ ]] ; then
+	echo "first argument must be a number!"
+	usage
+fi
+
+if ! [[ "$2" =~ ^[0-9]+$ ]] ; then
+	echo "second  argument must be a number!"
+	usage
+fi
+
+
+if [ $# -lt 3 ]
+then
+  usage
+fi
+np=$1
+showproc=$2
+# $1 = $2 usw.
+shift
+shift
+
+mydir=`pwd`
+runfile=$mydir/xtermrunfile
+# write a little shell script in the file "runfile"
+cat > $runfile << EOF
+cd $mydir
+if [ -z \$OMPI_MCA_ns_nds_num_procs ]; then
+ PID=\$OMPI_MCA_orte_ess_vpid
+ np=\$OMPI_MCA_orte_ess_num_procs
+else
+ PID=\$OMPI_MCA_ns_nds_vpid
+ np=\$OMPI_MCA_ns_nds_num_procs
+fi
+export PID
+export np
+if [[ \$PID == $showproc ]] ; then
+	xterm -e gdb --args $*
+else
+	$*
+fi
+EOF
+
+scriptDir=`dirname ${BASH_SOURCE[0]}`
+
+chmod +x $runfile
+mpirun -np $np bash $runfile
+rm $runfile
