@@ -1,20 +1,20 @@
 /*
- * scalar_obstacle_impl.h
+ *	obstacle_in_normal_dir_impl.h
  *
- *  Created on: 25.11.2013
+ *  Created on: 26.11.2013
  *      Author: raphaelprohl
  */
 
-#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__SCALAR_OBSTACLE_IMPL__
-#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__SCALAR_OBSTACLE_IMPL__
+#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__OBSTACLE_IN_NORMAL_DIR_IMPL__
+#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__OBSTACLE_IN_NORMAL_DIR_IMPL__
 
-#include "scalar_obstacle.h"
+#include "obstacle_in_normal_dir.h"
 
 namespace ug{
 
 template <typename TAlgebra>
 void
-ScalarObstacle<TAlgebra>::
+ObstacleInNormalDir<TAlgebra>::
 correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th lower obstacle value
@@ -47,7 +47,7 @@ correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t inde
 
 template <typename TAlgebra>
 void
-ScalarObstacle<TAlgebra>::
+ObstacleInNormalDir<TAlgebra>::
 correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th upper obstacle value
@@ -80,7 +80,7 @@ correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t inde
 
 template <typename TAlgebra>
 void
-ScalarObstacle<TAlgebra>::
+ObstacleInNormalDir<TAlgebra>::
 correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th lower obstacle value
@@ -131,4 +131,5 @@ correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const s
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__SCALAR_OBSTACLE_IMPL__ */
+#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__OBSTACLE_IN_NORMAL_DIR_IMPL__ */
+
