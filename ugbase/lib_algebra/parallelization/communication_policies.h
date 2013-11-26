@@ -1063,11 +1063,13 @@ class ComPol_MatAddInnerInterfaceCouplings
 			typedef typename TMatrix::value_type block_type;
 
 		//	build map
-			std::vector<int> vMapGlobToInterface(interface.size(), -1);
+			Hash<size_t, size_t> hash((size_t)(interface.size() * 1.1));
+			size_t locID;
+
 			int k = 0;
 			for(typename Interface::const_iterator iter = interface.begin();
 				iter != interface.end(); ++iter, ++k){
-				vMapGlobToInterface[interface.get_element(iter)] = k;
+				hash.insert(interface.get_element(iter), k);
 			}
 
 		//	loop interface
@@ -1081,7 +1083,7 @@ class ComPol_MatAddInnerInterfaceCouplings
 				const row_iterator rowEnd = m_rMat.end_row(index);
 				size_t numRowEntry = 0;
 				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k){
-					if(vMapGlobToInterface[it_k.index()] < 0) continue;
+					if(!hash.has_entry(it_k.index())) continue;
 					numRowEntry++;
 				}
 
@@ -1091,12 +1093,12 @@ class ComPol_MatAddInnerInterfaceCouplings
 			//	write entries and global id to stream
 				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k)
 				{
-					const size_t k = it_k.index();
-					if(vMapGlobToInterface[k] < 0) continue;
+					const size_t globID = it_k.index();
+					if(!hash.get_entry(locID, globID)) continue;
 					block_type& a_ik = it_k.value();
 
 				//	write global entry to buffer
-					Serialize(buff, vMapGlobToInterface[k]);
+					Serialize(buff, locID);
 
 				//	write entry into buffer
 					Serialize(buff, a_ik);
@@ -1134,7 +1136,7 @@ class ComPol_MatAddInnerInterfaceCouplings
 
 		//	we'll read blocks into this var
 			block_type block;
-			int interfaceID;
+			size_t locID;
 
 		//	loop interface
 			for(typename Interface::const_iterator iter = interface.begin();
@@ -1149,10 +1151,12 @@ class ComPol_MatAddInnerInterfaceCouplings
 
 			//	read each connection
 				for(size_t i_conn = 0; i_conn < numConnections; ++i_conn){
-					Deserialize(buff, interfaceID);
+					Deserialize(buff, locID);
 					Deserialize(buff, block);
 
-					m_rMat(index, vMapInterfaceToGlob[interfaceID]) += block;
+					UG_ASSERT(locID < vMapInterfaceToGlob.size(), "Invalid"
+					          " id: "<<locID<<", size: "<<vMapInterfaceToGlob.size());
+					m_rMat(index, vMapInterfaceToGlob[locID]) += block;
 				}
 			}
 
