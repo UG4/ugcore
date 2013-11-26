@@ -93,6 +93,7 @@ template <typename TElem>
 bool MightContainGhosts(const GridLayoutMap& layoutMap, int lvl)
 {
 	if(!layoutMap.has_layout<TElem>(INT_V_MASTER)) return false;
+	if(lvl >= (int)layoutMap.get_layout<TElem>(INT_V_MASTER).num_levels()) return false;
 	if(layoutMap.get_layout<TElem>(INT_V_MASTER).empty(lvl)) return false;
 
 	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout TLayout;

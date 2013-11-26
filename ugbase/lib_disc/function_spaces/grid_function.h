@@ -191,10 +191,16 @@ class GridFunction
 
 	public:
 	///	returns dof distribution
+	/// \{
 		SmartPtr<DoFDistribution> dof_distribution() {return m_spDD;}
+		SmartPtr<DoFDistribution> dd() {return dof_distribution();}
+	/// \}
 
 	///	returns dof distribution
+	/// \{
 		ConstSmartPtr<DoFDistribution> dof_distribution() const {return m_spDD;}
+		ConstSmartPtr<DoFDistribution> dd() const {return dof_distribution();}
+	/// \}
 
 	///	returns the grid level
 		const GridLevel& grid_level() const {return m_spDD->grid_level();}
