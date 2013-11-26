@@ -16,13 +16,15 @@ namespace ug{
 /**
  *  Scalar obstacle are described by constraints of the form
  *
- * 			u <= upObs 		(cf. 'set_upper_obstacle' in 'IObstacleConstraint')
+ * 			u * n <= upObs 		(cf. 'set_upper_obstacle' in 'IObstacleConstraint')
  *
  * 	and
  *
- * 			u >= lowObs 	(cf. 'set_lower_obstacle' in 'IObstacleConstraint')
+ * 			u * n >= lowObs 	(cf. 'set_lower_obstacle' in 'IObstacleConstraint')
  *
- * 	where u is the solution vector. Here, 'upObs' and 'lowObs' are user-defined functions,
+ * 	where u is the solution vector and n the normal vector to the boundary-face/side.
+ *
+ * 	Here, 'upObs' and 'lowObs' are user-defined functions,
  * 	which need to be of the same size as the function of unknowns u.
  *
  * 	Those obstacle functions can be used in combination with projected preconditioners. They
@@ -52,14 +54,17 @@ class ObstacleInNormalDir:
 	/// constructor
 		ObstacleInNormalDir(): IObstacleConstraint<TAlgebra>(){};
 
-	///	computes the correction for the case that only a lower obstacle is set, i.e. u >= g_low
-		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol);
+	///	computes the correction for the case that only a lower obstacle is set, i.e. u * n >= g_low
+		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index,
+				const value_type& tmpSol);
 
-	///	computes the correction for the case that only an upper obstacle is set, i.e. u <= g_up
-		void correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol);
+	///	computes the correction for the case that only an upper obstacle is set, i.e. u * n <= g_up
+		void correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index,
+				const value_type& tmpSol);
 
 	///	computes the correction for the case that a lower and an upper obstacle is set
-		void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol);
+		void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index,
+				const value_type& tmpSol);
 
 	///	Destructor
 		~ObstacleInNormalDir(){};

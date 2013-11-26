@@ -16,6 +16,9 @@ template <typename TAlgebra>
 void
 IObstacleConstraint<TAlgebra>::init(const vector_type& u)
 {
+	//	TODO: the init of the vector of obstacle values should not depend on the solution vector u
+	//	which is usually defined on the whole domain!
+
 // 	init vector of obstacle values and init values with zero
 	if (!m_bLowerObs)
 		m_spVecOfLowObsValues = u.clone_without_values();
@@ -33,8 +36,8 @@ IObstacleConstraint<TAlgebra>::init(const vector_type& u)
 
 		for(size_t i = 0; i < (*m_spVecOfLowObsValues).size(); i++)
 		{
-			value_type lowerObsVal = (*m_spVecOfLowObsValues)[i];
-			value_type upperObsVal = (*m_spVecOfUpObsValues)[i];
+			const value_type& lowerObsVal = (*m_spVecOfLowObsValues)[i];
+			const value_type& upperObsVal = (*m_spVecOfUpObsValues)[i];
 			for(size_t j = 0; j < GetSize(lowerObsVal); j++)
 			{
 				if (BlockRef(lowerObsVal, j) - BlockRef(upperObsVal, j) > 0.0)

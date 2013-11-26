@@ -17,6 +17,15 @@ void
 ScalarObstacle<TAlgebra>::
 correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
+	//	TODO: in order to handle such cases, in which the obstacle is only set on some boundary-subset
+	//	enter here something like
+	//	if(obsSubset) do //oder if (indexIsInObsSubset)
+	//	{	if (tmpSol - lowerObs) < 0.0 -> projection
+	//		else lastSol = tmpSol;
+	//	}
+	//	else lastSol = tmpSol;
+
+
 	//	get index-th lower obstacle value
 	const value_type& lowerObsVal = (*m_spVecOfLowObsValues)[index];
 
