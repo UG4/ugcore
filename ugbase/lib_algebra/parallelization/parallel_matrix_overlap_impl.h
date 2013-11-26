@@ -340,8 +340,10 @@ public:
 
 
 		PROFILE_END(); PROFILE_BEGIN(calculate4);
-		SmartPtr<HorizontalAlgebraLayouts> spLayouts
-			= SmartPtr<HorizontalAlgebraLayouts>(new HorizontalAlgebraLayouts);
+
+		SmartPtr<AlgebraLayouts> spLayouts
+			= SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
+		ConstSmartPtr<AlgebraLayouts> b= spLayouts;
 		spLayouts->master() = m_totalMasterLayout;
 		spLayouts->slave() = m_totalSlaveLayout;
 		spLayouts->proc_comm() = m_mat.layouts()->proc_comm();
