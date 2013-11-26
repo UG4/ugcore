@@ -36,6 +36,7 @@ if(buildAlgebra)
 					algebra_bridges/eigensolver_bridge.cpp
 					algebra_bridges/domain_dependent_preconditioner_bridge.cpp
 					algebra_bridges/pilut_bridge.cpp
+					algebra_bridges/obstacle_bridge.cpp
 					
 					disc_bridges/domain_disc_bridge.cpp
 					disc_bridges/interpolate_bridge.cpp

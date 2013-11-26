@@ -9,6 +9,7 @@
 #define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__OBSTACLE_IN_NORMAL_DIR__
 
 #include "obstacle_constraint_interface.h"
+#include "lib_disc/function_spaces/grid_function.h"
 
 namespace ug{
 
@@ -30,7 +31,7 @@ namespace ug{
  * 	Those obstacle functions can be used in combination with projected preconditioners. They
  * 	should be passed to the preconditioner by 'IProjPreconditioner::set_obstacle_constraint'.
  */
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class ObstacleInNormalDir:
 	public IObstacleConstraint<TAlgebra>
 {
@@ -50,9 +51,13 @@ class ObstacleInNormalDir:
 	///	Value type
 		typedef typename vector_type::value_type value_type;
 
+	///	Type of grid function
+		typedef GridFunction<TDomain, TAlgebra> function_type;
+
 	public:
 	/// constructor
-		ObstacleInNormalDir(): IObstacleConstraint<TAlgebra>(){};
+		ObstacleInNormalDir(function_type& u): IObstacleConstraint<TAlgebra>(){
+			m_spDD = u.dof_distribution();};
 
 	///	computes the correction for the case that only a lower obstacle is set, i.e. u * n >= g_low
 		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index,
@@ -77,6 +82,9 @@ class ObstacleInNormalDir:
 	///	vector of obstacle values (for lower and upper constraint)
 		using base_type::m_spVecOfLowObsValues;
 		using base_type::m_spVecOfUpObsValues;
+
+	///	pointer to the DofDistribution on the whole domain
+		SmartPtr<DoFDistribution> m_spDD;
 };
 
 } // end namespace ug

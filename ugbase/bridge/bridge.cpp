@@ -188,6 +188,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 	//	depends on lib_algebra
 		RegisterBridge_AlgebraCommon(reg, parentGroup);
 		RegisterBridge_Preconditioner(reg, parentGroup);
+		RegisterBridge_Obstacle(reg, parentGroup);
 		RegisterBridge_PILUT(reg, parentGroup);
 		RegisterBridge_Solver(reg, parentGroup);
 		RegisterBridge_Eigensolver(reg, parentGroup);

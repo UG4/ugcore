@@ -12,9 +12,9 @@
 
 namespace ug{
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ObstacleInNormalDir<TAlgebra>::
+ObstacleInNormalDir<TDomain,TAlgebra>::
 correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th lower obstacle value
@@ -45,9 +45,9 @@ correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t inde
 	}
 }
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ObstacleInNormalDir<TAlgebra>::
+ObstacleInNormalDir<TDomain,TAlgebra>::
 correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th upper obstacle value
@@ -78,9 +78,9 @@ correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t inde
 	}
 }
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ObstacleInNormalDir<TAlgebra>::
+ObstacleInNormalDir<TDomain,TAlgebra>::
 correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th lower obstacle value

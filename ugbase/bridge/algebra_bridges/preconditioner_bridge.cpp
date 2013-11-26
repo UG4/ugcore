@@ -282,43 +282,6 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DiagVanka", tag);
 	}
 
-
-//	Obstacle Classes for Projected Preconditioner
-
-	//	IObstacleConstraint
-	{
-		typedef IObstacleConstraint<TAlgebra> T;
-		string name = string("IObstacleConstraint").append(suffix);
-		reg.add_class_<T>(name, grp)
-			.add_method("set_lower_obstacle", &T::set_lower_obstacle,
-				"", "lower obstacle", "sets lower obstacle")
-			.add_method("set_upper_obstacle", &T::set_upper_obstacle,
-				"", "upper obstacle", "sets upper obstacle");
-		reg.add_class_to_group(name, "IObstacleConstraint", tag);
-	}
-
-	//	ScalarObstacle
-	{
-		typedef ScalarObstacle<TAlgebra> T;
-		typedef IObstacleConstraint<TAlgebra> TBase;
-		string name = string("ScalarObstacle").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ScalarObstacle", tag);
-	}
-
-	//	ObstacleInNormalDir
-	{
-		typedef ObstacleInNormalDir<TAlgebra> T;
-		typedef IObstacleConstraint<TAlgebra> TBase;
-		string name = string("ObstacleInNormalDir").append(suffix);
-		reg.add_class_<T,TBase>(name, grp)
-			.add_constructor()
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ObstacleInNormalDir", tag);
-	}
-
 //	IProjPreconditioner
 	{
 		typedef IProjPreconditioner<TAlgebra> T;

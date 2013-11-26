@@ -12,9 +12,9 @@
 
 namespace ug{
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ScalarObstacle<TAlgebra>::
+ScalarObstacle<TDomain, TAlgebra>::
 correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	TODO: in order to handle such cases, in which the obstacle is only set on some boundary-subset
@@ -54,9 +54,9 @@ correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t inde
 	}
 }
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ScalarObstacle<TAlgebra>::
+ScalarObstacle<TDomain, TAlgebra>::
 correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th upper obstacle value
@@ -87,9 +87,9 @@ correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t inde
 	}
 }
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ScalarObstacle<TAlgebra>::
+ScalarObstacle<TDomain, TAlgebra>::
 correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
 {
 	//	get index-th lower obstacle value
