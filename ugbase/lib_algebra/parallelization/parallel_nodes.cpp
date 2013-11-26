@@ -11,7 +11,7 @@ using namespace std;
 
 namespace ug{
 
-ParallelNodes::ParallelNodes(ConstSmartPtr<HorizontalAlgebraLayouts> layout, size_t s)
+ParallelNodes::ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s)
 {
 	m_layout = layout;
 	GenerateGlobalAlgebraIDs(layout->comm(), m_localToGlobal, s, layout->master(), layout->slave());

@@ -193,7 +193,7 @@ private:
 	};
 
 private:
-	ConstSmartPtr<HorizontalAlgebraLayouts> m_layout;
+	ConstSmartPtr<AlgebraLayouts> m_layout;
 
 	std::map<AlgebraID, size_t> m_globalToLocal;
 	std::vector<AlgebraID> m_localToGlobal;
@@ -238,7 +238,7 @@ private:
 public:
 	ParallelNodes();
 	ParallelNodes(const ParallelNodes &);
-	ParallelNodes(ConstSmartPtr<HorizontalAlgebraLayouts> layout, size_t s);
+	ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s);
 
 	size_t get_original_size()
 	{
@@ -346,6 +346,7 @@ public:
 
 	}
 
+	/// returns the overlap type (inner, master, slave or distanceToMasterOrInner=X)
 	const OverlapType &overlap_type(size_t i)
 	{
 		return m_OLtype[i];
