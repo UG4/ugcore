@@ -120,7 +120,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 	pcl::InterfaceCommunicator<IndexLayout> &communicator = A.layouts()->comm();
 
 	M = A;
-	M.set_layouts(SmartPtr<HorizontalAlgebraLayouts>(new HorizontalAlgebraLayouts));
+	M.set_layouts(SmartPtr<AlgebraLayouts>(new AlgebraLayouts));
 	typedef std::map<int, BinaryBuffer> BufferMap;
 	BufferMap streams;
 
