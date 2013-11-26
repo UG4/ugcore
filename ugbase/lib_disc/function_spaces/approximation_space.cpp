@@ -89,6 +89,51 @@ IApproximationSpace::
 		m_spSurfaceView = SmartPtr<SurfaceView>(NULL);
 }
 
+template <typename TElem>
+bool MightContainGhosts(const GridLayoutMap& layoutMap, int lvl)
+{
+	if(!layoutMap.has_layout<TElem>(INT_V_MASTER)) return false;
+	if(layoutMap.get_layout<TElem>(INT_V_MASTER).empty(lvl)) return false;
+
+	typedef typename GridLayoutMap::Types<TElem>::Layout::LevelLayout TLayout;
+	typedef typename TLayout::const_iterator InterfaceIterator;
+	typedef typename TLayout::Interface ElemInterface;
+
+	const TLayout& elemLayout = layoutMap.get_layout<TElem>(INT_V_MASTER).layout_on_level(lvl);
+	for(InterfaceIterator iIter = elemLayout.begin(); iIter != elemLayout.end(); ++iIter){
+		if(!elemLayout.interface(iIter).empty())
+			return true;
+	}
+
+	return false;
+}
+
+bool IApproximationSpace::might_contain_ghosts(int lvl) const
+{
+	if(lvl < 0 || lvl > (int)num_levels()-1)
+		UG_THROW("ApproximationSpace: Level not contained.");
+
+	const DistributedGridManager* pDistGridMgr = m_spMG->distributed_grid_manager();
+	if(!pDistGridMgr) return false;
+
+	bool bGhosts = false;
+	const GridLayoutMap& layoutMap = pDistGridMgr->grid_layout_map();
+	if(max_dofs(VERTEX)) bGhosts |=  MightContainGhosts<VertexBase>(layoutMap, lvl);
+	if(max_dofs(EDGE)) bGhosts |=  MightContainGhosts<EdgeBase>(layoutMap, lvl);
+	if(max_dofs(FACE)) bGhosts |=  MightContainGhosts<Face>(layoutMap, lvl);
+	if(max_dofs(VOLUME)) bGhosts |=  MightContainGhosts<Volume>(layoutMap, lvl);
+
+	return bGhosts;
+}
+
+bool IApproximationSpace::might_contain_ghosts() const
+{
+	bool bGhosts = false;
+	for(int lvl = 0; lvl < (int)num_levels(); ++lvl)
+		bGhosts |= might_contain_ghosts(lvl);
+
+	return bGhosts;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // add

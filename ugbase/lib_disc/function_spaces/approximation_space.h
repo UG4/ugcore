@@ -136,6 +136,11 @@ class IApproximationSpace : public DoFDistributionInfoProvider
 	///	returns if dofs are grouped
 		bool grouped() const {return m_bGrouped;}
 
+	///	returns if ghosts might be present on a level
+		bool might_contain_ghosts(int lvl) const;
+
+	///	returns if ghosts might be present on any level
+		bool might_contain_ghosts() const;
 
 	///	returns dof distribution for a grid level
 	/// \{
