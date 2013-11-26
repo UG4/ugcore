@@ -1695,7 +1695,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 //	clear neighbors
 	vvConnection.resize(num_indices());
 
-//	get_connections<VertexBase>(vvConnection);
+	get_connections<VertexBase>(vvConnection);
 	get_connections<EdgeBase>(vvConnection);
 	get_connections<Face>(vvConnection);
 	get_connections<Volume>(vvConnection);
