@@ -395,6 +395,17 @@ bool operator== (const MathVector<0,T>& v, const MathVector<0,T>& w)
 }
 
 template <std::size_t N, typename T>
+bool operator< (const MathVector<N,T>& v, const MathVector<N,T>& w)
+{
+	for(std::size_t i = 0; i < N; ++i)
+	{
+		if(v[i] < w[i]) 		return true;
+		else if(v[i] > w[i])	return false;
+	}
+	return false;
+}
+
+template <std::size_t N, typename T>
 bool operator!= (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
 	return !(v == w);
