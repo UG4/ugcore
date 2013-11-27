@@ -993,8 +993,16 @@ init_base_solver()
 	{
 		if(ld.st->num_indices() == 0) return;
 
-	//	\todo: add a check if base solver can be run in parallel. This needs to
-	//		   introduce such a flag in the solver.
+#ifdef UG_PARALLEL
+		if(!ld.st->layouts()->master().empty() || !ld.st->layouts()->slave().empty())
+			if(!m_spBaseSolver->supports_parallel())
+				UG_THROW("GMG: Base level is distributed onto more than process, "
+						"but the chosen base solver "<<m_spBaseSolver->name()<<
+						" does not support parallel solving. Choose a parallel"
+						" base solver or construct a situation, where a single"
+						" process stores the whole base grid, to cure this issue.");
+#endif
+
 		if(!m_spBaseSolver->init(ld.A, *ld.st))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}
