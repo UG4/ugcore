@@ -1747,7 +1747,6 @@ base_solve(int lev)
 		}
 		#endif
 
-		pcl::SynchronizeProcesses();
 	//	only solve on gathering master
 		if(gathered_base_master())
 		{
@@ -1767,7 +1766,6 @@ base_solve(int lev)
 			GMG_PROFILE_END();
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG gathered base solver done.\n");
 		}
-		pcl::SynchronizeProcesses();
 
 	//	broadcast the correction
 		#ifdef UG_PARALLEL
