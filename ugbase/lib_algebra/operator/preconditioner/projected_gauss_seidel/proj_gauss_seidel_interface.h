@@ -86,9 +86,10 @@ class IProjGaussSeidel:
 	/**
 	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
 	 *
-	 * \param[out]	c			correction
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
+	 * \param[out]	c			correction
 	 * \param[in]	d			defect
+	 * \param[in]	relax		relaxation parameter
 	 */
 		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax) = 0;
 

@@ -86,13 +86,6 @@ class ProjGaussSeidel:
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
-	/**
-	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
-	 *
-	 * \param[out]	c			correction
-	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
-	 * \param[in]	d			defect
-	 */
 		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
 };
 
@@ -134,13 +127,6 @@ class ProjBackwardGaussSeidel:
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
-	/**
-	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
-	 *
-	 * \param[out]	c			correction
-	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
-	 * \param[in]	d			defect
-	 */
 		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
 };
 
@@ -183,15 +169,6 @@ class ProjSymmetricGaussSeidel:
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
-	/**
-	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
-	 * It can only be called, when the preprocess has been done.
-	 *
-	 * \param[out]	c			correction
-	 * \param[out]	sol			solution
-	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
-	 * \param[in]	d			defect
-	 */
 		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
 };
 
