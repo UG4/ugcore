@@ -72,6 +72,9 @@ class ILinearIterator
 	 */
 		virtual const char* name() const = 0;
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const = 0;
+
 	///	initialize for operator J(u) and linearization point u
 	/**
 	 * This method passes the linear operator J(u) that should be used as

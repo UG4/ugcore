@@ -185,6 +185,9 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 		virtual ~ComponentGaussSeidel()
 		{};
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return true;}
+
 	/// set relaxation parameter
 		void set_relax(number omega){m_relax=omega;};
 

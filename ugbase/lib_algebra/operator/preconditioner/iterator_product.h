@@ -32,6 +32,15 @@ class CombinedLinearIterator : public ILinearIterator<X,Y>
 		//	Name of Iterator
 		virtual const char* name() const = 0;
 
+		///	returns if parallel solving is supported
+		virtual bool supports_parallel() const
+		{
+			for(size_t i = 0; i < m_vIterator.size(); ++i)
+				if(!m_vIterator[i]->supports_parallel())
+					return false;
+			return true;
+		}
+
 		// 	Prepare for Operator J(u) and linearization point u (current solution)
 		virtual bool init(SmartPtr<ILinearOperator<Y,X> > J, const Y& u) = 0;
 

@@ -68,6 +68,9 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 		{
 		};
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return false;}
+
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
 		void set_threshold(number thresh)
 		{

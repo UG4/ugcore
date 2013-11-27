@@ -68,6 +68,14 @@ class BiCGStab
 	///	name of solver
 		virtual const char* name() const {return "BiCGStab";}
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const
+		{
+			if(preconditioner().valid())
+				return preconditioner()->supports_parallel();
+			return true;
+		}
+
 	// 	Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{

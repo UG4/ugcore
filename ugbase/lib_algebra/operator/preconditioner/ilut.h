@@ -47,7 +47,6 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		{};
 
 	// 	Clone
-
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			SmartPtr<ILUTPreconditioner<algebra_type> > newInst(new ILUTPreconditioner<algebra_type>(m_eps));
@@ -61,6 +60,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		virtual ~ILUTPreconditioner()
 		{
 		};
+
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return false;}
 
 	///	sets threshold for incomplete LU factorisation (added 01122010ih)
 		void set_threshold(number thresh)

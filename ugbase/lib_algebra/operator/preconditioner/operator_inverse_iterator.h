@@ -75,6 +75,12 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 
 		std::string m_name;
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const
+		{
+			return m_opInv->supports_parallel();
+		}
+
 		virtual const char* name() const
 		{
 			return m_name.c_str();

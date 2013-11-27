@@ -469,7 +469,10 @@ class LineGaussSeidel : public IPreconditioner<TAlgebra>
 								   this->get_num_forwardz(),this->get_num_backwardz());
 			return newInst;
 		}
-		
+
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return true;}
+
 	public:
 		size_t get_num_forwardx(){return m_nr_forwardx;}
 		size_t get_num_backwardx(){return m_nr_backwardx;}
@@ -816,7 +819,10 @@ class LineVanka : public IPreconditioner<TAlgebra>
 			newInst->set_relax(this->relax());
 			return newInst;
 		}
-		
+
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return true;}
+
 	public:
 		size_t get_num_forwardx(){return m_nr_forwardx;}
 		size_t get_num_backwardx(){return m_nr_backwardx;}

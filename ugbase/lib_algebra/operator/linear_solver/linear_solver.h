@@ -46,6 +46,14 @@ class LinearSolver
 	///	returns the name of the solver
 		virtual const char* name() const {return "Iterative Linear Solver";}
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const
+		{
+			if(preconditioner().valid())
+				return preconditioner()->supports_parallel();
+			else return true;
+		}
+
 		/**
 		 * Compute a correction c := B*d using one iterative step
 		 * Internally the defect is updated d := d - A*c = b - A*(x+c)

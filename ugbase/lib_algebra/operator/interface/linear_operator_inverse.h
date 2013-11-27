@@ -95,6 +95,9 @@ class ILinearOperatorInverse
 	 */
 		virtual std::string config_string() const { return name(); }
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const = 0;
+
 	/// initializes for the inverse for a linear operator
 	/**
 	 * This method passes the operator L that is inverted by this operator. In

@@ -685,6 +685,17 @@ class PrimalSubassembledMatrixInverse
 	///	name of class
 		virtual const char* name() const {return "Schur Complement Inverse";}
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const
+		{
+			bool bRet = true;
+			if(m_spNeumannSolver.valid() || !m_spNeumannSolver->supports_parallel())
+				bRet = false;
+			if(m_spCoarseProblemSolver.valid() || !m_spCoarseProblemSolver->supports_parallel())
+				bRet = false;
+			return bRet;
+		}
+
 	///	sets the Neumann solver
 		void set_neumann_solver(SmartPtr<ILinearOperatorInverse<vector_type> > neumannSolver)
 		{
@@ -831,6 +842,21 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 
 	///	name of solver
 		virtual const char* name() const {return "FETI Solver";}
+
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const
+		{
+			if(m_spDirichletSolver.valid())
+				if(!m_spDirichletSolver->supports_parallel())
+					return false;
+			if(m_spNeumannSolver.valid())
+				if(!m_spNeumannSolver->supports_parallel())
+					return false;
+			if(m_spCoarseProblemSolver.valid())
+				if(!m_spCoarseProblemSolver->supports_parallel())
+					return false;
+			return true;
+		}
 
 	///	sets the Dirichlet solver
 		void set_dirichlet_solver(SmartPtr<ILinearOperatorInverse<vector_type> > dirichletSolver)

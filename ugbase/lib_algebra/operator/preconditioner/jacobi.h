@@ -93,6 +93,9 @@ class Jacobi : public IPreconditioner<TAlgebra>
 	///	constructor setting the damping parameter
 		Jacobi(number damp) {this->set_damp(damp);};
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return true;}
+
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{

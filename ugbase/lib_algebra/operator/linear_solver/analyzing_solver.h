@@ -44,8 +44,15 @@ class AnalyzingSolver
 		{
 			m_pLinearOperatorInverse = pLinearOperatorInverse;
 		}
+
 	/// virtual destructor
 		virtual ~AnalyzingSolver() {};
+
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const
+		{
+			return m_pLinearOperatorInverse->supports_parallel();
+		}
 
 	public:
 		void check(const matrix_type &A)

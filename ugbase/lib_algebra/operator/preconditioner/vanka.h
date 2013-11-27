@@ -209,6 +209,8 @@ class Vanka : public IPreconditioner<TAlgebra>
 		virtual ~Vanka()
 		{};
 
+		virtual bool supports_parallel() const {return true;}
+
 	/// set relaxation parameter
 	public:
 		void set_relax(number omega){m_relax=omega;};
@@ -312,6 +314,8 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 			newInst->set_damp(this->damping());
 			return newInst;
 		}
+
+		virtual bool supports_parallel() const {return true;}
 
 	///	Destructor
 		virtual ~DiagVanka()

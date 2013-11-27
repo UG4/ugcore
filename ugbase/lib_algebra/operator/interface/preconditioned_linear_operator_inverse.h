@@ -78,7 +78,10 @@ class IPreconditionedLinearOperatorInverse
 		}
 
 	///	returns the preconditioner
+	/// \{
 		SmartPtr<ILinearIterator<X, X> > preconditioner(){return m_spPrecond;}
+		ConstSmartPtr<ILinearIterator<X, X> > preconditioner() const {return m_spPrecond;}
+	/// \}
 
 	///	initializes the solver for an operator
 		virtual bool init(SmartPtr<ILinearOperator<X,X> > J, const X& u)

@@ -161,6 +161,16 @@ class AssembledMultiGridCycle :
 	///	name
 		virtual const char* name() const {return "Geometric MultiGrid";}
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const
+		{
+			if(!m_spPreSmootherPrototype->supports_parallel())
+				return false;
+			if(!m_spPostSmootherPrototype->supports_parallel())
+				return false;
+			return true;
+		}
+
 	///	returns information about configuration parameters
 		virtual std::string config_string() const;
 

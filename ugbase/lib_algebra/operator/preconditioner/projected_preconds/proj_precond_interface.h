@@ -67,6 +67,9 @@ class IProjPreconditioner:
 			m_bObsCons(false), m_spMat(NULL), m_bInit(false){
 			m_relax = 1.0;};
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return true;}
+
 	///	preprocess checks if matrix is diagonal invertible
 		bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp);
 

@@ -58,6 +58,14 @@ class AutoLinearSolver
 		m_worseThenAverage = 2.0;
 	}
 
+///	returns if parallel solving is supported
+	virtual bool supports_parallel() const
+	{
+		if(preconditioner().valid())
+			return preconditioner()->supports_parallel();
+		else return true;
+	}
+
 private:
 	double m_reductionAlwaysAccept;
 	double m_worseThenAverage;

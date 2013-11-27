@@ -308,6 +308,9 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	Destructor
 		virtual ~ILU(){}
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return true;}
+
 	///	set factor for \f$ ILU_{\beta} \f$
 		void set_beta(double beta) {m_beta = beta;}
 

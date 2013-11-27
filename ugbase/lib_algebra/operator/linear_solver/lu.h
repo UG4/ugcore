@@ -57,6 +57,9 @@ class LU
 #endif
 		};
 
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return false;}
+
 	///
 		void set_minimum_for_sparse(size_t N)
 		{

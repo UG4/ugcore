@@ -58,6 +58,8 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 			newInst.set_sor_relax(m_relax);
 		}
 
+		virtual bool supports_parallel() const {return true;}
+
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
