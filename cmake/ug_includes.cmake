@@ -491,6 +491,12 @@ link_libraries(${linkLibraries})
 # to a common library.
 include(${UG_ROOT_PATH}/cmake/ug/export_sources.cmake)
 
+################################################################################
+# Declare a method that allows all sub-cmake-files to add their dependencies
+# to a common library.
+include(${UG_ROOT_PATH}/cmake/ug/export_dependencies.cmake)
+
+
 
 ######################################################################################################################
 # the following options are pseudo cmake-options (normal options only support ON and OFF).
