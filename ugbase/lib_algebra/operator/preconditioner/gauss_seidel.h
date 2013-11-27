@@ -90,7 +90,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
 
-		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, number relax) = 0;
+		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax) = 0;
 
 	//	Stepping routine
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
@@ -167,7 +167,7 @@ class GaussSeidel : public GaussSeidelBase<TAlgebra>
 
 
 	//	Stepping routine
-		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, number relax)
+		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax)
 		{
 			gs_step_LL(A, c, d, relax);
 		}
@@ -206,7 +206,7 @@ class BackwardGaussSeidel : public GaussSeidelBase<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, number relax)
+		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax)
 		{
 			gs_step_UR(A, c, d, relax);
 		}
@@ -234,7 +234,7 @@ class SymmetricGaussSeidel : public GaussSeidelBase<TAlgebra>
 		}
 
 	//	Stepping routine
-		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, number relax)
+		virtual void step(const matrix_type &A, vector_type &c, const vector_type &d, const number relax)
 		{
 			sgs_step(A, c, d, relax);
 		}
