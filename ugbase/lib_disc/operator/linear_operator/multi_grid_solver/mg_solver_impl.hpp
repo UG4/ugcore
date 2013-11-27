@@ -548,16 +548,22 @@ assemble_level_operator()
 		GMG_PROFILE_BEGIN(GMG_AssGatheredLevMat);
 		LevData& ld = *m_vLevData[m_baseLev];
 
-		copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
-		copy_to_vertical_masters(*ld.t);
-
-		try{
-		if(m_GridLevelType == GridLevel::LEVEL)
-			m_spAss->ass_tuner()->set_force_regular_grid(true);
-		m_spAss->assemble_jacobian(*spBaseSolverMat, *ld.t, GridLevel(m_baseLev, m_GridLevelType, true));
-		m_spAss->ass_tuner()->set_force_regular_grid(false);
+		if(m_pSurfaceSol){
+			copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
+			copy_to_vertical_masters(*ld.t);
 		}
-		UG_CATCH_THROW("GMG:init: Cannot init operator base level operator");
+
+		// only assemble on gathering proc
+		if(gathered_base_master())
+		{
+			try{
+			if(m_GridLevelType == GridLevel::LEVEL)
+				m_spAss->ass_tuner()->set_force_regular_grid(true);
+			m_spAss->assemble_jacobian(*spGatheredBaseMat, *ld.t, GridLevel(m_baseLev, m_GridLevelType, true));
+			m_spAss->ass_tuner()->set_force_regular_grid(false);
+			}
+			UG_CATCH_THROW("GMG:init: Cannot init operator base level operator");
+		}
 		GMG_PROFILE_END();
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   assemble_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
 	}
@@ -734,24 +740,35 @@ init_rap_operator()
 		GMG_PROFILE_END();
 
 		GMG_PROFILE_BEGIN(GMG_CopyGhosts);
-		SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
-		spGhostA->resize_and_clear(lf.t->size(), lf.t->size());
-		copy_noghost_to_ghost(spGhostA, lf.A, lf.vMapPatchToGlobal);
+		SmartPtr<matrix_type> spA = lf.A;
 #ifdef UG_PARALLEL
-		spGhostA->set_layouts(lf.t->layouts());
+		if( !lf.t->layouts()->vertical_master().empty() ||
+			!lf.t->layouts()->vertical_slave().empty())
+		{
+			SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
+			spGhostA->resize_and_clear(lf.t->size(), lf.t->size());
+			spGhostA->set_layouts(lf.t->layouts());
 
-		divide_vertical_slave_rows_by_number_of_masters(*spGhostA);
-		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, true);
-		if(!spGhostA->layouts()->vertical_slave().empty())
-			m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
-		if(!spGhostA->layouts()->vertical_master().empty())
-			m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
-		m_Com.communicate();
+			if(!lf.t->layouts()->vertical_master().empty()){
+				copy_noghost_to_ghost(spGhostA, lf.A, lf.vMapPatchToGlobal);
+			} else {
+				*spGhostA = *lf.A;
+			}
+			divide_vertical_slave_rows_by_number_of_masters(*spGhostA);
+
+			ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, true);
+			if(!spGhostA->layouts()->vertical_slave().empty())
+				m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
+			if(!spGhostA->layouts()->vertical_master().empty())
+				m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
+			m_Com.communicate();
+			spA = spGhostA;
+		}
 #endif
 		GMG_PROFILE_END();
 
 		GMG_PROFILE_BEGIN(GMG_ComputeRAP);
-		AddMultiplyOf(*lc.A, *R, *spGhostA, *P);
+		AddMultiplyOf(*lc.A, *R, *spA, *P);
 		GMG_PROFILE_END();
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_rap_operator: build rap on lev "<<lev<<"\n");
 	}
@@ -763,19 +780,28 @@ init_rap_operator()
 		GMG_PROFILE_BEGIN(GMG_GatherFromBaseSolver);
 		LevData& ld = *m_vLevData[m_baseLev];
 
-		spBaseSolverMat->resize_and_clear(ld.t->size(), ld.t->size());
-		copy_noghost_to_ghost(spBaseSolverMat.template cast_dynamic<matrix_type>(), ld.A, ld.vMapPatchToGlobal);
 #ifdef UG_PARALLEL
-		spBaseSolverMat->set_storage_type(m_spSurfaceMat->get_storage_mask());
-		spBaseSolverMat->set_layouts(ld.t->layouts());
+		if(gathered_base_master()){
+			spGatheredBaseMat->resize_and_clear(ld.t->size(), ld.t->size());
+			copy_noghost_to_ghost(spGatheredBaseMat.template cast_dynamic<matrix_type>(), ld.A, ld.vMapPatchToGlobal);
+		} else {
+			spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(new MatrixOperator<matrix_type, vector_type>);
+			*spGatheredBaseMat = *ld.A;
+		}
+		spGatheredBaseMat->set_storage_type(m_spSurfaceMat->get_storage_mask());
+		spGatheredBaseMat->set_layouts(ld.t->layouts());
 
-		divide_vertical_slave_rows_by_number_of_masters(*spBaseSolverMat);
-		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spBaseSolverMat, true);
-		if(!spBaseSolverMat->layouts()->vertical_slave().empty())
-			m_Com.send_data(spBaseSolverMat->layouts()->vertical_slave(), cpMatAdd);
-		if(!spBaseSolverMat->layouts()->vertical_master().empty())
-			m_Com.receive_data(spBaseSolverMat->layouts()->vertical_master(), cpMatAdd);
+		divide_vertical_slave_rows_by_number_of_masters(*spGatheredBaseMat);
+		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat, true);
+		if(!spGatheredBaseMat->layouts()->vertical_slave().empty())
+			m_Com.send_data(spGatheredBaseMat->layouts()->vertical_slave(), cpMatAdd);
+		if(gathered_base_master())
+			m_Com.receive_data(spGatheredBaseMat->layouts()->vertical_master(), cpMatAdd);
 		m_Com.communicate();
+
+		if(!gathered_base_master()){
+			spGatheredBaseMat = NULL;
+		}
 #endif
 		GMG_PROFILE_END();
 	}
@@ -857,36 +883,30 @@ init_transfer()
 //	loop all levels
 	for(int lev = m_baseLev+1; lev <= m_topLev; ++lev)
 	{
+		LevData& lf = *m_vLevData[lev];
+		LevData& lc = *m_vLevData[lev-1];
+
 	//	check if same operator for prolongation and restriction used
 		bool bOneOperator = false;
-		if(m_vLevData[lev]->Prolongation.get() ==  m_vLevData[lev]->Restriction.get())
-			bOneOperator = true;
+		if(lf.Prolongation == lf.Restriction) bOneOperator = true;
 
-	//	set levels
-		m_vLevData[lev]->Prolongation->set_levels(GridLevel(lev-1, m_GridLevelType, false),
-		                                          GridLevel(lev, m_GridLevelType, true));
-		if(!bOneOperator)
-			m_vLevData[lev]->Restriction->set_levels(GridLevel(lev-1, m_GridLevelType, false),
-			                                         GridLevel(lev, m_GridLevelType, true));
-
-	//	add all dirichlet post processes
-		m_vLevData[lev]->Prolongation->clear_constraints();
+		lf.Prolongation->set_levels(lc.st->grid_level(), lf.t->grid_level());
+		lf.Prolongation->clear_constraints();
 		for(size_t i = 0; i < m_spAss->num_constraints(); ++i){
 			SmartPtr<IConstraint<TAlgebra> > pp = m_spAss->constraint(i);
-			m_vLevData[lev]->Prolongation->add_constraint(pp);
+			lf.Prolongation->add_constraint(pp);
 		}
+		lf.Prolongation->init();
 
 		if(!bOneOperator){
-			m_vLevData[lev]->Restriction->clear_constraints();
+			lf.Restriction->set_levels(lc.st->grid_level(), lf.t->grid_level());
+			lf.Restriction->clear_constraints();
 			for(size_t i = 0; i < m_spAss->num_constraints(); ++i){
 				SmartPtr<IConstraint<TAlgebra> > pp = m_spAss->constraint(i);
-				m_vLevData[lev]->Restriction->add_constraint(pp);
+				lf.Restriction->add_constraint(pp);
 			}
+			lf.Restriction->init();
 		}
-
-	//	init prolongation
-		m_vLevData[lev]->Prolongation->init();
-		if(!bOneOperator) m_vLevData[lev]->Restriction->init();
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_transfer\n");
@@ -899,15 +919,12 @@ init_projection()
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_projection\n");
 
-//	loop all levels
 	for(int lev = m_baseLev+1; lev <= m_topLev; ++lev)
 	{
-	//	set levels
-		m_vLevData[lev]->Projection->set_levels(GridLevel(lev-1, m_GridLevelType, false),
-		                                        GridLevel(lev, m_GridLevelType, true));
-
-	//	init projection
-		m_vLevData[lev]->Projection->init();
+		LevData& lf = *m_vLevData[lev];
+		LevData& lc = *m_vLevData[lev-1];
+		lf.Projection->set_levels(lc.st->grid_level(), lf.t->grid_level());
+		lf.Projection->init();
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop init_projection\n");
@@ -947,34 +964,23 @@ init_base_solver()
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_base_solver\n");
 
-//	skip void level
-	if(m_vLevData[m_baseLev]->t->num_indices() == 0) return;
-
 //	check, if a gathering base solver is required:
 	if(m_bGatheredBaseUsed)
 	{
-		// \todo: handle this correctly in cases that v-slave are not all dofs
-		//	Note, that a level with v-slaves + a gathered base solver must
-		//	currently skip base-solving. It may be, that the base matrix
-		//	on the vslave-grid may not be invertible. Therefore, we skip this
-		//	init at this point. However, cases may be possible, that vslaves are
-		//	present on the proc, but in addition some normal or vmasters are
-		//	given as well. This case is not yet considered, but should be
-		//	implemented.
-		#ifdef UG_PARALLEL
-		if(!m_vLevData[m_baseLev]->t->layouts()->vertical_slave().empty()) return;
-		#endif
+	//  only init on gathering proc
+		if(!gathered_base_master()) return;
 
 	//	we init the base solver with the whole grid matrix
-		if(!m_spBaseSolver->init(spBaseSolverMat, *spGatheredBaseCorr))
+		if(!m_spBaseSolver->init(spGatheredBaseMat, *spGatheredBaseCorr))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}
-
-//	\todo: add a check if base solver can be run in parallel. This needs to
-//		   introduce such a flag in the solver.
 	else
 	{
 		LevData& ld = *m_vLevData[m_baseLev];
+		if(ld.st->num_indices() == 0) return;
+
+	//	\todo: add a check if base solver can be run in parallel. This needs to
+	//		   introduce such a flag in the solver.
 		if(!m_spBaseSolver->init(ld.A, *ld.st))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}
@@ -1141,13 +1147,16 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_noghost_to_ghost_mapping(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	ConstSmartPtr<DoFDistribution> spNoGhostDD =
-			m_spApproxSpace->dof_distribution(GridLevel(lev, m_GridLevelType, false));
-	ConstSmartPtr<DoFDistribution> spGhostDD =
-			m_spApproxSpace->dof_distribution(GridLevel(lev, m_GridLevelType, true));
 
-	std::vector<size_t>& vMapPatchToGlobal = m_vLevData[lev]->vMapPatchToGlobal;
+	LevData& ld = *m_vLevData[lev];
+	std::vector<size_t>& vMapPatchToGlobal = ld.vMapPatchToGlobal;
 	vMapPatchToGlobal.resize(0);
+
+	if(ld.st == ld.t) return;
+
+	ConstSmartPtr<DoFDistribution> spNoGhostDD = ld.st->dd();
+	ConstSmartPtr<DoFDistribution> spGhostDD = ld.t->dd();
+
 	vMapPatchToGlobal.resize(spNoGhostDD->num_indices());
 
 	if(spNoGhostDD->max_dofs(VERTEX)) init_noghost_to_ghost_mapping<VertexBase>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
@@ -1164,12 +1173,24 @@ copy_ghost_to_noghost(SmartPtr<GF> spVecTo,
                       const std::vector<size_t>& vMapPatchToGlobal)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_ASSERT(vMapPatchToGlobal.size() == spVecTo->size(),
-	          "Mapping range ("<<vMapPatchToGlobal.size()<<") != "
-	          "To-Vec-Size ("<<spVecTo->size()<<")");
 
-	for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i)
-		(*spVecTo)[i] = (*spVecFrom)[ vMapPatchToGlobal[i] ];
+	if(spVecTo == spVecFrom) return;
+
+	if(spVecTo->grid_level() == spVecFrom->grid_level())
+	{
+		for(size_t i = 0; i < spVecTo->size(); ++i)
+			(*spVecTo)[i] = (*spVecFrom)[i];
+	}
+	else
+	{
+		UG_ASSERT(vMapPatchToGlobal.size() == spVecTo->size(),
+				  "Mapping range ("<<vMapPatchToGlobal.size()<<") != "
+				  "To-Vec-Size ("<<spVecTo->size()<<")");
+
+		for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i)
+			(*spVecTo)[i] = (*spVecFrom)[ vMapPatchToGlobal[i] ];
+	}
+
 	#ifdef UG_PARALLEL
 	spVecTo->set_storage_type(spVecFrom->get_storage_mask());
 	#endif
@@ -1182,12 +1203,23 @@ copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
                       const std::vector<size_t>& vMapPatchToGlobal)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_ASSERT(vMapPatchToGlobal.size() == spVecFrom->size(),
-			  "Mapping domain ("<<vMapPatchToGlobal.size()<<") != "
-			  "From-Vec-Size ("<<spVecFrom->size()<<")");
 
-	for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i)
-		(*spVecTo)[ vMapPatchToGlobal[i] ] = (*spVecFrom)[i];
+	if(spVecTo == spVecFrom) return;
+
+	if(spVecTo->grid_level() == spVecFrom->grid_level())
+	{
+		for(size_t i = 0; i < spVecTo->size(); ++i)
+			(*spVecTo)[i] = (*spVecFrom)[i];
+	}
+	else
+	{
+		UG_ASSERT(vMapPatchToGlobal.size() == spVecFrom->size(),
+				  "Mapping domain ("<<vMapPatchToGlobal.size()<<") != "
+				  "From-Vec-Size ("<<spVecFrom->size()<<")");
+
+		for(size_t i = 0; i < vMapPatchToGlobal.size(); ++i)
+			(*spVecTo)[ vMapPatchToGlobal[i] ] = (*spVecFrom)[i];
+	}
 	#ifdef UG_PARALLEL
 	spVecTo->set_storage_type(spVecFrom->get_storage_mask());
 	#endif
@@ -1305,13 +1337,18 @@ init_level_memory(int baseLev, int topLev)
 		m_vLevData[lev] = SmartPtr<LevData>(new LevData);
 		LevData& ld = *m_vLevData[lev];
 
-		GridLevel glGhosts = GridLevel(lev, m_GridLevelType, true);
-		ld.t = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
-
 		GridLevel gl = GridLevel(lev, m_GridLevelType, false);
 		ld.sc = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
 		ld.sd = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
 		ld.st = SmartPtr<GF>(new GF(m_spApproxSpace, gl, false));
+
+		// TODO: all procs must call this, since a MPI-Group is created.
+		//		 Think about optimizing this
+		GridLevel glGhosts = GridLevel(lev, m_GridLevelType, true);
+		ld.t = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
+
+		if(!m_spApproxSpace->might_contain_ghosts(lev))
+			ld.t = ld.st;
 
 		ld.A = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
 				new MatrixOperator<matrix_type, vector_type>);
@@ -1333,51 +1370,84 @@ init_level_memory(int baseLev, int topLev)
 		init_noghost_to_ghost_mapping(lev);
 	}
 
-	m_bGatheredBaseUsed = false;
-#ifdef UG_PARALLEL
-//	if no vert-interfaces are present, we cannot gather, thus overruling the
-//	user choice
-	if(m_vLevData[baseLev]->t->layouts()->vertical_slave().empty() &&
-		m_vLevData[baseLev]->t->layouts()->vertical_master().empty()){
-		m_bGatheredBaseUsed = false;
-	} else {
-		m_bGatheredBaseUsed = !m_bParallelBaseSolverIfAmbiguous;
-	}
-#endif
+	LevData& ld = *m_vLevData[baseLev];
+	bool bHasVertMaster = false;
+	bool bHasVertSlave = false;
+	bool bHasHorrMaster = false;
+	bool bHasHorrSlave = false;
+	#ifdef UG_PARALLEL
+	if( !ld.t->layouts()->vertical_master().empty()) bHasVertMaster = true;
+	if( !ld.t->layouts()->vertical_slave().empty()) bHasVertSlave = true;
+	if( !ld.t->layouts()->master().empty()) bHasHorrMaster = true;
+	if( !ld.t->layouts()->slave().empty()) bHasHorrSlave = true;
+	#endif
+	bool bHasVertConn = bHasVertMaster || bHasVertSlave;
+	bool bHasHorrConn = bHasHorrMaster || bHasHorrSlave;
 
-	if(m_bGatheredBaseUsed){
-		GridLevel glGhosts = GridLevel(baseLev, m_GridLevelType, true);
-		spGatheredBaseCorr = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
-		spBaseSolverMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
-								new MatrixOperator<matrix_type, vector_type>);
-	} else {
-		spGatheredBaseCorr = NULL;
-		spBaseSolverMat = NULL;
-	}
+//	if no vert-interfaces are present, we cannot gather. In this case we
+//	overrule the choice by the user
+	m_bGatheredBaseUsed = !m_bParallelBaseSolverIfAmbiguous;
+	if(!bHasVertConn) m_bGatheredBaseUsed = false;
 
 //	check if gathering base solver possible: If some horizontal layouts are
 //	given, we know, that still the grid is distributed. But, if no
 //	vertical layouts are present in addition, we can not gather the vectors
-//	to on proc. Write a warning an switch to distributed coarse solver
-#ifdef UG_PARALLEL
-	if(m_bGatheredBaseUsed)
-	{
-		vector_type& d = *m_vLevData[m_baseLev]->t;
-		if(d.layouts()->vertical_slave().empty())
-		{
-			if((!d.layouts()->master().empty() || !d.layouts()->slave().empty()) &&
-			   (d.layouts()->vertical_slave().empty() && d.layouts()->vertical_master().empty()))
-			{
-				UG_THROW("GMG::init: "
-						" Cannot init distributed base solver on level "<< m_baseLev << ":\n"
-						" Base level distributed among processes and no possibility"
-						" of gathering (vert. interfaces) present. But a gathering"
-						" solving is required. Choose gmg:set_parallel_base_solver(true)"
-						" to avoid this error.");
-			}
+//	to on proc.
+	if(m_bGatheredBaseUsed){
+		if(bHasVertMaster && bHasVertSlave)
+			UG_THROW("GMG: Gathered base solver expects one proc to have all "
+					"v-masters and no v-slaves. Use gmg:set_parallel_base_solver(true)"
+					" to avoid this error.");
+
+		if(!bHasVertConn && bHasHorrConn){
+			UG_THROW("GMG: Base level distributed among processes and no possibility"
+					" of gathering (vert. interfaces) present, but a gathering"
+					" base solving is required. Use gmg:set_parallel_base_solver(true)"
+					" to avoid this error.");
 		}
-	}
+
+#ifdef UG_PARALLEL
+		if(bHasVertSlave && (ld.t->layouts()->vertical_slave().num_interfaces() != 1))
+			UG_THROW("GMG: Gathered base solver expects a v-slave containing "
+					"process to send all its values to exactly on master. But "
+					"more then one master detected. Use gmg:set_parallel_base_solver(true)"
+					" to avoid this error.");
+
+		if(bHasVertSlave && (ld.t->layouts()->vertical_slave().num_interface_elements() != ld.t->size()))
+			UG_THROW("GMG: Gathered base solver expects that all indices"
+					"are sent to exactly on master. But not all indices are "
+					"v-slaves. Use gmg:set_parallel_base_solver(true)"
+					" to avoid this error.");
 #endif
+	}
+
+	if(m_bGatheredBaseUsed && gathered_base_master()){
+		// note: we can safely call this here, since the dd has already been
+		//		created in the level loop
+		GridLevel glGhosts = GridLevel(baseLev, m_GridLevelType, true);
+		spGatheredBaseCorr = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
+
+		spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
+								new MatrixOperator<matrix_type, vector_type>);
+	} else {
+		spGatheredBaseCorr = NULL;
+		spGatheredBaseMat = NULL;
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+bool AssembledMultiGridCycle<TDomain, TAlgebra>::
+gathered_base_master() const
+{
+	if(!m_bGatheredBaseUsed)
+		UG_THROW("GMG: Should only be called when gather-base solver used.")
+
+	#ifdef UG_PARALLEL
+	if(!m_vLevData[m_baseLev]->t->layouts()->vertical_master().empty())
+		return true;
+	#endif
+
+	return false;
 }
 
 
@@ -1463,20 +1533,26 @@ restriction(int lev)
 //	We use a temporary vector including ghost, such that the no-ghost defect
 //	remains valid and can be used when the cycle comes back to this level.
 
+	SmartPtr<GF> spD = lf.sd;
 	#ifdef UG_PARALLEL
-	SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
-	#endif
-	copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
-	if(lf.t->size() > 0){
-		divide_vertical_slaves_by_number_of_masters(*lf.t);
-		add_to_vertical_masters(*lf.t);
+	if( !lf.t->layouts()->vertical_slave().empty() ||
+		!lf.t->layouts()->vertical_master().empty())
+	{
+		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
+		copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
+		if(lf.t->size() > 0){
+			divide_vertical_slaves_by_number_of_masters(*lf.t);
+			add_to_vertical_masters_and_set_zero_vertical_slaves(*lf.t);
+		}
+		spD = lf.t;
 	}
+	#endif
 
 //	Now we can restrict the defect from the fine level to the coarser level.
-	if((lc.sd->size() > 0) && (lf.t->size() > 0)){
+	if((lc.sd->size() > 0) && (spD->size() > 0)){
 		GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 		try{
-			m_vLevData[lev]->Restriction->do_restrict(*lc.sd, *lf.t);
+			m_vLevData[lev]->Restriction->do_restrict(*lc.sd, *spD);
 		}
 		UG_CATCH_THROW("GMG::lmgc: Restriction of Defect from level "<<lev<<
 		               " to "<<lev-1<<" failed.");
@@ -1620,27 +1696,31 @@ base_solve(int lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering gathered basesolver branch.\n");
 
 	//	gather the defect
+		SmartPtr<GF> spD = ld.sd;
 		#ifdef UG_PARALLEL
-		SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), 0);
+		if( !ld.t->layouts()->vertical_slave().empty() ||
+			!ld.t->layouts()->vertical_master().empty())
+		{
+			SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), 0);
+			copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
+			divide_vertical_slaves_by_number_of_masters(*ld.t);
+			add_to_vertical_masters_and_set_zero_vertical_slaves(*ld.t);
+			spD = ld.t;
+		}
 		#endif
-		copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
-		divide_vertical_slaves_by_number_of_masters(*ld.t);
-		add_to_vertical_masters(*ld.t);
 
-	//	Reset correction
-		spGatheredBaseCorr->set(0.0);
-
-	//	check, if this proc continues, else idle
-		#ifdef UG_PARALLEL
-		if(ld.t->layouts()->vertical_slave().empty())
-		#endif
+	//	only solve on gathering master
+		if(gathered_base_master())
 		{
 			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: Start serial base solver.\n");
 
+		//	Reset correction
+			spGatheredBaseCorr->set(0.0);
+
 		//	compute coarse correction
 			try{
-				if(!m_spBaseSolver->apply(*spGatheredBaseCorr, *ld.t))
+				if(!m_spBaseSolver->apply(*spGatheredBaseCorr, *spD))
 					UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 			}
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
@@ -1649,13 +1729,21 @@ base_solve(int lev)
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG gathered base solver done.\n");
 		}
 
-
 	//	broadcast the correction
-		copy_to_vertical_slaves(*spGatheredBaseCorr);
-		#ifdef UG_PARALLEL
-		spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
-		#endif
-		copy_ghost_to_noghost(ld.sc, spGatheredBaseCorr, ld.vMapPatchToGlobal);
+		if(!ld.sc->layouts()->vertical_slave().empty()){
+			ComPol_VecCopy<vector_type> cpVecCopy(&(*ld.sc));
+			m_Com.receive_data(ld.sc->layouts()->vertical_slave(), cpVecCopy);
+			m_Com.communicate();
+		}
+		if(gathered_base_master()){
+			ComPol_VecCopy<vector_type> cpVecCopy(&(*spGatheredBaseCorr));
+			m_Com.send_data(spGatheredBaseCorr->layouts()->vertical_master(), cpVecCopy);
+			m_Com.communicate();
+			#ifdef UG_PARALLEL
+			spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
+			#endif
+			copy_ghost_to_noghost(ld.sc, spGatheredBaseCorr, ld.vMapPatchToGlobal);
+		}
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
@@ -1841,11 +1929,11 @@ divide_vertical_slave_rows_by_number_of_masters(matrix_type& mat)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-add_to_vertical_masters(vector_type& d)
+add_to_vertical_masters_and_set_zero_vertical_slaves(vector_type& d)
 {
 #ifdef UG_PARALLEL
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - add_to_vertical_masters\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - add_to_vertical_masters_and_set_zero_vertical_slaves\n");
 
 //	send vertical-slaves -> vertical-masters
 	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
@@ -1861,7 +1949,7 @@ add_to_vertical_masters(vector_type& d)
 	m_Com.communicate();
 
 	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - add_to_vertical_masters\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - add_to_vertical_masters_and_set_zero_vertical_slaves\n");
 #endif
 }
 

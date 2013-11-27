@@ -381,10 +381,13 @@ class AssembledMultiGridCycle :
 		bool m_bGatheredBaseUsed;
 
 	///	Matrix for gathered base solver
-		SmartPtr<MatrixOperator<matrix_type, vector_type> > spBaseSolverMat;
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > spGatheredBaseMat;
 
 	///	vector for gathered base solver
 		SmartPtr<GF> spGatheredBaseCorr;
+
+	///	returns if gathered base master
+		bool gathered_base_master() const;
 
 	///	storage for all level
 		std::vector<SmartPtr<LevData> > m_vLevData;
@@ -411,7 +414,7 @@ class AssembledMultiGridCycle :
 		void divide_vertical_slave_rows_by_number_of_masters(matrix_type& mat);
 
 	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
-		void add_to_vertical_masters(vector_type& d);
+		void add_to_vertical_masters_and_set_zero_vertical_slaves(vector_type& d);
 
 	/// broadcasts the vector using vertical interfaces.
 		void copy_to_vertical_slaves(vector_type& c);

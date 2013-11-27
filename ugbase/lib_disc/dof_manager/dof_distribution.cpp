@@ -1434,15 +1434,13 @@ void DoFDistribution::reinit_layouts_and_communicator()
 
 	reinit_index_layout(layouts()->master(), INT_H_MASTER);
 	reinit_index_layout(layouts()->slave(), INT_H_SLAVE);
+	reinit_index_layout(layouts()->vertical_slave(), INT_V_SLAVE);
 
-//	vertical layouts
+//	vertical layouts for ghosts
 	if(grid_level().ghosts()){
 		reinit_index_layout(layouts()->vertical_master(), INT_V_MASTER);
-		reinit_index_layout(layouts()->vertical_slave(), INT_V_SLAVE);
-	}
-	else{
+	}else{
 		layouts()->vertical_master().clear();
-		layouts()->vertical_slave().clear();
 	}
 }
 
