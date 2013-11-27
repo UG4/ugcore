@@ -137,6 +137,7 @@ clone_pattern(const this_type& v)
 #ifdef UG_PARALLEL
 //	copy storage type
 	this->set_storage_type(v.get_storage_mask());
+	this->set_layouts(v.layouts());
 #endif
 };
 
@@ -175,6 +176,10 @@ GridFunction<TDomain, TAlgebra>::virtual_clone_without_values() const
 		new GridFunction<TDomain, TAlgebra>(m_spApproxSpace, m_spDD, m_bManaged);
 	if(p->size() != this->size())
 		p->resize(this->size());
+#ifdef UG_PARALLEL
+	p->set_layouts(this->layouts());
+#endif
+
 	return p;
 }
 

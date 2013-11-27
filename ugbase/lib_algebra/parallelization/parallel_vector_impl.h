@@ -401,7 +401,7 @@ template<typename TVector>
 ParallelVector<TVector>* ParallelVector<TVector>::virtual_clone_without_values() const
 {
 	ParallelVector<TVector>* pVec = new ParallelVector<TVector>(this->size());
-	pVec->set_storage_type(this->get_storage_mask());
+//	pVec->set_storage_type(this->get_storage_mask()); --> undefined is correct
 	pVec->set_layouts(this->layouts());
 	return pVec;
 }

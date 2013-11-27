@@ -61,7 +61,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
-	m_bParallelBaseSolverIfAmbiguous(true),
+	m_bGatheredBaseIfAmbiguous(true),
 	m_spDebugWriter(NULL), m_dbgIterCnt(0)
 {};
 
@@ -1406,10 +1406,26 @@ init_level_memory(int baseLev, int topLev)
 	bool bHasVertConn = bHasVertMaster || bHasVertSlave;
 	bool bHasHorrConn = bHasHorrMaster || bHasHorrSlave;
 
-//	if no vert-interfaces are present, we cannot gather. In this case we
-//	overrule the choice by the user
-	m_bGatheredBaseUsed = !m_bParallelBaseSolverIfAmbiguous;
+	m_bGatheredBaseUsed = m_bGatheredBaseIfAmbiguous;
+
+//	if no vert-interfaces are present (especially in serial or on a proc that
+//	does not have parts of the base level), we cannot gather. In this case we
+//	overrule the choice of the user
+//	Note: levels not containing any dof, are skipped from computation anyway
 	if(!bHasVertConn) m_bGatheredBaseUsed = false;
+
+//	check if parallel solver is available, if not, try to use gathered
+	if(!m_bGatheredBaseUsed
+		&& bHasHorrConn
+		&& !m_spBaseSolver->supports_parallel())
+	{
+		if(!bHasVertConn)
+			UG_THROW("GMG: base level distributed in parallel, without possibility"
+					" to gather on one process, but chosen base solver is not"
+					" parallel. Choose a parallel base solver.")
+
+		m_bGatheredBaseUsed = true;
+	}
 
 //	check if gathering base solver possible: If some horizontal layouts are
 //	given, we know, that still the grid is distributed. But, if no
@@ -1731,6 +1747,7 @@ base_solve(int lev)
 		}
 		#endif
 
+		pcl::SynchronizeProcesses();
 	//	only solve on gathering master
 		if(gathered_base_master())
 		{
@@ -1750,6 +1767,7 @@ base_solve(int lev)
 			GMG_PROFILE_END();
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG gathered base solver done.\n");
 		}
+		pcl::SynchronizeProcesses();
 
 	//	broadcast the correction
 		#ifdef UG_PARALLEL
@@ -2215,7 +2233,7 @@ config_string() const
 		ss << " Postsmoother ( " << m_numPostSmooth << "x): " << ConfigShift(m_spPostSmootherPrototype->config_string());
 	}
 	ss << "\n";
-	ss << " Basesolver ( Baselevel = " << m_baseLev << ", parallel = " << (m_bParallelBaseSolverIfAmbiguous ? "true" : "false") << "): ";
+	ss << " Basesolver ( Baselevel = " << m_baseLev << ", gathered base = " << (m_bGatheredBaseIfAmbiguous ? "true" : "false") << "): ";
 	ss << ConfigShift(m_spBaseSolver->config_string());
 	return ss.str();
 
