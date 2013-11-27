@@ -12,41 +12,63 @@
 #include "common/common.h"
 #include "info_commands.h"
 #include "lua_util.h"
+#ifdef UG_PARALLEL
+#include "pcl/pcl_base.h"
+#endif
 
 //#define __UG__BINDINGS_LUA__CATCH_UNKNOWN_EXCEPTIONS__
 
 using namespace std;
 using namespace ug::script;
 
+//	a symbol preceding error messages
+const char* errSymb = " % ";
+
 ///	throw mechanism for lua related errors.
-#define UG_LUA_THROW_EMPTY(luaState)	luaL_error(luaState, "")
+#define UG_LUA_THROW_EMPTY(luaState)	luaL_error(luaState, "%s", "__UG__LUA__EMPTY__MSG__")
 #define UG_LUA_THROW(luaState, msg)		luaL_error(luaState, "\n%s", msg)
 
 #define UG_LUA_BINDINGS_THROW(L) \
-			UG_LOG(errSymb<<"Error at " << GetLuaFileAndLine(L) << ":\n"); \
+			UG_LOG(errSymb<<"In FILE: " << GetLuaFileAndLineNumber(L) << "\n"); \
+			UG_LOG(errSymb<<"At LINE: '" << GetLuaLine(L) << "'\n"); \
 			ug_throw_error(); \
 			UG_LUA_THROW_EMPTY(L);
 
-#define UG_LUA_BINDINGS_CATCH(str)\
+#define UG_LUA_BINDINGS_CATCH(msg, args)\
 		catch(LuaError& err){ \
 			UG_LUA_THROW(L, err.get_msg().c_str()); \
 		} \
 		catch(UGError& err){ \
-			UG_LOG(errSymb << "EXCEPTION: UGError thrown\n");\
-			UG_LOG(UGErrorTraceback(err) << "\n"); \
-			UG_LOG(errSymb << str << "\n"); \
+			ug::LogAssistant& la = ug::GetLogAssistant();\
+			la.set_output_process(la.get_process_rank());\
+			la.flush();\
+			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":");\
+			UG_LOG(" UGError thrown\n");\
+			UG_LOG(UGErrorTraceback(err)); \
+			UG_LOG(errSymb << msg << "\n"); \
+			UG_LOG(errSymb <<"   ARGS: ("<< args << ")\n"); \
 			UG_LUA_BINDINGS_THROW(L)\
 		}\
 		catch(std::exception& ex)\
 		{\
-			UG_LOG(errSymb<<"EXCEPTION: std::exception (" << ex.what() << ") thrown\n");\
-			UG_LOG(errSymb<< str << "\n");\
+			ug::LogAssistant& la = ug::GetLogAssistant();\
+			la.set_output_process(la.get_process_rank());\
+			la.flush();\
+			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":");\
+			UG_LOG(" std::exception (" << ex.what() << ") thrown\n");\
+			UG_LOG(errSymb << msg << "\n"); \
+			UG_LOG(errSymb <<"   ARGS: ("<< args << ")\n"); \
 			UG_LUA_BINDINGS_THROW(L);\
 		}\
 		catch(...)\
 		{\
-			UG_LOG(errSymb<<"EXCEPTION: Unknown Exception thrown\n");\
-			UG_LOG(errSymb<< str << "\n");\
+			ug::LogAssistant& la = ug::GetLogAssistant();\
+			la.set_output_process(la.get_process_rank());\
+			la.flush();\
+			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":");\
+			UG_LOG(" Unknown Exception thrown\n");\
+			UG_LOG(errSymb << msg << "\n"); \
+			UG_LOG(errSymb <<"With ARGUMENTS: ("<< args << ")\n"); \
 			UG_LUA_BINDINGS_THROW(L);\
 		}
 
@@ -58,10 +80,6 @@ namespace lua{
 //	set this variable to true if smart-ptr arguments shall be automatically
 //	converted to raw-ptrs where required.
 const bool IMLPICIT_SMART_PTR_TO_PTR_CONVERSION = true;
-
-
-//	a symbol preceding error messages
-const char* errSymb = " % ";
 
 
 std::string ParameterStackString(ParameterStack &s)
@@ -817,7 +835,8 @@ string UGErrorTraceback(UGError &err)
 		ss << errSymb<<std::setw(3)<<i<<": "<<msg<<endl;
 
 	//	write file and line
-		ss << pad << "[at "<<err.get_file(i)<<", line "<<err.get_line(i)<<"]\n";
+		ss << pad << "[at "<<SnipStringFront(err.get_file(i), 62, 3);
+		ss<<":"<<err.get_line(i)<<"]"<<endl;
 	}
 	return ss.str();
 }
@@ -851,7 +870,7 @@ static int LuaProxyFunction(lua_State* L)
 		try{
 			func->execute(paramsIn, paramsOut);
 		}
-		UG_LUA_BINDINGS_CATCH("in call to function '" << FunctionInfo(*func) << " (" << ParameterStackString(paramsIn) << ") '");
+		UG_LUA_BINDINGS_CATCH("In CALL to function '" << FunctionInfo(*func) << "'", ParameterStackString(paramsIn));
 
 	//	if we reach this point, then the method was successfully executed.
 		return ParamsToLuaStack(paramsOut, L);
@@ -919,7 +938,7 @@ static int LuaConstructor(lua_State* L, IExportedClass* c, const char *groupname
 								  c->get_delete_function(), false);
 			}
 		}
-		UG_LUA_BINDINGS_CATCH("while creating class '"<< c->name()  << " (" << ParameterStackString(paramsIn) << ") '");
+		UG_LUA_BINDINGS_CATCH("When CREATING class '"<< c->name()  << "'", ParameterStackString(paramsIn));
 
 	//	object created
 		return 1;
@@ -1072,7 +1091,7 @@ static int ExecuteMethod(lua_State* L, const ExportedMethodGroup* methodGrp,
 				}
 			}
 		}
-		UG_LUA_BINDINGS_CATCH("in call to method '" << LuaClassMethodInfo(L, 1, *m)  << " (" << ParameterStackString(paramsIn) << ") '");
+		UG_LUA_BINDINGS_CATCH("In CALL to method '" << LuaClassMethodInfo(L, 1, *m)  << "'", ParameterStackString(paramsIn));
 
 	//	if we reach this point, then the method was successfully executed.
 		return ParamsToLuaStack(paramsOut, L);

@@ -222,8 +222,8 @@ void ReleaseDefaultLuaState()
 /// error function to be used for lua_pcall
 int luaCallStackError( lua_State *L )
 {
-	UG_LOG("LUA-ERROR! Call stack:\n");
-    ug::bridge::LuaStackTrace();
+//	UG_LOG("LUA-ERROR! Call stack:\n");
+//    ug::bridge::LuaStackTrace();
     return 1;
 }
 
@@ -252,12 +252,12 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
 
 	if(error)
 	{
-//		LOG("PARSE-ERROR: " << lua_tostring(L, -1) << endl);
 		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		//ug::bridge::LuaStackTrace(L);
-		throw(LuaError(msg.c_str()));
-//		return false;
+		if(msg.find("__UG__LUA__EMPTY__MSG__") == string::npos)
+			throw(LuaError(msg.c_str()));
+		else
+			throw(LuaError());
 	}
 
 	PROFILE_END();
@@ -290,11 +290,12 @@ bool ParseFile(const char* filename)
 
 	if(error)
 	{
-		//LOG("PARSE-ERROR in parse_file(" << filename << "): " << lua_tostring(L, -1) << endl);
 		string msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
-		//ug::bridge::LuaStackTrace(L);
-		throw(LuaError(msg.c_str()));
+		if(msg.find("__UG__LUA__EMPTY__MSG__") == string::npos)
+			throw(LuaError(msg.c_str()));
+		else
+			throw(LuaError());
 	}
 	return true;
 }

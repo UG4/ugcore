@@ -975,6 +975,22 @@ std::string GetLuaFileAndLine(lua_State* L)
 	return ss.str();
 }
 
+std::string GetLuaFileAndLineNumber(lua_State* L)
+{
+	string file; size_t line;
+	if(GetLuaFileAndLine(L, file, line) == false) return "[ --unknown file -- ]";
+	std::stringstream ss;
+	ss << file << ":" << line;
+	return ss.str();
+}
+
+std::string GetLuaLine(lua_State* L)
+{
+	string file; size_t line;
+	if(GetLuaFileAndLine(L, file, line) == false) return "[ --unknown script line -- ]";
+	return GetFileLine(file.c_str(), line);
+}
+
 std::string LuaStackTraceString()
 {
 	return LuaStackTraceString(script::GetDefaultLuaState());

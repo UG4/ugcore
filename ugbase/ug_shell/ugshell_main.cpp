@@ -55,6 +55,18 @@ void SharedLibrariesLoaded()
 #endif
 
 
+//	a symbol preceding error messages
+const char* errSymb = " % ";
+void quit_all_mpi_procs_in_parallel()
+{
+#ifdef UG_PARALLEL
+	if(pcl::NumProcs() > 1){
+		UG_LOG(errSymb<<"ABORTING all mpi processes."<<std::endl)
+		pcl::Abort();
+	}
+#endif
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // main
 int main(int argc, char* argv[])
@@ -293,12 +305,15 @@ int main(int argc, char* argv[])
 			}
 			catch(LuaError& err) {
 				PathProvider::clear_current_path_stack();
-				if(!err.get_msg().empty()){
-					UG_LOG("LUA-ERROR: \n");
-					for(size_t i=0;i<err.num_msg();++i)
-						UG_LOG(err.get_msg(i)<<endl);
+				if(err.show_msg()){
+					if(!err.get_msg().empty()){
+						UG_LOG("LUA-ERROR: \n");
+						for(size_t i=0;i<err.num_msg();++i)
+							UG_LOG(err.get_msg(i)<<endl);
+					}
 				}
-				UG_LOG("aborting script parsing...\n");
+				UG_LOG(errSymb<<"ABORTING script parsing.\n");
+				quit_all_mpi_procs_in_parallel();
 			}
 			catch(UGError &err)
 			{
@@ -307,7 +322,8 @@ int main(int argc, char* argv[])
 				for(size_t i=0; i<err.num_msg(); i++)
 					UG_LOG(err.get_file(i) << ":" << err.get_line(i) << " : " << err.get_msg(i));
 				UG_LOG("\n");
-				UG_LOG("aborting script parsing...\n");
+				UG_LOG(errSymb<<"ABORTING script parsing.\n");
+				quit_all_mpi_procs_in_parallel();
 			}
 			CATCH_STD_EXCEPTIONS();
 

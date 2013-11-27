@@ -30,7 +30,13 @@ namespace script
 class LuaError : public UGError
 {
 	public:
-		LuaError(const char* msg) : UGError(msg)	{}
+		LuaError(const char* msg) : UGError(msg), bShowMsg(true)	{}
+		LuaError() : UGError(""), bShowMsg(false)	{}
+
+		bool show_msg() const {return bShowMsg;}
+
+	protected:
+		bool bShowMsg;
 };
 
 

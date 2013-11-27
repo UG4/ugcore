@@ -9,27 +9,26 @@
 #include "common/profiler/profiler.h"
 #include "assert.h"
 #include <stdlib.h>
+
 #ifdef UG_POSIX
 #include "util/demangle.h"
 #include <execinfo.h>
 #endif
+
 #include <string>
 #include <sstream>
+
 #ifdef UG_FOR_LUA
 #include "bindings/lua/info_commands.h"
 #include <map>
-namespace ug{
-namespace script{
-bool IsLUADebug();
-}
-}
+namespace ug{namespace script{bool IsLUADebug();}}
+#endif
+
+#ifdef UG_PARALLEL
+#include "pcl/pcl_base.h"
 #endif
 
 using namespace std;
-
-
-
-
 
 void lua_backtrace()
 {
@@ -129,6 +128,9 @@ void ug_assert_failed()
 {
 	ug_backtrace();
 	ug_assert_or_error();
+#ifdef UG_PARALLEL
+	pcl::Abort();
+#endif
 }
 
 /// called whenever UG_THROW or UG_THROW_REGISTRY_ERROR is called.

@@ -76,6 +76,18 @@ string SnipString(const string& str, size_t totalSize,
 	return s;
 }
 
+string SnipStringFront(const string& str, size_t totalSize,
+                       size_t replaceFirst, const char replace)
+{
+	if(str.size() <= totalSize) return str;
+
+	string s = str.substr(str.size()-totalSize, str.size());
+	int r = totalSize - replaceFirst;
+	if(r <= 0) return s;
+	s.replace(0, replaceFirst, replaceFirst, replace);
+	return s;
+}
+
 int NumberOfDigits(int n)
 {
 //	a 0 has 1 digit

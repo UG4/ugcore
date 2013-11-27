@@ -147,10 +147,12 @@ int RunShell(const char *prompt)
 			catch(LuaError& err)
 			{
 				PathProvider::clear_current_path_stack();
-				if(!err.get_msg().empty()){
-					UG_LOG("LUA-ERROR: \n");
-					for(size_t i=0;i<err.num_msg();++i)
-						UG_LOG(err.get_msg(i)<<endl);
+				if(err.show_msg()){
+					if(!err.get_msg().empty()){
+						UG_LOG("LUA-ERROR: \n");
+						for(size_t i=0;i<err.num_msg();++i)
+							UG_LOG(err.get_msg(i)<<endl);
+					}
 				}
 			}
 			catch(UGError &err)
@@ -266,10 +268,12 @@ debug_return DebugShell()
 			catch(LuaError& err)
 			{
 				PathProvider::clear_current_path_stack();
-				if(!err.get_msg().empty()){
-					UG_LOG("LUA-ERROR: \n");
-					for(size_t i=0;i<err.num_msg();++i)
-						UG_LOG(err.get_msg(i)<<endl);
+				if(err.show_msg()){
+					if(!err.get_msg().empty()){
+						UG_LOG("LUA-ERROR: \n");
+						for(size_t i=0;i<err.num_msg();++i)
+							UG_LOG(err.get_msg(i)<<endl);
+					}
 				}
 			}
 		}

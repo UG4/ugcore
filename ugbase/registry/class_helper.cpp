@@ -238,7 +238,8 @@ string PrintParametersIn(const T &thefunc, const char*highlightclassname)
 		if(b) ss << "[";
 		ss << ParameterToString(thefunc.params_in(), i);
 		if(i < thefunc.num_parameter())
-			ss << " " << thefunc.parameter_name(i);
+			if(!thefunc.parameter_name(i).empty())
+				ss << " " << thefunc.parameter_name(i);
 		if(b) ss << "]";
 	}
 	ss << ")";
