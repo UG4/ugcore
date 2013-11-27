@@ -460,7 +460,11 @@ function util.PrintIgnoredArguments()
 	local pline = ""
 	for i=1, ugargc do
 		if (util.argUsed == nil or util.argUsed[i] == nil) and 
-			string.sub(ugargv[i], 1,1) == "-" then
+			string.sub(ugargv[i], 1,1) == "-" 
+			and string.sub(ugargv[i], 1,8) ~= "-outproc"
+			and string.sub(ugargv[i], 1,7) ~= "-noterm"
+			and string.sub(ugargv[i], 1,10) ~= "-logtofile"
+			and string.sub(ugargv[i], 1,7) ~= "-noquit" then
 			local imin=10
 			local namemin=""
 			for name in pairs(util.args) do
