@@ -155,11 +155,13 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 
 		StdConvCheck(int maxSteps, number minDefect, number relReduction);
 		StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose);
+		StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose,bool suppressUnsuccessful);
 
 		void set_verbose(bool level) {m_verbose = level;}
 		void set_maximum_steps(int maxSteps) {m_maxSteps = maxSteps;}
 		void set_minimum_defect(number minDefect) {m_minDefect = minDefect;}
 		void set_reduction(number relReduction) {m_relReduction = relReduction;}
+		void set_supress_unsuccessful(bool bsupress){ m_supress_unsuccessful = bsupress; }
 
 		void start_defect(number initialDefect);
 
@@ -249,6 +251,9 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 		// info for iteration (e.g. preconditioner type)
 		std::string m_info;
 		
+		// return true in post method if max nr of iterations is reached
+		bool m_supress_unsuccessful;
+
 	private:
 		std::vector<number> _defects;
 };

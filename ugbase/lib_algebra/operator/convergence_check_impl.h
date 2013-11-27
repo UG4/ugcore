@@ -25,7 +25,8 @@ StdConvCheck<TVector>::
 StdConvCheck()
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
   	 m_ratesProduct(1), m_maxSteps(200), m_minDefect(10e-8), m_relReduction(10e-10),
-	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
+	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
+	 m_supress_unsuccessful(false)
 	 {};
 
 template <typename TVector>
@@ -33,7 +34,8 @@ StdConvCheck<TVector>::
 StdConvCheck(int maxSteps, number minDefect, number relReduction)
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
   	 m_ratesProduct(1), m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
-	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
+	 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
+	 m_supress_unsuccessful(false)
 	 {};
 
 template <typename TVector>
@@ -41,7 +43,17 @@ StdConvCheck<TVector>::
 StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose)
  :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
   	 m_ratesProduct(1), m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
-	 m_verbose(verbose), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
+	 m_verbose(verbose), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
+	 m_supress_unsuccessful(false)
+	 {};
+
+template <typename TVector>
+StdConvCheck<TVector>::
+StdConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose,bool supressUnsuccessful)
+ :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
+  	 m_ratesProduct(1), m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
+	 m_verbose(verbose), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info(""),
+	 m_supress_unsuccessful(supressUnsuccessful)
 	 {};
 
 template <typename TVector>
@@ -167,11 +179,13 @@ bool StdConvCheck<TVector>::post()
 				print_offset(); UG_LOG("Current defect " << m_currentDefect << " is not a valid number.\n");
 			}
 
-		if(step() >= m_maxSteps)
+		if(step() >= m_maxSteps){
 			if(m_verbose)
 			{
 				print_offset(); UG_LOG("Maximum numbers of "<< m_maxSteps << " iterations reached without convergence.\n");
-			};
+			}
+			if (m_supress_unsuccessful) return true;
+		}
 	}
 
 	if(m_verbose)

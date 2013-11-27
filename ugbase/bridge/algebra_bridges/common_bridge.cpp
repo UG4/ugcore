@@ -310,6 +310,12 @@ static void Algebra(Registry& reg, string grp)
 							 "Minimum Defect|default|min=0D;value=1e-10#"
 							 "Relative Reduction|default|min=0D;value=1e-12#"
 							 "Verbosity")
+			.template add_constructor<void (*)(int, number, number, bool, bool)>
+							("Maximum Steps|default|min=0;value=100#"
+							 "Minimum Defect|default|min=0D;value=1e-10#"
+							 "Relative Reduction|default|min=0D;value=1e-12#"
+							 "Verbosity"
+							 "supress unsuccessful return")
 			.template add_constructor<void (*)(int, number, number)>
 							("Maximum Steps|default|min=0;value=100#"
 							 "Minimum Defect|default|min=0D;value=1e-10#"
@@ -318,6 +324,7 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_minimum_defect", &T::set_minimum_defect, "", "Minimum Defect|default|min=0D;value=1e-10")
 			.add_method("set_reduction", &T::set_reduction,	"", "Relative Reduction|default|min=0D;value=1e-12")
 			.add_method("set_verbose", &T::set_verbose,	"", "Verbosity")
+			.add_method("set_supress_unsuccessful", &T::set_supress_unsuccessful,"", "supress false return")
 			.add_method("defect", &T::defect, "defect", "", "returns the current defect")
 			.add_method("step", &T::step, "step", "", "returns the current number of steps")
 			.add_method("reduction", &T::reduction, "reduction", "", "returns the current relative reduction")
