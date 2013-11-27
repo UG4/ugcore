@@ -943,13 +943,13 @@ init_smoother()
 		LevData& ld = *m_vLevData[lev];
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing pre-smoother on lev "<<lev<<"\n");
-		if(!m_vLevData[lev]->PreSmoother->init(ld.A, *ld.st))
+		if(!ld.PreSmoother->init(ld.A, *ld.st))
 			UG_THROW("GMG::init: Cannot init pre-smoother for level "<<lev);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  init_smoother: initializing post-smoother on lev "<<lev<<"\n");
-		if(m_vLevData[lev]->PreSmoother.get() != m_vLevData[lev]->PostSmoother.get())
+		if(ld.PreSmoother != ld.PostSmoother)
 		{
-			if(!m_vLevData[lev]->PostSmoother->init(ld.A, *ld.st))
+			if(!ld.PostSmoother->init(ld.A, *ld.st))
 				UG_THROW("GMG::init: Cannot init post-smoother for level "<<lev);
 		}
 	}
@@ -963,6 +963,7 @@ init_base_solver()
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_base_solver\n");
+	LevData& ld = *m_vLevData[m_baseLev];
 
 //	check, if a gathering base solver is required:
 	if(m_bGatheredBaseUsed)
@@ -970,13 +971,26 @@ init_base_solver()
 	//  only init on gathering proc
 		if(!gathered_base_master()) return;
 
+	//	create layout with only v-master (v-slave do not exist on gathering proc)
+	//	especially: remove h-layouts and set proc-comm to process-only
+		#ifdef UG_PARALLEL
+		SmartPtr<AlgebraLayouts> spOneProcLayout =
+				SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
+		spOneProcLayout->clear();
+		spOneProcLayout->vertical_master() = ld.t->layouts()->vertical_master();
+		spOneProcLayout->proc_comm() = pcl::ProcessCommunicator(pcl::PCD_LOCAL);
+
+		spGatheredBaseMat->set_layouts(spOneProcLayout);
+		spGatheredBaseCorr->set_layouts(spOneProcLayout);
+		ld.t->set_layouts(spOneProcLayout);
+		#endif
+
 	//	we init the base solver with the whole grid matrix
 		if(!m_spBaseSolver->init(spGatheredBaseMat, *spGatheredBaseCorr))
 			UG_THROW("GMG::init: Cannot init base solver on baselevel "<< m_baseLev);
 	}
 	else
 	{
-		LevData& ld = *m_vLevData[m_baseLev];
 		if(ld.st->num_indices() == 0) return;
 
 	//	\todo: add a check if base solver can be run in parallel. This needs to
