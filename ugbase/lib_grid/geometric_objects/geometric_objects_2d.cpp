@@ -662,4 +662,50 @@ template class CustomQuadrilateral<Quadrilateral, Face>;
 template class CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace>;
 template class CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace>;
 
+
+////////////////////////////////////////////////////////////////////////////////
+//	CONSTRAINING FACE
+template <> size_t
+ConstrainingFace::
+num_constrained<VertexBase>() const
+{
+	return num_constrained_vertices();
+}
+
+template <> size_t
+ConstrainingFace::
+num_constrained<EdgeBase>() const
+{
+	return num_constrained_edges();
+}
+
+template <> size_t
+ConstrainingFace::
+num_constrained<Face>() const
+{
+	return num_constrained_faces();
+}
+
+
+template <> VertexBase*
+ConstrainingFace::
+constrained<VertexBase>(size_t ind) const
+{
+	return constrained_vertex(ind);
+}
+
+template <> EdgeBase*
+ConstrainingFace::
+constrained<EdgeBase>(size_t ind) const
+{
+	return constrained_edge(ind);
+}
+
+template <> Face*
+ConstrainingFace::
+constrained<Face>(size_t ind) const
+{
+	return constrained_face(ind);
+}
+
 }//	end of namespace

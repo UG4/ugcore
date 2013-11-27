@@ -1817,7 +1817,7 @@ bool DistributeGrid(MultiGrid& mg,
 					switch(co->base_object_id()){
 						case EDGE:{
 							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
-								ce->unconstrain_vertex(*iter);
+								ce->unconstrain_object(*iter);
 						}break;
 						case FACE:{
 							if(co->reference_object_id() == ROID_TRIANGLE){
@@ -1842,7 +1842,7 @@ bool DistributeGrid(MultiGrid& mg,
 					switch(co->base_object_id()){
 						case EDGE:{
 							if(ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(co))
-								ce->unconstrain_edge(*iter);
+								ce->unconstrain_object(*iter);
 						}break;
 						case FACE:{
 							if(co->reference_object_id() == ROID_TRIANGLE){

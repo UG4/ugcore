@@ -309,7 +309,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 				return iter != m_constrainedEdges.end();
 			}
 
-		inline void unconstrain_vertex(const VertexBase* vrt)
+		inline void unconstrain_object(const VertexBase* vrt)
 			{
 				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
 																m_constrainedVertices.end(), vrt);
@@ -317,7 +317,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 					m_constrainedVertices.erase(iter);
 			}
 
-		inline void unconstrain_edge(const EdgeBase* edge)
+		inline void unconstrain_object(const EdgeBase* edge)
 			{
 				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
 																m_constrainedEdges.end(), edge);
@@ -333,20 +333,27 @@ class UG_API ConstrainingEdge : public EdgeBase
 				clear_constrained_edges();
 			}
 
-		inline size_t num_constrained_vertices()	{return m_constrainedVertices.size();}
-		inline size_t num_constrained_edges()		{return m_constrainedEdges.size();}
+	//	NUMBER OF CONSTRAINED ELEMENTS
+		inline size_t num_constrained_vertices() const	{return m_constrainedVertices.size();}
+		inline size_t num_constrained_edges() const		{return m_constrainedEdges.size();}
 
-		VertexBase* constrained_vertex(size_t ind)
+		template <class TElem> size_t num_constrained() const;
+
+
+	//	ACCESS TO CONSTRAINED ELEMENTS
+		VertexBase* constrained_vertex(size_t ind) const
 		{
 			UG_ASSERT(ind < m_constrainedVertices.size(), "bad index");
 			return m_constrainedVertices[ind];
 		}
 
-		EdgeBase* constrained_edge(size_t ind)
+		EdgeBase* constrained_edge(size_t ind) const
 		{
 			UG_ASSERT(ind < m_constrainedEdges.size(), "bad index");
 			return m_constrainedEdges[ind];
 		}
+
+		template <class TElem> TElem* constrained(size_t ind) const;
 
 	protected:
 		std::vector<VertexBase*>	m_constrainedVertices;

@@ -7,7 +7,7 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
-//	Edge::refine
+//	Edge
 bool Edge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* newVertex,
 				VertexBase** pSubstituteVrts)
 {
@@ -33,7 +33,7 @@ bool Edge::refine(std::vector<Edge*>& vNewEdgesOut, VertexBase* newVertex,
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	ConstrainedEdge::refine
+//	ConstrainedEdge
 bool ConstrainedEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* newVertex,
 				  VertexBase** pSubstituteVrts)
 {
@@ -59,7 +59,7 @@ bool ConstrainedEdge::refine(std::vector<ConstrainedEdge*>& vNewEdgesOut, Vertex
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	ConstrainingEdge::refine
+//	ConstrainingEdge
 bool ConstrainingEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* newVertex,
 				  VertexBase** pSubstituteVrts)
 {
@@ -82,6 +82,34 @@ bool ConstrainingEdge::refine(std::vector<ConstrainingEdge*>& vNewEdgesOut, Vert
 {
 	return refine(reinterpret_cast<std::vector<EdgeBase*>&>(vNewEdgesOut),
 					newVertex, pSubstituteVrts);
+}
+
+template <> size_t
+ConstrainingEdge::
+num_constrained<VertexBase>() const
+{
+	return num_constrained_vertices();
+}
+
+template <> size_t
+ConstrainingEdge::
+num_constrained<EdgeBase>() const
+{
+	return num_constrained_edges();
+}
+
+template <> VertexBase*
+ConstrainingEdge::
+constrained<VertexBase>(size_t ind) const
+{
+	return constrained_vertex(ind);
+}
+
+template <> EdgeBase*
+ConstrainingEdge::
+constrained<EdgeBase>(size_t ind) const
+{
+	return constrained_edge(ind);
 }
 
 }// end of namespace

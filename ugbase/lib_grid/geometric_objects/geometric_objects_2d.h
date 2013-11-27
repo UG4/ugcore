@@ -561,27 +561,32 @@ class UG_API ConstrainingFace : public Face
 				clear_constrained_faces();
 			}
 
-		inline size_t num_constrained_vertices()	{return m_constrainedVertices.size();}
-		inline size_t num_constrained_edges()		{return m_constrainedEdges.size();}
-		inline size_t num_constrained_faces()		{return m_constrainedFaces.size();}
+		inline size_t num_constrained_vertices() const	{return m_constrainedVertices.size();}
+		inline size_t num_constrained_edges() const		{return m_constrainedEdges.size();}
+		inline size_t num_constrained_faces() const		{return m_constrainedFaces.size();}
 
-		inline VertexBase* constrained_vertex(size_t ind)
+		template <class TElem> size_t num_constrained() const;
+
+
+		inline VertexBase* constrained_vertex(size_t ind) const
 			{
 				UG_ASSERT(ind < m_constrainedVertices.size(), "bad index.");
 				return m_constrainedVertices[ind];
 			}
 
-		inline EdgeBase* constrained_edge(size_t ind)
+		inline EdgeBase* constrained_edge(size_t ind) const
 			{
 				UG_ASSERT(ind < m_constrainedEdges.size(), "bad index.");
 				return m_constrainedEdges[ind];
 			}
 
-		inline Face* constrained_face(size_t ind)
+		inline Face* constrained_face(size_t ind) const
 			{
 				UG_ASSERT(ind < m_constrainedFaces.size(), "bad index.");
 				return m_constrainedFaces[ind];
 			}
+
+		template <class TElem> TElem* constrained(size_t ind) const;
 
 	protected:
 		std::vector<VertexBase*>	m_constrainedVertices;

@@ -373,6 +373,7 @@ bool IsValidPtr(T* o){
 	return o != NULL;
 }
 
+
 ////////////////////////////////////////////////////////////////////////
 void RegisterBridge_Grid(Registry& reg, string parentGroup)
 {
