@@ -94,7 +94,7 @@ class AssembledMultiGridCycle :
 			{m_spBaseSolver = baseSolver;}
 
 	///	sets if the base solver is applied in parallel
-		void set_parallel_base_solver(bool bParallel) {m_bGatheredBaseIfAmbiguous = !bParallel;}
+		void set_gathered_base_solver_if_ambiguous(bool bGathered) {m_bGatheredBaseIfAmbiguous = bGathered;}
 
 	///	sets if copies should be used to emulate a full-refined grid
 		void set_emulate_full_refined_grid(bool bEmulate){

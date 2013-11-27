@@ -213,7 +213,7 @@ util.GetPreconditioner = util.CreateFancyFunction(
 			gmg = GeometricMultiGrid( gmg_approxSpace )
 			if gmg_disc then gmg:set_discretization( gmg_disc ) end
 			gmg:set_base_level( gmg_baseLevel )
-			gmg:set_parallel_base_solver( gmg_parallelBase )
+			gmg:set_gathered_base_solver_if_ambiguous( not(gmg_parallelBase) )
 			gmg:set_base_solver( baseSolver )
 			gmg:set_smoother( smoother )
 			gmg:set_cycle_type( gmg_cycleType )

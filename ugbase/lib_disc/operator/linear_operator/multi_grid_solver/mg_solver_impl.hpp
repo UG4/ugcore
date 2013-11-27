@@ -1434,13 +1434,13 @@ init_level_memory(int baseLev, int topLev)
 	if(m_bGatheredBaseUsed){
 		if(bHasVertMaster && bHasVertSlave)
 			UG_THROW("GMG: Gathered base solver expects one proc to have all "
-					"v-masters and no v-slaves. Use gmg:set_parallel_base_solver(true)"
+					"v-masters and no v-slaves. Use gmg:set_gathered_base_solver_if_ambiguous(false)"
 					" to avoid this error.");
 
 		if(!bHasVertConn && bHasHorrConn){
 			UG_THROW("GMG: Base level distributed among processes and no possibility"
 					" of gathering (vert. interfaces) present, but a gathering"
-					" base solving is required. Use gmg:set_parallel_base_solver(true)"
+					" base solving is required. Use gmg:set_gathered_base_solver_if_ambiguous(false)"
 					" to avoid this error.");
 		}
 
@@ -1448,13 +1448,13 @@ init_level_memory(int baseLev, int topLev)
 		if(bHasVertSlave && (ld.t->layouts()->vertical_slave().num_interfaces() != 1))
 			UG_THROW("GMG: Gathered base solver expects a v-slave containing "
 					"process to send all its values to exactly on master. But "
-					"more then one master detected. Use gmg:set_parallel_base_solver(true)"
+					"more then one master detected. Use gmg:set_gathered_base_solver_if_ambiguous(false)"
 					" to avoid this error.");
 
 		if(bHasVertSlave && (ld.t->layouts()->vertical_slave().num_interface_elements() != ld.t->size()))
 			UG_THROW("GMG: Gathered base solver expects that all indices"
 					"are sent to exactly on master. But not all indices are "
-					"v-slaves. Use gmg:set_parallel_base_solver(true)"
+					"v-slaves. Use gmg:set_gathered_base_solver_if_ambiguous(false)"
 					" to avoid this error.");
 #endif
 	}
