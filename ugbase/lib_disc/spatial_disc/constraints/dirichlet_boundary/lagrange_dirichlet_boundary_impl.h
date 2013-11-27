@@ -185,7 +185,9 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataBndSegment,
 		check_functions_and_subsets(fctGrp, vUserData[i].ssGrp, TUserData::numFct);
 
 	//	set functions
-		UG_ASSERT(fctGrp.size() == TUserData::numFct, "wrong number of fct");
+		if(fctGrp.size() != TUserData::numFct)
+			UG_THROW("LagrangeDirichletBoundary: wrong number of fct");
+
 		for(size_t fct = 0; fct < TUserData::numFct; ++fct)
 		{
 			vUserData[i].fct[fct] = fctGrp[fct];
