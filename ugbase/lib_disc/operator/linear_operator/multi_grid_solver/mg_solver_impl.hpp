@@ -1744,16 +1744,18 @@ base_solve(int lev)
 		}
 
 	//	broadcast the correction
+		#ifdef UG_PARALLEL
 		if(!ld.sc->layouts()->vertical_slave().empty()){
 			ComPol_VecCopy<vector_type> cpVecCopy(&(*ld.sc));
 			m_Com.receive_data(ld.sc->layouts()->vertical_slave(), cpVecCopy);
 			m_Com.communicate();
 		}
+		#endif
 		if(gathered_base_master()){
+			#ifdef UG_PARALLEL
 			ComPol_VecCopy<vector_type> cpVecCopy(&(*spGatheredBaseCorr));
 			m_Com.send_data(spGatheredBaseCorr->layouts()->vertical_master(), cpVecCopy);
 			m_Com.communicate();
-			#ifdef UG_PARALLEL
 			spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
 			#endif
 			copy_ghost_to_noghost(ld.sc, spGatheredBaseCorr, ld.vMapPatchToGlobal);
