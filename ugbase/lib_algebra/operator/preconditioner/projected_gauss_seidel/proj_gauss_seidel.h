@@ -5,10 +5,10 @@
  *      Author: raphaelprohl
  */
 
-#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__PROJ_GAUSS_SEIDEL__
-#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__PROJ_GAUSS_SEIDEL__
+#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL__
+#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL__
 
-#include "proj_precond_interface.h"
+#include "proj_gauss_seidel_interface.h"
 
 namespace ug{
 
@@ -47,13 +47,14 @@ namespace ug{
  *
  * \tparam 	TAlgebra		Algebra type
  */
+
 template <typename TAlgebra>
 class ProjGaussSeidel:
-	public IProjPreconditioner<TAlgebra>
+	public IProjGaussSeidel<TAlgebra>
 {
 	public:
 	///	Base class type
-		typedef IProjPreconditioner<TAlgebra> base_type;
+		typedef IProjGaussSeidel<TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -64,22 +65,23 @@ class ProjGaussSeidel:
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
-	///	Value type
-		typedef typename vector_type::value_type value_type;
-
 	public:
 	/// constructor
-		ProjGaussSeidel(): IProjPreconditioner<TAlgebra>(){};
+		ProjGaussSeidel(): IProjGaussSeidel<TAlgebra>(){};
 
+	///	Destructor
+		~ProjGaussSeidel(){};
+
+	protected:
 	///	name
-		const char* name() const {return "Projected GaussSeidel";}
+		virtual const char* name() const {return "Projected GaussSeidel";}
 
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			SmartPtr<ProjGaussSeidel<TAlgebra> > newInst(
 					new ProjGaussSeidel<TAlgebra>());
-			newInst->set_damp(this->damping());
+			base_type::copy_config(*newInst);
 			return newInst;
 		}
 
@@ -88,31 +90,19 @@ class ProjGaussSeidel:
 	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
 	 *
 	 * \param[out]	c			correction
-	 * \param[out]	sol			solution
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
 	 * \param[in]	d			defect
 	 */
-		void projected_precond_step(vector_type& c, vector_type& sol, const matrix_type& mat, const vector_type& d);
-
-	///	Destructor
-		~ProjGaussSeidel(){};
-
-	private:
-	///	obstacle constraint
-		using base_type::m_spObsConstraint;
-
-	///	relaxation parameter
-		using base_type::m_relax;
+		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
 };
-
 
 template <typename TAlgebra>
 class ProjBackwardGaussSeidel:
-	public IProjPreconditioner<TAlgebra>
+	public IProjGaussSeidel<TAlgebra>
 {
 	public:
 	///	Base class type
-		typedef IProjPreconditioner<TAlgebra> base_type;
+		typedef IProjGaussSeidel<TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -123,56 +113,45 @@ class ProjBackwardGaussSeidel:
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
-	///	Value type
-		typedef typename vector_type::value_type value_type;
-
 	public:
 	/// constructor
-		ProjBackwardGaussSeidel(): IProjPreconditioner<TAlgebra>(){};
+		ProjBackwardGaussSeidel(): IProjGaussSeidel<TAlgebra>(){};
 
+	///	Destructor
+		~ProjBackwardGaussSeidel(){};
+
+	protected:
 	///	name
-		const char* name() const {return "Projected Backward GaussSeidel";}
+		virtual const char* name() const {return "Projected Backward GaussSeidel";}
 
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			SmartPtr<ProjBackwardGaussSeidel<TAlgebra> > newInst(
 					new ProjBackwardGaussSeidel<TAlgebra>());
-			newInst->set_damp(this->damping());
+			base_type::copy_config(*newInst);
 			return newInst;
 		}
 
 	///	computes a new correction c = B*d and projects on the underlying constraint
 	/**
 	 * This method computes a new correction c = B*d. B is here the underlying matrix operator.
-	 * It can only be called, when the preprocess has been done.
 	 *
 	 * \param[out]	c			correction
-	 * \param[out]	sol			solution
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
 	 * \param[in]	d			defect
 	 */
-		void projected_precond_step(vector_type& c, vector_type& sol, const matrix_type& mat, const vector_type& d);
-
-	///	Destructor
-		~ProjBackwardGaussSeidel(){};
-
-	private:
-	///	obstacle constraint
-		using base_type::m_spObsConstraint;
-
-	///	relaxation parameter
-		using base_type::m_relax;
+		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
 };
 
 
 template <typename TAlgebra>
 class ProjSymmetricGaussSeidel:
-	public IProjPreconditioner<TAlgebra>
+	public IProjGaussSeidel<TAlgebra>
 {
 	public:
 	///	Base class type
-		typedef IProjPreconditioner<TAlgebra> base_type;
+		typedef IProjGaussSeidel<TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -183,22 +162,23 @@ class ProjSymmetricGaussSeidel:
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
-	///	Value type
-		typedef typename vector_type::value_type value_type;
-
 	public:
 	/// constructor
-		ProjSymmetricGaussSeidel(): IProjPreconditioner<TAlgebra>(){};
+		ProjSymmetricGaussSeidel(): IProjGaussSeidel<TAlgebra>(){};
 
+	///	Destructor
+		~ProjSymmetricGaussSeidel(){};
+
+	protected:
 	///	name
-		const char* name() const {return "Projected Symmetric GaussSeidel";}
+		virtual const char* name() const {return "Projected Symmetric GaussSeidel";}
 
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			SmartPtr<ProjSymmetricGaussSeidel<TAlgebra> > newInst(
 					new ProjSymmetricGaussSeidel<TAlgebra>());
-			newInst->set_damp(this->damping());
+			base_type::copy_config(*newInst);
 			return newInst;
 		}
 
@@ -212,17 +192,7 @@ class ProjSymmetricGaussSeidel:
 	 * \param[in]	mat			underlying matrix (i.e. A in A*u = b)
 	 * \param[in]	d			defect
 	 */
-		void projected_precond_step(vector_type& c, vector_type& sol, const matrix_type& mat, const vector_type& d);
-
-	///	Destructor
-		~ProjSymmetricGaussSeidel(){};
-
-	private:
-	///	obstacle constraint
-		using base_type::m_spObsConstraint;
-
-	///	relaxation parameter
-		using base_type::m_relax;
+		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
 };
 
 } // end namespace ug
@@ -230,4 +200,4 @@ class ProjSymmetricGaussSeidel:
 // include implementation
 #include "proj_gauss_seidel_impl.h"
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__PROJ_GAUSS_SEIDEL__ */
+#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL__ */

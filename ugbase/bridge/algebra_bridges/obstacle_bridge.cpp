@@ -18,7 +18,7 @@
 
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
-#include "lib_algebra/operator/preconditioner/projected_preconds/obstacles/obstacles.h"
+#include "lib_algebra/operator/preconditioner/projected_gauss_seidel/obstacles/obstacles.h"
 
 using namespace std;
 

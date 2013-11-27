@@ -282,23 +282,23 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DiagVanka", tag);
 	}
 
-//	IProjPreconditioner
+
+//	IProjGaussSeidel
 	{
-		typedef IProjPreconditioner<TAlgebra> T;
-		typedef ILinearIterator<vector_type> TBase;
-		string name = string("IProjPreconditioner").append(suffix);
+		typedef IProjGaussSeidel<TAlgebra> T;
+		typedef GaussSeidelBase<TAlgebra> TBase;
+		string name = string("IProjGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_method("set_obstacle_constraint", &T::set_obstacle_constraint,
 				"", "obstacle constraint", "sets an obstacle constraint")
-			.add_method("set_sor_relax", &T::set_sor_relax,
-			"", "sor relaxation", "sets sor relaxation parameter");
-		reg.add_class_to_group(name, "IProjPreconditioner", tag);
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "IProjGaussSeidel", tag);
 	}
 
 //	ProjGaussSeidel
 	{
 		typedef ProjGaussSeidel<TAlgebra> T;
-		typedef IProjPreconditioner<TAlgebra> TBase;
+		typedef IProjGaussSeidel<TAlgebra> TBase;
 		string name = string("ProjGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
@@ -309,7 +309,7 @@ static void Algebra(Registry& reg, string grp)
 //	ProjBackwardGaussSeidel
 	{
 		typedef ProjBackwardGaussSeidel<TAlgebra> T;
-		typedef IProjPreconditioner<TAlgebra> TBase;
+		typedef IProjGaussSeidel<TAlgebra> TBase;
 		string name = string("ProjBackwardGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()
@@ -320,7 +320,7 @@ static void Algebra(Registry& reg, string grp)
 //	ProjSymmetricGaussSeidel
 	{
 		typedef ProjSymmetricGaussSeidel<TAlgebra> T;
-		typedef IProjPreconditioner<TAlgebra> TBase;
+		typedef IProjGaussSeidel<TAlgebra> TBase;
 		string name = string("ProjSymmetricGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
 			.add_constructor()

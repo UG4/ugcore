@@ -5,8 +5,8 @@
  *      Author: raphaelprohl
  */
 
-#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__OBSTACLE_IN_NORMAL_DIR__
-#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__OBSTACLE_IN_NORMAL_DIR__
+#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__OBSTACLE_IN_NORMAL_DIR__
+#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__OBSTACLE_IN_NORMAL_DIR__
 
 #include "obstacle_constraint_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
@@ -92,5 +92,5 @@ class ObstacleInNormalDir:
 // include implementation
 #include "obstacle_in_normal_dir_impl.h"
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__OBSTACLE_IN_NORMAL_DIR__ */
+#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__OBSTACLE_IN_NORMAL_DIR__ */
 

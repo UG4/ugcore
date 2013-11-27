@@ -5,8 +5,8 @@
  *      Author: raphaelprohl
  */
 
-#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__SCALAR_OBSTACLE__
-#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__SCALAR_OBSTACLE__
+#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE__
+#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE__
 
 #include "obstacle_constraint_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
@@ -118,4 +118,4 @@ class ScalarObstacle:
 // include implementation
 #include "scalar_obstacle_impl.h"
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_PRECONDS__SCALAR_OBSTACLE__ */
+#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE__ */
