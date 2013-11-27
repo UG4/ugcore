@@ -53,9 +53,25 @@ class ScalarObstacle:
 		typedef GridFunction<TDomain, TAlgebra> function_type;
 
 	public:
-	/// constructor
-		ScalarObstacle(function_type& u): IObstacleConstraint<TAlgebra>(){
-			m_spDD = u.dof_distribution();};
+	/// constructor for a scalar obstacle defined on some subset(s)
+		ScalarObstacle(function_type& u, const char* subsets): IObstacleConstraint<TAlgebra>(),
+			m_bObsOnWholeDomain(false), m_bObsOnlyOnSubsets(true){
+			m_spDD = u.dof_distribution();
+			m_spApproxSpace = u.approx_space();
+			m_ssName = subsets;
+			init(u);};
+
+	///	default constructor
+		ScalarObstacle(): IObstacleConstraint<TAlgebra>(), m_bObsOnWholeDomain(true),
+				m_bObsOnlyOnSubsets(false){};
+
+	///	stores all indices of obstacle subset(s)
+		template <typename TElem, typename TIterator>
+		void obstacle_indices_on_subset(TIterator iterBegin,
+				TIterator iterEnd, function_type& u);
+
+
+		void init(function_type& u);
 
 	///	computes the correction for the case that only a lower obstacle is set, i.e. u >= g_low
 		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index,
@@ -82,7 +98,19 @@ class ScalarObstacle:
 		using base_type::m_spVecOfUpObsValues;
 
 	///	pointer to the DofDistribution on the whole domain
-		SmartPtr<DoFDistribution> m_spDD;
+		ConstSmartPtr<DoFDistribution> m_spDD;
+
+	///	pointer to the ApproxSpace
+		ConstSmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
+
+	///	booleans to indicate, if the obstacle is defined only on some subset(s) or on the whole domain
+		bool m_bObsOnWholeDomain, m_bObsOnlyOnSubsets;
+
+	///	name of subset(s), on which the obstacle is defined
+		std::string m_ssName;
+
+	/// subsetGroup
+		SubsetGroup m_ssGrp;
 };
 
 } // end namespace ug

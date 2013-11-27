@@ -13,6 +13,84 @@
 namespace ug{
 
 template <typename TDomain, typename TAlgebra>
+template <typename TElem, typename TIterator>
+void
+ScalarObstacle<TDomain, TAlgebra>::
+obstacle_indices_on_subset(TIterator iterBegin,
+		TIterator iterEnd,
+		function_type& u)
+{
+	// 	check if at least an element exists, else return
+	if(iterBegin == iterEnd) return;
+
+	// 	local indices
+	LocalIndices ind;
+
+	// 	Loop over all elements on subset
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
+	{
+		TElem* elem = *iter;
+
+		// 	get global indices
+		u.indices(elem, ind);
+	}
+}
+
+
+
+
+template <typename TDomain, typename TAlgebra>
+void
+ScalarObstacle<TDomain, TAlgebra>::
+init(function_type& u)
+{
+	//	create Subset Group
+	try{
+		m_ssGrp = m_spApproxSpace->subset_grp_by_name(m_ssName.c_str());
+	}UG_CATCH_THROW(" Subsets '"<<m_ssName<<"' not"
+					" all contained in ApproximationSpace.");
+
+	//	loop all subsets contained in the Subset Group
+	//for (vector<int>::iterator activeSI = m_vActiveSubsets.begin();
+	//			activeSI != m_vActiveSubsets.end(); ++activeSI)
+	for (size_t i = 0; i < m_ssGrp.size(); i++)
+	{
+		int si = m_ssGrp[i];
+		const int subsetDim = DimensionOfSubset(*m_spDD->subset_handler(), si);
+
+		//	store the indices in m_vObsIndices
+		switch(subsetDim)
+		{
+		case 0:
+			break;
+		case 1:
+			obstacle_indices_on_subset<Edge>(m_spDD->template begin<Edge>(si),
+						m_spDD->template end<Edge>(si), u);
+			break;
+		case 2:
+			obstacle_indices_on_subset<Triangle>(m_spDD->template begin<Triangle>(si),
+						m_spDD->template end<Triangle>(si), u);
+			obstacle_indices_on_subset<Quadrilateral>(m_spDD->template begin<Quadrilateral>(si),
+						m_spDD->template end<Quadrilateral>(si), u);
+			break;
+		case 3:
+			obstacle_indices_on_subset<Tetrahedron>(m_spDD->template begin<Tetrahedron>(si),
+						m_spDD->template end<Tetrahedron>(si), u);
+			obstacle_indices_on_subset<Pyramid>(m_spDD->template begin<Pyramid>(si),
+						m_spDD->template end<Pyramid>(si), u);
+			obstacle_indices_on_subset<Prism>(m_spDD->template begin<Prism>(si),
+						m_spDD->template end<Prism>(si), u);
+			obstacle_indices_on_subset<Hexahedron>(m_spDD->template begin<Hexahedron>(si),
+						m_spDD->template end<Hexahedron>(si), u);
+			break;
+		default:
+			UG_THROW("ScalarObstacle::init:"
+				"SubsetDimension "<< subsetDim <<" (subset="<< si <<") not supported.");
+		}
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
 void
 ScalarObstacle<TDomain, TAlgebra>::
 correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)

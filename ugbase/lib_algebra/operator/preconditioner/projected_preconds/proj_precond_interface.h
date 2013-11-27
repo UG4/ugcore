@@ -64,7 +64,7 @@ class IProjPreconditioner:
 	public:
 	/// constructor
 		IProjPreconditioner(): ILinearIterator<typename TAlgebra::vector_type>(),
-			m_bObsCons(false), m_spMat(NULL), m_bInit(false){
+			m_bObsCons(false), m_spOperator(NULL), m_bInit(false){
 			m_relax = 1.0;};
 
 	///	returns if parallel solving is supported
@@ -131,7 +131,11 @@ class IProjPreconditioner:
 		bool m_bObsCons;
 
 	/// operator to invert
-		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spMat;
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spOperator;
+
+#ifdef UG_PARALLEL
+		matrix_type m_A;
+#endif
 
 	/// init flag indicating if init has been called
 		bool m_bInit;

@@ -28,22 +28,25 @@ bool
 IProjPreconditioner<TAlgebra>::
 preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 {
+	matrix_type *pA;
 #ifdef UG_PARALLEL
 	if(pcl::GetNumProcesses() > 1)
 	{
 		//	copy original matrix
-		MakeConsistent(*pOp, *m_spMat);
+		MakeConsistent(*pOp, m_A);
 		//	set zero on slaves
 		std::vector<IndexLayout::Element> vIndex;
-		CollectUniqueElements(vIndex, (*m_spMat).layouts()->slave());
-		SetDirichletRow(*m_spMat, vIndex);
+		CollectUniqueElements(vIndex, m_A.layouts()->slave());
+		SetDirichletRow(m_A, vIndex);
+		pA = &m_A;
 	}
-	matrix_type &A = *m_spMat;
+	else
+		pA = &m_A;
 #else
-	matrix_type &A = *pOp;
+	pA = &(*pOp);
 #endif
-
-	CheckDiagonalInvertible(A);
+	THROW_IF_NOT_EQUAL(pA->num_rows(), pA->num_cols());
+	UG_COND_THROW(CheckDiagonalInvertible(*pA) == false,"IProjPreconditioner: A has noninvertible diagonal");
 	return true;
 }
 
@@ -57,14 +60,14 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	//try{
 
 // 	cast operator and remember it
-	m_spMat = J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
+	m_spOperator = J.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
 
 //	check that operator type is correct
-	if(m_spMat.invalid())
-		UG_THROW("ProjGaussSeidel:init: Can not cast Operator to Matrix.");
+	if(m_spOperator.invalid())
+		UG_THROW("IProjPreconditioner:init: Can not cast Operator to Matrix.");
 
 //	preprocess
-	if(!preprocess(m_spMat))
+	if(!preprocess(m_spOperator))
 	{
 		UG_LOG("ERROR in 'IProjPreconditioner::init': preprocess failed.\n");
 		return false;
@@ -82,7 +85,7 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 //	(ugly) hint, that usual damping (x += damp * c) does not make sense for the projected
 //	GaussSeidel-method.
-	const number kappa = this->damping()->damping(u, u, m_spMat);
+	const number kappa = this->damping()->damping(u, u, m_spOperator);
 	if(kappa != 1.0){
 		UG_THROW("IProjPreconditioner::set_damp': Ususal damping is not possible "
 				"for IProjPreconditioner! Use 'set_sor_relax' instead!");
@@ -98,8 +101,8 @@ IProjPreconditioner<TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > L)
 {
 	PROFILE_FUNC_GROUP("IProjPrecond");
-	UG_THROW("Solution u is not set in ProjGaussSeidel::init(L)! "
-			"Use ProjGaussSeidel::init(J,u) instead! \n");
+	UG_THROW("Solution u is not set in IProjPreconditioner::init(L)! "
+			"Use IProjPreconditioner::init(J,u) instead! \n");
 
 	return false;
 }
@@ -149,12 +152,12 @@ apply(vector_type &c, const vector_type& d)
 #endif
 
 	//	check sizes
-	if(d.size() != m_spMat->num_rows())
+	if(d.size() != m_spOperator->num_rows())
 		UG_THROW("Vector [size= "<<d.size()<<"] and Row [size= "
-					   <<m_spMat->num_rows()<<"] sizes have to match!");
-	if(c.size() != m_spMat->num_cols())
+					   <<m_spOperator->num_rows()<<"] sizes have to match!");
+	if(c.size() != m_spOperator->num_cols())
 		UG_THROW("Vector [size= "<<c.size()<<"] and Column [size= "
-					   <<m_spMat->num_cols()<<"] sizes have to match!");
+					   <<m_spOperator->num_cols()<<"] sizes have to match!");
 	if(d.size() != c.size())
 		UG_THROW("Vector [d size= "<<d.size()<<", c size = "
 					   <<c.size()<< "] sizes have to match!");
@@ -175,13 +178,16 @@ apply(vector_type &c, const vector_type& d)
 		SmartPtr<vector_type> spDtmp = d.clone();
 		spDtmp->change_storage_type(PST_UNIQUE);
 
-		projected_precond_step(c, *m_lastSol, *m_spMat, *spDtmp);
+		THROW_IF_NOT_EQUAL_3(c.size(), spDtmp->size(), m_A.num_rows());
+		projected_precond_step(c, *m_lastSol, m_A, *spDtmp);
 		c.set_storage_type(PST_UNIQUE);
 	}
 	else
 #endif
 	{
-		projected_precond_step(c, *m_lastSol, *m_spMat, d);
+		matrix_type &A = *m_spOperator;
+		THROW_IF_NOT_EQUAL_4(c.size(), d.size(), A.num_rows(), A.num_cols());
+		projected_precond_step(c, *m_lastSol, A, d);
 #ifdef UG_PARALLEL
 		c.set_storage_type(PST_UNIQUE);
 #endif
@@ -204,11 +210,11 @@ apply_update_defect(vector_type &c, vector_type& d)
 {
 	PROFILE_FUNC_GROUP("IProjPrecond");
 
-	/*for(size_t i = 0; i < m_spMat->num_rows(); i++)
+	/*for(size_t i = 0; i < m_spOperator->num_rows(); i++)
 	{
-		for(size_t j = 0; j < m_spMat->num_cols(); j++)
+		for(size_t j = 0; j < m_spOperator->num_cols(); j++)
 		{
-			UG_LOG("A(" << i << "," << j << "]: " << (*m_spMat)(i,j) << "\n");
+			UG_LOG("A(" << i << "," << j << "]: " << (*m_spOperator)(i,j) << "\n");
 		}
 	}*/
 
@@ -235,7 +241,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}*/
 
 	// 	update defect d := d - A*c (= b - A*(x+c) = b - A*x_new)
-	if(!m_spMat->matmul_minus(d, c))
+	if(!m_spOperator->matmul_minus(d, c))
 	{
 		UG_LOG("ERROR in 'IProjPreconditioner::apply_update_defect': "
 				"Cannot execute matmul_minus to compute d:=d-A*c.\n");

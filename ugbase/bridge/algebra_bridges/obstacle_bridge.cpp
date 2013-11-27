@@ -80,7 +80,8 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IObstacleConstraint<TAlgebra> TBase;
 		string name = string("ScalarObstacle").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
-			.template add_constructor<void (*)(function_type&)>()
+			.add_constructor()
+			.template add_constructor<void (*)(function_type&, const char*)>()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ScalarObstacle", tag);
 	}

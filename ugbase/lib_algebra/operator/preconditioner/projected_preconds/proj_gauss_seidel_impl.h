@@ -60,6 +60,8 @@ projected_precond_step(vector_type& c, vector_type& lastSol, const matrix_type& 
 	{
 		forward_gs_step(c, A, d, i, m_relax);
 
+		//if (m_bObsOnWholeDomain)
+
 		//	compute temporary solution (solution of a common (forward) GaussSeidel-step)
 		//	tmpSol := u_{s-1/2} = u_{s-1} + c
 		tmpSol = lastSol[i] + c[i];
@@ -87,6 +89,9 @@ projected_precond_step(vector_type& c, vector_type& lastSol, const matrix_type& 
 			continue;
 		}
 	}
+
+	//else if(m_bObsOnlyOnSubsets)
+	//	for-loop Ÿber diejenigen indices, die vorher in einem Vektor m_vObsIndices gespeichert/vorgemerkt wurden.
 }
 
 template <typename TAlgebra>
