@@ -9,6 +9,7 @@
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__
 
 #include <vector>
+#include <iostream>
 #include "pcl/pcl.h"
 
 namespace ug
@@ -68,7 +69,7 @@ inline void AddIfUnique(IndexLayout::Interface &interface, size_t i)
 		interface.push_back(i);
 }
 
-
+std::ostream &operator << (std::ostream &out, const IndexLayout &layout);
 
 } // end namespace ug
 

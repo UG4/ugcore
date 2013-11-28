@@ -9,6 +9,7 @@
 #include <iomanip>
 #include "pcl/pcl.h"
 #include "parallel_index_layout.h"
+#include "common/util/string_util.h"
 
 namespace ug{
 
@@ -53,6 +54,26 @@ void LogIndexLayout(IndexLayout& layout, int depth)
 		UG_LOG("\n");
 	}
 	UG_LOG(endl);
+}
+
+
+std::ostream &operator << (std::ostream &out, const IndexLayout &layout)
+{
+	out << "IndexLayout: ";
+	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
+	{
+		size_t pid = layout.proc_id(iter);
+		const IndexLayout::Interface &interface = layout.interface(iter);
+		out << "\n to processor " << pid << " (size " << interface.size() << ") :";
+		std::stringstream ss;
+		int k=0;
+		for(IndexLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		{
+			if(k++ == 10) { ss << "\n  "; k = 0; }
+			ss << interface.get_element(iter2) << "  ";
+		}
+		out << ConfigShift(ss.str());
+	}
 }
 
 void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth)
