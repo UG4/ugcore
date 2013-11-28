@@ -469,30 +469,12 @@ class AssembledMultiGridCycle :
 	 *
 	 * \param[in]		mat			Level Matrix to write for debug purpose
 	 * \param[in]		name		Filename
-	 * \param[in]		level		grid level corresponding to the matrix
 	 */
-		void write_smooth_level_debug(const matrix_type& mat, std::string name, int lev);
+		void write_debug(const matrix_type& mat, std::string name,
+		                 const GF& rFrom, const GF& rTo);
 
-	///	writes debug output for a level matrix
-	/**
-	 * This method writes the level matrix to a debug file, if a debug writer
-	 * has been set.
-	 *
-	 * \param[in]		mat			Level Matrix to write for debug purpose
-	 * \param[in]		name		Filename
-	 * \param[in]		level		grid level corresponding to the matrix
-	 */
-		void write_level_debug(const matrix_type& mat, std::string name, int lev);
-
-	///	writes debug output for a surface matrix
-	/**
-	 * This method writes the surface matrix to a debug file, if a debug writer
-	 * has been set.
-	 *
-	 * \param[in]		mat			Level Matrix to write for debug purpose
-	 * \param[in]		name		Filename
-	 */
-		void write_surface_debug(const matrix_type& mat, std::string name);
+	///	help function to append grid level
+		std::string level_appending(const GridLevel gl);
 
 	///	logs a level-data-struct to the terminal
 		void log_debug_data(int lvl, std::string name);

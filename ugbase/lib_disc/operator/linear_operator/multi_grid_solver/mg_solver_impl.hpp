@@ -183,7 +183,7 @@ apply(vector_type& rC, const vector_type& rD)
 
 //	debug output
 	write_debug(c, "Correction_Out");
-	write_surface_debug(*m_spSurfaceMat, "SurfaceStiffness");
+	write_debug(*m_spSurfaceMat, "SurfaceStiffness", c, c);
 
 //	increase dbg counter
 	if(m_spDebugWriter.valid()) m_dbgIterCnt++;
@@ -538,6 +538,12 @@ assemble_level_operator()
 		}
 	}
 
+//	write computed level matrices for debug purpose
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+		LevData& ld = *m_vLevData[lev];
+		write_debug(*ld.A, "LevelMatrix", *ld.st, *ld.st);
+	}
+
 //	if no ghosts are present we can simply use the whole grid. If the base
 //	solver is carried out in serial (gathering to some processes), we have
 //	to assemble the assemble the coarse grid matrix on the whole grid as
@@ -566,11 +572,6 @@ assemble_level_operator()
 		}
 		GMG_PROFILE_END();
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   assemble_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
-	}
-
-//	write computed level matrices for debug purpose
-	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
-		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrix", lev);
 	}
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
@@ -656,8 +657,7 @@ assemble_missing_coarse_grid_coupling(const vector_type* u)
 #ifdef UG_PARALLEL
 		lc.CoarseGridContribution.set_storage_type(surfMat.get_storage_mask());
 #endif
-		//write_level_debug(m_vLevData[lev]->CoarseGridContribution, "MissingLevelMat", lev);
-		write_surface_debug(surfMat, std::string("MissingSurfMat_").append(ToString(lev)));
+		write_debug(lc.CoarseGridContribution, "MissingLevelMat", *lf.sd, *lc.sc);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling " << "\n");
@@ -722,7 +722,8 @@ init_rap_operator()
 
 //	write computed level matrices for debug purpose
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
-		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrixFromSurf", lev);
+		LevData& ld = *m_vLevData[lev];
+		write_debug(*ld.A, "LevelMatrixFromSurf", *ld.st, *ld.st);
 	}
 
 // 	Create coarse level operators
@@ -775,6 +776,12 @@ init_rap_operator()
 	GMG_PROFILE_END();
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_rap_operator: build rap\n");
 
+//	write computed level matrices for debug purpose
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+		LevData& ld = *m_vLevData[lev];
+		write_debug(*ld.A, "LevelMatrix", *ld.st, *ld.st);
+	}
+
 	if(m_bGatheredBaseUsed)
 	{
 		GMG_PROFILE_BEGIN(GMG_GatherFromBaseSolver);
@@ -804,11 +811,6 @@ init_rap_operator()
 		}
 #endif
 		GMG_PROFILE_END();
-	}
-
-//	write computed level matrices for debug purpose
-	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
-		write_smooth_level_debug(*m_vLevData[lev]->A, "LevelMatrix", lev);
 	}
 
 //	coarse grid contributions
@@ -2050,6 +2052,30 @@ copy_to_vertical_masters(vector_type& c)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
+std::string AssembledMultiGridCycle<TDomain, TAlgebra>::
+level_appending(const GridLevel gl)
+{
+	std::stringstream ss; ss << std::setfill('0') << "_";
+
+	if(gl.is_level()){
+		if(gl.ghosts()) ss << "gl" << std::setw(3) << gl.level();
+		else 			ss << "l" << std::setw(3) << gl.level();
+	} else if (gl.is_surface()){
+		if(gl.ghosts()) ss << "gsl";
+		else 			ss << "sl";
+		if(gl.top()){
+			ss << "top";
+		} else {
+			ss << std::setw(3) << gl.level();
+		}
+	} else {
+		UG_THROW("GMG: GridLevel not supported.")
+	}
+
+	return ss.str();
+}
+
+template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_debug(ConstSmartPtr<GF> spGF, std::string name)
 {
@@ -2066,19 +2092,9 @@ write_debug(const GF& rGF, std::string name)
 
 //	build name
 	GridLevel gl = rGF.grid_level();
-	std::stringstream ss; ss << std::setfill('0') << "GMG_" << name << "_";
-
-	if(gl.is_level()){
-		if(gl.ghosts()) ss << "glev" << std::setw(3) << gl.level();
-		else 			ss << "lev" << std::setw(3) << gl.level();
-	} else if (gl.is_surface()){
-		if(gl.ghosts()) ss << "gsurf" << std::setw(3) << gl.level();
-		else 			ss << "surf" << std::setw(3) << gl.level();
-	} else {
-		UG_THROW("GMG: GridLevel not supported.")
-	}
-
-	ss << "_i" << std::setw(3) << m_dbgIterCnt << ".vec";
+	std::stringstream ss;
+	ss << "GMG_" << name << level_appending(gl);
+	ss << "_i" << std::setfill('0') << std::setw(3) << m_dbgIterCnt << ".vec";
 
 //	write
 	GridLevel currGL = m_spDebugWriter->grid_level();
@@ -2089,60 +2105,23 @@ write_debug(const GF& rGF, std::string name)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_smooth_level_debug(const matrix_type& mat, std::string name, int lev)
+write_debug(const matrix_type& mat, std::string name, const GF& rFrom, const GF& rTo)
 {
 	PROFILE_FUNC_GROUP("debug");
 
 	if(m_spDebugWriter.invalid()) return;
 
 //	build name
-	std::stringstream ss; ss << std::setfill('0') << "GMG_" << name << "_";
-	ss << "l" << std::setw(3) << lev;
-	ss << "_i" << std::setw(3) << m_dbgIterCnt << ".mat";
+	GridLevel glFrom = rFrom.grid_level();
+	GridLevel glTo = rTo.grid_level();
+	std::stringstream ss;
+	ss << "GMG_" << name << level_appending(glFrom);
+	if(glFrom != glTo) ss << level_appending(glTo);
+	ss << ".mat";
 
 //	write
 	GridLevel currGL = m_spDebugWriter->grid_level();
-	m_spDebugWriter->set_grid_level(GridLevel(lev,m_GridLevelType, false));
-	m_spDebugWriter->write_matrix(mat, ss.str().c_str());
-	m_spDebugWriter->set_grid_level(currGL);
-}
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_level_debug(const matrix_type& mat, std::string name, int lev)
-{
-	PROFILE_FUNC_GROUP("debug");
-
-	if(m_spDebugWriter.invalid()) return;
-
-//	build name
-	std::stringstream ss; ss << std::setfill('0') << "GMG_" << name << "_";
-	ss << "gl" << std::setw(3) << lev;
-	ss << "_i" << std::setw(3) << m_dbgIterCnt << ".mat";
-
-//	write
-	GridLevel currGL = m_spDebugWriter->grid_level();
-	m_spDebugWriter->set_grid_level(GridLevel(lev,m_GridLevelType));
-	m_spDebugWriter->write_matrix(mat, ss.str().c_str());
-	m_spDebugWriter->set_grid_level(currGL);
-}
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_surface_debug(const matrix_type& mat, std::string name)
-{
-	PROFILE_FUNC_GROUP("debug");
-
-	if(m_spDebugWriter.invalid()) return;
-
-//	build name
-	std::stringstream ss; ss << std::setfill('0') << "GMG_" << name << "_";
-	ss << "surf";
-	ss << "_i" << std::setw(3) << m_dbgIterCnt << ".mat";
-
-//	write
-	GridLevel currGL = m_spDebugWriter->grid_level();
-	m_spDebugWriter->set_grid_level(GridLevel(GridLevel::TOP, GridLevel::SURFACE));
+	m_spDebugWriter->set_grid_levels(glFrom, glTo);
 	m_spDebugWriter->write_matrix(mat, ss.str().c_str());
 	m_spDebugWriter->set_grid_level(currGL);
 }
