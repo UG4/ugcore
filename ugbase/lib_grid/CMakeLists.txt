@@ -84,6 +84,7 @@ set(srcLibGrid	common_attachments.cpp
 				tools/surface_view.cpp
 				tools/partition_map.cpp
 				tools/periodic_boundary_manager.cpp
+				tools/grid_level.cpp
 				geometric_objects/geometric_objects_1d.cpp
 				geometric_objects/geometric_objects_2d.cpp
 				geometric_objects/geometric_objects_3d.cpp

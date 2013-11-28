@@ -8,7 +8,8 @@
 #ifndef __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__
 #define __H__UG__LIB_GRID__TOOLS__GRID_LEVEL__
 
-#include <iomanip>      // std::setw
+#include <string>
+#include <iostream>
 
 namespace ug{
 
@@ -114,21 +115,10 @@ class GridLevel
 };
 
 /// writes to the output stream
-inline std::ostream& operator<<(std::ostream& out,	const GridLevel& v)
-{
-	if(v.is_surface()) out << "(surf, ";
-	else if(v.is_level()) out << "(lev,  ";
-	else UG_THROW("GridLevel: type of GridLevel not found.");
+std::ostream& operator<<(std::ostream& out,	const GridLevel& v);
 
-	if(v.top()) out << "top";
-	else out << std::setw(3) << v.level();
-
-	if(v.ghosts() == true) out << ", g)";
-	else out << ")";
-
-	return out;
-}
-
+/// returns appendix for a grid level
+std::string GridLevelAppendix(const GridLevel& gl, int minfill = 2);
 
 } // end namespace ug
 

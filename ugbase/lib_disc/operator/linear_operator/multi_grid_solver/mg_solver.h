@@ -473,9 +473,6 @@ class AssembledMultiGridCycle :
 		void write_debug(const matrix_type& mat, std::string name,
 		                 const GF& rFrom, const GF& rTo);
 
-	///	help function to append grid level
-		std::string level_appending(const GridLevel gl);
-
 	///	logs a level-data-struct to the terminal
 		void log_debug_data(int lvl, std::string name);
 

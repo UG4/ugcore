@@ -2052,30 +2052,6 @@ copy_to_vertical_masters(vector_type& c)
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename TDomain, typename TAlgebra>
-std::string AssembledMultiGridCycle<TDomain, TAlgebra>::
-level_appending(const GridLevel gl)
-{
-	std::stringstream ss; ss << std::setfill('0') << "_";
-
-	if(gl.is_level()){
-		if(gl.ghosts()) ss << "gl" << std::setw(3) << gl.level();
-		else 			ss << "l" << std::setw(3) << gl.level();
-	} else if (gl.is_surface()){
-		if(gl.ghosts()) ss << "gsl";
-		else 			ss << "sl";
-		if(gl.top()){
-			ss << "top";
-		} else {
-			ss << std::setw(3) << gl.level();
-		}
-	} else {
-		UG_THROW("GMG: GridLevel not supported.")
-	}
-
-	return ss.str();
-}
-
-template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 write_debug(ConstSmartPtr<GF> spGF, std::string name)
 {
@@ -2093,7 +2069,7 @@ write_debug(const GF& rGF, std::string name)
 //	build name
 	GridLevel gl = rGF.grid_level();
 	std::stringstream ss;
-	ss << "GMG_" << name << level_appending(gl);
+	ss << "GMG_" << name << GridLevelAppendix(gl);
 	ss << "_i" << std::setfill('0') << std::setw(3) << m_dbgIterCnt << ".vec";
 
 //	write
@@ -2115,8 +2091,8 @@ write_debug(const matrix_type& mat, std::string name, const GF& rFrom, const GF&
 	GridLevel glFrom = rFrom.grid_level();
 	GridLevel glTo = rTo.grid_level();
 	std::stringstream ss;
-	ss << "GMG_" << name << level_appending(glFrom);
-	if(glFrom != glTo) ss << level_appending(glTo);
+	ss << "GMG_" << name << GridLevelAppendix(glFrom);
+	if(glFrom != glTo) ss << GridLevelAppendix(glTo);
 	ss << ".mat";
 
 //	write
