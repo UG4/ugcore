@@ -51,9 +51,6 @@ ParallelVector<TVector>::operator -=(const typename ParallelVector<TVector>::thi
 	uint mask = get_storage_mask() & v.get_storage_mask();
 
 	//	check mask
-	UG_ASSERT(mask != 0, "ERROR in 'ParallelVector::operator-=': Storage"
-	          " types not compatible. This: "<< get_storage_mask() <<
-	          " and other: " << v.get_storage_mask() << ".");
 	if(mask == 0)
 		throw(UG_ERROR_IncompatibleParallelStorageType(
 				get_storage_mask(), v.get_storage_mask()));
@@ -76,9 +73,6 @@ ParallelVector<TVector>::operator +=(const typename ParallelVector<TVector>::thi
 	uint mask = get_storage_mask() & v.get_storage_mask();
 
 	//	check mask
-	UG_ASSERT(mask != 0, "ERROR in 'ParallelVector::operator+=': Storage"
-	          " types not compatible. This: "<< get_storage_mask() <<
-	          " and other: " << v.get_storage_mask() << ".");
 	if(mask == 0)
 		throw(UG_ERROR_IncompatibleParallelStorageType(
 				get_storage_mask(), v.get_storage_mask()));
