@@ -32,6 +32,7 @@
 #include "fractals.h"
 #include "duplicate.h"
 #include "callback_util.h"
+#include "volume_calculation.h"
 
 // hanging_node_refiner_2d_irn.h is currently not maintained.
 //#include "refinement/hanging_node_refiner_2d_irn.h"

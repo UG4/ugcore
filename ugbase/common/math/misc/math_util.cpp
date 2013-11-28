@@ -412,6 +412,93 @@ bool RayCylinderIntersection(number& tMinOut, number& tMaxOut, const vector3& ra
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
+								  const vector3& c, const vector3& d)
+{
+//
+//	Assume a tetrahedron with vertices a, b, c, d, then the volume is given by
+//
+//	V = 1/6 * |VecDot( (a-d) , VecCross((b-d), (c-d)) )|
+//
+	number tetrahedronVolume;
+	vector3 ad;
+	vector3 bd;
+	vector3 cd;
+	vector3 cross;
+
+	VecSubtract(ad, a, d);
+	VecSubtract(bd, b, d);
+	VecSubtract(cd, c, d);
+
+	VecCross(cross, bd, cd);
+
+	tetrahedronVolume = abs(VecDot(ad, cross) / 6);
+
+	return tetrahedronVolume;
+}
+
+number CalculatePyramidVolume(const vector3& a, const vector3& b,
+		const vector3& c, const vector3& d, const vector3& e)
+{
+	vector3 center, h_, h, c1, c2, da, ba, cb, cd;
+	VecSubtract(da, d, a);
+	VecSubtract(ba, b, a);
+	VecSubtract(cb, c, b);
+	VecSubtract(cd, c, d);
+	VecCross(c1, da, ba);
+	VecCross(c2, cb, cd);
+	number A = 0.5 * VecLength(c1) + 0.5 * VecLength(c2);
+
+	vector3 arr[] = { a, b, c, d };
+	CalculateCenter(center, arr, 4);
+
+	number height = DistancePointToPlane(e, center, c1);
+
+	return 1.0 / 3.0 * A * height;
+}
+
+number CalculatePrismVolume(const vector3& a, const vector3& b,
+		const vector3& c, const vector3& d, const vector3& e,
+		const vector3& f) {
+	number result = 0;
+	vector3 center;
+	vector3 arr[] = { a, b, c, d, e, f };
+	CalculateCenter(center, arr, 6);
+
+	result += CalculateTetrahedronVolume(a, b, c, center);
+	result += CalculateTetrahedronVolume(d, e, f, center);
+
+	result +=CalculatePyramidVolume(a, b, e, d, center);
+	result +=CalculatePyramidVolume(b, c, f, e, center);
+	result +=CalculatePyramidVolume(c, a, d, f, center);
+
+	return result;
+}
+
+number CalculateHexahedronVolume(const vector3& a, const vector3& b,
+		const vector3& c, const vector3& d, const vector3& e, const vector3& f,
+		const vector3& g, const vector3& h) {
+	number result = 0;
+	vector3 arr[] = { a, b, c, d, e, f, g, h };
+	vector3 center;
+	CalculateCenter(center, arr, 8);
+
+	// top and bottom
+	result += CalculatePyramidVolume(a, b, c, d, center);
+	result += CalculatePyramidVolume(e, f, g, h, center);
+
+	// sides
+	result += CalculatePyramidVolume(a, b, f, e, center);
+	result += CalculatePyramidVolume(b, c, g, f, center);
+
+	result += CalculatePyramidVolume(c, d, g, h, center);
+	result += CalculatePyramidVolume(a, d, h, e, center);
+
+	return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //	Returns the BinomialCoefficient
 int BinomCoeff(int n, int k)
 {

@@ -1,7 +1,7 @@
 /**
  * \file math_util.h
  */
-//	created by Sebastian Reiter
+//	created by Sebastian Reiter (with several contributions...)
 //	s.b.reiter@googlemail.com
 //	y08 m10 d14
 
@@ -575,6 +575,26 @@ bool PointIsInsideQuadrilateral(const vector_t& v, const vector_t& v0,
 template <class vector_t>
 bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vector_t& v1,
 							  const vector_t& v2, const vector_t& v3);
+
+////////////////////////////////////////////////////////////////////////
+//	CalculateTetrahedronVolume - mstepnie
+UG_API
+number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
+								  const vector3& c, const vector3& d);
+
+//	CalculatePyramidVolume - mscherer
+number CalculatePyramidVolume(const vector3& v0, const vector3& v1,
+		const vector3& v2, const vector3& v3, const vector3& v4);
+
+//	CalculatePrismVolume - mscherer
+number CalculatePrismVolume(const vector3& v0, const vector3& v1,
+		const vector3& v2, const vector3& v3, const vector3& v4,
+		const vector3& v5);
+
+//	CalculateHexahedronVolume - mscherer
+number CalculateHexahedronVolume(const vector3& v0, const vector3& v1,
+		const vector3& v2, const vector3& v3, const vector3& v4,
+		const vector3& v5, const vector3& v6, const vector3& v8);
 
 ////////////////////////////////////////////////////////////////////////
 //	BinomialCoefficient

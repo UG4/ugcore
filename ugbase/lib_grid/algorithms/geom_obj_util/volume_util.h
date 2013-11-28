@@ -63,13 +63,6 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 
 
 ////////////////////////////////////////////////////////////////////////
-//	CalculateTetrahedronVolume - mstepnie
-/// calculates the volume of a tetrahedral element
-UG_API 
-number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
-								  const vector3& c, const vector3& d);
-
-////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron - sreiter
 ///	returns true if the point lies inside the tetrahedron
 UG_API 

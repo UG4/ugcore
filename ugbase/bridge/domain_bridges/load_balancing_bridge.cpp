@@ -149,6 +149,13 @@ static void Domain(Registry& reg, string grp)
 		#endif
 
 		{
+			string name = string("BalanceWeights").append(suffix);
+			typedef BalanceWeights<TDomain::dim> T;
+			reg.add_class_<T>(name, grp);
+			reg.add_class_to_group(name, "BalanceWeights", tag);
+		}
+
+		{
 		//	Note that this class does not feature a constructor.
 		//	One normally uses the derived class DomainLoadBalancer
 			typedef LoadBalancer<TDomain::dim> T;
@@ -161,7 +168,8 @@ static void Domain(Registry& reg, string grp)
 					.add_method("set_element_threshold", &T::set_element_threshold)
 					.add_method("set_partitioner", &T::set_partitioner)
 					.add_method("create_quality_record", &T::create_quality_record)
-					.add_method("print_quality_records", &T::print_quality_records);
+					.add_method("print_quality_records", &T::print_quality_records)
+					.add_method("set_balance_weights", &T::set_balance_weights);
 
 			reg.add_class_to_group(name, "LoadBalancer", tag);
 		}

@@ -281,34 +281,6 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateTetrahedronVolume - mstepnie
-number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
-								  const vector3& c, const vector3& d)
-{
-//
-//	Assume a tetrahedron with vertices a, b, c, d, then the volume is given by
-//
-//	V = 1/6 * |VecDot( (a-d) , VecCross((b-d), (c-d)) )|
-//
-	number TetrahedronVolume;
-	vector3 ad;
-	vector3 bd;
-	vector3 cd;
-	vector3 cross;
-
-	VecSubtract(ad, a, d);
-	VecSubtract(bd, b, d);
-	VecSubtract(cd, c, d);
-
-	VecCross(cross, bd, cd);
-
-	TetrahedronVolume = abs(VecDot(ad, cross) / 6);
-
-	return TetrahedronVolume;
-}
-
-
 void InsertCenterVertex(Grid& g, Volume* vol, VertexBase* vrt, bool eraseOldVol)
 {
 //	get the sides of the volume and create new elements
