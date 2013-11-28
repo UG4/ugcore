@@ -77,6 +77,7 @@ public:
 	template<typename vector_t>
 	void apply(DenseVector<vector_t> &vec) const
 	{
+		if(vec.size() == 0) return;
 		int info = getrs(ModeNoTrans, num_rows(), 1, &densemat(0,0), num_rows(), &interchange[0], &vec[0], num_rows());
 		(void) info;
 		UG_ASSERT(info == 0, "DenseMatrixInverse::mat_mult: getrs failed.");

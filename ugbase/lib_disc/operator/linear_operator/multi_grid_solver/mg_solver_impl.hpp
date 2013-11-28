@@ -993,8 +993,6 @@ init_base_solver()
 	}
 	else
 	{
-		if(ld.st->num_indices() == 0) return;
-
 #ifdef UG_PARALLEL
 		if(!ld.st->layouts()->master().empty() || !ld.st->layouts()->slave().empty())
 			if(!m_spBaseSolver->supports_parallel())
@@ -1506,10 +1504,6 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - smooth on level "<<lev<<"\n");
 
-//	since no parallel communication takes place in this method, we may
-//	return immediately, if d is empty.
-	if(sd->size() == 0) return;
-
 // 	smooth nu times
 	for(int i = 0; i < nu; ++i)
 	{
@@ -1562,7 +1556,7 @@ restriction(int lev)
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
 
-//	## PARALLEL CASE: gather vertical
+//	PARALLEL CASE:
 //	v-slaves indicate, that part of the parent are stored on a different proc.
 //	Thus the values of the defect must be transfered to the v-masters and will
 //	have their parents on the proc of the master and must be restricted on
@@ -1572,7 +1566,6 @@ restriction(int lev)
 //	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0).
 //	We use a temporary vector including ghost, such that the no-ghost defect
 //	remains valid and can be used when the cycle comes back to this level.
-
 	SmartPtr<GF> spD = lf.sd;
 	#ifdef UG_PARALLEL
 	if( !lf.t->layouts()->vertical_slave().empty() ||
@@ -1588,20 +1581,18 @@ restriction(int lev)
 	}
 	#endif
 
-//	Now we can restrict the defect from the fine level to the coarser level.
-	if((lc.sd->size() > 0) && (spD->size() > 0)){
-		GMG_PROFILE_BEGIN(GMG_RestrictDefect);
-		try{
-			m_vLevData[lev]->Restriction->do_restrict(*lc.sd, *spD);
-		}
-		UG_CATCH_THROW("GMG::lmgc: Restriction of Defect from level "<<lev<<
-		               " to "<<lev-1<<" failed.");
-		GMG_PROFILE_END();
-
-	//	apply post processes
-		for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
-			m_vspRestrictionPostProcess[i]->post_process(lc.sd);
+//	restrict the defect from the fine level to the coarser level.
+	GMG_PROFILE_BEGIN(GMG_RestrictDefect);
+	try{
+		m_vLevData[lev]->Restriction->do_restrict(*lc.sd, *spD);
 	}
+	UG_CATCH_THROW("GMG::lmgc: Restriction of Defect from level "<<lev<<
+				   " to "<<lev-1<<" failed.");
+	GMG_PROFILE_END();
+
+//	apply post processes
+	for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
+		m_vspRestrictionPostProcess[i]->post_process(lc.sd);
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
 }
@@ -1616,7 +1607,7 @@ prolongation(int lev)
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
 
-//	## ADAPTIVE CASE
+//	ADAPTIVE CASE:
 //	in the adaptive case there is a small part of the coarse coupling that
 //	has not been used to update the defect. In order to ensure, that the
 //	defect on this level still corresponds to the updated defect, we need
@@ -1627,7 +1618,7 @@ prolongation(int lev)
 		GMG_PROFILE_END();
 	}
 
-//	## INTERPOLATE CORRECTION
+//	prolongate
 	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
 	try{
 		lf.Prolongation->prolongate(*lf.t, *lc.sc);
@@ -1635,33 +1626,28 @@ prolongation(int lev)
 	UG_CATCH_THROW("GMG::lmgc: Prolongation from level "<<lev-1<<" to "<<lev<<" failed.");
 	GMG_PROFILE_END();
 
-//	PARALLEL CASE: Receive values of correction for vertical slaves
+//	PARALLEL CASE:
+//	Receive values of correction for vertical slaves
 //	If there are vertical slaves/masters on the coarser level, we now copy
 //	the correction values from the v-master DoFs to the v-slave	DoFs.
 //	since dummies may exist, we'll copy the broadcasted correction to h-slave
 //	interfaces (dummies are always h-slaves)
 	copy_to_vertical_slaves(*lf.t);
-
-//	## PROJECT COARSE GRID CORRECTION ONTO SMOOTH AREA
 	copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
 
 //	apply post processes
 	for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
 		m_vspProlongationPostProcess[i]->post_process(lf.st);
 
-// 	## ADD COARSE GRID CORRECTION
+// 	add coarse grid correction
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
-	if(lf.sc->size() > 0){
-		(*lf.sc) += (*lf.st);
-	}
-	GMG_PROFILE_END(); // GMG_AddCoarseGridCorr
+	(*lf.sc) += (*lf.st);
+	GMG_PROFILE_END();
 
 //	correction changed c := c + t. Thus, update the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
-	if(lf.sd->size() > 0){
-		lf.A->apply_sub(*lf.sd, *lf.st);
-	}
-	GMG_PROFILE_END(); // GMG_UpdateDefectForCGCorr
+	lf.A->apply_sub(*lf.sd, *lf.st);
+	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
 }
@@ -1705,28 +1691,27 @@ base_solve(int lev)
 	if(!m_bGatheredBaseUsed)
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering distributed basesolver branch.\n");
-		if(ld.sd->num_indices()){
 
-			GMG_PROFILE_BEGIN(GMG_BaseSolver);
-			ld.sc->set(0.0);
-			try{
-				if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
-					UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
-			}
-			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
-
-		//	UPDATE DEFECT
-		//	*) if adaptive case, we also need to update the defect, such that on the
-		//	   surface level the defect remains updated
-		//	*) Only for full refinement and real coarser level, we can forget about
-		//	   the defect on the base level, since only the correction is needed
-		//	   on the higher level
-			if(lev >= m_LocalFullRefLevel){
-				ld.A->apply_sub(*ld.sd, *ld.sc);
-			}
-
-			GMG_PROFILE_END();
+		GMG_PROFILE_BEGIN(GMG_BaseSolver);
+		ld.sc->set(0.0);
+		try{
+			if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
+				UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 		}
+		UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
+
+	//	UPDATE DEFECT
+	//	*) if adaptive case, we also need to update the defect, such that on the
+	//	   surface level the defect remains updated
+	//	*) Only for full refinement and real coarser level, we can forget about
+	//	   the defect on the base level, since only the correction is needed
+	//	   on the higher level
+		if(lev >= m_LocalFullRefLevel){
+			ld.A->apply_sub(*ld.sd, *ld.sc);
+		}
+
+		GMG_PROFILE_END();
+
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting distributed basesolver branch.\n");
 	}
 
