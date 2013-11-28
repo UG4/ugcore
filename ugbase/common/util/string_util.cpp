@@ -383,6 +383,22 @@ string XMLStringEscape(string s)
 	return s;
 }
 
+static const char shiftCharacters[] = "|#[+";
+static const int shiftCharactersLength = sizeof(shiftCharacters)/sizeof(shiftCharacters[0]);
+
+bool IsShiftChar(char c)
+{
+	for(size_t i=0; i<shiftCharactersLength; i++)
+		if(c==shiftCharacters[i]) return true;
+	return false;
+}
+char ConfigShiftRotation(char c)
+{
+	for(size_t i=0; i<shiftCharactersLength; i++)
+		if(c==shiftCharacters[i])
+			return shiftCharacters[(i+1) % (shiftCharactersLength-1)];
+	return c;
+}
 
 string ConfigShift(string s)
 {
@@ -401,8 +417,14 @@ string ConfigShift(string s)
 		}
 		else if(bNewLine)
 		{
-			ss << " | ";
 			bNewLine = false;
+			ss << " | ";
+			while(k+2 < s.length() && s[k] == ' ' && IsShiftChar(s[k+1]) && s[k+2] == ' ')
+			{
+				ss << " " << ConfigShiftRotation(s[k+1]) << " ";
+				k+=3;
+			}
+
 		}
 		ss << s[k];
 	}
