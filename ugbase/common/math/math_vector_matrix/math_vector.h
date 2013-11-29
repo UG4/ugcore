@@ -399,8 +399,8 @@ bool operator< (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
 	for(std::size_t i = 0; i < N; ++i)
 	{
-		if(v[i] < w[i]) 		return true;
-		else if(v[i] > w[i])	return false;
+		if(v[i] < w[i] - SMALL) 		return true;
+		else if(v[i] > w[i] +  SMALL)	return false;
 	}
 	return false;
 }
