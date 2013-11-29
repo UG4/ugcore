@@ -76,6 +76,7 @@ class GPUJacobi : public IPreconditioner<GPUAlgebra>
 		virtual ~GPUJacobi()
 		{};
 
+		virtual bool supports_parallel() const { return false; }
 	protected:
 	///	Name of preconditioner
 		virtual const char* name() const {return "GPUJacobi";}
@@ -159,6 +160,11 @@ public:
 
 	///	constructor setting the damping parameter
 		Jacobi(number damp) {this->set_damp(damp);};
+
+		void set_block(bool b)
+		{
+			// always scalar
+		}
 };
 
 
