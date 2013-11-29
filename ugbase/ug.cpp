@@ -190,6 +190,9 @@ void UGForceExit()
 	#ifdef UG_PLUGINS
 		// ? UnloadPlugins();
 	#endif
+	#ifdef UG_PARALLEL
+		pcl::Abort();
+	#endif
 	UGFinalize();
 	exit(0);
 }
