@@ -74,6 +74,8 @@ std::ostream &operator << (std::ostream &out, const IndexLayout &layout)
 		}
 		out << ConfigShift(ss.str());
 	}
+
+	return out;
 }
 
 void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth)
