@@ -297,7 +297,7 @@ class AgglomeratingPreconditioner : public IPreconditioner<TAlgebra>
 	///	Clone
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			return new AgglomeratingPreconditioner<algebra_type>(m_prec->clone()));
+			return new AgglomeratingPreconditioner<algebra_type>(m_prec->clone());
 		}
 
 	///	Destructor
@@ -309,9 +309,8 @@ class AgglomeratingPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "AgglomeratingPreconditioner";}
 
 	///	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-			m_pMatrix = &Op->get_matrix();
 			if(agglomeration.init(Op)==false) return false;
 
 			bool bSuccess=true;
@@ -319,8 +318,8 @@ class AgglomeratingPreconditioner : public IPreconditioner<TAlgebra>
 			{
 				agglomeration.init_collected_vec(collectedC);
 				agglomeration.init_collected_vec(collectedD);
-				bSuccess = m_pLinOpInverse->init(agglomeration.get_collected_linear_op());
-				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 1, "Agglomerated on proc 0. Size is " << collectedX.size() << "\n");
+				bSuccess = m_prec->init(agglomeration.get_collected_linear_op());
+				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 1, "Agglomerated on proc 0. Size is " << collectedC.size() << "\n");
 			}
 			if(pcl::AllProcsTrue(bSuccess, Op->get_matrix().layouts()->proc_comm()) == false) return false;
 			return true;
@@ -328,29 +327,22 @@ class AgglomeratingPreconditioner : public IPreconditioner<TAlgebra>
 
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
-
-			return true;
-		}
-
-	///	Postprocess routine
-		virtual bool postprocess() {return true;}
-
-
-	//	overwrite function in order to specially treat constant damping
-		virtual bool apply(vector_type& c, const vector_type& d)
-		{
 			if(agglomeration.empty()) return true;
 
 			agglomeration.gather_vector_on_one(collectedD, d, PST_ADDITIVE);
 
 			collectedC.set(0.0);
 			if(agglomeration.i_am_root())
-				m_prec->apply(collectedC, collectedD);
+				m_prec->step(collectedC, collectedD);
 
 			agglomeration.broadcast_vector_from_one(c, collectedC, PST_CONSISTENT);
 		//	we're done
 			return true;
 		}
+
+	///	Postprocess routine
+		virtual bool postprocess() {return true;}
+
 
 		vector_type collectedC, collectedD;
 
