@@ -48,18 +48,6 @@ inline ParallelStorageType operator & (const ParallelStorageType &a, const Paral
 	return (ParallelStorageType) ((int)a&(int)b);
 }
 
-// Incompatible storage type exception
-struct UG_ERROR_IncompatibleParallelStorageType
-{
-		UG_ERROR_IncompatibleParallelStorageType
-			(uint a_, uint b_) :
-			a(a_), b(b_)
-		{}
-
-		uint a;
-		uint b;
-};
-
 inline std::ostream& operator<< (std::ostream& outStream, const ParallelStorageType& type)
 {
 	if(type & PST_UNDEFINED) outStream << "undefined";
