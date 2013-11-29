@@ -384,7 +384,7 @@ string XMLStringEscape(string s)
 }
 
 static const char shiftCharacters[] = "|#[+";
-static const int shiftCharactersLength = sizeof(shiftCharacters)/sizeof(shiftCharacters[0]);
+static const size_t shiftCharactersLength = sizeof(shiftCharacters)/sizeof(shiftCharacters[0]);
 
 bool IsShiftChar(char c)
 {
