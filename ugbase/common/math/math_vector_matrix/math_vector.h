@@ -396,6 +396,8 @@ bool operator== (const MathVector<0,T>& v, const MathVector<0,T>& w)
 	return true;
 }
 
+//	NOTE: this implementation determines the state of the relation '<'
+//	by considering the FIRST vector-entry, which is not equal
 template <std::size_t N, typename T>
 bool operator< (const MathVector<N,T>& v, const MathVector<N,T>& w)
 {
