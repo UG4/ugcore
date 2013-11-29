@@ -785,9 +785,8 @@ init_rap_operator()
 	if(m_bGatheredBaseUsed)
 	{
 		GMG_PROFILE_BEGIN(GMG_GatherFromBaseSolver);
-		LevData& ld = *m_vLevData[m_baseLev];
-
 #ifdef UG_PARALLEL
+		LevData& ld = *m_vLevData[m_baseLev];
 		if(gathered_base_master()){
 			spGatheredBaseMat->resize_and_clear(ld.t->size(), ld.t->size());
 			copy_noghost_to_ghost(spGatheredBaseMat.template cast_dynamic<matrix_type>(), ld.A, ld.vMapPatchToGlobal);
