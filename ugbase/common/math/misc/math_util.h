@@ -9,17 +9,13 @@
 #define __H__UGMATH__MATH_UTIL__
 
 #include <cstdlib>
+#include "math_constants.h"
 #include "../math_vector_matrix/math_vector.h"
 #include "../math_vector_matrix/math_vector_functions.h"
 #include "../ugmath_types.h"
 #include "../../ug_config.h"
 #include "eigenvalues.h"
 
-namespace
-{
-	#define _USE_MATH_DEFINES // needed for M_PI macro
-	#include <cmath>
-}
 
 namespace ug
 {
@@ -29,11 +25,6 @@ namespace ug
  * \ingroup ugbase_math
  * \{
  */
-
-const number SMALL = 1.0e-12;
-const number SMALL_SQ = SMALL * SMALL;
-
-const number PI = M_PI;
 
 ////////////////////////////////////////////////////////////////////////
 //	deg_to_rad
