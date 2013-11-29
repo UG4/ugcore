@@ -25,6 +25,7 @@
 #include "lib_algebra/operator/linear_solver/bicgstab.h"
 #include "lib_algebra/operator/linear_solver/gmres.h"
 #include "lib_algebra/operator/linear_solver/lu.h"
+#include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #ifdef UG_PARALLEL
 #include "lib_algebra/operator/linear_solver/feti.h"
 	#ifdef UG_HLIBPRO
@@ -185,6 +186,18 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LU", tag);
 	}
+
+// 	AgglomeratingSolver
+	{
+		typedef AgglomeratingSolver<TAlgebra> T;
+		typedef ILinearOperatorInverse<vector_type> TBase;
+		string name = string("AgglomeratingSolver").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "AgglomeratingSolver")
+			.template add_constructor<void (*)(SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > )>("pLinOp")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "AgglomeratingSolver", tag);
+	}
+
 
 #ifdef UG_PARALLEL
 // 	LocalSchurComplement
