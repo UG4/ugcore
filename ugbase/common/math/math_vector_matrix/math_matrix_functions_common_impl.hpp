@@ -253,6 +253,13 @@ Determinant(const MathMatrix<N,N,T>& m)
 }
 
 template <typename T>
+inline typename MathMatrix<0,0,T>::value_type
+Determinant(const MathMatrix<0,0,T>& m)
+{
+	return 0;
+}
+
+template <typename T>
 inline typename MathMatrix<1,1,T>::value_type
 Determinant(const MathMatrix<1,1,T>& m)
 {
@@ -301,6 +308,27 @@ GramDeterminant(const MathMatrix<N,M,T>& m)
 }
 
 template <typename T>
+inline typename MathMatrix<0,0,T>::value_type
+GramDeterminant(const MathMatrix<0,0,T>& m)
+{
+	return 0;
+}
+
+template <size_t N, typename T>
+inline typename MathMatrix<N,0,T>::value_type
+GramDeterminant(const MathMatrix<N,0,T>& m)
+{
+	return 0;
+}
+
+template <size_t M, typename T>
+inline typename MathMatrix<0,M,T>::value_type
+GramDeterminant(const MathMatrix<0,M,T>& m)
+{
+	return 0;
+}
+
+template <typename T>
 inline typename MathMatrix<1,1,T>::value_type
 GramDeterminant(const MathMatrix<1,1,T>& m)
 {
@@ -330,6 +358,27 @@ inline typename MathMatrix<N,M,T>::value_type
 SqrtGramDeterminant(const MathMatrix<N,M,T>& m)
 {
 	return sqrt(GramDeterminant(m));
+}
+
+template <typename T>
+inline typename MathMatrix<0,0,T>::value_type
+SqrtGramDeterminant(const MathMatrix<0,0,T>& m)
+{
+	return 0;
+}
+
+template <size_t N, typename T>
+inline typename MathMatrix<N,0,T>::value_type
+SqrtGramDeterminant(const MathMatrix<N,0,T>& m)
+{
+	return 0;
+}
+
+template <size_t M, typename T>
+inline typename MathMatrix<0,M,T>::value_type
+SqrtGramDeterminant(const MathMatrix<0,M,T>& m)
+{
+	return 0;
 }
 
 template <typename T>
