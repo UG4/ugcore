@@ -15,8 +15,12 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
-correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
+correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index)
 {
+	//	compute unconstrained solution (solution of a common (forward) GaussSeidel-step)
+	//	tmpSol := u_{s-1/2} = u_{s-1} + c
+	value_type tmpSol = lastSol[index] + c[index];
+
 	//	get index-th lower obstacle value
 	const value_type& lowerObsVal = (*m_spVecOfLowObsValues)[index];
 
@@ -48,8 +52,12 @@ correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t inde
 template <typename TDomain, typename TAlgebra>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
-correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
+correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index)
 {
+	//	compute unconstrained solution (solution of a common (forward) GaussSeidel-step)
+	//	tmpSol := u_{s-1/2} = u_{s-1} + c
+	value_type tmpSol = lastSol[index] + c[index];
+
 	//	get index-th upper obstacle value
 	const value_type& upperObsVal = (*m_spVecOfUpObsValues)[index];
 
@@ -81,8 +89,12 @@ correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t inde
 template <typename TDomain, typename TAlgebra>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
-correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index, const value_type& tmpSol)
+correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index)
 {
+	//	compute unconstrained solution (solution of a common (forward) GaussSeidel-step)
+	//	tmpSol := u_{s-1/2} = u_{s-1} + c
+	value_type tmpSol = lastSol[index] + c[index];
+
 	//	get index-th lower obstacle value
 	const value_type& upperObsVal = (*m_spVecOfUpObsValues)[index];
 	const value_type& lowerObsVal = (*m_spVecOfLowObsValues)[index];

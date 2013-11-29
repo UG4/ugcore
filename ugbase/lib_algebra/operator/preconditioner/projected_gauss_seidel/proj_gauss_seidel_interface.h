@@ -107,13 +107,13 @@ class IProjGaussSeidel:
 		void adjust_defect(vector_type& d);
 
 	protected:
-	///	pointer to solution
-		SmartPtr<vector_type> m_spSol;
-
 	///	obstacle constraint
 		SmartPtr<IObstacleConstraint<TAlgebra> > m_spObsConstraint;
 
 	private:
+	///	pointer to solution
+		SmartPtr<vector_type> m_spSol;
+
 	/// flag indicating if obstacle constraint has been set
 		bool m_bObsCons;
 

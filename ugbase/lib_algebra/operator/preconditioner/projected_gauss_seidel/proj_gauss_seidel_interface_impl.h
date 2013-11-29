@@ -59,26 +59,32 @@ IProjGaussSeidel<TAlgebra>::project_correction(vector_type& c, const size_t i)
 {
 	//	compute unconstrained solution (solution of a common (forward) GaussSeidel-step)
 	//	tmpSol := u_{s-1/2} = u_{s-1} + c
-	value_type tmpSol = (*m_spSol)[i] + c[i];
+	//value_type tmpSol = (*m_spSol)[i] + c[i];
+
+	//TODO: check, if index i is in m_vAlgIndicesOfObsSubsets
+	//if (m_spObsConstraint->nrOfIndicesOfObsSubsets() != 0.0)
+	//if (m_spObsConstraint->m_vAlgIndicesOfObsSubsets.size() != 0.0)
+	//	if (!m_spObsConstraint->index_is_in_obs_subset(i))
+	//		return;
 
 	//	perform a projection: check whether the temporary solution u_{s-1/2}
 	//	fulfills the underlying constraint(s) or not
 	if(m_spObsConstraint->lower_obs_set() && (!(m_spObsConstraint->upper_obs_set())))
 	{
 		//	only a lower obstacle is set
-		m_spObsConstraint->correction_for_lower_obs(c, (*m_spSol), i, tmpSol);
+		m_spObsConstraint->correction_for_lower_obs(c, (*m_spSol), i);
 	}
 
 	if((!(m_spObsConstraint->lower_obs_set())) && m_spObsConstraint->upper_obs_set())
 	{
 		//	only an upper obstacle is set
-		m_spObsConstraint->correction_for_upper_obs(c, (*m_spSol), i, tmpSol);
+		m_spObsConstraint->correction_for_upper_obs(c, (*m_spSol), i);
 	}
 
 	if(m_spObsConstraint->lower_obs_set() && m_spObsConstraint->upper_obs_set())
 	{
 		//	a lower and an upper obstacle are set
-		m_spObsConstraint->correction_for_lower_and_upper_obs(c, (*m_spSol), i, tmpSol);
+		m_spObsConstraint->correction_for_lower_and_upper_obs(c, (*m_spSol), i);
 	}
 }
 

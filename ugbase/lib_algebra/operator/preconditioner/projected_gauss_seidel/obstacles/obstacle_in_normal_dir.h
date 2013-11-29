@@ -55,21 +55,22 @@ class ObstacleInNormalDir:
 		typedef GridFunction<TDomain, TAlgebra> function_type;
 
 	public:
+	/// constructor for an obstacle in normal direction
+	///	defined on some subset(s)
+		ObstacleInNormalDir(const function_type& u, const char* subsets):
+			IObstacleConstraint<TAlgebra>(u, subsets){};
+
 	/// constructor
-		ObstacleInNormalDir(function_type& u): IObstacleConstraint<TAlgebra>(){
-			m_spDD = u.dof_distribution();};
+		ObstacleInNormalDir(): IObstacleConstraint<TAlgebra>(){};
 
 	///	computes the correction for the case that only a lower obstacle is set, i.e. u * n >= g_low
-		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index,
-				const value_type& tmpSol);
+		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index);
 
 	///	computes the correction for the case that only an upper obstacle is set, i.e. u * n <= g_up
-		void correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index,
-				const value_type& tmpSol);
+		void correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index);
 
 	///	computes the correction for the case that a lower and an upper obstacle is set
-		void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index,
-				const value_type& tmpSol);
+		void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index);
 
 	///	Destructor
 		~ObstacleInNormalDir(){};
@@ -82,9 +83,6 @@ class ObstacleInNormalDir:
 	///	vector of obstacle values (for lower and upper constraint)
 		using base_type::m_spVecOfLowObsValues;
 		using base_type::m_spVecOfUpObsValues;
-
-	///	pointer to the DofDistribution on the whole domain
-		SmartPtr<DoFDistribution> m_spDD;
 };
 
 } // end namespace ug

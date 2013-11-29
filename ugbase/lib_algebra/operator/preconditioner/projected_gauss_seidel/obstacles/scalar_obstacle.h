@@ -11,6 +11,8 @@
 #include "obstacle_constraint_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
+using namespace std;
+
 namespace ug{
 
 /// Scalar Obstacles
@@ -54,36 +56,21 @@ class ScalarObstacle:
 
 	public:
 	/// constructor for a scalar obstacle defined on some subset(s)
-		ScalarObstacle(function_type& u, const char* subsets): IObstacleConstraint<TAlgebra>(),
-			m_bObsOnWholeDomain(false), m_bObsOnlyOnSubsets(true){
-			m_spDD = u.dof_distribution();
-			m_spApproxSpace = u.approx_space();
-			m_ssName = subsets;
-			init(u);};
+		ScalarObstacle(const function_type& u, const char* subsets):
+			IObstacleConstraint<TAlgebra>(u, subsets){};
 
 	///	default constructor
-		ScalarObstacle(): IObstacleConstraint<TAlgebra>(), m_bObsOnWholeDomain(true),
-				m_bObsOnlyOnSubsets(false){};
-
-	///	stores all indices of obstacle subset(s)
-		template <typename TElem, typename TIterator>
-		void obstacle_indices_on_subset(TIterator iterBegin,
-				TIterator iterEnd, function_type& u);
-
-
-		void init(function_type& u);
+		ScalarObstacle():
+			IObstacleConstraint<TAlgebra>(){};
 
 	///	computes the correction for the case that only a lower obstacle is set, i.e. u >= g_low
-		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index,
-				const value_type& tmpSol);
+		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index);
 
 	///	computes the correction for the case that only an upper obstacle is set, i.e. u <= g_up
-		void correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index,
-				const value_type& tmpSol);
+		void correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index);
 
 	///	computes the correction for the case that a lower and an upper obstacle is set
-		void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index,
-				const value_type& tmpSol);
+		void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index);
 
 	///	Destructor
 		~ScalarObstacle(){};
@@ -96,21 +83,6 @@ class ScalarObstacle:
 	///	vector of obstacle values (for lower and upper constraint)
 		using base_type::m_spVecOfLowObsValues;
 		using base_type::m_spVecOfUpObsValues;
-
-	///	pointer to the DofDistribution on the whole domain
-		ConstSmartPtr<DoFDistribution> m_spDD;
-
-	///	pointer to the ApproxSpace
-		ConstSmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-
-	///	booleans to indicate, if the obstacle is defined only on some subset(s) or on the whole domain
-		bool m_bObsOnWholeDomain, m_bObsOnlyOnSubsets;
-
-	///	name of subset(s), on which the obstacle is defined
-		std::string m_ssName;
-
-	/// subsetGroup
-		SubsetGroup m_ssGrp;
 };
 
 } // end namespace ug

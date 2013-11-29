@@ -17,9 +17,7 @@ template<typename Matrix_type, typename Vector_type>
 void forward_gs_step(Vector_type& c, const Matrix_type& A, const Vector_type& d,
 		const size_t i, const number relaxFactor)
 {
-	typename Vector_type::value_type s;
-
-	s = d[i];
+	typename Vector_type::value_type s = d[i];
 
 	for(typename Matrix_type::const_row_iterator it = A.begin_row(i);
 			it != A.end_row(i) && it.index() < i; ++it)
@@ -34,9 +32,7 @@ template<typename Matrix_type, typename Vector_type>
 void backward_gs_step(Vector_type& c, const Matrix_type& A, const Vector_type& d,
 		const size_t i, const number relaxFactor)
 {
-	typename Vector_type::value_type s;
-
-	s = d[i];
+	typename Vector_type::value_type s = d[i];
 
 	typename Matrix_type::const_row_iterator diag = A.get_connection(i, i);
 	typename Matrix_type::const_row_iterator it = diag; ++it;
@@ -60,12 +56,9 @@ step(const matrix_type& A, vector_type& c, const vector_type& d, const number re
 	{
 		forward_gs_step(c, A, d, i, relax);
 
-		//if (m_bObsOnWholeDomain)
 		this->project_correction(c, i);
 	}
 
-	//else if(m_bObsOnlyOnSubsets)
-	//	for-loop Ÿber diejenigen indices, die vorher in einem Vektor m_vObsIndices gespeichert/vorgemerkt wurden.
 }
 
 template <typename TAlgebra>
