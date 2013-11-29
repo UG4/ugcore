@@ -14,6 +14,7 @@
 #include "lib_disc/common/function_group.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/quadrature/quadrature.h"
+#include "lib_disc/domain_util.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/spatial_disc/user_data/std_glob_pos_data.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
@@ -75,9 +76,17 @@ class GlobalGridFunctionNumberData
 			return LocalFiniteElementProvider::continuous(m_lfeID);
 		}
 
-	///	evaluates the data at a given point and time
+		///	to full-fill UserData-Interface
 		inline void evaluate(number& value, const MathVector<dim>& x, number time, int si) const
 		{
+			evaluate(value, x);
+
+		}
+
+		///	evaluates the data at a given point
+		inline void evaluate(number& value, const MathVector<dim>& x) const
+		{
+
 			try{
 				element_t* elem;
 				if(!FindContainingElement(elem, m_tree, x)){
