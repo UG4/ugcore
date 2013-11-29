@@ -484,14 +484,14 @@ public:
 			                          m_spApproxSpace->dof_distribution(m_glTo),
 			                          vToPos);
 
-			if(mat.num_rows() == vFromPos.size() && mat.num_cols() == vToPos.size())
+			if(mat.num_cols() == vFromPos.size() && mat.num_rows() == vToPos.size())
 			{
 				ConnectionViewer::WriteMatrixPar(name, mat, vFromPos, vToPos, dim);
 			}
 			else{
 				UG_THROW("GridFunctionDebugWriter: Wrong size of matrix for writing"
-						"matrix ("<<m_glFrom<<" x "<<m_glTo<<"), that would be a ("
-						<<vFromPos.size()<<" x "<<vToPos.size()<<") matrix. But "
+						"matrix ("<<m_glTo<<" x "<<m_glFrom<<"), that would be a ("
+						<<vToPos.size()<<" x "<<vFromPos.size()<<") matrix. But "
 						"passed matrix of size ("<<mat.num_rows()<<" x "
 						<<mat.num_cols()<<").");
 			}
