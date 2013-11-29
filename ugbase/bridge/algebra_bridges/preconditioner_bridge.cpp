@@ -19,6 +19,7 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/preconditioner/preconditioners.h"
 #include "lib_algebra/operator/preconditioner/ilut_scalar.h"
+#include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
 #include "common/serialization.h"
 using namespace std;
 
@@ -327,6 +328,18 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ProjSymmetricGaussSeidel", tag);
 	}
+
+// 	AgglomeratingPreconditioner
+	{
+		typedef AgglomeratingIterator<TAlgebra> T;
+		typedef ILinearIterator<vector_type> TBase;
+		string name = string("AgglomeratingIterator").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "AgglomeratingIterator")
+			.template add_constructor<void (*)(SmartPtr<ILinearIterator<vector_type> > )>("pLinIterator")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "AgglomeratingIterator", tag);
+	}
+
 }
 	
 
