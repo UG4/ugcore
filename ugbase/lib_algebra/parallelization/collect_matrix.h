@@ -196,8 +196,24 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 	//PrintLayout(processCommunicator, communicator, masterLayout, slaveLayout);
 }
 
+/**
+ * 1. constructs global indices
+ * 2. for pid != proc_id(0) :
+ * 		a) send the whole matrix with global ids to proc_id(0)
+ * 		b) create slaveLayout to proc_id(0)
+ *
+ * 3. for pid = proc_id(0) :
+ * 		a) receives the matrices
+ * 		b) builds up collectedA
+ * 		c) creates masterLayout to all other pids.
+ *
+ * @param A				(input) the distributed parallel matrix A
+ * @param collectedA	(output) the collected matrix A on pid = proc_id(0)
+ * @param masterLayout	the agglomeration master layout (only defined on pid = proc_id(0))
+ * @param slaveLayout	the agglomeration slave layout (only defined on pid != proc_id(0))
+ */
 template<typename matrix_type>
-void collect_matrix(matrix_type &A, matrix_type &M, IndexLayout &masterLayout, IndexLayout &slaveLayout)
+void CollectMatrixOnOneProc(const matrix_type &A, matrix_type &collectedA, IndexLayout &masterLayout, IndexLayout &slaveLayout)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
@@ -210,10 +226,110 @@ void collect_matrix(matrix_type &A, matrix_type &M, IndexLayout &masterLayout, I
 	{
 		srcprocs.resize(pc.size()-1);
 		for(size_t i=1; i<pc.size(); i++) srcprocs[i-1] = pc.get_proc_id(i);
-		ReceiveMatrix(A, M, masterLayout, srcprocs, PN);
+		ReceiveMatrix(A, collectedA, masterLayout, srcprocs, PN);
 	}
 	else
 		SendMatrix(A, slaveLayout, pc.get_proc_id(0), PN);
+}
+
+/**
+ * gathers the vector vec to collectedVec on one processor
+ * @param agglomeratedMaster	master agglomeration layout. only nonempty if Root=true
+ * @param agglomeratedSlave		slave agglomeration layout. only nonempty if Root=false
+ * @param com
+ * @param collectedVec			(output) result on proc with bRoot=true
+ * @param vec					(input) the distributed vec
+ * @param type can be PST_ADDITIVE or PST_CONSISTENT
+ * @param bRoot
+ */
+template<typename T>
+void GatherVectorOnOne(IndexLayout &agglomeratedMaster, IndexLayout &agglomeratedSlave,
+		pcl::InterfaceCommunicator<IndexLayout> &com,
+		ParallelVector<T> &collectedVec,
+		const ParallelVector<T> &vec,
+		ParallelStorageType type, bool bRoot)
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+	typedef ParallelVector<T> vector_type;
+	if(!bRoot)
+	{
+		ComPol_VecAdd<vector_type > compolAdd(&collectedVec, &vec);
+		com.send_data(agglomeratedSlave, compolAdd);
+		com.communicate();
+	}
+	else
+	{
+		//UG_LOG("gather_vertical: receiving data at level " << level << "\n");
+		UG_ASSERT(&vec != &collectedVec, "");
+		collectedVec.set(0.0);
+		for(size_t i=0; i<vec.size(); i++)
+			collectedVec[i] = vec[i];
+
+		UG_ASSERT(vec.has_storage_type(type), "");
+		if(type == PST_ADDITIVE)
+		{
+			ComPol_VecAdd<vector_type > compolAdd(&collectedVec, &vec);
+			com.receive_data(agglomeratedMaster, compolAdd);
+			com.communicate();
+			collectedVec.set_storage_type(PST_ADDITIVE);
+		}
+		else if(type == PST_CONSISTENT)
+		{
+			ComPol_VecCopy<vector_type > compolCopy(&collectedVec, &vec);
+			com.receive_data(agglomeratedMaster, compolCopy);
+			com.communicate();
+			collectedVec.set_storage_type(PST_CONSISTENT);
+		}
+		else { UG_ASSERT(0, "unsupported."); }
+	}
+}
+
+/**
+ * broadcasts the vector collectedVec to the distributed vec
+ * @param agglomeratedMaster	master agglomeration layout. only nonempty if bRoot=true
+ * @param agglomeratedSlave		slave agglomeration layout. only nonempty if bRoot=false
+ * @param com
+ * @param vec					(output) the distributed vec
+ * @param collectedVec			(input) collectedVec
+ * @param type can be PST_ADDITIVE or PST_CONSISTENT
+ * @param bRoot
+ */
+template<typename T>
+void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglomeratedSlave,
+		pcl::InterfaceCommunicator<IndexLayout> &com,
+		ParallelVector<T> &vec,
+		const ParallelVector<T> &collectedVec,
+		ParallelStorageType type, bool bRoot)
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+	typedef ParallelVector<T> vector_type;
+	if(!bRoot)
+	{
+		ComPol_VecCopy<vector_type> compolCopy(&vec, &collectedVec);
+		com.receive_data(agglomeratedSlave, compolCopy);
+		com.communicate();
+		vec.set_storage_type(type);
+	}
+	else
+	{
+		UG_ASSERT(&vec != &collectedVec, "");
+		for(size_t i=0; i<vec.size(); i++)
+			vec[i] = collectedVec[i];
+		UG_ASSERT(collectedVec.has_storage_type(type), "");
+		vec.set_storage_type(type);
+
+		ComPol_VecAdd<vector_type > compolCopy(&vec, &collectedVec);
+		com.send_data(agglomeratedMaster, compolCopy);
+		com.communicate();
+	}
+
+	if(type == PST_ADDITIVE)
+	{
+		SetLayoutValues(&vec, vec.layouts()->slave(), 0.0); //!!!
+		vec.set_storage_type(PST_ADDITIVE);
+	}
+	else if(type == PST_CONSISTENT) {	}
+	else { UG_ASSERT(0, "unsupported."); }
 }
 
 } // namespace ug
