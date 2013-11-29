@@ -402,16 +402,16 @@ public:
 
 	///	sets the grid level
 	void set_grid_level(const GridLevel& gridLevel) {
-		m_gridLevel = gridLevel; m_coarseGridLevel = gridLevel;
+		m_glFrom = gridLevel; m_glTo = gridLevel;
 	}
 
 	///	sets the grid level
-	void set_grid_levels(const GridLevel& fineGridLevel, const GridLevel& coarseGridLevel) {
-		m_gridLevel = fineGridLevel; m_coarseGridLevel = coarseGridLevel;
+	void set_grid_levels(const GridLevel& glFrom, const GridLevel& glTo) {
+		m_glFrom = glFrom; m_glTo = glTo;
 	}
 
 	///	returns current grid level
-	GridLevel grid_level() const {return m_gridLevel;}
+	GridLevel grid_level() const {return m_glFrom;}
 
 	///	sets to toplevel on surface
 	void reset() {
@@ -464,32 +464,37 @@ public:
 
 		//	write to file
 		extract_algebra_indices(name);
-		if(m_gridLevel == m_coarseGridLevel){
+		if(m_glFrom == m_glTo){
 			if(mat.num_rows() != mat.num_cols())
 				UG_THROW("DebugWriter: grid level the same, but non-square matrix.");
 
-			extract_positions(m_gridLevel);
-			std::vector<MathVector<dim> >& vPos =
-					this->template get_positions<dim>();
+			extract_positions(m_glFrom);
+			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
 			if(vPos.empty())
 				ConnectionViewer::WriteMatrixPar(name.c_str(), mat,(MathVector<dim>*)NULL, dim);
 			else
 				ConnectionViewer::WriteMatrixPar(name.c_str(), mat, &vPos[0], dim);
 		}
 		else{
-			extract_positions(m_gridLevel);
-			std::vector<MathVector<dim> >& vFinePos =
-					this->template get_positions<dim>();
-			std::vector<MathVector<dim> > vCoarsePos;
+			extract_positions(m_glFrom);
+			std::vector<MathVector<dim> >& vFromPos = this->template get_positions<dim>();
 
+			std::vector<MathVector<dim> > vToPos;
 			ExtractPositions<TDomain>(m_spApproxSpace->domain(),
-			                 m_spApproxSpace->dof_distribution(m_coarseGridLevel),
-			                 vCoarsePos);
+			                          m_spApproxSpace->dof_distribution(m_glTo),
+			                          vToPos);
 
-			if(mat.num_cols() == vFinePos.size())
-				ConnectionViewer::WriteMatrixPar(name, mat, vFinePos, vCoarsePos, dim);
-			else
-				ConnectionViewer::WriteMatrixPar(name, mat, vCoarsePos, vFinePos, dim);
+			if(mat.num_rows() == vFromPos.size() && mat.num_cols() == vToPos.size())
+			{
+				ConnectionViewer::WriteMatrixPar(name, mat, vFromPos, vToPos, dim);
+			}
+			else{
+				UG_THROW("GridFunctionDebugWriter: Wrong size of matrix for writing"
+						"matrix ("<<m_glFrom<<" x "<<m_glTo<<"), that would be a ("
+						<<vFromPos.size()<<" x "<<vToPos.size()<<") matrix. But "
+						"passed matrix of size ("<<mat.num_rows()<<" x "
+						<<mat.num_cols()<<").");
+			}
 		}
 	}
 
@@ -497,7 +502,7 @@ protected:
 
 	void extract_algebra_indices(std::string name)
 	{
-		WriteAlgebraIndices<TDomain>(name, m_spApproxSpace->domain(), m_spApproxSpace->dof_distribution(m_gridLevel));
+		WriteAlgebraIndices<TDomain>(name, m_spApproxSpace->domain(), m_spApproxSpace->dof_distribution(m_glFrom));
 	}
 
 	///	reads the positions
@@ -532,7 +537,7 @@ protected:
 		}
 
 		//	write
-		extract_positions(m_gridLevel);
+		extract_positions(m_glFrom);
 		std::vector<MathVector<dim> >& vPos =
 				this->template get_positions<dim>();
 		if(vPos.empty())
@@ -556,7 +561,7 @@ protected:
 		typedef GridFunction<TDomain, TAlgebra> TGridFunction;
 		TGridFunction vtkFunc(
 				m_spApproxSpace,
-				m_spApproxSpace->dof_distribution(m_gridLevel));
+				m_spApproxSpace->dof_distribution(m_glFrom));
 		vtkFunc.resize_values(vec.size());
 		vtkFunc.assign(vec);
 		VTKOutput<dim> out;
@@ -577,7 +582,7 @@ protected:
 	bool m_printConsistent;
 
 	//	current grid level
-	GridLevel m_gridLevel, m_coarseGridLevel;
+	GridLevel m_glFrom, m_glTo;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
