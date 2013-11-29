@@ -11,10 +11,9 @@
 #include <sstream>
 
 #include "lib_algebra/operator/interface/operator_inverse.h"
-#include "lib_algebra/parallelization/collect_matrix.h"
-#include "lu.h"
 
 #ifdef UG_PARALLEL
+	#include "lib_algebra/parallelization/collect_matrix.h"
 	#include "lib_algebra/parallelization/parallelization.h"
 	#include "lib_algebra/parallelization/parallelization_util.h"
 #endif
@@ -22,6 +21,7 @@
 namespace ug{
 
 
+#ifdef UG_PARALLEL
 template<typename T>
 void GatherVectorOnOne(HorizontalAlgebraLayouts &agglomerationLayout,
 		ParallelVector<T> &collectedVec, const ParallelVector<T> &vec,
@@ -264,6 +264,189 @@ class AgglomeratingSolver : public IMatrixOperatorInverse<	typename TAlgebra::ma
 		AgglomeratingBase<TAlgebra> agglomeration;
 };
 
+///	Jacobi Preconditioner
+template <typename TAlgebra>
+class AgglomeratingPreconditioner : public IPreconditioner<TAlgebra>
+{
+	public:
+	///	Algebra type
+		typedef TAlgebra algebra_type;
+
+	///	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	///	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	///	Matrix Operator type
+		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
+
+	///	Base type
+		typedef IPreconditioner<TAlgebra> base_type;
+
+	public:
+	///	default constructor
+		AgglomeratingPreconditioner(SmartPtr<IPreconditioner<TAlgebra> > prec)
+		{
+			m_prec = prec;
+		}
+
+	///	returns if parallel solving is supported
+		virtual bool supports_parallel() const {return true;}
+
+	///	Clone
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
+		{
+			return new AgglomeratingPreconditioner<algebra_type>(m_prec->clone()));
+		}
+
+	///	Destructor
+		~AgglomeratingPreconditioner()
+		{};
+
+	protected:
+	///	Name of preconditioner
+		virtual const char* name() const {return "AgglomeratingPreconditioner";}
+
+	///	Preprocess routine
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+		{
+			m_pMatrix = &Op->get_matrix();
+			if(agglomeration.init(Op)==false) return false;
+
+			bool bSuccess=true;
+			if(agglomeration.i_am_root())
+			{
+				agglomeration.init_collected_vec(collectedC);
+				agglomeration.init_collected_vec(collectedD);
+				bSuccess = m_pLinOpInverse->init(agglomeration.get_collected_linear_op());
+				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 1, "Agglomerated on proc 0. Size is " << collectedX.size() << "\n");
+			}
+			if(pcl::AllProcsTrue(bSuccess, Op->get_matrix().layouts()->proc_comm()) == false) return false;
+			return true;
+		}
+
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		{
+
+			return true;
+		}
+
+	///	Postprocess routine
+		virtual bool postprocess() {return true;}
+
+
+	//	overwrite function in order to specially treat constant damping
+		virtual bool apply(vector_type& c, const vector_type& d)
+		{
+			if(agglomeration.empty()) return true;
+
+			agglomeration.gather_vector_on_one(collectedD, d, PST_ADDITIVE);
+
+			collectedC.set(0.0);
+			if(agglomeration.i_am_root())
+				m_prec->apply(collectedC, collectedD);
+
+			agglomeration.broadcast_vector_from_one(c, collectedC, PST_CONSISTENT);
+		//	we're done
+			return true;
+		}
+
+		vector_type collectedC, collectedD;
+
+		SmartPtr<IPreconditioner<TAlgebra> > m_prec;
+		AgglomeratingBase<TAlgebra> agglomeration;
+};
+
+#else
+
+
+template <typename TAlgebra>
+class AgglomeratingSolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type,
+														typename TAlgebra::vector_type>
+{
+	public:
+	// 	Algebra type
+		typedef TAlgebra algebra_type;
+
+	// 	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	// 	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	///	Base type
+		typedef IMatrixOperatorInverse<matrix_type,vector_type> base_type;
+
+	protected:
+		using base_type::convergence_check;
+
+
+	public:
+		AgglomeratingSolver(SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > linOpInverse)
+		{
+			UG_COND_THROW(linOpInverse.valid()==false, "linOpInverse has to be != NULL");
+			m_pLinOpInverse = linOpInverse;
+		};
+
+	// 	Destructor
+		virtual ~AgglomeratingSolver() {};
+
+
+		virtual const char* name() const
+		{
+			return "AgglomeratingSolver";
+		}
+
+
+	//	set operator L, that will be inverted
+		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
+		{
+			return m_pLinOpInverse->init(Op);
+			return true;
+		}
+
+		virtual bool supports_parallel() const { return true; }
+
+	// 	Compute u = L^{-1} * f
+		virtual bool apply(vector_type& x, const vector_type& b)
+		{
+			m_pLinOpInverse->apply(x, b);
+			return true;
+		}
+
+	// 	Compute u = L^{-1} * f AND return defect f := f - L*u
+		virtual bool apply_return_defect(vector_type& u, vector_type& f)
+		{
+			PROFILE_FUNC();
+		//	solve u
+			if(!apply(u, f)) return false;
+		//	update defect
+			if(!m_pMatrix->matmul_minus(f, u))
+			{
+				UG_LOG("ERROR in 'LUSolver::apply_return_defect': Cannot apply matmul_minus.\n");
+				return false;
+			}
+
+		//	we're done
+			return true;
+		}
+
+		virtual std::string config_string() const
+		{
+			std::stringstream ss;
+			ss << "AgglomeratingSolver of "<< ConfigShift(m_pLinOpInverse->config_string());
+			return ss.str();
+		}
+
+
+	protected:
+		// Operator to invert
+		// matrix to invert
+		matrix_type* m_pMatrix;
+		SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > m_pLinOpInverse;
+};
+#endif
 
 } // end namespace ug
 
