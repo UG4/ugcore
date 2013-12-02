@@ -28,19 +28,19 @@ void DoFIndexStorage::init_attachments()
 {
 //	attach DoFs to vertices
 	if(max_dofs(VERTEX)) {
-		multi_grid()->attach_to<VertexBase>(m_aIndex);
+		multi_grid()->attach_to_dv<VertexBase>(m_aIndex, (size_t)-1);
 		m_aaIndexVRT.access(*multi_grid(), m_aIndex);
 	}
 	if(max_dofs(EDGE)) {
-		multi_grid()->attach_to<EdgeBase>(m_aIndex);
+		multi_grid()->attach_to_dv<EdgeBase>(m_aIndex, (size_t)-1);
 		m_aaIndexEDGE.access(*multi_grid(), m_aIndex);
 	}
 	if(max_dofs(FACE)) {
-		multi_grid()->attach_to<Face>(m_aIndex);
+		multi_grid()->attach_to_dv<Face>(m_aIndex, (size_t)-1);
 		m_aaIndexFACE.access(*multi_grid(), m_aIndex);
 	}
 	if(max_dofs(VOLUME)) {
-		multi_grid()->attach_to<Volume>(m_aIndex);
+		multi_grid()->attach_to_dv<Volume>(m_aIndex, (size_t)-1);
 		m_aaIndexVOL.access(*multi_grid(), m_aIndex);
 	}
 }
