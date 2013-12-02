@@ -15,6 +15,7 @@
 #endif
 #include "common/progress.h"
 #include "common/util/ostream_util.h"
+#include "common/profiler/profiler.h"
 
 #include "lib_algebra/algebra_common/vector_util.h"
 #include "lib_algebra/algebra_common/permutation_util.h"
@@ -103,6 +104,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 		void sort(matrix_type &permMat, const matrix_type &mat)
 		{
+			PROFILE_BEGIN_GROUP(ILUT_ReorderCuthillMcKey, "ilut, algebra");
 			std::vector<std::vector<size_t> > neighbors;
 			neighbors.resize(mat.num_rows());
 
@@ -123,6 +125,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
+			PROFILE_BEGIN_GROUP(ILUT_preprocess, "ilut, algebra");
 			//matrix_type &mat = *pOp;
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
@@ -294,6 +297,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			}
 			else
 			{
+				PROFILE_BEGIN_GROUP(ILUT_StepWithReorder, "ilut, algebra");
 				vector_type c2, d2;
 				SetVectorAsPermutation(d2, d, newIndex);
 				c2.resize(c.size());
@@ -312,6 +316,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 		virtual bool step(vector_type& c, const vector_type& d)
 		{
+			PROFILE_BEGIN_GROUP(ILUT_step, "ilut, algebra");
 			// apply iterator: c = LU^{-1}*d (damp is not used)
 			// L
 			for(size_t i=0; i < m_L.num_rows(); i++)
