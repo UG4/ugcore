@@ -115,6 +115,7 @@ apply(vector_type& rC, const vector_type& rD)
 	const GF* pD = dynamic_cast<const GF*>(&rD);
 	if(!pD) UG_THROW("GMG::apply: Expect Defect to be grid based.")
 	GF& c = *pC;
+	m_pC = pC;
 	const GF& d = *pD;
 
 	try{
@@ -134,18 +135,17 @@ apply(vector_type& rC, const vector_type& rD)
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
 	try{
-		for(size_t i = 0; i < m_vSurfToLevelMap.size(); ++i){
-			const int level = m_vSurfToLevelMap[i].level;
-			const size_t index = m_vSurfToLevelMap[i].index;
-
-			(*(m_vLevData[level]->sd))[index] = d[i];
+		for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+			const std::vector<SurfLevelMap>& vMap = m_vLevData[lev]->vSurfLevelMap;
+			LevData& ld = *m_vLevData[lev];
+			for(size_t i = 0; i < vMap.size(); ++i){
+				(*ld.sd)[vMap[i].levIndex] = d[vMap[i].surfIndex];
+			}
 		}
 #ifdef UG_PARALLEL
 		for(int lev = m_baseLev; lev <= m_topLev; ++lev)
 			m_vLevData[lev]->sd->set_storage_type(d.get_storage_mask());
 #endif
-		for(int lev = m_baseLev; lev <= m_topLev; ++lev)
-			m_vLevData[lev]->sc->set(0.0);
 	}
 	UG_CATCH_THROW("GMG::apply: Project d Surf -> Level failed.");
 	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
@@ -154,28 +154,28 @@ apply(vector_type& rC, const vector_type& rD)
 	GMG_PROFILE_BEGIN(GMG_lmgc);
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply lmgc (on level " << m_topLev << ")... \n");
 	try{
+	//	reset surface correction
+		c.set(0.0);
+
+	//	reset corr on top level
+		m_vLevData[m_topLev]->sc->set(0.0);
+
+	//	start mg-cycle
 		lmgc(m_topLev);
-	}
-	UG_CATCH_THROW("GMG: lmgc failed.");
-	GMG_PROFILE_END(); //GMGApply_lmgc
 
-//	project correction from level to surface
-	GMG_PROFILE_BEGIN(GMG_ProjectCorrectionFromLevelToSurface);
-	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply project_level_to_surface... \n");
-	try{
-		for(size_t i = 0; i < m_vSurfToLevelMap.size(); ++i){
-			const int level = m_vSurfToLevelMap[i].level;
-			const size_t index = m_vSurfToLevelMap[i].index;
-
-			 c[i] = (*(m_vLevData[level]->sc))[index];
+	//	project top lev to surface
+		const std::vector<SurfLevelMap>& vMap = m_vLevData[m_topLev]->vSurfLevelMap;
+		LevData& ld = *m_vLevData[m_topLev];
+		for(size_t i = 0; i < vMap.size(); ++i){
+			c[vMap[i].surfIndex] += (*ld.sc)[vMap[i].levIndex];
 		}
 
 		#ifdef UG_PARALLEL
 		c.set_storage_type(PST_CONSISTENT);
 		#endif
 	}
-	UG_CATCH_THROW("GMG::apply: Project c Level -> Surface failed.");
-	GMG_PROFILE_END(); //GMGApply_ProjectCorrectionFromLevelToSurface
+	UG_CATCH_THROW("GMG: lmgc failed.");
+	GMG_PROFILE_END(); //GMGApply_lmgc
 
 //	apply scaling
 	const number kappa = this->damping()->damping(c, d, m_spSurfaceMat.template cast_dynamic<ILinearOperator<vector_type> >());
@@ -357,22 +357,7 @@ init()
 	//	init mapping from surface level to top level in case of full refinement
 		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
 		try{
-			init_surface_to_level_mapping(m_vSurfToLevelMap, true);
-
-			if(m_bUseRAP && (m_LocalFullRefLevel != m_topLev)){
-				init_surface_to_level_mapping(m_vSurfToLevelMapLowerLev, false);
-			} else {
-				m_vSurfToLevelMapLowerLev.resize(0);
-			}
-		}
-		UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
-		GMG_PROFILE_END();
-
-	//	init mapping from surface level to top level in case of full refinement
-		GMG_PROFILE_BEGIN(GMG_CollectShadowing);
-		try{
-			for(int lev = m_baseLev; lev <= m_topLev; ++lev)
-				collect_shadowing_indices(lev);
+			init_index_mappings();
 		}
 		UG_CATCH_THROW("GMG: Cannot create SurfaceToLevelMap.")
 		GMG_PROFILE_END();
@@ -443,11 +428,12 @@ assemble_level_operator()
 
 			init_projection();
 
-			for(size_t i = 0; i < m_vSurfToLevelMap.size(); ++i){
-				const int level = m_vSurfToLevelMap[i].level;
-				const size_t index = m_vSurfToLevelMap[i].index;
-
-				(*(m_vLevData[level]->st))[index] = (*m_pSurfaceSol)[i];
+			for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+				const std::vector<SurfLevelMap>& vMap = m_vLevData[lev]->vSurfLevelMap;
+				LevData& ld = *m_vLevData[lev];
+				for(size_t i = 0; i < vMap.size(); ++i){
+					(*ld.st)[vMap[i].levIndex] = (*m_pSurfaceSol)[vMap[i].surfIndex];
+				}
 			}
 			GMG_PROFILE_END();
 			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   assemble_level_operator: project sol\n");
@@ -639,6 +625,7 @@ assemble_missing_coarse_grid_coupling(const vector_type* u)
 		{
 			const size_t lvlFrom = lf.vShadowing[i];
 			const size_t surfFrom = lf.vSurfShadowing[i];
+			if(m_vSurfToLevelMap[surfFrom].levelLower != lev) continue;
 
 			typedef typename matrix_type::row_iterator row_iterator;
 			row_iterator conn = surfMat.begin_row(surfFrom);
@@ -646,9 +633,14 @@ assemble_missing_coarse_grid_coupling(const vector_type* u)
 			for( ;conn != connEnd; ++conn)
 			{
 				const size_t surfTo = conn.index();
-				if(m_vSurfToLevelMap[surfTo].level != lev) continue;
-
-				const size_t lvlTo = m_vSurfToLevelMap[surfTo].index;
+				size_t lvlTo = (size_t)(-1);
+				if(m_vSurfToLevelMap[surfTo].levelLower == lev) {
+					lvlTo = m_vSurfToLevelMap[surfTo].indexLower;
+				} else if(m_vSurfToLevelMap[surfTo].level == lev){
+					lvlTo = m_vSurfToLevelMap[surfTo].index;
+				} else {
+					continue;
+				}
 
 				(lc.CoarseGridContribution)(lvlFrom, lvlTo) = conn.value();
 			}
@@ -657,6 +649,7 @@ assemble_missing_coarse_grid_coupling(const vector_type* u)
 #ifdef UG_PARALLEL
 		lc.CoarseGridContribution.set_storage_type(surfMat.get_storage_mask());
 #endif
+		write_debug(surfMat, std::string("MissingSurfMat_sl").append(ToString(lev)), surfLevel, surfLevel);
 		write_debug(lc.CoarseGridContribution, "MissingLevelMat", *lf.sd, *lc.sc);
 	}
 
@@ -691,27 +684,35 @@ init_rap_operator()
 		const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
 		for( ;conn != connEnd; ++conn)
 		{
-		//	get mapped level index
+		//	get corresponding surface connection index
+			const size_t surfTo = conn.index();
+
+		//	get level
 			int lvlFrom = m_vSurfToLevelMap[surfFrom].level;
+			int lvlTo = m_vSurfToLevelMap[surfTo].level;
+
+		//	get corresponding indices
+			size_t indexTo = m_vSurfToLevelMap[surfTo].index;
 			size_t indexFrom = m_vSurfToLevelMap[surfFrom].index;
 
-		//	get corresponding level connection index
-			const size_t surfTo = conn.index();
-			int lvlTo = m_vSurfToLevelMap[surfTo].level;
-			size_t indexTo = m_vSurfToLevelMap[surfTo].index;
-
+		//	if connection between different level -> adjust
+			UG_ASSERT(lvlTo >= 0, "Invalid lvlTo: "<<lvlTo)
+			UG_ASSERT(lvlFrom >= 0, "Invalid lvlFrom: "<<lvlFrom)
 			if(lvlTo > lvlFrom){
-				lvlTo = m_vSurfToLevelMapLowerLev[surfTo].level;
-				indexTo = m_vSurfToLevelMapLowerLev[surfTo].index;
+				if(m_vSurfToLevelMap[surfTo].levelLower == lvlFrom){
+					indexTo = m_vSurfToLevelMap[surfTo].indexLower;
+					lvlTo = lvlFrom;
+				} else {
+					continue;
+				}
+			} else if(lvlTo < lvlFrom){
+				if(m_vSurfToLevelMap[surfFrom].levelLower == lvlTo){
+					indexFrom = m_vSurfToLevelMap[surfFrom].indexLower;
+					lvlFrom = lvlTo;
+				} else {
+					continue;
+				}
 			}
-
-			if(lvlFrom > lvlTo){
-				lvlFrom = m_vSurfToLevelMapLowerLev[surfFrom].level;
-				indexFrom = m_vSurfToLevelMapLowerLev[surfFrom].index;
-			}
-
-			if(lvlTo != lvlFrom)
-				continue;
 
 		//	copy connection to level matrix
 			(*(m_vLevData[lvlTo]->A))(indexFrom, indexTo) = conn.value();
@@ -867,6 +868,8 @@ init_rap_missing_coarse_grid_coupling()
 				(lc.CoarseGridContribution)(lvlFrom, lvlTo) = conn.value();
 			}
 		}
+
+		write_debug(lc.CoarseGridContribution, "MissingLevelMat", *lf.sd, *lc.sc);
 	}
 
 
@@ -1012,8 +1015,7 @@ init_base_solver()
 template <typename TDomain, typename TAlgebra>
 template <typename TElem>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
-                              bool bHigherLevWins)
+init_index_mappings()
 {
 /*	This Method is used to create a caching the transfer between surface and
  * 	level grid functions. Note, that in the adaptive case the surface grid is
@@ -1089,19 +1091,28 @@ init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
 		surfDD->inner_algebra_indices(elem, vSurfInd);
 		UG_ASSERT(vSurfInd.size() == vLevelInd.size(), "Number of indices does not match.");
 
-	//	set mapping index
-		for(size_t i = 0; i < vSurfInd.size(); ++i)
-		{
-		//  check if some shadowing has already set the value
-			if(bHigherLevWins){
-				if(vSurfToLevelMap[vSurfInd[i]].level > level) continue;
-			} else {
-				if(vSurfToLevelMap[vSurfInd[i]].level >= 0 &&
-				   vSurfToLevelMap[vSurfInd[i]].level < level) continue;
+	//	extract shadows
+		if(m_GridLevelType == GridLevel::LEVEL) {
+			if(spSurfView->surface_state(elem).contains(SurfaceView::MG_SURFACE_RIM)){
+				for(size_t i = 0; i < vSurfInd.size(); ++i){
+					m_vLevData[level]->vShadowing.push_back(vLevelInd[i]);
+					m_vLevData[level]->vSurfShadowing.push_back(vSurfInd[i]);
+				}
 			}
+		}
 
-		//	store index + level
-			vSurfToLevelMap[vSurfInd[i]] = LevelIndex(vLevelInd[i], level);
+	//	set mapping index
+		for(size_t i = 0; i < vSurfInd.size(); ++i){
+			if(spSurfView->surface_state(elem).contains(SurfaceView::MG_SHADOW_RIM_COPY)){
+				if(m_GridLevelType == GridLevel::LEVEL){
+					m_vSurfToLevelMap[vSurfInd[i]].indexLower = vLevelInd[i];
+					m_vSurfToLevelMap[vSurfInd[i]].levelLower = level;
+				}
+			} else {
+				m_vSurfToLevelMap[vSurfInd[i]].index = vLevelInd[i];
+				m_vSurfToLevelMap[vSurfInd[i]].level = level;
+				m_vLevData[level]->vSurfLevelMap.push_back(SurfLevelMap(vLevelInd[i], vSurfInd[i]));
+			}
 		}
 	}
 }
@@ -1109,27 +1120,30 @@ init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
-                              bool bHigherLevWins)
+init_index_mappings()
 {
 	PROFILE_FUNC_GROUP("gmg");
 	ConstSmartPtr<DoFDistribution> surfDD =
 			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
-	vSurfToLevelMap.resize(0);
-	vSurfToLevelMap.resize(surfDD->num_indices());
+	m_vSurfToLevelMap.resize(0);
+	m_vSurfToLevelMap.resize(surfDD->num_indices());
+	for(int lev = 0; lev < m_topLev; ++lev){
+		m_vLevData[lev]->vShadowing.clear();
+		m_vLevData[lev]->vSurfShadowing.clear();
+		m_vLevData[lev]->vSurfLevelMap.clear();
+	}
 	m_LocalFullRefLevel = std::numeric_limits<int>::max();
 
-	if(surfDD->max_dofs(VERTEX)) init_surface_to_level_mapping<VertexBase>(vSurfToLevelMap, bHigherLevWins);
-	if(surfDD->max_dofs(EDGE))   init_surface_to_level_mapping<EdgeBase>(vSurfToLevelMap, bHigherLevWins);
-	if(surfDD->max_dofs(FACE))   init_surface_to_level_mapping<Face>(vSurfToLevelMap, bHigherLevWins);
-	if(surfDD->max_dofs(VOLUME)) init_surface_to_level_mapping<Volume>(vSurfToLevelMap, bHigherLevWins);
+	if(surfDD->max_dofs(VERTEX)) init_index_mappings<VertexBase>();
+	if(surfDD->max_dofs(EDGE))   init_index_mappings<EdgeBase>();
+	if(surfDD->max_dofs(FACE))   init_index_mappings<Face>();
+	if(surfDD->max_dofs(VOLUME)) init_index_mappings<Volume>();
 
 	if(m_baseLev > m_LocalFullRefLevel)
 		UG_THROW("GMG: Base level "<<m_baseLev<<" does not cover whole grid. "
 		         <<"Highest full-ref level is "<<m_LocalFullRefLevel);
 }
-
 
 template <typename TDomain, typename TAlgebra>
 template <typename TElem>
@@ -1278,65 +1292,6 @@ copy_noghost_to_ghost(SmartPtr<matrix_type> spMatTo,
 	#ifdef UG_PARALLEL
 	spMatTo->set_storage_type(spMatFrom->get_storage_mask());
 	#endif
-}
-
-template <typename TDomain, typename TAlgebra>
-template <typename TElem>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-collect_shadowing_indices(std::vector<size_t>& vShadowing,
-                          ConstSmartPtr<DoFDistribution> spDD,
-                          std::vector<size_t>& vSurfShadowing,
-                          ConstSmartPtr<DoFDistribution> spSurfDD)
-{
-	typedef typename DoFDistribution::traits<TElem>::const_iterator iter_type;
-	iter_type iter = spDD->begin<TElem>();
-	iter_type iterEnd = spDD->end<TElem>();
-	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
-
-//	vector of indices
-	std::vector<size_t> vInd, vSurfInd;
-
-//	loop all elements of type
-	for( ; iter != iterEnd; ++iter){
-	//	get elem
-		TElem* elem = *iter;
-
-	//	check if shadowing
-		if(!spSurfView->is_shadowing(elem)) continue;
-
-	// 	get global indices
-		spDD->inner_algebra_indices(elem, vInd);
-		spSurfDD->inner_algebra_indices(elem, vSurfInd);
-
-	//	add to list of shadowing indices
-		for(size_t i = 0; i < vInd.size(); ++i){
-			vShadowing.push_back(vInd[i]);
-			vSurfShadowing.push_back(vSurfInd[i]);
-		}
-	}
-}
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-collect_shadowing_indices(int lev)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	ConstSmartPtr<DoFDistribution> spDD =
-			m_spApproxSpace->dof_distribution(GridLevel(lev, m_GridLevelType, false));
-	ConstSmartPtr<DoFDistribution> spSurfDD =
-			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
-
-	std::vector<size_t>& vShadowing = m_vLevData[lev]->vShadowing;
-	std::vector<size_t>& vSurfShadowing = m_vLevData[lev]->vSurfShadowing;
-	vShadowing.clear();
-	vSurfShadowing.clear();
-
-	if(lev >= m_LocalFullRefLevel && m_GridLevelType != GridLevel::SURFACE) {
-		if(spDD->max_dofs(VERTEX)) collect_shadowing_indices<VertexBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
-		if(spDD->max_dofs(EDGE))   collect_shadowing_indices<EdgeBase>(vShadowing, spDD, vSurfShadowing, spSurfDD);
-		if(spDD->max_dofs(FACE))   collect_shadowing_indices<Face>(vShadowing, spDD, vSurfShadowing, spSurfDD);
-		if(spDD->max_dofs(VOLUME)) collect_shadowing_indices<Volume>(vShadowing, spDD, vSurfShadowing, spSurfDD);
-	}
 }
 
 
@@ -1616,6 +1571,7 @@ prolongation(int lev)
 		lc.CoarseGridContribution.matmul_minus(*lf.sd, *lc.sc);
 		GMG_PROFILE_END();
 	}
+	log_debug_data(lev, "AfterCoarseGridDefect");
 
 //	prolongate
 	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
@@ -1692,9 +1648,9 @@ base_solve(int lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering distributed basesolver branch.\n");
 
 		GMG_PROFILE_BEGIN(GMG_BaseSolver);
-		ld.sc->set(0.0);
+		ld.st->set(0.0);
 		try{
-			if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
+			if(!m_spBaseSolver->apply(*ld.st, *ld.sd))
 				UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 		}
 		UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
@@ -1706,8 +1662,9 @@ base_solve(int lev)
 	//	   the defect on the base level, since only the correction is needed
 	//	   on the higher level
 		if(lev >= m_LocalFullRefLevel){
-			ld.A->apply_sub(*ld.sd, *ld.sc);
+			ld.A->apply_sub(*ld.sd, *ld.st);
 		}
+		(*ld.sc) += (*ld.st);
 
 		GMG_PROFILE_END();
 
@@ -1755,10 +1712,11 @@ base_solve(int lev)
 
 	//	broadcast the correction
 		#ifdef UG_PARALLEL
-		if(!ld.sc->layouts()->vertical_slave().empty()){
-			ComPol_VecCopy<vector_type> cpVecCopy(&(*ld.sc));
-			m_Com.receive_data(ld.sc->layouts()->vertical_slave(), cpVecCopy);
+		if(!ld.st->layouts()->vertical_slave().empty()){
+			ComPol_VecCopy<vector_type> cpVecCopy(&(*ld.st));
+			m_Com.receive_data(ld.st->layouts()->vertical_slave(), cpVecCopy);
 			m_Com.communicate();
+			ld.st->set_storage_type(PST_CONSISTENT);
 		}
 		#endif
 		if(gathered_base_master()){
@@ -1768,7 +1726,12 @@ base_solve(int lev)
 			m_Com.communicate();
 			spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
 			#endif
-			copy_ghost_to_noghost(ld.sc, spGatheredBaseCorr, ld.vMapPatchToGlobal);
+			copy_ghost_to_noghost(ld.st, spGatheredBaseCorr, ld.vMapPatchToGlobal);
+		}
+
+		if(lev >= m_LocalFullRefLevel){
+			ld.A->apply_sub(*ld.sd, *ld.st);
+			(*ld.sc) += (*ld.st);
 		}
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
@@ -1794,44 +1757,56 @@ lmgc(int lev)
 //	used as coarse grid correction. Finally a post-smooth is performed.
 	if((int)lev > m_baseLev)
 	{
-		for(int i = 0; i < m_cycleType; ++i)
+		log_debug_data(lev, "BeforePreSmooth");
+		try{
+			presmooth(lev);
+		}
+		UG_CATCH_THROW("GMG::lmgc: presmooth failed on level "<<lev);
+
+		log_debug_data(lev, "BeforeRestrict");
+		try{
+			restriction(lev);
+		}
+		UG_CATCH_THROW("GMG::lmgc: restriction failed on level "<<lev);
+
+		m_vLevData[lev-1]->sc->set(0.0);
+
+		int numBase = m_cycleType;
+		if(lev == m_baseLev+1) numBase = 1;
+		for(int i = 0; i < numBase; ++i)
 		{
-			log_debug_data(lev, "BeforePreSmooth");
-			try{
-				presmooth(lev);
-			}
-			UG_CATCH_THROW("GMG::lmgc: presmooth failed on level "<<lev);
-
-			log_debug_data(lev, "BeforeRestrict");
-			try{
-				restriction(lev);
-			}
-			UG_CATCH_THROW("GMG::lmgc: restriction failed on level "<<lev);
-
+			m_dbgIterCnt ++;
 			try{
 				lmgc(lev-1);
 			}
-			UG_CATCH_THROW("GMG::lmgc: Linear multi grid "
-							"cycle on level "<<lev-1<<" failed. (BaseLev="<<
-							m_baseLev<<", TopLev="<<m_topLev<<").");
-
-			log_debug_data(lev, "BeforeProlong");
-			try{
-				prolongation(lev);
-			}
-			UG_CATCH_THROW("GMG::lmgc: prolongation failed on level "<<lev);
-
-			log_debug_data(lev, "BeforePostSmooth");
-			try{
-				postsmooth(lev);
-			}
-			UG_CATCH_THROW("GMG::lmgc: postsmooth failed on level "<<lev);
-			log_debug_data(lev, "AfterPostSmooth");
+			UG_CATCH_THROW("GMG::lmgc: Linear multi grid cycle on level "<<lev-1
+			               <<" failed. (BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<").");
 		}
+
+		try{
+			const std::vector<SurfLevelMap>& vMap = m_vLevData[lev-1]->vSurfLevelMap;
+			LevData& ld = *m_vLevData[lev-1];
+			for(size_t i = 0; i < vMap.size(); ++i){
+				(*m_pC)[vMap[i].surfIndex] += (*ld.sc)[vMap[i].levIndex];
+			}
+		}
+		UG_CATCH_THROW("GMG::lmgc: Cannot add to surface.");
+
+		log_debug_data(lev, "BeforeProlong");
+		try{
+			prolongation(lev);
+		}
+		UG_CATCH_THROW("GMG::lmgc: prolongation failed on level "<<lev);
+
+		log_debug_data(lev, "BeforePostSmooth");
+		try{
+			postsmooth(lev);
+		}
+		UG_CATCH_THROW("GMG::lmgc: postsmooth failed on level "<<lev);
+		log_debug_data(lev, "AfterPostSmooth");
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level "<<lev<<"\n");
 	}
-
 //	if the base level has been reached, the coarse problem is solved exactly
 	else if((int)lev == m_baseLev)
 	{
@@ -2065,18 +2040,25 @@ write_debug(const GF& rGF, std::string name)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-write_debug(const matrix_type& mat, std::string name, const GF& rFrom, const GF& rTo)
+write_debug(const matrix_type& mat, std::string name, const GF& rTo, const GF& rFrom)
+{
+	GridLevel glFrom = rFrom.grid_level();
+	GridLevel glTo = rTo.grid_level();
+	write_debug(mat, name, glTo, glFrom);
+}
+
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+write_debug(const matrix_type& mat, std::string name, const GridLevel& glTo, const GridLevel& glFrom)
 {
 	PROFILE_FUNC_GROUP("debug");
 
 	if(m_spDebugWriter.invalid()) return;
 
 //	build name
-	GridLevel glFrom = rFrom.grid_level();
-	GridLevel glTo = rTo.grid_level();
 	std::stringstream ss;
-	ss << "GMG_" << name << GridLevelAppendix(glFrom);
-	if(glFrom != glTo) ss << GridLevelAppendix(glTo);
+	ss << "GMG_" << name << GridLevelAppendix(glTo);
+	if(glFrom != glTo) ss << GridLevelAppendix(glFrom);
 	ss << ".mat";
 
 //	write

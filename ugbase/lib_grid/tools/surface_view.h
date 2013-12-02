@@ -43,24 +43,30 @@ class SurfaceView
 		 */
 		enum SurfaceConstants{
 			// each grid-object has exactly on of these states (begin)
-			SHADOW_PURE = 1,               ///< full-covered (inner)
-			SURFACE_PURE = 1 << 1,         ///< surface, i.e., without children (inner)
-			SURFACE_RIM = 1 << 2,          ///< surface, i.e., without children (at rim)
-			SHADOW_RIM_COPY = 1 << 3,      ///< covered (at rim) with identical child
-			SHADOW_RIM_NONCOPY = 1 << 4,   ///< covered (at rim) with non-identical child(ren)
+			MG_SHADOW_PURE = 1,               ///< full-covered (inner)
+			MG_SURFACE_PURE = 1 << 1,         ///< surface, i.e., without children (inner)
+			MG_SURFACE_RIM = 1 << 2,          ///< surface, i.e., without children (at rim)
+			MG_SHADOW_RIM_COPY = 1 << 3,      ///< covered (at rim) with identical child
+			MG_SHADOW_RIM_NONCOPY = 1 << 4,   ///< covered (at rim) with non-identical child(ren)
 			// each grid-object has exactly on of these states (end)
 
 			// combo-states with flags as in multi-grid (begin)
-			MG_SHADOW_RIM = SHADOW_RIM_COPY | SHADOW_RIM_NONCOPY,    //!< all rim-shadows
-			MG_SHADOW = MG_SHADOW_RIM | SHADOW_PURE,                 //!< all shadows
-			MG_SURFACE = SURFACE_PURE | SURFACE_RIM,                 //!< all surface
-			MG_ALL_BUT_SHADOW_COPY = MG_SURFACE | SHADOW_RIM_NONCOPY,//!< surface + rim-non-copy-shadows
-			MG_ALL = MG_SURFACE | MG_SHADOW_RIM,                     //!< all (except pure-shadow)
+			MG_SHADOW_RIM = MG_SHADOW_RIM_COPY | MG_SHADOW_RIM_NONCOPY,    //!< all rim-shadows
+			MG_SHADOW = MG_SHADOW_RIM | MG_SHADOW_PURE,                    //!< all shadows
+			MG_SURFACE = MG_SURFACE_PURE | MG_SURFACE_RIM,                 //!< all surface
+			MG_ALL_BUT_SHADOW_COPY = MG_SURFACE | MG_SHADOW_RIM_NONCOPY,   //!< surface + rim-non-copy-shadows
+			MG_ALL = MG_SURFACE | MG_SHADOW_RIM,                           //!< all (except pure-shadow)
 			// combo-states with flags as in multi-grid (end)
 
 			TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE = 1 << 5,  //! pseudo-state
 
 			// combo-states with flags as in level-view (begin)
+			SHADOW_PURE = MG_SHADOW_PURE               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+			SURFACE_PURE = MG_SURFACE_PURE             | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+			SURFACE_RIM = MG_SURFACE_RIM               | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+			SHADOW_RIM_COPY = MG_SHADOW_RIM_COPY       | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+			SHADOW_RIM_NONCOPY = MG_SHADOW_RIM_NONCOPY | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
+
 			SHADOW_RIM = MG_SHADOW_RIM | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
 			SHADOW = MG_SHADOW         | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
 			SURFACE = MG_SURFACE       | TREAT_TOP_LVL_SHADOWS_AS_SURFACE_PURE,
@@ -314,7 +320,7 @@ class SurfaceView
 	 * Make sure that all elements in lower levels have already been processed!*/
 		template <class TElem, class TSide>
 		void mark_sides_as_surface_or_shadow(TElem* elem,
-											 byte surfaceState = SURFACE_PURE);
+											 byte surfaceState = MG_SURFACE_PURE);
 
 		template <class TElem>
 		void mark_shadowing(bool markSides = false);

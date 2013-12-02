@@ -152,7 +152,7 @@ is_contained(TGeomObj* obj) const
 		&& (m_lvl == m_topLvl)
 		&& oss.partially_contains(MG_SHADOW))
 	{
-		oss = SURFACE_PURE;
+		oss = MG_SURFACE_PURE;
 	}
 
 	return m_validStates.contains(oss);
@@ -319,7 +319,7 @@ is_contained(TGeomObj* obj) const
 		&& (m_lvl == m_topLvl)
 		&& oss.partially_contains(MG_SHADOW))
 	{
-		oss = SURFACE_PURE;
+		oss = MG_SURFACE_PURE;
 	}
 
 	return m_validStates.contains(oss);
@@ -428,7 +428,7 @@ bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
 		&& (lvl == topLvl)
 		&& oss.partially_contains(MG_SHADOW))
 	{
-		oss = SURFACE_PURE;
+		oss = MG_SURFACE_PURE;
 	}
 
 	return validStates.contains(oss);
@@ -453,7 +453,7 @@ bool SurfaceView::is_shadowed(TGeomObj* obj) const
 template <class TGeomObj>
 bool SurfaceView::is_shadowing(TGeomObj* obj) const
 {
-	return surface_state(obj).contains(SURFACE_RIM);
+	return surface_state(obj).contains(MG_SURFACE_RIM);
 }
 
 template <class TElem>

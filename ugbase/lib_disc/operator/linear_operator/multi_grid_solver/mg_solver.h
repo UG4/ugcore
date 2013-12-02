@@ -290,42 +290,6 @@ class AssembledMultiGridCycle :
 	///	approximation space revision of cached values
 		RevisionCounter m_ApproxSpaceRevision;
 
-	///	Structure used to realize Surface to Level mapping
-	/// \{
-		struct LevelIndex{
-			LevelIndex() : index(-1), level(-1) {}
-			LevelIndex(size_t index_, int level_) : index(index_), level(level_) {}
-			size_t index;
-			int level;
-		};
-		std::vector<LevelIndex> m_vSurfToLevelMap;
-		std::vector<LevelIndex> m_vSurfToLevelMapLowerLev;
-		template <typename TElem>
-		void init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
-		                                   bool bHigherLevWins = true);
-		void init_surface_to_level_mapping(std::vector<LevelIndex>& vSurfToLevelMap,
-		                                   bool bHigherLevWins = true);
-	/// \}
-
-	///	init mapping from noghost -> w/ ghost
-	/// \{
-		template <typename TElem>
-		void init_noghost_to_ghost_mapping(	std::vector<size_t>& vNoGhostToGhostMap,
-		                                   	ConstSmartPtr<DoFDistribution> spNoGhostDD,
-		                                   	ConstSmartPtr<DoFDistribution> spGhostDD);
-		void init_noghost_to_ghost_mapping(int lev);
-	/// \}
-
-	///	collects all shadowing indices into the std::vector
-	/// \{
-		template <typename TElem>
-		void collect_shadowing_indices(std::vector<size_t>& vShadowing,
-		                               ConstSmartPtr<DoFDistribution> spDD,
-		                               std::vector<size_t>& vSurfShadowing,
-		                               ConstSmartPtr<DoFDistribution> spSurfDD);
-		void collect_shadowing_indices(int lev);
-	/// \}
-
 	///	prototype for pre-smoother
 		SmartPtr<ILinearIterator<vector_type> > m_spPreSmootherPrototype;
 
@@ -351,6 +315,30 @@ class AssembledMultiGridCycle :
 		////////////////////////////////////
 		// Storage for each grid level
 		////////////////////////////////////
+
+	///	Structure used to realize Surface to Level mapping
+	/// \{
+		struct LevelIndex{
+			LevelIndex() : index(-1), indexLower(-1), level(-1), levelLower(-1) {}
+			size_t index, indexLower;
+			int level, levelLower;
+		};
+		std::vector<LevelIndex> m_vSurfToLevelMap;
+
+		template <typename TElem>
+		void init_index_mappings();
+		void init_index_mappings();
+	/// \}
+
+	///	Structure used to realize Surface to Level mapping
+	/// \{
+		struct SurfLevelMap{
+			SurfLevelMap() : levIndex(-1), surfIndex(-1) {}
+			SurfLevelMap(size_t levIndex_, size_t surfIndex_)
+				: levIndex(levIndex_), surfIndex(surfIndex_) {}
+			size_t levIndex, surfIndex;
+		};
+	/// \}
 
 		struct LevData
 		{
@@ -380,9 +368,15 @@ class AssembledMultiGridCycle :
 		/// list of corresponding surface index to shadowing indices
 			std::vector<size_t> vSurfShadowing;
 
+		///	map surface to level
+			std::vector<SurfLevelMap> vSurfLevelMap;
+
 		///	missing coarse grid correction
 			matrix_type CoarseGridContribution;
 		};
+
+	///	storage for all level
+		std::vector<SmartPtr<LevData> > m_vLevData;
 
 	///	flag, if to solve base problem in parallel when gathered and (!) parallel possible
 		bool m_bGatheredBaseIfAmbiguous;
@@ -399,8 +393,17 @@ class AssembledMultiGridCycle :
 	///	returns if gathered base master
 		bool gathered_base_master() const;
 
-	///	storage for all level
-		std::vector<SmartPtr<LevData> > m_vLevData;
+	///	current surface correction
+		GF* m_pC;
+
+	///	init mapping from noghost -> w/ ghost
+	/// \{
+		template <typename TElem>
+		void init_noghost_to_ghost_mapping(	std::vector<size_t>& vNoGhostToGhostMap,
+											ConstSmartPtr<DoFDistribution> spNoGhostDD,
+											ConstSmartPtr<DoFDistribution> spGhostDD);
+		void init_noghost_to_ghost_mapping(int lev);
+	/// \}
 
 	///	copies vector to smoothing patch using cached mapping
 		void copy_ghost_to_noghost(SmartPtr<GF> spVecTo,
@@ -470,8 +473,12 @@ class AssembledMultiGridCycle :
 	 * \param[in]		mat			Level Matrix to write for debug purpose
 	 * \param[in]		name		Filename
 	 */
+	/// \{
 		void write_debug(const matrix_type& mat, std::string name,
-		                 const GF& rFrom, const GF& rTo);
+		                 const GridLevel& glTo, const GridLevel& glFrom);
+		void write_debug(const matrix_type& mat, std::string name,
+		                 const GF& rTo, const GF& rFrom);
+	/// \}
 
 	///	logs a level-data-struct to the terminal
 		void log_debug_data(int lvl, std::string name);

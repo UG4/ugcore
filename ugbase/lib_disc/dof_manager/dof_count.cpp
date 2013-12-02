@@ -129,21 +129,21 @@ DoFCount::Cnt::Cnt()
 void DoFCount::Cnt::collect_values(std::vector<uint64>& vNum) const
 {
 	PROFILE_FUNC();
-	vNumSS[SurfaceView::SHADOW_PURE].collect_values(vNum);
-	vNumSS[SurfaceView::SURFACE_PURE].collect_values(vNum);
-	vNumSS[SurfaceView::SURFACE_RIM].collect_values(vNum);
-	vNumSS[SurfaceView::SHADOW_RIM_COPY].collect_values(vNum);
-	vNumSS[SurfaceView::SHADOW_RIM_NONCOPY].collect_values(vNum);
+	vNumSS[SurfaceView::MG_SHADOW_PURE].collect_values(vNum);
+	vNumSS[SurfaceView::MG_SURFACE_PURE].collect_values(vNum);
+	vNumSS[SurfaceView::MG_SURFACE_RIM].collect_values(vNum);
+	vNumSS[SurfaceView::MG_SHADOW_RIM_COPY].collect_values(vNum);
+	vNumSS[SurfaceView::MG_SHADOW_RIM_NONCOPY].collect_values(vNum);
 }
 
 void DoFCount::Cnt::set_values(const std::vector<uint64>& vNum, size_t& cnt)
 {
 	PROFILE_FUNC();
-	vNumSS[SurfaceView::SHADOW_PURE].set_values(vNum, cnt);
-	vNumSS[SurfaceView::SURFACE_PURE].set_values(vNum, cnt);
-	vNumSS[SurfaceView::SURFACE_RIM].set_values(vNum, cnt);
-	vNumSS[SurfaceView::SHADOW_RIM_COPY].set_values(vNum, cnt);
-	vNumSS[SurfaceView::SHADOW_RIM_NONCOPY].set_values(vNum, cnt);
+	vNumSS[SurfaceView::MG_SHADOW_PURE].set_values(vNum, cnt);
+	vNumSS[SurfaceView::MG_SURFACE_PURE].set_values(vNum, cnt);
+	vNumSS[SurfaceView::MG_SURFACE_RIM].set_values(vNum, cnt);
+	vNumSS[SurfaceView::MG_SHADOW_RIM_COPY].set_values(vNum, cnt);
+	vNumSS[SurfaceView::MG_SHADOW_RIM_NONCOPY].set_values(vNum, cnt);
 }
 
 
@@ -175,11 +175,11 @@ uint64 DoFCount::Cnt::num(SurfaceView::SurfaceState ss, byte is) const
 	}
 
 	if(ss == UNIQUE_SS){
-		return num(SurfaceView::SHADOW_PURE, is)
-				+ num(SurfaceView::SURFACE_PURE, is)
-				+ num(SurfaceView::SURFACE_RIM, is)
+		return num(SurfaceView::MG_SHADOW_PURE, is)
+				+ num(SurfaceView::MG_SURFACE_PURE, is)
+				+ num(SurfaceView::MG_SURFACE_RIM, is)
 	//			+ num(SurfaceView::SHADOW_COPY, is) 	// copies not counted
-				+ num(SurfaceView::SHADOW_RIM_NONCOPY, is);
+				+ num(SurfaceView::MG_SHADOW_RIM_NONCOPY, is);
 	}
 
 	return vNumSS[ss()].num(is);
@@ -195,11 +195,11 @@ uint64 DoFCount::Cnt::num_contains(SurfaceView::SurfaceState ss, byte is) const
 	}
 
 	if(ss == UNIQUE_SS){
-		return vNumSS[SurfaceView::SHADOW_PURE].num_contains(is)
-				+ vNumSS[SurfaceView::SURFACE_PURE].num_contains(is)
-				+ vNumSS[SurfaceView::SURFACE_RIM].num_contains(is)
+		return vNumSS[SurfaceView::MG_SHADOW_PURE].num_contains(is)
+				+ vNumSS[SurfaceView::MG_SURFACE_PURE].num_contains(is)
+				+ vNumSS[SurfaceView::MG_SURFACE_RIM].num_contains(is)
 	//			+ vNumSS[SurfaceView::SHADOW_COPY].num_contains(is) // copies not counted
-				+ vNumSS[SurfaceView::SHADOW_RIM_NONCOPY].num_contains(is);
+				+ vNumSS[SurfaceView::MG_SHADOW_RIM_NONCOPY].num_contains(is);
 	}
 
 	uint64 cnt = 0;

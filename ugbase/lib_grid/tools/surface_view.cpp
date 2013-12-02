@@ -124,10 +124,10 @@ refresh_surface_states()
 	MultiGrid& mg = *m_pMG;
 
 //	reset surface states of all elements. Initially, we'll set all states to hidden
-	SetAttachmentValues(m_aaSurfState, mg.begin<VertexBase>(), mg.end<VertexBase>(), SHADOW_PURE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<EdgeBase>(), mg.end<EdgeBase>(), SHADOW_PURE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<Face>(), mg.end<Face>(), SHADOW_PURE);
-	SetAttachmentValues(m_aaSurfState, mg.begin<Volume>(), mg.end<Volume>(), SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<VertexBase>(), mg.end<VertexBase>(), MG_SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<EdgeBase>(), mg.end<EdgeBase>(), MG_SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Face>(), mg.end<Face>(), MG_SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Volume>(), mg.end<Volume>(), MG_SHADOW_PURE);
 
 //	iterate through all levels of the mgsh
 	for(size_t level = 0; level < mg.num_levels(); ++level)
@@ -139,7 +139,7 @@ refresh_surface_states()
 			TElem* elem = *iter;
 
 			if(is_local_surface_view_element(elem)){
-				surface_state(elem).set(SURFACE_PURE);
+				surface_state(elem).set(MG_SURFACE_PURE);
 				mark_sides_as_surface_or_shadow<TElem, typename TElem::side>(elem);
 			}
 		}
@@ -178,14 +178,14 @@ mark_sides_as_surface_or_shadow(TElem* elem, byte surfaceState)
 	m_pMG->associated_elements(sides, elem);
 	for(size_t i = 0; i < sides.size(); ++i){
 		TSide* s = sides[i];
-		if(surface_state(s) == SHADOW_PURE){
+		if(surface_state(s) == MG_SHADOW_PURE){
 			size_t numChildren = m_pMG->num_children<TSide>(s);
 			if(numChildren == 0)
 				surface_state(s).set(surfaceState);
 			else if(numChildren == 1)
-				surface_state(s).set(SHADOW_RIM_COPY);
+				surface_state(s).set(MG_SHADOW_RIM_COPY);
 			else
-				surface_state(s).set(SHADOW_RIM_NONCOPY);
+				surface_state(s).set(MG_SHADOW_RIM_NONCOPY);
 		}
 	}
 
@@ -205,11 +205,11 @@ mark_shadowing(bool markSides)
 		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
 		{
 			TElem* e = *iter;
-			if(surface_state(e).contains(SHADOW_PURE))
+			if(surface_state(e).contains(MG_SHADOW_PURE))
 				continue;
 
 			GeometricObject* p = mg.get_parent(e);
-			if(p && (surface_state(p).contains(SHADOW_RIM_COPY) || surface_state(p).contains(SHADOW_RIM_NONCOPY))){
+			if(p && (surface_state(p).contains(MG_SHADOW_RIM_COPY) || surface_state(p).contains(MG_SHADOW_RIM_NONCOPY))){
 				#ifdef UG_PARALLEL
 				//	The following assertions make sure that during gmg no values have to
 				//	be copied across v-interfaces during add-contribution-of-shadows.
@@ -218,14 +218,14 @@ mark_shadowing(bool markSides)
 				//	(in which closure isn't assumed to work anyways).
 				//	The assertion probably shouldn't be done here but directly in the gmg.
 				UG_ASSERT((pcl::GetNumProcesses() == 1) ||
-						  (!surface_state(e).contains(SHADOW_RIM_COPY)),
+						  (!surface_state(e).contains(MG_SHADOW_RIM_COPY)),
 						  "SHADOWING-SHADOW_COPY encountered: " << ElementDebugInfo(mg, e));
 				UG_ASSERT((pcl::GetNumProcesses() == 1) ||
-						  (!surface_state(e).contains(SHADOW_RIM_NONCOPY)),
+						  (!surface_state(e).contains(MG_SHADOW_RIM_NONCOPY)),
 						  "SHADOWING-SHADOW_NONCOPY encountered: " << ElementDebugInfo(mg, e));
 				#endif
-				surface_state(e).add(SURFACE_RIM);
-				surface_state(e).remove(SURFACE_PURE);
+				surface_state(e).add(MG_SURFACE_RIM);
+				surface_state(e).remove(MG_SURFACE_PURE);
 			}
 		}
 	}

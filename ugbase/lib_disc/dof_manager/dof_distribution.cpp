@@ -1337,11 +1337,10 @@ void DoFDistribution::reinit()
 
 			for(; iter != iterEnd; ++iter){
 				TBaseElem* elem = *iter;
-				SurfaceView::SurfaceState state = sv.surface_state(elem);
-				if(state.contains(SurfaceView::SHADOW_RIM_COPY)){
+				if(sv.is_contained(elem, grid_level(), SurfaceView::SHADOW_RIM_COPY)){
 					if(mg.num_children<TBaseElem>(elem) > 0){
 						TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
-						if(sv.surface_state(child).contains(SurfaceView::SURFACE_RIM))
+						if(sv.is_contained(child, grid_level(), SurfaceView::SURFACE_RIM))
 							continue;
 					}
 				}
@@ -1351,7 +1350,7 @@ void DoFDistribution::reinit()
 				add(elem, roid, si);
 
 				TBaseElem* p = dynamic_cast<TBaseElem*>(mg.get_parent(elem));
-				while(p && sv.surface_state(p).contains(SurfaceView::SHADOW_RIM_COPY)){
+				while(p && sv.is_contained(p, grid_level(), SurfaceView::SHADOW_RIM_COPY)){
 					obj_index(p) = obj_index(elem);
 					p = dynamic_cast<TBaseElem*>(mg.get_parent(p));
 				}
@@ -1546,17 +1545,17 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 		const int si = sv.subset_handler()->get_subset_index(elem);
 
 		// Surface State
-		SurfaceView::SurfaceState SurfaceState = SurfaceView::SURFACE_PURE;
+		SurfaceView::SurfaceState SurfaceState = SurfaceView::MG_SURFACE_PURE;
 		if(grid_level().is_surface()) {
 			SurfaceState = sv.surface_state(elem);
-			if(SurfaceState == SurfaceView::SHADOW_PURE)
-				SurfaceState = SurfaceView::SURFACE_PURE;
+			if(SurfaceState == SurfaceView::MG_SHADOW_PURE)
+				SurfaceState = SurfaceView::MG_SURFACE_PURE;
 		}
 
-		if(SurfaceState.contains(SurfaceView::SHADOW_RIM_COPY)){
+		if(SurfaceState.contains(SurfaceView::MG_SHADOW_RIM_COPY)){
 			if(mg.num_children<TBaseElem>(elem) > 0){
 				TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
-				if(sv.surface_state(child).contains(SurfaceView::SURFACE_RIM))
+				if(sv.surface_state(child).contains(SurfaceView::MG_SURFACE_RIM))
 					continue;
 			}
 		}
