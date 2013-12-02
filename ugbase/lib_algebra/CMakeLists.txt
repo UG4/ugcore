@@ -26,6 +26,7 @@ set(src_Algebra	 ${src_Algebra}
 	common/connection_viewer_input.cpp
 	small_algebra/solve_deficit.cpp
 	operator/preconditioner/line_smoothers.cpp
+	algebra_common/permutation_util.cpp
 	)
 add_subdirectory(common/matrixio)
 
@@ -38,8 +39,7 @@ if(PARALLEL)
 						parallelization/global_layout.cpp
 						parallelization/parallel_index_layout.cpp
 						parallelization/parallel_nodes.cpp	
-						parallelization/algebra_layouts.cpp
-						algebra_common/permutation_util.cpp
+						parallelization/algebra_layouts.cpp						
 						 )
 endif(PARALLEL)
 
