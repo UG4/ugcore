@@ -51,8 +51,9 @@ set_next_process_hierarchy(SPProcessHierarchy procHierarchy)
 
 template<int dim>
 void Partitioner_DynamicBisection<dim>::
-set_balance_weights(SmartPtr<BalanceWeights<dim> >)
+set_balance_weights(SmartPtr<BalanceWeights<dim> > balanceWeights)
 {
+	m_balanceWeights = balanceWeights;
 }
 
 template<int dim>
@@ -170,8 +171,8 @@ partition(size_t baseLvl, size_t elementThreshold)
 	m_sh.clear();
 //	int localProc = pcl::GetProcRank();
 
-	AInt aInt;
-	mg.attach_to<elem_t>(aInt);
+	ANumber aWeight;
+	mg.attach_to<elem_t>(aWeight);
 
 //	assign all elements below baseLvl to the local process
 	for(int i = 0; i < (int)baseLvl; ++i)
@@ -236,7 +237,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		if(static_partitioning_enabled())
 			numPartitions = (int)procH->cluster_procs(hlevel).size();
 
-		perform_bisection(numPartitions, minLvl, maxLvl, partitionLvl, aInt, com);
+		perform_bisection(numPartitions, minLvl, maxLvl, partitionLvl, aWeight, com);
 
 		for(int i = minLvl; i < maxLvl; ++i){
 			copy_partitions_to_children(m_sh, i);
@@ -257,14 +258,14 @@ partition(size_t baseLvl, size_t elementThreshold)
 		m_nextProcessHierarchy = SPProcessHierarchy(NULL);
 	}
 
-	mg.detach_from<elem_t>(aInt);
+	mg.detach_from<elem_t>(aWeight);
 
 //	debugging
 //	static int execCounter = 0;
 //	stringstream ss;
 //	ss << "partition-map-" << execCounter << "-p" << pcl::GetProcRank() << ".ugx";
 //	AssignSubsetColors(m_sh);
-//	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 0.1);
+//	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 20);
 //	++execCounter;
 
 	if(static_partitioning_enabled())
@@ -311,7 +312,7 @@ copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl)
 template <int dim>
 void Partitioner_DynamicBisection<dim>::
 perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
-				  AInt aChildCount, pcl::ProcessCommunicator com)
+				  ANumber aWeight, pcl::ProcessCommunicator com)
 {
 	GDIST_PROFILE_FUNC();
 	typedef typename MultiGrid::traits<elem_t>::iterator iter_t;
@@ -320,8 +321,8 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 	MultiGrid& mg = *m_mg;
 	DistributedGridManager* pdgm = mg.distributed_grid_manager();
 
-	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(mg, aChildCount);
-	SetAttachmentValues(aaChildCount, mg.begin<elem_t>(partitionLvl),
+	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
+	SetAttachmentValues(aaWeight, mg.begin<elem_t>(partitionLvl),
 						mg.end<elem_t>(partitionLvl), 0);
 
 //	arrays on which we'll perform partitioning
@@ -345,33 +346,33 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 
 //	iterate over all levels and gather child-counts in the partitionLvl
 	for(int i_lvl = maxLvl; i_lvl >= minLvl; --i_lvl){
-		gather_weights_from_level(partitionLvl, i_lvl, aChildCount, false);
+		gather_weights_from_level(partitionLvl, i_lvl, aWeight, false);
 
 	//	now collect elements on partitionLvl, which have children in i_lvl but
 	//	have not yet been partitioned.
 		m_entries.clear();
 		elems.clear();
-		int maxNumChildren = 0;// per element on partitionLvl
+		number maxChildWeight = 0;// per element on partitionLvl
 		for(iter_t eiter = mg.begin<elem_t>(partitionLvl);
 			eiter != mg.end<elem_t>(partitionLvl); ++eiter)
 		{
 			elem_t* elem = *eiter;
-			if((aaChildCount[elem] > 0) && (m_sh.get_subset_index(elem) == -1)
+			if((aaWeight[elem] > 0) && (m_sh.get_subset_index(elem) == -1)
 				&& ((!pdgm) || (!pdgm->is_ghost(elem))))
 			{
 				m_entries.push_back(Entry(elem));
 				elems.add(m_entries.size() - 1);
-				maxNumChildren = max(maxNumChildren, aaChildCount[elem]);
+				maxChildWeight = max<number>(maxChildWeight, aaWeight[elem]);
 			}
 		}
 
-		if(maxNumChildren == 0)
-			maxNumChildren = 1;
+		if(maxChildWeight == 0)
+			maxChildWeight = 1;
 
 		if(!com.empty()){
-			maxNumChildren = com.allreduce(maxNumChildren, PCL_RO_MAX);
-			control_bisection(m_sh, elems, maxNumChildren, numTargetProcs,
-							  0, aChildCount, com);
+			maxChildWeight = com.allreduce(maxChildWeight, PCL_RO_MAX);
+			control_bisection(m_sh, elems, maxChildWeight, numTargetProcs,
+							  0, aWeight, com);
 		}
 	}
 
@@ -412,8 +413,8 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 template <int dim>
 void Partitioner_DynamicBisection<dim>::
 control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
-				  int maxNumChildren, int numTargetProcs, int firstProc,
-				  AInt aChildCount, pcl::ProcessCommunicator& com)
+				  number maxChildWeight, int numTargetProcs, int firstProc,
+				  ANumber aWeight, pcl::ProcessCommunicator& com)
 {
 	GDIST_PROFILE_FUNC();
 
@@ -424,8 +425,8 @@ control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
 	ElemList elemsLeft(elems.entries()), elemsRight(elems.entries());
 
 	size_t numElemsIn = elems.size();
-	bisect_elements(elemsLeft, elemsRight, elems, ratioLeft, aChildCount,
-					maxNumChildren, com, 0);
+	bisect_elements(elemsLeft, elemsRight, elems, ratioLeft, aWeight,
+					maxChildWeight, com, 0);
 
 	UG_COND_THROW(numElemsIn != elemsLeft.size() + elemsRight.size(),
 				  "Not all elements have been assigned to one of the two sides: "
@@ -441,14 +442,14 @@ control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
 	else if(numTargetProcs == 3){
 		for(size_t i = elemsLeft.first(); i != s_invalidIndex; i = elemsLeft.next(i))
 			partitionSH.assign_subset(elemsLeft.elem(i), firstProc);
-		control_bisection(partitionSH, elemsRight, maxNumChildren, 2, firstProc + 1,
-						  aChildCount, com);
+		control_bisection(partitionSH, elemsRight, maxChildWeight, 2, firstProc + 1,
+						  aWeight, com);
 	}
 	else if(numTargetProcs > 3){
-		control_bisection(partitionSH, elemsLeft, maxNumChildren, numTargetProcsLeft,
-						  firstProc, aChildCount, com);
-		control_bisection(partitionSH, elemsRight, maxNumChildren, numTargetProcsRight,
-						  firstProc + numTargetProcsLeft, aChildCount, com);
+		control_bisection(partitionSH, elemsLeft, maxChildWeight, numTargetProcsLeft,
+						  firstProc, aWeight, com);
+		control_bisection(partitionSH, elemsRight, maxChildWeight, numTargetProcsRight,
+						  firstProc + numTargetProcsLeft, aWeight, com);
 	}
 	else{
 		UG_THROW("At least 2 target processes have to be specified for a bisection");
@@ -459,18 +460,18 @@ control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
 template<int dim>
 void Partitioner_DynamicBisection<dim>::
 bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
-		   	    ElemList& elems, number ratioLeft, AInt aChildCount,
-		   	    int maxNumChildren, pcl::ProcessCommunicator& com, int cutRecursion)
+		   	    ElemList& elems, number ratioLeft, ANumber aWeight,
+		   	    number maxChildWeight, pcl::ProcessCommunicator& com, int cutRecursion)
 {
 //	UG_LOG("Performing bisection with ratio: " << ratioLeft << endl);
 	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
 
-	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(mg, aChildCount);
+	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
 
 	vector_t gCenter, gBoxMin, gBoxMax;
 	calculate_global_dimensions(gCenter, gBoxMin, gBoxMax, elems,
-								maxNumChildren, aChildCount, com);
+								maxChildWeight, aWeight, com);
 
 //	split the array into 2 sub-arrays along the global-box's largest dimension
 	int splitDim = 0;
@@ -482,14 +483,14 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 	//UG_LOG("BBox: " << gBoxMin << ", " << gBoxMax << ", Center: " << gCenter << endl);
 	number splitValue = find_split_value(elems, splitDim, ratioLeft, gCenter[splitDim],
 										 gBoxMin[splitDim], gBoxMax[splitDim],
-										 10, aChildCount, com);
+										 10, aWeight, com);
 
-	//UG_LOG("splitDim: " << splitDim << ", splitValue: " << splitValue << endl);
+//	UG_LOG("splitDim: " << splitDim << ", splitValue: " << splitValue << endl);
 
 	if(cutRecursion < dim - 1){
 		ElemList elemsCut(elems.entries());
 
-		int weights[5] = {0, 0, 0, 0, 0};
+		double weights[5] = {0, 0, 0, 0, 0};
 
 		for(size_t i = elems.first(); i != s_invalidIndex;){
 			elem_t* e = elems.elem(i);
@@ -499,21 +500,21 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 			switch(loc){
 				case LEFT:
 					elemsLeftOut.add(i);
-					weights[0] += aaChildCount[e];
+					weights[0] += aaWeight[e];
 					break;
 				case RIGHT:
 					elemsRightOut.add(i);
-					weights[1] += aaChildCount[e];
+					weights[1] += aaWeight[e];
 					break;
 				case CUTTING:
 					elemsCut.add(i);
-					weights[2] += aaChildCount[e];
+					weights[2] += aaWeight[e];
 				//	check whether the center is left or right, since we can
 				//	eventually avoid additional bisection
 					if(CalculateCenter(e, m_aaPos)[splitDim] < splitValue)
-						weights[3] += aaChildCount[e];
+						weights[3] += aaWeight[e];
 					else
-						weights[4] += aaChildCount[e];
+						weights[4] += aaWeight[e];
 					break;
 				default:
 					UG_THROW("INVALID CLASSIFICATION DURING BISECTION\n");
@@ -527,13 +528,13 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 	//	we have to clear elems, since it would be invalid anyways
 		elems.clear();
 
-		int gWeights[5];
+		double gWeights[5];
 		com.allreduce(weights, gWeights, 5, PCL_RO_SUM);
 
 		//	calculate the number of elements which have to go to the left side
-		int gWTotal = gWeights[0] + gWeights[1] + gWeights[2];
-		int gMissingLeft = int(ratioLeft * gWTotal - gWeights[0]);
-		int gMissingRight = int((1. - ratioLeft) * gWTotal - gWeights[1]);
+		double gWTotal = gWeights[0] + gWeights[1] + gWeights[2];
+		double gMissingLeft = ratioLeft * gWTotal - gWeights[0];
+		double gMissingRight = (1. - ratioLeft) * gWTotal - gWeights[1];
 
 //		UG_LOG("weights left:  " << gWeights[0] << endl);
 //		UG_LOG("weights right: " << gWeights[1] << endl);
@@ -541,7 +542,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 
 	//	bisect the cutting elements
 		if(gMissingLeft <= 0){
-			//UG_LOG("Adding all to right\n");
+//			UG_LOG("Adding all to right\n");
 		//	add all cut-elements to the right side
 			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 				size_t iNext = elemsCut.next(i);
@@ -553,7 +554,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 		}
 
 		if(gMissingRight <= 0){
-			//UG_LOG("Adding all to left\n");
+//			UG_LOG("Adding all to left\n");
 		//	add all cut-elements to the left side
 			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 				size_t iNext = elemsCut.next(i);
@@ -573,7 +574,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 		else				ratio = wRight / wLeft;
 
 		if(ratio > 0.99){
-			//UG_LOG("direct cut bisection\n");
+//			UG_LOG("direct cut bisection\n");
 			for(size_t i = elemsCut.first(); i != s_invalidIndex;){
 				elem_t* e = elemsCut.elem(i);
 				size_t iNext = elemsCut.next(i);
@@ -589,8 +590,8 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 
 	//	perform a recursion
 		number newRatioLeft = (number)gMissingLeft / (number)(gMissingLeft + gMissingRight);
-		bisect_elements(elemsLeftOut, elemsRightOut, elemsCut, newRatioLeft, aChildCount,
-						maxNumChildren, com, cutRecursion + 1);
+		bisect_elements(elemsLeftOut, elemsRightOut, elemsCut, newRatioLeft, aWeight,
+						maxChildWeight, com, cutRecursion + 1);
 	}
 	else{
 	//	perform a simple bisection
@@ -612,12 +613,12 @@ template <int dim>
 void Partitioner_DynamicBisection<dim>::
 calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 							vector_t& boxMaxOut, const ElemList& elems,
-							int maxNumChildren, AInt aChildCount,
+							number maxChildWeight, ANumber aWeight,
 							pcl::ProcessCommunicator& com)
 {
 	GDIST_PROFILE_FUNC();
 	MultiGrid& mg = *m_mg;
-	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(mg, aChildCount);
+	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
 
 	number totalWeight = 0;
 	vector_t center;
@@ -634,7 +635,7 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	for(size_t i = elems.first(); i != s_invalidIndex; i = elems.next(i)){
 		elem_t* e = elems.elem(i);
 		vector_t p = CalculateCenter(e, m_aaPos);
-		number w = (number)aaChildCount[e] / maxNumChildren;
+		number w = aaWeight[e] / maxChildWeight;
 		VecScaleAdd(center, 1, center, w, p);
 		totalWeight += w;
 
@@ -725,7 +726,7 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	if(totalWeight > 0)
 		VecScale(gCenter, gCenter, 1./totalWeight);
 
-	//UG_LOG("global center pre-com: " << gCenter << endl);
+//	UG_LOG("global center pre-com: " << gCenter << endl);
 //	broadcast the calculated center and bounding box to all involved processes.
 	vector_t broadcastData[3];
 	broadcastData[0] = gCenter;
@@ -737,13 +738,13 @@ calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 	centerOut = broadcastData[0];
 	boxMinOut = broadcastData[1];
 	boxMaxOut = broadcastData[2];
-	//UG_LOG("global center post-com: " << centerOut << endl);
+//	UG_LOG("global center post-com: " << centerOut << endl);
 
 }
 
 template <int dim>
 void Partitioner_DynamicBisection<dim>::
-gather_weights_from_level(int baseLvl, int childLvl, AInt aInt,
+gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 							   bool copyToVMastersOnBaseLvl)
 {
 	GDIST_PROFILE_FUNC();
@@ -752,10 +753,10 @@ gather_weights_from_level(int baseLvl, int childLvl, AInt aInt,
 
 	assert(m_mg);
 	assert(m_mg->is_parallel());
-	assert(m_mg->has_attachment<elem_t>(aInt));
+	assert(m_mg->has_attachment<elem_t>(aWeight));
 
 	MultiGrid& mg = *m_mg;
-	Grid::AttachmentAccessor<elem_t, AInt> aaWeight(mg, aInt);
+	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(mg, aWeight);
 
 
 	if(childLvl < baseLvl){
@@ -763,52 +764,82 @@ gather_weights_from_level(int baseLvl, int childLvl, AInt aInt,
 		return;
 	}
 	else if(childLvl == baseLvl){
-		SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 1);
+		if(m_balanceWeights.valid()){
+			BalanceWeights<dim>& bw = *m_balanceWeights;
+			for(ElemIter iter = mg.begin<elem_t>(baseLvl);
+				iter != mg.end<elem_t>(baseLvl); ++iter)
+			{
+				elem_t* e = *iter;
+				aaWeight[e] = bw.get_weight(*iter);
+			}
+		}
+		else
+			SetAttachmentValues(aaWeight, mg.begin<elem_t>(baseLvl), mg.end<elem_t>(baseLvl), 1);
 		return;
 	}
+	else{
+		GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
+		ComPol_CopyAttachment<layout_t, ANumber> compolCopy(mg, aWeight);
 
-	GridLayoutMap& glm = mg.distributed_grid_manager()->grid_layout_map();
-	ComPol_CopyAttachment<layout_t, AInt> compolCopy(mg, aInt);
+	//	initialize weights.
+	//	we don't fill the weights on childLvl but on the level below.
+		if(m_balanceWeights.valid()){
+		//	we have to write a balance-weight into all elements of childLvl
+			BalanceWeights<dim>& bw = *m_balanceWeights;
+			for(ElemIter iter = mg.begin<elem_t>(childLvl - 1);
+				iter != mg.end<elem_t>(childLvl - 1); ++iter)
+			{
+				elem_t* parent = *iter;
+				aaWeight[parent] = 0;
+				size_t numChildren = mg.num_children<elem_t>(parent);
+				for(size_t ichild = 0; ichild < numChildren; ++ichild)
+				{
+					aaWeight[parent] += bw.get_weight(mg.get_child<elem_t>(parent, ichild));
+				}
+			}
+		}
+		else{
+			for(ElemIter iter = mg.begin<elem_t>(childLvl - 1);
+				iter != mg.end<elem_t>(childLvl - 1); ++iter)
+			{
+				elem_t* e = *iter;
+				aaWeight[e] = mg.num_children<elem_t>(e);
+			}
+		}
 
-//	first write child-counts to elements on childLvl - 1
-	for(ElemIter iter = mg.begin<elem_t>(childLvl - 1);
-		iter != mg.end<elem_t>(childLvl - 1); ++iter)
-	{
-		elem_t* e = *iter;
-		aaWeight[e] = mg.num_children<elem_t>(e) + 1;
-	}
+		for(int lvl = childLvl - 2; lvl >= baseLvl; --lvl){
+		//	copy from v-slaves to vmasters
+			if(glm.has_layout<elem_t>(INT_V_SLAVE))
+				m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
+									 compolCopy);
+			if(glm.has_layout<elem_t>(INT_V_MASTER))
+				m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
+										compolCopy);
+			m_intfcCom.communicate();
 
-	for(int lvl = childLvl - 2; lvl >= baseLvl; --lvl){
-	//	copy from v-slaves to vmasters
-		if(glm.has_layout<elem_t>(INT_V_SLAVE))
-			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(lvl + 1),
-								 compolCopy);
-		if(glm.has_layout<elem_t>(INT_V_MASTER))
-			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(lvl + 1),
-									compolCopy);
-		m_intfcCom.communicate();
+		//	accumulate child counts in parent elements on lvl
+			for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
+			{
+				elem_t* e = *iter;
+				aaWeight[e] = 0;
+				size_t numChildren = mg.num_children<elem_t>(e);
+				for(size_t i = 0; i < numChildren; ++i)
+					aaWeight[e] += aaWeight[mg.get_child<elem_t>(e, i)];
+			}
+		}
 
-	//	accumulate child counts in parent elements on lvl
-		for(ElemIter iter = mg.begin<elem_t>(lvl); iter != mg.end<elem_t>(lvl); ++iter)
-		{
-			elem_t* e = *iter;
-			aaWeight[e] = 0;
-			size_t numChildren = mg.num_children<elem_t>(e);
-			for(size_t i = 0; i < numChildren; ++i)
-				aaWeight[e] += aaWeight[mg.get_child<elem_t>(e, i)];
+	//	if child counts are required in vmasters on the base-level, copy them now...
+		if(copyToVMastersOnBaseLvl){
+			if(glm.has_layout<elem_t>(INT_V_SLAVE))
+				m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(baseLvl),
+									 compolCopy);
+			if(glm.has_layout<elem_t>(INT_V_MASTER))
+				m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(baseLvl),
+										compolCopy);
+			m_intfcCom.communicate();
 		}
 	}
 
-//	if child counts are required in vmasters on the base-level, copy them now...
-	if(copyToVMastersOnBaseLvl){
-		if(glm.has_layout<elem_t>(INT_V_SLAVE))
-			m_intfcCom.send_data(glm.get_layout<elem_t>(INT_V_SLAVE).layout_on_level(baseLvl),
-								 compolCopy);
-		if(glm.has_layout<elem_t>(INT_V_MASTER))
-			m_intfcCom.receive_data(glm.get_layout<elem_t>(INT_V_MASTER).layout_on_level(baseLvl),
-									compolCopy);
-		m_intfcCom.communicate();
-	}
 	UG_DLOG(LIB_GRID, 1, "Partitioner_DynamicBisection-stop gather_weights_from_level\n");
 }
 
@@ -860,7 +891,7 @@ number Partitioner_DynamicBisection<dim>::
 find_split_value(const ElemList& elems, int splitDim,
 				 number splitRatio, number initialGuess,
 				 number minValue, number maxValue,
-				 size_t maxIterations, AInt aChildCount,
+				 size_t maxIterations, ANumber aWeight,
 				 pcl::ProcessCommunicator& com)
 {
 	//UG_LOG("splitRatio: " << splitRatio << ", initialGuess: " << initialGuess << endl);
@@ -869,7 +900,7 @@ find_split_value(const ElemList& elems, int splitDim,
 	if(splitRatio > 1. - SMALL)
 		return maxValue - SMALL;
 
-	Grid::AttachmentAccessor<elem_t, AInt> aaChildCount(*m_mg, aChildCount);
+	Grid::AttachmentAccessor<elem_t, ANumber> aaWeight(*m_mg, aWeight);
 
 	number splitValue = initialGuess;
 	for(size_t iteration = 0; iteration < maxIterations; ++iteration){
@@ -880,8 +911,8 @@ find_split_value(const ElemList& elems, int splitDim,
 		for(size_t i = elems.first(); i != s_invalidIndex; i = elems.next(i)){
 			elem_t* e = elems.elem(i);
 			int location = classify_elem(e, splitDim, splitValue);
-			numElems[location] += aaChildCount[e];
-			numElems[TOTAL] += aaChildCount[e];
+			numElems[location] += aaWeight[e];
+			numElems[TOTAL] += aaWeight[e];
 		}
 
 		int gNumElems[NUM_CONSTANTS];

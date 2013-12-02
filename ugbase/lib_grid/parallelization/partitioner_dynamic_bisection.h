@@ -114,23 +114,23 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		void copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl);
 		void perform_bisection(int minLvl, int maxLvl, int partitionLvl);
 		void perform_bisection(int numTargetProcs, int minLvl, int maxLvl,
-							   int partitionLvl, AInt aChildCount,
+							   int partitionLvl, ANumber aWeight,
 							   pcl::ProcessCommunicator com);
 		void control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
-							 int maxNumChildren, int numTargetProcs, int firstProc,
-							 AInt aChildCount, pcl::ProcessCommunicator& com);
+							 number maxChildWeight, int numTargetProcs, int firstProc,
+							 ANumber aWeight, pcl::ProcessCommunicator& com);
 
 		void bisect_elements(ElemList& elemsLeftOut,
 							ElemList& elemsRightOut,
 							ElemList& elems, number ratioLeft,
-							AInt aChildCount, int maxNumChildren,
+							ANumber aWeight, number maxChildWeight,
 							pcl::ProcessCommunicator& com, int cutRecursion);
 
 		void calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
 										 vector_t& boxMaxOut, const ElemList& elems,
-										 int maxNumChildren, AInt aChildCount,
+										 number maxChildWeight, ANumber aWeight,
 										 pcl::ProcessCommunicator& com);
-		void gather_weights_from_level(int baseLvl, int childLvl, AInt aInt,
+		void gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 											bool copyToVMastersOnBaseLvl);
 
 		int classify_elem(elem_t* e, int splitDim, number splitValue);
@@ -138,7 +138,7 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		number find_split_value(const ElemList& elems, int splitDim,
 								number splitRatio, number initialGuess,
 								number minValue, number maxValue,
-								size_t maxIterations, AInt aChildCount,
+								size_t maxIterations, ANumber aWeight,
 								pcl::ProcessCommunicator& com);
 
 
@@ -150,6 +150,8 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		SPProcessHierarchy						m_nextProcessHierarchy;
 		pcl::InterfaceCommunicator<layout_t>	m_intfcCom;
 		std::vector<Entry>						m_entries;
+
+		SmartPtr<BalanceWeights<dim> >			m_balanceWeights;
 
 		bool	m_staticPartitioning;
 
