@@ -89,8 +89,8 @@ bool Decomp(DenseMatrix< VariableArray2<double> > &A, DenseVector<VariableArray1
 	for(k=0; k<cols; k++)
 	{
 //		UG_LOG("-----------------" << k << " < " << cols << " ------\n");
-		size_t biggestR, biggestC;
-		double dBiggest = -1;
+		size_t biggestR=0, biggestC=0;
+		double dBiggest = dabs(A(0,0));
 
 		for(size_t r=k; r<rows; r++)
 			for(size_t c=k; c<cols; c++)
@@ -182,7 +182,7 @@ bool SolveDeficit(DenseMatrix< VariableArray2<double> > &A,
 	}
 	DenseVector<VariableArray1<double> > f;
 	f = A2*x - rhs2;
-	if(VecNormSquared(f) > 1e-12)
+	if(VecNormSquared(f) > 1e-5)
 	{
 		UG_LOGN("iNonNullRows = " << iNonNullRows);
 		UG_LOG("solving was wrong:");
