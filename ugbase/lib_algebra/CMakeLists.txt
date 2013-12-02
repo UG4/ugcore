@@ -39,6 +39,7 @@ if(PARALLEL)
 						parallelization/parallel_index_layout.cpp
 						parallelization/parallel_nodes.cpp	
 						parallelization/algebra_layouts.cpp
+						algebra_common/permutation_util.cpp
 						 )
 endif(PARALLEL)
 
