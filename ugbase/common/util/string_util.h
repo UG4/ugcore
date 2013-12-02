@@ -371,6 +371,14 @@ inline std::string OstreamShift(const T &t)
 	return ConfigShift(ss.str());
 }
 
+/**
+ * Helper function to display byte sizes like 2411724 => 2,3 MB
+ * @param[in] s size in bytes
+ * @param[in] length if != 0, fixes the returned string length to this length (for tables etc.).
+ * @return string describing the size s=1024 -> 1 kb
+ */
+std::string GetBytesSizeString(size_t s, int length=0);
+
 } // end namespace ug
 
 #endif /*__H__COMMON_STRING_UTIL__*/

@@ -432,6 +432,23 @@ string ConfigShift(string s)
 }
 
 
+string GetBytesSizeString(size_t s, int length)
+{
+	stringstream ss;
+	if(length!=0)
+		ss << setw(length-3);
+	if(s > 1024*1024*1024)
+		ss << s/(1024*1024*1024.0) << " Gb";
+	else if(s > 1024*1024)
+		ss << s/(1024*1024.0) << " Mb";
+	else if(s > 1024)
+			ss << s/(1024.0) << " kb";
+	else if(length == 0)
+		ss << s << " b";
+	else
+		ss << s << " b ";
+	return ss.str();
+}
 
 }
 
