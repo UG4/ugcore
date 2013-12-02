@@ -51,9 +51,9 @@ class LU
 		LU() : m_spOperator(NULL), m_mat(), m_bSortSparse(true), m_bInfo(false)
 		{
 #ifdef LAPACK_AVAILABLE
-			m_iMinimumForSparse = 8000;
+			m_iMinimumForSparse = 4000;
 #else
-			m_iMinimumForSparse = 2000;
+			m_iMinimumForSparse = 1000;
 #endif
 		};
 
