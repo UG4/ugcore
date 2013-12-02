@@ -377,7 +377,7 @@ perform_bisection(int numTargetProcs, int minLvl, int maxLvl, int partitionLvl,
 	}
 
 	if(partitionLvl < minLvl){
-		UG_ASSERT(partitionLvl = minLvl - 1,
+		UG_ASSERT(partitionLvl == minLvl - 1,
 				  "partitionLvl and minLvl should be neighbors");
 
 	//	copy subset indices from partition-level to minLvl

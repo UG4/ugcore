@@ -219,21 +219,26 @@ public:
 	{
 		interchange.resize(densemat.num_rows());
 
-		bool bLUDecomp = LUDecomp(densemat, &interchange[0]);
+		if(!interchange.empty()){
+			bool bLUDecomp = LUDecomp(densemat, &interchange[0]);
 
-		if(bLUDecomp!=true)
-		{
-			UG_LOG("ERROR in 'DenseMatrixInverse::invert': Matrix is singular, "
-					"cannot calculate Inverse.\n");
+			if(bLUDecomp!=true)
+			{
+				UG_LOG("ERROR in 'DenseMatrixInverse::invert': Matrix is singular, "
+						"cannot calculate Inverse.\n");
+			}
+
+			return bLUDecomp;
 		}
-
-		return bLUDecomp;
+		else
+			return true;
 	}
 
 	template<typename vector_t>
 	void apply(DenseVector<vector_t> &vec) const
 	{
-		SolveLU(densemat, vec, &interchange[0]);
+		if(!interchange.empty())
+			SolveLU(densemat, vec, &interchange[0]);
 	}
 
 	// todo: implem
