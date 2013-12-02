@@ -155,9 +155,12 @@ class LU
 			PROFILE_FUNC();
 			m_bDense = false;
 
-			UG_LOG("LU using Sparse LU on ");
-			print_info(A);
-			UG_LOG("\n");
+			if(m_bInfo)
+			{
+				UG_LOG("LU using Sparse LU on ");
+				print_info(A);
+				UG_LOG("\n");
+			}
 			ilut_scalar = new ILUTScalarPreconditioner<algebra_type>(0);
 			ilut_scalar->set_sort(m_bSortSparse);
 			ilut_scalar->set_info(m_bInfo);
