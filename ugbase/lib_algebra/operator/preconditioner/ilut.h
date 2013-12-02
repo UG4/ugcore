@@ -269,7 +269,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				UG_LOG("	A nr of connections: " << A->total_num_connections()  << "\n");
 				UG_LOG("	L+U nr of connections: " << m_L.total_num_connections()+m_U.total_num_connections() << "\n");
 				UG_LOG("	Increase factor: " << (float)(m_L.total_num_connections() + m_U.total_num_connections() )/A->total_num_connections() << "\n");
-				UG_LOG(reset_floats << "Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)\n");
+				UG_LOG(reset_floats << "	Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)\n");
 				if(m_bSort)
 				{
 					UG_LOG("	Using Cuthill-McKey sorting. ")
