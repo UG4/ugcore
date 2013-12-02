@@ -951,45 +951,6 @@ GetDenseFromSparse(typename DenseMatrixFromSparseMatrix<TSparseMatrix>::type &A,
 }
 
 
-template<typename TMatrix>
-void SetMatrixAsPermutation(TMatrix &PA, const TMatrix &A, std::vector<size_t> &newIndex)
-{
-	PA.resize_and_clear(A.num_rows(), A.num_cols());
-
-	for(size_t r=0; r<A.num_rows(); r++)
-	{
-		size_t Pr=newIndex[r];
-		for(typename TMatrix::const_row_iterator it = A.begin_row(r); it != A.end_row(r); ++it)
-		{
-			size_t Pc = newIndex[it.index()];
-			PA(Pr, Pc) = it.value();
-		}
-	}
-}
-
-template<typename TVector>
-void SetVectorAsPermutation(TVector &Pv, const TVector &v, std::vector<size_t> &newIndex)
-{
-	if(Pv.size() != v.size()) Pv.resize(v.size());
-	for(size_t i=0; i<v.size(); i++)
-		Pv[ newIndex[i] ] = v[i];
-}
-
-void GetInversePermutation(const std::vector<size_t> &newIndex, std::vector<size_t> &oldIndex, bool &bSortIsIdentity)
-{
-	oldIndex.resize(newIndex.size());
-	bSortIsIdentity = true;
-	for(size_t i=0; i<newIndex.size(); i++) oldIndex[i] = (size_t) (-1);
-
-	for(size_t i=0; i<newIndex.size(); i++)
-	{
-		UG_ASSERT(oldIndex[newIndex[i]] == (size_t) (-1), "not a bijective permutation!");
-		bSortIsIdentity = bSortIsIdentity && newIndex[i] == i;
-		oldIndex[newIndex[i]] = i;
-	}
-}
-
-
 
 /// @}
 } // end namespace ug
