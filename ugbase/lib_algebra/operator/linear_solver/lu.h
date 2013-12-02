@@ -95,7 +95,7 @@ class LU
 			{
 				UG_LOG("LU, using DenseLU on ");
 				print_info(A);
-				UG_LOG("\nDenseLU needs " << GetBytesSizeString(m_size*m_size*sizeof(double)) << " of memory.");
+				UG_LOG("\n	DenseLU needs " << GetBytesSizeString(m_size*m_size*sizeof(double)) << " of memory.\n");
 			}
 
 			const size_t nrOfRows = block_traits<typename matrix_type::value_type>::static_num_rows;
