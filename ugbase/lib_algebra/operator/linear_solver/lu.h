@@ -48,7 +48,7 @@ class LU
 
 	public:
 	///	constructor
-		LU() : m_spOperator(NULL), m_mat()
+		LU() : m_spOperator(NULL), m_mat(), m_bSortSparse(true), m_bInfo(false)
 		{
 #ifdef LAPACK_AVAILABLE
 			m_iMinimumForSparse = 8000;
@@ -66,11 +66,38 @@ class LU
 			m_iMinimumForSparse=N;
 		}
 
+		void set_sort_sparse(bool b)
+		{
+			m_bSortSparse = b;
+		}
+
+		void set_info(bool b)
+		{
+			m_bInfo = b;
+		}
+
+	private:
+
+		void print_info(const matrix_type &A)
+		{
+			size_t blockSize =  block_traits<typename matrix_type::value_type>::static_num_rows;
+			UG_LOG("Matrix " << A.num_rows() << " x " << A.num_rows() << " with " << blockSize << " x " << blockSize << " blocks");
+		}
+
 	///	returns name of solver
 		virtual const char* name() const {return "LU";}
 		bool init_dense(const matrix_type &A)
 		{
+			PROFILE_FUNC();
 			m_bDense = true;
+
+			if(m_bInfo)
+			{
+				UG_LOG("LU, using DenseLU on ");
+				print_info(A);
+				UG_LOG("\nDenseLU needs " << GetBytesSizeString(m_size*m_size*sizeof(double)) << " of memory.");
+			}
+
 			const size_t nrOfRows = block_traits<typename matrix_type::value_type>::static_num_rows;
 			m_mat.resize(m_size);
 			for(size_t r=0; r<A.num_rows(); r++)
@@ -82,6 +109,7 @@ class LU
 							for(size_t c2=0; c2<nrOfRows; c2++)
 							  m_mat(rr + r2, cc + c2) = BlockRef(it.value(), r2, c2);
 				}
+
 
 			return m_mat.invert();
 		}
@@ -124,8 +152,15 @@ class LU
 
 		bool init_sparse(const matrix_type &A)
 		{
+			PROFILE_FUNC();
 			m_bDense = false;
+
+			UG_LOG("LU using Sparse LU on ");
+			print_info(A);
+			UG_LOG("\n");
 			ilut_scalar = new ILUTScalarPreconditioner<algebra_type>(0);
+			ilut_scalar->set_sort(m_bSortSparse);
+			ilut_scalar->set_info(m_bInfo);
 			ilut_scalar->preprocess(A);
 
 			return true;
@@ -133,6 +168,7 @@ class LU
 
 		bool solve_dense(vector_type &x, const vector_type &b)
 		{
+			PROFILE_FUNC();
 			x = b;
 			m_tmp.resize(m_size);
 			for(size_t i=0, k=0; i<b.size(); i++)
@@ -154,13 +190,28 @@ class LU
 
 		bool solve_sparse(vector_type &x, const vector_type &b)
 		{
+			PROFILE_FUNC();
 			ilut_scalar->solve(x, b);
 			return true;
 		}
 
+	public:
 	///	initializes the solver for a matrix A
-		bool init_lu(const matrix_type &A)
+		bool init_lu(const matrix_type *pA)
 		{
+		//	get matrix of Operator
+			m_pMatrix = pA;
+
+		//	check that matrix exist
+			if(m_pMatrix == NULL)
+			{
+				UG_LOG("ERROR in 'LU::init': No Matrix given.\n");
+				return false;
+			}
+
+			const matrix_type &A = *pA;
+
+			PROFILE_FUNC();
 			PROFILE_BEGIN_GROUP(LU_init_lu, "algebra lu");
 			if(block_traits<typename vector_type::value_type>::is_static)
 			{
@@ -213,18 +264,8 @@ class LU
 		// 	remember operator
 			m_spOperator = Op;
 
-		//	get matrix of Operator
-			m_pMatrix = &m_spOperator->get_matrix();
-
-		//	check that matrix exist
-			if(m_pMatrix == NULL)
-			{
-				UG_LOG("ERROR in 'LU::init': No Matrix given.\n");
-				return false;
-			}
-
 		//	init LU operator
-			if(!init_lu(*m_pMatrix))
+			if(!init_lu(&m_spOperator->get_matrix()))
 			{
 				UG_LOG("ERROR in 'LU::init': Cannot init LU Decomposition.\n");
 				return false;
@@ -237,6 +278,7 @@ class LU
 	///	Compute u = L^{-1} * f
 		virtual bool apply(vector_type& u, const vector_type& f)
 		{
+			PROFILE_FUNC();
 			convergence_check()->set_symbol('%');
 			convergence_check()->set_name("LU Solver");
 
@@ -313,7 +355,7 @@ class LU
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spOperator;
 
 	/// matrix to invert
-		matrix_type* m_pMatrix;
+		const matrix_type* m_pMatrix;
 
 	/// inverse
 		DenseMatrixInverse<DenseMatrix<VariableArray2<double> > > m_mat;
@@ -325,6 +367,7 @@ class LU
 		bool m_bDense;
 		SmartPtr<ILUTScalarPreconditioner<algebra_type> > ilut_scalar;
 		size_t m_iMinimumForSparse;
+		bool m_bSortSparse, m_bInfo;
 };
 
 } // end namespace ug

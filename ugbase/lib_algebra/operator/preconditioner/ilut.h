@@ -17,6 +17,8 @@
 #include "common/util/ostream_util.h"
 
 #include "lib_algebra/algebra_common/vector_util.h"
+#include "lib_algebra/algebra_common/permutation_util.h"
+#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
 namespace ug{
 
 template <typename TAlgebra>
@@ -28,9 +30,14 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 	//	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
+		typedef typename vector_type::value_type vector_value;
 
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
+
+		typedef typename matrix_type::row_iterator matrix_row_iterator;
+		typedef typename matrix_type::const_row_iterator const_matrix_row_iterator;
+		typedef typename matrix_type::connection matrix_connection;
 
 	///	Matrix Operator type
 		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
@@ -43,7 +50,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 	//	Constructor
 		ILUTPreconditioner(double eps=1e-6) :
-			m_eps(eps), m_info(false)
+			m_eps(eps), m_info(false), m_bSort(true)
 		{};
 
 	// 	Clone
@@ -53,6 +60,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
 			newInst->set_info(m_info);
+			newInst->set_sort(m_bSort);
 			return newInst;
 		}
 
@@ -83,32 +91,70 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			return ss.str();
 		}
 
+		void set_sort(bool b)
+		{
+			m_bSort = b;
+		}
+
+
 	protected:
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILUT";}
 
+		void sort(matrix_type &permMat, const matrix_type &mat)
+		{
+			std::vector<std::vector<size_t> > neighbors;
+			neighbors.resize(mat.num_rows());
+
+			for(size_t i=0; i<mat.num_rows(); i++)
+			{
+				for(const_matrix_row_iterator i_it = mat.begin_row(i); i_it != mat.end_row(i); ++i_it)
+					neighbors[i].push_back(i_it.index());
+			}
+
+			ComputeCuthillMcKeeOrder(newIndex, neighbors, false);
+
+			m_bSortIsIdentity = GetInversePermutation(newIndex, oldIndex);
+
+			if(!m_bSortIsIdentity)
+				SetMatrixAsPermutation(permMat, mat, newIndex);
+		}
+
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
-			matrix_type &mat = *pOp;
+			//matrix_type &mat = *pOp;
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
-		//	Prepare Inverse Matrix
-			matrix_type* A = &mat;
-			typedef typename matrix_type::connection connection;
+			matrix_type* A;
+			matrix_type permA;
+			if(m_bSort)
+			{
+				sort(permA, *pOp);
+				if(m_bSortIsIdentity)
+					A = &(*pOp);
+				else
+					A = &permA;
+			}
+			else
+			{
+				A = &(*pOp);
+			}
+
+
 			m_L.resize_and_clear(A->num_rows(), A->num_cols());
 			m_U.resize_and_clear(A->num_rows(), A->num_cols());
 
 			// con is the current line of L/U
 			// i also tried using std::list here or a special custom vector-based linked list
 			// but vector is fastest, even with the insert operation.
-			std::vector<typename matrix_type::connection> con;
+			std::vector<matrix_connection> con;
 			con.reserve(300);
 			con.resize(0);
 
 			// init row 0 of U
-			for(typename matrix_type::row_iterator i_it = A->begin_row(0); i_it != A->end_row(0); ++i_it)
-				con.push_back(connection(i_it.index(), i_it.value()));
+			for(matrix_row_iterator i_it = A->begin_row(0); i_it != A->end_row(0); ++i_it)
+				con.push_back(matrix_connection(i_it.index(), i_it.value()));
 			m_U.set_matrix_row(0, &con[0], con.size());
 
 			size_t totalentries=0;
@@ -127,9 +173,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 				// get the row A(i, .) into con
 				double dmax=0;
-				for(typename matrix_type::row_iterator i_it = A->begin_row(i); i_it != A->end_row(i); ++i_it)
+				for(matrix_row_iterator i_it = A->begin_row(i); i_it != A->end_row(i); ++i_it)
 				{
-					con.push_back(connection(i_it.index(), i_it.value()));
+					con.push_back(matrix_connection(i_it.index(), i_it.value()));
 					if(dmax < BlockNorm(i_it.value()))
 						dmax = BlockNorm(i_it.value());
 				}
@@ -155,7 +201,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					block_type d = con[i_it].dValue;
 					UG_ASSERT(BlockMatrixFiniteAndNotTooBig(d, 1e40), "i = " << i << " " << d);
 
-					typename matrix_type::row_iterator k_it = m_U.begin_row(k); // upper row iterator
+					matrix_row_iterator k_it = m_U.begin_row(k); // upper row iterator
 					++k_it; // skip diag
 					size_t j = i_it+1;
 					while(k_it != m_U.end_row(k) && j < con.size())
@@ -172,8 +218,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 							// we have a value in U(k, (*k_it).iIndex), but not in A.
 							// check tolerance criteria
 
-							typename matrix_type::connection 
-								c(k_it.index(), k_it.value() * d * -1.0);
+							matrix_connection c(k_it.index(), k_it.value() * d * -1.0);
 							
 							UG_ASSERT(BlockMatrixFiniteAndNotTooBig(c.dValue, 1e40), "i = " << i << " " << c.dValue);
 							if(BlockNorm(c.dValue) > dmax * m_eps)
@@ -194,7 +239,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					// insert new connections after last connection of row i
 					if (k_it!=m_U.end_row(k)){
 						for (;k_it!=m_U.end_row(k);++k_it){
-							typename matrix_type::connection c(k_it.index(),-k_it.value()*d);
+							matrix_connection c(k_it.index(),-k_it.value()*d);
 					        if(BlockNorm(c.dValue) > dmax * m_eps)
 					        {
 					        	con.push_back(c);
@@ -220,10 +265,21 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 			if (m_info==true){
 				UG_LOG("\n	ILUT storage information:\n");
+				UG_LOG("	A is " << A->num_rows() << " x " << A->num_cols() << " matrix.\n");
 				UG_LOG("	A nr of connections: " << A->total_num_connections()  << "\n");
 				UG_LOG("	L+U nr of connections: " << m_L.total_num_connections()+m_U.total_num_connections() << "\n");
 				UG_LOG("	Increase factor: " << (float)(m_L.total_num_connections() + m_U.total_num_connections() )/A->total_num_connections() << "\n");
 				UG_LOG(reset_floats << "Total entries: " << totalentries << " (" << ((double)totalentries) / (A->num_rows()*A->num_rows()) << "% of dense)\n");
+				if(m_bSort)
+				{
+					UG_LOG("	Using Cuthill-McKey sorting. ")
+						if(m_bSortIsIdentity) UG_LOG("Sort is identity (already sorted).");
+					UG_LOG("\n");
+				}
+				else
+				{
+					UG_LOG("Not using sort.");
+				}
 			}
 
 			return true;
@@ -232,13 +288,37 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
+			if(m_bSort == false || m_bSortIsIdentity)
+			{
+				if(step(c, d) == false) return false;
+			}
+			else
+			{
+				vector_type c2, d2;
+				SetVectorAsPermutation(d2, d, newIndex);
+				c2.resize(c.size());
+				if(step(c2, d2) == false) return false;
+				SetVectorAsPermutation(c, c2, oldIndex);
+			}
+
+#ifdef 	UG_PARALLEL
+		//	Correction is always consistent
+		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
+			c.set_storage_type(PST_CONSISTENT);
+#endif
+			return true;
+		}
+
+
+		virtual bool step(vector_type& c, const vector_type& d)
+		{
 			// apply iterator: c = LU^{-1}*d (damp is not used)
 			// L
 			for(size_t i=0; i < m_L.num_rows(); i++)
 			{
 				// c[i] = d[i] - m_L[i]*c;
 				c[i] = d[i];
-				for(typename matrix_type::row_iterator it = m_L.begin_row(i); it != m_L.end_row(i); ++it)
+				for(matrix_row_iterator it = m_L.begin_row(i); it != m_L.end_row(i); ++it)
 					MatMultAdd(c[i], 1.0, c[i], -1.0, it.value(), c[it.index()] );
 				// lii = 1.0.
 			}
@@ -248,11 +328,11 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			// when solving Navier Stokes system, therefore handle separately
 			{
 				size_t i=m_U.num_rows()-1;
-				typename matrix_type::row_iterator it = m_U.begin_row(i);
+				matrix_row_iterator it = m_U.begin_row(i);
 				UG_ASSERT(it != m_U.end_row(i), i);
 				UG_ASSERT(it.index() == i, i);
 				block_type &uii = it.value();
-				typename vector_type::value_type s = c[i];
+				vector_value s = c[i];
 				// check if diag part is significantly smaller than rhs
 				// This may happen when matrix is indefinite with one eigenvalue
 				// zero. In that case, the factorization on the last row is
@@ -274,12 +354,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			// handle all other rows
 			for(size_t i=m_U.num_rows()-2; ; i--)
 			{
-				typename matrix_type::row_iterator it = m_U.begin_row(i);
+				matrix_row_iterator it = m_U.begin_row(i);
 				UG_ASSERT(it != m_U.end_row(i), i);
 				UG_ASSERT(it.index() == i, i);
 				block_type &uii = it.value();
 
-				typename vector_type::value_type s = c[i];
+				vector_value s = c[i];
 				++it; // skip diag
 				for(; it != m_U.end_row(i); ++it)
 					// s -= it.value() * c[it.index()];
@@ -291,11 +371,6 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					if(i==0) break;
 			}
 
-#ifdef 	UG_PARALLEL
-		//	Correction is always consistent
-		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
-			c.set_storage_type(PST_CONSISTENT);
-#endif
 			return true;
 		}
 
@@ -308,6 +383,10 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		double m_eps;
 		bool m_info;
 		static const number m_small;
+		std::vector<size_t> newIndex, oldIndex;
+		bool m_bSort;
+
+		bool m_bSortIsIdentity;
 };
 
 // define constant

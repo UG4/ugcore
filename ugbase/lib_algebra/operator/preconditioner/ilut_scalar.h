@@ -49,7 +49,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 	public:
 	//	Constructor
 		ILUTScalarPreconditioner(double eps=1e-6) :
-			m_eps(eps), m_info(false)
+			m_eps(eps), m_info(false), m_sort(true)
 		{};
 
 	// 	Clone
@@ -83,6 +83,11 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 			m_info = info;
 		}
 		
+		void set_sort(bool b)
+		{
+			m_sort = b;
+		}
+
 	public:
 		void preprocess(const matrix_type &A)
 		{
@@ -94,6 +99,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 
 			ilut = new ILUTPreconditioner<CPUAlgebra>(m_eps);
 			ilut->set_info(m_info);
+			ilut->set_sort(m_sort);
 
 			mo = new MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type>;
 			CPUAlgebra::matrix_type &mat = mo->get_matrix();
@@ -214,7 +220,7 @@ protected:
 	LinearSolver<CPUAlgebra::vector_type> linearSolver;
 	CPUAlgebra::vector_type m_c, m_d;
 	double m_eps;
-	bool m_info;
+	bool m_info, m_sort;
 	size_t m_size;
 };
 

@@ -183,6 +183,8 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_<T,TBase>(name, grp, "LU-Decomposition exact solver")
 			.add_constructor()
 			.add_method("set_minimum_for_sparse", &T::set_minimum_for_sparse, "", "N")
+			.add_method("set_sort_sparse", &T::set_sort_sparse, "", "bSort", "if bSort=true, use a cuthill-mckey sorting to reduce fill-in in sparse LU. default true")
+			.add_method("set_info", &T::set_info, "", "bInfo", "if true, sparse LU prints some fill-in info")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "LU", tag);
 	}
