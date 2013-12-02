@@ -56,7 +56,7 @@ void SharedLibrariesLoaded()
 
 
 //	a symbol preceding error messages
-const char* errSymb = " % ";
+static const char* errSymb = " % ";
 void quit_all_mpi_procs_in_parallel()
 {
 #ifdef UG_PARALLEL

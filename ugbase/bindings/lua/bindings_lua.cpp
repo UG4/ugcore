@@ -22,7 +22,7 @@ using namespace std;
 using namespace ug::script;
 
 //	a symbol preceding error messages
-const char* errSymb = " % ";
+static const char* errSymb = " % ";
 
 ///	throw mechanism for lua related errors.
 #define UG_LUA_THROW_EMPTY(luaState)	luaL_error(luaState, "%s", "__UG__LUA__EMPTY__MSG__")
