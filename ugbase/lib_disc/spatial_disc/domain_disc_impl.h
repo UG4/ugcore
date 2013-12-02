@@ -12,6 +12,7 @@
 #include "domain_disc.h"
 #include "lib_disc/common/groups_util.h"
 #include "lib_disc/spatial_disc/elem_disc/elem_disc_assemble_util.h"
+#include "lib_disc/function_spaces/error_indicator.h"
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
 #endif
@@ -1405,6 +1406,189 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 						" subset "<<si<< " failed.");
 	}
 
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Error estimator
+///////////////////////////////////////////////////////////////////////////////
+template <typename TDomain, typename TAlgebra>
+void DomainDiscretization<TDomain, TAlgebra>::
+mark_error
+(
+	const vector_type& u,
+	ConstSmartPtr<DoFDistribution> dd,
+	IRefiner& refiner,
+	number TOL,
+    number refineFrac, number coarseFrac,
+	int maxLevel
+)
+{
+	PROFILE_FUNC_GROUP("error_estimator");
+	
+//	get multigrid
+	SmartPtr<MultiGrid> pMG = ((DoFDistribution *) dd.get())->multi_grid();
+	
+//	attachment for the element error indicators
+	Attachment<number> aError;
+	
+//	update the elem discs
+	update_disc_items();
+
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+	std::vector<SubsetGroup> vSSGrp;
+
+//	create list of all subsets
+	try{
+		CreateSubsetGroups(vSSGrp, unionSubsets, m_vElemDisc, dd->subset_handler());
+	}UG_CATCH_THROW("'DomainDiscretization': Can not create Subset Groups and Union.");
+	
+//	preprocess the error estimators in the discretizations
+	try{
+		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+			m_vElemDisc[i]->prepare_error_estimator(dd->subset_handler());
+	}
+	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot prepare the error estimator");	
+
+//	loop subsets to assemble the estimators
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = DimensionOfSubset(*dd->subset_handler(), si);
+
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
+
+	//	assemble on suitable elements
+		try
+		{
+		switch(dim)
+		{
+		case 1:
+			AssembleErrorEstimator<Edge,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			break;
+		case 2:
+			AssembleErrorEstimator<Triangle,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			AssembleErrorEstimator<Quadrilateral,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			break;
+		case 3:
+			AssembleErrorEstimator<Tetrahedron,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			AssembleErrorEstimator<Pyramid,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			AssembleErrorEstimator<Prism,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			AssembleErrorEstimator<Hexahedron,TDomain,TAlgebra>
+				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
+			break;
+		default:
+			UG_THROW("DomainDiscretization::mark_error:"
+							" Dimension "<<dim<<" (subset="<<si<<") not supported.");
+		}
+		}
+		UG_CATCH_THROW("DomainDiscretization::mark_error:"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
+	}
+
+//	loop subsets to compute the estimators
+	for(size_t i = 0; i < unionSubsets.size(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = DimensionOfSubset(*dd->subset_handler(), si);
+
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TDomain>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, vSSGrp, si);
+
+	//	assemble on suitable elements
+		try
+		{
+		switch(dim)
+		{
+		case 1:
+			{
+				typedef domain_traits<1>::geometric_base_object element_type;
+				typedef MultiGrid::AttachmentAccessor<element_type,
+							Attachment<number> > err_est_field_type;
+				pMG->template attach_to<element_type>(aError);
+				err_est_field_type aaError(*pMG, aError);
+				GetErrorEstimator<Edge,TDomain,TAlgebra,err_est_field_type>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u, aaError);
+				MarkElements<element_type>(aaError, refiner, dd, TOL, refineFrac, coarseFrac, maxLevel);
+				pMG->template detach_from<element_type>(aError);
+			}
+			break;
+		case 2:
+			{
+				typedef domain_traits<2>::geometric_base_object element_type;
+				typedef MultiGrid::AttachmentAccessor<element_type,
+							Attachment<number> > err_est_field_type;
+				pMG->template attach_to<element_type>(aError);
+				err_est_field_type aaError(*pMG, aError);
+				GetErrorEstimator<Triangle,TDomain,TAlgebra,err_est_field_type>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u, aaError);
+				GetErrorEstimator<Quadrilateral,TDomain,TAlgebra,err_est_field_type>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u, aaError);
+				MarkElements<element_type>(aaError, refiner, dd, TOL, refineFrac, coarseFrac, maxLevel);
+				pMG->template detach_from<element_type>(aError);
+			}
+			break;
+		case 3:
+			{
+				typedef domain_traits<3>::geometric_base_object element_type;
+				typedef MultiGrid::AttachmentAccessor<element_type,
+							Attachment<number> > err_est_field_type;
+				pMG->template attach_to<element_type>(aError);
+				err_est_field_type aaError(*pMG, aError);
+				GetErrorEstimator<Tetrahedron,TDomain,TAlgebra,err_est_field_type>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u, aaError);
+				GetErrorEstimator<Pyramid,TDomain,TAlgebra,err_est_field_type>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u, aaError);
+				GetErrorEstimator<Prism,TDomain,TAlgebra,err_est_field_type>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u, aaError);
+				GetErrorEstimator<Hexahedron,TDomain,TAlgebra,err_est_field_type>
+					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u, aaError);
+				MarkElements<element_type>(aaError, refiner, dd, TOL, refineFrac, coarseFrac, maxLevel);
+				pMG->template detach_from<element_type>(aError);
+			}
+			break;
+		default:
+			UG_THROW("DomainDiscretization::mark_error:"
+							" Dimension "<<dim<<" (subset="<<si<<") not supported.");
+		}
+		}
+		UG_CATCH_THROW("DomainDiscretization::mark_error:"
+						" Assembling of elements of Dimension " << dim << " in "
+						" subset "<<si<< " failed.");
+	}
+	
+//	postprocess the error estimators in the discretizations
+	try{
+		for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+			m_vElemDisc[i]->release_error_estimator();
+	}
+	UG_CATCH_THROW("DomainDiscretization::mark_error: Cannot finish the error estimator");	
 }
 
 } // end namespace ug

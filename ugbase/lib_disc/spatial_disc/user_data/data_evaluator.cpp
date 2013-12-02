@@ -547,6 +547,121 @@ add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCor
 	UG_CATCH_THROW("DataEvaluator::add_rhs_elem: Cannot assemble rhs");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Error estimator's routines
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+prepare_err_est_elem_loop(const ReferenceObjectID id, int si)
+{
+// 	prepare loop (elem disc set local ip series here)
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_prep_err_est_elem_loop(id, si);
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_err_est_elem_loop: "
+						"Cannot prepare element loop.");
+
+//	extract data imports and userdatas
+	try{
+		extract_imports_and_userdata(si, m_discPart);
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_err_est_elem_loop: "
+					"Cannot extract imports and userdata.");
+
+//	check setup of imports
+	try{
+		for(size_t i = 0; i < m_vImport[PT_ALL][MASS].size(); ++i)
+			m_vImport[PT_ALL][MASS][i]->check_setup();
+		for(size_t i = 0; i < m_vImport[PT_ALL][STIFF].size(); ++i)
+			m_vImport[PT_ALL][STIFF][i]->check_setup();
+		for(size_t i = 0; i < m_vImport[PT_ALL][RHS].size(); ++i)
+			m_vImport[PT_ALL][RHS][i]->check_setup();
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_err_est_elem_loop: Import correctly implemented.");
+
+//	prepare and check dependent data
+	try{
+		for(size_t i = 0; i < m_vDependentData.size(); ++i){
+			m_vDependentData[i]->check_setup();
+		}
+	}
+	UG_CATCH_THROW("DataEvaluator::prepare_err_est_elem_loop: Dependent UserData "
+				   " (e.g. Linker or Export) is not ready for evaluation.");
+
+//	evaluate constant data
+	for(size_t i = 0; i < m_vConstData.size(); ++i)
+		m_vConstData[i]->compute(NULL, NULL, NULL, false);
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::finish_err_est_elem_loop()
+{
+//	finish each elem error estimator disc
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_fsh_err_est_elem_loop();
+	}
+	UG_CATCH_THROW("DataEvaluator::finish_err_est_elem_loop: Cannot finish error estimator element loop");
+
+//	clear positions at user data
+	clear_positions_in_user_data();
+}
+
+template <typename TDomain>
+void DataEvaluator<TDomain>::
+compute_elem_err_est(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind)
+{
+// 	prepare element
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_prep_elem(u, elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("DataEvaluator::compute_elem_err_est: Cannot prepare element.");
+
+//	evaluate position data
+	for(size_t i = 0; i < m_vPosData.size(); ++i)
+		m_vPosData[i]->compute(&u, elem, NULL, false);
+
+// 	process dependent data:
+//	We can not simply compute exports first, then Linker, because an export
+//	itself could depend on other data if implemented somehow in the IElemDisc
+//	(e.g. using data from some DataImport). Thus, we have to loop the sorted
+//	vector of all dependent data (that is correctly sorted the way that always
+//	needed data has previously computed).
+
+//	compute the data
+	try{
+		for(size_t i = 0; i < m_vDependentData.size(); ++i){
+			u.access_by_map(m_vDependentData[i]->map());
+			m_vDependentData[i]->compute(&u, elem, vCornerCoords, false);
+		}
+	}
+	UG_CATCH_THROW("DataEvaluator::compute_elem_err_est: Cannot compute data for Export or Linker.");
+	
+//	compute the error estimator
+	try{
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			m_vElemDisc[PT_ALL][i]->do_compute_err_est_elem(u, elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("DataEvaluator::compute_elem_err_est: Cannot assemble error estimator");
+}
+
+template <typename TDomain>
+number DataEvaluator<TDomain>::
+get_elem_err_est(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind)
+{
+	number err_est_val = 0;
+	try{
+		/// \todo Any other technique to sum up the local error estimators for several coupled discretizations?
+		for(size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
+			err_est_val += m_vElemDisc[PT_ALL][i]->do_get_err_est_elem(u, elem, vCornerCoords);
+	}
+	UG_CATCH_THROW("DataEvaluator::get_elem_err_est: Cannot compute error estimator");
+	return err_est_val;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////

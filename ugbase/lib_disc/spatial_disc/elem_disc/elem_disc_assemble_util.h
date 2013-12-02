@@ -1970,6 +1970,204 @@ FinishTimestep(const std::vector<IElemDisc<TDomain>*>& vElemDisc,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Error estimator
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * This function assembles the error estimator associated with all the
+ * element discs in the internal data structure.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		u				solution
+ */
+template <typename TElem, typename TDomain, typename TAlgebra, typename TIterator>
+void
+AssembleErrorEstimator
+(
+	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+	ConstSmartPtr<TDomain> spDomain,
+	ConstSmartPtr<DoFDistribution> dd,
+	TIterator iterBegin,
+	TIterator iterEnd,
+	int si,
+	bool bNonRegularGrid,
+	const typename TAlgebra::vector_type& u
+)
+{
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	reference object id
+	static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+
+//	prepare for given elem discs
+	try
+	{
+	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
+
+//	prepare element loop
+	Eval.prepare_err_est_elem_loop(id, si);
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU;
+
+// 	Loop over all elements
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
+	// 	get global indices
+		dd->indices(elem, ind, Eval.use_hanging());
+
+	// 	adapt local algebra
+		locU.resize(ind);
+
+	// 	read local values of u
+		GetLocalVector(locU, u);
+
+	// 	Assemble the estimator
+		try
+		{
+			Eval.compute_elem_err_est(locU, elem, vCornerCoords, ind);
+		}
+		UG_CATCH_THROW("AssembleErrorEstimator: Cannot assemble the error estimator.");
+	}
+
+// 	finish element loop
+	try
+	{
+		Eval.finish_err_est_elem_loop();
+	}
+	UG_CATCH_THROW("AssembleErrorEstimator: Cannot finish element loop.");
+
+	}
+	UG_CATCH_THROW("AssembleErrorEstimator: Cannot create Data Evaluator.");
+}
+
+template <typename TElem, typename TDomain, typename TAlgebra>
+void
+AssembleErrorEstimator
+(
+	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+	ConstSmartPtr<TDomain> spDomain,
+	ConstSmartPtr<DoFDistribution> dd,
+	int si,
+	bool bNonRegularGrid,
+	const typename TAlgebra::vector_type& u
+)
+{
+	//	general case: assembling over all elements in subset si
+	AssembleErrorEstimator<TElem,TDomain,TAlgebra>
+		(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si),
+			si, bNonRegularGrid, u);
+}
+
+/**
+ * This function summarizes the error estimator associated with all the
+ * element discs in the internal data structure.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dd				DoF Distribution
+ * \param[in]		iterBegin		element iterator
+ * \param[in]		iterEnd			element iterator
+ * \param[in]		si				subset index
+ * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+ * \param[in]		u				solution
+ * \param[out]		err_est			array of the error indicators
+ */
+template <typename TElem, typename TDomain, typename TAlgebra, typename TErrEstField, typename TIterator>
+void
+GetErrorEstimator
+(
+	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+	ConstSmartPtr<TDomain> spDomain,
+	ConstSmartPtr<DoFDistribution> dd,
+	TIterator iterBegin,
+	TIterator iterEnd,
+	int si,
+	bool bNonRegularGrid,
+	const typename TAlgebra::vector_type& u,
+	TErrEstField err_est
+)
+{
+// 	check if at least on element exist, else return
+	if(iterBegin == iterEnd) return;
+
+//	storage for corner coordinates
+	MathVector<TDomain::dim> vCornerCoords[TElem::NUM_VERTICES];
+
+//	prepare for given elem discs
+	try
+	{
+	DataEvaluator<TDomain> Eval(MASS | STIFF | RHS,
+	                   vElemDisc, dd->function_pattern(), bNonRegularGrid);
+
+// 	local indices and local algebra
+	LocalIndices ind; LocalVector locU;
+
+// 	Loop over all elements
+	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	//	get corner coordinates
+		FillCornerCoordinates(vCornerCoords, *elem, *spDomain);
+
+	// 	get global indices
+		dd->indices(elem, ind, Eval.use_hanging());
+
+	// 	adapt local algebra
+		locU.resize(ind);
+
+	// 	read local values of u
+		GetLocalVector(locU, u);
+
+	// 	Assemble the estimator
+		try
+		{
+			err_est[elem] = Eval.get_elem_err_est(locU, elem, vCornerCoords, ind);
+		}
+		UG_CATCH_THROW("AssembleErrorEstimator: Cannot compute the error estimator.");
+	}
+
+	}
+	UG_CATCH_THROW("AssembleErrorEstimator: Cannot create Data Evaluator.");
+}
+
+template <typename TElem, typename TDomain, typename TAlgebra, typename TErrEstField>
+void
+GetErrorEstimator
+(
+	const std::vector<IElemDisc<TDomain>*>& vElemDisc,
+	ConstSmartPtr<TDomain> spDomain,
+	ConstSmartPtr<DoFDistribution> dd,
+	int si,
+	bool bNonRegularGrid,
+	const typename TAlgebra::vector_type& u,
+	TErrEstField err_est
+)
+{
+	//	general case: assembling over all elements in subset si
+	GetErrorEstimator<TElem,TDomain,TAlgebra,TErrEstField>
+		(vElemDisc, spDomain, dd, dd->template begin<TElem>(si), dd->template end<TElem>(si),
+			si, bNonRegularGrid, u, err_est);
+}
+
 } // end namespace ug
 
 

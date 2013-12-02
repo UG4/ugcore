@@ -31,7 +31,7 @@ class DataEvaluator
 	public:
 	///	world dimension
 		static const int dim = TDomain::dim;
-
+		
 	public:
 	///	sets the elem discs to evaluate
 		DataEvaluator(int discPart,
@@ -88,6 +88,18 @@ class DataEvaluator
 
 	///	compute local rhs for all IElemDiscs
 		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		
+	///	prepares the element loop for all IElemDiscs for the computation of the error estimator
+		void prepare_err_est_elem_loop(const ReferenceObjectID id, int si);
+
+	///	compute contributions of the local error indicators in one element for all IElemDiscs
+		void compute_elem_err_est(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind);
+
+	///	summarize contributions of the local error indicators in one element for all IElemDiscs
+		number get_elem_err_est(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind);
+
+	///	finishes the error estimator element loop for all IElemDiscs
+		void finish_err_est_elem_loop();
 
 	protected:
 	///	clears imports and user data and mappings betweem commonFctGrp and local

@@ -150,6 +150,54 @@ void IElemDisc<TDomain>::set_fsh_timestep_elem_fct(ReferenceObjectID id, TAssFun
 	m_vFinishTimestepElemFct[id] = static_cast<FinishTimestepElemFct>(func);
 };
 
+template <typename TDomain>
+template<typename TAssFunc>
+void IElemDisc<TDomain>::set_prep_err_est_elem_loop(ReferenceObjectID id, TAssFunc func)
+{
+	if(!fast_add_elem_enabled())
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
+						" IElemDisc has not been set to fast assembling. Please"
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
+						" prior to the setting of any fast_ass_elem-function.");
+	m_vPrepareErrEstElemLoopFct[id] = static_cast<PrepareErrEstElemLoopFct>(func);
+};
+
+template <typename TDomain>
+template<typename TAssFunc>
+void IElemDisc<TDomain>::set_compute_err_est_elem(ReferenceObjectID id, TAssFunc func)
+{
+	if(!fast_add_elem_enabled())
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
+						" IElemDisc has not been set to fast assembling. Please"
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
+						" prior to the setting of any fast_ass_elem-function.");
+	m_vElemComputeErrEstFct[id] = static_cast<ElemComputeErrEstFct>(func);
+};
+
+template <typename TDomain>
+template<typename TAssFunc>
+void IElemDisc<TDomain>::set_get_err_est_elem(ReferenceObjectID id, TAssFunc func)
+{
+	if(!fast_add_elem_enabled())
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
+						" IElemDisc has not been set to fast assembling. Please"
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
+						" prior to the setting of any fast_ass_elem-function.");
+	m_vElemGetErrEstFct[id] = static_cast<ElemGetErrEstFct>(func);
+};
+
+template <typename TDomain>
+template<typename TAssFunc>
+void IElemDisc<TDomain>::set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func)
+{
+	if(!fast_add_elem_enabled())
+		UG_THROW("IElemDisc: trying to register fast_ass_elem-function, but"
+						" IElemDisc has not been set to fast assembling. Please"
+						" use 'enable_fast_add_elem(true)' in your IElemDisc "
+						" prior to the setting of any fast_ass_elem-function.");
+	m_vFinishErrEstElemLoopFct[id] = static_cast<FinishErrEstElemLoopFct>(func);
+};
+
 }
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__ELEM_DISC__ELEM_DISC_INTERFACE_IMPL__ */

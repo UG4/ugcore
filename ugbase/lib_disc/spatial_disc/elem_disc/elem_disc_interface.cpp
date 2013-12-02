@@ -483,6 +483,85 @@ do_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> v
 	}
 }
 
+template <typename TDomain>
+void IElemDisc<TDomain>::
+do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
+{
+//	set id and disc part (this checks and inits fast-assemble functions)
+	this->set_roid(roid, si);
+
+//	remove positions in currently registered imports
+	for(size_t i = 0; i < m_vIImport.size(); ++i)
+		m_vIImport[i]->clear_ips();
+
+//	call prep_elem_loop (this may set ip-series to imports)
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		if (this->m_vPrepareErrEstElemLoopFct[m_id] != NULL)
+			(this->*m_vPrepareErrEstElemLoopFct[m_id])(roid, si);
+	} else {
+		prep_err_est_elem_loop(roid, si);
+	}
+
+//	set roid in imports (for evaluation function)
+	for(size_t i = 0; i < m_vIImport.size(); ++i)
+		m_vIImport[i]->set_roid(roid);
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+do_compute_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	//	access by map
+	u.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		if(this->m_vElemComputeErrEstFct[m_id] != NULL)
+			(this->*(m_vElemComputeErrEstFct[m_id]))(u, elem, vCornerCoords);
+	} else {
+		compute_err_est_elem(u, elem, vCornerCoords);
+	}
+}
+
+template <typename TDomain>
+number IElemDisc<TDomain>::
+do_get_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	//	access by map
+	u.access_by_map(map());
+	if(local_time_series_needed())
+		m_pLocalVectorTimeSeries->access_by_map(map());
+
+	//	call assembling routine
+	if(fast_add_elem_enabled()){
+		if(this->m_vElemGetErrEstFct[m_id] != NULL)
+			return (this->*(m_vElemGetErrEstFct[m_id]))(u, elem, vCornerCoords);
+		return 0;
+	} else {
+		return get_err_est_elem(u, elem, vCornerCoords);
+	}
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+do_fsh_err_est_elem_loop()
+{
+//	call finish
+	if(fast_add_elem_enabled()){
+		if (this->m_vFinishErrEstElemLoopFct[m_id] != NULL)
+			(this->*m_vFinishErrEstElemLoopFct[m_id])();
+	} else {
+		fsh_err_est_elem_loop();
+	}
+
+//	remove positions in currently registered imports
+	for(size_t i = 0; i < m_vIImport.size(); ++i)
+		m_vIImport[i]->clear_ips();
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -569,6 +648,35 @@ void IElemDisc<TDomain>::
 add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("add_rhs_elem");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
+{
+	ThrowMissingVirtualMethod("prep_err_est_elem_loop");
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+compute_err_est_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("compute_err_est_elem");
+}
+
+template <typename TDomain>
+number IElemDisc<TDomain>::
+get_err_est_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+{
+	ThrowMissingVirtualMethod("get_err_est_elem");
+	return 0;
+}
+
+template <typename TDomain>
+void IElemDisc<TDomain>::
+fsh_err_est_elem_loop()
+{
+	ThrowMissingVirtualMethod("fsh_err_est_elem_loop");
 }
 
 

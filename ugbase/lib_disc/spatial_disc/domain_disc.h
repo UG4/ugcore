@@ -51,7 +51,10 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 
 	///	Type of approximation space
 		typedef ApproximationSpace<TDomain>	approx_space_type;
-
+		
+	///	world dimension
+		static const int dim = TDomain::dim;
+		
 	public:
 	///	default Constructor
 		DomainDiscretization(SmartPtr<approx_space_type> pApproxSpace) :
@@ -201,6 +204,20 @@ class DomainDiscretization : public IDomainDiscretization<TAlgebra>
 		virtual void assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		                                       const GridLevel& gl)
 		{assemble_stiffness_matrix(A, u, dd(gl));}
+
+	///////////////////////////
+	// Error estimator
+	///////////////////////////
+
+	/// \copydoc IDomainDiscretization::mark_error()
+		virtual void mark_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel);
+		virtual	void mark_error(const vector_type& u, const GridLevel& gl,
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel)
+		{mark_error(u, dd(gl), refiner, TOL, refineFrac, coarseFrac, maxLevel);}
+		virtual	void mark_error(const GridFunction<TDomain,TAlgebra>& u,
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel)
+		{mark_error(u, u.dd(), refiner, TOL, refineFrac, coarseFrac, maxLevel);}
 
 	public:
 	/// \{

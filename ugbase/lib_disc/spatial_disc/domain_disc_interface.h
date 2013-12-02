@@ -11,6 +11,7 @@
 #include "lib_disc/assemble_interface.h"
 #include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/spatial_disc/constraints/constraint_interface.h"
+#include "lib_grid/algorithms/refinement/refiner_interface.h"
 
 namespace ug {
 
@@ -261,6 +262,18 @@ class IDomainDiscretization : public IAssemble<TAlgebra>
 	///	prepares timestep on surface level
 		void finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol)
 			{finish_timestep(vSol, GridLevel());}
+
+	/// computes the error estimator and marks elements for refinement
+	/**
+	 * Computes the error estimator and marks elements for refinement.
+	 *
+	 * \param[in]  u			vector of the solution to estimate the error for
+	 * \param[in]  dd 			DoF Distribution
+	 */
+		virtual	void mark_error(const vector_type& u, const GridLevel& gl,
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel) {};
+		virtual void mark_error(const vector_type& u, ConstSmartPtr<DoFDistribution> dd,
+			IRefiner& refiner, number TOL, number refineFrac, number coarseFrac, int maxLevel) {};
 
 	///	returns the number of post processes
 		virtual size_t num_constraints() const = 0;

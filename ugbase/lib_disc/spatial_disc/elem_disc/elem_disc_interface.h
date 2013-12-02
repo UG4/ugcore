@@ -21,6 +21,7 @@
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 #include "common/util/provider.h"
 #include "lib_disc/domain_util.h"
+#include "lib_disc/domain_traits.h"
 
 namespace ug{
 
@@ -63,7 +64,7 @@ class IElemDisc
 
 	///	Position type
 		typedef typename TDomain::position_type position_type;
-
+		
 	public:
 	///	Constructor
 		IElemDisc(const char* functions = "", const char* subsets = "");
@@ -355,7 +356,24 @@ class IElemDisc
 
 	/// virtual Assembling of Right-Hand Side
 		virtual void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		
+	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
+		virtual void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
 
+	///	virtual compute the error estimator contribution for one element
+		virtual void compute_err_est_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		
+	///	virtual summarize the contributions of the error estimator in one element
+		virtual number get_err_est_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	virtual postprocesses the loop over all elements of one type in the computation of the error estimator
+		virtual void fsh_err_est_elem_loop();
+		
+	///	virtual function to allocate data structures for the error estimator
+		virtual void prepare_error_estimator(ConstSmartPtr<ISubsetHandler>) {};
+	///	virtual function to release data structures for the error estimator
+		virtual void release_error_estimator() {};
+		
 	///	function dispatching call to implementation (fast or virtual)
 	/// \{
 		void do_prep_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
@@ -369,6 +387,10 @@ class IElemDisc
    	    void do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+		void do_compute_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		number do_get_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_fsh_err_est_elem_loop();
 	/// \}
 
 	private:
@@ -394,6 +416,12 @@ class IElemDisc
 
 	// 	types of right hand side assemble functions
 		typedef void (T::*ElemRHSFct)(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+	
+	//	types of the error estimator assembler
+		typedef void (T::*PrepareErrEstElemLoopFct)(ReferenceObjectID roid, int si);
+		typedef void (T::*ElemComputeErrEstFct)(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef number (T::*ElemGetErrEstFct)(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*FinishErrEstElemLoopFct)();
 
 	protected:
 	// 	register the functions
@@ -410,6 +438,11 @@ class IElemDisc
 		template <typename TAssFunc> void set_add_def_A_expl_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_def_M_elem_fct(ReferenceObjectID id, TAssFunc func);
 		template <typename TAssFunc> void set_add_rhs_elem_fct(ReferenceObjectID id, TAssFunc func);
+		
+		template <typename TAssFunc> void set_prep_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_compute_err_est_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_get_err_est_elem(ReferenceObjectID id, TAssFunc func);
+		template <typename TAssFunc> void set_fsh_err_est_elem_loop(ReferenceObjectID id, TAssFunc func);
 
 	///	sets usage of fast assemble functions
 		void enable_fast_add_elem(bool bEnable) {m_bFastAssembleEnabled = bEnable;}
@@ -454,6 +487,12 @@ class IElemDisc
 
 	// 	Rhs function pointers
 		ElemRHSFct 	m_vElemRHSFct[NUM_REFERENCE_OBJECTS];
+		
+	//	Error estimator functions
+		PrepareErrEstElemLoopFct	m_vPrepareErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
+		ElemComputeErrEstFct		m_vElemComputeErrEstFct[NUM_REFERENCE_OBJECTS];
+		ElemGetErrEstFct			m_vElemGetErrEstFct[NUM_REFERENCE_OBJECTS];
+		FinishErrEstElemLoopFct		m_vFinishErrEstElemLoopFct[NUM_REFERENCE_OBJECTS];
 
 	protected:
 	/// current Geometric Object
