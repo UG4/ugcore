@@ -276,7 +276,7 @@ bool ParallelReadFile(string &filename, vector<char> &file, bool bText, bool bDi
 		return ReadFile(filename.c_str(), file, bText);
 
 	BinaryBuffer buf;
-	bool bSuccess;
+	bool bSuccess=false;
 	if(GetProcRank() == pc.get_proc_id(0))
 	{
 		bSuccess = ReadFile(filename.c_str(), file, bText);
