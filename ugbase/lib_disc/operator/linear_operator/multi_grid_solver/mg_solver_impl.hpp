@@ -415,6 +415,13 @@ assemble_level_operator()
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start assemble_level_operator\n");
 
+	if(m_GridLevelType == GridLevel::SURFACE)
+		UG_THROW("GMG: emulate_full_refined_grid currently only implemented "
+				"for set_rap(true) - since assembling of on surface-level with "
+				" lev < topLev is currently not supported by constraints and "
+				" elem-disc loop (only top-lev or level-view poosible). It is "
+				"necessary to rework that part of the assembing procedure.")
+
 //	Create Projection
 	try{
 		if(m_pSurfaceSol) {
