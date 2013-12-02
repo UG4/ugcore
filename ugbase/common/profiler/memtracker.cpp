@@ -9,30 +9,13 @@
 #include "memtracker.h"
 #include "common/log.h"
 #include "assert.h"
+#include "common/util/string_util.h"
 #include <map>
 
 
 using namespace std;
 
 namespace ug{
-
-string GetBytesSize(size_t s, int length)
-{
-	stringstream ss;
-	if(length!=0)
-		ss << setw(length-3);
-	if(s > 1024*1024*1024)
-		ss << s/(1024*1024*1024.0) << " Gb";
-	else if(s > 1024*1024)
-		ss << s/(1024*1024.0) << " Mb";
-	else if(s > 1024)
-			ss << s/(1024.0) << " kb";
-	else if(length == 0)
-		ss << s << " b";
-	else
-		ss << s << " b ";
-	return ss.str();
-}
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -121,7 +104,7 @@ void DisplayVacantMemory()
 	for(MemTrackerMap::iterator it = memTracker.begin(); it != memTracker.end(); ++it)
 	{
 		MemTrackerStruct &s = (*it).second;
-		UG_LOG("vacant memory: size = " << GetBytesSize(s.size) << ", file " << s.pn->zone->file << " : " << s.pn->zone->line << "\n");
+		UG_LOG("vacant memory: size = " << GetBytesSizeString(s.size) << ", file " << s.pn->zone->file << " : " << s.pn->zone->line << "\n");
 	}
 	EnableMemTracker(b);
 }

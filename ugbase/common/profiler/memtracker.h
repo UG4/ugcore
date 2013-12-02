@@ -11,7 +11,7 @@
 #include "common/profiler/profiler.h"
 
 namespace ug{
-std::string GetBytesSize(size_t s, int length=0);
+
 void UpdateTotalMem();
 #ifdef UG_PROFILER_SHINY
 size_t GetSelfMem(const Shiny::ProfileNode *p);

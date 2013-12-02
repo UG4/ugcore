@@ -111,8 +111,8 @@ string UGProfileNode::get_mem_info(double fullMem) const
 	if(HasMemTracking())
 	{
 		stringstream s;
-		s << GetBytesSize(get_self_mem(), 10) << setw(5) << floor(get_self_mem() / fullMem * 100) << "%  ";
-		s << GetBytesSize(get_total_mem(), 10) << setw(5) << floor(get_total_mem() / fullMem * 100) << "%  ";
+		s << GetBytesSizeString(get_self_mem(), 10) << setw(5) << floor(get_self_mem() / fullMem * 100) << "%  ";
+		s << GetBytesSizeString(get_total_mem(), 10) << setw(5) << floor(get_total_mem() / fullMem * 100) << "%  ";
 		return s.str();
 	}
 	else
