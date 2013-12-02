@@ -904,24 +904,24 @@ find_split_value(const ElemList& elems, int splitDim,
 
 	number splitValue = initialGuess;
 	for(size_t iteration = 0; iteration < maxIterations; ++iteration){
-		int numElems[NUM_CONSTANTS];
+		double weights[NUM_CONSTANTS];
 		for(int i = 0; i < NUM_CONSTANTS; ++i)
-			numElems[i] = 0;
+			weights[i] = 0;
 
 		for(size_t i = elems.first(); i != s_invalidIndex; i = elems.next(i)){
 			elem_t* e = elems.elem(i);
 			int location = classify_elem(e, splitDim, splitValue);
-			numElems[location] += aaWeight[e];
-			numElems[TOTAL] += aaWeight[e];
+			weights[location] += aaWeight[e];
+			weights[TOTAL] += aaWeight[e];
 		}
 
-		int gNumElems[NUM_CONSTANTS];
-		com.allreduce(numElems, gNumElems, NUM_CONSTANTS, PCL_RO_SUM);
+		double gWeights[NUM_CONSTANTS];
+		com.allreduce(weights, gWeights, NUM_CONSTANTS, PCL_RO_SUM);
 
 	//	check whether both sides are below the splitRatio
-		if(gNumElems[TOTAL] > 0){
-			bool leftOk = ((number)gNumElems[LEFT] / (number)gNumElems[TOTAL] <= splitRatio);
-			bool rightOk = ((number)gNumElems[RIGHT] / (number)gNumElems[TOTAL] <= (1. - splitRatio));
+		if(gWeights[TOTAL] > 0){
+			bool leftOk = (gWeights[LEFT] / gWeights[TOTAL] <= splitRatio);
+			bool rightOk = (gWeights[RIGHT] / gWeights[TOTAL] <= (1. - splitRatio));
 
 			if(!leftOk){
 				//UG_LOG("left with ratio: " << (number)gNumElems[LEFT] / (number)gNumElems[TOTAL] << endl);
