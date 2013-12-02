@@ -109,6 +109,10 @@ class AlgebraLayouts : public HorizontalAlgebraLayouts
 };
 #endif
 
+std::ostream &operator << (std::ostream &out, const HorizontalAlgebraLayouts &layouts);
+std::ostream &operator << (std::ostream &out, const AlgebraLayouts &layouts);
+
+
 } // end namespace ug
 
 #endif /* __H__UG4__LIB_ALGEBRA__PARALLELIZATION__ALGEBRA_LAYOUTS__ */
