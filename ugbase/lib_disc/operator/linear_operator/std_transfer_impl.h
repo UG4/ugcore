@@ -187,7 +187,7 @@ assemble_restriction_elemwise(matrix_type& mat,
 						if(parentDim == lfeID.dim()){
 							// case: Side inner to parent. --> Parent fine.
 							vParent.push_back(parent);
-						} else if(parentDim == lfeID.dim()){
+						} else if(parentDim == lfeID.dim() - 1){
 							// case: parent is Side. --> Get neighbor elems
 							typedef typename TChild::sideof TElem;
 							typename Grid::traits<TElem>::secure_container vElem;
