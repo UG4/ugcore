@@ -1738,8 +1738,8 @@ base_solve(int lev)
 
 		if(lev >= m_LocalFullRefLevel){
 			ld.A->apply_sub(*ld.sd, *ld.st);
-			(*ld.sc) += (*ld.st);
 		}
+		(*ld.sc) += (*ld.st);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
