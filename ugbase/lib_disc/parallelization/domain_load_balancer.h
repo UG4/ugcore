@@ -52,6 +52,14 @@ class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 
 			base_class::add_serializer(
 				SubsetHandlerSerializer::create(*dom->subset_handler()));
+
+			std::vector<std::string> additionalSHNames = dom->additional_subset_handler_names();
+			for(size_t i = 0; i < additionalSHNames.size(); ++i){
+				SmartPtr<ISubsetHandler> sh = dom->additional_subset_handler(additionalSHNames[i]);
+				if(sh.valid()){
+					base_class::add_serializer(SubsetHandlerSerializer::create(*sh));
+				}
+			}
 		}
 
 	private:

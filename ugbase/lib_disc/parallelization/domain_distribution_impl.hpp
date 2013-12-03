@@ -476,7 +476,6 @@ static bool DistributeDomain(TDomain& domainOut,
 		}
 	}
 
-UG_LOG("DistributeDomain\n");
 //	now call redistribution
 	DistributeGrid(*pGrid, shPart, serializer, createVerticalInterfaces,
 				   &partitionMap.get_target_proc_vec());
