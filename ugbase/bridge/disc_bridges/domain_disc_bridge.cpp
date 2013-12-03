@@ -77,6 +77,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("assemble_rhs", static_cast<void (T::*)(typename TAlgebra::vector_type&, GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
 			.add_method("assemble_rhs", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::assemble_rhs))
 			.add_method("adjust_solution", static_cast<void (T::*)(GridFunction<TDomain, TAlgebra>&)>(&T::adjust_solution))
+			.add_method("mark_error", static_cast<void (T::*)(const GridFunction<TDomain, TAlgebra>&, IRefiner&, number, number, number, int)>(&T::mark_error), "", "Mark elements for refinement according the error estimator")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DomainDiscretization", tag);
 	}
