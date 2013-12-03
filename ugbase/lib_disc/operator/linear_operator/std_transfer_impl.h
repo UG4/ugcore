@@ -123,18 +123,13 @@ assemble_restriction_elemwise(matrix_type& mat,
 //  resize matrix
 	mat.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
 
-//	check if grid distribution has dofs, otherwise skip creation since father
-//	elements may not exist in parallel.
-	if(mat.num_rows() == 0 || mat.num_cols() == 0) return;
-
-	std::vector<DoFIndex> vParentDoF, vChildDoF;
-
 //  iterators
 	MultiGrid& mg = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
 	typedef typename DoFDistribution::traits<TChild>::const_iterator const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level
+	std::vector<DoFIndex> vParentDoF, vChildDoF;
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
 		iterBegin = fineDD.template begin<TChild>(si);
