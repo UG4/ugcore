@@ -29,27 +29,16 @@ assemble_restriction_p1(matrix_type& mat,
 			UG_THROW("AssembleStdProlongationForP1Lagrange:"
 				"Interpolation only implemented for Lagrange P1 functions.");
 
-//  get subsethandler and grid
-	const MultiGrid& mg = *coarseDD.multi_grid();
-
-//  get number of dofs on different levels
-	const size_t numFineIndex = fineDD.num_indices();
-	const size_t numCoarseIndex = coarseDD.num_indices();
-
 //  resize matrix
-	mat.resize_and_clear(numCoarseIndex, numFineIndex);
-
-//	check if grid distribution has dofs, otherwise skip creation since father
-//	elements may not exist in parallel.
-	if(numFineIndex == 0 || numCoarseIndex == 0) return;
-
-	std::vector<DoFIndex> vCoarseDoF, vFineDoF;
+	mat.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
 
 //  iterators
+	const MultiGrid& mg = *coarseDD.multi_grid();
 	typedef DoFDistribution::traits<VertexBase>::const_iterator const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level
+	std::vector<DoFIndex> vCoarseDoF, vFineDoF;
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
 		iterBegin = fineDD.template begin<VertexBase>(si);
@@ -129,26 +118,18 @@ assemble_restriction_elemwise(matrix_type& mat,
                                ConstSmartPtr<TDomain> spDomain)
 {
 	PROFILE_FUNC_GROUP("gmg");
-//	dimension
-	const int dim = TDomain::dim;
-
-//  get subsethandler and grid
-	MultiGrid& mg = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
-
-//  get number of dofs on different levels
-	const size_t numFineIndex = fineDD.num_indices();
-	const size_t numCoarseIndex = coarseDD.num_indices();
 
 //  resize matrix
-	mat.resize_and_clear(numCoarseIndex, numFineIndex);
+	mat.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
 
 //	check if grid distribution has dofs, otherwise skip creation since father
 //	elements may not exist in parallel.
-	if(numFineIndex == 0 || numCoarseIndex == 0) return;
+	if(mat.num_rows() == 0 || mat.num_cols() == 0) return;
 
 	std::vector<DoFIndex> vCoarseDoF, vFineDoF;
 
 //	vector of local finite element ids
+	const int dim = TDomain::dim;
 	std::vector<LFEID> vLFEID(fineDD.num_fct());
 	for(size_t fct = 0; fct < fineDD.num_fct(); ++fct){
 		vLFEID[fct] = fineDD.lfeid(fct);
@@ -158,6 +139,7 @@ assemble_restriction_elemwise(matrix_type& mat,
 	}
 
 //  iterators
+	MultiGrid& mg = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
 	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
 	typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object Element;
 	typedef typename Element::side Side;
