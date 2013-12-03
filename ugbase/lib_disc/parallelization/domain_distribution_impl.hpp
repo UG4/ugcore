@@ -467,6 +467,16 @@ static bool DistributeDomain(TDomain& domainOut,
 	serializer.add(posSerializer);
 	serializer.add(shSerializer);
 
+	std::vector<std::string> additionalSHNames = domainOut.additional_subset_handler_names();
+	for(size_t i = 0; i < additionalSHNames.size(); ++i){
+		SmartPtr<ISubsetHandler> sh = domainOut.additional_subset_handler(additionalSHNames[i]);
+		if(sh.valid()){
+			SPGridDataSerializer shSerializer = SubsetHandlerSerializer::create(*sh);
+			serializer.add(shSerializer);
+		}
+	}
+
+UG_LOG("DistributeDomain\n");
 //	now call redistribution
 	DistributeGrid(*pGrid, shPart, serializer, createVerticalInterfaces,
 				   &partitionMap.get_target_proc_vec());

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <limits>
 
 // include bridge
 #include "bridge/bridge.h"
@@ -19,11 +20,76 @@
 #include "lib_disc/dof_manager/dof_distribution.h"
 #include "lib_disc/function_spaces/grid_function.h"
 
+#ifdef UG_PARALLEL
+	#include "lib_grid/parallelization/distributed_grid.h"
+#endif
+
 using namespace std;
 
 namespace ug{
 namespace bridge{
 namespace Evaluate{
+
+template <typename TDomain>
+bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
+					   TDomain* dom,
+					   const char* subsets,
+					   SmartPtr<typename TDomain::subset_handler_type> sh,
+					   number maxDist)
+{
+//	domain type and position_type
+	typedef TDomain domain_type;
+	typedef typename domain_type::position_type position_type;
+	typedef typename domain_type::grid_type grid_type;
+	typedef typename domain_type::subset_handler_type subset_handler_type;
+// get position accessor
+	grid_type* grid = dom->grid().get();
+
+	const typename domain_type::position_accessor_type& aaPos
+										= dom->position_accessor();
+
+	typename subset_handler_type::template traits<VertexBase>::const_iterator iterEnd, iter;
+	number minDistanceSq = numeric_limits<number>::max();
+
+	DistributedGridManager* dgm = grid->distributed_grid_manager();
+
+	SubsetGroup ssGrp(sh);
+	if(subsets != NULL)
+		ssGrp.add(TokenizeString(subsets));
+	else
+		ssGrp.add_all();
+
+	for(size_t i = 0; i < ssGrp.size(); ++i)
+	{
+	//	get subset index
+		const int si = ssGrp[i];
+	// 	iterate over all elements
+		for(size_t lvl = 0; lvl < sh->num_levels(); ++lvl){
+			iterEnd = sh->template end<VertexBase>(si, lvl);
+			iter = sh->template begin<VertexBase>(si, lvl);
+			for(; iter != iterEnd; ++iter)
+			{
+			//	get element
+			//todo: replace most of the following checks by a spGridFct->contains(...)
+
+				VertexBase* vrt = *iter;
+				if(grid->has_children(vrt)) continue;
+
+				#ifdef UG_PARALLEL
+					if(dgm->is_ghost(vrt))	continue;
+					if(dgm->contains_status(vrt, INT_H_SLAVE)) continue;
+				#endif
+			//	global position
+				number buffer = VecDistanceSq(globPos, aaPos[vrt]);
+				if(buffer < minDistanceSq)
+				{
+					minDistanceSq = buffer;
+				}
+			}
+		}
+	}
+	return 	minDistanceSq < sq(maxDist);
+}
 
 /**
  * \defgroup interpolate_bridge Interpolation Bridge
@@ -57,6 +123,8 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 	typename subset_handler_type::template traits<VertexBase>::const_iterator iterEnd, iter,chosen;
 	double minDistanceSq;
 
+	DistributedGridManager* dgm = grid->distributed_grid_manager();
+
 	bool bInit = false;
 	for(size_t i = 0; i < ssGrp.size(); ++i)
 	{
@@ -70,8 +138,14 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 			for(; iter != iterEnd; ++iter)
 			{
 			//	get element
+			//todo: replace most of the following checks by a spGridFct->contains(...)
 				VertexBase* vrt = *iter;
 				if(grid->has_children(vrt)) continue;
+
+				#ifdef UG_PARALLEL
+					if(dgm->is_ghost(vrt))	continue;
+					if(dgm->contains_status(vrt, INT_H_SLAVE)) continue;
+				#endif
 
 				int domSI = domSH->get_subset_index(vrt);
 
@@ -166,7 +240,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 		//reg.add_function("EvaluateAtClosestVertex", static_cast<number (*)(const std::vector<number>&, SmartPtr<TFct>, const char*, const char*)>(&EvaluateAtClosestVertex<TFct>),grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets");
 		reg.add_function("EvaluateAtClosestVertex", &EvaluateAtClosestVertex<TFct>, grp, "Evaluate_at_closest_vertex", "Position#GridFunction#Component#Subsets");
-
 	}
 }
 
@@ -184,6 +257,7 @@ static void Domain(Registry& reg, string grp)
 {
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
+	reg.add_function("CloseVertexExists", &CloseVertexExists<TDomain>, grp);
 }
 
 /**
@@ -248,7 +322,7 @@ void RegisterBridge_Evaluate(Registry& reg, string grp)
 	try{
 //		RegisterCommon<Functionality>(reg,grp);
 //		RegisterDimensionDependent<Functionality>(reg,grp);
-//		RegisterDomainDependent<Functionality>(reg,grp);
+		RegisterDomainDependent<Functionality>(reg,grp);
 //		RegisterAlgebraDependent<Functionality>(reg,grp);
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
