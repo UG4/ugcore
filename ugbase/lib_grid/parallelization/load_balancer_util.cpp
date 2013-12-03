@@ -15,9 +15,7 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 					   size_t maxNumProcs)
 {
 	using std::min;
-
-//	we currently can't distribute on lvl 1 (well - we can - but LU won't work then)
-	const int minDistLvl = 1;
+	const int minDistLvl = 0;
 
 	SPProcessHierarchy procH = ProcessHierarchy::create();
 

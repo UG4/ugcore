@@ -480,7 +480,7 @@ bisect_elements(ElemList& elemsLeftOut, ElemList& elemsRightOut,
 			splitDim = i;
 	}
 
-	//UG_LOG("BBox: " << gBoxMin << ", " << gBoxMax << ", Center: " << gCenter << endl);
+//	UG_LOG("BBox: " << gBoxMin << ", " << gBoxMax << ", Center: " << gCenter << endl);
 	number splitValue = find_split_value(elems, splitDim, ratioLeft, gCenter[splitDim],
 										 gBoxMin[splitDim], gBoxMax[splitDim],
 										 10, aWeight, com);
@@ -894,7 +894,10 @@ find_split_value(const ElemList& elems, int splitDim,
 				 size_t maxIterations, ANumber aWeight,
 				 pcl::ProcessCommunicator& com)
 {
-	//UG_LOG("splitRatio: " << splitRatio << ", initialGuess: " << initialGuess << endl);
+//	UG_LOG("DBG: RETURNING INITIAL SPLIT RATIO\n");
+//	return initialGuess;
+
+//	UG_LOG("splitRatio: " << splitRatio << ", initialGuess: " << initialGuess << endl);
 	if(splitRatio < SMALL)
 		return minValue + SMALL;
 	if(splitRatio > 1. - SMALL)
@@ -913,36 +916,65 @@ find_split_value(const ElemList& elems, int splitDim,
 			int location = classify_elem(e, splitDim, splitValue);
 			weights[location] += aaWeight[e];
 			weights[TOTAL] += aaWeight[e];
+			if(location == CUTTING){
+				if(CalculateCenter(e, m_aaPos)[splitDim] < splitValue)
+					weights[CUTTING_CENTER_LEFT] += aaWeight[e];
+				else
+					weights[CUTTING_CENTER_RIGHT] += aaWeight[e];
+			}
 		}
 
 		double gWeights[NUM_CONSTANTS];
 		com.allreduce(weights, gWeights, NUM_CONSTANTS, PCL_RO_SUM);
+
+//		UG_LOG("weights unclassified: " << gWeights[UNCLASSIFIED] << endl);
+//		UG_LOG("weights left: " << gWeights[LEFT] << endl);
+//		UG_LOG("weights right: " << gWeights[RIGHT] << endl);
+//		UG_LOG("weights cutting: " << gWeights[CUTTING] << endl);
+//		UG_LOG("weights cutting-center-left: " << gWeights[CUTTING_CENTER_LEFT] << endl);
+//		UG_LOG("weights cutting-center-right: " << gWeights[CUTTING_CENTER_RIGHT] << endl);
+//		UG_LOG("weights total: " << gWeights[TOTAL] << endl);
 
 	//	check whether both sides are below the splitRatio
 		if(gWeights[TOTAL] > 0){
 			bool leftOk = (gWeights[LEFT] / gWeights[TOTAL] <= splitRatio);
 			bool rightOk = (gWeights[RIGHT] / gWeights[TOTAL] <= (1. - splitRatio));
 
+			if(!(leftOk && rightOk)){
+			//	check if the ratio would be good if we also considered those with CENTER_LEFT and CENTER_RIGHT
+				number wLeft = gWeights[LEFT] + gWeights[CUTTING_CENTER_LEFT];
+				number wRight = gWeights[RIGHT] + gWeights[CUTTING_CENTER_RIGHT];
+				number ratio;
+				if(wLeft < wRight)	ratio = wLeft / wRight;
+				else				ratio = wRight / wLeft;
+
+//				UG_LOG(" ratio-for-center-split: " << ratio << endl);
+				if(ratio > 0.99){
+				//	the split-value is fine!
+					return splitValue;
+				}
+			}
+
 			if(!leftOk){
-				//UG_LOG("left with ratio: " << (number)gNumElems[LEFT] / (number)gNumElems[TOTAL] << endl);
+//				UG_LOG("left with ratio: " << (number)gWeights[LEFT] / (number)gWeights[TOTAL] << endl);
 			//	move the split-value to the left
 				maxValue = splitValue;
 				splitValue = (minValue + splitValue) / 2.;
 			}
 			else if(!rightOk){
-				//UG_LOG("right with ratio: " << (number)gNumElems[RIGHT] / (number)gNumElems[TOTAL] << endl);
+//				UG_LOG("right with ratio: " << (number)gWeights[RIGHT] / (number)gWeights[TOTAL] << endl);
 			//	move the split-value to the right
 				minValue = splitValue;
 				splitValue = (splitValue + maxValue) / 2.;
 			}
 			else{
-				//UG_LOG("Found split-value after " << iteration + 1 << " iterations\n");
+//				UG_LOG("Found split-value after " << iteration + 1 << " iterations\n");
 				return splitValue;
 			}
 		}
 	}
 
-	//UG_LOG("No perfect split-value found!\n");
+	UG_LOG("No perfect split-value found!\n");
 	return splitValue;
 }
 

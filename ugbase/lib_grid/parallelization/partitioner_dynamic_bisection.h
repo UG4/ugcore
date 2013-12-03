@@ -57,6 +57,8 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 			LEFT = 1,
 			RIGHT = 1 << 1,
 			CUTTING = LEFT | RIGHT,
+			CUTTING_CENTER_LEFT,
+			CUTTING_CENTER_RIGHT,
 			TOTAL,
 			NUM_CONSTANTS
 		};
