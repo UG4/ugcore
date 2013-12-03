@@ -19,9 +19,9 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/function_spaces/approximation_space.h"
 
-#include "lib_disc/operator/linear_operator/projection_operator.h"
+#include "lib_disc/operator/linear_operator/std_injection.h"
 #include "lib_disc/operator/linear_operator/transfer_post_process.h"
-#include "lib_disc/operator/linear_operator/prolongation_operator.h"
+#include "lib_disc/operator/linear_operator/std_transfer.h"
 #include "lib_disc/operator/linear_operator/multi_grid_solver/mg_solver.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/element_gauss_seidel.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/component_gauss_seidel.h"
@@ -101,14 +101,14 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	Standard Injection
 	{
-		typedef InjectionTransfer<TDomain, TAlgebra> T;
+		typedef StdInjection<TDomain, TAlgebra> T;
 		typedef ITransferOperator<TDomain, TAlgebra> TBase;
-		string name = string("InjectionTransfer").append(suffix);
+		string name = string("StdInjection").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
 			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "InjectionTransfer", tag);
+		reg.add_class_to_group(name, "StdInjection", tag);
 	}
 
 //	Average Transfer Post Process

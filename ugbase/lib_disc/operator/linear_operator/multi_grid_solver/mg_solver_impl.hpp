@@ -13,8 +13,8 @@
 #include <string>
 #include "common/profiler/profiler.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
-#include "lib_disc/operator/linear_operator/prolongation_operator.h"
-#include "lib_disc/operator/linear_operator/projection_operator.h"
+#include "lib_disc/operator/linear_operator/std_transfer.h"
+#include "lib_disc/operator/linear_operator/std_injection.h"
 
 #include "mg_solver.h"
 
@@ -57,7 +57,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL), m_bUseRAP(false),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
-	m_spProjectionPrototype(new InjectionTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
+	m_spProjectionPrototype(new StdInjection<TDomain,TAlgebra>(m_spApproxSpace)),
 	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>()),
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),

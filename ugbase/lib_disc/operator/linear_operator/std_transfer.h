@@ -1,12 +1,12 @@
 /*
- * prolongation_operator.h
+ * std_transfer.h
  *
  *  Created on: 04.12.2009
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__
-#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER__
 
 // extern headers
 #include <iostream>
@@ -23,7 +23,7 @@
 
 namespace ug{
 
-///	Prologation Operator for P1 Approximation Spaces
+///	Standard Prologation Operator
 /**	By default a special optimization is performed for p1-lagrange-elements.
  * This optimization is only valid if all elements have been refined with
  * standard refinement rules. If closure elements are generated, this optimization
@@ -205,6 +205,6 @@ class StdTransfer :
 
 } // end namespace ug
 
-#include "prolongation_operator_impl.h"
+#include "std_transfer_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER__ */

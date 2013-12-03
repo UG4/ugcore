@@ -56,8 +56,8 @@
 
 // Operator
 #include "operator/linear_operator/assembled_linear_operator.h"
-#include "operator/linear_operator/projection_operator.h"
-#include "operator/linear_operator/prolongation_operator.h"
+#include "operator/linear_operator/std_injection.h"
+#include "operator/linear_operator/std_transfer.h"
 #include "operator/linear_operator/multi_grid_solver/mg_solver.h"
 
 #include "operator/non_linear_operator/assembled_non_linear_operator.h"

@@ -1,5 +1,5 @@
 /*
- * prolongation_operator_impl.h
+ * transfer_post_process_impl.h
  *
  *  Created on: 04.12.2009
  *      Author: andreasvogel

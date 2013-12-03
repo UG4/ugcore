@@ -1,12 +1,12 @@
 /*
- * projection_operator.h
+ * std_injection.h
  *
  *  Created on: 04.12.2009
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROJECTION_OPERATOR__
-#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROJECTION_OPERATOR__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION__
 
 // extern headers
 #include <iostream>
@@ -32,7 +32,7 @@ namespace ug{
  * \tparam	TAlgebra	the algebra
  */
 template <typename TDomain, typename TAlgebra>
-class InjectionTransfer :
+class StdInjection :
 	virtual public ITransferOperator<TDomain, TAlgebra>
 {
 	public:
@@ -50,10 +50,10 @@ class InjectionTransfer :
 
 	public:
 	///	Constructor
-		InjectionTransfer() : m_bInit(false) {}
+		StdInjection() : m_bInit(false) {}
 
 	///	Constructor
-		InjectionTransfer(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
+		StdInjection(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 			m_spApproxSpace(approxSpace), m_bInit(false)
 		{}
 
@@ -61,7 +61,7 @@ class InjectionTransfer :
 		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
 
 	///	virtual Destructor
-		virtual ~InjectionTransfer(){};
+		virtual ~StdInjection(){};
 	public:
 	///	Set approximation level
 		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
@@ -118,6 +118,6 @@ class InjectionTransfer :
 
 }
 
-#include "projection_operator_impl.h"
+#include "std_injection_impl.h"
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROJECTION_OPERATOR__ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION__ */

@@ -1,14 +1,14 @@
 /*
- * projection_operator_impl.h
+ * std_injection_impl.h
  *
  *  Created on: 01.08.2012
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROJECTION_OPERATOR_IMPL__
-#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROJECTION_OPERATOR_IMPL__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION_IMPL__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION_IMPL__
 
-#include "projection_operator.h"
+#include "std_injection.h"
 
 namespace ug{
 
@@ -140,7 +140,7 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 
 template <typename TDomain, typename TAlgebra>
 template <typename TElem>
-void InjectionTransfer<TDomain, TAlgebra>::
+void StdInjection<TDomain, TAlgebra>::
 set_identity_on_pure_surface(matrix_type& mat,
                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
 {
@@ -181,7 +181,7 @@ set_identity_on_pure_surface(matrix_type& mat,
 }
 
 template <typename TDomain, typename TAlgebra>
-void InjectionTransfer<TDomain, TAlgebra>::
+void StdInjection<TDomain, TAlgebra>::
 set_identity_on_pure_surface(matrix_type& mat,
                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
 {
@@ -193,36 +193,36 @@ set_identity_on_pure_surface(matrix_type& mat,
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-// 	InjectionTransfer
+// 	StdInjection
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
 template <typename TDomain, typename TAlgebra>
-void InjectionTransfer<TDomain, TAlgebra>::
+void StdInjection<TDomain, TAlgebra>::
 set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 {
 	m_spApproxSpace = approxSpace;
 }
 
 template <typename TDomain, typename TAlgebra>
-void InjectionTransfer<TDomain, TAlgebra>::
+void StdInjection<TDomain, TAlgebra>::
 set_levels(GridLevel coarseLevel, GridLevel fineLevel)
 {
 	m_fineLevel = fineLevel;
 	m_coarseLevel = coarseLevel;
 
 	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
-		UG_THROW("InjectionTransfer::set_levels:"
+		UG_THROW("StdInjection::set_levels:"
 				" Can only project between successive level.");
 }
 
 template <typename TDomain, typename TAlgebra>
-void InjectionTransfer<TDomain, TAlgebra>::init()
+void StdInjection<TDomain, TAlgebra>::init()
 {
 	PROFILE_FUNC_GROUP("gmg");
 	if(!m_spApproxSpace.valid())
-		UG_THROW("InjectionTransfer::init: "
+		UG_THROW("StdInjection::init: "
 				"Approximation Space not set. Cannot init Projection.");
 
 // 	check only lagrange P1 functions
@@ -248,7 +248,7 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 			 *m_spApproxSpace->dof_distribution(m_fineLevel));
 		}
 
-	} UG_CATCH_THROW("InjectionTransfer::init():"
+	} UG_CATCH_THROW("StdInjection::init():"
 						" Cannot assemble interpolation matrix.");
 
 	if(m_coarseLevel.is_surface()){
@@ -263,13 +263,13 @@ void InjectionTransfer<TDomain, TAlgebra>::init()
 }
 
 template <typename TDomain, typename TAlgebra>
-void InjectionTransfer<TDomain, TAlgebra>::
+void StdInjection<TDomain, TAlgebra>::
 prolongate(vector_type& uFine, const vector_type& uCoarse)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	Check, that operator is initiallized
 	if(!m_bInit)
-		UG_THROW("InjectionTransfer::apply:"
+		UG_THROW("StdInjection::apply:"
 				" Operator not initialized.");
 
 //	Some Assertions
@@ -282,17 +282,17 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 
 //	Apply matrix
 	if(!m_matrix.apply_transposed(uFine, uCoarse))
-		UG_THROW("InjectionTransfer::apply: Cannot apply matrix.");
+		UG_THROW("StdInjection::apply: Cannot apply matrix.");
 }
 
 template <typename TDomain, typename TAlgebra>
-void InjectionTransfer<TDomain, TAlgebra>::
+void StdInjection<TDomain, TAlgebra>::
 do_restrict(vector_type& uCoarse, const vector_type& uFine)
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	Check, that operator is initialized
 	if(!m_bInit)
-		UG_THROW("InjectionTransfer::apply_transposed:"
+		UG_THROW("StdInjection::apply_transposed:"
 				"Operator not initialized.");
 
 //	Some Assertions
@@ -307,16 +307,16 @@ do_restrict(vector_type& uCoarse, const vector_type& uFine)
 	try{
 		m_matrix.apply_ignore_zero_rows(uCoarse, 1.0, uFine);
 	}
-	UG_CATCH_THROW("InjectionTransfer::apply_transposed:"
+	UG_CATCH_THROW("StdInjection::apply_transposed:"
 						" Cannot apply transposed matrix.");
 }
 
 
 template <typename TDomain, typename TAlgebra>
 SmartPtr<ITransferOperator<TDomain, TAlgebra> >
-InjectionTransfer<TDomain, TAlgebra>::clone()
+StdInjection<TDomain, TAlgebra>::clone()
 {
-	SmartPtr<InjectionTransfer> op(new InjectionTransfer);
+	SmartPtr<StdInjection> op(new StdInjection);
 	op->set_approximation_space(m_spApproxSpace);
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
 		op->add_constraint(m_vConstraint[i]);
@@ -324,7 +324,7 @@ InjectionTransfer<TDomain, TAlgebra>::clone()
 }
 
 template <typename TDomain, typename TAlgebra>
-void InjectionTransfer<TDomain, TAlgebra>::
+void StdInjection<TDomain, TAlgebra>::
 add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 {
 	UG_THROW("Not Implemented.");
@@ -335,7 +335,7 @@ add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 }
 
 template <typename TDomain, typename TAlgebra>
-void InjectionTransfer<TDomain, TAlgebra>::
+void StdInjection<TDomain, TAlgebra>::
 remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 {
 	UG_THROW("Not Implemented.");
@@ -346,4 +346,4 @@ remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROJECTION_OPERATOR_IMPL__ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_INJECTION_IMPL__ */

@@ -1,14 +1,14 @@
 /*
- * prolongation_operator_impl.h
+ * std_transfer_impl.h
  *
  *  Created on: 04.12.2009
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR_IMPL__
-#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR_IMPL__
+#ifndef __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER_IMPL__
+#define __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER_IMPL__
 
-#include "prolongation_operator.h"
+#include "std_transfer.h"
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_disc/local_finite_element/local_finite_element_provider.h"
 #include "lib_disc/function_spaces/grid_function_util.h"
@@ -610,4 +610,4 @@ write_debug(const matrix_type& mat, std::string name,
 
 } // end namespace ug
 
-#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR_IMPL__ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__STD_TRANSFER_IMPL__ */
