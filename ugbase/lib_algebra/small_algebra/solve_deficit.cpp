@@ -89,8 +89,8 @@ bool Decomp(DenseMatrix< VariableArray2<double> > &A, DenseVector<VariableArray1
 	for(k=0; k<cols; k++)
 	{
 //		UG_LOG("-----------------" << k << " < " << cols << " ------\n");
-		size_t biggestR=0, biggestC=0;
-		double dBiggest = dabs(A(0,0));
+		size_t biggestR=k, biggestC=k;
+		double dBiggest = dabs(A(k,k));
 
 		for(size_t r=k; r<rows; r++)
 			for(size_t c=k; c<cols; c++)
