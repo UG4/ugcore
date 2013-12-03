@@ -13,6 +13,32 @@ namespace ug{
 /// \cond HIDDEN_SYMBOLS
 
 ///////////////////////////////////////
+// ReferenceVertex
+///////////////////////////////////////
+
+template<>
+LagrangeP1<ReferenceVertex>::shape_type
+LagrangeP1<ReferenceVertex>::
+shape(size_t i, const MathVector<dim>& x) const
+{
+	return 1.0;
+};
+
+template<>
+void
+LagrangeP1<ReferenceVertex>::
+grad(grad_type& value, size_t i, const MathVector<dim>& x) const
+{
+}
+
+template<>
+bool LagrangeP1<ReferenceVertex>::
+position(size_t i, MathVector<dim>& value) const
+{
+	return true;
+}
+
+///////////////////////////////////////
 // ReferenceEdge
 ///////////////////////////////////////
 

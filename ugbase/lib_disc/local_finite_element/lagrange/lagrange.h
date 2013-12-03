@@ -26,6 +26,124 @@ class LagrangeLSFS;
 template <typename TRefElem>
 class FlexLagrangeLSFS;
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Vertex
+///////////////////////////////////////////////////////////////////////////////
+
+/// specialization for Vertex
+/**
+ * Lagrange shape function of any order for the Reference Vertex
+ * \tparam 	TOrder		requested order
+ */
+template <int TOrder>
+class LagrangeLSFS<ReferenceVertex, TOrder>
+	: public LagrangeLDS<ReferenceVertex>,
+	  public BaseLSFS<LagrangeLSFS<ReferenceVertex, TOrder>, 0>
+{
+	private:
+	///	abbreviation for order
+		static const size_t p = TOrder;
+
+	///	base class
+		typedef BaseLSFS<LagrangeLSFS<ReferenceVertex, TOrder>, 0> base_type;
+
+	public:
+	///	Shape type
+		typedef typename base_type::shape_type shape_type;
+
+	///	Gradient type
+		typedef typename base_type::grad_type grad_type;
+
+	public:
+	///	Order of Shape functions
+		static const size_t order = TOrder;
+
+	///	Dimension, where shape functions are defined
+		static const int dim = ReferenceVertex::dim;
+
+	/// Number of shape functions
+		static const size_t nsh = 1;
+
+	public:
+	///	Constructor
+		LagrangeLSFS() {}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline bool continuous() const {return true;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline size_t num_sh() const {return nsh;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::position()
+		inline bool position(size_t i, MathVector<dim>& pos) const
+		{
+			return true;
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shape()
+		inline shape_type shape(size_t i, const MathVector<dim>& x) const
+		{
+			return 1.0;
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
+		inline void grad(grad_type& g, size_t i, const MathVector<dim>& x) const
+		{
+		}
+};
+
+/// specialization for Edges
+/**
+ * Lagrange shape function of any order for the Reference Edge
+ */
+template <>
+class FlexLagrangeLSFS<ReferenceVertex>
+	: public LagrangeLDS<ReferenceVertex>,
+	  public BaseLSFS<FlexLagrangeLSFS<ReferenceVertex>, 0>
+{
+	public:
+	///	Dimension, where shape functions are defined
+		static const int dim = ReferenceVertex::dim;
+
+	public:
+	///	default Constructor
+		FlexLagrangeLSFS() {}
+
+	///	Constructor
+		FlexLagrangeLSFS(size_t order) {p = order;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::continuous()
+		inline bool continuous() const {return true;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
+		inline size_t num_sh() const {return nsh;}
+
+	///	\copydoc ug::LocalShapeFunctionSet::position()
+		inline bool position(size_t i, MathVector<dim>& pos) const
+		{
+			return true;
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::shape()
+		inline shape_type shape(size_t i, const MathVector<dim>& x) const
+		{
+			return 1.0;
+		}
+
+	///	\copydoc ug::LocalShapeFunctionSet::grad()
+		inline void grad(grad_type& g, size_t i, const MathVector<dim>& x) const
+		{
+		}
+
+	protected:
+	///	order
+		size_t p;
+
+	/// Number of shape functions
+		size_t nsh;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // Edge
 ///////////////////////////////////////////////////////////////////////////////

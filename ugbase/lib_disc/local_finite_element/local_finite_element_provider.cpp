@@ -356,6 +356,7 @@ void LocalFiniteElementProvider::
 create_lagrange_set(ReferenceObjectID roid, const LFEID& id)
 {
 	switch(roid){
+		case ROID_VERTEX:		create_lagrange_set<ReferenceVertex>(id); return;
 		case ROID_EDGE:			create_lagrange_set<ReferenceEdge>(id); return;
 		case ROID_TRIANGLE:		create_lagrange_set<ReferenceTriangle>(id); return;
 		case ROID_QUADRILATERAL:create_lagrange_set<ReferenceQuadrilateral>(id); return;

@@ -44,6 +44,22 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
 /// \}
 
 /**
+ * returns the shape function values at given global positions on an element
+ */
+/// \{
+template <int dim>
+void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
+                           const std::vector<MathVector<dim> >& vGlobPos,
+                           const ReferenceObjectID roid,
+                           const std::vector<MathVector<dim> >& vCornerCoord,
+                           const LFEID& lfeID);
+template <typename TDomain>
+void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
+                           const std::vector<MathVector<TDomain::dim> >& vGlobPos,
+                           GeometricObject* elem, const TDomain& domain, const LFEID& lfeID);
+/// \}
+
+/**
  * extracts the positions of the degrees of freedom and stores them into the
  * passed vector at the position of the algebraic index corresponding to the
  * degree of freedom.

@@ -139,6 +139,10 @@ class StdTransfer :
 		void write_debug(const matrix_type& mat, std::string name,
 		                 const GridLevel& glTo, const GridLevel& glFrom);
 
+		template <typename TChild>
+		void assemble_restriction_elemwise(matrix_type& mat,
+		                                    const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
+		                                    ConstSmartPtr<TDomain> spDomain);
 		void assemble_restriction_elemwise(matrix_type& mat,
 		                                    const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
 		                                    ConstSmartPtr<TDomain> spDomain);
