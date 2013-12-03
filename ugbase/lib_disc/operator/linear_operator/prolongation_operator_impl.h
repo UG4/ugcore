@@ -378,175 +378,138 @@ set_identity_on_pure_surface(matrix_type& mat,
 }
 
 template <typename TDomain, typename TAlgebra>
-void StdTransfer<TDomain, TAlgebra>::
-set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
+SmartPtr<typename TAlgebra::matrix_type>
+StdTransfer<TDomain, TAlgebra>::
+prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
+             ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
 {
-	m_spApproxSpace = approxSpace;
-}
+	// remove old revisions
+	remove_outdated(m_mProlongation, spApproxSpace->revision());
 
-template <typename TDomain, typename TAlgebra>
-void StdTransfer<TDomain, TAlgebra>::set_levels(GridLevel coarseLevel, GridLevel fineLevel)
-{
-	m_fineLevel = fineLevel;
-	m_coarseLevel = coarseLevel;
+	// key of this prolongation
+	TransferKey key(coarseGL, fineGL, spApproxSpace->revision());
 
-	if(m_fineLevel.level() - m_coarseLevel.level() != 1)
-		UG_THROW("StdTransfer<TDomain, TAlgebra>::set_levels:"
-				" Can only project between successive level.");
+	// check if must be created
+	if(m_mProlongation.find(key) == m_mProlongation.end()){
 
-	if(m_fineLevel.type() != m_coarseLevel.type())
-		UG_THROW("StdTransfer<TDomain, TAlgebra>::set_levels:"
-				" Can only project between dof distributions of same type, but "
-				"fine="<<m_fineLevel<<", coarse="<<m_coarseLevel);
-}
+		SmartPtr<matrix_type> P =
+				m_mProlongation[key] = SmartPtr<matrix_type>(new matrix_type);
 
-template <typename TDomain, typename TAlgebra>
-void StdTransfer<TDomain, TAlgebra>::init()
-{
-	PROFILE_FUNC_GROUP("gmg");
-	if(!m_spApproxSpace.valid())
-		UG_THROW("StdTransfer<TDomain, TAlgebra>::init: "
-				"Approximation Space not set. Cannot init Projection.");
+		P->set_as_transpose_of(*restriction(coarseGL, fineGL, spApproxSpace));
+		#ifdef UG_PARALLEL
+		P->set_storage_type(PST_CONSISTENT);
+		#endif
 
-	m_Restriction.resize_and_clear(0,0);
-
-//	check only lagrange P1 functions
-	bool P1LagrangeOnly = false;
-	if(m_p1LagrangeOptimizationEnabled){
-		P1LagrangeOnly = true;
-		for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
-			if(m_spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
-				m_spApproxSpace->lfeid(fct).order() != 1)
-				P1LagrangeOnly = false;
+		write_debug(*P, "P", fineGL, coarseGL);
 	}
 
-	const DoFDistribution& coarseDD = *m_spApproxSpace->dof_distribution(m_coarseLevel);
-	const DoFDistribution& fineDD = *m_spApproxSpace->dof_distribution(m_fineLevel);
-	try{
+	return m_mProlongation[key];
+}
+
+template <typename TDomain, typename TAlgebra>
+SmartPtr<typename TAlgebra::matrix_type>
+StdTransfer<TDomain, TAlgebra>::
+restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
+            ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
+{
+	if(fineGL.level() - coarseGL.level() != 1)
+		UG_THROW("StdTransfer: Can only project between successive level, "
+				"but fine = "<<fineGL<<", coarse = "<<coarseGL);
+
+	if(fineGL.type() != coarseGL.type())
+		UG_THROW("StdTransfer: Can only project between dof distributions of "
+				"same type, but fine = "<<fineGL<<", coarse = "<<coarseGL);
+
+	// remove old revisions
+	remove_outdated(m_mRestriction, spApproxSpace->revision());
+
+	// key of this restriction
+	TransferKey key(coarseGL, fineGL, spApproxSpace->revision());
+
+	// check if must be created
+	if(m_mRestriction.find(key) == m_mRestriction.end())
+	{
+		SmartPtr<matrix_type> R =
+				m_mRestriction[key] = SmartPtr<matrix_type>(new matrix_type);
+
+		ConstSmartPtr<DoFDistribution> spCoarseDD = spApproxSpace->dof_distribution(coarseGL);
+		ConstSmartPtr<DoFDistribution> spFineDD = spApproxSpace->dof_distribution(fineGL);
+
+		bool P1LagrangeOnly = false;
+		if(m_p1LagrangeOptimizationEnabled){
+			P1LagrangeOnly = true;
+			for(size_t fct = 0; fct < spApproxSpace->num_fct(); ++fct)
+				if(spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
+					spApproxSpace->lfeid(fct).order() != 1)
+					P1LagrangeOnly = false;
+		}
+
 		if(P1LagrangeOnly){
-			assemble_restriction_p1(m_Restriction, coarseDD, fineDD);
+			assemble_restriction_p1(*R, *spCoarseDD, *spFineDD);
 		} else{
-			assemble_restriction_elemwise(m_Restriction, coarseDD, fineDD, m_spApproxSpace->domain());
+			assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, spApproxSpace->domain());
 		}
-	} UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::init:"
-				"Cannot assemble interpolation matrix.");
 
-	if(m_coarseLevel.is_surface()){
-		set_identity_on_pure_surface(m_Restriction, coarseDD, fineDD);
-	}
-
-	#ifdef UG_PARALLEL
-	m_Restriction.set_storage_type(PST_CONSISTENT);
-	#endif
-
-	write_debug(m_Restriction, "Restriction", m_fineLevel, m_coarseLevel);
-	m_bInit = true;
-}
-
-template <typename TDomain, typename TAlgebra>
-SmartPtr<typename TAlgebra::matrix_type>
-StdTransfer<TDomain, TAlgebra>::prolongation()
-{
-	SmartPtr<matrix_type> R = restriction();
-
-	SmartPtr<matrix_type> P = SmartPtr<matrix_type>(new matrix_type);
-	P->set_as_transpose_of(*R);
-	#ifdef UG_PARALLEL
-	P->set_storage_type(PST_CONSISTENT);
-	#endif
-
-	write_debug(*P, "P", m_coarseLevel, m_fineLevel);
-
-	return P;
-}
-
-template <typename TDomain, typename TAlgebra>
-SmartPtr<typename TAlgebra::matrix_type>
-StdTransfer<TDomain, TAlgebra>::restriction()
-{
-	ConstSmartPtr<DoFDistribution> spCoarseDD = m_spApproxSpace->dof_distribution(m_coarseLevel);
-	ConstSmartPtr<DoFDistribution> spFineDD = m_spApproxSpace->dof_distribution(m_fineLevel);
-
-	SmartPtr<matrix_type> R = SmartPtr<matrix_type>(new matrix_type);
-
-	bool P1LagrangeOnly = false;
-	if(m_p1LagrangeOptimizationEnabled){
-		P1LagrangeOnly = true;
-		for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
-			if(m_spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
-				m_spApproxSpace->lfeid(fct).order() != 1)
-				P1LagrangeOnly = false;
-	}
-
-	if(P1LagrangeOnly){
-		assemble_restriction_p1(*R, *spCoarseDD, *spFineDD);
-	} else{
-		assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, m_spApproxSpace->domain());
-	}
-
-	write_debug(*R, "RwoConstr", m_fineLevel, m_coarseLevel);
-
-	#ifdef UG_PARALLEL
-	R->set_storage_type(PST_CONSISTENT);
-	#endif
-
-	for(size_t i = 0; i < m_vConstraint.size(); ++i){
-		if (m_vConstraint[i]->type() & CT_DIRICHLET){
-			m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
+		if(coarseGL.is_surface()){
+			set_identity_on_pure_surface(*R, *spCoarseDD, *spFineDD);
 		}
+
+		#ifdef UG_PARALLEL
+		R->set_storage_type(PST_CONSISTENT);
+		#endif
+
+		for(size_t i = 0; i < m_vConstraint.size(); ++i){
+			if (m_vConstraint[i]->type() & CT_DIRICHLET){
+				m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
+			}
+		}
+
+		write_debug(*R, "R", coarseGL, fineGL);
 	}
 
-	write_debug(*R, "R", m_fineLevel, m_coarseLevel);
-
-	return R;
+	return m_mRestriction[key];
 }
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-prolongate(vector_type& uFine, const vector_type& uCoarse)
+prolongate(GF& uFine, const GF& uCoarse)
 {
 	PROFILE_FUNC_GROUP("gmg");
-//	Check, that operator is initiallized
-	if(!m_bInit)
-		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply:"
-				" Operator not initialized.");
 
-//	Some Assertions
-	if(uFine.size() != m_Restriction.num_cols())
-		UG_THROW("StdTransfer: Vector ["<<uFine.size()<<"] must be == Cols size "
-		         <<m_Restriction.num_cols());
-	if(uCoarse.size() != m_Restriction.num_rows())
-		UG_THROW("StdTransfer: Vector ["<<uCoarse.size()<<"] must be == Rows size "
-		         <<m_Restriction.num_rows());
+	if(!bCached)
+		UG_THROW("StdTransfer: currently only cached implemented.");
 
-//	Apply Matrix
-	m_Restriction.apply_transposed(uFine, uCoarse);
+	const GridLevel& coarseGL = uCoarse.grid_level();
+	const GridLevel& fineGL = uFine.grid_level();
+	ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace = uFine.approx_space();
+	if(uCoarse.approx_space() != spApproxSpace)
+		UG_THROW("StdTransfer: cannot prolongate between grid functions from "
+				"different approximation spaces.");
 
-//	Set dirichlet nodes to zero again
-//	todo: We could handle this by eliminating dirichlet rows as well
 	try{
-	for(size_t i = 0; i < m_vConstraint.size(); ++i){
-		if (m_vConstraint[i]->type() & CT_DIRICHLET){
-			m_vConstraint[i]->adjust_defect(uFine, uFine, m_spApproxSpace->dof_distribution(m_fineLevel));
+
+		// check if must be created
+		const RevisionCounter& revCnt = spApproxSpace->revision();
+		if(m_mProlongation.find(TransferKey(fineGL, coarseGL, revCnt)) != m_mProlongation.end()){
+				prolongation(fineGL, coarseGL, spApproxSpace)->apply(uFine, uCoarse);
+		} else {
+			restriction(coarseGL, fineGL, spApproxSpace)->apply_transposed(uFine, uCoarse);
 		}
+
+		// call prolongations due to added constraints (= adjust_restrict, member of class constraint)
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			m_vConstraint[i]->adjust_prolongation(uFine, fineGL, uCoarse, coarseGL);
+
 	}
-	}UG_CATCH_THROW("StdTransfer<TDomain, TAlgebra>::apply: "
-					"Error while setting dirichlet defect to zero.");
-
-// call prolongations due to added constraints (= adjust_restrict, member of class constraint)
-	try{
-	for(size_t i = 0; i < m_vConstraint.size(); ++i)
-		m_vConstraint[i]->adjust_prolongation(uFine, m_fineLevel, uCoarse, m_coarseLevel);
-	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
-					"Error while setting dirichlet defect to zero.");
-
+	UG_CATCH_THROW("StdTransfer:prolongation: Failed for fine = "<<fineGL<<" and "
+	               " coarse = "<<coarseGL);
 
 // 	check CR functions
 #ifdef UG_PARALLEL
 	bool bCROnly = true;
-	for(size_t fct = 0; fct < m_spApproxSpace->num_fct(); ++fct)
-		if(m_spApproxSpace->lfeid(fct).type() != LFEID::CROUZEIX_RAVIART &&
-			m_spApproxSpace->lfeid(fct).type() != LFEID::PIECEWISE_CONSTANT)
+	for(size_t fct = 0; fct < spApproxSpace->num_fct(); ++fct)
+		if(spApproxSpace->lfeid(fct).type() != LFEID::CROUZEIX_RAVIART &&
+				spApproxSpace->lfeid(fct).type() != LFEID::PIECEWISE_CONSTANT)
 			bCROnly = false;
 
 	if(bCROnly){
@@ -560,51 +523,37 @@ prolongate(vector_type& uFine, const vector_type& uCoarse)
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-do_restrict(vector_type& uCoarse, const vector_type& uFine)
+do_restrict(GF& uCoarse, const GF& uFine)
 {
+
 	PROFILE_FUNC_GROUP("gmg");
-//	Check, that operator is initialized
-	if(!m_bInit)
-		UG_THROW("StdTransfer<TDomain, TAlgebra>::apply_transposed:"
-				"Operator not initialized.");
 
-//	Some Checks
-	if(uFine.size() != m_Restriction.num_cols())
-		UG_THROW("StdTransfer: Vector ["<<uFine.size()<<"] must be == Cols size "
-		         <<m_Restriction.num_cols());
-	if(uCoarse.size() != m_Restriction.num_rows())
-		UG_THROW("StdTransfer: Vector ["<<uCoarse.size()<<"] must be == Rows size "
-		         <<m_Restriction.num_rows());
+	if(!bCached)
+		UG_THROW("StdTransfer: currently only cached implemented.");
 
-//	Apply transposed matrix
-	m_Restriction.apply_ignore_zero_rows(uCoarse, m_dampRes, uFine);
-
-//	Set dirichlet nodes to zero again
-//	todo: We could handle this by eliminating dirichlet columns as well
+	const GridLevel& coarseGL = uCoarse.grid_level();
+	const GridLevel& fineGL = uFine.grid_level();
+	ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace = uFine.approx_space();
+	if(uCoarse.approx_space() != spApproxSpace)
+		UG_THROW("StdTransfer: cannot prolongate between grid functions from "
+				"different approximation spaces.");
 	try{
-	for(size_t i = 0; i < m_vConstraint.size(); ++i){
-		if (m_vConstraint[i]->type() & CT_DIRICHLET){
-			m_vConstraint[i]->adjust_defect(uCoarse, uCoarse, m_spApproxSpace->dof_distribution(m_coarseLevel));
-		}
-	}
-	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
-					"Error while setting dirichlet defect to zero.");
 
-// call restrictions due to added constraints (= adjust_restrict, member of class constraint)
-	try{
-	for(size_t i = 0; i < m_vConstraint.size(); ++i)
-		m_vConstraint[i]->adjust_restriction(uCoarse, m_coarseLevel, uFine, m_fineLevel);
-	} UG_CATCH_THROW("ProjectionOperator::apply_transposed: "
-					"Error while setting dirichlet defect to zero.");
+		restriction(coarseGL, fineGL, spApproxSpace)->apply_ignore_zero_rows(uCoarse, m_dampRes, uFine);
 
+		// call restrictions due to added constraints (= adjust_restrict, member of class constraint)
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			m_vConstraint[i]->adjust_restriction(uCoarse, coarseGL, uFine, fineGL);
+
+	} UG_CATCH_THROW("StdTransfer:do_restrict: Failed for fine = "<<fineGL<<" and "
+	                 " coarse = "<<coarseGL);
 }
 
 template <typename TDomain, typename TAlgebra>
-SmartPtr<ITransferOperator<TAlgebra> >
+SmartPtr<ITransferOperator<TDomain, TAlgebra> >
 StdTransfer<TDomain, TAlgebra>::clone()
 {
 	SmartPtr<StdTransfer> op(new StdTransfer);
-	op->set_approximation_space(m_spApproxSpace);
 	for(size_t i = 0; i < m_vConstraint.size(); ++i)
 		op->add_constraint(m_vConstraint[i]);
 	op->set_restriction_damping(m_dampRes);
@@ -634,7 +583,7 @@ remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
 write_debug(const matrix_type& mat, std::string name,
-            const GridLevel& glFrom, const GridLevel& glTo)
+            const GridLevel& glTo, const GridLevel& glFrom)
 {
 	PROFILE_FUNC_GROUP("debug");
 //	if no debug writer set, we're done
@@ -648,8 +597,8 @@ write_debug(const matrix_type& mat, std::string name,
 	if(dbgWriter.invalid()) return;
 
 //	add iter count to name
-	name.append("_").append(ToString(glFrom.level()));
 	name.append("_").append(ToString(glTo.level()));
+	name.append("_").append(ToString(glFrom.level()));
 	name.append(".mat");
 
 //	write

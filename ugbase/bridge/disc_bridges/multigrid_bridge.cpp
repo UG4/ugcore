@@ -66,14 +66,30 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 	grp.append("/MultiGrid");
 
+
+//	ITransferOperator
+	{
+		typedef ITransferOperator<TDomain, TAlgebra> T;
+		string name = string("ITransferOperator").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "ITransferOperator", tag);
+	}
+
+//	ITransferPostProcess
+	{
+		typedef ITransferPostProcess<TDomain, TAlgebra> T;
+		string name = string("ITransferPostProcess").append(suffix);
+		reg.add_class_<T>(name, grp);
+		reg.add_class_to_group(name, "ITransferPostProcess", tag);
+	}
+
 //	Standard Transfer
 	{
 		typedef StdTransfer<TDomain, TAlgebra> T;
-		typedef ITransferOperator<TAlgebra> TBase;
+		typedef ITransferOperator<TDomain, TAlgebra> TBase;
 		string name = string("StdTransfer").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
-			.template add_constructor<void (*)(SmartPtr<approximation_space_type>)>("Approximation Space")
 			.add_method("set_restriction_damping", &T::set_restriction_damping)
 			.add_method("add_constraint", &T::add_constraint)
 			.add_method("set_debug", &T::set_debug)
@@ -86,7 +102,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	Standard Injection
 	{
 		typedef InjectionTransfer<TDomain, TAlgebra> T;
-		typedef ITransferOperator<TAlgebra> TBase;
+		typedef ITransferOperator<TDomain, TAlgebra> TBase;
 		string name = string("InjectionTransfer").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.add_constructor()
@@ -98,7 +114,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	Average Transfer Post Process
 	{
 		typedef AverageComponent<TDomain, TAlgebra> T;
-		typedef ITransferPostProcess<TAlgebra> TBase;
+		typedef ITransferPostProcess<TDomain, TAlgebra> TBase;
 		string name = string("AverageComponent").append(suffix);
 		reg.add_class_<T, TBase>(name, grp)
 			.template add_constructor<void (*)(const std::string&)>("Components")
@@ -170,37 +186,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 }
 
-/**
- * Function called for the registration of Algebra dependent parts.
- * All Functions and Classes depending on Algebra
- * are to be placed here when registering. The method is called for all
- * available Algebra types, based on the current build options.
- *
- * @param reg				registry
- * @param parentGroup		group for sorting of functionality
- */
-template <typename TAlgebra>
-static void Algebra(Registry& reg, string grp)
-{
-	string suffix = GetAlgebraSuffix<TAlgebra>();
-	string tag = GetAlgebraTag<TAlgebra>();
-
-//	IProlongationOperator
-	{
-		typedef ITransferOperator<TAlgebra> T;
-		string name = string("ITransferOperator").append(suffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "ITransferOperator", tag);
-	}
-
-//	IProlongationOperator
-	{
-		typedef ITransferPostProcess<TAlgebra> T;
-		string name = string("ITransferPostProcess").append(suffix);
-		reg.add_class_<T>(name, grp);
-		reg.add_class_to_group(name, "ITransferPostProcess", tag);
-	}
-}
 };
 
 // end group multigrid_bridge
@@ -215,7 +200,6 @@ void RegisterBridge_MultiGrid(Registry& reg, string grp)
 	typedef MultiGrid::Functionality Functionality;
 
 	try{
-		RegisterAlgebraDependent<Functionality>(reg,grp);
 		RegisterDomainAlgebraDependent<Functionality>(reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

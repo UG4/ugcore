@@ -127,19 +127,19 @@ class AssembledMultiGridCycle :
 			{m_spPostSmootherPrototype = smoother;}
 
 	///	sets the transfer operator
-		void set_transfer(SmartPtr<ITransferOperator<TAlgebra> > P)
+		void set_transfer(SmartPtr<ITransferOperator<TDomain, TAlgebra> > P)
 			{set_prolongation(P); set_restriction(P);}
 
 	///	sets the prolongation operator
-		void set_prolongation(SmartPtr<ITransferOperator<TAlgebra> > P)
+		void set_prolongation(SmartPtr<ITransferOperator<TDomain, TAlgebra> > P)
 			{m_spProlongationPrototype = P;}
 
 	///	sets the restriction operator
-		void set_restriction(SmartPtr<ITransferOperator<TAlgebra> > P)
+		void set_restriction(SmartPtr<ITransferOperator<TDomain, TAlgebra> > P)
 			{m_spRestrictionPrototype = P;}
 
 	///	sets the projection operator
-		void set_projection(SmartPtr<ITransferOperator<TAlgebra> > P)
+		void set_projection(SmartPtr<ITransferOperator<TDomain, TAlgebra> > P)
 			{m_spProjectionPrototype = P;}
 
 	///	clears all transfer post process
@@ -147,11 +147,11 @@ class AssembledMultiGridCycle :
 			{m_vspProlongationPostProcess.clear(); m_vspRestrictionPostProcess.clear();}
 
 	///	add prolongation post process
-		void add_prolongation_post_process(SmartPtr<ITransferPostProcess<TAlgebra> > PP)
+		void add_prolongation_post_process(SmartPtr<ITransferPostProcess<TDomain, TAlgebra> > PP)
 			{m_vspProlongationPostProcess.push_back(PP);}
 
 	///	add restriction post process
-		void add_restriction_post_process(SmartPtr<ITransferPostProcess<TAlgebra> > PP)
+		void add_restriction_post_process(SmartPtr<ITransferPostProcess<TDomain, TAlgebra> > PP)
 			{m_vspRestrictionPostProcess.push_back(PP);}
 
 	///////////////////////////////////////////////////////////////////////////
@@ -297,17 +297,17 @@ class AssembledMultiGridCycle :
 		SmartPtr<ILinearIterator<vector_type> > m_spPostSmootherPrototype;
 
 	///	prototype for projection operator
-		SmartPtr<ITransferOperator<TAlgebra> > m_spProjectionPrototype;
+		SmartPtr<ITransferOperator<TDomain, TAlgebra> > m_spProjectionPrototype;
 
 	///	prototype for prolongation operator
-		SmartPtr<ITransferOperator<TAlgebra> > m_spProlongationPrototype;
+		SmartPtr<ITransferOperator<TDomain, TAlgebra> > m_spProlongationPrototype;
 
 	///	prototype for restriction operator
-		SmartPtr<ITransferOperator<TAlgebra> > m_spRestrictionPrototype;
+		SmartPtr<ITransferOperator<TDomain, TAlgebra> > m_spRestrictionPrototype;
 
 	///	prototpe for transfer post process
-		std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > m_vspProlongationPostProcess;
-		std::vector<SmartPtr<ITransferPostProcess<TAlgebra> > > m_vspRestrictionPostProcess;
+		std::vector<SmartPtr<ITransferPostProcess<TDomain, TAlgebra> > > m_vspProlongationPostProcess;
+		std::vector<SmartPtr<ITransferPostProcess<TDomain, TAlgebra> > > m_vspRestrictionPostProcess;
 
 	///	base solver for the coarse problem
 		SmartPtr<ILinearOperatorInverse<vector_type> > m_spBaseSolver;
@@ -350,11 +350,11 @@ class AssembledMultiGridCycle :
 			SmartPtr<ILinearIterator<vector_type> > PostSmoother;
 
 		///	Projection operator
-			SmartPtr<ITransferOperator<TAlgebra> > Projection;
+			SmartPtr<ITransferOperator<TDomain, TAlgebra> > Projection;
 
 		///	Transfer operator
-			SmartPtr<ITransferOperator<TAlgebra> > Prolongation;
-			SmartPtr<ITransferOperator<TAlgebra> > Restriction;
+			SmartPtr<ITransferOperator<TDomain, TAlgebra> > Prolongation;
+			SmartPtr<ITransferOperator<TDomain, TAlgebra> > Restriction;
 
 		///	vectors needed (sx = no-ghosts [for smoothing], t = for transfer)
 			SmartPtr<GF> sc, sd, st, t;

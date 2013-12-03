@@ -10,6 +10,7 @@
 
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_grid/tools/grid_level.h"
+#include "lib_disc/function_spaces/grid_function.h"
 
 namespace ug{
 
@@ -23,7 +24,7 @@ class IConstraint;
 ///////////////////////////////////////////////////////////////////////////////
 
 /// interface for transfer routines
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class ITransferOperator
 {
 	public:
@@ -32,6 +33,9 @@ class ITransferOperator
 
 	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
+
+	///	Domain type
+		typedef TDomain domain_type;
 
 	public:
 	/// Set Levels for Prolongation coarse -> fine
@@ -57,17 +61,21 @@ class ITransferOperator
 		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine) = 0;
 
 	///	returns prolongation as a matrix
-		virtual SmartPtr<matrix_type> prolongation(){
+		virtual SmartPtr<matrix_type>
+		prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
+		             ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace){
 			UG_THROW("ITransferOperator: Matrix-prolongation not implemented.")
 		}
 
 	///	returns restriction as a matrix
-		virtual SmartPtr<matrix_type> restriction(){
+		virtual SmartPtr<matrix_type>
+		restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
+		            ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace){
 			UG_THROW("ITransferOperator: Matrix-restriction not implemented.")
 		}
 
 	///	Clone
-		virtual SmartPtr<ITransferOperator<TAlgebra> > clone() = 0;
+		virtual SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone() = 0;
 
 	///	virtual destructor
 		virtual ~ITransferOperator() {}
@@ -78,16 +86,22 @@ class ITransferOperator
 ///////////////////////////////////////////////////////////////////////////////
 
 /// interface for transfer routines
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class ITransferPostProcess
 {
 	public:
 	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
+	///	Domain type
+		typedef TDomain domain_type;
+
+	///	GridFunction type
+		typedef GridFunction<TDomain, TAlgebra> GF;
+
 	public:
 	/// apply post process
-		virtual void post_process(SmartPtr<vector_type> spU) = 0;
+		virtual void post_process(SmartPtr<GF> spGF) = 0;
 
 	///	virtual destructor
 		virtual ~ITransferPostProcess() {}

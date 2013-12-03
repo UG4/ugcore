@@ -33,7 +33,7 @@ namespace ug{
  */
 template <typename TDomain, typename TAlgebra>
 class InjectionTransfer :
-	virtual public ITransferOperator<TAlgebra>
+	virtual public ITransferOperator<TDomain, TAlgebra>
 {
 	public:
 	///	Type of algebra
@@ -94,7 +94,7 @@ class InjectionTransfer :
 		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine);
 
 	///	clones the operator
-		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();
+		virtual SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone();
 
 	protected:
 	/// matrix used for projection

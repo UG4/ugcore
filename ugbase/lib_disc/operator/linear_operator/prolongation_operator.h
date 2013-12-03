@@ -31,35 +31,32 @@ namespace ug{
  */
 template <typename TDomain, typename TAlgebra>
 class StdTransfer :
-	virtual public ITransferOperator<TAlgebra>
+	virtual public ITransferOperator<TDomain, TAlgebra>
 {
 	public:
-	///	Type of algebra
+	///	Type of Algebra
 		typedef TAlgebra algebra_type;
 
 	///	Type of Vector
 		typedef typename TAlgebra::vector_type vector_type;
 
-	///	Type of Vector
+	///	Type of Matrix
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Type of Domain
 		typedef TDomain domain_type;
 
+	///	Type of GridFunction
+		typedef GridFunction<TDomain, TAlgebra> GF;
+
 	public:
 	/// Default constructor
-		StdTransfer() : m_bInit(false), m_p1LagrangeOptimizationEnabled(true),
-						m_dampRes(1.0), m_spDebugWriter(NULL)
+		StdTransfer() : m_p1LagrangeOptimizationEnabled(true),
+						m_dampRes(1.0), bCached(true), m_spDebugWriter(NULL)
 		{clear_constraints();};
 
-	///	Constructor setting approximation space
-		StdTransfer(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
-			m_spApproxSpace(approxSpace), m_bInit(false),
-			m_p1LagrangeOptimizationEnabled(true), m_dampRes(1.0), m_spDebugWriter(NULL)
-		{clear_constraints();};
-
-	///	Set approximation space
-		void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace);
+	/// virtual destructor
+		virtual ~StdTransfer(){};
 
 	///	set interpolation damping
 		void set_restriction_damping(number damp) {m_dampRes = damp;}
@@ -68,22 +65,6 @@ class StdTransfer :
 		void set_debug(SmartPtr<IDebugWriter<TAlgebra> > spDebugWriter) {
 			m_spDebugWriter = spDebugWriter;
 		}
-
-	/// virtual destructor
-		virtual ~StdTransfer(){};
-
-	public:
-	///	Set levels
-		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
-
-	///	clears dirichlet post processes
-		void clear_constraints() {m_vConstraint.clear();}
-
-	///	adds a dirichlet post process (not added if already registered)
-		void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
-
-	///	removes a post process
-		void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
 
 	///	enables/disables an assembling optimization for p1-lagrange elements
 	/**	The optimization is enabled by default. It can however only be used,
@@ -98,28 +79,65 @@ class StdTransfer :
 		bool p1_lagrange_optimization_enabled() const		{return m_p1LagrangeOptimizationEnabled;}
 
 	public:
+	///	Set levels
+		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) {}
+
 	///	initialize the operator
-		virtual void init();
-
-	/// apply Operator, interpolate function
-		virtual void prolongate(vector_type& uFineOut, const vector_type& uCoarse);
-
-	/// apply transposed Operator, restrict function
-		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine);
-
-	///	returns prolongation as a matrix
-		virtual SmartPtr<matrix_type> prolongation();
-
-	///	returns restriction as a matrix
-		virtual SmartPtr<matrix_type> restriction();
+		virtual void init() {}
 
 	///	returns new instance with same setting
-		virtual SmartPtr<ITransferOperator<TAlgebra> > clone();
+		virtual SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone();
+
+	/// apply Operator, interpolate function
+		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse){
+			GF* pFine = dynamic_cast<GF*>(&uFine);
+			const GF* pCoarse = dynamic_cast<const GF*>(&uCoarse);
+			if(!pFine || !pCoarse)
+				UG_THROW("StdTransfer: fine and coarse vectors expected to be "
+						"a grid function.");
+			prolongate(*pFine, *pCoarse);
+		}
+
+	/// apply transposed Operator, restrict function
+		virtual void do_restrict(vector_type& uCoarse, const vector_type& uFine){
+			const GF* pFine = dynamic_cast<const GF*>(&uFine);
+			GF* pCoarse = dynamic_cast<GF*>(&uCoarse);
+			if(!pFine || !pCoarse)
+				UG_THROW("StdTransfer: fine and coarse vectors expected to be "
+						"a grid function.");
+			do_restrict(*pCoarse, *pFine);
+		}
+
+	///	clears dirichlet post processes
+		void clear_constraints() {m_vConstraint.clear();}
+
+	///	adds a dirichlet post process (not added if already registered)
+		void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
+
+	///	removes a post process
+		void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
+
+	public:
+	///	returns prolongation as a matrix
+		virtual SmartPtr<matrix_type>
+		prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
+		             ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace);
+
+	///	returns restriction as a matrix
+		virtual SmartPtr<matrix_type>
+		restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
+		            ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace);
+
+	///	apply operator to a grid function
+		void prolongate(GF& uFine, const GF& uCoarse);
+
+	///	apply operator to a grid function
+		void do_restrict(GF& uCoarse, const GF& uFine);
 
 	protected:
 	///	debug writing of matrix
-		void write_debug(const matrix_type& mat, std::string filename,
-		                 const GridLevel& glFrom, const GridLevel& glTo);
+		void write_debug(const matrix_type& mat, std::string name,
+		                 const GridLevel& glTo, const GridLevel& glFrom);
 
 		void assemble_restriction_elemwise(matrix_type& mat,
 		                                    const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
@@ -136,29 +154,50 @@ class StdTransfer :
 		                                  const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
 
 	protected:
-	///	matrix to store prolongation
-		matrix_type m_Restriction;
+	///	struct to distinguish already assembled operators
+		struct TransferKey{
+			TransferKey(const GridLevel& toGL_, const GridLevel& fromGL_,
+			            const RevisionCounter& revCnt_)
+			: toGL(toGL_), fromGL(fromGL_), revCnt(revCnt_) {}
+			GridLevel toGL, fromGL;
+			RevisionCounter revCnt;
 
+			bool operator<(const TransferKey& other) const {
+				if(revCnt != other.revCnt) return revCnt < other.revCnt;
+				if(toGL != other.toGL) return toGL < other.toGL;
+				return fromGL < other.fromGL;
+			}
+		};
+
+		typedef std::map<TransferKey, SmartPtr<matrix_type> > TransferMap;
+		TransferMap m_mRestriction;
+		TransferMap m_mProlongation;
+
+		void remove_outdated(TransferMap& map, const RevisionCounter& revCnt) {
+			typedef typename TransferMap::iterator iterator;
+			for(iterator iter = map.begin(); iter != map.end();)
+			{
+				const RevisionCounter& cnt = iter->first.revCnt;
+				if((cnt.obj() == revCnt.obj()) && (cnt != revCnt)){
+					map.erase(iter++);
+				} else {
+					++iter;
+				}
+			}
+		}
+
+	protected:
 	///	list of post processes
 		std::vector<SmartPtr<IConstraint<TAlgebra> > > m_vConstraint;
-
-	///	approximation space
-		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-
-	///	fine grid level
-		GridLevel m_fineLevel;
-
-	///	coarse grid level
-		GridLevel m_coarseLevel;
-
-	///	initialization flag
-		bool m_bInit;
 
 	///	flag for p1-lagrange-optimization
 		bool m_p1LagrangeOptimizationEnabled;
 
 	///	damping parameter
 		number m_dampRes;
+
+	///	flag if cached (matrix) transfer used
+		bool bCached;
 
 	///	debug writer
 		SmartPtr<IDebugWriter<TAlgebra> > m_spDebugWriter;

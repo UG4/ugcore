@@ -58,7 +58,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
 	m_spProjectionPrototype(new InjectionTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
-	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>(m_spApproxSpace)),
+	m_spProlongationPrototype(new StdTransfer<TDomain,TAlgebra>()),
 	m_spRestrictionPrototype(m_spProlongationPrototype),
 	m_spBaseSolver(new LU<TAlgebra>()),
 	m_bGatheredBaseIfAmbiguous(true),
@@ -744,8 +744,8 @@ init_rap_operator()
 		LevData& lc = *m_vLevData[lev-1];
 
 		GMG_PROFILE_BEGIN(GMG_CreateRestrictionAndProlongation);
-		SmartPtr<matrix_type> R = lf.Restriction->restriction();
-		SmartPtr<matrix_type> P = lf.Prolongation->prolongation();
+		SmartPtr<matrix_type> R = lf.Restriction->restriction(lc.st->grid_level(), lf.t->grid_level(), m_spApproxSpace);
+		SmartPtr<matrix_type> P = lf.Prolongation->prolongation(lf.t->grid_level(), lc.st->grid_level(), m_spApproxSpace);
 		GMG_PROFILE_END();
 
 		GMG_PROFILE_BEGIN(GMG_CopyGhosts);

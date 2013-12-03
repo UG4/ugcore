@@ -23,7 +23,7 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 class AverageComponent :
-	virtual public ITransferPostProcess<TAlgebra>
+	virtual public ITransferPostProcess<TDomain, TAlgebra>
 {
 	public:
 	///	Type of algebra
@@ -35,6 +35,9 @@ class AverageComponent :
 	///	Type of Domain
 		typedef TDomain domain_type;
 
+	///	GridFunction type
+		typedef GridFunction<TDomain, TAlgebra> GF;
+
 	public:
 	///	Constructor setting approximation space
 		AverageComponent(const std::string& fcts){m_vCmp = TokenizeTrimString(fcts);};
@@ -44,10 +47,7 @@ class AverageComponent :
 
 	public:
 	/// apply Operator, interpolate function
-		virtual void post_process(SmartPtr<vector_type> spU);
-
-	///	returns new instance with same setting
-		virtual SmartPtr<ITransferPostProcess<TAlgebra> > clone();
+		virtual void post_process(SmartPtr<GF> spGF);
 
 	protected:
 		template <typename TBaseElem>

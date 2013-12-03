@@ -71,6 +71,20 @@ class RevisionCounter
 			return !((*this) == rhs);
 		}
 
+	///	compare two states
+		bool operator<(const RevisionCounter& rhs) const{
+			if(m_pObj != rhs.m_pObj) return m_pObj < rhs.m_pObj;
+			if(m_cnt != rhs.m_cnt) return m_cnt < rhs.m_cnt;
+			return false;
+		}
+
+	///	compare two states
+		bool operator>(const RevisionCounter& rhs) const{
+			if(m_pObj != rhs.m_pObj) return m_pObj > rhs.m_pObj;
+			if(m_cnt != rhs.m_cnt) return m_cnt > rhs.m_cnt;
+			return false;
+		}
+
 	///	returns if state is valid
 		bool valid() const {return m_pObj != 0 && m_cnt != 0;}
 
@@ -79,6 +93,9 @@ class RevisionCounter
 
 	///	invalidates state
 		void invalidate() {m_pObj = 0; m_cnt = 0;}
+
+	///	returns the associated object
+		const void* obj() const {return m_pObj;}
 
 	protected:
 		const void* m_pObj; ///< associated object

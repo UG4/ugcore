@@ -313,7 +313,7 @@ do_restrict(vector_type& uCoarse, const vector_type& uFine)
 
 
 template <typename TDomain, typename TAlgebra>
-SmartPtr<ITransferOperator<TAlgebra> >
+SmartPtr<ITransferOperator<TDomain, TAlgebra> >
 InjectionTransfer<TDomain, TAlgebra>::clone()
 {
 	SmartPtr<InjectionTransfer> op(new InjectionTransfer);

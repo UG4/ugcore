@@ -23,18 +23,15 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 void AverageComponent<TDomain, TAlgebra>::
-post_process(SmartPtr<vector_type> spU)
+post_process(SmartPtr<GF> spGF)
 {
 	PROFILE_FUNC_GROUP("gmg");
 
 	if(m_vCmp.empty())
 		return;
 
-	SmartPtr<GridFunction<TDomain, TAlgebra> > spGF
-					= spU.template cast_dynamic<GridFunction<TDomain, TAlgebra> >();
-
 	if(spGF.invalid())
-		UG_THROW("AverageComponent: expects correction to be a GridFunction.");
+		UG_THROW("AverageComponent: expects a valid GridFunction.");
 
 	ConstSmartPtr<DoFDistributionInfo> ddinfo =
 								spGF->approx_space()->dof_distribution_info();
@@ -61,9 +58,9 @@ post_process(SmartPtr<vector_type> spU)
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem>
 void AverageComponent<TDomain, TAlgebra>::
-subtract_value(SmartPtr<GridFunction<TDomain, TAlgebra> > spGF, size_t fct, number sub)
+subtract_value(SmartPtr<GF> spGF, size_t fct, number sub)
 {
-	typedef typename GridFunction<TDomain, TAlgebra>::template traits<TBaseElem>::const_iterator iter_type;
+	typedef typename GF::template traits<TBaseElem>::const_iterator iter_type;
 
 	iter_type iter = spGF->template begin<TBaseElem>();
 	iter_type iterEnd = spGF->template end<TBaseElem>();
@@ -86,12 +83,6 @@ subtract_value(SmartPtr<GridFunction<TDomain, TAlgebra> > spGF, size_t fct, numb
 	}
 }
 
-template <typename TDomain, typename TAlgebra>
-SmartPtr<ITransferPostProcess<TAlgebra> >
-AverageComponent<TDomain, TAlgebra>::clone()
-{
-	return SmartPtr<AverageComponent>(new AverageComponent(m_vCmp));
-}
 
 } // end namespace ug
 
