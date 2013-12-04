@@ -184,11 +184,17 @@ partition(size_t baseLvl, size_t elementThreshold)
 	else
 		procH = m_processHierarchy.get();
 
+	m_procMap.clear();
+
 //	iteprocHierarchy levels and perform rebalancing for all
 //	hierarchy-sections which contain levels higher than baseLvl
 	int oldHighestRedistLvl = m_highestRedistLevel;	// only used if static_partitioning is enabled
 	for(size_t hlevel = 0; hlevel < procH->num_hierarchy_levels(); ++ hlevel)
 	{
+		if(hlevel != 0){
+			UG_LOG("\n");
+		}
+		UG_LOG("hlvl: " << hlevel);
 		int minLvl = procH->grid_base_level(hlevel);
 		int maxLvl = (int)mg.top_level();
 		if(hlevel + 1 < procH->num_hierarchy_levels()){
@@ -203,14 +209,20 @@ partition(size_t baseLvl, size_t elementThreshold)
 			continue;
 
 		int numProcs = procH->num_global_procs_involved(hlevel);
+		UG_LOG(", numProcs: " << numProcs);
 
-		if(numProcs <= 1){
+		int numPartitions = numProcs;
+		if(static_partitioning_enabled())
+			numPartitions = (int)procH->cluster_procs(hlevel).size();
+		UG_LOG(", numPartitions: " << numPartitions);
+
+		if((numProcs <= 1) || (numPartitions == 1)){
 			for(int i = minLvl; i <= maxLvl; ++i)
 				m_sh.assign_subset(mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
 			continue;
 		}
 
-
+		UG_LOG(", m_highestRedistLevel: " << m_highestRedistLevel);
 		if(static_partitioning_enabled() && ((int)hlevel <= m_highestRedistLevel)){
 			for(int i = minLvl; i <= maxLvl; ++i)
 				m_sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
@@ -233,10 +245,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			com = procH->global_proc_com(hlevel);
 		}
 
-		int numPartitions = numProcs;
-		if(static_partitioning_enabled())
-			numPartitions = (int)procH->cluster_procs(hlevel).size();
-
+		UG_LOG("performing bisection...\n");
 		perform_bisection(numPartitions, minLvl, maxLvl, partitionLvl, aWeight, com);
 
 		for(int i = minLvl; i < maxLvl; ++i){
@@ -248,7 +257,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			m_highestRedistLevel = hlevel;
 		}
 	}
-
+	UG_LOG("\n");
 //	make sure that everybody knows about the highestRedistLevel!
 	pcl::ProcessCommunicator globCom;
 	m_highestRedistLevel = globCom.allreduce(m_highestRedistLevel, PCL_RO_MAX);
@@ -259,6 +268,14 @@ partition(size_t baseLvl, size_t elementThreshold)
 	}
 
 	mg.detach_from<elem_t>(aWeight);
+
+	if(m_procMap.empty() && (m_sh.num_subsets() > 0)){
+		if(m_sh.num_subsets() != 1){
+			UG_THROW("Something went wrong during partitioning. At this point"
+					" either exactly one subset or a filled process map should exist.");
+		}
+		m_procMap.push_back(pcl::GetProcRank());
+	}
 
 //	debugging
 //	static int execCounter = 0;

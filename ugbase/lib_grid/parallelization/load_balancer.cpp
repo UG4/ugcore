@@ -101,7 +101,8 @@ init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl, size_t numProcsP
 	const HLevelInfo& parentLvl = get_hlevel_info(hlvl - 1);
 
 	if(numProcsPerProc == 1){
-		clusterProcs = parentLvl.clusterProcs;
+		//clusterProcs = parentLvl.clusterProcs;
+		clusterProcs.push_back(pcl::GetProcRank());
 		return;
 	}
 
