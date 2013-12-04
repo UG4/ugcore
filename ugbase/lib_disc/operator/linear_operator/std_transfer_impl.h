@@ -327,59 +327,6 @@ assemble_restriction_elemwise(matrix_type& mat,
 
 
 template <typename TDomain, typename TAlgebra>
-template <typename TElem>
-void StdTransfer<TDomain, TAlgebra>::
-set_identity_on_pure_surface(matrix_type& mat,
-                             const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
-{
-	PROFILE_FUNC_GROUP("gmg");
-
-	std::vector<size_t> vCoarseIndex, vFineIndex;
-	const MultiGrid& mg = *coarseDD.multi_grid();
-
-//  iterators
-	typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
-	const_iterator iter, iterBegin, iterEnd;
-
-//  loop subsets on fine level
-	for(int si = 0; si < coarseDD.num_subsets(); ++si)
-	{
-		iterBegin = coarseDD.template begin<TElem>(si);
-		iterEnd = coarseDD.template end<TElem>(si);
-
-	//  loop vertices for fine level subset
-		for(iter = iterBegin; iter != iterEnd; ++iter)
-		{
-		//	get element
-			TElem* coarseElem = *iter;
-
-			const size_t numChild = mg.num_children<TElem, TElem>(coarseElem);
-			if(numChild != 0) continue;
-
-		//	get indices
-			coarseDD.inner_algebra_indices(coarseElem, vCoarseIndex);
-			fineDD.inner_algebra_indices(coarseElem, vFineIndex);
-			UG_ASSERT(vCoarseIndex.size() == vFineIndex.size(), "Size mismatch");
-
-		//	set identity
-			for(size_t i = 0; i < vCoarseIndex.size(); ++i)
-				mat(vCoarseIndex[i], vFineIndex[i]) = 1.0;
-		}
-	}
-}
-
-template <typename TDomain, typename TAlgebra>
-void StdTransfer<TDomain, TAlgebra>::
-set_identity_on_pure_surface(matrix_type& mat,
-                             const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
-{
-	if(coarseDD.max_dofs(VERTEX)) set_identity_on_pure_surface<VertexBase>(mat, coarseDD, fineDD);
-	if(coarseDD.max_dofs(EDGE)) set_identity_on_pure_surface<EdgeBase>(mat, coarseDD, fineDD);
-	if(coarseDD.max_dofs(FACE)) set_identity_on_pure_surface<Face>(mat, coarseDD, fineDD);
-	if(coarseDD.max_dofs(VOLUME)) set_identity_on_pure_surface<Volume>(mat, coarseDD, fineDD);
-}
-
-template <typename TDomain, typename TAlgebra>
 SmartPtr<typename TAlgebra::matrix_type>
 StdTransfer<TDomain, TAlgebra>::
 prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
@@ -450,10 +397,6 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 			assemble_restriction_p1(*R, *spCoarseDD, *spFineDD);
 		} else{
 			assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, spApproxSpace->domain());
-		}
-
-		if(coarseGL.is_surface()){
-//			set_identity_on_pure_surface(*R, *spCoarseDD, *spFineDD);
 		}
 
 		#ifdef UG_PARALLEL

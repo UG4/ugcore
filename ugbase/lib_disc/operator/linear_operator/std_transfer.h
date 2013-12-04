@@ -150,13 +150,6 @@ class StdTransfer :
 		void assemble_restriction_p1(matrix_type& mat,
 		                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
 
-		template <typename TElem>
-		void set_identity_on_pure_surface(matrix_type& mat,
-		                                  const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
-
-		void set_identity_on_pure_surface(matrix_type& mat,
-		                                  const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
-
 	protected:
 	///	struct to distinguish already assembled operators
 		struct TransferKey{
