@@ -89,18 +89,18 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getAuthors
 
 /*
  * Class:     edu_gcsc_vrl_ug_UG
- * Method:    _getCompileDate
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate
-  (JNIEnv *, jobject);
-
-/*
- * Class:     edu_gcsc_vrl_ug_UG
  * Method:    _getBinaryLicense
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_gcsc_vrl_ug_UG
+ * Method:    _getCompileDate
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate
   (JNIEnv *, jobject);
 
 /*
@@ -110,14 +110,6 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense
  */
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
   (JNIEnv *, jclass, jobjectArray);
-
-/*
- * Class:     edu_gcsc_vrl_ug_UG
- * Method:    _test_debug
- * Signature: (Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;
- */
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1test_1debug
-  (JNIEnv *, jobject, jstring, jobjectArray);
 
 /*
  * Class:     edu_gcsc_vrl_ug_UG

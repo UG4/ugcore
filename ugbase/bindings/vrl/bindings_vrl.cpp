@@ -65,13 +65,13 @@ void Logln(std::string s) {
 
 void ThrowIf(bool b, std::string s) {
 	if (!b) {
-		throw (ug::UGError(s.c_str()));
+		throw(ug::UGError(s.c_str()));
 	}
 }
 
 void ThrowIfNot(bool b, std::string s) {
 	if (!b) {
-		throw (ug::UGError(s.c_str()));
+		throw(ug::UGError(s.c_str()));
 	}
 }
 
@@ -107,7 +107,7 @@ public:
 
 	number get(int i) const {
 
-		if (i < 0 || (size_t)i >= _vec.size()) {
+		if (i < 0 || (size_t) i >= _vec.size()) {
 			throw UGError("NumberArray: index out of Bounds!");
 		}
 
@@ -115,18 +115,15 @@ public:
 	}
 };
 
-template <typename TVector>
+template<typename TVector>
 SmartPtr<NumberArray> getDefects(const ug::StdConvCheck<TVector>* convCheck) {
 
-	return SmartPtr<NumberArray > (
-			new NumberArray(convCheck->get_defects()));
+	return SmartPtr<NumberArray>(new NumberArray(convCheck->get_defects()));
 }
 
 void registerNumberArray(ug::bridge::Registry & reg) {
-	reg.add_class_<NumberArray > ("NumberArray", "UG4/Util")
-			.add_constructor()
-			.add_method("get", &NumberArray::get)
-			.add_method("size", &NumberArray::size);
+	reg.add_class_<NumberArray>("NumberArray", "UG4/Util").add_constructor().add_method(
+			"get", &NumberArray::get).add_method("size", &NumberArray::size);
 }
 
 void registerUGFinalize(ug::bridge::Registry & reg) {
@@ -150,56 +147,52 @@ public:
 	}
 };
 
-
 /**
  * Class exporting the functionality. All functionality that is to
  * be used in scripts or visualization must be registered here.
  */
-struct Functionality
-{
+struct Functionality {
 
-/**
- * Function called for the registration of Algebra dependent parts.
- * All Functions and Classes depending on Algebra
- * are to be placed here when registering. The method is called for all
- * available Algebra types, based on the current build options.
- *
- * @param reg				registry
- * @param parentGroup		group for sorting of functionality
- */
-template <typename TAlgebra>
-static void Algebra(ug::bridge::Registry& reg, std::string parentGroup)
-{
+	/**
+	 * Function called for the registration of Algebra dependent parts.
+	 * All Functions and Classes depending on Algebra
+	 * are to be placed here when registering. The method is called for all
+	 * available Algebra types, based on the current build options.
+	 *
+	 * @param reg				registry
+	 * @param parentGroup		group for sorting of functionality
+	 */
+	template<typename TAlgebra>
+	static void Algebra(ug::bridge::Registry& reg, std::string parentGroup) {
 //	typedefs for Vector and Matrix
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
+		typedef typename TAlgebra::vector_type vector_type;
+		typedef typename TAlgebra::matrix_type matrix_type;
 
 //	suffix and tag
-	std::string suffix = ug::bridge::GetAlgebraSuffix<TAlgebra>();
-	std::string tag = ug::bridge::GetAlgebraTag<TAlgebra>();
+		std::string suffix = ug::bridge::GetAlgebraSuffix<TAlgebra>();
+		std::string tag = ug::bridge::GetAlgebraTag<TAlgebra>();
 
+		reg.add_function("GetDefects", &getDefects<vector_type>, "UG4/Util",
+				"Defects");
+	}
 
-	reg.add_function("GetDefects", &getDefects<vector_type>, "UG4/Util", "Defects");
-}
+};
+// end Functionality
 
-}; // end Functionality
-
-void RegisterVRLFunctionality(ug::bridge::Registry& reg, std::string grp)
-{
+void RegisterVRLFunctionality(ug::bridge::Registry& reg, std::string grp) {
 	typedef ug::vrl::Functionality Functionality;
 
-	ug::bridge::RegisterAlgebraDependent<Functionality>(reg,grp);
+	ug::bridge::RegisterAlgebraDependent<Functionality>(reg, grp);
 }
 
-}// end vrl::
-}// end ug::
-
+} // end vrl::
+} // end ug::
 
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
-JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
-  (JNIEnv *env, jclass cls, jobjectArray args) {
+JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit(JNIEnv *env, jclass cls,
+		jobjectArray args) {
 
 	ug::vrl::initJavaVM(env);
 
@@ -233,7 +226,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
 #endif
 
 	ug::vrl::registerBasicTest(reg);
-		
+
 	ug::vrl::RegisterUserData(reg, "UG4/VRL");
 	ug::vrl::registerMessaging(reg);
 	ug::vrl::registerThrowUtil(reg);
@@ -241,10 +234,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
 	ug::vrl::RegisterVRLFunctionality(reg, "UG4/VRL");
 	ug::vrl::registerUGFinalize(reg);
 
-	reg.add_class_<ug::vrl::VTest > ("VTest", "UG4/VRL/Testing")
-			.add_constructor()
-			.add_constructor<void (*)(const char*) >()
-			.add_method("hello", &ug::vrl::VTest::hello);
+	reg.add_class_<ug::vrl::VTest>("VTest", "UG4/VRL/Testing").add_constructor().add_constructor<
+			void (*)(const char*)>().add_method("hello",
+			&ug::vrl::VTest::hello);
 
 	if (!reg.check_consistency()) {
 		ug::GetLogAssistant().flush_error_log();
@@ -259,16 +251,21 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
 	return (jint) retVal;
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
-(JNIEnv *env, jobject obj,
-		jstring exportedClassName, jlong objPtr, jboolean readOnly,
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
+		jobject obj, jstring exportedClassName, jlong objPtr, jboolean readOnly,
 		jstring methodName, jobjectArray params) {
+
+	bool DEBUG = true;
+	if (DEBUG) {
+		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+				<< " Java_edu_gcsc_vrl_ug_UG__1invokeMethod() " << std::endl;
+	}
 
 	std::string className = ug::vrl::stringJ2C(env, exportedClassName);
 
 	const ug::bridge::IExportedClass* clazz =
-			ug::vrl::invocation::getExportedClassPtrByName(
-			ug::vrl::vrlRegistry, className);
+			ug::vrl::invocation::getExportedClassPtrByName(ug::vrl::vrlRegistry,
+					className);
 
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
@@ -279,41 +276,39 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 
 	try {
 		const ug::bridge::ExportedMethod* exMethod =
-				ug::vrl::invocation::getMethodBySignature(
-				env, ug::vrl::vrlRegistry,
-				clazz, ug::vrl::boolJ2C(readOnly), name, params);
+				ug::vrl::invocation::getMethodBySignature(env,
+						ug::vrl::vrlRegistry, clazz, ug::vrl::boolJ2C(readOnly),
+						name, params);
 
 		if (exMethod == NULL && readOnly == false) {
-			exMethod = ug::vrl::invocation::getMethodBySignature(
-					env, ug::vrl::vrlRegistry,
-					clazz, ug::vrl::boolJ2C(true), name, params);
+			exMethod = ug::vrl::invocation::getMethodBySignature(env,
+					ug::vrl::vrlRegistry, clazz, ug::vrl::boolJ2C(true), name,
+					params);
 		}
 
 		if (exMethod == NULL) {
 
 			std::stringstream ss;
 
-			ss << "No method found that matches the given signature: " <<
-					EMPHASIZE_BEGIN << clazz->name() << "."<< name <<
-					"(" + ug::vrl::getParamTypesAsString(env, params) +")" << EMPHASIZE_END << ".";
+			ss << "No method found that matches the given signature: "
+					<< EMPHASIZE_BEGIN << clazz->name() << "." << name
+					<< "(" + ug::vrl::getParamTypesAsString(env, params) + ")"
+					<< EMPHASIZE_END << ".";
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
 			return NULL;
 		}
 
-		ug::vrl::jobjectArray2ParamStack(
-				env, ug::vrl::vrlRegistry,
-				paramsIn, exMethod->params_in(), params);
-
+		ug::vrl::jobjectArray2ParamStack(env, ug::vrl::vrlRegistry, paramsIn,
+				exMethod->params_in(), params);
 
 		const ug::bridge::ClassNameNode* clsNode =
-				ug::vrl::invocation::getClassNodePtrByName(
-				ug::vrl::vrlRegistry, className);
+				ug::vrl::invocation::getClassNodePtrByName(ug::vrl::vrlRegistry,
+						className);
 
 		void* finalObjPtr = ug::bridge::ClassCastProvider::cast_to_base_class(
-				(void*) objPtr,
-				clsNode, exMethod->class_name());
+				(void*) objPtr, clsNode, exMethod->class_name());
 
 		exMethod->execute(finalObjPtr, paramsIn, paramsOut);
 
@@ -321,14 +316,12 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
 
-
 	} catch (ug::bridge::UGError_ClassCastFailed& ex) {
 
 		std::stringstream ss;
 
-		ss << "Incompatible conversion in method "
-				<< className << "." << methodName << "(): from " <<
-						ex.m_from << " to " << ex.m_to;
+		ss << "Incompatible conversion in method " << className << "."
+				<< methodName << "(): from " << ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -339,8 +332,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 
 		std::stringstream ss;
 
-		ss << "Unknown exception thrown while"
-				<< " trying to invoke method: " << clazz->name() << "." << name << "().";
+		ss << "Unknown exception thrown while" << " trying to invoke method: "
+				<< clazz->name() << "." << name << "().";
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -349,8 +342,14 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod
 	return result;
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
-(JNIEnv *env, jobject obj, jlong exportedClassPointer, jobjectArray params) {
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance(JNIEnv *env,
+		jobject obj, jlong exportedClassPointer, jobjectArray params) {
+
+	bool DEBUG = true;
+	if (DEBUG) {
+		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+				<< " Java_edu_gcsc_vrl_ug_UG__1newInstance() " << std::endl;
+	}
 
 	ug::bridge::IExportedClass* clazz =
 			(ug::bridge::IExportedClass*) exportedClassPointer;
@@ -361,30 +360,29 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 
 	try {
 		const ug::bridge::ExportedConstructor* constructor =
-				ug::vrl::invocation::getConstructorBySignature(
-				env, ug::vrl::vrlRegistry,
-				clazz, params);
+				ug::vrl::invocation::getConstructorBySignature(env,
+						ug::vrl::vrlRegistry, clazz, params);
 
 		if (constructor == NULL) {
 
 			std::stringstream ss;
 
-			ss << "No constructor found that matches the given signature: " <<
-				EMPHASIZE_BEGIN << clazz->name() << "."<< name <<
-				"(" + ug::vrl::getParamTypesAsString(env, params) +")" << EMPHASIZE_END << ".";
+			ss << "No constructor found that matches the given signature: "
+					<< EMPHASIZE_BEGIN << clazz->name() << "." << name
+					<< "(" + ug::vrl::getParamTypesAsString(env, params) + ")"
+					<< EMPHASIZE_END << ".";
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
 			return (jlong) NULL;
 		}
-		
-		ug::vrl::jobjectArray2ParamStack(
-				env, ug::vrl::vrlRegistry,
-				paramsIn, constructor->params_in(), params);
+
+		ug::vrl::jobjectArray2ParamStack(env, ug::vrl::vrlRegistry, paramsIn,
+				constructor->params_in(), params);
 
 		if (clazz->construct_as_smart_pointer()) {
-			SmartPtr<void> instance =
-					SmartPtr<void>(constructor->create(paramsIn),
+			SmartPtr<void> instance = SmartPtr<void>(
+					constructor->create(paramsIn),
 					clazz->get_delete_function());
 
 			return ug::vrl::smartPointer2JObject(env, instance);
@@ -397,9 +395,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 
 		std::stringstream ss;
 
-		ss << "Incompatible conversion in constructor of "
-				<< clazz->name() << ": from " <<
-						ex.m_from << " to " << ex.m_to;
+		ss << "Incompatible conversion in constructor of " << clazz->name()
+				<< ": from " << ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -410,8 +407,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 
 		std::stringstream ss;
 
-		ss << "Unknown exception thrown while"
-				<< " trying to invoke method: " << name << "().";
+		ss << "Unknown exception thrown while" << " trying to invoke method: "
+				<< name << "().";
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -420,14 +417,34 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1newInstance
 	return (jlong) NULL;
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
-(JNIEnv *env, jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction(JNIEnv *env,
+		jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
+
+	bool DEBUG = true;
+	if (DEBUG) {
+		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
+		std::cout << "Java_edu_gcsc_vrl_ug_UG__1invokeFunction() : fName = "
+				<< fName << std::endl;
+	}
 
 	std::string name = ug::vrl::stringJ2C(env, fName);
 
+	if (DEBUG) {
+		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+				<< " Java_edu_gcsc_vrl_ug_UG__1invokeFunction() " << std::endl;
+
+		std::cout << "UG__1invokeFunction(): name = " << name << std::endl;
+	}
+
 	const ug::bridge::ExportedFunction* func =
-			ug::vrl::invocation::getFunctionBySignature(
-			env, ug::vrl::vrlRegistry, name, params);
+			ug::vrl::invocation::getFunctionBySignature(env,
+					ug::vrl::vrlRegistry, name, params);
+
+	if (DEBUG) {
+		std::cout << "UG__1invokeFunction(): func->m_name = " << func->name()
+				<< std::endl;
+	}
 
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
@@ -439,9 +456,10 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 		if (func == NULL) {
 			std::stringstream ss;
 
-			ss << "No function found that matches the given signature: " <<
-				EMPHASIZE_BEGIN << name <<
-				"(" + ug::vrl::getParamTypesAsString(env,params) +")" << EMPHASIZE_END << ".";
+			ss << "No function found that matches the given signature: "
+					<< EMPHASIZE_BEGIN << name
+					<< "(" + ug::vrl::getParamTypesAsString(env, params) + ")"
+					<< EMPHASIZE_END << ".";
 
 			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 			env->ThrowNew(Exception, ss.str().c_str());
@@ -449,20 +467,39 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 			return NULL;
 		}
 
-		ug::vrl::jobjectArray2ParamStack(
-				env, ug::vrl::vrlRegistry, paramsIn, func->params_in(), params);
+		//zum debuggen christian poliwoda ?? HIER passiert der Fehler
+		 //UG_LOG("UG__1invokeFunction(): ?? HIER passiert der Fehler"<<std::endl);
+
+		 //UG_LOG("UG__1invokeFunction(): paramsIn = "<< paramsIn<<std::endl);
+
+		 for (int i = 0; i < paramsIn.size(); ++i) {
+		 UG_LOG("UG__1invokeFunction(): paramsIn.class_name( "<<i<<" ) = "<< paramsIn.class_name(i)<<std::endl);
+		 UG_LOG("UG__1invokeFunction(): paramsIn.class_name_node( "<<i<<" ) = "<< paramsIn.class_name_node(i)<<std::endl);
+		 }
+
+		 //UG_LOG(" func->params_in() = "<< func->params_in() <<std::endl);
+		 for (int i = 0; i < func->params_in().size(); ++i) {
+		 UG_LOG("UG__1invokeFunction(): func->params_in().class_name( "<<i<<" ) = "<< func->params_in().class_name(i)<<std::endl);
+		 UG_LOG("UG__1invokeFunction(): func->params_in().class_name_node( "<<i<<" ) = "<< func->params_in().class_name_node(i)<<std::endl);
+		 }
+
+		ug::vrl::jobjectArray2ParamStack(env, ug::vrl::vrlRegistry, paramsIn,
+				func->params_in(), params);
 
 		func->execute(paramsIn, paramsOut);
 
 		if (paramsOut.size() > 0) {
+			//christian poliwoda
+			//question: need here to distinct between Jobject and JobjectARRAY ?!??
+			UG_LOG("UG__1invokeFunction(): result = ug::vrl::param2JObject("<<std::endl);
+
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
 
 	} catch (ug::bridge::UGError_ClassCastFailed& ex) {
 		std::stringstream ss;
-		ss << "Incompatible conversion in function "
-				<< func->name() << "(): from " <<
-				ex.m_from << " to " << ex.m_to;
+		ss << "Incompatible conversion in function " << func->name()
+				<< "(): from " << ex.m_from << " to " << ex.m_to;
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -473,9 +510,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 	} catch (...) {
 		std::stringstream ss;
 
-		ss << "Unknown exception thrown while"
-				<< " trying to invoke function: " <<
-				ug::vrl::stringJ2C(env, fName) << "().";
+		ss << "Unknown exception thrown while" << " trying to invoke function: "
+				<< ug::vrl::stringJ2C(env, fName) << "().";
 
 		jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
 		env->ThrowNew(Exception, ss.str().c_str());
@@ -484,14 +520,14 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeFunction
 	return result;
 }
 
-JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName
-(JNIEnv *env, jobject obj, jstring name, jboolean classGrp) {
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName(
+		JNIEnv *env, jobject obj, jstring name, jboolean classGrp) {
 
 	if (ug::vrl::boolJ2C(classGrp)) {
 
 		const ug::bridge::ClassGroupDesc* grpDesc =
 				ug::vrl::vrlRegistry->get_class_group(
-				ug::vrl::stringJ2C(env, name).c_str());
+						ug::vrl::stringJ2C(env, name).c_str());
 
 		if (grpDesc == NULL || grpDesc->get_default_class() == NULL) {
 			return (jlong) NULL;
@@ -507,11 +543,11 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug_UG__1getExportedClassPtrByName
 	return (jlong) NULL;
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup
-(JNIEnv *env, jobject obj, jstring grpName) {
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup(
+		JNIEnv *env, jobject obj, jstring grpName) {
 	const ug::bridge::ClassGroupDesc* grpDesc =
 			ug::vrl::vrlRegistry->get_class_group(
-			ug::vrl::stringJ2C(env, grpName).c_str());
+					ug::vrl::stringJ2C(env, grpName).c_str());
 
 	if (grpDesc == NULL) {
 		return ug::vrl::stringC2J(env, "");
@@ -524,24 +560,24 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDefaultClassNameFromGroup
 	return ug::vrl::stringC2J(env, grpDesc->get_default_class()->name().c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision
-(JNIEnv *env, jobject obj) {
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getSvnRevision(JNIEnv *env,
+		jobject obj) {
 	std::string revision = ug::vrl::svnRevision();
 	return ug::vrl::stringC2J(env, revision.c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate
-(JNIEnv *env, jobject obj) {
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getCompileDate(JNIEnv *env,
+		jobject obj) {
 	return ug::vrl::stringC2J(env, ug::UGCompileDate());
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getUGVersion
-  (JNIEnv *env, jobject obj) {
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getUGVersion(JNIEnv *env,
+		jobject obj) {
 	return ug::vrl::stringC2J(env, ug::UGGetVersionString().c_str());
 }
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1delete
-(JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1delete(JNIEnv * env,
+		jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
 	if (((void*) objPtr) != NULL && ((void*) exportedClsPtr) != NULL) {
 		ug::bridge::IExportedClass* clazz =
@@ -550,8 +586,8 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1delete
 	}
 }
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1invalidate
-(JNIEnv * env, jclass cls, jobject smartPtr) {
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1invalidate(JNIEnv * env,
+		jclass cls, jobject smartPtr) {
 
 	if (ug::vrl::isJSmartPointerConst(env, smartPtr)) {
 		ug::vrl::invalidateJConstSmartPointer(env, smartPtr);
@@ -561,31 +597,42 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG__1invalidate
 
 }
 
-JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1convertRegistryInfo
-(JNIEnv * env, jobject obj) {
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1convertRegistryInfo(
+		JNIEnv * env, jobject obj) {
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDescription
-(JNIEnv *env, jobject obj) {
-	std::string desc =
-			"UG is a general platform for the numerical solution<br>"
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getDescription(JNIEnv *env,
+		jobject obj) {
+	std::string desc = "UG is a general platform for the numerical solution<br>"
 			" of partial differential equations.";
 
 	return ug::vrl::stringC2J(env, desc.c_str());
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getAuthors
-(JNIEnv *env, jobject obj) {
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getAuthors(JNIEnv *env,
+		jobject obj) {
+
+	// START origin method DO NOT delete
 	return ug::vrl::stringC2J(env, ug::UG_AUTHORS.c_str());
+	// END origin method DO NOT delete
+
+	/*
+	 std::string tmpinfo = "project: VRL-UG \n  package: edu.gcsc.vrl.ug \n class: UG.java \n method: getAuthors() \n";
+	 //std::string tmpresult = strncat( tmpinfo , " \n tmpresult :-)", tmpinfo.length());
+
+	 std::string tmpresult = " ### ### ### tmpresult :-)";
+
+	 std::cout << tmpresult << std::endl;
+
+	 return ug::vrl::stringC2J(env, tmpresult.c_str());
+	 */
 }
 
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense
-(JNIEnv *env, jobject obj) {
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense(
+		JNIEnv *env, jobject obj) {
 	return ug::vrl::stringC2J(env, ug::UG_BINARY_LICENSE.c_str());
 }
-
-
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug_UG_attachCanvas
 //(JNIEnv *env, jobject obj, jobject canvas) {
@@ -593,3 +640,182 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug_UG__1getBinaryLicense
 //
 //	//	ug::vrl::Canvas::getInstance()->addObject(ug::vrl::string2JObject(env,"Test_String"));
 //}
+
+//method needed only for debug
+//after debugging is finished this method should be commented out
+jobject bool_array(JNIEnv *env, jobject obj, jstring jName,
+		jobjectArray params) {
+
+	std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : bool_array() "
+			<< std::endl;
+
+	std::cout << " jName = " << ug::vrl::stringJ2C(env, jName) << std::endl;
+
+	/*
+	 jobject firstElement = env->GetObjectArrayElement(params, 0);
+
+	 jobjectArray nestedObjectArray = (jobjectArray) firstElement;
+
+	 jbooleanArray boolArray = (jbooleanArray) nestedObjectArray;
+
+	 jsize size = env->GetArrayLength(boolArray);
+	 jboolean *elements = env->GetBooleanArrayElements(boolArray, false);
+
+	 std::cout << " true = " << true << std::endl;
+	 std::cout << " false = " << false << std::endl;
+
+	 //do something with the entries
+	 for (int i = 0; i < size; i++) {
+
+	 std::cout << " elements[ " << i << " ] = " << elements[i] << std::endl;
+	 }
+
+	 env->ReleaseBooleanArrayElements(boolArray, elements, 0);
+
+	 return firstElement;
+	 */
+
+	//
+	//
+	//
+	//
+	jbooleanArray jBoolArray = ug::vrl::jObject2BooleanArray(env, obj);
+
+	std::cout << "CPP: jBoolArray: " << jBoolArray << std::endl;
+
+	jsize arrayLenght = env->GetArrayLength(jBoolArray);
+	std::cout << "arrayLenght = " << arrayLenght << std::endl;
+
+	jboolean *arrayBoolElements = env->GetBooleanArrayElements(jBoolArray,
+			NULL);
+
+	// getVALUEs from jBooleanArray
+
+	for (int arrayindex = 0; arrayindex < arrayLenght; ++arrayindex) {
+
+		////
+		//// ATTENTION !!!
+		////
+		////we need to cast manuel between jboolean and bool
+		std::cout << arrayindex << " (bool) arrayBoolElements = "
+				<< (bool) arrayBoolElements[arrayindex] << std::endl;
+	}
+
+	env->ReleaseBooleanArrayElements(jBoolArray, arrayBoolElements, JNI_ABORT);
+
+}
+
+//method needed only for debug
+//after debugging is finished this method should be commented out
+jobject array_of_bool_arrays(JNIEnv *env, jobject obj, jstring jName,
+		jobjectArray params) {
+
+	std::cout
+			<< "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : array_of_bool_arrays() "
+			<< std::endl;
+
+	std::cout << " array_of_bool_arrays().jName = "
+			<< ug::vrl::stringJ2C(env, jName) << std::endl;
+
+	std::cout
+			<< " array_of_bool_arrays() calling  ug::vrl::jObject2BooleanArray(env, PARAMS)"
+			<< std::endl;
+
+	//
+	// here i need to know too that there are arrays in "params"
+	//
+
+	//RICHTIG ?? START
+
+	// for (array.size)
+	jsize arraySize = env->GetArrayLength(params);
+
+	std::cout << "for (int i = 0; i < " << arraySize << "; ++i)" << std::endl;
+	for (int i = 0; i < arraySize; ++i) {
+		//std::cout << "Array i = " << i << ": "<< std::endl;
+
+		std::cout << "jobject value = env->GetObjectArrayElement(array, " << i
+				<< " );" << std::endl;
+		jobject value = env->GetObjectArrayElement(params, i);
+
+		//check if the parameter is an array
+
+		bool isArray = ug::vrl::isJObjectAnArray(env, value);
+
+		std::cout << "value " << i << " is an array: "
+				<< (isArray ? "TRUE" : "FALSE") << std::endl;
+
+		//here we KNOW that the jobject "value" contains also an array!!! therefor calling
+		std::cout
+				<< "here we KNOW that the jobject value contains also an array!!! therefor calling"
+				<< std::endl;
+
+		//std::cout <<"Java_de_tutorials_NativeExample_nativePrintArray(env, clazz, value);"<< std::endl;
+		////Java_de_tutorials_NativeExample_nativePrintArray(env, clazz, value);
+
+		//ersetzte den aufruf von bsp _nativePrintArray() durch den code/inhalt der methode
+
+		jbooleanArray jBoolArray = ug::vrl::jObject2BooleanArray(env, value);
+
+		jsize jBoolArrayLenght = env->GetArrayLength(jBoolArray);
+		//cout << "jBoolArrayLenght = " << jBoolArrayLenght << endl;
+
+		jboolean *jBoolArrayElements = env->GetBooleanArrayElements(jBoolArray,
+				NULL);
+
+		std::cout << "trunk/ugbase/bindings/vrl/bindings_vrl.cpp : array_of_bool_arrays() ."
+				<< " getVALUEs from jBooleanArray" << std::endl;
+
+		for (int arrayindex = 0; arrayindex < jBoolArrayLenght; ++arrayindex) {
+
+			////
+			//// ATTENTION !!!
+			////
+			////we need to cast manuel between jboolean and bool
+			std::cout << " (bool) jBoolArrayElements[ " << arrayindex << " ] = "
+					<< (bool) jBoolArrayElements[arrayindex] << std::endl;
+		}
+
+		env->ReleaseBooleanArrayElements(jBoolArray, jBoolArrayElements,
+				JNI_ABORT);
+
+	}					//for (int i = 0; i < arraySize; ++i)
+	//RICHTIG ?? END
+
+//	return //???
+}
+
+/*
+ * this method is only for debug issues and should NOT be used later
+ */JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1test_1debug(JNIEnv *env,
+		jobject obj, jstring jName, jobjectArray params) {
+
+	std::cout << "CPP: trunk/ugbase/bindings/vrl/bindings_vrl.cpp :"
+			<< " Java_edu_gcsc_vrl_ug_UG__1test_1debug() " << std::endl;
+	std::cout << " Java_edu_gcsc_vrl_ug_UG__1test_1debug() : jName = " << jName
+			<< std::endl;
+
+	/* By selecting the debug-method you choose the test that should
+	 * by trigert.
+	 */
+
+	/* std::cout << " bool_array()" << std::endl;
+	 jobject result = bool_array(env, obj, jName, params);
+	 */
+
+	jobject result;
+
+	std::cout << " UG__1test_1debug() bottle neck."
+			<< " redirecting method call to array_of_bool_arrays()"
+			<< std::endl;
+	result = array_of_bool_arrays(env, obj, jName, params); //DID WORK
+
+	std::cout << " result = " << result << std::endl; //what is result array_of_bool_arrays does not return anything
+	//std::cout << " jObject2String(result) = " << ug::vrl::jObject2String(env, result) << std::endl;
+
+	//
+	//NOW TRY CALLING "in a real scenario"
+	// result = Java_edu_gcsc_vrl_ug_UG__1invokeFunction(env, obj, jName, true, params);
+
+	return result;
+}
