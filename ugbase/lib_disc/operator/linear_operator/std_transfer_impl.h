@@ -147,9 +147,6 @@ assemble_restriction_elemwise(matrix_type& mat,
 {
 	PROFILE_FUNC_GROUP("gmg");
 
-//  resize matrix
-	mat.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
-
 //  iterators
 	MultiGrid& mg = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
 	typedef typename DoFDistribution::traits<TChild>::const_iterator const_iterator;
@@ -318,6 +315,9 @@ assemble_restriction_elemwise(matrix_type& mat,
                               const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
                               ConstSmartPtr<TDomain> spDomain)
 {
+	//  resize matrix
+	mat.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
+
 	// loop all base types carrying indices on fine elems
 	if(fineDD.max_dofs(VERTEX)) assemble_restriction_elemwise<VertexBase>(mat, coarseDD, fineDD, spDomain);
 	if(fineDD.max_dofs(EDGE)) assemble_restriction_elemwise<EdgeBase>(mat, coarseDD, fineDD, spDomain);

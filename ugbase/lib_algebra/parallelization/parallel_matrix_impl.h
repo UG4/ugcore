@@ -70,12 +70,11 @@ apply(TPVector &res, const TPVector &x) const
 //	if no admissible type is found, return error
 	if(type == -1)
 	{
-		UG_LOG("ERROR in 'ParallelMatrix::apply' (b = A*x): "
+		UG_THROW("ParallelMatrix::apply (b = A*x): "
 				"Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT\n"
 				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n"
 				"    (storage type of A = " << get_storage_type() << ", x = " << x.get_storage_type() << ")");
-		return false;
 	}
 
 //	apply on single process vector
@@ -113,12 +112,11 @@ apply_transposed(TPVector &res, const TPVector &x) const
 //	if no admissible type is found, return error
 	if(type == -1)
 	{
-		UG_LOG("ERROR in 'ParallelMatrix::apply_transposed' (b = A^T*x): "
+		UG_THROW("ParallelMatrix::apply_transposed (b = A^T*x): "
 				"Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT\n"
 				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n"
 				"    (storage type of A = " << get_storage_type() << ", x = " << x.get_storage_type() << ")");
-		return false;
 	}
 
 //	apply on single process vector
@@ -153,11 +151,10 @@ matmul_minus(TPVector &res, const TPVector &x) const
 //	if no admissible type is found, return error
 	if(type == -1)
 	{
-		UG_LOG("ERROR in 'ParallelMatrix::matmul_minus' (b -= A*x):"
+		UG_THROW("ParallelMatrix::matmul_minus (b -= A*x):"
 				" Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT and b is PST_ADDITIVE\n"
 				"    (storage type of A = " << this->get_storage_type() << ", x = " << x.get_storage_type() << ", b = " << x.get_storage_type() << ")");
-		return false;
 	}
 
 //	apply on single process vector
@@ -189,7 +186,7 @@ ug::ParallelStorageType GetMultType(const ParallelMatrix<matrix_type> &A1, const
 	//	if no admissible type is found, return error
 	if(type == PST_UNDEFINED)
 	{
-		UG_LOG("ERROR in 'ParallelMatrix::apply' (b = A*x): "
+		UG_THROW("ParallelMatrix::apply (b = A*x): "
 				"Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT\n"
 				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n"
@@ -228,8 +225,7 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 
 	if(!v1.has_storage_type(type))
 	{
-		UG_LOG("Error in MatMultAdd(dest, alpha1, v1, beta1, A1, w1): Storage type of A1*w1 = " << type << ", storage type of v1 = " << v1.get_storage_type() << ".");
-		return false;
+		UG_THROW("MatMultAdd(dest, alpha1, v1, beta1, A1, w1): Storage type of A1*w1 = " << type << ", storage type of v1 = " << v1.get_storage_type() << ".");
 	}
 
 	MatMultAdd(dynamic_cast<vector_type&>(dest), alpha1, dynamic_cast<const vector_type&>(v1),
@@ -255,10 +251,9 @@ inline bool MatMultAddDirect(ParallelVector<vector_type> &dest,
 
 	if(!v1.has_storage_type(type) || !v2.has_storage_type(type))
 	{
-		UG_LOG("Error in MatMultAdd(dest, alpha1, v1, alpha2, v2, beta1, A1, w1):"
+		UG_THROW("MatMultAdd(dest, alpha1, v1, alpha2, v2, beta1, A1, w1):"
 				" Storage type of A1*w1 doesnt match storage type of v1 or v2.\n"
 				"Storage type of A1*w1 = " << type << " v1 = " << v1.get_storage_type() << ", v2 = " << v2.get_storage_type() << ".");
-		return false;
 	}
 
 	MatMultAdd(dynamic_cast<vector_type&>(dest), alpha1, dynamic_cast<const vector_type&>(v1), alpha2, dynamic_cast<const vector_type&>(v2),

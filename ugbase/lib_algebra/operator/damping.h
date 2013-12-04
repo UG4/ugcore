@@ -109,7 +109,8 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 	///	returns the damping factor
 		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const
 		{
-			X Ac; Ac.create(d.size());
+			SmartPtr<X> spAc = d.clone_without_values();
+			X& Ac = *spAc;
 			spLinOp.cast_const()->apply(Ac, c);
 
 		//	Compute scaling
@@ -144,7 +145,8 @@ class MinimalEnergyDamping : public IDamping<X,Y>
 	///	returns the damping factor
 		virtual number damping(const Y& c, const X& d, ConstSmartPtr<ILinearOperator<Y,X> > spLinOp) const
 		{
-			X Ac; Ac.create(d.size());
+			SmartPtr<X> spAc = d.clone_without_values();
+			X& Ac = *spAc;
 			spLinOp.cast_const()->apply(Ac, c);
 
 		//	Compute scaling
