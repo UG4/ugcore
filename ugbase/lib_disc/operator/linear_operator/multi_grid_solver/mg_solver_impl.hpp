@@ -1353,12 +1353,12 @@ init_level_memory(int baseLev, int topLev)
 		init_noghost_to_ghost_mapping(lev);
 	}
 
-	LevData& ld = *m_vLevData[baseLev];
 	bool bHasVertMaster = false;
 	bool bHasVertSlave = false;
 	bool bHasHorrMaster = false;
 	bool bHasHorrSlave = false;
 	#ifdef UG_PARALLEL
+	LevData& ld = *m_vLevData[baseLev];
 	if( !ld.t->layouts()->vertical_master().empty()) bHasVertMaster = true;
 	if( !ld.t->layouts()->vertical_slave().empty()) bHasVertSlave = true;
 	if( !ld.t->layouts()->master().empty()) bHasHorrMaster = true;
