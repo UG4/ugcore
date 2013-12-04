@@ -514,14 +514,6 @@ const std::vector<std::string>& ReturnConstStdVectorRef_String(){
 	return vec;
 }
 
-std::vector<std::string>& ReturnStdVectorRef_String(){
-	static std::vector<std::string> vec;
-	vec.push_back("Entry1");
-	vec.push_back("Entry2");
-	vec.push_back("Entry3");
-	return vec;
-}
-
 template <typename T>
 std::vector<T> ReturnStdVector_Number(){
 	std::vector<T> vec;
@@ -533,15 +525,6 @@ std::vector<T> ReturnStdVector_Number(){
 
 template <typename T>
 const std::vector<T>& ReturnConstStdVectorRef_Number(){
-	static std::vector<T> vec;
-	vec.push_back((T)1.56);
-	vec.push_back((T)144.87);
-	vec.push_back((T)99.3);
-	return vec;
-}
-
-template <typename T>
-std::vector<T>& ReturnStdVectorRef_Number(){
 	static std::vector<T> vec;
 	vec.push_back((T)1.56);
 	vec.push_back((T)144.87);
@@ -566,16 +549,6 @@ const std::vector<T>& ReturnConstStdVectorRefOfClass(){
 	vec.push_back(new FurtherDerived());
 	return vec;
 }
-
-template <typename T>
-std::vector<T>& ReturnStdVectorRefOfClass(){
-	static std::vector<T> vec;
-	vec.push_back(new Derived());
-	vec.push_back(new Base());
-	vec.push_back(new FurtherDerived());
-	return vec;
-}
-
 
 void NotAllowedParamPerValue(Piece P){}
 
@@ -762,31 +735,24 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 		reg.add_function("PrintConstStdVectorRef_BaseConstSmartPtr", &ConstStdVectorRefOfClass<ConstSmartPtr<Base> >, grp);
 
 		reg.add_function("ReturnConstStdVectorRef_String", &ReturnConstStdVectorRef_String, grp);
-		reg.add_function("ReturnStdVectorRef_String", &ReturnStdVectorRef_String, grp);
 		reg.add_function("ReturnStdVector_String", &ReturnStdVector_String, grp);
 
 		reg.add_function("ReturnConstStdVectorRef_Int", &ReturnConstStdVectorRef_Number<int>, grp);
-		reg.add_function("ReturnStdVectorRef_Int", &ReturnStdVectorRef_Number<int>, grp);
 		reg.add_function("ReturnStdVector_Int", &ReturnStdVector_Number<int>, grp);
 
 		reg.add_function("ReturnConstStdVectorRef_Double", &ReturnConstStdVectorRef_Number<double>, grp);
-		reg.add_function("ReturnStdVectorRef_Double", &ReturnStdVectorRef_Number<double>, grp);
 		reg.add_function("ReturnStdVector_Double", &ReturnStdVector_Number<double>, grp);
 
 		reg.add_function("ReturnConstStdVectorRef_BasePtr", &ReturnConstStdVectorRefOfClass<Base*>, grp);
-		reg.add_function("ReturnStdVectorRef_BasePtr", &ReturnStdVectorRefOfClass<Base*>, grp);
 		reg.add_function("ReturnStdVector_BasePtr", &ReturnStdVectorOfClass<Base*>, grp);
 
 		reg.add_function("ReturnConstStdVectorRef_BaseConstPtr", &ReturnConstStdVectorRefOfClass<const Base*>, grp);
-		reg.add_function("ReturnStdVectorRef_BaseConstPtr", &ReturnStdVectorRefOfClass<const Base*>, grp);
 		reg.add_function("ReturnStdVector_BaseConstPtr", &ReturnStdVectorOfClass<const Base*>, grp);
 
 		reg.add_function("ReturnConstStdVectorRef_BaseSmartPtr", &ReturnConstStdVectorRefOfClass<SmartPtr<Base> >, grp);
-		reg.add_function("ReturnStdVectorRef_BaseSmartPtr", &ReturnStdVectorRefOfClass<SmartPtr<Base> >, grp);
 		reg.add_function("ReturnStdVector_BaseSmartPtr", &ReturnStdVectorOfClass<SmartPtr<Base> >, grp);
 
 		reg.add_function("ReturnConstStdVectorRef_BaseConstSmartPtr", &ReturnConstStdVectorRefOfClass<ConstSmartPtr<Base> >, grp);
-		reg.add_function("ReturnStdVectorRef_BaseConstSmartPtr", &ReturnStdVectorRefOfClass<ConstSmartPtr<Base> >, grp);
 		reg.add_function("ReturnStdVector_BaseConstSmartPtr", &ReturnStdVectorOfClass<ConstSmartPtr<Base> >, grp);
 
 	}
