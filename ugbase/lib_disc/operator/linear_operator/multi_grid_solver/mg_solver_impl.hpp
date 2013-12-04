@@ -1135,7 +1135,7 @@ init_index_mappings()
 
 	m_vSurfToLevelMap.resize(0);
 	m_vSurfToLevelMap.resize(surfDD->num_indices());
-	for(int lev = 0; lev < m_topLev; ++lev){
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
 		m_vLevData[lev]->vShadowing.clear();
 		m_vLevData[lev]->vSurfShadowing.clear();
 		m_vLevData[lev]->vSurfLevelMap.clear();
