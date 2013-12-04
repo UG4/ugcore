@@ -435,6 +435,33 @@ bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
 }
 
 template <class TGeomObj>
+SurfaceView::SurfaceState SurfaceView::surface_state(TGeomObj* obj, const GridLevel& gl) const
+{
+	const int lvl = m_pMG->get_level(obj);
+	const int topLvl = (gl.top() ? (subset_handler()->num_levels()-1) : gl.level());
+
+	#ifdef UG_PARALLEL
+	if(is_ghost(obj)){
+		if(gl.ghosts() && (lvl == topLvl)) return MG_SURFACE_PURE;
+		else {
+			UG_THROW("SurfaceView::surface_state: Call only on objects contained "
+					"in the grid level. (Else result is undefined)");
+		}
+	}
+	#endif
+
+	SurfaceState oss = surface_state(obj);
+
+	if( (lvl == topLvl)
+		&& oss.partially_contains(MG_SHADOW))
+	{
+		oss = MG_SURFACE_PURE;
+	}
+
+	return oss;
+}
+
+template <class TGeomObj>
 bool SurfaceView::is_ghost(TGeomObj* obj) const
 {
 #ifdef UG_PARALLEL

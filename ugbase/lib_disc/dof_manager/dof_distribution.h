@@ -157,6 +157,13 @@ class DoFDistribution : public DoFDistributionInfoProvider
 			}
 		}
 
+		/// returns if the grid object is part of the dof distribution
+		template <class TGeomObj>
+		bool is_contained(TGeomObj* obj) const{
+			return m_spSurfView->is_contained(obj, grid_level());
+		}
+
+
 	public:
 		///	returns if dofs are grouped
 		bool grouped() const {return m_bGrouped;}

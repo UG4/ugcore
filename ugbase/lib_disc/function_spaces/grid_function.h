@@ -251,6 +251,12 @@ class GridFunction
 				m_spDD->collect_associated(vAssElem, elem, clearContainer);
 		}
 
+	/// returns if the grid object is part of this grid function
+		template <class TGeomObj>
+		bool is_contained(TGeomObj* obj) const{
+			return m_spDD->is_contained(obj);
+		}
+
 	public:
 	/// return the number of dofs distributed
 		size_t num_indices() const {return m_spDD->num_indices();}

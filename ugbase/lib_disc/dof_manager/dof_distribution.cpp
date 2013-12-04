@@ -1531,7 +1531,6 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 	typedef typename traits<TBaseElem>::const_iterator iterator;
 
 	const SurfaceView& sv = *m_spSurfView;
-	const MultiGrid& mg = *m_spMG;
 	DistributedGridManager* spDstGrdMgr = sv.subset_handler()->grid()->distributed_grid_manager();
 
 //	get iterators of elems
@@ -1545,20 +1544,11 @@ void DoFDistribution::sum_dof_count(DoFCount& cnt) const
 		const int si = sv.subset_handler()->get_subset_index(elem);
 
 		// Surface State
-		SurfaceView::SurfaceState SurfaceState = SurfaceView::MG_SURFACE_PURE;
-		if(grid_level().is_surface()) {
-			SurfaceState = sv.surface_state(elem);
-			if(SurfaceState == SurfaceView::MG_SHADOW_PURE)
-				SurfaceState = SurfaceView::MG_SURFACE_PURE;
-		}
+		SurfaceView::SurfaceState SurfaceState = sv.surface_state(elem, grid_level());
 
-		if(SurfaceState.contains(SurfaceView::MG_SHADOW_RIM_COPY)){
-			if(mg.num_children<TBaseElem>(elem) > 0){
-				TBaseElem* child = mg.get_child<TBaseElem>(elem, 0);
-				if(sv.surface_state(child).contains(SurfaceView::MG_SURFACE_RIM))
-					continue;
-			}
-		}
+		// skip shadow-rim-copy: those are already numbered by their SURFACE_RIM
+		if(SurfaceState.contains(SurfaceView::MG_SHADOW_RIM_COPY))
+			continue;
 
 		// Interface State
 		byte InterfaceState = ES_NONE;

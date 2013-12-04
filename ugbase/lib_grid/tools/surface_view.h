@@ -97,6 +97,10 @@ class SurfaceView
 		inline bool is_contained(TGeomObj* obj, const GridLevel& gl,
 		                         SurfaceState validStates = ALL) const;
 
+	///	returns the surface states, when considered as part of grid level
+		template <class TElem>
+		SurfaceState surface_state(TElem* elem, const GridLevel& gl) const;
+
 	///	returns if the element is ghost
 	/**	ghost elements are vertical masters that are in no other interfaces.*/
 		template <class TGeomObj>
