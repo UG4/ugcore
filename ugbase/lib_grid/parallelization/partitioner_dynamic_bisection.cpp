@@ -269,12 +269,14 @@ partition(size_t baseLvl, size_t elementThreshold)
 
 	mg.detach_from<elem_t>(aWeight);
 
-	if(m_procMap.empty() && (m_sh.num_subsets() > 0)){
-		if(m_sh.num_subsets() != 1){
-			UG_THROW("Something went wrong during partitioning. At this point"
-					" either exactly one subset or a filled process map should exist.");
+	if(static_partitioning_enabled()){
+		if(m_procMap.empty() && (m_sh.num_subsets() > 0)){
+			if(m_sh.num_subsets() != 1){
+				UG_THROW("Something went wrong during partitioning. At this point"
+						" either exactly one subset or a filled process map should exist.");
+			}
+			m_procMap.push_back(pcl::GetProcRank());
 		}
-		m_procMap.push_back(pcl::GetProcRank());
 	}
 
 //	debugging
