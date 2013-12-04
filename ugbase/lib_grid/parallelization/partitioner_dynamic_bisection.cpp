@@ -191,10 +191,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 	int oldHighestRedistLvl = m_highestRedistLevel;	// only used if static_partitioning is enabled
 	for(size_t hlevel = 0; hlevel < procH->num_hierarchy_levels(); ++ hlevel)
 	{
-		if(hlevel != 0){
-			UG_LOG("\n");
-		}
-		UG_LOG("hlvl: " << hlevel);
 		int minLvl = procH->grid_base_level(hlevel);
 		int maxLvl = (int)mg.top_level();
 		if(hlevel + 1 < procH->num_hierarchy_levels()){
@@ -209,12 +205,9 @@ partition(size_t baseLvl, size_t elementThreshold)
 			continue;
 
 		int numProcs = procH->num_global_procs_involved(hlevel);
-		UG_LOG(", numProcs: " << numProcs);
-
 		int numPartitions = numProcs;
 		if(static_partitioning_enabled())
 			numPartitions = (int)procH->cluster_procs(hlevel).size();
-		UG_LOG(", numPartitions: " << numPartitions);
 
 		if((numProcs <= 1) || (numPartitions == 1)){
 			for(int i = minLvl; i <= maxLvl; ++i)
@@ -222,7 +215,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 			continue;
 		}
 
-		UG_LOG(", m_highestRedistLevel: " << m_highestRedistLevel);
 		if(static_partitioning_enabled() && ((int)hlevel <= m_highestRedistLevel)){
 			for(int i = minLvl; i <= maxLvl; ++i)
 				m_sh.assign_subset( mg.begin<elem_t>(i), mg.end<elem_t>(i), 0);
@@ -245,7 +237,6 @@ partition(size_t baseLvl, size_t elementThreshold)
 			com = procH->global_proc_com(hlevel);
 		}
 
-		UG_LOG("performing bisection...\n");
 		perform_bisection(numPartitions, minLvl, maxLvl, partitionLvl, aWeight, com);
 
 		for(int i = minLvl; i < maxLvl; ++i){
@@ -257,7 +248,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			m_highestRedistLevel = hlevel;
 		}
 	}
-	UG_LOG("\n");
+
 //	make sure that everybody knows about the highestRedistLevel!
 	pcl::ProcessCommunicator globCom;
 	m_highestRedistLevel = globCom.allreduce(m_highestRedistLevel, PCL_RO_MAX);
@@ -993,7 +984,7 @@ find_split_value(const ElemList& elems, int splitDim,
 		}
 	}
 
-	UG_LOG("No perfect split-value found!\n");
+//	UG_LOG("No perfect split-value found!\n");
 	return splitValue;
 }
 
