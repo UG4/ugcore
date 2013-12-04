@@ -247,6 +247,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug_UG__1ugInit
 			.add_method("hello", &ug::vrl::VTest::hello);
 
 	if (!reg.check_consistency()) {
+		ug::GetLogAssistant().flush_error_log();
 		UG_LOG("UG-VRL: cannot compile code due to registration error.\n");
 		return 1;
 	}
