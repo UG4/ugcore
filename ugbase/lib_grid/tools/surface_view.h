@@ -133,10 +133,12 @@ class SurfaceView
 		template <class TElem>
 		SurfaceState surface_state(TElem* elem) const {return m_aaSurfState[elem];}
 
-	///	returns the adjacend elements w.r.t. the surface view
+	///	returns the adjacent elements w.r.t. the grid level
 		template <typename TElem, typename TBaseElem>
 		void collect_associated(std::vector<TBaseElem*>& vAssElem,
-								TElem* elem, bool clearContainer = true) const;
+								TElem* elem,
+								const GridLevel& gl,
+								bool clearContainer = true) const;
 
 	public:
 		template <class TElem> class SurfaceViewElementIterator;

@@ -414,6 +414,7 @@ bool SurfaceView::is_contained(TGeomObj* obj, const GridLevel& gl,
 {
 	const int lvl = m_pMG->get_level(obj);
 	const int topLvl = (gl.top() ? (subset_handler()->num_levels()-1) : gl.level());
+	if(lvl > topLvl) return false;
 
 	#ifdef UG_PARALLEL
 	if(is_ghost(obj)){
@@ -439,6 +440,9 @@ SurfaceView::SurfaceState SurfaceView::surface_state(TGeomObj* obj, const GridLe
 {
 	const int lvl = m_pMG->get_level(obj);
 	const int topLvl = (gl.top() ? (subset_handler()->num_levels()-1) : gl.level());
+	if(lvl > topLvl)
+		UG_THROW("SurfaceView::surface_state: Call only on objects contained "
+				"in the grid level. (Else result is undefined)");
 
 	#ifdef UG_PARALLEL
 	if(is_ghost(obj)){
@@ -496,11 +500,11 @@ bool SurfaceView::is_vmaster(TElem* elem) const
 template <typename TElem, typename TBaseElem>
 void SurfaceView::
 collect_associated(std::vector<TBaseElem*>& vAssElem,
-                   TElem* elem, bool clearContainer) const
+                   TElem* elem,
+                   const GridLevel& gl,
+                   bool clearContainer) const
 {
 	if(clearContainer) vAssElem.clear();
-
-	const GridLevel gl(GridLevel::TOP, GridLevel::SURFACE);
 
 //	collect associated on this level
 	if(is_contained(elem, gl, SURFACE))
@@ -508,8 +512,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 
 //	if at border of a level grid, there may be connections of the "shadow" element
 //	to surface elements on the coarser level. These must be taken into account.
-
-	if(is_adaptive())
+	if(is_contained(elem, gl, SURFACE_RIM))
 	{
 	//	get parent if copy
 		GeometricObject* pParent = m_pMG->get_parent(elem);
@@ -523,12 +526,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 
 		for(size_t i = 0; i < vCoarseElem.size(); ++i)
 		{
-		//	if shadowed, not in surface view of the requested level
-		//todo:	it could make sense to pass the level of this SurfaceLevelView
-		//		to the is_surface_element method.
 			if(!is_contained(vCoarseElem[i], gl, SURFACE)) continue;
-
-		//	else this must be added to adjacent elements
 			vAssElem.push_back(vCoarseElem[i]);
 		}
 	}

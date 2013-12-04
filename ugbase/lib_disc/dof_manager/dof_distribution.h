@@ -153,7 +153,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 			if(grid_level().is_level())
 				CollectAssociated(vAssElem, *m_pMG, elem, clearContainer);
 			else{
-				m_spSurfView->collect_associated(vAssElem, elem, clearContainer);
+				m_spSurfView->collect_associated(vAssElem, elem, grid_level(), clearContainer);
 			}
 		}
 

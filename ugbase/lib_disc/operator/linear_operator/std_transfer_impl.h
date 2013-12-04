@@ -38,7 +38,8 @@ assemble_restriction_p1(matrix_type& mat,
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level
-	std::vector<DoFIndex> vCoarseDoF, vFineDoF;
+	std::vector<size_t> vParentIndex, vChildIndex;
+	std::vector<DoFIndex> vParentDoF, vChildDoF;
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
 		iterBegin = fineDD.template begin<VertexBase>(si);
@@ -48,14 +49,39 @@ assemble_restriction_p1(matrix_type& mat,
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
 		//	get element
-			VertexBase* fineVrt = *iter;
+			VertexBase* child = *iter;
 
 		//  get father
-			GeometricObject* parent = mg.get_parent(fineVrt);
+			GeometricObject* parent = mg.get_parent(child);
 
-		//	check if parent exists (this should always be the case, except in
-		//	the case that 'child' is a v-slave)
-			if(!parent) continue;
+		//	check if child contained in coarseDD. This should always be false
+		//	for a GridLevel::LEVEL, but might be the case for GridLevel::SURFACE
+		//	and an adaptive grid-part used by both dds. In such a case we can
+		//	simply set identity.
+			if(coarseDD.is_contained(child)){
+			//	get indices
+				coarseDD.inner_algebra_indices(child, vParentIndex);
+				fineDD.inner_algebra_indices(child, vChildIndex);
+				UG_ASSERT(vParentIndex.size() == vChildIndex.size(), "Size mismatch");
+
+			//	set identity
+				for(size_t i = 0; i < vParentIndex.size(); ++i)
+					mat(vParentIndex[i], vChildIndex[i]) = 1.0;
+
+			//	this child is perfectly handled
+				continue;
+			}
+			else{
+			//	check if parent exists (this should always be the case, except in
+			//	the case that 'child' is a v-slave)
+				if(!parent) continue;
+
+				if(!coarseDD.is_contained(parent)){
+					UG_THROW("StdTransfer: A parent element is not contained in "
+							" coarse-dd nor the child element in the coarse-dd. "
+							"This should not happen.")
+				}
+			}
 
 		//	type of father
 			const ReferenceObjectID roid = parent->reference_object_id();
@@ -67,7 +93,7 @@ assemble_restriction_p1(matrix_type& mat,
 				if(!fineDD.is_def_in_subset(fct, si)) continue;
 
 			//  get global indices
-				fineDD.inner_dof_indices(fineVrt, fct, vFineDoF);
+				fineDD.inner_dof_indices(child, fct, vChildDoF);
 
 			//	detect type of father
 				switch(roid)
@@ -75,32 +101,32 @@ assemble_restriction_p1(matrix_type& mat,
 					case ROID_VERTEX:
 					{
 						VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
-						coarseDD.inner_dof_indices(vrt, fct, vCoarseDoF);
-						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) = 1.0;
+						coarseDD.inner_dof_indices(vrt, fct, vParentDoF);
+						DoFRef(mat, vParentDoF[0], vChildDoF[0]) = 1.0;
 					}
 					break;
 					case ROID_EDGE:
 					for(int i = 0; i < 2; ++i)
 					{
 						EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
-						coarseDD.inner_dof_indices(edge->vertex(i), fct, vCoarseDoF);
-						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) = 0.5;
+						coarseDD.inner_dof_indices(edge->vertex(i), fct, vParentDoF);
+						DoFRef(mat, vParentDoF[0], vChildDoF[0]) = 0.5;
 					}
 					break;
 					case ROID_QUADRILATERAL:
 					for(int i = 0; i < 4; ++i)
 					{
 						Face* face = dynamic_cast<Face*>(parent);
-						coarseDD.inner_dof_indices(face->vertex(i), fct, vCoarseDoF);
-						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) = 0.25;
+						coarseDD.inner_dof_indices(face->vertex(i), fct, vParentDoF);
+						DoFRef(mat, vParentDoF[0], vChildDoF[0]) = 0.25;
 					}
 					break;
 					case ROID_HEXAHEDRON:
 					for(int i = 0; i < 8; ++i)
 					{
 						Volume* hexaeder = dynamic_cast<Volume*>(parent);
-						coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, vCoarseDoF);
-						DoFRef(mat, vCoarseDoF[0], vFineDoF[0]) = 0.125;
+						coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, vParentDoF);
+						DoFRef(mat, vParentDoF[0], vChildDoF[0]) = 0.125;
 					}
 					break;
 					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element Father"
@@ -131,6 +157,7 @@ assemble_restriction_elemwise(matrix_type& mat,
 
 //  loop subsets on coarse level
 	std::vector<DoFIndex> vParentDoF, vChildDoF;
+	std::vector<size_t> vParentIndex, vChildIndex;
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
 		iterBegin = fineDD.template begin<TChild>(si);
@@ -155,9 +182,35 @@ assemble_restriction_elemwise(matrix_type& mat,
 		//	get parent
 			GeometricObject* parent = mg.get_parent(child);
 
-		//	check if parent exists (this should always be the case, except in
-		//	the case that 'child' is a v-slave)
-			if(!parent) continue;
+		//	check if child contained in coarseDD. This should always be false
+		//	for a GridLevel::LEVEL, but might be the case for GridLevel::SURFACE
+		//	and an adaptive grid-part used by both dds. In such a case we can
+		//	simply set identity.
+			if(coarseDD.is_contained(child)){
+			//	get indices
+				coarseDD.inner_algebra_indices(child, vParentIndex);
+				fineDD.inner_algebra_indices(child, vChildIndex);
+				UG_ASSERT(vParentIndex.size() == vChildIndex.size(), "Size mismatch");
+
+			//	set identity
+				for(size_t i = 0; i < vParentIndex.size(); ++i)
+					mat(vParentIndex[i], vChildIndex[i]) = 1.0;
+
+			//	this child is perfectly handled
+				continue;
+			}
+			else{
+
+			//	check if parent exists (this should always be the case, except in
+			//	the case that 'child' is a v-slave)
+				if(!parent) continue;
+
+				if(!coarseDD.is_contained(parent)){
+					UG_THROW("StdTransfer: A parent element is not contained in "
+							" coarse-dd nor the child element in the coarse-dd. "
+							"This should not happen.")
+				}
+			}
 
 		//	loop all components
 			for(size_t f = 0; f < vFct.size(); f++)
@@ -400,7 +453,7 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 		}
 
 		if(coarseGL.is_surface()){
-			set_identity_on_pure_surface(*R, *spCoarseDD, *spFineDD);
+//			set_identity_on_pure_surface(*R, *spCoarseDD, *spFineDD);
 		}
 
 		#ifdef UG_PARALLEL

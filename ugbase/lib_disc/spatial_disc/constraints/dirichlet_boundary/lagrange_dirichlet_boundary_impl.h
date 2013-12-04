@@ -359,6 +359,7 @@ adjust_prolongation(const std::vector<TUserData*>& vUserData, int si,
 		TBaseElem* elem = *iter;
 		GeometricObject* parent = m_spDomain->grid()->get_parent(elem);
 		if(!parent) continue;
+		if(!ddCoarse->is_contained(parent)) continue;
 
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < vUserData.size(); ++i)
@@ -480,6 +481,7 @@ adjust_restriction(const std::vector<TUserData*>& vUserData, int si,
 		TBaseElem* elem = *iter;
 		GeometricObject* parent = m_spDomain->grid()->get_parent(elem);
 		if(!parent) continue;
+		if(!ddCoarse->is_contained(parent)) continue;
 
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < vUserData.size(); ++i)
