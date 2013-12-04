@@ -22,6 +22,19 @@
 namespace ug {
 namespace vrl {
 
+//	added by Christian Poliwoda
+//	christian.poliwoda@gcsc.uni-frankfurt.de
+//	y 13 m 10 d 31
+/**
+ * Stores the information about a java parameter/object:
+ * - the type
+ * - and if it is an array
+ */
+struct TypeAndArray {
+	uint type;
+	bool isArray;
+};
+
 /**
  * Converts a native string to a Java string.
  * @param env JVM environment to operate on
@@ -210,6 +223,57 @@ void invalidateJConstSmartPointer(JNIEnv *env, jobject obj);
 void* jObject2Pointer(JNIEnv *env, jobject obj);
 
 
+
+
+
+//	added by Christian Poliwoda
+//	christian.poliwoda@gcsc.uni-frankfurt.de
+//	y 13 m 07 d 10
+/**
+ * This method is designed to compare the first characters (minimum length)
+ * of two strings.
+ */
+bool startsWithSymbolOrderMin(JNIEnv *env, std::string check,
+		std::string symbolOrder);
+
+//	added by Christian Poliwoda
+//	christian.poliwoda@gcsc.uni-frankfurt.de
+//	y 13 m 06 d 06
+/**
+ * This method is designed to compare the first characters (minimum length)
+ * of two strings.
+ */
+bool startsWithSymbolOrderMin(JNIEnv *env, jstring check, jstring symbolOrder);
+
+//	added by Christian Poliwoda
+//	christian.poliwoda@gcsc.uni-frankfurt.de
+//	y 13 m 05 d 28
+bool isJObjectAnArray(JNIEnv *env, jobject value);
+
+//	added by Christian Poliwoda
+//	christian.poliwoda@gcsc.uni-frankfurt.de
+//	y 13 m 10 d 30
+bool isJObjectAnArrayList(JNIEnv *env, jobject value);
+
+
+//	added by Christian Poliwoda
+//	christian.poliwoda@gcsc.uni-frankfurt.de
+//	y 13 m 05 d 28
+jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object);
+
+
+//	added by Christian Poliwoda
+//	christian.poliwoda@gcsc.uni-frankfurt.de
+//	y 13 m 10 d 30
+/**
+ * Cuts the last part of a string, if the last part equals with the to cutting string.
+ * @param original string were the tail should be cutted off
+ * @param toCut string which should be cutted of from original string
+ * @return a new shorter string or the original string if nothing was cutted.
+ */
+std::string cutLastStringPart(std::string original, std::string toCut);
+
+
 /**
  * Converts an array of Java objects to a parameter stack.
  * @param env JVM environment to operate on
@@ -287,7 +351,7 @@ std::string getParamClassName(JNIEnv *env, jobject obj);
  * @return parameter type (ug::bridge::ParameterTypes) of the
  *         specified Java object
  */
-uint paramClass2ParamType(JNIEnv *env, jobject obj);
+TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj);
 
 /**
  * Compares the parameter types of a Java object array and a
