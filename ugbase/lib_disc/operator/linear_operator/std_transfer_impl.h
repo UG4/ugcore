@@ -53,8 +53,9 @@ assemble_restriction_p1(matrix_type& mat,
 		//  get father
 			GeometricObject* parent = mg.get_parent(fineVrt);
 
-			if(!parent)
-				continue;
+		//	check if parent exists (this should always be the case, except in
+		//	the case that 'child' is a v-slave)
+			if(!parent) continue;
 
 		//	type of father
 			const ReferenceObjectID roid = parent->reference_object_id();
@@ -153,6 +154,10 @@ assemble_restriction_elemwise(matrix_type& mat,
 
 		//	get parent
 			GeometricObject* parent = mg.get_parent(child);
+
+		//	check if parent exists (this should always be the case, except in
+		//	the case that 'child' is a v-slave)
+			if(!parent) continue;
 
 		//	loop all components
 			for(size_t f = 0; f < vFct.size(); f++)
