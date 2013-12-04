@@ -2103,16 +2103,8 @@ log_debug_data(int lvl, std::string name)
 	}
 	if(bEnableParallelNorm){
 	#ifdef UG_PARALLEL
-		uint oldStorageMask = ld.t->get_storage_mask();
-		number norm = ld.t->norm();
-		UG_LOG(prefix << " t norm: " << norm << "\n");
-		if(oldStorageMask & PST_ADDITIVE)
-			ld.t->change_storage_type(PST_ADDITIVE);
-		else if(oldStorageMask & PST_CONSISTENT)
-			ld.t->change_storage_type(PST_CONSISTENT);
-
-		oldStorageMask = ld.sd->get_storage_mask();
-		norm = ld.sd->norm();
+		uint oldStorageMask = ld.sd->get_storage_mask();
+		number norm = ld.sd->norm();
 		UG_LOG(prefix << "sd norm: " << norm << "\n");
 		if(oldStorageMask & PST_ADDITIVE)
 			ld.sd->change_storage_type(PST_ADDITIVE);
@@ -2126,7 +2118,7 @@ log_debug_data(int lvl, std::string name)
 			ld.sc->change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
 			ld.sc->change_storage_type(PST_CONSISTENT);
-
+/*
 		oldStorageMask = ld.st->get_storage_mask();
 		norm = ld.st->norm();
 		UG_LOG(prefix << "st norm: " << norm << "\n");
@@ -2134,6 +2126,15 @@ log_debug_data(int lvl, std::string name)
 			ld.st->change_storage_type(PST_ADDITIVE);
 		else if(oldStorageMask & PST_CONSISTENT)
 			ld.st->change_storage_type(PST_CONSISTENT);
+
+		oldStorageMask = ld.t->get_storage_mask();
+		norm = ld.t->norm();
+		UG_LOG(prefix << " t norm: " << norm << "\n");
+		if(oldStorageMask & PST_ADDITIVE)
+			ld.t->change_storage_type(PST_ADDITIVE);
+		else if(oldStorageMask & PST_CONSISTENT)
+			ld.t->change_storage_type(PST_CONSISTENT);
+*/
 	#endif
 	}
 }
