@@ -19,6 +19,8 @@
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
 #include "common/serialization.h"
+
+#include "../util_overloaded.h"
 using namespace std;
 
 namespace ug{
@@ -115,8 +117,8 @@ static void Algebra(Registry& reg, string grp)
 	typedef typename TAlgebra::matrix_type matrix_type;
 
 
-	reg.add_function("SaveToFile", static_cast<void (*)(const vector_type &, std::string)>(&SaveToFile<vector_type>), grp);
-	reg.add_function("ReadFromFile", static_cast<void (*)(vector_type &, std::string)>(&ReadFromFile<vector_type>), grp);
+	reg.add_function("SaveToFile", OVERLOADED_FUNCTION_PTR(void, SaveToFile<vector_type>, (const vector_type &, std::string)), grp);
+	reg.add_function("ReadFromFile", OVERLOADED_FUNCTION_PTR(void, ReadFromFile<vector_type>, (vector_type &, std::string)), grp);
 
 }
 
