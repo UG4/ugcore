@@ -711,7 +711,7 @@ const UGProfileNode *GetProfileNode(const char *name)
 		node = node->find_next_in_tree();
 	} while (node);
 
-	UG_LOG("Profiler Node \"" << name << "\" not found\n");
+//	UG_LOG("Profiler Node \"" << name << "\" not found\n");
 	return NULL;
 }
 
