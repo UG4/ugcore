@@ -1596,6 +1596,7 @@ bool DistributeGrid(MultiGrid& mg,
 					const pcl::ProcessCommunicator& procComm)
 {
 	GDIST_PROFILE_FUNC();
+	PCL_DEBUG_BARRIER(procComm);
 
 	UG_STATIC_ASSERT(IS_DUMMY < 256, RedistributeGrid_IS_DUMMY_too_big);
 
@@ -1774,9 +1775,11 @@ bool DistributeGrid(MultiGrid& mg,
 	GDIST_PROFILE_END();
 
 
+
 ////////////////////////////////
 //	COMMUNICATE SERIALIZED DATA
 	GDIST_PROFILE(gdist_CommunicateSerializedData);
+	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Distribute data\n");
 //	now distribute the packs between involved processes
 	BinaryBuffer in;
@@ -1789,9 +1792,11 @@ bool DistributeGrid(MultiGrid& mg,
 
 	GDIST_PROFILE_END();
 
+
 ////////////////////////////////
 //	INTERMEDIATE CLEANUP
 	GDIST_PROFILE(gdist_IntermediateCleanup);
+	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Intermediate cleanup\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STARTS));
@@ -2068,8 +2073,11 @@ bool DistributeGrid(MultiGrid& mg,
 //		}
 //	}
 
+
+
 //	execute callbacks for external postprocessing
 	GDIST_PROFILE(gdist_ExternalPostProcessing);
+	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));

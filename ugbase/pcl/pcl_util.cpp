@@ -65,7 +65,6 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 								  const std::vector<int>& vSendToRanks,
 								  const ProcessCommunicator& procComm)
 {
-	PCL_DEBUG_BARRIER(procComm);
 	PCL_PROFILE(pcl_CommunicateInvolvedProcesses);
 
 	using namespace std;
