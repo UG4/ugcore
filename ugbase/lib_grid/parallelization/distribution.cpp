@@ -1710,6 +1710,7 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	SERIALIZE THE GRID, THE GLOBAL IDS AND THE DISTRIBUTION INFOS.
 	GDIST_PROFILE(gdist_Serialization);
+	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Serialization\n");
 	AInt aLocalInd("distribution-tmp-local-index");
 	mg.attach_to_all(aLocalInd);
@@ -1971,6 +1972,7 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	DESERIALIZE INCOMING GRIDS
 	GDIST_PROFILE(gdist_Deserialize);
+	PCL_DEBUG_BARRIER(procComm);
 	distInfoSerializer.deserialization_starts();
 	serializer.deserialization_starts();
 	userDataSerializer.deserialization_starts();
@@ -2038,6 +2040,7 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	CREATE LAYOUTS
 	GDIST_PROFILE(gdist_CreateLayouts);
+	PCL_DEBUG_BARRIER(procComm);
 	CreateLayoutsFromDistInfos<VertexBase>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<EdgeBase>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<Face>(mg, glm, distInfos, aGeomObjID);
@@ -2047,6 +2050,7 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	UPDATE THE DISTRIBUTED GRID MANAGER
 	GDIST_PROFILE(gdist_UpdateDistGridManager);
+	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Update DistributedGridManager\n");
 	glm.remove_empty_interfaces();
 	distGridMgr.enable_interface_management(true);
