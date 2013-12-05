@@ -78,12 +78,14 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 	int numQualityRedists = (numLvls - lastDistLvl) / qualityRedistMinNumLvls;
 
 	if(numQualityRedists > 0){
-		int redistStepSize = (numLvls - lastDistLvl) / (numQualityRedists + 1);
-		if(redistStepSize < 2)
-			redistStepSize = 2;
+//		int redistStepSize = (numLvls - lastDistLvl) / (numQualityRedists + 1);
+//		if(redistStepSize < 2)
+//			redistStepSize = 2;
+	//	the new version avoids unnecessary redistributions
+		int redistOffset = qualityRedistMinNumLvls / 2 + 1;
 
-		for(int i = 1; i <= numQualityRedists; ++i){
-			int lvl = lastDistLvl + i * redistStepSize;
+		for(int i = 0; i < numQualityRedists; ++i){
+			int lvl = lastDistLvl + i * qualityRedistMinNumLvls + redistOffset;
 			procH->add_hierarchy_level(lvl, 1);
 		}
 	}
