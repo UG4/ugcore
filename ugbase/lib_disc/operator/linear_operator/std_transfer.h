@@ -52,7 +52,8 @@ class StdTransfer :
 	public:
 	/// Default constructor
 		StdTransfer() : m_p1LagrangeOptimizationEnabled(true),
-						m_dampRes(1.0), bCached(true), m_spDebugWriter(NULL)
+						m_dampRes(1.0), bCached(true), m_bUseTransposed(true),
+						m_spDebugWriter(NULL)
 		{clear_constraints();};
 
 	/// virtual destructor
@@ -77,6 +78,9 @@ class StdTransfer :
 	 * 			which returns a unique number based on the types and order of children.*/
 		void enable_p1_lagrange_optimization(bool enable)	{m_p1LagrangeOptimizationEnabled = enable;}
 		bool p1_lagrange_optimization_enabled() const		{return m_p1LagrangeOptimizationEnabled;}
+
+	///	sets if restriction and prolongation are transposed
+		void set_use_transposed(bool bTransposed) {m_bUseTransposed = bTransposed;}
 
 	public:
 	///	Set levels
@@ -140,15 +144,28 @@ class StdTransfer :
 		                 const GridLevel& glTo, const GridLevel& glFrom);
 
 		template <typename TChild>
-		void assemble_restriction_elemwise(matrix_type& mat,
-		                                    const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
-		                                    ConstSmartPtr<TDomain> spDomain);
-		void assemble_restriction_elemwise(matrix_type& mat,
-		                                    const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
-		                                    ConstSmartPtr<TDomain> spDomain);
+		void assemble_restriction(matrix_type& mat,
+		                          const DoFDistribution& coarseDD,
+		                          const DoFDistribution& fineDD,
+		                          ConstSmartPtr<TDomain> spDomain);
+		void assemble_restriction(matrix_type& mat,
+		                          const DoFDistribution& coarseDD,
+		                          const DoFDistribution& fineDD,
+		                          ConstSmartPtr<TDomain> spDomain);
 
-		void assemble_restriction_p1(matrix_type& mat,
-		                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD);
+		template <typename TChild>
+		void assemble_prolongation(matrix_type& mat,
+                                   const DoFDistribution& fineDD,
+                                   const DoFDistribution& coarseDD,
+                                   ConstSmartPtr<TDomain> spDomain);
+		void assemble_prolongation(matrix_type& mat,
+                                   const DoFDistribution& fineDD,
+                                   const DoFDistribution& coarseDD,
+                                   ConstSmartPtr<TDomain> spDomain);
+
+		void assemble_prolongation_p1(matrix_type& mat,
+		                             const DoFDistribution& fineDD,
+		                             const DoFDistribution& coarseDD);
 
 	protected:
 	///	struct to distinguish already assembled operators
@@ -195,6 +212,9 @@ class StdTransfer :
 
 	///	flag if cached (matrix) transfer used
 		bool bCached;
+
+	///	flag if transposed is used
+		bool m_bUseTransposed;
 
 	///	debug writer
 		SmartPtr<IDebugWriter<TAlgebra> > m_spDebugWriter;

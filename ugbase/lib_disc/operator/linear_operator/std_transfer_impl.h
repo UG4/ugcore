@@ -18,8 +18,9 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-assemble_restriction_p1(matrix_type& mat,
-                         const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
+assemble_prolongation_p1(matrix_type& P,
+                         const DoFDistribution& fineDD,
+                         const DoFDistribution& coarseDD)
 {
 	PROFILE_FUNC_GROUP("gmg");
 // 	allow only lagrange P1 functions
@@ -30,7 +31,7 @@ assemble_restriction_p1(matrix_type& mat,
 				"Interpolation only implemented for Lagrange P1 functions.");
 
 //  resize matrix
-	mat.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
+	P.resize_and_clear(fineDD.num_indices(), coarseDD.num_indices());
 
 //  iterators
 	const MultiGrid& mg = *coarseDD.multi_grid();
@@ -66,7 +67,7 @@ assemble_restriction_p1(matrix_type& mat,
 
 			//	set identity
 				for(size_t i = 0; i < vParentIndex.size(); ++i)
-					mat(vParentIndex[i], vChildIndex[i]) = 1.0;
+					P(vChildIndex[i], vParentIndex[i]) = 1.0;
 
 			//	this child is perfectly handled
 				continue;
@@ -102,7 +103,7 @@ assemble_restriction_p1(matrix_type& mat,
 					{
 						VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
 						coarseDD.inner_dof_indices(vrt, fct, vParentDoF);
-						DoFRef(mat, vParentDoF[0], vChildDoF[0]) = 1.0;
+						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 1.0;
 					}
 					break;
 					case ROID_EDGE:
@@ -110,7 +111,7 @@ assemble_restriction_p1(matrix_type& mat,
 					{
 						EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
 						coarseDD.inner_dof_indices(edge->vertex(i), fct, vParentDoF);
-						DoFRef(mat, vParentDoF[0], vChildDoF[0]) = 0.5;
+						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.5;
 					}
 					break;
 					case ROID_QUADRILATERAL:
@@ -118,7 +119,7 @@ assemble_restriction_p1(matrix_type& mat,
 					{
 						Face* face = dynamic_cast<Face*>(parent);
 						coarseDD.inner_dof_indices(face->vertex(i), fct, vParentDoF);
-						DoFRef(mat, vParentDoF[0], vChildDoF[0]) = 0.25;
+						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.25;
 					}
 					break;
 					case ROID_HEXAHEDRON:
@@ -126,7 +127,7 @@ assemble_restriction_p1(matrix_type& mat,
 					{
 						Volume* hexaeder = dynamic_cast<Volume*>(parent);
 						coarseDD.inner_dof_indices(hexaeder->vertex(i), fct, vParentDoF);
-						DoFRef(mat, vParentDoF[0], vChildDoF[0]) = 0.125;
+						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.125;
 					}
 					break;
 					default: UG_THROW("AssembleStdProlongationForP1Lagrange: Element Father"
@@ -136,14 +137,13 @@ assemble_restriction_p1(matrix_type& mat,
 		}
 	}
 }
-
-
 template <typename TDomain, typename TAlgebra>
 template <typename TChild>
 void StdTransfer<TDomain, TAlgebra>::
-assemble_restriction_elemwise(matrix_type& mat,
-                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
-                              ConstSmartPtr<TDomain> spDomain)
+assemble_prolongation(matrix_type& P,
+                      const DoFDistribution& fineDD,
+                      const DoFDistribution& coarseDD,
+                      ConstSmartPtr<TDomain> spDomain)
 {
 	PROFILE_FUNC_GROUP("gmg");
 
@@ -191,7 +191,7 @@ assemble_restriction_elemwise(matrix_type& mat,
 
 			//	set identity
 				for(size_t i = 0; i < vParentIndex.size(); ++i)
-					mat(vParentIndex[i], vChildIndex[i]) = 1.0;
+					P(vChildIndex[i], vParentIndex[i]) = 1.0;
 
 			//	this child is perfectly handled
 				continue;
@@ -228,7 +228,7 @@ assemble_restriction_elemwise(matrix_type& mat,
 						UG_ASSERT(vChildDoF.size() == 1, "Must be one.");
 						UG_ASSERT(vParentDoF.size() == 1, "Must be one.");
 
-						DoFRef(mat, vParentDoF[0], vChildDoF[0]) =  1.0;
+						DoFRef(P, vChildDoF[0], vParentDoF[0]) =  1.0;
 					}
 					break;
 
@@ -273,7 +273,7 @@ assemble_restriction_elemwise(matrix_type& mat,
 						//	add restriction
 							for(size_t ip = 0; ip < vvShape.size(); ++ip)
 								for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
-									DoFRef(mat, vParentDoF[sh], vChildDoF[ip]) +=
+									DoFRef(P, vChildDoF[ip], vParentDoF[sh]) +=
 											(1./vParent.size()) * vvShape[ip][sh];
 						}
 					}
@@ -295,7 +295,7 @@ assemble_restriction_elemwise(matrix_type& mat,
 					//	set restriction
 						for(size_t ip = 0; ip < vvShape.size(); ++ip)
 							for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
-								DoFRef(mat, vParentDoF[sh], vChildDoF[ip]) = vvShape[ip][sh];
+								DoFRef(P, vChildDoF[ip], vParentDoF[sh]) = vvShape[ip][sh];
 					}
 					break;
 
@@ -311,18 +311,174 @@ assemble_restriction_elemwise(matrix_type& mat,
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-assemble_restriction_elemwise(matrix_type& mat,
-                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD,
-                              ConstSmartPtr<TDomain> spDomain)
+assemble_prolongation(matrix_type& P,
+                      const DoFDistribution& fineDD,
+                      const DoFDistribution& coarseDD,
+                      ConstSmartPtr<TDomain> spDomain)
 {
 	//  resize matrix
-	mat.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
+	P.resize_and_clear(fineDD.num_indices(), coarseDD.num_indices());
 
 	// loop all base types carrying indices on fine elems
-	if(fineDD.max_dofs(VERTEX)) assemble_restriction_elemwise<VertexBase>(mat, coarseDD, fineDD, spDomain);
-	if(fineDD.max_dofs(EDGE)) assemble_restriction_elemwise<EdgeBase>(mat, coarseDD, fineDD, spDomain);
-	if(fineDD.max_dofs(FACE)) assemble_restriction_elemwise<Face>(mat, coarseDD, fineDD, spDomain);
-	if(fineDD.max_dofs(VOLUME)) assemble_restriction_elemwise<Volume>(mat, coarseDD, fineDD, spDomain);
+	if(fineDD.max_dofs(VERTEX)) assemble_prolongation<VertexBase>(P, fineDD, coarseDD, spDomain);
+	if(fineDD.max_dofs(EDGE)) assemble_prolongation<EdgeBase>(P, fineDD, coarseDD, spDomain);
+	if(fineDD.max_dofs(FACE)) assemble_prolongation<Face>(P, fineDD, coarseDD, spDomain);
+	if(fineDD.max_dofs(VOLUME)) assemble_prolongation<Volume>(P, fineDD, coarseDD, spDomain);
+}
+
+
+template <typename TDomain, typename TAlgebra>
+template <typename TChild>
+void StdTransfer<TDomain, TAlgebra>::
+assemble_restriction(matrix_type& R,
+                     const DoFDistribution& coarseDD,
+                     const DoFDistribution& fineDD,
+                     ConstSmartPtr<TDomain> spDomain)
+{
+	PROFILE_FUNC_GROUP("gmg");
+
+//  iterators
+	MultiGrid& mg = *const_cast<MultiGrid*>(coarseDD.multi_grid().get());
+	typedef typename DoFDistribution::traits<TChild>::const_iterator const_iterator;
+	const_iterator iter, iterBegin, iterEnd;
+
+//  loop subsets on coarse level
+	std::vector<DoFIndex> vParentDoF, vChildDoF;
+	std::vector<size_t> vParentIndex, vChildIndex;
+	for(int si = 0; si < fineDD.num_subsets(); ++si)
+	{
+		iterBegin = fineDD.template begin<TChild>(si);
+		iterEnd = fineDD.template end<TChild>(si);
+
+	//	check, which cmps to consider on this subset
+		std::vector<LFEID> vLFEID;
+		std::vector<size_t> vFct;
+		for(size_t fct = 0; fct < fineDD.num_fct(); ++fct){
+			if(fineDD.max_fct_dofs(fct, TChild::dim, si) == 0) continue;
+			vFct.push_back(fct);
+			vLFEID.push_back(fineDD.lfeid(fct));
+		}
+		if(vFct.empty()) continue;
+
+	//  loop elems on coarse level for subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		//	get child
+			TChild* child = *iter;
+
+		//	get parent
+			GeometricObject* parent = mg.get_parent(child);
+
+		//	check if child contained in coarseDD. This should always be false
+		//	for a GridLevel::LEVEL, but might be the case for GridLevel::SURFACE
+		//	and an adaptive grid-part used by both dds. In such a case we can
+		//	simply set identity.
+			if(coarseDD.is_contained(child)){
+			//	get indices
+				coarseDD.inner_algebra_indices(child, vParentIndex);
+				fineDD.inner_algebra_indices(child, vChildIndex);
+				UG_ASSERT(vParentIndex.size() == vChildIndex.size(), "Size mismatch");
+
+			//	set identity
+				for(size_t i = 0; i < vParentIndex.size(); ++i)
+					R(vParentIndex[i], vChildIndex[i]) = 1.0;
+
+			//	this child is perfectly handled
+				continue;
+			}
+			else{
+
+			//	check if parent exists (this should always be the case, except in
+			//	the case that 'child' is a v-slave)
+				if(!parent) continue;
+
+				if(!coarseDD.is_contained(parent)){
+					UG_THROW("StdTransfer: A parent element is not contained in "
+							" coarse-dd nor the child element in the coarse-dd. "
+							"This should not happen.")
+				}
+			}
+
+		//	loop all components
+			for(size_t f = 0; f < vFct.size(); f++)
+			{
+			//	get comp and lfeid
+				const size_t fct = vFct[f];
+				const LFEID& lfeID = vLFEID[f];
+
+			//  get global indices
+				fineDD.inner_dof_indices(child, fct, vChildDoF);
+
+			//	switch space type
+				switch(lfeID.type())
+				{
+					case LFEID::PIECEWISE_CONSTANT:
+					{
+						coarseDD.dof_indices(parent, fct, vParentDoF);
+						UG_ASSERT(vChildDoF.size() == 1, "Must be one.");
+						UG_ASSERT(vParentDoF.size() == 1, "Must be one.");
+
+						DoFRef(R, vParentDoF[0], vChildDoF[0]) =  1.0;
+					}
+					break;
+
+					case LFEID::CROUZEIX_RAVIART:
+					{
+						if(parent->base_object_id() != geometry_traits<TChild>::BASE_OBJECT_ID)
+							continue;
+						coarseDD.inner_dof_indices(parent, fct, vParentDoF);
+						UG_ASSERT(vChildDoF.size() == 1, "Must be one.");
+						UG_ASSERT(vParentDoF.size() == 1, "Must be one.");
+
+						DoFRef(R, vParentDoF[0], vChildDoF[0]) =  1.0;
+					}
+					break;
+
+					case LFEID::LAGRANGE:
+					{
+					//	get coarse indices
+						coarseDD.dof_indices(parent, fct, vParentDoF);
+
+					//	global positions of child dofs
+						std::vector<MathVector<TDomain::dim> > vDoFPos;
+						DoFPosition(vDoFPos, child, *spDomain, lfeID);
+
+					//	get shapes at global positions
+						std::vector<std::vector<number> > vvShape;
+						ShapesAtGlobalPosition(vvShape, vDoFPos, parent, *spDomain, lfeID);
+
+					//	set restriction
+						for(size_t ip = 0; ip < vvShape.size(); ++ip)
+							for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
+								DoFRef(R, vParentDoF[sh], vChildDoF[ip]) = vvShape[ip][sh];
+					}
+					break;
+
+					default:
+						UG_THROW("StdTransfer: Local-Finite-Element: "<<lfeID<<
+						         " is not supported by this Transfer.")
+
+				} // end LFEID-switch
+			} // end fct - cmps
+		} // end fine - elements
+	} // end subset
+}
+
+template <typename TDomain, typename TAlgebra>
+void StdTransfer<TDomain, TAlgebra>::
+assemble_restriction(matrix_type& R,
+                     const DoFDistribution& coarseDD,
+                     const DoFDistribution& fineDD,
+                     ConstSmartPtr<TDomain> spDomain)
+{
+	//  resize matrix
+	R.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
+
+	// loop all base types carrying indices on fine elems
+	if(fineDD.max_dofs(VERTEX)) assemble_restriction<VertexBase>(R, coarseDD, fineDD, spDomain);
+	if(fineDD.max_dofs(EDGE)) assemble_restriction<EdgeBase>(R, coarseDD, fineDD, spDomain);
+	if(fineDD.max_dofs(FACE)) assemble_restriction<Face>(R, coarseDD, fineDD, spDomain);
+	if(fineDD.max_dofs(VOLUME)) assemble_restriction<Volume>(R, coarseDD, fineDD, spDomain);
 }
 
 
@@ -332,19 +488,48 @@ StdTransfer<TDomain, TAlgebra>::
 prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
              ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
 {
+	if(fineGL.level() - coarseGL.level() != 1)
+		UG_THROW("StdTransfer: Can only project between successive level, "
+				"but fine = "<<fineGL<<", coarse = "<<coarseGL);
+
+	if(fineGL.type() != coarseGL.type())
+		UG_THROW("StdTransfer: Can only project between dof distributions of "
+				"same type, but fine = "<<fineGL<<", coarse = "<<coarseGL);
+
 	// remove old revisions
 	remove_outdated(m_mProlongation, spApproxSpace->revision());
 
-	// key of this prolongation
+	// key of this restriction
 	TransferKey key(coarseGL, fineGL, spApproxSpace->revision());
 
 	// check if must be created
-	if(m_mProlongation.find(key) == m_mProlongation.end()){
-
+	if(m_mProlongation.find(key) == m_mProlongation.end())
+	{
 		SmartPtr<matrix_type> P =
 				m_mProlongation[key] = SmartPtr<matrix_type>(new matrix_type);
 
-		P->set_as_transpose_of(*restriction(coarseGL, fineGL, spApproxSpace));
+		ConstSmartPtr<DoFDistribution> spCoarseDD = spApproxSpace->dof_distribution(coarseGL);
+		ConstSmartPtr<DoFDistribution> spFineDD = spApproxSpace->dof_distribution(fineGL);
+
+		bool P1LagrangeOnly = false;
+		if(m_p1LagrangeOptimizationEnabled){
+			P1LagrangeOnly = true;
+			for(size_t fct = 0; fct < spApproxSpace->num_fct(); ++fct)
+				if(spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
+					spApproxSpace->lfeid(fct).order() != 1)
+					P1LagrangeOnly = false;
+		}
+
+		if(P1LagrangeOnly){
+			assemble_prolongation_p1(*P, *spFineDD, *spCoarseDD);
+		} else{
+			assemble_prolongation(*P, *spFineDD, *spCoarseDD, spApproxSpace->domain());
+		}
+
+		for(size_t i = 0; i < m_vConstraint.size(); ++i){
+			m_vConstraint[i]->adjust_prolongation(*P, spFineDD, spCoarseDD);
+		}
+
 		#ifdef UG_PARALLEL
 		P->set_storage_type(PST_CONSISTENT);
 		#endif
@@ -384,19 +569,11 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 		ConstSmartPtr<DoFDistribution> spCoarseDD = spApproxSpace->dof_distribution(coarseGL);
 		ConstSmartPtr<DoFDistribution> spFineDD = spApproxSpace->dof_distribution(fineGL);
 
-		bool P1LagrangeOnly = false;
-		if(m_p1LagrangeOptimizationEnabled){
-			P1LagrangeOnly = true;
-			for(size_t fct = 0; fct < spApproxSpace->num_fct(); ++fct)
-				if(spApproxSpace->lfeid(fct).type() != LFEID::LAGRANGE ||
-					spApproxSpace->lfeid(fct).order() != 1)
-					P1LagrangeOnly = false;
+		if(m_bUseTransposed){
+			R->set_as_transpose_of(*prolongation(fineGL, coarseGL, spApproxSpace));
 		}
-
-		if(P1LagrangeOnly){
-			assemble_restriction_p1(*R, *spCoarseDD, *spFineDD);
-		} else{
-			assemble_restriction_elemwise(*R, *spCoarseDD, *spFineDD, spApproxSpace->domain());
+		else {
+			assemble_restriction(*R, *spCoarseDD, *spFineDD, spApproxSpace->domain());
 		}
 
 		#ifdef UG_PARALLEL
@@ -404,9 +581,7 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 		#endif
 
 		for(size_t i = 0; i < m_vConstraint.size(); ++i){
-			if (m_vConstraint[i]->type() & CT_DIRICHLET){
-				m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
-			}
+			m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
 		}
 
 		write_debug(*R, "R", coarseGL, fineGL);
@@ -433,15 +608,9 @@ prolongate(GF& uFine, const GF& uCoarse)
 
 	try{
 
-		// check if must be created
-		const RevisionCounter& revCnt = spApproxSpace->revision();
-		if(m_mProlongation.find(TransferKey(fineGL, coarseGL, revCnt)) != m_mProlongation.end()){
-				prolongation(fineGL, coarseGL, spApproxSpace)->apply(uFine, uCoarse);
-		} else {
-			restriction(coarseGL, fineGL, spApproxSpace)->apply_transposed(uFine, uCoarse);
-		}
+		prolongation(fineGL, coarseGL, spApproxSpace)->apply(uFine, uCoarse);
 
-		// call prolongations due to added constraints (= adjust_restrict, member of class constraint)
+	// 	adjust using constraints
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			m_vConstraint[i]->adjust_prolongation(uFine, fineGL, uCoarse, coarseGL);
 
@@ -484,9 +653,10 @@ do_restrict(GF& uCoarse, const GF& uFine)
 				"different approximation spaces.");
 	try{
 
-		restriction(coarseGL, fineGL, spApproxSpace)->apply_ignore_zero_rows(uCoarse, m_dampRes, uFine);
+		restriction(coarseGL, fineGL, spApproxSpace)->
+				apply_ignore_zero_rows(uCoarse, m_dampRes, uFine);
 
-		// call restrictions due to added constraints (= adjust_restrict, member of class constraint)
+	// 	adjust using constraints
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
 			m_vConstraint[i]->adjust_restriction(uCoarse, coarseGL, uFine, fineGL);
 
@@ -504,6 +674,7 @@ StdTransfer<TDomain, TAlgebra>::clone()
 	op->set_restriction_damping(m_dampRes);
 	op->set_debug(m_spDebugWriter);
 	op->enable_p1_lagrange_optimization(p1_lagrange_optimization_enabled());
+	op->set_use_transposed(m_bUseTransposed);
 	return op;
 }
 
