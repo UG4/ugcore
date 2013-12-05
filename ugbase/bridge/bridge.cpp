@@ -7,6 +7,7 @@
 #include "common/util/path_provider.h"
 #include "common/profiler/profiler.h"
 #include "bridge/util.h"
+#include "bridge/standard_bridges.h"
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
@@ -193,6 +194,8 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_Solver(reg, parentGroup);
 		RegisterBridge_Eigensolver(reg, parentGroup);
 		RegisterBridge_DomainDependentPreconditioner(reg, parentGroup);
+
+		RegisterBridge_Restart(reg, parentGroup);
 
 	//	depends on lib_disc
 		RegisterBridge_DiscAlgebra(reg, parentGroup);

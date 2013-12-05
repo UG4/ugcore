@@ -20,64 +20,9 @@
 #include "lib_algebra/operator/preconditioner/preconditioners.h"
 #include "lib_algebra/operator/preconditioner/ilut_scalar.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
-#include "common/serialization.h"
 using namespace std;
 
 namespace ug{
-
-/*
- *
-
-		restartfilename = "uNewtonSolution_T_"..step.."_p_"..GetProcessRank()..".ug4vector"
-
-  		restartStep = util.GetParamNumber("-restartStep", 0)
-		-- apply newton solver
-		if step < restartStep then
-			ReadFromFile(u, restartfilename)
-		else
-			-- prepare newton solver
-			if newtonSolver:prepare(u) == false then
-				print ("Newton solver failed at step "..step.."."); exit();
-			end
-			if newtonSolver:apply(u) == false then
-				print ("Newton solver failed at step "..step.."."); exit();
-			end
-			SaveToFile(u, restartfilename)
-		end
- */
-
-#ifdef UG_PARALLEL
-template<typename T, class TOStream>
-void Serialize(TOStream &buf, const ParallelVector<T> &v)
-{
-	uint t= v.get_storage_mask();
-	Serialize(buf, t);
-	Serialize(buf, *dynamic_cast<const T*>(&v));
-}
-
-template<typename T, class TIStream>
-void Deserialize(TIStream &buf, ParallelVector<T> &v)
-{
-	uint t = Deserialize<uint>(buf);
-	v.set_storage_type(t);
-	Deserialize(buf, *dynamic_cast<T*>(&v));
-}
-#endif
-
-template<typename T>
-void SaveToFile(const T &v, std::string filename)
-{
-	fstream f(filename.c_str(), ios::out);
-	Serialize(f, v);
-}
-
-template<typename T>
-void ReadFromFile(T &v, std::string filename)
-{
-	fstream f(filename.c_str(), ios::in);
-	Deserialize(f, v);
-}
-
 
 namespace bridge{
 namespace Preconditioner{
@@ -119,10 +64,6 @@ static void Algebra(Registry& reg, string grp)
 //	typedefs for this algebra
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
-
-
-	reg.add_function("SaveToFile", static_cast<void (*)(const vector_type &, std::string)>(&SaveToFile<vector_type>), grp);
-	reg.add_function("ReadFromFile", static_cast<void (*)(vector_type &, std::string)>(&ReadFromFile<vector_type>), grp);
 
 
 //	Jacobi
