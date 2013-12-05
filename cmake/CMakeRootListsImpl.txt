@@ -51,8 +51,10 @@ ENDIF(BUILD_DOXYDOCU)
 if(BUILD_ONE_LIB)
 	get_property(ug4libSources GLOBAL PROPERTY ugSources)
 	get_property(ug4libDependencies GLOBAL PROPERTY ugDependencies)
+	get_property(ug4libIncludes GLOBAL PROPERTY ugIncludes)
 	
 	if(buildEmbeddedPlugins)
+   include_directories(${ug4libIncludes})
 		link_libraries(${ug4libDependencies})
 	endif(buildEmbeddedPlugins)
 	

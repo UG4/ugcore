@@ -496,7 +496,10 @@ include(${UG_ROOT_PATH}/cmake/ug/export_sources.cmake)
 # to a common library.
 include(${UG_ROOT_PATH}/cmake/ug/export_dependencies.cmake)
 
-
+################################################################################
+# Declare a method that allows all sub-cmake-files to add their includes paths
+# to a common library.
+include(${UG_ROOT_PATH}/cmake/ug/export_includes.cmake)
 
 ######################################################################################################################
 # the following options are pseudo cmake-options (normal options only support ON and OFF).
