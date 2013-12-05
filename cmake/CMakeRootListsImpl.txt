@@ -55,7 +55,7 @@ if(BUILD_ONE_LIB)
 	get_property(ug4libDefinitions GLOBAL PROPERTY ugDefinitions)
 	
 	if(buildEmbeddedPlugins)
-   add_definitions(${ug4LibDefinitions})
+   add_definitions(${ug4libDefinitions})
    include_directories(${ug4libIncludes})
 		link_libraries(${ug4libDependencies})
 	endif(buildEmbeddedPlugins)
