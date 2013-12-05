@@ -483,15 +483,15 @@ distribute_data(ug::BinaryBuffer& recvBufOut, int* segSizesOut,
 void ProcessCommunicator::
 barrier() const
 {
-	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_barrier);
+	if(is_local()) return;
 	MPI_Barrier(m_comm->m_mpiComm);
 }
 
 void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int root) const
 {
-	if(is_local()) return;
 	PCL_PROFILE(pcl_ProcCom_Bcast);
+	if(is_local()) return;
 	//UG_LOG("broadcasting " << (root==pcl::GetProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
 	MPI_Bcast(v, size, type, root, m_comm->m_mpiComm);
 }
