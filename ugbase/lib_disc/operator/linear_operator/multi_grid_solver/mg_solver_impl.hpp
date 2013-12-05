@@ -54,7 +54,8 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
 	m_baseLev(0), m_cycleType(1),
 	m_numPreSmooth(2), m_numPostSmooth(2),
-	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL), m_bUseRAP(false),
+	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL),
+	m_bUseRAP(false), m_bSmoothOnSurfaceRim(false),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
 	m_spProjectionPrototype(new StdInjection<TDomain,TAlgebra>(m_spApproxSpace)),
@@ -569,7 +570,7 @@ assemble_level_operator()
 
 //	assemble missing coarse grid matrix contribution (only in adaptive case)
 	try{
-		assemble_missing_coarse_grid_coupling(m_pSurfaceSol);
+		assemble_rim_cpl(m_pSurfaceSol);
 	}
 	UG_CATCH_THROW("GMG:init: Cannot init missing coarse grid coupling.");
 
@@ -578,18 +579,20 @@ assemble_level_operator()
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-assemble_missing_coarse_grid_coupling(const vector_type* u)
+assemble_rim_cpl(const vector_type* u)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - assemble_missing_coarse_grid_coupling " << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - assemble_rim_cpl " << "\n");
 
 //	clear matrices
-	for(int lev = m_baseLev; lev <= m_topLev; ++lev)
-		m_vLevData[lev]->CoarseGridContribution.resize_and_clear(0,0);
+	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
+		m_vLevData[lev]->RimCpl_Fine_Coarse.resize_and_clear(0,0);
+		m_vLevData[lev]->RimCpl_Coarse_Fine.resize_and_clear(0,0);
+	}
 
 //	if the grid is fully refined, nothing to do
 	if(m_topLev <= m_LocalFullRefLevel){
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling (non-adaptive)" << "\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_rim_cpl (non-adaptive)" << "\n");
 		return;
 	}
 
@@ -626,13 +629,16 @@ assemble_missing_coarse_grid_coupling(const vector_type* u)
 		UG_ASSERT(surfMat.num_rows() == m_vSurfToLevelMap.size(), "Size mismatch")
 		UG_ASSERT(surfMat.num_cols() == m_vSurfToLevelMap.size(), "Size mismatch")
 
-		lc.CoarseGridContribution.resize_and_clear(lf.sd->size(), lc.sc->size());
+		lc.RimCpl_Fine_Coarse.resize_and_clear(lf.sd->size(), lc.sc->size());
+
+		if(m_bSmoothOnSurfaceRim)
+			lc.RimCpl_Coarse_Fine.resize_and_clear(lc.sd->size(), lf.sc->size());
 
 		for(size_t i = 0; i< lf.vShadowing.size(); ++i)
 		{
 			const size_t lvlFrom = lf.vShadowing[i];
 			const size_t surfFrom = lf.vSurfShadowing[i];
-			if(m_vSurfToLevelMap[surfFrom].levelLower != lev) continue;
+			//if(m_vSurfToLevelMap[surfFrom].levelLower != lev) continue;
 
 			typedef typename matrix_type::row_iterator row_iterator;
 			row_iterator conn = surfMat.begin_row(surfFrom);
@@ -649,18 +655,25 @@ assemble_missing_coarse_grid_coupling(const vector_type* u)
 					continue;
 				}
 
-				(lc.CoarseGridContribution)(lvlFrom, lvlTo) = conn.value();
+				(lc.RimCpl_Fine_Coarse)(lvlFrom, lvlTo) = conn.value();
+
+				if(m_bSmoothOnSurfaceRim)
+					lc.RimCpl_Coarse_Fine(lvlTo, lvlFrom) = surfMat(surfTo, surfFrom);
 			}
 		}
 
 #ifdef UG_PARALLEL
-		lc.CoarseGridContribution.set_storage_type(surfMat.get_storage_mask());
+		lc.RimCpl_Fine_Coarse.set_storage_type(surfMat.get_storage_mask());
+		if(m_bSmoothOnSurfaceRim)
+			lc.RimCpl_Coarse_Fine.set_storage_type(surfMat.get_storage_mask());
 #endif
-		write_debug(surfMat, std::string("MissingSurfMat_sl").append(ToString(lev)), surfLevel, surfLevel);
-		write_debug(lc.CoarseGridContribution, "MissingLevelMat", *lf.sd, *lc.sc);
+		write_debug(surfMat, std::string("RimCplSurf_sl").append(ToString(lev)), surfLevel, surfLevel);
+		write_debug(lc.RimCpl_Fine_Coarse, "RimCpl", *lf.sd, *lc.sc);
+		if(m_bSmoothOnSurfaceRim)
+			write_debug(lc.RimCpl_Coarse_Fine, "RimCpl", *lc.sd, *lf.sc);
 	}
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_missing_coarse_grid_coupling " << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_rim_cpl " << "\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -822,7 +835,7 @@ init_rap_operator()
 
 //	coarse grid contributions
 	try{
-		init_rap_missing_coarse_grid_coupling();
+		init_rap_rim_cpl();
 	}
 	UG_CATCH_THROW("GMG:init: Cannot init missing coarse grid coupling.");
 
@@ -831,20 +844,20 @@ init_rap_operator()
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_rap_missing_coarse_grid_coupling()
+init_rap_rim_cpl()
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_rap_missing_coarse_grid_coupling " << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_rap_rim_cpl " << "\n");
 
 //	clear matrices
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
 		LevData& ld = *m_vLevData[lev];
-		ld.CoarseGridContribution.resize_and_clear(0,0);
+		ld.RimCpl_Fine_Coarse.resize_and_clear(0,0);
 	}
 
 //	if the grid is fully refined, nothing to do
 	if(m_topLev <= m_LocalFullRefLevel){
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_rap_missing_coarse_grid_coupling (non-adaptive)" << "\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_rap_rim_cpl (non-adaptive)" << "\n");
 		return;
 	}
 
@@ -853,9 +866,9 @@ init_rap_missing_coarse_grid_coupling()
 		LevData& lc = *m_vLevData[lev];
 		LevData& lf = *m_vLevData[lev+1];
 #ifdef UG_PARALLEL
-		lc.CoarseGridContribution.set_storage_type(m_spSurfaceMat->get_storage_mask());
+		lc.RimCpl_Fine_Coarse.set_storage_type(m_spSurfaceMat->get_storage_mask());
 #endif
-		lc.CoarseGridContribution.resize_and_clear(lf.sd->size(), lc.sc->size());
+		lc.RimCpl_Fine_Coarse.resize_and_clear(lf.sd->size(), lc.sc->size());
 
 		for(size_t i = 0; i< lf.vShadowing.size(); ++i)
 		{
@@ -872,15 +885,15 @@ init_rap_missing_coarse_grid_coupling()
 
 				const size_t lvlTo = m_vSurfToLevelMap[surfTo].index;
 
-				(lc.CoarseGridContribution)(lvlFrom, lvlTo) = conn.value();
+				(lc.RimCpl_Fine_Coarse)(lvlFrom, lvlTo) = conn.value();
 			}
 		}
 
-		write_debug(lc.CoarseGridContribution, "MissingLevelMat", *lf.sd, *lc.sc);
+		write_debug(lc.RimCpl_Fine_Coarse, "RimCpl", *lf.sd, *lc.sc);
 	}
 
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_rap_missing_coarse_grid_coupling " << "\n");
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_rap_rim_cpl " << "\n");
 }
 
 
@@ -1474,9 +1487,16 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 			UG_THROW("GMG::smooth: Smoothing step "<<i+1<<" on level "<<lev<<" failed.");
 
 	//	b) reset the correction to zero on the patch boundary.
-		const std::vector<size_t>& vShadowing = m_vLevData[lev]->vShadowing;
-		for(size_t i = 0; i < vShadowing.size(); ++i)
-			(*st)[ vShadowing[i] ] = 0.0;
+		if(!m_bSmoothOnSurfaceRim){
+			const std::vector<size_t>& vShadowing = m_vLevData[lev]->vShadowing;
+			for(size_t i = 0; i < vShadowing.size(); ++i)
+				(*st)[ vShadowing[i] ] = 0.0;
+		} else {
+			if(lev > m_LocalFullRefLevel){
+				LevData& lc = *m_vLevData[lev-1];
+				lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *st);
+			}
+		}
 
 	//	c) update the defect with this correction ...
 		A.apply_sub(*sd, *st);
@@ -1575,7 +1595,7 @@ prolongation(int lev)
 //	to add if here.
 	if(lev > m_LocalFullRefLevel){
 		GMG_PROFILE_BEGIN(GMG_AddCoarseGridContribution);
-		lc.CoarseGridContribution.matmul_minus(*lf.sd, *lc.sc);
+		lc.RimCpl_Fine_Coarse.matmul_minus(*lf.sd, *lc.sc);
 		GMG_PROFILE_END();
 	}
 	log_debug_data(lev, "AfterCoarseGridDefect");

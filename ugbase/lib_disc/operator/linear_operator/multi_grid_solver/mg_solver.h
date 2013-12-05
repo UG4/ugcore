@@ -105,6 +105,9 @@ class AssembledMultiGridCycle :
 	///	sets if RAP - Product used to build coarse grid matrices
 		void set_rap(bool bRAP) {m_bUseRAP = bRAP;}
 
+	///	sets if smoothing is performed on surface rim
+		void set_smooth_on_surface_rim(bool bSmooth) {m_bSmoothOnSurfaceRim = bSmooth;}
+
 	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
 		void set_cycle_type(int type) {m_cycleType = type;}
 
@@ -245,8 +248,8 @@ class AssembledMultiGridCycle :
 	///	assembles the missing matrix part on the coarse level, that must be
 	///	added if the correction has been computed to ensure a correctly updated
 	///	defect. (i.e. assembles A^c, with d^f -= A^c * c^c)
-		void assemble_missing_coarse_grid_coupling(const vector_type* u);
-		void init_rap_missing_coarse_grid_coupling();
+		void assemble_rim_cpl(const vector_type* u);
+		void init_rap_rim_cpl();
 
 	protected:
 	/// operator to invert (surface grid)
@@ -286,6 +289,9 @@ class AssembledMultiGridCycle :
 
 	///	using RAP-Product (assemble coarse-grid matrices otherwise)
 		bool m_bUseRAP;
+
+	///	flag if smoothing on surface rim
+		bool m_bSmoothOnSurfaceRim;
 
 	///	approximation space revision of cached values
 		RevisionCounter m_ApproxSpaceRevision;
@@ -372,7 +378,10 @@ class AssembledMultiGridCycle :
 			std::vector<SurfLevelMap> vSurfLevelMap;
 
 		///	missing coarse grid correction
-			matrix_type CoarseGridContribution;
+			matrix_type RimCpl_Fine_Coarse;
+
+		///	missing coarse grid correction
+			matrix_type RimCpl_Coarse_Fine;
 		};
 
 	///	storage for all level
