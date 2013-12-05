@@ -154,7 +154,7 @@ matmul_minus(TPVector &res, const TPVector &x) const
 		UG_THROW("ParallelMatrix::matmul_minus (b -= A*x):"
 				" Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT and b is PST_ADDITIVE\n"
-				"    (storage type of A = " << this->get_storage_type() << ", x = " << x.get_storage_type() << ", b = " << x.get_storage_type() << ")");
+				"    (storage type of A = " << this->get_storage_type() << ", x = " << x.get_storage_type() << ", b = " << res.get_storage_type() << ")");
 	}
 
 //	apply on single process vector
