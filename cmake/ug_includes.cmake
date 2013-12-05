@@ -501,6 +501,11 @@ include(${UG_ROOT_PATH}/cmake/ug/export_dependencies.cmake)
 # to a common library.
 include(${UG_ROOT_PATH}/cmake/ug/export_includes.cmake)
 
+################################################################################
+# Declare a method that allows all sub-cmake-files to add their definitions to
+# to the main project P_UG4
+include(${UG_ROOT_PATH}/cmake/ug/export_definitions.cmake)
+
 ######################################################################################################################
 # the following options are pseudo cmake-options (normal options only support ON and OFF).
 # Their default values are defined in the section above.
