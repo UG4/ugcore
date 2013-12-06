@@ -430,7 +430,7 @@ assemble_restriction(matrix_type& R,
 						UG_ASSERT(vChildDoF.size() == 1, "Must be one.");
 						UG_ASSERT(vParentDoF.size() == 1, "Must be one.");
 
-						DoFRef(R, vParentDoF[0], vChildDoF[0]) =  1.0;
+						DoFRef(R, vParentDoF[0], vChildDoF[0]) =  0.5;
 					}
 					break;
 
