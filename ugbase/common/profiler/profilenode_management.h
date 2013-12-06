@@ -19,9 +19,10 @@ class ProfileNodeManager
 	private:
 		ProfileNodeManager();
 		~ProfileNodeManager();
+	public:
 		static ProfileNodeManager& inst();
 
-	private:
+//	private:
 		std::stack<AutoProfileNode*>	m_nodes;
 };
 

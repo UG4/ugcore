@@ -197,6 +197,11 @@
 
 #endif // UG_PROFILER_SCOREP
 
+#define PROFILE_END_(name) \
+			assert(&(apn_##name) == ProfileNodeManager::inst().m_nodes.top());	\
+			struct apn_already_ended_##name { } ; \
+			PROFILE_END();
+
 #else
 	#include <ostream>
 
