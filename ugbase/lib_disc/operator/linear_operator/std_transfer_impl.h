@@ -424,13 +424,53 @@ assemble_restriction(matrix_type& R,
 
 					case LFEID::CROUZEIX_RAVIART:
 					{
-						if(parent->base_object_id() != geometry_traits<TChild>::BASE_OBJECT_ID)
-							continue;
-						coarseDD.inner_dof_indices(parent, fct, vParentDoF);
-						UG_ASSERT(vChildDoF.size() == 1, "Must be one.");
-						UG_ASSERT(vParentDoF.size() == 1, "Must be one.");
+					//	get dimension of parent
+						const int parentDim = parent->base_object_id();
+						std::vector<GeometricObject*> vParent;
 
-						DoFRef(R, vParentDoF[0], vChildDoF[0]) =  0.5;
+					//	check if to interpolate from neighbor elems
+						if(parentDim == lfeID.dim()){
+							// case: Side inner to parent. --> Parent fine.
+							vParent.push_back(parent);
+						} else if(parentDim == lfeID.dim() - 1){
+							// case: parent is Side. --> Get neighbor elems
+							typedef typename TChild::sideof TElem;
+							typename Grid::traits<TElem>::secure_container vElem;
+							mg.associated_elements(vElem, parent);
+							for(size_t p = 0; p < vElem.size(); ++p){
+							//	NOTE: This is not the transposed of the prolongation
+							//		  in adaptive case, since we only restrict to
+							//		  covered parts.
+								if(mg.num_children<TElem>(vElem[p]) > 0)
+									vParent.push_back(vElem[p]);
+							}
+
+						} else {
+							UG_THROW("StdTransfer: For CR parent must be full-dim "
+									"elem or a side (dim-1). But has dim: "<<parentDim);
+						}
+
+
+					//	global positions of fine dofs
+						std::vector<MathVector<TDomain::dim> > vDoFPos;
+						DoFPosition(vDoFPos, child, *spDomain, lfeID);
+
+					//	loop contributions from parents
+						for(size_t i = 0; i < vParent.size(); ++i)
+						{
+						//	get coarse indices
+							coarseDD.dof_indices(vParent[i], fct, vParentDoF);
+
+						//	get shapes at global positions
+							std::vector<std::vector<number> > vvShape;
+							ShapesAtGlobalPosition(vvShape, vDoFPos, vParent[i], *spDomain, lfeID);
+
+						//	add restriction
+							for(size_t ip = 0; ip < vvShape.size(); ++ip)
+								for(size_t sh = 0; sh < vvShape[ip].size(); ++sh)
+									DoFRef(R, vParentDoF[sh], vChildDoF[ip]) +=
+											(1./vParent.size()) * vvShape[ip][sh];
+						}
 					}
 					break;
 

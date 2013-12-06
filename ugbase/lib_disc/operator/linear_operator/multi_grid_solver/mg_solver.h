@@ -382,6 +382,9 @@ class AssembledMultiGridCycle :
 
 		///	missing coarse grid correction
 			matrix_type RimCpl_Coarse_Fine;
+
+		///	missing coarse grid correction
+			matrix_type RimCpl_Fine_Fine;
 		};
 
 	///	storage for all level
