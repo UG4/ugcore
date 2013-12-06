@@ -31,7 +31,7 @@ namespace ug{
  * 	Those obstacle functions can be used in combination with projected preconditioners. They
  * 	should be passed to the preconditioner by 'IProjPreconditioner::set_obstacle_constraint'.
  */
-template <typename TDomain, typename TAlgebra>
+/*template <typename TDomain, typename TAlgebra>
 class ObstacleInNormalDir:
 	public IObstacleConstraint<TAlgebra>
 {
@@ -64,13 +64,13 @@ class ObstacleInNormalDir:
 		ObstacleInNormalDir(): IObstacleConstraint<TAlgebra>(){};
 
 	///	computes the correction for the case that only a lower obstacle is set, i.e. u * n >= g_low
-		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index);
+		void correction_for_lower_obs(value_type& c_i, value_type& sol_i, const size_t index);
 
 	///	computes the correction for the case that only an upper obstacle is set, i.e. u * n <= g_up
-		void correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index);
+		void correction_for_upper_obs(value_type& c_i, value_type& sol_i, const size_t index);
 
 	///	computes the correction for the case that a lower and an upper obstacle is set
-		void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index);
+		void correction_for_lower_and_upper_obs(value_type& c_i, value_type& sol_i, const size_t index);
 
 	///	Destructor
 		~ObstacleInNormalDir(){};
@@ -83,7 +83,7 @@ class ObstacleInNormalDir:
 	///	vector of obstacle values (for lower and upper constraint)
 		using base_type::m_spVecOfLowObsValues;
 		using base_type::m_spVecOfUpObsValues;
-};
+};*/
 
 } // end namespace ug
 

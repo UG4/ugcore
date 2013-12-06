@@ -46,45 +46,42 @@ void backward_gs_step(Vector_type& c, const Matrix_type& A, const Vector_type& d
 }
 
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ProjGaussSeidel<TAlgebra>::
+ProjGaussSeidel<TDomain,TAlgebra>::
 step(const matrix_type& A, vector_type& c, const vector_type& d, const number relax)
 {
-
 	for(size_t i = 0; i < c.size(); i++)
 	{
 		forward_gs_step(c, A, d, i, relax);
 
-		this->project_correction(c, i);
+		//	project correction on the subspace defined by the obstacle constraint
+		this->project_correction(c[i], i);
 	}
-
 }
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ProjBackwardGaussSeidel<TAlgebra>::
+ProjBackwardGaussSeidel<TDomain,TAlgebra>::
 step(const matrix_type& A, vector_type& c, const vector_type& d, const number relax)
 {
-
 	if(c.size() == 0) return;
 	size_t i = c.size()-1;
 	do
 	{
 		backward_gs_step(c, A, d, i, relax);
 
-		this->project_correction(c, i);
+		//	project correction on the subspace defined by the obstacle constraint
+		this->project_correction(c[i], i);
 
 	} while(i-- != 0);
-
 }
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-ProjSymmetricGaussSeidel<TAlgebra>::
+ProjSymmetricGaussSeidel<TDomain,TAlgebra>::
 step(const matrix_type& A, vector_type& c, const vector_type& d, const number relax)
 {
-
 	for(size_t i = 0; i < c.size(); i++)
 	{
 		//	1. perform a forward GaussSeidel step
@@ -98,7 +95,8 @@ step(const matrix_type& A, vector_type& c, const vector_type& d, const number re
 		//	c3 = (D-U)^{-1} c2
 		backward_gs_step(c, A, c, i, relax);
 
-		this->project_correction(c, i);
+		//	project correction on the subspace defined by the obstacle constraint
+		this->project_correction(c[i], i);
 	}
 }
 

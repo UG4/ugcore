@@ -10,6 +10,7 @@
 
 #include "lib_disc/common/multi_index.h"
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ namespace ug{
  * 	combination with projected preconditioners. They should be passed to the preconditioner
  * 	by 'IProjPreconditioner::set_obstacle_constraint'.
  */
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class IObstacleConstraint
 {
 	public:
@@ -52,115 +53,227 @@ class IObstacleConstraint
 	///	Value type
 		typedef typename vector_type::value_type value_type;
 
+	///	Type of domain
+		typedef TDomain domain_type;
+
+	///	world Dimension
+		static const int dim = domain_type::dim;
+
+	///	Type of position coordinates (e.g. position_type)
+		typedef typename domain_type::position_type position_type;
+
 	public:
 	/// constructor for an obstacle defined on some subset(s)
-		template <typename TDomain>
-		IObstacleConstraint(const GridFunction<TDomain, TAlgebra>& u, const char* subsets):
-			m_bLowerObs(false), m_bUpperObs(false)
+		IObstacleConstraint(const GridFunction<TDomain, TAlgebra>& u)
 		{
-			m_vActiveIndicesLow.resize(0);
-			m_vActiveIndicesUp.resize(0);
+			m_vDoFsOnObsSubset.resize(0);
+			clear();
 
 			m_spDD = u.dof_distribution();
-			m_ssName = subsets;
-			init(u);
+			m_spDomain = u.domain();
 		};
 
 	/// constructor
-		IObstacleConstraint(): m_bLowerObs(false), m_bUpperObs(false)
+		IObstacleConstraint()
 		{
-			m_vActiveIndicesLow.resize(0);
-			m_vActiveIndicesUp.resize(0);
-			m_vIndicesOfObsSubsets.resize(0);
+			m_vDoFsOnObsSubset.resize(0);
+			clear();
 		};
 
-	///	set constraint/obstacle g_low (for c(u) >= g_low)
-		void set_lower_obstacle(SmartPtr<vector_type> lowObs){
-			m_spVecOfLowObsValues = lowObs; m_bLowerObs = true;}
+	///	adds a lua callback (cond and non-cond)
+	#ifdef UG_FOR_LUA
+		void add(const char* name, const char* function, const char* subsets);
+	#endif
 
-	///	set constraint/obstacle g_up (for c(u) <= g_up)
-		void set_upper_obstacle(SmartPtr<vector_type> upObs){
-			m_spVecOfUpObsValues = upObs; m_bUpperObs = true;}
+	///	adds a conditional user-defined value as dirichlet condition for a function on subsets
+		void add(SmartPtr<UserData<number, dim, bool> > func, const char* function, const char* subsets);
 
+	///	adds a user-defined value as dirichlet condition for a function on subsets
+		void add(SmartPtr<UserData<number, dim> > func, const char* function, const char* subsets);
 
-	///	is lower obstacle set
-		bool lower_obs_set(){return m_bLowerObs;}
-	///	is upper obstacle set
-		bool upper_obs_set(){return m_bUpperObs;}
+	///	adds a constant value as dirichlet condition for a function on subsets
+		void add(number value, const char* function, const char* subsets);
 
-	///	resets the vectors storing the active indices
-		void reset_active_indices(){m_vActiveIndicesLow.resize(0);
-			m_vActiveIndicesUp.resize(0);}
-
-	///	access to the vector of active indices wrt the lower obstacle constraint
-		SmartPtr<std::vector<MultiIndex<2> > > lower_active_indices(){
-			return m_spLowerActiveInd;}
-
-	///	access to the vector of active indices wrt the upper obstacle constraint
-		SmartPtr<std::vector<MultiIndex<2> > > upper_active_indices(){
-			return m_spUpperActiveInd;}
-
-	///	returns the number of indices (lying in the obstacle surface(s)),
-	///	which are stored in 'm_vIndicesOfObsSubsets'
-		size_t nrOfIndicesOfObsSubsets() {return m_vIndicesOfObsSubsets.size();};
-
-	///	checks if a given index is in an obstacle subset
-		bool index_is_in_obs_subset(size_t index){return true;}
+	///	adds a user-defined vector as dirichlet condition for a vector-function on subsets
+		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets);
 
 
+	///	checks if a given dof is in an obstacle subset
+		bool dof_lies_on_obs_subset(const DoFIndex& dof, const vector<DoFIndex>& vOfDofs);
 
-	///	init function checks the obstacle constraints with respect to consistency
-		void init(const vector_type& u);
+	///	init function calls 'extract_data' and 'obstacle_value'-methods in order to
+	///	store the obstacle values set by UserDatas
+		virtual void init() = 0;
 
-	///	computes the correction for the case that only a lower obstacle is set, i.e. u >= g_low
-		virtual void correction_for_lower_obs(vector_type& c, vector_type& lastSol,
-				const size_t index) = 0;
+	///	resets the vectors storing the active dofs
+		virtual void reset_active_dofs() = 0;
 
-	///	computes the correction for the case that only an upper obstacle is set, i.e. u <= g_up
-		virtual void correction_for_upper_obs(vector_type& c, vector_type& lastSol,
-				const size_t index) = 0;
+	///	defines the projection of a correction of the i-th index onto the admissible set
+		virtual void project_on_admissible_set(value_type& c_i, value_type& sol_i, const size_t i) = 0;
 
-	///	computes the correction for the case that a lower and an upper obstacle is set
-		virtual void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol,
-				const size_t index) = 0;
+	///	the defect needs to be adapted for the active indices (those indices, which are in contact)
+		virtual void adjust_defect(vector_type& d) = 0;
 
 	///	Destructor
 		virtual ~IObstacleConstraint(){};
 
-	private:
-	///	stores all indices of obstacle subset(s)
-		template <typename TElem>
-		void obstacle_indices_on_subset(const size_t si);
-
 	protected:
-	///	pointer to constraint/obstacle values
-		SmartPtr<vector_type> m_spVecOfLowObsValues, m_spVecOfUpObsValues;
+		void initObsValues();
 
-	///	pointer to vector of active indices
-		SmartPtr<std::vector<MultiIndex<2> > > m_spLowerActiveInd;
-		SmartPtr<std::vector<MultiIndex<2> > > m_spUpperActiveInd;
+		void get_dof_on_obs_subset(vector<DoFIndex> vDoFIndices){
+			vDoFIndices = m_vDoFsOnObsSubset;}
+
+		void get_obstacle_value_map(std::map<DoFIndex, double> mDoFIndices){
+			mDoFIndices = m_mObsValues;}
 
 	private:
-	/// flag indicating if an obstacle is set
-		bool m_bLowerObs, m_bUpperObs;
+	///	extract the UserDatas
+		void extract_data();
 
-	///	vector of the algebra indices, which are in the obstacle subsets
-		vector<size_t> m_vIndicesOfObsSubsets;
+		template <typename TUserData, typename TScheduledUserData>
+		void extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataObsSegment,
+		                  std::vector<TScheduledUserData>& vUserData);
 
-	///	store the indices, which satisfy the constraints (lower resp. upper constraint)
-	/// with equality in m_vActiveIndices.
-		vector<MultiIndex<2> > m_vActiveIndicesLow, m_vActiveIndicesUp;
+	///	clear all UserData-member variables
+		void clear();
 
-	///	name of subset(s), on which the obstacle is defined
-		string m_ssName;
+		void check_functions_and_subsets(FunctionGroup& functionGroup, SubsetGroup& subsetGroup,
+				size_t numFct) const;
 
-	/// subsetGroup
-		SubsetGroup m_ssGrp;
+	///	store the obstacle value set by means of UserDatas
+		void obstacle_value(number time);
+
+		template <typename TUserData>
+		void obstacle_value(const std::map<int, std::vector<TUserData*> >& mvUserData, number time);
+
+		template <typename TBaseElem, typename TUserData>
+		void obstacle_value(const std::vector<TUserData*>& vUserData, int si, number time);
+
+	private:
+	///	map to store obstacle values with its corresponding DoFs
+		std::map<DoFIndex, double> m_mObsValues;
+
+	///	vector of the dofs, which are in the obstacle subsets
+		vector<DoFIndex> m_vDoFsOnObsSubset;
+
+	///	pointer to the domain
+		ConstSmartPtr<TDomain> m_spDomain;
 
 	///	pointer to the DofDistribution on the whole domain
 		ConstSmartPtr<DoFDistribution> m_spDD;
 
+	///	grouping for subset and non-conditional data
+		struct NumberData
+		{
+			const static bool isConditional = false;
+			const static size_t numFct = 1;
+			typedef MathVector<1> value_type;
+			NumberData(SmartPtr<UserData<number, dim> > functor_,
+					   std::string fctName_, std::string ssName_)
+				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
+
+			bool operator()(MathVector<1>& val, const MathVector<dim> x,
+							number time, int si) const
+			{
+				(*spFunctor)(val[0], x, time, si); return true;
+			}
+
+			SmartPtr<UserData<number, dim> > spFunctor;
+			std::string fctName;
+			std::string ssName;
+			size_t fct[numFct];
+			SubsetGroup ssGrp;
+		};
+
+	///	grouping for subset and conditional data
+		struct CondNumberData
+		{
+			const static bool isConditional = true;
+			const static size_t numFct = 1;
+			typedef MathVector<1> value_type;
+			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
+						  std::string fctName_, std::string ssName_)
+				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
+			{}
+			bool operator()(MathVector<1>& val, const MathVector<dim> x,
+							number time, int si) const
+			{
+				return (*spFunctor)(val[0], x, time, si);
+			}
+
+			SmartPtr<UserData<number, dim, bool> > spFunctor;
+			std::string fctName;
+			std::string ssName;
+			size_t fct[numFct];
+			SubsetGroup ssGrp;
+		};
+
+	///	grouping for subset and conditional data
+		struct ConstNumberData
+		{
+			const static bool isConditional = false;
+			const static size_t numFct = 1;
+			typedef MathVector<1> value_type;
+			ConstNumberData(number value_,
+						  std::string fctName_, std::string ssName_)
+				: functor(value_), fctName(fctName_), ssName(ssName_)
+			{}
+			inline bool operator()(MathVector<1>& val, const MathVector<dim> x,
+								   number time, int si) const
+			{
+				val[0] = functor; return true;
+			}
+
+			number functor;
+			std::string fctName;
+			std::string ssName;
+			size_t fct[numFct];
+			SubsetGroup ssGrp;
+		};
+
+	///	grouping for subset and non-conditional data
+		struct VectorData
+		{
+			const static bool isConditional = false;
+			const static size_t numFct = dim;
+			typedef MathVector<dim> value_type;
+			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
+					   std::string fctName_, std::string ssName_)
+				: spFunctor(value_), fctName(fctName_), ssName(ssName_)
+			{}
+			bool operator()(MathVector<dim>& val, const MathVector<dim> x,
+							number time, int si) const
+			{
+				(*spFunctor)(val, x, time, si); return true;
+			}
+
+			SmartPtr<UserData<MathVector<dim>, dim> > spFunctor;
+			std::string fctName;
+			std::string ssName;
+			size_t fct[numFct];
+			SubsetGroup ssGrp;
+		};
+
+		std::vector<CondNumberData> m_vCondNumberData;
+		std::vector<NumberData> m_vNumberData;
+		std::vector<ConstNumberData> m_vConstNumberData;
+
+		std::vector<VectorData> m_vVectorData;
+
+	///	non-conditional obstacle values for all subsets
+		std::map<int, std::vector<NumberData*> > m_mNumberObsSegment;
+
+	///	constant obstacle values for all subsets
+		std::map<int, std::vector<ConstNumberData*> > m_mConstNumberObsSegment;
+
+	///	conditional obstacle values for all subsets
+		std::map<int, std::vector<CondNumberData*> > m_mCondNumberObsSegment;
+
+	///	non-conditional obstacle values for all subsets
+		std::map<int, std::vector<VectorData*> > m_mVectorObsSegment;
 };
+
 
 } // end namespace ug
 

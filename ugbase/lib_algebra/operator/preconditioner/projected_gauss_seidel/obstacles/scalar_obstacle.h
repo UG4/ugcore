@@ -1,12 +1,12 @@
 /*
- * scalar_obstacle.h
+ * scalar_lower_obstacle.h
  *
  *  Created on: 25.11.2013
  *      Author: raphaelprohl
  */
 
-#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE__
-#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE__
+#ifndef __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_LOWER_OBSTACLE__
+#define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_LOWER_OBSTACLE__
 
 #include "obstacle_constraint_interface.h"
 #include "lib_disc/function_spaces/grid_function.h"
@@ -15,7 +15,7 @@ using namespace std;
 
 namespace ug{
 
-/// Scalar Obstacles
+/// Scalar Lower Obstacles
 /**
  *  Scalar obstacle are described by constraints of the form
  *
@@ -32,12 +32,12 @@ namespace ug{
  * 	should be passed to the preconditioner by 'IProjPreconditioner::set_obstacle_constraint'.
  */
 template <typename TDomain, typename TAlgebra>
-class ScalarObstacle:
-	public IObstacleConstraint<TAlgebra>
+class ScalarLowerObstacle:
+	public IObstacleConstraint<TDomain,TAlgebra>
 {
 	public:
 	///	Base class type
-		typedef IObstacleConstraint<TAlgebra> base_type;
+		typedef IObstacleConstraint<TDomain,TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -55,34 +55,100 @@ class ScalarObstacle:
 		typedef GridFunction<TDomain, TAlgebra> function_type;
 
 	public:
-	/// constructor for a scalar obstacle defined on some subset(s)
-		ScalarObstacle(const function_type& u, const char* subsets):
-			IObstacleConstraint<TAlgebra>(u, subsets){};
+	/// constructor for a scalar obstacle
+		ScalarLowerObstacle(const function_type& u):
+			IObstacleConstraint<TDomain,TAlgebra>(u){
+			m_vActiveDofs.resize(0);
+			m_vLowerObsDoFs.resize(0);
+		};
 
 	///	default constructor
-		ScalarObstacle():
-			IObstacleConstraint<TAlgebra>(){};
+		ScalarLowerObstacle():
+			IObstacleConstraint<TDomain,TAlgebra>(){
+			m_vActiveDofs.resize(0);
+			m_vLowerObsDoFs.resize(0);
+		};
 
-	///	computes the correction for the case that only a lower obstacle is set, i.e. u >= g_low
-		void correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index);
+		void init();
 
-	///	computes the correction for the case that only an upper obstacle is set, i.e. u <= g_up
-		void correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index);
+		void reset_active_dofs(){m_vActiveDofs.resize(0);}
 
-	///	computes the correction for the case that a lower and an upper obstacle is set
-		void correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index);
+		void project_on_admissible_set(value_type& c_i, value_type& sol_i, const size_t i);
+
+		void adjust_defect(vector_type& d);
 
 	///	Destructor
-		~ScalarObstacle(){};
+		~ScalarLowerObstacle(){};
 
 	private:
-	///	pointer to vector of active Indices (for lower and upper constraint)
-		using base_type::m_spLowerActiveInd;
-		using base_type::m_spUpperActiveInd;
+	///	pointer to vector of dofs lying in the obstacle subset
+		vector<DoFIndex> m_vLowerObsDoFs;
 
-	///	vector of obstacle values (for lower and upper constraint)
-		using base_type::m_spVecOfLowObsValues;
-		using base_type::m_spVecOfUpObsValues;
+	///	store the dofs, which satisfy the constraints with equality in m_vActiveDofs
+		vector<DoFIndex> m_vActiveDofs;
+
+	///	vector of obstacle values
+		std::map<DoFIndex, double> m_mScalarLowerObsValues;
+};
+
+template <typename TDomain, typename TAlgebra>
+class ScalarUpperObstacle:
+	public IObstacleConstraint<TDomain,TAlgebra>
+{
+	public:
+	///	Base class type
+		typedef IObstacleConstraint<TDomain,TAlgebra> base_type;
+
+	///	Algebra type
+		typedef TAlgebra algebra_type;
+
+	///	Matrix type
+		typedef typename algebra_type::matrix_type matrix_type;
+
+	///	Vector type
+		typedef typename algebra_type::vector_type vector_type;
+
+	///	Value type
+		typedef typename vector_type::value_type value_type;
+
+	///	Type of grid function
+		typedef GridFunction<TDomain, TAlgebra> function_type;
+
+	public:
+	/// constructor for a scalar obstacle
+		ScalarUpperObstacle(const function_type& u):
+			IObstacleConstraint<TDomain,TAlgebra>(u){
+			m_vActiveDofs.resize(0);
+			m_vUpperObsDoFs.resize(0);
+		};
+
+	///	default constructor
+		ScalarUpperObstacle():
+			IObstacleConstraint<TDomain,TAlgebra>(){
+			m_vActiveDofs.resize(0);
+			m_vUpperObsDoFs.resize(0);
+		};
+
+		void init();
+
+		void reset_active_dofs(){m_vActiveDofs.resize(0);}
+
+		void project_on_admissible_set(value_type& c_i, value_type& sol_i, const size_t i);
+
+		void adjust_defect(vector_type& d);
+
+	///	Destructor
+		~ScalarUpperObstacle(){};
+
+	private:
+	///	pointer to vector of dofs lying in the obstacle subset
+		vector<DoFIndex> m_vUpperObsDoFs;
+
+	///	store the dofs, which satisfy the constraints with equality in m_vActiveDofs
+		vector<DoFIndex> m_vActiveDofs;
+
+	///	vector of obstacle values
+		std::map<DoFIndex, double> m_mScalarUpperObsValues;
 };
 
 } // end namespace ug
@@ -90,4 +156,4 @@ class ScalarObstacle:
 // include implementation
 #include "scalar_obstacle_impl.h"
 
-#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_OBSTACLE__ */
+#endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__SCALAR_LOWER_OBSTACLE__ */

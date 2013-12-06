@@ -12,14 +12,14 @@
 
 namespace ug{
 
-template <typename TDomain, typename TAlgebra>
+/*template <typename TDomain, typename TAlgebra>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
-correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t index)
+correction_for_lower_obs(value_type& c_i, value_type& sol_i, const size_t index)
 {
 	//	compute unconstrained solution (solution of a common (forward) GaussSeidel-step)
 	//	tmpSol := u_{s-1/2} = u_{s-1} + c
-	value_type tmpSol = lastSol[index] + c[index];
+	const value_type tmpSol = sol_i + c_i;
 
 	//	get index-th lower obstacle value
 	const value_type& lowerObsVal = (*m_spVecOfLowObsValues)[index];
@@ -34,17 +34,17 @@ correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t inde
 			//	u_{s-1/2} < lowerObsValue (:the lower constraint is not fulfilled)
 
 			//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-			BlockRef(c[index], j) = BlockRef(lowerObsVal, j) - BlockRef(lastSol[index], j);
+			BlockRef(c_i, j) = BlockRef(lowerObsVal, j) - BlockRef(sol_i, j);
 
 			//	set new solution u_s to the obstacle value
 			//	and store the current index in a vector for further treatment
-			BlockRef(lastSol[index], j) = BlockRef(lowerObsVal, j);
+			BlockRef(sol_i, j) = BlockRef(lowerObsVal, j);
 			(*m_spLowerActiveInd).push_back(MultiIndex<2>(index, j) );
 		}
 		else
 		{
 			//	the 'tmpSol' is valid with respect to the lower constraints
-			BlockRef(lastSol[index], j) = BlockRef(tmpSol, j);
+			BlockRef(sol_i, j) = BlockRef(tmpSol, j);
 		}
 	}
 }
@@ -52,11 +52,11 @@ correction_for_lower_obs(vector_type& c, vector_type& lastSol, const size_t inde
 template <typename TDomain, typename TAlgebra>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
-correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t index)
+correction_for_upper_obs(value_type& c_i, value_type& sol_i, const size_t index)
 {
 	//	compute unconstrained solution (solution of a common (forward) GaussSeidel-step)
 	//	tmpSol := u_{s-1/2} = u_{s-1} + c
-	value_type tmpSol = lastSol[index] + c[index];
+	const value_type tmpSol = sol_i + c_i;
 
 	//	get index-th upper obstacle value
 	const value_type& upperObsVal = (*m_spVecOfUpObsValues)[index];
@@ -71,17 +71,17 @@ correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t inde
 			//	u_{s-1/2} > upperObsValue (:the upper constraint is not fulfilled)
 
 			//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-			BlockRef(c[index], j) = BlockRef(upperObsVal, j) - BlockRef(lastSol[index], j);
+			BlockRef(c_i, j) = BlockRef(upperObsVal, j) - BlockRef(sol_i, j);
 
 			//	set new solution u_s to the obstacle value
 			//	and store the current index in a vector for further treatment
-			BlockRef(lastSol[index], j) = BlockRef(upperObsVal, j);
+			BlockRef(sol_i, j) = BlockRef(upperObsVal, j);
 			(*m_spUpperActiveInd).push_back(MultiIndex<2>(index, j) );
 		}
 		else
 		{
 			//	the 'tmpSol' is valid with respect to the upper constraints
-			BlockRef(lastSol[index], j) = BlockRef(tmpSol, j);
+			BlockRef(sol_i, j) = BlockRef(tmpSol, j);
 		}
 	}
 }
@@ -89,11 +89,11 @@ correction_for_upper_obs(vector_type& c, vector_type& lastSol, const size_t inde
 template <typename TDomain, typename TAlgebra>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
-correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const size_t index)
+correction_for_lower_and_upper_obs(value_type& c_i, value_type& sol_i, const size_t index)
 {
 	//	compute unconstrained solution (solution of a common (forward) GaussSeidel-step)
 	//	tmpSol := u_{s-1/2} = u_{s-1} + c
-	value_type tmpSol = lastSol[index] + c[index];
+	const value_type tmpSol = sol_i + c_i;
 
 	//	get index-th lower obstacle value
 	const value_type& upperObsVal = (*m_spVecOfUpObsValues)[index];
@@ -111,11 +111,11 @@ correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const s
 			//	u_{s-1/2} > upperObsValue (:the upper constraint is not fulfilled)
 
 			//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-			BlockRef(c[index], j)  = BlockRef(upperObsVal, j) - BlockRef(lastSol[index], j);
+			BlockRef(c_i, j)  = BlockRef(upperObsVal, j) - BlockRef(sol_i, j);
 
 			//	set new solution u_s to the obstacle value
 			//	and store the current index in a vector for further treatment
-			BlockRef(lastSol[index], j) = BlockRef(upperObsVal, j);
+			BlockRef(sol_i, j) = BlockRef(upperObsVal, j);
 			(*m_spUpperActiveInd).push_back(MultiIndex<2>(index, j) );
 		}
 		else
@@ -125,21 +125,21 @@ correction_for_lower_and_upper_obs(vector_type& c, vector_type& lastSol, const s
 				//	u_{s-1/2} < lowerObsValue (:the lower constraint is not fulfilled)
 
 				//	adjust correction c := u_s - u_{s-1} = m_obsVal - u_{s-1}
-				BlockRef(c[index], j) = BlockRef(lowerObsVal, j) - BlockRef(lastSol[index], j);
+				BlockRef(c_i, j) = BlockRef(lowerObsVal, j) - BlockRef(sol_i, j);
 
 				//	set new solution u_s to the obstacle value
 				//	and store the current index in a vector for further treatment
-				BlockRef(lastSol[index], j) = BlockRef(lowerObsVal, j);
+				BlockRef(sol_i, j) = BlockRef(lowerObsVal, j);
 				(*m_spLowerActiveInd).push_back(MultiIndex<2>(index, j) );
 			}
 			else
 			{
 				//	the 'tmpSol' is valid with respect to all constraints
-				BlockRef(lastSol[index], j) = BlockRef(tmpSol, j);
+				BlockRef(sol_i, j) = BlockRef(tmpSol, j);
 			}
 		}
 	}
-}
+}*/
 
 } // end namespace ug
 

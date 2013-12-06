@@ -9,6 +9,7 @@
 #define __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__PROJ_GAUSS_SEIDEL_INTERFACE__
 
 #include "obstacles/obstacle_constraint_interface.h"
+#include "lib_algebra/operator/preconditioner/gauss_seidel.h"
 
 namespace ug{
 
@@ -42,7 +43,7 @@ namespace ug{
  *
  *  \tparam 	TAlgebra		Algebra type
  */
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class IProjGaussSeidel:
 	public GaussSeidelBase<TAlgebra>
 {
@@ -66,9 +67,14 @@ class IProjGaussSeidel:
 	/// constructor
 		IProjGaussSeidel(): GaussSeidelBase<TAlgebra>(){};
 
-	///	sets the obstacle constraint function c(u)
-		void set_obstacle_constraint(SmartPtr<IObstacleConstraint<TAlgebra> > spObsCons){
-			m_spObsConstraint = spObsCons; m_bObsCons = true;}
+	///	adds the obstacle constraint function c(u)
+		void add_obstacle_constraint(SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > spObsCons)
+		{
+			m_spvObsConstraint.push_back(spObsCons);
+			m_bObsCons = true;
+
+			spObsCons->init();
+		}
 
 	///	Destructor
 		~IProjGaussSeidel(){};
@@ -94,7 +100,7 @@ class IProjGaussSeidel:
 		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax) = 0;
 
 	///	projects the correction on the underlying constraints set by the obstacleConstraints
-		void project_correction(vector_type& c, const size_t i);
+		void project_correction(value_type& c_i, const size_t i);
 
 	///	Compute new correction c = B*d
 		virtual bool apply(vector_type& c, const vector_type& d);
@@ -102,13 +108,9 @@ class IProjGaussSeidel:
 	///	Compute new correction c = B*d and return new defect d := d - A*c
 		virtual bool apply_update_defect(vector_type& c, vector_type& d);
 
-	private:
-	///	adjust defect of the active indices for the case that a constraint/obstacle is set
-		void adjust_defect(vector_type& d);
-
 	protected:
 	///	obstacle constraint
-		SmartPtr<IObstacleConstraint<TAlgebra> > m_spObsConstraint;
+		vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > > m_spvObsConstraint;
 
 	private:
 	///	pointer to solution

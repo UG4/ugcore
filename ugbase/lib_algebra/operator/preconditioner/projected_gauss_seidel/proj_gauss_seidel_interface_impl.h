@@ -23,13 +23,14 @@
 
 namespace ug{
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 bool
-IProjGaussSeidel<TAlgebra>::
+IProjGaussSeidel<TDomain,TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 {
 	PROFILE_FUNC_GROUP("IProjGaussSeidel");
 
+//	call GaussSeidelBase-init
 	base_type::init(J,u);
 
 //	remember solution
@@ -37,10 +38,6 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 
 //	remember, that operator has been initialized
 	m_bInit = true;
-
-//	init the obstacle constraint class
-	if(m_bObsCons)
-		m_spObsConstraint->init(u);
 
 //	(ugly) hint, that usual damping (x += damp * c) does not make sense for the projected
 //	GaussSeidel-method.
@@ -53,44 +50,29 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 	return true;
 }
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
-IProjGaussSeidel<TAlgebra>::project_correction(vector_type& c, const size_t i)
+IProjGaussSeidel<TDomain,TAlgebra>::
+project_correction(value_type& c_i, const size_t i)
 {
-	//	compute unconstrained solution (solution of a common (forward) GaussSeidel-step)
-	//	tmpSol := u_{s-1/2} = u_{s-1} + c
-	//value_type tmpSol = (*m_spSol)[i] + c[i];
+	if(!m_bObsCons)
+		return;
 
-	//TODO: check, if index i is in m_vAlgIndicesOfObsSubsets
-	//if (m_spObsConstraint->nrOfIndicesOfObsSubsets() != 0.0)
-	//if (m_spObsConstraint->m_vAlgIndicesOfObsSubsets.size() != 0.0)
-	//	if (!m_spObsConstraint->index_is_in_obs_subset(i))
-	//		return;
+	typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+	iter_type iter = m_spvObsConstraint.begin();
+	iter_type iterEnd = m_spvObsConstraint.end();
 
-	//	perform a projection: check whether the temporary solution u_{s-1/2}
+	//	loop all obstacle constraint, which are set
+	//	& perform a projection: check whether the temporary solution u_{s-1/2}
 	//	fulfills the underlying constraint(s) or not
-	if(m_spObsConstraint->lower_obs_set() && (!(m_spObsConstraint->upper_obs_set())))
-	{
-		//	only a lower obstacle is set
-		m_spObsConstraint->correction_for_lower_obs(c, (*m_spSol), i);
-	}
-
-	if((!(m_spObsConstraint->lower_obs_set())) && m_spObsConstraint->upper_obs_set())
-	{
-		//	only an upper obstacle is set
-		m_spObsConstraint->correction_for_upper_obs(c, (*m_spSol), i);
-	}
-
-	if(m_spObsConstraint->lower_obs_set() && m_spObsConstraint->upper_obs_set())
-	{
-		//	a lower and an upper obstacle are set
-		m_spObsConstraint->correction_for_lower_and_upper_obs(c, (*m_spSol), i);
-	}
+	for( ; iter != iterEnd; iter++)
+		(*iter)->project_on_admissible_set(c_i, (*m_spSol)[i], i);
+		//m_spObsConstraint->project_on_admissible_set(c_i, (*m_spSol)[i], i);
 }
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 bool
-IProjGaussSeidel<TAlgebra>::
+IProjGaussSeidel<TDomain,TAlgebra>::
 apply(vector_type &c, const vector_type& d)
 {
 	PROFILE_FUNC_GROUP("IProjGaussSeidel");
@@ -101,50 +83,42 @@ apply(vector_type &c, const vector_type& d)
 		return false;
 	}
 
-	//	reset active indices
-	m_spObsConstraint->reset_active_indices();
+	//	loop all obstacle constraint, which are set
+	//	& reset active dofs
+	if(m_bObsCons)
+	{
+		typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+		iter_type iter = m_spvObsConstraint.begin();
+		iter_type iterEnd = m_spvObsConstraint.end();
+
+		for( ; iter != iterEnd; iter++)
+			(*iter)->reset_active_dofs();
+	}
 
 	base_type::apply(c, d);
 
 	return true;
 }
 
-template <typename TAlgebra>
-void
-IProjGaussSeidel<TAlgebra>::
-adjust_defect(vector_type& d)
-{
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = (*(m_spObsConstraint->lower_active_indices())).begin();
-					itActiveInd < (*(m_spObsConstraint->lower_active_indices())).end(); ++itActiveInd)
-	{
-		//	check, if Ax <= b. For that case the new defect is set to zero,
-		//	since all equations/constraints are fulfilled
-		if (BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) < 0.0)
-			BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) = 0.0;
-	}
-
-	for (std::vector<MultiIndex<2> >::iterator itActiveInd = (*(m_spObsConstraint->upper_active_indices())).begin();
-				itActiveInd < (*(m_spObsConstraint->upper_active_indices())).end(); ++itActiveInd)
-	{
-		//	check, if Ax >= b. For that case the new defect is set to zero,
-		//	since all equations/constraints are fulfilled
-		if (BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) > 0.0)
-			BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) = 0.0;
-	}
-}
-
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 bool
-IProjGaussSeidel<TAlgebra>::
+IProjGaussSeidel<TDomain,TAlgebra>::
 apply_update_defect(vector_type &c, vector_type& d)
 {
 	PROFILE_FUNC_GROUP("IProjGaussSeidel");
 
 	base_type::apply_update_defect(c, d);
 
-	//	adjust defect of the active indices for the case that a constraint is set
+	//	adjust defect for the active dofs
 	if(m_bObsCons)
-		adjust_defect(d);
+	{
+		typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+		iter_type iter = m_spvObsConstraint.begin();
+		iter_type iterEnd = m_spvObsConstraint.end();
+
+		for( ; iter != iterEnd; iter++)
+			(*iter)->adjust_defect(d);
+	}
 
 	return true;
 }

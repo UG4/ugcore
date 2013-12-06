@@ -48,13 +48,13 @@ namespace ug{
  * \tparam 	TAlgebra		Algebra type
  */
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class ProjGaussSeidel:
-	public IProjGaussSeidel<TAlgebra>
+	public IProjGaussSeidel<TDomain,TAlgebra>
 {
 	public:
 	///	Base class type
-		typedef IProjGaussSeidel<TAlgebra> base_type;
+		typedef IProjGaussSeidel<TDomain,TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -67,7 +67,7 @@ class ProjGaussSeidel:
 
 	public:
 	/// constructor
-		ProjGaussSeidel(): IProjGaussSeidel<TAlgebra>(){};
+		ProjGaussSeidel(): IProjGaussSeidel<TDomain,TAlgebra>(){};
 
 	///	Destructor
 		~ProjGaussSeidel(){};
@@ -79,8 +79,8 @@ class ProjGaussSeidel:
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<ProjGaussSeidel<TAlgebra> > newInst(
-					new ProjGaussSeidel<TAlgebra>());
+			SmartPtr<ProjGaussSeidel<TDomain,TAlgebra> > newInst(
+					new ProjGaussSeidel<TDomain,TAlgebra>());
 			base_type::copy_config(*newInst);
 			return newInst;
 		}
@@ -89,13 +89,13 @@ class ProjGaussSeidel:
 		virtual void step(const matrix_type& mat, vector_type& c, const vector_type& d, const number relax);
 };
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class ProjBackwardGaussSeidel:
-	public IProjGaussSeidel<TAlgebra>
+	public IProjGaussSeidel<TDomain,TAlgebra>
 {
 	public:
 	///	Base class type
-		typedef IProjGaussSeidel<TAlgebra> base_type;
+		typedef IProjGaussSeidel<TDomain,TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -108,7 +108,7 @@ class ProjBackwardGaussSeidel:
 
 	public:
 	/// constructor
-		ProjBackwardGaussSeidel(): IProjGaussSeidel<TAlgebra>(){};
+		ProjBackwardGaussSeidel(): IProjGaussSeidel<TDomain,TAlgebra>(){};
 
 	///	Destructor
 		~ProjBackwardGaussSeidel(){};
@@ -120,8 +120,8 @@ class ProjBackwardGaussSeidel:
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<ProjBackwardGaussSeidel<TAlgebra> > newInst(
-					new ProjBackwardGaussSeidel<TAlgebra>());
+			SmartPtr<ProjBackwardGaussSeidel<TDomain,TAlgebra> > newInst(
+					new ProjBackwardGaussSeidel<TDomain,TAlgebra>());
 			base_type::copy_config(*newInst);
 			return newInst;
 		}
@@ -131,13 +131,13 @@ class ProjBackwardGaussSeidel:
 };
 
 
-template <typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class ProjSymmetricGaussSeidel:
-	public IProjGaussSeidel<TAlgebra>
+	public IProjGaussSeidel<TDomain,TAlgebra>
 {
 	public:
 	///	Base class type
-		typedef IProjGaussSeidel<TAlgebra> base_type;
+		typedef IProjGaussSeidel<TDomain,TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -150,7 +150,7 @@ class ProjSymmetricGaussSeidel:
 
 	public:
 	/// constructor
-		ProjSymmetricGaussSeidel(): IProjGaussSeidel<TAlgebra>(){};
+		ProjSymmetricGaussSeidel(): IProjGaussSeidel<TDomain,TAlgebra>(){};
 
 	///	Destructor
 		~ProjSymmetricGaussSeidel(){};
@@ -162,8 +162,8 @@ class ProjSymmetricGaussSeidel:
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone()
 		{
-			SmartPtr<ProjSymmetricGaussSeidel<TAlgebra> > newInst(
-					new ProjSymmetricGaussSeidel<TAlgebra>());
+			SmartPtr<ProjSymmetricGaussSeidel<TDomain,TAlgebra> > newInst(
+					new ProjSymmetricGaussSeidel<TDomain,TAlgebra>());
 			base_type::copy_config(*newInst);
 			return newInst;
 		}
