@@ -600,7 +600,7 @@ void ChrisPoliTest(std::vector<bool> vec){
 	std::cout << "cpp true = " << true << std::endl;
 	std::cout << "cpp false = " << false << std::endl;
 
-	for (int i = 0; i < vec.size(); ++i) {
+	for (size_t i = 0; i < vec.size(); ++i) {
 		std::cout   << "vec[ "<< i <<" ] = "<< vec[i] << std::endl;
 	}
 
@@ -624,7 +624,7 @@ std::vector<bool> ChrisPoliTestReturn(std::vector<bool> vec){
 	std::cout << "cpp true = " << true << std::endl;
 	std::cout << "cpp false = " << false << std::endl;
 
-	for (int i = 0; i < vec.size(); ++i) {
+	for (size_t i = 0; i < vec.size(); ++i) {
 		std::cout   << "vec[ "<< i <<" ] = "<< vec[i] << std::endl;
 	}
 
