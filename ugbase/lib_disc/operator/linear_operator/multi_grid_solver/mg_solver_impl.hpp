@@ -641,7 +641,6 @@ assemble_rim_cpl(const vector_type* u)
 		{
 			const size_t lvlFrom = lf.vShadowing[i];
 			const size_t surfFrom = lf.vSurfShadowing[i];
-			//if(m_vSurfToLevelMap[surfFrom].levelLower != lev) continue;
 
 			typedef typename matrix_type::row_iterator row_iterator;
 			row_iterator conn = surfMat.begin_row(surfFrom);
@@ -651,8 +650,10 @@ assemble_rim_cpl(const vector_type* u)
 				const size_t surfTo = conn.index();
 
 				if(m_bSmoothOnSurfaceRim){
-					if(m_vSurfToLevelMap[surfTo].level == lev + 1)
-						lc.RimCpl_Fine_Fine(m_vSurfToLevelMap[surfTo].index, lvlFrom) = surfMat(surfTo, surfFrom);
+					if(m_vSurfToLevelMap[surfTo].level == lev + 1){
+						size_t lvlTo = m_vSurfToLevelMap[surfTo].index;
+						lc.RimCpl_Fine_Fine(lvlTo, lvlFrom) = surfMat(surfTo, surfFrom);
+					}
 				}
 
 				size_t lvlTo = (size_t)(-1);
