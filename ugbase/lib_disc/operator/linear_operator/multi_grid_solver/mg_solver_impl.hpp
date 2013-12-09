@@ -1711,18 +1711,6 @@ base_solve(int lev)
 				UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 		}
 		UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
-
-	//	UPDATE DEFECT
-	//	*) if adaptive case, we also need to update the defect, such that on the
-	//	   surface level the defect remains updated
-	//	*) Only for full refinement and real coarser level, we can forget about
-	//	   the defect on the base level, since only the correction is needed
-	//	   on the higher level
-		if(lev >= m_LocalFullRefLevel){
-			ld.A->apply_sub(*ld.sd, *ld.st);
-		}
-		(*ld.sc) += (*ld.st);
-
 		GMG_PROFILE_END();
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting distributed basesolver branch.\n");
@@ -1785,17 +1773,21 @@ base_solve(int lev)
 			#endif
 			copy_ghost_to_noghost(ld.st, spGatheredBaseCorr, ld.vMapPatchToGlobal);
 		}
-
-		if(lev >= m_LocalFullRefLevel){
-			ld.A->apply_sub(*ld.sd, *ld.st);
-		}
-		(*ld.sc) += (*ld.st);
-
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
 
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
+//	UPDATE DEFECT
+//	*) if adaptive case, we also need to update the defect, such that on the
+//	   surface level the defect remains updated
+//	*) Only for full refinement and real coarser level, we can forget about
+//	   the defect on the base level, since only the correction is needed
+//	   on the higher level
+	if(lev >= m_LocalFullRefLevel){
+		ld.A->apply_sub(*ld.sd, *ld.st);
+	}
+	(*ld.sc) += (*ld.st);
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
 	}
 	UG_CATCH_THROW("GMG: Base Solver failed.");
 }
