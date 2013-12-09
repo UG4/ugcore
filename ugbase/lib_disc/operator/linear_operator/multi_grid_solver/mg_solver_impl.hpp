@@ -1871,19 +1871,21 @@ base_solve(int lev)
 
 	//	broadcast the correction
 		#ifdef UG_PARALLEL
-		ComPol_VecCopy<vector_type> cpVecCopy(&(*ld.st));
-		m_Com.receive_data(ld.st->layouts()->vertical_slave(), cpVecCopy);
+		SmartPtr<GF> spC = ld.st;
+		if(gathered_base_master()) spC = spGatheredBaseCorr;
+
+		ComPol_VecCopy<vector_type> cpVecCopy(spC.get());
+		m_Com.send_data(spC->layouts()->vertical_master(), cpVecCopy);
+		m_Com.receive_data(spC->layouts()->vertical_slave(), cpVecCopy);
 		m_Com.communicate();
-		ld.st->set_storage_type(PST_CONSISTENT);
 		#endif
 		if(gathered_base_master()){
 			#ifdef UG_PARALLEL
-			ComPol_VecCopy<vector_type> cpVecCopy(&(*spGatheredBaseCorr));
-			m_Com.send_data(spGatheredBaseCorr->layouts()->vertical_master(), cpVecCopy);
-			m_Com.communicate();
 			spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
-			#endif
 			copy_ghost_to_noghost(ld.st, spGatheredBaseCorr, ld.vMapPatchToGlobal);
+			#endif
+		} else {
+			ld.st->set_storage_type(PST_CONSISTENT);
 		}
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
