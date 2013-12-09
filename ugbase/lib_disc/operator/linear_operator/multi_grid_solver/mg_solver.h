@@ -379,6 +379,12 @@ class AssembledMultiGridCycle :
 
 		///	missing coarse grid correction
 			matrix_type RimCpl_Fine_Fine;
+
+		///	flag if v-slaves with multiple ghost present on this proc
+			bool bMultiOccurance;
+
+		///	scaling factors for multiple occurance (valid only if bMultiOccurance == true)
+			std::vector<int> vMultiOccurence;
 		};
 
 	///	storage for all level
@@ -411,6 +417,9 @@ class AssembledMultiGridCycle :
 		void init_noghost_to_ghost_mapping(int lev);
 	/// \}
 
+	///	inits numbers of multi-vmaster
+		void init_multi_occurance(int lev, SmartPtr<GF> spVec);
+
 	///	copies vector to smoothing patch using cached mapping
 		void copy_ghost_to_noghost(SmartPtr<GF> spVecTo,
 		                           ConstSmartPtr<GF> spVecFrom,
@@ -427,10 +436,10 @@ class AssembledMultiGridCycle :
 		                           const std::vector<size_t>& vMapPatchToGlobal);
 
 	/// a v-slave may have multiple v-masters, therefore: divide by multiplicity
-		void divide_vertical_slaves_by_number_of_masters(vector_type& d);
+		void divide_vertical_slaves_by_number_of_masters(int lev, SmartPtr<GF> spVec);
 
 	/// a v-slave may have multiple v-masters, therefore: divide by multiplicity
-		void divide_vertical_slave_rows_by_number_of_masters(matrix_type& mat);
+		void divide_vertical_slave_rows_by_number_of_masters(int lev, matrix_type& mat);
 
 	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
 		void add_to_vertical_masters_and_set_zero_vertical_slaves(vector_type& d);

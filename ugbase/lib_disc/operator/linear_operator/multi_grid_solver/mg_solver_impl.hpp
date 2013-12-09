@@ -791,7 +791,7 @@ init_rap_operator()
 			} else {
 				*spGhostA = *lf.A;
 			}
-			divide_vertical_slave_rows_by_number_of_masters(*spGhostA);
+			divide_vertical_slave_rows_by_number_of_masters(lev, *spGhostA);
 
 			ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, true);
 			if(!spGhostA->layouts()->vertical_slave().empty())
@@ -833,7 +833,7 @@ init_rap_operator()
 		spGatheredBaseMat->set_storage_type(m_spSurfaceMat->get_storage_mask());
 		spGatheredBaseMat->set_layouts(ld.t->layouts());
 
-		divide_vertical_slave_rows_by_number_of_masters(*spGatheredBaseMat);
+		divide_vertical_slave_rows_by_number_of_masters(m_baseLev, *spGatheredBaseMat);
 		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat, true);
 		if(!spGatheredBaseMat->layouts()->vertical_slave().empty())
 			m_Com.send_data(spGatheredBaseMat->layouts()->vertical_slave(), cpMatAdd);
@@ -1335,6 +1335,45 @@ copy_noghost_to_ghost(SmartPtr<matrix_type> spMatTo,
 	#endif
 }
 
+template <typename TDomain, typename TAlgebra>
+void AssembledMultiGridCycle<TDomain, TAlgebra>::
+init_multi_occurance(int lev, SmartPtr<GF> spVec)
+{
+#ifdef UG_PARALLEL
+	PROFILE_FUNC_GROUP("gmg");
+
+//	reset
+	LevData& ld = *m_vLevData[lev];
+	ld.bMultiOccurance = false;
+	ld.vMultiOccurence.clear();
+
+//	check if something to do
+	if(spVec->layouts()->vertical_slave().empty()) return;
+
+//	there may be v-slaves with multiple v-masters. We only want to send
+//	a fraction to each master, to keep d additive.
+//	count number of occurrances in v-interfaces
+	const IndexLayout& layout = spVec->layouts()->vertical_slave();
+
+	if(layout.num_interfaces() > 1){
+		ld.vMultiOccurence.resize(spVec->size(), 0);
+		for(IndexLayout::const_iterator iiter = layout.begin();
+			iiter != layout.end(); ++iiter)
+		{
+			const IndexLayout::Interface& itfc = layout.interface(iiter);
+			for(IndexLayout::Interface::const_iterator iter = itfc.begin();
+				iter != itfc.end(); ++iter)
+			{
+				const IndexLayout::Interface::Element& index = itfc.get_element(iter);
+
+				ld.vMultiOccurence[index] += 1;
+				if(ld.vMultiOccurence[index] > 1)
+					ld.bMultiOccurance = true;
+			}
+		}
+	}
+#endif
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Init Level Data
@@ -1385,6 +1424,7 @@ init_level_memory(int baseLev, int topLev)
 			ld.Restriction = m_spRestrictionPrototype->clone();
 
 		init_noghost_to_ghost_mapping(lev);
+		init_multi_occurance(lev, ld.t);
 	}
 
 	bool bHasVertMaster = false;
@@ -1571,7 +1611,7 @@ presmooth_and_restriction(int lev)
 		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
 		copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
 		if(lf.t->size() > 0){
-			divide_vertical_slaves_by_number_of_masters(*lf.t);
+			divide_vertical_slaves_by_number_of_masters(lev, lf.t);
 			add_to_vertical_masters_and_set_zero_vertical_slaves(*lf.t);
 		}
 		spD = lf.t;
@@ -1729,7 +1769,7 @@ base_solve(int lev)
 		{
 			SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), 0);
 			copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
-			divide_vertical_slaves_by_number_of_masters(*ld.t);
+			divide_vertical_slaves_by_number_of_masters(lev, ld.t);
 			add_to_vertical_masters_and_set_zero_vertical_slaves(*ld.t);
 			spD = ld.t;
 		}
@@ -1853,99 +1893,31 @@ lmgc(int lev)
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-divide_vertical_slaves_by_number_of_masters(vector_type& d)
+divide_vertical_slaves_by_number_of_masters(int lev, SmartPtr<GF> spVec)
 {
 #ifdef UG_PARALLEL
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - divide_vertical_slaves_by_number_of_masters\n");
-	PROFILE_FUNC_GROUP("gmg");
-
-	if(d.layouts()->vertical_slave().empty()) return;
-
-	GMG_PROFILE_BEGIN(GMG_DevideSlavesByNumberOfMasters);
-
-//	there may be v-slaves with multiple v-masters. We only want to send
-//	a fraction to each master, to keep d additive.
-//	count number of occurrances in v-interfaces
-	bool multiOccurance = false;
-	std::vector<number> occurence;
-	const IndexLayout& layout = d.layouts()->vertical_slave();
-
-	if(layout.num_interfaces() > 1){
-		occurence.resize(d.size(), 0);
-		for(IndexLayout::const_iterator iiter = layout.begin();
-			iiter != layout.end(); ++iiter)
-		{
-			const IndexLayout::Interface& itfc = layout.interface(iiter);
-			for(IndexLayout::Interface::const_iterator iter = itfc.begin();
-				iter != itfc.end(); ++iter)
-			{
-				const IndexLayout::Interface::Element& index = itfc.get_element(iter);
-
-				occurence[index] += 1;
-				if(occurence[index] > 1)
-					multiOccurance = true;
-			}
+	LevData& ld = *m_vLevData[lev];
+	if(ld.bMultiOccurance){
+		for(size_t i = 0; i < ld.vMultiOccurence.size(); ++i){
+			if(ld.vMultiOccurence[i] > 1)
+				(*spVec)[i] *= (1./ld.vMultiOccurence[i]);
 		}
 	}
-
-	if(multiOccurance){
-		for(size_t i = 0; i < occurence.size(); ++i){
-			if(occurence[i] > 1)
-				d[i] *= (1./occurence[i]);
-		}
-	}
-
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - divide_vertical_slaves_by_number_of_masters\n");
 #endif
 }
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-divide_vertical_slave_rows_by_number_of_masters(matrix_type& mat)
+divide_vertical_slave_rows_by_number_of_masters(int lev, matrix_type& mat)
 {
 #ifdef UG_PARALLEL
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - divide_vertical_slave_rows_by_number_of_masters\n");
-	PROFILE_FUNC_GROUP("gmg");
-
-	if(mat.layouts()->vertical_slave().empty()) return;
-
-	GMG_PROFILE_BEGIN(GMG_DevideSlaveRowByNumberOfMasters);
-
-//	there may be v-slaves with multiple v-masters. We only want to send
-//	a fraction to each master, to keep d additive.
-//	count number of occurrances in v-interfaces
-	bool multiOccurance = false;
-	std::vector<number> occurence;
-	const IndexLayout& layout = mat.layouts()->vertical_slave();
-
-	if(layout.num_interfaces() > 1){
-		occurence.resize(mat.num_rows(), 0);
-		for(IndexLayout::const_iterator iiter = layout.begin();
-			iiter != layout.end(); ++iiter)
-		{
-			const IndexLayout::Interface& itfc = layout.interface(iiter);
-			for(IndexLayout::Interface::const_iterator iter = itfc.begin();
-				iter != itfc.end(); ++iter)
-			{
-				const IndexLayout::Interface::Element& index = itfc.get_element(iter);
-
-				occurence[index] += 1;
-				if(occurence[index] > 1)
-					multiOccurance = true;
-			}
+	LevData& ld = *m_vLevData[lev];
+	if(ld.bMultiOccurance){
+		for(size_t i = 0; i < ld.vMultiOccurence.size(); ++i){
+			if(ld.vMultiOccurence[i] > 1)
+				ScaleRow(mat, i, (1./ld.vMultiOccurence[i]));
 		}
 	}
-
-	if(multiOccurance){
-		for(size_t i = 0; i < occurence.size(); ++i){
-			if(occurence[i] > 1)
-				ScaleRow(mat, i, (1./occurence[i]));
-		}
-	}
-
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - divide_vertical_slave_rows_by_number_of_masters\n");
 #endif
 }
 
