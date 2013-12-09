@@ -21,6 +21,8 @@ to_string() const
 	t(0, 2) << "#local-elems";
 	t(0, 3) << "(% of total)";
 	t(0, 4) << "#local-ghosts";
+	t(0, 5) << "#min-local-elems";
+	t(0, 6) << "#max-local-elems";
 
 	for(size_t i = 0; i < m_numElems.size(); ++i){
 		int r = i+1;
@@ -32,6 +34,8 @@ to_string() const
 		else
 			t(r, 3) << "-";
 		t(r, 4) << m_numLocalGhosts[i];
+		t(r, 5) << m_minNumLocalElems[i];
+		t(r, 6) << m_maxNumLocalElems[i];
 	}
 
 	return t.to_string();

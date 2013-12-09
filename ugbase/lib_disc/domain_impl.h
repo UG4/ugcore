@@ -255,16 +255,23 @@ update_domain_info()
 			break;
 	}
 
-	std::vector<int>	numGlobalElems;
+	std::vector<int>	numGlobalElems, minNumLocalElems, maxNumLocalElems;
 	#ifdef UG_PARALLEL
 	//	we have to sum local element counts excluding ghosts.
 		numGlobalElems.resize(numLocalElems.size());
+		minNumLocalElems.resize(numLocalElems.size());
+		maxNumLocalElems.resize(numLocalElems.size());
 		commWorld.allreduce(numLocalElems, numGlobalElems, PCL_RO_SUM);
+		commWorld.allreduce(numLocalElems, minNumLocalElems, PCL_RO_MIN);
+		commWorld.allreduce(numLocalElems, maxNumLocalElems, PCL_RO_MAX);
 	#else
 		numGlobalElems = numLocalElems;
+		minNumLocalElems = numLocalElems;
+		maxNumLocalElems = numLocalElems;
 	#endif
 
-	m_domainInfo.set_info(elemType, numGlobalElems, numLocalElems, numLocalGhosts, subsetDims);
+	m_domainInfo.set_info(elemType, numGlobalElems, numLocalElems, minNumLocalElems,
+						  maxNumLocalElems, numLocalGhosts, subsetDims);
 }
 
 template <typename TGrid, typename TSubsetHandler>

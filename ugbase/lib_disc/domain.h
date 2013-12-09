@@ -37,6 +37,10 @@ class DomainInfo
 		inline int num_elements_on_level(size_t lvl) const			{return m_numElems[lvl];}
 	///	returns the local number of elements on the given level (excluding ghosts...)
 		inline int num_local_elements_on_level(size_t lvl) const	{return m_numLocalElems[lvl];}
+	///	returns the minimum number of elements a process has on a given leven (excluding ghosts)
+		inline int min_num_local_elements_on_level(size_t lvl) const	{return m_minNumLocalElems[lvl];}
+	///	returns the maximum number of elements a process has on a given leven (excluding ghosts)
+		inline int max_num_local_elements_on_level(size_t lvl) const	{return m_maxNumLocalElems[lvl];}
 	///	returns the local number of ghosts on the given level
 		inline int num_local_ghosts_on_level(size_t lvl) const		{return m_numLocalGhosts[lvl];}
 
@@ -48,10 +52,16 @@ class DomainInfo
 		inline void set_info(GeometricBaseObject elemType,
 								const std::vector<int>& numElems,
 								const std::vector<int>& numLocalElems,
+								const std::vector<int>& minNumLocalElems,
+								const std::vector<int>& maxNumLocalElems,
 								const std::vector<int>& numLocalGhosts,
 								const std::vector<int>& subsetDims)
-			{m_elementType = elemType; m_numElems = numElems;
-			 m_numLocalElems = numLocalElems; m_numLocalGhosts = numLocalGhosts;
+			{m_elementType = elemType;
+			 m_numElems = numElems;
+			 m_numLocalElems = numLocalElems;
+			 m_minNumLocalElems = minNumLocalElems;
+			 m_maxNumLocalElems = maxNumLocalElems;
+			 m_numLocalGhosts = numLocalGhosts;
 			 m_subsetDims = subsetDims;}
 
 		std::string to_string() const;
@@ -60,6 +70,8 @@ class DomainInfo
 		GeometricBaseObject	m_elementType;
 		std::vector<int>	m_numElems;
 		std::vector<int>	m_numLocalElems;///< local number of elements excluding ghosts.
+		std::vector<int>	m_minNumLocalElems;
+		std::vector<int>	m_maxNumLocalElems;
 		std::vector<int>	m_numLocalGhosts;
 		std::vector<int>	m_subsetDims;
 };

@@ -51,7 +51,9 @@ bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
 	typename subset_handler_type::template traits<VertexBase>::const_iterator iterEnd, iter;
 	number minDistanceSq = numeric_limits<number>::max();
 
-	DistributedGridManager* dgm = grid->distributed_grid_manager();
+	#ifdef UG_PARALLEL
+		DistributedGridManager* dgm = grid->distributed_grid_manager();
+	#endif
 
 	SubsetGroup ssGrp(sh);
 	if(subsets != NULL)
@@ -121,9 +123,11 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 
 	std::vector<DoFIndex> ind;
 	typename subset_handler_type::template traits<VertexBase>::const_iterator iterEnd, iter,chosen;
-	double minDistanceSq;
+	double minDistanceSq = 0;
 
-	DistributedGridManager* dgm = grid->distributed_grid_manager();
+	#ifdef UG_PARALLEL
+		DistributedGridManager* dgm = grid->distributed_grid_manager();
+	#endif
 
 	bool bInit = false;
 	for(size_t i = 0; i < ssGrp.size(); ++i)
