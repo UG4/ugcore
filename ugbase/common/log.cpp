@@ -105,6 +105,8 @@ void LogAssistant::flush()
 	m_splitBufInst.flush();
 	if(m_fileStream.is_open())
 		m_fileStream.flush();
+	if(m_terminalOutputEnabled)
+		fflush(stdout);
 }
 
 
