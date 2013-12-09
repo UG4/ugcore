@@ -91,6 +91,7 @@ public:
 // 	Vector type
 	typedef typename TAlgebra::vector_type vector_type;
 	typedef typename TAlgebra::matrix_type matrix_type;
+	typedef typename vector_type::value_type vector_value_type;
 
 ///	Base type
 	typedef DebugWritingObject<TAlgebra> base_type;
@@ -343,59 +344,64 @@ public:
 	{
 		PINVIT_PROFILE_FUNC();
 		UG_LOG(tostring() << "\nInitializing... ");
+
+
+		size_t nEigenvalues = px.size();
 		DenseMatrix<VariableArray2<double> > rA;
 		DenseMatrix<VariableArray2<double> > rB;
 		DenseMatrix<VariableArray2<double> > r_ev;
 		std::vector<std::complex<double> > r_lambda;
 		std::vector<std::string> vCorrectionName;
 
-		typedef typename vector_type::value_type value_type;
-		vector_type defect;
-		set_approximation_vector(defect);
-		size_t nEigenvalues = px.size();
-
-		m_currentAdditionalEigenvectors = 0;
-
-		//size_t size = px[0]->size();
-		/*
-		ParallelMatrix<SparseMatrix<double> > B;
-		B.resize(size, size);
-		for(size_t i=0; i<size; i++)
-			B(i,i) = 0.00390625;
-		B.set_storage_type(PST_ADDITIVE);*/
-
+		SmartPtrVector<vector_type> pTestVectors;
 		SmartPtrVector<vector_type> vAdditional;
-
-		for(size_t i=0; i<m_additionalEigenvectorsToKeep; i++)
-			vAdditional.push_back(create_approximation_vector());
-
-		vector_type tmp;
-		set_approximation_vector(tmp);
 		SmartPtrVector<vector_type> vCorr;
 		SmartPtrVector<vector_type> vOldX;
-
-		lambda.resize(nEigenvalues);
-
-		for(size_t i=0; i<nEigenvalues; i++)
-		{
-			vCorr.push_back(create_approximation_vector() );
-			if(m_iPINVIT >= 3)
-				vOldX.push_back(create_approximation_vector() );
-		}
-
-		vCorrectionName.resize(nEigenvalues);
-
-		SmartPtrVector<vector_type> pTestVectors;
-
 
 		std::vector<double> vDefectNorm(nEigenvalues, m_dPrecision*10);
 		std::vector<double> oldXnorm(nEigenvalues);
 
 		std::vector<std::string> vTestVectorDescription;
 
+		vector_type defect;
+
+		try{
+			set_approximation_vector(defect);
+
+			m_currentAdditionalEigenvectors = 0;
+
+			//size_t size = px[0]->size();
+			/*
+			ParallelMatrix<SparseMatrix<double> > B;
+			B.resize(size, size);
+			for(size_t i=0; i<size; i++)
+				B(i,i) = 0.00390625;
+			B.set_storage_type(PST_ADDITIVE);*/
+
+			for(size_t i=0; i<m_additionalEigenvectorsToKeep; i++)
+				vAdditional.push_back(create_approximation_vector());
+
+			vector_type tmp;
+			set_approximation_vector(tmp);
+
+			lambda.resize(nEigenvalues);
+			for(size_t i=0; i<nEigenvalues; i++)
+			{
+				vCorr.push_back(create_approximation_vector() );
+				if(m_iPINVIT >= 3)
+					vOldX.push_back(create_approximation_vector() );
+			}
+
+			vCorrectionName.resize(nEigenvalues);
+		}UG_CATCH_THROW("PINVIT::apply init vectors failed.");
+
 		UG_LOG("done.\n");
 		UG_LOG("PINVIT: Initializing preconditioner... ");
-		m_spPrecond->init(m_pA);
+
+		try{
+			m_spPrecond->init(m_pA);
+		}UG_CATCH_THROW("PINVIT::apply init preconditioner.");
+
 		UG_LOG("done.\n");
 
 #ifdef UG_PARALLEL
@@ -405,100 +411,102 @@ public:
 
 		for(size_t iteration=0; iteration<m_maxIterations; iteration++)
 		{
+			try{
 
-//			UG_LOG("normalize...\n");
-			// 0. normalize
-			normalize_approximations();
+	//			UG_LOG("normalize...\n");
+				// 0. normalize
+				normalize_approximations();
 
-			//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
-			size_t nrofconverged=0;
+				//  2. compute rayleigh quotient, residuum, apply preconditioner, compute corrections norm
+				size_t nrofconverged=0;
 
 
-			size_t currentAdditionalCorrections = 0;
-			size_t numCorrections=0;
-			for(size_t i=0; i<nEigenvalues; i++)
-			{
-//				UG_LOG("compute rayleigh " << i << "...\n");
-				compute_rayleigh_and_defect(px(i), lambda[i], defect, vDefectNorm[i]);
-//				UG_LOG("EV " << i << " defect norm: " << vDefectNorm[i] << "\n");
-
-				if(vDefectNorm[i] < m_dPrecision)
+				size_t currentAdditionalCorrections = 0;
+				size_t numCorrections=0;
+				for(size_t i=0; i<nEigenvalues; i++)
 				{
-					nrofconverged++;
-					if(m_bUseAdditionalCorrections && currentAdditionalCorrections < m_currentAdditionalEigenvectors)
+	//				UG_LOG("compute rayleigh " << i << "...\n");
+					compute_rayleigh_and_defect(px(i), lambda[i], defect, vDefectNorm[i]);
+	//				UG_LOG("EV " << i << " defect norm: " << vDefectNorm[i] << "\n");
+
+					if(vDefectNorm[i] < m_dPrecision)
 					{
-						double additionalLambda, additionalDefect;
-						compute_rayleigh_and_defect(vAdditional(currentAdditionalCorrections),
-								additionalLambda, defect, additionalDefect);
-						currentAdditionalCorrections++;
-						if(additionalDefect > m_dPrecision && additionalDefect < 1e5)
+						nrofconverged++;
+						if(m_bUseAdditionalCorrections && currentAdditionalCorrections < m_currentAdditionalEigenvectors)
 						{
-							calculate_correction(*vCorr[numCorrections++], defect);
-							vCorrectionName[numCorrections-1] = std::string("additional correction ") + ToString(currentAdditionalCorrections-1);
+							double additionalLambda, additionalDefect;
+							compute_rayleigh_and_defect(vAdditional(currentAdditionalCorrections),
+									additionalLambda, defect, additionalDefect);
+							currentAdditionalCorrections++;
+							if(additionalDefect > m_dPrecision && additionalDefect < 1e5)
+							{
+								calculate_correction(*vCorr[numCorrections++], defect);
+								vCorrectionName[numCorrections-1] = std::string("additional correction ") + ToString(currentAdditionalCorrections-1);
+							}
 						}
 					}
+					else
+					{
+	//					UG_LOG("Calculating correction from defect " << i << "\n");
+						vCorrectionName[numCorrections] = std::string("correction ") + ToString(i);
+						calculate_correction(*vCorr[numCorrections++], defect);
+					}
 				}
-				else
+
+
+
+
+				// output
+				print_eigenvalues_and_defect(iteration, vDefectNorm, oldXnorm, lambda);
+
+				if(nrofconverged==nEigenvalues)
 				{
-//					UG_LOG("Calculating correction from defect " << i << "\n");
-					vCorrectionName[numCorrections] = std::string("correction ") + ToString(i);
-					calculate_correction(*vCorr[numCorrections++], defect);
+					UG_LOG("all eigenvectors converged\nEigenvalues");
+					return true;
 				}
-			}
+
+				// 5. add Testvectors
+				//UG_LOG("5. add Testvectors\nEigenvalues");
+
+				get_testvectors(iteration, vCorr, vCorrectionName, numCorrections, vOldX, vAdditional, pTestVectors, vTestVectorDescription, vDefectNorm);
+
+				for(size_t i=0; i<nEigenvalues; i++)
+				{
+					write_debug(iteration, i, px(i), defect, vCorr(i), vDefectNorm[i] < m_dPrecision);
+					if(vOldX.size() > i) write_debug_old(iteration, i, vOldX(i));
+				}
+
+				/*for(size_t i=0; i<vTestVectorDescription.size(); i++)
+				{	UG_LOG(vTestVectorDescription[i] << "\nEigenvalues");	} */
+
+				// 5. compute reduced Matrices rA, rB
+
+				if(pTestVectors.size() < px.size()+1)
+				{
+					UG_LOG("ERROR: Projected Spaces has Dimension " << pTestVectors.size() << ", but we need at least " << px.size()+1 << " to make progress (for " << px.size() << " eigenvalues)\n");
+					return false;
+				}
+
+				get_projected_eigenvalue_problem(rA, rB, pTestVectors, vTestVectorDescription);
+
+				// 6. solve reduced eigenvalue problem
+				size_t iNrOfTestVectors = pTestVectors.size();
+				r_ev.resize(iNrOfTestVectors, iNrOfTestVectors);
+				r_lambda.resize(iNrOfTestVectors);
+
+				// solve rA x = lambda rB, --> r_ev, r_lambda
+				GeneralizedEigenvalueProblemComplex(rA, r_ev, r_lambda, rB, true);
+
+				if(m_bPrintProjectedEigenvalues)
+					print_projected_eigenvectors(r_ev, r_lambda, vTestVectorDescription);
 
 
+				if(m_bDebugCalcProjectedEigenvalues)
+					debug_calc_projected_eigenvalues(r_ev, pTestVectors, iteration, false);
+				set_new_approximations_and_save_old(r_ev, pTestVectors, vOldX, vAdditional);
 
-
-			// output
-			print_eigenvalues_and_defect(iteration, vDefectNorm, oldXnorm, lambda);
-
-			if(nrofconverged==nEigenvalues)
-			{
-				UG_LOG("all eigenvectors converged\nEigenvalues");
-				return true;
-			}
-
-			// 5. add Testvectors
-			//UG_LOG("5. add Testvectors\nEigenvalues");
-
-			get_testvectors(iteration, vCorr, vCorrectionName, numCorrections, vOldX, vAdditional, pTestVectors, vTestVectorDescription, vDefectNorm);
-
-			for(size_t i=0; i<nEigenvalues; i++)
-			{
-				write_debug(iteration, i, px(i), defect, vCorr(i), vDefectNorm[i] < m_dPrecision);
-				if(vOldX.size() > i) write_debug_old(iteration, i, vOldX(i));
-			}
-
-			/*for(size_t i=0; i<vTestVectorDescription.size(); i++)
-			{	UG_LOG(vTestVectorDescription[i] << "\nEigenvalues");	} */
-
-			// 5. compute reduced Matrices rA, rB
-
-			if(pTestVectors.size() < px.size()+1)
-			{
-				UG_LOG("ERROR: Projected Spaces has Dimension " << pTestVectors.size() << ", but we need at least " << px.size()+1 << " to make progress (for " << px.size() << " eigenvalues)\n");
-				return false;
-			}
-
-			get_projected_eigenvalue_problem(rA, rB, pTestVectors, vTestVectorDescription);
-
-			// 6. solve reduced eigenvalue problem
-			size_t iNrOfTestVectors = pTestVectors.size();
-			r_ev.resize(iNrOfTestVectors, iNrOfTestVectors);
-			r_lambda.resize(iNrOfTestVectors);
-
-			// solve rA x = lambda rB, --> r_ev, r_lambda
-			GeneralizedEigenvalueProblemComplex(rA, r_ev, r_lambda, rB, true);
-
-			if(m_bPrintProjectedEigenvalues)
-				print_projected_eigenvectors(r_ev, r_lambda, vTestVectorDescription);
-
-
-			if(m_bDebugCalcProjectedEigenvalues)
-				debug_calc_projected_eigenvalues(r_ev, pTestVectors, iteration, false);
-			set_new_approximations_and_save_old(r_ev, pTestVectors, vOldX, vAdditional);
-
-			assert_real_positive(r_lambda);
+				assert_real_positive(r_lambda);
+			}UG_CATCH_THROW("PINVIT::apply iteration " << iteration << " failed.");
 		}
 
 		UG_LOG("not converged after" << m_maxIterations << " steps.\nEigenvalues");
@@ -516,147 +524,152 @@ public:
 			SmartPtrVector<vector_type> &pTestVectors, int iteration, bool bWrite)
 	{
 		PROFILE_FUNC_GROUP("debug");
-		if(debug_writer() == NULL) return;
+		try{
+			if(debug_writer() == NULL) return;
 
-		vector_type t, defect;
-		set_approximation_vector(t);
-		set_approximation_vector(defect);
+			vector_type t, defect;
+			set_approximation_vector(t);
+			set_approximation_vector(defect);
 
-#ifdef UG_PARALLEL
-		for(size_t c=0; c<pTestVectors.size(); c++)
-			pTestVectors[c]->change_storage_type(PST_CONSISTENT);
-#endif
+	#ifdef UG_PARALLEL
+			for(size_t c=0; c<pTestVectors.size(); c++)
+				pTestVectors[c]->change_storage_type(PST_CONSISTENT);
+	#endif
 
-		for(size_t r=0; r<pTestVectors.size(); r++)
-		{
-#ifdef UG_PARALLEL
-			t.set_storage_type(PST_CONSISTENT);
-			defect.set_storage_type(PST_ADDITIVE);
-#endif
-			for(size_t i=0; i<t.size(); i++)
+			for(size_t r=0; r<pTestVectors.size(); r++)
 			{
-				t[i] = 0.0;
-				if(!vbDirichlet[i])
+	#ifdef UG_PARALLEL
+				t.set_storage_type(PST_CONSISTENT);
+				defect.set_storage_type(PST_ADDITIVE);
+	#endif
+				for(size_t i=0; i<t.size(); i++)
 				{
-					for(size_t c=0; c<pTestVectors.size(); c++)
-						t[i] += r_ev(c, r) * (*pTestVectors[c])[i];
+					t[i] = 0.0;
+					if(!vbDirichlet[i])
+					{
+						for(size_t c=0; c<pTestVectors.size(); c++)
+							t[i] += r_ev(c, r) * (*pTestVectors[c])[i];
+					}
 				}
+
+
+				t *= 1.0/B_norm(t);
+
+	#ifdef UG_PARALLEL
+				t.set_storage_type(PST_CONSISTENT);
+				defect.set_storage_type(PST_ADDITIVE);
+	#endif
+				m_pA->apply(defect, t);
+
+				double lambda = t.dotprod(defect);
+
+				if(m_pB)
+				{
+	#ifdef UG_PARALLEL
+					defect.change_storage_type(PST_ADDITIVE);
+					t.change_storage_type(PST_CONSISTENT);
+	#endif
+					MatMultAdd(defect, 1.0, defect, -lambda, *m_pB, t);
+				}
+				else
+					VecScaleAdd(defect, 1.0, defect, -lambda, t);
+
+
+
+				UG_LOG(r << " lambda: " << std::setw(14) << lambda << " defect: " << std::setw(14) << defect.norm() << "\n");
+
+				if(bWrite)
+					write_debug(t, ("pinvit_it_" + ToString(iteration) + "_pev_" + ToString(r)).c_str());
 			}
-
-
-			t *= 1.0/B_norm(t);
-
-#ifdef UG_PARALLEL
-			t.set_storage_type(PST_CONSISTENT);
-			defect.set_storage_type(PST_ADDITIVE);
-#endif
-			m_pA->apply(defect, t);
-
-			double lambda = t.dotprod(defect);
-
-			if(m_pB)
-			{
-#ifdef UG_PARALLEL
-				defect.change_storage_type(PST_ADDITIVE);
-				t.change_storage_type(PST_CONSISTENT);
-#endif
-				MatMultAdd(defect, 1.0, defect, -lambda, *m_pB, t);
-			}
-			else
-				VecScaleAdd(defect, 1.0, defect, -lambda, t);
-
-
-
-			UG_LOG(r << " lambda: " << std::setw(14) << lambda << " defect: " << std::setw(14) << defect.norm() << "\n");
-
-			if(bWrite)
-				write_debug(t, ("pinvit_it_" + ToString(iteration) + "_pev_" + ToString(r)).c_str());
-		}
+		}UG_CATCH_THROW("PINVIT::debug_calc_projected_eigenvalues failed.");
 	}
 
 
 	void set_new_approximations_and_save_old(DenseMatrix<VariableArray2<double> > &r_ev, SmartPtrVector<vector_type> &pTestVectors, SmartPtrVector<vector_type> &vOldX,
 			SmartPtrVector<vector_type> &vAdditional)
 	{
-#ifdef UG_PARALLEL
-		for(size_t i=0; i<pTestVectors.size(); i++)
-			pTestVectors[i]->change_storage_type(PST_CONSISTENT);
-		for(size_t i=0; i<px.size(); i++)
-			px[i]->change_storage_type(PST_CONSISTENT);
+		try{
+	#ifdef UG_PARALLEL
+			for(size_t i=0; i<pTestVectors.size(); i++)
+				pTestVectors[i]->change_storage_type(PST_CONSISTENT);
+			for(size_t i=0; i<px.size(); i++)
+				px[i]->change_storage_type(PST_CONSISTENT);
 
-		for(size_t i=0; i<vOldX.size(); i++)
-			vOldX[i]->set_storage_type(PST_CONSISTENT);
+			for(size_t i=0; i<vOldX.size(); i++)
+				vOldX[i]->set_storage_type(PST_CONSISTENT);
 
-		for(size_t i=0; i<vAdditional.size(); i++)
-			vAdditional[i]->set_storage_type(PST_CONSISTENT);
-#endif
-		// assume r_lambda is sorted
+			for(size_t i=0; i<vAdditional.size(); i++)
+				vAdditional[i]->set_storage_type(PST_CONSISTENT);
+	#endif
+			// assume r_lambda is sorted
 
-		size_t size = px[0]->size();
-		UG_ASSERT_EQUAL(pTestVectors.size(), r_ev.num_rows(), "");
+			size_t size = px[0]->size();
+			UG_ASSERT_EQUAL(pTestVectors.size(), r_ev.num_rows(), "");
 
-		size_t numCalc = std::min(px.size()+m_additionalEigenvectorsToKeep, r_ev.num_cols()); //px.size()
-		m_currentAdditionalEigenvectors = numCalc-px.size();
-//		UG_LOG("current aditional eigenvectors: " << m_currentAdditionalEigenvectors << "\n");
+			size_t numCalc = std::min(px.size()+m_additionalEigenvectorsToKeep, r_ev.num_cols()); //px.size()
+			m_currentAdditionalEigenvectors = numCalc-px.size();
+	//		UG_LOG("current aditional eigenvectors: " << m_currentAdditionalEigenvectors << "\n");
 
-		std::vector<typename vector_type::value_type> x_tmp(numCalc);
-		for(size_t i=0; i<size; i++)
-		{
-			if(vbDirichlet[i]) continue;
-
-			// since vx can be part of the Testvectors, temporary safe result in x_tmp.
-			for(size_t r=0; r < numCalc; r++)
+			std::vector<vector_value_type> x_tmp(numCalc);
+			for(size_t i=0; i<size; i++)
 			{
-				x_tmp[r] = 0.0;
-				for(size_t c=0; c<pTestVectors.size(); c++)
-					x_tmp[r] += r_ev(c, r) * (*pTestVectors[c])[i];
+				if(vbDirichlet[i]) continue;
+
+				// since vx can be part of the Testvectors, temporary safe result in x_tmp.
+				for(size_t r=0; r < numCalc; r++)
+				{
+					x_tmp[r] = 0.0;
+					for(size_t c=0; c<pTestVectors.size(); c++)
+						x_tmp[r] += r_ev(c, r) * (*pTestVectors[c])[i];
+				}
+
+				// now overwrite
+				for(size_t r=0; r<px.size(); r++)
+				{
+					// save old
+					/*for(int k=0; k<m_nrOfOld; k++)
+						vOldX[k][r][i] = vOldX[k][r][i];
+					vOldX[0][r][i] = (px[r])[i];*/
+					if(vOldX.size()>0)
+						vOldX(r) [i] = px(r) [i];
+					// store new
+					px(r) [i] = x_tmp[r];
+				}
+
+				// store additional
+				for(size_t r=px.size(); r<numCalc; r++)
+					vAdditional(r-px.size()) [i] = x_tmp[r];
+
 			}
-
-			// now overwrite
-			for(size_t r=0; r<px.size(); r++)
-			{
-				// save old
-				/*for(int k=0; k<m_nrOfOld; k++)
-					vOldX[k][r][i] = vOldX[k][r][i];
-				vOldX[0][r][i] = (px[r])[i];*/
-				if(vOldX.size()>0)
-					vOldX(r) [i] = px(r) [i];
-				// store new
-				px(r) [i] = x_tmp[r];
-			}
-
-			// store additional
-			for(size_t r=px.size(); r<numCalc; r++)
-				vAdditional(r-px.size()) [i] = x_tmp[r];
-
-		}
+		}UG_CATCH_THROW("PINVIT::set_new_approximations_and_save_old failed.");
 	}
 
 	void assert_real_positive(const std::vector<std::complex<double> > &r_lambda)
 	{
+		try{
+			//#define UG_ASSERT2(cond, txt) {if(!cond) { UG_LOG("Warning: " << txt << "\n"); }}
 
-		//#define UG_ASSERT2(cond, txt) {if(!cond) { UG_LOG("Warning: " << txt << "\n"); }}
+			for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
+			{
+				if(r_lambda[i].imag() >= 1e-8)
+					{UG_LOG("WARNING: eigenvalue " << i << " is imaginary (" << r_lambda[i] << ")\n"); }
+				if(r_lambda[i].real() <= 1e-8)
+					{UG_LOG("WARNING: eigenvalues " << i << "<= 0\n");}
+			}
 
-		for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
-		{
-			if(r_lambda[i].imag() >= 1e-8)
-				{UG_LOG("WARNING: eigenvalue " << i << " is imaginary (" << r_lambda[i] << ")\n"); }
-			if(r_lambda[i].real() <= 1e-8)
-				{UG_LOG("WARNING: eigenvalues " << i << "<= 0\n");}
-		}
+			if(m_bPrintProjectedEigenvalues && m_bPrintProjectedEigenvectors == false)
+			{
+				for(size_t i=0; i<r_lambda.size(); i++)
+					UG_LOG(i << ".: " << r_lambda[i] << "\n");
+				UG_LOG("\n");
+			}
 
-		if(m_bPrintProjectedEigenvalues && m_bPrintProjectedEigenvectors == false)
-		{
-			for(size_t i=0; i<r_lambda.size(); i++)
-				UG_LOG(i << ".: " << r_lambda[i] << "\n");
-			UG_LOG("\n");
-		}
-
-		for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
-		{
-			UG_ASSERT(r_lambda[i].imag() < 1e-4 && r_lambda[i].imag() > -1e-4, "eigenvalue " << i << " = " << r_lambda[i] << " is imaginary (" << r_lambda[i] << ")\n");
-			UG_ASSERT(r_lambda[i].real() > -1e-4, "eigenvalues " << i << " = " << r_lambda[i] << " < 0\n");
-		}
+			for(size_t i=0; i<r_lambda.size(); i++) // px.size() or r_lambda.size()
+			{
+				UG_ASSERT(r_lambda[i].imag() < 1e-4 && r_lambda[i].imag() > -1e-4, "eigenvalue " << i << " = " << r_lambda[i] << " is imaginary (" << r_lambda[i] << ")\n");
+				UG_ASSERT(r_lambda[i].real() > -1e-4, "eigenvalues " << i << " = " << r_lambda[i] << " < 0\n");
+			}
+		}UG_CATCH_THROW("PINVIT::assert_real_positive failed.");
 
 	}
 
@@ -693,25 +706,27 @@ private:
 
 	void calculate_correction(vector_type &corr, vector_type &defect)
 	{
-#ifdef UG_PARALLEL
-		defect.change_storage_type(PST_ADDITIVE);
-		corr.set_storage_type(PST_CONSISTENT);
-#endif
-		corr *= 0.0;
-		// d. apply preconditioner
-		if(1)
-		{
-			m_spPrecond->apply(corr, defect);
-		}
-		else
-		{
-			m_spPrecond->apply_update_defect(corr, defect);
-//			UG_LOG(defect.norm() << "\n");
-		}
-		corr *= 1/ B_norm(corr);
-#ifdef UG_PARALLEL
-		corr.change_storage_type(PST_UNIQUE);
-#endif
+		try{
+	#ifdef UG_PARALLEL
+			defect.change_storage_type(PST_ADDITIVE);
+			corr.set_storage_type(PST_CONSISTENT);
+	#endif
+			corr *= 0.0;
+			// d. apply preconditioner
+			if(1)
+			{
+				m_spPrecond->apply(corr, defect);
+			}
+			else
+			{
+				m_spPrecond->apply_update_defect(corr, defect);
+	//			UG_LOG(defect.norm() << "\n");
+			}
+			corr *= 1/ B_norm(corr);
+	#ifdef UG_PARALLEL
+			corr.change_storage_type(PST_UNIQUE);
+	#endif
+		}UG_CATCH_THROW("PINVIT::calculate_correction failed.");
 	}
 	/**
 	 * For a given eigenvalue approximation, computes the
@@ -724,44 +739,46 @@ private:
 	 */
 	void compute_rayleigh_and_defect(vector_type &x, double &lambda, vector_type &defect, double &defectNorm)
 	{
-		PINVIT_PROFILE_FUNC();
-// a. compute rayleigh quotients
+		try{
+			PINVIT_PROFILE_FUNC();
+	// a. compute rayleigh quotients
 
-#ifdef UG_PARALLEL
-		x.change_storage_type(PST_CONSISTENT);
-		defect.set_storage_type(PST_ADDITIVE);
-#endif
-		m_pA->apply(defect, x);
-
-
-#ifdef UG_PARALLEL
-		defect.change_storage_type(PST_UNIQUE);
-		x.change_storage_type(PST_UNIQUE);
-#endif
-		lambda = x.dotprod(defect); // / <px[i], px[i]> = 1.0.
-		//UG_LOG("lambda[" << i << "] = " << lambda << "\n");
-
-// b. calculate residuum
-		// defect = A px[i] - lambda[i] B px[i]
-		if(m_pB)
-		{
-#ifdef UG_PARALLEL
-			defect.change_storage_type(PST_ADDITIVE);
+	#ifdef UG_PARALLEL
 			x.change_storage_type(PST_CONSISTENT);
-#endif
-			MatMultAdd(defect, 1.0, defect, -lambda, *m_pB, x);
-
-		}
-		else
-			VecScaleAdd(defect, 1.0, defect, -lambda, x);
-
-// c. check if converged
+			defect.set_storage_type(PST_ADDITIVE);
+	#endif
+			m_pA->apply(defect, x);
 
 
-#ifdef UG_PARALLEL
-		defect.change_storage_type(PST_UNIQUE);
-#endif
-		defectNorm = defect.norm();
+	#ifdef UG_PARALLEL
+			defect.change_storage_type(PST_UNIQUE);
+			x.change_storage_type(PST_UNIQUE);
+	#endif
+			lambda = x.dotprod(defect); // / <px[i], px[i]> = 1.0.
+			//UG_LOG("lambda[" << i << "] = " << lambda << "\n");
+
+	// b. calculate residuum
+			// defect = A px[i] - lambda[i] B px[i]
+			if(m_pB)
+			{
+	#ifdef UG_PARALLEL
+				defect.change_storage_type(PST_ADDITIVE);
+				x.change_storage_type(PST_CONSISTENT);
+	#endif
+				MatMultAdd(defect, 1.0, defect, -lambda, *m_pB, x);
+
+			}
+			else
+				VecScaleAdd(defect, 1.0, defect, -lambda, x);
+
+	// c. check if converged
+
+
+	#ifdef UG_PARALLEL
+			defect.change_storage_type(PST_UNIQUE);
+	#endif
+			defectNorm = defect.norm();
+		}UG_CATCH_THROW("PINVIT::compute_rayleigh_and_defect failed.");
 	}
 
 	/**
@@ -813,74 +830,76 @@ private:
 			SmartPtrVector<vector_type> &pTestVectors, std::vector<std::string> &vTestVectorDescription,
 			const std::vector<double> &vDefectNorm)
 	{
-		PINVIT_PROFILE_FUNC();
-		pTestVectors.clear();
-		vTestVectorDescription.clear();
-		if(m_iPINVIT == 1)
-		{
-			UG_ASSERT(0, "todo");
-			for(size_t i=0; i < px.size(); i++)
+		try{
+			PINVIT_PROFILE_FUNC();
+			pTestVectors.clear();
+			vTestVectorDescription.clear();
+			if(m_iPINVIT == 1)
 			{
-				if(vDefectNorm[i] >= m_dPrecision)
+				UG_ASSERT(0, "todo");
+				for(size_t i=0; i < px.size(); i++)
 				{
-					VecScaleAdd(vCorr(i), -1.0, vCorr(i), 1.0, px(i));
-					vTestVectorDescription.push_back(std::string("ev - vCorr [") + ToString(i) + std::string("]") );
-				}
-			}
-		}
-		else
-		{
-			for(size_t i=0; i < px.size(); i++)
-			{
-				if(IsFiniteAndNotTooBig(px(i)))
-				{
-					pTestVectors.push_back(px[i]);
-					vTestVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
-
-					if(vDefectNorm[i] >= m_dPrecision && m_iPINVIT >= 3)
+					if(vDefectNorm[i] >= m_dPrecision)
 					{
-						if(iteration != 0)
-						{
-							UG_ASSERT(vOldX.size() > i, "?");
-							pTestVectors.push_back(vOldX[i]);
-							vTestVectorDescription.push_back(std::string("old eigenvalue[") + ToString(i) + std::string("]") );
-						}
-
-						/*if(iteration == 0)
-						{
-							for(size_t j=0; j<px[i]->size(); j++)
-								vOldX[i][j] = (px[i])[j] * urand(-1.0, 1.0);
-						}*/
+						VecScaleAdd(vCorr(i), -1.0, vCorr(i), 1.0, px(i));
+						vTestVectorDescription.push_back(std::string("ev - vCorr [") + ToString(i) + std::string("]") );
 					}
 				}
-				else
-				{	UG_LOG("WARNING ev [" << i << "] not normal or too big\n");	}
-			}
-
-			for(size_t i=0; i<numCorrections; i++)
-			{
-				if(IsFiniteAndNotTooBig(vCorr(i)))
-				{
-					pTestVectors.push_back(vCorr[i]);
-					vTestVectorDescription.push_back(vCorrectionName[i]);
-				}
-				else
-				{
-					UG_LOG("WARNING correction [" << i << "] not normal or too big\n");
-				}
-			}
-
-		}
-		for(size_t i=0; i<m_currentAdditionalEigenvectors; i++)
-		{
-			if(IsFiniteAndNotTooBig(vAdditional(i)))
-			{
-				pTestVectors.push_back(vAdditional[i]);
-				vTestVectorDescription.push_back(std::string("additional [") + ToString(i) + std::string("]") );
 			}
 			else
-			{	UG_LOG("WARNING additional [" << i << "] not normal or too big\n");	}
-		}
+			{
+				for(size_t i=0; i < px.size(); i++)
+				{
+					if(IsFiniteAndNotTooBig(px(i)))
+					{
+						pTestVectors.push_back(px[i]);
+						vTestVectorDescription.push_back(std::string("eigenvector [") + ToString(i) + std::string("]") );
+
+						if(vDefectNorm[i] >= m_dPrecision && m_iPINVIT >= 3)
+						{
+							if(iteration != 0)
+							{
+								UG_ASSERT(vOldX.size() > i, "?");
+								pTestVectors.push_back(vOldX[i]);
+								vTestVectorDescription.push_back(std::string("old eigenvalue[") + ToString(i) + std::string("]") );
+							}
+
+							/*if(iteration == 0)
+							{
+								for(size_t j=0; j<px[i]->size(); j++)
+									vOldX[i][j] = (px[i])[j] * urand(-1.0, 1.0);
+							}*/
+						}
+					}
+					else
+					{	UG_LOG("WARNING ev [" << i << "] not normal or too big\n");	}
+				}
+
+				for(size_t i=0; i<numCorrections; i++)
+				{
+					if(IsFiniteAndNotTooBig(vCorr(i)))
+					{
+						pTestVectors.push_back(vCorr[i]);
+						vTestVectorDescription.push_back(vCorrectionName[i]);
+					}
+					else
+					{
+						UG_LOG("WARNING correction [" << i << "] not normal or too big\n");
+					}
+				}
+
+			}
+			for(size_t i=0; i<m_currentAdditionalEigenvectors; i++)
+			{
+				if(IsFiniteAndNotTooBig(vAdditional(i)))
+				{
+					pTestVectors.push_back(vAdditional[i]);
+					vTestVectorDescription.push_back(std::string("additional [") + ToString(i) + std::string("]") );
+				}
+				else
+				{	UG_LOG("WARNING additional [" << i << "] not normal or too big\n");	}
+			}
+		}UG_CATCH_THROW("PINVIT::get_testvectors failed.");
 	}
 
 
@@ -951,52 +970,53 @@ private:
 			DenseMatrix<VariableArray2<double> > &rB, SmartPtrVector<vector_type> &pTestVectors,
 			std::vector<std::string> &vTestVectorDescription)
 	{
-		PINVIT_PROFILE_FUNC();
-		// 1. calculate W as a subset of the testvectors so that those are linear B-independent
+		try{
+			PINVIT_PROFILE_FUNC();
+			// 1. calculate W as a subset of the testvectors so that those are linear B-independent
 
-		size_t iNrOfTestVectors = pTestVectors.size();
-		rA.resize(iNrOfTestVectors, iNrOfTestVectors);
-		rB.resize(iNrOfTestVectors, iNrOfTestVectors);
+			size_t iNrOfTestVectors = pTestVectors.size();
+			rA.resize(iNrOfTestVectors, iNrOfTestVectors);
+			rB.resize(iNrOfTestVectors, iNrOfTestVectors);
 
-		if(m_pB)
-			MultiEnergyProd(*m_pB, pTestVectors, rB, iNrOfTestVectors);
-		else
-			MultiScalProd(pTestVectors, rB, iNrOfTestVectors);
-
-
-		// Remove linear depended vectors
-		std::vector<bool> bUse;
-		get_linear_independent_rows(rB, bUse);
+			if(m_pB)
+				MultiEnergyProd(*m_pB, pTestVectors, rB, iNrOfTestVectors);
+			else
+				MultiScalProd(pTestVectors, rB, iNrOfTestVectors);
 
 
-		if(m_bPrintUsedTestvectors)
-			print_used_testvectors(vTestVectorDescription, bUse);
+			// Remove linear depended vectors
+			std::vector<bool> bUse;
+			get_linear_independent_rows(rB, bUse);
 
-		// save used testvectors
-		remove_unused(pTestVectors, bUse);
-		remove_unused(vTestVectorDescription, bUse);
 
-		iNrOfTestVectors = pTestVectors.size();
+			if(m_bPrintUsedTestvectors)
+				print_used_testvectors(vTestVectorDescription, bUse);
 
-		// 2. & 3. compute reduced Matrices rA, rB
-		rA.resize(iNrOfTestVectors, iNrOfTestVectors);
-		rB.resize(iNrOfTestVectors, iNrOfTestVectors);
+			// save used testvectors
+			remove_unused(pTestVectors, bUse);
+			remove_unused(vTestVectorDescription, bUse);
 
-//		UG_LOG("iNrOfTestVectors = " << iNrOfTestVectors << "\n");
+			iNrOfTestVectors = pTestVectors.size();
 
-		if(m_pB)
-			MultiEnergyProd(*m_pB, pTestVectors, rB, iNrOfTestVectors);
-		else
-			MultiScalProd(pTestVectors, rB, iNrOfTestVectors);
+			// 2. & 3. compute reduced Matrices rA, rB
+			rA.resize(iNrOfTestVectors, iNrOfTestVectors);
+			rB.resize(iNrOfTestVectors, iNrOfTestVectors);
 
-		MultiEnergyProd(*m_pA, pTestVectors, rA, iNrOfTestVectors);
+	//		UG_LOG("iNrOfTestVectors = " << iNrOfTestVectors << "\n");
 
-		if(m_bPrintProjectedEigenproblem)
-		{
-			PrintMaple(rA, "rA");
-			PrintMaple(rB, "rB");
-		}
+			if(m_pB)
+				MultiEnergyProd(*m_pB, pTestVectors, rB, iNrOfTestVectors);
+			else
+				MultiScalProd(pTestVectors, rB, iNrOfTestVectors);
 
+			MultiEnergyProd(*m_pA, pTestVectors, rA, iNrOfTestVectors);
+
+			if(m_bPrintProjectedEigenproblem)
+			{
+				PrintMaple(rA, "rA");
+				PrintMaple(rB, "rB");
+			}
+		}UG_CATCH_THROW("PINVIT::get_projected_eigenvalue_problem failed.");
 
 	}
 
