@@ -534,10 +534,18 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default Constructor
-		ComPol_VecAddSetZero() : m_pVec(NULL)	{}
+		ComPol_VecAddSetZero() : m_pVec(0), m_vMultiOccurance(0)	{}
 
 	///	Constructor setting vector
-		ComPol_VecAddSetZero(TVector* pVec) : m_pVec(pVec)	{}
+		ComPol_VecAddSetZero(TVector* pVec) : m_pVec(pVec), m_vMultiOccurance(0) {}
+
+	///	Constructor setting vector and Occurance map
+	/**
+	 * The vMultiOccurance map is used to scale the values when being sended
+	 * by the number of their occurance.
+	 */
+		ComPol_VecAddSetZero(TVector* pVec, const std::vector<int>* vMultiOccurance)
+			: m_pVec(pVec), m_vMultiOccurance(vMultiOccurance) {}
 
 	///	sets the vector that we be used for communication
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
@@ -581,18 +589,44 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		//	rename for convenience
 			TVector& v = *m_pVec;
 
-		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-			{
-			//	get index
-				const size_t index = interface.get_element(iter);
+			if(m_vMultiOccurance == 0){
+			//	loop interface
+				for(typename Interface::const_iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+				{
+				//	get index
+					const size_t index = interface.get_element(iter);
 
-			// copy values
-				Serialize(buff, v[index]);
+				// copy values
+					Serialize(buff, v[index]);
 
-			// set to zero on this process
-				v[index] = 0.0;
+				// set to zero on this process
+					v[index] = 0.0;
+				}
+			}
+			else {
+				if(m_vMultiOccurance->size() != v.size())
+					UG_THROW("ComPol_VecAddSetZero: MultiOccurance-Map "<<
+					         (m_vMultiOccurance->size())<<"does not "<<
+							"have size of Vector ("<<v.size()<<")")
+
+			//	loop interface
+				for(typename Interface::const_iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+				{
+				//	get index
+					const size_t index = interface.get_element(iter);
+
+					if(((*m_vMultiOccurance)[index]) > 1){
+						 v[index] *= (1./((*m_vMultiOccurance)[index]));
+					}
+
+				// serialize values
+					Serialize(buff, v[index]);
+
+				// set to zero on this process
+					v[index] = 0.0;
+				}
 			}
 			return true;
 		}
@@ -635,6 +669,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 
 	private:
 		TVector* m_pVec;
+		const std::vector<int>* m_vMultiOccurance;
 };
 
 /// Communication Policy to subtract values of a vector
@@ -1046,13 +1081,14 @@ class ComPol_MatAddRowsOverlap0
  * \tparam TMatrix	matrix type
  */
 template <class TMatrix>
-class ComPol_MatAddInnerInterfaceCouplings
+class ComPol_MatAddSetZeroInnerInterfaceCouplings
 	: public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Constructor setting the matrix
-		ComPol_MatAddInnerInterfaceCouplings(TMatrix& rMat, bool bClearSended = false)
-			: m_rMat(rMat), m_bClearSent(bClearSended)
+		ComPol_MatAddSetZeroInnerInterfaceCouplings(TMatrix& rMat,
+			const std::vector<int>* vMultiOccurance = NULL)
+			: m_rMat(rMat), m_vMultiOccurance(vMultiOccurance)
 		{}
 
 	///	writes the interface values into a buffer that will be sent
@@ -1097,6 +1133,12 @@ class ComPol_MatAddInnerInterfaceCouplings
 					if(!hash.get_entry(locID, globID)) continue;
 					block_type& a_ik = it_k.value();
 
+				//	scale if multiple v-master
+					if(m_vMultiOccurance != NULL){
+						if((*m_vMultiOccurance)[locID] > 1)
+							a_ik *= (1.0/((*m_vMultiOccurance)[locID]));
+					}
+
 				//	write global entry to buffer
 					Serialize(buff, locID);
 
@@ -1104,8 +1146,7 @@ class ComPol_MatAddInnerInterfaceCouplings
 					Serialize(buff, a_ik);
 
 				//	clear sent values
-					if(m_bClearSent)
-						a_ik = 0.0;
+					a_ik = 0.0;
 				}
 			}
 
@@ -1168,8 +1209,8 @@ class ComPol_MatAddInnerInterfaceCouplings
 	//	pointer to current vector
 		TMatrix& m_rMat;
 
-	//	flag, indicating clearing of sended values
-		bool m_bClearSent;
+	//	multi occurance indicator
+		const std::vector<int>* m_vMultiOccurance;
 };
 
 

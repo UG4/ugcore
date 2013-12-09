@@ -385,6 +385,12 @@ class AssembledMultiGridCycle :
 
 		///	scaling factors for multiple occurance (valid only if bMultiOccurance == true)
 			std::vector<int> vMultiOccurence;
+
+		///	returns multi-occurance vector (or NULL no multi-occurance present)
+			std::vector<int>* getMultiOccurence() {
+				if(bMultiOccurance) return &vMultiOccurence;
+				else return NULL;
+			}
 		};
 
 	///	storage for all level
@@ -434,15 +440,6 @@ class AssembledMultiGridCycle :
 		void copy_noghost_to_ghost(SmartPtr<matrix_type> spMatTo,
 		                           ConstSmartPtr<matrix_type> spMatFrom,
 		                           const std::vector<size_t>& vMapPatchToGlobal);
-
-	/// a v-slave may have multiple v-masters, therefore: divide by multiplicity
-		void divide_vertical_slaves_by_number_of_masters(int lev, SmartPtr<GF> spVec);
-
-	/// a v-slave may have multiple v-masters, therefore: divide by multiplicity
-		void divide_vertical_slave_rows_by_number_of_masters(int lev, matrix_type& mat);
-
-	/// gathers the vector using vertical interfaces. Entries are summed at vmasters.
-		void add_to_vertical_masters_and_set_zero_vertical_slaves(vector_type& d);
 
 	/// broadcasts the vector using vertical interfaces.
 		void copy_to_vertical_slaves(vector_type& c);

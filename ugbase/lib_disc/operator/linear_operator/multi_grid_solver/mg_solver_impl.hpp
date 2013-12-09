@@ -791,9 +791,8 @@ init_rap_operator()
 			} else {
 				*spGhostA = *lf.A;
 			}
-			divide_vertical_slave_rows_by_number_of_masters(lev, *spGhostA);
 
-			ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, true);
+			ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, lf.getMultiOccurence());
 			if(!spGhostA->layouts()->vertical_slave().empty())
 				m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
 			if(!spGhostA->layouts()->vertical_master().empty())
@@ -833,8 +832,7 @@ init_rap_operator()
 		spGatheredBaseMat->set_storage_type(m_spSurfaceMat->get_storage_mask());
 		spGatheredBaseMat->set_layouts(ld.t->layouts());
 
-		divide_vertical_slave_rows_by_number_of_masters(m_baseLev, *spGatheredBaseMat);
-		ComPol_MatAddInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat, true);
+		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat, ld.getMultiOccurence());
 		if(!spGatheredBaseMat->layouts()->vertical_slave().empty())
 			m_Com.send_data(spGatheredBaseMat->layouts()->vertical_slave(), cpMatAdd);
 		if(gathered_base_master())
@@ -1608,12 +1606,18 @@ presmooth_and_restriction(int lev)
 	if( !lf.t->layouts()->vertical_slave().empty() ||
 		!lf.t->layouts()->vertical_master().empty())
 	{
+		GMG_PROFILE_BEGIN(GMG_AddToVerticalMasterAndSetZero);
 		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
 		copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
-		if(lf.t->size() > 0){
-			divide_vertical_slaves_by_number_of_masters(lev, lf.t);
-			add_to_vertical_masters_and_set_zero_vertical_slaves(*lf.t);
-		}
+
+		ComPol_VecAddSetZero<vector_type> cpVecAdd(lf.t.get(), lf.getMultiOccurence());
+		if(!lf.t->layouts()->vertical_slave().empty())
+			m_Com.send_data(lf.t->layouts()->vertical_slave(), cpVecAdd);
+		if(!lf.t->layouts()->vertical_master().empty())
+			m_Com.receive_data(lf.t->layouts()->vertical_master(), cpVecAdd);
+		m_Com.communicate();
+
+		GMG_PROFILE_END();
 		spD = lf.t;
 	}
 	#endif
@@ -1769,8 +1773,14 @@ base_solve(int lev)
 		{
 			SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), 0);
 			copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
-			divide_vertical_slaves_by_number_of_masters(lev, ld.t);
-			add_to_vertical_masters_and_set_zero_vertical_slaves(*ld.t);
+
+			ComPol_VecAddSetZero<vector_type> cpVecAdd(ld.t.get(), ld.getMultiOccurence());
+			if(!ld.t->layouts()->vertical_slave().empty())
+				m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecAdd);
+			if(!ld.t->layouts()->vertical_master().empty())
+				m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecAdd);
+			m_Com.communicate();
+
 			spD = ld.t;
 		}
 		#endif
@@ -1890,63 +1900,6 @@ lmgc(int lev)
 ////////////////////////////////////////////////////////////////////////////////
 // Parallel Communication
 ////////////////////////////////////////////////////////////////////////////////
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-divide_vertical_slaves_by_number_of_masters(int lev, SmartPtr<GF> spVec)
-{
-#ifdef UG_PARALLEL
-	LevData& ld = *m_vLevData[lev];
-	if(ld.bMultiOccurance){
-		for(size_t i = 0; i < ld.vMultiOccurence.size(); ++i){
-			if(ld.vMultiOccurence[i] > 1)
-				(*spVec)[i] *= (1./ld.vMultiOccurence[i]);
-		}
-	}
-#endif
-}
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-divide_vertical_slave_rows_by_number_of_masters(int lev, matrix_type& mat)
-{
-#ifdef UG_PARALLEL
-	LevData& ld = *m_vLevData[lev];
-	if(ld.bMultiOccurance){
-		for(size_t i = 0; i < ld.vMultiOccurence.size(); ++i){
-			if(ld.vMultiOccurence[i] > 1)
-				ScaleRow(mat, i, (1./ld.vMultiOccurence[i]));
-		}
-	}
-#endif
-}
-
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-add_to_vertical_masters_and_set_zero_vertical_slaves(vector_type& d)
-{
-#ifdef UG_PARALLEL
-	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - add_to_vertical_masters_and_set_zero_vertical_slaves\n");
-
-//	send vertical-slaves -> vertical-masters
-	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
-	ComPol_VecAddSetZero<vector_type> cpVecAdd(&d);
-
-	if(!d.layouts()->vertical_slave().empty())
-		m_Com.send_data(d.layouts()->vertical_slave(), cpVecAdd);
-
-	if(!d.layouts()->vertical_master().empty())
-		m_Com.receive_data(d.layouts()->vertical_master(), cpVecAdd);
-
-//	perform communication
-	m_Com.communicate();
-
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - add_to_vertical_masters_and_set_zero_vertical_slaves\n");
-#endif
-}
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
