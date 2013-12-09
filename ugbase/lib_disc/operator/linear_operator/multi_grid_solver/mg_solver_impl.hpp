@@ -518,7 +518,20 @@ assemble_level_operator()
 			LevData& lc = *m_vLevData[lev-1];
 
 			copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
-			copy_to_vertical_masters(*ld.t);
+			#ifdef UG_PARALLEL
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
+				GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
+
+				ComPol_VecCopy<vector_type> cpVecCopy(ld.t.get());
+				if(!ld.t->layouts()->vertical_master().empty())
+					m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
+				if(!ld.t->layouts()->vertical_slave().empty())
+					m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
+				m_Com.communicate();
+
+				GMG_PROFILE_END();
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
+			#endif
 
 			try{
 				ld.Projection->do_restrict(*lc.st, *ld.t);
@@ -550,7 +563,20 @@ assemble_level_operator()
 
 		if(m_pSurfaceSol){
 			copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
-			copy_to_vertical_masters(*ld.t);
+			#ifdef UG_PARALLEL
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
+				GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
+
+				ComPol_VecCopy<vector_type> cpVecCopy(ld.t.get());
+				if(!ld.t->layouts()->vertical_master().empty())
+					m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
+				if(!ld.t->layouts()->vertical_slave().empty())
+					m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
+				m_Com.communicate();
+
+				GMG_PROFILE_END();
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
+			#endif
 		}
 
 		// only assemble on gathering proc
@@ -1652,7 +1678,7 @@ prolongation_and_postsmooth(int lev)
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
 
-//	write computet correction to surface
+//	write computed correction to surface
 	try{
 		const std::vector<SurfLevelMap>& vMap = lc.vSurfLevelMap;
 		for(size_t i = 0; i < vMap.size(); ++i){
@@ -1687,7 +1713,20 @@ prolongation_and_postsmooth(int lev)
 //	the correction values from the v-master DoFs to the v-slave	DoFs.
 //	since dummies may exist, we'll copy the broadcasted correction to h-slave
 //	interfaces (dummies are always h-slaves)
-	copy_to_vertical_slaves(*lf.t);
+#ifdef UG_PARALLEL
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_slaves\n");
+	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
+
+	ComPol_VecCopy<vector_type> cpVecCopy(lf.t.get());
+	if(!lf.t->layouts()->vertical_slave().empty())
+		m_Com.receive_data(lf.t->layouts()->vertical_slave(), cpVecCopy);
+	if(!lf.t->layouts()->vertical_master().empty())
+		m_Com.send_data(lf.t->layouts()->vertical_master(), cpVecCopy);
+	m_Com.communicate();
+
+	GMG_PROFILE_END();
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_slaves\n");
+#endif
 	copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
 
 //	apply post processes
@@ -1895,62 +1934,6 @@ lmgc(int lev)
 	else {
 		UG_THROW("GMG::lmgc: Level index below baseLevel.");
 	}
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Parallel Communication
-////////////////////////////////////////////////////////////////////////////////
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-copy_to_vertical_slaves(vector_type& c)
-{
-#ifdef UG_PARALLEL
-	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_slaves\n");
-
-//	send vertical-masters -> vertical-slaves
-	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
-	ComPol_VecCopy<vector_type> cpVecCopy(&c);
-
-	if(!c.layouts()->vertical_slave().empty())
-		m_Com.receive_data(c.layouts()->vertical_slave(), cpVecCopy);
-
-	if(!c.layouts()->vertical_master().empty())
-		m_Com.send_data(c.layouts()->vertical_master(), cpVecCopy);
-
-//	communicate
-	m_Com.communicate();
-
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_slaves\n");
-#endif
-}
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-copy_to_vertical_masters(vector_type& c)
-{
-#ifdef UG_PARALLEL
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
-	PROFILE_FUNC_GROUP("gmg");
-
-//	send vertical-slaves -> vertical-masters
-	GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
-	ComPol_VecCopy<vector_type> cpVecCopy(&c);
-
-	if(!c.layouts()->vertical_master().empty())
-		m_Com.receive_data(c.layouts()->vertical_master(), cpVecCopy);
-
-	if(!c.layouts()->vertical_slave().empty())
-		m_Com.send_data(c.layouts()->vertical_slave(), cpVecCopy);
-
-//	communicate
-	m_Com.communicate();
-
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////

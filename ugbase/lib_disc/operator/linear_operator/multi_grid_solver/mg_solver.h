@@ -441,12 +441,6 @@ class AssembledMultiGridCycle :
 		                           ConstSmartPtr<matrix_type> spMatFrom,
 		                           const std::vector<size_t>& vMapPatchToGlobal);
 
-	/// broadcasts the vector using vertical interfaces.
-		void copy_to_vertical_slaves(vector_type& c);
-
-	///	copies values from h-masters to h-slaves
-		void copy_to_vertical_masters(vector_type& c);
-
 #ifdef UG_PARALLEL
 	/// communicator
 		pcl::InterfaceCommunicator<IndexLayout> m_Com;
