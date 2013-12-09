@@ -319,21 +319,11 @@ public:
 
 	}
 
-	vector_type *create_approximation_vector()
+	SmartPtr<vector_type> create_approximation_vector()
 	{
-		vector_type *t = new vector_type;
-		set_approximation_vector(*t);
+		SmartPtr<vector_type> t = px(0).clone_without_values();
+		t->set(0.0);
 		return t;
-	}
-
-	void set_approximation_vector(vector_type &t)
-	{
-		UG_ASSERT(px.size() > 0, "use add_vector to add some eigenvalue approximations");
-		CloneVector(t, px(0));
-		t.set(0.0);
-#ifdef UG_PARALEL
-		defect.set_storage_type(PST_CONSISTENT);
-#endif
 	}
 
 	/**
@@ -363,10 +353,10 @@ public:
 
 		std::vector<std::string> vTestVectorDescription;
 
-		vector_type defect;
+		SmartPtr<vector_type> spDefect;
 
 		try{
-			set_approximation_vector(defect);
+			spDefect = create_approximation_vector();
 
 			m_currentAdditionalEigenvectors = 0;
 
@@ -380,9 +370,6 @@ public:
 
 			for(size_t i=0; i<m_additionalEigenvectorsToKeep; i++)
 				vAdditional.push_back(create_approximation_vector());
-
-			vector_type tmp;
-			set_approximation_vector(tmp);
 
 			lambda.resize(nEigenvalues);
 			for(size_t i=0; i<nEigenvalues; i++)
@@ -426,7 +413,7 @@ public:
 				for(size_t i=0; i<nEigenvalues; i++)
 				{
 	//				UG_LOG("compute rayleigh " << i << "...\n");
-					compute_rayleigh_and_defect(px(i), lambda[i], defect, vDefectNorm[i]);
+					compute_rayleigh_and_defect(px(i), lambda[i], *spDefect, vDefectNorm[i]);
 	//				UG_LOG("EV " << i << " defect norm: " << vDefectNorm[i] << "\n");
 
 					if(vDefectNorm[i] < m_dPrecision)
@@ -436,11 +423,11 @@ public:
 						{
 							double additionalLambda, additionalDefect;
 							compute_rayleigh_and_defect(vAdditional(currentAdditionalCorrections),
-									additionalLambda, defect, additionalDefect);
+									additionalLambda, *spDefect, additionalDefect);
 							currentAdditionalCorrections++;
 							if(additionalDefect > m_dPrecision && additionalDefect < 1e5)
 							{
-								calculate_correction(*vCorr[numCorrections++], defect);
+								calculate_correction(*vCorr[numCorrections++], *spDefect);
 								vCorrectionName[numCorrections-1] = std::string("additional correction ") + ToString(currentAdditionalCorrections-1);
 							}
 						}
@@ -449,7 +436,7 @@ public:
 					{
 	//					UG_LOG("Calculating correction from defect " << i << "\n");
 						vCorrectionName[numCorrections] = std::string("correction ") + ToString(i);
-						calculate_correction(*vCorr[numCorrections++], defect);
+						calculate_correction(*vCorr[numCorrections++], *spDefect);
 					}
 				}
 
@@ -472,7 +459,7 @@ public:
 
 				for(size_t i=0; i<nEigenvalues; i++)
 				{
-					write_debug(iteration, i, px(i), defect, vCorr(i), vDefectNorm[i] < m_dPrecision);
+					write_debug(iteration, i, px(i), *spDefect, vCorr(i), vDefectNorm[i] < m_dPrecision);
 					if(vOldX.size() > i) write_debug_old(iteration, i, vOldX(i));
 				}
 
@@ -513,6 +500,12 @@ public:
 		return false;
 	}
 
+	// only use this type of vector creation if you don't use the preconditioner
+	void init_nonprecond_vector(vector_type &t)
+	{
+		CloneVector(t, px(0));
+		t.set(0.0);
+	}
 	/**
 	 * debug_calc_projected_eigenvalues
 	 * @param r_ev
@@ -528,8 +521,8 @@ public:
 			if(debug_writer() == NULL) return;
 
 			vector_type t, defect;
-			set_approximation_vector(t);
-			set_approximation_vector(defect);
+			init_nonprecond_vector(t);
+			init_nonprecond_vector(defect);
 
 	#ifdef UG_PARALLEL
 			for(size_t c=0; c<pTestVectors.size(); c++)
