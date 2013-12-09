@@ -15,6 +15,9 @@
 #include <string>
 #include <sstream>
 
+#include "stopwatch.h"
+#include "util/ostream_util.h"
+
 namespace ug
 {
 
@@ -34,53 +37,36 @@ public:
 	{
 		m_length = l;
 	}
-	inline void start(double total, std::string msg="")
+
+	void calc_next_value()
 	{
-		m_msg = msg;
-		m_now = 0;
-		m_total = total;
-		bStarted=false;
-		startS = clock_s();
+		dNextValueToUpdate = (posNow+1)*m_total/m_length;
+		iNextValueToUpdate = (int) dNextValueToUpdate;
 	}
-	double clock_s()
+	void start(double total, std::string msg="");
+
+	inline void set(size_t now)
 	{
-		return clock() / ((double)CLOCKS_PER_SEC);
+		if(now < iNextValueToUpdate) return;
+		setD(now);
 	}
+	inline void set(int now)
+	{
+		if(now < 0 || (size_t)now < iNextValueToUpdate) return;
+		setD(now);
+	}
+
 	inline void set(double now)
 	{
-		if(now < 0 && now > m_total) return;
-		if(bStarted && myDepth == lastUpdateDepth)
-		{
-			int i2=(int)(m_length*now/m_total);
-			for(; posNow<i2; posNow++) { UG_LOG("-"); }
-			m_now = now;
-		}
-		else if(clock_s() - startS > m_minSecondsUntilProgress)
-		{
-			if(m_msg.length() > 0)
-				{UG_LOG("\n" << m_msg);}
-			UG_LOG("\n." << repeat('_', m_length) << ".\n");
-			UG_LOG("[");
-			bStarted = true;
-			posNow = 0;
-			lastUpdateDepth = myDepth;
-			set(now);
+		if(now < dNextValueToUpdate) return;
+		setD(now);
+	}
+	void setD(double now);
 
-		}
-	}
-	inline void stop()
-	{
-		if(bStarted && myDepth == lastUpdateDepth)
-		{
-			int i=(int)(m_length*m_now/m_total);
-			for(; i<m_length; i++) { UG_LOG("-"); }
-			UG_LOG("]");
-			UG_LOG(" took " << clock_s()-startS << " s.\n");
-			lastUpdateDepth = myDepth;
-			bStarted = false;
-		}
-	}
+	void stop();
 private:
+	double dNextValueToUpdate;
+	size_t iNextValueToUpdate;
 	int posNow;
 	bool bStarted;
 	double m_total;

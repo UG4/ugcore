@@ -19,8 +19,25 @@
 #include <ctime>
 #endif
 
+#include <sys/time.h>
+
 namespace ug
 {
+
+
+#ifdef _WIN32
+	inline double get_clock_s()
+	{
+		return clock() / ((double)CLOCKS_PER_SEC);
+	}
+#else
+	inline double get_clock_s()
+	{
+		timeval time;
+		gettimeofday(&time, NULL);
+		return time.tv_sec + time.tv_usec/1000000.0;
+	}
+#endif
 
 /// \addtogroup ugbase_common
 /// \{
@@ -48,7 +65,7 @@ class Stopwatch
       begin = std::chrono::high_resolution_clock::now();
       end = std::chrono::high_resolution_clock::now() - begin;
 #else
-      beg = end = std::clock();
+      beg = end = get_clock_s();
 #endif
       bRunning = false;
     }
@@ -61,7 +78,7 @@ class Stopwatch
 #ifdef UG_CXX11
       begin = std::chrono::high_resolution_clock::now();
 #else
-      beg = std::clock();
+      beg = get_clock_s();
 #endif
       bRunning = true;
     }
@@ -109,8 +126,8 @@ class Stopwatch
       if ( bRunning ) end = std::chrono::high_resolution_clock::now() - begin;
       return end.count() / 100.0;
 #else
-      if( bRunning ) end = std::clock();
-      return ( end - beg ) / ( ( double )0.001 * CLOCKS_PER_SEC );
+      if( bRunning ) end = get_clock_s();
+      return ( end - beg ) * 1000.0;
 #endif
     }
 
@@ -122,9 +139,9 @@ class Stopwatch
     std::chrono::microseconds end;
 #else
     /// Time point of the start of Stopwatch
-    std::clock_t beg;
+    double beg;
     /// Time point of the end of Stopwatch
-    std::clock_t end;
+    double end;
 #endif
     /// Flag indicating state of Stopwatch
     bool bRunning;
