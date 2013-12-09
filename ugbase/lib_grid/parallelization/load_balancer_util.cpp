@@ -12,7 +12,7 @@ namespace ug{
 SPProcessHierarchy
 CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 					   size_t minNumElemsPerProcPerLvl, size_t maxNumRedistProcs,
-					   size_t maxNumProcs)
+					   size_t maxNumProcs, int maxLvlsWithoutRedist)
 {
 	using std::min;
 	const int minDistLvl = 0;
@@ -74,7 +74,7 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 	}
 
 //	check whether we have to perform redistributions to ensure quality
-	const int qualityRedistMinNumLvls = 5;
+	const int qualityRedistMinNumLvls = maxLvlsWithoutRedist + 1;
 	int numQualityRedists = (numLvls - lastDistLvl) / qualityRedistMinNumLvls;
 
 	if(numQualityRedists > 0){

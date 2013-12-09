@@ -33,6 +33,7 @@ balancer.firstDistProcs	= 256
 balancer.redistSteps	= 2
 balancer.redistProcs	= 256
 balancer.maxDistLvl		= balancer.maxLvl
+balancer.maxLvlsWithoutRedist = 4
 
 balancer.parallelElementThreshold = 32
 balancer.qualityThreshold	= 0.8
@@ -58,6 +59,8 @@ function balancer.ParseParameters()
 	balancer.maxDistLvl		= util.GetParamNumber("-maxDistLvl", balancer.maxDistLvl,
 								"The maximum distribtion level. elements in levels above won't be partitioned and distributed separately.")
 
+	balancer.maxLvlsWithoutRedist = util.GetParamNumber("-maxLvlsWithoutRedist", balancer.maxLvlsWithoutRedist)
+	
 	balancer.parallelElementThreshold	= util.GetParamNumber("-parallelElementThreshold", balancer.parallelElementThreshold,
 											"No distribution is performed on a given level until each process can potentially receive 'parallelElementThreshold' elements.")
 	balancer.qualityThreshold	= util.GetParamNumber("-qualityThreshold", balancer.qualityThreshold,
@@ -84,6 +87,8 @@ function balancer.PrintParameters()
 	print("    firstDistProcs           = " .. balancer.firstDistProcs)
 	print("    redistSteps              = " .. balancer.redistSteps)
 	print("    redistProcs              = " .. balancer.redistProcs)
+	print("    maxDistLvl               = " .. balancer.maxDistLvl)
+	print("    maxLvlsWithoutRedist     = " .. balancer.maxLvlsWithoutRedist)
 	print("    parallelElementThreshold = " .. balancer.parallelElementThreshold)
 	print("    qualityThreshold         = " .. balancer.qualityThreshold)
 	print("    childWeight              = " .. balancer.childWeight)

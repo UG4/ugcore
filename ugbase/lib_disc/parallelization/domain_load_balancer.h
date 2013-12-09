@@ -14,7 +14,8 @@ namespace ug{
 template <class TDomain>
 SPProcessHierarchy
 CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
-					   size_t maxNumRedistProcs, size_t maxNumProcs)
+					   size_t maxNumRedistProcs, size_t maxNumProcs,
+					   int maxLevelsWithoutRedist)
 {
 	const DomainInfo& domInf = dom.domain_info();
 	std::vector<size_t> numElemsOnLvl;
@@ -28,7 +29,7 @@ CreateProcessHierarchy(TDomain& dom, size_t minNumElemsPerProcPerLvl,
 
 	return CreateProcessHierarchy(&numElemsOnLvl.front(), numElemsOnLvl.size(),
 								  minNumElemsPerProcPerLvl, maxNumRedistProcs,
-								  maxNumProcs);
+								  maxNumProcs, maxLevelsWithoutRedist);
 }
 
 
