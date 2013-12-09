@@ -15,7 +15,7 @@
 #include "lib_disc/function_spaces/grid_function_util.h"
 #include "lib_disc/operator/linear_operator/std_transfer.h"
 #include "lib_disc/operator/linear_operator/std_injection.h"
-
+#include "lib_grid/tools/periodic_boundary_manager.h"
 #include "mg_solver.h"
 
 #ifdef UG_PARALLEL
@@ -1074,6 +1074,7 @@ init_index_mappings()
  * 	SURFACE_NONCOPY elements.
  */
 
+	PeriodicBoundaryManager* pbm = m_spApproxSpace->domain()->grid()->periodic_boundary_manager();
 	ConstSmartPtr<SurfaceView> spSurfView = m_spApproxSpace->surface_view();
 
 	std::vector<ConstSmartPtr<DoFDistribution> > vLevelDD(m_topLev+1);
@@ -1101,8 +1102,13 @@ init_index_mappings()
 //	loop all elements of type
 	for( ; iter != iterEnd; ++iter)
 	{
-	//	get elem and its level
+	//	get elem
 		TElem* elem = *iter;
+
+	//	ignore slave (otherwise they would appear twice in map)
+		if (pbm && pbm->is_slave(elem)) continue;
+
+	//	get elem level
 		int level = m_spApproxSpace->domain()->grid()->get_level(elem);
 
 		if (m_GridLevelType == GridLevel::SURFACE)
