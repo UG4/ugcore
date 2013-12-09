@@ -1832,7 +1832,6 @@ base_solve(int lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering gathered basesolver branch.\n");
 
 	//	gather the defect
-		SmartPtr<GF> spD = ld.sd;
 		#ifdef UG_PARALLEL
 		if( !ld.t->layouts()->vertical_slave().empty() ||
 			!ld.t->layouts()->vertical_master().empty())
@@ -1844,8 +1843,6 @@ base_solve(int lev)
 			m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecAdd);
 			m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecAdd);
 			m_Com.communicate();
-
-			spD = ld.t;
 		}
 		#endif
 
@@ -1860,7 +1857,7 @@ base_solve(int lev)
 
 		//	compute coarse correction
 			try{
-				if(!m_spBaseSolver->apply(*spGatheredBaseCorr, *spD))
+				if(!m_spBaseSolver->apply(*spGatheredBaseCorr, *ld.t))
 					UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 			}
 			UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: b).")
