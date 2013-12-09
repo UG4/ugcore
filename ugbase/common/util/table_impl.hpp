@@ -114,27 +114,8 @@ size_t Table<T>::num_cols() const
 template <class T>
 std::string Table<T>::to_string() const
 {
-//	we'll fill a fresh table with strings of the given table
-//	At the same time we'll find the max-width of each column
-	Table<std::string>	strTable(num_rows(), num_cols());
-	std::vector<size_t> colSizes(num_cols(), 0);
-
-	for(size_t i_row = 0; i_row < num_rows(); ++i_row){
-		for(size_t i_col = 0; i_col < num_cols(); ++i_col){
-			strTable(i_row, i_col) = EntryToString(*this, i_row, i_col);
-			colSizes[i_col] = std::max(colSizes[i_col], strTable(i_row, i_col).size());
-		}
-	}
-
-//	now print each row to a stringstream
 	std::stringstream ssOut;
-	for(size_t i_row = 0; i_row < num_rows(); ++i_row){
-		for(size_t i_col = 0; i_col < num_cols(); ++i_col){
-			ssOut << std::setw(colSizes[i_col] + 2) << std::right << strTable(i_row, i_col);
-		}
-		ssOut << std::endl;
-	}
-
+	ssOut << *this;
 	return ssOut.str();
 }
 
