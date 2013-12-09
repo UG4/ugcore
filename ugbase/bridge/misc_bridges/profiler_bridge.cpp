@@ -12,7 +12,7 @@
 #include "ug.h" // Required for UGOutputProfileStatsOnExit.
 #include <string>
 #include <sstream>
-
+#include "../util_overloaded.h"
 using namespace std;
 
 namespace ug
@@ -20,6 +20,7 @@ namespace ug
   //void PrintLUA();
 namespace bridge
 {
+
 
 /// \defgroup profiler_bridge Profiler Bridge
 /// \ingroup misc_bridge
@@ -33,50 +34,53 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 
 	reg.add_class_<UGProfileNode>("UGProfileNode", grp)
 		// call tree
-		.add_method("call_tree", static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::call_tree), "string with call tree")
 		.add_method("call_tree",
-				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::call_tree), "string with call tree",
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, call_tree, ()),
+				"string with call tree")
+		.add_method("call_tree",
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, call_tree, (double dSkipMarginal)),
+				"string with call tree",
 				"dSkipMarginal")
 
 		// self time
 		.add_method("child_self_time_sorted",
-				static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::child_self_time_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, child_self_time_sorted, ()),
 				"string with sorted childs", "", "childs are sorted by self time")
 		.add_method("child_self_time_sorted",
-				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::child_self_time_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, child_self_time_sorted, (double dSkipMarginal)),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by self time")
 
 		// total time
 		.add_method("total_time_sorted",
-				static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::total_time_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, total_time_sorted, ()),
 				"string with sorted childs", "", "childs are sorted by total time")
 		.add_method("total_time_sorted",
-				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::total_time_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, total_time_sorted, (double dSkipMarginal)),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by total time")
 
 
 		// self memory
 		.add_method("child_self_memory_sorted",
-						static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::child_self_memory_sorted),
-						"string with sorted childs", "", "childs are sorted by self memory")
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, child_self_memory_sorted, ()),
+				"string with sorted childs", "", "childs are sorted by self memory")
 		.add_method("child_self_memory_sorted",
-				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::child_self_memory_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, child_self_memory_sorted, (double dSkipMarginal)),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by self memory")
 
 		// total memory
 		.add_method("total_memory_sorted",
-				static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::total_memory_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, total_memory_sorted, ()),
 				"string with sorted childs", "", "childs are sorted by total memory")
 		.add_method("total_memory_sorted",
-				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::total_memory_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, total_memory_sorted, (double dSkipMarginal)),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by total memory")
 
 		// entry count
 		.add_method("entry_count_sorted",
-				static_cast<string(UGProfileNode::*)() const>(&UGProfileNode::entry_count_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, entry_count_sorted, ()),
 				"string with sorted childs", "", "childs are sorted by entry count")
 		.add_method("entry_count_sorted",
-				static_cast<string(UGProfileNode::*)(double dSkipMarginal) const>(&UGProfileNode::entry_count_sorted),
+				OVERLOADED_CONST_METHOD_PTR(string, UGProfileNode, entry_count_sorted, (double dSkipMarginal)),
 				"string with sorted childs", "dSkipMarginal", "childs are sorted by entry count")
 
 		// misc
@@ -97,18 +101,23 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 
 	//	reg.add_function("PrintLUA", &PrintLUA, grp);
 
-	reg.add_function("GetProfileNode", &GetProfileNode, grp, 
-	                 "a profile node");
-	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, grp,  
-	                 "true if profiler available");
+
+	typedef const UGProfileNode* TT;
+	reg.add_function("GetProfileNode", OVERLOADED_FUNCTION_PTR(const UGProfileNode *, GetProfileNode, (const char*name)),
+			grp, "a profile node", "name", "if root = null, return");
+	reg.add_function("GetProfileNode", OVERLOADED_FUNCTION_PTR(const UGProfileNode *, GetProfileNode, (const char*name, const UGProfileNode*)),
+			grp, "a profile node", "name", "if root = null, return");
+	reg.add_function("GetProfilerAvailable",
+						OVERLOADED_FUNCTION_PTR(const UGProfileNode*, GetProfileNode, (const char *name)),
+						grp, "true if profiler available");
 	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp,  
 	                 "", "bOutput", "if set to true and profiler available, profile stats are printed at the end of the program. true is default");
 	reg.add_function("WriteProfileData",
-					 static_cast<void (*)(const char*)>(&WriteProfileDataXML),
+					OVERLOADED_FUNCTION_PTR(void, WriteProfileDataXML, (const char*)),
 					 grp,
 	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 	reg.add_function("WriteProfileData",
-					 static_cast<void (*)(const char*, int)>(&WriteProfileDataXML),
+					OVERLOADED_FUNCTION_PTR(void, WriteProfileDataXML, (const char*, int)),
 					 grp,
 	                 "", "filename|save-dialog|endings=[\"pdxml\"]", "writes a XML-file with profile data viewable with the ShinyProfileViewer. Pick a filename ending with .pdxml");
 }

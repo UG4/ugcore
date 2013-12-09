@@ -698,10 +698,10 @@ void WriteProfileDataXML(const char *filename, int procId)
 	
 }
 
-const UGProfileNode *GetProfileNode(const char *name)
+const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node)
 {
 	ProfilerUpdate();
-	const UGProfileNode *node = UGProfileNode::get_root();
+	if(node == NULL) node = UGProfileNode::get_root();
 	if(name == NULL)
 		return node;
 	do
@@ -713,6 +713,11 @@ const UGProfileNode *GetProfileNode(const char *name)
 
 //	UG_LOG("Profiler Node \"" << name << "\" not found\n");
 	return NULL;
+}
+
+const UGProfileNode *GetProfileNode(const char *name)
+{
+	return GetProfileNode(name, NULL);
 }
 
 bool GetProfilerAvailable()
@@ -875,6 +880,11 @@ string UGProfileNode::groups() const
 }
 
 const UGProfileNode *GetProfileNode(const char *name)
+{
+	return NULL;
+}
+
+const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node)
 {
 	return NULL;
 }

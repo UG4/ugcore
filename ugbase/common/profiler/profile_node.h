@@ -178,6 +178,7 @@ private:
 
 
 const UGProfileNode *GetProfileNode(const char *name);
+const UGProfileNode *GetProfileNode(const char *name, const UGProfileNode *node);
 bool GetProfilerAvailable();
 
 ///	Writes profile data of process 0 to the specified file
