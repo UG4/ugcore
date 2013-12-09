@@ -107,9 +107,8 @@ void RegisterBridge_Profiler(Registry &reg, string parentGroup)
 			grp, "a profile node", "name", "if root = null, return");
 	reg.add_function("GetProfileNode", OVERLOADED_FUNCTION_PTR(const UGProfileNode *, GetProfileNode, (const char*name, const UGProfileNode*)),
 			grp, "a profile node", "name", "if root = null, return");
-	reg.add_function("GetProfilerAvailable",
-						OVERLOADED_FUNCTION_PTR(const UGProfileNode*, GetProfileNode, (const char *name)),
-						grp, "true if profiler available");
+	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, grp,
+	                 "true if profiler available");
 	reg.add_function("SetOutputProfileStats", &UGOutputProfileStatsOnExit, grp,  
 	                 "", "bOutput", "if set to true and profiler available, profile stats are printed at the end of the program. true is default");
 	reg.add_function("WriteProfileData",
