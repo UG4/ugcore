@@ -1526,32 +1526,26 @@ smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-presmooth(int lev)
+presmooth_and_restriction(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level "<<lev<<"\n");
+	log_debug_data(lev, "BeforePreSmooth");
+
+	LevData& lf = *m_vLevData[lev];
+	LevData& lc = *m_vLevData[lev-1];
 
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
 	try{
-		LevData& ld = *m_vLevData[lev];
-		smooth(ld.sc, ld.sd, ld.st, *ld.A, *ld.PreSmoother, lev, m_numPreSmooth);
+		smooth(lf.sc, lf.sd, lf.st, *lf.A, *lf.PreSmoother, lev, m_numPreSmooth);
 	}
 	UG_CATCH_THROW("GMG::lmgc: Pre-Smoothing on level "<<lev<<" failed.");
 	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level "<<lev<<"\n");
-}
 
-
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-restriction(int lev)
-{
-	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
-
-	LevData& lf = *m_vLevData[lev];
-	LevData& lc = *m_vLevData[lev-1];
+	log_debug_data(lev, "BeforeRestrict");
 
 //	PARALLEL CASE:
 //	v-slaves indicate, that part of the parent are stored on a different proc.
@@ -1581,7 +1575,7 @@ restriction(int lev)
 //	restrict the defect from the fine level to the coarser level.
 	GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 	try{
-		m_vLevData[lev]->Restriction->do_restrict(*lc.sd, *spD);
+		lf.Restriction->do_restrict(*lc.sd, *spD);
 	}
 	UG_CATCH_THROW("GMG::lmgc: Restriction of Defect from level "<<lev<<
 				   " to "<<lev-1<<" failed.");
@@ -1591,18 +1585,31 @@ restriction(int lev)
 	for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
 		m_vspRestrictionPostProcess[i]->post_process(lc.sd);
 
+//	reset corr on coarse level
+	lc.sc->set(0.0);
+
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
 }
 
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-prolongation(int lev)
+prolongation_and_postsmooth(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level "<<lev<<"\n");
+	log_debug_data(lev, "BeforeProlong");
 
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
+
+//	write computet correction to surface
+	try{
+		const std::vector<SurfLevelMap>& vMap = lc.vSurfLevelMap;
+		for(size_t i = 0; i < vMap.size(); ++i){
+			(*m_pC)[vMap[i].surfIndex] += (*lc.sc)[vMap[i].levIndex];
+		}
+	}
+	UG_CATCH_THROW("GMG::lmgc: Cannot add to surface.");
 
 //	ADAPTIVE CASE:
 //	in the adaptive case there is a small part of the coarse coupling that
@@ -1654,23 +1661,18 @@ prolongation(int lev)
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
-}
 
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-postsmooth(int lev)
-{
-	PROFILE_FUNC_GROUP("gmg");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level "<<lev<<"\n");
+	log_debug_data(lev, "BeforePostSmooth");
 
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
 	try{
-		LevData& ld = *m_vLevData[lev];
-		smooth(ld.sc, ld.sd, ld.st, *ld.A, *ld.PostSmoother, lev, m_numPostSmooth);
+		smooth(lf.sc, lf.sd, lf.st, *lf.A, *lf.PostSmoother, lev, m_numPostSmooth);
 	}
 	UG_CATCH_THROW("GMG::lmgc: Post-Smoothing on level "<<lev<<" failed. ")
 	GMG_PROFILE_END();
 
+	log_debug_data(lev, "AfterPostSmooth");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level "<<lev<<"\n");
 }
 
@@ -1806,19 +1808,10 @@ lmgc(int lev)
 //	used as coarse grid correction. Finally a post-smooth is performed.
 	if((int)lev > m_baseLev)
 	{
-		log_debug_data(lev, "BeforePreSmooth");
 		try{
-			presmooth(lev);
+			presmooth_and_restriction(lev);
 		}
-		UG_CATCH_THROW("GMG::lmgc: presmooth failed on level "<<lev);
-
-		log_debug_data(lev, "BeforeRestrict");
-		try{
-			restriction(lev);
-		}
-		UG_CATCH_THROW("GMG::lmgc: restriction failed on level "<<lev);
-
-		m_vLevData[lev-1]->sc->set(0.0);
+		UG_CATCH_THROW("GMG::lmgc: presmooth-restriction failed on level "<<lev);
 
 		int numBase = m_cycleType;
 		if(lev == m_baseLev+1) numBase = 1;
@@ -1832,26 +1825,9 @@ lmgc(int lev)
 		}
 
 		try{
-			const std::vector<SurfLevelMap>& vMap = m_vLevData[lev-1]->vSurfLevelMap;
-			LevData& ld = *m_vLevData[lev-1];
-			for(size_t i = 0; i < vMap.size(); ++i){
-				(*m_pC)[vMap[i].surfIndex] += (*ld.sc)[vMap[i].levIndex];
-			}
+			prolongation_and_postsmooth(lev);
 		}
-		UG_CATCH_THROW("GMG::lmgc: Cannot add to surface.");
-
-		log_debug_data(lev, "BeforeProlong");
-		try{
-			prolongation(lev);
-		}
-		UG_CATCH_THROW("GMG::lmgc: prolongation failed on level "<<lev);
-
-		log_debug_data(lev, "BeforePostSmooth");
-		try{
-			postsmooth(lev);
-		}
-		UG_CATCH_THROW("GMG::lmgc: postsmooth failed on level "<<lev);
-		log_debug_data(lev, "AfterPostSmooth");
+		UG_CATCH_THROW("GMG::lmgc: prolongation-postsmooth failed on level "<<lev);
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level "<<lev<<"\n");
 	}

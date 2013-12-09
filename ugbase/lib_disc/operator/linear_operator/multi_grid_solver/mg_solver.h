@@ -201,27 +201,21 @@ class AssembledMultiGridCycle :
 
 	////////////////////////////////////////////////////////////////
 	//	The methods in this section rely on each other and should be called in sequence
-	///	performs presmoothing on the given level
-		void presmooth(int lev);
+	/// performs smoothing on level l, nu times
+		void smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
+					MatrixOperator<matrix_type, vector_type>& A,
+					ILinearIterator<vector_type>& S, int lev, int nu);
 
-	///	performs restriction on to the level below
-		void restriction(int lev);
+	///	performs presmoothing on the given level
+		void presmooth_and_restriction(int lev);
 
 	///	performs prolongation to the level above
-		void prolongation(int lev);
-
-	///	performs postsmoothin
-		void postsmooth(int lev);
-	//	end of section
-	////////////////////////////////////////////////////////////////
+		void prolongation_and_postsmooth(int lev);
 
 	///	compute base solver
 		void base_solve(int lev);
-
-	/// performs smoothing on level l, nu times
-		void smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
-		            MatrixOperator<matrix_type, vector_type>& A,
-		            ILinearIterator<vector_type>& S, int lev, int nu);
+	//	end of section
+	////////////////////////////////////////////////////////////////
 
 	///	allocates the memory
 		void init_level_memory(int baseLev, int topLev);
