@@ -178,6 +178,13 @@ class MathTensor3 : public MathTensorX< MathTensorX<MathTensor1<N3, T>, N2>, N1>
 template <size_t N1, size_t N2, size_t N3, size_t N4, typename T = number>
 class MathTensor4 : public MathTensorX< MathTensorX< MathTensorX<MathTensor1<N4, T>, N3>, N2>, N1> { };
 
+template <typename TEntry>
+std::ostream& operator<< (std::ostream& outStream, const ug::MathTensorX<TEntry, 1>& v)
+{
+	outStream << "[";
+	outStream << v[0] << "]";
+	return outStream;
+}
 
 template <typename TEntry, size_t N>
 std::ostream& operator<< (std::ostream& outStream, const ug::MathTensorX<TEntry, N>& v)
