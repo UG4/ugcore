@@ -517,24 +517,29 @@ assemble_level_operator()
 			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 			LevData& lc = *m_vLevData[lev-1];
 
-			copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
+			SmartPtr<GF> spT = ld.st;
 			#ifdef UG_PARALLEL
+			if( !ld.t->layouts()->vertical_slave().empty() ||
+				!ld.t->layouts()->vertical_master().empty())
+			{
 				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
 				GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
 
+				copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
+
 				ComPol_VecCopy<vector_type> cpVecCopy(ld.t.get());
-				if(!ld.t->layouts()->vertical_master().empty())
-					m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
-				if(!ld.t->layouts()->vertical_slave().empty())
-					m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
+				m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
+				m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
 				m_Com.communicate();
 
+				spT = ld.t;
 				GMG_PROFILE_END();
 				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
+			}
 			#endif
 
 			try{
-				ld.Projection->do_restrict(*lc.st, *ld.t);
+				ld.Projection->do_restrict(*lc.st, *spT);
 			} UG_CATCH_THROW("GMG::init: Cannot project "
 						"solution to coarse grid function of level "<<lev-1<<".\n");
 
@@ -562,20 +567,24 @@ assemble_level_operator()
 		LevData& ld = *m_vLevData[m_baseLev];
 
 		if(m_pSurfaceSol){
-			copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
+
 			#ifdef UG_PARALLEL
+			if( !ld.t->layouts()->vertical_slave().empty() ||
+				!ld.t->layouts()->vertical_master().empty())
+			{
 				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
 				GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
 
+				copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
+
 				ComPol_VecCopy<vector_type> cpVecCopy(ld.t.get());
-				if(!ld.t->layouts()->vertical_master().empty())
-					m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
-				if(!ld.t->layouts()->vertical_slave().empty())
-					m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
+				m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
+				m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
 				m_Com.communicate();
 
 				GMG_PROFILE_END();
 				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
+			}
 			#endif
 		}
 
@@ -819,10 +828,8 @@ init_rap_operator()
 			}
 
 			ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, lf.getMultiOccurence());
-			if(!spGhostA->layouts()->vertical_slave().empty())
-				m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
-			if(!spGhostA->layouts()->vertical_master().empty())
-				m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
+			m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
+			m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
 			m_Com.communicate();
 			spA = spGhostA;
 		}
@@ -859,8 +866,7 @@ init_rap_operator()
 		spGatheredBaseMat->set_layouts(ld.t->layouts());
 
 		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat, ld.getMultiOccurence());
-		if(!spGatheredBaseMat->layouts()->vertical_slave().empty())
-			m_Com.send_data(spGatheredBaseMat->layouts()->vertical_slave(), cpMatAdd);
+		m_Com.send_data(spGatheredBaseMat->layouts()->vertical_slave(), cpMatAdd);
 		if(gathered_base_master())
 			m_Com.receive_data(spGatheredBaseMat->layouts()->vertical_master(), cpMatAdd);
 		m_Com.communicate();
@@ -1274,7 +1280,8 @@ copy_ghost_to_noghost(SmartPtr<GF> spVecTo,
 {
 	PROFILE_FUNC_GROUP("gmg");
 
-	if(spVecTo == spVecFrom) return;
+	if(spVecTo == spVecFrom)
+		UG_THROW("GMG::copy_ghost_to_noghost: Should not be called on equal GF.");
 
 	if(spVecTo->dd() == spVecFrom->dd())
 	{
@@ -1304,7 +1311,8 @@ copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
 {
 	PROFILE_FUNC_GROUP("gmg");
 
-	if(spVecTo == spVecFrom) return;
+	if(spVecTo == spVecFrom)
+		UG_THROW("GMG::copy_noghost_to_ghost: Should not be called on equal GF.");
 
 	if(spVecTo->dd() == spVecFrom->dd())
 	{
@@ -1641,10 +1649,8 @@ presmooth_and_restriction(int lev)
 		copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
 
 		ComPol_VecAddSetZero<vector_type> cpVecAdd(lf.t.get(), lf.getMultiOccurence());
-		if(!lf.t->layouts()->vertical_slave().empty())
-			m_Com.send_data(lf.t->layouts()->vertical_slave(), cpVecAdd);
-		if(!lf.t->layouts()->vertical_master().empty())
-			m_Com.receive_data(lf.t->layouts()->vertical_master(), cpVecAdd);
+		m_Com.send_data(lf.t->layouts()->vertical_slave(), cpVecAdd);
+		m_Com.receive_data(lf.t->layouts()->vertical_master(), cpVecAdd);
 		m_Com.communicate();
 
 		GMG_PROFILE_END();
@@ -1733,10 +1739,8 @@ prolongation_and_postsmooth(int lev)
 		GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 
 		ComPol_VecCopy<vector_type> cpVecCopy(lf.t.get());
-		if(!lf.t->layouts()->vertical_slave().empty())
-			m_Com.receive_data(lf.t->layouts()->vertical_slave(), cpVecCopy);
-		if(!lf.t->layouts()->vertical_master().empty())
-			m_Com.send_data(lf.t->layouts()->vertical_master(), cpVecCopy);
+		m_Com.receive_data(lf.t->layouts()->vertical_slave(), cpVecCopy);
+		m_Com.send_data(lf.t->layouts()->vertical_master(), cpVecCopy);
 		m_Com.communicate();
 
 		copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
@@ -1831,10 +1835,8 @@ base_solve(int lev)
 			copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
 
 			ComPol_VecAddSetZero<vector_type> cpVecAdd(ld.t.get(), ld.getMultiOccurence());
-			if(!ld.t->layouts()->vertical_slave().empty())
-				m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecAdd);
-			if(!ld.t->layouts()->vertical_master().empty())
-				m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecAdd);
+			m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecAdd);
+			m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecAdd);
 			m_Com.communicate();
 
 			spD = ld.t;
@@ -1863,12 +1865,10 @@ base_solve(int lev)
 
 	//	broadcast the correction
 		#ifdef UG_PARALLEL
-		if(!ld.st->layouts()->vertical_slave().empty()){
-			ComPol_VecCopy<vector_type> cpVecCopy(&(*ld.st));
-			m_Com.receive_data(ld.st->layouts()->vertical_slave(), cpVecCopy);
-			m_Com.communicate();
-			ld.st->set_storage_type(PST_CONSISTENT);
-		}
+		ComPol_VecCopy<vector_type> cpVecCopy(&(*ld.st));
+		m_Com.receive_data(ld.st->layouts()->vertical_slave(), cpVecCopy);
+		m_Com.communicate();
+		ld.st->set_storage_type(PST_CONSISTENT);
 		#endif
 		if(gathered_base_master()){
 			#ifdef UG_PARALLEL

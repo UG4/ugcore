@@ -69,9 +69,11 @@ template <class TLayout>
 void InterfaceCommunicator<TLayout>::
 send_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
-PCL_PROFILE(pcl_IntCom_send_layout_data);
-//	through the the category_tag we're able to find the correct send method.
-	send_data(layout, commPol, typename TLayout::category_tag());
+	PCL_PROFILE(pcl_IntCom_send_layout_data);
+	if(!layout.empty()){
+	//	through the the category_tag we're able to find the correct send method.
+		send_data(layout, commPol, typename TLayout::category_tag());
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -169,9 +171,11 @@ template <class TLayout>
 void InterfaceCommunicator<TLayout>::
 receive_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
-	m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
-											 NULL, &layout,
-											 NULL, NULL, 0));
+	if(!layout.empty()){
+		m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
+												 NULL, &layout,
+												 NULL, NULL, 0));
+	}
 }
 
 template <class TLayout>
