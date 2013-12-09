@@ -19,19 +19,19 @@ include("cmake/ug_includes.cmake")
 ########################
 # compile plugins
 if(buildPlugins)
-	add_subdirectory(plugins)
+   add_subdirectory(plugins)
 endif(buildPlugins)
 
 ########################
 # compile metis
 if(buildMetis)
-	add_subdirectory(externals/metis-5.0.2)
+   add_subdirectory(externals/metis-5.0.2)
 endif(buildMetis)
 
 ########################
 # compile parmetis
 if(buildParmetis)
-	add_subdirectory(externals/parmetis-4.0.2)
+   add_subdirectory(externals/parmetis-4.0.2)
 endif(buildParmetis)
 
 ########################
@@ -44,7 +44,7 @@ if(BUILD_UGDOCU)
 endif(BUILD_UGDOCU)
 
 IF(BUILD_DOXYDOCU)
-	ADD_SUBDIRECTORY(docs)
+   ADD_SUBDIRECTORY(docs)
 ENDIF(BUILD_DOXYDOCU)
 
 ########################
@@ -77,29 +77,26 @@ if(BUILD_ONE_LIB)
 			target_link_libraries(${targetLibraryName} CompileInfo)
 		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
 
-	else(buildDynamicLib)
-	    if(CUDA_FOUND)
-	        CUDA_add_library(${targetLibraryName} ${ug4libSources})
-	    else(CUDA_FOUND)
-	        add_library(${targetLibraryName} ${ug4libSources})
+   else(buildDynamicLib)
+       if(CUDA_FOUND)
+           CUDA_add_library(${targetLibraryName} ${ug4libSources})
+       else(CUDA_FOUND)
+           add_library(${targetLibraryName} ${ug4libSources})
         endif(CUDA_FOUND)
-	    
-		
-		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
-			add_dependencies(${targetLibraryName} CompileInfo_s)
-			target_link_libraries(${targetLibraryName} CompileInfo_s)
-		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
-		
-	endif(buildDynamicLib)
-	
-	if(buildEmbeddedPlugins)
-	#	if we build with embedded plugins, the compile-info is also embedded
-	#	into the single big target lib. We thus have to add a dependency to
-	#	the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
-		add_dependencies(${targetLibraryName} updateCompileInfo)
-	endif(buildEmbeddedPlugins)
-	
+       
+      
+      if(buildCompileInfo AND NOT buildEmbeddedPlugins)
+         add_dependencies(${targetLibraryName} CompileInfo_s)
+         target_link_libraries(${targetLibraryName} CompileInfo_s)
+      endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
+      
+   endif(buildDynamicLib)
+   
+   if(buildEmbeddedPlugins)
+   #  if we build with embedded plugins, the compile-info is also embedded
+   #  into the single big target lib. We thus have to add a dependency to
+   #  the custom updateCompileInfo target declared in compile_info/CMakeLists.txt.
+      add_dependencies(${targetLibraryName} updateCompileInfo)
+   endif(buildEmbeddedPlugins)
+   
 endif(BUILD_ONE_LIB)
-
-
-
