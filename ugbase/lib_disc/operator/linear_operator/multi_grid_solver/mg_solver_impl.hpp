@@ -1564,72 +1564,57 @@ gathered_base_master() const
 // Cycle - Methods
 ////////////////////////////////////////////////////////////////////////////////
 
-// perform the smoothing
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
-       MatrixOperator<matrix_type, vector_type>& A,
-       ILinearIterator<vector_type>& S,
-       int lev, int nu)
-{
-	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - smooth on level "<<lev<<"\n");
-
-// 	smooth nu times
-	for(int i = 0; i < nu; ++i)
-	{
-	// 	Compute Correction of one smoothing step, but do not update defect
-	//	a)  Compute t = B*d with some iterator B
-		if(!S.apply(*st, *sd))
-			UG_THROW("GMG::smooth: Smoothing step "<<i+1<<" on level "<<lev<<" failed.");
-
-	//	b) reset the correction to zero on the patch boundary.
-		if(!m_bSmoothOnSurfaceRim){
-			const std::vector<size_t>& vShadowing = m_vLevData[lev]->vShadowing;
-			for(size_t i = 0; i < vShadowing.size(); ++i)
-				(*st)[ vShadowing[i] ] = 0.0;
-		} else {
-			if(lev > m_LocalFullRefLevel){
-				LevData& lc = *m_vLevData[lev-1];
-				lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *st);
-				lc.RimCpl_Fine_Fine.matmul_minus(*sd, *st);
-			}
-		}
-
-	//	c) update the defect with this correction ...
-		A.apply_sub(*sd, *st);
-
-	//	d) ... and add the correction to the overall correction
-		(*sc) += (*st);
-	}
-
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - smooth on level "<<lev<<"\n");
-}
-
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 presmooth_and_restriction(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level "<<lev<<"\n");
-	log_debug_data(lev, "BeforePreSmooth");
-
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
 
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level "<<lev<<"\n");
+	log_debug_data(lev, "BeforePreSmooth");
+
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
 	try{
-		smooth(lf.sc, lf.sd, lf.st, *lf.A, *lf.PreSmoother, lev, m_numPreSmooth);
+	//	smooth several times
+		for(int nu = 0; nu < m_numPreSmooth; ++nu)
+		{
+		// 	Compute Correction of one smoothing step, but do not update defect
+		//	a)  Compute t = B*d with some iterator B
+			if(!lf.PreSmoother->apply(*lf.st, *lf.sd))
+				UG_THROW("GMG::smooth: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
+
+		//	b) reset the correction to zero on the patch boundary.
+			if(!m_bSmoothOnSurfaceRim){
+				const std::vector<size_t>& vShadowing = lf.vShadowing;
+				for(size_t i = 0; i < vShadowing.size(); ++i)
+					(*lf.st)[ vShadowing[i] ] = 0.0;
+			} else {
+				if(lev > m_LocalFullRefLevel){
+					lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *lf.st);
+					lc.RimCpl_Fine_Fine.matmul_minus(*lf.sd, *lf.st);
+				}
+			}
+
+		//	c) update the defect with this correction ...
+			lf.A->apply_sub(*lf.sd, *lf.st);
+
+		//	d) ... and add the correction to the overall correction
+			(*lf.sc) += (*lf.st);
+		}
 	}
 	UG_CATCH_THROW("GMG::lmgc: Pre-Smoothing on level "<<lev<<" failed.");
 	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level "<<lev<<"\n");
-
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforeRestrict");
 
-//	PARALLEL CASE:
+//	reset corr on coarse level
+	lc.sc->set(0.0);
+
+//	Parallel Case:
 //	v-slaves indicate, that part of the parent are stored on a different proc.
 //	Thus the values of the defect must be transfered to the v-masters and will
 //	have their parents on the proc of the master and must be restricted on
@@ -1671,9 +1656,6 @@ presmooth_and_restriction(int lev)
 	for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
 		m_vspRestrictionPostProcess[i]->post_process(lc.sd);
 
-//	reset corr on coarse level
-	lc.sc->set(0.0);
-
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
 }
 
@@ -1682,11 +1664,11 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation_and_postsmooth(int lev)
 {
 	PROFILE_FUNC_GROUP("gmg");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level "<<lev<<"\n");
-	log_debug_data(lev, "BeforeProlong");
-
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level "<<lev<<"\n");
+	log_debug_data(lev, "BeforeProlong");
 
 //	write computed correction to surface
 	try{
@@ -1771,13 +1753,37 @@ prolongation_and_postsmooth(int lev)
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
-
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforePostSmooth");
 
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
 	try{
-		smooth(lf.sc, lf.sd, lf.st, *lf.A, *lf.PostSmoother, lev, m_numPostSmooth);
+	//	smooth several times
+		for(int nu = 0; nu < m_numPostSmooth; ++nu)
+		{
+		// 	Compute Correction of one smoothing step, but do not update defect
+		//	a)  Compute t = B*d with some iterator B
+			if(!lf.PostSmoother->apply(*lf.st, *lf.sd))
+				UG_THROW("GMG::smooth: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
+
+		//	b) reset the correction to zero on the patch boundary.
+			if(!m_bSmoothOnSurfaceRim){
+				const std::vector<size_t>& vShadowing = lf.vShadowing;
+				for(size_t i = 0; i < vShadowing.size(); ++i)
+					(*lf.st)[ vShadowing[i] ] = 0.0;
+			} else {
+				if(lev > m_LocalFullRefLevel){
+					lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *lf.st);
+					lc.RimCpl_Fine_Fine.matmul_minus(*lf.sd, *lf.st);
+				}
+			}
+
+		//	c) update the defect with this correction ...
+			lf.A->apply_sub(*lf.sd, *lf.st);
+
+		//	d) ... and add the correction to the overall correction
+			(*lf.sc) += (*lf.st);
+		}
 	}
 	UG_CATCH_THROW("GMG::lmgc: Post-Smoothing on level "<<lev<<" failed. ")
 	GMG_PROFILE_END();

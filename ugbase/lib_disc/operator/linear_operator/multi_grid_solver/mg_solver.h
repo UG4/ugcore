@@ -201,11 +201,6 @@ class AssembledMultiGridCycle :
 
 	////////////////////////////////////////////////////////////////
 	//	The methods in this section rely on each other and should be called in sequence
-	/// performs smoothing on level l, nu times
-		void smooth(SmartPtr<GF> sc, SmartPtr<GF> sd, SmartPtr<GF> st,
-					MatrixOperator<matrix_type, vector_type>& A,
-					ILinearIterator<vector_type>& S, int lev, int nu);
-
 	///	performs presmoothing on the given level
 		void presmooth_and_restriction(int lev);
 
