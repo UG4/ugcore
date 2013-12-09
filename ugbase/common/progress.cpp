@@ -57,10 +57,18 @@ void Progress::setD(double now)
 
 */
 
-static inline void print_mark(int posNow, int length)
+static inline void print_mark(int &posNow, int length)
 {
 	if(posNow%(length/4)==0 )
-		{UG_LOG("+");}
+	{
+		switch(posNow / (length/4))
+		{
+		case 0: UG_LOG("-"); break;
+		case 1: UG_LOG("25%");posNow+=2; break;
+		case 2: UG_LOG("50%");posNow+=2; break;
+		case 3: UG_LOG("75%");posNow+=2; break;
+		}
+	}
 	else {UG_LOG("-");}
 }
 
@@ -86,7 +94,8 @@ void Progress::setD(double now)
 	{
 		if(m_msg.length() > 0)
 			{UG_LOG("\n" << m_msg);}
-		UG_LOG("\n." << repeat('_', m_length) << ".\n");
+		UG_LOG("\n");
+//		UG_LOG("." << repeat('_', m_length) << ".\n");
 		UG_LOG("[");
 		bStarted = true;
 		posNow = 0;
