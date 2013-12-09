@@ -1252,10 +1252,10 @@ init_noghost_to_ghost_mapping(int lev)
 	std::vector<size_t>& vMapPatchToGlobal = ld.vMapPatchToGlobal;
 	vMapPatchToGlobal.resize(0);
 
-	if(ld.st == ld.t) return;
-
 	ConstSmartPtr<DoFDistribution> spNoGhostDD = ld.st->dd();
 	ConstSmartPtr<DoFDistribution> spGhostDD = ld.t->dd();
+
+	if(spNoGhostDD == spGhostDD) return;
 
 	vMapPatchToGlobal.resize(spNoGhostDD->num_indices());
 
@@ -1276,7 +1276,7 @@ copy_ghost_to_noghost(SmartPtr<GF> spVecTo,
 
 	if(spVecTo == spVecFrom) return;
 
-	if(spVecTo->grid_level() == spVecFrom->grid_level())
+	if(spVecTo->dd() == spVecFrom->dd())
 	{
 		for(size_t i = 0; i < spVecTo->size(); ++i)
 			(*spVecTo)[i] = (*spVecFrom)[i];
@@ -1306,7 +1306,7 @@ copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
 
 	if(spVecTo == spVecFrom) return;
 
-	if(spVecTo->grid_level() == spVecFrom->grid_level())
+	if(spVecTo->dd() == spVecFrom->dd())
 	{
 		for(size_t i = 0; i < spVecTo->size(); ++i)
 			(*spVecTo)[i] = (*spVecFrom)[i];
@@ -1424,11 +1424,15 @@ init_level_memory(int baseLev, int topLev)
 
 		// TODO: all procs must call this, since a MPI-Group is created.
 		//		 Think about optimizing this
+		#ifdef UG_PARALLEL
 		GridLevel glGhosts = GridLevel(lev, m_GridLevelType, true);
 		ld.t = SmartPtr<GF>(new GF(m_spApproxSpace, glGhosts, false));
-
-		if(!m_spApproxSpace->might_contain_ghosts(lev))
+		if( ld.t->layouts()->vertical_slave().empty() &&
+			ld.t->layouts()->vertical_master().empty())
+		#endif
+		{
 			ld.t = ld.st;
+		}
 
 		ld.A = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
 				new MatrixOperator<matrix_type, vector_type>);
@@ -1700,9 +1704,17 @@ prolongation_and_postsmooth(int lev)
 	log_debug_data(lev, "AfterCoarseGridDefect");
 
 //	prolongate
+	SmartPtr<GF> spT = lf.st;
+	#ifdef UG_PARALLEL
+	if( !lf.t->layouts()->vertical_slave().empty() ||
+		!lf.t->layouts()->vertical_master().empty())
+	{
+		spT = lf.t;
+	}
+	#endif
 	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
 	try{
-		lf.Prolongation->prolongate(*lf.t, *lc.sc);
+		lf.Prolongation->prolongate(*spT, *lc.sc);
 	}
 	UG_CATCH_THROW("GMG::lmgc: Prolongation from level "<<lev-1<<" to "<<lev<<" failed.");
 	GMG_PROFILE_END();
@@ -1714,20 +1726,25 @@ prolongation_and_postsmooth(int lev)
 //	since dummies may exist, we'll copy the broadcasted correction to h-slave
 //	interfaces (dummies are always h-slaves)
 #ifdef UG_PARALLEL
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_slaves\n");
-	GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
+	if( !lf.t->layouts()->vertical_slave().empty() ||
+		!lf.t->layouts()->vertical_master().empty())
+	{
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_slaves\n");
+		GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 
-	ComPol_VecCopy<vector_type> cpVecCopy(lf.t.get());
-	if(!lf.t->layouts()->vertical_slave().empty())
-		m_Com.receive_data(lf.t->layouts()->vertical_slave(), cpVecCopy);
-	if(!lf.t->layouts()->vertical_master().empty())
-		m_Com.send_data(lf.t->layouts()->vertical_master(), cpVecCopy);
-	m_Com.communicate();
+		ComPol_VecCopy<vector_type> cpVecCopy(lf.t.get());
+		if(!lf.t->layouts()->vertical_slave().empty())
+			m_Com.receive_data(lf.t->layouts()->vertical_slave(), cpVecCopy);
+		if(!lf.t->layouts()->vertical_master().empty())
+			m_Com.send_data(lf.t->layouts()->vertical_master(), cpVecCopy);
+		m_Com.communicate();
 
-	GMG_PROFILE_END();
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_slaves\n");
+		copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
+
+		GMG_PROFILE_END();
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_slaves\n");
+	}
 #endif
-	copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
 
 //	apply post processes
 	for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
