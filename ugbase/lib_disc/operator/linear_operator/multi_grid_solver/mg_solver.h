@@ -379,9 +379,6 @@ class AssembledMultiGridCycle :
 		///	missing coarse grid correction
 			matrix_type RimCpl_Coarse_Fine;
 
-		///	missing coarse grid correction
-			matrix_type RimCpl_Fine_Fine;
-
 		///	flag if v-slaves with multiple ghost present on this proc
 			bool bMultiOccurance;
 

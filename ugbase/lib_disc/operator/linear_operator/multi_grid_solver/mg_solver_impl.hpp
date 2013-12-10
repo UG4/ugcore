@@ -132,6 +132,7 @@ apply(vector_type& rC, const vector_type& rD)
 
 //	debug output
 	write_debug(d, "Defect_In");
+	write_debug(*m_spSurfaceMat, "SurfaceStiffness", c, c);
 
 //	project defect from surface to level
 	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
@@ -184,7 +185,6 @@ apply(vector_type& rC, const vector_type& rD)
 
 //	debug output
 	write_debug(c, "Correction_Out");
-	write_debug(*m_spSurfaceMat, "SurfaceStiffness", c, c);
 
 //	increase dbg counter
 	if(m_spDebugWriter.valid()) m_dbgIterCnt++;
@@ -623,104 +623,64 @@ assemble_rim_cpl(const vector_type* u)
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
 		m_vLevData[lev]->RimCpl_Fine_Coarse.resize_and_clear(0,0);
 		m_vLevData[lev]->RimCpl_Coarse_Fine.resize_and_clear(0,0);
-		m_vLevData[lev]->RimCpl_Fine_Fine.resize_and_clear(0,0);
 	}
-
-//	if the grid is fully refined, nothing to do
-	if(m_topLev <= m_LocalFullRefLevel){
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_rim_cpl (non-adaptive)" << "\n");
-		return;
-	}
-
-//	get the surface view
-	const SurfaceView& surfView = *m_spApproxSpace->surface_view();
 
 //	loop all levels to compute the missing contribution
-	BoolMarker sel(*m_spApproxSpace->domain()->grid());
-	for(int lev = m_LocalFullRefLevel; lev < m_topLev; ++lev)
+	for(int lev = m_LocalFullRefLevel+1; lev <= m_topLev; ++lev)
 	{
-		LevData& lc = *m_vLevData[lev];
-		LevData& lf = *m_vLevData[lev+1];
-
-	//	select all elements, that have a shadow as a subelement, but are not
-	//	itself a shadow -  we assemble on those elements only
-		sel.clear();
-		SelectNonShadowsAdjacentToShadowsOnLevel(sel, surfView, lev);
-
-	//	create a surface matrix
-		matrix_type surfMat;
-		GridLevel surfLevel(m_surfaceLev, GridLevel::SURFACE);
-
-	//	assemble the surface jacobian only for selected elements
-		m_spAss->ass_tuner()->set_marker(&sel);
-		if(u){
-			m_spAss->assemble_jacobian(surfMat, *u, surfLevel);
-		}else{
-		//	\todo: not use tmp vector here
-			vector_type tmpVec; tmpVec.resize(m_spApproxSpace->dof_distribution(surfLevel)->num_indices());
-			m_spAss->assemble_jacobian(surfMat, tmpVec, surfLevel);
-		}
-		m_spAss->ass_tuner()->set_marker(NULL);
-
-		UG_ASSERT(surfMat.num_rows() == m_vSurfToLevelMap.size(), "Size mismatch")
-		UG_ASSERT(surfMat.num_cols() == m_vSurfToLevelMap.size(), "Size mismatch")
+		LevData& lc = *m_vLevData[lev-1];
+		LevData& lf = *m_vLevData[lev];
 
 		lc.RimCpl_Fine_Coarse.resize_and_clear(lf.sd->size(), lc.sc->size());
 
-		if(m_bSmoothOnSurfaceRim){
+		if(m_bSmoothOnSurfaceRim)
 			lc.RimCpl_Coarse_Fine.resize_and_clear(lc.sd->size(), lf.sc->size());
-			lc.RimCpl_Fine_Fine.resize_and_clear(lf.sd->size(), lf.sc->size());
-		}
 
 		for(size_t i = 0; i< lf.vShadowing.size(); ++i)
 		{
-			const size_t lvlFrom = lf.vShadowing[i];
-			const size_t surfFrom = lf.vSurfShadowing[i];
+			const size_t lvlTo = lf.vShadowing[i];
+			const size_t surfTo = lf.vSurfShadowing[i];
 
-			typedef typename matrix_type::row_iterator row_iterator;
-			row_iterator conn = surfMat.begin_row(surfFrom);
-			row_iterator connEnd = surfMat.end_row(surfFrom);
+			SetRow((*lf.A), lvlTo, 0.0);
+
+			typedef typename matrix_type::const_row_iterator row_iterator;
+			row_iterator conn = m_spSurfaceMat->begin_row(surfTo);
+			row_iterator connEnd = m_spSurfaceMat->end_row(surfTo);
 			for( ;conn != connEnd; ++conn)
 			{
-				const size_t surfTo = conn.index();
+				const size_t surfFrom = conn.index();
 
-				if(m_bSmoothOnSurfaceRim){
-					if(m_vSurfToLevelMap[surfTo].level == lev + 1){
-						size_t lvlTo = m_vSurfToLevelMap[surfTo].index;
-						lc.RimCpl_Fine_Fine(lvlTo, lvlFrom) = surfMat(surfTo, surfFrom);
+				if(m_vSurfToLevelMap[surfFrom].level == lev) {
+					const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].index;
+					(*lf.A)(lvlTo, lvlFrom) = conn.value();
+				}
+				if(m_vSurfToLevelMap[surfFrom].level == lev+1) {
+					if(m_vSurfToLevelMap[surfFrom].levelLower == lev) {
+						const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].indexLower;
+						(*lf.A)(lvlTo, lvlFrom) = conn.value();
+					}
+				}
+				if(m_vSurfToLevelMap[surfFrom].level == lev-1){
+					const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].index;
+					(lc.RimCpl_Fine_Coarse)(lvlTo, lvlFrom) = conn.value();
+
+					if(m_bSmoothOnSurfaceRim){
+						lc.RimCpl_Coarse_Fine(lvlFrom, lvlTo) = (*m_spSurfaceMat)(surfFrom, surfTo);
 					}
 				}
 
-				size_t lvlTo = (size_t)(-1);
-				if(m_vSurfToLevelMap[surfTo].levelLower == lev) {
-					lvlTo = m_vSurfToLevelMap[surfTo].indexLower;
-				} else if(m_vSurfToLevelMap[surfTo].level == lev){
-					lvlTo = m_vSurfToLevelMap[surfTo].index;
-				} else {
-					continue;
-				}
-
-				(lc.RimCpl_Fine_Coarse)(lvlFrom, lvlTo) = conn.value();
-
-				if(m_bSmoothOnSurfaceRim){
-					lc.RimCpl_Coarse_Fine(lvlTo, lvlFrom) = surfMat(surfTo, surfFrom);
-				}
 			}
 		}
 
 #ifdef UG_PARALLEL
-		lc.RimCpl_Fine_Coarse.set_storage_type(surfMat.get_storage_mask());
-		if(m_bSmoothOnSurfaceRim){
-			lc.RimCpl_Coarse_Fine.set_storage_type(surfMat.get_storage_mask());
-			lc.RimCpl_Fine_Fine.set_storage_type(surfMat.get_storage_mask());
-		}
+		lc.RimCpl_Fine_Coarse.set_storage_type(m_spSurfaceMat->get_storage_mask());
+		if(m_bSmoothOnSurfaceRim)
+			lc.RimCpl_Coarse_Fine.set_storage_type(m_spSurfaceMat->get_storage_mask());
 #endif
-		write_debug(surfMat, std::string("RimCplSurf_sl").append(ToString(lev)), surfLevel, surfLevel);
+		write_debug(*lf.A, "LevelMatrix", *lf.st, *lf.st);
 		write_debug(lc.RimCpl_Fine_Coarse, "RimCpl", *lf.sd, *lc.sc);
-		if(m_bSmoothOnSurfaceRim){
+		if(m_bSmoothOnSurfaceRim)
 			write_debug(lc.RimCpl_Coarse_Fine, "RimCpl", *lc.sd, *lf.sc);
-			write_debug(lc.RimCpl_Fine_Fine, "RimCpl", *lf.sd, *lf.sc);
-		}
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - assemble_rim_cpl " << "\n");
@@ -1593,7 +1553,6 @@ presmooth_and_restriction(int lev)
 			} else {
 				if(lev > m_LocalFullRefLevel){
 					lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *lf.st);
-					lc.RimCpl_Fine_Fine.matmul_minus(*lf.sd, *lf.st);
 				}
 			}
 
@@ -1746,12 +1705,6 @@ prolongation_and_postsmooth(int lev)
 	lf.A->apply_sub(*lf.sd, *lf.st);
 	GMG_PROFILE_END();
 
-	if(m_bSmoothOnSurfaceRim){
-		if(lev > m_LocalFullRefLevel){
-			lc.RimCpl_Fine_Fine.matmul_minus(*lf.sd, *lf.st);
-		}
-	}
-
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforePostSmooth");
@@ -1774,7 +1727,6 @@ prolongation_and_postsmooth(int lev)
 			} else {
 				if(lev > m_LocalFullRefLevel){
 					lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *lf.st);
-					lc.RimCpl_Fine_Fine.matmul_minus(*lf.sd, *lf.st);
 				}
 			}
 
