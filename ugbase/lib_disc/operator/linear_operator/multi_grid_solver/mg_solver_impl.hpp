@@ -858,6 +858,7 @@ init_rap_rim_cpl()
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
 		LevData& ld = *m_vLevData[lev];
 		ld.RimCpl_Fine_Coarse.resize_and_clear(0,0);
+		ld.RimCpl_Coarse_Fine.resize_and_clear(0,0);
 	}
 
 //	if the grid is fully refined, nothing to do
@@ -872,6 +873,7 @@ init_rap_rim_cpl()
 		LevData& lf = *m_vLevData[lev+1];
 #ifdef UG_PARALLEL
 		lc.RimCpl_Fine_Coarse.set_storage_type(m_spSurfaceMat->get_storage_mask());
+		lc.RimCpl_Coarse_Fine.set_storage_type(m_spSurfaceMat->get_storage_mask());
 #endif
 		lc.RimCpl_Fine_Coarse.resize_and_clear(lf.sd->size(), lc.sc->size());
 
