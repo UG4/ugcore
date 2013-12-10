@@ -621,8 +621,9 @@ assemble_rim_cpl(const vector_type* u)
 
 //	clear matrices
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
-		m_vLevData[lev]->RimCpl_Fine_Coarse.resize_and_clear(0,0);
-		m_vLevData[lev]->RimCpl_Coarse_Fine.resize_and_clear(0,0);
+		LevData& ld = *m_vLevData[lev];
+		ld.RimCpl_Fine_Coarse.resize_and_clear(0,0);
+		ld.RimCpl_Coarse_Fine.resize_and_clear(0,0);
 	}
 
 //	loop all levels to compute the missing contribution
@@ -632,7 +633,6 @@ assemble_rim_cpl(const vector_type* u)
 		LevData& lf = *m_vLevData[lev];
 
 		lc.RimCpl_Fine_Coarse.resize_and_clear(lf.sd->size(), lc.sc->size());
-
 		if(m_bSmoothOnSurfaceRim)
 			lc.RimCpl_Coarse_Fine.resize_and_clear(lc.sd->size(), lf.sc->size());
 
@@ -861,44 +861,48 @@ init_rap_rim_cpl()
 		ld.RimCpl_Coarse_Fine.resize_and_clear(0,0);
 	}
 
-//	if the grid is fully refined, nothing to do
-	if(m_topLev <= m_LocalFullRefLevel){
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_rap_rim_cpl (non-adaptive)" << "\n");
-		return;
-	}
-
-	for(int lev = m_LocalFullRefLevel; lev < m_topLev; ++lev)
+//	loop all levels to compute the missing contribution
+	for(int lev = m_LocalFullRefLevel+1; lev <= m_topLev; ++lev)
 	{
-		LevData& lc = *m_vLevData[lev];
-		LevData& lf = *m_vLevData[lev+1];
-#ifdef UG_PARALLEL
-		lc.RimCpl_Fine_Coarse.set_storage_type(m_spSurfaceMat->get_storage_mask());
-		lc.RimCpl_Coarse_Fine.set_storage_type(m_spSurfaceMat->get_storage_mask());
-#endif
+		LevData& lc = *m_vLevData[lev-1];
+		LevData& lf = *m_vLevData[lev];
+
 		lc.RimCpl_Fine_Coarse.resize_and_clear(lf.sd->size(), lc.sc->size());
+		if(m_bSmoothOnSurfaceRim)
+			lc.RimCpl_Coarse_Fine.resize_and_clear(lc.sd->size(), lf.sc->size());
 
 		for(size_t i = 0; i< lf.vShadowing.size(); ++i)
 		{
-			const size_t lvlFrom = lf.vShadowing[i];
-			const size_t surfFrom = lf.vSurfShadowing[i];
+			const size_t lvlTo = lf.vShadowing[i];
+			const size_t surfTo = lf.vSurfShadowing[i];
 
 			typedef typename matrix_type::const_row_iterator const_row_iterator;
-			const_row_iterator conn = m_spSurfaceMat->begin_row(surfFrom);
-			const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
+			const_row_iterator conn = m_spSurfaceMat->begin_row(surfTo);
+			const_row_iterator connEnd = m_spSurfaceMat->end_row(surfTo);
 			for( ;conn != connEnd; ++conn)
 			{
-				const size_t surfTo = conn.index();
-				if(m_vSurfToLevelMap[surfTo].level != lev) continue;
+				const size_t surfFrom = conn.index();
 
-				const size_t lvlTo = m_vSurfToLevelMap[surfTo].index;
+				if(m_vSurfToLevelMap[surfFrom].level == lev-1){
+					const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].index;
+					(lc.RimCpl_Fine_Coarse)(lvlTo, lvlFrom) = conn.value();
 
-				(lc.RimCpl_Fine_Coarse)(lvlFrom, lvlTo) = conn.value();
+					if(m_bSmoothOnSurfaceRim){
+						lc.RimCpl_Coarse_Fine(lvlFrom, lvlTo) = (*m_spSurfaceMat)(surfFrom, surfTo);
+					}
+				}
 			}
 		}
 
+#ifdef UG_PARALLEL
+		lc.RimCpl_Fine_Coarse.set_storage_type(m_spSurfaceMat->get_storage_mask());
+		if(m_bSmoothOnSurfaceRim)
+			lc.RimCpl_Coarse_Fine.set_storage_type(m_spSurfaceMat->get_storage_mask());
+#endif
 		write_debug(lc.RimCpl_Fine_Coarse, "RimCpl", *lf.sd, *lc.sc);
+		if(m_bSmoothOnSurfaceRim)
+			write_debug(lc.RimCpl_Coarse_Fine, "RimCpl", *lc.sd, *lf.sc);
 	}
-
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - init_rap_rim_cpl " << "\n");
 }
