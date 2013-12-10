@@ -481,26 +481,26 @@ assemble_level_operator()
 			UG_ASSERT(m_spSurfaceMat->num_rows() == m_vSurfToLevelMap.size(),
 			          "Surface Matrix rows != Surf Level Indices")
 			ld.A->resize_and_clear(m_spSurfaceMat->num_rows(), m_spSurfaceMat->num_cols());
-			for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
+			for(size_t srfRow = 0; srfRow < m_vSurfToLevelMap.size(); ++srfRow)
 			{
 			//	get mapped level index
-				UG_ASSERT(m_vSurfToLevelMap[surfFrom].level == m_topLev,
+				UG_ASSERT(m_vSurfToLevelMap[srfRow].level == m_topLev,
 				          "All surface Indices must be on top level for full-ref.")
-				const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].index;
+				const size_t lvlRow = m_vSurfToLevelMap[srfRow].index;
 
 			//	loop all connections of the surface dof to other surface dofs
 			//	and copy the matrix coupling into the level matrix
 				typedef typename matrix_type::const_row_iterator const_row_iterator;
-				const_row_iterator conn = m_spSurfaceMat->begin_row(surfFrom);
-				const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
+				const_row_iterator conn = m_spSurfaceMat->begin_row(srfRow);
+				const_row_iterator connEnd = m_spSurfaceMat->end_row(srfRow);
 				for( ;conn != connEnd; ++conn){
 				//	get corresponding level connection index
 					UG_ASSERT(m_vSurfToLevelMap[conn.index()].level == m_topLev,
 					          "All surface Indices must be on top level for full-ref.")
-					const size_t lvlTo = m_vSurfToLevelMap[conn.index()].index;
+					const size_t lvlCol = m_vSurfToLevelMap[conn.index()].index;
 
 				//	copy connection to level matrix
-					(*ld.A)(lvlFrom, lvlTo) = conn.value();
+					(*ld.A)(lvlRow, lvlCol) = conn.value();
 				}
 			}
 
@@ -638,34 +638,34 @@ assemble_rim_cpl(const vector_type* u)
 
 		for(size_t i = 0; i< lf.vShadowing.size(); ++i)
 		{
-			const size_t lvlTo = lf.vShadowing[i];
-			const size_t surfTo = lf.vSurfShadowing[i];
+			const size_t lvlRow = lf.vShadowing[i];
+			const size_t srfRow = lf.vSurfShadowing[i];
 
-			SetRow((*lf.A), lvlTo, 0.0);
+			SetRow((*lf.A), lvlRow, 0.0);
 
 			typedef typename matrix_type::const_row_iterator row_iterator;
-			row_iterator conn = m_spSurfaceMat->begin_row(surfTo);
-			row_iterator connEnd = m_spSurfaceMat->end_row(surfTo);
+			row_iterator conn = m_spSurfaceMat->begin_row(srfRow);
+			row_iterator connEnd = m_spSurfaceMat->end_row(srfRow);
 			for( ;conn != connEnd; ++conn)
 			{
-				const size_t surfFrom = conn.index();
+				const size_t srfCol = conn.index();
 
-				if(m_vSurfToLevelMap[surfFrom].level == lev) {
-					const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].index;
-					(*lf.A)(lvlTo, lvlFrom) = conn.value();
+				if(m_vSurfToLevelMap[srfCol].level == lev) {
+					const size_t lvlCol = m_vSurfToLevelMap[srfCol].index;
+					(*lf.A)(lvlRow, lvlCol) = conn.value();
 				}
-				if(m_vSurfToLevelMap[surfFrom].level == lev+1) {
-					if(m_vSurfToLevelMap[surfFrom].levelLower == lev) {
-						const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].indexLower;
-						(*lf.A)(lvlTo, lvlFrom) = conn.value();
+				if(m_vSurfToLevelMap[srfCol].level == lev+1) {
+					if(m_vSurfToLevelMap[srfCol].levelLower == lev) {
+						const size_t lvlCol = m_vSurfToLevelMap[srfCol].indexLower;
+						(*lf.A)(lvlRow, lvlCol) = conn.value();
 					}
 				}
-				if(m_vSurfToLevelMap[surfFrom].level == lev-1){
-					const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].index;
-					(lc.RimCpl_Fine_Coarse)(lvlTo, lvlFrom) = conn.value();
+				if(m_vSurfToLevelMap[srfCol].level == lev-1){
+					const size_t lvlCol = m_vSurfToLevelMap[srfCol].index;
+					(lc.RimCpl_Fine_Coarse)(lvlRow, lvlCol) = conn.value();
 
 					if(m_bSmoothOnSurfaceRim){
-						lc.RimCpl_Coarse_Fine(lvlFrom, lvlTo) = (*m_spSurfaceMat)(surfFrom, surfTo);
+						lc.RimCpl_Coarse_Fine(lvlCol, lvlRow) = (*m_spSurfaceMat)(srfCol, srfRow);
 					}
 				}
 
@@ -705,47 +705,47 @@ init_rap_operator()
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_rap_operator: copy from surface\n");
 	GMG_PROFILE_BEGIN(GMG_CopyMatFromSurface);
-	for(size_t surfFrom = 0; surfFrom < m_vSurfToLevelMap.size(); ++surfFrom)
+	for(size_t srfRow = 0; srfRow < m_vSurfToLevelMap.size(); ++srfRow)
 	{
 	//	loop all connections of the surface dof to other surface dofs
 	//	and copy the matrix coupling into the level matrix
 		typedef typename matrix_type::const_row_iterator const_row_iterator;
-		const_row_iterator conn = m_spSurfaceMat->begin_row(surfFrom);
-		const_row_iterator connEnd = m_spSurfaceMat->end_row(surfFrom);
+		const_row_iterator conn = m_spSurfaceMat->begin_row(srfRow);
+		const_row_iterator connEnd = m_spSurfaceMat->end_row(srfRow);
 		for( ;conn != connEnd; ++conn)
 		{
 		//	get corresponding surface connection index
-			const size_t surfTo = conn.index();
+			const size_t srfCol = conn.index();
 
 		//	get level
-			int lvlFrom = m_vSurfToLevelMap[surfFrom].level;
-			int lvlTo = m_vSurfToLevelMap[surfTo].level;
+			int rowLevel = m_vSurfToLevelMap[srfRow].level;
+			int colLevel = m_vSurfToLevelMap[srfCol].level;
 
 		//	get corresponding indices
-			size_t indexTo = m_vSurfToLevelMap[surfTo].index;
-			size_t indexFrom = m_vSurfToLevelMap[surfFrom].index;
+			size_t lvlRow = m_vSurfToLevelMap[srfRow].index;
+			size_t lvlCol = m_vSurfToLevelMap[srfCol].index;
 
 		//	if connection between different level -> adjust
-			UG_ASSERT(lvlTo >= 0, "Invalid lvlTo: "<<lvlTo)
-			UG_ASSERT(lvlFrom >= 0, "Invalid lvlFrom: "<<lvlFrom)
-			if(lvlTo > lvlFrom){
-				if(m_vSurfToLevelMap[surfTo].levelLower == lvlFrom){
-					indexTo = m_vSurfToLevelMap[surfTo].indexLower;
-					lvlTo = lvlFrom;
+			UG_ASSERT(colLevel >= 0, "Invalid colLevel: "<<colLevel)
+			UG_ASSERT(rowLevel >= 0, "Invalid rowLevel: "<<rowLevel)
+			if(colLevel > rowLevel){
+				if(m_vSurfToLevelMap[srfCol].levelLower == rowLevel){
+					lvlCol = m_vSurfToLevelMap[srfCol].indexLower;
+					colLevel = rowLevel;
 				} else {
 					continue;
 				}
-			} else if(lvlTo < lvlFrom){
-				if(m_vSurfToLevelMap[surfFrom].levelLower == lvlTo){
-					indexFrom = m_vSurfToLevelMap[surfFrom].indexLower;
-					lvlFrom = lvlTo;
+			} else if(colLevel < rowLevel){
+				if(m_vSurfToLevelMap[srfRow].levelLower == colLevel){
+					lvlRow = m_vSurfToLevelMap[srfRow].indexLower;
+					rowLevel = colLevel;
 				} else {
 					continue;
 				}
 			}
 
 		//	copy connection to level matrix
-			(*(m_vLevData[lvlTo]->A))(indexFrom, indexTo) = conn.value();
+			(*(m_vLevData[colLevel]->A))(lvlRow, lvlCol) = conn.value();
 		}
 	}
 	GMG_PROFILE_END();
@@ -873,22 +873,22 @@ init_rap_rim_cpl()
 
 		for(size_t i = 0; i< lf.vShadowing.size(); ++i)
 		{
-			const size_t lvlTo = lf.vShadowing[i];
-			const size_t surfTo = lf.vSurfShadowing[i];
+			const size_t lvlRow = lf.vShadowing[i];
+			const size_t srfRow = lf.vSurfShadowing[i];
 
 			typedef typename matrix_type::const_row_iterator const_row_iterator;
-			const_row_iterator conn = m_spSurfaceMat->begin_row(surfTo);
-			const_row_iterator connEnd = m_spSurfaceMat->end_row(surfTo);
+			const_row_iterator conn = m_spSurfaceMat->begin_row(srfRow);
+			const_row_iterator connEnd = m_spSurfaceMat->end_row(srfRow);
 			for( ;conn != connEnd; ++conn)
 			{
-				const size_t surfFrom = conn.index();
+				const size_t srfCol = conn.index();
 
-				if(m_vSurfToLevelMap[surfFrom].level == lev-1){
-					const size_t lvlFrom = m_vSurfToLevelMap[surfFrom].index;
-					(lc.RimCpl_Fine_Coarse)(lvlTo, lvlFrom) = conn.value();
+				if(m_vSurfToLevelMap[srfCol].level == lev-1){
+					const size_t lvlCol = m_vSurfToLevelMap[srfCol].index;
+					(lc.RimCpl_Fine_Coarse)(lvlRow, lvlCol) = conn.value();
 
 					if(m_bSmoothOnSurfaceRim){
-						lc.RimCpl_Coarse_Fine(lvlFrom, lvlTo) = (*m_spSurfaceMat)(surfFrom, surfTo);
+						lc.RimCpl_Coarse_Fine(lvlCol, lvlRow) = (*m_spSurfaceMat)(srfCol, srfRow);
 					}
 				}
 			}
