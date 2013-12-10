@@ -1875,15 +1875,13 @@ base_solve(int lev)
 		m_Com.send_data(spC->layouts()->vertical_master(), cpVecCopy);
 		m_Com.receive_data(spC->layouts()->vertical_slave(), cpVecCopy);
 		m_Com.communicate();
-		#endif
 		if(gathered_base_master()){
-			#ifdef UG_PARALLEL
 			spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
 			copy_ghost_to_noghost(ld.st, spGatheredBaseCorr, ld.vMapPatchToGlobal);
-			#endif
 		} else {
 			ld.st->set_storage_type(PST_CONSISTENT);
 		}
+		#endif
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
 
