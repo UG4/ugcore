@@ -111,6 +111,13 @@ class AssembledMultiGridCycle :
 	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
 		void set_cycle_type(int type) {m_cycleType = type;}
 
+	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
+		void set_cycle_type(const std::string& type) {
+			if(TrimString(type) == "V") {m_cycleType = 1;}
+			else if(TrimString(type) == "W") {m_cycleType = 2;}
+			else {UG_THROW("GMG::set_cycle_type: option '"<<type<<"' not supported.");}
+		}
+
 	///	sets the number of pre-smoothing steps to be performed
 		void set_num_presmooth(int num) {m_numPreSmooth = num;}
 
