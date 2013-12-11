@@ -41,7 +41,14 @@ balancer.childWeight		= 2
 balancer.siblingWeight		= 2
 balancer.itrFactor			= 1000
 
-balancer.partitioner		= "parmetis"
+balancer.staticProcHierarchy = false
+
+balancer.partitioner		= "bisection"
+
+balancer.qualityRecordName	= "def-rebal"
+
+balancer.parametersParsed	= false
+balancer.defaultBalancer	= nil
 
 
 --! Parses user-specified parameters related to load-balancing.
@@ -75,8 +82,12 @@ function balancer.ParseParameters()
 									"communication time is considered low compared to redistribution time while "..
 									"a high value means the contrary. Default is 1000.")
 
+	balancer.staticProcHierarchy = balancer.staticProcHierarchy or util.HasParamOption("-staticProcHierarchy")
+	
 	balancer.partitioner		= util.GetParam("-partitioner", balancer.partitioner,
 									"(Options: parmetis, bisection, dynBisection) The partitioner which will be used during repartitioning.")
+									
+	balancer.parametersParsed = true
 end
 
 --! Prints the balancing parameters
@@ -194,6 +205,58 @@ function balancer.CreateLoadBalancer(domain)
 	
 	return loadBalancer
 end
+
+
+--!	If no loadBalancer is specified, this method performs rebalancing using
+--! balancer.defaultBalancer. If balancer.defaultBalancer doesn't exist,
+--! it will be automatically created using the current balancer parameters.
+--! Note that changes to the balancer parameters won't have any effect
+--! if balancer.defaultBalancer already exist.
+--! However, by setting balancer.defaultBalancer to nil, you trigger
+--! the recreation of the defaultBalancer with the new balancer parameters
+--! in the next call to balancer.Rebalance.
+function balancer.Rebalance(domain, loadBalancer)
+	if loadBalancer == nil then
+		if balancer.defaultBalancer == nil then
+		--	create a default load balancer
+			if balancer.parametersParsed == false then
+				balancer.ParseParameters()
+			end
+			balancer.defaultBalancer = balancer.CreateLoadBalancer(domain)
+		end
+		loadBalancer = balancer.defaultBalancer
+	end
+	
+	if loadBalancer ~= nil then
+		if(balancer.staticProcHierarchy == false) then
+			procH = CreateProcessHierarchy(domain, balancer.parallelElementThreshold,
+										   balancer.redistProcs, GetNumProcesses(),
+										   balancer.maxLvlsWithoutRedist)
+			loadBalancer:set_next_process_hierarchy(procH)
+		end
+		loadBalancer:rebalance()
+		loadBalancer:create_quality_record(balancer.qualityRecordName)
+	end
+end
+
+--!	If no loadBalancer is specified, this method performs rebalancing using
+--! balancer.defaultBalancer. See balancer.Rebalance for more information.
+--! The method performs global refinement. After each refinement, rebalancing
+--! is triggered.
+function balancer.RefineAndRebalanceDomain(domain, numRefs, loadBalancer)
+	balancer.Rebalance(domain, loadBalancer)
+	if numRefs > 0 then
+		refiner = GlobalDomainRefiner(dom)
+		
+		for i = 1, numRefs do
+			refiner:refine()
+			balancer.Rebalance(domain, loadBalancer)
+		end
+		
+		delete(refiner)
+	end
+end
+
 --[[!
 \}
 ]]--
