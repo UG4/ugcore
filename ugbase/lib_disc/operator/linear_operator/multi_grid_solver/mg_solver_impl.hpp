@@ -1552,14 +1552,13 @@ presmooth_and_restriction(int lev)
 				UG_THROW("GMG: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
 
 		//	b) handle patch rim.
-			if(lev > m_LocalFullRefLevel){
-				if(!m_bSmoothOnSurfaceRim){
-					const std::vector<size_t>& vShadowing = lf.vShadowing;
-					for(size_t i = 0; i < vShadowing.size(); ++i)
-						(*lf.st)[ vShadowing[i] ] = 0.0;
-				} else {
+			if(!m_bSmoothOnSurfaceRim){
+				const std::vector<size_t>& vShadowing = lf.vShadowing;
+				for(size_t i = 0; i < vShadowing.size(); ++i)
+					(*lf.st)[ vShadowing[i] ] = 0.0;
+			} else {
+				if(lev > m_LocalFullRefLevel)
 					lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *lf.st);
-				}
 			}
 
 		//	c) update the defect with this correction ...
@@ -1724,14 +1723,13 @@ prolongation_and_postsmooth(int lev)
 				UG_THROW("GMG: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
 
 		//	b) handle patch rim
-			if(lev > m_LocalFullRefLevel){
-				if(!m_bSmoothOnSurfaceRim){
-					const std::vector<size_t>& vShadowing = lf.vShadowing;
-					for(size_t i = 0; i < vShadowing.size(); ++i)
-						(*lf.st)[ vShadowing[i] ] = 0.0;
-				} else {
+			if(!m_bSmoothOnSurfaceRim){
+				const std::vector<size_t>& vShadowing = lf.vShadowing;
+				for(size_t i = 0; i < vShadowing.size(); ++i)
+					(*lf.st)[ vShadowing[i] ] = 0.0;
+			} else {
+				if(lev > m_LocalFullRefLevel)
 					lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *lf.st);
-				}
 			}
 
 		//	c) update the defect with this correction ...
