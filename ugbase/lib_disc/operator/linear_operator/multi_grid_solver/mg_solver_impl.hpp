@@ -627,7 +627,7 @@ assemble_rim_cpl(const vector_type* u)
 	}
 
 //	loop all levels to compute the missing contribution
-	for(int lev = m_LocalFullRefLevel+1; lev <= m_topLev; ++lev)
+	for(int lev = m_topLev; lev > m_LocalFullRefLevel; --lev)
 	{
 		LevData& lc = *m_vLevData[lev-1];
 		LevData& lf = *m_vLevData[lev];
@@ -862,7 +862,7 @@ init_rap_rim_cpl()
 	}
 
 //	loop all levels to compute the missing contribution
-	for(int lev = m_LocalFullRefLevel+1; lev <= m_topLev; ++lev)
+	for(int lev = m_topLev; lev > m_LocalFullRefLevel; --lev)
 	{
 		LevData& lc = *m_vLevData[lev-1];
 		LevData& lf = *m_vLevData[lev];
@@ -1541,6 +1541,7 @@ presmooth_and_restriction(int lev)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - presmooth on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforePreSmooth");
 
+//	PRESMOOTH
 	GMG_PROFILE_BEGIN(GMG_PreSmooth);
 	try{
 	//	smooth several times
@@ -1549,7 +1550,7 @@ presmooth_and_restriction(int lev)
 		// 	Compute Correction of one smoothing step, but do not update defect
 		//	a)  Compute t = B*d with some iterator B
 			if(!lf.PreSmoother->apply(*lf.st, *lf.sd))
-				UG_THROW("GMG::smooth: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
+				UG_THROW("GMG: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
 
 		//	b) reset the correction to zero on the patch boundary.
 			if(!m_bSmoothOnSurfaceRim){
@@ -1569,7 +1570,7 @@ presmooth_and_restriction(int lev)
 			(*lf.sc) += (*lf.st);
 		}
 	}
-	UG_CATCH_THROW("GMG::lmgc: Pre-Smoothing on level "<<lev<<" failed.");
+	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
 	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level "<<lev<<"\n");
@@ -1579,22 +1580,23 @@ presmooth_and_restriction(int lev)
 //	reset corr on coarse level
 	lc.sc->set(0.0);
 
-//	Parallel Case:
-//	v-slaves indicate, that part of the parent are stored on a different proc.
-//	Thus the values of the defect must be transfered to the v-masters and will
-//	have their parents on the proc of the master and must be restricted on
-//	that process. Thus we have to transfer the defect (currently stored
-//	additive in the noghost-vectors) to the v-masters. And have to make sure
-//	that d is additive after this operation. We do that by ensuring that it
-//	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0).
-//	We use a temporary vector including ghost, such that the no-ghost defect
-//	remains valid and can be used when the cycle comes back to this level.
+//	PARALLEL CASE:
 	SmartPtr<GF> spD = lf.sd;
 	#ifdef UG_PARALLEL
 	if( !lf.t->layouts()->vertical_slave().empty() ||
 		!lf.t->layouts()->vertical_master().empty())
 	{
 		GMG_PROFILE_BEGIN(GMG_AddToVerticalMasterAndSetZero);
+		//	v-slaves indicate, that part of the parent are stored on a different proc.
+		//	Thus the values of the defect must be transfered to the v-masters and will
+		//	have their parents on the proc of the master and must be restricted on
+		//	that process. Thus we have to transfer the defect (currently stored
+		//	additive in the noghost-vectors) to the v-masters. And have to make sure
+		//	that d is additive after this operation. We do that by ensuring that it
+		//	is additive-unique regarding v-masters and v-slaves (v-slaves will be set to 0).
+		//	We use a temporary vector including ghost, such that the no-ghost defect
+		//	remains valid and can be used when the cycle comes back to this level.
+
 		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
 		copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
 
@@ -1603,18 +1605,17 @@ presmooth_and_restriction(int lev)
 		m_Com.receive_data(lf.t->layouts()->vertical_master(), cpVecAdd);
 		m_Com.communicate();
 
-		GMG_PROFILE_END();
 		spD = lf.t;
+		GMG_PROFILE_END();
 	}
 	#endif
 
-//	restrict the defect from the fine level to the coarser level.
+//	RESTRICTION:
 	GMG_PROFILE_BEGIN(GMG_RestrictDefect);
 	try{
 		lf.Restriction->do_restrict(*lc.sd, *spD);
 	}
-	UG_CATCH_THROW("GMG::lmgc: Restriction of Defect from level "<<lev<<
-				   " to "<<lev-1<<" failed.");
+	UG_CATCH_THROW("GMG: Restriction from lev "<<lev<<" to "<<lev-1<<" failed.");
 	GMG_PROFILE_END();
 
 //	apply post processes
@@ -1635,28 +1636,29 @@ prolongation_and_postsmooth(int lev)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - prolongation on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforeProlong");
 
-//	write computed correction to surface
-	try{
-		const std::vector<SurfLevelMap>& vMap = lc.vSurfLevelMap;
-		for(size_t i = 0; i < vMap.size(); ++i){
-			(*m_pC)[vMap[i].surfIndex] += (*lc.sc)[vMap[i].levIndex];
-		}
-	}
-	UG_CATCH_THROW("GMG::lmgc: Cannot add to surface.");
-
 //	ADAPTIVE CASE:
-//	in the adaptive case there is a small part of the coarse coupling that
-//	has not been used to update the defect. In order to ensure, that the
-//	defect on this level still corresponds to the updated defect, we need
-//	to add if here.
-	if(lev > m_LocalFullRefLevel){
+	if(lev > m_LocalFullRefLevel)
+	{
+		//	write computed correction to surface
+		try{
+			const std::vector<SurfLevelMap>& vMap = lc.vSurfLevelMap;
+			for(size_t i = 0; i < vMap.size(); ++i){
+				(*m_pC)[vMap[i].surfIndex] += (*lc.sc)[vMap[i].levIndex];
+			}
+		}
+		UG_CATCH_THROW("GMG::lmgc: Cannot add to surface.");
+
+		//	in the adaptive case there is a small part of the coarse coupling that
+		//	has not been used to update the defect. In order to ensure, that the
+		//	defect on this level still corresponds to the updated defect, we need
+		//	to add if here.
 		GMG_PROFILE_BEGIN(GMG_AddCoarseGridContribution);
 		lc.RimCpl_Fine_Coarse.matmul_minus(*lf.sd, *lc.sc);
 		GMG_PROFILE_END();
 	}
 	log_debug_data(lev, "AfterCoarseGridDefect");
 
-//	prolongate
+//	PROLONGATE:
 	SmartPtr<GF> spT = lf.st;
 	#ifdef UG_PARALLEL
 	if( !lf.t->layouts()->vertical_slave().empty() ||
@@ -1669,15 +1671,10 @@ prolongation_and_postsmooth(int lev)
 	try{
 		lf.Prolongation->prolongate(*spT, *lc.sc);
 	}
-	UG_CATCH_THROW("GMG::lmgc: Prolongation from level "<<lev-1<<" to "<<lev<<" failed.");
+	UG_CATCH_THROW("GMG: Prolongation from lev "<<lev-1<<" to "<<lev<<" failed.");
 	GMG_PROFILE_END();
 
 //	PARALLEL CASE:
-//	Receive values of correction for vertical slaves
-//	If there are vertical slaves/masters on the coarser level, we now copy
-//	the correction values from the v-master DoFs to the v-slave	DoFs.
-//	since dummies may exist, we'll copy the broadcasted correction to h-slave
-//	interfaces (dummies are always h-slaves)
 #ifdef UG_PARALLEL
 	if( !lf.t->layouts()->vertical_slave().empty() ||
 		!lf.t->layouts()->vertical_master().empty())
@@ -1685,6 +1682,9 @@ prolongation_and_postsmooth(int lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_slaves\n");
 		GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 
+		//	Receive values of correction for vertical slaves:
+		//	If there are vertical slaves/masters on the coarser level, we now copy
+		//	the correction values from the v-master DoFs to the v-slave	DoFs.
 		ComPol_VecCopy<vector_type> cpVecCopy(lf.t.get());
 		m_Com.receive_data(lf.t->layouts()->vertical_slave(), cpVecCopy);
 		m_Com.send_data(lf.t->layouts()->vertical_master(), cpVecCopy);
@@ -1701,12 +1701,11 @@ prolongation_and_postsmooth(int lev)
 	for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
 		m_vspProlongationPostProcess[i]->post_process(lf.st);
 
-// 	add coarse grid correction
+// 	add coarse grid correction: c := c + t
+//	update the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
 	(*lf.sc) += (*lf.st);
 	GMG_PROFILE_END();
-
-//	correction changed c := c + t. Thus, update the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
 	lf.A->apply_sub(*lf.sd, *lf.st);
 	GMG_PROFILE_END();
@@ -1715,6 +1714,7 @@ prolongation_and_postsmooth(int lev)
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - postsmooth on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforePostSmooth");
 
+// 	POST-SMOOTH:
 	GMG_PROFILE_BEGIN(GMG_PostSmooth);
 	try{
 	//	smooth several times
@@ -1723,7 +1723,7 @@ prolongation_and_postsmooth(int lev)
 		// 	Compute Correction of one smoothing step, but do not update defect
 		//	a)  Compute t = B*d with some iterator B
 			if(!lf.PostSmoother->apply(*lf.st, *lf.sd))
-				UG_THROW("GMG::smooth: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
+				UG_THROW("GMG: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
 
 		//	b) reset the correction to zero on the patch boundary.
 			if(!m_bSmoothOnSurfaceRim){
@@ -1743,7 +1743,7 @@ prolongation_and_postsmooth(int lev)
 			(*lf.sc) += (*lf.st);
 		}
 	}
-	UG_CATCH_THROW("GMG::lmgc: Post-Smoothing on level "<<lev<<" failed. ")
+	UG_CATCH_THROW("GMG: Post-Smoothing on level "<<lev<<" failed. ")
 	GMG_PROFILE_END();
 
 	log_debug_data(lev, "AfterPostSmooth");
