@@ -77,23 +77,11 @@ ref_marks_changed(IRefiner& ref,
 			for(size_t i = 0; i < assVols.size(); ++i)
 				ref.mark(assVols[i]);
 		}
-		else{
-		//	note that vrt is not necessarily a surface vertex here in a parallel environment.
-		//	If we find an associated constraining edge, it is, however, a surface vertex.
+		else if(ref.get_mark(vrt) != RM_DUMMY){
+		//	we don't have to select parents of dummy vertices, since we assume
+		//	that the maximum level-distance is 1
 			VertexBase* parent = dynamic_cast<VertexBase*>(mg.get_parent(vrt));
-			if(!parent)
-				continue;
-
-			bool gotConstraining = false;
-			mg.associated_elements(assEdges, vrt);
-			for(size_t i = 0; i < assEdges.size(); ++i){
-				if(assEdges[i]->is_constrained()){
-					gotConstraining = true;
-					break;
-				}
-			}
-
-			if(gotConstraining)
+			if(parent)
 				ref.mark(parent, RM_DUMMY);
 		}
 	}

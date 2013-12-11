@@ -1744,7 +1744,7 @@ We have to handle elements as follows:
 //	inform derived classes that coarsening is done
 	post_coarsen();
 	clear_marks();
-	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS));
+	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_ENDS));
 
 	return true;
 }

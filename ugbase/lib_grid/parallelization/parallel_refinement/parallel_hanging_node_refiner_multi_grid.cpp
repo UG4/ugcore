@@ -8,6 +8,14 @@
 #include "parallel_hnode_adjuster.h"
 #include "lib_grid/algorithms/debug_util.h"
 
+//	use the following define to enable debug saves before and after each refinement/coarsen step
+//#define PARALLEL_HNODE_REFINER_DEBUG_SAVES
+
+#ifdef PARALLEL_HNODE_REFINER_DEBUG_SAVES
+	#include "lib_grid/file_io/file_io.h"
+#endif
+
+
 using namespace std;
 
 namespace ug{
@@ -379,6 +387,15 @@ void
 ParallelHangingNodeRefiner_MultiGrid::
 pre_refine()
 {
+	#ifdef PARALLEL_HNODE_REFINER_DEBUG_SAVES
+		static int dbgCounter = 0;
+		UG_LOG("PERFORMING PRE-REFINEMENT DEBUG SAVE " << dbgCounter << "\n");
+		stringstream ss;
+		ss << "pre-refine-" << dbgCounter << "-p" << pcl::GetProcRank() << ".ugx";
+		SaveParallelGridLayout(*m_pMG, ss.str().c_str(), 0.1);
+		++dbgCounter;
+	#endif
+
 	m_pDistGridMgr->begin_ordered_element_insertion();
 	BaseClass::pre_refine();
 }
@@ -389,12 +406,30 @@ post_refine()
 {
 	BaseClass::post_refine();
 	m_pDistGridMgr->end_ordered_element_insertion();
+
+	#ifdef PARALLEL_HNODE_REFINER_DEBUG_SAVES
+		static int dbgCounter = 0;
+		UG_LOG("PERFORMING POST-REFINEMENT DEBUG SAVE " << dbgCounter << "\n");
+		stringstream ss;
+		ss << "post-refine-" << dbgCounter << "-p" << pcl::GetProcRank() << ".ugx";
+		SaveParallelGridLayout(*m_pMG, ss.str().c_str(), 0.1);
+		++dbgCounter;
+	#endif
 }
 
 void
 ParallelHangingNodeRefiner_MultiGrid::
 pre_coarsen()
 {
+	#ifdef PARALLEL_HNODE_REFINER_DEBUG_SAVES
+		static int dbgCounter = 0;
+		UG_LOG("PERFORMING PRE-COARSEN DEBUG SAVE " << dbgCounter << "\n");
+		stringstream ss;
+		ss << "pre-coarsen-" << dbgCounter << "-p" << pcl::GetProcRank() << ".ugx";
+		SaveParallelGridLayout(*m_pMG, ss.str().c_str(), 0.1);
+		++dbgCounter;
+	#endif
+
 	m_pDistGridMgr->begin_element_deletion();
 	BaseClass::pre_coarsen();
 }
@@ -405,6 +440,15 @@ post_coarsen()
 {
 	BaseClass::post_coarsen();
 	m_pDistGridMgr->end_element_deletion();
+
+	#ifdef PARALLEL_HNODE_REFINER_DEBUG_SAVES
+		static int dbgCounter = 0;
+		UG_LOG("PERFORMING POST-COARSEN DEBUG SAVE " << dbgCounter << "\n");
+		stringstream ss;
+		ss << "post-coarsen-" << dbgCounter << "-p" << pcl::GetProcRank() << ".ugx";
+		SaveParallelGridLayout(*m_pMG, ss.str().c_str(), 0.1);
+		++dbgCounter;
+	#endif
 }
 
 void
