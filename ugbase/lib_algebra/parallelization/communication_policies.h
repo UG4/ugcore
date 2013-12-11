@@ -642,6 +642,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			UG_ASSERT(m_curLayout == pLayout, "Only one layout may be processed at a time.");
 			SetLayoutValues(m_pVec, *pLayout, 0);
+			m_curLayout = NULL;
 			return true;
 		}
 
