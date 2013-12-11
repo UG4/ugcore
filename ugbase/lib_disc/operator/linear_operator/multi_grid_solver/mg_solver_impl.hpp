@@ -1565,18 +1565,14 @@ presmooth_and_restriction(int lev)
 			lf.A->apply_sub(*lf.sd, *lf.st);
 
 		//	d) ... and add the correction to the overall correction
-			(*lf.sc) += (*lf.st);
+			if(nu < m_numPreSmooth-1)
+				(*lf.sc) += (*lf.st);
 		}
 	}
 	UG_CATCH_THROW("GMG: Pre-Smoothing on level "<<lev<<" failed.");
 	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - presmooth on level "<<lev<<"\n");
-	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
-	log_debug_data(lev, "BeforeRestrict");
-
-//	reset corr on coarse level
-	lc.sc->set(0.0);
 
 //	PARALLEL CASE:
 	SmartPtr<GF> spD = lf.sd;
@@ -1607,6 +1603,16 @@ presmooth_and_restriction(int lev)
 		GMG_PROFILE_END();
 	}
 	#endif
+
+//	reset corr on coarse level
+	lc.sc->set(0.0);
+
+//	update last correction
+	if(m_numPreSmooth > 0)
+		(*lf.sc) += (*lf.st);
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
+	log_debug_data(lev, "BeforeRestrict");
 
 //	RESTRICTION:
 	GMG_PROFILE_BEGIN(GMG_RestrictDefect);
@@ -1700,12 +1706,8 @@ prolongation_and_postsmooth(int lev)
 		m_vspProlongationPostProcess[i]->post_process(lf.st);
 
 // 	add coarse grid correction: c := c + t
-//	update the defect d := d - A*t
 	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
 	(*lf.sc) += (*lf.st);
-	GMG_PROFILE_END();
-	GMG_PROFILE_BEGIN(GMG_UpdateDefectForCGCorr);
-	lf.A->apply_sub(*lf.sd, *lf.st);
 	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - prolongation on level "<<lev<<"\n");
@@ -1718,6 +1720,9 @@ prolongation_and_postsmooth(int lev)
 	//	smooth several times
 		for(int nu = 0; nu < m_numPostSmooth; ++nu)
 		{
+		//	update defect
+			lf.A->apply_sub(*lf.sd, *lf.st);
+
 		//	a)  Compute t = B*d with some iterator B
 			if(!lf.PostSmoother->apply(*lf.st, *lf.sd))
 				UG_THROW("GMG: Smoothing step "<<nu+1<<" on level "<<lev<<" failed.");
@@ -1732,15 +1737,19 @@ prolongation_and_postsmooth(int lev)
 					lc.RimCpl_Coarse_Fine.matmul_minus(*lc.sd, *lf.st);
 			}
 
-		//	c) update the defect with this correction ...
-			lf.A->apply_sub(*lf.sd, *lf.st);
-
 		//	d) ... and add the correction to the overall correction
 			(*lf.sc) += (*lf.st);
 		}
 	}
 	UG_CATCH_THROW("GMG: Post-Smoothing on level "<<lev<<" failed. ")
 	GMG_PROFILE_END();
+
+//	update the defect if required. In full-ref case, the defect is not needed
+//	anymore, since it will be restricted anyway. For adaptive case, however,
+//	we must keep track of the defect on the surface
+	if(lev >= m_LocalFullRefLevel){
+		lf.A->apply_sub(*lf.sd, *lf.st);
+	}
 
 	log_debug_data(lev, "AfterPostSmooth");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - postsmooth on level "<<lev<<"\n");
@@ -1839,16 +1848,15 @@ base_solve(int lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
 
-//	UPDATE DEFECT
-//	*) if adaptive case, we also need to update the defect, such that on the
-//	   surface level the defect remains updated
-//	*) Only for full refinement and real coarser level, we can forget about
-//	   the defect on the base level, since only the correction is needed
-//	   on the higher level
+//	add contribution to whole correction
+	(*ld.sc) += (*ld.st);
+
+//	update the defect if required. In full-ref case, the defect is not needed
+//	anymore, since it will be restricted anyway. For adaptive case, however,
+//	we must keep track of the defect on the surface
 	if(lev >= m_LocalFullRefLevel){
 		ld.A->apply_sub(*ld.sd, *ld.st);
 	}
-	(*ld.sc) += (*ld.st);
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
 	}
