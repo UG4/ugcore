@@ -19,30 +19,15 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
-initObsValues()
+init()
 {
-	clear();
-
 	if(m_spDomain.invalid())
 		UG_THROW("No domain set in 'IObstacleConstraint::init' \n");
 
 	if(m_spDD.invalid())
 		UG_THROW("DofDistribution not set in 'IObstacleConstraint'.");
 
-	obstacle_value(1.0);
-}
-
-template <typename TDomain, typename TAlgebra>
-void IObstacleConstraint<TDomain, TAlgebra>::
-clear()
-{
-	m_vCondNumberData.clear();
-	m_vNumberData.clear();
-	m_vConstNumberData.clear();
-	m_vVectorData.clear();
-
-	m_vDoFsOnObsSubset.clear();
-	m_mObsValues.clear();
+	init_obstacle_values_and_dofs(1.0);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -52,12 +37,20 @@ add(SmartPtr<UserData<number, dim, bool> > func, const char* function, const cha
 	m_vCondNumberData.push_back(CondNumberData(func, function, subsets));
 }
 
+/*template <typename TDomain, typename TAlgebra>
+void IObstacleConstraint<TDomain, TAlgebra>::
+add(SmartPtr<UserData<number, dim> > func, const char* function)
+{
+	m_vNumberData.push_back(NumberData(func, function, true));
+}*/
+
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
 add(SmartPtr<UserData<number, dim> > func, const char* function, const char* subsets)
 {
 	m_vNumberData.push_back(NumberData(func, function, subsets));
 }
+
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
@@ -113,6 +106,22 @@ add(const char* name, const char* function, const char* subsets)
 					<< (LuaUserData<MathVector<dim>, dim>::signature()));
 }
 #endif
+
+
+template <typename TDomain, typename TAlgebra>
+void IObstacleConstraint<TDomain, TAlgebra>::
+clear()
+{
+	m_vCondNumberData.clear();
+	m_vNumberData.clear();
+	m_vConstNumberData.clear();
+	m_vVectorData.clear();
+
+	m_vObstacleDoFs.clear();
+	m_mObstacleValues.clear();
+
+	m_vActiveDofs.clear();
+}
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
@@ -173,10 +182,17 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataObsSegment,
 	for(size_t i = 0; i < vUserData.size(); ++i)
 	{
 	//	create Function Group and Subset Group
+		//if (vUserData[i].bWholeDomain == false)
 		try{
 			vUserData[i].ssGrp = m_spDD->subset_grp_by_name(vUserData[i].ssName.c_str());
 		}UG_CATCH_THROW(" Subsets '"<<vUserData[i].ssName<<"' not"
 		                " all contained in DoFDistribution.");
+		/*else
+		{
+			SubsetGroup ssGrp = SubsetGroup(m_spDD->subset_handler());
+			ssGrp.add_all();
+			vUserData[i].ssGrp = ssGrp;
+		}*/
 
 		FunctionGroup fctGrp;
 		try{
@@ -199,7 +215,7 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataObsSegment,
 	// 	loop subsets
 		for(size_t si = 0; si < vUserData[i].ssGrp.size(); ++si)
 		{
-		//	get subset index and function
+			//	get subset index and function
 			const int subsetIndex = vUserData[i].ssGrp[si];
 
 			//	remember functor and function
@@ -220,34 +236,26 @@ extract_data()
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
-obstacle_value(number time)
+init_obstacle_values_and_dofs(number time)
 {
 	extract_data();
 
 	//	reset vector of indices in obstacle-subsets
-	m_vDoFsOnObsSubset.resize(0);
+	m_vObstacleDoFs.resize(0);
 
-	obstacle_value<CondNumberData>(m_mCondNumberObsSegment, time);
-	obstacle_value<NumberData>(m_mNumberObsSegment, time);
-	obstacle_value<ConstNumberData>(m_mConstNumberObsSegment, time);
-	obstacle_value<VectorData>(m_mVectorObsSegment, time);
+	init_obstacle_values_and_dofs<CondNumberData>(m_mCondNumberObsSegment, time);
+	init_obstacle_values_and_dofs<NumberData>(m_mNumberObsSegment, time);
+	init_obstacle_values_and_dofs<ConstNumberData>(m_mConstNumberObsSegment, time);
+	init_obstacle_values_and_dofs<VectorData>(m_mVectorObsSegment, time);
 
-	//	sort m_vDoFsOnObsSubset
-	sort(m_vDoFsOnObsSubset.begin(), m_vDoFsOnObsSubset.end());
-
-	for (vector<DoFIndex>::iterator itObsInd = m_vDoFsOnObsSubset.begin();
-		itObsInd < m_vDoFsOnObsSubset.end(); ++itObsInd)
-	{
-		UG_LOG("dofIndex: "<<(*itObsInd)<<"\n");
-		UG_LOG("\n");
-		UG_LOG("\n");
-	}
+	//	sort m_vObstacleDoFs
+	sort(m_vObstacleDoFs.begin(), m_vObstacleDoFs.end());
 }
 
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData>
 void IObstacleConstraint<TDomain, TAlgebra>::
-obstacle_value(const std::map<int, std::vector<TUserData*> >& mvUserData, number time)
+init_obstacle_values_and_dofs(const std::map<int, std::vector<TUserData*> >& mvUserData, number time)
 {
 	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
 	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
@@ -262,15 +270,15 @@ obstacle_value(const std::map<int, std::vector<TUserData*> >& mvUserData, number
 		try
 		{
 		if(m_spDD->max_dofs(VERTEX))
-			obstacle_value<Vertex, TUserData>(vUserData, si, time);
+			init_obstacle_values_and_dofs<Vertex, TUserData>(vUserData, si, time);
 		if(m_spDD->max_dofs(EDGE))
-			obstacle_value<EdgeBase, TUserData>(vUserData, si, time);
+			init_obstacle_values_and_dofs<EdgeBase, TUserData>(vUserData, si, time);
 		if(m_spDD->max_dofs(FACE))
-			obstacle_value<Face, TUserData>(vUserData, si, time);
+			init_obstacle_values_and_dofs<Face, TUserData>(vUserData, si, time);
 		if(m_spDD->max_dofs(VOLUME))
-			obstacle_value<Volume, TUserData>(vUserData, si, time);
+			init_obstacle_values_and_dofs<Volume, TUserData>(vUserData, si, time);
 		}
-		UG_CATCH_THROW("IObstacleConstraint::obstacle_value:"
+		UG_CATCH_THROW("IObstacleConstraint::init_obstacle_values_and_dofs:"
 						" While calling 'obstacle_value' for TUserData, aborting.");
 	}
 }
@@ -278,7 +286,7 @@ obstacle_value(const std::map<int, std::vector<TUserData*> >& mvUserData, number
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData>
 void IObstacleConstraint<TDomain, TAlgebra>::
-obstacle_value(const std::vector<TUserData*>& vUserData, int si, number time)
+init_obstacle_values_and_dofs(const std::vector<TUserData*>& vUserData, int si, number time)
 {
 //	create Multiindex
 	std::vector<DoFIndex> multInd;
@@ -317,7 +325,7 @@ obstacle_value(const std::vector<TUserData*>& vUserData, int si, number time)
 			//	get multi indices
 				m_spDD->inner_dof_indices(elem, fct, multInd);
 			//	store the multi indices in a vector
-				m_spDD->inner_dof_indices(elem, fct, m_vDoFsOnObsSubset, false);
+				m_spDD->inner_dof_indices(elem, fct, m_vObstacleDoFs, false);
 
 				UG_ASSERT(multInd.size() == vPos.size(),
 						  "Mismatch: numInd="<<multInd.size()<<", numPos="
@@ -330,7 +338,7 @@ obstacle_value(const std::vector<TUserData*>& vUserData, int si, number time)
 					if(!(*vUserData[i])(val, vPos[j], time, si)) continue;
 
 					//	deposit obstacle values in a map
-					m_mObsValues[multInd[j]] = val[f];
+					m_mObstacleValues[multInd[j]] = val[f];
 				}
 			}
 		}
@@ -340,13 +348,13 @@ obstacle_value(const std::vector<TUserData*>& vUserData, int si, number time)
 template <typename TDomain, typename TAlgebra>
 bool
 IObstacleConstraint<TDomain,TAlgebra>::
-dof_lies_on_obs_subset(const DoFIndex& dof, const vector<DoFIndex>& vOfDofs)
+dof_lies_in_obs_subset(const DoFIndex& dof)
 {
 	//	TODO: it would be more efficient to attach a flag to every dof
 	//	which indicates whether the dof is a dof in an obstacle subset or not
 	typedef vector<DoFIndex>::const_iterator iter_type;
-	iter_type iter = vOfDofs.begin();
-	iter_type iterEnd =	vOfDofs.end();
+	iter_type iter = m_vObstacleDoFs.begin();
+	iter_type iterEnd =	m_vObstacleDoFs.end();
 
 	for( ; iter != iterEnd; iter++)
 	{

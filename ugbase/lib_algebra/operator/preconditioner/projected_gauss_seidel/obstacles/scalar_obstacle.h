@@ -57,23 +57,15 @@ class ScalarLowerObstacle:
 	public:
 	/// constructor for a scalar obstacle
 		ScalarLowerObstacle(const function_type& u):
-			IObstacleConstraint<TDomain,TAlgebra>(u){
-			m_vActiveDofs.resize(0);
-			m_vLowerObsDoFs.resize(0);
-		};
+			IObstacleConstraint<TDomain,TAlgebra>(u){};
 
 	///	default constructor
 		ScalarLowerObstacle():
-			IObstacleConstraint<TDomain,TAlgebra>(){
-			m_vActiveDofs.resize(0);
-			m_vLowerObsDoFs.resize(0);
-		};
+			IObstacleConstraint<TDomain,TAlgebra>(){};
 
-		void init();
-
-		void reset_active_dofs(){m_vActiveDofs.resize(0);}
-
-		void project_on_admissible_set(value_type& c_i, value_type& sol_i, const size_t i);
+	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
+		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool dofIsAdmissible,
+				const number tmpSol, const DoFIndex& dof);
 
 		void adjust_defect(vector_type& d);
 
@@ -81,14 +73,14 @@ class ScalarLowerObstacle:
 		~ScalarLowerObstacle(){};
 
 	private:
-	///	pointer to vector of dofs lying in the obstacle subset
-		vector<DoFIndex> m_vLowerObsDoFs;
+	///	vector of dofs lying in the obstacle subset
+		using base_type::m_vObstacleDoFs;
 
-	///	store the dofs, which satisfy the constraints with equality in m_vActiveDofs
-		vector<DoFIndex> m_vActiveDofs;
+	///	store the dofs, which satisfy the constraints with equality
+		using base_type::m_vActiveDofs;
 
-	///	vector of obstacle values
-		std::map<DoFIndex, double> m_mScalarLowerObsValues;
+	///	map storing the obstacle values for every obstacle dof (key)
+		using base_type::m_mObstacleValues;
 };
 
 template <typename TDomain, typename TAlgebra>
@@ -117,23 +109,15 @@ class ScalarUpperObstacle:
 	public:
 	/// constructor for a scalar obstacle
 		ScalarUpperObstacle(const function_type& u):
-			IObstacleConstraint<TDomain,TAlgebra>(u){
-			m_vActiveDofs.resize(0);
-			m_vUpperObsDoFs.resize(0);
-		};
+			IObstacleConstraint<TDomain,TAlgebra>(u){};
 
 	///	default constructor
 		ScalarUpperObstacle():
-			IObstacleConstraint<TDomain,TAlgebra>(){
-			m_vActiveDofs.resize(0);
-			m_vUpperObsDoFs.resize(0);
-		};
+			IObstacleConstraint<TDomain,TAlgebra>(){};
 
-		void init();
-
-		void reset_active_dofs(){m_vActiveDofs.resize(0);}
-
-		void project_on_admissible_set(value_type& c_i, value_type& sol_i, const size_t i);
+	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
+		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool dofIsAdmissible,
+				const number tmpSol, const DoFIndex& dof);
 
 		void adjust_defect(vector_type& d);
 
@@ -141,14 +125,14 @@ class ScalarUpperObstacle:
 		~ScalarUpperObstacle(){};
 
 	private:
-	///	pointer to vector of dofs lying in the obstacle subset
-		vector<DoFIndex> m_vUpperObsDoFs;
+	///	vector of dofs lying in the obstacle subset
+		using base_type::m_vObstacleDoFs;
 
-	///	store the dofs, which satisfy the constraints with equality in m_vActiveDofs
-		vector<DoFIndex> m_vActiveDofs;
+	///	store the dofs, which satisfy the constraints with equality
+		using base_type::m_vActiveDofs;
 
-	///	vector of obstacle values
-		std::map<DoFIndex, double> m_mScalarUpperObsValues;
+	///	map storing the obstacle values for every obstacle dof (key)
+		using base_type::m_mObstacleValues;
 };
 
 } // end namespace ug

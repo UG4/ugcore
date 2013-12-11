@@ -59,15 +59,40 @@ project_correction(value_type& c_i, const size_t i)
 		return;
 
 	typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
-	iter_type iter = m_spvObsConstraint.begin();
 	iter_type iterEnd = m_spvObsConstraint.end();
 
-	//	loop all obstacle constraint, which are set
-	//	& perform a projection: check whether the temporary solution u_{s-1/2}
-	//	fulfills the underlying constraint(s) or not
-	for( ; iter != iterEnd; iter++)
-		(*iter)->project_on_admissible_set(c_i, (*m_spSol)[i], i);
-		//m_spObsConstraint->project_on_admissible_set(c_i, (*m_spSol)[i], i);
+	for(size_t comp = 0; comp < GetSize(c_i); comp++)
+	{
+		DoFIndex dof = DoFIndex(i, comp);
+
+		//	loop all obstacle constraint, which are set
+		//	& perform a projection: check whether the temporary solution u_{s-1/2}
+		//	fulfills the underlying constraint(s) or not
+		bool dofIsAdmissible = true;
+		bool dofIsObsDoF = false;
+
+		//	set iterator to the first obstacle constraint
+		iter_type iter = m_spvObsConstraint.begin();
+		for( ; iter != iterEnd; iter++)
+		{
+			//	check, if the dof lies in an obstacle subset: if not -> continue!
+			if (!((*iter)->dof_lies_in_obs_subset(dof)))
+				continue;
+
+			dofIsObsDoF = true;
+
+			//	tmpSol := u_{s-1/2} = u_{s-1} + c
+			const number tmpSol = BlockRef((*m_spSol)[i], comp) + BlockRef(c_i, comp);
+
+			(*iter)->adjust_sol_and_cor((*m_spSol)[i], c_i, dofIsAdmissible, tmpSol, dof);
+		}
+
+		if (dofIsObsDoF && dofIsAdmissible)
+		{
+			// dof is admissible -> do regular solution update
+			BlockRef((*m_spSol)[i], comp) += BlockRef(c_i, comp);
+		}
+	}
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -83,8 +108,7 @@ apply(vector_type &c, const vector_type& d)
 		return false;
 	}
 
-	//	loop all obstacle constraint, which are set
-	//	& reset active dofs
+	//	loop all obstacle constraints, which are set & reset its active dofs
 	if(m_bObsCons)
 	{
 		typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;

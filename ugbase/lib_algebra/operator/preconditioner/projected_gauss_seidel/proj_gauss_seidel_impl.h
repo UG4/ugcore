@@ -55,7 +55,7 @@ step(const matrix_type& A, vector_type& c, const vector_type& d, const number re
 	{
 		forward_gs_step(c, A, d, i, relax);
 
-		//	project correction on the subspace defined by the obstacle constraint
+		//	project correction on the subspace defined by the obstacle constraints
 		this->project_correction(c[i], i);
 	}
 }
@@ -71,7 +71,7 @@ step(const matrix_type& A, vector_type& c, const vector_type& d, const number re
 	{
 		backward_gs_step(c, A, d, i, relax);
 
-		//	project correction on the subspace defined by the obstacle constraint
+		//	project correction on the subspace defined by the obstacle constraints
 		this->project_correction(c[i], i);
 
 	} while(i-- != 0);
@@ -95,7 +95,7 @@ step(const matrix_type& A, vector_type& c, const vector_type& d, const number re
 		//	c3 = (D-U)^{-1} c2
 		backward_gs_step(c, A, c, i, relax);
 
-		//	project correction on the subspace defined by the obstacle constraint
+		//	project correction on the subspace defined by the obstacle constraints
 		this->project_correction(c[i], i);
 	}
 }

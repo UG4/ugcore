@@ -65,7 +65,10 @@ class IProjGaussSeidel:
 
 	public:
 	/// constructor
-		IProjGaussSeidel(): GaussSeidelBase<TAlgebra>(){};
+		IProjGaussSeidel(): GaussSeidelBase<TAlgebra>(){
+			m_spvObsConstraint.clear();
+			m_bObsCons = false;
+		};
 
 	///	adds the obstacle constraint function c(u)
 		void add_obstacle_constraint(SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > spObsCons)
@@ -73,6 +76,7 @@ class IProjGaussSeidel:
 			m_spvObsConstraint.push_back(spObsCons);
 			m_bObsCons = true;
 
+			//	inits the obstacle constraint
 			spObsCons->init();
 		}
 

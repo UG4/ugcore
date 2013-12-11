@@ -66,7 +66,6 @@ class IObstacleConstraint
 	/// constructor for an obstacle defined on some subset(s)
 		IObstacleConstraint(const GridFunction<TDomain, TAlgebra>& u)
 		{
-			m_vDoFsOnObsSubset.resize(0);
 			clear();
 
 			m_spDD = u.dof_distribution();
@@ -74,10 +73,10 @@ class IObstacleConstraint
 		};
 
 	/// constructor
-		IObstacleConstraint()
-		{
-			m_vDoFsOnObsSubset.resize(0);
-			clear();
+		IObstacleConstraint(){
+			//clear();
+			UG_THROW("In 'IObstacleConstraint()': A constructor with a GridFunction as parameter"
+					"is needed here!");
 		};
 
 	///	adds a lua callback (cond and non-cond)
@@ -98,33 +97,26 @@ class IObstacleConstraint
 		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets);
 
 
-	///	checks if a given dof is in an obstacle subset
-		bool dof_lies_on_obs_subset(const DoFIndex& dof, const vector<DoFIndex>& vOfDofs);
-
 	///	init function calls 'extract_data' and 'obstacle_value'-methods in order to
 	///	store the obstacle values set by UserDatas
-		virtual void init() = 0;
+		void init();
+
+	///	checks if a given dof is in an obstacle subset
+		bool dof_lies_in_obs_subset(const DoFIndex& dof);
 
 	///	resets the vectors storing the active dofs
-		virtual void reset_active_dofs() = 0;
+		void reset_active_dofs(){m_vActiveDofs.resize(0);}
 
-	///	defines the projection of a correction of the i-th index onto the admissible set
-		virtual void project_on_admissible_set(value_type& c_i, value_type& sol_i, const size_t i) = 0;
 
-	///	the defect needs to be adapted for the active indices (those indices, which are in contact)
+	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
+		virtual void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool dofIsAdmissible,
+				const number tmpSol, const DoFIndex& dof) = 0;
+
+	///	the defect needs to be adjusted for the active indices (those indices, which are in contact)
 		virtual void adjust_defect(vector_type& d) = 0;
 
 	///	Destructor
 		virtual ~IObstacleConstraint(){};
-
-	protected:
-		void initObsValues();
-
-		void get_dof_on_obs_subset(vector<DoFIndex> vDoFIndices){
-			vDoFIndices = m_vDoFsOnObsSubset;}
-
-		void get_obstacle_value_map(std::map<DoFIndex, double> mDoFIndices){
-			mDoFIndices = m_mObsValues;}
 
 	private:
 	///	extract the UserDatas
@@ -141,21 +133,25 @@ class IObstacleConstraint
 				size_t numFct) const;
 
 	///	store the obstacle value set by means of UserDatas
-		void obstacle_value(number time);
+		void init_obstacle_values_and_dofs(number time);
 
 		template <typename TUserData>
-		void obstacle_value(const std::map<int, std::vector<TUserData*> >& mvUserData, number time);
+		void init_obstacle_values_and_dofs(const std::map<int, std::vector<TUserData*> >& mvUserData, number time);
 
 		template <typename TBaseElem, typename TUserData>
-		void obstacle_value(const std::vector<TUserData*>& vUserData, int si, number time);
+		void init_obstacle_values_and_dofs(const std::vector<TUserData*>& vUserData, int si, number time);
 
-	private:
+	protected:
 	///	map to store obstacle values with its corresponding DoFs
-		std::map<DoFIndex, double> m_mObsValues;
+		std::map<DoFIndex, double> m_mObstacleValues;
 
 	///	vector of the dofs, which are in the obstacle subsets
-		vector<DoFIndex> m_vDoFsOnObsSubset;
+		vector<DoFIndex> m_vObstacleDoFs;
 
+	///	stores the dofs, which satisfy the constraints with equality
+		vector<DoFIndex> m_vActiveDofs;
+
+	private:
 	///	pointer to the domain
 		ConstSmartPtr<TDomain> m_spDomain;
 
@@ -184,6 +180,7 @@ class IObstacleConstraint
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
+			//bool bWholeDomain;
 		};
 
 	///	grouping for subset and conditional data
@@ -207,6 +204,7 @@ class IObstacleConstraint
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
+			//bool bWholeDomain;
 		};
 
 	///	grouping for subset and conditional data
@@ -230,6 +228,7 @@ class IObstacleConstraint
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
+			//bool bWholeDomain;
 		};
 
 	///	grouping for subset and non-conditional data
@@ -253,6 +252,7 @@ class IObstacleConstraint
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
+			//bool bWholeDomain;
 		};
 
 		std::vector<CondNumberData> m_vCondNumberData;
