@@ -1778,9 +1778,8 @@ base_solve(int lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering distributed basesolver branch.\n");
 
 		GMG_PROFILE_BEGIN(GMG_BaseSolver);
-		ld.st->set(0.0);
 		try{
-			if(!m_spBaseSolver->apply(*ld.st, *ld.sd))
+			if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
 				UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
 		}
 		UG_CATCH_THROW("GMG: BaseSolver::apply failed. (case: a).")
@@ -1831,7 +1830,7 @@ base_solve(int lev)
 
 	//	broadcast the correction
 		#ifdef UG_PARALLEL
-		SmartPtr<GF> spC = ld.st;
+		SmartPtr<GF> spC = ld.sc;
 		if(gathered_base_master()) spC = spGatheredBaseCorr;
 
 		ComPol_VecCopy<vector_type> cpVecCopy(spC.get());
@@ -1840,22 +1839,19 @@ base_solve(int lev)
 		m_Com.communicate();
 		if(gathered_base_master()){
 			spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
-			copy_ghost_to_noghost(ld.st, spGatheredBaseCorr, ld.vMapPatchToGlobal);
+			copy_ghost_to_noghost(ld.sc, spGatheredBaseCorr, ld.vMapPatchToGlobal);
 		} else {
-			ld.st->set_storage_type(PST_CONSISTENT);
+			ld.sc->set_storage_type(PST_CONSISTENT);
 		}
 		#endif
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: exiting gathered basesolver branch.\n");
 	}
 
-//	add contribution to whole correction
-	(*ld.sc) += (*ld.st);
-
 //	update the defect if required. In full-ref case, the defect is not needed
 //	anymore, since it will be restricted anyway. For adaptive case, however,
 //	we must keep track of the defect on the surface
 	if(lev >= m_LocalFullRefLevel){
-		ld.A->apply_sub(*ld.sd, *ld.st);
+		ld.A->apply_sub(*ld.sd, *ld.sc);
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
