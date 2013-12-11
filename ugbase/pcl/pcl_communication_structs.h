@@ -743,7 +743,7 @@ class ICommunicationPolicy
 	///	signals the end of a layout collection
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
-		end_layout_collection()									{return true;}
+		end_layout_collection(const Layout* pLayout)			{return true;}
 
 	///	should write data which is associated with the interface elements to the buffer.
 		virtual bool
@@ -759,7 +759,7 @@ class ICommunicationPolicy
 	///	signals the end of a layout extraction
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
-		end_layout_extraction()									{return true;}
+		end_layout_extraction(const Layout* pLayout)			{return true;}
 
 	///	signals that a new layout-level will now be processed.
 	/**	This is primarily interesting for layout-extraction of multi-level-layouts.

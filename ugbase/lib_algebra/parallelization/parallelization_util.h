@@ -174,6 +174,32 @@ void AdditiveToUnique(	TVector* pVec,
 		com.communicate();
 }
 
+/// sets the values of a vector to a given number only on the interface indices
+/**
+ * \param[in,out]		pVec			Vector
+ * \param[in]			layout			Layout
+ * \param[in]			val				Value to set on layout indices
+ */
+template <typename TVector>
+void SetInterfaceValues(TVector* pVec,
+                     	const IndexLayout::Interface& interface,
+                     	typename TVector::value_type val)
+{
+	PROFILE_FUNC_GROUP("algebra parallelization");
+
+//	loop over indices
+	for(typename IndexLayout::Interface::const_iterator iter = interface.begin();
+			iter != interface.end(); ++iter)
+	{
+	//  get index
+		const size_t index = interface.get_element(iter);
+
+	//	set value of vector to zero
+		(*pVec)[index] = val;
+	}
+}
+
+
 /// sets the values of a vector to a given number only on the layout indices
 /**
  * \param[in,out]		pVec			Vector

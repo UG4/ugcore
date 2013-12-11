@@ -52,7 +52,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 	///	signals the end of a layout collection
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
-		end_layout_collection()
+		end_layout_collection(const Layout*)
 		{
 			m_grid.end_marking();
 			return true;

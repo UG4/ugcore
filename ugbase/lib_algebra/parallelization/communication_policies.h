@@ -534,10 +534,10 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default Constructor
-		ComPol_VecAddSetZero() : m_pVec(0), m_vMultiOccurance(0)	{}
+		ComPol_VecAddSetZero() : m_pVec(0), m_vMultiOccurance(0), m_curLayout(0)	{}
 
 	///	Constructor setting vector
-		ComPol_VecAddSetZero(TVector* pVec) : m_pVec(pVec), m_vMultiOccurance(0) {}
+		ComPol_VecAddSetZero(TVector* pVec) : m_pVec(pVec), m_vMultiOccurance(0), m_curLayout(0) {}
 
 	///	Constructor setting vector and Occurance map
 	/**
@@ -545,7 +545,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	 * by the number of their occurance.
 	 */
 		ComPol_VecAddSetZero(TVector* pVec, const std::vector<int>* vMultiOccurance)
-			: m_pVec(pVec), m_vMultiOccurance(vMultiOccurance) {}
+			: m_pVec(pVec), m_vMultiOccurance(vMultiOccurance), m_curLayout(0) {}
 
 	///	sets the vector that we be used for communication
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
@@ -567,6 +567,14 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				return interface.size() * sizeof(typename TVector::value_type);
 			else
 				return -1;
+		}
+
+		virtual bool
+		begin_layout_collection(const Layout* pLayout)
+		{
+			UG_ASSERT(!m_curLayout, "Only one layout may be processed at a time.");
+			m_curLayout = pLayout;
+			return true;
 		}
 
 	///	writes the interface values into a buffer that will be sent and then sets
@@ -599,9 +607,6 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 
 				// copy values
 					Serialize(buff, v[index]);
-
-				// set to zero on this process
-					v[index] = 0.0;
 				}
 			}
 			else {
@@ -617,17 +622,26 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				//	get index
 					const size_t index = interface.get_element(iter);
 
+					typename TVector::value_type tval = v[index];
 					if(((*m_vMultiOccurance)[index]) > 1){
-						 v[index] *= (1./((*m_vMultiOccurance)[index]));
+						 tval *= (1./((*m_vMultiOccurance)[index]));
 					}
 
 				// serialize values
-					Serialize(buff, v[index]);
-
-				// set to zero on this process
-					v[index] = 0.0;
+					Serialize(buff, tval);
 				}
 			}
+
+			if(!m_curLayout)
+				SetInterfaceValues(m_pVec, interface, 0);
+			return true;
+		}
+
+		virtual bool
+		end_layout_collection(const Layout* pLayout)
+		{
+			UG_ASSERT(m_curLayout == pLayout, "Only one layout may be processed at a time.");
+			SetLayoutValues(m_pVec, *pLayout, 0);
 			return true;
 		}
 
@@ -670,6 +684,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 	private:
 		TVector* m_pVec;
 		const std::vector<int>* m_vMultiOccurance;
+		const Layout*	m_curLayout;
 };
 
 /// Communication Policy to subtract values of a vector

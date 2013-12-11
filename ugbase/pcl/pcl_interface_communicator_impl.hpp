@@ -100,7 +100,7 @@ send_data(const Layout& layout,
 		}
 	}
 
-	commPol.end_layout_collection();
+	commPol.end_layout_collection(&layout);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -129,6 +129,7 @@ send_data(const Layout& layout,
 			}
 		}
 	}
+	commPol.end_layout_collection(&layout);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -345,7 +346,7 @@ extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 		}
 	}
 
-	extractor.end_layout_collection();
+	extractor.end_layout_extraction(&layout);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -370,7 +371,7 @@ extract_data(const TLayout& layout, BufferMap& bufMap, CommPol& extractor,
 		}
 	}
 
-	extractor.end_layout_collection();
+	extractor.end_layout_extraction(&layout);
 }
 
 
@@ -689,16 +690,9 @@ wait()
 		else
 		{
 		//	extract the data for a layout
-		//	notify the extractor that extraction for a layout begins.
-			info.m_extractor->begin_layout_extraction(info.m_layout);
-			
-		//	extract the data
 			extract_data(*info.m_layout,
 						m_bufMapIn,
 						*info.m_extractor);
-			
-		//	notify the extractor that extraction is complete.
-			info.m_extractor->end_layout_extraction();
 		}
 	}
 
