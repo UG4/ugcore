@@ -32,7 +32,7 @@
 
 #define PROFILE_GMG
 #ifdef PROFILE_GMG
-	#define GMG_PROFILE_FUNC()		PROFILE_FUNC()
+	#define GMG_PROFILE_FUNC()		PROFILE_FUNC_GROUP("gmg")
 	#define GMG_PROFILE_BEGIN(name)	PROFILE_BEGIN_GROUP(name, "gmg")
 	#define GMG_PROFILE_END()		PROFILE_END()
 #else
@@ -111,7 +111,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 apply(vector_type& rC, const vector_type& rD)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	GF* pC = dynamic_cast<GF*>(&rC);
 	if(!pC) UG_THROW("GMG::apply: Expect Correction to be grid based.")
 	const GF* pD = dynamic_cast<const GF*>(&rD);
@@ -136,7 +136,7 @@ apply(vector_type& rC, const vector_type& rD)
 	write_debug(*m_spSurfaceMat, "SurfaceStiffness", c, c);
 
 //	project defect from surface to level
-	GMG_PROFILE_BEGIN(GMG_ProjectDefectFromSurface);
+	GMG_PROFILE_BEGIN(GMG_Apply_CopyDefectFromSurface);
 	try{
 		for(int lev = m_baseLev; lev <= m_topLev; ++lev){
 			const std::vector<SurfLevelMap>& vMap = m_vLevData[lev]->vSurfLevelMap;
@@ -151,38 +151,43 @@ apply(vector_type& rC, const vector_type& rD)
 #endif
 	}
 	UG_CATCH_THROW("GMG::apply: Project d Surf -> Level failed.");
-	GMG_PROFILE_END(); //GMGApply_ProjectDefectFromSurface
+	GMG_PROFILE_END();
 
 // 	Perform one multigrid cycle
-	GMG_PROFILE_BEGIN(GMG_lmgc);
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "gmg-apply lmgc (on level " << m_topLev << ")... \n");
 	try{
+		GMG_PROFILE_BEGIN(GMG_Apply_ResetCorrection);
 	//	reset surface correction
 		c.set(0.0);
 
 	//	reset corr on top level
 		m_vLevData[m_topLev]->sc->set(0.0);
+		GMG_PROFILE_END();
 
 	//	start mg-cycle
+		GMG_PROFILE_BEGIN(GMG_Apply_lmgc);
 		lmgc(m_topLev);
+		GMG_PROFILE_END();
 
 	//	project top lev to surface
+		GMG_PROFILE_BEGIN(GMG_Apply_AddCorrectionToSurface);
 		const std::vector<SurfLevelMap>& vMap = m_vLevData[m_topLev]->vSurfLevelMap;
 		LevData& ld = *m_vLevData[m_topLev];
 		for(size_t i = 0; i < vMap.size(); ++i){
 			c[vMap[i].surfIndex] += (*ld.sc)[vMap[i].levIndex];
 		}
-
 		#ifdef UG_PARALLEL
 		c.set_storage_type(PST_CONSISTENT);
 		#endif
+		GMG_PROFILE_END();
 	}
 	UG_CATCH_THROW("GMG: lmgc failed.");
-	GMG_PROFILE_END(); //GMGApply_lmgc
 
 //	apply scaling
+	GMG_PROFILE_BEGIN(GMG_Apply_Scaling);
 	const number kappa = this->damping()->damping(c, d, m_spSurfaceMat.template cast_dynamic<ILinearOperator<vector_type> >());
 	if(kappa != 1.0) c *= kappa;
+	GMG_PROFILE_END();
 
 //	debug output
 	write_debug(c, "Correction_Out");
@@ -200,7 +205,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 apply_update_defect(vector_type &c, vector_type& rD)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 
 //	NOTE: 	This is the implementation of a multiplicative Multigrid. Thus, the
 //			defect is kept up to date when traversing the grid. At the end of
@@ -245,7 +250,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init(J, u)\n");
 
 	// try to extract assembling routine
@@ -272,7 +277,7 @@ template <typename TDomain, typename TAlgebra>
 bool AssembledMultiGridCycle<TDomain, TAlgebra>::
 init(SmartPtr<ILinearOperator<vector_type> > L)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init(L)\n");
 
 	// try to extract assembling routine
@@ -301,7 +306,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_common\n");
 
 	try{
@@ -351,13 +356,15 @@ init()
 	if(m_ApproxSpaceRevision != m_spApproxSpace->revision())
 	{
 	//	Allocate memory for given top level
+		GMG_PROFILE_BEGIN(GMG_Init_LevelMemory);
 		try{
 			init_level_memory(m_baseLev, m_topLev);
 		}
 		UG_CATCH_THROW("GMG::init: Cannot allocate memory.");
+		GMG_PROFILE_END();
 
 	//	init mapping from surface level to top level in case of full refinement
-		GMG_PROFILE_BEGIN(GMG_InitSurfToLevelMapping);
+		GMG_PROFILE_BEGIN(GMG_Init_IndexMappings);
 		try{
 			init_index_mappings();
 		}
@@ -365,7 +372,7 @@ init()
 		GMG_PROFILE_END();
 
 	// 	Create Interpolation
-		GMG_PROFILE_BEGIN(GMG_InitProlongation);
+		GMG_PROFILE_BEGIN(GMG_Init_Transfers);
 		try{
 			init_transfer();
 		}
@@ -377,7 +384,7 @@ init()
 	}
 
 //	Assemble coarse grid operators
-	GMG_PROFILE_BEGIN(GMG_AssembleLevelGridOperator);
+	GMG_PROFILE_BEGIN(GMG_Init_CreateLevelMatrices);
 	try{
 		if(m_bUseRAP){
 			init_rap_operator();
@@ -389,7 +396,7 @@ init()
 	GMG_PROFILE_END();
 
 //	Init smoother for coarse grid operators
-	GMG_PROFILE_BEGIN(GMG_InitSmoother);
+	GMG_PROFILE_BEGIN(GMG_Init_Smoother);
 	try{
 		init_smoother();
 	}
@@ -397,7 +404,7 @@ init()
 	GMG_PROFILE_END();
 
 //	Init base solver
-	GMG_PROFILE_BEGIN(GMG_InitBaseSolver);
+	GMG_PROFILE_BEGIN(GMG_Init_BaseSolver);
 	try{
 		init_base_solver();
 	}
@@ -414,7 +421,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 assemble_level_operator()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start assemble_level_operator\n");
 
 	if(m_GridLevelType == GridLevel::SURFACE)
@@ -428,7 +435,7 @@ assemble_level_operator()
 	try{
 		if(m_pSurfaceSol) {
 			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: project sol\n");
-			GMG_PROFILE_BEGIN(GMG_ProjectSurfaceSolution);
+			GMG_PROFILE_BEGIN(GMG_ProjectSolution_CopyFromSurface);
 			#ifdef UG_PARALLEL
 			if(!m_pSurfaceSol->has_storage_type(PST_CONSISTENT))
 				UG_THROW("GMG::init: Can only project "
@@ -451,6 +458,7 @@ assemble_level_operator()
 	UG_CATCH_THROW("GMG::init: Projection of Surface Solution failed.");
 
 // 	Create coarse level operators
+	GMG_PROFILE_BEGIN(GMG_AssembleLevelMat_AllLevelMat);
 	for(int lev = m_topLev; lev >= m_baseLev; --lev)
 	{
 		LevData& ld = *m_vLevData[lev];
@@ -467,17 +475,17 @@ assemble_level_operator()
 				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - send sol to v-master\n");
 
 				// todo: if no ghosts present on proc one could use ld.st directly
-				GMG_PROFILE_BEGIN(GMG_SolCopy_NoghostToGhost);
+				GMG_PROFILE_BEGIN(GMG_ProjectSolution_CopyNoghostToGhost);
 				copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
 				GMG_PROFILE_END();
 
-				GMG_PROFILE_BEGIN(GMG_SolCopy_Send);
+				GMG_PROFILE_BEGIN(GMG_ProjectSolution_CollectAndSend);
 				m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
 				m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
 				m_Com.communicate_and_resume();
 				GMG_PROFILE_END();
 				if(!m_bCommCompOverlap){
-					GMG_PROFILE_BEGIN(GMG_SolCopy_WaitForRevieve_NoOverlap);
+					GMG_PROFILE_BEGIN(GMG_ProjectSolution_RevieveAndExtract_NoOverlap);
 					m_Com.wait();
 					GMG_PROFILE_END();
 				}
@@ -493,7 +501,7 @@ assemble_level_operator()
 		if(!bCpyFromSurface)
 		{
 			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: assemble on lev "<<lev<<"\n");
-			GMG_PROFILE_BEGIN(GMG_AssLevelMat);
+			GMG_PROFILE_BEGIN(GMG_AssembleLevelMat_AssembleOnLevel);
 			try{
 			if(m_GridLevelType == GridLevel::LEVEL)
 				m_spAss->ass_tuner()->set_force_regular_grid(true);
@@ -508,7 +516,7 @@ assemble_level_operator()
 		{
 		//	in case of full refinement we simply copy the matrix (with correct numbering)
 			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: copy mat on lev "<<lev<<"\n");
-			GMG_PROFILE_BEGIN(GMG_CopySurfMat);
+			GMG_PROFILE_BEGIN(GMG_AssembleLevelMat_CopyFromTopSurface);
 
 		//	loop all mapped indices
 			UG_ASSERT(m_spSurfaceMat->num_rows() == m_vSurfToLevelMap.size(),
@@ -550,26 +558,26 @@ assemble_level_operator()
 			#ifdef UG_PARALLEL
 			if(m_bCommCompOverlap){
 				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - recieve sol at v-master\n");
-				GMG_PROFILE_BEGIN(GMG_SolCopy_WaitForRecieve);
+				GMG_PROFILE_BEGIN(GMG_ProjectSolution_RecieveAndExtract_WithOverlap);
 				m_Com.wait();
 				GMG_PROFILE_END();
 				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop  - recieve sol at v-master\n");
 			}
 			#endif
 
-			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
+			GMG_PROFILE_BEGIN(GMG_ProjectSolution_Transfer);
 			LevData& lc = *m_vLevData[lev-1];
 			try{
 				ld.Projection->do_restrict(*lc.st, *spT);
+				#ifdef UG_PARALLEL
+				lc.st->set_storage_type(m_pSurfaceSol->get_storage_mask());
+				#endif
 			} UG_CATCH_THROW("GMG::init: Cannot project solution to coarse grid "
 							"function of level "<<lev-1);
-
-			#ifdef UG_PARALLEL
-			lc.st->set_storage_type(m_pSurfaceSol->get_storage_mask());
-			#endif
 			GMG_PROFILE_END();
 		}
 	}
+	GMG_PROFILE_END();
 
 //	write computed level matrices for debug purpose
 	for(int lev = m_baseLev; lev <= m_topLev; ++lev){
@@ -584,7 +592,6 @@ assemble_level_operator()
 	if(m_bGatheredBaseUsed)
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
-		GMG_PROFILE_BEGIN(GMG_AssGatheredLevMat);
 		LevData& ld = *m_vLevData[m_baseLev];
 
 		if(m_pSurfaceSol){
@@ -595,7 +602,7 @@ assemble_level_operator()
 			{
 				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy sol to gathered master\n");
 
-				GMG_PROFILE_BEGIN(GMG_SolCopyToGatheredMaster);
+				GMG_PROFILE_BEGIN(GMG_ProjectSolution_CopyToGatheredMaster);
 				copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
 
 				ComPol_VecCopy<vector_type> cpVecCopy(ld.t.get());
@@ -612,6 +619,7 @@ assemble_level_operator()
 		// only assemble on gathering proc
 		if(gathered_base_master())
 		{
+			GMG_PROFILE_BEGIN(GMG_AssembleLevelMat_GatheredBase);
 			try{
 			if(m_GridLevelType == GridLevel::LEVEL)
 				m_spAss->ass_tuner()->set_force_regular_grid(true);
@@ -619,8 +627,8 @@ assemble_level_operator()
 			m_spAss->ass_tuner()->set_force_regular_grid(false);
 			}
 			UG_CATCH_THROW("GMG:init: Cannot init operator base level operator");
+			GMG_PROFILE_END();
 		}
-		GMG_PROFILE_END();
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   assemble_level_operator: ass gathered on lev "<<m_baseLev<<"\n");
 	}
 
@@ -637,7 +645,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 assemble_rim_cpl(const vector_type* u)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - assemble_rim_cpl " << "\n");
 
 //	clear matrices
@@ -711,9 +719,10 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_rap_operator()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_rap_operator\n");
 
+	GMG_PROFILE_BEGIN(GMG_BuildRAP_ResizeLevelMat);
 	for(int lev = m_topLev; lev >= m_baseLev; --lev)
 	{
 		LevData& ld = *m_vLevData[lev];
@@ -723,9 +732,10 @@ init_rap_operator()
 		ld.A->set_layouts(ld.st->layouts());
 		#endif
 	}
+	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_rap_operator: copy from surface\n");
-	GMG_PROFILE_BEGIN(GMG_CopyMatFromSurface);
+	GMG_PROFILE_BEGIN(GMG_BuildRAP_CopyFromSurfaceMat);
 	for(size_t srfRow = 0; srfRow < m_vSurfToLevelMap.size(); ++srfRow)
 	{
 	//	loop all connections of the surface dof to other surface dofs
@@ -780,7 +790,7 @@ init_rap_operator()
 
 // 	Create coarse level operators
 	UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_rap_operator: build rap\n");
-	GMG_PROFILE_BEGIN(GMG_BuildAllRAP);
+	GMG_PROFILE_BEGIN(GMG_BuildRAP_AllLevelMat);
 	for(int lev = m_topLev; lev > m_baseLev; --lev)
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start init_rap_operator: build rap on lev "<<lev<<"\n");
@@ -794,7 +804,7 @@ init_rap_operator()
 		if( !lf.t->layouts()->vertical_master().empty() ||
 			!lf.t->layouts()->vertical_slave().empty())
 		{
-			GMG_PROFILE_BEGIN(GMG_CopyMatRAP_NoghostToGhost);
+			GMG_PROFILE_BEGIN(GMG_BuildRAP_CopyNoghostToGhost);
 			spGhostA->resize_and_clear(lf.t->size(), lf.t->size());
 			spGhostA->set_layouts(lf.t->layouts());
 			if(!lf.t->layouts()->vertical_master().empty()){
@@ -804,13 +814,13 @@ init_rap_operator()
 			}
 			GMG_PROFILE_END();
 
-			GMG_PROFILE_BEGIN(GMG_CopyMatRAP_Send);
+			GMG_PROFILE_BEGIN(GMG_BuildRAP_CollectAndSend);
 			m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
 			m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
 			m_Com.communicate_and_resume();
 			GMG_PROFILE_END();
 			if(!m_bCommCompOverlap){
-				GMG_PROFILE_BEGIN(GMG_CopyMatRAP_WaitForRevieve_NoOverlap);
+				GMG_PROFILE_BEGIN(GMG_BuildRAP_RecieveAndExtract_NoOverlap);
 				m_Com.wait();
 				GMG_PROFILE_END();
 			}
@@ -819,20 +829,20 @@ init_rap_operator()
 		}
 		#endif
 
-		GMG_PROFILE_BEGIN(GMG_CreateRestrictionAndProlongation);
+		GMG_PROFILE_BEGIN(GMG_BuildRAP_CreateRestrictionAndProlongation);
 		SmartPtr<matrix_type> R = lf.Restriction->restriction(lc.st->grid_level(), lf.t->grid_level(), m_spApproxSpace);
 		SmartPtr<matrix_type> P = lf.Prolongation->prolongation(lf.t->grid_level(), lc.st->grid_level(), m_spApproxSpace);
 		GMG_PROFILE_END();
 
 		#ifdef UG_PARALLEL
 		if(m_bCommCompOverlap){
-			GMG_PROFILE_BEGIN(GMG_CopyMatRAP_WaitForRevieve);
+			GMG_PROFILE_BEGIN(GMG_BuildRAP_RecieveAndExtract_WithOverlap);
 			m_Com.wait();
 			GMG_PROFILE_END();
 		}
 		#endif
 
-		GMG_PROFILE_BEGIN(GMG_ComputeRAP);
+		GMG_PROFILE_BEGIN(GMG_BuildRAP_MultiplyRAP);
 		AddMultiplyOf(*lc.A, *R, *spA, *P);
 		GMG_PROFILE_END();
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, "  end   init_rap_operator: build rap on lev "<<lev<<"\n");
@@ -848,8 +858,8 @@ init_rap_operator()
 
 	if(m_bGatheredBaseUsed)
 	{
-		GMG_PROFILE_BEGIN(GMG_GatherFromBaseSolver);
 #ifdef UG_PARALLEL
+		GMG_PROFILE_BEGIN(GMG_BuildRAP_CopyNoghostToGhost_GatheredBase);
 		LevData& ld = *m_vLevData[m_baseLev];
 		if(gathered_base_master()){
 			spGatheredBaseMat->resize_and_clear(ld.t->size(), ld.t->size());
@@ -860,8 +870,9 @@ init_rap_operator()
 		}
 		spGatheredBaseMat->set_storage_type(m_spSurfaceMat->get_storage_mask());
 		spGatheredBaseMat->set_layouts(ld.t->layouts());
+		GMG_PROFILE_END();
 
-		GMG_PROFILE_BEGIN(GMG_CopyMatRAP_CpyToGatheredBase);
+		GMG_PROFILE_BEGIN(GMG_BuildRAP_SendAndRevieve_GatheredBase);
 		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat, ld.getMultiOccurence());
 		m_Com.send_data(spGatheredBaseMat->layouts()->vertical_slave(), cpMatAdd);
 		if(gathered_base_master())
@@ -873,7 +884,6 @@ init_rap_operator()
 			spGatheredBaseMat = NULL;
 		}
 #endif
-		GMG_PROFILE_END();
 	}
 
 //	coarse grid contributions
@@ -889,7 +899,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_rap_rim_cpl()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - init_rap_rim_cpl " << "\n");
 
 //	clear matrices
@@ -950,7 +960,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_transfer()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_transfer\n");
 
 //	loop all levels
@@ -989,7 +999,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_projection()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_projection\n");
 
 	for(int lev = m_baseLev+1; lev <= m_topLev; ++lev)
@@ -1007,7 +1017,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_smoother()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_smoother\n");
 
 // 	Init smoother
@@ -1034,7 +1044,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_base_solver()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start init_base_solver\n");
 	LevData& ld = *m_vLevData[m_baseLev];
 
@@ -1197,7 +1207,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_index_mappings()
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	ConstSmartPtr<DoFDistribution> surfDD =
 			m_spApproxSpace->dof_distribution(GridLevel(m_surfaceLev, GridLevel::SURFACE));
 
@@ -1256,7 +1266,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_noghost_to_ghost_mapping(int lev)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 
 	LevData& ld = *m_vLevData[lev];
 	std::vector<size_t>& vMapPatchToGlobal = ld.vMapPatchToGlobal;
@@ -1282,7 +1292,7 @@ copy_ghost_to_noghost(SmartPtr<GF> spVecTo,
                       ConstSmartPtr<GF> spVecFrom,
                       const std::vector<size_t>& vMapPatchToGlobal)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 
 	if(spVecTo == spVecFrom)
 		UG_THROW("GMG::copy_ghost_to_noghost: Should not be called on equal GF.");
@@ -1313,7 +1323,7 @@ copy_noghost_to_ghost(SmartPtr<GF> spVecTo,
                       ConstSmartPtr<GF> spVecFrom,
                       const std::vector<size_t>& vMapPatchToGlobal)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 
 	if(spVecTo == spVecFrom)
 		UG_THROW("GMG::copy_noghost_to_ghost: Should not be called on equal GF.");
@@ -1343,7 +1353,7 @@ copy_noghost_to_ghost(SmartPtr<matrix_type> spMatTo,
                       ConstSmartPtr<matrix_type> spMatFrom,
                       const std::vector<size_t>& vMapPatchToGlobal)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_ASSERT(vMapPatchToGlobal.size() == spMatFrom->num_rows(),
 			  "Mapping domain ("<<vMapPatchToGlobal.size()<<") != "
 			  "From-Mat-Num-Rows ("<<spMatFrom->num_rows()<<")");
@@ -1376,7 +1386,7 @@ void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_multi_occurance(int lev, SmartPtr<GF> spVec)
 {
 #ifdef UG_PARALLEL
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 
 //	reset
 	LevData& ld = *m_vLevData[lev];
@@ -1419,7 +1429,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 init_level_memory(int baseLev, int topLev)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 
 	m_vLevData.resize(0);
 	m_vLevData.resize(topLev+1);
@@ -1572,7 +1582,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 presmooth_and_restriction(int lev)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
 
@@ -1629,18 +1639,18 @@ presmooth_and_restriction(int lev)
 		//	We use a temporary vector including ghost, such that the no-ghost defect
 		//	remains valid and can be used when the cycle comes back to this level.
 
-		GMG_PROFILE_BEGIN(GMG_Restriction_CpyNoghostToGhost);
+		GMG_PROFILE_BEGIN(GMG_Restrict_CopyNoghostToGhost);
 		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
 		copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
 		GMG_PROFILE_END();
 
-		GMG_PROFILE_BEGIN(GMG_Restriction_Send);
+		GMG_PROFILE_BEGIN(GMG_Restrict_CollectAndSend);
 		m_Com.send_data(lf.t->layouts()->vertical_slave(), cpVecAdd);
 		m_Com.receive_data(lf.t->layouts()->vertical_master(), cpVecAdd);
 		m_Com.communicate_and_resume();
 		GMG_PROFILE_END();
 		if(!m_bCommCompOverlap){
-			GMG_PROFILE_BEGIN(GMG_Restriction_Recieve_NoOverlap);
+			GMG_PROFILE_BEGIN(GMG_Restrict_RecieveAndExtract_NoOverlap);
 			m_Com.wait();
 			GMG_PROFILE_END();
 		}
@@ -1649,24 +1659,28 @@ presmooth_and_restriction(int lev)
 	}
 	#endif
 
+	GMG_PROFILE_BEGIN(GMG_Restrict_OverlapedComputation);
 //	reset corr on coarse level
 	lc.sc->set(0.0);
 
 //	update last correction
 	if(m_numPreSmooth > 0)
 		(*lf.sc) += (*lf.st);
+	GMG_PROFILE_END();
 
+	#ifdef UG_PARALLEL
 	if(m_bCommCompOverlap){
-		GMG_PROFILE_BEGIN(GMG_Restriction_Recieve_WithOverlap);
+		GMG_PROFILE_BEGIN(GMG_Restrict_RecieveAndExtract_WithOverlap);
 		m_Com.wait();
 		GMG_PROFILE_END();
 	}
+	#endif
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforeRestrict");
 
 //	RESTRICTION:
-	GMG_PROFILE_BEGIN(GMG_RestrictDefect);
+	GMG_PROFILE_BEGIN(GMG_Restrict_Transfer);
 	try{
 		lf.Restriction->do_restrict(*lc.sd, *spD);
 	}
@@ -1674,8 +1688,10 @@ presmooth_and_restriction(int lev)
 	GMG_PROFILE_END();
 
 //	apply post processes
+	GMG_PROFILE_BEGIN(GMG_Restrict_PostProcess);
 	for(size_t i = 0; i < m_vspRestrictionPostProcess.size(); ++i)
 		m_vspRestrictionPostProcess[i]->post_process(lc.sd);
+	GMG_PROFILE_END();
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - restriction on level "<<lev<<"\n");
 }
@@ -1684,7 +1700,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 prolongation_and_postsmooth(int lev)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	LevData& lf = *m_vLevData[lev];
 	LevData& lc = *m_vLevData[lev-1];
 
@@ -1695,6 +1711,7 @@ prolongation_and_postsmooth(int lev)
 	if(lev > m_LocalFullRefLevel)
 	{
 		//	write computed correction to surface
+		GMG_PROFILE_BEGIN(GMG_AddCorrectionToSurface);
 		try{
 			const std::vector<SurfLevelMap>& vMap = lc.vSurfLevelMap;
 			for(size_t i = 0; i < vMap.size(); ++i){
@@ -1702,12 +1719,13 @@ prolongation_and_postsmooth(int lev)
 			}
 		}
 		UG_CATCH_THROW("GMG::lmgc: Cannot add to surface.");
+		GMG_PROFILE_END();
 
 		//	in the adaptive case there is a small part of the coarse coupling that
 		//	has not been used to update the defect. In order to ensure, that the
 		//	defect on this level still corresponds to the updated defect, we need
 		//	to add if here.
-		GMG_PROFILE_BEGIN(GMG_AddCoarseGridContribution);
+		GMG_PROFILE_BEGIN(GMG_UpdateRimDefect);
 		lc.RimCpl_Fine_Coarse.matmul_minus(*lf.sd, *lc.sc);
 		GMG_PROFILE_END();
 	}
@@ -1722,7 +1740,7 @@ prolongation_and_postsmooth(int lev)
 		spT = lf.t;
 	}
 	#endif
-	GMG_PROFILE_BEGIN(GMG_InterpolateCorr);
+	GMG_PROFILE_BEGIN(GMG_Prolongate_Transfer);
 	try{
 		lf.Prolongation->prolongate(*spT, *lc.sc);
 	}
@@ -1735,29 +1753,33 @@ prolongation_and_postsmooth(int lev)
 		!lf.t->layouts()->vertical_master().empty())
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_slaves\n");
-		GMG_PROFILE_BEGIN(GMG_BroadcastVerticalVector);
 
 		//	Receive values of correction for vertical slaves:
 		//	If there are vertical slaves/masters on the coarser level, we now copy
 		//	the correction values from the v-master DoFs to the v-slave	DoFs.
+		GMG_PROFILE_BEGIN(GMG_Prolongate_SendAndRecieve);
 		ComPol_VecCopy<vector_type> cpVecCopy(lf.t.get());
 		m_Com.receive_data(lf.t->layouts()->vertical_slave(), cpVecCopy);
 		m_Com.send_data(lf.t->layouts()->vertical_master(), cpVecCopy);
 		m_Com.communicate();
-
-		copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
-
 		GMG_PROFILE_END();
+
+		GMG_PROFILE_BEGIN(GMG_Prolongate_GhostToNoghost);
+		copy_ghost_to_noghost(lf.st, lf.t, lf.vMapPatchToGlobal);
+		GMG_PROFILE_END();
+
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_slaves\n");
 	}
 #endif
 
 //	apply post processes
+	GMG_PROFILE_BEGIN(GMG_Prolongate_PostProcess);
 	for(size_t i = 0; i < m_vspProlongationPostProcess.size(); ++i)
 		m_vspProlongationPostProcess[i]->post_process(lf.st);
+	GMG_PROFILE_END();
 
 // 	add coarse grid correction: c := c + t
-	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorr);
+	GMG_PROFILE_BEGIN(GMG_AddCoarseGridCorrection);
 	(*lf.sc) += (*lf.st);
 	GMG_PROFILE_END();
 
@@ -1799,7 +1821,9 @@ prolongation_and_postsmooth(int lev)
 //	anymore, since it will be restricted anyway. For adaptive case, however,
 //	we must keep track of the defect on the surface
 	if(lev >= m_LocalFullRefLevel){
+		GMG_PROFILE_BEGIN(GMG_UpdateDefectAfterPostSmooth);
 		lf.A->apply_sub(*lf.sd, *lf.st);
+		GMG_PROFILE_END();
 	}
 
 	log_debug_data(lev, "AfterPostSmooth");
@@ -1811,7 +1835,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 base_solve(int lev)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level "<<lev<<"\n");
 	try{
 
@@ -1828,7 +1852,7 @@ base_solve(int lev)
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: entering distributed basesolver branch.\n");
 
-		GMG_PROFILE_BEGIN(GMG_BaseSolver);
+		GMG_PROFILE_BEGIN(GMG_BaseSolver_Apply);
 		try{
 			if(!m_spBaseSolver->apply(*ld.sc, *ld.sd))
 				UG_THROW("GMG::lmgc: Base solver on base level "<<lev<<" failed.");
@@ -1849,21 +1873,25 @@ base_solve(int lev)
 		if( !ld.t->layouts()->vertical_slave().empty() ||
 			!ld.t->layouts()->vertical_master().empty())
 		{
+			GMG_PROFILE_BEGIN(GMG_GatheredBaseSolver_Defect_CopyNoghostToGhost);
 			SetLayoutValues(&(*ld.t), ld.t->layouts()->vertical_master(), 0);
 			copy_noghost_to_ghost(ld.t, ld.sd, ld.vMapPatchToGlobal);
+			GMG_PROFILE_END();
 
+			GMG_PROFILE_BEGIN(GMG_GatheredBaseSolver_Defect_SendAndRecieve);
 			ComPol_VecAddSetZero<vector_type> cpVecAdd(ld.t.get(), ld.getMultiOccurence());
 			m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecAdd);
 			m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecAdd);
 			m_Com.communicate();
+			GMG_PROFILE_END();
 		}
 		#endif
 
 	//	only solve on gathering master
 		if(gathered_base_master())
 		{
-			GMG_PROFILE_BEGIN(GMG_BaseSolver);
 			UG_DLOG(LIB_DISC_MULTIGRID, 3, " GMG: Start serial base solver.\n");
+			GMG_PROFILE_BEGIN(GMG_GatheredBaseSolver_Apply);
 
 		//	Reset correction
 			spGatheredBaseCorr->set(0.0);
@@ -1884,13 +1912,17 @@ base_solve(int lev)
 		SmartPtr<GF> spC = ld.sc;
 		if(gathered_base_master()) spC = spGatheredBaseCorr;
 
+		GMG_PROFILE_BEGIN(GMG_GatheredBaseSolver_Correction_SendAndRecieve);
 		ComPol_VecCopy<vector_type> cpVecCopy(spC.get());
 		m_Com.send_data(spC->layouts()->vertical_master(), cpVecCopy);
 		m_Com.receive_data(spC->layouts()->vertical_slave(), cpVecCopy);
 		m_Com.communicate();
+		GMG_PROFILE_END();
 		if(gathered_base_master()){
+			GMG_PROFILE_BEGIN(GMG_GatheredBaseSolver_Correction_CopyGhostToNoghost);
 			spGatheredBaseCorr->set_storage_type(PST_CONSISTENT);
 			copy_ghost_to_noghost(ld.sc, spGatheredBaseCorr, ld.vMapPatchToGlobal);
+			GMG_PROFILE_END();
 		} else {
 			ld.sc->set_storage_type(PST_CONSISTENT);
 		}
@@ -1902,7 +1934,9 @@ base_solve(int lev)
 //	anymore, since it will be restricted anyway. For adaptive case, however,
 //	we must keep track of the defect on the surface
 	if(lev >= m_LocalFullRefLevel){
+		GMG_PROFILE_BEGIN(GMG_UpdateDefectAfterBaseSolver);
 		ld.A->apply_sub(*ld.sd, *ld.sc);
+		GMG_PROFILE_END();
 	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
@@ -1915,7 +1949,7 @@ template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
 lmgc(int lev)
 {
-	PROFILE_FUNC_GROUP("gmg");
+	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - lmgc on level "<<lev<<"\n");
 
 //	switch, if base level is reached. If so, call base Solver, else we will
