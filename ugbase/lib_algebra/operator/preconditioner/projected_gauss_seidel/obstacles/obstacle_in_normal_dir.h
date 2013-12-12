@@ -31,13 +31,13 @@ namespace ug{
  * 	Those obstacle functions can be used in combination with projected preconditioners. They
  * 	should be passed to the preconditioner by 'IProjPreconditioner::set_obstacle_constraint'.
  */
-/*template <typename TDomain, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 class ObstacleInNormalDir:
-	public IObstacleConstraint<TAlgebra>
+	public IObstacleConstraint<TDomain,TAlgebra>
 {
 	public:
 	///	Base class type
-		typedef IObstacleConstraint<TAlgebra> base_type;
+		typedef IObstacleConstraint<TDomain,TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -57,33 +57,31 @@ class ObstacleInNormalDir:
 	public:
 	/// constructor for an obstacle in normal direction
 	///	defined on some subset(s)
-		ObstacleInNormalDir(const function_type& u, const char* subsets):
-			IObstacleConstraint<TAlgebra>(u, subsets){};
+		ObstacleInNormalDir(const function_type& u):
+			IObstacleConstraint<TDomain,TAlgebra>(u){};
 
 	/// constructor
-		ObstacleInNormalDir(): IObstacleConstraint<TAlgebra>(){};
+		ObstacleInNormalDir(): IObstacleConstraint<TDomain,TAlgebra>(){};
 
-	///	computes the correction for the case that only a lower obstacle is set, i.e. u * n >= g_low
-		void correction_for_lower_obs(value_type& c_i, value_type& sol_i, const size_t index);
+	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
+		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
+				const number tmpSol, const DoFIndex& dof);
 
-	///	computes the correction for the case that only an upper obstacle is set, i.e. u * n <= g_up
-		void correction_for_upper_obs(value_type& c_i, value_type& sol_i, const size_t index);
-
-	///	computes the correction for the case that a lower and an upper obstacle is set
-		void correction_for_lower_and_upper_obs(value_type& c_i, value_type& sol_i, const size_t index);
+		void adjust_defect(vector_type& d);
 
 	///	Destructor
 		~ObstacleInNormalDir(){};
 
 	private:
-	///	pointer to vector of active Indices (for lower and upper constraint)
-		using base_type::m_spLowerActiveInd;
-		using base_type::m_spUpperActiveInd;
+	///	vector of dofs lying in the obstacle subset
+		using base_type::m_vObstacleDoFs;
 
-	///	vector of obstacle values (for lower and upper constraint)
-		using base_type::m_spVecOfLowObsValues;
-		using base_type::m_spVecOfUpObsValues;
-};*/
+	///	store the dofs, which satisfy the constraints with equality
+		using base_type::m_vActiveDofs;
+
+	///	map storing the obstacle values for every obstacle dof (key)
+		using base_type::m_mObstacleValues;
+};
 
 } // end namespace ug
 

@@ -107,16 +107,16 @@ static void DomainAlgebra(Registry& reg, string grp)
 	}
 
 	//	ObstacleInNormalDir
-	/*{
+	{
 		typedef ObstacleInNormalDir<TDomain,TAlgebra> T;
-		typedef IObstacleConstraint<TAlgebra> TBase;
+		typedef IObstacleConstraint<TDomain,TAlgebra> TBase;
 		string name = string("ObstacleInNormalDir").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
-			.template add_constructor<void (*)(const function_type&, const char*)>()
+			.template add_constructor<void (*)(const function_type&)>()
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ObstacleInNormalDir", tag);
-	}*/
+	}
 
 
 //	Projected Preconditioners
