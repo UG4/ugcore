@@ -32,17 +32,24 @@ init()
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
+add(SmartPtr<UserData<number, dim, bool> > func, const char* function)
+{
+	m_vCondNumberData.push_back(CondNumberData(func, function));
+}
+
+template <typename TDomain, typename TAlgebra>
+void IObstacleConstraint<TDomain, TAlgebra>::
 add(SmartPtr<UserData<number, dim, bool> > func, const char* function, const char* subsets)
 {
 	m_vCondNumberData.push_back(CondNumberData(func, function, subsets));
 }
 
-/*template <typename TDomain, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
 add(SmartPtr<UserData<number, dim> > func, const char* function)
 {
-	m_vNumberData.push_back(NumberData(func, function, true));
-}*/
+	m_vNumberData.push_back(NumberData(func, function));
+}
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
@@ -51,6 +58,12 @@ add(SmartPtr<UserData<number, dim> > func, const char* function, const char* sub
 	m_vNumberData.push_back(NumberData(func, function, subsets));
 }
 
+template <typename TDomain, typename TAlgebra>
+void IObstacleConstraint<TDomain, TAlgebra>::
+add(number value, const char* function)
+{
+	m_vConstNumberData.push_back(ConstNumberData(value, function));
+}
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
@@ -61,12 +74,58 @@ add(number value, const char* function, const char* subsets)
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
+add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions)
+{
+	m_vVectorData.push_back(VectorData(func, functions));
+}
+
+template <typename TDomain, typename TAlgebra>
+void IObstacleConstraint<TDomain, TAlgebra>::
 add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets)
 {
 	m_vVectorData.push_back(VectorData(func, functions, subsets));
 }
 
 #ifdef UG_FOR_LUA
+template <typename TDomain, typename TAlgebra>
+void IObstacleConstraint<TDomain, TAlgebra>::
+add(const char* name, const char* function)
+{
+	if(LuaUserData<number, dim>::check_callback_returns(name)){
+		SmartPtr<UserData<number, dim> > sp =
+							LuaUserDataFactory<number, dim>::create(name);
+		add(sp, function);
+		return;
+	}
+	if(LuaUserData<number, dim, bool>::check_callback_returns(name)){
+		SmartPtr<UserData<number, dim, bool> > sp =
+						LuaUserDataFactory<number, dim, bool>::create(name);
+		add(sp, function);
+		return;
+	}
+	if(LuaUserData<MathVector<dim>, dim>::check_callback_returns(name)){
+		SmartPtr<UserData<MathVector<dim>, dim> > sp =
+				LuaUserDataFactory<MathVector<dim>, dim>::create(name);
+		add(sp, function);
+		return;
+	}
+
+//	no match found
+	if(!CheckLuaCallbackName(name))
+		UG_THROW("IObstacleConstraint::add: Lua-Callback with name '"<<name<<
+		               "' does not exist.");
+
+//	name exists but wrong signature
+	UG_THROW("IObstacleConstraint::add: Cannot find matching callback "
+					"signature. Use one of:\n"
+					"a) Number - Callback\n"
+					<< (LuaUserData<number, dim>::signature()) << "\n" <<
+					"b) Conditional Number - Callback\n"
+					<< (LuaUserData<number, dim, bool>::signature()) << "\n" <<
+					"c) "<<dim<<"d Vector - Callback\n"
+					<< (LuaUserData<MathVector<dim>, dim>::signature()));
+}
+
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
 add(const char* name, const char* function, const char* subsets)
@@ -182,17 +241,17 @@ extract_data(std::map<int, std::vector<TUserData*> >& mvUserDataObsSegment,
 	for(size_t i = 0; i < vUserData.size(); ++i)
 	{
 	//	create Function Group and Subset Group
-		//if (vUserData[i].bWholeDomain == false)
-		try{
-			vUserData[i].ssGrp = m_spDD->subset_grp_by_name(vUserData[i].ssName.c_str());
-		}UG_CATCH_THROW(" Subsets '"<<vUserData[i].ssName<<"' not"
-		                " all contained in DoFDistribution.");
-		/*else
-		{
+		if (vUserData[i].bWholeDomain == false){
+			try{
+				vUserData[i].ssGrp = m_spDD->subset_grp_by_name(vUserData[i].ssName.c_str());
+			}UG_CATCH_THROW(" Subsets '"<<vUserData[i].ssName<<"' not"
+							" all contained in DoFDistribution.");
+		}
+		else{
 			SubsetGroup ssGrp = SubsetGroup(m_spDD->subset_handler());
 			ssGrp.add_all();
 			vUserData[i].ssGrp = ssGrp;
-		}*/
+		}
 
 		FunctionGroup fctGrp;
 		try{

@@ -56,15 +56,25 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IObstacleConstraint<TDomain,TAlgebra> T;
 		string name = string("IObstacleConstraint").append(suffix);
 		reg.add_class_<T>(name, grp)
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*)>(&T::add),
+						"", "Value#Function")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add),
 						"", "Value#Function#Subsets")
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*)>(&T::add),
+							"", "Value#Function")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >, const char*, const char*)>(&T::add),
 						"", "Value#Function#Subsets")
+			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const char*)>(&T::add),
+						"", "Vector#Functions")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >, const char*, const char*)>(&T::add),
 						"", "Vector#Functions#Subsets")
+			.add_method("add",static_cast<void (T::*)(number, const char*)>(&T::add),
+						"", "ConstantValue#Function")
 			.add_method("add",static_cast<void (T::*)(number, const char*, const char*)>(&T::add),
 						"", "ConstantValue#Function#Subsets")
 #ifdef UG_FOR_LUA
+			.add_method("add",static_cast<void (T::*)(const char*, const char*)>(&T::add),
+						"", "LuaCallback#Function")
 			.add_method("add",static_cast<void (T::*)(const char*, const char*, const char*)>(&T::add),
 						"", "LuaCallback#Function#Subsets")
 #endif

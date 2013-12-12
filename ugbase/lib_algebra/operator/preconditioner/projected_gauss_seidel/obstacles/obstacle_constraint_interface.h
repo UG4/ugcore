@@ -81,19 +81,24 @@ class IObstacleConstraint
 
 	///	adds a lua callback (cond and non-cond)
 	#ifdef UG_FOR_LUA
+		void add(const char* name, const char* function);
 		void add(const char* name, const char* function, const char* subsets);
 	#endif
 
-	///	adds a conditional user-defined value as dirichlet condition for a function on subsets
+	///	adds a conditional user-defined value as dirichlet condition for a function on subsets and on whole domain
+		void add(SmartPtr<UserData<number, dim, bool> > func, const char* function);
 		void add(SmartPtr<UserData<number, dim, bool> > func, const char* function, const char* subsets);
 
-	///	adds a user-defined value as dirichlet condition for a function on subsets
+	///	adds a user-defined value as dirichlet condition for a function on subsets and on whole domain
+		void add(SmartPtr<UserData<number, dim> > func, const char* function);
 		void add(SmartPtr<UserData<number, dim> > func, const char* function, const char* subsets);
 
-	///	adds a constant value as dirichlet condition for a function on subsets
+	///	adds a constant value as dirichlet condition for a function on subsets and on whole domain
+		void add(number value, const char* function);
 		void add(number value, const char* function, const char* subsets);
 
-	///	adds a user-defined vector as dirichlet condition for a vector-function on subsets
+	///	adds a user-defined vector as dirichlet condition for a vector-function on subsets and on whole domain
+		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions);
 		void add(SmartPtr<UserData<MathVector<dim>, dim> > func, const char* functions, const char* subsets);
 
 
@@ -165,10 +170,14 @@ class IObstacleConstraint
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
 			NumberData(SmartPtr<UserData<number, dim> > functor_,
-					   std::string fctName_, std::string ssName_)
-				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
+					   std::string fctName_)
+				: spFunctor(functor_), fctName(fctName_), bWholeDomain(true)
 			{}
-
+			NumberData(SmartPtr<UserData<number, dim> > functor_,
+					   std::string fctName_, std::string ssName_)
+				: spFunctor(functor_), fctName(fctName_), ssName(ssName_),
+				  bWholeDomain(false)
+			{}
 			bool operator()(MathVector<1>& val, const MathVector<dim> x,
 							number time, int si) const
 			{
@@ -180,7 +189,7 @@ class IObstacleConstraint
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
-			//bool bWholeDomain;
+			bool bWholeDomain;
 		};
 
 	///	grouping for subset and conditional data
@@ -190,8 +199,13 @@ class IObstacleConstraint
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
 			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
+						  std::string fctName_)
+				: spFunctor(functor_), fctName(fctName_), bWholeDomain(true)
+			{}
+			CondNumberData(SmartPtr<UserData<number, dim, bool> > functor_,
 						  std::string fctName_, std::string ssName_)
-				: spFunctor(functor_), fctName(fctName_), ssName(ssName_)
+				: spFunctor(functor_), fctName(fctName_), ssName(ssName_),
+				  bWholeDomain(true)
 			{}
 			bool operator()(MathVector<1>& val, const MathVector<dim> x,
 							number time, int si) const
@@ -204,7 +218,7 @@ class IObstacleConstraint
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
-			//bool bWholeDomain;
+			bool bWholeDomain;
 		};
 
 	///	grouping for subset and conditional data
@@ -214,8 +228,13 @@ class IObstacleConstraint
 			const static size_t numFct = 1;
 			typedef MathVector<1> value_type;
 			ConstNumberData(number value_,
+						  std::string fctName_)
+				: functor(value_), fctName(fctName_), bWholeDomain(true)
+			{}
+			ConstNumberData(number value_,
 						  std::string fctName_, std::string ssName_)
-				: functor(value_), fctName(fctName_), ssName(ssName_)
+				: functor(value_), fctName(fctName_), ssName(ssName_),
+				  bWholeDomain(false)
 			{}
 			inline bool operator()(MathVector<1>& val, const MathVector<dim> x,
 								   number time, int si) const
@@ -228,7 +247,7 @@ class IObstacleConstraint
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
-			//bool bWholeDomain;
+			bool bWholeDomain;
 		};
 
 	///	grouping for subset and non-conditional data
@@ -238,8 +257,13 @@ class IObstacleConstraint
 			const static size_t numFct = dim;
 			typedef MathVector<dim> value_type;
 			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
+					   std::string fctName_)
+				: spFunctor(value_), fctName(fctName_), bWholeDomain(true)
+			{}
+			VectorData(SmartPtr<UserData<MathVector<dim>, dim> > value_,
 					   std::string fctName_, std::string ssName_)
-				: spFunctor(value_), fctName(fctName_), ssName(ssName_)
+				: spFunctor(value_), fctName(fctName_), ssName(ssName_),
+				  bWholeDomain(false)
 			{}
 			bool operator()(MathVector<dim>& val, const MathVector<dim> x,
 							number time, int si) const
@@ -252,7 +276,7 @@ class IObstacleConstraint
 			std::string ssName;
 			size_t fct[numFct];
 			SubsetGroup ssGrp;
-			//bool bWholeDomain;
+			bool bWholeDomain;
 		};
 
 		std::vector<CondNumberData> m_vCondNumberData;
