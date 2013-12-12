@@ -92,7 +92,7 @@ class VMAdd
 		UG_LOG(desc << " " << t << "\n");
 	}
 
-		void print_op(size_t &i)
+	void print_op(size_t &i)
 	{
 		int op;
 		deserialize(i, op);

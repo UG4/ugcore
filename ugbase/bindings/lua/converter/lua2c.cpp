@@ -109,8 +109,12 @@ bool LUA2C::createVM(const char *functionName)
 		return false;
 
 	if(parser.createVM(vm) == false)
+	{
+		UG_LOG("failed.\n");
 		return false;
-	vm.print();
+	}
+	UG_LOG(" ok.\n");
+//	vm.print();
 	m_iIn = vm.num_in();
 	m_iOut = vm.num_out();
 	bInitialized = true;

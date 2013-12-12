@@ -195,11 +195,11 @@ int LUAParserClass::createVM(VMAdd &vm)
 	std::map<std::string, SmartPtr<LUAParserClass> > subfunctions;
 	std::map<std::string, SmartPtr<VMAdd> > subVM;
 	add_subfunctions(subfunctions);
-	UG_LOG("Subfunctions:\n");
+//	UG_LOG("Subfunctions:\n");
 	for(std::map<std::string, SmartPtr<LUAParserClass> >::iterator it = subfunctions.begin(); it != subfunctions.end(); ++it)
 	{
 		std::string subName = (*it).first;
-		UG_LOG(subName << "\n");
+//		UG_LOG(subName << "\n");
 		SmartPtr<VMAdd> sub = new VMAdd;
 		sub->set_name(subName);
 		subVM[subName] = sub;
@@ -207,7 +207,7 @@ int LUAParserClass::createVM(VMAdd &vm)
 
 	for(std::map<std::string, SmartPtr<LUAParserClass> >::iterator it = subfunctions.begin(); it != subfunctions.end(); ++it)
 	{
-		UG_LOG((*it).first << "\n");
+//		UG_LOG((*it).first << "\n");
 		std::string name = (*it).first;
 		((*it).second)->createVMHeader(*subVM[name]);
 	}
@@ -217,7 +217,7 @@ int LUAParserClass::createVM(VMAdd &vm)
 
 	for(std::map<std::string, SmartPtr<LUAParserClass> >::iterator it = subfunctions.begin(); it != subfunctions.end(); ++it)
 	{
-		UG_LOG((*it).first << "\n");
+//		UG_LOG((*it).first << "\n");
 		std::string name = (*it).first;
 		((*it).second)->createVMSub(*subVM[name], subVM);
 	}
@@ -233,22 +233,22 @@ int LUAParserClass::createVMHeader(VMAdd &vm)
 	int i=0;
 	while(a->type == typeOpr)
 	{
-		UG_LOG(id2variable[a->opr.op[0]->id.i] << " - " << a->opr.op[0]->id.i << "\n");
+//		UG_LOG(id2variable[a->opr.op[0]->id.i] << " - " << a->opr.op[0]->id.i << "\n");
 		a = a->opr.op[1];
 		i++;
 	}
-	UG_LOG(id2variable[a->id.i] << " - " << a->id.i << "\n");
+//	UG_LOG(id2variable[a->id.i] << " - " << a->id.i << "\n");
 
 	vm.set_in_out(i+1,numOut);
 	vm.set_nr_of_variables(variables.size());
-	UG_LOG("function " << name << " in: " << i+1 << " out " << numOut << "\n");
+//	UG_LOG("function " << name << " in: " << i+1 << " out " << numOut << "\n");
 
 	return true;
 }
 
 int LUAParserClass::createVMSub(VMAdd &vm, std::map<std::string, SmartPtr<VMAdd> > &subVM)
 {
-	UG_LOG("CODE:\n");
+//	UG_LOG("CODE:\n");
 	for(size_t i=0; i<nodes.size(); i++)
 		createVM(nodes[i], vm, subVM);
 	return true;
