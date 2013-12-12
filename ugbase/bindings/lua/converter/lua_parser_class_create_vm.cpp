@@ -72,7 +72,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
                     }
                     if(a != NULL)
                     {
-                        UG_ASSERT(a->opr.oper == LUAPARSER_ELSE, a->opr.oper);
+                    	UG_COND_THROW(a->opr.oper != LUAPARSER_ELSE, a->opr.oper);
                         vm.adjust_jmp_pos(jmpElsePos, vm.get_pos());
 
                         createVM(a->opr.op[0], vm, subVM);
@@ -87,7 +87,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
                 }
 
 				case '=':
-                    UG_ASSERT(is_local(p->opr.op[0]->id.i), "global variable " << id2variable[p->opr.op[0]->id.i] << " is read-only");
+                    UG_COND_THROW(!is_local(p->opr.op[0]->id.i), "global variable " << id2variable[p->opr.op[0]->id.i] << " is read-only");
 
 					createVM(p->opr.op[1], vm, subVM);
 
@@ -107,7 +107,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
 
 					std::string subName = id2variable[p->opr.op[0]->id.i];
 					SmartPtr<VMAdd> sub = subVM[subName];
-					UG_ASSERT(sub.valid(), "subroutine " << subName << " not found.");
+					UG_COND_THROW(!sub.valid(), "subroutine " << subName << " not found.");
                 	vm.call(sub);
                 	break;
                 }
@@ -127,11 +127,11 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
 				}
 
 				case LUAPARSER_FOR:
-					UG_ASSERT(0, "not implemented");
+					UG_THROW("not implemented");
 					break;
 
 				case LUAPARSER_BREAK:
-					UG_ASSERT(0, "not implemented");
+					UG_THROW("not implemented");
 					break;
 
 				case LUAPARSER_UMINUS:
@@ -182,7 +182,7 @@ int LUAParserClass::createVM(nodeType *p, VMAdd &vm,  std::map<std::string, Smar
 					createVM(p->opr.op[1], vm, subVM);
 					break;
                 default:
-					UG_ASSERT(0, p->opr.oper  << "not implemented");
+                	UG_THROW(p->opr.oper  << "not implemented");
 					break;
 			}
 	}

@@ -105,12 +105,27 @@ bool LUA2C::createVM(const char *functionName)
 	m_name = functionName;
 	UG_LOG("parsing " << functionName << "... ");
 	LUAParserClass parser;
-	if(parser.parse_luaFunction(functionName) == false)
-		return false;
+	try{
+		if(parser.parse_luaFunction(functionName) == false)
+		{
+			UG_LOG("failed.\n");
+			return false;
+		}
 
-	if(parser.createVM(vm) == false)
+		if(parser.createVM(vm) == false)
+		{
+			UG_LOG("failed.\n");
+			return false;
+		}
+	}
+	catch(UGError e)
 	{
-		UG_LOG("failed.\n");
+		UG_LOG("failed:\n" << e.get_stacktrace() << "\n");
+		return false;
+	}
+	catch(...)
+	{
+		UG_LOG("failed: Exception.\n");
 		return false;
 	}
 	UG_LOG(" ok.\n");
