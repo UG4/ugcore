@@ -56,6 +56,7 @@ AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_numPreSmooth(2), m_numPostSmooth(2),
 	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL),
 	m_bUseRAP(false), m_bSmoothOnSurfaceRim(false),
+	m_bCommCompOverlap(false),
 	m_spPreSmootherPrototype(new Jacobi<TAlgebra>()),
 	m_spPostSmootherPrototype(m_spPreSmootherPrototype),
 	m_spProjectionPrototype(new StdInjection<TDomain,TAlgebra>(m_spApproxSpace)),
@@ -454,9 +455,41 @@ assemble_level_operator()
 	{
 		LevData& ld = *m_vLevData[lev];
 
+	//	send solution to v-master
+		SmartPtr<GF> spT = ld.st;
+		#ifdef UG_PARALLEL
+		ComPol_VecCopy<vector_type> cpVecCopy(ld.t.get());
+		if(m_pSurfaceSol && lev > m_baseLev)
+		{
+			if( !ld.t->layouts()->vertical_slave().empty() ||
+				!ld.t->layouts()->vertical_master().empty())
+			{
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - send sol to v-master\n");
+
+				// todo: if no ghosts present on proc one could use ld.st directly
+				GMG_PROFILE_BEGIN(GMG_SolCopy_NoghostToGhost);
+				copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
+				GMG_PROFILE_END();
+
+				GMG_PROFILE_BEGIN(GMG_SolCopy_Send);
+				m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
+				m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
+				m_Com.communicate_and_resume();
+				GMG_PROFILE_END();
+				if(!m_bCommCompOverlap){
+					GMG_PROFILE_BEGIN(GMG_SolCopy_WaitForRevieve_NoOverlap);
+					m_Com.wait();
+					GMG_PROFILE_END();
+				}
+
+				spT = ld.t;
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - send sol to v-master\n");
+			}
+		}
+		#endif
+
 	//	In Full-Ref case we can copy the Matrix from the surface
 		bool bCpyFromSurface = ((lev == m_topLev) && (lev <= m_LocalFullRefLevel));
-
 		if(!bCpyFromSurface)
 		{
 			UG_DLOG(LIB_DISC_MULTIGRID, 4, "  start assemble_level_operator: assemble on lev "<<lev<<"\n");
@@ -514,34 +547,22 @@ assemble_level_operator()
 
 		if(m_pSurfaceSol && lev > m_baseLev)
 		{
-			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
-			LevData& lc = *m_vLevData[lev-1];
-
-			SmartPtr<GF> spT = ld.st;
 			#ifdef UG_PARALLEL
-			if( !ld.t->layouts()->vertical_slave().empty() ||
-				!ld.t->layouts()->vertical_master().empty())
-			{
-				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
-				GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
-
-				copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
-
-				ComPol_VecCopy<vector_type> cpVecCopy(ld.t.get());
-				m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
-				m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
-				m_Com.communicate();
-
-				spT = ld.t;
+			if(m_bCommCompOverlap){
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - recieve sol at v-master\n");
+				GMG_PROFILE_BEGIN(GMG_SolCopy_WaitForRecieve);
+				m_Com.wait();
 				GMG_PROFILE_END();
-				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop  - recieve sol at v-master\n");
 			}
 			#endif
 
+			GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
+			LevData& lc = *m_vLevData[lev-1];
 			try{
 				ld.Projection->do_restrict(*lc.st, *spT);
-			} UG_CATCH_THROW("GMG::init: Cannot project "
-						"solution to coarse grid function of level "<<lev-1<<".\n");
+			} UG_CATCH_THROW("GMG::init: Cannot project solution to coarse grid "
+							"function of level "<<lev-1);
 
 			#ifdef UG_PARALLEL
 			lc.st->set_storage_type(m_pSurfaceSol->get_storage_mask());
@@ -572,18 +593,18 @@ assemble_level_operator()
 			if( !ld.t->layouts()->vertical_slave().empty() ||
 				!ld.t->layouts()->vertical_master().empty())
 			{
-				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy_to_vertical_masters\n");
-				GMG_PROFILE_BEGIN(GMG_CopyToVerticalMasters);
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - copy sol to gathered master\n");
 
+				GMG_PROFILE_BEGIN(GMG_SolCopyToGatheredMaster);
 				copy_noghost_to_ghost(ld.t, ld.st, ld.vMapPatchToGlobal);
 
 				ComPol_VecCopy<vector_type> cpVecCopy(ld.t.get());
 				m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecCopy);
 				m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecCopy);
 				m_Com.communicate();
-
 				GMG_PROFILE_END();
-				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy_to_vertical_masters\n");
+
+				UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - copy sol to gathered master\n");
 			}
 			#endif
 		}
@@ -766,35 +787,50 @@ init_rap_operator()
 		LevData& lf = *m_vLevData[lev];
 		LevData& lc = *m_vLevData[lev-1];
 
-		GMG_PROFILE_BEGIN(GMG_CreateRestrictionAndProlongation);
-		SmartPtr<matrix_type> R = lf.Restriction->restriction(lc.st->grid_level(), lf.t->grid_level(), m_spApproxSpace);
-		SmartPtr<matrix_type> P = lf.Prolongation->prolongation(lf.t->grid_level(), lc.st->grid_level(), m_spApproxSpace);
-		GMG_PROFILE_END();
-
-		GMG_PROFILE_BEGIN(GMG_CopyGhosts);
 		SmartPtr<matrix_type> spA = lf.A;
-#ifdef UG_PARALLEL
+		#ifdef UG_PARALLEL
+		SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
+		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, lf.getMultiOccurence());
 		if( !lf.t->layouts()->vertical_master().empty() ||
 			!lf.t->layouts()->vertical_slave().empty())
 		{
-			SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
+			GMG_PROFILE_BEGIN(GMG_CopyMatRAP_NoghostToGhost);
 			spGhostA->resize_and_clear(lf.t->size(), lf.t->size());
 			spGhostA->set_layouts(lf.t->layouts());
-
 			if(!lf.t->layouts()->vertical_master().empty()){
 				copy_noghost_to_ghost(spGhostA, lf.A, lf.vMapPatchToGlobal);
 			} else {
 				*spGhostA = *lf.A;
 			}
+			GMG_PROFILE_END();
 
-			ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, lf.getMultiOccurence());
+			GMG_PROFILE_BEGIN(GMG_CopyMatRAP_Send);
 			m_Com.send_data(spGhostA->layouts()->vertical_slave(), cpMatAdd);
 			m_Com.receive_data(spGhostA->layouts()->vertical_master(), cpMatAdd);
-			m_Com.communicate();
+			m_Com.communicate_and_resume();
+			GMG_PROFILE_END();
+			if(!m_bCommCompOverlap){
+				GMG_PROFILE_BEGIN(GMG_CopyMatRAP_WaitForRevieve_NoOverlap);
+				m_Com.wait();
+				GMG_PROFILE_END();
+			}
+
 			spA = spGhostA;
 		}
-#endif
+		#endif
+
+		GMG_PROFILE_BEGIN(GMG_CreateRestrictionAndProlongation);
+		SmartPtr<matrix_type> R = lf.Restriction->restriction(lc.st->grid_level(), lf.t->grid_level(), m_spApproxSpace);
+		SmartPtr<matrix_type> P = lf.Prolongation->prolongation(lf.t->grid_level(), lc.st->grid_level(), m_spApproxSpace);
 		GMG_PROFILE_END();
+
+		#ifdef UG_PARALLEL
+		if(m_bCommCompOverlap){
+			GMG_PROFILE_BEGIN(GMG_CopyMatRAP_WaitForRevieve);
+			m_Com.wait();
+			GMG_PROFILE_END();
+		}
+		#endif
 
 		GMG_PROFILE_BEGIN(GMG_ComputeRAP);
 		AddMultiplyOf(*lc.A, *R, *spA, *P);
@@ -825,11 +861,13 @@ init_rap_operator()
 		spGatheredBaseMat->set_storage_type(m_spSurfaceMat->get_storage_mask());
 		spGatheredBaseMat->set_layouts(ld.t->layouts());
 
+		GMG_PROFILE_BEGIN(GMG_CopyMatRAP_CpyToGatheredBase);
 		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat, ld.getMultiOccurence());
 		m_Com.send_data(spGatheredBaseMat->layouts()->vertical_slave(), cpMatAdd);
 		if(gathered_base_master())
 			m_Com.receive_data(spGatheredBaseMat->layouts()->vertical_master(), cpMatAdd);
 		m_Com.communicate();
+		GMG_PROFILE_END();
 
 		if(!gathered_base_master()){
 			spGatheredBaseMat = NULL;
@@ -1577,10 +1615,10 @@ presmooth_and_restriction(int lev)
 //	PARALLEL CASE:
 	SmartPtr<GF> spD = lf.sd;
 	#ifdef UG_PARALLEL
+	ComPol_VecAddSetZero<vector_type> cpVecAdd(lf.t.get(), lf.getMultiOccurence());
 	if( !lf.t->layouts()->vertical_slave().empty() ||
 		!lf.t->layouts()->vertical_master().empty())
 	{
-		GMG_PROFILE_BEGIN(GMG_AddToVerticalMasterAndSetZero);
 		//	v-slaves indicate, that part of the parent are stored on a different proc.
 		//	Thus the values of the defect must be transfered to the v-masters and will
 		//	have their parents on the proc of the master and must be restricted on
@@ -1591,16 +1629,23 @@ presmooth_and_restriction(int lev)
 		//	We use a temporary vector including ghost, such that the no-ghost defect
 		//	remains valid and can be used when the cycle comes back to this level.
 
+		GMG_PROFILE_BEGIN(GMG_Restriction_CpyNoghostToGhost);
 		SetLayoutValues(&(*lf.t), lf.t->layouts()->vertical_master(), 0);
 		copy_noghost_to_ghost(lf.t, lf.sd, lf.vMapPatchToGlobal);
+		GMG_PROFILE_END();
 
-		ComPol_VecAddSetZero<vector_type> cpVecAdd(lf.t.get(), lf.getMultiOccurence());
+		GMG_PROFILE_BEGIN(GMG_Restriction_Send);
 		m_Com.send_data(lf.t->layouts()->vertical_slave(), cpVecAdd);
 		m_Com.receive_data(lf.t->layouts()->vertical_master(), cpVecAdd);
-		m_Com.communicate();
+		m_Com.communicate_and_resume();
+		GMG_PROFILE_END();
+		if(!m_bCommCompOverlap){
+			GMG_PROFILE_BEGIN(GMG_Restriction_Recieve_NoOverlap);
+			m_Com.wait();
+			GMG_PROFILE_END();
+		}
 
 		spD = lf.t;
-		GMG_PROFILE_END();
 	}
 	#endif
 
@@ -1610,6 +1655,12 @@ presmooth_and_restriction(int lev)
 //	update last correction
 	if(m_numPreSmooth > 0)
 		(*lf.sc) += (*lf.st);
+
+	if(m_bCommCompOverlap){
+		GMG_PROFILE_BEGIN(GMG_Restriction_Recieve_WithOverlap);
+		m_Com.wait();
+		GMG_PROFILE_END();
+	}
 
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - restriction on level "<<lev<<"\n");
 	log_debug_data(lev, "BeforeRestrict");

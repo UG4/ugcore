@@ -153,6 +153,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_method("set_emulate_full_refined_grid", &T::set_emulate_full_refined_grid)
 			.add_method("set_rap", &T::set_rap)
 			.add_method("set_smooth_on_surface_rim", &T::set_smooth_on_surface_rim)
+			.add_method("set_comm_comp_overlap", &T::set_comm_comp_overlap)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "GeometricMultiGrid", tag);
 	}

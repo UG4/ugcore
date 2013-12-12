@@ -118,6 +118,9 @@ class AssembledMultiGridCycle :
 			else {UG_THROW("GMG::set_cycle_type: option '"<<type<<"' not supported.");}
 		}
 
+	///	sets if communication and computation should be overlaped
+		void set_comm_comp_overlap(bool bOverlap) {m_bCommCompOverlap = bOverlap;}
+
 	///	sets the number of pre-smoothing steps to be performed
 		void set_num_presmooth(int num) {m_numPreSmooth = num;}
 
@@ -288,6 +291,9 @@ class AssembledMultiGridCycle :
 
 	///	flag if smoothing on surface rim
 		bool m_bSmoothOnSurfaceRim;
+
+	///	flag if overlapping communication and computation
+		bool m_bCommCompOverlap;
 
 	///	approximation space revision of cached values
 		RevisionCounter m_ApproxSpaceRevision;
