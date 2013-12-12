@@ -72,8 +72,12 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		};
 
 		struct ElemList{
-			ElemList(std::vector<Entry>& entries) :
+			ElemList() :
+				m_entries(NULL), m_first(s_invalidIndex), m_last(s_invalidIndex), m_num(0)		{}
+			ElemList(std::vector<Entry>* entries) :
 				m_entries(entries), m_first(s_invalidIndex), m_last(s_invalidIndex), m_num(0)	{}
+
+			void set_entry_list(std::vector<Entry>* entries)	{m_entries = entries;}
 
 			void add(size_t entryInd)
 			{
@@ -82,11 +86,11 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 					m_num = 1;
 				}
 				else{
-					m_entries[m_last].next = entryInd;
+					(*m_entries)[m_last].next = entryInd;
 					m_last = entryInd;
 					++m_num;
 				}
-				m_entries[entryInd].next = s_invalidIndex;
+				(*m_entries)[entryInd].next = s_invalidIndex;
 			}
 
 			void clear()
@@ -100,16 +104,38 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 
 			size_t first() const				{return m_first;}
 			size_t last() const					{return m_last;}
-			size_t next(size_t entryInd) const	{return m_entries[entryInd].next;}
-			elem_t* elem(size_t entryInd) const	{return m_entries[entryInd].elem;}
+			size_t next(size_t entryInd) const	{return (*m_entries)[entryInd].next;}
+			elem_t* elem(size_t entryInd) const	{return (*m_entries)[entryInd].elem;}
 
-			std::vector<Entry>& entries()		{return m_entries;}
+			std::vector<Entry>* entries()		{return m_entries;}
 
 			private:
-				std::vector<Entry>& m_entries;
+				std::vector<Entry>* m_entries;
 				size_t m_first;
 				size_t m_last;
 				size_t m_num;
+		};
+
+
+		struct TreeNode{
+			ElemList	elems;
+			int			firstProc;
+			int			numTargetProcs;
+
+			number		ratioLeft;
+			size_t		firstChildNode;
+
+			vector_t	center;
+			vector_t	boxMin;
+			vector_t	boxMax;
+			number		totalWeight;
+
+			number		splitValue;
+			int			splitDim;
+			number		minSplitValue;
+			number		maxSplitValue;
+
+			bool		bisectionComplete;
 		};
 
 
@@ -118,9 +144,19 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 		void perform_bisection(int numTargetProcs, int minLvl, int maxLvl,
 							   int partitionLvl, ANumber aWeight,
 							   pcl::ProcessCommunicator com);
+
+		void perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl,
+							   int partitionLvl, ANumber aWeight,
+							   pcl::ProcessCommunicator com);
+
 		void control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
 							 number maxChildWeight, int numTargetProcs, int firstProc,
 							 ANumber aWeight, pcl::ProcessCommunicator& com);
+
+
+		void control_bisection(ISubsetHandler& partitionSH,
+							   std::vector<TreeNode>& treeNodes, ANumber aWeight,
+							   number maxChildWeight, pcl::ProcessCommunicator& com);
 
 		void bisect_elements(ElemList& elemsLeftOut,
 							ElemList& elemsRightOut,
@@ -132,6 +168,11 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 										 vector_t& boxMaxOut, const ElemList& elems,
 										 number maxChildWeight, ANumber aWeight,
 										 pcl::ProcessCommunicator& com);
+
+		void calculate_global_dimensions(std::vector<TreeNode>& treeNodes,
+										 number maxChildWeight, ANumber aWeight,
+										 pcl::ProcessCommunicator& com);
+
 		void gather_weights_from_level(int baseLvl, int childLvl, ANumber aWeight,
 											bool copyToVMastersOnBaseLvl);
 
@@ -142,6 +183,16 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 								number minValue, number maxValue,
 								size_t maxIterations, ANumber aWeight,
 								pcl::ProcessCommunicator& com);
+
+		void improve_split_values(std::vector<TreeNode>& treeNodes,
+								  size_t maxIterations, ANumber aWeight,
+								  pcl::ProcessCommunicator& com);
+
+		void bisect_elements(std::vector<TreeNode>& childNodesOut,
+							 std::vector<TreeNode>& parentNodes,
+							 ANumber aWeight, number maxChildWeight,
+							 pcl::ProcessCommunicator& com,
+							 int cutRecursion);
 
 
 		MultiGrid*								m_mg;
