@@ -64,7 +64,7 @@ class ScalarLowerObstacle:
 			IObstacleConstraint<TDomain,TAlgebra>(){};
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
-		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool dofIsAdmissible,
+		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 				const number tmpSol, const DoFIndex& dof);
 
 		void adjust_defect(vector_type& d);
@@ -116,7 +116,7 @@ class ScalarUpperObstacle:
 			IObstacleConstraint<TDomain,TAlgebra>(){};
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
-		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool dofIsAdmissible,
+		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 				const number tmpSol, const DoFIndex& dof);
 
 		void adjust_defect(vector_type& d);

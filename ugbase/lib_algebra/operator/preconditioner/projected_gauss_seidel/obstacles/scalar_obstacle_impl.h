@@ -19,7 +19,7 @@ namespace ug{
 template <typename TDomain, typename TAlgebra>
 void
 ScalarLowerObstacle<TDomain, TAlgebra>::
-adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool dofIsAdmissible,
+adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 		const number tmpSol, const DoFIndex& dof)
 {
 	//	get lower obstacle value corresponding to the dof
@@ -62,7 +62,7 @@ adjust_defect(vector_type& d)
 template <typename TDomain, typename TAlgebra>
 void
 ScalarUpperObstacle<TDomain, TAlgebra>::
-adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool dofIsAdmissible,
+adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 		const number tmpSol, const DoFIndex& dof)
 {
 	//	get upper obstacle value corresponding to the dof

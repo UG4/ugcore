@@ -114,7 +114,7 @@ class IObstacleConstraint
 
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
-		virtual void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool dofIsAdmissible,
+		virtual void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 				const number tmpSol, const DoFIndex& dof) = 0;
 
 	///	the defect needs to be adjusted for the active indices (those indices, which are in contact)
