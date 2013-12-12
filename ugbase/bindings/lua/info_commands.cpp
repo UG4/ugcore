@@ -1054,6 +1054,7 @@ void EnableLUA2VM(bool b)
 #ifndef USE_LUA2C
 	UG_LOG("Warning: LUA2C not enabled. Enable with \"cmake -DUSE_LUA2C=ON ..\"\n")
 #endif
+	useLua2C=b;
 	useLua2VM=b;
 }
 
