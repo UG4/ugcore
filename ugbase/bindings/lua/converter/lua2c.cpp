@@ -103,32 +103,36 @@ bool LUA2C::createC(const char *functionName)
 bool LUA2C::createVM(const char *functionName)
 {
 	m_name = functionName;
-	UG_LOG("parsing " << functionName << "... ");
+
 	LUAParserClass parser;
 	try{
 		if(parser.parse_luaFunction(functionName) == false)
 		{
+			UG_LOG("parsing " << functionName << "... ");
 			UG_LOG("failed.\n");
 			return false;
 		}
 
 		if(parser.createVM(vm) == false)
 		{
+			UG_LOG("parsing " << functionName << "... ");
 			UG_LOG("failed.\n");
 			return false;
 		}
 	}
 	catch(UGError e)
 	{
+		UG_LOG("parsing " << functionName << "... ");
 		UG_LOG("failed:\n" << e.get_stacktrace() << "\n");
 		return false;
 	}
 	catch(...)
 	{
+		UG_LOG("parsing " << functionName << "... ");
 		UG_LOG("failed: Exception.\n");
 		return false;
 	}
-	UG_LOG(" ok.\n");
+	//UG_LOG(" ok.\n");
 //	vm.print();
 	m_iIn = vm.num_in();
 	m_iOut = vm.num_out();
