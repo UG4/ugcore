@@ -220,6 +220,8 @@
 	#define PROFILER_UPDATE	ProfilerDummy::Update
 	#define PROFILER_OUTPUT	ProfilerDummy::Output
 
+	#define PROFILE_END_(name)
+
 #endif // UG_PROFILER
 
 #endif	// __H__UG__COMMON__PROFILER__
