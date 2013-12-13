@@ -61,6 +61,8 @@ UG_API void DebugUp();
 UG_API void FinalizeLUADebug();
 
 UG_API void SetLuaDebugIDs(lua_State* L);
+
+UG_API void DebugHold();
 }
 }
 

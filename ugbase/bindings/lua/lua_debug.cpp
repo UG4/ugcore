@@ -157,6 +157,14 @@ void PrintBreakpoints()
 	}
 }
 
+void DebugHold()
+{
+	lastsource="";
+	debugMode=DEBUG_STEP;
+	bDebugging=true;
+	CheckHook();
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void breakpoint()
 {
