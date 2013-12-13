@@ -215,6 +215,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 template<typename matrix_type>
 void CollectMatrixOnOneProc(const matrix_type &A, matrix_type &collectedA, IndexLayout &masterLayout, IndexLayout &slaveLayout)
 {
+	try{
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 	std::vector<int> srcprocs;
@@ -230,6 +231,7 @@ void CollectMatrixOnOneProc(const matrix_type &A, matrix_type &collectedA, Index
 	}
 	else
 		SendMatrix(A, slaveLayout, pc.get_proc_id(0), PN);
+	}UG_CATCH_THROW(__FUNCTION__ << " failed");
 }
 
 /**
@@ -249,6 +251,7 @@ void GatherVectorOnOne(IndexLayout &agglomeratedMaster, IndexLayout &agglomerate
 		const ParallelVector<T> &vec,
 		ParallelStorageType type, bool bRoot)
 {
+	try{
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	typedef ParallelVector<T> vector_type;
 	if(!bRoot)
@@ -282,6 +285,7 @@ void GatherVectorOnOne(IndexLayout &agglomeratedMaster, IndexLayout &agglomerate
 		}
 		else { UG_ASSERT(0, "unsupported."); }
 	}
+	}UG_CATCH_THROW(__FUNCTION__ << " failed");
 }
 
 /**
@@ -302,6 +306,7 @@ void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglom
 		ParallelStorageType type, bool bRoot)
 {
 	PROFILE_FUNC_GROUP("algebra parallelization");
+	try{
 	typedef ParallelVector<T> vector_type;
 	if(!bRoot)
 	{
@@ -330,6 +335,8 @@ void BroadcastVectorFromOne(IndexLayout &agglomeratedMaster, IndexLayout &agglom
 	}
 	else if(type == PST_CONSISTENT) {	}
 	else { UG_ASSERT(0, "unsupported."); }
+
+	}UG_CATCH_THROW(__FUNCTION__ << " failed");
 }
 
 } // namespace ug
