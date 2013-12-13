@@ -200,7 +200,6 @@ lua_State* GetDefaultLuaState()
 
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(theLuaState, *g_pRegistry);
-		PROFILE_END();
 	}
 	
 	return theLuaState;
@@ -235,14 +234,14 @@ int luaCallStackError( lua_State *L )
  */
 bool ParseBuffer(const char* buffer, const char *bufferName)
 {
-	PROFILE_BEGIN(ParseBuffer);
+	PROFILE_FUNC();
 	lua_State* L = GetDefaultLuaState();
 
 	lua_pushcfunction(L, luaCallStackError);
 
 	PROFILE_BEGIN(luaL_loadbuffer);
 	int error = luaL_loadbuffer(L, buffer, strlen(buffer), bufferName);
-	PROFILE_END();
+	PROFILE_END_(luaL_loadbuffer);
 
 	if(error == 0)
 	{
@@ -260,7 +259,6 @@ bool ParseBuffer(const char* buffer, const char *bufferName)
 			throw(LuaError());
 	}
 
-	PROFILE_END();
 	return true;
 
 }
@@ -279,13 +277,12 @@ bool ParseFile(const char* filename)
 
 	PROFILE_BEGIN(luaL_loadfile);
 	int error = luaL_loadfile(L, filename);
-	PROFILE_END();
+	PROFILE_END_(luaL_loadfile);
 
 	if(error == 0)
 	{
 		PROFILE_BEGIN(lua_pcall);
 		error = lua_pcall(L, 0, 0, -2);
-		PROFILE_END();
 	}
 
 	if(error)
