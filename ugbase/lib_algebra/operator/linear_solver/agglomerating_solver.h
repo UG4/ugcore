@@ -1,5 +1,5 @@
 /*
- * parallel_lu.h
+ * agglomerating_solver.h
  *
  *  Created on: 16.06.2010
  *      Author: mrupp
@@ -77,6 +77,7 @@ class AgglomeratingBase : public TBase
 
 		bool init_mat(const matrix_type &A)
 		{
+			try{
 #ifdef UG_PARALLEL
 			m_bEmpty = A.layouts()->proc_comm().empty();
 			if(m_bEmpty) return true;
@@ -96,6 +97,7 @@ class AgglomeratingBase : public TBase
 			m_bEmpty = false;
 			m_bRoot = true;
 #endif
+			}UG_CATCH_THROW("AgglomeratingBase::" << __FUNCTION__ << " failed")
 			return true;
 		}
 
@@ -127,6 +129,7 @@ class AgglomeratingBase : public TBase
 ///	Preprocess routine
 		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
+			try{
 			PROFILE_FUNC();
 		//	get matrix of Operator
 			m_pMatrix = &Op->get_matrix();
@@ -152,7 +155,9 @@ class AgglomeratingBase : public TBase
 #else
 			return init_agglomerated(Op);
 #endif
+			}UG_CATCH_THROW("AgglomeratingBase::" << __FUNCTION__ << " failed")
 		}
+
 
 
 		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A, const vector_type& u)
@@ -177,6 +182,7 @@ class AgglomeratingBase : public TBase
 
 		virtual bool apply(vector_type& x, const vector_type& b)
 		{
+			try{
 #if UG_PARALLEL
 			if(empty()) return true;
 
@@ -190,6 +196,7 @@ class AgglomeratingBase : public TBase
 #else
 			apply_agglomerated(x, b);
 #endif
+			}UG_CATCH_THROW("AgglomeratingBase::" << __FUNCTION__ << " failed")
 		//	we're done
 			return true;
 		}
@@ -274,15 +281,20 @@ class AgglomeratingSolver : public
 		{
 			UG_COND_THROW(linOpInverse.valid()==false, "linOpInverse has to be != NULL");
 			m_pLinOpInverse = linOpInverse;
+			m_name = std::string("AgglomeratingSolver(") + linOpInverse->name() + ")";
 		};
 
 		virtual bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-			return m_pLinOpInverse->init(Op);
+			try{
+				return m_pLinOpInverse->init(Op);
+			}UG_CATCH_THROW("AgglomeratingSolver::" << __FUNCTION__ << " failed")
 		}
 		virtual bool apply_agglomerated(vector_type& x, const vector_type& b)
 		{
-			return m_pLinOpInverse->apply(x, b);
+			try{
+				return m_pLinOpInverse->apply(x, b);
+			}UG_CATCH_THROW("AgglomeratingSolver::" << __FUNCTION__ << " failed")
 		}
 
 	// 	Destructor
@@ -291,13 +303,19 @@ class AgglomeratingSolver : public
 
 		virtual const char* name() const
 		{
-			return "AgglomeratingSolver";
+			return m_name.c_str();
 		}
 
 		virtual bool supports_parallel() const { return true; }
 
+		virtual std::string config_string() const
+		{
+			return std::string("AgglomeratingSolver: ") + m_pLinOpInverse->config_string();
+		}
+
 	protected:
 		SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > m_pLinOpInverse;
+		std::string m_name;
 };
 
 
@@ -319,21 +337,25 @@ class AgglomeratingIterator : public
 	///	Base type
 		typedef AgglomeratingBase<ILinearIterator<vector_type>, algebra_type > base_type;
 
-
 	public:
 		AgglomeratingIterator(SmartPtr<ILinearIterator<vector_type> > splinIt)
 		{
 			UG_COND_THROW(splinIt.valid()==false, "linOpInverse has to be != NULL");
 			m_splinIt = splinIt;
+			m_name = std::string("AgglomeratingIterator(") + splinIt->name() + std::string(")");
 		}
 
 		virtual bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
-			return m_splinIt->init(Op);
+			try{
+				return m_splinIt->init(Op);
+			}UG_CATCH_THROW("AgglomeratingIterator::" << __FUNCTION__ << " failed")
 		}
 		virtual bool apply_agglomerated(vector_type& x, const vector_type& b)
 		{
-			return m_splinIt->apply(x, b);
+			try{
+				return m_splinIt->apply(x, b);
+			}UG_CATCH_THROW("AgglomeratingIterator::" << __FUNCTION__ << " failed")
 		}
 
 	// 	Destructor
@@ -342,7 +364,7 @@ class AgglomeratingIterator : public
 
 		virtual const char* name() const
 		{
-			return "AgglomeratingIterator";
+			return m_name.c_str();
 		}
 
 		virtual bool supports_parallel() const { return true; }
@@ -354,9 +376,15 @@ class AgglomeratingIterator : public
 			return new AgglomeratingIterator<algebra_type>(linIt);
 		}
 
+		virtual std::string config_string() const
+		{
+			return std::string("AgglomeratingIterator: ") + m_splinIt->config_string();
+		}
+
 
 	protected:
 		SmartPtr<ILinearIterator<vector_type> > m_splinIt;
+		std::string m_name;
 };
 
 
