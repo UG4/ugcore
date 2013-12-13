@@ -25,6 +25,7 @@ void SynchronizeProcesses()
 ////////////////////////////////////////////////////////////////////////////////
 bool AllProcsTrue(bool bFlag, ProcessCommunicator comm)
 {
+	if(comm.is_local() || comm.empty()) return bFlag;
 	PCL_DEBUG_BARRIER(comm);
 	PCL_PROFILE(pclAllProcsTrue);
 
@@ -44,6 +45,7 @@ bool AllProcsTrue(bool bFlag, ProcessCommunicator comm)
 ////////////////////////////////////////////////////////////////////////////////
 bool OneProcTrue(bool bFlag, ProcessCommunicator comm)
 {
+	if(comm.is_local() || comm.empty()) return bFlag;
 	PCL_DEBUG_BARRIER(comm);
 	PCL_PROFILE(pclAllProcsTrue);
 
