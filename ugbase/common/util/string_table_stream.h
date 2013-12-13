@@ -70,7 +70,7 @@ public:
 	StringTableStream &operator << (const char *c)
 	{
 		size_t l = strlen(c);
-		size_t begin=0;
+//		size_t begin=0;
 		std::vector<char> vc;
 		for(size_t i=0; i<l; i++)
 		{
