@@ -4,7 +4,7 @@
 #include <vector>
 
 #ifndef NDEBUG
-#include "common/assert.h"
+#include "common/error.h"
 
 namespace ug{
 
@@ -20,7 +20,7 @@ private:
 
 	inline void size_check(size_t i) const
 	{
-		UG_ASSERT(i < super::size(), "accessing element " << i << " but vector only has size " << super::size() << ".")
+		UG_COND_THROW(i >= super::size(), "accessing element " << i << " but vector only has size " << super::size() << ".")
 	}
 
 public:
