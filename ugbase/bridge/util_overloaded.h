@@ -25,6 +25,16 @@
 #define OVERLOADED_METHOD_PTR(returnType, classType, methodName, arguments) \
 		static_cast<returnType  (classType::*)arguments>(&classType::methodName)
 
-
+/// for adding of constructors with signatures.
+/**
+ * example:
+ * \code
+ * reg.add_class_<T, TBase>(name, grp)
+ *			.add_constructor()
+ *			. ADD_CONSTRUCTOR( (int parameter) )("parameter")
+ *	\endcode
+ *	note the double brackets ! ADD_CONSTRUCTOR ( (int a, int b) )
+ */
+#define ADD_CONSTRUCTOR(__theSignature) template add_constructor<void (*) __theSignature >
 
 #endif /* UTIL_OVERLOADED_H_ */
