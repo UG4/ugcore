@@ -8,6 +8,9 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_STORAGE_TYPE__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_STORAGE_TYPE__
 
+#include <iostream>
+#include "common/types.h"
+
 namespace ug
 {
 
