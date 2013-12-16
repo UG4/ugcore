@@ -584,7 +584,7 @@ const UGProfileNode *UGProfileNode::get_root()
 
 void WriteProfileDataXML(const char *filename)
 {
-	WriteProfileDataXML(filename, 0);
+	WriteProfileDataXML(filename, ug::GetLogAssistant().get_output_process());
 }
 
 void WriteProfileDataXML(const char *filename, int procId)
