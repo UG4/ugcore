@@ -73,9 +73,6 @@ class ScalarLowerObstacle:
 		~ScalarLowerObstacle(){};
 
 	private:
-	///	vector of dofs lying in the obstacle subset
-		using base_type::m_vObstacleDoFs;
-
 	///	store the dofs, which satisfy the constraints with equality
 		using base_type::m_vActiveDofs;
 
@@ -125,9 +122,6 @@ class ScalarUpperObstacle:
 		~ScalarUpperObstacle(){};
 
 	private:
-	///	vector of dofs lying in the obstacle subset
-		using base_type::m_vObstacleDoFs;
-
 	///	store the dofs, which satisfy the constraints with equality
 		using base_type::m_vActiveDofs;
 

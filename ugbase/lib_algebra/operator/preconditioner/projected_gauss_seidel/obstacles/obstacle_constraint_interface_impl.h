@@ -176,9 +176,7 @@ clear()
 	m_vConstNumberData.clear();
 	m_vVectorData.clear();
 
-	m_vObstacleDoFs.clear();
 	m_mObstacleValues.clear();
-
 	m_vActiveDofs.clear();
 }
 
@@ -300,15 +298,12 @@ init_obstacle_values_and_dofs(number time)
 	extract_data();
 
 	//	reset vector of indices in obstacle-subsets
-	m_vObstacleDoFs.resize(0);
+	m_mObstacleValues.clear();
 
 	init_obstacle_values_and_dofs<CondNumberData>(m_mCondNumberObsSegment, time);
 	init_obstacle_values_and_dofs<NumberData>(m_mNumberObsSegment, time);
 	init_obstacle_values_and_dofs<ConstNumberData>(m_mConstNumberObsSegment, time);
 	init_obstacle_values_and_dofs<VectorData>(m_mVectorObsSegment, time);
-
-	//	sort m_vObstacleDoFs
-	sort(m_vObstacleDoFs.begin(), m_vObstacleDoFs.end());
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -383,8 +378,6 @@ init_obstacle_values_and_dofs(const std::vector<TUserData*>& vUserData, int si, 
 
 			//	get multi indices
 				m_spDD->inner_dof_indices(elem, fct, multInd);
-			//	store the multi indices in a vector
-				m_spDD->inner_dof_indices(elem, fct, m_vObstacleDoFs, false);
 
 				UG_ASSERT(multInd.size() == vPos.size(),
 						  "Mismatch: numInd="<<multInd.size()<<", numPos="
@@ -409,19 +402,8 @@ bool
 IObstacleConstraint<TDomain,TAlgebra>::
 dof_lies_in_obs_subset(const DoFIndex& dof)
 {
-	//	TODO: it would be more efficient to attach a flag to every dof
-	//	which indicates whether the dof is a dof in an obstacle subset or not
-	typedef vector<DoFIndex>::const_iterator iter_type;
-	iter_type iter = m_vObstacleDoFs.begin();
-	iter_type iterEnd =	m_vObstacleDoFs.end();
-
-	for( ; iter != iterEnd; iter++)
-	{
-		if (*iter == dof)
-			return true;
-	}
-
-	return false;
+	if (m_mObstacleValues.find(dof) == m_mObstacleValues.end()){return false;}
+	else {return true;}
 }
 
 } // end namespace ug

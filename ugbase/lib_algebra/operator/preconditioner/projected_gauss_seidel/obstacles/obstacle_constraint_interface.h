@@ -148,10 +148,7 @@ class IObstacleConstraint
 
 	protected:
 	///	map to store obstacle values with its corresponding DoFs
-		std::map<DoFIndex, double> m_mObstacleValues;
-
-	///	vector of the dofs, which are in the obstacle subsets
-		vector<DoFIndex> m_vObstacleDoFs;
+		map<DoFIndex, double> m_mObstacleValues;
 
 	///	stores the dofs, which satisfy the constraints with equality
 		vector<DoFIndex> m_vActiveDofs;
