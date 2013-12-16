@@ -115,7 +115,7 @@ class IObstacleConstraint
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
 		virtual void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
-				const number tmpSol, const DoFIndex& dof) = 0;
+				const DoFIndex& dof) = 0;
 
 	///	the defect needs to be adjusted for the active indices (those indices, which are in contact)
 		virtual void adjust_defect(vector_type& d) = 0;
@@ -149,6 +149,9 @@ class IObstacleConstraint
 	protected:
 	///	map to store obstacle values with its corresponding DoFs
 		map<DoFIndex, double> m_mObstacleValues;
+
+	///	stores the subset-indices of the obstacle subsets
+		vector<int> m_vObsSubsets;
 
 	///	stores the dofs, which satisfy the constraints with equality
 		vector<DoFIndex> m_vActiveDofs;

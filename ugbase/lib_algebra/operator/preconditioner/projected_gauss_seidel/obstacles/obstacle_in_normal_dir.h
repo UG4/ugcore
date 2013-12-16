@@ -54,18 +54,30 @@ class ObstacleInNormalDir:
 	///	Type of grid function
 		typedef GridFunction<TDomain, TAlgebra> function_type;
 
+	///	Domain type
+		typedef TDomain domain_type;
+
+	///	World dimension
+		static const int dim = domain_type::dim;
+
+	///	Type of position coordinates (e.g. position_type)
+		typedef typename domain_type::position_type position_type;
+
 	public:
 	/// constructor for an obstacle in normal direction
 	///	defined on some subset(s)
 		ObstacleInNormalDir(const function_type& u):
-			IObstacleConstraint<TDomain,TAlgebra>(u){};
+			IObstacleConstraint<TDomain,TAlgebra>(u){
+			m_spDD = u.dof_distribution();
+			m_spDomain = u.domain();
+		};
 
 	/// constructor
 		ObstacleInNormalDir(): IObstacleConstraint<TDomain,TAlgebra>(){};
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
 		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
-				const number tmpSol, const DoFIndex& dof);
+				const DoFIndex& dof);
 
 		void adjust_defect(vector_type& d);
 
@@ -73,11 +85,25 @@ class ObstacleInNormalDir:
 		~ObstacleInNormalDir(){};
 
 	private:
+		template <typename TElem, typename TIterator>
+		void adjust_sol_and_cor_elem(TIterator iterBegin, TIterator iterEnd, value_type& sol_i,
+				value_type& c_i, bool& dofIsAdmissible, const DoFIndex& dof);
+
+	private:
 	///	store the dofs, which satisfy the constraints with equality
 		using base_type::m_vActiveDofs;
 
 	///	map storing the obstacle values for every obstacle dof (key)
 		using base_type::m_mObstacleValues;
+
+	///	stores the subset-indices of the obstacle subsets
+		using base_type::m_vObsSubsets;
+
+	///	pointer to the DofDistribution on the whole domain
+		ConstSmartPtr<DoFDistribution> m_spDD;
+
+	///	pointer to the domain
+		ConstSmartPtr<TDomain> m_spDomain;
 };
 
 } // end namespace ug

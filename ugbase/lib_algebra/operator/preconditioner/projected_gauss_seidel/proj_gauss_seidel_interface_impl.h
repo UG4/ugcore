@@ -81,10 +81,7 @@ project_correction(value_type& c_i, const size_t i)
 
 			dofIsObsDoF = true;
 
-			//	tmpSol := u_{s-1/2} = u_{s-1} + c
-			const number tmpSol = BlockRef((*m_spSol)[i], comp) + BlockRef(c_i, comp);
-
-			(*iter)->adjust_sol_and_cor((*m_spSol)[i], c_i, dofIsAdmissible, tmpSol, dof);
+			(*iter)->adjust_sol_and_cor((*m_spSol)[i], c_i, dofIsAdmissible, dof);
 		}
 
 		if (dofIsObsDoF && dofIsAdmissible)

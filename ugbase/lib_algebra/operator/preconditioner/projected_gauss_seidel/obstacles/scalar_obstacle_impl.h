@@ -20,8 +20,13 @@ template <typename TDomain, typename TAlgebra>
 void
 ScalarLowerObstacle<TDomain, TAlgebra>::
 adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
-		const number tmpSol, const DoFIndex& dof)
+		const DoFIndex& dof)
 {
+	const size_t comp = dof[1];
+
+	//	tmpSol := u_{s-1/2} = u_{s-1} + c
+	const number tmpSol = BlockRef(sol_i, comp) + BlockRef(c_i, comp);
+
 	//	get lower obstacle value corresponding to the dof
 	const number obsVal = m_mObstacleValues[dof];
 
@@ -32,7 +37,6 @@ adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 		m_vActiveDofs.push_back(dof);
 
 		//	adjust correction & set solution to obstacle-value
-		const size_t comp = dof[1];
 		BlockRef(c_i, comp) = obsVal - BlockRef(sol_i, comp);
 		BlockRef(sol_i, comp) = obsVal;
 		dofIsAdmissible = false;
@@ -63,8 +67,13 @@ template <typename TDomain, typename TAlgebra>
 void
 ScalarUpperObstacle<TDomain, TAlgebra>::
 adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
-		const number tmpSol, const DoFIndex& dof)
+		const DoFIndex& dof)
 {
+	const size_t comp = dof[1];
+
+	//	tmpSol := u_{s-1/2} = u_{s-1} + c
+	const number tmpSol = BlockRef(sol_i, comp) + BlockRef(c_i, comp);
+
 	//	get upper obstacle value corresponding to the dof
 	const number obsVal = m_mObstacleValues[dof];
 
@@ -75,7 +84,6 @@ adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 		m_vActiveDofs.push_back(dof);
 
 		//	adjust correction & set solution to obstacle-value
-		const size_t comp = dof[1];
 		BlockRef(c_i, comp) = obsVal - BlockRef(sol_i, comp);
 		BlockRef(sol_i, comp) = obsVal;
 		dofIsAdmissible = false;

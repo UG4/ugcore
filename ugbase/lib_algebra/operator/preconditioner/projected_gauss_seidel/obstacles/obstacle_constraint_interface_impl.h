@@ -297,8 +297,9 @@ init_obstacle_values_and_dofs(number time)
 {
 	extract_data();
 
-	//	reset vector of indices in obstacle-subsets
+	//	reset map ob obstacle values and vector of obstacle subset-indices
 	m_mObstacleValues.clear();
+	m_vObsSubsets.resize(0);
 
 	init_obstacle_values_and_dofs<CondNumberData>(m_mCondNumberObsSegment, time);
 	init_obstacle_values_and_dofs<NumberData>(m_mNumberObsSegment, time);
@@ -316,6 +317,9 @@ init_obstacle_values_and_dofs(const std::map<int, std::vector<TUserData*> >& mvU
 	{
 	//	get subset index
 		const int si = (*iter).first;
+
+	//	store obstacle subsets
+		m_vObsSubsets.push_back(si);
 
 	//	get vector of scheduled obstacle data on this subset
 		const std::vector<TUserData*>& vUserData = (*iter).second;
