@@ -144,127 +144,127 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				A = &(*pOp);
 			}
 
-
 			m_L.resize_and_clear(A->num_rows(), A->num_cols());
 			m_U.resize_and_clear(A->num_rows(), A->num_cols());
-
-			// con is the current line of L/U
-			// i also tried using std::list here or a special custom vector-based linked list
-			// but vector is fastest, even with the insert operation.
-			std::vector<matrix_connection> con;
-			con.reserve(300);
-			con.resize(0);
-
-			// init row 0 of U
-			for(matrix_row_iterator i_it = A->begin_row(0); i_it != A->end_row(0); ++i_it)
-				con.push_back(matrix_connection(i_it.index(), i_it.value()));
-			m_U.set_matrix_row(0, &con[0], con.size());
 
 			size_t totalentries=0;
 			size_t maxentries=0;
 
-			PROGRESS_START(prog, A->num_rows(),
-					"Using ILUT(" << m_eps << ") on " << A->num_rows() << " x " << A->num_rows() << " matrix...");
-
-			for(size_t i=1; i<A->num_rows(); i++)
-			{
-				PROGRESS_UPDATE(prog, i);
+			if((A->num_rows() > 0) && (A->num_cols() > 0)){
+				// con is the current line of L/U
+				// i also tried using std::list here or a special custom vector-based linked list
+				// but vector is fastest, even with the insert operation.
+				std::vector<matrix_connection> con;
+				con.reserve(300);
 				con.resize(0);
-				size_t u_part=0;
 
-				UG_ASSERT(A->num_connections(i) != 0, "row " << i << " has no connections");
-
-				// get the row A(i, .) into con
-				double dmax=0;
-				for(matrix_row_iterator i_it = A->begin_row(i); i_it != A->end_row(i); ++i_it)
-				{
+				// init row 0 of U
+				for(matrix_row_iterator i_it = A->begin_row(0); i_it != A->end_row(0); ++i_it)
 					con.push_back(matrix_connection(i_it.index(), i_it.value()));
-					if(dmax < BlockNorm(i_it.value()))
-						dmax = BlockNorm(i_it.value());
-				}
+				m_U.set_matrix_row(0, &con[0], con.size());
 
-				// eliminate all entries A(i, k) with k<i with rows U(k, .) and k<i
-				for(size_t i_it = 0; i_it < con.size(); ++i_it)
+				PROGRESS_START(prog, A->num_rows(),
+						"Using ILUT(" << m_eps << ") on " << A->num_rows() << " x " << A->num_rows() << " matrix...");
+
+				for(size_t i=1; i<A->num_rows(); i++)
 				{
-					size_t k = con[i_it].iIndex;
-					if(k >= i)
+					PROGRESS_UPDATE(prog, i);
+					con.resize(0);
+					size_t u_part=0;
+
+					UG_ASSERT(A->num_connections(i) != 0, "row " << i << " has no connections");
+
+					// get the row A(i, .) into con
+					double dmax=0;
+					for(matrix_row_iterator i_it = A->begin_row(i); i_it != A->end_row(i); ++i_it)
 					{
-						// safe where U begins / L ends in con
-						u_part = i_it;
-						break;
+						con.push_back(matrix_connection(i_it.index(), i_it.value()));
+						if(dmax < BlockNorm(i_it.value()))
+							dmax = BlockNorm(i_it.value());
 					}
-					if(con[i_it].dValue == 0.0) continue;
-					UG_ASSERT(m_U.num_connections(k) != 0 && m_U.begin_row(k).index() == k, "");
-					block_type &ukk = m_U.begin_row(k).value();
 
-					// add row k to row i by A(i, .) -= U(k,.)  A(i,k) / U(k,k)
-					// so that A(i,k) is zero.
-					// safe A(i,k)/U(k,k) in con, (later L(i,k) )
-					con[i_it].dValue = con[i_it].dValue / ukk;
-					block_type d = con[i_it].dValue;
-					UG_ASSERT(BlockMatrixFiniteAndNotTooBig(d, 1e40), "i = " << i << " " << d);
-
-					matrix_row_iterator k_it = m_U.begin_row(k); // upper row iterator
-					++k_it; // skip diag
-					size_t j = i_it+1;
-					while(k_it != m_U.end_row(k) && j < con.size())
+					// eliminate all entries A(i, k) with k<i with rows U(k, .) and k<i
+					for(size_t i_it = 0; i_it < con.size(); ++i_it)
 					{
-						// (since con and U[k] is sorted, we can do sth like a merge on the two lists)
-						if(k_it.index() == con[j].iIndex)
+						size_t k = con[i_it].iIndex;
+						if(k >= i)
 						{
-							// match
-							con[j].dValue -= k_it.value() * d;
-							++k_it;	++j;
+							// safe where U begins / L ends in con
+							u_part = i_it;
+							break;
 						}
-						else if(k_it.index() < con[j].iIndex)
-						{
-							// we have a value in U(k, (*k_it).iIndex), but not in A.
-							// check tolerance criteria
+						if(con[i_it].dValue == 0.0) continue;
+						UG_ASSERT(m_U.num_connections(k) != 0 && m_U.begin_row(k).index() == k, "");
+						block_type &ukk = m_U.begin_row(k).value();
 
-							matrix_connection c(k_it.index(), k_it.value() * d * -1.0);
-							
-							UG_ASSERT(BlockMatrixFiniteAndNotTooBig(c.dValue, 1e40), "i = " << i << " " << c.dValue);
-							if(BlockNorm(c.dValue) > dmax * m_eps)
+						// add row k to row i by A(i, .) -= U(k,.)  A(i,k) / U(k,k)
+						// so that A(i,k) is zero.
+						// safe A(i,k)/U(k,k) in con, (later L(i,k) )
+						con[i_it].dValue = con[i_it].dValue / ukk;
+						block_type d = con[i_it].dValue;
+						UG_ASSERT(BlockMatrixFiniteAndNotTooBig(d, 1e40), "i = " << i << " " << d);
+
+						matrix_row_iterator k_it = m_U.begin_row(k); // upper row iterator
+						++k_it; // skip diag
+						size_t j = i_it+1;
+						while(k_it != m_U.end_row(k) && j < con.size())
+						{
+							// (since con and U[k] is sorted, we can do sth like a merge on the two lists)
+							if(k_it.index() == con[j].iIndex)
 							{
-								// insert sorted
-								con.insert(con.begin()+j, c);
-								++j; // don't do this when using iterators
+								// match
+								con[j].dValue -= k_it.value() * d;
+								++k_it;	++j;
 							}
-							// else do some lumping
-							++k_it;
+							else if(k_it.index() < con[j].iIndex)
+							{
+								// we have a value in U(k, (*k_it).iIndex), but not in A.
+								// check tolerance criteria
+
+								matrix_connection c(k_it.index(), k_it.value() * d * -1.0);
+								
+								UG_ASSERT(BlockMatrixFiniteAndNotTooBig(c.dValue, 1e40), "i = " << i << " " << c.dValue);
+								if(BlockNorm(c.dValue) > dmax * m_eps)
+								{
+									// insert sorted
+									con.insert(con.begin()+j, c);
+									++j; // don't do this when using iterators
+								}
+								// else do some lumping
+								++k_it;
+							}
+							else
+							{
+								// we have a value in A(k, con[j].iIndex), but not in U.
+								++j;
+							}
 						}
-						else
-						{
-							// we have a value in A(k, con[j].iIndex), but not in U.
-							++j;
-						}
+						// insert new connections after last connection of row i
+						if (k_it!=m_U.end_row(k)){
+							for (;k_it!=m_U.end_row(k);++k_it){
+								matrix_connection c(k_it.index(),-k_it.value()*d);
+						        if(BlockNorm(c.dValue) > dmax * m_eps)
+						        {
+						        	con.push_back(c);
+						        }
+						    }
+						};
 					}
-					// insert new connections after last connection of row i
-					if (k_it!=m_U.end_row(k)){
-						for (;k_it!=m_U.end_row(k);++k_it){
-							matrix_connection c(k_it.index(),-k_it.value()*d);
-					        if(BlockNorm(c.dValue) > dmax * m_eps)
-					        {
-					        	con.push_back(c);
-					        }
-					    }
-					};
+
+
+					totalentries+=con.size();
+					if(maxentries < con.size()) maxentries = con.size();
+
+					// safe L and U
+					m_L.set_matrix_row(i, &con[0], u_part);
+					m_U.set_matrix_row(i, &con[u_part], con.size()-u_part);
+
 				}
+				PROGRESS_FINISH(prog);
 
-
-				totalentries+=con.size();
-				if(maxentries < con.size()) maxentries = con.size();
-
-				// safe L and U
-				m_L.set_matrix_row(i, &con[0], u_part);
-				m_U.set_matrix_row(i, &con[u_part], con.size()-u_part);
-
+				m_L.defragment();
+				m_U.defragment();
 			}
-			PROGRESS_FINISH(prog);
-
-
-			m_L.defragment();
-			m_U.defragment();
 
 			if (m_info==true){
 				UG_LOG("\n	ILUT storage information:\n");
@@ -327,10 +327,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					MatMultAdd(c[i], 1.0, c[i], -1.0, it.value(), c[it.index()] );
 				// lii = 1.0.
 			}
+
 			// U
 			//
 			// last row diagonal U entry might be close to zero with corresponding zero rhs 
 			// when solving Navier Stokes system, therefore handle separately
+			if(m_U.num_rows() > 0)
 			{
 				size_t i=m_U.num_rows()-1;
 				matrix_row_iterator it = m_U.begin_row(i);
@@ -356,26 +358,28 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					InverseMatMult(c[i], 1.0, uii, s);
 				}
 			}
+
 			// handle all other rows
-			for(size_t i=m_U.num_rows()-2; ; i--)
-			{
-				matrix_row_iterator it = m_U.begin_row(i);
-				UG_ASSERT(it != m_U.end_row(i), i);
-				UG_ASSERT(it.index() == i, i);
-				block_type &uii = it.value();
+			if(m_U.num_rows() > 1){
+				for(size_t i=m_U.num_rows()-2; ; i--)
+				{
+					matrix_row_iterator it = m_U.begin_row(i);
+					UG_ASSERT(it != m_U.end_row(i), i);
+					UG_ASSERT(it.index() == i, i);
+					block_type &uii = it.value();
 
-				vector_value s = c[i];
-				++it; // skip diag
-				for(; it != m_U.end_row(i); ++it)
-					// s -= it.value() * c[it.index()];
-					MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()] );
+					vector_value s = c[i];
+					++it; // skip diag
+					for(; it != m_U.end_row(i); ++it)
+						// s -= it.value() * c[it.index()];
+						MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()] );
 
-					// c[i] = s/uii;
-					InverseMatMult(c[i], 1.0, uii, s);
+						// c[i] = s/uii;
+						InverseMatMult(c[i], 1.0, uii, s);
 
-					if(i==0) break;
+						if(i==0) break;
+				}
 			}
-
 			return true;
 		}
 
