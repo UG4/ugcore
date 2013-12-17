@@ -12,6 +12,10 @@
 #include <vector>
 #include <sstream>
 
+#include <typeinfo>
+#include <new>
+#include <exception>
+
 /// \addtogroup ugbase_common
 /// \{
 
