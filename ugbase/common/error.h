@@ -12,8 +12,6 @@
 #include <vector>
 #include <sstream>
 
-#include <typeinfo>
-#include <new>
 #include <exception>
 
 /// \addtogroup ugbase_common
@@ -40,11 +38,7 @@ void ug_throw_error();
 
 #define UG_CATCH_THROW(msg)	catch(ug::UGError& err){std::stringstream __ss; __ss << msg;\
 							  err.push_msg(__ss.str(),__FILE__,__LINE__); throw(err);} \
-	catch(std::bad_alloc& ex)	{	std::stringstream __ss; __ss << msg;\
-	  	  	  	  	  	  	  	  throw ug::UGError(__ss.str(), ex,__FILE__,__LINE__); } \
-	catch(std::bad_cast& ex)	{	std::stringstream __ss; __ss << msg;\
-	  	  	  	  	  	  	  	  throw ug::UGError(__ss.str(), ex,__FILE__,__LINE__); } \
-	catch(std::exception& ex)	{	std::stringstream __ss; __ss << msg;\
+	catch(const std::exception& ex)	{	std::stringstream __ss; __ss << msg;\
 	  	  	  	  	  	  	  	  throw ug::UGError(__ss.str(), ex,__FILE__,__LINE__); }
 
 #define UG_CATCH_THROW_FUNC()	UG_CATCH_THROW(PRETTY_FUNCTION << "failed. ")
@@ -57,6 +51,8 @@ void ug_throw_error();
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace ug{
+
+std::string ErrorStringFromStdException(const std::exception *pex);
 
 /// \addtogroup ugbase_common
 /// \{
@@ -73,9 +69,7 @@ class UGError
 		        const char* file = " -- no file -- ", const unsigned long line = 0)
 			{push_msg(msg, file, line);}
 
-		UGError(const std::string &msg, std::bad_alloc &ex, const char *file, const unsigned long line);
-		UGError(const std::string &msg, std::bad_cast &ex, const char *file, const unsigned long line);
-		UGError(const std::string &msg, std::exception &ex, const char *file, const unsigned long line);
+		UGError(const std::string &msg, const std::exception &ex, const char *file, const unsigned long line);
 
 	///	virtual destructor
 		virtual ~UGError()	{}
