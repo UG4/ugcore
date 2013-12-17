@@ -11,6 +11,7 @@ include("../../cmake/ug_includes.cmake")
 set(srcCommon	log.cpp
 				debug_id.cpp
 				assert.cpp
+				error.cpp
 				serialization.cpp
 				progress.cpp
 				allocators/small_object_allocator.cpp

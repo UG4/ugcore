@@ -17,6 +17,12 @@
 
 void ug_throw_error();
 
+#ifdef __GNUC__
+#define PRETTY_FUNCTION __PRETTY_FUNCTION__
+#else
+#define PRETTY_FUNCTION __FUNCTION__
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // UG Throw / Catch
 ////////////////////////////////////////////////////////////////////////////////
@@ -29,7 +35,15 @@ void ug_throw_error();
 
 
 #define UG_CATCH_THROW(msg)	catch(ug::UGError& err){std::stringstream __ss; __ss << msg;\
-							  err.push_msg(__ss.str(),__FILE__,__LINE__); throw(err);}
+							  err.push_msg(__ss.str(),__FILE__,__LINE__); throw(err);} \
+	catch(std::bad_alloc& ex)	{	std::stringstream __ss; __ss << msg;\
+	  	  	  	  	  	  	  	  throw ug::UGError(__ss.str(), ex,__FILE__,__LINE__); } \
+	catch(std::bad_cast& ex)	{	std::stringstream __ss; __ss << msg;\
+	  	  	  	  	  	  	  	  throw ug::UGError(__ss.str(), ex,__FILE__,__LINE__); } \
+	catch(std::exception& ex)	{	std::stringstream __ss; __ss << msg;\
+	  	  	  	  	  	  	  	  throw ug::UGError(__ss.str(), ex,__FILE__,__LINE__); }
+
+#define UG_CATCH_THROW_FUNC()	UG_CATCH_THROW(PRETTY_FUNCTION << "failed. ")
 
 // end group ugbase_common
 /// \}
@@ -54,6 +68,10 @@ class UGError
 		UGError(const std::string& msg,
 		        const char* file = " -- no file -- ", const unsigned long line = 0)
 			{push_msg(msg, file, line);}
+
+		UGError(const std::string &msg, std::bad_alloc &ex, const char *file, const unsigned long line);
+		UGError(const std::string &msg, std::bad_cast &ex, const char *file, const unsigned long line);
+		UGError(const std::string &msg, std::exception &ex, const char *file, const unsigned long line);
 
 	///	virtual destructor
 		virtual ~UGError()	{}
