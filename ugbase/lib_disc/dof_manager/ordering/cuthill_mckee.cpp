@@ -45,7 +45,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 {
 	PROFILE_FUNC();
 //	list of sorted (will be filled later)
-	std::vector<size_t> vNewOrder; vNewOrder.clear();
+	std::vector<size_t> vNewOrder;
 
 //	create flag list to remember already handled indices
 	std::vector<bool> vHandled(vvConnection.size(), false);
@@ -55,38 +55,35 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	for(size_t i = 0; i < vvConnection.size(); ++i)
 	{
 	//	indices with no adjacent indices are marked as handled (and skipped)
-		if(vvConnection[i].size() == 0)
-		{
+		if(vvConnection[i].size() == 0){
 			vHandled[i] = true;
-			continue;
 		}
-
 	//	sort adjacent index by degree
-		std::sort(	vvConnection[i].begin(),
-		          	vvConnection[i].end(), myCompDegree);
+		else {
+			std::sort(	vvConnection[i].begin(),
+			          	vvConnection[i].end(), myCompDegree);
+		}
 	}
 
 //	start with first index
-	size_t start = 0;
+	size_t firstNonHandled = 0;
 
 //	handle all indices
 	while(true)
 	{
 	//	find first unhandled index
-		size_t i_start = start;
-		for(i_start = start; i_start < vHandled.size(); ++i_start)
-		{
-			if(vHandled[i_start] == false) {start = i_start; break;}
+		size_t i_notHandled = firstNonHandled;
+		for(; i_notHandled < vHandled.size(); ++i_notHandled){
+			if(!vHandled[i_notHandled]) {firstNonHandled = i_notHandled; break;}
 		}
-
 	//	check if one unhandled vertex left
-		if(i_start == vHandled.size()) break;
+		if(i_notHandled == vHandled.size()) break;
 
 	//	Find node with smallest degree for all remaining indices
-		for(size_t i = start; i < vHandled.size(); ++i)
+		size_t start = firstNonHandled;
+		for(size_t i = start+1; i < vHandled.size(); ++i)
 		{
-			if(vHandled[i] == false &&
-				vvConnection[i].size() < vvConnection[start].size())
+			if(!vHandled[i] && vvConnection[i].size() < vvConnection[start].size())
 				start = i;
 		}
 
@@ -98,8 +95,10 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 		std::queue<size_t> qAdjacent;
 		for(size_t i = 0; i < vvConnection[start].size(); ++i)
 		{
-			if(vvConnection[start][i] != start)
-				qAdjacent.push(vvConnection[start][i]);
+			const size_t ind = vvConnection[start][i];
+
+			if(!vHandled[ind] && ind != start)
+				qAdjacent.push(ind);
 		}
 
 	//	add adjacent vertices to mapping
@@ -109,7 +108,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 			const size_t front = qAdjacent.front();
 
 		//	if not handled
-			if(vHandled[front] == false)
+			if(!vHandled[front])
 			{
 			//	Add to mapping
 				vNewOrder.push_back(front);
@@ -120,7 +119,7 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 				{
 					const size_t ind = vvConnection[front][i];
 
-					if(vHandled[ind] == false && ind != front)
+					if(!vHandled[ind] && ind != front)
 						qAdjacent.push(ind);
 				}
 			}
@@ -129,9 +128,6 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 			qAdjacent.pop();
 		}
 	}
-
-//	number of sorted indices
-	const size_t numSorted = vNewOrder.size();
 
 // 	Create list of mapping
 	vNewIndex.clear(); vNewIndex.resize(vvConnection.size(), (size_t)-1);
@@ -146,7 +142,9 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 			if(vvConnection[oldInd].size() == 0) continue;
 
 		//	get old index
-			const size_t newInd = vNewOrder[numSorted - 1 - cnt]; ++cnt;
+			UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
+			const size_t newInd = vNewOrder[vNewOrder.size() - 1 - cnt]; ++cnt;
+			UG_ASSERT(newInd < vNewIndex.size(), "newInd: "<<newInd<<", size: "<<vNewIndex.size())
 
 		//	set new index to order
 			vNewIndex[newInd] = oldInd;
@@ -160,7 +158,9 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 			if(vvConnection[oldInd].size() == 0) continue;
 
 		//	get old index
+			UG_ASSERT(cnt < vNewOrder.size(), "cnt: "<<cnt<<", ordered: "<<vNewOrder.size())
 			const size_t newInd = vNewOrder[cnt++];
+			UG_ASSERT(newInd < vNewIndex.size(), "newInd: "<<newInd<<", size: "<<vNewIndex.size())
 
 		//	set new index to order
 			vNewIndex[newInd] = oldInd;
@@ -169,8 +169,8 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 
 //	check if all ordered indices have been written
 	if(cnt != vNewOrder.size())
-		UG_THROW("OrderCuthillMcKee: "
-					   "Not all ordered indices written back.\n");
+		UG_THROW("OrderCuthillMcKee: No all indices sorted, that must be sorted: "
+				<<cnt<<" written, but should write: "<<vNewOrder.size());
 
 //	fill non-sorted indices
 	for(size_t i = 1; i < vNewIndex.size(); ++i)
