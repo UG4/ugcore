@@ -22,6 +22,7 @@ UGError::UGError(const std::string &msg, std::bad_cast &ex, const char *file, co
 {
 	std::stringstream ss;
 	ss << "bad_cast caught: " << ex.what() << "\nThis is caused by a Casting error in classes.";
+	push_msg(ss.str(), file, line);
 	push_msg(msg, file, line);
 }
 
