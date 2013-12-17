@@ -50,9 +50,6 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 //	create flag list to remember already handled indices
 	std::vector<bool> vHandled(vvConnection.size(), false);
 
-//	number of indices, that must be sorted
-	size_t numToSort = 0;
-
 //	Sort neighbours by degree (i.e. by number of neighbours those have)
 	CompareDegree myCompDegree(vvConnection);
 	for(size_t i = 0; i < vvConnection.size(); ++i)
@@ -67,9 +64,6 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 	//	sort adjacent index by degree
 		std::sort(	vvConnection[i].begin(),
 		          	vvConnection[i].end(), myCompDegree);
-
-	//	this index must be sorted
-		numToSort++;
 	}
 
 //	start with first index
@@ -138,11 +132,6 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 
 //	number of sorted indices
 	const size_t numSorted = vNewOrder.size();
-
-//	check, that number of sorted indices is correct
-	if(numSorted != numToSort)
-		UG_THROW("OrderCuthillMcKee: Must sort "<<numToSort<<" indices,"
-				" but "<<numSorted<<" indices sorted.\n");
 
 // 	Create list of mapping
 	vNewIndex.clear(); vNewIndex.resize(vvConnection.size(), (size_t)-1);
