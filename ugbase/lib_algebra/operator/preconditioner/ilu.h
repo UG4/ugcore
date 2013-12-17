@@ -226,6 +226,7 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 
 	// last row diagonal U entry might be close to zero with corresponding close to zero rhs
 	// when solving Navier Stokes system, therefore handle separately
+	if(x.size() > 0)
 	{
 		size_t i=x.size()-1;
 		s = b[i];
@@ -248,6 +249,8 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 			InverseMatMult(x[i], 1.0, A(i,i), s);
 		}
 	}
+	if(x.size() <= 1) return true;
+
 	// handle all other rows
 	for(size_t i = x.size()-2; ; --i)
 	{
