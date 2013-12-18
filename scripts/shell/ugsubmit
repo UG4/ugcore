@@ -69,7 +69,7 @@ pbsMailtype=""
 # todo: option -nodir
 # todo: interactive mode
 
-echo "ujssubmit 0.2. (c) Goethe-Center for Scientific Computing 2012-2013"
+echo "ugsubmit 0.2. (c) Goethe-Center for Scientific Computing 2012-2013"
 
 
 # complete -W "-test -nppn -cluster -walltime -mail-start -mail-end -mail-error -mail-arr -verbose -tail -i -dir -Jugene-mode -Jugene-mapfile -Jugene-verbose -Hermit-workspace" ugsubmit
@@ -311,7 +311,7 @@ if [ ${executable:0:1} = "." ]; then
 fi
 nnodes=$((npe/nppn))
 #npe=$((nnodes*nppn)); # number of process entities (i.e. num processes)
-mydate=$(date "+.%m-%d-%H%M");
+mydate=$(date "+.%Yy%mm%dd-%Hh%Mm%Ss");
 jobname1=$jobname
 jobname=$jobname.$npe$mydate;
 
@@ -330,10 +330,21 @@ if [ $UGSUBMIT_TYPE == "Hermit" ] && [ $HermitWorkspace -gt 0 ] ; then
 else
 	HermitWorkspace=0
 	outdir=$outDir/$jobname
+	
+	# check if directly exist
 	if [ -d $outdir ]; then
-		outdir=`mktemp -d $outdir.XXXXXXXXXX`
+		# add milliseconds to disambigue
+		millisec=$(date "+%3Nms");
+		if [ "$millisec" != "3Nms" ]; then # fix for maxosx: %N not supported 
+			outdir=$outdir$millisec;
+		fi
+	fi
+		
+	# if still exist: add random string, else create directory
+	if [ -d $outdir ]; then
+		outdir=$(mktemp -d $outdir.XXXXXX);
 	else
-		mkdir $outdir
+		mkdir $outdir	
 	fi
 fi
 
