@@ -70,6 +70,15 @@ class ObstacleInNormalDir:
 			IObstacleConstraint<TDomain,TAlgebra>(u){
 			m_spDD = u.dof_distribution();
 			m_spDomain = u.domain();
+
+			//	for debugging
+			MathVector<dim> normal;
+			normal[0] = 2.0;
+			if (dim > 1) normal[1] = 1.5;
+			if (dim > 2) normal[2] = -3.0;
+
+			MathVector<dim> transformedONB[dim];
+			transform_eulerian_coord_sys(transformedONB, normal);
 		};
 
 	/// constructor
@@ -85,6 +94,9 @@ class ObstacleInNormalDir:
 		~ObstacleInNormalDir(){};
 
 	private:
+		void transform_eulerian_coord_sys(MathVector<dim> transformedONB[],
+				const MathVector<dim>& firstTransformedBaseVec);
+
 		template <typename TElem, typename TIterator>
 		void adjust_sol_and_cor_elem(TIterator iterBegin, TIterator iterEnd, value_type& sol_i,
 				value_type& c_i, bool& dofIsAdmissible, const DoFIndex& dof);

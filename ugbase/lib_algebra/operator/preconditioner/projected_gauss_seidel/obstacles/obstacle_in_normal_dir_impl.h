@@ -16,6 +16,41 @@
 
 namespace ug{
 
+template <typename TDomain, typename TAlgebra>
+void
+ObstacleInNormalDir<TDomain,TAlgebra>::transform_eulerian_coord_sys(MathVector<dim> transformedONB[],
+		const MathVector<dim>& firstTransformedBaseVec)
+{
+	//	create first unit eulerian base vector
+	MathVector<dim> unityX;
+	unityX[0] = 1.0;
+	if (dim > 1) unityX[1] = 0.0;
+	if (dim > 2) unityX[2] = 0.0;
+
+	//	normalize first base vector of the transformed system
+	MathVector<dim> normalizedFirstBaseVec;
+	const number normOfFirstBaseVec = VecLength(firstTransformedBaseVec);
+	VecScale(normalizedFirstBaseVec, firstTransformedBaseVec, 1.0/normOfFirstBaseVec);
+
+	//	compute vector, which is orthogonal to the householder hypersphere
+	MathVector<dim> orthoVec;
+	VecScaleAdd(orthoVec, 0.5, unityX, -0.5, normalizedFirstBaseVec);
+
+	//	compute householder matrix
+	MathMatrix<dim,dim> hMat;
+	MatHouseholder(hMat, orthoVec);
+
+	//	get and store transformed orthonormal base vectors
+	MathVector<dim> transBaseVec;
+	for(size_t i = 0; i < (size_t)dim; ++i)
+	{
+		for(size_t j = 0; j < (size_t)dim; ++j){
+			transBaseVec[j] = hMat(i,j);
+		}
+		transformedONB[i] = transBaseVec;
+	}
+}
+
 template <int dim> struct face_type_traits
 {
     typedef void face_type0;
