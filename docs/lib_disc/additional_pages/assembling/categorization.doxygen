@@ -30,7 +30,7 @@ the geometric objects. For example, one can think of piecewise linear
 functions on each grid elements, requiring one DoF per vertex of the element and
 no DoFs on the other Geometric Objects like edges or faces. Let \f$N_{h,i}\f$ be
 the number of DoFs needed to represent the unknowns of the i'th function and let
-\f$N_h = \sum_{i=1}^n\f$ be the number DoFs needed for the whole problem. Each
+\f$N_h = \sum_{i=1}^n N_{h,i}\f$ be the number DoFs needed for the whole problem. Each
 discrete function \f$u_{h,i}\f$ is isomorphic to a representation in 
 \f$\mathbb{R}^{N_{h,i}}\f$, thus it can be represented by an algebraic vector
 \f$\vec{u}_{h,i} \in \mathbb{R}^{N_{h,i}}\f$ and the entries of the vector 
