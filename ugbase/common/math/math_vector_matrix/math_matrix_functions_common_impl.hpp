@@ -764,6 +764,31 @@ MatRotationYawPitchRoll(matrix_t& mOut,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+///	Creates a householder matrix given the orthogonal vector to the
+///	householder-hypersphere through the origin.
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename matrix_t, typename vector_t>
+inline void
+MatHouseholder(matrix_t& mOut, const vector_t& orthoVec)
+{
+	assert(vector_t::Size == matrix_t::RowSize);
+	assert(vector_t::Size == matrix_t::ColSize);
+
+	typename vector_t::value_type scalarProd = VecDot(orthoVec, orthoVec);
+
+	typedef typename matrix_t::size_type size_type_mat;
+	for(size_type_mat i = 0; i < mOut.num_rows(); ++i)
+	{
+		for(size_type_mat j = 0; j < mOut.num_cols(); ++j){
+			mOut(i,j) = - 2.0/scalarProd * orthoVec[i] * orthoVec[j];
+		}
+		mOut(i,i) += 1.0;
+	}
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Norms for Matrices
 ////////////////////////////////////////////////////////////////////////////////
 
