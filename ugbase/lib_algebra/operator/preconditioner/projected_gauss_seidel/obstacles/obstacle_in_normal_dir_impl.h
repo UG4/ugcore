@@ -129,7 +129,7 @@ adjust_sol_and_cor_elem(TIterator iterBegin,
 			UG_LOG("coPos: " << coPos[i] << "\n");
 		UG_LOG("normal: " << normal << "\n");
 
-		const number normOfNormal = VecLength(normal);
+		//const number normOfNormal = VecLength(normal);
 		//const value_type tmpVSol = sol_i + c_i;
 		//const number uTimesNormal = tmpSol / normOfNormal;
 		UG_LOG("\n");
