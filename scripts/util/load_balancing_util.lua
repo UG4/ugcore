@@ -229,9 +229,12 @@ function balancer.Rebalance(domain, loadBalancer)
 	
 	if loadBalancer ~= nil then
 		if(balancer.staticProcHierarchy == false) then
+			local minDistLvl = 0
+			if balancer.firstDistLvl > 0 then minDistLvl = balancer.firstDistLvl end
+			
 			procH = CreateProcessHierarchy(domain, balancer.parallelElementThreshold,
 										   balancer.redistProcs, GetNumProcesses(),
-										   balancer.maxLvlsWithoutRedist)
+										   minDistLvl, balancer.maxLvlsWithoutRedist)
 			loadBalancer:set_next_process_hierarchy(procH)
 		end
 		loadBalancer:rebalance()

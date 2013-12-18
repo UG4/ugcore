@@ -12,12 +12,15 @@ namespace ug{
 SPProcessHierarchy
 CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 					   size_t minNumElemsPerProcPerLvl, size_t maxNumRedistProcs,
-					   size_t maxNumProcs, int maxLvlsWithoutRedist)
+					   size_t maxNumProcs, int minDistLvl,
+					   int maxLvlsWithoutRedist)
 {
 	using std::min;
-	const int minDistLvl = 0;
 
 	SPProcessHierarchy procH = ProcessHierarchy::create();
+
+	if(minDistLvl < 0)
+		minDistLvl = 0;
 
 	if(minNumElemsPerProcPerLvl < 1)
 		minNumElemsPerProcPerLvl = 1;
@@ -25,15 +28,16 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 	if(maxNumRedistProcs > maxNumProcs)
 		maxNumRedistProcs = maxNumProcs;
 
-	if((numLvls == 0) || (maxNumProcs == 0) || (maxNumRedistProcs == 0)){
+	if(((int)numLvls <= minDistLvl) || (maxNumProcs == 0) || (maxNumRedistProcs == 0))
+	{
 		procH->add_hierarchy_level(0, 1);
 		return procH;
 	}
 
 //	find the level with the most elements first
-	size_t largestLvl = 0;
+	size_t largestLvl = (size_t)minDistLvl;
 
-	for(size_t i = 1; i < numLvls; ++i){
+	for(size_t i = minDistLvl + 1; i < numLvls; ++i){
 		if(numElemsOnLvl[i] > numElemsOnLvl[largestLvl])
 			largestLvl = i;
 	}

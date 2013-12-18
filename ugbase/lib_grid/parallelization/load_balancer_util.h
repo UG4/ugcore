@@ -13,7 +13,8 @@ namespace ug{
 SPProcessHierarchy
 CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 					   size_t minNumElemsPerProcPerLvl, size_t maxNumRedistProcs,
-					   size_t maxNumProcs, int maxLvlsWithoutRedist);
+					   size_t maxNumProcs, int minDistLvl,
+					   int maxLvlsWithoutRedist);
 
 
 template <int dim>

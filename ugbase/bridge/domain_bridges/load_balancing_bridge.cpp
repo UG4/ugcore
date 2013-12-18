@@ -186,7 +186,8 @@ static void Domain(Registry& reg, string grp)
 
 		reg.add_function("CreateProcessHierarchy", &CreateProcessHierarchy<TDomain>, grp,
 						 "ProcessHierarchy", "Domain, minNumElemsPerProcPerLvl, "
-						 "maxNumRedistProcs, maxNumProcs");
+						 "maxNumRedistProcs, maxNumProcs, minDistLvl, "
+						 "maxLvlsWithoutRedist");
 
 	#endif
 }
