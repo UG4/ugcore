@@ -662,7 +662,8 @@ void WriteProfileDataXML(const char *filename, int procId)
 			f << "</call>\n";
 		}
 		f << "</log>\n";
-#if 1
+#if 0
+		// print call log
 		depth=0;
 		for(size_t i=0; i<profileCalls.size(); i++)
 		{
@@ -684,9 +685,7 @@ void WriteProfileDataXML(const char *filename, int procId)
 			}
 		}
 		for(int i=0; i<depth; i++)
-		{
-			UG_LOG(repeat(' ', depth-i-1) << "}\n");
-		}
+		{ 	UG_LOG(repeat(' ', depth-i-1) << "}\n");	}
 #endif
 
 #endif
