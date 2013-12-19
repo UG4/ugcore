@@ -155,37 +155,49 @@ fi
 (in case you choose the Bash) will be automatically sourced.
 </li>
 
-<li>Some software is only available if the appropriate \em module was loaded for the
-current session via the <tt>module</tt> command, e.g. for loading CMake,
+<li>
+In your  <tt>~/.bashrc</tt> you can choose whatever setting you like. A useful
+example setting for ug4 usage is to add those lines:
 \code
-module load cmake
-\endcode
+...
+#ug4
+export UG4_ROOT=~/ug4/trunk
+source $UG4_ROOT/scripts/shell/ugbash
+export UGSUBMIT_TYPE=juqueen
+export UGSUBMIT_EMAIL=your.name@gcsc.uni-frankfurt.de
 
+#load some modules
+module load cmake
+module load lapack
+
+# prompt with username@host:path
+PS1="[\u@\h:"'\w]$ '
+...
+\endcode
+Read below to understand the lines.
+</li>
+</ul>
+
+<hr>
+\section secConfiguration_of_ug4_for_JuQueen Configuration of ug4 for JuQueen
+
+Some additional software is only available if the appropriate \em module was
+loaded for the current session via the <tt>module</tt> command.
 A short introduction to the \em module concept and the <tt>module</tt> command
-is given e.g.
+can be found
 <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/ModuleEnvironment.html">here</a>.
-<!--
-the following presentation titled
-<a href="http://www2.fz-juelich.de/jsc/datapool/page/4380/JSC-Tools-2011.pdf">Module setup and compiler</a>
-(pre-BG/Q, but referenced from the official BG/Q documentation).
--->
 
 \note The \em module concept allows for dynamic modification of your shell
 environment but only for the current session. To make those changes persistent
 you might want to add your <tt>module load/swap</tt> commands to your shell
 configuration file (<tt>~/.bashrc</tt> etc.).
-</li>
-</ul>
 
-
-<hr>
-\section secConfiguration_of_ug4_for_JuQueen Configuration of ug4 for JuQueen
-
-Make sure that the cmake module has been loaded. You can e.g. add
+For ug4 compiling, make sure that the cmake module has been loaded.
+You can e.g. add
 \code
 	module load cmake
 \endcode
-to your .bashrc file or simply execute it manually.
+to your <tt>~/.bashrc</tt> file or simply execute it manually.
 
 For \em JuQueen you have to "cross compile" and to do so use a specific 
 \ref secCMake_ToolchainFiles.
@@ -212,35 +224,37 @@ For debugging a parallel application on JuQueen see \ref secDebuggingOnJuQueen
 <hr>
 \section secWorking_with_ug4_on_JuQueen Working with ug4 on JuQueen
 
-\subsection secBasic_job_handling Basic Job Handling
+\subsection secBasic_job_handling Job Handling using ugsubmit (recommended)
 You can use \c ugsubmit to run your jobs on JUQUEEN. Make sure to source
 ug4/trunk/scripts/shell/ugbash and to export the variables
 \code
 	export UGSUBMIT_TYPE=Juqueen
 	export UGSUBMIT_EMAIL=your@email.com
 \endcode
-e.g. in '.bashrc'.
-(of course you have to replace 'your@email.com' with your real email adress...)
-see also \ref pageugsubmit
+e.g. in <tt>~/.bashrc</tt>.
+(of course you have to replace 'your@email.com' with your real email adress...).
+
+\subsubsection secInteractive_jobs Interactive jobs
+<strong>Not possible</strong> in the moment!
+
+\subsubsection secBatch_jobs Batch jobs
+
+Read \ref pageugsubmit for further instructions on unified \c ugsubmit usage.
+
+\warning 	Make sure to execute all batch jobs on the $WORK partition of Juqueen.
+			Access to $HOME from the compute-nodes is not only slow but will likely
+			cause other troubles, too.
+
+\subsection secBasic_manual_job_handling Manual Job Handling using LoadLeveler (not recommended)
+
+\note	\c ugsubmit (\ref pageugsubmit) does the job of submitting jobs for you.
+		It is strongly recommendet to use it!
+		The following section is thus only of concern to people who want to submit jobs manually.
 
 For some basic information see the
 <a href="http://www.fz-juelich.de/ias/jsc/EN/Expertise/Supercomputers/JUQUEEN/UserInfo/QuickIntroductionJuqueen.html">Quick Introduction</a>
 to job handling and the references therein. Here we only provide some important
 details (everything else should become clear by examining the examples provided):
-
-\subsubsection secInteractive_jobs Interactive jobs
-<strong>Not possible</strong> in the moment!
-
-
-
-\subsubsection secBatch_jobs Batch jobs
-\warning 	Make sure to execute all batch jobs on the $WORK partition of Juqueen.
-			Access to $HOME from the compute-nodes is not only slow but will likely
-			cause other troubles, too.
-			
-\note	\c ugsubmit (\ref pageugsubmit) does the job of submitting jobs for you.
-		It is strongly recommendet to use it!
-		The following section is thus only of concern to people who want to submit jobs manually.
 
 Batch jobs are submitted with the <strong>\c llsubmit command</strong>.
 The command is typically executed in the directory where the ug4 executable resides ("ug4-bin"):
