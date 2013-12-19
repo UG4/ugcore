@@ -127,17 +127,23 @@ function util.CreateDomain(gridName, numRefs, neededSubsets)
 	local dom = Domain()
 	
 	-- load domain
+	write("Loading Domain "..gridName.." ... ") 
 	LoadDomain(dom, gridName)
+	write("done. ")
 	
 	-- Create a refiner instance. This is a factory method
 	-- which automatically creates a parallel refiner if required.
 	if numRefs > 0 then
+		write("Refining("..numRefs.."): ")
 		local refiner = GlobalDomainRefiner(dom)
 		for i=1,numRefs do
 			refiner:refine()
+			write(i .. " ")
 		end
+		write("done.")
 		delete(refiner)
 	end
+	write("\n")
 	
 	-- check whether required subsets are present
 	if neededSubsets ~= nil then
