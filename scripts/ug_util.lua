@@ -204,7 +204,9 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 	local dom = Domain()
 	
 	-- load domain
+	write("Loading Domain "..gridName.." ... ") 
 	LoadDomain(dom, gridName)
+	write("done. ")
 	
 	-- create Refiner
 	if numPreRefs > numRefs then
@@ -223,21 +225,26 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 		refiner = GlobalDomainRefiner(dom)
 	end
 	
+	write("Pre-Refining("..numPreRefs.."): ")
 	-- Performing pre-refines
 	for i=1,numPreRefs do
+		write(i .. " ")
 		refiner:refine()
 	end
-	
+	write("done. Distributing...")
 	-- Distribute the domain to all involved processes
 	if util.DistributeDomain(dom, distributionMethod, verticalInterfaces, numTargetProcs, distributionLevel, wFct) == false then
 		print("Error while Distributing Grid. Aborting.")
 		exit();
 	end
+	write(" done. Post-Refining("..(numRefs-numPreRefs).."): ")
 	
 	-- Perform post-refine
 	for i=numPreRefs+1,numRefs do
 		refiner:refine()
+		write(i-numPreRefs .. " ")
 	end
+	write("done.\n")
 	
 	-- Now we loop all subsets an search for it in the SubsetHandler of the domain
 	if neededSubsets ~= nil then
@@ -246,6 +253,7 @@ function util.CreateAndDistributeDomain(gridName, numRefs, numPreRefs,
 			exit();
 		end
 	end
+	
 	
 	--clean up
 	if refiner ~= nil then
