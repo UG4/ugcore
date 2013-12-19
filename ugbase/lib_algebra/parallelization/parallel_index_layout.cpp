@@ -66,11 +66,17 @@ std::ostream &operator << (std::ostream &out, const IndexLayout &layout)
 		const IndexLayout::Interface &interface = layout.interface(iter);
 		out << "\n to processor " << pid << " (size " << interface.size() << ") :";
 		std::stringstream ss;
-		int k=0;
+		size_t k=0;
+		int ndigit= NumberOfDigits(interface.size());
 		for(IndexLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
-			if(k++ == 10) { ss << "\n  "; k = 0; }
-			ss << interface.get_element(iter2) << "  ";
+			if(k % 10 == 0)
+			{
+				if(k!=0) ss << "\n";
+				ss << std::setw(ndigit) << k << "-" << std::setw(ndigit) << std::min(interface.size(), k+9) << ": ";
+			}
+			ss << std::setw(5) << interface.get_element(iter2) << "  ";
+			k++;
 		}
 		out << ConfigShift(ss.str());
 	}
@@ -140,6 +146,31 @@ void ReplaceIndicesInLayout(IndexLayout& layout, const std::vector<int>& vMap)
 
 		}
 	}
+}
+
+void MarkAllFromInterface(std::vector<bool> &mark, const IndexLayout::Interface &interface)
+{
+	for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		mark[ interface.get_element(iter) ] = true;
+}
+
+void MarkAllFromLayout(std::vector<bool> &mark, const IndexLayout &layout)
+{
+	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
+		MarkAllFromInterface(mark, layout.interface(iter));
+}
+
+
+void AddAllFromInterface(std::set<size_t> &s, const IndexLayout::Interface &interface)
+{
+	for(IndexLayout::Interface::const_iterator iter = interface.begin(); iter != interface.end(); ++iter)
+		s.insert(interface.get_element(iter));
+}
+
+void AddAllFromLayout(std::set<size_t> &s, const IndexLayout &layout)
+{
+	for(IndexLayout::const_iterator iter = layout.begin(); iter != layout.end(); ++iter)
+		AddAllFromInterface(s, layout.interface(iter));
 }
 
 }

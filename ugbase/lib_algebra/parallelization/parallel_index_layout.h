@@ -8,6 +8,7 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__
 
+#include <set>
 #include <vector>
 #include <iostream>
 #include "pcl/pcl.h"
@@ -68,6 +69,36 @@ inline void AddIfUnique(IndexLayout::Interface &interface, size_t i)
 	if(IsInInterface(interface, i) == false)
 		interface.push_back(i);
 }
+
+/**
+ * Marks all indices in the IndexLayout::Interface with true
+ * @param mark a std::vector which has to be big enough for maximum index in interface
+ * @param layout
+ */
+void MarkAllFromInterface(std::vector<bool> &mark, const IndexLayout::Interface &interface);
+
+
+/**
+ * Marks all indices in the IndexLayout with true
+ * @param mark a std::vector which has to be big enough for maximum index in layout
+ * @param layout
+ */
+void MarkAllFromLayout(std::vector<bool> &mark, const IndexLayout &layout);
+
+
+/**
+  * @param mark a set to which all indices from the interface are added
+ * @param layout
+ */
+void AddAllFromInterface(std::set<size_t> &s, const IndexLayout::Interface &interface);
+
+
+/**
+ * @param mark a set to which all indices from the interface are added
+ * @param layout
+ */
+void AddAllFromLayout(std::set<size_t> &s, const IndexLayout &layout);
+
 
 std::ostream &operator << (std::ostream &out, const IndexLayout &layout);
 
