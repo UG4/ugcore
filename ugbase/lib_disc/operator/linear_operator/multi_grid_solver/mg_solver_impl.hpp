@@ -52,7 +52,7 @@ AssembledMultiGridCycle<TDomain, TAlgebra>::
 AssembledMultiGridCycle(SmartPtr<ApproximationSpace<TDomain> > approxSpace) :
 	m_spSurfaceMat(NULL), m_spAss(NULL), m_spApproxSpace(approxSpace),
 	m_topLev(GridLevel::TOP), m_surfaceLev(GridLevel::TOP),
-	m_baseLev(0), m_cycleType(1),
+	m_baseLev(0), m_cycleType(_V_),
 	m_numPreSmooth(2), m_numPostSmooth(2),
 	m_LocalFullRefLevel(0), m_GridLevelType(GridLevel::LEVEL),
 	m_bUseRAP(false), m_bSmoothOnSurfaceRim(false),
@@ -166,7 +166,7 @@ apply(vector_type& rC, const vector_type& rD)
 
 	//	start mg-cycle
 		GMG_PROFILE_BEGIN(GMG_Apply_lmgc);
-		lmgc(m_topLev);
+		lmgc(m_topLev, m_cycleType);
 		GMG_PROFILE_END();
 
 	//	project top lev to surface
@@ -1947,7 +1947,7 @@ base_solve(int lev)
 // performs a  multi grid cycle on the level
 template <typename TDomain, typename TAlgebra>
 void AssembledMultiGridCycle<TDomain, TAlgebra>::
-lmgc(int lev)
+lmgc(int lev, int cycleType)
 {
 	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - lmgc on level "<<lev<<"\n");
@@ -1963,16 +1963,24 @@ lmgc(int lev)
 		}
 		UG_CATCH_THROW("GMG::lmgc: presmooth-restriction failed on level "<<lev);
 
-		int numBase = m_cycleType;
-		if(lev == m_baseLev+1) numBase = 1;
-		for(int i = 0; i < numBase; ++i)
-		{
-			try{
-				lmgc(lev-1);
-			}
-			UG_CATCH_THROW("GMG::lmgc: Linear multi grid cycle on level "<<lev-1
-			               <<" failed. (BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<").");
+		try{
+	//	on base level, invert only once
+		if(lev == m_baseLev+1) {
+			lmgc(lev-1, cycleType);
 		}
+	//	F-cycle: one F-cycle on lev-1, followed by a V-cycle
+		else if(cycleType == _F_){
+			lmgc(lev-1, _F_);
+			lmgc(lev-1, _V_);
+		}
+	//	V- or W- cycle, or gamma > 2
+		else {
+			for(int i = 0; i < cycleType; ++i)
+				lmgc(lev-1, cycleType);
+		}
+		}
+		UG_CATCH_THROW("GMG::lmgc: Linear multi-grid cycle on level "<<lev-1<<
+		               " failed. (BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<").");
 
 		try{
 			prolongation_and_postsmooth(lev);
@@ -2132,8 +2140,9 @@ config_string() const
 {
 	std::stringstream ss;
 	ss << "GeometricMultigrid (";
-	if(m_cycleType == 1) ss << "V-Cycle";
-	else if(m_cycleType == 2) ss << "W-Cycle";
+	if(m_cycleType == _V_) ss << "V-Cycle";
+	else if(m_cycleType == _W_) ss << "W-Cycle";
+	else if(m_cycleType == _F_) ss << "F-Cycle";
 	else ss << " " << m_cycleType << "-Cycle";
 	ss << ")\n";
 

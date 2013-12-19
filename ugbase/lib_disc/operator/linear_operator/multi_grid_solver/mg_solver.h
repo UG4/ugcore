@@ -113,8 +113,9 @@ class AssembledMultiGridCycle :
 
 	///	sets the cycle type (1 = V-cycle, 2 = W-cycle, ...)
 		void set_cycle_type(const std::string& type) {
-			if(TrimString(type) == "V") {m_cycleType = 1;}
-			else if(TrimString(type) == "W") {m_cycleType = 2;}
+			if(TrimString(type) == "V") {m_cycleType = _V_;}
+			else if(TrimString(type) == "W") {m_cycleType = _W_;}
+			else if(TrimString(type) == "F") {m_cycleType = _F_;}
 			else {UG_THROW("GMG::set_cycle_type: option '"<<type<<"' not supported.");}
 		}
 
@@ -207,7 +208,7 @@ class AssembledMultiGridCycle :
 
  	protected:
  	/// compute correction on level and update defect
-		void lmgc(int lev);
+		void lmgc(int lev, int cycleType);
 
 	////////////////////////////////////////////////////////////////
 	//	The methods in this section rely on each other and should be called in sequence
@@ -273,6 +274,9 @@ class AssembledMultiGridCycle :
 
 	///	cylce type (1 = V-cycle, 2 = W-cylcle, ...)
 		int m_cycleType;
+		static const int _V_ = 1;
+		static const int _W_ = 2;
+		static const int _F_ = -1;
 
 	///	number of Presmooth steps
 		int m_numPreSmooth;
