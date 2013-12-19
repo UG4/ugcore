@@ -35,6 +35,7 @@ environment
 		- \ref pageUG4OnMac
 		- \ref pageUG4OnWindows
 		- \ref pageUG4SetupParallel
+			- \ref pageUG4ParallelCekon, \ref pageUG4ParallelHermit, \ref pageUG4ParallelJuQueen
 	- ug4 for vrl
 	- \ref pageUG4HLib
 
@@ -48,7 +49,7 @@ environment
 	- \ref pageUG4ParallelUsage
 		- \ref pageUG4ParallelComputing
 		- \ref pageugsubmit
-		- \ref pageParallelRendering
+		- \ref pageParallelRendering			
 	- ug4 and vrl
 	- <a href="regdocu/namespaceug4_bridge.html">ug4-Scripting Reference Documentation</a>
 	- \ref pageLuaScript	
