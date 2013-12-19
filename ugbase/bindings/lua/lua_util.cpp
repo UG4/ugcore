@@ -318,6 +318,7 @@ int UGLuaPrint(lua_State *L)
 	return 0;
 }
 
+
 /// UGLuaWrite. Redirects LUA prints to UG_LOG without adding newline at the end
 int UGLuaWrite(lua_State *L)
 {
@@ -336,6 +337,7 @@ int UGLuaWrite(lua_State *L)
 		lua_pop(L, 1);
 	}
 	lua_pop(L,1);
+	GetLogAssistant().flush();
 	return 0;
 }
 
