@@ -71,18 +71,15 @@ class ObstacleInNormalDir:
 			m_spDD = u.dof_distribution();
 			m_spDomain = u.domain();
 
-			//	for debugging
-			MathVector<dim> normal;
-			normal[0] = 2.0;
-			if (dim > 1) normal[1] = 1.5;
-			if (dim > 2) normal[2] = -3.0;
-
-			MathVector<dim> transformedONB[dim];
-			transform_eulerian_coord_sys(transformedONB, normal);
+			UG_LOG("In ObstacleInNormalDir::constructor u hat "<<u.size()<<"Eintraege \n");
+			UG_LOG("\n");
 		};
 
 	/// constructor
 		ObstacleInNormalDir(): IObstacleConstraint<TDomain,TAlgebra>(){};
+
+	///	preprocess is useful to attach the normals for every obstacle DoF
+		void preprocess();
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
 		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
@@ -116,6 +113,12 @@ class ObstacleInNormalDir:
 
 	///	pointer to the domain
 		ConstSmartPtr<TDomain> m_spDomain;
+
+	///	struct to store data for a specific obstacle DoF
+		struct obsDoFData{
+			number obsVal;
+			MathVector<dim> transformedONB[dim];
+		};
 };
 
 } // end namespace ug

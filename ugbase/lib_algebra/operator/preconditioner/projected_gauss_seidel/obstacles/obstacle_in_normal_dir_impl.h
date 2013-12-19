@@ -18,6 +18,21 @@ namespace ug{
 
 template <typename TDomain, typename TAlgebra>
 void
+ObstacleInNormalDir<TDomain,TAlgebra>::preprocess()
+{
+	//	for debugging
+	MathVector<dim> normal;
+	normal[0] = 2.0;
+	if (dim > 1) normal[1] = 1.5;
+	if (dim > 2) normal[2] = -3.0;
+
+	MathVector<dim> transformedONB[dim];
+	transform_eulerian_coord_sys(transformedONB, normal);
+
+}
+
+template <typename TDomain, typename TAlgebra>
+void
 ObstacleInNormalDir<TDomain,TAlgebra>::transform_eulerian_coord_sys(MathVector<dim> transformedONB[],
 		const MathVector<dim>& firstTransformedBaseVec)
 {
@@ -117,22 +132,22 @@ adjust_sol_and_cor_elem(TIterator iterBegin,
 		if ((int)vCorner.size() == dim)
 		{
 			ElementNormal<face_type0, dim>(normal, coPos);
-			UG_LOG("face_type0 \n");
+			//UG_LOG("face_type0 \n");
 		}
 		else
 		{
 			ElementNormal<face_type1, dim>(normal, coPos);
-			UG_LOG("face_type1 \n");
+			//UG_LOG("face_type1 \n");
 		}
 
-		for (int i = 0; i < (int)vCorner.size(); ++i)
+		/*for (int i = 0; i < (int)vCorner.size(); ++i)
 			UG_LOG("coPos: " << coPos[i] << "\n");
 		UG_LOG("normal: " << normal << "\n");
 
 		//const number normOfNormal = VecLength(normal);
 		//const value_type tmpVSol = sol_i + c_i;
 		//const number uTimesNormal = tmpSol / normOfNormal;
-		UG_LOG("\n");
+		UG_LOG("\n");*/
 	}
 
 	const size_t comp = dof[1];

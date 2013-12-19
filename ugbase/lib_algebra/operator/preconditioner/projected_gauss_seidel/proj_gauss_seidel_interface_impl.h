@@ -39,6 +39,15 @@ init(SmartPtr<ILinearOperator<vector_type> > J, const vector_type& u)
 //	remember, that operator has been initialized
 	m_bInit = true;
 
+	UG_LOG("In IProjGaussSeidel::init u hat "<<(*m_spSol).size()<<"Eintraege \n");
+	UG_LOG("\n");
+
+	typedef typename vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > >::iterator iter_type;
+	iter_type iter = m_spvObsConstraint.begin();
+	iter_type iterEnd = m_spvObsConstraint.end();
+	for( ; iter != iterEnd; iter++)
+		(*iter)->preprocess();
+
 //	(ugly) hint, that usual damping (x += damp * c) does not make sense for the projected
 //	GaussSeidel-method.
 /*	const number kappa = this->damping()->damping(u, u, m_spOperator);
@@ -70,7 +79,7 @@ project_correction(value_type& c_i, const size_t i)
 		//	fulfills the underlying constraint(s) or not
 		bool dofIsAdmissible = true;
 		bool dofIsObsDoF = false;
-
+		UG_LOG("dof "<<dof<<"\n");
 		//	set iterator to the first obstacle constraint
 		iter_type iter = m_spvObsConstraint.begin();
 		for( ; iter != iterEnd; iter++)
@@ -79,6 +88,7 @@ project_correction(value_type& c_i, const size_t i)
 			if (!((*iter)->dof_lies_in_obs_subset(dof)))
 				continue;
 
+			UG_LOG("IS IN OBS SUBSET \n");
 			dofIsObsDoF = true;
 
 			(*iter)->adjust_sol_and_cor((*m_spSol)[i], c_i, dofIsAdmissible, dof);

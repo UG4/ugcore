@@ -113,6 +113,11 @@ class IObstacleConstraint
 		void reset_active_dofs(){m_vActiveDofs.resize(0);}
 
 
+	///	this preprocess-method is called in every init-call of the underlying proj. preconditioner
+	///	it is useful to attach e.g. additional data to the obstacle DoFs, like the e.g. the normal vector at
+	///	this DoF
+		virtual void preprocess(){};
+
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
 		virtual void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 				const DoFIndex& dof) = 0;
@@ -148,7 +153,7 @@ class IObstacleConstraint
 
 	protected:
 	///	map to store obstacle values with its corresponding DoFs
-		map<DoFIndex, double> m_mObstacleValues;
+		map<DoFIndex, number> m_mObstacleValues;
 
 	///	stores the subset-indices of the obstacle subsets
 		vector<int> m_vObsSubsets;

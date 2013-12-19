@@ -28,6 +28,9 @@ init()
 		UG_THROW("DofDistribution not set in 'IObstacleConstraint'.");
 
 	init_obstacle_values_and_dofs(1.0);
+
+	UG_LOG("In IObstacleConstraint::init: "<<m_mObstacleValues.size()<< " obstacleDoFs tagged \n");
+	UG_LOG("\n");
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -297,7 +300,7 @@ init_obstacle_values_and_dofs(number time)
 {
 	extract_data();
 
-	//	reset map ob obstacle values and vector of obstacle subset-indices
+	//	reset map of obstacle values and vector of obstacle subset-indices
 	m_mObstacleValues.clear();
 	m_vObsSubsets.resize(0);
 

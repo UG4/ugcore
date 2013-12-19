@@ -84,7 +84,12 @@ class IProjGaussSeidel:
 		~IProjGaussSeidel(){};
 
 	protected:
-		using base_type::copy_config;
+		void copy_config(IProjGaussSeidel &newInst)
+		{
+			newInst.m_spvObsConstraint = m_spvObsConstraint;
+			newInst.m_bObsCons = m_bObsCons;
+			base_type::copy_config(newInst);
+		}
 
 	///	name
 		virtual const char* name() const = 0;

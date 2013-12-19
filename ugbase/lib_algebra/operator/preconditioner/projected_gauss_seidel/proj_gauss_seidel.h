@@ -65,13 +65,6 @@ class ProjGaussSeidel:
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
-	public:
-	/// constructor
-		ProjGaussSeidel(): IProjGaussSeidel<TDomain,TAlgebra>(){};
-
-	///	Destructor
-		~ProjGaussSeidel(){};
-
 	protected:
 	///	name
 		virtual const char* name() const {return "Projected GaussSeidel";}
@@ -105,13 +98,6 @@ class ProjBackwardGaussSeidel:
 
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
-
-	public:
-	/// constructor
-		ProjBackwardGaussSeidel(): IProjGaussSeidel<TDomain,TAlgebra>(){};
-
-	///	Destructor
-		~ProjBackwardGaussSeidel(){};
 
 	protected:
 	///	name
@@ -147,13 +133,6 @@ class ProjSymmetricGaussSeidel:
 
 	///	Vector type
 		typedef typename algebra_type::vector_type vector_type;
-
-	public:
-	/// constructor
-		ProjSymmetricGaussSeidel(): IProjGaussSeidel<TDomain,TAlgebra>(){};
-
-	///	Destructor
-		~ProjSymmetricGaussSeidel(){};
 
 	protected:
 	///	name
