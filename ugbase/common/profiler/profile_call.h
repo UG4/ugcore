@@ -13,21 +13,34 @@
 #ifdef SHINY_CALL_LOGGING
 
 #include <vector>
+#include "src/ShinyTools.h"
 
 namespace ug{
 
 struct ProfileCall
 {
-	ProfileCall(Shiny::ProfileNode *_p, clock_t c)
+	ProfileCall()
+	{
+		p = NULL;
+		c = 0;
+	}
+	ProfileCall(const ProfileCall &other)
+	{
+		p = other.p;
+		c = other.c;
+	}
+	ProfileCall(Shiny::ProfileNode *_p)
 	{
 		p = _p;
+		Shiny::GetTicks(&c);
 	}
 	Shiny::ProfileNode *p;
-	clock_t c;
+	Shiny::tick_t c;
 };
 
 extern std::vector<ProfileCall> profileCalls;
 
+void FinishShinyCallLogging();
 }
 
 #endif

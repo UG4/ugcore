@@ -15,8 +15,8 @@ void ShinyCallLoggingStart();
 void ShinyCallLoggingEnd();
 }
 
-#define PROFILE_LOG_CALL_START() ug::ShinyCallLoggingStart()
-#define PROFILE_LOG_CALL_END() ug::ShinyCallLoggingEnd()
+#define PROFILE_LOG_CALL_START() ug::ShinyCallLoggingStart();
+#define PROFILE_LOG_CALL_END() ug::ShinyCallLoggingEnd();
 
 #else
 #define PROFILE_LOG_CALL_START()

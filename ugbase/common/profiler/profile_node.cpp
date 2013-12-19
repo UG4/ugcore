@@ -599,7 +599,10 @@ void WriteProfileDataXML(const char *filename, int procId)
 					  << ". Only one process available (with id 0)");
 	#endif
 
-	clock_t curTime = clock(); (void) curTime;
+#ifdef SHINY_CALL_LOGGING
+	Shiny::tick_t curTime;
+	Shiny::GetTicks(&curTime);
+#endif
 	ProfilerUpdate();
 	const UGProfileNode *pnRoot = UGProfileNode::get_root();
 
@@ -636,6 +639,7 @@ void WriteProfileDataXML(const char *filename, int procId)
 		f << "</core>\n";
 
 #ifdef SHINY_CALL_LOGGING
+		FinishShinyCallLogging();
 		f << "<log>\n";
 		int depth=0;
 		for(size_t i=0; i<profileCalls.size(); i++)
@@ -658,6 +662,33 @@ void WriteProfileDataXML(const char *filename, int procId)
 			f << "</call>\n";
 		}
 		f << "</log>\n";
+#if 1
+		depth=0;
+		for(size_t i=0; i<profileCalls.size(); i++)
+		{
+			if(profileCalls[i].p == NULL)
+			{
+				depth--;
+				UG_LOG(repeat(' ', depth) << "}\n");
+			}
+			else
+			{
+				UG_LOG(repeat(' ', depth) << profileCalls[i].p->zone->name << "\n");
+				if(i+1 < profileCalls.size() && profileCalls[i+1].p == NULL)
+					i++;
+				else
+				{
+					UG_LOG(repeat(' ', depth) << "{\n");
+					depth++;
+				}
+			}
+		}
+		for(int i=0; i<depth; i++)
+		{
+			UG_LOG(repeat(' ', depth-i-1) << "}\n");
+		}
+#endif
+
 #endif
 		
 #ifdef UG_PARALLEL
