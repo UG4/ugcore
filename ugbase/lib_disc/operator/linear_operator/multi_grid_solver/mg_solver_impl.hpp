@@ -1837,8 +1837,9 @@ base_solve(int lev)
 {
 	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - base_solve on level "<<lev<<"\n");
-	try{
+	log_debug_data(lev, "BeforeBaseSolver");
 
+	try{
 	LevData& ld = *m_vLevData[lev];
 
 //	SOLVE BASE PROBLEM
@@ -1939,6 +1940,7 @@ base_solve(int lev)
 		GMG_PROFILE_END();
 	}
 
+	log_debug_data(lev, "AfterBaseSolver");
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - base_solve on level "<<lev<<"\n");
 	}
 	UG_CATCH_THROW("GMG: Base Solver failed.");
@@ -1952,59 +1954,45 @@ lmgc(int lev, int cycleType)
 	GMG_PROFILE_FUNC();
 	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-start - lmgc on level "<<lev<<"\n");
 
-//	switch, if base level is reached. If so, call base Solver, else we will
-//	perform smoothing, restrict the defect and call the lower level; then,
-//	going up again in the level hierarchy the correction is interpolated and
-//	used as coarse grid correction. Finally a post-smooth is performed.
-	if((int)lev > m_baseLev)
-	{
-		try{
-			presmooth_and_restriction(lev);
-		}
-		UG_CATCH_THROW("GMG::lmgc: presmooth-restriction failed on level "<<lev);
-
-		try{
-	//	on base level, invert only once
-		if(lev == m_baseLev+1) {
-			lmgc(lev-1, cycleType);
-		}
-	//	F-cycle: one F-cycle on lev-1, followed by a V-cycle
-		else if(cycleType == _F_){
-			lmgc(lev-1, _F_);
-			lmgc(lev-1, _V_);
-		}
-	//	V- or W- cycle, or gamma > 2
-		else {
-			for(int i = 0; i < cycleType; ++i)
-				lmgc(lev-1, cycleType);
-		}
-		}
-		UG_CATCH_THROW("GMG::lmgc: Linear multi-grid cycle on level "<<lev-1<<
-		               " failed. (BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<").");
-
-		try{
-			prolongation_and_postsmooth(lev);
-		}
-		UG_CATCH_THROW("GMG::lmgc: prolongation-postsmooth failed on level "<<lev);
-
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level "<<lev<<"\n");
+//	check if already base level
+	if(lev == m_baseLev) {
+		base_solve(m_topLev);
+	} else if(lev < m_baseLev){
+		UG_THROW("GMG::lmgc: call lmgc only for lev > baseLev.");
 	}
-//	if the base level has been reached, the coarse problem is solved exactly
-	else if((int)lev == m_baseLev)
-	{
-		log_debug_data(lev, "BeforeBaseSolver");
-		try{
-			base_solve(lev);
-		}
-		UG_CATCH_THROW("GMG::lmgc: basesolver failed on level "<<lev);
-		log_debug_data(lev, "AfterBaseSolver");
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level "<<lev<<" (base solver executed)\n");
+//	presmooth and restrict
+	try{
+		presmooth_and_restriction(lev);
 	}
-//	this case should never happen.
+	UG_CATCH_THROW("GMG::lmgc: presmooth-restriction failed on level "<<lev);
+
+	try{
+//	on base level, invert only once
+	if(lev-1 == m_baseLev) {
+		base_solve(lev-1);
+	}
+//	F-cycle: one F-cycle on lev-1, followed by a V-cycle
+	else if(cycleType == _F_){
+		lmgc(lev-1, _F_);
+		lmgc(lev-1, _V_);
+	}
+//	V- or W- cycle, or gamma > 2
 	else {
-		UG_THROW("GMG::lmgc: Level index below baseLevel.");
+		for(int i = 0; i < cycleType; ++i)
+			lmgc(lev-1, cycleType);
 	}
+	}
+	UG_CATCH_THROW("GMG::lmgc: Linear multi-grid cycle on level "<<lev-1<<
+				   " failed. (BaseLev="<<m_baseLev<<", TopLev="<<m_topLev<<").");
+
+//	prolongate, add coarse-grid correction and postsmooth
+	try{
+		prolongation_and_postsmooth(lev);
+	}
+	UG_CATCH_THROW("GMG::lmgc: prolongation-postsmooth failed on level "<<lev);
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 3, "gmg-stop - lmgc on level "<<lev<<"\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
