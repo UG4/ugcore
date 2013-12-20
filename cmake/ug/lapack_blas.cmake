@@ -12,35 +12,34 @@
 
 # we'll check for lapack and blas here
 if(LAPACK OR BLAS)
-	# On OSX, we know where lapack and blas are located. To avoid errors
-	# with Fortran compilers on OSX, we'll add APPLE as a special case here.
-	if(APPLE)
-		if(LAPACK)
-			set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
-			FIND_PATH(LAPACK_INCLUDE_DIR clapack.h /usr/local/include/ /usr/include /include)
-			if(LAPACK_INCLUDE_DIR)
-	  			set(LAPACK_FOUND YES)
-	  		endif(LAPACK_INCLUDE_DIR)
-		endif(LAPACK)
-		
-		if(BLAS)
-			set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
-			find_path(BLAS_INCLUDE_DIR cblas.h /usr/local/include/ /usr/include /include)
-			set(BLAS_FOUND YES)
-			if(BLAS_INCLUDE_DIR)
-				set(BLAS_FOUND YES)
-			endif(BLAS_INCLUDE_DIR)
-		endif(BLAS)
-		
-	elseif(NOT BUILTIN_BLAS AND NOT BUILTIN_LAPACK)			
-		if(LAPACK)
-			find_package(LAPACK)
-		endif(LAPACK)
-		
-		if(BLAS)
-	    	find_package(BLAS)
-		endif(BLAS)
-	endif(APPLE)
+    if(NOT BUILTIN_BLAS AND NOT BUILTIN_LAPACK)			
+    	
+    	if(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
+    	  set(CMAKE_Fortran_COMPILER CMAKE_Fortran_COMPILER-NOTFOUND)
+    	endif(DEFINED CMAKE_Fortran_COMPILER AND CMAKE_Fortran_COMPILER MATCHES "^$")
+    	
+    	ENABLE_LANGUAGE(Fortran OPTIONAL)
+    	if(CMAKE_Fortran_COMPILER_WORKS)    	
+    		if(LAPACK)
+    			find_package(LAPACK)
+    		endif(LAPACK)
+    		
+    		if(BLAS)
+    			find_package(BLAS)
+    		endif(BLAS)
+    	else(CMAKE_Fortran_COMPILER_WORKS)
+    	    message("Fortran not available. Using internal non-fortran FindLAPACK/FindBLAS.")
+    	    if(LAPACK)
+    			find_package(MYLAPACK)
+    		endif(LAPACK)
+    		
+    		if(BLAS)
+    			find_package(MYBLAS)
+    		endif(BLAS)
+    		
+    	endif(CMAKE_Fortran_COMPILER_WORKS)
+    endif(NOT BUILTIN_BLAS AND NOT BUILTIN_LAPACK)
+
 
 # We'll output whether lapack and blas are used, to avoid misconceptions
 	
