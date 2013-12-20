@@ -348,8 +348,10 @@ else
 	fi
 fi
 
-echo "Output dir is $outdir"
-rm lastRun
+echo "Output Directory: $outdir"
+if [ -d lastRun ]; then
+	rm lastRun
+fi
 ln -s $outdir lastRun
 
 #create info file in output directory

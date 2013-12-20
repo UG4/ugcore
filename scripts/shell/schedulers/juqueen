@@ -6,12 +6,14 @@
 
 function UJS_Submit
 {
-	echo ""; echo "On Juqueen, using llsubmit"
+	echo "Cluster: Juqueen. BatchSystem: LoadLeveler."
+	echo "Create: $outdir/job.sh"
 	
 	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	
 	if [ $interactive == true ]; then
-		echo "interactive mode is not supported at the moment"
+		echo "Interactive mode is not supported at the moment"
+		exit
 	fi
 
 	cat > $outdir/job.sh << EOF
@@ -49,7 +51,7 @@ EOF
 		fi	 
 	fi
 		
-		cat >> job.sh << EOF
+	cat >> job.sh << EOF
 # @ notification = $JuqueenNotification
 # @ notify_user = $UGSUBMIT_EMAIL
 EOF
@@ -62,18 +64,16 @@ EOF
 runjob --np $npe --ranks-per-node $nppn : $executable $args
 EOF
 
-	echo job.sh
 	if [ $test == true ]; then
-		echo "test. not executing."
+		echo "Only testing - NOT executing."
 		echo $outdir/job.sh ":"
 		cat $outdir/job.sh
-		cd $outdir/..
-		#rm -rf $outdir/
 		exit
 	fi
 	
-#todo: uncomment next line, get jobid=
- llsubmit $outdir/job.sh
+	echo "Submit: llsubmit $outdir/job.sh"
+#	todo: uncomment next line, get jobid=
+ 	llsubmit $outdir/job.sh
 }
 
 function UJS_GetOptions
