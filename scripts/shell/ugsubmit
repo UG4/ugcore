@@ -187,7 +187,6 @@ do
 		shift 2
 	elif [ $1 == "-test" ]; then
 		test=true
-		verbose=true
 		shift 1
 	elif [ $1 == "-email" ]; then
 		UGSUBMIT_EMAIL=$2
@@ -390,10 +389,10 @@ echo "" >> info.txt
 
 if [ $interactive == false ]; then
 	if [ ! -e $execpath/ugjobs ]; then
-		echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
+		echo "JOBID     EXECDATE      DIRECTORY" > $execpath/ugjobs
 	fi	
 	echo "Received job id: $jobid"
-	echo "$jobid $execdate $outdir" >> $execpath/ugjobs
+	echo "$jobid    $execdate    $outdir" >> $execpath/ugjobs
 	echo " job id:       "$jobid >> info.txt
 
 	if [ $tail == true ]; then

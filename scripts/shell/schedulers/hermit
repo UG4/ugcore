@@ -7,10 +7,8 @@
 
 function UJS_Submit
 {
-	echo "";
-	 
 	if [ $UGSUBMIT_TYPE == "NecNehalem" ]; then
-		echo "Using qsub on NecNehalem / NEC Nehalem Cluster / HLRS"
+		echo "Cluster: NecNehalem / NEC Nehalem Cluster / HLRS. Scheduler: qsub."
 		PBSnodes="-l nodes=$nnodes:nehalem:ppn=$nppn"
 		qsubrun="mpirun -np $npe $executable $args"
 		
@@ -20,7 +18,7 @@ function UJS_Submit
 			qsubqueue="-q $queue"
 		fi		
 	else
-		echo "Using qsub on Hermit/Cray XE6"
+		echo "Cluster: Hermit/Cray XE6. Scheduler: qsub"
 		PBSnodes="-l mppwidth=$npe -l mppnppn=$nppn"
 		qsubrun="aprun -n $npe -N $nppn $executable $args"
 		if [ -z "$queue" ]; then
@@ -28,9 +26,6 @@ function UJS_Submit
 		else
 			qsubqueue="-q $queue"
 		fi			
-	fi
-	if [ $interactive == true ]; then
-		echo "interactive mode is not supported at the moment"
 	fi
 
 	pbsMail=""
@@ -41,49 +36,29 @@ function UJS_Submit
 		fi 
 		pbsMail="-M $UGSUBMIT_EMAIL -m $pbsMailtype"
 	fi
-	
-	if [ $nppn == "max" ]; then
-		nppn=$nppnmax
-	fi
-	
+
 	# interactive: qsub -IX -l walltime=00:50:00 -l mppwidth=4 -l mppnppn=4
 	
-	if [ $((npe%nppn)) -ne 0 ]; then
-		echo "npe=$npe is not dividable by nppn=$nppn"
-		exit
-	fi
-	
-	
 	qsubargs="$qsubqueue -V -N $jobname -o job.output -e job.error -j oe -S /bin/bash -l walltime=$walltime $PBSnodes $pbsMail"
-	
-	if [ $verbose == true ]; then
-		echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs"		
-	fi
-
-	if [ $test == true ]; then
-		echo ""
-		echo "test. not executing."
-		cd ..
-		#rm -rf $outdir/
-		exit
-	fi
 
 	echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs" >> info.txt
 
-	jobid=`echo "cd $outdir; $qsubrun" | qsub $qsubargs`
-	return=$?	
-	if [ ! $return == 0 ]; then
-		echo "ERROR! qsub args:"
-		if [ ! $verbose == true ]; then
-			echo "echo \"cd $outdir; $qsubrun\" | qsub $qsubargs"		
-		fi 
-		echo "ERROR: qsub returned $return. Job has NOT been scheduled."
-		
-		exit
+	if [ $test == true ]; then
+		echo "ONLY testing - NOT executing."
+		return
 	fi
-	
-	jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
-	#showstart $jobid
+
+	if [ $interactive == true ]; then
+		echo "Interactive mode currently not supported on hermit. Aborting."
+	else
+		jobid=`echo "cd $outdir; $qsubrun" | qsub $qsubargs`
+		return=$?	
+		if [ ! $return == 0 ]; then
+			echo "ERROR: qsub returned $return. Job has NOT been scheduled."
+			exit
+		fi
+		jobid=`echo $jobid | sed 's/\([0-9]*\).*/\1/'`
+	fi	
 }
 
 

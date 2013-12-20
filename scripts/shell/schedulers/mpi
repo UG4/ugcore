@@ -7,18 +7,23 @@
 
 function UJS_Submit
 {
-	echo ""; echo "Using MPI"
+	echo "Cluster: local. Scheduler: MPI."
 		
-	echo mpirun -np $npe $executable $args
+	commandline="mpirun -np $npe $executable $args"
+	echo " command:      "$commandline >> info.txt
+	
 	if [ $test == true ]; then
-		echo "test. not executing."
-		#rm -rf $outdir/
-		exit
+		echo "ONLY testing - NOT executing."
+		echo "Submit/Start: $commandline"
+		return
 	fi
+	
 	if [ $interactive == true ]; then
-		mpirun -np $npe $executable $args
+		echo "Start: $commandline"
+		$commandline | tee $outdir/job.output
 	else
-		nohup mpirun -np $npe $executable $args > $outdir/job.output &
+		echo "Submit: $commandline"
+		nohup $commandline > $outdir/job.output &
 	fi
 }
 

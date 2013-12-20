@@ -11,11 +11,6 @@ function UJS_Submit
 	
 	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	
-	if [ $interactive == true ]; then
-		echo "Interactive mode is not supported at the moment. Aborting."
-		exit
-	fi
-
 	cat > $outdir/job.sh << EOF
 # @ job_name = $jobname
 # @ comment = $executable $args
@@ -64,16 +59,23 @@ EOF
 runjob --np $npe --ranks-per-node $nppn : $executable $args
 EOF
 
+	commandline="llsubmit $outdir/job.sh"
+	echo " command:      "$commandline >> info.txt
+
 	if [ $test == true ]; then
-		echo "Only testing - NOT executing."
-		echo $outdir/job.sh ":"
-		cat $outdir/job.sh
-		exit
+		echo "ONLY testing - NOT executing."
+		echo "Submit/Start: $commandline"
+		return
 	fi
-	
-	echo "Submit: llsubmit $outdir/job.sh"
-#	todo: uncomment next line, get jobid=
- 	llsubmit $outdir/job.sh
+
+	if [ $interactive == true ]; then
+		echo "Interactive mode currently not supported on juqueen. Aborting."
+		exit
+	else
+		echo "Submit: $commandline"
+	#	todo: uncomment next line, get jobid=
+	 	$commandline
+	fi
 }
 
 function UJS_GetOptions

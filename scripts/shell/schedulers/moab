@@ -10,12 +10,9 @@
 
 function UJS_Submit
 {
-	echo ""; echo "On MOAB, using msub"
+	echo "Cluster: MOAB. Scheduler: msub."
+	echo "Create: $outdir/job.sh"
 	
-	if [ $interactive == true ]; then
-		echo "interactive mode is not supported at the moment"
-	fi
-
 	cat > $outdir/job.sh << EOF
 #MSUB -N $jobname
 #MSUB -e $outdir/job.error
@@ -27,24 +24,31 @@ function UJS_Submit
 #MSUB -l qos=standby
 srun -n $npe --job-name=$jobname $executable $args
 EOF
+
+	commandline="msub $outdir/job.sh"
+	echo " command:      "$commandline >> info.txt
+
 	if [ $test == true ]; then
-		echo "test. not executing."
-		echo $outdir/job.sh ":"
-		cat $outdir/job.sh
-		cd $outdir/..
-		#rm -rf $outdir/
-		exit
-	fi
-	msub $outdir/job.sh > $outdir/job.output	
-	return=$?	
-	if [ ! $return == 0 ]; then
-		echo "ERROR: msub returned $return. Job has NOT been scheduled."
-		cat $outdir/job.output		
-		exit
+		echo "ONLY testing - NOT executing."
+		echo "Submit/Start: $commandline"
+		return
 	fi
 	
-	sleep 1
-	jobid=`cat job.output | sed -n 2p`
+	if [ $interactive == true ]; then
+		echo "interactive mode currently not supported on MOAB. Aborting."
+		exit
+	else			
+		$commandline > $outdir/job.output	
+		return=$?	
+		if [ ! $return == 0 ]; then
+			echo "ERROR: msub returned $return. Job has NOT been scheduled."
+			cat $outdir/job.output		
+			exit
+		fi
+	
+		sleep 1
+		jobid=`cat job.output | sed -n 2p`
+	fi
 }
 
 

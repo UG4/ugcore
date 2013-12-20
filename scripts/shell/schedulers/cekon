@@ -41,29 +41,26 @@ function UJS_Submit
 		SlurmMail="--mail-user=$UGSUBMIT_EMAIL --mail-type=$SlurmNotification"
 	fi
 
-	sallocrun="salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args"
-
-	echo "$sallocrun" >> $outdir/info.txt
+	commandline="salloc -n $npe $SlurmMail --job-name=$jobname mpirun $executable $args"
+	echo " command:      "$commandline >> info.txt
 
 	if [ $test == true ]; then
-		echo "Only testing - NOT executing."
-		cd $outdir/..
-		#rm -rf $outdir/
-		exit
+		echo "ONLY testing - NOT executing."
+		echo "Submit/Start: $commandline"
+		return
 	fi
-	
 
 	if [ $interactive == true ]; then
-		echo "Start: $sallocrun"
-		$sallocrun | tee $outdir/job.output
+		echo "Start: $commandline"
+		$commandline | tee $outdir/job.output
 		return=$?	
 		if [ ! $return == 0 ]; then
 			echo "ERROR: salloc returned $return. Job has NOT been started."
 			exit
 		fi
 	else
-		echo "Submit: $sallocrun"
-		nohup $sallocrun > $outdir/job.output &
+		echo "Submit: $commandline"
+		nohup $commandline > $outdir/job.output &
 		sleep 1
 		jobid=`cat job.output | sed -n 1p | sed 's/salloc: Granted job allocation \([0-9]*\).*/\1/'`
 	fi
