@@ -38,8 +38,8 @@ include(CheckFunctionExists)
 # Otherwise, LIBRARIES is set to FALSE.
 # N.B. _prefix is the prefix applied to the names of all cached variables that
 # are generated internally and marked advanced by this macro.
-macro(check_fortran_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _path)
-  #message("DEBUG: check_fortran_libraries(${_list} in ${_path})")
+macro(check_fortran_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _path _andpaths)
+ #message("DEBUG: check_fortran_libraries(${_list} in ${_path} and ${_andpaths})")
 
   # Check for the existence of the libraries given by _list
   set(_libraries_found TRUE)
@@ -65,12 +65,12 @@ macro(check_fortran_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _
       elseif ( APPLE )
         find_library(${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
-                    PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 ENV DYLD_LIBRARY_PATH
+                    PATHS "${_andpaths}" ENV DYLD_LIBRARY_PATH
                     )
       else ()
         find_library(${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
-                    PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 ENV LD_LIBRARY_PATH
+                    PATHS "${_andpaths}" ENV LD_LIBRARY_PATH
                     )
       endif()
       mark_as_advanced(${_prefix}_${_library}_LIBRARY)
@@ -147,6 +147,13 @@ else()
   set( BLAS_LINKER_FLAGS "" )
   set( BLAS_LIBRARIES "" )
   set( BLAS_LIBRARIES_DIR "" )
+  
+  set(BLAS_SEARCH_PATHS 
+      "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR ")
+      
+  set(BLAS_UNIX_SEARCH_PATHS
+      "/usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64")
+
 
     #
     # If Unix, search for BLAS function in possible libraries
@@ -161,7 +168,7 @@ else()
       sgemm
       ""
       "cblas;f77blas;atlas"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -174,7 +181,7 @@ else()
       sgemm
       ""
       "sgemm;dgemm;blas"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -187,7 +194,7 @@ else()
       sgemm
       ""
       "cxml"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -200,7 +207,7 @@ else()
       sgemm
       ""
       "dxml"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -213,7 +220,7 @@ else()
       sgemm
       "-xlic_lib=sunperf"
       "sunperf;sunmath"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
       if(BLAS_LIBRARIES)
         # Extra linker flag
@@ -230,7 +237,7 @@ else()
       sgemm
       ""
       "scsl"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -243,7 +250,7 @@ else()
       sgemm
       ""
       "complib.sgimath"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -256,7 +263,7 @@ else()
       sgemm
       ""
       "essl;blas"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -269,7 +276,7 @@ else()
       sgemm
       ""
       "mkl_intel_lp64;mkl_intel_thread;mkl_core;guide;pthread"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -282,7 +289,7 @@ else()
       SGEMM
       ""
       "mkl_c_dll;mkl_intel_thread_dll;mkl_core_dll;libguide40"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -297,7 +304,7 @@ else()
       sgemm
       ""
       "mkl;guide;pthread"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -310,7 +317,7 @@ else()
       sgemm
       ""
       "mkl_ia32;guide;pthread"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -323,7 +330,7 @@ else()
       sgemm
       ""
       "mkl_em64t;guide;pthread"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -336,7 +343,7 @@ else()
       sgemm
       ""
       "acml"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -349,7 +356,7 @@ else()
       sgemm
       ""
       "Accelerate"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 
@@ -361,7 +368,7 @@ else()
       sgemm
       ""
       "vecLib"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif ( NOT BLAS_LIBRARIES )
 
@@ -375,7 +382,7 @@ else()
       sgemm
       ""
       "blas"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV BLAS_LIB_DIR"
+      "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
 

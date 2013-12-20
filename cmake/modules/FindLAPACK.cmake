@@ -37,8 +37,9 @@ include(CheckFunctionExists)
 # Otherwise, LIBRARIES is set to FALSE.
 # N.B. _prefix is the prefix applied to the names of all cached variables that
 # are generated internally and marked advanced by this macro.
-macro(check_lapack_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _blas _path)
-  #message("DEBUG: check_lapack_libraries(${_list} in ${_path} with ${_blas})")
+macro(check_lapack_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _blas _path _andpath)
+ #message("DEBUG: check_lapack_libraries(${_list} in ${_path} with ${_blas})")
+
 
   # Check for the existence of the libraries given by _list
   set(_libraries_found TRUE)
@@ -64,12 +65,12 @@ macro(check_lapack_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _b
       elseif ( APPLE )
         find_library(${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
-                    PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 ENV DYLD_LIBRARY_PATH
+                    PATHS ${_andpath} ENV DYLD_LIBRARY_PATH
                     )
       else ()
         find_library(${_prefix}_${_library}_LIBRARY
                     NAMES ${_library}
-                    PATHS /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 ENV LD_LIBRARY_PATH
+                    PATHS ${_andpath} ENV LD_LIBRARY_PATH
                     )
       endif()
       mark_as_advanced(${_prefix}_${_library}_LIBRARY)
@@ -158,80 +159,47 @@ else()
   set( LAPACK_LINKER_FLAGS "" ) # unused (yet)
   set( LAPACK_LIBRARIES "" )
   set( LAPACK_LIBRARIES_DIR "" )
+  
+  set(LAPACK_SEARCH_PATHS 
+      "${CGAL_TAUCS_LIBRARIES_DIR}")# ENV LAPACK_LIB_DIR ")
+      
+  set(LAPACK_UNIX_SEARCH_PATH
+      "/usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /bgsys/local/lib /bgsys/local/lapack/3.4.2/")
+  
+  set(LAPACK_LIBNAMES
+      # Intel MKL 
+          mkl_lapack
+      #acml lapack
+          acml        
+      # Apple
+          Accelerate
+          vecLib      
+      # Generic LAPACK library?
+      # This configuration *must* be the last try as this library is notably slow.
+          lapack    
+      )
 
     #
     # If Unix, search for LAPACK function in possible libraries
     #
 
     #intel mkl lapack?
-    if(NOT LAPACK_LIBRARIES)
-      check_lapack_libraries(
-      LAPACK_DEFINITIONS
-      LAPACK_LIBRARIES
-      LAPACK
-      cheev
-      ""
-      "mkl_lapack"
-      "${BLAS_LIBRARIES}"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR"
-      )
-    endif()
-
-    #acml lapack?
-    if(NOT LAPACK_LIBRARIES)
-      check_lapack_libraries(
-      LAPACK_DEFINITIONS
-      LAPACK_LIBRARIES
-      LAPACK
-      cheev
-      ""
-      "acml"
-      "${BLAS_LIBRARIES}"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR"
-      )
-    endif()
-
-    # Apple LAPACK library?
-    if(NOT LAPACK_LIBRARIES)
-      check_lapack_libraries(
-      LAPACK_DEFINITIONS
-      LAPACK_LIBRARIES
-      LAPACK
-      cheev
-      ""
-      "Accelerate"
-      "${BLAS_LIBRARIES}"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR"
-      )
-    endif()
-
-    if ( NOT LAPACK_LIBRARIES )
-      check_lapack_libraries(
-      LAPACK_DEFINITIONS
-      LAPACK_LIBRARIES
-      LAPACK
-      cheev
-      ""
-      "vecLib"
-      "${BLAS_LIBRARIES}"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR"
-      )
-    endif ( NOT LAPACK_LIBRARIES )
-
-    # Generic LAPACK library?
-    # This configuration *must* be the last try as this library is notably slow.
-    if ( NOT LAPACK_LIBRARIES )
-      check_lapack_libraries(
-      LAPACK_DEFINITIONS
-      LAPACK_LIBRARIES
-      LAPACK
-      cheev
-      ""
-      "lapack"
-      "${BLAS_LIBRARIES}"
-      "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR"
-      )
-    endif()
+    
+    foreach(libname in ${LAPACK_LIBNAMES})
+        if(NOT LAPACK_LIBRARIES)        
+          check_lapack_libraries(
+          LAPACK_DEFINITIONS
+          LAPACK_LIBRARIES
+          LAPACK
+          cheev
+          ""
+          ${libname}
+          "${BLAS_LIBRARIES}"
+          "${LAPACK_SEARCH_PATHS}"
+          "${LAPACK_UNIX_SEARCH_PATH}"
+          )
+        endif()
+    endforeach(libname)
 
   if(LAPACK_LIBRARIES_DIR OR LAPACK_LIBRARIES)
     set(LAPACK_FOUND TRUE)
