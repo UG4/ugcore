@@ -35,8 +35,9 @@ environment
 		- \ref pageUG4OnMac
 		- \ref pageUG4OnWindows
 		- \ref pageUG4SetupParallel
-			- \ref pageUG4ParallelCekon, \ref pageUG4ParallelHermit, \ref pageUG4ParallelJuQueen
-	- ug4 for vrl
+		- \ref pageUG4ParallelCekon, \ref pageUG4ParallelHermit, \ref pageUG4ParallelJuQueen
+	- \subpage pageUG4SetupUG_VRL
+	    - \ref pageCompilingForVRL
 	- \ref pageUG4HLib
 
 - \subpage pageUG4Usage
