@@ -1,5 +1,5 @@
 #!/bin/bash
-######################################################################
+################################################################################
 # ujssubmit 0.2
 # Unified Job Scheduler
 #-------------------------------------------------------------------
@@ -26,12 +26,12 @@
 # ugsubmit 64 --- ugshell -ex laplace.lua -numPreRefs 5 -numRefs 9
 # output is then written to ./job.64.(current date)/job.out
 # the current job dir is linked to by lastRun
-######################################################################
+################################################################################
 
 # todo: error on file not found etc.
 
 
-######################################################################
+################################################################################
 # set default values
 test=false;
 nppn="max";
@@ -65,7 +65,7 @@ HermitWorkspace=0
 # general PBS Options
 pbsMailtype=""
 
-######################################################################
+################################################################################
 # todo: option -nodir
 # todo: interactive mode
 
@@ -74,7 +74,7 @@ echo "ugsubmit 0.2. (c) Goethe-Center for Scientific Computing 2012-2013"
 
 # complete -W "-test -nppn -cluster -walltime -mail-start -mail-end -mail-error -mail-arr -verbose -tail -i -dir -Jugene-mode -Jugene-mapfile -Jugene-verbose -Hermit-workspace" ugsubmit
 
-######################################################################
+################################################################################
 function usage 
 {
 	echo ""
@@ -95,7 +95,7 @@ function usage
 	echo "        -mail-end              : mail when job ends"
 	echo "        -mail-error            : mail on error"
 	echo "        -mail-all              : "
-	echo "        -verbose               : enable verbose mode"
+	echo "        -verbose, -v           : enable verbose mode"
 	echo "        -tail                  : display the output (as tail -f. job runs even if you hit Ctrl-C)"
 	echo "        -i                     : interactive (not fully supported)"
 	echo "        -dir                   : directory to use"
@@ -154,7 +154,7 @@ fi
     exit 0;
 }
 
-######################################################################
+################################################################################
 # read args
 
 # check that at least 3 args given, else print usage
@@ -232,6 +232,9 @@ do
 	elif [ $1 == "-verbose" ]; then
 		verbose=true
 		shift 1
+	elif [ $1 == "-v" ]; then
+		verbose=true
+		shift 1
 	elif [ $1 == "-tail" ]; then
 		tail=true
 		shift 1
@@ -270,13 +273,9 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
    	exit
 fi	 
 
-source $scriptpath/clusters
-
 #### Get Options from actual cluster implementation ####
-
+source $scriptpath/clusters
 UJS_GetOptions
-
-
 
 if [ $nppn == "max" ]; then
 	if [ $npe -gt $nppnmax  ]; then
@@ -290,14 +289,15 @@ if [ $nppn -gt $nppnmax ]; then
 	echo "$UGSUBMIT_TYPE does not support nppn=$nppn (max is $nppnmax)"
 	exit
 fi
+
 if [ $((npe%nppn)) -ne 0 ]; then
 	echo "npe=$npe is not dividable by nppn=$nppn"
 	exit
 fi
 
+nnodes=$((npe/nppn))
 
-
-######################################################################
+################################################################################
 
 # get path to executable
 executable=`which $binary`
@@ -309,15 +309,9 @@ fi
 if [ ${executable:0:1} = "." ]; then
 	executable=$execpath/$binary
 fi
-nnodes=$((npe/nppn))
-#npe=$((nnodes*nppn)); # number of process entities (i.e. num processes)
-mydate=$(date "+.%Yy%mm%dd-%Hh%Mm%Ss");
-jobname1=$jobname
-jobname=$jobname.$npe$mydate;
 
-
-# save processnumber of shell to get a unique ticket
-ticket=$$
+dirdate=$(date "+%Yy%mm%dd-%Hh%Mm%Ss");
+jobname=$jobname.$npe.$dirdate;
 
 #create output directory
 if [ $UGSUBMIT_TYPE == "Hermit" ] && [ $HermitWorkspace -gt 0 ] ; then
@@ -348,7 +342,7 @@ else
 	fi
 fi
 
-echo "Output Directory: $outdir"
+echo "Created directory: $outdir"
 if [ -d lastRun ]; then
 	rm lastRun
 fi
@@ -360,8 +354,6 @@ if [ ! -e $outdir/info.txt ]; then
 fi
 
 
-cd $outdir
-
 export UGS_JOBNAME=$jobname
 export UGS_OUTDIR=$outdir
 export UGS_NP=$npe
@@ -369,18 +361,18 @@ export UGS_NPPN=$nppn
 export UGS_MYDIR=$execpath
 
 #### now call job schedulers ####
+cd $outdir
 UJS_Submit
 
-######################################################################
-# info about args read
+################################################################################
+# writing info: info.txt
 echo " ------------" >> info.txt
-echo "  Executing:" >> info.txt
+echo "  Job Info:" >> info.txt
 echo " ------------" >> info.txt
-echo " cluster type: "$UGSUBMIT_TYPE >> info.txt
-echo " script:       "$scriptname >> info.txt
+echo " cluster:      "$UGSUBMIT_TYPE >> info.txt
+echo " submit by:    "$scriptname >> info.txt
 echo " exec path:    "$outDir >> info.txt
-echo " date:         "$execdate >> info.txt
-#echo "" >> info.txt
+echo "" >> info.txt
 echo " jobname:      "$jobname >> info.txt
 echo " nnodes:       "$nnodes >> info.txt
 echo " nppn:         "$nppn >> info.txt
@@ -388,30 +380,28 @@ echo " npe:          "$npe >> info.txt
 echo " walltime:     "$walltime >> info.txt
 echo " executable:   "$executable >> info.txt
 echo " arguments:    "$args >> info.txt
+echo "" >> info.txt
+echo " date:         "$execdate >> info.txt
 echo " email:        "$UGSUBMIT_EMAIL >> info.txt
+echo " output:       "$outdir >> info.txt
 echo "" >> info.txt
-echo " output will be written to: " >> info.txt
-echo "" >> info.txt
-
-echo "Job '$jobname' submitted on `date`" >> info.txt
-echo "Output to:      '$outdir'" >> info.txt
-
-if [ $verbose == true ]; then
-	cat info.txt
-fi
-
+################################################################################
 
 
 if [ $interactive == false ]; then
 	if [ ! -e $execpath/ugjobs ]; then
 		echo "JOBID EXECDATE DIRECTORY" > $execpath/ugjobs
 	fi	
-	echo "$jobid $mydate $outdir" >> $execpath/ugjobs
-	echo "Received job id: $jobid" >> info.txt
 	echo "Received job id: $jobid"
+	echo "$jobid $execdate $outdir" >> $execpath/ugjobs
+	echo " job id:       "$jobid >> info.txt
 
 	if [ $tail == true ]; then
 		touch job.output
 		sleep 1; tail -f job.output
 	fi
+fi
+
+if [ $verbose == true ]; then
+	cat info.txt
 fi

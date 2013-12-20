@@ -55,7 +55,7 @@ function UJS_Submit
 
 	if [ $interactive == true ]; then
 		echo "Start: $sallocrun"
-		$sallocrun
+		$sallocrun | tee $outdir/job.output
 		return=$?	
 		if [ ! $return == 0 ]; then
 			echo "ERROR: salloc returned $return. Job has NOT been started."
