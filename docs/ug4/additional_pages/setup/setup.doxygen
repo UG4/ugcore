@@ -10,5 +10,7 @@ simple and special usage as well for development.
   - \ref pageUG4OnMac
   - \ref pageUG4OnWindows
   - \ref pageUG4SetupParallel
+  - \subpage pageUG4SetupUG_VRL
+	    - \ref pageCompilingForVRL
 	- \subpage pageUG4HLib
 */
