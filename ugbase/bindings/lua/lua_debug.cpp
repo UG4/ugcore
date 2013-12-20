@@ -650,7 +650,11 @@ void SetLuaDebugIDs(lua_State* L)
 {
 	script::ParseBuffer(
 			"debugID = {}\n"
-			"function SetDebugLevel(did, level) GetLogAssistant():set_debug_level((did.id) ..\"*\", level) end",
+			"function SetDebugLevel(did, level)\n"
+			"if(did == nil) then\n"
+			"print(\"ERROR: Debug Node not existing. Perhaps you did not include the plugin?\")\n"
+			"DebugBacktrace()"
+			"else GetLogAssistant():set_debug_level((did.id) ..\"*\", level) end end",
 			"");
 	const vector<string> &s = DebugIDManager::instance().get_registered_debug_IDs_arr();
 	for(size_t i=0; i<s.size(); i++)
