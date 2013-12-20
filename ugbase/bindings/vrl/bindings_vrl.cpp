@@ -327,6 +327,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug_UG__1invokeMethod(JNIEnv *env,
 		env->ThrowNew(Exception, ss.str().c_str());
 	} catch (ug::UGError& ex) {
 
+		UG_LOG("bindings_vrl.cpp : _1invokeMethod() : catch (ug::UGError& ex)" << std::endl);
+
 		ug::vrl::throwUgErrorAsJavaException(env, ex);
 	} catch (...) {
 

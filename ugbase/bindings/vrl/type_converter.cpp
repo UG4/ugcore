@@ -670,7 +670,8 @@ TypeAndArray paramClass2ParamType(JNIEnv *env, jobject obj) {
 	//UG_LOG("paramClass2ParamType : isArrayList = " << std::boolalpha << isArrayList << std::endl);
 
 	if (isArrayList) {
-		UG_THROW("Parameter is a java ArrayList, but we support only arrays." << "MSG from: trunk/ugbase/bindings/vrl/type_converter.cpp :" << " paramClass2ParamType() ");
+		UG_THROW(
+				"Parameter is a java ArrayList, but we support only arrays." << "MSG from: trunk/ugbase/bindings/vrl/type_converter.cpp :" << " paramClass2ParamType() ");
 		typeAndArray.isArray = false;
 	}
 
@@ -777,11 +778,9 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 
 	if (len != paramStack.size()) {
 		// christian poliwoda ug-log for debug start
-		UG_LOG(
-				"type_converter.cpp :: if (len != paramStack.size())" << std::endl);
+		UG_LOG("type_converter.cpp :: if (len != paramStack.size())" << std::endl);
 		UG_LOG("type_converter.cpp :: len  = "<< len << std::endl);
-		UG_LOG(
-				"type_converter.cpp :: paramStack.size()  = "<< paramStack.size() << std::endl);
+		UG_LOG("type_converter.cpp :: paramStack.size()  = "<< paramStack.size() << std::endl);
 
 		// christian poliwoda ug-log for debug end
 
@@ -805,20 +804,16 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 		TypeAndArray paramType = paramClass2ParamType(env, param);
 
 		// christian poliwoda ug-log for debug
-		UG_LOG(
-				"type_converter.cpp :: compareParamTypes(...) : param = "<< param <<std::endl);
-		UG_LOG(
-				"type_converter.cpp :: compareParamTypes(...) : uint paramType = paramClass2ParamType(env, param) = "<< paramType.type <<std::endl);
-		UG_LOG(
-				"type_converter.cpp :: compareParamTypes(...) : paramStack.type(i) = "<< paramStack.type(i) <<std::endl);
+		UG_LOG("type_converter.cpp :: compareParamTypes(...) : param = "<< param <<std::endl);
+		UG_LOG("type_converter.cpp :: compareParamTypes(...) : uint paramType = paramClass2ParamType(env, param) = "<< paramType.type <<std::endl);
+		UG_LOG("type_converter.cpp :: compareParamTypes(...) : paramStack.type(i) = "<< paramStack.type(i) <<std::endl);
 
 		// allow non-const * to const *
 		if (paramType.type == ug::Variant::VT_POINTER
 				&& paramStack.type(i) == ug::Variant::VT_CONST_POINTER) {
 
 			// christian poliwoda ug-log for debug
-			UG_LOG(
-					" compareParamTypes(...) if()1 => paramType == ug::Variant::VT_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
+			UG_LOG(" compareParamTypes(...) if()1 => paramType == ug::Variant::VT_POINTER && paramStack.type(i) == ug::Variant::VT_CONST_POINTER" <<std::endl);
 
 			paramType.type = ug::Variant::VT_CONST_POINTER;
 		}
@@ -879,17 +874,25 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			paramType.type = ug::Variant::VT_CONST_POINTER;
 		}
 
+		//new by christian poliwoda
+		// allow integer to size_t
+				if (paramType.type == ug::Variant::VT_INT
+						&& paramStack.type(i) == ug::Variant::VT_SIZE_T) {
+
+					// christian poliwoda ug-log for debug
+					UG_LOG(" compareParamTypes(...) if()8 => (paramType.type == ug::Variant::VT_INT && paramStack.type(i) == ug::Variant::VT_SIZE_T" <<std::endl);
+
+					paramType.type = ug::Variant::VT_SIZE_T;
+				}
+
 		if (paramType.type != (uint) paramStack.type(i)) {
 
 			// christian poliwoda ug-log for debug
-			UG_LOG(
-					" compareParamTypes(...) if()7 => paramType != (uint) paramStack.type(i)" <<std::endl);
+			UG_LOG(" compareParamTypes(...) if()7 => paramType != (uint) paramStack.type(i)" <<std::endl);
 
 			// christian poliwoda ug-log for debug
-			UG_LOG(
-					"compareParamTypes(...) if()7 : paramType = "<< paramType.type <<std::endl);
-			UG_LOG(
-					"compareParamTypes(...) if()7 : (uint) paramStack.type(i) = "<< (uint) paramStack.type(i) <<std::endl);
+			UG_LOG("compareParamTypes(...) if()7 : paramType = "<< paramType.type <<std::endl);
+			UG_LOG("compareParamTypes(...) if()7 : (uint) paramStack.type(i) = "<< (uint) paramStack.type(i) <<std::endl);
 
 			//#ifdef UG_DEBUG
 			//			UG_LOG("requested by method:\n")
@@ -900,6 +903,17 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			return false;
 		}
 
+		UG_LOG("after if()s "<<std::endl);
+
+		//christian poliwoda debug
+		//jclass paramClass = env->GetObjectClass(param);
+		//jmethodID mid_getName = env->GetMethodID(paramClass, "getName", "()Ljava/lang/String;");
+		//BOOM //jstring paramClassName = (jstring) env->CallObjectMethod(paramClass, mid_getName);
+		//UG_LOG("paramClassName = "<< stringJ2C(env, paramClassName )<<std::endl);
+
+		UG_LOG(
+				"getParamClassName(env, param) = "<< getParamClassName(env, param) <<std::endl);
+
 		// check if param is assignable
 		const ug::bridge::ClassNameNode* classNameNode =
 				ug::vrl::invocation::getClassNodePtrByName(reg,
@@ -907,7 +921,6 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 
 		// christian poliwoda ug-log for debug
 		//UG_LOG(	" compareParamTypes(...) classNameNode->name() = "<< classNameNode->name() <<std::endl);
-		UG_LOG("after if()s "<<std::endl);
 
 		if (classNameNode != NULL) {
 			UG_LOG("if (classNameNode != NULL) "<<std::endl);
@@ -974,114 +987,121 @@ std::string getParamTypesAsString(JNIEnv *env, jobjectArray const& array) {
 	return ss.str();
 }
 
-/*
- void jobjectArray2ParamStackOLD(JNIEnv *env, ug::bridge::Registry* reg,
- ug::bridge::ParameterStack& paramsOut,
- const ug::bridge::ParameterInfo& paramsTemplate,
- jobjectArray const& array) {
- using namespace ug::bridge;
+//original Methode
+//the modified one can be find below
+//christian poliwoda
+void jobjectArray2ParamStack(JNIEnv *env, ug::bridge::Registry* reg,
+		ug::bridge::ParameterStack& paramsOut,
+		const ug::bridge::ParameterInfo& paramsTemplate,
+		jobjectArray const& array) {
+	using namespace ug::bridge;
 
- //	iterate through the parameter list and copy the value in the
- //  associated stack entry.
- for (size_t i = 0; i < (size_t) paramsTemplate.size(); ++i) {
+	UG_LOG("trunk/ugbase/bindings/vrl/type_converter.cpp ::  jobjectArray2ParamStack( )"<<std::endl);
 
- uint template_value_Type = paramsTemplate.type(i);
+	//	iterate through the parameter list and copy the value in the
+	//  associated stack entry.
+	for (size_t i = 0; i < (size_t) paramsTemplate.size(); ++i) {
 
- jobject value = env->GetObjectArrayElement(array, i);
+		uint template_value_Type = paramsTemplate.type(i);
 
- // only used for
- // UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
- uint java_value_type = paramClass2ParamType(env, value);
+		jobject value = env->GetObjectArrayElement(array, i);
 
- // we don't allow null values
- if (value == NULL) {
- std::stringstream ss;
- ss << "Value " << i << " == NULL!";
+		// only used for
+		// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
+		//uint java_value_type = paramClass2ParamType(env, value);    //original before TypeAndArray
+		uint java_value_type = paramClass2ParamType(env, value).type; //with TypeAndArray
 
- jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
- env->ThrowNew(Exception, ss.str().c_str());
- }
+		// we don't allow null values
+		if (value == NULL) {
+			std::stringstream ss;
+			ss << "Value " << i << " == NULL!";
 
- switch (template_value_Type) {
- case ug::Variant::VT_BOOL: {
+			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+			env->ThrowNew(Exception, ss.str().c_str());
+		}
 
- paramsOut.push<bool>(jObject2Boolean(env, value));
+		//debug
+		UG_LOG("template_value_Type = "<< template_value_Type <<std::endl);
 
- }
- break;
- case ug::Variant::VT_INT: {
- paramsOut.push<int>(jObject2Int(env, value));
- }
- break;
- case ug::Variant::VT_SIZE_T: {
- paramsOut.push<size_t>((size_t) jObject2Int(env, value));
- }
- break;
- case ug::Variant::VT_FLOAT:
- case ug::Variant::VT_DOUBLE: {
- paramsOut.push<number>(jObject2Double(env, value));
- }
- break;
- case ug::Variant::VT_CSTRING: {
- paramsOut.push(jObject2String(env, value));
- }
- break;
+		switch (template_value_Type) {
+		case ug::Variant::VT_BOOL: {
 
- case ug::Variant::VT_STDSTRING: {
- paramsOut.push(jObject2String(env, value));
- }
- break;
+			paramsOut.push<bool>(jObject2Boolean(env, value));
 
- case ug::Variant::VT_POINTER: {
- const ug::bridge::ClassNameNode* node =
- ug::vrl::invocation::getClassNodePtrByName(reg,
- jPointerGetName(env, value));
- paramsOut.push(jObject2Pointer(env, value), node);
- }
- break;
- case ug::Variant::VT_CONST_POINTER: {
- const ug::bridge::ClassNameNode* node =
- ug::vrl::invocation::getClassNodePtrByName(reg,
- jPointerGetName(env, value));
+		}
+			break;
+		case ug::Variant::VT_INT: {
+			paramsOut.push<int>(jObject2Int(env, value));
+		}
+			break;
+		case ug::Variant::VT_SIZE_T: {
+			paramsOut.push<size_t>((size_t) jObject2Int(env, value));
+		}
+			break;
+		case ug::Variant::VT_FLOAT:
+		case ug::Variant::VT_DOUBLE: {
+			paramsOut.push<number>(jObject2Double(env, value));
+		}
+			break;
+		case ug::Variant::VT_CSTRING: {
+			paramsOut.push(jObject2String(env, value));
+		}
+			break;
 
- // UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
- if (java_value_type == ug::Variant::VT_CONST_SMART_POINTER) {
- paramsOut.push(
- (void*) jObject2ConstSmartPointer(env, value).get(),
- node);
- } else if (java_value_type == ug::Variant::VT_SMART_POINTER) {
- paramsOut.push((void*) jObject2SmartPointer(env, value).get(),
- node);
- } else {
- paramsOut.push(jObject2Pointer(env, value), node);
- }
+		case ug::Variant::VT_STDSTRING: {
+			paramsOut.push(jObject2String(env, value));
+		}
+			break;
 
- //						paramsOut.push_const_pointer(
- //								jObject2Pointer(env, value), node);
- }
- break;
- case ug::Variant::VT_SMART_POINTER: {
- const ug::bridge::ClassNameNode* node =
- ug::vrl::invocation::getClassNodePtrByName(reg,
- jPointerGetName(env, value));
+		case ug::Variant::VT_POINTER: {
+			const ug::bridge::ClassNameNode* node =
+					ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env, value));
+			paramsOut.push(jObject2Pointer(env, value), node);
+		}
+			break;
+		case ug::Variant::VT_CONST_POINTER: {
+			const ug::bridge::ClassNameNode* node =
+					ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env, value));
 
- paramsOut.push(jObject2SmartPointer(env, value), node);
- //				}
- }
- break;
- case ug::Variant::VT_CONST_SMART_POINTER: {
- const ug::bridge::ClassNameNode* node =
- ug::vrl::invocation::getClassNodePtrByName(reg,
- jPointerGetName(env, value));
+			// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
+			if (java_value_type == ug::Variant::VT_CONST_SMART_POINTER) {
+				paramsOut.push(
+						(void*) jObject2ConstSmartPointer(env, value).get(),
+						node);
+			} else if (java_value_type == ug::Variant::VT_SMART_POINTER) {
+				paramsOut.push((void*) jObject2SmartPointer(env, value).get(),
+						node);
+			} else {
+				paramsOut.push(jObject2Pointer(env, value), node);
+			}
 
- paramsOut.push(jObject2ConstSmartPointer(env, value), node);
- }
- break;
- }
+			//paramsOut.push_const_pointer(
+			//		jObject2Pointer(env, value), node);
+		}
+			break;
+		case ug::Variant::VT_SMART_POINTER: {
+			const ug::bridge::ClassNameNode* node =
+					ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env, value));
 
- } // end for
- }
- */
+			paramsOut.push(jObject2SmartPointer(env, value), node);
+			//				}
+		}
+			break;
+		case ug::Variant::VT_CONST_SMART_POINTER: {
+			const ug::bridge::ClassNameNode* node =
+					ug::vrl::invocation::getClassNodePtrByName(reg,
+							jPointerGetName(env, value));
+
+			paramsOut.push(jObject2ConstSmartPointer(env, value), node);
+		}
+			break;
+		}
+
+	} // end for
+}
 
 jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params,
 		size_t index) {
@@ -1102,8 +1122,9 @@ jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params,
 
 		bool isVector = params.is_vector(index);
 		UG_LOG(" params.is_vector( "<< index << ") = "<< isVector <<std::endl);
-		if(isVector){
-			UG_LOG(" param is vector -> calling smartPointer2JObject( env, params.to<SmartPtr<void> >(index) )" << std::endl);
+		if (isVector) {
+			UG_LOG(
+					" param is vector -> calling smartPointer2JObject( env, params.to<SmartPtr<void> >(index) )" << std::endl);
 			return smartPointer2JObject(env, params.to<SmartPtr<void> >(index));
 		}
 
@@ -1111,10 +1132,12 @@ jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params,
 	}
 		break;
 	case ug::Variant::VT_INT: {
+		UG_LOG("param2JObject(...) : = switch case VT_INT"<<std::endl);
 		return int2JObject(env, params.to<int>(index));
 	}
 		break;
 	case ug::Variant::VT_SIZE_T: {
+		UG_LOG("param2JObject(...) : = switch case VT_SIZE_T"<<std::endl);
 		return int2JObject(env, (int) params.to<size_t>(index));
 	}
 		break;
@@ -1463,336 +1486,340 @@ jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object) {
 	return newJBoolArray;
 }
 
-//	added by Christian Poliwoda
-//	christian.poliwoda@gcsc.uni-frankfurt.de
-//	y 13 m 05 d 08
-// TODO
-// needed to be merged with original method jobjectArray2ParamStack(...)
-// if finished to reduce code duplication
-// PONDON TO PushLuaStackEntryToParamStack(
-// ParameterStack& ps, lua_State* L, int index, bool bIsVector)
-// in bindings_lua.cpp
-void jobjectArray2ParamStack(JNIEnv *env, ug::bridge::Registry* reg,
-		ug::bridge::ParameterStack& paramsOut,
-		const ug::bridge::ParameterInfo& paramsTemplate,
-		jobjectArray const& array) {
-
-	bool DEBUG = true;
-
-	if (DEBUG) {
-		//std::cout << " HALLO MIHI " << std::endl;
-		std::cout << "trunk/ugbase/bindings/vrl/type_converter.cpp :"
-				<< " jobjectArray2ParamStack[NEW]() " << std::endl;
-		//std::cout << " DEBUG = true = " << true << std::endl;
-		//std::cout << " DEBUG = false = " << false << std::endl;
-	}
-
-	// // if no information is available about bIsVector or bIsVector is FALSE
-	// // the origin method is called
-	// if(!bIsVector){
-	//	jobjectArray2ParamStack(env, reg, paramsOut, paramsTemplate, array);
-	// } else {
-	using namespace ug::bridge;
-
-	//	iterate through the parameter list and copy the value in the
-	//  associated stack entry.
-	for (size_t i = 0; i < (size_t) paramsTemplate.size(); ++i) {
-
-		uint template_value_Type = paramsTemplate.type(i);
-
-		jobject value = env->GetObjectArrayElement(array, i);
-
-		// only used for
-		// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
-		TypeAndArray java_value_type = paramClass2ParamType(env, value);
-
-		if (DEBUG) {
-			std::cout << "jobjectArray2ParamStack() :" << std::endl;
-			std::cout << " for (size_t i = " << i << "; i < "
-					<< (size_t) paramsTemplate.size() << "; ++i) " << std::endl;
-			std::cout
-					<< " fuer switch-case verantwortlich => uint template_value_Type = paramsTemplate.type(i) = "
-					<< template_value_Type
-					<< " = paramsTemplate.class_name(i) = "
-					<< paramsTemplate.class_name(i) << std::endl;
-			std::cout
-					<< " UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) => TypeAndArray java_value_type = paramClass2ParamType(env, value) = "
-					<< java_value_type.type << std::endl;
-		}
-
-		// we don't allow null values
-		if (value == NULL) {
-			std::stringstream ss;
-			ss << "Value " << i << " == NULL!";
-
-			jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
-			env->ThrowNew(Exception, ss.str().c_str());
-		}
-
-		// check if value is an array / a vector
-		// if no information is available about isVector or
-		// isVector is FALSE
-		// the origin method is called
-
-		bool isVector = isJObjectAnArray(env, value);
-
-		if (DEBUG) {
-			std::cout << " isVector = " << isVector << std::endl;
-		}
-
-		switch (template_value_Type) {
-		case ug::Variant::VT_BOOL: {
-
-			if (DEBUG) {
-				std::cout << " in switch VT_BOOL" << std::endl;
-			}
-
-			// if isVector is FALSE
-			// the origin method is called
-
-			if (!isVector) {
-
-				//  original
-				paramsOut.push<bool>(jObject2Boolean(env, value));
-			} else {
-
-				if (DEBUG) {
-					std::cout << "true = " << true << std::endl;
-					std::cout << "false = " << false << std::endl;
-					std::cout << "!isVector = " << !isVector << std::endl;
-					std::cout << " calling jObject2BooleanArray()" << std::endl;
-				}
-
-				jbooleanArray jboolArray = jObject2BooleanArray(env, value);
-
-				jsize arrayLength = env->GetArrayLength(jboolArray);
-
-				//create vector with needed length
-				std::vector<bool> boolVector(arrayLength);
-
-				std::cout << "std::vector<bool> boolVector(arrayLength);" << std::endl;
-
-				//
-				//fill the std::vector<bool> with the values of the jbooleanArray
-				//
-				jboolean *elements = env->GetBooleanArrayElements(jboolArray,
-						false);
-
-				for (int i = 0; i < arrayLength; ++i) {
-					boolVector[i] = (bool) elements[i];
-				}
-
-				std::cout << "for (int i = 0; i < arrayLength; ++i)" << std::endl;
-
-				//SO_EIN_SCHEISS__WIE_GEHT_DAS_MIT_SMARTptr_???
-
-				SmartPtr<std::vector<bool> > smartPointer =
-				////sollte sein / kompeliert aber NICHT
-				//SmartPtr<std::vector<bool> >(boolVector);
-				//
-				////kompiliert, hat aber keine daten
-				//SmartPtr<std::vector<bool> >(new std::vector<bool>());
-				//
-						////VRL-Studio: JavaApplicationStub(36579,0x130883000) malloc: *** error for object 0x12303ec80: pointer being freed was not allocated
-						//SmartPtr<std::vector<bool> >(&boolVector);
-				//
-						//kein speicher fehler -> ? funktioniert ???
-						SmartPtr<std::vector<bool> >(new std::vector<bool>());
-
-				//
-				//return the smartPointer with the boolean-vector
-				//
-				UG_LOG( "trunk/ugbase/bindings/vrl/type_converter.cpp :"
-						<< " jobjectArray2ParamStack[NEW]() "<<
-						"BEFORE paramsOut.push(smartPointer);" << std::endl);
-
-				paramsOut.push(smartPointer);
-
-				UG_LOG( "trunk/ugbase/bindings/vrl/type_converter.cpp :"
-						<< " jobjectArray2ParamStack[NEW]() "<<
-						"AFTER paramsOut.push(smartPointer);" << std::endl);
-				//HIER_WEITER__GEHT_DAS_SO
-				//paramsOut.push<bool[]>(jboolArray);
-				//paramsOut.push<SmartPtr<std::vector<bool>>>(jboolArray);
-
-				//paramsOut.push<SmartPtr<std::vector<bool>>>(
-				//jObject2BooleanArray(env, value));
-
-			} //END else if (!isVector)
-		}
-			break;
-		case ug::Variant::VT_INT: {
-
-			if (DEBUG) {
-				std::cout << " in switch VT_INT" << std::endl;
-			}
-
-			paramsOut.push<int>(jObject2Int(env, value));
-		}
-			break;
-		case ug::Variant::VT_SIZE_T: {
-
-			if (DEBUG) {
-				std::cout << " in switch VT_SIZE_T" << std::endl;
-			}
-
-			paramsOut.push<size_t>((size_t) jObject2Int(env, value));
-		}
-			break;
-		case ug::Variant::VT_FLOAT:
-		case ug::Variant::VT_DOUBLE: {
-			if (DEBUG) {
-				std::cout << " in switch VT_FLOAT / VT_DOUBLE" << std::endl;
-			}
-			paramsOut.push<number>(jObject2Double(env, value));
-		}
-			break;
-		case ug::Variant::VT_CSTRING: {
-
-			if (DEBUG) {
-				std::cout << " in switch VT_CSTRING" << std::endl;
-			}
-			paramsOut.push(jObject2String(env, value));
-		}
-			break;
-
-		case ug::Variant::VT_STDSTRING: {
-			if (DEBUG) {
-				std::cout << " in switch VT_STDSTRING" << std::endl;
-			}
-			paramsOut.push(jObject2String(env, value));
-		}
-			break;
-
-		case ug::Variant::VT_POINTER: {
-
-			if (DEBUG) {
-				std::cout << " in switch VT_POINTER" << std::endl;
-			}
-
-			const ug::bridge::ClassNameNode* node =
-					ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env, value));
-			paramsOut.push(jObject2Pointer(env, value), node);
-		}
-			break;
-		case ug::Variant::VT_CONST_POINTER: {
-
-			if (DEBUG) {
-				std::cout << " in switch VT_CONST_POINTER" << std::endl;
-			}
-
-			const ug::bridge::ClassNameNode* node =
-					ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env, value));
-
-			if (DEBUG) {
-				std::cout << " in switch VT_CONST_POINTER : node = " << node
-						<< std::endl;
-			}
-
-			// UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
-			if (java_value_type.type == ug::Variant::VT_CONST_SMART_POINTER) {
-
-				if (DEBUG) {
-					std::cout
-							<< " UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)"
-							<< std::endl;
-					std::cout
-							<< " in SUB_IF => java_value_type == ug::Variant::VT_CONST_SMART_POINTER"
-							<< std::endl;
-					std::cout << " java_value_type.type = "
-							<< java_value_type.type << std::endl;
-					std::cout << " ug::Variant::VT_CONST_SMART_POINTER = "
-							<< ug::Variant::VT_CONST_SMART_POINTER << std::endl;
-				}
-
-				paramsOut.push(
-						(void*) jObject2ConstSmartPointer(env, value).get(),
-						node);
-
-			} else if (java_value_type.type == ug::Variant::VT_SMART_POINTER) {
-
-				if (DEBUG) {
-					std::cout
-							<< " UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)"
-							<< std::endl;
-					std::cout
-							<< " in SUB_ELSE_IF => java_value_type == ug::Variant::VT_SMART_POINTER"
-							<< std::endl;
-					std::cout << " java_value_type.type = "
-							<< java_value_type.type << std::endl;
-					std::cout << " ug::Variant::VT_SMART_POINTER = "
-							<< ug::Variant::VT_SMART_POINTER << std::endl;
-				}
-
-				/*
-				 //original start
-				 paramsOut.push((void*) jObject2SmartPointer(env, value).get(), node);
-				 //original ende
-				 */
-
-				/*
-				 //modification01 start by christian poliwoda
-				 paramsOut.push(jObject2SmartPointer(env, value).get(), node);
-				 //modification01 end
-				 */
-
-				//modification02 start by christian poliwoda
-				paramsOut.push(jObject2SmartPointer(env, value).get(), node);
-				//modification02 end
-
-				if (DEBUG) {
-					std::cout
-							<< " AFTER paramsOut.push( jObject2SmartPointer() )"
-							<< std::endl;
-				}
-
-			} else {
-
-				if (DEBUG) {
-					std::cout << " in SUB_ELSE " << std::endl;
-				}
-
-				paramsOut.push(jObject2Pointer(env, value), node);
-			}
-
-//						paramsOut.push_const_pointer(
-//								jObject2Pointer(env, value), node);
-		}
-			break;
-		case ug::Variant::VT_SMART_POINTER: {
-
-			if (DEBUG) {
-				std::cout << " in switch VT_SMART_POINTER" << std::endl;
-			}
-
-			const ug::bridge::ClassNameNode* node =
-					ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env, value));
-
-			paramsOut.push(jObject2SmartPointer(env, value), node);
-			//				}
-		}
-			break;
-		case ug::Variant::VT_CONST_SMART_POINTER: {
-
-			if (DEBUG) {
-				std::cout << " in switch VT_CONST_SMART_POINTER" << std::endl;
-			}
-
-			const ug::bridge::ClassNameNode* node =
-					ug::vrl::invocation::getClassNodePtrByName(reg,
-							jPointerGetName(env, value));
-
-			paramsOut.push(jObject2ConstSmartPointer(env, value), node);
-		}
-			break;
-		} //switch(template_vale_type)
-
-	} // end for
-	  //} // end else (!bIsVector)
-}
+/*
+
+ //	added by Christian Poliwoda
+ //	christian.poliwoda@gcsc.uni-frankfurt.de
+ //	y 13 m 05 d 08
+ // TODO
+ // needed to be merged with or replace original method jobjectArray2ParamStack(...)
+ // if finished to reduce code duplication
+ // PONDON TO PushLuaStackEntryToParamStack(
+ // ParameterStack& ps, lua_State* L, int index, bool bIsVector)
+ // in bindings_lua.cpp
+ void jobjectArray2ParamStack(JNIEnv *env, ug::bridge::Registry* reg,
+ ug::bridge::ParameterStack& paramsOut,
+ const ug::bridge::ParameterInfo& paramsTemplate,
+ jobjectArray const& array) {
+
+ bool DEBUG = true;
+
+ if (DEBUG) {
+ //std::cout << " HALLO MIHI " << std::endl;
+ std::cout << "trunk/ugbase/bindings/vrl/type_converter.cpp :"
+ << " jobjectArray2ParamStack[NEW]() " << std::endl;
+ //std::cout << " DEBUG = true = " << true << std::endl;
+ //std::cout << " DEBUG = false = " << false << std::endl;
+ }
+
+ // // if no information is available about bIsVector or bIsVector is FALSE
+ // // the origin method is called
+ // if(!bIsVector){
+ //	jobjectArray2ParamStack(env, reg, paramsOut, paramsTemplate, array);
+ // } else {
+ using namespace ug::bridge;
+
+ //	iterate through the parameter list and copy the value in the
+ //  associated stack entry.
+ for (size_t i = 0; i < (size_t) paramsTemplate.size(); ++i) {
+
+ uint template_value_Type = paramsTemplate.type(i);
+
+ jobject value = env->GetObjectArrayElement(array, i);
+
+ // only used for
+ // UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
+ TypeAndArray java_value_type = paramClass2ParamType(env, value);
+
+ if (DEBUG) {
+ std::cout << "jobjectArray2ParamStack() :" << std::endl;
+ std::cout << " for (size_t i = " << i << "; i < "
+ << (size_t) paramsTemplate.size() << "; ++i) " << std::endl;
+ std::cout
+ << " fuer switch-case verantwortlich => uint template_value_Type = paramsTemplate.type(i) = "
+ << template_value_Type
+ << " = paramsTemplate.class_name(i) = "
+ << paramsTemplate.class_name(i) << std::endl;
+ std::cout
+ << " UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!) => TypeAndArray java_value_type = paramClass2ParamType(env, value) = "
+ << java_value_type.type << std::endl;
+ }
+
+ // we don't allow null values
+ if (value == NULL) {
+ std::stringstream ss;
+ ss << "Value " << i << " == NULL!";
+
+ jclass Exception = env->FindClass("edu/gcsc/vrl/ug/UGException");
+ env->ThrowNew(Exception, ss.str().c_str());
+ }
+
+ // check if value is an array / a vector
+ // if no information is available about isVector or
+ // isVector is FALSE
+ // the origin method is called
+
+ bool isVector = isJObjectAnArray(env, value);
+
+ if (DEBUG) {
+ std::cout << " isVector = " << isVector << std::endl;
+ }
+
+ switch (template_value_Type) {
+ case ug::Variant::VT_BOOL: {
+
+ if (DEBUG) {
+ std::cout << " in switch VT_BOOL" << std::endl;
+ }
+
+ // if isVector is FALSE
+ // the origin method is called
+
+ if (!isVector) {
+
+ //  original
+ paramsOut.push<bool>(jObject2Boolean(env, value));
+ } else {
+
+ if (DEBUG) {
+ std::cout << "true = " << true << std::endl;
+ std::cout << "false = " << false << std::endl;
+ std::cout << "!isVector = " << !isVector << std::endl;
+ std::cout << " calling jObject2BooleanArray()" << std::endl;
+ }
+
+ jbooleanArray jboolArray = jObject2BooleanArray(env, value);
+
+ jsize arrayLength = env->GetArrayLength(jboolArray);
+
+ //create vector with needed length
+ std::vector<bool> boolVector(arrayLength);
+
+ std::cout << "std::vector<bool> boolVector(arrayLength);" << std::endl;
+
+ //
+ //fill the std::vector<bool> with the values of the jbooleanArray
+ //
+ jboolean *elements = env->GetBooleanArrayElements(jboolArray,
+ false);
+
+ for (int i = 0; i < arrayLength; ++i) {
+ boolVector[i] = (bool) elements[i];
+ }
+
+ std::cout << "for (int i = 0; i < arrayLength; ++i)" << std::endl;
+
+ //SO_EIN_SCHEISS__WIE_GEHT_DAS_MIT_SMARTptr_???
+
+ SmartPtr<std::vector<bool> > smartPointer =
+ ////sollte sein / kompeliert aber NICHT
+ //SmartPtr<std::vector<bool> >(boolVector);
+ //
+ ////kompiliert, hat aber keine daten
+ //SmartPtr<std::vector<bool> >(new std::vector<bool>());
+ //
+ ////VRL-Studio: JavaApplicationStub(36579,0x130883000) malloc: *** error for object 0x12303ec80: pointer being freed was not allocated
+ //SmartPtr<std::vector<bool> >(&boolVector);
+ //
+ //kein speicher fehler -> ? funktioniert ???
+ SmartPtr<std::vector<bool> >(new std::vector<bool>());
+
+ //
+ //return the smartPointer with the boolean-vector
+ //
+ UG_LOG( "trunk/ugbase/bindings/vrl/type_converter.cpp :"
+ << " jobjectArray2ParamStack[NEW]() "<<
+ "BEFORE paramsOut.push(smartPointer);" << std::endl);
+
+ paramsOut.push(smartPointer);
+
+ UG_LOG( "trunk/ugbase/bindings/vrl/type_converter.cpp :"
+ << " jobjectArray2ParamStack[NEW]() "<<
+ "AFTER paramsOut.push(smartPointer);" << std::endl);
+ //HIER_WEITER__GEHT_DAS_SO
+ //paramsOut.push<bool[]>(jboolArray);
+ //paramsOut.push<SmartPtr<std::vector<bool>>>(jboolArray);
+
+ //paramsOut.push<SmartPtr<std::vector<bool>>>(
+ //jObject2BooleanArray(env, value));
+
+ } //END else if (!isVector)
+ }
+ break;
+ case ug::Variant::VT_INT: {
+
+ if (DEBUG) {
+ std::cout << " in switch VT_INT" << std::endl;
+ }
+
+ paramsOut.push<int>(jObject2Int(env, value));
+ }
+ break;
+ case ug::Variant::VT_SIZE_T: {
+
+ if (DEBUG) {
+ std::cout << " in switch VT_SIZE_T" << std::endl;
+ }
+
+ paramsOut.push<size_t>((size_t) jObject2Int(env, value));
+ }
+ break;
+ case ug::Variant::VT_FLOAT:
+ case ug::Variant::VT_DOUBLE: {
+ if (DEBUG) {
+ std::cout << " in switch VT_FLOAT / VT_DOUBLE" << std::endl;
+ }
+ paramsOut.push<number>(jObject2Double(env, value));
+ }
+ break;
+ case ug::Variant::VT_CSTRING: {
+
+ if (DEBUG) {
+ std::cout << " in switch VT_CSTRING" << std::endl;
+ }
+ paramsOut.push(jObject2String(env, value));
+ }
+ break;
+
+ case ug::Variant::VT_STDSTRING: {
+ if (DEBUG) {
+ std::cout << " in switch VT_STDSTRING" << std::endl;
+ }
+ paramsOut.push(jObject2String(env, value));
+ }
+ break;
+
+ case ug::Variant::VT_POINTER: {
+
+ if (DEBUG) {
+ std::cout << " in switch VT_POINTER" << std::endl;
+ }
+
+ const ug::bridge::ClassNameNode* node =
+ ug::vrl::invocation::getClassNodePtrByName(reg,
+ jPointerGetName(env, value));
+ paramsOut.push(jObject2Pointer(env, value), node);
+ }
+ break;
+ case ug::Variant::VT_CONST_POINTER: {
+
+ if (DEBUG) {
+ std::cout << " in switch VT_CONST_POINTER" << std::endl;
+ }
+
+ const ug::bridge::ClassNameNode* node =
+ ug::vrl::invocation::getClassNodePtrByName(reg,
+ jPointerGetName(env, value));
+
+ if (DEBUG) {
+ std::cout << " in switch VT_CONST_POINTER : node = " << node
+ << std::endl;
+ }
+
+ // UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)
+ if (java_value_type.type == ug::Variant::VT_CONST_SMART_POINTER) {
+
+ if (DEBUG) {
+ std::cout
+ << " UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)"
+ << std::endl;
+ std::cout
+ << " in SUB_IF => java_value_type == ug::Variant::VT_CONST_SMART_POINTER"
+ << std::endl;
+ std::cout << " java_value_type.type = "
+ << java_value_type.type << std::endl;
+ std::cout << " ug::Variant::VT_CONST_SMART_POINTER = "
+ << ug::Variant::VT_CONST_SMART_POINTER << std::endl;
+ }
+
+ paramsOut.push(
+ (void*) jObject2ConstSmartPointer(env, value).get(),
+ node);
+
+ } else if (java_value_type.type == ug::Variant::VT_SMART_POINTER) {
+
+ if (DEBUG) {
+ std::cout
+ << " UGLY SMART-PTR to RAW-PTR CONVERSION (don't use this!)"
+ << std::endl;
+ std::cout
+ << " in SUB_ELSE_IF => java_value_type == ug::Variant::VT_SMART_POINTER"
+ << std::endl;
+ std::cout << " java_value_type.type = "
+ << java_value_type.type << std::endl;
+ std::cout << " ug::Variant::VT_SMART_POINTER = "
+ << ug::Variant::VT_SMART_POINTER << std::endl;
+ }
+
+
+ //original start
+ // paramsOut.push((void*) jObject2SmartPointer(env, value).get(), node);
+ //original ende
+
+
+
+ //modification01 start by christian poliwoda
+ // paramsOut.push(jObject2SmartPointer(env, value).get(), node);
+ //modification01 end
+
+
+ //modification02 start by christian poliwoda
+ paramsOut.push(jObject2SmartPointer(env, value).get(), node);
+ //modification02 end
+
+ if (DEBUG) {
+ std::cout
+ << " AFTER paramsOut.push( jObject2SmartPointer() )"
+ << std::endl;
+ }
+
+ } else {
+
+ if (DEBUG) {
+ std::cout << " in SUB_ELSE " << std::endl;
+ }
+
+ paramsOut.push(jObject2Pointer(env, value), node);
+ }
+
+ //						paramsOut.push_const_pointer(
+ //								jObject2Pointer(env, value), node);
+ }
+ break;
+ case ug::Variant::VT_SMART_POINTER: {
+
+ if (DEBUG) {
+ std::cout << " in switch VT_SMART_POINTER" << std::endl;
+ }
+
+ const ug::bridge::ClassNameNode* node =
+ ug::vrl::invocation::getClassNodePtrByName(reg,
+ jPointerGetName(env, value));
+
+ paramsOut.push(jObject2SmartPointer(env, value), node);
+ //				}
+ }
+ break;
+ case ug::Variant::VT_CONST_SMART_POINTER: {
+
+ if (DEBUG) {
+ std::cout << " in switch VT_CONST_SMART_POINTER" << std::endl;
+ }
+
+ const ug::bridge::ClassNameNode* node =
+ ug::vrl::invocation::getClassNodePtrByName(reg,
+ jPointerGetName(env, value));
+
+ paramsOut.push(jObject2ConstSmartPointer(env, value), node);
+ }
+ break;
+ } //switch(template_vale_type)
+
+ } // end for
+ //} // end else (!bIsVector)
+ }
+
+ */
 
 /*
 

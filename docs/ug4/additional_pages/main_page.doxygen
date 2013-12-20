@@ -37,7 +37,7 @@ environment
 		- \ref pageUG4SetupParallel
 		- \ref pageUG4ParallelCekon, \ref pageUG4ParallelHermit, \ref pageUG4ParallelJuQueen
 	- \subpage pageUG4SetupUG_VRL
-	    - \ref pageCompilingForVRL
+	    - pageCompilingForVRL
 	- \ref pageUG4HLib
 
 - \subpage pageUG4Usage
