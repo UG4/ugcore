@@ -25,7 +25,7 @@ namespace ug
  * \{
  */
 
-//template <std::size_t N, std::size_t M, typename T = number> class MathMatrix;
+template <std::size_t N, std::size_t M, typename T = number> class MathMatrix;
 
 /**
  * \class MathMatrix
@@ -34,7 +34,7 @@ namespace ug
  *
  *	A static memory NxM matrix
  */
-template <std::size_t N, std::size_t M, typename T = number>
+template <std::size_t N, std::size_t M, typename T>
 class MathMatrix
 {
 	public:
@@ -241,6 +241,9 @@ class MathMatrix
 
 };
 
+template <typename T> class MathMatrix<0,0,T>{};
+template <std::size_t N, typename T> class MathMatrix<N,0,T>{};
+template <std::size_t N, typename T> class MathMatrix<0,N,T>{};
 
 /// Print MathMatrix<N,M> to standard output
 template <std::size_t N, std::size_t M>

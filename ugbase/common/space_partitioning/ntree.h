@@ -150,10 +150,13 @@ class ntree
 	private:
 	///	static template implementation to raise n to the power exponent
 		template <size_t n, size_t exponent>
-		struct pow	{static const size_t val = n * pow<n, exponent - 1>::val;};
+		struct pow;
 
 		template <size_t n>
 		struct pow<n, 0>	{static const size_t val = 1;};
+
+		template <size_t n, size_t exponent>
+		struct pow	{static const size_t val = n * pow<n, exponent - 1>::val;};
 
 	///	the number of children each non-leaf node has
 		static const size_t s_numChildren = pow<2, tree_dim>::val;

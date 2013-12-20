@@ -232,11 +232,11 @@ void ShapesAtGlobalPositionVertex(std::vector<std::vector<number> >& vvShape,
 }
 
 template <int refDim, int dim>
-void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
-                           const std::vector<MathVector<dim> >& vGlobPos,
-                           const ReferenceObjectID roid,
-                           const std::vector<MathVector<dim> >& vCornerCoord,
-                           const LFEID& lfeID)
+void ShapesAtGlobalPositionElem(std::vector<std::vector<number> >& vvShape,
+                                const std::vector<MathVector<dim> >& vGlobPos,
+                                const ReferenceObjectID roid,
+                                const std::vector<MathVector<dim> >& vCornerCoord,
+                                const LFEID& lfeID)
 {
 //	get local position of DoF
 	std::vector<MathVector<refDim> > vLocPos(vGlobPos.size(), 0.0);
@@ -266,9 +266,9 @@ void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
 	switch(ReferenceElementDimension(roid))
 	{
 		case VERTEX: return ShapesAtGlobalPositionVertex<dim>(vvShape, vGlobPos, lfeID);
-		case EDGE:   return ShapesAtGlobalPosition<1,dim>(vvShape, vGlobPos, roid, vCornerCoord, lfeID);
-		case FACE:   return ShapesAtGlobalPosition<2,dim>(vvShape, vGlobPos, roid, vCornerCoord, lfeID);
-		case VOLUME: return ShapesAtGlobalPosition<3,dim>(vvShape, vGlobPos, roid, vCornerCoord, lfeID);
+		case EDGE:   return ShapesAtGlobalPositionElem<1,dim>(vvShape, vGlobPos, roid, vCornerCoord, lfeID);
+		case FACE:   return ShapesAtGlobalPositionElem<2,dim>(vvShape, vGlobPos, roid, vCornerCoord, lfeID);
+		case VOLUME: return ShapesAtGlobalPositionElem<3,dim>(vvShape, vGlobPos, roid, vCornerCoord, lfeID);
 		default: UG_THROW("Base Object type not found.");
 	}
 }

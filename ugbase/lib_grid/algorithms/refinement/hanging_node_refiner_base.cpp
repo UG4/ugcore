@@ -226,15 +226,15 @@ mark_neighborhood(size_t numIterations)
 
 			g.associated_elements(edges, *iter);
 			for(size_t i = 0; i < edges.size(); ++i)
-				mark(edges[i], rm);
+				this->mark(edges[i], rm);
 
 			g.associated_elements(faces, *iter);
 			for(size_t i = 0; i < faces.size(); ++i)
-				mark(faces[i], rm);
+				this->mark(faces[i], rm);
 
 			g.associated_elements(vols, *iter);
 			for(size_t i = 0; i < vols.size(); ++i)
-				mark(vols[i], rm);
+				this->mark(vols[i], rm);
 		}
 
 	//	since we selected vertices which possibly may not be refined, we have to
