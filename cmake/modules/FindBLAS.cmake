@@ -152,7 +152,7 @@ else()
       "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR ")
       
   set(BLAS_UNIX_SEARCH_PATHS
-      "/usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64")
+      "/usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /bgsys/local/lib")
 
 
     #
