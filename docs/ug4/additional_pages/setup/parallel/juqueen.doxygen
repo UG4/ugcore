@@ -163,7 +163,7 @@ example setting for ug4 usage is to add those lines:
 #ug4
 export UG4_ROOT=~/ug4/trunk
 source $UG4_ROOT/scripts/shell/ugbash
-export UGSUBMIT_TYPE=juqueen
+export UGSUBMIT_TYPE=Juqueen
 export UGSUBMIT_EMAIL=your.name@gcsc.uni-frankfurt.de
 
 #load some modules
