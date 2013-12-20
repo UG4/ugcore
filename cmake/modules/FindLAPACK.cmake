@@ -161,7 +161,7 @@ else()
   set( LAPACK_LIBRARIES_DIR "" )
   
   set(LAPACK_SEARCH_PATHS 
-      "${CGAL_TAUCS_LIBRARIES_DIR}")# ENV LAPACK_LIB_DIR ")
+      "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR ")
       
   set(LAPACK_UNIX_SEARCH_PATH
       "/usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /bgsys/local/lib /bgsys/local/lapack/3.4.2/")
