@@ -7,16 +7,16 @@
 
 function UJS_Submit
 {
-	echo ""; echo "Using SLURM on cekon"
+	echo "Cluster: cekon. Scheduler: SLURM."
 	if [ $nppn -ne 1 ]; then
-		echo "cekon does not support nppn > 1"
+		echo "cekon does not support nppn > 1. Aborting."
 		exit
 	fi
 
 	SlurmMail=""
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
-			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
 			exit
 		fi
 
@@ -49,7 +49,7 @@ function UJS_Submit
 	fi
 
 	if [ $test == true ]; then
-		echo "test. not executing."
+		echo "Only testing - NOT executing."
 		cd $outdir/..
 		#rm -rf $outdir/
 		exit
@@ -69,6 +69,7 @@ function UJS_Submit
 			exit
 		fi
 	else
+		echo "Submit: $sallocrun"
 		nohup $sallocrun > $outdir/job.output &
 	fi
 	sleep 1

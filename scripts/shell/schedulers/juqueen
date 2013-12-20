@@ -6,13 +6,13 @@
 
 function UJS_Submit
 {
-	echo "Cluster: Juqueen. BatchSystem: LoadLeveler."
+	echo "Cluster: Juqueen. Scheduler: LoadLeveler (ll)."
 	echo "Create: $outdir/job.sh"
 	
 	MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
 	
 	if [ $interactive == true ]; then
-		echo "Interactive mode is not supported at the moment"
+		echo "Interactive mode is not supported at the moment. Aborting."
 		exit
 	fi
 
@@ -28,7 +28,7 @@ EOF
 	JuqueenNotification="never"
 	if [ $mail == true ]; then 
 		if [ -z "$UGSUBMIT_EMAIL" ]; then
-			echo "please set UGSUBMIT_EMAIL or specify email with -email".
+			echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
 			exit
 		fi
 
