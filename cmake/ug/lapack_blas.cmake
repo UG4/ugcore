@@ -1,6 +1,15 @@
 # included from build_algebra.cmake
 ########################################
 
+# if the search for LAPACK/BLAS is not working, you can use
+# a) USER_LAPACK_LIBRARIES, (optionally  USER_LAPACK_INCLUDE_DIR ) and USER_BLAS_LIBRARIES (optionally USER_BLAS_INCLUDE_DIR )
+# b) BUILTIN_LAPACK and BUILTIN_BLAS (this is used e.g. on the Hermit cluster)
+#
+# Some common paths for LAPACK/BLAS are:
+# /usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /bgsys/local/lib
+# Please mail martin.rupp@gcsc.uni-frankfurt.de if you have problems setting up
+# OR if you solved your problem.
+
 # we'll check for lapack and blas here
 if(LAPACK OR BLAS)
 	# On OSX, we know where lapack and blas are located. To avoid errors
