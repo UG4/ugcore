@@ -241,9 +241,11 @@ class MathMatrix
 
 };
 
+#ifdef __bg__ // check for BlueGene/System-Q
 template <typename T> class MathMatrix<0,0,T>{};
 template <std::size_t N, typename T> class MathMatrix<N,0,T>{};
 template <std::size_t N, typename T> class MathMatrix<0,N,T>{};
+#endif
 
 /// Print MathMatrix<N,M> to standard output
 template <std::size_t N, std::size_t M>
