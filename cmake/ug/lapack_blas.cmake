@@ -90,7 +90,7 @@ if(LAPACK)
 		add_definitions(-DLAPACK_AVAILABLE)
 	# d) Not found
 	else()	
-		message(STATUS "WARNING: No LAPACK package foung. Not using LAPACK.")
+		message(STATUS "WARNING: No LAPACK package found. Not using LAPACK.")
 		message(STATUS "         If you have a builtin LAPACK, use -DBUILTIN_LAPACK")
 		message(STATUS "         To supply your own LAPACK libraries, use -DUSER_LAPACK_LIBRARIES and (optionally) -DUSER_LAPACK_INCLUDES:")
 		message(STATUS "         e.g.: cmake -DUSER_LAPACK_LIBRARIES=/usr/lib64/liblapack.so -DUSER_LAPACK_INCLUDES=/includepath/ ..")
