@@ -73,8 +73,9 @@ EOF
 		exit
 	else
 		echo "Submit: $commandline"
-	#	todo: uncomment next line, get jobid=
-	 	$commandline
+	 	commlineoutput=$($commandline)
+	 	echo "$commlineoutput"
+		jobid=$(echo $commlineoutput | sed 's/.*[^0-9]\([0-9]\+\)[^0-9]*$/\1/')
 	fi
 }
 
