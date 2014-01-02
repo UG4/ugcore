@@ -80,11 +80,21 @@ if("${SHELLTYPE}" STREQUAL "readline")
 endif("${SHELLTYPE}" STREQUAL "readline")
 
 if(STATIC_BUILD)
-# if we're compiling with the new cmake_includes, then we have to link
-# against the ug4_s static library
+    # some compiler introduce -Wl,-Bdynamic and -Wl,-Bstatic in order to 
+    # distinguish linkage type for libraries. In cmake, dynamic is default.
+    # Setting the options below to ON forces cmake to start and end with the 
+    # static linker flag when specifying library locations. This is needed, 
+    # e.g. when a compiler wrapper (like scalasca) adds its own libraries at the
+    # end and the libraries are available  as shared and (!) static on the 
+    # system. In that case, without the oprtions below, the dynamic lib would 
+    # be selected. Setting options to ON lets cmake choose the static lib.
+    set_target_properties(${targetExecutableName} PROPERTIES LINK_SEARCH_START_STATIC ON)
+    set_target_properties(${targetExecutableName} PROPERTIES LINK_SEARCH_END_STATIC ON)
+    
+    # we have to link against the ug4_s static library
 	target_link_libraries(${targetExecutableName} ${targetLibraryName})
 else(STATIC_BUILD)
-# link the dynamic library
+    # link the dynamic library
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})
 endif(STATIC_BUILD)
 
