@@ -1957,6 +1957,7 @@ lmgc(int lev, int cycleType)
 //	check if already base level
 	if(lev == m_baseLev) {
 		base_solve(m_topLev);
+		return;
 	} else if(lev < m_baseLev){
 		UG_THROW("GMG::lmgc: call lmgc only for lev > baseLev.");
 	}
