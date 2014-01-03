@@ -50,6 +50,8 @@ mailError=false
 mail=false
 jobid="unknown"
 
+profilePrefix=""
+
 tail=false
 interactive=false
 outDir=`pwd`
@@ -72,7 +74,7 @@ pbsMailtype=""
 echo "ugsubmit 0.2. (c) Goethe-Center for Scientific Computing 2012-2013"
 
 
-# complete -W "-test -nppn -cluster -walltime -mail-start -mail-end -mail-error -mail-arr -verbose -tail -i -dir -Jugene-mode -Jugene-mapfile -Jugene-verbose -Hermit-workspace" ugsubmit
+# complete -W "-test -nppn -cluster -walltime -mail-start -mail-end -mail-error -mail-arr -verbose -tail -i -dir -scan -Jugene-mode -Jugene-mapfile -Jugene-verbose -Hermit-workspace" ugsubmit
 
 ################################################################################
 function usage 
@@ -246,6 +248,12 @@ do
 	elif [ $1 == "-queue" ]; then
 		queue=$2
 		shift 2
+	elif [ $1 == "-scan" ]; then
+		profilePrefix="scalasca -analyze \\"
+		shift 1
+	elif [ $1 == "-scant" ]; then
+		profilePrefix="scalasca -analyze -t \\"
+		shift 1
 	elif [ $1 == "---" ]; then
 		shift
 		break

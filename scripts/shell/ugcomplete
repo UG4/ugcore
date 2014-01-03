@@ -216,7 +216,7 @@ ugshell_complete_ugsubmit()
 }
 
 # ugsubmit completion
-complete -W "-test -nppn -cluster -name -walltime -email -mail-start -mail-end -mail-error -mail-all -verbose -tail -i -dir -queue" \
+complete -W "-test -nppn -cluster -walltime -mail-start -mail-end -mail-error -mail-arr -verbose -tail -i -dir -scan -Jugene-mode -Jugene-mapfile -Jugene-verbose -Hermit-workspace" \
  -F ugshell_complete_ugsubmit -o nospace ugsubmit
 
 

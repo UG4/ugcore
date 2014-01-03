@@ -56,6 +56,7 @@ EOF
 # @ bg_connectivity = TORUS
 # @ bg_size = $nnodes
 # @ queue
+$profilePrefix
 runjob --np $npe --ranks-per-node $nppn : $executable $args
 EOF
 
