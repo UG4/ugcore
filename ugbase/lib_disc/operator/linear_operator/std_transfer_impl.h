@@ -258,7 +258,7 @@ assemble_prolongation(matrix_type& P,
 
 					//	global positions of fine dofs
 						std::vector<MathVector<TDomain::dim> > vDoFPos;
-						DoFPosition(vDoFPos, child, *spDomain, lfeID);
+						InnerDoFPosition(vDoFPos, child, *spDomain, lfeID);
 
 					//	loop contributions from parents
 						for(size_t i = 0; i < vParent.size(); ++i)
@@ -286,7 +286,7 @@ assemble_prolongation(matrix_type& P,
 
 					//	global positions of child dofs
 						std::vector<MathVector<TDomain::dim> > vDoFPos;
-						DoFPosition(vDoFPos, child, *spDomain, lfeID);
+						InnerDoFPosition(vDoFPos, child, *spDomain, lfeID);
 
 					//	get shapes at global positions
 						std::vector<std::vector<number> > vvShape;
@@ -453,7 +453,7 @@ assemble_restriction(matrix_type& R,
 
 					//	global positions of fine dofs
 						std::vector<MathVector<TDomain::dim> > vDoFPos;
-						DoFPosition(vDoFPos, child, *spDomain, lfeID);
+						InnerDoFPosition(vDoFPos, child, *spDomain, lfeID);
 
 					//	loop contributions from parents
 						for(size_t i = 0; i < vParent.size(); ++i)
@@ -481,7 +481,7 @@ assemble_restriction(matrix_type& R,
 
 					//	global positions of child dofs
 						std::vector<MathVector<TDomain::dim> > vDoFPos;
-						DoFPosition(vDoFPos, child, *spDomain, lfeID);
+						InnerDoFPosition(vDoFPos, child, *spDomain, lfeID);
 
 					//	get shapes at global positions
 						std::vector<std::vector<number> > vvShape;
