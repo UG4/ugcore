@@ -145,6 +145,7 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 	if (!uskeleton.has_storage_type(PST_CONSISTENT))
 		UG_THROW("SchurComplementOperator::apply: Inadequate storage format of vec 'uskeleton' (should be consistent).");
 
+	fskeleton.set(0.0);
 	if(!fskeleton.has_storage_type(PST_ADDITIVE))
 		UG_THROW("SchurComplementOperator::apply: Inadequate storage format of vec 'fskeleton' (should be additive).");
 
@@ -463,6 +464,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	// (preconditioned) skeleton solve
 	UG_LOG("\n% 'SchurPrecond::step() - skeleton solve':");
 	SCHUR_PROFILE_BEGIN(SchurSolverStep_SchurSolve);
+	u_skeleton.set(0.0);
 	m_spSkeletonSolver->apply(u_skeleton, f_skeleton);
 	SCHUR_PROFILE_END();
 
