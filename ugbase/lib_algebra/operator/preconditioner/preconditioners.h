@@ -14,5 +14,6 @@
 #include "lib_algebra/operator/preconditioner/ilut.h"
 #include "lib_algebra/operator/preconditioner/iterator_product.h"
 #include "lib_algebra/operator/preconditioner/vanka.h"
+#include "lib_algebra/operator/preconditioner/schur.h"
 
 #endif /* __UG__PRECONDITIONERS_H__ */

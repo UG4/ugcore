@@ -33,6 +33,7 @@ add_subdirectory(common/matrixio)
 if(PARALLEL)
 	# add parallelization
 	set(src_Algebra	 ${src_Algebra}
+						operator/preconditioner/schur.cpp
 	    				operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp
 						parallelization/parallel_coloring.cpp						
