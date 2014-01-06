@@ -1,6 +1,7 @@
 
 
 
+
 // 01.02.2011 (m,d,y)
 
 //	THIS FILE IS ONLY TEMPORARY!
@@ -124,7 +125,7 @@ template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 apply(vector_type& fskeleton, const vector_type& uskeleton)
 {
-	UG_LOG("\n% 'SchurComplementOperator::apply()':");
+	UG_LOG("\n% 'SchurComplementOperator::apply()':"<< std::endl);
 	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
 	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 
@@ -145,30 +146,28 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 	if (!uskeleton.has_storage_type(PST_CONSISTENT))
 		UG_THROW("SchurComplementOperator::apply: Inadequate storage format of vec 'uskeleton' (should be consistent).");
 
-	fskeleton.set(0.0);
-	if(!fskeleton.has_storage_type(PST_ADDITIVE))
-		UG_THROW("SchurComplementOperator::apply: Inadequate storage format of vec 'fskeleton' (should be additive).");
+	//if(!fskeleton.has_storage_type(PST_ADDITIVE))
+	//	UG_THROW("SchurComplementOperator::apply: Inadequate storage format of vec 'fskeleton' (should be additive).");
 
-//	aux vectors
-//	\todo: it would be sufficient to copy only the layouts without copying the values
+	//	aux vectors
 	const int n_inner = sub_size(SD_INNER);
 	vector_type uinner; uinner.create(n_inner);
 	vector_type finner; finner.create(n_inner);
 
-	// storage type does not matter, but is required for solver
 
 
-	// f_{\Gamma} = (A_{\Gamma, \Gamma} -  A_{\Gamma, I}  A_{I, I}^{-1}  A_{I, \Gamma} )u_{\Gamma}
 
 
-	// compute first contribution
-	UG_LOG("U_Gamma="); UG_LOG_Vector(uskeleton);
-	UG_LOG("A_Gamma,Gamma="); UG_LOG_Matrix(*sub_operator(SD_SKELETON, SD_SKELETON));
 
+	// A. compute first contribution
+	//    $A_{\Gamma, \Gamma} u_{Gamma}$
+	fskeleton.set_storage_type(PST_ADDITIVE);
+	// UG_LOG("SchurU_Gamma"); UG_LOG_Vector(uskeleton);
+	// UG_LOG("A_Gamma,Gamma="); UG_LOG_Matrix(*sub_operator(SD_SKELETON, SD_SKELETON));
 	sub_operator(SD_SKELETON, SD_SKELETON)->apply(fskeleton, uskeleton);
+	// UG_LOG("SchurF_Gamma1="); UG_LOG_Vector<vector_type>(fskeleton);
 
-	UG_LOG("fskeleton="); UG_LOG_Vector<vector_type>(fskeleton);
-
+	/*
 	if(debug_writer().valid())
 	{
 		//	Debug output of vector
@@ -179,16 +178,17 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 			//UG_LOG("fskelton="<<fskeleton);
 			//debug_writer()->write_vector(fskeleton, name.c_str());
 	}
+*/
 
+	// B. compute second contribution
+	// f_{\Gamma} -=  A_{\Gamma, I}  A_{I, I}^{-1}  A_{I, \Gamma} )u_{\Gamma}
+    // Note: requires no communication in the interior!
 
-
-	UG_LOG("\nfskeleton="); UG_LOG_Vector<vector_type>(fskeleton);
-
-	//fskeleton.set_storage_type(PST_ADDITIVE);
-	//uTmp.set_storage_type(PST_CONSISTENT);
-	// compute second contribution
-    // no communication in the interior !
 	sub_operator(SD_INNER, SD_SKELETON)->apply(finner, uskeleton);
+	// UG_LOG("\nSchurF_Inner="); UG_LOG_Vector<vector_type>(finner);
+
+
+	// storage type does not matter, but is required for solver
 	finner.set_storage_type(PST_ADDITIVE);
 	uinner.set_storage_type(PST_CONSISTENT);
 
@@ -203,10 +203,13 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 
 		UG_THROW("Cannot solve Local Schur Complement.");
 	}
+	// UG_LOG("\nSchurU_Inner="); UG_LOG_Vector<vector_type>(uinner);
 
 	// modify fskeleton
 	sub_operator(SD_SKELETON, SD_INNER)->apply_sub(fskeleton, uinner);
+	// UG_LOG("\nSchurF_Gamma2="); UG_LOG_Vector<vector_type>(fskeleton);
 
+	fskeleton.set_storage_type(PST_ADDITIVE);
 
 	m_applyCnt++;
 } /* end 'LocalSchurComplement::apply()' */
@@ -266,6 +269,10 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 {
 //	status
 	UG_LOG("\n% Initializing SCHUR precond: \n");
+
+	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
+	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
+
 
 //	bool flag
 	bool bSuccess = true;
@@ -339,7 +346,9 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 
 //  ----- 2. CONFIGURE SCHUR COMPLEMENT SOLVER  ----- //
 
-	m_spSkeletonMatrix = m_spSchurComplementOp->sub_operator(1,1);
+	m_spSkeletonMatrix = m_spSchurComplementOp->sub_operator(SD_SKELETON, SD_SKELETON);
+
+
 	if(!m_spSkeletonSolver->init(m_spSchurComplementOp))
 		UG_THROW("SchurPrecond::init: Failed to init skeleton solver.");
 
@@ -390,7 +399,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		return false;
 	}
 
-	//
+	// no skeleton => direct solve is sufficint
 	if (n_skeleton == 0)
 	{
 		UG_LOG("\n% 'SchurPrecond::step() - direct solve':");
@@ -400,10 +409,10 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	}
 
 	const SlicingData sd =m_spSchurComplementOp->slicing();
-	UG_ASSERT(n_skeleton > 0, "HUHH: # skeleton dof should be positive ");
+	UG_ASSERT(n_skeleton > 0, "HUHH: #skeleton dof should be positive ");
 
-	// now we have a skeleton
-
+	// now we have a non-trivial skeleton
+	c.set(0.0);
 	if (m_aux_rhs[SD_SKELETON].invalid())
 	{
 		UG_LOG("\n% Creating skeleton defect vector of size " << n_skeleton << std::endl);
@@ -440,7 +449,9 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 
 
-	// create vector short cuts
+	// create short cuts
+	const SlicingData&slicing = m_spSchurComplementOp->slicing();
+
 	vector_type &f_skeleton=*m_aux_rhs[SD_SKELETON];
 	vector_type &u_skeleton=*m_aux_sol[SD_SKELETON];
 
@@ -448,32 +459,52 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	vector_type &u_inner=*m_aux_sol[SD_INNER];
 
 
-	// forward solve
+	// get defect
+	slicing.get_vector_slice(d, SD_INNER, f_inner);
+	m_aux_rhs[SD_INNER]->set_storage_type(PST_ADDITIVE);
+
+	slicing.get_vector_slice(d, SD_SKELETON, f_skeleton);
+	m_aux_rhs[SD_SKELETON]->set_storage_type(PST_ADDITIVE);
+
+	slicing.get_vector_slice(c, SD_INNER, u_inner);
+	slicing.get_vector_slice(c, SD_SKELETON, u_skeleton);
+
+	// A.  Reduce defect to skeleton (forward solve)
 	UG_LOG("\n% 'SchurPrecond::step() - forward':");
 	SCHUR_PROFILE_BEGIN(SchurSolverStep_Forward);
+
+	// solve
 	m_spDirichletSolver->apply_return_defect(u_inner, f_inner);
-	m_spSchurComplementOp->slicing().set_vector_slice(u_inner, c, SD_INNER);
-	// now u_inner may used again
+	UG_LOG("\nf_inner1="); UG_LOG_Vector<vector_type>(f_inner);
 
-	m_spSchurComplementOp->sub_operator(SD_SKELETON, SD_INNER)->apply(f_skeleton, u_inner);
-	m_spSchurComplementOp->slicing().subtract_vector_slice(d, SD_SKELETON, f_skeleton);
-	f_skeleton *= -1.0;
+	// store first correction -> will be used again
+	slicing.set_vector_slice(u_inner, c, SD_INNER);
+	UG_LOG("\nu_inner1="); UG_LOG_Vector<vector_type>(u_inner);
 
+	// update defect on skeleton
+	m_spSchurComplementOp->sub_operator(SD_SKELETON, SD_INNER)->apply_sub(f_skeleton, u_inner);
+	UG_LOG("\nf_skeleton="); UG_LOG_Vector<vector_type>(f_skeleton);
+
+	// slicing.subtract_vector_slice(d, SD_SKELETON, f_skeleton);
+	/// f_skeleton *= -1.0;
 	SCHUR_PROFILE_END(); // end 'SchurSolverApply_Forward' - Messpunkt ok, da Konvergenz-Check ausgefuehrt
 
-	// (preconditioned) skeleton solve
-	UG_LOG("\n% 'SchurPrecond::step() - skeleton solve':");
+	// B. solve system on skeleton
 	SCHUR_PROFILE_BEGIN(SchurSolverStep_SchurSolve);
-	u_skeleton.set(0.0);
-	m_spSkeletonSolver->apply(u_skeleton, f_skeleton);
+	UG_LOG("\n% 'SchurPrecond::step() - skeleton solve':");
+
+	if (!m_spSkeletonSolver->apply(u_skeleton, f_skeleton))
+	{ UG_THROW("Failed to solve system!"); }
+
+	UG_LOG("\nu_skeleton="); UG_LOG_Vector<vector_type>(u_skeleton);
 	SCHUR_PROFILE_END();
 
-	// backward solve
-	UG_LOG("\n% 'SchurPrecond::step() - backward':");
+	// C. Prolongate correction back (backward solve)
 	SCHUR_PROFILE_BEGIN(SchurSolverStep_Backward);
+	UG_LOG("\n% 'SchurPrecond::step() - backward':");
 	m_spSchurComplementOp->sub_operator(SD_INNER, SD_SKELETON)->apply(f_inner, u_skeleton);
 	m_spDirichletSolver->apply_return_defect(u_inner, f_inner);
-	m_spSchurComplementOp->slicing().subtract_vector_slice(u_inner, c, SD_INNER);
+	slicing.subtract_vector_slice(u_inner, c, SD_INNER);
 
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))

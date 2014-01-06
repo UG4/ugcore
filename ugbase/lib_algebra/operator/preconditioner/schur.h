@@ -1,6 +1,5 @@
 /*
- * schubt
- r.h
+ * schur.h
  *
  *  Created on: 18.12.2013
  *      Author: anaegel
@@ -321,10 +320,9 @@ class SchurComplementOperator
 	/// to 'u' and returns the result 'f := S times u'
 	virtual void apply(vector_type& f, const vector_type& u);
 
-	///	solves the system
+	///	applies the Schur complement built from matrix operator set via 'set_matrix()'
+	/// to 'u' and returns the result 'f := f - S times u'
 	virtual void apply_sub(vector_type& f, const vector_type& u);
-
-
 
 	//	save current operator
 	void set_matrix(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
@@ -368,7 +366,7 @@ protected:
 
 
 
-/// operator implementation of the FETI-DP solver
+/// operator implementation of the DD Schur complement solver
 /**
  * This operator implements a Schur complement solver */
 //template <typename TAlgebra>
