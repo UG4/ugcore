@@ -141,5 +141,20 @@ inline double EnergyProd(const T1 &v1, const DenseMatrix<T2> &M, const T1 &v2)
 	return sum;
 }
 
+template<typename TMatrix>
+void BlockMatrixToDoubleMatrix(DenseMatrix<VariableArray2<double> > &Ad, TMatrix &Ab)
+{
+	const size_t blockSize = block_traits<typename TMatrix::value_type>::static_num_rows;
+	Ad.resize(blockSize*Ab.num_rows(), blockSize*Ab.num_cols());
+
+	for(size_t i=0; i<Ab.num_rows(); i++)
+	{
+		for(size_t j=0; j<Ab.num_cols(); j++)
+			for(size_t r=0; r<blockSize; r++)
+				for(size_t c=0; c<blockSize; c++)
+					Ad(i*blockSize+r, j*blockSize+c) = BlockRef(Ab(i, j), r, c);
+	}
+}
+
 }
 #endif /* ADDITIONAL_MATH_H_ */
