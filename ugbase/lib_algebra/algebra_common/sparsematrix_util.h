@@ -378,7 +378,7 @@ void GetNeighborhood(const TMatrix &A, size_t node, size_t depth, std::vector<si
 
 	if(bResetVisitedFlags)
 		for(size_t i=0; i<indices.size(); i++)
-			bVisited[i] = false;
+			bVisited[indices[i]] = false;
 }
 
 template<typename TMatrix>
@@ -937,10 +937,14 @@ GetDenseFromSparse(typename DenseMatrixFromSparseMatrix<TSparseMatrix>::type &A,
 {
 
 	typedef typename TSparseMatrix::const_row_iterator sparse_row_iterator;
-	size_t n = S.num_rows();
+	size_t numRows = S.num_rows();
+	size_t numCols = S.num_cols();
 //	PROGRESS_START(prog, n, "GetDenseFromSparse " << n);
-	A.resize(n,n);
-	for(size_t r=0; r<n; r++)
+	A.resize(numRows, numCols);
+	for(size_t r=0; r<numRows; r++)
+		for(size_t c=0; c<numCols; c++)
+			A(r, c) = 0;
+	for(size_t r=0; r<numRows; r++)
 	{
 //		PROGRESS_UPDATE(prog, r);
 		for(sparse_row_iterator it = S.begin_row(r); it != S.end_row(r); ++it)
