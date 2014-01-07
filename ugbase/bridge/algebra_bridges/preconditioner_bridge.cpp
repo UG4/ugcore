@@ -20,6 +20,9 @@
 #include "lib_algebra/operator/preconditioner/preconditioners.h"
 #include "lib_algebra/operator/preconditioner/ilut_scalar.h"
 #include "lib_algebra/operator/linear_solver/agglomerating_solver.h"
+#include "lib_algebra/operator/preconditioner/block_gauss_seidel.h"
+
+#include "../util_overloaded.h"
 using namespace std;
 
 namespace ug{
@@ -121,6 +124,34 @@ static void Algebra(Registry& reg, string grp)
 				.add_constructor()
 				.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "BackwardGaussSeidel", tag);
+	}
+
+	//	BlockGaussSeidel2
+	{
+		typedef BlockGaussSeidel2<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("BlockGaussSeidel2").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Block Gauss Preconditioner2")
+			.add_constructor()
+			. ADD_CONSTRUCTOR( (int) )("depth")
+			.add_method("set_depth", &T::set_depth)
+			.set_construct_as_smart_pointer(true);
+
+		reg.add_class_to_group(name, "BlockGaussSeidel2", tag);
+	}
+
+	//	BlockGaussSeidel
+	{
+		typedef BlockGaussSeidel<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("BlockGaussSeidel").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "Block Gauss Preconditioner")
+			.add_constructor()
+			. ADD_CONSTRUCTOR( (int) )("depth")
+			.add_method("set_depth", &T::set_depth)
+			.set_construct_as_smart_pointer(true);
+
+		reg.add_class_to_group(name, "BlockGaussSeidel", tag);
 	}
 
 //	ILU
