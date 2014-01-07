@@ -25,10 +25,12 @@
 #include "lib_algebra/operator/debug_writer.h"
 #include "pcl/pcl.h"
 
+#include "common/log.h"
 
 
 namespace ug{
 
+extern DebugID SchurDebug;
 
 class SlicingOp
 {
@@ -76,9 +78,11 @@ public:
 			set.push_back(i);
 		}
 
-		UG_LOG("SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
+		UG_DLOG(SchurDebug, 5,"SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
 
 		slice_desc_set::const_iterator it;
+
+		UG_DEBUG_BEGIN(SchurDebug, 5)
 
 		{
 			UG_LOG("Skeleton:");
@@ -91,6 +95,7 @@ public:
 	    	const slice_desc_set &myset=slice(SD_INNER);
 	    	for (it=myset.begin(); it!=myset.end(); ++it) UG_LOG(*it << " ");
 		}
+		UG_DEBUG_END(SchurDebug, 5)
 
 	}
 
@@ -166,7 +171,7 @@ public:
 	{
 		const slice_desc_set &row_slice = slice(row_type);
 		const slice_desc_set &col_slice = slice(col_type);
-		UG_LOG("SlicingData::get_matrix:" << row_slice.size() << "x" << col_slice.size()<< std::endl)
+		UG_DLOG(SchurDebug, 5, "SlicingData::get_matrix:" << row_slice.size() << "x" << col_slice.size()<< std::endl)
 		Aslice.resize_and_clear(row_slice.size(), col_slice.size());
 
 		int ii=0;
@@ -183,14 +188,7 @@ public:
 				// if (get_type(j)!=col_type) continue;
 				if (find_index(col_type, j, jj))
 				{
-
 					Aslice(ii, jj) = it.value();
-
-
-					if (row_type == SD_SKELETON &&  col_type == SD_INNER) {
-						UG_LOG (i  << "," << j << "=> (" << ii << ","<< jj<< ") " << it.value() << std::endl);
-
-					}
 				}
 			 }
 		}
@@ -230,15 +228,14 @@ protected:
 			index = std::distance(myset.begin(), it);
 			found = true;
 		}
-		if (found && index >=myset.size()) {
+	//	if (found && index >=myset.size()) {
 		UG_ASSERT( (!found || index<myset.size()) , "Invalid index found!");
-		}
+	//	}
 		return found;
 	}
 
 	void replace_indices_in_layout(slice_desc_type type, IndexLayout &il) const
 	{
-		// UG_LOG("ilpre:\n"<< il);
 		IndexLayout::iterator iter;
 		for (iter = il.begin(); iter!=il.end(); ++iter)
 		{
@@ -255,14 +252,10 @@ protected:
 
 				bool found=find_index(type, elem, newind);
 				UG_ASSERT(found, "SlicingData:: Did not find index???");
-				//UG_LOG(eiter->elem <<  ", " << eiter->localID <<  "=>");
 				interf.get_element(eiter) = newind;
-				//UG_LOG(eiter->elem <<  ", " << eiter->localID <<  std::endl);
-				//UG_LOG("->" << interf.get_element(eiter) << std::endl);
+
 			}
 		}
-		// UG_LOG("ilpost:\n"<<il);
-
 	}
 
 };
@@ -349,7 +342,7 @@ class SchurComplementOperator
 
 
 	// for debugging: computes schur operator
-	void debug_compute_matrix(matrix_type &schur_matrix);
+	void debug_compute_matrix();
 
 protected:
 	// 	Operator that is inverted by this Inverse Operator

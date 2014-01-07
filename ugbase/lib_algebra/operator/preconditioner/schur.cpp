@@ -1,15 +1,21 @@
-
-
-
-
-// 01.02.2011 (m,d,y)
+/*
+ * schur.h
+ *
+ *  Created on: 18.12.2013
+ *      Author: anaegel
+ */
 
 //	THIS FILE IS ONLY TEMPORARY!
 //  When everything works as
 //	expected one should move the code in this file to
 //	schur_impl.h, so that it will work with all the different algebras.
 //
-//	In the moment template instantiations are invoked at the end of this file.
+//	In the moment, template instantiations are invoked at the end of this file.
+
+
+
+
+
 
 #ifdef UG_PARALLEL
 
@@ -23,6 +29,8 @@
 #include "lib_algebra/operator/algebra_debug_writer.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 
+#include "lib_algebra/algebra_common/sparsematrix_util.h"  // DenseMatrixFromSparseMatrix
+#include "lib_algebra/small_algebra/small_algebra.h"   // DEnseMAtrix...
 
 #include "pcl/pcl_layout_tests.h"
 
@@ -46,13 +54,14 @@
 
 namespace ug{
 
+DebugID SchurDebug("SchurComplementDebug");
 
 template <class VT>
 void UG_LOG_Vector(const VT &vec)
 {
-	//for (size_t i=0; i<vec.size(); ++i)
-	/*{ UG_LOG( vec[i] << " "); }
-	UG_LOG(std::endl);*/
+	for (size_t i=0; i<vec.size(); ++i)
+	{ UG_LOG( vec[i] << " "); }
+	UG_LOG(std::endl);
 	/*{ std::cerr << vec[i] << " "; }
 		std::cerr << std::endl;*/
 }
@@ -60,6 +69,7 @@ void UG_LOG_Vector(const VT &vec)
 template <class MT>
 void UG_LOG_Matrix(const MT &A)
 {
+	UG_DEBUG_BEGIN(SchurDebug, 8)
 	for (size_t i = 0; i<A.num_rows(); ++i)
 	{
 		UG_LOG ("{ "<<i<<": ");
@@ -67,6 +77,7 @@ void UG_LOG_Matrix(const MT &A)
 		{ UG_LOG ("("<< i << "," << it.index() <<" ) =" << A(i, it.index()) << std::endl); }
 		UG_LOG ("}\n");
 	}
+	UG_DEBUG_END(SchurDebug, 8)
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -76,7 +87,7 @@ template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 init()
 {
-	UG_LOG("\n% 'SchurComplementOperator::init()':");
+	UG_DLOG(SchurDebug, 5, "\n% 'SchurComplementOperator::init()':");
 //	check that operator has been set
 	if(m_spOperator.invalid())
 		UG_THROW("SchurComplementOperator::init: No Operator A set.");
@@ -100,24 +111,27 @@ init()
 	m_slicing.get_matrix(mat, SD_SKELETON, SD_INNER, sub_matrix(SD_SKELETON, SD_INNER));
 	m_slicing.get_matrix(mat, SD_SKELETON, SD_SKELETON, sub_matrix(SD_SKELETON, SD_SKELETON));
 
+	IF_DEBUG(SchurDebug, 5)
+	{
+	// debug screen
 	UG_LOG("A             ="); UG_LOG_Matrix(mat); UG_LOG(std::endl);
 	UG_LOG("A_I,I         ="); UG_LOG_Matrix(sub_matrix(SD_INNER, SD_INNER)); UG_LOG(std::endl);
 	UG_LOG("A_I,Gamma     ="); UG_LOG_Matrix(sub_matrix(SD_INNER, SD_SKELETON)); UG_LOG(std::endl);
 	UG_LOG("A_Gamma,I     ="); UG_LOG_Matrix(sub_matrix(SD_SKELETON, SD_INNER)); UG_LOG(std::endl);
 	UG_LOG("A_Gamma,Gamma ="); UG_LOG_Matrix(sub_matrix(SD_SKELETON, SD_SKELETON)); UG_LOG(std::endl);
 
+	//	debug output of matrices
+	write_debug(sub_matrix(SD_INNER, SD_INNER), "Schur_II.mat");
+	write_debug(sub_matrix(SD_INNER, SD_SKELETON), "Schur_IB.mat");
+	write_debug(sub_matrix(SD_SKELETON, SD_INNER), "Schur_BI.mat");
+	write_debug(sub_matrix(SD_SKELETON, SD_SKELETON), "Schur_BB.mat");
+
+	}
 
 	sub_matrix(SD_INNER, SD_INNER).set_storage_type(PST_ADDITIVE);
 	sub_matrix(SD_INNER, SD_SKELETON).set_storage_type(PST_ADDITIVE);
 	sub_matrix(SD_SKELETON, SD_INNER).set_storage_type(PST_ADDITIVE);
 	sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
-
-	//	debug output of matrices
-	UG_LOG("writing debug...")
-	write_debug(sub_matrix(SD_INNER, SD_INNER), "Schur_II.mat");
-	write_debug(sub_matrix(SD_INNER, SD_SKELETON), "Schur_IB.mat");
-	write_debug(sub_matrix(SD_SKELETON, SD_INNER), "Schur_BI.mat");
-	write_debug(sub_matrix(SD_SKELETON, SD_SKELETON), "Schur_BB.mat");
 
 	//	init solver for Dirichlet problem
 		if(m_spDirichletSolver.valid())
@@ -137,7 +151,9 @@ template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 apply(vector_type& fskeleton, const vector_type& uskeleton)
 {
-//	UG_LOG("\n% 'SchurComplementOperator::apply()':"<< std::endl);
+
+
+	UG_DLOG(SchurDebug, 5, "\n% 'SchurComplementOperator::apply()':"<< std::endl);
 	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
 	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 
@@ -175,10 +191,10 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 	// A. compute first contribution
 	//    $A_{\Gamma, \Gamma} u_{Gamma}$
 	fskeleton.set_storage_type(PST_ADDITIVE);
-	//UG_LOG("\nSchurU_Gamma"); UG_LOG_Vector(uskeleton);
+	IF_DEBUG(SchurDebug, 5) { UG_LOG("\nSchurU_Gamma"); UG_LOG_Vector(uskeleton);}
 
 	sub_operator(SD_SKELETON, SD_SKELETON)->apply(fskeleton, uskeleton);
-	//UG_LOG("\nSchurF_Gamma1="); UG_LOG_Vector<vector_type>(fskeleton);
+	IF_DEBUG(SchurDebug, 5) { UG_LOG("\nSchurF_Gamma1="); UG_LOG_Vector(fskeleton);}
 
 	/*
 	if(debug_writer().valid())
@@ -221,7 +237,7 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 
 	// modify fskeleton
 	sub_operator(SD_SKELETON, SD_INNER)->apply_sub(fskeleton, uinner);
-	//UG_LOG("\nSchurF_Gamma2="); UG_LOG_Vector<vector_type>(fskeleton); UG_LOG(std::endl);
+	IF_DEBUG(SchurDebug, 5){UG_LOG("\nSchurF_Gamma2="); UG_LOG_Vector(fskeleton); UG_LOG(std::endl);}
 
 	fskeleton.set_storage_type(PST_ADDITIVE);
 	if(!fskeleton.has_storage_type(PST_ADDITIVE))
@@ -235,7 +251,7 @@ template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 apply_sub(vector_type& fskeleton, const vector_type& uskeleton)
 {
-	UG_LOG("\n% 'SchurComplementOperator::apply_sub()':");
+	UG_DLOG(SchurDebug, 5, "\n% 'SchurComplementOperator::apply_sub()':");
 	SCHUR_PROFILE_BEGIN(SCHUR_apply_sub);
 //	create new rhs
 	vector_type dskeleton(fskeleton);
@@ -249,17 +265,25 @@ apply_sub(vector_type& fskeleton, const vector_type& uskeleton)
 
 template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
-debug_compute_matrix(matrix_type &schur_matrix)
+debug_compute_matrix()
 {
+	typedef typename TAlgebra::matrix_type sparse_matrix_type;
+	typedef typename DenseMatrixFromSparseMatrix<sparse_matrix_type>::type dense_matrix_type;
+
+	//sparse_matrix_type schur_matrix1(n_skeleton, n_skeleton);
+
 	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 	const int n_skeleton = sub_size(SD_SKELETON);
+
+	dense_matrix_type schur_matrix;
+	schur_matrix.resize(n_skeleton, n_skeleton);
 
 	// create temporary vectors
 	vector_type sol; sol.create(n_skeleton);
 	vector_type rhs; rhs.create(n_skeleton);
 
 	// resize matrix
-	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
+//	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
 
 	// compute columns s_k = S e_k
 	for (int i=0; i<n_skeleton; ++i)
@@ -273,8 +297,7 @@ debug_compute_matrix(matrix_type &schur_matrix)
 	}
 
 	// print matrix
-	UG_LOG_Matrix(schur_matrix);
-
+	UG_LOG(JuliaString(schur_matrix, "Schur"));
 }
 
 
@@ -304,6 +327,7 @@ postprocess()
 	// (were initialized in first step)
 	m_aux_rhs[0] = m_aux_rhs[1] =NULL;
 	m_aux_sol[0] = m_aux_sol[1] = NULL;
+	return true;
 }
 
 template <typename TAlgebra>
@@ -311,7 +335,7 @@ bool SchurPrecond<TAlgebra>::
 preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 {
 //	status
-	UG_LOG("\n% Initializing SCHUR precond: \n");
+	UG_DLOG(SchurDebug, 2, "\n% Initializing SCHUR precond: \n");
 
 	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
 	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
@@ -426,7 +450,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 	c.set_storage_type(PST_UNIQUE);
 
-	UG_LOG("\n% 'SchurPrecond::step()':");
+	UG_DLOG(SchurDebug, 2, "\n% 'SchurPrecond::step()':");
 
 	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
 	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
@@ -441,7 +465,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		return false;
 	}
 
-	// no skeleton => direct solve is sufficint
+	// no skeleton => direct solve is sufficient
 	if (n_skeleton == 0)
 	{
 		UG_LOG("\n% 'SchurPrecond::step() - direct solve':");
@@ -457,7 +481,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	c.set(0.0);
 	if (m_aux_rhs[SD_SKELETON].invalid())
 	{
-		UG_LOG("\n% Creating skeleton defect vector of size " << n_skeleton << std::endl);
+		UG_LOG("% Creating skeleton defect vector of size " << n_skeleton << std::endl);
 		//m_aux_rhs[SD_SKELETON] = new vector_type(n_skeleton);
 		m_aux_rhs[SD_SKELETON] = sd.slice_clone_without_values(d, SD_SKELETON);
 		m_aux_rhs[SD_SKELETON]->set_storage_type(PST_ADDITIVE);
@@ -467,7 +491,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 	if (m_aux_sol[SD_SKELETON].invalid())
 	{
-		UG_LOG("\n% Creating skeleton corr vector of size " << n_skeleton << std::endl);
+		UG_LOG("% Creating skeleton corr vector of size " << n_skeleton << std::endl);
 		//m_aux_sol[SD_SKELETON] = new vector_type(n_skeleton);
 		m_aux_sol[SD_SKELETON] = sd.slice_clone_without_values(d, SD_SKELETON);
 		m_aux_sol[SD_SKELETON]->set_storage_type(PST_CONSISTENT);
@@ -477,14 +501,14 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 	if (m_aux_rhs[SD_INNER].invalid())
 	{
-		UG_LOG("\n% Creating inner defect vector of size " << n_inner << std::endl);
+		UG_LOG("% Creating inner defect vector of size " << n_inner << std::endl);
 		m_aux_rhs[SD_INNER] = new vector_type(n_inner);
 		m_aux_rhs[SD_INNER]->set_storage_type(PST_ADDITIVE);
 	}
 
 	if (m_aux_sol[SD_INNER].invalid())
 	{
-			UG_LOG("\n% Creating inner corr vector of size " << n_inner << std::endl);
+			UG_LOG("% Creating inner corr vector of size " << n_inner << std::endl);
 			m_aux_sol[SD_INNER] = new vector_type(n_inner);
 			m_aux_sol[SD_INNER]->set_storage_type(PST_CONSISTENT);
 	}
@@ -508,16 +532,20 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	slicing.get_vector_slice(d, SD_SKELETON, f_skeleton);
 	m_aux_rhs[SD_SKELETON]->set_storage_type(PST_ADDITIVE);
 
+	// get initial guess
 	slicing.get_vector_slice(c, SD_INNER, u_inner);
 	slicing.get_vector_slice(c, SD_SKELETON, u_skeleton);
 
+
+
 	// A.  Reduce defect to skeleton (forward solve)
-	UG_LOG("\n% 'SchurPrecond::step() - forward':");
+	UG_DLOG(SchurDebug, 3, "\n% 'SchurPrecond::step() - forward':");
 	SCHUR_PROFILE_BEGIN(SchurSolverStep_Forward);
 
 	// solve
 	//UG_LOG("\nf_inner1="); UG_LOG_Vector<vector_type>(f_inner);
 
+	m_spDirichletSolver->apply_return_defect(u_inner, f_inner);
 	// store first correction -> will be used again
 	slicing.set_vector_slice(u_inner, c, SD_INNER);
 	//UG_LOG("\nu_inner1="); UG_LOG_Vector<vector_type>(u_inner);
@@ -532,7 +560,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 	// B. solve system on skeleton
 	SCHUR_PROFILE_BEGIN(SchurSolverStep_SchurSolve);
-	UG_LOG("\n% 'SchurPrecond::step() - skeleton solve':");
+	UG_DLOG(SchurDebug, 3, "\n% 'SchurPrecond::step() - skeleton solve':");
 
 	if(!f_skeleton.has_storage_type(PST_ADDITIVE))
 	{ UG_THROW("ERROR: In 'SchurPrecond::step':Inadequate storage format of 'f_skeleton'.\n"); }
@@ -550,7 +578,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 
 	// C. Prolongate correction back (backward solve)
 	SCHUR_PROFILE_BEGIN(SchurSolverStep_Backward);
-	UG_LOG("\n% 'SchurPrecond::step() - backward':\n");
+	UG_DLOG(SchurDebug, 3, "\n% 'SchurPrecond::step() - backward':\n");
 	m_spSchurComplementOp->sub_operator(SD_INNER, SD_SKELETON)->apply(f_inner, u_skeleton);
 	m_spDirichletSolver->apply_return_defect(u_inner, f_inner);
 	slicing.subtract_vector_slice(u_inner, c, SD_INNER);
@@ -568,6 +596,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	SCHUR_PROFILE_END();			// end 'SchurSolver_Backward'
 
 
+	//m_spSchurComplementOp->debug_compute_matrix();
 	return bSuccess;
 
 //	call this for output.
