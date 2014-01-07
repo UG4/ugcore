@@ -16,6 +16,7 @@
 	#include "lib_algebra/parallelization/parallelization_util.h"
 	#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 #endif
+#include "lib_algebra/algebra_common/permutation_util.h"
 
 namespace ug{
 
@@ -297,7 +298,7 @@ class ILU : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILU(double beta=0.0) : m_beta(beta) {};
+		ILU(double beta=0.0) : m_beta(beta), m_bSort(false) {};
 
 	///	Clone
 		SmartPtr<ILinearIterator<vector_type> > clone()
@@ -305,6 +306,7 @@ class ILU : public IPreconditioner<TAlgebra>
 			SmartPtr<ILU<algebra_type> > newInst(new ILU<algebra_type>(m_beta));
 			newInst->set_debug(debug_writer());
 			newInst->set_damp(this->damping());
+			newInst->set_sort(m_bSort);
 			return newInst;
 		}
 
@@ -317,9 +319,34 @@ class ILU : public IPreconditioner<TAlgebra>
 	///	set factor for \f$ ILU_{\beta} \f$
 		void set_beta(double beta) {m_beta = beta;}
 
+	/// set cuthill-mckee sort on/off
+		void set_sort(bool b)
+		{
+			m_bSort = b;
+		}
+
+
 	protected:
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILU";}
+
+	private:
+		// cuthill-mckee sorting
+		void calc_cuthill_mckee()
+		{
+			PROFILE_BEGIN_GROUP(ILU_ReorderCuthillMcKey, "ilu algebra");
+			GetCuthillMcKeeOrder(m_ILU, m_newIndex);
+			m_bSortIsIdentity = GetInversePermutation(m_newIndex, m_oldIndex);
+
+			if(!m_bSortIsIdentity)
+			{
+				matrix_type mat;
+				mat = m_ILU;
+				SetMatrixAsPermutation(m_ILU, mat, m_newIndex);
+			}
+		}
+
+	protected:
 
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
@@ -329,23 +356,19 @@ class ILU : public IPreconditioner<TAlgebra>
 		//	Debug output of matrices
 			write_debug(mat, "ILU_BeforeMakeConsistent");
 
-#ifdef 	UG_PARALLEL
-		//	copy original matrix
-			// commented-out function seems to be broken (A.Vogel)
-//			MakeConsistent(mat, m_ILU);
-
-			// we use new instead (A.Vogel)
 			m_ILU = mat;
+#ifdef 	UG_PARALLEL
 			MatAddSlaveRowsToMasterRowOverlap0(m_ILU);
 
 		//	set zero on slaves
 			std::vector<IndexLayout::Element> vIndex;
 			CollectUniqueElements(vIndex,  m_ILU.layouts()->slave());
 			SetDirichletRow(m_ILU, vIndex);
-#else
-		//	copy original matrix
-			m_ILU = mat;
 #endif
+
+
+			if(m_bSort)
+				calc_cuthill_mckee();
 
 		//	Debug output of matrices
 			write_debug(m_ILU, "ILU_BeforeFactorize");
@@ -366,6 +389,25 @@ class ILU : public IPreconditioner<TAlgebra>
 			return true;
 		}
 
+
+		void applyLU(vector_type &c, const vector_type &d, vector_type &tmp)
+		{
+			if(!m_bSort || m_bSortIsIdentity)
+			{
+				// 	apply iterator: c = LU^{-1}*d
+				invert_L(m_ILU, tmp, d); // h := L^-1 d
+				invert_U(m_ILU, c, tmp); // c := U^-1 h = (LU)^-1 d
+			}
+			else
+			{
+				// we save one vector here by renaming
+				SetVectorAsPermutation(tmp, d, m_newIndex);
+				invert_L(m_ILU, c, tmp); // c = L^{-1} d
+				invert_U(m_ILU, tmp, c); // tmp = (LU)^{-1} d
+				SetVectorAsPermutation(c, tmp, m_oldIndex);
+			}
+		}
+
 	//	Stepping routine
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
@@ -379,24 +421,21 @@ class ILU : public IPreconditioner<TAlgebra>
 			SmartPtr<vector_type> spDtmp = d.clone();
 			spDtmp->change_storage_type(PST_UNIQUE);
 
-		// 	apply iterator: c = LU^{-1}*d
-			invert_L(m_ILU, m_h, *spDtmp); // h := L^-1 d
-			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
+			applyLU(c, *spDtmp, m_h);
+
+		//	Correction is always consistent
+			c.set_storage_type(PST_ADDITIVE);
 
 		//	write debug
 			if(first) write_debug(c, "ILU_c");
 
-		//	Correction is always consistent
-			c.set_storage_type(PST_ADDITIVE);
 			c.change_storage_type(PST_CONSISTENT);
 
 		//	write debug
 			if(first) {write_debug(c, "ILU_cConsistent"); first = false;}
 
 #else
-		// 	apply iterator: c = LU^{-1}*d
-			invert_L(m_ILU, m_h, d); // h := L^-1 d
-			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
+			applyLU(c, d, m_h);
 #endif
 
 		//	we're done
@@ -415,6 +454,11 @@ class ILU : public IPreconditioner<TAlgebra>
 		
 	/// Factor for ILU-beta
 		number m_beta;
+
+	/// for cuthill-mckee reordering
+		std::vector<size_t> m_newIndex, m_oldIndex;
+		bool m_bSortIsIdentity;
+		bool m_bSort;
 };
 
 } // end namespace ug
