@@ -27,7 +27,8 @@ init()
 	if(m_spDD.invalid())
 		UG_THROW("DofDistribution not set in 'IObstacleConstraint'.");
 
-	init_obstacle_values_and_dofs(1.0);
+	//	build up a map of obstacle dofs and its corresponding obstacle values
+	init_obstacle_dofs_with_values(1.0);
 
 	UG_LOG("In IObstacleConstraint::init: "<<m_mObstacleValues.size()<< " obstacleDoFs tagged \n");
 	UG_LOG("\n");
@@ -296,7 +297,7 @@ extract_data()
 
 template <typename TDomain, typename TAlgebra>
 void IObstacleConstraint<TDomain, TAlgebra>::
-init_obstacle_values_and_dofs(number time)
+init_obstacle_dofs_with_values(number time)
 {
 	extract_data();
 
@@ -304,16 +305,16 @@ init_obstacle_values_and_dofs(number time)
 	m_mObstacleValues.clear();
 	m_vObsSubsets.resize(0);
 
-	init_obstacle_values_and_dofs<CondNumberData>(m_mCondNumberObsSegment, time);
-	init_obstacle_values_and_dofs<NumberData>(m_mNumberObsSegment, time);
-	init_obstacle_values_and_dofs<ConstNumberData>(m_mConstNumberObsSegment, time);
-	init_obstacle_values_and_dofs<VectorData>(m_mVectorObsSegment, time);
+	init_obstacle_dofs_with_values<CondNumberData>(m_mCondNumberObsSegment, time);
+	init_obstacle_dofs_with_values<NumberData>(m_mNumberObsSegment, time);
+	init_obstacle_dofs_with_values<ConstNumberData>(m_mConstNumberObsSegment, time);
+	init_obstacle_dofs_with_values<VectorData>(m_mVectorObsSegment, time);
 }
 
 template <typename TDomain, typename TAlgebra>
 template <typename TUserData>
 void IObstacleConstraint<TDomain, TAlgebra>::
-init_obstacle_values_and_dofs(const std::map<int, std::vector<TUserData*> >& mvUserData, number time)
+init_obstacle_dofs_with_values(const std::map<int, std::vector<TUserData*> >& mvUserData, number time)
 {
 	typename std::map<int, std::vector<TUserData*> >::const_iterator iter;
 	for(iter = mvUserData.begin(); iter != mvUserData.end(); ++iter)
@@ -331,15 +332,15 @@ init_obstacle_values_and_dofs(const std::map<int, std::vector<TUserData*> >& mvU
 		try
 		{
 		if(m_spDD->max_dofs(VERTEX))
-			init_obstacle_values_and_dofs<Vertex, TUserData>(vUserData, si, time);
+			init_obstacle_dofs_with_values<Vertex, TUserData>(vUserData, si, time);
 		if(m_spDD->max_dofs(EDGE))
-			init_obstacle_values_and_dofs<EdgeBase, TUserData>(vUserData, si, time);
+			init_obstacle_dofs_with_values<EdgeBase, TUserData>(vUserData, si, time);
 		if(m_spDD->max_dofs(FACE))
-			init_obstacle_values_and_dofs<Face, TUserData>(vUserData, si, time);
+			init_obstacle_dofs_with_values<Face, TUserData>(vUserData, si, time);
 		if(m_spDD->max_dofs(VOLUME))
-			init_obstacle_values_and_dofs<Volume, TUserData>(vUserData, si, time);
+			init_obstacle_dofs_with_values<Volume, TUserData>(vUserData, si, time);
 		}
-		UG_CATCH_THROW("IObstacleConstraint::init_obstacle_values_and_dofs:"
+		UG_CATCH_THROW("IObstacleConstraint::init_obstacle_dofs_with_values:"
 						" While calling 'obstacle_value' for TUserData, aborting.");
 	}
 }
@@ -347,7 +348,7 @@ init_obstacle_values_and_dofs(const std::map<int, std::vector<TUserData*> >& mvU
 template <typename TDomain, typename TAlgebra>
 template <typename TBaseElem, typename TUserData>
 void IObstacleConstraint<TDomain, TAlgebra>::
-init_obstacle_values_and_dofs(const std::vector<TUserData*>& vUserData, int si, number time)
+init_obstacle_dofs_with_values(const std::vector<TUserData*>& vUserData, int si, number time)
 {
 //	create Multiindex
 	std::vector<DoFIndex> multInd;

@@ -143,13 +143,13 @@ class IObstacleConstraint
 				size_t numFct) const;
 
 	///	store the obstacle value set by means of UserDatas
-		void init_obstacle_values_and_dofs(number time);
+		void init_obstacle_dofs_with_values(number time);
 
 		template <typename TUserData>
-		void init_obstacle_values_and_dofs(const std::map<int, std::vector<TUserData*> >& mvUserData, number time);
+		void init_obstacle_dofs_with_values(const std::map<int, std::vector<TUserData*> >& mvUserData, number time);
 
 		template <typename TBaseElem, typename TUserData>
-		void init_obstacle_values_and_dofs(const std::vector<TUserData*>& vUserData, int si, number time);
+		void init_obstacle_dofs_with_values(const std::vector<TUserData*>& vUserData, int si, number time);
 
 	protected:
 	///	map to store obstacle values with its corresponding DoFs
