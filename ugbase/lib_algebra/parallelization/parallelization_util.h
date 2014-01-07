@@ -22,11 +22,11 @@
 #ifdef PROFILE_PARALLELIZATION_UTIL
 	#define PU_PROFILE_FUNC()	PROFILE_FUNC()
 	#define PU_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
-	#define PU_PROFILE_END()	PROFILE_END()
+	#define PU_PROFILE_END(name)	PROFILE_END_(name)
 #else
 	#define PU_PROFILE_FUNC()
 	#define PU_PROFILE_BEGIN(name)
-	#define PU_PROFILE_END()
+	#define PU_PROFILE_END(name)
 #endif
 // additions for profiling - end
 
@@ -91,22 +91,22 @@ void AdditiveToConsistent(	TVector* pVec,
 	//	create the required communication policies
 		ComPol_VecAdd<TVector> cpVecAdd(pVec);
 
-		PU_PROFILE_BEGIN(AdditiveToConsistent_step1); // added 18042011ih
+		PU_PROFILE_BEGIN(AdditiveToConsistent_step1);
 	//	perform communication
 		com.send_data(slaveLayout, cpVecAdd);
 		com.receive_data(masterLayout, cpVecAdd);
 		com.communicate();
-		PU_PROFILE_END(); //AdditiveToConsistent_step1 // added 18042011ih
+		PU_PROFILE_END(AdditiveToConsistent_step1);
 	//	step 2: copy master values to slaves
 	//	create the required communication policies
 		ComPol_VecCopy<TVector> cpVecCopy(pVec);
 
-		PU_PROFILE_BEGIN(AdditiveToConsistent_step2); // added 18042011ih
+		PU_PROFILE_BEGIN(AdditiveToConsistent_step2);
 	//	perform communication
 		com.send_data(masterLayout, cpVecCopy);
 		com.receive_data(slaveLayout, cpVecCopy);
 		com.communicate();
-		PU_PROFILE_END(); //AdditiveToConsistent_step2 // added 18042011ih
+		PU_PROFILE_END(AdditiveToConsistent_step2);
 }
 
 /// changes parallel storage type from unique to consistent
@@ -283,6 +283,7 @@ template <typename TVector>
 void ConsistentToUnique(	TVector* pVec,
                         	const IndexLayout& slaveLayout)
 {
+	PROFILE_FUNC_GROUP("algebra parallelization");
 	SetLayoutValues(pVec, slaveLayout, 0.0);
 }
 
@@ -659,17 +660,27 @@ inline bool PrintLayouts(const HorizontalAlgebraLayouts &layout)
 	return TestLayout(layout.proc_comm(), layout.comm(), layout.master(), layout.slave(), true);
 }
 
+/**
+ * @param layout layout to search
+ * @param pid proc_id to find
+ * @return layout.end() if not found, else it so that layout.proc_id(it) == pid
+ */
 template<typename TLayout>
-typename TLayout::iterator find(TLayout &layout, int pid)
+typename TLayout::iterator find_pid(TLayout &layout, int pid)
 {
 	for(typename TLayout::iterator it = layout.begin(); it != layout.end(); ++it)
 		if(layout.proc_id(it) == pid) return it;
 	return layout.end();
 }
 
+/**
+ * @return an empty AlgebraLayout with proc_comm pcl::PCD_LOCAL
+ */
 SmartPtr<AlgebraLayouts> CreateLocalAlgebraLayouts();
 
+
 }//	end of namespace
+
 
 
 #endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL__ */
