@@ -197,24 +197,21 @@ public:
 		}
 		UG_ASSERT(m_mat.num_rows() == m_mat.num_cols(), "atm only for square matrices");
 
-		PROFILE_END(); PROFILE_BEGIN(calculate1);
 
 		const IndexLayout &masterLayout = m_mat.layouts()->master();
 		const IndexLayout &slaveLayout = m_mat.layouts()->slave();
 
-		PROFILE_END(); PROFILE_BEGIN(calculate_TestLayout);
 		IF_DEBUG(LIB_ALG_MATRIX, 1)
 		{
+			PROFILE_BEGIN(calculate_TestLayout);
 			UG_ASSERT(TestLayout(m_pc, m_com, masterLayout, slaveLayout), "layout corrupted");
 		}
 
-		PROFILE_END(); PROFILE_BEGIN(calculate1_2);
 
 		// generate global algebra indices
 		UG_DLOG(LIB_ALG_MATRIX, 4, "generate " << m_mat.num_rows() << " m_globalIDs\n");
 		//GenerateGlobalAlgebraIDs(m_globalIDs, m_mat.num_rows(), masterLayout, slaveLayout);
 
-		PROFILE_END(); PROFILE_BEGIN(calculate1_3);
 
 		IF_DEBUG(LIB_ALG_MATRIX, 4)
 		{
@@ -225,12 +222,9 @@ public:
 
 		m_newMat.set_as_copy_of(m_mat);
 
-		PROFILE_END(); PROFILE_BEGIN(calculate1_4);
-
 		// collect data
 		//-----------------
 
-		PROFILE_END(); PROFILE_BEGIN(calculate2);
 		size_t maxOverlap = std::max(m_overlapDepthMaster, m_overlapDepthSlave);
 
 		std::vector<IndexLayout> masterOLLayouts, slaveOLLayouts;
@@ -260,9 +254,10 @@ public:
 		AddLayout(m_vMasterLayouts[0], masterLayout);
 		AddLayout(m_vSlaveLayouts[0], slaveLayout);
 		m_overlapSize.clear();
-		PROFILE_END(); PROFILE_BEGIN(calculate3);
+
 		for(size_t current_overlap=0; current_overlap <= maxOverlap; current_overlap++)
 		{
+			PROFILE_BEGIN(overlap_inner_loop);
 			m_overlapSize.push_back(m_newMat.num_rows());
 
 			IF_DEBUG(LIB_ALG_MATRIX, 4)
@@ -338,8 +333,6 @@ public:
 		}
 
 
-
-		PROFILE_END(); PROFILE_BEGIN(calculate4);
 
 		SmartPtr<AlgebraLayouts> spLayouts
 			= SmartPtr<AlgebraLayouts>(new AlgebraLayouts);
