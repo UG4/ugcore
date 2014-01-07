@@ -64,9 +64,7 @@ public:
 	/// assigns every i=0.. m_slice_types.size()-1 to exactly one set
 	void auto_fill_sets()
 	{
-
 		const size_t ntypes = m_slice_types.size();
-
 
 		for (size_t i=0; i< ntypes; ++i)
 		{
@@ -78,25 +76,20 @@ public:
 			set.push_back(i);
 		}
 
-
-
 		UG_LOG("SlicingData::auto_fill_sets:" << ntypes << " "<< slice(SD_INNER).size() << " "<< slice(SD_SKELETON).size() << std::endl);
 
 		slice_desc_set::const_iterator it;
 
 		{
-			UG_LOG("Skeleton:")
+			UG_LOG("Skeleton:");
 			const slice_desc_set &myset=slice(SD_SKELETON);
-
-				for (it=myset.begin(); it!=myset.end(); ++it)   UG_LOG(*it << " ");
+			for (it=myset.begin(); it!=myset.end(); ++it)  UG_LOG(*it << " ");
 		}
 
 		{
-
-		UG_LOG("\nInner:")
-	    const slice_desc_set &myset=slice(SD_INNER);
-		for (it=myset.begin(); it!=myset.end(); ++it)
-		    UG_LOG(*it << " ");
+			UG_LOG("\nInner:");
+	    	const slice_desc_set &myset=slice(SD_INNER);
+	    	for (it=myset.begin(); it!=myset.end(); ++it) UG_LOG(*it << " ");
 		}
 
 	}
@@ -111,11 +104,11 @@ public:
 
 		SmartPtr<VT> slice_clone = new VT(slice_desc.size());
 
+		// convert layouts (vector->slice)
 		SmartPtr<AlgebraLayouts> slice_layouts = new AlgebraLayouts(*full_src.layouts());
 		replace_indices_in_layout(type, slice_layouts->master());
 		replace_indices_in_layout(type, slice_layouts->slave());
 		slice_clone->set_layouts(slice_layouts);
-
 		//UG_LOG(*slice_layouts);
 
 		return slice_clone;
@@ -189,7 +182,16 @@ public:
 				int jj;
 				// if (get_type(j)!=col_type) continue;
 				if (find_index(col_type, j, jj))
+				{
+
 					Aslice(ii, jj) = it.value();
+
+
+					if (row_type == SD_SKELETON &&  col_type == SD_INNER) {
+						UG_LOG (i  << "," << j << "=> (" << ii << ","<< jj<< ") " << it.value() << std::endl);
+
+					}
+				}
 			 }
 		}
 
@@ -223,7 +225,7 @@ protected:
 
 		//slice_desc_set::const_iterator it = myset.find(gindex);
 		slice_desc_set::const_iterator it = lower_bound(myset.begin(), myset.end(), gindex);
-		if (it != myset.end()) {
+		if (it != myset.end() && *it == gindex) {
 			//index =// *it;
 			index = std::distance(myset.begin(), it);
 			found = true;
@@ -344,6 +346,10 @@ class SchurComplementOperator
 
 	const SlicingData &slicing() const
 	{return m_slicing;}
+
+
+	// for debugging: computes schur operator
+	void debug_compute_matrix(matrix_type &schur_matrix);
 
 protected:
 	// 	Operator that is inverted by this Inverse Operator
