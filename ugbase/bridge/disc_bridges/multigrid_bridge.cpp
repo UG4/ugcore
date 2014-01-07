@@ -179,11 +179,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 		typedef IPreconditioner<TAlgebra> TBase;
 		string name = string("ComponentGaussSeidel").append(suffix);
 		reg.add_class_<T,TBase>(name, grp, "Vanka Preconditioner")
-		.template add_constructor<void (*)(const std::string&)>("Cmps")
-		.template add_constructor<void (*)(number, const std::string&)>("relax#Cmps")
-		.template add_constructor<void (*)(number, const std::string&, const std::vector<int>&, const std::vector<number>&)>("relax#Cmps")
-		.add_method("set_relax", &T::set_relax, "", "relax")
-		.add_method("set_cmps", &T::set_relax, "", "Cmps")
+		.template add_constructor<void (*)(const std::vector<std::string>&)>("Cmps")
+		.template add_constructor<void (*)(number, const std::vector<std::string>&)>("relax#Cmps")
+		.template add_constructor<void (*)(number, const std::vector<std::string>&, const std::vector<int>&, const std::vector<number>&)>("relax#Cmps")
 		.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ComponentGaussSeidel", tag);
 	}

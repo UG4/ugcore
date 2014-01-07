@@ -23,281 +23,77 @@
 
 namespace ug{
 
-template<typename TGroupObj, typename TDomain, typename TAlgebra>
-void ComponentGaussSeidelStep(const typename TAlgebra::matrix_type& A,
-                            GridFunction<TDomain, TAlgebra>& c,
-                            const typename TAlgebra::vector_type& d,
-                            number relax,
-                            const std::vector<size_t>& vCmp,
-							const std::vector<size_t>& vRemainCmp)
-{
-	// memory for local algebra
-	DenseVector< VariableArray1<number> > s;
-	DenseVector< VariableArray1<number> > x;
-	DenseMatrix< VariableArray2<number> > mat;
-	std::vector<DoFIndex> vCmpInd, vInd;
-	
-	typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
-	std::vector<Element*> vElem;
-
-	// loop all grouping objects
-	typedef typename GridFunction<TDomain, TAlgebra>::template traits<TGroupObj>::const_iterator GroupObjIter;
-	for(GroupObjIter iter = c.template begin<TGroupObj>();
-					 iter != c.template end<TGroupObj>(); ++iter){
-
-		// get grouping obj
-		TGroupObj* groupObj = *iter;
-
-		// get all dof indices on obj associated to cmps
-		vCmpInd.clear();
-		for(size_t f = 0; f < vCmp.size(); ++f)
-			c.inner_dof_indices(groupObj, vCmp[f], vCmpInd, false);
-
-		// check if equation present
-		if(vCmpInd.empty()) continue;
-
-		// collect elems associated to grouping object
-		c.collect_associated(vElem, groupObj);
-
-		// get all algebraic indices on element
-		if(TGroupObj::dim <= VERTEX){
-			std::vector<EdgeBase*> vSub;
-			c.collect_associated(vSub, groupObj);
-			for(size_t i = 0; i < vSub.size(); ++i)
-				for(size_t f = 0; f < vCmp.size(); ++f)
-					c.inner_dof_indices(vSub[i], vCmp[f], vCmpInd, false);
-		}
-		if(TGroupObj::dim <= EDGE){
-			std::vector<Face*> vSub;
-			c.collect_associated(vSub, groupObj);
-			for(size_t i = 0; i < vSub.size(); ++i)
-				for(size_t f = 0; f < vCmp.size(); ++f)
-					c.inner_dof_indices(vSub[i], vCmp[f], vCmpInd, false);
-		}
-
-		// get all algebraic indices on element
-		vInd.clear();
-		for(size_t i = 0; i < vElem.size(); ++i)
-			for(size_t f = 0; f < vRemainCmp.size(); ++f)
-				c.dof_indices(vElem[i], vRemainCmp[f], vInd, false, false);
-
-		// check for doublicates
-		if(vElem.size() > 1){
-		    std::sort(vInd.begin(), vInd.end());
-		    vInd.erase(std::unique(vInd.begin(), vInd.end()), vInd.end());
-		}
-
-		// get number of indices on patch
-		const size_t numIndex = vCmpInd.size() + vInd.size();
-
-//		UG_LOG("CGS in dim: "<<TGroupObj::dim<<", #p: "<<vCmpInd.size()<<
-//		       ", v: "<<vInd.size()<<" ("<<vInd.size()/2<<" each)\n")
-
-		// concat all indices
-		vInd.insert(vInd.end(), vCmpInd.begin(), vCmpInd.end());
-
-		// fill local block matrix
-		mat.resize(numIndex, numIndex);
-		mat = 0.0;
-
-		// copy matrix rows (only including cols of selected indices)
-		for (size_t j = 0; j < numIndex; j++)
-			for (size_t k = 0; k < numIndex; k++)
-				mat(j,k) = DoFRef(A, vInd[j], vInd[k]);
-
-		// compute s[j] := d[j] - sum_k A(j,k)*c[k]
-		// note: the loop over k is the whole matrix row (not only selected indices)
-		typedef typename TAlgebra::matrix_type::const_row_iterator const_row_iterator;
-		const static int blockSize = TAlgebra::blockSize;
-		s.resize(numIndex);
-		for (size_t j = 0; j<numIndex; j++){
-			typename TAlgebra::vector_type::value_type sj = d[vInd[j][0]];
-			for(const_row_iterator it = A.begin_row(vInd[j][0]);
-									it != A.end_row(vInd[j][0]) ; ++it){
-				MatMultAdd(sj, 1.0, sj, -1.0, it.value(), c[it.index()]);
-			};
-			s.subassign(j*blockSize,sj);
-		};
-
-		// solve block
-		x.resize(numIndex);
-		InverseMatMult(x,1,mat,s);
-		for (size_t j=0;j<numIndex;j++){
-			DoFRef(c, vInd[j]) += relax*x[j];
-		};
-	}
-}
-
-
 ///	ComponentGaussSeidel Preconditioner
 template <typename TDomain, typename TAlgebra>
 class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 {
 	public:
 	/// World dimension
-		typedef typename GridFunction<TDomain, TAlgebra>::element_type Element;
-		typedef typename GridFunction<TDomain, TAlgebra>::side_type Side;
+		typedef GridFunction<TDomain, TAlgebra> GF;
+		typedef typename GF::element_type Element;
+		typedef typename GF::side_type Side;
 		static const int dim = TDomain::dim;
 
-	///	Algebra type
+	///	Algebra types
+	/// \{
 		typedef TAlgebra algebra_type;
-
-	///	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
-
-	///	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
-
-	///	Matrix Operator type
-		typedef typename IPreconditioner<TAlgebra>::matrix_operator_type matrix_operator_type;
-
-	///	Base type
-		typedef IPreconditioner<TAlgebra> base_type;
+	/// \}
 
 	protected:
+		typedef IPreconditioner<TAlgebra> base_type;
 		using base_type::set_debug;
 		using base_type::debug_writer;
 		using base_type::write_debug;
 
 	public:
 	///	default constructor
-		ComponentGaussSeidel(const std::string& cmps) : m_relax(1), m_cmps(cmps){};
+		ComponentGaussSeidel(const std::vector<std::string>& vFullRowCmp)
+			: m_bInit(false), m_relax(1), m_vFullRowCmp(vFullRowCmp), m_vGroupObj(1, dim) {}
 
 	///	constructor setting relaxation and type
-		ComponentGaussSeidel(number relax, const std::string& cmps) : m_relax(relax), m_cmps(cmps) {};
+		ComponentGaussSeidel(number relax, const std::vector<std::string>& vFullRowCmp)
+			: m_bInit(false), m_relax(relax), m_vFullRowCmp(vFullRowCmp), m_vGroupObj(1, dim) {}
 
 	///	constructor setting relaxation and type
-		ComponentGaussSeidel(number relax, const std::string& cmps,
+		ComponentGaussSeidel(number relax, const std::vector<std::string>& vFullRowCmp,
 		                     const std::vector<int>& vSmooth, const std::vector<number>& vDamp)
-		: m_relax(relax), m_cmps(cmps), m_vSmooth(vSmooth), m_vDamp(vDamp) {};
+		: m_bInit(false), m_relax(relax), m_vFullRowCmp(vFullRowCmp),
+		  m_vGroupObj(vSmooth), m_vDamp(vDamp) {};
 
 	///	Clone
-		virtual SmartPtr<ILinearIterator<vector_type> > clone()
-		{
-			SmartPtr<ComponentGaussSeidel<TDomain, TAlgebra> >
-							newInst(new ComponentGaussSeidel<TDomain, TAlgebra>(m_relax, m_cmps, m_vSmooth, m_vDamp));
-			newInst->set_debug(debug_writer());
-			newInst->set_damp(this->damping());
-			return newInst;
-		}
-
-	///	Destructor
-		virtual ~ComponentGaussSeidel()
-		{};
+		virtual SmartPtr<ILinearIterator<vector_type> > clone();
 
 	///	returns if parallel solving is supported
 		virtual bool supports_parallel() const {return true;}
-
-	/// set relaxation parameter
-		void set_relax(number omega){m_relax=omega;};
-
-	/// set type
-		void set_cmps(const std::string& cmps){m_cmps=cmps;};
 
 	protected:
 	///	Name of preconditioner
 		virtual const char* name() const {return "ComponentGaussSeidel";}
 
 	///	Preprocess routine
-		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
-		{
-#ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1)
-			{
-				//	copy original matrix
-				MakeConsistent(*pOp, m_A);
-				//	set zero on slaves
-				std::vector<IndexLayout::Element> vIndex;
-				CollectUniqueElements(vIndex,  m_A.layouts()->slave());
-				SetDirichletRow(m_A, vIndex);
-			}
-#endif
-			return true;
-		}
+		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp);
 
-		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
-		{
-			GridFunction<TDomain, TAlgebra>* pC
-							= dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
-			if(pC == NULL)
-				UG_THROW("ComponentGaussSeidel: expects correction to be a GridFunction.");
+		struct DimCache{
+			std::vector<std::vector<DoFIndex> > vvDoFIndex;
+			std::vector<DenseMatrix< VariableArray2<number> > > vBlockInverse;
+		};
 
-			ConstSmartPtr<DoFDistributionInfo> ddinfo =
-									pC->approx_space()->dof_distribution_info();
+		void apply_blocks(const matrix_type& A, GF& c,
+		                  const vector_type& d, number relax,
+		                  const DimCache& dimCache);
 
-			// tokenize passed functions
-			std::vector<std::string> vCmpString = TokenizeTrimString(m_cmps);
-			if(vCmpString.empty())
-				UG_THROW("ComponentGaussSeidel: No components set.")
+		template<typename TGroupObj>
+		void extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
+		                         const GF& c,
+		                         const std::vector<size_t>& vFullRowCmp,
+		                         const std::vector<size_t>& vRemainCmp);
 
-			// get ids of selected functions
-			std::vector<size_t> vCmp;
-			for(size_t i = 0; i < vCmpString.size(); ++i)
-				vCmp.push_back(ddinfo->fct_id_by_name(vCmpString[i].c_str()));
+		void extract_blocks(const matrix_type& A, const GF& c);
 
-			// compute remaining functions
-			std::vector<size_t> vRemainCmp;
-			for(size_t f = 0; f < ddinfo->num_fct(); ++f)
-				if(std::find(vCmp.begin(), vCmp.end(), f) == vCmp.end())
-					vRemainCmp.push_back(f);
-
-			const vector_type* pD = &d;
-			const matrix_type* pMat = pOp.get();
-
-#ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1){
-			//	make defect unique
-				SmartPtr<vector_type> spDtmp = d.clone();
-				spDtmp->change_storage_type(PST_UNIQUE);
-				pD = spDtmp.get();
-				pMat = &m_A;
-			}
-#endif
-
-			// check which dimension to loop
-			std::vector<bool> vLoopDim(dim+1, false);
-			for(int d = 0; d <= dim; ++d)
-				for(size_t f = 0; f < vCmp.size(); ++f)
-					if(ddinfo->max_fct_dofs(vCmp[f], d) > 0)
-						vLoopDim[d] = true;
-
-			// set all vector entries to zero
-			pC->set(0.0);
-
-			if(m_vSmooth.empty()){
-
-				if(vLoopDim[VERTEX]) ComponentGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
-				if(vLoopDim[EDGE]) ComponentGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
-				if(vLoopDim[FACE]) ComponentGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
-				if(vLoopDim[VOLUME]) ComponentGaussSeidelStep<Volume,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax, vCmp, vRemainCmp);
-			}
-			else{
-				for(size_t i = 0; i < m_vSmooth.size(); ++i){
-
-					const int d = m_vSmooth[i];
-					number damp = m_relax;
-
-					if(d < (int)m_vDamp.size())
-						damp *= m_vDamp[d];
-
-					if(!vLoopDim[d]) continue;
-
-					switch(d){
-						case VERTEX: ComponentGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, damp, vCmp, vRemainCmp); break;
-						case EDGE: ComponentGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, damp, vCmp, vRemainCmp); break;
-						case FACE: ComponentGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, damp, vCmp, vRemainCmp); break;
-						case VOLUME: ComponentGaussSeidelStep<Volume,TDomain,TAlgebra>(*pMat, *pC, *pD, damp, vCmp, vRemainCmp); break;
-						default: UG_THROW("Not implemented.")
-					}
-				}
-			}
-
-
-#ifdef UG_PARALLEL
-			 pC->set_storage_type(PST_UNIQUE);
-#endif
-			return true;
-		}
+	///	step method
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d);
 
 	///	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -307,16 +103,306 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 		matrix_type m_A;
 #endif
 
+	///	init flag
+		bool m_bInit;
+
 	///	relaxing parameter
 		number m_relax;
 
 	///	components, whose matrix row must be fulfilled completely on gs-block
-		std::string m_cmps;
+		std::vector<std::string> m_vFullRowCmp;
 
 	/// smooth order
-		std::vector<int> m_vSmooth;
+		std::vector<int> m_vGroupObj;
 		std::vector<number> m_vDamp;
+
+	///	caching storage
+		DimCache m_vDimCache[VOLUME+1];
 };
+
+template <typename TDomain, typename TAlgebra>
+bool ComponentGaussSeidel<TDomain, TAlgebra>::
+preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
+{
+#ifdef UG_PARALLEL
+	if(pcl::GetNumProcesses() > 1)
+	{
+		//	copy original matrix
+		MakeConsistent(*pOp, m_A);
+		//	set zero on slaves
+		std::vector<IndexLayout::Element> vIndex;
+		CollectUniqueElements(vIndex,  m_A.layouts()->slave());
+		SetDirichletRow(m_A, vIndex);
+	}
+#endif
+
+	m_bInit = false;
+
+	return true;
+}
+
+template <typename TDomain, typename TAlgebra>
+void ComponentGaussSeidel<TDomain, TAlgebra>::
+apply_blocks(const matrix_type& A, GF& c,
+             const vector_type& d, number relax,
+             const DimCache& dimCache)
+{
+// 	memory for local algebra
+	DenseVector< VariableArray1<number> > s;
+	DenseVector< VariableArray1<number> > x;
+
+//	get caches
+	const std::vector<std::vector<DoFIndex> >& vvDoFIndex = dimCache.vvDoFIndex;
+	const std::vector<DenseMatrix< VariableArray2<number> > >& vBlockInverse = dimCache.vBlockInverse;
+
+//	loop blocks
+	for(size_t b = 0; b < vvDoFIndex.size(); ++b)
+	{
+	//	get storage
+		const std::vector<DoFIndex>& vDoFIndex = vvDoFIndex[b];
+		const DenseMatrix<VariableArray2<number> >& BlockInv = vBlockInverse[b];
+		const size_t numIndex = vDoFIndex.size();
+
+	// 	compute s[j] := d[j] - sum_k A(j,k)*c[k]
+	// 	note: the loop over k is the whole matrix row (not only selected indices)
+		typedef typename matrix_type::const_row_iterator const_row_iterator;
+		const static int blockSize = TAlgebra::blockSize;
+		s.resize(numIndex);
+		for (size_t j = 0; j<numIndex; j++){
+			typename vector_type::value_type sj = d[vDoFIndex[j][0]];
+			for(const_row_iterator it = A.begin_row(vDoFIndex[j][0]);
+									it != A.end_row(vDoFIndex[j][0]) ; ++it){
+				MatMultAdd(sj, 1.0, sj, -1.0, it.value(), c[it.index()]);
+			};
+			s.subassign(j*blockSize,sj);
+		};
+
+	// 	solve block
+		x.resize(numIndex);
+		MatMult(x, relax, BlockInv, s);
+
+	//	add to global correction
+		for (size_t j=0;j<numIndex;j++)
+			DoFRef(c, vDoFIndex[j]) += x[j];
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+template<typename TGroupObj>
+void ComponentGaussSeidel<TDomain, TAlgebra>::
+extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
+                    const GF& c,
+                    const std::vector<size_t>& vFullRowCmp,
+                    const std::vector<size_t>& vRemainCmp)
+{
+// 	memory for local algebra
+	std::vector<DoFIndex> vFullRowDoFIndex;
+	std::vector<Element*> vElem;
+
+//	clear indices
+//	\todo: improve this by precomputing size
+	vvDoFIndex.clear();
+
+// loop all grouping objects
+	typedef typename GF::template traits<TGroupObj>::const_iterator GroupObjIter;
+	for(GroupObjIter iter = c.template begin<TGroupObj>();
+					 iter != c.template end<TGroupObj>(); ++iter)
+	{
+	// 	get grouping obj
+		TGroupObj* groupObj = *iter;
+
+	// 	get all dof indices on obj associated to cmps
+		vFullRowDoFIndex.clear();
+		for(size_t f = 0; f < vFullRowCmp.size(); ++f)
+			c.inner_dof_indices(groupObj, vFullRowCmp[f], vFullRowDoFIndex, false);
+
+	// 	check if equation present
+		if(vFullRowDoFIndex.empty())
+			UG_THROW("CGS: Should not happen.");
+
+	// 	get all algebraic indices on element
+		if(TGroupObj::dim <= VERTEX){
+			std::vector<EdgeBase*> vSub;
+			c.collect_associated(vSub, groupObj);
+			for(size_t i = 0; i < vSub.size(); ++i)
+				for(size_t f = 0; f < vFullRowCmp.size(); ++f)
+					c.inner_dof_indices(vSub[i], vFullRowCmp[f], vFullRowDoFIndex, false);
+		}
+		if(TGroupObj::dim <= EDGE){
+			std::vector<Face*> vSub;
+			c.collect_associated(vSub, groupObj);
+			for(size_t i = 0; i < vSub.size(); ++i)
+				for(size_t f = 0; f < vFullRowCmp.size(); ++f)
+					c.inner_dof_indices(vSub[i], vFullRowCmp[f], vFullRowDoFIndex, false);
+		}
+
+	// 	collect elems associated to grouping object
+		c.collect_associated(vElem, groupObj);
+
+	// 	get all algebraic indices on element
+		std::vector<DoFIndex> vDoFIndex;
+		for(size_t i = 0; i < vElem.size(); ++i)
+			for(size_t f = 0; f < vRemainCmp.size(); ++f)
+				c.dof_indices(vElem[i], vRemainCmp[f], vDoFIndex, false, false);
+
+	// 	check for doublicates
+		if(vElem.size() > 1){
+		    std::sort(vDoFIndex.begin(), vDoFIndex.end());
+		    vDoFIndex.erase(std::unique(vDoFIndex.begin(), vDoFIndex.end()), vDoFIndex.end());
+		}
+
+	// 	concat all indices
+		vDoFIndex.insert(vDoFIndex.end(), vFullRowDoFIndex.begin(), vFullRowDoFIndex.end());
+
+	//	add
+		vvDoFIndex.push_back(vDoFIndex);
+	}
+}
+
+template <typename TDomain, typename TAlgebra>
+void ComponentGaussSeidel<TDomain, TAlgebra>::
+extract_blocks(const matrix_type& A, const GF& c)
+{
+
+	ConstSmartPtr<DoFDistributionInfo> ddinfo =
+							c.approx_space()->dof_distribution_info();
+
+	// tokenize passed functions
+	if(m_vFullRowCmp.empty())
+		UG_THROW("ComponentGaussSeidel: No components set.")
+
+	// get ids of selected functions
+	std::vector<size_t> vFullRowCmp;
+	for(size_t i = 0; i < m_vFullRowCmp.size(); ++i)
+		vFullRowCmp.push_back(ddinfo->fct_id_by_name(m_vFullRowCmp[i].c_str()));
+
+	// compute remaining functions
+	std::vector<size_t> vRemainCmp;
+	for(size_t f = 0; f < ddinfo->num_fct(); ++f)
+		if(std::find(vFullRowCmp.begin(), vFullRowCmp.end(), f) == vFullRowCmp.end())
+			vRemainCmp.push_back(f);
+
+//	extract for each dim-grouping objects
+	for(int d = VERTEX; d <= VOLUME; ++d)
+	{
+	//	only extract if needed
+		if(std::find(m_vGroupObj.begin(), m_vGroupObj.end(), d) == m_vGroupObj.end())
+			continue;
+
+	//	only extract if carrying dofs
+		bool bCarryDoFs = false;
+		for(size_t f = 0; f < vFullRowCmp.size(); ++f)
+			if(ddinfo->max_fct_dofs(vFullRowCmp[f], d) > 0)
+				bCarryDoFs = true;
+		if(!bCarryDoFs)
+			continue;
+
+	//	extract
+		std::vector<std::vector<DoFIndex> >& vvDoFIndex = m_vDimCache[d].vvDoFIndex;
+		switch(d){
+			case VERTEX: extract_by_grouping<VertexBase>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case EDGE:   extract_by_grouping<EdgeBase>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case FACE:   extract_by_grouping<Face>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case VOLUME: extract_by_grouping<Volume>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			default: UG_THROW("wrong dim");
+		}
+	}
+
+//	extract local matrices
+	for(int d = VERTEX; d <= VOLUME; ++d)
+	{
+		std::vector<std::vector<DoFIndex> >& vvDoFIndex = m_vDimCache[d].vvDoFIndex;
+		std::vector<DenseMatrix<VariableArray2<number> > >& vBlockInverse = m_vDimCache[d].vBlockInverse;
+
+		vBlockInverse.resize(vvDoFIndex.size());
+		for(size_t b = 0; b < vvDoFIndex.size(); ++b)
+		{
+		//	get storage
+			std::vector<DoFIndex>& vDoFIndex = vvDoFIndex[b];
+			DenseMatrix<VariableArray2<number> >& BlockInv = vBlockInverse[b];
+
+		// 	get number of indices on patch
+			const size_t numIndex = vDoFIndex.size();
+
+		// 	fill local block matrix
+			BlockInv.resize(numIndex, numIndex);
+			BlockInv = 0.0;
+
+		// 	copy matrix rows (only including cols of selected indices)
+			for (size_t j = 0; j < numIndex; j++)
+				for (size_t k = 0; k < numIndex; k++)
+					BlockInv(j,k) = DoFRef(A, vDoFIndex[j], vDoFIndex[k]);
+
+		//	get inverse
+			Invert(BlockInv);
+		}
+	}
+
+	m_bInit = true;
+}
+
+template <typename TDomain, typename TAlgebra>
+bool ComponentGaussSeidel<TDomain, TAlgebra>::
+step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+{
+//	check that grid funtion passed
+	GridFunction<TDomain, TAlgebra>* pC
+					= dynamic_cast<GridFunction<TDomain, TAlgebra>*>(&c);
+	if(pC == NULL)
+		UG_THROW("ComponentGaussSeidel: expects correction to be a GridFunction.");
+
+	const vector_type* pD = &d;
+	const matrix_type* pMat = pOp.get();
+#ifdef UG_PARALLEL
+	if(pcl::GetNumProcesses() > 1){
+	//	make defect unique
+		SmartPtr<vector_type> spDtmp = d.clone();
+		spDtmp->change_storage_type(PST_UNIQUE);
+		pD = spDtmp.get();
+		pMat = &m_A;
+	}
+#endif
+
+//	check if initialized
+	if(!m_bInit)
+		extract_blocks(*pMat, *pC);
+
+// 	set correction to zero
+	pC->set(0.0);
+
+//	loop Grouping objects
+	for(size_t i = 0; i < m_vGroupObj.size(); ++i)
+	{
+	//	get its dimension
+		const int d = m_vGroupObj[i];
+
+	//	get relax param
+		number damp = m_relax;
+		if(d < (int)m_vDamp.size()) damp *= m_vDamp[d];
+
+	//	apply
+		apply_blocks(*pMat, *pC, *pD, damp, m_vDimCache[d]);
+	}
+
+#ifdef UG_PARALLEL
+	 pC->set_storage_type(PST_UNIQUE);
+#endif
+
+	return true;
+}
+
+
+template <typename TDomain, typename TAlgebra>
+SmartPtr<ILinearIterator<typename TAlgebra::vector_type> >
+ComponentGaussSeidel<TDomain, TAlgebra>::clone()
+{
+	SmartPtr<ComponentGaussSeidel<TDomain, TAlgebra> >
+					newInst(new ComponentGaussSeidel<TDomain, TAlgebra>(m_relax, m_vFullRowCmp, m_vGroupObj, m_vDamp));
+	newInst->set_debug(debug_writer());
+	newInst->set_damp(this->damping());
+	return newInst;
+}
+
 
 } // end namespace ug
 
