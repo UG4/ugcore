@@ -19,7 +19,7 @@
 
 #include "lib_algebra/algebra_common/vector_util.h"
 #include "lib_algebra/algebra_common/permutation_util.h"
-#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
+
 namespace ug{
 
 template <typename TAlgebra>
@@ -102,20 +102,10 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILUT";}
 
-		void sort(matrix_type &permMat, const matrix_type &mat)
+		void calc_cuthill_mckee(matrix_type &permMat, const matrix_type &mat)
 		{
-			PROFILE_BEGIN_GROUP(ILUT_ReorderCuthillMcKey, "ilut, algebra");
-			std::vector<std::vector<size_t> > neighbors;
-			neighbors.resize(mat.num_rows());
-
-			for(size_t i=0; i<mat.num_rows(); i++)
-			{
-				for(const_matrix_row_iterator i_it = mat.begin_row(i); i_it != mat.end_row(i); ++i_it)
-					neighbors[i].push_back(i_it.index());
-			}
-
-			ComputeCuthillMcKeeOrder(newIndex, neighbors, false);
-
+			PROFILE_BEGIN_GROUP(ILUT_ReorderCuthillMcKey, "ilut algebra");
+			GetCuthillMcKeeOrder(mat, newIndex);
 			m_bSortIsIdentity = GetInversePermutation(newIndex, oldIndex);
 
 			if(!m_bSortIsIdentity)
@@ -125,7 +115,13 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
-			PROFILE_BEGIN_GROUP(ILUT_preprocess, "ilut, algebra");
+			return preprocess_mat(*pOp);
+		}
+
+	public:
+		virtual bool preprocess_mat(matrix_type &mat)
+		{
+			PROFILE_BEGIN_GROUP(ILUT_preprocess, "ilut algebra");
 			//matrix_type &mat = *pOp;
 			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
 
@@ -133,15 +129,15 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			matrix_type permA;
 			if(m_bSort)
 			{
-				sort(permA, *pOp);
+				calc_cuthill_mckee(permA, mat);
 				if(m_bSortIsIdentity)
-					A = &(*pOp);
+					A = &mat;
 				else
 					A = &permA;
 			}
 			else
 			{
-				A = &(*pOp);
+				A = &mat;
 			}
 
 			m_L.resize_and_clear(A->num_rows(), A->num_cols());
@@ -222,7 +218,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 								// check tolerance criteria
 
 								matrix_connection c(k_it.index(), k_it.value() * d * -1.0);
-								
+
 								UG_ASSERT(BlockMatrixFiniteAndNotTooBig(c.dValue, 1e40), "i = " << i << " " << c.dValue);
 								if(BlockNorm(c.dValue) > dmax * m_eps)
 								{
@@ -291,17 +287,22 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
+			return solve(c, d);
+		}
+
+		virtual bool solve(vector_type& c, const vector_type& d)
+		{
 			if(m_bSort == false || m_bSortIsIdentity)
 			{
-				if(step(c, d) == false) return false;
+				if(applyLU(c, d) == false) return false;
 			}
 			else
 			{
-				PROFILE_BEGIN_GROUP(ILUT_StepWithReorder, "ilut, algebra");
-				vector_type c2, d2;
-				SetVectorAsPermutation(d2, d, newIndex);
+				PROFILE_BEGIN_GROUP(ILUT_StepWithReorder, "ilut algebra");
+
+				SetVectorAsPermutation(c, d, newIndex);
 				c2.resize(c.size());
-				if(step(c2, d2) == false) return false;
+				if(applyLU(c2, c) == false) return false;
 				SetVectorAsPermutation(c, c2, oldIndex);
 			}
 
@@ -314,9 +315,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		}
 
 
-		virtual bool step(vector_type& c, const vector_type& d)
+		virtual bool applyLU(vector_type& c, const vector_type& d)
 		{
-			PROFILE_BEGIN_GROUP(ILUT_step, "ilut, algebra");
+			PROFILE_BEGIN_GROUP(ILUT_step, "ilut algebra");
 			// apply iterator: c = LU^{-1}*d (damp is not used)
 			// L
 			for(size_t i=0; i < m_L.num_rows(); i++)
@@ -387,6 +388,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		virtual bool postprocess() {return true;}
 
 	protected:
+		vector_type c2;
 		matrix_type m_L;
 		matrix_type m_U;
 		double m_eps;
