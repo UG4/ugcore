@@ -11,6 +11,7 @@
 
 #include "common/profiler/profiler.h"
 #include "common/error.h"
+#include "lib_disc/dof_manager/ordering/cuthill_mckee.h"
 #include <vector>
 
 namespace ug{
@@ -60,6 +61,24 @@ static void SetVectorAsPermutation(TVector &Pv, const TVector &v, std::vector<si
  */
 bool GetInversePermutation(const std::vector<size_t> &perm, std::vector<size_t> &invPerm);
 
+/**
+ * @param mat 			A sparse matrix
+ * @param newIndex		the cuthill-mckee ordered new indices
+ */
+template<typename TSparseMatrix>
+void GetCuthillMcKeeOrder(const TSparseMatrix &mat, std::vector<size_t> &newIndex)
+{
+	std::vector<std::vector<size_t> > neighbors;
+	neighbors.resize(mat.num_rows());
+
+	for(size_t i=0; i<mat.num_rows(); i++)
+	{
+		for(typename TSparseMatrix::const_row_iterator i_it = mat.begin_row(i); i_it != mat.end_row(i); ++i_it)
+			neighbors[i].push_back(i_it.index());
+	}
+
+	ComputeCuthillMcKeeOrder(newIndex, neighbors, false);
+}
 /// @}
 } // end namespace ug
 
