@@ -50,11 +50,11 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 	public:
 	///	default constructor
 		ComponentGaussSeidel(const std::vector<std::string>& vFullRowCmp)
-			: m_bInit(false), m_relax(1), m_vFullRowCmp(vFullRowCmp), m_vGroupObj(1, dim) {}
+			: m_bInit(false), m_relax(1), m_vFullRowCmp(vFullRowCmp) {}
 
 	///	constructor setting relaxation and type
 		ComponentGaussSeidel(number relax, const std::vector<std::string>& vFullRowCmp)
-			: m_bInit(false), m_relax(relax), m_vFullRowCmp(vFullRowCmp), m_vGroupObj(1, dim) {}
+			: m_bInit(false), m_relax(relax), m_vFullRowCmp(vFullRowCmp){}
 
 	///	constructor setting relaxation and type
 		ComponentGaussSeidel(number relax, const std::vector<std::string>& vFullRowCmp,
@@ -281,6 +281,17 @@ extract_blocks(const matrix_type& A, const GF& c)
 	for(size_t f = 0; f < ddinfo->num_fct(); ++f)
 		if(std::find(vFullRowCmp.begin(), vFullRowCmp.end(), f) == vFullRowCmp.end())
 			vRemainCmp.push_back(f);
+
+	if(m_vGroupObj.empty()){
+		for(int d = VERTEX; d <= VOLUME; ++d){
+			bool bCarryDoFs = false;
+			for(size_t f = 0; f < vFullRowCmp.size(); ++f)
+				if(ddinfo->max_fct_dofs(vFullRowCmp[f], d) > 0)
+					bCarryDoFs = true;
+			if(bCarryDoFs)
+				m_vGroupObj.push_back(d);
+		}
+	}
 
 //	extract for each dim-grouping objects
 	for(int d = VERTEX; d <= VOLUME; ++d)
