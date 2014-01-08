@@ -19,6 +19,7 @@
 #include "lib_algebra/operator/interface/preconditioner.h"
 #include "lib_algebra/operator/interface/linear_operator.h"
 #include "lib_algebra/operator/interface/linear_operator_inverse.h"
+#include "lib_algebra/operator/interface/preconditioned_linear_operator_inverse.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/interface/matrix_operator_inverse.h"
 #include "lib_algebra/parallelization/parallelization.h"
@@ -445,7 +446,7 @@ public:
 		{ m_spDirichletSolver = dirichletSolver; }
 
 	///	sets the coarse problem solver
-		void set_skeleton_solver(SmartPtr<ILinearOperatorInverse<vector_type> > skeletonSolver)
+		void set_skeleton_solver(SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > skeletonSolver)
 		{ m_spSkeletonSolver = skeletonSolver; }
 
 	//	set debug output
@@ -488,29 +489,27 @@ public:
 	// 	Reference to operator that is inverted by this Inverse Operator
 	//	SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spOperator;
 
-	//	Local Schur complement for each subdomain
-		SmartPtr<SchurComplementOperator<algebra_type> > m_spSchurComplementOp;
+	///	Local Schur complement for each subdomain
+	SmartPtr<SchurComplementOperator<algebra_type> > m_spSchurComplementOp;
 
-		// approximation of Schur complement
-		SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spSkeletonMatrix;
+	/// Approximation of the Schur complement for preconditioner
+	SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spSkeletonMatrix;
 
+	/// Solver Dirichlet problems \f$A_{II}\f$ (also used in Schur complement)
+	SmartPtr<ILinearOperatorInverse<vector_type> > m_spDirichletSolver;
 
-	//	Dirichlet solver for inverse of \f$A_{II}\f$ in local Schur complement
-		SmartPtr<ILinearOperatorInverse<vector_type> > m_spDirichletSolver;
+	///	Solver for coarse (skeleton) problem
+	SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > m_spSkeletonSolver;
 
-	//	Solver used in solving coarse problem on root.
-	// 	It solves \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ 
-		SmartPtr<ILinearOperatorInverse<vector_type> > m_spSkeletonSolver;
-
-		// temporary vectors for correction/defect
-		SmartPtr<vector_type> m_aux_rhs[2];
-		SmartPtr<vector_type> m_aux_sol[2];
+	// temporary vectors for correction/defect
+	SmartPtr<vector_type> m_aux_rhs[2];
+	SmartPtr<vector_type> m_aux_sol[2];
 
 	//	pointer to Domain decomposition info object
 	//	pcl::IDomainDecompositionInfo* m_pDDInfo;
 
 
-		int m_iterCnt;
+	int m_iterCnt;
 
 }; /* end class 'SchurPrecond' */
 

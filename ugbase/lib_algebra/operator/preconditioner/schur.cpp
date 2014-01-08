@@ -27,6 +27,7 @@
 // algebra types
 #include "lib_algebra/cpu_algebra_types.h"
 #include "lib_algebra/operator/algebra_debug_writer.h"
+#include "lib_algebra/operator/preconditioner/preconditioners.h"
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 
 #include "lib_algebra/algebra_common/sparsematrix_util.h"  // DenseMatrixFromSparseMatrix
@@ -34,11 +35,12 @@
 
 #include "pcl/pcl_layout_tests.h"
 
+#include "common/profiler/profiler.h"        // additions for profiling
+
 // own header
 #include "schur.h"
 
-// additions for profiling
-#include "common/profiler/profiler.h"
+
 
 #define PROFILE_SCHUR
 #ifdef PROFILE_SCHUR
@@ -415,6 +417,17 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 
 	m_spSkeletonMatrix = m_spSchurComplementOp->sub_operator(SD_SKELETON, SD_SKELETON);
 
+
+// Extension for preconditioned Schur complement solve
+	//SmartPtr<IPreconditioner<TAlgebra> > precond = new Jacobi<TAlgebra>();
+/*
+	SmartPtr<IPreconditioner<TAlgebra> > precond = new Jacobi<TAlgebra>(0.0);
+	precond->set_approximation(m_spSkeletonMatrix);
+	precond->set_damp(0.5);
+	m_spSkeletonSolver->set_preconditioner(precond);
+
+*/
+
 	if(!m_spSkeletonSolver->init(m_spSchurComplementOp))
 		UG_THROW("SchurPrecond::init: Failed to init skeleton solver.");
 
@@ -566,7 +579,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	{ UG_THROW("ERROR: In 'SchurPrecond::step':Inadequate storage format of 'f_skeleton'.\n"); }
 
 	if (!m_spSkeletonSolver->apply(u_skeleton, f_skeleton))
-	{ UG_THROW("Failed to solve system!"); }
+	{ UG_LOG("Failed to solve system!"); }
 
 	if(!u_skeleton.has_storage_type(PST_CONSISTENT))
 	{ UG_THROW("ERROR: In 'SchurPrecond::step':Inadequate storage format of 'u_skeleton'.\n"); }
@@ -583,8 +596,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	m_spDirichletSolver->apply_return_defect(u_inner, f_inner);
 	slicing.subtract_vector_slice(u_inner, c, SD_INNER);
 
-
-	// c is consistent since both slices are consistent
+	// c is consistent, since both slices are mutex and consistent
 	c.set_storage_type(PST_CONSISTENT);
 
 	//	check all procs
@@ -595,13 +607,9 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	}
 	SCHUR_PROFILE_END();			// end 'SchurSolver_Backward'
 
-
 	//m_spSchurComplementOp->debug_compute_matrix();
 	return bSuccess;
 
-//	call this for output.
-//	PROFILER_UPDATE();
-//	PROFILER_OUTPUT("feti_profiling.rtf");
 } /* end 'SchurPrecond::step()' */
 
 
