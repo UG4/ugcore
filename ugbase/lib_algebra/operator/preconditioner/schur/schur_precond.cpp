@@ -48,7 +48,6 @@ SchurPrecond<TAlgebra>::SchurPrecond() :
 	m_spDirichletSolver(NULL),
 	m_spSkeletonSolver(NULL)
 {
-	m_bExactSchurComplement = false;
 	// clear aux vector smart ptrs
 	// (will be initialized in first step)
 	m_aux_rhs[0] = m_aux_rhs[1] =NULL;
@@ -130,25 +129,23 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 //	set dirichlet solver for local Schur complement
 	m_spSchurComplementOp->set_dirichlet_solver(m_spDirichletSolver);
 
-//	m_spSchurComplementOp->set_exact_schur_complement(m_bExactSchurComplement);
-
 
 //	init
 	UG_DLOG(SchurDebug, 1, "\n%   - Init local Schur complement ... ");
 	SCHUR_PROFILE_BEGIN(SchurPrecondInit_InitLocalSchurComplement);
-	m_spSchurComplementOp->init();
-	UG_DLOG(SchurDebug, 1, "done.\n");
+		m_spSchurComplementOp->init();
+		UG_DLOG(SchurDebug, 1, "done.\n");
 
-	//if (debug_writer().valid())
-	//		m_spSchurComplementOp->set_debug(debug_writer());
+		//if (debug_writer().valid())
+		//		m_spSchurComplementOp->set_debug(debug_writer());
 
-//	1.4 check all procs
-	if(!pcl::AllProcsTrue(bSuccess))
-	{
-		UG_LOG("ERROR in SchurPrecond::init: Some processes could not init"
-				" local Schur complement.\n");
-		return false;
-	}
+	//	1.4 check all procs
+		if(!pcl::AllProcsTrue(bSuccess))
+		{
+			UG_LOG("ERROR in SchurPrecond::init: Some processes could not init"
+					" local Schur complement.\n");
+			return false;
+		}
 	SCHUR_PROFILE_END_(SchurPrecondInit_InitLocalSchurComplement);
 
 //  ----- 2. CONFIGURE SCHUR COMPLEMENT SOLVER  ----- //
@@ -162,8 +159,12 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 	m_spSkeletonSolver->set_preconditioner(precond);
 
 */
-	if(!m_spSkeletonSolver->init(m_spSchurComplementOp))
-		UG_THROW("SchurPrecond::init: Failed to init skeleton solver.");
+	SCHUR_PROFILE_BEGIN(SchurPrecondInit_InitSkeletonSolver);
+
+		if(!m_spSkeletonSolver->init(m_spSchurComplementOp))
+			UG_THROW("SchurPrecond::init: Failed to init skeleton solver.");
+
+	SCHUR_PROFILE_END_(SchurPrecondInit_InitSkeletonSolver);
 
 //	2.5 check all procs
 /*	if(!pcl::AllProcsTrue(bSuccess))

@@ -115,10 +115,6 @@ class SchurPrecond: public IPreconditioner<TAlgebra>
 		}
 
 public:
-		void set_exact_schur_complement(bool b)
-		{
-			m_bExactSchurComplement = b;
-		}
 		void set_schur_complement_operator(SmartPtr<SchurComplementOperator<algebra_type> > scop)
 		{ m_spSchurComplementOp = scop; }
 
@@ -144,10 +140,6 @@ public:
 		virtual std::string config_string() const
 		{
 			std::stringstream ss; ss << name() << "\n";
-			if(m_bExactSchurComplement)
-				ss << " Using Exact Schur Complement for Inverse\n";
-			else
-				ss << " Using approximated Schur Complement for Inverse\n";
 			ss << " Dirichlet Solver: ";
 			if(m_spDirichletSolver.valid()) ss << ConfigShift(m_spDirichletSolver->config_string()) << "\n";
 			else ss << "  NOT SET!\n";
@@ -212,8 +204,6 @@ public:
 
 
 	int m_iterCnt;
-	bool m_bExactSchurComplement;
-
 };
 
 

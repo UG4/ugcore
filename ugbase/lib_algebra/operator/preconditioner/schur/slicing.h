@@ -94,6 +94,19 @@ public:
 	}
 
 
+	SmartPtr<AlgebraLayouts> get_slice_layouts(ConstSmartPtr<AlgebraLayouts> layouts, slice_desc_type type) const
+	{
+		// convert layouts (vector->slice)
+		SmartPtr<AlgebraLayouts> slice_layouts = new AlgebraLayouts(*layouts);
+		replace_indices_in_layout(type, slice_layouts->master());
+		replace_indices_in_layout(type, slice_layouts->slave());
+
+
+		//UG_LOG(*slice_layouts);
+		return slice_layouts;
+	}
+
+
 	template<class VT>
 	SmartPtr<VT> slice_clone_without_values(const VT &full_src, slice_desc_type type) const
 	{
@@ -103,12 +116,7 @@ public:
 
 		SmartPtr<VT> slice_clone = new VT(slice_desc.size());
 
-		// convert layouts (vector->slice)
-		SmartPtr<AlgebraLayouts> slice_layouts = new AlgebraLayouts(*full_src.layouts());
-		replace_indices_in_layout(type, slice_layouts->master());
-		replace_indices_in_layout(type, slice_layouts->slave());
-		slice_clone->set_layouts(slice_layouts);
-		//UG_LOG(*slice_layouts);
+		slice_clone->set_layouts(get_slice_layouts(full_src.layouts(), type));
 
 		return slice_clone;
 
@@ -246,7 +254,7 @@ protected:
 				int newind;
 
 				bool found=find_index(type, elem, newind);
-				UG_ASSERT(found, "SlicingData:: Did not find index???");
+				UG_COND_THROW(!found, "SlicingData:: Did not find index???");
 				interf.get_element(eiter) = newind;
 
 			}
