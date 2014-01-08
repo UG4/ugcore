@@ -18,6 +18,7 @@
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/preconditioner/schur/schur.h"
+#include "lib_algebra/operator/preconditioner/schur/schur_complement_inverse.h"
 
 #include "../util_overloaded.h"
 using namespace std;
@@ -64,6 +65,12 @@ static void Algebra(Registry& reg, string grp)
 	typedef typename TAlgebra::matrix_type matrix_type;
 
 #ifdef UG_PARALLEL
+
+	{
+		string name = string("ISchurComplementInverse").append(suffix);
+		reg.add_class_< ISchurComplementInverse<TAlgebra> >(name, grp) ;
+	}
+
 	// 	Schur complement preconditioner
 	{
 		typedef SchurPrecond<TAlgebra> T;
@@ -75,6 +82,28 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_skeleton_solver", &T::set_skeleton_solver, "","Skeleton solver")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SchurComplement", tag);
+	}
+
+
+
+	{
+		typedef SchurInverseWithOperator<TAlgebra> T;
+		typedef ISchurComplementInverse<TAlgebra> TBase;
+		string name = string("SchurInverseWithOperator").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithOperator")
+			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SchurInverseWithOperator", tag);
+	}
+
+	{
+		typedef SchurInverseWithFullMatrix<TAlgebra> T;
+		typedef ISchurComplementInverse<TAlgebra> TBase;
+		string name = string("SchurInverseWithFullMatrix").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithFullMatrix")
+			.ADD_CONSTRUCTOR( (SmartPtr<ILinearOperatorInverse<vector_type> > ) )("linOpInverse")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SchurInverseWithFullMatrix", tag);
 	}
 #endif
 }

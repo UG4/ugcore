@@ -35,6 +35,8 @@ if(PARALLEL)
 	# add parallelization
 	set(src_Algebra	 ${src_Algebra}
 						operator/preconditioner/schur/schur.cpp
+						operator/preconditioner/schur/schur_precond.cpp
+						operator/preconditioner/schur/schur_complement_operator.cpp
 	    				operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp
 						parallelization/parallel_coloring.cpp						
