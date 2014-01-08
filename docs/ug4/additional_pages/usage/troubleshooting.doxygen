@@ -12,7 +12,40 @@ It might be a very stupid error for you, but there's a high chance someone else
 has the same problem and spends hours on solving it.
 
 <hr>
-\section troubleshootingCompiling Compiling
+\section troubleshooting_compiler_errors Known Internal Compiler Errors
+<hr>
+There are some compiler versions which fail to compile ug4 because of bugs in the compilers:
+\subsection secLLVM3_3 llvm/clang 3.3
+Internal Compiler Bug: Impossible TemplateArgument UNREACHABLE executed at TypeLoc.cpp:335. 
+
+Solution: llvm/clang 3.4.
+
+\subsection secCMake_GCC412 GCC 4.1.2
+<em>GCC v. 4.1.2</em>, like it is default on \em cekon, is not able to compile 
+a debug build (i.e. configured with <tt>cmake -DDEBUG=ON ..</tt>) because of an 
+internal compiler error (<tt>internal compiler error: in force_type_die, at 
+dwarf2out.c...</tt>). The error seems also to be there on gcc 4.3.
+In this case it is possible to configure \ug4 by specifying <em>GCC v. 
+4.4.4</em>, which is also installed on \em cekon as an alternative compiler:
+\verbatim
+cmake -DCMAKE_CXX_COMPILER=/usr/bin/g++44 ..
+\endverbatim
+
+Alternatively one can instruct the (default) compiler to produce the debug 
+infos in <a href="http://gcc.gnu.org/ml/gcc/2001-04/msg01028.html">another 
+format</a>. 
+To do so, call \em CMake with
+\verbatim
+cmake -DDEBUG_FORMAT=-gstabs ..
+\endverbatim
+
+This sets \em STABS as format of debug infos.
+
+If you need to choose another compiler, please consider writing your own 
+toolchain file, so others can benefit from your knowledge. 
+
+<hr>
+\section troubleshootingCompiling Problems with Compiling
 <hr>
 
 \subsection troubleshooting_cant_compile_or_link Can not compile or link
@@ -101,6 +134,8 @@ has the same problem and spends hours on solving it.
 	</dd>
 </dl>
 
+
+
 <hr>
 \section troubleshootingOther Other
 <hr>
@@ -114,6 +149,7 @@ has the same problem and spends hours on solving it.
 		All bash script extensions of ug are located in ug4/scripts/shell, go to \ref pageBashTools to learn more.
 	</dd>
 </dl>
+ 
 
 \subsection troubleshooting_SVN I have a problem with SVN
 See \ref secSVNTroubleshooting.

@@ -94,26 +94,7 @@ line with
 cmake -DCMAKE_C_COMPILER=cc -DCMAKE_CXX_COMPILER=CC ..
 \endverbatim
 
-\subsection secCMake_GCC412 GCC 4.1.2
-<em>GCC v. 4.1.2</em>, like it is default on \em cekon, is not able to compile 
-a debug build (i.e. configured with <tt>cmake -DDEBUG=ON ..</tt>) because of an 
-internal compiler error (<tt>internal compiler error: in force_type_die, at 
-dwarf2out.c...</tt>). The error seems also to be there on gcc 4.3.
-In this case it is possible to configure \ug4 by specifying <em>GCC v. 
-4.4.4</em>, which is also installed on \em cekon as an alternative compiler:
-\verbatim
-cmake -DCMAKE_CXX_COMPILER=/usr/bin/g++44 ..
-\endverbatim
-
-Alternatively one can instruct the (default) compiler to produce the debug 
-infos in <a href="http://gcc.gnu.org/ml/gcc/2001-04/msg01028.html">another 
-format</a>. 
-To do so, call \em CMake with
-\verbatim
-cmake -DDEBUG_FORMAT=-gstabs ..
-\endverbatim
-
-This sets \em STABS as format of debug infos.
+Please see for compiler troubleshooting \ref troubleshooting_compiler_errors .
 
 If you need to choose another compiler, please consider writing your own 
 toolchain file, so others can benefit from your knowledge. 
