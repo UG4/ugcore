@@ -71,15 +71,13 @@ void SchurComplementOperator<TAlgebra>::
 init()
 {
 	SCHUR_PROFILE_BEGIN(SCHUR_Op_init);
+	PROGRESS_START(prog, 0, "SchurComplementOperator::init");
 
 	UG_DLOG(SchurDebug, 5, "\n% 'SchurComplementOperator::init()':");
 //	check that operator has been set
 	if(m_spOperator.invalid())
 		UG_THROW("SchurComplementOperator::init: No Operator A set.");
 
-//	check Feti layouts have been set
-//	if(m_pFetiLayouts == NULL)
-//		UG_THROW("LocalSchurComplement::init: SCHUR layouts not set.");
 
 //	save matrix from which we build the Schur complement
 	typename TAlgebra::matrix_type &mat = m_spOperator->get_matrix();
@@ -95,6 +93,9 @@ init()
 	m_slicing.get_matrix(mat, SD_INNER, SD_SKELETON, sub_matrix(SD_INNER, SD_SKELETON));
 	m_slicing.get_matrix(mat, SD_SKELETON, SD_INNER, sub_matrix(SD_SKELETON, SD_INNER));
 	m_slicing.get_matrix(mat, SD_SKELETON, SD_SKELETON, sub_matrix(SD_SKELETON, SD_SKELETON));
+
+	sub_matrix(SD_SKELETON, SD_SKELETON).set_layouts(m_slicing.get_slice_layouts(mat.layouts(), SD_SKELETON));
+	sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
 
 	IF_DEBUG(SchurDebug, 5)
 	{
@@ -117,17 +118,19 @@ init()
 	sub_matrix(SD_SKELETON, SD_INNER).set_storage_type(PST_ADDITIVE);
 	sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
 
+	SCHUR_PROFILE_BEGIN(SchurComplementOperator_init_DirSolver);
 	//	init solver for Dirichlet problem
 		if(m_spDirichletSolver.valid())
 			if(!m_spDirichletSolver->init(sub_operator(SD_INNER, SD_INNER)))
 				UG_THROW("LocalSchurComplement::init: Cannot init "
 						"Dirichlet solver for operator A.");
+	SCHUR_PROFILE_END_(SchurComplementOperator_init_DirSolver);
 
 //	reset apply counter
 	m_applyCnt = 0;
 
 
-} /* end 'LocalSchurComplement::init()' */
+} /* end 'SchurComplementOperator::init()' */
 
 
 /// apply schur complement f_{\Gamma} = (A_{\Gamma, \Gamma} -  A_{\Gamma, I}  A_{I, I}^{-1}  A_{I, \Gamma} )u_{\Gamma}
@@ -229,7 +232,7 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 
 //	UG_THROW("STOPP!");
 	m_applyCnt++;
-} /* end 'LocalSchurComplement::apply()' */
+} /* end 'SchurComplementOperator::apply()' */
 
 template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
@@ -293,7 +296,7 @@ void SchurComplementOperator<TAlgebra>::
 compute_matrix(matrix_type &schur_matrix)
 {
 	SCHUR_PROFILE_BEGIN(SCHUR_Op_compute_matrix);
-	// note: there is a bug here
+
 	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 	const int n_skeleton = sub_size(SD_SKELETON);
 
@@ -306,7 +309,13 @@ compute_matrix(matrix_type &schur_matrix)
 	// resize matrix
 //	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
 
-	PROGRESS_START(prog, n_skeleton, "computing explicit Schur Matrix");
+	typename TAlgebra::matrix_type &mat = m_spOperator->get_matrix();
+	schur_matrix.set_layouts(m_slicing.get_slice_layouts(mat.layouts(), SD_SKELETON));
+	schur_matrix.set_storage_type(PST_ADDITIVE);
+
+	UG_DLOG(SchurDebug, 2, "SchurMatrix Layouts: " << *schur_matrix.layouts());
+
+	PROGRESS_START(prog, n_skeleton, "computing explicit Schur Matrix ( " << n_skeleton << " )");
 	// compute columns s_k = S e_k
 	for (int i=0; i<n_skeleton; ++i)
 	{
@@ -324,8 +333,16 @@ compute_matrix(matrix_type &schur_matrix)
 	}
 
 	PROGRESS_FINISH(prog);
-//	IF_DEBUG(SchurDebug, 2)
+	IF_DEBUG(SchurDebug, 2)
 	{ schur_matrix.print("Schur"); }
+
+
+	{
+		SCHUR_PROFILE_BEGIN(SCHUR_Op_compute_matrix_wait);
+		PROGRESS_START(prog2, 1, "Computing explicit Schur Matrix: Waiting for other processes..");
+		mat.layouts()->proc_comm().barrier();
+
+	}
 }
 
 
