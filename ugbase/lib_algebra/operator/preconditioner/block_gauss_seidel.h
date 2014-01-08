@@ -619,6 +619,72 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "BlockGaussSeidel2";}
 
 
+		template<typename TMatrix>
+		void GetNeighborhood_worker(const TMatrix &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
+		{
+			if(depth==0) return;
+			size_t iSizeBefore = indices.size();
+			for(typename TMatrix::const_row_iterator it = A.begin_row(node); it != A.end_row(node); ++it)
+			{
+				if(it.value() == 0) continue;
+				if(bVisited[it.index()] == false)
+				{
+
+					bVisited[it.index()] = true;
+					indices.push_back(it.index());
+				}
+			}
+
+			if(depth==1) return;
+			size_t iSizeAfter = indices.size();
+			for(size_t i=iSizeBefore; i<iSizeAfter; i++)
+				GetNeighborhood_worker(A, indices[i], depth-1, indices, bVisited);
+		}
+
+		template<typename TMatrix>
+		void GetNeighborhood2(const TMatrix &A, size_t node, size_t depth,
+				std::vector<size_t> &indices,
+				std::vector<size_t> &levels,
+				std::vector<bool> &bVisited,
+				bool bResetVisitedFlags=true)
+		{
+			PROFILE_FUNC_GROUP("algebra");
+			levels.clear();
+			levels.push_back(0);
+
+			indices.clear();
+
+			bVisited[node] = true;
+			indices.push_back(node);
+			levels.push_back(indices.size());
+
+			for(size_t d = 1; d < depth ; d++)
+			{
+
+				size_t stop = levels[d];
+
+				for(size_t ind = levels[d-1]; ind < levels[d]; ind++)
+				{
+					size_t i = indices[i];
+					for(typename TMatrix::const_row_iterator it = A.begin_row(i); it != A.end_row(i); ++it)
+					{
+						if(it.value() == 0) continue;
+						if(bVisited[it.index()] == false)
+						{
+
+							bVisited[it.index()] = true;
+							indices.push_back(it.index());
+						}
+					}
+				}
+				levels.push_back(indices.size());
+			}
+
+			if(bResetVisitedFlags)
+				for(size_t i=0; i<indices.size(); i++)
+					bVisited[indices[i]] = false;
+		}
+
 		//	Preprocess routine
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
@@ -639,6 +705,7 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 			std::vector<bool> bVisited(N, false);
 			std::vector<bool> bVisited2(N, false);
 
+			std::vector<size_t> levels;
 			for(size_t i=0; i<N; i++)
 			{
 				if(bVisited[i]) continue;
@@ -648,24 +715,14 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 
 				GetNeighborhood(A, i, m_depth, indices[i], bVisited2);
 				for(size_t j=0; j<indices[i].size(); j++)
-					bVisited[j]=true;
-				//indices[i].push_back(i);
+					bVisited[indices[i][j]]=true;
+				//for(size_t j=0; j<levels[m_depth-1]; j++)
+					//bVisited2[indices[j]]=true;
 
 				Aloc[i] = new CPUAlgebra::matrix_type;
 
 				GetSliceSparse(A, indices[i], *Aloc[i]);
 
-//				DenseMatrix<VariableArray2<smallmat_type> > A2;
-//				A2.resize(indices[i].size(), indices[i].size());
-
-//				GetLocalMatrix(A, A2, &indices[i][0], &indices[i][0]);
-
-//				UG_LOG("\n\nindices " << i << " ( " << indices[i].size() << ")\n");
-//				PrintVector(indices[i], "indices");
-//				UG_LOG("A2 " << i << ":\n" << JuliaString(A2, "A2") << "\n");
-
-
-//				Aloc[i]->print("Aloc");
 
 				m_ilut[i] = new ILUTPreconditioner<CPUAlgebra> (0.0);
 				m_ilut[i]->preprocess_mat(*Aloc[i]);

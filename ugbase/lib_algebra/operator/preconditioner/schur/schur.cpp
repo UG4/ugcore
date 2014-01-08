@@ -302,6 +302,39 @@ debug_compute_matrix()
 	UG_LOG(JuliaString(schur_matrix, "Schur"));
 }
 
+template <typename TAlgebra>
+void SchurComplementOperator<TAlgebra>::
+compute_matrix(matrix_type &schur_matrix)
+{
+	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
+	const int n_skeleton = sub_size(SD_SKELETON);
+
+	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
+
+	// create temporary vectors
+	vector_type sol; sol.create(n_skeleton);
+	vector_type rhs; rhs.create(n_skeleton);
+
+	// resize matrix
+//	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
+
+	// compute columns s_k = S e_k
+	for (int i=0; i<n_skeleton; ++i)
+	{
+		sol.set(0.0); sol[i] = 1.0;
+		apply(rhs, sol);
+
+		// copy to matrix
+		for (int j=0; j<n_skeleton; ++j)
+		{
+			//schur_matrix(j, i) = rhs[j];
+			if(rhs[j] != 0.0)
+				schur_matrix(j, i) = rhs[j];
+		}
+	}
+
+	schur_matrix.print("Schur");
+}
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -314,6 +347,7 @@ SchurPrecond<TAlgebra>::SchurPrecond() :
 	m_spDirichletSolver(NULL),
 	m_spSkeletonSolver(NULL)
 {
+	m_bExactSchurComplement = false;
 	// clear aux vector smart ptrs
 	// (will be initialized in first step)
 	m_aux_rhs[0] = m_aux_rhs[1] =NULL;
@@ -394,6 +428,9 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 
 //	set dirichlet solver for local Schur complement
 	m_spSchurComplementOp->set_dirichlet_solver(m_spDirichletSolver);
+
+//	m_spSchurComplementOp->set_exact_schur_complement(m_bExactSchurComplement);
+
 
 //	init
 	UG_LOG("\n%   - Init local Schur complement ... ");
