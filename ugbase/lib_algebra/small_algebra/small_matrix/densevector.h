@@ -168,6 +168,19 @@ public:
 			if(entry(i) > d) return false;
 		return true;
 	}
+	bool operator == (double d) const
+	{
+		for(size_t i=0; i<size(); i++)
+			if(entry(i) != d) return false;
+		return true;
+	}
+
+	bool operator != (double d) const
+	{
+		for(size_t i=0; i<size(); i++)
+			if(entry(i) == d) return false;
+		return true;
+	}
 	////////////////////////////////////////////////////////////////////
 	// this will be removed soon
 
