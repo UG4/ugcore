@@ -1363,7 +1363,7 @@ jbooleanArray jObject2BooleanArray(JNIEnv *env, jobject object) {
 
 	jbooleanArray newJBoolArray = NULL;
 
-	jclass argClass = env->GetObjectClass(object);
+	//jclass argClass = env->GetObjectClass(object);
 	//jstring jStringClassName = getClassName(env, argClass);
 	//jstring jStringClassName = getClassName(env, object);
 	//std::string stdStringClassName = stringJ2C(env, jStringClassName);

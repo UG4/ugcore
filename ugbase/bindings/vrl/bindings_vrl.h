@@ -46,6 +46,7 @@ inline std::string svnRevision()
 		return v[0]; //
 	else
 		UGSvnRevision();
+	return ""; // never reached, only silences -Wreturn-type
 }
 } // end vrl::
 }// end ug::

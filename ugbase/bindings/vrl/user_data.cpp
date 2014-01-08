@@ -328,6 +328,7 @@ class VRLUserLinker
 		}
 
 	///	set input i
+		using base_type::set_input;	// silences -Woverloaded-virtual
 		void set_input(size_t i, SmartPtr<CplUserData<TDataIn, dim> > data)
 		{
 			UG_ASSERT(i < m_vpUserData.size(), "Input not needed");
