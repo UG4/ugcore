@@ -660,9 +660,6 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 
 			for(size_t d = 1; d < depth ; d++)
 			{
-
-				size_t stop = levels[d];
-
 				for(size_t ind = levels[d-1]; ind < levels[d]; ind++)
 				{
 					size_t i = indices[i];
