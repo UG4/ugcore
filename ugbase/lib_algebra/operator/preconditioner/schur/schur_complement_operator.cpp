@@ -324,7 +324,7 @@ compute_matrix(matrix_type &schur_matrix)
 	}
 
 	PROGRESS_FINISH(prog);
-	IF_DEBUG(SchurDebug, 2)
+//	IF_DEBUG(SchurDebug, 2)
 	{ schur_matrix.print("Schur"); }
 }
 

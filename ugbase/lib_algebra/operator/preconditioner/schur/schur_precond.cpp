@@ -74,8 +74,8 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 //	status
 	UG_DLOG(SchurDebug, 2, "\n% Initializing SCHUR precond: \n");
 
-	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
-	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
+//	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
+//	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 
 
 //	bool flag
@@ -98,7 +98,7 @@ preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 		return false;
 	}*/
 
-	bool debugLayouts = (debug_writer()==NULL) ? false : true;
+//	bool debugLayouts = (debug_writer()==NULL) ? false : true;
 // Determine splitting
 
 

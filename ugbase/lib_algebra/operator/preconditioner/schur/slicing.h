@@ -210,6 +210,7 @@ protected:
 	/// returns local index for a global index
 	bool find_index(slice_desc_type type, int gindex, int &index) const
 	{
+		// WARNING int index < size_t myset.size() WARNING
 		bool found=false;
 
 		const slice_desc_set &myset=slice(type);
@@ -223,7 +224,7 @@ protected:
 			found = true;
 		}
 	//	if (found && index >=myset.size()) {
-		UG_ASSERT( (!found || index<myset.size()) , "Invalid index found!");
+		UG_ASSERT( (!found || index<(int)myset.size()) , "Invalid index found!");
 	//	}
 		return found;
 	}
