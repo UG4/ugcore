@@ -17,8 +17,10 @@
 
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
+#ifdef UG_PARALLEL
 #include "lib_algebra/operator/preconditioner/schur/schur.h"
 #include "lib_algebra/operator/preconditioner/schur/schur_complement_inverse.h"
+#endif
 
 #include "../util_overloaded.h"
 using namespace std;
