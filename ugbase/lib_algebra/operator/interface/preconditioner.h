@@ -98,13 +98,13 @@ class IPreconditioner :
 	public:
 	///	default constructor
 		IPreconditioner() :
-			m_spOperator(NULL), m_bInit(false)
+			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false)
 		{};
 
 	///	constructor setting debug writer
 		IPreconditioner(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) :
 			DebugWritingObject<TAlgebra>(spDebugWriter),
-			m_spOperator(NULL), m_bInit(false)
+			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false)
 		{};
 
 	protected:
@@ -184,8 +184,14 @@ class IPreconditioner :
 	 * \param[in]	L		linear operator
 	 * \returns		bool	success flag
 	 */
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > L)
+		bool init(SmartPtr<ILinearOperator<vector_type> > L)
 		{
+		// 	Remember operator
+			m_spDefectOperator = L;
+
+			if (m_spApproxOperator.valid())
+				return init(m_spApproxOperator);
+
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
 					L.template cast_dynamic<MatrixOperator<matrix_type, vector_type> >();
@@ -198,7 +204,9 @@ class IPreconditioner :
 
 		//	forward request to matrix based implementation
 			return init(pOp);
+
 		}
+
 
 	///	initializes the preconditioner for a matrix based operator
 	/**
@@ -212,14 +220,16 @@ class IPreconditioner :
 		bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
 		// 	Remember operator
-			m_spOperator = Op;
+			m_spApproxOperator = Op;
+			if(!m_spDefectOperator.valid())
+				m_spDefectOperator = m_spApproxOperator;
 
 		//	Check that matrix exists
-			if(m_spOperator.invalid())
+			if(m_spApproxOperator.invalid())
 				UG_THROW(name() << "::init': Passed Operator is invalid.");
 
 		//	Preprocess
-			if(!preprocess(Op))
+			if(!preprocess(m_spApproxOperator))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::init': Preprocess failed.\n");
 				return false;
@@ -259,25 +269,18 @@ class IPreconditioner :
 			#endif
 
 		//	Check sizes
-			if(d.size() != m_spOperator->num_rows())
-				UG_THROW("Vector [size= "<<d.size()<<"] and Row [size= "
-				               <<m_spOperator->num_rows()<<"] sizes have to match!");
-			if(c.size() != m_spOperator->num_cols())
-				UG_THROW("Vector [size= "<<c.size()<<"] and Column [size= "
-				               <<m_spOperator->num_cols()<<"] sizes have to match!");
-			if(d.size() != c.size())
-				UG_THROW("Vector [d size= "<<d.size()<<", c size = "
-				               << c.size() << "] sizes have to match!");
+			THROW_IF_NOT_EQUAL_4(c.size(), d.size(),
+					m_spApproxOperator->num_rows(), m_spApproxOperator->num_cols());
 
 		// 	apply iterator: c = B*d
-			if(!step(m_spOperator, c, d))
+			if(!step(m_spApproxOperator, c, d))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::apply': Step Routine failed.\n");
 				return false;
 			}
 
 		//	apply scaling
-			const number kappa = damping()->damping(c, d, m_spOperator);
+			const number kappa = damping()->damping(c, d, m_spApproxOperator);
 			if(kappa != 1.0){
 				c *= kappa;
 			}
@@ -309,23 +312,38 @@ class IPreconditioner :
 			if(!apply(c, d)) return false;
 
 		// 	update defect d := d - A*c
-			if(!m_spOperator->matmul_minus(d, c))
-			{
-				UG_LOG("ERROR in '"<<name()<<"::apply_update_defect': "
-						"Cannot execute matmul_minus to compute d:=d-A*c.\n");
-				return false;
-			}
+			m_spDefectOperator->apply_sub(d, c);
 
 		//	we're done
 			return true;
 		}
 
+		virtual void set_approximation(SmartPtr<MatrixOperator<matrix_type,vector_type> > approx)
+		{
+			UG_COND_THROW(!approx.valid(), "");
+			m_spApproxOperator = approx;
+		}
+
 	/// virtual destructor
 		virtual ~IPreconditioner() {};
 
+		///	underlying matrix based operator for calculation of defect
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > defect_operator()
+		{
+			return m_spDefectOperator;
+		}
+
+		///	underlying matrix based operator used for the preconditioner
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > approx_operator()
+		{
+			return m_spApproxOperator;
+		}
+
 	protected:
-	///	underlying matrix based operator
-		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spOperator;
+	///	underlying matrix based operator for calculation of defect
+		SmartPtr<ILinearOperator<vector_type> > m_spDefectOperator;
+	///	underlying matrix based operator used for the preconditioner
+		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spApproxOperator;
 
 	/// init flag indicating if init has been called
 		bool m_bInit;

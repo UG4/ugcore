@@ -83,8 +83,8 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		using base_type::set_debug;
 		using base_type::debug_writer;
 		using base_type::write_debug;
-		using base_type::m_spOperator;
 		using base_type::damping;
+		using base_type::approx_operator;
 
 	public:
 	///	default constructor
@@ -239,13 +239,10 @@ class Jacobi : public IPreconditioner<TAlgebra>
 			#endif
 
 		//	Check sizes
-			THROW_IF_NOT_EQUAL(d.size(), m_spOperator->num_rows());
-			THROW_IF_NOT_EQUAL(c.size(), m_spOperator->num_cols());
-			THROW_IF_NOT_EQUAL(c.size(), m_spOperator->num_cols());
-			THROW_IF_NOT_EQUAL(c.size(), d.size());
+			THROW_IF_NOT_EQUAL_4(c.size(), d.size(), approx_operator()->num_rows(), approx_operator()->num_cols());
 
 		// 	apply iterator: c = B*d
-			if(!step(m_spOperator, c, d))
+			if(!step(approx_operator(), c, d))
 			{
 				UG_LOG("ERROR in '"<<name()<<"::apply': Step Routine failed.\n");
 				return false;
@@ -253,7 +250,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 
 		//	apply scaling
 			if(!damping()->constant_damping()){
-				const number kappa = damping()->damping(c, d, m_spOperator);
+				const number kappa = damping()->damping(c, d, approx_operator());
 				if(kappa != 1.0){
 					c *= kappa;
 				}
