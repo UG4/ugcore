@@ -15,6 +15,7 @@
 #include "common/progress.h"
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
+#include "pcl/parallel_archive.h"
 #endif
 
 
@@ -55,7 +56,7 @@ bool AddMarkers(std::string filename, std::string markfilename);
 bool WriteMarkers(std::string markfilename, std::vector<bool> markers, float r, float g, float b, float alpha, int size);
 
 template<typename TPosition>
-bool WriteGridHeader(std::fstream &f, const TPosition &positions, size_t N, int dimension)
+bool WriteGridHeader(std::ostream &f, const TPosition &positions, size_t N, int dimension)
 {
 	assert(dimension == 2 || dimension == 3);
 	f << 1 << "\n";
@@ -76,7 +77,7 @@ bool WriteGridHeader(std::fstream &f, const TPosition &positions, size_t N, int 
 }
 
 template<typename TPosition>
-bool WriteGridHeader(std::fstream &f, const TPosition &positions, int dimension)
+bool WriteGridHeader(std::ostream &f, const TPosition &positions, int dimension)
 {
 	return WriteGridHeader(f, positions, positions.size(), dimension);
 }
@@ -91,12 +92,10 @@ bool WriteGridHeader(std::fstream &f, const TPosition &positions, int dimension)
  * \param dimensions Dimension of positions
  */
 template<typename Matrix_type, typename postype>
-void WriteMatrix(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
+void WriteMatrix(std::ostream &file, const Matrix_type &A, postype *positions, int dimensions)
 {
 	PROFILE_FUNC_GROUP("debug");
 	size_t rows = A.num_rows();
-
-	std::fstream file(filename.c_str(), std::ios::out);
 
 	WriteGridHeader(file, positions, rows, dimensions);
 	PROGRESS_START(prog, rows, "WriteMatrixToConnectionViewer " << dimensions << "d, " << rows << "x" << rows);
@@ -114,10 +113,51 @@ void WriteMatrix(std::string filename, const Matrix_type &A, postype *positions,
 }
 
 template<typename Matrix_type, typename postype>
-void WriteMatrixPar(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
+void WriteMatrix(std::string filename, const Matrix_type &A, postype *positions, int dimensions)
 {
-	WriteMatrix(GetParallelName(A, filename), A, positions, dimensions);
+	std::fstream file(filename.c_str(), std::ios::out);
+	WriteMatrix(file, A, positions, dimensions);
 }
+
+
+template<typename Matrix_type, typename postype>
+void WriteMatrixPar(std::string name, const Matrix_type &A, const postype *positions, int dimensions)
+{
+	WriteMatrix(GetParallelName(A, name), A, positions, dimensions);
+/*// the new version using parallel archive
+#ifndef UG_PARALLEL
+	WriteMatrix(GetParallelName(A, filename), A, positions, dimensions);
+#else
+	const pcl::ProcessCommunicator &pc = A.layouts()->proc_comm();
+	if(pcl::GetNumProcesses() == 1)
+		WriteMatrix(name, A, positions, dimensions);
+
+	char buf[20];
+	int rank = pcl::GetProcRank();
+
+
+	std::string fname = FilenameWithoutExtension(name);
+	std::string ext = GetFilenameExtension(name);
+
+	pcl::ParallelArchive ar(name + ".tar", pc);
+	if(rank == pc.get_proc_id(0))
+	{
+		// create the .pmat "header" file
+		std::stringstream &file = ar.create_stringstream_file(fname + ".p" + ext);
+		file << pc.size() << "\n";
+		for(size_t i=0; i<pc.size(); i++)
+		{
+			sprintf(buf, "_p%04d.%s", pc.get_proc_id(i), ext.c_str());
+			file << fname << buf << "\n";
+		}
+	}
+	// create the .mat file
+	sprintf(buf, "_p%04d.%s", rank, ext.c_str());
+	WriteMatrix(ar.create_stringstream_file(fname + buf), A, positions, dimensions);
+#endif
+*/
+}
+
 
 //	NOTE:	The commented version below contains a bug which only occurs in rare situations,
 //			resulting in a matrix output, where one entry has connections to
@@ -249,7 +289,8 @@ void WriteMatrixPar(std::string filename, const Matrix_type &A, postype *positio
 template <typename Matrix_type, typename postype>
 bool WriteMatrix(	std::string filename,
 									const Matrix_type &A,
-									std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
+									const std::vector<postype> &positionsFrom,
+									const std::vector<postype> &positionsTo, size_t dimensions)
 {
 	PROFILE_FUNC_GROUP("debug");
 
@@ -312,7 +353,7 @@ bool WriteMatrix(	std::string filename,
 
 template <typename Matrix_type, typename postype>
 bool WriteMatrixPar(std::string filename, const Matrix_type &A,
-					std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
+					const std::vector<postype> &positionsFrom, const std::vector<postype> &positionsTo, size_t dimensions)
 {
 	return WriteMatrix(GetParallelName(A, filename), A, positionsFrom, positionsTo, dimensions);
 }
