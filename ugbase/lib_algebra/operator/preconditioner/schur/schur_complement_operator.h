@@ -107,7 +107,7 @@ class SchurComplementOperator
 	SmartPtr<MatrixOperator<matrix_type, vector_type> > sub_operator(int r, int c)
 	{return m_op[r][c];}
 
-	size_t sub_size(SlicingData::slice_desc_type type)
+	size_t sub_size(slice_desc_type type)
 	{return m_slicing.get_num_elems(type);}
 
 	const SlicingData &slicing() const

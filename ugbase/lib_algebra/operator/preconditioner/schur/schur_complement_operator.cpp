@@ -70,6 +70,7 @@ template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 init()
 {
+	try{
 	SCHUR_PROFILE_BEGIN(SCHUR_Op_init);
 	PROGRESS_START(prog, 0, "SchurComplementOperator::init");
 
@@ -83,9 +84,6 @@ init()
 	typename TAlgebra::matrix_type &mat = m_spOperator->get_matrix();
 
 	//	get matrix from dirichlet operator
-
-	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
-	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 
 	UG_DLOG(SchurDebug, 2, "SchurComplementOperator::m_spOperator.layouts():\n" << *mat.layouts() << "\n")
 	// init sub matrices
@@ -128,7 +126,7 @@ init()
 
 //	reset apply counter
 	m_applyCnt = 0;
-
+	}UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " failed")
 
 } /* end 'SchurComplementOperator::init()' */
 
@@ -138,11 +136,10 @@ template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 apply(vector_type& fskeleton, const vector_type& uskeleton)
 {
+	try{
 	SCHUR_PROFILE_BEGIN(SCHUR_Op_apply);
 
 	UG_DLOG(SchurDebug, 5, "\n% 'SchurComplementOperator::apply()':"<< std::endl);
-	const SlicingData::slice_desc_type SD_INNER=SlicingData::SD_INNER;
-	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 
 	SCHUR_PROFILE_BEGIN(SCHUR_apply);
 //	check that matrix has been set
@@ -232,6 +229,8 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 
 //	UG_THROW("STOPP!");
 	m_applyCnt++;
+
+	}UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " failed")
 } /* end 'SchurComplementOperator::apply()' */
 
 template <typename TAlgebra>
@@ -261,7 +260,6 @@ debug_compute_matrix()
 
 	//sparse_matrix_type schur_matrix1(n_skeleton, n_skeleton);
 
-	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 	const int n_skeleton = sub_size(SD_SKELETON);
 
 	dense_matrix_type schur_matrix;
@@ -295,9 +293,9 @@ template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
 compute_matrix(matrix_type &schur_matrix)
 {
+	try{
 	SCHUR_PROFILE_BEGIN(SCHUR_Op_compute_matrix);
 
-	const SlicingData::slice_desc_type SD_SKELETON=SlicingData::SD_SKELETON;
 	const int n_skeleton = sub_size(SD_SKELETON);
 
 	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
@@ -343,6 +341,8 @@ compute_matrix(matrix_type &schur_matrix)
 		mat.layouts()->proc_comm().barrier();
 
 	}
+
+	}UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " failed")
 }
 
 

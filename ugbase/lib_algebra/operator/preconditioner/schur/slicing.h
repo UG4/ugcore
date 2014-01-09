@@ -31,10 +31,11 @@ class SlicingOp
 
 };
 
+enum slice_desc_type {SD_INNER=0, SD_SKELETON, SLICE_DESC_SIZE};
+
 class SlicingData{
 
 public:
-	enum slice_desc_type {SD_INNER=0, SD_SKELETON, SLICE_DESC_SIZE};
 	typedef std::vector<slice_desc_type> slice_desc_type_vector;
 	//typedef std::set<int> slice_desc_set;
 	typedef std::vector<int> slice_desc_set;

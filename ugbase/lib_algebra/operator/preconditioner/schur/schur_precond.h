@@ -150,6 +150,20 @@ public:
 			return ss.str();
 		}
 
+private:
+		bool create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
+				std::vector<slice_desc_type> &skeletonMark);
+
+		void init_skeleton_solver();
+		bool check_requirements();
+		void get_skeleton_slicing(SmartPtr<MatrixOperator<matrix_type, vector_type> > A,
+				std::vector<slice_desc_type> &skeletonMark);
+
+		void create_aux_vectors(const vector_type& d);
+		void schur_solver_forward(vector_type &u_inner, vector_type &f_inner);
+		void schur_solve_skeleton(vector_type &u_skeleton, const vector_type &f_skeleton);
+		void schur_solver_backward(vector_type &u_inner, vector_type &f_inner, vector_type &u_skeleton);
+
 	/*///	initializes the solver for operator A
 		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A);
 
@@ -201,7 +215,6 @@ public:
 
 	//	pointer to Domain decomposition info object
 	//	pcl::IDomainDecompositionInfo* m_pDDInfo;
-
 
 	int m_iterCnt;
 };
