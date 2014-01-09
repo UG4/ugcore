@@ -258,7 +258,7 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DiagVanka", tag);
 	}
 
-// 	AgglomeratingPreconditioner
+// 	AgglomeratingIterator
 	{
 		typedef AgglomeratingIterator<TAlgebra> T;
 		typedef ILinearIterator<vector_type> TBase;
@@ -268,6 +268,18 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "AgglomeratingIterator", tag);
 	}
+
+// 	AgglomeratingPreconditioner
+	{
+		typedef AgglomeratingPreconditioner<TAlgebra> T;
+		typedef IPreconditioner<TAlgebra> TBase;
+		string name = string("AgglomeratingPreconditioner").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "AgglomeratingPreconditioner")
+			.template add_constructor<void (*)(SmartPtr<ILinearIterator<vector_type> > )>("pPreconditioner")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "AgglomeratingPreconditioner", tag);
+	}
+
 }
 	
 

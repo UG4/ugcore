@@ -127,13 +127,17 @@ class AgglomeratingBase : public TBase
 		virtual bool apply_agglomerated(vector_type& x, const vector_type& b) = 0;
 
 ///	Preprocess routine
-		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
+		bool base_init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
 		{
 			try{
 			PROFILE_FUNC();
 		//	get matrix of Operator
 			m_pMatrix = &Op->get_matrix();
+
 #ifdef UG_PARALLEL
+			PROFILE_BEGIN(AGGLOMERATING_Solver_BARRIER);
+				m_pMatrix->layouts()->proc_comm().barrier();
+			PROFILE_END();
 		//	check that matrix exist
 			if(m_pMatrix == NULL)
 				{UG_LOG("ERROR in LUOperator::init: No Matrix given,\n"); return false;}
@@ -148,9 +152,11 @@ class AgglomeratingBase : public TBase
 				init_collected_vec(collectedX);
 				init_collected_vec(collectedB);
 				bSuccess = init_agglomerated(m_spCollectedOp);
-				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 1, "Agglomerated on proc 0. Size is " << collectedX.size() << "\n");
+				//UG_DLOG(LIB_ALG_LINEAR_SOLVER, 1,
+						UG_LOG("Agglomerated on proc 0. Size is " << collectedX.size() << "(was on this proc: "
+						<< m_pMatrix->num_rows() << ")\n");
 			}
-			if(pcl::AllProcsTrue(bSuccess, Op->get_matrix().layouts()->proc_comm()) == false) return false;
+			if(pcl::AllProcsTrue(bSuccess, m_pMatrix->layouts()->proc_comm()) == false) return false;
 			return true;
 #else
 			return init_agglomerated(Op);
@@ -159,13 +165,7 @@ class AgglomeratingBase : public TBase
 		}
 
 
-
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A, const vector_type& u)
-		{
-			return init(A);
-		}
-
-		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A)
+		virtual bool base_init(SmartPtr<ILinearOperator<vector_type> > A)
 		{
 		//	cast operator
 			SmartPtr<MatrixOperator<matrix_type,vector_type> > op =
@@ -177,7 +177,7 @@ class AgglomeratingBase : public TBase
 						" Passed operator is not matrix-based.");
 
 		//	forward request
-			return init(op);
+			return base_init(op);
 		}
 
 		virtual bool apply(vector_type& x, const vector_type& b)
@@ -237,6 +237,11 @@ class AgglomeratingBase : public TBase
 			return true;
 		}
 
+		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
+		{
+			return apply(c, d);
+		}
+
 
 
 	protected:
@@ -273,7 +278,7 @@ class AgglomeratingSolver : public
 		typedef typename TAlgebra::matrix_type matrix_type;
 
 	///	Base type
-		typedef IMatrixOperatorInverse<matrix_type,vector_type> base_type;
+		typedef AgglomeratingBase<IMatrixOperatorInverse<matrix_type,vector_type>, algebra_type > base_type;
 
 
 	public:
@@ -312,6 +317,20 @@ class AgglomeratingSolver : public
 		{
 			return std::string("AgglomeratingSolver: ") + m_pLinOpInverse->config_string();
 		}
+
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A)
+		{
+			return base_type::base_init(A);
+		}
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A, const vector_type& u)
+		{
+			return base_type::base_init(A);
+		}
+		virtual bool init(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
+		{
+			return base_type::base_init(Op);
+		}
+
 
 	protected:
 		SmartPtr<ILinearOperatorInverse<vector_type, vector_type> > m_pLinOpInverse;
@@ -379,6 +398,89 @@ class AgglomeratingIterator : public
 		virtual std::string config_string() const
 		{
 			return std::string("AgglomeratingIterator: ") + m_splinIt->config_string();
+		}
+
+
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A)
+		{
+			return base_type::base_init(A);
+		}
+		virtual bool init(SmartPtr<ILinearOperator<vector_type> > A, const vector_type& u)
+		{
+			return base_type::base_init(A);
+		}
+
+
+	protected:
+		SmartPtr<ILinearIterator<vector_type> > m_splinIt;
+		std::string m_name;
+};
+
+template <typename TAlgebra>
+class AgglomeratingPreconditioner: public
+	AgglomeratingBase<IPreconditioner<TAlgebra>, TAlgebra >
+{
+	public:
+	// 	Algebra type
+		typedef TAlgebra algebra_type;
+
+	// 	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	// 	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	///	Base type
+		typedef AgglomeratingBase<IPreconditioner<TAlgebra>, TAlgebra > base_type;
+
+	public:
+		AgglomeratingPreconditioner(SmartPtr<ILinearIterator<vector_type> > splinIt)
+		{
+			UG_COND_THROW(splinIt.valid()==false, "linOpInverse has to be != NULL");
+			m_splinIt = splinIt;
+			m_name = std::string("AgglomeratingPreconditioner(") + splinIt->name() + std::string(")");
+		}
+
+		virtual bool init_agglomerated(SmartPtr<MatrixOperator<matrix_type, vector_type> > Op)
+		{
+			try{
+				return m_splinIt->init(Op);
+			}UG_CATCH_THROW("AgglomeratingIterator::" << __FUNCTION__ << " failed")
+		}
+		virtual bool apply_agglomerated(vector_type& x, const vector_type& b)
+		{
+			try{
+				return m_splinIt->apply(x, b);
+			}UG_CATCH_THROW("AgglomeratingIterator::" << __FUNCTION__ << " failed")
+		}
+
+	// 	Destructor
+		virtual ~AgglomeratingPreconditioner() {};
+
+
+		virtual const char* name() const
+		{
+			return m_name.c_str();
+		}
+
+		virtual bool supports_parallel() const { return true; }
+
+		///	Clone
+		virtual SmartPtr<ILinearIterator<vector_type> > clone()
+		{
+			SmartPtr<ILinearIterator<vector_type> > linIt = m_splinIt->clone();
+			return new AgglomeratingIterator<algebra_type>(linIt);
+		}
+
+		virtual std::string config_string() const
+		{
+			return std::string("AgglomeratingPreconditioner: ") + m_splinIt->config_string();
+		}
+
+		virtual bool postprocess() { return true; }
+		virtual bool preprocess(SmartPtr<MatrixOperator<typename TAlgebra::matrix_type, typename TAlgebra::vector_type> > pOp)
+		{
+			return base_type::base_init(pOp);
 		}
 
 
