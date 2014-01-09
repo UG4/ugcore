@@ -210,6 +210,7 @@ create_aux_vectors(const vector_type& d)
 	const SlicingData sd =m_spSchurComplementOp->slicing();
 	const size_t n_inner=m_spSchurComplementOp->sub_size(SD_INNER);
 	const size_t n_skeleton=m_spSchurComplementOp->sub_size(SD_SKELETON);
+	(void)n_skeleton; // warning fix
 	if (m_aux_rhs[SD_SKELETON].invalid())
 	{
 		UG_DLOG(SchurDebug, 1, "% Creating skeleton defect vector of size " << n_skeleton << std::endl);
