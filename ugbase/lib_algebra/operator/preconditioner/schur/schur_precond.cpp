@@ -79,14 +79,15 @@ create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vect
 //	set dirichlet solver for local Schur complement
 	m_spSchurComplementOp->set_dirichlet_solver(m_spDirichletSolver);
 
+	if(debug_writer().valid())
+		m_spSchurComplementOp->set_debug(debug_writer());
+
 //	init
 	UG_DLOG(SchurDebug, 1, "\n%   - Init local Schur complement ... ");
 
 	m_spSchurComplementOp->init();
 	UG_DLOG(SchurDebug, 1, "done.\n");
 
-	//if (debug_writer().valid())
-	//		m_spSchurComplementOp->set_debug(debug_writer());
 
 //	1.4 check all procs
 	/*bool bSuccess = true;

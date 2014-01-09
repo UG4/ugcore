@@ -12,6 +12,7 @@
 
 
 #include "schur.h"
+#include "slicing.h"
 
 namespace ug{
 
@@ -107,7 +108,7 @@ protected:
 
 };
 
-/*
+
 template<typename TAlgebra>
 class SchurInverseWithAGammaGamma : public ISchurComplementInverse<TAlgebra>
 {
@@ -118,15 +119,18 @@ public:
 
 	SchurInverseWithAGammaGamma(SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > linSolver)
 	{
+		UG_COND_THROW(!linSolver.valid(), "?");
 		m_linSolver = linSolver;
 	}
 
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
 	{
-		SmartPtr<IPreconditioner<TAlgebra> > precond = new Jacobi<TAlgebra>;
+		SmartPtr<IPreconditioner<TAlgebra> > precond =
+				m_linSolver->preconditioner().template cast_dynamic< IPreconditioner<TAlgebra> > ();
+		UG_COND_THROW(!precond.valid(), "?");
 		precond->set_approximation(op->sub_operator(SD_SKELETON, SD_SKELETON));
-		precond->set_damp(0.5);
-		m_linSolver->set_preconditioner(precond);
+//		precond->set_damp(0.5);
+//		m_linSolver->set_preconditioner(precond);
 		return m_linSolver->init(op);
 		// do init of linsolver before or after set approximation?
 	}
@@ -147,12 +151,12 @@ public:
 	}
 	virtual bool supports_parallel() const
 	{
-		return m_linOpInv->supports_parallel();
+		return m_linSolver->supports_parallel();
 	}
 protected:
 	SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > m_linSolver;
-}
-*/
+};
+
 
 }
 

@@ -25,6 +25,7 @@
 #include "lib_algebra/parallelization/parallelization.h"
 #include "lib_algebra/operator/debug_writer.h"
 #include "schur_complement_inverse_interface.h"
+#include "lib_algebra/operator/algebra_debug_writer.h"
 #include "pcl/pcl.h"
 
 #include "common/log.h"
@@ -40,8 +41,7 @@ namespace ug{
 template <typename TAlgebra>
 class SchurComplementOperator
 	: public ILinearOperator<	typename TAlgebra::vector_type,
-	  	  	  	  	  	  	  	typename TAlgebra::vector_type>,
-	  public DebugWritingObject<TAlgebra>
+	  	  	  	  	  	  	  	typename TAlgebra::vector_type>
 {
 	public:
 
@@ -54,9 +54,6 @@ class SchurComplementOperator
 	// 	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	protected:
-		using DebugWritingObject<TAlgebra>::write_debug;
-		using DebugWritingObject<TAlgebra>::debug_writer;
 
 	public:
 	///	constructor
@@ -117,7 +114,8 @@ class SchurComplementOperator
 	// for debugging: computes schur operator
 	void debug_compute_matrix();
 
-	void compute_matrix(matrix_type &schur_matrix);
+	void compute_matrix(matrix_type &schur_matrix, double threshold=0.0);
+	virtual void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter);
 
 protected:
 	// 	Operator that is inverted by this Inverse Operator
@@ -133,6 +131,13 @@ protected:
 
 	// sub matrices/operator (will be set by init)
 	SmartPtr<MatrixOperator<matrix_type,vector_type> > m_op[2][2];
+
+
+	template<int dim> void set_debug_dim();
+
+	SmartPtr<AlgebraDebugWriter<algebra_type> > m_spDebugWriterInner;
+	SmartPtr<AlgebraDebugWriter<algebra_type> > m_spDebugWriterSkeleton;
+	SmartPtr<IDebugWriter<algebra_type> > m_spDebugWriter;
 
 	int m_applyCnt;
 

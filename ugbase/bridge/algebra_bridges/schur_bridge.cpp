@@ -107,6 +107,17 @@ static void Algebra(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "SchurInverseWithFullMatrix", tag);
 	}
+
+
+	{
+		typedef SchurInverseWithAGammaGamma<TAlgebra> T;
+		typedef ISchurComplementInverse<TAlgebra> TBase;
+		string name = string("SchurInverseWithAGammaGamma").append(suffix);
+		reg.add_class_<T,TBase>(name, grp, "SchurInverseWithAGammaGamma")
+			.ADD_CONSTRUCTOR( (SmartPtr<IPreconditionedLinearOperatorInverse<vector_type> > ) )("precLinOpInv")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SchurInverseWithAGammaGamma", tag);
+	}
 #endif
 }
 

@@ -98,31 +98,36 @@ init()
 	IF_DEBUG(SchurDebug, 5)
 	{
 		// debug screen
-		UG_LOG("A             ="); UG_LOG_Matrix(mat); UG_LOG(std::endl);
+		/*UG_LOG("A             ="); UG_LOG_Matrix(mat); UG_LOG(std::endl);
 		UG_LOG("A_I,I         ="); UG_LOG_Matrix(sub_matrix(SD_INNER, SD_INNER)); UG_LOG(std::endl);
 		UG_LOG("A_I,Gamma     ="); UG_LOG_Matrix(sub_matrix(SD_INNER, SD_SKELETON)); UG_LOG(std::endl);
 		UG_LOG("A_Gamma,I     ="); UG_LOG_Matrix(sub_matrix(SD_SKELETON, SD_INNER)); UG_LOG(std::endl);
-		UG_LOG("A_Gamma,Gamma ="); UG_LOG_Matrix(sub_matrix(SD_SKELETON, SD_SKELETON)); UG_LOG(std::endl);
-
-		//	debug output of matrices
-		write_debug(sub_matrix(SD_INNER, SD_INNER), "Schur_II.mat");
-		write_debug(sub_matrix(SD_INNER, SD_SKELETON), "Schur_IB.mat");
-		write_debug(sub_matrix(SD_SKELETON, SD_INNER), "Schur_BI.mat");
-		write_debug(sub_matrix(SD_SKELETON, SD_SKELETON), "Schur_BB.mat");
+		UG_LOG("A_Gamma,Gamma ="); UG_LOG_Matrix(sub_matrix(SD_SKELETON, SD_SKELETON)); UG_LOG(std::endl);*/
 	}
+
+	//	debug output of matrices
+	if(m_spDebugWriterInner.valid())
+		m_spDebugWriterInner->write_matrix(sub_matrix(SD_INNER, SD_INNER), "Schur_II.mat");
+	if(m_spDebugWriterSkeleton.valid())
+		m_spDebugWriterSkeleton->write_matrix(sub_matrix(SD_SKELETON, SD_SKELETON), "Schur_BB.mat");
+//		write_debug(sub_matrix(SD_INNER, SD_SKELETON), "Schur_IB.mat");
+//		write_debug(sub_matrix(SD_SKELETON, SD_INNER), "Schur_BI.mat");
 
 	sub_matrix(SD_INNER, SD_INNER).set_storage_type(PST_ADDITIVE);
 	sub_matrix(SD_INNER, SD_SKELETON).set_storage_type(PST_ADDITIVE);
 	sub_matrix(SD_SKELETON, SD_INNER).set_storage_type(PST_ADDITIVE);
 	sub_matrix(SD_SKELETON, SD_SKELETON).set_storage_type(PST_ADDITIVE);
 
-	SCHUR_PROFILE_BEGIN(SchurComplementOperator_init_DirSolver);
+	try
+	{
+		SCHUR_PROFILE_BEGIN(SchurComplementOperator_init_DirSolver);
 	//	init solver for Dirichlet problem
 		if(m_spDirichletSolver.valid())
 			if(!m_spDirichletSolver->init(sub_operator(SD_INNER, SD_INNER)))
-				UG_THROW("LocalSchurComplement::init: Cannot init "
+				UG_THROW("SchurComplementOperator::init: Cannot init "
 						"Dirichlet solver for operator A.");
-	SCHUR_PROFILE_END_(SchurComplementOperator_init_DirSolver);
+	}UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " Init Dir Solver failed")
+
 
 //	reset apply counter
 	m_applyCnt = 0;
@@ -271,9 +276,6 @@ debug_compute_matrix()
 
 	// resize matrix
 //	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
-
-
-
 	// compute columns s_k = S e_k
 	for (int i=0; i<n_skeleton; ++i)
 	{
@@ -291,7 +293,7 @@ debug_compute_matrix()
 
 template <typename TAlgebra>
 void SchurComplementOperator<TAlgebra>::
-compute_matrix(matrix_type &schur_matrix)
+compute_matrix(matrix_type &schur_matrix, double threshold)
 {
 	try{
 	SCHUR_PROFILE_BEGIN(SCHUR_Op_compute_matrix);
@@ -321,11 +323,12 @@ compute_matrix(matrix_type &schur_matrix)
 		sol.set(0.0); sol[i] = 1.0;
 		apply(rhs, sol);
 
+		double minNorm = threshold>0.0 ? threshold*BlockNorm(rhs[i]) : 0.0;
 		// copy to matrix
 		for (int j=0; j<n_skeleton; ++j)
 		{
 			//schur_matrix(j, i) = rhs[j];
-			if(rhs[j] != 0.0)
+			if(rhs[j] != 0.0 && (minNorm == 0.0 || BlockNorm(rhs[j]) > minNorm) )
 				schur_matrix(j, i) = rhs[j];
 		}
 	}
@@ -342,10 +345,44 @@ compute_matrix(matrix_type &schur_matrix)
 
 	}
 
+	if(m_spDebugWriterSkeleton.valid())
+		m_spDebugWriterSkeleton->write_matrix(schur_matrix, "SchurComplement.mat");
 	}UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " failed")
 }
 
+template <typename TAlgebra>
+template<int dim>
+void SchurComplementOperator<TAlgebra>::
+set_debug_dim()
+{
+	const std::vector<MathVector<dim> > &positions = m_spDebugWriter->template get_positions<dim>();
+	std::vector<MathVector<dim> > innerPos;
+	std::vector<MathVector<dim> > skeletonPos;
+	m_slicing.get_vector_slice(positions, SD_SKELETON, skeletonPos);
+	m_slicing.get_vector_slice(positions, SD_INNER, innerPos);
 
+	m_spDebugWriterInner = new AlgebraDebugWriter<algebra_type>;
+	m_spDebugWriterSkeleton = new AlgebraDebugWriter<algebra_type>;
+
+	m_spDebugWriterSkeleton->template set_positions<dim>(skeletonPos);
+	m_spDebugWriterInner->template set_positions<dim>(innerPos);
+}
+
+
+template <typename TAlgebra>
+void SchurComplementOperator<TAlgebra>::set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter)
+{
+	m_spDebugWriter = spDebugWriter;
+	m_spDebugWriter->update_positions();
+	switch(m_spDebugWriter->get_dim())
+	{
+	case 1:	set_debug_dim<1>(); break;
+	case 2:	set_debug_dim<2>(); break;
+	case 3:	set_debug_dim<3>(); break;
+	default: UG_LOG("debug dim ???");
+	}
+
+}
 
 
 ////////////////////////////////////////////////////////////////////////
