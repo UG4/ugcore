@@ -42,11 +42,12 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":");\
-			UG_LOG(" UGError thrown\n");\
-			UG_LOG(UGErrorTraceback(err)); \
-			UG_LOG(errSymb << msg << "\n"); \
-			UG_LOG(errSymb <<"   ARGS: ("<< args << ")\n"); \
+			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
+				<< " UGError thrown\n" \
+				<< UGErrorTraceback(err) \
+				<< errSymb << msg << "\n" \
+				<< errSymb <<"   ARGS: ("<< args << ")\n"); \
+			la.flush();\
 			UG_LUA_BINDINGS_THROW(L)\
 		}\
 		catch(std::exception& ex)\
@@ -54,10 +55,11 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":");\
-			UG_LOG(" std::exception (" << ex.what() << ") thrown\n");\
-			UG_LOG(errSymb << msg << "\n"); \
-			UG_LOG(errSymb <<"   ARGS: ("<< args << ")\n"); \
+			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
+				<< " std::exception (" << ex.what() << ") thrown\n" \
+				<< errSymb << msg << "\n" \
+				<< errSymb <<"   ARGS: ("<< args << ")\n"); \
+			la.flush();\
 			UG_LUA_BINDINGS_THROW(L);\
 		}\
 		catch(...)\
@@ -65,10 +67,11 @@ static const char* errSymb = " % ";
 			ug::LogAssistant& la = ug::GetLogAssistant();\
 			la.set_output_process(la.get_process_rank());\
 			la.flush();\
-			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":");\
-			UG_LOG(" Unknown Exception thrown\n");\
-			UG_LOG(errSymb << msg << "\n"); \
-			UG_LOG(errSymb <<"With ARGUMENTS: ("<< args << ")\n"); \
+			UG_LOG(errSymb << "EXCEPTION on Proc "<<la.get_process_rank()<<":" \
+				<< " Unknown Exception thrown\n" \
+				<< errSymb << msg << "\n" \
+				<< errSymb <<"With ARGUMENTS: ("<< args << ")\n"); \
+			la.flush();\
 			UG_LUA_BINDINGS_THROW(L);\
 		}
 
