@@ -41,7 +41,7 @@ void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  Const
 	std::vector<size_t> fctIndex;
 	std::vector<std::string> fctNames;
 
-	ExtractAlgebraIndices<TDomain>(domain, dd, fctIndex, pvMapGlobalToPatch);
+	ExtractAlgebraIndices<TDomain>(domain, dd, fctIndex);
 
 	size_t numFct = dd->num_fct();
 	fctNames.resize(numFct);
@@ -58,7 +58,7 @@ void WriteAlgebraIndices(std::string name, ConstSmartPtr<TDomain> domain,  Const
 
 	for(size_t i=0; i<fctIndex.size(); i++)
 		file << fctIndex[i] << "\n";
-*/
+	//*/
 }
 
 template<class TFunction>
@@ -441,11 +441,18 @@ public:
 			write_vector_to_vtk(vec, filename);
 	}
 
+	virtual void update_positions()
+	{
+		extract_positions(m_glFrom);
+	}
+
 	///	write matrix
 	virtual void write_matrix(const matrix_type& mat, const char* filename) {
 		//	something to do ?
 		if (!bConnViewerOut)
 			return;
+
+		update_positions();
 
 		std::string name(m_baseDir); name.append("/").append(filename);
 
@@ -468,16 +475,14 @@ public:
 			if(mat.num_rows() != mat.num_cols())
 				UG_THROW("DebugWriter: grid level the same, but non-square matrix.");
 
-			extract_positions(m_glFrom);
-			std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
+			const std::vector<MathVector<dim> >& vPos = this->template get_positions<dim>();
 			if(vPos.empty())
 				ConnectionViewer::WriteMatrixPar(name.c_str(), mat,(MathVector<dim>*)NULL, dim);
 			else
 				ConnectionViewer::WriteMatrixPar(name.c_str(), mat, &vPos[0], dim);
 		}
 		else{
-			extract_positions(m_glFrom);
-			std::vector<MathVector<dim> >& vFromPos = this->template get_positions<dim>();
+			const std::vector<MathVector<dim> >& vFromPos = this->template get_positions<dim>();
 
 			std::vector<MathVector<dim> > vToPos;
 			ExtractPositions<TDomain>(m_spApproxSpace->domain(),
@@ -509,7 +514,7 @@ protected:
 	void extract_positions(const GridLevel& gridLevel) {
 		//	extract positions for this grid function
 		std::vector<MathVector<dim> >& vPos =
-				this->template get_positions<dim>();
+				this->template positions<dim>();
 
 		vPos.clear();
 		ExtractPositions<TDomain>(
@@ -520,7 +525,10 @@ protected:
 
 	///	write vector
 	virtual void write_vector_to_conn_viewer(const vector_type& vec,
-			const char* filename) {
+			const char* filename)
+	{
+		update_positions();
+
 		std::string name(m_baseDir); name.append("/").append(filename);
 
 		if (!FileExists(m_baseDir.c_str())) {
@@ -537,8 +545,7 @@ protected:
 		}
 
 		//	write
-		extract_positions(m_glFrom);
-		std::vector<MathVector<dim> >& vPos =
+		const std::vector<MathVector<dim> >& vPos =
 				this->template get_positions<dim>();
 		if(vPos.empty())
 			ConnectionViewer::WriteVectorPar(name.c_str(), vec, (MathVector<dim>*)NULL, dim);
@@ -597,7 +604,9 @@ public:
 	GridFunctionPositionProvider() :
 			m_pGridFunc(NULL) {
 	}
-
+	GridFunctionPositionProvider(const TGridFunction& u) :
+			m_pGridFunc(&u) {
+	}
 	void set_reference_grid_function(const TGridFunction& u) {
 		m_pGridFunc = &u;
 	}

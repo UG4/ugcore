@@ -57,6 +57,12 @@ class IVectorDebugWriter
 			return get_pos(Int2Type<dim>());
 		}
 
+	/// gives subclasses the oportunity to calculate the positions
+	/// this is used e.g. in GridFunctionDebugWriter
+	/// after this has been called, get_positions gives valid positions
+	/// those positions are used e.g. in AMG or Schur methods.
+		virtual void update_positions() {};
+
 	///	sets the current positions
 		template <int dim>
 		void set_positions(const std::vector<MathVector<dim> >& vPos)
@@ -75,10 +81,15 @@ class IVectorDebugWriter
 	/// virtual destructor
 		virtual ~IVectorDebugWriter(){}
 
+		int get_dim() const
+		{
+			return m_currentDim;
+		}
+
 	protected:
 	///	returns the positions and sets the current dim
 		template <int dim>
-		std::vector<MathVector<dim> >& get_positions()
+		std::vector<MathVector<dim> >& positions()
 		{
 			m_currentDim = dim; return get_pos(Int2Type<dim>());
 		}
