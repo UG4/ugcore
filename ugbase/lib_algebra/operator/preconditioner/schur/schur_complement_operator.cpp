@@ -123,9 +123,15 @@ init()
 		SCHUR_PROFILE_BEGIN(SchurComplementOperator_init_DirSolver);
 	//	init solver for Dirichlet problem
 		if(m_spDirichletSolver.valid())
+		{
+			SmartPtr<VectorDebugWritingObject<vector_type> > dvwo
+				= m_spDebugWriterInner.template cast_dynamic<VectorDebugWritingObject<vector_type> >();
+			if(dvwo.valid())
+				dvwo->set_debug(m_spDebugWriterInner);
 			if(!m_spDirichletSolver->init(sub_operator(SD_INNER, SD_INNER)))
 				UG_THROW("SchurComplementOperator::init: Cannot init "
 						"Dirichlet solver for operator A.");
+		}
 	}UG_CATCH_THROW("SchurComplementOperator::" << __FUNCTION__ << " Init Dir Solver failed")
 
 
