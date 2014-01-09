@@ -152,6 +152,7 @@ class LU
 
 		bool init_sparse(const matrix_type &A)
 		{
+			try{
 			PROFILE_FUNC();
 			m_bDense = false;
 
@@ -166,11 +167,13 @@ class LU
 			ilut_scalar->set_info(m_bInfo);
 			ilut_scalar->preprocess(A);
 
+			}UG_CATCH_THROW("LU::" << __FUNCTION__ << " failed")
 			return true;
 		}
 
 		bool solve_dense(vector_type &x, const vector_type &b)
 		{
+			try{
 			PROFILE_FUNC();
 			x = b;
 			m_tmp.resize(m_size);
@@ -188,6 +191,7 @@ class LU
 					BlockRef(x[i],j) = m_tmp[k++];
 			}
 
+			}UG_CATCH_THROW("LU::" << __FUNCTION__ << " failed")
 			return true;
 		}
 
@@ -202,6 +206,7 @@ class LU
 	///	initializes the solver for a matrix A
 		bool init_lu(const matrix_type *pA)
 		{
+			try{
 		//	get matrix of Operator
 			m_pMatrix = pA;
 
@@ -229,11 +234,13 @@ class LU
 			}
 			else
 				init_var(A);
+			}UG_CATCH_THROW("LU::" << __FUNCTION__ << " failed")
 			return true;
 		}
 
 		bool apply_lu(vector_type &x, const vector_type &b)
 		{
+			try{
 			PROFILE_BEGIN_GROUP(LU_apply_lu, "algebra lu");
 #ifndef NDEBUG
 			if(block_traits<typename vector_type::value_type>::is_static)
@@ -259,6 +266,8 @@ class LU
 				return solve_dense(x, b);
 			else
 				return solve_sparse(x, b);
+
+			}UG_CATCH_THROW("LU::" << __FUNCTION__ << " failed")
 		}
 
 	///	set operator L, that will be inverted
