@@ -93,7 +93,7 @@ class IPreconditionedLinearOperatorInverse
 				if(!m_spPrecond->init(J, u))
 					UG_THROW(name() << "::init: Cannot init Preconditioner "
 													"Operator for Operator J.");
-			LS_PROFILE_END();
+			LS_PROFILE_END(LS_InitPrecond);
 
 			return true;
 		}
@@ -108,7 +108,7 @@ class IPreconditionedLinearOperatorInverse
 				if(!m_spPrecond->init(L))
 					UG_THROW(name() <<"::prepare: Cannot init Preconditioner "
 														"Operator for Operator L.");
-			LS_PROFILE_END();
+			LS_PROFILE_END(LS_InitPrecond);
 
 			return true;
 		}

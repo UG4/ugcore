@@ -71,7 +71,7 @@ class LinearSolver
 							"Operator applied incorrectly. Aborting.\n");
 					return false;
 				}
-				LS_PROFILE_END(); //LS_ApplyPrecond
+				LS_PROFILE_END(LS_ApplyPrecond);
 			}
 			return true;
 		}
@@ -101,18 +101,18 @@ class LinearSolver
 		// 	build defect:  d := b - J(u)*x
 			LS_PROFILE_BEGIN(LS_BuildDefect);
 			linear_operator()->apply_sub(d, x);
-			LS_PROFILE_END(); //LS_BuildDefect
+			LS_PROFILE_END(LS_BuildDefect);
 
 		// 	create correction
 			LS_PROFILE_BEGIN(LS_CreateCorrection);
 			SmartPtr<vector_type> spC = x.clone_without_values();
 			vector_type& c = *spC;
-			LS_PROFILE_END();
+			LS_PROFILE_END(LS_CreateCorrection);
 
 			LS_PROFILE_BEGIN(LS_ComputeStartDefect);
 			prepare_conv_check();
 			convergence_check()->start(d);
-			LS_PROFILE_END();
+			LS_PROFILE_END(LS_ComputeStartDefect);
 
 			int loopCnt = 0;
 			write_debugXCD(x, c, d, loopCnt, false);
@@ -125,14 +125,14 @@ class LinearSolver
 			// 	add correction to solution: x += c
 				LS_PROFILE_BEGIN(LS_AddCorrection);
 				x += c;
-				LS_PROFILE_END(); //LS_AddCorrection
+				LS_PROFILE_END(LS_AddCorrection);
 
 				write_debugXCD(x, c, d, ++loopCnt, true);
 
 			// 	compute norm of new defect (in parallel)
 				LS_PROFILE_BEGIN(LS_ComputeNewDefectNorm);
 				convergence_check()->update(d);
-				LS_PROFILE_END(); //LS_ComputeNewDefectNorm
+				LS_PROFILE_END(LS_ComputeNewDefectNorm);
 			}
 
 		//	write some information when ending the iteration
@@ -144,7 +144,7 @@ class LinearSolver
 			}
 
 		//	end profiling of whole function
-			LS_PROFILE_END(); //LS_ApplyReturnDefect
+			LS_PROFILE_END(LS_ApplyReturnDefect);
 
 		//	we're done
 			return true;

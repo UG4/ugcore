@@ -122,7 +122,6 @@ private:
 			m_N = u.size();
 
 			return true;
-//			LS_PROFILE_END();
 		}
 
 		bool compute_correction(vector_type &c, vector_type &d)
@@ -138,7 +137,7 @@ private:
 							"Operator applied incorrectly. Aborting.\n");
 					return false;
 				}
-				LS_PROFILE_END(); //LS_ApplyPrecond
+				LS_PROFILE_END(LS_ApplyPrecond);
 			}
 
 			return true;
@@ -161,18 +160,18 @@ private:
 		// 	build defect:  d := b - J(u)*x
 			LS_PROFILE_BEGIN(LS_BuildDefect);
 			linear_operator()->apply_sub(d, x);
-			LS_PROFILE_END(); //LS_BuildDefect
+			LS_PROFILE_END(LS_BuildDefect);
 
 		// 	create correction
 			LS_PROFILE_BEGIN(LS_CreateCorrection);
 			SmartPtr<vector_type> spC = x.clone_without_values();
 			vector_type& c = *spC;
-			LS_PROFILE_END();
+			LS_PROFILE_END(LS_CreateCorrection);
 
 			LS_PROFILE_BEGIN(LS_ComputeStartDefect);
 			prepare_conv_check();
 			convergence_check()->start(d);
-			LS_PROFILE_END();
+			LS_PROFILE_END(LS_ComputeStartDefect);
 
 			int loopCnt = 0;
 			char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
@@ -239,7 +238,7 @@ private:
 			}
 
 		//	end profiling of whole function
-			LS_PROFILE_END(); //LS_ApplyReturnDefect
+			LS_PROFILE_END(LS_ApplyReturnDefect);
 
 		//	we're done
 			return true;
