@@ -21,7 +21,7 @@ bool ApplyLinearSolver(	SmartPtr<ILinearOperator<vector_type> > A,
 		UG_LOG("ApplyLinearSolver: Cannot init Inverse operator.\n");
 		return false;
 	}
-	PROFILE_END();
+	PROFILE_END_(ALS_InitLinearSolver);
 
 // step 2: Apply Operator
 	PROFILE_BEGIN(ALS_ApplyLinearSolver);
@@ -30,7 +30,7 @@ bool ApplyLinearSolver(	SmartPtr<ILinearOperator<vector_type> > A,
 		UG_LOG("ApplyLinearSolver: Cannot apply Inverse operator.\n");
 		return false;
 	}
-	PROFILE_END();
+	PROFILE_END_(ALS_ApplyLinearSolver);
 
 //	done
 	return true;
