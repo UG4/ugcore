@@ -280,7 +280,7 @@ schur_solve_skeleton(vector_type &u_skeleton, const vector_type &f_skeleton)
 	{ UG_THROW("ERROR: In 'SchurPrecond::step':Inadequate storage format of 'f_skeleton'.\n"); }
 
 	if (!m_spSkeletonSolver->apply(u_skeleton, f_skeleton))
-	{ UG_LOG("SchurPrecond: Failed to solve skeleton system!"); }
+	{ UG_LOG("SchurPrecond: Failed to solve skeleton system!\n"); }
 
 	if(!u_skeleton.has_storage_type(PST_CONSISTENT))
 	{ UG_THROW("ERROR: In 'SchurPrecond::step':Inadequate storage format of 'u_skeleton'.\n"); }
@@ -298,7 +298,7 @@ schur_solver_backward(vector_type &u_inner, vector_type &f_inner, vector_type &u
 	UG_DLOG(SchurDebug, 3, "\n% 'SchurPrecond::step() - backward':\n");
 	m_spSchurComplementOp->sub_operator(SD_INNER, SD_SKELETON)->apply(f_inner, u_skeleton);
 	if(!m_spDirichletSolver->apply_return_defect(u_inner, f_inner) )
-	{ UG_LOG("SchurPrecond: Failed to solve inner system!"); }
+	{ UG_LOG("SchurPrecond: Failed to solve inner system!\n"); }
 }
 
 template <typename TAlgebra>
