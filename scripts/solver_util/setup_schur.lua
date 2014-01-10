@@ -43,7 +43,7 @@ util.schur = util.schur or {}
 --! \endcode
 function util.schur.GetPreconditioner(schurType, skeletonSolverType)
 	if schurType == nil then schurType = "Full" end
-	if skeletonSolverType == nil then schurSkeletonSolver = "ILU" end
+	if skeletonSolverType == nil then skeletonSolverType = "ILU" end
 	
 	if schurType == "Full" or schurType == "AGG" then
 		if 	skeletonSolverType == "SparseLU" then
@@ -107,7 +107,7 @@ end
 --! \sa util.schur.GetPreconditioner
 function util.schur.GetSolver(schurType, skeletonSolverType)
 	local linSolver = LinearSolver()
-	linSolver.set_preconditioner(util.schur.GetSolver(schurType, skeletonSolverType))
+	linSolver.set_preconditioner(util.schur.GetPreconditioner(schurType, skeletonSolverType))
 	return linSolver
 end
 
