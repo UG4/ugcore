@@ -178,8 +178,8 @@ public:
 	bool operator != (double d) const
 	{
 		for(size_t i=0; i<size(); i++)
-			if(entry(i) == d) return false;
-		return true;
+			if(entry(i) != d) return true;
+		return false;
 	}
 	////////////////////////////////////////////////////////////////////
 	// this will be removed soon
