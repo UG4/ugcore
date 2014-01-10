@@ -688,7 +688,6 @@ function AssertPluginsLoaded(pluginNamesList)
 	RequiredPlugins(pluginNamesList)
 end
 
-
 function util.GetUniqueFilenameFromCommandLine()
 	local ret=""
 	for i = 1, ugargc do
@@ -699,6 +698,20 @@ function util.GetUniqueFilenameFromCommandLine()
 		return ret.."_numProcs_"..GetNumProcesses()
 	else
 		return ret
+	end
+end
+
+--! use it like ug_assert(numPreRefs <= numRefs, "It must be choosen: numPreRefs <= numRefs")
+--! @param condition the condition to assert
+--! @param msg message to be printed if condition is not fulfilled
+function ug_assert(condition, msg)
+	if condition then
+		return
+	else
+		DebugBacktrace()
+		print("ASSERTION FAILED:")
+		print("    "..msg)
+		assert(false)
 	end
 end
 
