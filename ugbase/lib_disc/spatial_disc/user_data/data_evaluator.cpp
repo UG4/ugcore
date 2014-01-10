@@ -398,7 +398,7 @@ prepare_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCorne
 
 //	evaluate position data
 	for(size_t i = 0; i < m_vPosData.size(); ++i)
-		m_vPosData[i]->compute(&u, elem, NULL, false);
+		m_vPosData[i]->compute(&u, elem, vCornerCoords, false);
 
 // 	process dependent data:
 //	We can not simply compute exports first, then Linker, because an export
