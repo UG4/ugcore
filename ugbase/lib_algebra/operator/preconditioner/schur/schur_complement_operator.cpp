@@ -83,6 +83,9 @@ init()
 //	save matrix from which we build the Schur complement
 	typename TAlgebra::matrix_type &mat = m_spOperator->get_matrix();
 
+	UG_DLOG(SchurDebug, 1, "SchurComplement with " << mat.num_rows() << " unknowns on this core, " <<
+			m_slicing.get_num_elems(SD_INNER) << " inner, " << m_slicing.get_num_elems(SD_SKELETON) << " skeleton.\n" );
+
 	//	get matrix from dirichlet operator
 
 	UG_DLOG(SchurDebug, 2, "SchurComplementOperator::m_spOperator.layouts():\n" << *mat.layouts() << "\n")
@@ -124,10 +127,7 @@ init()
 	//	init solver for Dirichlet problem
 		if(m_spDirichletSolver.valid())
 		{
-			SmartPtr<VectorDebugWritingObject<vector_type> > dvwo
-				= m_spDebugWriterInner.template cast_dynamic<VectorDebugWritingObject<vector_type> >();
-			if(dvwo.valid())
-				dvwo->set_debug(m_spDebugWriterInner);
+			set_inner_debug(m_spDirichletSolver);
 			if(!m_spDirichletSolver->init(sub_operator(SD_INNER, SD_INNER)))
 				UG_THROW("SchurComplementOperator::init: Cannot init "
 						"Dirichlet solver for operator A.");

@@ -16,6 +16,8 @@
 
 namespace ug{
 
+
+
 template<typename TAlgebra>
 class SchurInverseWithOperator : public ISchurComplementInverse<TAlgebra>
 {
@@ -31,6 +33,7 @@ public:
 
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
 	{
+		op->set_skeleton_debug(m_linOpInv);
 		return m_linOpInv->init(op);
 	}
 
@@ -78,6 +81,7 @@ public:
 	{
 		m_exactSchurOp = new MatrixOperator<matrix_type, vector_type>;
 		op->compute_matrix(m_exactSchurOp->get_matrix());
+		op->set_skeleton_debug(m_linOpInv);
 		return m_linOpInv->init(m_exactSchurOp);
 	}
 
@@ -125,6 +129,7 @@ public:
 
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
 	{
+		op->set_skeleton_debug(m_linSolver);
 		SmartPtr<IPreconditioner<TAlgebra> > precond =
 				m_linSolver->preconditioner().template cast_dynamic< IPreconditioner<TAlgebra> > ();
 		UG_COND_THROW(!precond.valid(), "?");

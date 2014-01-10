@@ -117,6 +117,26 @@ class SchurComplementOperator
 	void compute_matrix(matrix_type &schur_matrix, double threshold=0.0);
 	virtual void set_debug(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter);
 
+	template<typename T>
+	void set_inner_debug(SmartPtr<T> op)
+	{
+		if(!m_spDebugWriterInner.valid()) return;
+		SmartPtr<VectorDebugWritingObject<vector_type> > dvwo
+				= op.template cast_dynamic<VectorDebugWritingObject<vector_type> >();
+		if(dvwo.valid())
+			dvwo->set_debug(m_spDebugWriterInner);
+	}
+
+	template<typename T>
+	void set_skeleton_debug(SmartPtr<T> op)
+	{
+		if(!m_spDebugWriterSkeleton.valid()) return;
+		SmartPtr<VectorDebugWritingObject<vector_type> > dvwo
+				= op.template cast_dynamic<VectorDebugWritingObject<vector_type> >();
+		if(dvwo.valid())
+			dvwo->set_debug(m_spDebugWriterSkeleton);
+	}
+
 protected:
 	// 	Operator that is inverted by this Inverse Operator
 	SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spOperator;
