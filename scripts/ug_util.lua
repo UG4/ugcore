@@ -708,9 +708,13 @@ function ug_assert(condition, msg)
 	if condition then
 		return
 	else
+		print("BACKTRACE:")
 		DebugBacktrace()
 		print("ASSERTION FAILED:")
-		print("    "..msg)
+		local f, l = test.getSourceAndLine()
+		print("     File:      "..f)
+		print("     Line:      "..l)
+		print("     Message:   "..msg)
 		assert(false)
 	end
 end
