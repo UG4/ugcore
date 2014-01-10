@@ -315,7 +315,7 @@ compute_matrix(matrix_type &schur_matrix, double threshold)
 	// resize matrix
 //	schur_matrix.resize_and_clear(n_skeleton, n_skeleton);
 
-	typename TAlgebra::matrix_type &mat = m_spOperator->get_matrix();
+	matrix_type &mat = m_spOperator->get_matrix();
 	schur_matrix.set_layouts(m_slicing.get_slice_layouts(mat.layouts(), SD_SKELETON));
 	schur_matrix.set_storage_type(PST_ADDITIVE);
 
@@ -323,24 +323,33 @@ compute_matrix(matrix_type &schur_matrix, double threshold)
 
 	PROGRESS_START(prog, n_skeleton, "computing explicit Schur Matrix ( " << n_skeleton << " )");
 	// compute columns s_k = S e_k
+	size_t blockSize = GetSize(rhs[0]);
+
 	for (int i=0; i<n_skeleton; ++i)
 	{
 		PROGRESS_UPDATE(prog, i);
-		sol.set(0.0); sol[i] = 1.0;
-		apply(rhs, sol);
-
-		double minNorm = threshold>0.0 ? threshold*BlockNorm(rhs[i]) : 0.0;
-		// copy to matrix
-		for (int j=0; j<n_skeleton; ++j)
+		for(size_t bi=0; bi<blockSize; bi++)
 		{
-			//schur_matrix(j, i) = rhs[j];
-			if(rhs[j] != 0.0 && (minNorm == 0.0 || BlockNorm(rhs[j]) > minNorm) )
-				schur_matrix(j, i) = rhs[j];
+			sol.set(0.0); BlockRef(sol[i], bi) = 1.0;
+			apply(rhs, sol);
+
+			double minNorm = threshold>0.0 ? threshold*BlockNorm(rhs[i]) : 0.0;
+			// copy to matrix
+			for (int j=0; j<n_skeleton; ++j)
+			{
+				//schur_matrix(j, i) = rhs[j];
+				if(rhs[j] != 0.0 && minNorm == 0.0 || BlockNorm(rhs[j]) > minNorm) )
+				{
+					typename matrix_type::value_type &m = schur_matrix(j, i);
+					for(size_t bj=0; bj<blockSize; bj++)
+						BlockRef(m, bj, bi) = BlockRef(rhs[j], bj);
+				}
+			}
 		}
 	}
 
 	PROGRESS_FINISH(prog);
-	IF_DEBUG(SchurDebug, 2)
+//	IF_DEBUG(SchurDebug, 2)
 	{ schur_matrix.print("Schur"); }
 
 
@@ -350,6 +359,7 @@ compute_matrix(matrix_type &schur_matrix, double threshold)
 		mat.layouts()->proc_comm().barrier();
 
 	}
+
 
 	if(m_spDebugWriterSkeleton.valid())
 		m_spDebugWriterSkeleton->write_matrix(schur_matrix, "SchurComplement.mat");
