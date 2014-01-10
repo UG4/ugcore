@@ -1,11 +1,426 @@
+//	y14 m01 d07
 /** \page pageUG4SetupUG_VRL How to build UG for VRL
 
 These pages give instructions and help in setting up and compiling \ug4 for VRL.
 simple and special usage as well for development.
 
 \note This page is at the moment a copy of some private notes that were made
-      during the try to build \ug for VRL at a windows pc. 
-            
+      during the try to build \ug4 for VRL at a windows pc. 
+ 
+\note there may are some bugs in displaying some path like
+      - C:   instead of
+      - C: \ Path \ to \ somewhere  (without whitespaces)
+      - if you have already downloaded \ug4 you can find this page under
+        \code docs/ug4/additional_pages/setup/ug_vrl/compilingForVRL.doxygen \endcode
+        at the end of the file are the german original notes
+
+\todo Make / Add an instruction for compiling \ug4 for VRL under mac os x, linux x86 and x64.  
+
+\todo Make this instructions more readable / structured       
+
+
+
+
+
+<h2>
+BUILDING NATIV \ug4 UNDER WINDOWS 7   <br>
+Effective 2012-06-27
+</h2>
+
+\section secPreparations Preparations 
+
+\subsection subsecYouNeed You need the following programms:
+  - git or svn 
+  - MSYS
+  - Mingw64
+  - Cmake
+  - Boost
+  - DependencyWalker
+  - \ug4 (from repository: fuji.gcsc.uni-frankfurt.de/ug4/trunk)
+
+\subsection subsecInstallHints Installation hints:
+  - 1.) \ug4
+    - create a folder <tt> ug </tt>
+    - open a terminal <tt> (cmd) </tt> 
+      - in the terminal go into the new created folder <tt> ug </tt>
+    - <tt> \b if svn </tt> in folder ug: (creates a folder <tt>release</tt>) (stabil version)
+	  \code svn co svn://fuji.gcsc.uni-frankfurt.de/ug4/tags/releases 	\endcode
+    - <tt> \b if git </tt> in folder ug: (creates a folder trunk) (current developer version)
+        <em> (only example  , check correct command) (replace USER through your own username) </em>
+	  \code	git svn clone USER@fuji.gcsc.uni-frankfurt.de/ug4/trunk 	\endcode
+    - create in the folder ( <tt>ug</tt> or <tt>releases</tt>) 2 new folders. <br>
+      <tt>builds64</tt> for the 64-bit-compilation
+      <tt>builds32</tt> for the 32-bit-compilation
+
+
+  - 2.) \b MSYS-Mingw (32bit) / \b Mingw64 (as far as remembered)
+    - install first the 32bit version of <em> MSYS - MinGW -Bundle </em> into <tt> C:/MinGW </tt>
+    - install <em> MinGW64 </em> into <tt> C:/MinGW64 </tt>
+    - copy <tt> mingw32-make </tt> into folder <tt> C:/MinGW64/bin </tt> and rename it into <tt> make </tt>
+
+
+
+
+
+\section secBuildingNativUGwindows Building ug4 for windows
+
+APPROACH: BUILDING NATIV \ug4 UNDER WINDOWS 7 64bit <br>
+(for 32bit = x86 and 64bit = x64)  &&&  APPROACH: CREATING VRL-UG.jar <br>
+Effective 2012-06-27  , VRL=0.4.1
+
+
+<!-- - 1.) <em> update \ug4 </em> -->
+\subsection subsecUpdateUG update ug4
+     - open git-bash
+     - \code cd /C/Apps/ug/trunk \endcode
+     - \code git svn rebase \endcode
+
+<!-- - 2.) <em> configure \ug4  </em> --> 
+\subsection subsecConfigUG configure ug4 
+ 
+ 
+ <!-- just to be complete translated
+  Additional Information/Notices: 
+  - set manually the compiler that should be used 
+  - problem with cmake, can not find libgmp-10.dll (2012-11-06) 
+  - all tries failed <br>
+  
+
+   CC=/c/MinGW/bin/gcc CXX=/c/MinGW/bin/g++ cmake 
+
+   CC=/c/MinGW/bin/gcc CXX=/c/MinGW/bin/g++ cmake ../ug4.0.2 -G"MinGW Makefiles" -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--kill-at -DTARGET=vrl -DDEBUG=OFF -DLAPACK=OFF -DBLAS=OFF -DINTERNAL_BOOST=OFF -DEMBEDDED_PLUGINS=ON -Dd3f=OFF -DEMBED_SVN_REV=OFF -DReceptorKinetic=OFF -DLinearElastoPlasticity=OFF
+
+  in CMD  C : \ MinGW \ bin \ (without whitespaces) <br>
+  cmake ../ug4.0.2 -G"MinGW Makefiles" -DCMAKE_CXX_COMPILER=C:\MinGW\bin\g++ -DCMAKE_C_COMPILER=C:\MinGW\bin\gcc -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--kill-at -DTARGET=vrl -DDEBUG=OFF -DLAPACK=OFF -DBLAS=OFF -DINTERNAL_BOOST=OFF -DEMBEDDED_PLUGINS=ON -Dd3f=OFF -DEMBED_SVN_REV=OFF -DReceptorKinetic=OFF -DLinearElastoPlasticity=OFF
+  -->
+
+
+\subsubsection subsubsecConfigUG32bit configure ug4 32bit
+<!--  - a) <em> 32bit </em> -->
+   - changing into folder with the cmake config files
+   \code cd ../builds32/  \endcode       
+   - shows current configuration
+   \code cmake ../trunk/  \endcode      
+   - generate makefile
+   \code cmake ../trunk/ -G"MinGW Makefiles" -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--kill-at -DTARGET=vrl -DDEBUG=OFF -DLAPACK=OFF -DBLAS=OFF -DINTERNAL_BOOST=OFF -DEMBEDDED_PLUGINS=ON -Dd3f=OFF -DEMBED_SVN_REV=OFF -DReceptorKinetic=ON -DLinearElastoPlasticity=OFF \endcode
+
+\subsubsection subsubsecConfigUG64bit configure ug4 64bit
+<!--  - b) <em> 64bit </em> -->
+   - changing into folder with the cmake config files
+   \code cd ../builds64/ \endcode
+   - shows current configuration
+   \code cmake ../trunk/ \endcode
+   - generate makefile
+   \code cmake ../trunk/ -G"MSYS Makefiles" -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--kill-at -DTARGET=vrl -DDEBUG=OFF -DLAPACK=OFF -DBLAS=OFF -DINTERNAL_BOOST=OFF -DEMBEDDED_PLUGINS=ON -Dd3f=OFF -DEMBED_SVN_REV=OFF -DReceptorKinetic=ON -DLinearElastoPlasticity=OFF \endcode
+
+\subsection subsecCompileUG compile ug4 
+\subsubsection subsubsecCompileUG32bit compile ug4 32bit 
+<!-- - 3.a) <em> compile \ug4 32bit </em> -->
+
+   - set environment variable MINGW to \code C:\MinGW \endcode
+   - change temporal the environment variable MSYS that way that <tt> sh.exe </tt> is NO LONGER in the PATH <br>
+     e.g: add "-pp" at the back. The result is that there is no real path to <tt> sh.exe </tt>
+   - open a new terminal (cmd)
+     - \code cd\ \endcode
+     - \code cd Apps/ug/builds32/ \endcode 
+     ( resp. e.g. 
+     \code cd ../../Apps/ug-svn/releases/build-4-0-2--32 \endcode 
+     )
+     - \code mingw32-make \endcode
+
+\subsubsection subsubsecCompileUG64bit compile ug4 64bit 
+<!-- - 3.b) <em> compile \ug4 64bit </em> -->
+
+   - set the environment variable MINGW to \code C:\mingw64 \endcode
+   - change the environment variable MSYS that way that sh.exe is in PATH (e.g: delete "-pp")
+   - open new terminal (cmd)
+     - \code cd\ \endcode
+     - \code cd Apps/ug/builds64/ \endcode
+     - \code make \endcode
+
+<!-- - 4.)  <em> native \ug4 zip </em> -->
+\subsection subsecZipUG zip ug4 
+     - create a folder <tt> windows </tt>
+     - create in <tt> windows </tt> 2 folders <tt> x64 </tt> and <tt> x86 </tt>
+     
+<!--  - a) <em> 32bit </em> -->
+\subsubsection subsubsecZipUG32bit zip ug 32bit 
+    - copy the content (libug.dll and folder plugins) from <tt> ug/trunk/bin </tt> to <tt> windows/x86 </tt>
+    - open in the programm <tt> DependencyWalker </tt> the file <tt> libug.dll </tt> from <tt> windows/x86 </tt> 
+    - copy all additional needed .dll files (which were shown by DependencyWalker) into <tt> windows/x86 </tt>
+    - zip the \em content (not the folder) of <tt> windows/x86 </tt> including the plugins folders to <tt> natives.zip </tt> in the folder <tt> windows/x86 </tt>
+    - make a copy of the folder <tt> windows </tt> e.g. with the name <tt> windows-libs </tt>
+    - delete all inside of <tt> windows/x86 </tt> except <tt> natives.zip </tt>
+     
+<!--  - b) <em> 64bit </em> -->
+\subsubsection subsubsecZipUG64bit zip ug 64bit
+    - copy the content (libug.dll and folder plugins) from <tt> ug/trunk/bin </tt> to <tt> windows/x64 </tt>
+    - open in the programm <tt> DependencyWalker </tt> the file <tt> libug.dll </tt> from <tt> windows/x64 </tt> 
+    - copy all additional needed .dll files (which were shown by DependencyWalker) into <tt> windows/x64 </tt>
+    - zip the \em content (not the folder) of <tt> windows/x64 </tt> including the plugins folders to <tt> natives.zip </tt> in the folder <tt> windows/x64 </tt>
+    - make a copy of the folder <tt> windows </tt> e.g. with the name <tt> windows-libs </tt>
+    - delete all inside of <tt> windows/x64 </tt> except <tt> natives.zip </tt>
+
+\subsection subsecBuildingVRLug Building VRL-UG
+
+<!-- - 5.a)  <em> building VRL-UG for windows </em> -->
+\subsubsection subsubsecBuildingVRLugForWindows Building VRL-UG for windows
+    - copy the folder <tt> windows </tt> into <tt>VRL-UG-JAVA-PROJECT</tt> into the folder 
+ 	  \code VRL-UG/src/eu/mihosoft/vrl/plugin/content/natives \endcode
+
+<!-- - 5.b)  <em> building VRL-UG for ... </em> (other OS) -->  
+\subsubsection subsubsecBuildingVRLugForOtherOS Building VRL-UG for other OS
+    - ... (repeat the above steps, modified for other OS)
+
+<!-- - 6.) <em> compiling VRL-UG </em> -->
+\subsection subsecCompilingVRLug Compiling VRL-UG
+    - open <tt> VRL-UG-JAVA-PROJECT </tt> with an IDE (like Netbeans or Eclipse)
+    - compile the project (e.g. via Clean & Build)
+    - the generated file <tt> VRL-UG.jar </tt>can be found under <tt> VRL-UG/dist </tt>
+
+
+
+
+
+
+
+\section secCreatingVRLstudioBundleWindows Creating VRL-Studio-Bundle for windows
+
+APPROACH: CREATING A WINDOWS VRL-STUDIO-BUNDLE for 32bit = x86 and 64bit = x64
+Effective 2012-06-27  , VRL=0.4.1
+
+<!-- 0.) <em> create VRL-Studio </em> -->
+\subsection subsecCreateVRLstudio Create VRL-Studio
+    - open <tt> VRL-UG-JAVA-PROJECT </tt> with an IDE (like Netbeans or Eclipse)
+    - compile the project (e.g. via Clean & Build)
+    - the final file "VRL-UG.jar" for windows can be found under "VRL-Studio/dist-final/windows"
+    - copy the content of "VRL-Studio/dist-final/windows" (folder VRL-Studio) in a folder
+      e.g. "Documents/stable-versions/EVENT/windows" 
+       - whereby EVENT should be replaced via e.g. "2012-06-27" or an other distinctive identifier
+
+<!-- 1.) <em> coping Java (JRE) into the bundle </em> -->
+\subsection subsecCopingJavaIntoBundle Coping Java (JRE) into the bundle
+    - download from the java site the current JRE version for 32bit (i586) and for 64bit (x64)
+      - (notice: currentlly we use JRE 7)
+    - install the JRE temporally into a folder e.g. "C:/temp/jre/xYY" whereby YY = 86 or 64 depending the JRE version
+    - copy the folder "jre" into "Documents/stable-versions/EVENT/windows/VRL-Studio/.application"
+       - whereby EVENT should be replaced via e.g. "2012-06-27" or an other distinctive identifier
+
+<!-- 2.) <em> supply plugins </em> -->
+\subsection subsecSupplyPlugins Supply plugins
+    - create a folder "plugin-updates" under 
+	\code VRL-Studio/.application/resources/studio-resources/property-folder-template \endcode
+    - copy all supplied plugins in the new created folder "plugin-updates"
+    
+<!-- 3.) <em> HELP-HTML-SITES for VRL-Studio  </em>  (additional informations to check) -->
+\subsection subsecHelpHTMLsitesForVRLstudio  HELP-HTML-SITES for VRL-Studio  (additional informations to check)
+	- if help sites should be added there need to be folder named "help" under 
+	  \code VRL-Studio/.application/resources/studio-resources/ \endcode
+	  where the help sites need to be copied into
+    
+<!-- 4.) <em> zip VRL-Studio </em> -->
+\subsection subsecZipVRLstudio Zip VRL-Studio
+	- zip the VRL-Studio folder under "Documents/stable-versions/EVENT/windows"
+	- rename the zip file into "VRL-Studio-windows.zip" to prevent confuisions with other studio bundles for mac and linux
+
+<!-- 5.) <em> how to share and execute the VRL-Studio-Bundle </em> -->
+\subsection subsecShareAndExecuteVRLstudioBundle How to share and execute the VRL-Studio-Bundle
+    - copy / download the zip file "VRL-Studio-windows.zip" to (almost) any place at your computer e.g. a download folder
+    - \c unzip the file "VRL-Studio-windows.zip" (and don't open it only !)
+    - open the extracted folder and start run.bat (via double clicking on it or calling it from a terminal)
+
+
+
+
+
+
+\section secOlderOtherInformations Older and other informations / hints / tips
+
+to create a deliverable version of vrl studio, use the following instruction:
+
+\subsection subsecUpdate update
+  - checkout from the repositories the stable versions / tags of 
+    - the plugins
+    - vrl
+    - vrl studio
+  - build the files "project".jar
+    - \remarks normally you can find the jars under "project-folder"/dist or "project-folder"/dist-final
+
+
+\subsubsection subsubsecVRLug VRL-UG
+
+   \warning vrl-ug has native dependencies.
+   			This is why need to compile native \ug4 at each OS (operating system) and OS-bit version
+   			we want to support. For the moment these are:
+   			- mac os x
+   			- linux x64 + x86
+   			- windows x64 + x86
+			
+\paragraph paraVRLugForWindows VRL-UG for windows
+     Approach:
+     - a) add a jre7-32bit for x86 and a jre7-64bit for x64 into the vrl-studio.
+       - these folders can be find as templates under
+         - C:\Apps\VRL-Studio\VRL-Studio\resources\application-template\windows\VRL-Studio\.application
+       - and are build under
+         - C:\Apps\VRL-Studio\VRL-Studio\dist-final\windows\VRL-Studio\.application
+         
+         \remarks 
+         - corresponding to that the starting script need to point at these java version
+         - instead of the java version that may be installed on that OS
+           - instead of "java" (System Java Version) there need to be "jre/xYY/bin/java" written
+         
+     - b) the complied version of native \ug4 need to be examined with the programm \em dependencywalker
+       - copy the needed .dll files into the corresponding folder <br>
+         "path/to/repo"\VRL-UG4\VRL-UG\src\eu\mihosoft\vrl\natives\windows\"bitVERSION"
+          
+         EXAMPLE I)   32bit:
+         - needed .dll  files:  \code libgcc_s_dw2-1.dll   libstdc++6.dll \endcode
+         - can be found under:  \code C:\MinGW\bin \endcode
+         - copy into:			\code C:\Apps\VRL-UG4\VRL-UG\src\eu\mihosoft\vrl\natives\windows\x86 \endcode
+     
+         EXAMPLE II)  64bit:
+         - needed .dll  files:  \code "NONE" \endcode
+         - can be found under:  \code "" \endcode
+         - copy into:			\code C:\Apps\VRL-UG4\VRL-UG\src\eu\mihosoft\vrl\natives\windows\x64 \endcode
+     
+     - c) after that copy \em libug4.dll and the foder \em plugins
+		
+	   - EXAMPLE  64bit:
+       - from:  \code C:\Apps\ug\releases\bin64-backup \endcode
+       - to:    \code C:\Apps\VRL-UG4\VRL-UG\src\eu\mihosoft\vrl\natives\windows\x64 \endcode
+        
+\subsubsection subsubsecVRLugAPI VRL-UG-API        
+    Can be created on any OS with a stable versions of VRL-UG and VRL-Studio.
+    After installing VRL-UG as plugin in VRL-Studio restart the studio and 
+    the VRL-UG-API will be automatically generated.
+
+\subsubsection subsubsecVRLuserData VRL-USERDATA
+    The plugin VRL-USERDATA needs for compiling (in an IDE) the stable versions of VRL-UG and VRL-UG-API.
+
+\subsection subsecStructuringPlugins Structuring the plugins 
+    After creating the "plugin".jar files they need to be copied into:
+    - "OS"/plugin-updates
+    - example: linux/plugin-updates
+
+\subsection subsecCopyPluginUpdatesIntoStudio Coping plugin-updates into VRL-Studio
+    copy the folder "OS"/plugin-updates into:
+    \code "pfad/zum/repo"/VRL-Studio/VRL-Studio/dist-final/"OS"/VRL-Studio/.application/resources/studio-resources/property-folder-template \endcode
+
+     Example:
+     \code /Users/christianpoliwoda/Apps/VRL-Studio/VRL-Studio/dist-final/linux/VRL-Studio/.application/resources/studio-resources/property-folder-template \endcode
+
+	<p>
+	\warning MAC
+	\code "path/to/repo"/VRL-Studio/VRL-Studio/dist-final/osx/ \endcode
+	- in folder \c osx right click VRL-Studio and choose in the context / popup menu "show package content"
+	- navigate to:
+	  \code /Contents/Resources/Java/resources/studio-resources/property-folder-template \endcode
+      
+    Example on MAC: complete path
+     \code /Users/christianpoliwoda/Apps/VRL-Studio/VRL-Studio/dist-final/osx/VRL-Studio.app/Contents/Resources/Java/resources/studio-resources/property-folder-template \endcode
+    </p>
+
+\subsection subsecZipVRLstudios Zip VRL-Studio
+    - create for each OS a zip file under:
+      \code "pfad/zum/repo"/VRL-Studio/VRL-Studio/dist-final/"OS"/ \endcode
+    - rename the zip files into:
+      \code VRL-Studio-"OS".zip \endcode
+
+    Example:
+     \code /Users/christianpoliwoda/Apps/VRL-Studio/VRL-Studio/dist-final/linux/VRL-Studio-linux.zip \endcode
+    
+
+
+<!-- ------------------------------------------------------------------- -->
+<h3> notice </h3>
+
+<p>
+folder stucture:
+ - ug/builds
+ - ug/builds32
+ - ug/releases
+ - ug/trunk
+
+in builds:
+
+\code cmake ../trunk/ -G"MinGW Makefiles" -DTARGET=vrl -DLAPACK=OFF -DBLAS=OFF -DINTERNAL_BOOST=OFF -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--kill-at \endcode
+
+this command sets (my) needed compiling options.
+<tt> -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--kill-at </tt> removes all <tt> @("at") </tt> signs
+which where added at native methods of \ug4.
+
+the following programms need to be 
+ - installed at the OS
+ - and entered in the PATH variable
+   - java jdk
+   - boost
+   - cmake
+   - mingw
+   - mingw64 (http://sourceforge.net/apps/trac/mingw-w64/wiki/Make)
+
+\notice java needs to be entered before the windows system variables in the path variable.
+        otherwise you get a message JNI couldn't be found.
+
+to start the compilation:
+\code mingw32-make \endcode
+
+</p>
+
+<!-- ------------------------------------------------------------------- -->
+<h3>  notice </h3>
+
+<p>
+in  VRL-UG4/VRL-UG/src/eu/mihosoft/vrl/natives      /windows/x64  and or /windows/x68
+additional libs should be added in above named folders.
+ 
+which libs these are you can find out with the programm dependencywalker, http://www.dependencywalker.com/
+if you open libug4.dll in it.
+
+e.g. you find libgcc_s_dw2-1.dll and libstdc++-6.dll under MinGW/bin
+
+if you want to deliver the vrl-studio with your version of java jre 
+you need to copy your jre7 folder of your java installation into:
+
+\code \VRL-Studio\VRL-Studio\resources\application-template\windows\VRL-Studio\.application \endcode
+
+after that you need to change the starting scripts (run.bat and run-no3d.bat) in:
+\code \VRL-Studio\VRL-Studio\resources\application-template\windows\VRL-Studio \endcode
+
+from: \code   start /realtime java   ......(additional entries) \endcode
+to:   \code   start /realtime jre7/bin/java  ......(additional entries) \endcode
+<p>
+
+<!-- ------------------------------------------------------------------- -->
+<h3>  notice </h3>
+
+
+\code cmake ../trunk -DCMAKE_CXX_FLAGS=-fPIC -DCMAKE_C_FLAGS=-fPIC -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--kill-at \endcode
+
+to solve a problem that can occur at starting vrl-studio with vrl-ug plugin on windows 32bit.
+you need to use above command for native ug (c++)
+
+
+<!-- ------------------------------------------------------------------- -->
+<h3>  notice </h3>
+
+<p>
+alternative makefile under windos with internal boost if directly checkout with svn
+
+\code cmake ../ug4.0.0/ -G"MSYS Makefiles" -DLAPACK=OFF -DBLAS=OFF -DTARGET=vrl -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--kill-at \endcode
+
+
+
+in folder ug: (creates a folder releases)
+
+\code svn co svn://fuji.gcsc.uni-frankfurt.de/ug4/tags/releases \endcode
+</p>
+
+<!-- ------------------------------------------------------------------- -->
+
+
+<!--   ORIGINAL GERMAN NOTES as backup
+
+
 
 -------------------------------------
 NATIV UG UNTER WINDOWS 7 BAUEN    
@@ -351,6 +766,12 @@ im Ordner ug: (erzeugt einen ordner release)
 svn co svn://fuji.gcsc.uni-frankfurt.de/ug4/tags/releases
 
 ------------------------------------------------------------------------------
+
+ 
+
+--> <!-- END BACKUP -->
+
+
 
        
 
