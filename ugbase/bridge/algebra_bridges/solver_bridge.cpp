@@ -124,6 +124,7 @@ static void Algebra(Registry& reg, string grp)
 			.template add_constructor<void (*)(double, double)>("reductionAlwaysAccept#worseThenAverage")
 			.add_method("set_reduction_always_accept", &T::set_reduction_always_accept)
 			.add_method("set_reinit_when_worse_then_average", &T::set_reinit_when_worse_then_average)
+			.add_method("print_information", &T::print_information)
 			.set_construct_as_smart_pointer(true);
 
 		reg.add_class_to_group(name, "AutoLinearSolver", tag);
