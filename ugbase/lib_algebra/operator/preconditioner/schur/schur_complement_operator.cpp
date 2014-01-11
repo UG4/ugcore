@@ -338,7 +338,7 @@ compute_matrix(matrix_type &schur_matrix, double threshold)
 			for (int j=0; j<n_skeleton; ++j)
 			{
 				//schur_matrix(j, i) = rhs[j];
-				if(rhs[j] != 0.0 && minNorm == 0.0 || BlockNorm(rhs[j]) > minNorm) )
+				if(rhs[j] != 0.0 && minNorm == 0.0 || BlockNorm(rhs[j]) > minNorm)
 				{
 					typename matrix_type::value_type &m = schur_matrix(j, i);
 					for(size_t bj=0; bj<blockSize; bj++)
