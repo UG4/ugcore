@@ -247,7 +247,7 @@ class LU
 
 		bool apply_lu(vector_type &x, const vector_type &b)
 		{
-			if(A.num_rows() == 0) { m_size = 0; return true; }
+			if(m_pMatrix->num_rows() == 0) return true;
 			try{
 			PROFILE_BEGIN_GROUP(LU_apply_lu, "algebra lu");
 #ifndef NDEBUG
