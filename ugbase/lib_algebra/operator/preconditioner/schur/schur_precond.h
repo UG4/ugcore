@@ -118,10 +118,6 @@ public:
 		void set_schur_complement_operator(SmartPtr<SchurComplementOperator<algebra_type> > scop)
 		{ m_spSchurComplementOp = scop; }
 
-		//	define an approximation for schur complement
-		void set_schur_complement_approx(SmartPtr<MatrixOperator<matrix_type, vector_type> > S)
-		{ m_spSkeletonMatrix = S; }
-
 	///	sets the Dirichlet solver (forward to Schur complement)
 		void set_dirichlet_solver(SmartPtr<ILinearOperatorInverse<vector_type> > dirichletSolver)
 		{ m_spDirichletSolver = dirichletSolver; }
@@ -200,9 +196,6 @@ private:
 	///	Local Schur complement for each subdomain
 	SmartPtr<SchurComplementOperator<algebra_type> > m_spSchurComplementOp;
 
-	/// Approximation of the Schur complement for preconditioner
-	SmartPtr<MatrixOperator<matrix_type,vector_type> > m_spSkeletonMatrix;
-
 	/// Solver Dirichlet problems \f$A_{II}\f$ (also used in Schur complement)
 	SmartPtr<ILinearOperatorInverse<vector_type> > m_spDirichletSolver;
 
@@ -215,8 +208,6 @@ private:
 
 	//	pointer to Domain decomposition info object
 	//	pcl::IDomainDecompositionInfo* m_pDDInfo;
-
-	int m_iterCnt;
 };
 
 

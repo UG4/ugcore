@@ -44,7 +44,6 @@ template <typename TAlgebra>
 SchurPrecond<TAlgebra>::SchurPrecond() :
 	//m_spOperator(NULL),
 	m_spSchurComplementOp(NULL),
-	m_spSkeletonMatrix(NULL),
 	m_spDirichletSolver(NULL),
 	m_spSkeletonSolver(NULL)
 {
@@ -110,15 +109,7 @@ init_skeleton_solver()
 {
 	try{
 	SCHUR_PROFILE_BEGIN(SchurPrecond_InitSkeletonSolver);
-	// Extension for preconditioned Schur complement solve
-	//SmartPtr<IPreconditioner<TAlgebra> > precond = new Jacobi<TAlgebra>();
-/*
-	SmartPtr<IPreconditioner<TAlgebra> > precond = new Jacobi<TAlgebra>(0.0);
-	precond->set_approximation(m_spSkeletonMatrix);
-	precond->set_damp(0.5);
-	m_spSkeletonSolver->set_preconditioner(precond);
 
-*/
 	if(!m_spSkeletonSolver->init(m_spSchurComplementOp))
 		UG_THROW("SchurPrecond::init: Failed to init skeleton solver.");
 
@@ -324,9 +315,9 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	// no skeleton => direct solve is sufficient
 	if (n_skeleton == 0)
 	{
-		UG_LOG("\n% 'SchurPrecond::step() - direct solve':");
+		UG_LOG("\n% 'SchurPrecond::step() - direct solve':'\n");
 		c.set_storage_type(PST_CONSISTENT);
-		m_spDirichletSolver->apply(c, d);
+		bSuccess = m_spDirichletSolver->apply(c, d);
 		return bSuccess;
 	}
 
