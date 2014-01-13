@@ -223,15 +223,9 @@ public:
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
 	{
 		if(m_exactSchurOp.valid() == false)
-		{
 			m_exactSchurOp = new SchurComplementMatrixOperator<TAlgebra, matrix_type, vector_type>(op);
-			m_exactSchurOp->init();
-		}
 		else
-		{
 			m_exactSchurOp->set_op(op);
-	//		m_exactSchurOp->init();
-		}
 		return m_linOpInv->init(m_exactSchurOp);
 	}
 
