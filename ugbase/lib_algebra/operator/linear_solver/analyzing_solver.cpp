@@ -4,6 +4,12 @@
 namespace ug{
 void checksub(const CPUAlgebra::matrix_type &A)
 {
+	if(A.num_rows() == 0)
+	{
+		UG_LOG("EMPTY MATRIX!\n");
+		return;
+	}
+	A.print("A");
 	UG_LOG(reset_floats);
 	size_t N = A.num_rows();
 	// check isolated

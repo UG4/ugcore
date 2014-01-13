@@ -129,6 +129,11 @@ class AnalyzingSolver
 			check(*op);
 		}
 		virtual const char *name() const { return m_pLinearOperatorInverse->name(); }
+
+		virtual std::string config_string() const
+		{
+			return "AnalyzingSolver " + m_pLinearOperatorInverse->config_string();
+		}
 	private:
 		SmartPtr<ILinearOperatorInverse<X,Y> > m_pLinearOperatorInverse;
 };
