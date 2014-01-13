@@ -47,7 +47,7 @@ class AutoLinearSolver
 	(double desiredDefect, double desiredReduction)
 	{
 		m_bInited=-1;
-		m_N = 0;
+//		m_N = 0;
 //		m_reductionAlwaysAccept = reductionAlwaysAccept;
 //		m_worseThenAverage = worseThenAverage;
 		m_desiredDefect = desiredDefect;
@@ -57,7 +57,7 @@ class AutoLinearSolver
 	AutoLinearSolver()
 	{
 		m_bInited=-1;
-		m_N = 0;
+//		m_N = 0;
 		m_reductionAlwaysAccept = 0.001;
 		m_worseThenAverage = 2.0;
 		m_initCalled = m_initsDone = 0;
@@ -75,7 +75,7 @@ private:
 	double m_reductionAlwaysAccept;
 	double m_worseThenAverage;
 	int m_bInited;
-	size_t m_N;
+//	size_t m_N;
 	SmartPtr<ILinearOperator<vector_type,vector_type> > pJ;
 	vector_type m_u;
 	double m_avgReduction;
@@ -105,38 +105,54 @@ private:
 
 		virtual bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J, const vector_type& u)
 		{
+			m_u = u;
+			return init_op(J);
+		}
+		virtual bool init(SmartPtr<ILinearOperator<vector_type,vector_type> > J)
+		{
+			m_u.resize(0);
+			return init_op(J);
+		}
+
+		bool init_op(SmartPtr<ILinearOperator<vector_type,vector_type> > J)
+		{
+			UG_LOG("ALS:init\n");
 			m_initCalled++;
 			if(m_bInited == -1)
 			{
 				m_bInited=false;
 				pJ = J;
-				reinit(u);
+				reinit();
 			}
 			else
 			{
 				m_bInited=false;
 				pJ = J;
-				if(u.size() != m_N)
-					reinit(u);
-				else
-					m_u = u;
+//				if(u.size() != m_N)
+//					reinit(u);
+//				else
+//					m_u = u;
 			}
 
 			return true;
 		}
 
-		bool reinit(const vector_type &u)
+		bool reinit()
 		{
 			if(m_bInited) return true;
 			m_bInited = true;
+			UG_LOG("ALS:reinit\n");
 
 			double tStart = get_clock_s();
-			if(!base_type::init(pJ, u)) return false;
+			pJ->init();
+			if(m_u.size() != 0.0)
+			{ 	if(!base_type::init(pJ, m_u)) return false; }
+			else if(!base_type::init(pJ)) return false;
 			m_lastInitTime = get_clock_s()-tStart;
 
 			m_initsDone++;
 
-			m_N = u.size();
+//			m_N = u.size();
 
 			return true;
 		}
@@ -148,22 +164,30 @@ private:
 			if(preconditioner().valid()) {
 				LS_PROFILE_BEGIN(LS_ApplyPrecond);
 
-				if(!preconditioner()->apply_update_defect(c, d))
+				if(!preconditioner()->apply(c, d))
 				{
 					UG_LOG("ERROR in 'LinearSolver::apply': Iterator "
 							"Operator applied incorrectly. Aborting.\n");
 					return false;
 				}
+				linear_operator()->apply_sub(d, c);
 				LS_PROFILE_END(LS_ApplyPrecond);
 			}
 
 			return true;
 		}
 
+		virtual bool apply(vector_type& x, const vector_type& b)
+		{
+			UG_LOG("ALS:apply\n");
+			SmartPtr<vector_type> spB = b.clone_without_values();
+			*spB = b;
+			return apply_return_defect(x, *spB);
+		}
 	///	solves the system and returns the last defect
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
-
+			UG_LOG("ALS:return_defect\n");
 			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
 
 			#ifdef UG_PARALLEL
@@ -198,7 +222,6 @@ private:
 			write_debug(x, name.c_str());
 
 			// 	Iteration loop
-
 
 			if(m_bInited == false)
 			{
@@ -256,7 +279,7 @@ private:
 							UG_LOG("reduction = " << reduction << "\n");
 //							UG_LOG(" timeForOriginalAlgorithm = " << timeForOriginalAlgorithm << " s\n");
 							UG_LOG(" spentTime                = " << spentTime << " s\n");
-							reinit(m_u);
+							reinit();
 							break;
 						}
 						else
