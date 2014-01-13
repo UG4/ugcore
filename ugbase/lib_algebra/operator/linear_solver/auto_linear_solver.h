@@ -116,7 +116,7 @@ private:
 
 		bool init_op(SmartPtr<ILinearOperator<vector_type,vector_type> > J)
 		{
-			UG_LOG("ALS:init\n");
+			//UG_LOG("ALS:init\n");
 			m_initCalled++;
 			if(m_bInited == -1)
 			{
@@ -141,7 +141,7 @@ private:
 		{
 			if(m_bInited) return true;
 			m_bInited = true;
-			UG_LOG("ALS:reinit\n");
+			//UG_LOG("ALS:reinit\n");
 
 			double tStart = get_clock_s();
 			pJ->init();
@@ -179,7 +179,7 @@ private:
 
 		virtual bool apply(vector_type& x, const vector_type& b)
 		{
-			UG_LOG("ALS:apply\n");
+			//UG_LOG("ALS:apply\n");
 			SmartPtr<vector_type> spB = b.clone_without_values();
 			*spB = b;
 			return apply_return_defect(x, *spB);
@@ -187,7 +187,7 @@ private:
 	///	solves the system and returns the last defect
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
-			UG_LOG("ALS:return_defect\n");
+			//UG_LOG("ALS:return_defect\n");
 			LS_PROFILE_BEGIN(LS_ApplyReturnDefect);
 
 			#ifdef UG_PARALLEL
