@@ -163,6 +163,105 @@ protected:
 };
 
 
+
+template <typename TAlgebra, typename M, typename X, typename Y = X>
+class SchurComplementMatrixOperator : public MatrixOperator<M, X, Y>
+{
+	typedef M matrix_type;
+
+	SmartPtr<SchurComplementOperator<TAlgebra> > m_op;
+public:
+	bool invalid;
+	SchurComplementMatrixOperator(SmartPtr<SchurComplementOperator<TAlgebra> > op)
+	{
+		set_op(op);
+	}
+
+	void set_op(SmartPtr<SchurComplementOperator<TAlgebra> > op)
+	{
+		m_op = op;
+		invalid = true;
+	}
+
+// 	Init Operator J(u)
+	virtual void init(const X& u) { init(); }
+
+// 	Init Operator L
+	virtual void init()
+	{
+		if(invalid)
+		{
+			m_op->compute_matrix(get_matrix());
+			invalid = false;
+		}
+	}
+
+// 	Apply Operator f = L*u (e.g. d = J(u)*c in iterative scheme)
+	virtual void apply(Y& f, const X& u) {m_op->apply(f,u);}
+
+// 	Apply Operator, i.e. f = f - L*u;
+	virtual void apply_sub(Y& f, const X& u) {m_op->apply_sub(f,u);}
+
+// 	Access to matrix
+	virtual M& get_matrix() {return *this;};
+};
+
+// not completely working at the moment
+template<typename TAlgebra>
+class SchurInverseWithAutoFullMatrix : public ISchurComplementInverse<TAlgebra>
+{
+public:
+	typedef TAlgebra algebra_type;
+	typedef typename TAlgebra::vector_type vector_type;
+	typedef typename TAlgebra::matrix_type matrix_type;
+
+	SchurInverseWithAutoFullMatrix(SmartPtr<ILinearOperatorInverse<vector_type> > linOpInv )
+	{
+		m_linOpInv = linOpInv;
+	}
+
+	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
+	{
+		if(m_exactSchurOp.valid() == false)
+		{
+			m_exactSchurOp = new SchurComplementMatrixOperator<TAlgebra, matrix_type, vector_type>(op);
+			m_exactSchurOp->init();
+		}
+		else
+		{
+			m_exactSchurOp->set_op(op);
+	//		m_exactSchurOp->init();
+		}
+		return m_linOpInv->init(m_exactSchurOp);
+	}
+
+	virtual bool apply(vector_type& u, const vector_type& f)
+	{
+		return m_linOpInv->apply(u, f);
+	}
+
+	virtual bool apply_return_defect(vector_type& u, vector_type& f)
+	{
+		return m_linOpInv->apply_return_defect(u, f);
+	}
+
+	virtual std::string config_string() const
+	{
+		std::stringstream ss; ss << "SchurInverseWithAutoFullMatrix\n";
+		ss << " Solver: " << ConfigShift(m_linOpInv->config_string()) << "\n";
+		return ss.str();
+	}
+	virtual bool supports_parallel() const
+	{
+		return m_linOpInv->supports_parallel();
+	}
+
+protected:
+	SmartPtr<SchurComplementMatrixOperator<TAlgebra, matrix_type, vector_type> > m_exactSchurOp;
+	SmartPtr<ILinearOperatorInverse<vector_type> > m_linOpInv;
+
+};
+
 }
 
 #endif /* UG_PARALLEL */
