@@ -219,6 +219,9 @@ void CollectMatrixOnOneProc(const matrix_type &A, matrix_type &collectedA, Index
 	PROFILE_FUNC_GROUP("algebra parallelization");
 	UG_DLOG(LIB_ALG_AMG, 1, "\n*********** SendMatrix ************\n\n");
 	std::vector<int> srcprocs;
+	masterLayout.clear();
+	slaveLayout.clear();
+
 	const pcl::ProcessCommunicator &pc = A.layouts()->proc_comm();
 
 	ParallelNodes PN(A.layouts(), A.num_rows());
