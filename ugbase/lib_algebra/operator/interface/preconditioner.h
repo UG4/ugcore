@@ -98,13 +98,13 @@ class IPreconditioner :
 	public:
 	///	default constructor
 		IPreconditioner() :
-			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false)
+			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
 		{};
 
 	///	constructor setting debug writer
 		IPreconditioner(SmartPtr<IDebugWriter<algebra_type> > spDebugWriter) :
 			DebugWritingObject<TAlgebra>(spDebugWriter),
-			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false)
+			m_spDefectOperator(NULL), m_spApproxOperator(NULL), m_bInit(false), m_bOtherApproxOperator(false)
 		{};
 
 	protected:
@@ -188,9 +188,7 @@ class IPreconditioner :
 		{
 		// 	Remember operator
 			m_spDefectOperator = L;
-
-			if (m_spApproxOperator.valid())
-				return init(m_spApproxOperator);
+			if(m_bOtherApproxOperator) return true;
 
 		//	cast to matrix based operator
 			SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp =
@@ -221,8 +219,7 @@ class IPreconditioner :
 		{
 		// 	Remember operator
 			m_spApproxOperator = Op;
-			if(!m_spDefectOperator.valid())
-				m_spDefectOperator = m_spApproxOperator;
+			m_spDefectOperator = Op;
 
 		//	Check that matrix exists
 			if(m_spApproxOperator.invalid())
@@ -322,6 +319,12 @@ class IPreconditioner :
 		{
 			UG_COND_THROW(!approx.valid(), "");
 			m_spApproxOperator = approx;
+			if(!preprocess(m_spApproxOperator))
+			{
+				UG_THROW("ERROR in '"<<name()<<"::init': Preprocess failed.\n");
+				return;
+			}
+			m_bOtherApproxOperator = true;
 		}
 
 	/// virtual destructor
@@ -345,8 +348,12 @@ class IPreconditioner :
 	///	underlying matrix based operator used for the preconditioner
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spApproxOperator;
 
+
 	/// init flag indicating if init has been called
 		bool m_bInit;
+
+		bool m_bOtherApproxOperator;
+
 };
 
 
