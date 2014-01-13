@@ -111,7 +111,13 @@ class LU
 				}
 
 
-			return m_mat.invert();
+			if(m_mat.invert() == false)
+			{
+				UG_THROW("ERROR in Matrix is singular");
+				return false;
+			}
+			else
+				return true;
 		}
 
 		void init_var(const matrix_type &A)
@@ -209,6 +215,7 @@ class LU
 			try{
 		//	get matrix of Operator
 			m_pMatrix = pA;
+			if(m_pMatrix->num_rows() == 0) return true;
 
 		//	check that matrix exist
 			if(m_pMatrix == NULL)
@@ -240,6 +247,7 @@ class LU
 
 		bool apply_lu(vector_type &x, const vector_type &b)
 		{
+			if(A.num_rows() == 0) { m_size = 0; return true; }
 			try{
 			PROFILE_BEGIN_GROUP(LU_apply_lu, "algebra lu");
 #ifndef NDEBUG
