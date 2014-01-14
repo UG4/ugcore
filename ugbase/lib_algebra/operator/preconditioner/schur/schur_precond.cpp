@@ -315,7 +315,7 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	// no skeleton => direct solve is sufficient
 	if (n_skeleton == 0)
 	{
-		UG_LOG("\n% 'SchurPrecond::step() - direct solve':'\n");
+		UG_DLOG(SchurDebug, 2, "\n% 'SchurPrecond::step() - direct solve':'\n");
 		c.set_storage_type(PST_CONSISTENT);
 		bSuccess = m_spDirichletSolver->apply(c, d);
 		return bSuccess;
