@@ -13,6 +13,7 @@
 
 #include "schur.h"
 #include "slicing.h"
+#include "lib_algebra/operator/linear_solver/auto_linear_solver.h"
 
 namespace ug{
 
@@ -165,7 +166,7 @@ protected:
 
 
 template <typename TAlgebra, typename M, typename X, typename Y = X>
-class SchurComplementMatrixOperator : public MatrixOperator<M, X, Y>
+class SchurComplementMatrixOperator : public MatrixOperator<M, X, Y>, public UpdateableMatrixOperator
 {
 	typedef M matrix_type;
 
@@ -194,6 +195,11 @@ public:
 			m_op->compute_matrix(get_matrix());
 			invalid = false;
 		}
+	}
+
+	virtual void calculate_matrix()
+	{
+		init();
 	}
 
 // 	Apply Operator f = L*u (e.g. d = J(u)*c in iterative scheme)
