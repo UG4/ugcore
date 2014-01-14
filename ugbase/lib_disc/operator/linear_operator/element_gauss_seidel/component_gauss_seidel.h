@@ -82,7 +82,8 @@ class ComponentGaussSeidel : public IPreconditioner<TAlgebra>
 
 		void apply_blocks(const matrix_type& A, GF& c,
 		                  const vector_type& d, number relax,
-		                  const DimCache& dimCache);
+		                  const DimCache& dimCache,
+		                  bool bReverse);
 
 		template<typename TGroupObj>
 		void extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
@@ -145,7 +146,8 @@ template <typename TDomain, typename TAlgebra>
 void ComponentGaussSeidel<TDomain, TAlgebra>::
 apply_blocks(const matrix_type& A, GF& c,
              const vector_type& d, number relax,
-             const DimCache& dimCache)
+             const DimCache& dimCache,
+             bool bReverse)
 {
 // 	memory for local algebra
 	DenseVector< VariableArray1<number> > s;
@@ -158,9 +160,11 @@ apply_blocks(const matrix_type& A, GF& c,
 //	loop blocks
 	for(size_t b = 0; b < vvDoFIndex.size(); ++b)
 	{
+		size_t block = (!bReverse) ? b : (vvDoFIndex.size()-1 - b);
+
 	//	get storage
-		const std::vector<DoFIndex>& vDoFIndex = vvDoFIndex[b];
-		const DenseMatrix<VariableArray2<number> >& BlockInv = vBlockInverse[b];
+		const std::vector<DoFIndex>& vDoFIndex = vvDoFIndex[block];
+		const DenseMatrix<VariableArray2<number> >& BlockInv = vBlockInverse[block];
 		const size_t numIndex = vDoFIndex.size();
 
 	// 	compute s[j] := d[j] - sum_k A(j,k)*c[k]
@@ -392,7 +396,8 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 		if(d < (int)m_vDamp.size()) damp *= m_vDamp[d];
 
 	//	apply
-		apply_blocks(*pMat, *pC, *pD, damp, m_vDimCache[d]);
+		apply_blocks(*pMat, *pC, *pD, damp, m_vDimCache[d], false);
+		apply_blocks(*pMat, *pC, *pD, damp, m_vDimCache[d], true);
 	}
 
 #ifdef UG_PARALLEL
