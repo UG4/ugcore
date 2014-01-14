@@ -18,6 +18,15 @@
 #include "common/util/ostream_util.h"
 namespace ug{
 
+// this is for matrix operators which recalculate their "real" operator
+// if necessary
+class UpdateableMatrixOperator
+{
+public:
+	virtual ~UpdateableMatrixOperator() {}
+	virtual void calculate_matrix() = 0;
+};
+
 /// linear solver using abstract preconditioner interface
 /**
  * This class is a linear iterating scheme, that uses any implementation
@@ -53,6 +62,7 @@ class AutoLinearSolver
 		m_desiredDefect = desiredDefect;
 		m_desiredReduction = desiredReduction;
 		m_initCalled = m_initsDone = 0;
+		m_savedTime = 0.0;
 	}
 	AutoLinearSolver()
 	{
@@ -61,6 +71,7 @@ class AutoLinearSolver
 		m_reductionAlwaysAccept = 0.001;
 		m_worseThenAverage = 2.0;
 		m_initCalled = m_initsDone = 0;
+		m_savedTime = 0.0;
 	}
 
 ///	returns if parallel solving is supported
@@ -116,6 +127,7 @@ private:
 
 		bool init_op(SmartPtr<ILinearOperator<vector_type,vector_type> > J)
 		{
+			ILinearOperatorInverse<vector_type, vector_type>::init(J);
 			//UG_LOG("ALS:init\n");
 			m_initCalled++;
 			if(m_bInited == -1)
@@ -144,7 +156,9 @@ private:
 			//UG_LOG("ALS:reinit\n");
 
 			double tStart = get_clock_s();
-			pJ->init();
+			// this does not work with stuff.
+			SmartPtr<UpdateableMatrixOperator> uo = pJ.template cast_dynamic<UpdateableMatrixOperator> ();
+			if(uo.valid()) uo->calculate_matrix();
 			if(m_u.size() != 0.0)
 			{ 	if(!base_type::init(pJ, m_u)) return false; }
 			else if(!base_type::init(pJ)) return false;
@@ -231,24 +245,27 @@ private:
 					double tStartIterationTime = get_clock_s();
 					while(!convergence_check()->iteration_ended())
 					{
-						double tComputeTime = get_clock_s();
+						//double tComputeTime = get_clock_s();
 						if( !compute_correction(c, d) ) return false;
 						x += c;
 						convergence_check()->update(d);
-						tComputeTime = get_clock_s()-tComputeTime;
+
 
 						double r = convergence_check()->rate();
 						double reduction = convergence_check()->reduction();
 						double defect = convergence_check()->defect();
+						double steps = convergence_check()->step();
 //						if(r > m_reductionAlwaysAccept
 //							&& (r >= 1 || r * m_worseThenAverage > m_avgReduction))
 						double spentTime = get_clock_s() - tStartIterationTime;
+
+						double tComputeTime = spentTime/steps; //get_clock_s()-tComputeTime;
 
 //						double timeForOriginalAlgorithm = reduction/m_reductionPerTime + m_lastInitTime;
 						double approxSteps =
 								std::min(log(m_desiredDefect/defect)/log(r),
 										log(m_desiredReduction/reduction)/log(r) );
-						double approxTimeForSolution = spentTime + approxSteps*tComputeTime;
+						double approxRemainingTimeForSolution = approxSteps*tComputeTime;
 						/*UG_LOG("\n");
 						UG_LOG("m_lastCallReduction = " << reset_floats << m_lastCallReduction << "\n");
 						UG_LOG("reduction = " << reset_floats << reduction << "\n");
@@ -259,27 +276,35 @@ private:
 						UG_LOG("tComputeTime = " << tComputeTime << "\n");
 						UG_LOG("rate = " << r << "\n");
 						UG_LOG("reduction = " << reduction << "\n");*/
-						if(r > 1 || m_lastCallTime + m_lastInitTime < approxTimeForSolution)
+						if(r > 1)
 						{
-							UG_LOG("AutoLinearSolver:\n");
+							m_savedTime -= spentTime;
+							UG_LOG("AutoLinearSolver: REINIT because reduction rate >= 1.")
+							UG_LOG(" [ Inits called: " << m_initCalled << ", inits done: " << reset_floats << m_initsDone+1
+									<< " (" << (100.0*(m_initsDone+1))/m_initCalled << " %), Total Time saved: " << m_savedTime << " s]\n");
 
-							UG_LOG(" REINIT because of " << r <<
-									" and avg is " << m_avgReduction << " (worseThenAverage = " << m_worseThenAverage << ")\n");
-							UG_LOG(" Inits called: " << m_initCalled << ", inits done: " << reset_floats << m_initsDone+1
-									<< " (" << (100.0*(m_initsDone+1))/m_initCalled << " %)\n");
-							UG_LOG("m_lastCallReduction = " << reset_floats << m_lastCallReduction << "\n");
-							UG_LOG("reduction = " << reset_floats << reduction << "\n");
-							UG_LOG("reduction remain = " << reset_floats << m_lastCallReduction/reduction << "\n");
-							UG_LOG("approxSteps = " << reset_floats << approxSteps << "\n");
-							UG_LOG("approxTimeForSolution = " << approxTimeForSolution << "\n");
-							UG_LOG("approxResolveTime = " << m_lastCallTime + m_lastInitTime << "\n");
-							UG_LOG("spentTime = " << spentTime << "\n");
-							UG_LOG("tComputeTime = " << tComputeTime << "\n");
-							UG_LOG("rate = " << r << "\n");
-							UG_LOG("reduction = " << reduction << "\n");
-//							UG_LOG(" timeForOriginalAlgorithm = " << timeForOriginalAlgorithm << " s\n");
-							UG_LOG(" spentTime                = " << spentTime << " s\n");
+
 							reinit();
+							break;
+						}
+						double approxResolveTime = m_lastCallTime + m_lastInitTime;
+						if(approxResolveTime < approxRemainingTimeForSolution)
+						{
+							m_savedTime -= spentTime;
+							UG_LOG("AutoLinearSolver: REINIT because\n" << reset_floats )
+							UG_LOG("  approximated remaining Time for Solution with old preconditioner = " << approxRemainingTimeForSolution << " s\n");
+							UG_LOG("  > approximated Time for Reinit preconditioner and solve          = " << approxResolveTime << " s\n");
+							UG_LOG(" with old preconditioner:\n");
+							UG_LOG("  reduction rate = " << r << " avg reduction = " << convergence_check()->avg_rate() << "\n")
+							UG_LOG("  steps = " << steps << ", reduction = " << reduction << "\n")
+							UG_LOG("  spentTime = " << spentTime << ", time per Step = " << tComputeTime << "\n");
+							UG_LOG(" approximation of solution with old:\n")
+							UG_LOG("  reduction remain = " << reset_floats << m_lastCallReduction/reduction << "\n");
+							UG_LOG("  approxSteps with last reduction rate = " << approxSteps << "\n");
+							UG_LOG(" [ Inits called: " << m_initCalled << ", inits done: " << reset_floats << m_initsDone+1
+									<< " (" << (100.0*(m_initsDone+1))/m_initCalled << " %), Total Time saved: " << m_savedTime << " s]\n");
+							reinit();
+
 							break;
 						}
 						else
@@ -291,15 +316,20 @@ private:
 					if(!m_bInited)
 					{
 						double spentTime = get_clock_s() - tStartIterationTime;
-						UG_LOG("AutoLinearSolver:\n");
-						UG_LOG(" time spent with old    = " << reset_floats << spentTime << " s\n");
-						UG_LOG(" last time init + solve = " << m_lastCallTime+m_lastInitTime << " s\n");
 						m_savedTime += m_lastCallTime+m_lastInitTime-spentTime;
+						UG_LOG("AutoLinearSolver solved with old preconditioner [")
+						UG_LOG(" Inits called: " << m_initCalled << ", inits done: " << reset_floats << m_initsDone+1
+								<< " (" << (100.0*(m_initsDone+1))/m_initCalled << " %), Total Time saved: " << m_savedTime << " s]\n");
+						UG_LOG(" time spent with old    = " << reset_floats << spentTime << " s, ");
+						UG_LOG(" last time init + solve = " << m_lastCallTime+m_lastInitTime << " s, ");
+
 						if(m_lastCallTime+m_lastInitTime > spentTime)
-						{	UG_LOG("saved " << m_lastCallTime+m_lastInitTime - spentTime << " s!\n"); }
+						{	UG_LOG("saved " << m_lastCallTime+m_lastInitTime - spentTime << " s!.\n"); }
 						else
 						{	UG_LOG("spent too much time with old! " <<  spentTime  - m_lastCallTime+m_lastInitTime<< " s!\n"); }
+
 					}
+
 				}
 				catch(...)
 				{
