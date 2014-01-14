@@ -111,8 +111,8 @@ string UGProfileNode::get_mem_info(double fullMem) const
 	if(HasMemTracking())
 	{
 		stringstream s;
-		s << GetBytesSizeString(get_self_mem(), 10) << setw(5) << floor(get_self_mem() / fullMem * 100) << "%  ";
-		s << GetBytesSizeString(get_total_mem(), 10) << setw(5) << floor(get_total_mem() / fullMem * 100) << "%  ";
+		s << GetBytesSizeString((size_t)get_self_mem(), 10) << setw(5) << floor(get_self_mem() / fullMem * 100) << "%  ";
+		s << GetBytesSizeString((size_t)get_total_mem(), 10) << setw(5) << floor(get_total_mem() / fullMem * 100) << "%  ";
 		return s.str();
 	}
 	else
@@ -493,7 +493,7 @@ void UGProfileNode::check_for_too_small_nodes(double fullMs, map<string, const U
 	for(const UGProfileNode *p=get_first_child(); p != NULL; p=p->get_next_sibling())
 	{
 		double t_ms = p->get_avg_total_time_ms();
-		size_t entry = p->get_avg_entry_count();
+		size_t entry = (size_t)p->get_avg_entry_count();
 
 		if(t_ms > PROFILE_NODE_MIN_TOTAL_TIME_MS)
 		{
@@ -509,7 +509,7 @@ void UGProfileNode::check_for_too_small_nodes(double fullMs, map<string, const U
 				else
 				{
 					double t_ms2 = p->get_avg_total_time_ms();
-					size_t entry2 = p->get_avg_entry_count();
+					size_t entry2 = (size_t)p->get_avg_entry_count();
 					if(entry2/t_ms2 < entry/t_ms)
 						list[desc] = p;
 				}
