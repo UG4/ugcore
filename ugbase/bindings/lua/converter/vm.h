@@ -310,7 +310,7 @@ public:
 			case LUAPARSER_MATH_COS: v = cos(v);	break;
 			case LUAPARSER_MATH_SIN: v = sin(v);	break;
 			case LUAPARSER_MATH_EXP: v = exp(v);	break;
-			case LUAPARSER_MATH_ABS: v = abs(v); 	break;
+			case LUAPARSER_MATH_ABS: v = fabs(v); 	break;
 			case LUAPARSER_MATH_LOG: v = log(v); 	break;
 			case LUAPARSER_MATH_LOG10: v = log10(v); break;
 			case LUAPARSER_MATH_SQRT:  v = sqrt(v); 	break;
