@@ -20,6 +20,7 @@ ug_add_parameter_completion()
 	local filename=$1
 	local word=$2
 	local i=$3
+	local displays=$4
 
 	if [ -e $filename ]; then	
 ######### check file is not already parsed
@@ -61,6 +62,19 @@ ug_add_parameter_completion()
 					fi
 				fi							
 			done
+			if [[ $displays -gt 2 ]]; then
+			echo
+			echo " Completion info from file $filename:"
+			texx=`LANG=C sed -n 's/.*\(util.[A-Za-z]*[ \t]*([ \t]*"'$word'[^\)]*\).*/\1/p' < $filename`			
+		
+		##### check for parameters in file
+			# open the file $filename,
+			# with sed, get all words with util.*(<word>)
+			for line in $texx
+			do			
+				echo "  $line)"
+			done
+			fi
 			
 			texx=`LANG=C sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p' < $filename`
 			
@@ -90,6 +104,18 @@ ug_add_parameter_completion()
 #####################################################
 ugshell_complete()
 {	
+ 	local FOR_DISPLAY=1
+    if [ "${__FOO_PREV_LINE:-}" != "$COMP_LINE" ] || [ "${__FOO_PREV_POINT:-}" != "$COMP_POINT" ]; then
+        __FOO_PREV_LINE=$COMP_LINE
+        __FOO_PREV_POINT=$COMP_POINT
+        FOR_DISPLAY=
+        MY_COMP_DISPLAYS=0
+    fi
+    
+    if [ -n "$FOR_DISPLAY" ]; then
+    	MY_COMP_DISPLAYS=$((MY_COMP_DISPLAYS+1))    	
+    fi
+    
 	# "RE error: illegal byte sequence" problem occurs when LANG environment is wrong.
 	# it is now set to LANG=C temporarily (see texx line above)
 	# we maybe have to change this when we are using UTF8 for files or similar
@@ -159,7 +185,7 @@ ugshell_complete()
 				### we found a file, do parameter completion
 				local IFS_BAK=$IFS
 				IFS=$'\n'			
-				ug_add_parameter_completion $filename $word $i
+				ug_add_parameter_completion $filename $word $i $MY_COMP_DISPLAYS 
 				
 				IFS=$IFS_BAK
 				i=$?
