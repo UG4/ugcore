@@ -63,17 +63,13 @@ ug_add_parameter_completion()
 				fi							
 			done
 			if [[ $displays -gt 2 ]]; then
-			echo
-			echo " Completion info from file $filename:"
-			texx=`LANG=C sed -n 's/.*\(util.[A-Za-z]*[ \t]*([ \t]*"'$word'[^\)]*\).*/\1/p' < $filename`			
-		
-		##### check for parameters in file
-			# open the file $filename,
-			# with sed, get all words with util.*(<word>)
-			for line in $texx
-			do			
-				echo "  $line)"
-			done
+				echo
+				echo " Completion info from file $filename:"
+				texx=`LANG=C sed -n 's/.*\(util.[A-Za-z]*[ \t]*([ \t]*"'$word'[^\)]*\).*/\1/p' < $filename`			
+				for line in $texx
+				do			
+					echo "  $line)"
+				done
 			fi
 			
 			texx=`LANG=C sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p' < $filename`
