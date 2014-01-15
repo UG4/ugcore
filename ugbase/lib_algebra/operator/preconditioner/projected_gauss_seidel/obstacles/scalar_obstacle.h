@@ -69,6 +69,8 @@ class ScalarLowerObstacle:
 
 		void adjust_defect(vector_type& d);
 
+		void restrict_obs_values();
+
 	///	Destructor
 		~ScalarLowerObstacle(){};
 
@@ -117,6 +119,8 @@ class ScalarUpperObstacle:
 				const DoFIndex& dof);
 
 		void adjust_defect(vector_type& d);
+
+		void restrict_obs_values();
 
 	///	Destructor
 		~ScalarUpperObstacle(){};

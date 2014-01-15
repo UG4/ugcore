@@ -107,10 +107,14 @@ class IObstacleConstraint
 		void init();
 
 	///	checks if a given dof is in an obstacle subset
-		bool dof_lies_in_obs_subset(const DoFIndex& dof);
+		bool is_obs_dof(const DoFIndex& dof);
 
-	///	resets the vectors storing the active dofs
+	///	resets the vector storing the active dofs
 		void reset_active_dofs(){m_vActiveDofs.resize(0);}
+
+	///	returns the vector storing the active dofs
+		void active_dofs(vector<DoFIndex>& vActiveDoFs)
+		{vActiveDoFs = m_vActiveDofs;}
 
 
 	///	this preprocess-method is called in every init-call of the underlying proj. preconditioner
@@ -124,6 +128,11 @@ class IObstacleConstraint
 
 	///	the defect needs to be adjusted for the active indices (those indices, which are in contact)
 		virtual void adjust_defect(vector_type& d) = 0;
+
+
+	///	restricts the obstacle values to a coarser grid in a multigrid hierarchy
+		virtual void restrict_obs_values() = 0;
+
 
 	///	Destructor
 		virtual ~IObstacleConstraint(){};

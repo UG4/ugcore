@@ -87,6 +87,8 @@ class ObstacleInNormalDir:
 
 		void adjust_defect(vector_type& d);
 
+		void restrict_obs_values();
+
 	///	Destructor
 		~ObstacleInNormalDir(){};
 

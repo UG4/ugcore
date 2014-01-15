@@ -58,6 +58,11 @@ adjust_defect(vector_type& d)
 	}
 }
 
+template <typename TDomain, typename TAlgebra>
+void
+ScalarLowerObstacle<TDomain, TAlgebra>::
+restrict_obs_values()
+{}
 
 //////////////////////////////
 //	SCALAR UPPER OBSTACLE
@@ -104,6 +109,12 @@ adjust_defect(vector_type& d)
 			BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) = 0.0;
 	}
 }
+
+template <typename TDomain, typename TAlgebra>
+void
+ScalarUpperObstacle<TDomain, TAlgebra>::
+restrict_obs_values()
+{}
 
 } // end namespace ug
 

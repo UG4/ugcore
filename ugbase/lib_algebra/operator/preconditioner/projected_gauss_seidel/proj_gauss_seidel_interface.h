@@ -63,6 +63,9 @@ class IProjGaussSeidel:
 	///	Value type
 		typedef typename vector_type::value_type value_type;
 
+	///	Grid Function type
+		typedef GridFunction<TDomain, TAlgebra> GF;
+
 	public:
 	/// constructor
 		IProjGaussSeidel(): GaussSeidelBase<TAlgebra>(){
@@ -117,6 +120,15 @@ class IProjGaussSeidel:
 	///	Compute new correction c = B*d and return new defect d := d - A*c
 		virtual bool apply_update_defect(vector_type& c, vector_type& d);
 
+	private:
+	///	for all indices stored in vInd:
+	///	the entry of vec is set to zero
+		void truncateVec(vector_type& vec, vector<DoFIndex>& vInd);
+
+	///	for all indices stored in vInd:
+	///	all rows and columns of mat are set to zero
+		void truncateMat(matrix_type& mat, vector<DoFIndex>& vInd);
+
 	protected:
 	///	obstacle constraint
 		vector<SmartPtr<IObstacleConstraint<TDomain,TAlgebra> > > m_spvObsConstraint;
@@ -130,6 +142,7 @@ class IProjGaussSeidel:
 
 	/// init flag indicating if init has been called
 		bool m_bInit;
+
 };
 
 

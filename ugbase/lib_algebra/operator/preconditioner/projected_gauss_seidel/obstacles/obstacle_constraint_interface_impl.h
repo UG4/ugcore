@@ -408,7 +408,7 @@ init_obstacle_dofs_with_values(const std::vector<TUserData*>& vUserData, int si,
 template <typename TDomain, typename TAlgebra>
 bool
 IObstacleConstraint<TDomain,TAlgebra>::
-dof_lies_in_obs_subset(const DoFIndex& dof)
+is_obs_dof(const DoFIndex& dof)
 {
 	if (m_mObstacleValues.find(dof) == m_mObstacleValues.end()){return false;}
 	else {return true;}
