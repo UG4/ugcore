@@ -326,15 +326,25 @@ util.argUsed = util.argUsed or {}
 --! util.GetParam
 --! returns parameter in ugargv after ugargv[i] == name
 --! @param name parameter in ugargv to search for
---! @param return_if_unavailable returned value if 'name' is not present (default nil)
+--! @param default returned value if 'name' is not present (default nil)
 --! @param description description for 'name' (default nil)
---! @return parameter in ugargv after ugargv[i] == name or return_if_unavailable if 'name' was not present
-function util.GetParam(name, return_if_unavailable, description)
-	local i
-	if description or util.argDescription[name] == nil then
-		util.argDescription[name]=" (string) "..(description or "")
+--! @return parameter in ugargv after ugargv[i] == name or default if 'name' was not present
+function util.GetParam(name, default, description, type)
+	-- default type is string
+	if type == nil then
+		type = " (string) "
 	end
-	util.argsDefault[name]=return_if_unavailable	
+
+	-- store description
+	if description or util.argDescription[name] == nil then
+		util.argDescription[name]=type..(description or "")
+	end
+	
+	-- store infos
+	util.argsDefault[name] = default	
+	util.args[name] = type
+
+	-- check if argument passed
 	for i = 1, ugargc-1 do
 		if ugargv[i] == name then			
 			util.argUsed[i]=true
@@ -343,55 +353,51 @@ function util.GetParam(name, return_if_unavailable, description)
 			return ugargv[i+1]
 		end
 	end
-	util.args[name] = " (string)"
-	return return_if_unavailable; 
+	
+	-- return default
+	return default; 
 end
 
 
 --! util.GetParamNumber
 --! use with CommandLine to get option, like -useAMG
---! if parameter is not a number, returns return_if_unavailable
+--! if parameter is not a number, returns default
 --! @param name parameter in ugargv to search for
---! @param return_if_unavailable returned value if 'name' is not present (default nil)
+--! @param default returned value if 'name' is not present (default nil)
 --! @param description description for 'name' (default nil)
---! @return the number after the parameter 'name' or return_if_unavailable if 'name' was not present/no number
-function util.GetParamNumber(name, return_if_unavailable, description)
-	if description or util.argDescription[name] == nil then
-		util.argDescription[name]=" (number) "..(description or "")
+--! @return the number after the parameter 'name' or default if 'name' was not present/no number
+function util.GetParamNumber(name, default, description)
+
+	-- read in
+	local param = util.GetParam(name, default, description, " (number) ")
+
+	-- cast to number	
+	local number = tonumber(param)
+	if number == nil then
+		print("ERROR in GetParamNumber: passed '"..param.."' for Parameter '"..name.."' is not a number.")
+		exit();
 	end
-	local param = util.GetParam(name, nil, nil)
 	
-	util.argsDefault[name]=return_if_unavailable
-	if param == nil then
-		util.args[name]=" (number)" 
-		return return_if_unavailable
-	else
-		local number = tonumber(param)
-		if number == nil then
-			print("WARNING: Parameter "..name.." is not a number, using "..return_if_unavailable.." instead\n")
-			util.args[name]=" (number) " 
-			return return_if_unavailable
-		else
-			return number
-		end
-	end	
+	-- return value
+	return number
 end
 
 --! util.GetParamBool
 --! use with CommandLine to get boolean option, like -useAMG true
---! @param return_if_unavailable returned value if 'name' is not present (default nil)
+--! @param default returned value if 'name' is not present (default nil)
 --! @param description description for 'name' (default nil)
---! @return the number after the parameter 'name' or return_if_unavailable if 'name' was not present/no number
+--! @return the number after the parameter 'name' or default if 'name' was not present/no number
 --! unlike util.HasParamOption , you must specify a value for your optionn, like -useAMG 1
 --! possible values are (false): 0, n, false, (true) 1, y, j, true
-function util.GetParamBool(name, return_if_unavailable, description)
-	local r = util.GetParam(name, nil, description)
+function util.GetParamBool(name, default, description)
+	local r = util.GetParam(name, tostring(default), description, "  (bool)  ")
 	if r == "0" or r == "false" or r == "n" then
 		return false
 	elseif r == "1" or r == "true" or r == "y" or r == "j" then
 		return true
 	else
-		return return_if_unavailable
+		print("ERROR in GetParamBool: passed '"..r.."' for Parameter '"..name.."' is not a bool.")
+		exit();
 	end
 end
 
@@ -401,10 +407,15 @@ end
 --! @param description description for 'name' (default nil)
 --! @return true if option found, else false
 function util.HasParamOption(name, description)
+
+	-- store some info
 	util.argsDefault[name]="false"
+	util.args[name]=" [option]"	
 	if description or util.argDescription[name] == nil then
 		util.argDescription[name]=" [option] "..(description or "")
 	end
+	
+	-- check if passed
 	for i = 1, ugargc do
 		if ugargv[i] == name then
 			util.argUsed[i]=true
@@ -412,7 +423,8 @@ function util.HasParamOption(name, description)
 			return true
 		end		
 	end	
-	util.args[name]=" [option]"	
+	
+	-- not passed
 	return false 
 end
 
@@ -452,7 +464,7 @@ function util.PrintHelp()
 		length = math.max(string.len(name), length)
 	end	
 	for name,value in pairsSortedByKeys(util.argDescription) do
-		print(util.adjuststring(name, length, "l").." : "..value..". default="..(util.argsDefault[name] or ""))
+		print(util.adjuststring(name, length, "l").." : "..value.." (default = "..(util.argsDefault[name] or "")..")")
 	end
 end
 
