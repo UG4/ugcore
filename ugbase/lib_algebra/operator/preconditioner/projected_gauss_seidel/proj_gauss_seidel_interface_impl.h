@@ -117,7 +117,7 @@ project_correction(value_type& c_i, const size_t i)
 		//	loop all obstacle constraint, which are set
 		//	& perform a projection: check whether the temporary solution u_{s-1/2}
 		//	fulfills the underlying constraint(s) or not
-		bool dofIsAdmissible = true;
+		bool dofIsActive = false;
 		bool dofIsObsDoF = false;
 		//UG_LOG("dof "<<dof<<"\n");
 		//	set iterator to the first obstacle constraint
@@ -131,12 +131,13 @@ project_correction(value_type& c_i, const size_t i)
 			//UG_LOG("IS IN OBS SUBSET \n");
 			dofIsObsDoF = true;
 
-			(*iter)->adjust_sol_and_cor((*m_spSol)[i], c_i, dofIsAdmissible, dof);
+			(*iter)->adjust_sol_and_cor((*m_spSol)[i], c_i, dofIsActive, dof);
 		}
 
-		if (dofIsObsDoF && dofIsAdmissible)
+		if (dofIsObsDoF && (!dofIsActive))
 		{
-			// dof is admissible -> do regular solution update
+			// 	dof is admissible -> do regular solution update intern of the
+			//	Projected GaussSeidel class
 			BlockRef((*m_spSol)[i], comp) += BlockRef(c_i, comp);
 		}
 	}

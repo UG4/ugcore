@@ -99,7 +99,7 @@ template <typename TElem, typename TIterator>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
 adjust_sol_and_cor_elem(TIterator iterBegin,
-		TIterator iterEnd, value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
+		TIterator iterEnd, value_type& sol_i, value_type& c_i, bool& dofIsActive,
 		const DoFIndex& dof)
 {
 	typedef typename face_type_traits<dim>::face_type0 face_type0;
@@ -158,24 +158,24 @@ adjust_sol_and_cor_elem(TIterator iterBegin,
 	//	get obstacle value corresponding to the dof
 	const number obsVal = m_mObstacleValues[dof];
 
-	//	check, if dof is admissible
+	//	check, if dof is active (tmpSol >= obsVal)
 	//	TODO: check if u * n > g, i.e. tmpSol * n > g!
-	if (tmpSol > obsVal)
+	if (!(tmpSol < obsVal))
 	{
-		//	not admissible -> active DoF
+		//	is active DoF
 		m_vActiveDofs.push_back(dof);
 
 		//	adjust correction & set solution to obstacle-value
 		BlockRef(c_i, comp) = obsVal - BlockRef(sol_i, comp);
 		BlockRef(sol_i, comp) = obsVal;
-		dofIsAdmissible = false;
+		dofIsActive = true;
 	}
 }
 
 template <typename TDomain, typename TAlgebra>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
-adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
+adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
 		const DoFIndex& dof)
 {
 	//	loop over all obstacle subsets
@@ -193,15 +193,15 @@ adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
 		case 1:
 			adjust_sol_and_cor_elem<Edge>
 				(m_spDD->template begin<Edge>(si), m_spDD->template end<Edge>(si),
-						sol_i, c_i, dofIsAdmissible, dof);
+						sol_i, c_i, dofIsActive, dof);
 			break;
 		case 2:
 			adjust_sol_and_cor_elem<Triangle>
 				(m_spDD->template begin<Triangle>(si), m_spDD->template end<Triangle>(si),
-						sol_i, c_i, dofIsAdmissible, dof);
+						sol_i, c_i, dofIsActive, dof);
 			adjust_sol_and_cor_elem<Quadrilateral>
 				(m_spDD->template begin<Quadrilateral>(si), m_spDD->template end<Quadrilateral>(si),
-						sol_i, c_i, dofIsAdmissible, dof);
+						sol_i, c_i, dofIsActive, dof);
 			break;
 		default:
 			UG_THROW("ObstacleInNormalDir::adjust_sol_and_cor:"
@@ -218,9 +218,10 @@ adjust_defect(vector_type& d)
 	for (vector<MultiIndex<2> >::iterator itActiveInd = m_vActiveDofs.begin();
 			itActiveInd < m_vActiveDofs.end(); ++itActiveInd)
 	{
-		//	check, if Ax <= b. For that case the new defect is set to zero,
+		//	check, if Ax >= b. For that case the new defect is set to zero,
 		//	since all equations/constraints are fulfilled
-		if (BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) > 0.0)
+		number defect = BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]);
+		if (defect > 0.0)
 			BlockRef(d[(*itActiveInd)[0]], (*itActiveInd)[1]) = 0.0;
 	}
 }

@@ -82,7 +82,7 @@ class ObstacleInNormalDir:
 		void preprocess();
 
 	///	projects the i-th index of the solution onto the admissible set and adjusts the correction
-		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsAdmissible,
+		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
 				const DoFIndex& dof);
 
 		void adjust_defect(vector_type& d);
