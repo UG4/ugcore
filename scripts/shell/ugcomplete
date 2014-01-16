@@ -5,6 +5,98 @@
 # author: Martin Rupp, Stefan Grein
 ######################################################################
 
+ug_print_parameter()
+{
+	local filename=$1
+	local word=$2
+
+	if [[ "$filename" == *ug_util.lua* ]]; then return; fi	
+	
+	local beginRegex="[.GetHas]*Param[NumberOptionBool ]*"
+
+	local relLines=`sed -n "/util${beginRegex}/{
+	:loop
+	s/.*util\(${beginRegex}\)(\(\"${word}[^)]*\)).*/\1, \2/g
+	/util${beginRegex}/{
+	N
+	s/\n//g
+	b loop
+	}
+	p
+	}" $filename`
+	
+	
+	maxSize=0
+	while read -r line
+	do
+		IFS="," read -ra LINE_ARRAY <<< "$line"
+		
+		argSize="${#LINE_ARRAY[@]}"
+		# arg-name
+		if [ "$argSize" -ge "1" ]; then  
+			name=`sed 's/\"//g' <<< ${LINE_ARRAY[1]}`; 
+			size="${#name}"
+			if [ $size -gt $maxSize ]; then maxSize=$size; fi 
+		fi  	
+	done <<< "$relLines"
+	maxSize=$(($maxSize + 1))
+	
+	while read -r line
+	do
+		line=`sed 's/\("[^"]*"\)/<\1>/g' <<< $line`
+		line=`sed 's/,\([^",]*<"\)/@\1/g' <<< $line`
+		line=`sed 's/\(">[^",]*\),/\1@/g' <<< $line`
+		line=`sed 's/\(<"\)/"/g' <<< $line`
+		line=`sed 's/\(">\)/"/g' <<< $line`
+
+		IFS="@" read -ra LINE_ARRAY <<< "$line"
+		argSize="${#LINE_ARRAY[@]}"
+		
+		if [ "$argSize" -ge "1" ]; then 
+			echo ""
+		fi
+		# type
+		type=""
+		if [ "$argSize" -ge "1" ]; then 
+			type="${LINE_ARRAY[0]}";
+			type=`sed 's/.GetParamNumber/(number)/g' <<< $type`
+			type=`sed 's/.GetParamBool/( bool )/g' <<< $type`
+			type=`sed 's/.HasParamOption/(option)/g' <<< $type`
+			type=`sed 's/.GetParam/(string)/g' <<< $type`
+			echo -n "$type";
+		fi 
+	
+		# arg-name
+		if [ "$argSize" -ge "2" ]; then  
+			name=`sed 's/\"//g' <<< ${LINE_ARRAY[1]}`; 
+			printf " %-${maxSize}s: " "$name"
+		fi  	
+	
+		# description
+		local i=3
+		if [ "$type" == "(option)" ]; then i=2; fi  
+		if [ "$argSize" -gt "$i" ]; then 
+			name=`sed 's/.*\"\([^"]*\)\".*/\1/g' <<< ${LINE_ARRAY[$i]}`; 
+			echo -n "$name "
+		fi 
+	
+		# default
+		if [ "$argSize" -ge "3" ]; then
+			if [ "$type" != "(option)" ]; then 
+			name=`sed 's/\"//g' <<< ${LINE_ARRAY[2]}`; 
+			echo -n "(default: $name) "
+			fi
+		fi
+		
+		# options
+		if [ "$argSize" -ge "5" ]; then 
+			echo -n "${LINE_ARRAY[4]}"; 
+		fi 
+		# next line
+	done <<< "$relLines"
+	
+}
+
 #####################################################
 # get all parameters to ug4 lua scripts:
 # they are formed like 
@@ -23,7 +115,7 @@ ug_add_parameter_completion()
 	local displays=$4
 
 	if [ -e $filename ]; then	
-######### check file is not already parsed
+		######### check file is not already parsed
 		for (( j=0; j<completionNrOfFiles; j++ ))
 		do
 			if [ ${completionAllFiles[j]} = $filename ]; then
@@ -31,12 +123,18 @@ ug_add_parameter_completion()
 			fi
 		done
 		completionAllFiles[completionNrOfFiles++]=$filename
-		
+	
 		# don't use echo $word | grep "^-[A-Za-z0-9_]*$" here!!! 
 		# we only want "normal" words which don't interfere with sed
 		
 		if [[ $word =~ ^-[A-Za-z0-9_]*$ ]];
 		then
+		
+			# print info on params		
+			if [[ $displays -gt 0 ]]; then
+				ug_print_parameter $filename $word
+			fi
+			
 			# save result in variable, otherwise "too many open files" error
 			local texx
 			texx=`LANG=C sed -n 's/.*util.[A-Za-z]*[ \t]*([ \t]*"\('$word'[^"]*\)".*/\1/p' < $filename`			
@@ -62,18 +160,6 @@ ug_add_parameter_completion()
 					fi
 				fi							
 			done
-			if [[ $displays -gt 1 ]]; then
-				
-				texx=`LANG=C sed -n 's/.*\(util.[A-Za-z]*[ \t]*([ \t]*"'$word'[^\)]*\).*/\1/p' < $filename`
-				if [[ ${#texx} -gt 1 ]]; then
-					echo
-					echo " Completion info from file $filename:"				
-					for line in $texx
-					do			
-						echo "  $line)"
-					done					
-				fi			
-			fi
 			
 			texx=`LANG=C sed -n 's/.*ug_load_script[ \t]*([ \t]*"\([^"]*\)".*/\1/p' < $filename`
 			
@@ -103,16 +189,22 @@ ug_add_parameter_completion()
 #####################################################
 ugshell_complete()
 {	
- 	local FOR_DISPLAY=1
-    if [ "${__FOO_PREV_LINE:-}" != "$COMP_LINE" ] || [ "${__FOO_PREV_POINT:-}" != "$COMP_POINT" ]; then
-        __FOO_PREV_LINE=$COMP_LINE
-        __FOO_PREV_POINT=$COMP_POINT
-        FOR_DISPLAY=
-        MY_COMP_DISPLAYS=0
+    if [ "${__UGSHELL_PREV_LINE:-}" != "$COMP_LINE" ] || [ "${__UGSHELL_PREV_POINT:-}" != "$COMP_POINT" ]; then
+        __UGSHELL_PREV_LINE=$COMP_LINE
+        __UGSHELL_PREV_POINT=$COMP_POINT
+        UGSHELL_TAB_KEY_HIT=1
+        #echo "UGSHELL_TAB_KEY_HIT: reset (line changed)"
+    else
+        UGSHELL_TAB_KEY_HIT=$((UGSHELL_TAB_KEY_HIT+1))
+        #echo "UGSHELL_TAB_KEY_HIT: $UGSHELL_TAB_KEY_HIT"
     fi
+
+	local UG_SHOW_PARAMS=0
     
-    if [ -n "$FOR_DISPLAY" ]; then
-    	MY_COMP_DISPLAYS=$((MY_COMP_DISPLAYS+1))    	
+    if [ "$UGSHELL_TAB_KEY_HIT" -ge "3" ]; then
+    	UG_SHOW_PARAMS=1   	
+        UGSHELL_TAB_KEY_HIT=1
+        #echo "UGSHELL_TAB_KEY_HIT: reset (after display)"
     fi
     
 	# "RE error: illegal byte sequence" problem occurs when LANG environment is wrong.
@@ -184,7 +276,7 @@ ugshell_complete()
 				### we found a file, do parameter completion
 				local IFS_BAK=$IFS
 				IFS=$'\n'			
-				ug_add_parameter_completion $filename $word $i $MY_COMP_DISPLAYS 
+				ug_add_parameter_completion $filename $word $i $UG_SHOW_PARAMS 
 				
 				IFS=$IFS_BAK
 				i=$?

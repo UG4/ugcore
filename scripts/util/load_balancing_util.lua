@@ -62,7 +62,7 @@ function balancer.ParseParameters()
 	balancer.redistSteps	= util.GetParamNumber("-redistSteps", balancer.redistSteps,
 								"All levels with index = firstDistLvl + i * redistSteps, i = 0,1,...,n are considered redistribution levels")
 	balancer.redistProcs	= util.GetParamNumber("-redistProcs", balancer.redistProcs,
-								"The number of processes to which each process distributes grid-parts on each distribution level (i>0)")
+								"The number of processes to which each process distributes grid-parts on each distribution level, i>0")
 	balancer.maxDistLvl		= util.GetParamNumber("-maxDistLvl", balancer.maxDistLvl,
 								"The maximum distribtion level. elements in levels above won't be partitioned and distributed separately.")
 
@@ -85,7 +85,7 @@ function balancer.ParseParameters()
 	balancer.staticProcHierarchy = balancer.staticProcHierarchy or util.HasParamOption("-staticProcHierarchy")
 	
 	balancer.partitioner		= util.GetParam("-partitioner", balancer.partitioner,
-									"(Options: parmetis, bisection, dynBisection) The partitioner which will be used during repartitioning.")
+									"Options: parmetis, bisection, dynBisection. The partitioner which will be used during repartitioning.")
 									
 	balancer.parametersParsed = true
 end
