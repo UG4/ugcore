@@ -319,9 +319,7 @@ end
 --------------------------------------------------------------------------------
 
 util.args = util.args or {}
-util.argDescription = util.argDescription or {}
-util.argsDefault = util.argsDefault or {}
-util.argUsed = util.argUsed or {}
+util.argsUsed = util.argsUsed or {}
 
 --! util.GetParam
 --! returns parameter in ugargv after ugargv[i] == name
@@ -330,26 +328,23 @@ util.argUsed = util.argUsed or {}
 --! @param description description for 'name' (default nil)
 --! @return parameter in ugargv after ugargv[i] == name or default if 'name' was not present
 function util.GetParam(name, default, description, type)
-	-- default type is string
-	if type == nil then
-		type = " (string) "
-	end
 
-	-- store description
-	if description or util.argDescription[name] == nil then
-		util.argDescription[name]=type..(description or "")
-	end
-	
+	-- default type is string
+	if type == nil then type = " (string) " end
+
 	-- store infos
-	util.argsDefault[name] = default	
-	util.args[name] = type
+	util.args[name] = {}
+	util.args[name].description = (description or "")
+	util.args[name].default = default	
+	util.args[name].type = type
+	util.args[name].value = default
 
 	-- check if argument passed
 	for i = 1, ugargc-1 do
 		if ugargv[i] == name then			
-			util.argUsed[i]=true
-			util.argUsed[i+1]=true
-			util.args[name] = ugargv[i+1]			
+			util.argsUsed[i]=true
+			util.argsUsed[i+1]=true
+			util.args[name].value = ugargv[i+1]			
 			return ugargv[i+1]
 		end
 	end
@@ -408,18 +403,18 @@ end
 --! @return true if option found, else false
 function util.HasParamOption(name, description)
 
-	-- store some info
-	util.argsDefault[name]="false"
-	util.args[name]=" [option]"	
-	if description or util.argDescription[name] == nil then
-		util.argDescription[name]=" [option] "..(description or "")
-	end
-	
+	-- store infos
+	util.args[name] = {}
+	util.args[name].description = (description or "")
+	util.args[name].default = "false"	
+	util.args[name].type = " [option] "
+	util.args[name].value = "false"
+
 	-- check if passed
 	for i = 1, ugargc do
 		if ugargv[i] == name then
-			util.argUsed[i]=true
-			util.args[name] = "true"
+			util.argsUsed[i]=true
+			util.args[name].value = "true"
 			return true
 		end		
 	end	
@@ -440,31 +435,24 @@ end
 --! lists all the command line arguments which where used or could
 --! have been used with util.GetParam, util.GetParamNumber and util.HasParamOption
 function util.PrintArguments()
-	local pUsedLine=""
-	local pOtherLine=""
-	for name,value in pairsSortedByKeys(util.args) do
-		if string.sub(value,1,1) ~= " " then
-			pUsedLine=pUsedLine..name.." = "..value.."\n"
-		else
-			pOtherLine=pOtherLine..name..value..", "
-		end	
+	local length=0
+	for name,arg in pairsSortedByKeys(util.args) do
+		length = math.max(string.len(name), length)
+	end	
+	for name,arg in pairsSortedByKeys(util.args) do
+		print("  "..util.adjuststring(name, length, "l").." = "..arg.value)
 	end
-	if pUsedLine ~= "" then
-		print("Used arguments:\n"..pUsedLine)		
-	end	
-	if pOtherLine ~= "" then
-		print("Available arguments:\n"..string.sub(pOtherLine, 1, string.len(pOtherLine)-2).."\n")
-	end	
 end
 
 --! prints out the description to each GetParam-parameter so far called
 function util.PrintHelp()
 	local length=0
-	for name,value in pairs(util.argDescription) do
+	for name,arg in pairsSortedByKeys(util.args) do
 		length = math.max(string.len(name), length)
 	end	
-	for name,value in pairsSortedByKeys(util.argDescription) do
-		print(util.adjuststring(name, length, "l").." : "..value.." (default = "..(util.argsDefault[name] or "")..")")
+	for name,arg in pairsSortedByKeys(util.args) do
+		print(arg.type..util.adjuststring(name, length, "l").." = "..arg.value..
+			  " : "..arg.description.." (default = "..arg.default..")")
 	end
 end
 
@@ -485,7 +473,7 @@ function util.PrintIgnoredArguments()
 	bPrintIgnoredArgumentsCalled = true
 	local pline = ""
 	for i=1, ugargc do
-		if (util.argUsed == nil or util.argUsed[i] == nil) and 
+		if (util.argsUsed == nil or util.argsUsed[i] == nil) and 
 			string.sub(ugargv[i], 1,1) == "-" 
 			and string.sub(ugargv[i], 1,8) ~= "-outproc"
 			and string.sub(ugargv[i], 1,7) ~= "-noterm"
@@ -493,21 +481,21 @@ function util.PrintIgnoredArguments()
 			and string.sub(ugargv[i], 1,7) ~= "-noquit" then
 			local imin=10
 			local namemin=""
-			for name in pairs(util.args) do
-				if string.sub(util.args[name],1,1) == " " then
+			for name,arg in pairs(util.args) do
+				if name == ugargv[i] then
+					imin = 0
+				else
 					local d = LevenshteinDistance(name, ugargv[i])
 					if d < imin then
 						imin = d
 						namemin = name
 					end
-				elseif name == ugargv[i] then
-					imin = 0
 				end
 			end
 			if imin == 0 then
-				pline=pline..ugargv[i].." is a doubled argument! Already set to "..util.args[ugargv[i]]..".\n"
+				pline=pline..ugargv[i].." [specified multiple times. Used value: "..util.args[ugargv[i]].value.."]\n"
 			elseif imin < string.len(ugargv[i])/2 then
-				pline=pline..ugargv[i].." (did you mean "..namemin..util.args[namemin].."?)\n"
+				pline=pline..ugargv[i].." [did you mean "..namemin..util.args[namemin].type.."?]\n"
 			else
 				pline=pline..ugargv[i].." "				
 			end
