@@ -368,6 +368,22 @@ install_parmetis()
 	"make install"
 }
 
+make_SuperLU()
+{
+	unamestr=`uname`
+	if [[ "$unamestr" == 'Darwin' ]]; then
+	   cp $scriptpath/install_scripts/SuperLU/make.inc_mac make.inc
+	elif [ $HOSTNAME == "cekon.gcsc.uni-frankfurt.de" ]; then
+	   cp $scriptpath/install_scripts/SuperLU/make.inc_cekon make.inc
+	else	
+		cp $scriptpath/install_scripts/SuperLU/make.inc_linux make.inc
+	fi
+	# already in SuperLU directory
+	
+	make clean
+	make
+}
+
 install_SuperLU()
 {
 
@@ -375,9 +391,7 @@ install_SuperLU()
 	SuperLU "4.3"\
 	"http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz"\
 	superlu_4.3.tar.gz SuperLU_4.3 \
-	"cp $scriptpath/install_scripts/SuperLU/make.inc_mac make.inc" \
-	"make clean" \
-	"make"	
+	"make_SuperLU"	
 }
 
 install_UGIDE()
