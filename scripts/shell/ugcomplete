@@ -189,8 +189,6 @@ ug_add_parameter_completion()
 					continue
 				fi
 							
-				# todo: other paths
-				filename2=$UG4_ROOT/scripts/$line
 				ug_add_parameter_completion $containedFile $word $i	$displays #
 				i=$?
 			done			
