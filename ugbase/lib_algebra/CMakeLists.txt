@@ -29,6 +29,11 @@ set(src_Algebra	 ${src_Algebra}
 	operator/linear_solver/analyzing_solver.cpp
 	algebra_common/permutation_util.cpp
 	)
+	
+if(SUPERLU)
+    set(src_Algebra ${src_Algebra} operator/linear_solver/external_solvers/super_lu.cpp)
+endif(SUPERLU)
+
 add_subdirectory(common/matrixio)
 
 if(PARALLEL)
