@@ -75,7 +75,6 @@ public:
 		typedef CPUAlgebra::matrix_type::value_type value_type;
 		size_t nnz =0;
 		size_t N = A.num_rows();
-		UG_LOG("SuperLU preprocess, N = " << N << "\n");
 
 
 		for(size_t r=0; r<N; r++)
