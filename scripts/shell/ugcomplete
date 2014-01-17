@@ -173,9 +173,25 @@ ug_add_parameter_completion()
 		##### check for ug_load_script in file	
 			for line in $texx
 			do	
+				local containedFile=""
+				local fileDir=`dirname $filename`
+				if [ -e $fileDir/$line ]; then
+					containedFile=$fileDir/$line
+				elif [ -e ./$line ]; then
+					containedFile=$line
+				elif [ -e $UG4_ROOT/scripts/$line ]; then
+					containedFile=$UG4_ROOT/scripts/$line
+				elif [ -e $UG4_ROOT/apps/$line ]; then
+					containedFile=$UG4_ROOT/apps/$line
+				elif [ -e $UG4_ROOT/$line ]; then
+					containedFile=$UG4_ROOT/$line
+				else
+					continue
+				fi
+							
 				# todo: other paths
 				filename2=$UG4_ROOT/scripts/$line
-				ug_add_parameter_completion $filename2 $word $i	$displays #
+				ug_add_parameter_completion $containedFile $word $i	$displays #
 				i=$?
 			done			
 		fi
