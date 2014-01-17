@@ -37,6 +37,27 @@ if [ ! -e local ]; then mkdir local; fi
 cd local
 LOCAL_DIR=`pwd`
 
+my_download_file()
+{
+	local location=$1
+	local destination=$2
+	which wget &> /dev/null
+	if [ $? == 0 ]; then
+		wget $location -O $destination
+	else
+		curl -L $location -o $destination
+	fi
+	if [ ! $? == 0 ]; then 
+		echo "Error downloading from $destination."; 
+		rm $destination
+		exit;
+	fi
+}
+
+# params:
+# my_download extractedDir renameDir location filename
+# extractedDir is the name of the directory which is created when extracting the archive
+# it will then get renamed to renameDir
 my_download () 
 {
 	local extractedDir=$1
@@ -56,17 +77,7 @@ my_download ()
 
 			if [ -e $filename.part ]; then rm $filename.part; fi
 
-			which wget &> /dev/null
-			if [ $? == 0 ]; then
-				wget $location -O $filename.part
-			else
-				curl $location -o -L $filename.part
-			fi
-			if [ ! $? == 0 ]; then 
-				echo "Error downloading from $location."; 
-				rm $filename.part
-				exit;
-			fi
+			my_download_file $location $filename.part
 			mv $filename.part $filename
 			echo "done."
 		fi
@@ -309,6 +320,8 @@ install_ParaView()
 
 
 
+
+
 install_clang()
 {
 	svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm
@@ -355,6 +368,35 @@ install_parmetis()
 	"make install"
 }
 
+install_SuperLU()
+{
+
+	my_install \
+	SuperLU "4.3"\
+	"http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz"\
+	superlu_4.3.tar.gz SuperLU_4.3 \
+	"cp $scriptpath/install_scripts/SuperLU/make.inc_mac make.inc" \
+	"make clean" \
+	"make"	
+}
+
+install_UGIDE()
+{
+	local eclipsePath=$1
+	if [ -z $1 ]; then
+		eclipsePath="."
+	fi
+	if [ -e "$eclipsePath/.eclipseproduct" ]; then 
+		my_download_file \
+			http://gcsc.uni-frankfurt.de/Members/mrupp/ug4-auto-completion/ug4-auto-completion/ugIDE_1.0.0.001.jar \
+			$eclipsePath/dropins/ugIDE_1.0.0.001.jar
+	else
+		echo ".eclipseproduct not found in path '$eclipsePath'."
+		echo "Make sure you are inside the Eclipse Directory. Current directory is `pwd`"
+		echo "or provide eclipse path as second parameter: uginstall UGIDE /path/to/eclipse"
+	fi 
+}
+
 
 install_all()
 {
@@ -375,7 +417,7 @@ print_usage()
 	echo " uginstall 0.2"
 	echo ""
 	echo " uginstall will download and install a number of programs:"
-	echo " cmake, doxygen, gcc, gmp, gnuplot, GotoBLAS2, Metis, mpfr, mpc, OpenMPI, ParaView, ParMetis"
+	echo " cmake, doxygen, gcc, gmp, gnuplot, GotoBLAS2, Metis, mpfr, mpc, OpenMPI, ParaView, ParMetis, SuperLU"
 	echo " Following steps are made for each installation of programm APP:"
 	echo " - create folder ~/local"
 	echo " - create folder ~/local/APP"
@@ -394,18 +436,28 @@ print_usage()
 	echo "  <program> can be:"
 	echo "	all"
 	echo "	clang       (=clang+llvm from svn)"
+	# last checked 01/2014
 	echo "	cmake       2.8.6                 " `[[ -e cmake/used/installed ]] && echo "(installed)"`
+	# last checked 01/2014	
 	echo "	doxygen     1.8.1                 " `[[ -e doxygen/used/installed ]] && echo "(installed)"`
 	echo "	gcc         4.4                   " `[[ -e gcc/used/installed ]] && echo "(installed)"`
 	echo "	gmp         4.3.2                 " `[[ -e gmp/used/installed ]] && echo "(installed)"`
+	# last checked 01/2014	
 	echo "	gnuplot     4.6.0                 " `[[ -e gnuplot/used/installed ]] && echo "(installed)"`
+	# last checked 01/2014: downloading but not compiling for 64bit	
 	echo "	GotoBLAS2   1.13                  " `[[ -e GotoBLAS2/used/installed ]] && echo "(installed)"`
+	# last checked 01/2014
 	echo "	Metis       5.0.2                 " `[[ -e metis/used/installed ]] && echo "(installed)"`
 	echo "	mpfr        2.4.2                 "	`[[ -e mpfr/used/installed ]] && echo "(installed)"`
 	echo "	mpc         0.8.1                 " `[[ -e mpc/used/installed ]] && echo "(installed)"`
+	# last checked 01/2014	
 	echo "	OpenMPI     1.6                   " `[[ -e openmpi/used/installed ]] && echo "(installed)"`
-	echo "	ParaView    3.14.1-Linux-32bit    " `[[ -e ParaView/used/installed ]] && echo "(installed)"`	
+	# last checked 01/2014	
+	echo "	ParaView    3.14.1-Linux-32bit    " `[[ -e ParaView/used/installed ]] && echo "(installed)"`
+	# last checked 01/2014		
 	echo "	ParMetis    4.0.2                 " `[[ -e parmetis/used/installed ]] && echo "(installed)"`
+	# last checked 01/2014	
+	echo "	SuperLU     4.3                   " `[[ -e SuperLU/used/installed ]] && echo "(installed)"`
 }
 
 
@@ -423,6 +475,8 @@ case $1 in
 	ParaView) install_ParaView ;;
 	Metis) install_metis ;;
 	ParMetis) install_parmetis ;;
+	SuperLU) install_SuperLU ;;
+	UGIDE) install_UGIDE $2 ;;
 	all) install_all ;;
 	*) print_usage ;;
 esac
