@@ -954,6 +954,51 @@ GetDenseFromSparse(typename DenseMatrixFromSparseMatrix<TSparseMatrix>::type &A,
 	return A;
 }
 
+template<typename TSparseMatrix>
+size_t GetDoubleSize(const TSparseMatrix &S)
+{
+	const size_t nrOfRows = block_traits<typename TSparseMatrix::value_type>::static_num_rows;
+	UG_COND_THROW(nrOfRows != block_traits<typename TSparseMatrix::value_type>::static_num_cols, "only square matrices supported");
+	return S.num_rows() * nrOfRows;
+}
+
+template<typename TDoubleType, typename TSparseMatrix>
+void GetDoubleFromSparseBlock(TDoubleType &A, const TSparseMatrix &S)
+{
+	const size_t nrOfRows = block_traits<typename TSparseMatrix::value_type>::static_num_rows;
+	for(size_t r=0; r<S.num_rows(); r++)
+		for(typename TSparseMatrix::const_row_iterator it = S.begin_row(r); it != S.end_row(r); ++it)
+		{
+			size_t rr = r*nrOfRows;
+			size_t cc = it.index()*nrOfRows;
+			for(size_t r2=0; r2<nrOfRows; r2++)
+					for(size_t c2=0; c2<nrOfRows; c2++)
+					  A(rr + r2, cc + c2) = BlockRef(it.value(), r2, c2);
+		}
+}
+
+template<typename TDenseType, typename TSparseMatrix>
+size_t GetDenseDoubleFromSparse(TDenseType &A, const TSparseMatrix &S)
+{
+	size_t N = GetDoubleSize(S);
+	A.resize(0,0);
+	A.resize(N, N);
+	GetDoubleFromSparseBlock(A, S);
+	return N;
+}
+
+template<typename TDoubleSparse, typename TSparseMatrix>
+size_t GetDoubleSparseFromBlockSparse(TDoubleSparse &A, const TSparseMatrix &S)
+{
+	size_t N = GetDoubleSize(S);
+
+	A.resize_and_clear(N, N);
+	GetDoubleFromSparseBlock(A, S);
+	A.defragment();
+	return N;
+}
+
+
 
 
 /// @}
