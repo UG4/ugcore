@@ -124,6 +124,7 @@ else(WIN32)
 	endif(UNIX)
 endif(WIN32)
 
+add_definitions(-DUG_PROFILER_SHINY_CHECK_CONSISTENCY)
 
 ################################################################################
 # All available options should be defined here:
@@ -387,6 +388,8 @@ include(${UG_ROOT_PATH}/cmake/ug/hypre.cmake)
 include(${UG_ROOT_PATH}/cmake/ug/hlibpro.cmake)
 # OpenCL
 include(${UG_ROOT_PATH}/cmake/ug/opencl.cmake)
+
+include(${UG_ROOT_PATH}/cmake/ug/super_lu.cmake)
 
 
 ################################################################################
