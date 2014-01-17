@@ -193,6 +193,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_Obstacle(reg, parentGroup);
 		RegisterBridge_PILUT(reg, parentGroup);
 		RegisterBridge_Solver(reg, parentGroup);
+		RegisterBridge_ExternalSolvers(reg, parentGroup);
 		RegisterBridge_Eigensolver(reg, parentGroup);
 		RegisterBridge_DomainDependentPreconditioner(reg, parentGroup);
 
@@ -213,6 +214,7 @@ void RegisterStandardBridges(Registry& reg, string parentGroup)
 		RegisterBridge_AdaptiveTools(reg, parentGroup);
 		RegisterBridge_FiniteVolume(reg, parentGroup);
 		RegisterBridge_Integrate(reg, parentGroup);
+
 		#endif
 
 

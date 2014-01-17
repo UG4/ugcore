@@ -93,6 +93,8 @@ void RegisterBridge_Interpolate(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Evaluate(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_MaxError(Registry& reg, std::string grp = UG4_GRP);
 void RegisterBridge_Ordering(Registry& reg, std::string grp = UG4_GRP);
+
+void RegisterBridge_ExternalSolvers(Registry& reg, std::string grp = UG4_GRP);
 #endif
 
 // end group bridge
