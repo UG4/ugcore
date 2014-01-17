@@ -19,6 +19,28 @@ ug_load_script("util/time_step_util.lua")
 ug_load_script("util/solver_util.lua")
 ug_load_script("util/domain_disc_util.lua")
 
+--------------------------------------------------------------------------------
+
+--! use it like ug_assert(numPreRefs <= numRefs, "It must be choosen: numPreRefs <= numRefs")
+--! @param condition the condition to assert
+--! @param msg message to be printed if condition is not fulfilled
+function ug_assert(condition, msg)
+	if condition then
+		return
+	else
+		print("BACKTRACE:")
+		DebugBacktrace()
+		print("ASSERTION FAILED:")
+		local f, l = test.getSourceAndLine()
+		print("     File:      "..f)
+		print("     Line:      "..l)
+		print("     Message:   "..msg)
+		assert(false)
+	end
+end
+
+--------------------------------------------------------------------------------
+
 --! returns the standard path at which grids are stored
 function util.GetGridPath()
 	return ug_get_data_path().."/grids/"
@@ -334,11 +356,8 @@ end
 function util.CheckOptionsType(name, options, atype)
    if options ~= nil then
 		for i=1,#options do
-			if type(options[i]) ~= atype then
-		    	print("ERROR in util.GetParam: passed option '"..options[i]..
+			ug_assert(type(options[i]) == atype, "ERROR in util.GetParam: passed option '"..options[i]..
 		    			"' for '"..name.."' not a "..atype)
-		    	exit()
-			end
 		end
 	end
 end
@@ -349,11 +368,8 @@ function util.CheckOptionsValue(name, value, options)
 		for i=1,#options do
 			if value == options[i] then bValid = true; end
 		end
-		if not(bValid) then
-			print("ERROR in util.GetParam: passed value '"..value.."' for '"
+		ug_assert(bValid, "ERROR in util.GetParam: passed value '"..value.."' for '"
 				..name.."' not contained in options:"..util.ConcatOptions(options))
-			exit()
-		end
 	end
 end
 
@@ -365,15 +381,16 @@ util.argsUsed = util.argsUsed or {}
 --! @param name parameter in ugargv to search for
 --! @param default returned value if 'name' is not present (default nil)
 --! @param description description for 'name' (default nil)
+--! @param options a table of options e.g. {"jac", "sgs"}
+--! @param atype type of the parameter, e.g. "number", "string", "boolean". default "string"
 --! @return parameter in ugargv after ugargv[i] == name or default if 'name' was not present
 function util.GetParam(name, default, description, options, atype)
 
 	-- check options
     if options ~= nil then
-	    if type(options) ~= "table" then 
-	    	print("ERROR in util.GetParam: passed options for '"..name.."' not a table.")
-	    	exit()
-	    end
+	    ug_assert(type(options) == "table",
+	    	"ERROR in util.GetParam: passed options for '"..name.."' not a table.")
+	    
 	    if atype == nil then
 	    	util.CheckOptionsType(name, options, "string")
 	    end
@@ -426,11 +443,8 @@ function util.GetParamNumber(name, default, description, options)
 
 	-- cast to number	
 	local value = tonumber(param)
-	if value == nil then
-		print("ERROR in GetParamNumber: passed '"..param.."' for Parameter '"
+	ug_assert(value ~= nil, "ERROR in GetParamNumber: passed '"..param.."' for Parameter '"
 				..name.."' is not a number.")
-		exit();
-	end
 
 	-- check options
 	util.CheckOptionsValue(name, value, options)			
@@ -766,23 +780,6 @@ function util.GetUniqueFilenameFromCommandLine()
 	end
 end
 
---! use it like ug_assert(numPreRefs <= numRefs, "It must be choosen: numPreRefs <= numRefs")
---! @param condition the condition to assert
---! @param msg message to be printed if condition is not fulfilled
-function ug_assert(condition, msg)
-	if condition then
-		return
-	else
-		print("BACKTRACE:")
-		DebugBacktrace()
-		print("ASSERTION FAILED:")
-		local f, l = test.getSourceAndLine()
-		print("     File:      "..f)
-		print("     Line:      "..l)
-		print("     Message:   "..msg)
-		assert(false)
-	end
-end
 
 -- end group scripts_util
 --[[!  
