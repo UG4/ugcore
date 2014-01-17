@@ -50,8 +50,13 @@ function UJS_Submit
 		return
 	fi
 
-	if [ $interactive == true ]; then
+	if [ $interactive == true ]; then	
+		echo "[[ current cluster allocation"
+		squeue
+		echo "]] current cluster allocation"
+		
 		echo "Start: $commandline"
+		
 		$commandline | tee $outdir/job.output
 		return=$?	
 		if [ ! $return == 0 ]; then
