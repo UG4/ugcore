@@ -8,10 +8,13 @@
 #
 #  Creation date:   October 2, 1995
 #
-#  Modified:	    February 4, 1997  Version 1.0
-#		    November 15, 1997 Version 1.1
-#		    September 1, 1999 Version 2.0
+#  Modified:        February 4, 1997  Version 1.0
+#                   November 15, 1997 Version 1.1
+#                   September 1, 1999 Version 2.0
 #
+#                   January 17, 2014:
+# ug4 Version: 
+#	using -fPIC for shared libraries
 ############################################################################
 #
 #  The machine (platform) identifier to append to the library names
@@ -36,8 +39,8 @@ ARCHFLAGS    = cr
 RANLIB       = ranlib
 
 CC           = gcc
-CFLAGS       = -O3 
-NOOPTS       = 
+CFLAGS       = -O3 -fPIC 
+NOOPTS       = -fPIC
 FORTRAN	     = /usr/bin/gfortran
 FFLAGS       = -O3 -cpu:g5 -YEXT_NAMES=LCS -s -YEXT_SFX=_
 LOADER       = $(CC)
@@ -48,8 +51,4 @@ LOADOPTS     =
 #  (-DNoChange, -DAdd_, -DUpCase, or -DAdd__)
 #
 CDEFS        = -DAdd_
-#
-# The directory in which Matlab is installed
-#
-MATLAB	     = /Applications/MATLAB74/bin/matlab
 
