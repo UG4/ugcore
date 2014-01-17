@@ -318,6 +318,45 @@ end
 -- Command line functions
 --------------------------------------------------------------------------------
 
+function util.ConcatOptions(options)
+	local sOpt = ""
+	if options ~= nil then
+		sOpt = " ["
+		for i=1,#options do
+			if i > 1 then sOpt = sOpt.." | " end
+			sOpt = sOpt..options[i]
+		end
+		sOpt = sOpt.."]"
+	end
+	return sOpt
+end
+
+function util.CheckOptionsType(name, options, atype)
+   if options ~= nil then
+		for i=1,#options do
+			if type(options[i]) ~= atype then
+		    	print("ERROR in util.GetParam: passed option '"..options[i]..
+		    			"' for '"..name.."' not a "..atype)
+		    	exit()
+			end
+		end
+	end
+end
+
+function util.CheckOptionsValue(name, value, options)
+	if options ~= nil then
+		local bValid = false
+		for i=1,#options do
+			if value == options[i] then bValid = true; end
+		end
+		if not(bValid) then
+			print("ERROR in util.GetParam: passed value '"..value.."' for '"
+				..name.."' not contained in options:"..util.ConcatOptions(options))
+			exit()
+		end
+	end
+end
+
 util.args = util.args or {}
 util.argsUsed = util.argsUsed or {}
 
@@ -327,30 +366,46 @@ util.argsUsed = util.argsUsed or {}
 --! @param default returned value if 'name' is not present (default nil)
 --! @param description description for 'name' (default nil)
 --! @return parameter in ugargv after ugargv[i] == name or default if 'name' was not present
-function util.GetParam(name, default, description, type)
+function util.GetParam(name, default, description, options, atype)
 
-	-- default type is string
-	if type == nil then type = " (string) " end
+	-- check options
+    if options ~= nil then
+	    if type(options) ~= "table" then 
+	    	print("ERROR in util.GetParam: passed options for '"..name.."' not a table.")
+	    	exit()
+	    end
+	    if atype == nil then
+	    	util.CheckOptionsType(name, options, "string")
+	    end
+    end
 
 	-- store infos
 	util.args[name] = {}
 	util.args[name].description = (description or "")
 	util.args[name].default = default	
-	util.args[name].type = type
-	util.args[name].value = default
+	util.args[name].type = (atype or " (string) ")
+	util.args[name].options = options
 
 	-- check if argument passed
+	local value = default
+	local bFound = false
 	for i = 1, ugargc-1 do
-		if ugargv[i] == name then			
+		if not(bFound) and ugargv[i] == name then			
 			util.argsUsed[i]=true
 			util.argsUsed[i+1]=true
-			util.args[name].value = ugargv[i+1]			
-			return ugargv[i+1]
+			value = ugargv[i+1]
+			bFound=true
 		end
+	end
+	util.args[name].value = value
+	
+	-- check options
+	if atype == nil then
+		util.CheckOptionsValue(name, value, options)
 	end
 	
 	-- return default
-	return default; 
+	return value; 
 end
 
 
@@ -361,20 +416,27 @@ end
 --! @param default returned value if 'name' is not present (default nil)
 --! @param description description for 'name' (default nil)
 --! @return the number after the parameter 'name' or default if 'name' was not present/no number
-function util.GetParamNumber(name, default, description)
+function util.GetParamNumber(name, default, description, options)
 
+	-- check options
+	util.CheckOptionsType(name, options, "number")
+	
 	-- read in
-	local param = util.GetParam(name, default, description, " (number) ")
+	local param = util.GetParam(name, default, description, options, " (number) ")
 
 	-- cast to number	
-	local number = tonumber(param)
-	if number == nil then
-		print("ERROR in GetParamNumber: passed '"..param.."' for Parameter '"..name.."' is not a number.")
+	local value = tonumber(param)
+	if value == nil then
+		print("ERROR in GetParamNumber: passed '"..param.."' for Parameter '"
+				..name.."' is not a number.")
 		exit();
 	end
+
+	-- check options
+	util.CheckOptionsValue(name, value, options)			
 	
 	-- return value
-	return number
+	return value
 end
 
 --! util.GetParamBool
@@ -385,7 +447,9 @@ end
 --! unlike util.HasParamOption , you must specify a value for your optionn, like -useAMG 1
 --! possible values are (false): 0, n, false, (true) 1, y, j, true
 function util.GetParamBool(name, default, description)
-	local r = util.GetParam(name, tostring(default), description, "  (bool)  ")
+
+	local r = util.GetParam(name, tostring(default), description, nil, "  (bool)  ")
+	
 	if r == "0" or r == "false" or r == "n" then
 		return false
 	elseif r == "1" or r == "true" or r == "y" or r == "j" then
@@ -451,8 +515,9 @@ function util.PrintHelp()
 		length = math.max(string.len(name), length)
 	end	
 	for name,arg in pairsSortedByKeys(util.args) do
+		sOpt = util.ConcatOptions(arg.options)
 		print(arg.type..util.adjuststring(name, length, "l").." = "..arg.value..
-			  " : "..arg.description.." (default = "..arg.default..")")
+			  " : "..arg.description..sOpt.." (default = "..arg.default..")")
 	end
 end
 
