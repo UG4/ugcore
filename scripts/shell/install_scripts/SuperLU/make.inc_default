@@ -23,8 +23,7 @@ PLAT = _mac_x
 #
 SuperLUroot	= $(HOME)/local/SuperLU/4.3
 SUPERLULIB   	= $(SuperLUroot)/lib/libsuperlu_4.3.a
-BLASDEF = -DUSE_VENDOR_BLAS
-BLASLIB   	=  /usr/lib64/libblas.so
+BLASLIB   	= "../lib/blas$(PLAT).a"
 TMGLIB       	= libtmglib.a
 LIBS		= $(SUPERLULIB) $(BLASLIB)
 
@@ -49,4 +48,8 @@ LOADOPTS     =
 #  (-DNoChange, -DAdd_, -DUpCase, or -DAdd__)
 #
 CDEFS        = -DAdd_
+#
+# The directory in which Matlab is installed
+#
+MATLAB	     = /Applications/MATLAB74/bin/matlab
 

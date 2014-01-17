@@ -23,6 +23,7 @@ PLAT = _mac_x
 #
 SuperLUroot	= $(HOME)/local/SuperLU/4.3
 SUPERLULIB   	= $(SuperLUroot)/lib/libsuperlu_4.3.a
+BLASDEF = -DUSE_VENDOR_BLAS
 BLASLIB   	= /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Versions/Current/libBLAS.dylib
 TMGLIB       	= libtmglib.a
 LIBS		= $(SUPERLULIB) $(BLASLIB)
