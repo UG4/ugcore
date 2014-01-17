@@ -42,9 +42,13 @@ public:
 		if(m_bInited)
 		{
 			Destroy_CompCol_Matrix(&SuperLU_A);
+			memset(&SuperLU_A, 0, sizeof(SuperMatrix));
 			Destroy_SuperMatrix_Store(&SuperLU_B);
+			memset(&SuperLU_B, 0, sizeof(SuperMatrix));
 			Destroy_SuperNode_Matrix(&SuperLU_L);
+			memset(&SuperLU_L, 0, sizeof(SuperMatrix));
 			Destroy_CompCol_Matrix(&SuperLU_U);
+			memset(&SuperLU_U, 0, sizeof(SuperMatrix));
 			m_bInited = false;
 		}
 	}
@@ -64,12 +68,14 @@ public:
 
 	virtual void init(const CPUAlgebra::matrix_type &A)
 	{
-		destroy();
+
+//		destroy();
 		PROFILE_BEGIN_GROUP(SuperLU_Preprocess, "algebra SuperLU");
 		typedef CPUAlgebra::matrix_type::const_row_iterator row_it;
 		typedef CPUAlgebra::matrix_type::value_type value_type;
 		size_t nnz =0;
 		size_t N = A.num_rows();
+		UG_LOG("SuperLU preprocess, N = " << N << "\n");
 
 
 		for(size_t r=0; r<N; r++)
@@ -111,8 +117,8 @@ public:
 			rhs[i] = 0;
 		dCreate_Dense_Matrix(&SuperLU_B, N, 1, &rhs[0], N, SLU_DN, SLU_D, SLU_GE);
 
-		perm_r.resize(N);
-		perm_c.resize(N);
+		perm_r.resize(N+1);
+		perm_c.resize(N+1);
 		/* Set the default input options. */
 		set_default_options(&options);
 
