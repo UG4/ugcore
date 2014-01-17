@@ -43,6 +43,13 @@ ug_print_parameter()
 	
 	while read -r line
 	do
+		# replace options from {1,2,3} -> [1|2|3]
+		line=`sed ':redo
+		s/{\([^},]*\),\([^}]*\)}/{\1\|\2}/
+		t redo' <<< $line`
+		line=`sed 's/{\([^}]*\)}/[\1\]/g' <<< $line`
+		
+		# replace all comma (not in quotes) by separation character (@)	
 		line=`sed 's/\("[^"]*"\)/<\1>/g' <<< $line`
 		line=`sed 's/,\([^",]*<"\)/@\1/g' <<< $line`
 		line=`sed 's/\(">[^",]*\),/\1@/g' <<< $line`
