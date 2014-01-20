@@ -118,7 +118,7 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 
 		//	Compute scaling
 			try{
-				const number kappa = VecProd(d, Ac) / VecProd(Ac, Ac);
+				const number kappa = VecProd(Ac, d) / VecProd(Ac, Ac);
 
 				if (kappa<0.3) return 0.3;
 
