@@ -18,6 +18,7 @@
 // preconditioner
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/preconditioner/projected_gauss_seidel/obstacles/obstacles.h"
+#include "lib_disc/operator/non_linear_operator/truncated_monotone_mg/truncated_monotone_transfer.h"
 
 using namespace std;
 
@@ -164,6 +165,18 @@ static void DomainAlgebra(Registry& reg, string grp)
 			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ProjSymmetricGaussSeidel", tag);
+	}
+
+
+//	transfer operators for truncated monotone multigrid
+	{
+		typedef TruncatedMonotoneTransfer<TDomain,TAlgebra> T;
+		typedef ITransferOperator<TDomain,TAlgebra> TBase;
+		string name = string("TruncatedMonotoneTransfer").append(suffix);
+		reg.add_class_<T,TBase>(name, grp)
+			//.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "TruncatedMonotoneTransfer", tag);
 	}
 };
 
