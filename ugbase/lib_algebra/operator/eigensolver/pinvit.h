@@ -518,7 +518,7 @@ public:
 	{
 		PROFILE_FUNC_GROUP("debug");
 		try{
-			if(debug_writer() == NULL) return;
+			if(debug_writer().invalid()) return;
 
 			vector_type t, defect;
 			init_nonprecond_vector(t);
