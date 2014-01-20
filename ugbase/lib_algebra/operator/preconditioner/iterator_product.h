@@ -129,7 +129,7 @@ class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 
 		//	Clone
 		virtual SmartPtr<ILinearIterator<X,Y> > clone() {
-			return new LinearIteratorProduct(*this);
+			return make_sp(new LinearIteratorProduct(*this));
 		}
 };
 
@@ -203,7 +203,7 @@ class LinearIteratorSum : public CombinedLinearIterator<X,Y>
 
 		//	Clone
 		virtual SmartPtr<ILinearIterator<X,Y> > clone() {
-			return new LinearIteratorSum(*this);
+			return make_sp(new LinearIteratorSum(*this));
 		}
 
 	protected:

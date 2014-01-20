@@ -550,6 +550,15 @@ const std::vector<T>& ReturnConstStdVectorRefOfClass(){
 	return vec;
 }
 
+template <typename T>
+const std::vector<T>& ReturnConstStdVectorRefOfSmartPtrClass(){
+	static std::vector<T> vec;
+	vec.push_back(make_sp(new Derived()));
+	vec.push_back(make_sp(new Base()));
+	vec.push_back(make_sp(new FurtherDerived()));
+	return vec;
+}
+
 void NotAllowedParamPerValue(Piece P){}
 
 //cpoliwoda start playground
@@ -870,10 +879,10 @@ void RegisterBridge_Test(Registry& reg, string parentGroup)
 		reg.add_function("ReturnConstStdVectorRef_BaseConstPtr", &ReturnConstStdVectorRefOfClass<const Base*>, grp);
 		reg.add_function("ReturnStdVector_BaseConstPtr", &ReturnStdVectorOfClass<const Base*>, grp);
 
-		reg.add_function("ReturnConstStdVectorRef_BaseSmartPtr", &ReturnConstStdVectorRefOfClass<SmartPtr<Base> >, grp);
+		reg.add_function("ReturnConstStdVectorRef_BaseSmartPtr", &ReturnConstStdVectorRefOfSmartPtrClass<SmartPtr<Base> >, grp);
 		reg.add_function("ReturnStdVector_BaseSmartPtr", &ReturnStdVectorOfClass<SmartPtr<Base> >, grp);
 
-		reg.add_function("ReturnConstStdVectorRef_BaseConstSmartPtr", &ReturnConstStdVectorRefOfClass<ConstSmartPtr<Base> >, grp);
+		reg.add_function("ReturnConstStdVectorRef_BaseConstSmartPtr", &ReturnConstStdVectorRefOfSmartPtrClass<ConstSmartPtr<Base> >, grp);
 		reg.add_function("ReturnStdVector_BaseConstSmartPtr", &ReturnStdVectorOfClass<ConstSmartPtr<Base> >, grp);
 
 	}

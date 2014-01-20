@@ -62,10 +62,10 @@ class SchurComplementOperator
 	: m_spOperator(Alocal),
 	  m_slicing(sdv)
 	{
-		m_op[0][0] = new MatrixOperator<matrix_type, vector_type>();
-		m_op[0][1] = new MatrixOperator<matrix_type, vector_type>();
-		m_op[1][0] = new MatrixOperator<matrix_type, vector_type>();
-		m_op[1][1] = new MatrixOperator<matrix_type, vector_type>();
+		m_op[0][0] = make_sp(new MatrixOperator<matrix_type, vector_type>());
+		m_op[0][1] = make_sp(new MatrixOperator<matrix_type, vector_type>());
+		m_op[1][0] = make_sp(new MatrixOperator<matrix_type, vector_type>());
+		m_op[1][1] = make_sp(new MatrixOperator<matrix_type, vector_type>());
 	}
 
 	// destructor

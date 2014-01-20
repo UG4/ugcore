@@ -305,7 +305,7 @@ class DarcyVelocityLinker
 
 		void set_permeability(number val)
 		{
-			set_permeability(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
+			set_permeability(make_sp(new ConstUserMatrix<dim>(val)));
 		}
 
 	///	set permeability import
@@ -318,7 +318,7 @@ class DarcyVelocityLinker
 
 		void set_viscosity(number val)
 		{
-			set_viscosity(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+			set_viscosity(make_sp(new ConstUserNumber<dim>(val)));
 		}
 
 	///	set density import

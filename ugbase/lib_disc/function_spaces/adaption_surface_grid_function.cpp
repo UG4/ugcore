@@ -53,8 +53,8 @@ prolongate(const GridMessage_Adaption& msg, const size_t lvl)
 		if(!m_vpProlong[fct]->perform_prolongation_on(gbo)) continue;
 
 		m_vpProlong[fct]->init(m_spDomain,
-		                      new ValueAccessor(*this, fct),
-		                      new ValueAccessor(*this, fct));
+		                      make_sp(new ValueAccessor(*this, fct)),
+		                      make_sp(new ValueAccessor(*this, fct)));
 
 		vpProlong.push_back(m_vpProlong[fct]);
 	}
@@ -197,8 +197,8 @@ do_restrict(const MGSelector& sel, const GridMessage_Adaption& msg)
 		if(!m_vpRestrict[fct]->perform_restriction_on(gbo)) continue;
 
 		m_vpRestrict[fct]->init(m_spDomain,
-		                      new ValueAccessor(*this, fct),
-		                      new ValueAccessor(*this, fct));
+		                      make_sp(new ValueAccessor(*this, fct)),
+		                      make_sp(new ValueAccessor(*this, fct)));
 
 		vpRestrict.push_back(m_vpRestrict[fct]);
 	}

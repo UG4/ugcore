@@ -110,7 +110,7 @@ getptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 			create_set(roid, id);
 			return getptr<dim, TShape, TGrad>(roid, id, false);
 		}
-		return NULL;
+		return ConstSmartPtr<LocalShapeFunctionSet<dim, TShape, TGrad> >();
 	}
 
 //	return shape function set
@@ -154,7 +154,7 @@ get_dof_ptr(ReferenceObjectID roid, const LFEID& id, bool bCreate)
 			create_dof_set(roid, id);
 			return get_dof_ptr<dim>(roid, id, false);
 		}
-		return NULL;
+		return ConstSmartPtr<DimLocalDoFSet<dim> >();
 	}
 
 //	return shape function set

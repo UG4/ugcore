@@ -71,8 +71,8 @@ class SmartPtr
 	friend class ConstSmartPtr<void>;
 
 	public:
-		SmartPtr() : m_ptr(0), m_refCount(0)	{}
-		SmartPtr(T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
+		explicit SmartPtr() : m_ptr(0), m_refCount(0)	{}
+		explicit SmartPtr(T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
 		SmartPtr(const SmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -188,7 +188,7 @@ class SmartPtr
 	///	WARNING: this method is DANGEROUS!
 	/**	You should only use this constructor if you really know what you're doing!
 	 *	The following methods are required for SmartPtr<void> and casts */
-		SmartPtr(T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
+		explicit SmartPtr(T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
 		{
 			if(m_refCount)
 				(*m_refCount)++;
@@ -237,8 +237,8 @@ class ConstSmartPtr
 	friend class ConstSmartPtr<void>;
 
 	public:
-		ConstSmartPtr() : m_ptr(0), m_refCount(0)	{}
-		ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
+		explicit ConstSmartPtr() : m_ptr(0), m_refCount(0)	{}
+		explicit ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
 		ConstSmartPtr(const ConstSmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -378,7 +378,7 @@ class ConstSmartPtr
 	///	WARNING: this method is DANGEROUS!
 	/**	You should only use this constructor if you really know what you're doing!
 	 *	The following methods are required for SmartPtr<void> and casts */
-		ConstSmartPtr(const T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
+		explicit ConstSmartPtr(const T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
 		{
 			if(m_refCount)
 				(*m_refCount)++;
@@ -446,7 +446,7 @@ class SmartPtr<void>
 	friend class ConstSmartPtr<void>;
 
 	public:
-		SmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
+		explicit SmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
 
 		SmartPtr(const SmartPtr<void>& sp) :
 			m_ptr(sp.m_ptr),
@@ -456,7 +456,7 @@ class SmartPtr<void>
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
 
-		SmartPtr(void* ptr, void (*freeFunc)(const void*)) :
+		explicit SmartPtr(void* ptr, void (*freeFunc)(const void*)) :
 			m_ptr(ptr),
 			m_refCountPtr(0),
 			m_freeFunc(freeFunc)
@@ -553,9 +553,9 @@ template <>
 class ConstSmartPtr<void>
 {
 	public:
-		ConstSmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
+		explicit ConstSmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
 
-		ConstSmartPtr(void* ptr, void (*freeFunc)(const void*)) :
+		explicit ConstSmartPtr(void* ptr, void (*freeFunc)(const void*)) :
 			m_ptr(ptr),
 			m_refCountPtr(0),
 			m_freeFunc(freeFunc)
@@ -720,14 +720,14 @@ namespace std
 
 /// returns a SmartPtr for the passed raw pointer
 template <typename T, template <class TT> class FreePolicy>
-SmartPtr<T, FreePolicy> CreateSmartPtr(T* inst)
+SmartPtr<T, FreePolicy> make_sp(T* inst)
 {
 	return SmartPtr<T, FreePolicy>(inst);
 }
 
 /// returns a SmartPtr for the passed raw pointer
 template <typename T>
-SmartPtr<T> CreateSmartPtr(T* inst)
+SmartPtr<T> make_sp(T* inst)
 {
 	return SmartPtr<T>(inst);
 }

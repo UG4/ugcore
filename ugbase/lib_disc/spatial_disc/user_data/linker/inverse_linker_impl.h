@@ -41,10 +41,10 @@ divide(SmartPtr<CplUserData<number, dim> > dividend, SmartPtr<CplUserData<number
 	const size_t numInput = base_type::num_input() / 2;
 
 //	resize scaling
-	m_vpDivisorData.resize(numInput+1, NULL);
-	m_vpDependData.resize(numInput+1, NULL);
-	m_vpDividendData.resize(numInput+1, NULL);
-	m_vpDividendDependData.resize(numInput+1, NULL);
+	m_vpDivisorData.resize(numInput+1);
+	m_vpDependData.resize(numInput+1);
+	m_vpDividendData.resize(numInput+1);
+	m_vpDividendDependData.resize(numInput+1);
 
 //	remember userdata
 	UG_ASSERT(divisor.valid(), "Null Pointer as Input set.");
