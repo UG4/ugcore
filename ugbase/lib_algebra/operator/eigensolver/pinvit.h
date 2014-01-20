@@ -163,7 +163,7 @@ public:
 
 	PINVIT()
 	{
-		m_pA = NULL;
+		//m_pA = NULL;
 		m_pB = NULL;
 		m_iPINVIT = 3;
 		m_dMinimumDefectToCalcCorrection = 1e-8;
