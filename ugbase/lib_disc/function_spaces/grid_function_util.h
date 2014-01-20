@@ -69,7 +69,7 @@ void SubtractValueFromComponent(SmartPtr<TGridFunction> spGF, size_t fct, number
 }
 
 template<typename TGridFunction>
-void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string>& vCmp)
+void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string>& vCmp, number mean)
 {
 	typedef TGridFunction GF;
 	PROFILE_FUNC_GROUP("gmg");
@@ -86,13 +86,15 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string
 //	compute integral of components
 	const number area = Integral(1.0, spGF);
 	std::vector<number> vIntegral(vCmp.size(), 0.0);
-	for(size_t f = 0; f < vCmp.size(); f++)
-		vIntegral[f] = Integral(spGF, vCmp[f].c_str());
+	for(size_t f = 0; f < vCmp.size(); f++){
+		const size_t fct = spGF->fct_id_by_name(vCmp[f].c_str());
+		vIntegral[f] = Integral(spGF, vCmp[f].c_str(), NULL, ddinfo->lfeid(fct).order());
+	}
 
 //	subtract value
 	for(size_t f = 0; f < vCmp.size(); f++)
 	{
-		const number sub = vIntegral[f] / area;
+		const number sub = (vIntegral[f] - mean) / area;
 		const size_t fct = spGF->fct_id_by_name(vCmp[f].c_str());
 
 		if(ddinfo->max_fct_dofs(fct, VERTEX)) SubtractValueFromComponent<GF, VertexBase>(spGF, fct, sub);
@@ -103,9 +105,21 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string
 }
 
 template<typename TGridFunction>
+void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string>& vCmp)
+{
+	AdjustMeanValue(spGF, vCmp, 0.0);
+}
+
+template<typename TGridFunction>
 void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::string& fcts)
 {
-	AdjustMeanValue(spGF, TokenizeTrimString(fcts));
+	AdjustMeanValue(spGF, TokenizeTrimString(fcts), 0.0);
+}
+
+template<typename TGridFunction>
+void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::string& fcts, number mean)
+{
+	AdjustMeanValue(spGF, TokenizeTrimString(fcts), mean);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -20,7 +20,7 @@
 #include "lib_disc/function_spaces/approximation_space.h"
 
 #include "lib_disc/operator/linear_operator/std_injection.h"
-#include "lib_disc/operator/linear_operator/transfer_post_process.h"
+#include "lib_disc/operator/linear_operator/average_component.h"
 #include "lib_disc/operator/linear_operator/std_transfer.h"
 #include "lib_disc/operator/linear_operator/multi_grid_solver/mg_solver.h"
 #include "lib_disc/operator/linear_operator/element_gauss_seidel/element_gauss_seidel.h"

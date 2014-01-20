@@ -27,15 +27,6 @@ class AverageComponent :
 	virtual public ITransferPostProcess<TDomain, TAlgebra>
 {
 	public:
-	///	Type of algebra
-		typedef TAlgebra algebra_type;
-
-	///	Type of Vector
-		typedef typename TAlgebra::vector_type vector_type;
-
-	///	Type of Domain
-		typedef TDomain domain_type;
-
 	///	GridFunction type
 		typedef GridFunction<TDomain, TAlgebra> GF;
 
@@ -59,7 +50,5 @@ class AverageComponent :
 };
 
 } // end namespace ug
-
-#include "transfer_post_process_impl.h"
 
 #endif /* __H__UG__LIB_DISC__OPERATOR__LINEAR_OPERATOR__TRANSFER_POST_PROCESS__ */

@@ -152,7 +152,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	AverageFunctionDifference
 	{
 		typedef ug::GridFunction<TDomain, TAlgebra> GF;
+		reg.add_function("AdjustMeanValue", static_cast<void (*)(SmartPtr<GF>, const std::vector<std::string>&, number)>(&AdjustMeanValue<GF>), grp);
 		reg.add_function("AdjustMeanValue", static_cast<void (*)(SmartPtr<GF>, const std::vector<std::string>&)>(&AdjustMeanValue<GF>), grp);
+		reg.add_function("AdjustMeanValue", static_cast<void (*)(SmartPtr<GF>, const std::string&, number)>(&AdjustMeanValue<GF>), grp);
 		reg.add_function("AdjustMeanValue", static_cast<void (*)(SmartPtr<GF>, const std::string&)>(&AdjustMeanValue<GF>), grp);
 	}
 }
