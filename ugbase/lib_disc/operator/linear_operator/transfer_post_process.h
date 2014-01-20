@@ -14,6 +14,7 @@
 // other ug4 modules
 #include "common/common.h"
 #include "transfer_interface.h"
+#include "lib_disc/function_spaces/grid_function_util.h"
 
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
@@ -47,11 +48,10 @@ class AverageComponent :
 
 	public:
 	/// apply Operator, interpolate function
-		virtual void post_process(SmartPtr<GF> spGF);
-
-	protected:
-		template <typename TBaseElem>
-		void subtract_value(SmartPtr<GridFunction<TDomain, TAlgebra> > spGF, size_t fct, number sub);
+		virtual void post_process(SmartPtr<GF> spGF)
+		{
+			AdjustMeanValue(spGF, m_vCmp);
+		}
 
 	protected:
 	///	symbolic function names
