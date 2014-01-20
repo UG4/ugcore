@@ -318,31 +318,8 @@ StdInjection<TDomain, TAlgebra>::clone()
 {
 	SmartPtr<StdInjection> op(new StdInjection);
 	op->set_approximation_space(m_spApproxSpace);
-	for(size_t i = 0; i < m_vConstraint.size(); ++i)
-		op->add_constraint(m_vConstraint[i]);
 	return op;
 }
-
-template <typename TDomain, typename TAlgebra>
-void StdInjection<TDomain, TAlgebra>::
-add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
-{
-	UG_THROW("Not Implemented.");
-//	add only once
-	if(std::find(m_vConstraint.begin(), m_vConstraint.end(), pp) !=
-			m_vConstraint.end()) return;
-	m_vConstraint.push_back(pp);
-}
-
-template <typename TDomain, typename TAlgebra>
-void StdInjection<TDomain, TAlgebra>::
-remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
-{
-	UG_THROW("Not Implemented.");
-	m_vConstraint.erase(m_vConstraint.begin(),
-	                     std::remove(m_vConstraint.begin(), m_vConstraint.end(), pp));
-}
-
 
 } // end namespace ug
 

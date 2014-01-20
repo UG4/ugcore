@@ -11,13 +11,9 @@
 #include "lib_algebra/operator/interface/operator.h"
 #include "lib_grid/tools/grid_level.h"
 #include "lib_disc/function_spaces/grid_function.h"
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 namespace ug{
-
-//predeclaration
-template <typename TAlgebra>
-class IConstraint;
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Transfer Operator
@@ -38,17 +34,28 @@ class ITransferOperator
 		typedef TDomain domain_type;
 
 	public:
+	///	constructor
+		ITransferOperator(){clear_constraints();}
+
 	/// Set Levels for Prolongation coarse -> fine
 		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
 
 	///	clears dirichlet post processes
-		virtual void clear_constraints() = 0;
+		virtual void clear_constraints(){m_vConstraint.clear();};
 
 	///	adds a dirichlet post process (not added if already registered)
-		virtual void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp) = 0;
+		virtual void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp){
+			//	add only once
+			if(std::find(m_vConstraint.begin(), m_vConstraint.end(), pp) !=
+					m_vConstraint.end()) return;
+			m_vConstraint.push_back(pp);
+		};
 
 	///	removes a post process
-		virtual void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp) = 0;
+		virtual void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp){
+			m_vConstraint.erase(m_vConstraint.begin(),
+			    std::remove(m_vConstraint.begin(), m_vConstraint.end(), pp));
+		}
 
 	public:
 	///	initialize the operator
@@ -79,6 +86,11 @@ class ITransferOperator
 
 	///	virtual destructor
 		virtual ~ITransferOperator() {}
+
+	protected:
+	///	list of post processes
+		std::vector<SmartPtr<IConstraint<TAlgebra> > > m_vConstraint;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////

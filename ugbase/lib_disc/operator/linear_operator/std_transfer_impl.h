@@ -720,24 +720,6 @@ StdTransfer<TDomain, TAlgebra>::clone()
 
 template <typename TDomain, typename TAlgebra>
 void StdTransfer<TDomain, TAlgebra>::
-add_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
-{
-//	add only once
-	if(std::find(m_vConstraint.begin(), m_vConstraint.end(), pp) !=
-			m_vConstraint.end()) return;
-	m_vConstraint.push_back(pp);
-}
-
-template <typename TDomain, typename TAlgebra>
-void StdTransfer<TDomain, TAlgebra>::
-remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp)
-{
-	m_vConstraint.erase(m_vConstraint.begin(),
-	                     std::remove(m_vConstraint.begin(), m_vConstraint.end(), pp));
-}
-
-template <typename TDomain, typename TAlgebra>
-void StdTransfer<TDomain, TAlgebra>::
 write_debug(const matrix_type& mat, std::string name,
             const GridLevel& glTo, const GridLevel& glFrom)
 {

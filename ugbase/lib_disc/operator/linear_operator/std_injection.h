@@ -14,7 +14,6 @@
 // other ug4 modules
 #include "common/common.h"
 #include "transfer_interface.h"
-#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 
 #ifdef UG_PARALLEL
 #include "lib_disc/parallelization/parallelization_util.h"
@@ -36,6 +35,9 @@ class StdInjection :
 	virtual public ITransferOperator<TDomain, TAlgebra>
 {
 	public:
+	///	Type of base class
+		typedef ITransferOperator<TDomain, TAlgebra> base_type;
+
 	///	Type of algebra
 		typedef TAlgebra algebra_type;
 
@@ -66,15 +68,6 @@ class StdInjection :
 	///	Set approximation level
 		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
 
-	///	clears dirichlet post processes
-		void clear_constraints() {m_vConstraint.clear();}
-
-	///	adds a dirichlet post process (not added if already registered)
-		void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
-
-	///	removes a post process
-		void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
-
 	protected:
 		template <typename TElem>
 		void set_identity_on_pure_surface(matrix_type& mat,
@@ -102,9 +95,6 @@ class StdInjection :
 
 	///	the underlying approximation space
 		SmartPtr<ApproximationSpace<TDomain> > m_spApproxSpace;
-
-	///	list of post processes
-		std::vector<SmartPtr<IConstraint<TAlgebra> > > m_vConstraint;
 
 	///	fine level of approximation space
 		GridLevel m_fineLevel;

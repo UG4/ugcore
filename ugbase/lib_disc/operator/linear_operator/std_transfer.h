@@ -14,7 +14,6 @@
 // other ug4 modules
 #include "common/common.h"
 #include "transfer_interface.h"
-#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
 #include "lib_algebra/operator/debug_writer.h"
 
 #ifdef UG_PARALLEL
@@ -23,7 +22,7 @@
 
 namespace ug{
 
-///	Standard Prologation Operator
+///	Standard Prolongation Operator
 /**	By default a special optimization is performed for p1-lagrange-elements.
  * This optimization is only valid if all elements have been refined with
  * standard refinement rules. If closure elements are generated, this optimization
@@ -34,6 +33,9 @@ class StdTransfer :
 	virtual public ITransferOperator<TDomain, TAlgebra>
 {
 	public:
+	///	Type of base class
+		typedef ITransferOperator<TDomain, TAlgebra> base_type;
+
 	///	Type of Algebra
 		typedef TAlgebra algebra_type;
 
@@ -49,12 +51,16 @@ class StdTransfer :
 	///	Type of GridFunction
 		typedef GridFunction<TDomain, TAlgebra> GF;
 
+//	protected:
+//		using base_type::clear_constraints;
+
 	public:
 	/// Default constructor
-		StdTransfer() : m_p1LagrangeOptimizationEnabled(true),
+		StdTransfer() : ITransferOperator<TDomain, TAlgebra>(),
+						m_p1LagrangeOptimizationEnabled(true),
 						m_dampRes(1.0), bCached(true), m_bUseTransposed(true),
 						m_spDebugWriter(NULL)
-		{clear_constraints();};
+		{};
 
 	/// virtual destructor
 		virtual ~StdTransfer(){};
@@ -111,15 +117,6 @@ class StdTransfer :
 						"a grid function.");
 			do_restrict(*pCoarse, *pFine);
 		}
-
-	///	clears dirichlet post processes
-		void clear_constraints() {m_vConstraint.clear();}
-
-	///	adds a dirichlet post process (not added if already registered)
-		void add_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
-
-	///	removes a post process
-		void remove_constraint(SmartPtr<IConstraint<TAlgebra> > pp);
 
 	public:
 	///	returns prolongation as a matrix
@@ -202,7 +199,7 @@ class StdTransfer :
 
 	protected:
 	///	list of post processes
-		std::vector<SmartPtr<IConstraint<TAlgebra> > > m_vConstraint;
+		using base_type::m_vConstraint;
 
 	///	flag for p1-lagrange-optimization
 		bool m_p1LagrangeOptimizationEnabled;
