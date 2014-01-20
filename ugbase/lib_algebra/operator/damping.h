@@ -111,15 +111,20 @@ class MinimalResiduumDamping : public IDamping<X,Y>
 		{
 			SmartPtr<X> spAc = d.clone_without_values();
 			X& Ac = *spAc;
-			spLinOp.cast_const()->apply(Ac, c);
+
+			try{
+				spLinOp.cast_const()->apply(Ac, c);
+			}UG_CATCH_THROW("MinimalResiduumDamping: Computing Ac failed.")
 
 		//	Compute scaling
-			const number kappa = VecProd(d, Ac) / VecProd(Ac, Ac);
-			
-			if (kappa<0.3) return 0.3;
+			try{
+				const number kappa = VecProd(d, Ac) / VecProd(Ac, Ac);
 
-		//	return result
-			return kappa;
+				if (kappa<0.3) return 0.3;
+
+			//	return result
+				return kappa;
+			}UG_CATCH_THROW("MinimalResiduumDamping: Computing (d,Ac)/(Ac,Ac) failed.")
 		}
 
 	///	returns if damping is constant
