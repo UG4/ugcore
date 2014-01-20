@@ -185,8 +185,11 @@ apply(vector_type& rC, const vector_type& rD)
 
 //	apply scaling
 	GMG_PROFILE_BEGIN(GMG_Apply_Scaling);
-	const number kappa = this->damping()->damping(c, d, m_spSurfaceMat.template cast_dynamic<ILinearOperator<vector_type> >());
-	if(kappa != 1.0) c *= kappa;
+	try{
+		const number kappa = this->damping()->damping(c, d, m_spSurfaceMat.template cast_dynamic<ILinearOperator<vector_type> >());
+		if(kappa != 1.0) c *= kappa;
+	}
+	UG_CATCH_THROW("GMG: Damping failed.")
 	GMG_PROFILE_END();
 
 //	debug output
