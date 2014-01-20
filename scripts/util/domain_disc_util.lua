@@ -62,9 +62,10 @@ end
 function NavierStokes(fcts, subsets, discType)
 	if discType == nil then discType = "fv1" end
 	if 		discType == "fv1"  then return NavierStokesFV1(fcts, subsets)
-	elseif  discType == "fe"   then return NavierStokesFE(fcts, subsets)
-	elseif  discType == "fvcr" then return NavierStokesFVCR(fcts, subsets)
 	elseif  discType == "fv"   then return NavierStokesFV(fcts, subsets)
+	elseif  discType == "fvcr" then return NavierStokesFVCR(fcts, subsets)
+	elseif  discType == "fe"   then return NavierStokesFE(fcts, subsets)
+	elseif  discType == "fecr" then return NavierStokesFE(fcts, subsets)
 	else 
 		print("NavierStokes: no disc type '"..discType.."' available. Aborting")
 		exit();
@@ -82,11 +83,12 @@ function NavierStokesInflow(spMaster)
 		exit();
 	end
 
-	discType = spMaster:disc_type();	
+	local discType = spMaster:disc_type();	
 	if 		discType == "fv1"  then return NavierStokesInflowFV1(spMaster)
-	elseif  discType == "fvcr" then return NavierStokesInflowFVCR(spMaster)
 	elseif  discType == "fv"   then return NavierStokesInflowFV(spMaster)
+	elseif  discType == "fvcr" then return NavierStokesInflowFVCR(spMaster)
 	elseif  discType == "fe"   then return NavierStokesInflowFE(spMaster)
+	elseif  discType == "fecr" then return NavierStokesInflowFE(spMaster)
 	else 
 		print("NavierStokesInflow: no disc type '"..discType.."' available. Aborting")
 		exit();
@@ -104,7 +106,7 @@ function NavierStokesNoNormalStressOutflow(spMaster)
 		exit();
 	end
 
-	discType = spMaster:disc_type();	
+	local discType = spMaster:disc_type();	
 	if 		discType == "fv1"  then return NavierStokesNoNormalStressOutflowFV1(spMaster)
 	elseif  discType == "fvcr" then return NavierStokesNoNormalStressOutflowFVCR(spMaster)
 	elseif  discType == "fv"   then return NavierStokesNoNormalStressOutflowFV(spMaster)
