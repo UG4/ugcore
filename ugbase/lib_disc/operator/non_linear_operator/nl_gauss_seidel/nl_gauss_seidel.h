@@ -8,8 +8,8 @@
  *      Author: raphaelprohl
  */
 
-#ifndef NL_GAUSS_SEIDEL_H_
-#define NL_GAUSS_SEIDEL_H_
+#ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_H_
+#define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_H_
 
 #include "lib_algebra/operator/interface/operator_inverse.h"
 
@@ -225,4 +225,4 @@ class NLGaussSeidelSolver
 
 #include "nl_gauss_seidel_impl.h"
 
-#endif /* NL_GAUSS_SEIDEL_H_ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_H_ */

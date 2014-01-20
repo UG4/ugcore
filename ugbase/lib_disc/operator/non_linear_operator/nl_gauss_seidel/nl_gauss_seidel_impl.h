@@ -8,8 +8,8 @@
  *  Author: raphaelprohl
  */
 
-#ifndef NL_GAUSS_SEIDEL_IMPL_H_
-#define NL_GAUSS_SEIDEL_IMPL_H_
+#ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_IMPL_H_
+#define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_IMPL_H_
 
 // extern includes
 #include <iostream>
@@ -452,4 +452,4 @@ void NLGaussSeidelSolver<TDomain, TAlgebra>::write_debug(const matrix_type& mat,
 
 }
 
-#endif /* NL_GAUSS_SEIDEL_IMPL_H_ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_GAUSS_SEIDEL__NL_GAUSS_SEIDEL_IMPL_H_ */

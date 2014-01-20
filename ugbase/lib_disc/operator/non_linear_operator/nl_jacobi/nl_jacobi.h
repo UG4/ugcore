@@ -8,8 +8,8 @@
  *      Author: raphaelprohl
  */
 
-#ifndef NL_JACOBI_H_
-#define NL_JACOBI_H_
+#ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_H_
+#define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_H_
 
 #include "lib_algebra/operator/interface/operator_inverse.h"
 
@@ -126,4 +126,4 @@ class NLJacobiSolver
 
 #include "nl_jacobi_impl.h"
 
-#endif /* NL_JACOBI_H_ */
+#endif /* __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__NL_JACOBI__NL_JACOBIL_H_ */
