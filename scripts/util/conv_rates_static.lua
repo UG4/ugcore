@@ -1,5 +1,9 @@
+util = util or {}
+util.rates = util.rates or {}
+util.rates.static = util.rates.static or {}
 
-function util.resetErrorRatesStorage(errRates, minLev, maxLev, FctCmp, defValue)
+
+function util.rates.static.resetStorage(errRates, minLev, maxLev, FctCmp, defValue)
 
 	if defValue == nil then defValue = "--" end
 	
@@ -214,7 +218,7 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 	end	
 end
 
-function util.computeStaticConvRates_StdPrepareInitialGuess(u, lev, minLev, maxLev,
+function util.rates.static.StdPrepareInitialGuess(u, lev, minLev, maxLev,
 															domainDisc, solver)
 
 	if lev > minLev then	
@@ -227,7 +231,7 @@ function util.computeStaticConvRates_StdPrepareInitialGuess(u, lev, minLev, maxL
 end
 
 
-function util.computeStaticConvRates_StdComputeLinearSolution(u, approxSpace, domainDisc, solver)
+function util.rates.static.StdComputeLinearSolution(u, approxSpace, domainDisc, solver)
 
 	-- create operator from discretization
 	local A = AssembledLinearOperator(domainDisc)
@@ -259,7 +263,7 @@ function util.computeStaticConvRates_StdComputeLinearSolution(u, approxSpace, do
 	end
 end
 
-function util.computeStaticConvRates_StdComputeNonLinearSolution(u, approxSpace, domainDisc, solver)
+function util.rates.static.StdComputeNonLinearSolution(u, approxSpace, domainDisc, solver)
 
 	solver:init(AssembledOperator(domainDisc, u:grid_level()))
 	if solver:apply(u) == false then
@@ -268,7 +272,32 @@ function util.computeStaticConvRates_StdComputeNonLinearSolution(u, approxSpace,
 	write(">> Newton Solver done.\n")
 end
 
-function util.computeConvRatesStatic(ConvRateSetup)
+--[[!
+Computes convergence rates for a static problem
+
+In the convergence rate setup the following parameters can be passed:
+- (required) createDomain()				
+			 	function used to create Domain
+- (required) createApproxSpace(dom, discType, p)		
+			 	function used to create ApproximationSpace
+- (required) createDomainDisc(discType, vorder, approxSpace, FctCmp)			
+			 	function used to create Domain Discretization
+- (required) createSolver(approxSpace, discType)				
+				function used to create Solver
+- (required) DiscTypes					
+				Array containing types, orders and level to be looped
+- (optional) computeSolution			
+				function used to compute solution
+- (optional) prepareInitialGuess		
+				function used to prepare Initial Guess
+- (optional) exactSol					
+				Array containing exact solution as a function
+- (optional) exactGrad					
+				Array containing exact gradients as a function
+ 
+@param ConvRate Setup setup used 
+]]--
+function util.rates.static.compute(ConvRateSetup)
 	
 	-- create directories
 	if ConvRateSetup.plotPath == nil then  ConvRateSetup.plotPath = "plots/" end
@@ -281,12 +310,10 @@ function util.computeConvRatesStatic(ConvRateSetup)
 
 	-- check for methods
 	if ConvRateSetup.prepareInitialGuess == nil then
-		ConvRateSetup.prepareInitialGuess = 
-			util.computeStaticConvRates_StdPrepareInitialGuess
+		ConvRateSetup.prepareInitialGuess = util.rates.static.StdPrepareInitialGuess
 	end
 	if ConvRateSetup.computeSolution == nil then
-		ConvRateSetup.computeSolution = 
-			util.computeStaticConvRates_StdComputeLinearSolution
+		ConvRateSetup.computeSolution = util.rates.static.StdComputeLinearSolution
 	end
 	
 	-- compute element size	
@@ -412,7 +439,7 @@ function util.computeConvRatesStatic(ConvRateSetup)
 			-- prepare error measurement			
 			err.h = {}
 			for lev = minLev, maxLev do	err.h[lev] = MaxElementDiameter(dom, lev) end	
-			util.resetErrorRatesStorage(err, minLev, maxLev, FctCmp)
+			util.rates.static.resetStorage(err, minLev, maxLev, FctCmp)
 
 			-- loop levels and compute error
 			for lev = maxLev, minLev, -1 do
