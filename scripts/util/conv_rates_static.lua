@@ -246,13 +246,6 @@ function util.rates.static.StdComputeLinearSolution(u, domainDisc, solver)
 	domainDisc:adjust_solution(u)
 	write(">> Inital guess for solution prepared.\n")
 	
-	-- print matrix for test purpose
-	if debug == true then
-		SaveMatrixForConnectionViewer(u, A, "Stiffness_"..discType..p.."_l"..lev..".mat")
-		SaveVectorForConnectionViewer(b, "Rhs_"..discType..p.."_l"..lev..".vec")
-		write(">> Linear Equation system written for debug purpose.\n")
-	end
-	
 	-- 3. init solver for linear Operator
 	solver:init(A, u)
 	write(">> Linear Solver initialized.\n")
