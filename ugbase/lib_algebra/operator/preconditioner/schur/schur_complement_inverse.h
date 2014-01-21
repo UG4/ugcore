@@ -80,7 +80,7 @@ public:
 
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
 	{
-		m_exactSchurOp = new MatrixOperator<matrix_type, vector_type>;
+		m_exactSchurOp = make_sp(new MatrixOperator<matrix_type, vector_type>);
 		op->compute_matrix(m_exactSchurOp->get_matrix());
 		op->set_skeleton_debug(m_linOpInv);
 		return m_linOpInv->init(m_exactSchurOp);
@@ -229,7 +229,7 @@ public:
 	virtual bool init(SmartPtr<SchurComplementOperator<TAlgebra> > op)
 	{
 		if(m_exactSchurOp.valid() == false)
-			m_exactSchurOp = new SchurComplementMatrixOperator<TAlgebra, matrix_type, vector_type>(op);
+			m_exactSchurOp = make_sp(new SchurComplementMatrixOperator<TAlgebra, matrix_type, vector_type>(op));
 		else
 			m_exactSchurOp->set_op(op);
 		return m_linOpInv->init(m_exactSchurOp);

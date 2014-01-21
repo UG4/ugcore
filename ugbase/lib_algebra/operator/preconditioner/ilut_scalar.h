@@ -97,11 +97,11 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 			UG_ASSERT(nrOfRows == block_traits<typename matrix_type::value_type>::static_num_cols, "only square matrices supported");
 			m_size = A.num_rows() * nrOfRows;
 
-			ilut = new ILUTPreconditioner<CPUAlgebra>(m_eps);
+			ilut = make_sp(new ILUTPreconditioner<CPUAlgebra>(m_eps));
 			ilut->set_info(m_info);
 			ilut->set_sort(m_sort);
 
-			mo = new MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type>;
+			mo = make_sp(new MatrixOperator<CPUAlgebra::matrix_type, CPUAlgebra::vector_type>);
 			CPUAlgebra::matrix_type &mat = mo->get_matrix();
 			mat.resize_and_clear(m_size, m_size);
 			#ifdef UG_PARALLEL
@@ -120,7 +120,7 @@ class ILUTScalarPreconditioner : public IPreconditioner<TAlgebra>
 				}
 			mat.defragment();
 
-			SmartPtr<StdConvCheck<CPUAlgebra::vector_type> > convCheck = new StdConvCheck<CPUAlgebra::vector_type>;
+			SmartPtr<StdConvCheck<CPUAlgebra::vector_type> > convCheck(new StdConvCheck<CPUAlgebra::vector_type>);
 			convCheck->set_maximum_steps(100);
 			convCheck->set_minimum_defect(1e-50);
 			convCheck->set_reduction(1e-20);

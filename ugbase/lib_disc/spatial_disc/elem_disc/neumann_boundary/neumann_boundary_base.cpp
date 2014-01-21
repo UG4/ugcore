@@ -67,7 +67,7 @@ template<typename TDomain>
 void NeumannBoundaryBase<TDomain>::
 add(number val, const char* function, const char* subsets)
 {
-	SmartPtr<CplUserData<number, dim> > sp = CreateSmartPtr(new ConstUserNumber<dim>(val));
+	SmartPtr<CplUserData<number, dim> > sp = make_sp(new ConstUserNumber<dim>(val));
 	add(sp, function, subsets);
 }
 
@@ -75,7 +75,7 @@ template<typename TDomain>
 void NeumannBoundaryBase<TDomain>::
 add(const std::vector<number>& val, const char* function, const char* subsets)
 {
-	SmartPtr<CplUserData<MathVector<dim>, dim> > sp = CreateSmartPtr(new ConstUserVector<dim>(val));
+	SmartPtr<CplUserData<MathVector<dim>, dim> > sp = make_sp(new ConstUserVector<dim>(val));
 	add(sp, function, subsets);
 }
 

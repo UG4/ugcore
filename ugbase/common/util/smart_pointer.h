@@ -50,6 +50,16 @@ class FreeRelease
 template <class T, template <class TT> class FreePolicy = FreeDelete> class SmartPtr;
 template <class T, template <class TT> class FreePolicy = FreeDelete> class ConstSmartPtr;
 
+
+////////////////////////////////////////////////////////////////////////
+///	Used to construct empty smart pointers
+/**	SPNULL provides a global const instance.*/
+class NullSmartPtr{};
+
+///	The equivalent to NULL for smart pointers
+const NullSmartPtr	SPNULL;
+
+
 ////////////////////////////////////////////////////////////////////////
 //	SmartPtr
 /**
@@ -71,8 +81,9 @@ class SmartPtr
 	friend class ConstSmartPtr<void>;
 
 	public:
-		SmartPtr() : m_ptr(0), m_refCount(0)	{}
-		SmartPtr(T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
+		explicit SmartPtr() : m_ptr(0), m_refCount(0)	{}
+		explicit SmartPtr(T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
+		SmartPtr(NullSmartPtr) : m_ptr(0), m_refCount(0)	{}
 		SmartPtr(const SmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -96,6 +107,14 @@ class SmartPtr
 
 		T& operator*()				{return *m_ptr;}
 		const T& operator*() const	{return *m_ptr;}
+
+		SmartPtr& operator=(NullSmartPtr) {
+			if(m_ptr)
+				release();
+			m_ptr = 0;
+			m_refCount = 0;
+			return *this;
+		}
 
 		SmartPtr& operator=(const SmartPtr& sp) {
 			if(m_ptr)
@@ -124,6 +143,14 @@ class SmartPtr
 
 		bool operator!=(const SmartPtr& sp) const {
 			return !(this->operator==(sp));
+		}
+
+		bool operator==(NullSmartPtr) const {
+			return m_ptr == 0;
+		}
+
+		bool operator!=(NullSmartPtr) const {
+			return m_ptr != 0;
 		}
 
 		template <class TPtr>
@@ -188,7 +215,7 @@ class SmartPtr
 	///	WARNING: this method is DANGEROUS!
 	/**	You should only use this constructor if you really know what you're doing!
 	 *	The following methods are required for SmartPtr<void> and casts */
-		SmartPtr(T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
+		explicit SmartPtr(T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
 		{
 			if(m_refCount)
 				(*m_refCount)++;
@@ -237,8 +264,9 @@ class ConstSmartPtr
 	friend class ConstSmartPtr<void>;
 
 	public:
-		ConstSmartPtr() : m_ptr(0), m_refCount(0)	{}
-		ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
+		explicit ConstSmartPtr() : m_ptr(0), m_refCount(0)	{}
+		explicit ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
+		ConstSmartPtr(NullSmartPtr) : m_ptr(0), m_refCount(0)	{}
 		ConstSmartPtr(const ConstSmartPtr& sp) : m_ptr(sp.m_ptr), m_refCount(sp.m_refCount)
 		{
 			if(m_refCount) (*m_refCount)++;
@@ -269,7 +297,7 @@ class ConstSmartPtr
 
 		const T& operator*() const	{return *m_ptr;}
 
-		ConstSmartPtr& operator=(const SmartPtr<T, FreePolicy>& sp)	{
+		ConstSmartPtr& operator=(const SmartPtr<T, FreePolicy>& sp){
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -280,7 +308,7 @@ class ConstSmartPtr
 		}
 
 		template <class TIn>
-		ConstSmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp)	{
+		ConstSmartPtr<T, FreePolicy>& operator=(const SmartPtr<TIn, FreePolicy>& sp){
 			if(m_ptr)
 				release();
 			m_ptr = sp.get();
@@ -290,7 +318,7 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		ConstSmartPtr& operator=(const ConstSmartPtr& sp)	{
+		ConstSmartPtr& operator=(const ConstSmartPtr& sp){
 			if(m_ptr)
 				release();
 			m_ptr = sp.m_ptr;
@@ -301,7 +329,7 @@ class ConstSmartPtr
 		}
 
 		template <class TIn>
-		ConstSmartPtr<T, FreePolicy>& operator=(const ConstSmartPtr<TIn, FreePolicy>& sp)	{
+		ConstSmartPtr<T, FreePolicy>& operator=(const ConstSmartPtr<TIn, FreePolicy>& sp){
 			if(m_ptr)
 				release();
 			m_ptr = sp.get();
@@ -311,22 +339,38 @@ class ConstSmartPtr
 			return *this;
 		}
 
-		bool operator==(const ConstSmartPtr& sp) const {
+		ConstSmartPtr& operator=(NullSmartPtr){
+			if(m_ptr)
+				release();
+			m_ptr = 0;
+			m_refCount = 0;
+			return *this;
+		}
+
+		bool operator==(const ConstSmartPtr& sp) const{
 			return (this->get() == sp.get());
 		}
 
-		bool operator!=(const ConstSmartPtr& sp) const {
+		template <class TPtr>
+		bool operator==(const SmartPtr<TPtr, FreePolicy>& sp) const{
+			return (this->get() == sp.get());
+		}
+
+		bool operator==(NullSmartPtr) const{
+			return m_ptr == 0;
+		}
+
+		bool operator!=(const ConstSmartPtr& sp) const{
 			return !(this->operator==(sp));
 		}
 
 		template <class TPtr>
-		bool operator==(const SmartPtr<TPtr, FreePolicy>& sp) const {
-			return (this->get() == sp.get());
+		bool operator!=(const SmartPtr<TPtr, FreePolicy>& sp) const{
+			return !(this->operator==(sp));
 		}
 
-		template <class TPtr>
-		bool operator!=(const SmartPtr<TPtr, FreePolicy>& sp) const {
-			return !(this->operator==(sp));
+		bool operator!=(NullSmartPtr) const{
+			return m_ptr != NULL;
 		}
 
 		const T* get() const	{return m_ptr;}
@@ -378,7 +422,7 @@ class ConstSmartPtr
 	///	WARNING: this method is DANGEROUS!
 	/**	You should only use this constructor if you really know what you're doing!
 	 *	The following methods are required for SmartPtr<void> and casts */
-		ConstSmartPtr(const T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
+		explicit ConstSmartPtr(const T* ptr, int* refCount) : m_ptr(ptr), m_refCount(refCount)
 		{
 			if(m_refCount)
 				(*m_refCount)++;
@@ -446,7 +490,9 @@ class SmartPtr<void>
 	friend class ConstSmartPtr<void>;
 
 	public:
-		SmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
+		explicit SmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
+
+		SmartPtr(NullSmartPtr) : m_ptr(0), m_refCountPtr(0), m_freeFunc(0)	{}
 
 		SmartPtr(const SmartPtr<void>& sp) :
 			m_ptr(sp.m_ptr),
@@ -456,7 +502,7 @@ class SmartPtr<void>
 			if(m_refCountPtr) (*m_refCountPtr)++;
 		}
 
-		SmartPtr(void* ptr, void (*freeFunc)(const void*)) :
+		explicit SmartPtr(void* ptr, void (*freeFunc)(const void*)) :
 			m_ptr(ptr),
 			m_refCountPtr(0),
 			m_freeFunc(freeFunc)
@@ -497,6 +543,17 @@ class SmartPtr<void>
 			if(m_refCountPtr)
 				(*m_refCountPtr)++;
 			m_freeFunc = &SmartPtr<T>::free_void_ptr;
+			return *this;
+		}
+
+		template <class T>
+		SmartPtr<void>& operator=(NullSmartPtr)
+		{
+			if(m_ptr)
+				release();
+			m_ptr = 0;
+			m_refCountPtr = 0;
+			m_freeFunc = 0;
 			return *this;
 		}
 
@@ -553,15 +610,17 @@ template <>
 class ConstSmartPtr<void>
 {
 	public:
-		ConstSmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
+		explicit ConstSmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
 
-		ConstSmartPtr(void* ptr, void (*freeFunc)(const void*)) :
+		explicit ConstSmartPtr(void* ptr, void (*freeFunc)(const void*)) :
 			m_ptr(ptr),
 			m_refCountPtr(0),
 			m_freeFunc(freeFunc)
 		{
 			if(ptr) m_refCountPtr = new int(1);
 		}
+
+		ConstSmartPtr(NullSmartPtr) : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
 
 		ConstSmartPtr(const SmartPtr<void>& sp) :
 			m_ptr(sp.m_ptr),
@@ -649,6 +708,16 @@ class ConstSmartPtr<void>
 			return *this;
 		}
 
+		ConstSmartPtr<void>& operator=(NullSmartPtr)
+		{
+			if(m_ptr)
+				release();
+			m_ptr = 0;
+			m_refCountPtr = 0;
+			m_freeFunc = 0;
+			return *this;
+		}
+
 	///	Returns a SmartPtr with the specified type and shared reference counting.
 	/**	USE WITH CARE! ONLY COMPATIBLE TYPES SHOULD BE USED*/
 		template <class T, template <class TPtr> class TFreePolicy>
@@ -720,14 +789,14 @@ namespace std
 
 /// returns a SmartPtr for the passed raw pointer
 template <typename T, template <class TT> class FreePolicy>
-SmartPtr<T, FreePolicy> CreateSmartPtr(T* inst)
+SmartPtr<T, FreePolicy> make_sp(T* inst)
 {
 	return SmartPtr<T, FreePolicy>(inst);
 }
 
 /// returns a SmartPtr for the passed raw pointer
 template <typename T>
-SmartPtr<T> CreateSmartPtr(T* inst)
+SmartPtr<T> make_sp(T* inst)
 {
 	return SmartPtr<T>(inst);
 }

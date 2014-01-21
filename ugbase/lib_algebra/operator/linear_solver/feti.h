@@ -1014,7 +1014,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::matrix_type
 			name.append(ext);
 
 		//	if no debug writer set, we're done
-			if(debug_writer() == NULL) return;
+			if(debug_writer() == SPNULL) return;
 
 		//	write
 			debug_writer()->write_vector(vec, name.c_str());

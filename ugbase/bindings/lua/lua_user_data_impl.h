@@ -302,7 +302,7 @@ LuaUserDataFactory<TData,dim,TRet>::provide_or_create(const std::string& name)
 	if(iter == m_mData.end())
 	{
 		SmartPtr<LuaUserData<TData,dim,TRet> > sp
-			= CreateSmartPtr(new LuaUserData<TData,dim,TRet>(name.c_str()));
+			= make_sp(new LuaUserData<TData,dim,TRet>(name.c_str()));
 
 	//	the LuaUserData must remember to unregister itself at destruction
 		sp->set_created_from_factory(true);
@@ -864,8 +864,8 @@ template <typename TData, int dim, typename TDataIn>
 void LuaUserFunction<TData,dim,TDataIn>::set_num_input(size_t num)
 {
 //	resize arrays
-	m_vpUserData.resize(num, NULL);
-	m_vpDependData.resize(num, NULL);
+	m_vpUserData.resize(num);
+	m_vpDependData.resize(num);
 
 //	forward size to base class
 	base_type::set_num_input(num);

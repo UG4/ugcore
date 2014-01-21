@@ -162,7 +162,7 @@ apply(vector_type& f, const vector_type& u)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
 
 //	Debug output of vector
-	if(debug_writer() != NULL)
+	if(debug_writer() != SPNULL)
 	{
 	//	add iter count to name
 		std::string name("FetiDirichletRhs");
@@ -817,7 +817,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 //	Debug output of matrix
 //	this is 2d only debug output. \todo: generalize (i.e. copy+paste)
-	if(debug_writer() != NULL && debug_writer()->current_dimension() == 2)
+	if(debug_writer() != SPNULL && debug_writer()->current_dimension() == 2)
 	{
 	//	vector of root index + pos
 		std::vector<PosAndIndex<2> > vProcLocPos;
@@ -1361,7 +1361,7 @@ init(SmartPtr<MatrixOperator<matrix_type, vector_type> > A)
 		return false;
 	}
 
-	bool debugLayouts = (debug_writer()==NULL) ? false : true;
+	bool debugLayouts = (debug_writer()==SPNULL) ? false : true;
 
 //	1. create FETI Layouts
 	UG_LOG("\n%   - Create FETI layouts ... ");

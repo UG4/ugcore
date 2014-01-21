@@ -557,8 +557,8 @@ class VRLUserLinker
 		void set_num_input(size_t num)
 		{
 		//	resize arrays
-			m_vpUserData.resize(num, NULL);
-			m_vpDependData.resize(num, NULL);
+			m_vpUserData.resize(num);
+			m_vpDependData.resize(num);
 
 		//	forward size to base class
 			base_type::set_num_input(num);

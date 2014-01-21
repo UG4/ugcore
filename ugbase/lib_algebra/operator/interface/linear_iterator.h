@@ -141,7 +141,7 @@ class ILinearIterator
 
 	///	sets the damping to a constant factor
 		void set_damp(number factor) {
-			m_spDamping = new ConstantDamping<X,Y>(factor);
+			m_spDamping = make_sp(new ConstantDamping<X,Y>(factor));
 		}
 
 	///	returns the scaling
