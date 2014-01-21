@@ -280,9 +280,9 @@ In the convergence rate setup the following parameters can be passed:
 			 	function used to create Domain
 - (required) createApproxSpace(dom, discType, p)		
 			 	function used to create ApproximationSpace
-- (required) createDomainDisc(discType, vorder, approxSpace, FctCmp)			
+- (required) createDomainDisc(discType, p, approxSpace)			
 			 	function used to create Domain Discretization
-- (required) createSolver(approxSpace, discType)				
+- (required) createSolver(approxSpace, discType, p)				
 				function used to create Solver
 - (required) DiscTypes					
 				Array containing types, orders and level to be looped
@@ -397,7 +397,7 @@ function util.rates.static.compute(ConvRateSetup)
 			local domainDisc = ConvRateSetup.createDomainDisc(discType, p, approxSpace)
 			
 			print(">> Create Solver")
-			local solver = ConvRateSetup.createSolver(approxSpace)
+			local solver = ConvRateSetup.createSolver(approxSpace, discType, p)
 			
 			--------------------------------------------------------------------
 			--  Create Solutions on each level
