@@ -428,8 +428,8 @@ function util.computeConvRatesStatic(ConvRateSetup)
 					
 					-- w.r.t exact solution		
 					if err.bUseExact then 
-					err.l2.exact.value[f][lev] 	= L2Error(err.exactSol, u[lev], f, 0.0, quadOrder)
-					err.h1.exact.value[f][lev] 	= H1Error(err.exactSol, err.exactGrad, u[lev], f, 0.0, quadOrder)
+					err.l2.exact.value[f][lev] 	= L2Error(err.exactSol[f], u[lev], f, 0.0, quadOrder)
+					err.h1.exact.value[f][lev] 	= H1Error(err.exactSol[f], err.exactGrad[f], u[lev], f, 0.0, quadOrder)
 					write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.exact.value[f][lev]) .."\n");
 					write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.h1.exact.value[f][lev]) .."\n");
 					end
