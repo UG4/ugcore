@@ -2,15 +2,18 @@ util = util or {}
 util.rates = util.rates or {}
 util.rates.static = util.rates.static or {}
 
+--------------------------------------------------------------------------------
+-- help functions
+--------------------------------------------------------------------------------
 
-function util.rates.static.resetStorage(errRates, minLev, maxLev, FctCmp, defValue)
+function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 
 	if defValue == nil then defValue = "--" end
 	
-	errRates.minLev = minLev
-	errRates.maxLev = maxLev
-	errRates.numDoFs = {}
-	errRates.FctCmp = FctCmp
+	err.minLev = minLev
+	err.maxLev = maxLev
+	err.numDoFs = {}
+	err.FctCmp = FctCmp
 	
 	function util.rates.static.createNormStorage(norm)
 
@@ -38,46 +41,46 @@ function util.rates.static.resetStorage(errRates, minLev, maxLev, FctCmp, defVal
 		end
 		
 		-- error w.r.t to exact solution
-		if errRates.bUseExact then
+		if err.bUseExact then
 		norm.exact = {}
 		norm.exact.title = "l-exact"
 		util.rates.static.createNormTypeStorage(norm.exact)
 		end
 		
 		-- error w.r.t to most refined level  
-		if errRates.bMaxLevel then
+		if err.bMaxLevel then
 		norm.maxlevel = {}  		
 		norm.maxlevel.title = "l-lmax"
 		util.rates.static.createNormTypeStorage(norm.maxlevel)
 		end
 		
 		-- error w.r.t to lev-1
-		if errRates.bPrevLevel then
+		if err.bPrevLevel then
 		norm.prevlevel = {}
 		norm.prevlevel.title = "l-prev"
 		util.rates.static.createNormTypeStorage(norm.prevlevel)
 		end
 	end
 	
-	errRates.l2 = {}
-	errRates.l2.title = "L2"
-	util.rates.static.createNormStorage(errRates.l2)
+	err.l2 = {}
+	err.l2.title = "L2"
+	util.rates.static.createNormStorage(err.l2)
 
-	errRates.h1 = {}
-	errRates.h1.title = "H1"
-	util.rates.static.createNormStorage(errRates.h1)
+	err.h1 = {}
+	err.h1.title = "H1"
+	util.rates.static.createNormStorage(err.h1)
 
-	errRates.level = {}
+	err.level = {}
 	for lev = minLev, maxLev do
-		errRates.level[lev] = lev
+		err.level[lev] = lev
 	end
 	
-	return errRates
+	return err
 end
 
-function util.rates.static.computeErrorRates(errRates)
+function util.rates.static.computeErrorRates(err)
 	
-	local FctCmp = errRates.FctCmp
+	local FctCmp = err.FctCmp
 	function util.rates.static.computeNormErrorRates(norm)
 	
 		function util.rates.static.computeNormTypeErrorRates(normType, minLev, maxLev)
@@ -90,16 +93,16 @@ function util.rates.static.computeErrorRates(errRates)
 			end
 		end
 
-		local minLev = errRates.minLev
-		local maxLev = errRates.maxLev
+		local minLev = err.minLev
+		local maxLev = err.maxLev
 		
-		if errRates.bUseExact then	util.rates.static.computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
-		if errRates.bMaxLevel then  util.rates.static.computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
-		if errRates.bPrevLevel then util.rates.static.computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
+		if err.bUseExact then	util.rates.static.computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
+		if err.bMaxLevel then  util.rates.static.computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
+		if err.bPrevLevel then util.rates.static.computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
 	end 		
 	
-	util.rates.static.computeNormErrorRates(errRates.l2)
-	util.rates.static.computeNormErrorRates(errRates.h1)
+	util.rates.static.computeNormErrorRates(err.l2)
+	util.rates.static.computeNormErrorRates(err.h1)
 end
 
 function util.rates.static.updateScreenOutput(err, f)
@@ -218,6 +221,10 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 	end	
 end
 
+--------------------------------------------------------------------------------
+-- Std Functions (used as defaults)
+--------------------------------------------------------------------------------
+
 function util.rates.static.StdPrepareInitialGuess(u, lev, minLev, maxLev,
 															domainDisc, solver)
 
@@ -264,6 +271,10 @@ function util.rates.static.StdComputeNonLinearSolution(u, domainDisc, solver)
 	end
 	write(">> Newton Solver done.\n")
 end
+
+--------------------------------------------------------------------------------
+-- util.rates.static.compute (main-function)
+--------------------------------------------------------------------------------
 
 --[[!
 Computes convergence rates for a static problem
