@@ -51,9 +51,6 @@ class StdTransfer :
 	///	Type of GridFunction
 		typedef GridFunction<TDomain, TAlgebra> GF;
 
-//	protected:
-//		using base_type::clear_constraints;
-
 	public:
 	/// Default constructor
 		StdTransfer() : ITransferOperator<TDomain, TAlgebra>(),
