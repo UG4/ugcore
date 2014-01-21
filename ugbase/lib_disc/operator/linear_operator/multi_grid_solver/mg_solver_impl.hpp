@@ -350,14 +350,19 @@ init()
 		m_surfaceLev = pSol->dof_distribution()->grid_level().level();
 	}
 
-	if(m_surfaceLev != GridLevel::TOP) m_topLev = m_surfaceLev;
-	else m_topLev = m_spApproxSpace->num_levels() - 1;
+	int topLev = 0;
+	if(m_surfaceLev != GridLevel::TOP) topLev = m_surfaceLev;
+	else topLev = m_spApproxSpace->num_levels() - 1;
 
-	if(m_baseLev > m_topLev)
+	if(m_baseLev > topLev)
 		UG_THROW("GMG::init: Base Level greater than Surface level.");
 
-	if(m_ApproxSpaceRevision != m_spApproxSpace->revision())
+	if(m_ApproxSpaceRevision != m_spApproxSpace->revision()
+		|| topLev != m_topLev)
 	{
+	//	remember new top level
+		 m_topLev = topLev;
+
 	//	Allocate memory for given top level
 		GMG_PROFILE_BEGIN(GMG_Init_LevelMemory);
 		try{
