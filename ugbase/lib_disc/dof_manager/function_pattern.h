@@ -135,6 +135,15 @@ class FunctionPattern
 			return m_vFunction[fct].name.c_str();
 		}
 
+	/// returns the names of a discrete function
+		std::vector<std::string> names() const
+		{
+			std::vector<std::string> vName(num_fct());
+			for(size_t fct = 0; fct < vName.size(); ++fct)
+				vName[fct] = name(fct);
+			return vName;
+		}
+
 	/// returns function id of the loc_fct's function on subset si
 		size_t fct_id(size_t loc_fct, int si) const
 		{

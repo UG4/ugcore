@@ -252,6 +252,7 @@ static void Common(Registry& reg, string grp)
 		.add_method("print_local_dof_statistic", static_cast<void (T::*)() const>(&T::print_local_dof_statistic))
 		.add_method("num_fct", static_cast<size_t (T::*)() const>(&T::num_fct))
 		.add_method("name", &T::name)
+		.add_method("names", &T::names)
 		.add_method("dim", &T::dim);
 	}
 

@@ -156,6 +156,9 @@ class DoFDistributionInfoProvider{
 		/// returns the name of the discrete function nr_fct
 		std::string name(size_t fct) const {return m_spDDI->name(fct);}
 
+		/// returns the names of the discrete functions
+		std::vector<std::string> names() const {return m_spDDI->names();}
+
 		/// returns fct id by name
 		size_t fct_id_by_name(const char* name) const{return m_spDDI->fct_id_by_name(name);}
 
