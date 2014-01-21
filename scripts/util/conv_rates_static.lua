@@ -102,20 +102,20 @@ function util.rates.static.computeErrorRates(errRates)
 	util.rates.static.computeNormErrorRates(errRates.h1)
 end
 
-function util.updateErrorRatesScreenOutput(err, f)
+function util.rates.static.updateScreenOutput(err, f)
 
-	function util.addConvRateOutputNorm(err, norm)
+	function util.rates.static.addOutputNorm(err, norm)
 		
-		function util.addConvRateOutputNormType(err, norm, type)
+		function util.rates.static.addOutputNormType(err, norm, type)
 			
 			err.screen.values = gnuplot.array_concat(err.screen.values, {type.value[f], type.rate[f]}) 
 			err.screen.title  = gnuplot.array_concat(err.screen.title,  {norm.title.." "..type.title, "rate"})
 			err.screen.format = gnuplot.array_concat(err.screen.format, {"%.2e", "%.3f"})
 		end
 									
-		if err.bUseExact  then util.addConvRateOutputNormType(err, norm, norm.exact) end
-		if err.bMaxLevel  then util.addConvRateOutputNormType(err, norm, norm.maxlevel) end
-		if err.bPrevLevel then util.addConvRateOutputNormType(err, norm, norm.prevlevel) end
+		if err.bUseExact  then util.rates.static.addOutputNormType(err, norm, norm.exact) end
+		if err.bMaxLevel  then util.rates.static.addOutputNormType(err, norm, norm.maxlevel) end
+		if err.bPrevLevel then util.rates.static.addOutputNormType(err, norm, norm.prevlevel) end
 	end
 	
 	err.screen = {}
@@ -123,8 +123,8 @@ function util.updateErrorRatesScreenOutput(err, f)
 	err.screen.title = {"L", "h", "#DoFs"}
 	err.screen.format = {"%d", "%.2e", "%d"}
 	
-	util.addConvRateOutputNorm(err, err.l2)
-	util.addConvRateOutputNorm(err, err.h1)
+	util.rates.static.addOutputNorm(err, err.l2)
+	util.rates.static.addOutputNorm(err, err.h1)
 end
 
 function util.writeAndScheduleGnuplotData(err, discType, p)
@@ -491,7 +491,7 @@ function util.rates.static.compute(ConvRateSetup)
 			-- write data to screen
 			for i = 1, #FctCmp do
 				print("\n>> Statistic for type: "..discType..", order: "..p..", comp: "..FctCmp[i].."\n")			
-				util.updateErrorRatesScreenOutput(err, FctCmp[i])
+				util.rates.static.updateScreenOutput(err, FctCmp[i])
 				table.print(err.screen.values, {title = err.screen.title, format = err.screen.format, hline = true, vline = true})
 			end
 
