@@ -252,7 +252,7 @@ const std::vector<const char*> *GetClassNames(lua_State *L, int index)
 	if(lua_getmetatable(L, index) != 0)
 	{
 		// get names
-		lua_pushstring(L, "names");
+		lua_pushstring(L, "__names");
 		lua_rawget(L, -2);
 		if(!lua_isnil(L, -1) && lua_isuserdata(L, -1))
 			p = (const std::vector<const char*>*) lua_touserdata(L, -1);
@@ -430,7 +430,7 @@ int UGTypeInfo(const char *p)
 		}
 
 		// get names
-		lua_pushstring(L, "names");
+		lua_pushstring(L, "__names");
 		lua_rawget(L, -2);
 		if(lua_isnil(L, -1) || !lua_isuserdata(L, -1))
 		{

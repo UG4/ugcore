@@ -1498,7 +1498,7 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 
 	//	add class name hierarchy
 	//	\todo: REMOVE, only needed by info commands.
-		lua_pushstring(L, "names");
+		lua_pushstring(L, "__names");
 		lua_pushlightuserdata(L, (void*)c->class_names());
 		lua_settable(L, -3);
 
