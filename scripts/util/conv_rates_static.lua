@@ -231,7 +231,7 @@ function util.rates.static.StdPrepareInitialGuess(u, lev, minLev, maxLev,
 end
 
 
-function util.rates.static.StdComputeLinearSolution(u, approxSpace, domainDisc, solver)
+function util.rates.static.StdComputeLinearSolution(u, domainDisc, solver)
 
 	-- create operator from discretization
 	local A = AssembledLinearOperator(domainDisc)
@@ -263,7 +263,7 @@ function util.rates.static.StdComputeLinearSolution(u, approxSpace, domainDisc, 
 	end
 end
 
-function util.rates.static.StdComputeNonLinearSolution(u, approxSpace, domainDisc, solver)
+function util.rates.static.StdComputeNonLinearSolution(u, domainDisc, solver)
 
 	solver:init(AssembledOperator(domainDisc, u:grid_level()))
 	if solver:apply(u) == false then
@@ -421,7 +421,7 @@ function util.rates.static.compute(ConvRateSetup)
 				ConvRateSetup.prepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 				
 				write(">> Computing solution on level "..lev..".\n")
-				ConvRateSetup.ComputeSolution(u[lev], approxSpace, domainDisc, solver)
+				ConvRateSetup.ComputeSolution(u[lev], domainDisc, solver)
 				write(">> Solver done.\n")
 				
 				WriteGridFunctionToVTK(u[lev], ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev)
