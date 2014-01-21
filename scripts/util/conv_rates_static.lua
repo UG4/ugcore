@@ -467,16 +467,11 @@ function util.rates.static.compute(ConvRateSetup)
 					end
 				
 					-- w.r.t previous level solution
-					if err.bPrevLevel then 
-					if lev > minLev then 
+					if err.bPrevLevel and lev > minLev then 
 					err.l2.prevlevel.value[f][lev] = L2Error(u[lev], f, u[lev-1], f, quadOrder)
 					err.h1.prevlevel.value[f][lev] = H1Error(u[lev], f, u[lev-1], f, quadOrder)
 					write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.prevlevel.value[f][lev]) .."\n");
 					write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err.h1.prevlevel.value[f][lev]) .."\n");
-					else
-					write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..err.l2.prevlevel.value[f][lev] .."\n");	
-					write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..err.h1.prevlevel.value[f][lev].."\n");
-					end
 					end
 				end
 								
