@@ -286,9 +286,9 @@ In the convergence rate setup the following parameters can be passed:
 				function used to create Solver
 - (required) DiscTypes					
 				Array containing types, orders and level to be looped
-- (optional) ComputeSolution			
+- (optional) ComputeSolution(u, domainDisc, solver)			
 				function used to compute solution
-- (optional) prepareInitialGuess		
+- (optional) PrepareInitialGuess		
 				function used to prepare Initial Guess
 - (optional) ExactSol					
 				Array containing exact solution as a function
@@ -309,8 +309,8 @@ function util.rates.static.compute(ConvRateSetup)
 	os.execute("mkdir " .. ConvRateSetup.solPath)
 
 	-- check for methods
-	if ConvRateSetup.prepareInitialGuess == nil then
-		ConvRateSetup.prepareInitialGuess = util.rates.static.StdPrepareInitialGuess
+	if ConvRateSetup.PrepareInitialGuess == nil then
+		ConvRateSetup.PrepareInitialGuess = util.rates.static.StdPrepareInitialGuess
 	end
 	if ConvRateSetup.ComputeSolution == nil then
 		ConvRateSetup.ComputeSolution = util.rates.static.StdComputeLinearSolution
@@ -418,7 +418,7 @@ function util.rates.static.compute(ConvRateSetup)
 				write("\n>> Computing Level "..lev..".\n")
 			
 				write(">> Preparing inital guess on level "..lev..".\n")
-				ConvRateSetup.prepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
+				ConvRateSetup.PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 				
 				write(">> Computing solution on level "..lev..".\n")
 				ConvRateSetup.ComputeSolution(u[lev], domainDisc, solver)
