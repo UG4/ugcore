@@ -54,7 +54,10 @@ template <class T, template <class TT> class FreePolicy = FreeDelete> class Cons
 ////////////////////////////////////////////////////////////////////////
 ///	Used to construct empty smart pointers
 /**	SPNULL provides a global const instance.*/
-class NullSmartPtr{};
+class NullSmartPtr{
+	public:
+		NullSmartPtr()	{}
+};
 
 ///	The equivalent to NULL for smart pointers
 const NullSmartPtr	SPNULL;
