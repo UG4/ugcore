@@ -431,8 +431,7 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			
 			-- get names in approx space
-			local FctCmp = {}
-			for i = 0, approxSpace:num_fct()-1 do FctCmp[i+1] = approxSpace:name(i) end
+			local FctCmp = approxSpace:names()
 
 			-- prepare error measurement			
 			err.h = {}
