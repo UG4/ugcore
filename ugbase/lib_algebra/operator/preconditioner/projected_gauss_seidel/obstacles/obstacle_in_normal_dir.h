@@ -85,7 +85,7 @@ class ObstacleInNormalDir:
 		void adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
 				const DoFIndex& dof);
 
-		void adjust_defect(vector_type& d);
+		void adjust_defect_to_constraint(vector_type& d);
 
 		void restrict_obs_values();
 

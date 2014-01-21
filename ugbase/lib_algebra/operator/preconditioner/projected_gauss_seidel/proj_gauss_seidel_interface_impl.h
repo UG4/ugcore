@@ -288,7 +288,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 		iter_type iterEnd = m_spvObsConstraint.end();
 
 		for( ; iter != iterEnd; iter++)
-			(*iter)->adjust_defect(d);
+			(*iter)->adjust_defect_to_constraint(d);
 	}
 
 	return true;

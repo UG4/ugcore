@@ -213,7 +213,7 @@ adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
 template <typename TDomain, typename TAlgebra>
 void
 ObstacleInNormalDir<TDomain,TAlgebra>::
-adjust_defect(vector_type& d)
+adjust_defect_to_constraint(vector_type& d)
 {
 	for (vector<MultiIndex<2> >::iterator itActiveInd = m_vActiveDofs.begin();
 			itActiveInd < m_vActiveDofs.end(); ++itActiveInd)

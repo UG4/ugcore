@@ -12,6 +12,8 @@
 #include "lib_disc/function_spaces/grid_function.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
 
+#include "lib_disc/spatial_disc/constraints/constraint_interface.h"
+
 using namespace std;
 
 namespace ug{
@@ -38,9 +40,13 @@ namespace ug{
  * 	by 'IProjPreconditioner::set_obstacle_constraint'.
  */
 template <typename TDomain, typename TAlgebra>
-class IObstacleConstraint
+class IObstacleConstraint :
+	public IDomainConstraint<TDomain, TAlgebra>
 {
 	public:
+	///	Base Type
+		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
+
 	///	Algebra type
 		typedef TAlgebra algebra_type;
 
@@ -127,7 +133,7 @@ class IObstacleConstraint
 				const DoFIndex& dof) = 0;
 
 	///	the defect needs to be adjusted for the active indices (those indices, which are in contact)
-		virtual void adjust_defect(vector_type& d) = 0;
+		virtual void adjust_defect_to_constraint(vector_type& d) = 0;
 
 
 	///	restricts the obstacle values to a coarser grid in a multigrid hierarchy
@@ -136,6 +142,52 @@ class IObstacleConstraint
 
 	///	Destructor
 		virtual ~IObstacleConstraint(){};
+
+	public:
+	///////////////////////////////
+	// 	Implement Interface
+	///////////////////////////////
+
+	/// sets a unity row for all dirichlet indices
+		void adjust_jacobian(matrix_type& J, const vector_type& u,
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+                             ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+							 const number s_a0 = 1.0){};
+
+	/// sets a zero value in the defect for all dirichlet indices
+		void adjust_defect(vector_type& d, const vector_type& u,
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
+                           ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
+						   const std::vector<number>* vScaleMass = NULL,
+						   const std::vector<number>* vScaleStiff = NULL){};
+
+	/// sets the dirichlet value in the solution for all dirichlet indices
+		void adjust_solution(vector_type& u,
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0){};
+
+	///	sets unity rows in A and dirichlet values in right-hand side b
+		void adjust_linear(matrix_type& A, vector_type& b,
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0){};
+
+	///	sets the dirichlet value in the right-hand side
+		void adjust_rhs(vector_type& b, const vector_type& u,
+		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0){};
+
+	///	sets constraints in prolongation
+		virtual void adjust_prolongation(matrix_type& P,
+										 ConstSmartPtr<DoFDistribution> ddFine,
+										 ConstSmartPtr<DoFDistribution> ddCoarse,
+										 number time = 0.0){};
+
+	///	sets constraints in restriction
+		virtual void adjust_restriction(matrix_type& R,
+										ConstSmartPtr<DoFDistribution> ddCoarse,
+										ConstSmartPtr<DoFDistribution> ddFine,
+										number time = 0.0){};
+
+	///	returns the type of the constraints
+		//TODO: is this type correct?!
+		virtual int type() const {return CT_CONSTRAINTS;}
 
 	private:
 	///	extract the UserDatas
