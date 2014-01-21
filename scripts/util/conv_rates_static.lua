@@ -227,11 +227,11 @@ function util.computeStaticConvRates_StdPrepareInitialGuess(u, lev, minLev, maxL
 end
 
 
-function util.computeStaticConvRates_StdComputeLinearSolution(u, lev, approxSpace, domainDisc, solver)
+function util.computeStaticConvRates_StdComputeLinearSolution(u, approxSpace, domainDisc, solver)
 
 	-- create operator from discretization
 	local A = AssembledLinearOperator(domainDisc)
-	local b = GridFunction(approxSpace, lev)
+	local b = u:clone()
 	write(">> Algebra created.\n")
 	
 	-- 1. init operator
@@ -239,7 +239,7 @@ function util.computeStaticConvRates_StdComputeLinearSolution(u, lev, approxSpac
 	write(">> Matrix and Rhs assembled.\n")
 	
 	-- 2. set dirichlet values in start iterate
-	domainDisc:adjust_solution(u[lev])
+	domainDisc:adjust_solution(u)
 	write(">> Inital guess for solution prepared.\n")
 	
 	-- print matrix for test purpose
@@ -250,19 +250,19 @@ function util.computeStaticConvRates_StdComputeLinearSolution(u, lev, approxSpac
 	end
 	
 	-- 3. init solver for linear Operator
-	solver:init(A, u[lev])
+	solver:init(A, u)
 	write(">> Linear Solver initialized.\n")
 	
 	-- 4. apply solver
-	if solver:apply_return_defect(u[lev],b) ~= true then
+	if solver:apply_return_defect(u, b) ~= true then
 		write(">> Linear solver failed. Aborting."); exit();
 	end
 end
 
-function util.computeStaticConvRates_StdComputeNonLinearSolution(u, lev, approxSpace, domainDisc, solver)
+function util.computeStaticConvRates_StdComputeNonLinearSolution(u, approxSpace, domainDisc, solver)
 
-	solver:init(AssembledOperator(domainDisc, u[lev]:grid_level()))
-	if solver:apply(u[lev]) == false then
+	solver:init(AssembledOperator(domainDisc, u:grid_level()))
+	if solver:apply(u) == false then
 		 print (">> Newton solver apply failed."); exit();
 	end
 	write(">> Newton Solver done.\n")
@@ -394,7 +394,7 @@ function util.computeConvRatesStatic(ConvRateSetup)
 				ConvRateSetup.prepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 				
 				write(">> Computing solution on level "..lev..".\n")
-				ConvRateSetup.computeSolution(u, lev, approxSpace, domainDisc, solver)
+				ConvRateSetup.computeSolution(u[lev], approxSpace, domainDisc, solver)
 				write(">> Solver done.\n")
 				
 				WriteGridFunctionToVTK(u[lev], ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev)
