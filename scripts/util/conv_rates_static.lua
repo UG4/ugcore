@@ -12,11 +12,11 @@ function util.rates.static.resetStorage(errRates, minLev, maxLev, FctCmp, defVal
 	errRates.numDoFs = {}
 	errRates.FctCmp = FctCmp
 	
-	function util.createNormStorage(norm)
+	function util.rates.static.createNormStorage(norm)
 
-		function util.createNormTypeStorage(normType)
+		function util.rates.static.createNormTypeStorage(normType)
 
-			function util.createNormTypeRatesStorage(array)
+			function util.rates.static.createNormTypeRatesStorage(array)
 				for lev = minLev, maxLev do
 					array[lev] = defValue
 				end
@@ -29,11 +29,11 @@ function util.rates.static.resetStorage(errRates, minLev, maxLev, FctCmp, defVal
 			for i = 1, #FctCmp do
 				local f = FctCmp[i]
 				normType.value[f] = {}
-				util.createNormTypeRatesStorage(normType.value[f])
+				util.rates.static.createNormTypeRatesStorage(normType.value[f])
 				normType.fac[f] = {}
-				util.createNormTypeRatesStorage(normType.fac[f])
+				util.rates.static.createNormTypeRatesStorage(normType.fac[f])
 				normType.rate[f] = {}
-				util.createNormTypeRatesStorage(normType.rate[f])
+				util.rates.static.createNormTypeRatesStorage(normType.rate[f])
 			end
 		end
 		
@@ -41,31 +41,31 @@ function util.rates.static.resetStorage(errRates, minLev, maxLev, FctCmp, defVal
 		if errRates.bUseExact then
 		norm.exact = {}
 		norm.exact.title = "l-exact"
-		util.createNormTypeStorage(norm.exact)
+		util.rates.static.createNormTypeStorage(norm.exact)
 		end
 		
 		-- error w.r.t to most refined level  
 		if errRates.bMaxLevel then
 		norm.maxlevel = {}  		
 		norm.maxlevel.title = "l-lmax"
-		util.createNormTypeStorage(norm.maxlevel)
+		util.rates.static.createNormTypeStorage(norm.maxlevel)
 		end
 		
 		-- error w.r.t to lev-1
 		if errRates.bPrevLevel then
 		norm.prevlevel = {}
 		norm.prevlevel.title = "l-prev"
-		util.createNormTypeStorage(norm.prevlevel)
+		util.rates.static.createNormTypeStorage(norm.prevlevel)
 		end
 	end
 	
 	errRates.l2 = {}
 	errRates.l2.title = "L2"
-	util.createNormStorage(errRates.l2)
+	util.rates.static.createNormStorage(errRates.l2)
 
 	errRates.h1 = {}
 	errRates.h1.title = "H1"
-	util.createNormStorage(errRates.h1)
+	util.rates.static.createNormStorage(errRates.h1)
 
 	errRates.level = {}
 	for lev = minLev, maxLev do
@@ -75,12 +75,12 @@ function util.rates.static.resetStorage(errRates, minLev, maxLev, FctCmp, defVal
 	return errRates
 end
 
-function util.computeErrorRates(errRates)
+function util.rates.static.computeErrorRates(errRates)
 	
 	local FctCmp = errRates.FctCmp
-	function util.computeNormErrorRates(norm)
+	function util.rates.static.computeNormErrorRates(norm)
 	
-		function util.computeNormTypeErrorRates(normType, minLev, maxLev)
+		function util.rates.static.computeNormTypeErrorRates(normType, minLev, maxLev)
 			for i = 1, #FctCmp do
 				local f = FctCmp[i]
 				for lev = minLev + 1, maxLev do
@@ -93,13 +93,13 @@ function util.computeErrorRates(errRates)
 		local minLev = errRates.minLev
 		local maxLev = errRates.maxLev
 		
-		if errRates.bUseExact then	util.computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
-		if errRates.bMaxLevel then  util.computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
-		if errRates.bPrevLevel then util.computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
+		if errRates.bUseExact then	util.rates.static.computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
+		if errRates.bMaxLevel then  util.rates.static.computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
+		if errRates.bPrevLevel then util.rates.static.computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
 	end 		
 	
-	util.computeNormErrorRates(errRates.l2)
-	util.computeNormErrorRates(errRates.h1)
+	util.rates.static.computeNormErrorRates(errRates.l2)
+	util.rates.static.computeNormErrorRates(errRates.h1)
 end
 
 function util.updateErrorRatesScreenOutput(err, f)
@@ -482,7 +482,7 @@ function util.rates.static.compute(ConvRateSetup)
 								
 			end
 	
-			util.computeErrorRates(err)				 		
+			util.rates.static.computeErrorRates(err)				 		
 
 			--------------------------------------------------------------------
 			--  Write Erorr Data
