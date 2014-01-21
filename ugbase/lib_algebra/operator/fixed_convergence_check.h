@@ -106,7 +106,7 @@ class FixedConvergenceCheck : public IConvergenceCheck<TVector>
 		/// clone the object
 		virtual SmartPtr<IConvergenceCheck<TVector> > clone()
 		{
-			SmartPtr<FixedConvergenceCheck<TVector> > newInst(new FixedConvergenceCheck<TVector>(m_numIterations));
+			SmartPtr<FixedConvergenceCheck<TVector> > newInst = new FixedConvergenceCheck<TVector>(m_numIterations);
 			return newInst;
 		}
 

@@ -163,7 +163,7 @@ public:
 
 	PINVIT()
 	{
-		//m_pA = NULL;
+		m_pA = NULL;
 		m_pB = NULL;
 		m_iPINVIT = 3;
 		m_dMinimumDefectToCalcCorrection = 1e-8;
@@ -518,7 +518,7 @@ public:
 	{
 		PROFILE_FUNC_GROUP("debug");
 		try{
-			if(debug_writer().invalid()) return;
+			if(debug_writer() == NULL) return;
 
 			vector_type t, defect;
 			init_nonprecond_vector(t);

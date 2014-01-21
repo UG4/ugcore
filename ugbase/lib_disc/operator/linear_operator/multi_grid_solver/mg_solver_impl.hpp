@@ -884,7 +884,7 @@ init_rap_operator()
 		GMG_PROFILE_END();
 
 		if(!gathered_base_master()){
-			spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >();
+			spGatheredBaseMat = NULL;
 		}
 #endif
 	}
@@ -1556,8 +1556,8 @@ init_level_memory(int baseLev, int topLev)
 		spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >(
 								new MatrixOperator<matrix_type, vector_type>);
 	} else {
-		spGatheredBaseCorr = SmartPtr<GF>();
-		spGatheredBaseMat = SmartPtr<MatrixOperator<matrix_type, vector_type> >();
+		spGatheredBaseCorr = NULL;
+		spGatheredBaseMat = NULL;
 	}
 }
 

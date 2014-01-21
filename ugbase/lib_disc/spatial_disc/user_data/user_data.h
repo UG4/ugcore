@@ -223,7 +223,7 @@ class ICplUserData : virtual public UserDataInfo
 		virtual size_t num_needed_data() const {return 0;}
 
 	///	return needed data
-		virtual SmartPtr<ICplUserData> needed_data(size_t i) {return SmartPtr<ICplUserData>();}
+		virtual SmartPtr<ICplUserData> needed_data(size_t i) {return NULL;}
 
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual void compute(LocalVector* u,

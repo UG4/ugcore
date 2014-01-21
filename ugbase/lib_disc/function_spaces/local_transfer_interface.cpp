@@ -17,14 +17,14 @@ GetStandardElementProlongation(const LFEID& lfeid)
 	switch(lfeid.type()){
 		case LFEID::LAGRANGE:
 			if(lfeid.order() == 1)
-				return make_sp(new P1LagrangeElemTransfer<TDomain>(lfeid));
+				return new P1LagrangeElemTransfer<TDomain>(lfeid);
 			else
-				return make_sp(new StdLagrangeElemTransfer<TDomain>(lfeid));
+				return new StdLagrangeElemTransfer<TDomain>(lfeid);
 		case LFEID::PIECEWISE_CONSTANT:
-			return make_sp(new PiecewiseConstantElemTransfer<TDomain>(lfeid));
+			return new PiecewiseConstantElemTransfer<TDomain>(lfeid);
 
 		case LFEID::CROUZEIX_RAVIART:
-			return make_sp(new CrouzeixRaviartElemTransfer<TDomain>(lfeid));
+			return new CrouzeixRaviartElemTransfer<TDomain>(lfeid);
 
 		default: UG_THROW("No Standard Element Prolongation found for "<<lfeid);
 	}
@@ -38,15 +38,15 @@ GetStandardElementRestriction(const LFEID& lfeid)
 	switch(lfeid.type()){
 		case LFEID::LAGRANGE:
 			if(lfeid.order() == 1)
-				return make_sp(new P1LagrangeElemTransfer<TDomain>(lfeid));
+				return new P1LagrangeElemTransfer<TDomain>(lfeid);
 			else
-				return make_sp(new StdLagrangeElemTransfer<TDomain>(lfeid));
+				return new StdLagrangeElemTransfer<TDomain>(lfeid);
 
 		case LFEID::PIECEWISE_CONSTANT:
-			return make_sp(new PiecewiseConstantElemTransfer<TDomain>(lfeid));
+			return new PiecewiseConstantElemTransfer<TDomain>(lfeid);
 
 		case LFEID::CROUZEIX_RAVIART:
-			return make_sp(new CrouzeixRaviartElemTransfer<TDomain>(lfeid));
+			return new CrouzeixRaviartElemTransfer<TDomain>(lfeid);
 
 		default: UG_THROW("No Standard Element Restriction found for "<<lfeid);
 	}

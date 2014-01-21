@@ -41,8 +41,16 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////
 //	SchurSolver implementation
 template <typename TAlgebra>
-SchurPrecond<TAlgebra>::SchurPrecond()
+SchurPrecond<TAlgebra>::SchurPrecond() :
+	//m_spOperator(NULL),
+	m_spSchurComplementOp(NULL),
+	m_spDirichletSolver(NULL),
+	m_spSkeletonSolver(NULL)
 {
+	// clear aux vector smart ptrs
+	// (will be initialized in first step)
+	m_aux_rhs[0] = m_aux_rhs[1] =NULL;
+	m_aux_sol[0] = m_aux_sol[1] = NULL;
 }
 
 
@@ -52,8 +60,8 @@ postprocess()
 {
 	// clear aux vector smart ptrs
 	// (were initialized in first step)
-	m_aux_rhs[0] = m_aux_rhs[1] = SmartPtr<vector_type>();
-	m_aux_sol[0] = m_aux_sol[1] = SmartPtr<vector_type>();
+	m_aux_rhs[0] = m_aux_rhs[1] =NULL;
+	m_aux_sol[0] = m_aux_sol[1] = NULL;
 	return true;
 }
 
@@ -65,7 +73,7 @@ create_and_init_local_schur_complement(SmartPtr<MatrixOperator<matrix_type, vect
 	try{
 	SCHUR_PROFILE_BEGIN(SchurPrecondInit_CreateInitLocalSchurComplement);
 
-	m_spSchurComplementOp = make_sp(new SchurComplementOperator<TAlgebra>(A, skeletonMark));
+	m_spSchurComplementOp = new SchurComplementOperator<TAlgebra>(A, skeletonMark);
 
 //	set dirichlet solver for local Schur complement
 	m_spSchurComplementOp->set_dirichlet_solver(m_spDirichletSolver);
@@ -217,14 +225,14 @@ create_aux_vectors(const vector_type& d)
 	if (m_aux_rhs[SD_INNER].invalid())
 	{
 		UG_DLOG(SchurDebug, 1, "% Creating inner defect vector of size " << n_inner << std::endl);
-		m_aux_rhs[SD_INNER] = make_sp(new vector_type(n_inner));
+		m_aux_rhs[SD_INNER] = new vector_type(n_inner);
 		m_aux_rhs[SD_INNER]->set_storage_type(PST_ADDITIVE);
 	}
 
 	if (m_aux_sol[SD_INNER].invalid())
 	{
 		UG_DLOG(SchurDebug, 1, "% Creating inner corr vector of size " << n_inner << std::endl);
-		m_aux_sol[SD_INNER] = make_sp(new vector_type(n_inner));
+		m_aux_sol[SD_INNER] = new vector_type(n_inner);
 		m_aux_sol[SD_INNER]->set_storage_type(PST_CONSISTENT);
 	}
 }

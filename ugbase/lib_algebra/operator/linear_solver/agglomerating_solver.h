@@ -84,7 +84,7 @@ class AgglomeratingBase : public TBase
 			m_bRoot = pcl::GetProcRank() == A.layouts()->proc_comm().get_proc_id(0);
 			PROFILE_FUNC();
 
-			m_spCollectedOp = make_sp(new MatrixOperator<matrix_type, vector_type>());
+			m_spCollectedOp = new MatrixOperator<matrix_type, vector_type>();
 			matrix_type &collectedA = m_spCollectedOp->get_matrix();
 
 			CollectMatrixOnOneProc(A, collectedA, agglomerationLayout.master(), agglomerationLayout.slave());
@@ -392,7 +392,7 @@ class AgglomeratingIterator : public
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			SmartPtr<ILinearIterator<vector_type> > linIt = m_splinIt->clone();
-			return make_sp(new AgglomeratingIterator<algebra_type>(linIt));
+			return new AgglomeratingIterator<algebra_type>(linIt);
 		}
 
 		virtual std::string config_string() const
@@ -469,7 +469,7 @@ class AgglomeratingPreconditioner: public
 		virtual SmartPtr<ILinearIterator<vector_type> > clone()
 		{
 			SmartPtr<ILinearIterator<vector_type> > linIt = m_splinIt->clone();
-			return make_sp(new AgglomeratingIterator<algebra_type>(linIt));
+			return new AgglomeratingIterator<algebra_type>(linIt);
 		}
 
 		virtual std::string config_string() const

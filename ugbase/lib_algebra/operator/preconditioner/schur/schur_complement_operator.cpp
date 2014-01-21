@@ -377,8 +377,8 @@ set_debug_dim()
 	m_slicing.get_vector_slice(positions, SD_SKELETON, skeletonPos);
 	m_slicing.get_vector_slice(positions, SD_INNER, innerPos);
 
-	m_spDebugWriterInner = make_sp(new AlgebraDebugWriter<algebra_type>);
-	m_spDebugWriterSkeleton = make_sp(new AlgebraDebugWriter<algebra_type>);
+	m_spDebugWriterInner = new AlgebraDebugWriter<algebra_type>;
+	m_spDebugWriterSkeleton = new AlgebraDebugWriter<algebra_type>;
 
 	m_spDebugWriterSkeleton->template set_positions<dim>(skeletonPos);
 	m_spDebugWriterInner->template set_positions<dim>(innerPos);

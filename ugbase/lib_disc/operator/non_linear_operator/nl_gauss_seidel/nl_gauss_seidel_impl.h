@@ -181,7 +181,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 
 	typedef typename elemList::iterator ListIter;
 
-	/* VERSION ï¿½BER ATTACHMENT:
+	/* VERSION †BER ATTACHMENT:
 	typename Grid::traits<geometric_base_object>::secure_container elems;
 
 	int vtr_count = 0;
@@ -255,7 +255,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::apply(vector_type& u)
 
 	//	Jacobian
 	if(m_spJBlock.invalid() || m_spJBlock->discretization() != m_spAss) {
-		m_spJBlock = make_sp(new AssembledLinearOperator<TAlgebra>(m_spAss));
+		m_spJBlock = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
 		m_spJBlock->set_level(m_gridLevel);
 	}
 

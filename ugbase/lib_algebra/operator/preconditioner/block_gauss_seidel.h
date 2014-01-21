@@ -716,12 +716,12 @@ class BlockGaussSeidel2 : public IPreconditioner<TAlgebra>
 				//for(size_t j=0; j<levels[m_depth-1]; j++)
 					//bVisited2[indices[j]]=true;
 
-				Aloc[i] = make_sp(new CPUAlgebra::matrix_type);
+				Aloc[i] = new CPUAlgebra::matrix_type;
 
 				GetSliceSparse(A, indices[i], *Aloc[i]);
 
 
-				m_ilut[i] = make_sp(new ILUTPreconditioner<CPUAlgebra> (0.0));
+				m_ilut[i] = new ILUTPreconditioner<CPUAlgebra> (0.0);
 				m_ilut[i]->preprocess_mat(*Aloc[i]);
 
 

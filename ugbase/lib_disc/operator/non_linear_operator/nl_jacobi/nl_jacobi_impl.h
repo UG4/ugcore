@@ -90,7 +90,7 @@ bool NLJacobiSolver<TAlgebra>::apply(vector_type& u)
 
 //	Jacobian
 	if(m_spJ.invalid() || m_spJ->discretization() != m_spAss) {
-		m_spJ = make_sp(new AssembledLinearOperator<TAlgebra>(m_spAss));
+		m_spJ = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
 		m_spJ->set_level(m_spAssOp->level());
 	}
 

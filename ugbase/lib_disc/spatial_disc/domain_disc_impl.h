@@ -294,7 +294,7 @@ assemble_jacobian(matrix_type& J,
 
 //	pre process -  modifies the solution, used for computing the defect
 	const vector_type* pModifyU = &u;
-	SmartPtr<vector_type> pModifyMemory;
+	SmartPtr<vector_type> pModifyMemory = NULL;
 	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = u.clone();
 		pModifyU = pModifyMemory.get();
@@ -415,7 +415,7 @@ assemble_defect(vector_type& d,
 
 //	pre process -  modifies the solution, used for computing the defect
 	const vector_type* pModifyU = &u;
-	SmartPtr<vector_type> pModifyMemory;
+	SmartPtr<vector_type> pModifyMemory = NULL;
 	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = u.clone();
 		pModifyU = pModifyMemory.get();
@@ -872,7 +872,7 @@ assemble_jacobian(matrix_type& J,
 
 //	pre process -  modifies the solution, used for computing the defect
 	ConstSmartPtr<VectorTimeSeries<vector_type> > pModifyU = vSol;
-	SmartPtr<VectorTimeSeries<vector_type> > pModifyMemory;
+	SmartPtr<VectorTimeSeries<vector_type> > pModifyMemory = NULL;
 	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = vSol->clone();
 		pModifyU = pModifyMemory;
@@ -995,7 +995,7 @@ assemble_defect(vector_type& d,
 
 //	pre process -  modifies the solution, used for computing the defect
 	ConstSmartPtr<VectorTimeSeries<vector_type> > pModifyU = vSol;
-	SmartPtr<VectorTimeSeries<vector_type> > pModifyMemory;
+	SmartPtr<VectorTimeSeries<vector_type> > pModifyMemory = NULL;
 	if( m_spAssTuner->modify_solution_enabled() ){
 		pModifyMemory = vSol->clone();
 		pModifyU = pModifyMemory;

@@ -98,7 +98,7 @@ public:
 	SmartPtr<AlgebraLayouts> get_slice_layouts(ConstSmartPtr<AlgebraLayouts> layouts, slice_desc_type type) const
 	{
 		// convert layouts (vector->slice)
-		SmartPtr<AlgebraLayouts> slice_layouts = make_sp(new AlgebraLayouts(*layouts));
+		SmartPtr<AlgebraLayouts> slice_layouts = new AlgebraLayouts(*layouts);
 		replace_indices_in_layout(type, slice_layouts->master());
 		replace_indices_in_layout(type, slice_layouts->slave());
 
@@ -115,7 +115,7 @@ public:
 		// SmartPtr<VT> slice_clone = full_src.clone_without_values();
 		//slice_clone->resize(slice_desc.size());
 
-		SmartPtr<VT> slice_clone = make_sp(new VT(slice_desc.size()));
+		SmartPtr<VT> slice_clone = new VT(slice_desc.size());
 
 		slice_clone->set_layouts(get_slice_layouts(full_src.layouts(), type));
 

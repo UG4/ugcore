@@ -155,7 +155,7 @@ public:
 	 */
 	ug::BinaryBuffer &create_BinaryBuffer_file(std::string name)
 	{
-		SmartPtr<BufferBinaryBuffer> p(new BufferBinaryBuffer);
+		SmartPtr<BufferBinaryBuffer> p = new BufferBinaryBuffer;
 		files[name] = p;
 		return p->internal_buffer;
 	}
@@ -167,7 +167,7 @@ public:
 	 */
 	ug::BinaryStream &create_BinaryStream_file(std::string name)
 	{
-		SmartPtr<BufferBinaryStream > p(new BufferBinaryStream);
+		SmartPtr<BufferBinaryStream > p = new BufferBinaryStream;
 		files[name] = p;
 		return p->internal_buffer;
 	}
@@ -179,7 +179,7 @@ public:
 	 */
 	std::stringstream &create_stringstream_file(std::string name)
 	{
-		SmartPtr<Buffer_stringstream > p(new Buffer_stringstream);
+		SmartPtr<Buffer_stringstream > p = new Buffer_stringstream;
 		files[name] = p;
 		return p->internal_buffer;
 	}
@@ -193,7 +193,7 @@ public:
 	 */
 	void add_raw(FileBufferDescriptor f)
 	{
-		files[f.name] = make_sp(new ConstCharBuffer(f.buf, f.size));
+		files[f.name] = new ConstCharBuffer(f.buf, f.size);
 		m_bUnsafe = true;
 	}
 

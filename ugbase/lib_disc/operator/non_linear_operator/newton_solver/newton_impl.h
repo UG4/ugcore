@@ -113,7 +113,7 @@ bool NewtonSolver<TAlgebra>::apply(vector_type& u)
 
 //	Jacobian
 	if(m_J.invalid() || m_J->discretization() != m_spAss) {
-		m_J = make_sp(new AssembledLinearOperator<TAlgebra>(m_spAss));
+		m_J = CreateSmartPtr(new AssembledLinearOperator<TAlgebra>(m_spAss));
 	}
 	m_J->set_level(m_N->level());
 

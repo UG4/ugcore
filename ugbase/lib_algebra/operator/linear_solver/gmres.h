@@ -95,7 +95,7 @@ class GMRES
 			convergence_check()->start(*spR);
 
 		//	storage for v, h, gamma
-			std::vector<SmartPtr<vector_type> > v(m_restart+1);
+			std::vector<SmartPtr<vector_type> > v(m_restart+1, NULL);
 			std::vector<std::vector<number> > h(m_restart+1);
 			for(size_t i = 0; i < h.size(); ++i) h[i].resize(m_restart+1);
 			std::vector<number> gamma(m_restart+1);

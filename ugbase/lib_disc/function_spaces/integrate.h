@@ -462,7 +462,7 @@ number Integral(SmartPtr<UserData<number, TGridFunction::dim> > spData,
                 int quadOrder, std::string quadType)
 {
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-		= make_sp(new UserDataIntegrand<number, TGridFunction>(spData, spGridFct, time));
+		= CreateSmartPtr(new UserDataIntegrand<number, TGridFunction>(spData, spGridFct, time));
 
 	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder, quadType);
 }
@@ -498,7 +498,7 @@ number Integral(number val, SmartPtr<TGridFunction> spGridFct,
 {
 	static const int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
-			make_sp(new ConstUserNumber<dim>(val));
+			CreateSmartPtr(new ConstUserNumber<dim>(val));
 	return Integral(sp, spGridFct, subsets, time, quadOrder);
 }
 
@@ -689,7 +689,7 @@ number L2Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
 				" a function with name " << cmp << ".");
 
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-		= make_sp(new L2ErrorIntegrand<TGridFunction>(spExactSol, spGridFct, fct, time));
+		= CreateSmartPtr(new L2ErrorIntegrand<TGridFunction>(spExactSol, spGridFct, fct, time));
 
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
 }
@@ -710,7 +710,7 @@ number L2Error(const char* ExactSol,
                number time, int quadOrder, const char* subsets)
 {
 	SmartPtr<UserData<number, TGridFunction::dim> > spExactSol
-	 = make_sp(new LuaUserData<number, TGridFunction::domain_type::dim>(ExactSol));
+	 = CreateSmartPtr(new LuaUserData<number, TGridFunction::domain_type::dim>(ExactSol));
 	return L2Error(spExactSol, spGridFct, cmp, time, quadOrder, subsets);
 }
 
@@ -900,11 +900,11 @@ number L2Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
 //	check
 	if(level1 > level2){
 		SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-			= make_sp(new L2DiffIntegrand<TGridFunction>(spGridFct1, fct1, spGridFct2, fct2));
+			= CreateSmartPtr(new L2DiffIntegrand<TGridFunction>(spGridFct1, fct1, spGridFct2, fct2));
 		return sqrt(IntegrateSubsets(spIntegrand, spGridFct1, subsets, quadOrder));
 	}else{
 		SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-			= make_sp(new L2DiffIntegrand<TGridFunction>(spGridFct2, fct2, spGridFct1, fct1));
+			= CreateSmartPtr(new L2DiffIntegrand<TGridFunction>(spGridFct2, fct2, spGridFct1, fct1));
 		return sqrt(IntegrateSubsets(spIntegrand, spGridFct2, subsets, quadOrder));
 	}
 }
@@ -1076,7 +1076,7 @@ number H1Error(SmartPtr<UserData<number, TGridFunction::dim> > spExactSol,
 				" a function with name " << cmp << ".");
 
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-		= make_sp(new H1ErrorIntegrand<TGridFunction>(spExactSol, spExactGrad, spGridFct, fct, time));
+		= CreateSmartPtr(new H1ErrorIntegrand<TGridFunction>(spExactSol, spExactGrad, spGridFct, fct, time));
 
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
 }
@@ -1098,9 +1098,9 @@ number H1Error(const char* ExactSol, const char* ExactGrad,
 {
 	static const int dim = TGridFunction::domain_type::dim;
 	SmartPtr<UserData<number, dim> > spExactSol
-	 = make_sp(new LuaUserData<number, dim>(ExactSol));
+	 = CreateSmartPtr(new LuaUserData<number, dim>(ExactSol));
 	SmartPtr<UserData<MathVector<dim>, dim> > spExactGrad
-	 = make_sp(new LuaUserData<MathVector<dim>, dim>(ExactGrad));
+	 = CreateSmartPtr(new LuaUserData<MathVector<dim>, dim>(ExactGrad));
 	return H1Error(spExactSol, spExactGrad, spGridFct, cmp, time, quadOrder, subsets);
 }
 
@@ -1307,11 +1307,11 @@ number H1Error(SmartPtr<TGridFunction> spGridFct1, const char* cmp1,
 //	check
 	if(level1 > level2){
 		SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-			= make_sp(new H1DiffIntegrand<TGridFunction>(spGridFct1, fct1, spGridFct2, fct2));
+			= CreateSmartPtr(new H1DiffIntegrand<TGridFunction>(spGridFct1, fct1, spGridFct2, fct2));
 		return sqrt(IntegrateSubsets(spIntegrand, spGridFct1, subsets, quadOrder));
 	}else{
 		SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-			= make_sp(new H1DiffIntegrand<TGridFunction>(spGridFct2, fct2, spGridFct1, fct1));
+			= CreateSmartPtr(new H1DiffIntegrand<TGridFunction>(spGridFct2, fct2, spGridFct1, fct1));
 		return sqrt(IntegrateSubsets(spIntegrand, spGridFct2, subsets, quadOrder));
 	}
 }
@@ -1439,7 +1439,7 @@ number L2Norm(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 				" a function with name " << cmp << ".");
 
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-		= make_sp(new L2FuncIntegrand<TGridFunction>(spGridFct, fct));
+		= CreateSmartPtr(new L2FuncIntegrand<TGridFunction>(spGridFct, fct));
 
 	return sqrt(IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder));
 }
@@ -1645,7 +1645,7 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 	}
 
 	SmartPtr<IIntegrand<number, TGridFunction::dim> > spIntegrand
-		= make_sp(new StdFuncIntegrand<TGridFunction>(spGridFct, fct));
+		= CreateSmartPtr(new StdFuncIntegrand<TGridFunction>(spGridFct, fct));
 
 	return IntegrateSubsets(spIntegrand, spGridFct, subsets, quadOrder);
 }
@@ -2009,7 +2009,7 @@ number IntegralNormalComponentOnManifold(
 		int quadOrder)
 {
 	SmartPtr<IIntegrand<MathVector<TGridFunction::dim>, TGridFunction::dim> > spIntegrand
-		= make_sp(new UserDataIntegrand<MathVector<TGridFunction::dim>, TGridFunction>(spData, spGridFct, time));
+		= CreateSmartPtr(new UserDataIntegrand<MathVector<TGridFunction::dim>, TGridFunction>(spData, spGridFct, time));
 
 	return IntegralNormalComponentOnManifoldSubsets(spIntegrand, spGridFct, BndSubset, InnerSubset, quadOrder);
 }

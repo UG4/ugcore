@@ -40,10 +40,10 @@ add(SmartPtr<CplUserData<TDataScale, dim> > scale, SmartPtr<CplUserData<TData, d
 	const size_t numInput = base_type::num_input() / 2;
 
 //	resize scaling
-	m_vpUserData.resize(numInput+1);
-	m_vpDependData.resize(numInput+1);
-	m_vpScaleData.resize(numInput+1);
-	m_vpScaleDependData.resize(numInput+1);
+	m_vpUserData.resize(numInput+1, NULL);
+	m_vpDependData.resize(numInput+1, NULL);
+	m_vpScaleData.resize(numInput+1, NULL);
+	m_vpScaleDependData.resize(numInput+1, NULL);
 
 //	remember userdata
 	UG_ASSERT(data.valid(), "Null Pointer as Input set.");

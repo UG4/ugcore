@@ -76,8 +76,8 @@ class StdDataLinker
 	///	sets the number of inputs
 		void set_num_input(size_t num)
 		{
-			m_vspICplUserData.resize(num);
-			m_vspUserDataInfo.resize(num);
+			m_vspICplUserData.resize(num, NULL);
+			m_vspUserDataInfo.resize(num, NULL);
 		}
 
 	///	sets an input

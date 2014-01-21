@@ -199,7 +199,7 @@ class StdConvCheck : public IConvergenceCheck<TVector>
 
 		virtual SmartPtr<IConvergenceCheck<TVector> > clone()
 		{
-			SmartPtr<StdConvCheck<TVector> > newInst(new StdConvCheck<TVector>);
+			SmartPtr<StdConvCheck<TVector> > newInst = new StdConvCheck<TVector>;
 			// use std assignment (implicit member-wise is fine here)
 			*newInst = *this;
 			return newInst;

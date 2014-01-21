@@ -132,8 +132,8 @@ norm(const TVector& vec, const std::vector<DoFIndex>& vMultiIndex)
 template <class TVector, class TDomain>
 SmartPtr<IConvergenceCheck<TVector> > CompositeConvCheck<TVector, TDomain>::clone()
 {
-	SmartPtr<CompositeConvCheck<TVector, TDomain> > newInst(
-						new CompositeConvCheck<TVector, TDomain>(m_spApprox));
+	SmartPtr<CompositeConvCheck<TVector, TDomain> > newInst
+						= new CompositeConvCheck<TVector, TDomain>(m_spApprox);
 
 	// use std assignment (implicit member-wise is fine here)
 	*newInst = *this;

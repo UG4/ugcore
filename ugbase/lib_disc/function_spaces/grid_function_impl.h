@@ -66,7 +66,7 @@ init(SmartPtr<ApproximationSpace<TDomain> > spApproxSpace,
 	m_spDD = spDoFDistr;
 	m_bManaged = bManage;
 	this->set_dof_distribution_info(m_spApproxSpace->dof_distribution_info());
-	m_spAdaptGridFct = SmartPtr<AdaptionSurfaceGridFunction<TDomain> >();
+	m_spAdaptGridFct = NULL;
 
 //	check correct passings
 	if(m_spDD.invalid()) UG_THROW("GridFunction: DoF Distribution is null.");
@@ -345,7 +345,7 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 
 
 		m_spAdaptGridFct->copy_to_surface(*this);
-		m_spAdaptGridFct = SmartPtr<AdaptionSurfaceGridFunction<TDomain> >();
+		m_spAdaptGridFct = NULL;
 	}
 }
 
@@ -422,7 +422,7 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 				#endif
 
 				m_spAdaptGridFct->copy_to_surface(*this);
-				m_spAdaptGridFct = SmartPtr<AdaptionSurfaceGridFunction<TDomain> >();
+				m_spAdaptGridFct = NULL;
 
 				if(m_preDistStorageType != this->get_storage_mask()){
 					if((m_preDistStorageType & PST_ADDITIVE) == PST_ADDITIVE)

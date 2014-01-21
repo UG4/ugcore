@@ -31,7 +31,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		                ConstSmartPtr<DoFDistributionInfo> spDDInfo,
 		                SmartPtr<SurfaceView> spSurfView,
 		                const GridLevel& level, bool bGrouped,
-		                SmartPtr<DoFIndexStorage> spDoFIndexStorage = SmartPtr<DoFIndexStorage>());
+		                SmartPtr<DoFIndexStorage> spDoFIndexStorage = NULL);
 
 		/// destructor
 		~DoFDistribution();

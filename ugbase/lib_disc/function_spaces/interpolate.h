@@ -354,7 +354,7 @@ void Interpolate(number val,
 {
 	static const int dim = TGridFunction::dim;
 	SmartPtr<UserData<number, dim> > sp =
-			make_sp(new ConstUserNumber<dim>(val));
+			CreateSmartPtr(new ConstUserNumber<dim>(val));
 	Interpolate(sp, spGridFct, cmp, subsets, time);
 }
 template <typename TGridFunction>

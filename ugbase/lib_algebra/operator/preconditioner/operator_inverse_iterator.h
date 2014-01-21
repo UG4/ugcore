@@ -61,7 +61,7 @@ class OperatorInverseIterator : public ILinearIterator<typename TAlgebra::vector
 		virtual SmartPtr<ILinearIterator<vector_type, vector_type> > clone()
 		{
 			UG_ASSERT(0, "not implemented since ILinearOperatorInverse::clone not implemented");
-			return SmartPtr<ILinearIterator<vector_type, vector_type> >();
+			return NULL;
 		}
 	///	default constructor
 		OperatorInverseIterator(SmartPtr<ILinearOperatorInverse<vector_type>  > opInv) : m_opInv(opInv)
