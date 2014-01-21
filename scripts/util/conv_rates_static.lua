@@ -299,7 +299,7 @@ function util.rates.static.compute(ConvRateSetup)
 	
 	-- create directories
 	if CRS.plotPath == nil then  CRS.plotPath = "plots/" end
-	if CRS.solPath == nil then  CRS.solPath = "sol/" end
+	if CRS.solPath  == nil then  CRS.solPath = "sol/" end
 	if CRS.dataPath == nil then  CRS.dataPath = "data/" end
 	os.execute("mkdir " .. CRS.dataPath)
 	os.execute("mkdir " .. CRS.plotPath)
@@ -327,8 +327,8 @@ function util.rates.static.compute(ConvRateSetup)
 	-- check for exact solution
 	if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then
 		err.bUseExact = true
-		err.ExactSol = CRS.ExactSol
-		err.ExactGrad =  CRS.ExactGrad
+		err.ExactSol  = CRS.ExactSol
+		err.ExactGrad = CRS.ExactGrad
 	else
 		err.bUseExact = false
 	end
