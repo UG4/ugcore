@@ -200,7 +200,7 @@ int LUAParserClass::createVM(VMAdd &vm)
 	{
 		std::string subName = (*it).first;
 //		UG_LOG(subName << "\n");
-		SmartPtr<VMAdd> sub = new VMAdd;
+		SmartPtr<VMAdd> sub (new VMAdd);
 		sub->set_name(subName);
 		subVM[subName] = sub;
 	}
@@ -266,7 +266,7 @@ int LUAParserClass::add_subfunction(std::string name, std::map<std::string, Smar
     //UG_LOG("adding " << name << "\n");
     if(subfunctions.find(name) != subfunctions.end()) return true;
 
-    SmartPtr<LUAParserClass> parser = new LUAParserClass;
+    SmartPtr<LUAParserClass> parser (new LUAParserClass);
 
     if(parser->parse_luaFunction(name.c_str()) == false)
         return false;
