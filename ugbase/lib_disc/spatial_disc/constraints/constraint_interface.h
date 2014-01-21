@@ -126,13 +126,6 @@ class IDomainConstraint : public IConstraint<TAlgebra>
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		using IConstraint<TAlgebra>::adjust_jacobian;
-		using IConstraint<TAlgebra>::adjust_defect;
-		using IConstraint<TAlgebra>::adjust_linear;
-		using IConstraint<TAlgebra>::adjust_rhs;
-		using IConstraint<TAlgebra>::adjust_solution;
-
-	public:
 	///	sets the approximation space
 		virtual void set_approximation_space(SmartPtr<ApproximationSpace<TDomain> > approxSpace)
 		{
