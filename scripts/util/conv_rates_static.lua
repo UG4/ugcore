@@ -292,38 +292,43 @@ In the convergence rate setup the following parameters can be passed:
 ]]--
 function util.rates.static.compute(ConvRateSetup)
 	
+	-- check passed param
+	local CRS
+	if ConvRateSetup == nil then print("No setup passed."); exit()		
+	else CRS = ConvRateSetup end
+	
 	-- create directories
-	if ConvRateSetup.plotPath == nil then  ConvRateSetup.plotPath = "plots/" end
-	if ConvRateSetup.solPath == nil then  ConvRateSetup.solPath = "sol/" end
-	if ConvRateSetup.dataPath == nil then  ConvRateSetup.dataPath = "data/" end
-	os.execute("mkdir " .. ConvRateSetup.dataPath)
-	os.execute("mkdir " .. ConvRateSetup.plotPath)
-	os.execute("mkdir " .. ConvRateSetup.plotPath.."single/")
-	os.execute("mkdir " .. ConvRateSetup.solPath)
+	if CRS.plotPath == nil then  CRS.plotPath = "plots/" end
+	if CRS.solPath == nil then  CRS.solPath = "sol/" end
+	if CRS.dataPath == nil then  CRS.dataPath = "data/" end
+	os.execute("mkdir " .. CRS.dataPath)
+	os.execute("mkdir " .. CRS.plotPath)
+	os.execute("mkdir " .. CRS.plotPath.."single/")
+	os.execute("mkdir " .. CRS.solPath)
 
 	-- check for methods
-	if ConvRateSetup.PrepareInitialGuess == nil then
-		ConvRateSetup.PrepareInitialGuess = util.rates.static.StdPrepareInitialGuess
+	if CRS.PrepareInitialGuess == nil then
+		CRS.PrepareInitialGuess = util.rates.static.StdPrepareInitialGuess
 	end
-	if ConvRateSetup.ComputeSolution == nil then
-		ConvRateSetup.ComputeSolution = util.rates.static.StdComputeLinearSolution
+	if CRS.ComputeSolution == nil then
+		CRS.ComputeSolution = util.rates.static.StdComputeLinearSolution
 	end
 	
 	-- compute element size	
-	local dom = ConvRateSetup.CreateDomain()
+	local dom = CRS.CreateDomain()
 	local numRefs = dom:grid():num_levels() - 1;
 
 	-- create error storage and compute elem diameters
 	local err = {}	
-	err.dataPath = ConvRateSetup.dataPath
-	err.plotPath = ConvRateSetup.plotPath
+	err.dataPath = CRS.dataPath
+	err.plotPath = CRS.plotPath
 	err.gnuplot = {};
 
 	-- check for exact solution
-	if ConvRateSetup.ExactSol ~= nil and ConvRateSetup.ExactGrad ~= nil then
+	if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then
 		err.bUseExact = true
-		err.ExactSol = ConvRateSetup.ExactSol
-		err.ExactGrad =  ConvRateSetup.ExactGrad
+		err.ExactSol = CRS.ExactSol
+		err.ExactGrad =  CRS.ExactGrad
 	else
 		err.bUseExact = false
 	end
@@ -334,7 +339,7 @@ function util.rates.static.compute(ConvRateSetup)
 	--  Loop Discs
 	--------------------------------------------------------------------
 	
-	local DiscTypes = ConvRateSetup.DiscTypes
+	local DiscTypes = CRS.DiscTypes
 	for type = 1,#DiscTypes do
 	
 		local discType 	= DiscTypes[type].type
@@ -384,13 +389,13 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 
 			print(">> Create ApproximationSpace: "..discType..", "..p)
-			local approxSpace = ConvRateSetup.CreateApproxSpace(dom, discType, p)
+			local approxSpace = CRS.CreateApproxSpace(dom, discType, p)
 			
 			print(">> Create Domain Disc: "..discType..", "..p)
-			local domainDisc = ConvRateSetup.CreateDomainDisc(approxSpace, discType, p)
+			local domainDisc = CRS.CreateDomainDisc(approxSpace, discType, p)
 			
 			print(">> Create Solver")
-			local solver = ConvRateSetup.CreateSolver(approxSpace, discType, p)
+			local solver = CRS.CreateSolver(approxSpace, discType, p)
 			
 			--------------------------------------------------------------------
 			--  Create Solutions on each level
@@ -411,14 +416,14 @@ function util.rates.static.compute(ConvRateSetup)
 				write("\n>> Computing Level "..lev..".\n")
 			
 				write(">> Preparing inital guess on level "..lev..".\n")
-				ConvRateSetup.PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
+				CRS.PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 				
 				write(">> Computing solution on level "..lev..".\n")
-				ConvRateSetup.ComputeSolution(u[lev], domainDisc, solver)
+				CRS.ComputeSolution(u[lev], domainDisc, solver)
 				write(">> Solver done.\n")
 				
-				WriteGridFunctionToVTK(u[lev], ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev)
-				write(">> Solution written to: "..ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev.."\n");	
+				WriteGridFunctionToVTK(u[lev], CRS.solPath.."sol_"..discType..p.."_l"..lev)
+				write(">> Solution written to: "..CRS.solPath.."sol_"..discType..p.."_l"..lev.."\n");	
 			end
 
 			--------------------------------------------------------------------
