@@ -276,23 +276,23 @@ end
 Computes convergence rates for a static problem
 
 In the convergence rate setup the following parameters can be passed:
-- (required) createDomain()				
+- (required) CreateDomain()				
 			 	function used to create Domain
-- (required) createApproxSpace(dom, discType, p)		
+- (required) CreateApproxSpace(dom, discType, p)		
 			 	function used to create ApproximationSpace
-- (required) createDomainDisc(discType, p, approxSpace)			
+- (required) CreateDomainDisc(discType, p, approxSpace)			
 			 	function used to create Domain Discretization
-- (required) createSolver(approxSpace, discType, p)				
+- (required) CreateSolver(approxSpace, discType, p)				
 				function used to create Solver
 - (required) DiscTypes					
 				Array containing types, orders and level to be looped
-- (optional) computeSolution			
+- (optional) ComputeSolution			
 				function used to compute solution
 - (optional) prepareInitialGuess		
 				function used to prepare Initial Guess
-- (optional) exactSol					
+- (optional) ExactSol					
 				Array containing exact solution as a function
-- (optional) exactGrad					
+- (optional) ExactGrad					
 				Array containing exact gradients as a function
  
 @param ConvRate Setup setup used 
@@ -312,12 +312,12 @@ function util.rates.static.compute(ConvRateSetup)
 	if ConvRateSetup.prepareInitialGuess == nil then
 		ConvRateSetup.prepareInitialGuess = util.rates.static.StdPrepareInitialGuess
 	end
-	if ConvRateSetup.computeSolution == nil then
-		ConvRateSetup.computeSolution = util.rates.static.StdComputeLinearSolution
+	if ConvRateSetup.ComputeSolution == nil then
+		ConvRateSetup.ComputeSolution = util.rates.static.StdComputeLinearSolution
 	end
 	
 	-- compute element size	
-	local dom = ConvRateSetup.createDomain()
+	local dom = ConvRateSetup.CreateDomain()
 	local numRefs = dom:grid():num_levels() - 1;
 
 	-- create error storage and compute elem diameters
@@ -327,10 +327,10 @@ function util.rates.static.compute(ConvRateSetup)
 	err.gnuplot = {};
 
 	-- check for exact solution
-	if ConvRateSetup.exactSol ~= nil and ConvRateSetup.exactGrad ~= nil then
+	if ConvRateSetup.ExactSol ~= nil and ConvRateSetup.ExactGrad ~= nil then
 		err.bUseExact = true
-		err.exactSol = ConvRateSetup.exactSol
-		err.exactGrad = ConvRateSetup.exactGrad
+		err.ExactSol = ConvRateSetup.ExactSol
+		err.ExactGrad =  ConvRateSetup.ExactGrad
 	else
 		err.bUseExact = false
 	end
@@ -391,13 +391,13 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 
 			print(">> Create ApproximationSpace: "..discType..", "..p)
-			local approxSpace = ConvRateSetup.createApproxSpace(dom, discType, p)
+			local approxSpace = ConvRateSetup.CreateApproxSpace(dom, discType, p)
 			
 			print(">> Create Domain Disc: "..discType..", "..p)
-			local domainDisc = ConvRateSetup.createDomainDisc(discType, p, approxSpace)
+			local domainDisc = ConvRateSetup.CreateDomainDisc(discType, p, approxSpace)
 			
 			print(">> Create Solver")
-			local solver = ConvRateSetup.createSolver(approxSpace, discType, p)
+			local solver = ConvRateSetup.CreateSolver(approxSpace, discType, p)
 			
 			--------------------------------------------------------------------
 			--  Create Solutions on each level
@@ -421,7 +421,7 @@ function util.rates.static.compute(ConvRateSetup)
 				ConvRateSetup.prepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 				
 				write(">> Computing solution on level "..lev..".\n")
-				ConvRateSetup.computeSolution(u[lev], approxSpace, domainDisc, solver)
+				ConvRateSetup.ComputeSolution(u[lev], approxSpace, domainDisc, solver)
 				write(">> Solver done.\n")
 				
 				WriteGridFunctionToVTK(u[lev], ConvRateSetup.solPath.."sol_"..discType..p.."_l"..lev)
@@ -455,8 +455,8 @@ function util.rates.static.compute(ConvRateSetup)
 					
 					-- w.r.t exact solution		
 					if err.bUseExact then 
-					err.l2.exact.value[f][lev] 	= L2Error(err.exactSol[f], u[lev], f, 0.0, quadOrder)
-					err.h1.exact.value[f][lev] 	= H1Error(err.exactSol[f], err.exactGrad[f], u[lev], f, 0.0, quadOrder)
+					err.l2.exact.value[f][lev] 	= L2Error(err.ExactSol[f], u[lev], f, 0.0, quadOrder)
+					err.h1.exact.value[f][lev] 	= H1Error(err.ExactSol[f], err.ExactGrad[f], u[lev], f, 0.0, quadOrder)
 					write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.exact.value[f][lev]) .."\n");
 					write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.h1.exact.value[f][lev]) .."\n");
 					end

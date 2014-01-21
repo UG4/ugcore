@@ -1,7 +1,7 @@
 function util.computeKineticConvRatesForSpace(dom, maxLev, minLev, discType, p, 
 													timeScheme, orderOrTheta, startTime, endTime,
 													dtmin, dtmax, dtred, exactSol, exactGrad,
-													createApproxSpace, createDomainDisc, createSolver,
+													CreateApproxSpace, CreateDomainDisc, CreateSolver,
 									 				plotPath, solPath, dataPath, bLinear)
 
 print("\n")
@@ -25,13 +25,13 @@ print("\n")
 
 -- create Approximation Space
 print(">> Create ApproximationSpace: "..discType..", "..p)
-local approxSpace = createApproxSpace(dom, discType, p)
+local approxSpace = CreateApproxSpace(dom, discType, p)
 
 print(">> Create Domain Disc: "..discType..", "..p)
-local domainDisc = createDomainDisc(discType, p, approxSpace)
+local domainDisc = CreateDomainDisc(discType, p, approxSpace)
 
 print(">> Create Solver")
-local solver = createSolver(approxSpace)
+local solver = CreateSolver(approxSpace)
 
 --------------------------------------------------------------------------------
 --  Apply Solver
@@ -132,7 +132,7 @@ function util.computeRate(data, min, max, base, style, levOrK)
 	return cpyData, rate
 end
 
-function util.computeKineticConvRates(dom, createApproxSpace, createDomainDisc, createSolver, DiscTypes, bLinear)
+function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes, bLinear)
 	
 	-- create directories
 	plotPath = "plots/"
@@ -214,7 +214,7 @@ function util.computeKineticConvRates(dom, createApproxSpace, createDomainDisc, 
 				 		dom, maxLev, minLev, discType, p, 
 				 		timeScheme, orderOrTheta, startTime, endTime,
 				 		dtmin, dtmax, dtred, exactSol, exactGrad,
-				 		createApproxSpace, createDomainDisc, createSolver,
+				 		CreateApproxSpace, CreateDomainDisc, CreateSolver,
 				 		plotPath, solPath, dataPath, bLinear)
 				 		
 			-- write: for each time step size show convergence in space, keeping time step constant
@@ -300,10 +300,10 @@ function util.computeKineticConvRates(dom, createApproxSpace, createDomainDisc, 
 	end
 end
 
-function util.computeLinearKineticConvRates(dom, createApproxSpace, createDomainDisc, createSolver, DiscTypes)
-	util.computeKineticConvRates(dom, createApproxSpace, createDomainDisc, createSolver, DiscTypes, true)
+function util.computeLinearKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes)
+	util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes, true)
 end
 
-function util.computeNonlinearKineticConvRates(dom, createApproxSpace, createDomainDisc, createSolver, DiscTypes)
-	util.computeKineticConvRates(dom, createApproxSpace, createDomainDisc, createSolver, DiscTypes, false)
+function util.computeNonlinearKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes)
+	util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, CreateSolver, DiscTypes, false)
 end
