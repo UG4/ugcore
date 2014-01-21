@@ -280,7 +280,7 @@ In the convergence rate setup the following parameters can be passed:
 			 	function used to create Domain
 - (required) CreateApproxSpace(dom, discType, p)		
 			 	function used to create ApproximationSpace
-- (required) CreateDomainDisc(discType, p, approxSpace)			
+- (required) CreateDomainDisc(approxSpace, discType, p)			
 			 	function used to create Domain Discretization
 - (required) CreateSolver(approxSpace, discType, p)				
 				function used to create Solver
@@ -394,7 +394,7 @@ function util.rates.static.compute(ConvRateSetup)
 			local approxSpace = ConvRateSetup.CreateApproxSpace(dom, discType, p)
 			
 			print(">> Create Domain Disc: "..discType..", "..p)
-			local domainDisc = ConvRateSetup.CreateDomainDisc(discType, p, approxSpace)
+			local domainDisc = ConvRateSetup.CreateDomainDisc(approxSpace, discType, p)
 			
 			print(">> Create Solver")
 			local solver = ConvRateSetup.CreateSolver(approxSpace, discType, p)

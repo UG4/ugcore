@@ -28,7 +28,7 @@ print(">> Create ApproximationSpace: "..discType..", "..p)
 local approxSpace = CreateApproxSpace(dom, discType, p)
 
 print(">> Create Domain Disc: "..discType..", "..p)
-local domainDisc = CreateDomainDisc(discType, p, approxSpace)
+local domainDisc = CreateDomainDisc(approxSpace, discType, p)
 
 print(">> Create Solver")
 local solver = CreateSolver(approxSpace)
