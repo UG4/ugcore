@@ -367,13 +367,7 @@ function util.rates.static.compute(ConvRateSetup)
 			
 			for _, f in ipairs(FctCmp) do
 				for _, t in ipairs({"exact", "prevlevel", "maxlevel"}) do
-		
-					-- finest level compared to finest level is not senseful --> remove it
-					if t == "maxlevel" then
-						err[f]["maxlevel"]["l2"].value[maxLev] = nil
-						err[f]["maxlevel"]["h1"].value[maxLev] = nil
-					end
-					
+
 					if err[f][t] ~= nil then
 						local function schedule(err, file, data, norm, x)
 						
