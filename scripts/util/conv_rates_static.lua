@@ -461,7 +461,7 @@ function util.rates.static.compute(ConvRateSetup)
 					end
 				end
 										
-				table.print(values, {title = title, format = format, 
+				table.print(values, {heading = title, format = format, 
 									 hline = true, vline = true, forNil = "--"})
 			end
 

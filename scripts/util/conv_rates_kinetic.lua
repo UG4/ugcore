@@ -229,7 +229,7 @@ function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, 
 				-- write data to screen
 				print("\nConvergence in space: fixed dt = "..dts[k])
 				table.print({level, h, dtout, numDoFs, l2di, l2diffrate, l2ex, l2exactrate, h1di, h1diffrate, h1ex, h1exactrate}, 
-							{title = {"L", "h", "dt", "#DoFs", "L2 Diff", "rate", "L2 Exact", "rate", "H1 Diff", "rate", "H1 Exact", "rate"}, 
+							{heading = {"L", "h", "dt", "#DoFs", "L2 Diff", "rate", "L2 Exact", "rate", "H1 Diff", "rate", "H1 Exact", "rate"}, 
 							 format = {"%d", "%.2e", "%.2e", "%d", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f"},
 							 hline = true, vline = true})
 				
@@ -259,7 +259,7 @@ function util.computeKineticConvRates(dom, CreateApproxSpace, CreateDomainDisc, 
 				-- write data to screen
 				print("\nConvergence in time: fixed h = "..string.format("%.3e", h[lev])..", #DoF = "..numDoFs[lev])
 				table.print({level, hout, dtout, numDoFsout, l2di, l2diffrate, l2ex, l2exactrate, h1di, h1diffrate, h1ex, h1exactrate}, 
-							{title = {"L", "h", "dt", "#DoFs", "L2 Diff", "rate", "L2 Exact", "rate", "H1 Diff", "rate", "H1 Exact", "rate"}, 
+							{heading = {"L", "h", "dt", "#DoFs", "L2 Diff", "rate", "L2 Exact", "rate", "H1 Diff", "rate", "H1 Exact", "rate"}, 
 							 format = {"%d", "%.2e", "%.2e", "%d", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f", "%.2e", "%.3f"},
 							 hline = true, vline = true})
 				
