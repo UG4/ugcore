@@ -288,6 +288,10 @@ function util.rates.static.compute(ConvRateSetup)
 				end
 								
 			end
+
+			--------------------------------------------------------------------
+			--  Compute Factors and Rates
+			--------------------------------------------------------------------
 	
 			for _, f in ipairs(FctCmp) do
 				for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
@@ -362,56 +366,48 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			--  Write Data to GnuPlot
 			--------------------------------------------------------------------
-					
-			local function addGnuplotDataType(err, discType, p, f, t)
-			
-				local function schedule(err, file, data, norm, x)
-				
-					gnuplotFiles[file] = gnuplotFiles[file] or {} 				
-					table.append(gnuplotFiles[file], data)
-					gnuplotFiles[file].title = gpNorm[norm]..gpTitle[t].." for Fct "..f
-					gnuplotFiles[file].xlabel = gpXLabel[x]
-					gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[norm].."}"
-				end
-					
-				-- data values
-				local l2value = err[f][t]["l2"].value
-				local h1value = err[f][t]["h1"].value
-			
-				-- write l2 and h1 to data file
-				local singleFileName = "error_"..titles[t].."_"..discType.."_"..p.."_"..f
-				local file = err.dataPath..singleFileName..".dat"
-				local dataCols = {err.numDoFs, err.h, l2value, h1value}
-				gnuplot.write_data(file, dataCols)
-			
-				-- create plot for single run
-				local options = {grid = true, logscale = true}
-				local style = "linespoints"
-				
-				for y, yCol in pairs({l2 = 3, h1 = 4}) do
-					for x, xCol in pairs({DoF = 1, h = 2}) do
-						local Data = {{label=discType.." P_"..p, file=file, style=style, xCol, yCol}}
-						gnuplot.plot(err.plotPath.."single/"..singleFileName.."_"..y.."_"..x..".pdf", Data, options)				
-						schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
-						schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
-					end	
-				end
-			end
 			
 			for _, f in ipairs(FctCmp) do
 				for _, t in ipairs({"exact", "prevlevel", "maxlevel"}) do
 		
 					-- finest level compared to finest level is not senseful --> remove it
 					if t == "maxlevel" then
-						err.numDoFs[maxLev] = nil
-						err.h[maxLev] = nil
 						err[f]["maxlevel"]["l2"].value[maxLev] = nil
 						err[f]["maxlevel"]["h1"].value[maxLev] = nil
-					
 					end
 					
-					if err.bUse[t] then
-						addGnuplotDataType(err, discType, p, f, t)
+					if err[f][t] ~= nil then
+						local function schedule(err, file, data, norm, x)
+						
+							gnuplotFiles[file] = gnuplotFiles[file] or {} 				
+							table.append(gnuplotFiles[file], data)
+							gnuplotFiles[file].title = gpNorm[norm]..gpTitle[t].." for Fct "..f
+							gnuplotFiles[file].xlabel = gpXLabel[x]
+							gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[norm].."}"
+						end
+							
+						-- data values
+						local l2value = err[f][t]["l2"].value
+						local h1value = err[f][t]["h1"].value
+					
+						-- write l2 and h1 to data file
+						local singleFileName = "error_"..titles[t].."_"..discType.."_"..p.."_"..f
+						local file = err.dataPath..singleFileName..".dat"
+						local dataCols = {err.numDoFs, err.h, l2value, h1value}
+						gnuplot.write_data(file, dataCols)
+					
+						-- create plot for single run
+						local options = {grid = true, logscale = true}
+						local style = "linespoints"
+						
+						for y, yCol in pairs({l2 = 3, h1 = 4}) do
+							for x, xCol in pairs({DoF = 1, h = 2}) do
+								local Data = {{label=discType.." P_"..p, file=file, style=style, xCol, yCol}}
+								gnuplot.plot(err.plotPath.."single/"..singleFileName.."_"..y.."_"..x..".pdf", Data, options)				
+								schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
+								schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
+							end	
+						end
 					end
 				end	
 			end
