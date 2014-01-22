@@ -588,6 +588,28 @@ void SetRow(T &A, size_t i, size_t alpha, number val = 0.0)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * set value for col for entry (i,alpha).
+ * \param A (in) Matrix A
+ * \param i (in) col to set
+ * \param alpha the alpha index
+ * \param val the value to be set
+ */
+template <typename T>
+void SetCol(T &A, size_t i, size_t alpha, number val = 0.0)
+{
+	for(size_t row = 0; row != A.num_rows(); ++row)
+	{
+		typename T::value_type& block = A(row, i);
+		// block : 1x1 (CPU=1), 3x3 (CPU=3)
+		for(size_t beta = 0; beta < (size_t) GetRows(block); ++beta)
+		{
+			BlockRef(block, beta, alpha) = val;
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // SetRow:
 //-------------------------
 /**
