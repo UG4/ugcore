@@ -114,8 +114,8 @@ function util.rates.static.compute(ConvRateSetup)
 	
 	local DiscTypes = CRS.DiscTypes
 
-	local maxlevel = CRS.maxlevel or true
-	local prevlevel = CRS.prevlevel or true
+	local maxlevel = CRS.maxlevel; if maxlevel == nil then maxlevel = true end
+	local prevlevel = CRS.prevlevel; if prevlevel == nil then prevlevel = true end
 
 	local ExactSol = CRS.ExactSol 
  	local ExactGrad = CRS.ExactGrad 
