@@ -41,6 +41,7 @@ function gnuplot.write_data(filename, data, passRows)
 
 	-- default is table data by row
 	passRows = passRows or false
+	forNil = "--"
 
 	-- check data
 	if type(data) ~= "table" then
@@ -60,14 +61,13 @@ function gnuplot.write_data(filename, data, passRows)
 		return 1
 	end
 	
-	local plainArray, rowSize
-	local minRow = nil
-	local maxRow = nil 
-	local bHasMatrixData = false
-	
 	-- case 1: data is given column per column
 	if not passRows then
 	
+		-- check columns
+		local bHasMatrixData = false
+		local minRow = math.huge
+		local maxRow = -math.huge
 		for _, column in ipairs(data) do
 
 			-- check that tables passed as coulumns
@@ -76,36 +76,23 @@ function gnuplot.write_data(filename, data, passRows)
 				return 1						
 			end
 	
-			-- check if column data is actually a matrix			
+			-- check if column data is actually a matrix	
+			-- or extract row range		
 			if type(column[1]) == "table" then
 				bHasMatrixData = true		
+			else
+				minRow = math.min(minRow, table.imin(column))
+				maxRow = math.max(maxRow, table.imax(column))		
 			end
 		end
 
-		-- check column sizes
-		if bHasMatrixData == false then
-			for _, column in ipairs(data) do
-				local min, max = gnuplot.getArraySizes(column)
-				if minRow == nil then minRow = min
-				elseif minRow ~= min then
-					io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
-					io.stderr:write("Expected min row: "..minRow..", got: "..min.."\n");
-					return 1						
-				end
-				if maxRow == nil then maxRow = max
-				elseif maxRow ~= max then
-					io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
-					io.stderr:write("Expected max row: "..maxRow..", got: "..max.."\n");
-					return 1						
-				end
-			end
-		end
-		
 		-- write column
-		if bHasMatrixData == false then
-			for i = minRow,maxRow do
-				for j = 1,#data do
-					file:write(data[j][i], " ")
+		if not(bHasMatrixData) then
+			for row = minRow, maxRow do
+				for col, _ in ipairs(data) do
+					local item = data[col][row]
+					if item ~= nil then file:write(item, " ")
+					else 				file:write(forNil, " ") end
 				end
 				file:write("\n")
 			end		
@@ -135,6 +122,8 @@ function gnuplot.write_data(filename, data, passRows)
 		
 	-- case 2: data is given column per column
 	else
+		local plainArray, rowSize
+	
 		for i, item in ipairs(data) do
 			if type(item) == "table" then
 				-- check for pure tables
