@@ -122,9 +122,19 @@ function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 
 	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
 					
+	local gpXLabel ={ DoF = "# DoFs",	h = "h (mesh size)"}
 
 	local function addGnuplotDataType(err, discType, p, f, t)
 	
+		local function schedule(err, file, data, norm, x)
+		
+			gnuplotFiles[file] = gnuplotFiles[file] or {} 				
+			table.append(gnuplotFiles[file], data)
+			gnuplotFiles[file].title = gpNorm[norm]..gpTitle[t].." for Fct "..f
+			gnuplotFiles[file].xlabel = gpXLabel[x]
+			gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[norm].."}"
+		end
+			
 		-- data values
 		local l2value = err["l2"][t].value[f]
 		local h1value = err["h1"][t].value[f]
@@ -139,37 +149,14 @@ function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 		local options = {grid = true, logscale = true}
 		local style = "linespoints"
 		
-		local L2_DoF_Data = {{label=discType.." P_"..p, file=file, style=style, 1, 3 }}
-		local H1_DoF_Data = {{label=discType.." P_"..p, file=file, style=style, 1, 4 }}
-		local L2_h_Data = {{label=discType.." P_"..p, file=file, style=style, 2, 3 }}
-		local H1_h_Data = {{label=discType.." P_"..p, file=file, style=style, 2, 4 }}
-		
-		gnuplot.plot(err.plotPath.."single/"..singleFileName.."_l2_DoF.pdf", L2_DoF_Data, options)
-		gnuplot.plot(err.plotPath.."single/"..singleFileName.."_h1_DoF.pdf", H1_DoF_Data, options)
-		gnuplot.plot(err.plotPath.."single/"..singleFileName.."_l2_h.pdf", L2_h_Data, options)
-		gnuplot.plot(err.plotPath.."single/"..singleFileName.."_h1_h.pdf", H1_h_Data, options)
-	
-	
-		local function schedule(err, file, data, norm, xLabel)
-		
-			gnuplotFiles[file] = gnuplotFiles[file] or {} 				
-			table.append(gnuplotFiles[file], data)
-			gnuplotFiles[file].title = gpNorm[norm]..gpTitle[t].." for Fct "..f
-			gnuplotFiles[file].xlabel = xLabel
-			gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[norm].."}"
+		for y, yCol in pairs({l2 = 3, h1 = 4}) do
+			for x, xCol in pairs({DoF = 1, h = 2}) do
+				local Data = {{label=discType.." P_"..p, file=file, style=style, xCol, yCol}}
+				gnuplot.plot(err.plotPath.."single/"..singleFileName.."_"..y.."_"..x..".pdf", Data, options)				
+				schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
+				schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
+			end	
 		end
-		
-		-- schedule for plots of same disc type
-		schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "l2", "# DoFs")
-		schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "h1", "# DoFs")
-		schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
-		schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
-	
-		-- schedule for plots of all types
-		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "l2", "# DoFs")
-		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "h1", "# DoFs")
-		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
-		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
 	end
 	
 	local FctCmp = err.FctCmp
