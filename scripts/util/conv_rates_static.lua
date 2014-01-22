@@ -78,21 +78,6 @@ function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 	return err
 end
 
-table = table or {}
-function table.append(t1, t2)
-	if type(t1) ~= "table" then
-		print("table.append called on non-table"); exit();
-	end
-	
-	if type(t2) == "table" then
-       for _,v in ipairs(t2) do
-            t1[#t1+1] = v
-       end
-    else
-       t1[#t1+1] = t2
-    end	
-end
-
 function util.rates.static.computeErrorRates(err)
 	
 	local FctCmp = err.FctCmp
@@ -118,33 +103,6 @@ function util.rates.static.computeErrorRates(err)
 	
 	computeNormErrorRates(err.l2)
 	computeNormErrorRates(err.h1)
-end
-
-function util.rates.static.updateScreenOutput(err, f)
-
-	local screen = {}
-	screen.values = {err.level, err.h, err.numDoFs}
-	screen.title = {"L", "h", "#DoFs"}
-	screen.format = {"%d", "%.2e", "%d"}
-
-	local function addOutputNorm(norm)
-		
-		local function addOutputNormType(norm, type)
-			
-			table.append(screen.values, {type.value[f], type.rate[f]}) 
-			table.append(screen.title,  {norm.title.." "..type.title, "rate"})
-			table.append(screen.format, {"%.2e", "%.3f"})
-		end
-									
-		if err.bUseExact  then addOutputNormType(norm, norm.exact) end
-		if err.bMaxLevel  then addOutputNormType(norm, norm.maxlevel) end
-		if err.bPrevLevel then addOutputNormType(norm, norm.prevlevel) end
-	end
-		
-	addOutputNorm(err.l2)
-	addOutputNorm(err.h1)
-	
-	return screen
 end
 
 function util.writeAndScheduleGnuplotData(err, discType, p)
@@ -505,11 +463,32 @@ function util.rates.static.compute(ConvRateSetup)
 			--  Write Erorr Data
 			--------------------------------------------------------------------
 
+			local titles = {l2 = "L2", h1 = "H1",
+							exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
+
 			-- write data to screen
 			for i = 1, #FctCmp do
-				print("\n>> Statistic for type: "..discType..", order: "..p..", comp: "..FctCmp[i].."\n")			
-				local screen = util.rates.static.updateScreenOutput(err, FctCmp[i])
-				table.print(screen.values, {title = screen.title, format = screen.format, hline = true, vline = true})
+				local f = FctCmp[i]
+			
+				print("\n>> Statistic for type: "..discType..", order: "..p..", comp: "..f.."\n")			
+				
+				local values = {err.level, err.h, err.numDoFs}
+				local title = {"L", "h", "#DoFs"}
+				local format = {"%d", "%.2e", "%d"}
+			
+				for _, n in ipairs({"l2", "h1"}) do
+					local norm = err[n]
+					for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
+						local type = norm[t]
+						if type ~= nil then
+							table.append(values, {type.value[f], type.rate[f]}) 
+							table.append(title,  {titles[n].." "..titles[t], "rate"})
+							table.append(format, {"%.2e", "%.3f"})
+						end
+					end
+				end
+										
+				table.print(values, {title = title, format = format, hline = true, vline = true})
 			end
 
 			-- write data to gnuplot						

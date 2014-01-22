@@ -7,6 +7,20 @@
 
 table = table or {}
 
+function table.append(t1, t2)
+	if type(t1) ~= "table" then
+		print("table.append called on non-table"); exit();
+	end
+	
+	if type(t2) == "table" then
+       for _,v in ipairs(t2) do
+            t1[#t1+1] = v
+       end
+    else
+       t1[#t1+1] = t2
+    end	
+end
+
 function table.getArraySizes(t)
 
 	local min = 1e1000
