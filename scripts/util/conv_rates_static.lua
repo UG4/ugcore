@@ -15,11 +15,11 @@ function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 	err.numDoFs = {}
 	err.FctCmp = FctCmp
 	
-	function util.rates.static.createNormStorage(norm)
+	local function createNormStorage(norm)
 
-		function util.rates.static.createNormTypeStorage(normType)
+		local function createNormTypeStorage(normType)
 
-			function util.rates.static.createNormTypeRatesStorage(array)
+			local function createNormTypeRatesStorage(array)
 				for lev = minLev, maxLev do
 					array[lev] = defValue
 				end
@@ -32,11 +32,11 @@ function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 			for i = 1, #FctCmp do
 				local f = FctCmp[i]
 				normType.value[f] = {}
-				util.rates.static.createNormTypeRatesStorage(normType.value[f])
+				createNormTypeRatesStorage(normType.value[f])
 				normType.fac[f] = {}
-				util.rates.static.createNormTypeRatesStorage(normType.fac[f])
+				createNormTypeRatesStorage(normType.fac[f])
 				normType.rate[f] = {}
-				util.rates.static.createNormTypeRatesStorage(normType.rate[f])
+				createNormTypeRatesStorage(normType.rate[f])
 			end
 		end
 		
@@ -44,31 +44,31 @@ function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 		if err.bUseExact then
 		norm.exact = {}
 		norm.exact.title = "l-exact"
-		util.rates.static.createNormTypeStorage(norm.exact)
+		createNormTypeStorage(norm.exact)
 		end
 		
 		-- error w.r.t to most refined level  
 		if err.bMaxLevel then
 		norm.maxlevel = {}  		
 		norm.maxlevel.title = "l-lmax"
-		util.rates.static.createNormTypeStorage(norm.maxlevel)
+		createNormTypeStorage(norm.maxlevel)
 		end
 		
 		-- error w.r.t to lev-1
 		if err.bPrevLevel then
 		norm.prevlevel = {}
 		norm.prevlevel.title = "l-prev"
-		util.rates.static.createNormTypeStorage(norm.prevlevel)
+		createNormTypeStorage(norm.prevlevel)
 		end
 	end
 	
 	err.l2 = {}
 	err.l2.title = "L2"
-	util.rates.static.createNormStorage(err.l2)
+	createNormStorage(err.l2)
 
 	err.h1 = {}
 	err.h1.title = "H1"
-	util.rates.static.createNormStorage(err.h1)
+	createNormStorage(err.h1)
 
 	err.level = {}
 	for lev = minLev, maxLev do
@@ -81,9 +81,9 @@ end
 function util.rates.static.computeErrorRates(err)
 	
 	local FctCmp = err.FctCmp
-	function util.rates.static.computeNormErrorRates(norm)
+	local function computeNormErrorRates(norm)
 	
-		function util.rates.static.computeNormTypeErrorRates(normType, minLev, maxLev)
+		local function computeNormTypeErrorRates(normType, minLev, maxLev)
 			for i = 1, #FctCmp do
 				local f = FctCmp[i]
 				for lev = minLev + 1, maxLev do
@@ -96,13 +96,13 @@ function util.rates.static.computeErrorRates(err)
 		local minLev = err.minLev
 		local maxLev = err.maxLev
 		
-		if err.bUseExact then	util.rates.static.computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
-		if err.bMaxLevel then  util.rates.static.computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
-		if err.bPrevLevel then util.rates.static.computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
+		if err.bUseExact then  computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
+		if err.bMaxLevel then  computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
+		if err.bPrevLevel then computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
 	end 		
 	
-	util.rates.static.computeNormErrorRates(err.l2)
-	util.rates.static.computeNormErrorRates(err.h1)
+	computeNormErrorRates(err.l2)
+	computeNormErrorRates(err.h1)
 end
 
 function util.rates.static.updateScreenOutput(err, f)
