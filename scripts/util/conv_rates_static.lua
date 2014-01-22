@@ -93,10 +93,6 @@ function util.rates.static.compute(ConvRateSetup)
 	local plotPath = CRS.plotPath or "plots/"
 	local solPath  = CRS.solPath  or "sol/"
 	local dataPath = CRS.dataPath or "data/"
-	os.execute("mkdir " .. dataPath)
-	os.execute("mkdir " .. plotPath)
-	os.execute("mkdir " .. plotPath.."single/")
-	os.execute("mkdir " .. solPath)
 
 	-- check for methods
 	local PrepareInitialGuess = CRS.PrepareInitialGuess or util.rates.static.StdPrepareInitialGuess
@@ -123,6 +119,15 @@ function util.rates.static.compute(ConvRateSetup)
 	--------------------------------------------------------------------
 	--  Loop Discs
 	--------------------------------------------------------------------
+
+	local function ensureDir(name)
+		if not(DirectoryExists(name)) then CreateDirectory(name) end
+	end
+	
+	ensureDir(dataPath)
+	ensureDir(plotPath)
+	ensureDir(plotPath.."single/")
+	ensureDir(solPath)
 
 	-- compute element size	
 	local dom = CreateDomain()
