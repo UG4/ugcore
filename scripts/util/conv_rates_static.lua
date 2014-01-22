@@ -78,83 +78,6 @@ function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 	return err
 end
 
-function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
-
-	local titles = {l2 = "L2", h1 = "H1",
-					exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
-
-	local gpTitle = {	exact = 	"-Error w.r.t. exact Solution",
-						maxlevel = 	"-Error w.r.t. finest Solution",
-						prevlevel = "-Error w.r.t. previous level Solution"
-					}
-				
-	local gpType = {	exact = 	"exact",		
-						maxlevel = 	"L_{max}",
-						prevlevel = "L-1"
-					}
-
-	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
-					
-	local gpXLabel ={ DoF = "# DoFs",	h = "h (mesh size)"}
-
-	local function addGnuplotDataType(err, discType, p, f, t)
-	
-		local function schedule(err, file, data, norm, x)
-		
-			gnuplotFiles[file] = gnuplotFiles[file] or {} 				
-			table.append(gnuplotFiles[file], data)
-			gnuplotFiles[file].title = gpNorm[norm]..gpTitle[t].." for Fct "..f
-			gnuplotFiles[file].xlabel = gpXLabel[x]
-			gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[norm].."}"
-		end
-			
-		-- data values
-		local l2value = err["l2"][t].value[f]
-		local h1value = err["h1"][t].value[f]
-	
-		-- write l2 and h1 to data file
-		local singleFileName = "error_"..titles[t].."_"..discType.."_"..p.."_"..f
-		local file = err.dataPath..singleFileName..".dat"
-		local dataCols = {err.numDoFs, err.h, l2value, h1value}
-		gnuplot.write_data(file, dataCols)
-	
-		-- create plot for single run
-		local options = {grid = true, logscale = true}
-		local style = "linespoints"
-		
-		for y, yCol in pairs({l2 = 3, h1 = 4}) do
-			for x, xCol in pairs({DoF = 1, h = 2}) do
-				local Data = {{label=discType.." P_"..p, file=file, style=style, xCol, yCol}}
-				gnuplot.plot(err.plotPath.."single/"..singleFileName.."_"..y.."_"..x..".pdf", Data, options)				
-				schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
-				schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
-			end	
-		end
-	end
-	
-	local FctCmp = err.FctCmp
-	
-	for _, t in ipairs({"exact", "prevlevel", "maxlevel"}) do
-
-		for i = 1, #FctCmp do
-			local f = FctCmp[i]
-
-			-- finest level compared to finest level is not senseful --> remove it
-			if t == "maxlevel" then
-				err.numDoFs[err.maxLev] = nil
-				err.h[err.maxLev] = nil
-				err.l2.maxlevel.value[f][err.maxLev] = nil
-				err.h1.maxlevel.value[f][err.maxLev] = nil
-			
-			end
-			
-			if err.bUse[t] then
-				addGnuplotDataType(err, discType, p, f, t)
-			end
-		end	
-	end
-end
-
 --------------------------------------------------------------------------------
 -- Std Functions (used as defaults)
 --------------------------------------------------------------------------------
@@ -363,19 +286,22 @@ function util.rates.static.compute(ConvRateSetup)
 		
 			-- check for exact solution
 			err.bUse = {maxlevel = true, prevlevel = true}
-			if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then
-				err.bUse.exact = true
-			else
-				err.bUse.exact = false
-			end
+			if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then err.bUse.exact = true
+			else												 err.bUse.exact = false end
 			
 			-- get names in approx space
 			local FctCmp = approxSpace:names()
 
 			-- prepare error measurement			
 			err.h = {}
-			for lev = minLev, maxLev do	err.h[lev] = MaxElementDiameter(dom, lev) end	
-			util.rates.static.resetStorage(err, minLev, maxLev, FctCmp)
+			err.numDoFs = {}
+			err.FctCmp = FctCmp
+			err.level = {}
+			
+			for lev = minLev, maxLev do	
+				err.h[lev] = MaxElementDiameter(dom, lev) 
+				err.level[lev] = lev
+			end	
 
 			-- loop levels and compute error
 			for lev = maxLev, minLev, -1 do
@@ -386,47 +312,75 @@ function util.rates.static.compute(ConvRateSetup)
 				write(">> #DoF       on Level "..lev.." is "..err.numDoFs[lev] .."\n");
 			
 				-- compute for each component
-				for i = 1, #FctCmp do
-					local f = FctCmp[i] 
-					
+				for _, f in pairs(FctCmp) do
+
+					-- create component
+					err[f] = err[f] or {}
+										
 					-- w.r.t exact solution		
-					if err.bUse.exact then 
-					err.l2.exact.value[f][lev] 	= L2Error(CRS.ExactSol[f], u[lev], f, 0.0, quadOrder)
-					err.h1.exact.value[f][lev] 	= H1Error(CRS.ExactSol[f], CRS.ExactGrad[f], u[lev], f, 0.0, quadOrder)
-					write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.exact.value[f][lev]) .."\n");
-					write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.h1.exact.value[f][lev]) .."\n");
+					if err.bUse.exact then 					
+					err[f]["exact"] = err[f]["exact"] or {}
+					
+					err[f]["exact"]["l2"] = err[f]["exact"]["l2"] or {}
+					err[f]["exact"]["l2"].value = err[f]["exact"]["l2"].value or {}
+					err[f]["exact"]["l2"].value[lev] = L2Error(CRS.ExactSol[f], u[lev], f, 0.0, quadOrder)
+					write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["exact"]["l2"].value[lev]) .."\n");
+
+					err[f]["exact"]["h1"] = err[f]["exact"]["h1"] or {}
+					err[f]["exact"]["h1"].value = err[f]["exact"]["h1"].value or {}
+					err[f]["exact"]["h1"].value[lev] = H1Error(CRS.ExactSol[f], CRS.ExactGrad[f], u[lev], f, 0.0, quadOrder)
+					write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["exact"]["h1"].value[lev]) .."\n");
 					end
 					
 					-- w.r.t max level solution
-					if err.bUse.maxlevel and lev < maxLev then 
-					err.l2.maxlevel.value[f][lev] 	= L2Error(u[maxLev], f, u[lev], f, quadOrder)
-					err.h1.maxlevel.value[f][lev] 	= H1Error(u[maxLev], f, u[lev], f, quadOrder)
-					write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.maxlevel.value[f][lev]) .."\n");
-					write(">> H1 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", err.h1.maxlevel.value[f][lev]) .."\n");
+					if err.bUse.maxlevel and lev < maxLev then
+					err[f]["maxlevel"] = err[f]["maxlevel"] or {}
+					
+					err[f]["maxlevel"]["l2"] = err[f]["maxlevel"]["l2"] or {}
+					err[f]["maxlevel"]["l2"].value = err[f]["maxlevel"]["l2"].value or {}
+					err[f]["maxlevel"]["l2"].value[lev]	= L2Error(u[maxLev], f, u[lev], f, quadOrder)
+					write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["maxlevel"]["l2"].value[lev]) .."\n");
+
+					err[f]["maxlevel"]["h1"] = err[f]["maxlevel"]["h1"] or {}
+					err[f]["maxlevel"]["h1"].value = err[f]["maxlevel"]["h1"].value or {}
+					err[f]["maxlevel"]["h1"].value[lev] 	= H1Error(u[maxLev], f, u[lev], f, quadOrder)
+					write(">> H1 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["maxlevel"]["h1"].value[lev]) .."\n");
 					end
 				
 					-- w.r.t previous level solution
 					if err.bUse.prevlevel and lev > minLev then 
-					err.l2.prevlevel.value[f][lev] = L2Error(u[lev], f, u[lev-1], f, quadOrder)
-					err.h1.prevlevel.value[f][lev] = H1Error(u[lev], f, u[lev-1], f, quadOrder)
-					write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.prevlevel.value[f][lev]) .."\n");
-					write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err.h1.prevlevel.value[f][lev]) .."\n");
+					err[f]["prevlevel"] = err[f]["prevlevel"] or {}
+					
+					err[f]["prevlevel"]["l2"] = err[f]["prevlevel"]["l2"] or {}
+					err[f]["prevlevel"]["l2"].value = err[f]["prevlevel"]["l2"].value or {}
+					err[f]["prevlevel"]["l2"].value[lev] = L2Error(u[lev], f, u[lev-1], f, quadOrder)
+					write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["prevlevel"]["l2"].value[lev]) .."\n");
+
+					err[f]["prevlevel"]["h1"] = err[f]["prevlevel"]["h1"] or {}
+					err[f]["prevlevel"]["h1"].value = err[f]["prevlevel"]["h1"].value or {}
+					err[f]["prevlevel"]["h1"].value[lev] = H1Error(u[lev], f, u[lev-1], f, quadOrder)
+					write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["prevlevel"]["h1"].value[lev]) .."\n");
 					end
 				end
 								
 			end
 	
-			for _, n in ipairs({"l2", "h1"}) do
+			for _, f in ipairs(FctCmp) do
 				for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
-					for _, f in ipairs(FctCmp) do
+					for _, n in ipairs({"l2", "h1"}) do
 			
-						local normType = err[n][t]
-						local value = normType.value[f]
+						local meas = err[f][t][n]
+						meas.fac = meas.fac or {}
+						meas.rate = meas.rate or {}
 						
-						for lev, _ in ipairs(value) do
+						local value = meas.value
+						local fac = meas.fac
+						local rate = meas.rate
+						
+						for lev, _ in pairs(value) do
 							if value[lev] ~= nil and value[lev-1] ~= nil then
-								normType.fac[f][lev] = value[lev-1]/value[lev]
-								normType.rate[f][lev] = math.log(normType.fac[f][lev]) / math.log(2)
+								fac[lev] = value[lev-1]/value[lev]
+								rate[lev] = math.log(fac[lev]) / math.log(2)
 							end
 						end
 					end
@@ -434,41 +388,111 @@ function util.rates.static.compute(ConvRateSetup)
 			end	
 
 			--------------------------------------------------------------------
-			--  Write Erorr Data
+			--  Prepare labels
 			--------------------------------------------------------------------
 
 			local titles = {l2 = "L2", h1 = "H1",
 							exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
 
-			-- write data to screen
-			for i = 1, #FctCmp do
-				local f = FctCmp[i]
+			local gpTitle = {	exact = 	"-Error w.r.t. exact Solution",
+								maxlevel = 	"-Error w.r.t. finest Solution",
+								prevlevel = "-Error w.r.t. previous level Solution"
+							}
+						
+			local gpType = {	exact = 	"exact",		
+								maxlevel = 	"L_{max}",
+								prevlevel = "L-1"
+							}
+		
+			local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
+							
+			local gpXLabel ={ DoF = "# DoFs",	h = "h (mesh size)"}
+
+			--------------------------------------------------------------------
+			--  Write Data to Screen
+			--------------------------------------------------------------------
+
+			for _, f in ipairs(FctCmp) do
 			
 				print("\n>> Statistic for type: "..discType..", order: "..p..", comp: "..f.."\n")			
 				
 				local values = {err.level, err.h, err.numDoFs}
-				local title = {"L", "h", "#DoFs"}
+				local heading = {"L", "h", "#DoFs"}
 				local format = {"%d", "%.2e", "%d"}
+
+				for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
+					for _, n in ipairs({"l2", "h1"}) do
 			
-				for _, n in ipairs({"l2", "h1"}) do
-					local norm = err[n]
-					for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
-						local type = norm[t]
-						if type ~= nil then
-							table.append(values, {type.value[f], type.rate[f]}) 
-							table.append(title,  {titles[n].." "..titles[t], "rate"})
-							table.append(format, {"%.2e", "%.3f"})
-						end
+						local meas = err[f][t][n]
+			
+						table.append(values, {meas.value, meas.rate}) 
+						table.append(heading,{titles[n].." "..titles[t], "rate"})
+						table.append(format, {"%.2e", "%.3f"})
 					end
 				end
 										
-				table.print(values, {heading = title, format = format, 
+				table.print(values, {heading = heading, format = format, 
 									 hline = true, vline = true, forNil = "--"})
 			end
 
-			-- write data to gnuplot						
-			util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
-		end
+			--------------------------------------------------------------------
+			--  Write Data to GnuPlot
+			--------------------------------------------------------------------
+					
+			local function addGnuplotDataType(err, discType, p, f, t)
+			
+				local function schedule(err, file, data, norm, x)
+				
+					gnuplotFiles[file] = gnuplotFiles[file] or {} 				
+					table.append(gnuplotFiles[file], data)
+					gnuplotFiles[file].title = gpNorm[norm]..gpTitle[t].." for Fct "..f
+					gnuplotFiles[file].xlabel = gpXLabel[x]
+					gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[norm].."}"
+				end
+					
+				-- data values
+				local l2value = err[f][t]["l2"].value
+				local h1value = err[f][t]["h1"].value
+			
+				-- write l2 and h1 to data file
+				local singleFileName = "error_"..titles[t].."_"..discType.."_"..p.."_"..f
+				local file = err.dataPath..singleFileName..".dat"
+				local dataCols = {err.numDoFs, err.h, l2value, h1value}
+				gnuplot.write_data(file, dataCols)
+			
+				-- create plot for single run
+				local options = {grid = true, logscale = true}
+				local style = "linespoints"
+				
+				for y, yCol in pairs({l2 = 3, h1 = 4}) do
+					for x, xCol in pairs({DoF = 1, h = 2}) do
+						local Data = {{label=discType.." P_"..p, file=file, style=style, xCol, yCol}}
+						gnuplot.plot(err.plotPath.."single/"..singleFileName.."_"..y.."_"..x..".pdf", Data, options)				
+						schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
+						schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
+					end	
+				end
+			end
+			
+			for _, f in ipairs(FctCmp) do
+				for _, t in ipairs({"exact", "prevlevel", "maxlevel"}) do
+		
+					-- finest level compared to finest level is not senseful --> remove it
+					if t == "maxlevel" then
+						err.numDoFs[maxLev] = nil
+						err.h[maxLev] = nil
+						err[f]["maxlevel"]["l2"].value[maxLev] = nil
+						err[f]["maxlevel"]["h1"].value[maxLev] = nil
+					
+					end
+					
+					if err.bUse[t] then
+						addGnuplotDataType(err, discType, p, f, t)
+					end
+				end	
+			end
+			
+		end -- end loop over p
 		
 		-- create scheduled plots (maybe overwriting several times)
 		for plotFile, data in pairs(gnuplotFiles) do 
@@ -481,5 +505,6 @@ function util.rates.static.compute(ConvRateSetup)
 							 }
 			gnuplot.plot(plotFile, data, options)
 		end
-	end
+		
+	end -- end loop over type
 end
