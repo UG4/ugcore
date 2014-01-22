@@ -377,28 +377,39 @@ function util.rates.static.compute(ConvRateSetup)
 							gnuplotFiles[file].xlabel = gpXLabel[x]
 							gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[norm].."}"
 						end
+
+						for _, n in ipairs({"l2", "h1"}) do
+			
+							local meas = err[f][t][n]
+							if meas ~= nil then
+																					
+								-- data values
+								local l2value = err[f][t]["l2"].value
+								local h1value = err[f][t]["h1"].value
 							
-						-- data values
-						local l2value = err[f][t]["l2"].value
-						local h1value = err[f][t]["h1"].value
-					
-						-- write l2 and h1 to data file
-						local singleFileName = "error_"..titles[t].."_"..discType.."_"..p.."_"..f
-						local file = dataPath..singleFileName..".dat"
-						local dataCols = {err.numDoFs, err.h, l2value, h1value}
-						gnuplot.write_data(file, dataCols)
-					
-						-- create plot for single run
-						local options = {grid = true, logscale = true}
-						local style = "linespoints"
-						
-						for y, yCol in pairs({l2 = 3, h1 = 4}) do
-							for x, xCol in pairs({DoF = 1, h = 2}) do
-								local Data = {{label=discType.." P_"..p, file=file, style=style, xCol, yCol}}
-								gnuplot.plot(plotPath.."single/"..singleFileName.."_"..y.."_"..x..".pdf", Data, options)				
-								schedule(err, plotPath..discType.."_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
-								schedule(err, plotPath.."all_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
-							end	
+								-- write l2 and h1 to data file
+								local singleFile = table.concat({"error",titles[t],n,discType,p,f},"_")
+								local file = dataPath..singleFile..".dat"
+								local dataCols = {err.numDoFs, err.h, err[f][t][n].value}
+								gnuplot.write_data(file, dataCols)
+							
+								-- create plot for single run
+								local options = {grid = true, logscale = true}
+								local style = "linespoints"
+								
+								for x, xCol in pairs({DoF = 1, h = 2}) do
+									local Data = {{label=discType.." P_"..p, file=file, style=style, xCol, 3}}
+									
+									local file = table.concat({plotPath.."single/"..singleFile,n,x,".pdf"},"_")
+									gnuplot.plot(file, Data, options)			
+									
+									local file = table.concat({plotPath..discType,titles[t],f,n,x,".pdf"}, "_")	
+									schedule(err, file, Data, n, x)
+									
+									local file = table.concat({plotPath.."all",titles[t],f,n,x,".pdf"}, "_")
+									schedule(err, file, Data, n, x)
+								end	
+							end
 						end
 					end
 				end	
