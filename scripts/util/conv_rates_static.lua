@@ -105,15 +105,20 @@ function util.rates.static.computeErrorRates(err)
 	computeNormErrorRates(err.h1)
 end
 
-function util.writeAndScheduleGnuplotData(err, discType, p)
+function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 
 	local FctCmp = err.FctCmp
+	local titles = {l2 = "L2", h1 = "H1",
+					exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
 
-	local function addGnuplotDataType(err, discType, p, f, errSuffix, l2value, h1value,
-												  typeString)
+	local function addGnuplotDataType(err, discType, p, f, t)
+	
+		-- data values
+		local l2value = err["l2"][t].value[f]
+		local h1value = err["h1"][t].value[f]
 	
 		-- write l2 and h1 to data file
-		local singleFileName = "error_"..errSuffix.."_"..discType.."_"..p.."_"..f
+		local singleFileName = "error_"..titles[t].."_"..discType.."_"..p.."_"..f
 		local file = err.dataPath..singleFileName..".dat"
 		local dataCols = {err.numDoFs, err.h, l2value, h1value}
 		gnuplot.write_data(file, dataCols)
@@ -147,38 +152,36 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 						
 		local function schedule(err, file, data, norm, xLabel)
 		
-			err.gnuplot[file] = err.gnuplot[file] or {} 				
-			table.append(err.gnuplot[file], data)
-			err.gnuplot[file].title = normSuffix[norm].."-Error"..title[typeString].." for Fct "..f
-			err.gnuplot[file].xlabel = xLabel
-			err.gnuplot[file].ylabel = "|| "..f.."_L - "..f.."_{"..typeSuffix[typeString].."} ||_{ "..normSuffix[norm].."}"
+			gnuplotFiles[file] = gnuplotFiles[file] or {} 				
+			table.append(gnuplotFiles[file], data)
+			gnuplotFiles[file].title = normSuffix[norm].."-Error"..title[t].." for Fct "..f
+			gnuplotFiles[file].xlabel = xLabel
+			gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..typeSuffix[t].."} ||_{ "..normSuffix[norm].."}"
 		end
 		
 		-- schedule for plots of same disc type
-		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "l2", "# DoFs")
-		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "h1", "# DoFs")
-		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
-		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
+		schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "l2", "# DoFs")
+		schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "h1", "# DoFs")
+		schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
+		schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
 	
 		-- schedule for plots of all types
-		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "l2", "# DoFs")
-		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "h1", "# DoFs")
-		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
-		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
+		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "l2", "# DoFs")
+		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "h1", "# DoFs")
+		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
+		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
 	end
 	
 	if err.bUseExact then
 		for i = 1, #FctCmp do
 		local f = FctCmp[i]
-		addGnuplotDataType(
-			err, discType, p, f, err.l2.exact.title, err.l2.exact.value[f], err.h1.exact.value[f], "exact")
+		addGnuplotDataType(err, discType, p, f, "exact")
 		end
 	end	
 	if err.bPrevLevel then
 		for i = 1, #FctCmp do
 		local f = FctCmp[i]
-		addGnuplotDataType(
-			err, discType, p, f, err.l2.prevlevel.title, err.l2.prevlevel.value[f], err.h1.prevlevel.value[f], "prevlevel")
+		addGnuplotDataType(err, discType, p, f, "prevlevel")
 		end
 	end	
 	if err.bMaxLevel then
@@ -190,8 +193,7 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 		err.l2.maxlevel.value[f][err.maxLev] = nil
 		err.h1.maxlevel.value[f][err.maxLev] = nil
 				
-		addGnuplotDataType(
-			err, discType, p, f, err.l2.maxlevel.title, err.l2.maxlevel.value[f], err.h1.maxlevel.value[f], "maxlevel")
+		addGnuplotDataType(err, discType, p, f, "maxlevel")
 		end
 	end	
 end
@@ -304,7 +306,7 @@ function util.rates.static.compute(ConvRateSetup)
 	local err = {}	
 	err.dataPath = CRS.dataPath
 	err.plotPath = CRS.plotPath
-	err.gnuplot = {};
+	gnuplotFiles = {};
 
 	-- check for exact solution
 	if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then
@@ -492,11 +494,11 @@ function util.rates.static.compute(ConvRateSetup)
 			end
 
 			-- write data to gnuplot						
-			util.writeAndScheduleGnuplotData(err, discType, p)
+			util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 		end
 		
 		-- create scheduled plots (maybe overwriting several times)
-		for plotFile, data in pairs(err.gnuplot) do 
+		for plotFile, data in pairs(gnuplotFiles) do 
 			local options = {	grid = true, 
 								logscale = true,
 								title = data.title,
