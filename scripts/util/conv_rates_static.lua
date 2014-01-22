@@ -107,9 +107,21 @@ end
 
 function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 
-	local FctCmp = err.FctCmp
 	local titles = {l2 = "L2", h1 = "H1",
 					exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
+
+	local gpTitle = {	exact = 	"-Error w.r.t. exact Solution",
+						maxlevel = 	"-Error w.r.t. finest Solution",
+						prevlevel = "-Error w.r.t. previous level Solution"
+					}
+				
+	local gpType = {	exact = 	"exact",		
+						maxlevel = 	"L_{max}",
+						prevlevel = "L-1"
+					}
+
+	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
+					
 
 	local function addGnuplotDataType(err, discType, p, f, t)
 	
@@ -138,25 +150,13 @@ function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 		gnuplot.plot(err.plotPath.."single/"..singleFileName.."_h1_h.pdf", H1_h_Data, options)
 	
 	
-		local title = {	exact = 	" w.r.t. exact Solution",
-						maxlevel = 	" w.r.t. finest Solution",
-						prevlevel = " w.r.t. previous level Solution"
-					}
-					
-		local typeSuffix = 	{ 	exact = 	"exact",		
-							maxlevel = 	"L_{max}",
-							prevlevel = "L-1"
-						}
-
-		local normSuffix = 	{ l2 = "L_2",	h1 = "H^1"}
-						
 		local function schedule(err, file, data, norm, xLabel)
 		
 			gnuplotFiles[file] = gnuplotFiles[file] or {} 				
 			table.append(gnuplotFiles[file], data)
-			gnuplotFiles[file].title = normSuffix[norm].."-Error"..title[t].." for Fct "..f
+			gnuplotFiles[file].title = gpNorm[norm]..gpTitle[t].." for Fct "..f
 			gnuplotFiles[file].xlabel = xLabel
-			gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..typeSuffix[t].."} ||_{ "..normSuffix[norm].."}"
+			gnuplotFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[norm].."}"
 		end
 		
 		-- schedule for plots of same disc type
@@ -171,6 +171,8 @@ function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
 		schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
 	end
+	
+	local FctCmp = err.FctCmp
 	
 	if err.bUseExact then
 		for i = 1, #FctCmp do
