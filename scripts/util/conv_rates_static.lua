@@ -41,21 +41,21 @@ function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 		end
 		
 		-- error w.r.t to exact solution
-		if err.bUseExact then
+		if err.bUse.exact then
 		norm.exact = {}
 		norm.exact.title = "l-exact"
 		createNormTypeStorage(norm.exact)
 		end
 		
 		-- error w.r.t to most refined level  
-		if err.bMaxLevel then
+		if err.bUse.maxlevel then
 		norm.maxlevel = {}  		
 		norm.maxlevel.title = "l-lmax"
 		createNormTypeStorage(norm.maxlevel)
 		end
 		
 		-- error w.r.t to lev-1
-		if err.bPrevLevel then
+		if err.bUse.prevlevel then
 		norm.prevlevel = {}
 		norm.prevlevel.title = "l-prev"
 		createNormTypeStorage(norm.prevlevel)
@@ -96,9 +96,9 @@ function util.rates.static.computeErrorRates(err)
 		local minLev = err.minLev
 		local maxLev = err.maxLev
 		
-		if err.bUseExact then  computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
-		if err.bMaxLevel then  computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
-		if err.bPrevLevel then computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
+		if err.bUse.exact then  computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
+		if err.bUse.maxlevel then  computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
+		if err.bUse.prevlevel then computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
 	end 		
 	
 	computeNormErrorRates(err.l2)
@@ -161,30 +161,25 @@ function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 	
 	local FctCmp = err.FctCmp
 	
-	if err.bUseExact then
+	for _, t in ipairs({"exact", "prevlevel", "maxlevel"}) do
+
 		for i = 1, #FctCmp do
-		local f = FctCmp[i]
-		addGnuplotDataType(err, discType, p, f, "exact")
-		end
-	end	
-	if err.bPrevLevel then
-		for i = 1, #FctCmp do
-		local f = FctCmp[i]
-		addGnuplotDataType(err, discType, p, f, "prevlevel")
-		end
-	end	
-	if err.bMaxLevel then
-		for i = 1, #FctCmp do
-		local f = FctCmp[i]
-		-- finest level compared to finest level is not senseful --> remove it
-		err.numDoFs[err.maxLev] = nil
-		err.h[err.maxLev] = nil
-		err.l2.maxlevel.value[f][err.maxLev] = nil
-		err.h1.maxlevel.value[f][err.maxLev] = nil
-				
-		addGnuplotDataType(err, discType, p, f, "maxlevel")
-		end
-	end	
+			local f = FctCmp[i]
+
+			-- finest level compared to finest level is not senseful --> remove it
+			if t == "maxlevel" then
+				err.numDoFs[err.maxLev] = nil
+				err.h[err.maxLev] = nil
+				err.l2.maxlevel.value[f][err.maxLev] = nil
+				err.h1.maxlevel.value[f][err.maxLev] = nil
+			
+			end
+			
+			if err.bUse[t] then
+				addGnuplotDataType(err, discType, p, f, t)
+			end
+		end	
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -298,13 +293,12 @@ function util.rates.static.compute(ConvRateSetup)
 	gnuplotFiles = {};
 
 	-- check for exact solution
+	err.bUse = {maxlevel = true, prevlevel = true}
 	if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then
-		err.bUseExact = true
+		err.bUse.exact = true
 	else
-		err.bUseExact = false
+		err.bUse.exact = false
 	end
-	err.bMaxLevel = true
-	err.bPrevLevel = true
 
 	--------------------------------------------------------------------
 	--  Loop Discs
@@ -422,7 +416,7 @@ function util.rates.static.compute(ConvRateSetup)
 					local f = FctCmp[i] 
 					
 					-- w.r.t exact solution		
-					if err.bUseExact then 
+					if err.bUse.exact then 
 					err.l2.exact.value[f][lev] 	= L2Error(CRS.ExactSol[f], u[lev], f, 0.0, quadOrder)
 					err.h1.exact.value[f][lev] 	= H1Error(CRS.ExactSol[f], CRS.ExactGrad[f], u[lev], f, 0.0, quadOrder)
 					write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.exact.value[f][lev]) .."\n");
@@ -430,7 +424,7 @@ function util.rates.static.compute(ConvRateSetup)
 					end
 					
 					-- w.r.t max level solution
-					if err.bMaxLevel and lev < maxLev then 
+					if err.bUse.maxlevel and lev < maxLev then 
 					err.l2.maxlevel.value[f][lev] 	= L2Error(u[maxLev], f, u[lev], f, quadOrder)
 					err.h1.maxlevel.value[f][lev] 	= H1Error(u[maxLev], f, u[lev], f, quadOrder)
 					write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.maxlevel.value[f][lev]) .."\n");
@@ -438,7 +432,7 @@ function util.rates.static.compute(ConvRateSetup)
 					end
 				
 					-- w.r.t previous level solution
-					if err.bPrevLevel and lev > minLev then 
+					if err.bUse.prevlevel and lev > minLev then 
 					err.l2.prevlevel.value[f][lev] = L2Error(u[lev], f, u[lev-1], f, quadOrder)
 					err.h1.prevlevel.value[f][lev] = H1Error(u[lev], f, u[lev-1], f, quadOrder)
 					write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.prevlevel.value[f][lev]) .."\n");
