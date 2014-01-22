@@ -461,7 +461,8 @@ function util.rates.static.compute(ConvRateSetup)
 					end
 				end
 										
-				table.print(values, {title = title, format = format, hline = true, vline = true})
+				table.print(values, {title = title, format = format, 
+									 hline = true, vline = true, forNil = "--"})
 			end
 
 			-- write data to gnuplot						
