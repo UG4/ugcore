@@ -259,19 +259,7 @@ function util.rates.static.compute(ConvRateSetup)
 	local dom = CRS.CreateDomain()
 	local numRefs = dom:grid():num_levels() - 1;
 
-	-- create error storage and compute elem diameters
-	local err = {}	
-	err.dataPath = CRS.dataPath
-	err.plotPath = CRS.plotPath
 	gnuplotFiles = {};
-
-	-- check for exact solution
-	err.bUse = {maxlevel = true, prevlevel = true}
-	if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then
-		err.bUse.exact = true
-	else
-		err.bUse.exact = false
-	end
 
 	--------------------------------------------------------------------
 	--  Loop Discs
@@ -367,6 +355,19 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			--  Compute Error Norms on each level
 			--------------------------------------------------------------------
+			
+			-- create error storage and compute elem diameters
+			local err = {}	
+			err.dataPath = CRS.dataPath
+			err.plotPath = CRS.plotPath
+		
+			-- check for exact solution
+			err.bUse = {maxlevel = true, prevlevel = true}
+			if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then
+				err.bUse.exact = true
+			else
+				err.bUse.exact = false
+			end
 			
 			-- get names in approx space
 			local FctCmp = approxSpace:names()
