@@ -318,12 +318,8 @@ function util.rates.static.compute(ConvRateSetup)
 	os.execute("mkdir " .. CRS.solPath)
 
 	-- check for methods
-	if CRS.PrepareInitialGuess == nil then
-		CRS.PrepareInitialGuess = util.rates.static.StdPrepareInitialGuess
-	end
-	if CRS.ComputeSolution == nil then
-		CRS.ComputeSolution = util.rates.static.StdComputeLinearSolution
-	end
+	CRS.PrepareInitialGuess = CRS.PrepareInitialGuess or util.rates.static.StdPrepareInitialGuess
+	CRS.ComputeSolution = 		  CRS.ComputeSolution or util.rates.static.StdComputeLinearSolution
 	
 	-- compute element size	
 	local dom = CRS.CreateDomain()
