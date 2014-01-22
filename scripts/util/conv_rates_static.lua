@@ -133,25 +133,23 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 		gnuplot.plot(err.plotPath.."single/"..singleFileName.."_h1_h.pdf", H1_h_Data, options)
 	
 	
-		titelWRT = {	exact = 	" w.r.t. exact Solution",
+		local title = {	exact = 	" w.r.t. exact Solution",
 						maxlevel = 	" w.r.t. finest Solution",
 						prevlevel = " w.r.t. previous level Solution"
 					}
 					
-		cmpSolSuffix = 	{ 	exact = 	"exact",		
+		local suffix = 	{ 	exact = 	"exact",		
 							maxlevel = 	"L_{max}",
 							prevlevel = "L-1"
 						}
 						
-		local function schedule(err, plotFileName, data, normString, yLabelString)
+		local function schedule(err, file, data, normString, yLabelString)
 		
-			if err.gnuplot[plotFileName] == nil then 
-				err.gnuplot[plotFileName] = {} 				
-			end
-			err.gnuplot[plotFileName] = gnuplot.array_concat(err.gnuplot[plotFileName], data)
-			err.gnuplot[plotFileName].title = normString.."-Error"..titelWRT[typeString].." for Fct "..f
-			err.gnuplot[plotFileName].xlabel = yLabelString
-			err.gnuplot[plotFileName].ylabel = "|| "..f.."_L - "..f.."_{"..cmpSolSuffix[typeString].."} ||_{ "..normString.."}"
+			err.gnuplot[file] = err.gnuplot[file] or {} 				
+			table.append(err.gnuplot[file], data)
+			err.gnuplot[file].title = normString.."-Error"..title[typeString].." for Fct "..f
+			err.gnuplot[file].xlabel = yLabelString
+			err.gnuplot[file].ylabel = "|| "..f.."_L - "..f.."_{"..suffix[typeString].."} ||_{ "..normString.."}"
 		end
 		
 		-- schedule for plots of same disc type
