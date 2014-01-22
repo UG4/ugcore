@@ -36,8 +36,22 @@ end
 --
 -- filename			the output file
 -- data				table containing the data
--- passRows		   flag indication if data array stores rows (default = false)
+-- passRows		    flag indication if data array stores rows (default = false)
 function gnuplot.write_data(filename, data, passRows)
+
+	-- default is table data by row
+	passRows = passRows or false
+
+	-- check data
+	if type(data) ~= "table" then
+		io.stderr:write("Gnuplot Error: Expect table as data.\n");
+		return 1	
+	end
+	if data[1]==nil then return 0; end
+
+	-- pure data is rowwise
+	if type(data[1]) == "number" then passRows = true end
+
 	-- open file
 	local file = io.open(filename, "w+")
 	if (not file) then
@@ -46,23 +60,6 @@ function gnuplot.write_data(filename, data, passRows)
 		return 1
 	end
 	
-	if type(data) ~= "table" then
-		io.stderr:write("Gnuplot Error: Expect table as data.\n");
-		return 1	
-	end
-	if data[1]==nil then
-		return 0;
-	end
-
-	-- default is table data by row
-	if passRows == nil then
-		passRows = false
-	end
-	-- pure data is rowwise
-	if type(data[1]) == "number" then
-		passRows = true
-	end
-
 	local plainArray, rowSize
 	local minRow = nil
 	local maxRow = nil 
