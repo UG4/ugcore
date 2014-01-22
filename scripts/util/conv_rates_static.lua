@@ -99,26 +99,36 @@ function util.rates.static.compute(ConvRateSetup)
 	os.execute("mkdir " .. solPath)
 
 	-- check for methods
-	CRS.PrepareInitialGuess = CRS.PrepareInitialGuess or util.rates.static.StdPrepareInitialGuess
-	CRS.ComputeSolution = 		  CRS.ComputeSolution or util.rates.static.StdComputeLinearSolution
+	local PrepareInitialGuess = CRS.PrepareInitialGuess or util.rates.static.StdPrepareInitialGuess
+	local ComputeSolution = 	CRS.ComputeSolution     or util.rates.static.StdComputeLinearSolution
+	local CreateApproxSpace = 	CRS.CreateApproxSpace
+	local CreateDomainDisc = 	CRS.CreateDomainDisc
+	local CreateSolver = 		CRS.CreateSolver
+	local CreateDomain = 		CRS.CreateDomain
 	
+	if 	CreateApproxSpace == nil or CreateDomainDisc == nil or 
+		CreateSolver == nil or CreateDomain == nil then
+		print("You must pass: CreateApproxSpace, CreateDomainDisc, CreateSolver, CreateDomain")
+		exit()
+	end
+	
+	local DiscTypes = CRS.DiscTypes
+
 	local maxlevel = CRS.maxlevel or true
 	local prevlevel = CRS.prevlevel or true
 
 	local ExactSol = CRS.ExactSol 
  	local ExactGrad = CRS.ExactGrad 
 	
-	-- compute element size	
-	local dom = CRS.CreateDomain()
-	local numRefs = dom:grid():num_levels() - 1;
-
-	gpFiles = {};
-
 	--------------------------------------------------------------------
 	--  Loop Discs
 	--------------------------------------------------------------------
+
+	-- compute element size	
+	local dom = CreateDomain()
+	local numRefs = dom:grid():num_levels() - 1;
+	gpFiles = {};
 	
-	local DiscTypes = CRS.DiscTypes
 	for type = 1,#DiscTypes do
 	
 		local discType 	= DiscTypes[type].type
@@ -168,21 +178,20 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 
 			print(">> Create ApproximationSpace: "..discType..", "..p)
-			local approxSpace = CRS.CreateApproxSpace(dom, discType, p)
+			local approxSpace = CreateApproxSpace(dom, discType, p)
 			
 			print(">> Create Domain Disc: "..discType..", "..p)
-			local domainDisc = CRS.CreateDomainDisc(approxSpace, discType, p)
+			local domainDisc = CreateDomainDisc(approxSpace, discType, p)
 			
 			print(">> Create Solver")
-			local solver = CRS.CreateSolver(approxSpace, discType, p)
+			local solver = CreateSolver(approxSpace, discType, p)
 			
 			--------------------------------------------------------------------
 			--  Create Solutions on each level
 			--------------------------------------------------------------------
 			
-			local u = {}
-			
 			write("\n>> Allocating storage for solution vectors.\n")
+			local u = {}
 			for lev = minLev, maxLev do
 				u[lev] = GridFunction(approxSpace, lev)
 			end
@@ -195,10 +204,10 @@ function util.rates.static.compute(ConvRateSetup)
 				write("\n>> Computing Level "..lev..".\n")
 			
 				write(">> Preparing inital guess on level "..lev..".\n")
-				CRS.PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
+				PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 				
 				write(">> Computing solution on level "..lev..".\n")
-				CRS.ComputeSolution(u[lev], domainDisc, solver)
+				ComputeSolution(u[lev], domainDisc, solver)
 				write(">> Solver done.\n")
 				
 				WriteGridFunctionToVTK(u[lev], solPath.."sol_"..discType..p.."_l"..lev)
@@ -213,10 +222,7 @@ function util.rates.static.compute(ConvRateSetup)
 			local FctCmp = approxSpace:names()
 
 			-- prepare error measurement			
-			local err = {}	
-			err.h = {}
-			err.numDoFs = {}
-			err.level = {}			
+			local err = {h={}, numDoFs={}, level={}}	
 			for lev = minLev, maxLev do	
 				err.h[lev] = MaxElementDiameter(dom, lev) 
 				err.level[lev] = lev
@@ -227,7 +233,7 @@ function util.rates.static.compute(ConvRateSetup)
 				write("\n>> Error Norm values on Level "..lev..".\n")
 				
 				quadOrder = p+3
-				err.numDoFs[lev] 			= u[lev]:size()
+				err.numDoFs[lev] = u[lev]:size()
 				write(">> #DoF       on Level "..lev.." is "..err.numDoFs[lev] .."\n");
 			
 				-- compute for each component
