@@ -107,27 +107,29 @@ end
 
 function util.rates.static.updateScreenOutput(err, f)
 
-	function util.rates.static.addOutputNorm(err, norm)
+	local screen = {}
+	screen.values = {err.level, err.h, err.numDoFs}
+	screen.title = {"L", "h", "#DoFs"}
+	screen.format = {"%d", "%.2e", "%d"}
+
+	local function addOutputNorm(norm)
 		
-		function util.rates.static.addOutputNormType(err, norm, type)
+		local function addOutputNormType(norm, type)
 			
-			err.screen.values = gnuplot.array_concat(err.screen.values, {type.value[f], type.rate[f]}) 
-			err.screen.title  = gnuplot.array_concat(err.screen.title,  {norm.title.." "..type.title, "rate"})
-			err.screen.format = gnuplot.array_concat(err.screen.format, {"%.2e", "%.3f"})
+			screen.values = gnuplot.array_concat(screen.values, {type.value[f], type.rate[f]}) 
+			screen.title  = gnuplot.array_concat(screen.title,  {norm.title.." "..type.title, "rate"})
+			screen.format = gnuplot.array_concat(screen.format, {"%.2e", "%.3f"})
 		end
 									
-		if err.bUseExact  then util.rates.static.addOutputNormType(err, norm, norm.exact) end
-		if err.bMaxLevel  then util.rates.static.addOutputNormType(err, norm, norm.maxlevel) end
-		if err.bPrevLevel then util.rates.static.addOutputNormType(err, norm, norm.prevlevel) end
+		if err.bUseExact  then addOutputNormType(norm, norm.exact) end
+		if err.bMaxLevel  then addOutputNormType(norm, norm.maxlevel) end
+		if err.bPrevLevel then addOutputNormType(norm, norm.prevlevel) end
 	end
+		
+	addOutputNorm(err.l2)
+	addOutputNorm(err.h1)
 	
-	err.screen = {}
-	err.screen.values = {err.level, err.h, err.numDoFs}
-	err.screen.title = {"L", "h", "#DoFs"}
-	err.screen.format = {"%d", "%.2e", "%d"}
-	
-	util.rates.static.addOutputNorm(err, err.l2)
-	util.rates.static.addOutputNorm(err, err.h1)
+	return screen
 end
 
 function util.writeAndScheduleGnuplotData(err, discType, p)
@@ -491,8 +493,8 @@ function util.rates.static.compute(ConvRateSetup)
 			-- write data to screen
 			for i = 1, #FctCmp do
 				print("\n>> Statistic for type: "..discType..", order: "..p..", comp: "..FctCmp[i].."\n")			
-				util.rates.static.updateScreenOutput(err, FctCmp[i])
-				table.print(err.screen.values, {title = err.screen.title, format = err.screen.format, hline = true, vline = true})
+				local screen = util.rates.static.updateScreenOutput(err, FctCmp[i])
+				table.print(screen.values, {title = screen.title, format = screen.format, hline = true, vline = true})
 			end
 
 			-- write data to gnuplot						
