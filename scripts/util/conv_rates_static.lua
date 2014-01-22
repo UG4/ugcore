@@ -109,7 +109,7 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 
 	local FctCmp = err.FctCmp
 
-	function util.writeAndScheduleGnuplotDataType(err, discType, p, f, errSuffix, l2value, h1value,
+	local function addGnuplotDataType(err, discType, p, f, errSuffix, l2value, h1value,
 												  typeString)
 	
 		-- write l2 and h1 to data file
@@ -132,7 +132,7 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 		gnuplot.plot(err.plotPath.."single/"..singleFileName.."_l2_h.pdf", L2_h_Data, options)
 		gnuplot.plot(err.plotPath.."single/"..singleFileName.."_h1_h.pdf", H1_h_Data, options)
 	
-		function util.scheduleGnuplotFilename(err, plotFileName, data, normString, yLabelString)
+		local function schedule(err, plotFileName, data, normString, yLabelString)
 		
 			if err.gnuplot[plotFileName] == nil then 
 				err.gnuplot[plotFileName] = {} 				
@@ -155,29 +155,29 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 		end
 		
 		-- schedule for plots of same disc type
-		util.scheduleGnuplotFilename(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "L_2", "# DoFs")
-		util.scheduleGnuplotFilename(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "H^1", "# DoFs")
-		util.scheduleGnuplotFilename(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "L_2", "h (mesh size)")
-		util.scheduleGnuplotFilename(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "H^1", "h (mesh size)")
+		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "L_2", "# DoFs")
+		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "H^1", "# DoFs")
+		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "L_2", "h (mesh size)")
+		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "H^1", "h (mesh size)")
 	
 		-- schedule for plots of all types
-		util.scheduleGnuplotFilename(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "L_2", "# DoFs")
-		util.scheduleGnuplotFilename(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "H^1", "# DoFs")
-		util.scheduleGnuplotFilename(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "L_2", "h (mesh size)")
-		util.scheduleGnuplotFilename(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "H^1", "h (mesh size)")
+		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "L_2", "# DoFs")
+		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "H^1", "# DoFs")
+		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "L_2", "h (mesh size)")
+		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "H^1", "h (mesh size)")
 	end
 	
 	if err.bUseExact then
 		for i = 1, #FctCmp do
 		local f = FctCmp[i]
-		util.writeAndScheduleGnuplotDataType(
+		addGnuplotDataType(
 			err, discType, p, f, err.l2.exact.title, err.l2.exact.value[f], err.h1.exact.value[f], "exact")
 		end
 	end	
 	if err.bPrevLevel then
 		for i = 1, #FctCmp do
 		local f = FctCmp[i]
-		util.writeAndScheduleGnuplotDataType(
+		addGnuplotDataType(
 			err, discType, p, f, err.l2.prevlevel.title, err.l2.prevlevel.value[f], err.h1.prevlevel.value[f], "prevlevel")
 		end
 	end	
@@ -190,7 +190,7 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 		err.l2.maxlevel.value[f][err.maxLev] = nil
 		err.h1.maxlevel.value[f][err.maxLev] = nil
 				
-		util.writeAndScheduleGnuplotDataType(
+		addGnuplotDataType(
 			err, discType, p, f, err.l2.maxlevel.title, err.l2.maxlevel.value[f], err.h1.maxlevel.value[f], "maxlevel")
 		end
 	end	
