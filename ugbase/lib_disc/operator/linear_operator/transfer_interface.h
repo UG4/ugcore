@@ -37,9 +37,6 @@ class ITransferOperator
 	///	constructor
 		ITransferOperator(){clear_constraints();}
 
-	/// Set Levels for Prolongation coarse -> fine
-		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
-
 	///	clears dirichlet post processes
 		virtual void clear_constraints(){m_vConstraint.clear();};
 
@@ -60,6 +57,9 @@ class ITransferOperator
 	public:
 	///	initialize the operator
 		virtual void init() = 0;
+
+	/// Set Levels for Prolongation coarse -> fine
+		virtual void set_levels(GridLevel coarseLevel, GridLevel fineLevel) = 0;
 
 	/// Prolongates vector, i.e. moves data from coarse to fine level
 		virtual void prolongate(vector_type& uFine, const vector_type& uCoarse) = 0;

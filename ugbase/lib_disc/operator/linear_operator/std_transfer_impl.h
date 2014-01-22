@@ -586,6 +586,8 @@ StdTransfer<TDomain, TAlgebra>::
 restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
             ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
 {
+	UG_LOG("StdTransfer::restriction() \n");
+
 	if(fineGL.level() - coarseGL.level() != 1)
 		UG_THROW("StdTransfer: Can only project between successive level, "
 				"but fine = "<<fineGL<<", coarse = "<<coarseGL);
@@ -603,6 +605,8 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 	// check if must be created
 	if(m_mRestriction.find(key) == m_mRestriction.end())
 	{
+		UG_LOG("StdTransfer::restriction(): R-matrix must be created \n");
+
 		SmartPtr<matrix_type> R =
 				m_mRestriction[key] = SmartPtr<matrix_type>(new matrix_type);
 
@@ -611,9 +615,11 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 
 		if(m_bUseTransposed){
 			R->set_as_transpose_of(*prolongation(fineGL, coarseGL, spApproxSpace));
+			UG_LOG("StdTransfer::restriction(): useTranspose \n");
 		}
 		else {
 			assemble_restriction(*R, *spCoarseDD, *spFineDD, spApproxSpace->domain());
+			UG_LOG("StdTransfer::restriction(): assemble restriction \n");
 		}
 
 		#ifdef UG_PARALLEL
@@ -623,6 +629,7 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 		for(size_t i = 0; i < m_vConstraint.size(); ++i){
 			m_vConstraint[i]->adjust_restriction(*R, spCoarseDD, spFineDD);
 		}
+		UG_LOG("StdTransfer::restriction(): all restrictions of constraints passed \n");
 
 		write_debug(*R, "R", coarseGL, fineGL);
 	}
@@ -692,9 +699,12 @@ do_restrict(GF& uCoarse, const GF& uFine)
 		UG_THROW("StdTransfer: cannot prolongate between grid functions from "
 				"different approximation spaces.");
 	try{
+		UG_LOG("StdTransfer::do_restrict() \n");
 
 		restriction(coarseGL, fineGL, spApproxSpace)->
 				apply_ignore_zero_rows(uCoarse, m_dampRes, uFine);
+
+		UG_LOG("m_vConstraint.size(): " <<m_vConstraint.size()<< "\n");
 
 	// 	adjust using constraints
 		for(size_t i = 0; i < m_vConstraint.size(); ++i)
