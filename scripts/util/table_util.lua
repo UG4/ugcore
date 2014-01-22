@@ -85,10 +85,14 @@ function table.print(data, style)
 	-- write header and vline
 	if heading ~= nil then
 		local linesize = 0
-		for col = 1, #heading do
-			width[col] = math.max(width[col], #tostring(heading[col]))
-			local s = string.format("%"..width[col].."s", tostring(heading[col]))
-			write(" "..s.." ");
+		for col, _ in ipairs(data) do
+			local s = 	heading[col]
+			if s ~= nil then s = tostring(s)
+			else			 s = tostring(forNil) end
+		
+			width[col] = math.max(width[col], #s)
+			write(" ".. string.format("%"..width[col].."s", s) .." ");
+			
 			linesize = linesize + width[col] + 2;
 			if hline == true then
 				linesize = linesize + 1;
