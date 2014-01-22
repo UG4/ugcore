@@ -78,6 +78,21 @@ function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 	return err
 end
 
+table = table or {}
+function table.append(t1, t2)
+	if type(t1) ~= "table" then
+		print("table.append called on non-table"); exit();
+	end
+	
+	if type(t2) == "table" then
+       for _,v in ipairs(t2) do
+            t1[#t1+1] = v
+       end
+    else
+       t1[#t1+1] = t2
+    end	
+end
+
 function util.rates.static.computeErrorRates(err)
 	
 	local FctCmp = err.FctCmp
@@ -116,9 +131,9 @@ function util.rates.static.updateScreenOutput(err, f)
 		
 		local function addOutputNormType(norm, type)
 			
-			screen.values = gnuplot.array_concat(screen.values, {type.value[f], type.rate[f]}) 
-			screen.title  = gnuplot.array_concat(screen.title,  {norm.title.." "..type.title, "rate"})
-			screen.format = gnuplot.array_concat(screen.format, {"%.2e", "%.3f"})
+			table.append(screen.values, {type.value[f], type.rate[f]}) 
+			table.append(screen.title,  {norm.title.." "..type.title, "rate"})
+			table.append(screen.format, {"%.2e", "%.3f"})
 		end
 									
 		if err.bUseExact  then addOutputNormType(norm, norm.exact) end
