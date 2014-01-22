@@ -328,7 +328,7 @@ function util.rates.static.compute(ConvRateSetup)
 			--  Prepare labels
 			--------------------------------------------------------------------
 
-			local titles = {l2 = "L2", h1 = "H1",
+			local head = {l2 = "L2", h1 = "H1",
 							exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
 
 			local gpTitle = {	exact = 	"-Error w.r.t. exact Solution",
@@ -366,7 +366,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local meas = err[f][t][n]
 						if meas ~= nil then			
 							table.append(values, {meas.value, meas.rate}) 
-							table.append(heading,{titles[n].." "..titles[t], "rate"})
+							table.append(heading,{head[n].." "..head[t], "rate"})
 							table.append(format, {"%.2e", "%.3f"})
 						end
 					end
@@ -391,13 +391,9 @@ function util.rates.static.compute(ConvRateSetup)
 						-- check if norm used		
 						local meas = err[f][t][n]
 						if meas ~= nil then
-																				
-						-- data values
-						local l2value = err[f][t]["l2"].value
-						local h1value = err[f][t]["h1"].value
 					
 						-- write l2 and h1 to data file
-						local singleFile = table.concat({"error",titles[t],n,discType,p,f},"_")
+						local singleFile = table.concat({"error",head[t],n,discType,p,f},"_")
 						local file = dataPath..singleFile..".dat"
 						local dataCols = {err.numDoFs, err.h, err[f][t][n].value}
 						gnuplot.write_data(file, dataCols)
@@ -413,7 +409,7 @@ function util.rates.static.compute(ConvRateSetup)
 							gnuplot.plot(file, data, options)			
 							
 							for _, g in ipairs({discType, "all"}) do
-								local file = table.concat({plotPath..g,titles[t],f,n,x,".pdf"}, "_")	
+								local file = table.concat({plotPath..g,head[t],f,n,x,".pdf"}, "_")	
 								gpFiles[file] = gpFiles[file] or {} 				
 								gpFiles[file].title = gpNorm[n]..gpTitle[t].." for Fct "..f
 								gpFiles[file].xlabel = gpXLabel[x]
