@@ -292,9 +292,13 @@ function util.rates.static.compute(ConvRateSetup)
 	
 			for _, f in ipairs(FctCmp) do
 				for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
+					-- check if type used
+					if err[f][t] ~= nil then
 					for _, n in ipairs({"l2", "h1"}) do
-			
+
+						-- check if norm used		
 						local meas = err[f][t][n]
+						if meas ~= nil then
 						meas.fac = meas.fac or {}
 						meas.rate = meas.rate or {}
 						
@@ -308,6 +312,8 @@ function util.rates.static.compute(ConvRateSetup)
 								rate[lev] = math.log(fac[lev]) / math.log(2)
 							end
 						end
+						end
+					end
 					end
 				end
 			end	
