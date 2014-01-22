@@ -138,31 +138,33 @@ function util.writeAndScheduleGnuplotData(err, discType, p)
 						prevlevel = " w.r.t. previous level Solution"
 					}
 					
-		local suffix = 	{ 	exact = 	"exact",		
+		local typeSuffix = 	{ 	exact = 	"exact",		
 							maxlevel = 	"L_{max}",
 							prevlevel = "L-1"
 						}
+
+		local normSuffix = 	{ l2 = "L_2",	h1 = "H^1"}
 						
-		local function schedule(err, file, data, normString, yLabelString)
+		local function schedule(err, file, data, norm, xLabel)
 		
 			err.gnuplot[file] = err.gnuplot[file] or {} 				
 			table.append(err.gnuplot[file], data)
-			err.gnuplot[file].title = normString.."-Error"..title[typeString].." for Fct "..f
-			err.gnuplot[file].xlabel = yLabelString
-			err.gnuplot[file].ylabel = "|| "..f.."_L - "..f.."_{"..suffix[typeString].."} ||_{ "..normString.."}"
+			err.gnuplot[file].title = normSuffix[norm].."-Error"..title[typeString].." for Fct "..f
+			err.gnuplot[file].xlabel = xLabel
+			err.gnuplot[file].ylabel = "|| "..f.."_L - "..f.."_{"..typeSuffix[typeString].."} ||_{ "..normSuffix[norm].."}"
 		end
 		
 		-- schedule for plots of same disc type
-		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "L_2", "# DoFs")
-		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "H^1", "# DoFs")
-		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "L_2", "h (mesh size)")
-		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "H^1", "h (mesh size)")
+		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "l2", "# DoFs")
+		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "h1", "# DoFs")
+		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
+		schedule(err, err.plotPath..discType.."_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
 	
 		-- schedule for plots of all types
-		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "L_2", "# DoFs")
-		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "H^1", "# DoFs")
-		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "L_2", "h (mesh size)")
-		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "H^1", "h (mesh size)")
+		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_DoF.pdf", L2_DoF_Data, "l2", "# DoFs")
+		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_DoF.pdf", H1_DoF_Data, "h1", "# DoFs")
+		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_l2_h.pdf", L2_h_Data, "l2", "h (mesh size)")
+		schedule(err, err.plotPath.."all_"..errSuffix.."_"..f.."_h1_h.pdf", H1_h_Data, "h1", "h (mesh size)")
 	end
 	
 	if err.bUseExact then
