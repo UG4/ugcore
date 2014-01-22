@@ -338,8 +338,6 @@ function util.rates.static.compute(ConvRateSetup)
 	-- check for exact solution
 	if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then
 		err.bUseExact = true
-		err.ExactSol  = CRS.ExactSol
-		err.ExactGrad = CRS.ExactGrad
 	else
 		err.bUseExact = false
 	end
@@ -463,8 +461,8 @@ function util.rates.static.compute(ConvRateSetup)
 					
 					-- w.r.t exact solution		
 					if err.bUseExact then 
-					err.l2.exact.value[f][lev] 	= L2Error(err.ExactSol[f], u[lev], f, 0.0, quadOrder)
-					err.h1.exact.value[f][lev] 	= H1Error(err.ExactSol[f], err.ExactGrad[f], u[lev], f, 0.0, quadOrder)
+					err.l2.exact.value[f][lev] 	= L2Error(CRS.ExactSol[f], u[lev], f, 0.0, quadOrder)
+					err.h1.exact.value[f][lev] 	= H1Error(CRS.ExactSol[f], CRS.ExactGrad[f], u[lev], f, 0.0, quadOrder)
 					write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.l2.exact.value[f][lev]) .."\n");
 					write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err.h1.exact.value[f][lev]) .."\n");
 					end
