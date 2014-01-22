@@ -65,24 +65,27 @@ function gnuplot.write_data(filename, data, passRows)
 	local maxRow = nil 
 	local bHasMatrixData = false
 	
+	-- case 1: data is given column per column
 	if not passRows then
-		for i, item in ipairs(data) do
-			if not(type(item) == "table") then
+	
+		for _, column in ipairs(data) do
+
+			-- check that tables passed as coulumns
+			if not(type(column) == "table") then
 				io.stderr:write("Gnuplot Error: Data array must contain only tables.\n");
 				return 1						
 			end
-		end
-
-		for i = 1, #data do
-			if type(data[i][1]) == "table" then
+	
+			-- check if column data is actually a matrix			
+			if type(column[1]) == "table" then
 				bHasMatrixData = true		
 			end
 		end
-		
+
 		-- check column sizes
 		if bHasMatrixData == false then
-			for i, item in ipairs(data) do
-				local min, max = gnuplot.getArraySizes(item)
+			for _, column in ipairs(data) do
+				local min, max = gnuplot.getArraySizes(column)
 				if minRow == nil then minRow = min
 				elseif minRow ~= min then
 					io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
@@ -129,6 +132,8 @@ function gnuplot.write_data(filename, data, passRows)
 				file:write("\n")
 			end
 		end
+		
+	-- case 2: data is given column per column
 	else
 		for i, item in ipairs(data) do
 			if type(item) == "table" then
