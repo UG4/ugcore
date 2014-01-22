@@ -8,7 +8,7 @@ util.rates.static = util.rates.static or {}
 
 function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 
-	if defValue == nil then defValue = "--" end
+	if defValue == nil then defValue = nil end
 	
 	err.minLev = minLev
 	err.maxLev = maxLev
@@ -423,7 +423,7 @@ function util.rates.static.compute(ConvRateSetup)
 						local value = normType.value[f]
 						
 						for lev, _ in ipairs(value) do
-							if value[lev] ~= "--" and value[lev-1] ~= "--" then
+							if value[lev] ~= nil and value[lev-1] ~= nil then
 								normType.fac[f][lev] = value[lev-1]/value[lev]
 								normType.rate[f][lev] = math.log(normType.fac[f][lev]) / math.log(2)
 							end
