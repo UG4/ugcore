@@ -5,9 +5,10 @@ create a globally seen package (all non-local functions call then be called usin
 \ingroup scripts_util
 \{
 ]]--
-module( "gnuplot", package.seeall )
 
-function getArraySizes(t)
+gnuplot = gnuplot or {}
+
+function gnuplot.getArraySizes(t)
 
 	local min = 1e1000
 	local max = 0
@@ -36,7 +37,7 @@ end
 -- filename			the output file
 -- data				table containing the data
 -- passRows		   flag indication if data array stores rows (default = false)
-function write_data(filename, data, passRows)
+function gnuplot.write_data(filename, data, passRows)
 	-- open file
 	local file = io.open(filename, "w+")
 	if (not file) then
@@ -84,7 +85,7 @@ function write_data(filename, data, passRows)
 		-- check column sizes
 		if bHasMatrixData == false then
 			for i, item in ipairs(data) do
-				local min, max = getArraySizes(item)
+				local min, max = gnuplot.getArraySizes(item)
 				if minRow == nil then minRow = min
 				elseif minRow ~= min then
 					io.stderr:write("Gnuplot Error: Data array of mixed sized columns.");
@@ -180,7 +181,7 @@ local tmpScriptName = "tmp_gnuplot_script_" -- name for temporary script
 -- filename		output filename
 -- datasource	table of data to be plotted
 -- options		table of options
-function plot(filename, datasource, options)
+function gnuplot.plot(filename, datasource, options)
 
 	if (not datasource or type(datasource) ~= "table") then
 		io.stderr:write("Gnuplot Error: a data source dictionary must be provided!\n");
@@ -604,7 +605,7 @@ options = {	title =			"Title",
 -- parameters. Scaler parameters are included in place, and array 
 -- parameters have their values shallow-copied to the final array.
 -- Note that userdata and function values are treated as scalar.
-function array_concat(...) 
+function gnuplot.array_concat(...) 
     local t = {}
     for n = 1,select("#",...) do
         local arg = select(n,...)
