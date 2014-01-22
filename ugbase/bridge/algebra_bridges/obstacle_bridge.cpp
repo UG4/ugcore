@@ -55,6 +55,7 @@ static void DomainAlgebra(Registry& reg, string grp)
 	//	IObstacleConstraint
 	{
 		typedef IObstacleConstraint<TDomain,TAlgebra> T;
+		//typedef IDomainConstraint<TDomain, TAlgebra> TBase;
 		string name = string("IObstacleConstraint").append(suffix);
 		reg.add_class_<T>(name, grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*)>(&T::add),
@@ -171,10 +172,10 @@ static void DomainAlgebra(Registry& reg, string grp)
 //	transfer operators for truncated monotone multigrid
 	{
 		typedef TruncatedMonotoneTransfer<TDomain,TAlgebra> T;
-		typedef ITransferOperator<TDomain,TAlgebra> TBase;
+		typedef StdTransfer<TDomain,TAlgebra> TBase;
 		string name = string("TruncatedMonotoneTransfer").append(suffix);
 		reg.add_class_<T,TBase>(name, grp)
-			//.add_constructor()
+			.add_constructor()
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "TruncatedMonotoneTransfer", tag);
 	}

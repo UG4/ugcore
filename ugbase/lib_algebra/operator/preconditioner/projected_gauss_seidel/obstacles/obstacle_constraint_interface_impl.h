@@ -414,6 +414,55 @@ is_obs_dof(const DoFIndex& dof)
 	else {return true;}
 }
 
+/*template <typename TDomain, typename TAlgebra>
+void
+IObstacleConstraint<TDomain,TAlgebra>::
+adjust_restriction(matrix_type& R, ConstSmartPtr<DoFDistribution> ddCoarse,
+	ConstSmartPtr<DoFDistribution> ddFine, number time)
+{
+	UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::adjust_restrictionR \n");
+
+	typedef typename vector<DoFIndex>::iterator iter_type;
+	iter_type dofIter = m_vActiveDofs.begin();
+	iter_type dofIterEnd = m_vActiveDofs.end();
+	for( ; dofIter != dofIterEnd; dofIter++)
+	{
+		UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::"
+				"adjust_restrictionR::activeDof : " <<*dofIter<< "\n");
+	}
+
+	UG_LOG("#rows(R): "<<R.num_rows()<<"\n");
+	for(size_t i=0; i < R.num_rows(); i++){
+		for(typename matrix_type::row_iterator conn = R.begin_row(i);
+				conn != R.end_row(i); ++conn)
+		{
+			size_t num_connections = R.num_connections(i);
+			UG_LOG("#connections in "<<i<<"-th row: "<<num_connections<<"\n");
+			UG_LOG("R: "<<i<<"-th row: "<< conn.value() << "\n");
+
+		}
+	}
+	UG_LOG("IObstacleConstraint::adjust_restrictionR() \n");
+};
+
+template <typename TDomain, typename TAlgebra>
+void
+IObstacleConstraint<TDomain,TAlgebra>::
+adjust_restriction(vector_type& uCoarse, GridLevel coarseLvl,
+				const vector_type& uFine, GridLevel fineLvl)
+{
+	UG_LOG("IObstacleConstraint::adjust_restriction() \n");
+
+	typedef typename vector<DoFIndex>::iterator iter_type;
+	iter_type dofIter = m_vActiveDofs.begin();
+	iter_type dofIterEnd = m_vActiveDofs.end();
+	for( ; dofIter != dofIterEnd; dofIter++)
+	{
+		UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::"
+				"adjust_restriction::activeDof : " <<*dofIter<< "\n");
+	}
+}*/
+
 } // end namespace ug
 
 #endif /* __H__UG__LIB_ALGEBRA__OPERATOR__PRECONDITIONER__PROJECTED_GAUSS_SEIDEL__OBSTACLE_CONSTRAINT_INTERFACE_IMPL__ */

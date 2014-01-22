@@ -8,19 +8,20 @@
 #ifndef __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__TRUNCATED_MONOTONE_MG__TRUNCATED_MONOTONE_TRANSFER_H_
 #define __H__UG__LIB_DISC__OPERATOR__NON_LINEAR_OPERATOR__TRUNCATED_MONOTONE_MG__TRUNCATED_MONOTONE_TRANSFER_H_
 
-#include "lib_disc/operator/linear_operator/transfer_interface.h"
+#include "lib_disc/operator/linear_operator/std_transfer.h"
 
 namespace ug{
 
 template <typename TDomain, typename TAlgebra>
-class TruncatedMonotoneTransfer: public ITransferOperator<TDomain, TAlgebra>
+class TruncatedMonotoneTransfer:
+	public StdTransfer<TDomain, TAlgebra>
 {
 	public:
 	/// This type
 		typedef TruncatedMonotoneTransfer<TDomain, TAlgebra> this_type;
 
 	/// base type
-		typedef ITransferOperator<TDomain, TAlgebra> base_type;
+		typedef StdTransfer<TDomain, TAlgebra> base_type;
 
 	///	Type of Domain
 		typedef TDomain domain_type;
@@ -31,16 +32,13 @@ class TruncatedMonotoneTransfer: public ITransferOperator<TDomain, TAlgebra>
 	///	Type of Vector
 		typedef typename TAlgebra::vector_type vector_type;
 
-	///	Type of Vector
+	///	Type of Matrix
 		typedef typename TAlgebra::matrix_type matrix_type;
-
-	/// world dimension
-		static const int dim = TDomain::dim;
 
 	public:
 	///	Constructor
-		TruncatedMonotoneTransfer():
-			ITransferOperator<TDomain, TAlgebra>(), m_bInit (false)
+		TruncatedMonotoneTransfer(): ITransferOperator<TDomain, TAlgebra>(),
+				m_bInit (false)
 		{};
 
 	public:
@@ -48,19 +46,21 @@ class TruncatedMonotoneTransfer: public ITransferOperator<TDomain, TAlgebra>
 		//	INTERFACE METHODS
 		//////////////////////////////
 
-	/// Set Levels for Prolongation coarse -> fine
-		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
-
-	public:
 	///	initialize the operator
 		void init();
 
-	/// Prolongates vector, i.e. moves data from coarse to fine level
-		void prolongate(vector_type& uFine, const vector_type& uCoarse);
+	/// Set Levels for Prolongation coarse -> fine
+		void set_levels(GridLevel coarseLevel, GridLevel fineLevel);
 
-	/// Restricts vector, i.e. moves data from fine to coarse level
-		void do_restrict(vector_type& uCoarse, const vector_type& uFine);
+	///	returns prolongation as a matrix
+		SmartPtr<matrix_type> prolongation(const GridLevel& fineGL,
+				const GridLevel& coarseGL,
+				ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace);
 
+	///	returns restriction as a matrix
+		SmartPtr<matrix_type> restriction(const GridLevel& coarseGL,
+				const GridLevel& fineGL,
+				ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace);
 	///	Clone
 		SmartPtr<ITransferOperator<TDomain, TAlgebra> > clone();
 

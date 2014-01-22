@@ -32,20 +32,33 @@ init()
 {
 
 	//	Done:
-		m_bInit = true;
+	m_bInit = true;
 }
 
 template <typename TDomain, typename TAlgebra>
-void
+SmartPtr<typename TAlgebra::matrix_type>
 TruncatedMonotoneTransfer<TDomain, TAlgebra>::
-prolongate(vector_type& uFine, const vector_type& uCoarse)
-{}
+prolongation(const GridLevel& fineGL, const GridLevel& coarseGL,
+			 ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
+{
+	SmartPtr<matrix_type> stdP = base_type::prolongation(fineGL, coarseGL, spApproxSpace);
+
+	return stdP;
+}
 
 template <typename TDomain, typename TAlgebra>
-void
+SmartPtr<typename TAlgebra::matrix_type>
 TruncatedMonotoneTransfer<TDomain, TAlgebra>::
-do_restrict(vector_type& uCoarse, const vector_type& uFine)
-{}
+restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
+		    ConstSmartPtr<ApproximationSpace<TDomain> > spApproxSpace)
+{
+	SmartPtr<matrix_type> stdR = base_type::restriction(coarseGL, fineGL, spApproxSpace);
+
+	//TODO: modify stdR for activeDofs! IConstraint::adjust_restriction?
+	//		or only for the special case IObstacleConstraint?
+
+	return stdR;
+}
 
 template <typename TDomain, typename TAlgebra>
 SmartPtr<ITransferOperator<TDomain, TAlgebra> >

@@ -40,12 +40,12 @@ namespace ug{
  * 	by 'IProjPreconditioner::set_obstacle_constraint'.
  */
 template <typename TDomain, typename TAlgebra>
-class IObstacleConstraint :
-	public IDomainConstraint<TDomain, TAlgebra>
+class IObstacleConstraint
+//:public IDomainConstraint<TDomain, TAlgebra>
 {
 	public:
 	///	Base Type
-		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
+	//	typedef IDomainConstraint<TDomain, TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -148,46 +148,68 @@ class IObstacleConstraint :
 	// 	Implement Interface
 	///////////////////////////////
 
-	/// sets a unity row for all dirichlet indices
+	/*/// sets a unity row for all dirichlet indices
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
                              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
-							 const number s_a0 = 1.0){};
+							 const number s_a0 = 1.0){
+			UG_LOG("IObstacleConstraint::adjust_jacobian() \n");
+		};
 
 	/// sets a zero value in the defect for all dirichlet indices
 		void adjust_defect(vector_type& d, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
                            ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
 						   const std::vector<number>* vScaleMass = NULL,
-						   const std::vector<number>* vScaleStiff = NULL){};
+						   const std::vector<number>* vScaleStiff = NULL){
+			UG_LOG("IObstacleConstraint::adjust_defect() \n");
+		};
 
 	/// sets the dirichlet value in the solution for all dirichlet indices
 		void adjust_solution(vector_type& u,
-		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0){};
+		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0){
+			UG_LOG("IObstacleConstraint::adjust_solution() \n");
+		};
 
 	///	sets unity rows in A and dirichlet values in right-hand side b
 		void adjust_linear(matrix_type& A, vector_type& b,
-		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0){};
+		                   ConstSmartPtr<DoFDistribution> dd, number time = 0.0){
+			UG_LOG("IObstacleConstraint::adjust_linear() \n");
+		};
 
 	///	sets the dirichlet value in the right-hand side
 		void adjust_rhs(vector_type& b, const vector_type& u,
-		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0){};
+		                ConstSmartPtr<DoFDistribution> dd, number time = 0.0){
+			UG_LOG("IObstacleConstraint::adjust_rhs() \n");
+		};
 
 	///	sets constraints in prolongation
 		virtual void adjust_prolongation(matrix_type& P,
 										 ConstSmartPtr<DoFDistribution> ddFine,
 										 ConstSmartPtr<DoFDistribution> ddCoarse,
-										 number time = 0.0){};
+										 number time = 0.0){
+			UG_LOG("IObstacleConstraint::adjust_prolongationP() \n");
+		};
 
 	///	sets constraints in restriction
 		virtual void adjust_restriction(matrix_type& R,
 										ConstSmartPtr<DoFDistribution> ddCoarse,
 										ConstSmartPtr<DoFDistribution> ddFine,
-										number time = 0.0){};
+										number time = 0.0);
+
+	///	sets the constraints in a solution vector
+		virtual void adjust_restriction(vector_type& uCoarse, GridLevel coarseLvl,
+										const vector_type& uFine, GridLevel fineLvl);
+
+	///	sets the constraints in a solution vector
+		virtual void adjust_prolongation(vector_type& uFine, GridLevel fineLvl,
+										const vector_type& uCoarse, GridLevel coarseLvl) {
+			UG_LOG("IObstacleConstraint::adjust_prolongation() \n");
+		};
 
 	///	returns the type of the constraints
 		//TODO: is this type correct?!
-		virtual int type() const {return CT_CONSTRAINTS;}
+		virtual int type() const {return CT_CONSTRAINTS;}*/
 
 	private:
 	///	extract the UserDatas
