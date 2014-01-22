@@ -49,10 +49,9 @@ function table.print(data, style)
 
 	local title = style.title
 	local format = style.format
-	local vline = false
-	if type(style.vline) == "boolean" then vline = style.vline end
-	local hline = false
-	if type(style.hline) == "boolean" then hline = style.hline end
+	local vline = style.vline or false
+	local hline = style.hline or false
+	local forNil = style.forNil or " "
 
 
 	local numCols = #data
@@ -107,7 +106,7 @@ function table.print(data, style)
 			if s ~= nil then 
 				s = string.format("%"..maxSize[col].."s", tostring(s))
 			else 
-				s = string.format("%"..maxSize[col].."s", " ")
+				s = string.format("%"..maxSize[col].."s", forNil)
 			end
 			write (" "..s.." ")
 			if hline == true then
