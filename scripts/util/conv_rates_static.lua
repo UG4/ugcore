@@ -241,52 +241,48 @@ function util.rates.static.compute(ConvRateSetup)
 
 					-- create component
 					err[f] = err[f] or {}
+							
+					-- help fct to create an measurement
+					local function createMeas(f, t, n)
+						err[f][t] = err[f][t] or {}
+						err[f][t][n] = err[f][t][n] or {}
+						err[f][t][n].value = err[f][t][n].value or {}						
+						return err[f][t][n].value
+					end
 										
 					-- w.r.t exact solution		
 					if ExactSol ~= nil and ExactSol[f] ~= nil then 					
-					err[f]["exact"] = err[f]["exact"] or {}
-					
-					err[f]["exact"]["l2"] = err[f]["exact"]["l2"] or {}
-					err[f]["exact"]["l2"].value = err[f]["exact"]["l2"].value or {}
-					err[f]["exact"]["l2"].value[lev] = L2Error(ExactSol[f], u[lev], f, 0.0, quadOrder)
-					write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["exact"]["l2"].value[lev]) .."\n");
+						local value = createMeas(f, "exact", "l2")
+						value[lev] = L2Error(ExactSol[f], u[lev], f, 0.0, quadOrder)
+						write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 
-					if ExactGrad ~= nil and ExactGrad[f] ~= nil then 					
-					err[f]["exact"]["h1"] = err[f]["exact"]["h1"] or {}
-					err[f]["exact"]["h1"].value = err[f]["exact"]["h1"].value or {}
-					err[f]["exact"]["h1"].value[lev] = H1Error(ExactSol[f], ExactGrad[f], u[lev], f, 0.0, quadOrder)
-					write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["exact"]["h1"].value[lev]) .."\n");
-					end
+						if ExactGrad ~= nil and ExactGrad[f] ~= nil then 					
+						local value = createMeas(f, "exact", "h1")
+						value[lev] = H1Error(ExactSol[f], ExactGrad[f], u[lev], f, 0.0, quadOrder)
+						write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
+						end
 					end
 					
 					-- w.r.t max level solution
 					if maxlevel and lev < maxLev then
-					err[f]["maxlevel"] = err[f]["maxlevel"] or {}
-					
-					err[f]["maxlevel"]["l2"] = err[f]["maxlevel"]["l2"] or {}
-					err[f]["maxlevel"]["l2"].value = err[f]["maxlevel"]["l2"].value or {}
-					err[f]["maxlevel"]["l2"].value[lev]	= L2Error(u[maxLev], f, u[lev], f, quadOrder)
-					write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["maxlevel"]["l2"].value[lev]) .."\n");
+						local value = createMeas(f, "maxlevel", "l2")
+						value[lev]	= L2Error(u[maxLev], f, u[lev], f, quadOrder)
+						write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 
-					err[f]["maxlevel"]["h1"] = err[f]["maxlevel"]["h1"] or {}
-					err[f]["maxlevel"]["h1"].value = err[f]["maxlevel"]["h1"].value or {}
-					err[f]["maxlevel"]["h1"].value[lev] 	= H1Error(u[maxLev], f, u[lev], f, quadOrder)
-					write(">> H1 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["maxlevel"]["h1"].value[lev]) .."\n");
+						local value = createMeas(f, "maxlevel", "h1")
+						value[lev] 	= H1Error(u[maxLev], f, u[lev], f, quadOrder)
+						write(">> H1 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 					end
 				
 					-- w.r.t previous level solution
 					if prevlevel and lev > minLev then 
-					err[f]["prevlevel"] = err[f]["prevlevel"] or {}
-					
-					err[f]["prevlevel"]["l2"] = err[f]["prevlevel"]["l2"] or {}
-					err[f]["prevlevel"]["l2"].value = err[f]["prevlevel"]["l2"].value or {}
-					err[f]["prevlevel"]["l2"].value[lev] = L2Error(u[lev], f, u[lev-1], f, quadOrder)
-					write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["prevlevel"]["l2"].value[lev]) .."\n");
-
-					err[f]["prevlevel"]["h1"] = err[f]["prevlevel"]["h1"] or {}
-					err[f]["prevlevel"]["h1"].value = err[f]["prevlevel"]["h1"].value or {}
-					err[f]["prevlevel"]["h1"].value[lev] = H1Error(u[lev], f, u[lev-1], f, quadOrder)
-					write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["prevlevel"]["h1"].value[lev]) .."\n");
+						local value = createMeas(f, "prevlevel", "l2")
+						value[lev] = L2Error(u[lev], f, u[lev-1], f, quadOrder)
+						write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
+	
+						local value = createMeas(f, "prevlevel", "h1")
+						value[lev] = H1Error(u[lev], f, u[lev-1], f, quadOrder)
+						write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 					end
 				end
 								
