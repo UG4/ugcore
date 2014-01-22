@@ -102,6 +102,12 @@ function util.rates.static.compute(ConvRateSetup)
 	CRS.PrepareInitialGuess = CRS.PrepareInitialGuess or util.rates.static.StdPrepareInitialGuess
 	CRS.ComputeSolution = 		  CRS.ComputeSolution or util.rates.static.StdComputeLinearSolution
 	
+	local maxlevel = CRS.maxlevel or true
+	local prevlevel = CRS.prevlevel or true
+
+	local ExactSol = CRS.ExactSol 
+ 	local ExactGrad = CRS.ExactGrad 
+	
 	-- compute element size	
 	local dom = CRS.CreateDomain()
 	local numRefs = dom:grid():num_levels() - 1;
@@ -203,23 +209,14 @@ function util.rates.static.compute(ConvRateSetup)
 			--  Compute Error Norms on each level
 			--------------------------------------------------------------------
 			
-			-- create error storage and compute elem diameters
-			local err = {}	
-		
-			-- check for exact solution
-			err.bUse = {maxlevel = true, prevlevel = true}
-			if CRS.ExactSol ~= nil and CRS.ExactGrad ~= nil then err.bUse.exact = true
-			else												 err.bUse.exact = false end
-			
 			-- get names in approx space
 			local FctCmp = approxSpace:names()
 
 			-- prepare error measurement			
+			local err = {}	
 			err.h = {}
 			err.numDoFs = {}
-			err.FctCmp = FctCmp
-			err.level = {}
-			
+			err.level = {}			
 			for lev = minLev, maxLev do	
 				err.h[lev] = MaxElementDiameter(dom, lev) 
 				err.level[lev] = lev
@@ -240,22 +237,24 @@ function util.rates.static.compute(ConvRateSetup)
 					err[f] = err[f] or {}
 										
 					-- w.r.t exact solution		
-					if err.bUse.exact then 					
+					if ExactSol ~= nil and ExactSol[f] ~= nil then 					
 					err[f]["exact"] = err[f]["exact"] or {}
 					
 					err[f]["exact"]["l2"] = err[f]["exact"]["l2"] or {}
 					err[f]["exact"]["l2"].value = err[f]["exact"]["l2"].value or {}
-					err[f]["exact"]["l2"].value[lev] = L2Error(CRS.ExactSol[f], u[lev], f, 0.0, quadOrder)
+					err[f]["exact"]["l2"].value[lev] = L2Error(ExactSol[f], u[lev], f, 0.0, quadOrder)
 					write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["exact"]["l2"].value[lev]) .."\n");
 
+					if ExactGrad ~= nil and ExactGrad[f] ~= nil then 					
 					err[f]["exact"]["h1"] = err[f]["exact"]["h1"] or {}
 					err[f]["exact"]["h1"].value = err[f]["exact"]["h1"].value or {}
-					err[f]["exact"]["h1"].value[lev] = H1Error(CRS.ExactSol[f], CRS.ExactGrad[f], u[lev], f, 0.0, quadOrder)
+					err[f]["exact"]["h1"].value[lev] = H1Error(ExactSol[f], ExactGrad[f], u[lev], f, 0.0, quadOrder)
 					write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", err[f]["exact"]["h1"].value[lev]) .."\n");
+					end
 					end
 					
 					-- w.r.t max level solution
-					if err.bUse.maxlevel and lev < maxLev then
+					if maxlevel and lev < maxLev then
 					err[f]["maxlevel"] = err[f]["maxlevel"] or {}
 					
 					err[f]["maxlevel"]["l2"] = err[f]["maxlevel"]["l2"] or {}
@@ -270,7 +269,7 @@ function util.rates.static.compute(ConvRateSetup)
 					end
 				
 					-- w.r.t previous level solution
-					if err.bUse.prevlevel and lev > minLev then 
+					if prevlevel and lev > minLev then 
 					err[f]["prevlevel"] = err[f]["prevlevel"] or {}
 					
 					err[f]["prevlevel"]["l2"] = err[f]["prevlevel"]["l2"] or {}
