@@ -90,13 +90,13 @@ function util.rates.static.compute(ConvRateSetup)
 	else CRS = ConvRateSetup end
 	
 	-- create directories
-	CRS.plotPath = CRS.plotPath or "plots/"
-	CRS.solPath  = CRS.solPath  or "sol/"
-	CRS.dataPath = CRS.dataPath or "data/"
-	os.execute("mkdir " .. CRS.dataPath)
-	os.execute("mkdir " .. CRS.plotPath)
-	os.execute("mkdir " .. CRS.plotPath.."single/")
-	os.execute("mkdir " .. CRS.solPath)
+	local plotPath = CRS.plotPath or "plots/"
+	local solPath  = CRS.solPath  or "sol/"
+	local dataPath = CRS.dataPath or "data/"
+	os.execute("mkdir " .. dataPath)
+	os.execute("mkdir " .. plotPath)
+	os.execute("mkdir " .. plotPath.."single/")
+	os.execute("mkdir " .. solPath)
 
 	-- check for methods
 	CRS.PrepareInitialGuess = CRS.PrepareInitialGuess or util.rates.static.StdPrepareInitialGuess
@@ -195,8 +195,8 @@ function util.rates.static.compute(ConvRateSetup)
 				CRS.ComputeSolution(u[lev], domainDisc, solver)
 				write(">> Solver done.\n")
 				
-				WriteGridFunctionToVTK(u[lev], CRS.solPath.."sol_"..discType..p.."_l"..lev)
-				write(">> Solution written to: "..CRS.solPath.."sol_"..discType..p.."_l"..lev.."\n");	
+				WriteGridFunctionToVTK(u[lev], solPath.."sol_"..discType..p.."_l"..lev)
+				write(">> Solution written to: "..solPath.."sol_"..discType..p.."_l"..lev.."\n");	
 			end
 
 			--------------------------------------------------------------------
@@ -205,8 +205,6 @@ function util.rates.static.compute(ConvRateSetup)
 			
 			-- create error storage and compute elem diameters
 			local err = {}	
-			err.dataPath = CRS.dataPath
-			err.plotPath = CRS.plotPath
 		
 			-- check for exact solution
 			err.bUse = {maxlevel = true, prevlevel = true}
@@ -392,7 +390,7 @@ function util.rates.static.compute(ConvRateSetup)
 					
 						-- write l2 and h1 to data file
 						local singleFileName = "error_"..titles[t].."_"..discType.."_"..p.."_"..f
-						local file = err.dataPath..singleFileName..".dat"
+						local file = dataPath..singleFileName..".dat"
 						local dataCols = {err.numDoFs, err.h, l2value, h1value}
 						gnuplot.write_data(file, dataCols)
 					
@@ -403,9 +401,9 @@ function util.rates.static.compute(ConvRateSetup)
 						for y, yCol in pairs({l2 = 3, h1 = 4}) do
 							for x, xCol in pairs({DoF = 1, h = 2}) do
 								local Data = {{label=discType.." P_"..p, file=file, style=style, xCol, yCol}}
-								gnuplot.plot(err.plotPath.."single/"..singleFileName.."_"..y.."_"..x..".pdf", Data, options)				
-								schedule(err, err.plotPath..discType.."_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
-								schedule(err, err.plotPath.."all_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
+								gnuplot.plot(plotPath.."single/"..singleFileName.."_"..y.."_"..x..".pdf", Data, options)				
+								schedule(err, plotPath..discType.."_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
+								schedule(err, plotPath.."all_"..titles[t].."_"..f.."_"..y.."_"..x..".pdf", Data, y, x)
 							end	
 						end
 					end
