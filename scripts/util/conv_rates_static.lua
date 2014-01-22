@@ -78,33 +78,6 @@ function util.rates.static.resetStorage(err, minLev, maxLev, FctCmp, defValue)
 	return err
 end
 
-function util.rates.static.computeErrorRates(err)
-	
-	local FctCmp = err.FctCmp
-	local function computeNormErrorRates(norm)
-	
-		local function computeNormTypeErrorRates(normType, minLev, maxLev)
-			for i = 1, #FctCmp do
-				local f = FctCmp[i]
-				for lev = minLev + 1, maxLev do
-					normType.fac[f][lev] = normType.value[f][lev-1]/normType.value[f][lev]
-					normType.rate[f][lev] = math.log(normType.fac[f][lev]) / math.log(2)
-				end		
-			end
-		end
-
-		local minLev = err.minLev
-		local maxLev = err.maxLev
-		
-		if err.bUse.exact then  computeNormTypeErrorRates(norm.exact,     minLev, maxLev) end
-		if err.bUse.maxlevel then  computeNormTypeErrorRates(norm.maxlevel,  minLev, maxLev - 1) end 
-		if err.bUse.prevlevel then computeNormTypeErrorRates(norm.prevlevel, minLev + 1, maxLev) end
-	end 		
-	
-	computeNormErrorRates(err.l2)
-	computeNormErrorRates(err.h1)
-end
-
 function util.writeAndScheduleGnuplotData(err, gnuplotFiles, discType, p)
 
 	local titles = {l2 = "L2", h1 = "H1",
@@ -442,7 +415,22 @@ function util.rates.static.compute(ConvRateSetup)
 								
 			end
 	
-			util.rates.static.computeErrorRates(err)				 		
+			for _, n in ipairs({"l2", "h1"}) do
+				for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
+					for _, f in ipairs(FctCmp) do
+			
+						local normType = err[n][t]
+						local value = normType.value[f]
+						
+						for lev, _ in ipairs(value) do
+							if value[lev] ~= "--" and value[lev-1] ~= "--" then
+								normType.fac[f][lev] = value[lev-1]/value[lev]
+								normType.rate[f][lev] = math.log(normType.fac[f][lev]) / math.log(2)
+							end
+						end
+					end
+				end
+			end	
 
 			--------------------------------------------------------------------
 			--  Write Erorr Data
