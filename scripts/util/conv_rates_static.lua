@@ -352,13 +352,18 @@ function util.rates.static.compute(ConvRateSetup)
 				local format = {"%d", "%.2e", "%d"}
 
 				for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
+					-- check if type used
+					if err[f][t] ~= nil then
 					for _, n in ipairs({"l2", "h1"}) do
-			
+
+						-- check if norm used		
 						local meas = err[f][t][n]
-			
-						table.append(values, {meas.value, meas.rate}) 
-						table.append(heading,{titles[n].." "..titles[t], "rate"})
-						table.append(format, {"%.2e", "%.3f"})
+						if meas ~= nil then			
+							table.append(values, {meas.value, meas.rate}) 
+							table.append(heading,{titles[n].." "..titles[t], "rate"})
+							table.append(format, {"%.2e", "%.3f"})
+						end
+					end
 					end
 				end
 										
