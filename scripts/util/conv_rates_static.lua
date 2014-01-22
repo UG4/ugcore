@@ -309,9 +309,9 @@ function util.rates.static.compute(ConvRateSetup)
 	else CRS = ConvRateSetup end
 	
 	-- create directories
-	if CRS.plotPath == nil then  CRS.plotPath = "plots/" end
-	if CRS.solPath  == nil then  CRS.solPath = "sol/" end
-	if CRS.dataPath == nil then  CRS.dataPath = "data/" end
+	CRS.plotPath = CRS.plotPath or "plots/"
+	CRS.solPath  = CRS.solPath  or "sol/"
+	CRS.dataPath = CRS.dataPath or "data/"
 	os.execute("mkdir " .. CRS.dataPath)
 	os.execute("mkdir " .. CRS.plotPath)
 	os.execute("mkdir " .. CRS.plotPath.."single/")
