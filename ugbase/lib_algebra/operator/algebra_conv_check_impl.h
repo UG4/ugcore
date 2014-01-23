@@ -56,8 +56,7 @@ AlgebraicConvCheck(size_t ncmp, int maxSteps, number minDefect, number relReduct
 template <class TVector>
 SmartPtr<IConvergenceCheck<TVector> > AlgebraicConvCheck<TVector>::clone()
 {
-	SmartPtr<AlgebraicConvCheck<TVector> > newInst
-						= new AlgebraicConvCheck<TVector>(this->m_vCmpInfo.size());
+	SmartPtr<AlgebraicConvCheck<TVector> > newInst(new AlgebraicConvCheck<TVector>(this->m_vCmpInfo.size()));
 
 	// use std assignment (implicit member-wise is fine here)
 	*newInst = *this;
@@ -169,7 +168,7 @@ void AlgebraicConvCheck<TVector>::update(const TVector& vec)
 		m_vCmpInfo[fct].currDefect = norm(vec, fct);
 	}
 
-	vec.print();
+	//vec.print(); // debug only!
 
 	m_currentStep++;
 
@@ -184,19 +183,11 @@ void AlgebraicConvCheck<TVector>::update(const TVector& vec)
 			else {UG_LOG(std::setw(4) << step() << ":    ");}
 
 			UG_LOG(std::scientific << cmpInfo.currDefect <<  "    ")
-			//UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.minDefect <<   "    " << std::setprecision(6))
 			if(cmpInfo.lastDefect != 0.0){
 				UG_LOG(std::scientific << std::setprecision(6) << cmpInfo.currDefect / cmpInfo.lastDefect << "    c="<< cmp<< std::setprecision(6)  << std::endl)
 			} else {
 				UG_LOG(std::scientific << "  -----  " << "    c="<< cmp  << std::endl)
 			}
-			/*if(cmpInfo.initDefect != 0.0){
-				UG_LOG(std::scientific << cmpInfo.currDefect / cmpInfo.initDefect << "    " << std::endl)
-			} else {
-				UG_LOG(std::scientific << "  --------  " << "    " << std::endl)
-			}*/
-		//	UG_LOG(std::scientific << std::setprecision(3) << cmpInfo.relReduction << "    " << std::setprecision(6))
-		//	UG_LOG(std::scientific << cmpInfo.name << "\n");
 		}
 	}
 }
