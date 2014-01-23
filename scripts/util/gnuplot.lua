@@ -141,382 +141,6 @@ function gnuplot.write_data(filename, data, passRows)
 	file:close()
 end
 
-local tmpPath = "./tmp-gnuplot/" -- some tmp path
-local plotImagePath = "./" -- output of data
-local tmpScriptName = "tmp_gnuplot_script_" -- name for temporary script
-
--- filename		output filename
--- datasource	table of data to be plotted
--- options		table of options
-function gnuplot.plot(filename, datasource, options)
-
-	if (not datasource or type(datasource) ~= "table") then
-		io.stderr:write("Gnuplot Error: a data source dictionary must be provided!\n");
-		exit();
-	end
-
-	-- check for 2d or 3d data
-	local is3d = nil
-	for i, source in ipairs(datasource) do
-
-		if ( #source ~= 0 ) then -- use default 
-			if ( #source == 2 ) then
-				if options.is3d ~= nil and options.is3d == true then
-					io.stderr:write("Gnuplot Error: Explict 3d data request, but 2d data given.\n"); exit();
-				end
-				if is3d ~= nil and is3d == true then 
-					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
-				else is3d = false 
-				end
-			elseif ( #source == 3 ) then  
-				if options.is3d ~= nil and options.is3d == false then
-					io.stderr:write("Gnuplot Error: Explict 2d data request, but 3d data given.\n"); exit();
-				end
-				if is3d ~= nil and is3d == false then 
-					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
-				else is3d = true 
-				end			
-			else io.stderr:write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n");
-				 exit();
-			end		
-		end
-	end
-	if options.is3d == nil then 
-		if is3d ~= nil then 
-			options.is3d = is3d
-		else 
-			options.is3d = false 
-		end
-	end
-	
-	-- select sensible defaults
-	if ( type(options) ~= "table" ) then
-		options = { title = "", xlabel = "", ylabel = "", zlabel = ""}
-	end
-	if options.title == nil then options.title = "" end
-	if options.xlabel == nil then options.xlabel = "" end
-	if options.ylabel == nil then options.ylabel = "" end
-	if options.zlabel == nil then options.zlabel = "" end
-
-	-- check output file name
-	if filename ~= nil then
-		if ( type(filename) ~= "string") then 
-			io.stderr:write("Gnuplot Error: Filename must be a string.");
-			exit();
-		else
-			filename = string.gsub(filename, " ", "_" )
-		end
-	end
-	
-	-- if sensible ranges are specified use them otherwise autoscale
-	if options.range ~= nil then
-		if type(options.range) == "table" then
-			if options.range.xrange == nil then 
-				if type(options.range[1]) == "number" and
-				   type(options.range[2]) == "number" then
-					options.range.xrange = {options.range[1], options.range[2]}
-				elseif type(options.range[1]) == "table" then
-					options.range.xrange = options.range[1] 
-				end
-			end
-			if options.range.yrange == nil then 
-				if type(options.range[3]) == "number" and
-				   type(options.range[4]) == "number" then
-					options.range.yrange = {options.range[3], options.range[4]}
-				elseif type(options.range[2]) == "table" then
-					options.range.yrange = options.range[2] 
-				end
-			end
-			if options.range.zrange == nil then 
-				if type(options.range[5]) == "number" and
-				   type(options.range[6]) == "number" then
-					options.range.zrange = {options.range[5], options.range[6]}
-				elseif type(options.range[3]) == "table" then
-					options.range.zrange = options.range[3] 
-				end
-			end
-		else
-			io.stderr:write("Gnuplot Error: range must be a table.");
-			exit();
-		end
-	else
-		options.range = {};
-	end
-
-	-- open a temporary script file
-	plotScriptName = tmpPath..tmpScriptName..string.gsub(filename, "[./]", "_")..".gnu"
-	local plotScript = io.open(plotScriptName, "w+")
-	if (not plotScript) then
-		os.execute("mkdir " .. tmpPath)
-		plotScript = io.open(plotScriptName, "w+")
-		if (not plotScript) then		
-			io.stderr:write("Gnuplot Error: cannot open output file: '")
-			io.stderr:write(plotScriptName .. " '\n");
-			return 2
-		end
-	end
-
-	-- check for multiplot
-	local multiplot = false; 
-	local multiplotjoined = false;
-	local MultiPlotRows, MultiPlotCols
-	if type(options.multiplot) == "boolean" then multiplot = options.multiplot end
-	if ( multiplot == true ) then
-
-		if type(options.multiplotrows) == "number" then 
-			MultiPlotRows = options.multiplotrows 
-		else
-			MultiPlotRows = math.ceil(math.sqrt(#datasource))
-		end
-		MultiPlotCols = math.ceil(#datasource / MultiPlotRows )
-		
-		if type(options.multiplotjoined) == "boolean" then multiplotjoined = options.multiplotjoined end	
-	end
-
-	-- specify the output file
-	plotScript:write("reset\n")
-
-	-- find font and fontsize
-	local font = "Verdana"
-	local fontsize = 10
-	if options.font then font = options.font end
-	if options.fontsize then fontsize = options.fontsize end
-	if ( multiplot == true ) then
-		fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))
-	end
-	
-	-- set terminal currently only pdf
-	if filename == nil then
-		plotScript:write("set terminal x11 persist raise\n\n")
-	elseif string.find(filename, ".pdf", -4) ~= nil then
-		if options.font == nil then font = "Times-Roman" end
-		plotScript:write("set term pdfcairo enhanced font '"..font..","..fontsize.."'\n\n")
-		plotScript:write("set output \"", plotImagePath, filename,"\"\n\n")
-	elseif string.find(filename, ".eps", -4) ~= nil then
-		plotScript:write("set term postscript eps enhanced color font '"..font..","..fontsize.."'\n\n")
-		plotScript:write("set output \"", plotImagePath, filename,"\"\n\n")
-	elseif string.find(filename, ".tex", -4) ~= nil then
-		plotScript:write("set term epslatex color colortext font '"..font..","..fontsize.."'\n\n")
-		plotScript:write("set output \"", plotImagePath, filename,"\"\n\n")
-	elseif string.find(filename, ".svg", -4) ~= nil then
-		plotScript:write("set term svg enhanced fname '"..font.."' fsize "..fontsize.."\n\n")
-		plotScript:write("set output \"", plotImagePath, filename,"\"\n\n")
-	else
-		io.stderr:write("Gnuplot Error: wrong file type: '"..filename.."'\n")
-		io.stderr:write("Supported endings: pdf, eps, svg.\n")
-		return 2		
-	end
-	
-	-- title and axis label
-	plotScript:write("set title '"..options.title.."' textcolor lt 2\n")
-	plotScript:write("set xlabel '"..options.xlabel.."'\n")
-	plotScript:write("set ylabel '"..options.ylabel.."'\n\n")
-	if options.is3d == true then
-	plotScript:write("set zlabel '"..options.zlabel.."'\n\n")
-	end
-	
-	-- write timestamp
-	if options.timestamp then
-		if type(options.timestamp) == "string" then
-			plotScript:write("set timestamp "..options.timestamp.."\n")
-		elseif type(options.timestamp) == "boolean" then
-			if options.timestamp == true then
-				plotScript:write("set timestamp \"%H:%M:%S  %Y/%m/%d\" bottom\n")
-			else 
-				plotScript:write("unset timestamp\n"); 
-			end
-		else
-			io.stderr:write("Gnuplot Error: timestamp option not recognized.\n");
-			exit();
-		end
-	else 
-		plotScript:write("unset timestamp\n"); 
-	end
-
-	-- enable grid
-	if options.grid == true then
-		if options.is3d == false then plotScript:write("set grid xtics ytics back\n"); 
-		else plotScript:write("set grid xtics ytics ztics back\n"); 
-		end
-	end
-
-	-- locscale
-	if options.logscale == true or options.xlogscale == true then
-		plotScript:write("set logscale x\n");
-	else
-		plotScript:write("unset logscale x\n");
-	end
-	if options.logscale == true or options.ylogscale == true then
-		plotScript:write("set logscale y\n"); 
-	else
-		plotScript:write("unset logscale y\n");
-	end
-	if options.is3d == true then
-	if options.logscale == true or options.zlogscale == true then
-		plotScript:write("set logscale z\n"); 
-	else
-		plotScript:write("unset logscale z\n");
-	end
-	end
-	
-	-- write additional options, passed as strings
-	for i, source in ipairs(options) do
-		if source and type(source) == "string" then
-			plotScript:write(source.."\n")
-		end
-	end	
-
-	-- multiplot sizes
-	if ( multiplot == true ) then
-		plotScript:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
-		plotScript:write(" title '"..options.title.."' \n\n" )	
-	end
-
-	-- remove key (legend)
-	if options.key ~= nil and options.key == false then plotScript:write ("unset key\n") end
-
-	-- range
-	plotScript:write ("set autoscale\n")
-	if options.range.xrange ~= nil then
-		plotScript:write ("set xrange [",options.range.xrange[1],":",options.range.xrange[2],"]\n")
-	end
-	if options.range.yrange ~= nil then
-		plotScript:write ("set yrange ["..options.range.yrange[1]..":"..options.range.yrange[2].."]\n")
-	end
-	if options.range.zrange ~= nil then
-		plotScript:write ("set zrange ["..options.range.zrange[1]..":"..options.range.zrange[2].."]\n")
-	end
-	
-
-	-- loop data sets
-	for i, source in ipairs(datasource) do
-	
-		-- get the data column mapping
-		local map = "";
-		if options.is3d == false and #source == 2 then
-			map = source[1]..":"..source[2]
-		elseif options.is3d == true and #source == 3 then
-			map = source[1]..":"..source[2]..":"..source[3]
-		else
-			if options.is3d == false then map = "1:2"
-			else map = "1:2:3"
-			end
-		end
-
-		-- determine the plot type - data source table has priority
-		if options.is3d == true then
-			plotScript:write("set surface\n") 
-			plotScript:write("unset contour\n") 
-			local style = "points"
-		else
-			local style = "linespoints"
-		end
-		if source.style then
-			style = source.style
-		end
-		
-		-- check style		
-		if 	style ~= "lines" and
-			style ~= "points" and
-			style ~= "linespoints" and
-			style ~= "boxes" and
-			style ~= "dots" and
-			style ~= "vectors" and
-			style ~= "yerrorbars"
-		then
-			io.stderr:write("Gnuplot Error: style=\""..style.."\" not supported.\n");
-			exit()
-		end
-		
-		-- assign default data label if needed
-		if ( not source.label ) then source["label"] = "plot" .. i end
-
-		-- Position plots in multiplot
-		if ( multiplot == true ) then
-			plotScript:write("unset title \n" )
-			
-			if multiplotjoined then
-				-- left bnd
-				if i % MultiPlotCols == 1 then 
-					plotScript:write("unset lmargin\n") 
-					plotScript:write("set ylabel '"..options.ylabel.."'\n\n")
-					plotScript:write("set format y\n")
-				else 
-					plotScript:write("set lmargin 0\n")
-					plotScript:write("unset ylabel\n")
-					plotScript:write("set format y \"\"\n")
-				end
-
-				-- right bnd
-				if i % MultiPlotCols == 0 then 
-					plotScript:write("unset rmargin\n") 
-				else 
-					plotScript:write("set rmargin 0\n")
-				end
-				
-				-- top bnd
-				if math.ceil(i / MultiPlotRows) == 1 then 
-					plotScript:write("unset tmargin\n") 
-				else 
-					plotScript:write("set tmargin 0\n")
-				end
-
-				-- bottom bnd
-				if math.ceil(i / MultiPlotRows) == MultiPlotRows then 
-					plotScript:write("unset bmargin\n") 
-					plotScript:write("set xlabel '"..options.xlabel.."'\n\n")
-					plotScript:write("set format x\n")
-				else 
-					plotScript:write("set bmargin 0\n")
-					plotScript:write("unset xlabel\n")
-					plotScript:write("set format x \"\"\n")
-				end
-			end
-		end
-
-		-- build up the plot command, layer by layer in non-multiplotmode
-		if (i == 1 or multiplot == true) then 	
-			if options.is3d == false then 
-				 plotScript:write ("plot  \\\n");
-			else plotScript:write ("splot  \\\n"); end
-		else 				
-			plotScript:write(", \\\n");	
-		end
-		
-		if source.file ~= nil then		
-			plotScript:write ("\"", source.file, "\"",
-							  " using ", map, 
-							  " title '", source.label, "'", 
-							  " with ", style)
-		end
-		if source.func ~= nil then
-			plotScript:write (" ", source.func," ",
-							  " title '", source.label, "'", 
-							  " with ", style)
-		end 
-		if source.data ~= nil then
-			tmpDataFile = tmpPath.."tmp_"..source.label.."_"..i..".dat"
-			tmpDataFile = string.gsub(tmpDataFile, " ", "_" )
-			write_data(tmpDataFile, source.data, source.row)
-			plotScript:write ("\"", tmpDataFile, "\"",
-							  " using ", map, 
-							  " title '", source.label, "'", 
-							  " with ", style)
-		end 
-								  
-		if (multiplot == true) then
-			plotScript:write("\n")
-		end						  
-	end
-	plotScript:write ("\nunset multiplot\n");
-	plotScript:close()
-
-	-- launch gnuplot and run in background
-	os.execute("gnuplot "..plotScriptName.." --persist &")
-	return 0
-end
-
-
 -- example execution
 --[[
 
@@ -532,32 +156,43 @@ gnuplot.plot("somedata.pdf",
 			})
 			
 datasource = {	
---	{ label = "catsdogs",  file = "./TestData/dogdata", style = "points", 1, 5 },
---	{ label = "catsdogs3", file = "./TestData/dogdata", style = "points", 1, 6 },
---	{ label = "catsdogs4", file = "./TestData/dogdata", style = "lines", 1, 5 },
---	{ label = "catsdogs5", file = "./TestData/dogdata", style = "lines", 1, 6 },
---	{ label = "catsdogs5", file = "./TestData/dogdata", style = "lines", 1, 6 },
---	{ label = "sinuskurve",func = "sin(x)", style = "lines"},
+	{ label = "catsdogs",  file = "./TestData/dogdata", style = "points", 1, 5 },
+	{ label = "catsdogs3", file = "./TestData/dogdata", style = "points", 1, 6 },
+	{ label = "catsdogs4", file = "./TestData/dogdata", style = "lines", 1, 5 },
+	{ label = "catsdogs5", file = "./TestData/dogdata", style = "lines", 1, 6 },
+	{ label = "catsdogs5", file = "./TestData/dogdata", style = "lines", 1, 6 },
+	{ label = "sinuskurve",func = "sin(x)", style = "lines"},
 	{ label = "rowdata_13", data = rowdata, row = true, style = "lines", 1, 3},
 	{ label = "rowdata_12", data = rowdata, row = true, style = "lines"},
 	{ label = "col data 12", data = coldata, style = "lines"},
 	{ label = "col data 13", data = coldata, style = "lines", 1, 3}
 }
 
-options = {	title =			"Title", 
-			xlabel =		"xAxis",
-			ylabel =		"yAxis",
---			range = 		{ xrange = {-100, 600}, yrange = {-5, 5} },
---			range = 		{ {-100, 600}, {-5, 5} },
---			font = 			"Arial",
---			fontsize =		10 / 1,
---			grid = 			true,
---			multiplot = 	true,
---			multiplotrows = 5,
---			multiplotjoined=true,
---			key = 			true,
---			logscale = true,
---			"set some user defined lines to be added to script"
+-- all options are optional
+options = {	title =				"Title", 
+			label = 			{x = "xAxis", y = "yAxis"}
+			label = 			{"xAxis", "yAxis"}
+			xlabel =			"xAxis",
+			ylabel =			"yAxis",
+			range = 			{ x = {-100, 600}, y = {-5, 5} },
+			range = 			{ {-100, 600}, {-5, 5} },
+			logscale = 			true,
+			logscale = 			{x = true, y = false},
+			logscale = 			{true, false},
+			dim = 				2,
+			grid = 				true,
+			key = 				true,
+			timestamp =    		true,
+			timestamp =     	"My Timestamp string",
+			font = 				"Arial",
+			fontsize =			10,
+			multiplot = 		true,
+			multiplotrows = 	5,
+			multiplotjoined =	true,
+			"additional param #1",
+			"additional param #2",
+			"additional param #3",
+			...
 }
 
 --gnuplot.plot("vibration.eps", datasource, options)
@@ -567,6 +202,350 @@ options = {	title =			"Title",
 --gnuplot.plot(nil, datasource, options)
 
 ]]--
+-- filename		output filename
+-- datasource	table of data to be plotted
+-- options		table of options
+function gnuplot.plot(filename, datasource, options)
+
+	if not datasource or type(datasource) ~= "table" then
+		io.stderr:write("Gnuplot Error: a data source dictionary must be provided!\n");
+		exit();
+	end
+	
+	----------------------------------------------------------------------------
+	-- Check passed options and set defaults
+	----------------------------------------------------------------------------
+
+	local options = options or {}
+	local title = options.title or "" 
+	local label = options.label or false
+	local range = options.range or {}
+	local logscale = options.logscale or false
+	local plotDim = options.dim
+
+	local grid = options.grid or false
+	local key = true
+	if type(options.key) == "boolean" then multiplot = options.key end
+
+	local timestamp = options.timestamp or false
+	local font = options.font or "Verdana"
+	local fontsize = options.fontsize or 10
+	
+	local multiplot = options.multiplot or false
+	local multiplotjoined = options.multiplotjoined or false	
+	local multiplotrows = options.multiplotrows
+
+	----------------------------------------------------------------------------
+	-- Prepare params
+	----------------------------------------------------------------------------
+
+	-- check output file name
+	if filename == nil or type(filename) ~= "string" then
+		io.stderr:write("Gnuplot Error: Filename must be a string.");
+		exit();
+	end
+	filename = string.gsub(filename, " ", "_" )
+	
+	-- check for 2d or 3d data
+	for _, source in ipairs(datasource) do
+		if #source == 2 then
+			if plotDim and plotDim ~= 2 then
+				io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+			end
+			plotDim = 2 
+		elseif #source == 3 then  
+			if plotDim and plotDim ~= 3 then
+				io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+			end
+			plotDim = 3 
+		elseif #source == 0 then
+			-- function  
+		else 
+			io.stderr:write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); exit();
+		end		
+	end
+	if plotDim == nil then 
+			io.stderr:write("Gnuplot Error: Cannot detect plot dimension.\n"); exit();		
+	end
+	local DimNames = {"x", "y"}
+	if plotDim == 3 then DimNames = {"x", "y", "z"} end
+	
+	-- set labels
+	if label then
+		for d, dim in ipairs(DimNames) do
+			if not(label[dim]) then 
+				range[dim] = range[d] or ""
+			end
+		end		
+	else
+		label = {}
+		label["x"] = options.xlabel or ""
+		label["y"] = options.ylabel or ""
+		label["z"] = options.zlabel or ""
+	end
+	
+	
+	-- set ranges (otherwise autoscale)
+	if type(range) ~= "table" then
+		io.stderr:write("Gnuplot Error: range must be a table.");
+		exit();
+	end
+	for d, dim in ipairs(DimNames) do
+		if not(range[dim]) then 
+			if type(range[d]) == "table" then
+				range[dim] = range[d] 
+			end
+		end
+	end
+	
+	-- set logscales
+	if logscale then
+		if type(logscale) == "boolean" then
+			logscale = {}
+			for d, dim in ipairs(DimNames) do
+				logscale[dim] = true
+			end			
+		else
+			for d, dim in ipairs(DimNames) do
+				if logscale[dim] == nil then 
+					logscale[dim] = logscale[d] or false
+				end
+			end
+		end
+	end
+
+	-- check for multiplot
+	local MultiPlotRows, MultiPlotCols
+	if multiplot then
+		MultiPlotRows = multiplotrows or math.ceil(math.sqrt(#datasource))
+		MultiPlotCols = math.ceil(#datasource / MultiPlotRows )
+		fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))		
+	end
+
+	----------------------------------------------------------------------------
+	-- Write script header
+	----------------------------------------------------------------------------
+	
+	-- open a temporary script file
+	local tmpPath = "./tmp-gnuplot/" -- some tmp path
+	local plotPath = "./" -- output of data
+	
+	if not(DirectoryExists(tmpPath)) then CreateDirectory(tmpPath) end
+	local scriptName = tmpPath.."tmp_gnuplot_script_"..string.gsub(filename, "[./]", "_")..".gnu"
+	local script = io.open(scriptName, "w+")
+	if not script then
+		io.stderr:write("Gnuplot Error: cannot open output file: '")
+		io.stderr:write(scriptName .. " '\n");
+		return 2
+	end
+
+	-- specify the output file
+	script:write("reset\n")
+	
+	-- set terminal currently only pdf
+	if filename == nil then
+		script:write("set terminal x11 persist raise\n\n")
+	elseif string.find(filename, ".pdf", -4) ~= nil then
+		script:write("set term pdfcairo enhanced font '"..font..","..fontsize.."'\n\n")
+		script:write("set output \"", plotPath, filename,"\"\n\n")
+	elseif string.find(filename, ".eps", -4) ~= nil then
+		script:write("set term postscript eps enhanced color font '"..font..","..fontsize.."'\n\n")
+		script:write("set output \"", plotPath, filename,"\"\n\n")
+	elseif string.find(filename, ".tex", -4) ~= nil then
+		script:write("set term epslatex color colortext font '"..font..","..fontsize.."'\n\n")
+		script:write("set output \"", plotPath, filename,"\"\n\n")
+	elseif string.find(filename, ".svg", -4) ~= nil then
+		script:write("set term svg enhanced fname '"..font.."' fsize "..fontsize.."\n\n")
+		script:write("set output \"", plotPath, filename,"\"\n\n")
+	else
+		io.stderr:write("Gnuplot Error: wrong file type: '"..filename.."'\n")
+		io.stderr:write("Supported endings: pdf, eps, svg.\n")
+		return 2		
+	end
+	
+	-- title and axis label
+	script:write("set title '"..title.."'\n")
+	
+	-- labels
+	for _, dim in ipairs(DimNames) do
+		script:write("set "..dim.."label '"..label[dim].."'\n")
+	end
+	
+	-- write timestamp
+	if timestamp then
+		if type(timestamp) == "string" then
+			script:write("set timestamp "..timestamp.."\n")
+		else
+			script:write("set timestamp \"%H:%M:%S  %Y/%m/%d\" bottom\n")
+		end
+	else 
+		script:write("unset timestamp\n"); 
+	end
+
+	-- enable grid
+	if grid then
+		script:write("set grid ")
+		for _, dim in ipairs(DimNames) do
+			script:write(dim.."tics "); 
+		end
+		script:write("back\n"); 
+	end
+
+	-- logscale
+	if logscale then
+		for _, dim in ipairs(DimNames) do
+			if logscale[dim] then
+				script:write("set logscale "..dim.."\n");
+			end
+		end
+	end
+	
+	-- remove key (legend)
+	if not(key) then script:write ("unset key\n") end
+
+	-- range
+	script:write ("set autoscale\n")
+	for _, dim in ipairs({"x", "y", "z"}) do	
+		if range[dim] then
+			script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
+		end
+	end
+
+	-- write additional options, passed as strings
+	for _, userParam in ipairs(options) do
+		if userParam and type(userParam) == "string" then
+			script:write(userParam.."\n")
+		end
+	end	
+
+	-- multiplot sizes
+	if multiplot then
+		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
+		script:write(" title '"..title.."' \n\n" )	
+	end
+
+	----------------------------------------------------------------------------
+	-- Write data sets
+	----------------------------------------------------------------------------
+
+	for i, source in ipairs(datasource) do
+	
+		-- get the data column mapping
+		local map = "";
+		if     #source == 2 then map = source[1]..":"..source[2]
+		elseif #source == 3 then map = source[1]..":"..source[2]..":"..source[3]
+		else
+			if plotDim == 2 then map = "1:2"
+			else map = "1:2:3" end
+		end
+
+		-- special 3d treatment
+		if plotDim == 3 then
+			script:write("set surface\n") 
+			script:write("unset contour\n") 
+		end
+		
+		-- determine the plot style - data source table has priority
+		local style = source.style
+		if not style then
+			if plotDim == 3 then style = "points"
+			else				 style = "linespoints" end
+		end
+		
+		-- check style		
+		if not table.contains({"lines","points","linespoints","boxes","dots","vectors","yerrorbars"}, style) then
+			io.stderr:write("Gnuplot Error: style=\""..style.."\" not supported.\n");
+			exit()
+		end
+		
+		-- assign default data label if needed
+		if not source.label then source["label"] = "plot" .. i end
+
+		-- Position plots in multiplot
+		if multiplot then
+			script:write("unset title \n" )
+			
+			if multiplotjoined then
+				-- left bnd
+				if i % MultiPlotCols == 1 then 
+					script:write("unset lmargin\n") 
+					script:write("set ylabel '"..ylabel.."'\n\n")
+					script:write("set format y\n")
+				else 
+					script:write("set lmargin 0\n")
+					script:write("unset ylabel\n")
+					script:write("set format y \"\"\n")
+				end
+
+				-- right bnd
+				if i % MultiPlotCols == 0 then 
+					script:write("unset rmargin\n") 
+				else 
+					script:write("set rmargin 0\n")
+				end
+				
+				-- top bnd
+				if math.ceil(i / MultiPlotRows) == 1 then 
+					script:write("unset tmargin\n") 
+				else 
+					script:write("set tmargin 0\n")
+				end
+
+				-- bottom bnd
+				if math.ceil(i / MultiPlotRows) == MultiPlotRows then 
+					script:write("unset bmargin\n") 
+					script:write("set xlabel '"..xlabel.."'\n\n")
+					script:write("set format x\n")
+				else 
+					script:write("set bmargin 0\n")
+					script:write("unset xlabel\n")
+					script:write("set format x \"\"\n")
+				end
+			end
+		end
+
+		-- build up the plot command, layer by layer in non-multiplotmode
+		if i == 1 or multiplot then 	
+			if plotDim == 2 then script:write ("plot  \\\n");
+			else 				 script:write ("splot  \\\n"); end
+		else 				
+			script:write(", \\\n");	
+		end
+		
+		if source.file then		
+			script:write ("\"", source.file, "\"",
+							  " using ", map, 
+							  " title '", source.label, "'", 
+							  " with ", style)
+		end
+		if source.func then
+			script:write (" ", source.func," ",
+							  " title '", source.label, "'", 
+							  " with ", style)
+		end 
+		if source.data then
+			tmpDataFile = tmpPath.."tmp_"..source.label.."_"..i..".dat"
+			tmpDataFile = string.gsub(tmpDataFile, " ", "_" )
+			write_data(tmpDataFile, source.data, source.row)
+			script:write ("\"", tmpDataFile, "\"",
+							  " using ", map, 
+							  " title '", source.label, "'", 
+							  " with ", style)
+		end 
+								  
+		if multiplot then script:write("\n") end						  
+	end
+	
+	-- finish script
+	script:write ("\nunset multiplot\n");
+	script:close()
+
+	-- launch gnuplot and run in background
+	os.execute("gnuplot "..scriptName.." --persist &")
+
+	return 0
+end
+
 
 -- return a new array containing the concatenation of all of its 
 -- parameters. Scaler parameters are included in place, and array 
