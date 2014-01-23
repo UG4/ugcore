@@ -8,11 +8,30 @@ create a globally seen package (all non-local functions call then be called usin
 
 gnuplot = gnuplot or {}
 
--- writes the passed data array to file
---
--- filename			the output file
--- data				table containing the data
--- passRows		    flag indication if data array stores rows (default = false)
+gnuplot.terminals = nil
+--! list of all available terminals
+function gnuplot.available_terminals()
+
+	if not gnuplot.terminals then
+		gnuplot.terminals = {}
+		local termFile = os.tmpname()
+		os.execute("echo | gnuplot -e 'set terminal' &> "..termFile)
+		for line in io.lines(termFile) do
+			line = string.gsub (line, "Press return for more:", "")
+		 	table.insert(gnuplot.terminals, string.match (line, "%s+(%w*)%s+"))
+		end
+		os.remove(termFile)
+	end
+	
+	return gnuplot.terminals
+end
+
+--[[! writes the passed data array to file
+
+filename			the output file
+data				table containing the data
+passRows		    flag indication if data array stores rows (default = false)
+--]]
 function gnuplot.write_data(filename, data, passRows)
 
 	-- default is table data by row
@@ -195,11 +214,11 @@ options = {	title =				"Title",
 			...
 }
 
---gnuplot.plot("vibration.eps", datasource, options)
---gnuplot.plot("vibration.svg", datasource, options)
---gnuplot.plot("vibration.pdf", datasource, options)
---gnuplot.plot("vibration.tex", datasource, options)
---gnuplot.plot(nil, datasource, options)
+gnuplot.plot("vibration.eps", datasource, options)
+gnuplot.plot("vibration.svg", datasource, options)
+gnuplot.plot("vibration.pdf", datasource, options)
+gnuplot.plot("vibration.tex", datasource, options)
+gnuplot.plot(nil, datasource, options)
 
 ]]--
 -- filename		output filename
@@ -225,7 +244,7 @@ function gnuplot.plot(filename, datasource, options)
 
 	local grid = options.grid or false
 	local key = true
-	if type(options.key) == "boolean" then multiplot = options.key end
+	if type(options.key) == "boolean" then key = options.key end
 
 	local timestamp = options.timestamp or false
 	local font = options.font or "Verdana"
@@ -240,11 +259,11 @@ function gnuplot.plot(filename, datasource, options)
 	----------------------------------------------------------------------------
 
 	-- check output file name
-	if filename == nil or type(filename) ~= "string" then
-		io.stderr:write("Gnuplot Error: Filename must be a string.");
-		exit();
+	if filename then
+		filename = string.gsub(tostring(filename), " ", "_" )
+	else
+		filename = "__x11__"
 	end
-	filename = string.gsub(filename, " ", "_" )
 	
 	-- check for 2d or 3d data
 	for _, source in ipairs(datasource) do
@@ -274,7 +293,7 @@ function gnuplot.plot(filename, datasource, options)
 	if label then
 		for d, dim in ipairs(DimNames) do
 			if not(label[dim]) then 
-				range[dim] = range[d] or ""
+				label[dim] = label[d] or ""
 			end
 		end		
 	else
@@ -339,13 +358,20 @@ function gnuplot.plot(filename, datasource, options)
 		return 2
 	end
 
+	-- available terminals
+	local terminals = gnuplot.available_terminals()
+	if table.contains(terminals, "pdfcairo") then end
+	
 	-- specify the output file
 	script:write("reset\n")
 	
 	-- set terminal currently only pdf
-	if filename == nil then
+	if filename == "__x11__" then
 		script:write("set terminal x11 persist raise\n\n")
 	elseif string.find(filename, ".pdf", -4) ~= nil then
+		script:write("set term pdfcairo enhanced font '"..font..","..fontsize.."'\n\n")
+		script:write("set output \"", plotPath, filename,"\"\n\n")
+	elseif string.find(filename, ".png", -4) ~= nil then
 		script:write("set term pdfcairo enhanced font '"..font..","..fontsize.."'\n\n")
 		script:write("set output \"", plotPath, filename,"\"\n\n")
 	elseif string.find(filename, ".eps", -4) ~= nil then
@@ -364,6 +390,7 @@ function gnuplot.plot(filename, datasource, options)
 	end
 	
 	-- title and axis label
+	script:write("set encoding utf8\n")
 	script:write("set title '"..title.."'\n")
 	
 	-- labels
@@ -374,7 +401,7 @@ function gnuplot.plot(filename, datasource, options)
 	-- write timestamp
 	if timestamp then
 		if type(timestamp) == "string" then
-			script:write("set timestamp "..timestamp.."\n")
+			script:write("set timestamp '"..timestamp.."'\n")
 		else
 			script:write("set timestamp \"%H:%M:%S  %Y/%m/%d\" bottom\n")
 		end
@@ -428,7 +455,7 @@ function gnuplot.plot(filename, datasource, options)
 	-- Write data sets
 	----------------------------------------------------------------------------
 
-	for i, source in ipairs(datasource) do
+	for sourceNr, source in ipairs(datasource) do
 	
 		-- get the data column mapping
 		local map = "";
@@ -459,45 +486,49 @@ function gnuplot.plot(filename, datasource, options)
 		end
 		
 		-- assign default data label if needed
-		if not source.label then source["label"] = "plot" .. i end
+		if not source.label then source["label"] = "plot" .. sourceNr end
 
 		-- Position plots in multiplot
 		if multiplot then
 			script:write("unset title \n" )
-			
+
 			if multiplotjoined then
+				local spaceTop = 0.1
+				local spaceBottom = 0.1
+				local spaceLeft = 0.1
+				local SpaceRight = 0.1
+				
+				local rowSize = (1-spaceBottom-spaceTop)/MultiPlotRows
+				local colSize = (1-spaceLeft-SpaceRight)/MultiPlotCols
+				
+				local mpCol = ((sourceNr-1) % MultiPlotCols) + 1
+				local mpRow = math.ceil(sourceNr / MultiPlotCols)
+				
+				script:write("set tmargin at screen "..spaceBottom + (MultiPlotRows-mpRow+1)*rowSize.."\n")
+				script:write("set bmargin at screen "..spaceBottom + (MultiPlotRows-mpRow)*rowSize.."\n")
+				script:write("set rmargin at screen "..spaceLeft + (mpCol)*colSize.."\n")
+				script:write("set lmargin at screen "..spaceLeft + (mpCol-1)*colSize.."\n")
+				
 				-- left bnd
-				if i % MultiPlotCols == 1 then 
-					script:write("unset lmargin\n") 
-					script:write("set ylabel '"..ylabel.."'\n\n")
+				if mpCol == 1 then 
+					script:write("set ylabel '"..label["y"].."'\n\n")
 					script:write("set format y\n")
 				else 
-					script:write("set lmargin 0\n")
 					script:write("unset ylabel\n")
 					script:write("set format y \"\"\n")
 				end
 
 				-- right bnd
-				if i % MultiPlotCols == 0 then 
-					script:write("unset rmargin\n") 
-				else 
-					script:write("set rmargin 0\n")
-				end
+				if mpCol == MultiPlotCols then end
 				
 				-- top bnd
-				if math.ceil(i / MultiPlotRows) == 1 then 
-					script:write("unset tmargin\n") 
-				else 
-					script:write("set tmargin 0\n")
-				end
+				if mpRow == 1 then end
 
 				-- bottom bnd
-				if math.ceil(i / MultiPlotRows) == MultiPlotRows then 
-					script:write("unset bmargin\n") 
-					script:write("set xlabel '"..xlabel.."'\n\n")
+				if mpRow == MultiPlotRows then 
+					script:write("set xlabel '"..label["x"].."'\n\n")
 					script:write("set format x\n")
 				else 
-					script:write("set bmargin 0\n")
 					script:write("unset xlabel\n")
 					script:write("set format x \"\"\n")
 				end
@@ -505,7 +536,7 @@ function gnuplot.plot(filename, datasource, options)
 		end
 
 		-- build up the plot command, layer by layer in non-multiplotmode
-		if i == 1 or multiplot then 	
+		if sourceNr == 1 or multiplot then 	
 			if plotDim == 2 then script:write ("plot  \\\n");
 			else 				 script:write ("splot  \\\n"); end
 		else 				
@@ -524,9 +555,9 @@ function gnuplot.plot(filename, datasource, options)
 							  " with ", style)
 		end 
 		if source.data then
-			tmpDataFile = tmpPath.."tmp_"..source.label.."_"..i..".dat"
+			tmpDataFile = tmpPath.."tmp_"..source.label.."_"..sourceNr..".dat"
 			tmpDataFile = string.gsub(tmpDataFile, " ", "_" )
-			write_data(tmpDataFile, source.data, source.row)
+			gnuplot.write_data(tmpDataFile, source.data, source.row)
 			script:write ("\"", tmpDataFile, "\"",
 							  " using ", map, 
 							  " title '", source.label, "'", 
