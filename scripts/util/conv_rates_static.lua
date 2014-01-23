@@ -403,11 +403,11 @@ function util.rates.static.compute(ConvRateSetup)
 				for x, xCol in pairs({DoF = 1, h = 2}) do
 					local data = {{label=discType.." P_"..p, file=file, style=style, xCol, 3}}
 					
-					local file = table.concat({plotPath.."single/"..singleFile,n,x,".pdf"},"_")
+					local file = table.concat({plotPath.."single/"..singleFile,n,x..".pdf"},"_")
 					gnuplot.plot(file, data, options)			
 					
 					for _, g in ipairs({discType, "all"}) do
-						local file = table.concat({plotPath..g,head[t],f,n,x,".pdf"}, "_")	
+						local file = table.concat({plotPath..g,head[t],f,n,x..".pdf"}, "_")	
 						gpFiles[file] = gpFiles[file] or {} 				
 						gpFiles[file].title = gpNorm[n]..gpTitle[t].." for Fct "..f
 						gpFiles[file].xlabel = gpXLabel[x]
@@ -426,7 +426,7 @@ function util.rates.static.compute(ConvRateSetup)
 								title = data.title,
 								xlabel = data.xlabel,
 								ylabel = data.ylabel,
-								"set key left bottom",
+								"set key left bottom; set grid mxtics mytics;",
 							 }
 			gnuplot.plot(plotFile, data, options)
 		end
