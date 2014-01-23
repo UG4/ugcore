@@ -8,30 +8,6 @@ create a globally seen package (all non-local functions call then be called usin
 
 gnuplot = gnuplot or {}
 
-function gnuplot.getArraySizes(t)
-
-	local min = 1e1000
-	local max = 0
-	
-	for k, v in pairs(t) do
-		if type(k) == "number" and math.floor(k)==k and v ~= nil then
-			min = math.min(min, k)
-			max = math.max(max, k)
-		end
-	end
-	
-	if max == 0 and min == 1e1000 then return 0,-1 end
-	
-	local conseqMax = 0
-	for i = min, max do
-		if t[i] ~= nil then
-			conseqMax = i
-		end
-	end
-
-	return min, conseqMax
-end
-
 -- writes the passed data array to file
 --
 -- filename			the output file
