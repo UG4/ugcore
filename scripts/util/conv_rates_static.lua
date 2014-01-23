@@ -294,33 +294,48 @@ function util.rates.static.compute(ConvRateSetup)
 			end
 
 			--------------------------------------------------------------------
+			--  A custom iterator to loop all valid measurements
+			--------------------------------------------------------------------
+
+			local function imeasure(err, FctCmp, Type, Norm)
+				local type = _G.type
+				if type(err) ~= "table" or type(FctCmp) ~= "table" 
+					or type(Type) ~= "table" or type(Norm) ~= "table" then 
+					return function() end, nil, nil
+				end
+			  	local _f,_t,_n = 1,1,0
+			  	local function iter(err)
+				   	_n = _n + 1
+				   	local f,t,n = FctCmp[_f], Type[_t], Norm[_n]
+			  		while err[f] == nil or err[f][t] == nil or err[f][t][n] == nil do
+				    	_n = _n + 1    	
+				  		if _n > #Norm then _n = 1; _t = _t + 1; end
+				  		if _t > #Type then _t = 1; _f = _f + 1; end
+				  		if _f > #FctCmp then return nil end
+				   		f,t,n = FctCmp[_f], Type[_t], Norm[_n]
+					end				
+			    	return f, t, n , err[f][t][n]
+			  	end  
+			  	return iter, err, 0
+			end
+
+			--------------------------------------------------------------------
 			--  Compute Factors and Rates
 			--------------------------------------------------------------------
-	
-			for _, f in ipairs(FctCmp) do
-				for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
-					-- check if type used
-					if err[f][t] ~= nil then
-					for _, n in ipairs({"l2", "h1"}) do
 
-						-- check if norm used		
-						local meas = err[f][t][n]
-						if meas ~= nil then
-						meas.fac = meas.fac or {}
-						meas.rate = meas.rate or {}
-						
-						local value = meas.value
-						local fac = meas.fac
-						local rate = meas.rate
-						
-						for lev, _ in pairs(value) do
-							if value[lev] ~= nil and value[lev-1] ~= nil then
-								fac[lev] = value[lev-1]/value[lev]
-								rate[lev] = math.log(fac[lev]) / math.log(2)
-							end
-						end
-						end
-					end
+			for _,_,_,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
+	
+				meas.fac = meas.fac or {}
+				meas.rate = meas.rate or {}
+				
+				local value = meas.value
+				local fac = meas.fac
+				local rate = meas.rate
+				
+				for lev, _ in pairs(value) do
+					if value[lev] ~= nil and value[lev-1] ~= nil then
+						fac[lev] = value[lev-1]/value[lev]
+						rate[lev] = math.log(fac[lev]) / math.log(2)
 					end
 				end
 			end	
@@ -358,20 +373,11 @@ function util.rates.static.compute(ConvRateSetup)
 				local heading = {"L", "h", "#DoFs"}
 				local format = {"%d", "%.2e", "%d"}
 
-				for _, t in ipairs({"exact", "maxlevel", "prevlevel"}) do
-					-- check if type used
-					if err[f][t] ~= nil then
-					for _, n in ipairs({"l2", "h1"}) do
+				for _,t,n,meas in imeasure(err, {f},{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
 
-						-- check if norm used		
-						local meas = err[f][t][n]
-						if meas ~= nil then			
-							table.append(values, {meas.value, meas.rate}) 
-							table.append(heading,{head[n].." "..head[t], "rate"})
-							table.append(format, {"%.2e", "%.3f"})
-						end
-					end
-					end
+					table.append(values, {meas.value, meas.rate}) 
+					table.append(heading,{head[n].." "..head[t], "rate"})
+					table.append(format, {"%.2e", "%.3f"})
 				end
 										
 				table.print(values, {heading = heading, format = format, 
@@ -382,44 +388,31 @@ function util.rates.static.compute(ConvRateSetup)
 			--  Write Data to GnuPlot
 			--------------------------------------------------------------------
 			
-			for _, f in ipairs(FctCmp) do
-				for _, t in ipairs({"exact", "prevlevel", "maxlevel"}) do
+			for f,t,n,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
+					
+				-- write l2 and h1 to data file
+				local singleFile = table.concat({"error",head[t],n,discType,p,f},"_")
+				local file = dataPath..singleFile..".dat"
+				local dataCols = {err.numDoFs, err.h, err[f][t][n].value}
+				gnuplot.write_data(file, dataCols)
+			
+				-- create plot for single run
+				local options = {grid = true, logscale = true}
+				local style = "linespoints"
 				
-					-- check if type used
-					if err[f][t] ~= nil then
-					for _, n in ipairs({"l2", "h1"}) do
-
-						-- check if norm used		
-						local meas = err[f][t][n]
-						if meas ~= nil then
+				for x, xCol in pairs({DoF = 1, h = 2}) do
+					local data = {{label=discType.." P_"..p, file=file, style=style, xCol, 3}}
 					
-						-- write l2 and h1 to data file
-						local singleFile = table.concat({"error",head[t],n,discType,p,f},"_")
-						local file = dataPath..singleFile..".dat"
-						local dataCols = {err.numDoFs, err.h, err[f][t][n].value}
-						gnuplot.write_data(file, dataCols)
+					local file = table.concat({plotPath.."single/"..singleFile,n,x,".pdf"},"_")
+					gnuplot.plot(file, data, options)			
 					
-						-- create plot for single run
-						local options = {grid = true, logscale = true}
-						local style = "linespoints"
-						
-						for x, xCol in pairs({DoF = 1, h = 2}) do
-							local data = {{label=discType.." P_"..p, file=file, style=style, xCol, 3}}
-							
-							local file = table.concat({plotPath.."single/"..singleFile,n,x,".pdf"},"_")
-							gnuplot.plot(file, data, options)			
-							
-							for _, g in ipairs({discType, "all"}) do
-								local file = table.concat({plotPath..g,head[t],f,n,x,".pdf"}, "_")	
-								gpFiles[file] = gpFiles[file] or {} 				
-								gpFiles[file].title = gpNorm[n]..gpTitle[t].." for Fct "..f
-								gpFiles[file].xlabel = gpXLabel[x]
-								gpFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[n].."}"
-								table.append(gpFiles[file], data)
-							end
-						end	
-						end
-					end
+					for _, g in ipairs({discType, "all"}) do
+						local file = table.concat({plotPath..g,head[t],f,n,x,".pdf"}, "_")	
+						gpFiles[file] = gpFiles[file] or {} 				
+						gpFiles[file].title = gpNorm[n]..gpTitle[t].." for Fct "..f
+						gpFiles[file].xlabel = gpXLabel[x]
+						gpFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[n].."}"
+						table.append(gpFiles[file], data)
 					end
 				end	
 			end
