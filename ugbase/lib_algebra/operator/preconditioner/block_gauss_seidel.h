@@ -17,8 +17,6 @@
 #endif
 
 
-#include "../plugins/experimental/amg/src/rsamg/strong_connections.h"
-
 #include "lib_algebra/algebra_common/sparsematrix_util.h"
 #include "lib_algebra/algebra_common/local_helper.h"
 #include "lib_algebra/small_algebra/small_matrix/print.h"
@@ -26,6 +24,7 @@
 #include "common/debug_print.h"
 #include "common/progress.h"
 #include "lib_algebra/small_algebra/additional_math.h"
+
 
 namespace ug{
 
@@ -185,210 +184,7 @@ void GetSliceSparse(const TSparseMatrixType &A, const std::vector<size_t> &indic
 	R.defragment();
 }
 
-template<typename matrix_type>
-void GetStrongConnectedGraph(matrix_type &A, cgraph &g, double theta)
-{
 
-	cgraph graph;
-	graph.resize(A.num_rows());
-
-	for(size_t i=0; i< A.num_rows(); i++)
-	{
-		// Skip isolated node
-		if(A.is_isolated(i)){
-		//	UG_LOG(i << "is A-isolated!" << std::endl);
-			continue;
-		}
-
-		// Eliminate positive row entries
-		SparseVector<typename matrix_type::value_type> Ri(A.num_cols());
-		PositiveOffDiagCheck<typename matrix_type::value_type> positiveEntries;
-		EliminateEntries(positiveEntries, A, i, Ri);
-
-		// Find strong connections
-		FindStrongNegativeConnections(Ri, i, theta, graph);
-	}
-
-	g.resize(A.num_rows());
-	std::vector<bool> b;
-	std::vector<size_t> toReset;
-	b.resize(graph.size(), false);
-	for(size_t i=0; i< graph.size(); i++)
-	{
-		toReset.clear();
-		for(cgraph::row_iterator it = graph.begin_row(i); it != graph.end_row(i); ++it)
-		{
-			int j = *it;
-			g.set_connection(i, j);
-			for(cgraph::row_iterator jt = graph.begin_row(j); jt != graph.end_row(j); ++jt)
-			{
-				size_t k = *jt;
-				if(A.has_connection(i, k) == false) continue;
-				if(b[k] == true) g.set_connection(i, k);
-				else
-				{
-					b[k] = true;
-					toReset.push_back(k);
-				}
-			}
-		}
-		for(size_t k=0; k<toReset.size(); k++)
-			b [ toReset[k] ] = false;
-	}
-}
-/*
-bool DoesInterpolationOnlyFromStrongConnected
-	(cgraph &strong, matrix_type &A, std::map<size_t, size_t> &newToOld, matrix_type &P, size_t i)
-{
-	size_t newIndex;
-	if(P.num_connections(i) == 1) return false;
-
-	std::vector<size_t> parentNodes;
-	for(matrix_row_iterator it = P.begin_row(i); it != P.end_row(i); ++it)
-	{
-		size_t newIndex = it.index();
-		size_t oldIndex = newToOld[newIndex];
-		parentNodes.push_back(oldIndex);
-	}
-
-	for(size_t j=0; j<parentNodes.size(); j++)
-	{
-		size_t k = parentNodes[j];
-		if(strong.has_connection(i, k) == false)
-			return false;
-	}
-
-	return true;
-}*/
-
-template<typename matrix_type>
-void GetStrongConnectedComponents(matrix_type &A, std::vector<int> &inComp, size_t maxCompSize)
-{
-	cgraph strongG;
-	GetStrongConnectedGraph(A, strongG, 0.1);
-
-	std::vector<bool> bvisited(A.num_rows(), false);
-
-	inComp.resize(A.num_rows());
-	std::vector<std::vector<size_t> > allComps;
-
-	//if(DoesInterpolationOnlyFromStrongConnected) continue;
-	//std::vector<bool> bDoesInterpolationOnlyFromStrongConnected;
-
-
-//	for(size_t i=0; i<A.num_rows(); i++)
-//	{
-//		if(bDoesInterpolationOnlyFromStrongConnected[i]) { inComp[i] = -1; }
-//		if(A.is_isolated(i)) { inComp[i] = -2; }
-//	}
-
-	size_t components = 0;
-	for(size_t i=0; i<A.num_rows(); i++)
-	{
-		if(A.is_isolated(i)) continue;
-		if(bvisited[i]) continue;
-
-		size_t pos =0;
-		std::vector<size_t> comp;
-		comp.push_back(i);
-//		std::set<size_t> connectedwithComponent;
-
-		while(pos < comp.size())
-		{
-			size_t k = comp[pos];
-			pos++;
-			if(bvisited[k]) { assert(inComp[k] == components); continue; }
-
-			bvisited[k] = true;
-			inComp[k] = components;
-
-			//if(bDoesInterpolationOnlyFromStrongConnected[k]) continue;
-
-
-			for(cgraph::row_iterator it = strongG.begin_row(i); it != strongG.end_row(i); ++it)
-			{
-				size_t j=*it;
-
-				if(bvisited[j])
-				{
-					// -1 is special group of node for bDoesInterpolationOnlyFromStrongConnected nodes
-					if(inComp[j] == -1)
-					{
-						bvisited[j] = false;
-						comp.push_back(k);
-					}
-					continue;
-
-					/*size_t otherComp = inComp[j];
-					// check if other component
-					if(otherComp == components) // same component
-						continue;
-					else
-						connectedwithComponent.insert(otherComp);*/
-				}
-				else
-					comp.push_back(k);
-			}
-			if(comp.size() > maxCompSize)
-			{
-				// we hit the component limit. mark rest as visited.
-				while(pos < comp.size())
-					bvisited[comp[pos++]] = true;
-				break;
-			}
-		}
-
-		allComps.push_back(comp);
-		components++;
-	}
-
-	for(size_t i=0; i<components; i++)
-	{
-		UG_LOG("COMPONENT " << i << "\n");
-		for(size_t j=0; j<allComps[i].size(); j++)
-		{
-			UG_LOG(allComps[i][j] << " ");
-		}
-		UG_LOG("\n");
-	}
-}
-
-/*
-void bla(matrix_type &A, matrix_type &P)
-{
-	std::map<size_t, size_t> newToOld;
-	for(size_t i=0; i<P.num_rows(); i++)
-		if(P.num_connections() == 1)
-		{
-			size_t j = P.begin_row(i).index();
-			newToOld[j] = i;
-		}
-
-
-	cgraph strongG;
-	GetStrongConnectedGraph(A, strongG);
-
-
-	std::vector<bool> diofgc(A.num_rows(), false);
-	for(size_t i=0; i<A.num_rows(); i++)
-	{
-		if(A.is_isolated(i)) continue;
-
-		diofgc[i] = DoesInterpolationOnlyFromStrongConnected(strongG, A, newToOld, P, i);
-	}
-}*/
-
-
-
-
-/*void bla(matrix_type &A)
-{
-	cgraph graph;
-	GetStrongConnectedGraph(A, graph);
-
-
-
-}*/
 
 /**
  * BlockGaussSeidel
