@@ -262,8 +262,10 @@ function gnuplot.plot(filename, datasource, options)
 	local add_term_opt = options.add_term_opt or ""
 
 	local grid = options.grid or false
-	local key = true
-	if type(options.key) == "boolean" then key = options.key end
+	local decimalsign = options.decimalsign or "."
+	local tics = options.tics
+	local mtics = options.mtics or false
+	local key = options.key or "on"
 
 	local timestamp = options.timestamp or false	
 	local multiplot = options.multiplot or false
@@ -599,9 +601,13 @@ function gnuplot.plot(filename, datasource, options)
 	if terminal ~= "x11" then
 		script:write("set output \"", path, filename,"\" \n")
 	end
+
+	-- encoding and decimalsign
+	script:write("\nset encoding utf8\n")
+	script:write("set decimalsign '"..decimalsign.."'\n")
+	
 		
 	-- title and axis label
-	script:write("\nset encoding utf8\n")
 	script:write("set title '"..title.."'\n")
 	
 	-- labels
@@ -620,11 +626,56 @@ function gnuplot.plot(filename, datasource, options)
 		script:write("unset timestamp\n"); 
 	end
 
+	-- tics
+	script:write("set tics\n");
+	if tics ~= nil then
+		if type(tics) == "boolean" and tics == false then
+			script:write("unset tics\n"); 		
+		elseif type(tics) == "string" then 
+			script:write("set tics "..tics.."\n"); 		
+		elseif type(tics) == "table" then
+			for dim, dimTic in pairs(tics) do
+				if type(dimTic) == "boolean" and dimTic == false then 
+					script:write("unset "..dim.."tics\n"); 		
+				elseif type(dimTic) == "string" then 
+					script:write("set "..dim.."tics "..dimTic.."\n"); 		
+				end
+			end
+		end
+	end
+
+	-- mtics
+	if mtics then
+		if type(mtics) == "boolean" and mtics == true then
+			for _, dim in ipairs(DimNames) do
+					script:write("set m"..dim.."tics default\n"); 		
+			end
+		elseif type(mtics) == "number" then 
+			for _, dim in ipairs(DimNames) do
+					script:write("set m"..dim.."tics "..mtics.."\n"); 		
+			end
+		elseif type(mtics) == "table" then
+			for dim, dimTic in pairs(mtics) do
+				if type(dimTic) == "boolean" then
+				 	if dimTic == false then script:write("unset m"..dim.."tics\n"); 		
+				 	else 					script:write("set m"..dim.."tics default\n"); 
+				 	end
+				elseif type(dimTic) == "number" then 
+					script:write("set m"..dim.."tics "..dimTic.."\n"); 		
+				end
+			end
+		end
+	else
+		for _, dim in ipairs(DimNames) do
+				script:write("unset m"..dim.."tics\n"); 		
+		end
+	end
+	
 	-- enable grid
 	if grid then
 		script:write("set grid ")
 		for _, dim in ipairs(DimNames) do
-			script:write(dim.."tics "); 
+			script:write(dim.."tics m"..dim.."tics "); 
 		end
 		script:write("back\n"); 
 	end
@@ -638,8 +689,8 @@ function gnuplot.plot(filename, datasource, options)
 		end
 	end
 	
-	-- remove key (legend)
-	if not(key) then script:write ("unset key\n") end
+	-- add key (legend)
+	if key then script:write ("set key "..key.."\n") end
 
 	-- range
 	script:write ("set autoscale\n")
