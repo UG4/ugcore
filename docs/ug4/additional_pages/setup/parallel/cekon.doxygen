@@ -15,22 +15,40 @@ computing cores.
     There are some problems with the pre-installed <em>GCC 4.1.2</em>, see 
     \ref secCMake_GCC412 .
     You can also use <tt>icc</tt> as compiler.
+    <br>
+    
+        
   </li>
-  <li>The <em>Job Scheduler</em> on \em Cekon is supported by \c ugsubmit / 
-    \c uginfo / \c ugcancel (\ref pageugsubmit).
+  <li>
+  You can also use llvm/clang as compiler: <br>
+\verbatim
+cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ..
+\endverbatim
+	\note Clang only produces debug information in the Dwarf4-format, which is not supported by gdb on this machine. Use ddt instead.
+  <br>  
+  <li>To start <b>Jobs on Cekon</b>, use \c ugsubmit /   \c uginfo / \c ugcancel : <br>
+   \ref pageugsubmit .
 
-    If you want to do job scheduling manually:<br>
-    Start your job with
+	To start a job with 16 processes and arguments <tt>-ex conv_diff/laplace.lua -numPreRef 3 -numRefs 9</tt>, use
+\verbatim
+ugsubmit 16 --- ugshell -ex conv_diff/laplace.lua -numPreRef 3 -numRefs 9 
+\endverbatim
+	For information about your jobs use <tt>uginfo</tt>, to kill job with id 2359 use <tt>ugcancel 2359</tt>
+	Internally, ugsubmit will pass all the information to the appropriate Job Scheduler of the cluster (for cekon this is SLURM).   
+  <li>
+    If you want to do job scheduling, start your job with
     \verbatim
-salloc -n <NP> mpirun ugshell $UGARGS
+salloc -n 16 mpirun ugshell -ex conv_diff/laplace.lua -numPreRef 3 -numRefs 9
     \endverbatim
+    \note Be aware that this will only run on Cekon, where ugsubmit-scripts are as easy to use and will run on a number of clusters.
+        
     Please note that ony the <tt>salloc</tt> parameter <tt>-n</tt> reserves a 
     number of processes / cores of a job, while <tt>-N</tt> (capital \c N) a 
     number of nodes.
-    See the <tt>salloc</tt> manual page for further details.
-  </li>
-  <li>To display information about jobs already running (located in the 
+    See the <tt>salloc</tt> manual page for further details.<br>
+  To display information about jobs already running (located in the 
     \em SLURM scheduling queue) use the <tt>squeue</tt> command.
+    
   </li>
   <li>\b Debugging : If \em DDT is installed, simply type <tt>ddt</tt> in the 
     Unix shell to start the Debugger and fill in the job definition of the job 
@@ -46,7 +64,7 @@ salloc -n <NP> mpirun ugshell $UGARGS
   \em cekon you might have ignored the general remark in section \ref secGeneral_Notes
 
 \verbatim
-salloc -n 64 ./ugshell -ex ../scripts/laplace.lua -numPreRefs 3 -numRefs 7
+salloc -n 64 ./ugshell -ex conv_diff/laplace.lua -numPreRefs 3 -numRefs 7
 salloc: Granted job allocation 14437
 libibverbs: Warning: RLIMIT_MEMLOCK is 32768 bytes.
     This will severely limit memory registrations.
