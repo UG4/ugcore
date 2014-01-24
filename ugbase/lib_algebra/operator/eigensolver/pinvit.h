@@ -666,6 +666,30 @@ public:
 
 	}
 
+	void get_max_deflection_of_a_mode(vector_type& maxDeflect, vector_type& u,
+			const vector_type& eigenVec, const matrix_type& B)
+	{
+		u.change_storage_type(PST_CONSISTENT);
+
+		SmartPtr<vector_type> Bv = u.clone_without_values();
+		SmartPtr<vector_type> vwBv = u.clone_without_values();
+
+		//	compute Bv = B * eigenVec;
+		B.axpy(*Bv, 0.0, eigenVec, 1.0, eigenVec);
+
+		//	vwBv = eigenVec * < u, Bv >
+		number scalarProd = 0.0;
+		for(size_t i = 0; i < u.size(); i++)
+			scalarProd += VecProd((*Bv)[i], u[i]);
+
+		for(size_t i = 0; i < u.size(); i++)
+		{
+			(*vwBv)[i] = eigenVec[i] * scalarProd;
+			//	maxDeflect += vwBv
+			maxDeflect[i] = maxDeflect[i] + (*vwBv)[i];
+		}
+	}
+
 private:
 	void write_debug(int iteration, int i, vector_type &x, vector_type &defect, vector_type &corr, bool bConverged)
 	{
@@ -1012,9 +1036,6 @@ private:
 		}UG_CATCH_THROW("PINVIT::get_projected_eigenvalue_problem failed.");
 
 	}
-
-
-
 
 };
 

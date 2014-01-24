@@ -80,6 +80,7 @@ static void Algebra(Registry& reg, string grp)
 			.add_method("set_print_used_testvectors", &T::set_print_used_testvectors, "", "b")
 			.add_method("set_pinvit", &T::set_pinvit, "", "iPINVIT", "1 = preconditioned inverse block iteration, 2 = preconditioned block gradient descent, 3 = LOBPCG")
 			.add_method("set_linear_dependent_eps", &T::set_linear_dependent_eps)
+			.add_method("get_max_deflection_of_a_mode", &T::get_max_deflection_of_a_mode, "maximal deflection of a mode", "composed mode and eigenvectors,")
 			.add_method("apply", &T::apply);
 
 		reg.add_class_to_group(name, "EigenSolver", tag);
