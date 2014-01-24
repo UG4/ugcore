@@ -258,6 +258,7 @@ function gnuplot.plot(filename, datasource, options)
 	local fontscale = options.fontscale or 1
 	local linewidth = options.linewidth or 1
 	local dashlength = options.dashlength or 1
+	local add_term_opt = options.add_term_opt or ""
 
 	local grid = options.grid or false
 	local key = true
@@ -495,6 +496,9 @@ function gnuplot.plot(filename, datasource, options)
 		term.dashlength = "dl "..dashlength
 	end
 	
+	-- { rounded |Êbutt}
+	-- currently not supported, since not needed - butt seems always good
+	
 	
 	--- PDF 
 	if     terminal == "pdf" or terminal == "pdfcairo" then
@@ -555,6 +559,7 @@ function gnuplot.plot(filename, datasource, options)
 		script:write(" "..term.font)
 		script:write(" "..term.linewidth)
 		script:write(" "..term.dashlength)
+		script:write(" "..add_term_opt)
 		
 		script:write("\n")
 		
