@@ -241,20 +241,29 @@ function gnuplot.plot(filename, datasource, options)
 	local range = options.range or {}
 	local logscale = options.logscale or false
 	local plotDim = options.dim
-	local size = options.size
+	
 	local terminal = options.terminal
 	local cairo = true
 	if type(options.cairo) == "boolean" then cairo = options.cairo end
 	local path = options.path or "./" -- output of data
 
+	local size = options.size
+	local color = true
+	if type(options.color) == "boolean" then color = options.color end
+	local enhanced = true
+	if type(options.enhanced) == "boolean" then enhanced = options.enhanced end
+	local dashed = options.dashed or false
+	local font = options.font or "Verdana"
+	local fontsize = options.fontsize or 12
+	local fontscale = options.fontscale or 1
+	local linewidth = options.linewidth or 1
+	local dashlength = options.dashlength or 1
+
 	local grid = options.grid or false
 	local key = true
 	if type(options.key) == "boolean" then key = options.key end
 
-	local timestamp = options.timestamp or false
-	local font = options.font or "Verdana"
-	local fontsize = options.fontsize or 10
-	
+	local timestamp = options.timestamp or false	
 	local multiplot = options.multiplot or false
 	local multiplotjoined = options.multiplotjoined or false	
 	local multiplotrows = options.multiplotrows
@@ -346,9 +355,9 @@ function gnuplot.plot(filename, datasource, options)
 	-- available terminals
 	local availTerms = gnuplot.available_terminals()
 	local supportedTerms = {"x11", 
-								"pdfcairo", "pdf", "epscairo", "postscript",
-					   			"pngcairo", "png", "svg", 
-					   			"tikz", "cairolatex", "epslatex"}
+							"pdfcairo", "pdf", "epscairo", "postscript",
+					   		"pngcairo", "png", "svg", 
+					   		"tikz", "cairolatex", "epslatex"}
 		
 	-- if terminal not given explicitly, try to detect
 	if terminal == nil then
@@ -408,42 +417,107 @@ function gnuplot.plot(filename, datasource, options)
 		io.stderr:write("Gnuplot Error: supported are: "..table.concat(supportedTerms, ", ").."\n")
 		return 2				
 	end	
-		
+	
+	
+	local supportedTerms = {"x11", 
+							"pdfcairo", "pdf", "epscairo", "postscript",
+				   			"pngcairo", "png", "svg", 
+				   			"tikz", "cairolatex", "epslatex"}
+	
 	local term = {}
+	
+	-- { enhanced |Ênoenhanced }
+	term.enhanced = "" -- no support: tikz, cairolatex, epslatex
+	if table.contains({"pdfcairo", "pdf", "epscairo", "postscript",
+			   			"pngcairo", "png", "svg"}, terminal) then
+		if enhanced then term.enhanced = "enhanced"
+		else 			 term.enhanced = "noenhanced" end
+	end
+	
+	-- {color |Êmono}
+	term.color = "" -- no support: svg, png 
+	if color then
+		if table.contains({"pdfcairo","epscairo","pngcairo", 
+							"pdf","postscript","tikz","cairolatex","epslatex"}, terminal) then
+			term.color = "color"
+		end
+	else
+		if table.contains({"pdfcairo","epscairo","pngcairo","cairolatex"}, terminal) then
+			term.color = "mono"	
+		elseif table.contains({"pdf","postscript","tikz","epslatex"}, terminal) then
+			term.color = "monochrome"
+		end
+	end
+	
+	-- font + fontsize + fontscale
+	-- NOTE: for tex, the font should be controled within latex
+	
+	-- NOTE: default fontscale is 0.5 for {pdf/eps}cairo [who invented that ...!? crazy!]
+	if table.contains({"pdfcairo","epscairo"}, terminal) 	then
+		fontscale = fontscale * 0.5
+	end
+	
+	term.font = "" -- no support: tikz, cairolatex, epslatex
+	if table.contains({"pdfcairo","epscairo","pngcairo", 
+						"pdf","postscript","png"}, terminal) 
+	then
+		term.font = "font '"..font..","..fontsize.."' fontscale "..fontscale	
+	elseif table.contains({"svg"}, terminal) then
+		term.font = "font '"..font..","..fontsize.."'"	
+	end	
+	
+	-- { solid |Êdashed}
+	term.dashed = "" -- no support: svg, png 
+	if table.contains({"pdfcairo","epscairo","pngcairo", 
+						"pdf","postscript","tikz","cairolatex","epslatex"}, terminal) then
+		if dashed or not color then
+			term.dashed = "dashed"
+		else
+			term.dashed = "solid"
+		end
+	end
+	
+	-- linewidth
+	term.linewidth = "" -- no support: 
+	if table.contains({"pdfcairo","epscairo","pngcairo", 
+						"pdf","postscript","png","svg","cairolatex","epslatex"}, terminal) 
+	then
+		term.linewidth = "linewidth "..linewidth
+	end	
+	
+	-- dashlength
+	term.dashlength = "" -- no support: svg
+	if table.contains({"pdfcairo","epscairo","pngcairo", 
+						"postscript","png","cairolatex","epslatex"}, terminal) 
+	then
+		term.dashlength = "dashlength "..dashlength
+	elseif table.contains({"pdf"}, terminal) then
+		term.dashlength = "dl "..dashlength
+	end
+	
+	
 	--- PDF 
 	if     terminal == "pdf" or terminal == "pdfcairo" then
-		term.enhanced = "enhanced"	
-		term.font = "font '"..font..","..fontsize.."'"	
 		term.sizeFactor = 1/100
 		
 	--- PNG 
 	elseif terminal == "png" or terminal == "pngcairo" then
-		term.enhanced = "enhanced"	
-		term.font = "font '"..font..","..fontsize.."'"	
 		term.sizeFactor = 1
 		
 	--- EPS 
 	elseif terminal == "postscript" then
 		terminal = "postscript eps"
-		term.enhanced = "enhanced"	
-		term.font = "font '"..font..","..fontsize.."'"	
 		term.sizeFactor = 1/100
 	
 	elseif terminal == "epscairo"  then
-		term.enhanced = "enhanced"	
-		term.font = "font '"..font..","..fontsize.."'"	
 		term.sizeFactor = 1/100
 		
 	--- SVG 
 	elseif terminal == "svg" then
-		term.enhanced = "enhanced"	
-		term.font = "fname '"..font.."' fsize "..fontsize	
 		term.sizeFactor = 1
 		
 	--- TEX 
 	elseif terminal == "tikz" or terminal == "cairolatex" or terminal == "epslatex" then
-		term.enhanced = ""	
-		term.font = ""
 		term.sizeFactor = 1
 	end
 
@@ -476,7 +550,12 @@ function gnuplot.plot(filename, datasource, options)
 			script:write(" size "..term.sizeFactor*size[1]..","..term.sizeFactor*size[2])
 		end
 		script:write(" "..term.enhanced)
+		script:write(" "..term.color)
+		script:write(" "..term.dashed)
 		script:write(" "..term.font)
+		script:write(" "..term.linewidth)
+		script:write(" "..term.dashlength)
+		
 		script:write("\n")
 		
 		script:write("set output \"", path, filename,"\" \n")
