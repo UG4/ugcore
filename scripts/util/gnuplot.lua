@@ -365,6 +365,8 @@ function gnuplot.plot(filename, datasource, options)
 		if filename == nil then
 			if table.contains(availTerms, "x11") then
 				terminal = "x11"	
+				-- for interactive, add persitance
+				add_term_opt = add_term_opt.." persist raise"
 			else
 				io.stderr:write("Gnuplot: no terminal for interactive found.\n")
 				return 2			
@@ -419,18 +421,13 @@ function gnuplot.plot(filename, datasource, options)
 		return 2				
 	end	
 	
-	
-	local supportedTerms = {"x11", 
-							"pdfcairo", "pdf", "epscairo", "postscript",
-				   			"pngcairo", "png", "svg", 
-				   			"tikz", "cairolatex", "epslatex"}
-	
+
 	local term = {}
 	
 	-- { enhanced |Ênoenhanced }
 	term.enhanced = "" -- no support: tikz, cairolatex, epslatex
 	if table.contains({"pdfcairo", "pdf", "epscairo", "postscript",
-			   			"pngcairo", "png", "svg"}, terminal) then
+			   			"pngcairo", "png", "svg", "x11"}, terminal) then
 		if enhanced then term.enhanced = "enhanced"
 		else 			 term.enhanced = "noenhanced" end
 	end
@@ -463,14 +460,14 @@ function gnuplot.plot(filename, datasource, options)
 						"pdf","postscript","png"}, terminal) 
 	then
 		term.font = "font '"..font..","..fontsize.."' fontscale "..fontscale	
-	elseif table.contains({"svg"}, terminal) then
+	elseif table.contains({"svg", "x11"}, terminal) then
 		term.font = "font '"..font..","..fontsize.."'"	
 	end	
 	
 	-- { solid |Êdashed}
 	term.dashed = "" -- no support: svg, png 
 	if table.contains({"pdfcairo","epscairo","pngcairo", 
-						"pdf","postscript","tikz","cairolatex","epslatex"}, terminal) then
+						"pdf","postscript","tikz","cairolatex","epslatex", "x11"}, terminal) then
 		if dashed or not color then
 			term.dashed = "dashed"
 		else
@@ -478,10 +475,13 @@ function gnuplot.plot(filename, datasource, options)
 		end
 	end
 	
+	-- { rounded |Êbutt}
+	-- currently not supported, since not needed - butt seems always good
+	
 	-- linewidth
 	term.linewidth = "" -- no support: 
 	if table.contains({"pdfcairo","epscairo","pngcairo", 
-						"pdf","postscript","png","svg","cairolatex","epslatex"}, terminal) 
+						"pdf","postscript","png","svg","cairolatex","epslatex", "x11"}, terminal) 
 	then
 		term.linewidth = "linewidth "..linewidth
 	end	
@@ -494,37 +494,11 @@ function gnuplot.plot(filename, datasource, options)
 		term.dashlength = "dashlength "..dashlength
 	elseif table.contains({"pdf"}, terminal) then
 		term.dashlength = "dl "..dashlength
-	end
+	end	
 	
-	-- { rounded |Êbutt}
-	-- currently not supported, since not needed - butt seems always good
-	
-	
-	--- PDF 
-	if     terminal == "pdf" or terminal == "pdfcairo" then
-		term.sizeFactor = 1/100
+	-- fix postscript (that is actually only used for eps)
+	if terminal == "postscript" then terminal = "postscript eps" end
 		
-	--- PNG 
-	elseif terminal == "png" or terminal == "pngcairo" then
-		term.sizeFactor = 1
-		
-	--- EPS 
-	elseif terminal == "postscript" then
-		terminal = "postscript eps"
-		term.sizeFactor = 1/100
-	
-	elseif terminal == "epscairo"  then
-		term.sizeFactor = 1/100
-		
-	--- SVG 
-	elseif terminal == "svg" then
-		term.sizeFactor = 1
-		
-	--- TEX 
-	elseif terminal == "tikz" or terminal == "cairolatex" or terminal == "epslatex" then
-		term.sizeFactor = 1
-	end
-
 	----------------------------------------------------------------------------
 	-- Write script header
 	----------------------------------------------------------------------------
@@ -546,26 +520,22 @@ function gnuplot.plot(filename, datasource, options)
 	script:write("reset\n")
 		
 	-- set terminal currently only pdf
-	if terminal == "x11" then
-		script:write("set terminal x11 enhanced persist raise \n")
-	else
-		script:write("set term "..terminal)
-		if size then
-			script:write(" size "..term.sizeFactor*size[1]..","..term.sizeFactor*size[2])
-		end
-		script:write(" "..term.enhanced)
-		script:write(" "..term.color)
-		script:write(" "..term.dashed)
-		script:write(" "..term.font)
-		script:write(" "..term.linewidth)
-		script:write(" "..term.dashlength)
-		script:write(" "..add_term_opt)
+	script:write("set term "..terminal)
+	if size then script:write(" size "..size[1]..","..size[2]) end
+	script:write(" "..term.enhanced)
+	script:write(" "..term.color)
+	script:write(" "..term.dashed)
+	script:write(" "..term.font)
+	script:write(" "..term.linewidth)
+	script:write(" "..term.dashlength)
+	script:write(" "..add_term_opt)
+	
+	script:write("\n")
 		
-		script:write("\n")
-		
+	if terminal ~= "x11" then
 		script:write("set output \"", path, filename,"\" \n")
 	end
-	
+		
 	-- title and axis label
 	script:write("\nset encoding utf8\n")
 	script:write("set title '"..title.."'\n")
