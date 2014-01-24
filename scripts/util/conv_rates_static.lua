@@ -359,7 +359,7 @@ function util.rates.static.compute(ConvRateSetup)
 		
 			local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
 							
-			local gpXLabel ={ DoF = "# DoFs",	h = "h (mesh size)"}
+			local gpXLabel ={ DoF = "DoFs",	h = "h (mesh size)"}
 
 			--------------------------------------------------------------------
 			--  Write Data to Screen
@@ -401,17 +401,17 @@ function util.rates.static.compute(ConvRateSetup)
 				local style = "linespoints"
 				
 				for x, xCol in pairs({DoF = 1, h = 2}) do
-					local data = {{label=discType.." P_"..p, file=file, style=style, xCol, 3}}
+					local data = {{label=discType.." $P_"..p.."$", file=file, style=style, xCol, 3}}
 					
-					local file = table.concat({plotPath.."single/"..singleFile,n,x..".pdf"},"_")
+					local file = table.concat({plotPath.."single/"..singleFile,n,x..".tex"},"_")
 					gnuplot.plot(file, data, options)			
 					
 					for _, g in ipairs({discType, "all"}) do
-						local file = table.concat({plotPath..g,head[t],f,n,x..".pdf"}, "_")	
+						local file = table.concat({plotPath..g,head[t],f,n,x..".tex"}, "_")	
 						gpFiles[file] = gpFiles[file] or {} 				
-						gpFiles[file].title = gpNorm[n]..gpTitle[t].." for Fct "..f
+						gpFiles[file].title = "$"..gpNorm[n].."$"..gpTitle[t].." for Fct "..f
 						gpFiles[file].xlabel = gpXLabel[x]
-						gpFiles[file].ylabel = "|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[n].."}"
+						gpFiles[file].ylabel = "$|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[n].."}$"
 						table.append(gpFiles[file], data)
 					end
 				end	
