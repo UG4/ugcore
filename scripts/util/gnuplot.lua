@@ -248,6 +248,7 @@ function gnuplot.plot(filename, datasource, options)
 	local path = options.path or "./" -- output of data
 
 	local size = options.size
+	local sizeunit = options.sizeunit or "inch"
 	local color = true
 	if type(options.color) == "boolean" then color = options.color end
 	local enhanced = true
@@ -365,8 +366,9 @@ function gnuplot.plot(filename, datasource, options)
 		if filename == nil then
 			if table.contains(availTerms, "x11") then
 				terminal = "x11"	
-				-- for interactive, add persitance
+				-- for interactive, add persitance; size is automatic
 				add_term_opt = add_term_opt.." persist raise"
+				size = nil
 			else
 				io.stderr:write("Gnuplot: no terminal for interactive found.\n")
 				return 2			
@@ -420,9 +422,71 @@ function gnuplot.plot(filename, datasource, options)
 		io.stderr:write("Gnuplot Error: supported are: "..table.concat(supportedTerms, ", ").."\n")
 		return 2				
 	end	
-	
+
+	----------------------------------------------------------------------------
+	-- terminal options
+	----------------------------------------------------------------------------	
 
 	local term = {}
+
+	-- size of canvas
+	-- Note: 1 inch = 72 pt = 2.54 cm
+	local dpi = 72
+	local inchINcm = 2.54
+	term.size = "" -- on support: x11
+	if size then
+		if type(size) ~= "table" or #size ~= 2 then
+			io.stderr:write("Gnuplot: specify size with table of {<x>,<y>}\n")
+			return 2				
+		end
+	
+		-- for vector graphics use cm 
+		if table.contains({"pdfcairo", "pdf", "epscairo", "postscript",
+			   			   "tikz","cairolatex","epslatex"}, terminal) 
+		then
+			local s = {size[1], size[2]}
+			if sizeunit == "cm" then
+				-- we express it in cm
+			elseif sizeunit == "mm" then
+				s[1] = s[1] * 0.1
+				s[2] = s[2] * 0.1
+			elseif sizeunit == "inch" or sizeunit == "in" then
+				s[1] = s[1] * inchINcm
+				s[2] = s[2] * inchINcm
+			elseif sizeunit == "pt" or sizeunit == "pixel" then
+				s[1] = s[1] * (inchINcm/dpi)			
+				s[2] = s[2] * (inchINcm/dpi)			
+			else
+				io.stderr:write("Gnuplot: sizeunit invalid. use: cm, mm, in, inch, pt, pixel\n")
+				return 2				
+			end	
+			
+			term.size = "size "..s[1].."cm,"..s[2].."cm"
+		end	
+		
+		-- for pictures (non-vector) use pixel
+		if table.contains({"pngcairo", "png", "svg"}, terminal)
+		then
+			local s = {size[1], size[2]}
+			if sizeunit == "pt" or sizeunit == "pixel" then
+				-- we express it in pt
+			elseif sizeunit == "inch" or sizeunit == "in" then
+				s[1] = s[1] * dpi
+				s[2] = s[2] * dpi
+			elseif sizeunit == "cm" then
+				s[1] = s[1] * (dpi/inchINcm)			
+				s[2] = s[2] * (dpi/inchINcm)			
+			elseif sizeunit == "mm" then
+				s[1] = s[1] * (dpi/inchINcm) * 0.1
+				s[2] = s[2] * (dpi/inchINcm) * 0.1
+			else
+				io.stderr:write("Gnuplot: sizeunit invalid. use: cm, mm, in, inch, pt, pixel\n")
+				return 2				
+			end		
+			
+			term.size = "size "..s[1]..","..s[2]
+		end		
+	end
 	
 	-- { enhanced |Ênoenhanced }
 	term.enhanced = "" -- no support: tikz, cairolatex, epslatex
@@ -521,7 +585,7 @@ function gnuplot.plot(filename, datasource, options)
 		
 	-- set terminal currently only pdf
 	script:write("set term "..terminal)
-	if size then script:write(" size "..size[1]..","..size[2]) end
+	script:write(" "..term.size)
 	script:write(" "..term.enhanced)
 	script:write(" "..term.color)
 	script:write(" "..term.dashed)
