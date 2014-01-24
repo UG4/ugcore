@@ -242,8 +242,10 @@ function gnuplot.plot(filename, datasource, options)
 	local logscale = options.logscale or false
 	local plotDim = options.dim
 	local size = options.size
+	local terminal = options.terminal
 	local cairo = true
 	if type(options.cairo) == "boolean" then cairo = options.cairo end
+	local path = options.path or "./" -- output of data
 
 	local grid = options.grid or false
 	local key = true
@@ -338,18 +340,121 @@ function gnuplot.plot(filename, datasource, options)
 	end
 
 	----------------------------------------------------------------------------
+	-- Detect terminal
+	----------------------------------------------------------------------------
+		
+	-- available terminals
+	local availTerms = gnuplot.available_terminals()
+	local supportedTerms = {"x11", 
+								"pdfcairo", "pdf", "epscairo", "postscript",
+					   			"pngcairo", "png", "svg", 
+					   			"tikz", "cairolatex", "epslatex"}
+		
+	-- if terminal not given explicitly, try to detect
+	if terminal == nil then
+		if filename == nil then
+			if table.contains(availTerms, "x11") then
+				terminal = "x11"	
+			else
+				io.stderr:write("Gnuplot: no terminal for interactive found.\n")
+				return 2			
+			end		
+		else
+			local ending = string.sub(filename, -4)
+			--- PDF 
+			if     ending == ".pdf" then
+				if 		table.contains(availTerms, "pdf") 			then terminal = "pdf"	
+				elseif 	table.contains(availTerms, "pdfcairo")  	then terminal = "pdfcairo"	end
+				if cairo and table.contains(availTerms, "pdfcairo") then terminal = "pdfcairo" end
+								
+			--- EPS 
+			elseif ending == ".eps" then
+				if 		table.contains(availTerms, "postscript") 	then terminal = "postscript"	
+				elseif 	table.contains(availTerms, "epscairo")  	then terminal = "epscairo"	end
+				if cairo and table.contains(availTerms, "epscairo") then terminal = "epscairo" end
+				
+			--- PNG 
+			elseif ending == ".png" then
+				if 		table.contains(availTerms, "png") 			then terminal = "png"	
+				elseif 	table.contains(availTerms, "pngcairo")  	then terminal = "pngcairo"	end
+				if cairo and table.contains(availTerms, "pngcairo") then terminal = "pngcairo" end
+				
+			--- SVG 
+			elseif ending == ".svg" then
+				if table.contains(availTerms, "svg")	then terminal = "svg" end
+				
+			--- TEX 
+			elseif ending == ".tex" then
+				if table.contains(availTerms, "tikz")			then terminal = "tikz"		
+				elseif table.contains(availTerms, "epslatex") 	then terminal = "epslatex"		
+				elseif table.contains(availTerms, "cairolatex")	then terminal = "cairolatex" end		
+				if cairo and table.contains(availTerms, "cairolatex") then terminal = "cairolatex" end			
+			end	
+		end
+		
+		-- if still nil, error
+		if terminal == nil then
+			io.stderr:write("Gnuplot Error: cannot deduce terminal for: '"..filename.."'\n")
+			io.stderr:write("Gnuplot: Supported endings: pdf, eps, png, svg, tex.\n")
+			io.stderr:write("Gnuplot: Supported Terminals: "..table.concat(supportedTerms, ", ").."\n")
+			io.stderr:write("Gnuplot: Available Terminals: "..table.concat(availTerms, ", ").."\n")
+			return 2			
+		end		
+	end
+		
+	-- check valid term
+	if not table.contains(supportedTerms, terminal) then
+		io.stderr:write("Gnuplot Error: unsupprted terminal: '"..terminal.."'\n")
+		io.stderr:write("Gnuplot Error: supported are: "..table.concat(supportedTerms, ", ").."\n")
+		return 2				
+	end	
+		
+	local term = {}
+	--- PDF 
+	if     terminal == "pdf" or terminal == "pdfcairo" then
+		term.enhanced = "enhanced"	
+		term.font = "font '"..font..","..fontsize.."'"	
+		term.sizeFactor = 1/100
+		
+	--- PNG 
+	elseif terminal == "png" or terminal == "pngcairo" then
+		term.enhanced = "enhanced"	
+		term.font = "font '"..font..","..fontsize.."'"	
+		term.sizeFactor = 1
+		
+	--- EPS 
+	elseif terminal == "postscript" then
+		terminal = "postscript eps"
+		term.enhanced = "enhanced"	
+		term.font = "font '"..font..","..fontsize.."'"	
+		term.sizeFactor = 1/100
+	
+	elseif terminal == "epscairo"  then
+		term.enhanced = "enhanced"	
+		term.font = "font '"..font..","..fontsize.."'"	
+		term.sizeFactor = 1/100
+		
+	--- SVG 
+	elseif terminal == "svg" then
+		term.enhanced = "enhanced"	
+		term.font = "fname '"..font.."' fsize "..fontsize	
+		term.sizeFactor = 1
+		
+	--- TEX 
+	elseif terminal == "tikz" or terminal == "cairolatex" or terminal == "epslatex" then
+		term.enhanced = ""	
+		term.font = ""
+		term.sizeFactor = 1
+	end
+
+	----------------------------------------------------------------------------
 	-- Write script header
 	----------------------------------------------------------------------------
+
+	if filename then filename = string.gsub(tostring(filename), " ", "_" )
+	else filename = "__name__" end
 	
-	-- open a temporary script file
-	local tmpPath = "./tmp-gnuplot/" -- some tmp path
-	local plotPath = "./" -- output of data
-	if filename then
-		filename = string.gsub(tostring(filename), " ", "_" )
-	else
-		filename = "__x11__"
-	end
-	
+	local tmpPath = path.."tmp-gnuplot/" -- some tmp path
 	if not(DirectoryExists(tmpPath)) then CreateDirectory(tmpPath) end
 	local scriptName = tmpPath.."tmp_gnuplot_script_"..string.gsub(filename, "[./]", "_")..".gnu"
 	local script = io.open(scriptName, "w+")
@@ -361,113 +466,24 @@ function gnuplot.plot(filename, datasource, options)
 
 	-- start the output file
 	script:write("reset\n")
-
-	-- available terminals
-	local terminals = gnuplot.available_terminals()
-	if table.contains(terminals, "pdfcairo") then end
-		
-	local term = {}
-	if filename ~= "__x11__" then
-		local ending = string.sub(filename, -4)
-		--- PDF 
-		if     ending == ".pdf" then
-			if cairo and table.contains(terminals, "pdfcairo") then
-				term.term = "pdfcairo"	
-			elseif table.contains(terminals, "pdf")	then
-				term.term = "pdf"	
-			else
-				io.stderr:write("Gnuplot: no terminal for '*.pdf' found.\n")
-				return 2			
-			end		
-			term.enhanced = "enhanced"	
-			term.font = "font '"..font..","..fontsize.."'"	
-			term.sizeFactor = 1/100
-			
-		--- PNG 
-		elseif ending == ".png" then
-			if cairo and table.contains(terminals, "pngcairo") then
-				term.term = "pngcairo"		
-			elseif table.contains(terminals, "png")	then
-				term.term = "png"		
-			else
-				io.stderr:write("Gnuplot: no terminal for '*.png' found.\n")
-				return 2			
-			end		
-			term.enhanced = "enhanced"	
-			term.font = "font '"..font..","..fontsize.."'"	
-			term.sizeFactor = 1
-			
-		--- EPS 
-		elseif ending == ".eps" then
-			if cairo and table.contains(terminals, "epscairo") then
-				term.term = "epscairo"		
-			elseif table.contains(terminals, "postscript")	then
-				term.term = "postscript eps"		
-			else
-				io.stderr:write("Gnuplot: no terminal for '*.eps' found.\n")
-				return 2			
-			end		
-			term.enhanced = "enhanced"	
-			term.font = "font '"..font..","..fontsize.."'"	
-			term.sizeFactor = 1/100
-			
-		--- SVG 
-		elseif ending == ".svg" then
-			if not table.contains(terminals, "svg") then
-				io.stderr:write("Gnuplot: no terminal for '*.svg' found.\n")
-				return 2						
-			end
-			term.term = "svg"		
-			term.enhanced = "enhanced"	
-			term.font = "fname '"..font.."' fsize "..fontsize	
-			term.sizeFactor = 1
-			
-		--- TEX 
-		elseif ending == ".tex" then
-			if table.contains(terminals, "tikz")	then
-				term.term = "tikz"		
-			elseif cairo and table.contains(terminals, "cairolatex") then
-				term.term = "cairolatex pdf"		
-				term.font = "color colortext font '"..font..","..fontsize.."'"	
-			elseif table.contains(terminals, "epslatex")	then
-				term.term = "epslatex"		
-				term.font = "color colortext font '"..font..","..fontsize.."'"	
-			else
-				io.stderr:write("Gnuplot: no terminal for '*.tex' found.\n")
-				return 2			
-			end		
-			term.enhanced = ""	
-			term.font = ""
-			term.sizeFactor = 1
-		else
-			io.stderr:write("Gnuplot Error: wrong file type: '"..filename.."'\n")
-			io.stderr:write("Supported endings: pdf, eps, svg, tex.\n")
-			return 2		
-		end
-	end
 		
 	-- set terminal currently only pdf
-	if filename == "__x11__" then
-		if table.contains(terminals, "x11") then
-			script:write("set terminal x11 enhanced persist raise \n\n")
-		else
-			io.stderr:write("Gnuplot no interactive terminal found.")
-			return 2			
-		end
+	if terminal == "x11" then
+		script:write("set terminal x11 enhanced persist raise \n")
 	else
-		script:write("set term "..term.term)
+		script:write("set term "..terminal)
 		if size then
 			script:write(" size "..term.sizeFactor*size[1]..","..term.sizeFactor*size[2])
 		end
 		script:write(" "..term.enhanced)
 		script:write(" "..term.font)
-		script:write("\n\n")
+		script:write("\n")
 		
-		script:write("set output \"", plotPath, filename,"\"\n\n")
+		script:write("set output \"", path, filename,"\" \n")
 	end
 	
 	-- title and axis label
-	script:write("set encoding utf8\n")
+	script:write("\nset encoding utf8\n")
 	script:write("set title '"..title.."'\n")
 	
 	-- labels
