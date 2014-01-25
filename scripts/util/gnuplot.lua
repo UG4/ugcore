@@ -8,6 +8,8 @@ create a globally seen package (all non-local functions call then be called usin
 
 gnuplot = gnuplot or {}
 
+ug_load_script("util/gnuplot_rgb_color.lua")
+
 gnuplot.terminals = nil
 --! list of all available terminals
 function gnuplot.available_terminals()
