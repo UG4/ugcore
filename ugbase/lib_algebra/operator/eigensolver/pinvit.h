@@ -24,6 +24,7 @@
 #include "lib_algebra/operator/interface/preconditioner.h"
 #include "lib_algebra/operator/interface/matrix_operator.h"
 #include "lib_algebra/operator/debug_writer.h"
+#include "common/progress.h"
 
 #include "lib_algebra/algebra_common/vector_util.h"
 
@@ -136,18 +137,25 @@ private:
 public:
 	std::string tostring()
 	{
+		return config_string();
+	}
+	virtual std::string config_string() const
+	{
 		std::stringstream ss;
 		ss << "PINVIT Eigensolver by Martin Rupp / G-CSC 2013." <<
-				"\n\tMaxIterations = " << m_maxIterations <<
-				"\n\tPrecision = " << m_dPrecision <<
-				"\n\tMinimumDefectToCalcCorrection = " << m_dMinimumDefectToCalcCorrection <<
-				"\n\tNumber of EV = " << px.size() <<
-				"\n\tPINVIT = " << m_iPINVIT << " = ";
+				"\n MaxIterations = " << m_maxIterations <<
+				"\n Precision = " << m_dPrecision <<
+				"\n MinimumDefectToCalcCorrection = " << m_dMinimumDefectToCalcCorrection <<
+				"\n Number of EV = " << px.size() <<
+				"\n PINVIT = " << m_iPINVIT << " = ";
 		if(m_iPINVIT == 1)
 			 ss << "Preconditioned Inverse Block Iteration [Neymeyr]";
 		else if(m_iPINVIT==2) ss << "Preconditioned Block Gradient Method";
 		else if(m_iPINVIT==3) ss << "LOBPCG (locally optimal block preconditioned gradient) [Knyazew]";
 		else if(m_iPINVIT>=4) ss << "gerneralized method PINVIT-method looking back " << m_iPINVIT-1 << " ev approximations.";
+		ss << "\n Preconditioner: ";
+		if(m_spPrecond.valid()) ss << ConfigShift(m_spPrecond->config_string()) << "\n";
+		else ss << "  NOT SET!\n";
 
 		if(m_additionalEigenvectorsToKeep>0)
 		{
@@ -333,7 +341,7 @@ public:
 	int apply()
 	{
 		PINVIT_PROFILE_FUNC();
-		UG_LOG(tostring() << "\nInitializing... ");
+		UG_LOG(config_string() << "\nInitializing... ");
 
 
 		size_t nEigenvalues = px.size();
@@ -410,8 +418,11 @@ public:
 
 				size_t currentAdditionalCorrections = 0;
 				size_t numCorrections=0;
+
+				PROGRESS_START(prog, nEigenvalues, "PINVIT: compute corrections");
 				for(size_t i=0; i<nEigenvalues; i++)
 				{
+					PROGRESS_UPDATE(prog, i);
 	//				UG_LOG("compute rayleigh " << i << "...\n");
 					compute_rayleigh_and_defect(px(i), lambda[i], *spDefect, vDefectNorm[i]);
 	//				UG_LOG("EV " << i << " defect norm: " << vDefectNorm[i] << "\n");
@@ -439,6 +450,7 @@ public:
 						calculate_correction(*vCorr[numCorrections++], *spDefect);
 					}
 				}
+				PROGRESS_FINISH(prog);
 
 
 
@@ -669,7 +681,9 @@ public:
 	void get_max_deflection_of_a_mode(vector_type& maxDeflect, vector_type& u,
 			const vector_type& eigenVec, const matrix_type& B)
 	{
+#ifdef UG_PARALLEL
 		u.change_storage_type(PST_CONSISTENT);
+#endif
 
 		SmartPtr<vector_type> Bv = u.clone_without_values();
 		SmartPtr<vector_type> vwBv = u.clone_without_values();
