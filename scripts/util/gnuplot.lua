@@ -258,6 +258,7 @@ function gnuplot.plot(filename, datasource, options)
 	local fontsize = options.fontsize or 12
 	local fontscale = options.fontscale or 1
 	local linewidth = options.linewidth or 1
+	local linestyle = options.linestyle
 	local dashlength = options.dashlength or 1
 	local add_term_opt = options.add_term_opt or ""
 
@@ -266,6 +267,7 @@ function gnuplot.plot(filename, datasource, options)
 	local tics = options.tics
 	local mtics = options.mtics or false
 	local key = options.key or "on"
+	local border = options.border or ""
 
 	local timestamp = options.timestamp or false	
 	local multiplot = options.multiplot or false
@@ -677,7 +679,10 @@ function gnuplot.plot(filename, datasource, options)
 		for _, dim in ipairs(DimNames) do
 			script:write(dim.."tics m"..dim.."tics "); 
 		end
-		script:write("back\n"); 
+		if type(grid) == "string" then
+			script:write(grid); 
+		end
+		script:write(" back\n"); 
 	end
 
 	-- logscale
@@ -700,6 +705,22 @@ function gnuplot.plot(filename, datasource, options)
 		end
 	end
 
+	-- set default linetypes
+	if linestyle and linestyle.colors then
+		local colors = linestyle.colors
+		local linewidth = linestyle.linewidth or 1
+		local pointsize = linestyle.pointsize or 1
+		for i=1,#colors do
+		 	script:write("set linetype "..i.." lc rgb \""..colors[i].."\" "
+		 					.."lw "..linewidth.." ps "..pointsize.."\n")
+		end		
+		script:write("set linetype cycle "..#colors.."\n")		
+	end
+
+	if border then			
+		script:write("set border "..border.."\n")
+	end
+	
 	-- write additional options, passed as strings
 	for _, userParam in ipairs(options) do
 		if userParam and type(userParam) == "string" then
