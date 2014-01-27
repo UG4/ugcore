@@ -682,7 +682,8 @@ public:
 			const vector_type& eigenVec, const matrix_type& B)
 	{
 #ifdef UG_PARALLEL
-		u.change_storage_type(PST_CONSISTENT);
+		u.set_storage_type(PST_CONSISTENT);
+		maxDeflect.set_storage_type(PST_CONSISTENT);
 #endif
 
 		SmartPtr<vector_type> Bv = u.clone_without_values();
