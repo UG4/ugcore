@@ -107,16 +107,66 @@ Returns by heu (in HSL color space) equally spaced colors
 @param toH			  stopping hue value (optional) 
 @return               table of RGB color as hex rep. (e.g., "#ff6a8b")
 -------------------------------------------------------------------------------]]
-function gnuplot.RGBbyEquiHUE(n, S, L, fromH, toH)
+function gnuplot.RGBbyLinearHUE(n, S, L, fromH, toH)
 	if n < 1 then print("Requirement: n>=2"); exit() end
 	if not fromH then fromH = 0 end
 	if not toH 	 then toH = 360*(1-1/n) end
-	if toH < fromH then print("Requirement:  toH > fromH"); exit() end
 
 	local step = (toH - fromH) / (n-1)
 	local colors = {}
 	for i=1,n do
-		colors[i] = gnuplot.HSLtoRGBhex( (fromH + (i-1)*step)%360, S, L)
+		colors[i] = gnuplot.HSLtoRGBhex( (fromH + (i-1)*step + 720)%360, S, L)
+	end 
+	return colors
+end
+
+
+--[[! --------------------------------------------------------------------------
+Returns by lightness (in HSL color space) equally spaced colors 
+
+@param n              number of desired colors
+@param H              hue (0-360)
+@param S              saturation  (0.0-1.0)
+@param fromL		  starting lightnesse value (optional) 
+@param toL			  stopping lightnesse value (optional) 
+@return               table of RGB color as hex rep. (e.g., "#ff6a8b")
+-------------------------------------------------------------------------------]]
+function gnuplot.RGBbyLinearLightness(n, H, S, fromL, toL)
+	if n < 1 then print("Requirement: n>=2"); exit() end
+	if not fromL then fromL = 1/(n+1) end
+	if not toL 	 then toL = (1-1/(n+1)) end
+
+	local step = (toL - fromL) / (n-1)
+	local colors = {}
+	for i=1,n do
+		colors[i] = gnuplot.HSLtoRGBhex( H, S, fromL + (i-1)*step)
+	end 
+	return colors
+end
+
+--[[! --------------------------------------------------------------------------
+Returns by heu and lighness (in HSL color space) equally spaced color 
+
+@param n              number of desired colors
+@param S              saturation  (0.0-1.0)
+@param fromH		  starting hue value (optional) 
+@param toH			  stopping hue value (optional) 
+@param fromL		  starting lightnesse value (optional) 
+@param toL			  stopping lightnesse value (optional) 
+@return               table of RGB color as hex rep. (e.g., "#ff6a8b")
+-------------------------------------------------------------------------------]]
+function gnuplot.RGBbyLinearHUEandLightness(n, S, fromH, toH, fromL, toL)
+	if n < 1 then print("Requirement: n>=2"); exit() end
+	if not fromH then fromH = 0 end
+	if not toH 	 then toH = 360*(1-1/n) end
+	if not fromL then fromL = 1/(n+1) end
+	if not toL 	 then toL = (1-1/(n+1)) end
+
+	local stepL = (toL - fromL) / (n-1)
+	local stepH = (toH - fromH) / (n-1)
+	local colors = {}
+	for i=1,n do
+		colors[i] = gnuplot.HSLtoRGBhex( (fromH + (i-1)*stepH + 720)%360, S, fromL + (i-1)*stepL)
 	end 
 	return colors
 end
