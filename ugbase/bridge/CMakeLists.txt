@@ -39,7 +39,6 @@ if(buildAlgebra)
 					algebra_bridges/pilut_bridge.cpp
 					algebra_bridges/obstacle_bridge.cpp
 					algebra_bridges/restart_bridge.cpp
-					algebra_bridges/external_solvers_bridge.cpp
 					
 					disc_bridges/domain_disc_bridge.cpp
 					disc_bridges/interpolate_bridge.cpp
