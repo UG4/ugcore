@@ -197,6 +197,9 @@ function util.rates.static.compute(ConvRateSetup)
 			
 			print(">> Create Solver")
 			local solver = CreateSolver(approxSpace, discType, p)
+	
+			-- get names in approx space
+			local FctCmp = approxSpace:names()
 			
 			--------------------------------------------------------------------
 			--  Create Solutions on each level
@@ -225,14 +228,14 @@ function util.rates.static.compute(ConvRateSetup)
 				WriteGridFunctionToVTK(u[lev], solPath.."sol_"..discType..p.."_l"..lev)
 				write(">> Solution written to: "..solPath.."sol_"..discType..p.."_l"..lev.."\n");	
 			end
+			
+			approxSpace, domainDisc, solver = nil, nil, nil
+			collectgarbage()
 
 			--------------------------------------------------------------------
 			--  Compute Error Norms on each level
 			--------------------------------------------------------------------
 			
-			-- get names in approx space
-			local FctCmp = approxSpace:names()
-
 			-- prepare error measurement			
 			local err = {h={}, numDoFs={}, level={}}	
 			for lev = minLev, maxLev do	
@@ -244,7 +247,7 @@ function util.rates.static.compute(ConvRateSetup)
 			for lev = maxLev, minLev, -1 do
 				write("\n>> Error Norm values on Level "..lev..".\n")
 				
-				quadOrder = p+3
+				local quadOrder = p+5
 				err.numDoFs[lev] = u[lev]:size()
 				write(">> #DoF       on Level "..lev.." is "..err.numDoFs[lev] .."\n");
 			
@@ -296,10 +299,14 @@ function util.rates.static.compute(ConvRateSetup)
 						value[lev] = H1Error(u[lev], f, u[lev-1], f, quadOrder)
 						write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 					end
-				end
+				end -- end fct
 								
-			end
+			end -- end level
 
+			for lev = minLev, maxLev do u[lev] = nil end
+			u = nil
+			collectgarbage()
+				
 			--------------------------------------------------------------------
 			--  A custom iterator to loop all valid measurements
 			--------------------------------------------------------------------

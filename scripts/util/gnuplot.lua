@@ -744,30 +744,94 @@ function gnuplot.plot(filename, datasource, options)
 	-- Write data sets
 	----------------------------------------------------------------------------
 
-	local function drawSlopTri(xo, yo, dx, p)
-		local dy = dx^p
-		script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
-		script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
-		script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
-		script:write("set label right '"..p.."  ' at "..xo..","..math.sqrt(dy)*yo.. "font ',8'\n") -- label
-		script:write("set label right '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy*1.5).. "font ',8'\n") -- label
-	end
+	-- find data ranges
+	local stats = {}
+	for s, source in ipairs(datasource) do
 	
-	if slope then
-		drawSlopTri(slope.xo, slope.yo, slope.dx, slope.p)							
+		stats[s] = {}
+		local stat = stats[s]
+		
+		-- get the data column mapping
+		stat.map = {};
+		local map = stat.map
+		if     #source == 2 then map[1] = source[1]; map[2] = source[2];
+		elseif #source == 3 then map[1] = source[1]; map[2] = source[2]; map[3] = source[3];
+		else
+			if plotDim == 2 then map[1] = 1; map[2] = 2;
+			else 				 map[1] = 1; map[2] = 2; map[3] = 3; end
+		end
+
+		-- extract values if in file
+		if source.file then	
+			stat.val = {}
+			local val = stat.val
+			for line in io.lines(source.file) do
+				local numbers = {}
+				if not string.match(line, "#") then
+					for n in string.gmatch(line, "[^ ]+") do numbers[#numbers+1] = tonumber(n) end
+	
+					for d = 1,#map do 
+						val[d] = val[d] or {}
+						val[d][#(val[d])+1] = numbers[map[d]]
+					end
+				end
+			end
+		end
+
+		-- extract values if in array
+		if source.data then
+			stat.val = {}
+			if source.row then
+				for row in 1,#source.data do 
+					for d = 1,#map do 
+						val[d] = val[d] or {}
+						val[d][#(val[d])+1] = source.data[row][map[d]]
+					end
+				end
+			else
+				for row in 1,#source.data[1] do 
+					for d = 1,#map do 
+						val[d] = val[d] or {}
+						val[d][#(val[d])+1] = source.data[map[d]][row]
+					end
+				end			
+			end
+		end
+
+		-- find min/max
+		stat.min = {}
+		stat.max = {}
+		for d = 1,#stat.val do
+			stat.min[d] = math.huge
+			stat.max[d] = -math.huge
+			for n = 1,#stat.val[d] do
+				stat.min[d] = math.min(stat.min[d], stat.val[d][n])	
+				stat.max[d] = math.max(stat.max[d], stat.val[d][n])	
+			end		
+		end
 	end
 
+	-- add slope triangle to every source
+	for s, source in ipairs(datasource) do
+		local function drawSlopTri(xo, yo, dy, p)
+--			local dy = dx^p
+			local dx = dy^(1/p)
+			script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
+			script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
+			script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
+			script:write("set label right '"..p.."  ' at "..xo..","..math.sqrt(dy)*yo.. "font ',8'\n") -- label
+			script:write("set label right '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy*1.5).. "font ',8'\n") -- label
+		end
+		
+		if slope then
+			drawSlopTri(stats[s].min[1], stats[s].min[2]*1.4, slope.dx, s)							
+		end
+	end
 
-	for sourceNr, source in ipairs(datasource) do
+	for s, source in ipairs(datasource) do
 	
 		-- get the data column mapping
-		local map = "";
-		if     #source == 2 then map = source[1]..":"..source[2]
-		elseif #source == 3 then map = source[1]..":"..source[2]..":"..source[3]
-		else
-			if plotDim == 2 then map = "1:2"
-			else map = "1:2:3" end
-		end
+		local map = table.concat(stats[s].map, ":")
 
 		-- special 3d treatment
 		if plotDim == 3 then
@@ -789,7 +853,7 @@ function gnuplot.plot(filename, datasource, options)
 		end
 		
 		-- assign default data label if needed
-		if not source.label then source["label"] = "plot" .. sourceNr end
+		if not source.label then source["label"] = "plot" .. s end
 
 		-- Position plots in multiplot
 		if multiplot then
@@ -804,8 +868,8 @@ function gnuplot.plot(filename, datasource, options)
 				local rowSize = (1-spaceBottom-spaceTop)/MultiPlotRows
 				local colSize = (1-spaceLeft-SpaceRight)/MultiPlotCols
 				
-				local mpCol = ((sourceNr-1) % MultiPlotCols) + 1
-				local mpRow = math.ceil(sourceNr / MultiPlotCols)
+				local mpCol = ((s-1) % MultiPlotCols) + 1
+				local mpRow = math.ceil(s / MultiPlotCols)
 				
 				script:write("set tmargin at screen "..spaceBottom + (MultiPlotRows-mpRow+1)*rowSize.."\n")
 				script:write("set bmargin at screen "..spaceBottom + (MultiPlotRows-mpRow)*rowSize.."\n")
@@ -839,7 +903,7 @@ function gnuplot.plot(filename, datasource, options)
 		end
 
 		-- build up the plot command, layer by layer in non-multiplotmode
-		if sourceNr == 1 or multiplot then 	
+		if s == 1 or multiplot then 	
 			if plotDim == 2 then script:write ("plot  \\\n");
 			else 				 script:write ("splot  \\\n"); end
 		else 				
@@ -858,7 +922,7 @@ function gnuplot.plot(filename, datasource, options)
 							  " with ", style)
 		end 
 		if source.data then
-			tmpDataFile = tmpPath.."tmp_"..source.label.."_"..sourceNr..".dat"
+			tmpDataFile = tmpPath.."tmp_"..source.label.."_"..s..".dat"
 			tmpDataFile = string.gsub(tmpDataFile, " ", "_" )
 			gnuplot.write_data(tmpDataFile, source.data, source.row)
 			script:write ("\"", tmpDataFile, "\"",
