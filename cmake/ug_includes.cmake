@@ -389,8 +389,6 @@ include(${UG_ROOT_PATH}/cmake/ug/hlibpro.cmake)
 # OpenCL
 include(${UG_ROOT_PATH}/cmake/ug/opencl.cmake)
 
-include(${UG_ROOT_PATH}/cmake/ug/super_lu.cmake)
-
 
 ################################################################################
 # find and collect required libraries
