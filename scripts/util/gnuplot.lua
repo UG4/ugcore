@@ -270,6 +270,8 @@ function gnuplot.plot(filename, datasource, options)
 	local mtics = options.mtics or false
 	local key = options.key or "on"
 	local border = options.border or ""
+	
+	local slope = options.slope or nil
 
 	local timestamp = options.timestamp or false	
 	local multiplot = options.multiplot or false
@@ -406,9 +408,11 @@ function gnuplot.plot(filename, datasource, options)
 			--- TEX 
 			elseif ending == ".tex" then
 				if table.contains(availTerms, "tikz")			then terminal = "tikz"		
-				elseif table.contains(availTerms, "epslatex") 	then terminal = "epslatex"		
-				elseif table.contains(availTerms, "cairolatex")	then terminal = "cairolatex" end		
-				if cairo and table.contains(availTerms, "cairolatex") then terminal = "cairolatex" end			
+				else
+					if table.contains(availTerms, "epslatex") 	then terminal = "epslatex"		
+					elseif table.contains(availTerms, "cairolatex")	then terminal = "cairolatex" end		
+					if cairo and table.contains(availTerms, "cairolatex") then terminal = "cairolatex" end			
+				end
 			end	
 		end
 		
@@ -739,6 +743,20 @@ function gnuplot.plot(filename, datasource, options)
 	----------------------------------------------------------------------------
 	-- Write data sets
 	----------------------------------------------------------------------------
+
+	local function drawSlopTri(xo, yo, dx, p)
+		local dy = dx^p
+		script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
+		script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
+		script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
+		script:write("set label right '"..p.."  ' at "..xo..","..math.sqrt(dy)*yo.. "font ',8'\n") -- label
+		script:write("set label right '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy*1.5).. "font ',8'\n") -- label
+	end
+	
+	if slope then
+		drawSlopTri(slope.xo, slope.yo, slope.dx, slope.p)							
+	end
+
 
 	for sourceNr, source in ipairs(datasource) do
 	

@@ -94,6 +94,13 @@ function util.rates.static.compute(ConvRateSetup)
 	local solPath  = CRS.solPath  or "sol/"
 	local dataPath = CRS.dataPath or "data/"
 
+	local gpOptions = CRS.gpOptions or
+	{	
+		grid = true, 
+		logscale = true,
+		mtics = true
+	 }
+
 	-- check for methods
 	local PrepareInitialGuess = CRS.PrepareInitialGuess or util.rates.static.StdPrepareInitialGuess
 	local ComputeSolution = 	CRS.ComputeSolution     or util.rates.static.StdComputeLinearSolution
@@ -385,7 +392,7 @@ function util.rates.static.compute(ConvRateSetup)
 			end
 
 			--------------------------------------------------------------------
-			--  Write Data to GnuPlot
+			--  Schedule Data to gnuplot
 			--------------------------------------------------------------------
 			
 			for f,t,n,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
@@ -397,19 +404,20 @@ function util.rates.static.compute(ConvRateSetup)
 				gnuplot.write_data(file, dataCols)
 			
 				-- create plot for single run
-				local options = {grid = true, logscale = true}
 				local style = "linespoints"
 				
 				for x, xCol in pairs({DoF = 1, h = 2}) do
-					local data = {{label=discType.." $P_"..p.."$", file=file, style=style, xCol, 3}}
+					local data = {{label=discType.." $\\mathbb{P}_"..p.."$", file=file, style=style, xCol, 3}}
 					
-					local file = table.concat({plotPath.."single/"..singleFile,n,x..".tex"},"_")
-					gnuplot.plot(file, data, options)			
+					local file = table.concat({plotPath.."single/"..singleFile,n,x..".pdf"},"_")
+					gpFiles[file] = gpFiles[file] or {} 				
+					gpFiles[file].xlabel = gpXLabel[x]
+					gpFiles[file].ylabel = "$|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[n].."}$"
+					table.append(gpFiles[file], data)
 					
 					for _, g in ipairs({discType, "all"}) do
-						local file = table.concat({plotPath..g,head[t],f,n,x..".tex"}, "_")	
+						local file = table.concat({plotPath..g,head[t],f,n,x..".pdf"}, "_")	
 						gpFiles[file] = gpFiles[file] or {} 				
-						gpFiles[file].title = "$"..gpNorm[n].."$"..gpTitle[t].." for Fct "..f
 						gpFiles[file].xlabel = gpXLabel[x]
 						gpFiles[file].ylabel = "$|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[n].."}$"
 						table.append(gpFiles[file], data)
@@ -417,19 +425,18 @@ function util.rates.static.compute(ConvRateSetup)
 				end	
 			end
 			
-		end -- end loop over p
-		
-		-- create scheduled plots (maybe overwriting several times)
-		for plotFile, data in pairs(gpFiles) do 
-			local options = {	grid = true, 
-								logscale = true,
-								title = data.title,
-								xlabel = data.xlabel,
-								ylabel = data.ylabel,
-								"set key left bottom; set grid mxtics mytics;",
-							 }
-			gnuplot.plot(plotFile, data, options)
-		end
-		
+		end -- end loop over p		
 	end -- end loop over type
+	
+	
+	--------------------------------------------------------------------
+	--  Execute Plot of gnuplot
+	--------------------------------------------------------------------
+	
+	-- create scheduled plots (maybe overwriting several times)
+	for plotFile, data in pairs(gpFiles) do 
+		opt = table.deepcopy(gpOptions)
+		opt.label = {x = data.xlabel, y = data.ylabel}
+		gnuplot.plot(plotFile, data, opt)
+	end
 end

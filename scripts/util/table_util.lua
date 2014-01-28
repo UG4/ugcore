@@ -22,6 +22,19 @@ function table.append(t1, t2)
     end	
 end
 
+--! returns deep-copy of table
+function table.deepcopy(t)
+	if type(t) ~= "table" then
+		print("table.deepcopy called on non-table"); exit();
+	end
+	
+	local cpy = {}
+    for k,v in pairs(t) do
+        cpy[k] = v
+    end
+    return cpy
+end
+
 --! returns the smallest integer key of the table (even negative or null if present)
 function table.imin(t)
 	local min = math.huge
