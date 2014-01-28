@@ -30,7 +30,10 @@
 
 scriptname=$0;		  # name of script
 scriptpath=`dirname $scriptname`
+
+if [ -e $scriptpath/uginstall_config ]; then 
 source $scriptpath/uginstall_config
+fi
 
 cd 
 if [ ! -e local ]; then mkdir local; fi
