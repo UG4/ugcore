@@ -440,7 +440,7 @@ function util.GetParamNumber(name, default, description, options)
 	
 	-- read in
 	local param = util.GetParam(name, default, description, options, " (number) ")
-
+	ug_assert(param ~= nil, "ERROR in GetParamNumber: Number Parameter "..name.." not set and no default value given.")
 	-- cast to number	
 	local value = tonumber(param)
 	ug_assert(value ~= nil, "ERROR in GetParamNumber: passed '"..param.."' for Parameter '"
@@ -779,6 +779,7 @@ function util.GetUniqueFilenameFromCommandLine()
 		return ret
 	end
 end
+
 
 
 -- end group scripts_util
