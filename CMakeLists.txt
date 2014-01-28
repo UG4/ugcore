@@ -3,4 +3,4 @@
 # cmake/CMakeRootListsImpl.txt instead.
 
 cmake_minimum_required(VERSION 2.6)
-include("cmake/CMakeRootListsImpl.txt" NO_POLICY_SCOPE)
+include("cmake/CMakeRootListsImpl.cmake" NO_POLICY_SCOPE)
