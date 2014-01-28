@@ -2,6 +2,8 @@ util = util or {}
 util.rates = util.rates or {}
 util.rates.static = util.rates.static or {}
 
+ug_load_script("util/persistence.lua")
+
 --------------------------------------------------------------------------------
 -- Std Functions (used as defaults)
 --------------------------------------------------------------------------------
@@ -409,20 +411,18 @@ function util.rates.static.compute(ConvRateSetup)
 				local dataCols = {err.numDoFs, err.h, err[f][t][n].value}
 				gnuplot.write_data(file, dataCols)
 			
-				-- create plot for single run
-				local style = "linespoints"
-				
+				-- create plot for single run				
 				for x, xCol in pairs({DoF = 1, h = 2}) do
-					local data = {{label=discType.." $\\mathbb{P}_{"..p.."}$", file=file, style=style, xCol, 3}}
+					local data = {{label=discType.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}}
 					
-					local file = table.concat({plotPath.."single/"..singleFile,n,x..".tex"},"_")
+					local file = table.concat({plotPath.."single/"..singleFile,n,x},"_")
 					gpFiles[file] = gpFiles[file] or {} 				
 					gpFiles[file].xlabel = gpXLabel[x]
 					gpFiles[file].ylabel = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
 					table.append(gpFiles[file], data)
 					
 					for _, g in ipairs({discType, "all"}) do
-						local file = table.concat({plotPath..g,head[t],f,n,x..".tex"}, "_")	
+						local file = table.concat({plotPath..g,head[t],f,n,x}, "_")	
 						gpFiles[file] = gpFiles[file] or {} 				
 						gpFiles[file].xlabel = gpXLabel[x]
 						gpFiles[file].ylabel = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
@@ -439,10 +439,40 @@ function util.rates.static.compute(ConvRateSetup)
 	--  Execute Plot of gnuplot
 	--------------------------------------------------------------------
 	
-	-- create scheduled plots (maybe overwriting several times)
+	-- create scheduled plots
 	for plotFile, data in pairs(gpFiles) do 
-		opt = table.deepcopy(gpOptions)
+		local opt = table.deepcopy(gpOptions)
 		opt.label = {x = data.xlabel, y = data.ylabel}
-		gnuplot.plot(plotFile, data, opt)
+		gnuplot.plot(plotFile..".tex", data, opt)
+		gnuplot.plot(plotFile..".pdf", data, opt)
 	end
+	
+	-- save for reuse
+	persistence.store(dataPath.."gp-data-files.lua", gpFiles);	
+end
+
+
+function util.rates.static.replot(gpOptions, file)
+	local dataPath = "data/"
+	local plotPath = "plots/"
+	
+	local function ensureDir(name)
+		if not(DirectoryExists(name)) then CreateDirectory(name) end
+	end
+	
+	ensureDir(dataPath)
+	ensureDir(plotPath)
+	ensureDir(plotPath.."single/")
+	
+	local file = file or dataPath.."gp-data-files.lua"
+	gpFiles = persistence.load(file);
+	
+	-- create scheduled plots
+	for plotFile, data in pairs(gpFiles) do 
+		local opt = table.deepcopy(gpOptions)
+		opt.label = {x = data.xlabel, y = data.ylabel}
+		gnuplot.plot(plotFile..".tex", data, opt)
+		gnuplot.plot(plotFile..".pdf", data, opt)
+	end
+	
 end
