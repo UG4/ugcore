@@ -430,6 +430,7 @@ COMPLETIONS_UG4_PLUGINS="\
 -DTKDGenerator= \
 -DVesicleDynamics= \
 -DSG= \
+-DSuperLU= \
 -DElectricCircuit= "
 
 complete -W "\
