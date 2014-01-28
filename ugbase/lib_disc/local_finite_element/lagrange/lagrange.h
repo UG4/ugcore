@@ -141,7 +141,7 @@ class FlexLagrangeLSFS<ReferenceVertex>
 		size_t p;
 
 	/// Number of shape functions
-		size_t nsh;
+		static const size_t nsh = 1;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
