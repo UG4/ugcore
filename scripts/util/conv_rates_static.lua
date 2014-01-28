@@ -53,6 +53,9 @@ function util.rates.static.StdComputeNonLinearSolution(u, domainDisc, solver)
 	write(">> Newton Solver done.\n")
 end
 
+function util.rates.static.StdMaxLevelPadding(p)
+	return math.floor(p/2)
+end
 --------------------------------------------------------------------------------
 -- util.rates.static.compute (main-function)
 --------------------------------------------------------------------------------
@@ -108,6 +111,7 @@ function util.rates.static.compute(ConvRateSetup)
 	local CreateDomainDisc = 	CRS.CreateDomainDisc
 	local CreateSolver = 		CRS.CreateSolver
 	local CreateDomain = 		CRS.CreateDomain
+	local MaxLevelPadding = 	CRS.MaxLevelPadding 	or util.rates.static.StdMaxLevelPadding
 	
 	if 	CreateApproxSpace == nil or CreateDomainDisc == nil or 
 		CreateSolver == nil or CreateDomain == nil then
@@ -166,7 +170,7 @@ function util.rates.static.compute(ConvRateSetup)
 		
 		for p = pmin, pmax do
 		
-			local maxLev = lmax - math.floor(p/2)
+			local maxLev = lmax - MaxLevelPadding(p)
 			local minLev = lmin
 	
 			--------------------------------------------------------------------
