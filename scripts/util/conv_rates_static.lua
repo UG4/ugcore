@@ -360,11 +360,6 @@ function util.rates.static.compute(ConvRateSetup)
 
 			local head = {l2 = "L2", h1 = "H1",
 							exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
-
-			local gpTitle = {	exact = 	"-Error w.r.t. exact Solution",
-								maxlevel = 	"-Error w.r.t. finest Solution",
-								prevlevel = "-Error w.r.t. previous level Solution"
-							}
 						
 			local gpType = {	exact = 	"exact",		
 								maxlevel = 	"L_{max}",
@@ -373,7 +368,7 @@ function util.rates.static.compute(ConvRateSetup)
 		
 			local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
 							
-			local gpXLabel ={ DoF = "DoFs",	h = "h (mesh size)"}
+			local gpXLabel ={ DoF = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
 
 			--------------------------------------------------------------------
 			--  Write Data to Screen
@@ -414,19 +409,19 @@ function util.rates.static.compute(ConvRateSetup)
 				local style = "linespoints"
 				
 				for x, xCol in pairs({DoF = 1, h = 2}) do
-					local data = {{label=discType.." $\\mathbb{P}_"..p.."$", file=file, style=style, xCol, 3}}
+					local data = {{label=discType.." $\\mathbb{P}_{"..p.."}$", file=file, style=style, xCol, 3}}
 					
-					local file = table.concat({plotPath.."single/"..singleFile,n,x..".pdf"},"_")
+					local file = table.concat({plotPath.."single/"..singleFile,n,x..".tex"},"_")
 					gpFiles[file] = gpFiles[file] or {} 				
 					gpFiles[file].xlabel = gpXLabel[x]
-					gpFiles[file].ylabel = "$|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[n].."}$"
+					gpFiles[file].ylabel = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
 					table.append(gpFiles[file], data)
 					
 					for _, g in ipairs({discType, "all"}) do
-						local file = table.concat({plotPath..g,head[t],f,n,x..".pdf"}, "_")	
+						local file = table.concat({plotPath..g,head[t],f,n,x..".tex"}, "_")	
 						gpFiles[file] = gpFiles[file] or {} 				
 						gpFiles[file].xlabel = gpXLabel[x]
-						gpFiles[file].ylabel = "$|| "..f.."_L - "..f.."_{"..gpType[t].."} ||_{ "..gpNorm[n].."}$"
+						gpFiles[file].ylabel = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
 						table.append(gpFiles[file], data)
 					end
 				end	

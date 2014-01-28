@@ -241,6 +241,7 @@ function gnuplot.plot(filename, datasource, options)
 	local title = options.title or "" 
 	local label = options.label or false
 	local range = options.range or {}
+	local padrange = options.padrange or {}
 	local logscale = options.logscale or false
 	local plotDim = options.dim
 	
@@ -699,17 +700,6 @@ function gnuplot.plot(filename, datasource, options)
 			end
 		end
 	end
-	
-	-- add key (legend)
-	if key then script:write ("set key "..key.."\n") end
-
-	-- range
-	script:write ("set autoscale\n")
-	for _, dim in ipairs({"x", "y", "z"}) do	
-		if range[dim] then
-			script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
-		end
-	end
 
 	-- set default linetypes
 	if linestyle and linestyle.colors then
@@ -741,7 +731,7 @@ function gnuplot.plot(filename, datasource, options)
 	end
 
 	----------------------------------------------------------------------------
-	-- Write data sets
+	-- Detect data sets sizes
 	----------------------------------------------------------------------------
 
 	-- find data ranges
@@ -809,6 +799,22 @@ function gnuplot.plot(filename, datasource, options)
 				stat.max[d] = math.max(stat.max[d], stat.val[d][n])	
 			end		
 		end
+		
+		-- global min/max
+		if not stats.min or not stats.max then
+			stats.min = {}
+			stats.max = {}
+			stats.range = {}
+			for d = 1,#stat.min do
+				stats.min[d] = math.huge
+				stats.max[d] = -math.huge
+			end
+		end
+		for d = 1,#stat.val do
+			stats.min[d] = math.min(stats.min[d], stat.min[d])	
+			stats.max[d] = math.max(stats.max[d], stat.max[d])	
+			stats.range[d] = stats.max[d] - stats.min[d]
+		end
 	end
 
 	-- add slope triangle to every source
@@ -819,14 +825,38 @@ function gnuplot.plot(filename, datasource, options)
 			script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
 			script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
 			script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
-			script:write("set label right '"..p.."  ' at "..xo..","..math.sqrt(dy)*yo.. "font ',8'\n") -- label
-			script:write("set label right '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy*1.5).. "font ',8'\n") -- label
+			script:write("set label right '"..p.."' at "..(xo*1.05)..","..math.pow(dy, 2/3)*yo.. "font ',8'\n") -- label
+			script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy*1.8).. "font ',8'\n") -- label
 		end
 		
 		if slope then
-			drawSlopTri(stats[s].min[1], stats[s].min[2]*1.4, slope.dx, s)							
+			drawSlopTri(stats[s].min[1], stats[s].min[2]*1.5, slope.dx, s)							
 		end
 	end
+	
+	-- add key (legend)
+	if key then script:write ("set key "..key.."\n") end
+
+	-- range
+	script:write ("set autoscale\n")
+	for _, dim in ipairs({"x", "y", "z"}) do	
+		if range[dim] then
+			script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
+		end
+	end
+	for d, dim in ipairs(DimNames) do	
+		if padrange[dim] then
+			script:write("set "..dim.."range [")
+			script:write(stats.min[d]*padrange[dim][1])
+			script:write(":")
+			script:write(stats.max[d]*padrange[dim][2])
+			script:write("]\n")
+		end
+	end
+
+	----------------------------------------------------------------------------
+	-- Write data sets
+	----------------------------------------------------------------------------
 
 	for s, source in ipairs(datasource) do
 	
