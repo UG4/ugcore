@@ -247,7 +247,7 @@ function util.rates.static.compute(ConvRateSetup)
 			for lev = maxLev, minLev, -1 do
 				write("\n>> Error Norm values on Level "..lev..".\n")
 				
-				local quadOrder = p+5
+				local quadOrder = p+3
 				err.numDoFs[lev] = u[lev]:size()
 				write(">> #DoF       on Level "..lev.." is "..err.numDoFs[lev] .."\n");
 			
