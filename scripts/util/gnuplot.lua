@@ -276,8 +276,6 @@ function gnuplot.plot(filename, datasource, options)
 
 	local timestamp = options.timestamp or false	
 	local multiplot = options.multiplot or false
-	local multiplotjoined = options.multiplotjoined or false	
-	local multiplotrows = options.multiplotrows
 
 	----------------------------------------------------------------------------
 	-- Prepare params
@@ -354,7 +352,7 @@ function gnuplot.plot(filename, datasource, options)
 	-- check for multiplot
 	local MultiPlotRows, MultiPlotCols
 	if multiplot then
-		MultiPlotRows = multiplotrows or math.ceil(math.sqrt(#datasource))
+		MultiPlotRows = multiplot.rows or math.ceil(math.sqrt(#datasource))
 		MultiPlotCols = math.ceil(#datasource / MultiPlotRows )
 		fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))		
 	end
@@ -914,7 +912,7 @@ function gnuplot.plot(filename, datasource, options)
 		if multiplot then
 			script:write("unset title \n" )
 
-			if multiplotjoined then
+			if multiplot.conjoined then
 				local spaceTop = 0.1
 				local spaceBottom = 0.1
 				local spaceLeft = 0.1
