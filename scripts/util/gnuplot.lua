@@ -831,11 +831,12 @@ function gnuplot.plot(filename, data, options)
 		MultiPlotRows = MultiPlotRows or math.ceil(math.sqrt(#plots))		
 		MultiPlotCols = math.ceil(#plots / MultiPlotRows )
 		
-		fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))				
+		--fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))				
 		script:write("set term "..terminal.." font '"..font..","..fontsize.."'\n")
 		
 		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
 		script:write(" title '"..title.."' \n\n" )	
+		script:write("unset title \n" )
 	end
 
 	----------------------------------------------------------------------------
@@ -843,7 +844,6 @@ function gnuplot.plot(filename, data, options)
 	----------------------------------------------------------------------------
 
 	-- find data ranges
-	local stats = {}
 	for _, plot in ipairs(plots) do
 		for _, dataset in ipairs(plot) do
 	
@@ -905,8 +905,13 @@ function gnuplot.plot(filename, data, options)
 					dataset.max[d] = math.max(dataset.max[d], dataset.val[d][n])	
 				end		
 			end
-			
-			-- global min/max
+		end
+	end
+	
+	-- global min/max
+	local stats = {}
+	for _, plot in ipairs(plots) do
+		for _, dataset in ipairs(plot) do
 			if not stats.min or not stats.max then
 				stats.min = {}
 				stats.max = {}
@@ -920,47 +925,6 @@ function gnuplot.plot(filename, data, options)
 				stats.min[d] = math.min(stats.min[d], dataset.min[d])	
 				stats.max[d] = math.max(stats.max[d], dataset.max[d])	
 				stats.range[d] = stats.max[d] - stats.min[d]
-			end
-		end
-	end
-	
-	-- add slope triangle to every source
-	for _, plot in ipairs(plots) do
-		for _, dataset in ipairs(plot) do
-			local function drawSlopTri(xo, yo, dy, p)
-				local dx = dy^(1/p)
-				script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
-				script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
-				script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
-				local align = "right"; if p < 0 then align = "left" end
-				script:write("set label "..align.." '"..p.."' at "..(xo*1.0)..","..math.pow(dy, 1/2)*yo.. "font ',8'\n") -- label
-				script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy).. "font ',8'\n") -- label
-			end
-		
-			local function round(num, quantum)
-	  			return math.floor(num / quantum + 0.5) * quantum
-			end
-			
-			if slope then
-				local valx = dataset.val[1]
-				local valy = dataset.val[2]
-				local facx = valx[#valx-1]/valx[#valx]
-				local facy = valy[#valy-1]/valy[#valy]
-				local rate = math.log(facy) / math.log(facx)
-				rate = round(rate, slope.quantum or 1)
-				local xo,yo
-				local at = slope.at or "last"
-				if at == "min" then
-					xo, yo = dataset.min[1], dataset.min[2]
-				elseif at == "max" then
-					xo, yo = dataset.max[1], dataset.max[2]
-				elseif at == "last" then
-					xo, yo = dataset.val[1][#dataset.val[1]], dataset.val[2][#dataset.val[2]]
-				elseif at == "first" then
-					xo, yo = dataset.val[1][1], dataset.val[2][1]
-				else print("slope.at: only min,max,last,first"); exit(); end
-									
-				drawSlopTri(xo, yo*1.5, slope.dy, rate)							
 			end
 		end
 	end
@@ -988,18 +952,17 @@ function gnuplot.plot(filename, data, options)
 	----------------------------------------------------------------------------
 	-- Write data sets
 	----------------------------------------------------------------------------
+	
+	-- special 3d treatment
+	if plotDim == 3 then
+		script:write("set surface\n") 
+		script:write("unset contour\n") 
+	end
 
 	for p, plot in ipairs(plots) do
-	
-		-- special 3d treatment
-		if plotDim == 3 then
-			script:write("set surface\n") 
-			script:write("unset contour\n") 
-		end
 
 		-- Position plots in multiplot
 		if multiplot then
-			script:write("unset title \n" )
 
 			if type(multiplot) == "table" and multiplot.conjoined then
 				local spaceTop = 0.1
@@ -1043,6 +1006,45 @@ function gnuplot.plot(filename, data, options)
 				end
 			end
 		end
+
+		-- add slope triangle to every source
+		if slope then
+			local function drawSlopTri(xo, yo, dy, p)
+				local dx = dy^(1/p)
+				script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
+				script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
+				script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
+				local align = "right"; if p < 0 then align = "left" end
+				script:write("set label "..align.." '"..p.."' at "..(xo*1.0)..","..math.pow(dy, 1/2)*yo.. "font ',8'\n") -- label
+				script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy).. "font ',8'\n") -- label
+			end
+		
+			local function round(num, quantum)
+	  			return math.floor(num / quantum + 0.5) * quantum
+			end
+		
+			for _, dataset in ipairs(plot) do
+				local valx = dataset.val[1]
+				local valy = dataset.val[2]
+				local facx = valx[#valx-1]/valx[#valx]
+				local facy = valy[#valy-1]/valy[#valy]
+				local rate = math.log(facy) / math.log(facx)
+				rate = round(rate, slope.quantum or 1)
+				local xo,yo
+				local at = slope.at or "last"
+				if at == "min" then
+					xo, yo = dataset.min[1], dataset.min[2]
+				elseif at == "max" then
+					xo, yo = dataset.max[1], dataset.max[2]
+				elseif at == "last" then
+					xo, yo = dataset.val[1][#dataset.val[1]], dataset.val[2][#dataset.val[2]]
+				elseif at == "first" then
+					xo, yo = dataset.val[1][1], dataset.val[2][1]
+				else print("slope.at: only min,max,last,first"); exit(); end
+									
+				drawSlopTri(xo, yo*1.5, slope.dy, rate)							
+			end -- end datasets
+		end -- end slope
 	
 		-- build up the plot command, layer by layer in non-multiplotmode
 		if plotDim == 2 then script:write ("plot  \\\n");
@@ -1091,9 +1093,13 @@ function gnuplot.plot(filename, data, options)
 								  " with ", style)
 			end 
 		end	-- end datasets		  
-												  
+																  
 		script:write("\n")	
-		
+
+		if slope then
+			script:write("unset label\n")	
+			script:write("unset arrow\n")	
+		end			
 	end -- end plots
 	
 	-- finish script
