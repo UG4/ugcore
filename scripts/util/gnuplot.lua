@@ -349,14 +349,6 @@ function gnuplot.plot(filename, datasource, options)
 		end
 	end
 
-	-- check for multiplot
-	local MultiPlotRows, MultiPlotCols
-	if multiplot then
-		MultiPlotRows = multiplot.rows or math.ceil(math.sqrt(#datasource))
-		MultiPlotCols = math.ceil(#datasource / MultiPlotRows )
-		fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))		
-	end
-
 	----------------------------------------------------------------------------
 	-- Detect terminal
 	----------------------------------------------------------------------------
@@ -723,7 +715,14 @@ function gnuplot.plot(filename, datasource, options)
 	end	
 
 	-- multiplot sizes
+	local MultiPlotRows, MultiPlotCols
 	if multiplot then
+		MultiPlotRows = multiplot.rows or math.ceil(math.sqrt(#datasource))
+		MultiPlotCols = math.ceil(#datasource / MultiPlotRows )
+
+		fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))				
+		script:write("set term "..terminal.." font '"..font..","..fontsize.."'\n")
+		
 		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
 		script:write(" title '"..title.."' \n\n" )	
 	end
