@@ -672,184 +672,6 @@ function gnuplot.plot(filename, data, options)
 	end
 	
 	----------------------------------------------------------------------------
-	-- Plot options
-	----------------------------------------------------------------------------
-	
-	local title = options.title or "" 
-	local label = options.label or false
-	local range = options.range or {}
-	local padrange = options.padrange or {}
-	local logscale = options.logscale or false
-	local grid = options.grid or false
-	local tics = options.tics
-	local mtics = options.mtics or false
-	local key = options.key or "on"
-	local border = options.border or ""	
-	local slope = options.slope or nil
-	
-	----------------------------------------------------------------------------
-	-- Write Plot options
-	----------------------------------------------------------------------------
-		
-	-- title and axis label
-	script:write("set title '"..title.."'\n")
-	
-	-- set labels
-	if label then
-		for d, dim in ipairs(DimNames) do
-			if not(label[dim]) then 
-				label[dim] = label[d] or ""
-			end
-		end		
-	else
-		label = {}
-		label["x"] = options.xlabel or ""
-		label["y"] = options.ylabel or ""
-		label["z"] = options.zlabel or ""
-	end
-	
-		
-	-- labels
-	for _, dim in ipairs(DimNames) do
-		script:write("set "..dim.."label '"..label[dim].."'\n")
-	end
-	
-	-- set ranges (otherwise autoscale)
-	if type(range) ~= "table" then
-		io.stderr:write("Gnuplot Error: range must be a table.");
-		exit();
-	end
-	for d, dim in ipairs(DimNames) do
-		if not(range[dim]) then 
-			if type(range[d]) == "table" then
-				range[dim] = range[d] 
-			end
-		end
-	end
-	
-	-- set logscales
-	if logscale then
-		if type(logscale) == "boolean" then
-			logscale = {}
-			for d, dim in ipairs(DimNames) do
-				logscale[dim] = true
-			end			
-		else
-			for d, dim in ipairs(DimNames) do
-				if logscale[dim] == nil then 
-					logscale[dim] = logscale[d] or false
-				end
-			end
-		end
-	end
-
-	-- tics
-	script:write("set tics\n");
-	if tics ~= nil then
-		if type(tics) == "boolean" and tics == false then
-			script:write("unset tics\n"); 		
-		elseif type(tics) == "string" then 
-			script:write("set tics "..tics.."\n"); 		
-		elseif type(tics) == "table" then
-			for dim, dimTic in pairs(tics) do
-				if type(dimTic) == "boolean" and dimTic == false then 
-					script:write("unset "..dim.."tics\n"); 		
-				elseif type(dimTic) == "string" then 
-					script:write("set "..dim.."tics "..dimTic.."\n"); 		
-				end
-			end
-		end
-	end
-
-	-- mtics
-	if mtics then
-		if type(mtics) == "boolean" and mtics == true then
-			for _, dim in ipairs(DimNames) do
-					script:write("set m"..dim.."tics default\n"); 		
-			end
-		elseif type(mtics) == "number" then 
-			for _, dim in ipairs(DimNames) do
-					script:write("set m"..dim.."tics "..mtics.."\n"); 		
-			end
-		elseif type(mtics) == "table" then
-			for dim, dimTic in pairs(mtics) do
-				if type(dimTic) == "boolean" then
-				 	if dimTic == false then script:write("unset m"..dim.."tics\n"); 		
-				 	else 					script:write("set m"..dim.."tics default\n"); 
-				 	end
-				elseif type(dimTic) == "number" then 
-					script:write("set m"..dim.."tics "..dimTic.."\n"); 		
-				end
-			end
-		end
-	else
-		for _, dim in ipairs(DimNames) do
-				script:write("unset m"..dim.."tics\n"); 		
-		end
-	end
-	
-	-- enable grid
-	if grid then
-		script:write("set grid ")
-		for _, dim in ipairs(DimNames) do
-			script:write(dim.."tics m"..dim.."tics "); 
-		end
-		if type(grid) == "string" then
-			script:write(grid); 
-		end
-		script:write(" back\n"); 
-	end
-
-	-- logscale
-	if logscale then
-		for _, dim in ipairs(DimNames) do
-			if logscale[dim] then
-				script:write("set logscale "..dim.."\n");
-			end
-		end
-	end
-
-	-- set default linetypes
-	if linestyle and linestyle.colors then
-		local colors = linestyle.colors
-		local linewidth = linestyle.linewidth or 1
-		local pointsize = linestyle.pointsize or 1
-		for i=1,#colors do
-		 	script:write("set linetype "..i.." lc rgb \""..colors[i].."\" "
-		 					.."lw "..linewidth.." ps "..pointsize.."\n")
-		end		
-		script:write("set linetype cycle "..#colors.."\n")		
-	end
-
-	if border then			
-		script:write("set border "..border.."\n")
-	end
-	
-	-- write additional options, passed as strings
-	for _, userParam in ipairs(options) do
-		if userParam and type(userParam) == "string" then
-			script:write(userParam.."\n")
-		end
-	end	
-
-	-- multiplot sizes
-	local MultiPlotRows , MultiPlotCols
-	if multiplot then
-		if type(multiplot) == "table" then
-			MultiPlotRows = multiplot.rows or math.ceil(math.sqrt(#plots))			
-		end
-		MultiPlotRows = MultiPlotRows or math.ceil(math.sqrt(#plots))		
-		MultiPlotCols = math.ceil(#plots / MultiPlotRows )
-		
-		--fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))				
-		script:write("set term "..terminal.." font '"..font..","..fontsize.."'\n")
-		
-		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
-		script:write(" title '"..title.."' \n\n" )	
-		script:write("unset title \n" )
-	end
-
-	----------------------------------------------------------------------------
 	-- Detect data sets sizes
 	----------------------------------------------------------------------------
 
@@ -938,26 +760,6 @@ function gnuplot.plot(filename, data, options)
 			end
 		end
 	end
-	
-	-- add key (legend)
-	if key then script:write ("set key "..key.."\n") end
-
-	-- range
-	script:write ("set autoscale\n")
-	for _, dim in ipairs({"x", "y", "z"}) do	
-		if range[dim] then
-			script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
-		end
-	end
-	for d, dim in ipairs(DimNames) do	
-		if padrange[dim] then
-			script:write("set "..dim.."range [")
-			script:write(stats.min[d]*padrange[dim][1])
-			script:write(":")
-			script:write(stats.max[d]*padrange[dim][2])
-			script:write("]\n")
-		end
-	end
 
 	----------------------------------------------------------------------------
 	-- Write data sets
@@ -968,10 +770,215 @@ function gnuplot.plot(filename, data, options)
 		script:write("set surface\n") 
 		script:write("unset contour\n") 
 	end
+	
+-- multiplot sizes
+	local MultiPlotRows , MultiPlotCols
+	if multiplot then
+		if type(multiplot) == "table" then
+			MultiPlotRows = multiplot.rows or math.ceil(math.sqrt(#plots))			
+		end
+		MultiPlotRows = MultiPlotRows or math.ceil(math.sqrt(#plots))		
+		MultiPlotCols = math.ceil(#plots / MultiPlotRows )
+		
+		local title = options.title or "" 
+		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
+		script:write(" title '"..title.."' \n\n" )	
+	end
 
 	for p, plot in ipairs(plots) do
 
+		----------------------------------------------------------------------------
+		-- Plot options
+		----------------------------------------------------------------------------
+		
+		local title = options.title or "" 
+		local label = options.label or false
+		local range = options.range or {}
+		local padrange = options.padrange or {}
+		local logscale = options.logscale or false
+		local grid = options.grid or false
+		local tics = options.tics
+		local mtics = options.mtics or false
+		local key = options.key or "on"
+		local border = options.border or ""	
+		local slope = options.slope or nil
+		
+		------------------------------------------------------------------------
+		-- Write Plot options
+		------------------------------------------------------------------------
+					
+		-- title and axis label
+		script:write("set title '"..title.."'\n")
+		
+		-- set labels
+		if label then
+			for d, dim in ipairs(DimNames) do
+				if not(label[dim]) then 
+					label[dim] = label[d] or ""
+				end
+			end		
+		else
+			label = {}
+			label["x"] = options.xlabel or ""
+			label["y"] = options.ylabel or ""
+			label["z"] = options.zlabel or ""
+		end
+		
+			
+		-- labels
+		for _, dim in ipairs(DimNames) do
+			script:write("set "..dim.."label '"..label[dim].."'\n")
+		end
+		
+		-- set ranges (otherwise autoscale)
+		if type(range) ~= "table" then
+			io.stderr:write("Gnuplot Error: range must be a table.");
+			exit();
+		end
+		for d, dim in ipairs(DimNames) do
+			if not(range[dim]) then 
+				if type(range[d]) == "table" then
+					range[dim] = range[d] 
+				end
+			end
+		end
+		
+		-- set logscales
+		if logscale then
+			if type(logscale) == "boolean" then
+				logscale = {}
+				for d, dim in ipairs(DimNames) do
+					logscale[dim] = true
+				end			
+			else
+				for d, dim in ipairs(DimNames) do
+					if logscale[dim] == nil then 
+						logscale[dim] = logscale[d] or false
+					end
+				end
+			end
+		end
+	
+		-- tics
+		script:write("set tics\n");
+		if tics ~= nil then
+			if type(tics) == "boolean" and tics == false then
+				script:write("unset tics\n"); 		
+			elseif type(tics) == "string" then 
+				script:write("set tics "..tics.."\n"); 		
+			elseif type(tics) == "table" then
+				for dim, dimTic in pairs(tics) do
+					if type(dimTic) == "boolean" and dimTic == false then 
+						script:write("unset "..dim.."tics\n"); 		
+					elseif type(dimTic) == "string" then 
+						script:write("set "..dim.."tics "..dimTic.."\n"); 		
+					end
+				end
+			end
+		end
+	
+		-- mtics
+		if mtics then
+			if type(mtics) == "boolean" and mtics == true then
+				for _, dim in ipairs(DimNames) do
+						script:write("set m"..dim.."tics default\n"); 		
+				end
+			elseif type(mtics) == "number" then 
+				for _, dim in ipairs(DimNames) do
+						script:write("set m"..dim.."tics "..mtics.."\n"); 		
+				end
+			elseif type(mtics) == "table" then
+				for dim, dimTic in pairs(mtics) do
+					if type(dimTic) == "boolean" then
+					 	if dimTic == false then script:write("unset m"..dim.."tics\n"); 		
+					 	else 					script:write("set m"..dim.."tics default\n"); 
+					 	end
+					elseif type(dimTic) == "number" then 
+						script:write("set m"..dim.."tics "..dimTic.."\n"); 		
+					end
+				end
+			end
+		else
+			for _, dim in ipairs(DimNames) do
+					script:write("unset m"..dim.."tics\n"); 		
+			end
+		end
+		
+		-- enable grid
+		if grid then
+			script:write("set grid ")
+			for _, dim in ipairs(DimNames) do
+				script:write(dim.."tics m"..dim.."tics "); 
+			end
+			if type(grid) == "string" then
+				script:write(grid); 
+			end
+			script:write(" back\n"); 
+		end
+	
+		-- logscale
+		if logscale then
+			for _, dim in ipairs(DimNames) do
+				if logscale[dim] then
+					script:write("set logscale "..dim.."\n");
+				end
+			end
+		end
+	
+		-- set default linetypes
+		if linestyle and linestyle.colors then
+			local colors = linestyle.colors
+			local linewidth = linestyle.linewidth or 1
+			local pointsize = linestyle.pointsize or 1
+			for i=1,#colors do
+			 	script:write("set linetype "..i.." lc rgb \""..colors[i].."\" "
+			 					.."lw "..linewidth.." ps "..pointsize.."\n")
+			end		
+			script:write("set linetype cycle "..#colors.."\n")		
+		end
+	
+		if border then			
+			script:write("set border "..border.."\n")
+		end
+		
+		-- write additional options, passed as strings
+		for _, userParam in ipairs(options) do
+			if userParam and type(userParam) == "string" then
+				script:write(userParam.."\n")
+			end
+		end	
+	
+		-- multiplot sizes
+		if multiplot then
+			--fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))				
+			--script:write("set term "..terminal.." font '"..font..","..fontsize.."'\n")
+			script:write("unset title \n" )
+		end
+
+	
+		-- add key (legend)
+		if key then script:write ("set key "..key.."\n") end
+	
+		-- range
+		script:write ("set autoscale\n")
+		for _, dim in ipairs({"x", "y", "z"}) do	
+			if range[dim] then
+				script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
+			end
+		end
+		for d, dim in ipairs(DimNames) do	
+			if padrange[dim] then
+				script:write("set "..dim.."range [")
+				script:write(stats.min[d]*padrange[dim][1])
+				script:write(":")
+				script:write(stats.max[d]*padrange[dim][2])
+				script:write("]\n")
+			end
+		end
+
+		------------------------------------------------------------------------
 		-- Position plots in multiplot
+		------------------------------------------------------------------------
 		if multiplot then
 
 			if type(multiplot) == "table" and multiplot.conjoined then
@@ -1017,7 +1024,9 @@ function gnuplot.plot(filename, data, options)
 			end
 		end
 
+		------------------------------------------------------------------------
 		-- add slope triangle to every source
+		------------------------------------------------------------------------
 		if slope then
 			local function drawSlopTri(xo, yo, dy, p)
 				local dx = dy^(1/p)
@@ -1055,6 +1064,10 @@ function gnuplot.plot(filename, data, options)
 				drawSlopTri(xo, yo*1.5, slope.dy, rate)							
 			end -- end datasets
 		end -- end slope
+	
+		------------------------------------------------------------------------
+		-- Execute Plot
+		------------------------------------------------------------------------
 	
 		-- build up the plot command, layer by layer in non-multiplotmode
 		if plotDim == 2 then script:write ("plot  \\\n");
@@ -1106,10 +1119,15 @@ function gnuplot.plot(filename, data, options)
 																  
 		script:write("\n")	
 
+		------------------------------------------------------------------------
+		-- cleanup
+		------------------------------------------------------------------------
+
 		if slope then
 			script:write("unset label\n")	
 			script:write("unset arrow\n")	
 		end			
+		
 	end -- end plots
 	
 	-- finish script
