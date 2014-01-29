@@ -659,6 +659,17 @@ function gnuplot.plot(filename, data, options)
 	-- encoding and decimalsign
 	script:write("\nset encoding utf8\n")
 	script:write("set decimalsign '"..decimalsign.."'\n")
+
+	-- write timestamp
+	if timestamp then
+		if type(timestamp) == "string" then
+			script:write("set timestamp '"..timestamp.."'\n")
+		else
+			script:write("set timestamp \"%H:%M:%S  %Y/%m/%d\" bottom\n")
+		end
+	else 
+		script:write("unset timestamp\n"); 
+	end
 	
 	----------------------------------------------------------------------------
 	-- Plot options
@@ -683,17 +694,6 @@ function gnuplot.plot(filename, data, options)
 	-- title and axis label
 	script:write("set title '"..title.."'\n")
 	
-	-- write timestamp
-	if timestamp then
-		if type(timestamp) == "string" then
-			script:write("set timestamp '"..timestamp.."'\n")
-		else
-			script:write("set timestamp \"%H:%M:%S  %Y/%m/%d\" bottom\n")
-		end
-	else 
-		script:write("unset timestamp\n"); 
-	end
-
 	-- set labels
 	if label then
 		for d, dim in ipairs(DimNames) do
