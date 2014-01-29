@@ -228,48 +228,7 @@ gnuplot.plot(nil, plots, options)
 -- options		table of options
 function gnuplot.plot(filename, data, options)
 
-	----------------------------------------------------------------------------
-	-- Check passed options and set defaults
-	----------------------------------------------------------------------------
-
 	local options = options or {}
-	local title = options.title or "" 
-	local label = options.label or false
-	local range = options.range or {}
-	local padrange = options.padrange or {}
-	local logscale = options.logscale or false
-	local plotDim = options.dim
-	
-	local terminal = options.terminal
-	local cairo = true
-	if type(options.cairo) == "boolean" then cairo = options.cairo end
-	local path = options.path or "./" -- output of data
-
-	local size = options.size
-	local sizeunit = options.sizeunit or "inch"
-	local color = true
-	if type(options.color) == "boolean" then color = options.color end
-	local enhanced = true
-	if type(options.enhanced) == "boolean" then enhanced = options.enhanced end
-	local dashed = options.dashed or false
-	local font = options.font or "Verdana"
-	local fontsize = options.fontsize or 12
-	local fontscale = options.fontscale or 1
-	local linewidth = options.linewidth or 1
-	local linestyle = options.linestyle
-	local dashlength = options.dashlength or 1
-	local add_term_opt = options.add_term_opt or ""
-
-	local grid = options.grid or false
-	local decimalsign = options.decimalsign or "."
-	local tics = options.tics
-	local mtics = options.mtics or false
-	local key = options.key or "on"
-	local border = options.border or ""
-	
-	local slope = options.slope or nil
-	local timestamp = options.timestamp or false	
-	local multiplot = nil -- will be set based on data
 
 	----------------------------------------------------------------------------
 	-- Detect type of data
@@ -316,6 +275,7 @@ function gnuplot.plot(filename, data, options)
 	--	plots = { { DataSet, DataSet, ...}, { DataSet, DataSet, ...}, ... }
 	-- where DataSet is of type { [file | data |Êfunc ] = , ...}
 	local plots = nil
+	local multiplot = nil -- will be set based on data
 	if data then
 		-- a)
 		if IsDataSet(data) then
@@ -384,10 +344,11 @@ function gnuplot.plot(filename, data, options)
 	end
 	
 	----------------------------------------------------------------------------
-	-- Prepare params
+	-- Prepare Dimension
 	----------------------------------------------------------------------------
 	
 	-- check for 2d or 3d data
+	local plotDim = options.dim
 	for _, plot in ipairs(plots) do
 		for _, dataset in ipairs(plot) do
 			if #dataset == 2 then
@@ -408,55 +369,41 @@ function gnuplot.plot(filename, data, options)
 		end
 	end
 	if plotDim == nil then 
-			io.stderr:write("Gnuplot Error: Cannot detect plot dimension.\n"); exit();		
+		io.stderr:write("Gnuplot Error: Cannot detect plot dimension.\n"); exit();		
 	end
+	
+	-- dim fields
 	local DimNames = {"x", "y"}
 	if plotDim == 3 then DimNames = {"x", "y", "z"} end
-	
-	-- set labels
-	if label then
-		for d, dim in ipairs(DimNames) do
-			if not(label[dim]) then 
-				label[dim] = label[d] or ""
-			end
-		end		
-	else
-		label = {}
-		label["x"] = options.xlabel or ""
-		label["y"] = options.ylabel or ""
-		label["z"] = options.zlabel or ""
-	end
-	
-	
-	-- set ranges (otherwise autoscale)
-	if type(range) ~= "table" then
-		io.stderr:write("Gnuplot Error: range must be a table.");
-		exit();
-	end
-	for d, dim in ipairs(DimNames) do
-		if not(range[dim]) then 
-			if type(range[d]) == "table" then
-				range[dim] = range[d] 
-			end
-		end
-	end
-	
-	-- set logscales
-	if logscale then
-		if type(logscale) == "boolean" then
-			logscale = {}
-			for d, dim in ipairs(DimNames) do
-				logscale[dim] = true
-			end			
-		else
-			for d, dim in ipairs(DimNames) do
-				if logscale[dim] == nil then 
-					logscale[dim] = logscale[d] or false
-				end
-			end
-		end
-	end
 
+	----------------------------------------------------------------------------
+	-- Terminal options
+	----------------------------------------------------------------------------
+	
+	local terminal = options.terminal
+	local cairo = true
+	if type(options.cairo) == "boolean" then cairo = options.cairo end
+	local path = options.path or "./" -- output of data
+
+	local size = options.size
+	local sizeunit = options.sizeunit or "inch"
+	
+	local color = true
+	if type(options.color) == "boolean" then color = options.color end
+	local enhanced = true
+	if type(options.enhanced) == "boolean" then enhanced = options.enhanced end
+	local dashed = options.dashed or false
+	local font = options.font or "Verdana"
+	local fontsize = options.fontsize or 12
+	local fontscale = options.fontscale or 1
+	local linewidth = options.linewidth or 1
+	local linestyle = options.linestyle
+	local dashlength = options.dashlength or 1
+	local add_term_opt = options.add_term_opt or ""
+
+	local decimalsign = options.decimalsign or "."
+	local timestamp = options.timestamp or false		
+	
 	----------------------------------------------------------------------------
 	-- Detect terminal
 	----------------------------------------------------------------------------
@@ -673,7 +620,7 @@ function gnuplot.plot(filename, data, options)
 	if terminal == "postscript" then terminal = "postscript eps" end
 		
 	----------------------------------------------------------------------------
-	-- Write script header
+	-- Write terminal
 	----------------------------------------------------------------------------
 
 	if filename then filename = string.gsub(tostring(filename), " ", "_" )
@@ -713,14 +660,28 @@ function gnuplot.plot(filename, data, options)
 	script:write("\nset encoding utf8\n")
 	script:write("set decimalsign '"..decimalsign.."'\n")
 	
+	----------------------------------------------------------------------------
+	-- Plot options
+	----------------------------------------------------------------------------
+	
+	local title = options.title or "" 
+	local label = options.label or false
+	local range = options.range or {}
+	local padrange = options.padrange or {}
+	local logscale = options.logscale or false
+	local grid = options.grid or false
+	local tics = options.tics
+	local mtics = options.mtics or false
+	local key = options.key or "on"
+	local border = options.border or ""	
+	local slope = options.slope or nil
+	
+	----------------------------------------------------------------------------
+	-- Write Plot options
+	----------------------------------------------------------------------------
 		
 	-- title and axis label
 	script:write("set title '"..title.."'\n")
-	
-	-- labels
-	for _, dim in ipairs(DimNames) do
-		script:write("set "..dim.."label '"..label[dim].."'\n")
-	end
 	
 	-- write timestamp
 	if timestamp then
@@ -731,6 +692,55 @@ function gnuplot.plot(filename, data, options)
 		end
 	else 
 		script:write("unset timestamp\n"); 
+	end
+
+	-- set labels
+	if label then
+		for d, dim in ipairs(DimNames) do
+			if not(label[dim]) then 
+				label[dim] = label[d] or ""
+			end
+		end		
+	else
+		label = {}
+		label["x"] = options.xlabel or ""
+		label["y"] = options.ylabel or ""
+		label["z"] = options.zlabel or ""
+	end
+	
+		
+	-- labels
+	for _, dim in ipairs(DimNames) do
+		script:write("set "..dim.."label '"..label[dim].."'\n")
+	end
+	
+	-- set ranges (otherwise autoscale)
+	if type(range) ~= "table" then
+		io.stderr:write("Gnuplot Error: range must be a table.");
+		exit();
+	end
+	for d, dim in ipairs(DimNames) do
+		if not(range[dim]) then 
+			if type(range[d]) == "table" then
+				range[dim] = range[d] 
+			end
+		end
+	end
+	
+	-- set logscales
+	if logscale then
+		if type(logscale) == "boolean" then
+			logscale = {}
+			for d, dim in ipairs(DimNames) do
+				logscale[dim] = true
+			end			
+		else
+			for d, dim in ipairs(DimNames) do
+				if logscale[dim] == nil then 
+					logscale[dim] = logscale[d] or false
+				end
+			end
+		end
 	end
 
 	-- tics
