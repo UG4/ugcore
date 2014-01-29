@@ -344,39 +344,6 @@ function gnuplot.plot(filename, data, options)
 	end
 	
 	----------------------------------------------------------------------------
-	-- Prepare Dimension
-	----------------------------------------------------------------------------
-	
-	-- check for 2d or 3d data
-	local plotDim = options.dim
-	for _, plot in ipairs(plots) do
-		for _, dataset in ipairs(plot) do
-			if #dataset == 2 then
-				if plotDim and plotDim ~= 2 then
-					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
-				end
-				plotDim = 2 
-			elseif #dataset == 3 then  
-				if plotDim and plotDim ~= 3 then
-					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
-				end
-				plotDim = 3 
-			elseif #dataset == 0 then
-				-- function  
-			else 
-				io.stderr:write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); exit();
-			end		
-		end
-	end
-	if plotDim == nil then 
-		io.stderr:write("Gnuplot Error: Cannot detect plot dimension.\n"); exit();		
-	end
-	
-	-- dim fields
-	local DimNames = {"x", "y"}
-	if plotDim == 3 then DimNames = {"x", "y", "z"} end
-
-	----------------------------------------------------------------------------
 	-- Terminal options
 	----------------------------------------------------------------------------
 	
@@ -672,6 +639,39 @@ function gnuplot.plot(filename, data, options)
 	end
 	
 	----------------------------------------------------------------------------
+	-- Detect Plot Dimension
+	----------------------------------------------------------------------------
+	
+	-- check for 2d or 3d data
+	local plotDim = options.dim
+	for _, plot in ipairs(plots) do
+		for _, dataset in ipairs(plot) do
+			if #dataset == 2 then
+				if plotDim and plotDim ~= 2 then
+					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+				end
+				plotDim = 2 
+			elseif #dataset == 3 then  
+				if plotDim and plotDim ~= 3 then
+					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+				end
+				plotDim = 3 
+			elseif #dataset == 0 then
+				-- function  
+			else 
+				io.stderr:write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); exit();
+			end		
+		end
+	end
+	if (plotDim ~= 2 and plotDim ~= 3) then 
+		io.stderr:write("Gnuplot Error: Cannot detect plot dimension (only 2d or 3d).\n"); exit();		
+	end
+	
+	-- dim fields
+	local DimNames = {"x", "y"}
+	if plotDim == 3 then DimNames = {"x", "y", "z"} end
+
+	----------------------------------------------------------------------------
 	-- Detect data sets sizes
 	----------------------------------------------------------------------------
 
@@ -682,11 +682,10 @@ function gnuplot.plot(filename, data, options)
 			-- get the data column mapping
 			dataset.map = {}
 			local map = dataset.map
-			if     #dataset == 2 then map[1] = dataset[1]; map[2] = dataset[2];
-			elseif #dataset == 3 then map[1] = dataset[1]; map[2] = dataset[2]; map[3] = dataset[3];
+			if #dataset == #DimNames then 
+				for d, _ in ipairs(DimNames) do map[d] = dataset[d]; end
 			else
-				if plotDim == 2 then map[1] = 1; map[2] = 2;
-				else 				 map[1] = 1; map[2] = 2; map[3] = 3; end
+				for d, _ in ipairs(DimNames) do map[d] = d; end
 			end
 
 			dataset.val = {}
@@ -699,7 +698,7 @@ function gnuplot.plot(filename, data, options)
 					if not string.match(line, "#") then
 						for n in string.gmatch(line, "[^ ]+") do numbers[#numbers+1] = tonumber(n) end
 		
-						for d = 1,#map do 
+						for d, _ in ipairs(DimNames) do 
 							val[d] = val[d] or {}
 							val[d][#(val[d])+1] = numbers[map[d]]
 						end
@@ -711,14 +710,14 @@ function gnuplot.plot(filename, data, options)
 			if dataset.data then
 				if dataset.row then
 					for row = 1, #(dataset.data) do 
-						for d = 1,#map do 
+						for d, _ in ipairs(DimNames) do 
 							val[d] = val[d] or {}
 							val[d][#(val[d])+1] = dataset.data[row][map[d]]
 						end
 					end
 				else
 					for row = 1, #dataset.data[1] do 
-						for d = 1,#map do 
+						for d, _ in ipairs(DimNames) do 
 							val[d] = val[d] or {}
 							val[d][#(val[d])+1] = dataset.data[map[d]][row]
 						end
@@ -729,7 +728,7 @@ function gnuplot.plot(filename, data, options)
 			-- find min/max
 			dataset.min = {}
 			dataset.max = {}
-			for d = 1,#dataset.val do
+			for d, _ in ipairs(DimNames) do
 				dataset.min[d] = math.huge
 				dataset.max[d] = -math.huge
 				for n = 1,#dataset.val[d] do
@@ -748,12 +747,12 @@ function gnuplot.plot(filename, data, options)
 				stats.min = {}
 				stats.max = {}
 				stats.range = {}
-				for d = 1,#dataset.val do
+				for d, _ in ipairs(DimNames) do
 					stats.min[d] = math.huge
 					stats.max[d] = -math.huge
 				end
 			end
-			for d = 1,#dataset.val do
+			for d, _ in ipairs(DimNames) do
 				stats.min[d] = math.min(stats.min[d], dataset.min[d])	
 				stats.max[d] = math.max(stats.max[d], dataset.max[d])	
 				stats.range[d] = stats.max[d] - stats.min[d]
@@ -762,7 +761,7 @@ function gnuplot.plot(filename, data, options)
 	end
 
 	----------------------------------------------------------------------------
-	-- Write data sets
+	-- special treatments
 	----------------------------------------------------------------------------
 	
 	-- special 3d treatment
@@ -785,11 +784,15 @@ function gnuplot.plot(filename, data, options)
 		script:write(" title '"..title.."' \n\n" )	
 	end
 
+	----------------------------------------------------------------------------
+	-- loop plots
+	----------------------------------------------------------------------------
+
 	for p, plot in ipairs(plots) do
 
-		----------------------------------------------------------------------------
+		------------------------------------------------------------------------
 		-- Plot options
-		----------------------------------------------------------------------------
+		------------------------------------------------------------------------
 		
 		local title = options.title or "" 
 		local label = options.label or false
@@ -948,14 +951,6 @@ function gnuplot.plot(filename, data, options)
 			end
 		end	
 	
-		-- multiplot sizes
-		if multiplot then
-			--fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))				
-			--script:write("set term "..terminal.." font '"..font..","..fontsize.."'\n")
-			script:write("unset title \n" )
-		end
-
-	
 		-- add key (legend)
 		if key then script:write ("set key "..key.."\n") end
 	
@@ -982,6 +977,10 @@ function gnuplot.plot(filename, data, options)
 		if multiplot then
 
 			if type(multiplot) == "table" and multiplot.conjoined then
+				
+				-- only one global title --> unset plot title
+				script:write("unset title \n" )
+			
 				local spaceTop = 0.1
 				local spaceBottom = 0.1
 				local spaceLeft = 0.1
