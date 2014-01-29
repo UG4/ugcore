@@ -22,17 +22,33 @@ function table.append(t1, t2)
     end	
 end
 
---! returns deep-copy of table
-function table.deepcopy(t)
-	if type(t) ~= "table" then
-		print("table.deepcopy called on non-table"); exit();
-	end
-	
-	local cpy = {}
-    for k,v in pairs(t) do
-        cpy[k] = v
+--! returns shallow-copy of table (i.e., only top level values)
+function table.shallowcopy(t)
+    local copy
+    if type(t) == "table" then
+        copy = {}
+        for k, v in pairs(t) do
+            copy[k] = v
+        end
+    else -- number, string, boolean, etc
+        copy = t
     end
-    return cpy
+    return copy
+end
+
+--! returns deep-copy of table (i.e., copies recursive all contained tables as well)
+function table.deepcopy(t)
+    local copy
+    if type(t) == "table" then
+        copy = {}
+        for k, v in next, t, nil do
+            copy[table.deepcopy(k)] = table.deepcopy(v)
+        end
+        setmetatable(copy, table.deepcopy(getmetatable(t)))
+    else -- number, string, boolean, etc
+        copy = t
+    end
+    return copy
 end
 
 --! returns the smallest integer key of the table (even negative or null if present)
