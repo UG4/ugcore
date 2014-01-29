@@ -794,79 +794,77 @@ function gnuplot.plot(filename, data, options)
 		-- Plot options
 		------------------------------------------------------------------------
 		
-		local title = options.title or "" 
-		local label = options.label or false
-		local range = options.range or {}
-		local padrange = options.padrange or {}
-		local logscale = options.logscale or false
-		local grid = options.grid or false
-		local tics = options.tics
-		local mtics = options.mtics or false
-		local key = options.key or "on"
-		local border = options.border or ""	
-		local slope = options.slope or nil
+		local title = plot.title or options.title or "" 
+		
+		local label = plot.label or options.label or false
+		for _, dim in ipairs(DimNames) do label[dim] = label[dim] or "" end
+		
+		local range = plot.range or options.range or {}
+		local padrange = plot.padrange or options.padrange or {}
+		
+		local logscale = plot.logscale or options.logscale or false
+
+		local tics = plot.tics or options.tics or false
+		local mtics = plot.mtics or options.mtics or false
+		local grid = plot.grid or options.grid or false
+		
+		local key = plot.key or options.key or "on"
+		local border = plot.border or options.border or ""	
+		
+		local slope = plot.slope or options.slope or nil
 		
 		------------------------------------------------------------------------
 		-- Write Plot options
 		------------------------------------------------------------------------
 					
-		-- title and axis label
+		-- title
 		script:write("set title '"..title.."'\n")
-		
-		-- set labels
-		if label then
-			for d, dim in ipairs(DimNames) do
-				if not(label[dim]) then 
-					label[dim] = label[d] or ""
-				end
-			end		
-		else
-			label = {}
-			label["x"] = options.xlabel or ""
-			label["y"] = options.ylabel or ""
-			label["z"] = options.zlabel or ""
-		end
-		
 			
 		-- labels
+		script:write("unset label\n")
 		for _, dim in ipairs(DimNames) do
 			script:write("set "..dim.."label '"..label[dim].."'\n")
 		end
 		
-		-- set ranges (otherwise autoscale)
-		if type(range) ~= "table" then
-			io.stderr:write("Gnuplot Error: range must be a table.");
-			exit();
-		end
-		for d, dim in ipairs(DimNames) do
-			if not(range[dim]) then 
-				if type(range[d]) == "table" then
-					range[dim] = range[d] 
-				end
+		-- range
+		script:write ("set autoscale\n")
+		for _, dim in ipairs(DimNames) do	
+			if range[dim] then
+				script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
 			end
 		end
 		
-		-- set logscales
+		-- padrange
+		for d, dim in ipairs(DimNames) do	
+			if padrange[dim] then
+				script:write("set "..dim.."range [")
+				script:write(stats.min[d]*padrange[dim][1])
+				script:write(":")
+				script:write(stats.max[d]*padrange[dim][2])
+				script:write("]\n")
+			end
+		end
+
+		-- logscale
+		script:write("unset logscale\n");
 		if logscale then
 			if type(logscale) == "boolean" then
 				logscale = {}
-				for d, dim in ipairs(DimNames) do
-					logscale[dim] = true
-				end			
-			else
-				for d, dim in ipairs(DimNames) do
-					if logscale[dim] == nil then 
-						logscale[dim] = logscale[d] or false
-					end
+				for _, dim in ipairs(DimNames) do logscale[dim] = true end			
+			end
+			
+			for _, dim in ipairs(DimNames) do
+				if logscale[dim] then
+					script:write("set logscale "..dim.."\n");
 				end
 			end
 		end
 	
 		-- tics
-		script:write("set tics\n");
-		if tics ~= nil then
-			if type(tics) == "boolean" and tics == false then
-				script:write("unset tics\n"); 		
+		script:write("unset tics\n"); 		
+		if tics then
+			if type(tics) == "boolean" then
+				script:write("set tics\n"); 		
 			elseif type(tics) == "string" then 
 				script:write("set tics "..tics.."\n"); 		
 			elseif type(tics) == "table" then
@@ -881,8 +879,11 @@ function gnuplot.plot(filename, data, options)
 		end
 	
 		-- mtics
+		for _, dim in ipairs(DimNames) do
+			script:write("unset m"..dim.."tics\n"); 		
+		end
 		if mtics then
-			if type(mtics) == "boolean" and mtics == true then
+			if type(mtics) == "boolean" then
 				for _, dim in ipairs(DimNames) do
 						script:write("set m"..dim.."tics default\n"); 		
 				end
@@ -901,13 +902,10 @@ function gnuplot.plot(filename, data, options)
 					end
 				end
 			end
-		else
-			for _, dim in ipairs(DimNames) do
-					script:write("unset m"..dim.."tics\n"); 		
-			end
 		end
 		
-		-- enable grid
+		-- grid
+		script:write("unset grid \n")
 		if grid then
 			script:write("set grid ")
 			for _, dim in ipairs(DimNames) do
@@ -919,18 +917,9 @@ function gnuplot.plot(filename, data, options)
 			script:write(" back\n"); 
 		end
 	
-		-- logscale
-		if logscale then
-			for _, dim in ipairs(DimNames) do
-				if logscale[dim] then
-					script:write("set logscale "..dim.."\n");
-				end
-			end
-		end
-	
-		-- set default linetypes
-		if linestyle and linestyle.colors then
-			local colors = linestyle.colors
+		-- default linetypes
+		if linestyle then
+			local colors = linestyle.colors or {}
 			local linewidth = linestyle.linewidth or 1
 			local pointsize = linestyle.pointsize or 1
 			for i=1,#colors do
@@ -940,6 +929,8 @@ function gnuplot.plot(filename, data, options)
 			script:write("set linetype cycle "..#colors.."\n")		
 		end
 	
+		-- border
+		script:write("unset border\n")
 		if border then			
 			script:write("set border "..border.."\n")
 		end
@@ -952,25 +943,11 @@ function gnuplot.plot(filename, data, options)
 		end	
 	
 		-- add key (legend)
-		if key then script:write ("set key "..key.."\n") end
+		script:write("unset key\n")
+		if key then 
+			script:write("set key "..key.."\n") 
+		end
 	
-		-- range
-		script:write ("set autoscale\n")
-		for _, dim in ipairs({"x", "y", "z"}) do	
-			if range[dim] then
-				script:write ("set "..dim.."range [",range[dim][1],":",range[dim][2],"]\n")
-			end
-		end
-		for d, dim in ipairs(DimNames) do	
-			if padrange[dim] then
-				script:write("set "..dim.."range [")
-				script:write(stats.min[d]*padrange[dim][1])
-				script:write(":")
-				script:write(stats.max[d]*padrange[dim][2])
-				script:write("]\n")
-			end
-		end
-
 		------------------------------------------------------------------------
 		-- Position plots in multiplot
 		------------------------------------------------------------------------
