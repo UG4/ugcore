@@ -825,12 +825,37 @@ function gnuplot.plot(filename, datasource, options)
 			script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
 			script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
 			script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
-			script:write("set label right '"..p.."' at "..(xo*1.05)..","..math.pow(dy, 2/3)*yo.. "font ',8'\n") -- label
-			script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy*1.8).. "font ',8'\n") -- label
+			local align = "right"; if p < 0 then align = "left" end
+			script:write("set label "..align.." '"..p.."' at "..(xo*1.0)..","..math.pow(dy, 1/2)*yo.. "font ',8'\n") -- label
+			script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy).. "font ',8'\n") -- label
+		end
+	
+		local function round(num, quantum)
+  			return math.floor(num / quantum + 0.5) * quantum
 		end
 		
 		if slope then
-			drawSlopTri(stats[s].min[1], stats[s].min[2]*1.5, slope.dx, s)							
+			local valx = stats[s].val[1]
+			local valy = stats[s].val[2]
+			local facx = valx[#valx-1]/valx[#valx]
+			local facy = valy[#valy-1]/valy[#valy]
+			local rate = math.log(facy) / math.log(facx)
+			rate = round(rate, slope.quantum or 1)
+			local at = slope.at or "last"
+			local stat = stats[s]
+			local xo,yo
+			if at == "min" then
+				xo, yo = stat.min[1], stat.min[2]
+			elseif at == "max" then
+				xo, yo = stat.max[1], stat.max[2]
+			elseif at == "last" then
+				xo, yo = stat.val[1][#stat.val[1]], stat.val[2][#stat.val[2]]
+			elseif at == "first" then
+				xo, yo = stat.val[1][1], stat.val[2][1]
+			else print("slope.at: only min,max,last,first"); exit(); end
+				
+			
+			drawSlopTri(xo, yo*1.5, slope.dy, rate)							
 		end
 	end
 	
