@@ -176,7 +176,7 @@ gnuplot.plot("somedata.pdf",
 				--{file="somedata.txt", 1, 3} 
 			})
 			
-datasource = {	
+plots = {	
 	{ label = "catsdogs",  file = "./TestData/dogdata", style = "points", 1, 5 },
 	{ label = "catsdogs3", file = "./TestData/dogdata", style = "points", 1, 6 },
 	{ label = "catsdogs4", file = "./TestData/dogdata", style = "lines", 1, 5 },
@@ -216,23 +216,18 @@ options = {	title =				"Title",
 			...
 }
 
-gnuplot.plot("vibration.eps", datasource, options)
-gnuplot.plot("vibration.svg", datasource, options)
-gnuplot.plot("vibration.pdf", datasource, options)
-gnuplot.plot("vibration.tex", datasource, options)
-gnuplot.plot(nil, datasource, options)
+gnuplot.plot("vibration.eps", plots, options)
+gnuplot.plot("vibration.svg", plots, options)
+gnuplot.plot("vibration.pdf", plots, options)
+gnuplot.plot("vibration.tex", plots, options)
+gnuplot.plot(nil, plots, options)
 
 ]]--
 -- filename		output filename
--- datasource	table of data to be plotted
+-- plots	table of data to be plotted
 -- options		table of options
-function gnuplot.plot(filename, datasource, options)
+function gnuplot.plot(filename, data, options)
 
-	if not datasource or type(datasource) ~= "table" then
-		io.stderr:write("Gnuplot Error: a data source dictionary must be provided!\n");
-		exit();
-	end
-	
 	----------------------------------------------------------------------------
 	-- Check passed options and set defaults
 	----------------------------------------------------------------------------
@@ -273,31 +268,144 @@ function gnuplot.plot(filename, datasource, options)
 	local border = options.border or ""
 	
 	local slope = options.slope or nil
-
 	local timestamp = options.timestamp or false	
-	local multiplot = options.multiplot or false
+	local multiplot = nil -- will be set based on data
 
+	----------------------------------------------------------------------------
+	-- Detect type of data
+	----------------------------------------------------------------------------
+	
+	-- returns if a table item is a correct data item
+	-- a dataset is 
+	local function IsDataSet(dataset)
+		-- must be a table
+		if type(dataset) ~= "table" then return false end 
+		
+		-- must contain exactly one of: file, func, data
+		if 	(dataset.file and dataset.func) or 
+			(dataset.file and dataset.data) or
+			(dataset.func and dataset.data) then return false end
+			
+		-- must not contain table in integral keys
+		for _, v in ipairs(dataset) do
+			if type(v) == "table" then return false end
+		end
+			
+		-- check for source-specification
+		if 	   dataset.file then
+			return true
+		elseif dataset.func then
+			-- no column specs for function
+			if #dataset == 0 then return true else return false end		
+		elseif dataset.data then
+			return true
+		else 		
+			-- not contained a source-spec
+			return false
+		end
+	end
+	
+	-- prepare plot array 
+	-- we allow three cases:
+	-- a) table depth 1: single data: data = {file = "f1.dat", 1, 2}	
+	-- b) table depth 2: multi-data:  data = {{file = "f1.dat", 1, 2}, {file = "f1.dat", 1, 2}, ..}	
+	-- c) table depth 3: multiplot-multi-data:  
+	--			data = { { {file = "f1.dat", 1, 2}, {file = "f1.dat", 1, 2}, ...}, 
+	--					 { {file = "f3.dat", 1, 2}, {file = "f3.dat", 1, 2}, ...}, ...}	
+	-- NOTE: plots will always be of structure c), i.e.
+	--	plots = { { DataSet, DataSet, ...}, { DataSet, DataSet, ...}, ... }
+	-- where DataSet is of type { [file | data |Êfunc ] = , ...}
+	local plots = nil
+	if data then
+		-- a)
+		if IsDataSet(data) then
+			plots = {{table.deepcopy(data)}}
+			multiplot = false
+		elseif type(data) == "table" then 
+		 	local bMulti = true
+		 	for _,dataset in ipairs(data) do
+		 		if not IsDataSet(dataset) then bMulti = false end
+		 	end
+		 	
+	 		-- b)
+		 	if bMulti then
+				if options.multiplot ~= nil and options.multiplot then
+					-- create several plots
+					plots = {}
+				 	for s,dataset in ipairs(data) do
+				 		plots[s] = {table.deepcopy(data[s])}
+					end
+					multiplot = options.multiplot
+				else
+					-- default is no multiplot
+					plots = {table.deepcopy(data)}
+					multiplot = false
+				end		
+		 	else
+			 	local bMultiMulti = true
+			 	for _,plot in ipairs(data) do
+			 		if type(plot) ~= "table" then bMultiMulti = false 
+			 		else
+					 	for _,dataset in ipairs(plot) do
+					 		if not IsDataSet(dataset) then bMultiMulti = false end
+					 	end
+					end
+				end
+				
+				-- c) 
+				if bMultiMulti then 
+					if type(options.multiplot) == "boolean" and not options.multiplot then
+						-- create one plot
+						plots = {{}}
+					 	for _,plot in ipairs(data) do
+						 	for _,dataset in ipairs(plot) do
+					 			plots[1][#plots[1]+1] = table.deepcopy(dataset)
+					 		end
+						end
+						multiplot = false
+					else
+						-- default is multiplot
+						plots = table.deepcopy(data)
+						multiplot = options.multiplot or true
+					end		
+				end
+		 	end
+		end
+	end
+
+	if not plots then
+		io.stderr:write("Gnuplot Error: data source not correctly specifiec. Valid formats are:\n");
+		io.stderr:write(" a) single data: data = {file = \"f1.dat\", 1, 2}\n");
+		io.stderr:write(" b) multi-data:  data = {{file = \"f1.dat\", 1, 2}, {file = \"f1.dat\", 1, 2}, ...}	\n");
+		io.stderr:write(" c) multiplot-multi-data: \n");		
+		io.stderr:write("    data = { { {file = \"f1.dat\", 1, 2}, {file = \"f1.dat\", 1, 2}, ...}, \n");		
+		io.stderr:write("             { {file = \"f3.dat\", 1, 2}, {file = \"f3.dat\", 1, 2}, ...}, ...} \n");		
+		exit();
+	end
+	
 	----------------------------------------------------------------------------
 	-- Prepare params
 	----------------------------------------------------------------------------
 	
 	-- check for 2d or 3d data
-	for _, source in ipairs(datasource) do
-		if #source == 2 then
-			if plotDim and plotDim ~= 2 then
-				io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
-			end
-			plotDim = 2 
-		elseif #source == 3 then  
-			if plotDim and plotDim ~= 3 then
-				io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
-			end
-			plotDim = 3 
-		elseif #source == 0 then
-			-- function  
-		else 
-			io.stderr:write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); exit();
-		end		
+	for _, plot in ipairs(plots) do
+		for _, dataset in ipairs(plot) do
+			if #dataset == 2 then
+				if plotDim and plotDim ~= 2 then
+					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+				end
+				plotDim = 2 
+			elseif #dataset == 3 then  
+				if plotDim and plotDim ~= 3 then
+					io.stderr:write("Gnuplot Error: Mixed 2d/3d data.\n"); exit();
+				end
+				plotDim = 3 
+			elseif #dataset == 0 then
+				-- function  
+			else 
+				io.stderr:write("Gnuplot Error: pass 0, 2 or 3 columns as data selection.\n"); exit();
+			end		
+		end
 	end
 	if plotDim == nil then 
 			io.stderr:write("Gnuplot Error: Cannot detect plot dimension.\n"); exit();		
@@ -715,11 +823,14 @@ function gnuplot.plot(filename, datasource, options)
 	end	
 
 	-- multiplot sizes
-	local MultiPlotRows, MultiPlotCols
+	local MultiPlotRows , MultiPlotCols
 	if multiplot then
-		MultiPlotRows = multiplot.rows or math.ceil(math.sqrt(#datasource))
-		MultiPlotCols = math.ceil(#datasource / MultiPlotRows )
-
+		if type(multiplot) == "table" then
+			MultiPlotRows = multiplot.rows or math.ceil(math.sqrt(#plots))			
+		end
+		MultiPlotRows = MultiPlotRows or math.ceil(math.sqrt(#plots))		
+		MultiPlotCols = math.ceil(#plots / MultiPlotRows )
+		
 		fontsize = math.ceil(fontsize / math.max(MultiPlotRows, MultiPlotCols))				
 		script:write("set term "..terminal.." font '"..font..","..fontsize.."'\n")
 		
@@ -733,126 +844,124 @@ function gnuplot.plot(filename, datasource, options)
 
 	-- find data ranges
 	local stats = {}
-	for s, source in ipairs(datasource) do
+	for _, plot in ipairs(plots) do
+		for _, dataset in ipairs(plot) do
 	
-		stats[s] = {}
-		local stat = stats[s]
-		
-		-- get the data column mapping
-		stat.map = {};
-		local map = stat.map
-		if     #source == 2 then map[1] = source[1]; map[2] = source[2];
-		elseif #source == 3 then map[1] = source[1]; map[2] = source[2]; map[3] = source[3];
-		else
-			if plotDim == 2 then map[1] = 1; map[2] = 2;
-			else 				 map[1] = 1; map[2] = 2; map[3] = 3; end
-		end
-
-		-- extract values if in file
-		if source.file then	
-			stat.val = {}
-			local val = stat.val
-			for line in io.lines(source.file) do
-				local numbers = {}
-				if not string.match(line, "#") then
-					for n in string.gmatch(line, "[^ ]+") do numbers[#numbers+1] = tonumber(n) end
-	
-					for d = 1,#map do 
-						val[d] = val[d] or {}
-						val[d][#(val[d])+1] = numbers[map[d]]
-					end
-				end
-			end
-		end
-
-		-- extract values if in array
-		if source.data then
-			stat.val = {}
-			if source.row then
-				for row in 1,#source.data do 
-					for d = 1,#map do 
-						val[d] = val[d] or {}
-						val[d][#(val[d])+1] = source.data[row][map[d]]
-					end
-				end
+			-- get the data column mapping
+			dataset.map = {}
+			local map = dataset.map
+			if     #dataset == 2 then map[1] = dataset[1]; map[2] = dataset[2];
+			elseif #dataset == 3 then map[1] = dataset[1]; map[2] = dataset[2]; map[3] = dataset[3];
 			else
-				for row in 1,#source.data[1] do 
-					for d = 1,#map do 
-						val[d] = val[d] or {}
-						val[d][#(val[d])+1] = source.data[map[d]][row]
-					end
-				end			
+				if plotDim == 2 then map[1] = 1; map[2] = 2;
+				else 				 map[1] = 1; map[2] = 2; map[3] = 3; end
 			end
-		end
 
-		-- find min/max
-		stat.min = {}
-		stat.max = {}
-		for d = 1,#stat.val do
-			stat.min[d] = math.huge
-			stat.max[d] = -math.huge
-			for n = 1,#stat.val[d] do
-				stat.min[d] = math.min(stat.min[d], stat.val[d][n])	
-				stat.max[d] = math.max(stat.max[d], stat.val[d][n])	
-			end		
-		end
+			dataset.val = {}
+			local val = dataset.val
+	
+			-- extract values if in file
+			if dataset.file then	
+				for line in io.lines(dataset.file) do
+					local numbers = {}
+					if not string.match(line, "#") then
+						for n in string.gmatch(line, "[^ ]+") do numbers[#numbers+1] = tonumber(n) end
 		
-		-- global min/max
-		if not stats.min or not stats.max then
-			stats.min = {}
-			stats.max = {}
-			stats.range = {}
-			for d = 1,#stat.min do
-				stats.min[d] = math.huge
-				stats.max[d] = -math.huge
+						for d = 1,#map do 
+							val[d] = val[d] or {}
+							val[d][#(val[d])+1] = numbers[map[d]]
+						end
+					end
+				end
 			end
-		end
-		for d = 1,#stat.val do
-			stats.min[d] = math.min(stats.min[d], stat.min[d])	
-			stats.max[d] = math.max(stats.max[d], stat.max[d])	
-			stats.range[d] = stats.max[d] - stats.min[d]
+	
+			-- extract values if in array
+			if dataset.data then
+				if dataset.row then
+					for row = 1, #(dataset.data) do 
+						for d = 1,#map do 
+							val[d] = val[d] or {}
+							val[d][#(val[d])+1] = dataset.data[row][map[d]]
+						end
+					end
+				else
+					for row = 1, #dataset.data[1] do 
+						for d = 1,#map do 
+							val[d] = val[d] or {}
+							val[d][#(val[d])+1] = dataset.data[map[d]][row]
+						end
+					end			
+				end
+			end
+	
+			-- find min/max
+			dataset.min = {}
+			dataset.max = {}
+			for d = 1,#dataset.val do
+				dataset.min[d] = math.huge
+				dataset.max[d] = -math.huge
+				for n = 1,#dataset.val[d] do
+					dataset.min[d] = math.min(dataset.min[d], dataset.val[d][n])	
+					dataset.max[d] = math.max(dataset.max[d], dataset.val[d][n])	
+				end		
+			end
+			
+			-- global min/max
+			if not stats.min or not stats.max then
+				stats.min = {}
+				stats.max = {}
+				stats.range = {}
+				for d = 1,#dataset.val do
+					stats.min[d] = math.huge
+					stats.max[d] = -math.huge
+				end
+			end
+			for d = 1,#dataset.val do
+				stats.min[d] = math.min(stats.min[d], dataset.min[d])	
+				stats.max[d] = math.max(stats.max[d], dataset.max[d])	
+				stats.range[d] = stats.max[d] - stats.min[d]
+			end
 		end
 	end
-
-	-- add slope triangle to every source
-	for s, source in ipairs(datasource) do
-		local function drawSlopTri(xo, yo, dy, p)
---			local dy = dx^p
-			local dx = dy^(1/p)
-			script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
-			script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
-			script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
-			local align = "right"; if p < 0 then align = "left" end
-			script:write("set label "..align.." '"..p.."' at "..(xo*1.0)..","..math.pow(dy, 1/2)*yo.. "font ',8'\n") -- label
-			script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy).. "font ',8'\n") -- label
-		end
 	
-		local function round(num, quantum)
-  			return math.floor(num / quantum + 0.5) * quantum
-		end
+	-- add slope triangle to every source
+	for _, plot in ipairs(plots) do
+		for _, dataset in ipairs(plot) do
+			local function drawSlopTri(xo, yo, dy, p)
+				local dx = dy^(1/p)
+				script:write("set arrow from "..xo..","..yo.." rto "..dx..","..dy.." nohead lw 2\n") -- slope
+				script:write("set arrow from "..xo..","..yo*dy.." rto "..dx..", 1 nohead lw 2\n") -- waagerecht
+				script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
+				local align = "right"; if p < 0 then align = "left" end
+				script:write("set label "..align.." '"..p.."' at "..(xo*1.0)..","..math.pow(dy, 1/2)*yo.. "font ',8'\n") -- label
+				script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy).. "font ',8'\n") -- label
+			end
 		
-		if slope then
-			local valx = stats[s].val[1]
-			local valy = stats[s].val[2]
-			local facx = valx[#valx-1]/valx[#valx]
-			local facy = valy[#valy-1]/valy[#valy]
-			local rate = math.log(facy) / math.log(facx)
-			rate = round(rate, slope.quantum or 1)
-			local at = slope.at or "last"
-			local stat = stats[s]
-			local xo,yo
-			if at == "min" then
-				xo, yo = stat.min[1], stat.min[2]
-			elseif at == "max" then
-				xo, yo = stat.max[1], stat.max[2]
-			elseif at == "last" then
-				xo, yo = stat.val[1][#stat.val[1]], stat.val[2][#stat.val[2]]
-			elseif at == "first" then
-				xo, yo = stat.val[1][1], stat.val[2][1]
-			else print("slope.at: only min,max,last,first"); exit(); end
-				
+			local function round(num, quantum)
+	  			return math.floor(num / quantum + 0.5) * quantum
+			end
 			
-			drawSlopTri(xo, yo*1.5, slope.dy, rate)							
+			if slope then
+				local valx = dataset.val[1]
+				local valy = dataset.val[2]
+				local facx = valx[#valx-1]/valx[#valx]
+				local facy = valy[#valy-1]/valy[#valy]
+				local rate = math.log(facy) / math.log(facx)
+				rate = round(rate, slope.quantum or 1)
+				local xo,yo
+				local at = slope.at or "last"
+				if at == "min" then
+					xo, yo = dataset.min[1], dataset.min[2]
+				elseif at == "max" then
+					xo, yo = dataset.max[1], dataset.max[2]
+				elseif at == "last" then
+					xo, yo = dataset.val[1][#dataset.val[1]], dataset.val[2][#dataset.val[2]]
+				elseif at == "first" then
+					xo, yo = dataset.val[1][1], dataset.val[2][1]
+				else print("slope.at: only min,max,last,first"); exit(); end
+									
+				drawSlopTri(xo, yo*1.5, slope.dy, rate)							
+			end
 		end
 	end
 	
@@ -880,38 +989,19 @@ function gnuplot.plot(filename, datasource, options)
 	-- Write data sets
 	----------------------------------------------------------------------------
 
-	for s, source in ipairs(datasource) do
+	for p, plot in ipairs(plots) do
 	
-		-- get the data column mapping
-		local map = table.concat(stats[s].map, ":")
-
 		-- special 3d treatment
 		if plotDim == 3 then
 			script:write("set surface\n") 
 			script:write("unset contour\n") 
 		end
-		
-		-- determine the plot style - data source table has priority
-		local style = source.style
-		if not style then
-			if plotDim == 3 then style = "points"
-			else				 style = "linespoints" end
-		end
-		
-		-- check style		
-		if not table.contains({"lines","points","linespoints","boxes","dots","vectors","yerrorbars"}, style) then
-			io.stderr:write("Gnuplot Error: style=\""..style.."\" not supported.\n");
-			exit()
-		end
-		
-		-- assign default data label if needed
-		if not source.label then source["label"] = "plot" .. s end
 
 		-- Position plots in multiplot
 		if multiplot then
 			script:write("unset title \n" )
 
-			if multiplot.conjoined then
+			if type(multiplot) == "table" and multiplot.conjoined then
 				local spaceTop = 0.1
 				local spaceBottom = 0.1
 				local spaceLeft = 0.1
@@ -920,8 +1010,8 @@ function gnuplot.plot(filename, datasource, options)
 				local rowSize = (1-spaceBottom-spaceTop)/MultiPlotRows
 				local colSize = (1-spaceLeft-SpaceRight)/MultiPlotCols
 				
-				local mpCol = ((s-1) % MultiPlotCols) + 1
-				local mpRow = math.ceil(s / MultiPlotCols)
+				local mpCol = ((p-1) % MultiPlotCols) + 1
+				local mpRow = math.ceil(p / MultiPlotCols)
 				
 				script:write("set tmargin at screen "..spaceBottom + (MultiPlotRows-mpRow+1)*rowSize.."\n")
 				script:write("set bmargin at screen "..spaceBottom + (MultiPlotRows-mpRow)*rowSize.."\n")
@@ -953,38 +1043,58 @@ function gnuplot.plot(filename, datasource, options)
 				end
 			end
 		end
-
+	
 		-- build up the plot command, layer by layer in non-multiplotmode
-		if s == 1 or multiplot then 	
-			if plotDim == 2 then script:write ("plot  \\\n");
-			else 				 script:write ("splot  \\\n"); end
-		else 				
-			script:write(", \\\n");	
-		end
+		if plotDim == 2 then script:write ("plot  \\\n");
+		else 				 script:write ("splot  \\\n"); end
+
+		for s, dataset in ipairs(plot) do
 		
-		if source.file then		
-			script:write ("\"", source.file, "\"",
-							  " using ", map, 
-							  " title '", source.label, "'", 
-							  " with ", style)
-		end
-		if source.func then
-			script:write (" ", source.func," ",
-							  " title '", source.label, "'", 
-							  " with ", style)
-		end 
-		if source.data then
-			tmpDataFile = tmpPath.."tmp_"..source.label.."_"..s..".dat"
-			tmpDataFile = string.gsub(tmpDataFile, " ", "_" )
-			gnuplot.write_data(tmpDataFile, source.data, source.row)
-			script:write ("\"", tmpDataFile, "\"",
-							  " using ", map, 
-							  " title '", source.label, "'", 
-							  " with ", style)
-		end 
-								  
-		if multiplot then script:write("\n") end						  
-	end
+			-- get the data column mapping
+			local map = table.concat(dataset.map, ":")
+				
+			-- determine the plot style - data source table has priority
+			local style = dataset.style
+			if not style then
+				if plotDim == 3 then style = "points"
+				else				 style = "linespoints" end
+			end
+			
+			-- check style		
+			if not table.contains({"lines","points","linespoints","boxes","dots","vectors","yerrorbars"}, style) then
+				io.stderr:write("Gnuplot Error: style=\""..style.."\" not supported.\n");
+				exit()
+			end
+			
+			-- assign default data label if needed
+			if not dataset.label then dataset.label = "" end
+					
+			if s > 1 then script:write(", \\\n");	end
+					
+			if dataset.file then		
+				script:write ("\"", dataset.file, "\"",
+								  " using ", map, 
+								  " title '", dataset.label, "'", 
+								  " with ", style)
+			end
+			if dataset.func then
+				script:write (" ", dataset.func," ",
+								  " title '", dataset.label, "'", 
+								  " with ", style)
+			end 
+			if dataset.data then
+				tmpDataFile = table.concat({tmpPath.."tmp",p,s,"cols.dat"}, "_")
+				gnuplot.write_data(tmpDataFile, dataset.data, dataset.row)
+				script:write ("\"", tmpDataFile, "\"",
+								  " using ", map, 
+								  " title '", dataset.label, "'", 
+								  " with ", style)
+			end 
+		end	-- end datasets		  
+												  
+		script:write("\n")	
+		
+	end -- end plots
 	
 	-- finish script
 	script:write ("\nunset multiplot\n");
