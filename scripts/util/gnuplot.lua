@@ -457,6 +457,8 @@ function gnuplot.plot(filename, data, options)
 	local dpi = 72
 	local inchINcm = 2.54
 	term.size = "" -- on support: x11
+	term.sizes = {12.5, 8.75}
+	term.sizeunit = "cm"
 	if size then
 		if type(size) ~= "table" or #size ~= 2 then
 			io.stderr:write("Gnuplot: specify size with table of {<x>,<y>}\n")
@@ -484,6 +486,8 @@ function gnuplot.plot(filename, data, options)
 				return 2				
 			end	
 			
+			term.sizes = {s[1], s[2]}
+			term.sizeunit = "cm"
 			term.size = "size "..s[1].."cm,"..s[2].."cm"
 		end	
 		
@@ -508,6 +512,8 @@ function gnuplot.plot(filename, data, options)
 			end		
 			
 			term.size = "size "..s[1]..","..s[2]
+			term.sizes = {s[1], s[2]}
+			term.sizeunit = ""
 		end		
 	end
 	
@@ -779,6 +785,12 @@ function gnuplot.plot(filename, data, options)
 		MultiPlotRows = MultiPlotRows or math.ceil(math.sqrt(#plots))		
 		MultiPlotCols = math.ceil(#plots / MultiPlotRows )
 		
+		script:write("set term "..terminal.." size ")
+		script:write(MultiPlotRows*term.sizes[1]..term.sizeunit)
+		script:write(",")
+		script:write(MultiPlotCols*term.sizes[2]..term.sizeunit)
+		script:write("\n")
+		
 		local title = options.title or "" 
 		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
 		script:write(" title '"..title.."' \n\n" )	
@@ -804,7 +816,10 @@ function gnuplot.plot(filename, data, options)
 		
 		local logscale = plot.logscale or options.logscale or false
 
-		local tics = plot.tics or options.tics or false
+		local tics = plot.tics or options.tics or true
+		if tics and type(plot.tics) == "boolean" and not plot.tics then tics = false end
+		if tics and type(options.tics) == "boolean" and not options.tics then tics = false end
+		
 		local mtics = plot.mtics or options.mtics or false
 		local grid = plot.grid or options.grid or false
 		
@@ -861,23 +876,32 @@ function gnuplot.plot(filename, data, options)
 		end
 	
 		-- tics
-		script:write("unset tics\n"); 		
-		if tics then
-			if type(tics) == "boolean" then
-				script:write("set tics\n"); 		
-			elseif type(tics) == "string" then 
-				script:write("set tics "..tics.."\n"); 		
-			elseif type(tics) == "table" then
-				for dim, dimTic in pairs(tics) do
-					if type(dimTic) == "boolean" and dimTic == false then 
-						script:write("unset "..dim.."tics\n"); 		
-					elseif type(dimTic) == "string" then 
-						script:write("set "..dim.."tics "..dimTic.."\n"); 		
-					end
+		local sTic = {}
+		for _, dim in ipairs(DimNames) do 
+			sTic[dim] = "set "..dim.."tics border mirror norotate\n"
+		end
+		
+		if type(tics) == "boolean" and not tics then
+			for _, dim in ipairs(DimNames) do 
+				sTic[dim] = "unset "..dim.."tics\n"
+			end
+		elseif type(tics) == "string" then 
+			for _, dim in ipairs(DimNames) do 
+				sTic[dim] = "set "..dim.."tics "..tics.."\n" 
+			end 		
+		elseif type(tics) == "table" then
+			for dim, dimTic in pairs(tics) do
+				if type(dimTic) == "boolean" and not dimTic then 
+					sTic[dim] = "unset "..dim.."tics\n" 		
+				elseif type(dimTic) == "string" then 
+					sTic[dim] = "set "..dim.."tics "..dimTic.."\n" 		
 				end
 			end
 		end
-	
+		for _, dim in ipairs(DimNames) do
+			script:write(sTic[dim]); 		
+		end
+			
 		-- mtics
 		for _, dim in ipairs(DimNames) do
 			script:write("unset m"..dim.."tics\n"); 		
@@ -905,7 +929,6 @@ function gnuplot.plot(filename, data, options)
 		end
 		
 		-- grid
-		script:write("unset grid \n")
 		if grid then
 			script:write("set grid ")
 			for _, dim in ipairs(DimNames) do
@@ -915,6 +938,8 @@ function gnuplot.plot(filename, data, options)
 				script:write(grid); 
 			end
 			script:write(" back\n"); 
+		else
+			script:write("unset grid \n")
 		end
 	
 		-- default linetypes
@@ -930,7 +955,7 @@ function gnuplot.plot(filename, data, options)
 		end
 	
 		-- border
-		script:write("unset border\n")
+		script:write("set border 31\n")
 		if border then			
 			script:write("set border "..border.."\n")
 		end
@@ -976,11 +1001,11 @@ function gnuplot.plot(filename, data, options)
 				
 				-- left bnd
 				if mpCol == 1 then 
-					script:write("set ylabel '"..label["y"].."'\n\n")
-					script:write("set format y\n")
+					script:write("set ylabel '"..label["y"].."'\n")
+					script:write(sTic["y"])
 				else 
 					script:write("unset ylabel\n")
-					script:write("set format y \"\"\n")
+					script:write("set ytics format ''\n")
 				end
 
 				-- right bnd
@@ -991,11 +1016,11 @@ function gnuplot.plot(filename, data, options)
 
 				-- bottom bnd
 				if mpRow == MultiPlotRows then 
-					script:write("set xlabel '"..label["x"].."'\n\n")
-					script:write("set format x\n")
+					script:write("set xlabel '"..label["x"].."'\n")
+					script:write(sTic["x"])
 				else 
 					script:write("unset xlabel\n")
-					script:write("set format x \"\"\n")
+					script:write("set xtics format ''\n")
 				end
 			end
 		end
