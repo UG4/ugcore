@@ -406,26 +406,25 @@ function util.rates.static.compute(ConvRateSetup)
 			for f,t,n,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
 					
 				-- write l2 and h1 to data file
-				local singleFile = table.concat({"error",head[t],n,discType,p,f},"_")
-				local file = dataPath..singleFile..".dat"
+				local file = dataPath..table.concat({"error",f,discType,p,head[t],n},"_")..".dat"
 				local dataCols = {err.numDoFs, err.h, err[f][t][n].value}
 				gnuplot.write_data(file, dataCols)
 			
 				-- create plot for single run				
 				for x, xCol in pairs({DoF = 1, h = 2}) do
 					local data = {{label=discType.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}}
+					local label = { x = gpXLabel[x],
+									y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
 					
-					local file = table.concat({plotPath.."single/"..singleFile,n,x},"_")
+					local file = plotPath.."single/"..table.concat({f,discType,p,head[t],n,x},"_")
 					gpData[file] = gpData[file] or {} 				
-					gpData[file].xlabel = gpXLabel[x]
-					gpData[file].ylabel = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
+					gpData[file].label = label
 					table.append(gpData[file], data)
 					
 					for _, g in ipairs({discType, "all"}) do
-						local file = table.concat({plotPath..g,head[t],f,n,x}, "_")	
+						local file = plotPath..table.concat({f,g,head[t],n,x}, "_")	
 						gpData[file] = gpData[file] or {} 				
-						gpData[file].xlabel = gpXLabel[x]
-						gpData[file].ylabel = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
+						gpData[file].label = label
 						table.append(gpData[file], data)
 					end
 				end	
@@ -442,7 +441,7 @@ function util.rates.static.compute(ConvRateSetup)
 	-- create scheduled plots
 	for plotFile, data in pairs(gpData) do 
 		local opt = table.deepcopy(gpOptions)
-		opt.label = {x = data.xlabel, y = data.ylabel}
+		opt.label = data.label
 		gnuplot.plot(plotFile..".tex", data, opt)
 		gnuplot.plot(plotFile..".pdf", data, opt)
 	end
@@ -470,7 +469,7 @@ function util.rates.static.replot(gpOptions, file)
 	-- create scheduled plots
 	for plotFile, data in pairs(gpData) do 
 		local opt = table.deepcopy(gpOptions)
-		opt.label = {x = data.xlabel, y = data.ylabel}
+		opt.label = data.label
 		gnuplot.plot(plotFile..".tex", data, opt)
 		gnuplot.plot(plotFile..".pdf", data, opt)
 	end
