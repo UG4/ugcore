@@ -145,7 +145,10 @@ function util.rates.static.compute(ConvRateSetup)
 	-- compute element size	
 	local dom = CreateDomain()
 	local numRefs = dom:grid():num_levels() - 1;
-	gpData = {};
+	
+	-- to store measurement
+	local gpData = {};
+	local errors = {};
 	
 	for type = 1,#DiscTypes do
 	
@@ -169,9 +172,13 @@ function util.rates.static.compute(ConvRateSetup)
 			print("lmax: "..lmax.." must be less or equal numRefs: "..numRefs)
 			exit()
 		end
+	
+		errors[discType] = errors[discType] or {}
 		
 		for p = pmin, pmax do
 		
+			errors[discType][p] = errors[discType][p] or {}
+			
 			local maxLev = lmax - MaxLevelPadding(p)
 			local minLev = lmin
 	
@@ -243,7 +250,8 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			
 			-- prepare error measurement			
-			local err = {h={}, numDoFs={}, level={}}	
+			local err = errors[discType][p]
+			err.h, err.numDoFs, err.level = {}, {}, {}	
 			for lev = minLev, maxLev do	
 				err.h[lev] = MaxElementDiameter(dom, lev) 
 				err.level[lev] = lev
