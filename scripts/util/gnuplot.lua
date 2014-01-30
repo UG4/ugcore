@@ -978,7 +978,8 @@ function gnuplot.plot(filename, data, options)
 		------------------------------------------------------------------------
 		if multiplot then
 
-			if type(multiplot) == "table" and multiplot.conjoined then
+			if type(multiplot) ~= "table" or (multiplot.conjoined ~= nil 
+				and multiplot.conjoined ~= false) then
 				
 				-- only one global title --> unset plot title
 				script:write("unset title \n" )

@@ -36,6 +36,21 @@ function table.shallowcopy(t)
     return copy
 end
 
+--! returns shallow-copy of integer-key part of table (i.e., only top level values)
+function table.ishallowcopy(t)
+    local copy
+    if type(t) == "table" then
+        copy = {}
+        for k, v in ipairs(t) do
+            copy[k] = v
+        end
+    else -- number, string, boolean, etc
+        copy = t
+    end
+    return copy
+end
+
+
 --! returns deep-copy of table (i.e., copies recursive all contained tables as well)
 function table.deepcopy(t)
     local copy
@@ -45,6 +60,20 @@ function table.deepcopy(t)
             copy[table.deepcopy(k)] = table.deepcopy(v)
         end
         setmetatable(copy, table.deepcopy(getmetatable(t)))
+    else -- number, string, boolean, etc
+        copy = t
+    end
+    return copy
+end
+
+--! returns deep-copy of integer-key part of table (i.e., copies recursive all contained tables as well)
+function table.ideepcopy(t)
+    local copy
+    if type(t) == "table" then
+        copy = {}
+        for k, v in ipairs(t) do
+            copy[k] = table.deepcopy(v)
+        end
     else -- number, string, boolean, etc
         copy = t
     end

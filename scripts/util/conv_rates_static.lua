@@ -413,6 +413,18 @@ function util.rates.static.compute(ConvRateSetup)
 	--------------------------------------------------------------------
 	--  Write gnuplot data
 	--------------------------------------------------------------------
+
+	-- help fct to create a plot
+	local plots = {}
+	local function accessPlot(...)
+		local keys = arg
+		local plot = plots
+		for _, key in ipairs(keys) do
+			plot[key] = plot[key] or {}
+			plot = plot[key]
+		end
+		return plot
+	end
 	
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
@@ -427,10 +439,14 @@ function util.rates.static.compute(ConvRateSetup)
 		
 		-- store dataset	
 		for xCol, x in ipairs({"DoFs", "h"}) do
-			local dataset = {{label=disc.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}}
+			local dataset = {label=disc.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}
 			errors[disc][p][f][t][n][x] = dataset					
+			
+			table.insert( accessPlot(disc, p, f, t, n, x), dataset)
+			table.insert( accessPlot(disc,    f, t, n, x), dataset)
+			table.insert( accessPlot("all",   f, t, n, x), dataset)
 		end
-		
+			
 					end
 				end
 			end	
@@ -444,77 +460,36 @@ function util.rates.static.compute(ConvRateSetup)
 	-- one plot
 	ensureDir(plotPath.."dataset/")
 	ensureDir(plotPath.."disc/")
-	for _, DiscType in ipairs(DiscTypes) do
-		local disc 	= DiscType.type
-		local pmin 		= DiscType.pmin
-		local pmax 		= DiscType.pmax
-		for p = pmin, pmax do
+	for disc, _ in pairs(errors) do
+		for p, _ in pairs(errors[disc]) do
+			for _, f in pairs(errors[disc][p].FctCmp) do
+				for t, _ in pairs(errors[disc][p][f]) do
+					for n, _ in pairs(errors[disc][p][f][t]) do
+						for _, x in ipairs({"DoFs", "h"}) do
+		local label = { x = gpXLabel[x],
+						y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
 		
-			local err = errors[disc][p]
-			for f,t,n,meas in imeasure(err, err.FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
-				for _, x in ipairs({"DoFs", "h"}) do
-					local label = { x = gpXLabel[x],
-									y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
-					
-					-- single dataset			
-					local file = plotPath.."dataset/"..table.concat({disc,p,f,head[t],n,x},"_")
-					gpData[file] = gpData[file] or {} 				
-					gpData[file].label = label
-					table.append(gpData[file], err[f][t][n][x])
-	
-					-- grouping by disc								
-					for _, grp in ipairs({disc, "all"}) do
-						local file = plotPath.."disc/"..table.concat({f,grp,head[t],n,x}, "_")	
-						gpData[file] = gpData[file] or {} 				
-						gpData[file].label = label
-						table.append(gpData[file], err[f][t][n][x])
+		-- single dataset			
+		local file = plotPath.."dataset/"..table.concat({disc,p,f,head[t],n,x},"_")
+		gpData[file] = table.ideepcopy( accessPlot(disc, p, f, t, n, x) )
+		gpData[file].label = label
+
+		-- grouping by (disc+p)								
+		local file = plotPath.."disc/"..table.concat({f,disc,head[t],n,x}, "_")	
+		gpData[file] = table.ideepcopy( accessPlot(disc, f, t, n, x) )			
+		gpData[file].label = label
+
+		-- grouping (all discs+p)
+		local file = plotPath.."disc/"..table.concat({f,"all",head[t],n,x}, "_")	
+		gpData[file] = table.ideepcopy( accessPlot("all", f, t, n, x) )			
+		gpData[file].label = label
+
+						end
 					end
 				end	
 			end
 		end
 	end
-
-	-- multi plot
-	ensureDir(plotPath.."multi/")
-	for _, n in ipairs({"l2", "h1"}) do
-		for _, DiscType in ipairs(DiscTypes) do
-			local disc 	= DiscType.type
-			local pmin 		= DiscType.pmin
-			local pmax 		= DiscType.pmax
-		
-			local plot = {exact={h={},DoFs={}}, prevlevel={h={},DoFs={}}, maxlevel={h={},DoFs={}}}
-			for p = pmin, pmax do
-				local err = errors[disc][p]
-				
-				for f,t,n,meas in imeasure(err, err.FctCmp,{"exact", "prevlevel", "maxlevel"}, {n}) do
-					for _, x in ipairs({"DoFs", "h"}) do
-						local label = { x = gpXLabel[x],
-										y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
-						plot[t][x].label = label
-						table.append(plot[t][x], err[f][t][n][x])
-					end	
-				end
-			end
-			
-			local err = errors[disc][pmin]
-			for f,t,n,meas in imeasure(err, err.FctCmp,{"exact", "prevlevel", "maxlevel"}, {n}) do
-				for _, x in ipairs({"DoFs", "h"}) do
-									
-					local file = plotPath.."multi/"..table.concat({f,head[t],n,x}, "_")						
-					gpData[file] = gpData[file] or {} 				
-					gpData[file].label = label
-					table.append(gpData[file], {plot[t][x]})
-
-					local file = plotPath.."multi/"..table.concat({f,head[t],x}, "_")						
-					gpData[file] = gpData[file] or {} 				
-					gpData[file].label = label
-					table.append(gpData[file], {plot[t][x]})
-				end	
-			end			
-			
-		end
-	end
-
 	
 	-- create scheduled plots
 	for plotFile, data in pairs(gpData) do 
