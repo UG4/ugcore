@@ -343,6 +343,31 @@ function gnuplot.plot(filename, data, options)
 		exit();
 	end
 	
+	local MultiPlotRows, MultiPlotCols
+	if multiplot then
+		if type(multiplot) == "table" then
+			if multiplot.rows then MultiPlotRows = multiplot.rows end
+			if multiplot.cols then MultiPlotCols = multiplot.cols end
+			
+			if MultiPlotRows and not MultiPlotCols then
+				MultiPlotCols = math.ceil(#plots / MultiPlotRows )
+			end
+			if not MultiPlotRows and MultiPlotCols then
+				MultiPlotRows = math.ceil(#plots / MultiPlotCols )
+			end
+		end
+		if not MultiPlotRows or not MultiPlotCols then
+			MultiPlotRows = math.ceil(math.sqrt(#plots))		
+			MultiPlotCols = math.ceil(#plots / MultiPlotRows )
+		end
+		if MultiPlotRows*MultiPlotCols < #plots then
+			print("Gnuplot: to few plots in multi-plot reserved"); exit()
+		end		
+	end
+	if not MultiPlotRows or not MultiPlotCols then
+		MultiPlotRows, MultiPlotCols = 1,1
+	end
+	
 	----------------------------------------------------------------------------
 	-- Terminal options
 	----------------------------------------------------------------------------
@@ -352,8 +377,8 @@ function gnuplot.plot(filename, data, options)
 	if type(options.cairo) == "boolean" then cairo = options.cairo end
 	local path = options.path or "./" -- output of data
 
-	local size = options.size
-	local sizeunit = options.sizeunit or "inch"
+	local size = options.size or {12.5, 8.75}
+	local sizeunit = options.sizeunit or "cm"
 	
 	local color = true
 	if type(options.color) == "boolean" then color = options.color end
@@ -457,9 +482,7 @@ function gnuplot.plot(filename, data, options)
 	local dpi = 72
 	local inchINcm = 2.54
 	term.size = "" -- on support: x11
-	term.sizes = {12.5, 8.75}
-	term.sizeunit = "cm"
-	if size then
+	if terminal ~= "x11" then
 		if type(size) ~= "table" or #size ~= 2 then
 			io.stderr:write("Gnuplot: specify size with table of {<x>,<y>}\n")
 			return 2				
@@ -485,10 +508,8 @@ function gnuplot.plot(filename, data, options)
 				io.stderr:write("Gnuplot: sizeunit invalid. use: cm, mm, in, inch, pt, pixel\n")
 				return 2				
 			end	
-			
-			term.sizes = {s[1], s[2]}
-			term.sizeunit = "cm"
-			term.size = "size "..s[1].."cm,"..s[2].."cm"
+				
+			term.size = "size "..MultiPlotCols*s[1].."cm,"..MultiPlotRows*s[2].."cm"
 		end	
 		
 		-- for pictures (non-vector) use pixel
@@ -511,9 +532,7 @@ function gnuplot.plot(filename, data, options)
 				return 2				
 			end		
 			
-			term.size = "size "..s[1]..","..s[2]
-			term.sizes = {s[1], s[2]}
-			term.sizeunit = ""
+			term.size = "size "..MultiPlotCols*s[1]..","..MultiPlotRows*s[2]
 		end		
 	end
 	
@@ -772,49 +791,9 @@ function gnuplot.plot(filename, data, options)
 		end
 	end
 
-	----------------------------------------------------------------------------
-	-- special treatments
-	----------------------------------------------------------------------------
-	
-	-- special 3d treatment
-	if plotDim == 3 then
-		script:write("set surface\n") 
-		script:write("unset contour\n") 
-	end
-	
-	-- multiplot sizes
-	local MultiPlotRows , MultiPlotCols
+	-- row/col min/max
 	local MultiPlotStats
-	if multiplot then
-		if type(multiplot) == "table" then
-			if multiplot.rows then MultiPlotRows = multiplot.rows end
-			if multiplot.cols then MultiPlotCols = multiplot.cols end
-			
-			if MultiPlotRows and not MultiPlotCols then
-				MultiPlotCols = math.ceil(#plots / MultiPlotRows )
-			end
-			if not MultiPlotRows and MultiPlotCols then
-				MultiPlotRows = math.ceil(#plots / MultiPlotCols )
-			end
-		end
-		if not MultiPlotRows or not MultiPlotCols then
-			MultiPlotRows = math.ceil(math.sqrt(#plots))		
-			MultiPlotCols = math.ceil(#plots / MultiPlotRows )
-		end
-		if MultiPlotRows*MultiPlotCols < #plots then
-			print("Gnuplot: to few plots in multi-plot reserved"); exit()
-		end		
-				
-		script:write("set term "..terminal.." size ")
-		script:write(MultiPlotCols*term.sizes[1]..term.sizeunit)
-		script:write(",")
-		script:write(MultiPlotRows*term.sizes[2]..term.sizeunit)
-		script:write("\n")
-		
-		local title = options.title or "" 
-		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
-		script:write(" title '"..title.."' \n\n" )	
-		
+	if multiplot then		
 		-- x-min/max for cols, y-min/max for rows
 		local stats = {{}, {}}
 		for p, plot in ipairs(plots) do
@@ -836,6 +815,23 @@ function gnuplot.plot(filename, data, options)
 			end
 		end
 		MultiPlotStats = stats
+	end
+
+	----------------------------------------------------------------------------
+	-- special treatments
+	----------------------------------------------------------------------------
+	
+	-- special 3d treatment
+	if plotDim == 3 then
+		script:write("set surface\n") 
+		script:write("unset contour\n") 
+	end
+	
+	-- multiplot sizes
+	if multiplot then		
+		local title = options.title or "" 
+		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
+		script:write(" title '"..title.."' \n\n" )	
 	end
 
 	----------------------------------------------------------------------------
@@ -1048,10 +1044,10 @@ function gnuplot.plot(filename, data, options)
 				end
 				
 			
-				local spaceTop = 0.1
-				local spaceBottom = 0.1
-				local spaceLeft = 0.1
-				local SpaceRight = 0.1
+				local spaceTop = 0.05 / MultiPlotRows
+				local spaceBottom = 0.15 / MultiPlotRows
+				local spaceLeft = 0.13  / MultiPlotCols
+				local SpaceRight = 0.05  / MultiPlotCols
 				
 				local rowSize = (1-spaceBottom-spaceTop)/MultiPlotRows
 				local colSize = (1-spaceLeft-SpaceRight)/MultiPlotCols
@@ -1099,7 +1095,7 @@ function gnuplot.plot(filename, data, options)
 				script:write("set arrow from "..xo..","..yo.." rto 1,"..dy.." nohead lw 2\n") -- vertical
 				local align = "right"; if p < 0 then align = "left" end
 				script:write("set label "..align.." '"..p.."' at "..(xo*1.0)..","..math.pow(dy, 1/2)*yo.. "font ',8'\n") -- label
-				script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy).. "font ',8'\n") -- label
+				script:write("set label center '"..(1).."' at "..math.sqrt(dx)*xo..","..(yo*dy*dy*0.8).. "font ',8'\n") -- label
 			end
 		
 			local function round(num, quantum)

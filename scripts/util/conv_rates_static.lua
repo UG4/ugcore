@@ -345,13 +345,13 @@ function util.rates.static.compute(ConvRateSetup)
 					end
 				
 					-- w.r.t previous level solution
-					if prevlevel and lev > minLev then 
+					if prevlevel and lev < maxLev then 
 						local value = createMeas(f, "prevlevel", "l2")
-						value[lev] = L2Error(u[lev], f, u[lev-1], f, quadOrder)
+						value[lev] = L2Error(u[lev+1], f, u[lev], f, quadOrder)
 						write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 	
 						local value = createMeas(f, "prevlevel", "h1")
-						value[lev] = H1Error(u[lev], f, u[lev-1], f, quadOrder)
+						value[lev] = H1Error(u[lev+1], f, u[lev], f, quadOrder)
 						write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 					end
 				end -- end fct
