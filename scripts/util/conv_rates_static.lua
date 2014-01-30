@@ -130,6 +130,48 @@ function util.rates.static.compute(ConvRateSetup)
  	local ExactGrad = CRS.ExactGrad 
 	
 	--------------------------------------------------------------------
+	--  A custom iterator to loop all valid measurements
+	--------------------------------------------------------------------
+
+	local function imeasure(err, FctCmp, Type, Norm)
+		local type = _G.type
+		if type(err) ~= "table" or type(FctCmp) ~= "table" 
+			or type(Type) ~= "table" or type(Norm) ~= "table" then 
+			return function() end, nil, nil
+		end
+	  	local _f,_t,_n = 1,1,0
+	  	local function iter(err)
+		   	_n = _n + 1
+		   	local f,t,n = FctCmp[_f], Type[_t], Norm[_n]
+	  		while err[f] == nil or err[f][t] == nil or err[f][t][n] == nil do
+		    	_n = _n + 1    	
+		  		if _n > #Norm then _n = 1; _t = _t + 1; end
+		  		if _t > #Type then _t = 1; _f = _f + 1; end
+		  		if _f > #FctCmp then return nil end
+		   		f,t,n = FctCmp[_f], Type[_t], Norm[_n]
+			end				
+	    	return f, t, n , err[f][t][n]
+	  	end  
+	  	return iter, err, 0
+	end
+
+	--------------------------------------------------------------------
+	--  Prepare labels
+	--------------------------------------------------------------------
+
+	local head = {l2 = "L2", h1 = "H1",
+					exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
+				
+	local gpType = {	exact = 	"exact",		
+						maxlevel = 	"L_{max}",
+						prevlevel = "L-1"
+					}
+
+	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
+					
+	local gpXLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	
+	--------------------------------------------------------------------
 	--  Loop Discs
 	--------------------------------------------------------------------
 
@@ -139,7 +181,6 @@ function util.rates.static.compute(ConvRateSetup)
 	
 	ensureDir(dataPath)
 	ensureDir(plotPath)
-	ensureDir(plotPath.."single/")
 	ensureDir(solPath)
 
 	-- compute element size	
@@ -150,13 +191,13 @@ function util.rates.static.compute(ConvRateSetup)
 	local gpData = {};
 	local errors = {};
 	
-	for type = 1,#DiscTypes do
+	for _, DiscType in ipairs(DiscTypes) do
 	
-		local discType 	= DiscTypes[type].type
-		local pmin 		= DiscTypes[type].pmin
-		local pmax 		= DiscTypes[type].pmax
-		local lmin 		= DiscTypes[type].lmin
-		local lmax 		= DiscTypes[type].lmax		
+		local disc 	= DiscType.type
+		local pmin 	= DiscType.pmin
+		local pmax 	= DiscType.pmax
+		local lmin 	= DiscType.lmin
+		local lmax 	= DiscType.lmax		
 		
 		if pmin == nil then pmin = 1 end
 		if pmax == nil then pmax = 1 end
@@ -173,11 +214,11 @@ function util.rates.static.compute(ConvRateSetup)
 			exit()
 		end
 	
-		errors[discType] = errors[discType] or {}
+		errors[disc] = errors[disc] or {}
 		
 		for p = pmin, pmax do
 		
-			errors[discType][p] = errors[discType][p] or {}
+			errors[disc][p] = errors[disc][p] or {}
 			
 			local maxLev = lmax - MaxLevelPadding(p)
 			local minLev = lmin
@@ -194,7 +235,7 @@ function util.rates.static.compute(ConvRateSetup)
 			print(">>     grid       = " .. gridName)
 			print(">>     minLev     = " .. minLev)
 			print(">>     maxLev     = " .. maxLev)
-			print(">>     type       = " .. discType)
+			print(">>     type       = " .. disc)
 			print(">>     order      = " .. p)
 			print("\n")
 			
@@ -202,14 +243,14 @@ function util.rates.static.compute(ConvRateSetup)
 			--  Create ApproxSpace, Disc and Solver
 			--------------------------------------------------------------------
 
-			print(">> Create ApproximationSpace: "..discType..", "..p)
-			local approxSpace = CreateApproxSpace(dom, discType, p)
+			print(">> Create ApproximationSpace: "..disc..", "..p)
+			local approxSpace = CreateApproxSpace(dom, disc, p)
 			
-			print(">> Create Domain Disc: "..discType..", "..p)
-			local domainDisc = CreateDomainDisc(approxSpace, discType, p)
+			print(">> Create Domain Disc: "..disc..", "..p)
+			local domainDisc = CreateDomainDisc(approxSpace, disc, p)
 			
 			print(">> Create Solver")
-			local solver = CreateSolver(approxSpace, discType, p)
+			local solver = CreateSolver(approxSpace, disc, p)
 	
 			-- get names in approx space
 			local FctCmp = approxSpace:names()
@@ -238,8 +279,8 @@ function util.rates.static.compute(ConvRateSetup)
 				ComputeSolution(u[lev], domainDisc, solver)
 				write(">> Solver done.\n")
 				
-				WriteGridFunctionToVTK(u[lev], solPath.."sol_"..discType..p.."_l"..lev)
-				write(">> Solution written to: "..solPath.."sol_"..discType..p.."_l"..lev.."\n");	
+				WriteGridFunctionToVTK(u[lev], solPath.."sol_"..disc..p.."_l"..lev)
+				write(">> Solution written to: "..solPath.."sol_"..disc..p.."_l"..lev.."\n");	
 			end
 			
 			approxSpace, domainDisc, solver = nil, nil, nil
@@ -250,8 +291,8 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			
 			-- prepare error measurement			
-			local err = errors[discType][p]
-			err.h, err.numDoFs, err.level = {}, {}, {}	
+			local err = errors[disc][p]
+			err.h, err.DoFs, err.level, err.FctCmp = {}, {}, {}, FctCmp	
 			for lev = minLev, maxLev do	
 				err.h[lev] = MaxElementDiameter(dom, lev) 
 				err.level[lev] = lev
@@ -262,8 +303,8 @@ function util.rates.static.compute(ConvRateSetup)
 				write("\n>> Error Norm values on Level "..lev..".\n")
 				
 				local quadOrder = p+3
-				err.numDoFs[lev] = u[lev]:size()
-				write(">> #DoF       on Level "..lev.." is "..err.numDoFs[lev] .."\n");
+				err.DoFs[lev] = u[lev]:size()
+				write(">> #DoF       on Level "..lev.." is "..err.DoFs[lev] .."\n");
 			
 				-- compute for each component
 				for _, f in pairs(FctCmp) do
@@ -322,32 +363,6 @@ function util.rates.static.compute(ConvRateSetup)
 			collectgarbage()
 				
 			--------------------------------------------------------------------
-			--  A custom iterator to loop all valid measurements
-			--------------------------------------------------------------------
-
-			local function imeasure(err, FctCmp, Type, Norm)
-				local type = _G.type
-				if type(err) ~= "table" or type(FctCmp) ~= "table" 
-					or type(Type) ~= "table" or type(Norm) ~= "table" then 
-					return function() end, nil, nil
-				end
-			  	local _f,_t,_n = 1,1,0
-			  	local function iter(err)
-				   	_n = _n + 1
-				   	local f,t,n = FctCmp[_f], Type[_t], Norm[_n]
-			  		while err[f] == nil or err[f][t] == nil or err[f][t][n] == nil do
-				    	_n = _n + 1    	
-				  		if _n > #Norm then _n = 1; _t = _t + 1; end
-				  		if _t > #Type then _t = 1; _f = _f + 1; end
-				  		if _f > #FctCmp then return nil end
-				   		f,t,n = FctCmp[_f], Type[_t], Norm[_n]
-					end				
-			    	return f, t, n , err[f][t][n]
-			  	end  
-			  	return iter, err, 0
-			end
-
-			--------------------------------------------------------------------
 			--  Compute Factors and Rates
 			--------------------------------------------------------------------
 
@@ -369,30 +384,14 @@ function util.rates.static.compute(ConvRateSetup)
 			end	
 
 			--------------------------------------------------------------------
-			--  Prepare labels
-			--------------------------------------------------------------------
-
-			local head = {l2 = "L2", h1 = "H1",
-							exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
-						
-			local gpType = {	exact = 	"exact",		
-								maxlevel = 	"L_{max}",
-								prevlevel = "L-1"
-							}
-		
-			local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
-							
-			local gpXLabel ={ DoF = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
-
-			--------------------------------------------------------------------
 			--  Write Data to Screen
 			--------------------------------------------------------------------
 
 			for _, f in ipairs(FctCmp) do
 			
-				print("\n>> Statistic for type: "..discType..", order: "..p..", comp: "..f.."\n")			
+				print("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.."\n")			
 				
-				local values = {err.level, err.h, err.numDoFs}
+				local values = {err.level, err.h, err.DoFs}
 				local heading = {"L", "h", "#DoFs"}
 				local format = {"%d", "%.2e", "%d"}
 
@@ -406,45 +405,116 @@ function util.rates.static.compute(ConvRateSetup)
 				table.print(values, {heading = heading, format = format, 
 									 hline = true, vline = true, forNil = "--"})
 			end
-
-			--------------------------------------------------------------------
-			--  Schedule Data to gnuplot
-			--------------------------------------------------------------------
-			
-			for f,t,n,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
-					
-				-- write l2 and h1 to data file
-				local file = dataPath..table.concat({"error",discType,p,f,head[t],n},"_")..".dat"
-				local dataCols = {err.numDoFs, err.h, err[f][t][n].value}
-				gnuplot.write_data(file, dataCols)
-			
-				-- create plot for single run				
-				for x, xCol in pairs({DoF = 1, h = 2}) do
-					local data = {{label=discType.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}}
-					local label = { x = gpXLabel[x],
-									y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
-					
-					local file = plotPath.."single/"..table.concat({discType,p,f,head[t],n,x},"_")
-					gpData[file] = gpData[file] or {} 				
-					gpData[file].label = label
-					table.append(gpData[file], data)
-					
-					for _, g in ipairs({discType, "all"}) do
-						local file = plotPath..table.concat({f,g,head[t],n,x}, "_")	
-						gpData[file] = gpData[file] or {} 				
-						gpData[file].label = label
-						table.append(gpData[file], data)
-					end
-				end	
-			end
 			
 		end -- end loop over p		
 	end -- end loop over type
 	
 	
 	--------------------------------------------------------------------
+	--  Write gnuplot data
+	--------------------------------------------------------------------
+	
+	for disc, _ in pairs(errors) do
+		for p, _ in pairs(errors[disc]) do
+			for _, f in pairs(errors[disc][p].FctCmp) do
+				for t, _ in pairs(errors[disc][p][f]) do
+					for n, _ in pairs(errors[disc][p][f][t]) do
+					
+		-- write l2 and h1 to data file
+		local file = dataPath..table.concat({"error",disc,p,f,head[t],n},"_")..".dat"
+		local cols = {errors[disc][p].DoFs, errors[disc][p].h, errors[disc][p][f][t][n].value}
+		gnuplot.write_data(file, cols)
+		
+		-- store dataset	
+		for xCol, x in ipairs({"DoFs", "h"}) do
+			local dataset = {{label=disc.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}}
+			errors[disc][p][f][t][n][x] = dataset					
+		end
+		
+					end
+				end
+			end	
+		end
+	end
+
+	--------------------------------------------------------------------
 	--  Execute Plot of gnuplot
 	--------------------------------------------------------------------
+	
+	-- one plot
+	ensureDir(plotPath.."dataset/")
+	ensureDir(plotPath.."disc/")
+	for _, DiscType in ipairs(DiscTypes) do
+		local disc 	= DiscType.type
+		local pmin 		= DiscType.pmin
+		local pmax 		= DiscType.pmax
+		for p = pmin, pmax do
+		
+			local err = errors[disc][p]
+			for f,t,n,meas in imeasure(err, err.FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
+				for _, x in ipairs({"DoFs", "h"}) do
+					local label = { x = gpXLabel[x],
+									y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
+					
+					-- single dataset			
+					local file = plotPath.."dataset/"..table.concat({disc,p,f,head[t],n,x},"_")
+					gpData[file] = gpData[file] or {} 				
+					gpData[file].label = label
+					table.append(gpData[file], err[f][t][n][x])
+	
+					-- grouping by disc								
+					for _, grp in ipairs({disc, "all"}) do
+						local file = plotPath.."disc/"..table.concat({f,grp,head[t],n,x}, "_")	
+						gpData[file] = gpData[file] or {} 				
+						gpData[file].label = label
+						table.append(gpData[file], err[f][t][n][x])
+					end
+				end	
+			end
+		end
+	end
+
+	-- multi plot
+	ensureDir(plotPath.."multi/")
+	for _, n in ipairs({"l2", "h1"}) do
+		for _, DiscType in ipairs(DiscTypes) do
+			local disc 	= DiscType.type
+			local pmin 		= DiscType.pmin
+			local pmax 		= DiscType.pmax
+		
+			local plot = {exact={h={},DoFs={}}, prevlevel={h={},DoFs={}}, maxlevel={h={},DoFs={}}}
+			for p = pmin, pmax do
+				local err = errors[disc][p]
+				
+				for f,t,n,meas in imeasure(err, err.FctCmp,{"exact", "prevlevel", "maxlevel"}, {n}) do
+					for _, x in ipairs({"DoFs", "h"}) do
+						local label = { x = gpXLabel[x],
+										y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
+						plot[t][x].label = label
+						table.append(plot[t][x], err[f][t][n][x])
+					end	
+				end
+			end
+			
+			local err = errors[disc][pmin]
+			for f,t,n,meas in imeasure(err, err.FctCmp,{"exact", "prevlevel", "maxlevel"}, {n}) do
+				for _, x in ipairs({"DoFs", "h"}) do
+									
+					local file = plotPath.."multi/"..table.concat({f,head[t],n,x}, "_")						
+					gpData[file] = gpData[file] or {} 				
+					gpData[file].label = label
+					table.append(gpData[file], {plot[t][x]})
+
+					local file = plotPath.."multi/"..table.concat({f,head[t],x}, "_")						
+					gpData[file] = gpData[file] or {} 				
+					gpData[file].label = label
+					table.append(gpData[file], {plot[t][x]})
+				end	
+			end			
+			
+		end
+	end
+
 	
 	-- create scheduled plots
 	for plotFile, data in pairs(gpData) do 
@@ -469,7 +539,9 @@ function util.rates.static.replot(gpOptions, file)
 	
 	ensureDir(dataPath)
 	ensureDir(plotPath)
-	ensureDir(plotPath.."single/")
+	ensureDir(plotPath.."dataset/")
+	ensureDir(plotPath.."disc/")
+	ensureDir(plotPath.."multi/")
 	
 	local file = file or dataPath.."gp-data-files.lua"
 	gpData = persistence.load(file);
