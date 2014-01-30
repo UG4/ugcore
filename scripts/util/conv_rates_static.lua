@@ -585,7 +585,7 @@ function util.rates.static.replot(gpOptions, file)
 	-- create scheduled plots
 	for plotFile, data in pairs(gpData) do 
 		local opt = table.deepcopy(gpOptions)
-		opt.label = data.label
+		if data.multiplot then opt.multiplot = data.multiplot end
 		gnuplot.plot(plotFile..".tex", data, opt)
 		gnuplot.plot(plotFile..".pdf", data, opt)
 	end
