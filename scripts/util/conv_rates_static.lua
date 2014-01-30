@@ -426,6 +426,13 @@ function util.rates.static.compute(ConvRateSetup)
 		return plot
 	end
 	
+	local function getPlot(...)
+		local plot = accessPlot(...)
+		local pl = table.ideepcopy( plot )
+		pl.label = plot.label
+		return pl
+	end
+	
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
 			for _, f in pairs(errors[disc][p].FctCmp) do
@@ -440,11 +447,17 @@ function util.rates.static.compute(ConvRateSetup)
 		-- store dataset	
 		for xCol, x in ipairs({"DoFs", "h"}) do
 			local dataset = {label=disc.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}
-			errors[disc][p][f][t][n][x] = dataset					
-			
-			table.insert( accessPlot(disc, p, f, t, n, x), dataset)
-			table.insert( accessPlot(disc,    f, t, n, x), dataset)
-			table.insert( accessPlot("all",   f, t, n, x), dataset)
+			local label = { x = gpXLabel[x],
+							y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
+							
+			local function addSet(plot, dataset, label)
+				table.insert( plot, dataset)			
+				plot.label = label
+			end
+							
+			addSet( accessPlot(disc, p, f, t, n, x), dataset, label)
+			addSet( accessPlot(disc,    f, t, n, x), dataset, label)
+			addSet( accessPlot("all",   f, t, n, x), dataset, label)
 		end
 			
 					end
@@ -460,35 +473,79 @@ function util.rates.static.compute(ConvRateSetup)
 	-- one plot
 	ensureDir(plotPath.."dataset/")
 	ensureDir(plotPath.."disc/")
+	ensureDir(plotPath.."multi/")
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
 			for _, f in pairs(errors[disc][p].FctCmp) do
 				for t, _ in pairs(errors[disc][p][f]) do
 					for n, _ in pairs(errors[disc][p][f][t]) do
 						for _, x in ipairs({"DoFs", "h"}) do
-		local label = { x = gpXLabel[x],
-						y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
 		
 		-- single dataset			
 		local file = plotPath.."dataset/"..table.concat({disc,p,f,head[t],n,x},"_")
-		gpData[file] = table.ideepcopy( accessPlot(disc, p, f, t, n, x) )
-		gpData[file].label = label
+		gpData[file] = getPlot(disc, p, f, t, n, x)
 
 		-- grouping by (disc+p)								
 		local file = plotPath.."disc/"..table.concat({f,disc,head[t],n,x}, "_")	
-		gpData[file] = table.ideepcopy( accessPlot(disc, f, t, n, x) )			
-		gpData[file].label = label
+		gpData[file] = getPlot(disc, f, t, n, x)		
 
 		-- grouping (all discs+p)
 		local file = plotPath.."disc/"..table.concat({f,"all",head[t],n,x}, "_")	
-		gpData[file] = table.ideepcopy( accessPlot("all", f, t, n, x) )			
-		gpData[file].label = label
+		gpData[file] = getPlot("all", f, t, n, x)	
 
 						end
 					end
 				end	
 			end
 		end
+	end
+
+	for disc, _ in pairs(errors) do
+		local p = #errors[disc]
+			for _, f in pairs(errors[disc][p].FctCmp) do
+				for t, _ in pairs(errors[disc][p][f]) do
+					for n, _ in pairs(errors[disc][p][f][t]) do
+						for _, x in ipairs({"DoFs", "h"}) do
+
+		-- multi-plot: all discs for one norm
+		local file = plotPath.."multi/"..table.concat({f,head[t],n,x}, "_")	
+		gpData[file] = gpData[file] or {}
+		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
+
+		-- multi-plot: all norms for one disc
+		local file = plotPath.."multi/"..table.concat({f,disc,head[t],x}, "_")	
+		gpData[file] = gpData[file] or {}
+		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
+
+		-- multi-plot: all types for one disc and one norm
+		local file = plotPath.."multi/"..table.concat({f,disc,n,x}, "_")	
+		gpData[file] = gpData[file] or {}
+		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
+
+						end
+					end
+				end	
+			end
+	end
+
+	-- multi-plot: all discs for all norm
+	for _, n in pairs({"h1", "l2"}) do
+	for disc, _ in pairs(errors) do
+		local p = #errors[disc]
+			for _, f in pairs(errors[disc][p].FctCmp) do
+				for t, _ in pairs(errors[disc][p][f]) do
+					if errors[disc][p][f][t][n] then
+						for _, x in ipairs({"DoFs", "h"}) do
+
+		local file = plotPath.."multi/"..table.concat({f,head[t],x}, "_")	
+		gpData[file] = gpData[file] or {}
+		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
+
+						end
+					end
+				end	
+			end
+	end
 	end
 	
 	-- create scheduled plots
