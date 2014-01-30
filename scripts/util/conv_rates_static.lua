@@ -414,7 +414,7 @@ function util.rates.static.compute(ConvRateSetup)
 			for f,t,n,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
 					
 				-- write l2 and h1 to data file
-				local file = dataPath..table.concat({"error",f,discType,p,head[t],n},"_")..".dat"
+				local file = dataPath..table.concat({"error",discType,p,f,head[t],n},"_")..".dat"
 				local dataCols = {err.numDoFs, err.h, err[f][t][n].value}
 				gnuplot.write_data(file, dataCols)
 			
@@ -424,7 +424,7 @@ function util.rates.static.compute(ConvRateSetup)
 					local label = { x = gpXLabel[x],
 									y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
 					
-					local file = plotPath.."single/"..table.concat({f,discType,p,head[t],n,x},"_")
+					local file = plotPath.."single/"..table.concat({discType,p,f,head[t],n,x},"_")
 					gpData[file] = gpData[file] or {} 				
 					gpData[file].label = label
 					table.append(gpData[file], data)
