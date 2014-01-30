@@ -162,9 +162,9 @@ function util.rates.static.compute(ConvRateSetup)
 	local head = {l2 = "L2", h1 = "H1",
 					exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
 				
-	local gpType = {	exact = 	"exact",		
-						maxlevel = 	"L_{max}",
-						prevlevel = "L-1"
+	local gpType = {	exact = 	"{}",		
+						maxlevel = 	"h_{\text{min}}",
+						prevlevel = "{h/2}"
 					}
 
 	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
