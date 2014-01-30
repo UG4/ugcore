@@ -167,8 +167,12 @@ void sgs_step(const Matrix_type &A, Vector_type &c, const Vector_type &d, const 
 	gs_step_LL(A, c, d, relaxFactor);
 
 	// c2 = D c1
+	typename Vector_type::value_type s;
 	for(size_t i = 0; i<c.size(); i++)
-		MatMult(c[i], 1.0, A(i, i), c[i]);
+	{
+		s=c[i];
+		MatMult(c[i], 1.0, A(i, i), s);
+	}
 
 	// c3 = (D-U)^{-1} c2
 	gs_step_UR(A, c, c, relaxFactor);
