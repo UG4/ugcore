@@ -782,8 +782,9 @@ function gnuplot.plot(filename, data, options)
 		script:write("unset contour\n") 
 	end
 	
--- multiplot sizes
+	-- multiplot sizes
 	local MultiPlotRows , MultiPlotCols
+	local MultiPlotStats
 	if multiplot then
 		if type(multiplot) == "table" then
 			if multiplot.rows then MultiPlotRows = multiplot.rows end
@@ -813,6 +814,28 @@ function gnuplot.plot(filename, data, options)
 		local title = options.title or "" 
 		script:write("set multiplot layout ", MultiPlotRows,", ", MultiPlotCols)
 		script:write(" title '"..title.."' \n\n" )	
+		
+		-- x-min/max for cols, y-min/max for rows
+		local stats = {{}, {}}
+		for p, plot in ipairs(plots) do
+			local col = ((p-1) % MultiPlotCols) + 1
+			local row = math.ceil(p / MultiPlotCols)
+			local acc = {col, row}			
+
+			for _, dataset in ipairs(plot) do
+				for d, _ in ipairs(DimNames) do
+					if not stats[d][acc[d]] then
+						stats[d][acc[d]] = {}
+						stats[d][acc[d]].min = math.huge
+						stats[d][acc[d]].max = -math.huge
+					end
+					stats[d][acc[d]].min = math.min(stats[d][acc[d]].min, dataset.min[d])	
+					stats[d][acc[d]].max = math.max(stats[d][acc[d]].max, dataset.max[d])	
+					stats[d][acc[d]].range = stats[d][acc[d]].max - stats[d][acc[d]].min
+				end
+			end
+		end
+		MultiPlotStats = stats
 	end
 
 	----------------------------------------------------------------------------
@@ -997,11 +1020,33 @@ function gnuplot.plot(filename, data, options)
 		------------------------------------------------------------------------
 		if multiplot then
 
-			if type(multiplot) ~= "table" or multiplot.conjoined == nil 
-				or multiplot.conjoined == true then
-				
+			if ( type(multiplot) ~= "table" or multiplot.conjoined == nil 
+				  or multiplot.conjoined == true ) then
+
+				local col = ((p-1) % MultiPlotCols) + 1
+				local row = math.ceil(p / MultiPlotCols)
+				local acc = {col, row}			
+								
 				-- only one global title --> unset plot title
 				script:write("unset title \n" )
+				
+				-- in row/col must be same range
+				for d, dim in ipairs(DimNames) do	
+					if padrange[dim] then
+						script:write("set "..dim.."range [")
+						script:write(MultiPlotStats[d][acc[d]].min*padrange[dim][1])
+						script:write(":")
+						script:write(MultiPlotStats[d][acc[d]].max*padrange[dim][2])
+						script:write("]\n")
+					else
+						script:write("set "..dim.."range [")
+						script:write(MultiPlotStats[d][acc[d]].min)
+						script:write(":")
+						script:write(MultiPlotStats[d][acc[d]].max)
+						script:write("]\n")					
+					end
+				end
+				
 			
 				local spaceTop = 0.1
 				local spaceBottom = 0.1
@@ -1011,16 +1056,14 @@ function gnuplot.plot(filename, data, options)
 				local rowSize = (1-spaceBottom-spaceTop)/MultiPlotRows
 				local colSize = (1-spaceLeft-SpaceRight)/MultiPlotCols
 				
-				local mpCol = ((p-1) % MultiPlotCols) + 1
-				local mpRow = math.ceil(p / MultiPlotCols)
 				
-				script:write("set tmargin at screen "..spaceBottom + (MultiPlotRows-mpRow+1)*rowSize.."\n")
-				script:write("set bmargin at screen "..spaceBottom + (MultiPlotRows-mpRow)*rowSize.."\n")
-				script:write("set rmargin at screen "..spaceLeft + (mpCol)*colSize.."\n")
-				script:write("set lmargin at screen "..spaceLeft + (mpCol-1)*colSize.."\n")
+				script:write("set tmargin at screen "..spaceBottom + (MultiPlotRows-row+1)*rowSize.."\n")
+				script:write("set bmargin at screen "..spaceBottom + (MultiPlotRows-row)*rowSize.."\n")
+				script:write("set rmargin at screen "..spaceLeft + (col)*colSize.."\n")
+				script:write("set lmargin at screen "..spaceLeft + (col-1)*colSize.."\n")
 				
 				-- left bnd
-				if mpCol == 1 then 
+				if col == 1 then 
 					script:write("set ylabel '"..label["y"].."'\n")
 					script:write(sTic["y"])
 				else 
@@ -1029,13 +1072,13 @@ function gnuplot.plot(filename, data, options)
 				end
 
 				-- right bnd
-				if mpCol == MultiPlotCols then end
+				if col == MultiPlotCols then end
 				
 				-- top bnd
-				if mpRow == 1 then end
+				if row == 1 then end
 
 				-- bottom bnd
-				if mpRow == MultiPlotRows then 
+				if row == MultiPlotRows then 
 					script:write("set xlabel '"..label["x"].."'\n")
 					script:write(sTic["x"])
 				else 
