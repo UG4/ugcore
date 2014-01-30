@@ -780,15 +780,28 @@ function gnuplot.plot(filename, data, options)
 	local MultiPlotRows , MultiPlotCols
 	if multiplot then
 		if type(multiplot) == "table" then
-			MultiPlotRows = multiplot.rows or math.ceil(math.sqrt(#plots))			
+			if multiplot.rows then MultiPlotRows = multiplot.rows end
+			if multiplot.cols then MultiPlotCols = multiplot.cols end
+			
+			if MultiPlotRows and not MultiPlotCols then
+				MultiPlotCols = math.ceil(#plots / MultiPlotRows )
+			end
+			if not MultiPlotRows and MultiPlotCols then
+				MultiPlotRows = math.ceil(#plots / MultiPlotCols )
+			end
 		end
-		MultiPlotRows = MultiPlotRows or math.ceil(math.sqrt(#plots))		
-		MultiPlotCols = math.ceil(#plots / MultiPlotRows )
-		
+		if not MultiPlotRows or not MultiPlotCols then
+			MultiPlotRows = math.ceil(math.sqrt(#plots))		
+			MultiPlotCols = math.ceil(#plots / MultiPlotRows )
+		end
+		if MultiPlotRows*MultiPlotCols < #plots then
+			print("Gnuplot: to few plots in multi-plot reserved"); exit()
+		end		
+				
 		script:write("set term "..terminal.." size ")
-		script:write(MultiPlotRows*term.sizes[1]..term.sizeunit)
+		script:write(MultiPlotCols*term.sizes[1]..term.sizeunit)
 		script:write(",")
-		script:write(MultiPlotCols*term.sizes[2]..term.sizeunit)
+		script:write(MultiPlotRows*term.sizes[2]..term.sizeunit)
 		script:write("\n")
 		
 		local title = options.title or "" 
@@ -978,8 +991,8 @@ function gnuplot.plot(filename, data, options)
 		------------------------------------------------------------------------
 		if multiplot then
 
-			if type(multiplot) ~= "table" or (multiplot.conjoined ~= nil 
-				and multiplot.conjoined ~= false) then
+			if type(multiplot) ~= "table" or multiplot.conjoined == nil 
+				or multiplot.conjoined == true then
 				
 				-- only one global title --> unset plot title
 				script:write("unset title \n" )

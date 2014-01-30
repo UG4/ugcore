@@ -510,16 +510,19 @@ function util.rates.static.compute(ConvRateSetup)
 		-- multi-plot: all discs for one norm
 		local file = plotPath.."multi/"..table.concat({f,head[t],n,x}, "_")	
 		gpData[file] = gpData[file] or {}
+		gpData[file].multiplot = {rows = 1}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
 
 		-- multi-plot: all norms for one disc
 		local file = plotPath.."multi/"..table.concat({f,disc,head[t],x}, "_")	
 		gpData[file] = gpData[file] or {}
+		gpData[file].multiplot = {cols = 1}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
 
 		-- multi-plot: all types for one disc and one norm
 		local file = plotPath.."multi/"..table.concat({f,disc,n,x}, "_")	
 		gpData[file] = gpData[file] or {}
+		gpData[file].multiplot = {cols = 1}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
 
 						end
@@ -539,6 +542,7 @@ function util.rates.static.compute(ConvRateSetup)
 
 		local file = plotPath.."multi/"..table.concat({f,head[t],x}, "_")	
 		gpData[file] = gpData[file] or {}
+		gpData[file].multiplot = {cols = 2}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
 
 						end
@@ -551,7 +555,7 @@ function util.rates.static.compute(ConvRateSetup)
 	-- create scheduled plots
 	for plotFile, data in pairs(gpData) do 
 		local opt = table.deepcopy(gpOptions)
-		opt.label = data.label
+		if data.multiplot then opt.multiplot = data.multiplot end
 		gnuplot.plot(plotFile..".tex", data, opt)
 		gnuplot.plot(plotFile..".pdf", data, opt)
 	end
