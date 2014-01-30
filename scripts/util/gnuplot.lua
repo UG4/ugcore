@@ -703,10 +703,16 @@ function gnuplot.plot(filename, data, options)
 					local numbers = {}
 					if not string.match(line, "#") then
 						for n in string.gmatch(line, "[^ ]+") do numbers[#numbers+1] = tonumber(n) end
-		
-						for d, _ in ipairs(DimNames) do 
-							val[d] = val[d] or {}
-							val[d][#(val[d])+1] = numbers[map[d]]
+	
+						local bValid = true
+						for d, _ in ipairs(DimNames) do
+							if type(numbers[map[d]]) ~= "number" then bValid = false end
+						end		
+						if bValid then
+							for d, _ in ipairs(DimNames) do 
+								val[d] = val[d] or {}
+								val[d][#(val[d])+1] = numbers[map[d]]
+							end
 						end
 					end
 				end
@@ -730,16 +736,16 @@ function gnuplot.plot(filename, data, options)
 					end			
 				end
 			end
-	
+					
 			-- find min/max
 			dataset.min = {}
 			dataset.max = {}
 			for d, _ in ipairs(DimNames) do
 				dataset.min[d] = math.huge
 				dataset.max[d] = -math.huge
-				for n = 1,#dataset.val[d] do
-					dataset.min[d] = math.min(dataset.min[d], dataset.val[d][n])	
-					dataset.max[d] = math.max(dataset.max[d], dataset.val[d][n])	
+				for _, val in ipairs(dataset.val[d]) do
+					dataset.min[d] = math.min(dataset.min[d], val)	
+					dataset.max[d] = math.max(dataset.max[d], val)	
 				end		
 			end
 		end
@@ -1071,9 +1077,10 @@ function gnuplot.plot(filename, data, options)
 				elseif at == "max" then
 					xo, yo = dataset.max[1], dataset.max[2]
 				elseif at == "last" then
-					xo, yo = dataset.val[1][#dataset.val[1]], dataset.val[2][#dataset.val[2]]
+					local last = #valx
+					xo, yo = valx[last], valy[last]
 				elseif at == "first" then
-					xo, yo = dataset.val[1][1], dataset.val[2][1]
+					xo, yo = valx[1], valy[1]
 				else print("slope.at: only min,max,last,first"); exit(); end
 									
 				drawSlopTri(xo, yo*1.5, slope.dy, rate)							
