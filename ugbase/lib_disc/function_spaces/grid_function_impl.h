@@ -362,7 +362,7 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 	switch(msg.msg()){
 		case GMDT_DISTRIBUTION_STARTS:{
 			m_preDistStorageType = this->get_storage_mask();
-			if(!this->has_storage_type(PST_CONSISTENT)){
+			if(!(this->has_storage_type(PST_CONSISTENT) || this->has_storage_type(PST_UNDEFINED))){
 				this->change_storage_type(PST_CONSISTENT);
 			}
 
