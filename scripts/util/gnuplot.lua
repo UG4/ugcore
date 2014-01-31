@@ -1105,8 +1105,11 @@ function gnuplot.plot(filename, data, options)
 			for _, dataset in ipairs(plot) do
 				local valx = dataset.val[1]
 				local valy = dataset.val[2]
-				local facx = valx[#valx-1]/valx[#valx]
-				local facy = valy[#valy-1]/valy[#valy]
+				local facx, facy = 1,1
+				if #valx > 1 and #valy > 1 then
+				 facx = valx[#valx-1]/valx[#valx]
+				 facy = valy[#valy-1]/valy[#valy]
+				end
 				local rate = math.log(facy) / math.log(facx)
 				rate = round(rate, slope.quantum or 1)
 				local xo,yo

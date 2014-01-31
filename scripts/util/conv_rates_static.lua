@@ -446,9 +446,9 @@ function util.rates.static.compute(ConvRateSetup)
 		
 		-- store dataset	
 		for xCol, x in ipairs({"DoFs", "h"}) do
-			local dataset = {label=disc.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}
+			local dataset = {label=disc.." $\\mathbb{Q}_{"..p.."}$", file=file, style="linespoints", xCol, 3}
 			local label = { x = gpXLabel[x],
-							y = "$\\norm{ "..f.."_L - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
+							y = "$\\norm{ "..f.."_h - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
 							
 			local function addSet(plot, dataset, label)
 				table.insert( plot, dataset)			
@@ -552,16 +552,16 @@ function util.rates.static.compute(ConvRateSetup)
 	end
 	end
 	
+	-- save for reuse
+	persistence.store(dataPath.."gp-data-files.lua", gpData);	
+	
 	-- create scheduled plots
 	for plotFile, data in pairs(gpData) do 
 		local opt = table.deepcopy(gpOptions)
 		if data.multiplot then opt.multiplot = data.multiplot end
 		gnuplot.plot(plotFile..".tex", data, opt)
 		gnuplot.plot(plotFile..".pdf", data, opt)
-	end
-	
-	-- save for reuse
-	persistence.store(dataPath.."gp-data-files.lua", gpData);	
+	end	
 end
 
 
