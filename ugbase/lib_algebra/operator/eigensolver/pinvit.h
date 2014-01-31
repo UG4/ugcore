@@ -678,31 +678,32 @@ public:
 
 	}
 
-	void get_max_deflection_of_a_mode(vector_type& maxDeflect, vector_type& u,
-			const vector_type& eigenVec, const matrix_type& B)
+	void get_max_deflection_of_a_mode(vector_type& maxDeflect, vector_type& statSol,
+			const vector_type& eigenVec, const matrix_type& massMat)
 	{
 #ifdef UG_PARALLEL
-		u.set_storage_type(PST_CONSISTENT);
+		statSol.set_storage_type(PST_CONSISTENT);
 		maxDeflect.set_storage_type(PST_CONSISTENT);
 #endif
 
-		SmartPtr<vector_type> Bv = u.clone_without_values();
-		SmartPtr<vector_type> vwBv = u.clone_without_values();
+		SmartPtr<vector_type> Bv = statSol.clone_without_values();
+		SmartPtr<vector_type> vwBv = statSol.clone_without_values();
 
-		//	compute Bv = B * eigenVec;
-		B.axpy(*Bv, 0.0, eigenVec, 1.0, eigenVec);
+		//	compute Bv = massMat * eigenVec;
+		massMat.axpy(*Bv, 0.0, eigenVec, 1.0, eigenVec);
 
-		//	vwBv = eigenVec * < u, Bv >
+		//	vwBv = eigenVec * < statSol, Bv >
 		number scalarProd = 0.0;
-		for(size_t i = 0; i < u.size(); i++)
-			scalarProd += VecProd((*Bv)[i], u[i]);
+		for(size_t i = 0; i < statSol.size(); i++)
+			scalarProd += VecProd((*Bv)[i], statSol[i]);
 
-		for(size_t i = 0; i < u.size(); i++)
+		for(size_t i = 0; i < statSol.size(); i++)
 		{
-			(*vwBv)[i] = eigenVec[i] * scalarProd;
+			(*vwBv)[i] = eigenVec[i] * (-1.0) * scalarProd;
 			//	maxDeflect += vwBv
 			maxDeflect[i] = maxDeflect[i] + (*vwBv)[i];
 		}
+
 	}
 
 private:
