@@ -110,7 +110,7 @@ static void Algebra(Registry& reg, string grp)
 				(void (*)(vector_type&, number, const vector_type &)) &VecScaleAssign<vector_type>
 		, grp);
 		reg.add_function("VecAssign",
-				(void (*)(vector_type&,const vector_type &)) &VecAssign<vector_type>, grp);
+				(void (*)(vector_type&,const vector_type &)) &VecAssign<vector_type>, grp, "", "dest#vec", "calculates dest <- vec");
 		reg.add_function("VecScaleAdd2", /*(void (*)(vector_type&, number, const vector_type&, number, const vector_type &)) */
 				&VecScaleAdd2<vector_type>, grp, "alpha1*vec1 + alpha2*vec2",
 				"dest#alpha1#vec1#alpha2#vec2");
