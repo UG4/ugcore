@@ -446,7 +446,7 @@ function util.rates.static.compute(ConvRateSetup)
 		
 		-- store dataset	
 		for xCol, x in ipairs({"DoFs", "h"}) do
-			local dataset = {label=disc.." $\\mathbb{Q}_{"..p.."}$", file=file, style="linespoints", xCol, 3}
+			local dataset = {label=disc.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}
 			local label = { x = gpXLabel[x],
 							y = "$\\norm{ "..f.."_h - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
 							
