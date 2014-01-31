@@ -78,17 +78,22 @@ ugcmakegrep()
 
 ugappsgrep()
 {
-	fgrep --include="*\.lua" --include="*\.c" --include="*\.cpp" --include="*\.h" -rI "$1" $UG4_ROOT/apps
+	fgrep --include="*\.lua" --exclude="ug4CompletionList.txt" --exclude="myUg4CompletionList.txt" --include="*\.c" --include="*\.cpp" --include="*\.txt" --include="*\.h" -rI "$1" $UG4_ROOT/apps
 }
 
 ugscriptsgrep()
 {
-	fgrep --include="*\.lua" --include="*\.c" --include="*\.cpp" --include="*\.h" -rI "$1" $UG4_ROOT/scripts
+	fgrep --include="*\.lua" --include="*\.c" --include="*\.cpp" --include="*\.txt"--include="*\.h" -rI "$1" $UG4_ROOT/scripts
 }
 
 uggrep()
 {
-	fgrep --include="*\.lua" --include="*\.c*" --include="*\.h" --exclude-dir=".svn" -rI "$1" $UG4_ROOT
+	fgrep --include="*\.lua" --include="*\.c*" --include="*\.h" --include="*\.txt" --exclude-dir=".svn" -rI "$1" $UG4_ROOT
+}
+
+ugdocsgrep()
+{
+	fgrep --include="*\.doxygen" --exclude-dir=".svn" -rI "$1" $UG4_ROOT/docs
 }
 
 ug4svnupdate()
