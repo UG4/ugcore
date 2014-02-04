@@ -160,7 +160,7 @@ public:
 	inline const value_type& operator[](size_t i) const	{UG_ASSERT(i < size(), "Index out of range."); return m_data[i];}
 
 protected:
-	inline void assign(const MathVector<N>& v) {for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
+	inline void assign(const MathTensorX<TEntry, N>& v) {for(size_t i = 0; i < N; ++i) m_data[i] = v[i];}
 
 protected:
 	TEntry m_data[N];
