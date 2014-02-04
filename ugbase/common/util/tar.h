@@ -41,7 +41,7 @@ struct TarHeader
 		strcpy(userID, 	"000765 ");
 		strcpy(groupID, 	"000024 ");
 		strcpy(ustarIndicator, "ustar");
-		strcpy(ustarVersion, "00");
+		memcpy(ustarVersion, "00", 2);
 		strcpy(ustarOwnerUserName, "");
 		strcpy(ustarOwnerGroupName, "");
 		strcpy(ustarDeviceMajorNumber, "000000 ");
