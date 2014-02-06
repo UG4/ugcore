@@ -26,6 +26,10 @@
 	#include "common/util/plugin_util.h"
 #endif
 
+#ifdef UG_POSIX
+#include <signal.h>
+#endif
+
 extern "C"
 {
 #include "bindings/lua/externals/lua/lstate.h"
@@ -49,7 +53,7 @@ bool useLua2C=false;
 namespace bridge
 {
 
-
+#ifdef UG_POSIX
 void (*oldSIGSEGVhandler)(int);
 void (*oldSIGINThandler)(int);
 
@@ -79,6 +83,12 @@ void InitSignals()
 	oldSIGSEGVhandler = signal(SIGSEGV, signal_callback_handler);
 	oldSIGINThandler = signal(SIGINT, sigint_handler);
 }
+#else
+void InitSignals()
+{
+	UG_LOG("Signals not available on this system (non-posix).\n");
+}
+#endif
 
 void SetLuaNamespaceInTable(string name, string value)
 {
