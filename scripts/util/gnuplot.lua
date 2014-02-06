@@ -1124,8 +1124,12 @@ function gnuplot.plot(filename, data, options)
 				elseif at == "first" then
 					xo, yo = valx[1], valy[1]
 				else print("slope.at: only min,max,last,first"); exit(); end
-									
-				drawSlopTri(xo, yo*1.5, slope.dy, rate)							
+				
+				if rate == rate and -- test for nan
+			       rate > -math.huge and rate < math.huge and -- test for finite
+			       rate ~= 0 then
+					drawSlopTri(xo, yo*1.5, slope.dy, rate)	
+				end						
 			end -- end datasets
 		end -- end slope
 	
