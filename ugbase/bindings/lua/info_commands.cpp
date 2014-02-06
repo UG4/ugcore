@@ -36,6 +36,11 @@ extern "C"
 
 using namespace std;
 
+std::string get_gcc_backtrace();
+void lua_backtrace();
+void shiny_backtrace();
+void ug_backtrace();
+
 namespace ug
 {
 bool useLua2VM=false;
@@ -43,6 +48,37 @@ bool useLua2C=false;
 
 namespace bridge
 {
+
+
+void (*oldSIGSEGVhandler)(int);
+void (*oldSIGINThandler)(int);
+
+void signal_callback_handler(int signum)
+{
+	cout << "\n##############################################################################################################\n";
+	printf("CAUGHT SIGNAL SIGSEV = Segmentation Violation (Invalid access to storage). Possibly an uninitialized pointer.");
+	cout << "\n##############################################################################################################\n\n";
+	ug_backtrace();
+	UG_THROW("CAUGHT SIGNAL SIGSEV = Segmentation Violation (Invalid access to storage). Possibly an uninitialized pointer.");
+	exit(signum);
+}
+
+void sigint_handler(int signum)
+{
+	cout << "\n##############################################################################################################\n";
+	cout << "--- Received SIGINT (Ctrl+C) --- \n";
+	cout << "\n##############################################################################################################\n\n";
+
+	lua_backtrace();
+	shiny_backtrace();
+	exit(signum);
+}
+
+void InitSignals()
+{
+	oldSIGSEGVhandler = signal(SIGSEGV, signal_callback_handler);
+	oldSIGINThandler = signal(SIGINT, sigint_handler);
+}
 
 void SetLuaNamespaceInTable(string name, string value)
 {
@@ -934,15 +970,16 @@ std::string LuaStackTraceString(lua_State* L, int backtraceLevel)
 {
 	std::stringstream ss;
     lua_Debug entry;
+    int luaLevel=0;
     for(int depth = 0; lua_getstack(L, depth, &entry); depth++)
 	{
     	int status = lua_getinfo(L, "Sln", &entry);
     	if(entry.currentline <0) continue;
     	if(!status || !entry.source || entry.currentline < 0) continue;
-    	ss << entry.source << ":" << entry.currentline;
-    	ss << " " << GetFileLine(entry.source, entry.currentline);
+    	ss << "  " << luaLevel++ << "    " << entry.source << ":" << entry.currentline;
+    	ss << "   " << GetFileLine(entry.source, entry.currentline);
     	ss << "\n";
-    	if(--backtraceLevel == 0) break;
+    	if(luaLevel == backtraceLevel) break;
     }
     return ss.str();
 }
@@ -1101,6 +1138,7 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		                 "", "bEnable", "");
 		reg.add_function("EnableLUA2VM", &EnableLUA2VM, grp.c_str(),
 				"", "bEnable", "");
+		reg.add_function("InitSignals", &InitSignals, grp.c_str());
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 
