@@ -123,8 +123,10 @@ function util.rates.static.compute(ConvRateSetup)
 	
 	local DiscTypes = CRS.DiscTypes
 
-	local maxlevel = CRS.maxlevel; if maxlevel == nil then maxlevel = true end
-	local prevlevel = CRS.prevlevel; if prevlevel == nil then prevlevel = true end
+	local maxlevel = CRS.maxlevel; 		if maxlevel == nil then maxlevel = true end
+	local prevlevel = CRS.prevlevel; 	if prevlevel == nil then prevlevel = true end
+	local exact = CRS.exact; 			if exact == nil then exact = true end
+	local interpol = CRS.interpol; 		if interpol == nil then interpol = true end
 
 	local ExactSol = CRS.ExactSol 
  	local ExactGrad = CRS.ExactGrad 
@@ -160,11 +162,13 @@ function util.rates.static.compute(ConvRateSetup)
 	--------------------------------------------------------------------
 
 	local head = {l2 = "L2", h1 = "H1",
-					exact = "l-exact", maxlevel = "l-lmax", prevlevel = "l-prev"}
+				  exact = "l-exact", interpol = "interpol",
+				  maxlevel = "l-lmax", prevlevel = "l-prev"}
 				
 	local gpType = {	exact = 	"{}",		
 						maxlevel = 	"h_{\text{min}}",
-						prevlevel = "{h/2}"
+						prevlevel = "{h/2}",
+						interpol = "{\text{interpol}}"
 					}
 
 	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
@@ -268,21 +272,22 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			--  Compute Solution on each level
 			--------------------------------------------------------------------
-			
-			for lev = minLev, maxLev do
-				write("\n>> Computing Level "..lev..".\n")
-			
-				write(">> Preparing inital guess on level "..lev..".\n")
-				PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
+			if exact or maxlevel or prevlevel then
+				for lev = minLev, maxLev do
+					write("\n>> Computing Level "..lev..".\n")
 				
-				write(">> Computing solution on level "..lev..".\n")
-				ComputeSolution(u[lev], domainDisc, solver)
-				write(">> Solver done.\n")
-				
-				WriteGridFunctionToVTK(u[lev], solPath.."sol_"..disc..p.."_l"..lev)
-				write(">> Solution written to: "..solPath.."sol_"..disc..p.."_l"..lev.."\n");	
+					write(">> Preparing inital guess on level "..lev..".\n")
+					PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
+					
+					write(">> Computing solution on level "..lev..".\n")
+					ComputeSolution(u[lev], domainDisc, solver)
+					write(">> Solver done.\n")
+					
+					WriteGridFunctionToVTK(u[lev], solPath.."sol_"..disc..p.."_l"..lev)
+					write(">> Solution written to: "..solPath.."sol_"..disc..p.."_l"..lev.."\n");	
+				end
 			end
-			
+						
 			approxSpace, domainDisc, solver = nil, nil, nil
 			collectgarbage()
 
@@ -321,16 +326,33 @@ function util.rates.static.compute(ConvRateSetup)
 					end
 										
 					-- w.r.t exact solution		
-					if ExactSol ~= nil and ExactSol[f] ~= nil then 					
+					if exact and ExactSol ~= nil and ExactSol[f] ~= nil then 					
 						local value = createMeas(f, "exact", "l2")
 						value[lev] = L2Error(ExactSol[f], u[lev], f, 0.0, quadOrder)
 						write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 
 						if ExactGrad ~= nil and ExactGrad[f] ~= nil then 					
-						local value = createMeas(f, "exact", "h1")
-						value[lev] = H1Error(ExactSol[f], ExactGrad[f], u[lev], f, 0.0, quadOrder)
-						write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
+							local value = createMeas(f, "exact", "h1")
+							value[lev] = H1Error(ExactSol[f], ExactGrad[f], u[lev], f, 0.0, quadOrder)
+							write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 						end
+					end
+
+					if interpol and ExactSol ~= nil and ExactSol[f] ~= nil then
+						local uExact = u[lev]:clone()
+						Interpolate(ExactSol[f], uExact, f)
+
+						local value = createMeas(f, "interpol", "l2")
+						value[lev] = L2Error(ExactSol[f], uExact, f, 0.0, quadOrder)
+						write(">> L2 interpol for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
+						
+						if ExactGrad ~= nil and ExactGrad[f] ~= nil then 					
+							local value = createMeas(f, "interpol", "h1")
+							value[lev] = H1Error(ExactSol[f], ExactGrad[f], uExact, f, 0.0, quadOrder)
+							write(">> H1 interpol for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
+						end
+						
+						uExact = nil						
 					end
 					
 					-- w.r.t max level solution
@@ -366,7 +388,7 @@ function util.rates.static.compute(ConvRateSetup)
 			--  Compute Factors and Rates
 			--------------------------------------------------------------------
 
-			for _,_,_,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
+			for _,_,_,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel", "interpol"}, {"l2", "h1"}) do
 	
 				meas.fac = meas.fac or {}
 				meas.rate = meas.rate or {}
@@ -395,7 +417,7 @@ function util.rates.static.compute(ConvRateSetup)
 				local heading = {"L", "h", "#DoFs"}
 				local format = {"%d", "%.2e", "%d"}
 
-				for _,t,n,meas in imeasure(err, {f},{"exact", "prevlevel", "maxlevel"}, {"l2", "h1"}) do
+				for _,t,n,meas in imeasure(err, {f},{"exact", "prevlevel", "maxlevel", "interpol"}, {"l2", "h1"}) do
 
 					table.append(values, {meas.value, meas.rate}) 
 					table.append(heading,{head[n].." "..head[t], "rate"})
