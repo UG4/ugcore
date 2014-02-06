@@ -686,8 +686,8 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 					for(int i = 0; i < p -k -j; ++i) {
 						vvMultiIndex[se].resize(4);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
-						vvMultiIndex[se][1] = MathVector<3,int>(i  , j-1, k+1);
-						vvMultiIndex[se][2] = MathVector<3,int>(i  , j  , k+1);
+						vvMultiIndex[se][1] = MathVector<3,int>(i  , j  , k+1);
+						vvMultiIndex[se][2] = MathVector<3,int>(i  , j-1, k+1);
 						vvMultiIndex[se][3] = MathVector<3,int>(i+1, j-1, k+1);
 
 						// reset bnd info
@@ -703,8 +703,8 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 
 						vvMultiIndex[se].resize(4);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
-						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j-1, k+1);
-						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
+						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j-1, k+1);
 						vvMultiIndex[se][3] = MathVector<3,int>(i+1, j-1, k);
 
 						// reset bnd info
@@ -737,8 +737,8 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 
 						vvMultiIndex[se].resize(4);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
-						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j  , k);
-						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j-1, k+1);
+						vvMultiIndex[se][1] = MathVector<3,int>(i+1, j-1, k+1);
+						vvMultiIndex[se][2] = MathVector<3,int>(i+1, j  , k);
 						vvMultiIndex[se][3] = MathVector<3,int>(i  , j  , k+1);
 
 						// reset bnd info
