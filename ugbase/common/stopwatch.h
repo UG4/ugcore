@@ -90,7 +90,7 @@ class Stopwatch
 #ifdef UG_CXX11
       end = std::chrono::high_resolution_clock::now() - begin;
 #else
-      end = std::clock();
+      end = get_clock_s();
 #endif
       bRunning = false;
     }
