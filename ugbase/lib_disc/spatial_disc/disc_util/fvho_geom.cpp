@@ -420,25 +420,6 @@ static void CopyCornerByMidID(MathVector<dim> vCorner[],
 	}
 }
 
-///	returns the number of subelements for a reference element and order
-size_t NumSubElements(ReferenceObjectID roid, int p)
-{
-	switch(roid)
-	{
-		case ROID_EDGE: return p;
-		case ROID_TRIANGLE: return p*p;
-		case ROID_QUADRILATERAL: return p*p;
-		case ROID_TETRAHEDRON: return (p*(p+1)*(5*p-2))/6;
-		case ROID_PRISM: return p*p*p;
-		case ROID_HEXAHEDRON: return p*p*p;
-		default:
-			UG_LOG("ERROR in 'NumSubElements': No subelement specification given"
-					" for "<<roid<<". Aborting.");
-			UG_THROW("Reference Element not supported.");
-	}
-}
-
-
 template <int dim>
 void ComputeMultiIndicesOfSubElement(std::vector<MathVector<dim, int> >* vvMultiIndex,
                                      bool* vIsBndElem,
@@ -482,8 +463,6 @@ void ComputeMultiIndicesOfSubElement<1>(std::vector<MathVector<1, int> >* vvMult
 				}
 				++se;
 			}
-			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
-			          " computed, but must be "<<NumSubElements(roid, p));
 
 			{
 				FlexLagrangeLSFS<ReferenceEdge> set(p);
@@ -558,8 +537,6 @@ void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> >* vvMult
 					++se;
 				}
 			}
-			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
-			          " computed, but must be "<<NumSubElements(roid, p));
 
 			{
 				FlexLagrangeLSFS<ReferenceTriangle> set(p);
@@ -610,8 +587,6 @@ void ComputeMultiIndicesOfSubElement<2>(std::vector<MathVector<2, int> >* vvMult
 					++se;
 				}
 			}
-			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
-			          " computed, but must be "<<NumSubElements(roid, p));
 
 			{
 				FlexLagrangeLSFS<ReferenceQuadrilateral> set(p);
@@ -684,6 +659,20 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 			for(int k = 0; k < p; ++k) {
 				for(int j = 1; j < p -k; ++j) {
 					for(int i = 0; i < p -k -j; ++i) {
+						if(j >= 2){
+							vvMultiIndex[se].resize(4);
+							vvMultiIndex[se][0] = MathVector<3,int>(i+1, j-1, k);
+							vvMultiIndex[se][1] = MathVector<3,int>(i+1, j-1, k+1);
+							vvMultiIndex[se][2] = MathVector<3,int>(i  , j-1, k+1);
+							vvMultiIndex[se][3] = MathVector<3,int>(i+1, j-2, k+1);
+
+							// reset bnd info
+							vIsBndElem[se] = false;
+							vElemBndSide[se].clear(); vElemBndSide[se].resize(4, -1);
+
+							++se;
+						}
+
 						vvMultiIndex[se].resize(4);
 						vvMultiIndex[se][0] = MathVector<3,int>(i  , j  , k);
 						vvMultiIndex[se][1] = MathVector<3,int>(i  , j  , k+1);
@@ -754,8 +743,6 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 					}
 				}
 			}
-			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
-			          " computed, but must be "<<NumSubElements(roid, p));
 
 			{
 				FlexLagrangeLSFS<ReferenceTetrahedron> set(p);
@@ -844,8 +831,6 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 					}
 				}
 			}
-			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
-			          " computed, but must be "<<NumSubElements(roid, p));
 
 			{
 				FlexLagrangeLSFS<ReferencePrism> set(p);
@@ -912,8 +897,6 @@ void ComputeMultiIndicesOfSubElement<3>(std::vector<MathVector<3, int> >* vvMult
 					}
 				}
 			}
-			UG_ASSERT(se == NumSubElements(roid, p), "Wrong number of se="<<se<<
-			          " computed, but must be "<<NumSubElements(roid, p));
 
 			{
 				FlexLagrangeLSFS<ReferenceHexahedron> set(p);
@@ -1143,6 +1126,11 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 
 	// 	normal on scvf
 		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, vCornerCoords);
+		VecNormalize(m_vSCVF[i].Normal, m_vSCVF[i].Normal);
+
+		ReferenceMapping<scvf_type, dim> map(m_vSCVF[i].vGloPos);
+		for(size_t ip = 0; ip < m_rSCVFQuadRule.size(); ++ip)
+			m_vSCVF[i].vDetJMap[ip] = map.sqrt_gram_det(m_rSCVFQuadRule.point(ip));
 	}
 
 // 	compute size of scv
@@ -1155,12 +1143,6 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 	//	map local ips of scvf to global
 		for(size_t ip = 0; ip < m_vSCV[i].num_ip(); ++ip)
 			m_rMapping.local_to_global(m_vSCV[i].vGlobalIP[ip], m_vSCV[i].local_ip(ip));
-
-	// 	compute volume of scv
-		if(pElem->reference_object_id() != ROID_PYRAMID)
-			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
-	//	special case for pyramid, last scv
-		else UG_THROW("Pyramid Not Implemented");
 	}
 
 //	if mapping is linear, compute jacobian only once and copy
@@ -1399,7 +1381,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 	m_quadOrderSCV = orderQuad;
 
 //	resize sub elements
-	m_numSubElem = NumSubElements(m_roid, m_orderShape);
+	m_numSubElem = std::pow(m_orderShape, dim);
 	m_vSubElem.resize(m_numSubElem);
 
 //	get the multi indices for the sub elements and the boundary flags
@@ -1507,6 +1489,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 		m_vSCVF[i].vvGlobalGrad.resize(nipSCVF);
 		m_vSCVF[i].vJtInv.resize(nipSCVF);
 		m_vSCVF[i].vDetJ.resize(nipSCVF);
+		m_vSCVF[i].vDetJMap.resize(nipSCVF);
 
 		m_vSCVF[i].nsh = rTrialSpace.num_sh();
 
@@ -1645,12 +1628,22 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		for(size_t co = 0; co < m_vSCVF[i].num_corners(); ++co)
 			rMapping.local_to_global(m_vSCVF[i].vGloPos[co], m_vSCVF[i].vLocPos[co]);
 
-	//	map local ips of scvf to global
-		for(size_t ip = 0; ip < m_vSCVF[i].num_ip(); ++ip)
-			rMapping.local_to_global(m_vSCVF[i].vGlobalIP[ip], m_vSCVF[i].local_ip(ip));
-
 	// 	normal on scvf
 		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, vCornerCoords);
+		VecNormalize(m_vSCVF[i].Normal, m_vSCVF[i].Normal);
+
+		static const ReferenceObjectID scvfRoid = scvf_type::REFERENCE_OBJECT_ID;
+		const QuadratureRule<dim-1>& rSCVFQuadRule
+				= QuadratureRuleProvider<dim-1>::get(scvfRoid, m_quadOrderSCVF);
+		ReferenceMapping<scvf_type, worldDim> map(m_vSCVF[i].vGloPos);
+
+		for(size_t ip = 0; ip < rSCVFQuadRule.size(); ++ip){
+			m_vSCVF[i].vDetJMap[ip] = map.sqrt_gram_det(rSCVFQuadRule.point(ip));
+			map.local_to_global(m_vSCVF[i].vGlobalIP[ip], rSCVFQuadRule.point(ip));
+		}
+
+		rMapping.jacobian_transposed_inverse(&m_vSCVF[i].vJtInv[0], &m_vSCVF[i].vLocalIP[0], m_vSCVF[i].num_ip());
+		rMapping.sqrt_gram_det(&m_vSCVF[i].vDetJ[0], &m_vSCVF[i].vLocalIP[0], m_vSCVF[i].num_ip());
 	}
 
 // 	compute size of scv
@@ -1659,36 +1652,19 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 	//	map local corners of scvf to global
 		rMapping.local_to_global(&m_vSCV[i].vGloPos[0], &m_vSCV[i].vLocPos[0], m_vSCV[i].num_corners());
 
-	//	map local ips of scvf to global
-		rMapping.local_to_global(&m_vSCV[i].vGlobalIP[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
-
-	// 	compute volume of scv
-		if(pElem->reference_object_id() != ROID_PYRAMID)
-			m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
-	//	special case for pyramid, last scv
-		else UG_THROW("Pyramid Not Implemented");
-	}
-
-	for(size_t i = 0; i < num_scvf(); ++i)
-	{
-		rMapping.jacobian_transposed_inverse(&m_vSCVF[i].vJtInv[0], &m_vSCVF[i].vLocalIP[0], m_vSCVF[i].num_ip());
-		rMapping.sqrt_gram_det(&m_vSCVF[i].vDetJ[0], &m_vSCVF[i].vLocalIP[0], m_vSCVF[i].num_ip());
-	}
-
-	for(size_t i = 0; i < num_scv(); ++i)
-	{
 		rMapping.jacobian_transposed_inverse(&m_vSCV[i].vJtInv[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
 		rMapping.sqrt_gram_det(&m_vSCV[i].vDetJ[0], &m_vSCV[i].vLocalIP[0], m_vSCV[i].num_ip());
-	}
 
-	for(size_t i = 0; i < num_scv(); ++i)
-	{
+
 		static const ReferenceObjectID scvRoid = scv_type::REFERENCE_OBJECT_ID;
 		const QuadratureRule<dim>& rSCVQuadRule
 				= QuadratureRuleProvider<dim>::get(scvRoid, m_quadOrderSCV);
+
 		ReferenceMapping<scv_type, worldDim> map(m_vSCV[i].vGloPos);
-		for(size_t ip = 0; ip < rSCVQuadRule.size(); ++ip)
+		for(size_t ip = 0; ip < rSCVQuadRule.size(); ++ip){
 			m_vSCV[i].vDetJMap[ip] = map.sqrt_gram_det(rSCVQuadRule.point(ip));
+			map.local_to_global(m_vSCV[i].vGlobalIP[ip], rSCVQuadRule.point(ip));
+		}
 	}
 
 	}

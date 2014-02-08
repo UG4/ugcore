@@ -56,9 +56,6 @@ class FVGeometry : public FVGeometryBase
 	///	type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
-	///	traits used
-		typedef fvho_traits<TOrder, ref_elem_type, TWorldDim> traits;
-
 	///	dimension of reference element
 		static const int dim = ref_elem_type::dim;
 
@@ -70,8 +67,11 @@ class FVGeometry : public FVGeometryBase
 		static const int order = TOrder;
 
 	///	number of subelements
-		static const size_t numSubElem = traits::NumSubElem;
+		static const size_t numSubElem = Pow<p, dim>::value;
 
+
+	///	traits used
+		typedef fv1_traits<ref_elem_type, worldDim> traits;
 
 	///	type of SubControlVolumeFace
 		typedef typename traits::scvf_type scvf_type;
@@ -148,7 +148,7 @@ class FVGeometry : public FVGeometryBase
 
 			///	integration weight
 				inline number weight(size_t ip) const
-					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];;}
 
 			/// local integration point of scvf
 				inline const MathVector<dim>& local_ip(size_t ip) const
@@ -158,7 +158,7 @@ class FVGeometry : public FVGeometryBase
 				inline const MathVector<worldDim>& global_ip(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vGlobalIP[ip];}
 
-			/// normal on scvf (points direction "from"->"to"). Norm is equal to area
+			/// normal on scvf (points direction "from"->"to"), normalized
 				inline const MathVector<worldDim>& normal() const {return Normal;}
 
 			/// Transposed Inverse of Jacobian in integration point
@@ -239,6 +239,7 @@ class FVGeometry : public FVGeometryBase
 				MathVector<worldDim> vvGlobalGrad[nip][nsh]; // global grad at ip
 				MathMatrix<worldDim,dim> vJtInv[nip]; // Jacobian transposed at ip
 				number vDetJ[nip]; // Jacobian det at ip
+				number vDetJMap[nip]; // Jacobian det at ip
 		};
 
 	///	sub control volume structure
@@ -253,9 +254,6 @@ class FVGeometry : public FVGeometryBase
 
 			public:
 				SCV() {};
-
-			/// volume of scv
-				//inline number volume() const {return Vol;}
 
 			/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return numCo;}
@@ -329,9 +327,6 @@ class FVGeometry : public FVGeometryBase
 
 			//  node id of associated node
 				size_t nodeId;
-
-			//	volume of scv
-				number Vol;
 
 			//  scv part
 				MathVector<dim> vLocalIP[nip]; // local integration point
@@ -700,7 +695,7 @@ class DimFVGeometry : public FVGeometryBase
 
 			///	integration weight
 				inline number weight(size_t ip) const
-					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip];}
+					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vWeight[ip]*vDetJMap[ip];}
 
 			/// local integration point of scvf
 				inline const MathVector<dim>& local_ip(size_t ip) const
@@ -710,7 +705,7 @@ class DimFVGeometry : public FVGeometryBase
 				inline const MathVector<worldDim>& global_ip(size_t ip) const
 					{UG_ASSERT(ip<num_ip(), "Wrong index"); return vGlobalIP[ip];}
 
-			/// normal on scvf (points direction "from"->"to"). Norm is equal to area
+			/// normal on scvf (points direction "from"->"to"), normalized
 				inline const MathVector<worldDim>& normal() const {return Normal;}
 
 			/// Transposed Inverse of Jacobian in integration point
@@ -793,6 +788,7 @@ class DimFVGeometry : public FVGeometryBase
 				std::vector<std::vector<MathVector<worldDim> > > vvGlobalGrad; // global grad at ip (size: nip x nsh)
 				std::vector<MathMatrix<worldDim,dim> > vJtInv; // Jacobian transposed at ip (size: nip)
 				std::vector<number> vDetJ; // Jacobian det at ip (size: nip)
+				std::vector<number> vDetJMap; // Jacobian det at ip (size: nip)
 		};
 
 	///	sub control volume structure
@@ -804,9 +800,6 @@ class DimFVGeometry : public FVGeometryBase
 
 			public:
 				SCV() {};
-
-			/// volume of scv
-				//inline number volume() const {return Vol;}
 
 			/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return numCo;}
@@ -880,9 +873,6 @@ class DimFVGeometry : public FVGeometryBase
 
 			//  node id of associated node
 				size_t nodeId;
-
-			//	volume of scv
-				number Vol;
 
 			//	local and global positions of this element
 				MathVector<dim> vLocPos[numCo]; // local position of node

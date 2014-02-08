@@ -448,54 +448,6 @@ template <int TOrder, typename TRefElem, int TWorldDim> struct fvho_traits
 	const static size_t NumSubElem;
 };
 
-//////// 1d /////////
-
-template <int p, int TWorldDim>
-struct fvho_traits<p, ReferenceEdge, TWorldDim>
-	: public fv1_traits<ReferenceEdge, TWorldDim>
-{
-	const static size_t NumSubElem = p;
-};
-
-//////// 2d /////////
-
-template <int p, int TWorldDim>
-struct fvho_traits<p, ReferenceTriangle, TWorldDim>
-	: public fv1_traits<ReferenceTriangle, TWorldDim>
-{
-	const static size_t NumSubElem = p*p;
-};
-
-template <int p, int TWorldDim>
-struct fvho_traits<p, ReferenceQuadrilateral, TWorldDim>
-	: public fv1_traits<ReferenceQuadrilateral, TWorldDim>
-{
-	const static size_t NumSubElem = p*p;
-};
-
-//////// 3d /////////
-
-template <int p, int TWorldDim>
-struct fvho_traits<p, ReferenceTetrahedron, TWorldDim>
-	: public fv1_traits<ReferenceTetrahedron, TWorldDim>
-{
-	const static size_t NumSubElem = (p*(p+1)*(5*p-2))/6;
-};
-
-template <int p, int TWorldDim>
-struct fvho_traits<p, ReferencePrism, TWorldDim>
-	: public fv1_traits<ReferencePrism, TWorldDim>
-{
-	const static size_t NumSubElem = p*p*p;
-};
-
-template <int p, int TWorldDim>
-struct fvho_traits<p, ReferenceHexahedron, TWorldDim>
-	: public fv1_traits<ReferenceHexahedron, TWorldDim>
-{
-	const static size_t NumSubElem = p*p*p;
-};
-
 } // end namespace ug
 
 #endif /* __H__UG__LIB_DISC__SPATIAL_DISC__DISC_HELPER__FINITE_VOLUME_UTIL__ */
