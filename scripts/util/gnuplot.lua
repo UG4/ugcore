@@ -649,7 +649,7 @@ function gnuplot.plot(filename, data, options)
 	end
 
 	-- encoding and decimalsign
-	script:write("\nset encoding utf8\n")
+	--script:write("\nset encoding utf8\n")
 	script:write("set decimalsign '"..decimalsign.."'\n")
 
 	-- write timestamp
