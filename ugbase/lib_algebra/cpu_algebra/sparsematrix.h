@@ -295,12 +295,6 @@ public:
 	 */
 	void add_matrix_row(size_t row, connection *c, size_t nr);
 
-	//! returns number of connections of row row.
-	inline size_t num_connections(size_t i) const
-	{
-		if(rowStart[i] == -1) return 0;
-		else return rowEnd[i]-rowStart[i];
-	}
 
 	//! calculates dest += alpha * A[row, .] v;
 	template<typename vector_t>
@@ -308,6 +302,13 @@ public:
 public:
 	// accessor functions
 	//----------------------
+
+	//! returns number of connections of row row.
+	inline size_t num_connections(size_t i) const
+	{
+		if(rowStart[i] == -1) return 0;
+		else return rowEnd[i]-rowStart[i];
+	}
 
 	//! returns number of rows
 	size_t num_rows() const { return rowEnd.size(); }
@@ -323,42 +324,11 @@ public:
 	// Iterators
 	//---------------------------
 
-	// const_row_iterator
-
-
-	//typedef const connection * const_row_iterator;
-	//typedef connection * const_row_iterator;
-	/** const_row_iterator
-	 * const iterator over a row
-	 */
-
-
-	void add_iterator(size_t row) const
-	{
-#ifdef CHECK_ROW_ITERATORS
-		nrOfRowIterators[row]++;
-#endif
-		iIterators++;
-	}
-	void remove_iterator(size_t row) const
-	{
-#ifdef CHECK_ROW_ITERATORS
-		nrOfRowIterators[row]--;
-		UG_ASSERT(nrOfRowIterators[row] >= 0, row);
-#endif
-		iIterators--;
-		UG_ASSERT(iIterators >= 0, row);
-
-	}
 	// a row_iterator has to suppport
 	// operator ++, operator +=, index() const, const value_type &value() const, value_type &value()
 	// a const_row_iterator has to suppport
 	// operator ++, operator +=, index() const, const value_type &value() const
 
-	inline void check_row(size_t row, int i) const
-	{
-		UG_ASSERT(i < rowEnd[row] && i >= rowStart[row], "row iterator row " << row << " pos " << i << " out of bounds [" << rowStart[row] << ", " << rowEnd[row] << "]");
-	}
 
 	/**
 	 *  row_iterator
@@ -514,6 +484,53 @@ public:
 			copyToNewSize(nnz);
     }
 
+	void defragment() const
+	{
+		(const_cast<this_type*>(this))->defragment();
+	}
+
+	/**
+	 * copies the matrix to the standard CRS format
+	 * @param numRows   	(out) num rows of A
+	 * @param numCols		(out) num rows of A
+	 * @param argValues		(out) value_type vector with non-zero values
+	 * @param argRowStart   (out) row i is from argRowStart[i] to argRowStart[i+1]
+	 * @param argColInd		(out) argColInd[i] is colum index of nonzero i
+	 */
+	void copy_crs(size_t &numRows, size_t &numCols,
+			std::vector<value_type> &argValues, std::vector<int> &argRowStart,
+			std::vector<int> &argColInd) const
+	{
+		numRows = num_rows();
+		numCols = num_cols();
+		defragment();
+		argValues = values;
+		argRowStart = rowStart;
+		argColInd = cols;
+	}
+
+	/**
+	 * returns pointers to CRS format. note that these are only valid as long
+	 * as the matrix is not modified.
+	 * @param numRows   	(out) num rows of A
+	 * @param numCols		(out) num rows of A
+	 * @param pValues		(out) value_type vector with non-zero values
+	 * @param pRowStart   (out) row i is from pRowStart[i] to pRowStart[i+1]
+	 * @param pColInd		(out) pColInd[i] is colum index of nonzero i
+	 */
+	void get_crs(size_t &numRows, size_t &numCols,
+			value_type *&pValues, size_t *pRowStart, size_t *pColInd, size_t &nnz) const
+	{
+		defragment();
+		pValues = &values[0];
+		pRowStart = &rowStart[0];
+		pColInd = &cols[0];
+		numRows = num_rows();
+		numCols = num_cols();
+		nnz = total_num_connections();
+	}
+
+
 public:
 	// output functions
 	//----------------------
@@ -535,14 +552,42 @@ public:
 	void p() const { print(); } // for use in gdb
 	void pr(size_t row) const {printrow(row); } // for use in gdb
 
+
+
+
+
+private:
+	// private functions
+
+	void add_iterator(size_t row) const
+	{
+#ifdef CHECK_ROW_ITERATORS
+		nrOfRowIterators[row]++;
+#endif
+		iIterators++;
+	}
+	void remove_iterator(size_t row) const
+	{
+#ifdef CHECK_ROW_ITERATORS
+		nrOfRowIterators[row]--;
+		UG_ASSERT(nrOfRowIterators[row] >= 0, row);
+#endif
+		iIterators--;
+		UG_ASSERT(iIterators >= 0, row);
+
+	}
+	inline void check_row(size_t row, int i) const
+	{
+		UG_ASSERT(i < rowEnd[row] && i >= rowStart[row], "row iterator row " << row << " pos " << i << " out of bounds [" << rowStart[row] << ", " << rowEnd[row] << "]");
+	}
+    void assureValuesSize(size_t s);
+    size_t get_nnz() const { return nnz; }
+
 private:
 	// disallowed operations (not defined):
 	//---------------------------------------
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
 
-
-    void assureValuesSize(size_t s);
-    size_t get_nnz() const { return nnz; }
 
 protected:
 	int get_index_internal(size_t row, int col) const;
@@ -593,6 +638,13 @@ inline void MatMultTransposedAdd(vector_t &dest,
 {
 	A1.axpy_transposed(dest, alpha1, v1, beta1, w1);
 }
+
+
+
+
+
+
+
 
 // end group cpu_algebra
 /// \}
