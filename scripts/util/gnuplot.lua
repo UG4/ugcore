@@ -633,13 +633,13 @@ function gnuplot.plot(filename, data, options)
 		
 	-- set terminal currently only pdf
 	script:write("set term "..terminal)
-	script:write(" "..term.size)
 	script:write(" "..term.enhanced)
 	script:write(" "..term.color)
 	script:write(" "..term.dashed)
 	script:write(" "..term.font)
 	script:write(" "..term.linewidth)
 	script:write(" "..term.dashlength)
+	script:write(" "..term.size)
 	script:write(" "..add_term_opt)
 	
 	script:write("\n")
