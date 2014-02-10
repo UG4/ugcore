@@ -639,11 +639,17 @@ write_cell_connectivity(VTKFileWriter& File,
 		else
 		{
 			int id = aaVrtIndex[elem->vertex(0)]; File << id;
+			if(!m_bBinary) File << ' ';
 			id = aaVrtIndex[elem->vertex(2)]; File << id;
+			if(!m_bBinary) File << ' ';
 			id = aaVrtIndex[elem->vertex(1)]; File << id;
+			if(!m_bBinary) File << ' ';
 			id = aaVrtIndex[elem->vertex(3)]; File << id;
+			if(!m_bBinary) File << ' ';
 			id = aaVrtIndex[elem->vertex(5)]; File << id;
+			if(!m_bBinary) File << ' ';
 			id = aaVrtIndex[elem->vertex(4)]; File << id;
+			if(!m_bBinary) File << ' ';
 		}
 	}
 }
