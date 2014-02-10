@@ -600,7 +600,7 @@ template<typename T>
 void SparseMatrix<T>::check_fragmentation() const
 {
 	if((double)nnz/(double)maxValues < 0.9)
-		(const_cast<this_type*>(this))->defragment();
+		defragment();
 }
 
 template<typename T>
