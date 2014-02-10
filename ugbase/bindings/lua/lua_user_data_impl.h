@@ -18,9 +18,11 @@
 #if 0
 #define PROFILE_CALLBACK() PROFILE_FUNC_GROUP("luacallback")
 #define PROFILE_CALLBACK_BEGIN(name) PROFILE_BEGIN_GROUP(name, "luacallback")
+#define PROFILE_CALLBACK_END()	PROFILE_END()
 #else
 #define PROFILE_CALLBACK()
 #define PROFILE_CALLBACK_BEGIN(name)
+#define PROFILE_CALLBACK_END()
 #endif
 namespace ug{
 
@@ -983,7 +985,7 @@ void LuaFunction<TData,TDataIn>::operator() (TData& out, int numArgs, ...)
 //	pop values
 	lua_pop(m_L, retSize);
 
-    PROFILE_END();
+    PROFILE_CALLBACK_END();
 }
 
 
