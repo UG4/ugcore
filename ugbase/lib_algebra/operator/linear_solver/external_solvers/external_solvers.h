@@ -28,8 +28,8 @@ namespace ug{
 class IExternalSolverImplementation
 {
 public:
-	virtual void init(const CPUAlgebra::matrix_type &A) = 0;
-	virtual void apply(CPUAlgebra::vector_type &c, const CPUAlgebra::vector_type &d) = 0;
+	virtual bool init(const CPUAlgebra::matrix_type &A) = 0;
+	virtual bool apply(CPUAlgebra::vector_type &c, const CPUAlgebra::vector_type &d) = 0;
 	virtual const char* name() const = 0;
 	virtual ~IExternalSolverImplementation() {}
 };
@@ -39,14 +39,12 @@ class IExternalSolver
 		: public IMatrixOperatorInverse<typename TAlgebra::matrix_type,
 			  	  	  	  	  	  	  	    typename TAlgebra::vector_type>
 {
-	protected:
-		IExternalSolverImplementation *impl;
-
-
 	public:
+		virtual const char *double_name() const = 0;
+
 		virtual const char* name() const
 		{
-			return impl->name();
+			return double_name();
 		}
 
 	//	Algebra type
@@ -79,7 +77,7 @@ class IExternalSolver
 
 	public:
 
-
+		virtual void double_init(const CPUAlgebra::matrix_type &mat) = 0;
 
 		void mat_preprocess(const matrix_type &A)
 		{
@@ -94,7 +92,7 @@ class IExternalSolver
 
 			m_size = GetDoubleSparseFromBlockSparse(mat, A);
 
-			impl->init(mat);
+			double_init(mat);
 		}
 
 		SmartPtr<MatrixOperator<matrix_type, vector_type> > m_spOperator;
@@ -139,6 +137,9 @@ class IExternalSolver
 			}
 		}
 
+		virtual bool double_apply(CPUAlgebra::vector_type &c, const CPUAlgebra::vector_type &d) = 0;
+
+
 	//	Stepping routine
 		virtual bool apply(vector_type& c, const vector_type& d)
 		{
@@ -153,7 +154,7 @@ class IExternalSolver
 			m_c.set(0.0);
 
 
-			impl->apply(m_c, m_d);
+			double_apply(m_c, m_d);
 
 			set_vector(m_c, c);
 
