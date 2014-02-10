@@ -493,6 +493,7 @@ function util.rates.static.compute(ConvRateSetup)
 	--------------------------------------------------------------------
 	
 	-- one plot
+	local validP
 	ensureDir(plotPath.."dataset/")
 	ensureDir(plotPath.."disc/")
 	ensureDir(plotPath.."multi/")
@@ -515,6 +516,8 @@ function util.rates.static.compute(ConvRateSetup)
 		local file = plotPath.."disc/"..table.concat({f,"all",head[t],n,x}, "_")	
 		gpData[file] = getPlot("all", f, t, n, x)	
 
+
+		validP = p
 						end
 					end
 				end	
@@ -523,7 +526,7 @@ function util.rates.static.compute(ConvRateSetup)
 	end
 
 	for disc, _ in pairs(errors) do
-		local p = #errors[disc]
+		local p = validP
 			for _, f in pairs(errors[disc][p].FctCmp) do
 				for t, _ in pairs(errors[disc][p][f]) do
 					for n, _ in pairs(errors[disc][p][f][t]) do
@@ -556,7 +559,7 @@ function util.rates.static.compute(ConvRateSetup)
 	-- multi-plot: all discs for all norm
 	for _, n in pairs({"h1", "l2"}) do
 	for disc, _ in pairs(errors) do
-		local p = #errors[disc]
+		local p = validP
 			for _, f in pairs(errors[disc][p].FctCmp) do
 				for t, _ in pairs(errors[disc][p][f]) do
 					if errors[disc][p][f][t][n] then
