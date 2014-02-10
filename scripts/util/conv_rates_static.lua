@@ -477,9 +477,9 @@ function util.rates.static.compute(ConvRateSetup)
 				plot.label = label
 			end
 							
-			addSet( accessPlot(disc, p, f, t, n, x), dataset, label)
-			addSet( accessPlot(disc,    f, t, n, x), dataset, label)
-			addSet( accessPlot("all",   f, t, n, x), dataset, label)
+			addSet( accessPlot(disc, p,  f, t, n, x), dataset, label)
+			addSet( accessPlot(disc,     f, t, n, x), dataset, label)
+			addSet( accessPlot("all",    f, t, n, x), dataset, label)
 		end
 			
 					end
@@ -546,6 +546,12 @@ function util.rates.static.compute(ConvRateSetup)
 
 		-- multi-plot: all types for one disc and one norm
 		local file = plotPath.."multi/"..table.concat({f,disc,n,x}, "_")	
+		gpData[file] = gpData[file] or {}
+		gpData[file].multiplot = {cols = 1}
+		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
+
+		-- multi-plot: all comps for one disc and one norm
+		local file = plotPath.."multi/"..table.concat({"all",disc,head[t],n,x}, "_")	
 		gpData[file] = gpData[file] or {}
 		gpData[file].multiplot = {cols = 1}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
