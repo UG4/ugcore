@@ -11,6 +11,7 @@
 #include "lib_disc/reference_element/reference_element.h"
 #include "lib_disc/quadrature/quadrature_provider.h"
 #include "lib_algebra/common/operations_vec.h"
+#include <math.h>       /* pow */
 
 namespace ug{
 
