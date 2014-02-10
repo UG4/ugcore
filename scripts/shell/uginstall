@@ -51,9 +51,42 @@ my_download_file()
 	if [ ! $? == 0 ]; then 
 		echo "Error downloading from $destination."; 
 		rm $destination
-		exit;
+		
+		echo ""
+		echo "Trying software server now: software@141.2.38.55:Software/uginstall/$filename ."
+		echo " --- Please enter software server password: ---"
+
+		if [ -e $filename.part ]; then rm $filename.part; fi
+
+		scp -r software@141.2.38.55:Software/uginstall/$filename $filename.part
+		if [ ! $? == 0 ]; then 			
+			exit;
+		fi
 	fi
 }
+
+my_extract()
+{
+ 	local filename=$1
+ 	echo "Extracting $filename..."
+	case $filename in
+	*.tar.bz2)	tar xjf $filename ;;
+	*.tar.gz)	tar xzf $filename ;;
+	*.tar.xz)	tar Jxf $filename ;;
+	*.bz2)		bunzip2 $filename ;;
+	*.rar)		unrar x $filename ;;
+	*.gz)		gunzip $filename ;;
+	*.tar)		tar xf $filename ;;
+	*.tbz2)		tar xjf $filename ;;
+	*.tgz)		tar xzf $filename ;;
+	*.zip)		unzip $filename ;;
+	*.Z)		uncompress $filename ;;
+	*.7z)		7z x $filename ;;
+	*)		echo "don't know how to open '$filename'..." ;;
+	esac
+}
+
+
 
 # params:
 # my_download extractedDir renameDir location filename
@@ -82,22 +115,8 @@ my_download ()
 			mv $filename.part $filename
 			echo "done."
 		fi
-		echo "Extracting $filename..."
-		case $filename in
-		*.tar.bz2)	tar xjf $filename ;;
-		*.tar.gz)	tar xzf $filename ;;
-		*.tar.xz)	tar Jxf $filename ;;
-		*.bz2)		bunzip2 $filename ;;
-		*.rar)		unrar x $filename ;;
-		*.gz)		gunzip $filename ;;
-		*.tar)		tar xf $filename ;;
-		*.tbz2)		tar xjf $filename ;;
-		*.tgz)		tar xzf $filename ;;
-		*.zip)		unzip $filename ;;
-		*.Z)		uncompress $filename ;;
-		*.7z)		7z x $filename ;;
-		*)		echo "don't know how to open '$filename'..." ;;
-		esac
+		
+		my_extract $filename		
 		mv $extractedDir $renameDir
 	fi
  }
@@ -166,6 +185,8 @@ my_install_external_build()
 # extracts it to $subdir/$version
 # and runs there to rest of the commands 
 # (mostly ../src/configure --prefix=$HOME/local/$subdir/$version ; make ; make install )
+# note: if the file can not be downloaded (some clusters prevent http) then
+# my_download searches automatically on the software server on /Software/uginstall/$filename
 my_install()
 {
 	local subdir=$1
@@ -208,7 +229,6 @@ my_install()
 	fi
 }
 
-
 install_gmp()
 {	
 	my_install_external_build \
@@ -243,7 +263,7 @@ install_doxygen()
 {
 	my_install \
 	doxygen 1.8.1 \
-	"http://ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz" \
+	"http://.ftp.stack.nl/pub/users/dimitri/doxygen-1.8.1.src.tar.gz" \
 	doxygen-1.8.1.src.tar.gz doxygen-1.8.1 \
 	"./configure --prefix $HOME/local/doxygen/1.8.1" make 
 }
@@ -396,6 +416,19 @@ make_SuperLU()
 	make
 }
 
+install_HYPRE()
+{
+	my_install \
+	HYPRE "2.9.0b"\
+	"http://no-direct-link-available"\
+	hypre-2.9.0b.tar.gz hypre-2.9.0b \
+	"cd src" \
+	"configure" \
+	"make" \
+	"make install"\
+	"cd .."
+}
+
 install_SuperLU()
 {
 
@@ -484,6 +517,7 @@ print_usage()
 	echo "	ParMetis    4.0.2                 " `[[ -e parmetis/used/installed ]] && echo "(installed)"`
 	# last checked 01/2014	
 	echo "	SuperLU     4.3                   " `[[ -e SuperLU/used/installed ]] && echo "(installed)"`
+	echo "	HYPRE       2.9.0b                " `[[ -e HYPRE/used/installed ]] && echo "(installed)"`
 }
 
 
@@ -503,6 +537,7 @@ case $1 in
 	ParMetis) install_parmetis ;;
 	SuperLU) install_SuperLU ;;
 	UGIDE) install_UGIDE $2 ;;
+	HYPRE) install_HYPRE ;;
 	all) install_all ;;
 	*) print_usage ;;
 esac
