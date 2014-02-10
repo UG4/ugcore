@@ -1381,7 +1381,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 	m_quadOrderSCV = orderQuad;
 
 //	resize sub elements
-	m_numSubElem = std::pow(m_orderShape, dim);
+	m_numSubElem = (size_t) std::pow((double) m_orderShape, dim);
 	m_vSubElem.resize(m_numSubElem);
 
 //	get the multi indices for the sub elements and the boundary flags
