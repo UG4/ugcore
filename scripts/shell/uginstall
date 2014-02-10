@@ -423,7 +423,7 @@ install_HYPRE()
 	"http://no-direct-link-available"\
 	hypre-2.9.0b.tar.gz hypre-2.9.0b \
 	"cd src" \
-	"configure" \
+	"./configure" \
 	"make" \
 	"make install"\
 	"cd .."
