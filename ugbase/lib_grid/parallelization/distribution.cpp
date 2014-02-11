@@ -1409,13 +1409,15 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 				minVMasterProc = minVMasterNoVSlave;
 
 		//	in some situations, lower dimensional elements can be marked as a
-		//	vmaster and a vslave at the same time. we will generate the vmaster
-		//	interface on the lowest proc which is marked as vmaster
+		//	vmaster and as vslave at the same time. We currently allow for elements
+		//	to be part of both interfaces at the same time.
 			if(isVMaster && isVSlave){
-				if(localProcID == minVMasterProc)
-					isVSlave = false;
-				else
-					isVMaster = false;
+//				if(localProcID == minVMasterProc)
+//					isVSlave = false;
+//				else
+//					isVMaster = false;
+
+//				isVMaster = isVSlave = false;
 
 			//	adjacent normal full-dimensional elements should thus exist and a
 			//	horizontal interface has to be built.
@@ -1456,10 +1458,12 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 
 				if(tpIsVMaster && tpIsVSlave){
-					if(tpi.procID == minVMasterProc)
-						tpIsVSlave = false;
-					else
-						tpIsVMaster = false;
+//					if(tpi.procID == minVMasterProc)
+//						tpIsVSlave = false;
+//					else
+//						tpIsVMaster = false;
+
+//					tpIsVMaster = tpIsVSlave = false;
 
 					createNormalHInterface = true;
 					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
@@ -1483,7 +1487,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					glm.get_layout<TElem>(INT_V_SLAVE).
 						interface(tpi.procID, lvl).push_back(e);
 				}
-				else if(isVMaster && tpIsVSlave){
+				if(isVMaster && tpIsVSlave){
 					glm.get_layout<TElem>(INT_V_MASTER).
 						interface(tpi.procID, lvl).push_back(e);
 
