@@ -188,6 +188,7 @@ function util.rates.static.compute(ConvRateSetup)
 	local prevlevel = CRS.prevlevel; 	if prevlevel == nil then prevlevel = true end
 	local exact = CRS.exact; 			if exact == nil then exact = true end
 	local interpol = CRS.interpol; 		if interpol == nil then interpol = true end
+	local plotSol = CRS.plotSol; 		if plotSol == nil then plotSol = false end
 
 	local ExactSol = CRS.ExactSol 
  	local ExactGrad = CRS.ExactGrad 
@@ -207,7 +208,7 @@ function util.rates.static.compute(ConvRateSetup)
 	
 	ensureDir(dataPath)
 	ensureDir(plotPath)
-	ensureDir(solPath)
+	if plotSol then ensureDir(solPath) end
 
 	-- compute element size	
 	local dom = CreateDomain()
@@ -323,8 +324,10 @@ function util.rates.static.compute(ConvRateSetup)
 					ComputeSolution(u[lev], domainDisc, solver)
 					write(">> Solver done.\n")
 					
-					WriteGridFunctionToVTK(u[lev], solPath.."sol_"..disc..p.."_l"..lev)
-					write(">> Solution written to: "..solPath.."sol_"..disc..p.."_l"..lev.."\n");	
+					if plotSol then
+						WriteGridFunctionToVTK(u[lev], solPath.."sol_"..disc..p.."_l"..lev)
+						write(">> Solution written to: "..solPath.."sol_"..disc..p.."_l"..lev.."\n");	
+					end
 				end
 			end
 						
