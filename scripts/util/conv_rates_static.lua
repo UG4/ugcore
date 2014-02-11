@@ -58,6 +58,67 @@ end
 function util.rates.static.StdMaxLevelPadding(p)
 	return math.floor(p/2)
 end
+
+--------------------------------------------------------------------------------
+-- Label names
+--------------------------------------------------------------------------------
+	
+util.rates.static.StdLabel = util.rates.static.StdLabel or {}
+	
+function util.rates.static.StdLabel.MeasLatexP(disc, p)
+	return disc.." $\\mathbb{P}_{"..p.."}$"
+end
+
+function util.rates.static.StdLabel.MeasLatexQ(disc, p)
+	return disc.." $\\mathbb{Q}_{"..p.."}$"
+end
+
+function util.rates.static.StdLabel.XLatex(x)
+	local gpXLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	return gpXLabel[x]
+end
+
+function util.rates.static.StdLabel.YLatex(f, t, n)
+	local gpType = {	["l-exact"] = 	"{}",		
+						["l-lmax"] = 	"h_{\text{min}}",
+						["l-prev"] = 	"{h/2}",
+					}
+	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
+	
+	if t == "interpol" then
+		return "$\\norm{\\mathcal{I}_h("..f..") - "..f.."}_{"..gpNorm[n].."}$"
+	else
+		return "$\\norm{"..f.."_h - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"
+	end
+end
+
+function util.rates.static.StdLabel.MeasPdfP(disc, p)
+	return disc.." $P_"..p.."$"
+end
+
+function util.rates.static.StdLabel.MeasPdfQ(disc, p)
+	return disc.." $Q_"..p.."$"
+end
+
+function util.rates.static.StdLabel.XPdf(x)
+	local gpXLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	return gpXLabel[x]
+end
+
+function util.rates.static.StdLabel.YPdf(f, t, n)
+	local gpType = {	["l-exact"] = 	"{}",		
+						["l-lmax"] = 	"h_{\text{min}}",
+						["l-prev"] = 	"{h/2}",
+					}
+	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
+	
+	if t == "interpol" then
+		return "$|| I_h("..f..") - "..f.." ||_{"..gpNorm[n].."}$"
+	else
+		return "$|| "..f.."_h - "..f.."_{"..gpType[t].."} ||_{"..gpNorm[n].."}$"
+	end
+end
+
 --------------------------------------------------------------------------------
 -- util.rates.static.compute (main-function)
 --------------------------------------------------------------------------------
@@ -130,50 +191,11 @@ function util.rates.static.compute(ConvRateSetup)
 
 	local ExactSol = CRS.ExactSol 
  	local ExactGrad = CRS.ExactGrad 
+	local PlotCmps = CRS.PlotCmps
 	
-	--------------------------------------------------------------------
-	--  A custom iterator to loop all valid measurements
-	--------------------------------------------------------------------
-
-	local function imeasure(err, FctCmp, Type, Norm)
-		local type = _G.type
-		if type(err) ~= "table" or type(FctCmp) ~= "table" 
-			or type(Type) ~= "table" or type(Norm) ~= "table" then 
-			return function() end, nil, nil
-		end
-	  	local _f,_t,_n = 1,1,0
-	  	local function iter(err)
-		   	_n = _n + 1
-		   	local f,t,n = FctCmp[_f], Type[_t], Norm[_n]
-	  		while err[f] == nil or err[f][t] == nil or err[f][t][n] == nil do
-		    	_n = _n + 1    	
-		  		if _n > #Norm then _n = 1; _t = _t + 1; end
-		  		if _t > #Type then _t = 1; _f = _f + 1; end
-		  		if _f > #FctCmp then return nil end
-		   		f,t,n = FctCmp[_f], Type[_t], Norm[_n]
-			end				
-	    	return f, t, n , err[f][t][n]
-	  	end  
-	  	return iter, err, 0
-	end
-
-	--------------------------------------------------------------------
-	--  Prepare labels
-	--------------------------------------------------------------------
-
-	local head = {l2 = "L2", h1 = "H1",
-				  exact = "l-exact", interpol = "interpol",
-				  maxlevel = "l-lmax", prevlevel = "l-prev"}
-				
-	local gpType = {	exact = 	"{}",		
-						maxlevel = 	"h_{\text{min}}",
-						prevlevel = "{h/2}",
-						interpol = "{\text{interpol}}"
-					}
-
-	local gpNorm = 	{ l2 = "L_2",	h1 = "H^1"}
-					
-	local gpXLabel ={ DoFs = "Anzahl Unbekannte",	h = "h (Gitterweite)"}
+	local MeasLabel = CRS.MeasLabel or util.rates.static.StdLabel.MeasLatexP
+	local XLabel = 	  CRS.XLabel 	or util.rates.static.StdLabel.XLatex
+	local YLabel = 	  CRS.YLabel 	or util.rates.static.StdLabel.YLatex
 	
 	--------------------------------------------------------------------
 	--  Loop Discs
@@ -257,8 +279,26 @@ function util.rates.static.compute(ConvRateSetup)
 			local solver = CreateSolver(approxSpace, disc, p)
 	
 			-- get names in approx space
-			local FctCmp = approxSpace:names()
+			local SpaceCmp = approxSpace:names()
 			
+			-- per default compute each Space-cmp
+			if PlotCmps == nil then
+				PlotCmps = {}
+				for f = 1,#SpaceCmp do
+					PlotCmps[SpaceCmp[f]] = {SpaceCmp[f]}
+				end
+			end
+
+			-- check functions to measure
+			for _,Cmps in pairs(PlotCmps) do
+				for _, cmp in pairs(Cmps) do
+					if not table.contains(SpaceCmp, cmp) then
+						print("Cmp: '"..cmp.."' not contained in ApproxSpace.");
+						exit()
+					end
+				end
+			end
+						
 			--------------------------------------------------------------------
 			--  Create Solutions on each level
 			--------------------------------------------------------------------
@@ -297,7 +337,7 @@ function util.rates.static.compute(ConvRateSetup)
 			
 			-- prepare error measurement			
 			local err = errors[disc][p]
-			err.h, err.DoFs, err.level, err.FctCmp = {}, {}, {}, FctCmp	
+			err.h, err.DoFs, err.level = {}, {}, {}	
 			for lev = minLev, maxLev do	
 				err.h[lev] = MaxElementDiameter(dom, lev) 
 				err.level[lev] = lev
@@ -312,7 +352,7 @@ function util.rates.static.compute(ConvRateSetup)
 				write(">> #DoF       on Level "..lev.." is "..err.DoFs[lev] .."\n");
 			
 				-- compute for each component
-				for _, f in pairs(FctCmp) do
+				for f, Cmps in pairs(PlotCmps) do
 
 					-- create component
 					err[f] = err[f] or {}
@@ -325,30 +365,55 @@ function util.rates.static.compute(ConvRateSetup)
 						return err[f][t][n].value
 					end
 										
+					-- check for exact solution and grad
+					local solAvail, gradAvail = true, true
+					for _,cmp in pairs(Cmps) do
+						if ExactSol  == nil or ExactSol[cmp]  == nil then solAvail  = false end
+						if ExactGrad == nil or ExactGrad[cmp] == nil then gradAvail = false end
+					end
+															
 					-- w.r.t exact solution		
-					if exact and ExactSol ~= nil and ExactSol[f] ~= nil then 					
-						local value = createMeas(f, "exact", "l2")
-						value[lev] = L2Error(ExactSol[f], u[lev], f, 0.0, quadOrder)
+					if exact and solAvail then 					
+						local value = createMeas(f, "l-exact", "l2")
+						value[lev] = 0.0
+						for _,cmp in pairs(Cmps) do
+							value[lev] = value[lev] + math.pow(L2Error(ExactSol[cmp], u[lev], cmp, 0.0, quadOrder), 2)
+						end
+						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 
-						if ExactGrad ~= nil and ExactGrad[f] ~= nil then 					
-							local value = createMeas(f, "exact", "h1")
-							value[lev] = H1Error(ExactSol[f], ExactGrad[f], u[lev], f, 0.0, quadOrder)
+						if gradAvail then 					
+							local value = createMeas(f, "l-exact", "h1")
+							value[lev] = 0.0
+							for _,cmp in pairs(Cmps) do
+								value[lev] = value[lev] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], u[lev], cmp, 0.0, quadOrder), 2)
+							end
+							value[lev] = math.sqrt(value[lev])
 							write(">> H1 l-exact for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 						end
 					end
 
-					if interpol and ExactSol ~= nil and ExactSol[f] ~= nil then
+					if interpol and solAvail then
 						local uExact = u[lev]:clone()
-						Interpolate(ExactSol[f], uExact, f)
+						for _,cmp in pairs(Cmps) do
+							Interpolate(ExactSol[cmp], uExact, cmp)
+						end
 
 						local value = createMeas(f, "interpol", "l2")
-						value[lev] = L2Error(ExactSol[f], uExact, f, 0.0, quadOrder)
+						value[lev] = 0.0
+						for _,cmp in pairs(Cmps) do
+							value[lev] = value[lev] + math.pow(L2Error(ExactSol[cmp], uExact, cmp, 0.0, quadOrder), 2)
+						end
+						value[lev] = math.sqrt(value[lev])
 						write(">> L2 interpol for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 						
-						if ExactGrad ~= nil and ExactGrad[f] ~= nil then 					
+						if gradAvail then 					
 							local value = createMeas(f, "interpol", "h1")
-							value[lev] = H1Error(ExactSol[f], ExactGrad[f], uExact, f, 0.0, quadOrder)
+							value[lev] = 0.0
+							for _,cmp in pairs(Cmps) do
+								value[lev] = value[lev] + math.pow(H1Error(ExactSol[cmp], ExactGrad[cmp], uExact, cmp, 0.0, quadOrder), 2)
+							end
+							value[lev] = math.sqrt(value[lev])
 							write(">> H1 interpol for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 						end
 						
@@ -357,23 +422,39 @@ function util.rates.static.compute(ConvRateSetup)
 					
 					-- w.r.t max level solution
 					if maxlevel and lev < maxLev then
-						local value = createMeas(f, "maxlevel", "l2")
-						value[lev]	= L2Error(u[maxLev], f, u[lev], f, quadOrder)
+						local value = createMeas(f, "l-lmax", "l2")
+						value[lev] = 0.0
+						for _,cmp in pairs(Cmps) do
+							value[lev] = value[lev] + math.pow(L2Error(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
+						end
+						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 
-						local value = createMeas(f, "maxlevel", "h1")
-						value[lev] 	= H1Error(u[maxLev], f, u[lev], f, quadOrder)
+						local value = createMeas(f, "l-lmax", "h1")
+						value[lev] = 0.0
+						for _,cmp in pairs(Cmps) do
+							value[lev] = value[lev] + math.pow(H1Error(u[maxLev], cmp, u[lev], cmp, quadOrder), 2)
+						end
+						value[lev] = math.sqrt(value[lev])
 						write(">> H1 l-lmax  for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 					end
 				
 					-- w.r.t previous level solution
 					if prevlevel and lev < maxLev then 
-						local value = createMeas(f, "prevlevel", "l2")
-						value[lev] = L2Error(u[lev+1], f, u[lev], f, quadOrder)
+						local value = createMeas(f, "l-prev", "l2")
+						value[lev] = 0.0
+						for _,cmp in pairs(Cmps) do
+							value[lev] = value[lev] + math.pow(L2Error(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
+						end
+						value[lev] = math.sqrt(value[lev])
 						write(">> L2 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 	
-						local value = createMeas(f, "prevlevel", "h1")
-						value[lev] = H1Error(u[lev+1], f, u[lev], f, quadOrder)
+						local value = createMeas(f, "l-prev", "h1")
+						value[lev] = 0.0
+						for _,cmp in pairs(Cmps) do
+							value[lev] = value[lev] + math.pow(H1Error(u[lev+1], cmp, u[lev], cmp, quadOrder), 2)
+						end
+						value[lev] = math.sqrt(value[lev])
 						write(">> H1 l-(l-1) for "..f.." on Level "..lev.." is "..string.format("%.3e", value[lev]) .."\n");
 					end
 				end -- end fct
@@ -388,7 +469,11 @@ function util.rates.static.compute(ConvRateSetup)
 			--  Compute Factors and Rates
 			--------------------------------------------------------------------
 
-			for _,_,_,meas in imeasure(err, FctCmp,{"exact", "prevlevel", "maxlevel", "interpol"}, {"l2", "h1"}) do
+			for f, _ in pairs(PlotCmps) do
+				for t, _ in pairs(err[f]) do
+					for n, _ in pairs(err[f][t]) do
+
+				local meas = err[f][t][n]
 	
 				meas.fac = meas.fac or {}
 				meas.rate = meas.rate or {}
@@ -403,25 +488,32 @@ function util.rates.static.compute(ConvRateSetup)
 						rate[lev] = math.log(fac[lev]) / math.log(2)
 					end
 				end
+				
+					end
+				end
 			end	
 
 			--------------------------------------------------------------------
 			--  Write Data to Screen
 			--------------------------------------------------------------------
 
-			for _, f in ipairs(FctCmp) do
+			for f, Cmps in pairs(PlotCmps) do
 			
-				print("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.."\n")			
+				write("\n>> Statistic for type: "..disc..", order: "..p..", comp: "..f.." [ ")			
+				for _, cmp in pairs(Cmps) do write(cmp.." ") end
+				print("]\n")
 				
 				local values = {err.level, err.h, err.DoFs}
 				local heading = {"L", "h", "#DoFs"}
 				local format = {"%d", "%.2e", "%d"}
 
-				for _,t,n,meas in imeasure(err, {f},{"exact", "prevlevel", "maxlevel", "interpol"}, {"l2", "h1"}) do
-
-					table.append(values, {meas.value, meas.rate}) 
-					table.append(heading,{head[n].." "..head[t], "rate"})
-					table.append(format, {"%.2e", "%.3f"})
+				for t, _ in pairs(err[f]) do
+					for n, _ in pairs(err[f][t]) do
+						local meas = err[f][t][n]
+						table.append(values, {meas.value, meas.rate}) 
+						table.append(heading,{n.." "..t, "rate"})
+						table.append(format, {"%.2e", "%.3f"})
+					end
 				end
 										
 				table.print(values, {heading = heading, format = format, 
@@ -457,20 +549,19 @@ function util.rates.static.compute(ConvRateSetup)
 	
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
-			for _, f in pairs(errors[disc][p].FctCmp) do
+			for f, _ in pairs(PlotCmps) do
 				for t, _ in pairs(errors[disc][p][f]) do
 					for n, _ in pairs(errors[disc][p][f][t]) do
 					
 		-- write l2 and h1 to data file
-		local file = dataPath..table.concat({"error",disc,p,f,head[t],n},"_")..".dat"
+		local file = dataPath..table.concat({"error",disc,p,f,t,n},"_")..".dat"
 		local cols = {errors[disc][p].DoFs, errors[disc][p].h, errors[disc][p][f][t][n].value}
 		gnuplot.write_data(file, cols)
 		
 		-- store dataset	
 		for xCol, x in ipairs({"DoFs", "h"}) do
-			local dataset = {label=disc.." $\\mathbb{P}_{"..p.."}$", file=file, style="linespoints", xCol, 3}
-			local label = { x = gpXLabel[x],
-							y = "$\\norm{ "..f.."_h - "..f.."_{"..gpType[t].."} }_{ "..gpNorm[n].."}$"}
+			local dataset = {label=MeasLabel(disc, p), file=file, style="linespoints", xCol, 3}
+			local label = { x = XLabel(x), y = YLabel(f,t,n)}
 							
 			local function addSet(plot, dataset, label)
 				table.insert( plot, dataset)			
@@ -499,21 +590,21 @@ function util.rates.static.compute(ConvRateSetup)
 	ensureDir(plotPath.."multi/")
 	for disc, _ in pairs(errors) do
 		for p, _ in pairs(errors[disc]) do
-			for _, f in pairs(errors[disc][p].FctCmp) do
+			for f, _ in pairs(PlotCmps) do
 				for t, _ in pairs(errors[disc][p][f]) do
 					for n, _ in pairs(errors[disc][p][f][t]) do
 						for _, x in ipairs({"DoFs", "h"}) do
 		
 		-- single dataset			
-		local file = plotPath.."dataset/"..table.concat({disc,p,f,head[t],n,x},"_")
+		local file = plotPath.."dataset/"..table.concat({disc,p,f,t,n,x},"_")
 		gpData[file] = getPlot(disc, p, f, t, n, x)
 
 		-- grouping by (disc+p)								
-		local file = plotPath.."disc/"..table.concat({f,disc,head[t],n,x}, "_")	
+		local file = plotPath.."disc/"..table.concat({f,disc,t,n,x}, "_")	
 		gpData[file] = getPlot(disc, f, t, n, x)		
 
 		-- grouping (all discs+p)
-		local file = plotPath.."disc/"..table.concat({f,"all",head[t],n,x}, "_")	
+		local file = plotPath.."disc/"..table.concat({f,"all",t,n,x}, "_")	
 		gpData[file] = getPlot("all", f, t, n, x)	
 
 
@@ -527,19 +618,19 @@ function util.rates.static.compute(ConvRateSetup)
 
 	for disc, _ in pairs(errors) do
 		local p = validP
-			for _, f in pairs(errors[disc][p].FctCmp) do
+			for f, _ in pairs(PlotCmps) do
 				for t, _ in pairs(errors[disc][p][f]) do
 					for n, _ in pairs(errors[disc][p][f][t]) do
 						for _, x in ipairs({"DoFs", "h"}) do
 
 		-- multi-plot: all discs for one norm
-		local file = plotPath.."multi/"..table.concat({f,head[t],n,x}, "_")	
+		local file = plotPath.."multi/"..table.concat({f,t,n,x}, "_")	
 		gpData[file] = gpData[file] or {}
 		gpData[file].multiplot = {rows = 1}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
 
 		-- multi-plot: all norms for one disc
-		local file = plotPath.."multi/"..table.concat({f,disc,head[t],x}, "_")	
+		local file = plotPath.."multi/"..table.concat({f,disc,t,x}, "_")	
 		gpData[file] = gpData[file] or {}
 		gpData[file].multiplot = {cols = 1}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
@@ -551,7 +642,7 @@ function util.rates.static.compute(ConvRateSetup)
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
 
 		-- multi-plot: all comps for one disc and one norm
-		local file = plotPath.."multi/"..table.concat({"all",disc,head[t],n,x}, "_")	
+		local file = plotPath.."multi/"..table.concat({"all",disc,t,n,x}, "_")	
 		gpData[file] = gpData[file] or {}
 		gpData[file].multiplot = {cols = 1}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
@@ -566,12 +657,12 @@ function util.rates.static.compute(ConvRateSetup)
 	for _, n in pairs({"h1", "l2"}) do
 	for disc, _ in pairs(errors) do
 		local p = validP
-			for _, f in pairs(errors[disc][p].FctCmp) do
+			for f, _ in pairs(PlotCmps) do
 				for t, _ in pairs(errors[disc][p][f]) do
 					if errors[disc][p][f][t][n] then
 						for _, x in ipairs({"DoFs", "h"}) do
 
-		local file = plotPath.."multi/"..table.concat({f,head[t],x}, "_")	
+		local file = plotPath.."multi/"..table.concat({f,t,x}, "_")	
 		gpData[file] = gpData[file] or {}
 		gpData[file].multiplot = {cols = 2}
 		table.insert( gpData[file], getPlot(disc, f, t, n, x) )			
