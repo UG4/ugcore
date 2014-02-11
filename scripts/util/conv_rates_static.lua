@@ -678,12 +678,14 @@ function util.rates.static.compute(ConvRateSetup)
 	persistence.store(dataPath.."gp-data-files.lua", gpData);	
 	
 	-- create scheduled plots
-	for plotFile, data in pairs(gpData) do 
-		local opt = table.deepcopy(gpOptions)
-		if data.multiplot then opt.multiplot = data.multiplot end
-		gnuplot.plot(plotFile..".tex", data, opt)
-		gnuplot.plot(plotFile..".pdf", data, opt)
-	end	
+	if CRS.noplot == nil or CRS.noplot == false then
+		for plotFile, data in pairs(gpData) do 
+			local opt = table.deepcopy(gpOptions)
+			if data.multiplot then opt.multiplot = data.multiplot end
+			gnuplot.plot(plotFile..".tex", data, opt)
+			gnuplot.plot(plotFile..".pdf", data, opt)
+		end	
+	end
 end
 
 
