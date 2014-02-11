@@ -369,9 +369,10 @@ step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, co
 	const vector_type* pD = &d;
 	const matrix_type* pMat = pOp.get();
 #ifdef UG_PARALLEL
+	SmartPtr<vector_type> spDtmp;
 	if(pcl::GetNumProcesses() > 1){
 	//	make defect unique
-		SmartPtr<vector_type> spDtmp = d.clone();
+		spDtmp = d.clone();
 		spDtmp->change_storage_type(PST_UNIQUE);
 		pD = spDtmp.get();
 		pMat = &m_A;
