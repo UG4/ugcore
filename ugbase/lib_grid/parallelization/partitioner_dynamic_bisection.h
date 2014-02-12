@@ -140,19 +140,10 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 
 
 		void copy_partitions_to_children(ISubsetHandler& partitionSH, int lvl);
-		void perform_bisection(int minLvl, int maxLvl, int partitionLvl);
-		void perform_bisection(int numTargetProcs, int minLvl, int maxLvl,
-							   int partitionLvl, ANumber aWeight,
-							   pcl::ProcessCommunicator com);
 
 		void perform_bisection_new(int numTargetProcs, int minLvl, int maxLvl,
 							   int partitionLvl, ANumber aWeight,
 							   pcl::ProcessCommunicator com);
-
-		void control_bisection(ISubsetHandler& partitionSH, ElemList& elems,
-							 number maxChildWeight, int numTargetProcs, int firstProc,
-							 ANumber aWeight, pcl::ProcessCommunicator& com);
-
 
 		void control_bisection(ISubsetHandler& partitionSH,
 							   std::vector<TreeNode>& treeNodes, ANumber aWeight,
@@ -164,11 +155,6 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 							ANumber aWeight, number maxChildWeight,
 							pcl::ProcessCommunicator& com, int cutRecursion);
 
-		void calculate_global_dimensions(vector_t& centerOut, vector_t& boxMinOut,
-										 vector_t& boxMaxOut, const ElemList& elems,
-										 number maxChildWeight, ANumber aWeight,
-										 pcl::ProcessCommunicator& com);
-
 		void calculate_global_dimensions(std::vector<TreeNode>& treeNodes,
 										 number maxChildWeight, ANumber aWeight,
 										 pcl::ProcessCommunicator& com);
@@ -177,12 +163,6 @@ class Partitioner_DynamicBisection : public IPartitioner<dim>{
 											bool copyToVMastersOnBaseLvl);
 
 		int classify_elem(elem_t* e, int splitDim, number splitValue);
-
-		number find_split_value(const ElemList& elems, int splitDim,
-								number splitRatio, number initialGuess,
-								number minValue, number maxValue,
-								size_t maxIterations, ANumber aWeight,
-								pcl::ProcessCommunicator& com);
 
 		void improve_split_values(std::vector<TreeNode>& treeNodes,
 								  size_t maxIterations, ANumber aWeight,
