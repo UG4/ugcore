@@ -707,7 +707,7 @@ function util.rates.static.replot(gpOptions, file)
 	ensureDir(plotPath.."multi/")
 	
 	local file = file or dataPath.."gp-data-files.lua"
-	gpData = persistence.load(file);
+	local gpData = persistence.load(file);
 	
 	-- create scheduled plots
 	for plotFile, data in pairs(gpData) do 
