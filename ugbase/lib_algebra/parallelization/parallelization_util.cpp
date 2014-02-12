@@ -59,7 +59,7 @@ void CommunicateConnections(vector<vector<int> >& connectionsToProcsOut,
 	connectionsToSubDomsOut.clear();
 	connectionsToSubDomsOut.resize(connectionVecSize);
 
-	int localProc = pcl::GetProcRank();
+	int localProc = pcl::ProcRank();
 
 //	iterate over all master interfaces
 	for(InterfaceIter iiter = masterLayout.begin();
@@ -180,7 +180,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 //	a vector that holds a unique id for each new node on the source process
 	vector<int> rootIDs;
 
-	if(pcl::GetProcRank() == rootProcID){
+	if(pcl::ProcRank() == rootProcID){
 
 		for(size_t i = 0; i < procComm.size(); ++i){
 			int numEntries = numOldMasterNodes[i];
@@ -200,7 +200,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 ////////////////////////
 //	send the local ids of the new nodes on the master proc to
 //	associated slaves (old masters)
-	if(pcl::GetProcRank() == rootProcID){
+	if(pcl::ProcRank() == rootProcID){
 	//	use the new interfaces to copy the localID of each node from
 	//	rootProc to its slaves (the old masters).
 		ComPol_VecCopy<vector<int> > compolCopy(&rootIDs);
@@ -252,7 +252,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 	vector<int> arrayDisplacements;
 	size_t totalSlaveDataSize = 0;
 
-	if(pcl::GetProcRank() == rootProcID){
+	if(pcl::ProcRank() == rootProcID){
 	//	first calculate the total size of data that we have to receive
 	//	and the displacements for each data-buffer
 		arrayDisplacements.resize(numOldSlaveNodes.size());
@@ -280,7 +280,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 		}
 	}
 
-	if(pcl::GetProcRank() == rootProcID){
+	if(pcl::ProcRank() == rootProcID){
 		size_t counter = 0;
 		for(size_t i = 0; i < numOldSlaveNodes.size(); ++i){
 			int numEntries = numOldSlaveNodes[i];
@@ -299,7 +299,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 /*
 //	send 1 from new masters to new slaves
 	vector<int> recBuff(algVecSize, 0);
-	if(pcl::GetProcRank() == rootProcID){
+	if(pcl::ProcRank() == rootProcID){
 		vector<int> sendBuff(nodeCounter, 1);
 		ComPol_VecCopy<vector<int> > compolCopy(&sendBuff);
 		interfaceComm.send_data(masterLayoutOut, compolCopy);
@@ -369,7 +369,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 	typedef Interface::iterator		ElemIter;
 
 //	the local process and subdomain id
-	int localProcID = pcl::GetProcRank();
+	int localProcID = pcl::ProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
 	for(ConstInterfaceIter iiter = standardLayout.begin();
@@ -484,7 +484,7 @@ void BuildDomainDecompositionLayouts(
 	typedef Interface::const_iterator	ConstElemIter;
 
 //	the local process and subdomain id
-	int localProcID = pcl::GetProcRank();
+	int localProcID = pcl::ProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
 
@@ -637,7 +637,7 @@ void BuildDomainDecompositionLayouts(
 	typedef Interface::iterator		ElemIter;
 
 //	the local process and subdomain id
-	int localProcID = pcl::GetProcRank();
+	int localProcID = pcl::ProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
 //	the size which the flags vector has to have
@@ -827,7 +827,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 			Deserialize(stream, pid2);
 
 			//UG_LOG(" got " << s << " other slave connections from node " << index << ": ")
-			UG_ASSERT(pid2 != pcl::GetProcRank(), "");
+			UG_ASSERT(pid2 != pcl::ProcRank(), "");
 			allToAllReceive.interface(pid2).push_back(index);
 			allToAllSend.interface(pid2).push_back(index);
 			//UG_LOG("Added Index " << index << " to interface with processor " << pid2 << "\n");
@@ -847,7 +847,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 	for(IndexLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 	{
 		int pid = slaveLayout.proc_id(iter);
-		if(pid != pcl::GetProcRank())
+		if(pid != pcl::ProcRank())
 			pids.push_back(pid);
 	}
 
@@ -877,7 +877,7 @@ void AddConnectionsBetweenSlaves(pcl::InterfaceCommunicator<IndexLayout> &commun
 			for(size_t j=1; j<connToProc.size(); j++)
 			{
 				int pid = connToProc[j];
-				if(pid == pcl::GetProcRank()) continue;
+				if(pid == pcl::ProcRank()) continue;
 				//UG_LOG(pid << " ");
 				OLCoarseningReceiveLayout.interface(pid).push_back(index);
 				OLCoarseningSendLayout.interface(pid).push_back(index);

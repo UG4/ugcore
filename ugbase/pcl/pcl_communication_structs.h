@@ -50,7 +50,7 @@ namespace interface_tags
  *	Additionally you may receive the local_src_id. This id represents the
  *	sender during local communication (communication on one process only).
  *	Values < 0 mark the sender as invalid (during local communication).
- *	The src-id is ignored during parallel communication. Instead pcl::GetProcRank
+ *	The src-id is ignored during parallel communication. Instead pcl::ProcRank
  *	is used.
  *
  *	typedefs that have to be featured in such interfaces:

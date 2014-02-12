@@ -569,7 +569,7 @@ debug_save(ISelector& sel, const char* filePrefix)
 		stringstream ss;
 		ss << filePrefix << "_p";
 		#ifdef UG_PARALLEL
-			ss << pcl::GetProcRank();
+			ss << pcl::ProcRank();
 		#else
 			ss << "0";
 		#endif
@@ -586,7 +586,7 @@ static void ContinuousDebugSave(ISelector& sel)
 	stringstream ss;
 	ss << "coarsen_debug_" << counter << "_p";
 	#ifdef UG_PARALLEL
-		ss << pcl::GetProcRank();
+		ss << pcl::ProcRank();
 	#else
 		ss << "0";
 	#endif
@@ -603,7 +603,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 	stringstream ss;
 	ss << "coarsen_parallel_layout_" << counter << "_p";
 	#ifdef UG_PARALLEL
-		ss << pcl::GetProcRank();
+		ss << pcl::ProcRank();
 	#else
 		ss << "0";
 	#endif

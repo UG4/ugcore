@@ -423,7 +423,7 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 					{
 						static int counter = 0;
 						std::stringstream ss;
-						ss << "grid-changed-surface-view" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+						ss << "grid-changed-surface-view" << counter << "-p" << pcl::ProcRank() << ".ugx";
 						UG_LOG("PERFORMING SURFACE VIEW DEBUG SAVE IN IApproximationSpace::grid_changed_callback: " << ss.str() << "\n");
 						SaveSurfaceViewTransformed(*m_spMG, *m_spSurfaceView, ss.str().c_str(), 0.1);
 						++counter;
@@ -432,7 +432,7 @@ grid_changed_callback(const GridMessage_Adaption& msg)
 						#ifdef UG_PARALLEL
 							static int counter = 0;
 							std::stringstream ss;
-							ss << "grid-changed-parallel-layout-" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+							ss << "grid-changed-parallel-layout-" << counter << "-p" << pcl::ProcRank() << ".ugx";
 							UG_LOG("PERFORMING GRID LAYOUT DEBUG SAVE IN IApproximationSpace::grid_changed_callback: " << ss.str() << "\n");
 							SaveParallelGridLayout(*m_spMG, ss.str().c_str(), 0.1);
 							++counter;
@@ -464,7 +464,7 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 				{
 					static int counter = 0;
 					std::stringstream ss;
-					ss << "grid-distributed-surface-view" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+					ss << "grid-distributed-surface-view" << counter << "-p" << pcl::ProcRank() << ".ugx";
 					UG_LOG("PERFORMING SURFACE VIEW DEBUG SAVE IN IApproximationSpace::grid_distribution_callback: " << ss.str() << "\n");
 					SaveSurfaceViewTransformed(*m_spMG, *m_spSurfaceView, ss.str().c_str(), 0.1);
 					++counter;
@@ -473,7 +473,7 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 					#ifdef UG_PARALLEL
 						static int counter = 0;
 						std::stringstream ss;
-						ss << "grid-distributed-parallel-layout-" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+						ss << "grid-distributed-parallel-layout-" << counter << "-p" << pcl::ProcRank() << ".ugx";
 						UG_LOG("PERFORMING GRID LAYOUT DEBUG SAVE IN IApproximationSpace::grid_distribution_callback: " << ss.str() << "\n");
 						SaveParallelGridLayout(*m_spMG, ss.str().c_str(), 0.1);
 						++counter;
@@ -767,8 +767,8 @@ void IApproximationSpace::print_statistic(std::string flags) const
 	stringstream ssDDOneProc; ssDDOneProc<<" Number of DoFs";
 	int numProcs = 1;
 #ifdef UG_PARALLEL
-	numProcs = pcl::GetNumProcesses();
-	ssDDOneProc<<" (Proc: "<<pcl::GetProcRank()<<" of "<< pcl::GetNumProcesses()<<")";
+	numProcs = pcl::NumProcs();
+	ssDDOneProc<<" (Proc: "<<pcl::ProcRank()<<" of "<< pcl::NumProcs()<<")";
 #endif
 
 	bool bPrintOneProc = false;
@@ -822,7 +822,7 @@ void IApproximationSpace::print_layout_statistic() const
 //	Write header line
 	UG_LOG(" --" << repeat('-', LINE) << "-- " << endl);
 	stringstream ss; ss << " Index Layouts on Proc " <<
-	GetLogAssistant().get_output_process() << " of "<< pcl::GetNumProcesses()
+	GetLogAssistant().get_output_process() << " of "<< pcl::NumProcs()
 	<< " Procs: " << repeat(' ', 15);
 	UG_LOG(sSep << setw(LINE)<<ss.str() << sSep << endl);
 

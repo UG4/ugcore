@@ -324,7 +324,7 @@ bool AddExtraProcessEntriesToSubdomainLayout(
 	vMultiplicity.clear();
 	vMultiplicity.resize(numIDs, 0);
 
-	int localProc = pcl::GetProcRank();
+	int localProc = pcl::ProcRank();
 
 	for(IndexLayout::iterator interface_iter = processMasterLayoutIn.begin();
 			interface_iter != processMasterLayoutIn.end(); ++interface_iter)
@@ -453,7 +453,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 
 	typedef IndexLayout::Interface IndexInterface;
 
-	int localProc = pcl::GetProcRank();
+	int localProc = pcl::ProcRank();
 	int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc);
 
 //	iterate over all interfaces

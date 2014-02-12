@@ -27,7 +27,7 @@ util = util or {}
 --! @param numTargetProcs	(optional integer) The number of target processes to which the domain
 --!							will be distributed. This shouldn't be more than
 --!							there are elements in the top-level.
---!							Default is GetNumProcesses()
+--!							Default is NumProcs()
 --! @param distributionLevel	(optional integer) Sets the level on which distribution
 --!								is performed. Default is the domains top-level.
 --!								Currently only supported in partitioningMethod "metis".
@@ -35,7 +35,7 @@ util = util or {}
 --!							'metisReweigh' partitioning method.
 function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 							   numTargetProcs, distributionLevel, wFct)
-	if GetNumProcesses() == 1 then
+	if NumProcs() == 1 then
 		return true
 	end
 	
@@ -50,7 +50,7 @@ function util.DistributeDomain(dom, partitioningMethod, verticalInterfaces,
 	end
 	
 	if numTargetProcs == nil then
-		numTargetProcs = GetNumProcesses()
+		numTargetProcs = NumProcs()
 	end
 	
 	if distributionLevel == nil then
@@ -185,7 +185,7 @@ end
 --! Make sure that numNodesX, numNodesY and numNodesZ are >= 1.
 function util.PartitionMapRegularGrid(dom, partitionMapOut, numNodesX, numNodesY, numNodesZ)
 	local numProcsRequired = numNodesX * numNodesY * numNodesZ
-	if GetNumProcesses() < (numProcsRequired) then
+	if NumProcs() < (numProcsRequired) then
 		print("Not enough processes allocated. At least " .. numProcsRequired .. " processes are required!")
 		exit()
 	end

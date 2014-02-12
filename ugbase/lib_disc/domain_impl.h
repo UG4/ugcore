@@ -83,7 +83,7 @@ update_subset_infos(int rootProc)
 
 //	prepare the subset-info package, send it to all procs and extract the info again.
 	BinaryBuffer buf;
-	if(pcl::GetProcRank() == rootProc){
+	if(pcl::ProcRank() == rootProc){
 		Serialize(buf, sh.num_subsets());
 		for(int i = 0; i < sh.num_subsets(); ++i){
 			Serialize(buf, sh.subset_info(i).name);
@@ -93,7 +93,7 @@ update_subset_infos(int rootProc)
 
 	procCom.broadcast(buf, rootProc);
 
-	if(pcl::GetProcRank() != rootProc){
+	if(pcl::ProcRank() != rootProc){
 		int numSubsets;
 		Deserialize(buf, numSubsets);
 		if(numSubsets > 0)

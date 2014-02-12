@@ -30,7 +30,7 @@ print(const char* filename, Domain<TDim>& domain)
 //	get rank of process
 	int rank = 0;
 #ifdef UG_PARALLEL
-	rank = pcl::GetProcRank();
+	rank = pcl::ProcRank();
 #endif
 
 	const int si = -1;
@@ -150,8 +150,8 @@ vtu_filename(std::string& nameOut, std::string nameIn, int rank,
 	nameOut = nameIn;
 #ifdef UG_PARALLEL
 // 	process index
-	if(pcl::GetNumProcesses() > 1)
-		AppendCounterToString(nameOut, "_p", rank, pcl::GetNumProcesses() - 1);
+	if(pcl::NumProcs() > 1)
+		AppendCounterToString(nameOut, "_p", rank, pcl::NumProcs() - 1);
 #endif
 
 // 	subset index
@@ -231,8 +231,8 @@ write_subset_pvd(int numSubset, const std::string& filename, int step, number ti
 	int numProcs = 1;
 
 #ifdef UG_PARALLEL
-	rank = pcl::GetProcRank();
-	numProcs = pcl::GetNumProcesses();
+	rank = pcl::ProcRank();
+	numProcs = pcl::NumProcs();
 #endif
 
 //	only output proc writes this file

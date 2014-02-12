@@ -29,7 +29,7 @@ void GatherVectorOnOne(HorizontalAlgebraLayouts &agglomerationLayout,
 		ParallelVector<T> &collectedVec, const ParallelVector<T> &vec,
 		ParallelStorageType type)
 {
-	bool bRoot = pcl::GetProcRank() == vec.layouts()->proc_comm().get_proc_id(0);
+	bool bRoot = pcl::ProcRank() == vec.layouts()->proc_comm().get_proc_id(0);
 	GatherVectorOnOne(agglomerationLayout.master(), agglomerationLayout.slave(), agglomerationLayout.comm(),
 			collectedVec, vec, type, bRoot);
 }
@@ -41,7 +41,7 @@ void BroadcastVectorFromOne(HorizontalAlgebraLayouts &agglomerationLayout,
 		ParallelVector<T> &vec, const ParallelVector<T> &collectedVec,
 		ParallelStorageType type)
 {
-	bool bRoot = pcl::GetProcRank() == vec.layouts()->proc_comm().get_proc_id(0);
+	bool bRoot = pcl::ProcRank() == vec.layouts()->proc_comm().get_proc_id(0);
 	BroadcastVectorFromOne(agglomerationLayout.master(), agglomerationLayout.slave(),
 			agglomerationLayout.comm(), vec, collectedVec, type, bRoot);
 }
@@ -67,7 +67,7 @@ class AgglomeratingBase : public TBase
 		bool i_am_root()
 		{
 			return m_bRoot;
-			//m_bRoot = pcl::GetProcRank() == agglomerationLayout.proc_comm().get_proc_id(0);;
+			//m_bRoot = pcl::ProcRank() == agglomerationLayout.proc_comm().get_proc_id(0);;
 		}
 
 		bool empty()
@@ -81,7 +81,7 @@ class AgglomeratingBase : public TBase
 #ifdef UG_PARALLEL
 			m_bEmpty = A.layouts()->proc_comm().empty();
 			if(m_bEmpty) return true;
-			m_bRoot = pcl::GetProcRank() == A.layouts()->proc_comm().get_proc_id(0);
+			m_bRoot = pcl::ProcRank() == A.layouts()->proc_comm().get_proc_id(0);
 			PROFILE_FUNC();
 
 			m_spCollectedOp = make_sp(new MatrixOperator<matrix_type, vector_type>());

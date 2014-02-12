@@ -66,7 +66,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 			PROFILE_BEGIN_GROUP(GaussSeidel_preprocess, "algebra gaussseidel");
 			matrix_type *pA;
 #ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1)
+			if(pcl::NumProcs() > 1)
 			{
 				//	copy original matrix
 				MakeConsistent(*pOp, m_A);
@@ -98,7 +98,7 @@ class GaussSeidelBase : public IPreconditioner<TAlgebra>
 			PROFILE_BEGIN_GROUP(GaussSeidel_step, "algebra gaussseidel");
 
 #ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1)
+			if(pcl::NumProcs() > 1)
 			{
 				// todo: do not clone every time
 			//	make defect unique

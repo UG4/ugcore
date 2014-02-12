@@ -72,7 +72,7 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 #ifdef UG_PARALLEL
 	number maxLocal = max, minLocal = min, totalErrLocal = totalErr;
 	int numElemLocal = numElem;
-	if(pcl::GetNumProcesses() > 1){
+	if(pcl::NumProcs() > 1){
 		pcl::ProcessCommunicator com;
 		max = com.allreduce(maxLocal, PCL_RO_MAX);
 		min = com.allreduce(minLocal, PCL_RO_MIN);
@@ -82,8 +82,8 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 #endif
 	UG_LOG("  +++++  Gradient Error Indicator on "<<numElem<<" Elements +++++\n");
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1){
-		UG_LOG("  +++ Element Errors on Proc " << pcl::GetProcRank() <<
+	if(pcl::NumProcs() > 1){
+		UG_LOG("  +++ Element Errors on Proc " << pcl::ProcRank() <<
 			   ": maximum=" << max << ", minimum="<<min<<", sum="<<totalErr<<".\n");
 	}
 #endif
@@ -135,9 +135,9 @@ void MarkElements(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<number> >&
 	}
 
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1){
-		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::GetProcRank()<<": " << numMarkedRefine << " Elements.\n");
-		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::GetProcRank()<<": " << numMarkedCoarse << " Elements.\n");
+	if(pcl::NumProcs() > 1){
+		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::ProcRank()<<": " << numMarkedRefine << " Elements.\n");
+		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::ProcRank()<<": " << numMarkedCoarse << " Elements.\n");
 		pcl::ProcessCommunicator com;
 		int numMarkedRefineLocal = numMarkedRefine, numMarkedCoarseLocal = numMarkedCoarse;
 		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);
@@ -203,9 +203,9 @@ void MarkElementsAbsolute(MultiGrid::AttachmentAccessor<TElem, ug::Attachment<nu
 	}
 
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1){
-		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::GetProcRank()<<": " << numMarkedRefine << " Elements.\n");
-		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::GetProcRank()<<": " << numMarkedCoarse << " Elements.\n");
+	if(pcl::NumProcs() > 1){
+		UG_LOG("  +++ Marked for refinement on Proc "<<pcl::ProcRank()<<": " << numMarkedRefine << " Elements.\n");
+		UG_LOG("  +++ Marked for coarsening on Proc "<<pcl::ProcRank()<<": " << numMarkedCoarse << " Elements.\n");
 		pcl::ProcessCommunicator com;
 		int numMarkedRefineLocal = numMarkedRefine, numMarkedCoarseLocal = numMarkedCoarse;
 		numMarkedRefine = com.allreduce(numMarkedRefineLocal, PCL_RO_SUM);

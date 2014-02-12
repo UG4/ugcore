@@ -18,7 +18,7 @@ ParallelNodes::ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s)
 
 	for(size_t i=0; i<m_localToGlobal.size(); ++i)
 	{
-		if(m_localToGlobal[i].first != pcl::GetProcRank())
+		if(m_localToGlobal[i].first != pcl::ProcRank())
 			m_globalToLocal.insert(pair<AlgebraID, size_t> (m_localToGlobal[i], i));
 	}
 
@@ -58,7 +58,7 @@ ParallelNodes::ParallelNodes(ConstSmartPtr<AlgebraLayouts> layout, size_t s)
 size_t ParallelNodes::get_local_index_if_available(const AlgebraID &globalIndex, bool &bHasIndex) const
 {
 	// UG_DLOG(LIB_ALG_MATRIX, 4, "get_index_if_available for global index " << globalIndex << ": ");
-	if(globalIndex.first == pcl::GetProcRank())
+	if(globalIndex.first == pcl::ProcRank())
 	{
 		// UG_DLOG(LIB_ALG_MATRIX, 4, "is on this processor\n");
 		bHasIndex = true;
@@ -82,7 +82,7 @@ size_t ParallelNodes::get_local_index_if_available(const AlgebraID &globalIndex,
 size_t ParallelNodes::get_local_index_or_create_new(const AlgebraID &globalIndex, int distanceToMasterOrInner, bool &bCreated)
 {
 	// UG_DLOG(LIB_ALG_MATRIX, 4, "get_index_or_create_new for global index " << globalIndex.first << " | " << globalIndex.second << ": ");
-	if(globalIndex.first == pcl::GetProcRank())
+	if(globalIndex.first == pcl::ProcRank())
 	{
 		// UG_DLOG(LIB_ALG_MATRIX, 4, "is on this processor\n");
 		bCreated = false;
@@ -222,7 +222,7 @@ void ParallelNodes::create_node(const AlgebraID &globalID, size_t localIndex, in
 
 	notified[pid].insert(localIndex);
 
-	if(globalID.master_proc() == pcl::GetProcRank())
+	if(globalID.master_proc() == pcl::ProcRank())
 	{
 		// add i to mNewLayout[pid] if not already in some interface to pid.
 
@@ -304,7 +304,7 @@ void ParallelNodes::process()
 		{
 			NewSlaveNotification notification;
 			Deserialize(buf, notification);
-			UG_ASSERT(notification.id.master_proc() == pcl::GetProcRank(), notification.id << ", pid = " << pcl::GetProcRank());
+			UG_ASSERT(notification.id.master_proc() == pcl::ProcRank(), notification.id << ", pid = " << pcl::ProcRank());
 			UG_DLOG(LIB_ALG_MATRIX, 4, notification << "\n");
 
 			set<size_t> &mark = notified[notification.newSlaveOnPID];

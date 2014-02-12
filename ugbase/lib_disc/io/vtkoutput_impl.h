@@ -169,7 +169,7 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 //	get rank of process
 	int rank = 0;
 #ifdef UG_PARALLEL
-	rank = pcl::GetProcRank();
+	rank = pcl::ProcRank();
 #endif
 
 //	get name for *.vtu file
@@ -189,7 +189,7 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 //	in parallel we must not (!) write it to the *.vtu file, but to the *.pvtu
 	bool bTimeDep = (step >= 0);
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1) bTimeDep = false;
+	if(pcl::NumProcs() > 1) bTimeDep = false;
 #endif
 
 //	header
@@ -1592,7 +1592,7 @@ write_pvtu(TFunction& u, const std::string& filename,
 	std::string name;
 
 //	get and check number of procs (only for numProcs > 1 we write the pvtu)
-	int numProcs = pcl::GetNumProcesses();
+	int numProcs = pcl::NumProcs();
 	if(numProcs == 1) return;
 
 //	check if this proc is output proc
@@ -1766,7 +1766,7 @@ write_time_pvd(const char* filename, TFunction& u)
 	bool isOutputProc = GetLogAssistant().is_output_process();
 	int numProcs = 1;
 #ifdef UG_PARALLEL
-	numProcs = pcl::GetNumProcesses();
+	numProcs = pcl::NumProcs();
 #endif
 
 //	get time steps

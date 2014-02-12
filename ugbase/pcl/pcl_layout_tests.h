@@ -101,12 +101,12 @@ bool TestLayoutIsDoubleEnded(const pcl::ProcessCommunicator processCommunicator,
 		int pid = processCommunicator.get_proc_id(i);
 		if(bMasterToThisProcess != bSlaveToProcess[i])
 		{
-			UG_LOG("Process " << std::setw(4) << pid << " has " << (bMasterToThisProcess ? "a" : "no") << " master connection to this process (" << std::setw(4) << pcl::GetProcRank()
+			UG_LOG("Process " << std::setw(4) << pid << " has " << (bMasterToThisProcess ? "a" : "no") << " master connection to this process (" << std::setw(4) << pcl::ProcRank()
 				<< "), but we have " << (bSlaveToProcess[i] ? "a" : "no") << " slave connection to " << std::setw(4) << pid << std::endl);
 			return false;
 		}
 		if(bSlaveToThisProcess != bMasterToProcess[i]){
-			UG_LOG("Process " << std::setw(4) << pid << " has " << (bSlaveToThisProcess ? "a" : "no") << " slave connection to this process (" << pcl::GetProcRank()
+			UG_LOG("Process " << std::setw(4) << pid << " has " << (bSlaveToThisProcess ? "a" : "no") << " slave connection to this process (" << pcl::ProcRank()
 				<< "), but we have " << (bMasterToProcess[i] ? "a" : "no") << " master connection to " << std::setw(4) << pid << std::endl);
 			return false;
 		}
@@ -172,7 +172,7 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 		ug::BinaryBuffer &buffer = receiveMap[pid];
 		bool broken=false;
 		uint64_t numEntries = 0;
-		if(bPrint) { UG_LOG("      Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n"); }
+		if(bPrint) { UG_LOG("      Interface processor " << pcl::ProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n"); }
 		const typename TLayout::Interface &interface = masterLayout.interface(iter);
 		for(typename TLayout::Interface::const_iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
@@ -217,7 +217,7 @@ bool TestSizeOfInterfacesInLayoutsMatch(pcl::InterfaceCommunicator<TLayout> &com
 		if(broken)
 		{
 			layoutBroken=true;
-			UG_LOG("      Interface from processor " << std::setw(4) << pcl::GetProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
+			UG_LOG("      Interface from processor " << std::setw(4) << pcl::ProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
 
 		}
 	}
@@ -259,7 +259,7 @@ bool TestLayout(const pcl::ProcessCommunicator &processCommunicator,
 	PROFILE_FUNC_GROUP("debug");
 	if(bPrint)
 	{
-		UG_LOG("proc " << std::setw(4) << pcl::GetProcRank() << ":\n");
+		UG_LOG("proc " << std::setw(4) << pcl::ProcRank() << ":\n");
 		UG_LOG("   MasterLayout is to processes ");
 		for(typename TLayout::const_iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)	{
 			UG_LOG(" " << std::setw(4) << masterLayout.proc_id(iter) << " ");

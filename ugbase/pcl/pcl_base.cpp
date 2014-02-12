@@ -34,29 +34,19 @@ void Finalize()
 }
 
 ////////////////////////////////////////////////////////////////////////
-int GetProcRank()
+int ProcRank()
 {
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	return rank;
 }
 
-int Rank()
-{
-	return GetProcRank();
-}
-
 ////////////////////////////////////////////////////////////////////////
-int GetNumProcesses()
+int NumProcs()
 {
 	int numProcesses;
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcesses);
 	return numProcesses;
-}
-
-int NumProcs()
-{
-	return GetNumProcesses();
 }
 
 ////////////////////////////////////////////////////////////////////////

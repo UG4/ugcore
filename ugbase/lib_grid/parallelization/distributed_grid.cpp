@@ -716,7 +716,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		void create_initial_hash_entry(GeomObj* e)
 		{
 			if(m_dgm->contains_status(e, ES_H_MASTER)){
-				m_hash.insert(e, Entry(pcl::GetProcRank(), m_localHMasterCount));
+				m_hash.insert(e, Entry(pcl::ProcRank(), m_localHMasterCount));
 				++m_localHMasterCount;
 			}
 			else if(m_dgm->contains_status(e, ES_V_MASTER)
@@ -795,7 +795,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 			int index;
 			Deserialize(buff, index);
 
-			int localProc = pcl::GetProcRank();
+			int localProc = pcl::ProcRank();
 			int counter = 0;
 			InterfaceIter iter = interface.begin();
 
@@ -807,12 +807,12 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 
 //					if(m_checkHOrder){
 //						if(!m_hash.has_entry(elem)){
-//							UG_THROW("No matching entry on proc " << pcl::GetProcRank()
+//							UG_THROW("No matching entry on proc " << pcl::ProcRank()
 //									 << " for element " << ElementDebugInfo(*m_dgm->get_assigned_grid(), elem));
 //							Entry& entry = m_hash.get_entry(elem);
 //							if((entry.hmasterProcInfo.first == val.first)
 //								&& (entry.hmasterProcInfo.second != val.second)){
-//								UG_THROW("H-Order mismatch on proc " << pcl::GetProcRank()
+//								UG_THROW("H-Order mismatch on proc " << pcl::ProcRank()
 //										<< " for element " << ElementDebugInfo(*m_dgm->get_assigned_grid(), elem));
 //							}
 //						}
@@ -910,7 +910,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 		//	one knows that this was only a guess.
 		//	iterate over all entries. Those who contain the local proc as h-master
 		//	proc have to be supplied with a local h-master index (if none is present yet)
-			int localProc = pcl::GetProcRank();
+			int localProc = pcl::ProcRank();
 			for(size_t i = 0; i < m_newConstrained.size(); ++i){
 				GeomObj* elem = m_newConstrained[i];
 				if(!m_dgm->contains_status(elem, ES_H_SLAVE)){
@@ -1031,7 +1031,7 @@ create_missing_constrained_h_interfaces(vector<TElem*>& newConstrainedElems)
 
 	compolHMasters.exchange_data();
 
-	int localRank = pcl::GetProcRank();
+	int localRank = pcl::ProcRank();
 
 	ScheduledElemMap	scheduledElems;
 	vector<pair<int, size_t> > vInterfaces;

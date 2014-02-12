@@ -52,7 +52,7 @@ static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain* dom)
 //todo: support normal grids, too!
 
 	#ifdef UG_PARALLEL
-		if(pcl::GetNumProcesses() > 1){
+		if(pcl::NumProcs() > 1){
 			return SmartPtr<IRefiner>(new ParallelGlobalRefiner_MultiGrid(*dom->distributed_grid_manager()));
 		}
 	#endif
@@ -73,7 +73,7 @@ static SmartPtr<IRefiner> HangingNodeDomainRefiner(TDomain* dom)
 
 //todo: support normal grids, too!
 	#ifdef UG_PARALLEL
-		if(pcl::GetNumProcesses() > 1){
+		if(pcl::NumProcs() > 1){
 			return SmartPtr<IRefiner>(new ParallelHangingNodeRefiner_MultiGrid(*dom->distributed_grid_manager()));
 		}
 	#endif
@@ -95,7 +95,7 @@ static SmartPtr<IRefiner> CreateAdaptiveRegularDomainRefiner(TDomain* dom)
 //todo: support normal grids, too!
 //todo: support parallelism, too!
 	/*#ifdef UG_PARALLEL
-		if(pcl::GetNumProcesses() > 1){
+		if(pcl::NumProcs() > 1){
 			return SmartPtr<IRefiner>(new ParallelHangingNodeRefiner_MultiGrid(*dom->distributed_grid_manager()));
 		}
 	#endif*/
@@ -116,7 +116,7 @@ CreateGlobalFracturedDomainRefiner(TDomain* dom)
 
 	GlobalFracturedMediaRefiner* ref = NULL;
 	#ifdef UG_PARALLEL
-		if(pcl::GetNumProcesses() > 1){
+		if(pcl::NumProcs() > 1){
 			ref = new ParallelGlobalFracturedMediaRefiner(*dom->distributed_grid_manager());
 		}
 	#endif

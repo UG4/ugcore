@@ -22,11 +22,11 @@ namespace ConnectionViewer
 #ifdef UG_PARALLEL
 string GetParallelName(string name, const pcl::ProcessCommunicator &pc, bool bWriteHeader)
 {
-	if(pcl::GetNumProcesses() == 1)
+	if(pcl::NumProcs() == 1)
 		return name;
 
 	char buf[20];
-	int rank = pcl::GetProcRank();
+	int rank = pcl::ProcRank();
 
 	size_t iExtPos = name.find_last_of(".");
 	string ext = name.substr(iExtPos+1);

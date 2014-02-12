@@ -147,7 +147,7 @@ static bool LoadGrid(Grid& grid, ISubsetHandler* psh,
 //	located and load it from that location afterwards.
 	bool loadingGrid = true;
 	#ifdef UG_PARALLEL
-		if((procId != -1) && (pcl::GetProcRank() != procId))
+		if((procId != -1) && (pcl::ProcRank() != procId))
 			loadingGrid = false;
 	#endif
 

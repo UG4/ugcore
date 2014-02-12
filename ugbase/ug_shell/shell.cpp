@@ -178,7 +178,7 @@ debug_return DebugShell()
 	//ug::bridge::LuaPrintCurrentLine(GetDefaultLuaState());
 
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() > 1)
+	if(pcl::NumProcs() > 1)
 	{
 		UG_LOG("Parallel Shell not available currently.");
 		return DEBUG_CONTINUE;

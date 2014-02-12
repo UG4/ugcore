@@ -458,7 +458,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 //	repeated attachment and detachment of required data in the graph.
 	ParallelDualGraph<elem_t, idx_t> pdg;
 
-	int localProc = pcl::GetProcRank();
+	int localProc = pcl::ProcRank();
 
 	m_sh.clear();
 
@@ -941,7 +941,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 			UG_DLOG(LIB_GRID, 1, "done\n");
 
 			if(metisRet != METIS_OK){
-				UG_THROW("ParMETIS_V3_PartKway failed on process " << pcl::GetProcRank()
+				UG_THROW("ParMETIS_V3_PartKway failed on process " << pcl::ProcRank()
 						 << " while partitioning level " << lvl);
 			}
 		}
@@ -976,7 +976,7 @@ partition_level_parmetis(int baseLvl, int maxLvl, int numTargetProcs,
 												&mpiCom);
 			UG_DLOG(LIB_GRID, 1, "done\n");
 			if(metisRet != METIS_OK){
-				UG_THROW("Parmetis_V3_RefineKWay failed on process " << pcl::GetProcRank()
+				UG_THROW("Parmetis_V3_RefineKWay failed on process " << pcl::ProcRank()
 						 << " while partitioning level " << lvl);
 			}
 		}

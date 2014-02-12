@@ -129,11 +129,11 @@ void WriteMatrixPar(std::string name, const Matrix_type &A, const postype *posit
 	WriteMatrix(GetParallelName(A, filename), A, positions, dimensions);
 #else
 	const pcl::ProcessCommunicator &pc = A.layouts()->proc_comm();
-	if(pcl::GetNumProcesses() == 1)
+	if(pcl::NumProcs() == 1)
 		WriteMatrix(name, A, positions, dimensions);
 
 	char buf[20];
-	int rank = pcl::GetProcRank();
+	int rank = pcl::ProcRank();
 
 
 	std::string fname = FilenameWithoutExtension(name);

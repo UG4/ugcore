@@ -24,7 +24,7 @@ void CreateAndDistributeGlobalIDs(Grid& g, GridLayoutMap& glm,
 	Grid::AttachmentAccessor<TGeomObj, AGeomObjID> aaID(g, aID);
 
 //	set up local ids
-	int rank = pcl::GetProcRank();
+	int rank = pcl::ProcRank();
 
 	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
 

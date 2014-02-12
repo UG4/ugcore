@@ -530,7 +530,7 @@ function util.rates.static.compute(ConvRateSetup)
 	--------------------------------------------------------------------
 
 	-- the following is serial and one proc doing it is sufficient
-	if GetProcessRank() ~= 0 then return end
+	if ProcRank() ~= 0 then return end
 	ensureDir(dataPath)
 	ensureDir(plotPath)
 
@@ -696,7 +696,7 @@ end
 
 
 function util.rates.static.replot(gpOptions, file)
-	if GetProcessRank() ~= 0 then return end
+	if ProcRank() ~= 0 then return end
 	
 	local dataPath = "data/"
 	local plotPath = "plots/"

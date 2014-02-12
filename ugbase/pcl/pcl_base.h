@@ -21,16 +21,10 @@ void Abort(int errorcode = 1);
 void Finalize();
 
 ///	returns the number of processes
-/// \{
-int GetNumProcesses();
 int NumProcs();
-/// \}
 
 ///	returns the rank of the process
-/// \{
-int GetProcRank();
-int Rank();
-/// \}
+int ProcRank();
 
 /// sets error handler
 void SetErrHandler();

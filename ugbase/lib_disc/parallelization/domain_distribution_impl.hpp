@@ -31,7 +31,7 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 	//	we need a process to which elements which are not considered will be send.
 	//	Those elements should stay on the current process.
 		int localProc = 0;
-		localProc = pcl::GetProcRank();
+		localProc = pcl::ProcRank();
 
 		int bucketSubset = partitionMap.find_target_proc(localProc);
 		if(bucketSubset == -1)
@@ -131,7 +131,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 	//	we need a process to which elements which are not considered will be send.
 	//	Those elements should stay on the current process.
 		int localProc = 0;
-		localProc = pcl::GetProcRank();
+		localProc = pcl::ProcRank();
 
 		int bucketSubset = partitionMap.find_target_proc(localProc);
 		if(bucketSubset == -1)
@@ -230,7 +230,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 //	we need a process to which elements which are not considered will be send.
 //	Those elements should stay on the current process.
 	int localProc = 0;
-	localProc = pcl::GetProcRank();
+	localProc = pcl::ProcRank();
 
 	int bucketSubset = partitionMap.find_target_proc(localProc);
 	if(bucketSubset == -1)
@@ -293,7 +293,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 //	we need a process to which elements which are not considered will be send.
 //	Those elements should stay on the current process.
 	int localProc = 0;
-	localProc = pcl::GetProcRank();
+	localProc = pcl::ProcRank();
 
 	int bucketSubset = partitionMap.find_target_proc(localProc);
 	if(bucketSubset == -1)

@@ -64,7 +64,7 @@ void SendMatrix(const matrix_type &A, IndexLayout &verticalSlaveLayout,	int dest
 	for(size_t i=0; i<A.num_rows(); i++)
 		verticalInterface.push_back(i);
 
-	UG_DLOG(LIB_ALG_AMG, 3, "Srcproc " << pcl::GetProcRank() << " is sending " << stream.write_pos() << " bytes of data to destproc " << destproc << "\n");
+	UG_DLOG(LIB_ALG_AMG, 3, "Srcproc " << pcl::ProcRank() << " is sending " << stream.write_pos() << " bytes of data to destproc " << destproc << "\n");
 	communicator.send_raw(destproc, stream.buffer(), stream.write_pos(), false);
 	communicator.communicate();
 }
@@ -124,7 +124,7 @@ void ReceiveMatrix(const matrix_type &A, matrix_type &M, IndexLayout &verticalMa
 	typedef std::map<int, BinaryBuffer> BufferMap;
 	BufferMap streams;
 
-	UG_DLOG(LIB_ALG_AMG, 3, "DestProc " << pcl::GetProcRank() << " is waiting on data from ");
+	UG_DLOG(LIB_ALG_AMG, 3, "DestProc " << pcl::ProcRank() << " is waiting on data from ");
 	for(size_t i=0; i<srcprocs.size(); i++)
 	{
 		UG_DLOG(LIB_ALG_AMG, 3, srcprocs[i] << " ");
@@ -226,7 +226,7 @@ void CollectMatrixOnOneProc(const matrix_type &A, matrix_type &collectedA, Index
 
 	ParallelNodes PN(A.layouts(), A.num_rows());
 
-	if(pcl::GetProcRank() == pc.get_proc_id(0))
+	if(pcl::ProcRank() == pc.get_proc_id(0))
 	{
 		srcprocs.resize(pc.size()-1);
 		for(size_t i=1; i<pc.size(); i++) srcprocs[i-1] = pc.get_proc_id(i);

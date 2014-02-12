@@ -391,7 +391,7 @@ pre_refine()
 		static int dbgCounter = 0;
 		UG_LOG("PERFORMING PRE-REFINEMENT DEBUG SAVE " << dbgCounter << "\n");
 		stringstream ss;
-		ss << "pre-refine-" << dbgCounter << "-p" << pcl::GetProcRank() << ".ugx";
+		ss << "pre-refine-" << dbgCounter << "-p" << pcl::ProcRank() << ".ugx";
 		SaveParallelGridLayout(*m_pMG, ss.str().c_str(), 0.1);
 		++dbgCounter;
 	#endif
@@ -411,7 +411,7 @@ post_refine()
 		static int dbgCounter = 0;
 		UG_LOG("PERFORMING POST-REFINEMENT DEBUG SAVE " << dbgCounter << "\n");
 		stringstream ss;
-		ss << "post-refine-" << dbgCounter << "-p" << pcl::GetProcRank() << ".ugx";
+		ss << "post-refine-" << dbgCounter << "-p" << pcl::ProcRank() << ".ugx";
 		SaveParallelGridLayout(*m_pMG, ss.str().c_str(), 0.1);
 		++dbgCounter;
 	#endif
@@ -425,7 +425,7 @@ pre_coarsen()
 		static int dbgCounter = 0;
 		UG_LOG("PERFORMING PRE-COARSEN DEBUG SAVE " << dbgCounter << "\n");
 		stringstream ss;
-		ss << "pre-coarsen-" << dbgCounter << "-p" << pcl::GetProcRank() << ".ugx";
+		ss << "pre-coarsen-" << dbgCounter << "-p" << pcl::ProcRank() << ".ugx";
 		SaveParallelGridLayout(*m_pMG, ss.str().c_str(), 0.1);
 		++dbgCounter;
 	#endif
@@ -445,7 +445,7 @@ post_coarsen()
 		static int dbgCounter = 0;
 		UG_LOG("PERFORMING POST-COARSEN DEBUG SAVE " << dbgCounter << "\n");
 		stringstream ss;
-		ss << "post-coarsen-" << dbgCounter << "-p" << pcl::GetProcRank() << ".ugx";
+		ss << "post-coarsen-" << dbgCounter << "-p" << pcl::ProcRank() << ".ugx";
 		SaveParallelGridLayout(*m_pMG, ss.str().c_str(), 0.1);
 		++dbgCounter;
 	#endif

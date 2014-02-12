@@ -114,7 +114,7 @@ void MergeGlobalLayout(GlobalLayout &globalLayout, const std::map<int, int> &mer
 	{
 		std::vector<AlgebraID> &a = globalLayout[it->first];
 
-		if(it->second != pcl::GetProcRank())
+		if(it->second != pcl::ProcRank())
 		{
 			std::vector<AlgebraID> &b = globalLayout[it->second];
 			b.insert(b.end(), a.begin(), a.end());
@@ -122,7 +122,7 @@ void MergeGlobalLayout(GlobalLayout &globalLayout, const std::map<int, int> &mer
 		globalLayout.erase(it->first);
 	}
 	// we don't want interfaces to ourselfs
-	globalLayout.erase(pcl::GetProcRank());
+	globalLayout.erase(pcl::ProcRank());
 }
 
 }

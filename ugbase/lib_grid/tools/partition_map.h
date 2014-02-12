@@ -31,7 +31,7 @@ class PartitionMap{
 
 		SubsetHandler& get_partition_handler();
 
-		void add_target_proc(int targetProcRank);
+		void add_target_proc(int tarProcRank);
 
 		void add_target_procs(int first, int num);
 

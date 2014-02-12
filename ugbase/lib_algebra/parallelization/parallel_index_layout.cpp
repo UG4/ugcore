@@ -90,13 +90,13 @@ void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth)
 	int outproc = GetLogAssistant().get_output_process();
 
 //	loop all procs
-	for(int p = 0; p < pcl::GetNumProcesses(); ++p)
+	for(int p = 0; p < pcl::NumProcs(); ++p)
 	{
 	//	synchronize, to prevent other procs to write before this one has finished.
 		pcl::SynchronizeProcesses();
 
 	//	write process p
-		if(p == pcl::GetProcRank())
+		if(p == pcl::ProcRank())
 		{
 		//	set output proc to proc p
 			GetLogAssistant().set_output_process(p);

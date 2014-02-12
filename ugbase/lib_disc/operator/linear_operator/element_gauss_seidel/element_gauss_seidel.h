@@ -175,7 +175,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
 #ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1)
+			if(pcl::NumProcs() > 1)
 			{
 				//	copy original matrix
 				MakeConsistent(*pOp, m_A);
@@ -203,7 +203,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			const matrix_type* pMat = pOp.get();
 
 #ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1){
+			if(pcl::NumProcs() > 1){
 			//	make defect unique
 				SmartPtr<vector_type> spDtmp = d.clone();
 				spDtmp->change_storage_type(PST_UNIQUE);

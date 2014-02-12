@@ -219,10 +219,10 @@ mark_shadowing(bool markSides)
 				//	and this is why the assertion is only triggered for parallel cases
 				//	(in which closure isn't assumed to work anyways).
 				//	The assertion probably shouldn't be done here but directly in the gmg.
-					UG_COND_THROW((pcl::GetNumProcesses() > 1) &&
+					UG_COND_THROW((pcl::NumProcs() > 1) &&
 								  surface_state(e).contains(MG_SHADOW_RIM_COPY),
 								  "SHADOWING-SHADOW_COPY encountered: " << ElementDebugInfo(mg, e));
-					UG_COND_THROW((pcl::GetNumProcesses() > 1) &&
+					UG_COND_THROW((pcl::NumProcs() > 1) &&
 							  	  surface_state(e).contains(MG_SHADOW_RIM_NONCOPY),
 							  	  "SHADOWING-SHADOW_NONCOPY encountered: " << ElementDebugInfo(mg, e));
 				#endif

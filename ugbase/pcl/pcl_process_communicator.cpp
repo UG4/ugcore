@@ -56,7 +56,7 @@ size() const
 int ProcessCommunicator::
 get_proc_id(size_t groupIndex) const
 {
-	if(is_local()) return pcl::GetProcRank();
+	if(is_local()) return pcl::ProcRank();
 	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
 		return (int)groupIndex;
 	return m_comm->m_procs[groupIndex];
@@ -70,11 +70,11 @@ get_local_proc_id(int globalProcID) const
 		return globalProcID;
 
 	const vector<int>& procs = m_comm->m_procs;
-	if(globalProcID == pcl::GetProcRank())
+	if(globalProcID == pcl::ProcRank())
 	{
 		int rank;
 		MPI_Comm_rank(m_comm->m_mpiComm, &rank);
-		UG_ASSERT(procs[rank] == pcl::GetProcRank(), "?");
+		UG_ASSERT(procs[rank] == pcl::ProcRank(), "?");
 		return rank;
 	}
 
@@ -129,7 +129,7 @@ create_sub_communicator(bool participate) const
 	// note: ranks are ranks in the (group!) communicator m_comm->m_mpiComm
 	// since we building the new group relative to the old,
 	// we add to newProcs the group ranks
-	// these are NOT the global ranks like in pcl::GetProcRank
+	// these are NOT the global ranks like in pcl::ProcRank
 	for(size_t i = 0; i < destArray.size(); ++i){
 		if(destArray[i])
 			newProcs.push_back(i);
@@ -492,14 +492,14 @@ void ProcessCommunicator::broadcast(void *v, size_t size, DataType type, int roo
 {
 	PCL_PROFILE(pcl_ProcCom_Bcast);
 	if(is_local()) return;
-	//UG_LOG("broadcasting " << (root==pcl::GetProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
+	//UG_LOG("broadcasting " << (root==pcl::ProcRank() ? "(sender) " : "(receiver) ") << size << " root = " << root << "\n");
 	MPI_Bcast(v, size, type, root, m_comm->m_mpiComm);
 }
 
 void ProcessCommunicator::broadcast(ug::BinaryBuffer &buf, int root) const
 {
 	if(is_local()) return;
-	if(pcl::GetProcRank() == root)
+	if(pcl::ProcRank() == root)
 	{
 		long size;
 		size = buf.write_pos();

@@ -213,7 +213,7 @@ end
 --!							the domain shall be distributed. Make sure that the
 --!							number of target processes is not higher than the
 --!							number of elements in the distributionLevel.
---!							Default is GetNumProcesses()
+--!							Default is NumProcs()
 --!							See util.DistributeDomain for more information
 --!							(in UG_BASE/scripts/util/domain_distribution.lua)
 --! @param distributionLevel	(optional, int) The level on which the distribution
@@ -773,8 +773,8 @@ function util.GetUniqueFilenameFromCommandLine()
 		ret = ret.." "..ugargv[i]		
 	end
 	ret = FilenameStringEscape(ret)
-	if GetNumProcesses() > 1 then
-		return ret.."_numProcs_"..GetNumProcesses()
+	if NumProcs() > 1 then
+		return ret.."_numProcs_"..NumProcs()
 	else
 		return ret
 	end

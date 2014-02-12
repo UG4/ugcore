@@ -226,7 +226,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
 #ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1)
+			if(pcl::NumProcs() > 1)
 			{
 				//	copy original matrix
 				MakeConsistent(*pOp, m_A);
@@ -242,7 +242,7 @@ class Vanka : public IPreconditioner<TAlgebra>
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 #ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1)
+			if(pcl::NumProcs() > 1)
 			{
 				//	make defect unique
 				// todo: change that copying
@@ -336,7 +336,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 		virtual bool preprocess(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp)
 		{
 #ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1)
+			if(pcl::NumProcs() > 1)
 			{
 				//	copy original matrix
 				MakeConsistent(*pOp, m_A);
@@ -352,7 +352,7 @@ class DiagVanka : public IPreconditioner<TAlgebra>
 		virtual bool step(SmartPtr<MatrixOperator<matrix_type, vector_type> > pOp, vector_type& c, const vector_type& d)
 		{
 #ifdef UG_PARALLEL
-			if(pcl::GetNumProcesses() > 1)
+			if(pcl::NumProcs() > 1)
 			{
 				//	make defect unique
 				// todo: change that copying

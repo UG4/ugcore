@@ -318,7 +318,7 @@ class InterfaceCommunicator
 				m_interface(pInterface), m_layout(pLayout),
 				m_buffer(buffer), m_binBuffer(binBuffer), m_rawSize(rawSize)
 			{
-				assert((srcProc == -1) || ((srcProc >= 0) && (srcProc < pcl::GetNumProcesses())));
+				assert((srcProc == -1) || ((srcProc >= 0) && (srcProc < pcl::NumProcs())));
 			}
 
 			int					m_srcProc;

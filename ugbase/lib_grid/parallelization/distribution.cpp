@@ -318,7 +318,7 @@ static void SaveDistInfosToFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 	SubsetHandler sh(mg);
 
 //	write a file for each adressed process
-	for(int pi = 0; pi < pcl::GetNumProcesses(); ++pi){
+	for(int pi = 0; pi < pcl::NumProcs(); ++pi){
 		sh.clear();
 
 		for(MultiGrid::traits<Volume>::iterator iter = mg.begin<Volume>();
@@ -375,7 +375,7 @@ static void SaveDistInfosToFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 		EraseEmptySubsets(sh);
 		if(sh.num_subsets() > 0){
 			stringstream ss;
-			ss << filename << "_p" << pcl::GetProcRank() << "_for_p" << pi << ".ugx";
+			ss << filename << "_p" << pcl::ProcRank() << "_for_p" << pi << ".ugx";
 			SaveGridHierarchyTransformed(mg, sh, ss.str().c_str(), LG_DISTRIBUTION_Z_OUTPUT_TRANSFORM);
 		}
 	}
@@ -1227,7 +1227,7 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 		if(processMap)
 			targetProc = (*processMap)[i_part];
 
-		bool localPartition = (targetProc == pcl::GetProcRank());
+		bool localPartition = (targetProc == pcl::ProcRank());
 
 		msel.clear();
 		SelectElementsForTargetPartition(msel, shPartition, i_part,
@@ -1240,7 +1240,7 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 			#ifdef LG_DISTRIBUTION_DEBUG
 			{
 				stringstream ss;
-				ss << "dist-selection-p" << pcl::GetProcRank() << "for-p"<< i_part << ".ugx";
+				ss << "dist-selection-p" << pcl::ProcRank() << "for-p"<< i_part << ".ugx";
 				SaveDistSelectorToFile(msel, ss.str().c_str());
 			}
 			#endif
@@ -1255,7 +1255,7 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 #ifdef LG_DISTRIBUTION_DEBUG
 	{
 		//stringstream ss;
-		//ss << "dist_infos_vrt_before_sync_p" << pcl::GetProcRank() << ".ugx";
+		//ss << "dist_infos_vrt_before_sync_p" << pcl::ProcRank() << ".ugx";
 		//WriteDistInfosToTextFile<VertexBase>(mg, distInfos, ss.str().c_str());
 		SaveDistInfosToFile(mg, distInfos, "dist_infos_before_sync");
 	}
@@ -1274,7 +1274,7 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 #ifdef LG_DISTRIBUTION_DEBUG
 	{
 		//stringstream ss;
-		//ss << "dist_infos_vrt_after_sync_p" << pcl::GetProcRank() << ".ugx";
+		//ss << "dist_infos_vrt_after_sync_p" << pcl::ProcRank() << ".ugx";
 		//WriteDistInfosToTextFile<VertexBase>(mg, distInfos, ss.str().c_str());
 		SaveDistInfosToFile(mg, distInfos, "dist_infos_after_sync");
 	}
@@ -1300,7 +1300,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 	typedef typename MultiGrid::traits<TElem>::iterator	TIter;
 
 
-	int localProcID = pcl::GetProcRank();
+	int localProcID = pcl::ProcRank();
 
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
 		for(TIter iter = mg.begin<TElem>(lvl); iter != mg.end<TElem>(lvl); ++iter)
@@ -1316,14 +1316,14 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 		//	this lowest rank is required to decide, which process a horizontal
 		//	master should reside on
 			byte localInterfaceState = 0;
-			int minProc = pcl::GetNumProcesses();
-			int minVMasterProc = pcl::GetNumProcesses();
-			int minVMasterNoVSlave = pcl::GetNumProcesses();
-			int minNormalProc = pcl::GetNumProcesses();
+			int minProc = pcl::NumProcs();
+			int minVMasterProc = pcl::NumProcs();
+			int minVMasterNoVSlave = pcl::NumProcs();
+			int minNormalProc = pcl::NumProcs();
 
 		//	the lowest proc which holds a v-slave or a normal entry.
 		//	dummies are ignored here, since we don't want them to be h-masters.
-			int minRegularHMasterProc = pcl::GetNumProcesses();
+			int minRegularHMasterProc = pcl::NumProcs();
 			bool isVMaster = false;
 			bool isVSlave = false;
 			bool isNormal = false;
@@ -1397,7 +1397,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			}
 
 			UG_ASSERT((!createNormalHInterface)
-					  || (minRegularHMasterProc < pcl::GetNumProcesses()),
+					  || (minRegularHMasterProc < pcl::NumProcs()),
 					  "invalid h-master process. The local node (" << ElementDebugInfo(mg, e)
 					  << ") has the following flags:\n"
 					  << distInfos.get_debug_info(e) << "\n");
@@ -1405,7 +1405,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 		//	if one process is marked as vmaster but not as a vslave, then we have
 		//	to be careful if we adjust states on processes which are marked as
 		//	both vmaster and vslave.
-			if(minVMasterNoVSlave < pcl::GetNumProcesses())
+			if(minVMasterNoVSlave < pcl::NumProcs())
 				minVMasterProc = minVMasterNoVSlave;
 
 		//	in some situations, lower dimensional elements can be marked as a
@@ -1422,7 +1422,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			//	adjacent normal full-dimensional elements should thus exist and a
 			//	horizontal interface has to be built.
 				createNormalHInterface = true;
-				UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
+				UG_ASSERT(minRegularHMasterProc < pcl::NumProcs(), "invalid h-master process");
 			}
 //			else if((!(isVMaster || isVSlave)) && vMasterExists){
 //			//	check whether a vmaster copy exists. If this is the case,
@@ -1466,7 +1466,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 //					tpIsVMaster = tpIsVSlave = false;
 
 					createNormalHInterface = true;
-					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
+					UG_ASSERT(minRegularHMasterProc < pcl::NumProcs(), "invalid h-master process");
 				}
 //				else if((!(tpIsVMaster || tpIsVSlave)) && vMasterExists){
 //					tpIsVSlave = true;
@@ -1499,7 +1499,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 						mg.clear_child_connections(e);
 				}
 				else if(isVSlave && tpIsVSlave){
-					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
+					UG_ASSERT(minRegularHMasterProc < pcl::NumProcs(), "invalid h-master process");
 				//	we still have to build a horizontal interface, this time
 				//	however only between vertical slaves
 //					if(tpIsVSlave && (!tpWasVMaster)){
@@ -1527,7 +1527,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 
 			//	add entry to horizontal interface if necessary
 				if(!interfaceCreated && createNormalHInterface){
-					UG_ASSERT(minRegularHMasterProc < pcl::GetNumProcesses(), "invalid h-master process");
+					UG_ASSERT(minRegularHMasterProc < pcl::NumProcs(), "invalid h-master process");
 
 				//	check whether the target process would also create a normal h interface
 					if(localProcID == minRegularHMasterProc){
@@ -1558,7 +1558,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 			//	are v-slaves.
 				if(dummyExists && (!vMasterExists)){
 				//	the lowest normal process will be transformed to a v-master
-					UG_ASSERT(minNormalProc < pcl::GetNumProcesses(), "invalid minNormalProc!");
+					UG_ASSERT(minNormalProc < pcl::NumProcs(), "invalid minNormalProc!");
 
 					if(isDummy && (!(localInterfaceState & HAS_PARENT))
 						&& (tpi.procID == minNormalProc))
@@ -1647,19 +1647,19 @@ bool DistributeGrid(MultiGrid& mg,
 	{
 		UG_LOG("DEBUG: WRITING GLOBAL VERTEX IDS TO FILE\n");
 		stringstream ss;
-		ss << "global_ids_vrt_p" << pcl::GetProcRank() << ".txt";
+		ss << "global_ids_vrt_p" << pcl::ProcRank() << ".txt";
 		WriteDebugValuesToFile<VertexBase>(ss.str().c_str(), mg, aGeomObjID, false);
 	}
 	{
 		UG_LOG("DEBUG: WRITING GLOBAL EDGE IDS TO FILE\n");
 		stringstream ss;
-		ss << "global_ids_edge_p" << pcl::GetProcRank() << ".txt";
+		ss << "global_ids_edge_p" << pcl::ProcRank() << ".txt";
 		WriteDebugValuesToFile<EdgeBase>(ss.str().c_str(), mg, aGeomObjID, false);
 	}
 	{
 		UG_LOG("DEBUG: WRITING GLOBAL FACE IDS TO FILE\n");
 		stringstream ss;
-		ss << "global_ids_face_p" << pcl::GetProcRank() << ".txt";
+		ss << "global_ids_face_p" << pcl::ProcRank() << ".txt";
 		WriteDebugValuesToFile<Face>(ss.str().c_str(), mg, aGeomObjID, false);
 	}
 	#endif
@@ -1740,7 +1740,7 @@ bool DistributeGrid(MultiGrid& mg,
 	int localPartitionInd = -1;
 	for(size_t i_to = 0; i_to < sendPartitionInds.size(); ++i_to){
 		int partInd = sendPartitionInds[i_to];
-		bool localPartition = (sendToRanks[i_to] == pcl::GetProcRank());
+		bool localPartition = (sendToRanks[i_to] == pcl::ProcRank());
 		if(localPartition)
 			localPartitionInd = partInd;
 
@@ -1988,7 +1988,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 	for(size_t i = 0; i < recvFromRanks.size(); ++i){
 	//	there is nothing to serialize from the local rank
-		if(recvFromRanks[i] == pcl::GetProcRank())
+		if(recvFromRanks[i] == pcl::ProcRank())
 			continue;
 
 		UG_DLOG(LIB_GRID, 2, "Deserializing from rank " << recvFromRanks[i] << "\n");
@@ -2071,7 +2071,7 @@ bool DistributeGrid(MultiGrid& mg,
 //	{
 //		static int counter = 0;
 //		stringstream ss;
-//		ss << "parallel-grid-layout-after-redist-" << counter << "-p" << pcl::GetProcRank() << ".ugx";
+//		ss << "parallel-grid-layout-after-redist-" << counter << "-p" << pcl::ProcRank() << ".ugx";
 //		UG_LOG("DEBUG SAVE OF PARALLEL GRID LAYOUT IN DistributeGrid\n");
 //		SaveParallelGridLayout(mg, ss.str().c_str(), 0.1);
 //		++counter;

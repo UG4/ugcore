@@ -30,7 +30,7 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 
 		bool loadingGrid = true;
 		#ifdef UG_PARALLEL
-			if((procId != -1) && (pcl::GetProcRank() != procId))
+			if((procId != -1) && (pcl::ProcRank() != procId))
 				loadingGrid = false;
 		#endif
 

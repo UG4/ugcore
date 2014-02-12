@@ -54,8 +54,8 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 			m_num_procs_per_subdomain(-1)
 			/*m_pDebugWriter(NULL)*/
 		{
-			if(numSubdomains > 0 && pcl::GetNumProcesses() > 1)
-				m_num_procs_per_subdomain = pcl::GetNumProcesses() / numSubdomains;
+			if(numSubdomains > 0 && pcl::NumProcs() > 1)
+				m_num_procs_per_subdomain = pcl::NumProcs() / numSubdomains;
 			else
 				m_num_procs_per_subdomain = -1;
 		}
@@ -75,8 +75,8 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 		void set_num_subdomains(int numSubdomains) {
 			m_num_subdomains = numSubdomains;
 
-			if(numSubdomains > 0 && pcl::GetNumProcesses() > 1)
-				m_num_procs_per_subdomain = pcl::GetNumProcesses() / numSubdomains;
+			if(numSubdomains > 0 && pcl::NumProcs() > 1)
+				m_num_procs_per_subdomain = pcl::NumProcs() / numSubdomains;
 			else
 				m_num_procs_per_subdomain = -1;
 		}

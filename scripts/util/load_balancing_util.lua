@@ -121,7 +121,7 @@ end
 --! rebalancing of adaptively refined grids.
 function balancer.CreateLoadBalancer(domain)
 	local loadBalancer = nil
-	local numComputeProcs = GetNumProcesses()
+	local numComputeProcs = NumProcs()
 	
 	if numComputeProcs > 1 then
 		loadBalancer = DomainLoadBalancer(domain)
@@ -233,7 +233,7 @@ function balancer.Rebalance(domain, loadBalancer)
 			if balancer.firstDistLvl > 0 then minDistLvl = balancer.firstDistLvl end
 			
 			procH = CreateProcessHierarchy(domain, balancer.parallelElementThreshold,
-										   balancer.redistProcs, GetNumProcesses(),
+										   balancer.redistProcs, NumProcs(),
 										   minDistLvl, balancer.maxLvlsWithoutRedist)
 			loadBalancer:set_next_process_hierarchy(procH)
 		end

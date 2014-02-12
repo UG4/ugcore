@@ -320,7 +320,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 //	only call metis if more than 1 part is required
 	int rootProc = 0;
 	#ifdef UG_PARALLEL
-		rootProc = pcl::GetProcRank();
+		rootProc = pcl::ProcRank();
 	#endif
 
 	if(numParts > 1){
@@ -497,7 +497,7 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 	typedef TGeomBaseObj	TElem;
 	typedef typename geometry_traits<TGeomBaseObj>::iterator	ElemIter;
 
-	int localProc = pcl::GetProcRank();
+	int localProc = pcl::ProcRank();
 	pcl::ProcessCommunicator procComWorld;
 
 //	here we'll store the dual graph

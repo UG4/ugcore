@@ -341,7 +341,7 @@ string UGProfileNode::groups() const
 
 	vector<string> gs;
 #ifdef UG_PARALLEL
-	if(pcl::GetProcRank() == 0)
+	if(pcl::ProcRank() == 0)
 #endif
 	for(map<string, double>::iterator it = mapGroups.begin(); it != mapGroups.end();++it)
 		gs.push_back(it->first);
@@ -590,9 +590,9 @@ void WriteProfileDataXML(const char *filename)
 void WriteProfileDataXML(const char *filename, int procId)
 {
 	#ifdef UG_PARALLEL
-		UG_COND_THROW(procId >= pcl::GetNumProcesses(),
+		UG_COND_THROW(procId >= pcl::NumProcs(),
 					  "Bad process id: " << procId << ". Maximum allowed is "
-					  << pcl::GetNumProcesses() - 1);
+					  << pcl::NumProcs() - 1);
 	#else
 		UG_COND_THROW(procId >0,
 					  "Bad process id: " << procId
@@ -619,7 +619,7 @@ void WriteProfileDataXML(const char *filename, int procId)
 		IndexLayout;
 
 	pcl::InterfaceCommunicator<IndexLayout> ic;
-	if(pcl::GetProcRank() == procId)
+	if(pcl::ProcRank() == procId)
 	{
 #endif
 		fstream f(filename, ios::out);
@@ -693,12 +693,12 @@ void WriteProfileDataXML(const char *filename, int procId)
 #ifdef UG_PARALLEL
 		if(gatherFromAllProcs)
 		{
-			vector<ug::BinaryBuffer> buffers(pcl::GetNumProcesses()-1);
-			for(int i=1; i<pcl::GetNumProcesses(); i++)
+			vector<ug::BinaryBuffer> buffers(pcl::NumProcs()-1);
+			for(int i=1; i<pcl::NumProcs(); i++)
 				ic.receive_raw(i, buffers[i-1]);
 			ic.communicate();
 
-			for(int i=1; i<pcl::GetNumProcesses(); i++)
+			for(int i=1; i<pcl::NumProcs(); i++)
 			{
 				f << "\n<core id=\"" << i << "\">";
 				string s;

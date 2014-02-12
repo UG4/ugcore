@@ -199,7 +199,7 @@ void ProcessCommunicator::
 broadcast(T &t, int root, DataTypeIndirectlySupported d) const
 {
 	ug::BinaryBuffer buf;
-	if(pcl::GetProcRank() == root)
+	if(pcl::ProcRank() == root)
 	{
 		Serialize(buf, t);
 		broadcast(buf, root);

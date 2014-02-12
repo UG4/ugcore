@@ -389,7 +389,7 @@ void WriteVectorCSV(const char *filename,
 	std::string name(filename);
 	size_t iExtPos = name.find_last_of(".");
 	name.resize(iExtPos);
-	int rank = pcl::GetProcRank();
+	int rank = pcl::ProcRank();
 	char ext[20];
 	sprintf(ext, "_p%05d.csv", rank);
 	name.append(ext);

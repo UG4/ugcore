@@ -73,10 +73,10 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 					 "", "", "Synchronizes all parallel processes if the executable"
 							 "has been compiled with PCL_DEBUG_BARRIER=ON");
 
-	reg.add_function("GetNumProcesses", &pcl::GetNumProcesses, grp,
+	reg.add_function("NumProcs", &pcl::NumProcs, grp,
 					"NumProcs", "", "Returns the number of active processes.");
 
-	reg.add_function("GetProcessRank", &pcl::GetProcRank, grp,
+	reg.add_function("ProcRank", &pcl::ProcRank, grp,
 					"ProcRank", "", "Returns the rank of the current process.");
 
 	reg.add_function("SynchronizeProcesses", &pcl::SynchronizeProcesses, grp,
@@ -103,10 +103,10 @@ static bool PclDebugBarrierAllDUMMY()
 }
 
 ///	Dummy method for serial compilation always returning 1
-static int GetNumProcessesDUMMY()	{return 1;}
+static int NumProcsDUMMY()	{return 1;}
 
 ///	Dummy method for serial compilation always returning 0
-static int GetProcRankDUMMY()				{return 0;}
+static int ProcRankDUMMY()				{return 0;}
 
 ///	Dummy method for serial compilation doing nothing
 static void SynchronizeProcessesDUMMY()			{}
@@ -147,10 +147,10 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 					 "", "", "Synchronizes all parallel processes if the executable"
 							 "has been compiled with PCL_DEBUG_BARRIER=ON");
 
-	reg.add_function("GetNumProcesses", &GetNumProcessesDUMMY, grp,
+	reg.add_function("NumProcs", &NumProcsDUMMY, grp,
 					"NumProcs", "", "Returns the number of active processes.");
 
-	reg.add_function("GetProcessRank", &GetProcRankDUMMY, grp,
+	reg.add_function("ProcRank", &ProcRankDUMMY, grp,
 					"ProcRank", "", "Returns the rank of the current process.");
 
 	reg.add_function("SynchronizeProcesses", &SynchronizeProcessesDUMMY, grp,

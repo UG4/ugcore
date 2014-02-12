@@ -186,7 +186,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 	assert(m_mg);
 	MultiGrid& mg = *m_mg;
 	m_sh.clear();
-//	int localProc = pcl::GetProcRank();
+//	int localProc = pcl::ProcRank();
 
 	ANumber aWeight;
 	mg.attach_to<elem_t>(aWeight);
@@ -283,14 +283,14 @@ partition(size_t baseLvl, size_t elementThreshold)
 				UG_THROW("Something went wrong during partitioning. At this point"
 						" either exactly one subset or a filled process map should exist.");
 			}
-			m_procMap.push_back(pcl::GetProcRank());
+			m_procMap.push_back(pcl::ProcRank());
 		}
 	}
 
 //	debugging
 //	static int execCounter = 0;
 //	stringstream ss;
-//	ss << "partition-map-" << execCounter << "-p" << pcl::GetProcRank() << ".ugx";
+//	ss << "partition-map-" << execCounter << "-p" << pcl::ProcRank() << ".ugx";
 //	AssignSubsetColors(m_sh);
 //	SaveGridHierarchyTransformed(mg, m_sh, ss.str().c_str(), 20);
 //	++execCounter;

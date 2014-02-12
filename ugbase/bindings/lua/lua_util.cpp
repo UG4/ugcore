@@ -82,8 +82,8 @@ bool LoadUGScript(const char *_filename, bool bDistributedLoad)
 	std::vector<char> file;
 
 #ifdef UG_PARALLEL
-	if(pcl::GetNumProcesses() == 1) bDistributedLoad = false;
-	if(pcl::GetProcRank() == 0 || bDistributedLoad==false)
+	if(pcl::NumProcs() == 1) bDistributedLoad = false;
+	if(pcl::ProcRank() == 0 || bDistributedLoad==false)
 		bSuccess = GetAbsoluteUGScriptFilename(filename, absoluteFilename);
 	bSuccess = pcl::AllProcsTrue(bSuccess);
 #else

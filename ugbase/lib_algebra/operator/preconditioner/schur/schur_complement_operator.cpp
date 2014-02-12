@@ -168,7 +168,7 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 // DEBUG ONLY!!!
 /*	 vector_type uskeleton(uskeleton2);
 	 uskeleton.set(0.0);
-	 if (pcl::GetProcRank()==0) uskeleton[2] = 1.0;
+	 if (pcl::ProcRank()==0) uskeleton[2] = 1.0;
 */
 
 //	Check parallel storage type of vectors
@@ -221,7 +221,7 @@ apply(vector_type& fskeleton, const vector_type& uskeleton)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementOperator::apply': "
 						 "Could not solve Dirichlet problem (step 3.b) on Proc "
-							<< pcl::GetProcRank() << /*" (m_statType = '" << m_statType <<*/ "').\n");
+							<< pcl::ProcRank() << /*" (m_statType = '" << m_statType <<*/ "').\n");
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementOperator::apply':"
 						" Last defect was " << m_spDirichletSolver->defect() <<
 						" after " << m_spDirichletSolver->step() << " steps.\n");

@@ -40,7 +40,7 @@ int ParallelColoring::color(pcl::InterfaceCommunicator<IndexLayout> &com)
 
 	com.communicate();
 
-	int myPID = pcl::GetProcRank();
+	int myPID = pcl::ProcRank();
 
 /*#ifdef UG_ENABLE_DEBUG_LOGS
 	IF_DEBUG(LIB_ALG_MATRIX, 1)

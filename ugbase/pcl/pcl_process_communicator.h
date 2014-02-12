@@ -62,7 +62,7 @@ class ProcessCommunicator
 
 	///	returns the proc-id relative to this communicator
 	/**	This method has a worst time complexity of O(n)*/
-		int get_local_proc_id(int globalProcID = pcl::GetProcRank()) const;
+		int get_local_proc_id(int globalProcID = pcl::ProcRank()) const;
 
 	///	returns the mpi-communicator, in case someone needs it
 		MPI_Comm get_mpi_communicator()	{return m_comm->m_mpiComm;}

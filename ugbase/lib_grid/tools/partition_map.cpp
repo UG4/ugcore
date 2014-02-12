@@ -25,8 +25,8 @@ void PartitionMap::assign_grid(Grid& grid)
 SubsetHandler& PartitionMap::get_partition_handler()
 {return m_shPartitions;}
 
-void PartitionMap::add_target_proc(int targetProcRank)
-{m_targetProcs.push_back(targetProcRank);}
+void PartitionMap::add_target_proc(int tarProcRank)
+{m_targetProcs.push_back(tarProcRank);}
 
 void PartitionMap::add_target_procs(int first, int num)
 {

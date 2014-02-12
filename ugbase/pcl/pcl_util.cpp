@@ -76,7 +76,7 @@ void CommunicateInvolvedProcesses(std::vector<int>& vReceiveFromRanksOut,
 	if(!procComm.size())
 		return;
 
-	const int localProcRank = GetProcRank();
+	const int localProcRank = ProcRank();
 
 //	we'll use an array in which we'll store the number of
 //	processes, to which each process wants to talk.
@@ -158,7 +158,7 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 			*findIter = -1;
 		else{
 			UG_LOG("ERROR: send / receive mismatch: ");
-			UG_LOG("proc " << rank << " sends to proc " << GetProcRank());
+			UG_LOG("proc " << rank << " sends to proc " << ProcRank());
 			UG_LOG(" but no matching receive is scheduled.\n");
 			sendRecvMismatch = true;
 		}
@@ -168,7 +168,7 @@ bool SendRecvListsMatch(const std::vector<int>& recvFromTmp,
 	for(size_t i = 0; i < recvFrom.size(); ++i){
 		if(recvFrom[i] != -1){
 			UG_LOG("ERROR: receive / send mismatch: ");
-			UG_LOG("proc " << GetProcRank() << " awaits data from proc " << recvFrom[i]);
+			UG_LOG("proc " << ProcRank() << " awaits data from proc " << recvFrom[i]);
 			UG_LOG(", but no send was scheduled.\n");
 			sendRecvMismatch = true;
 		}
@@ -238,7 +238,7 @@ bool SendRecvBuffersMatch(const std::vector<int>& recvFrom, const std::vector<in
 		if(recvBufSizes[i] != vSendBufSizes[i])
 		{
 			UG_LOG("SEND / RECEIVE BUFFER MISMATCH: "
-					<< "receive buffer on proc " << GetProcRank()
+					<< "receive buffer on proc " << ProcRank()
 					<< " has "<< recvBufSizes[i]
 					<< " bytes, but send buffer on proc " << recvFrom[i]
 					<< " has " << vSendBufSizes[i] << " bytes\n");
@@ -278,7 +278,7 @@ bool ParallelReadFile(string &filename, vector<char> &file, bool bText, bool bDi
 
 	BinaryBuffer buf;
 	bool bSuccess=false;
-	if(GetProcRank() == pc.get_proc_id(0))
+	if(ProcRank() == pc.get_proc_id(0))
 	{
 		bSuccess = ReadFile(filename.c_str(), file, bText);
 		Serialize(buf, bSuccess);
@@ -291,7 +291,7 @@ bool ParallelReadFile(string &filename, vector<char> &file, bool bText, bool bDi
 
 	pc.broadcast(buf);
 
-	if(GetProcRank() != pc.get_proc_id(0))
+	if(ProcRank() != pc.get_proc_id(0))
 	{
 		Deserialize(buf, bSuccess);
 		if(bSuccess)

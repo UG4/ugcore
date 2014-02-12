@@ -67,7 +67,7 @@ private:
 	 * - knowing which processor has copies of our own master nodes, and so constructing correct interfaces
 	 * - knowing which notifications are sent
 	 *
-	 * - if i is a master node (that is PN.local_to_global(i).master_proc() == pcl::GetProcRank())
+	 * - if i is a master node (that is PN.local_to_global(i).master_proc() == pcl::ProcRank())
 	 *   then i in notified[pid] means: process pid already knows that i is a slave node on his processor,
 	 *   and this processor knows that i the associated master
 	 *   that means: i is in a master interface on this processor and in a slave interface on pid.
@@ -137,7 +137,7 @@ public:
 
 		notified[pid].insert(localIndex);
 
-		if(globalID.master_proc() == pcl::GetProcRank())
+		if(globalID.master_proc() == pcl::ProcRank())
 		{
 			// add i to mNewLayout[pid] if not already in some interface to pid.
 
@@ -219,7 +219,7 @@ public:
 			{
 				NewSlaveNotification notification;
 				Deserialize(buf, notification);
-				UG_ASSERT(notification.id.master_proc() == pcl::GetProcRank(), notification.id << ", pid = " << pcl::GetProcRank());
+				UG_ASSERT(notification.id.master_proc() == pcl::ProcRank(), notification.id << ", pid = " << pcl::ProcRank());
 				UG_DLOG(LIB_ALG_MATRIX, 4, notification << "\n");
 
 				std::set<size_t> &mark = notified[notification.newSlaveOnPID];

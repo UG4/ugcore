@@ -341,7 +341,7 @@ number IntegrateSubsets(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInte
 
 #ifdef UG_PARALLEL
 	// sum over processes
-	if(pcl::GetNumProcesses() > 1)
+	if(pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
 		number local = value;
@@ -1634,7 +1634,7 @@ number Integral(SmartPtr<TGridFunction> spGridFct, const char* cmp,
 
 #ifdef UG_PARALLEL
 	// sum over processes
-	if(pcl::GetNumProcesses() > 1)
+	if(pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
 		number local = value;
@@ -1988,7 +1988,7 @@ number IntegralNormalComponentOnManifoldSubsets(
 
 #ifdef UG_PARALLEL
 	// sum over processes
-	if(pcl::GetNumProcesses() > 1)
+	if(pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
 		number local = value;
@@ -2246,7 +2246,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 
 #ifdef UG_PARALLEL
 	// sum over processes
-	if(pcl::GetNumProcesses() > 1)
+	if(pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
 		number local = value;

@@ -149,7 +149,7 @@ number IntegrateDiscFlux(SmartPtr<IAssemble<typename TGridFunction::algebra_type
 
 #ifdef UG_PARALLEL
 	// sum over processes
-	if(pcl::GetNumProcesses() > 1)
+	if(pcl::NumProcs() > 1)
 	{
 		pcl::ProcessCommunicator com;
 		for(size_t f = 0; f < vValue.size(); ++f)

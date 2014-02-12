@@ -947,7 +947,7 @@ void GenerateGlobalAlgebraIDs(pcl::InterfaceCommunicator<TLayout>& communicator,
 	PROFILE_FUNC_GROUP("algebra parallelization");
 //	generate an id for each entry.
 	idsOut.resize(numIDs);
-	int localProc = pcl::GetProcRank();
+	int localProc = pcl::ProcRank();
 	for(size_t i = 0; i < numIDs; ++i)
 		idsOut[i] = AlgebraID(localProc, i);
 

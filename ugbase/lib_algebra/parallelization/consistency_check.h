@@ -65,7 +65,7 @@ public:
 		{
 			if(bOK)
 			{ UG_LOG(name << " not consistent:\n"); bOK = false; }
-			UG_LOG("index " << index << " is " << vec[index] << " on this proc (" << pcl::GetProcRank() <<
+			UG_LOG("index " << index << " is " << vec[index] << " on this proc (" << pcl::ProcRank() <<
 					", but " << v << " on master (proc " << pid << ".\n");
 		}
 	}

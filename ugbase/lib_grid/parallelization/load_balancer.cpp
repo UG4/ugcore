@@ -70,7 +70,7 @@ create_cluster_communicator(size_t hlvl, size_t gridLvl, size_t numProcsPerProc)
 	}
 
 //	calculate the root process for this cluster and create the group based on rootProc
-	int rootProc = pcl::GetProcRank() / (int)parentLvl.numGlobalProcsInUse;
+	int rootProc = pcl::ProcRank() / (int)parentLvl.numGlobalProcsInUse;
 
 	std::vector<int> procs;
 	procs.reserve(numProcsPerProc);
@@ -102,13 +102,13 @@ init_cluster_procs(std::vector<int>& clusterProcs, size_t hlvl, size_t numProcsP
 
 	if(numProcsPerProc == 1){
 		//clusterProcs = parentLvl.clusterProcs;
-		clusterProcs.push_back(pcl::GetProcRank());
+		clusterProcs.push_back(pcl::ProcRank());
 		return;
 	}
 
 
 //	calculate the root process for this cluster and create the group based on rootProc
-	int localProc = pcl::GetProcRank();
+	int localProc = pcl::ProcRank();
 	int rootProc = localProc;
 	if(localProc >= (int)parentLvl.numGlobalProcsInUse)
 		rootProc = (localProc - (int)parentLvl.numGlobalProcsInUse) / ((int)numProcsPerProc - 1);

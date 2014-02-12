@@ -287,7 +287,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			UG_THROW("Something went wrong during partitioning. At this point"
 					" either exactly one subset or a filled process map should exist.");
 		}
-		m_procMap.push_back(pcl::GetProcRank());
+		m_procMap.push_back(pcl::ProcRank());
 	}
 
 //	make sure that everybody knows about the highestRedistLevel!

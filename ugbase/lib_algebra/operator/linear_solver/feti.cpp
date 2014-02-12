@@ -186,7 +186,7 @@ apply(vector_type& f, const vector_type& u)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
 						 "Could not solve Dirichlet problem (step 3.b) on Proc "
-							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
+							<< pcl::ProcRank() << " (m_statType = '" << m_statType << "').\n");
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply':"
 						" Last defect was " << m_spDirichletSolver->defect() <<
 						" after " << m_spDirichletSolver->step() << " steps.\n");
@@ -286,7 +286,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 		{
 			double tGlob, tLoc = vStepConv[i].lastDef3b;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			tGlob /= pcl::GetNumProcesses();
+			tGlob /= pcl::NumProcs();
 			avgLastDef3b = tGlob;
 			if (!bPrintOnlyAverages) UG_LOG(std::setprecision(2) << tGlob << " |  ");
 		}
@@ -300,7 +300,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 		{
 			int tGlob, tLoc = vStepConv[i].numIter3b;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_SUM);
-			tGlob /= pcl::GetNumProcesses();
+			tGlob /= pcl::NumProcs();
 
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlob << ",");
 
@@ -376,7 +376,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 				" Feti Layouts not set "
-				"on Proc " << pcl::GetProcRank() << ".\n");
+				"on Proc " << pcl::ProcRank() << ".\n");
 		bSuccess = false;
 	}
 
@@ -495,7 +495,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 	UG_LOG("     %  -------------------------------------------------------------------" << std::endl); 
 	UG_LOG("     %  - Assemble entries of Schur complement matrix on 'primal root proc' " << std::setw(4) << m_primalRootProc   << std::endl);
-	UG_LOG("     %  - Log number of primal variables ('#pv') for proc ('output proc')   " << std::setw(4) << pcl::GetProcRank() << std::endl);
+	UG_LOG("     %  - Log number of primal variables ('#pv') for proc ('output proc')   " << std::setw(4) << pcl::ProcRank() << std::endl);
 	UG_LOG("     %  -    number of processes on this feti subdomain:      " << intraFetiSubdomComm.size() << ","  << std::endl);
 	UG_LOG("     %  -                         as looped ([counter:rank]): ");
 	for (size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size(); ++procInFetiSD)
@@ -505,7 +505,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 
 	UG_LOG("     %  -    num primal variables in total (whole domain)");
-	if (pcl::GetProcRank() == m_primalRootProc) {
+	if (pcl::ProcRank() == m_primalRootProc) {
 		UG_LOG(": " << newVecSize << " (= 'newVecSize')");
 		//for (size_t i = 0; i < vPrimalRootIDLUT.size(); ++i)
 		//	UG_LOG(std::setw(6) << vPrimalRootIDLUT[i]);
@@ -526,7 +526,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	UG_LOG(std::endl);
 
 	UG_LOG("     %  -                                     on proc " <<
-		   std::setw(4) << pcl::GetProcRank()<<" (outproc;   'vLocalPrimalRootID's): ");
+		   std::setw(4) << pcl::ProcRank()<<" (outproc;   'vLocalPrimalRootID's): ");
 	for (size_t i = 0; i < vLocalPrimalLocalID.size(); ++i)
 		UG_LOG(std::setw(6) << vLocalPrimalRootID[i] << " "); // = 'vPrimalRootIDLUT[vLocalPrimalLocalID[i]]' (see above)
 	UG_LOG(std::endl);
@@ -538,12 +538,12 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 
 // Some checks
 	for(size_t procInFetiSD = 0; procInFetiSD < intraFetiSubdomComm.size(); procInFetiSD++) {
-		if(pcl::GetProcRank() == intraFetiSubdomComm.get_proc_id(procInFetiSD))
+		if(pcl::ProcRank() == intraFetiSubdomComm.get_proc_id(procInFetiSD))
 			if (vNumPrimalVariablesPerProc[procInFetiSD] != (int)vLocalPrimalLocalID.size()) {
-				UG_LOG("     %  - Huh? 'vNumPrimalVariablesPerProc[" << pcl::GetProcRank() << "]' != 'vLocalPrimalLocalID.size()': ");
+				UG_LOG("     %  - Huh? 'vNumPrimalVariablesPerProc[" << pcl::ProcRank() << "]' != 'vLocalPrimalLocalID.size()': ");
 				UG_LOG(vNumPrimalVariablesPerProc[procInFetiSD] << " != " << vLocalPrimalLocalID.size() << "!?\n");
 			} //else {
-		//UG_LOG("     %  -    'vNumPrimalVariablesPerProc[" << pcl::GetProcRank() << "]' == 'vLocalPrimalLocalID.size()': ");
+		//UG_LOG("     %  -    'vNumPrimalVariablesPerProc[" << pcl::ProcRank() << "]' == 'vLocalPrimalLocalID.size()': ");
 		//UG_LOG(vNumPrimalVariablesPerProc[procInFetiSD] << " == " << vLocalPrimalLocalID.size() << "\n");
 		//}
 	}
@@ -601,7 +601,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 			ss.str(""); // clear stringstream before next loop
 
 		//	set value of unity vector to one if on process and quantity, else 0
-			if(pcl::GetProcRank() == intraFetiSubdomComm.get_proc_id(procInFetiSD))
+			if(pcl::ProcRank() == intraFetiSubdomComm.get_proc_id(procInFetiSD))
 			{
 				const IndexLayout::Element localPrimalIndex = vLocalPrimalLocalID[pvTo_j];
 
@@ -743,7 +743,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi)' - Messpunkt ok
 
 //	build matrix on primalRoot
-	if(pcl::GetProcRank() == m_primalRootProc)
+	if(pcl::ProcRank() == m_primalRootProc)
 	{
 		UG_LOG("     %  - On primal root proc: building Schur complement matrix on primal root proc.\n");
 
@@ -813,7 +813,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 	//	operations, e.g. computation of defect, require this
 		m_pRootSchurComplementMatrix->set_storage_type(PST_ADDITIVE);
 
-	} // end 'if(pcl::GetProcRank() == m_primalRootProc)'
+	} // end 'if(pcl::ProcRank() == m_primalRootProc)'
 
 //	Debug output of matrix
 //	this is 2d only debug output. \todo: generalize (i.e. copy+paste)
@@ -846,7 +846,7 @@ init(SmartPtr<ILinearOperator<vector_type> > L)
 		commWorld.gatherv(vPosRootSchur, vProcLocPos, m_primalRootProc);
 
 	//	only root proc writes the matrix
-		if(pcl::GetProcRank() == m_primalRootProc)
+		if(pcl::ProcRank() == m_primalRootProc)
 		{
 		//	positions are now stored as in vPrimalRootIDLUT, sort this
 			std::vector<MathVector<2> > vPosRootSchurSorted(newVecSize);
@@ -941,7 +941,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
-							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
+							<< pcl::ProcRank() << " (m_statType = '" << m_statType << "').\n");
 
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
 						" Last defect was " << m_spNeumannSolver->defect() <<
@@ -967,7 +967,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not apply full matrix (step 2.b) on "
-						 "Proc " << pcl::GetProcRank() << ".\n");
+						 "Proc " << pcl::ProcRank() << ".\n");
 		bSuccess = false;
 	}
 
@@ -977,7 +977,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	Create storage for u,f on primal root
 	vector_type rootF;
 	vector_type rootU;
-	if(m_primalRootProc == pcl::GetProcRank())
+	if(m_primalRootProc == pcl::ProcRank())
 	{
 //		UG_LOG("Creating coarse vector f of size: " << m_pRootSchurComplementMatrix->num_rows()<<"\n");
 		rootF.resize(m_pRootSchurComplementMatrix->num_rows());
@@ -997,7 +997,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //     Toselli, p.~165, below eq.~(6.64): this is a ``local problem with Neumann bnd cnds at edges, zero Dirichlet bnd vrts''
 
 //	only on root proc
-	if(m_primalRootProc == pcl::GetProcRank())
+	if(m_primalRootProc == pcl::ProcRank())
 	{
 	//	only if matrix is non-zero
 		if(m_spRootSchurComplementOp->get_matrix().num_cols() != 0)
@@ -1041,7 +1041,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not apply full matrix (step 5.1) on "
-						 "Proc " << pcl::GetProcRank() << ".\n");
+						 "Proc " << pcl::ProcRank() << ".\n");
 		bSuccess = false;
 	}
 
@@ -1063,7 +1063,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
-							<< pcl::GetProcRank() << " (m_statType = '" << m_statType << "').\n");
+							<< pcl::ProcRank() << " (m_statType = '" << m_statType << "').\n");
 
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
 						" Last defect was " << m_spNeumannSolver->defect() <<
@@ -1162,7 +1162,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 
 			double tGlob, tLoc = vStepConv[0].lastDefSC;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			tGlob /= pcl::GetNumProcesses();
+			tGlob /= pcl::NumProcs();
 			avgLastDefSC = tGlob;
 			if (!bPrintOnlyAverages) {
 				UG_LOG(std::setprecision(2) << tGlob << " |  ");
@@ -1174,7 +1174,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 			sumAvgNumIter = 0;
 			int tGlobN, tLocN = vStepConv[0].numIterSC;
 			ProcCom.allreduce(&tLocN, &tGlobN, 1, PCL_DT_INT, PCL_RO_SUM);
-			tGlobN /= pcl::GetNumProcesses();
+			tGlobN /= pcl::NumProcs();
 
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlobN << ",");
 
@@ -1222,7 +1222,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 		{
 			double tGlob, tLoc = vStepConv[i].lastDef2a;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			tGlob /= pcl::GetNumProcesses();
+			tGlob /= pcl::NumProcs();
 			avgLastDef2a = tGlob;
 			if (!bPrintOnlyAverages) UG_LOG(std::setprecision(2) << tGlob << " |  ");
 		}
@@ -1236,7 +1236,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 		{
 			int tGlob, tLoc = vStepConv[i].numIter2a;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_SUM);
-			tGlob /= pcl::GetNumProcesses();
+			tGlob /= pcl::NumProcs();
 
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlob << ",");
 
@@ -1273,7 +1273,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 		{
 			double tGlob, tLoc = vStepConv[i].lastDef7;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			tGlob /= pcl::GetNumProcesses();
+			tGlob /= pcl::NumProcs();
 			avgLastDef7 = tGlob;
 
 			if (!bPrintOnlyAverages) UG_LOG(std::setprecision(2) << tGlob << " |  ");
@@ -1288,7 +1288,7 @@ print_statistic_of_inner_solver(bool bPrintOnlyAverages) //const
 		{
 			int tGlob, tLoc = vStepConv[i].numIter7;
 			ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_SUM);
-			tGlob /= pcl::GetNumProcesses();
+			tGlob /= pcl::NumProcs();
 
 			if (!bPrintOnlyAverages) UG_LOG(std::setw(3) << tGlob << ",");
 

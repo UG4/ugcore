@@ -103,7 +103,7 @@ class FetiLayouts
 			UG_LOG("[BuildDomainDecompositionLayouts done]");
 
 		//	create intra feti subdomain communicator
-			int localSubdomID = DDInfo.map_proc_id_to_subdomain_id(pcl::GetProcRank());
+			int localSubdomID = DDInfo.map_proc_id_to_subdomain_id(pcl::ProcRank());
 			pcl::ProcessCommunicator worldComm;
 			for(int i = 0; i < DDInfo.get_num_subdomains(); ++i){
 				if(localSubdomID == i)

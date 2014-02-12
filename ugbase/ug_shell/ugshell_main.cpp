@@ -343,7 +343,7 @@ int main(int argc, char* argv[])
 		//	interactive shell may only be executed in serial environment
 		#ifdef UG_PARALLEL
 			if(runInteractiveShell){
-				if(pcl::GetNumProcesses() > 1){
+				if(pcl::NumProcs() > 1){
 					UG_LOG("Parallel environment detected. Disabling interactive shell.\n");
 					runInteractiveShell = false;
 				}

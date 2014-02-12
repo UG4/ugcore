@@ -66,7 +66,7 @@ void WriteParallelArchive(pcl::ProcessCommunicator &pc, std::string strFilename,
  * Example usage:
  * \code
  * 	ParallelArchive pa("test.tar", pcl::ProcessCommunicator(pcl::PCD_WORLD));
-	std::stringstream &b = pa.create_stringstream_file(std::string("bla") + ToString(pcl::GetProcRank()));
+	std::stringstream &b = pa.create_stringstream_file(std::string("bla") + ToString(pcl::ProcRank()));
 	b << "Hello World!";
 	pa.write();
  *	\endcode

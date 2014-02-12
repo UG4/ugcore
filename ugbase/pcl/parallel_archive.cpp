@@ -29,7 +29,7 @@ void WriteParallelArchive(ProcessCommunicator &pc, std::string strFilename, cons
 	MPI_File fh;
 
 	bool bLast = pc.get_local_proc_id()+1 == (int)pc.size();
-	bool bFirst = pc.get_proc_id(0) == pcl::GetProcRank();
+	bool bFirst = pc.get_proc_id(0) == pcl::ProcRank();
 
 
 	char filename[1024];

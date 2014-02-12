@@ -33,7 +33,7 @@ void InterfaceCommunicator<TLayout>::
 send_raw(int targetProc, const void* pBuff, int bufferSize,
 	     bool bSizeKnownAtTarget)
 {
-	assert((targetProc == -1) || (targetProc >= 0 && targetProc < pcl::GetNumProcesses()));
+	assert((targetProc == -1) || (targetProc >= 0 && targetProc < pcl::NumProcs()));
 
 	ug::BinaryBuffer& buffer = m_bufMapOut[targetProc];
 	m_curOutProcs.insert(targetProc);
@@ -53,7 +53,7 @@ send_data(int targetProc, const Interface& interface,
 		  ICommunicationPolicy<TLayout>& commPol)
 {
 	if(!interface.empty()){
-		assert((targetProc == -1 || targetProc >= 0) && targetProc < pcl::GetNumProcesses());
+		assert((targetProc == -1 || targetProc >= 0) && targetProc < pcl::NumProcs());
 
 		ug::BinaryBuffer& buffer = m_bufMapOut[targetProc];
 		m_curOutProcs.insert(targetProc);

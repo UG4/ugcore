@@ -220,7 +220,7 @@ private:
 	 * - knowing which processor has copies of our own master nodes, and so constructing correct interfaces
 	 * - knowing which notifications are sent
 	 *
-	 * - if i is a master node (that is PN.local_to_global(i).master_proc() == pcl::GetProcRank())
+	 * - if i is a master node (that is PN.local_to_global(i).master_proc() == pcl::ProcRank())
 	 *   then i in notified[pid] means: process pid already knows that i is a slave node on his processor,
 	 *   and this processor knows that i the associated master
 	 *   that means: i is in a master interface on this processor and in a slave interface on pid.

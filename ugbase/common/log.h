@@ -156,7 +156,7 @@ class UG_API LogAssistant
 	/**	This is always true, if the application is executed in a serial environment.*/
 		bool is_output_process();
 
-	///	returns the process rank of the underlying process (same as pcl::GetProcRank)
+	///	returns the process rank of the underlying process (same as pcl::ProcRank)
 		int get_process_rank();
 
 		void flush();

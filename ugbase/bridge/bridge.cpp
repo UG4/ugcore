@@ -146,7 +146,7 @@ void InitUG(int dim, const AlgebraType& algType, bool verbose)
 		UG_LOG("INFO: InitUG successful. Setting is: ");
 		UG_LOG(dimTag << " " << algTag << "\n");
 	#ifdef UG_PARALLEL
-		UG_LOG("      Parallel Environment: Num Procs="<<pcl::GetNumProcesses()<<"\n");
+		UG_LOG("      Parallel Environment: Num Procs="<<pcl::NumProcs()<<"\n");
 	#endif
 	}
 
