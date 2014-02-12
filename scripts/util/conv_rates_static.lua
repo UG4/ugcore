@@ -206,8 +206,6 @@ function util.rates.static.compute(ConvRateSetup)
 		if not(DirectoryExists(name)) then CreateDirectory(name) end
 	end
 	
-	ensureDir(dataPath)
-	ensureDir(plotPath)
 	if plotSol then ensureDir(solPath) end
 
 	-- compute element size	
@@ -531,6 +529,11 @@ function util.rates.static.compute(ConvRateSetup)
 	--  Write gnuplot data
 	--------------------------------------------------------------------
 
+	-- the following is serial and one proc doing it is sufficient
+	if GetProcessRank() ~= 0 then return end
+	ensureDir(dataPath)
+	ensureDir(plotPath)
+
 	-- help fct to create a plot
 	local plots = {}
 	local function accessPlot(...)
@@ -693,6 +696,8 @@ end
 
 
 function util.rates.static.replot(gpOptions, file)
+	if GetProcessRank() ~= 0 then return end
+	
 	local dataPath = "data/"
 	local plotPath = "plots/"
 	
