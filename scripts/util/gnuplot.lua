@@ -567,13 +567,15 @@ function gnuplot.plot(filename, data, options)
 		fontscale = fontscale * 0.5
 	end
 	
-	term.font = "" -- no support: tikz, cairolatex, epslatex
+	term.font = "" -- no support: cairolatex, epslatex
 	if table.contains({"pdfcairo","epscairo","pngcairo", 
 						"pdf","postscript","png"}, terminal) 
 	then
 		term.font = "font '"..font..","..fontsize.."' fontscale "..fontscale	
 	elseif table.contains({"svg", "x11"}, terminal) then
 		term.font = "font '"..font..","..fontsize.."'"	
+	elseif table.contains({"tikz"}, terminal) then
+		term.font = "fontscale "..fontscale	
 	end	
 	
 	-- { solid |Êdashed}
