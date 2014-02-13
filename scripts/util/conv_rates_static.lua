@@ -302,7 +302,7 @@ function util.rates.static.compute(ConvRateSetup)
 			--  Create Solutions on each level
 			--------------------------------------------------------------------
 			
-			write("\n>> Allocating storage for solution vectors.\n")
+			write(">> Allocating storage for solution vectors.\n")
 			local u = {}
 			for lev = minLev, maxLev do
 				u[lev] = GridFunction(approxSpace, lev)
@@ -313,14 +313,14 @@ function util.rates.static.compute(ConvRateSetup)
 			--------------------------------------------------------------------
 			if exact or maxlevel or prevlevel then
 				for lev = minLev, maxLev do
-					write("\n>> Computing Level "..lev..".\n")
+					write("\n>> Computing Level "..lev..", "..disc..", "..p..".\n")
 				
 					write(">> Preparing inital guess on level "..lev..".\n")
 					PrepareInitialGuess(u, lev, minLev, maxLev, domainDisc, solver)
 					
-					write(">> Computing solution on level "..lev..".\n")
+					write(">> Start: Computing solution on level "..lev..".\n")
 					ComputeSolution(u[lev], domainDisc, solver)
-					write(">> Solver done.\n")
+					write(">> End: Solver done.\n")
 					
 					if plotSol then
 						WriteGridFunctionToVTK(u[lev], solPath.."sol_"..disc..p.."_l"..lev)
