@@ -10,6 +10,48 @@
 # Please mail martin.rupp@gcsc.uni-frankfurt.de if you have problems setting up
 # OR if you solved your problem.
 
+# If LAPACK is enabled, try to find the library
+if(LAPACK)
+    # try find using cmake-native find_package (requires fortran)
+	find_package(LAPACK QUIET)
+
+    # if not found, try to used ug4-shipped c-version (no fortran requirement)
+	if(NOT LAPACK_FOUND)
+    	find_package(MYLAPACK QUIET)
+	endif(NOT LAPACK_FOUND)
+
+    # now display search status:
+    # a) User defined libraries are to used. (Show found libraries for info)
+	if(USER_LAPACK_LIBRARIES)
+	    message(STATUS "Info: Using USER-defined LAPACK (Include: ${USER_LAPACK_INCLUDE_DIR}, Lib: ${USER_LAPACK_LIBRARIES})")
+	    if(LAPACK_FOUND)
+        message(STATUS "Note: CMake also found (unused) LAPACK (Includes: ${LAPACK_INCLUDE_DIR}, Lib: ${LAPACK_LIBRARIES})")
+	    endif(LAPACK_FOUND)
+		include_directories (${USER_LAPACK_INCLUDE_DIR})
+		set(linkLibraries ${linkLibraries} ${USER_LAPACK_LIBRARIES})
+		add_definitions(-DLAPACK_AVAILABLE)	
+	# b) Lapack has been found
+	elseif(LAPACK_FOUND)
+		message(STATUS "Info: Using LAPACK (Include: ${LAPACK_INCLUDE_DIR}, Lib: ${LAPACK_LIBRARIES})")
+		include_directories (${LAPACK_INCLUDE_DIR})
+		set(linkLibraries ${linkLibraries} ${LAPACK_LIBRARIES})
+		add_definitions(-DLAPACK_AVAILABLE)	
+	# c) Using build-in LAPACK (i.e. nothing needed, added by e.g. compiler)
+	elseif(BUILTIN_LAPACK)
+		message(STATUS "Info: Using Builtin LAPACK")
+		add_definitions(-DLAPACK_AVAILABLE)
+	# d) Not found
+	else()	
+		message(STATUS "WARNING: No LAPACK package found. Not using LAPACK.")
+		message(STATUS "         If you have a builtin LAPACK, use -DBUILTIN_LAPACK")
+		message(STATUS "         To supply your own LAPACK libraries, use -DUSER_LAPACK_LIBRARIES and (optionally) -DUSER_LAPACK_INCLUDES:")
+		message(STATUS "         e.g.: cmake -DUSER_LAPACK_LIBRARIES=/usr/lib64/liblapack.so -DUSER_LAPACK_INCLUDES=/includepath/ ..")
+	endif()
+else(LAPACK)
+    # e) Lapack not wanted
+	message(STATUS "Info: Not using LAPACK, use -DLAPACK=ON to enable.")
+endif(LAPACK)
+
 # If BLAS is enabled, try to find the library
 if(BLAS)
     # try find using cmake-native find_package (requires fortran)
@@ -57,46 +99,3 @@ else(BLAS)
     # e) Blas not wanted
 	message(STATUS "Info: Not using BLAS, use -DBLAS=ON to enable.")
 endif(BLAS)
-
-# If LAPACK is enabled, try to find the library
-if(LAPACK)
-    # try find using cmake-native find_package (requires fortran)
-	find_package(LAPACK QUIET)
-
-    # if not found, try to used ug4-shipped c-version (no fortran requirement)
-	if(NOT LAPACK_FOUND)
-    	find_package(MYLAPACK QUIET)
-	endif(NOT LAPACK_FOUND)
-
-    # now display search status:
-    # a) User defined libraries are to used. (Show found libraries for info)
-	if(USER_LAPACK_LIBRARIES)
-	    message(STATUS "Info: Using USER-defined LAPACK (Include: ${USER_LAPACK_INCLUDE_DIR}, Lib: ${USER_LAPACK_LIBRARIES})")
-	    if(LAPACK_FOUND)
-        message(STATUS "Note: CMake also found (unused) LAPACK (Includes: ${LAPACK_INCLUDE_DIR}, Lib: ${LAPACK_LIBRARIES})")
-	    endif(LAPACK_FOUND)
-		include_directories (${USER_LAPACK_INCLUDE_DIR})
-		set(linkLibraries ${linkLibraries} ${USER_LAPACK_LIBRARIES})
-		add_definitions(-DLAPACK_AVAILABLE)	
-	# b) Lapack has been found
-	elseif(LAPACK_FOUND)
-		message(STATUS "Info: Using LAPACK (Include: ${LAPACK_INCLUDE_DIR}, Lib: ${LAPACK_LIBRARIES})")
-		include_directories (${LAPACK_INCLUDE_DIR})
-		set(linkLibraries ${linkLibraries} ${LAPACK_LIBRARIES})
-		add_definitions(-DLAPACK_AVAILABLE)	
-	# c) Using build-in LAPACK (i.e. nothing needed, added by e.g. compiler)
-	elseif(BUILTIN_LAPACK)
-		message(STATUS "Info: Using Builtin LAPACK")
-		add_definitions(-DLAPACK_AVAILABLE)
-	# d) Not found
-	else()	
-		message(STATUS "WARNING: No LAPACK package found. Not using LAPACK.")
-		message(STATUS "         If you have a builtin LAPACK, use -DBUILTIN_LAPACK")
-		message(STATUS "         To supply your own LAPACK libraries, use -DUSER_LAPACK_LIBRARIES and (optionally) -DUSER_LAPACK_INCLUDES:")
-		message(STATUS "         e.g.: cmake -DUSER_LAPACK_LIBRARIES=/usr/lib64/liblapack.so -DUSER_LAPACK_INCLUDES=/includepath/ ..")
-	endif()
-else(LAPACK)
-    # e) Lapack not wanted
-	message(STATUS "Info: Not using LAPACK, use -DLAPACK=ON to enable.")
-endif(LAPACK)
- 

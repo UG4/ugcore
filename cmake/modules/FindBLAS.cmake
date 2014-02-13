@@ -77,6 +77,7 @@ macro(check_fortran_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _
       set(${LIBRARIES} ${${LIBRARIES}} ${${_prefix}_${_library}_LIBRARY})
       set(_libraries_found ${${_prefix}_${_library}_LIBRARY})
     endif(_libraries_found)
+
   endforeach(_library ${_list})
   if(_libraries_found)
     set(_libraries_found ${${LIBRARIES}})
@@ -154,11 +155,9 @@ else()
   set(BLAS_UNIX_SEARCH_PATHS
       "/usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /bgsys/local/lib")
 
-
     #
     # If Unix, search for BLAS function in possible libraries
     #
-
     # BLAS in ATLAS library? (http://math-atlas.sourceforge.net/)
     if(NOT BLAS_LIBRARIES)
       check_fortran_libraries(
@@ -167,7 +166,7 @@ else()
       BLAS
       sgemm
       ""
-      "cblas;f77blas;atlas"
+      "cblas;f77blas;atlas;gfortran;m"
       "${BLAS_SEARCH_PATHS}" "${BLAS_UNIX_SEARCH_PATHS}"
       )
     endif()
@@ -418,7 +417,7 @@ else()
 
   #message("DEBUG: BLAS_INCLUDE_DIR = ${BLAS_INCLUDE_DIR}")
   #message("DEBUG: BLAS_DEFINITIONS = ${BLAS_DEFINITIONS}")
-  ##message("DEBUG: BLAS_LINKER_FLAGS = ${BLAS_LINKER_FLAGS}")
+  #message("DEBUG: BLAS_LINKER_FLAGS = ${BLAS_LINKER_FLAGS}")
   #message("DEBUG: BLAS_LIBRARIES = ${BLAS_LIBRARIES}")
   #message("DEBUG: BLAS_LIBRARIES_DIR = ${BLAS_LIBRARIES_DIR}")
   #message("DEBUG: BLAS_FOUND = ${BLAS_FOUND}")
