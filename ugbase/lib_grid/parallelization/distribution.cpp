@@ -1498,7 +1498,7 @@ static void CreateLayoutsFromDistInfos(MultiGrid& mg, GridLayoutMap& glm,
 					if(!createNormalHInterface && mg.has_children(e))
 						mg.clear_child_connections(e);
 				}
-				else if(isVSlave && tpIsVSlave){
+				if(isVSlave && tpIsVSlave){
 					UG_ASSERT(minRegularHMasterProc < pcl::NumProcs(), "invalid h-master process");
 				//	we still have to build a horizontal interface, this time
 				//	however only between vertical slaves

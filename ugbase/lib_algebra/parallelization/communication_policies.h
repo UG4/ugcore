@@ -1104,8 +1104,16 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 	///	Constructor setting the matrix
 		ComPol_MatAddSetZeroInnerInterfaceCouplings(TMatrix& rMat,
 			const std::vector<int>* vMultiOccurance = NULL)
-			: m_rMat(rMat), m_vMultiOccurance(vMultiOccurance)
+			: m_rMat(rMat), m_curLayout(NULL), m_vMultiOccurance(vMultiOccurance)
 		{}
+
+		virtual bool
+		begin_layout_collection(const Layout* pLayout)
+		{
+			UG_ASSERT(!m_curLayout, "Only one layout may be processed at a time.");
+			m_curLayout = pLayout;
+			return true;
+		}
 
 	///	writes the interface values into a buffer that will be sent
 		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
@@ -1116,12 +1124,11 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 
 		//	build map
 			Hash<size_t, size_t> hash((size_t)(interface.size() * 1.1));
-			size_t locID;
+			size_t interfaceIndex = 0;
 
-			int k = 0;
 			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter, ++k){
-				hash.insert(interface.get_element(iter), k);
+				iter != interface.end(); ++iter, ++interfaceIndex){
+				hash.insert(interface.get_element(iter), interfaceIndex);
 			}
 
 		//	loop interface
@@ -1145,34 +1152,42 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 			//	write entries and global id to stream
 				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k)
 				{
-					const size_t globID = it_k.index();
-					if(!hash.get_entry(locID, globID)) continue;
+					const size_t target = it_k.index();
+					if(!hash.get_entry(interfaceIndex, target)) continue;
 					block_type& a_ik = it_k.value();
 
 				//	scale if multiple v-master
-					if(m_vMultiOccurance != NULL){
-						if((*m_vMultiOccurance)[locID] > 1)
-							a_ik *= (1.0/((*m_vMultiOccurance)[locID]));
-					}
+//					if(m_vMultiOccurance != NULL){
+//						a_ik *= (1.0/(std::min((*m_vMultiOccurance)[index],
+//											   (*m_vMultiOccurance)[target])));
+//					}
 
 				//	write global entry to buffer
-					Serialize(buff, locID);
+					Serialize(buff, interfaceIndex);
 
 				//	write entry into buffer
 					Serialize(buff, a_ik);
-
-				//	clear sent values
-					a_ik = 0.0;
+					a_ik = 0;
 				}
 			}
 
-		///	done
+//			if(!m_curLayout)
+//				set_interface_couplings_to_zero(interface);
 			return true;
 		}
 
 		virtual bool
-		begin_layout_extraction(const Layout* pLayout)
+		end_layout_collection(const Layout* pLayout)
 		{
+			UG_ASSERT(m_curLayout == pLayout, "Only one layout may be processed at a time.");
+//			for(size_t lvl = 0; lvl < pLayout->num_levels(); ++lvl){
+//				for(Layout::const_iterator iter = pLayout->begin(lvl);
+//					iter != pLayout->end(lvl); ++iter)
+//				{
+//					set_interface_couplings_to_zero(pLayout->interface(iter));
+//				}
+//			}
+			m_curLayout = NULL;
 			return true;
 		}
 
@@ -1222,9 +1237,38 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 		}
 
 	private:
+		void set_interface_couplings_to_zero(const Interface& interface)
+		{
+			typedef typename TMatrix::row_iterator row_iterator;
+			typedef typename TMatrix::value_type block_type;
+
+		//	build map
+			Hash<size_t, size_t> hash((size_t)(interface.size() * 1.1));
+			size_t interfaceIndex = 0;
+
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter, ++interfaceIndex){
+				hash.insert(interface.get_element(iter), interfaceIndex);
+			}
+
+		//	loop interface
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+				const size_t index = interface.get_element(iter);
+				const row_iterator rowEnd = m_rMat.end_row(index);
+				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k)
+				{
+					const size_t index = it_k.index();
+					if(hash.get_entry(interfaceIndex, index))
+						it_k.value() = 0;
+				}
+			}
+		}
+
 	//	pointer to current vector
 		TMatrix& m_rMat;
-
+		const Layout* m_curLayout;
 	//	multi occurance indicator
 		const std::vector<int>* m_vMultiOccurance;
 };
