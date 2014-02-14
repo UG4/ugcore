@@ -37,9 +37,8 @@ bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
 					   SmartPtr<typename TDomain::subset_handler_type> sh,
 					   number maxDist)
 {
-//	domain type and position_type
+//	domain type
 	typedef TDomain domain_type;
-	typedef typename domain_type::position_type position_type;
 	typedef typename domain_type::grid_type grid_type;
 	typedef typename domain_type::subset_handler_type subset_handler_type;
 // get position accessor
@@ -107,9 +106,8 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
                            typename TGridFunction::domain_type::subset_handler_type* sh)
 {
 
-//	domain type and position_type
+//	domain type
 	typedef typename TGridFunction::domain_type domain_type;
-	typedef typename domain_type::position_type position_type;
 	typedef typename domain_type::grid_type grid_type;
 	typedef typename domain_type::subset_handler_type subset_handler_type;
 // get position accessor
