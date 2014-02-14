@@ -39,9 +39,13 @@ message(STATUS "Info: SHELLTYPE: ${SHELLTYPE} (options are: ${shelltypeOptions})
 # set the main sources
 set(srcUGShell	    ugshell_main.cpp
                     completion.cpp
-                    shell.cpp)
+                    shell.cpp
+                    algebra_test.cpp)
                     #signal_handler.cpp)
 
+if(CLOCK_FIX)
+    set(srcUGShell	    ${srcUGShell} clock_fix.cpp)
+end(CLOCK_FIX)
 
 if("${SHELLTYPE}" STREQUAL "linenoise")
 	add_definitions(-DUG_USE_LINENOISE)
