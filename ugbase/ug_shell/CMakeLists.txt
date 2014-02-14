@@ -40,7 +40,7 @@ message(STATUS "Info: SHELLTYPE: ${SHELLTYPE} (options are: ${shelltypeOptions})
 set(srcUGShell	    ugshell_main.cpp
                     completion.cpp
                     shell.cpp
-                    algebra_test.cpp)
+                    #algebra_test.cpp)
                     #signal_handler.cpp)
 
 if(CLOCK_FIX)
