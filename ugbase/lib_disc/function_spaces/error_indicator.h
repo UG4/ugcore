@@ -458,7 +458,8 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 	
 	std::vector<MathVector<dim> > vCorner;
 	std::vector<MathVector<dim> > sideCorners;
-	MathVector<dim> sideCoPos[dim+1];
+	//MathVector<dim> sideCoPos[dim+1];
+	std::vector<MathVector<dim> > vSideCoPos;
 
 //	get iterator over elements
 	const_iterator iter = u.template begin<element_type>();
@@ -503,14 +504,25 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 			faceValue/=(number)numOfAsso;
 			MathVector<dim> normal;
 			size_t numSideCo = rRefElem.num(dim-1,s,0);
-			for (size_t j=0;j<numSideCo;j++)
-				sideCoPos[j] = vCorner[rRefElem.id(dim-1,s,0,j)];
+
+			//alt:
+			//for (size_t j=0;j<numSideCo;j++)
+			//	sideCoPos[j] = vCorner[rRefElem.id(dim-1,s,0,j)];
+
+			//neu:
+			for (size_t i = 0; i < numSideCo; ++i)
+				vSideCoPos.push_back(vCorner[rRefElem.id(dim-1, s, 0, i)]);
+
 			// faces have dim corners in 1d, 2d
 			// in 3d they have dim corners (triangle) or dim+1 corners (quadrilateral)
 			if ((int)numSideCo==dim)
-				ElementNormal<face_type0,dim>(normal,sideCoPos);
+				//alt:
+				//ElementNormal<face_type0,dim>(normal,sideCoPos);
+				ElementNormal<face_type0,dim>(normal,&vSideCoPos[0]);
 			else
-				ElementNormal<face_type1,dim>(normal,sideCoPos);
+				//ElementNormal<face_type1,dim>(normal,sideCoPos);
+				ElementNormal<face_type0,dim>(normal,&vSideCoPos[0]);
+
 			for (int d=0;d<dim;d++){
 				vGlobalGrad[d] += faceValue * normal[d];
 			}

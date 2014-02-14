@@ -12,6 +12,8 @@
 #include "lib_disc/common/geometry_util.h"
 #include "lib_disc/spatial_disc/disc_util/fe_geom.h"
 
+using namespace std;
+
 namespace ug {
 
 template <int dim> struct face_type_traits
@@ -107,7 +109,9 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 
 	//	storage for corner coordinates
 	vector<MathVector<dim> > vCorner;
-	MathVector<dim> sideCoPos[dim+1], normal;
+	vector<MathVector<dim> > vSideCoPos;
+
+	MathVector<dim> normal;
 
 	// 	local indices and local algebra
 	LocalIndices ind, indObs;
@@ -133,17 +137,18 @@ void ActiveSet<TDomain, TAlgebra>::active_index_elem(TIterator iterBegin,
 
 	//	here the ordering of the corners in the reference element is exploited
 	//	in order to compute the outer normal later on
-		for (int i = 0; i < (int)vCorner.size(); ++i)
-			sideCoPos[i] = vCorner[rRefElem.id(dim-1, 0, 0, i)];
+		int nCorner = (int)vCorner.size();
+		for (int i = 0; i < nCorner; ++i)
+			vSideCoPos.push_back(vCorner[rRefElem.id(dim-1, 0, 0, i)]);
 
-		if ((int)vCorner.size() == dim)
+		if (nCorner == dim)
 		{
-			ElementNormal<face_type0, dim>(normal, sideCoPos);
+			ElementNormal<face_type0, dim>(normal, &vSideCoPos[0]);
 			UG_LOG("face_type0 \n");
 		}
 		else
 		{
-			ElementNormal<face_type1, dim>(normal, sideCoPos);
+			ElementNormal<face_type1, dim>(normal, &vSideCoPos[0]);
 			UG_LOG("face_type1 \n");
 		}
 
@@ -335,8 +340,9 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 	typename TDomain::position_accessor_type& aaPos = m_spDom->position_accessor();
 
 	//	some storage
-	MathVector<dim> sideCoPos[dim+1], normal;
+	MathVector<dim> normal;
 	vector<MathVector<dim> > vCorner;
+	vector<MathVector<dim> > vSideCoPos;
 
 	// 	local indices and local algebra
 	LocalIndices ind; LocalMatrix loclagrangeMatInv;
@@ -369,18 +375,20 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv_elem(TIterator iterBegin,
 		const DimReferenceElement<dim-1>& rRefElem
 				= ReferenceElementProvider::get<dim-1>(sideRoid);
 
-		for (int i = 0; i < (int)vCorner.size(); ++i)
-			sideCoPos[i] = vCorner[rRefElem.id(dim-1, 0, 0, i)];
+		int nCorner = (int)vCorner.size();
+		for (int i = 0; i < nCorner; ++i)
+			vSideCoPos.push_back(vCorner[rRefElem.id(dim-1, 0, 0, i)]);
 
-		if ((int)vCorner.size() == dim)
-			ElementNormal<face_type0, dim>(normal, sideCoPos);
+		if (nCorner == dim)
+			ElementNormal<face_type0, dim>(normal, &vSideCoPos[0]);
 		else
-			ElementNormal<face_type1, dim>(normal, sideCoPos);
+			ElementNormal<face_type1, dim>(normal, &vSideCoPos[0]);
+
 		UG_LOG("normal in lagrange_mat_inv_elem: " << normal << "\n");
 		//number normOfNormal = VecLength(normal);
 
 		try{
-			geo.update(elem, sideCoPos, LFEID(LFEID::LAGRANGE, dim, 1), 1);
+			geo.update(elem, &vSideCoPos[0], LFEID(LFEID::LAGRANGE, dim, 1), 1);
 		}
 		UG_CATCH_THROW("ActiveSet::lagrange_mat_inv_elem:"
 						" Cannot update finite element geometry.");
@@ -496,7 +504,8 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 
 	//	storage for corner coordinates
 	vector<MathVector<dim> > vCorner;
-	MathVector<dim> sideCoPos[dim+1], normal;
+	vector<MathVector<dim> > vSideCoPos;
+	MathVector<dim> normal;
 
 	// 	local indices and local algebra
 	LocalIndices ind, indObs;
@@ -518,13 +527,14 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv_elem(TIterator iterBegin,
 
 	//	here the ordering of the corners in the reference element is exploited
 	//	in order to compute the outer normal later on
-		for (int i = 0; i < (int)vCorner.size(); ++i)
-			sideCoPos[i] = vCorner[rRefElem.id(dim-1, 0, 0, i)];
+		int nCorner = (int)vCorner.size();
+		for (int i = 0; i < nCorner; ++i)
+			vSideCoPos.push_back(vCorner[rRefElem.id(dim-1, 0, 0, i)]);
 
-		if ((int)vCorner.size() == dim)
-			ElementNormal<face_type0, dim>(normal, sideCoPos);
+		if (nCorner == dim)
+			ElementNormal<face_type0, dim>(normal, &vSideCoPos[0]);
 		else
-			ElementNormal<face_type1, dim>(normal, sideCoPos);
+			ElementNormal<face_type1, dim>(normal, &vSideCoPos[0]);
 
 	// 	get global indices
 		u.indices(*iter, ind); (*m_spObs).indices(*iter, indObs);

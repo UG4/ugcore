@@ -107,9 +107,10 @@ adjust_sol_and_cor_elem(TIterator iterBegin,
 
 	//	storage for corner coordinates
 	vector<MathVector<dim> > vCorner;
+	vector<MathVector<dim> > vCoPos;
 
 	//	outer normal vector
-	MathVector<dim> coPos[dim+1], normal;
+	MathVector<dim> normal;
 
 	for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
@@ -126,19 +127,14 @@ adjust_sol_and_cor_elem(TIterator iterBegin,
 
 	//	here the ordering of the corners in the reference element is exploited
 	//	in order to compute the outer normal later on
-		for (int i = 0; i < (int)vCorner.size(); ++i)
-			coPos[i] = vCorner[rRefElem.id(dim-1, 0, 0, i)];
+		int nCorner = (int)vCorner.size();
+		for (int i = 0; i < nCorner; ++i)
+			vCoPos.push_back(vCorner[rRefElem.id(dim-1, 0, 0, i)]);
 
 		if ((int)vCorner.size() == dim)
-		{
-			ElementNormal<face_type0, dim>(normal, coPos);
-			//UG_LOG("face_type0 \n");
-		}
+			ElementNormal<face_type0, dim>(normal, &vCoPos[0]);
 		else
-		{
-			ElementNormal<face_type1, dim>(normal, coPos);
-			//UG_LOG("face_type1 \n");
-		}
+			ElementNormal<face_type1, dim>(normal, &vCoPos[0]);
 
 		/*for (int i = 0; i < (int)vCorner.size(); ++i)
 			UG_LOG("coPos: " << coPos[i] << "\n");
