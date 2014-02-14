@@ -62,9 +62,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 
 //	typedef
 	static const int dim = TDomain::dim;
-	typedef typename TAlgebra::vector_type vector_type;
-	typedef typename TAlgebra::matrix_type matrix_type;
-	typedef ApproximationSpace<TDomain> approximation_space_type;
 
 //	IDomainConstraint
 	{

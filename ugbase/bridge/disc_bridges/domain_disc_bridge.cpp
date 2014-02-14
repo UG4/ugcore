@@ -56,9 +56,6 @@ static void DomainAlgebra(Registry& reg, string grp)
 	string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
 	string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
 
-//	typedef
-	typedef ApproximationSpace<TDomain> approximation_space_type;
-
 //	group string
 	string approxGrp = grp; approxGrp.append("/ApproximationSpace");
 	string domDiscGrp = grp; domDiscGrp.append("/SpatialDisc");
