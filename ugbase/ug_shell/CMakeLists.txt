@@ -45,7 +45,7 @@ set(srcUGShell	    ugshell_main.cpp
 
 if(CLOCK_FIX)
     set(srcUGShell	    ${srcUGShell} clock_fix.cpp)
-    message(STATUS "Info: USING THE CLOCK_FIX WORKAROUND.")
+    message(STATUS "Info: USING THE CLOCK_FIX WORKAROUND (fixes undefined reference to clock_gettime and clock_getres, see ugbase/ug_shell/clock_fix.cpp).")
 endif(CLOCK_FIX)
 
 if("${SHELLTYPE}" STREQUAL "linenoise")
