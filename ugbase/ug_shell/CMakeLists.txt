@@ -45,7 +45,7 @@ set(srcUGShell	    ugshell_main.cpp
 
 if(CLOCK_FIX)
     set(srcUGShell	    ${srcUGShell} clock_fix.cpp)
-end(CLOCK_FIX)
+endif(CLOCK_FIX)
 
 if("${SHELLTYPE}" STREQUAL "linenoise")
 	add_definitions(-DUG_USE_LINENOISE)
