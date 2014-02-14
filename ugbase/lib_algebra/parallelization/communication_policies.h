@@ -1167,7 +1167,7 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 
 				//	write entry into buffer
 					Serialize(buff, a_ik);
-					a_ik = 0;
+					a_ik *= 0;
 				}
 			}
 
