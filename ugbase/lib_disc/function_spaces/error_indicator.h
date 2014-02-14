@@ -521,7 +521,7 @@ void ComputeGradientPiecewiseConstant(TFunction& u, size_t fct,
 				ElementNormal<face_type0,dim>(normal,&vSideCoPos[0]);
 			else
 				//ElementNormal<face_type1,dim>(normal,sideCoPos);
-				ElementNormal<face_type0,dim>(normal,&vSideCoPos[0]);
+				ElementNormal<face_type1,dim>(normal,&vSideCoPos[0]);
 
 			for (int d=0;d<dim;d++){
 				vGlobalGrad[d] += faceValue * normal[d];
