@@ -52,6 +52,10 @@ CreateProcessHierarchy(size_t* numElemsOnLvl, size_t numLvls,
 	size_t numProcsInvolved = min<size_t>(maxNumElemsTotal / minNumElemsPerProcPerLvl,
 										  maxNumProcs);
 
+//	The following line only ensures that v-interfaces stay on fixed levels
+//todo: remove the following line as soon as v-interfaces may change levels.
+	numProcsInvolved = (numProcsInvolved / maxNumRedistProcs) * maxNumRedistProcs;
+
 //	create the process hierarchy
 	size_t curNumProcs = 1;
 	int lastDistLvl = minDistLvl - 2;

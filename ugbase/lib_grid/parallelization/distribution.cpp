@@ -1611,10 +1611,15 @@ bool DistributeGrid(MultiGrid& mg,
 		UG_THROW(errprefix << "Can't distribute a serial grid! Compile ug with -DPARALLEL=ON");
 	}
 
+
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution starts\n");
+	GDIST_PROFILE(gdist_distStartsCallback);
 	GridDataSerializationHandler	userDataSerializer;
 	SPMessageHub msgHub = mg.message_hub();
 	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STARTS, userDataSerializer));
+	PCL_DEBUG_BARRIER(procComm);
+	GDIST_PROFILE_END();
+
 
 	DistributedGridManager& distGridMgr = *mg.distributed_grid_manager();
 	GridLayoutMap& glm = distGridMgr.grid_layout_map();
@@ -1633,15 +1638,17 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	GLOBAL IDS
+//todo:	only create global ids if they aren't already present
 	GDIST_PROFILE(gdist_CreateGlobalIDs);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Create global vertex ids\n");
-//todo:	only create global ids if they aren't already present
 	CreateAndDistributeGlobalIDs<VertexBase>(mg, glm);
 	CreateAndDistributeGlobalIDs<EdgeBase>(mg, glm);
 	CreateAndDistributeGlobalIDs<Face>(mg, glm);
 	CreateAndDistributeGlobalIDs<Volume>(mg, glm);
 	MultiElementAttachmentAccessor<AGeomObjID> aaID(mg, aGeomObjID);
+	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
+
 
 	#ifdef LG_DISTRIBUTION_DEBUG
 	{
@@ -1666,11 +1673,14 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	FILL THE DISTRIBUTION INFOS (INVOLVES COMMUNICATION...)
+	GDIST_PROFILE(gdist_FillDistInfos);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Fill distribution infos\n");
 	vector<bool> partitionIsEmpty;
 	DistInfoSupplier distInfos(mg);
 	FillDistInfos(mg, shPartition, msel, distInfos, processMap, procComm,
 				  createVerticalInterfaces, partitionIsEmpty);
+	PCL_DEBUG_BARRIER(procComm);
+	GDIST_PROFILE_END();
 
 //	DEBUG: output distInfos...
 	#ifdef LG_DISTRIBUTION_DEBUG
@@ -1681,6 +1691,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 ////////////////////////////////
 //	COMMUNICATE INVOLVED PROCESSES
+	GDIST_PROFILE(gdist_CommunicateInvolvedProcs);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: CommunicateInvolvedProcesses\n");
 
 //	each process has to know with which other processes it
@@ -1711,10 +1722,13 @@ bool DistributeGrid(MultiGrid& mg,
 
 	pcl::CommunicateInvolvedProcesses(recvFromRanks, sendToRanks, procComm);
 
+	PCL_DEBUG_BARRIER(procComm);
+	GDIST_PROFILE_END();
+
+
 ////////////////////////////////
 //	SERIALIZE THE GRID, THE GLOBAL IDS AND THE DISTRIBUTION INFOS.
 	GDIST_PROFILE(gdist_Serialization);
-	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Serialization\n");
 	AInt aLocalInd("distribution-tmp-local-index");
 	mg.attach_to_all(aLocalInd);
@@ -1777,6 +1791,7 @@ bool DistributeGrid(MultiGrid& mg,
 	//	size of the segment we just wrote to out
 		outSegSizes.push_back((int)(out.write_pos() - oldSize));
 	}
+	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 
 
@@ -1784,7 +1799,6 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	COMMUNICATE SERIALIZED DATA
 	GDIST_PROFILE(gdist_CommunicateSerializedData);
-	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Distribute data\n");
 //	now distribute the packs between involved processes
 	BinaryBuffer in;
@@ -1794,14 +1808,13 @@ bool DistributeGrid(MultiGrid& mg,
 							GetDataPtr(recvFromRanks), (int)recvFromRanks.size(),
 							out.buffer(), GetDataPtr(outSegSizes),
 							GetDataPtr(sendToRanks), (int)sendToRanks.size());
-
+	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 
 
 ////////////////////////////////
 //	INTERMEDIATE CLEANUP
 	GDIST_PROFILE(gdist_IntermediateCleanup);
-	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Intermediate cleanup\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STARTS));
@@ -1971,12 +1984,12 @@ bool DistributeGrid(MultiGrid& mg,
 		glm.clear();
 		GDIST_PROFILE_END();
 	}
+	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 
 ////////////////////////////////
 //	DESERIALIZE INCOMING GRIDS
 	GDIST_PROFILE(gdist_Deserialize);
-	PCL_DEBUG_BARRIER(procComm);
 	distInfoSerializer.deserialization_starts();
 	serializer.deserialization_starts();
 	userDataSerializer.deserialization_starts();
@@ -2032,6 +2045,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 		UG_DLOG(LIB_GRID, 2, "Deserialization from rank " << recvFromRanks[i] << " done\n");
 	}
+	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 
 //	DEBUG: output distInfos...
@@ -2044,21 +2058,21 @@ bool DistributeGrid(MultiGrid& mg,
 ////////////////////////////////
 //	CREATE LAYOUTS
 	GDIST_PROFILE(gdist_CreateLayouts);
-	PCL_DEBUG_BARRIER(procComm);
 	CreateLayoutsFromDistInfos<VertexBase>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<EdgeBase>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<Face>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<Volume>(mg, glm, distInfos, aGeomObjID);
+	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 
 ////////////////////////////////
 //	UPDATE THE DISTRIBUTED GRID MANAGER
 	GDIST_PROFILE(gdist_UpdateDistGridManager);
-	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Update DistributedGridManager\n");
 	glm.remove_empty_interfaces();
 	distGridMgr.enable_interface_management(true);
 	distGridMgr.grid_layouts_changed(false);
+	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 
 	mg.detach_from_all(aLocalInd);
@@ -2085,7 +2099,6 @@ bool DistributeGrid(MultiGrid& mg,
 
 //	execute callbacks for external postprocessing
 	GDIST_PROFILE(gdist_ExternalPostProcessing);
-	PCL_DEBUG_BARRIER(procComm);
 	UG_DLOG(LIB_GRID, 2, "dist: Informing msg-hub that distribution stops\n");
 
 	msgHub->post_message(GridMessage_Creation(GMCT_CREATION_STOPS));
@@ -2097,10 +2110,10 @@ bool DistributeGrid(MultiGrid& mg,
 	userDataSerializer.deserialization_done();
 	msgHub->post_message(GridMessage_Distribution(GMDT_DISTRIBUTION_STOPS, userDataSerializer));
 	//msgHub->post_message(GridMessage_Distribution(GMDT_DATA_SERIALIZATION_DONE));
-
-	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");
+	PCL_DEBUG_BARRIER(procComm);
 	GDIST_PROFILE_END();
 
+	UG_DLOG(LIB_GRID, 1, "dist-stop: DistributeGrid\n");
 	return true;
 }
 
