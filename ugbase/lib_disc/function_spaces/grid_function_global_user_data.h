@@ -20,6 +20,8 @@
 #include "lib_disc/reference_element/reference_mapping_provider.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 
+#include <math.h>       /* fabs */
+
 namespace ug{
 
 
@@ -79,19 +81,18 @@ class GlobalGridFunctionNumberData
 		///	to full-fill UserData-Interface
 		inline void evaluate(number& value, const MathVector<dim>& x, number time, int si) const
 		{
-			evaluate(value, x);
-
+			if(!evaluate(value, x))
+				UG_THROW("Couldn't find an element containing the specified point: " << x);
 		}
 
-		///	evaluates the data at a given point
-		inline void evaluate(number& value, const MathVector<dim>& x) const
+		///	evaluates the data at a given point, returns false if point not found
+		inline bool evaluate(number& value, const MathVector<dim>& x) const
 		{
 
 			try{
 				element_t* elem;
-				if(!FindContainingElement(elem, m_tree, x)){
-					UG_THROW("Couldn't find an element containing the specified point: " << x);
-				}
+				if(!FindContainingElement(elem, m_tree, x))
+					return false;
 
 			//	get corners of element
 				std::vector<MathVector<dim> > vCornerCoords;
@@ -124,11 +125,55 @@ class GlobalGridFunctionNumberData
 					value += valSH * vShape[sh];
 				}
 
+			//	point is found
+				return true;
 			}
 			UG_CATCH_THROW("GlobalGridFunctionNumberData: Evaluation failed.");
+		}
 
-//			UG_LOG("Computed value at "<<x<<": " << value << "\n")
-//			value = 1;
+		/// evaluate value on all procs
+		inline void evaluate_global(number& value, const MathVector<dim>& x) const
+		{
+			// evaluate at this proc
+			bool bFound = this->evaluate(value, x);
+
+#ifdef UG_PARALLEL
+			// share value between all procs
+			pcl::ProcessCommunicator com;
+			int numFound = (bFound ? 1 : 0);
+			numFound = com.allreduce(numFound, PCL_RO_SUM);
+
+			// get overall value
+			if(!bFound) value = 0.0;
+			number globValue = com.allreduce(value, PCL_RO_SUM) / numFound;
+
+			// check correctness
+			if(bFound)
+				if( fabs((globValue - value) / value) > 1e-8)
+					UG_THROW("Global mean "<<globValue<<" != local value "<<value);
+
+			// set as global value
+			value = globValue;
+			bFound = true;
+#endif
+
+			if(!bFound)
+				UG_THROW("Couldn't find an element containing the specified point: " << x);
+		}
+
+		// evaluates at given position
+		number evaluate(std::vector<number> vPos)
+		{
+			if((int)vPos.size() != dim)
+				UG_THROW("Expected "<<dim<<" components, but given "<<vPos.size());
+
+			MathVector<dim> x;
+			for(int i = 0; i < dim; i++) x[i] = vPos[i];
+
+			number value;
+			evaluate_global(value, x);
+
+			return value;
 		}
 };
 
