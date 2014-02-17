@@ -388,18 +388,6 @@ class AssembledMultiGridCycle :
 
 		///	missing coarse grid correction
 			matrix_type RimCpl_Coarse_Fine;
-
-		///	flag if v-slaves with multiple ghost present on this proc
-			bool bMultiOccurance;
-
-		///	scaling factors for multiple occurance (valid only if bMultiOccurance == true)
-			std::vector<int> vMultiOccurence;
-
-		///	returns multi-occurance vector (or NULL no multi-occurance present)
-			std::vector<int>* getMultiOccurence() {
-				if(bMultiOccurance) return &vMultiOccurence;
-				else return NULL;
-			}
 		};
 
 	///	storage for all level
@@ -431,9 +419,6 @@ class AssembledMultiGridCycle :
 											ConstSmartPtr<DoFDistribution> spGhostDD);
 		void init_noghost_to_ghost_mapping(int lev);
 	/// \}
-
-	///	inits numbers of multi-vmaster
-		void init_multi_occurance(int lev, SmartPtr<GF> spVec);
 
 	///	copies vector to smoothing patch using cached mapping
 		void copy_ghost_to_noghost(SmartPtr<GF> spVecTo,

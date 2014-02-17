@@ -523,9 +523,14 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 /**
  * This class is used as a policy to add values on the interfaces of a
  * parallel vector and set the values to zero on the sending interface.
- * The collecting interfaces pack the values on the interface and sets them to
- * zero into a stream. The extracting interfaces receive the stream and adds
- * the values to those of the vector.
+ * The collecting routine packs the interface values of the given vector
+ * into a stream and and sets those entries to zero immediately after packing.
+ * The extracting interfaces receive the stream and add the values to those of
+ * already existing in the vector.
+ *
+ * \note	If an entry is sent over multiple interfaces, only the first connected
+ * 			proc will receive the full value. All others will receive 0. This helps
+ * 			to keep the vector additive.
  *
  * \tparam	TVector		Vector type
  */
@@ -534,18 +539,10 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default Constructor
-		ComPol_VecAddSetZero() : m_pVec(0), m_vMultiOccurance(0), m_curLayout(0)	{}
+		ComPol_VecAddSetZero() : m_pVec(0)	{}
 
 	///	Constructor setting vector
-		ComPol_VecAddSetZero(TVector* pVec) : m_pVec(pVec), m_vMultiOccurance(0), m_curLayout(0) {}
-
-	///	Constructor setting vector and Occurance map
-	/**
-	 * The vMultiOccurance map is used to scale the values when being sended
-	 * by the number of their occurance.
-	 */
-		ComPol_VecAddSetZero(TVector* pVec, const std::vector<int>* vMultiOccurance)
-			: m_pVec(pVec), m_vMultiOccurance(vMultiOccurance), m_curLayout(0) {}
+		ComPol_VecAddSetZero(TVector* pVec) : m_pVec(pVec)	{}
 
 	///	sets the vector that we be used for communication
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
@@ -569,14 +566,6 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				return -1;
 		}
 
-		virtual bool
-		begin_layout_collection(const Layout* pLayout)
-		{
-			UG_ASSERT(!m_curLayout, "Only one layout may be processed at a time.");
-			m_curLayout = pLayout;
-			return true;
-		}
-
 	///	writes the interface values into a buffer that will be sent and then sets
 	/// the value to zero on the interface
 	/**
@@ -597,52 +586,17 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		//	rename for convenience
 			TVector& v = *m_pVec;
 
-			if(m_vMultiOccurance == 0){
-			//	loop interface
-				for(typename Interface::const_iterator iter = interface.begin();
-					iter != interface.end(); ++iter)
-				{
-				//	get index
-					const size_t index = interface.get_element(iter);
+			for(typename Interface::const_iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	get index
+				const size_t index = interface.get_element(iter);
 
-				// copy values
-					Serialize(buff, v[index]);
-				}
-			}
-			else {
-				if(m_vMultiOccurance->size() != v.size())
-					UG_THROW("ComPol_VecAddSetZero: MultiOccurance-Map "<<
-					         (m_vMultiOccurance->size())<<"does not "<<
-							"have size of Vector ("<<v.size()<<")")
-
-			//	loop interface
-				for(typename Interface::const_iterator iter = interface.begin();
-					iter != interface.end(); ++iter)
-				{
-				//	get index
-					const size_t index = interface.get_element(iter);
-
-					typename TVector::value_type tval = v[index];
-					if(((*m_vMultiOccurance)[index]) > 1){
-						 tval *= (1./((*m_vMultiOccurance)[index]));
-					}
-
-				// serialize values
-					Serialize(buff, tval);
-				}
+			// copy values
+				Serialize(buff, v[index]);
+				v[index] = 0;
 			}
 
-			if(!m_curLayout)
-				SetInterfaceValues(m_pVec, interface, 0);
-			return true;
-		}
-
-		virtual bool
-		end_layout_collection(const Layout* pLayout)
-		{
-			UG_ASSERT(m_curLayout == pLayout, "Only one layout may be processed at a time.");
-			SetLayoutValues(m_pVec, *pLayout, 0);
-			m_curLayout = NULL;
 			return true;
 		}
 
@@ -684,8 +638,6 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 
 	private:
 		TVector* m_pVec;
-		const std::vector<int>* m_vMultiOccurance;
-		const Layout*	m_curLayout;
 };
 
 /// Communication Policy to subtract values of a vector
@@ -1102,18 +1054,9 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 {
 	public:
 	///	Constructor setting the matrix
-		ComPol_MatAddSetZeroInnerInterfaceCouplings(TMatrix& rMat,
-			const std::vector<int>* vMultiOccurance = NULL)
-			: m_rMat(rMat), m_curLayout(NULL), m_vMultiOccurance(vMultiOccurance)
+		ComPol_MatAddSetZeroInnerInterfaceCouplings(TMatrix& rMat)
+			: m_rMat(rMat)
 		{}
-
-		virtual bool
-		begin_layout_collection(const Layout* pLayout)
-		{
-			UG_ASSERT(!m_curLayout, "Only one layout may be processed at a time.");
-			m_curLayout = pLayout;
-			return true;
-		}
 
 	///	writes the interface values into a buffer that will be sent
 		virtual bool collect(ug::BinaryBuffer& buff, const Interface& interface)
@@ -1156,38 +1099,17 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 					if(!hash.get_entry(interfaceIndex, target)) continue;
 					block_type& a_ik = it_k.value();
 
-				//	scale if multiple v-master
-//					if(m_vMultiOccurance != NULL){
-//						a_ik *= (1.0/(std::min((*m_vMultiOccurance)[index],
-//											   (*m_vMultiOccurance)[target])));
-//					}
-
 				//	write global entry to buffer
 					Serialize(buff, interfaceIndex);
 
 				//	write entry into buffer
 					Serialize(buff, a_ik);
+
+				//	set entry to zero
 					a_ik *= 0;
 				}
 			}
 
-//			if(!m_curLayout)
-//				set_interface_couplings_to_zero(interface);
-			return true;
-		}
-
-		virtual bool
-		end_layout_collection(const Layout* pLayout)
-		{
-			UG_ASSERT(m_curLayout == pLayout, "Only one layout may be processed at a time.");
-//			for(size_t lvl = 0; lvl < pLayout->num_levels(); ++lvl){
-//				for(Layout::const_iterator iter = pLayout->begin(lvl);
-//					iter != pLayout->end(lvl); ++iter)
-//				{
-//					set_interface_couplings_to_zero(pLayout->interface(iter));
-//				}
-//			}
-			m_curLayout = NULL;
 			return true;
 		}
 
@@ -1237,40 +1159,8 @@ class ComPol_MatAddSetZeroInnerInterfaceCouplings
 		}
 
 	private:
-		void set_interface_couplings_to_zero(const Interface& interface)
-		{
-			typedef typename TMatrix::row_iterator row_iterator;
-			typedef typename TMatrix::value_type block_type;
-
-		//	build map
-			Hash<size_t, size_t> hash((size_t)(interface.size() * 1.1));
-			size_t interfaceIndex = 0;
-
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter, ++interfaceIndex){
-				hash.insert(interface.get_element(iter), interfaceIndex);
-			}
-
-		//	loop interface
-			for(typename Interface::const_iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-			{
-				const size_t index = interface.get_element(iter);
-				const row_iterator rowEnd = m_rMat.end_row(index);
-				for(row_iterator it_k = m_rMat.begin_row(index); it_k != rowEnd; ++it_k)
-				{
-					const size_t index = it_k.index();
-					if(hash.get_entry(interfaceIndex, index))
-						it_k.value() = 0;
-				}
-			}
-		}
-
 	//	pointer to current vector
 		TMatrix& m_rMat;
-		const Layout* m_curLayout;
-	//	multi occurance indicator
-		const std::vector<int>* m_vMultiOccurance;
 };
 
 

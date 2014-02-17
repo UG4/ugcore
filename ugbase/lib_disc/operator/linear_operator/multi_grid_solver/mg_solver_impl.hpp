@@ -808,7 +808,7 @@ init_rap_operator()
 		SmartPtr<matrix_type> spA = lf.A;
 		#ifdef UG_PARALLEL
 		SmartPtr<matrix_type> spGhostA = SmartPtr<matrix_type>(new matrix_type);
-		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA, lf.getMultiOccurence());
+		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGhostA);
 		if( !lf.t->layouts()->vertical_master().empty() ||
 			!lf.t->layouts()->vertical_slave().empty())
 		{
@@ -881,7 +881,7 @@ init_rap_operator()
 		GMG_PROFILE_END();
 
 		GMG_PROFILE_BEGIN(GMG_BuildRAP_SendAndRevieve_GatheredBase);
-		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat, ld.getMultiOccurence());
+		ComPol_MatAddSetZeroInnerInterfaceCouplings<matrix_type> cpMatAdd(*spGatheredBaseMat);
 		m_Com.send_data(spGatheredBaseMat->layouts()->vertical_slave(), cpMatAdd);
 		if(gathered_base_master())
 			m_Com.receive_data(spGatheredBaseMat->layouts()->vertical_master(), cpMatAdd);
@@ -1389,45 +1389,6 @@ copy_noghost_to_ghost(SmartPtr<matrix_type> spMatTo,
 	#endif
 }
 
-template <typename TDomain, typename TAlgebra>
-void AssembledMultiGridCycle<TDomain, TAlgebra>::
-init_multi_occurance(int lev, SmartPtr<GF> spVec)
-{
-#ifdef UG_PARALLEL
-	GMG_PROFILE_FUNC();
-
-//	reset
-	LevData& ld = *m_vLevData[lev];
-	ld.bMultiOccurance = false;
-	ld.vMultiOccurence.clear();
-
-//	check if something to do
-	if(spVec->layouts()->vertical_slave().empty()) return;
-
-//	there may be v-slaves with multiple v-masters. We only want to send
-//	a fraction to each master, to keep d additive.
-//	count number of occurrances in v-interfaces
-	const IndexLayout& layout = spVec->layouts()->vertical_slave();
-
-	if(layout.num_interfaces() > 1){
-		ld.vMultiOccurence.resize(spVec->size(), 0);
-		for(IndexLayout::const_iterator iiter = layout.begin();
-			iiter != layout.end(); ++iiter)
-		{
-			const IndexLayout::Interface& itfc = layout.interface(iiter);
-			for(IndexLayout::Interface::const_iterator iter = itfc.begin();
-				iter != itfc.end(); ++iter)
-			{
-				const IndexLayout::Interface::Element& index = itfc.get_element(iter);
-
-				ld.vMultiOccurence[index] += 1;
-				if(ld.vMultiOccurence[index] > 1)
-					ld.bMultiOccurance = true;
-			}
-		}
-	}
-#endif
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Init Level Data
@@ -1482,7 +1443,6 @@ init_level_memory(int baseLev, int topLev)
 			ld.Restriction = m_spRestrictionPrototype->clone();
 
 		init_noghost_to_ghost_mapping(lev);
-		init_multi_occurance(lev, ld.t);
 	}
 
 	bool bHasVertMaster = false;
@@ -1633,7 +1593,7 @@ presmooth_and_restriction(int lev)
 //	PARALLEL CASE:
 	SmartPtr<GF> spD = lf.sd;
 	#ifdef UG_PARALLEL
-	ComPol_VecAddSetZero<vector_type> cpVecAdd(lf.t.get(), lf.getMultiOccurence());
+	ComPol_VecAddSetZero<vector_type> cpVecAdd(lf.t.get());
 	if( !lf.t->layouts()->vertical_slave().empty() ||
 		!lf.t->layouts()->vertical_master().empty())
 	{
@@ -1888,7 +1848,7 @@ base_solve(int lev)
 			GMG_PROFILE_END();
 
 			GMG_PROFILE_BEGIN(GMG_GatheredBaseSolver_Defect_SendAndRecieve);
-			ComPol_VecAddSetZero<vector_type> cpVecAdd(ld.t.get(), ld.getMultiOccurence());
+			ComPol_VecAddSetZero<vector_type> cpVecAdd(ld.t.get());
 			m_Com.send_data(ld.t->layouts()->vertical_slave(), cpVecAdd);
 			m_Com.receive_data(ld.t->layouts()->vertical_master(), cpVecAdd);
 			m_Com.communicate();
