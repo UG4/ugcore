@@ -594,7 +594,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 
 			// copy values
 				Serialize(buff, v[index]);
-				v[index] = 0;
+				v[index] *= 0;
 			}
 
 			return true;
