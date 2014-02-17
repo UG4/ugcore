@@ -49,7 +49,6 @@ macro(check_fortran_libraries DEFINITIONS LIBRARIES _prefix _name _flags _list _
   set(_combined_name)
   foreach(_library ${_list})
     set(_combined_name ${_combined_name}_${_library})
-
     if(_libraries_found)
       # search first in ${_path}
       find_library(${_prefix}_${_library}_LIBRARY
@@ -153,11 +152,26 @@ else()
       "${CGAL_TAUCS_LIBRARIES_DIR} ENV LAPACK_LIB_DIR ")
       
   set(BLAS_UNIX_SEARCH_PATHS
-      "/usr/local/lib /usr/lib /usr/local/lib64 /usr/lib64 /bgsys/local/lib")
+      "/usr/local/lib;/usr/lib;/usr/local/lib64;/usr/lib64;/bgsys/local/lib")
 
     #
     # If Unix, search for BLAS function in possible libraries
     #
+    
+    # BLAS in ESSL library on JuQueen?
+    if(NOT BLAS_LIBRARIES)
+      check_fortran_libraries(
+      BLAS_DEFINITIONS
+      BLAS_LIBRARIES
+      BLAS
+      sgemm
+      ""
+      "esslbg;xlopt;xlf90_r;xlfmath;xl;m;rt;dl;pthread"
+      "/opt/ibmmath/lib64;/opt/ibmcmp/xlf/14.1/lib64" "${BLAS_UNIX_SEARCH_PATHS}"
+      )
+    endif()
+
+
     # BLAS in ATLAS library? (http://math-atlas.sourceforge.net/)
     if(NOT BLAS_LIBRARIES)
       check_fortran_libraries(
