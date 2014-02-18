@@ -55,9 +55,9 @@ static void DomainAlgebra(Registry& reg, string grp)
 	//	IObstacleConstraint
 	{
 		typedef IObstacleConstraint<TDomain,TAlgebra> T;
-		//typedef IDomainConstraint<TDomain, TAlgebra> TBase;
+		typedef IDomainConstraint<TDomain, TAlgebra> TBase;
 		string name = string("IObstacleConstraint").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.add_class_<T,TBase>(name, grp)
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*)>(&T::add),
 						"", "Value#Function")
 			.add_method("add", static_cast<void (T::*)(SmartPtr<UserData<number, dim, bool> >, const char*, const char*)>(&T::add),

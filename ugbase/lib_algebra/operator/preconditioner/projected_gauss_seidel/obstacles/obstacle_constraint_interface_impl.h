@@ -414,13 +414,15 @@ is_obs_dof(const DoFIndex& dof)
 	else {return true;}
 }
 
-/*template <typename TDomain, typename TAlgebra>
+template <typename TDomain, typename TAlgebra>
 void
 IObstacleConstraint<TDomain,TAlgebra>::
 adjust_restriction(matrix_type& R, ConstSmartPtr<DoFDistribution> ddCoarse,
 	ConstSmartPtr<DoFDistribution> ddFine, number time)
 {
 	UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::adjust_restrictionR \n");
+
+	R.print();
 
 	typedef typename vector<DoFIndex>::iterator iter_type;
 	iter_type dofIter = m_vActiveDofs.begin();
@@ -429,39 +431,16 @@ adjust_restriction(matrix_type& R, ConstSmartPtr<DoFDistribution> ddCoarse,
 	{
 		UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::"
 				"adjust_restrictionR::activeDof : " <<*dofIter<< "\n");
+		SetCol(R, (*dofIter)[0], (*dofIter)[1]);
 	}
 
-	UG_LOG("#rows(R): "<<R.num_rows()<<"\n");
-	for(size_t i=0; i < R.num_rows(); i++){
-		for(typename matrix_type::row_iterator conn = R.begin_row(i);
-				conn != R.end_row(i); ++conn)
-		{
-			size_t num_connections = R.num_connections(i);
-			UG_LOG("#connections in "<<i<<"-th row: "<<num_connections<<"\n");
-			UG_LOG("R: "<<i<<"-th row: "<< conn.value() << "\n");
-
-		}
+	if (m_vActiveDofs.size() > 0)
+	{
+		UG_LOG("#OfActiveDofs: " <<m_vActiveDofs.size()<< "\n");
+		R.print();
 	}
 	UG_LOG("IObstacleConstraint::adjust_restrictionR() \n");
 };
-
-template <typename TDomain, typename TAlgebra>
-void
-IObstacleConstraint<TDomain,TAlgebra>::
-adjust_restriction(vector_type& uCoarse, GridLevel coarseLvl,
-				const vector_type& uFine, GridLevel fineLvl)
-{
-	UG_LOG("IObstacleConstraint::adjust_restriction() \n");
-
-	typedef typename vector<DoFIndex>::iterator iter_type;
-	iter_type dofIter = m_vActiveDofs.begin();
-	iter_type dofIterEnd = m_vActiveDofs.end();
-	for( ; dofIter != dofIterEnd; dofIter++)
-	{
-		UG_LOG("IObstacleConstraint<TDomain,TAlgebra>::"
-				"adjust_restriction::activeDof : " <<*dofIter<< "\n");
-	}
-}*/
 
 } // end namespace ug
 

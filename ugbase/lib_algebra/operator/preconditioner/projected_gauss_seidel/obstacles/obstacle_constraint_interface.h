@@ -40,12 +40,15 @@ namespace ug{
  * 	by 'IProjPreconditioner::set_obstacle_constraint'.
  */
 template <typename TDomain, typename TAlgebra>
-class IObstacleConstraint
-//:public IDomainConstraint<TDomain, TAlgebra>
+class IObstacleConstraint:
+	public IDomainConstraint<TDomain, TAlgebra>
+	//	TODO: think about, restructuring the IConstraint-Interface in order to distinguish between
+	//	a constraint having an effect on the assembling process and a constraint, which is considered in the
+	//	solver (e.g. by means of 'adjust_restriction') only!
 {
 	public:
 	///	Base Type
-	//	typedef IDomainConstraint<TDomain, TAlgebra> base_type;
+		typedef IDomainConstraint<TDomain, TAlgebra> base_type;
 
 	///	Algebra type
 		typedef TAlgebra algebra_type;
@@ -148,7 +151,7 @@ class IObstacleConstraint
 	// 	Implement Interface
 	///////////////////////////////
 
-	/*/// sets a unity row for all dirichlet indices
+	/// sets a unity row for all dirichlet indices
 		void adjust_jacobian(matrix_type& J, const vector_type& u,
 		                     ConstSmartPtr<DoFDistribution> dd, number time = 0.0,
                              ConstSmartPtr<VectorTimeSeries<vector_type> > vSol = NULL,
@@ -197,19 +200,9 @@ class IObstacleConstraint
 										ConstSmartPtr<DoFDistribution> ddFine,
 										number time = 0.0);
 
-	///	sets the constraints in a solution vector
-		virtual void adjust_restriction(vector_type& uCoarse, GridLevel coarseLvl,
-										const vector_type& uFine, GridLevel fineLvl);
-
-	///	sets the constraints in a solution vector
-		virtual void adjust_prolongation(vector_type& uFine, GridLevel fineLvl,
-										const vector_type& uCoarse, GridLevel coarseLvl) {
-			UG_LOG("IObstacleConstraint::adjust_prolongation() \n");
-		};
-
 	///	returns the type of the constraints
-		//TODO: is this type correct?!
-		virtual int type() const {return CT_CONSTRAINTS;}*/
+		//TODO: does another type make more sense?
+		virtual int type() const {return CT_CONSTRAINTS;}
 
 	private:
 	///	extract the UserDatas
