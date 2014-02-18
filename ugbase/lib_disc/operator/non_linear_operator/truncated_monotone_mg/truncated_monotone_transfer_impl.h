@@ -56,7 +56,30 @@ restriction(const GridLevel& coarseGL, const GridLevel& fineGL,
 
 	//TODO: modify stdR for activeDofs! IConstraint::adjust_restriction?
 	//		or only for the special case IObstacleConstraint?
+	//		(only for the "finest grid to (finest-1) grid-transfer; then: canonical)
 
+	int topLev = spApproxSpace->num_levels() - 1;
+	if(topLev == fineGL.level())
+	{
+		UG_LOG("on topLevel: " <<topLev<<"\n");
+
+		ConstSmartPtr<DoFDistribution> spCoarseDD = spApproxSpace->dof_distribution(coarseGL);
+		ConstSmartPtr<DoFDistribution> spFineDD = spApproxSpace->dof_distribution(fineGL);
+
+		#ifdef UG_PARALLEL
+		stdR->set_storage_type(PST_CONSISTENT);
+		#endif
+
+		// 	adjust using constraints
+		for(size_t i = 0; i < m_vConstraint.size(); ++i)
+			if(m_vConstraint[i]->type() == CT_CONSTRAINTS)
+			{
+				UG_LOG("is CT_CONSTRAINT")
+				m_vConstraint[i]->adjust_restriction(*stdR, spCoarseDD, spFineDD);
+			}
+	}
+
+	//TODO: restrict the obstacle-value in a monotone way! (in every level-transfer)
 	return stdR;
 }
 

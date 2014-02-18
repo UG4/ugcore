@@ -38,7 +38,7 @@ class TruncatedMonotoneTransfer:
 	public:
 	///	Constructor
 		TruncatedMonotoneTransfer(): ITransferOperator<TDomain, TAlgebra>(),
-				m_bInit (false)
+				m_bInit(false)
 		{};
 
 	public:
@@ -74,7 +74,6 @@ class TruncatedMonotoneTransfer:
 	///	coarse and fine Gridlevel
 		GridLevel m_coarseLevel;
 		GridLevel m_fineLevel;
-
 };
 
 } // end namespace ug
