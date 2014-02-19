@@ -69,7 +69,7 @@ copy_from_surface(const GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 	attach_entries(rSurfaceFct.dof_distribution()->dof_distribution_info());
 
 	if(rSurfaceFct.max_dofs(VERTEX))copy_from_surface<Vertex,TAlgebra>(rSurfaceFct);
-	if(rSurfaceFct.max_dofs(EDGE))	copy_from_surface<EdgeBase,TAlgebra>(rSurfaceFct);
+	if(rSurfaceFct.max_dofs(EDGE))	copy_from_surface<Edge,TAlgebra>(rSurfaceFct);
 	if(rSurfaceFct.max_dofs(FACE))	copy_from_surface<Face,TAlgebra>(rSurfaceFct);
 	if(rSurfaceFct.max_dofs(VOLUME))copy_from_surface<Volume,TAlgebra>(rSurfaceFct);
 
@@ -136,7 +136,7 @@ copy_to_surface(GridFunction<TDomain,TAlgebra>& rSurfaceFct)
 {
 	GFUNCADAPT_PROFILE_FUNC();
 	if(rSurfaceFct.max_dofs(VERTEX))copy_to_surface<Vertex,TAlgebra>(rSurfaceFct);
-	if(rSurfaceFct.max_dofs(EDGE)) 	copy_to_surface<EdgeBase,TAlgebra>(rSurfaceFct);
+	if(rSurfaceFct.max_dofs(EDGE)) 	copy_to_surface<Edge,TAlgebra>(rSurfaceFct);
 	if(rSurfaceFct.max_dofs(FACE))	copy_to_surface<Face,TAlgebra>(rSurfaceFct);
 	if(rSurfaceFct.max_dofs(VOLUME))copy_to_surface<Volume,TAlgebra>(rSurfaceFct);
 

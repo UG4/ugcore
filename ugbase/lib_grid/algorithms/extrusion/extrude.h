@@ -54,7 +54,7 @@ enum ExtrusionOptions
  */
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
-			std::vector<EdgeBase*>* pvEdgesInOut,
+			std::vector<Edge*>* pvEdgesInOut,
 			std::vector<Face*>* pvFacesInOut,
 			const vector3& direction,
 			uint extrusionOptions = EO_DEFAULT,

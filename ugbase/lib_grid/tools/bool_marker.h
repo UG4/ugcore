@@ -74,12 +74,12 @@ class BoolMarker : public GridObserver
 
 		bool is_marked(GridObject* e) const;
 		bool is_marked(Vertex* e) const			{assert(m_pGrid); return m_aaMarkVRT[e];}
-		bool is_marked(EdgeBase* e)	const			{assert(m_pGrid); return m_aaMarkEDGE[e];}
+		bool is_marked(Edge* e)	const			{assert(m_pGrid); return m_aaMarkEDGE[e];}
 		bool is_marked(Face* e)	const				{assert(m_pGrid); return m_aaMarkFACE[e];}
 		bool is_marked(Volume* e) const				{assert(m_pGrid); return m_aaMarkVOL[e];}
 
 		void mark(Vertex* e, bool mark = true)	{assert(m_pGrid); m_aaMarkVRT[e] = mark;}
-		void mark(EdgeBase* e, bool mark = true)	{assert(m_pGrid); m_aaMarkEDGE[e] = mark;}
+		void mark(Edge* e, bool mark = true)	{assert(m_pGrid); m_aaMarkEDGE[e] = mark;}
 		void mark(Face* e, bool mark = true)		{assert(m_pGrid); m_aaMarkFACE[e] = mark;}
 		void mark(Volume* e, bool mark = true)		{assert(m_pGrid); m_aaMarkVOL[e] = mark;}
 
@@ -90,7 +90,7 @@ class BoolMarker : public GridObserver
 		}
 
 		void unmark(Vertex* e)	{mark(e, false);}
-		void unmark(EdgeBase* e)	{mark(e, false);}
+		void unmark(Edge* e)	{mark(e, false);}
 		void unmark(Face* e)		{mark(e, false);}
 		void unmark(Volume* e)		{mark(e, false);}
 
@@ -108,7 +108,7 @@ class BoolMarker : public GridObserver
 									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
-		virtual void edge_created(Grid* grid, EdgeBase* e,
+		virtual void edge_created(Grid* grid, Edge* e,
 									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
@@ -123,8 +123,8 @@ class BoolMarker : public GridObserver
 		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
 										 Vertex* elem1, Vertex* elem2);
 
-		virtual void edges_to_be_merged(Grid* grid, EdgeBase* target,
-										 EdgeBase* elem1, EdgeBase* elem2);
+		virtual void edges_to_be_merged(Grid* grid, Edge* target,
+										 Edge* elem1, Edge* elem2);
 
 		virtual void faces_to_be_merged(Grid* grid, Face* target,
 										 Face* elem1, Face* elem2);
@@ -139,7 +139,7 @@ class BoolMarker : public GridObserver
 		bool	m_markInheritanceEnabled;
 		bool	m_strictInheritanceEnabled;
 		Grid::AttachmentAccessor<Vertex, ABool>	m_aaMarkVRT;
-		Grid::AttachmentAccessor<EdgeBase, ABool>	m_aaMarkEDGE;
+		Grid::AttachmentAccessor<Edge, ABool>	m_aaMarkEDGE;
 		Grid::AttachmentAccessor<Face, ABool>		m_aaMarkFACE;
 		Grid::AttachmentAccessor<Volume, ABool>		m_aaMarkVOL;
 };

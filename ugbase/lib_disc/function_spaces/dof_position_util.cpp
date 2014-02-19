@@ -109,7 +109,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GridObject* 
 	switch(elem->base_object_id())
 	{
 		case VERTEX: CollectCornerCoordinates(vVertPos, *static_cast<Vertex*>(elem), domain, true); break;
-		case EDGE: CollectCornerCoordinates(vVertPos, *static_cast<EdgeBase*>(elem), domain, true); break;
+		case EDGE: CollectCornerCoordinates(vVertPos, *static_cast<Edge*>(elem), domain, true); break;
 		case FACE: CollectCornerCoordinates(vVertPos, *static_cast<Face*>(elem), domain, true); break;
 		case VOLUME: CollectCornerCoordinates(vVertPos, *static_cast<Volume*>(elem), domain, true); break;
 		default: UG_THROW("Base Object type not found.");
@@ -199,7 +199,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GridObject* elem,
 	switch(elem->base_object_id())
 	{
 		case VERTEX: CollectCornerCoordinates(vVertPos, *static_cast<Vertex*>(elem), domain, true); break;
-		case EDGE: CollectCornerCoordinates(vVertPos, *static_cast<EdgeBase*>(elem), domain, true); break;
+		case EDGE: CollectCornerCoordinates(vVertPos, *static_cast<Edge*>(elem), domain, true); break;
 		case FACE: CollectCornerCoordinates(vVertPos, *static_cast<Face*>(elem), domain, true); break;
 		case VOLUME: CollectCornerCoordinates(vVertPos, *static_cast<Volume*>(elem), domain, true); break;
 		default: UG_THROW( "Base Object type not found.");
@@ -286,7 +286,7 @@ void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
 	std::vector<MathVector<TDomain::dim> > vCornerCoord;
 	switch(baseDim)
 	{
-		case EDGE: CollectCornerCoordinates(vCornerCoord, *static_cast<EdgeBase*>(elem), domain, true); break;
+		case EDGE: CollectCornerCoordinates(vCornerCoord, *static_cast<Edge*>(elem), domain, true); break;
 		case FACE: CollectCornerCoordinates(vCornerCoord, *static_cast<Face*>(elem), domain, true); break;
 		case VOLUME: CollectCornerCoordinates(vCornerCoord, *static_cast<Volume*>(elem), domain, true); break;
 		default: UG_THROW( "Base Object type not found.");
@@ -408,7 +408,7 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 
 //	extract for all element types
 	if(dd->max_dofs(VERTEX)) ExtractPositionsVertex<TDomain>(domain, dd, vPos);
-	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, EdgeBase>(domain, dd, vPos);
+	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, Edge>(domain, dd, vPos);
 	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, Face>(domain, dd, vPos);
 	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, vPos);
 }
@@ -471,7 +471,7 @@ void ExtractAlgebraIndices(ConstSmartPtr<TDomain> domain,
 
 //	extract for all element types
 	if(dd->max_dofs(VERTEX)) ExtractAlgebraIndices2<TDomain, Vertex>(domain, dd, fctIndex);
-	if(dd->max_dofs(EDGE)) ExtractAlgebraIndices2<TDomain, EdgeBase>(domain, dd, fctIndex);
+	if(dd->max_dofs(EDGE)) ExtractAlgebraIndices2<TDomain, Edge>(domain, dd, fctIndex);
 	if(dd->max_dofs(FACE)) ExtractAlgebraIndices2<TDomain, Face>(domain, dd, fctIndex);
 	if(dd->max_dofs(VOLUME)) ExtractAlgebraIndices2<TDomain, Volume>(domain, dd, fctIndex);
 }
@@ -590,7 +590,7 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 
 //	extract for all element types
 	if(dd->max_dofs(VERTEX)) ExtractPositionsVertex<TDomain>(domain, dd, vPosPair);
-	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, EdgeBase>(domain, dd, vPosPair);
+	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, Edge>(domain, dd, vPosPair);
 	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, Face>(domain, dd, vPosPair);
 	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, vPosPair);
 }
@@ -670,7 +670,7 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 
 //	extract for all element types
 	if(dd->max_dofs(VERTEX)) ExtractPositionsElem<TDomain, Vertex>(domain, dd, fct, vPosPair);
-	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, EdgeBase>(domain, dd, fct, vPosPair);
+	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, Edge>(domain, dd, fct, vPosPair);
 	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, Face>(domain, dd, fct, vPosPair);
 	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, fct, vPosPair);
 }
@@ -805,7 +805,7 @@ bool CheckDoFPositions(ConstSmartPtr<TDomain> domain,
 //	extract for all element types
 	bool bRes = true;
 	if(dd->max_dofs(VERTEX)) bRes &= CheckDoFElem<TDomain, Vertex>(domain, dd, vPos);
-	if(dd->max_dofs(EDGE)) bRes &= CheckDoFElem<TDomain, EdgeBase>(domain, dd, vPos);
+	if(dd->max_dofs(EDGE)) bRes &= CheckDoFElem<TDomain, Edge>(domain, dd, vPos);
 	if(dd->max_dofs(FACE)) bRes &= CheckDoFElem<TDomain, Face>(domain, dd, vPos);
 	if(dd->max_dofs(VOLUME)) bRes &= CheckDoFElem<TDomain, Volume>(domain, dd, vPos);
 	return bRes;

@@ -20,7 +20,7 @@ serialize(BinaryBuffer& out, Vertex* vrt) const
 }
 
 inline void GridDataSerializationHandler::
-serialize(BinaryBuffer& out, EdgeBase* edge) const
+serialize(BinaryBuffer& out, Edge* edge) const
 {
 	serialize(out, edge, m_edgeSerializers);
 	serialize(out, edge, m_gridSerializers);
@@ -69,7 +69,7 @@ deserialize(BinaryBuffer& in, Vertex* vrt)
 }
 
 inline void GridDataSerializationHandler::
-deserialize(BinaryBuffer& in, EdgeBase* edge)
+deserialize(BinaryBuffer& in, Edge* edge)
 {
 	deserialize(in, edge, m_edgeSerializers);
 	deserialize(in, edge, m_gridSerializers);

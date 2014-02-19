@@ -39,7 +39,7 @@ static void mark_if_periodic(IRefiner& ref, TElem* e) {
 void StdHNodeAdjuster::
 ref_marks_changed(IRefiner& ref,
 			   	  const std::vector<Vertex*>& vrts,
-			   	  const std::vector<EdgeBase*>& edges,
+			   	  const std::vector<Edge*>& edges,
 			   	  const std::vector<Face*>& faces,
 			   	  const std::vector<Volume*>& vols)
 {
@@ -67,7 +67,7 @@ ref_marks_changed(IRefiner& ref,
 		//	make sure that all parents are marked
 			GridObject* co = hv->get_constraining_object();
 			if(co){
-				if(EdgeBase* e = dynamic_cast<EdgeBase*>(co)){
+				if(Edge* e = dynamic_cast<Edge*>(co)){
 					ref.mark(e);
 				}
 				else if(Face* f = dynamic_cast<Face*>(co)){
@@ -80,7 +80,7 @@ ref_marks_changed(IRefiner& ref,
 ////////////////////////////////
 //	EDGES
 	for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-		EdgeBase* e = edges[i_edge];
+		Edge* e = edges[i_edge];
 
 	//	check whether hangingNodeOrder1 is enabled. If so, we have to check
 	//	for associated hanging vertices and push them to qHVrts.

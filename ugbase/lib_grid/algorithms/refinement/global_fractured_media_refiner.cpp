@@ -200,13 +200,13 @@ perform_refinement()
 
 		GFDR_PROFILE(GFDR_ReserveVrtData);
 		mg.reserve<Vertex>(mg.num<Vertex>() +
-					+ mg.num<Vertex>(l) + mg.num<EdgeBase>(l)
+					+ mg.num<Vertex>(l) + mg.num<Edge>(l)
 					+ mg.num<Quadrilateral>(l) + mg.num<Hexahedron>(l));
 		GFDR_PROFILE_END();
 
 		GFDR_PROFILE(GFDR_ReserveEdgeData);
-		mg.reserve<EdgeBase>(mg.num<EdgeBase>()
-					+ 2 * mg.num<EdgeBase>(l) + 3 * mg.num<Triangle>(l)
+		mg.reserve<Edge>(mg.num<Edge>()
+					+ 2 * mg.num<Edge>(l) + 3 * mg.num<Triangle>(l)
 					+ 4 * mg.num<Quadrilateral>(l) + 3 * mg.num<Prism>(l)
 					+ mg.num<Tetrahedron>(l)
 					+ 4 * mg.num<Pyramid>(l) + 6 * mg.num<Hexahedron>(l));
@@ -232,7 +232,7 @@ perform_refinement()
 //	notify derivates that refinement begins
 	refinement_step_begins();
 	
-//	cout << "num marked edges: " << m_selMarks.num<EdgeBase>() << endl;
+//	cout << "num marked edges: " << m_selMarks.num<Edge>() << endl;
 //	cout << "num marked faces: " << m_selMarks.num<Face>() << endl;
 
 //	we want to add new elements in a new layer.
@@ -245,7 +245,7 @@ perform_refinement()
 	vector<Vertex*> vVrts;
 	vector<Vertex*> vEdgeVrts;
 	vector<Vertex*> vFaceVrts;
-	vector<EdgeBase*>	vEdges;
+	vector<Edge*>	vEdges;
 	vector<Face*>		vFaces;
 	vector<Volume*>		vVols;
 	
@@ -279,13 +279,13 @@ perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  creating new edges\n");
 
 //	create new vertices and edges from marked edges
-	for(EdgeBaseIterator iter = mg.begin<EdgeBase>(oldTopLevel);
-		iter != mg.end<EdgeBase>(oldTopLevel); ++iter)
+	for(EdgeIterator iter = mg.begin<Edge>(oldTopLevel);
+		iter != mg.end<Edge>(oldTopLevel); ++iter)
 	{
 		if(!refinement_is_allowed(*iter))
 			continue;
 
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 
 		if(!(refinement_is_allowed(e->vertex(0)) && refinement_is_allowed(e->vertex(1))))
 		{
@@ -906,7 +906,7 @@ save_marks_to_file(const char* filename)
 		}
 	}
 
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	for(FaceIterator iter = mg.begin<Face>(lvl); iter != mg.end<Face>(lvl); ++iter){
 		Face* f = *iter;
 		CollectAssociated(edges, mg, f);
@@ -916,7 +916,7 @@ save_marks_to_file(const char* filename)
 			sh.assign_subset(f, 0);
 	}
 
-	for(EdgeBaseIterator iter = mg.begin<EdgeBase>(lvl); iter != mg.end<EdgeBase>(lvl); ++iter){
+	for(EdgeIterator iter = mg.begin<Edge>(lvl); iter != mg.end<Edge>(lvl); ++iter){
 		if(m_marker.is_marked(*iter))
 			sh.assign_subset(*iter, 0);
 	}

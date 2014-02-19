@@ -69,7 +69,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackLinear<TAPosition>::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	m_aaPos[vrt] = CalculateCenter(parent, m_aaPos);
@@ -146,7 +146,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackSphere<TAPosition>::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -239,7 +239,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackCylinder<TAPosition>::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -330,7 +330,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 
 	if(is_crease_vertex(parent)){
 	//	get the neighboured crease edges
-		EdgeBase* nbrs[2];
+		Edge* nbrs[2];
 		size_t numNbrs = 0;
 		for(Grid::AssociatedEdgeIterator iter =
 			BaseClass::m_pGrid->associated_edges_begin(parent);
@@ -363,7 +363,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 
 template <class TAPosition>
 void RefinementCallbackSubdivBoundary<TAPosition>::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {
 	using std::swap;
 	
@@ -417,7 +417,7 @@ is_crease_vertex(Vertex* vrt)
 
 template <class TAPosition>
 bool RefinementCallbackSubdivBoundary<TAPosition>::
-is_crease_edge(EdgeBase* edge)
+is_crease_edge(Edge* edge)
 {
 	return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
 	//return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
@@ -478,7 +478,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 
 	if(is_crease_vertex(parent)){
 	//	get the neighboured crease edges
-		EdgeBase* nbrs[2];
+		Edge* nbrs[2];
 		size_t numNbrs = 0;
 		for(Grid::AssociatedEdgeIterator iter =
 			g.associated_edges_begin(parent);
@@ -540,7 +540,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 
 template <class TAPosition>
 void RefinementCallbackSubdivisionLoop<TAPosition>::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {
 	using namespace std;
 	using std::swap;
@@ -665,7 +665,7 @@ is_crease_vertex(Vertex* vrt)
 
 template <class TAPosition>
 bool RefinementCallbackSubdivisionLoop<TAPosition>::
-is_crease_edge(EdgeBase* edge)
+is_crease_edge(Edge* edge)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
 		return false;

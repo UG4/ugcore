@@ -138,7 +138,7 @@ bail_out:
 //	ObtainSimpleGrid
 template <class TPosAcc, class TIntAcc, class TNormAcc>
 bool ObtainSimpleGrid_CollapseEdge(SimpleGrid& sgOut, Grid& grid,
-						EdgeBase* e, size_t size,
+						Edge* e, size_t size,
 						TPosAcc& aaPos, TNormAcc& aaNorm,
 						TIntAcc& aaInt)
 {

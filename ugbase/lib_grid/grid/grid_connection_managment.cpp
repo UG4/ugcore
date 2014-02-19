@@ -114,7 +114,7 @@ void Grid::register_and_replace_element(Vertex* v, Vertex* pReplaceMe)
 		for(AssociatedEdgeIterator iter = associated_edges_begin(pReplaceMe);
 			iter != associated_edges_end(pReplaceMe); ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 		//	replace the vertex and push e into v's associated edges.
 			for(uint i = 0; i < 2; ++i)
 			{
@@ -292,7 +292,7 @@ void Grid::unregister_vertex(Vertex* v)
 		edges.swap(m_aaEdgeContainerVERTEX[v]);
 		for(EdgeContainer::iterator iter = edges.begin(); iter != edges.end();)
 		{
-			EdgeBase* eraseEdge = *iter;
+			Edge* eraseEdge = *iter;
 			++iter;
 			erase(eraseEdge);
 		}
@@ -355,9 +355,9 @@ void Grid::vertex_store_associated_edges(bool bStoreIt)
 			m_aaEdgeContainerVERTEX.access(*this, m_aEdgeContainer);
 
 		//	iterate through all edges and store them in the associated vertices
-			for(EdgeBaseIterator iter = this->edges_begin(); iter != this->edges_end(); iter++)
+			for(EdgeIterator iter = this->edges_begin(); iter != this->edges_end(); iter++)
 			{
-				EdgeBase* e = *iter;
+				Edge* e = *iter;
 				m_aaEdgeContainerVERTEX[e->vertex(0)].push_back(e);
 				m_aaEdgeContainerVERTEX[e->vertex(1)].push_back(e);
 			}
@@ -447,7 +447,7 @@ void Grid::vertex_store_associated_volumes(bool bStoreIt)
 ////////////////////////////////////////////////////////////////////////
 //	EDGES
 ///	creates and removes connectivity data, as specified in optsNew.
-void Grid::register_edge(EdgeBase* e, GridObject* pParent,
+void Grid::register_edge(Edge* e, GridObject* pParent,
 						 Face* createdByFace, Volume* createdByVol)
 {
 	GCM_PROFILE_FUNC();
@@ -577,7 +577,7 @@ void Grid::register_edge(EdgeBase* e, GridObject* pParent,
 	GCM_PROFILE_END();
 }
 
-void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
+void Grid::register_and_replace_element(Edge* e, Edge* pReplaceMe)
 {
 //	store the element and register it at the pipe.
 	m_edgeElementStorage.m_attachmentPipe.register_element(e);
@@ -647,7 +647,7 @@ void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
 	delete pReplaceMe;
 }
 
-void Grid::unregister_edge(EdgeBase* e)
+void Grid::unregister_edge(Edge* e)
 {
 //	notify observers that the edge is being erased
 	NOTIFY_OBSERVERS_REVERSE(m_edgeObservers, edge_to_be_erased(this, e));
@@ -813,7 +813,7 @@ void Grid::edge_store_associated_faces(bool bStoreIt)
 				for(int i = 0; i < numEdges; ++i)
 				{
 				//	get the i-th edge
-					EdgeBase* e = get_edge(f, i);
+					Edge* e = get_edge(f, i);
 					if(e != NULL)
 						m_aaFaceContainerEDGE[e].push_back(f);
 				}
@@ -865,7 +865,7 @@ void Grid::edge_store_associated_volumes(bool bStoreIt)
 					EdgeDescriptor ed;
 					v->edge_desc(i, ed);
 				//	get the edge that is described by the EdgeDescriptor - if it exists at all.
-					EdgeBase* e = get_edge(ed);
+					Edge* e = get_edge(ed);
 					if(e != NULL)
 						m_aaVolumeContainerEDGE[e].push_back(v);
 				}
@@ -929,7 +929,7 @@ void Grid::register_face(Face* f, GridObject* pParent, Volume* createdByVol)
 		for(int i = 0; i < numEdges; ++i)
 		{
 			f->edge_desc(i, ed);
-			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
+			Edge* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 			if(e == NULL)
 			{
@@ -1057,7 +1057,7 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 	if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 	//	collect all edges that are associated with pReplaceMe
-		vector<EdgeBase*> vEdges;
+		vector<Edge*> vEdges;
 		CollectEdges(vEdges, *this, pReplaceMe);
 		for(uint i = 0; i < vEdges.size(); ++i)
 			replace(associated_faces_begin(vEdges[i]),
@@ -1147,7 +1147,7 @@ void Grid::unregister_face(Face* f)
 		uint numEdges = f->num_edges();
 		for(uint i = 0; i < numEdges; ++i)
 		{
-			EdgeBase* e = get_edge(f, i);
+			Edge* e = get_edge(f, i);
 			if(e != NULL)
 			{
 				FaceContainer::iterator iter = find(m_aaFaceContainerEDGE[e].begin(),
@@ -1240,9 +1240,9 @@ void Grid::face_store_associated_edges(bool bStoreIt)
 				&& option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 			{
 			//	iterate through the edges
-				for(EdgeBaseIterator iter = edges_begin(); iter != edges_end(); iter++)
+				for(EdgeIterator iter = edges_begin(); iter != edges_end(); iter++)
 				{
-					EdgeBase* e = *iter;
+					Edge* e = *iter;
 				//	iterate through the edges associated faces
 					for(AssociatedFaceIterator fIter = associated_faces_begin(e);
 						fIter != associated_faces_end(e); fIter++)
@@ -1268,7 +1268,7 @@ void Grid::face_store_associated_edges(bool bStoreIt)
 						for(uint i = 0; i < numEdges; ++i)
 						{
 						//	get the i-th edge that is described by the EdgeDescriptor - if it exists at all.
-							EdgeBase* e = get_edge(f, i);
+							Edge* e = get_edge(f, i);
 							if(e != NULL)
 								m_aaEdgeContainerFACE[f].push_back(e);
 						}
@@ -1367,7 +1367,7 @@ void Grid::face_autogenerate_edges(bool bAutogen)
 				{
 				//	we can't use get_edge here, since we're manipulating m_aaEdgeContainerFACE on the fly.
 					f->edge_desc(i, ed);
-					EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
+					Edge* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 					if(e == NULL)
 					{
@@ -1504,7 +1504,7 @@ void Grid::register_volume(Volume* v, GridObject* pParent)
 		for(uint i = 0; i < numEdges; ++i)
 		{
 			v->edge_desc(i, ed);
-			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
+			Edge* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 			if(e == NULL)
 			{
@@ -1586,7 +1586,7 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 	if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 	//	collect all edges that are associated with pReplaceMe
-		vector<EdgeBase*> vEdges;
+		vector<Edge*> vEdges;
 		CollectEdges(vEdges, *this, pReplaceMe);
 		for(uint i = 0; i < vEdges.size(); ++i)
 			replace(associated_volumes_begin(vEdges[i]),
@@ -1660,7 +1660,7 @@ void Grid::unregister_volume(Volume* v)
 		for(uint i = 0; i < numEdges; ++i)
 		{
 		//	find the correct entry
-			EdgeBase* e = get_edge(v, i);
+			Edge* e = get_edge(v, i);
 			if(e != NULL)
 			{
 				VolumeContainer::iterator iter = find(m_aaVolumeContainerEDGE[e].begin(),
@@ -1767,9 +1767,9 @@ void Grid::volume_store_associated_edges(bool bStoreIt)
 				&& option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 			{
 			//	iterate through the edges
-				for(EdgeBaseIterator iter = edges_begin(); iter != edges_end(); iter++)
+				for(EdgeIterator iter = edges_begin(); iter != edges_end(); iter++)
 				{
-					EdgeBase* e = *iter;
+					Edge* e = *iter;
 				//	iterate through the edges associated faces
 					for(AssociatedVolumeIterator vIter = associated_volumes_begin(e);
 						vIter != associated_volumes_end(e); vIter++)
@@ -1797,7 +1797,7 @@ void Grid::volume_store_associated_edges(bool bStoreIt)
 						for(int i = 0; i < numEdges; ++i)
 						{
 						//	get the edge-descriptor
-							EdgeBase* e = get_edge(v, i);
+							Edge* e = get_edge(v, i);
 							if(e != NULL)
 								m_aaEdgeContainerVOLUME[v].push_back(e);
 						}
@@ -1925,7 +1925,7 @@ void Grid::volume_autogenerate_edges(bool bAutogen)
 				{
 				//	we can't use get_edge here, since we modify m_aaEdgeContainerVOLUME on the fly.
 					v->edge_desc(i, ed);
-					EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
+					Edge* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 					if(e == NULL)
 					{
@@ -2071,7 +2071,7 @@ bool Grid::replace_vertex(Vertex* vrtOld, Vertex* vrtNew)
 //	unregistered manually on the fly.
 
 //	containers for object collection
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	vector<Face*> vFaces;
 	vector<Volume*> vVolumes;
 
@@ -2093,7 +2093,7 @@ bool Grid::replace_vertex(Vertex* vrtOld, Vertex* vrtNew)
 		AssociatedEdgeIterator iterEnd = associated_edges_end(vrtOld);
 		while(iter != iterEnd)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			++iter;
 
 		//	if eraseDoubleElementes is enabled and the new edge would
@@ -2109,7 +2109,7 @@ bool Grid::replace_vertex(Vertex* vrtOld, Vertex* vrtNew)
 					ed.set_vertices(e->vertex(0), vrtNew);
 
 			//	check if this edge already exists.
-				EdgeBase* eNew = get_edge(ed);
+				Edge* eNew = get_edge(ed);
 				if(eNew)
 				{
 				//	The edge will be removed. Notify observers.
@@ -2308,7 +2308,7 @@ bool Grid::replace_vertex(Vertex* vrtOld, Vertex* vrtNew)
 						f->edge_desc(i, ed);
 						if(ed.vertex(0) == vrtNew || ed.vertex(1) == vrtNew)
 						{
-							EdgeBase* tEdge = get_edge(ed);
+							Edge* tEdge = get_edge(ed);
 							if(tEdge)
 							{
 								FaceContainer& fc = m_aaFaceContainerEDGE[tEdge];
@@ -2449,7 +2449,7 @@ bool Grid::replace_vertex(Vertex* vrtOld, Vertex* vrtNew)
 						v->edge_desc(i, ed);
 						if(ed.vertex(0) == vrtNew || ed.vertex(1) == vrtNew)
 						{
-							EdgeBase* tEdge = get_edge(ed);
+							Edge* tEdge = get_edge(ed);
 							if(tEdge)
 							{
 								VolumeContainer& vc = m_aaVolumeContainerEDGE[tEdge];
@@ -2579,7 +2579,7 @@ bool Grid::replace_vertex_is_valid(Vertex* vrtOld, Vertex* vrtNew)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED VERTICES
-void Grid::get_associated(SecureVertexContainer& vrts, EdgeBase* e)
+void Grid::get_associated(SecureVertexContainer& vrts, Edge* e)
 {
 	vrts.set_external_array(e->vertices(), e->num_vertices());
 }
@@ -2604,7 +2604,7 @@ void Grid::get_associated(SecureEdgeContainer& edges, Vertex* v)
 //	This takes some time, however, later queries will greatly benefit.
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES)){
 	//	only enable the option if edges exist at all
-		if(num<EdgeBase>() == 0){
+		if(num<Edge>() == 0){
 			edges.clear();
 			return;
 		}
@@ -2637,13 +2637,13 @@ void Grid::get_associated(SecureEdgeContainer& edges, Face* f)
 		edges.clear();
 
 	//	if no edges are present, we can leave immediately
-		if(num<EdgeBase>() == 0)
+		if(num<Edge>() == 0)
 			return;
 
 	//	get the edges one by one
 		uint numEdges = f->num_edges();
 		for(uint i = 0; i < numEdges; ++i){
-			EdgeBase* e = get_edge(f, i);
+			Edge* e = get_edge(f, i);
 			if(e != NULL)
 				edges.push_back(e);
 		}
@@ -2667,13 +2667,13 @@ void Grid::get_associated(SecureEdgeContainer& edges, Volume* v)
 		edges.clear();
 
 	//	if no edges are present, we can leave immediately
-		if(num<EdgeBase>() == 0)
+		if(num<Edge>() == 0)
 			return;
 
 	//	get the edges one by one
 		uint numEdges = v->num_edges();
 		for(uint i = 0; i < numEdges; ++i){
-			EdgeBase* e = get_edge(v, i);
+			Edge* e = get_edge(v, i);
 			if(e != NULL)
 				edges.push_back(e);
 		}
@@ -2706,7 +2706,7 @@ void Grid::get_associated(SecureFaceContainer& faces, Vertex* v)
 		faces.set_external_array(&assFaces.front(), assFaces.size());
 }
 
-void Grid::get_associated(SecureFaceContainer& faces, EdgeBase* e)
+void Grid::get_associated(SecureFaceContainer& faces, Edge* e)
 {
 //	best option: EDGEOPT_STORE_ASSOCIATED_FACES
 	if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES)){
@@ -2807,7 +2807,7 @@ void Grid::get_associated(SecureVolumeContainer& vols, Vertex* v)
 		vols.set_external_array(&assVols.front(), assVols.size());
 }
 
-void Grid::get_associated(SecureVolumeContainer& vols, EdgeBase* e)
+void Grid::get_associated(SecureVolumeContainer& vols, Edge* e)
 {
 //	best option: EDGEOPT_STORE_ASSOCIATED_VOLUMES
 	if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES)){
@@ -2903,7 +2903,7 @@ void Grid::get_associated_vols_raw(SecureVolumeContainer& vols, Face* f)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED SORTED
-void Grid::get_associated_sorted(SecureVertexContainer& vrts, EdgeBase* e) const
+void Grid::get_associated_sorted(SecureVertexContainer& vrts, Edge* e) const
 {
 	vrts.set_external_array(e->vertices(), e->num_vertices());
 }
@@ -2939,13 +2939,13 @@ void Grid::get_associated_sorted(SecureEdgeContainer& edges, Face* f)
 		edges.clear();
 
 	//	if no edges are present, we can leave immediately
-		if(num<EdgeBase>() == 0)
+		if(num<Edge>() == 0)
 			return;
 
 	//	get the edges one by one
 		uint numEdges = f->num_edges();
 		for(uint i = 0; i < numEdges; ++i){
-			EdgeBase* e = get_edge(f, i);
+			Edge* e = get_edge(f, i);
 			if(e != NULL)
 				edges.push_back(e);
 		}
@@ -2970,13 +2970,13 @@ void Grid::get_associated_sorted(SecureEdgeContainer& edges, Volume* v)
 		edges.clear();
 
 	//	if no edges are present, we can leave immediately
-		if(num<EdgeBase>() == 0)
+		if(num<Edge>() == 0)
 			return;
 
 	//	get the edges one by one
 		uint numEdges = v->num_edges();
 		for(uint i = 0; i < numEdges; ++i){
-			EdgeBase* e = get_edge(v, i);
+			Edge* e = get_edge(v, i);
 			if(e != NULL)
 				edges.push_back(e);
 		}
@@ -2988,7 +2988,7 @@ void Grid::get_associated_sorted(SecureFaceContainer& faces, Vertex*)
 	faces.set_external_array(NULL, 0);
 }
 
-void Grid::get_associated_sorted(SecureFaceContainer& faces, EdgeBase*)
+void Grid::get_associated_sorted(SecureFaceContainer& faces, Edge*)
 {
 	faces.set_external_array(NULL, 0);
 }
@@ -3026,7 +3026,7 @@ void Grid::get_associated_sorted(SecureVolumeContainer& vols, Vertex*)
 	vols.set_external_array(NULL, 0);
 }
 
-void Grid::get_associated_sorted(SecureVolumeContainer& vols, EdgeBase*)
+void Grid::get_associated_sorted(SecureVolumeContainer& vols, Edge*)
 {
 	vols.set_external_array(NULL, 0);
 }

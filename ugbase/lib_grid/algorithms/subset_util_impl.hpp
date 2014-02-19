@@ -234,7 +234,7 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 	//	not to be preserved.
 		if(!preserveExistingSubsets){
 			sh.assign_subset(grid.begin<Face>(), grid.end<Face>(), -1);
-			sh.assign_subset(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), -1);
+			sh.assign_subset(grid.begin<Edge>(), grid.end<Edge>(), -1);
 			sh.assign_subset(grid.begin<Vertex>(), grid.end<Vertex>(), -1);
 		}
 
@@ -247,34 +247,34 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 		SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
 
 		AssignSidesToSubsets<Face>(sh, &sel);
-		AssignSidesToSubsets<EdgeBase>(sh, &sel);
+		AssignSidesToSubsets<Edge>(sh, &sel);
 
 	//	finally assign vertices on edge interfaces
-		sel.clear<EdgeBase>();
+		sel.clear<Edge>();
 		sel.clear<Vertex>();
-		SelectInterfaceElements(sel, sh, grid.begin<EdgeBase>(),
-								grid.end<EdgeBase>(), true);
+		SelectInterfaceElements(sel, sh, grid.begin<Edge>(),
+								grid.end<Edge>(), true);
 		sel.clear<Face>();
-		SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+		SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>());
 
-		AssignSidesToSubsets<EdgeBase>(sh, &sel);
+		AssignSidesToSubsets<Edge>(sh, &sel);
 	}
 	else if(grid.num_faces() > 0){
 	//	deselect all elements of lower dimension, if existing subsets are
 	//	not to be preserved.
 		if(!preserveExistingSubsets){
-			sh.assign_subset(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), -1);
+			sh.assign_subset(grid.begin<Edge>(), grid.end<Edge>(), -1);
 			sh.assign_subset(grid.begin<Vertex>(), grid.end<Vertex>(), -1);
 		}
 
 		AssignUnassignedElemsToSubset<Face>(sh, GetFirstFreeSubset(sh));
 		AssignSidesToSubsets<Face>(sh);
 
-		SelectInterfaceElements(sel, sh, grid.begin<EdgeBase>(), grid.end<EdgeBase>());
-		SelectBoundaryElements(sel, grid.begin<EdgeBase>(), grid.end<EdgeBase>());
-		SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+		SelectInterfaceElements(sel, sh, grid.begin<Edge>(), grid.end<Edge>());
+		SelectBoundaryElements(sel, grid.begin<Edge>(), grid.end<Edge>());
+		SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>());
 
-		AssignSidesToSubsets<EdgeBase>(sh, &sel);
+		AssignSidesToSubsets<Edge>(sh, &sel);
 	}
 	else if(grid.num_edges() > 0){
 	//	deselect all elements of lower dimension, if existing subsets are
@@ -283,8 +283,8 @@ void AdjustSubsetsForSimulation(TSubsetHandler& sh,
 			sh.assign_subset(grid.begin<Vertex>(), grid.end<Vertex>(), -1);
 		}
 
-		AssignUnassignedElemsToSubset<EdgeBase>(sh, GetFirstFreeSubset(sh));
-		AssignSidesToSubsets<EdgeBase>(sh);
+		AssignUnassignedElemsToSubset<Edge>(sh, GetFirstFreeSubset(sh));
+		AssignSidesToSubsets<Edge>(sh);
 	}
 	else{
 		AssignUnassignedElemsToSubset<Vertex>(sh, GetFirstFreeSubset(sh));
@@ -358,7 +358,7 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
 	typedef typename geometry_traits<TElem>::const_iterator iterator;
-	std::vector<EdgeBase*> vEdges;
+	std::vector<Edge*> vEdges;
 
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
 		for(int si = 0; si < sh.num_subsets(); ++si){
@@ -370,7 +370,7 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 
 				for(size_t i = 0; i < vEdges.size(); ++i)
 				{
-					EdgeBase* edge = vEdges[i];
+					Edge* edge = vEdges[i];
 					sh.assign_subset(edge, srcIndHandler.get_subset_index(edge));
 				}
 			}
@@ -440,7 +440,7 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 //	we have to find all associated elements of lower dimension.
 	if(srcIndHandler.template num<Face>() > 0)
 		AssignAssociatedFacesToSubsets<TElem>(sh, srcIndHandler);
-	if(srcIndHandler.template num<EdgeBase>() > 0)
+	if(srcIndHandler.template num<Edge>() > 0)
 		AssignAssociatedEdgesToSubsets<TElem>(sh, srcIndHandler);
 	if(srcIndHandler.template num<Vertex>() > 0)
 		AssignAssociatedVerticesToSubsets<TElem>(sh, srcIndHandler);
@@ -453,7 +453,7 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const Face&)
 {
 //	we have to find all associated elements of lower dimension.
-	if(srcIndHandler.template num<EdgeBase>() > 0)
+	if(srcIndHandler.template num<Edge>() > 0)
 		AssignAssociatedEdgesToSubsets<TElem>(sh, srcIndHandler);
 	if(srcIndHandler.template num<Vertex>() > 0)
 		AssignAssociatedVerticesToSubsets<TElem>(sh, srcIndHandler);
@@ -463,7 +463,7 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler,
-									const EdgeBase&)
+									const Edge&)
 {
 //	we have to find all associated elements of lower dimension.
 	if(srcIndHandler.template num<Vertex>() > 0)

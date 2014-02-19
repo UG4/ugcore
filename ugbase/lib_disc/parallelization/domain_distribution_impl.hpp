@@ -59,11 +59,11 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 												domain.position_attachment(),
 												firstAxisToCut);
 		}
-		else if(pMG->num<EdgeBase>() > 0){
+		else if(pMG->num<Edge>() > 0){
 			partitionMap.get_partition_handler().assign_subset(
-							pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(), bucketSubset);
+							pMG->begin<Edge>(), pMG->end<Edge>(), bucketSubset);
 
-			PartitionElementsByRepeatedIntersection<EdgeBase, TDomain::dim>(
+			PartitionElementsByRepeatedIntersection<Edge, TDomain::dim>(
 												partitionMap.get_partition_handler(),
 												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
@@ -94,8 +94,8 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 	UG_LOG("WARNING: Serial fallback implementation of PartitionDomain_Bisection is used.\n");
 	partitionMap.get_partition_handler().assign_subset(pMG->begin<Vertex>(),
 													   pMG->end<Vertex>(), 0);
-	partitionMap.get_partition_handler().assign_subset(pMG->begin<EdgeBase>(),
-													   pMG->end<EdgeBase>(), 0);
+	partitionMap.get_partition_handler().assign_subset(pMG->begin<Edge>(),
+													   pMG->end<Edge>(), 0);
 	partitionMap.get_partition_handler().assign_subset(pMG->begin<Face>(),
 													   pMG->end<Face>(), 0);
 	partitionMap.get_partition_handler().assign_subset(pMG->begin<Volume>(),
@@ -166,17 +166,17 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
-		else if(pMG->num<EdgeBase>() > 0){
+		else if(pMG->num<Edge>() > 0){
 			if(!surfaceOnly)
-				PartitionElements_RegularGrid<EdgeBase>(
+				PartitionElements_RegularGrid<Edge>(
 											partitionMap.get_partition_handler(),
-											pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(),
+											pMG->begin<Edge>(), pMG->end<Edge>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::edge_traits::cb_consider_all, bucketSubset);
 			else
-				PartitionElements_RegularGrid<EdgeBase>(
+				PartitionElements_RegularGrid<Edge>(
 											partitionMap.get_partition_handler(),
-											pMG->begin<EdgeBase>(), pMG->end<EdgeBase>(),
+											pMG->begin<Edge>(), pMG->end<Edge>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
@@ -254,12 +254,12 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 			shPart.assign_subset(pMG->begin<Face>(lvl), pMG->end<Face>(lvl),
 								 bucketSubset);
 	}
-	else if(pMG->num<EdgeBase>() > 0){
-		PartitionMultiGrid_MetisKway<EdgeBase>(shPart, *pMG, numPartitions,
+	else if(pMG->num<Edge>() > 0){
+		PartitionMultiGrid_MetisKway<Edge>(shPart, *pMG, numPartitions,
 												baseLevel, hWeight, vWeight);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(pMG->begin<EdgeBase>(lvl), pMG->end<EdgeBase>(lvl),
+			shPart.assign_subset(pMG->begin<Edge>(lvl), pMG->end<Edge>(lvl),
 								 bucketSubset);
 	}
 
@@ -319,12 +319,12 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 			shPart.assign_subset(pMG->begin<Face>(lvl), pMG->end<Face>(lvl),
 								 bucketSubset);
 	}
-	else if(pMG->num<EdgeBase>() > 0){
-		boost::function<int (EdgeBase*, EdgeBase*)> f = boost::ref(wFct);
-		PartitionMultiGrid_MetisKway<EdgeBase>(shPart, *pMG, numPartitions, baseLevel, f);
+	else if(pMG->num<Edge>() > 0){
+		boost::function<int (Edge*, Edge*)> f = boost::ref(wFct);
+		PartitionMultiGrid_MetisKway<Edge>(shPart, *pMG, numPartitions, baseLevel, f);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
-			shPart.assign_subset(pMG->begin<EdgeBase>(lvl), pMG->end<EdgeBase>(lvl),
+			shPart.assign_subset(pMG->begin<Edge>(lvl), pMG->end<Edge>(lvl),
 								 bucketSubset);
 	}
 
@@ -362,7 +362,7 @@ PartitionDomain_LevelBased(TDomain& domain, PartitionMap& partitionMap,
 			break;
 
 		case EDGE:
-			PartitionMultiGridLevel_MetisKway<EdgeBase>(shPart, *pMG, numPartitions, level);
+			PartitionMultiGridLevel_MetisKway<Edge>(shPart, *pMG, numPartitions, level);
 			break;
 
 		default:
@@ -396,7 +396,7 @@ PartitionDistributedDomain_LevelBased(TDomain& domain, PartitionMap& partitionMa
 			break;
 
 		case EDGE:
-			PartitionMultiGridLevel_ParmetisKway<EdgeBase>(shPart, *pMG, numPartitions, level);
+			PartitionMultiGridLevel_ParmetisKway<Edge>(shPart, *pMG, numPartitions, level);
 			break;
 
 		default:

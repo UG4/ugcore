@@ -21,7 +21,7 @@ namespace ug
  * MANDATORY:
  * Types:
  * - grid_base_object:		the geometric object from which TElem derives.
- * 					has to be either Vertex, EdgeBase, Face or Volume.
+ * 					has to be either Vertex, Edge, Face or Volume.
  * - iterator:		An iterator that iterates over ElementContainer<BaseClass>
  * 					and which has a constructor that takes
  * 					ElementContainer<BaseClass>::iterator as an argument.
@@ -45,8 +45,8 @@ class geometry_traits
 typedef ElementStorage<Vertex>::SectionContainer::iterator			VertexIterator;
 typedef ElementStorage<Vertex>::SectionContainer::const_iterator	ConstVertexIterator;
 
-typedef ElementStorage<EdgeBase>::SectionContainer::iterator			EdgeBaseIterator;
-typedef ElementStorage<EdgeBase>::SectionContainer::const_iterator		ConstEdgeBaseIterator;
+typedef ElementStorage<Edge>::SectionContainer::iterator			EdgeIterator;
+typedef ElementStorage<Edge>::SectionContainer::const_iterator		ConstEdgeIterator;
 
 typedef ElementStorage<Face>::SectionContainer::iterator				FaceIterator;
 typedef ElementStorage<Face>::SectionContainer::const_iterator			ConstFaceIterator;
@@ -87,13 +87,13 @@ class geometry_traits<Vertex>
 };
 
 template <>
-class geometry_traits<EdgeBase>
+class geometry_traits<Edge>
 {
 	public:
-		typedef EdgeBaseIterator		iterator;
-		typedef ConstEdgeBaseIterator	const_iterator;
+		typedef EdgeIterator		iterator;
+		typedef ConstEdgeIterator	const_iterator;
 
-		typedef EdgeBase	grid_base_object;
+		typedef Edge	grid_base_object;
 		typedef EdgeDescriptor GeneralDescriptor;
 
 		enum

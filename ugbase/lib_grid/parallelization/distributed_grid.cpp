@@ -189,7 +189,7 @@ void DistributedGridManager::update_ghost_states()
 //	horizontal interfaces between vertical-masters would exist.
 //	first we'll calculate a preliminary ghost state
 	set_preliminary_ghost_states<Vertex>();
-	set_preliminary_ghost_states<EdgeBase>();
+	set_preliminary_ghost_states<Edge>();
 	set_preliminary_ghost_states<Face>();
 	set_preliminary_ghost_states<Volume>();
 
@@ -197,7 +197,7 @@ void DistributedGridManager::update_ghost_states()
 //	if a ghost is a part of a higher dimensional non-ghost, then
 //	it has to be marked as non-ghost, too.
 	vector<Face*> faces;
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 
 	for(VolumeIterator iter = m_pGrid->begin<Volume>();
 		iter != m_pGrid->end<Volume>(); ++iter)
@@ -233,10 +233,10 @@ void DistributedGridManager::update_ghost_states()
 			elem_info(f->vertex(i)).set_status(get_status(f->vertex(i)) & (~ES_GHOST));
 	}
 
-	for(EdgeBaseIterator iter = m_pGrid->begin<EdgeBase>();
-		iter != m_pGrid->end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = m_pGrid->begin<Edge>();
+		iter != m_pGrid->end<Edge>(); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		if(contains_status(e, ES_GHOST))
 			continue;
 
@@ -255,7 +255,7 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 	{
 	//	first we have to reset all elem infos
 		reset_elem_infos<Vertex>();
-		reset_elem_infos<EdgeBase>();
+		reset_elem_infos<Edge>();
 		reset_elem_infos<Face>();
 		reset_elem_infos<Volume>();
 	}
@@ -264,7 +264,7 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 //	init_elem_status_from_layout function.
 //	every layout has multiple levels
 	update_all_elem_infos<Vertex>();
-	update_all_elem_infos<EdgeBase>();
+	update_all_elem_infos<Edge>();
 	update_all_elem_infos<Face>();
 	update_all_elem_infos<Volume>();
 
@@ -354,7 +354,7 @@ get_status(GridObject* go) const
 		case VERTEX:
 			return get_status(static_cast<Vertex*>(go));
 		case EDGE:
-			return get_status(static_cast<EdgeBase*>(go));
+			return get_status(static_cast<Edge*>(go));
 		case FACE:
 			return get_status(static_cast<Face*>(go));
 		case VOLUME:
@@ -455,7 +455,7 @@ perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 										schedElem.connectedProcID);
 				break;
 			case EDGE:
-				add_element_to_interface(static_cast<EdgeBase*>(schedElem.geomObj),
+				add_element_to_interface(static_cast<Edge*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
 			case FACE:
@@ -613,7 +613,7 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 			case EDGE:
 				//UG_DLOG(LIB_GRID, 3, "scheduling element with edge-parent to interfaces ");
 				schedule_element_for_insertion(m_edgeMap, pElem,
-												(EdgeBase*)pParent);
+												(Edge*)pParent);
 				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
 
@@ -648,7 +648,7 @@ vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent,
 
 
 void DistributedGridManager::
-edge_created(Grid* grid, EdgeBase* e, GridObject* pParent,
+edge_created(Grid* grid, Edge* e, GridObject* pParent,
 			 bool replacesParent)
 {
 	handle_created_element(e, pParent, replacesParent);
@@ -1153,7 +1153,7 @@ end_element_deletion()
 	MultiGrid& mg = *m_pGrid;
 
 //	make sure that all associated elements are contained in the newConstrained... containers.
-	std::vector<EdgeBase*> edges;
+	std::vector<Edge*> edges;
 	for(size_t i = 0; i < m_newConstrainedVerticalFaces.size(); ++i){
 		CollectAssociated(edges, mg, m_newConstrainedVerticalFaces[i], false);
 	}
@@ -1162,7 +1162,7 @@ end_element_deletion()
 	mg.mark(m_newConstrainedVerticalEdges.begin(), m_newConstrainedVerticalEdges.end());
 
 	for(size_t i = 0; i < edges.size(); ++i){
-		EdgeBase* e = edges[i];
+		Edge* e = edges[i];
 		if(!mg.is_marked(e)){
 			mg.mark(e);
 			m_newConstrainedVerticalEdges.push_back(e);
@@ -1171,7 +1171,7 @@ end_element_deletion()
 
 	mg.mark(m_newConstrainedVerticalVrts.begin(), m_newConstrainedVerticalVrts.end());
 	for(size_t i = 0; i < m_newConstrainedVerticalEdges.size(); ++i){
-		EdgeBase* e = m_newConstrainedVerticalEdges[i];
+		Edge* e = m_newConstrainedVerticalEdges[i];
 		for(size_t j = 0; j < 2; ++j){
 			if(!mg.is_marked(e->vertex(j))){
 				mg.mark(e->vertex(j));
@@ -1221,7 +1221,7 @@ vertex_to_be_erased(Grid* grid, Vertex* vrt, Vertex* replacedBy)
 }
 
 void DistributedGridManager::
-edge_to_be_erased(Grid* grid, EdgeBase* e, EdgeBase* replacedBy)
+edge_to_be_erased(Grid* grid, Edge* e, Edge* replacedBy)
 {
 	if(!replacedBy)
 		element_to_be_erased(e);

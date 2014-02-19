@@ -291,7 +291,7 @@ void collectStretchedElementIndices(ConstSmartPtr<TDomain> domain,
 			{
 				//	skip non-used function
 				if(!dd->is_def_in_subset(fct,si)) continue;
-				std::vector<EdgeBase*> vEdge;
+				std::vector<Edge*> vEdge;
 				CollectEdgesSorted(vEdge, domain->grid, elem);
 				std::vector<number> edgeLength(vEdge.size());
 				std::vector<DoFIndex> ind;

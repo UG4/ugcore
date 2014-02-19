@@ -405,7 +405,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 //TODO:	make sure that all indices are in the correct ranges
 		vVrtDump.clear();
 		for(size_t i = 0; i < vInds.size(); ++i){
-			EdgeBase* e = vEdges[vInds[i]];
+			Edge* e = vEdges[vInds[i]];
 			vVrtDump.push_back(e->vertex(0));
 			vVrtDump.push_back(e->vertex(1));
 		}
@@ -603,7 +603,7 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 //	write the header
 	out << "%% Version 3.0" << endl;
 	out << "%% VertexNumber: " << grid.num<Vertex>() << endl;
-	out << "%% EdgeNumber: " << grid.num<EdgeBase>() << endl;
+	out << "%% EdgeNumber: " << grid.num<Edge>() << endl;
 	out << "%% FaceNumber: " << grid.num<Face>() << endl;
 	out << "%% ElementNumber: " << grid.num<Volume>() << endl;
 	out << "%% Translation: (0, 0, 0)" << endl;
@@ -641,10 +641,10 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 	//	begin writing
 		out << "% Edges (Indices to List of Points):" << endl;
 	//	iterate over edges
-		for(EdgeBaseIterator iter = grid.begin<EdgeBase>();
-			iter != grid.end<EdgeBase>(); ++iter)
+		for(EdgeIterator iter = grid.begin<Edge>();
+			iter != grid.end<Edge>(); ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 
 			if(pSH){
 				si = pSH->get_subset_index(e);
@@ -671,13 +671,13 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 		AInt aInt;
 		grid.attach_to_edges(aInt);
 		Grid::EdgeAttachmentAccessor<AInt> aaInt(grid, aInt);
-		AssignIndices<EdgeBase>(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), aaInt);
+		AssignIndices<Edge>(grid.begin<Edge>(), grid.end<Edge>(), aaInt);
 		
 	//	the subset index
 		int si = 0;
 		
 	//	we'll collect edges in here
-		vector<EdgeBase*> vEdges;
+		vector<Edge*> vEdges;
 		
 	//	begin writing
 		out << "% Faces (Indices to List of Edges):" << endl;

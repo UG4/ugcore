@@ -48,7 +48,7 @@ class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 	///	a callback that allows to deny refinement of special vertices
 		virtual bool refinement_is_allowed(Vertex* elem)	{return true;}
 	///	a callback that allows to deny refinement of special edges
-		virtual bool refinement_is_allowed(EdgeBase* elem)		{return true;}
+		virtual bool refinement_is_allowed(Edge* elem)		{return true;}
 	///	a callback that allows to deny refinement of special faces
 		virtual bool refinement_is_allowed(Face* elem)			{return true;}
 	///	a callback that allows to deny refinement of special volumes

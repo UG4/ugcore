@@ -32,7 +32,7 @@ RefinementCallback_IntersectCylinder::
 {}
 
 void RefinementCallback_IntersectCylinder::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {
 	if(parent){
 		number t0, t1;
@@ -92,7 +92,7 @@ RefinementCallbackEdgePlaneCut::
 
 ////////////////////////////////////////////////////////////////////////
 void RefinementCallbackEdgePlaneCut::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {
 	number t;
 	vector3 v;
@@ -133,7 +133,7 @@ RefinementCallbackFractal::
 
 ////////////////////////////////////////////////////////////////////////
 void RefinementCallbackFractal::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {	
 //	set the vertex to the center by calling the parents method
 	RefinementCallbackLinear<APosition>::new_vertex(vrt, parent);

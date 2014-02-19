@@ -17,7 +17,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ///	Combines received and existing values using a binary or operation
 /**
- * TLayout::Type has to be either Vertex, EdgeBase, Face or Volume.
+ * TLayout::Type has to be either Vertex, Edge, Face or Volume.
  */
 template <class TLayout, class TAttachment>
 class ComPol_BinaryOrAttachment : public pcl::ICommunicationPolicy<TLayout>

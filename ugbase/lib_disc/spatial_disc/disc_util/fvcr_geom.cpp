@@ -308,7 +308,7 @@ update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, con
 	
 	//  check for hanging nodes
 	if (dim==2){
-		std::vector<EdgeBase*> vEdges;
+		std::vector<Edge*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
 		for(size_t side = 0; side < vEdges.size(); ++side){
 			ConstrainingEdge* constrainingObj = dynamic_cast<ConstrainingEdge*>(vEdges[side]);
@@ -810,7 +810,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
 	}
 	if(dim == 2) {
-		std::vector<EdgeBase*> vEdges;
+		std::vector<Edge*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
 		vSubsetIndex.resize(vEdges.size());
 		for(size_t i = 0; i < vEdges.size(); ++i)
@@ -1109,7 +1109,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
 	}
 	if(dim == 2) {
-		std::vector<EdgeBase*> vEdges;
+		std::vector<Edge*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
 		vSubsetIndex.resize(vEdges.size());
 		for(size_t i = 0; i < vEdges.size(); ++i)

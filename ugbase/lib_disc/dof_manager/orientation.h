@@ -44,11 +44,11 @@ void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
                               const LFEID& lfeid);
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              Volume* vol, EdgeBase* edge, size_t nrEdge,
+                              Volume* vol, Edge* edge, size_t nrEdge,
                               const LFEID& lfeid);
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              Face* face, EdgeBase* edge, size_t nrEdge,
+                              Face* face, Edge* edge, size_t nrEdge,
                               const LFEID& lfeid);
 /// \}
 

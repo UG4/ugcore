@@ -69,7 +69,7 @@ void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
  * This parameter is featured for compatibility reasons with the other
  * CollectNeighbors methods.
  */
-void CollectNeighbors(std::vector<EdgeBase*>& vNeighborsOut, EdgeBase* e,
+void CollectNeighbors(std::vector<Edge*>& vNeighborsOut, Edge* e,
 					   Grid& grid, NeighborhoodType nbhType = NHT_VERTEX_NEIGHBORS);
 
 

@@ -38,7 +38,7 @@ bool OrientationMatches(const EdgeVertices& e1, const EdgeVertices& e2)
 }
 
 void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
-                                      EdgeDescriptor& ed, EdgeBase* edge, const size_t p)
+                                      EdgeDescriptor& ed, Edge* edge, const size_t p)
 {
 	vOrientOffset.reserve(p-1);
 	vOrientOffset.clear();
@@ -58,7 +58,7 @@ void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
 }
 
 void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
-                                      Face* face, EdgeBase* edge, size_t nrEdge,
+                                      Face* face, Edge* edge, size_t nrEdge,
                                       const size_t p)
 {
 	EdgeDescriptor ed;
@@ -67,7 +67,7 @@ void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
 }
 
 void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
-                                      Volume* vol, EdgeBase* edge, size_t nrEdge,
+                                      Volume* vol, Edge* edge, size_t nrEdge,
                                       const size_t p)
 {
 	EdgeDescriptor ed;
@@ -262,14 +262,14 @@ void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
 }
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              Volume* vol, EdgeBase* edge, size_t nrEdge,
+                              Volume* vol, Edge* edge, size_t nrEdge,
                               const LFEID& lfeid)
 {
 	ComputeOrientationOffsetGeneric(vOrientOffset, vol, edge, nrEdge, lfeid);
 }
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              Face* face, EdgeBase* edge, size_t nrEdge,
+                              Face* face, Edge* edge, size_t nrEdge,
                               const LFEID& lfeid)
 {
 	ComputeOrientationOffsetGeneric(vOrientOffset, face, edge, nrEdge, lfeid);

@@ -42,8 +42,8 @@ bool PartitionGrid_Bisection(SubsetHandler& partitionOut,
 											partitionOut, mg,
 											mg.num_levels() - 1,
 											numProcs, aPosition);
-	else if(mg.num<EdgeBase>() > 0)
-		PartitionElementsByRepeatedIntersection<EdgeBase, 1>(
+	else if(mg.num<Edge>() > 0)
+		PartitionElementsByRepeatedIntersection<Edge, 1>(
 											partitionOut, mg,
 											mg.num_levels() - 1,
 											numProcs, aPosition);
@@ -69,7 +69,7 @@ class ToElementPosition
 		}
 
 		TValue operator() (Vertex* e)	{return m_aaPos[e];}
-		TValue operator() (EdgeBase* e)		{return CalculateCenter(e, m_aaPos);}
+		TValue operator() (Edge* e)		{return CalculateCenter(e, m_aaPos);}
 		TValue operator() (Face* e)			{return CalculateCenter(e, m_aaPos);}
 		TValue operator() (Volume* e)		{return CalculateCenter(e, m_aaPos);}
 
@@ -133,12 +133,12 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 
 
 	pcl::InterfaceCommunicator<EdgeLayout::LevelLayout> comEdge;
-	ToElementPosition<EdgeBase, TAPos> toPosEdge(mg, aPos);
+	ToElementPosition<Edge, TAPos> toPosEdge(mg, aPos);
 
 	UG_LOG("Testing horizontal edge layouts...\n");
 	{
-		EdgeLayout& masterLayout = glm.get_layout<EdgeBase>(INT_H_MASTER);
-		EdgeLayout& slaveLayout = glm.get_layout<EdgeBase>(INT_H_SLAVE);
+		EdgeLayout& masterLayout = glm.get_layout<Edge>(INT_H_MASTER);
+		EdgeLayout& slaveLayout = glm.get_layout<Edge>(INT_H_SLAVE);
 
 	//	we have to retrieve the max level of all layouts
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
@@ -156,8 +156,8 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 
 	UG_LOG("Testing vertical edge layouts...\n");
 	{
-		EdgeLayout& masterLayout = glm.get_layout<EdgeBase>(INT_V_MASTER);
-		EdgeLayout& slaveLayout = glm.get_layout<EdgeBase>(INT_V_SLAVE);
+		EdgeLayout& masterLayout = glm.get_layout<Edge>(INT_V_MASTER);
+		EdgeLayout& slaveLayout = glm.get_layout<Edge>(INT_V_SLAVE);
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
 		int globMaxLevel = locMaxLevel;
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);

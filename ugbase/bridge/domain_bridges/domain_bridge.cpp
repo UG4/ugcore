@@ -230,8 +230,8 @@ static number GetMaxEdgeLength(TDomain& dom)
 	typename TDomain::grid_type& g = *dom.grid();
 
 	number maxLenSq = 0;
-	for(EdgeBaseIterator eiter = g.template begin<EdgeBase>();
-		eiter != g.template end<EdgeBase>(); ++eiter)
+	for(EdgeIterator eiter = g.template begin<Edge>();
+		eiter != g.template end<Edge>(); ++eiter)
 	{
 		maxLenSq = max(maxLenSq, EdgeLengthSq(*eiter, aaPos));
 	}
@@ -347,7 +347,7 @@ static void Domain(Registry& reg, string grp)
 
 //	element access
 	reg.add_function("GetVertexByCoordinate", &GetElementByCoordinate<TDomain, Vertex>, grp);
-	reg.add_function("GetEdgeByCoordinate", &GetElementByCoordinate<TDomain, EdgeBase>, grp);
+	reg.add_function("GetEdgeByCoordinate", &GetElementByCoordinate<TDomain, Edge>, grp);
 	reg.add_function("GetFaceByCoordinate", &GetElementByCoordinate<TDomain, Face>, grp);
 	reg.add_function("GetVolumeByCoordinate", &GetElementByCoordinate<TDomain, Volume>, grp);
 

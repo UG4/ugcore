@@ -59,8 +59,8 @@ static bool VertexLiesOnSurface(Grid& grid, Vertex* vrt,
 
 	grid.begin_marking();
 
-	stack<EdgeBase*> stk;
-	vector<EdgeBase*> edges;
+	stack<Edge*> stk;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 
 //	collect associated faces of vrt, which lie on the surface
@@ -76,7 +76,7 @@ static bool VertexLiesOnSurface(Grid& grid, Vertex* vrt,
 	grid.mark(stk.top());
 
 	while(!stk.empty()){
-		EdgeBase* e = stk.top();
+		Edge* e = stk.top();
 
 	//	find an unmarked associated face
 		Face* f = NULL;
@@ -101,7 +101,7 @@ static bool VertexLiesOnSurface(Grid& grid, Vertex* vrt,
 
 	//	find the edge that is not e an which is connected to vrt
 		for(size_t i = 0; i < edges.size(); ++i){
-			EdgeBase* ne = edges[i];
+			Edge* ne = edges[i];
 			if(ne != e){
 				if(EdgeContains(ne, vrt)){
 				//	if the edge is marked, then we found a surface
@@ -160,7 +160,7 @@ CalculateCreaseNormal(Grid& grid, Face* f, Vertex* vrt,
 	grid.mark(f);
 
 //	objects for temporary results
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 
 //	we'll loop while there are faces in the stack
@@ -174,7 +174,7 @@ CalculateCreaseNormal(Grid& grid, Face* f, Vertex* vrt,
 	//	iterate over the edges of face
 		CollectEdges(edges, grid, face);
 		for(size_t i_e = 0; i_e < edges.size(); ++i_e){
-			EdgeBase* e = edges[i_e];
+			Edge* e = edges[i_e];
 			if(EdgeContains(e, vrt)){
 			//	check whether e is a crease
 				if(funcIsCreaseEdge(e)){
@@ -331,7 +331,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 //	objects for temporary results
 	FaceDescriptor fd;
-	vector<EdgeBase*> edges; // used for temporary results.
+	vector<Edge*> edges; // used for temporary results.
 	vector<Face*> faces; // used for temporary results.
 
 //	vectors that allow to access fracture properties by subset index
@@ -362,8 +362,8 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	and fracture vertices.
 	for(size_t i_fi = 0; i_fi < fracInfos.size(); ++i_fi){
 		int fracInd = fracInfos[i_fi].subsetIndex;
-		for(EdgeBaseIterator iter = sh.begin<EdgeBase>(fracInd);
-			iter != sh.end<EdgeBase>(fracInd); ++iter)
+		for(EdgeIterator iter = sh.begin<Edge>(fracInd);
+			iter != sh.end<Edge>(fracInd); ++iter)
 		{
 		//	mark edge and vertices
 			sel.select(*iter);
@@ -437,7 +437,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	Grid::FaceAttachmentAccessor<AVrtVec> aaVrtVecFACE(grid, aVrtVec);
 
 //	a callback that returns true if the edge is a fracture edge
-	AttachmentUnequal<EdgeBase, Grid::EdgeAttachmentAccessor<AInt> > isFracEdge(aaMarkEDGE, 0);
+	AttachmentUnequal<Edge, Grid::EdgeAttachmentAccessor<AInt> > isFracEdge(aaMarkEDGE, 0);
 
 //	iterate over all surrounding faces and create new vertices.
 	for(FaceIterator iter_sf = sel.faces_begin(); iter_sf != sel.faces_end(); ++iter_sf)
@@ -563,7 +563,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		Face* sf = *iter_sf;
 	//	check for each edge whether it has to be copied.
 		for(size_t i_edge = 0; i_edge < sf->num_edges(); ++i_edge){
-			EdgeBase* e = grid.get_edge(sf, i_edge);
+			Edge* e = grid.get_edge(sf, i_edge);
 			if(sel.is_selected(e)){
 			//	check the associated vertices through the volumes aaVrtVecVol attachment.
 			//	If at least one has an associated new vertex and if no edge between the
@@ -605,7 +605,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt){
 			size_t iv1 = i_vrt;
 			size_t iv2 = (i_vrt + 1) % sf->num_vertices();
-			EdgeBase* tEdge = grid.get_edge(sf->vertex(iv1), sf->vertex(iv2));
+			Edge* tEdge = grid.get_edge(sf->vertex(iv1), sf->vertex(iv2));
 			if(tEdge){
 				if(aaMarkEDGE[tEdge]){
 					Face* expFace = NULL;
@@ -658,10 +658,10 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 //	we have to clean up unused edges.
 //	All selected edges with mark 0 have to be deleted.
-	for(EdgeBaseIterator iter = sel.edges_begin(); iter != sel.edges_end();)
+	for(EdgeIterator iter = sel.edges_begin(); iter != sel.edges_end();)
 	{
 	//	be careful with the iterator
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		++iter;
 
 		if(!aaMarkEDGE[e])
@@ -696,7 +696,7 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 
 //	objects for temporary results
 	//VolumeDescriptor vd;
-	vector<EdgeBase*> edges; // used for temporary results.
+	vector<Edge*> edges; // used for temporary results.
 	vector<Face*> faces; // used for temporary results.
 	vector<Volume*> vols; // used for temporary results.
 
@@ -734,9 +734,9 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 
 //	all edges that lie on the geometries boundary have to be regarded as inner edges
 	if(expandOuterFracBnds){
-		for(EdgeBaseIterator iter = sel.edges_begin(); iter != sel.edges_end(); ++iter)
+		for(EdgeIterator iter = sel.edges_begin(); iter != sel.edges_end(); ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			if(aaMarkEDGE[e] == 1){
 				if(IsBoundaryEdge3D(grid, e))
 					aaMarkEDGE[e] = 2;
@@ -781,10 +781,10 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 //	now make sure that no inner edge is associated with two
 //	boundary vertices (referring to the selection)
 	edges.clear();
-	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
-		iter != sel.end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = sel.begin<Edge>();
+		iter != sel.end<Edge>(); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		if(aaMarkVRT[e->vertex(0)] != 2 &&
 			aaMarkVRT[e->vertex(1)] != 2 &&
 			aaMarkEDGE[e] > 1)
@@ -838,7 +838,7 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 				CollectAssociated(edges, grid, v);
 
 				for(size_t i = 0; i < edges.size(); ++i){
-					EdgeBase* e = edges[i];
+					Edge* e = edges[i];
 					if(aaMarkEDGE[e] > 1){
 						if(IsBoundaryEdge3D(grid, e))
 							aaMarkVRT[v]++;
@@ -917,7 +917,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	objects for temporary results
 	FaceDescriptor fd;
 	VolumeDescriptor vd;
-	vector<EdgeBase*> edges; // used for temporary results.
+	vector<Edge*> edges; // used for temporary results.
 	vector<Face*> faces; // used for temporary results.
 	vector<Volume*> vols; // used for temporary results.
 
@@ -1105,7 +1105,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		Volume* sv = *iter_sv;
 	//	check for each edge whether it has to be copied.
 		for(size_t i_edge = 0; i_edge < sv->num_edges(); ++i_edge){
-			EdgeBase* e = grid.get_edge(sv, i_edge);
+			Edge* e = grid.get_edge(sv, i_edge);
 			if(sel.is_selected(e)){
 			//	check the associated vertices through the volumes aaVrtVecVol attachment.
 			//	If at least one has an associated new vertex and if no edge between the
@@ -1276,11 +1276,11 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 //	we have to clean up unused faces and edges.
 //	note that all selected edges with mark 0 may safley be deleted.
-	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
-		iter!= sel.end<EdgeBase>();)
+	for(EdgeIterator iter = sel.begin<Edge>();
+		iter!= sel.end<Edge>();)
 	{
 	//	take care of the iterator
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		++iter;
 
 		if(aaMarkEDGE[e] == 0)
@@ -1375,8 +1375,8 @@ bool FractureBoundaryFace(Grid& grid, Face* f,
 
 	grid.begin_marking();
 
-	stack<EdgeBase*> stk;
-	vector<EdgeBase*> edges;
+	stack<Edge*> stk;
+	vector<Edge*> edges;
 	vector<Face*> allFaces;
 	vector<Face*> faces;
 
@@ -1385,7 +1385,7 @@ bool FractureBoundaryFace(Grid& grid, Face* f,
 		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(f->vertex(i));
 			iter != grid.associated_edges_end(f->vertex(i)); ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			if(!grid.is_marked(e)){
 				if(IsBoundaryEdge(grid, e, funcIsSurfFace)){
 					grid.mark(e);
@@ -1398,7 +1398,7 @@ bool FractureBoundaryFace(Grid& grid, Face* f,
 	}
 
 	while(!stk.empty()){
-		EdgeBase* e = stk.top();
+		Edge* e = stk.top();
 	//	we can safely pop e from the stack
 		stk.pop();
 
@@ -1432,7 +1432,7 @@ bool FractureBoundaryFace(Grid& grid, Face* f,
 		CollectEdges(edges, grid, nf);
 
 		for(size_t i = 0; i < edges.size(); ++i){
-			EdgeBase* e = edges[i];
+			Edge* e = edges[i];
 			if(!grid.is_marked(e)){
 				grid.mark(e);
 				if(grid.is_marked(e->vertex(0)) || grid.is_marked(e->vertex(1))){

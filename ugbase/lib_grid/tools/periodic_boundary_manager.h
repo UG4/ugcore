@@ -24,7 +24,7 @@ class IIdentifier {
 public:
 	virtual ~IIdentifier() {}
 	virtual bool match(Vertex*, Vertex*) = 0;
-	virtual bool match(EdgeBase*, EdgeBase*) = 0;
+	virtual bool match(Edge*, Edge*) = 0;
 	virtual bool match(Face*, Face*) = 0;
 	virtual bool match(Volume*, Volume*) {UG_THROW("not impled, because volume identification is not supported.")}
 };
@@ -39,7 +39,7 @@ public:
 template<class TPosAA> class ParallelShiftIdentifier: public IIdentifier {
 public:
 	virtual bool match(Vertex* v1, Vertex* v2) {return match_impl(v1, v2);}
-	virtual bool match(EdgeBase* e1, EdgeBase* e2) {return match_impl(e1, e2);}
+	virtual bool match(Edge* e1, Edge* e2) {return match_impl(e1, e2);}
 	virtual bool match(Face* f1, Face* f2) {return match_impl(f1, f2);}
 
 	virtual ~ParallelShiftIdentifier() {}
@@ -60,7 +60,7 @@ protected:
 //	void setTransformation(MathMatrix<dim,dim>& T) {this->T = T;}
 //
 //	virtual bool match(Vertex*, Vertex*);
-//	virtual bool match(EdgeBase*, EdgeBase*);
+//	virtual bool match(Edge*, Edge*);
 //	virtual bool match(Face*, Face*);
 //protected:
 //	MathMatrix<dim,dim> T;
@@ -139,7 +139,7 @@ public:
 										GridObject* pParent = NULL,
 										bool replacesParent = false);
 
-	virtual void edge_created(Grid* grid, EdgeBase* e,
+	virtual void edge_created(Grid* grid, Edge* e,
 								GridObject* pParent = NULL,
 								bool replacesParent = false);
 
@@ -150,8 +150,8 @@ public:
 	virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
 									 Vertex* replacedBy = NULL);
 
-	virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
-									 EdgeBase* replacedBy = NULL);
+	virtual void edge_to_be_erased(Grid* grid, Edge* e,
+									 Edge* replacedBy = NULL);
 
 	virtual void face_to_be_erased(Grid* grid, Face* f,
 									 Face* replacedBy = NULL);
@@ -187,12 +187,12 @@ protected:
 
 	/// attachment accessors for Groups
 	Grid::AttachmentAccessor<Vertex, Attachment<Group<Vertex>* > > m_aaGroupVRT;
-	Grid::AttachmentAccessor<EdgeBase, Attachment<Group<EdgeBase>* > > m_aaGroupEDG;
+	Grid::AttachmentAccessor<Edge, Attachment<Group<Edge>* > > m_aaGroupEDG;
 	Grid::AttachmentAccessor<Face, Attachment<Group<Face>* > > m_aaGroupFCE;
 
 	/// attachment accessors for PeriodicStatus
 	Grid::AttachmentAccessor<Vertex, Attachment<PeriodicStatus> > m_aaPeriodicStatusVRT;
-	Grid::AttachmentAccessor<EdgeBase, Attachment<PeriodicStatus> > m_aaPeriodicStatusEDG;
+	Grid::AttachmentAccessor<Edge, Attachment<PeriodicStatus> > m_aaPeriodicStatusEDG;
 	Grid::AttachmentAccessor<Face, Attachment<PeriodicStatus> > m_aaPeriodicStatusFCE;
 
 	/// make element e slave of group g

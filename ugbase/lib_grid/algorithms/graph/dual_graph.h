@@ -40,7 +40,7 @@ namespace ug
  * If you are interested in the indices assigned to each element, then
  * pass a pointer to an TIndexType attachment to paIndex.
  *
- * TGeomBaseObj can be either Vertex, EdgeBase, Face or Volume
+ * TGeomBaseObj can be either Vertex, Edge, Face or Volume
  *
  * Through pgoc you can specify a subset of the grid which shall be put into
  * the graph. If pgoc == NULL (by default), the whole grid is used.
@@ -172,7 +172,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
  * pEdgeWgtsOut. vWeight for each vertical connection (parents / children)
  * and hWeigth for each horizontal connection (neighbors).
  *
- * TGeomBaseObj can be either Vertex, EdgeBase, Face or Volume
+ * TGeomBaseObj can be either Vertex, Edge, Face or Volume
  *
  * Elements will be indexed for level 0 first, then for level 1 and so on.
  */
@@ -328,7 +328,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
  * If you are interested in the indices assigned to each element, then
  * pass a pointer to an TIndexType attachment to paIndex.
  *
- * TGeomBaseObj can be either Vertex, EdgeBase, Face or Volume
+ * TGeomBaseObj can be either Vertex, Edge, Face or Volume
  */
 template <class TGeomBaseObj, class TIndexType>
 void ConstructDualGraphMGLevel(

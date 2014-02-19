@@ -120,7 +120,7 @@ void MGSelector::enable_element_support(uint shElements)
 
 		if((shElements & SE_EDGE) && (!elements_are_supported(SE_EDGE)))
 			lvl.m_edges.get_container().set_pipe(
-				&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntryEDGE);
+				&m_pGrid->get_attachment_pipe<Edge>(), m_aSharedEntryEDGE);
 
 		if((shElements & SE_FACE) && (!elements_are_supported(SE_FACE)))
 			lvl.m_faces.get_container().set_pipe(
@@ -175,7 +175,7 @@ void MGSelector::add_level()
 				&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);
 	if(elements_are_supported(SE_EDGE))
 		pLvl->m_edges.get_container().set_pipe(
-				&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntryEDGE);
+				&m_pGrid->get_attachment_pipe<Edge>(), m_aSharedEntryEDGE);
 	if(elements_are_supported(SE_FACE))
 		pLvl->m_faces.get_container().set_pipe(
 				&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntryFACE);
@@ -196,7 +196,7 @@ void MGSelector::clear_lists()
 void MGSelector::clear()
 {
 	clear<Vertex>();
-	clear<EdgeBase>();
+	clear<Edge>();
 	clear<Face>();
 	clear<Volume>();
 }
@@ -204,7 +204,7 @@ void MGSelector::clear()
 void MGSelector::clear(int level)
 {
 	clear<Vertex>(level);
-	clear<EdgeBase>(level);
+	clear<Edge>(level);
 	clear<Face>(level);
 	clear<Volume>(level);
 }
@@ -216,10 +216,10 @@ void MGSelector::add_to_list(Vertex* elem)
 								elem->container_section());
 }
 
-void MGSelector::add_to_list(EdgeBase* elem)
+void MGSelector::add_to_list(Edge* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
-	section_container<EdgeBase>(level).insert(elem,
+	section_container<Edge>(level).insert(elem,
 								elem->container_section());
 }
 
@@ -243,10 +243,10 @@ void MGSelector::erase_from_list(Vertex* elem)
 	section_container<Vertex>(level).erase(get_level_iterator(elem),
 						elem->container_section());
 }
-void MGSelector::erase_from_list(EdgeBase* elem)
+void MGSelector::erase_from_list(Edge* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
-	section_container<EdgeBase>(level).erase(get_level_iterator(elem),
+	section_container<Edge>(level).erase(get_level_iterator(elem),
 						elem->container_section());
 }
 void MGSelector::erase_from_list(Face* elem)

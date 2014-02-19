@@ -274,7 +274,7 @@ uint Tetrahedron::num_faces() const
 	return 4;
 }
 
-EdgeBase* Tetrahedron::create_edge(int index)
+Edge* Tetrahedron::create_edge(int index)
 {
 	using namespace tet_rules;
 	assert(index >= 0 && index < NUM_EDGES);
@@ -482,7 +482,7 @@ uint Hexahedron::num_faces() const
 	return 6;
 }
 
-EdgeBase* Hexahedron::create_edge(int index)
+Edge* Hexahedron::create_edge(int index)
 {
 	using namespace hex_rules;
 	assert(index >= 0 && index < NUM_EDGES);
@@ -686,7 +686,7 @@ uint Prism::num_faces() const
 	return 5;
 }
 
-EdgeBase* Prism::create_edge(int index)
+Edge* Prism::create_edge(int index)
 {
 	using namespace prism_rules;
 	assert(index >= 0 && index < NUM_EDGES);
@@ -891,7 +891,7 @@ uint Pyramid::num_faces() const
 	return 5;
 }
 
-EdgeBase* Pyramid::create_edge(int index)
+Edge* Pyramid::create_edge(int index)
 {
 	using namespace pyra_rules;
 	assert(index >= 0 && index < NUM_EDGES);

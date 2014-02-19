@@ -89,7 +89,7 @@ refinement_is_allowed(Vertex* elem)
 
 bool
 HangingNodeRefiner_MultiGrid::
-refinement_is_allowed(EdgeBase* elem)
+refinement_is_allowed(Edge* elem)
 {
 	return (!m_pMG->has_children(elem))
 			|| elem->is_constraining();
@@ -128,15 +128,15 @@ pre_refine()
 		MGHNODE_PROFILE_BEGIN(MGHNODE_ReserveVrtData);
 		mg.reserve<Vertex>(mg.num<Vertex>() +
 					+ sel.num<Vertex>()
-					+ sel.num<EdgeBase>() - sel.num<ConstrainingEdge>()
+					+ sel.num<Edge>() - sel.num<ConstrainingEdge>()
 					+ sel.num<Quadrilateral>()
 					+ sel.num<ConstrainedQuadrilateral>()
 					+ sel.num<Hexahedron>());
 		MGHNODE_PROFILE_END();
 
 		MGHNODE_PROFILE_BEGIN(MGHNODE_ReserveEdgeData);
-		mg.reserve<EdgeBase>(mg.num<EdgeBase>()
-					+ 2 * (sel.num<EdgeBase>() - sel.num<ConstrainingEdge>())
+		mg.reserve<Edge>(mg.num<Edge>()
+					+ 2 * (sel.num<Edge>() - sel.num<ConstrainingEdge>())
 					+ 3 * (sel.num<Triangle>() + sel.num<ConstrainedTriangle>())
 					+ 4 * (sel.num<Quadrilateral>() + sel.num<ConstrainedQuadrilateral>())
 					+ 3 * sel.num<Prism>() + sel.num<Tetrahedron>()
@@ -190,7 +190,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 }
 
 void HangingNodeRefiner_MultiGrid::
-refine_edge_with_normal_vertex(EdgeBase* e, Vertex** newCornerVrts)
+refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 {
 //	collect child corners
 	std::vector<Vertex*> childCorners;
@@ -201,7 +201,7 @@ refine_edge_with_normal_vertex(EdgeBase* e, Vertex** newCornerVrts)
 }
 
 void HangingNodeRefiner_MultiGrid::
-refine_edge_with_hanging_vertex(EdgeBase* e, Vertex** newCornerVrts)
+refine_edge_with_hanging_vertex(Edge* e, Vertex** newCornerVrts)
 {
 //	collect child corners
 	std::vector<Vertex*> childCorners;
@@ -245,14 +245,14 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 }
 
 Vertex* HangingNodeRefiner_MultiGrid::
-get_center_vertex(EdgeBase* e)
+get_center_vertex(Edge* e)
 {
 	return m_pMG->get_child_vertex(e);
 }
 
 
 void HangingNodeRefiner_MultiGrid::
-set_center_vertex(EdgeBase* e, Vertex* v)
+set_center_vertex(Edge* e, Vertex* v)
 {
 //	the child vertex should already have been associated since the
 //	multigrid is an observer itself.
@@ -281,7 +281,7 @@ void HangingNodeRefiner_MultiGrid::
 restrict_selection_to_surface_coarsen_elements()
 {
 	restrict_selection_to_surface_coarsen_elements<Vertex>();
-	restrict_selection_to_surface_coarsen_elements<EdgeBase>();
+	restrict_selection_to_surface_coarsen_elements<Edge>();
 	restrict_selection_to_surface_coarsen_elements<Face>();
 	restrict_selection_to_surface_coarsen_elements<Volume>();
 }
@@ -316,7 +316,7 @@ void HangingNodeRefiner_MultiGrid::
 restrict_selection_to_coarsen_families()
 {
 	restrict_selection_to_coarsen_families<Vertex>();
-	restrict_selection_to_coarsen_families<EdgeBase>();
+	restrict_selection_to_coarsen_families<Edge>();
 	restrict_selection_to_coarsen_families<Face>();
 	restrict_selection_to_coarsen_families<Volume>();
 }
@@ -406,31 +406,31 @@ static void DeselectFamily(ISelector& sel, MultiGrid& mg, Vertex* elem)
 		DeselectFamily(sel, mg, mg.get_child<Vertex>(elem, i));
 }
 
-static void DeselectFamily(ISelector& sel, MultiGrid& mg, EdgeBase* elem)
+static void DeselectFamily(ISelector& sel, MultiGrid& mg, Edge* elem)
 {
 	sel.deselect(elem);
 	size_t numVertexChildren = mg.num_children<Vertex>(elem);
-	size_t numEdgeChildren = mg.num_children<EdgeBase>(elem);
+	size_t numEdgeChildren = mg.num_children<Edge>(elem);
 
 	for(size_t i = 0; i < numVertexChildren; ++i)
 		DeselectFamily(sel, mg, mg.get_child<Vertex>(elem, i));
 
 	for(size_t i = 0; i < numEdgeChildren; ++i)
-		DeselectFamily(sel, mg, mg.get_child<EdgeBase>(elem, i));
+		DeselectFamily(sel, mg, mg.get_child<Edge>(elem, i));
 }
 
 static void DeselectFamily(ISelector& sel, MultiGrid& mg, Face* elem)
 {
 	sel.deselect(elem);
 	size_t numVertexChildren = mg.num_children<Vertex>(elem);
-	size_t numEdgeChildren = mg.num_children<EdgeBase>(elem);
+	size_t numEdgeChildren = mg.num_children<Edge>(elem);
 	size_t numFaceChildren = mg.num_children<Face>(elem);
 
 	for(size_t i = 0; i < numVertexChildren; ++i)
 		DeselectFamily(sel, mg, mg.get_child<Vertex>(elem, i));
 
 	for(size_t i = 0; i < numEdgeChildren; ++i)
-		DeselectFamily(sel, mg, mg.get_child<EdgeBase>(elem, i));
+		DeselectFamily(sel, mg, mg.get_child<Edge>(elem, i));
 
 	for(size_t i = 0; i < numFaceChildren; ++i)
 		DeselectFamily(sel, mg, mg.get_child<Face>(elem, i));
@@ -440,7 +440,7 @@ static void DeselectFamily(ISelector& sel, MultiGrid& mg, Volume* elem)
 {
 	sel.deselect(elem);
 	size_t numVertexChildren = mg.num_children<Vertex>(elem);
-	size_t numEdgeChildren = mg.num_children<EdgeBase>(elem);
+	size_t numEdgeChildren = mg.num_children<Edge>(elem);
 	size_t numFaceChildren = mg.num_children<Face>(elem);
 	size_t numVolumeChildren = mg.num_children<Volume>(elem);
 
@@ -448,7 +448,7 @@ static void DeselectFamily(ISelector& sel, MultiGrid& mg, Volume* elem)
 		DeselectFamily(sel, mg, mg.get_child<Vertex>(elem, i));
 
 	for(size_t i = 0; i < numEdgeChildren; ++i)
-		DeselectFamily(sel, mg, mg.get_child<EdgeBase>(elem, i));
+		DeselectFamily(sel, mg, mg.get_child<Edge>(elem, i));
 
 	for(size_t i = 0; i < numFaceChildren; ++i)
 		DeselectFamily(sel, mg, mg.get_child<Face>(elem, i));
@@ -461,7 +461,7 @@ static void DeselectFamily(ISelector& sel, MultiGrid& mg, GridObject* elem)
 {
 	switch(elem->base_object_id()){
 		case VERTEX:	return DeselectFamily(sel, mg, static_cast<Vertex*>(elem));
-		case EDGE:		return DeselectFamily(sel, mg, static_cast<EdgeBase*>(elem));
+		case EDGE:		return DeselectFamily(sel, mg, static_cast<Edge*>(elem));
 		case FACE:		return DeselectFamily(sel, mg, static_cast<Face*>(elem));
 		case VOLUME:	return DeselectFamily(sel, mg, static_cast<Volume*>(elem));
 	}
@@ -490,7 +490,7 @@ static void SaveCoarsenMarksToFile(ISelector& sel, const char* filename)
 		}
 	}
 
-	for(EdgeBaseIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
+	for(EdgeIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
 		ISelector::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_COARSEN: sh.assign_subset(*iter, 0); break;
@@ -635,7 +635,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //		sel.clear<Face>();
 //
 //	if(gotFaces)
-//		sel.clear<EdgeBase>();
+//		sel.clear<Edge>();
 //
 //	if(gotEdges)
 //		sel.clear<Vertex>();
@@ -653,9 +653,9 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //
 //debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 //
-//	typedef vector<EdgeBase*> EdgeVec;
+//	typedef vector<Edge*> EdgeVec;
 //	EdgeVec vedges;
-//	vedges.assign(sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+//	vedges.assign(sel.begin<Edge>(), sel.end<Edge>());
 //
 //	Grid::edge_traits::secure_container edges;
 //	Grid::face_traits::secure_container	faces;
@@ -668,7 +668,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //	//	classify unknown edges
 //		for(EdgeVec::iterator iter = vedges.begin(); iter != vedges.end(); ++iter)
 //		{
-//			EdgeBase* e = *iter;
+//			Edge* e = *iter;
 //
 //			if(sel.get_selection_status(e) == HNCM_UNKNOWN){
 //				size_t numSel = 0;
@@ -707,10 +707,10 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //		copy_marks_to_vmasters(false, true, false, false);
 //
 //	//	clear all edges which are marked with HNCM_NONE from the selection
-//		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-//			iter != sel.end<EdgeBase>();)
+//		for(selector_t::traits<Edge>::iterator iter = sel.begin<Edge>();
+//			iter != sel.end<Edge>();)
 //		{
-//			EdgeBase* e = *iter;
+//			Edge* e = *iter;
 //			++iter;
 //			if(sel.get_selection_status(e) == HNCM_NONE)
 //				sel.deselect(e);
@@ -748,10 +748,10 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //	//	invalid mark.
 //		copy_marks_to_vmasters(false, true, false, false);
 //
-//		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-//			iter != sel.end<EdgeBase>();)
+//		for(selector_t::traits<Edge>::iterator iter = sel.begin<Edge>();
+//			iter != sel.end<Edge>();)
 //		{
-//			EdgeBase* e = *iter;
+//			Edge* e = *iter;
 //			++iter;
 //			if(sel.get_selection_status(e) == HNCM_INVALID){
 //				if(gotVols){
@@ -764,11 +764,11 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //							DeselectFamily(sel, mg, parent);
 //							mg.associated_elements(edges, parent);
 //							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-//								EdgeBase* e = edges[i_edge];
+//								Edge* e = edges[i_edge];
 //								if(sel.is_selected(e))
 //									sel.select(e, HNCM_UNKNOWN);
-//								for(size_t i = 0; i < mg.num_children<EdgeBase>(e); ++i){
-//									EdgeBase* child = mg.get_child<EdgeBase>(e, i);
+//								for(size_t i = 0; i < mg.num_children<Edge>(e); ++i){
+//									Edge* child = mg.get_child<Edge>(e, i);
 //									if(sel.is_selected(child)){
 //										sel.select(child, HNCM_UNKNOWN);
 //									}
@@ -781,8 +781,8 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //								Face* f = faces[i_face];
 //								if(sel.is_selected(f))
 //									sel.select(f, HNCM_UNKNOWN);
-//								for(size_t i = 0; i < mg.num_children<EdgeBase>(f); ++i){
-//									EdgeBase* child = mg.get_child<EdgeBase>(f, i);
+//								for(size_t i = 0; i < mg.num_children<Edge>(f); ++i){
+//									Edge* child = mg.get_child<Edge>(f, i);
 //									if(sel.is_selected(child)){
 //										sel.select(child, HNCM_UNKNOWN);
 //									}
@@ -804,8 +804,8 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 //								if(sel.is_selected(edges[i_edge]))
 //									sel.select(edges[i_edge], HNCM_UNKNOWN);
-//								for(size_t i = 0; i < mg.num_children<EdgeBase>(edges[i_edge]); ++i){
-//									EdgeBase* child = mg.get_child<EdgeBase>(edges[i_edge], i);
+//								for(size_t i = 0; i < mg.num_children<Edge>(edges[i_edge]); ++i){
+//									Edge* child = mg.get_child<Edge>(edges[i_edge], i);
 //									if(sel.is_selected(child)){
 //										sel.select(child, HNCM_UNKNOWN);
 //									}
@@ -835,8 +835,8 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //
 //
 //	//	find edges which were marked as unknown and prepare qedges for the next run
-//		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-//			iter != sel.end<EdgeBase>(); ++iter)
+//		for(selector_t::traits<Edge>::iterator iter = sel.begin<Edge>();
+//			iter != sel.end<Edge>(); ++iter)
 //		{
 //			if(sel.get_selection_status(*iter) == HNCM_UNKNOWN)
 //				vedges.push_back(*iter);
@@ -847,7 +847,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //
 ////	finally classify faces and vertices
 //	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_ALL);
-//	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>(), HNCM_ALL);
+//	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>(), HNCM_ALL);
 //
 //	broadcast_marks_horizontally(true, false, true);
 //	copy_marks_to_vmasters(true, false, true, false);
@@ -904,10 +904,10 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 ////	transformed to a normal edge
 ////	mark parents of normal and constraining edges and faces which were marked for
 ////	partial refinement with a replace mark
-//	for(selector_t::traits<EdgeBase>::iterator
-//		iter = sel.begin<EdgeBase>(); iter != sel.end<EdgeBase>(); ++iter)
+//	for(selector_t::traits<Edge>::iterator
+//		iter = sel.begin<Edge>(); iter != sel.end<Edge>(); ++iter)
 //	{
-//		EdgeBase* e = *iter;
+//		Edge* e = *iter;
 //		if(GridObject* parent = mg.get_parent(e)){
 //			bool isConstrained = e->is_constrained();
 //			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
@@ -960,7 +960,7 @@ debug_save(sel, "coarsen_marks_01_start");
 		sel.clear<Face>();
 
 	if(gotFaces)
-		sel.clear<EdgeBase>();
+		sel.clear<Edge>();
 
 	if(gotEdges)
 		sel.clear<Vertex>();
@@ -970,7 +970,7 @@ debug_save(sel, "coarsen_marks_01_start");
 	restrict_selection_to_coarsen_families();
 	copy_marks_to_vslaves(true, true, true, true);
 
-	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>(), HNCM_UNKNOWN);
+	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>(), HNCM_UNKNOWN);
 	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>(), HNCM_UNKNOWN);
 	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>(), HNCM_UNKNOWN);
 	broadcast_marks_horizontally(true, false, false);
@@ -1101,7 +1101,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 						//	and side-edges as unknown
 							mg.associated_elements(edges, parent);
 							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-								EdgeBase* edge = edges[i_edge];
+								Edge* edge = edges[i_edge];
 								if(sel.is_selected(edge))
 									sel.select(edge, HNCM_UNKNOWN);
 
@@ -1149,7 +1149,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 						//	we also have to mark vertex-children of side-edges
 							mg.associated_elements(edges, parent);
 							for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-								EdgeBase* edge = edges[i_edge];
+								Edge* edge = edges[i_edge];
 								if(sel.is_selected(edge))
 									sel.select(edge, HNCM_UNKNOWN);
 
@@ -1222,10 +1222,10 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 			}
 		}
 
-		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-			iter != sel.end<EdgeBase>();)
+		for(selector_t::traits<Edge>::iterator iter = sel.begin<Edge>();
+			iter != sel.end<Edge>();)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			++iter;
 
 			mg.associated_elements(vols, e);
@@ -1238,10 +1238,10 @@ debug_save(sel, "coarsen_marks_03_irregularities_resolved");
 		}
 	}
 	else if(gotFaces){
-		for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-			iter != sel.end<EdgeBase>();)
+		for(selector_t::traits<Edge>::iterator iter = sel.begin<Edge>();
+			iter != sel.end<Edge>();)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			++iter;
 
 			mg.associated_elements(faces, e);
@@ -1280,10 +1280,10 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 //	transformed to a normal edge
 //	mark parents of normal and constraining edges and faces which were marked for
 //	partial refinement with a replace mark
-	for(selector_t::traits<EdgeBase>::iterator
-		iter = sel.begin<EdgeBase>(); iter != sel.end<EdgeBase>(); ++iter)
+	for(selector_t::traits<Edge>::iterator
+		iter = sel.begin<Edge>(); iter != sel.end<Edge>(); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		if(GridObject* parent = mg.get_parent(e)){
 			bool isConstrained = e->is_constrained();
 			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
@@ -1521,10 +1521,10 @@ We have to handle elements as follows:
 
 ////////////////////
 //	EDGES
-	for(selector_t::traits<EdgeBase>::iterator iter = sel.begin<EdgeBase>();
-		iter != sel.end<EdgeBase>();)
+	for(selector_t::traits<Edge>::iterator iter = sel.begin<Edge>();
+		iter != sel.end<Edge>();)
 	{
-		EdgeBase* elem = *iter;
+		Edge* elem = *iter;
 		++iter;
 		ISelector::status_t selState = sel.get_selection_status(elem);
 		sel.deselect(elem);
@@ -1557,7 +1557,7 @@ We have to handle elements as follows:
 				if(parent){
 					switch(parent->base_object_id()){
 						case EDGE:{
-								EdgeBase* edgeParent = dynamic_cast<EdgeBase*>(parent);
+								Edge* edgeParent = dynamic_cast<Edge*>(parent);
 								UG_ASSERT(edgeParent, "Severe type error during coarsing - bad parent type: "
 										  << ElementDebugInfo(mg, elem));
 
@@ -1619,9 +1619,9 @@ We have to handle elements as follows:
 				//	make sure that a connection with constrained children is established
 				//	note - associated constrained vertices and constrained edges can
 				//	not exist at this point.
-					for(size_t i = 0; i < mg.num_children<EdgeBase>(cge); ++i){
+					for(size_t i = 0; i < mg.num_children<Edge>(cge); ++i){
 						if(ConstrainedEdge* cde =
-						   dynamic_cast<ConstrainedEdge*>(mg.get_child<EdgeBase>(cge, i)))
+						   dynamic_cast<ConstrainedEdge*>(mg.get_child<Edge>(cge, i)))
 						{
 							cge->add_constrained_object(cde);
 							cde->set_constraining_object(cge);

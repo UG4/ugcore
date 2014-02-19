@@ -32,7 +32,7 @@ inline void ISelector::select(GridObject* elem, byte status){
 			select(static_cast<Vertex*>(elem), status);
 			break;
 		case EDGE:
-			select(static_cast<EdgeBase*>(elem), status);
+			select(static_cast<Edge*>(elem), status);
 			break;
 		case FACE:
 			select(static_cast<Face*>(elem), status);
@@ -72,7 +72,7 @@ inline void ISelector::deselect(GridObject* elem){
 			deselect(static_cast<Vertex*>(elem));
 			break;
 		case EDGE:
-			deselect(static_cast<EdgeBase*>(elem));
+			deselect(static_cast<Edge*>(elem));
 			break;
 		case FACE:
 			deselect(static_cast<Face*>(elem));
@@ -100,7 +100,7 @@ byte ISelector::get_selection_status(GridObject* elem) const{
 		case VERTEX:
 			return get_selection_status(static_cast<Vertex*>(elem));
 		case EDGE:
-			return get_selection_status(static_cast<EdgeBase*>(elem));
+			return get_selection_status(static_cast<Edge*>(elem));
 		case FACE:
 			return get_selection_status(static_cast<Face*>(elem));
 		case VOLUME:

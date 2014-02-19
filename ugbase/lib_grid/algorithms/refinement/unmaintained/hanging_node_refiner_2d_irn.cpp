@@ -15,7 +15,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //BEGIN Debug methods
 /*
-static void PrintEdgeCoords(EdgeBase* e, Grid::VertexAttachmentAccessor<APosition>& aaPos)
+static void PrintEdgeCoords(Edge* e, Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	LOG("(" << aaPos[e->vertex(0)].x() << ", " << aaPos[e->vertex(0)].y() <<
 			"), (" << aaPos[e->vertex(1)].x() << ", " << aaPos[e->vertex(1)].y() << ")");
@@ -24,7 +24,7 @@ static void PrintEdgeCoords(EdgeBase* e, Grid::VertexAttachmentAccessor<APositio
 static void PrintConstrainingEdgeInfo(ConstrainingEdge* ce, Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	LOG("coords of constrained edges:" << endl);
-	for(EdgeBaseIterator cdEIter = ce->constrained_edges_begin();
+	for(EdgeIterator cdEIter = ce->constrained_edges_begin();
 						cdEIter != ce->constrained_edges_end(); ++cdEIter)
 	{
 		PrintEdgeCoords(*cdEIter, aaPos);
@@ -75,7 +75,7 @@ static bool CheckHangingNodeDegree(Grid& grid, uint irregularityRule, Grid::Vert
 //	temporary helper methods
 //TODO: move this method to a better place.
 ///	returns the local coordinate that v has relative to e
-static number GetLocalVertexCoordinate(EdgeBase* e, Vertex* vrt)
+static number GetLocalVertexCoordinate(Edge* e, Vertex* vrt)
 {
 	if(vrt == e->vertex(0))
 		return 0;
@@ -185,7 +185,7 @@ void HangingNodeRefiner2D_IRN::clear_marks()
 	m_selMarkedElements.clear();
 }
 
-void HangingNodeRefiner2D_IRN::mark_for_refinement(EdgeBase* e)
+void HangingNodeRefiner2D_IRN::mark_for_refinement(Edge* e)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefiner::mark_for_refinement(...): No grid assigned.");
 
@@ -277,10 +277,10 @@ void HangingNodeRefiner2D_IRN::refine()
 		EdgeVec vDelayedRefineEdges;
 
 	//	iterate while there are edges scheduled for refinement.
-		while(!m_selScheduledElements.empty<EdgeBase>())
+		while(!m_selScheduledElements.empty<Edge>())
 		{
 		//	get the first edge and remove it from the queue.
-			EdgeBase* e = *m_selScheduledElements.begin<EdgeBase>();
+			Edge* e = *m_selScheduledElements.begin<Edge>();
 			m_selScheduledElements.deselect(e);
 
 		//	depending on the type of edge we will proceed now.
@@ -367,7 +367,7 @@ void HangingNodeRefiner2D_IRN::refine()
 
 				//	refine the edge
 					bool scheduledEdgeReplaced[2];
-					EdgeBase* newEdges[2];
+					Edge* newEdges[2];
 					refine_constraining_edge(constrainingEdge, &newEdges[0], &newEdges[1],
 											scheduledEdgeReplaced[0], scheduledEdgeReplaced[1]);
 
@@ -587,10 +587,10 @@ void HangingNodeRefiner2D_IRN::refine()
 
 	//	erase edges that are no longer needed.
 		{
-			EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-			while(iter != m_selMarkedElements.end<EdgeBase>())
+			EdgeIterator iter = m_selMarkedElements.begin<Edge>();
+			while(iter != m_selMarkedElements.end<Edge>())
 			{
-				EdgeBase* e = *iter;
+				Edge* e = *iter;
 				++iter;
 				CollectFaces(vFaces, grid, e);
 				if(vFaces.size() == 0)
@@ -634,7 +634,7 @@ void HangingNodeRefiner2D_IRN::collect_objects_for_refine()
 	Grid& grid = *m_pGrid;
 
 //	containers used for temporary results
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	vector<Face*> vFaces;
 	vector<Volume*> vVolumes;
 
@@ -642,8 +642,8 @@ void HangingNodeRefiner2D_IRN::collect_objects_for_refine()
 //	assert correct selection. see HangingVertexRefiner description.
 //	select all faces and volumes adjacent to selected edges.
 	{
-		for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
+		for(EdgeIterator iter = m_selMarkedElements.begin<Edge>();
+			iter != m_selMarkedElements.end<Edge>(); ++iter)
 		{
 			m_selScheduledElements.select(*iter);
 			CollectFaces(vFaces, grid, *iter);
@@ -669,7 +669,7 @@ void HangingNodeRefiner2D_IRN::collect_objects_for_refine()
 			CollectEdges(vEdges, grid, *iter);
 			for(uint i = 0; i < vEdges.size(); ++i)
 			{
-				EdgeBase* e = vEdges[i];
+				Edge* e = vEdges[i];
 				if(!is_marked(e))
 				{
 					mark(e);
@@ -695,7 +695,7 @@ void HangingNodeRefiner2D_IRN::collect_objects_for_refine()
 			CollectEdges(vEdges, grid, *iter);
 			for(uint i = 0; i < vEdges.size(); ++i)
 			{
-				EdgeBase* e = vEdges[i];
+				Edge* e = vEdges[i];
 				if(!is_marked(e))
 				{
 					mark(e);
@@ -716,7 +716,7 @@ void HangingNodeRefiner2D_IRN::collect_objects_for_refine()
 		}
 	}
 /*
-	LOG("num marked edges: " << m_selScheduledElements.num_selected<EdgeBase>() << endl);
+	LOG("num marked edges: " << m_selScheduledElements.num_selected<Edge>() << endl);
 	LOG("num marked faces: " << m_selScheduledElements.num_selected<Face>() << endl);
 	LOG("num marked volumes: " << m_selScheduledElements.num_selected<Volume>() << endl);
 */
@@ -755,7 +755,7 @@ void HangingNodeRefiner2D_IRN::collect_objects_for_refine()
 					CollectEdges(vEdges, grid, f);
 					for(uint j = 0; j < vEdges.size(); ++j)
 					{
-						EdgeBase* e = vEdges[j];
+						Edge* e = vEdges[j];
 						if(!is_marked(e))
 						{
 							mark(e);
@@ -781,7 +781,7 @@ void HangingNodeRefiner2D_IRN::collect_objects_for_refine()
 					CollectEdges(vEdges, grid, v);
 					for(uint j = 0; j < vEdges.size(); ++j)
 					{
-						EdgeBase* e = vEdges[j];
+						Edge* e = vEdges[j];
 						if(!is_marked(e))
 						{
 							mark(e);
@@ -875,7 +875,7 @@ void HangingNodeRefiner2D_IRN::refine_constrained_edge(ConstrainedEdge* constrai
 }
 
 void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constrainingEdge,
-												EdgeBase** ppEdge1Out, EdgeBase** ppEdge2Out,
+												Edge** ppEdge1Out, Edge** ppEdge2Out,
 												bool& scheduledEdgeReplaced1Out, bool& scheduledEdgeReplaced2Out)
 {
 	Grid& grid = *m_pGrid;
@@ -910,7 +910,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 	if(centerVrt)
 	{
 	//	store resulting edges temporarily in this array
-		EdgeBase* newEdges[2] = {NULL, NULL};
+		Edge* newEdges[2] = {NULL, NULL};
 		bool scheduledEdgeReplaced[2] = {false, false};
 
 	//	centerVrt has to be transformed into a normal vertex.
@@ -943,7 +943,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 			//	create a constraining edge
 			//	check if an old edge already exits that connects those vertices
 			//	if so, replace it.
-				EdgeBase* tEdge = grid.get_edge(vrt1, vrt2);
+				Edge* tEdge = grid.get_edge(vrt1, vrt2);
 				ConstrainingEdge* nCE = NULL;
 				if(tEdge)
 				{
@@ -982,10 +982,10 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 				}
 
 			//	copy constrained edges
-				EdgeBaseIterator cdEIter = ce->constrained_edges_begin();
+				EdgeIterator cdEIter = ce->constrained_edges_begin();
 				while(cdEIter != ce->constrained_edges_end())
 				{
-					EdgeBase* tEdge = *cdEIter;
+					Edge* tEdge = *cdEIter;
 					++cdEIter;
 					if(ConstrainedEdge::type_match(tEdge))
 					{
@@ -1037,8 +1037,8 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 			//	no hanging nodes in the lower part of the edge.
 			//	create a normal edge and replace the constrained edge of this part of ce
 			//	find it first.
-				EdgeBase* replaceMe = NULL;
-				for(EdgeBaseIterator cdEIter = ce->constrained_edges_begin();
+				Edge* replaceMe = NULL;
+				for(EdgeIterator cdEIter = ce->constrained_edges_begin();
 					cdEIter != ce->constrained_edges_end(); ++cdEIter)
 				{
 					if(EdgeContains(*cdEIter, vrt1, vrt2))
@@ -1140,7 +1140,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 	}
 }
 
-void HangingNodeRefiner2D_IRN::refine_edge_with_normal_vertex(EdgeBase* e)
+void HangingNodeRefiner2D_IRN::refine_edge_with_normal_vertex(Edge* e)
 {
 	Grid& grid = *m_pGrid;
 
@@ -1152,16 +1152,16 @@ void HangingNodeRefiner2D_IRN::refine_edge_with_normal_vertex(EdgeBase* e)
 		m_refCallback->new_vertex(nVrt, e);
 
 //	split the edge
-	vector<EdgeBase*> vEdges(2);
+	vector<Edge*> vEdges(2);
 	e->refine(vEdges, nVrt);
-	assert((vEdges.size() == 2) && "ERROR in RefineEdgeWithNormalVertex: EdgeBase::refine - produced wrong number of edges.");
+	assert((vEdges.size() == 2) && "ERROR in RefineEdgeWithNormalVertex: Edge::refine - produced wrong number of edges.");
 	grid.register_element(vEdges[0], e);
 	grid.register_element(vEdges[1], e);
 
 //	e may not be deleted at this point, since its associated triangles are still needed.
 }
 
-void HangingNodeRefiner2D_IRN::refine_edge_with_hanging_vertex(EdgeBase* e)
+void HangingNodeRefiner2D_IRN::refine_edge_with_hanging_vertex(Edge* e)
 {
 	Grid& grid = *m_pGrid;
 //	we have to insert a hanging node.
@@ -1200,7 +1200,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_normal_vertex(Face* f)
 //LOG("refining face with normal vertex\n");
 	Grid& grid = *m_pGrid;
 
-	vector<EdgeBase*> 	vEdges(f->num_edges());
+	vector<Edge*> 	vEdges(f->num_edges());
 	vector<Vertex*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 //	collect all associated edges.
@@ -1212,7 +1212,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_normal_vertex(Face* f)
 //	each should have an associated vertex. sort them into vNewEdgeVertices.
 	for(size_t i = 0; i < numEdges; ++i)
 	{
-		EdgeBase* e = vEdges[i];
+		Edge* e = vEdges[i];
 		int edgeIndex = GetEdgeIndex(f, e);
 
 		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineFaceWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
@@ -1250,7 +1250,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 //LOG("refining face with hanging vertex\n");
 	Grid& grid = *m_pGrid;
 
-	vector<EdgeBase*> 	vEdges(f->num_edges());
+	vector<Edge*> 	vEdges(f->num_edges());
 	vector<Vertex*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 //	collect all associated edges.
@@ -1262,7 +1262,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 //	each should have an associated vertex. sort them into vNewEdgeVertices.
 	for(size_t i = 0; i < numEdges; ++i)
 	{
-		EdgeBase* e = vEdges[i];
+		Edge* e = vEdges[i];
 		int edgeIndex = GetEdgeIndex(f, e);
 
 		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineFaceWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
@@ -1383,7 +1383,7 @@ void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 {
 	Grid& grid = *m_pGrid;
 
-	vector<EdgeBase*> 	vEdges(v->num_edges());
+	vector<Edge*> 	vEdges(v->num_edges());
 	vector<Vertex*> vNewEdgeVertices(v->num_edges());
 	vector<Face*>		vFaces(v->num_faces());
 	vector<Vertex*>	vNewFaceVertices(v->num_faces());
@@ -1397,7 +1397,7 @@ void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 //	each should have an associated vertex. sort them into vNewEdgeVertices.
 	for(uint i = 0; i < numEdges; ++i)
 	{
-		EdgeBase* e = vEdges[i];
+		Edge* e = vEdges[i];
 		int edgeIndex = GetEdgeIndex(v, e);
 
 		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineVolumeWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");

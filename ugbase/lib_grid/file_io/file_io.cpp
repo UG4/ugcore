@@ -494,7 +494,7 @@ bool SaveParallelGridLayout(MultiGrid& mg, const char* filename, number offset)
 	SubsetHandler sh(mg);
 
 	AssignSubsetsByInterfaceType<Vertex>(sh, mg);
-	AssignSubsetsByInterfaceType<EdgeBase>(sh, mg);
+	AssignSubsetsByInterfaceType<Edge>(sh, mg);
 	AssignSubsetsByInterfaceType<Face>(sh, mg);
 	AssignSubsetsByInterfaceType<Volume>(sh, mg);
 
@@ -562,7 +562,7 @@ bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
 	SubsetHandler sh(mg);
 
 	AssignSubsetsBySurfaceViewState<Vertex>(sh, sv, mg);
-	AssignSubsetsBySurfaceViewState<EdgeBase>(sh, sv, mg);
+	AssignSubsetsBySurfaceViewState<Edge>(sh, sv, mg);
 	AssignSubsetsBySurfaceViewState<Face>(sh, sv, mg);
 	AssignSubsetsBySurfaceViewState<Volume>(sh, sv, mg);
 

@@ -94,7 +94,7 @@ serialize(BinaryBuffer& out, GridObjectCollection goc) const
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 		serialize(out, goc.begin<Vertex>(lvl), goc.end<Vertex>(lvl));
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
-		serialize(out, goc.begin<EdgeBase>(lvl), goc.end<EdgeBase>(lvl));
+		serialize(out, goc.begin<Edge>(lvl), goc.end<Edge>(lvl));
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 		serialize(out, goc.begin<Face>(lvl), goc.end<Face>(lvl));
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
@@ -107,7 +107,7 @@ deserialize(BinaryBuffer& in, GridObjectCollection goc)
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 		deserialize(in, goc.begin<Vertex>(lvl), goc.end<Vertex>(lvl));
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
-		deserialize(in, goc.begin<EdgeBase>(lvl), goc.end<EdgeBase>(lvl));
+		deserialize(in, goc.begin<Edge>(lvl), goc.end<Edge>(lvl));
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 		deserialize(in, goc.begin<Face>(lvl), goc.end<Face>(lvl));
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
@@ -192,7 +192,7 @@ write_data(BinaryBuffer& out, Vertex* o) const
 }
 
 void SubsetHandlerSerializer::
-write_data(BinaryBuffer& out, EdgeBase* o) const
+write_data(BinaryBuffer& out, Edge* o) const
 {
 	Serialize(out, m_sh.get_subset_index(o));
 }
@@ -218,7 +218,7 @@ read_data(BinaryBuffer& in, Vertex* o)
 }
 
 void SubsetHandlerSerializer::
-read_data(BinaryBuffer& in, EdgeBase* o)
+read_data(BinaryBuffer& in, Edge* o)
 {
 	int si;
 	Deserialize(in, si);
@@ -616,7 +616,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 {
 //TODO: add volume support
 	vector<Vertex*>	vVrts;
-	vector<EdgeBase*>	vEdges;
+	vector<Edge*>	vEdges;
 	vector<Face*>		vFaces;
 	
 	GridHeader gridHeader;
@@ -913,7 +913,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 					if(mg.is_marked(cobj)){
 						switch(type){
 							case EDGE:
-								ind = aaInt[static_cast<EdgeBase*>(cobj)];
+								ind = aaInt[static_cast<Edge*>(cobj)];
 								break;
 							case FACE:
 								ind = aaInt[static_cast<Face*>(cobj)];
@@ -987,7 +987,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 						type = cobj->base_object_id();
 						switch(type){
 							case EDGE:
-								ind = aaInt[static_cast<EdgeBase*>(cobj)];
+								ind = aaInt[static_cast<Edge*>(cobj)];
 								break;
 							case FACE:
 								ind = aaInt[static_cast<Face*>(cobj)];
@@ -1330,7 +1330,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 ////////////////////////////////////////////////////////////////////////
 static pair<GridObject*, char>
 GetParent(BinaryBuffer& in, const vector<Vertex*>& vVrts,
-		const vector<EdgeBase*>& vEdges, const vector<Face*>& vFaces,
+		const vector<Edge*>& vEdges, const vector<Face*>& vFaces,
 		const vector<Volume*>& vVols)
 {
 	char type;
@@ -1362,7 +1362,7 @@ GetParent(BinaryBuffer& in, const vector<Vertex*>& vVrts,
 //	DeserializeMultiGridElements
 bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									std::vector<Vertex*>* pvVrts,
-									std::vector<EdgeBase*>* pvEdges,
+									std::vector<Edge*>* pvEdges,
 									std::vector<Face*>* pvFaces,
 									std::vector<Volume*>* pvVols,
 									MultiElementAttachmentAccessor<AGeomObjID>* paaID)
@@ -1376,7 +1376,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 //	if the user specified element-vectors, we will use them.
 //	if not we'll use our own.
 	vector<Vertex*>	vVrtsTMP;
-	vector<EdgeBase*>	vEdgesTMP;
+	vector<Edge*>	vEdgesTMP;
 	vector<Face*>		vFacesTMP;
 	vector<Volume*>		vVolsTMP;
 	
@@ -1390,7 +1390,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 		pvVols = &vVolsTMP;
 		
 	vector<Vertex*>& vVrts = *pvVrts;
-	vector<EdgeBase*>& vEdges = *pvEdges;
+	vector<Edge*>& vEdges = *pvEdges;
 	vector<Face*>& vFaces = *pvFaces;
 	vector<Volume*>& vVols = *pvVols;
 	
@@ -1421,12 +1421,12 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 	SRLZ_PROFILE(srlz_settingUpHashes);
 //	create hashes for existing geometric objects
 	Hash<GeomObjID, Vertex*>	vrtHash((int)(1.1f * (float)mg.num<Vertex>()));
-	Hash<GeomObjID, EdgeBase*>	edgeHash((int)(1.1f * (float)mg.num<EdgeBase>()));
+	Hash<GeomObjID, Edge*>	edgeHash((int)(1.1f * (float)mg.num<Edge>()));
 	Hash<GeomObjID, Face*>		faceHash((int)(1.1f * (float)mg.num<Face>()));
 	Hash<GeomObjID, Volume*>		volHash((int)(1.1f * (float)mg.num<Volume>()));
 
 	vrtHash.reserve(mg.num<Vertex>());
-	edgeHash.reserve(mg.num<EdgeBase>());
+	edgeHash.reserve(mg.num<Edge>());
 	faceHash.reserve(mg.num<Face>());
 	volHash.reserve(mg.num<Volume>());
 
@@ -1437,8 +1437,8 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 			iter != mg.end<Vertex>(); ++iter)
 		{vrtHash.insert((*paaID)[*iter], *iter);}
 
-		for(EdgeBaseIterator iter = mg.begin<EdgeBase>();
-			iter != mg.end<EdgeBase>(); ++iter)
+		for(EdgeIterator iter = mg.begin<Edge>();
+			iter != mg.end<Edge>(); ++iter)
 		{edgeHash.insert((*paaID)[*iter], *iter);}
 
 		for(FaceIterator iter = mg.begin<Face>();
@@ -1624,7 +1624,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								EdgeBase* oldEdge;
+								Edge* oldEdge;
 								if(edgeHash.get_entry(oldEdge, id)){
 									assert(dynamic_cast<RegularEdge*>(oldEdge));
 									vEdges.push_back(oldEdge);
@@ -1662,7 +1662,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								EdgeBase* oldEdge;
+								Edge* oldEdge;
 								if(edgeHash.get_entry(oldEdge, id)){
 									assert(dynamic_cast<ConstrainingEdge*>(oldEdge));
 									vEdges.push_back(oldEdge);
@@ -1708,7 +1708,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 
 							if(paaID){
 								Deserialize(in, id);
-								EdgeBase* oldEdge;
+								Edge* oldEdge;
 								if(edgeHash.get_entry(oldEdge, id)){
 									assert(dynamic_cast<ConstrainedEdge*>(oldEdge));
 									vEdges.push_back(oldEdge);
@@ -2341,8 +2341,8 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 									sh, out);
 
 	//	serialize edge-subsets
-		WriteSubsetIndicesToStream(goc.begin<EdgeBase>(i),
-									goc.end<EdgeBase>(i),
+		WriteSubsetIndicesToStream(goc.begin<Edge>(i),
+									goc.end<Edge>(i),
 									sh, out);
 
 	//	serialize face-subsets
@@ -2443,8 +2443,8 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 									sh, in);
 
 	//	serialize edge-subsets
-		ReadSubsetIndicesFromStream(goc.begin<EdgeBase>(i),
-									goc.end<EdgeBase>(i),
+		ReadSubsetIndicesFromStream(goc.begin<Edge>(i),
+									goc.end<Edge>(i),
 									sh, in);
 
 	//	serialize face-subsets

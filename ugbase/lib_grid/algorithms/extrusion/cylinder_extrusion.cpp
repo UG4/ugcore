@@ -36,15 +36,15 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, Vertex* vrt,
 	}
 
 //	select boundary edges
-	sel.clear<EdgeBase>();
+	sel.clear<Edge>();
 	SelectAreaBoundary(sel, sel.begin<Face>(), sel.end<Face>());
 
 //	gather faces and edges for extrusion
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	vector<Face*> vFaces;
 
-	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
-		iter != sel.end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = sel.begin<Edge>();
+		iter != sel.end<Edge>(); ++iter)
 		vEdges.push_back(*iter);
 
 	for(FaceIterator iter = sel.begin<Face>();

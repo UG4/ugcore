@@ -87,7 +87,7 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 		//todo: this has to be more flexible
 			if(IsBoundaryVertex2D(grid, v)){
 			//	project the crease vertex
-				EdgeBase* nbrs[2];
+				Edge* nbrs[2];
 				size_t numNbrs = 0;
 				for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
 					iter != grid.associated_edges_end(v); ++iter)
@@ -226,7 +226,7 @@ ProjectToLimitSubdivBoundary(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 	//todo: this has to be more flexible
 		if(IsBoundaryVertex2D(grid, v)){
 		//	project the crease vertex
-			EdgeBase* nbrs[2];
+			Edge* nbrs[2];
 			size_t numNbrs = 0;
 			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
 				iter != grid.associated_edges_end(v); ++iter)

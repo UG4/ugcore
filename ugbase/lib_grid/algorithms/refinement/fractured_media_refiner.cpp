@@ -123,7 +123,7 @@ collect_objects_for_refine()
 	typename BaseClass::selector_t& sel = BaseClass::get_refmark_selector();
 
 //	some helpers
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 
 //	we need two while-loops. The outer is required to process changes which
@@ -157,7 +157,7 @@ collect_objects_for_refine()
 		//	degenerated edges may not be selected
 			size_t numDeg = 0;
 			for(size_t i_edge = 0; i_edge< edges.size(); ++i_edge){
-				EdgeBase* e = edges[i_edge];
+				Edge* e = edges[i_edge];
 				if(EdgeLength(e, m_aaPos) / eMax >= m_aspectRatioThreshold){
 				//	non-degenerated edge
 				//	make sure it is selected

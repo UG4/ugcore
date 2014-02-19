@@ -16,7 +16,7 @@ namespace ug
 //	Extrude
 void Extrude(Grid& grid,
 			std::vector<Vertex*>* pvVerticesInOut,
-			std::vector<EdgeBase*>* pvEdgesInOut,
+			std::vector<Edge*>* pvEdgesInOut,
 			std::vector<Face*>* pvFacesInOut,
 			const vector3& direction,
 			uint extrusionOptions,
@@ -102,10 +102,10 @@ void Extrude(Grid& grid,
 	if(pvEdgesInOut)
 	{
 		UG_DLOG(LIB_GRID, 1, "  extruding edges: " << pvEdgesInOut->size() << endl);
-		vector<EdgeBase*>& vEdges = *pvEdgesInOut;
+		vector<Edge*>& vEdges = *pvEdgesInOut;
 		for(uint i = 0; i < vEdges.size(); ++i)
 		{
-			EdgeBase* e = vEdges[i];
+			Edge* e = vEdges[i];
 
 		//	check for both boundary points whether the new vertices have already been created.
 		//	if not then create them here and store them.

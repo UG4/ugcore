@@ -56,7 +56,7 @@ void AssignGridToSubset(Grid& g, ISubsetHandler& sh, int subsetInd)
 	UG_ASSERT(&g == sh.grid(), "Specified subset-handler has to operate on the specified grid!");
 
 	sh.assign_subset(g.begin<Vertex>(), g.end<Vertex>(), subsetInd);
-	sh.assign_subset(g.begin<EdgeBase>(), g.end<EdgeBase>(), subsetInd);
+	sh.assign_subset(g.begin<Edge>(), g.end<Edge>(), subsetInd);
 	sh.assign_subset(g.begin<Face>(), g.end<Face>(), subsetInd);
 	sh.assign_subset(g.begin<Volume>(), g.end<Volume>(), subsetInd);
 }
@@ -73,8 +73,8 @@ void AssignSelectionToSubset(ISelector& sel, ISubsetHandler& sh, int subsetInd)
 	for(size_t i = 0; i < selGoc.num_levels(); ++i){
 		sh.assign_subset(selGoc.begin<Vertex>(i),
 						 selGoc.end<Vertex>(i), subsetInd);
-		sh.assign_subset(selGoc.begin<EdgeBase>(i),
-						 selGoc.end<EdgeBase>(i), subsetInd);
+		sh.assign_subset(selGoc.begin<Edge>(i),
+						 selGoc.end<Edge>(i), subsetInd);
 		sh.assign_subset(selGoc.begin<Face>(i),
 						 selGoc.end<Face>(i), subsetInd);
 		sh.assign_subset(selGoc.begin<Volume>(i),
@@ -90,10 +90,10 @@ void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh)
 //	In the moment it runs with arbitrarily O(numSubs^2*averageNumFacesPerSub)
 
 //	get the first free edge-subset
-	int edgeSubsetIndex = GetMaxSubsetIndex<EdgeBase>(sh) + 1;
+	int edgeSubsetIndex = GetMaxSubsetIndex<Edge>(sh) + 1;
 
 //	use this vector to collect adjacent faces
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	vector<Face*> vFaces;
 
 //	iterate through all subsets
@@ -111,7 +111,7 @@ void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh)
 				CollectEdges(vEdges, grid, f);
 				for(uint k = 0; k < vEdges.size(); ++k)
 				{
-					EdgeBase* e = vEdges[k];
+					Edge* e = vEdges[k];
 
 					if(sh.get_subset_index(e) == -1)
 					{
@@ -136,7 +136,7 @@ void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh)
 
 		//	if we assigned edges, we will proceed with the next subset
 			if(edgeSubsetIndex < (int)sh.num_subsets())
-				if(sh.num_elements<EdgeBase>(edgeSubsetIndex) > 0)
+				if(sh.num_elements<Edge>(edgeSubsetIndex) > 0)
 					edgeSubsetIndex++;
 		}
 	}
@@ -336,10 +336,10 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 	//	now we'll assign all edges which are no interface
 	//	elements, to subset -1.
 		if(keepExistingInterfaceSubsets){
-			for(EdgeBaseIterator iter = grid.edges_begin();
+			for(EdgeIterator iter = grid.edges_begin();
 				iter != grid.edges_end(); ++iter)
 			{
-				EdgeBase* e = *iter;
+				Edge* e = *iter;
 				if(sh.get_subset_index(e) != -1)
 				{
 					CollectFaces(vFaces, grid, e);
@@ -377,11 +377,11 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 	//	since we may not swap subsets (otherwise the face-sequence would be destroyed)
 	//	we have to copy the elements.
 		for(int i = 0; i < sh.num_subsets(); ++i){
-			if(sh.num<EdgeBase>(i) == 0){
+			if(sh.num<Edge>(i) == 0){
 			//	find the next that has faces
 				int next = sh.num_subsets();
 				for(int j = i+1; j < sh.num_subsets(); ++j){
-					if(sh.num<EdgeBase>(j) > 0){
+					if(sh.num<Edge>(j) > 0){
 						next = j;
 						break;
 					}
@@ -390,7 +390,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 			//	if a filled one has been found, we'll copy the elements
 				if(next < sh.num_subsets()){
 				//	assign all edges in next to subset i
-					sh.assign_subset(sh.begin<EdgeBase>(next), sh.end<EdgeBase>(next), i);
+					sh.assign_subset(sh.begin<Edge>(next), sh.end<Edge>(next), i);
 				}
 				else{
 				//	we're done
@@ -403,7 +403,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 		AssignFaceInterfaceEdgesToSubsets(grid, sh);
 		
 	//	make sure that all edge-subsets are regular poly-chains
-		int firstFree = GetMaxSubsetIndex<EdgeBase>(sh) + 1;
+		int firstFree = GetMaxSubsetIndex<Edge>(sh) + 1;
 		for(int i = 0; i < sh.num_subsets(); ++i){
 			if(SplitIrregularPolyChain(sh, i, firstFree))
 				++firstFree;
@@ -411,21 +411,21 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 
 	//	Since ug3 does not support loops, we have to remove those.
 		for(int i = 0; i < sh.num_subsets(); ++i){
-			size_t chainType = GetPolyChainType(grid, sh.begin<EdgeBase>(i),
-												sh.end<EdgeBase>(i),
+			size_t chainType = GetPolyChainType(grid, sh.begin<Edge>(i),
+												sh.end<Edge>(i),
 												IsInSubset(sh, i));
 			if(chainType == PCT_CLOSED){
 			//	since the chain is regular (see loop above) and since it is
 			//	closed, it is enough to simply move the first edge of the
 			//	chain to a new subset.
-				sh.assign_subset(*sh.begin<EdgeBase>(i), firstFree++);
+				sh.assign_subset(*sh.begin<Edge>(i), firstFree++);
 			}
 		}
 		
 	//	fix orientation
 		for(int i = 0; i < sh.num_subsets(); ++i){
-			if(sh.num<EdgeBase>(i) != 0){
-				FixEdgeOrientation(grid, sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
+			if(sh.num<Edge>(i) != 0){
+				FixEdgeOrientation(grid, sh.begin<Edge>(i), sh.end<Edge>(i));
 			}
 		}
 
@@ -459,7 +459,7 @@ bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
 	}
 
 //	here we'll store some temporary results
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 
 //	the queue is used to keep a list of elements which have to be checked.
@@ -864,7 +864,7 @@ void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 				shOut.assign_subset(*iter, inSubset);
 		}
 
-		vector<EdgeBase*> vEdges;
+		vector<Edge*> vEdges;
 	//	assign volume-boundary elements to bndSubset
 		for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
 		{
@@ -903,10 +903,10 @@ void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 	}
 
 //	assign edges and vertices
-	for(EdgeBaseIterator iter = grid.begin<EdgeBase>();
-		iter != grid.end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = grid.begin<Edge>();
+		iter != grid.end<Edge>(); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		if(shOut.get_subset_index(e) == -1){
 			if(IsBoundaryEdge2D(grid, e))
 			{
@@ -1096,7 +1096,7 @@ void AssignSidesToSubsets(ISubsetHandler& sh, ISelector* psel)
 }
 
 //	template specialization
-template void AssignSidesToSubsets<EdgeBase>(ISubsetHandler&, ISelector*);
+template void AssignSidesToSubsets<Edge>(ISubsetHandler&, ISelector*);
 template void AssignSidesToSubsets<Face>(ISubsetHandler&, ISelector*);
 template void AssignSidesToSubsets<Volume>(ISubsetHandler&, ISelector*);
 

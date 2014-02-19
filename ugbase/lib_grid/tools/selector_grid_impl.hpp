@@ -55,7 +55,7 @@ Selector::num() const
 inline size_t
 Selector::num() const
 {
-	return num<Vertex>() + num<EdgeBase>() + num<Face>() + num<Volume>();
+	return num<Vertex>() + num<Edge>() + num<Face>() + num<Volume>();
 }
 
 //	empty

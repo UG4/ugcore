@@ -10,7 +10,7 @@ namespace ug{
 void MGHNodeAdjuster::
 ref_marks_changed(IRefiner& ref,
 			   	  const std::vector<Vertex*>& vrts,
-			   	  const std::vector<EdgeBase*>& edges,
+			   	  const std::vector<Edge*>& edges,
 			   	  const std::vector<Face*>& faces,
 			   	  const std::vector<Volume*>& vols)
 {
@@ -29,7 +29,7 @@ ref_marks_changed(IRefiner& ref,
 //	since we have to create new vertices in the next levels of the hierarchies.
 //	only vertices which do not already have child vertices are selected.
 	for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-		EdgeBase* e = edges[i_edge];
+		Edge* e = edges[i_edge];
 		for(size_t i = 0; i < e->num_vertices(); ++i){
 			if(!mg.has_children(e->vertex(i)))
 				ref.mark(e->vertex(i));

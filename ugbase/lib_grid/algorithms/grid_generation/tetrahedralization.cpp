@@ -99,10 +99,10 @@ static bool PerformTetrahedralization(Grid& grid,
 	{/*
 		if(pSH){
 		//	collect all edges that are assigned to subsets
-			vector<EdgeBase*> edges;
+			vector<Edge*> edges;
 			for(int si = 0; si < pSH->num_subsets(); ++si){
-				for(EdgeBaseIterator iter = pSH->begin<EdgeBase>(si);
-					iter != pSH->end<EdgeBase>(si); ++iter)
+				for(EdgeIterator iter = pSH->begin<Edge>(si);
+					iter != pSH->end<Edge>(si); ++iter)
 				{
 					edges.push_back(*iter);
 				}

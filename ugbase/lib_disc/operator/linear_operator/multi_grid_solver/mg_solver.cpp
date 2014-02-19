@@ -21,7 +21,7 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 	PROFILE_FUNC_GROUP("gmg");
 //	vectors for associated elements
 	std::vector<Vertex*> vAssVertex;
-	std::vector<EdgeBase*> vAssEdge;
+	std::vector<Edge*> vAssEdge;
 	std::vector<Face*> vAssFace;
 	std::vector<Volume*> vAssVolume;
 

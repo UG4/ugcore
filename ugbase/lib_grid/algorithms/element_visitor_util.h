@@ -27,7 +27,7 @@ void VisitAll(const TIter begin, const TIter end,
 
 ///	Visits all boundary elements of the area specified through the iterators.
 /** WARNING: This method uses Grid::mark
- * TIter::value_type has to be compatible to EdgeBase*, Face* or Volume*.
+ * TIter::value_type has to be compatible to Edge*, Face* or Volume*.
  * Lets say that TIter::value_type equals TElem*.
  *
  * You have to specify a callback cbBelongsToArea with the signature

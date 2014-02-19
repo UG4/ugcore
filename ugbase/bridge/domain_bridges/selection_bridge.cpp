@@ -40,7 +40,7 @@ void SelectDomainElements(ISelector& sel, bool bSelect, bool selectVrts,
 	if(selectVrts)
 		sel.select(g->begin<Vertex>(), g->end<Vertex>(), status);
 	if(selectEdges)
-		sel.select(g->begin<EdgeBase>(), g->end<EdgeBase>(), status);
+		sel.select(g->begin<Edge>(), g->end<Edge>(), status);
 	if(selectFaces)
 		sel.select(g->begin<Face>(), g->end<Face>(), status);
 	if(selectVolumes)
@@ -60,17 +60,17 @@ void SelectAssociatedElements(ISelector& sel, bool bSelect, bool selectVrts,
 
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 		if(selectVrts){
-			SelectAssociated<Vertex>(sel, goc.begin<EdgeBase>(lvl),
-										 goc.end<EdgeBase>(lvl), status);
+			SelectAssociated<Vertex>(sel, goc.begin<Edge>(lvl),
+										 goc.end<Edge>(lvl), status);
 			SelectAssociated<Vertex>(sel, goc.begin<Face>(lvl),
 										 goc.end<Face>(lvl), status);
 			SelectAssociated<Vertex>(sel, goc.begin<Volume>(lvl),
 										 goc.end<Volume>(lvl), status);
 		}
 		if(selectEdges){
-			SelectAssociated<EdgeBase>(sel, goc.begin<Face>(lvl),
+			SelectAssociated<Edge>(sel, goc.begin<Face>(lvl),
 										 goc.end<Face>(lvl), status);
-			SelectAssociated<EdgeBase>(sel, goc.begin<Volume>(lvl),
+			SelectAssociated<Edge>(sel, goc.begin<Volume>(lvl),
 									   goc.end<Volume>(lvl), status);
 		}
 
@@ -96,7 +96,7 @@ void SelectDomainSubset(ISelector& sel, TDomain& dom, int subsetIndex,
 	if(selectVrts)
 		SelectSubsetElements<Vertex>(sel, sh, subsetIndex, status);
 	if(selectEdges)
-		SelectSubsetElements<EdgeBase>(sel, sh, subsetIndex, status);
+		SelectSubsetElements<Edge>(sel, sh, subsetIndex, status);
 	if(selectFaces)
 		SelectSubsetElements<Face>(sel, sh, subsetIndex, status);
 	if(selectVolumes)

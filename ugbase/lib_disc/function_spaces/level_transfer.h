@@ -100,7 +100,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 					for(size_t i = 0; i < vFineIndex.size(); ++i)
 						uFine[ vFineIndex[i] ] = 0.0;
 
-					EdgeBase* pParent = static_cast<EdgeBase*>(parent);
+					Edge* pParent = static_cast<Edge*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
 						Vertex* edgeVrt = pParent->vertex(i);

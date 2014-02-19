@@ -119,7 +119,7 @@ size_t MultiGrid::num_children(GridObject* elem) const
 {
 	switch(elem->base_object_id()){
 	case VERTEX:	return num_children<TChild>(static_cast<Vertex*>(elem));
-	case EDGE:		return num_children<TChild>(static_cast<EdgeBase*>(elem));
+	case EDGE:		return num_children<TChild>(static_cast<Edge*>(elem));
 	case FACE:		return num_children<TChild>(static_cast<Face*>(elem));
 	case VOLUME:	return num_children<TChild>(static_cast<Volume*>(elem));
 	}
@@ -131,7 +131,7 @@ TChild* MultiGrid::get_child(GridObject* elem, size_t ind) const
 {
 	switch(elem->base_object_id()){
 	case VERTEX:	return get_child<TChild>(static_cast<Vertex*>(elem), ind);
-	case EDGE:		return get_child<TChild>(static_cast<EdgeBase*>(elem), ind);
+	case EDGE:		return get_child<TChild>(static_cast<Edge*>(elem), ind);
 	case FACE:		return get_child<TChild>(static_cast<Face*>(elem), ind);
 	case VOLUME:	return get_child<TChild>(static_cast<Volume*>(elem), ind);
 	}
@@ -189,7 +189,7 @@ inline MultiGrid::VertexInfo& MultiGrid::get_info(Vertex* v)
 	return m_aaVrtInf[v];
 }
 
-inline MultiGrid::EdgeInfo& MultiGrid::get_info(EdgeBase* e)
+inline MultiGrid::EdgeInfo& MultiGrid::get_info(Edge* e)
 {
 	return m_aaEdgeInf[e];
 }
@@ -214,7 +214,7 @@ inline const MultiGrid::VertexInfo& MultiGrid::get_info(Vertex* v) const
 	return m_aaVrtInf[v];
 }
 
-inline const MultiGrid::EdgeInfo& MultiGrid::get_info(EdgeBase* e) const
+inline const MultiGrid::EdgeInfo& MultiGrid::get_info(Edge* e) const
 {
 	return m_aaEdgeInf[e];
 }
@@ -247,7 +247,7 @@ void MultiGrid::add_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
 	case VERTEX:	add_child(static_cast<Vertex*>(p), c); break;
-	case EDGE:		add_child(static_cast<EdgeBase*>(p), c); break;
+	case EDGE:		add_child(static_cast<Edge*>(p), c); break;
 	case FACE:		add_child(static_cast<Face*>(p), c); break;
 	case VOLUME:	add_child(static_cast<Volume*>(p), c); break;
 	}
@@ -264,7 +264,7 @@ void MultiGrid::remove_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
 	case VERTEX:	remove_child(static_cast<Vertex*>(p), c); break;
-	case EDGE:		remove_child(static_cast<EdgeBase*>(p), c); break;
+	case EDGE:		remove_child(static_cast<Edge*>(p), c); break;
 	case FACE:		remove_child(static_cast<Face*>(p), c); break;
 	case VOLUME:	remove_child(static_cast<Volume*>(p), c); break;
 	}

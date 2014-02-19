@@ -63,7 +63,7 @@ class IElemProlongation
 		virtual bool perform_prolongation_on(GridBaseObjectId gbo) = 0;
 
 		virtual void prolongate(Vertex* parent) = 0;
-		virtual void prolongate(EdgeBase* parent) = 0;
+		virtual void prolongate(Edge* parent) = 0;
 		virtual void prolongate(Face* parent) = 0;
 		virtual void prolongate(Volume* parent) = 0;
 
@@ -85,7 +85,7 @@ class ElemProlongationBase : public IElemProlongation<TDomain>
 		virtual void prolongate(Vertex* parent){
 			this->getImpl().prolongate(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
-		virtual void prolongate(EdgeBase* parent){
+		virtual void prolongate(Edge* parent){
 			this->getImpl().prolongate(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
 		virtual void prolongate(Face* parent){
@@ -130,7 +130,7 @@ class IElemRestriction
 		virtual bool perform_restriction_on(GridBaseObjectId gbo) = 0;
 
 		virtual void do_restrict(Vertex* parent) = 0;
-		virtual void do_restrict(EdgeBase* parent) = 0;
+		virtual void do_restrict(Edge* parent) = 0;
 		virtual void do_restrict(Face* parent) = 0;
 		virtual void do_restrict(Volume* parent) = 0;
 
@@ -152,7 +152,7 @@ class ElemRestrictionBase : public IElemRestriction<TDomain>
 		virtual void do_restrict(Vertex* parent){
 			this->getImpl().do_restrict(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
-		virtual void do_restrict(EdgeBase* parent){
+		virtual void do_restrict(Edge* parent){
 			this->getImpl().do_restrict(parent, *this->m_vValueChild, *this->m_vValueParent);
 		}
 		virtual void do_restrict(Face* parent){

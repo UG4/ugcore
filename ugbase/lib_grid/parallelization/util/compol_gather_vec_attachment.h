@@ -16,7 +16,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ///	Gathers the values stored in vector-attachments
 /**
- * TLayout::Type has to be either Vertex, EdgeBase, Face or Volume.
+ * TLayout::Type has to be either Vertex, Edge, Face or Volume.
  * TAttachment has to be of the type std::vector<SomeType> or compatible.
  */
 template <class TLayout, class TAttachment>

@@ -109,10 +109,10 @@ create_by_cloning(Vertex* pCloneMe, int level)
 	return iter;
 }
 
-EdgeBaseIterator MultiGrid::
-create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, int level)
+EdgeIterator MultiGrid::
+create_by_cloning(Edge* pCloneMe, const EdgeVertices& ev, int level)
 {
-	EdgeBaseIterator iter = Grid::create_by_cloning(pCloneMe, ev);
+	EdgeIterator iter = Grid::create_by_cloning(pCloneMe, ev);
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
 	if(level > 0){
@@ -155,7 +155,7 @@ GridObject* MultiGrid::get_parent(GridObject* parent) const
 	switch(baseType)
 	{
 		case VERTEX:	return get_parent((Vertex*)parent);
-		case EDGE:		return get_parent((EdgeBase*)parent);
+		case EDGE:		return get_parent((Edge*)parent);
 		case FACE:		return get_parent((Face*)parent);
 		case VOLUME:	return get_parent((Volume*)parent);
 	}
@@ -195,7 +195,7 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 			switch(baseType)
 			{
 			case VERTEX:	element_created(vrt, (Vertex*)realParent, pReplaceMe); break;
-			case EDGE:		element_created(vrt, (EdgeBase*)realParent, pReplaceMe); break;
+			case EDGE:		element_created(vrt, (Edge*)realParent, pReplaceMe); break;
 			case FACE:		element_created(vrt, (Face*)realParent, pReplaceMe); break;
 			case VOLUME:	element_created(vrt, (Volume*)realParent, pReplaceMe); break;
 			}
@@ -223,7 +223,7 @@ void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 			switch(baseType)
 			{
 			case VERTEX:	element_created(vrt, (Vertex*)pParent); break;
-			case EDGE:		element_created(vrt, (EdgeBase*)pParent); break;
+			case EDGE:		element_created(vrt, (Edge*)pParent); break;
 			case FACE:		element_created(vrt, (Face*)pParent); break;
 			case VOLUME:	element_created(vrt, (Volume*)pParent); break;
 			}
@@ -248,7 +248,7 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, Vertex* vrt,
 		switch(baseType)
 		{
 		case VERTEX:	element_to_be_erased(vrt, (Vertex*)pParent); break;
-		case EDGE:		element_to_be_erased(vrt, (EdgeBase*)pParent); break;
+		case EDGE:		element_to_be_erased(vrt, (Edge*)pParent); break;
 		case FACE:		element_to_be_erased(vrt, (Face*)pParent); break;
 		case VOLUME:	element_to_be_erased(vrt, (Volume*)pParent); break;
 		}
@@ -258,7 +258,7 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, Vertex* vrt,
 }
 
 //	edges
-void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
+void MultiGrid::edge_created(Grid* grid, Edge* edge,
 							GridObject* pParent,
 							bool replacesParent)
 {
@@ -268,20 +268,20 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_id() == EDGE,
 				  "only objects of the same base type can be replaced.");
-		EdgeBase* pReplaceMe = static_cast<EdgeBase*>(pParent);
+		Edge* pReplaceMe = static_cast<Edge*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 		if(realParent){
 		//	we call a version of element_created, which allows a replace
 			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
-			case EDGE:		element_created(edge, (EdgeBase*)realParent, pReplaceMe); break;
+			case EDGE:		element_created(edge, (Edge*)realParent, pReplaceMe); break;
 			case FACE:		element_created(edge, (Face*)realParent, pReplaceMe); break;
 			case VOLUME:	element_created(edge, (Volume*)realParent, pReplaceMe); break;
 			}
 		}
 		else
-			element_created<EdgeBase, EdgeBase>(edge, NULL, pReplaceMe);
+			element_created<Edge, Edge>(edge, NULL, pReplaceMe);
 
 	//	copy pReplaceMes children and replace parent of children
 		MGEdgeInfo& myInfo = get_info(edge);
@@ -308,7 +308,7 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
-			case EDGE:		element_created(edge, (EdgeBase*)pParent); break;
+			case EDGE:		element_created(edge, (Edge*)pParent); break;
 			case FACE:		element_created(edge, (Face*)pParent); break;
 			case VOLUME:	element_created(edge, (Volume*)pParent); break;
 			}
@@ -318,8 +318,8 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 	}
 }
 
-void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge,
-									EdgeBase* replacedBy)
+void MultiGrid::edge_to_be_erased(Grid* grid, Edge* edge,
+									Edge* replacedBy)
 {
 	if(replacedBy)
 		return;
@@ -330,7 +330,7 @@ void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge,
 		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
-		case EDGE:		element_to_be_erased(edge, (EdgeBase*)pParent); break;
+		case EDGE:		element_to_be_erased(edge, (Edge*)pParent); break;
 		case FACE:		element_to_be_erased(edge, (Face*)pParent); break;
 		case VOLUME:	element_to_be_erased(edge, (Volume*)pParent); break;
 		}
@@ -514,8 +514,8 @@ void MultiGrid::check_edge_elem_infos(int level) const
 //	check the max fill rates of each child list.
 	size_t maxChildEdges = 0;
 
-	for(ConstEdgeBaseIterator iter = begin<EdgeBase>(level);
-		iter != end<EdgeBase>(level); ++iter)
+	for(ConstEdgeIterator iter = begin<Edge>(level);
+		iter != end<Edge>(level); ++iter)
 		maxChildEdges = max(get_info(*iter).num_child_edges(), maxChildEdges);
 
 	UG_LOG("MultiGrid: max edge child edges on level " << level << ": " << (int)maxChildEdges << endl);

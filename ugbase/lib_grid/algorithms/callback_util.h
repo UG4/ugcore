@@ -28,7 +28,7 @@ class IsSelected
 			m_sel(sel)	{}
 
 		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (EdgeBase* e)	{return callback(e);}
+		bool operator() (Edge* e)	{return callback(e);}
 		bool operator() (Face* f)		{return callback(f);}
 		bool operator() (Volume* v)		{return callback(v);}
 
@@ -48,7 +48,7 @@ class IsNotSelected
 			m_sel(sel)	{}
 
 		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (EdgeBase* e)	{return callback(e);}
+		bool operator() (Edge* e)	{return callback(e);}
 		bool operator() (Face* f)		{return callback(f);}
 		bool operator() (Volume* v)		{return callback(v);}
 
@@ -70,7 +70,7 @@ class IsInSubset
 			m_si(subsetIndex)	{}
 
 		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (EdgeBase* e)	{return callback(e);}
+		bool operator() (Edge* e)	{return callback(e);}
 		bool operator() (Face* f)		{return callback(f);}
 		bool operator() (Volume* v)		{return callback(v);}
 
@@ -92,7 +92,7 @@ class IsNotInSubset
 			m_si(subsetIndex)	{}
 
 		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (EdgeBase* e)	{return callback(e);}
+		bool operator() (Edge* e)	{return callback(e);}
 		bool operator() (Face* f)		{return callback(f);}
 		bool operator() (Volume* v)		{return callback(v);}
 
@@ -115,7 +115,7 @@ class IsOnBoundary
 			m_grid(g)	{}
 
 		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (EdgeBase* e)	{return callback(e);}
+		bool operator() (Edge* e)	{return callback(e);}
 		bool operator() (Face* f)		{return callback(f);}
 
 	private:
@@ -134,7 +134,7 @@ class IsNotOnBoundary
 			m_grid(g)	{}
 
 		bool operator() (Vertex* v)	{return callback(v);}
-		bool operator() (EdgeBase* e)	{return callback(e);}
+		bool operator() (Edge* e)	{return callback(e);}
 		bool operator() (Face* f)		{return callback(f);}
 
 	private:

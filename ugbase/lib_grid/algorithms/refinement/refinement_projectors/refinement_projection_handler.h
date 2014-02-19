@@ -37,7 +37,7 @@ class RefinementProjectionHandler : public IRefinementCallback {
 	///	called when a new vertex was created from an old vertex.
 		virtual void new_vertex(Vertex* vrt, Vertex* parent);
 	///	called when a new vertex was created from an old edge.
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 	///	called when a new vertex was created from an old face.
 		virtual void new_vertex(Vertex* vrt, Face* parent);
 	///	called when a new vertex was created from an old volume.

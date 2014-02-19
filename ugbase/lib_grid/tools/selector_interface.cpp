@@ -94,8 +94,8 @@ void ISelector::enable_element_support(uint shElements)
 		//	enable edge support
 			m_pGrid->attach_to_edges(m_aSelected);
 			m_aaSelEDGE.access(*m_pGrid, m_aSelected);
-			SetAttachmentValues(m_aaSelEDGE, m_pGrid->begin<EdgeBase>(),
-								m_pGrid->end<EdgeBase>(), 0);
+			SetAttachmentValues(m_aaSelEDGE, m_pGrid->begin<Edge>(),
+								m_pGrid->end<Edge>(), 0);
 			m_supportedElements |= SE_EDGE;
 		}
 
@@ -379,7 +379,7 @@ void ISelector::vertex_to_be_erased(Grid* grid, Vertex* vrt,
 }
 
 //	edge callbacks
-void ISelector::edge_created(Grid* grid, EdgeBase* edge,
+void ISelector::edge_created(Grid* grid, Edge* edge,
 							GridObject* pParent,
 							bool replacesParent)
 {
@@ -396,7 +396,7 @@ void ISelector::edge_created(Grid* grid, EdgeBase* edge,
 		else if((pParent != NULL) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == EDGE){
-					select(edge, get_selection_status(static_cast<EdgeBase*>(pParent)));
+					select(edge, get_selection_status(static_cast<Edge*>(pParent)));
 				}
 			}
 			else
@@ -404,14 +404,14 @@ void ISelector::edge_created(Grid* grid, EdgeBase* edge,
 		}
 		else if(replacesParent){
 			UG_ASSERT(pParent, "A parent has to exist if it shall be replaced");
-			UG_ASSERT(dynamic_cast<EdgeBase*>(pParent), "Only parents of the same type may be replaced.");
-			select(edge, get_selection_status(static_cast<EdgeBase*>(pParent)));
+			UG_ASSERT(dynamic_cast<Edge*>(pParent), "Only parents of the same type may be replaced.");
+			select(edge, get_selection_status(static_cast<Edge*>(pParent)));
 		}
 	}
 }
 
-void ISelector::edge_to_be_erased(Grid* grid, EdgeBase* edge,
-									EdgeBase* replacedBy)
+void ISelector::edge_to_be_erased(Grid* grid, Edge* edge,
+									Edge* replacedBy)
 {
 	assert((m_pGrid == grid) && "grids do not match.");
 	
@@ -532,8 +532,8 @@ vertices_to_be_merged(Grid* grid, Vertex* target,
 }
 
 void ISelector::
-edges_to_be_merged(Grid* grid, EdgeBase* target,
-				  EdgeBase* elem1, EdgeBase* elem2)
+edges_to_be_merged(Grid* grid, Edge* target,
+				  Edge* elem1, Edge* elem2)
 {
 	elems_to_be_merged(grid, target, elem1, elem2);
 }

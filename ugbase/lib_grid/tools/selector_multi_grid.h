@@ -276,8 +276,8 @@ class UG_API MGSelector : public ISelector
 	//	convenience begin and end
 		inline traits<Vertex>::level_iterator	vertices_begin(int level)	{return begin<Vertex>(level);}
 		inline traits<Vertex>::level_iterator	vertices_end(int level)		{return end<Vertex>(level);}
-		inline traits<EdgeBase>::level_iterator		edges_begin(int level)		{return begin<EdgeBase>(level);}
-		inline traits<EdgeBase>::level_iterator		edges_end(int level)		{return end<EdgeBase>(level);}
+		inline traits<Edge>::level_iterator		edges_begin(int level)		{return begin<Edge>(level);}
+		inline traits<Edge>::level_iterator		edges_end(int level)		{return end<Edge>(level);}
 		inline traits<Face>::level_iterator			faces_begin(int level)		{return begin<Face>(level);}
 		inline traits<Face>::level_iterator			faces_end(int level)		{return end<Face>(level);}
 		inline traits<Volume>::level_iterator		volumes_begin(int level)	{return begin<Volume>(level);}
@@ -308,7 +308,7 @@ class UG_API MGSelector : public ISelector
 		virtual bool contains_vertices() const	{return num<Vertex>() > 0;}
 
 	///	returns true if the selector contains edges
-		virtual bool contains_edges() const		{return num<EdgeBase>() > 0;}
+		virtual bool contains_edges() const		{return num<Edge>() > 0;}
 
 	///	returns true if the selector contains faces
 		virtual bool contains_faces() const		{return num<Face>() > 0;}
@@ -320,12 +320,12 @@ class UG_API MGSelector : public ISelector
 		void clear_lists();
 
 		virtual void add_to_list(Vertex* elem);
-		virtual void add_to_list(EdgeBase* elem);
+		virtual void add_to_list(Edge* elem);
 		virtual void add_to_list(Face* elem);
 		virtual void add_to_list(Volume* elem);
 
 		virtual void erase_from_list(Vertex* elem);
-		virtual void erase_from_list(EdgeBase* elem);
+		virtual void erase_from_list(Edge* elem);
 		virtual void erase_from_list(Face* elem);
 		virtual void erase_from_list(Volume* elem);
 
@@ -381,10 +381,10 @@ class UG_API MGSelector : public ISelector
 		}
 
 		inline EdgeSectionContainer::iterator
-		get_level_iterator(EdgeBase* o)
+		get_level_iterator(Edge* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
-			return section_container<EdgeBase>(m_pMultiGrid->get_level(o)).
+			return section_container<Edge>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
 

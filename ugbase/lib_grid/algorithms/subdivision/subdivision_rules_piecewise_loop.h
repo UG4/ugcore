@@ -148,18 +148,18 @@ class SubdivRules_PLoop
 	//	ODD MASKS
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		apply_odd_mask(Vertex* vrt, EdgeBase* parent,
+		apply_odd_mask(Vertex* vrt, Edge* parent,
 					   TAAPos& aaPos);
 
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		apply_odd_crease_mask(Vertex* vrt, EdgeBase* parent,
+		apply_odd_crease_mask(Vertex* vrt, Edge* parent,
 							  TAAPos& aaPos);
 
 		template <class TAAPos>
 		typename TAAPos::ValueType
 		apply_odd_crease_nbr_mask(Grid& grid, Vertex* vrt,
-								  EdgeBase* parent, TAAPos& aaPos);
+								  Edge* parent, TAAPos& aaPos);
 
 	////////////////////////////////
 	//	PROJECTION

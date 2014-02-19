@@ -108,7 +108,7 @@ SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
  * Vertex* vertex(int i);//returns the i-th vertex of the element.
  * uint num_vertices();//returns the number of vertices that the element holds.
  *
- * Valid classes are for example EdgeBase, Face and Volume.
+ * Valid classes are for example Edge, Face and Volume.
  *
  * Make sure that the elements only reference vertices that belong to the grid
  * at which the selector is registered.
@@ -285,7 +285,7 @@ void ExtendSelection(TSelector& sel, size_t extSize,
  *
  * Those callbacks are declared in lib_grid/algorithms/callback_util.h"
  *
- * Valid types for TGeomBaseObj are EdgeBase, Face and Volume.
+ * Valid types for TGeomBaseObj are Edge, Face and Volume.
  */
 template <class TGeomObj>
 void SelectionFill(Selector& sel,
@@ -309,7 +309,7 @@ void SelectionFill(Selector& sel,
  * runtime O(n). If no element which contains the given point was found, the method
  * returns false.
  *
- * Valid types for TGeomBaseObj are EdgeBase, Face and Volume.
+ * Valid types for TGeomBaseObj are Edge, Face and Volume.
  */
 template <class TGeomObj, class TAAPos>
 bool SelectRegion(Selector& sel, const typename TAAPos::ValueType& p, TAAPos& aaPos,

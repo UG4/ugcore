@@ -632,7 +632,7 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
 	}
 	if(dim == 2) {
-		std::vector<EdgeBase*> vEdges;
+		std::vector<Edge*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
 		vSubsetIndex.resize(vEdges.size());
 		for(size_t i = 0; i < vEdges.size(); ++i)
@@ -964,7 +964,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
 	}
 	if(dim == 2) {
-		std::vector<EdgeBase*> vEdges;
+		std::vector<Edge*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
 		vSubsetIndex.resize(vEdges.size());
 		for(size_t i = 0; i < vEdges.size(); ++i)
@@ -1193,7 +1193,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	Grid& grid = *(ish->grid());
 	if (worldDim == 2)
 	{
-		std::vector<EdgeBase*> vEdge;
+		std::vector<Edge*> vEdge;
 		CollectEdgesSorted(vEdge, grid, pElem);
 		UG_ASSERT(vEdge.size(),"No edge contained in 1D manifold element!");
 		m_ssi = ish->get_subset_index(vEdge[0]);

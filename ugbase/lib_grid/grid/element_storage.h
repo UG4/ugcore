@@ -55,15 +55,15 @@ class attachment_traits<Vertex*, ElementStorage<Vertex> >
 };
 
 template<>
-class attachment_traits<EdgeBase*, ElementStorage<EdgeBase> >
+class attachment_traits<Edge*, ElementStorage<Edge> >
 {
 	public:
-		typedef EdgeBase*&			ElemRef;
-		typedef EdgeBase*			ElemPtr;
-		typedef const EdgeBase*		ConstElemPtr;
-		typedef ElementStorage<EdgeBase>*		ElemHandlerPtr;
-		typedef const ElementStorage<EdgeBase>*	ConstElemHandlerPtr;
-		typedef ElementStorage<EdgeBase>::SectionContainer::iterator	element_iterator;
+		typedef Edge*&			ElemRef;
+		typedef Edge*			ElemPtr;
+		typedef const Edge*		ConstElemPtr;
+		typedef ElementStorage<Edge>*		ElemHandlerPtr;
+		typedef const ElementStorage<Edge>*	ConstElemHandlerPtr;
+		typedef ElementStorage<Edge>::SectionContainer::iterator	element_iterator;
 
 		static inline element_iterator elements_begin(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.begin();}
 		static inline element_iterator elements_end(ElemHandlerPtr pHandler)	{return pHandler->m_sectionContainer.end();}
@@ -108,7 +108,7 @@ class attachment_traits<Volume*, ElementStorage<Volume> >
 
 
 typedef ElementStorage<Vertex>	VertexElementStorage;
-typedef ElementStorage<EdgeBase>	EdgeElementStorage;
+typedef ElementStorage<Edge>	EdgeElementStorage;
 typedef ElementStorage<Face>		FaceElementStorage;
 typedef ElementStorage<Volume>		VolumeElementStorage;
 
@@ -140,12 +140,12 @@ struct ElementStorageSelector<Vertex>{
 };
 
 template <>
-struct ElementStorageSelector<EdgeBase>{
-		static inline ElementStorage<EdgeBase>& element_storage(VertexElementStorage& vrts,
+struct ElementStorageSelector<Edge>{
+		static inline ElementStorage<Edge>& element_storage(VertexElementStorage& vrts,
 				EdgeElementStorage& edges, FaceElementStorage& faces, VolumeElementStorage& vols)
 		{return edges;}
 
-		static inline const ElementStorage<EdgeBase>& element_storage(
+		static inline const ElementStorage<Edge>& element_storage(
 				const VertexElementStorage& vrts, const EdgeElementStorage& edges,
 				const FaceElementStorage& faces, const VolumeElementStorage& vols)
 		{return edges;}
@@ -237,29 +237,29 @@ struct SectionContainerSelector<Vertex>{
 };
 
 template <>
-struct SectionContainerSelector<EdgeBase>{
-		static inline ElementStorage<EdgeBase>::SectionContainer& section_container(
+struct SectionContainerSelector<Edge>{
+		static inline ElementStorage<Edge>::SectionContainer& section_container(
 				VertexElementStorage::SectionContainer& vrts,
 				EdgeElementStorage::SectionContainer& edges,
 				FaceElementStorage::SectionContainer& faces,
 				VolumeElementStorage::SectionContainer& vols)
 		{return edges;}
 
-		static inline const ElementStorage<EdgeBase>::SectionContainer& section_container(
+		static inline const ElementStorage<Edge>::SectionContainer& section_container(
 				const VertexElementStorage::SectionContainer& vrts,
 				const EdgeElementStorage::SectionContainer& edges,
 				const FaceElementStorage::SectionContainer& faces,
 				const VolumeElementStorage::SectionContainer& vols)
 		{return edges;}
 
-		static inline ElementStorage<EdgeBase>::SectionContainer* section_container(
+		static inline ElementStorage<Edge>::SectionContainer* section_container(
 				VertexElementStorage::SectionContainer* vrts,
 				EdgeElementStorage::SectionContainer* edges,
 				FaceElementStorage::SectionContainer* faces,
 				VolumeElementStorage::SectionContainer* vols)
 		{return edges;}
 
-		static inline const ElementStorage<EdgeBase>::SectionContainer* section_container(
+		static inline const ElementStorage<Edge>::SectionContainer* section_container(
 				const VertexElementStorage::SectionContainer* vrts,
 				const EdgeElementStorage::SectionContainer* edges,
 				const FaceElementStorage::SectionContainer* faces,

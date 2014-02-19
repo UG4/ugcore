@@ -88,7 +88,7 @@ extract_dof_indices(ConstSmartPtr<DoFDistribution> dd)
 	m_vNativCmpInfo.clear();
 	m_vNativCmpInfo.resize(dd->num_fct());
 	if(dd->max_dofs(VERTEX)) extract_dof_indices<Vertex>(dd);
-	if(dd->max_dofs(FACE)) extract_dof_indices<EdgeBase>(dd);
+	if(dd->max_dofs(FACE)) extract_dof_indices<Edge>(dd);
 	if(dd->max_dofs(EDGE)) extract_dof_indices<Face>(dd);
 	if(dd->max_dofs(VOLUME)) extract_dof_indices<Volume>(dd);
 

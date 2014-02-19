@@ -19,8 +19,8 @@ ISubsetHandler::get_attachment_pipe<Vertex>(int subsetIndex)
 }
 
 template <>
-inline AttachmentPipe<EdgeBase*, ISubsetHandler>&
-ISubsetHandler::get_attachment_pipe<EdgeBase>(int subsetIndex)
+inline AttachmentPipe<Edge*, ISubsetHandler>&
+ISubsetHandler::get_attachment_pipe<Edge>(int subsetIndex)
 {
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 	return *m_edgeAttachmentPipes[subsetIndex];
@@ -52,7 +52,7 @@ get_subset_index(Vertex* elem) const
 }
 
 inline int ISubsetHandler::
-get_subset_index(EdgeBase* elem) const
+get_subset_index(Edge* elem) const
 {
 	if(elements_are_supported(SHE_EDGE))
 		return m_aaSubsetIndexEDGE[elem];
@@ -91,15 +91,15 @@ subset_assigned(Vertex* v, int subsetIndex)
 }
 
 inline void ISubsetHandler::
-subset_assigned(EdgeBase* e, int subsetIndex)
+subset_assigned(Edge* e, int subsetIndex)
 {
 	/*if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(e) != -1)
-			get_attachment_pipe<EdgeBase>(get_subset_index(e)).unregister_element(e);
+			get_attachment_pipe<Edge>(get_subset_index(e)).unregister_element(e);
 
 		if(subsetIndex != -1)
-			get_attachment_pipe<EdgeBase>(subsetIndex).register_element(e);
+			get_attachment_pipe<Edge>(subsetIndex).register_element(e);
 	}*/
 
 	m_aaSubsetIndexEDGE[e] = subsetIndex;
@@ -189,7 +189,7 @@ attach_to(IAttachment& attachment, int subsetIndex)
 			get_attachment_pipe<Vertex>(subsetIndex).attach(attachment, 0);
 			break;
 		case EDGE:
-			get_attachment_pipe<EdgeBase>(subsetIndex).attach(attachment, 0);
+			get_attachment_pipe<Edge>(subsetIndex).attach(attachment, 0);
 			break;
 		case FACE:
 			get_attachment_pipe<Face>(subsetIndex).attach(attachment, 0);
@@ -219,7 +219,7 @@ attach_to_dv(TAttachment& attachment, int subsetIndex,
 			get_attachment_pipe<Vertex>(subsetIndex).attach(attachment, defaultValue, 0);
 			break;
 		case EDGE:
-			get_attachment_pipe<EdgeBase>(subsetIndex).attach(attachment, defaultValue, 0);
+			get_attachment_pipe<Edge>(subsetIndex).attach(attachment, defaultValue, 0);
 			break;
 		case FACE:
 			get_attachment_pipe<Face>(subsetIndex).attach(attachment, defaultValue, 0);
@@ -247,7 +247,7 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 			get_attachment_pipe<Vertex>(subsetIndex).detach(attachment);
 			break;
 		case EDGE:
-			get_attachment_pipe<EdgeBase>(subsetIndex).detach(attachment);
+			get_attachment_pipe<Edge>(subsetIndex).detach(attachment);
 			break;
 		case FACE:
 			get_attachment_pipe<Face>(subsetIndex).detach(attachment);
@@ -286,14 +286,14 @@ set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)
 }
 
 inline uint
-attachment_traits<EdgeBase*, ISubsetHandler>::
+attachment_traits<Edge*, ISubsetHandler>::
 get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)
 {
 	return pHandler->get_attachment_data_index(elem);
 }
 
 inline void
-attachment_traits<EdgeBase*, ISubsetHandler>::
+attachment_traits<Edge*, ISubsetHandler>::
 set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)
 {
 	pHandler->set_attachment_data_index(elem, index);

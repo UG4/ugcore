@@ -185,7 +185,7 @@ create_constrained_vertex_node(ConstrainedVertexIterator vrtsBegin,
 	//			1: edge. index and 1 local coordinate follow.
 	//			2: face. index and 2 local coordinates follow.
 	//			3: volume. index and 3 local coordinates follow. (not yet supported)
-		EdgeBase* ce = dynamic_cast<EdgeBase*>((*iter)->get_constraining_object());
+		Edge* ce = dynamic_cast<Edge*>((*iter)->get_constraining_object());
 		Face* cf = dynamic_cast<Face*>((*iter)->get_constraining_object());
 		if(ce)
 			ss << "1 " << aaIndEDGE[ce] << " " << (*iter)->get_local_coordinate_1() << " ";
@@ -258,7 +258,7 @@ grid(Grid& gridOut, size_t index,
 //	get the grid-node and the vertex-vector
 	xml_node<>* gridNode = m_entries[index].node;
 	vector<Vertex*>& vertices = m_entries[index].vertices;
-	vector<EdgeBase*>& edges = m_entries[index].edges;
+	vector<Edge*>& edges = m_entries[index].edges;
 	vector<Face*>& faces = m_entries[index].faces;
 	vector<Volume*>& volumes = m_entries[index].volumes;
 

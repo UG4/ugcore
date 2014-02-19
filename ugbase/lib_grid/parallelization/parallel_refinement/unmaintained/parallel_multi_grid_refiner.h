@@ -52,7 +52,7 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 		virtual void refinement_step_ends();
 		
 		virtual void set_rule(Vertex* e, RefinementMark mark);
-		virtual void set_rule(EdgeBase* e, RefinementMark mark);
+		virtual void set_rule(Edge* e, RefinementMark mark);
 		virtual void set_rule(Face* e, RefinementMark mark);
 		virtual void set_rule(Volume* e, RefinementMark mark);
 
@@ -74,7 +74,7 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 		
 	///	adjust selection based on received elements
 		void adjust_parallel_selection(const std::vector<Vertex*>* pvVrts,
-										const std::vector<EdgeBase*>* pvEdges,
+										const std::vector<Edge*>* pvEdges,
 										const std::vector<Face*>* pvFaces,
 										const std::vector<Volume*>* pvVolumes);
 		
@@ -82,7 +82,7 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 		DistributedGridManager& m_distGridMgr;
 		
 		std::vector<Vertex*>	m_vNewlyMarkedInterfaceVrts;
-		std::vector<EdgeBase*>		m_vNewlyMarkedInterfaceEdges;
+		std::vector<Edge*>		m_vNewlyMarkedInterfaceEdges;
 		std::vector<Face*>			m_vNewlyMarkedInterfaceFaces;
 		std::vector<Volume*>		m_vNewlyMarkedInterfaceVols;
 		

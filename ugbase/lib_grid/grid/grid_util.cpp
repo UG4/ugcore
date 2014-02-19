@@ -92,7 +92,7 @@ void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid, Vertex* v, bo
 }
 
 ///	Collects all vertices.
-void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid, EdgeBase* e, bool clearContainer)
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid, Edge* e, bool clearContainer)
 {
 	// clear container if wanted
 	if(clearContainer)
@@ -145,13 +145,13 @@ void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid, Volume* v, bo
 ///////////////////////////////////////////////////////////////////////////////
 
 ///	Collects all edges of a vertex, thus, none.
-void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Vertex* v, bool clearContainer)
+void CollectEdgesSorted(vector<Edge*>& vEdgesOut, Grid& grid, Vertex* v, bool clearContainer)
 {
 	vEdgesOut.clear();
 }
 
 ///	Collects all edges. (Returns the edge itself)
-void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer)
+void CollectEdgesSorted(vector<Edge*>& vEdgesOut, Grid& grid, Edge* e, bool clearContainer)
 {
 	if(clearContainer)
 		vEdgesOut.clear();
@@ -160,7 +160,7 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, b
 }
 
 ///	Collects all edges which exist in the given grid and which are part of the given face in the order defined by the reference elements.
-void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool clearContainer)
+void CollectEdgesSorted(vector<Edge*>& vEdgesOut, Grid& grid, Face* f, bool clearContainer)
 {
 	if(clearContainer)
 		vEdgesOut.clear();
@@ -179,13 +179,13 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool 
 	}
 	else{
 	//	if no edges are present, we can leave immediately
-		if(grid.num<EdgeBase>() == 0)
+		if(grid.num<Edge>() == 0)
 			return;
 	//	second-best: use GetEdge in order to find the queried edges
 		uint numEdges = f->num_edges();
 		for(uint i = 0; i < numEdges; ++i)
 		{
-			EdgeBase* e = grid.get_edge(f, i);
+			Edge* e = grid.get_edge(f, i);
 			if(e != NULL)
 				vEdgesOut.push_back(e);
 		}
@@ -193,7 +193,7 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool 
 }
 
 ///	Collects all edges that exist in the given grid are part of the given volume in the order defined by the reference elements.
-void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clearContainer)
+void CollectEdgesSorted(vector<Edge*>& vEdgesOut, Grid& grid, Volume* v, bool clearContainer)
 {
 	if(clearContainer)
 		vEdgesOut.clear();
@@ -215,14 +215,14 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, boo
 	}
 	else{
 	//	if no edges are present, we can leave immediately
-		if(grid.num<EdgeBase>() == 0)
+		if(grid.num<Edge>() == 0)
 			return;
 
 	//	second best: use GetEdge in order to find the queried edges.
 		uint numEdges = v->num_edges();
 		for(uint i = 0; i < numEdges; ++i)
 		{
-			EdgeBase* e = grid.get_edge(v, i);
+			Edge* e = grid.get_edge(v, i);
 			if(e != NULL)
 				vEdgesOut.push_back(e);
 		}
@@ -235,13 +235,13 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, boo
 ///////////////////////////////////////////////////////////////////////////////
 
 ///	Collects all edges which exist in the given grid and which are part of the given vertex.
-void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Vertex* vrt, bool clearContainer)
+void CollectEdges(std::vector<Edge*>& vEdgesOut, Grid& grid, Vertex* vrt, bool clearContainer)
 {
 	if(clearContainer)
 		vEdgesOut.clear();
 
 //	if no edges are present, we can leave immediately
-	if(grid.num<EdgeBase>() == 0)
+	if(grid.num<Edge>() == 0)
 		return;
 
 	Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(vrt);
@@ -253,26 +253,26 @@ void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Vertex* vrt, bo
 }
 
 ///	Collects all edges. (Returns the edge itself)
-void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer)
+void CollectEdges(vector<Edge*>& vEdgesOut, Grid& grid, Edge* e, bool clearContainer)
 {
 	if(clearContainer)
 		vEdgesOut.clear();
 
 //	if no edges are present, we can leave immediately
-	if(grid.num<EdgeBase>() == 0)
+	if(grid.num<Edge>() == 0)
 		return;
 
 	vEdgesOut.push_back(e);
 }
 
 ///	Collects all edges which exist in the given grid and which are part of the given face.
-void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool clearContainer)
+void CollectEdges(vector<Edge*>& vEdgesOut, Grid& grid, Face* f, bool clearContainer)
 {
 	if(clearContainer)
 		vEdgesOut.clear();
 
 //	if no edges are present, we can leave immediately
-	if(grid.num<EdgeBase>() == 0)
+	if(grid.num<Edge>() == 0)
 		return;
 
 //	best-option: FACEOPT_STORE_ASSOCIATED_EDGES
@@ -294,20 +294,20 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool clearC
 	uint numEdges = f->num_edges();
 	for(uint i = 0; i < numEdges; ++i)
 	{
-		EdgeBase* e = grid.get_edge(f, i);
+		Edge* e = grid.get_edge(f, i);
 		if(e != NULL)
 			vEdgesOut.push_back(e);
 	}
 }
 
 ///	Collects all edges that exist in the given grid are part of the given volume.
-void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clearContainer)
+void CollectEdges(vector<Edge*>& vEdgesOut, Grid& grid, Volume* v, bool clearContainer)
 {
 	if(clearContainer)
 		vEdgesOut.clear();
 
 //	if no edges are present, we can leave immediately
-	if(grid.num<EdgeBase>() == 0)
+	if(grid.num<Edge>() == 0)
 		return;
 
 //	best option: VOLOPT_STORE_ASSOCIATED_EDGES
@@ -329,7 +329,7 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clea
 	uint numEdges = v->num_edges();
 	for(uint i = 0; i < numEdges; ++i)
 	{
-		EdgeBase* e = grid.get_edge(v, i);
+		Edge* e = grid.get_edge(v, i);
 		if(e != NULL)
 			vEdgesOut.push_back(e);
 	}
@@ -347,7 +347,7 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Vertex* v, bool cl
 }
 
 ///	Collects all faces and returns them in the order prescribed by the reference element.
-void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool clearContainer)
+void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Edge* e, bool clearContainer)
 {
 	vFacesOut.clear();
 }
@@ -416,7 +416,7 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, Vertex* vrt, bool c
 }
 
 ///	Collects all faces that exist in the given grid which contain the given edge.
-void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool clearContainer)
+void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, Edge* e, bool clearContainer)
 {
 	if(clearContainer)
 		vFacesOut.clear();
@@ -552,7 +552,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Vertex* vrt, 
 ////////////////////////////////////////////////////////////////////////
 //	CollectVolumes
 ///	Collects all volumes that exist in the given grid which contain the given edge.
-void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, EdgeBase* e, bool clearContainer)
+void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Edge* e, bool clearContainer)
 {
 	if(clearContainer)
 		vVolumesOut.clear();

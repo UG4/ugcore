@@ -91,7 +91,7 @@ void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
 							
 ////////////////////////////////////////////////////////////////////////
 //	CollectNeighbors
-void CollectNeighbors(std::vector<EdgeBase*>& vNeighborsOut, EdgeBase* e,
+void CollectNeighbors(std::vector<Edge*>& vNeighborsOut, Edge* e,
 					   Grid& grid, NeighborhoodType nbhType)
 {
 //	clear the container

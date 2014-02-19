@@ -73,8 +73,8 @@ class ILocalRemesher{
 	public:
 		virtual ~ILocalRemesher()	{}
 		virtual void smooth_vertex(Vertex* vrt) = 0;
-		virtual Vertex* collapse_edge(EdgeBase* edge) = 0;
-		virtual Vertex* split_edge(EdgeBase* edge) = 0;
+		virtual Vertex* collapse_edge(Edge* edge) = 0;
+		virtual Vertex* split_edge(Edge* edge) = 0;
 };
 
 
@@ -95,14 +95,14 @@ class IPatchRemesher : public ILocalRemesher{
 		void add_surface_patch(TElemIterator begin, TElemIterator end);
 
 		virtual void smooth_vertex(Vertex* vrt) = 0;
-		virtual Vertex* collapse_edge(EdgeBase* edge) = 0;
-		virtual Vertex* split_edge(EdgeBase* edge) = 0;
-		virtual EdgeBase* swap_edge(EdgeBase* edge) = 0;
+		virtual Vertex* collapse_edge(Edge* edge) = 0;
+		virtual Vertex* split_edge(Edge* edge) = 0;
+		virtual Edge* swap_edge(Edge* edge) = 0;
 
 		virtual vector3 vertex_position(Vertex* vrt) = 0;
 		virtual vector3 vertex_normal(Vertex* vrt) = 0;
 
-		virtual number approximation_quality(EdgeBase* e) = 0;
+		virtual number approximation_quality(Edge* e) = 0;
 		virtual number approximation_quality(Face* f) = 0;
 		virtual number element_quality(Face* f) = 0;
 

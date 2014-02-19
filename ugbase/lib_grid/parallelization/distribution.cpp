@@ -68,7 +68,7 @@ class DistInfoSupplier{
 		}
 
 		vector<TargetProcInfo>& get(Vertex* vrt)	{return m_aaDistInfoVRT[vrt];}
-		vector<TargetProcInfo>& get(EdgeBase* edge)		{return m_aaDistInfoEDGE[edge];}
+		vector<TargetProcInfo>& get(Edge* edge)		{return m_aaDistInfoEDGE[edge];}
 		vector<TargetProcInfo>& get(Face* face)			{return m_aaDistInfoFACE[face];}
 		vector<TargetProcInfo>& get(Volume* vol)		{return m_aaDistInfoVOL[vol];}
 		vector<TargetProcInfo>& get(GridObject* obj)
@@ -76,7 +76,7 @@ class DistInfoSupplier{
 			int objType = obj->base_object_id();
 			switch(objType){
 				case VERTEX:	return get(static_cast<Vertex*>(obj));
-				case EDGE:		return get(static_cast<EdgeBase*>(obj));
+				case EDGE:		return get(static_cast<Edge*>(obj));
 				case FACE:		return get(static_cast<Face*>(obj));
 				case VOLUME:	return get(static_cast<Volume*>(obj));
 				default:	UG_THROW("Unknown geometric object base type."); break;
@@ -129,7 +129,7 @@ class DistInfoSupplier{
 		Grid& 		m_grid;
 		ADistInfo	m_aDistInfo;
 		Grid::AttachmentAccessor<Vertex, ADistInfo> m_aaDistInfoVRT;
-		Grid::AttachmentAccessor<EdgeBase, ADistInfo> m_aaDistInfoEDGE;
+		Grid::AttachmentAccessor<Edge, ADistInfo> m_aaDistInfoEDGE;
 		Grid::AttachmentAccessor<Face, ADistInfo> m_aaDistInfoFACE;
 		Grid::AttachmentAccessor<Volume, ADistInfo> m_aaDistInfoVOL;
 };
@@ -282,8 +282,8 @@ static void SaveDistSelectorToFile(MGSelector& msel, const char* filename)
 			sh.assign_subset(*iter, msel.get_selection_status(*iter));
 		}
 
-		for(MGSelector::traits<EdgeBase>::level_iterator iter = msel.begin<EdgeBase>(lvl);
-			iter != msel.end<EdgeBase>(lvl); ++iter)
+		for(MGSelector::traits<Edge>::level_iterator iter = msel.begin<Edge>(lvl);
+			iter != msel.end<Edge>(lvl); ++iter)
 		{
 			sh.assign_subset(*iter, msel.get_selection_status(*iter));
 		}
@@ -341,8 +341,8 @@ static void SaveDistInfosToFile(MultiGrid& mg, DistInfoSupplier& infoSupplier,
 			}
 		}
 
-		for(MultiGrid::traits<EdgeBase>::iterator iter = mg.begin<EdgeBase>();
-			iter != mg.end<EdgeBase>(); ++iter)
+		for(MultiGrid::traits<Edge>::iterator iter = mg.begin<Edge>();
+			iter != mg.end<Edge>(); ++iter)
 		{
 			vector<TargetProcInfo>& infos = infoSupplier.get(*iter);
 			for(size_t i = 0; i < infos.size(); ++i){
@@ -484,7 +484,7 @@ static bool PerformValidityCheck(DistributedGridManager& dgm)
 {
 	bool isValid = true;
 	isValid &= PerformValidityCheck<Vertex>(dgm);
-	isValid &= PerformValidityCheck<EdgeBase>(dgm);
+	isValid &= PerformValidityCheck<Edge>(dgm);
 	isValid &= PerformValidityCheck<Face>(dgm);
 	isValid &= PerformValidityCheck<Volume>(dgm);
 	return isValid;
@@ -530,7 +530,7 @@ static bool PerformValidityCheck(DistributedGridManager& dgm)
 //	if(g.num_vertices())
 //		AdjustGhostSelection<Vertex>(msel, status);
 //	if(g.num_edges())
-//		AdjustGhostSelection<EdgeBase>(msel, status);
+//		AdjustGhostSelection<Edge>(msel, status);
 //	if(g.num_faces())
 //		AdjustGhostSelection<Face>(msel, status);
 //	if(g.num_volumes())
@@ -603,7 +603,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
-					EdgeBase* cd = e->constrained_edge(i);
+					Edge* cd = e->constrained_edge(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
 					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
@@ -643,7 +643,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
-					EdgeBase* cd = e->constrained_edge(i);
+					Edge* cd = e->constrained_edge(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
 					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
@@ -683,7 +683,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 					}
 				}
 				for(size_t i = 0; i < e->num_constrained_edges(); ++i){
-					EdgeBase* cd = e->constrained_edge(i);
+					Edge* cd = e->constrained_edge(i);
 					ISelector::status_t nstate = status | msel.get_selection_status(cd);
 					if(selectAll || !msel.is_selected(cd)){
 						msel.select(cd, nstate);
@@ -780,7 +780,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //						msel.select(cg, nstate);
 //						switch(cg->base_object_id()){
 //						case EDGE:
-//							SelectAssociatedSides(msel, static_cast<EdgeBase*>(cg), nstate);
+//							SelectAssociatedSides(msel, static_cast<Edge*>(cg), nstate);
 //							break;
 //						case FACE:
 //							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
@@ -811,7 +811,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //						msel.select(cg, nstate);
 //						switch(cg->base_object_id()){
 //						case EDGE:
-//							SelectAssociatedSides(msel, static_cast<EdgeBase*>(cg), nstate);
+//							SelectAssociatedSides(msel, static_cast<Edge*>(cg), nstate);
 //							break;
 //						case FACE:
 //							SelectAssociatedSides(msel, static_cast<Face*>(cg), nstate);
@@ -1037,14 +1037,14 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 				SelectSelectedRootElementsAsVSlaves<Face>(msel);
 		}
 	}
-	else if(mg.num<EdgeBase>() > 0){
+	else if(mg.num<Edge>() > 0){
 		if(partitionIndex >= 0)
-			SelectSubsetElements<EdgeBase>(msel, shPartition, partitionIndex, IS_NORMAL);
+			SelectSubsetElements<Edge>(msel, shPartition, partitionIndex, IS_NORMAL);
 		if(createVerticalInterfaces){
 			if(partitionForLocalProc)
-				SelectUnselectedRootElementsAsVMasters<EdgeBase>(msel);
+				SelectUnselectedRootElementsAsVMasters<Edge>(msel);
 			else
-				SelectSelectedRootElementsAsVSlaves<EdgeBase>(msel);
+				SelectSelectedRootElementsAsVSlaves<Edge>(msel);
 		}
 	}
 	else if(mg.num<Vertex>() > 0){
@@ -1068,10 +1068,10 @@ static void SelectElementsForTargetPartition(MGSelector& msel,
 			AssignVerticalMasterAndSlaveStates<Face>(msel, partitionForLocalProc);
 		AssignSelectionStateToSides<Face>(msel, true);
 	}
-	else if(mg.num<EdgeBase>() > 0){
+	else if(mg.num<Edge>() > 0){
 		if(createVerticalInterfaces)
-			AssignVerticalMasterAndSlaveStates<EdgeBase>(msel, partitionForLocalProc);
-		AssignSelectionStateToSides<EdgeBase>(msel, true);
+			AssignVerticalMasterAndSlaveStates<Edge>(msel, partitionForLocalProc);
+		AssignSelectionStateToSides<Edge>(msel, true);
 	}
 	else if(mg.num<Vertex>() > 0){
 		if(createVerticalInterfaces)
@@ -1247,7 +1247,7 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 
 			AddTargetProcToDistInfos<Volume>(msel, distInfos, targetProc);
 			AddTargetProcToDistInfos<Face>(msel, distInfos, targetProc);
-			AddTargetProcToDistInfos<EdgeBase>(msel, distInfos, targetProc);
+			AddTargetProcToDistInfos<Edge>(msel, distInfos, targetProc);
 			AddTargetProcToDistInfos<Vertex>(msel, distInfos, targetProc);
 		}
 	}
@@ -1262,12 +1262,12 @@ static void FillDistInfos(MultiGrid& mg, SubsetHandler& shPartition, MGSelector&
 #endif
 
 	SynchronizeDistInfos<Vertex>(mg, distInfos);
-	SynchronizeDistInfos<EdgeBase>(mg, distInfos);
+	SynchronizeDistInfos<Edge>(mg, distInfos);
 	SynchronizeDistInfos<Face>(mg, distInfos);
 	SynchronizeDistInfos<Volume>(mg, distInfos);
 
 	PostProcessDistInfos<Vertex>(mg, distInfos);
-	PostProcessDistInfos<EdgeBase>(mg, distInfos);
+	PostProcessDistInfos<Edge>(mg, distInfos);
 	PostProcessDistInfos<Face>(mg, distInfos);
 	PostProcessDistInfos<Volume>(mg, distInfos);
 
@@ -1642,7 +1642,7 @@ bool DistributeGrid(MultiGrid& mg,
 	GDIST_PROFILE(gdist_CreateGlobalIDs);
 	UG_DLOG(LIB_GRID, 2, "dist-DistributeGrid: Create global vertex ids\n");
 	CreateAndDistributeGlobalIDs<Vertex>(mg, glm);
-	CreateAndDistributeGlobalIDs<EdgeBase>(mg, glm);
+	CreateAndDistributeGlobalIDs<Edge>(mg, glm);
 	CreateAndDistributeGlobalIDs<Face>(mg, glm);
 	CreateAndDistributeGlobalIDs<Volume>(mg, glm);
 	MultiElementAttachmentAccessor<AGeomObjID> aaID(mg, aGeomObjID);
@@ -1661,7 +1661,7 @@ bool DistributeGrid(MultiGrid& mg,
 		UG_LOG("DEBUG: WRITING GLOBAL EDGE IDS TO FILE\n");
 		stringstream ss;
 		ss << "global_ids_edge_p" << pcl::ProcRank() << ".txt";
-		WriteDebugValuesToFile<EdgeBase>(ss.str().c_str(), mg, aGeomObjID, false);
+		WriteDebugValuesToFile<Edge>(ss.str().c_str(), mg, aGeomObjID, false);
 	}
 	{
 		UG_LOG("DEBUG: WRITING GLOBAL FACE IDS TO FILE\n");
@@ -1746,7 +1746,7 @@ bool DistributeGrid(MultiGrid& mg,
 
 	GridDataSerializationHandler distInfoSerializer;
 	distInfoSerializer.add(GeomObjAttachmentSerializer<Vertex, ADistInfo>::create(mg, aDistInfo));
-	distInfoSerializer.add(GeomObjAttachmentSerializer<EdgeBase, ADistInfo>::create(mg, aDistInfo));
+	distInfoSerializer.add(GeomObjAttachmentSerializer<Edge, ADistInfo>::create(mg, aDistInfo));
 	distInfoSerializer.add(GeomObjAttachmentSerializer<Face, ADistInfo>::create(mg, aDistInfo));
 	distInfoSerializer.add(GeomObjAttachmentSerializer<Volume, ADistInfo>::create(mg, aDistInfo));
 
@@ -1995,7 +1995,7 @@ bool DistributeGrid(MultiGrid& mg,
 	userDataSerializer.deserialization_starts();
 
 	vector<Vertex*>	vrts;
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 	vector<Volume*> vols;
 
@@ -2059,7 +2059,7 @@ bool DistributeGrid(MultiGrid& mg,
 //	CREATE LAYOUTS
 	GDIST_PROFILE(gdist_CreateLayouts);
 	CreateLayoutsFromDistInfos<Vertex>(mg, glm, distInfos, aGeomObjID);
-	CreateLayoutsFromDistInfos<EdgeBase>(mg, glm, distInfos, aGeomObjID);
+	CreateLayoutsFromDistInfos<Edge>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<Face>(mg, glm, distInfos, aGeomObjID);
 	CreateLayoutsFromDistInfos<Volume>(mg, glm, distInfos, aGeomObjID);
 	PCL_DEBUG_BARRIER(procComm);

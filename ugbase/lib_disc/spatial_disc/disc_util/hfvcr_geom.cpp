@@ -168,7 +168,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 
 //  check for hanging nodes
 	if (dim==2){
-		std::vector<EdgeBase*> vEdges;
+		std::vector<Edge*> vEdges;
 		CollectEdgesSorted(vEdges, grid, pElem);
 		for(size_t side = 0; side < vEdges.size(); ++side){
 			ConstrainingEdge* constrainingObj = dynamic_cast<ConstrainingEdge*>(vEdges[side]);

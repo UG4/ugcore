@@ -113,7 +113,7 @@ mark(Vertex* v, RefinementMark refMark)
 }
 
 template <class TSelector>
-bool HangingNodeRefinerBase<TSelector>::mark(EdgeBase* e, RefinementMark refMark)
+bool HangingNodeRefinerBase<TSelector>::mark(Edge* e, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
 	if(get_mark(e) != refMark){
@@ -166,7 +166,7 @@ mark_neighborhood(size_t numIterations)
 		return;
 
 	typedef typename TSelector::template traits<Vertex>::iterator	SelVrtIter;
-	typedef typename TSelector::template traits<EdgeBase>::iterator		SelEdgeIter;
+	typedef typename TSelector::template traits<Edge>::iterator		SelEdgeIter;
 	typedef typename TSelector::template traits<Face>::iterator			SelFaceIter;
 	typedef typename TSelector::template traits<Volume>::iterator		SelVolIter;
 
@@ -180,10 +180,10 @@ mark_neighborhood(size_t numIterations)
 //todo:	Speed could be improved by only considering newly marked elements after each iteration.
 	for(size_t iteration = 0; iteration < numIterations; ++iteration){
 	//	first we'll select all vertices which are connected to marked elements
-		for(SelEdgeIter iter = sel.template begin<EdgeBase>();
-			iter != sel.template end<EdgeBase>(); ++iter)
+		for(SelEdgeIter iter = sel.template begin<Edge>();
+			iter != sel.template end<Edge>(); ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			sel.select(e->vertex(0), sel.get_selection_status(e));
 			sel.select(e->vertex(1), sel.get_selection_status(e));
 		}
@@ -262,7 +262,7 @@ get_mark(Vertex* v)
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(EdgeBase* e)
+get_mark(Edge* e)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(e)
 							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN | RM_DUMMY));
@@ -311,7 +311,7 @@ save_marks_to_file(const char* filename)
 		}
 	}
 
-	for(EdgeBaseIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
+	for(EdgeIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
 		typename selector_t::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_NONE: break;
@@ -408,7 +408,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	}
 
 //	containers used for temporary results
-	vector<EdgeBase*> 	vEdges;
+	vector<Edge*> 	vEdges;
 	vector<Face*>	 	vFaces;
 	vector<Volume*>		vVols;
 
@@ -671,11 +671,11 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 		if(!(marked_refine(e) || marked_copy(e)))
 			m_selMarkedElements.deselect(e);
 	}
-	for(typename selector_t::template traits<EdgeBase>::iterator
-			iter = m_selMarkedElements.template begin<EdgeBase>();
-			iter != m_selMarkedElements.template end<EdgeBase>();)
+	for(typename selector_t::template traits<Edge>::iterator
+			iter = m_selMarkedElements.template begin<Edge>();
+			iter != m_selMarkedElements.template end<Edge>();)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		++iter;
 		if(!(marked_refine(e) || marked_copy(e)))
 			m_selMarkedElements.deselect(e);
@@ -750,7 +750,7 @@ void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 //	unmark all elements which are marked for coarsening
 
 	bool removedCoarseMarks = remove_coarsen_marks<Vertex>();
-	removedCoarseMarks |= remove_coarsen_marks<EdgeBase>();
+	removedCoarseMarks |= remove_coarsen_marks<Edge>();
 	removedCoarseMarks |= remove_coarsen_marks<Face>();
 	removedCoarseMarks |= remove_coarsen_marks<Volume>();
 
@@ -760,14 +760,14 @@ void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 	}
 
 	std::vector<Vertex*>	newlyMarkedVrts;
-	std::vector<EdgeBase*>		newlyMarkedEdges;
+	std::vector<Edge*>		newlyMarkedEdges;
 	std::vector<Face*>			newlyMarkedFaces;
 	std::vector<Volume*>		newlyMarkedVols;
 
 	newlyMarkedVrts.assign(m_selMarkedElements.template begin<Vertex>(),
 						   m_selMarkedElements.template end<Vertex>());
-	newlyMarkedEdges.assign(m_selMarkedElements.template begin<EdgeBase>(),
-							m_selMarkedElements.template end<EdgeBase>());
+	newlyMarkedEdges.assign(m_selMarkedElements.template begin<Edge>(),
+							m_selMarkedElements.template end<Edge>());
 	newlyMarkedFaces.assign(m_selMarkedElements.template begin<Face>(),
 							m_selMarkedElements.template end<Face>());
 	newlyMarkedVols.assign(m_selMarkedElements.template begin<Volume>(),
@@ -862,7 +862,7 @@ assign_hnode_marks()
 				for(size_t i = 0; i < cgf->num_constrained_vertices(); ++i)
 					add_hmark(cgf->constrained_vertex(i), HNRM_TO_NORMAL);
 				for(size_t i = 0; i < cgf->num_constrained_edges(); ++i){
-					EdgeBase* cde = cgf->constrained_edge(i);
+					Edge* cde = cgf->constrained_edge(i);
 					if(marked_refine(cde))
 						add_hmark(cde, HNRM_TO_CONSTRAINING);
 					else
@@ -888,7 +888,7 @@ assign_hnode_marks()
 				for(size_t i = 0; i < cgf->num_constrained_vertices(); ++i)
 					add_hmark(cgf->constrained_vertex(i), HNRM_TO_NORMAL);
 				for(size_t i = 0; i < cgf->num_constrained_edges(); ++i){
-					EdgeBase* cde = cgf->constrained_edge(i);
+					Edge* cde = cgf->constrained_edge(i);
 					if(marked_refine(cde))
 						add_hmark(cde, HNRM_TO_CONSTRAINING);
 					else
@@ -906,10 +906,10 @@ assign_hnode_marks()
 	}
 	
 	if(grid.num<Face>() > 0){
-		for(sel_edge_iter iter = m_selMarkedElements.template begin<EdgeBase>();
-			iter != m_selMarkedElements.template end<EdgeBase>(); ++iter)
+		for(sel_edge_iter iter = m_selMarkedElements.template begin<Edge>();
+			iter != m_selMarkedElements.template end<Edge>(); ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			CollectAssociated(faces, grid, e);
 			for(size_t i = 0; i < faces.size(); ++i){
 				if(marked_to_constraining(faces[i])){
@@ -935,7 +935,7 @@ assign_hnode_marks()
 				for(size_t i = 0; i < cge->num_constrained_vertices(); ++i)
 					add_hmark(cge->constrained_vertex(i), HNRM_TO_NORMAL);
 				for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
-					EdgeBase* cde = cge->constrained_edge(i);
+					Edge* cde = cge->constrained_edge(i);
 					if(marked_refine(cde))
 						add_hmark(cde, HNRM_TO_CONSTRAINING);
 					else
@@ -954,7 +954,7 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 {
 
 	if(marked_to_normal(cdv)){
-		EdgeBase* parentEdge = NULL;
+		Edge* parentEdge = NULL;
 		Face* parentFace = NULL;
 		GridObject* constrObj = cdv->get_constraining_object();
 
@@ -1061,7 +1061,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 //	associated constrained edges will be created together with the
 //	new central vertex.
 	for(size_t i = 0; i < cge->num_constrained_edges(); ++i){
-		EdgeBase* cde = cge->constrained_edge(i);
+		Edge* cde = cge->constrained_edge(i);
 		if(is_marked(cde)){
 			refine_edge_with_hanging_vertex(cde);
 		}
@@ -1077,7 +1077,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-refine_edge_with_normal_vertex(EdgeBase* e, Vertex** newCornerVrts)
+refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
 
@@ -1097,16 +1097,16 @@ refine_edge_with_normal_vertex(EdgeBase* e, Vertex** newCornerVrts)
 		m_refCallback->new_vertex(nVrt, e);
 
 //	split the edge
-	vector<EdgeBase*> vEdges(2);
+	vector<Edge*> vEdges(2);
 	e->refine(vEdges, nVrt, newCornerVrts);
-	assert((vEdges.size() == 2) && "EdgeBase::refine - produced wrong number of edges.");
+	assert((vEdges.size() == 2) && "Edge::refine - produced wrong number of edges.");
 	grid.register_element(vEdges[0], e);
 	grid.register_element(vEdges[1], e);
 }
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-refine_edge_with_hanging_vertex(EdgeBase* e, Vertex** newCornerVrts)
+refine_edge_with_hanging_vertex(Edge* e, Vertex** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
 
@@ -1164,7 +1164,7 @@ refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 	size_t numEdges = f->num_edges();
 	bool noEdgeVrts = true;
 	for(size_t i = 0; i < numEdges; ++i){
-		EdgeBase* e = grid.get_edge(f, i);
+		Edge* e = grid.get_edge(f, i);
 
 	//	if the face is refined with a regular rule, then every edge has to have
 	//	an associated center vertex
@@ -1220,7 +1220,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 
 	size_t numVrts = f->num_vertices();
 /*
-	vector<EdgeBase*> 	vEdges(f->num_edges());
+	vector<Edge*> 	vEdges(f->num_edges());
 	vector<Vertex*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(numVrts);// heuristic
 
@@ -1234,7 +1234,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 //	each should have an associated vertex. sort them into vNewEdgeVertices.
 	for(size_t i = 0; i < numEdges; ++i)
 	{
-		EdgeBase* e = vEdges[i];
+		Edge* e = vEdges[i];
 		int edgeIndex = GetEdgeIndex(f, e);
 
 		assert((edgeIndex >= 0) && (edgeIndex < (int)vEdges.size()) && "ERROR in RefineFaceWithNormalVertex(...): unknown problem in CollectEdges / GetEdgeIndex.");
@@ -1247,7 +1247,7 @@ refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 
 	size_t numEdges = f->num_edges();
 	for(size_t i = 0; i < numEdges; ++i){
-		EdgeBase* e = grid.get_edge(f, i);
+		Edge* e = grid.get_edge(f, i);
 
 	//	if the face is refined with a regular rule, then every edge has to have
 	//	an associated center vertex
@@ -1431,7 +1431,7 @@ process_constraining_face(ConstrainingFace* cgf)
 //	associated constrained edges will be created together with the
 //	new central vertex.
 	for(size_t i = 0; i < cgf->num_constrained_edges(); ++i){
-		EdgeBase* cde = cgf->constrained_edge(i);
+		Edge* cde = cgf->constrained_edge(i);
 		if(is_marked(cde)){
 			refine_edge_with_hanging_vertex(cde);
 		}
@@ -1485,7 +1485,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 
 	Grid& grid = *m_pGrid;
 
-	//vector<EdgeBase*> 	vEdges(v->num_edges());
+	//vector<Edge*> 	vEdges(v->num_edges());
 	vector<Vertex*> vNewEdgeVertices(v->num_edges());
 	//vector<Face*>		vFaces(v->num_faces());
 	vector<Vertex*>	vNewFaceVertices(v->num_faces());
@@ -1495,7 +1495,7 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 	size_t numEdges = v->num_edges();
 	bool noEdgeVrts = true;
 	for(size_t i = 0; i < numEdges; ++i){
-		EdgeBase* e = grid.get_edge(v, i);
+		Edge* e = grid.get_edge(v, i);
 		vNewEdgeVertices[i] = get_center_vertex(e);
 		if(vNewEdgeVertices[i])
 			noEdgeVrts = false;

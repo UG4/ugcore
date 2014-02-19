@@ -336,7 +336,7 @@ set_rule(Vertex* e, RefinementMark mark)
 }
 
 void ParallelMultiGridRefiner::
-set_rule(EdgeBase* e, RefinementMark mark)
+set_rule(Edge* e, RefinementMark mark)
 {
 	MultiGridRefiner::set_rule(e, mark);
 	if(m_distGridMgr.is_interface_element(e))
@@ -384,7 +384,7 @@ clear_newly_marked_element_buffers()
 
 void ParallelMultiGridRefiner::
 adjust_parallel_selection(const std::vector<Vertex*>* pvVrts,
-							const std::vector<EdgeBase*>* pvEdges,
+							const std::vector<Edge*>* pvEdges,
 							const std::vector<Face*>* pvFaces,
 							const std::vector<Volume*>* pvVols)
 {
@@ -392,7 +392,7 @@ adjust_parallel_selection(const std::vector<Vertex*>* pvVrts,
 	Grid& grid = *m_distGridMgr.get_assigned_grid();
 	
 //	we'll use those vectors to collect associated elements
-	vector<EdgeBase*> vAssEdges;
+	vector<Edge*> vAssEdges;
 	vector<Face*> vAssFaces;
 	
 //	in the moment only edges are supported
@@ -407,10 +407,10 @@ adjust_parallel_selection(const std::vector<Vertex*>* pvVrts,
 //	select associated elements of edges
 	if(pvEdges)
 	{
-		const vector<EdgeBase*>& vEdges = *pvEdges;
+		const vector<Edge*>& vEdges = *pvEdges;
 		
 		for(size_t i = 0; i < vEdges.size(); ++i){
-			EdgeBase* e = vEdges[i];
+			Edge* e = vEdges[i];
 			
 		//	make sure that associated vertices of the edge are selected
 			for(size_t j = 0; j < 2; ++j){
@@ -441,7 +441,7 @@ adjust_parallel_selection(const std::vector<Vertex*>* pvVrts,
 							
 							bool refineRegular = true;
 							for(size_t k = 0; k < vAssEdges.size(); ++k){
-								EdgeBase* assEdge = vAssEdges[k];
+								Edge* assEdge = vAssEdges[k];
 								if(m_selMarks.is_selected(assEdge)){
 									if(get_rule(assEdge) != RM_REFINE)
 										refineRegular = false;

@@ -109,7 +109,7 @@ assemble_prolongation_p1(matrix_type& P,
 					case ROID_EDGE:
 					for(int i = 0; i < 2; ++i)
 					{
-						EdgeBase* edge = dynamic_cast<EdgeBase*>(parent);
+						Edge* edge = dynamic_cast<Edge*>(parent);
 						coarseDD.inner_dof_indices(edge->vertex(i), fct, vParentDoF);
 						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 0.5;
 					}
@@ -321,7 +321,7 @@ assemble_prolongation(matrix_type& P,
 
 	// loop all base types carrying indices on fine elems
 	if(fineDD.max_dofs(VERTEX)) assemble_prolongation<Vertex>(P, fineDD, coarseDD, spDomain);
-	if(fineDD.max_dofs(EDGE)) assemble_prolongation<EdgeBase>(P, fineDD, coarseDD, spDomain);
+	if(fineDD.max_dofs(EDGE)) assemble_prolongation<Edge>(P, fineDD, coarseDD, spDomain);
 	if(fineDD.max_dofs(FACE)) assemble_prolongation<Face>(P, fineDD, coarseDD, spDomain);
 	if(fineDD.max_dofs(VOLUME)) assemble_prolongation<Volume>(P, fineDD, coarseDD, spDomain);
 }
@@ -516,7 +516,7 @@ assemble_restriction(matrix_type& R,
 
 	// loop all base types carrying indices on fine elems
 	if(fineDD.max_dofs(VERTEX)) assemble_restriction<Vertex>(R, coarseDD, fineDD, spDomain);
-	if(fineDD.max_dofs(EDGE)) assemble_restriction<EdgeBase>(R, coarseDD, fineDD, spDomain);
+	if(fineDD.max_dofs(EDGE)) assemble_restriction<Edge>(R, coarseDD, fineDD, spDomain);
 	if(fineDD.max_dofs(FACE)) assemble_restriction<Face>(R, coarseDD, fineDD, spDomain);
 	if(fineDD.max_dofs(VOLUME)) assemble_restriction<Volume>(R, coarseDD, fineDD, spDomain);
 }

@@ -36,7 +36,7 @@ refinement_is_allowed(Vertex* elem)
 
 template <class TRefiner>
 bool TParallelGlobalRefiner<TRefiner>::
-refinement_is_allowed(EdgeBase* elem)
+refinement_is_allowed(Edge* elem)
 {
 	return !m_distGridMgr.is_ghost(elem);
 }

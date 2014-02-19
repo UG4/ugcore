@@ -50,7 +50,7 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 
 		for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(v); eIter != grid.associated_edges_end(v); ++eIter)
 		{
-			EdgeBase* e = *eIter;
+			Edge* e = *eIter;
 			valence++;
 
 			if(valence >= numPrecalculated)

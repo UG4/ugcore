@@ -313,7 +313,7 @@ class GridReaderUGX
 			std::vector<SubsetHandlerEntry>	subsetHandlerEntries;
 			std::vector<SelectorEntry>		selectorEntries;
 			std::vector<Vertex*> 		vertices;
-			std::vector<EdgeBase*> 			edges;
+			std::vector<Edge*> 			edges;
 			std::vector<Face*>				faces;
 			std::vector<Volume*>			volumes;
 		};
@@ -340,15 +340,15 @@ class GridReaderUGX
 							std::vector<std::pair<int, int> >& constrainingObjsOut,
 							Grid& grid, rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
 							
-		bool create_edges(std::vector<EdgeBase*>& edgesOut,
+		bool create_edges(std::vector<Edge*>& edgesOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
 			 			  std::vector<Vertex*>& vrts);
 
-		bool create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
+		bool create_constraining_edges(std::vector<Edge*>& edgesOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
 			 			  std::vector<Vertex*>& vrts);
 
-		bool create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
+		bool create_constrained_edges(std::vector<Edge*>& edgesOut,
 						  std::vector<std::pair<int, int> >& constrainingObjsOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
 			 			  std::vector<Vertex*>& vrts);

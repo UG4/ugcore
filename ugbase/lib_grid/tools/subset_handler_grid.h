@@ -48,7 +48,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 
 	///	assigns an edge to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
-		void assign_subset(EdgeBase* elem, int subsetIndex);
+		void assign_subset(Edge* elem, int subsetIndex);
 
 	///	assigns a face to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
@@ -135,7 +135,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 	 *	of edges in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		//virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<Edge*>& edgesOut, int subsetIndex) const;
 
 	///	collects all faces that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -157,7 +157,7 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		virtual bool contains_vertices(int subsetIndex) const	{return num<Vertex>(subsetIndex) > 0;}
 
 	///	returns true if the subset contains edges
-		virtual bool contains_edges(int subsetIndex) const		{return num<EdgeBase>(subsetIndex) > 0;}
+		virtual bool contains_edges(int subsetIndex) const		{return num<Edge>(subsetIndex) > 0;}
 		
 	///	returns true if the subset contains faces
 		virtual bool contains_faces(int subsetIndex) const		{return num<Face>(subsetIndex) > 0;}
@@ -290,10 +290,10 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		}
 
 		inline EdgeSectionContainer::iterator
-		get_list_iterator(EdgeBase* o)
+		get_list_iterator(Edge* o)
 		{
 			assert((get_subset_index(o) >= 0) && "invalid subset.");
-			return section_container<EdgeBase>(get_subset_index(o)).
+			return section_container<Edge>(get_subset_index(o)).
 				get_container().get_iterator(o);
 		}
 

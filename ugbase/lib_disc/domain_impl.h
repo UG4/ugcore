@@ -175,7 +175,7 @@ update_domain_info()
 		locElemType = VOLUME;
 	else if(mg.template num<Face>() > 0)
 		locElemType = FACE;
-	else if(mg.template num<EdgeBase>() > 0)
+	else if(mg.template num<Edge>() > 0)
 		locElemType = EDGE;
 	else
 		locElemType = VERTEX;
@@ -217,7 +217,7 @@ update_domain_info()
 				count_ghosts<Face>(numLocalGhosts);
 				break;
 			case EDGE:
-				count_ghosts<EdgeBase>(numLocalGhosts);
+				count_ghosts<Edge>(numLocalGhosts);
 				break;
 			case VERTEX:
 				count_ghosts<Vertex>(numLocalGhosts);
@@ -244,7 +244,7 @@ update_domain_info()
 			break;
 		case EDGE:
 			for(size_t i = 0; i < mg.num_levels(); ++i)
-				numLocalElems.push_back(mg.template num<EdgeBase>(i) - numLocalGhosts[i]);
+				numLocalElems.push_back(mg.template num<Edge>(i) - numLocalGhosts[i]);
 			break;
 		case VERTEX:
 			for(size_t i = 0; i < mg.num_levels(); ++i)

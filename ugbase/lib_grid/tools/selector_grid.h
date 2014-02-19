@@ -143,8 +143,8 @@ class UG_API Selector : public ISelector
 	//	convenience begin and end
 		inline VertexIterator vertices_begin()	{return begin<Vertex>();}
 		inline VertexIterator vertices_end()	{return end<Vertex>();}
-		inline EdgeBaseIterator edges_begin()		{return begin<EdgeBase>();}
-		inline EdgeBaseIterator edges_end()			{return end<EdgeBase>();}
+		inline EdgeIterator edges_begin()		{return begin<Edge>();}
+		inline EdgeIterator edges_end()			{return end<Edge>();}
 		inline FaceIterator faces_begin()			{return begin<Face>();}
 		inline FaceIterator faces_end()				{return end<Face>();}
 		inline VolumeIterator volumes_begin()		{return begin<Volume>();}
@@ -201,7 +201,7 @@ class UG_API Selector : public ISelector
 		virtual bool contains_vertices() const	{return num<Vertex>() > 0;}
 
 	///	returns true if the selector contains edges
-		virtual bool contains_edges() const		{return num<EdgeBase>() > 0;}
+		virtual bool contains_edges() const		{return num<Edge>() > 0;}
 
 	///	returns true if the selector contains faces
 		virtual bool contains_faces() const		{return num<Face>() > 0;}
@@ -224,12 +224,12 @@ class UG_API Selector : public ISelector
 		void clear_lists();
 
 		virtual void add_to_list(Vertex* elem);
-		virtual void add_to_list(EdgeBase* elem);
+		virtual void add_to_list(Edge* elem);
 		virtual void add_to_list(Face* elem);
 		virtual void add_to_list(Volume* elem);
 
 		virtual void erase_from_list(Vertex* elem);
-		virtual void erase_from_list(EdgeBase* elem);
+		virtual void erase_from_list(Edge* elem);
 		virtual void erase_from_list(Face* elem);
 		virtual void erase_from_list(Volume* elem);
 
@@ -245,10 +245,10 @@ class UG_API Selector : public ISelector
 		}
 
 		inline EdgeSectionContainer::iterator
-		get_iterator(EdgeBase* o)
+		get_iterator(Edge* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected");
-			return section_container<EdgeBase>().get_container().get_iterator(o);
+			return section_container<Edge>().get_container().get_iterator(o);
 		}
 
 		inline FaceSectionContainer::iterator

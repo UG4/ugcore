@@ -48,11 +48,11 @@ typedef boost::mpl::list<RegularEdge> DimElemList;
 typedef boost::mpl::list<RegularEdge> AllElemList;
 typedef boost::mpl::list<> ManifoldElemList;
 
-typedef geometry_traits<EdgeBase>::const_iterator const_iterator;
-typedef geometry_traits<EdgeBase>::iterator iterator;
+typedef geometry_traits<Edge>::const_iterator const_iterator;
+typedef geometry_traits<Edge>::iterator iterator;
 
-typedef geometry_traits<EdgeBase>::grid_base_object grid_base_object;
-typedef geometry_traits<EdgeBase>::grid_base_object element_type;
+typedef geometry_traits<Edge>::grid_base_object grid_base_object;
+typedef geometry_traits<Edge>::grid_base_object element_type;
 typedef geometry_traits<Vertex>::grid_base_object side_type;
 
 const static size_t MaxNumVerticesOfElem = 2;
@@ -74,7 +74,7 @@ typedef geometry_traits<Face>::iterator iterator;
 
 typedef geometry_traits<Face>::grid_base_object grid_base_object;
 typedef geometry_traits<Face>::grid_base_object element_type;
-typedef geometry_traits<EdgeBase>::grid_base_object side_type;
+typedef geometry_traits<Edge>::grid_base_object side_type;
 
 const static size_t MaxNumVerticesOfElem = 4;
 

@@ -73,7 +73,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 
 template<class TAPosition>
 inline void RefinementProjectionHandler<TAPosition>::
-new_vertex(Vertex* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, Edge* parent)
 {
 	handle_new_vertex(vrt, parent);
 }

@@ -15,7 +15,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-int GetEdgeIndex(Face* f, EdgeBase* e)
+int GetEdgeIndex(Face* f, Edge* e)
 {
 	uint numEdges = f->num_edges();
 	EdgeDescriptor ed;
@@ -29,7 +29,7 @@ int GetEdgeIndex(Face* f, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
-int GetEdgeIndex(Volume* vol, EdgeBase* e)
+int GetEdgeIndex(Volume* vol, Edge* e)
 {
 	uint numEdges = vol->num_edges();
 	EdgeDescriptor ed;
@@ -43,7 +43,7 @@ int GetEdgeIndex(Volume* vol, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool IsBoundaryEdge(Grid& grid, EdgeBase* e,
+bool IsBoundaryEdge(Grid& grid, Edge* e,
 					Grid::face_traits::callback funcIsSurfFace)
 {
 	int counter = 0;
@@ -77,7 +77,7 @@ bool IsBoundaryEdge(Grid& grid, EdgeBase* e,
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
+bool IsBoundaryEdge2D(Grid& grid, Edge* e)
 {
 //	get the number of connected faces. if only one face is connected then
 //	the edge is considered to be a boundary edge.
@@ -104,7 +104,7 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e)
+bool IsBoundaryEdge3D(Grid& grid, Edge* e)
 {
 	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
 		UG_LOG("WARNING in IsBoundaryEdge3D: Autoenabling VOLOPT_AUTOGENERATE_FACES.\n");
@@ -134,7 +134,7 @@ bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e)
 	return false;
 }
 
-bool LiesOnBoundary(Grid& grid, EdgeBase* e)
+bool LiesOnBoundary(Grid& grid, Edge* e)
 {
 //	first check whether the edge is a 2d boundary element
 	if((grid.num<Face>() > 0) && IsBoundaryEdge2D(grid, e)){
@@ -152,7 +152,7 @@ bool LiesOnBoundary(Grid& grid, EdgeBase* e)
 ////////////////////////////////////////////////////////////////////////
 //	GetAssociatedFaces
 int GetAssociatedFaces(Face** facesOut, Grid& grid,
-						EdgeBase* e, int maxNumFaces)
+						Edge* e, int maxNumFaces)
 {
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -212,7 +212,7 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 
 ////////////////////////////////////////////////////////////////////////
 //	NumAssociatedFaces
-int NumAssociatedFaces(Grid& grid, EdgeBase* e)
+int NumAssociatedFaces(Grid& grid, Edge* e)
 {
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -263,7 +263,7 @@ int NumAssociatedFaces(Grid& grid, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
-int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
+int CalculateNormal(vector3& vNormOut, Grid& grid, Edge* e,
 					Grid::AttachmentAccessor<Vertex, APosition>& aaPos,
 					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE)
 {
@@ -307,7 +307,7 @@ int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
 	return numFaces;
 }
 
-int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
+int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, Edge* e,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE)
 {
@@ -352,7 +352,7 @@ int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
 }
 					
 ////////////////////////////////////////////////////////////////////////
-bool CollapseEdge(Grid& grid, EdgeBase* e, Vertex* newVrt)
+bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt)
 {
 //	prepare the grid, so that we may perform Grid::replace_vertex.
 //	create collapse geometries first and delete old geometries.
@@ -382,10 +382,10 @@ bool CollapseEdge(Grid& grid, EdgeBase* e, Vertex* newVrt)
 			//	two edges will be merged. we have to inform the grid.
 				Vertex* conVrt = GetConnectedVertex(e, f);
 			//	now get the edge between conVrt and newVrt
-				EdgeBase* target = grid.get_edge(conVrt, newVrt);
+				Edge* target = grid.get_edge(conVrt, newVrt);
 			//	now get the two old edges
-				EdgeBase* e1 = NULL;
-				EdgeBase* e2 = NULL;
+				Edge* e1 = NULL;
+				Edge* e2 = NULL;
 				for(size_t j = 0; j < 3; ++j){
 					if((int)j != eInd){
 						if(!e1)
@@ -447,7 +447,7 @@ bool CollapseEdge(Grid& grid, EdgeBase* e, Vertex* newVrt)
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e)
+bool EdgeCollapseIsValid(Grid& grid, Edge* e)
 {
 //TODO: Make sure that this is sufficient for geometries including Quads.
 //TODO: Check validity for volumes.
@@ -511,7 +511,7 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
+bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 							Vertex* newVertex, AVertex* paAssociatedVertices)
 {
 
@@ -547,7 +547,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 //	split the edge
 	{
 	//	simply create two new edges
-		EdgeBase* parent = e;
+		Edge* parent = e;
 	//	the grids do not match then we can't pass e as a parent
 		if(&srcGrid != &destGrid)
 			parent = NULL;
@@ -713,7 +713,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 	return true;
 }
 
-EdgeBase* SwapEdge(Grid& grid, EdgeBase* e)
+Edge* SwapEdge(Grid& grid, Edge* e)
 {
 //	get the associated faces.
 //	Only 2 associated faces are allowed.
@@ -771,7 +771,7 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e)
 	int ind2 = (vrtInd[0] + 2) % 3;
 
 //	create the new edge
-	EdgeBase* nEdge = *grid.create_by_cloning(e, EdgeDescriptor(v[0], v[1]), e);
+	Edge* nEdge = *grid.create_by_cloning(e, EdgeDescriptor(v[0], v[1]), e);
 
 //	create the new faces
 	grid.create<Triangle>(TriangleDescriptor(v[0], f[0]->vertex(ind1), v[1]), f[0]);
@@ -815,9 +815,9 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 	sel.clear<Face>();
 	sel.clear<Volume>();
 		
-	EdgeBaseIterator iter = sel.begin<EdgeBase>();
-	while(iter != sel.end<EdgeBase>()){
-		EdgeBase* e = *iter;
+	EdgeIterator iter = sel.begin<Edge>();
+	while(iter != sel.end<Edge>()){
+		Edge* e = *iter;
 		iter++;
 	
 	//	check whether the edge intersects the plane

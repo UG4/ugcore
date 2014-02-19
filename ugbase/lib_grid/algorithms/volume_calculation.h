@@ -50,7 +50,7 @@ number CalculateVolume(Face* elem, TAAPos aaPos);
 //	EDGES
 template <class TAAPos>
 inline
-number CalculateVolume(EdgeBase* elem, TAAPos aaPos);
+number CalculateVolume(Edge* elem, TAAPos aaPos);
 
 template <class TIterator, class TAAPos>
 inline

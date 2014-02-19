@@ -78,17 +78,17 @@ static void ReplaceByConstraining(MultiGrid&, Vertex*)
 			"(Constraining vertices don't exist!");
 }
 
-static void ReplaceByNormal(MultiGrid& mg, EdgeBase* e)
+static void ReplaceByNormal(MultiGrid& mg, Edge* e)
 {
 	mg.create_and_replace<RegularEdge>(e);
 }
 
-static void ReplaceByConstrained(MultiGrid& mg, EdgeBase* e)
+static void ReplaceByConstrained(MultiGrid& mg, Edge* e)
 {
 	mg.create_and_replace<ConstrainedEdge>(e);
 }
 
-static void ReplaceByConstraining(MultiGrid& mg, EdgeBase* e)
+static void ReplaceByConstraining(MultiGrid& mg, Edge* e)
 {
 	mg.create_and_replace<ConstrainingEdge>(e);
 }
@@ -361,7 +361,7 @@ refinement_is_allowed(Vertex* elem)
 
 bool
 ParallelHangingNodeRefiner_MultiGrid::
-refinement_is_allowed(EdgeBase* elem)
+refinement_is_allowed(Edge* elem)
 {
 	return (!m_pDistGridMgr->is_ghost(elem))
 			&& BaseClass::refinement_is_allowed(elem);
@@ -464,7 +464,7 @@ copy_marks_to_vmasters(bool vertices, bool edges, bool faces, bool volumes)
 	if(vertices)
 		copy_marks_to_vmasters<Vertex>(m_intfComVRT);
 	if(edges)
-		copy_marks_to_vmasters<EdgeBase>(m_intfComEDGE);
+		copy_marks_to_vmasters<Edge>(m_intfComEDGE);
 	if(faces)
 		copy_marks_to_vmasters<Face>(m_intfComFACE);
 	if(volumes)
@@ -489,7 +489,7 @@ copy_marks_to_vslaves(bool vertices, bool edges, bool faces, bool volumes)
 	if(vertices)
 		copy_marks_to_vslaves<Vertex>(m_intfComVRT);
 	if(edges)
-		copy_marks_to_vslaves<EdgeBase>(m_intfComEDGE);
+		copy_marks_to_vslaves<Edge>(m_intfComEDGE);
 	if(faces)
 		copy_marks_to_vslaves<Face>(m_intfComFACE);
 	if(volumes)
@@ -653,7 +653,7 @@ bool
 ParallelHangingNodeRefiner_MultiGrid::
 contains_edges()
 {
-	bool containsEdges = m_pMG->num<EdgeBase>() > 0;
+	bool containsEdges = m_pMG->num<Edge>() > 0;
 	return (bool)m_procCom.allreduce((int)containsEdges, PCL_RO_LOR);
 }
 

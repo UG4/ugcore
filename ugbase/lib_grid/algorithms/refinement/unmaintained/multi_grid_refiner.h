@@ -63,7 +63,7 @@ class MultiGridRefiner : public GridObserver
 			m_selMarks.select(elem);
 		}
 
-	///	the value-type of TIterator has to be a pointer to a type derived from either EdgeBase, Face or Volume.
+	///	the value-type of TIterator has to be a pointer to a type derived from either Edge, Face or Volume.
 		template <class TIterator>
 		inline void mark_for_refinement(const TIterator& iterBegin,
 										const TIterator& iterEnd)
@@ -89,7 +89,7 @@ class MultiGridRefiner : public GridObserver
 	///	returns a constant enumerated in MultiGridRefiner::StatusMark.
 		inline int get_status(Vertex* e)	{return m_aaIntVRT[e] & MR_STATUS;}
 	///	returns a constant enumerated in MultiGridRefiner::StatusMark.	
-		inline int get_status(EdgeBase* e)		{return m_aaIntEDGE[e] & MR_STATUS;}
+		inline int get_status(Edge* e)		{return m_aaIntEDGE[e] & MR_STATUS;}
 	///	returns a constant enumerated in MultiGridRefiner::StatusMark.
 		inline int get_status(Face* e)			{return m_aaIntFACE[e] & MR_STATUS;}
 	///	returns a constant enumerated in MultiGridRefiner::StatusMark.	
@@ -143,17 +143,17 @@ class MultiGridRefiner : public GridObserver
 								  int iFirst = 0, int copyRange = -1);
 		
 		inline void set_status(Vertex* e, StatusMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_STATUS) | mark;}
-		inline void set_status(EdgeBase* e, StatusMark mark)	{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_STATUS) | mark;}
+		inline void set_status(Edge* e, StatusMark mark)	{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_STATUS) | mark;}
 		inline void set_status(Face* e, StatusMark mark)		{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_STATUS) | mark;}
 		inline void set_status(Volume* e, StatusMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_STATUS) | mark;}
 
 		virtual void set_rule(Vertex* e, RefinementMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_REFINEMENT) | mark;}
-		virtual void set_rule(EdgeBase* e, RefinementMark mark)		{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(Edge* e, RefinementMark mark)		{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_REFINEMENT) | mark;}
 		virtual void set_rule(Face* e, RefinementMark mark)			{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_REFINEMENT) | mark;}
 		virtual void set_rule(Volume* e, RefinementMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_REFINEMENT) | mark;}
 
 		inline int get_rule(Vertex* e)	{return m_aaIntVRT[e] & MR_REFINEMENT;}
-		inline int get_rule(EdgeBase* e)	{return m_aaIntEDGE[e] & MR_REFINEMENT;}
+		inline int get_rule(Edge* e)	{return m_aaIntEDGE[e] & MR_REFINEMENT;}
 		inline int get_rule(Face* e)		{return m_aaIntFACE[e] & MR_REFINEMENT;}
 		inline int get_rule(Volume* e)		{return m_aaIntVOL[e] & MR_REFINEMENT;}
 /*

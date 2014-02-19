@@ -11,7 +11,7 @@ namespace ug{
 
 template <class TAAPosVRT>
 Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
-										   EdgeBase* e, TAAPosVRT& aaPos,
+										   Edge* e, TAAPosVRT& aaPos,
 										   number snapThreshold);
 
 /**
@@ -30,7 +30,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
  * ReolveVertexEdgeIntersection.
  */
 template <class TAAPosVRT>
-Vertex* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
+Vertex* ResolveEdgeEdgeIntersection(Grid& grid, Edge* e1, Edge* e2,
 										TAAPosVRT& aaPos, number snapThreshold);
 
 /**
@@ -39,7 +39,7 @@ Vertex* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
  *		 should be used, which can take care of volume, too.
  */
 template <class TAAPosVRT>
-bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
+bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 								 TAAPosVRT& aaPos, number snapThreshold);
 
 /**

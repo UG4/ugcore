@@ -37,7 +37,7 @@ namespace ug
  * or the method assign_grid.
  *
  * This is a specialization of ISelector for the class Grid that only
- * works on one element type (either Vertex, EdgeBase, Face or
+ * works on one element type (either Vertex, Edge, Face or
  * Volume). Normally you will use the typedefs VertexSelector,
  * EdgeSelector, FaceSelector or VolumeSelector instead of this class.
  *
@@ -112,7 +112,7 @@ class UG_API TElemSelector : public Selector
 //	typedefs of the four element-selectors
 
 typedef TElemSelector<Vertex>	VertexSelector;
-typedef TElemSelector<EdgeBase>		EdgeSelector;
+typedef TElemSelector<Edge>		EdgeSelector;
 typedef TElemSelector<Face>			FaceSelector;
 typedef TElemSelector<Volume>		VolumeSelector;
 

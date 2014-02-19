@@ -29,7 +29,7 @@ class DoFIndexStorage : public DoFDistributionInfoProvider
 		/// \{
 			   size_t& obj_index(GridObject* obj);
 		inline size_t& obj_index(Vertex* vrt) 	{return m_aaIndexVRT[vrt];}
-		inline size_t& obj_index(EdgeBase* ed) 		{return m_aaIndexEDGE[ed];}
+		inline size_t& obj_index(Edge* ed) 		{return m_aaIndexEDGE[ed];}
 		inline size_t& obj_index(Face* face)     	{return m_aaIndexFACE[face];}
 		inline size_t& obj_index(Volume* vol)     	{return m_aaIndexVOL[vol];}
 		/// \}
@@ -38,7 +38,7 @@ class DoFIndexStorage : public DoFDistributionInfoProvider
 		/// \{
 			   const size_t& obj_index(GridObject* obj) const;
 		inline const size_t& obj_index(Vertex* vrt) const {return m_aaIndexVRT[vrt];}
-		inline const size_t& obj_index(EdgeBase* ed)    const {return m_aaIndexEDGE[ed];}
+		inline const size_t& obj_index(Edge* ed)    const {return m_aaIndexEDGE[ed];}
 		inline const size_t& obj_index(Face* face)      const {return m_aaIndexFACE[face];}
 		inline const size_t& obj_index(Volume* vol)     const {return m_aaIndexVOL[vol];}
 		/// \}
@@ -61,7 +61,7 @@ class DoFIndexStorage : public DoFDistributionInfoProvider
 		///	Attachment Accessors
 		///	\{
 		typedef Grid::AttachmentAccessor<Vertex, ADoF> vertex_attachment_accessor_type;
-		typedef Grid::AttachmentAccessor<EdgeBase, ADoF> edge_attachment_accessor_type;
+		typedef Grid::AttachmentAccessor<Edge, ADoF> edge_attachment_accessor_type;
 		typedef Grid::AttachmentAccessor<Face, ADoF> face_attachment_accessor_type;
 		typedef Grid::AttachmentAccessor<Volume, ADoF> volume_attachment_accessor_type;
 		/// \}

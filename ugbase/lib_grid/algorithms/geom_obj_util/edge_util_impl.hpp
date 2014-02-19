@@ -31,7 +31,7 @@ inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos)
 //	SplitEdge
 //	see edge_operations.h for detailed description
 template<class TVertex>
-TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative)
+TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative)
 {
 	return SplitEdge<TVertex>(grid, grid, e, NULL, bConservative);
 }
@@ -40,7 +40,7 @@ TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative)
 //	SplitEdge
 //	see edge_operations.h for detailed description
 template<class TVertex>
-TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
+TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 						AVertex* paAssociatedVertices,
 						bool bConservative)
 {
@@ -126,7 +126,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 //	iterate through the edges
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 	//	get the associated faces
 	//	all edges that do not have exactly 2 associated edges
 	//	are regarded as seam-edges
@@ -146,7 +146,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(const EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT)
+CalculateCenter(const Edge* e, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
 	typename TVertexPositionAttachmentAccessor::ValueType v;
 //	init v with 0.
@@ -196,7 +196,7 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
 		grid.mark(*iter);
 		
-	stack<EdgeBase*> candidates;
+	stack<Edge*> candidates;
 	
 //	iterate through the edges
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
@@ -207,7 +207,7 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 			candidates.push(*iter);
 			
 			while(!candidates.empty()){
-				EdgeBase* e = candidates.top();
+				Edge* e = candidates.top();
 				candidates.pop();
 				
 			//	iterate through all associated edges
@@ -216,7 +216,7 @@ void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
 						grid.associated_edges_begin(e->vertex(i));
 						assIter != grid.associated_edges_end(e->vertex(i)); ++assIter)
 					{
-						EdgeBase* ae = *assIter;
+						Edge* ae = *assIter;
 					//	fix orientation of marked associated edges.
 					//	those edges are new candidates afterwards
 						if(grid.is_marked(ae)){
@@ -261,7 +261,7 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 }
 
 template <class TEdgeIterator, class TAAPosVRT>
-EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos)
 {
 //	if edgesBegin equals edgesEnd, then the list is empty and we can
@@ -271,12 +271,12 @@ EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 
 //	the first edge is the first candidate for the shortest edge.
 //	We compare squares to avoid computation of the square root.
-	EdgeBase* shortestEdge = *edgesBegin;
+	Edge* shortestEdge = *edgesBegin;
 	number shortestLen = EdgeLengthSq(shortestEdge, aaPos);
 	++edgesBegin;
 
 	for(; edgesBegin != edgesEnd; ++edgesBegin){
-		EdgeBase* curEdge = *edgesBegin;
+		Edge* curEdge = *edgesBegin;
 		number curLen = EdgeLengthSq(curEdge, aaPos);
 		if(curLen < shortestLen){
 			shortestEdge = curEdge;
@@ -289,7 +289,7 @@ EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 
 
 template <class TEdgeIterator, class TAAPosVRT>
-EdgeBase* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+Edge* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos)
 {
 //	if edgesBegin equals edgesEnd, then the list is empty and we can
@@ -299,12 +299,12 @@ EdgeBase* FindLongestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 
 //	the first edge is the first candidate for the shortest edge.
 //	We compare squares to avoid computation of the square root.
-	EdgeBase* longestEdge = *edgesBegin;
+	Edge* longestEdge = *edgesBegin;
 	number longestLen = EdgeLengthSq(longestEdge, aaPos);
 	++edgesBegin;
 
 	for(; edgesBegin != edgesEnd; ++edgesBegin){
-		EdgeBase* curEdge = *edgesBegin;
+		Edge* curEdge = *edgesBegin;
 		number curLen = EdgeLengthSq(curEdge, aaPos);
 		if(curLen > longestLen){
 			longestEdge = curEdge;
@@ -325,11 +325,11 @@ void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edges
 	grid.begin_marking();
 
 //	the first is the double, the second the original
-	std::vector<std::pair<EdgeBase*, EdgeBase*> > doubles;
-	std::vector<EdgeBase*> edges;
+	std::vector<std::pair<Edge*, Edge*> > doubles;
+	std::vector<Edge*> edges;
 
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		if(!grid.is_marked(e)){
 		//	check whether both vertices are marked
 			Vertex* v0 = e->vertex(0);
@@ -342,7 +342,7 @@ void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edges
 			//	find marked edge between v0 and v1.
 				CollectAssociated(edges, grid, v0);
 				for(size_t i = 0; i < edges.size(); ++i){
-					EdgeBase* te = edges[i];
+					Edge* te = edges[i];
 					if((te->vertex(0) == v1 || te->vertex(1) == v1)
 						&& grid.is_marked(te))
 					{
@@ -383,16 +383,16 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 
 //	helper to collect neighbors
 	Face* nbrFaces[2];
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 
 //	flipCandidates
-	queue<EdgeBase*> candidates;
+	queue<Edge*> candidates;
 
 //	sadly we can't use marking. Thats why we attach a simple byte to the edges,
 //	which will tell whether an edge is already a candidate.
 	AByte aIsCandidate;
 	grid.attach_to_edges_dv(aIsCandidate, 0, false);
-	Grid::AttachmentAccessor<EdgeBase, AByte> aaIsCandidate(grid, aIsCandidate);
+	Grid::AttachmentAccessor<Edge, AByte> aaIsCandidate(grid, aIsCandidate);
 
 //	set up candidate array
 	for(EdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter){
@@ -402,7 +402,7 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 
 
 	while(!candidates.empty()){
-		EdgeBase* e = candidates.front();
+		Edge* e = candidates.front();
 		candidates.pop();
 		aaIsCandidate[e] = 0;
 

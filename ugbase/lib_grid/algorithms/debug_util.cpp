@@ -30,8 +30,8 @@ void PrintElementNumbers(const GridObjectCollection& goc)
 			UG_LOG("    hanging vrts:\t" << goc.num<ConstrainedVertex>(i) << endl);
 		}
 
-		UG_LOG("  edges total:\t\t" << goc.num<EdgeBase>(i) << endl);
-		if(goc.num<EdgeBase>() > 0){
+		UG_LOG("  edges total:\t\t" << goc.num<Edge>(i) << endl);
+		if(goc.num<Edge>() > 0){
 			UG_LOG("    normal edges:\t" << goc.num<RegularEdge>(i) << endl);
 			UG_LOG("    constraining edges:\t" << goc.num<ConstrainingEdge>(i) << endl);
 			UG_LOG("    constrained edges:\t" << goc.num<ConstrainedEdge>(i) << endl);
@@ -109,7 +109,7 @@ void PrintAttachmentInfo(Grid& grid)
 	PrintAttachmentInfo<Vertex>(grid);
 
 	UG_LOG("\nEdge Attachments:\n");
-	PrintAttachmentInfo<EdgeBase>(grid);
+	PrintAttachmentInfo<Edge>(grid);
 
 	UG_LOG("\nFace Attachments:\n");
 	PrintAttachmentInfo<Face>(grid);
@@ -138,9 +138,9 @@ static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 				}
 			}
 
-			for(size_t i_child = 0; i_child < mg.num_children<EdgeBase>(e); ++i_child)
+			for(size_t i_child = 0; i_child < mg.num_children<Edge>(e); ++i_child)
 			{
-				if(e != mg.get_parent(mg.get_child<EdgeBase>(e, i_child))){
+				if(e != mg.get_parent(mg.get_child<Edge>(e, i_child))){
 					UG_THROW("parent is not referenced by children!");
 				}
 			}
@@ -196,7 +196,7 @@ static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 void CheckMultiGridConsistency(MultiGrid& mg)
 {
 	CheckMultiGridConsistencyImpl<Vertex>(mg);
-	CheckMultiGridConsistencyImpl<EdgeBase>(mg);
+	CheckMultiGridConsistencyImpl<Edge>(mg);
 	CheckMultiGridConsistencyImpl<Face>(mg);
 	CheckMultiGridConsistencyImpl<Volume>(mg);
 }
@@ -344,10 +344,10 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 //	If not all such faces have children, then the edge has to be a constraining
 //	edge and its children have to be constrained.
 	vector<Face*> faces;
-	for(EdgeBaseIterator iter = mg.begin<EdgeBase>();
-		iter != mg.end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = mg.begin<Edge>();
+		iter != mg.end<Edge>(); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 
 		if(mg.get_parent(e) && (mg.get_level(mg.get_parent(e)) + 1 != mg.get_level(e))){
 			FAILED_CHECK(e, "Edge and parent are not in consecutive levels!");
@@ -361,7 +361,7 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 			}
 		}
 
-		if(mg.has_children<EdgeBase>(e)){
+		if(mg.has_children<Edge>(e)){
 		//	e may not be a constrained edge
 			if(e->is_constrained()){
 				FAILED_CHECK(e, "Constrained Edge may not have children!");
@@ -392,7 +392,7 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 				//	make sure that e has two constrained edge-children and a
 				//	constrained vertex child.
 					ConstrainingEdge* ce = dynamic_cast<ConstrainingEdge*>(e);
-					UG_ASSERT(ce, "Only ConstrainingEdges should return true in EdgeBase::is_constrained()!");
+					UG_ASSERT(ce, "Only ConstrainingEdges should return true in Edge::is_constrained()!");
 					if(ce){
 						if(ce->num_constrained_edges() != 2){
 							FAILED_CHECK(e, "ConstrainingEdge has to constrain 2 edges not "
@@ -445,10 +445,10 @@ UG_LOG("2\n");
 						     "4 required, " << mg.num_children<Face>(f) << " found.");
 			}
 			
-			if(mg.num_children<EdgeBase>(f) != f->num_vertices()){
+			if(mg.num_children<Edge>(f) != f->num_vertices()){
 				FAILED_CHECK(f, "Face has bad number of child edges. "
 						     << f->num_vertices() << " required, "
-						     << mg.num_children<EdgeBase>(f) << " found.");
+						     << mg.num_children<Edge>(f) << " found.");
 			}
 			
 			if((f->num_vertices() > 3) && mg.num_children<Vertex>(f) != 1){
@@ -460,7 +460,7 @@ UG_LOG("2\n");
 			if(mg.num_children<Face>(f) != cf->num_constrained_faces())
 				FAILED_CHECK(f, "Number of child faces of constraining face does not match number of constrained faces.");
 
-			if(mg.num_children<EdgeBase>(f) != cf->num_constrained_edges())
+			if(mg.num_children<Edge>(f) != cf->num_constrained_edges())
 				FAILED_CHECK(f, "Number of child edges of constraining face does not match number of constrained edges.");
 
 			if(mg.num_children<Vertex>(f) != cf->num_constrained_vertices())
@@ -479,8 +479,8 @@ UG_LOG("2\n");
 						FAILED_CHECK(f, "Child face of constraining face is not in list of constrained faces.");
 				}
 			}
-			for(size_t i = 0; i < mg.num_children<EdgeBase>(f); ++i){
-				EdgeBase* child = mg.get_child<EdgeBase>(f, i);
+			for(size_t i = 0; i < mg.num_children<Edge>(f); ++i){
+				Edge* child = mg.get_child<Edge>(f, i);
 				if(!child->is_constrained()){
 					FAILED_CHECK(f, "All child edges of a constraining face have to be constrained edges.");
 				}
@@ -607,7 +607,7 @@ bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 	UG_LOG("Checking constraint types of VERTICES\n");
 	retVal &= CheckDistributedObjectConstraintTypes<Vertex>(mg);
 	UG_LOG("Checking constraint types of EDGES\n");
-	retVal &= CheckDistributedObjectConstraintTypes<EdgeBase>(mg);
+	retVal &= CheckDistributedObjectConstraintTypes<Edge>(mg);
 	UG_LOG("Checking constraint types of FACES\n");
 	retVal &= CheckDistributedObjectConstraintTypes<Face>(mg);
 	UG_LOG("Checking constraint types DONE\n");
@@ -758,7 +758,7 @@ bool CheckDistributedParentTypes(MultiGrid& mg)
 	success &= CheckLocalParentTypes<Vertex>(mg);
 	success &= vrtChecker.exchange_data();
 	UG_LOG(" checking edges...\n");
-	success &= CheckLocalParentTypes<EdgeBase>(mg);
+	success &= CheckLocalParentTypes<Edge>(mg);
 	success &= edgeChecker.exchange_data();
 	UG_LOG(" checking faces...\n");
 	success &= CheckLocalParentTypes<Face>(mg);
@@ -809,7 +809,7 @@ bool CheckElementConsistency(MultiGrid& mg, Vertex* v)
 	return success;
 }
 
-bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e)
+bool CheckElementConsistency(MultiGrid& mg, Edge* e)
 {
 	bool success = true;
 	UG_LOG("DEBUG: Checking edge at " << GetGridObjectCenter(mg, e) << endl);
@@ -846,8 +846,8 @@ bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e)
 
 		for(size_t i1 = 0; i1 < cge->num_constrained_edges(); ++i1){
 			bool constrainedEdgeMatch = false;
-			for(size_t i2 = 0; i2 < mg.num_children<EdgeBase>(cge); ++i2){
-				if(mg.get_child<EdgeBase>(cge, i2) == cge->constrained_edge(i1)){
+			for(size_t i2 = 0; i2 < mg.num_children<Edge>(cge); ++i2){
+				if(mg.get_child<Edge>(cge, i2) == cge->constrained_edge(i1)){
 					constrainedEdgeMatch = true;
 					break;
 				}

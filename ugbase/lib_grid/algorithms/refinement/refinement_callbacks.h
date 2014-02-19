@@ -23,7 +23,7 @@ class IRefinementCallback
 	///	called when a new vertex was created from an old vertex.
 		virtual void new_vertex(Vertex* vrt, Vertex* parent) = 0;
 	///	called when a new vertex was created from an old edge.
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent) = 0;
+		virtual void new_vertex(Vertex* vrt, Edge* parent) = 0;
 	///	called when a new vertex was created from an old face.
 		virtual void new_vertex(Vertex* vrt, Face* parent) = 0;
 	///	called when a new vertex was created from an old volume.
@@ -73,7 +73,7 @@ class RefinementCallbackLinear : public IRefinementCallback
 		virtual ~RefinementCallbackLinear();
 		
 		virtual void new_vertex(Vertex* vrt, Vertex* parent);
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 		virtual void new_vertex(Vertex* vrt, Face* parent);
 		virtual void new_vertex(Vertex* vrt, Volume* parent);
 		
@@ -110,7 +110,7 @@ class RefinementCallbackSphere : public IRefinementCallback
 		virtual ~RefinementCallbackSphere();
 
 		virtual void new_vertex(Vertex* vrt, Vertex* parent);
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 		virtual void new_vertex(Vertex* vrt, Face* parent);
 		virtual void new_vertex(Vertex* vrt, Volume* parent);
 
@@ -153,7 +153,7 @@ class RefinementCallbackCylinder : public IRefinementCallback
 		virtual ~RefinementCallbackCylinder();
 
 		virtual void new_vertex(Vertex* vrt, Vertex* parent);
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 		virtual void new_vertex(Vertex* vrt, Face* parent);
 		virtual void new_vertex(Vertex* vrt, Volume* parent);
 
@@ -189,7 +189,7 @@ class RefinementCallback_IntersectCylinder : public RefinementCallbackLinear<APo
 
 		virtual ~RefinementCallback_IntersectCylinder();
 
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 
 	protected:
 		vector3 m_center;
@@ -225,7 +225,7 @@ class RefinementCallbackEdgePlaneCut : public RefinementCallbackLinear<APosition
 	
 		virtual ~RefinementCallbackEdgePlaneCut();
 		
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 		
 	protected:
 		vector3 m_p;
@@ -257,7 +257,7 @@ class RefinementCallbackFractal : public RefinementCallbackLinear<APosition>
 	
 		virtual ~RefinementCallbackFractal();
 		
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 		virtual void new_vertex(Vertex* vrt, Face* parent);
 		
 		inline void set_scale_fac(number scaleFac)	{m_scaleFac = scaleFac;}
@@ -300,13 +300,13 @@ class RefinementCallbackSubdivBoundary : public RefinementCallbackLinear<TAPosit
 		virtual ~RefinementCallbackSubdivBoundary();
 		
 		virtual void new_vertex(Vertex* vrt, Vertex* parent);
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 		virtual void new_vertex(Vertex* vrt, Face* parent);
 		virtual void new_vertex(Vertex* vrt, Volume* parent);
 		
 	protected:
 		virtual bool is_crease_vertex(Vertex* vrt);
-		virtual bool is_crease_edge(EdgeBase* edge);
+		virtual bool is_crease_edge(Edge* edge);
 
 	protected:
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaTargetPos;
@@ -346,13 +346,13 @@ class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<TAPosi
 		virtual ~RefinementCallbackSubdivisionLoop();
 		
 		virtual void new_vertex(Vertex* vrt, Vertex* parent);
-		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Edge* parent);
 		virtual void new_vertex(Vertex* vrt, Face* parent);
 		virtual void new_vertex(Vertex* vrt, Volume* parent);
 		
 	protected:
 		virtual bool is_crease_vertex(Vertex* vrt);
-		virtual bool is_crease_edge(EdgeBase* edge);
+		virtual bool is_crease_edge(Edge* edge);
 
 	protected:
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaTargetPos;

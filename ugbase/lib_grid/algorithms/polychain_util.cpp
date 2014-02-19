@@ -11,8 +11,8 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-std::pair<Vertex*, EdgeBase*>
-GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, EdgeBase*> lastSection,
+std::pair<Vertex*, Edge*>
+GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, Edge*> lastSection,
 						  Grid::edge_traits::callback cbEdgeIsInPolyChain)
 {
 	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
@@ -37,7 +37,7 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, EdgeBase*> lastSection,
 		}
 	}
 //	we couldn't find another section. Return an empty one
-	return std::make_pair<Vertex*, EdgeBase*>(NULL, NULL);	
+	return std::make_pair<Vertex*, Edge*>(NULL, NULL);	
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -56,9 +56,9 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 	}
 	
 //	we'll start at the first section of the polychain
-	pair<Vertex*, EdgeBase*> curSec = GetFirstSectionOfPolyChain(grid,
-												sh.begin<EdgeBase>(srcIndex),
-												sh.end<EdgeBase>(srcIndex),
+	pair<Vertex*, Edge*> curSec = GetFirstSectionOfPolyChain(grid,
+												sh.begin<Edge>(srcIndex),
+												sh.end<Edge>(srcIndex),
 												IsInSubset(sh, srcIndex));
 
 //	Follow the polychain until either the end is reached or an irregular
@@ -72,7 +72,7 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 	while(curSec.first)
 	{
 		Vertex* curVrt = curSec.first;
-		EdgeBase* curEdge = curSec.second;
+		Edge* curEdge = curSec.second;
 		grid.mark(curVrt);
 		grid.mark(curEdge);
 		
@@ -104,16 +104,16 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 	}
 	
 //	if all edges have been encountered, we're done.
-	if(numEdgesEncountered == sh.num<EdgeBase>(srcIndex)){
+	if(numEdgesEncountered == sh.num<Edge>(srcIndex)){
 		grid.end_marking();
 		return false;
 	}
 	
 //	some edges are left. assign them to the target subset
-	EdgeBaseIterator iter = sh.begin<EdgeBase>(srcIndex);
-	while(iter != sh.end<EdgeBase>(srcIndex))
+	EdgeIterator iter = sh.begin<Edge>(srcIndex);
+	while(iter != sh.end<Edge>(srcIndex))
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		++iter;
 		if(!grid.is_marked(e))
 			sh.assign_subset(e, targetIndex);

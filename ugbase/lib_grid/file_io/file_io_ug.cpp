@@ -145,7 +145,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 		grid.attach_to_edges(aLineIndex);
 		Grid::EdgeAttachmentAccessor<AInt> aaLineIndex(grid, aLineIndex);
 		int counter = 0;
-		for(EdgeBaseIterator EIter = LineSel.begin(); EIter != LineSel.end(); ++EIter, ++counter)
+		for(EdgeIterator EIter = LineSel.begin(); EIter != LineSel.end(); ++EIter, ++counter)
 			aaLineIndex[*EIter] = counter;
 
 	//	assign index to every face regarding EACH surface
@@ -217,7 +217,7 @@ static bool CollectLines(Grid& grid, const SubsetHandler& shFace, EdgeSelector& 
 
 //	iterate through all edges in the grid and identify lines by comparing the subset-membership
 //	of the associated faces
-	for(EdgeBaseIterator EIter = grid.edges_begin(); EIter != grid.edges_end(); ++EIter)
+	for(EdgeIterator EIter = grid.edges_begin(); EIter != grid.edges_end(); ++EIter)
 	{
 		CollectFaces(vFaces, grid, *EIter);
 
@@ -346,7 +346,7 @@ static bool CollectAllVerticesForNG(Grid& grid, VertexSelector& NgVrtSel,
 static int GetFirstRegularVertex(Grid& grid, const SubsetHandler& sh, Face* q)
 {
 	grid.begin_marking();
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 	int si = sh.get_subset_index(q);
 
@@ -438,9 +438,9 @@ static bool WriteLGM(Grid& grid,
 
 //	write the lines
 	out << "#Line-Info" << endl;
-	for(EdgeBaseIterator iter = LineSel.begin(); iter != LineSel.end(); ++iter)
+	for(EdgeIterator iter = LineSel.begin(); iter != LineSel.end(); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		out << "line " << aaLineIndex[e] << ": points: ";
 		out << aaSurfVrtIndex[e->vertex(0)] << " " << aaSurfVrtIndex[e->vertex(1)] << ";" << endl;
 	}
@@ -486,15 +486,15 @@ static bool WriteLGM(Grid& grid,
 			grid.begin_marking();
 			out << "; lines:";
 			{
-				vector<EdgeBase*> vEdges;
+				vector<Edge*> vEdges;
 				for(ConstFaceIterator FIter = shFaces.begin<Face>(i);
 					FIter != shFaces.end<Face>(i); ++FIter)
 				{
 					CollectEdges(vEdges, grid, *FIter);
-					for(vector<EdgeBase*>::iterator EIter = vEdges.begin();
+					for(vector<Edge*>::iterator EIter = vEdges.begin();
 						EIter != vEdges.end(); ++EIter)
 					{
-						EdgeBase* e = *EIter;
+						Edge* e = *EIter;
 						if(LineSel.is_selected(e) && (!grid.is_marked(e)))
 						{
 							grid.mark(e);
@@ -658,7 +658,7 @@ static bool WriteNG(Grid& grid,
 					 Grid::VertexAttachmentAccessor<AVector3>& aaPos)
 {
 //	initialization
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	vector<Face*> vFaces;
 	vector<bool> faceFlags(shFaces.num_subsets());
 
@@ -689,9 +689,9 @@ static bool WriteNG(Grid& grid,
 		out << "	";
 
 	//	iterate through all lines
-		for(EdgeBaseIterator EIter = LineSel.begin(); EIter != LineSel.end(); ++EIter)
+		for(EdgeIterator EIter = LineSel.begin(); EIter != LineSel.end(); ++EIter)
 		{
-			EdgeBase* e = *EIter;
+			Edge* e = *EIter;
 
 		//	check if the current boundary-vertex is also a line-vertex
 			if(GetVertexIndex(e, v) != -1)
@@ -813,7 +813,7 @@ static bool WriteNG(Grid& grid,
 //	2D EXPORT
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	ExportMeshToUG_2D and helper functions
-static bool FaceIsOnRightSide(Face* f, EdgeBase* e)
+static bool FaceIsOnRightSide(Face* f, Edge* e)
 {
 //  If the vertices in e are in the same order as the vertices in f,
 //  then f is on the left side of e (since vertices are specified counter-clockwise).
@@ -958,14 +958,14 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 			for(int i = 0; i < psh->num_subsets(); ++i)
 			{
 			//	at this point we assume that lines are oriented
-				if(!psh->empty<EdgeBase>(i)){
+				if(!psh->empty<Edge>(i)){
 				//	we have to follow the polygonal chain in subset i.
 				//	We assume that the chain is regular
 				//	create a callback for this subset, since we use it several times
 					IsInSubset cbIsInSubset(*psh, i);
-					std::pair<Vertex*, EdgeBase*> curSec =
-						GetFirstSectionOfPolyChain(grid, psh->begin<EdgeBase>(i),
-													psh->end<EdgeBase>(i),
+					std::pair<Vertex*, Edge*> curSec =
+						GetFirstSectionOfPolyChain(grid, psh->begin<Edge>(i),
+													psh->end<Edge>(i),
 													cbIsInSubset);
 
 					if(curSec.first == NULL)
@@ -1002,7 +1002,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 					while(curSec.first)
 					{
 						Vertex* curVrt = curSec.first;
-						EdgeBase* curEdge = curSec.second;
+						Edge* curEdge = curSec.second;
 						
 					//	write the vertex index
 						if(aaInt[curVrt] == -1){
@@ -1019,7 +1019,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 						out << " " << aaInt[curVrt];
 						curLine.push_back(curVrt);
 						
-						std::pair<Vertex*, EdgeBase*> nextSec =
+						std::pair<Vertex*, Edge*> nextSec =
 							GetNextSectionOfPolyChain(grid, curSec, cbIsInSubset);
 
 					//	check whether the next section is still valid.
@@ -1042,7 +1042,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 					++numLines;
 					
 				//	make sure that all edges in the subset have been written to the line
-					if(numEdgesInLine != psh->num<EdgeBase>(i)){
+					if(numEdgesInLine != psh->num<Edge>(i)){
 						stringstream ss;
 						ss  << "Couldn't write all edges of subset " << i << " to a line. "
 							<< "This can happen if the subset is not a regular polychain. "
@@ -1054,9 +1054,9 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 			}
 
 /*
-			for(EdgeBaseIterator iter = grid.edges_begin(); iter != grid.edges_end(); iter++)
+			for(EdgeIterator iter = grid.edges_begin(); iter != grid.edges_end(); iter++)
 			{
-				EdgeBase* e = *iter;
+				Edge* e = *iter;
 			//	check for adjacent faces of different subset indices
 				CollectFaces(vFaces, grid, e);
 				
@@ -1090,9 +1090,9 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 		}
 		else{
 		//	check for boundary lines
-			for(EdgeBaseIterator iter = grid.edges_begin(); iter != grid.edges_end(); iter++)
+			for(EdgeIterator iter = grid.edges_begin(); iter != grid.edges_end(); iter++)
 			{
-				EdgeBase* e = *iter;
+				Edge* e = *iter;
 				CollectFaces(vFaces, grid, e);
 			//	check if it is a boundary edge
 				if(vFaces.size() == 1)
@@ -1239,7 +1239,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 		//	check if one of its edges is a line.
 			for(size_t i = 0; i < f->num_edges(); ++i)
 			{
-				EdgeBase* e = grid.get_edge(f, i);
+				Edge* e = grid.get_edge(f, i);
 				if(aaLineInt[e] != -1)
 				{
 					out << " S " << aaInt[e->vertex(0)] << " " << aaInt[e->vertex(1)];

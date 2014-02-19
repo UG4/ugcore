@@ -53,7 +53,7 @@ static void RemoveEmptyInterfaces(
 void GridLayoutMap::remove_empty_interfaces()
 {
 	RemoveEmptyInterfaces<Vertex>(m_vertexLayoutMap);
-	RemoveEmptyInterfaces<EdgeBase>(m_edgeLayoutMap);
+	RemoveEmptyInterfaces<Edge>(m_edgeLayoutMap);
 	RemoveEmptyInterfaces<Face>(m_faceLayoutMap);
 	RemoveEmptyInterfaces<Volume>(m_volumeLayoutMap);
 }

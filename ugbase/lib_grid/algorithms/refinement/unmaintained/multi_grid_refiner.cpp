@@ -122,7 +122,7 @@ void MultiGridRefiner::refine()
 //	notify derivates that refinement begins
 	refinement_step_begins();
 	
-//	cout << "num marked edges: " << m_selMarks.num<EdgeBase>() << endl;
+//	cout << "num marked edges: " << m_selMarks.num<Edge>() << endl;
 //	cout << "num marked faces: " << m_selMarks.num<Face>() << endl;
 
 //	we want to add new elements in a new layer.
@@ -134,7 +134,7 @@ void MultiGridRefiner::refine()
 //	some buffers
 	vector<Vertex*> vVrts;
 	vector<Vertex*> vEdgeVrts;
-	vector<EdgeBase*>	vEdges;
+	vector<Edge*>	vEdges;
 	vector<Face*>		vFaces;
 
 //	some repeatedly used objects
@@ -164,12 +164,12 @@ void MultiGridRefiner::refine()
 
 //LOG("creating new edges\n");
 //	create new vertices and edges from marked edges
-	for(EdgeBaseIterator iter = m_selMarks.begin<EdgeBase>();
-		iter != m_selMarks.end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = m_selMarks.begin<Edge>();
+		iter != m_selMarks.end<Edge>(); ++iter)
 	{
 	//	collect_objects_for_refine removed all edges that already were
 	//	refined. No need to check that again.
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		int rule = get_rule(e);
 		switch(rule)
 		{
@@ -178,7 +178,7 @@ void MultiGridRefiner::refine()
 			//	clone the edge.
 				ed.set_vertices(mg.get_child_vertex(e->vertex(0)),
 								mg.get_child_vertex(e->vertex(1)));
-				EdgeBase* newEdge = *mg.create_by_cloning(e, ed, e);
+				Edge* newEdge = *mg.create_by_cloning(e, ed, e);
 				set_status(newEdge, SM_COPY);
 			}break;
 
@@ -374,7 +374,7 @@ void MultiGridRefiner::collect_objects_for_refine()
 void MultiGridRefiner::
 adjust_initial_selection()
 {
-	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
+	vector<Edge*> 	vEdges;//	vector used for temporary results
 	vector<Face*> 		vFaces;//	vector used for temporary results
 
 //	regard the multi-grid as a grid
@@ -451,10 +451,10 @@ adjust_initial_selection()
 	}
 
 //	select elements that are associated with edges
-	for(EdgeBaseIterator iter = m_selMarks.begin<EdgeBase>();
-		iter != m_selMarks.end<EdgeBase>();)
+	for(EdgeIterator iter = m_selMarks.begin<Edge>();
+		iter != m_selMarks.end<Edge>();)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		++iter;	//iterator is incremented since it would be invalidated during deselect.
 		if(mg.has_children(e)){
 		//	the element has already been refined.
@@ -491,7 +491,7 @@ adjust_initial_selection()
 void MultiGridRefiner::
 select_closure(std::vector<Vertex*>& vVrts)
 {
-	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
+	vector<Edge*> 	vEdges;//	vector used for temporary results
 	vector<Face*> 		vFaces;//	vector used for temporary results
 	vector<Volume*>		vVolumes;//	vector used for temporary results
 
@@ -504,8 +504,8 @@ select_closure(std::vector<Vertex*>& vVrts)
 	if(mg.num<Face>() > 0)
 	{
 	//	store end-iterator so that newly marked edges won't be considered.
-		for(EdgeBaseIterator iter = m_selMarks.begin<EdgeBase>();
-			iter != m_selMarks.end<EdgeBase>(); ++iter)
+		for(EdgeIterator iter = m_selMarks.begin<Edge>();
+			iter != m_selMarks.end<Edge>(); ++iter)
 		{
 		//	as soon as we encounter an edge that is scheduled for COPY, we're done in here
 			if(get_rule(*iter) == RM_COPY)
@@ -523,7 +523,7 @@ select_closure(std::vector<Vertex*>& vVrts)
 					size_t numRegular = 0;
 					CollectEdges(vEdges, grid, f);
 					for(size_t j = 0; j < vEdges.size(); ++j){
-						EdgeBase* e = vEdges[j];
+						Edge* e = vEdges[j];
 						if(m_selMarks.is_selected(e)){
 							if(get_rule(e) == RM_REFINE)
 								++numRegular;
@@ -608,7 +608,7 @@ select_closure(std::vector<Vertex*>& vVrts)
 				//	unselected ones will be added as copy-elements.
 					CollectEdges(vEdges, grid, v);
 					for(size_t j = 0; j < vEdges.size(); ++j){
-						EdgeBase* e = vEdges[j];
+						Edge* e = vEdges[j];
 						if(!m_selMarks.is_selected(e)
 							&& (!mg.has_children(e)))
 						{
@@ -641,7 +641,7 @@ select_copy_elements(std::vector<Vertex*>& vVrts, int iFirst, int copyRange)
 	if(copyRange == -1)
 		copyRange = get_copy_range();
 		
-	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
+	vector<Edge*> 	vEdges;//	vector used for temporary results
 	vector<Face*> 		vFaces;//	vector used for temporary results
 	
 //	regard the multi-grid as a grid
@@ -674,7 +674,7 @@ select_copy_elements(std::vector<Vertex*>& vVrts, int iFirst, int copyRange)
 					for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
 						iter != iterEnd; ++iter)
 					{
-						EdgeBase* e = *iter;
+						Edge* e = *iter;
 						if(!m_selMarks.is_selected(e) && (!mg.has_children(e))){
 						//	we found a copy-element
 							mark_for_refinement(e);
@@ -716,7 +716,7 @@ select_copy_elements(std::vector<Vertex*>& vVrts, int iFirst, int copyRange)
 						//	mark associated unselected edges as copy-edge
 							CollectEdges(vEdges, grid, f);
 							for(size_t j = 0; j < vEdges.size(); ++j){
-								EdgeBase* e = vEdges[j];
+								Edge* e = vEdges[j];
 								if(!m_selMarks.is_selected(e) && (!mg.has_children(e))){
 									mark_for_refinement(e);
 									set_rule(e, RM_COPY);
@@ -750,7 +750,7 @@ select_copy_elements(std::vector<Vertex*>& vVrts, int iFirst, int copyRange)
 						//	mark associated unselected edges as copy-edge
 							CollectEdges(vEdges, grid, v);
 							for(size_t j = 0; j < vEdges.size(); ++j){
-								EdgeBase* e = vEdges[j];
+								Edge* e = vEdges[j];
 								if(!m_selMarks.is_selected(e) && (!mg.has_children(e))){
 									mark_for_refinement(e);
 									set_rule(e, RM_COPY);

@@ -69,7 +69,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 //	This method clears the surfaceViewOut and assigns all objects of
 //	which lie on the surface of the mg to the surface view.
 	CollectSurfaceViewElements<Vertex>(surfaceViewOut, distGridMgr, mgsh, true);
-	CollectSurfaceViewElements<EdgeBase>(surfaceViewOut, distGridMgr, mgsh, false);
+	CollectSurfaceViewElements<Edge>(surfaceViewOut, distGridMgr, mgsh, false);
 	CollectSurfaceViewElements<Face>(surfaceViewOut, distGridMgr, mgsh, false);
 	CollectSurfaceViewElements<Volume>(surfaceViewOut, distGridMgr, mgsh, false);
 
@@ -85,7 +85,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	if(assignSidesOnly){
 		AssignAssociatedSidesToSubsets<Volume>(surfaceViewOut, mgsh);
 		AssignAssociatedSidesToSubsets<Face>(surfaceViewOut, mgsh);
-		AssignAssociatedSidesToSubsets<EdgeBase>(surfaceViewOut, mgsh);
+		AssignAssociatedSidesToSubsets<Edge>(surfaceViewOut, mgsh);
 	}
 	else
 	{
@@ -94,7 +94,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 
 		AssignAssociatedLowerDimElemsToSubsets<Volume>(surfaceViewOut, mgsh);
 		AssignAssociatedLowerDimElemsToSubsets<Face>(surfaceViewOut, mgsh);
-		AssignAssociatedLowerDimElemsToSubsets<EdgeBase>(surfaceViewOut, mgsh);
+		AssignAssociatedLowerDimElemsToSubsets<Edge>(surfaceViewOut, mgsh);
 	}
 
 //	set num subsets for surface view
@@ -118,12 +118,12 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	pcl::InterfaceCommunicator<VolumeLayout> comVOL;
 
 	comVRT.send_data(distGridMgr.grid_layout_map().template get_layout<Vertex>(INT_H_SLAVE), cpSubsetVRT);
-	comEDGE.send_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comEDGE.send_data(distGridMgr.grid_layout_map().template get_layout<Edge>(INT_H_SLAVE), cpSubsetEDGE);
 	comFACE.send_data(distGridMgr.grid_layout_map().template get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
 	comVOL.send_data(distGridMgr.grid_layout_map().template get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
 
 	comVRT.receive_data(distGridMgr.grid_layout_map().template get_layout<Vertex>(INT_H_MASTER), cpSubsetVRT);
-	comEDGE.receive_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comEDGE.receive_data(distGridMgr.grid_layout_map().template get_layout<Edge>(INT_H_MASTER), cpSubsetEDGE);
 	comFACE.receive_data(distGridMgr.grid_layout_map().template get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
 	comVOL.receive_data(distGridMgr.grid_layout_map().template get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
 
@@ -133,12 +133,12 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	comVOL.communicate();
 
 	comVRT.send_data(distGridMgr.grid_layout_map().template get_layout<Vertex>(INT_H_MASTER), cpSubsetVRT);
-	comEDGE.send_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_MASTER), cpSubsetEDGE);
+	comEDGE.send_data(distGridMgr.grid_layout_map().template get_layout<Edge>(INT_H_MASTER), cpSubsetEDGE);
 	comFACE.send_data(distGridMgr.grid_layout_map().template get_layout<Face>(INT_H_MASTER), cpSubsetFACE);
 	comVOL.send_data(distGridMgr.grid_layout_map().template get_layout<Volume>(INT_H_MASTER), cpSubsetVOL);
 
 	comVRT.receive_data(distGridMgr.grid_layout_map().template get_layout<Vertex>(INT_H_SLAVE), cpSubsetVRT);
-	comEDGE.receive_data(distGridMgr.grid_layout_map().template get_layout<EdgeBase>(INT_H_SLAVE), cpSubsetEDGE);
+	comEDGE.receive_data(distGridMgr.grid_layout_map().template get_layout<Edge>(INT_H_SLAVE), cpSubsetEDGE);
 	comFACE.receive_data(distGridMgr.grid_layout_map().template get_layout<Face>(INT_H_SLAVE), cpSubsetFACE);
 	comVOL.receive_data(distGridMgr.grid_layout_map().template get_layout<Volume>(INT_H_SLAVE), cpSubsetVOL);
 

@@ -152,7 +152,7 @@ void PeriodicBoundaryManager::print_identification() const {
 }
 
 /**
- * TParent should be only of type Vertex, EdgeBase, Face.
+ * TParent should be only of type Vertex, Edge, Face.
  * Volumes are not meant to be periodic.
  *
  * If replacesParent is true, e is meant to replace pParent
@@ -502,7 +502,7 @@ void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
 		handle_creation(e, static_cast<Vertex*>(pParent), replacesParent);
 		break;
 	case EDGE:
-		handle_creation(e, static_cast<EdgeBase*>(pParent), replacesParent);
+		handle_creation(e, static_cast<Edge*>(pParent), replacesParent);
 		break;
 	case FACE:
 		handle_creation(e, static_cast<Face*>(pParent), replacesParent);
@@ -636,10 +636,10 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 				"\nnum# in " << sh.get_subset_name(sInd2) << ": " << goc2.num<Vertex>())
 	}
 
-	if(goc1.num<EdgeBase>() != goc2.num<EdgeBase>()) {
+	if(goc1.num<Edge>() != goc2.num<Edge>()) {
 		UG_THROW("IdentifySubsets: Given subsets have different number of edges."
-						"\nnum# in " << sh.get_subset_name(sInd1) << ": " << goc1.num<EdgeBase>() <<
-						"\nnum# in " << sh.get_subset_name(sInd2) << ": " << goc2.num<EdgeBase>())
+						"\nnum# in " << sh.get_subset_name(sInd1) << ": " << goc1.num<Edge>() <<
+						"\nnum# in " << sh.get_subset_name(sInd2) << ": " << goc2.num<Edge>())
 	}
 
 	if(goc1.num<Face>() != goc2.num<Face>()) {
@@ -652,7 +652,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	// in 3d start with faces, in 2d with edges, in 1d with vertices
 	namespace mpl = boost::mpl;
 	typedef		mpl::map<mpl::pair<Domain1d, Vertex>,
-						 mpl::pair<Domain2d, EdgeBase>,
+						 mpl::pair<Domain2d, Edge>,
 						 mpl::pair<Domain3d, Face> > m;
 
 	typedef typename mpl::at<m, TDomain>::type TElem;

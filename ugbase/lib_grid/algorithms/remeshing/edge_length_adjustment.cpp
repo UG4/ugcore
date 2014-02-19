@@ -95,10 +95,10 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 	grid.begin_marking();
 	
 //	mark all vertices that are not regular crease-vertices as fixed
-	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(REM_CREASE);
-		iter != shMarks.end<EdgeBase>(REM_CREASE); ++iter)
+	for(EdgeIterator iter = shMarks.begin<Edge>(REM_CREASE);
+		iter != shMarks.end<Edge>(REM_CREASE); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		for(size_t i = 0; i < 2; ++i){
 			Vertex* vrt = e->vertex(i);
 			if(!grid.is_marked(vrt)){
@@ -120,10 +120,10 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 	grid.end_marking();
 	
 //	mark all vertices that lie on a fixed edge as fixed vertex
-	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(REM_FIXED);
-		iter != shMarks.end<EdgeBase>(REM_FIXED); ++iter)
+	for(EdgeIterator iter = shMarks.begin<Edge>(REM_FIXED);
+		iter != shMarks.end<Edge>(REM_FIXED); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		shMarks.assign_subset(e->vertex(0), REM_FIXED);
 		shMarks.assign_subset(e->vertex(1), REM_FIXED);
 	}
@@ -136,10 +136,10 @@ static void AssignCreaseVertices(Grid& grid, SubsetHandler& shMarks)
 	if(shMarks.num_subsets() <= REM_CREASE)
 		return;
 
-	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(REM_CREASE);
-		iter != shMarks.end<EdgeBase>(REM_CREASE); ++iter)
+	for(EdgeIterator iter = shMarks.begin<Edge>(REM_CREASE);
+		iter != shMarks.end<Edge>(REM_CREASE); ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		for(uint i = 0; i < 2; ++i)
 			if(shMarks.get_subset_index(e->vertex(i)) != REM_FIXED)
 				shMarks.assign_subset(e->vertex(i), REM_CREASE);
@@ -207,7 +207,7 @@ number CalculateMinCurvature(Grid& grid, SubsetHandler& shMarks,
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
 number CalculateAverageCurvature(Grid& grid, SubsetHandler& shMarks,
-								EdgeBase* e, TAAPosVRT& aaPos)
+								Edge* e, TAAPosVRT& aaPos)
 {
 	number avCurv = 0.5 * (CalculateMinCurvature(grid, shMarks, e->vertex(0), aaPos)
 				+ CalculateMinCurvature(grid, shMarks, e->vertex(1), aaPos));
@@ -218,7 +218,7 @@ number CalculateAverageCurvature(Grid& grid, SubsetHandler& shMarks,
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
 number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
-								EdgeBase* e, TAAPosVRT& aaPos)
+								Edge* e, TAAPosVRT& aaPos)
 {
 	number lenFac = CalculateAverageCurvature(grid, shMarks, e, aaPos);
 	lenFac = (lenFac - 0.95) / 0.05;
@@ -230,7 +230,7 @@ number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
-bool TrySwap(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
+bool TrySwap(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 			TAAIntVRT& aaInt, SubsetHandler* pshMarks = NULL,
 			EdgeSelector* pCandidates = NULL)
 {
@@ -336,11 +336,11 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	PROFILE_FUNC();
 	LOG("  performing swaps\n");
 	int numSwaps = 0;
-	int maxNumSwaps = esel.num<EdgeBase>() * 2;
+	int maxNumSwaps = esel.num<Edge>() * 2;
 		
 	while(!esel.empty())
 	{
-		EdgeBase* e = *esel.begin<EdgeBase>();
+		Edge* e = *esel.begin<Edge>();
 		esel.deselect(e);
 
 		if(TrySwap(grid, e, aaPos, aaNorm, aaInt, &shMarks, &esel)){
@@ -358,7 +358,7 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 /**	returns the resulting vertex or NULL, if no collapse was performed.*/
 template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
-Vertex* TryCollapse(Grid& grid, EdgeBase* e,
+Vertex* TryCollapse(Grid& grid, Edge* e,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
 				TAAIntVRT& aaInt, SubsetHandler* pshMarks = NULL,
 				EdgeSelector* pCandidates = NULL)
@@ -519,7 +519,7 @@ Vertex* TryCollapse(Grid& grid, EdgeBase* e,
 				vFaces.reserve(2);
 				CollectFaces(vFaces, grid, e);
 			
-				vector<EdgeBase*> vEdges;
+				vector<Edge*> vEdges;
 				vEdges.reserve(4);
 				for(size_t i = 0; i < vFaces.size(); ++i){
 					Face* f = vFaces[i];
@@ -552,7 +552,7 @@ Vertex* TryCollapse(Grid& grid, EdgeBase* e,
 							//	if numMarked == 2 we found it
 								if(numMarked == 2){
 								//	the connected edge has to be marked as a crease
-									EdgeBase* ce = GetConnectedEdge(grid, e->vertex(j), f);
+									Edge* ce = GetConnectedEdge(grid, e->vertex(j), f);
 									if(ce)
 										pshMarks->assign_subset(ce, REM_CREASE);
 								//	we're done. break
@@ -596,14 +596,14 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 {	
 	PROFILE_FUNC();
 	LOG("  performing collapses\n");
-	vector<EdgeBase*>	edges;
+	vector<Edge*>	edges;
 	int numCollapses = 0;
 //	compare squares
 	minEdgeLen *= minEdgeLen;
 
 	while(!esel.empty())
 	{
-		EdgeBase* e = *esel.begin<EdgeBase>();
+		Edge* e = *esel.begin<Edge>();
 		esel.deselect(e);
 		
 	//	the higher the curvature the smaller the maxEdgeLen.
@@ -632,7 +632,7 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT, class TAANormVRT>
-bool TrySplit(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
+bool TrySplit(Grid& grid, Edge* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 			  EdgeSelector* pCandidates = NULL, SubsetHandler* pshMarks = NULL)
 {
 	bool bCreaseEdge = false;
@@ -695,7 +695,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	while(!esel.empty())
 	{
 	//	get an edge
-		EdgeBase* e = *esel.begin<EdgeBase>();
+		Edge* e = *esel.begin<Edge>();
 		esel.deselect(e);
 		
 	//	the higher the curvature the smaller the maxEdgeLen.
@@ -757,18 +757,18 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 //	store newly inserted vertices and smooth them at the end of the algo
 	vector<Vertex*> vNewVrts;
 	vector<Face*> vFaces;
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	
 //	we wont assign this selector to the grid until it is clear that
 //	we'll need it.
 	Selector sel;
 	
 	
-	EdgeBaseIterator iter = esel.begin<EdgeBase>();
-	while(iter != esel.end<EdgeBase>())
+	EdgeIterator iter = esel.begin<Edge>();
+	while(iter != esel.end<Edge>())
 	{
 	//	store edge and increase iterator immediatly
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		++iter;
 		
 	//	get the adjacent faces
@@ -798,7 +798,7 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	
 //	if edges have been selected, we'll now call refine.
 	if(sel.grid() != NULL){
-		if(sel.num<EdgeBase>() > 0){
+		if(sel.num<Edge>() > 0){
 			if(Refine(grid, sel)){
 				LOG(sel.num<Vertex>() << " new vertices... ");
 			//	retriangulate surface
@@ -1032,17 +1032,17 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 	for(int iteration = 0; iteration < numIterations; ++iteration)
 	{
 	//	perform splits
-		esel.select(grid.begin<EdgeBase>(), grid.end<EdgeBase>());
+		esel.select(grid.begin<Edge>(), grid.end<Edge>());
 		if(!PerformSplits(grid, shMarks, esel, maxEdgeLen, aaPos, aaNorm, adaptive))
 			return false;
 
 	//	perform collapses
-		esel.select(grid.begin<EdgeBase>(), grid.end<EdgeBase>());
+		esel.select(grid.begin<Edge>(), grid.end<Edge>());
 		if(!PerformCollapses(grid, shMarks, esel, minEdgeLen, aaPos, aaNorm, aaInt, adaptive))
 			return false;
 
 	//	perform swaps
-		esel.select(grid.begin<EdgeBase>(), grid.end<EdgeBase>());
+		esel.select(grid.begin<Edge>(), grid.end<Edge>());
 		if(!PerformSwaps(grid, shMarks, esel, aaPos, aaNorm, aaInt))
 			return false;
 
@@ -1054,8 +1054,8 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 	//	adjacent to crease-edges badly shaped triangles may occur,
 	//	which have to be treated somehow.
 		esel.clear();
-		esel.select(shMarks.begin<EdgeBase>(REM_CREASE), shMarks.end<EdgeBase>(REM_CREASE));
-		esel.select(shMarks.begin<EdgeBase>(REM_FIXED), shMarks.end<EdgeBase>(REM_FIXED));
+		esel.select(shMarks.begin<Edge>(REM_CREASE), shMarks.end<Edge>(REM_CREASE));
+		esel.select(shMarks.begin<Edge>(REM_FIXED), shMarks.end<Edge>(REM_FIXED));
 		FixBadTriangles(grid, shMarks, esel, aaPos, aaNorm, 0.1);
 */
 	//	relocate points
@@ -1127,7 +1127,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 	Selector sel(grid);
 	sel.enable_autoselection(true);
-	sel.select(esel.begin<EdgeBase>(), esel.end<EdgeBase>());
+	sel.select(esel.begin<Edge>(), esel.end<Edge>());
 
 	LOG("  performing splits\n");
 	int numSplits = 0;
@@ -1139,9 +1139,9 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 		sel.clear_selection<Volume>();
 
 	//	deselect all edges that shall not be splitted
-		EdgeBaseIterator iter = sel.begin<EdgeBase>();
-		while(iter != sel.end<EdgeBase>()){
-			EdgeBase* e = *iter;
+		EdgeIterator iter = sel.begin<Edge>();
+		while(iter != sel.end<Edge>()){
+			Edge* e = *iter;
 			++iter;
 
 		//	the higher the curvature the smaller the maxEdgeLen.

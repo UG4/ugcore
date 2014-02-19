@@ -50,7 +50,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 //	This method clears the surfaceViewOut and assigns all objects of
 //	which lie on the surface of the mg to the surface view.
 	CollectSurfaceViewElements<Vertex>(surfaceViewOut, mg, mgsh, true);
-	CollectSurfaceViewElements<EdgeBase>(surfaceViewOut, mg, mgsh, false);
+	CollectSurfaceViewElements<Edge>(surfaceViewOut, mg, mgsh, false);
 	CollectSurfaceViewElements<Face>(surfaceViewOut, mg, mgsh, false);
 	CollectSurfaceViewElements<Volume>(surfaceViewOut, mg, mgsh, false);
 	
@@ -66,7 +66,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 	if(assignSidesOnly){
 		AssignAssociatedSidesToSubsets<Volume>(surfaceViewOut, mgsh);
 		AssignAssociatedSidesToSubsets<Face>(surfaceViewOut, mgsh);
-		AssignAssociatedSidesToSubsets<EdgeBase>(surfaceViewOut, mgsh);
+		AssignAssociatedSidesToSubsets<Edge>(surfaceViewOut, mgsh);
 	}
 	else
 	{
@@ -75,7 +75,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 
 		AssignAssociatedLowerDimElemsToSubsets<Volume>(surfaceViewOut, mgsh);
 		AssignAssociatedLowerDimElemsToSubsets<Face>(surfaceViewOut, mgsh);
-		AssignAssociatedLowerDimElemsToSubsets<EdgeBase>(surfaceViewOut, mgsh);
+		AssignAssociatedLowerDimElemsToSubsets<Edge>(surfaceViewOut, mgsh);
 	}
 }
 

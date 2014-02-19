@@ -30,7 +30,7 @@ typedef node_tree::SPCollisionTreeRootNode SPOctree;
  * all public members using the -> operator.
  *
  * The elements to which the iterators point have to be derivates of
- * ug::EdgeBase or ug::Face and have to represent edges or triangles.
+ * ug::Edge or ug::Face and have to represent edges or triangles.
  * Furthermore all elements between elemsBegin and elemsBegin have to 
  * be members of the specified grid.
  *

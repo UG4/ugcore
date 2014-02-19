@@ -86,7 +86,7 @@ class UG_API Tetrahedron : public Volume
 		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
-		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
 		virtual void get_local_vertex_indices_of_edge(size_t& ind1Out,
@@ -210,7 +210,7 @@ class UG_API Hexahedron : public Volume
 		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
-		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
 		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
@@ -327,7 +327,7 @@ class UG_API Prism : public Volume
 		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
-		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
 		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
@@ -444,7 +444,7 @@ class UG_API Pyramid : public Volume
 		virtual void face_desc(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
-		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Edge* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
 		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;

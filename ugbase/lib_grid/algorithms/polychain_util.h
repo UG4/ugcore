@@ -56,7 +56,7 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
  *	If there are no edges between the given iterators, std::pair(NULL, NULL) is returned.
  */
 template <class TEdgeIterator>
-std::pair<Vertex*, EdgeBase*>
+std::pair<Vertex*, Edge*>
 GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 						  TEdgeIterator edgesEnd,
 						  Grid::edge_traits::callback cbEdgeIsInPolyChain);
@@ -76,8 +76,8 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
  *	the algorithm still terminates. However assumtions on the outcome should not
  *	be made.
  */
-std::pair<Vertex*, EdgeBase*>
-GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, EdgeBase*> lastSection,
+std::pair<Vertex*, Edge*>
+GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, Edge*> lastSection,
 						  Grid::edge_traits::callback cbEdgeIsInPolyChain);
 
 ////////////////////////////////////////////////////////////////////////

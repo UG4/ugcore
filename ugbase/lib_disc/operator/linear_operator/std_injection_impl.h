@@ -186,7 +186,7 @@ set_identity_on_pure_surface(matrix_type& mat,
                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
 {
 	if(coarseDD.max_dofs(VERTEX)) set_identity_on_pure_surface<Vertex>(mat, coarseDD, fineDD);
-	if(coarseDD.max_dofs(EDGE)) set_identity_on_pure_surface<EdgeBase>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(EDGE)) set_identity_on_pure_surface<Edge>(mat, coarseDD, fineDD);
 	if(coarseDD.max_dofs(FACE)) set_identity_on_pure_surface<Face>(mat, coarseDD, fineDD);
 	if(coarseDD.max_dofs(VOLUME)) set_identity_on_pure_surface<Volume>(mat, coarseDD, fineDD);
 }

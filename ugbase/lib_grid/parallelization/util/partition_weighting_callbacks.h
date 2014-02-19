@@ -27,7 +27,7 @@ class PartitionWeighting
 		PartitionWeighting() : m_sh(NULL), m_hWeight(1), m_vWeight(1) {};
 		virtual ~PartitionWeighting() {};
 
-		virtual int operator() (EdgeBase* e1, EdgeBase* e2) {return weigh(e1,e2);};
+		virtual int operator() (Edge* e1, Edge* e2) {return weigh(e1,e2);};
 		virtual int operator() (Face* f1, Face* f2) {return weigh(f1,f2);};
 		virtual int operator() (Volume* v1, Volume* v2) {return weigh(v1,v2);};
 
@@ -82,7 +82,7 @@ class InterSubsetPartitionWeighting : public PartitionWeighting
 			m_vweights.push_back(weight);
 		}
 
-		virtual int operator() (EdgeBase* e1, EdgeBase* e2) {return weigh(e1,e2);};
+		virtual int operator() (Edge* e1, Edge* e2) {return weigh(e1,e2);};
 		virtual int operator() (Face* f1, Face* f2) {return weigh(f1,f2);};
 		virtual int operator() (Volume* v1, Volume* v2) {return weigh(v1,v2);};
 

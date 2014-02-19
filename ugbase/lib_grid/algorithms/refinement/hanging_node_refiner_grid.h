@@ -49,7 +49,7 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE);
 
 	///	Marks an edge for refinement (ignores RM_COARSEN).
-		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REFINE);
+		virtual bool mark(Edge* e, RefinementMark refMark = RM_REFINE);
 
 	///	Marks a face for refinement (ignores RM_COARSEN).
 		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE);
@@ -71,7 +71,7 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 		virtual void post_refine();
 
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
-		virtual void refine_edge_with_normal_vertex(EdgeBase* e,
+		virtual void refine_edge_with_normal_vertex(Edge* e,
 											Vertex** newCornerVrts = NULL);
 
 		virtual void refine_face_with_normal_vertex(Face* f,
@@ -82,10 +82,10 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 											Vertex** newVolumeVrts = NULL);
 
 	///	Returns the vertex associated with the edge
-		virtual Vertex* get_center_vertex(EdgeBase* e);
+		virtual Vertex* get_center_vertex(Edge* e);
 
 	///	Associates a vertex with the edge.
-		virtual void set_center_vertex(EdgeBase* e, Vertex* v);
+		virtual void set_center_vertex(Edge* e, Vertex* v);
 
 	///	Returns the vertex associated with the face
 		virtual Vertex* get_center_vertex(Face* f);

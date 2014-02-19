@@ -91,8 +91,8 @@ bool SavePartitionMapToFile(PartitionMap& pm, const char* filename,
 		int newSI = pm.get_target_proc(si);
 		sh.assign_subset(partsh.begin<Vertex>(si),
 						 partsh.end<Vertex>(si), newSI);
-		sh.assign_subset(partsh.begin<EdgeBase>(si),
-						 partsh.end<EdgeBase>(si), newSI);
+		sh.assign_subset(partsh.begin<Edge>(si),
+						 partsh.end<Edge>(si), newSI);
 		sh.assign_subset(partsh.begin<Face>(si),
 						 partsh.end<Face>(si), newSI);
 		sh.assign_subset(partsh.begin<Volume>(si),

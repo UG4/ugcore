@@ -120,7 +120,7 @@ bool IApproximationSpace::might_contain_ghosts(int lvl) const
 	bool bGhosts = false;
 	const GridLayoutMap& layoutMap = pDistGridMgr->grid_layout_map();
 	if(max_dofs(VERTEX)) bGhosts |=  MightContainGhosts<Vertex>(layoutMap, lvl);
-	if(max_dofs(EDGE)) bGhosts |=  MightContainGhosts<EdgeBase>(layoutMap, lvl);
+	if(max_dofs(EDGE)) bGhosts |=  MightContainGhosts<Edge>(layoutMap, lvl);
 	if(max_dofs(FACE)) bGhosts |=  MightContainGhosts<Face>(layoutMap, lvl);
 	if(max_dofs(VOLUME)) bGhosts |=  MightContainGhosts<Volume>(layoutMap, lvl);
 

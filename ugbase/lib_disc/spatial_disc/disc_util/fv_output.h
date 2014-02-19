@@ -430,7 +430,7 @@ void ColorControlVolume(ISubsetHandler& shOut)
 
 	std::vector<Volume*> vVols;
 	std::vector<Face*> vFaces;
-	std::vector<EdgeBase*> vEdges;
+	std::vector<Edge*> vEdges;
 
 	int si = 0;
 	for(VertexIterator iter = shOut.grid()->begin<Vertex>();
@@ -481,7 +481,7 @@ void CreateGridOfSubControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut,
 	// Let each SubControlVolume be one subset
 	switch(dim)
 	{
-		case 1: ColorSubControlVolume<EdgeBase>(shOut); break;
+		case 1: ColorSubControlVolume<Edge>(shOut); break;
 		case 2: ColorSubControlVolume<Face>(shOut); break;
 		case 3: ColorSubControlVolume<Volume>(shOut); break;
 		default: UG_THROW("WriteDualGridToFile: Dimension "<<dim<<" not supported.");
@@ -554,7 +554,7 @@ void CreateGridOfSubControlVolumeFaces(ISubsetHandler& shOut, TAAPosition& aaPos
 	switch(dim)
 	{
 		case 1: ColorSubControlVolumeFaces<Vertex>(shOut); break;
-		case 2: ColorSubControlVolumeFaces<EdgeBase>(shOut); break;
+		case 2: ColorSubControlVolumeFaces<Edge>(shOut); break;
 		case 3: ColorSubControlVolumeFaces<Face>(shOut); break;
 		default: UG_THROW("WriteDualGridToFile: Dimension " << dim << " not supported.");
 	}

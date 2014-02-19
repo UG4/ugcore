@@ -65,7 +65,7 @@ void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 		//todo: associated elements should support const!
 			const_cast<Grid&>(grid).associated_elements(edges, hgVrt);
 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-				EdgeBase* e = edges[i_edge];
+				Edge* e = edges[i_edge];
 				if(e->is_constrained()){
 					Vertex* conVrt = GetConnectedVertex(e, hgVrt);
 					if(!conVrt->is_constrained()){

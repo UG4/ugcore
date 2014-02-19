@@ -20,7 +20,7 @@ void EraseConnectingElements(Grid& grid, Vertex* v1, Vertex* v2)
 		Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v1);
 		while(iter != iterEnd)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			++iter;
 		//	if e contains v2 we have to remove it.
 			if((e->vertex(0) == v2) || (e->vertex(1) == v2))

@@ -165,7 +165,7 @@ create_closure_elements_2d()
 
 			mg.associated_elements_sorted(assEdges, elem);
 			for(size_t i = 0; i < assEdges.size(); ++i){
-				EdgeBase* e = assEdges[i];
+				Edge* e = assEdges[i];
 				if(!mg.has_children(e)){
 					ed.set_vertices(mg.get_child_vertex(e->vertex(0)),
 									mg.get_child_vertex(e->vertex(1)));
@@ -272,7 +272,7 @@ create_closure_elements_3d()
 
 			mg.associated_elements_sorted(assEdges, elem);
 			for(size_t i = 0; i < assEdges.size(); ++i){
-				EdgeBase* e = assEdges[i];
+				Edge* e = assEdges[i];
 				if(!mg.has_children(e)){
 					ed.set_vertices(mg.get_child_vertex(e->vertex(0)),
 									mg.get_child_vertex(e->vertex(1)));
@@ -407,7 +407,7 @@ perform_refinement()
 	vector<GridObject*> parents;
 	Selector::status_t refMark = RM_REFINE | RM_ANISOTROPIC;
 	get_parents_of_marked_closure_elements<Vertex>(parents, refMark);
-	get_parents_of_marked_closure_elements<EdgeBase>(parents, refMark);
+	get_parents_of_marked_closure_elements<Edge>(parents, refMark);
 	get_parents_of_marked_closure_elements<Face>(parents, refMark);
 	get_parents_of_marked_closure_elements<Volume>(parents, refMark);
 

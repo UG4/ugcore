@@ -62,14 +62,14 @@ class MultiElementAttachmentAccessor
 		bool is_valid_volume_accessor() const		{return m_aaVol.valid();}
 
 		RefType operator[](Vertex* e)	{return m_aaVrt[e];}
-		RefType operator[](EdgeBase* e)		{return m_aaEdge[e];}
+		RefType operator[](Edge* e)		{return m_aaEdge[e];}
 		RefType operator[](Face* e)			{return m_aaFace[e];}
 		RefType operator[](Volume* e)		{return m_aaVol[e];}
 		RefType operator[](GridObject* e)
 		{
 			switch(e->base_object_id()){
 				case VERTEX: return m_aaVrt[static_cast<Vertex*>(e)];
-				case EDGE: return m_aaEdge[static_cast<EdgeBase*>(e)];
+				case EDGE: return m_aaEdge[static_cast<Edge*>(e)];
 				case FACE: return m_aaFace[static_cast<Face*>(e)];
 				case VOLUME: return m_aaVol[static_cast<Volume*>(e)];
 				default: UG_THROW("Unknown element type!");
@@ -77,14 +77,14 @@ class MultiElementAttachmentAccessor
 		}
 
 		ConstRefType operator[](Vertex* e) const	{return m_aaVrt[e];}
-		ConstRefType operator[](EdgeBase* e) const		{return m_aaEdge[e];}
+		ConstRefType operator[](Edge* e) const		{return m_aaEdge[e];}
 		ConstRefType operator[](Face* e) const			{return m_aaFace[e];}
 		ConstRefType operator[](Volume* e) const 		{return m_aaVol[e];}
 		ConstRefType operator[](GridObject* e) const
 		{
 			switch(e->base_object_id()){
 				case VERTEX: return m_aaVrt[static_cast<Vertex*>(e)];
-				case EDGE: return m_aaEdge[static_cast<EdgeBase*>(e)];
+				case EDGE: return m_aaEdge[static_cast<Edge*>(e)];
 				case FACE: return m_aaFace[static_cast<Face*>(e)];
 				case VOLUME: return m_aaVol[static_cast<Volume*>(e)];
 				default: UG_THROW("Unknown element type!");
@@ -92,13 +92,13 @@ class MultiElementAttachmentAccessor
 		}
 
 		Grid::AttachmentAccessor<Vertex, TAttachment>&	vertex_accessor()	{return m_aaVrt;}
-		Grid::AttachmentAccessor<EdgeBase, TAttachment>&	edge_accessor()		{return m_aaEdge;}
+		Grid::AttachmentAccessor<Edge, TAttachment>&	edge_accessor()		{return m_aaEdge;}
 		Grid::AttachmentAccessor<Face, TAttachment>&		face_accessor()		{return m_aaFace;}
 		Grid::AttachmentAccessor<Volume, TAttachment>&		volume_accessor()	{return m_aaVol;}
 
 	private:
 		Grid::AttachmentAccessor<Vertex, TAttachment>	m_aaVrt;
-		Grid::AttachmentAccessor<EdgeBase, TAttachment>		m_aaEdge;
+		Grid::AttachmentAccessor<Edge, TAttachment>		m_aaEdge;
 		Grid::AttachmentAccessor<Face, TAttachment>			m_aaFace;
 		Grid::AttachmentAccessor<Volume, TAttachment>		m_aaVol;
 };
@@ -148,7 +148,7 @@ void SetAttachmentValues(TAttachmentAccessor& aaVal,
  * if destAttachment is not already attached, it will be attached
  * automatically. The srcAttachment however has to be attached.
  *
- * Valid types for TElem are: Vertex, EdgeBase, Face, Volume
+ * Valid types for TElem are: Vertex, Edge, Face, Volume
  *
  * If the dimensions do not match, the algorithm behaves as follows:
  * dim(src) > dim(dest): Only dim(dest) values are copied per element.

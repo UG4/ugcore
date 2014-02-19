@@ -12,7 +12,7 @@ namespace ug{
 
 //	Adds dof-indices of elements in elemLayout to the specified IndexLayout.
 /*
- * Make sure that TLayout holds elements of type Vertex*, EdgeBase*,
+ * Make sure that TLayout holds elements of type Vertex*, Edge*,
  * Face* or Volume*.
  *
  * \param pIgnoreMap	If specified (defaul: NULL), this map will be used to
@@ -130,10 +130,10 @@ bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
 		}
 
 	if(dofDistr.max_dofs(EDGE))
-		if(layoutMap.has_layout<EdgeBase>(keyType))
+		if(layoutMap.has_layout<Edge>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
-									layoutMap.get_layout<EdgeBase>(keyType).layout_on_level(level));
+									layoutMap.get_layout<Edge>(keyType).layout_on_level(level));
 		}
 
 	if(dofDistr.max_dofs(FACE))
@@ -157,7 +157,7 @@ bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
 
 //	Adds dof-indices of elements in elemLayout to the specified IndexLayout.
 /*
- * Make sure that TLayout holds elements of type Vertex*, EdgeBase*,
+ * Make sure that TLayout holds elements of type Vertex*, Edge*,
  * Face* or Volume*.
  *
  *  \todo: replace IndexLayout with TDoFManager::IndexLayout.
@@ -253,11 +253,11 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 	}
 
 	if(dofDistr.max_dofs(EDGE)){
-		if(layoutMap.has_layout<EdgeBase>(keyType)){
-			for(size_t level = 0; level < layoutMap.get_layout<EdgeBase>(keyType).num_levels(); ++level)
+		if(layoutMap.has_layout<Edge>(keyType)){
+			for(size_t level = 0; level < layoutMap.get_layout<Edge>(keyType).num_levels(); ++level)
 			{
 				bRetVal &= AddEntriesToSurfaceIndexLayout(layoutOut, dofDistr,
-										layoutMap.get_layout<EdgeBase>(keyType).layout_on_level(level), mg, dGrMgr);
+										layoutMap.get_layout<Edge>(keyType).layout_on_level(level), mg, dGrMgr);
 			}
 		}
 	}
@@ -525,9 +525,9 @@ bool CreateIndexLayouts_DomainDecomposition(
 								ddInfoIn); /*(cb_ProcIDToSubdomID)*/
 	}
 /*
-	if(layoutMap.has_layout<EdgeBase>(keyType)){
+	if(layoutMap.has_layout<Edge>(keyType)){
 		bRetVal &= AddEntriesToIndexLayout(layoutOut, dofManager,
-								layoutMap.get_layout<EdgeBase>(keyType).layout_on_level(level));
+								layoutMap.get_layout<Edge>(keyType).layout_on_level(level));
 	}
 	if(layoutMap.has_layout<Face>(keyType)){
 		bRetVal &= AddEntriesToIndexLayout(layoutOut, dofManager,

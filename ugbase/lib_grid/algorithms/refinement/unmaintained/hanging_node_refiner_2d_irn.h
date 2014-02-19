@@ -67,7 +67,7 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 		virtual Grid* get_associated_grid()		{return m_pGrid;}
 		
 		virtual void clear_marks();
-		virtual void mark_for_refinement(EdgeBase* e);
+		virtual void mark_for_refinement(Edge* e);
 		virtual void mark_for_refinement(Face* f);
 		virtual void mark_for_refinement(Volume* v);
 
@@ -85,11 +85,11 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 		typedef Attachment<int> ARefinementMark;
 		//typedef Attachment<RefinementInfo> ARefinementInfo;
 
-		typedef std::vector<EdgeBase*>	EdgeVec;
+		typedef std::vector<Edge*>	EdgeVec;
 		typedef std::vector<Face*>		FaceVec;
 		typedef std::vector<Volume*>	VolumeVec;
 
-		typedef std::queue<EdgeBase*> EdgeQueue;
+		typedef std::queue<Edge*> EdgeQueue;
 		typedef std::queue<Face*> FaceQueue;
 		typedef std::queue<Volume*> VolumeQueue;
 
@@ -132,14 +132,14 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 	 * once more (due to the irregularity-rule). Be sure to check this.
 	 */
 		void refine_constraining_edge(ConstrainingEdge* constrainingEdge,
-									EdgeBase** ppEdge1Out, EdgeBase** ppEdge2Out,
+									Edge** ppEdge1Out, Edge** ppEdge2Out,
 									bool& scheduledEdgeReplaced1Out, bool& scheduledEdgeReplaced2Out);
 
 	///	two normal edges will be created. The old edge remains and has to be deleted later on.
-		void refine_edge_with_normal_vertex(EdgeBase* e);
+		void refine_edge_with_normal_vertex(Edge* e);
 
 	///	e will be replaced by a constraining edge. Two new constrained edges will be created.
-		void refine_edge_with_hanging_vertex(EdgeBase* e);
+		void refine_edge_with_hanging_vertex(Edge* e);
 
 	///	f will be refined by Face::refine. If f has more than 3 corners, a new vertex will be inserted on f.
 		void refine_face_with_normal_vertex(Face* f);
@@ -162,10 +162,10 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 	//	helpers. Make sure that everything is initialized properly
 	//	before calling these methods.
 	//	you should use this methods instead of directly marking elements.
-		inline bool is_marked(EdgeBase* e)							{return m_selMarkedElements.is_selected(e);}
-		inline void mark(EdgeBase* e)								{m_selMarkedElements.select(e);}
-		inline Vertex* get_center_vertex(EdgeBase* e)			{return m_aaVertexEDGE[e];}
-		inline void set_center_vertex(EdgeBase* e, Vertex* v)	{m_aaVertexEDGE[e] = v;}
+		inline bool is_marked(Edge* e)							{return m_selMarkedElements.is_selected(e);}
+		inline void mark(Edge* e)								{m_selMarkedElements.select(e);}
+		inline Vertex* get_center_vertex(Edge* e)			{return m_aaVertexEDGE[e];}
+		inline void set_center_vertex(Edge* e, Vertex* v)	{m_aaVertexEDGE[e] = v;}
 
 		inline bool is_marked(Face* f)								{return m_selMarkedElements.is_selected(f);}
 		inline void mark(Face* f)									{m_selMarkedElements.select(f);}

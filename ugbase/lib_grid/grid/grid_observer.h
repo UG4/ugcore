@@ -13,7 +13,7 @@ namespace ug
 //	predeclarations
 class Grid;
 class Vertex;
-class EdgeBase;
+class Edge;
 class Face;
 class Volume;
 
@@ -66,7 +66,7 @@ class UG_API GridObserver
 	 * 	were registered at the given grid.
 	 *
 	 * 	If replacesParent is true, then pParent is of the same base type as the
-	 * 	created object (e.g. in case of edge_created, the parent is an EdgeBase*).
+	 * 	created object (e.g. in case of edge_created, the parent is an Edge*).
 	 *  This case usually appears, when a contraining object is replaced by a
 	 *  regular grid object if the same base type during refinement.
 	 * 	The method is called with replacesParent == true by
@@ -80,7 +80,7 @@ class UG_API GridObserver
 									GridObject* pParent = NULL,
 									bool replacesParent = false)			{}
 
-		virtual void edge_created(Grid* grid, EdgeBase* e,
+		virtual void edge_created(Grid* grid, Edge* e,
 									GridObject* pParent = NULL,
 									bool replacesParent = false)			{}
 
@@ -103,14 +103,14 @@ class UG_API GridObserver
 	 *  grid object of the same base type. This usually happens when constraining
 	 *  objects are replaced by regular objects in refinements. (E.g. a constraining
 	 *  edge by become a regular Edge; note that both objects are of type
-	 *  EdgeBase*).
+	 *  Edge*).
 	 *
 	 * \{ */
 		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
 										 Vertex* replacedBy = NULL)	{}
 
-		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
-										 EdgeBase* replacedBy = NULL)	{}
+		virtual void edge_to_be_erased(Grid* grid, Edge* e,
+										 Edge* replacedBy = NULL)	{}
 
 		virtual void face_to_be_erased(Grid* grid, Face* f,
 										 Face* replacedBy = NULL)	{}
@@ -137,8 +137,8 @@ class UG_API GridObserver
 		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
 										 Vertex* elem1, Vertex* elem2)	{}
 
-		virtual void edges_to_be_merged(Grid* grid, EdgeBase* target,
-										 EdgeBase* elem1, EdgeBase* elem2)	{}
+		virtual void edges_to_be_merged(Grid* grid, Edge* target,
+										 Edge* elem1, Edge* elem2)	{}
 
 		virtual void faces_to_be_merged(Grid* grid, Face* target,
 										 Face* elem1, Face* elem2)	{}

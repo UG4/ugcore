@@ -91,7 +91,7 @@ class AdaptionSurfaceGridFunction : public GridObserver
 		/// grid observer callbacks
 		/// \{
 		virtual void vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent = NULL, bool replacesParent = false){obj_created(vrt);}
-		virtual void edge_created(Grid* grid, EdgeBase* e, GridObject* pParent = NULL, bool replacesParent = false){obj_created(e);}
+		virtual void edge_created(Grid* grid, Edge* e, GridObject* pParent = NULL, bool replacesParent = false){obj_created(e);}
 		virtual void face_created(Grid* grid, Face* f, GridObject* pParent = NULL, bool replacesParent = false){obj_created(f);}
 		virtual void volume_created(Grid* grid, Volume* vol, GridObject* pParent = NULL, bool replacesParent = false){obj_created(vol);}
 		/// \}

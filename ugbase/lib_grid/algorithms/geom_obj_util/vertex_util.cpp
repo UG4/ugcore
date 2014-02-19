@@ -47,7 +47,7 @@ int GetVertexIndex(VolumeVertices* vol, Vertex* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
-Vertex* GetConnectedVertex(EdgeBase* e, Vertex* v)
+Vertex* GetConnectedVertex(Edge* e, Vertex* v)
 {
 	if(e->vertex(0) == v)
 		return e->vertex(1);
@@ -85,7 +85,7 @@ int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed)
 }
 
 ////////////////////////////////////////////////////////////////////////
-EdgeBase* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri)
+Edge* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri)
 {
 	size_t numEdges = tri->num_edges();
 	EdgeDescriptor ed;
@@ -135,9 +135,9 @@ bool CollectSurfaceNeighborsSorted(std::vector<Vertex*>& vNeighborsOut,
 	if(grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)
 	   && grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES)){
 	//	collect edges in this vector
-		vector<EdgeBase*> edges;
+		vector<Edge*> edges;
 	//	start with an arbitrary edge
-		EdgeBase* curEdge = *grid.associated_edges_begin(v);
+		Edge* curEdge = *grid.associated_edges_begin(v);
 		
 		while(curEdge){
 			vNeighborsOut.push_back(GetConnectedVertex(curEdge, v));
@@ -324,13 +324,13 @@ void MergeVertices(Grid& grid, Vertex* v1, Vertex* v2)
 		Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(v2);
 		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v2); iter != iterEnd; ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			if(e->vertex(0) == v2)
 				ed.set_vertices(v1, e->vertex(1));
 			else
 				ed.set_vertices(e->vertex(0), v1);
 
-			EdgeBase* existingEdge = grid.get_edge(ed);
+			Edge* existingEdge = grid.get_edge(ed);
 			if(!existingEdge)
 				grid.create_by_cloning(e, ed, e);
 			else
@@ -511,14 +511,14 @@ void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 //	if there are no crease-edges then there is nothing to do.
 	if((int)sh.num_subsets() <= creaseSI)
 		return;
-	if(sh.num<EdgeBase>(creaseSI) == 0)
+	if(sh.num<Edge>(creaseSI) == 0)
 		return;
 
 //	begin marking
 	grid.begin_marking();
 //	iterate over all crease-edges
-	for(EdgeBaseIterator iter = sh.begin<EdgeBase>(creaseSI);
-		iter != sh.end<EdgeBase>(creaseSI); ++iter)
+	for(EdgeIterator iter = sh.begin<Edge>(creaseSI);
+		iter != sh.end<Edge>(creaseSI); ++iter)
 	{
 	//	check for both vertices whether they are fixed-vertices
 		for(int i = 0; i < 2; ++i)

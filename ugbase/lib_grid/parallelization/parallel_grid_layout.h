@@ -13,7 +13,7 @@
 #include "lib_grid/grid/grid_base_objects.h"
 #include "grid_object_id.h"
 
-//	specialize pcl::type_traits for Vertex, EdgeBase, Face and Volume
+//	specialize pcl::type_traits for Vertex, Edge, Face and Volume
 namespace pcl
 {
 ///	Vertex interfaces and layouts store elements of type Vertex*
@@ -23,11 +23,11 @@ struct type_traits<ug::Vertex>
 	typedef ug::Vertex* Elem;
 };
 
-///	EdgeBase interfaces and layouts store elements of type Vertex*
+///	Edge interfaces and layouts store elements of type Vertex*
 template <>
-struct type_traits<ug::EdgeBase>
+struct type_traits<ug::Edge>
 {
-	typedef ug::EdgeBase* Elem;
+	typedef ug::Edge* Elem;
 };
 
 ///	Face interfaces and layouts store elements of type Vertex*
@@ -87,7 +87,7 @@ enum InterfaceNodeTypes
 typedef pcl::MultiLevelLayout<
 		pcl::OrderedInterface<Vertex, std::list> >	VertexLayout;
 typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<EdgeBase, std::list> >	EdgeLayout;
+		pcl::OrderedInterface<Edge, std::list> >	EdgeLayout;
 typedef pcl::MultiLevelLayout<
 		pcl::OrderedInterface<Face, std::list> >		FaceLayout;
 typedef pcl::MultiLevelLayout<
@@ -101,7 +101,7 @@ typedef pcl::MultiLevelLayout<
  * The GridLayoutMap helps you to organize your layouts
  * (e.g. master- and slave-layouts).
  *
- * You may query layouts for Vertex, EdgeBase, Face and Volume.
+ * You may query layouts for Vertex, Edge, Face and Volume.
  *
  * You may use a LayoutMap as follows:
  *
@@ -208,11 +208,11 @@ class GridLayoutMap
 		inline const Types<Vertex>::Map&
 		get_layout_map(Vertex*) const;
 
-		inline Types<EdgeBase>::Map&
-		get_layout_map(EdgeBase*);
+		inline Types<Edge>::Map&
+		get_layout_map(Edge*);
 
-		inline const Types<EdgeBase>::Map&
-		get_layout_map(EdgeBase*) const;
+		inline const Types<Edge>::Map&
+		get_layout_map(Edge*) const;
 
 		inline Types<Face>::Map&
 		get_layout_map(Face*);
@@ -229,7 +229,7 @@ class GridLayoutMap
 	
 	private:
 		Types<Vertex>::Map	m_vertexLayoutMap;
-		Types<EdgeBase>::Map	m_edgeLayoutMap;
+		Types<Edge>::Map	m_edgeLayoutMap;
 		Types<Face>::Map		m_faceLayoutMap;
 		Types<Volume>::Map		m_volumeLayoutMap;
 };

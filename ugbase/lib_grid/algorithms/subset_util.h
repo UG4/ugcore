@@ -68,7 +68,7 @@ void AssignSelectionToSubset(ISelector& sel, ISubsetHandler& sh, int subsetInd);
 ///	assigns edges which belong to no subset and are adjacent to faces of different subsets to new subsets.
 /**
  * the edges of each interface between two subset are put into
- * a seperate subset, starting at GetMaxSubsetIndex<EdgeBase>(sh) + 1.
+ * a seperate subset, starting at GetMaxSubsetIndex<Edge>(sh) + 1.
  */
 UG_API
 void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh);
@@ -88,7 +88,7 @@ void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh);
 ///	assigns vertices of the given elements to the subset at subsetIndex
 /**
  * TIterator should be an stl-compatible iterator. Its value_type should be
- * a pointer to either EdgeBase, Face, Volume or an derived type of the three.
+ * a pointer to either Edge, Face, Volume or an derived type of the three.
  */
 template <class TIterator>
 void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
@@ -303,7 +303,7 @@ void AssignSubsetColors(ISubsetHandler& sh);
  * of type TElem. For each neighborhood constellation a separate subset index
  * is chosen.
  *
- * Valid parameters for TElem are: EdgeBase, Face, Volume
+ * Valid parameters for TElem are: Edge, Face, Volume
  *
  * You may specify a selector, which indicates which elements to check, when
  * looking for neighbors in different subsets. Please note, that the selector
@@ -380,7 +380,7 @@ void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
 //	AssignAssociatedEdgesToSubsets
 ///	Assigns associated edges of elements of type TElem in sh to sh.
 /**
- * Make sure that TElem is not of type EdgeBase or any derivate.
+ * Make sure that TElem is not of type Edge or any derivate.
  *
  * The method iterates over all elements of type TElem in sh and
  * assigns associated edges to sh. The target subset-index is taken

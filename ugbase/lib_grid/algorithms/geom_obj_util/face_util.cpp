@@ -308,7 +308,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 		vFacesOut.clear();
 		
 //	check if we can find an edge for the specified side
-	EdgeBase* e = grid.get_edge(f, side);
+	Edge* e = grid.get_edge(f, side);
 	assert(e && "edge not found though it should be there!");
 
 //	get the connected faces

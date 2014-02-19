@@ -68,7 +68,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 	m_gloMid[dim][0] *= 1./(m_gloMid[0].size());
 
 	// get natural edges (and faces if in 3d)
-	std::vector<EdgeBase*> vEdges;
+	std::vector<Edge*> vEdges;
 	CollectEdgesSorted(vEdges, grid, pElem);
 
 	// compute Nodes
@@ -632,7 +632,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	m_gloMid[dim][0] *= 1./(m_gloMid[0].size());
 
 	// get natural edges (and faces if in 3d)
-	std::vector<EdgeBase*> vEdges;
+	std::vector<Edge*> vEdges;
 	CollectEdgesSorted(vEdges, grid, pElem);
 
 	// compute Nodes

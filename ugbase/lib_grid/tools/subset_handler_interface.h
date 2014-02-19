@@ -112,14 +112,14 @@ class attachment_traits<Vertex*, ISubsetHandler>
 		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
 };
 
-//	specialization of attachment_traits for EdgeBase
+//	specialization of attachment_traits for Edge
 template<>
-class attachment_traits<EdgeBase*, ISubsetHandler>
+class attachment_traits<Edge*, ISubsetHandler>
 {
 	public:
-		typedef EdgeBase*&				ElemRef;
-		typedef EdgeBase*				ElemPtr;
-		typedef const EdgeBase*			ConstElemPtr;
+		typedef Edge*&				ElemRef;
+		typedef Edge*				ElemPtr;
+		typedef const Edge*			ConstElemPtr;
 		typedef ISubsetHandler*			ElemHandlerPtr;
 		typedef const ISubsetHandler*	ConstElemHandlerPtr;
 
@@ -169,7 +169,7 @@ class attachment_traits<Volume*, ISubsetHandler>
 /** A derived class has to implement the following public methods:
  * <code>
  * virtual void assign_subset(Vertex* elem, int subsetIndex)
- * virtual void assign_subset(EdgeBase* elem, int subsetIndex)
+ * virtual void assign_subset(Edge* elem, int subsetIndex)
  * virtual void assign_subset(Face* elem, int subsetIndex)
  * virtual void assign_subset(Volume* elem, int subsetIndex)
  * </code>
@@ -194,13 +194,13 @@ class attachment_traits<Volume*, ISubsetHandler>
 class UG_API ISubsetHandler : public GridObserver
 {/*
 	friend class attachment_traits<Vertex*, ISubsetHandler>;
-	friend class attachment_traits<EdgeBase*, ISubsetHandler>;
+	friend class attachment_traits<Edge*, ISubsetHandler>;
 	friend class attachment_traits<Face*, ISubsetHandler>;
 	friend class attachment_traits<Volume*, ISubsetHandler>;*/
 
 	public:/*
 		typedef AttachmentPipe<Vertex*, ISubsetHandler>	VertexAttachmentPipe;
-		typedef AttachmentPipe<EdgeBase*, ISubsetHandler>	EdgeAttachmentPipe;
+		typedef AttachmentPipe<Edge*, ISubsetHandler>	EdgeAttachmentPipe;
 		typedef AttachmentPipe<Face*, ISubsetHandler>		FaceAttachmentPipe;
 		typedef AttachmentPipe<Volume*, ISubsetHandler>		VolumeAttachmentPipe;*/
 
@@ -330,7 +330,7 @@ class UG_API ISubsetHandler : public GridObserver
 
 		int get_subset_index(GridObject* elem) const;
 		inline int get_subset_index(Vertex* elem) const;
-		inline int get_subset_index(EdgeBase* elem) const;
+		inline int get_subset_index(Edge* elem) const;
 		inline int get_subset_index(Face* elem) const;
 		inline int get_subset_index(Volume* elem) const;
 
@@ -351,7 +351,7 @@ class UG_API ISubsetHandler : public GridObserver
 									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
-		virtual void edge_created(Grid* grid, EdgeBase* e,
+		virtual void edge_created(Grid* grid, Edge* e,
 									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
@@ -366,8 +366,8 @@ class UG_API ISubsetHandler : public GridObserver
 		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
 										 Vertex* replacedBy = NULL);
 
-		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
-										 EdgeBase* replacedBy = NULL);
+		virtual void edge_to_be_erased(Grid* grid, Edge* e,
+										 Edge* replacedBy = NULL);
 
 		virtual void face_to_be_erased(Grid* grid, Face* f,
 										 Face* replacedBy = NULL);
@@ -378,8 +378,8 @@ class UG_API ISubsetHandler : public GridObserver
 		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
 										 Vertex* elem1, Vertex* elem2);
 
-		virtual void edges_to_be_merged(Grid* grid, EdgeBase* target,
-										 EdgeBase* elem1, EdgeBase* elem2);
+		virtual void edges_to_be_merged(Grid* grid, Edge* target,
+										 Edge* elem1, Edge* elem2);
 
 		virtual void faces_to_be_merged(Grid* grid, Face* target,
 										 Face* elem1, Face* elem2);
@@ -398,7 +398,7 @@ class UG_API ISubsetHandler : public GridObserver
 	 *	and call subset_assigned with the iterators position and the subset-index.
 	 *	The iterator can later be retrieved with get_list_iterator(...).
 	 *	The index can be retrieved with get_subset_index(...).*/
-		virtual void assign_subset(EdgeBase* elem, int subsetIndex) = 0;
+		virtual void assign_subset(Edge* elem, int subsetIndex) = 0;
 
 	/**	The implementation in a derived class should store the element in a list
 	 *	and call subset_assigned with the iterators position and the subset-index.
@@ -421,7 +421,7 @@ class UG_API ISubsetHandler : public GridObserver
 	///	collects all edges that are in the given subset.
 	/**	Please note: This method should only be used, if the begin and end methods
 	 *	of derived classes are not available.*/
-		//virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut,
+		//virtual size_t collect_subset_elements(std::vector<Edge*>& edgesOut,
 		//									   int subsetIndex) const = 0;
 
 	///	collects all faces that are in the given subset.
@@ -466,23 +466,23 @@ class UG_API ISubsetHandler : public GridObserver
 		/*inline bool subset_attachments_are_enabled()	{return m_bSubsetAttachmentsEnabled;};
 
 		inline uint get_attachment_data_index(const Vertex* v) const	{return m_aaDataIndVRT[v];}
-		inline uint get_attachment_data_index(const EdgeBase* e) const		{return m_aaDataIndEDGE[e];}
+		inline uint get_attachment_data_index(const Edge* e) const		{return m_aaDataIndEDGE[e];}
 		inline uint get_attachment_data_index(const Face* f) const			{return m_aaDataIndFACE[f];}
 		inline uint get_attachment_data_index(const Volume* v) const		{return m_aaDataIndVOL[v];}
 */
 	///	attach with unspecified default value.
-	/**	Pass either Vertex, EdgeBase, Face or Volume as TGeomObjClass.*/
+	/**	Pass either Vertex, Edge, Face or Volume as TGeomObjClass.*/
 		/*template <class TGeomObjClass>
 		inline void attach_to(IAttachment& attachment, int subsetIndex);
 */
 	///	attach with specified default value
-	/**	Pass either Vertex, EdgeBase, Face or Volume as TGeomObjClass.*/
+	/**	Pass either Vertex, Edge, Face or Volume as TGeomObjClass.*/
 		/*template <class TGeomObjClass, class TAttachment>
 		void attach_to_dv(TAttachment& attachment, int subsetIndex,
 						const typename TAttachment::ValueType& defaultValue);
 */
 	//	detach
-	/**	Pass either Vertex, EdgeBase, Face or Volume as TGeomObjClass.*/
+	/**	Pass either Vertex, Edge, Face or Volume as TGeomObjClass.*/
 		/*template <class TGeomObjClass>
 		void detach_from(IAttachment& attachment, int subsetIndex);
 */
@@ -490,7 +490,7 @@ class UG_API ISubsetHandler : public GridObserver
 	//	attachments helper
 	//	attach with attachments default pass-on behaviour
 		/*inline void attach_to_vertices(IAttachment& attachment, int subsetIndex)	{attach_to<Vertex>(attachment, subsetIndex);}
-		inline void attach_to_edges(IAttachment& attachment, int subsetIndex)		{attach_to<EdgeBase>(attachment, subsetIndex);}
+		inline void attach_to_edges(IAttachment& attachment, int subsetIndex)		{attach_to<Edge>(attachment, subsetIndex);}
 		inline void attach_to_faces(IAttachment& attachment, int subsetIndex)		{attach_to<Face>(attachment, subsetIndex);}
 		inline void attach_to_volumes(IAttachment& attachment, int subsetIndex)		{attach_to<Volume>(attachment, subsetIndex);}
 */
@@ -498,7 +498,7 @@ class UG_API ISubsetHandler : public GridObserver
 		/*template <class TAttachment>
 		inline void attach_to_vertices_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Vertex>(attachment, subsetIndex, defaultValue);}
 		template <class TAttachment>
-		inline void attach_to_edges_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<EdgeBase>(attachment, subsetIndex, defaultValue);}
+		inline void attach_to_edges_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<Edge>(attachment, subsetIndex, defaultValue);}
 		template <class TAttachment>
 		inline void attach_to_faces_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<Face>(attachment, subsetIndex, defaultValue);}
 		template <class TAttachment>
@@ -506,14 +506,14 @@ class UG_API ISubsetHandler : public GridObserver
 */
 	//	detach
 		/*inline void detach_from_vertices(IAttachment& attachment, int subsetIndex)	{detach_from<Vertex>(attachment, subsetIndex);}
-		inline void detach_from_edges(IAttachment& attachment, int subsetIndex)		{detach_from<EdgeBase>(attachment, subsetIndex);}
+		inline void detach_from_edges(IAttachment& attachment, int subsetIndex)		{detach_from<Edge>(attachment, subsetIndex);}
 		inline void detach_from_faces(IAttachment& attachment, int subsetIndex)		{detach_from<Face>(attachment, subsetIndex);}
 		inline void detach_from_volumes(IAttachment& attachment, int subsetIndex)	{detach_from<Volume>(attachment, subsetIndex);}
 */
 	///	returns the attachment data container for elements of type TGeomObj for the given subset.
 	/**	Use the data-container with care! You should never clear or resize it.
 	 *
-	 *	Valid types for TGeomObj are Vertex, EdgeBase, Face and Volume.
+	 *	Valid types for TGeomObj are Vertex, Edge, Face and Volume.
 	 *	call it like this (let sh be an instance of ISubsetHandler):
 	 *	sh.get_attachment_data_container<Vertex>(aSomeAttachment, someSubsetIndex);*/
 		/*template <class TGeomObj, class TAttachment>
@@ -522,12 +522,12 @@ class UG_API ISubsetHandler : public GridObserver
 */
 	protected:
 		typedef Grid::traits<Vertex>::AttachedElementList	AttachedVertexList;
-		typedef Grid::traits<EdgeBase>::AttachedElementList		AttachedEdgeList;
+		typedef Grid::traits<Edge>::AttachedElementList		AttachedEdgeList;
 		typedef Grid::traits<Face>::AttachedElementList			AttachedFaceList;
 		typedef Grid::traits<Volume>::AttachedElementList		AttachedVolumeList;
 
 		typedef Grid::traits<Vertex>::SectionContainer		VertexSectionContainer;
-		typedef Grid::traits<EdgeBase>::SectionContainer		EdgeSectionContainer;
+		typedef Grid::traits<Edge>::SectionContainer		EdgeSectionContainer;
 		typedef Grid::traits<Face>::SectionContainer			FaceSectionContainer;
 		typedef Grid::traits<Volume>::SectionContainer			VolumeSectionContainer;
 
@@ -556,7 +556,7 @@ class UG_API ISubsetHandler : public GridObserver
 		void create_required_subsets(int index);
 
 		inline void subset_assigned(Vertex* v, int subsetIndex);
-		inline void subset_assigned(EdgeBase* e, int subsetIndex);
+		inline void subset_assigned(Edge* e, int subsetIndex);
 		inline void subset_assigned(Face* f, int subsetIndex);
 		inline void subset_assigned(Volume* v, int subsetIndex);
 
@@ -569,7 +569,7 @@ class UG_API ISubsetHandler : public GridObserver
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
-		inline void alter_subset_index(EdgeBase* e, int subsetIndex)	{m_aaSubsetIndexEDGE[e] = subsetIndex;}
+		inline void alter_subset_index(Edge* e, int subsetIndex)	{m_aaSubsetIndexEDGE[e] = subsetIndex;}
 	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
@@ -611,7 +611,7 @@ class UG_API ISubsetHandler : public GridObserver
 	////////////////////////////////
 	//	attachments
 		/*inline void set_attachment_data_index(Vertex* v, uint index)	{m_aaDataIndVRT[v] = index;}
-		inline void set_attachment_data_index(EdgeBase* e, uint index)		{m_aaDataIndEDGE[e] = index;}
+		inline void set_attachment_data_index(Edge* e, uint index)		{m_aaDataIndEDGE[e] = index;}
 		inline void set_attachment_data_index(Face* f, uint index)			{m_aaDataIndFACE[f] = index;}
 		inline void set_attachment_data_index(Volume* v, uint index)		{m_aaDataIndVOL[v] = index;}
 
@@ -643,7 +643,7 @@ class UG_API ISubsetHandler : public GridObserver
 	/**	WARNING: This method is crucial for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
 	 *	Only call this method for elements that are contained in a subset.*/
-		//inline void register_at_pipe(EdgeBase* elem)	{m_edgeAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
+		//inline void register_at_pipe(Edge* elem)	{m_edgeAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
 
 	///	this method should be called during \sa register_subset_elements_at_pipe.
 	/**	WARNING: This method is crucial for the attachment system.
@@ -659,7 +659,7 @@ class UG_API ISubsetHandler : public GridObserver
 
 	public:
 	///	attachment accessor grants access to data associated with elements of a subset.
-	/**	Valid types for TGeomObj are Vertex, EdgeBase, Face and Volume*/
+	/**	Valid types for TGeomObj are Vertex, Edge, Face and Volume*/
 		/*template <class TGeomObj, class TAttachment>
 		class AttachmentAccessor : public ug::AttachmentAccessor<TGeomObj*, TAttachment, ISubsetHandler>
 		{

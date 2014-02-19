@@ -183,12 +183,12 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 }
 
 
-static void WriteEdges(ofstream& out, EdgeBaseIterator edgesBegin, EdgeBaseIterator edgesEnd,
+static void WriteEdges(ofstream& out, EdgeIterator edgesBegin, EdgeIterator edgesEnd,
 						int indexDimension, Grid::VertexAttachmentAccessor<AInt>& aaInt)
 {
 	while(edgesBegin != edgesEnd)
 	{
-		EdgeBase* e = *edgesBegin;
+		Edge* e = *edgesBegin;
 		out << "f";
 		for(uint i = 0; i < 2; ++i)
 		{
@@ -323,8 +323,8 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 
 				for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 				//	write the edges of this subset
-					WriteEdges(out, goc.begin<EdgeBase>(lvl),
-								goc.end<EdgeBase>(lvl), indexDimension, aaInt);
+					WriteEdges(out, goc.begin<Edge>(lvl),
+								goc.end<Edge>(lvl), indexDimension, aaInt);
 
 				//	write the faces of this subset
 					WriteFaces(out, goc.begin<Face>(lvl), goc.end<Face>(lvl),

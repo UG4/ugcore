@@ -68,13 +68,13 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 				  
 ////////////////////////////////////////////////////////////////////////
 template <class TEdgeIterator>
-std::pair<Vertex*, EdgeBase*>
+std::pair<Vertex*, Edge*>
 GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 							TEdgeIterator edgesEnd,
 							Grid::edge_traits::callback cbEdgeIsInPolyChain)
 {
 	if(edgesBegin == edgesEnd)
-		return std::make_pair<Vertex*, EdgeBase*>(NULL, NULL);
+		return std::make_pair<Vertex*, Edge*>(NULL, NULL);
 	
 //	since we want to prefer vertices with local edge index 0, we'll first iterate
 //	over the local indices of the edges
@@ -82,7 +82,7 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 	//	iterate through all edges.
 		for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
 		{
-			EdgeBase* curEdge = *iter;
+			Edge* curEdge = *iter;
 			Vertex* curVrt = curEdge->vertex(locInd);
 			
 		//	if curVrt is a boundary vertex of the given chain, then we're done.
@@ -111,7 +111,7 @@ bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 	}
 
 //TODO: handle open chains.
-	EdgeBase* actEdge = *edgesBegin;
+	Edge* actEdge = *edgesBegin;
 	Vertex* actVrt = actEdge->vertex(1);
 	polyChainOut.push_back(actEdge->vertex(0));
 	grid.mark(actEdge->vertex(0));
@@ -126,7 +126,7 @@ bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 		for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(actVrt);
 			eIter != assEdgesEnd; ++eIter)
 		{
-			EdgeBase* e = *eIter;
+			Edge* e = *eIter;
 			if(grid.is_marked(e)){
 			//	check whether the connected vertex is unmarked
 				Vertex* cv = GetConnectedVertex(e, actVrt);

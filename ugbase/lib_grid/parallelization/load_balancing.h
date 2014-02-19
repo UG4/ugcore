@@ -77,7 +77,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
  * Note that this method is best suited for partitions with more than 8 procs.
  * For less than 8 procs metis features other, better suited methods.
  *
- * Valid template arguments are EdgeBase, Face, Volume and derived types.
+ * Valid template arguments are Edge, Face, Volume and derived types.
  */
 template <class TGeomBaseObj>
 bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
@@ -100,7 +100,7 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
  * The bigger hWeight, the more attention is spend to keep neighbors together.
  * Both parameters have to be > 0. Default is 1.
  *
- * Valid template arguments are EdgeBase, Face, Volume and derived types.
+ * Valid template arguments are Edge, Face, Volume and derived types.
  */
 template <class TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
@@ -123,7 +123,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
  * weightFct specifies a function that attributes special weights to edges on the
  * dual graph.
  *
- * Valid template arguments are EdgeBase, Face, Volume and derived types.
+ * Valid template arguments are Edge, Face, Volume and derived types.
  */
 template <class TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,

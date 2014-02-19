@@ -674,7 +674,7 @@ num_constrained<Vertex>() const
 
 template <> size_t
 ConstrainingFace::
-num_constrained<EdgeBase>() const
+num_constrained<Edge>() const
 {
 	return num_constrained_edges();
 }
@@ -694,9 +694,9 @@ constrained<Vertex>(size_t ind) const
 	return constrained_vertex(ind);
 }
 
-template <> EdgeBase*
+template <> Edge*
 ConstrainingFace::
-constrained<EdgeBase>(size_t ind) const
+constrained<Edge>(size_t ind) const
 {
 	return constrained_edge(ind);
 }

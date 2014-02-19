@@ -137,7 +137,7 @@ class ParallelDualGraph{
  * If you are interested in the indices assigned to each element, then
  * pass a pointer to an TIndexType attachment to paIndex.
  *
- * TGeomBaseObj can be either Vertex, EdgeBase, Face or Volume and should
+ * TGeomBaseObj can be either Vertex, Edge, Face or Volume and should
  * represent the elements of highest dimension in a given grid.
  */
 template <class TGeomBaseObj, class TIndexType>

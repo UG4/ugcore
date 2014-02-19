@@ -9,7 +9,7 @@ namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 //	implementation of edge
-bool EdgeBase::get_opposing_side(Vertex* v, Vertex** vrtOut)
+bool Edge::get_opposing_side(Vertex* v, Vertex** vrtOut)
 {
 	if(v == m_vertices[0])
 		*vrtOut = m_vertices[1];
@@ -205,7 +205,7 @@ size_t hash_key<PEdgeVertices>(const PEdgeVertices& key)
 }
 
 template <>
-size_t hash_key<PEdgeBase>(const PEdgeBase& key)
+size_t hash_key<PEdge>(const PEdge& key)
 {
 	return HashKey(key);
 }

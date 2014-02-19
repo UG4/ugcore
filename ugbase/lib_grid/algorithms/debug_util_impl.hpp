@@ -41,7 +41,7 @@ inline vector3 GetGridObjectCenter(Grid& g, GridObject* elem)
 {
 	switch(elem->base_object_id()){
 		case VERTEX:	return GetGridObjectCenter(g, static_cast<Vertex*>(elem));
-		case EDGE:		return GetGridObjectCenter(g, static_cast<EdgeBase*>(elem));
+		case EDGE:		return GetGridObjectCenter(g, static_cast<Edge*>(elem));
 		case FACE:		return GetGridObjectCenter(g, static_cast<Face*>(elem));
 		case VOLUME:	return GetGridObjectCenter(g, static_cast<Volume*>(elem));
 		default:		UG_THROW("Unknown base object type."); break;

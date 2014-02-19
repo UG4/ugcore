@@ -80,7 +80,7 @@ bool HangingNodeRefiner_Grid::mark(Vertex* v, RefinementMark refMark)
 	return false;
 }
 
-bool HangingNodeRefiner_Grid::mark(EdgeBase* e, RefinementMark refMark)
+bool HangingNodeRefiner_Grid::mark(Edge* e, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
 		return BaseClass::mark(e, refMark);
@@ -110,13 +110,13 @@ bool HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 
 		HNODE_PROFILE_BEGIN(HNODE_ReserveVrtData);
 		mg.reserve<Vertex>(grid.num<Vertex>() +
-					+ sel.num<Vertex>() + sel.num<EdgeBase>()
+					+ sel.num<Vertex>() + sel.num<Edge>()
 					+ sel.num<Quadrilateral>() + sel.num<Hexahedron>());
 		HNODE_PROFILE_END();
 
 		HNODE_PROFILE_BEGIN(HNODE_ReserveEdgeData);
-		mg.reserve<EdgeBase>(mg.num<EdgeBase>()
-					+ 2 * mg.num<EdgeBase>() + 3 * mg.num<Triangle>()
+		mg.reserve<Edge>(mg.num<Edge>()
+					+ 2 * mg.num<Edge>() + 3 * mg.num<Triangle>()
 					+ 4 * mg.num<Quadrilateral>() + 3 * mg.num<Prism>()
 					+ mg.num<Tetrahedron>()
 					+ 4 * mg.num<Pyramid>() + 6 * mg.num<Hexahedron>());
@@ -171,10 +171,10 @@ post_refine()
 //	erase edges that are no longer needed.
 	if(grid.num_faces() > 0)
 	{
-		EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-		while(iter != m_selMarkedElements.end<EdgeBase>())
+		EdgeIterator iter = m_selMarkedElements.begin<Edge>();
+		while(iter != m_selMarkedElements.end<Edge>())
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			++iter;
 			CollectFaces(vFaces, grid, e);
 			if(vFaces.empty())
@@ -198,7 +198,7 @@ process_constraining_edge(ConstrainingEdge* e)
 }
 
 void HangingNodeRefiner_Grid::
-refine_edge_with_normal_vertex(EdgeBase* e, Vertex** newCornerVrts)
+refine_edge_with_normal_vertex(Edge* e, Vertex** newCornerVrts)
 {
 //	call original implementation
 	BaseClass::refine_edge_with_normal_vertex(e, newCornerVrts);
@@ -241,14 +241,14 @@ refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 }
 
 Vertex* HangingNodeRefiner_Grid::
-get_center_vertex(EdgeBase* e)
+get_center_vertex(Edge* e)
 {
 	return m_aaVertexEDGE[e];
 }
 
 
 void HangingNodeRefiner_Grid::
-set_center_vertex(EdgeBase* e, Vertex* v)
+set_center_vertex(Edge* e, Vertex* v)
 {
 	m_aaVertexEDGE[e] = v;
 }

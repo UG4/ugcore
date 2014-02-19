@@ -32,7 +32,7 @@ void DoFIndexStorage::init_attachments()
 		m_aaIndexVRT.access(*multi_grid(), m_aIndex);
 	}
 	if(max_dofs(EDGE)) {
-		multi_grid()->attach_to_dv<EdgeBase>(m_aIndex, (size_t)-1);
+		multi_grid()->attach_to_dv<Edge>(m_aIndex, (size_t)-1);
 		m_aaIndexEDGE.access(*multi_grid(), m_aIndex);
 	}
 	if(max_dofs(FACE)) {
@@ -49,7 +49,7 @@ void DoFIndexStorage::clear_attachments()
 {
 //	detach DoFs
 	if(m_aaIndexVRT.valid()) multi_grid()->detach_from<Vertex>(m_aIndex);
-	if(m_aaIndexEDGE.valid()) multi_grid()->detach_from<EdgeBase>(m_aIndex);
+	if(m_aaIndexEDGE.valid()) multi_grid()->detach_from<Edge>(m_aIndex);
 	if(m_aaIndexFACE.valid()) multi_grid()->detach_from<Face>(m_aIndex);
 	if(m_aaIndexVOL.valid()) multi_grid()->detach_from<Volume>(m_aIndex);
 
@@ -64,7 +64,7 @@ size_t& DoFIndexStorage::obj_index(GridObject* obj)
 	switch(obj->base_object_id())
 	{
 		case VERTEX: return obj_index(static_cast<Vertex*>(obj));
-		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
+		case EDGE:   return obj_index(static_cast<Edge*>(obj));
 		case FACE:   return obj_index(static_cast<Face*>(obj));
 		case VOLUME: return obj_index(static_cast<Volume*>(obj));
 		default: UG_THROW("Base Object type not found.");
@@ -76,7 +76,7 @@ const size_t& DoFIndexStorage::obj_index(GridObject* obj) const
 	switch(obj->base_object_id())
 	{
 		case VERTEX: return obj_index(static_cast<Vertex*>(obj));
-		case EDGE:   return obj_index(static_cast<EdgeBase*>(obj));
+		case EDGE:   return obj_index(static_cast<Edge*>(obj));
 		case FACE:   return obj_index(static_cast<Face*>(obj));
 		case VOLUME: return obj_index(static_cast<Volume*>(obj));
 		default: UG_THROW("Base Object type not found.");

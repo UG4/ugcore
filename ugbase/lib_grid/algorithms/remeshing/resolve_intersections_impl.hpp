@@ -11,7 +11,7 @@ namespace ug{
 
 template <class TAAPosVRT>
 Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
-										   EdgeBase* e, TAAPosVRT& aaPos,
+										   Edge* e, TAAPosVRT& aaPos,
 										   number snapThreshold)
 {
 	typedef typename TAAPosVRT::ValueType vector_t;
@@ -149,7 +149,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
  * ReolveVertexEdgeIntersection.
  */
 template <class TAAPosVRT>
-Vertex* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
+Vertex* ResolveEdgeEdgeIntersection(Grid& grid, Edge* e1, Edge* e2,
 										TAAPosVRT& aaPos, number snapThreshold)
 {
 	typedef typename TAAPosVRT::ValueType vector_t;
@@ -209,7 +209,7 @@ Vertex* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
  *		 should be used, which can take care of volume, too.
  */
 template <class TAAPosVRT>
-bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
+bool ResolveEdgeFaceIntersection(Grid& grid, Edge* e, Face* f,
 								 TAAPosVRT& aaPos, number snapThreshold)
 {
 	using namespace std;
@@ -311,10 +311,10 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
 		++vrtIter;
 
 	//	check against all edges
-		for(EdgeBaseIterator eIter = elems.begin<EdgeBase>();
-			eIter != elems.end<EdgeBase>();)
+		for(EdgeIterator eIter = elems.begin<Edge>();
+			eIter != elems.end<Edge>();)
 		{
-			EdgeBase* e = *eIter;
+			Edge* e = *eIter;
 			++eIter;
 
 		//	try to insert the vertex into the edge
@@ -367,17 +367,17 @@ bool IntersectCloseEdges(Grid& grid,
 //	we'll first mark all elements in elems to make sure that
 //	only edges which were initially marked are intersected.
 	grid.begin_marking();
-	for(EdgeBaseIterator iter = elems.begin<EdgeBase>();
-		iter != elems.end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = elems.begin<Edge>();
+		iter != elems.end<Edge>(); ++iter)
 	{
 		grid.mark(*iter);
 	}
 
 //	perform edge/edge and edge/face intersections
-	for(EdgeBaseIterator mainIter = elems.begin<EdgeBase>();
-		mainIter != elems.end<EdgeBase>();)
+	for(EdgeIterator mainIter = elems.begin<Edge>();
+		mainIter != elems.end<Edge>();)
 	{
-		EdgeBase* e = *mainIter;
+		Edge* e = *mainIter;
 		++mainIter;
 
 	//	if e is not marked, we can exit right away, since all succeeding
@@ -386,9 +386,9 @@ bool IntersectCloseEdges(Grid& grid,
 			break;
 
 	//	check all other edges up to e.
-		for(EdgeBaseIterator iter = elems.begin<EdgeBase>(); *iter != e;)
+		for(EdgeIterator iter = elems.begin<Edge>(); *iter != e;)
 		{
-			EdgeBase* e2 = *iter;
+			Edge* e2 = *iter;
 			++iter;
 
 		//	if an intersection occured, we have to move on to the next edge in the queue,
@@ -449,7 +449,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 //	clear edges and vertices from the selector. faces have to stay, since we will
 //	operate on them now.
 	sel.clear<Vertex>();
-	sel.clear<EdgeBase>();
+	sel.clear<Edge>();
 
 //	enable selection inheritance, since we want new elements to be
 //	selected in this selector
@@ -711,14 +711,14 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 	}
 
 	sel.clear<Vertex>();
-	sel.clear<EdgeBase>();
+	sel.clear<Edge>();
 
 //	finally delete all refined triangles and associated unused edges and vertices
 	SelectInnerSelectionEdges(sel);
 	SelectInnerSelectionVertices(sel);
 
 	grid.erase(sel.begin<Face>(), sel.end<Face>());
-	grid.erase(sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+	grid.erase(sel.begin<Edge>(), sel.end<Edge>());
 	grid.erase(sel.begin<Vertex>(), sel.end<Vertex>());
 
 	return true;

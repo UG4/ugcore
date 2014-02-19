@@ -141,12 +141,12 @@ template <class TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, numbe
 {
 	bool marked = false;
 	uint num_edges = f->num_edges();
-	vector<EdgeBase*> edges(num_edges);
+	vector<Edge*> edges(num_edges);
 	// collect associated edges
 	CollectAssociated(edges, *refiner->grid(), f);
 
 	//	find the shortest edge
-	EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+	Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
 	UG_ASSERT(minEdge,
 			"Associated edges of each face have to exist at this point.");
 	number minLen = EdgeLength(minEdge, aaPos);
@@ -154,7 +154,7 @@ template <class TAAPos> bool MarkIfAnisotropic(Face* f, IRefiner* refiner, numbe
 	//	compare all associated edges of f against minEdge (even minEdge itself,
 	//	if somebody sets edgeRatio to 1 or higher)
 	for (uint i_edge = 0; i_edge < num_edges; ++i_edge) {
-		EdgeBase* e = edges[i_edge];
+		Edge* e = edges[i_edge];
 		number len = EdgeLength(e, aaPos);
 		//	to avoid division by 0, we only consider edges with a length > 0
 		if(len > 0) {
@@ -225,7 +225,7 @@ void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 	number radiusSq = radius * radius;
 
 //	we'll store associated edges, faces and volumes in those containers
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	vector<Face*> vFaces;
 	vector<Volume*> vVols;
 
@@ -256,7 +256,7 @@ void MarkForRefinement_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Marks all elements which lie completely in the given d-dimensional sphere.
-/**	Valid parameters for TElem are EdgeBase, Face, Volume.*/
+/**	Valid parameters for TElem are Edge, Face, Volume.*/
 template <class TDomain, class TElem>
 void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 									const typename TDomain::position_type& center,
@@ -280,7 +280,7 @@ void MarkForRefinement_ElementsInSphere(TDomain& dom, SmartPtr<IRefiner> refiner
 	number radiusSq = radius * radius;
 
 //	we'll store associated edges, faces and volumes in those containers
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	vector<Face*> vFaces;
 	vector<Volume*> vVols;
 
@@ -334,7 +334,7 @@ void MarkForAdaption_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 	position_accessor_type& aaPos = dom.position_accessor();
 
 //	we'll store associated edges, faces and volumes in those containers
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	vector<Face*> vFaces;
 	vector<Volume*> vVols;
 
@@ -428,7 +428,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 	}
 
 //	we'll store associated edges and faces in those containers
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 
 //	iterate over all faces of the grid.
@@ -445,14 +445,14 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 		CollectAssociated(edges, grid, f);
 
 	//	find the shortest edge
-		EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+		Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
 		UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
 		number minLen = EdgeLength(minEdge, aaPos);
 
 	//	compare all associated edges of f against minEdge (even minEdge itself,
 	//	if somebody sets edgeRatio to 1 or higher)
 		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-			EdgeBase* e = edges[i_edge];
+			Edge* e = edges[i_edge];
 			number len = EdgeLength(e, aaPos);
 		//	to avoid division by 0, we only consider edges with a length > 0
 			if(len > 0){
@@ -501,7 +501,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 		if(refiner->get_mark(f) == RM_NONE){
 			bool gotOne = false;
 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-				EdgeBase* e = edges[i_edge];
+				Edge* e = edges[i_edge];
 				if(refiner->get_mark(e) != RM_NONE){
 					gotOne = true;
 					break;
@@ -510,7 +510,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 
 			if(gotOne){
 				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-					EdgeBase* e = edges[i_edge];
+					Edge* e = edges[i_edge];
 					if(refiner->get_mark(e) == RM_NONE){
 						refiner->mark(e);
 						CollectFaces(faces, grid, e);
@@ -530,7 +530,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 		}
 		else */if(refiner->get_mark(f) == RM_ANISOTROPIC){
 		//	find the shortest edge
-			EdgeBase* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
+			Edge* minEdge = FindShortestEdge(edges.begin(), edges.end(), aaPos);
 			UG_ASSERT(minEdge, "Associated edges of each face have to exist at this point.");
 			number minLen = EdgeLength(minEdge, aaPos);
 
@@ -539,7 +539,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 			bool shortEdgeSelected = false;
 
 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-				EdgeBase* e = edges[i_edge];
+				Edge* e = edges[i_edge];
 				if(refiner->get_mark(e) == RM_NONE)
 					continue;
 
@@ -559,7 +559,7 @@ void MarkForRefinement_AnisotropicElements(TDomain& dom, SmartPtr<IRefiner> refi
 		//	edges and push associated faces with anisotropic mark to the queue
 			if(longEdgeSelected && shortEdgeSelected){
 				for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-					EdgeBase* e = edges[i_edge];
+					Edge* e = edges[i_edge];
 					if(refiner->get_mark(e) == RM_NONE){
 					//	mark it and push associated anisotropic faces to the queue
 						refiner->mark(e);
@@ -683,7 +683,7 @@ void MarkForRefinement_AnisotropicElements2(TDomain& dom, SmartPtr<IRefiner> ref
 	}
 
 //	we'll store associated edges, faces and volumes in those containers
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 	vector<Volume*> volumes;
 //	iterate over all faces of the grid.
@@ -1057,7 +1057,7 @@ static void Domain(Registry& reg, string grp)
 				&MarkForAdaption_VerticesInSphere<domain_type>, grp,
 				"", "dom#refiner#center#radius#adaption_type")
 		.add_function("MarkForRefinement_EdgesInSphere",
-				&MarkForRefinement_ElementsInSphere<domain_type, EdgeBase>, grp,
+				&MarkForRefinement_ElementsInSphere<domain_type, Edge>, grp,
 				"", "dom#refiner#center#radius")
 		.add_function("MarkForRefinement_FacesInSphere",
 				&MarkForRefinement_ElementsInSphere<domain_type, Face>, grp,
@@ -1091,7 +1091,7 @@ static void Domain(Registry& reg, string grp)
 				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Vertex>,
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
 		.add_function("MarkForRefinement_EdgesInSubset",
-				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, EdgeBase>,
+				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Edge>,
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
 		.add_function("MarkForRefinement_FacesInSubset",
 				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Face>,
@@ -1106,7 +1106,7 @@ static void Domain(Registry& reg, string grp)
 				&MarkForAdaption_ElementsTouchingSubsets<domain_type>,
 				grp, "", "dom#refiner#subsetHandler#subsetNames#strMark");
 //		.add_function("MarkForAdaption_EdgesContainingPoint",
-//				&MarkForAdaption_ElementsContainingPoint<domain_type, EdgeBase>,
+//				&MarkForAdaption_ElementsContainingPoint<domain_type, Edge>,
 //				grp, "", "dom#refiner#x#y#z#markType")
 //		.add_function("MarkForAdaption_FacesContainingPoint",
 //				&MarkForAdaption_ElementsContainingPoint<domain_type, Face>,

@@ -266,9 +266,9 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 	number minTetrahedronHeight;
 
 //	Collect tetrahedron edges, find longest edge and calculate its length
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	CollectAssociated(edges, grid, tet);
-	EdgeBase* longestEdge = FindLongestEdge(edges.begin(), edges.end(), aaPos);
+	Edge* longestEdge = FindLongestEdge(edges.begin(), edges.end(), aaPos);
 	maxEdgelength = EdgeLength(longestEdge, aaPos);
 
 //	Calculate the minimal tetrahedron height

@@ -37,12 +37,12 @@ bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offse
 
 //	store the currently selected elements in arrays
 	vector<Vertex*>	oldVrts;
-	vector<EdgeBase*>	oldEdges;
+	vector<Edge*>	oldEdges;
 	vector<Face*>		oldFaces;
 	vector<Volume*>		oldVols;
 	oldVrts.reserve(sel.num<Vertex>());
 	oldVrts.assign(sel.vertices_begin(), sel.vertices_end());
-	oldEdges.reserve(sel.num<EdgeBase>());
+	oldEdges.reserve(sel.num<Edge>());
 	oldEdges.assign(sel.edges_begin(), sel.edges_end());
 	oldFaces.reserve(sel.num<Face>());
 	oldFaces.assign(sel.faces_begin(), sel.faces_end());
@@ -86,7 +86,7 @@ bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offse
 //	create new elements for all vector-entries
 //	edges
 	for(size_t i = 0; i < oldEdges.size(); ++i){
-		EdgeBase* oldElem = oldEdges[i];
+		Edge* oldElem = oldEdges[i];
 		grid.create_by_cloning(oldElem, EdgeDescriptor(vrts[aaInt[oldElem->vertex(0)]],
 											   	   	   vrts[aaInt[oldElem->vertex(1)]]),
 							   oldElem);

@@ -101,7 +101,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	///	a callback that allows to deny refinement of special vertices
 		virtual bool refinement_is_allowed(Vertex* elem);
 	///	a callback that allows to deny refinement of special edges
-		virtual bool refinement_is_allowed(EdgeBase* elem);
+		virtual bool refinement_is_allowed(Edge* elem);
 	///	a callback that allows to deny refinement of special faces
 		virtual bool refinement_is_allowed(Face* elem);
 	///	a callback that allows to deny refinement of special volumes
@@ -135,9 +135,9 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	///	calls base implementation and replaces cge with a normal edge.
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
 
-		virtual void refine_edge_with_normal_vertex(EdgeBase* e,
+		virtual void refine_edge_with_normal_vertex(Edge* e,
 											Vertex** newCornerVrts = NULL);
-		virtual void refine_edge_with_hanging_vertex(EdgeBase* e,
+		virtual void refine_edge_with_hanging_vertex(Edge* e,
 											Vertex** newCornerVrts = NULL);
 
 		virtual void refine_face_with_normal_vertex(Face* f,
@@ -150,10 +150,10 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	/*	\} */
 
 	///	Returns the vertex associated with the edge
-		virtual Vertex* get_center_vertex(EdgeBase* e);
+		virtual Vertex* get_center_vertex(Edge* e);
 
 	///	Associates a vertex with the edge.
-		virtual void set_center_vertex(EdgeBase* e, Vertex* v);
+		virtual void set_center_vertex(Edge* e, Vertex* v);
 
 	///	Returns the vertex associated with the face
 		virtual Vertex* get_center_vertex(Face* f);
@@ -210,7 +210,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 //		void classify_selection();
 
 	///	Applies marks like RM_COARSEN_CONSTRAINING or RM_COARSEN_UNCONSTRAIN
-	/**	This method should first be called for Face, then for EdgeBase, then for
+	/**	This method should first be called for Face, then for Edge, then for
 	 * Vertex.*/
 		//template <class TElem>
 		//void adjust_coarsen_marks_on_side_elements();
@@ -260,7 +260,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 
 	///	allows to check whether a distributed grid contains edges
 	/**	The default implementation returns whether the local grid contains edges.*/
-		virtual bool contains_edges()			{return m_pMG->num<EdgeBase>() > 0;}
+		virtual bool contains_edges()			{return m_pMG->num<Edge>() > 0;}
 
 	///	allows to check whether a distributed grid contains faces
 	/**	The default implementation returns whether the local grid contains faces.*/

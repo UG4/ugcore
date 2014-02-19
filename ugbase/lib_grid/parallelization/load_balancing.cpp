@@ -99,7 +99,7 @@ bool PartitionGrid_MetisKway(SubsetHandler& shPartitionOut,
 
 //////////////////////////////
 //	explicit instantiation
-template bool PartitionGrid_MetisKway<EdgeBase>(SubsetHandler&, Grid&, int);
+template bool PartitionGrid_MetisKway<Edge>(SubsetHandler&, Grid&, int);
 template bool PartitionGrid_MetisKway<Face>(SubsetHandler&, Grid&, int);
 template bool PartitionGrid_MetisKway<Volume>(SubsetHandler&, Grid&, int);
 
@@ -663,28 +663,28 @@ bool PartitionMultiGridLevel_ParmetisKway(SubsetHandler& shPartitionOut,
 
 //////////////////////////////
 //	explicit instantiation
-template bool PartitionMultiGrid_MetisKway<EdgeBase>(SubsetHandler&, MultiGrid&,
+template bool PartitionMultiGrid_MetisKway<Edge>(SubsetHandler&, MultiGrid&,
 													 int, size_t, int, int);
 template bool PartitionMultiGrid_MetisKway<Face>(SubsetHandler&, MultiGrid&,
 												 int, size_t, int, int);
 template bool PartitionMultiGrid_MetisKway<Volume>(SubsetHandler&, MultiGrid&,
 												   int, size_t, int, int);
 
-template bool PartitionMultiGrid_MetisKway<EdgeBase>(SubsetHandler&, MultiGrid&, int, size_t,
-													 boost::function<int (EdgeBase*, EdgeBase*)>&);
+template bool PartitionMultiGrid_MetisKway<Edge>(SubsetHandler&, MultiGrid&, int, size_t,
+													 boost::function<int (Edge*, Edge*)>&);
 template bool PartitionMultiGrid_MetisKway<Face>(SubsetHandler&, MultiGrid&, int, size_t,
 		 	 	 	 	 	 	 	 	 	 	 boost::function<int (Face*, Face*)>&);
 template bool PartitionMultiGrid_MetisKway<Volume>(SubsetHandler&, MultiGrid&, int, size_t,
 												   boost::function<int (Volume*, Volume*)>&);
 
-template bool PartitionMultiGridLevel_MetisKway<EdgeBase>(SubsetHandler&,
+template bool PartitionMultiGridLevel_MetisKway<Edge>(SubsetHandler&,
 													MultiGrid&, int, size_t);
 template bool PartitionMultiGridLevel_MetisKway<Face>(SubsetHandler&,
 													MultiGrid&, int, size_t);
 template bool PartitionMultiGridLevel_MetisKway<Volume>(SubsetHandler&,
 													MultiGrid&, int, size_t);
 
-template bool PartitionMultiGridLevel_ParmetisKway<EdgeBase>(SubsetHandler&,
+template bool PartitionMultiGridLevel_ParmetisKway<Edge>(SubsetHandler&,
 													MultiGrid&, int, size_t);
 template bool PartitionMultiGridLevel_ParmetisKway<Face>(SubsetHandler&,
 													MultiGrid&, int, size_t);

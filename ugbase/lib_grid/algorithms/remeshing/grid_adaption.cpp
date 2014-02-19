@@ -85,7 +85,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 		grid.associated_elements(edges, curVrt);
 
 		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-			EdgeBase* e = edges[i_edge];
+			Edge* e = edges[i_edge];
 			Vertex* vrt = GetConnectedVertex(e, curVrt);
 
 			if(sel.is_selected(vrt))

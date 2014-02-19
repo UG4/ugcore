@@ -81,7 +81,7 @@ class UG_API GridObjectCollection
 		
 	///	initializes level 0 with the given sections.
 		GridObjectCollection(ElementStorage<Vertex>::SectionContainer* vrtCon,
-								ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+								ElementStorage<Edge>::SectionContainer* edgeCon,
 								ElementStorage<Face>::SectionContainer* faceCon,
 								ElementStorage<Volume>::SectionContainer* volCon);
 
@@ -92,7 +92,7 @@ class UG_API GridObjectCollection
 		
 	///	only used during creation by the methods that create the collection
 		void add_level(ElementStorage<Vertex>::SectionContainer* vrtCon,
-						ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+						ElementStorage<Edge>::SectionContainer* edgeCon,
 						ElementStorage<Face>::SectionContainer* faceCon,
 						ElementStorage<Volume>::SectionContainer* volCon);
 
@@ -118,8 +118,8 @@ class UG_API GridObjectCollection
 
 		inline VertexIterator	vertices_begin(size_t level = 0)	{return begin<Vertex>(level);}
 		inline VertexIterator	vertices_end(size_t level = 0)		{return end<Vertex>(level);}
-		inline EdgeBaseIterator		edges_begin(size_t level = 0)		{return begin<EdgeBase>(level);}
-		inline EdgeBaseIterator		edges_end(size_t level = 0)			{return end<EdgeBase>(level);}
+		inline EdgeIterator		edges_begin(size_t level = 0)		{return begin<Edge>(level);}
+		inline EdgeIterator		edges_end(size_t level = 0)			{return end<Edge>(level);}
 		inline FaceIterator			faces_begin(size_t level = 0)		{return begin<Face>(level);}
 		inline FaceIterator			faces_end(size_t level = 0)			{return end<Face>(level);}
 		inline VolumeIterator		volumes_begin(size_t level = 0)		{return begin<Volume>(level);}
@@ -140,8 +140,8 @@ class UG_API GridObjectCollection
 
 		inline ConstVertexIterator	vertices_begin(size_t level = 0) const	{return begin<Vertex>(level);}
 		inline ConstVertexIterator	vertices_end(size_t level = 0) const	{return end<Vertex>(level);}
-		inline ConstEdgeBaseIterator	edges_begin(size_t level = 0) const		{return begin<EdgeBase>(level);}
-		inline ConstEdgeBaseIterator	edges_end(size_t level = 0) const		{return end<EdgeBase>(level);}
+		inline ConstEdgeIterator	edges_begin(size_t level = 0) const		{return begin<Edge>(level);}
+		inline ConstEdgeIterator	edges_end(size_t level = 0) const		{return end<Edge>(level);}
 		inline ConstFaceIterator		faces_begin(size_t level = 0) const		{return begin<Face>(level);}
 		inline ConstFaceIterator		faces_end(size_t level = 0) const		{return end<Face>(level);}
 		inline ConstVolumeIterator		volumes_begin(size_t level = 0) const	{return begin<Volume>(level);}
@@ -152,7 +152,7 @@ class UG_API GridObjectCollection
 		size_t num() const;
 		
 		inline size_t num_vertices() const	{return num<Vertex>();}
-		inline size_t num_edges() const		{return num<EdgeBase>();}
+		inline size_t num_edges() const		{return num<Edge>();}
 		inline size_t num_faces() const		{return num<Face>();}
 		inline size_t num_volumes() const	{return num<Volume>();}
 		
@@ -161,7 +161,7 @@ class UG_API GridObjectCollection
 		size_t num(size_t level) const;
 		
 		inline size_t num_vertices(size_t level) const	{return num<Vertex>(level);}
-		inline size_t num_edges(size_t level) const		{return num<EdgeBase>(level);}
+		inline size_t num_edges(size_t level) const		{return num<Edge>(level);}
 		inline size_t num_faces(size_t level) const		{return num<Face>(level);}
 		inline size_t num_volumes(size_t level) const	{return num<Volume>(level);}
 		
@@ -180,12 +180,12 @@ class UG_API GridObjectCollection
 		struct ContainerCollection{
 			ContainerCollection()	{}
 			ContainerCollection(ElementStorage<Vertex>::SectionContainer* vrtCon,
-								ElementStorage<EdgeBase>::SectionContainer* edgeCon,
+								ElementStorage<Edge>::SectionContainer* edgeCon,
 								ElementStorage<Face>::SectionContainer* faceCon,
 								ElementStorage<Volume>::SectionContainer* volCon);
 
 			ElementStorage<Vertex>::SectionContainer*	vrtContainer;
-			ElementStorage<EdgeBase>::SectionContainer*		edgeContainer;
+			ElementStorage<Edge>::SectionContainer*		edgeContainer;
 			ElementStorage<Face>::SectionContainer*			faceContainer;
 			ElementStorage<Volume>::SectionContainer*		volContainer;
 		};

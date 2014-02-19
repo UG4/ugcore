@@ -53,7 +53,7 @@ UG_API int GetVertexIndex(VolumeVertices* vol, Vertex* v);
 /**
  * returns NULL if v is not contained in e.
  */
-UG_API Vertex* GetConnectedVertex(EdgeBase* e, Vertex* v);
+UG_API Vertex* GetConnectedVertex(Edge* e, Vertex* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetConnectedVertex
@@ -68,7 +68,7 @@ UG_API int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
 ////////////////////////////////////////////////////////////////////////
 ///	returns the edge in the triangle tri, which does not contain vrt.
 /**	Make sure that tri is a triangle!*/
-UG_API EdgeBase* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri);
+UG_API Edge* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the number of associated edges of the given vertex

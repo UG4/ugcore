@@ -136,13 +136,13 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 		GMGR_PROFILE(GMGR_ReserveVrtData);
 		mg.reserve<Vertex>(mg.num<Vertex>() +
-					+ mg.num<Vertex>(l) + mg.num<EdgeBase>(l)
+					+ mg.num<Vertex>(l) + mg.num<Edge>(l)
 					+ mg.num<Quadrilateral>(l) + mg.num<Hexahedron>(l));
 		GMGR_PROFILE_END();
 
 		GMGR_PROFILE(GMGR_ReserveEdgeData);
-		mg.reserve<EdgeBase>(mg.num<EdgeBase>()
-					+ 2 * mg.num<EdgeBase>(l) + 3 * mg.num<Triangle>(l)
+		mg.reserve<Edge>(mg.num<Edge>()
+					+ 2 * mg.num<Edge>(l) + 3 * mg.num<Triangle>(l)
 					+ 4 * mg.num<Quadrilateral>(l) + 3 * mg.num<Prism>(l)
 					+ mg.num<Tetrahedron>(l)
 					+ 4 * mg.num<Pyramid>(l) + 6 * mg.num<Hexahedron>(l));
@@ -168,7 +168,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 //	notify derivates that refinement begins
 	refinement_step_begins();
 	
-//	cout << "num marked edges: " << m_selMarks.num<EdgeBase>() << endl;
+//	cout << "num marked edges: " << m_selMarks.num<Edge>() << endl;
 //	cout << "num marked faces: " << m_selMarks.num<Face>() << endl;
 
 //	we want to add new elements in a new layer.
@@ -181,7 +181,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 	vector<Vertex*> vVrts;
 	vector<Vertex*> vEdgeVrts;
 	vector<Vertex*> vFaceVrts;
-	vector<EdgeBase*>	vEdges;
+	vector<Edge*>	vEdges;
 	vector<Face*>		vFaces;
 	vector<Volume*>		vVols;
 	
@@ -215,15 +215,15 @@ void GlobalMultiGridRefiner::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  creating new edges\n");
 
 //	create new vertices and edges from marked edges
-	for(EdgeBaseIterator iter = mg.begin<EdgeBase>(oldTopLevel);
-		iter != mg.end<EdgeBase>(oldTopLevel); ++iter)
+	for(EdgeIterator iter = mg.begin<Edge>(oldTopLevel);
+		iter != mg.end<Edge>(oldTopLevel); ++iter)
 	{
 		if(!refinement_is_allowed(*iter))
 			continue;
 
 	//	collect_objects_for_refine removed all edges that already were
 	//	refined. No need to check that again.
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 
 	//	debug: make sure that both vertices may be refined
 /*		#ifdef UG_DEBUG
@@ -419,7 +419,7 @@ bool GlobalMultiGridRefiner::save_marks_to_file(const char* filename)
 	AssignGridToSubset(mg, sh, 2);
 	int lvl = mg.num_levels() - 1;
 	sh.assign_subset(mg.begin<Vertex>(lvl), mg.end<Vertex>(lvl), 0);
-	sh.assign_subset(mg.begin<EdgeBase>(lvl), mg.end<EdgeBase>(lvl), 0);
+	sh.assign_subset(mg.begin<Edge>(lvl), mg.end<Edge>(lvl), 0);
 	sh.assign_subset(mg.begin<Face>(lvl), mg.end<Face>(lvl), 0);
 	sh.assign_subset(mg.begin<Volume>(lvl), mg.end<Volume>(lvl), 0);
 	

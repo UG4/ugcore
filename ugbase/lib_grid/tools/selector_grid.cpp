@@ -28,7 +28,7 @@ Selector::~Selector()
 			section_container<Vertex>().get_container().set_pipe(NULL);
 
 		if(elements_are_supported(SE_EDGE))
-			section_container<EdgeBase>().get_container().set_pipe(NULL);
+			section_container<Edge>().get_container().set_pipe(NULL);
 
 		if(elements_are_supported(SE_FACE))
 			section_container<Face>().get_container().set_pipe(NULL);
@@ -84,8 +84,8 @@ void Selector::enable_element_support(uint shElements)
 				set_pipe(&m_pGrid->get_attachment_pipe<Vertex>());
 
 	if((shElements & SE_EDGE) && (!elements_are_supported(SE_EDGE)))
-		section_container<EdgeBase>().get_container().
-				set_pipe(&m_pGrid->get_attachment_pipe<EdgeBase>());
+		section_container<Edge>().get_container().
+				set_pipe(&m_pGrid->get_attachment_pipe<Edge>());
 
 	if((shElements & SE_FACE) && (!elements_are_supported(SE_FACE)))
 		section_container<Face>().get_container().
@@ -105,7 +105,7 @@ void Selector::disable_element_support(uint shElements)
 		section_container<Vertex>().get_container().set_pipe(NULL);
 
 	if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE))
-		section_container<EdgeBase>().get_container().set_pipe(NULL);
+		section_container<Edge>().get_container().set_pipe(NULL);
 
 	if((shElements & SE_FACE) && elements_are_supported(SE_FACE))
 		section_container<Face>().get_container().set_pipe(NULL);
@@ -119,7 +119,7 @@ void Selector::disable_element_support(uint shElements)
 void Selector::clear_lists()
 {
 	section_container<Vertex>().clear();
-	section_container<EdgeBase>().clear();
+	section_container<Edge>().clear();
 	section_container<Face>().clear();
 	section_container<Volume>().clear();
 }
@@ -127,7 +127,7 @@ void Selector::clear_lists()
 void Selector::clear()
 {
 	clear<Vertex>();
-	clear<EdgeBase>();
+	clear<Edge>();
 	clear<Face>();
 	clear<Volume>();
 }
@@ -138,9 +138,9 @@ void Selector::add_to_list(Vertex* elem)
 								elem->container_section());
 }
 
-void Selector::add_to_list(EdgeBase* elem)
+void Selector::add_to_list(Edge* elem)
 {
-	section_container<EdgeBase>().insert(elem,
+	section_container<Edge>().insert(elem,
 								elem->container_section());
 }
 
@@ -161,9 +161,9 @@ void Selector::erase_from_list(Vertex* elem)
 	section_container<Vertex>().erase(get_iterator(elem),
 						elem->container_section());
 }
-void Selector::erase_from_list(EdgeBase* elem)
+void Selector::erase_from_list(Edge* elem)
 {
-	section_container<EdgeBase>().erase(get_iterator(elem),
+	section_container<Edge>().erase(get_iterator(elem),
 						elem->container_section());
 }
 void Selector::erase_from_list(Face* elem)

@@ -83,7 +83,7 @@ number CalculateVolume(Face* elem, TAAPos aaPos)
 
 
 template <class TAAPos>
-number CalculateVolume(EdgeBase* elem, TAAPos aaPos)
+number CalculateVolume(Edge* elem, TAAPos aaPos)
 {
 	return EdgeLength(elem, aaPos);
 }

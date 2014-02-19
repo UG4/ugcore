@@ -23,8 +23,8 @@ bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
  * This algorithm uses Grid::mark.
  *
  */			
-bool TriangleFill(Grid& grid, EdgeBaseIterator edgesBegin,
-				EdgeBaseIterator edgesEnd, bool bTriangulateInside = true);
+bool TriangleFill(Grid& grid, EdgeIterator edgesBegin,
+				EdgeIterator edgesEnd, bool bTriangulateInside = true);
 
 /**@}*/ // end of doxygen defgroup command
 

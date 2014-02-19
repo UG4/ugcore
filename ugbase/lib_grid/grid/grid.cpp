@@ -183,7 +183,7 @@ void Grid::clear_geometry()
 	
 	clear<Volume>();
 	clear<Face>();
-	clear<EdgeBase>();
+	clear<Edge>();
 	clear<Vertex>();
 	
 //	reset options
@@ -222,7 +222,7 @@ void Grid::clear_attachments()
 void Grid::clear_attachments()
 {
 	clear_attachments<Vertex>();
-	clear_attachments<EdgeBase>();
+	clear_attachments<Edge>();
 	clear_attachments<Face>();
 	clear_attachments<Volume>();
 }
@@ -288,12 +288,12 @@ void Grid::assign_grid(const Grid& grid)
 	}
 
 //	copy all edges
-	vSrcDataIndexEDGE.resize(grid.num<EdgeBase>());
-	ConstEdgeBaseIterator edgesEnd = grid.end<EdgeBase>();
-	for(ConstEdgeBaseIterator iter = grid.begin<EdgeBase>(); iter != edgesEnd; ++iter)
+	vSrcDataIndexEDGE.resize(grid.num<Edge>());
+	ConstEdgeIterator edgesEnd = grid.end<Edge>();
+	for(ConstEdgeIterator iter = grid.begin<Edge>(); iter != edgesEnd; ++iter)
 	{
-		EdgeBase* e = *iter;
-		EdgeBase* nE = *create_by_cloning(e, EdgeDescriptor(
+		Edge* e = *iter;
+		Edge* nE = *create_by_cloning(e, EdgeDescriptor(
 											vrtMap[grid.get_attachment_data_index(e->vertex(0))],
 											vrtMap[grid.get_attachment_data_index(e->vertex(1))]));
 		vSrcDataIndexEDGE[get_attachment_data_index(nE)] = grid.get_attachment_data_index(e);
@@ -375,13 +375,13 @@ VertexIterator Grid::create_by_cloning(Vertex* pCloneMe, GridObject* pParent)
 	return iterator_cast<VertexIterator>(get_iterator(pNew));
 }
 
-EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GridObject* pParent)
+EdgeIterator Grid::create_by_cloning(Edge* pCloneMe, const EdgeVertices& ev, GridObject* pParent)
 {
-	EdgeBase* pNew = reinterpret_cast<EdgeBase*>(pCloneMe->create_empty_instance());
+	Edge* pNew = reinterpret_cast<Edge*>(pCloneMe->create_empty_instance());
 	pNew->set_vertex(0, ev.vertex(0));
 	pNew->set_vertex(1, ev.vertex(1));
 	register_edge(pNew, pParent);
-	return iterator_cast<EdgeBaseIterator>(get_iterator(pNew));
+	return iterator_cast<EdgeIterator>(get_iterator(pNew));
 }
 
 FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GridObject* pParent)
@@ -420,7 +420,7 @@ void Grid::erase(GridObject* geomObj)
 			erase(dynamic_cast<Vertex*>(geomObj));
 			break;
 		case EDGE:
-			erase(dynamic_cast<EdgeBase*>(geomObj));
+			erase(dynamic_cast<Edge*>(geomObj));
 			break;
 		case FACE:
 			erase(dynamic_cast<Face*>(geomObj));
@@ -442,7 +442,7 @@ void Grid::erase(Vertex* vrt)
 	delete vrt;
 }
 
-void Grid::erase(EdgeBase* edge)
+void Grid::erase(Edge* edge)
 {
 	assert((edge != NULL) && "ERROR in Grid::erase(Edge*): invalid pointer)");
 	assert(edge->container_section() != -1
@@ -484,7 +484,7 @@ GridObjectCollection Grid::get_grid_objects()
 									 &m_volumeElementStorage.m_sectionContainer);
 }
 
-void Grid::flip_orientation(EdgeBase* e)
+void Grid::flip_orientation(Edge* e)
 {
 	swap(e->m_vertices[0], e->m_vertices[1]);
 }
@@ -510,7 +510,7 @@ void Grid::flip_orientation(Face* f)
 		//	get the descriptor of the i-th edge
 			f->edge_desc(ind, ed);
 		//	find the edge by checking vertices.
-			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
+			Edge* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 			if(e)
 				m_aaEdgeContainerFACE[f].push_back(e);
 		}
@@ -537,7 +537,7 @@ void Grid::flip_orientation(Volume* vol)
 		//	get the descriptor of the i-th edge
 			vol->edge_desc(ind, ed);
 		//	find the edge by checking vertices.
-			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
+			Edge* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 			if(e)
 				m_aaEdgeContainerVOLUME[vol].push_back(e);
 		}
@@ -633,7 +633,7 @@ void Grid::pass_on_values(Vertex* objSrc, Vertex* objDest)
 	pass_on_values(m_vertexElementStorage.m_attachmentPipe, objSrc, objDest);
 }
 
-void Grid::pass_on_values(EdgeBase* objSrc, EdgeBase* objDest)
+void Grid::pass_on_values(Edge* objSrc, Edge* objDest)
 {
 	pass_on_values(m_edgeElementStorage.m_attachmentPipe, objSrc, objDest);
 }
@@ -913,7 +913,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_end(Vertex* vrt)
 	return m_aaFaceContainerVERTEX[vrt].end();
 }
 
-Grid::AssociatedFaceIterator Grid::associated_faces_begin(EdgeBase* edge)
+Grid::AssociatedFaceIterator Grid::associated_faces_begin(Edge* edge)
 {
 	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -923,7 +923,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_begin(EdgeBase* edge)
 	return m_aaFaceContainerEDGE[edge].begin();
 }
 
-Grid::AssociatedFaceIterator Grid::associated_faces_end(EdgeBase* edge)
+Grid::AssociatedFaceIterator Grid::associated_faces_end(Edge* edge)
 {
 	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -975,7 +975,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Vertex* vrt)
 	return m_aaVolumeContainerVERTEX[vrt].end();
 }
 
-Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(EdgeBase* edge)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Edge* edge)
 {
 	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -985,7 +985,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(EdgeBase* edge)
 	return m_aaVolumeContainerEDGE[edge].begin();
 }
 
-Grid::AssociatedVolumeIterator Grid::associated_volumes_end(EdgeBase* edge)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Edge* edge)
 {
 	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -1018,18 +1018,18 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Face* face)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	neighbourhood access
-EdgeBase* Grid::get_edge(Vertex* v1, Vertex* v2)
+Edge* Grid::get_edge(Vertex* v1, Vertex* v2)
 {
 	EdgeDescriptor ed(v1, v2);
 	return find_edge_in_associated_edges(v1, ed);
 }
 
-EdgeBase* Grid::get_edge(EdgeVertices& ev)
+Edge* Grid::get_edge(EdgeVertices& ev)
 {
 	return find_edge_in_associated_edges(ev.vertex(0), ev);
 }
 
-EdgeBase* Grid::get_edge(Face* f, int ind)
+Edge* Grid::get_edge(Face* f, int ind)
 {
 //	check whether the face stores associated edges
 	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
@@ -1054,7 +1054,7 @@ EdgeBase* Grid::get_edge(Face* f, int ind)
 	return NULL;
 }
 
-EdgeBase* Grid::get_edge(Volume* v, int ind)
+Edge* Grid::get_edge(Volume* v, int ind)
 {
 //	check whether the face stores associated edges
 	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
@@ -1126,10 +1126,10 @@ Vertex::side* Grid::get_side(Vertex* obj, size_t side)
 	return NULL;
 }
 
-EdgeBase::side* Grid::get_side(EdgeBase* obj, size_t side)
+Edge::side* Grid::get_side(Edge* obj, size_t side)
 {
 	GRID_PROFILE_FUNC();
-	assert(side < 2 && "ERROR in Grid::get_side(EdgeBase*, ...): Bad side index!");
+	assert(side < 2 && "ERROR in Grid::get_side(Edge*, ...): Bad side index!");
 	return obj->vertex(side);
 }
 
@@ -1184,7 +1184,7 @@ void Grid::reset_marks()
 		pContainer->get_elem(i) = 0;
 
 //	reset edge marks
-	pContainer = get_attachment_data_container<EdgeBase>(m_aMark);
+	pContainer = get_attachment_data_container<Edge>(m_aMark);
 	for(uint i = 0; i < pContainer->size(); ++i)
 		pContainer->get_elem(i) = 0;
 

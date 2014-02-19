@@ -193,7 +193,7 @@ class StdLagrangeElemTransfer
 			switch(pdim){
 				case 3: prolongate<TElem,Volume>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
 				case 2: prolongate<TElem,Face>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
-				case 1: prolongate<TElem,EdgeBase>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+				case 1: prolongate<TElem,Edge>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
 						prolongate<TElem,Vertex>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
 				break;
 				default: UG_THROW("Dimension "<<pdim<<" not supported");

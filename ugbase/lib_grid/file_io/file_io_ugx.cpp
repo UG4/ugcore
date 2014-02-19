@@ -142,7 +142,7 @@ add_subset_handler(ISubsetHandler& sh, const char* name,
 				create_subset_element_node<Vertex>("vertices", sh, i));
 		if(sh.contains_edges(i))
 			ndSubset->append_node(
-				create_subset_element_node<EdgeBase>("edges", sh, i));
+				create_subset_element_node<Edge>("edges", sh, i));
 		if(sh.contains_faces(i))
 			ndSubset->append_node(
 				create_subset_element_node<Face>("faces", sh, i));
@@ -252,7 +252,7 @@ add_selector(ISelector& sel, const char* name, size_t refGridIndex)
 	if(sel.contains_vertices())
 		ndSel->append_node(create_selector_element_node<Vertex>("vertices", sel));
 	if(sel.contains_edges())
-		ndSel->append_node(create_selector_element_node<EdgeBase>("edges", sel));
+		ndSel->append_node(create_selector_element_node<Edge>("edges", sel));
 	if(sel.contains_faces())
 		ndSel->append_node(create_selector_element_node<Face>("faces", sel));
 	if(sel.contains_volumes())
@@ -463,7 +463,7 @@ create_constrained_edge_node(ConstrainedEdgeIterator edgesBegin,
 	//			1: edge. index follows
 	//			2: face. index follows
 	//			3: volume. index follows
-		EdgeBase* ce = dynamic_cast<EdgeBase*>((*iter)->get_constraining_object());
+		Edge* ce = dynamic_cast<Edge*>((*iter)->get_constraining_object());
 		Face* cf = dynamic_cast<Face*>((*iter)->get_constraining_object());
 		if(ce)
 			ss << "1 " << aaIndEDGE[ce] << " ";
@@ -879,7 +879,7 @@ subset_handler(ISubsetHandler& shOut,
 													 subsetNode, subsetInd,
 													 gridEntry.vertices);
 		if(shOut.elements_are_supported(SHE_EDGE))
-			read_subset_handler_elements<EdgeBase>(shOut, "edges",
+			read_subset_handler_elements<Edge>(shOut, "edges",
 													 subsetNode, subsetInd,
 													 gridEntry.edges);
 		if(shOut.elements_are_supported(SHE_FACE))
@@ -993,7 +993,7 @@ selector(ISelector& selOut, size_t selectorIndex, size_t refGridIndex)
 											selectorNode,
 											gridEntry.vertices);
 	if(selOut.elements_are_supported(SHE_EDGE))
-		read_selector_elements<EdgeBase>(selOut, "edges",
+		read_selector_elements<Edge>(selOut, "edges",
 											selectorNode,
 											gridEntry.edges);
 	if(selOut.elements_are_supported(SHE_FACE))
@@ -1112,7 +1112,7 @@ new_document_parsed()
 }
 
 bool GridReaderUGX::
-create_edges(std::vector<EdgeBase*>& edgesOut,
+create_edges(std::vector<Edge*>& edgesOut,
 			Grid& grid, rapidxml::xml_node<>* node,
 			std::vector<Vertex*>& vrts)
 {
@@ -1148,7 +1148,7 @@ create_edges(std::vector<EdgeBase*>& edgesOut,
 }
 
 bool GridReaderUGX::
-create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
+create_constraining_edges(std::vector<Edge*>& edgesOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
 			 			  std::vector<Vertex*>& vrts)
 {
@@ -1183,7 +1183,7 @@ create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
 }
 
 bool GridReaderUGX::
-create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
+create_constrained_edges(std::vector<Edge*>& edgesOut,
 						  std::vector<std::pair<int, int> >& constrainingObjsOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
 			 			  std::vector<Vertex*>& vrts)

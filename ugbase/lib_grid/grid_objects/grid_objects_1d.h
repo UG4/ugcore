@@ -34,7 +34,7 @@ enum EdgeContainerSections
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API RegularEdge : public EdgeBase
+class UG_API RegularEdge : public Edge
 {
 	friend class Grid;
 	public:
@@ -60,12 +60,12 @@ class UG_API RegularEdge : public EdgeBase
 		virtual int container_section() const	{return CSEDGE_REGULAR_EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
-	///	virtual refine. Returns pointers to EdgeBase.
+	///	virtual refine. Returns pointers to Edge.
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
-	 * \sa EdgeBase::refine.
+	 * \sa Edge::refine.
 	 */
-		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
+		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
 							Vertex* newVertex,
 							Vertex** pSubstituteVrts = NULL);
 
@@ -73,7 +73,7 @@ class UG_API RegularEdge : public EdgeBase
 	///	non virtual refine. Returns pointers to RegularEdge.
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
-	 * \sa EdgeBase::refine.
+	 * \sa Edge::refine.
 	 */
 		bool refine(std::vector<RegularEdge*>& vNewEdgesOut,
 					Vertex* newVertex,
@@ -84,12 +84,12 @@ template <>
 class geometry_traits<RegularEdge>
 {
 	public:
-		typedef GenericGridObjectIterator<RegularEdge*, EdgeBaseIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<RegularEdge*, EdgeBaseIterator,
-														ConstEdgeBaseIterator>	const_iterator;
+		typedef GenericGridObjectIterator<RegularEdge*, EdgeIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<RegularEdge*, EdgeIterator,
+														ConstEdgeIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
-		typedef EdgeBase		grid_base_object;
+		typedef Edge		grid_base_object;
 
 		enum
 		{
@@ -114,7 +114,7 @@ typedef geometry_traits<RegularEdge>::const_iterator 	ConstRegularEdgeIterator;
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API ConstrainedEdge : public EdgeBase
+class UG_API ConstrainedEdge : public Edge
 {
 	friend class Grid;
 	public:
@@ -146,14 +146,14 @@ class UG_API ConstrainedEdge : public EdgeBase
 
 		virtual bool is_constrained() const			{return true;}
 
-	///	virtual refine. Returns pointers to EdgeBase.
+	///	virtual refine. Returns pointers to Edge.
 	/**
 	 * create 2 new constrained edges, connecting the original edges end-points with vrtNew.
 	 * please note that the caller is responsible to resolve any conflicts arising with
 	 * existing links of constrained/constraining objects.
-	 * \sa EdgeBase::refine.
+	 * \sa Edge::refine.
 	 */
-		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
+		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
 							Vertex* newVertex,
 							Vertex** pSubstituteVrts = NULL);
 
@@ -163,7 +163,7 @@ class UG_API ConstrainedEdge : public EdgeBase
 	 * create 2 new constrained edges, connecting the original edges end-points with vrtNew.
 	 * please note that the caller is responsible to resolve any conflicts arising with
 	 * existing links of constrained/constraining objects.
-	 * \sa EdgeBase::refine
+	 * \sa Edge::refine
 	 */
 		bool refine(std::vector<ConstrainedEdge*>& vNewEdgesOut,
 					Vertex* newVertex,
@@ -200,12 +200,12 @@ template <>
 class geometry_traits<ConstrainedEdge>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainedEdge*, EdgeBaseIterator>		iterator;
-		typedef ConstGenericGridObjectIterator<ConstrainedEdge*, EdgeBaseIterator,
-																ConstEdgeBaseIterator>	const_iterator;
+		typedef GenericGridObjectIterator<ConstrainedEdge*, EdgeIterator>		iterator;
+		typedef ConstGenericGridObjectIterator<ConstrainedEdge*, EdgeIterator,
+																ConstEdgeIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
-		typedef EdgeBase		grid_base_object;
+		typedef Edge		grid_base_object;
 
 		enum
 		{
@@ -229,7 +229,7 @@ typedef geometry_traits<ConstrainedEdge>::const_iterator 	ConstConstrainedEdgeIt
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API ConstrainingEdge : public EdgeBase
+class UG_API ConstrainingEdge : public Edge
 {
 	friend class Grid;
 	public:
@@ -261,13 +261,13 @@ class UG_API ConstrainingEdge : public EdgeBase
 
 		virtual bool is_constraining() const	{return true;}
 
-	///	virtual refine. Returns pointers to EdgeBase.
+	///	virtual refine. Returns pointers to Edge.
 	/**
 	 * create 2 new constraining edges, connecting the original edges end-points with vrtNew.
 	 * The refine has no effect on constrained objects. The user has to manually copy them.
-	 * \sa EdgeBase::refine.
+	 * \sa Edge::refine.
 	 */
-		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
+		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
 							Vertex* newVertex,
 							Vertex** pSubstituteVrts = NULL);
 
@@ -276,7 +276,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 	/**
 	 * create 2 new constraining edges, connecting the original edges end-points with vrtNew.
 	 * The refine has no effect on constrained objects. The user has to manually copy them.
-	 * \sa EdgeBase::refine.
+	 * \sa Edge::refine.
 	 */
 		bool refine(std::vector<ConstrainingEdge*>& vNewEdgesOut,
 						Vertex* newVertex,
@@ -289,7 +289,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 					m_constrainedVertices.push_back(pObj);
 			}
 
-		inline void add_constrained_object(EdgeBase* pObj)
+		inline void add_constrained_object(Edge* pObj)
 			{
 				UG_ASSERT(!is_constrained_object(pObj), "edge is already constrained by this edge.");
 					m_constrainedEdges.push_back(pObj);
@@ -302,9 +302,9 @@ class UG_API ConstrainingEdge : public EdgeBase
 				return iter != m_constrainedVertices.end();
 			}
 
-		inline bool is_constrained_object(EdgeBase* edge)
+		inline bool is_constrained_object(Edge* edge)
 			{
-				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
+				std::vector<Edge*>::iterator iter = find(m_constrainedEdges.begin(),
 																m_constrainedEdges.end(), edge);
 				return iter != m_constrainedEdges.end();
 			}
@@ -317,9 +317,9 @@ class UG_API ConstrainingEdge : public EdgeBase
 					m_constrainedVertices.erase(iter);
 			}
 
-		inline void unconstrain_object(const EdgeBase* edge)
+		inline void unconstrain_object(const Edge* edge)
 			{
-				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
+				std::vector<Edge*>::iterator iter = find(m_constrainedEdges.begin(),
 																m_constrainedEdges.end(), edge);
 				if(iter != m_constrainedEdges.end())
 					m_constrainedEdges.erase(iter);
@@ -347,7 +347,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 			return m_constrainedVertices[ind];
 		}
 
-		EdgeBase* constrained_edge(size_t ind) const
+		Edge* constrained_edge(size_t ind) const
 		{
 			UG_ASSERT(ind < m_constrainedEdges.size(), "bad index");
 			return m_constrainedEdges[ind];
@@ -357,19 +357,19 @@ class UG_API ConstrainingEdge : public EdgeBase
 
 	protected:
 		std::vector<Vertex*>	m_constrainedVertices;
-		std::vector<EdgeBase*>		m_constrainedEdges;
+		std::vector<Edge*>		m_constrainedEdges;
 };
 
 template <>
 class geometry_traits<ConstrainingEdge>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainingEdge*, EdgeBaseIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<ConstrainingEdge*, EdgeBaseIterator,
-																	ConstEdgeBaseIterator>	const_iterator;
+		typedef GenericGridObjectIterator<ConstrainingEdge*, EdgeIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<ConstrainingEdge*, EdgeIterator,
+																	ConstEdgeIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
-		typedef EdgeBase		grid_base_object;
+		typedef Edge		grid_base_object;
 
 		enum
 		{

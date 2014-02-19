@@ -24,7 +24,7 @@ class MGHNodeAdjuster : public IRefMarkAdjuster
 
 		virtual void ref_marks_changed(IRefiner& ref,
 										const std::vector<Vertex*>& vrts,
-										const std::vector<EdgeBase*>& edges,
+										const std::vector<Edge*>& edges,
 										const std::vector<Face*>& faces,
 										const std::vector<Volume*>& vols);
 };

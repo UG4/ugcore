@@ -54,7 +54,7 @@ CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT,
 //	CalculateCenter
 ///	calculates the center for a set of elements
 /**	TIterator::value_type has to be compatible with
- *  Vertex*, EdgeBase*, Face* or Volume*.
+ *  Vertex*, Edge*, Face* or Volume*.
  */
 template <class TIterator, class TAAPosVRT>
 UG_API 
@@ -83,7 +83,7 @@ TElem* FindClosestByCoordinate(const typename TVertexPositionAttachmentAccessor:
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the bounding box of a set of geometric objects
 /**	TIterator has to be an iterator to a set containing elements of type
- * EdgeBase*, Face* or Volume*. An overload for Vertex* exists.
+ * Edge*, Face* or Volume*. An overload for Vertex* exists.
  *
  * Make sure that TAAPos::ValueType == vector_t.
  */
@@ -98,7 +98,7 @@ void CalculateBoundingBox(vector_t& vMinOut, vector_t& vMaxOut,
 ///	returns the number of vertices that are shared by two objects
 /**	This algorithm uses Grid::mark.
  *
- *	Valid types are EdgeBase*, Face*, Volume* and derivates of those.
+ *	Valid types are Edge*, Face*, Volume* and derivates of those.
  *	You may combine different types in one query.
  */
 template <class TElemPtr1, class TElemPtr2>

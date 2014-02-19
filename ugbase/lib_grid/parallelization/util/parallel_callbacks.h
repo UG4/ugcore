@@ -26,7 +26,7 @@ class IsRegularSurfaceElem
 		}
 
 		bool operator() (Vertex* v)	{return is_ok(v);}
-		bool operator() (EdgeBase* e)	{return is_ok(e);}
+		bool operator() (Edge* e)	{return is_ok(e);}
 		bool operator() (Face* f)		{return is_ok(f);}
 		bool operator() (Volume* v)		{return is_ok(v);}
 

@@ -71,8 +71,8 @@ size_t CollectVerticesTouchingSelection(std::vector<Vertex*>& vrtsOut,
 			}
 		}
 
-		for(EdgeBaseIterator iter = goc.begin<EdgeBase>(lvl);
-			iter != goc.end<EdgeBase>(lvl); ++iter)
+		for(EdgeIterator iter = goc.begin<Edge>(lvl);
+			iter != goc.end<Edge>(lvl); ++iter)
 		{
 			for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
 				Vertex* vrt = (*iter)->vertex(i);
@@ -126,8 +126,8 @@ void EraseSelectedObjects(TSelector& sel)
 	{
 		EraseElements<Vertex>(grid, sel.template begin<Vertex>(i),
 								  sel.template end<Vertex>(i));
-		EraseElements<EdgeBase>(grid, sel.template begin<EdgeBase>(i),
-					  			sel.template end<EdgeBase>(i));
+		EraseElements<Edge>(grid, sel.template begin<Edge>(i),
+					  			sel.template end<Edge>(i));
 		EraseElements<Face>(grid, sel.template begin<Face>(i),
 					  		sel.template end<Face>(i));
 		EraseElements<Volume>(grid, sel.template begin<Volume>(i),
@@ -146,8 +146,8 @@ void InvertSelection(TSelector& sel)
 	
 	InvertSelection(sel, grid.begin<Vertex>(),
 					grid.end<Vertex>());
-	InvertSelection(sel, grid.begin<EdgeBase>(),
-					grid.end<EdgeBase>());
+	InvertSelection(sel, grid.begin<Edge>(),
+					grid.end<Edge>());
 	InvertSelection(sel, grid.begin<Face>(),
 					grid.end<Face>());
 	InvertSelection(sel, grid.begin<Volume>(),
@@ -183,8 +183,8 @@ void InvertSelection(TSelector& sel)
 //		SelectAssociatedVertices(sel, sel.begin<Face>(),
 //								 sel.end<Face>(), status);
 //
-//	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(),
-//							 sel.end<EdgeBase>(), status);
+//	SelectAssociatedVertices(sel, sel.begin<Edge>(),
+//							 sel.end<Edge>(), status);
 //}
 
 
@@ -219,8 +219,8 @@ void SelectAssociatedGridObjects(TSelector& sel, ISelector::status_t status)
 			SelectAssociatedVertices(sel, sel.template begin<Face>(i),
 									 sel.template end<Face>(i), status);
 			
-		SelectAssociatedVertices(sel, sel.template begin<EdgeBase>(i),
-								 sel.template end<EdgeBase>(i), status);
+		SelectAssociatedVertices(sel, sel.template begin<Edge>(i),
+								 sel.template end<Edge>(i), status);
 	}
 }
 
@@ -373,7 +373,7 @@ void SelectionFill(Selector& sel,
 }
 
 //	Only those template specializations make sense.
-template void SelectionFill<EdgeBase>(Selector&, Grid::vertex_traits::callback);
+template void SelectionFill<Edge>(Selector&, Grid::vertex_traits::callback);
 template void SelectionFill<Face>(Selector&, Grid::edge_traits::callback);
 template void SelectionFill<Volume>(Selector&, Grid::face_traits::callback);
 
@@ -392,7 +392,7 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 	{
 		if(selectAssociatedElements)
 		{
-			SelectAssociatedVertices(msel, msel.begin<EdgeBase>(i), msel.end<EdgeBase>(i));
+			SelectAssociatedVertices(msel, msel.begin<Edge>(i), msel.end<Edge>(i));
 			SelectAssociatedVertices(msel, msel.begin<Face>(i), msel.end<Face>(i));
 			SelectAssociatedVertices(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
 			
@@ -444,8 +444,8 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 	stack<Vertex*>	m_candidates;
 	
 //	initially mark all vertices of selected edges as candidates
-	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
-		iter != sel.end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = sel.begin<Edge>();
+		iter != sel.end<Edge>(); ++iter)
 	{
 	//	we don't care if vertices are pushed twice.
 	//	if a vertex is selected and stopAtSelVrts is true,
@@ -463,13 +463,13 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 		m_candidates.pop();
 
 	//	search for associated selected edges (there has to be at last one!)
-		EdgeBase* lastEdge = NULL;
+		Edge* lastEdge = NULL;
 		int counter = 0;
 		
 		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(srcVrt);
 			iter != grid.associated_edges_end(srcVrt); ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			if(sel.is_selected(e)){
 				lastEdge = e;
 				++counter;
@@ -497,7 +497,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 		while(srcVrt)
 		{
 		//	check smoothness for each connected unselected edge
-			EdgeBase* bestEdge = NULL;
+			Edge* bestEdge = NULL;
 			number bestDot = -1.1;
 			number bestNormalDot = -1.1;
 			vector3 bestDir(0, 0, 0);
@@ -513,7 +513,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(srcVrt);
 				iter != iterEnd; ++iter)
 			{
-				EdgeBase* e = *iter;
+				Edge* e = *iter;
 				if(!sel.is_selected(e)){
 				//	check smoothness
 					vector3 dir;
@@ -637,10 +637,10 @@ void SelectInnerSelectionVertices(TSelector& sel)
 			}
 		}
 
-		for(EdgeBaseIterator iter = sel.template begin<EdgeBase>(lvl);
-			iter != sel.template end<EdgeBase>(lvl); ++iter)
+		for(EdgeIterator iter = sel.template begin<Edge>(lvl);
+			iter != sel.template end<Edge>(lvl); ++iter)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 			for(size_t i = 0; i < 2; ++i){
 				Vertex* v = e->vertex(i);
 				if(!grid.is_marked(v)){
@@ -713,8 +713,8 @@ void SelectInnerSelectionEdges(TSelector& sel)
 	grid.begin_marking();
 	
 //	we'll first collect all edges that we want to check
-	vector<EdgeBase*> edges;
-	vector<EdgeBase*> vAssEdges;
+	vector<Edge*> edges;
+	vector<Edge*> vAssEdges;
 	
 //	iterate over all levels
 	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
@@ -724,7 +724,7 @@ void SelectInnerSelectionEdges(TSelector& sel)
 		{
 			CollectEdges(vAssEdges, grid, *iter);
 			for(size_t i = 0; i < vAssEdges.size(); ++i){
-				EdgeBase* e = vAssEdges[i];
+				Edge* e = vAssEdges[i];
 				if(!grid.is_marked(e)){
 					grid.mark(e);
 					edges.push_back(e);
@@ -737,7 +737,7 @@ void SelectInnerSelectionEdges(TSelector& sel)
 		{
 			CollectEdges(vAssEdges, grid, *iter);
 			for(size_t i = 0; i < vAssEdges.size(); ++i){
-				EdgeBase* e = vAssEdges[i];
+				Edge* e = vAssEdges[i];
 				if(!grid.is_marked(e)){
 					grid.mark(e);
 					edges.push_back(e);
@@ -754,7 +754,7 @@ void SelectInnerSelectionEdges(TSelector& sel)
 	
 	for(size_t i = 0; i < edges.size(); ++i)
 	{
-		EdgeBase* e = edges[i];
+		Edge* e = edges[i];
 	
 	//	check whether all associated elements are selected
 		bool foundUnselected = false;
@@ -916,10 +916,10 @@ void DeselectBoundarySelectionEdges(TSelector& sel)
 //	check each selected vertex of each level
 	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
 	{
-		for(EdgeBaseIterator iter = sel.template begin<EdgeBase>(lvl);
-			iter != sel.template end<EdgeBase>(lvl);)
+		for(EdgeIterator iter = sel.template begin<Edge>(lvl);
+			iter != sel.template end<Edge>(lvl);)
 		{
-			EdgeBase* e = *iter;
+			Edge* e = *iter;
 		//	increase iterator here, since e may get deselected.
 			++iter;
 			
@@ -1015,7 +1015,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 	
 //	we'll collect neighbours in this vector
 	vector<Face*> vNeighbours;
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	
 //	while there are candidates left
 	while(!qCandidates.empty())
@@ -1034,7 +1034,7 @@ void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 	//	iterate through all neighbours
 		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge)
 		{
-			EdgeBase* e = edges[i_edge];
+			Edge* e = edges[i_edge];
 			if(stopAtSelectedEdges && sel.is_selected(e))
 				continue;
 
@@ -1101,7 +1101,7 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 	}
 
 //	temporary vectors for edges and faces
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 	vector<Face*> faces;
 
 //	while there are candidates left
@@ -1120,7 +1120,7 @@ void SelectLinkedFlatAndDegeneratedFaces(Selector& sel,
 	//	iterate through all edges
 		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge)
 		{
-			EdgeBase* e = edges[i_edge];
+			Edge* e = edges[i_edge];
 
 		//	only proceed if the edge is not degenerated
 			if(EdgeLengthSq(e, aaPos) <= degThresholdSq)

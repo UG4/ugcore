@@ -34,7 +34,7 @@ bool Refine(Grid& grid, Selector& sel,
 static void AdjustSelection(Grid& grid, Selector& sel)
 {
 //	select all edges of selected faces
-	vector<EdgeBase*> vEdges;
+	vector<Edge*> vEdges;
 	for(FaceIterator iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter){
 		CollectEdges(vEdges, grid, *iter);
 		for(size_t i = 0; i < vEdges.size(); ++i)
@@ -53,8 +53,8 @@ static void AdjustSelection(Grid& grid, Selector& sel)
 //	select all faces and volumes which are adjacent to selected edges
 	vector<Face*> vFaces;
 	vector<Volume*> vVols;
-	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
-		iter != sel.end<EdgeBase>(); ++iter)
+	for(EdgeIterator iter = sel.begin<Edge>();
+		iter != sel.end<Edge>(); ++iter)
 	{
 		CollectFaces(vFaces, grid, *iter);
 		for(size_t i = 0; i < vFaces.size(); ++i)
@@ -114,7 +114,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 //	we will select associated vertices, too, since we have to
 //	notify the refinement-callback, that they are involved in refinement.
 	sel.clear<Vertex>();
-	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+	SelectAssociatedVertices(sel, sel.begin<Edge>(), sel.end<Edge>());
 	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
 	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>());
 	
@@ -133,13 +133,13 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	}
 
 //	number of edges, faces and volumes that will be refined
-	const size_t numRefEdges = sel.num<EdgeBase>();
+	const size_t numRefEdges = sel.num<Edge>();
 	const size_t numRefFaces = sel.num<Face>();
 	const size_t numRefVols = sel.num<Volume>();
 	
 //	we need several arrays.
 //	this one stores pointers to all edges that shall be refined
-	vector<EdgeBase*> edges(numRefEdges);
+	vector<Edge*> edges(numRefEdges);
 //	one that stores the new vertex for each edge that shall be refined.
 	vector<RegularVertex*>	edgeVrts(numRefEdges);
 //	one that stores the selected faces
@@ -173,9 +173,9 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 ////////////////////////////////
 //	fill the edges- and edgeVrts-array and assign indices to selected edges
 	{
-		EdgeBaseIterator edgesEnd = sel.end<EdgeBase>();
+		EdgeIterator edgesEnd = sel.end<Edge>();
 		int i = 0;
-		for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
+		for(EdgeIterator iter = sel.begin<Edge>();
 			iter != edgesEnd; ++iter, ++i)
 		{
 		//	store the edge
@@ -193,10 +193,10 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 
 ////////////////////////////////
 //	refine the selected edges
-	vector<EdgeBase*> newEdges;
+	vector<Edge*> newEdges;
 	newEdges.reserve(2);
 	for(size_t i = 0; i < edges.size(); ++i){
-		EdgeBase* e = edges[i];
+		Edge* e = edges[i];
 		if(e->refine(newEdges, edgeVrts[i])){
 			for(size_t j = 0; j < newEdges.size(); ++j)
 				grid.register_element(newEdges[j], e);
@@ -237,7 +237,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	//	collect vertices of associated edges
 		faceEdgeVrts.clear();
 		for(uint j = 0; j < f->num_edges(); ++j){
-			EdgeBase* e = grid.get_edge(f, j);
+			Edge* e = grid.get_edge(f, j);
 			if(sel.is_selected(e))
 				faceEdgeVrts.push_back(edgeVrts[aaIntEDGE[e]]);
 			else
@@ -301,7 +301,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	//	collect vertices of associated edges
 		volEdgeVrts.clear();
 		for(uint j = 0; j < v->num_edges(); ++j){
-			EdgeBase* e = grid.get_edge(v, j);
+			Edge* e = grid.get_edge(v, j);
 			if(sel.is_selected(e))
 				volEdgeVrts.push_back(edgeVrts[aaIntEDGE[e]]);
 			else

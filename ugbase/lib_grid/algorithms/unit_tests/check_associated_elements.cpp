@@ -24,7 +24,7 @@ void CheckAssociatedEdgesOfVolumes(Grid& g)
 		g.clear_marks();
 
 	//	get all associated edges
-		std::vector<EdgeBase*> edges;
+		std::vector<Edge*> edges;
 		CollectAssociated(edges, g, vol);
 
 	//	iterate over them and mark them. Make sure none is marked twice.
@@ -45,7 +45,7 @@ void CheckAssociatedEdgesOfVolumes(Grid& g)
 			EdgeDescriptor ed;
 			for(size_t i_ed = 0; i_ed < vol->num_edges(); ++i_ed){
 				vol->edge_desc(i_ed, ed);
-				EdgeBase* e = g.get_edge(ed);
+				Edge* e = g.get_edge(ed);
 
 				if(e != g.get_edge(vol, i_ed)){
 					UG_THROW("Grid::get_edge(vol, i) does not return the i-th edge of vol!");
@@ -86,8 +86,8 @@ void CheckAssociatedVolumesOfEdges(Grid& g)
 	g.begin_marking();
 
 //	iterate over all volumes
-	for(EdgeBaseIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
-		EdgeBase* e = *iter;
+	for(EdgeIterator iter = g.edges_begin(); iter != g.edges_end(); ++iter){
+		Edge* e = *iter;
 		g.clear_marks();
 
 	//	get all associated volumes
@@ -104,7 +104,7 @@ void CheckAssociatedVolumesOfEdges(Grid& g)
 
 	//	now iterate over associated volumes of all corner vertices of e
 	//	and make sure that each is marked
-		EdgeBase::ConstVertexArray vrts = e->vertices();
+		Edge::ConstVertexArray vrts = e->vertices();
 		for(size_t i_vrt = 0; i_vrt < e->num_vertices(); ++i_vrt){
 			CollectAssociated(vols, g, vrts[i_vrt]);
 			for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){

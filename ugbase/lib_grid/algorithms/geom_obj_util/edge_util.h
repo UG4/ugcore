@@ -29,7 +29,7 @@ namespace ug
 /**
  * returns -1 if the edge was not found.
  */
-UG_API int GetEdgeIndex(Face* f, EdgeBase* e);
+UG_API int GetEdgeIndex(Face* f, Edge* e);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetEdgeIndex
@@ -37,7 +37,7 @@ UG_API int GetEdgeIndex(Face* f, EdgeBase* e);
 /**
  * returns -1 if the edge was not found.
  */
-UG_API int GetEdgeIndex(Volume* vol, EdgeBase* e);
+UG_API int GetEdgeIndex(Volume* vol, Edge* e);
 
 
 ///	returns true if the edge is connected to exactly one surface face.
@@ -48,7 +48,7 @@ UG_API int GetEdgeIndex(Volume* vol, EdgeBase* e);
  * Take a look at existing standard callbacks, if you want to use this method.
  */
 UG_API 
-bool IsBoundaryEdge(Grid& grid, EdgeBase* e,
+bool IsBoundaryEdge(Grid& grid, Edge* e,
 					Grid::face_traits::callback funcIsSurfFace);
 
 
@@ -58,7 +58,7 @@ bool IsBoundaryEdge(Grid& grid, EdgeBase* e,
  *	to exactly one face.
  *	if EDGEOPT_STORE_ASSOCIATED_FACES is enabled, the algorithm will be faster.
  */
-UG_API bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
+UG_API bool IsBoundaryEdge2D(Grid& grid, Edge* e);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns whether an edge lies on the boundary of a 3D grid.
@@ -70,11 +70,11 @@ UG_API bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
  *	If it is not enabled, this algorithm will enable it.
  *	\todo This algorithm should work without VOLOPT_AUTOGENERATE_FACES, too.
  */
-UG_API bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e);
+UG_API bool IsBoundaryEdge3D(Grid& grid, Edge* e);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns true, if the edge lies on a 2d or 3d boundary
-UG_API bool LiesOnBoundary(Grid& grid, EdgeBase* e);
+UG_API bool LiesOnBoundary(Grid& grid, Edge* e);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetAssociatedFaces
@@ -89,7 +89,7 @@ UG_API bool LiesOnBoundary(Grid& grid, EdgeBase* e);
  */
 UG_API 
 int GetAssociatedFaces(Face** facesOut, Grid& grid,
-						EdgeBase* e, int maxNumFaces);
+						Edge* e, int maxNumFaces);
 
 ////////////////////////////////////////////////////////////////////////
 //	NumAssociatedFaces
@@ -100,7 +100,7 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
  * The method returns the number of total number of associated faces.
  */
 UG_API 
-int NumAssociatedFaces(Grid& grid, EdgeBase* e);
+int NumAssociatedFaces(Grid& grid, Edge* e);
 						
 ////////////////////////////////////////////////////////////////////////
 ///	Calculates the squared length of the given edge
@@ -138,7 +138,7 @@ inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos);
  * \returns the number of faces that are associated with the edge.
  */
 UG_API 
-int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
+int CalculateNormal(vector3& vNormOut, Grid& grid, Edge* e,
 					Grid::AttachmentAccessor<Vertex, APosition>& aaPos,
 					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE = NULL);
 
@@ -162,7 +162,7 @@ int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
  * \returns the number of faces that are associated with the edge.
  */
 UG_API 
-int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
+int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, Edge* e,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE = NULL);
 										
@@ -179,7 +179,7 @@ int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
  * deleted as well.
  */
 UG_API 
-bool CollapseEdge(Grid& grid, EdgeBase* e, Vertex* newVrt);
+bool CollapseEdge(Grid& grid, Edge* e, Vertex* newVrt);
 
 ////////////////////////////////////////////////////////////////////////
 //	EdgeCollapseIsValid
@@ -189,7 +189,7 @@ bool CollapseEdge(Grid& grid, EdgeBase* e, Vertex* newVrt);
  * returns false if the topology would be affected.
  */
 UG_API 
-bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e);
+bool EdgeCollapseIsValid(Grid& grid, Edge* e);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -203,7 +203,7 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e);
  */
 template<class TVertex>
 UG_API 
-TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative = false);
+TVertex* SplitEdge(Grid& grid, Edge* e, bool bConservative = false);
 
 ////////////////////////////////////////////////////////////////////////
 //	SplitEdge
@@ -224,7 +224,7 @@ TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative = false);
  */
 template<class TVertex>
 UG_API 
-TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
+TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, Edge* e,
 						AVertex* paAssociatedVertices = NULL,
 						bool bConservative = false);
 
@@ -239,7 +239,7 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
  *	The swapped edge is returned.
  */
 UG_API 
-EdgeBase* SwapEdge(Grid& grid, EdgeBase* e);
+Edge* SwapEdge(Grid& grid, Edge* e);
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateEdgeSplitGeometry
@@ -256,7 +256,7 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e);
  * constructed in this case by cloning the associated ones in srcGrid.
  */
 UG_API 
-bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
+bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, Edge* e,
 							 Vertex* newVertex,
 							 AVertex* paAssociatedVertices = NULL);
 
@@ -282,7 +282,7 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 template<class TVertexPositionAttachmentAccessor>
 UG_API 
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(const EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
+CalculateCenter(const Edge* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -312,7 +312,7 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
  * swaps orientation of edges so that all neighboured
  * edges share the same.
  *
- * Value type of TEdgeIterator has to be compatible with EdgeBase*.
+ * Value type of TEdgeIterator has to be compatible with Edge*.
  *
  * Note that all edges between edgesBegin and edgesEnd have to be members
  * of the specified grid.
@@ -337,7 +337,7 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Returns the shortest edge in a list of edges
-/**	TEdgeIterator has to point to values of type EdgeBase* and has to be an
+/**	TEdgeIterator has to point to values of type Edge* and has to be an
  * stl-iterator compatible iterator. TAAPosVRT has to be an attachment accessor
  * which provides a position value (vector1, vector2, vector3, ...) for the
  * vertices of the edge.
@@ -346,7 +346,7 @@ void AdjustEdgeOrientationToFaceOrientation(Grid& grid, TEdgeIterator edgesBegin
  */
 template <class TEdgeIterator, class TAAPosVRT>
 UG_API 
-EdgeBase* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+Edge* FindShortestEdge(TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
 							TAAPosVRT& aaPos);
 
 ////////////////////////////////////////////////////////////////////////////////

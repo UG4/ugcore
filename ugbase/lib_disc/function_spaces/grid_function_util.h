@@ -98,7 +98,7 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string
 		const size_t fct = spGF->fct_id_by_name(vCmp[f].c_str());
 
 		if(ddinfo->max_fct_dofs(fct, VERTEX)) SubtractValueFromComponent<GF, Vertex>(spGF, fct, sub);
-		if(ddinfo->max_fct_dofs(fct, EDGE)) SubtractValueFromComponent<GF, EdgeBase>(spGF, fct, sub);
+		if(ddinfo->max_fct_dofs(fct, EDGE)) SubtractValueFromComponent<GF, Edge>(spGF, fct, sub);
 		if(ddinfo->max_fct_dofs(fct, FACE)) SubtractValueFromComponent<GF, Face>(spGF, fct, sub);
 		if(ddinfo->max_fct_dofs(fct, VOLUME)) SubtractValueFromComponent<GF, Volume>(spGF, fct, sub);
 	}

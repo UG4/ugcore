@@ -33,7 +33,7 @@ bool RepeatedEdgeExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
 							int numSteps, const ug::vector3& stepDir)
 {
-	std::vector<EdgeBase*> vElems;
+	std::vector<Edge*> vElems;
 	vElems.assign(iterBegin, iterEnd);
 
 	for(int i = 0; i < numSteps; ++i)

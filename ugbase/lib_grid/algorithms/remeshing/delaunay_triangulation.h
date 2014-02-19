@@ -82,13 +82,13 @@ class DelaunayInfo : public GridObserver
 
 		bool is_marked(Vertex* vrt)		{return m_aaMarkedVRT[vrt] != 0;}
 
-		void mark_as_constrained(EdgeBase* e)	{m_aaMarkedEDGE[e] = 2;}
+		void mark_as_constrained(Edge* e)	{m_aaMarkedEDGE[e] = 2;}
 
-		bool is_constrained(EdgeBase* e)	{return (m_aaMarkedEDGE[e] == 2) || m_cbConstrainedEdge(e);}
+		bool is_constrained(Edge* e)	{return (m_aaMarkedEDGE[e] == 2) || m_cbConstrainedEdge(e);}
 
-		bool is_candidate(EdgeBase* e)		{return m_aaMarkedEDGE[e] == 1;}
+		bool is_candidate(Edge* e)		{return m_aaMarkedEDGE[e] == 1;}
 
-		void push_candidate(EdgeBase* e)
+		void push_candidate(Edge* e)
 		{
 			if(!is_candidate(e)){
 				m_aaMarkedEDGE[e] = 1;
@@ -96,9 +96,9 @@ class DelaunayInfo : public GridObserver
 			}
 		}
 
-		EdgeBase* pop_candidate()
+		Edge* pop_candidate()
 		{
-			EdgeBase* e = m_qEdgeCandidates.front();
+			Edge* e = m_qEdgeCandidates.front();
 			m_qEdgeCandidates.pop();
 			m_aaMarkedEDGE[e] = 0;
 			return e;
@@ -242,13 +242,13 @@ class DelaunayInfo : public GridObserver
 		//	new vertices created on constrained edges shall not be marked
 			if(pParent){
 				if(pParent->base_object_id() == EDGE){
-					if(is_constrained(static_cast<EdgeBase*>(pParent)))
+					if(is_constrained(static_cast<Edge*>(pParent)))
 						m_aaMarkedVRT[vrt] = 0;
 				}
 			}
 		}
 
-		virtual void edge_created(Grid* grid, EdgeBase* e,
+		virtual void edge_created(Grid* grid, Edge* e,
 									GridObject* pParent,
 									bool replacesParent)
 		{
@@ -256,7 +256,7 @@ class DelaunayInfo : public GridObserver
 
 			if(pParent){
 				if(pParent->base_object_id() == EDGE){
-					if(is_constrained(static_cast<EdgeBase*>(pParent)))
+					if(is_constrained(static_cast<Edge*>(pParent)))
 						mark_as_constrained(e);
 				}
 			}
@@ -347,24 +347,24 @@ class DelaunayInfo : public GridObserver
 			number highestDot = 0;
 			if(d1 > m_maxDot){
 			//	check edges
-				EdgeBase* e1 = m_grid.get_edge(f, 0);
-				EdgeBase* e2 = m_grid.get_edge(f, 2);
+				Edge* e1 = m_grid.get_edge(f, 0);
+				Edge* e2 = m_grid.get_edge(f, 2);
 				if(!(is_constrained(e1) && is_constrained(e2)))
 					highestDot = d1;
 			}
 
 			if((highestDot < m_maxDot) && (d2 > m_maxDot)){
 			//	check edges
-				EdgeBase* e1 = m_grid.get_edge(f, 0);
-				EdgeBase* e2 = m_grid.get_edge(f, 1);
+				Edge* e1 = m_grid.get_edge(f, 0);
+				Edge* e2 = m_grid.get_edge(f, 1);
 				if(!(is_constrained(e1) && is_constrained(e2)))
 					highestDot = d2;
 			}
 
 			if((highestDot < m_maxDot) && (d3 > m_maxDot)){
 			//	check edges
-				EdgeBase* e1 = m_grid.get_edge(f, 1);
-				EdgeBase* e2 = m_grid.get_edge(f, 2);
+				Edge* e1 = m_grid.get_edge(f, 1);
+				Edge* e2 = m_grid.get_edge(f, 2);
 				if(!(is_constrained(e1) && is_constrained(e2)))
 					highestDot = d3;
 			}
@@ -392,8 +392,8 @@ class DelaunayInfo : public GridObserver
 
 		AByte 	m_aCandidateMark;
 		Grid::AttachmentAccessor<Vertex, AByte>	m_aaMarkedVRT;
-		Grid::AttachmentAccessor<EdgeBase, AByte>	m_aaMarkedEDGE;
-		std::queue<EdgeBase*>	m_qEdgeCandidates;
+		Grid::AttachmentAccessor<Edge, AByte>	m_aaMarkedEDGE;
+		std::queue<Edge*>	m_qEdgeCandidates;
 
 	//	pointer to m_faceMark is used to mark faces, if face-classification is disabled.
 		int			m_numMarkedFaces;
@@ -452,8 +452,8 @@ class UG_API DelaunayDebugSaver
 						sh.assign_subset(*iter, 0);
 				}
 
-				for(EdgeBaseIterator iter = g.begin<EdgeBase>();
-					iter != g.end<EdgeBase>(); ++iter)
+				for(EdgeIterator iter = g.begin<Edge>();
+					iter != g.end<Edge>(); ++iter)
 				{
 					if(dinfo.is_constrained(*iter))
 						sh.assign_subset(*iter, 3);
@@ -521,13 +521,13 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 
 	Grid& grid = info.grid();
 	Face* nbrFaces[2];
-	vector<EdgeBase*> edges;
+	vector<Edge*> edges;
 
 //UG_LOG("MakeDelaunay...\n");
 	TAAPos& aaPos = info.position_accessor();
 
 	while(info.candidates_left()){
-		EdgeBase* e = info.pop_candidate();
+		Edge* e = info.pop_candidate();
 
 	//	we only perform swaps on regular manifolds.
 		if(GetAssociatedFaces(nbrFaces, grid, e, 2) == 2){
@@ -603,7 +603,7 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 			}
 */
 		//	ok - everything is fine. Now swap the edge
-			EdgeBase* eNew = SwapEdge(grid,  e);
+			Edge* eNew = SwapEdge(grid,  e);
 
 			if(!eNew){
 				UG_LOG("An edge-swap failed. Expect degenerated or flipped triangles "
@@ -679,8 +679,8 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 	Face* nbrFaces[2];
 	queue<Vertex*> qvrts; // used during splits
 	vector<Vertex*> vrts;
-	vector<EdgeBase*> edges;
-	vector<EdgeBase*> closeEdges; // used during splits
+	vector<Edge*> edges;
+	vector<Edge*> closeEdges; // used during splits
 	vector<Face*> faces;
 
 //	set up a delaunay-info structure
@@ -704,7 +704,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 		Face* t = *triIter;
 		CollectEdges(edges, grid, t);
 		for(size_t i = 0; i < edges.size(); ++i){
-			EdgeBase* e = edges[i];
+			Edge* e = edges[i];
 		//	unmark associated vertices of constrained edges
 		//...
 			if(info.is_constrained(e)){
@@ -789,7 +789,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 		//	locate the triangle which contains cc. Do this by traversing edges
 		//	as required. Note that since the delaunay property holds, we're only
 		//	traversing edges in a circle, which does not contain any vertices.
-			EdgeBase* lastTraversedEdge = NULL;
+			Edge* lastTraversedEdge = NULL;
 			Face* curFace = f;
 			//vector_t startPos = CalculateCenter(f, aaPos);
 			vector_t rayDir;
@@ -800,12 +800,12 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 				//UG_LOG("curTri: " << CalculateCenter(curFace, aaPos) << "\n");
 			//	to make things as robust as possible, we'll always intersect the
 			//	same line with each edge
-				EdgeBase* nextEdge = NULL;
+				Edge* nextEdge = NULL;
 				bool split = false;
 
 				CollectAssociated(edges, grid, curFace);
 				for(size_t i = 0; i < edges.size(); ++i){
-					EdgeBase* e = edges[i];
+					Edge* e = edges[i];
 					if(e == lastTraversedEdge)
 						continue;
 
@@ -882,7 +882,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 							//	if the edge is not yet marked, we'll add it to the
 							//	closeEdges list.
 								for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-									EdgeBase* e = edges[i_edge];
+									Edge* e = edges[i_edge];
 									if(!grid.is_marked(e)){
 									//	check whether the edge intersects the critical circle
 										if(DistancePointToLine(center, aaPos[e->vertex(0)], aaPos[e->vertex(1)])
@@ -965,7 +965,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 									Face* f = faces[i_face];
 									parent = f;
 									for(size_t i = 0; i < f->num_edges(); ++i){
-										EdgeBase* e = grid.get_edge(f, i);
+										Edge* e = grid.get_edge(f, i);
 										if(!EdgeContains(e, vrt)){
 											edges.push_back(e);
 											//UG_LOG("surrounding edge: " << CalculateCenter(e, aaPos) << endl);
@@ -1038,7 +1038,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 								CollectAssociated(edges, grid, vrt);
 							//	if the edge is not yet marked, we'll make it a candidate
 								for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-									EdgeBase* e = edges[i_edge];
+									Edge* e = edges[i_edge];
 									if(!grid.is_marked(e)){
 									//	check whether the edge intersects the critical circle
 										if(DistancePointToLine(center, aaPos[e->vertex(0)], aaPos[e->vertex(1)])
@@ -1116,7 +1116,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 
 						CollectAssociated(edges, grid, faces[i_face]);
 						for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
-							EdgeBase* e = edges[i_edge];
+							Edge* e = edges[i_edge];
 							if(info.is_candidate(e) || info.is_constrained(e))
 								continue;
 

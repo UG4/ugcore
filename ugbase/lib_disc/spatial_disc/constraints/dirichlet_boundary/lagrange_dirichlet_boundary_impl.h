@@ -320,7 +320,7 @@ adjust_prolongation(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(ddFine->max_dofs(VERTEX)) adjust_prolongation<RegularVertex, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
-		if(ddFine->max_dofs(EDGE))   adjust_prolongation<EdgeBase, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
+		if(ddFine->max_dofs(EDGE))   adjust_prolongation<Edge, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
 		if(ddFine->max_dofs(FACE))   adjust_prolongation<Face, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
 		if(ddFine->max_dofs(VOLUME)) adjust_prolongation<Volume, TUserData>(vUserData, si, P, ddFine, ddCoarse, time);
 		}
@@ -442,7 +442,7 @@ adjust_restriction(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		try
 		{
 		if(ddFine->max_dofs(VERTEX)) adjust_restriction<RegularVertex, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
-		if(ddFine->max_dofs(EDGE))   adjust_restriction<EdgeBase, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
+		if(ddFine->max_dofs(EDGE))   adjust_restriction<Edge, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
 		if(ddFine->max_dofs(FACE))   adjust_restriction<Face, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
 		if(ddFine->max_dofs(VOLUME)) adjust_restriction<Volume, TUserData>(vUserData, si, R, ddCoarse, ddFine, time);
 		}
@@ -569,7 +569,7 @@ adjust_jacobian(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->max_dofs(VERTEX))
 			adjust_jacobian<RegularVertex, TUserData>(vUserData, si, J, u, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_jacobian<EdgeBase, TUserData>(vUserData, si, J, u, dd, time);
+			adjust_jacobian<Edge, TUserData>(vUserData, si, J, u, dd, time);
 		if(dd->max_dofs(FACE))
 			adjust_jacobian<Face, TUserData>(vUserData, si, J, u, dd, time);
 		if(dd->max_dofs(VOLUME))
@@ -687,7 +687,7 @@ adjust_defect(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->max_dofs(VERTEX))
 			adjust_defect<RegularVertex, TUserData>(vUserData, si, d, u, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_defect<EdgeBase, TUserData>(vUserData, si, d, u, dd, time);
+			adjust_defect<Edge, TUserData>(vUserData, si, d, u, dd, time);
 		if(dd->max_dofs(FACE))
 			adjust_defect<Face, TUserData>(vUserData, si, d, u, dd, time);
 		if(dd->max_dofs(VOLUME))
@@ -802,7 +802,7 @@ adjust_solution(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->max_dofs(VERTEX))
 			adjust_solution<RegularVertex, TUserData>(vUserData, si, u, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_solution<EdgeBase, TUserData>(vUserData, si, u, dd, time);
+			adjust_solution<Edge, TUserData>(vUserData, si, u, dd, time);
 		if(dd->max_dofs(FACE))
 			adjust_solution<Face, TUserData>(vUserData, si, u, dd, time);
 		if(dd->max_dofs(VOLUME))
@@ -913,7 +913,7 @@ adjust_linear(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->max_dofs(VERTEX))
 			adjust_linear<RegularVertex, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_linear<EdgeBase, TUserData>(vUserData, si, A, b, dd, time);
+			adjust_linear<Edge, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd->max_dofs(FACE))
 			adjust_linear<Face, TUserData>(vUserData, si, A, b, dd, time);
 		if(dd->max_dofs(VOLUME))
@@ -1028,7 +1028,7 @@ adjust_rhs(const std::map<int, std::vector<TUserData*> >& mvUserData,
 		if(dd->max_dofs(VERTEX))
 			adjust_rhs<RegularVertex, TUserData>(vUserData, si, b, u, dd, time);
 		if(dd->max_dofs(EDGE))
-			adjust_rhs<EdgeBase, TUserData>(vUserData, si, b, u, dd, time);
+			adjust_rhs<Edge, TUserData>(vUserData, si, b, u, dd, time);
 		if(dd->max_dofs(FACE))
 			adjust_rhs<Face, TUserData>(vUserData, si, b, u, dd, time);
 		if(dd->max_dofs(VOLUME))

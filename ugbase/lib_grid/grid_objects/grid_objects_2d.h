@@ -139,7 +139,7 @@ class UG_API Triangle : public CustomTriangle<Triangle, Face>
 		virtual int container_section() const	{return CSFACE_TRIANGLE;}
 
 	protected:
-		virtual EdgeBase* create_edge(int index)
+		virtual Edge* create_edge(int index)
 			{
 				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
@@ -282,7 +282,7 @@ class UG_API Quadrilateral : public CustomQuadrilateral<Quadrilateral, Face>
 		virtual int container_section() const	{return CSFACE_QUADRILATERAL;}
 
 	protected:
-		virtual EdgeBase* create_edge(int index)
+		virtual Edge* create_edge(int index)
 		{
 			return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 		}
@@ -385,7 +385,7 @@ class UG_API ConstrainedTriangle : public CustomTriangle<ConstrainedTriangle, Co
 		virtual int container_section() const	{return CSFACE_CONSTRAINED_TRIANGLE;}
 
 	protected:
-		virtual EdgeBase* create_edge(int index)
+		virtual Edge* create_edge(int index)
 			{
 				return new ConstrainedEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
@@ -436,7 +436,7 @@ class UG_API ConstrainedQuadrilateral : public CustomQuadrilateral<ConstrainedQu
 		virtual int container_section() const	{return CSFACE_CONSTRAINED_QUADRILATERAL;}
 
 	protected:
-		virtual EdgeBase* create_edge(int index)
+		virtual Edge* create_edge(int index)
 			{
 				return new ConstrainedEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 			}
@@ -494,7 +494,7 @@ class UG_API ConstrainingFace : public Face
 					m_constrainedVertices.push_back(pObj);
 			}
 
-		inline void add_constrained_object(EdgeBase* pObj)
+		inline void add_constrained_object(Edge* pObj)
 			{
 				UG_ASSERT(!is_constrained_object(pObj), "edge is already registered at constraining face");
 					m_constrainedEdges.push_back(pObj);
@@ -513,9 +513,9 @@ class UG_API ConstrainingFace : public Face
 				return iter != m_constrainedVertices.end();
 			}
 
-		inline bool is_constrained_object(EdgeBase* edge)
+		inline bool is_constrained_object(Edge* edge)
 			{
-				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
+				std::vector<Edge*>::iterator iter = find(m_constrainedEdges.begin(),
 															m_constrainedEdges.end(), edge);
 				return iter != m_constrainedEdges.end();
 			}
@@ -535,9 +535,9 @@ class UG_API ConstrainingFace : public Face
 					m_constrainedVertices.erase(iter);
 			}
 
-		inline void unconstrain_object(const EdgeBase* edge)
+		inline void unconstrain_object(const Edge* edge)
 			{
-				std::vector<EdgeBase*>::iterator iter = find(m_constrainedEdges.begin(),
+				std::vector<Edge*>::iterator iter = find(m_constrainedEdges.begin(),
 															m_constrainedEdges.end(), edge);
 				if(iter != m_constrainedEdges.end())
 					m_constrainedEdges.erase(iter);
@@ -574,7 +574,7 @@ class UG_API ConstrainingFace : public Face
 				return m_constrainedVertices[ind];
 			}
 
-		inline EdgeBase* constrained_edge(size_t ind) const
+		inline Edge* constrained_edge(size_t ind) const
 			{
 				UG_ASSERT(ind < m_constrainedEdges.size(), "bad index.");
 				return m_constrainedEdges[ind];
@@ -590,7 +590,7 @@ class UG_API ConstrainingFace : public Face
 
 	protected:
 		std::vector<Vertex*>	m_constrainedVertices;
-		std::vector<EdgeBase*>		m_constrainedEdges;
+		std::vector<Edge*>		m_constrainedEdges;
 		std::vector<Face*>			m_constrainedFaces;
 };
 
@@ -625,7 +625,7 @@ class UG_API ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, 
 				m_constrainedFaces.reserve(4);
 			}
 
-		virtual EdgeBase* create_edge(int index)
+		virtual Edge* create_edge(int index)
 			{
 				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
@@ -686,7 +686,7 @@ class UG_API ConstrainingQuadrilateral : public CustomQuadrilateral<Constraining
 				m_constrainedFaces.reserve(4);
 			}
 
-		virtual EdgeBase* create_edge(int index)
+		virtual Edge* create_edge(int index)
 			{
 				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 			}

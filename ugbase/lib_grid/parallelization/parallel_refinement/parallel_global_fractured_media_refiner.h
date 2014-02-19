@@ -24,7 +24,7 @@ class ParallelGlobalFracturedMediaRefiner : public GlobalFracturedMediaRefiner
 
 	protected:
 		virtual bool refinement_is_allowed(Vertex* elem);
-		virtual bool refinement_is_allowed(EdgeBase* elem);
+		virtual bool refinement_is_allowed(Edge* elem);
 		virtual bool refinement_is_allowed(Face* elem);
 		virtual bool refinement_is_allowed(Volume* elem);
 		

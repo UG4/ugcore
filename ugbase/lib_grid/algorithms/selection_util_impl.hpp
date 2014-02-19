@@ -48,10 +48,10 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 		++n;
 	}
 
-	for(EdgeBaseIterator iter = sel.edges_begin();
+	for(EdgeIterator iter = sel.edges_begin();
 		iter != sel.edges_end(); ++iter)
 	{
-		EdgeBase::ConstVertexArray vrts = (*iter)->vertices();
+		Edge::ConstVertexArray vrts = (*iter)->vertices();
 		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
 			if(!grid.is_marked(vrts[i])){
 				grid.mark(vrts[i]);
@@ -118,10 +118,10 @@ void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offs
 		grid.mark(*iter);
 	}
 
-	for(EdgeBaseIterator iter = sel.edges_begin();
+	for(EdgeIterator iter = sel.edges_begin();
 		iter != sel.edges_end(); ++iter)
 	{
-		EdgeBase::ConstVertexArray vrts = (*iter)->vertices();
+		Edge::ConstVertexArray vrts = (*iter)->vertices();
 		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
 			if(!grid.is_marked(vrts[i])){
 				grid.mark(vrts[i]);
@@ -220,7 +220,7 @@ void SelectAssociatedEdges(TSelector& sel, TElemIterator elemsBegin,
 	if(pGrid)
 	{
 		Grid& grid = *pGrid;
-		std::vector<EdgeBase*> vEdges;
+		std::vector<Edge*> vEdges;
 		while(elemsBegin != elemsEnd)
 		{
 			CollectEdges(vEdges, grid, *elemsBegin);
@@ -354,7 +354,7 @@ void SelectCreaseEdges(ISelector& sel, TEdgeIterator edgesBegin, TEdgeIterator e
 //	iterate through the edges
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
 	{
-		EdgeBase* e = *iter;
+		Edge* e = *iter;
 		if(!(ignoreBoundaryEdges && IsBoundaryEdge2D(grid, e))){
 		//	get the associated faces
 		//	all edges that do not have exactly 2 associated edges

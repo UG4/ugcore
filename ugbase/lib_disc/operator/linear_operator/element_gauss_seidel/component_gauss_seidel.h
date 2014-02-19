@@ -226,7 +226,7 @@ extract_by_grouping(std::vector<std::vector<DoFIndex> >& vvDoFIndex,
 
 	// 	get all algebraic indices on element
 		if(TGroupObj::dim <= VERTEX){
-			std::vector<EdgeBase*> vSub;
+			std::vector<Edge*> vSub;
 			c.collect_associated(vSub, groupObj);
 			for(size_t i = 0; i < vSub.size(); ++i)
 				for(size_t f = 0; f < vFullRowCmp.size(); ++f)
@@ -316,7 +316,7 @@ extract_blocks(const matrix_type& A, const GF& c)
 		std::vector<std::vector<DoFIndex> >& vvDoFIndex = m_vDimCache[d].vvDoFIndex;
 		switch(d){
 			case VERTEX: extract_by_grouping<Vertex>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
-			case EDGE:   extract_by_grouping<EdgeBase>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case EDGE:   extract_by_grouping<Edge>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
 			case FACE:   extract_by_grouping<Face>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
 			case VOLUME: extract_by_grouping<Volume>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
 			default: UG_THROW("wrong dim");

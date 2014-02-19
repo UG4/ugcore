@@ -140,7 +140,7 @@ void GridSubsetHandler::clear_subset_lists(int index)
 	if(m_pGrid)
 	{
 		section_container<Vertex>(index).clear();
-		section_container<EdgeBase>(index).clear();
+		section_container<Edge>(index).clear();
 		section_container<Face>(index).clear();
 		section_container<Volume>(index).clear();
 	}
@@ -178,7 +178,7 @@ void GridSubsetHandler::assign_subset(Vertex* elem, int subsetIndex)
 	assign_subset_impl(elem, subsetIndex);
 }
 
-void GridSubsetHandler::assign_subset(EdgeBase* elem, int subsetIndex)
+void GridSubsetHandler::assign_subset(Edge* elem, int subsetIndex)
 {
 	assign_subset_impl(elem, subsetIndex);
 }
@@ -201,7 +201,7 @@ change_subset_indices(int indOld, int indNew)
 		if(elements_are_supported(SHE_VERTEX))
 			change_elem_subset_indices<Vertex>(indOld, indNew);
 		if(elements_are_supported(SHE_EDGE))
-			change_elem_subset_indices<EdgeBase>(indOld, indNew);
+			change_elem_subset_indices<Edge>(indOld, indNew);
 		if(elements_are_supported(SHE_FACE))
 			change_elem_subset_indices<Face>(indOld, indNew);
 		if(elements_are_supported(SHE_VOLUME)){
@@ -220,7 +220,7 @@ void GridSubsetHandler::add_required_subset_lists(int maxIndex)
 					&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);
 		if(elements_are_supported(SHE_EDGE))
 			sub->m_edges.get_container().set_pipe(
-					&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntryEDGE);
+					&m_pGrid->get_attachment_pipe<Edge>(), m_aSharedEntryEDGE);
 		if(elements_are_supported(SHE_FACE))
 			sub->m_faces.get_container().set_pipe(
 					&m_pGrid->get_attachment_pipe<Face>(), m_aSharedEntryFACE);
@@ -306,8 +306,8 @@ register_subset_elements_at_pipe()
 			register_at_pipe(*iter);
 
 	//	register edges
-		for(EdgeBaseIterator iter = begin<EdgeBase>(i);
-			iter != end<EdgeBase>(i); ++iter)
+		for(EdgeIterator iter = begin<Edge>(i);
+			iter != end<Edge>(i); ++iter)
 			register_at_pipe(*iter);
 
 	//	register faces
@@ -361,7 +361,7 @@ collect_subset_elements(std::vector<Vertex*>& vrtsOut, int subsetIndex) const
 }
 
 size_t GridSubsetHandler::
-collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const
+collect_subset_elements(std::vector<Edge*>& edgesOut, int subsetIndex) const
 {
 	return collect_subset_elements_impl(edgesOut, subsetIndex);
 }

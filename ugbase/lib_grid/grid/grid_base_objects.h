@@ -81,7 +81,7 @@ template<class TElem>	class ElementStorage;
 
 class GridObject;	//	geometric base object
 class Vertex;		//	base for all 0-dimensional grid objects.
-class EdgeBase;			//	base for all 1-dimensional grid objects.
+class Edge;			//	base for all 1-dimensional grid objects.
 class Face;				//	base for all 2-dimensional grid objects.
 class Volume;			//	base for all 3-dimensional grid objects.
 
@@ -89,13 +89,13 @@ class EdgeDescriptor;	//	describes an edge.
 class FaceDescriptor;	//	describes a face.
 class VolumeDescriptor;	//	describes a volume.
 
-class EdgeVertices;		//	manages the vertices of an edge. Base for EdgeBase and EdgeDescriptor.
+class EdgeVertices;		//	manages the vertices of an edge. Base for Edge and EdgeDescriptor.
 class FaceVertices;		//	manages the vertices of a face. Base for Face and FaceDescriptor.
 class VolumeVertices;	//	manages the vertices of a volume. Base for Volume and VolumeDescriptor.
 
 //	pointer-types. Primarily required for template-specializations.
 typedef Vertex*	PVertex;
-typedef EdgeBase*		PEdgeBase;
+typedef Edge*		PEdge;
 typedef Face*			PFace;
 typedef Volume*		PVolume;
 
@@ -108,7 +108,7 @@ typedef FaceVertices*		PFaceVertices;
 typedef VolumeVertices*		PVolumeVertices;
 
 template<> class attachment_traits<Vertex*, ElementStorage<Vertex> >;
-template<> class attachment_traits<EdgeBase*, ElementStorage<EdgeBase> >;
+template<> class attachment_traits<Edge*, ElementStorage<Edge> >;
 template<> class attachment_traits<Face*, ElementStorage<Face> >;
 template<> class attachment_traits<Volume*, ElementStorage<Volume> >;
 
@@ -131,7 +131,7 @@ class UG_API GridObject/* : public SmallObject<>*/
 {
 	friend class Grid;
 	friend class attachment_traits<Vertex*, ElementStorage<Vertex> >;
-	friend class attachment_traits<EdgeBase*, ElementStorage<EdgeBase> >;
+	friend class attachment_traits<Edge*, ElementStorage<Edge> >;
 	friend class attachment_traits<Face*, ElementStorage<Face> >;
 	friend class attachment_traits<Volume*, ElementStorage<Volume> >;
 
@@ -197,12 +197,12 @@ class UG_API Vertex : public GridObject
 		typedef void lower_dim_base_object;
 
 	//	higher dimensional Base Object
-		typedef EdgeBase higher_dim_base_object;
+		typedef Edge higher_dim_base_object;
 
 	/**	The side type is obviously wrong. It should be void.
 	 * However, void would cause problems with template instantiations.*/
 		typedef Vertex side;
-		typedef EdgeBase sideof;
+		typedef Edge sideof;
 
 		static const bool HAS_SIDES = false;
 		static const bool CAN_BE_SIDE = true;
@@ -239,7 +239,7 @@ class UG_API Vertex : public GridObject
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	EdgeVertices
-///	holds the vertices of an EdgeBase or an EdgeDescriptor.
+///	holds the vertices of an Edge or an EdgeDescriptor.
 /**	Please note that this class does not have a virtual destructor.*/
 class UG_API EdgeVertices
 {
@@ -249,7 +249,7 @@ class UG_API EdgeVertices
 
 		inline Vertex* vertex(uint index) const	{return m_vertices[index];}
 		inline ConstVertexArray vertices() const	{return m_vertices;}
-		inline uint num_vertices() const			{return 2;}	// this method is supplied to allow the use of EdgeBase in template-methods that require a num_vertices() method.
+		inline uint num_vertices() const			{return 2;}	// this method is supplied to allow the use of Edge in template-methods that require a num_vertices() method.
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
@@ -269,21 +269,21 @@ class UG_API EdgeVertices
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//	EdgeBase
+//	Edge
 ///	Base-class for edges
 /**
- * EdgeBase is the base class of all 1-dimensional geometric objects.
+ * Edge is the base class of all 1-dimensional geometric objects.
  * Edges connect two vertices.
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API EdgeBase : public GridObject, public EdgeVertices
+class UG_API Edge : public GridObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
 		typedef Vertex* const* ConstVertexArray;
 
-		typedef EdgeBase grid_base_object;
+		typedef Edge grid_base_object;
 
 	//	lower dimensional Base Object
 		typedef Vertex lower_dim_base_object;
@@ -304,9 +304,9 @@ class UG_API EdgeBase : public GridObject, public EdgeVertices
 		static const size_t NUM_VERTICES = 2;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Edge*>(pObj) != NULL;}
 
-		virtual ~EdgeBase()	{}
+		virtual ~Edge()	{}
 
 		virtual int container_section() const	{return -1;}
 		virtual int base_object_id() const		{return EDGE;}
@@ -332,7 +332,7 @@ class UG_API EdgeBase : public GridObject, public EdgeVertices
 	 * You may pass an array of 2 vertices to pSubstituteVrts. If you do so, Those
 	 * vertices will be used instead of the original ones.
 	 */
-		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
+		virtual bool refine(std::vector<Edge*>& vNewEdgesOut,
 											Vertex* newVertex,
 											Vertex** pSubstituteVrts = NULL)	{return false;}
 
@@ -401,11 +401,11 @@ class UG_API Face : public GridObject, public FaceVertices
 		typedef Face grid_base_object;
 
 	//	lower dimensional Base Object
-		typedef EdgeBase lower_dim_base_object;
+		typedef Edge lower_dim_base_object;
 	//	higher dimensional Base Object
 		typedef Volume higher_dim_base_object;
 
-		typedef EdgeBase side;
+		typedef Edge side;
 		typedef Volume sideof;
 
 		static const bool HAS_SIDES = true;
@@ -441,7 +441,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 *	this class. This is required to allow the use of this class
 	 *	for compile-time method selection by dummy-parameters.
 	 *	It is cruical that derived classes overload this method.*/
-		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
+		virtual Edge* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
 
 
 	///	retrieves the edge-descriptor for the opposing side to the specified one.
@@ -651,7 +651,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 		virtual uint num_faces() const									{return 0;}
 		inline uint num_sides() const									{return num_faces();}
 
-		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
+		virtual Edge* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
 		virtual Face* create_face(int index)		{return NULL;}	///< create the face with index i and return it.
 		
 	///	returns the local indices of an edge of the volume.
@@ -823,7 +823,7 @@ template <> struct GeomObjBaseTypeByDim<0>{
 };
 
 template <> struct GeomObjBaseTypeByDim<1>{
-	typedef EdgeBase base_obj_type;
+	typedef Edge base_obj_type;
 };
 
 template <> struct GeomObjBaseTypeByDim<2>{
@@ -840,7 +840,7 @@ template <> struct GeomObjBaseTypeByDim<3>{
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 /**	template helpers that return the geometric base object type
- *	given a pointer to a derived class of Vertex, EdgeBase, Face or Volume.
+ *	given a pointer to a derived class of Vertex, Edge, Face or Volume.
  *
  *	e.g. PtrTypeToGeomObjBaseType<RegularVertex*>::base_type = Vertex.
  * \{
@@ -854,8 +854,8 @@ struct PtrTypeToGeomObjBaseType<Vertex*>
 {typedef Vertex base_type;};
 
 template <>
-struct PtrTypeToGeomObjBaseType<EdgeBase*>
-{typedef EdgeBase base_type;};
+struct PtrTypeToGeomObjBaseType<Edge*>
+{typedef Edge base_type;};
 
 template <>
 struct PtrTypeToGeomObjBaseType<Face*>
@@ -879,8 +879,8 @@ size_t hash_key<PVertex>(const PVertex& key);
 ///	the hash-key is a function of vertex-hash-values.
 /**
  * The hash value depends on the associated vertices.
- * If an EdgeBase (or EdgeDescriptor) has the same vertices
- * as another EdgeBase (or EdgeDescriptor), the hash-keys
+ * If an Edge (or EdgeDescriptor) has the same vertices
+ * as another Edge (or EdgeDescriptor), the hash-keys
  * are the same.
  */
 template <>
@@ -889,7 +889,7 @@ size_t hash_key<PEdgeVertices>(const PEdgeVertices& key);
 ///	the hash-key is a function of vertex-hash-values.
 /** \sa hash_key<PEdgeVertices>*/
 template <>
-size_t hash_key<PEdgeBase>(const PEdgeBase& key);
+size_t hash_key<PEdge>(const PEdge& key);
 
 ///	the hash-key is a function of vertex-hash-values.
 /** \sa hash_key<PEdgeVertices>*/
