@@ -361,7 +361,7 @@ number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos);
 //	AssignAssociatedVerticesToSubsets
 ///	Assigns associated vertices of elements of type TElem in sh to sh.
 /**
- * Make sure that TElem is not of type VertexBase or any derivate.
+ * Make sure that TElem is not of type Vertex or any derivate.
  *
  * The method iterates over all elements of type TElem in sh and
  * assigns associated vertices to sh. The target subset-index is taken

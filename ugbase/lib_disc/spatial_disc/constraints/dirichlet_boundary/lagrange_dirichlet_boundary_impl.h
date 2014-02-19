@@ -238,8 +238,8 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 		int si = (*iter).first;
 		const std::vector<CondNumberData*>& userData = (*iter).second;
 
-		DoFDistribution::traits<VertexBase>::const_iterator iterBegin 	= dd->begin<VertexBase>(si);
-		DoFDistribution::traits<VertexBase>::const_iterator iterEnd 	= dd->end<VertexBase>(si);
+		DoFDistribution::traits<Vertex>::const_iterator iterBegin 	= dd->begin<Vertex>(si);
+		DoFDistribution::traits<Vertex>::const_iterator iterEnd 	= dd->end<Vertex>(si);
 
 	//	create Multiindex
 		std::vector<DoFIndex> multInd;
@@ -249,10 +249,10 @@ assemble_dirichlet_rows(matrix_type& mat, ConstSmartPtr<DoFDistribution> dd, num
 		position_type corner;
 
 	//	loop vertices
-		for(DoFDistribution::traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+		for(DoFDistribution::traits<Vertex>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
 		{
 		//	get vertex
-			VertexBase* vertex = *iter;
+			Vertex* vertex = *iter;
 
 		//	get corner position
 			corner = m_aaPos[vertex];

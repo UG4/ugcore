@@ -215,7 +215,7 @@ class ElementGaussSeidel : public IPreconditioner<TAlgebra>
 			else if	(m_type == "side") ElementGaussSeidelStep<Side,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
 			else if	(m_type == "face") ElementGaussSeidelStep<Face,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
 			else if	(m_type == "edge") ElementGaussSeidelStep<EdgeBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
-			else if	(m_type == "vertex") ElementGaussSeidelStep<VertexBase,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
+			else if	(m_type == "vertex") ElementGaussSeidelStep<Vertex,TDomain,TAlgebra>(*pMat, *pC, *pD, m_relax);
 			else UG_THROW("ElementGaussSeidel: wrong patch type '"<<m_type<<"'."
 						 " Options: element, side, face, edge, vertex.")
 

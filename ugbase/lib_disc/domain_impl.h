@@ -220,7 +220,7 @@ update_domain_info()
 				count_ghosts<EdgeBase>(numLocalGhosts);
 				break;
 			case VERTEX:
-				count_ghosts<VertexBase>(numLocalGhosts);
+				count_ghosts<Vertex>(numLocalGhosts);
 				break;
 			default:
 				UG_THROW("Unknown base object type");
@@ -248,7 +248,7 @@ update_domain_info()
 			break;
 		case VERTEX:
 			for(size_t i = 0; i < mg.num_levels(); ++i)
-				numLocalElems.push_back(mg.template num<VertexBase>(i) - numLocalGhosts[i]);
+				numLocalElems.push_back(mg.template num<Vertex>(i) - numLocalGhosts[i]);
 			break;
 		default:
 			UG_THROW("Unknown base object type");
@@ -394,8 +394,8 @@ Domain(bool isAdaptive) : IDomain<TGrid, TSubsetHandler>(isAdaptive)
 	m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
 
 // 	let position accessor access Vertex Coordinates
-	if(!this->grid()->template has_attachment<VertexBase>(m_aPos))
-		this->grid()->template attach_to<VertexBase>(m_aPos);
+	if(!this->grid()->template has_attachment<Vertex>(m_aPos))
+		this->grid()->template attach_to<Vertex>(m_aPos);
 	m_aaPos.access(*(this->grid()), m_aPos);
 }
 

@@ -104,7 +104,7 @@ static void ScaleDomain(TDomain& dom, number sx, number sy, number sz)
 	const int numCoords = TDomain::position_type::Size;
 	UG_ASSERT(numCoords <= 3, "too many coordinates.");
 
-	for(VertexBaseIterator iter = g.vertices_begin();
+	for(VertexIterator iter = g.vertices_begin();
 		iter != g.vertices_end(); ++iter)
 	{
 		for(int i = 0; i < numCoords; ++i)
@@ -123,7 +123,7 @@ static void TranslateDomain(TDomain& dom, number tx, number ty, number tz)
 	const int numCoords = TDomain::position_type::Size;
 	UG_ASSERT(numCoords <= 3, "too many coordinates.");
 
-	for(VertexBaseIterator iter = g.vertices_begin();
+	for(VertexIterator iter = g.vertices_begin();
 		iter != g.vertices_end(); ++iter)
 	{
 		for(int i = 0; i < numCoords; ++i)
@@ -346,7 +346,7 @@ static void Domain(Registry& reg, string grp)
 	reg.add_function("FaceArea", static_cast<number (*)(TDomain&, ISelector&)>(&FaceArea<TDomain>), grp, "Area sum", "Domain#Selector");
 
 //	element access
-	reg.add_function("GetVertexByCoordinate", &GetElementByCoordinate<TDomain, VertexBase>, grp);
+	reg.add_function("GetVertexByCoordinate", &GetElementByCoordinate<TDomain, Vertex>, grp);
 	reg.add_function("GetEdgeByCoordinate", &GetElementByCoordinate<TDomain, EdgeBase>, grp);
 	reg.add_function("GetFaceByCoordinate", &GetElementByCoordinate<TDomain, Face>, grp);
 	reg.add_function("GetVolumeByCoordinate", &GetElementByCoordinate<TDomain, Volume>, grp);

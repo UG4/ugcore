@@ -96,7 +96,7 @@ HangingNodeRefinerBase<TSelector>::clear_marks()
 
 template <class TSelector>
 bool HangingNodeRefinerBase<TSelector>::
-mark(VertexBase* v, RefinementMark refMark)
+mark(Vertex* v, RefinementMark refMark)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
 	if(get_mark(v) != refMark){
@@ -165,7 +165,7 @@ mark_neighborhood(size_t numIterations)
 	if(!m_pGrid)
 		return;
 
-	typedef typename TSelector::template traits<VertexBase>::iterator	SelVrtIter;
+	typedef typename TSelector::template traits<Vertex>::iterator	SelVrtIter;
 	typedef typename TSelector::template traits<EdgeBase>::iterator		SelEdgeIter;
 	typedef typename TSelector::template traits<Face>::iterator			SelFaceIter;
 	typedef typename TSelector::template traits<Volume>::iterator		SelVolIter;
@@ -212,8 +212,8 @@ mark_neighborhood(size_t numIterations)
 		sel.broadcast_selection_states();
 
 	//	mark all associated elements of marked vertices
-		for(SelVrtIter iter = sel.template begin<VertexBase>();
-			iter != sel.template end<VertexBase>(); ++iter)
+		for(SelVrtIter iter = sel.template begin<Vertex>();
+			iter != sel.template end<Vertex>(); ++iter)
 		{
 			ISelector::status_t s = sel.get_selection_status(*iter);
 			RefinementMark rm = RM_NONE;
@@ -239,10 +239,10 @@ mark_neighborhood(size_t numIterations)
 
 	//	since we selected vertices which possibly may not be refined, we have to
 	//	deselect those now.
-		for(SelVrtIter iter = sel.template begin<VertexBase>();
-			iter != sel.template end<VertexBase>();)
+		for(SelVrtIter iter = sel.template begin<Vertex>();
+			iter != sel.template end<Vertex>();)
 		{
-			VertexBase* vrt = *iter;
+			Vertex* vrt = *iter;
 			++iter;
 
 			if(!refinement_is_allowed(vrt))
@@ -254,7 +254,7 @@ mark_neighborhood(size_t numIterations)
 
 template <class TSelector>
 RefinementMark HangingNodeRefinerBase<TSelector>::
-get_mark(VertexBase* v)
+get_mark(Vertex* v)
 {
 	return (RefinementMark)(m_selMarkedElements.get_selection_status(v)
 							& (RM_REFINE | RM_ANISOTROPIC | RM_COARSEN | RM_DUMMY));
@@ -300,7 +300,7 @@ save_marks_to_file(const char* filename)
 
 	selector_t& sel = get_refmark_selector();
 
-	for(VertexBaseIterator iter = g.vertices_begin(); iter != g.vertices_end(); ++iter){
+	for(VertexIterator iter = g.vertices_begin(); iter != g.vertices_end(); ++iter){
 		typename selector_t::status_t status = sel.get_selection_status(*iter);
 		switch(status){
 			case RM_NONE: break;
@@ -662,11 +662,11 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 ////////////////////////////////
 //	before calling the refinement callback, we make sure that only elements are
 //	marked, which actually received new children
-	for(typename selector_t::template traits<VertexBase>::iterator
-			iter = m_selMarkedElements.template begin<VertexBase>();
-			iter != m_selMarkedElements.template end<VertexBase>();)
+	for(typename selector_t::template traits<Vertex>::iterator
+			iter = m_selMarkedElements.template begin<Vertex>();
+			iter != m_selMarkedElements.template end<Vertex>();)
 	{
-		VertexBase* e = *iter;
+		Vertex* e = *iter;
 		++iter;
 		if(!(marked_refine(e) || marked_copy(e)))
 			m_selMarkedElements.deselect(e);
@@ -749,7 +749,7 @@ void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 //	build correct selection. see HangingVertexRefiner description.
 //	unmark all elements which are marked for coarsening
 
-	bool removedCoarseMarks = remove_coarsen_marks<VertexBase>();
+	bool removedCoarseMarks = remove_coarsen_marks<Vertex>();
 	removedCoarseMarks |= remove_coarsen_marks<EdgeBase>();
 	removedCoarseMarks |= remove_coarsen_marks<Face>();
 	removedCoarseMarks |= remove_coarsen_marks<Volume>();
@@ -759,13 +759,13 @@ void HangingNodeRefinerBase<TSelector>::collect_objects_for_refine()
 				"Removed coarsen marks.\n");
 	}
 
-	std::vector<VertexBase*>	newlyMarkedVrts;
+	std::vector<Vertex*>	newlyMarkedVrts;
 	std::vector<EdgeBase*>		newlyMarkedEdges;
 	std::vector<Face*>			newlyMarkedFaces;
 	std::vector<Volume*>		newlyMarkedVols;
 
-	newlyMarkedVrts.assign(m_selMarkedElements.template begin<VertexBase>(),
-						   m_selMarkedElements.template end<VertexBase>());
+	newlyMarkedVrts.assign(m_selMarkedElements.template begin<Vertex>(),
+						   m_selMarkedElements.template end<Vertex>());
 	newlyMarkedEdges.assign(m_selMarkedElements.template begin<EdgeBase>(),
 							m_selMarkedElements.template end<EdgeBase>());
 	newlyMarkedFaces.assign(m_selMarkedElements.template begin<Face>(),
@@ -986,7 +986,7 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 		}
 
 		Grid& grid = *m_pGrid;
-		VertexBase* nVrt = *grid.create_and_replace<RegularVertex>(cdv);
+		Vertex* nVrt = *grid.create_and_replace<RegularVertex>(cdv);
 		if(parentEdge)
 			set_center_vertex(parentEdge, nVrt);
 		else if(parentFace)
@@ -1077,7 +1077,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
+refine_edge_with_normal_vertex(EdgeBase* e, Vertex** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
 
@@ -1106,7 +1106,7 @@ refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
+refine_edge_with_hanging_vertex(EdgeBase* e, Vertex** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(e), "Refinement of given edge not allowed!");
 
@@ -1150,14 +1150,14 @@ refine_edge_with_hanging_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
+refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(f), "Refinement of given face not allowed!");
 
 //UG_LOG("refine_face_with_normal_vertex\n");
 	Grid& grid = *m_pGrid;
 
-	VertexBase* vNewEdgeVertices[MAX_FACE_VERTICES];
+	Vertex* vNewEdgeVertices[MAX_FACE_VERTICES];
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
 	size_t numVrts = f->num_vertices();
@@ -1186,7 +1186,7 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 	}
 
 //	we'll perform a regular refine
-	VertexBase* nVrt = NULL;
+	Vertex* nVrt = NULL;
 	/*f->refine_regular(vFaces, &nVrt, vNewEdgeVertices, NULL,
 					  RegularVertex(), newCornerVrts);*/
 	f->refine(vFaces, &nVrt, vNewEdgeVertices, NULL, newCornerVrts);
@@ -1211,7 +1211,7 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
+refine_face_with_hanging_vertex(Face* f, Vertex** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(f), "Refinement of given face not allowed!");
 
@@ -1221,7 +1221,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 	size_t numVrts = f->num_vertices();
 /*
 	vector<EdgeBase*> 	vEdges(f->num_edges());
-	vector<VertexBase*> vNewEdgeVertices(f->num_edges());
+	vector<Vertex*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(numVrts);// heuristic
 
 //todo: iterate over edges directly
@@ -1242,7 +1242,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 		vNewEdgeVertices[edgeIndex] = get_center_vertex(e);
 	}
 */
-	VertexBase* vNewEdgeVertices[MAX_FACE_VERTICES];
+	Vertex* vNewEdgeVertices[MAX_FACE_VERTICES];
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 
 	size_t numEdges = f->num_edges();
@@ -1277,7 +1277,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 													cgf->vertex(2));
 
 			//	refine the constrained tri
-				VertexBase* tmpVrt;
+				Vertex* tmpVrt;
 				constrainedTri.refine(vFaces, &tmpVrt, vNewEdgeVertices,
 									  NULL, newCornerVrts);
 			}
@@ -1304,7 +1304,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 											 cgf->vertex(2), cgf->vertex(3));
 
 			//	refine the constrained quad
-				VertexBase* tmpVrt;
+				Vertex* tmpVrt;
 				cdf.refine(vFaces, &tmpVrt, vNewEdgeVertices, hv, newCornerVrts);
 			}
 			break;
@@ -1347,7 +1347,7 @@ refine_face_with_hanging_vertex(Face* f, VertexBase** newCornerVrts)
 			}
 			else{
 			//	check if a constrained edge exists between the vertex and its next neighbor
-				VertexBase* vNext = vNewEdgeVertices[(i + 1) % numEdges];
+				Vertex* vNext = vNewEdgeVertices[(i + 1) % numEdges];
 				ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], vNext));
 				if(e)
 				{
@@ -1466,7 +1466,7 @@ process_constraining_face(ConstrainingFace* cgf)
 //	cgf itself now has to be transformed to a normal face
 	UG_ASSERT(marked_to_normal(cgf), "A constraining face has to be converted to"
 									 " a normal face when it is refined.");
-	VertexBase* centerVrt = get_center_vertex(cgf);
+	Vertex* centerVrt = get_center_vertex(cgf);
 	Face* nFace;
 	if(cgf->num_vertices() == 3)
 		nFace = *grid.create_and_replace<Triangle>(cgf);
@@ -1479,16 +1479,16 @@ process_constraining_face(ConstrainingFace* cgf)
 
 template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
-refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
+refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 {
 	UG_ASSERT(refinement_is_allowed(v), "Refinement of given volume not allowed!");
 
 	Grid& grid = *m_pGrid;
 
 	//vector<EdgeBase*> 	vEdges(v->num_edges());
-	vector<VertexBase*> vNewEdgeVertices(v->num_edges());
+	vector<Vertex*> vNewEdgeVertices(v->num_edges());
 	//vector<Face*>		vFaces(v->num_faces());
-	vector<VertexBase*>	vNewFaceVertices(v->num_faces());
+	vector<Vertex*>	vNewFaceVertices(v->num_faces());
 	vector<Volume*>		vVolumes(8);// heuristic
 //	collect all associated edges.
 
@@ -1569,7 +1569,7 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 	}
 
 //	refine the volume and register new volumes at the grid.
-	VertexBase* createdVrt = NULL;
+	Vertex* createdVrt = NULL;
 	v->refine(vVolumes, &createdVrt, &vNewEdgeVertices.front(),
 			  &vNewFaceVertices.front(), NULL, RegularVertex(), newCornerVrts, pCorners);
 

@@ -31,7 +31,7 @@ int GetFaceIndex(Volume* vol, Face* f)
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
 void CalculateNormal(vector3& vNormOut, FaceVertices* face,
-					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos)
+					Grid::AttachmentAccessor<Vertex, APosition>& aaPos)
 {
 	if(face->num_vertices() == 3)
 	{
@@ -63,7 +63,7 @@ void CalculateNormal(vector3& vNormOut, FaceVertices* face,
 }
 
 void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
-								Grid::AttachmentAccessor<VertexBase, APosition>& aaPos)
+								Grid::AttachmentAccessor<Vertex, APosition>& aaPos)
 {
 	if(face->num_vertices() == 3)
 	{
@@ -347,7 +347,7 @@ bool EdgeOrientationMatches(EdgeVertices* ev, Face* f)
 }
 
 
-void InsertCenterVertex(Grid& g, Face* f, VertexBase* vrt, bool eraseOldFace)
+void InsertCenterVertex(Grid& g, Face* f, Vertex* vrt, bool eraseOldFace)
 {
 //	get the sides of the face and create new elements
 	EdgeDescriptor ed;

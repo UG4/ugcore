@@ -97,7 +97,7 @@ void AdjustMeanValue(SmartPtr<TGridFunction> spGF, const std::vector<std::string
 		const number sub = (vIntegral[f] - mean) / area;
 		const size_t fct = spGF->fct_id_by_name(vCmp[f].c_str());
 
-		if(ddinfo->max_fct_dofs(fct, VERTEX)) SubtractValueFromComponent<GF, VertexBase>(spGF, fct, sub);
+		if(ddinfo->max_fct_dofs(fct, VERTEX)) SubtractValueFromComponent<GF, Vertex>(spGF, fct, sub);
 		if(ddinfo->max_fct_dofs(fct, EDGE)) SubtractValueFromComponent<GF, EdgeBase>(spGF, fct, sub);
 		if(ddinfo->max_fct_dofs(fct, FACE)) SubtractValueFromComponent<GF, Face>(spGF, fct, sub);
 		if(ddinfo->max_fct_dofs(fct, VOLUME)) SubtractValueFromComponent<GF, Volume>(spGF, fct, sub);
@@ -439,13 +439,13 @@ number AverageFunctionDifference(
 	size_t numElements = 0;
 
 	// loop over all vertices in given subset and compare values of fct1 and fct2
-	typedef typename GridFunction<TDomain, TAlgebra>::template traits<VertexBase>::const_iterator gridFctIterator;
-	for( gridFctIterator iter = spGridFct->template begin<VertexBase>((int)subSetID); 
-	       iter != spGridFct->template end<VertexBase>((int)subSetID); ++iter ) {
+	typedef typename GridFunction<TDomain, TAlgebra>::template traits<Vertex>::const_iterator gridFctIterator;
+	for( gridFctIterator iter = spGridFct->template begin<Vertex>((int)subSetID); 
+	       iter != spGridFct->template end<Vertex>((int)subSetID); ++iter ) {
 		// get dof_indices for the two functions on given subset
 		std::vector< DoFIndex > indFct1, indFct2;
-		spGridFct->template dof_indices<VertexBase>( *iter, fct1ID, indFct1 );
-		spGridFct->template dof_indices<VertexBase>( *iter, fct2ID, indFct2 );
+		spGridFct->template dof_indices<Vertex>( *iter, fct1ID, indFct1 );
+		spGridFct->template dof_indices<Vertex>( *iter, fct2ID, indFct2 );
 
 		// calculate the difference between the two functions at this grid point
 		sum += DoFRef( *spGridFct, indFct1[0] ) - DoFRef( *spGridFct, indFct2[0] );
@@ -762,17 +762,17 @@ public:
 		//	resize positions
 		vec.resize(nr);
 
-		typedef typename TGridFunction::template traits<VertexBase>::const_iterator const_iterator;
+		typedef typename TGridFunction::template traits<Vertex>::const_iterator const_iterator;
 
 		//	loop all subsets
 		for (int si = 0; si < u.num_subsets(); ++si) {
 			//	loop all vertices
-			const_iterator iter = u.template begin<VertexBase>(si);
-			const_iterator iterEnd = u.template end<VertexBase>(si);
+			const_iterator iter = u.template begin<Vertex>(si);
+			const_iterator iterEnd = u.template end<Vertex>(si);
 
 			for (; iter != iterEnd; ++iter) {
 				//	get vertex
-				VertexBase* v = *iter;
+				Vertex* v = *iter;
 
 				//	algebra indices vector
 				std::vector<size_t> ind;

@@ -139,7 +139,7 @@ inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos);
  */
 UG_API 
 int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
-					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
+					Grid::AttachmentAccessor<Vertex, APosition>& aaPos,
 					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE = NULL);
 
 ////////////////////////////////////////////////////////////////////////
@@ -179,7 +179,7 @@ int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
  * deleted as well.
  */
 UG_API 
-bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt);
+bool CollapseEdge(Grid& grid, EdgeBase* e, Vertex* newVrt);
 
 ////////////////////////////////////////////////////////////////////////
 //	EdgeCollapseIsValid
@@ -225,7 +225,7 @@ TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative = false);
 template<class TVertex>
 UG_API 
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
-						AVertexBase* paAssociatedVertices = NULL,
+						AVertex* paAssociatedVertices = NULL,
 						bool bConservative = false);
 
 ////////////////////////////////////////////////////////////////////////
@@ -257,8 +257,8 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e);
  */
 UG_API 
 bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
-							 VertexBase* newVertex,
-							 AVertexBase* paAssociatedVertices = NULL);
+							 Vertex* newVertex,
+							 AVertex* paAssociatedVertices = NULL);
 
 
 ////////////////////////////////////////////////////////////////////////

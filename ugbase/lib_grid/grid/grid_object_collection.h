@@ -57,7 +57,7 @@ namespace ug
  * How to use GridObjectCollection:
  * Once you retrieved an instance (let's call it goc) you can query it for
  * iterators like this:
- * VertexBaseIterator iter = goc.vertices_begin(0);
+ * VertexIterator iter = goc.vertices_begin(0);
  * or if you want to iterate over triangles of level 1 type the following:
  * TriangleIterator iter = goc.begin<Triangle>(1);
  *
@@ -80,7 +80,7 @@ class UG_API GridObjectCollection
 		GridObjectCollection(size_t levelEstimate = 1);
 		
 	///	initializes level 0 with the given sections.
-		GridObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+		GridObjectCollection(ElementStorage<Vertex>::SectionContainer* vrtCon,
 								ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 								ElementStorage<Face>::SectionContainer* faceCon,
 								ElementStorage<Volume>::SectionContainer* volCon);
@@ -91,7 +91,7 @@ class UG_API GridObjectCollection
 		GridObjectCollection& operator =(const GridObjectCollection& mgoc);
 		
 	///	only used during creation by the methods that create the collection
-		void add_level(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+		void add_level(ElementStorage<Vertex>::SectionContainer* vrtCon,
 						ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 						ElementStorage<Face>::SectionContainer* faceCon,
 						ElementStorage<Volume>::SectionContainer* volCon);
@@ -116,8 +116,8 @@ class UG_API GridObjectCollection
 		typename geometry_traits<TGeomObj>::iterator
 		end(size_t level = 0);
 
-		inline VertexBaseIterator	vertices_begin(size_t level = 0)	{return begin<VertexBase>(level);}
-		inline VertexBaseIterator	vertices_end(size_t level = 0)		{return end<VertexBase>(level);}
+		inline VertexIterator	vertices_begin(size_t level = 0)	{return begin<Vertex>(level);}
+		inline VertexIterator	vertices_end(size_t level = 0)		{return end<Vertex>(level);}
 		inline EdgeBaseIterator		edges_begin(size_t level = 0)		{return begin<EdgeBase>(level);}
 		inline EdgeBaseIterator		edges_end(size_t level = 0)			{return end<EdgeBase>(level);}
 		inline FaceIterator			faces_begin(size_t level = 0)		{return begin<Face>(level);}
@@ -138,8 +138,8 @@ class UG_API GridObjectCollection
 		typename geometry_traits<TGeomObj>::const_iterator
 		end(size_t level = 0) const;
 
-		inline ConstVertexBaseIterator	vertices_begin(size_t level = 0) const	{return begin<VertexBase>(level);}
-		inline ConstVertexBaseIterator	vertices_end(size_t level = 0) const	{return end<VertexBase>(level);}
+		inline ConstVertexIterator	vertices_begin(size_t level = 0) const	{return begin<Vertex>(level);}
+		inline ConstVertexIterator	vertices_end(size_t level = 0) const	{return end<Vertex>(level);}
 		inline ConstEdgeBaseIterator	edges_begin(size_t level = 0) const		{return begin<EdgeBase>(level);}
 		inline ConstEdgeBaseIterator	edges_end(size_t level = 0) const		{return end<EdgeBase>(level);}
 		inline ConstFaceIterator		faces_begin(size_t level = 0) const		{return begin<Face>(level);}
@@ -151,7 +151,7 @@ class UG_API GridObjectCollection
 		template <class TGeomObj>
 		size_t num() const;
 		
-		inline size_t num_vertices() const	{return num<VertexBase>();}
+		inline size_t num_vertices() const	{return num<Vertex>();}
 		inline size_t num_edges() const		{return num<EdgeBase>();}
 		inline size_t num_faces() const		{return num<Face>();}
 		inline size_t num_volumes() const	{return num<Volume>();}
@@ -160,7 +160,7 @@ class UG_API GridObjectCollection
 		inline
 		size_t num(size_t level) const;
 		
-		inline size_t num_vertices(size_t level) const	{return num<VertexBase>(level);}
+		inline size_t num_vertices(size_t level) const	{return num<Vertex>(level);}
 		inline size_t num_edges(size_t level) const		{return num<EdgeBase>(level);}
 		inline size_t num_faces(size_t level) const		{return num<Face>(level);}
 		inline size_t num_volumes(size_t level) const	{return num<Volume>(level);}
@@ -179,12 +179,12 @@ class UG_API GridObjectCollection
 	protected:
 		struct ContainerCollection{
 			ContainerCollection()	{}
-			ContainerCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+			ContainerCollection(ElementStorage<Vertex>::SectionContainer* vrtCon,
 								ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 								ElementStorage<Face>::SectionContainer* faceCon,
 								ElementStorage<Volume>::SectionContainer* volCon);
 
-			ElementStorage<VertexBase>::SectionContainer*	vrtContainer;
+			ElementStorage<Vertex>::SectionContainer*	vrtContainer;
 			ElementStorage<EdgeBase>::SectionContainer*		edgeContainer;
 			ElementStorage<Face>::SectionContainer*			faceContainer;
 			ElementStorage<Volume>::SectionContainer*		volContainer;

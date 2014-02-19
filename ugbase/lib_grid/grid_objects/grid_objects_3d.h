@@ -41,13 +41,13 @@ class UG_API TetrahedronDescriptor
 		TetrahedronDescriptor()	{}
 		TetrahedronDescriptor(const TetrahedronDescriptor& td);
 		TetrahedronDescriptor(const VolumeVertices& vv);
-		TetrahedronDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4);
+		TetrahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
 		inline uint num_vertices() const	{return 4;}
-		inline VertexBase* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
 
 	protected:
-		VertexBase*	m_vertex[4];
+		Vertex*	m_vertex[4];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -70,11 +70,11 @@ class UG_API Tetrahedron : public Volume
 
 		Tetrahedron()	{}
 		Tetrahedron(const TetrahedronDescriptor& td);
-		Tetrahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4);
+		Tetrahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
 		virtual GridObject* create_empty_instance() const	{return new Tetrahedron;}
 
-		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 4;}
 
@@ -96,23 +96,23 @@ class UG_API Tetrahedron : public Volume
 		virtual void get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
 													  size_t side) const;
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
 
 	///	Creates new volume elements through refinement.
 	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
 	 *	newFaceVertices is ignored for Tetrahedrons.*/
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							VertexBase** ppNewVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase** newFaceVertices,
-							VertexBase* newVolumeVertex,
-							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices = NULL,
 							vector3* corners = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, VertexBase* newVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+								int edgeIndex, Vertex* newVertex,
+								std::vector<Vertex*>* pvSubstituteVertices = NULL);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -120,10 +120,10 @@ class UG_API Tetrahedron : public Volume
 		virtual ReferenceObjectID reference_object_id() const {return ROID_TETRAHEDRON;}
 
 	protected:
-		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
 
 	protected:
-		VertexBase*	m_vertices[4];
+		Vertex*	m_vertices[4];
 };
 
 template <>
@@ -163,14 +163,14 @@ class UG_API HexahedronDescriptor
 		HexahedronDescriptor()	{}
 		HexahedronDescriptor(const HexahedronDescriptor& td);
 		HexahedronDescriptor(const VolumeVertices& vv);
-		HexahedronDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
-							VertexBase* v5, VertexBase* v6, VertexBase* v7, VertexBase* v8);
+		HexahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4,
+							Vertex* v5, Vertex* v6, Vertex* v7, Vertex* v8);
 
 		inline uint num_vertices() const	{return 8;}
-		inline VertexBase* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
 
 	protected:
-		VertexBase*	m_vertex[8];
+		Vertex*	m_vertex[8];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -193,12 +193,12 @@ class UG_API Hexahedron : public Volume
 
 		Hexahedron()	{}
 		Hexahedron(const HexahedronDescriptor& td);
-		Hexahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
-					VertexBase* v5, VertexBase* v6, VertexBase* v7, VertexBase* v8);
+		Hexahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4,
+					Vertex* v5, Vertex* v6, Vertex* v7, Vertex* v8);
 
 		virtual GridObject* create_empty_instance() const	{return new Hexahedron;}
 
-		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 8;}
 
@@ -215,21 +215,21 @@ class UG_API Hexahedron : public Volume
 
 		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							VertexBase** ppNewVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase** newFaceVertices,
-							VertexBase* newVolumeVertex,
-							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices = NULL,
 							vector3* corners = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, VertexBase* newVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+								int edgeIndex, Vertex* newVertex,
+								std::vector<Vertex*>* pvSubstituteVertices = NULL);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -237,10 +237,10 @@ class UG_API Hexahedron : public Volume
 		virtual ReferenceObjectID reference_object_id() const {return ROID_HEXAHEDRON;}
 
 	protected:
-		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
 
 	protected:
-		VertexBase*	m_vertices[8];
+		Vertex*	m_vertices[8];
 };
 
 template <>
@@ -280,14 +280,14 @@ class UG_API PrismDescriptor
 		PrismDescriptor()	{}
 		PrismDescriptor(const PrismDescriptor& td);
 		PrismDescriptor(const VolumeVertices& vv);
-		PrismDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
-						VertexBase* v4, VertexBase* v5, VertexBase* v6);
+		PrismDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
+						Vertex* v4, Vertex* v5, Vertex* v6);
 
 		inline uint num_vertices() const	{return 6;}
-		inline VertexBase* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
 
 	protected:
-		VertexBase*	m_vertex[6];
+		Vertex*	m_vertex[6];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -310,12 +310,12 @@ class UG_API Prism : public Volume
 
 		Prism()	{}
 		Prism(const PrismDescriptor& td);
-		Prism(VertexBase* v1, VertexBase* v2, VertexBase* v3,
-				VertexBase* v4, VertexBase* v5, VertexBase* v6);
+		Prism(Vertex* v1, Vertex* v2, Vertex* v3,
+				Vertex* v4, Vertex* v5, Vertex* v6);
 
 		virtual GridObject* create_empty_instance() const	{return new Prism;}
 
-		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 6;}
 
@@ -332,21 +332,21 @@ class UG_API Prism : public Volume
 
 		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							VertexBase** ppNewVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase** newFaceVertices,
-							VertexBase* newVolumeVertex,
-							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices = NULL,
 							vector3* corners = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, VertexBase* newVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+								int edgeIndex, Vertex* newVertex,
+								std::vector<Vertex*>* pvSubstituteVertices = NULL);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -354,10 +354,10 @@ class UG_API Prism : public Volume
 		virtual ReferenceObjectID reference_object_id() const {return ROID_PRISM;}
 
 	protected:
-		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
 
 	protected:
-		VertexBase*	m_vertices[6];
+		Vertex*	m_vertices[6];
 };
 
 template <>
@@ -397,14 +397,14 @@ class UG_API PyramidDescriptor
 		PyramidDescriptor()	{}
 		PyramidDescriptor(const PyramidDescriptor& td);
 		PyramidDescriptor(const VolumeVertices& vv);
-		PyramidDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
-						VertexBase* v4, VertexBase* v5);
+		PyramidDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
+						Vertex* v4, Vertex* v5);
 
 		inline uint num_vertices() const	{return 5;}
-		inline VertexBase* vertex(uint index) const	{return m_vertex[index];}
+		inline Vertex* vertex(uint index) const	{return m_vertex[index];}
 
 	protected:
-		VertexBase*	m_vertex[5];
+		Vertex*	m_vertex[5];
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -427,12 +427,12 @@ class UG_API Pyramid : public Volume
 
 		Pyramid()	{}
 		Pyramid(const PyramidDescriptor& td);
-		Pyramid(VertexBase* v1, VertexBase* v2, VertexBase* v3,
-				VertexBase* v4, VertexBase* v5);
+		Pyramid(Vertex* v1, Vertex* v2, Vertex* v3,
+				Vertex* v4, Vertex* v5);
 
 		virtual GridObject* create_empty_instance() const	{return new Pyramid;}
 
-		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return 5;}
 
@@ -447,21 +447,21 @@ class UG_API Pyramid : public Volume
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							VertexBase** ppNewVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase** newFaceVertices,
-							VertexBase* newVolumeVertex,
-							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices = NULL,
 							vector3* corners = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, VertexBase* newVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+								int edgeIndex, Vertex* newVertex,
+								std::vector<Vertex*>* pvSubstituteVertices = NULL);
 
 		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
 
@@ -469,10 +469,10 @@ class UG_API Pyramid : public Volume
 		virtual ReferenceObjectID reference_object_id() const {return ROID_PYRAMID;}
 
 	protected:
-		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
 
 	protected:
-		VertexBase*	m_vertices[5];
+		Vertex*	m_vertices[5];
 };
 
 template <>

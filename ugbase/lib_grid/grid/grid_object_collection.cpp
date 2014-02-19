@@ -16,7 +16,7 @@ GridObjectCollection(size_t levelEstimate)
 }
 
 GridObjectCollection::
-GridObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+GridObjectCollection(ElementStorage<Vertex>::SectionContainer* vrtCon,
 							ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 							ElementStorage<Face>::SectionContainer* faceCon,
 							ElementStorage<Volume>::SectionContainer* volCon)
@@ -50,7 +50,7 @@ assign(const GridObjectCollection& mgoc)
 
 void
 GridObjectCollection::
-add_level(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+add_level(ElementStorage<Vertex>::SectionContainer* vrtCon,
 			ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 			ElementStorage<Face>::SectionContainer* faceCon,
 			ElementStorage<Volume>::SectionContainer* volCon)
@@ -63,7 +63,7 @@ add_level(ElementStorage<VertexBase>::SectionContainer* vrtCon,
 
 
 GridObjectCollection::ContainerCollection::
-ContainerCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+ContainerCollection(ElementStorage<Vertex>::SectionContainer* vrtCon,
 					ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 					ElementStorage<Face>::SectionContainer* faceCon,
 					ElementStorage<Volume>::SectionContainer* volCon)

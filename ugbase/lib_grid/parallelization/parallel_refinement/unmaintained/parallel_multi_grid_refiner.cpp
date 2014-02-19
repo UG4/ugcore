@@ -256,7 +256,7 @@ it is clear that those vectors always hold valid and existing elements.
 */
 
 //	mark fixed elements
-	//mark_fixed_elements<VertexBase>(m_pMG->begin<VertexBase>(), m_pMG->end<VertexBase>());
+	//mark_fixed_elements<Vertex>(m_pMG->begin<Vertex>(), m_pMG->end<Vertex>());
 	
 //	The refinement distributor classes
 	RefinementMarkDistributor<VertexLayout> vertexMarkDistributor(
@@ -275,7 +275,7 @@ it is clear that those vectors always hold valid and existing elements.
 	//GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
 	
 //	element buffers
-	vector<VertexBase*> vVrts;
+	vector<Vertex*> vVrts;
 	
 	//bool bCommunicate = true;
 	//while(bCommunicate)
@@ -328,7 +328,7 @@ refinement_step_ends()
 }
 
 void ParallelMultiGridRefiner::
-set_rule(VertexBase* e, RefinementMark mark)
+set_rule(Vertex* e, RefinementMark mark)
 {
 	MultiGridRefiner::set_rule(e, mark);
 	if(m_distGridMgr.is_interface_element(e))
@@ -383,7 +383,7 @@ clear_newly_marked_element_buffers()
 }
 
 void ParallelMultiGridRefiner::
-adjust_parallel_selection(const std::vector<VertexBase*>* pvVrts,
+adjust_parallel_selection(const std::vector<Vertex*>* pvVrts,
 							const std::vector<EdgeBase*>* pvEdges,
 							const std::vector<Face*>* pvFaces,
 							const std::vector<Volume*>* pvVols)

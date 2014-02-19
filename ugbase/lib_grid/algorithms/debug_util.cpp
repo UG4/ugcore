@@ -24,8 +24,8 @@ void PrintElementNumbers(const GridObjectCollection& goc)
 		if(goc.num_levels() > 1){
 			UG_LOG("level " << i << endl);
 		}
-		UG_LOG("  vertices total:\t" << goc.num<VertexBase>(i) << endl);
-		if(goc.num<VertexBase>() > 0){
+		UG_LOG("  vertices total:\t" << goc.num<Vertex>(i) << endl);
+		if(goc.num<Vertex>() > 0){
 			UG_LOG("    normal vrts:\t" << goc.num<RegularVertex>(i) << endl);
 			UG_LOG("    hanging vrts:\t" << goc.num<ConstrainedVertex>(i) << endl);
 		}
@@ -106,7 +106,7 @@ void PrintAttachmentInfo(Grid& grid)
 void PrintAttachmentInfo(Grid& grid)
 {
 	UG_LOG("Vertex Attachments:\n");
-	PrintAttachmentInfo<VertexBase>(grid);
+	PrintAttachmentInfo<Vertex>(grid);
 
 	UG_LOG("\nEdge Attachments:\n");
 	PrintAttachmentInfo<EdgeBase>(grid);
@@ -131,9 +131,9 @@ static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 		{
 			TElem* e = *iter;
 		//	make sure that all children have the local element as parent
-			for(size_t i_child = 0; i_child < mg.num_children<VertexBase>(e); ++i_child)
+			for(size_t i_child = 0; i_child < mg.num_children<Vertex>(e); ++i_child)
 			{
-				if(e != mg.get_parent(mg.get_child<VertexBase>(e, i_child))){
+				if(e != mg.get_parent(mg.get_child<Vertex>(e, i_child))){
 					UG_THROW("parent is not referenced by children!");
 				}
 			}
@@ -195,7 +195,7 @@ static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 
 void CheckMultiGridConsistency(MultiGrid& mg)
 {
-	CheckMultiGridConsistencyImpl<VertexBase>(mg);
+	CheckMultiGridConsistencyImpl<Vertex>(mg);
 	CheckMultiGridConsistencyImpl<EdgeBase>(mg);
 	CheckMultiGridConsistencyImpl<Face>(mg);
 	CheckMultiGridConsistencyImpl<Volume>(mg);
@@ -451,9 +451,9 @@ UG_LOG("2\n");
 						     << mg.num_children<EdgeBase>(f) << " found.");
 			}
 			
-			if((f->num_vertices() > 3) && mg.num_children<VertexBase>(f) != 1){
+			if((f->num_vertices() > 3) && mg.num_children<Vertex>(f) != 1){
 				FAILED_CHECK(f, "Face has bad number of child vertices. "
-							 "1 required, " << mg.num_children<VertexBase>(f) << " found.");
+							 "1 required, " << mg.num_children<Vertex>(f) << " found.");
 			}
 			
 		//	make sure that number of children and number of constrained elements match
@@ -463,7 +463,7 @@ UG_LOG("2\n");
 			if(mg.num_children<EdgeBase>(f) != cf->num_constrained_edges())
 				FAILED_CHECK(f, "Number of child edges of constraining face does not match number of constrained edges.");
 
-			if(mg.num_children<VertexBase>(f) != cf->num_constrained_vertices())
+			if(mg.num_children<Vertex>(f) != cf->num_constrained_vertices())
 				FAILED_CHECK(f, "Number of child vertices of constraining face does not match number of constrained vertices.");
 			
 		//	make sure that all children are constrained and that they are contained
@@ -490,8 +490,8 @@ UG_LOG("2\n");
 						FAILED_CHECK(f, "Child edge of constraining face is not in list of constrained edges.");
 				}
 			}
-			for(size_t i = 0; i < mg.num_children<VertexBase>(f); ++i){
-				VertexBase* child = mg.get_child<VertexBase>(f, i);
+			for(size_t i = 0; i < mg.num_children<Vertex>(f); ++i){
+				Vertex* child = mg.get_child<Vertex>(f, i);
 				if(!child->is_constrained()){
 					FAILED_CHECK(f, "All child vertices of a constraining face have to be constrained vertices.");
 				}
@@ -605,7 +605,7 @@ bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 
 //	assign constraint states
 	UG_LOG("Checking constraint types of VERTICES\n");
-	retVal &= CheckDistributedObjectConstraintTypes<VertexBase>(mg);
+	retVal &= CheckDistributedObjectConstraintTypes<Vertex>(mg);
 	UG_LOG("Checking constraint types of EDGES\n");
 	retVal &= CheckDistributedObjectConstraintTypes<EdgeBase>(mg);
 	UG_LOG("Checking constraint types of FACES\n");
@@ -755,7 +755,7 @@ bool CheckDistributedParentTypes(MultiGrid& mg)
 
 	bool success = true;
 	UG_LOG(" checking vertices...\n");
-	success &= CheckLocalParentTypes<VertexBase>(mg);
+	success &= CheckLocalParentTypes<Vertex>(mg);
 	success &= vrtChecker.exchange_data();
 	UG_LOG(" checking edges...\n");
 	success &= CheckLocalParentTypes<EdgeBase>(mg);
@@ -783,7 +783,7 @@ bool CheckDistributedParentTypes(MultiGrid& mg)
 }
 
 
-bool CheckElementConsistency(MultiGrid& mg, VertexBase* v)
+bool CheckElementConsistency(MultiGrid& mg, Vertex* v)
 {
 	bool success = true;
 	UG_LOG("DEBUG: Checking vertex at " << GetGridObjectCenter(mg, v) << endl);

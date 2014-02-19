@@ -47,7 +47,7 @@ template void InvertSelection<MGSelector>(MGSelector&);
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
+size_t CollectVerticesTouchingSelection(std::vector<Vertex*>& vrtsOut,
 										ISelector& sel)
 {
 	vrtsOut.clear();
@@ -62,8 +62,8 @@ size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
 //	get the goc and iterate over all elements
 	GridObjectCollection goc = sel.get_grid_objects();
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
-		for(VertexBaseIterator iter = goc.begin<VertexBase>(lvl);
-			iter != goc.end<VertexBase>(lvl); ++iter)
+		for(VertexIterator iter = goc.begin<Vertex>(lvl);
+			iter != goc.end<Vertex>(lvl); ++iter)
 		{
 			if(!grid.is_marked(*iter)){
 				grid.mark(*iter);
@@ -75,7 +75,7 @@ size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
 			iter != goc.end<EdgeBase>(lvl); ++iter)
 		{
 			for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-				VertexBase* vrt = (*iter)->vertex(i);
+				Vertex* vrt = (*iter)->vertex(i);
 				if(!grid.is_marked(vrt)){
 					grid.mark(vrt);
 					vrtsOut.push_back(vrt);
@@ -87,7 +87,7 @@ size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
 			iter != goc.end<Face>(lvl); ++iter)
 		{
 			for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-				VertexBase* vrt = (*iter)->vertex(i);
+				Vertex* vrt = (*iter)->vertex(i);
 				if(!grid.is_marked(vrt)){
 					grid.mark(vrt);
 					vrtsOut.push_back(vrt);
@@ -99,7 +99,7 @@ size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
 			iter != goc.end<Volume>(lvl); ++iter)
 		{
 			for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
-				VertexBase* vrt = (*iter)->vertex(i);
+				Vertex* vrt = (*iter)->vertex(i);
 				if(!grid.is_marked(vrt)){
 					grid.mark(vrt);
 					vrtsOut.push_back(vrt);
@@ -124,8 +124,8 @@ void EraseSelectedObjects(TSelector& sel)
 	
 	for(size_t i = 0; i < sel.num_levels(); ++i)
 	{
-		EraseElements<VertexBase>(grid, sel.template begin<VertexBase>(i),
-								  sel.template end<VertexBase>(i));
+		EraseElements<Vertex>(grid, sel.template begin<Vertex>(i),
+								  sel.template end<Vertex>(i));
 		EraseElements<EdgeBase>(grid, sel.template begin<EdgeBase>(i),
 					  			sel.template end<EdgeBase>(i));
 		EraseElements<Face>(grid, sel.template begin<Face>(i),
@@ -144,8 +144,8 @@ void InvertSelection(TSelector& sel)
 	
 	Grid& grid = *sel.grid();
 	
-	InvertSelection(sel, grid.begin<VertexBase>(),
-					grid.end<VertexBase>());
+	InvertSelection(sel, grid.begin<Vertex>(),
+					grid.end<Vertex>());
 	InvertSelection(sel, grid.begin<EdgeBase>(),
 					grid.end<EdgeBase>());
 	InvertSelection(sel, grid.begin<Face>(),
@@ -279,10 +279,10 @@ void ExtendSelection(TSelector& sel, size_t extSize, ISelector::status_t status)
 
 	//	iterate over all selected vertices.
 		for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl){
-			for(VertexBaseIterator iter = sel.template begin<VertexBase>(lvl);
-				iter != sel.template end<VertexBase>(lvl); ++iter)
+			for(VertexIterator iter = sel.template begin<Vertex>(lvl);
+				iter != sel.template end<Vertex>(lvl); ++iter)
 			{
-				VertexBase* vrt = *iter;
+				Vertex* vrt = *iter;
 			//	all marked vertices have already been processed.
 				if(!grid.is_marked(vrt)){
 					grid.mark(vrt);
@@ -441,7 +441,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 	number thresholdDot = cos(deg_to_rad(thresholdDegree));
 	
 //	here we'll store candidates.
-	stack<VertexBase*>	m_candidates;
+	stack<Vertex*>	m_candidates;
 	
 //	initially mark all vertices of selected edges as candidates
 	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
@@ -459,7 +459,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 //	while there are candidates left
 	while(!m_candidates.empty())
 	{
-		VertexBase* srcVrt = m_candidates.top();
+		Vertex* srcVrt = m_candidates.top();
 		m_candidates.pop();
 
 	//	search for associated selected edges (there has to be at last one!)
@@ -606,7 +606,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 	grid.begin_marking();
 	
 //	we'll first collect all vertices that we want to check
-	vector<VertexBase*> vrts;
+	vector<Vertex*> vrts;
 	
 //	iterate over all levels
 	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
@@ -616,7 +616,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 		{
 			Volume* vol = *iter;
 			for(size_t i = 0; i < vol->num_vertices(); ++i){
-				VertexBase* v = vol->vertex(i);
+				Vertex* v = vol->vertex(i);
 				if(!grid.is_marked(v)){
 					grid.mark(v);
 					vrts.push_back(v);
@@ -629,7 +629,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 		{
 			Face* f = *iter;
 			for(size_t i = 0; i < f->num_vertices(); ++i){
-				VertexBase* v = f->vertex(i);
+				Vertex* v = f->vertex(i);
 				if(!grid.is_marked(v)){
 					grid.mark(v);
 					vrts.push_back(v);
@@ -642,7 +642,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 		{
 			EdgeBase* e = *iter;
 			for(size_t i = 0; i < 2; ++i){
-				VertexBase* v = e->vertex(i);
+				Vertex* v = e->vertex(i);
 				if(!grid.is_marked(v)){
 					grid.mark(v);
 					vrts.push_back(v);
@@ -656,7 +656,7 @@ void SelectInnerSelectionVertices(TSelector& sel)
 //	now check for each vertex if an unselected element is associated
 	for(size_t i = 0; i < vrts.size(); ++i)
 	{
-		VertexBase* v = vrts[i];
+		Vertex* v = vrts[i];
 	
 	//	check whether all associated elements are selected
 		bool foundUnselected = false;
@@ -850,10 +850,10 @@ void DeselectBoundarySelectionVertices(TSelector& sel)
 //	check each selected vertex of each level
 	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
 	{
-		for(VertexBaseIterator iter = sel.template begin<VertexBase>(lvl);
-			iter != sel.template end<VertexBase>(lvl);)
+		for(VertexIterator iter = sel.template begin<Vertex>(lvl);
+			iter != sel.template end<Vertex>(lvl);)
 		{
-			VertexBase* v = *iter;
+			Vertex* v = *iter;
 		//	increase iterator here, since v may get deselected.
 			++iter;
 			

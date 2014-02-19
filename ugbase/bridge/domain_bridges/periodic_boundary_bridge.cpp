@@ -29,7 +29,7 @@ void print_all_identifications(Grid& g) {
 	PeriodicBoundaryManager& pi = *g.periodic_boundary_manager();
 	pi.print_identification<Face>();
 	pi.print_identification<EdgeBase>();
-	pi.print_identification<VertexBase>();
+	pi.print_identification<Vertex>();
 }
 
 /**

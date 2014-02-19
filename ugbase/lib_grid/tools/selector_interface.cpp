@@ -83,8 +83,8 @@ void ISelector::enable_element_support(uint shElements)
 		//	enable vertex-support.
 			m_pGrid->attach_to_vertices(m_aSelected);
 			m_aaSelVRT.access(*m_pGrid, m_aSelected);
-			SetAttachmentValues(m_aaSelVRT, m_pGrid->begin<VertexBase>(),
-								m_pGrid->end<VertexBase>(), 0);
+			SetAttachmentValues(m_aaSelVRT, m_pGrid->begin<Vertex>(),
+								m_pGrid->end<Vertex>(), 0);
 			m_supportedElements |= SE_VERTEX;
 		}
 
@@ -334,7 +334,7 @@ void ISelector::elements_to_be_cleared(Grid* grid)
 }
 
 //	vertex callbacks
-void ISelector::vertex_created(Grid* grid, VertexBase* vrt,
+void ISelector::vertex_created(Grid* grid, Vertex* vrt,
 								GridObject* pParent,
 								bool replacesParent)
 {
@@ -351,7 +351,7 @@ void ISelector::vertex_created(Grid* grid, VertexBase* vrt,
 		else if((pParent != NULL) && selection_inheritance_enabled()){
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VERTEX){
-					select(vrt, get_selection_status(static_cast<VertexBase*>(pParent)));
+					select(vrt, get_selection_status(static_cast<Vertex*>(pParent)));
 				}
 			}
 			else
@@ -359,14 +359,14 @@ void ISelector::vertex_created(Grid* grid, VertexBase* vrt,
 		}
 		else if(replacesParent){
 			UG_ASSERT(pParent, "A parent has to exist if it shall be replaced");
-			UG_ASSERT(dynamic_cast<VertexBase*>(pParent), "Only parents of the same type may be replaced.");
-			select(vrt, get_selection_status(static_cast<VertexBase*>(pParent)));
+			UG_ASSERT(dynamic_cast<Vertex*>(pParent), "Only parents of the same type may be replaced.");
+			select(vrt, get_selection_status(static_cast<Vertex*>(pParent)));
 		}
 	}
 }
 
-void ISelector::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
-									 VertexBase* replacedBy)
+void ISelector::vertex_to_be_erased(Grid* grid, Vertex* vrt,
+									 Vertex* replacedBy)
 {
 	assert((m_pGrid == grid) && "grids do not match.");
 	
@@ -525,8 +525,8 @@ elems_to_be_merged(Grid* grid, TElem* target,
 }
 
 void ISelector::
-vertices_to_be_merged(Grid* grid, VertexBase* target,
-					 VertexBase* elem1, VertexBase* elem2)
+vertices_to_be_merged(Grid* grid, Vertex* target,
+					 Vertex* elem1, Vertex* elem2)
 {
 	elems_to_be_merged(grid, target, elem1, elem2);
 }

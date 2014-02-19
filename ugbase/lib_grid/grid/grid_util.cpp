@@ -81,7 +81,7 @@ bool CompareVertices(const VolumeVertices* vv1,
 ////////////////////////////////////////////////////////////////////////
 //	CollectVertices
 ///	Collects all vertices.
-void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, VertexBase* v, bool clearContainer)
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid, Vertex* v, bool clearContainer)
 {
 	// clear container if wanted
 	if(clearContainer)
@@ -92,7 +92,7 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, VertexBas
 }
 
 ///	Collects all vertices.
-void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, EdgeBase* e, bool clearContainer)
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid, EdgeBase* e, bool clearContainer)
 {
 	// clear container if wanted
 	if(clearContainer)
@@ -107,7 +107,7 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, EdgeBase*
 }
 
 ///	Collects all vertices.
-void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Face* f, bool clearContainer)
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid, Face* f, bool clearContainer)
 {
 	// clear container if wanted
 	if(clearContainer)
@@ -123,7 +123,7 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Face* f, 
 }
 
 ///	Collects all vertices.
-void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v, bool clearContainer)
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid, Volume* v, bool clearContainer)
 {
 	// clear container if wanted
 	if(clearContainer)
@@ -145,7 +145,7 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v
 ///////////////////////////////////////////////////////////////////////////////
 
 ///	Collects all edges of a vertex, thus, none.
-void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* v, bool clearContainer)
+void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Vertex* v, bool clearContainer)
 {
 	vEdgesOut.clear();
 }
@@ -235,7 +235,7 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, boo
 ///////////////////////////////////////////////////////////////////////////////
 
 ///	Collects all edges which exist in the given grid and which are part of the given vertex.
-void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* vrt, bool clearContainer)
+void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Vertex* vrt, bool clearContainer)
 {
 	if(clearContainer)
 		vEdgesOut.clear();
@@ -341,7 +341,7 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clea
 ////////////////////////////////////////////////////////////////////////////////
 
 ///	Collects all Faces of a Vertex, thus, none.
-void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, VertexBase* v, bool clearContainer)
+void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Vertex* v, bool clearContainer)
 {
 	vFacesOut.clear();
 }
@@ -398,7 +398,7 @@ void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool cl
 ////////////////////////////////////////////////////////////////////////
 //	CollectFaces
 ///	Collects all faces that exist in the given grid which contain the given vertex.
-void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, VertexBase* vrt, bool clearContainer)
+void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, Vertex* vrt, bool clearContainer)
 {
 	if(clearContainer)
 		vFacesOut.clear();
@@ -440,7 +440,7 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool c
 //	second best: iterate through all faces associated with the first end-point of e
 //	and check for each if it contains e. If so push it into the container.
 	{
-		VertexBase* v1 = e->vertex(0);
+		Vertex* v1 = e->vertex(0);
 		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v1);
 		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v1);
 			iter != iterEnd; ++iter)
@@ -518,7 +518,7 @@ bool FaceContains(Face* f, EdgeVertices* ev)
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
 ///	returns true if the given face contains the given vertex
-bool FaceContains(FaceVertices* f, VertexBase* v)
+bool FaceContains(FaceVertices* f, Vertex* v)
 {
 	uint numVrts = f->num_vertices();
 	Face::ConstVertexArray vrts = f->vertices();
@@ -532,7 +532,7 @@ bool FaceContains(FaceVertices* f, VertexBase* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
-void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, VertexBase* vrt, bool clearContainer)
+void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Vertex* vrt, bool clearContainer)
 {
 	if(clearContainer)
 		vVolumesOut.clear();
@@ -575,7 +575,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, EdgeBase* e, 
 
 //	second best: iterate through all volumes that are associated with the first vertex of e.
 //	check for each if it contains e. if so then store it in the container.
-	VertexBase* v1 = e->vertex(0);
+	Vertex* v1 = e->vertex(0);
 	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v1);
 	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v1);
 		iter != iterEnd; ++iter)
@@ -621,7 +621,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Face* f, bool
 //	worst: iterate through all volumes which are connected to the first vertex of f.
 //	check for each if it contains f. If so, store it in the container.
 //	to make things a little faster we'll check if the associated volumes contain a second vertex of f.
-	VertexBase* v1 = f->vertex(0);
+	Vertex* v1 = f->vertex(0);
 
 	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v1);
 	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v1);
@@ -666,7 +666,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescripto
 //	iterate through all volumes which are connected to the first vertex of fd.
 //	check for each if it contains f. If so, store it in the container.
 //	to make things a little faster we'll check if the associated volumes contain a second vertex of f.
-	VertexBase* v1 = fd.vertex(0);
+	Vertex* v1 = fd.vertex(0);
 
 	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v1);
 	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v1);
@@ -688,7 +688,7 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescripto
 ////////////////////////////////////////////////////////////////////////
 //	VolumeContains
 ///	returns true if the given volume contains the given vertex
-bool VolumeContains(VolumeVertices* v, VertexBase* vrt)
+bool VolumeContains(VolumeVertices* v, Vertex* vrt)
 {
 	uint numVrts = v->num_vertices();
 	Volume::ConstVertexArray vrts = v->vertices();

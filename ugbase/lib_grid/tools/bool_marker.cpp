@@ -58,7 +58,7 @@ void BoolMarker::assign_grid(Grid* g)
 bool BoolMarker::is_marked(GridObject* e) const
 {
 	switch(e->base_object_id()){
-		case VERTEX: return is_marked(static_cast<VertexBase*>(e));
+		case VERTEX: return is_marked(static_cast<Vertex*>(e));
 		case EDGE: return is_marked(static_cast<EdgeBase*>(e));
 		case FACE: return is_marked(static_cast<Face*>(e));
 		case VOLUME: return is_marked(static_cast<Volume*>(e));
@@ -77,7 +77,7 @@ void BoolMarker::grid_to_be_destroyed(Grid* grid)
 void BoolMarker::clear()
 {
 	assert(m_pGrid);
-	unmark(m_pGrid->begin<VertexBase>(), m_pGrid->end<VertexBase>());
+	unmark(m_pGrid->begin<Vertex>(), m_pGrid->end<Vertex>());
 	unmark(m_pGrid->begin<EdgeBase>(), m_pGrid->end<EdgeBase>());
 	unmark(m_pGrid->begin<Face>(), m_pGrid->end<Face>());
 	unmark(m_pGrid->begin<Volume>(), m_pGrid->end<Volume>());
@@ -85,7 +85,7 @@ void BoolMarker::clear()
 
 
 void BoolMarker::
-vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent,
+vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent,
 				bool replacesParent)
 {
 	if(!pParent){
@@ -165,8 +165,8 @@ volume_created(Grid* grid, Volume* vol, GridObject* pParent,
 }
 
 void BoolMarker::
-vertices_to_be_merged(Grid* grid, VertexBase* target,
-					  VertexBase* elem1, VertexBase* elem2)
+vertices_to_be_merged(Grid* grid, Vertex* target,
+					  Vertex* elem1, Vertex* elem2)
 {
 	mark(target, is_marked(elem1) || is_marked(elem2));
 }

@@ -53,8 +53,8 @@ enum NeighborhoodType
  * \param nbhType: Accepts or-combinations of any NeighborhoodType
  *					enumerated constants.
  */
-void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
-						Grid& grid, VertexBase* vrt, uint nbhType = NHT_EDGE_NEIGHBORS,
+void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
+						Grid& grid, Vertex* vrt, uint nbhType = NHT_EDGE_NEIGHBORS,
 						Grid::edge_traits::callback considerEdge	= Grid::edge_traits::cb_consider_all,
 						Grid::face_traits::callback considerFace	= Grid::face_traits::cb_consider_all,
 						Grid::volume_traits::callback considerVol	= Grid::volume_traits::cb_consider_all);
@@ -105,7 +105,7 @@ void CollectNeighbors(std::vector<Volume*>& vNeighboursOut, Volume* v,
 /**	This algorithm uses Grid::mark
  */				   
 void CollectNeighborhood(std::vector<Face*>& facesOut, Grid& grid,
-						  VertexBase* vrt, size_t range,
+						  Vertex* vrt, size_t range,
 						  bool clearContainer = true);
 
 /**@}*/ // end of doxygen defgroup command

@@ -69,7 +69,7 @@ DoFDistribution::
 void DoFDistribution::check_subsets()
 {
 //	check, that all geom objects are assigned to a subset
-	if(	m_spMGSH->num<VertexBase>() != multi_grid()->num<VertexBase>())
+	if(	m_spMGSH->num<Vertex>() != multi_grid()->num<Vertex>())
 		UG_THROW("All Vertices "
 			   " must be assigned to a subset. The passed subset handler "
 			   " contains non-assigned elements, thus the dof distribution"
@@ -274,7 +274,7 @@ size_t DoFDistribution::_algebra_indices(TBaseElem* elem,
 	{
 		Grid::SecureVertexContainer vVrt;
 		m_pMG->associated_elements(vVrt, elem);
-		extract_inner_algebra_indices<VertexBase>(vVrt, ind);
+		extract_inner_algebra_indices<Vertex>(vVrt, ind);
 	}
 	if(dim >= EDGE && max_dofs(EDGE) > 0)
 	{
@@ -658,7 +658,7 @@ size_t DoFDistribution::_dof_indices(TBaseElem* elem, size_t fct,
 
 //	get regular dofs on all subelements and the element itself
 //	use specialized function for vertices (since only one position and one reference object)
-	if(dim >= VERTEX && max_dofs(VERTEX) > 0) dof_indices<TBaseElem, VertexBase>(elem, roid, fct, ind, vCorner);
+	if(dim >= VERTEX && max_dofs(VERTEX) > 0) dof_indices<TBaseElem, Vertex>(elem, roid, fct, ind, vCorner);
 	if(dim >= EDGE && max_dofs(EDGE) > 0) 	  dof_indices<TBaseElem, EdgeBase>(elem, roid, fct, ind, vEdge);
 	if(dim >= FACE && max_dofs(FACE) > 0) 	  dof_indices<TBaseElem, Face>(elem, roid, fct, ind, vFace);
 	if(dim >= VOLUME && max_dofs(VOLUME) > 0) dof_indices<TBaseElem, Volume>(elem, roid, fct, ind, vVol);
@@ -669,8 +669,8 @@ size_t DoFDistribution::_dof_indices(TBaseElem* elem, size_t fct,
 	//	get dofs on hanging vertices
 	if(max_dofs(VERTEX > 0))
 	{
-		if(dim >= EDGE) constrained_vertex_dof_indices<ConstrainingEdge, VertexBase, EdgeBase>(fct,ind,vEdge);
-		if(dim >= FACE) constrained_vertex_dof_indices<ConstrainingQuadrilateral, VertexBase, Face>(fct,ind,vFace);
+		if(dim >= EDGE) constrained_vertex_dof_indices<ConstrainingEdge, Vertex, EdgeBase>(fct,ind,vEdge);
+		if(dim >= FACE) constrained_vertex_dof_indices<ConstrainingQuadrilateral, Vertex, Face>(fct,ind,vFace);
 	}
 
 //	get dofs on hanging edges
@@ -877,20 +877,20 @@ sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 	// get edge belonging to reference id vertex 0 on edge
 	const size_t vertexIndex = refElem.id(1,objIndex,0,0);
 	sortedInd.resize(2);
-	VertexBase* vertex0 = NULL;
+	Vertex* vertex0 = NULL;
 	// get child of vertex
 	if (dim==2){
 		Face* baseElem = dynamic_cast<Face*>(elem);
-		vertex0 = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
+		vertex0 = multi_grid()->template get_child<Vertex,Vertex>(baseElem->vertex(vertexIndex),0);
 	}
 	if (dim==3){
 		Volume* baseElem = dynamic_cast<Volume*>(elem);
-		vertex0 = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
+		vertex0 = multi_grid()->template get_child<Vertex,Vertex>(baseElem->vertex(vertexIndex),0);
 	}
 	TConstrained* edg = constrainingObj->constrained_edge(0);
 	bool found = false;
 	for (size_t k=0;k<2;k++){
-		VertexBase* vrt = edg->vertex(k);
+		Vertex* vrt = edg->vertex(k);
 		if (vrt==vertex0){
 			found = true;
 			break;
@@ -906,7 +906,7 @@ sort_constrained_edges(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 		bool found2 = false;
 		TConstrained* otherEdge = constrainingObj->constrained_edge(1);
 		for (size_t k=0;k<2;k++){
-			VertexBase* vrt = otherEdge->vertex(k);
+			Vertex* vrt = otherEdge->vertex(k);
 			if (vrt==vertex0){
 				found2 = true;
 				break;
@@ -927,11 +927,11 @@ sort_constrained_faces(std::vector<size_t>& sortedInd,TBaseElem* elem,TConstrain
 			= ReferenceElementProvider::get<dim>(roid);
 	const size_t numVrt = constrainingObj->num_vertices();
 	sortedInd.resize(4);
-	VertexBase* vrt = NULL;
+	Vertex* vrt = NULL;
 	Volume* baseElem = dynamic_cast<Volume*>(elem);
 	for (size_t i=0;i<numVrt;i++){
 		const size_t vertexIndex = refElem.id(2,objIndex,0,i);
-		vrt = multi_grid()->template get_child<VertexBase,VertexBase>(baseElem->vertex(vertexIndex),0);
+		vrt = multi_grid()->template get_child<Vertex,Vertex>(baseElem->vertex(vertexIndex),0);
 		// loop constrained faces to find face corresponding to vertex
 		bool found = false;
 		for (size_t j=0;j<numVrt;j++){
@@ -1121,8 +1121,8 @@ void DoFDistribution::_indices(TBaseElem* elem, LocalIndices& ind, bool bHang) c
 //	get dofs on hanging vertices
 	if(max_dofs(VERTEX > 0))
 	{
-		if(dim >= EDGE) constrained_vertex_indices<ConstrainingEdge, VertexBase, EdgeBase>(ind, vEdge);
-		if(dim >= FACE) constrained_vertex_indices<ConstrainingQuadrilateral, VertexBase, Face>(ind, vFace);
+		if(dim >= EDGE) constrained_vertex_indices<ConstrainingEdge, Vertex, EdgeBase>(ind, vEdge);
+		if(dim >= FACE) constrained_vertex_indices<ConstrainingQuadrilateral, Vertex, Face>(ind, vFace);
 	}
 
 //	get dofs on hanging edges
@@ -1167,7 +1167,7 @@ changable_indices(std::vector<size_t>& vIndex,
 // forwarding fcts
 ///////////////////////////////////////////////////////////////////////////////
 
-void DoFDistribution::indices(VertexBase* elem, LocalIndices& ind, bool bHang) const {_indices<VertexBase>(elem, ind, bHang);}
+void DoFDistribution::indices(Vertex* elem, LocalIndices& ind, bool bHang) const {_indices<Vertex>(elem, ind, bHang);}
 void DoFDistribution::indices(EdgeBase* elem, LocalIndices& ind, bool bHang) const {_indices<EdgeBase>(elem, ind, bHang);}
 void DoFDistribution::indices(Face* elem, LocalIndices& ind, bool bHang) const {_indices<Face>(elem, ind, bHang);}
 void DoFDistribution::indices(Volume* elem, LocalIndices& ind, bool bHang) const {_indices<Volume>(elem, ind, bHang);}
@@ -1175,7 +1175,7 @@ void DoFDistribution::indices(GridObject* elem, LocalIndices& ind, bool bHang) c
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return indices(static_cast<VertexBase*>(elem), ind, bHang);
+		case VERTEX: return indices(static_cast<Vertex*>(elem), ind, bHang);
 		case EDGE: return indices(static_cast<EdgeBase*>(elem), ind, bHang);
 		case FACE: return indices(static_cast<Face*>(elem), ind, bHang);
 		case VOLUME: return indices(static_cast<Volume*>(elem), ind, bHang);
@@ -1183,7 +1183,7 @@ void DoFDistribution::indices(GridObject* elem, LocalIndices& ind, bool bHang) c
 	}
 }
 
-size_t DoFDistribution::dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<VertexBase>(elem, fct, ind, bHang, bClear);}
+size_t DoFDistribution::dof_indices(Vertex* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<Vertex>(elem, fct, ind, bHang, bClear);}
 size_t DoFDistribution::dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<EdgeBase>(elem, fct, ind, bHang, bClear);}
 size_t DoFDistribution::dof_indices(Face* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<Face>(elem, fct, ind, bHang, bClear);}
 size_t DoFDistribution::dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<Volume>(elem, fct, ind, bHang, bClear);}
@@ -1191,7 +1191,7 @@ size_t DoFDistribution::dof_indices(GridObject* elem, size_t fct, std::vector<Do
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return dof_indices(static_cast<VertexBase*>(elem), fct, ind, bHang, bClear);
+		case VERTEX: return dof_indices(static_cast<Vertex*>(elem), fct, ind, bHang, bClear);
 		case EDGE: return dof_indices(static_cast<EdgeBase*>(elem), fct, ind, bHang, bClear);
 		case FACE: return dof_indices(static_cast<Face*>(elem), fct, ind, bHang, bClear);
 		case VOLUME: return dof_indices(static_cast<Volume*>(elem), fct, ind, bHang, bClear);
@@ -1199,7 +1199,7 @@ size_t DoFDistribution::dof_indices(GridObject* elem, size_t fct, std::vector<Do
 	}
 }
 
-size_t DoFDistribution::inner_dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<VertexBase>(elem, fct, ind, bHang);}
+size_t DoFDistribution::inner_dof_indices(Vertex* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<Vertex>(elem, fct, ind, bHang);}
 size_t DoFDistribution::inner_dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<EdgeBase>(elem, fct, ind, bHang);}
 size_t DoFDistribution::inner_dof_indices(Face* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<Face>(elem, fct, ind, bHang);}
 size_t DoFDistribution::inner_dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<Volume>(elem, fct, ind, bHang);}
@@ -1207,7 +1207,7 @@ size_t DoFDistribution::inner_dof_indices(GridObject* elem, size_t fct, std::vec
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return inner_dof_indices(static_cast<VertexBase*>(elem), fct, ind, bClear);
+		case VERTEX: return inner_dof_indices(static_cast<Vertex*>(elem), fct, ind, bClear);
 		case EDGE: return inner_dof_indices(static_cast<EdgeBase*>(elem), fct, ind, bClear);
 		case FACE: return inner_dof_indices(static_cast<Face*>(elem), fct, ind, bClear);
 		case VOLUME: return inner_dof_indices(static_cast<Volume*>(elem), fct, ind, bClear);
@@ -1216,7 +1216,7 @@ size_t DoFDistribution::inner_dof_indices(GridObject* elem, size_t fct, std::vec
 }
 
 
-size_t DoFDistribution::algebra_indices(VertexBase* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<VertexBase>(elem, ind, bClear);}
+size_t DoFDistribution::algebra_indices(Vertex* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<Vertex>(elem, ind, bClear);}
 size_t DoFDistribution::algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<EdgeBase>(elem, ind, bClear);}
 size_t DoFDistribution::algebra_indices(Face* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<Face>(elem, ind, bClear);}
 size_t DoFDistribution::algebra_indices(Volume* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<Volume>(elem, ind, bClear);}
@@ -1224,7 +1224,7 @@ size_t DoFDistribution::algebra_indices(GridObject* elem,	std::vector<size_t>& i
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
+		case VERTEX: return algebra_indices(static_cast<Vertex*>(elem), ind, bClear);
 		case EDGE: return algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
 		case FACE: return algebra_indices(static_cast<Face*>(elem), ind, bClear);
 		case VOLUME: return algebra_indices(static_cast<Volume*>(elem), ind, bClear);
@@ -1232,7 +1232,7 @@ size_t DoFDistribution::algebra_indices(GridObject* elem,	std::vector<size_t>& i
 	}
 }
 
-size_t DoFDistribution::inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<VertexBase>(elem, ind, bClear);}
+size_t DoFDistribution::inner_algebra_indices(Vertex* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<Vertex>(elem, ind, bClear);}
 size_t DoFDistribution::inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<EdgeBase>(elem, ind, bClear);}
 size_t DoFDistribution::inner_algebra_indices(Face* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<Face>(elem, ind, bClear);}
 size_t DoFDistribution::inner_algebra_indices(Volume* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<Volume>(elem, ind, bClear);}
@@ -1240,7 +1240,7 @@ size_t DoFDistribution::inner_algebra_indices(GridObject* elem, std::vector<size
 {
 	switch(elem->base_object_id())
 	{
-		case VERTEX: return inner_algebra_indices(static_cast<VertexBase*>(elem), ind, bClear);
+		case VERTEX: return inner_algebra_indices(static_cast<Vertex*>(elem), ind, bClear);
 		case EDGE: return inner_algebra_indices(static_cast<EdgeBase*>(elem), ind, bClear);
 		case FACE: return inner_algebra_indices(static_cast<Face*>(elem), ind, bClear);
 		case VOLUME: return inner_algebra_indices(static_cast<Volume*>(elem), ind, bClear);
@@ -1396,7 +1396,7 @@ void DoFDistribution::reinit()
 	m_vNumIndexOnSubset.resize(0);
 	m_vNumIndexOnSubset.resize(num_subsets(), 0);
 
-	if(max_dofs(VERTEX)) reinit<VertexBase>();
+	if(max_dofs(VERTEX)) reinit<Vertex>();
 	if(max_dofs(EDGE))   reinit<EdgeBase>();
 	if(max_dofs(FACE))   reinit<Face>();
 	if(max_dofs(VOLUME)) reinit<Volume>();
@@ -1449,7 +1449,7 @@ void DoFDistribution::reinit_index_layout(IndexLayout& layout, int keyType)
 	layout.clear();
 
 //	add the index from grid layouts
-	if(max_dofs(VERTEX)) add_indices_from_layouts<VertexBase>(layout, keyType);
+	if(max_dofs(VERTEX)) add_indices_from_layouts<Vertex>(layout, keyType);
 	if(max_dofs(EDGE))   add_indices_from_layouts<EdgeBase>(layout, keyType);
 	if(max_dofs(FACE))   add_indices_from_layouts<Face>(layout, keyType);
 	if(max_dofs(VOLUME)) add_indices_from_layouts<Volume>(layout, keyType);
@@ -1569,7 +1569,7 @@ DoFCount DoFDistribution::dof_count() const
 	PROFILE_FUNC();
 	DoFCount cnt(grid_level(), dof_distribution_info());
 
-	if(max_dofs(VERTEX)) sum_dof_count<VertexBase>(cnt);
+	if(max_dofs(VERTEX)) sum_dof_count<Vertex>(cnt);
 	if(max_dofs(EDGE)) sum_dof_count<EdgeBase>(cnt);
 	if(max_dofs(FACE)) sum_dof_count<Face>(cnt);
 	if(max_dofs(VOLUME)) sum_dof_count<Volume>(cnt);
@@ -1590,7 +1590,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 	static const int dim = TBaseElem::dim;
 
 //	Adjacent geometric objects
-	std::vector<VertexBase*> vVrts;
+	std::vector<Vertex*> vVrts;
 	std::vector<EdgeBase*> vEdges;
 	std::vector<Face*> vFaces;
 	std::vector<Volume*> vVols;
@@ -1610,7 +1610,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 	//	Get connected elements
 		if(dim >= VERTEX && max_dofs(VERTEX) > 0) {
 			collect_associated(vVrts, elem);
-			changable_indices<VertexBase>(vIndex, vVrts);
+			changable_indices<Vertex>(vIndex, vVrts);
 		}
 		if(dim >= EDGE   && max_dofs(EDGE) > 0)	{
 			collect_associated(vEdges, elem);
@@ -1682,7 +1682,7 @@ get_connections(std::vector<std::vector<size_t> >& vvConnection) const
 //	clear neighbors
 	vvConnection.resize(num_indices());
 
-	get_connections<VertexBase>(vvConnection);
+	get_connections<Vertex>(vvConnection);
 	get_connections<EdgeBase>(vvConnection);
 	get_connections<Face>(vvConnection);
 	get_connections<Volume>(vvConnection);
@@ -1711,7 +1711,7 @@ void DoFDistribution::permute_indices(const std::vector<size_t>& vNewInd)
 
 void DoFDistribution::permute_indices(const std::vector<size_t>& vNewInd)
 {
-	if(max_dofs(VERTEX)) permute_indices<VertexBase>(vNewInd);
+	if(max_dofs(VERTEX)) permute_indices<Vertex>(vNewInd);
 	if(max_dofs(EDGE))   permute_indices<EdgeBase>(vNewInd);
 	if(max_dofs(FACE))   permute_indices<Face>(vNewInd);
 	if(max_dofs(VOLUME)) permute_indices<Volume>(vNewInd);

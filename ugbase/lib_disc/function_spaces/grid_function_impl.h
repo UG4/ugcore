@@ -379,7 +379,7 @@ grid_distribution_callback(const GridMessage_Distribution& msg)
 				com.exchange_data(grid.distributed_grid_manager()->grid_layout_map(),
 								  INT_V_SLAVE, INT_V_MASTER, compol);
 				com.communicate();
-				sh.add(GeomObjAttachmentSerializer<VertexBase, AValues>::
+				sh.add(GeomObjAttachmentSerializer<Vertex, AValues>::
 							create(grid, m_spAdaptGridFct->value_attachment()));
 			}
 			if(m_spDDI->max_dofs(EDGE)){

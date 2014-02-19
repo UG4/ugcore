@@ -126,8 +126,8 @@ create_closure_elements_2d()
 	Grid::face_traits::secure_container	assElems;
 	Grid::edge_traits::secure_container assEdges;
 	Face::ConstVertexArray vrts;
-	std::vector<VertexBase*> newVrtVrts;
-	std::vector<VertexBase*> newEdgeVrts;
+	std::vector<Vertex*> newVrtVrts;
+	std::vector<Vertex*> newEdgeVrts;
 	std::vector<Face*>	newFaces;
 	EdgeDescriptor ed;
 
@@ -153,7 +153,7 @@ create_closure_elements_2d()
 			vrts = elem->vertices();
 			size_t numVrts = elem->num_vertices();
 			for(size_t i_vrt = 0; i_vrt < numVrts; ++i_vrt){
-				VertexBase* vrt = vrts[i_vrt];
+				Vertex* vrt = vrts[i_vrt];
 				if(!mg.has_children(vrt)){
 					newVrtVrts.push_back(*mg.create<RegularVertex>(vrt));
 					if(m_refCallback)
@@ -177,7 +177,7 @@ create_closure_elements_2d()
 			}
 
 		//	refine the element
-			VertexBase* newFaceVrt;
+			Vertex* newFaceVrt;
 			if(elem->refine(newFaces, &newFaceVrt, &newEdgeVrts.front(),
 							NULL, &newVrtVrts.front()))
 			{
@@ -223,17 +223,17 @@ create_closure_elements_3d()
 	Grid::edge_traits::secure_container assEdges;
 	Grid::face_traits::secure_container assFaces;
 	Volume::ConstVertexArray vrts;
-	std::vector<VertexBase*> newVolVrtVrts;
-	std::vector<VertexBase*> newVolEdgeVrts;
-	std::vector<VertexBase*> newVolFaceVrts;
+	std::vector<Vertex*> newVolVrtVrts;
+	std::vector<Vertex*> newVolEdgeVrts;
+	std::vector<Vertex*> newVolFaceVrts;
 	std::vector<Volume*> newVols;
 	EdgeDescriptor ed;
 	FaceDescriptor fd;
 	
 //	when refining the associated faces, we need some structs, too
 	Grid::edge_traits::secure_container assFaceEdges;
-	std::vector<VertexBase*> newFaceVrtVrts;
-	std::vector<VertexBase*> newFaceEdgeVrts;
+	std::vector<Vertex*> newFaceVrtVrts;
+	std::vector<Vertex*> newFaceEdgeVrts;
 	std::vector<Face*> newFaces;
 
 //	we'll select all new elements on the fly
@@ -260,7 +260,7 @@ create_closure_elements_3d()
 			vrts = elem->vertices();
 			size_t numVrts = elem->num_vertices();
 			for(size_t i_vrt = 0; i_vrt < numVrts; ++i_vrt){
-				VertexBase* vrt = vrts[i_vrt];
+				Vertex* vrt = vrts[i_vrt];
 				if(!mg.has_children(vrt)){
 					newVolVrtVrts.push_back(*mg.create<RegularVertex>(vrt));
 					if(m_refCallback)
@@ -299,7 +299,7 @@ create_closure_elements_3d()
 				
 				bool faceRefinement = false;
 				for(size_t i = 0; i < assFaceEdges.size(); ++i){
-					VertexBase* child = mg.get_child_vertex(assFaceEdges[i]);
+					Vertex* child = mg.get_child_vertex(assFaceEdges[i]);
 					newFaceEdgeVrts.push_back(child);
 					faceRefinement |= (child != NULL);
 				}				
@@ -309,7 +309,7 @@ create_closure_elements_3d()
 					for(size_t i = 0; i < f->num_vertices(); ++i)
 						newFaceVrtVrts.push_back(mg.get_child_vertex(f->vertex(i)));
 					
-					VertexBase* newFaceVrt = NULL;
+					Vertex* newFaceVrt = NULL;
 					if(f->refine(newFaces, &newFaceVrt, &newFaceEdgeVrts.front(),
 								 NULL, &newFaceVrtVrts.front()))
 					{
@@ -355,7 +355,7 @@ create_closure_elements_3d()
 				pCorners = corners;
 			}
 
-			VertexBase* newVolVrt;
+			Vertex* newVolVrt;
 			if(elem->refine(newVols, &newVolVrt, &newVolEdgeVrts.front(),
 							&newVolFaceVrts.front(), NULL, RegularVertex(),
 							&newVolVrtVrts.front(), pCorners))
@@ -406,7 +406,7 @@ perform_refinement()
 //	todo: copy refinement marks from closure elements to their parents
 	vector<GridObject*> parents;
 	Selector::status_t refMark = RM_REFINE | RM_ANISOTROPIC;
-	get_parents_of_marked_closure_elements<VertexBase>(parents, refMark);
+	get_parents_of_marked_closure_elements<Vertex>(parents, refMark);
 	get_parents_of_marked_closure_elements<EdgeBase>(parents, refMark);
 	get_parents_of_marked_closure_elements<Face>(parents, refMark);
 	get_parents_of_marked_closure_elements<Volume>(parents, refMark);

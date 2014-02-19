@@ -72,9 +72,9 @@ vector3 PNCTriangleNorm(const vector3& p0, const vector3& p1, const vector3& p2,
 class ILocalRemesher{
 	public:
 		virtual ~ILocalRemesher()	{}
-		virtual void smooth_vertex(VertexBase* vrt) = 0;
-		virtual VertexBase* collapse_edge(EdgeBase* edge) = 0;
-		virtual VertexBase* split_edge(EdgeBase* edge) = 0;
+		virtual void smooth_vertex(Vertex* vrt) = 0;
+		virtual Vertex* collapse_edge(EdgeBase* edge) = 0;
+		virtual Vertex* split_edge(EdgeBase* edge) = 0;
 };
 
 
@@ -94,20 +94,20 @@ class IPatchRemesher : public ILocalRemesher{
 		template <class TElemIterator>
 		void add_surface_patch(TElemIterator begin, TElemIterator end);
 
-		virtual void smooth_vertex(VertexBase* vrt) = 0;
-		virtual VertexBase* collapse_edge(EdgeBase* edge) = 0;
-		virtual VertexBase* split_edge(EdgeBase* edge) = 0;
+		virtual void smooth_vertex(Vertex* vrt) = 0;
+		virtual Vertex* collapse_edge(EdgeBase* edge) = 0;
+		virtual Vertex* split_edge(EdgeBase* edge) = 0;
 		virtual EdgeBase* swap_edge(EdgeBase* edge) = 0;
 
-		virtual vector3 vertex_position(VertexBase* vrt) = 0;
-		virtual vector3 vertex_normal(VertexBase* vrt) = 0;
+		virtual vector3 vertex_position(Vertex* vrt) = 0;
+		virtual vector3 vertex_normal(Vertex* vrt) = 0;
 
 		virtual number approximation_quality(EdgeBase* e) = 0;
 		virtual number approximation_quality(Face* f) = 0;
 		virtual number element_quality(Face* f) = 0;
 
 	protected:
-		virtual void relocate_vertex(VertexBase* vrt);
+		virtual void relocate_vertex(Vertex* vrt);
 
 	private:
 		class ProjectedPoint{

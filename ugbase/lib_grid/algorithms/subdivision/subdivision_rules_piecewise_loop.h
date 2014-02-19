@@ -21,10 +21,10 @@ class SubdivRules_PLoop
 	public:
 		struct NeighborInfo{
 			NeighborInfo()	{}
-			NeighborInfo(VertexBase* n, size_t cval) :
+			NeighborInfo(Vertex* n, size_t cval) :
 				nbr(n), creaseValence(cval)	{}
 				
-			VertexBase* nbr;
+			Vertex* nbr;
 		/**	0 means that the neighbor is not a crease vertex.
 		 *	> 0: The valence of the crease regarding only the
 		 *	part on the side of the center-vertex.*/
@@ -136,48 +136,48 @@ class SubdivRules_PLoop
 	//	EVEN MASKS
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		apply_even_mask(Grid& grid, VertexBase* center,
+		apply_even_mask(Grid& grid, Vertex* center,
 						TAAPos& aaPos);
 
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		apply_even_crease_mask(VertexBase* center, VertexBase* nbr1,
-							   VertexBase* nbr2, TAAPos& aaPos);
+		apply_even_crease_mask(Vertex* center, Vertex* nbr1,
+							   Vertex* nbr2, TAAPos& aaPos);
 
 	////////////////////////////////
 	//	ODD MASKS
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		apply_odd_mask(VertexBase* vrt, EdgeBase* parent,
+		apply_odd_mask(Vertex* vrt, EdgeBase* parent,
 					   TAAPos& aaPos);
 
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		apply_odd_crease_mask(VertexBase* vrt, EdgeBase* parent,
+		apply_odd_crease_mask(Vertex* vrt, EdgeBase* parent,
 							  TAAPos& aaPos);
 
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		apply_odd_crease_nbr_mask(Grid& grid, VertexBase* vrt,
+		apply_odd_crease_nbr_mask(Grid& grid, Vertex* vrt,
 								  EdgeBase* parent, TAAPos& aaPos);
 
 	////////////////////////////////
 	//	PROJECTION
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		project_inner_vertex(Grid& grid, VertexBase* vrt,
+		project_inner_vertex(Grid& grid, Vertex* vrt,
 							 TAAPos& aaPos);
 
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		project_inner_vertex(VertexBase* vrt, VertexBase* nbrs,
+		project_inner_vertex(Vertex* vrt, Vertex* nbrs,
 							 int* nbrCreaseValencies, int numNbrs,
 							 TAAPos& aaPos);
 
 		template <class TAAPos>
 		typename TAAPos::ValueType
-		project_crease_vertex(VertexBase* vrt, VertexBase* nbr1,
-							  VertexBase* nbr2, TAAPos& aaPos);
+		project_crease_vertex(Vertex* vrt, Vertex* nbr1,
+							  Vertex* nbr2, TAAPos& aaPos);
 */
 	private:
 	///	calculates beta as it is used in the subdivision masks.

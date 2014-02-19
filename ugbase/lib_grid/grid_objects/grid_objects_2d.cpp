@@ -23,7 +23,7 @@ namespace ug
  * the method is used locally and has been created for a special case.
  */
 static inline
-bool ReorderCornersCCW(VertexBase** cornersOut, VertexBase** const cornersIn,
+bool ReorderCornersCCW(Vertex** cornersOut, Vertex** const cornersIn,
 					   int numCorners, int firstCorner)
 {
 	cornersOut[0] = cornersIn[firstCorner];
@@ -46,7 +46,7 @@ TriangleDescriptor::TriangleDescriptor(const TriangleDescriptor& td)
 	m_vertex[2] = td.vertex(2);
 }
 
-TriangleDescriptor::TriangleDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3)
+TriangleDescriptor::TriangleDescriptor(Vertex* v1, Vertex* v2, Vertex* v3)
 {
 	m_vertex[0] = v1;
 	m_vertex[1] = v2;
@@ -66,7 +66,7 @@ CustomTriangle(const TriangleDescriptor& td)
 
 template <class ConcreteTriangleType, class BaseClass>
 CustomTriangle<ConcreteTriangleType, BaseClass>::
-CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3)
+CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3)
 {
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
@@ -76,7 +76,7 @@ CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3)
 template <class ConcreteTriangleType, class BaseClass>
 std::pair<GridBaseObjectId, int>
 CustomTriangle<ConcreteTriangleType, BaseClass>::
-get_opposing_object(VertexBase* vrt) const
+get_opposing_object(Vertex* vrt) const
 {
 	for(int i = 0; i < 3; ++i){
 		if(vrt == m_vertices[i]){
@@ -91,10 +91,10 @@ template <class ConcreteTriangleType, class BaseClass>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 refine(std::vector<Face*>& vNewFacesOut,
-		VertexBase** newFaceVertexOut,
-		VertexBase** newEdgeVertices,
-		VertexBase* newFaceVertex,
-		VertexBase** pSubstituteVertices)
+		Vertex** newFaceVertexOut,
+		Vertex** newEdgeVertices,
+		Vertex* newFaceVertex,
+		Vertex** pSubstituteVertices)
 {
 //TODO: complete triangle refine
 
@@ -102,7 +102,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 	vNewFacesOut.clear();
 
 //	handle substitute vertices.
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
@@ -213,8 +213,8 @@ template <class ConcreteTriangleType, class BaseClass>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 collapse_edge(std::vector<Face*>& vNewFacesOut,
-				int edgeIndex, VertexBase* newVertex,
-				VertexBase** pSubstituteVertices)
+				int edgeIndex, Vertex* newVertex,
+				Vertex** pSubstituteVertices)
 {
 //	if an edge of the triangle is collapsed, nothing remains
 	vNewFacesOut.clear();
@@ -225,8 +225,8 @@ template <class ConcreteTriangleType, class BaseClass>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 collapse_edges(std::vector<Face*>& vNewFacesOut,
-				std::vector<VertexBase*>& vNewEdgeVertices,
-				VertexBase** pSubstituteVertices)
+				std::vector<Vertex*>& vNewEdgeVertices,
+				Vertex** pSubstituteVertices)
 {
 	if(vNewEdgeVertices.size() > BaseClass::num_edges())
 	{
@@ -263,9 +263,9 @@ template <class ConcreteTriangleType, class BaseClass>
 void
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 create_faces_by_edge_split(int splitEdgeIndex,
-								VertexBase* newVertex,
+								Vertex* newVertex,
 								std::vector<Face*>& vNewFacesOut,
-								VertexBase** pSubstituteVertices)
+								Vertex** pSubstituteVertices)
 {
 	assert(((splitEdgeIndex >= 0) && (splitEdgeIndex < 3)) && "ERROR in Triangle::create_faces_by_edge_split(...): bad edge index!");
 
@@ -273,7 +273,7 @@ create_faces_by_edge_split(int splitEdgeIndex,
 //	pvSubstituteVertices instead the ones of 'this'.
 //	If not, we will redirect the pointer to a local local vector,
 //	that holds the vertices of 'this'
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
@@ -307,7 +307,7 @@ QuadrilateralDescriptor::QuadrilateralDescriptor(const QuadrilateralDescriptor& 
 	m_vertex[3] = qd.vertex(3);
 }
 
-QuadrilateralDescriptor::QuadrilateralDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4)
+QuadrilateralDescriptor::QuadrilateralDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4)
 {
 	m_vertex[0] = v1;
 	m_vertex[1] = v2;
@@ -330,7 +330,7 @@ CustomQuadrilateral(const QuadrilateralDescriptor& qd)
 
 template <class ConcreteQuadrilateralType, class BaseClass>
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
-CustomQuadrilateral(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4)
+CustomQuadrilateral(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4)
 {
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
@@ -355,7 +355,7 @@ get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const
 template <class ConcreteQuadrilateralType, class BaseClass>
 std::pair<GridBaseObjectId, int>
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
-get_opposing_object(VertexBase* vrt) const
+get_opposing_object(Vertex* vrt) const
 {
 	for(int i = 0; i < 4; ++i){
 		if(vrt == m_vertices[i]){
@@ -370,9 +370,9 @@ template <class ConcreteQuadrilateralType, class BaseClass>
 void
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
 create_faces_by_edge_split(int splitEdgeIndex,
-							VertexBase* newVertex,
+							Vertex* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							VertexBase** pSubstituteVertices)
+							Vertex** pSubstituteVertices)
 {
 	assert(((splitEdgeIndex >= 0) && (splitEdgeIndex < 4)) && "ERROR in Quadrilateral::create_faces_by_edge_split(...): bad edge index!");
 
@@ -380,7 +380,7 @@ create_faces_by_edge_split(int splitEdgeIndex,
 //	pvSubstituteVertices instead the ones of 'this'.
 //	If not, we will redirect the pointer to a local local vector,
 //	that holds the vertices of 'this'
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
@@ -411,17 +411,17 @@ template <class ConcreteQuadrilateralType, class BaseClass>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
 refine(std::vector<Face*>& vNewFacesOut,
-		VertexBase** newFaceVertexOut,
-		VertexBase** edgeVrts,
-		VertexBase* newFaceVertex,
-		VertexBase** pSubstituteVertices)
+		Vertex** newFaceVertexOut,
+		Vertex** edgeVrts,
+		Vertex* newFaceVertex,
+		Vertex** pSubstituteVertices)
 {
 //TODO: complete quad refine
 	*newFaceVertexOut = newFaceVertex;
 	vNewFacesOut.clear();
 	
 //	handle substitute vertices.
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
@@ -462,7 +462,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 			}
 			
 		//	the corners in a local ordering relative to iNew. Keeping ccw order.
-			VertexBase* corner[4];
+			Vertex* corner[4];
 			ReorderCornersCCW(corner, vrts, 4, (iNew + 3) % 4);
 
 		//	create the new elements
@@ -491,7 +491,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 			}
 
 		//	corners will be filled later on
-			VertexBase* corner[4];
+			Vertex* corner[4];
 
 		//	check which case applies
 			if(iNew[1] - iNew[0] == 2){
@@ -541,13 +541,13 @@ refine(std::vector<Face*>& vNewFacesOut,
 			}
 			
 		//	the vertices on the edges:
-			VertexBase* nvrts[3];
+			Vertex* nvrts[3];
 			nvrts[0] = edgeVrts[(iFree + 1) % 4];
 			nvrts[1] = edgeVrts[(iFree + 2) % 4];
 			nvrts[2] = edgeVrts[(iFree + 3) % 4];
 
 		//	the corners in a local ordering relative to iNew. Keeping ccw order.
-			VertexBase* corner[4];
+			Vertex* corner[4];
 			ReorderCornersCCW(corner, vrts, 4, (iFree + 1) % 4);
 
 		//	create the faces
@@ -582,14 +582,14 @@ template <class ConcreteQuadrilateralType, class BaseClass>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
 collapse_edge(std::vector<Face*>& vNewFacesOut,
-				int edgeIndex, VertexBase* newVertex,
-				VertexBase** pSubstituteVertices)
+				int edgeIndex, Vertex* newVertex,
+				Vertex** pSubstituteVertices)
 {
 //	if an edge of the triangle is collapsed, nothing remains
 	vNewFacesOut.clear();
 
 //	handle substitute vertices.
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
@@ -610,8 +610,8 @@ template <class ConcreteQuadrilateralType, class BaseClass>
 bool
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
 collapse_edges(std::vector<Face*>& vNewFacesOut,
-				std::vector<VertexBase*>& vNewEdgeVertices,
-				VertexBase** pSubstituteVertices)
+				std::vector<Vertex*>& vNewEdgeVertices,
+				Vertex** pSubstituteVertices)
 {
 	if(vNewEdgeVertices.size() > BaseClass::num_edges())
 	{
@@ -667,7 +667,7 @@ template class CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace>;
 //	CONSTRAINING FACE
 template <> size_t
 ConstrainingFace::
-num_constrained<VertexBase>() const
+num_constrained<Vertex>() const
 {
 	return num_constrained_vertices();
 }
@@ -687,9 +687,9 @@ num_constrained<Face>() const
 }
 
 
-template <> VertexBase*
+template <> Vertex*
 ConstrainingFace::
-constrained<VertexBase>(size_t ind) const
+constrained<Vertex>(size_t ind) const
 {
 	return constrained_vertex(ind);
 }

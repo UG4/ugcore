@@ -78,7 +78,7 @@ MGSelector::num(int level) const
 inline size_t
 MGSelector::num(int level) const
 {
-	return num<VertexBase>(level) + num<EdgeBase>(level)
+	return num<Vertex>(level) + num<EdgeBase>(level)
 			+ num<Face>(level) + num<Volume>(level);
 }
 
@@ -95,7 +95,7 @@ MGSelector::num() const
 inline size_t
 MGSelector::num() const
 {
-	return num<VertexBase>() + num<EdgeBase>()
+	return num<Vertex>() + num<EdgeBase>()
 			+ num<Face>() + num<Volume>();
 }
 

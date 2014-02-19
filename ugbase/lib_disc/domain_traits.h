@@ -33,11 +33,11 @@ template <> struct domain_traits<0> {
 typedef boost::mpl::list<RegularVertex> DimElemList;
 typedef boost::mpl::list<RegularVertex> AllElemList;
 
-typedef geometry_traits<VertexBase>::const_iterator const_iterator;
-typedef geometry_traits<VertexBase>::iterator iterator;
+typedef geometry_traits<Vertex>::const_iterator const_iterator;
+typedef geometry_traits<Vertex>::iterator iterator;
 
-typedef geometry_traits<VertexBase>::grid_base_object grid_base_object;
-typedef geometry_traits<VertexBase>::grid_base_object element_type;
+typedef geometry_traits<Vertex>::grid_base_object grid_base_object;
+typedef geometry_traits<Vertex>::grid_base_object element_type;
 
 const static size_t MaxNumVerticesOfElem = 1;
 };
@@ -53,7 +53,7 @@ typedef geometry_traits<EdgeBase>::iterator iterator;
 
 typedef geometry_traits<EdgeBase>::grid_base_object grid_base_object;
 typedef geometry_traits<EdgeBase>::grid_base_object element_type;
-typedef geometry_traits<VertexBase>::grid_base_object side_type;
+typedef geometry_traits<Vertex>::grid_base_object side_type;
 
 const static size_t MaxNumVerticesOfElem = 2;
 

@@ -89,7 +89,7 @@ erase_layout(const Key& key)
 
 inline void GridLayoutMap::clear()
 {
-	m_vertexLayoutMap = Types<VertexBase>::Map();
+	m_vertexLayoutMap = Types<Vertex>::Map();
 	m_edgeLayoutMap = Types<EdgeBase>::Map();
 	m_faceLayoutMap = Types<Face>::Map();
 	m_volumeLayoutMap = Types<Volume>::Map();
@@ -111,14 +111,14 @@ get_layout_map() const
 	return get_layout_map(dummy);
 }
 
-inline GridLayoutMap::Types<VertexBase>::Map& GridLayoutMap::
-get_layout_map(VertexBase*)	
+inline GridLayoutMap::Types<Vertex>::Map& GridLayoutMap::
+get_layout_map(Vertex*)	
 {
 	return m_vertexLayoutMap;
 }
 
-inline const GridLayoutMap::Types<VertexBase>::Map& GridLayoutMap::
-get_layout_map(VertexBase*) const
+inline const GridLayoutMap::Types<Vertex>::Map& GridLayoutMap::
+get_layout_map(Vertex*) const
 {
 	return m_vertexLayoutMap;
 }

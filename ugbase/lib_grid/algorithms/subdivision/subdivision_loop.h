@@ -46,16 +46,16 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 //	vectors to hold temporary results
 	typedef SubdivRules_PLoop::NeighborInfo NbrInfo;
 	std::vector<NbrInfo> nbrInfos;
-	std::vector<VertexBase*> vrts;
+	std::vector<Vertex*> vrts;
 	std::vector<number> nbrWgts;
 	
 //	if volumes are contained in the grid, we currently only perform projection
 //	of boundary elements (no creases...)
 	if(grid.num<Volume>() > 0){
-		for(VertexBaseIterator iter = grid.vertices_begin();
+		for(VertexIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter)
 		{
-			VertexBase* vrt = *iter;
+			Vertex* vrt = *iter;
 		//	collect all surface neighbors of vrt in vrts
 			vrts.clear();
 			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
@@ -78,10 +78,10 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 	}
 	else{
 	//	iterate through all vertices
-		for(VertexBaseIterator iter = grid.vertices_begin();
+		for(VertexIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter)
 		{
-			VertexBase* v = *iter;
+			Vertex* v = *iter;
 			
 		//	check whether the vertex is a crease vertex or not
 		//todo: this has to be more flexible
@@ -128,7 +128,7 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 				nbrInfos.resize(vrts.size());
 				for(size_t i = 0; i < vrts.size(); ++i)
 				{
-					VertexBase* nbrVrt = vrts[i];
+					Vertex* nbrVrt = vrts[i];
 				//	we have to check whether nbrVrt is a crease edge. If it is,
 				//	we have to calculate its valence.
 					if(IsBoundaryVertex2D(grid, nbrVrt)){
@@ -217,10 +217,10 @@ ProjectToLimitSubdivBoundary(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 	Grid::VertexAttachmentAccessor<TAVrtPos> aaProjPos(grid, aProjPos);
 	
 //	iterate through all vertices
-	for(VertexBaseIterator iter = grid.vertices_begin();
+	for(VertexIterator iter = grid.vertices_begin();
 		iter != grid.vertices_end(); ++iter)
 	{
-		VertexBase* v = *iter;
+		Vertex* v = *iter;
 		
 	//	check whether the vertex is a crease vertex or not
 	//todo: this has to be more flexible

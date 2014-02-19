@@ -13,7 +13,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	DataSerializer
 inline void GridDataSerializationHandler::
-serialize(BinaryBuffer& out, VertexBase* vrt) const
+serialize(BinaryBuffer& out, Vertex* vrt) const
 {
 	serialize(out, vrt, m_vrtSerializers);
 	serialize(out, vrt, m_gridSerializers);
@@ -62,7 +62,7 @@ serialize(BinaryBuffer& out, TGeomObj* o,
 
 ////////////////////////////////////////////////////////////////////////
 inline void GridDataSerializationHandler::
-deserialize(BinaryBuffer& in, VertexBase* vrt)
+deserialize(BinaryBuffer& in, Vertex* vrt)
 {
 	deserialize(in, vrt, m_vrtSerializers);
 	deserialize(in, vrt, m_gridSerializers);

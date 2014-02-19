@@ -20,7 +20,7 @@ void TangentialSmoothSimple(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 	Grid::traits<Face>::secure_container	faces;
 	for(size_t iteration = 0; iteration < numIterations; ++iteration){
 		for(TVrtIter iter = vrtsBegin; iter != vrtsEnd; ++iter){
-			VertexBase* vrt = *iter;
+			Vertex* vrt = *iter;
 			g.associated_elements(faces, vrt);
 			if(faces.empty())
 				continue;
@@ -41,7 +41,7 @@ void TangentialSmoothSimple(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 				Face::ConstVertexArray vrts = faces[i_face]->vertices();
 				const size_t numVrts = faces[i_face]->num_vertices();
 				for(size_t i_vrt = 0; i_vrt < numVrts; ++i_vrt){
-					VertexBase* v = vrts[i_vrt];
+					Vertex* v = vrts[i_vrt];
 					if((v != vrt) && (!g.is_marked(v))){
 						g.mark(v);
 						VecAdd(c, c, aaPos[v]);
@@ -101,7 +101,7 @@ void TangentialSmooth(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 //	build adjacency graph
 	Grid::traits<Face>::secure_container	faces;
 	for(TVrtIter iter = vrtsBegin; iter != vrtsEnd; ++iter){
-		VertexBase* vrt = *iter;
+		Vertex* vrt = *iter;
 		adjVrtOffsets.push_back(adjVrtInds.size());
 		adjFaceOffsets.push_back(adjFaces.size());
 
@@ -116,7 +116,7 @@ void TangentialSmooth(Grid& g, TVrtIter vrtsBegin, TVrtIter vrtsEnd,
 			Face::ConstVertexArray vrts = faces[i_face]->vertices();
 			const size_t numVrts = faces[i_face]->num_vertices();
 			for(size_t i_vrt = 0; i_vrt < numVrts; ++i_vrt){
-				VertexBase* v = vrts[i_vrt];
+				Vertex* v = vrts[i_vrt];
 				if((v != vrt) && (!g.is_marked(v))){
 					g.mark(v);
 					if(aaInt[v] == -1){

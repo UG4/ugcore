@@ -15,7 +15,7 @@ namespace ug
 
 //	this method actually performs the extrusion. It is only callable from
 //	inside this file.
-static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
+static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, Vertex* vrt,
 					const vector3& direction, number height, number radius,
 					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
@@ -78,7 +78,7 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 	return true;
 }
 
-bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
+bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, Vertex* vrt,
 					const vector3& direction, number height, number radius,
 					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
@@ -90,7 +90,7 @@ bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
 
 }
 
-bool ExtrudeCylinder(Grid& grid, VertexBase* vrt,
+bool ExtrudeCylinder(Grid& grid, Vertex* vrt,
 					const vector3& direction, number height, number radius,
 					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,

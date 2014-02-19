@@ -231,8 +231,8 @@ void MarkForAdaption_VerticesInSphere(TDomain& dom, SmartPtr<IRefiner> refiner,
 
 //	iterate over all vertices of the grid. If a vertex is inside the given sphere,
 //	then we'll mark all associated elements.
-	for(VertexBaseIterator iter = grid.begin<VertexBase>();
-		iter != grid.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>(); ++iter)
 	{
 		if(VecDistanceSq(center, aaPos[*iter]) <= radiusSq){
 			CollectAssociated(vEdges, grid, *iter);
@@ -340,8 +340,8 @@ void MarkForAdaption_VerticesInCube(TDomain& dom, SmartPtr<IRefiner> refiner,
 
 //	iterate over all vertices of the grid. If a vertex is inside the given cube,
 //	then we'll mark all associated elements.
-	for(VertexBaseIterator iter = grid.begin<VertexBase>();
-		iter != grid.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>(); ++iter)
 	{
 	//	Position
 		position_type& pos = aaPos[*iter];
@@ -1088,7 +1088,7 @@ static void Domain(Registry& reg, string grp)
 							typename domain_traits<TDomain::dim>::element_type>,
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
 		.add_function("MarkForRefinement_VerticesInSubset",
-				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, VertexBase>,
+				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, Vertex>,
 				grp, "", "dom#refiner#subsetHandler#subsetIndex")
 		.add_function("MarkForRefinement_EdgesInSubset",
 				&MarkForRefinement_ElementsInSubset<domain_type, MGSubsetHandler, EdgeBase>,

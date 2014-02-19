@@ -43,8 +43,8 @@ bool LoadMarkerPointsFromFile(MarkerPointManager& manager,
 			aaNorm.access(grid, aNormal);
 
 		int i = 0;
-		for(VertexBaseIterator iter = grid.begin<VertexBase>();
-			iter != grid.end<VertexBase>(); ++iter, ++i)
+		for(VertexIterator iter = grid.begin<Vertex>();
+			iter != grid.end<Vertex>(); ++iter, ++i)
 		{
 			stringstream ss;
 			ss << "marker_" << i;
@@ -74,13 +74,13 @@ void SnapMarkerPointToGridVertex(MarkerPoint& markerInOut, Grid& grid,
 	vector3& p = marker.pos;
 
 //	find the closest point in the grid
-	VertexBase* vrt;
+	Vertex* vrt;
 	{
-		VertexBaseIterator iter = grid.begin<VertexBase>();
+		VertexIterator iter = grid.begin<Vertex>();
 		vrt = *iter;
 		number distSq = VecDistanceSq(aaPos[vrt], p);
 		iter++;
-		for(; iter != grid.end<VertexBase>(); ++iter){
+		for(; iter != grid.end<Vertex>(); ++iter){
 			number d = VecDistanceSq(aaPos[*iter], p);
 			if(d < distSq){
 				distSq = d;

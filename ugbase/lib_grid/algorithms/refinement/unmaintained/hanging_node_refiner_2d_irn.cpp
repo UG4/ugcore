@@ -32,7 +32,7 @@ static void PrintConstrainingEdgeInfo(ConstrainingEdge* ce, Grid::VertexAttachme
 	}
 
 	LOG("coords of constrained vertices:" << endl);
-	for(VertexBaseIterator vrtIter = ce->constrained_vertices_begin();
+	for(VertexIterator vrtIter = ce->constrained_vertices_begin();
 		vrtIter != ce->constrained_vertices_end(); ++vrtIter)
 	{
 		LOG("pos: (" << aaPos[*vrtIter].x() << ", " << aaPos[*vrtIter].y() << ")");
@@ -75,7 +75,7 @@ static bool CheckHangingNodeDegree(Grid& grid, uint irregularityRule, Grid::Vert
 //	temporary helper methods
 //TODO: move this method to a better place.
 ///	returns the local coordinate that v has relative to e
-static number GetLocalVertexCoordinate(EdgeBase* e, VertexBase* vrt)
+static number GetLocalVertexCoordinate(EdgeBase* e, Vertex* vrt)
 {
 	if(vrt == e->vertex(0))
 		return 0;
@@ -410,8 +410,8 @@ void HangingNodeRefiner2D_IRN::refine()
 
 				//	if not all neighbours are marked, the edge will not be splitted.
 				//	find the center and store it with the edge for later use.
-					VertexBase* centerVrt = NULL;
-					for(VertexBaseIterator vrtIter = constrainingEdge->constrained_vertices_begin();
+					Vertex* centerVrt = NULL;
+					for(VertexIterator vrtIter = constrainingEdge->constrained_vertices_begin();
 						vrtIter != constrainingEdge->constrained_vertices_end(); ++vrtIter)
 					{
 						ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(*vrtIter);
@@ -891,7 +891,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 	ConstrainedVertex* centerVrt = NULL;
 
 //	iterate through the constrained vertices of the edge and gather vertex-information
-	for(VertexBaseIterator hVrtIter = ce->constrained_vertices_begin();
+	for(VertexIterator hVrtIter = ce->constrained_vertices_begin();
 		hVrtIter != ce->constrained_vertices_end(); ++hVrtIter)
 	{
 		if(ConstrainedVertex::type_match(*hVrtIter))
@@ -930,7 +930,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 		//	set up information that depends on i
 			number lowBorder = 0.5 * (number)i;
 			number highBorder = lowBorder + 0.5;
-			VertexBase* vrt1, *vrt2;
+			Vertex* vrt1, *vrt2;
 			switch(i)
 			{
 				case 0:	vrt1 = ce->vertex(0);	vrt2 = nCenterVrt;	break;
@@ -948,7 +948,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 				if(tEdge)
 				{
 				//	store the inserted vertex
-					VertexBase* tVrt = get_center_vertex(tEdge);
+					Vertex* tVrt = get_center_vertex(tEdge);
 				//	if tEdge is constrained by ce, we have to unconstrain it first.
 					if(ce->is_constrained_object(tEdge))
 						ce->unconstrain_object(tEdge);
@@ -966,7 +966,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 
 			//	copy hanging nodes
 			//	only consider the ones that lie between lowBorder and highBorder.
-				for(VertexBaseIterator hVrtIter = ce->constrained_vertices_begin();
+				for(VertexIterator hVrtIter = ce->constrained_vertices_begin();
 					hVrtIter != ce->constrained_vertices_end(); ++hVrtIter)
 				{
 					if(ConstrainedVertex::type_match(*hVrtIter))
@@ -993,7 +993,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 						bool bCopy = false;
 						for(uint j = 0; j < 2; ++j)
 						{
-							VertexBase* tVrt = cde->vertex(j);
+							Vertex* tVrt = cde->vertex(j);
 						//	tVrt could be ce->vertex(0), ce->vertex(1), nCenterVrt or
 						//	an arbitrary hanging node on ce.
 						//	nCenterVrt won't help us to decide on which side cde lies...
@@ -1053,7 +1053,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 				//	unconstrain the edge
 					ce->unconstrain_object(replaceMe);
 				//	store the vertex that was placed on refineMe (if there was any)
-					VertexBase* tmpVrt = get_center_vertex(replaceMe);
+					Vertex* tmpVrt = get_center_vertex(replaceMe);
 				//	if the edge was scheduled we have to output this
 					scheduledEdgeReplaced[i] = m_selScheduledElements.is_selected(replaceMe);
 				//	create and replace
@@ -1082,7 +1082,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 
 	//	adjust local coordinates of hanging nodes
 	//	do this here since problems will occur if done earlier.
-		for(VertexBaseIterator hVrtIter = ce->constrained_vertices_begin();
+		for(VertexIterator hVrtIter = ce->constrained_vertices_begin();
 			hVrtIter != ce->constrained_vertices_end(); ++hVrtIter)
 		{
 			if(ConstrainedVertex::type_match(*hVrtIter))
@@ -1121,7 +1121,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 		LOG("Edge attachment index: " << grid.get_attachment_data_index(ce) << endl);
 		LOG("num_constrained_vertices: " << ce->num_constrained_vertices() << endl);
 		LOG("coords of constrained vertices:" << endl);
-		for(VertexBaseIterator vrtIter = ce->constrained_vertices_begin();
+		for(VertexIterator vrtIter = ce->constrained_vertices_begin();
 			vrtIter != ce->constrained_vertices_end(); ++vrtIter)
 		{
 			//LOG("pos: (" << m_aaPos[*vrtIter].x() << ", " << m_aaPos[*vrtIter].y() << ")");
@@ -1201,7 +1201,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_normal_vertex(Face* f)
 	Grid& grid = *m_pGrid;
 
 	vector<EdgeBase*> 	vEdges(f->num_edges());
-	vector<VertexBase*> vNewEdgeVertices(f->num_edges());
+	vector<Vertex*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 //	collect all associated edges.
 	CollectEdges(vEdges, grid, f);
@@ -1221,7 +1221,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_normal_vertex(Face* f)
 	}
 
 //	we'll perform a regular refine
-	VertexBase* vNewVrt = NULL;
+	Vertex* vNewVrt = NULL;
 	f->refine_regular(vFaces, &vNewVrt, vNewEdgeVertices, NULL, RegularVertex(), NULL);
 
 //	if a new vertex has been created during refine, then register it at the grid.
@@ -1251,7 +1251,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 	Grid& grid = *m_pGrid;
 
 	vector<EdgeBase*> 	vEdges(f->num_edges());
-	vector<VertexBase*> vNewEdgeVertices(f->num_edges());
+	vector<Vertex*> vNewEdgeVertices(f->num_edges());
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 //	collect all associated edges.
 	CollectEdges(vEdges, grid, f);
@@ -1272,7 +1272,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 
 //	check if a new vertex has to be created inside the face.
 //	if so do it
-	VertexBase* vNewVrt = NULL;
+	Vertex* vNewVrt = NULL;
 	if(f->num_vertices() > 3)
 	{
 		vNewVrt = *grid.create<ConstrainedVertex>(f);
@@ -1306,7 +1306,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 													constrainingFace->vertex(2));
 
 			//	refine the constrainedTri and register new ones.
-				VertexBase* tmpVrt;
+				Vertex* tmpVrt;
 				constrainedTri.refine_regular(vFaces, &tmpVrt, vNewEdgeVertices, NULL, RegularVertex(), NULL);
 			}
 			break;
@@ -1351,7 +1351,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 			}
 
 		//	check if a constrained edge exists between the vertex and its next neighbor
-			VertexBase* vNext = vNewEdgeVertices[(i + 1) % numNewEdgeVertices];
+			Vertex* vNext = vNewEdgeVertices[(i + 1) % numNewEdgeVertices];
 			ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], vNext));
 			if(e)
 			{
@@ -1384,9 +1384,9 @@ void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 	Grid& grid = *m_pGrid;
 
 	vector<EdgeBase*> 	vEdges(v->num_edges());
-	vector<VertexBase*> vNewEdgeVertices(v->num_edges());
+	vector<Vertex*> vNewEdgeVertices(v->num_edges());
 	vector<Face*>		vFaces(v->num_faces());
-	vector<VertexBase*>	vNewFaceVertices(v->num_faces());
+	vector<Vertex*>	vNewFaceVertices(v->num_faces());
 	vector<Volume*>		vVolumes(8);// heuristic
 //	collect all associated edges.
 	CollectEdges(vEdges, grid, v);
@@ -1417,7 +1417,7 @@ void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 //TODO:	check if a new vertex has to be created inside the volume.
 //	if so do it
 /*
-	VertexBase* vNewVrt = NULL;
+	Vertex* vNewVrt = NULL;
 	if(f->num_vertices() > 3)
 	{
 		vNewVrt = *grid.create<RegularVertex>(f);
@@ -1427,7 +1427,7 @@ void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 	}
 */
 //	refine the volume and register new volumes at the grid.
-	VertexBase* createdVrt = NULL;
+	Vertex* createdVrt = NULL;
 	v->refine(vVolumes, &createdVrt, &vNewEdgeVertices.front(),
 			  &vNewFaceVertices.front(), NULL, RegularVertex(), NULL);
 

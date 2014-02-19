@@ -40,7 +40,7 @@ vector3 GetGridObjectCenter(Grid& g, TElem* elem)
 inline vector3 GetGridObjectCenter(Grid& g, GridObject* elem)
 {
 	switch(elem->base_object_id()){
-		case VERTEX:	return GetGridObjectCenter(g, static_cast<VertexBase*>(elem));
+		case VERTEX:	return GetGridObjectCenter(g, static_cast<Vertex*>(elem));
 		case EDGE:		return GetGridObjectCenter(g, static_cast<EdgeBase*>(elem));
 		case FACE:		return GetGridObjectCenter(g, static_cast<Face*>(elem));
 		case VOLUME:	return GetGridObjectCenter(g, static_cast<Volume*>(elem));

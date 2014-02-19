@@ -625,7 +625,7 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 
 //	get subset indices for sides (i.e. edge in 2d, faces in 3d)
 	if(dim == 1) {
-		std::vector<VertexBase*> vVertex;
+		std::vector<Vertex*> vVertex;
 		CollectVertices(vVertex, grid, pElem);
 		vSubsetIndex.resize(vVertex.size());
 		for(size_t i = 0; i < vVertex.size(); ++i)
@@ -957,7 +957,7 @@ update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoor
 
 //	get subset indices for sides (i.e. edge in 2d, faces in 3d)
 	if(dim == 1) {
-		std::vector<VertexBase*> vVertex;
+		std::vector<Vertex*> vVertex;
 		CollectVertices(vVertex, grid, pElem);
 		vSubsetIndex.resize(vVertex.size());
 		for(size_t i = 0; i < vVertex.size(); ++i)

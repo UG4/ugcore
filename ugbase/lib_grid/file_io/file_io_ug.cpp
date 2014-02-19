@@ -171,7 +171,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 		grid.attach_to_vertices(aNgVrtIndex);
 		Grid::VertexAttachmentAccessor<AInt> aaNgVrtIndex(grid, aNgVrtIndex);
 		counter = 0;
-		for(VertexBaseIterator VIter = NgVrtSel.begin(); VIter != NgVrtSel.end(); ++VIter, ++counter)
+		for(VertexIterator VIter = NgVrtSel.begin(); VIter != NgVrtSel.end(); ++VIter, ++counter)
 			aaNgVrtIndex[*VIter] = counter;
 
 	// 	assign index to every inner-vertex
@@ -179,7 +179,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 		grid.attach_to_vertices(aInnVrtIndex);
 		Grid::VertexAttachmentAccessor<AInt> aaInnVrtIndex(grid, aInnVrtIndex);
 		counter = 0;
-		for(VertexBaseIterator VIter = InnVrtSel.begin(); VIter != InnVrtSel.end(); ++VIter, ++counter)
+		for(VertexIterator VIter = InnVrtSel.begin(); VIter != InnVrtSel.end(); ++VIter, ++counter)
 			aaInnVrtIndex[*VIter] = counter;
 
 	//	assign index to every surface-vertex
@@ -187,7 +187,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 		grid.attach_to_vertices(aSurfVrtIndex);
 		Grid::VertexAttachmentAccessor<AInt> aaSurfVrtIndex(grid, aSurfVrtIndex);
 		counter = 0;
-		for(VertexBaseIterator SVIter = SurfVrtSel.begin(); SVIter != SurfVrtSel.end(); ++SVIter, ++counter)
+		for(VertexIterator SVIter = SurfVrtSel.begin(); SVIter != SurfVrtSel.end(); ++SVIter, ++counter)
 			aaSurfVrtIndex[*SVIter] = counter;
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -272,14 +272,14 @@ static bool CollectLines(Grid& grid, const SubsetHandler& shFace, EdgeSelector& 
 static bool CollectInnerVertices(Grid& grid, VertexSelector& InnVrtSel, VertexSelector& SurfVrtSel)
 {
 //	iterate through all grid-vertices and select them with VertexSelector InnVrtSel
-	for(VertexBaseIterator VIter = grid.vertices_begin(); VIter != grid.vertices_end(); ++VIter)
+	for(VertexIterator VIter = grid.vertices_begin(); VIter != grid.vertices_end(); ++VIter)
 	{
 		InnVrtSel.select(*VIter);
 	}
 
 //	iterate through all surface-vertices and deselect them in VertexSelector InnVrtSel, so that there only remain
 //	the inner vertices
-	for(VertexBaseIterator VIter = SurfVrtSel.begin(); VIter != SurfVrtSel.end(); ++VIter)
+	for(VertexIterator VIter = SurfVrtSel.begin(); VIter != SurfVrtSel.end(); ++VIter)
 	{
 		InnVrtSel.deselect(*VIter);
 	}
@@ -322,13 +322,13 @@ static bool CollectAllVerticesForNG(Grid& grid, VertexSelector& NgVrtSel,
 //	collecting all vertices for an *.ng file requires first to select the surface-vertices and then the inner ones
 
 //	iterate through all surface-vertices and select them
-	for(VertexBaseIterator VIter = SurfVrtSel.begin(); VIter != SurfVrtSel.end(); ++VIter)
+	for(VertexIterator VIter = SurfVrtSel.begin(); VIter != SurfVrtSel.end(); ++VIter)
 	{
 		NgVrtSel.select(*VIter);
 	}
 
 //	iterate through all inner vertices and select them
-	for(VertexBaseIterator VIter = InnVrtSel.begin(); VIter != InnVrtSel.end(); ++VIter)
+	for(VertexIterator VIter = InnVrtSel.begin(); VIter != InnVrtSel.end(); ++VIter)
 	{
 		NgVrtSel.select(*VIter);
 	}
@@ -472,7 +472,7 @@ static bool WriteLGM(Grid& grid,
 				Face* f = *FIter;
 				for(uint j = 0; j < f->num_vertices(); ++j)
 				{
-					VertexBase* v = f->vertex(j);
+					Vertex* v = f->vertex(j);
 					if(!tmpSurfVrtSel.is_selected(v))
 					{
 						tmpSurfVrtSel.select(v);
@@ -508,7 +508,7 @@ static bool WriteLGM(Grid& grid,
 		// 	write triangles
 			out << "; triangles:";
 			{
-				vector<VertexBase*> vVertices;
+				vector<Vertex*> vVertices;
 				for(ConstTriangleIterator TIter = shFaces.begin<Triangle>(i);
 					TIter != shFaces.end<Triangle>(i); ++TIter)
 				{
@@ -570,7 +570,7 @@ static bool WriteLGM(Grid& grid,
 
 //	write the vertices position data
 	out << endl << "#Point-Info" << endl;
-	for(VertexBaseIterator iter = SurfVrtSel.begin(); iter != SurfVrtSel.end(); ++iter)
+	for(VertexIterator iter = SurfVrtSel.begin(); iter != SurfVrtSel.end(); ++iter)
 	{
 		out << aaPos[*iter].x() << " " << aaPos[*iter].y() << " " << aaPos[*iter].z() << ";" << endl;
 	}
@@ -672,9 +672,9 @@ static bool WriteNG(Grid& grid,
 
 //	write the boundary nodes section
 	out << "# boundary nodes" << endl;
-	for(VertexBaseIterator VIter = SurfVrtSel.begin(); VIter != SurfVrtSel.end(); ++VIter)
+	for(VertexIterator VIter = SurfVrtSel.begin(); VIter != SurfVrtSel.end(); ++VIter)
 	{
-		VertexBase* v = *VIter;
+		Vertex* v = *VIter;
 
 		for(int i = 0; i < shFaces.num_subsets(); ++i)
 		{
@@ -753,9 +753,9 @@ static bool WriteNG(Grid& grid,
 	if(InnVrtSel.num() > 0)
 	{
 	//	if there are inner vertices, iterate through all of them
-		for(VertexBaseIterator VIter = InnVrtSel.begin(); VIter != InnVrtSel.end(); ++VIter)
+		for(VertexIterator VIter = InnVrtSel.begin(); VIter != InnVrtSel.end(); ++VIter)
 		{
-			VertexBase* v = *VIter;
+			Vertex* v = *VIter;
 //out << "# node-id: " << nodeCount << endl;//ONLY FOR DEBUG
 //++nodeCount;//ONLY FOR DEBUG
 		//	write the position data of the inner vertices
@@ -911,7 +911,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 	{
 		int pointIndexCounter = 0;
 
-		for(VertexBaseIterator iter = grid.vertices_begin();
+		for(VertexIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); iter++)
 		{
 			if(IsBoundaryVertex2D(grid, *iter))
@@ -947,7 +947,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 	SetAttachmentValues(aaLineInt, grid.edges_begin(), grid.edges_end(), -1);
 
 	int numLines = 0;
-	vector<vector<VertexBase*> > lines;
+	vector<vector<Vertex*> > lines;
 	{
 	//	each edge which is connected to two different subsets or which is
 	//	a boundary edge has to be written as a line
@@ -963,7 +963,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 				//	We assume that the chain is regular
 				//	create a callback for this subset, since we use it several times
 					IsInSubset cbIsInSubset(*psh, i);
-					std::pair<VertexBase*, EdgeBase*> curSec =
+					std::pair<Vertex*, EdgeBase*> curSec =
 						GetFirstSectionOfPolyChain(grid, psh->begin<EdgeBase>(i),
 													psh->end<EdgeBase>(i),
 													cbIsInSubset);
@@ -996,12 +996,12 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 						<< "; right=" << subRight << "; points:";
 							
 					size_t numEdgesInLine = 0;
-					lines.push_back(vector<VertexBase*>());
-					vector<VertexBase*>& curLine = lines.back();
+					lines.push_back(vector<Vertex*>());
+					vector<Vertex*>& curLine = lines.back();
 
 					while(curSec.first)
 					{
-						VertexBase* curVrt = curSec.first;
+						Vertex* curVrt = curSec.first;
 						EdgeBase* curEdge = curSec.second;
 						
 					//	write the vertex index
@@ -1019,7 +1019,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 						out << " " << aaInt[curVrt];
 						curLine.push_back(curVrt);
 						
-						std::pair<VertexBase*, EdgeBase*> nextSec =
+						std::pair<Vertex*, EdgeBase*> nextSec =
 							GetNextSectionOfPolyChain(grid, curSec, cbIsInSubset);
 
 					//	check whether the next section is still valid.
@@ -1128,7 +1128,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 //	write the vertices position data
 	{
 		out << endl << "#Point-Info" << endl;
-		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
+		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
 		{
 		//	only write the point if it lies on a line
 			if(aaInt[*iter] != -1)
@@ -1159,9 +1159,9 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 		int numNGVertexs = 0;
 	//	first we'll write the boundary vertices
 		{
-			for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
+			for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
 			{
-				VertexBase* p = *iter;
+				Vertex* p = *iter;
 			//	check if p is a boundary node
 				if(aaInt[p] != -1)
 				{
@@ -1181,7 +1181,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 							if(encounteredLines.count(lineIndex) > 0)
 								continue;// the line was already encountered.
 
-							vector<VertexBase*>& curLine = lines.at(lineIndex);
+							vector<Vertex*>& curLine = lines.at(lineIndex);
 							assert(curLine.size() > 1 && "A line has to contain at least 2 vertices.");
 							int localCoord = -1;
 							for(size_t i = 0; i < curLine.size(); ++i){
@@ -1208,9 +1208,9 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 
 	//	write the inner vertices
 		{
-			for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
+			for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
 			{
-				VertexBase* p = *iter;
+				Vertex* p = *iter;
 				if(aaInt[p] == -1)
 				{
 				//	write the point

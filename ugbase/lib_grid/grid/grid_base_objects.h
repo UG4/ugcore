@@ -80,7 +80,7 @@ class Grid;
 template<class TElem>	class ElementStorage;
 
 class GridObject;	//	geometric base object
-class VertexBase;		//	base for all 0-dimensional grid objects.
+class Vertex;		//	base for all 0-dimensional grid objects.
 class EdgeBase;			//	base for all 1-dimensional grid objects.
 class Face;				//	base for all 2-dimensional grid objects.
 class Volume;			//	base for all 3-dimensional grid objects.
@@ -94,7 +94,7 @@ class FaceVertices;		//	manages the vertices of a face. Base for Face and FaceDe
 class VolumeVertices;	//	manages the vertices of a volume. Base for Volume and VolumeDescriptor.
 
 //	pointer-types. Primarily required for template-specializations.
-typedef VertexBase*	PVertexBase;
+typedef Vertex*	PVertex;
 typedef EdgeBase*		PEdgeBase;
 typedef Face*			PFace;
 typedef Volume*		PVolume;
@@ -107,7 +107,7 @@ typedef EdgeVertices*		PEdgeVertices;
 typedef FaceVertices*		PFaceVertices;
 typedef VolumeVertices*		PVolumeVertices;
 
-template<> class attachment_traits<VertexBase*, ElementStorage<VertexBase> >;
+template<> class attachment_traits<Vertex*, ElementStorage<Vertex> >;
 template<> class attachment_traits<EdgeBase*, ElementStorage<EdgeBase> >;
 template<> class attachment_traits<Face*, ElementStorage<Face> >;
 template<> class attachment_traits<Volume*, ElementStorage<Volume> >;
@@ -130,7 +130,7 @@ template<> class attachment_traits<Volume*, ElementStorage<Volume> >;
 class UG_API GridObject/* : public SmallObject<>*/
 {
 	friend class Grid;
-	friend class attachment_traits<VertexBase*, ElementStorage<VertexBase> >;
+	friend class attachment_traits<Vertex*, ElementStorage<Vertex> >;
 	friend class attachment_traits<EdgeBase*, ElementStorage<EdgeBase> >;
 	friend class attachment_traits<Face*, ElementStorage<Face> >;
 	friend class attachment_traits<Volume*, ElementStorage<Volume> >;
@@ -178,7 +178,7 @@ class UG_API GridObject/* : public SmallObject<>*/
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//	VertexBase
+//	Vertex
 ///	Base-class for all vertex-types
 /**
  * Vertices are required in any grid.
@@ -187,11 +187,11 @@ class UG_API GridObject/* : public SmallObject<>*/
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API VertexBase : public GridObject
+class UG_API Vertex : public GridObject
 {
 	friend class Grid;
 	public:
-		typedef VertexBase grid_base_object;
+		typedef Vertex grid_base_object;
 
 	//	lower dimensional Base Object
 		typedef void lower_dim_base_object;
@@ -201,7 +201,7 @@ class UG_API VertexBase : public GridObject
 
 	/**	The side type is obviously wrong. It should be void.
 	 * However, void would cause problems with template instantiations.*/
-		typedef VertexBase side;
+		typedef Vertex side;
 		typedef EdgeBase sideof;
 
 		static const bool HAS_SIDES = false;
@@ -215,9 +215,9 @@ class UG_API VertexBase : public GridObject
 		static const size_t NUM_VERTICES = 1;
 
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<VertexBase*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Vertex*>(pObj) != NULL;}
 
-		virtual ~VertexBase()	{}
+		virtual ~Vertex()	{}
 
 		inline uint num_sides() const	{return 0;}
 
@@ -245,9 +245,9 @@ class UG_API EdgeVertices
 {
 	friend class Grid;
 	public:
-		typedef VertexBase* const* ConstVertexArray;
+		typedef Vertex* const* ConstVertexArray;
 
-		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		inline Vertex* vertex(uint index) const	{return m_vertices[index];}
 		inline ConstVertexArray vertices() const	{return m_vertices;}
 		inline uint num_vertices() const			{return 2;}	// this method is supplied to allow the use of EdgeBase in template-methods that require a num_vertices() method.
 
@@ -255,7 +255,7 @@ class UG_API EdgeVertices
 	///	returns the number of vertices.
 		inline size_t size() const	{return 2;}
 	///	returns the i-th vertex.
-		VertexBase* operator[](uint index) const {return m_vertices[index];}
+		Vertex* operator[](uint index) const {return m_vertices[index];}
 
 	protected:
 		inline void assign_edge_vertices(const EdgeVertices& ev)
@@ -265,7 +265,7 @@ class UG_API EdgeVertices
 		}
 
 	protected:
-		VertexBase*	m_vertices[2];
+		Vertex*	m_vertices[2];
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,16 +281,16 @@ class UG_API EdgeBase : public GridObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
-		typedef VertexBase* const* ConstVertexArray;
+		typedef Vertex* const* ConstVertexArray;
 
 		typedef EdgeBase grid_base_object;
 
 	//	lower dimensional Base Object
-		typedef VertexBase lower_dim_base_object;
+		typedef Vertex lower_dim_base_object;
 	//	higher dimensional Base Object
 		typedef Face higher_dim_base_object;
 
-		typedef VertexBase side;
+		typedef Vertex side;
 		typedef Face sideof;
 
 		static const bool HAS_SIDES = true;
@@ -317,7 +317,7 @@ class UG_API EdgeBase : public GridObject, public EdgeVertices
 	///	retrieves the vertex on the opposing side to the specified one.
 	/**	If the specified vertex is not part of the edge, false is returned.
 	 * If it is, then vrtOut is filled with the opposing vertex and true is returned.*/
-		bool get_opposing_side(VertexBase* v, VertexBase** vrtOut);
+		bool get_opposing_side(Vertex* v, Vertex** vrtOut);
 
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
@@ -333,11 +333,11 @@ class UG_API EdgeBase : public GridObject, public EdgeVertices
 	 * vertices will be used instead of the original ones.
 	 */
 		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
-											VertexBase* newVertex,
-											VertexBase** pSubstituteVrts = NULL)	{return false;}
+											Vertex* newVertex,
+											Vertex** pSubstituteVrts = NULL)	{return false;}
 
 	protected:
-		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		inline void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
 };
 
 
@@ -349,12 +349,12 @@ class UG_API EdgeDescriptor : public EdgeVertices
 	public:
 		EdgeDescriptor();
 		EdgeDescriptor(const EdgeDescriptor& ed);
-		EdgeDescriptor(VertexBase* vrt1, VertexBase* vrt2);
+		EdgeDescriptor(Vertex* vrt1, Vertex* vrt2);
 
 		EdgeDescriptor& operator = (const EdgeDescriptor& ed);
 
-		inline void set_vertex(uint index, VertexBase* vrt)	{m_vertices[index] = vrt;}
-		inline void set_vertices(VertexBase* vrt1, VertexBase* vrt2)
+		inline void set_vertex(uint index, Vertex* vrt)	{m_vertices[index] = vrt;}
+		inline void set_vertices(Vertex* vrt1, Vertex* vrt2)
 			{
 				m_vertices[0] = vrt1;
 				m_vertices[1] = vrt2;
@@ -366,10 +366,10 @@ class UG_API EdgeDescriptor : public EdgeVertices
 class UG_API FaceVertices
 {
 	public:
-		typedef VertexBase* const* ConstVertexArray;
+		typedef Vertex* const* ConstVertexArray;
 
 		virtual ~FaceVertices()							{}
-		virtual VertexBase* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual Vertex* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
@@ -377,7 +377,7 @@ class UG_API FaceVertices
 	///	returns the number of vertices.
 		inline size_t size() const	{return num_vertices();}
 	///	returns the i-th vertex.
-		inline VertexBase* operator[](size_t index) const {return vertex(index);}
+		inline Vertex* operator[](size_t index) const {return vertex(index);}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -396,7 +396,7 @@ class UG_API Face : public GridObject, public FaceVertices
 {
 	friend class Grid;
 	public:
-		typedef VertexBase* const* ConstVertexArray;
+		typedef Vertex* const* ConstVertexArray;
 
 		typedef Face grid_base_object;
 
@@ -454,7 +454,7 @@ class UG_API Face : public GridObject, public FaceVertices
 	 * is either VERTEX or EDGE and where the second entry specifies the local index
 	 * of the object in the given face.*/
 		virtual std::pair<GridBaseObjectId, int>
-		get_opposing_object(VertexBase* vrt) const	{UG_THROW("Base method not implemented.");}
+		get_opposing_object(Vertex* vrt) const	{UG_THROW("Base method not implemented.");}
 
 	///	returns the local index of the specified edge.
 	/**	If the edge is not part of the face, then -1 is returned.*/
@@ -476,10 +476,10 @@ class UG_API Face : public GridObject, public FaceVertices
 	 * vertices as the refined Face. Vertices with the same index correlate.
 	 */
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
-							VertexBase** newFaceVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase* newFaceVertex = NULL,
-							VertexBase** pSubstituteVertices = NULL)	{return false;}
+							Vertex** newFaceVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex* newFaceVertex = NULL,
+							Vertex** pSubstituteVertices = NULL)	{return false;}
 
 	/**
 	 * The collapse_edge method creates new geometric objects by collapsing the specified edge.
@@ -494,8 +494,8 @@ class UG_API Face : public GridObject, public FaceVertices
 	 * vertices as the face in which you collapse the edge. Vertices with the same index correlate.
 	 */
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
-								int edgeIndex, VertexBase* newVertex,
-								VertexBase** pSubstituteVertices = NULL)	{return false;}
+								int edgeIndex, Vertex* newVertex,
+								Vertex** pSubstituteVertices = NULL)	{return false;}
 
 	/**
 	 * The collapse_edgea method creates new geometric objects by collapsing the specified edges
@@ -511,8 +511,8 @@ class UG_API Face : public GridObject, public FaceVertices
 	 * vertices as the face in which you collapse the edge. Vertices with the same index correlate.
 	 */
 		virtual bool collapse_edges(std::vector<Face*>& vNewFacesOut,
-								std::vector<VertexBase*>& vNewEdgeVertices,
-								VertexBase** pSubstituteVertices = NULL)	{return false;}
+								std::vector<Vertex*>& vNewEdgeVertices,
+								Vertex** pSubstituteVertices = NULL)	{return false;}
 
 // BEGIN Depreciated
 	/**	creates the faces that result from the splitting of the edge with index 'splitEdgeIndex'.
@@ -524,18 +524,18 @@ class UG_API Face : public GridObject, public FaceVertices
 	 *  contain exactly as many vertices as the face itself.
 	 */
 		virtual void create_faces_by_edge_split(int splitEdgeIndex,
-							VertexBase* newVertex,
+							Vertex* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							VertexBase** pSubstituteVertices = NULL)	{};
+							Vertex** pSubstituteVertices = NULL)	{};
 // END Depreciated
 
 	/**	creates the faces that result from the collapsing of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_faces_by_edge_collapse(int collapseEdgeIndex,
-		//						VertexBase* newVertex,
+		//						Vertex* newVertex,
 		//						std::vector<Face*>& vNewFacesOut) = 0;
 
 	protected:
-		virtual void set_vertex(uint index, VertexBase* pVrt)	{UG_ASSERT(0, "SHOULDN'T BE CALLED");}
+		virtual void set_vertex(uint index, Vertex* pVrt)	{UG_ASSERT(0, "SHOULDN'T BE CALLED");}
 };
 
 
@@ -558,16 +558,16 @@ class UG_API FaceDescriptor : public FaceVertices
 
 		FaceDescriptor& operator = (const FaceDescriptor& fd);
 
-		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return m_numVertices;}
 
 		inline void set_num_vertices(uint numVertices)	{m_numVertices = numVertices;}
-		inline void set_vertex(uint index, VertexBase* vrt)
+		inline void set_vertex(uint index, Vertex* vrt)
 			{m_vertices[index] = vrt;}
 
 	protected:
-		VertexBase*	m_vertices[MAX_FACE_VERTICES];
+		Vertex*	m_vertices[MAX_FACE_VERTICES];
 		uint		m_numVertices;
 };
 
@@ -583,11 +583,11 @@ class UG_API FaceDescriptor : public FaceVertices
 class UG_API VolumeVertices
 {
 	public:
-		typedef VertexBase* const* ConstVertexArray;
+		typedef Vertex* const* ConstVertexArray;
 
 		virtual ~VolumeVertices()						{}
 
-		virtual VertexBase* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
+		virtual Vertex* vertex(uint index) const	{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual ConstVertexArray vertices() const		{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return NULL;}
 		virtual size_t num_vertices() const				{UG_ASSERT(0, "SHOULDN'T BE CALLED"); return 0;}
 
@@ -595,7 +595,7 @@ class UG_API VolumeVertices
 	///	returns the number of vertices.
 		inline size_t size() const	{return num_vertices();}
 	///	returns the i-th vertex.
-		inline VertexBase* operator[](size_t index) const {return vertex(index);}
+		inline Vertex* operator[](size_t index) const {return vertex(index);}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -617,7 +617,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 {
 	friend class Grid;
 	public:
-		typedef VertexBase* const* ConstVertexArray;
+		typedef Vertex* const* ConstVertexArray;
 
 		typedef Volume grid_base_object;
 
@@ -685,7 +685,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 * is either VERTEX, EDGE, or FACE and where the second entry specifies the local index
 	 * of the object in the given volume.*/
 		virtual std::pair<GridBaseObjectId, int>
-		get_opposing_object(VertexBase* vrt) const	{UG_THROW("Base method not implemented.");}
+		get_opposing_object(Vertex* vrt) const	{UG_THROW("Base method not implemented.");}
 
 	///	returns the local index of the given face or -1, if the face is not part of the volume.
 		int get_local_side_index(FaceVertices* f) const;
@@ -714,7 +714,7 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 *   the volume.
 	 * - via the prototypeVertex you can specify the vertex-type of the vertex that is
 	 *   auto-inserted if the refine operation is too complex. In most cases this will be
-	 *   an instance of a standard vertex (a concrete type is required. VertexBase will not do).
+	 *   an instance of a standard vertex (a concrete type is required. Vertex will not do).
 	 *   The prototypeVertex has not to be registered at any grid - it may be a temporary
 	 *   instance.
 	 * - If you specify pvSubstituteVertices, the created volumes will reference the vertices
@@ -727,12 +727,12 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 * 	 angles.
 	 */
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
-							VertexBase** ppNewVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase** newFaceVertices,
-							VertexBase* newVolumeVertex,
-							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices = NULL,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices = NULL,
 							vector3* corners = NULL)	{return false;}
 
 	/**
@@ -748,8 +748,8 @@ class UG_API Volume : public GridObject, public VolumeVertices
 	 * vertices as the face in which you collapse the edge. Vertices with the same index correlate.
 	 */
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-								int edgeIndex, VertexBase* newVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL)	{return false;}
+								int edgeIndex, Vertex* newVertex,
+								std::vector<Vertex*>* pvSubstituteVertices = NULL)	{return false;}
 
 	/**
 	 * Writes vertices to the volume-descriptor so that it defines a volume with
@@ -767,15 +767,15 @@ class UG_API Volume : public GridObject, public VolumeVertices
 
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_volumes_by_edge_split(int splitEdgeIndex,
-		//						VertexBase* newVertex,
+		//						Vertex* newVertex,
 		//						std::vector<Volume*>& vNewFacesOut) = 0;
 
 	/**	creates the volumes that result from the collapsing of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_Volumes_by_edge_collapse(int collapseEdgeIndex,
-		//						VertexBase* newVertex,
+		//						Vertex* newVertex,
 		//						std::vector<Volume*>& vNewFacesOut) = 0;
 	protected:
-		virtual void set_vertex(uint index, VertexBase* pVrt)	{UG_ASSERT(0, "SHOULDN'T BE CALLED");}
+		virtual void set_vertex(uint index, Vertex* pVrt)	{UG_ASSERT(0, "SHOULDN'T BE CALLED");}
 };
 
 
@@ -798,15 +798,15 @@ class UG_API VolumeDescriptor : public VolumeVertices
 		VolumeDescriptor& operator = (const VolumeDescriptor& vv);
 		VolumeDescriptor& operator = (const VolumeVertices& vv);
 
-		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const				{return m_numVertices;}
 
 		inline void set_num_vertices(uint numVertices)		{m_numVertices = numVertices;}
-		inline void set_vertex(uint index, VertexBase* vrt)	{m_vertices[index] = vrt;}
+		inline void set_vertex(uint index, Vertex* vrt)	{m_vertices[index] = vrt;}
 
 	protected:
-		VertexBase*	m_vertices[MAX_VOLUME_VERTICES];
+		Vertex*	m_vertices[MAX_VOLUME_VERTICES];
 		uint		m_numVertices;
 };
 
@@ -819,7 +819,7 @@ class UG_API VolumeDescriptor : public VolumeVertices
 template <int dim> struct GeomObjBaseTypeByDim;
 
 template <> struct GeomObjBaseTypeByDim<0>{
-	typedef VertexBase base_obj_type;
+	typedef Vertex base_obj_type;
 };
 
 template <> struct GeomObjBaseTypeByDim<1>{
@@ -840,9 +840,9 @@ template <> struct GeomObjBaseTypeByDim<3>{
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 /**	template helpers that return the geometric base object type
- *	given a pointer to a derived class of VertexBase, EdgeBase, Face or Volume.
+ *	given a pointer to a derived class of Vertex, EdgeBase, Face or Volume.
  *
- *	e.g. PtrTypeToGeomObjBaseType<RegularVertex*>::base_type = VertexBase.
+ *	e.g. PtrTypeToGeomObjBaseType<RegularVertex*>::base_type = Vertex.
  * \{
  */
 template <class TGeomObjPtrType>
@@ -850,8 +850,8 @@ struct PtrTypeToGeomObjBaseType
 {typedef void base_type;};
 
 template <>
-struct PtrTypeToGeomObjBaseType<VertexBase*>
-{typedef VertexBase base_type;};
+struct PtrTypeToGeomObjBaseType<Vertex*>
+{typedef Vertex base_type;};
 
 template <>
 struct PtrTypeToGeomObjBaseType<EdgeBase*>
@@ -872,7 +872,7 @@ struct PtrTypeToGeomObjBaseType<Volume*>
 //	hash-funtions for vertices
 ///	returns the hash-value of the vertex.
 template <>
-size_t hash_key<PVertexBase>(const PVertexBase& key);
+size_t hash_key<PVertex>(const PVertex& key);
 
 ////////////////////////////////////////////////////////////////////////
 //	hash-funtions for edges

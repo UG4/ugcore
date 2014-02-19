@@ -213,8 +213,8 @@ size_t Grid::num() const
 }
 
 inline void Grid::
-objects_will_be_merged(VertexBase* target, VertexBase* elem1,
-						VertexBase* elem2)
+objects_will_be_merged(Vertex* target, Vertex* elem1,
+						Vertex* elem2)
 {
 	for(Grid::ObserverContainer::iterator iter = m_vertexObservers.begin();
 		iter != m_vertexObservers.end(); iter++)
@@ -280,7 +280,7 @@ void Grid::attach_to(IAttachment& attachment, bool passOnValues)
 
 inline void Grid::attach_to_all(IAttachment& attachment, bool passOnValues)
 {
-	attach_to<VertexBase>(attachment, passOnValues);
+	attach_to<Vertex>(attachment, passOnValues);
 	attach_to<EdgeBase>(attachment, passOnValues);
 	attach_to<Face>(attachment, passOnValues);
 	attach_to<Volume>(attachment, passOnValues);
@@ -288,7 +288,7 @@ inline void Grid::attach_to_all(IAttachment& attachment, bool passOnValues)
 
 inline void Grid::attach_to_all(IAttachment& attachment)
 {
-	attach_to<VertexBase>(attachment);
+	attach_to<Vertex>(attachment);
 	attach_to<EdgeBase>(attachment);
 	attach_to<Face>(attachment);
 	attach_to<Volume>(attachment);
@@ -305,7 +305,7 @@ inline void Grid::
 attach_to_all_dv(TAttachment& attachment,
 				 const typename TAttachment::ValueType& defaultValue)
 {
-	attach_to_dv<VertexBase>(attachment, defaultValue);
+	attach_to_dv<Vertex>(attachment, defaultValue);
 	attach_to_dv<EdgeBase>(attachment, defaultValue);
 	attach_to_dv<Face>(attachment, defaultValue);
 	attach_to_dv<Volume>(attachment, defaultValue);
@@ -331,7 +331,7 @@ attach_to_all_dv(TAttachment& attachment,
 				 const typename TAttachment::ValueType& defaultValue,
 				 bool passOnValues)
 {
-	attach_to_dv<VertexBase>(attachment, defaultValue, passOnValues);
+	attach_to_dv<Vertex>(attachment, defaultValue, passOnValues);
 	attach_to_dv<EdgeBase>(attachment, defaultValue, passOnValues);
 	attach_to_dv<Face>(attachment, defaultValue, passOnValues);
 	attach_to_dv<Volume>(attachment, defaultValue, passOnValues);
@@ -348,7 +348,7 @@ void Grid::detach_from(IAttachment& attachment)
 
 inline void Grid::detach_from_all(IAttachment& attachment)
 {
-	detach_from<VertexBase>(attachment);
+	detach_from<Vertex>(attachment);
 	detach_from<EdgeBase>(attachment);
 	detach_from<Face>(attachment);
 	detach_from<Volume>(attachment);
@@ -427,7 +427,7 @@ template <class TContainer>
 void Grid::get_associated(TContainer& container, GridObject* o)
 {
 	switch(o->base_object_id()){
-		case VERTEX: return get_associated(container, static_cast<VertexBase*>(o));
+		case VERTEX: return get_associated(container, static_cast<Vertex*>(o));
 		case EDGE: return get_associated(container, static_cast<EdgeBase*>(o));
 		case FACE: return get_associated(container, static_cast<Face*>(o));
 		case VOLUME: return get_associated(container, static_cast<Volume*>(o));
@@ -435,7 +435,7 @@ void Grid::get_associated(TContainer& container, GridObject* o)
 }
 
 template <class TElem>
-void Grid::associated_elements(traits<VertexBase>::secure_container& elemsOut, TElem* e)
+void Grid::associated_elements(traits<Vertex>::secure_container& elemsOut, TElem* e)
 {
 	get_associated(elemsOut, e);
 }
@@ -472,7 +472,7 @@ void Grid::get_associated(typename traits<typename TElem::grid_base_object>
 }
 
 template <class TElem>
-void Grid::associated_elements_sorted(traits<VertexBase>::secure_container& elemsOut, TElem* e)
+void Grid::associated_elements_sorted(traits<Vertex>::secure_container& elemsOut, TElem* e)
 {
 	get_associated_sorted(elemsOut, e);
 }
@@ -623,28 +623,28 @@ ug::AttachmentAccessor<typename TElem::grid_base_object*, TAttachment,
 template <class TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
 VertexAttachmentAccessor() :
-	Grid::AttachmentAccessor<VertexBase, TAttachment>()
+	Grid::AttachmentAccessor<Vertex, TAttachment>()
 {
 }
 
 template <class TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
 VertexAttachmentAccessor(const VertexAttachmentAccessor& aa) :
-	Grid::AttachmentAccessor<VertexBase, TAttachment>(aa)
+	Grid::AttachmentAccessor<Vertex, TAttachment>(aa)
 {
 }
 
 template <class TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
 VertexAttachmentAccessor(Grid& grid, TAttachment& a) :
-	Grid::AttachmentAccessor<VertexBase, TAttachment>(grid, a)
+	Grid::AttachmentAccessor<Vertex, TAttachment>(grid, a)
 {
 }
 
 template <class TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
 VertexAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
-	Grid::AttachmentAccessor<VertexBase, TAttachment>(grid, a, autoAttach)
+	Grid::AttachmentAccessor<Vertex, TAttachment>(grid, a, autoAttach)
 {
 }
 
@@ -748,14 +748,14 @@ inline void Grid::mark(GridObject* obj)
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
-		case VERTEX: mark(static_cast<VertexBase*>(obj)); break;
+		case VERTEX: mark(static_cast<Vertex*>(obj)); break;
 		case EDGE: mark(static_cast<EdgeBase*>(obj)); break;
 		case FACE: mark(static_cast<Face*>(obj)); break;
 		case VOLUME: mark(static_cast<Volume*>(obj)); break;
 	}
 }
 
-inline void Grid::mark(VertexBase* obj)
+inline void Grid::mark(Vertex* obj)
 {
 	assert(m_bMarking && "ERROR: Grid::mark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
 	m_aaMarkVRT[obj] = m_currentMark;
@@ -783,14 +783,14 @@ inline void Grid::unmark(GridObject* obj)
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
-		case VERTEX: unmark(static_cast<VertexBase*>(obj)); break;
+		case VERTEX: unmark(static_cast<Vertex*>(obj)); break;
 		case EDGE: unmark(static_cast<EdgeBase*>(obj)); break;
 		case FACE: unmark(static_cast<Face*>(obj)); break;
 		case VOLUME: unmark(static_cast<Volume*>(obj)); break;
 	}
 }
 
-inline void Grid::unmark(VertexBase* obj)
+inline void Grid::unmark(Vertex* obj)
 {
 	assert(m_bMarking && "ERROR: Grid::unmark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
 	m_aaMarkVRT[obj] = 0;
@@ -818,7 +818,7 @@ inline bool Grid::is_marked(GridObject* obj)
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
-		case VERTEX: return is_marked(static_cast<VertexBase*>(obj));
+		case VERTEX: return is_marked(static_cast<Vertex*>(obj));
 		case EDGE: return is_marked(static_cast<EdgeBase*>(obj));
 		case FACE: return is_marked(static_cast<Face*>(obj));
 		case VOLUME: return is_marked(static_cast<Volume*>(obj));
@@ -826,7 +826,7 @@ inline bool Grid::is_marked(GridObject* obj)
 	}
 }
 
-inline bool Grid::is_marked(VertexBase* obj)
+inline bool Grid::is_marked(Vertex* obj)
 {
 	if(m_currentMark == 0)
 		return false;

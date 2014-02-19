@@ -25,7 +25,7 @@ Selector::~Selector()
 	if(m_pGrid){
 	//	release the attachments in the current grid
 		if(elements_are_supported(SE_VERTEX))
-			section_container<VertexBase>().get_container().set_pipe(NULL);
+			section_container<Vertex>().get_container().set_pipe(NULL);
 
 		if(elements_are_supported(SE_EDGE))
 			section_container<EdgeBase>().get_container().set_pipe(NULL);
@@ -80,8 +80,8 @@ void Selector::set_supported_elements(uint shElements)
 void Selector::enable_element_support(uint shElements)
 {
 	if((shElements & SE_VERTEX) && (!elements_are_supported(SE_VERTEX)))
-		section_container<VertexBase>().get_container().
-				set_pipe(&m_pGrid->get_attachment_pipe<VertexBase>());
+		section_container<Vertex>().get_container().
+				set_pipe(&m_pGrid->get_attachment_pipe<Vertex>());
 
 	if((shElements & SE_EDGE) && (!elements_are_supported(SE_EDGE)))
 		section_container<EdgeBase>().get_container().
@@ -102,7 +102,7 @@ void Selector::disable_element_support(uint shElements)
 {
 	//	release the attachments in the current grid
 	if((shElements & SE_VERTEX) && elements_are_supported(SE_VERTEX))
-		section_container<VertexBase>().get_container().set_pipe(NULL);
+		section_container<Vertex>().get_container().set_pipe(NULL);
 
 	if((shElements & SE_EDGE) && elements_are_supported(SE_EDGE))
 		section_container<EdgeBase>().get_container().set_pipe(NULL);
@@ -118,7 +118,7 @@ void Selector::disable_element_support(uint shElements)
 
 void Selector::clear_lists()
 {
-	section_container<VertexBase>().clear();
+	section_container<Vertex>().clear();
 	section_container<EdgeBase>().clear();
 	section_container<Face>().clear();
 	section_container<Volume>().clear();
@@ -126,15 +126,15 @@ void Selector::clear_lists()
 
 void Selector::clear()
 {
-	clear<VertexBase>();
+	clear<Vertex>();
 	clear<EdgeBase>();
 	clear<Face>();
 	clear<Volume>();
 }
 
-void Selector::add_to_list(VertexBase* elem)
+void Selector::add_to_list(Vertex* elem)
 {
-	section_container<VertexBase>().insert(elem,
+	section_container<Vertex>().insert(elem,
 								elem->container_section());
 }
 
@@ -156,9 +156,9 @@ void Selector::add_to_list(Volume* elem)
 								elem->container_section());
 }	
 
-void Selector::erase_from_list(VertexBase* elem)
+void Selector::erase_from_list(Vertex* elem)
 {
-	section_container<VertexBase>().erase(get_iterator(elem),
+	section_container<Vertex>().erase(get_iterator(elem),
 						elem->container_section());
 }
 void Selector::erase_from_list(EdgeBase* elem)

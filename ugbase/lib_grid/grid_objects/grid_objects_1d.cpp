@@ -8,8 +8,8 @@ namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
 //	Edge
-bool Edge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* newVertex,
-				VertexBase** pSubstituteVrts)
+bool Edge::refine(std::vector<EdgeBase*>& vNewEdgesOut, Vertex* newVertex,
+				Vertex** pSubstituteVrts)
 {
 	vNewEdgesOut.clear();
 	if(pSubstituteVrts)
@@ -25,8 +25,8 @@ bool Edge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* newVertex,
 	return true;
 }
 
-bool Edge::refine(std::vector<Edge*>& vNewEdgesOut, VertexBase* newVertex,
-				  VertexBase** pSubstituteVrts)
+bool Edge::refine(std::vector<Edge*>& vNewEdgesOut, Vertex* newVertex,
+				  Vertex** pSubstituteVrts)
 {
 	return refine(reinterpret_cast<std::vector<EdgeBase*>&>(vNewEdgesOut),
 					newVertex, pSubstituteVrts);
@@ -34,8 +34,8 @@ bool Edge::refine(std::vector<Edge*>& vNewEdgesOut, VertexBase* newVertex,
 
 ////////////////////////////////////////////////////////////////////////
 //	ConstrainedEdge
-bool ConstrainedEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* newVertex,
-				  VertexBase** pSubstituteVrts)
+bool ConstrainedEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, Vertex* newVertex,
+				  Vertex** pSubstituteVrts)
 {
 	vNewEdgesOut.clear();
 	if(pSubstituteVrts)
@@ -51,8 +51,8 @@ bool ConstrainedEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* n
 	return true;
 }
 
-bool ConstrainedEdge::refine(std::vector<ConstrainedEdge*>& vNewEdgesOut, VertexBase* newVertex,
-				  VertexBase** pSubstituteVrts)
+bool ConstrainedEdge::refine(std::vector<ConstrainedEdge*>& vNewEdgesOut, Vertex* newVertex,
+				  Vertex** pSubstituteVrts)
 {
 	return refine(reinterpret_cast<std::vector<EdgeBase*>&>(vNewEdgesOut),
 				newVertex, pSubstituteVrts);
@@ -60,8 +60,8 @@ bool ConstrainedEdge::refine(std::vector<ConstrainedEdge*>& vNewEdgesOut, Vertex
 
 ////////////////////////////////////////////////////////////////////////
 //	ConstrainingEdge
-bool ConstrainingEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* newVertex,
-				  VertexBase** pSubstituteVrts)
+bool ConstrainingEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, Vertex* newVertex,
+				  Vertex** pSubstituteVrts)
 {
 	vNewEdgesOut.clear();
 	if(pSubstituteVrts)
@@ -77,8 +77,8 @@ bool ConstrainingEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, VertexBase* 
 	return true;
 }
 
-bool ConstrainingEdge::refine(std::vector<ConstrainingEdge*>& vNewEdgesOut, VertexBase* newVertex,
-				  VertexBase** pSubstituteVrts)
+bool ConstrainingEdge::refine(std::vector<ConstrainingEdge*>& vNewEdgesOut, Vertex* newVertex,
+				  Vertex** pSubstituteVrts)
 {
 	return refine(reinterpret_cast<std::vector<EdgeBase*>&>(vNewEdgesOut),
 					newVertex, pSubstituteVrts);
@@ -86,7 +86,7 @@ bool ConstrainingEdge::refine(std::vector<ConstrainingEdge*>& vNewEdgesOut, Vert
 
 template <> size_t
 ConstrainingEdge::
-num_constrained<VertexBase>() const
+num_constrained<Vertex>() const
 {
 	return num_constrained_vertices();
 }
@@ -98,9 +98,9 @@ num_constrained<EdgeBase>() const
 	return num_constrained_edges();
 }
 
-template <> VertexBase*
+template <> Vertex*
 ConstrainingEdge::
-constrained<VertexBase>(size_t ind) const
+constrained<Vertex>(size_t ind) const
 {
 	return constrained_vertex(ind);
 }

@@ -9,7 +9,7 @@ namespace ug{
 
 void MGHNodeAdjuster::
 ref_marks_changed(IRefiner& ref,
-			   	  const std::vector<VertexBase*>& vrts,
+			   	  const std::vector<Vertex*>& vrts,
 			   	  const std::vector<EdgeBase*>& edges,
 			   	  const std::vector<Face*>& faces,
 			   	  const std::vector<Volume*>& vols)
@@ -61,7 +61,7 @@ ref_marks_changed(IRefiner& ref,
 	Grid::face_traits::secure_container assFaces;
 	Grid::volume_traits::secure_container assVols;
 	for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt){
-		VertexBase* vrt = vrts[i_vrt];
+		Vertex* vrt = vrts[i_vrt];
 		if(vrt->is_constrained())
 			continue;
 
@@ -80,7 +80,7 @@ ref_marks_changed(IRefiner& ref,
 		else if(ref.get_mark(vrt) != RM_DUMMY){
 		//	we don't have to select parents of dummy vertices, since we assume
 		//	that the maximum level-distance is 1
-			VertexBase* parent = dynamic_cast<VertexBase*>(mg.get_parent(vrt));
+			Vertex* parent = dynamic_cast<Vertex*>(mg.get_parent(vrt));
 			if(parent)
 				ref.mark(parent, RM_DUMMY);
 		}

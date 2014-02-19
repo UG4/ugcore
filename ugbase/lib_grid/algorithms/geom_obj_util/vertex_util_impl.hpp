@@ -16,21 +16,21 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPos>
-number VertexDistanceSq(VertexBase* v0, VertexBase* v1, TAAPos& aaPos)
+number VertexDistanceSq(Vertex* v0, Vertex* v1, TAAPos& aaPos)
 {
 	return VecDistanceSq(aaPos[v0], aaPos[v1]);
 }
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPos>
-number VertexDistance(VertexBase* v0, VertexBase* v1, TAAPos& aaPos)
+number VertexDistance(Vertex* v0, Vertex* v1, TAAPos& aaPos)
 {
 	return VecDistance(aaPos[v0], aaPos[v1]);
 }
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
-void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt, TAAPosVRT& aaPos)
+void CalculateVertexNormal(vector3& nOut, Grid& grid, Vertex* vrt, TAAPosVRT& aaPos)
 {
 //	set all normal to zero
 	nOut = vector3(0, 0, 0);
@@ -51,7 +51,7 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt, TAAPosVRT
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
 void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
-									 Grid& grid, VertexBase* vrt,
+									 Grid& grid, Vertex* vrt,
 						   	   	     TAAPosVRT& aaPos)
 {
 //	The algorithm is a little cumbersome. However, through this setup, we
@@ -89,7 +89,7 @@ void CalculateBoundaryVertexNormal2D(typename TAAPosVRT::ValueType& nOut,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT>
-void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, VertexBase* vrt,
+void CalculateBoundaryVertexNormal3D(vector3& nOut, Grid& grid, Vertex* vrt,
 						   	   	     TAAPosVRT& aaPos)
 {
 //	The algorithm is a little cumbersome. However, through this setup, we
@@ -133,7 +133,7 @@ void
 CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
 					 typename TAPosition::ValueType& vMaxOut,
 					 TVrtIter vrtsBegin, TVrtIter vrtsEnd,
-					 Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos)
+					 Grid::AttachmentAccessor<Vertex, TAPosition>& aaPos)
 {
 	size_t dim = TAPosition::ValueType::Size;
 
@@ -156,7 +156,7 @@ CalculateBoundingBox(typename TAPosition::ValueType& vMinOut,
 template<class TVertexPositionAttachmentAccessor>
 inline
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(const VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
+CalculateCenter(const Vertex* v, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
 	return aaPosVRT[v];
 }
@@ -164,7 +164,7 @@ CalculateCenter(const VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT
 template<class TAAPosVRT, class TAAWeightVRT>
 UG_API
 typename TAAPosVRT::ValueType
-CalculateCenter(const VertexBase* v, TAAPosVRT& aaPosVRT, TAAWeightVRT&)
+CalculateCenter(const Vertex* v, TAAPosVRT& aaPosVRT, TAAWeightVRT&)
 {
 	return aaPosVRT[v];
 }
@@ -173,7 +173,7 @@ CalculateCenter(const VertexBase* v, TAAPosVRT& aaPosVRT, TAAWeightVRT&)
 template <class TVrtIter, class TAPosition>
 typename TAPosition::ValueType
 CalculateCenter(TVrtIter vrtsBegin, TVrtIter vrtsEnd,
-				Grid::AttachmentAccessor<VertexBase, TAPosition>& aaPos)
+				Grid::AttachmentAccessor<Vertex, TAPosition>& aaPos)
 {
 	typename TAPosition::ValueType vMin, vMax;
 	CalculateBoundingBox(vMin, vMax, vrtsBegin, vrtsEnd, aaPos);
@@ -215,7 +215,7 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 	//	iterate through all vertices
 		for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter){
 		//	smooth each one
-			VertexBase* vrt = *iter;
+			Vertex* vrt = *iter;
 			vector3 v;
 			VecSet(v, 0);
 			int num = 0;
@@ -267,16 +267,16 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TVrtIterator>
-VertexBase* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
+Vertex* MergeMultipleVertices(Grid& grid, TVrtIterator vrtsBegin,
 						  	  	  TVrtIterator vrtsEnd)
 {
 	if(vrtsBegin == vrtsEnd)
 		return NULL;
 
-	VertexBase* v = *vrtsBegin;
+	Vertex* v = *vrtsBegin;
 	++vrtsBegin;
 	while(vrtsBegin != vrtsEnd){
-		VertexBase* v2 = *vrtsBegin;
+		Vertex* v2 = *vrtsBegin;
 		++vrtsBegin;
 		MergeVertices(grid, v, v2);
 	}
@@ -302,9 +302,9 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 	kdTree.create_from_grid(grid, iterBegin, iterEnd, aPos, 20, 10, KDSD_LARGEST);
 
 //	we need temporary attachments:
-//	a vector<VertexBase*> attachment, that stores for each vertex all other vertices
+//	a vector<Vertex*> attachment, that stores for each vertex all other vertices
 //	closer than threshold, which have higher attachment data index.
-	typedef Attachment<std::list<VertexBase*> >	AVertexList;
+	typedef Attachment<std::list<Vertex*> >	AVertexList;
 	AVertexList aVertexList;
 	grid.attach_to_vertices(aVertexList);
 	Grid::VertexAttachmentAccessor<AVertexList> aaVL(grid, aVertexList);
@@ -323,11 +323,11 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 //	iterate over all vertices and collect all that have aInt == 0 and are within range.
 	for(TVrtIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
-		VertexBase* v = *iter;
+		Vertex* v = *iter;
 		if(aaInt[v] == 0)
 		{//	the vertex will not be removed during merge
 		//	find all vertices closer than threshold
-			std::list<VertexBase*> neighbours;
+			std::list<Vertex*> neighbours;
 			uint numClosest = 3;
 			while(numClosest < grid.num_vertices())
 			{
@@ -343,10 +343,10 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 		//	store them in the vertexVec attachment
 			if(!neighbours.empty())
 			{
-				for(std::list<VertexBase*>::iterator nIter = neighbours.begin();
+				for(std::list<Vertex*>::iterator nIter = neighbours.begin();
 					nIter != neighbours.end(); ++nIter)
 				{
-					VertexBase* nv = *nIter;
+					Vertex* nv = *nIter;
 					if(aaInt[nv] == 0)
 					{
 						if(nv != v)
@@ -374,13 +374,13 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 		TVrtIterator iter = iterBegin;
 		while(iter != iterEnd)
 		{
-			VertexBase* v = *iter;
+			Vertex* v = *iter;
 			if(!aaVL[v].empty())
 			{
-				std::list<VertexBase*>::iterator nIter = aaVL[v].begin();
+				std::list<Vertex*>::iterator nIter = aaVL[v].begin();
 				while(nIter != aaVL[v].end())
 				{
-					VertexBase* delVrt = *nIter;
+					Vertex* delVrt = *nIter;
 					nIter++;
 					MergeVertices(grid, v, delVrt);
 				}
@@ -397,7 +397,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 
 ////////////////////////////////////////////////////////////////////////
 template<class TAAPos> inline
-void TransformVertex(VertexBase* vrt, matrix33& m, TAAPos& aaPos)
+void TransformVertex(Vertex* vrt, matrix33& m, TAAPos& aaPos)
 {
 //	todo: avoid unnecessary copy
 	vector3 oldPos = aaPos[vrt];
@@ -416,7 +416,7 @@ void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t, class TAAPos>
 UG_API bool
-ContainsPoint(const VertexBase* v, const vector_t& p, TAAPos aaPos)
+ContainsPoint(const Vertex* v, const vector_t& p, TAAPos aaPos)
 {
 	const vector_t& pv = aaPos[v];
 	for(size_t i = 0; i < vector_t::Size; ++i){

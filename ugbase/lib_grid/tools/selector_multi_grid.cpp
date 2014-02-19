@@ -116,7 +116,7 @@ void MGSelector::enable_element_support(uint shElements)
 		Level& lvl = *m_levels[i];
 		if((shElements & SE_VERTEX) && (!elements_are_supported(SE_VERTEX)))
 			lvl.m_vertices.get_container().set_pipe(
-				&m_pGrid->get_attachment_pipe<VertexBase>(), m_aSharedEntryVRT);
+				&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);
 
 		if((shElements & SE_EDGE) && (!elements_are_supported(SE_EDGE)))
 			lvl.m_edges.get_container().set_pipe(
@@ -172,7 +172,7 @@ void MGSelector::add_level()
 	Level* pLvl = new Level;
 	if(elements_are_supported(SE_VERTEX))
 		pLvl->m_vertices.get_container().set_pipe(
-				&m_pGrid->get_attachment_pipe<VertexBase>(), m_aSharedEntryVRT);
+				&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);
 	if(elements_are_supported(SE_EDGE))
 		pLvl->m_edges.get_container().set_pipe(
 				&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntryEDGE);
@@ -195,7 +195,7 @@ void MGSelector::clear_lists()
 
 void MGSelector::clear()
 {
-	clear<VertexBase>();
+	clear<Vertex>();
 	clear<EdgeBase>();
 	clear<Face>();
 	clear<Volume>();
@@ -203,16 +203,16 @@ void MGSelector::clear()
 
 void MGSelector::clear(int level)
 {
-	clear<VertexBase>(level);
+	clear<Vertex>(level);
 	clear<EdgeBase>(level);
 	clear<Face>(level);
 	clear<Volume>(level);
 }
 
-void MGSelector::add_to_list(VertexBase* elem)
+void MGSelector::add_to_list(Vertex* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
-	section_container<VertexBase>(level).insert(elem,
+	section_container<Vertex>(level).insert(elem,
 								elem->container_section());
 }
 
@@ -237,10 +237,10 @@ void MGSelector::add_to_list(Volume* elem)
 								elem->container_section());
 }	
 
-void MGSelector::erase_from_list(VertexBase* elem)
+void MGSelector::erase_from_list(Vertex* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);
-	section_container<VertexBase>(level).erase(get_level_iterator(elem),
+	section_container<Vertex>(level).erase(get_level_iterator(elem),
 						elem->container_section());
 }
 void MGSelector::erase_from_list(EdgeBase* elem)

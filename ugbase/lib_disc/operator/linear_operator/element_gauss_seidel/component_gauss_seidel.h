@@ -315,7 +315,7 @@ extract_blocks(const matrix_type& A, const GF& c)
 	//	extract
 		std::vector<std::vector<DoFIndex> >& vvDoFIndex = m_vDimCache[d].vvDoFIndex;
 		switch(d){
-			case VERTEX: extract_by_grouping<VertexBase>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
+			case VERTEX: extract_by_grouping<Vertex>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
 			case EDGE:   extract_by_grouping<EdgeBase>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
 			case FACE:   extract_by_grouping<Face>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;
 			case VOLUME: extract_by_grouping<Volume>(vvDoFIndex, c, vFullRowCmp, vRemainCmp); break;

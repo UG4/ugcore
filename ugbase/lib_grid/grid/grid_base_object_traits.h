@@ -21,7 +21,7 @@ namespace ug
  * MANDATORY:
  * Types:
  * - grid_base_object:		the geometric object from which TElem derives.
- * 					has to be either VertexBase, EdgeBase, Face or Volume.
+ * 					has to be either Vertex, EdgeBase, Face or Volume.
  * - iterator:		An iterator that iterates over ElementContainer<BaseClass>
  * 					and which has a constructor that takes
  * 					ElementContainer<BaseClass>::iterator as an argument.
@@ -42,8 +42,8 @@ class geometry_traits
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	This Iterator will be used as base-class for iterators of specialized geometric objects.
-typedef ElementStorage<VertexBase>::SectionContainer::iterator			VertexBaseIterator;
-typedef ElementStorage<VertexBase>::SectionContainer::const_iterator	ConstVertexBaseIterator;
+typedef ElementStorage<Vertex>::SectionContainer::iterator			VertexIterator;
+typedef ElementStorage<Vertex>::SectionContainer::const_iterator	ConstVertexIterator;
 
 typedef ElementStorage<EdgeBase>::SectionContainer::iterator			EdgeBaseIterator;
 typedef ElementStorage<EdgeBase>::SectionContainer::const_iterator		ConstEdgeBaseIterator;
@@ -70,13 +70,13 @@ class geometry_traits<GridObject>
 };
 
 template <>
-class geometry_traits<VertexBase>
+class geometry_traits<Vertex>
 {
 	public:
-		typedef VertexBaseIterator		iterator;
-		typedef ConstVertexBaseIterator	const_iterator;
+		typedef VertexIterator		iterator;
+		typedef ConstVertexIterator	const_iterator;
 
-		typedef VertexBase	grid_base_object;
+		typedef Vertex	grid_base_object;
 
 		enum
 		{

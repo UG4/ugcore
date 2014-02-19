@@ -108,7 +108,7 @@ class GlobalFracturedMediaRefiner : public IRefiner, public GridObserver
 		size_t num_marked(const std::vector<TElem*>& elems) const;
 
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(VertexBase* elem)	{return true;}
+		virtual bool refinement_is_allowed(Vertex* elem)	{return true;}
 	///	a callback that allows to deny refinement of special edges
 		virtual bool refinement_is_allowed(EdgeBase* elem)		{return true;}
 	///	a callback that allows to deny refinement of special faces

@@ -32,7 +32,7 @@ prolongate(const GridMessage_Adaption& msg)
 	const GridObjectCollection& goc = msg.affected_elements();
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 	{
-		prolongate<VertexBase>(msg, lvl);
+		prolongate<Vertex>(msg, lvl);
 		prolongate<EdgeBase>(msg, lvl);
 		prolongate<Face>(msg, lvl);
 		prolongate<Volume>(msg, lvl);
@@ -101,7 +101,7 @@ prolongate(const GridMessage_Adaption& msg, const size_t lvl)
 //	switch(TElem::dim){
 //		case 3: select_associated<TElem, Face>(sel, elem);
 //		case 2: select_associated<TElem, EdgeBase>(sel, elem);
-//		case 1: select_associated<TElem, VertexBase>(sel, elem);
+//		case 1: select_associated<TElem, Vertex>(sel, elem);
 //		default: ;
 //	}
 //}
@@ -169,7 +169,7 @@ do_restrict(const GridMessage_Adaption& msg)
 	MGSelector sel(*m_spGrid);
 
 	if(m_aaValue.is_valid_vertex_accessor())
-		select_parents<VertexBase>(sel, msg);
+		select_parents<Vertex>(sel, msg);
 	if(m_aaValue.is_valid_edge_accessor())
 		select_parents<EdgeBase>(sel, msg);
 	if(m_aaValue.is_valid_face_accessor())
@@ -177,7 +177,7 @@ do_restrict(const GridMessage_Adaption& msg)
 	if(m_aaValue.is_valid_volume_accessor())
 		select_parents<Volume>(sel, msg);
 
-	do_restrict<VertexBase>(sel, msg);
+	do_restrict<Vertex>(sel, msg);
 	do_restrict<EdgeBase>(sel, msg);
 	do_restrict<Face>(sel, msg);
 	do_restrict<Volume>(sel, msg);
@@ -251,7 +251,7 @@ attach_entries(ConstSmartPtr<DoFDistributionInfo> spDDInfo)
 	const bool vol = (spDDInfo->max_dofs(VOLUME) > 0);
 
 //	attach storage arrays
-	if(vrt) m_spGrid->attach_to<VertexBase>(m_aValue);
+	if(vrt) m_spGrid->attach_to<Vertex>(m_aValue);
 	if(edge) m_spGrid->attach_to<EdgeBase>(m_aValue);
 	if(face) m_spGrid->attach_to<Face>(m_aValue);
 	if(vol) m_spGrid->attach_to<Volume>(m_aValue);
@@ -288,7 +288,7 @@ void AdaptionSurfaceGridFunction<TDomain>::detach_entries()
 {
 	GFUNCADAPT_PROFILE_FUNC();
 //	remove attachments
-	if(m_aaValue.is_valid_vertex_accessor()) detach_entries<VertexBase>();
+	if(m_aaValue.is_valid_vertex_accessor()) detach_entries<Vertex>();
 	if(m_aaValue.is_valid_edge_accessor()) detach_entries<EdgeBase>();
 	if(m_aaValue.is_valid_face_accessor()) detach_entries<Face>();
 	if(m_aaValue.is_valid_volume_accessor()) detach_entries<Volume>();
@@ -376,7 +376,7 @@ AdaptionSurfaceGridFunction<TDomain>::ValueAccessor::
 access_closure(TBaseElem* elem)
 {
 	m_Val.clear();
-	if(m_HasDoFs[VERTEX]) access_closure<TBaseElem, VertexBase>(elem);
+	if(m_HasDoFs[VERTEX]) access_closure<TBaseElem, Vertex>(elem);
 	if(m_HasDoFs[EDGE]) access_closure<TBaseElem, EdgeBase>(elem);
 	if(m_HasDoFs[FACE]) access_closure<TBaseElem, Face>(elem);
 	if(m_HasDoFs[VOLUME]) access_closure<TBaseElem, Volume>(elem);
@@ -388,7 +388,7 @@ AdaptionSurfaceGridFunction<TDomain>::ValueAccessor::
 access_closure(GridObject* elem)
 {
 	switch(elem->base_object_id()){
-		case VERTEX: access_closure(static_cast<VertexBase*>(elem)); return;
+		case VERTEX: access_closure(static_cast<Vertex*>(elem)); return;
 		case EDGE: access_closure(static_cast<EdgeBase*>(elem)); return;
 		case FACE: access_closure(static_cast<Face*>(elem)); return;
 		case VOLUME: access_closure(static_cast<Volume*>(elem)); return;

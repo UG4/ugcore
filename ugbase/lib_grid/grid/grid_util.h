@@ -71,12 +71,12 @@ bool CompareVertices(const VolumeVertices* vv1,
  *
  *	TVrtContainer has to feature the following methods (or compatible ones):
  *	int size(): has to return the numbe of vertices in the container.
- *	VertexBase* operator[](int index): has to return the i-th vertex.
+ *	Vertex* operator[](int index): has to return the i-th vertex.
  *
  *	Good types would be:
  *	EdgeVertices, FaceVertices, VolumeVertices,
  *	EdgeBase, Face, Volume, ...,
- *	std::vector<VertexBase*>, ...
+ *	std::vector<Vertex*>, ...
  *
  *	returns true if con1 and con2 contain the same vertices.
  */
@@ -95,10 +95,10 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 //	CollectVertices
 ////////////////////////////////////////////////////////////////////////////////
 UG_API 
-inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut, Grid& grid,
+inline void CollectAssociated(std::vector<Vertex*>& vVertexOut, Grid& grid,
                               GridObject* obj, bool clearContainer = true);
 UG_API 
-inline void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
+inline void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid,
                             GridObject* obj, bool clearContainer = true);
 
 ///	Dummy-method. Puts the vertex itself into the given vector.
@@ -107,12 +107,12 @@ inline void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
  * \{
  */
 UG_API 
-void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
-                     	 	 	 	 VertexBase* v, bool clearContainer = true);
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid,
+                     	 	 	 	 Vertex* v, bool clearContainer = true);
 
 UG_API 
-inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
-					  Grid& grid, VertexBase* v, bool clearContainer = true);
+inline void CollectAssociated(std::vector<Vertex*>& vVertexOut,
+					  Grid& grid, Vertex* v, bool clearContainer = true);
 /** \} */
 
 ///	Collects all vertices that are part of the given edge
@@ -121,11 +121,11 @@ inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
  * \{
  */
 UG_API 
-void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid,
                      	 	 	 	 EdgeBase* e, bool clearContainer = true);
 
 UG_API 
-inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+inline void CollectAssociated(std::vector<Vertex*>& vVertexOut,
                           Grid& grid, EdgeBase* e, bool clearContainer = true);
 /** \} */
 
@@ -135,11 +135,11 @@ inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
  * \{
  */
 UG_API 
-void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid,
                      	 	 	 	 	 Face* f, bool clearContainer = true);
 
 UG_API 
-inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+inline void CollectAssociated(std::vector<Vertex*>& vVertexOut,
                               Grid& grid, Face* f, bool clearContainer = true);
 /** \} */
 
@@ -149,10 +149,10 @@ inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
  * \{
  */
 UG_API 
-void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
+void CollectVertices(std::vector<Vertex*>& vVertexOut, Grid& grid,
                      	 	 	 	 	 Volume* v, bool clearContainer = true);
 
-inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+inline void CollectAssociated(std::vector<Vertex*>& vVertexOut,
 					        Grid& grid, Volume* v, bool clearContainer = true);
 /** \} */
 
@@ -167,7 +167,7 @@ inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
  * This function simply returns the vertex itself. It is added for completeness,
  * such that the function can be used in template code.
  */
-inline VertexBase* GetVertex(VertexBase* v, size_t i);
+inline Vertex* GetVertex(Vertex* v, size_t i);
 
 ///	returns the i'th vertex of an edge
 /**
@@ -175,7 +175,7 @@ inline VertexBase* GetVertex(VertexBase* v, size_t i);
  *
  * This function simply returns the i'th vertex of an edge
  */
-inline VertexBase* GetVertex(EdgeBase* e, size_t i);
+inline Vertex* GetVertex(EdgeBase* e, size_t i);
 
 ///	returns the i'th vertex of a face
 /**
@@ -183,7 +183,7 @@ inline VertexBase* GetVertex(EdgeBase* e, size_t i);
  *
  * This function simply returns the i'th vertex of a face
  */
-inline VertexBase* GetVertex(Face* f, size_t i);
+inline Vertex* GetVertex(Face* f, size_t i);
 
 ///	returns the i'th vertex of a volume
 /**
@@ -191,7 +191,7 @@ inline VertexBase* GetVertex(Face* f, size_t i);
  *
  * This function simply returns the i'th vertex of a volume
  */
-inline VertexBase* GetVertex(Volume* v, size_t i);
+inline Vertex* GetVertex(Volume* v, size_t i);
 
 //////////////////////////////////////////////////////////////////////////////
 // NumVertices
@@ -199,12 +199,12 @@ inline VertexBase* GetVertex(Volume* v, size_t i);
 
 ///	Returns the number of vertices of the given geometric object.
 /** \ingroup lib_grid_algorithms_volume_util
- * Valid template arguments are VertexBase, EdgeBase, Face, Volume and
+ * Valid template arguments are Vertex, EdgeBase, Face, Volume and
  * derived types.
  *
  * unifies access to geometric objects.
  * \{*/
-inline size_t NumVertices(VertexBase* elem);
+inline size_t NumVertices(Vertex* elem);
 inline size_t NumVertices(EdgeBase* elem);
 inline size_t NumVertices(Face* elem);
 inline size_t NumVertices(Volume* elem);
@@ -220,7 +220,7 @@ inline void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
 
 UG_API 
 void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
-                        			VertexBase* v, bool clearContainer = true);
+                        			Vertex* v, bool clearContainer = true);
 
 ///	Collects all edges that exist in the given grid are part of the given edge in the order defined by the reference elements.
 /** This function simply returns the edge itself. It is added for completeness,
@@ -258,10 +258,10 @@ inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
  */
 UG_API 
 void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
-                  	  	  	  	  VertexBase* vrt, bool clearContainer = true);
+                  	  	  	  	  Vertex* vrt, bool clearContainer = true);
 
 inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
-					Grid& grid, VertexBase* vrt, bool clearContainer = true);
+					Grid& grid, Vertex* vrt, bool clearContainer = true);
 /** \} */
 
 ///	Collects all edges that exist in the given grid are part of the given edge.
@@ -317,11 +317,11 @@ inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
 
 ///	returns true if the given edge contains the given vertex
 /// \ingroup lib_grid_algorithms_edge_util
-inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt);
+inline bool EdgeContains(EdgeVertices* e, Vertex* vrt);
 
 ///	returns true if the given edge contains the given vertices
 /// \ingroup lib_grid_algorithms_edge_util
-inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt1, VertexBase* vrt2);
+inline bool EdgeContains(EdgeVertices* e, Vertex* vrt1, Vertex* vrt2);
 
 ///////////////////////////////////////////////////////////////////////////////
 //	CollectFacesSorted
@@ -333,7 +333,7 @@ inline void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid,
 
 UG_API 
 void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid,
-                        			VertexBase* v, bool clearContainer = true);
+                        			Vertex* v, bool clearContainer = true);
 
 ///	Collects all face that exist in the given grid are part of the given edge in the order defined by the reference elements.
 UG_API 
@@ -362,10 +362,10 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut, Grid& grid,
 
 UG_API 
 void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid,
-                  	  	  	  	 VertexBase* vrt, bool clearContainer = true);
+                  	  	  	  	 Vertex* vrt, bool clearContainer = true);
 
 inline void CollectAssociated(std::vector<Face*>& vFacesOut,
-					Grid& grid, VertexBase* vrt, bool clearContainer = true);
+					Grid& grid, Vertex* vrt, bool clearContainer = true);
 
 ///	Collects all faces that exist in the given grid which contain the given edge.
 /** if EDGEOPT_STORE_ASSOCIATED_FACES is enabled then the algorithm uses
@@ -419,7 +419,7 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 //	FaceContains
 ///	returns true if the given face contains the given vertex
 /// \ingroup lib_grid_algorithms_face_util
-bool FaceContains(FaceVertices* f, VertexBase* v);
+bool FaceContains(FaceVertices* f, Vertex* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
@@ -438,10 +438,10 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut, Grid& grid,
 
 ///	Collects all volumes that exist in the given grid which contain the given vertex.
 UG_API 
-void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, VertexBase* vrt, bool clearContainer = true);
+void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Vertex* vrt, bool clearContainer = true);
 
 inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
-					Grid& grid, VertexBase* vrt, bool clearContainer = true);
+					Grid& grid, Vertex* vrt, bool clearContainer = true);
 
 ///	Collects all volumes that exist in the given grid which contain the given edge.
 /** if EDGEOPT_STORE_ASSOCIATED_VOLUMES is enabled then the algorithm uses
@@ -490,7 +490,7 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 //	VolumeContains
 /// \ingroup lib_grid_algorithms_volume_util
 ///	returns true if the given volume contains the given vertex
-bool VolumeContains(VolumeVertices* v, VertexBase* vrt);
+bool VolumeContains(VolumeVertices* v, Vertex* vrt);
 
 /// \ingroup lib_grid_algorithms_volume_util
 ///	returns true if the given volume contains the given edge

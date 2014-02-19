@@ -51,7 +51,7 @@ typename TAAPosVRT::ValueType
 CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT)
 {
 	switch(o->base_object_id()){
-		case VERTEX:	return CalculateCenter(static_cast<const VertexBase*>(o), aaPosVRT);
+		case VERTEX:	return CalculateCenter(static_cast<const Vertex*>(o), aaPosVRT);
 		case EDGE:		return CalculateCenter(static_cast<const EdgeBase*>(o), aaPosVRT);
 		case FACE:		return CalculateCenter(static_cast<const Face*>(o), aaPosVRT);
 		case VOLUME:	return CalculateCenter(static_cast<const Volume*>(o), aaPosVRT);
@@ -69,7 +69,7 @@ CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT,
 {
 	switch(o->base_object_id()){
 		case VERTEX:
-			return CalculateCenter(static_cast<const VertexBase*>(o), aaPosVRT, aaWeight);
+			return CalculateCenter(static_cast<const Vertex*>(o), aaPosVRT, aaWeight);
 		case EDGE:
 			return CalculateCenter(static_cast<const EdgeBase*>(o), aaPosVRT, aaWeight);
 		case FACE:
@@ -223,7 +223,7 @@ number ElementDiameterSq(Grid& grid,
                          TAAPos& aaPos,
 					     TElem* elem)
 {
-	PointerConstArray<VertexBase*> vVert;
+	PointerConstArray<Vertex*> vVert;
 	grid.associated_elements(vVert, elem);
 
 	number max = 0.0;
@@ -240,7 +240,7 @@ number ElementDiameterSq(Grid& grid,
 						 GridObject* elem)
 {
 	switch(elem->base_object_id()){
-		case VERTEX: return ElementDiameterSq(grid, aaPos, static_cast<VertexBase*>(elem));
+		case VERTEX: return ElementDiameterSq(grid, aaPos, static_cast<Vertex*>(elem));
 		case EDGE: return ElementDiameterSq(grid, aaPos, static_cast<EdgeBase*>(elem));
 		case FACE: return ElementDiameterSq(grid, aaPos, static_cast<Face*>(elem));
 		case VOLUME: return ElementDiameterSq(grid, aaPos, static_cast<Volume*>(elem));

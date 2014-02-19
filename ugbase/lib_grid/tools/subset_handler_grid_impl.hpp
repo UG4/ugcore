@@ -167,7 +167,7 @@ empty() const
 inline bool GridSubsetHandler::
 empty() const
 {
-	return empty<VertexBase>() && empty<EdgeBase>()
+	return empty<Vertex>() && empty<EdgeBase>()
 		   && empty<Face>() && empty<Volume>();
 }
 
@@ -181,7 +181,7 @@ empty(int subsetIndex) const
 inline bool GridSubsetHandler::
 empty(int subsetIndex) const
 {
-	return empty<VertexBase>(subsetIndex) && empty<EdgeBase>(subsetIndex)
+	return empty<Vertex>(subsetIndex) && empty<EdgeBase>(subsetIndex)
 		   && empty<Face>(subsetIndex) && empty<Volume>(subsetIndex);
 }
 

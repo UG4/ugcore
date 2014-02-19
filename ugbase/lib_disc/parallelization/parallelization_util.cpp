@@ -12,7 +12,7 @@ namespace ug{
 
 //	Adds dof-indices of elements in elemLayout to the specified IndexLayout.
 /*
- * Make sure that TLayout holds elements of type VertexBase*, EdgeBase*,
+ * Make sure that TLayout holds elements of type Vertex*, EdgeBase*,
  * Face* or Volume*.
  *
  * \param pIgnoreMap	If specified (defaul: NULL), this map will be used to
@@ -123,10 +123,10 @@ bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
 
 // 	add dofs on elements
 	if(dofDistr.max_dofs(VERTEX))
-		if(layoutMap.has_layout<VertexBase>(keyType))
+		if(layoutMap.has_layout<Vertex>(keyType))
 		{
 			bRetVal &= AddEntriesToLevelIndexLayout(layoutOut, dofDistr,
-									layoutMap.get_layout<VertexBase>(keyType).layout_on_level(level));
+									layoutMap.get_layout<Vertex>(keyType).layout_on_level(level));
 		}
 
 	if(dofDistr.max_dofs(EDGE))
@@ -157,7 +157,7 @@ bool CreateLevelIndexLayout(	IndexLayout& layoutOut,
 
 //	Adds dof-indices of elements in elemLayout to the specified IndexLayout.
 /*
- * Make sure that TLayout holds elements of type VertexBase*, EdgeBase*,
+ * Make sure that TLayout holds elements of type Vertex*, EdgeBase*,
  * Face* or Volume*.
  *
  *  \todo: replace IndexLayout with TDoFManager::IndexLayout.
@@ -243,11 +243,11 @@ bool CreateSurfaceIndexLayout(	IndexLayout& layoutOut,
 
 // 	add dofs on elements
 	if(dofDistr.max_dofs(VERTEX)){
-		if(layoutMap.has_layout<VertexBase>(keyType)){
-			for(size_t level = 0; level < layoutMap.get_layout<VertexBase>(keyType).num_levels(); ++level)
+		if(layoutMap.has_layout<Vertex>(keyType)){
+			for(size_t level = 0; level < layoutMap.get_layout<Vertex>(keyType).num_levels(); ++level)
 			{
 				bRetVal &= AddEntriesToSurfaceIndexLayout(layoutOut, dofDistr,
-										layoutMap.get_layout<VertexBase>(keyType).layout_on_level(level), mg, dGrMgr);
+										layoutMap.get_layout<Vertex>(keyType).layout_on_level(level), mg, dGrMgr);
 			}
 		}
 	}
@@ -515,12 +515,12 @@ bool CreateIndexLayouts_DomainDecomposition(
 {
 //TODO: clear the layout!
 	bool bRetVal = true;
-	if(layoutMap.has_layout<VertexBase>(keyType)){
+	if(layoutMap.has_layout<Vertex>(keyType)){
 		bRetVal &= AddEntriesToIndexLayout_DomainDecomposition(
 								processLayoutOut,
 								subdomainLayoutOut,
 								dofDistr,
-								layoutMap.get_layout<VertexBase>(keyType).
+								layoutMap.get_layout<Vertex>(keyType).
 								layout_on_level(level),
 								ddInfoIn); /*(cb_ProcIDToSubdomID)*/
 	}

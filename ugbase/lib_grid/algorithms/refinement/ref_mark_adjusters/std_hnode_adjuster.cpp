@@ -38,7 +38,7 @@ static void mark_if_periodic(IRefiner& ref, TElem* e) {
 
 void StdHNodeAdjuster::
 ref_marks_changed(IRefiner& ref,
-			   	  const std::vector<VertexBase*>& vrts,
+			   	  const std::vector<Vertex*>& vrts,
 			   	  const std::vector<EdgeBase*>& edges,
 			   	  const std::vector<Face*>& faces,
 			   	  const std::vector<Volume*>& vols)
@@ -57,7 +57,7 @@ ref_marks_changed(IRefiner& ref,
 	//	make sure that a hanging node is never constrained by an element which
 	//	is has constrained vertices as corners
 		for(size_t i_vrt = 0; i_vrt < vrts.size(); ++i_vrt){
-			VertexBase* vrt = vrts[i_vrt];
+			Vertex* vrt = vrts[i_vrt];
 			if(!vrt->is_constrained())
 				continue;
 			ConstrainedVertex* hv = dynamic_cast<ConstrainedVertex*>(vrt);
@@ -87,7 +87,7 @@ ref_marks_changed(IRefiner& ref,
 		if(node_dependency_order_1_enabled()){
 			for(size_t i = 0; i < 2; ++i){
 				if(e->vertex(i)->is_constrained()){
-					VertexBase* v = e->vertex(i);
+					Vertex* v = e->vertex(i);
 					ref.mark(v);
 				}
 			}

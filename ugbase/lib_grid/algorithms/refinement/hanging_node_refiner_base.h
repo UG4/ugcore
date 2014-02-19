@@ -98,7 +98,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	///	Marks a element for refinement.
 	/**	\{ */
-		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REFINE);
+		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE);
 		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REFINE);
 		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE);
 		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE);
@@ -110,7 +110,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	///	Returns the mark of a given element.
 	/**	\{ */
-		virtual RefinementMark get_mark(VertexBase* v);
+		virtual RefinementMark get_mark(Vertex* v);
 		virtual RefinementMark get_mark(EdgeBase* e);
 		virtual RefinementMark get_mark(Face* f);
 		virtual RefinementMark get_mark(Volume* v);
@@ -122,7 +122,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		void add_ref_mark_adjuster(SPIRefMarkAdjuster adjuster)		{m_refMarkAdjusters.push_back(adjuster);}
 
 	protected:
-		typedef typename TSelector::template traits<VertexBase>::iterator	sel_vrt_iter;
+		typedef typename TSelector::template traits<Vertex>::iterator	sel_vrt_iter;
 		typedef typename TSelector::template traits<EdgeBase>::iterator		sel_edge_iter;
 		typedef typename TSelector::template traits<Face>::iterator			sel_face_iter;
 		typedef typename TSelector::template traits<Volume>::iterator		sel_vol_iter;
@@ -153,7 +153,7 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(VertexBase* elem)	{return true;}
+		virtual bool refinement_is_allowed(Vertex* elem)	{return true;}
 	///	a callback that allows to deny refinement of special edges
 		virtual bool refinement_is_allowed(EdgeBase* elem)		{return true;}
 	///	a callback that allows to deny refinement of special faces
@@ -217,27 +217,27 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		virtual void process_constrained_edge(ConstrainedEdge* cde);
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
 		virtual void refine_edge_with_normal_vertex(EdgeBase* e,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 		virtual void refine_edge_with_hanging_vertex(EdgeBase* e,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 
 		virtual void process_constrained_face(ConstrainedFace* cdf);
 		virtual void process_constraining_face(ConstrainingFace* cgf);
 		virtual void refine_face_with_normal_vertex(Face* f,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 		virtual void refine_face_with_hanging_vertex(Face* f,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 
 		virtual void refine_volume_with_normal_vertex(Volume* v,
-											VertexBase** newVolumeVrts = NULL);
+											Vertex** newVolumeVrts = NULL);
 	/**	\} */
 
 	////////////////////////////////////////////////////////////////////////
 	//	helpers. Make sure that everything is initialized properly
 	//	before calling these methods.
 	//	you should use this methods instead of directly marking elements.
-		inline bool is_marked(VertexBase* v)				{return m_selMarkedElements.is_selected(v);}
-		//inline void mark(VertexBase* v)						{mark(v);}
+		inline bool is_marked(Vertex* v)				{return m_selMarkedElements.is_selected(v);}
+		//inline void mark(Vertex* v)						{mark(v);}
 
 		inline bool is_marked(EdgeBase* e)					{return m_selMarkedElements.is_selected(e);}
 		//inline void mark(EdgeBase* e)						{mark(e);}
@@ -246,10 +246,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	pure virtual method.
 	 *	Has to return the center vertex which was set to the edge via
 	 *	set_center_vertex. If no vertex was set, NULL has to be returned.*/
-		virtual VertexBase* get_center_vertex(EdgeBase* e) = 0;
+		virtual Vertex* get_center_vertex(EdgeBase* e) = 0;
 
 	///	Associates a vertex with the edge (pure virtual).
-		virtual void set_center_vertex(EdgeBase* e, VertexBase* v) = 0;
+		virtual void set_center_vertex(EdgeBase* e, Vertex* v) = 0;
 
 		inline bool is_marked(Face* f)						{return m_selMarkedElements.is_selected(f);}
 		//inline void mark(Face* f)							{mark(f);}
@@ -258,10 +258,10 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	/**	pure virtual method.
 	 *	Has to return the center vertex which was set to the face via
 	 *	set_center_vertex. If no vertex was set, NULL has to be returned.*/
-		virtual VertexBase* get_center_vertex(Face* f) = 0;
+		virtual Vertex* get_center_vertex(Face* f) = 0;
 
 	///	Associates a vertex with the face (pure virtual).
-		virtual void set_center_vertex(Face* f, VertexBase* v) = 0;
+		virtual void set_center_vertex(Face* f, Vertex* v) = 0;
 
 		inline bool is_marked(Volume* v)					{return m_selMarkedElements.is_selected(v);}
 		//inline void mark(Volume* v)						{mark(v);}
@@ -324,13 +324,13 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 
 	private:
 		Grid*		m_pGrid;
-		std::vector<VertexBase*>	m_newlyMarkedRefVrts;
+		std::vector<Vertex*>	m_newlyMarkedRefVrts;
 		std::vector<EdgeBase*>		m_newlyMarkedRefEdges;
 		std::vector<Face*>			m_newlyMarkedRefFaces;
 		std::vector<Volume*>		m_newlyMarkedRefVols;
 		//todo:	Use the following vectors during coarsening...
 		/*
-		std::vector<VertexBase*>	m_newlyMarkedCoarseVrts;
+		std::vector<Vertex*>	m_newlyMarkedCoarseVrts;
 		std::vector<EdgeBase*>		m_newlyMarkedCoarseEdges;
 		std::vector<Face*>			m_newlyMarkedCoarseFaces;
 		std::vector<Volume*>		m_newlyMarkedCoarseVols;

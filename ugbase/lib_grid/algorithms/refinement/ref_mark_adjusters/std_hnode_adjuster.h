@@ -23,7 +23,7 @@ class StdHNodeAdjuster : public IRefMarkAdjuster
 		virtual ~StdHNodeAdjuster()	{}
 
 		virtual void ref_marks_changed(IRefiner& ref,
-										const std::vector<VertexBase*>& vrts,
+										const std::vector<Vertex*>& vrts,
 										const std::vector<EdgeBase*>& edges,
 										const std::vector<Face*>& faces,
 										const std::vector<Volume*>& vols);

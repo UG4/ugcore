@@ -75,8 +75,8 @@ print(const char* filename, Domain<TDim>& domain)
 	else
 	{
 	//	if dim < 0, some is wrong with grid, except no element is in the grid
-		if( ((si < 0) && grid.num<VertexBase>() != 0) ||
-			((si >=0) && sh.num<VertexBase>(si) != 0))
+		if( ((si < 0) && grid.num<Vertex>() != 0) ||
+			((si >=0) && sh.num<Vertex>(si) != 0))
 		{
 			UG_THROW("VTK::print: Dimension of grid/subset not"
 					" detected correctly although grid objects present.");

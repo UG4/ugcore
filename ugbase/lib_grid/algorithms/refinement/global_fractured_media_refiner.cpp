@@ -199,8 +199,8 @@ perform_refinement()
 		int l = oldTopLevel;
 
 		GFDR_PROFILE(GFDR_ReserveVrtData);
-		mg.reserve<VertexBase>(mg.num<VertexBase>() +
-					+ mg.num<VertexBase>(l) + mg.num<EdgeBase>(l)
+		mg.reserve<Vertex>(mg.num<Vertex>() +
+					+ mg.num<Vertex>(l) + mg.num<EdgeBase>(l)
 					+ mg.num<Quadrilateral>(l) + mg.num<Hexahedron>(l));
 		GFDR_PROFILE_END();
 
@@ -242,9 +242,9 @@ perform_refinement()
 
 
 //	some buffers
-	vector<VertexBase*> vVrts;
-	vector<VertexBase*> vEdgeVrts;
-	vector<VertexBase*> vFaceVrts;
+	vector<Vertex*> vVrts;
+	vector<Vertex*> vEdgeVrts;
+	vector<Vertex*> vFaceVrts;
 	vector<EdgeBase*>	vEdges;
 	vector<Face*>		vFaces;
 	vector<Volume*>		vVols;
@@ -257,17 +257,17 @@ perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  creating new vertices\n");
 
 //	create new vertices from marked vertices
-	for(VertexBaseIterator iter = mg.begin<VertexBase>(oldTopLevel);
-		iter != mg.end<VertexBase>(oldTopLevel); ++iter)
+	for(VertexIterator iter = mg.begin<Vertex>(oldTopLevel);
+		iter != mg.end<Vertex>(oldTopLevel); ++iter)
 	{
 		if(!refinement_is_allowed(*iter) || !m_marker.is_marked(*iter))
 			continue;
 			
-		VertexBase* v = *iter;
+		Vertex* v = *iter;
 
 	//	create a new vertex in the next layer.
 		//GFDR_PROFILE(GFDR_Refine_CreatingVertices);
-		VertexBase* nVrt = *mg.create_by_cloning(v, v);
+		Vertex* nVrt = *mg.create_by_cloning(v, v);
 
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)
@@ -294,7 +294,7 @@ perform_refinement()
 		}
 
 	//	associated vertices on next level.
-		VertexBase* substituteVrts[2];
+		Vertex* substituteVrts[2];
 		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
 		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
 
@@ -356,7 +356,7 @@ perform_refinement()
 		}
 
 		//GFDR_PROFILE(GFDR_Refine_CreatingFaces);
-		VertexBase* newVrt;
+		Vertex* newVrt;
 		if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
@@ -427,7 +427,7 @@ perform_refinement()
 			pCorners = &corners.front();
 		}
 
-		VertexBase* newVrt;
+		Vertex* newVrt;
 		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
 					NULL, RegularVertex(), &vVrts.front(), pCorners)){
 		//	if a new vertex was generated, we have to register it
@@ -921,7 +921,7 @@ save_marks_to_file(const char* filename)
 			sh.assign_subset(*iter, 0);
 	}
 
-	for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl); iter != mg.end<VertexBase>(lvl); ++iter){
+	for(VertexIterator iter = mg.begin<Vertex>(lvl); iter != mg.end<Vertex>(lvl); ++iter){
 		if(m_marker.is_marked(*iter))
 			sh.assign_subset(*iter, 0);
 	}

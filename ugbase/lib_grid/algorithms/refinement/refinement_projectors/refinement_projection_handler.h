@@ -35,23 +35,23 @@ class RefinementProjectionHandler : public IRefinementCallback {
 	////////////////////////////////////////
 	//	IMPLEMENTATION OF IRefinementCallback
 	///	called when a new vertex was created from an old vertex.
-		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
+		virtual void new_vertex(Vertex* vrt, Vertex* parent);
 	///	called when a new vertex was created from an old edge.
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
 	///	called when a new vertex was created from an old face.
-		virtual void new_vertex(VertexBase* vrt, Face* parent);
+		virtual void new_vertex(Vertex* vrt, Face* parent);
 	///	called when a new vertex was created from an old volume.
-		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+		virtual void new_vertex(Vertex* vrt, Volume* parent);
 
 	///	callback for vertices in flat grids.
-		virtual void flat_grid_vertex_encountered(VertexBase* vrt);
+		virtual void flat_grid_vertex_encountered(Vertex* vrt);
 
 	///	returns the position of the given vertex.
-		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords);
+		virtual int current_pos(number* coordsOut, Vertex* vrt, int maxCoords);
 
 	private:
 		template <class TParent>
-		void handle_new_vertex(VertexBase* vrt, TParent* parent);
+		void handle_new_vertex(Vertex* vrt, TParent* parent);
 
 		SmartPtr<ISubsetHandler>					m_sh;
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;

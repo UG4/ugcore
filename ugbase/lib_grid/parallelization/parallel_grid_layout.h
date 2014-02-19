@@ -13,31 +13,31 @@
 #include "lib_grid/grid/grid_base_objects.h"
 #include "grid_object_id.h"
 
-//	specialize pcl::type_traits for VertexBase, EdgeBase, Face and Volume
+//	specialize pcl::type_traits for Vertex, EdgeBase, Face and Volume
 namespace pcl
 {
-///	VertexBase interfaces and layouts store elements of type VertexBase*
+///	Vertex interfaces and layouts store elements of type Vertex*
 template <>
-struct type_traits<ug::VertexBase>
+struct type_traits<ug::Vertex>
 {
-	typedef ug::VertexBase* Elem;
+	typedef ug::Vertex* Elem;
 };
 
-///	EdgeBase interfaces and layouts store elements of type VertexBase*
+///	EdgeBase interfaces and layouts store elements of type Vertex*
 template <>
 struct type_traits<ug::EdgeBase>
 {
 	typedef ug::EdgeBase* Elem;
 };
 
-///	Face interfaces and layouts store elements of type VertexBase*
+///	Face interfaces and layouts store elements of type Vertex*
 template <>
 struct type_traits<ug::Face>
 {
 	typedef ug::Face* Elem;
 };
 
-///	Volume interfaces and layouts store elements of type VertexBase*
+///	Volume interfaces and layouts store elements of type Vertex*
 template <>
 struct type_traits<ug::Volume>
 {
@@ -85,7 +85,7 @@ enum InterfaceNodeTypes
 //	interface is altered.
 //	Make sure that those layouts match the ones in GridLayoutMap.
 typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<VertexBase, std::list> >	VertexLayout;
+		pcl::OrderedInterface<Vertex, std::list> >	VertexLayout;
 typedef pcl::MultiLevelLayout<
 		pcl::OrderedInterface<EdgeBase, std::list> >	EdgeLayout;
 typedef pcl::MultiLevelLayout<
@@ -101,20 +101,20 @@ typedef pcl::MultiLevelLayout<
  * The GridLayoutMap helps you to organize your layouts
  * (e.g. master- and slave-layouts).
  *
- * You may query layouts for VertexBase, EdgeBase, Face and Volume.
+ * You may query layouts for Vertex, EdgeBase, Face and Volume.
  *
  * You may use a LayoutMap as follows:
  *
  * \code
  * GridLayoutMap layoutMap;
- * assert(!layoutMap.has_layout<VertexBase>(0));
- * VertexLayout& layout = layoutMap.get_layout<VertexBase>(0);
- * assert(layoutMap.has_layout<VertexBase>(0));
+ * assert(!layoutMap.has_layout<Vertex>(0));
+ * VertexLayout& layout = layoutMap.get_layout<Vertex>(0);
+ * assert(layoutMap.has_layout<Vertex>(0));
  * \endcode
  *
  * To get associated types you may use the GridLayoutMap::Types array:
  * \code
- * GridLayoutMap::Types<VertexBase>::Layout l = layoutMap.get_layout<VertexBase>(0);
+ * GridLayoutMap::Types<Vertex>::Layout l = layoutMap.get_layout<Vertex>(0);
  * \endcode
  *
  * The Types struct is very useful when it comes to using a LayoutMap in
@@ -202,11 +202,11 @@ class GridLayoutMap
 
 	///	the argument is only a dummy to allow to choose the right method at compile time
 	// \{
-		inline Types<VertexBase>::Map&
-		get_layout_map(VertexBase*);
+		inline Types<Vertex>::Map&
+		get_layout_map(Vertex*);
 
-		inline const Types<VertexBase>::Map&
-		get_layout_map(VertexBase*) const;
+		inline const Types<Vertex>::Map&
+		get_layout_map(Vertex*) const;
 
 		inline Types<EdgeBase>::Map&
 		get_layout_map(EdgeBase*);
@@ -228,7 +228,7 @@ class GridLayoutMap
 	// \}
 	
 	private:
-		Types<VertexBase>::Map	m_vertexLayoutMap;
+		Types<Vertex>::Map	m_vertexLayoutMap;
 		Types<EdgeBase>::Map	m_edgeLayoutMap;
 		Types<Face>::Map		m_faceLayoutMap;
 		Types<Volume>::Map		m_volumeLayoutMap;

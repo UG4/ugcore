@@ -23,7 +23,7 @@ namespace ug {
 class IIdentifier {
 public:
 	virtual ~IIdentifier() {}
-	virtual bool match(VertexBase*, VertexBase*) = 0;
+	virtual bool match(Vertex*, Vertex*) = 0;
 	virtual bool match(EdgeBase*, EdgeBase*) = 0;
 	virtual bool match(Face*, Face*) = 0;
 	virtual bool match(Volume*, Volume*) {UG_THROW("not impled, because volume identification is not supported.")}
@@ -38,7 +38,7 @@ public:
  */
 template<class TPosAA> class ParallelShiftIdentifier: public IIdentifier {
 public:
-	virtual bool match(VertexBase* v1, VertexBase* v2) {return match_impl(v1, v2);}
+	virtual bool match(Vertex* v1, Vertex* v2) {return match_impl(v1, v2);}
 	virtual bool match(EdgeBase* e1, EdgeBase* e2) {return match_impl(e1, e2);}
 	virtual bool match(Face* f1, Face* f2) {return match_impl(f1, f2);}
 
@@ -59,7 +59,7 @@ protected:
 //	TransformationBasedIdentifier(TPosAA& aa) : m_aaPos(aa) {}
 //	void setTransformation(MathMatrix<dim,dim>& T) {this->T = T;}
 //
-//	virtual bool match(VertexBase*, VertexBase*);
+//	virtual bool match(Vertex*, Vertex*);
 //	virtual bool match(EdgeBase*, EdgeBase*);
 //	virtual bool match(Face*, Face*);
 //protected:
@@ -135,7 +135,7 @@ public:
 
 	/// grid observation methods
 	virtual void grid_to_be_destroyed(Grid* grid);
-	virtual void vertex_created(Grid* grid, VertexBase* vrt,
+	virtual void vertex_created(Grid* grid, Vertex* vrt,
 										GridObject* pParent = NULL,
 										bool replacesParent = false);
 
@@ -147,8 +147,8 @@ public:
 								GridObject* pParent = NULL,
 								bool replacesParent = false);
 
-	virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
-									 VertexBase* replacedBy = NULL);
+	virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
+									 Vertex* replacedBy = NULL);
 
 	virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
 									 EdgeBase* replacedBy = NULL);
@@ -186,12 +186,12 @@ protected:
 //	std::vector<SmartPtr<IIdentifier> > m_vIdentifier;
 
 	/// attachment accessors for Groups
-	Grid::AttachmentAccessor<VertexBase, Attachment<Group<VertexBase>* > > m_aaGroupVRT;
+	Grid::AttachmentAccessor<Vertex, Attachment<Group<Vertex>* > > m_aaGroupVRT;
 	Grid::AttachmentAccessor<EdgeBase, Attachment<Group<EdgeBase>* > > m_aaGroupEDG;
 	Grid::AttachmentAccessor<Face, Attachment<Group<Face>* > > m_aaGroupFCE;
 
 	/// attachment accessors for PeriodicStatus
-	Grid::AttachmentAccessor<VertexBase, Attachment<PeriodicStatus> > m_aaPeriodicStatusVRT;
+	Grid::AttachmentAccessor<Vertex, Attachment<PeriodicStatus> > m_aaPeriodicStatusVRT;
 	Grid::AttachmentAccessor<EdgeBase, Attachment<PeriodicStatus> > m_aaPeriodicStatusEDG;
 	Grid::AttachmentAccessor<Face, Attachment<PeriodicStatus> > m_aaPeriodicStatusFCE;
 

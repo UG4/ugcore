@@ -33,7 +33,7 @@ void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerC
 	for(size_t i = 0; i < numVertices; ++i)
 	{
 		// get element
-		VertexBase* vert = GetVertex(elem, i);
+		Vertex* vert = GetVertex(elem, i);
 
 		// write corner coordinates
 		vCornerCoordsOut.push_back(aaPos[vert]);
@@ -71,7 +71,7 @@ void FillCornerCoordinates(	typename TDomain::position_type vCornerCoordsOut[],
 	// get position accessor
 	const typename TDomain::position_accessor_type& aaPos = domain.position_accessor();
 
-	const VertexBase* const* vVertex = const_cast<TElem*>(&elem)->vertices();
+	const Vertex* const* vVertex = const_cast<TElem*>(&elem)->vertices();
 
 	// write corner coordinates
 	for(size_t i = 0; i < TElem::NUM_VERTICES; ++i)

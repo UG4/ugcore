@@ -16,7 +16,7 @@ namespace ug
 {
 
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
-							   VertexBase* vrtCenter, const vector3& normal,
+							   Vertex* vrtCenter, const vector3& normal,
 							   number radius, number rimSnapThreshold,  AInt& aInt,
 							   APosition& aPos)
 {
@@ -51,7 +51,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 	sel.clear();
 	sel.select(vrtCenter);
 
-	stack<VertexBase*> vrtStack;
+	stack<Vertex*> vrtStack;
 	vrtStack.push(vrtCenter);
 
 	Grid::edge_traits::secure_container edges;
@@ -59,7 +59,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 	vector<Quadrilateral*> quads;
 
 	while(!vrtStack.empty()){
-		VertexBase* curVrt = vrtStack.top();
+		Vertex* curVrt = vrtStack.top();
 		vrtStack.pop();
 
 	//	we have to convert associated quadrilaterals to triangles.
@@ -86,7 +86,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 
 		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 			EdgeBase* e = edges[i_edge];
-			VertexBase* vrt = GetConnectedVertex(e, curVrt);
+			Vertex* vrt = GetConnectedVertex(e, curVrt);
 
 			if(sel.is_selected(vrt))
 				continue;
@@ -128,7 +128,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 	sel.select(vrtCenter);
 
 	while(!vrtStack.empty()){
-		VertexBase* curVrt = vrtStack.top();
+		Vertex* curVrt = vrtStack.top();
 		vrtStack.pop();
 		grid.associated_elements(faces, curVrt);
 
@@ -140,7 +140,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 			sel.select(f);
 
 			for(size_t i = 0; i < f->num_vertices(); ++i){
-				VertexBase* vrt = f->vertex(i);
+				Vertex* vrt = f->vertex(i);
 				if(!sel.is_selected(vrt)){
 					number dist = DistancePointToRay(aaPos[vrt], center, axis);
 					if(dist < (radius - SMALL)){
@@ -152,14 +152,14 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 		}
 	}
 
-	sel.clear<VertexBase>();
+	sel.clear<Vertex>();
 
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
-						   VertexBase* vrtCenter, const vector3& normal,
+						   Vertex* vrtCenter, const vector3& normal,
 						   number radius, number rimSnapThreshold, APosition& aPos)
 {
 	AInt aInt;

@@ -18,7 +18,7 @@ bool RepeatedVertexExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
 							int numSteps, const ug::vector3& stepDir)
 {
-	std::vector<VertexBase*> vElems;
+	std::vector<Vertex*> vElems;
 	vElems.assign(iterBegin, iterEnd);
 
 	for(int i = 0; i < numSteps; ++i)

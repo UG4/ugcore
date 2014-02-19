@@ -25,7 +25,7 @@ class TParallelGlobalRefiner : public TRefiner
 		virtual ~TParallelGlobalRefiner();
 
 	protected:
-		virtual bool refinement_is_allowed(VertexBase* elem);
+		virtual bool refinement_is_allowed(Vertex* elem);
 		virtual bool refinement_is_allowed(EdgeBase* elem);
 		virtual bool refinement_is_allowed(Face* elem);
 		virtual bool refinement_is_allowed(Volume* elem);

@@ -280,7 +280,7 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		{
 			int counter = 1;
 			Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
-			for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter, ++counter)
+			for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter, ++counter)
 			{
 				out << "v " << aaPos[*iter].x() << " " << aaPos[*iter].y() << " " <<
 								aaPos[*iter].z() << endl;
@@ -293,7 +293,7 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		{
 			indexDimension++;
 			Grid::VertexAttachmentAccessor<AVector2> aaTex(grid, *paTexCoord);
-			for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
+			for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
 			{
 				out << "vt " << aaTex[*iter].x() << " " <<
 								aaTex[*iter].y() << " 0.0" << endl;

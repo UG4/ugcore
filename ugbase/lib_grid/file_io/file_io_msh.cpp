@@ -32,7 +32,7 @@ bool LoadGridFromMSH(Grid& grid, const char* filename,
 	string buffer;	
 	
 //	here we'll store all nodes, so that we can access them by index
-	vector<VertexBase*> vrts;
+	vector<Vertex*> vrts;
 	
 //	iterate through the lines
 	while(!in.eof())
@@ -172,7 +172,7 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 
 //	create points
 //	store pointers to the vertices on the fly in a vector.
-	vector<VertexBase*>	vVrts;
+	vector<Vertex*>	vVrts;
 	vVrts.reserve(numVrts);
 
 	for(int i = 0; i < numVrts; ++i)
@@ -184,7 +184,7 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 
 //	read the points
 	{
-		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
+		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
 		{
 			int Index;
 			in >> Index;

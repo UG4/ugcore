@@ -257,7 +257,7 @@ grid(Grid& gridOut, size_t index,
 
 //	get the grid-node and the vertex-vector
 	xml_node<>* gridNode = m_entries[index].node;
-	vector<VertexBase*>& vertices = m_entries[index].vertices;
+	vector<Vertex*>& vertices = m_entries[index].vertices;
 	vector<EdgeBase*>& edges = m_entries[index].edges;
 	vector<Face*>& faces = m_entries[index].faces;
 	vector<Volume*>& volumes = m_entries[index].volumes;
@@ -521,7 +521,7 @@ grid(Grid& gridOut, size_t index,
 
 template <class TAAPos>
 bool GridReaderUGX::
-create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
+create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 				rapidxml::xml_node<>* vrtNode, TAAPos aaPos)
 {
 	using namespace rapidxml;
@@ -607,7 +607,7 @@ create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
 
 template <class TAAPos>
 bool GridReaderUGX::
-create_constrained_vertices(std::vector<VertexBase*>& vrtsOut,
+create_constrained_vertices(std::vector<Vertex*>& vrtsOut,
 							std::vector<std::pair<int, int> >& constrainingObjsOut,
 							Grid& grid, rapidxml::xml_node<>* vrtNode, TAAPos aaPos)
 {

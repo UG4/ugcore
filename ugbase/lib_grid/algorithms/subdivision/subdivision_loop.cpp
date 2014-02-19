@@ -40,9 +40,9 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 	beta[6] = 0.0625;
 
 //	iterate through all vertices, evaluate their limit positions and save them in their projection attachment
-	for(VertexBaseIterator vIter = grid.vertices_begin(); vIter != grid.vertices_end(); ++vIter)
+	for(VertexIterator vIter = grid.vertices_begin(); vIter != grid.vertices_end(); ++vIter)
 	{
-		VertexBase* v = *vIter;
+		Vertex* v = *vIter;
 		valence = 0;
 		x = 0;
 		y = 0;

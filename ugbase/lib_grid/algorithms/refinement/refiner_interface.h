@@ -64,7 +64,7 @@ class IRefiner
 
 	///	Marks a element for refinement. Default implementation is empty
 	/**	\{ */
-		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REFINE)	{return false;}
+		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE)	{return false;}
 		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REFINE)		{return false;}
 		virtual bool mark(Face* f, RefinementMark refMark = RM_REFINE)			{return false;}
 		virtual bool mark(Volume* v, RefinementMark refMark = RM_REFINE)		{return false;}
@@ -72,7 +72,7 @@ class IRefiner
 
 	///	marks the specified geometric object
 	/**	The default implementation casts the object to a more concrete type
-	 * (VertexBase, EdgeBase, Face, Volume) and calls the appropriate mark method.*/
+	 * (Vertex, EdgeBase, Face, Volume) and calls the appropriate mark method.*/
 		virtual bool mark(GridObject* o, RefinementMark refMark = RM_REFINE);
 
 	///	marks the neighborhood of currently marked elements.
@@ -83,7 +83,7 @@ class IRefiner
 
 	///	Returns the mark of a given element. Default returns RM_REFINE
 	/**	\{ */
-		virtual RefinementMark get_mark(VertexBase* v)	{return RM_REFINE;}
+		virtual RefinementMark get_mark(Vertex* v)	{return RM_REFINE;}
 		virtual RefinementMark get_mark(EdgeBase* e)	{return RM_REFINE;}
 		virtual RefinementMark get_mark(Face* f)		{return RM_REFINE;}
 		virtual RefinementMark get_mark(Volume* v)		{return RM_REFINE;}
@@ -91,7 +91,7 @@ class IRefiner
 
 	///	returns the mark of the specified geometric object
 	/**	The default implementation casts the object to a more concrete type
-	 * (VertexBase, EdgeBase, Face, Volume) and calls the appropriate get_mark method.*/
+	 * (Vertex, EdgeBase, Face, Volume) and calls the appropriate get_mark method.*/
 		virtual RefinementMark get_mark(GridObject* o);
 
 	///	marks all elements between iterBegin and iterEnd.

@@ -187,7 +187,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 	int vtr_count = 0;
 
 	//	loop over all vertices on grid/multigrid
-	for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
+	for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
 	{
 		grid.associated_elements(elems, *iter);
 		for(size_t i = 0; i < elems.size(); ++i) m_aaElemList[*iter].push_back(elems[i]);

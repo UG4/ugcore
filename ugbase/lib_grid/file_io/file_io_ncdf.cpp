@@ -145,7 +145,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 //	x
 	out << "coord =" << endl << " ";
 	size_t endlCounter = 1;
-	for(VertexBaseIterator iter = grid.vertices_begin();
+	for(VertexIterator iter = grid.vertices_begin();
 		iter != grid.vertices_end(); ++iter, ++endlCounter)
 	{
 		if(endlCounter > 5){
@@ -157,7 +157,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	}
 
 //	y
-	for(VertexBaseIterator iter = grid.vertices_begin();
+	for(VertexIterator iter = grid.vertices_begin();
 		iter != grid.vertices_end(); ++iter, ++endlCounter)
 	{
 		if(endlCounter > 5){
@@ -168,7 +168,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	}
 
 //	z
-	for(VertexBaseIterator iter = grid.vertices_begin();
+	for(VertexIterator iter = grid.vertices_begin();
 		iter != grid.vertices_end(); ++iter, ++endlCounter)
 	{
 		if(iter != grid.vertices_begin()){
@@ -237,10 +237,10 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	out << endl;
 	out << "node_num_map = ";
 	endlCounter = 1;
-	for(size_t i = 0; i < grid.num<VertexBase>(); ++i, ++endlCounter)
+	for(size_t i = 0; i < grid.num<Vertex>(); ++i, ++endlCounter)
 	{
 		out << i+1;
-		if(i+1 < grid.num<VertexBase>()){
+		if(i+1 < grid.num<Vertex>()){
 			out << ", ";
 
 			if(endlCounter > 4){

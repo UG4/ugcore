@@ -184,7 +184,7 @@ void Grid::clear_geometry()
 	clear<Volume>();
 	clear<Face>();
 	clear<EdgeBase>();
-	clear<VertexBase>();
+	clear<Vertex>();
 	
 //	reset options
 	set_options(opts);
@@ -221,7 +221,7 @@ void Grid::clear_attachments()
 
 void Grid::clear_attachments()
 {
-	clear_attachments<VertexBase>();
+	clear_attachments<Vertex>();
 	clear_attachments<EdgeBase>();
 	clear_attachments<Face>();
 	clear_attachments<Volume>();
@@ -267,7 +267,7 @@ void Grid::assign_grid(const Grid& grid)
 
 //	we need a vertex-map that allows us to find a vertex in the new grid
 //	given a vertex in the old one.
-	vector<VertexBase*>	vrtMap(grid.attachment_container_size<VertexBase>(), NULL);
+	vector<Vertex*>	vrtMap(grid.attachment_container_size<Vertex>(), NULL);
 
 //	we need index-lists that allow us to copy attachments later on
 	vector<int> vSrcDataIndex[NUM_GEOMETRIC_BASE_OBJECTS];
@@ -277,12 +277,12 @@ void Grid::assign_grid(const Grid& grid)
 	vector<int>& vSrcDataIndexVOL = vSrcDataIndex[VOLUME];
 
 //	copy all vertices
-	vSrcDataIndexVRT.resize(grid.num<VertexBase>());
-	ConstVertexBaseIterator vrtsEnd = grid.end<VertexBase>();
-	for(ConstVertexBaseIterator iter = grid.begin<VertexBase>(); iter != vrtsEnd; ++iter)
+	vSrcDataIndexVRT.resize(grid.num<Vertex>());
+	ConstVertexIterator vrtsEnd = grid.end<Vertex>();
+	for(ConstVertexIterator iter = grid.begin<Vertex>(); iter != vrtsEnd; ++iter)
 	{
-		VertexBase* vrt = *iter;
-		VertexBase* nVrt = *create_by_cloning(vrt);
+		Vertex* vrt = *iter;
+		Vertex* nVrt = *create_by_cloning(vrt);
 		vrtMap[grid.get_attachment_data_index(vrt)] = nVrt;
 		vSrcDataIndexVRT[get_attachment_data_index(nVrt)] = grid.get_attachment_data_index(vrt);
 	}
@@ -368,11 +368,11 @@ void Grid::assign_grid(const Grid& grid)
 }
 
 
-VertexBaseIterator Grid::create_by_cloning(VertexBase* pCloneMe, GridObject* pParent)
+VertexIterator Grid::create_by_cloning(Vertex* pCloneMe, GridObject* pParent)
 {
-	VertexBase* pNew = reinterpret_cast<VertexBase*>(pCloneMe->create_empty_instance());
+	Vertex* pNew = reinterpret_cast<Vertex*>(pCloneMe->create_empty_instance());
 	register_vertex(pNew, pParent);
-	return iterator_cast<VertexBaseIterator>(get_iterator(pNew));
+	return iterator_cast<VertexIterator>(get_iterator(pNew));
 }
 
 EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GridObject* pParent)
@@ -417,7 +417,7 @@ void Grid::erase(GridObject* geomObj)
 	switch(objType)
 	{
 		case VERTEX:
-			erase(dynamic_cast<VertexBase*>(geomObj));
+			erase(dynamic_cast<Vertex*>(geomObj));
 			break;
 		case EDGE:
 			erase(dynamic_cast<EdgeBase*>(geomObj));
@@ -431,7 +431,7 @@ void Grid::erase(GridObject* geomObj)
 	};
 }
 
-void Grid::erase(VertexBase* vrt)
+void Grid::erase(Vertex* vrt)
 {
 	assert((vrt != NULL) && "ERROR in Grid::erase(Vertex*): invalid pointer)");
 	assert(vrt->container_section() != -1
@@ -493,7 +493,7 @@ void Grid::flip_orientation(Face* f)
 {
 //	inverts the order of vertices.
 	uint numVrts = (int)f->num_vertices();
-	vector<VertexBase*> vVrts(numVrts);
+	vector<Vertex*> vVrts(numVrts);
 	
 	uint i;
 	for(i = 0; i < numVrts; ++i)
@@ -580,7 +580,7 @@ size_t Grid::volume_fragmentation()
 
 
 GridObject* Grid::
-get_opposing_object(VertexBase* vrt, Face* elem)
+get_opposing_object(Vertex* vrt, Face* elem)
 {
 	std::pair<GridBaseObjectId, int> id = elem->get_opposing_object(vrt);
 	switch(id.first){
@@ -595,7 +595,7 @@ get_opposing_object(VertexBase* vrt, Face* elem)
 }
 
 GridObject* Grid::
-get_opposing_object(VertexBase* vrt, Volume* elem)
+get_opposing_object(Vertex* vrt, Volume* elem)
 {
 	std::pair<GridBaseObjectId, int> id = elem->get_opposing_object(vrt);
 	switch(id.first){
@@ -628,7 +628,7 @@ void Grid::pass_on_values(TAttachmentPipe& attachmentPipe,
 	}
 }
 
-void Grid::pass_on_values(VertexBase* objSrc, VertexBase* objDest)
+void Grid::pass_on_values(Vertex* objSrc, Vertex* objDest)
 {
 	pass_on_values(m_vertexElementStorage.m_attachmentPipe, objSrc, objDest);
 }
@@ -831,7 +831,7 @@ void Grid::unregister_observer(GridObserver* observer)
 
 ////////////////////////////////////////////////////////////////////////
 //	associated edge access
-Grid::AssociatedEdgeIterator Grid::associated_edges_begin(VertexBase* vrt)
+Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Vertex* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
@@ -841,7 +841,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_begin(VertexBase* vrt)
 	return m_aaEdgeContainerVERTEX[vrt].begin();
 }
 
-Grid::AssociatedEdgeIterator Grid::associated_edges_end(VertexBase* vrt)
+Grid::AssociatedEdgeIterator Grid::associated_edges_end(Vertex* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
@@ -893,7 +893,7 @@ Grid::AssociatedEdgeIterator Grid::associated_edges_end(Volume* vol)
 
 ////////////////////////////////////////////////////////////////////////
 //	associated face access
-Grid::AssociatedFaceIterator Grid::associated_faces_begin(VertexBase* vrt)
+Grid::AssociatedFaceIterator Grid::associated_faces_begin(Vertex* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -903,7 +903,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_begin(VertexBase* vrt)
 	return m_aaFaceContainerVERTEX[vrt].begin();
 }
 
-Grid::AssociatedFaceIterator Grid::associated_faces_end(VertexBase* vrt)
+Grid::AssociatedFaceIterator Grid::associated_faces_end(Vertex* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -955,7 +955,7 @@ Grid::AssociatedFaceIterator Grid::associated_faces_end(Volume* vol)
 
 ////////////////////////////////////////////////////////////////////////
 //	associated volume access
-Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(VertexBase* vrt)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Vertex* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -965,7 +965,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(VertexBase* vrt)
 	return m_aaVolumeContainerVERTEX[vrt].begin();
 }
 
-Grid::AssociatedVolumeIterator Grid::associated_volumes_end(VertexBase* vrt)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Vertex* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -1018,7 +1018,7 @@ Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Face* face)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	neighbourhood access
-EdgeBase* Grid::get_edge(VertexBase* v1, VertexBase* v2)
+EdgeBase* Grid::get_edge(Vertex* v1, Vertex* v2)
 {
 	EdgeDescriptor ed(v1, v2);
 	return find_edge_in_associated_edges(v1, ed);
@@ -1119,10 +1119,10 @@ Volume* Grid::get_volume(VolumeVertices& vv)
 
 ////////////////////////////////////////////////////////////////////////
 //	sides
-VertexBase::side* Grid::get_side(VertexBase* obj, size_t side)
+Vertex::side* Grid::get_side(Vertex* obj, size_t side)
 {
 	GRID_PROFILE_FUNC();
-	assert(!"ERROR in Grid::get_side(VertexBase*, ...): A vertex doesn't have sides!");
+	assert(!"ERROR in Grid::get_side(Vertex*, ...): A vertex doesn't have sides!");
 	return NULL;
 }
 
@@ -1179,7 +1179,7 @@ void Grid::reset_marks()
 	AMark::ContainerType* pContainer;
 
 //	reset vertex marks
-	pContainer = get_attachment_data_container<VertexBase>(m_aMark);
+	pContainer = get_attachment_data_container<Vertex>(m_aMark);
 	for(uint i = 0; i < pContainer->size(); ++i)
 		pContainer->get_elem(i) = 0;
 

@@ -42,7 +42,7 @@ namespace ug
  * 							then it will be projected to the rim.
  */
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
-						   VertexBase* vrtCenter, const vector3& normal,
+						   Vertex* vrtCenter, const vector3& normal,
 						   number radius, number rimSnapThreshold, AInt& aInt,
 						   APosition& aPos = aPosition);
 
@@ -61,7 +61,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
  * 							then it will be projected to the rim.
  */
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
-						   VertexBase* vrtCenter, const vector3& normal,
+						   Vertex* vrtCenter, const vector3& normal,
 						   number radius, number rimSnapThreshold,
 						   APosition& aPos = aPosition);
 

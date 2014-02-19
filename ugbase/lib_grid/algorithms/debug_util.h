@@ -99,7 +99,7 @@ bool CheckDistributedParentTypes(MultiGrid& mg);
 
 ///	Checks whether associated elements and associated constrained/constraining objects are fine
 /** \{ */
-bool CheckElementConsistency(MultiGrid& mg, VertexBase* v);
+bool CheckElementConsistency(MultiGrid& mg, Vertex* v);
 bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e);
 bool CheckElementConsistency(MultiGrid& mg, Face* f);
 /** \} */

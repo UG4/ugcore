@@ -74,7 +74,7 @@ vector3 PNCTriangleNorm(const vector3& p0, const vector3& p1, const vector3& p2,
 };
 
 class ProjectedVertex{
-	VertexBase*	vertex();
+	Vertex*	vertex();
 	vector3 vertex_position();
 	vector3 vertex_normal();
 	vector3 surface_normal();
@@ -100,7 +100,7 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 	{
 		EdgeBase* e = *iter;
 		for(size_t i = 0; i < 2; ++i){
-			VertexBase* vrt = e->vertex(i);
+			Vertex* vrt = e->vertex(i);
 			if(!grid.is_marked(vrt)){
 				grid.mark(vrt);
 				int counter = 0;
@@ -166,7 +166,7 @@ number CalculateNormalDot(TriangleDescriptor& td1, TriangleDescriptor& td2,
 //	CalculateCurvature
 template <class TAAPosVRT>
 number CalculateMinCurvature(Grid& grid, SubsetHandler& shMarks,
-							VertexBase* vrt, TAAPosVRT& aaPos)
+							Vertex* vrt, TAAPosVRT& aaPos)
 {
 //TODO:	check whether static vNormals brings any benefits.
 //TODO:	special cases for crease vertices
@@ -358,7 +358,7 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 /**	returns the resulting vertex or NULL, if no collapse was performed.*/
 template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
-VertexBase* TryCollapse(Grid& grid, EdgeBase* e,
+Vertex* TryCollapse(Grid& grid, EdgeBase* e,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, 
 				TAAIntVRT& aaInt, SubsetHandler* pshMarks = NULL,
 				EdgeSelector* pCandidates = NULL)
@@ -505,7 +505,7 @@ VertexBase* TryCollapse(Grid& grid, EdgeBase* e,
 		//	be marked fixed itself.
 					
 		//	choose the vertex that shall remain.
-			VertexBase* vrt = e->vertex(0);
+			Vertex* vrt = e->vertex(0);
 
 			if(vrtSI[0] != REM_FIXED && vrtSI[1] != REM_NONE)
 			{
@@ -615,7 +615,7 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	//	check whether the edge is short enough
 		if(VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]) < lenFac * minEdgeLen)
 		{
-			VertexBase* vrt = TryCollapse(grid, e, aaPos, aaNorm, aaInt, &shMarks, &esel);
+			Vertex* vrt = TryCollapse(grid, e, aaPos, aaNorm, aaInt, &shMarks, &esel);
 			if(vrt){
 				++numCollapses;
 
@@ -755,7 +755,7 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 //	badly shaped. If this is the case, then split the non-marked
 //	edges of the triangle.
 //	store newly inserted vertices and smooth them at the end of the algo
-	vector<VertexBase*> vNewVrts;
+	vector<Vertex*> vNewVrts;
 	vector<Face*> vFaces;
 	vector<EdgeBase*> vEdges;
 	
@@ -800,22 +800,22 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	if(sel.grid() != NULL){
 		if(sel.num<EdgeBase>() > 0){
 			if(Refine(grid, sel)){
-				LOG(sel.num<VertexBase>() << " new vertices... ");
+				LOG(sel.num<Vertex>() << " new vertices... ");
 			//	retriangulate surface
 				if(grid.num<Quadrilateral>() > 0)
 					Triangulate(grid, grid.begin<Quadrilateral>(), grid.end<Quadrilateral>());
 				
 			//	calculate normals, then
 			//	smooth new vertices (all vertices selected in sel).
-				vector<VertexBase*> vNeighbours;
+				vector<Vertex*> vNeighbours;
 				vector<vector3> vNodes;
 				
 			//	calculate normals
-				for(VertexBaseIterator iter = sel.begin<VertexBase>();
-						iter != sel.end<VertexBase>(); ++iter)
+				for(VertexIterator iter = sel.begin<Vertex>();
+						iter != sel.end<Vertex>(); ++iter)
 				{
 				//	collect neighbour nodes
-					VertexBase* vrt = *iter;
+					Vertex* vrt = *iter;
 					CollectNeighbors(vNeighbours, grid, vrt);
 					
 				//	sum their normals and interpolate it
@@ -830,10 +830,10 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 				
 			//	repeat smoothing.
 				for(size_t i = 0; i < 5; ++i){
-					for(VertexBaseIterator iter = sel.begin<VertexBase>();
-						iter != sel.end<VertexBase>(); ++iter)
+					for(VertexIterator iter = sel.begin<Vertex>();
+						iter != sel.end<Vertex>(); ++iter)
 					{
-						VertexBase* vrt = *iter;
+						Vertex* vrt = *iter;
 
 					//	collect the neighbours and project them to the plane
 					//	that is defined by vrt and its normal
@@ -870,13 +870,13 @@ void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
 					size_t numIterations, number stepSize)
 {
 	vector<vector3> vNodes;
-	vector<VertexBase*> vNeighbours;
+	vector<Vertex*> vNeighbours;
 	for(size_t i = 0; i < numIterations; ++i){
 		CalculateVertexNormals(grid, aaPos, aaNorm);
-		for(VertexBaseIterator iter = grid.begin<VertexBase>();
-			iter != grid.end<VertexBase>(); ++iter)
+		for(VertexIterator iter = grid.begin<Vertex>();
+			iter != grid.end<Vertex>(); ++iter)
 		{
-			VertexBase* vrt = *iter;
+			Vertex* vrt = *iter;
 		//	if the vertex is fixed then leave it where it is.
 			if(shMarks.get_subset_index(vrt) == REM_FIXED)
 				continue;
@@ -994,14 +994,14 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 
 //	we need an integer attachment (a helper for ObtainSimpleGrid)
 	AInt aInt;
-	grid.attach_to<VertexBase>(aInt);
-	Grid::AttachmentAccessor<VertexBase, AInt> aaInt(grid, aInt);
+	grid.attach_to<Vertex>(aInt);
+	Grid::AttachmentAccessor<Vertex, AInt> aaInt(grid, aInt);
 
 //	TODO: normals shouldn't be created here but instead be passed to the method.
 //	attach the vertex normals.
 	ANormal aNorm;
-	grid.attach_to<VertexBase>(aNorm);
-	Grid::AttachmentAccessor<VertexBase, ANormal> aaNorm(grid, aNorm);
+	grid.attach_to<Vertex>(aNorm);
+	Grid::AttachmentAccessor<Vertex, ANormal> aaNorm(grid, aNorm);
 	CalculateVertexNormals(grid, aPos, aNorm);
 
 //	assign vertex marks
@@ -1071,7 +1071,7 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 		{
 			LOG("  projecting points...");
 			//PROFILE_BEGIN(projecting_points);
-			for(VertexBaseIterator iter = grid.vertices_begin();
+			for(VertexIterator iter = grid.vertices_begin();
 				iter != grid.vertices_end(); ++iter)
 			{
 //TODO:	project crease vertices onto creases only! Don't project fixed vertices
@@ -1097,8 +1097,8 @@ bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
 
 
 //	detach
-	grid.detach_from<VertexBase>(aInt);
-	grid.detach_from<VertexBase>(aNorm);
+	grid.detach_from<Vertex>(aInt);
+	grid.detach_from<Vertex>(aNorm);
 
 	GPLOTSAVE();
 	return true;
@@ -1134,7 +1134,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 
 	while(!sel.empty()){
 	//	deselect all vertices and faces
-		sel.clear_selection<VertexBase>();
+		sel.clear_selection<Vertex>();
 		sel.clear_selection<Face>();
 		sel.clear_selection<Volume>();
 
@@ -1159,20 +1159,20 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 		Refine(grid, sel, aInt);
 
 	//	new vertices are selected
-		numSplits += sel.num<VertexBase>();
+		numSplits += sel.num<Vertex>();
 
 	//	re-triangulate
 		Triangulate(grid, &aaPos);
 
 	//	calculate normal for new vertices
 //TODO:	be careful with crease edges
-		for(VertexBaseIterator iter = sel.begin<VertexBase>();
-			iter != sel.end<VertexBase>(); ++iter)
+		for(VertexIterator iter = sel.begin<Vertex>();
+			iter != sel.end<Vertex>(); ++iter)
 		{
 			CalculateVertexNormal(aaNorm[*iter], grid, *iter, aaPos);
 		}
 
-		sel.clear_selection<VertexBase>();
+		sel.clear_selection<Vertex>();
 		sel.clear_selection<Face>();
 		sel.clear_selection<Volume>();
 	}

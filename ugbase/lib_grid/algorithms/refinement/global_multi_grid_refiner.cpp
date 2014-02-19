@@ -135,8 +135,8 @@ void GlobalMultiGridRefiner::perform_refinement()
 		int l = oldTopLevel;
 
 		GMGR_PROFILE(GMGR_ReserveVrtData);
-		mg.reserve<VertexBase>(mg.num<VertexBase>() +
-					+ mg.num<VertexBase>(l) + mg.num<EdgeBase>(l)
+		mg.reserve<Vertex>(mg.num<Vertex>() +
+					+ mg.num<Vertex>(l) + mg.num<EdgeBase>(l)
 					+ mg.num<Quadrilateral>(l) + mg.num<Hexahedron>(l));
 		GMGR_PROFILE_END();
 
@@ -178,9 +178,9 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 
 //	some buffers
-	vector<VertexBase*> vVrts;
-	vector<VertexBase*> vEdgeVrts;
-	vector<VertexBase*> vFaceVrts;
+	vector<Vertex*> vVrts;
+	vector<Vertex*> vEdgeVrts;
+	vector<Vertex*> vFaceVrts;
 	vector<EdgeBase*>	vEdges;
 	vector<Face*>		vFaces;
 	vector<Volume*>		vVols;
@@ -193,17 +193,17 @@ void GlobalMultiGridRefiner::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  creating new vertices\n");
 
 //	create new vertices from marked vertices
-	for(VertexBaseIterator iter = mg.begin<VertexBase>(oldTopLevel);
-		iter != mg.end<VertexBase>(oldTopLevel); ++iter)
+	for(VertexIterator iter = mg.begin<Vertex>(oldTopLevel);
+		iter != mg.end<Vertex>(oldTopLevel); ++iter)
 	{
 		if(!refinement_is_allowed(*iter))
 			continue;
 			
-		VertexBase* v = *iter;
+		Vertex* v = *iter;
 
 	//	create a new vertex in the next layer.
 		//GMGR_PROFILE(GMGR_Refine_CreatingVertices);
-		VertexBase* nVrt = *mg.create_by_cloning(v, v);
+		Vertex* nVrt = *mg.create_by_cloning(v, v);
 
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)
@@ -261,7 +261,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 	//	split the edge
 		//GMGR_PROFILE(GMGR_Refine_CreatingEdges);
-		VertexBase* substituteVrts[2];
+		Vertex* substituteVrts[2];
 		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
 		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
 
@@ -295,7 +295,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 			vEdgeVrts.push_back(mg.get_child_vertex(mg.get_edge(f, j)));
 
 		//GMGR_PROFILE(GMGR_Refine_CreatingFaces);
-		VertexBase* newVrt;
+		Vertex* newVrt;
 		if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
@@ -366,7 +366,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 			pCorners = &corners.front();
 		}
 
-		VertexBase* newVrt;
+		Vertex* newVrt;
 		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
 					NULL, RegularVertex(), &vVrts.front(), pCorners)){
 		//	if a new vertex was generated, we have to register it
@@ -418,7 +418,7 @@ bool GlobalMultiGridRefiner::save_marks_to_file(const char* filename)
 
 	AssignGridToSubset(mg, sh, 2);
 	int lvl = mg.num_levels() - 1;
-	sh.assign_subset(mg.begin<VertexBase>(lvl), mg.end<VertexBase>(lvl), 0);
+	sh.assign_subset(mg.begin<Vertex>(lvl), mg.end<Vertex>(lvl), 0);
 	sh.assign_subset(mg.begin<EdgeBase>(lvl), mg.end<EdgeBase>(lvl), 0);
 	sh.assign_subset(mg.begin<Face>(lvl), mg.end<Face>(lvl), 0);
 	sh.assign_subset(mg.begin<Volume>(lvl), mg.end<Volume>(lvl), 0);

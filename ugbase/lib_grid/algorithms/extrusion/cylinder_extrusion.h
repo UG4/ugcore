@@ -48,7 +48,7 @@ namespace ug
  *				this method repeatedly, since a repeated allocation and
  *				deallocation can be avoided.
  */
-bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
+bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, Vertex* vrt,
 					const vector3& direction, number height, number radius,
 					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
@@ -84,7 +84,7 @@ bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
  *					whith the given direction are not regarded as cylinder-
  *					bottom faces and are thus not extruded.
  */					
-bool ExtrudeCylinder(Grid& grid, VertexBase* vrt,
+bool ExtrudeCylinder(Grid& grid, Vertex* vrt,
 					const vector3& direction, number height, number radius,
 					number rimSnapThreshold,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,

@@ -73,7 +73,7 @@ set_grid(Grid* grid)
 	}
 }
 
-bool HangingNodeRefiner_Grid::mark(VertexBase* v, RefinementMark refMark)
+bool HangingNodeRefiner_Grid::mark(Vertex* v, RefinementMark refMark)
 {
 	if(refMark != RM_COARSEN)
 		return BaseClass::mark(v, refMark);
@@ -109,8 +109,8 @@ bool HangingNodeRefiner_Grid::mark(Volume* v, RefinementMark refMark)
 		HNODE_PROFILE_BEGIN("HNode_ReserveAttachmentMemory");
 
 		HNODE_PROFILE_BEGIN(HNODE_ReserveVrtData);
-		mg.reserve<VertexBase>(grid.num<VertexBase>() +
-					+ sel.num<VertexBase>() + sel.num<EdgeBase>()
+		mg.reserve<Vertex>(grid.num<Vertex>() +
+					+ sel.num<Vertex>() + sel.num<EdgeBase>()
 					+ sel.num<Quadrilateral>() + sel.num<Hexahedron>());
 		HNODE_PROFILE_END();
 
@@ -198,7 +198,7 @@ process_constraining_edge(ConstrainingEdge* e)
 }
 
 void HangingNodeRefiner_Grid::
-refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
+refine_edge_with_normal_vertex(EdgeBase* e, Vertex** newCornerVrts)
 {
 //	call original implementation
 	BaseClass::refine_edge_with_normal_vertex(e, newCornerVrts);
@@ -209,7 +209,7 @@ refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 }
 
 void HangingNodeRefiner_Grid::
-refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
+refine_face_with_normal_vertex(Face* f, Vertex** newCornerVrts)
 {
 //	call original implementation
 	BaseClass::refine_face_with_normal_vertex(f, newCornerVrts);
@@ -231,7 +231,7 @@ process_constraining_face(ConstrainingFace* f)
 }
 
 void HangingNodeRefiner_Grid::
-refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
+refine_volume_with_normal_vertex(Volume* v, Vertex** newCornerVrts)
 {
 //	call original implementation
 	BaseClass::refine_volume_with_normal_vertex(v, newCornerVrts);
@@ -240,7 +240,7 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 	m_pGrid->erase(v);
 }
 
-VertexBase* HangingNodeRefiner_Grid::
+Vertex* HangingNodeRefiner_Grid::
 get_center_vertex(EdgeBase* e)
 {
 	return m_aaVertexEDGE[e];
@@ -248,13 +248,13 @@ get_center_vertex(EdgeBase* e)
 
 
 void HangingNodeRefiner_Grid::
-set_center_vertex(EdgeBase* e, VertexBase* v)
+set_center_vertex(EdgeBase* e, Vertex* v)
 {
 	m_aaVertexEDGE[e] = v;
 }
 
 
-VertexBase* HangingNodeRefiner_Grid::
+Vertex* HangingNodeRefiner_Grid::
 get_center_vertex(Face* f)
 {
 	return m_aaVertexFACE[f];
@@ -262,7 +262,7 @@ get_center_vertex(Face* f)
 
 
 void HangingNodeRefiner_Grid::
-set_center_vertex(Face* f, VertexBase* v)
+set_center_vertex(Face* f, Vertex* v)
 {
 	m_aaVertexFACE[f] = v;
 }

@@ -142,7 +142,7 @@ FixOrientation(Grid& grid, TVolIterator volsBegin, TVolIterator volsEnd,
  * occur if it would lie outside).
  * The original volume may optionally be deleted.
  */
-void InsertCenterVertex(Grid& g, Volume* vol, VertexBase* vrt, bool eraseOldVol);
+void InsertCenterVertex(Grid& g, Volume* vol, Vertex* vrt, bool eraseOldVol);
 
 }//	end of namespace
 

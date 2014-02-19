@@ -383,12 +383,12 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	try{
 	//	Geometric Objects
 		reg.add_class_<GridObject>("GridObject", grp);
-		reg.add_class_<VertexBase, GridObject>("Vertex", grp);
+		reg.add_class_<Vertex, GridObject>("Vertex", grp);
 		reg.add_class_<EdgeBase, GridObject>("Edge", grp);
 		reg.add_class_<Face, GridObject>("Face", grp);
 		reg.add_class_<Volume, GridObject>("Volume", grp);
 
-		reg.add_function("IsValid", &IsValidPtr<VertexBase>, grp);
+		reg.add_function("IsValid", &IsValidPtr<Vertex>, grp);
 		reg.add_function("IsValid", &IsValidPtr<EdgeBase>, grp);
 		reg.add_function("IsValid", &IsValidPtr<Face>, grp);
 		reg.add_function("IsValid", &IsValidPtr<Volume>, grp);
@@ -408,7 +408,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_method("num_pyramids", &Grid::num<Pyramid>)
 			.add_method("num_prisms", &Grid::num<Prism>)
 			.add_method("num_hexahedrons", &Grid::num<Hexahedron>)
-			.add_method("reserve_vertices", &Grid::reserve<VertexBase>, "", "num")
+			.add_method("reserve_vertices", &Grid::reserve<Vertex>, "", "num")
 			.add_method("reserve_edges", &Grid::reserve<EdgeBase>, "", "num")
 			.add_method("reserve_faces", &Grid::reserve<Face>, "", "num")
 			.add_method("reserve_volumes", &Grid::reserve<Volume>, "", "num")
@@ -419,7 +419,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_constructor()
 			.add_method("num_levels", &MultiGrid::num_levels)
 
-			.add_method("num_vertices", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<VertexBase>)
+			.add_method("num_vertices", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Vertex>)
 			.add_method("num_edges", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<EdgeBase>)
 			.add_method("num_faces", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Face>)
 			.add_method("num_triangles", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Triangle>)
@@ -468,7 +468,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 		reg.add_class_<Selector, ISelector>("Selector", grp)
 			.add_constructor<void (*)(Grid&)>()
 
-			.add_method("num_vertices", static_cast<size_t (Selector::*)() const>(&Selector::num<VertexBase>))
+			.add_method("num_vertices", static_cast<size_t (Selector::*)() const>(&Selector::num<Vertex>))
 			.add_method("num_edges", static_cast<size_t (Selector::*)() const>(&Selector::num<EdgeBase>))
 			.add_method("num_faces", static_cast<size_t (Selector::*)() const>(&Selector::num<Face>))
 			.add_method("num_triangles", static_cast<size_t (Selector::*)() const>(&Selector::num<Triangle>))
@@ -670,7 +670,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_function("CheckMultiGridConsistency", &CheckMultiGridConsistency, grp)
 			.add_function("CheckDistributedObjectConstraintTypes", &CheckDistributedObjectConstraintTypes, grp)
 			.add_function("CheckDistributedParentTypes", &CheckDistributedParentTypes, grp)
-			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, VertexBase*)>(&CheckElementConsistency), grp)
+			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Vertex*)>(&CheckElementConsistency), grp)
 			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, EdgeBase*)>(&CheckElementConsistency), grp)
 			.add_function("CheckElementConsistency", static_cast<bool (*)(MultiGrid&, Face*)>(&CheckElementConsistency), grp);
 

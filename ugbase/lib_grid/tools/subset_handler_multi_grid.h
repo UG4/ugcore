@@ -59,7 +59,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	//	implementation of public virtual methdos of ISubsetHandler.
 	///	assigns a vertex to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
-		void assign_subset(VertexBase* elem, int subsetIndex);
+		void assign_subset(Vertex* elem, int subsetIndex);
 
 	///	assigns an edge to a subset.
 	/**	If the subset doesn't already exist, it will be created.*/
@@ -146,7 +146,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	 *	of vertices in the underlying grid.
 	 *	\returns number of collected elements.
 	 *	\sa begin, end*/
-		//virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const;
+		//virtual size_t collect_subset_elements(std::vector<Vertex*>& vrtsOut, int subsetIndex) const;
 
 	///	collects all edges that are in the given subset.
 	/**	Please consider using begin and end methods instead.
@@ -173,7 +173,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		//virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;
 		
 	///	returns true if the subset contains vertices
-		virtual bool contains_vertices(int subsetIndex) const	{return num<VertexBase>(subsetIndex) > 0;}
+		virtual bool contains_vertices(int subsetIndex) const	{return num<Vertex>(subsetIndex) > 0;}
 
 	///	returns true if the subset contains edges
 		virtual bool contains_edges(int subsetIndex) const		{return num<EdgeBase>(subsetIndex) > 0;}
@@ -287,7 +287,7 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 	 * \{
 	 */
 		inline VertexSectionContainer::iterator
-		get_list_iterator(VertexBase* o)
+		get_list_iterator(Vertex* o)
 		{
 			assert((get_subset_index(o) >= 0) && "invalid subset.");
 			return subset(get_subset_index(o), m_pMG->get_level(o))->

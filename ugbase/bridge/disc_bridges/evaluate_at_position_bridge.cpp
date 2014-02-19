@@ -47,7 +47,7 @@ bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
 	const typename domain_type::position_accessor_type& aaPos
 										= dom->position_accessor();
 
-	typename subset_handler_type::template traits<VertexBase>::const_iterator iterEnd, iter;
+	typename subset_handler_type::template traits<Vertex>::const_iterator iterEnd, iter;
 	number minDistanceSq = numeric_limits<number>::max();
 
 	#ifdef UG_PARALLEL
@@ -66,14 +66,14 @@ bool CloseVertexExists(const MathVector<TDomain::dim>& globPos,
 		const int si = ssGrp[i];
 	// 	iterate over all elements
 		for(size_t lvl = 0; lvl < sh->num_levels(); ++lvl){
-			iterEnd = sh->template end<VertexBase>(si, lvl);
-			iter = sh->template begin<VertexBase>(si, lvl);
+			iterEnd = sh->template end<Vertex>(si, lvl);
+			iter = sh->template begin<Vertex>(si, lvl);
 			for(; iter != iterEnd; ++iter)
 			{
 			//	get element
 			//todo: replace most of the following checks by a spGridFct->contains(...)
 
-				VertexBase* vrt = *iter;
+				Vertex* vrt = *iter;
 				if(grid->has_children(vrt)) continue;
 
 				#ifdef UG_PARALLEL
@@ -120,7 +120,7 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 										= dom->position_accessor();
 
 	std::vector<DoFIndex> ind;
-	typename subset_handler_type::template traits<VertexBase>::const_iterator iterEnd, iter,chosen;
+	typename subset_handler_type::template traits<Vertex>::const_iterator iterEnd, iter,chosen;
 	double minDistanceSq = 0;
 
 	#ifdef UG_PARALLEL
@@ -135,13 +135,13 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 
 	// 	iterate over all elements
 		for(size_t lvl = 0; lvl < sh->num_levels(); ++lvl){
-			iterEnd = sh->template end<VertexBase>(si, lvl);
-			iter = sh->template begin<VertexBase>(si, lvl);
+			iterEnd = sh->template end<Vertex>(si, lvl);
+			iter = sh->template begin<Vertex>(si, lvl);
 			for(; iter != iterEnd; ++iter)
 			{
 			//	get element
 			//todo: replace most of the following checks by a spGridFct->contains(...)
-				VertexBase* vrt = *iter;
+				Vertex* vrt = *iter;
 				if(grid->has_children(vrt)) continue;
 
 				#ifdef UG_PARALLEL
@@ -174,7 +174,7 @@ number EvaluateAtVertex(const MathVector<TGridFunction::dim>& globPos,
 		}
 	}
 
-	VertexBase* vrt = *chosen;
+	Vertex* vrt = *chosen;
 	spGridFct->inner_dof_indices(vrt, fct, ind);
 	return 	DoFRef(*spGridFct, ind[0]);
 

@@ -176,8 +176,8 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 		//grid.mark(e->vertex(0));
 		//grid.mark(e->vertex(1));
 
-		VertexBase* v0 = e->vertex(0);
-		VertexBase* v1 = e->vertex(1);
+		Vertex* v0 = e->vertex(0);
+		Vertex* v1 = e->vertex(1);
 
 	//	we have to find the triangles 'by hand'
 	//	iterate over all associated faces of vertex 0
@@ -190,7 +190,7 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 			uint numVrts = tf->num_vertices();
 			int numMarked = 0;
 			for(uint i = 0; i < numVrts; ++i){
-				VertexBase* v = tf->vertex(i);
+				Vertex* v = tf->vertex(i);
 				if((v == v0) || (v == v1))
 					numMarked++;
 			}
@@ -236,7 +236,7 @@ int NumAssociatedFaces(Grid& grid, EdgeBase* e)
 	//	we have to find the triangles 'by hand'
 	//	iterate over all associated faces of vertex 0
 		int counter = 0;
-		VertexBase* v = e->vertex(0);
+		Vertex* v = e->vertex(0);
 		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
 		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
 			iter != iterEnd; ++iter)
@@ -264,7 +264,7 @@ int NumAssociatedFaces(Grid& grid, EdgeBase* e)
 
 ////////////////////////////////////////////////////////////////////////
 int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
-					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
+					Grid::AttachmentAccessor<Vertex, APosition>& aaPos,
 					Grid::AttachmentAccessor<Face, ANormal>* paaNormFACE)
 {
 	Face* f[2];
@@ -352,7 +352,7 @@ int CalculateNormalNoNormalize(vector3& vNormOut, Grid& grid, EdgeBase* e,
 }
 					
 ////////////////////////////////////////////////////////////////////////
-bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt)
+bool CollapseEdge(Grid& grid, EdgeBase* e, Vertex* newVrt)
 {
 //	prepare the grid, so that we may perform Grid::replace_vertex.
 //	create collapse geometries first and delete old geometries.
@@ -380,7 +380,7 @@ bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt)
 		//	edges were merged
 			if(f->num_edges() == 3){
 			//	two edges will be merged. we have to inform the grid.
-				VertexBase* conVrt = GetConnectedVertex(e, f);
+				Vertex* conVrt = GetConnectedVertex(e, f);
 			//	now get the edge between conVrt and newVrt
 				EdgeBase* target = grid.get_edge(conVrt, newVrt);
 			//	now get the two old edges
@@ -426,7 +426,7 @@ bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt)
 	}
 
 //	store the end-points of e
-	VertexBase* v[2];
+	Vertex* v[2];
 	v[0] = e->vertex(0);
 	v[1] = e->vertex(1);
 
@@ -456,8 +456,8 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e)
 //	in the grid.
 
 //	first we need all vertices that are connected with end-points of e.
-	vector<VertexBase*> vVertices1;
-	vector<VertexBase*> vVertices2;
+	vector<Vertex*> vVertices1;
+	vector<Vertex*> vVertices2;
 
 	CollectNeighbors(vVertices1, grid, e->vertex(0)); // e->vertex(0) is not contained in vVertices1!
 	CollectNeighbors(vVertices2, grid, e->vertex(1)); // e->vertex(1) is not contained in vVertices2!
@@ -474,13 +474,13 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e)
 //	now check for each vertex in vVertices1 if it also exists in vVertices2.
 	for(uint i = 0; i < vVertices1.size(); ++i)
 	{
-		VertexBase* v1 = vVertices1[i];
+		Vertex* v1 = vVertices1[i];
 
 		if(v1 != e->vertex(1))
 		{
 			for(uint j = 0; j < vVertices2.size(); ++j)
 			{
-				VertexBase* v2 = vVertices2[j];
+				Vertex* v2 = vVertices2[j];
 
 				if(v1 == v2)
 				{
@@ -512,13 +512,13 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e)
 
 ////////////////////////////////////////////////////////////////////////
 bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
-							VertexBase* newVertex, AVertexBase* paAssociatedVertices)
+							Vertex* newVertex, AVertex* paAssociatedVertices)
 {
 
 	if((paAssociatedVertices == NULL) && (&destGrid != &srcGrid))
 		return false;
 
-	vector<VertexBase*> vVrts;
+	vector<Vertex*> vVrts;
 
 //	If paAssociatedVertices is specified, we'll have to find the vertices
 //	in destGrid for each element that is adjacent to e. We then have
@@ -526,13 +526,13 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 //	split-routine of the element.
 
 //	the attachment-accessor
-	Grid::VertexAttachmentAccessor<AVertexBase> aaAssociatedVertices;
+	Grid::VertexAttachmentAccessor<AVertex> aaAssociatedVertices;
 
 	if(paAssociatedVertices != NULL)
 	{
-		AVertexBase& aAssociatedVertices = *paAssociatedVertices;
+		AVertex& aAssociatedVertices = *paAssociatedVertices;
 
-	//	check if aVertexBase is properly attached.
+	//	check if aVertex is properly attached.
 		if(!srcGrid.has_vertex_attachment(aAssociatedVertices))
 		//	attach it and initialize its values.
 			srcGrid.attach_to_vertices_dv(aAssociatedVertices, NULL, false);
@@ -542,7 +542,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 	}
 
 //	we will store the substitute-vertices in this vector - if they are needed.
-	vector<VertexBase*> vSubstituteVertices;
+	vector<Vertex*> vSubstituteVertices;
 
 //	split the edge
 	{
@@ -634,7 +634,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 	if(srcGrid.num<Volume>() > 0)
 	{
 	//	this vector will be used to specify on which edge a vertex has to be inserted
-		vector<VertexBase*> edgeVrts;
+		vector<Vertex*> edgeVrts;
 
 	//	collect all volumes associated with the edge
 		vector<Volume*> vols, newVols;
@@ -659,7 +659,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 		
 		//	if refine creates a new vertex in the center of the volume,
 		//	it will be stored in this var.
-			VertexBase* newVolVrt = NULL;
+			Vertex* newVolVrt = NULL;
 			
 		//	get the substitute-vertices if they are required
 			if(paAssociatedVertices != NULL)
@@ -737,12 +737,12 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e)
 	grid.mark(e->vertex(1));	
 
 //	get the two vertices that will be connected by the new edge
-	VertexBase* v[2];
+	Vertex* v[2];
 	int vrtInd[2];
 	for(int j = 0; j < 2; ++j){
 		v[j] = NULL;
 		for(int i = 0; i < 3; ++i){
-			VertexBase* vrt = f[j]->vertex(i);
+			Vertex* vrt = f[j]->vertex(i);
 			if(!grid.is_marked(vrt)){
 				vrtInd[j] = i;
 				v[j] = vrt;
@@ -811,7 +811,7 @@ bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 	
 //	iterate through all edges and deselect all that do not intersect the plane
 //	deselect all vertices, faces and volumes, too.
-	sel.clear<VertexBase>();
+	sel.clear<Vertex>();
 	sel.clear<Face>();
 	sel.clear<Volume>();
 		

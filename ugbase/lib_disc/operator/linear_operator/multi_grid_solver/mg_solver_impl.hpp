@@ -1228,7 +1228,7 @@ init_index_mappings()
 	}
 	m_LocalFullRefLevel = std::numeric_limits<int>::max();
 
-	if(surfDD->max_dofs(VERTEX)) init_index_mappings<VertexBase>();
+	if(surfDD->max_dofs(VERTEX)) init_index_mappings<Vertex>();
 	if(surfDD->max_dofs(EDGE))   init_index_mappings<EdgeBase>();
 	if(surfDD->max_dofs(FACE))   init_index_mappings<Face>();
 	if(surfDD->max_dofs(VOLUME)) init_index_mappings<Volume>();
@@ -1287,7 +1287,7 @@ init_noghost_to_ghost_mapping(int lev)
 
 	vMapPatchToGlobal.resize(spNoGhostDD->num_indices());
 
-	if(spNoGhostDD->max_dofs(VERTEX)) init_noghost_to_ghost_mapping<VertexBase>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
+	if(spNoGhostDD->max_dofs(VERTEX)) init_noghost_to_ghost_mapping<Vertex>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
 	if(spNoGhostDD->max_dofs(EDGE))   init_noghost_to_ghost_mapping<EdgeBase>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
 	if(spNoGhostDD->max_dofs(FACE))   init_noghost_to_ghost_mapping<Face>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);
 	if(spNoGhostDD->max_dofs(VOLUME)) init_noghost_to_ghost_mapping<Volume>(vMapPatchToGlobal, spNoGhostDD, spGhostDD);

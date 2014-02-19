@@ -26,7 +26,7 @@ ParallelGlobalFracturedMediaRefiner::
 
 bool
 ParallelGlobalFracturedMediaRefiner::
-refinement_is_allowed(VertexBase* elem)
+refinement_is_allowed(Vertex* elem)
 {
 	return !m_distGridMgr.is_ghost(elem);
 }

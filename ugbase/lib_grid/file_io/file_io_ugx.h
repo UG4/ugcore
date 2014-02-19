@@ -312,7 +312,7 @@ class GridReaderUGX
 			MultiGrid* 	mg;
 			std::vector<SubsetHandlerEntry>	subsetHandlerEntries;
 			std::vector<SelectorEntry>		selectorEntries;
-			std::vector<VertexBase*> 		vertices;
+			std::vector<Vertex*> 		vertices;
 			std::vector<EdgeBase*> 			edges;
 			std::vector<Face*>				faces;
 			std::vector<Volume*>			volumes;
@@ -332,68 +332,68 @@ class GridReaderUGX
 	 *	0's will be appended. If it has less, unused coordinates will
 	 *	be ignored.*/
 		template <class TAAPos>
-		bool create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
+		bool create_vertices(std::vector<Vertex*>& vrtsOut, Grid& grid,
 							rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
 
 		template <class TAAPos>
-		bool create_constrained_vertices(std::vector<VertexBase*>& vrtsOut,
+		bool create_constrained_vertices(std::vector<Vertex*>& vrtsOut,
 							std::vector<std::pair<int, int> >& constrainingObjsOut,
 							Grid& grid, rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
 							
 		bool create_edges(std::vector<EdgeBase*>& edgesOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
-			 			  std::vector<VertexBase*>& vrts);
+			 			  std::vector<Vertex*>& vrts);
 
 		bool create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
-			 			  std::vector<VertexBase*>& vrts);
+			 			  std::vector<Vertex*>& vrts);
 
 		bool create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
 						  std::vector<std::pair<int, int> >& constrainingObjsOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
-			 			  std::vector<VertexBase*>& vrts);
+			 			  std::vector<Vertex*>& vrts);
 
 		bool create_triangles(std::vector<Face*>& facesOut,
 							  Grid& grid, rapidxml::xml_node<>* node,
-							  std::vector<VertexBase*>& vrts);
+							  std::vector<Vertex*>& vrts);
 
 		bool create_constraining_triangles(std::vector<Face*>& facesOut,
 							  Grid& grid, rapidxml::xml_node<>* node,
-							  std::vector<VertexBase*>& vrts);
+							  std::vector<Vertex*>& vrts);
 
 		bool create_constrained_triangles(std::vector<Face*>& facesOut,
 							  std::vector<std::pair<int, int> >& constrainingObjsOut,
 							  Grid& grid, rapidxml::xml_node<>* node,
-							  std::vector<VertexBase*>& vrts);
+							  std::vector<Vertex*>& vrts);
 							  
 		bool create_quadrilaterals(std::vector<Face*>& facesOut,
 								   Grid& grid, rapidxml::xml_node<>* node,
-								   std::vector<VertexBase*>& vrts);
+								   std::vector<Vertex*>& vrts);
 
 		bool create_constraining_quadrilaterals(std::vector<Face*>& facesOut,
 							  Grid& grid, rapidxml::xml_node<>* node,
-							  std::vector<VertexBase*>& vrts);
+							  std::vector<Vertex*>& vrts);
 
 		bool create_constrained_quadrilaterals(std::vector<Face*>& facesOut,
 							  std::vector<std::pair<int, int> >& constrainingObjsOut,
 							  Grid& grid, rapidxml::xml_node<>* node,
-							  std::vector<VertexBase*>& vrts);
+							  std::vector<Vertex*>& vrts);
 							  
 		bool create_tetrahedrons(std::vector<Volume*>& volsOut,
 								 Grid& grid, rapidxml::xml_node<>* node,
-								 std::vector<VertexBase*>& vrts);
+								 std::vector<Vertex*>& vrts);
 
 		bool create_hexahedrons(std::vector<Volume*>& volsOut,
 								Grid& grid, rapidxml::xml_node<>* node,
-								std::vector<VertexBase*>& vrts);
+								std::vector<Vertex*>& vrts);
 
 		bool create_prisms(std::vector<Volume*>& volsOut,
 							Grid& grid, rapidxml::xml_node<>* node,
-							std::vector<VertexBase*>& vrts);
+							std::vector<Vertex*>& vrts);
 
 		bool create_pyramids(std::vector<Volume*>& volsOut,
 							Grid& grid, rapidxml::xml_node<>* node,
-							std::vector<VertexBase*>& vrts);
+							std::vector<Vertex*>& vrts);
 
 		template <class TGeomObj>
 		bool read_subset_handler_elements(ISubsetHandler& shOut,

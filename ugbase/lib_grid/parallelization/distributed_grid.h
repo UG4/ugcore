@@ -93,7 +93,7 @@ class DistributedGridManager : public GridObserver
 	 * \sa contains_status
 	 * \{ */
 		byte get_status(GridObject* go) const;
-		inline byte get_status(VertexBase* vrt)	const	{return elem_info(vrt).get_status();}
+		inline byte get_status(Vertex* vrt)	const	{return elem_info(vrt).get_status();}
 		inline byte get_status(EdgeBase* edge) const	{return elem_info(edge).get_status();}
 		inline byte get_status(Face* face) const		{return elem_info(face).get_status();}
 		inline byte get_status(Volume* vol) const		{return elem_info(vol).get_status();}
@@ -163,7 +163,7 @@ class DistributedGridManager : public GridObserver
 		virtual void grid_to_be_destroyed(Grid* grid);
 		
 	//	vertex callbacks
-		virtual void vertex_created(Grid* grid, VertexBase* vrt,
+		virtual void vertex_created(Grid* grid, Vertex* vrt,
 									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
@@ -179,8 +179,8 @@ class DistributedGridManager : public GridObserver
 									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
-		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
-										 VertexBase* replacedBy = NULL);
+		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
+										 Vertex* replacedBy = NULL);
 
 		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
 										 EdgeBase* replacedBy = NULL);
@@ -360,7 +360,7 @@ class DistributedGridManager : public GridObserver
 				OwnedPtr<Data>	m_data;
 		};
 		
-		typedef ElementInfo<VertexBase>	ElemInfoVrt;
+		typedef ElementInfo<Vertex>	ElemInfoVrt;
 		typedef ElementInfo<EdgeBase>	ElemInfoEdge;
 		typedef ElementInfo<Face>		ElemInfoFace;
 		typedef ElementInfo<Volume>		ElemInfoVol;
@@ -388,17 +388,17 @@ class DistributedGridManager : public GridObserver
 		typedef std::multimap<size_t, ScheduledElement>	ScheduledElemMap;
 
 	protected:
-		inline ElemInfoVrt& elem_info(VertexBase* ele)	{return m_aaElemInfoVRT[ele];}
+		inline ElemInfoVrt& elem_info(Vertex* ele)	{return m_aaElemInfoVRT[ele];}
 		inline ElemInfoEdge& elem_info(EdgeBase* ele)	{return m_aaElemInfoEDGE[ele];}
 		inline ElemInfoFace& elem_info(Face* ele)		{return m_aaElemInfoFACE[ele];}
 		inline ElemInfoVol& elem_info(Volume* ele)		{return m_aaElemInfoVOL[ele];}
 
-		inline const ElemInfoVrt& elem_info(VertexBase* ele) const	{return m_aaElemInfoVRT[ele];}
+		inline const ElemInfoVrt& elem_info(Vertex* ele) const	{return m_aaElemInfoVRT[ele];}
 		inline const ElemInfoEdge& elem_info(EdgeBase* ele) const	{return m_aaElemInfoEDGE[ele];}
 		inline const ElemInfoFace& elem_info(Face* ele) const		{return m_aaElemInfoFACE[ele];}
 		inline const ElemInfoVol& elem_info(Volume* ele) const		{return m_aaElemInfoVOL[ele];}
 
-		inline void got_new_constrained_vertical(VertexBase* v)	{m_newConstrainedVerticalVrts.push_back(v);}
+		inline void got_new_constrained_vertical(Vertex* v)	{m_newConstrainedVerticalVrts.push_back(v);}
 		inline void got_new_constrained_vertical(EdgeBase* e)	{m_newConstrainedVerticalEdges.push_back(e);}
 		inline void got_new_constrained_vertical(Face* f)		{m_newConstrainedVerticalFaces.push_back(f);}
 		inline void got_new_constrained_vertical(Volume*)		{UG_THROW("There are no constrained volumes!");}
@@ -428,7 +428,7 @@ class DistributedGridManager : public GridObserver
 		ScheduledElemMap	m_faceMap;	///< holds all elements that were scheduled by faces
 		ScheduledElemMap	m_volMap;	///< holds all elements that were scheduled by volumes
 
-		std::vector<VertexBase*>	m_newConstrainedVerticalVrts;
+		std::vector<Vertex*>	m_newConstrainedVerticalVrts;
 		std::vector<EdgeBase*>		m_newConstrainedVerticalEdges;
 		std::vector<Face*>			m_newConstrainedVerticalFaces;
 };

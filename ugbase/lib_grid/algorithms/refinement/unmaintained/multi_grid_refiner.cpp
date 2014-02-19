@@ -132,8 +132,8 @@ void MultiGridRefiner::refine()
 
 
 //	some buffers
-	vector<VertexBase*> vVrts;
-	vector<VertexBase*> vEdgeVrts;
+	vector<Vertex*> vVrts;
+	vector<Vertex*> vEdgeVrts;
 	vector<EdgeBase*>	vEdges;
 	vector<Face*>		vFaces;
 
@@ -144,14 +144,14 @@ void MultiGridRefiner::refine()
 
 //LOG("creating new vertices\n");
 //	create new vertices from marked vertices
-	for(VertexBaseIterator iter = m_selMarks.begin<VertexBase>();
-		iter != m_selMarks.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = m_selMarks.begin<Vertex>();
+		iter != m_selMarks.end<Vertex>(); ++iter)
 	{
-		VertexBase* v = *iter;
+		Vertex* v = *iter;
 		if(!mg.get_child_vertex(v))
 		{
 		//	create a new vertex in the next layer.
-			VertexBase* nVrt = *mg.create_by_cloning(v, v);
+			Vertex* nVrt = *mg.create_by_cloning(v, v);
 
 			if(aaPos.valid())
 			{
@@ -186,7 +186,7 @@ void MultiGridRefiner::refine()
 			{
 			//	create two new edges by edge-split
 				RegularVertex* nVrt = *mg.create<RegularVertex>(e);
-				VertexBase* substituteVrts[2];
+				Vertex* substituteVrts[2];
 				substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
 				substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
 
@@ -244,7 +244,7 @@ void MultiGridRefiner::refine()
 				vEdgeVrts.clear();
 				//bool bIrregular = false;
 				for(uint j = 0; j < f->num_edges(); ++j){
-					VertexBase* vrt = mg.get_child_vertex(mg.get_edge(f, j));
+					Vertex* vrt = mg.get_child_vertex(mg.get_edge(f, j));
 					vEdgeVrts.push_back(vrt);
 					//if(!vrt)
 					//	bIrregular = true;
@@ -256,7 +256,7 @@ void MultiGridRefiner::refine()
 					set_rule(f, RM_IRREGULAR);
 				}
 */
-				VertexBase* newVrt;
+				Vertex* newVrt;
 				if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
 				//	if a new vertex was generated, we have to register it
 					if(newVrt){
@@ -356,7 +356,7 @@ void MultiGridRefiner::collect_objects_for_refine()
 */
 
 //	vertices stored in here are used during copy-element-selection.
-	vector<VertexBase*> vVrts;
+	vector<Vertex*> vVrts;
 	
 ////////////////////////////////
 //	initial selection
@@ -481,15 +481,15 @@ adjust_initial_selection()
 	}
 	
 //	set rule for all marked vertices
-	for(VertexBaseIterator iter = m_selMarks.begin<VertexBase>();
-		iter != m_selMarks.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = m_selMarks.begin<Vertex>();
+		iter != m_selMarks.end<Vertex>(); ++iter)
 	{
 		set_rule(*iter, RM_COPY);
 	}
 }
 
 void MultiGridRefiner::
-select_closure(std::vector<VertexBase*>& vVrts)
+select_closure(std::vector<Vertex*>& vVrts)
 {
 	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
 	vector<Face*> 		vFaces;//	vector used for temporary results
@@ -636,7 +636,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 }
 
 void MultiGridRefiner::
-select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
+select_copy_elements(std::vector<Vertex*>& vVrts, int iFirst, int copyRange)
 {
 	if(copyRange == -1)
 		copyRange = get_copy_range();
@@ -662,7 +662,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 		{
 		//	iterate over candidates
 			for(size_t i = iFirst; i != iEnd; ++i){
-				VertexBase* vrt = vVrts[i];
+				Vertex* vrt = vVrts[i];
 			//	check all associated elements.
 			//	If we can find an unselected, it is a copy-element.
 			//	we then have to add all its associated unselected vertices

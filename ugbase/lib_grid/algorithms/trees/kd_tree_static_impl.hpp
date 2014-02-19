@@ -59,7 +59,7 @@ create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 template<class TPositionAttachment, int numDimensions, class TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-get_neighbourhood(std::list<VertexBase*>& vrtsOut, typename TPositionAttachment::ValueType& pos, int numClosest)
+get_neighbourhood(std::list<Vertex*>& vrtsOut, typename TPositionAttachment::ValueType& pos, int numClosest)
 {
 	vrtsOut.clear();
 	m_numNeighboursFound = 0;
@@ -74,7 +74,7 @@ get_neighbourhood(std::list<VertexBase*>& vrtsOut, typename TPositionAttachment:
 template<class TPositionAttachment, int numDimensions, class TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-get_points_in_box(std::list<VertexBase*>& vrtsOut, const TVector& boxMin, const TVector& boxMax)
+get_points_in_box(std::list<Vertex*>& vrtsOut, const TVector& boxMin, const TVector& boxMax)
 {
 	vrtsOut.clear();
 	return get_vertices_in_box(vrtsOut, &m_parentNode, boxMin, boxMax);
@@ -95,7 +95,7 @@ get_leafs(std::vector<Node*>& vLeafsOut)
 template<class TPositionAttachment, int numDimensions, class TVector>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-get_points_in_box(std::list<VertexBase*>& vrtsOut, Node* pNode, const TVector& boxMin, const TVector& boxMax)
+get_points_in_box(std::list<Vertex*>& vrtsOut, Node* pNode, const TVector& boxMin, const TVector& boxMax)
 {
 //	check if we have reached a leaf
 	if(pNode->m_pvVertices)
@@ -259,8 +259,8 @@ create_barycentric(TVertexIterator vrts_begin, TVertexIterator vrts_end, int num
 	}
 
 //	fill the lists for the poitive and negative subnodes
-	std::list<VertexBase*> lstPos;
-	std::list<VertexBase*> lstNeg;
+	std::list<Vertex*> lstPos;
+	std::list<Vertex*> lstNeg;
 	int numPos = 0;
 	int numNeg = 0;
 	{

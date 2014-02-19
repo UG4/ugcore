@@ -53,7 +53,7 @@ enum ExtrusionOptions
  * a ug::Selector with enabled autoselection.
  */
 void Extrude(Grid& grid,
-			std::vector<VertexBase*>* pvVerticesInOut,
+			std::vector<Vertex*>* pvVerticesInOut,
 			std::vector<EdgeBase*>* pvEdgesInOut,
 			std::vector<Face*>* pvFacesInOut,
 			const vector3& direction,

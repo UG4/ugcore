@@ -12,7 +12,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	predeclarations
 class Grid;
-class VertexBase;
+class Vertex;
 class EdgeBase;
 class Face;
 class Volume;
@@ -76,7 +76,7 @@ class UG_API GridObserver
 	 * 	OBJECT_to_be_erased(grid, pParent, obj) will follow (OBJECT
 	 *  and obj are pseudonyms for the concrete type).*/
 	/// \{
-		virtual void vertex_created(Grid* grid, VertexBase* vrt,
+		virtual void vertex_created(Grid* grid, Vertex* vrt,
 									GridObject* pParent = NULL,
 									bool replacesParent = false)			{}
 
@@ -106,8 +106,8 @@ class UG_API GridObserver
 	 *  EdgeBase*).
 	 *
 	 * \{ */
-		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
-										 VertexBase* replacedBy = NULL)	{}
+		virtual void vertex_to_be_erased(Grid* grid, Vertex* vrt,
+										 Vertex* replacedBy = NULL)	{}
 
 		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
 										 EdgeBase* replacedBy = NULL)	{}
@@ -134,8 +134,8 @@ class UG_API GridObserver
 	 * Note that target may be identical to elem1 or elem2.
 	 *
 	 * \{ */
-		virtual void vertices_to_be_merged(Grid* grid, VertexBase* target,
-										 VertexBase* elem1, VertexBase* elem2)	{}
+		virtual void vertices_to_be_merged(Grid* grid, Vertex* target,
+										 Vertex* elem1, Vertex* elem2)	{}
 
 		virtual void edges_to_be_merged(Grid* grid, EdgeBase* target,
 										 EdgeBase* elem1, EdgeBase* elem2)	{}

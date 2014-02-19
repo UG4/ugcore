@@ -68,7 +68,7 @@ class ToElementPosition
 				m_aaPos.access(g, aPos);
 		}
 
-		TValue operator() (VertexBase* e)	{return m_aaPos[e];}
+		TValue operator() (Vertex* e)	{return m_aaPos[e];}
 		TValue operator() (EdgeBase* e)		{return CalculateCenter(e, m_aaPos);}
 		TValue operator() (Face* e)			{return CalculateCenter(e, m_aaPos);}
 		TValue operator() (Volume* e)		{return CalculateCenter(e, m_aaPos);}
@@ -93,12 +93,12 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 	pcl::InterfaceCommunicator<VertexLayout::LevelLayout> comVrt;
 	pcl::ProcessCommunicator procCom;
 
-	ToElementPosition<VertexBase, TAPos> toPosVrt(mg, aPos);
+	ToElementPosition<Vertex, TAPos> toPosVrt(mg, aPos);
 
 	UG_LOG("Testing horizontal vertex layouts...\n");
 	{
-		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_H_MASTER);
-		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_H_SLAVE);
+		VertexLayout& masterLayout = glm.get_layout<Vertex>(INT_H_MASTER);
+		VertexLayout& slaveLayout = glm.get_layout<Vertex>(INT_H_SLAVE);
 
 	//	we have to retrieve the max level of all layouts
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
@@ -116,8 +116,8 @@ bool TestGridLayoutMap(MultiGrid& mg, GridLayoutMap& glm, TAPos& aPos)
 
 	UG_LOG("Testing vertical vertex layouts...\n");
 	{
-		VertexLayout& masterLayout = glm.get_layout<VertexBase>(INT_V_MASTER);
-		VertexLayout& slaveLayout = glm.get_layout<VertexBase>(INT_V_SLAVE);
+		VertexLayout& masterLayout = glm.get_layout<Vertex>(INT_V_MASTER);
+		VertexLayout& slaveLayout = glm.get_layout<Vertex>(INT_V_SLAVE);
 		int locMaxLevel = max(slaveLayout.num_levels(), masterLayout.num_levels());
 		int globMaxLevel = locMaxLevel;
 		procCom.allreduce(&locMaxLevel, &globMaxLevel, 1, PCL_DT_INT, PCL_RO_MAX);

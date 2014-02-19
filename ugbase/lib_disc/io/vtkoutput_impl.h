@@ -225,8 +225,8 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 	else
 	{
 	//	if dim < 0, some is wrong with grid, except no element is in the grid
-		if( ((si < 0) && grid.num<VertexBase>() != 0) ||
-			((si >=0) && u.domain()->subset_handler()->template num<VertexBase>(si) != 0))
+		if( ((si < 0) && grid.num<Vertex>() != 0) ||
+			((si >=0) && u.domain()->subset_handler()->template num<Vertex>(si) != 0))
 		{
 			UG_THROW("VTK::print_subset: Dimension of grid/subset not"
 					" detected correctly although grid objects present.");
@@ -414,7 +414,7 @@ count_sizes(Grid& grid, const T& iterContainer, int si,
 		for(int i = 0; i < numCo; ++i)
 		{
 		//	get vertex of the element
-			VertexBase* v = GetVertex(elem,i);
+			Vertex* v = GetVertex(elem,i);
 
 		//	if this vertex has already been counted, skip it
 			if(grid.is_marked(v)) continue;
@@ -439,7 +439,7 @@ count_piece_sizes(Grid& grid, const T& iterContainer, int si, int dim,
 //	switch dimension
 	switch(dim)
 	{
-		case 0: count_sizes<VertexBase, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
+		case 0: count_sizes<Vertex, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
 		case 1: count_sizes<Edge, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
 		case 2: count_sizes<Triangle, T>(grid, iterContainer, si, numVert, numElem, numConn);
 				count_sizes<Quadrilateral, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
@@ -490,7 +490,7 @@ write_points_elementwise(VTKFileWriter& File,
 		for(size_t i = 0; i < (size_t) ref_elem_type::numCorners; ++i)
 		{
 		//	get vertex of element
-			VertexBase* v = GetVertex(elem, i);
+			Vertex* v = GetVertex(elem, i);
 
 		//	if vertex has already be handled, skip it
 			if(grid.is_marked(v)) continue;
@@ -535,7 +535,7 @@ write_points(VTKFileWriter& File,
 //	switch dimension
 	if(numVert > 0){
 		switch(dim){
-			case 0: write_points_elementwise<VertexBase,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n); break;
+			case 0: write_points_elementwise<Vertex,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n); break;
 			case 1: write_points_elementwise<Edge,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);	break;
 			case 2: write_points_elementwise<Triangle,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
 					write_points_elementwise<Quadrilateral,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n); break;
@@ -629,7 +629,7 @@ write_cell_connectivity(VTKFileWriter& File,
 		{
 			for(size_t i=0; i< (size_t) ref_elem_type::numCorners; i++)
 			{
-				VertexBase* vert = elem->vertex(i);
+				Vertex* vert = elem->vertex(i);
 				int id = aaVrtIndex[vert];
 				File << id;
 				if(!m_bBinary)
@@ -938,7 +938,7 @@ write_nodal_data_elementwise(VTKFileWriter& File, TFunction& u, number time,
 		for(size_t co = 0; co < numCo; ++co)
 		{
 		//	get vertex of element
-			VertexBase* v = GetVertex(elem, co);
+			Vertex* v = GetVertex(elem, co);
 
 		//	if vertex has been handled before, skip
 			if(grid.is_marked(v)) continue;
@@ -1042,7 +1042,7 @@ write_nodal_values_elementwise(VTKFileWriter& File, TFunction& u,
 		for(size_t co = 0; co < (size_t) ref_elem_type::numCorners; ++co)
 		{
 		//	get vertex of element
-			VertexBase* v = GetVertex(elem, co);
+			Vertex* v = GetVertex(elem, co);
 
 		//	if vertex has been handled before, skip
 			if(grid.is_marked(v)) continue;
@@ -1102,7 +1102,7 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 //	switch dimension
 	switch(dim)
 	{
-		case 0:	write_nodal_values_elementwise<VertexBase>(File, u, vFct, grid, si); break;
+		case 0:	write_nodal_values_elementwise<Vertex>(File, u, vFct, grid, si); break;
 		case 1:	write_nodal_values_elementwise<Edge>(File, u, vFct, grid, si);break;
 		case 2:	write_nodal_values_elementwise<Triangle>(File, u, vFct, grid, si);
 				write_nodal_values_elementwise<Quadrilateral>(File, u, vFct, grid, si);break;

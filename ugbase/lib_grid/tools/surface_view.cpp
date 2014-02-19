@@ -98,7 +98,7 @@ refresh_surface_states()
 	if(m_pMG->num<Volume>() > 0) maxElem = VOLUME;
 	else if(m_pMG->num<Face>() > 0) maxElem = FACE;
 	else if(m_pMG->num<EdgeBase>() > 0) maxElem = EDGE;
-	else if(m_pMG->num<VertexBase>() > 0) maxElem = VERTEX;
+	else if(m_pMG->num<Vertex>() > 0) maxElem = VERTEX;
 
 	#ifdef UG_PARALLEL
 		pcl::ProcessCommunicator pc;
@@ -109,7 +109,7 @@ refresh_surface_states()
 		case VOLUME: refresh_surface_states<Volume>(); break;
 		case FACE:refresh_surface_states<Face>(); break;
 		case EDGE: refresh_surface_states<EdgeBase>(); break;
-		case VERTEX: refresh_surface_states<VertexBase>(); break;
+		case VERTEX: refresh_surface_states<Vertex>(); break;
 		default: break;
 	}
 }
@@ -124,7 +124,7 @@ refresh_surface_states()
 	MultiGrid& mg = *m_pMG;
 
 //	reset surface states of all elements. Initially, we'll set all states to hidden
-	SetAttachmentValues(m_aaSurfState, mg.begin<VertexBase>(), mg.end<VertexBase>(), MG_SHADOW_PURE);
+	SetAttachmentValues(m_aaSurfState, mg.begin<Vertex>(), mg.end<Vertex>(), MG_SHADOW_PURE);
 	SetAttachmentValues(m_aaSurfState, mg.begin<EdgeBase>(), mg.end<EdgeBase>(), MG_SHADOW_PURE);
 	SetAttachmentValues(m_aaSurfState, mg.begin<Face>(), mg.end<Face>(), MG_SHADOW_PURE);
 	SetAttachmentValues(m_aaSurfState, mg.begin<Volume>(), mg.end<Volume>(), MG_SHADOW_PURE);
@@ -152,7 +152,7 @@ refresh_surface_states()
 	if(TElem::HAS_SIDES){
 	//	communicate states between all processes
 	//	this is necessary here, since mark_shadowing relies on correct SHADOWED marks.
-		adjust_parallel_surface_states<VertexBase>();
+		adjust_parallel_surface_states<Vertex>();
 		adjust_parallel_surface_states<EdgeBase>();
 		adjust_parallel_surface_states<Face>();
 		adjust_parallel_surface_states<Volume>();
@@ -160,7 +160,7 @@ refresh_surface_states()
 	}
 
 //	communicate states between all processes
-	adjust_parallel_surface_states<VertexBase>();
+	adjust_parallel_surface_states<Vertex>();
 	adjust_parallel_surface_states<EdgeBase>();
 	adjust_parallel_surface_states<Face>();
 	adjust_parallel_surface_states<Volume>();

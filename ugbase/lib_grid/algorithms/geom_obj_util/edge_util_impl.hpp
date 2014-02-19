@@ -41,7 +41,7 @@ TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative)
 //	see edge_operations.h for detailed description
 template<class TVertex>
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
-						AVertexBase* paAssociatedVertices,
+						AVertex* paAssociatedVertices,
 						bool bConservative)
 {
 	TVertex* newVertex;
@@ -332,8 +332,8 @@ void RemoveDoubleEdges(Grid& grid, TEdgeIterator edgesBegin, TEdgeIterator edges
 		EdgeBase* e = *iter;
 		if(!grid.is_marked(e)){
 		//	check whether both vertices are marked
-			VertexBase* v0 = e->vertex(0);
-			VertexBase* v1 = e->vertex(1);
+			Vertex* v0 = e->vertex(0);
+			Vertex* v1 = e->vertex(1);
 
 			bool isDouble = false;
 
@@ -413,8 +413,8 @@ void MinimizeEdgeLength_SwapsOnly(Grid& grid, EdgeIterator edgesBegin,
 				continue;
 
 		//	check whether a swap would make the edge shorter.
-			VertexBase* conVrt0 = GetConnectedVertex(e, nbrFaces[0]);
-			VertexBase* conVrt1 = GetConnectedVertex(e, nbrFaces[1]);
+			Vertex* conVrt0 = GetConnectedVertex(e, nbrFaces[0]);
+			Vertex* conVrt1 = GetConnectedVertex(e, nbrFaces[1]);
 			if(VertexDistanceSq(conVrt0, conVrt1, aaPos) < EdgeLengthSq(e, aaPos))
 			{
 			//	it'll be shorter

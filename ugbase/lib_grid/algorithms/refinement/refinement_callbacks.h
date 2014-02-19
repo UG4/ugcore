@@ -21,13 +21,13 @@ class IRefinementCallback
 	public:
 		virtual ~IRefinementCallback()	{}
 	///	called when a new vertex was created from an old vertex.
-		virtual void new_vertex(VertexBase* vrt, VertexBase* parent) = 0;
+		virtual void new_vertex(Vertex* vrt, Vertex* parent) = 0;
 	///	called when a new vertex was created from an old edge.
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent) = 0;
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent) = 0;
 	///	called when a new vertex was created from an old face.
-		virtual void new_vertex(VertexBase* vrt, Face* parent) = 0;
+		virtual void new_vertex(Vertex* vrt, Face* parent) = 0;
 	///	called when a new vertex was created from an old volume.
-		virtual void new_vertex(VertexBase* vrt, Volume* parent) = 0;
+		virtual void new_vertex(Vertex* vrt, Volume* parent) = 0;
 
 	///	callback for vertices in flat grids.
 	/**	called for old vertices in flat grids which are used during refinement,
@@ -35,18 +35,18 @@ class IRefinementCallback
 	 *	Calls new_vertex(vrt, vrt) by default.
 	 *
 	 *	Please note that this method won't be called during multigrid refinement.*/
-		virtual void flat_grid_vertex_encountered(VertexBase* vrt)	{new_vertex(vrt, vrt);}
+		virtual void flat_grid_vertex_encountered(Vertex* vrt)	{new_vertex(vrt, vrt);}
 
 	///	Gives access to the position of the current vertex
 	/**	The method returns the number of coordinates associated with the vertex
 	 * and writes those coordinates to coordsOut. No more than maxCoords will
 	 * be written to coordsOut. coordsOut thus has to be at least as big as maxCoords.*/
-		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords) = 0;
+		virtual int current_pos(number* coordsOut, Vertex* vrt, int maxCoords) = 0;
 
 	protected:
 	///	A helper implementation of current_pos available for derived classes.
 		template <class TAttachmentAccessor>
-		int current_pos_helper(number* coordsOut, VertexBase* vrt, int maxCoords,
+		int current_pos_helper(number* coordsOut, Vertex* vrt, int maxCoords,
 							   TAttachmentAccessor& aaPos);
 };
 
@@ -72,12 +72,12 @@ class RefinementCallbackLinear : public IRefinementCallback
 	
 		virtual ~RefinementCallbackLinear();
 		
-		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
-		virtual void new_vertex(VertexBase* vrt, Face* parent);
-		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+		virtual void new_vertex(Vertex* vrt, Vertex* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Face* parent);
+		virtual void new_vertex(Vertex* vrt, Volume* parent);
 		
-		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords);
+		virtual int current_pos(number* coordsOut, Vertex* vrt, int maxCoords);
 
 	protected:
 		typedef typename TAPosition::ValueType		pos_type;
@@ -109,16 +109,16 @@ class RefinementCallbackSphere : public IRefinementCallback
 
 		virtual ~RefinementCallbackSphere();
 
-		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
-		virtual void new_vertex(VertexBase* vrt, Face* parent);
-		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+		virtual void new_vertex(Vertex* vrt, Vertex* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Face* parent);
+		virtual void new_vertex(Vertex* vrt, Volume* parent);
 
-		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords);
+		virtual int current_pos(number* coordsOut, Vertex* vrt, int maxCoords);
 
 	protected:
 		template <class TElem>
-		void perform_projection(VertexBase* vrt, TElem* parent);
+		void perform_projection(Vertex* vrt, TElem* parent);
 
 	protected:
 		typedef typename TAPosition::ValueType		pos_type;
@@ -152,16 +152,16 @@ class RefinementCallbackCylinder : public IRefinementCallback
 
 		virtual ~RefinementCallbackCylinder();
 
-		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
-		virtual void new_vertex(VertexBase* vrt, Face* parent);
-		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+		virtual void new_vertex(Vertex* vrt, Vertex* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Face* parent);
+		virtual void new_vertex(Vertex* vrt, Volume* parent);
 
-		virtual int current_pos(number* coordsOut, VertexBase* vrt, int maxCoords);
+		virtual int current_pos(number* coordsOut, Vertex* vrt, int maxCoords);
 
 	protected:
 		template <class TElem>
-		void perform_projection(VertexBase* vrt, TElem* parent);
+		void perform_projection(Vertex* vrt, TElem* parent);
 
 	protected:
 		typedef typename TAPosition::ValueType		pos_type;
@@ -189,7 +189,7 @@ class RefinementCallback_IntersectCylinder : public RefinementCallbackLinear<APo
 
 		virtual ~RefinementCallback_IntersectCylinder();
 
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
 
 	protected:
 		vector3 m_center;
@@ -225,7 +225,7 @@ class RefinementCallbackEdgePlaneCut : public RefinementCallbackLinear<APosition
 	
 		virtual ~RefinementCallbackEdgePlaneCut();
 		
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
 		
 	protected:
 		vector3 m_p;
@@ -257,8 +257,8 @@ class RefinementCallbackFractal : public RefinementCallbackLinear<APosition>
 	
 		virtual ~RefinementCallbackFractal();
 		
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
-		virtual void new_vertex(VertexBase* vrt, Face* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Face* parent);
 		
 		inline void set_scale_fac(number scaleFac)	{m_scaleFac = scaleFac;}
 		inline number get_scale_fac()				{return m_scaleFac;}
@@ -299,13 +299,13 @@ class RefinementCallbackSubdivBoundary : public RefinementCallbackLinear<TAPosit
 	
 		virtual ~RefinementCallbackSubdivBoundary();
 		
-		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
-		virtual void new_vertex(VertexBase* vrt, Face* parent);
-		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+		virtual void new_vertex(Vertex* vrt, Vertex* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Face* parent);
+		virtual void new_vertex(Vertex* vrt, Volume* parent);
 		
 	protected:
-		virtual bool is_crease_vertex(VertexBase* vrt);
+		virtual bool is_crease_vertex(Vertex* vrt);
 		virtual bool is_crease_edge(EdgeBase* edge);
 
 	protected:
@@ -345,13 +345,13 @@ class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<TAPosi
 	
 		virtual ~RefinementCallbackSubdivisionLoop();
 		
-		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
-		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
-		virtual void new_vertex(VertexBase* vrt, Face* parent);
-		virtual void new_vertex(VertexBase* vrt, Volume* parent);
+		virtual void new_vertex(Vertex* vrt, Vertex* parent);
+		virtual void new_vertex(Vertex* vrt, EdgeBase* parent);
+		virtual void new_vertex(Vertex* vrt, Face* parent);
+		virtual void new_vertex(Vertex* vrt, Volume* parent);
 		
 	protected:
-		virtual bool is_crease_vertex(VertexBase* vrt);
+		virtual bool is_crease_vertex(Vertex* vrt);
 		virtual bool is_crease_edge(EdgeBase* edge);
 
 	protected:

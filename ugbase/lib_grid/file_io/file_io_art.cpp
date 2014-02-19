@@ -91,7 +91,7 @@ CreateTetrahedron(Grid& grid, vector<Triangle*>& vTris,
 		return NULL;
 	}
 	
-	VertexBase* vrts[4];
+	Vertex* vrts[4];
 	int vrtCount = 0;
 	
 //	get the 4 points of the tetrahedron
@@ -100,7 +100,7 @@ CreateTetrahedron(Grid& grid, vector<Triangle*>& vTris,
 
 	for(size_t i = 0; i < 4; ++i){
 		for(size_t j = 0; j < 3; ++j){
-			VertexBase* vrt = vTris[i]->vertex(j);
+			Vertex* vrt = vTris[i]->vertex(j);
 			if(!grid.is_marked(vrt)){
 			//	make sure that we won't collect too many vertices.
 				if(vrtCount == 4){
@@ -153,7 +153,7 @@ CreatePyramid(Grid& grid, vector<Triangle*>& vTris,
 		return NULL;
 	}
 		
-	VertexBase* vrts[5];
+	Vertex* vrts[5];
 	int vrtCount = 0;
 	
 	grid.begin_marking();
@@ -161,7 +161,7 @@ CreatePyramid(Grid& grid, vector<Triangle*>& vTris,
 //	get the 5 points of the pyramid
 //	take the vertices of the base-quad first
 	for(size_t j = 0; j < 4; ++j){
-		VertexBase* vrt = vQuads[0]->vertex(j);
+		Vertex* vrt = vQuads[0]->vertex(j);
 		if(!grid.is_marked(vrt)){
 			grid.mark(vrt);
 			vrts[vrtCount++] = vrt;
@@ -170,7 +170,7 @@ CreatePyramid(Grid& grid, vector<Triangle*>& vTris,
 	
 //	now find the top vertex by checking the first triangle
 	for(size_t j = 0; j < 3; ++j){
-		VertexBase* vrt = vTris[0]->vertex(j);
+		Vertex* vrt = vTris[0]->vertex(j);
 		if(!grid.is_marked(vrt)){
 			grid.mark(vrt);
 			vrts[vrtCount++] = vrt;
@@ -220,7 +220,7 @@ CreatePrism(Grid& grid, vector<Triangle*>& vTris,
 		return NULL;
 	}
 		
-	VertexBase* vrts[6];
+	Vertex* vrts[6];
 	int vrtCount = 0;
 	
 //	get the 6 points of the prism
@@ -299,8 +299,8 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 
 //	those vectors will be reused at different sections
 	vector<int> vInds;
-	vector<VertexBase*> vVrtDump;
-	vector<VertexBase*> vLocalVrts;
+	vector<Vertex*> vVrtDump;
+	vector<Vertex*> vLocalVrts;
 	
 //	read the vertices
 	vector<RegularVertex*>	vVrts;
@@ -589,7 +589,7 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 	//	make sure that the position attachment has been copied
 		if(!tGrid.has_vertex_attachment(aPos)){
 		//	copy it manually
-			if(!CopyAttachments<VertexBase>(srcGrid, aPos, tGrid, aPos))
+			if(!CopyAttachments<Vertex>(srcGrid, aPos, tGrid, aPos))
 				return false;
 		}
 	}
@@ -602,7 +602,7 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 	
 //	write the header
 	out << "%% Version 3.0" << endl;
-	out << "%% VertexNumber: " << grid.num<VertexBase>() << endl;
+	out << "%% VertexNumber: " << grid.num<Vertex>() << endl;
 	out << "%% EdgeNumber: " << grid.num<EdgeBase>() << endl;
 	out << "%% FaceNumber: " << grid.num<Face>() << endl;
 	out << "%% ElementNumber: " << grid.num<Volume>() << endl;
@@ -616,8 +616,8 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 	{
 		out << "% Vertices: x y z" << endl;
 		Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
-		for(VertexBaseIterator iter = grid.begin<VertexBase>();
-			iter != grid.end<VertexBase>(); ++iter)
+		for(VertexIterator iter = grid.begin<Vertex>();
+			iter != grid.end<Vertex>(); ++iter)
 		{
 			out << aaPos[*iter].x() << " ";
 			out << aaPos[*iter].y() << " ";
@@ -633,7 +633,7 @@ bool SaveGridToART(Grid& srcGrid, const char* filename,
 		AInt aInt;
 		grid.attach_to_vertices(aInt);
 		Grid::VertexAttachmentAccessor<AInt> aaInt(grid, aInt);
-		AssignIndices<VertexBase>(grid.begin<VertexBase>(), grid.end<VertexBase>(), aaInt);
+		AssignIndices<Vertex>(grid.begin<Vertex>(), grid.end<Vertex>(), aaInt);
 
 	//	the subset index
 		int si = 0;

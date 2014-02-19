@@ -10,7 +10,7 @@
 namespace ug{
 
 template <class TAAPosVRT>
-VertexBase* ResolveVertexEdgeIntersection(Grid& grid, VertexBase* v,
+Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 										   EdgeBase* e, TAAPosVRT& aaPos,
 										   number snapThreshold);
 
@@ -20,7 +20,7 @@ VertexBase* ResolveVertexEdgeIntersection(Grid& grid, VertexBase* v,
  *		 should be used, which can take care of volumes, too.
  */
 template <class TAAPosVRT>
-bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
+bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 								   Face* f, TAAPosVRT& aaPos,
 								   number snapThreshold);
 
@@ -30,7 +30,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
  * ReolveVertexEdgeIntersection.
  */
 template <class TAAPosVRT>
-VertexBase* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
+Vertex* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
 										TAAPosVRT& aaPos, number snapThreshold);
 
 /**
@@ -76,7 +76,7 @@ bool IntersectCloseEdges(Grid& grid,
 ///	returns the index of the first vertex closer to p than snapThreshold.
 /**	returns -1 if nothing was found.*/
 template <class TAAPosVRT>
-int FindCloseVertexInArray(std::vector<VertexBase*>& array,
+int FindCloseVertexInArray(std::vector<Vertex*>& array,
 							const typename TAAPosVRT::ValueType& p,
 							TAAPosVRT& aaPos, number snapThreshold);
 

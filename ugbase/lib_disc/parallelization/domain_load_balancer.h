@@ -48,7 +48,7 @@ class DomainLoadBalancer : public LoadBalancer<TDomain::dim>
 			base_class::set_grid(dom->grid().get(), dom->position_attachment());
 
 			base_class::add_serializer(
-				GeomObjAttachmentSerializer<VertexBase, typename TDomain::position_attachment_type>::
+				GeomObjAttachmentSerializer<Vertex, typename TDomain::position_attachment_type>::
 								create(*dom->grid(), dom->position_attachment()));
 
 			base_class::add_serializer(

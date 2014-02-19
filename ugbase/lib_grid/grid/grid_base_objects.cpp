@@ -9,7 +9,7 @@ namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 //	implementation of edge
-bool EdgeBase::get_opposing_side(VertexBase* v, VertexBase** vrtOut)
+bool EdgeBase::get_opposing_side(Vertex* v, Vertex** vrtOut)
 {
 	if(v == m_vertices[0])
 		*vrtOut = m_vertices[1];
@@ -31,7 +31,7 @@ EdgeDescriptor::EdgeDescriptor(const EdgeDescriptor& ed)
 	EdgeVertices::assign_edge_vertices(ed);
 }
 
-EdgeDescriptor::EdgeDescriptor(VertexBase* vrt1, VertexBase* vrt2)
+EdgeDescriptor::EdgeDescriptor(Vertex* vrt1, Vertex* vrt2)
 {
 	m_vertices[0] = vrt1;
 	m_vertices[1] = vrt2;
@@ -191,7 +191,7 @@ static inline unsigned long HashKey(const VolumeVertices* key)
 //	hash-funtions for vertices
 //	returns the hash-value of the vertex.
 template <>
-size_t hash_key<PVertexBase>(const PVertexBase& key)
+size_t hash_key<PVertex>(const PVertex& key)
 {
 	return (unsigned long)key->get_hash_value();
 }

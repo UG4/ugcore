@@ -30,7 +30,7 @@ enum VertexContainerSections
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API RegularVertex : public VertexBase
+class UG_API RegularVertex : public Vertex
 {
 	friend class Grid;
 	public:
@@ -48,11 +48,11 @@ template <>
 class geometry_traits<RegularVertex>
 {
 	public:
-		typedef GenericGridObjectIterator<RegularVertex*, VertexBaseIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<RegularVertex*, VertexBaseIterator,
-														ConstVertexBaseIterator>	const_iterator;
+		typedef GenericGridObjectIterator<RegularVertex*, VertexIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<RegularVertex*, VertexIterator,
+														ConstVertexIterator>	const_iterator;
 
-		typedef VertexBase	grid_base_object;
+		typedef Vertex	grid_base_object;
 
 		enum
 		{
@@ -78,7 +78,7 @@ typedef geometry_traits<RegularVertex>::const_iterator	ConstRegularVertexIterato
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API ConstrainedVertex : public VertexBase
+class UG_API ConstrainedVertex : public Vertex
 {
 	friend class Grid;
 	public:
@@ -135,11 +135,11 @@ template <>
 class geometry_traits<ConstrainedVertex>
 {
 	public:
-		typedef GenericGridObjectIterator<ConstrainedVertex*, VertexBaseIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<ConstrainedVertex*, VertexBaseIterator,
-																ConstVertexBaseIterator>	const_iterator;
+		typedef GenericGridObjectIterator<ConstrainedVertex*, VertexIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<ConstrainedVertex*, VertexIterator,
+																ConstVertexIterator>	const_iterator;
 
-		typedef VertexBase	grid_base_object;
+		typedef Vertex	grid_base_object;
 
 		enum
 		{

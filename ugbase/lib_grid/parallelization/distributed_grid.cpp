@@ -188,7 +188,7 @@ void DistributedGridManager::update_ghost_states()
 {//	Works but is currently unused and would only be required, if
 //	horizontal interfaces between vertical-masters would exist.
 //	first we'll calculate a preliminary ghost state
-	set_preliminary_ghost_states<VertexBase>();
+	set_preliminary_ghost_states<Vertex>();
 	set_preliminary_ghost_states<EdgeBase>();
 	set_preliminary_ghost_states<Face>();
 	set_preliminary_ghost_states<Volume>();
@@ -254,7 +254,7 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 	//if(!addedElemsOnly)
 	{
 	//	first we have to reset all elem infos
-		reset_elem_infos<VertexBase>();
+		reset_elem_infos<Vertex>();
 		reset_elem_infos<EdgeBase>();
 		reset_elem_infos<Face>();
 		reset_elem_infos<Volume>();
@@ -263,7 +263,7 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 //	call for each layout in the grid-layout the corresponding
 //	init_elem_status_from_layout function.
 //	every layout has multiple levels
-	update_all_elem_infos<VertexBase>();
+	update_all_elem_infos<Vertex>();
 	update_all_elem_infos<EdgeBase>();
 	update_all_elem_infos<Face>();
 	update_all_elem_infos<Volume>();
@@ -352,7 +352,7 @@ get_status(GridObject* go) const
 	switch(baseType)
 	{
 		case VERTEX:
-			return get_status(static_cast<VertexBase*>(go));
+			return get_status(static_cast<Vertex*>(go));
 		case EDGE:
 			return get_status(static_cast<EdgeBase*>(go));
 		case FACE:
@@ -451,7 +451,7 @@ perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 		switch(objType)
 		{
 			case VERTEX:
-				add_element_to_interface(static_cast<VertexBase*>(schedElem.geomObj),
+				add_element_to_interface(static_cast<Vertex*>(schedElem.geomObj),
 										schedElem.connectedProcID);
 				break;
 			case EDGE:
@@ -606,7 +606,7 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 				//UG_DLOG(LIB_GRID, 3, "scheduling element with vertex-parent to interfaces ");
 				schedule_element_for_insertion(m_vrtMap,
 												pElem,
-												(VertexBase*)pParent);
+												(Vertex*)pParent);
 				//UG_DLOG(LIB_GRID, 3, endl);
 				break;
 				
@@ -640,7 +640,7 @@ handle_created_element(TElem* pElem, GridObject* pParent,
 }
 
 void DistributedGridManager::
-vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent,
+vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent,
 				bool replacesParent)
 {
 	handle_created_element(vrt, pParent, replacesParent);
@@ -1214,7 +1214,7 @@ element_to_be_erased(TElem* elem)
 }
 
 void DistributedGridManager::
-vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
+vertex_to_be_erased(Grid* grid, Vertex* vrt, Vertex* replacedBy)
 {
 	if(!replacedBy)
 		element_to_be_erased(vrt);

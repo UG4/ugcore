@@ -11,8 +11,8 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-std::pair<VertexBase*, EdgeBase*>
-GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSection,
+std::pair<Vertex*, EdgeBase*>
+GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, EdgeBase*> lastSection,
 						  Grid::edge_traits::callback cbEdgeIsInPolyChain)
 {
 	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
@@ -24,7 +24,7 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSect
 
 //	get the vertex which is connected to the vertex in lastSection->frist
 //	the edge in lastSection->second
-	VertexBase* nVrt = GetConnectedVertex(lastSection.second, lastSection.first);
+	Vertex* nVrt = GetConnectedVertex(lastSection.second, lastSection.first);
 	
 //	find the next edge
 	Grid::AssociatedEdgeIterator edgesEnd = grid.associated_edges_end(nVrt);
@@ -37,7 +37,7 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSect
 		}
 	}
 //	we couldn't find another section. Return an empty one
-	return std::make_pair<VertexBase*, EdgeBase*>(NULL, NULL);	
+	return std::make_pair<Vertex*, EdgeBase*>(NULL, NULL);	
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 	}
 	
 //	we'll start at the first section of the polychain
-	pair<VertexBase*, EdgeBase*> curSec = GetFirstSectionOfPolyChain(grid,
+	pair<Vertex*, EdgeBase*> curSec = GetFirstSectionOfPolyChain(grid,
 												sh.begin<EdgeBase>(srcIndex),
 												sh.end<EdgeBase>(srcIndex),
 												IsInSubset(sh, srcIndex));
@@ -71,7 +71,7 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 	
 	while(curSec.first)
 	{
-		VertexBase* curVrt = curSec.first;
+		Vertex* curVrt = curSec.first;
 		EdgeBase* curEdge = curSec.second;
 		grid.mark(curVrt);
 		grid.mark(curEdge);
@@ -79,7 +79,7 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 		numEdgesEncountered++;
 		
 	//	check whether the connected vertex is marked or irregular
-		VertexBase* cv = GetConnectedVertex(curEdge, curVrt);
+		Vertex* cv = GetConnectedVertex(curEdge, curVrt);
 	
 		if(grid.is_marked(cv))
 			break;

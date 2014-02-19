@@ -27,11 +27,11 @@ void GenerateIcosahedron(Grid& grid, const vector3& center,
 								{9, 10, 5}, {10, 6, 5}, {10, 11, 6},
 								{8, 10, 9}, {8, 11, 10}};
 
-	VertexBase* vrts[12];
+	Vertex* vrts[12];
 
 	if(!grid.has_vertex_attachment(aPos))
 		grid.attach_to_vertices(aPos);
-	Grid::AttachmentAccessor<VertexBase, AVector3> aaPos(grid, aPos);
+	Grid::AttachmentAccessor<Vertex, AVector3> aaPos(grid, aPos);
 
 	for(size_t i = 0; i < 12; ++i){
 		vrts[i] = *grid.create<RegularVertex>();

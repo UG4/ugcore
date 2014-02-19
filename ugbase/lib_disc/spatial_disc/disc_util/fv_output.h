@@ -33,7 +33,7 @@ void CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandle
 	Grid& grid = *shOut.grid();
 
 	// tmp vector for vertices
-	std::vector<VertexBase*> vVert;
+	std::vector<Vertex*> vVert;
 
 	// loop all scv of the element
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -208,7 +208,7 @@ void CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler
 	Grid& grid = *shOut.grid();
 
 	// tmp vector for vertices
-	std::vector<VertexBase*> vVert;
+	std::vector<Vertex*> vVert;
 
 	// loop all scv of the element
 	for(size_t i = 0; i < geo.num_scv(); ++i)
@@ -433,8 +433,8 @@ void ColorControlVolume(ISubsetHandler& shOut)
 	std::vector<EdgeBase*> vEdges;
 
 	int si = 0;
-	for(VertexBaseIterator iter = shOut.grid()->begin<VertexBase>();
-		iter != shOut.grid()->end<VertexBase>(); ++iter, ++si)
+	for(VertexIterator iter = shOut.grid()->begin<Vertex>();
+		iter != shOut.grid()->end<Vertex>(); ++iter, ++si)
 	{
 		if(shOut.get_subset_index(*iter) != 0) continue;
 
@@ -513,7 +513,7 @@ void CreateGridOfControlVolumes(ISubsetHandler& shOut, TAAPosition& aaPosOut, TA
 
 	// remove doubles
 	RemoveDoubles<dim>(*shOut.grid(),
-	                   shOut.grid()->begin<VertexBase>(), shOut.grid()->end<VertexBase>(),
+	                   shOut.grid()->begin<Vertex>(), shOut.grid()->end<Vertex>(),
 	                   aPosOut, 1e-5);
 
 	// Let each SubControlVolume be one subset
@@ -553,7 +553,7 @@ void CreateGridOfSubControlVolumeFaces(ISubsetHandler& shOut, TAAPosition& aaPos
 	// Let each SubControlVolume be one subset
 	switch(dim)
 	{
-		case 1: ColorSubControlVolumeFaces<VertexBase>(shOut); break;
+		case 1: ColorSubControlVolumeFaces<Vertex>(shOut); break;
 		case 2: ColorSubControlVolumeFaces<EdgeBase>(shOut); break;
 		case 3: ColorSubControlVolumeFaces<Face>(shOut); break;
 		default: UG_THROW("WriteDualGridToFile: Dimension " << dim << " not supported.");

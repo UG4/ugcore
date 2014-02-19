@@ -284,7 +284,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
 	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
@@ -330,7 +330,7 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
 	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
@@ -377,7 +377,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
 	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
@@ -425,7 +425,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
 	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
@@ -476,7 +476,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
 	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
@@ -522,7 +522,7 @@ struct SortVertexPos {
 			: m_aaPos(spDomain->position_accessor())
 		{}
 
-		inline bool operator() (VertexBase* vrt1, VertexBase* vrt2)
+		inline bool operator() (Vertex* vrt1, Vertex* vrt2)
 			{UG_THROW(dim <<" not implemented.");}
 
 	protected:
@@ -530,7 +530,7 @@ struct SortVertexPos {
 };
 
 template<>
-inline bool SortVertexPos<1>::operator() (VertexBase* vrt1, VertexBase* vrt2)
+inline bool SortVertexPos<1>::operator() (Vertex* vrt1, Vertex* vrt2)
 {
 	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
 		return true;
@@ -539,7 +539,7 @@ inline bool SortVertexPos<1>::operator() (VertexBase* vrt1, VertexBase* vrt2)
 }
 
 template<>
-inline bool SortVertexPos<2>::operator() (VertexBase* vrt1, VertexBase* vrt2)
+inline bool SortVertexPos<2>::operator() (Vertex* vrt1, Vertex* vrt2)
 {
 	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
 		return true;
@@ -552,7 +552,7 @@ inline bool SortVertexPos<2>::operator() (VertexBase* vrt1, VertexBase* vrt2)
 }
 
 template<>
-inline bool SortVertexPos<3>::operator() (VertexBase* vrt1, VertexBase* vrt2)
+inline bool SortVertexPos<3>::operator() (Vertex* vrt1, Vertex* vrt2)
 {
 	if(m_aaPos[vrt1][0] < m_aaPos[vrt2][0]) {
 		return true;
@@ -588,7 +588,7 @@ adjust_defect(vector_type& d, const vector_type& u,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
 	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
@@ -642,7 +642,7 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
 	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
@@ -697,7 +697,7 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
 	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
@@ -753,7 +753,7 @@ adjust_linear(matrix_type& mat, vector_type& rhs,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 #ifdef UG_PARALLEL
 	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
@@ -812,7 +812,7 @@ adjust_solution(vector_type& u, ConstSmartPtr<DoFDistribution> dd,
 //	storage for indices and vertices
 	std::vector<std::vector<size_t> > vConstrainingInd;
 	std::vector<size_t>  constrainedInd;
-	std::vector<VertexBase*> vConstrainingVrt;
+	std::vector<Vertex*> vConstrainingVrt;
 
 //	get begin end of hanging vertices
 	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;

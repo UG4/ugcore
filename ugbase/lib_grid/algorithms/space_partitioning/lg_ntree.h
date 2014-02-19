@@ -31,7 +31,7 @@ class NTreeGridData
 			m_aaPos.access(grid, aPos);
 		}
 
-		const position_t& position(VertexBase* v) const
+		const position_t& position(Vertex* v) const
 		{
 			UG_ASSERT(m_aaPos.valid(),
 					  "Make sure to pass an instance of NTreeGridData to lg_ntree::set_common_data");

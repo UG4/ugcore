@@ -10,7 +10,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	EraseConnectingElements
 ///	erases all elements that connect v1 and v2
-void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2)
+void EraseConnectingElements(Grid& grid, Vertex* v1, Vertex* v2)
 {
 //	check edges
 	if(grid.num_edges() > 0)

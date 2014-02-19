@@ -534,7 +534,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 //		//	the local level is not contained in the current hlvl of the proc-hierarchy.
 //		//	make sure that it doesn't contain any elements, since we would most likely
 //		//	get problems during h- or v-interface communication later on.
-//			UG_COND_THROW(mg.num<VertexBase>(oldMinLvl) > 0,
+//			UG_COND_THROW(mg.num<Vertex>(oldMinLvl) > 0,
 //					  "Process " << localProc
 //					  << " shouldn't contain vertices on this level: " << oldMinLvl);
 //
@@ -554,7 +554,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 		//	check if this process contains vertices between minLvl and maxLvl
 			bool containsVrts = false;
 			for(int i = minLvl; i <= maxLvl; ++i){
-				if(mg.num<VertexBase>(i) != 0){
+				if(mg.num<Vertex>(i) != 0){
 					containsVrts = true;
 					continue;
 				}
@@ -572,7 +572,7 @@ partition(size_t baseLvl, size_t elementThreshold)
 			//	the local level is not contained in the current hlvl of the proc-hierarchy.
 			//	make sure that it doesn't contain any elements, since we would most likely
 			//	get problems during h- or v-interface communication later on.
-				UG_COND_THROW(mg.num<VertexBase>(minLvl) > 0,
+				UG_COND_THROW(mg.num<Vertex>(minLvl) > 0,
 						  "Process " << localProc
 						  << " shouldn't contain vertices on this level: " << minLvl);
 

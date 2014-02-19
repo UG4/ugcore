@@ -55,7 +55,7 @@ void AssignGridToSubset(Grid& g, ISubsetHandler& sh, int subsetInd)
 {
 	UG_ASSERT(&g == sh.grid(), "Specified subset-handler has to operate on the specified grid!");
 
-	sh.assign_subset(g.begin<VertexBase>(), g.end<VertexBase>(), subsetInd);
+	sh.assign_subset(g.begin<Vertex>(), g.end<Vertex>(), subsetInd);
 	sh.assign_subset(g.begin<EdgeBase>(), g.end<EdgeBase>(), subsetInd);
 	sh.assign_subset(g.begin<Face>(), g.end<Face>(), subsetInd);
 	sh.assign_subset(g.begin<Volume>(), g.end<Volume>(), subsetInd);
@@ -71,8 +71,8 @@ void AssignSelectionToSubset(ISelector& sel, ISubsetHandler& sh, int subsetInd)
 	GridObjectCollection selGoc = sel.get_grid_objects();
 
 	for(size_t i = 0; i < selGoc.num_levels(); ++i){
-		sh.assign_subset(selGoc.begin<VertexBase>(i),
-						 selGoc.end<VertexBase>(i), subsetInd);
+		sh.assign_subset(selGoc.begin<Vertex>(i),
+						 selGoc.end<Vertex>(i), subsetInd);
 		sh.assign_subset(selGoc.begin<EdgeBase>(i),
 						 selGoc.end<EdgeBase>(i), subsetInd);
 		sh.assign_subset(selGoc.begin<Face>(i),
@@ -923,8 +923,8 @@ void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
 	}
 
 //	assign unassigned vertices
-	for(VertexBaseIterator iter = grid.begin<VertexBase>();
-		iter != grid.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>(); ++iter)
 	{
 		if(shOut.get_subset_index(*iter) == -1)
 			shOut.assign_subset(*iter, inSubset);

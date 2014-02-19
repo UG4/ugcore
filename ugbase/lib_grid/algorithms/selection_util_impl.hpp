@@ -34,13 +34,13 @@ bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
 //	we do this by using grid::mark.
 	grid.begin_marking();
 
-//	std::vector<VertexBase*> vrts;
+//	std::vector<Vertex*> vrts;
 //	vrts.assign(sel.vertices_begin(), sel.vertices_end());
 //	grid.mark(sel.vertices_begin(), sel.vertices_end());
 
 	VecSet(centerOut, 0);
 	size_t n = 0;
-	for(VertexBaseIterator iter = sel.vertices_begin();
+	for(VertexIterator iter = sel.vertices_begin();
 		iter != sel.vertices_end(); ++iter)
 	{
 		VecAdd(centerOut, centerOut, aaPos[*iter]);
@@ -111,7 +111,7 @@ void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offs
 //	we do this by using grid::mark.
 	grid.begin_marking();
 
-	for(VertexBaseIterator iter = sel.vertices_begin();
+	for(VertexIterator iter = sel.vertices_begin();
 		iter != sel.vertices_end(); ++iter)
 	{
 		VecAdd(aaPos[*iter], aaPos[*iter], offset);

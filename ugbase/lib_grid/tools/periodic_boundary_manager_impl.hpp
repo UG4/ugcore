@@ -152,7 +152,7 @@ void PeriodicBoundaryManager::print_identification() const {
 }
 
 /**
- * TParent should be only of type VertexBase, EdgeBase, Face.
+ * TParent should be only of type Vertex, EdgeBase, Face.
  * Volumes are not meant to be periodic.
  *
  * If replacesParent is true, e is meant to replace pParent
@@ -200,7 +200,7 @@ void PeriodicBoundaryManager::handle_creation(TElem* e, TParent* pParent,
 		Grid::vertex_traits::secure_container vrts;
 		mg.associated_elements(vrts, e);
 		for(size_t i = 0; i < vrts.size(); ++i){
-			Group<VertexBase>* grp = group(vrts[i]);
+			Group<Vertex>* grp = group(vrts[i]);
 			if(!grp)
 				continue;
 			mg.mark(grp->m_master);
@@ -499,7 +499,7 @@ void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
 
 	switch (pParent->base_object_id()) {
 	case VERTEX:
-		handle_creation(e, static_cast<VertexBase*>(pParent), replacesParent);
+		handle_creation(e, static_cast<Vertex*>(pParent), replacesParent);
 		break;
 	case EDGE:
 		handle_creation(e, static_cast<EdgeBase*>(pParent), replacesParent);
@@ -630,10 +630,10 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	GridObjectCollection goc1 = sh.get_grid_objects_in_subset(sInd1);
 	GridObjectCollection goc2 = sh.get_grid_objects_in_subset(sInd2);
 
-	if(goc1.num<VertexBase>() != goc2.num<VertexBase>()) {
+	if(goc1.num<Vertex>() != goc2.num<Vertex>()) {
 		UG_THROW("IdentifySubsets: Given subsets have different number of vertices."
-				"\nnum# in " << sh.get_subset_name(sInd1) << ": " << goc1.num<VertexBase>() <<
-				"\nnum# in " << sh.get_subset_name(sInd2) << ": " << goc2.num<VertexBase>())
+				"\nnum# in " << sh.get_subset_name(sInd1) << ": " << goc1.num<Vertex>() <<
+				"\nnum# in " << sh.get_subset_name(sInd2) << ": " << goc2.num<Vertex>())
 	}
 
 	if(goc1.num<EdgeBase>() != goc2.num<EdgeBase>()) {
@@ -651,7 +651,7 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	// map start type of recursion dependent to TDomain
 	// in 3d start with faces, in 2d with edges, in 1d with vertices
 	namespace mpl = boost::mpl;
-	typedef		mpl::map<mpl::pair<Domain1d, VertexBase>,
+	typedef		mpl::map<mpl::pair<Domain1d, Vertex>,
 						 mpl::pair<Domain2d, EdgeBase>,
 						 mpl::pair<Domain3d, Face> > m;
 

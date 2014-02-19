@@ -53,7 +53,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	SerializeGridElements(grid, tbuf);
 
 //	serialize the position-attachment
-	SerializeAttachment<VertexBase>(grid, aPos, tbuf);
+	SerializeAttachment<Vertex>(grid, aPos, tbuf);
 
 //	Serialize the subset-handler
 	if(numSHs > 0){
@@ -156,7 +156,7 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	DeserializeGridElements(grid, tbuf, readGridHeader);
 
 //	deserialize the position-attachment
-	DeserializeAttachment<VertexBase>(grid, aPos, tbuf);
+	DeserializeAttachment<Vertex>(grid, aPos, tbuf);
 
 //	Serialize the subset-handler
 	if((opts & LGBC_SUBSET_HANDLER) == LGBC_SUBSET_HANDLER)

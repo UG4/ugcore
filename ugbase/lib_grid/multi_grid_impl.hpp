@@ -118,7 +118,7 @@ template <class TChild>
 size_t MultiGrid::num_children(GridObject* elem) const
 {
 	switch(elem->base_object_id()){
-	case VERTEX:	return num_children<TChild>(static_cast<VertexBase*>(elem));
+	case VERTEX:	return num_children<TChild>(static_cast<Vertex*>(elem));
 	case EDGE:		return num_children<TChild>(static_cast<EdgeBase*>(elem));
 	case FACE:		return num_children<TChild>(static_cast<Face*>(elem));
 	case VOLUME:	return num_children<TChild>(static_cast<Volume*>(elem));
@@ -130,7 +130,7 @@ template <class TChild>
 TChild* MultiGrid::get_child(GridObject* elem, size_t ind) const
 {
 	switch(elem->base_object_id()){
-	case VERTEX:	return get_child<TChild>(static_cast<VertexBase*>(elem), ind);
+	case VERTEX:	return get_child<TChild>(static_cast<Vertex*>(elem), ind);
 	case EDGE:		return get_child<TChild>(static_cast<EdgeBase*>(elem), ind);
 	case FACE:		return get_child<TChild>(static_cast<Face*>(elem), ind);
 	case VOLUME:	return get_child<TChild>(static_cast<Volume*>(elem), ind);
@@ -184,7 +184,7 @@ set_parent_type(TElem* elem, char type)
 }
 
 //	info-access
-inline MultiGrid::VertexInfo& MultiGrid::get_info(VertexBase* v)
+inline MultiGrid::VertexInfo& MultiGrid::get_info(Vertex* v)
 {
 	return m_aaVrtInf[v];
 }
@@ -209,7 +209,7 @@ inline MultiGrid::VolumeInfo& MultiGrid::get_info(Volume* v)
 }
 
 //	const info-access
-inline const MultiGrid::VertexInfo& MultiGrid::get_info(VertexBase* v) const
+inline const MultiGrid::VertexInfo& MultiGrid::get_info(Vertex* v) const
 {
 	return m_aaVrtInf[v];
 }
@@ -246,7 +246,7 @@ template <class TChild>
 void MultiGrid::add_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
-	case VERTEX:	add_child(static_cast<VertexBase*>(p), c); break;
+	case VERTEX:	add_child(static_cast<Vertex*>(p), c); break;
 	case EDGE:		add_child(static_cast<EdgeBase*>(p), c); break;
 	case FACE:		add_child(static_cast<Face*>(p), c); break;
 	case VOLUME:	add_child(static_cast<Volume*>(p), c); break;
@@ -263,7 +263,7 @@ template <class TChild>
 void MultiGrid::remove_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
-	case VERTEX:	remove_child(static_cast<VertexBase*>(p), c); break;
+	case VERTEX:	remove_child(static_cast<Vertex*>(p), c); break;
 	case EDGE:		remove_child(static_cast<EdgeBase*>(p), c); break;
 	case FACE:		remove_child(static_cast<Face*>(p), c); break;
 	case VOLUME:	remove_child(static_cast<Volume*>(p), c); break;

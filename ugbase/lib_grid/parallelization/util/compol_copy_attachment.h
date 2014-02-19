@@ -17,7 +17,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ///	copies values from a specified attachment to a stream and back.
 /**
- * TLayout::Type has to be either VertexBase, EdgeBase, Face or Volume.
+ * TLayout::Type has to be either Vertex, EdgeBase, Face or Volume.
  */
 template <class TLayout, class TAttachment>
 class ComPol_CopyAttachment : public pcl::ICommunicationPolicy<TLayout>

@@ -49,7 +49,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 {
 //	This method clears the surfaceViewOut and assigns all objects of
 //	which lie on the surface of the mg to the surface view.
-	CollectSurfaceViewElements<VertexBase>(surfaceViewOut, mg, mgsh, true);
+	CollectSurfaceViewElements<Vertex>(surfaceViewOut, mg, mgsh, true);
 	CollectSurfaceViewElements<EdgeBase>(surfaceViewOut, mg, mgsh, false);
 	CollectSurfaceViewElements<Face>(surfaceViewOut, mg, mgsh, false);
 	CollectSurfaceViewElements<Volume>(surfaceViewOut, mg, mgsh, false);

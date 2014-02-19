@@ -53,7 +53,7 @@ set_callback(std::string subsetName, SmartPtr<IRefinementCallback> callback)
 template<class TAPosition>
 template <class TParent>
 inline void RefinementProjectionHandler<TAPosition>::
-handle_new_vertex(VertexBase* vrt, TParent* parent)
+handle_new_vertex(Vertex* vrt, TParent* parent)
 {
 	UG_ASSERT(parent, "A vertex can only be created from a parent element!");
 
@@ -66,35 +66,35 @@ handle_new_vertex(VertexBase* vrt, TParent* parent)
 
 template<class TAPosition>
 inline void RefinementProjectionHandler<TAPosition>::
-new_vertex(VertexBase* vrt, VertexBase* parent)
+new_vertex(Vertex* vrt, Vertex* parent)
 {
 	handle_new_vertex(vrt, parent);
 }
 
 template<class TAPosition>
 inline void RefinementProjectionHandler<TAPosition>::
-new_vertex(VertexBase* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, EdgeBase* parent)
 {
 	handle_new_vertex(vrt, parent);
 }
 
 template<class TAPosition>
 inline void RefinementProjectionHandler<TAPosition>::
-new_vertex(VertexBase* vrt, Face* parent)
+new_vertex(Vertex* vrt, Face* parent)
 {
 	handle_new_vertex(vrt, parent);
 }
 
 template<class TAPosition>
 inline void RefinementProjectionHandler<TAPosition>::
-new_vertex(VertexBase* vrt, Volume* parent)
+new_vertex(Vertex* vrt, Volume* parent)
 {
 	handle_new_vertex(vrt, parent);
 }
 
 template<class TAPosition>
 inline void RefinementProjectionHandler<TAPosition>::
-flat_grid_vertex_encountered(VertexBase* vrt)
+flat_grid_vertex_encountered(Vertex* vrt)
 {
 	int si = m_sh->get_subset_index(vrt);
 	if((si == -1) || (si >= (int)m_callbacks.size()) || (!m_callbacks[si].valid()))
@@ -105,7 +105,7 @@ flat_grid_vertex_encountered(VertexBase* vrt)
 
 template<class TAPosition>
 inline int RefinementProjectionHandler<TAPosition>::
-current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
+current_pos(number* coordsOut, Vertex* vrt, int maxCoords)
 {
 	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
 }

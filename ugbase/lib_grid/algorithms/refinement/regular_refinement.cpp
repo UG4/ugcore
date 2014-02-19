@@ -113,7 +113,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 
 //	we will select associated vertices, too, since we have to
 //	notify the refinement-callback, that they are involved in refinement.
-	sel.clear<VertexBase>();
+	sel.clear<Vertex>();
 	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
 	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
 	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>());
@@ -145,7 +145,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 //	one that stores the selected faces
 	vector<Face*> faces(numRefFaces);
 //	one that stores vertices which are created on faces
-	vector<VertexBase*> faceVrts;
+	vector<Vertex*> faceVrts;
 	if(numRefVols > 0)
 		faceVrts.resize(numRefFaces);
 //	one that stores selected volumes
@@ -164,8 +164,8 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 	
 //	notify refinement callbacks about encountered vertices
-	for(VertexBaseIterator iter = sel.begin<VertexBase>();
-		iter != sel.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = sel.begin<Vertex>();
+		iter != sel.end<Vertex>(); ++iter)
 	{
 		refCallback->flat_grid_vertex_encountered(*iter);
 	}
@@ -227,12 +227,12 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	newFaces.reserve(4);
 //	we need a container that stores the vertex for each edge of a face
 //	entries will be set to NULL if the associated edge will not be refined
-	vector<VertexBase*> faceEdgeVrts;
+	vector<Vertex*> faceEdgeVrts;
 	faceEdgeVrts.reserve(4);
 	
 	for(size_t i = 0; i < faces.size(); ++i){
 		Face* f = faces[i];
-		VertexBase* newVrt;
+		Vertex* newVrt;
 		
 	//	collect vertices of associated edges
 		faceEdgeVrts.clear();
@@ -284,11 +284,11 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	newVols.reserve(8);
 //	we need a container that stores the vertex for each edge of a volume
 //	entries will be set to NULL if the associated edge will not be refined
-	vector<VertexBase*> volEdgeVrts;
+	vector<Vertex*> volEdgeVrts;
 	volEdgeVrts.reserve(12);
 //	we need a container that stores the vertex for each face of a volume
 //	entries will be set to NULL if the associated face will not be refined
-	vector<VertexBase*> volFaceVrts;
+	vector<Vertex*> volFaceVrts;
 	volFaceVrts.reserve(6);
 	
 //	only used for tetrahedron refinement
@@ -296,7 +296,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 
 	for(size_t i = 0; i < vols.size(); ++i){
 		Volume* v = vols[i];
-		VertexBase* newVrt;
+		Vertex* newVrt;
 		
 	//	collect vertices of associated edges
 		volEdgeVrts.clear();

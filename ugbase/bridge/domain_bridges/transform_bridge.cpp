@@ -38,7 +38,7 @@ void TranslateDomain(TDomain& dom, ISelector& sel, const vector3& offset)
 	VecCopy(o, offset, 0);
 
 //	perform the translation
-	vector<VertexBase*> vrts;
+	vector<Vertex*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
 
 	for(size_t i = 0; i < vrts.size(); ++i){
@@ -57,7 +57,7 @@ void ScaleDomain(TDomain& dom, const vector3& center, const vector3& scale)
 	typedef typename TDomain::position_type pos_t;
 	typename TDomain::position_accessor_type& aaPos = dom.position_accessor();
 	typedef typename TDomain::grid_type	grid_t;
-	typedef typename grid_t::template traits<VertexBase>::iterator	vrt_iterator_t;
+	typedef typename grid_t::template traits<Vertex>::iterator	vrt_iterator_t;
 
 	grid_t& g = *dom.grid();
 	pos_t c, s;
@@ -65,8 +65,8 @@ void ScaleDomain(TDomain& dom, const vector3& center, const vector3& scale)
 	VecCopy(s, scale, 1);
 
 //	perform the scaling
-	for(vrt_iterator_t iter = g.template begin<VertexBase>();
-		iter != g.template end<VertexBase>(); ++iter)
+	for(vrt_iterator_t iter = g.template begin<Vertex>();
+		iter != g.template end<Vertex>(); ++iter)
 	{
 		pos_t& v = aaPos[*iter];
 		for(size_t j = 0; j < pos_t::Size; ++j)
@@ -90,7 +90,7 @@ void ScaleDomain(TDomain& dom, ISelector& sel, const vector3& center,
 	VecCopy(s, scale, 1);
 
 //	perform the scaling
-	vector<VertexBase*> vrts;
+	vector<Vertex*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
 
     if(vrts.empty())
@@ -117,7 +117,7 @@ void ScaleDomainSquaredWeighting(TDomain& dom, ISelector& sel, const vector3& ce
 	VecCopy(s, scale, 1);
 
 //  prepare data
-	vector<VertexBase*> vrts;
+	vector<Vertex*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
     if(vrts.empty())
         return;
@@ -155,7 +155,7 @@ void ScaleDomainWeighting(TDomain& dom, ISelector& sel, const vector3& center,
 	VecCopy(s, scale, 1);
 
 //  prepare data
-	vector<VertexBase*> vrts;
+	vector<Vertex*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
     if(vrts.empty())
         return;
@@ -193,7 +193,7 @@ void ScaleDomainSqrtWeighting(TDomain& dom, ISelector& sel, const vector3& cente
 	VecCopy(s, scale, 1);
 
 //  prepare data
-	vector<VertexBase*> vrts;
+	vector<Vertex*> vrts;
 	CollectVerticesTouchingSelection(vrts, sel);
     if(vrts.empty())
         return;

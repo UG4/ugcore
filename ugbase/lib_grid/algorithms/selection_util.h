@@ -51,7 +51,7 @@ void TranslateSelection(Selector& sel, const typename TAAPosVRT::ValueType& offs
  * returns the number of collected vertices.
  */
 UG_API
-size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
+size_t CollectVerticesTouchingSelection(std::vector<Vertex*>& vrtsOut,
 										ISelector& sel);
 
 ////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ SelectAssociated(ISelector& sel, TIterator begin, TIterator end,
  * The underlying element-type has to be a pointer to a class that
  * features the following methods:
  * 
- * VertexBase* vertex(int i);//returns the i-th vertex of the element.
+ * Vertex* vertex(int i);//returns the i-th vertex of the element.
  * uint num_vertices();//returns the number of vertices that the element holds.
  *
  * Valid classes are for example EdgeBase, Face and Volume.

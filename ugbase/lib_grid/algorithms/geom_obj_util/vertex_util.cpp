@@ -13,7 +13,7 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-int GetVertexIndex(EdgeVertices* e, VertexBase* v)
+int GetVertexIndex(EdgeVertices* e, Vertex* v)
 {
 	if(e->vertex(0) == v)
 		return 0;
@@ -23,7 +23,7 @@ int GetVertexIndex(EdgeVertices* e, VertexBase* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
-int GetVertexIndex(FaceVertices* f, VertexBase* v)
+int GetVertexIndex(FaceVertices* f, Vertex* v)
 {
 	uint numVrts = f->num_vertices();
 	for(uint i = 0; i < numVrts; ++i)
@@ -35,7 +35,7 @@ int GetVertexIndex(FaceVertices* f, VertexBase* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
-int GetVertexIndex(VolumeVertices* vol, VertexBase* v)
+int GetVertexIndex(VolumeVertices* vol, Vertex* v)
 {
 	uint numVrts = vol->num_vertices();
 	for(uint i = 0; i < numVrts; ++i)
@@ -47,7 +47,7 @@ int GetVertexIndex(VolumeVertices* vol, VertexBase* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
-VertexBase* GetConnectedVertex(EdgeBase* e, VertexBase* v)
+Vertex* GetConnectedVertex(EdgeBase* e, Vertex* v)
 {
 	if(e->vertex(0) == v)
 		return e->vertex(1);
@@ -58,7 +58,7 @@ VertexBase* GetConnectedVertex(EdgeBase* e, VertexBase* v)
 
 ////////////////////////////////////////////////////////////////////////
 //	GetConnectedVertex
-VertexBase* GetConnectedVertex(EdgeVertices* e, Face* f)
+Vertex* GetConnectedVertex(EdgeVertices* e, Face* f)
 {
 	uint numVrts = f->num_vertices();
 	for(uint i = 0; i < numVrts; ++i){
@@ -85,7 +85,7 @@ int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed)
 }
 
 ////////////////////////////////////////////////////////////////////////
-EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri)
+EdgeBase* GetConnectedEdge(Grid& g, Vertex* vrt, Face* tri)
 {
 	size_t numEdges = tri->num_edges();
 	EdgeDescriptor ed;
@@ -98,7 +98,7 @@ EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri)
 }
 
 ////////////////////////////////////////////////////////////////////////
-int NumAssociatedEdges(Grid& grid, VertexBase* v)
+int NumAssociatedEdges(Grid& grid, Vertex* v)
 {
 	Grid::edge_traits::secure_container edges;
 	grid.associated_elements(edges, v);
@@ -106,7 +106,7 @@ int NumAssociatedEdges(Grid& grid, VertexBase* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
-int NumAssociatedFaces(Grid& grid, VertexBase* v)
+int NumAssociatedFaces(Grid& grid, Vertex* v)
 {
 	Grid::face_traits::secure_container faces;
 	grid.associated_elements(faces, v);
@@ -115,8 +115,8 @@ int NumAssociatedFaces(Grid& grid, VertexBase* v)
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectSurfaceNeighborsSorted
-bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
-								   Grid& grid, VertexBase* v)
+bool CollectSurfaceNeighborsSorted(std::vector<Vertex*>& vNeighborsOut,
+								   Grid& grid, Vertex* v)
 {
 	vNeighborsOut.clear();
 	
@@ -178,7 +178,7 @@ bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
 		//	the edges endpoints. Make sure that it was not already marked.
 			size_t numVrts = f->num_vertices();
 			int vind = GetVertexIndex(f, v);
-			VertexBase* tvrt = f->vertex((vind + 1)%numVrts);
+			Vertex* tvrt = f->vertex((vind + 1)%numVrts);
 			if(grid.is_marked(tvrt))
 				tvrt = f->vertex((vind + numVrts - 1)%numVrts);
 			if(grid.is_marked(tvrt))
@@ -215,16 +215,16 @@ bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
-VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin, VertexBaseIterator iterEnd,
+Vertex* FindVertexByCoordiante(vector3& coord, VertexIterator iterBegin, VertexIterator iterEnd,
 									Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	if(iterBegin == iterEnd)
 		return NULL;
 
-	VertexBase* bestVrt = *iterBegin;
+	Vertex* bestVrt = *iterBegin;
 	number bestDistSq = VecDistanceSq(coord, aaPos[bestVrt]);
 
-	VertexBaseIterator iter = iterBegin;
+	VertexIterator iter = iterBegin;
 	iter++;
 	while(iter != iterEnd)
 	{
@@ -244,13 +244,13 @@ VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin,
 ////////////////////////////////////////////////////////////////////////
 //	CalculateVertexNormals
 bool CalculateVertexNormals(Grid& grid,
-							Grid::AttachmentAccessor<VertexBase, APosition>& aaPos,
-							Grid::AttachmentAccessor<VertexBase, ANormal>& aaNorm)
+							Grid::AttachmentAccessor<Vertex, APosition>& aaPos,
+							Grid::AttachmentAccessor<Vertex, ANormal>& aaNorm)
 {
 //	set all normals to zero
 	{
-		for(VertexBaseIterator iter = grid.begin<VertexBase>();
-			iter != grid.end<VertexBase>(); iter++)
+		for(VertexIterator iter = grid.begin<Vertex>();
+			iter != grid.end<Vertex>(); iter++)
 			aaNorm[*iter] = vector3(0, 0, 0);
 	}
 //	loop through all the faces, calculate their normal and add them to their connected points
@@ -268,8 +268,8 @@ bool CalculateVertexNormals(Grid& grid,
 	}
 //	loop through all the points and normalize their normals
 	{
-		for(VertexBaseIterator iter = grid.begin<VertexBase>();
-			iter != grid.end<VertexBase>(); iter++)
+		for(VertexIterator iter = grid.begin<Vertex>();
+			iter != grid.end<Vertex>(); iter++)
 			VecNormalize(aaNorm[*iter], aaNorm[*iter]);
 	}
 //	done
@@ -278,10 +278,10 @@ bool CalculateVertexNormals(Grid& grid,
 
 bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 {
-	if(!grid.has_attachment<VertexBase>(aPos))
+	if(!grid.has_attachment<Vertex>(aPos))
 		return false;
-	if(!grid.has_attachment<VertexBase>(aNorm))
-		grid.attach_to<VertexBase>(aNorm);
+	if(!grid.has_attachment<Vertex>(aNorm))
+		grid.attach_to<Vertex>(aNorm);
 
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
 	Grid::VertexAttachmentAccessor<ANormal> aaNorm(grid, aNorm);
@@ -293,7 +293,7 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 ////////////////////////////////////////////////////////////////////////
 //	MergeVertices
 ///	merges two vertices and restructures the adjacent elements.
-void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
+void MergeVertices(Grid& grid, Vertex* v1, Vertex* v2)
 {
 //	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
 	if(grid.num_edges() && (!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))){
@@ -394,7 +394,7 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
+bool IsBoundaryVertex1D(Grid& grid, Vertex* v,
 						Grid::edge_traits::callback cbConsiderEdge)
 {
 	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
@@ -421,7 +421,7 @@ bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
 }
 						
 ////////////////////////////////////////////////////////////////////////
-bool IsBoundaryVertex2D(Grid& grid, VertexBase* v)
+bool IsBoundaryVertex2D(Grid& grid, Vertex* v)
 {
 //	check whether one of the associated edges is a boundary edge.
 //	if so return true.
@@ -448,7 +448,7 @@ bool IsBoundaryVertex2D(Grid& grid, VertexBase* v)
 	return false;
 }
 
-bool IsBoundaryVertex3D(Grid& grid, VertexBase* v)
+bool IsBoundaryVertex3D(Grid& grid, Vertex* v)
 {
 //	check whether one of the associated edges is a boundary edge.
 //	if so return true.
@@ -475,7 +475,7 @@ bool IsBoundaryVertex3D(Grid& grid, VertexBase* v)
 	return false;
 }
 
-bool LiesOnBoundary(Grid& grid, VertexBase* v)
+bool LiesOnBoundary(Grid& grid, Vertex* v)
 {
 	if(IsBoundaryVertex1D(grid, v))
 		return true;
@@ -491,7 +491,7 @@ bool LiesOnBoundary(Grid& grid, VertexBase* v)
 
 
 ////////////////////////////////////////////////////////////////////////
-bool IsRegularSurfaceVertex(Grid& grid, VertexBase* v)
+bool IsRegularSurfaceVertex(Grid& grid, Vertex* v)
 {
 //	check how many faces each associated edge has
 	Grid::AssociatedEdgeIterator edgesEnd = grid.associated_edges_end(v);
@@ -523,7 +523,7 @@ void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 	//	check for both vertices whether they are fixed-vertices
 		for(int i = 0; i < 2; ++i)
 		{
-			VertexBase* v = (*iter)->vertex(i);
+			Vertex* v = (*iter)->vertex(i);
 		//	if the vertex is not marked (has not been checked yet)
 			if(!grid.is_marked(v))
 			{

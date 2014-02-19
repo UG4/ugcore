@@ -290,7 +290,7 @@ void ComputeGradientLagrange1(TFunction& u, size_t fct,
 			MatVecMult(vGlobalGrad[sh], JTInv, vLocalGrad[sh]);
 
 		//	get vertex
-			VertexBase* vert = elem->vertex(sh);
+			Vertex* vert = elem->vertex(sh);
 
 		//	get of of vertex
 			std::vector<DoFIndex> ind;

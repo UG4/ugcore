@@ -22,9 +22,9 @@ class KDVertexDistance
 {
 	public:
 		KDVertexDistance()	{}
-		KDVertexDistance(VertexBase* vrt, float nDistSQ) : vertex(vrt), distSQ(nDistSQ)	{}
+		KDVertexDistance(Vertex* vrt, float nDistSQ) : vertex(vrt), distSQ(nDistSQ)	{}
 
-		VertexBase*		vertex;
+		Vertex*		vertex;
 		number			distSQ;
 };
 
@@ -56,7 +56,7 @@ template <class TPositionAttachment, int numDimensions = 3, class TVector = vect
 class KDTreeStatic
 {
 	public:
-		typedef std::vector<VertexBase*> VertexVec;
+		typedef std::vector<Vertex*> VertexVec;
 
 		class Node
 		{
@@ -82,10 +82,10 @@ class KDTreeStatic
 								TPositionAttachment& aPos, int maxTreeDepth, int splitThreshold,
 								KDSplitDimension splitDimension = KDSD_LARGEST);
 
-		bool get_neighbourhood(std::list<VertexBase*>& vrtsOut,
+		bool get_neighbourhood(std::list<Vertex*>& vrtsOut,
 								typename TPositionAttachment::ValueType& pos, int numClosest);
 
-		bool get_points_in_box(std::list<VertexBase*>& vrtsOut,
+		bool get_points_in_box(std::list<Vertex*>& vrtsOut,
 								const TVector& boxMin, const TVector& boxMax);
 
 		Node* get_root()	{return &m_parentNode;}
@@ -93,7 +93,7 @@ class KDTreeStatic
 		void get_leafs(std::vector<Node*>& vLeafsOut);
 		
 	protected:
-		bool get_points_in_box(std::list<VertexBase*>& vrtsOut, Node* pNode,
+		bool get_points_in_box(std::list<Vertex*>& vrtsOut, Node* pNode,
 								const TVector& boxMin, const TVector& boxMax);
 
 		void neighbourhood(KDVertexDistanceList& vrtsOut, Node* pNode, TVector& pos, int numClosest);

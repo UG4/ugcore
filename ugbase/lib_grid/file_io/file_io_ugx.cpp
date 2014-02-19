@@ -139,7 +139,7 @@ add_subset_handler(ISubsetHandler& sh, const char* name,
 	//	add elements
 		if(sh.contains_vertices(i))
 			ndSubset->append_node(
-				create_subset_element_node<VertexBase>("vertices", sh, i));
+				create_subset_element_node<Vertex>("vertices", sh, i));
 		if(sh.contains_edges(i))
 			ndSubset->append_node(
 				create_subset_element_node<EdgeBase>("edges", sh, i));
@@ -250,7 +250,7 @@ add_selector(ISelector& sel, const char* name, size_t refGridIndex)
 
 //	add elements
 	if(sel.contains_vertices())
-		ndSel->append_node(create_selector_element_node<VertexBase>("vertices", sel));
+		ndSel->append_node(create_selector_element_node<Vertex>("vertices", sel));
 	if(sel.contains_edges())
 		ndSel->append_node(create_selector_element_node<EdgeBase>("edges", sel));
 	if(sel.contains_faces())
@@ -875,7 +875,7 @@ subset_handler(ISubsetHandler& shOut,
 
 	//	read elements of this subset
 		if(shOut.elements_are_supported(SHE_VERTEX))
-			read_subset_handler_elements<VertexBase>(shOut, "vertices",
+			read_subset_handler_elements<Vertex>(shOut, "vertices",
 													 subsetNode, subsetInd,
 													 gridEntry.vertices);
 		if(shOut.elements_are_supported(SHE_EDGE))
@@ -989,7 +989,7 @@ selector(ISelector& selOut, size_t selectorIndex, size_t refGridIndex)
 
 //	read elements of this subset
 	if(selOut.elements_are_supported(SHE_VERTEX))
-		read_selector_elements<VertexBase>(selOut, "vertices",
+		read_selector_elements<Vertex>(selOut, "vertices",
 											selectorNode,
 											gridEntry.vertices);
 	if(selOut.elements_are_supported(SHE_EDGE))
@@ -1114,7 +1114,7 @@ new_document_parsed()
 bool GridReaderUGX::
 create_edges(std::vector<EdgeBase*>& edgesOut,
 			Grid& grid, rapidxml::xml_node<>* node,
-			std::vector<VertexBase*>& vrts)
+			std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1150,7 +1150,7 @@ create_edges(std::vector<EdgeBase*>& edgesOut,
 bool GridReaderUGX::
 create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
-			 			  std::vector<VertexBase*>& vrts)
+			 			  std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1186,7 +1186,7 @@ bool GridReaderUGX::
 create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
 						  std::vector<std::pair<int, int> >& constrainingObjsOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
-			 			  std::vector<VertexBase*>& vrts)
+			 			  std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1232,7 +1232,7 @@ create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
 bool GridReaderUGX::
 create_triangles(std::vector<Face*>& facesOut,
 				  Grid& grid, rapidxml::xml_node<>* node,
-				  std::vector<VertexBase*>& vrts)
+				  std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1269,7 +1269,7 @@ create_triangles(std::vector<Face*>& facesOut,
 bool GridReaderUGX::
 create_constraining_triangles(std::vector<Face*>& facesOut,
 					  Grid& grid, rapidxml::xml_node<>* node,
-					  std::vector<VertexBase*>& vrts)
+					  std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1307,7 +1307,7 @@ bool GridReaderUGX::
 create_constrained_triangles(std::vector<Face*>& facesOut,
 					  std::vector<std::pair<int, int> >& constrainingObjsOut,
 					  Grid& grid, rapidxml::xml_node<>* node,
-					  std::vector<VertexBase*>& vrts)
+					  std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1354,7 +1354,7 @@ create_constrained_triangles(std::vector<Face*>& facesOut,
 bool GridReaderUGX::
 create_quadrilaterals(std::vector<Face*>& facesOut,
 					   Grid& grid, rapidxml::xml_node<>* node,
-					   std::vector<VertexBase*>& vrts)
+					   std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1393,7 +1393,7 @@ create_quadrilaterals(std::vector<Face*>& facesOut,
 bool GridReaderUGX::
 create_constraining_quadrilaterals(std::vector<Face*>& facesOut,
 					  Grid& grid, rapidxml::xml_node<>* node,
-					  std::vector<VertexBase*>& vrts)
+					  std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1434,7 +1434,7 @@ bool GridReaderUGX::
 create_constrained_quadrilaterals(std::vector<Face*>& facesOut,
 					  std::vector<std::pair<int, int> >& constrainingObjsOut,
 					  Grid& grid, rapidxml::xml_node<>* node,
-					  std::vector<VertexBase*>& vrts)
+					  std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1485,7 +1485,7 @@ create_constrained_quadrilaterals(std::vector<Face*>& facesOut,
 bool GridReaderUGX::
 create_tetrahedrons(std::vector<Volume*>& volsOut,
 					 Grid& grid, rapidxml::xml_node<>* node,
-					 std::vector<VertexBase*>& vrts)
+					 std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1524,7 +1524,7 @@ create_tetrahedrons(std::vector<Volume*>& volsOut,
 bool GridReaderUGX::
 create_hexahedrons(std::vector<Volume*>& volsOut,
 					Grid& grid, rapidxml::xml_node<>* node,
-					std::vector<VertexBase*>& vrts)
+					std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1567,7 +1567,7 @@ create_hexahedrons(std::vector<Volume*>& volsOut,
 bool GridReaderUGX::
 create_prisms(std::vector<Volume*>& volsOut,
 			  Grid& grid, rapidxml::xml_node<>* node,
-			  std::vector<VertexBase*>& vrts)
+			  std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -1608,7 +1608,7 @@ create_prisms(std::vector<Volume*>& volsOut,
 bool GridReaderUGX::
 create_pyramids(std::vector<Volume*>& volsOut,
 				Grid& grid, rapidxml::xml_node<>* node,
-				std::vector<VertexBase*>& vrts)
+				std::vector<Vertex*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());

@@ -75,7 +75,7 @@ class GeomObjDataSerializer
 		virtual void deserialization_done()						{}
 };
 
-typedef GeomObjDataSerializer<VertexBase>	VertexDataSerializer;
+typedef GeomObjDataSerializer<Vertex>	VertexDataSerializer;
 typedef GeomObjDataSerializer<EdgeBase>		EdgeDataSerializer;
 typedef GeomObjDataSerializer<Face>			FaceDataSerializer;
 typedef GeomObjDataSerializer<Volume>		VolumeDataSerializer;
@@ -116,12 +116,12 @@ class GridDataSerializer
 	///	Read the info written during write_info here. Default: empty implementation.
 		virtual void read_info(BinaryBuffer& in)					{}
 
-		virtual void write_data(BinaryBuffer& out, VertexBase* o) const	{}
+		virtual void write_data(BinaryBuffer& out, Vertex* o) const	{}
 		virtual void write_data(BinaryBuffer& out, EdgeBase* o) const	{}
 		virtual void write_data(BinaryBuffer& out, Face* o) const		{}
 		virtual void write_data(BinaryBuffer& out, Volume* o) const		{}
 
-		virtual void read_data(BinaryBuffer& in, VertexBase* o)	{}
+		virtual void read_data(BinaryBuffer& in, Vertex* o)	{}
 		virtual void read_data(BinaryBuffer& in, EdgeBase* o)	{}
 		virtual void read_data(BinaryBuffer& in, Face* o)		{}
 		virtual void read_data(BinaryBuffer& in, Volume* o)		{}
@@ -171,7 +171,7 @@ class GridDataSerializationHandler
 
 	/**	\{
 	 * \brief Serializes data associated with the given object.*/
-		inline void serialize(BinaryBuffer& out, VertexBase* vrt) const;
+		inline void serialize(BinaryBuffer& out, Vertex* vrt) const;
 		inline void serialize(BinaryBuffer& out, EdgeBase* edge) const;
 		inline void serialize(BinaryBuffer& out, Face* face) const;
 		inline void serialize(BinaryBuffer& out, Volume* vol) const;
@@ -179,7 +179,7 @@ class GridDataSerializationHandler
 
 	///	Calls serialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
-	 * either VertexBase*, EdgeBase*, Face*, Volume*.*/
+	 * either Vertex*, EdgeBase*, Face*, Volume*.*/
 		template <class TIterator>
 		void serialize(BinaryBuffer& out, TIterator begin, TIterator end) const;
 
@@ -191,7 +191,7 @@ class GridDataSerializationHandler
 
 	/**	\{
 	 * \brief Deserializes data associated with the given object.*/
-		inline void deserialize(BinaryBuffer& in, VertexBase* vrt);
+		inline void deserialize(BinaryBuffer& in, Vertex* vrt);
 		inline void deserialize(BinaryBuffer& in, EdgeBase* edge);
 		inline void deserialize(BinaryBuffer& in, Face* face);
 		inline void deserialize(BinaryBuffer& in, Volume* vol);
@@ -199,7 +199,7 @@ class GridDataSerializationHandler
 
 	///	Calls deserialize on all elements between begin and end.
 	/**	Make sure that TIterator::value_type is compatible with
-	 * either VertexBase*, EdgeBase*, Face*, Volume*.*/
+	 * either Vertex*, EdgeBase*, Face*, Volume*.*/
 		template <class TIterator>
 		void deserialize(BinaryBuffer& in, TIterator begin, TIterator end);
 
@@ -249,7 +249,7 @@ class GridDataSerializationHandler
 ////////////////////////////////////////////////////////////////////////
 ///	Serialization callback for grid attachments
 /**	template class where TGeomObj should be one of the
- * following types: VertexBase, EdgeBase, Face, Volume.
+ * following types: Vertex, EdgeBase, Face, Volume.
  *
  * Note that the attachment is automatically attached, if not yet present.
  */
@@ -291,12 +291,12 @@ class SubsetHandlerSerializer : public GridDataSerializer
 		///	Read the info written during write_info here. Default: empty implementation.
 		virtual void read_info(BinaryBuffer& in);
 
-		virtual void write_data(BinaryBuffer& out, VertexBase* o) const;
+		virtual void write_data(BinaryBuffer& out, Vertex* o) const;
 		virtual void write_data(BinaryBuffer& out, EdgeBase* o) const;
 		virtual void write_data(BinaryBuffer& out, Face* o) const;
 		virtual void write_data(BinaryBuffer& out, Volume* o) const;
 
-		virtual void read_data(BinaryBuffer& in, VertexBase* o);
+		virtual void read_data(BinaryBuffer& in, Vertex* o);
 		virtual void read_data(BinaryBuffer& in, EdgeBase* o);
 		virtual void read_data(BinaryBuffer& in, Face* o);
 		virtual void read_data(BinaryBuffer& in, Volume* o);
@@ -455,7 +455,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
  * \todo	add support for constrained/constraining faces
  */
 bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
-									std::vector<VertexBase*>* pvVrts = NULL,
+									std::vector<Vertex*>* pvVrts = NULL,
 									std::vector<EdgeBase*>* pvEdges = NULL,
 									std::vector<Face*>* pvFaces = NULL,
 									std::vector<Volume*>* pvVols = NULL,

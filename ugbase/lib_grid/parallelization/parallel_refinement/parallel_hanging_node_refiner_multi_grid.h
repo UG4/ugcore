@@ -45,7 +45,7 @@ class ParallelHangingNodeRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 
 	protected:
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(VertexBase* elem);
+		virtual bool refinement_is_allowed(Vertex* elem);
 	///	a callback that allows to deny refinement of special edges
 		virtual bool refinement_is_allowed(EdgeBase* elem);
 	///	a callback that allows to deny refinement of special faces

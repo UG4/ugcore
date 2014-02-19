@@ -20,7 +20,7 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 {
 	PROFILE_FUNC_GROUP("gmg");
 //	vectors for associated elements
-	std::vector<VertexBase*> vAssVertex;
+	std::vector<Vertex*> vAssVertex;
 	std::vector<EdgeBase*> vAssEdge;
 	std::vector<Face*> vAssFace;
 	std::vector<Volume*> vAssVolume;
@@ -44,15 +44,15 @@ void SelectNonShadowsAdjacentToShadowsOnLevel(BoolMarker& sel,
 	const GridLevel gl(GridLevel::TOP, GridLevel::SURFACE);
 
 //	iterator type
-	geometry_traits<VertexBase>::const_iterator iter, iterEnd;
+	geometry_traits<Vertex>::const_iterator iter, iterEnd;
 
-	iterEnd = mg.end<VertexBase>(level);
+	iterEnd = mg.end<Vertex>(level);
 
 //	loop all base elems
-	for(iter = mg.begin<VertexBase>(level); iter != iterEnd; ++iter)
+	for(iter = mg.begin<Vertex>(level); iter != iterEnd; ++iter)
 	{
 	//	get element
-		VertexBase* shadow = *iter;
+		Vertex* shadow = *iter;
 
 	//	check if element is a shadow
 		if(!surfView.is_shadowed(shadow)) continue;

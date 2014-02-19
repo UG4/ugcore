@@ -49,7 +49,7 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 
 //	iterate over associated volumes of the first vertex and count
 //	the number of marked vertices it contains.
-	VertexBase* vrt = fd.vertex(0);
+	Vertex* vrt = fd.vertex(0);
 	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrt);
 	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrt);
 		iter != iterEnd; ++iter)
@@ -281,7 +281,7 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Tetrahedron* tet,
 }
 
 
-void InsertCenterVertex(Grid& g, Volume* vol, VertexBase* vrt, bool eraseOldVol)
+void InsertCenterVertex(Grid& g, Volume* vol, Vertex* vrt, bool eraseOldVol)
 {
 //	get the sides of the volume and create new elements
 	FaceDescriptor fd;

@@ -106,7 +106,7 @@ static bool LoadGrid3d(Grid& grid, ISubsetHandler* psh,
 	grid.attach_to_vertices(aPosTMP);
 	if(LoadGrid3d_IMPL(grid, psh, filename, aPosTMP)){
 	//	convert the position data from 3d to the required dimension.
-		ConvertMathVectorAttachmentValues<VertexBase>(grid, aPosTMP, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(grid, aPosTMP, aPos);
 		grid.detach_from_vertices(aPosTMP);
 		return true;
 	}
@@ -121,7 +121,7 @@ static bool LoadGrid3d(Grid& grid, ISubsetHandler* psh,
 	grid.attach_to_vertices(aPosTMP);
 	if(LoadGrid3d_IMPL(grid, psh, filename, aPosTMP)){
 	//	convert the position data from 3d to the required dimension.
-		ConvertMathVectorAttachmentValues<VertexBase>(grid, aPosTMP, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(grid, aPosTMP, aPos);
 		grid.detach_from_vertices(aPosTMP);
 		return true;
 	}
@@ -253,7 +253,7 @@ static bool SaveGrid3d(Grid& grid, ISubsetHandler* psh,
 	APosition aPosTMP;
 	grid.attach_to_vertices(aPosTMP);
 //	convert the position data from the given dimension to 3d
-	ConvertMathVectorAttachmentValues<VertexBase>(grid, aPos, aPosTMP);
+	ConvertMathVectorAttachmentValues<Vertex>(grid, aPos, aPosTMP);
 	if(SaveGrid3d_IMPL(grid, psh, filename, aPosTMP)){
 		grid.detach_from_vertices(aPosTMP);
 		return true;
@@ -269,7 +269,7 @@ static bool SaveGrid3d(Grid& grid, ISubsetHandler* psh,
 	APosition aPosTMP;
 	grid.attach_to_vertices(aPosTMP);
 //	convert the position data from the given dimension to 3d
-	ConvertMathVectorAttachmentValues<VertexBase>(grid, aPos, aPosTMP);
+	ConvertMathVectorAttachmentValues<Vertex>(grid, aPos, aPosTMP);
 	if(SaveGrid3d_IMPL(grid, psh, filename, aPosTMP)){
 		grid.detach_from_vertices(aPosTMP);
 		return true;
@@ -351,22 +351,22 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, ISubsetHandler& sh,
 	PROFILE_FUNC_GROUP("grid");
 	APosition aPos;
 //	uses auto-attach
-	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
+	Grid::AttachmentAccessor<Vertex, APosition> aaPos(mg, aPos, true);
 
 //	copy the existing position to aPos. We take care of dimension differences.
 //	Note:	if the method was implemented for domains, this could be implemented
 //			in a nicer way.
 	if(mg.has_vertex_attachment(aPosition))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition, aPos);
 	else if(mg.has_vertex_attachment(aPosition2))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition2, aPos);
 	else if(mg.has_vertex_attachment(aPosition1))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition1, aPos);
 
 //	iterate through all vertices and apply an offset depending on their level.
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
-			iter != mg.end<VertexBase>(lvl); ++iter)
+		for(VertexIterator iter = mg.begin<Vertex>(lvl);
+			iter != mg.end<Vertex>(lvl); ++iter)
 		{
 			aaPos[*iter].z() += (number)lvl * offset;
 		}
@@ -390,22 +390,22 @@ bool SaveGridHierarchyTransformed(MultiGrid& mg, const char* filename,
 
 	APosition aPos;
 //	uses auto-attach
-	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
+	Grid::AttachmentAccessor<Vertex, APosition> aaPos(mg, aPos, true);
 
 //	copy the existing position to aPos. We take care of dimension differences.
 //	Note:	if the method was implemented for domains, this could be implemented
 //			in a nicer way.
 	if(mg.has_vertex_attachment(aPosition))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition, aPos);
 	else if(mg.has_vertex_attachment(aPosition2))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition2, aPos);
 	else if(mg.has_vertex_attachment(aPosition1))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition1, aPos);
 
 //	iterate through all vertices and apply an offset depending on their level.
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
-			iter != mg.end<VertexBase>(lvl); ++iter)
+		for(VertexIterator iter = mg.begin<Vertex>(lvl);
+			iter != mg.end<Vertex>(lvl); ++iter)
 		{
 			aaPos[*iter].z() += (number)lvl * offset;
 		}
@@ -469,22 +469,22 @@ bool SaveParallelGridLayout(MultiGrid& mg, const char* filename, number offset)
 
 	APosition aPos;
 //	uses auto-attach
-	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
+	Grid::AttachmentAccessor<Vertex, APosition> aaPos(mg, aPos, true);
 
 //	copy the existing position to aPos. We take care of dimension differences.
 //	Note:	if the method was implemented for domains, this could be implemented
 //			in a nicer way.
 	if(mg.has_vertex_attachment(aPosition))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition, aPos);
 	else if(mg.has_vertex_attachment(aPosition2))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition2, aPos);
 	else if(mg.has_vertex_attachment(aPosition1))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition1, aPos);
 
 //	iterate through all vertices and apply an offset depending on their level.
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
-			iter != mg.end<VertexBase>(lvl); ++iter)
+		for(VertexIterator iter = mg.begin<Vertex>(lvl);
+			iter != mg.end<Vertex>(lvl); ++iter)
 		{
 			aaPos[*iter].z() += (number)lvl * offset;
 		}
@@ -493,7 +493,7 @@ bool SaveParallelGridLayout(MultiGrid& mg, const char* filename, number offset)
 //	create a subset handler which holds different subsets for the different interface types
 	SubsetHandler sh(mg);
 
-	AssignSubsetsByInterfaceType<VertexBase>(sh, mg);
+	AssignSubsetsByInterfaceType<Vertex>(sh, mg);
 	AssignSubsetsByInterfaceType<EdgeBase>(sh, mg);
 	AssignSubsetsByInterfaceType<Face>(sh, mg);
 	AssignSubsetsByInterfaceType<Volume>(sh, mg);
@@ -537,22 +537,22 @@ bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
 
 	APosition aPos;
 //	uses auto-attach
-	Grid::AttachmentAccessor<VertexBase, APosition> aaPos(mg, aPos, true);
+	Grid::AttachmentAccessor<Vertex, APosition> aaPos(mg, aPos, true);
 
 //	copy the existing position to aPos. We take care of dimension differences.
 //	Note:	if the method was implemented for domains, this could be implemented
 //			in a nicer way.
 	if(mg.has_vertex_attachment(aPosition))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition, aPos);
 	else if(mg.has_vertex_attachment(aPosition2))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition2, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition2, aPos);
 	else if(mg.has_vertex_attachment(aPosition1))
-		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition1, aPos);
+		ConvertMathVectorAttachmentValues<Vertex>(mg, aPosition1, aPos);
 
 //	iterate through all vertices and apply an offset depending on their level.
 	for(size_t lvl = 0; lvl < mg.num_levels(); ++lvl){
-		for(VertexBaseIterator iter = mg.begin<VertexBase>(lvl);
-			iter != mg.end<VertexBase>(lvl); ++iter)
+		for(VertexIterator iter = mg.begin<Vertex>(lvl);
+			iter != mg.end<Vertex>(lvl); ++iter)
 		{
 			aaPos[*iter].z() += (number)lvl * offset;
 		}
@@ -561,7 +561,7 @@ bool SaveSurfaceViewTransformed(MultiGrid& mg, const SurfaceView& sv,
 //	create a subset handler which holds different subsets for the different interface types
 	SubsetHandler sh(mg);
 
-	AssignSubsetsBySurfaceViewState<VertexBase>(sh, sv, mg);
+	AssignSubsetsBySurfaceViewState<Vertex>(sh, sv, mg);
 	AssignSubsetsBySurfaceViewState<EdgeBase>(sh, sv, mg);
 	AssignSubsetsBySurfaceViewState<Face>(sh, sv, mg);
 	AssignSubsetsBySurfaceViewState<Volume>(sh, sv, mg);

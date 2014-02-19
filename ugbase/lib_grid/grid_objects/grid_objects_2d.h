@@ -43,14 +43,14 @@ class UG_API TriangleDescriptor
 	public:
 		TriangleDescriptor()	{}
 		TriangleDescriptor(const TriangleDescriptor& td);
-		TriangleDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3);
+		TriangleDescriptor(Vertex* v1, Vertex* v2, Vertex* v3);
 
 		inline uint num_vertices() const					{return 3;}
-		inline void set_vertex(uint index, VertexBase* v)	{m_vertex[index] = v;}
-		inline VertexBase* vertex(uint index) const			{return m_vertex[index];}
+		inline void set_vertex(uint index, Vertex* v)	{m_vertex[index] = v;}
+		inline Vertex* vertex(uint index) const			{return m_vertex[index];}
 
 	protected:
-		VertexBase*	m_vertex[3];
+		Vertex*	m_vertex[3];
 };
 
 
@@ -72,12 +72,12 @@ class UG_API CustomTriangle : public BaseClass
 	public:
 		CustomTriangle()	{}
 		CustomTriangle(const TriangleDescriptor& td);
-		CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3);
+		CustomTriangle(Vertex* v1, Vertex* v2, Vertex* v3);
 
 		virtual GridObject* create_empty_instance() const	{return new ConcreteTriangleType;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_TRIANGLE;}
 
-		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
 		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const	{return 3;}
 
@@ -87,34 +87,34 @@ class UG_API CustomTriangle : public BaseClass
 		virtual void edge_desc(int index, EdgeDescriptor& edOut) const
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % 3]);}
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
 
 	///	Refines a Triangle by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
-							VertexBase** newFaceVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase* newFaceVertex = NULL,
-							VertexBase** pSubstituteVertices = NULL);
+							Vertex** newFaceVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex* newFaceVertex = NULL,
+							Vertex** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
-								int edgeIndex, VertexBase* newVertex,
-								VertexBase** pSubstituteVertices = NULL);
+								int edgeIndex, Vertex* newVertex,
+								Vertex** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edges(std::vector<Face*>& vNewFacesOut,
-								std::vector<VertexBase*>& vNewEdgeVertices,
-								VertexBase** pSubstituteVertices = NULL);
+								std::vector<Vertex*>& vNewEdgeVertices,
+								Vertex** pSubstituteVertices = NULL);
 
 //	BEGIN Depreciated
 		virtual void create_faces_by_edge_split(int splitEdgeIndex,
-							VertexBase* newVertex,
+							Vertex* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							VertexBase** pSubstituteVertices = NULL);
+							Vertex** pSubstituteVertices = NULL);
 
 	protected:
-		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
 
 	protected:
-		VertexBase* m_vertices[3];
+		Vertex* m_vertices[3];
 };
 
 
@@ -134,7 +134,7 @@ class UG_API Triangle : public CustomTriangle<Triangle, Face>
 
 		Triangle() : BaseClass()	{}
 		Triangle(const TriangleDescriptor& td) : BaseClass(td)	{}
-		Triangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) : BaseClass(v1, v2, v3)	{}
+		Triangle(Vertex* v1, Vertex* v2, Vertex* v3) : BaseClass(v1, v2, v3)	{}
 
 		virtual int container_section() const	{return CSFACE_TRIANGLE;}
 
@@ -177,14 +177,14 @@ class UG_API QuadrilateralDescriptor
 	public:
 		QuadrilateralDescriptor()	{}
 		QuadrilateralDescriptor(const QuadrilateralDescriptor& qd);
-		QuadrilateralDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4);
+		QuadrilateralDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4);
 
 		inline uint num_vertices() const					{return 4;}
-		inline void set_vertex(uint index, VertexBase* v)	{m_vertex[index] = v;}
-		inline VertexBase* vertex(uint index) const			{return m_vertex[index];}
+		inline void set_vertex(uint index, Vertex* v)	{m_vertex[index] = v;}
+		inline Vertex* vertex(uint index) const			{return m_vertex[index];}
 
 	protected:
-		VertexBase*	m_vertex[4];
+		Vertex*	m_vertex[4];
 };
 
 
@@ -208,13 +208,13 @@ class UG_API CustomQuadrilateral : public BaseClass
 
 		CustomQuadrilateral()	{}
 		CustomQuadrilateral(const QuadrilateralDescriptor& qd);
-		CustomQuadrilateral(VertexBase* v1, VertexBase* v2,
-							VertexBase* v3, VertexBase* v4);
+		CustomQuadrilateral(Vertex* v1, Vertex* v2,
+							Vertex* v3, Vertex* v4);
 
 		virtual GridObject* create_empty_instance() const	{return new ConcreteQuadrilateralType;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_QUADRILATERAL;}
 
-		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		virtual Vertex* vertex(uint index) const	{return m_vertices[index];}
 		virtual Face::ConstVertexArray vertices() const		{return m_vertices;}
 		virtual size_t num_vertices() const	{return 4;}
 
@@ -229,34 +229,34 @@ class UG_API CustomQuadrilateral : public BaseClass
 	/**	If the specified edge is not part of the face, false is returned.*/
 		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const;
 
-		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(Vertex* vrt) const;
 
 	///	Refines a Quadrilateral by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
-							VertexBase** newFaceVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase* newFaceVertex = NULL,
-							VertexBase** pSubstituteVertices = NULL);
+							Vertex** newFaceVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex* newFaceVertex = NULL,
+							Vertex** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
-								int edgeIndex, VertexBase* newVertex,
-								VertexBase** pSubstituteVertices = NULL);
+								int edgeIndex, Vertex* newVertex,
+								Vertex** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edges(std::vector<Face*>& vNewFacesOut,
-								std::vector<VertexBase*>& vNewEdgeVertices,
-								VertexBase** pSubstituteVertices = NULL);
+								std::vector<Vertex*>& vNewEdgeVertices,
+								Vertex** pSubstituteVertices = NULL);
 
 //	BEGIN Depreciated
 		virtual void create_faces_by_edge_split(int splitEdgeIndex,
-							VertexBase* newVertex,
+							Vertex* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							VertexBase** pSubstituteVertices = NULL);
+							Vertex** pSubstituteVertices = NULL);
 
 	protected:
-		virtual void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
+		virtual void set_vertex(uint index, Vertex* pVrt)	{m_vertices[index] = pVrt;}
 
 	protected:
-		VertexBase* m_vertices[4];
+		Vertex* m_vertices[4];
 };
 
 
@@ -276,8 +276,8 @@ class UG_API Quadrilateral : public CustomQuadrilateral<Quadrilateral, Face>
 
 		Quadrilateral()	{}
 		Quadrilateral(const QuadrilateralDescriptor& td) : BaseClass(td)	{}
-		Quadrilateral(VertexBase* v1, VertexBase* v2,
-					  VertexBase* v3, VertexBase* v4) : BaseClass(v1, v2, v3, v4)	{}
+		Quadrilateral(Vertex* v1, Vertex* v2,
+					  Vertex* v3, Vertex* v4) : BaseClass(v1, v2, v3, v4)	{}
 
 		virtual int container_section() const	{return CSFACE_QUADRILATERAL;}
 
@@ -379,7 +379,7 @@ class UG_API ConstrainedTriangle : public CustomTriangle<ConstrainedTriangle, Co
 		ConstrainedTriangle(const TriangleDescriptor& td) :
 			BaseTriangle(td)	{}
 
-		ConstrainedTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) :
+		ConstrainedTriangle(Vertex* v1, Vertex* v2, Vertex* v3) :
 			BaseTriangle(v1, v2, v3)	{}
 
 		virtual int container_section() const	{return CSFACE_CONSTRAINED_TRIANGLE;}
@@ -430,8 +430,8 @@ class UG_API ConstrainedQuadrilateral : public CustomQuadrilateral<ConstrainedQu
 
 		ConstrainedQuadrilateral() : BaseClass()	{}
 		ConstrainedQuadrilateral(const QuadrilateralDescriptor& qd) : BaseClass(qd)	{}
-		ConstrainedQuadrilateral(VertexBase* v1, VertexBase* v2,
-								 VertexBase* v3, VertexBase* v4) : BaseClass(v1, v2, v3, v4)	{}
+		ConstrainedQuadrilateral(Vertex* v1, Vertex* v2,
+								 Vertex* v3, Vertex* v4) : BaseClass(v1, v2, v3, v4)	{}
 
 		virtual int container_section() const	{return CSFACE_CONSTRAINED_QUADRILATERAL;}
 
@@ -488,7 +488,7 @@ class UG_API ConstrainingFace : public Face
 
 		virtual bool is_constraining() const					{return true;}
 
-		inline void add_constrained_object(VertexBase* pObj)
+		inline void add_constrained_object(Vertex* pObj)
 			{
 				UG_ASSERT(!is_constrained_object(pObj), "vertex is already registered at constraining face");
 					m_constrainedVertices.push_back(pObj);
@@ -506,9 +506,9 @@ class UG_API ConstrainingFace : public Face
 					m_constrainedFaces.push_back(pObj);
 			}
 
-		inline bool is_constrained_object(VertexBase* vrt)
+		inline bool is_constrained_object(Vertex* vrt)
 			{
-				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
+				std::vector<Vertex*>::iterator iter = find(m_constrainedVertices.begin(),
 															m_constrainedVertices.end(), vrt);
 				return iter != m_constrainedVertices.end();
 			}
@@ -527,9 +527,9 @@ class UG_API ConstrainingFace : public Face
 				return iter != m_constrainedFaces.end();
 			}
 
-		inline void unconstrain_object(const VertexBase* vrt)
+		inline void unconstrain_object(const Vertex* vrt)
 			{
-				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
+				std::vector<Vertex*>::iterator iter = find(m_constrainedVertices.begin(),
 															 m_constrainedVertices.end(), vrt);
 				if(iter != m_constrainedVertices.end())
 					m_constrainedVertices.erase(iter);
@@ -568,7 +568,7 @@ class UG_API ConstrainingFace : public Face
 		template <class TElem> size_t num_constrained() const;
 
 
-		inline VertexBase* constrained_vertex(size_t ind) const
+		inline Vertex* constrained_vertex(size_t ind) const
 			{
 				UG_ASSERT(ind < m_constrainedVertices.size(), "bad index.");
 				return m_constrainedVertices[ind];
@@ -589,7 +589,7 @@ class UG_API ConstrainingFace : public Face
 		template <class TElem> TElem* constrained(size_t ind) const;
 
 	protected:
-		std::vector<VertexBase*>	m_constrainedVertices;
+		std::vector<Vertex*>	m_constrainedVertices;
 		std::vector<EdgeBase*>		m_constrainedEdges;
 		std::vector<Face*>			m_constrainedFaces;
 };
@@ -613,7 +613,7 @@ class UG_API ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, 
 			BaseTriangle()	{reserve_memory();}
 		ConstrainingTriangle(const TriangleDescriptor& td) :
 			BaseTriangle(td)	{reserve_memory();}
-		ConstrainingTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) :
+		ConstrainingTriangle(Vertex* v1, Vertex* v2, Vertex* v3) :
 			BaseTriangle(v1, v2, v3)	{reserve_memory();}
 
 		virtual int container_section() const	{return CSFACE_CONSTRAINING_TRIANGLE;}
@@ -672,8 +672,8 @@ class UG_API ConstrainingQuadrilateral : public CustomQuadrilateral<Constraining
 			BaseClass()	{reserve_memory();}
 		ConstrainingQuadrilateral(const QuadrilateralDescriptor& qd) :
 			BaseClass(qd)	{reserve_memory();}
-		ConstrainingQuadrilateral(VertexBase* v1, VertexBase* v2,
-								  VertexBase* v3, VertexBase* v4) :
+		ConstrainingQuadrilateral(Vertex* v1, Vertex* v2,
+								  Vertex* v3, Vertex* v4) :
 			BaseClass(v1, v2, v3, v4)	{reserve_memory();}
 
 		virtual int container_section() const	{return CSFACE_CONSTRAINING_QUADRILATERAL;}

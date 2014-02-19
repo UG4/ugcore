@@ -70,12 +70,12 @@ void MaxErrorOnVertices(number& globalMaxError,SmartPtr<UserData<number, TGridFu
 		if(!spGridFct->is_def_in_subset(fct, si)) continue;
 
 	// 	iterate over all elements
-		iterEnd = spGridFct->template end<VertexBase>(si);
-		iter = spGridFct->template begin<VertexBase>(si);
+		iterEnd = spGridFct->template end<Vertex>(si);
+		iter = spGridFct->template begin<Vertex>(si);
 		for(; iter != iterEnd; ++iter)
 		{
 		//	get element
-			VertexBase* vrt = *iter;
+			Vertex* vrt = *iter;
 
 		//	global position
 			position_type glob_pos = aaPos[vrt];

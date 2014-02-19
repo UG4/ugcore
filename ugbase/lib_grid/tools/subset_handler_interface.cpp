@@ -158,8 +158,8 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	//	assign the subsets for each element-type
 		if(elements_are_supported(SHE_VERTEX)){
 			//LOG(" vrts -");
-			CopySubsetIndices(*this, sh, destGrid->begin<VertexBase>(), destGrid->end<VertexBase>(),
-								srcGrid->begin<VertexBase>(), srcGrid->end<VertexBase>());
+			CopySubsetIndices(*this, sh, destGrid->begin<Vertex>(), destGrid->end<Vertex>(),
+								srcGrid->begin<Vertex>(), srcGrid->end<Vertex>());
 		}
 
 		if(elements_are_supported(SHE_EDGE)){
@@ -504,7 +504,7 @@ reset_subset_indices(uint shElements)
 	if(m_pGrid)
 	{
 		if((shElements & SHE_VERTEX) && elements_are_supported(SHE_VERTEX))
-			ResetSubsetIndices<VertexBase>(m_pGrid, m_aaSubsetIndexVRT);
+			ResetSubsetIndices<Vertex>(m_pGrid, m_aaSubsetIndexVRT);
 		if((shElements & SHE_EDGE) && elements_are_supported(SHE_EDGE))
 			ResetSubsetIndices<EdgeBase>(m_pGrid, m_aaSubsetIndexEDGE);
 		if((shElements & SHE_FACE) && elements_are_supported(SHE_FACE))
@@ -521,7 +521,7 @@ get_subset_index(GridObject* elem) const
 	switch(type)
 	{
 		case VERTEX:
-			return get_subset_index(reinterpret_cast<VertexBase*>(elem));
+			return get_subset_index(reinterpret_cast<Vertex*>(elem));
 		case EDGE:
 			return get_subset_index(reinterpret_cast<EdgeBase*>(elem));
 		case FACE:
@@ -930,7 +930,7 @@ elements_to_be_cleared(Grid* grid)
 
 //	vertex callbacks
 void ISubsetHandler::
-vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent,
+vertex_created(Grid* grid, Vertex* vrt, GridObject* pParent,
 				bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_created(...): Grids do not match.");
@@ -946,7 +946,7 @@ vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent,
 			if(m_bStrictInheritanceEnabled){
 				if(pParent->base_object_id() == VERTEX){
 					assign_subset(vrt, get_subset_index(
-										reinterpret_cast<VertexBase*>(pParent)));
+										reinterpret_cast<Vertex*>(pParent)));
 				}
 				else if(m_defaultSubsetIndex != -1)
 					assign_subset(vrt, m_defaultSubsetIndex);
@@ -961,7 +961,7 @@ vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent,
 }
 
 void ISubsetHandler::
-vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
+vertex_to_be_erased(Grid* grid, Vertex* vrt, Vertex* replacedBy)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_to_be_erased(...): Grids do not match.");
 
@@ -1109,8 +1109,8 @@ elems_to_be_merged(Grid* grid, TElem* target,
 }
 
 void ISubsetHandler::
-vertices_to_be_merged(Grid* grid, VertexBase* target,
-					 VertexBase* elem1, VertexBase* elem2)
+vertices_to_be_merged(Grid* grid, Vertex* target,
+					 Vertex* elem1, Vertex* elem2)
 {
 	if(elements_are_supported(SHE_VERTEX))
 		elems_to_be_merged(grid, target, elem1, elem2);

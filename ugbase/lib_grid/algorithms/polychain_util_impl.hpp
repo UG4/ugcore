@@ -28,7 +28,7 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
 	{
 		for(size_t i = 0; i < 2; ++i){
-			VertexBase* v = (*iter)->vertex(i);
+			Vertex* v = (*iter)->vertex(i);
 			
 			size_t counter = 0;
 			for(Grid::AssociatedEdgeIterator aiter = grid.associated_edges_begin(v);
@@ -68,13 +68,13 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 				  
 ////////////////////////////////////////////////////////////////////////
 template <class TEdgeIterator>
-std::pair<VertexBase*, EdgeBase*>
+std::pair<Vertex*, EdgeBase*>
 GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 							TEdgeIterator edgesEnd,
 							Grid::edge_traits::callback cbEdgeIsInPolyChain)
 {
 	if(edgesBegin == edgesEnd)
-		return std::make_pair<VertexBase*, EdgeBase*>(NULL, NULL);
+		return std::make_pair<Vertex*, EdgeBase*>(NULL, NULL);
 	
 //	since we want to prefer vertices with local edge index 0, we'll first iterate
 //	over the local indices of the edges
@@ -83,7 +83,7 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 		for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
 		{
 			EdgeBase* curEdge = *iter;
-			VertexBase* curVrt = curEdge->vertex(locInd);
+			Vertex* curVrt = curEdge->vertex(locInd);
 			
 		//	if curVrt is a boundary vertex of the given chain, then we're done.
 			if(IsBoundaryVertex1D(grid, curVrt, cbEdgeIsInPolyChain)){
@@ -96,7 +96,7 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 }
 
 template <class TEdgeIter>
-bool CreatePolyChain(std::vector<VertexBase*>& polyChainOut, Grid& grid,
+bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 					TEdgeIter edgesBegin, TEdgeIter edgesEnd)
 {
 	polyChainOut.clear();
@@ -112,7 +112,7 @@ bool CreatePolyChain(std::vector<VertexBase*>& polyChainOut, Grid& grid,
 
 //TODO: handle open chains.
 	EdgeBase* actEdge = *edgesBegin;
-	VertexBase* actVrt = actEdge->vertex(1);
+	Vertex* actVrt = actEdge->vertex(1);
 	polyChainOut.push_back(actEdge->vertex(0));
 	grid.mark(actEdge->vertex(0));
 	polyChainOut.push_back(actEdge->vertex(1));
@@ -129,7 +129,7 @@ bool CreatePolyChain(std::vector<VertexBase*>& polyChainOut, Grid& grid,
 			EdgeBase* e = *eIter;
 			if(grid.is_marked(e)){
 			//	check whether the connected vertex is unmarked
-				VertexBase* cv = GetConnectedVertex(e, actVrt);
+				Vertex* cv = GetConnectedVertex(e, actVrt);
 				if(!grid.is_marked(cv)){
 				//	push it to the chain and mark it.
 					grid.mark(cv);

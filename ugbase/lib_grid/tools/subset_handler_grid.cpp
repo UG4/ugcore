@@ -139,7 +139,7 @@ void GridSubsetHandler::clear_subset_lists(int index)
 {
 	if(m_pGrid)
 	{
-		section_container<VertexBase>(index).clear();
+		section_container<Vertex>(index).clear();
 		section_container<EdgeBase>(index).clear();
 		section_container<Face>(index).clear();
 		section_container<Volume>(index).clear();
@@ -173,7 +173,7 @@ assign_subset_impl(TElem* elem, int subsetIndex)
 
 }
 
-void GridSubsetHandler::assign_subset(VertexBase* elem, int subsetIndex)
+void GridSubsetHandler::assign_subset(Vertex* elem, int subsetIndex)
 {
 	assign_subset_impl(elem, subsetIndex);
 }
@@ -199,7 +199,7 @@ change_subset_indices(int indOld, int indNew)
 	if(m_pGrid)
 	{
 		if(elements_are_supported(SHE_VERTEX))
-			change_elem_subset_indices<VertexBase>(indOld, indNew);
+			change_elem_subset_indices<Vertex>(indOld, indNew);
 		if(elements_are_supported(SHE_EDGE))
 			change_elem_subset_indices<EdgeBase>(indOld, indNew);
 		if(elements_are_supported(SHE_FACE))
@@ -217,7 +217,7 @@ void GridSubsetHandler::add_required_subset_lists(int maxIndex)
 		Subset* sub = new Subset;
 		if(elements_are_supported(SHE_VERTEX))
 			sub->m_vertices.get_container().set_pipe(
-					&m_pGrid->get_attachment_pipe<VertexBase>(), m_aSharedEntryVRT);
+					&m_pGrid->get_attachment_pipe<Vertex>(), m_aSharedEntryVRT);
 		if(elements_are_supported(SHE_EDGE))
 			sub->m_edges.get_container().set_pipe(
 					&m_pGrid->get_attachment_pipe<EdgeBase>(), m_aSharedEntryEDGE);
@@ -301,8 +301,8 @@ register_subset_elements_at_pipe()
 	for(size_t i = 0; i < num_subsets_in_list(); ++i)
 	{
 	//	register vertices
-		for(VertexBaseIterator iter = begin<VertexBase>(i);
-			iter != end<VertexBase>(i); ++iter)
+		for(VertexIterator iter = begin<Vertex>(i);
+			iter != end<Vertex>(i); ++iter)
 			register_at_pipe(*iter);
 
 	//	register edges
@@ -355,7 +355,7 @@ get_grid_objects() const
 }
 /*
 size_t GridSubsetHandler::
-collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const
+collect_subset_elements(std::vector<Vertex*>& vrtsOut, int subsetIndex) const
 {
 	return collect_subset_elements_impl(vrtsOut, subsetIndex);
 }

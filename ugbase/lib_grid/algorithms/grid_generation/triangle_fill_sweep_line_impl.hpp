@@ -29,7 +29,7 @@ bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 
 //	set up the vertex and edge arrays and build some additional
 //	information that is required when it comes to building the triangles.
-	std::vector<VertexBase*> vrtPtrs;
+	std::vector<Vertex*> vrtPtrs;
 	std::vector<vector3> vrts;
 	std::vector<int>	edges;
 
@@ -39,7 +39,7 @@ bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 		EdgeBase* e = *iter;
 
 		for(size_t i = 0; i < 2; ++i){
-			VertexBase* vrt = e->vertex(i);
+			Vertex* vrt = e->vertex(i);
 			if(!grid.is_marked(vrt)){
 				aaInt[vrt] = (int)vrts.size();
 				vrts.push_back(aaPos[vrt]);

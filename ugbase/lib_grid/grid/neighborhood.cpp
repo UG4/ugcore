@@ -12,8 +12,8 @@ namespace ug
 							
 ////////////////////////////////////////////////////////////////////////
 //
-void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
-						Grid& grid, VertexBase* vrt, uint nbhType,
+void CollectNeighbors(std::vector<Vertex*>& vNeighborsOut,
+						Grid& grid, Vertex* vrt, uint nbhType,
 						Grid::edge_traits::callback considerEdge,
 						Grid::face_traits::callback considerFace,
 						Grid::volume_traits::callback considerVol)
@@ -34,7 +34,7 @@ void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
 			iter != iterEnd; ++iter)
 		{
 			if(considerEdge(*iter)){
-				VertexBase* neighbour = GetConnectedVertex(*iter, vrt);
+				Vertex* neighbour = GetConnectedVertex(*iter, vrt);
 				if(!grid.is_marked(neighbour)){
 					grid.mark(neighbour);
 					vNeighborsOut.push_back(neighbour);
@@ -54,7 +54,7 @@ void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
 				size_t numVrts = f->num_vertices();
 				Face::ConstVertexArray vrts = f->vertices();
 				for(size_t i = 0; i < numVrts; ++i){
-					VertexBase* neighbour = vrts[i];
+					Vertex* neighbour = vrts[i];
 					if(!grid.is_marked(neighbour)){
 						grid.mark(neighbour);
 						vNeighborsOut.push_back(neighbour);
@@ -75,7 +75,7 @@ void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut,
 				size_t numVrts = v->num_vertices();
 				Volume::ConstVertexArray vrts = v->vertices();
 				for(size_t i = 0; i < numVrts; ++i){
-					VertexBase* neighbour = vrts[i];
+					Vertex* neighbour = vrts[i];
 					if(!grid.is_marked(neighbour)){
 						grid.mark(neighbour);
 						vNeighborsOut.push_back(neighbour);
@@ -385,13 +385,13 @@ void CollectNeighbors(std::vector<Volume*>& vNeighborsOut, Volume* v,
 }
 
 void CollectNeighborhood(std::vector<Face*>& facesOut, Grid& grid,
-						  VertexBase* vrt, size_t range,
+						  Vertex* vrt, size_t range,
 						  bool clearContainer)
 {
 	if(clearContainer)
 		facesOut.clear();
 	
-	vector<VertexBase*> candidates;
+	vector<Vertex*> candidates;
 	size_t rangeBegin = 0;
 	size_t rangeEnd = 1;
 	
@@ -407,7 +407,7 @@ void CollectNeighborhood(std::vector<Face*>& facesOut, Grid& grid,
 	//	in the correct range are considered
 		for(size_t i_vrt = rangeBegin; i_vrt < rangeEnd; ++i_vrt)
 		{
-			VertexBase* v = candidates[i_vrt];
+			Vertex* v = candidates[i_vrt];
 		//	iterate over associated faces
 			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
 				iter != grid.associated_faces_end(v); ++iter)

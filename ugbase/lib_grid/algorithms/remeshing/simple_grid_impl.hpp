@@ -15,13 +15,13 @@ namespace ug
 //	ObtainSimpleGrid
 template <class TPosAcc, class TIntAcc, class TNormAcc>
 bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
-						VertexBase* vrt1, VertexBase* vrt2, size_t size,
+						Vertex* vrt1, Vertex* vrt2, size_t size,
 						TPosAcc& aaPos, TNormAcc& aaNorm,
 						TIntAcc& aaInt)
 {
 //	vVrts will be reused in each call. To avoid unnecessary allocations,
 //	we'll reuse this vector.
-	static std::vector<VertexBase*> vVrts;
+	static std::vector<Vertex*> vVrts;
 	vVrts.clear();
 	
 //	clear the simple-grid
@@ -51,7 +51,7 @@ bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
 	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt1);
 		iter != iterEnd; ++iter)
 	{
-		VertexBase* vUnmarked = NULL;
+		Vertex* vUnmarked = NULL;
 		Face* f = *iter;
 		int counter = 0;
 		
@@ -86,7 +86,7 @@ bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
 	{		
 		for(; nextVrt < vrtsEnd; ++nextVrt)
 		{
-			VertexBase* vrt = vVrts[nextVrt];
+			Vertex* vrt = vVrts[nextVrt];
 		//	colelct neighbour faces
 			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
 			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
@@ -180,7 +180,7 @@ bool ObtainSimpleGrid_CollapseEdge(SimpleGrid& sgOut, Grid& grid,
 			int edgeVrts = 0;// increase for each vertex that lies on e
 			
 			for(size_t i = 0; i < 3; ++i){
-				VertexBase* v = f->vertex(i);
+				Vertex* v = f->vertex(i);
 				if((v == e->vertex(0)) || (v == e->vertex(1))){
 					ind[i] = 0;
 					edgeVrts++;

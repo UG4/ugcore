@@ -48,7 +48,7 @@ UG_API int GetFaceIndex(Volume* vol, Face* f);
  */
 UG_API 
 void CalculateNormal(vector3& vNormOut, FaceVertices* face,
-					Grid::AttachmentAccessor<VertexBase, APosition>& aaPos);
+					Grid::AttachmentAccessor<Vertex, APosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
@@ -68,7 +68,7 @@ void CalculateNormal(vector3& vNormOut, FaceVertices* face,
  */
 UG_API 
 void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
-						Grid::AttachmentAccessor<VertexBase, APosition>& aaPos);
+						Grid::AttachmentAccessor<Vertex, APosition>& aaPos);
 					
 ////////////////////////////////////////////////////////////////////////
 //	CalculateFaceNormals
@@ -357,7 +357,7 @@ bool IsDegenerated(Face* f, TAAPosVRT& aaPos, number threshold = SMALL);
  * The original face may optionally be deleted.
  */
 UG_API
-void InsertCenterVertex(Grid& g, Face* f, VertexBase* vrt, bool eraseOldFace);
+void InsertCenterVertex(Grid& g, Face* f, Vertex* vrt, bool eraseOldFace);
 
 /// @}
 

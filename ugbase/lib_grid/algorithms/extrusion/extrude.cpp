@@ -15,7 +15,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	Extrude
 void Extrude(Grid& grid,
-			std::vector<VertexBase*>* pvVerticesInOut,
+			std::vector<Vertex*>* pvVerticesInOut,
 			std::vector<EdgeBase*>* pvEdgesInOut,
 			std::vector<Face*>* pvFacesInOut,
 			const vector3& direction,
@@ -49,7 +49,7 @@ void Extrude(Grid& grid,
 		return;
 
 //	the hash:
-	typedef Hash<uint, VertexBase*> VertexHash;
+	typedef Hash<uint, Vertex*> VertexHash;
 	VertexHash vrtHash(hashSize);
 	vrtHash.reserve(hashSize);
 
@@ -75,14 +75,14 @@ void Extrude(Grid& grid,
 	if(pvVerticesInOut)
 	{
 		UG_DLOG(LIB_GRID, 1, "  extruding vertices: " << pvVerticesInOut->size() << endl);
-		vector<VertexBase*>& vVertices = *pvVerticesInOut;
+		vector<Vertex*>& vVertices = *pvVerticesInOut;
 		for(uint i = 0; i < vVertices.size(); ++i)
 		{
-			VertexBase* vOld = vVertices[i];
+			Vertex* vOld = vVertices[i];
 		//	create a new vertex and store it in the hash.
 		//	use the attachment_data_index of the old one as key.
 		//	WARNING: this is only secure as long as nobody calls defragment while the hash is active!
-			VertexBase* v = *grid.create<RegularVertex>(vOld);
+			Vertex* v = *grid.create<RegularVertex>(vOld);
 			vrtHash.insert(grid.get_attachment_data_index(vOld), v);
 
 		//	calculate new position
@@ -109,7 +109,7 @@ void Extrude(Grid& grid,
 
 		//	check for both boundary points whether the new vertices have already been created.
 		//	if not then create them here and store them.
-			VertexBase* v[2];
+			Vertex* v[2];
 
 			for(uint j = 0; j < 2; ++j)
 			{
@@ -157,7 +157,7 @@ void Extrude(Grid& grid,
 
 		//	check for all points whether the new vertices have already been created.
 		//	if not then create them here and store them.
-			VertexBase* v[4];
+			Vertex* v[4];
 
 			uint numVrts = f->num_vertices();
 

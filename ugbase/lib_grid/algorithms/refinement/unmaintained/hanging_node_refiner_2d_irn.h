@@ -164,13 +164,13 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 	//	you should use this methods instead of directly marking elements.
 		inline bool is_marked(EdgeBase* e)							{return m_selMarkedElements.is_selected(e);}
 		inline void mark(EdgeBase* e)								{m_selMarkedElements.select(e);}
-		inline VertexBase* get_center_vertex(EdgeBase* e)			{return m_aaVertexEDGE[e];}
-		inline void set_center_vertex(EdgeBase* e, VertexBase* v)	{m_aaVertexEDGE[e] = v;}
+		inline Vertex* get_center_vertex(EdgeBase* e)			{return m_aaVertexEDGE[e];}
+		inline void set_center_vertex(EdgeBase* e, Vertex* v)	{m_aaVertexEDGE[e] = v;}
 
 		inline bool is_marked(Face* f)								{return m_selMarkedElements.is_selected(f);}
 		inline void mark(Face* f)									{m_selMarkedElements.select(f);}
-		inline VertexBase* get_center_vertex(Face* f)				{return m_aaVertexFACE[f];}
-		inline void set_center_vertex(Face* f, VertexBase* v)		{m_aaVertexFACE[f] = v;}
+		inline Vertex* get_center_vertex(Face* f)				{return m_aaVertexFACE[f];}
+		inline void set_center_vertex(Face* f, Vertex* v)		{m_aaVertexFACE[f] = v;}
 
 		inline bool is_marked(Volume* v)							{return m_selMarkedElements.is_selected(v);}
 		inline void mark(Volume* v)									{m_selMarkedElements.select(v);}
@@ -196,14 +196,14 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 
 				inline void reset()			{m_mark = RM_NONE; m_vertex = NULL;}
 
-				inline void set_vertex(VertexBase* v)		{m_vertex = v;}
+				inline void set_vertex(Vertex* v)		{m_vertex = v;}
 				inline void set_mark(RefinementMark mark)	{m_mark = mark;}
 
-				inline VertexBase* get_vertex()	{return m_vertex;}
+				inline Vertex* get_vertex()	{return m_vertex;}
 				inline int get_mark()			{return m_mark;}
 
 			protected:
-				VertexBase* m_vertex;
+				Vertex* m_vertex;
 				int m_mark;
 		};
 	*/
@@ -212,7 +212,7 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 	protected:
 		Grid*		m_pGrid;
 
-		AVertexBase		m_aVertex;
+		AVertex		m_aVertex;
 
 		uint 		m_irregularityRule;
 		Selector	m_selMarkedElements;
@@ -223,8 +223,8 @@ class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 		//Grid::VertexAttachmentAccessor<APosition>		m_aaPos;
 		//Grid::EdgeAttachmentAccessor<ARefinementInfo>	m_aaRefinementInfoEDGE;
 		//Grid::FaceAttachmentAccessor<ARefinementInfo>	m_aaRefinementInfoFACE;
-		Grid::EdgeAttachmentAccessor<AVertexBase>		m_aaVertexEDGE;
-		Grid::FaceAttachmentAccessor<AVertexBase>		m_aaVertexFACE;
+		Grid::EdgeAttachmentAccessor<AVertex>		m_aaVertexEDGE;
+		Grid::FaceAttachmentAccessor<AVertex>		m_aaVertexFACE;
 		//Grid::VolumeAttachmentAccessor<ARefinementMark>	m_aaRefinementMarkVOL;
 };
 

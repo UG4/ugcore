@@ -66,7 +66,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	VERTICES
 ///	creates and removes connectivity data, as specified in optsNew.
-void Grid::register_vertex(VertexBase* v, GridObject* pParent)
+void Grid::register_vertex(Vertex* v, GridObject* pParent)
 {
 	GCM_PROFILE_FUNC();
 
@@ -83,7 +83,7 @@ void Grid::register_vertex(VertexBase* v, GridObject* pParent)
 	GCM_PROFILE_END();
 }
 
-void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
+void Grid::register_and_replace_element(Vertex* v, Vertex* pReplaceMe)
 {
 	m_vertexElementStorage.m_attachmentPipe.register_element(v);
 	m_vertexElementStorage.m_sectionContainer.insert(v, v->container_section());
@@ -188,7 +188,7 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 	delete pReplaceMe;
 }
 
-void Grid::unregister_vertex(VertexBase* v)
+void Grid::unregister_vertex(Vertex* v)
 {
 //	notify observers that the vertex is being erased
 	NOTIFY_OBSERVERS_REVERSE(m_vertexObservers, vertex_to_be_erased(this, v));
@@ -744,7 +744,7 @@ void Grid::unregister_edge(EdgeBase* e)
 	//	iterate through the associated vertices and remove the edge from their edge-list.
 		for(int i = 0; i < 2; ++i)
 		{
-			VertexBase* vrt = e->vertex(i);
+			Vertex* vrt = e->vertex(i);
 			EdgeContainer::iterator iter = find(m_aaEdgeContainerVERTEX[vrt].begin(),
 												m_aaEdgeContainerVERTEX[vrt].end(), e);
 			if(iter != m_aaEdgeContainerVERTEX[vrt].end())
@@ -1165,7 +1165,7 @@ void Grid::unregister_face(Face* f)
 		Face::ConstVertexArray vrts = f->vertices();
 		for(uint i = 0; i < numVrts; ++i)
 		{
-			VertexBase* vrt = vrts[i];
+			Vertex* vrt = vrts[i];
 			FaceContainer::iterator iter = find(m_aaFaceContainerVERTEX[vrt].begin(),
 												m_aaFaceContainerVERTEX[vrt].end(), f);
 			if(iter != m_aaFaceContainerVERTEX[vrt].end())
@@ -1680,7 +1680,7 @@ void Grid::unregister_volume(Volume* v)
 		for(uint i = 0; i < numVertices; ++i)
 		{
 		//	find the correct entry
-			VertexBase* vrt = vrts[i];
+			Vertex* vrt = vrts[i];
 			VolumeContainer::iterator iter = find(m_aaVolumeContainerVERTEX[vrt].begin(),
 													m_aaVolumeContainerVERTEX[vrt].end(), v);
 			if(iter != m_aaVolumeContainerVERTEX[vrt].end())
@@ -2055,7 +2055,7 @@ void Grid::volume_sort_associated_edge_container()
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	replace_vertex
-bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
+bool Grid::replace_vertex(Vertex* vrtOld, Vertex* vrtNew)
 {
 //	this bool should be a parameter. However one first would have
 //	to add connectivity updates for double-elements in this method,
@@ -2509,7 +2509,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 
 ////////////////////////////////////////////////////////////////////////
 //	replace_vertex_is_valid
-bool Grid::replace_vertex_is_valid(VertexBase* vrtOld, VertexBase* vrtNew)
+bool Grid::replace_vertex_is_valid(Vertex* vrtOld, Vertex* vrtNew)
 {
 //	iterate through all geometric objects connected to vrtOld and check
 //	if they contain vrtNew too. If not return true, else return false.
@@ -2597,7 +2597,7 @@ void Grid::get_associated(SecureVertexContainer& vrts, Volume* v)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED EDGES
-void Grid::get_associated(SecureEdgeContainer& edges, VertexBase* v)
+void Grid::get_associated(SecureEdgeContainer& edges, Vertex* v)
 {
 //	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
 //	complexity O(n). This has to be avoided! We thus simply enable the option.
@@ -2683,7 +2683,7 @@ void Grid::get_associated(SecureEdgeContainer& edges, Volume* v)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED FACES
-void Grid::get_associated(SecureFaceContainer& faces, VertexBase* v)
+void Grid::get_associated(SecureFaceContainer& faces, Vertex* v)
 {
 //	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
 //	complexity O(n). This has to be avoided! We thus simply enable the option.
@@ -2734,7 +2734,7 @@ void Grid::get_associated(SecureFaceContainer& faces, EdgeBase* e)
 		}
 
 	//	check as few faces as possible
-		VertexBase* vrt = e->vertex(0);
+		Vertex* vrt = e->vertex(0);
 /*	//	This check could be beneficial - however, it probably introduces unnecessary overhead.
  		if(m_aaFaceContainerVERTEX[vrt].size() >
 			m_aaFaceContainerVERTEX[e->vertex(1)].size())
@@ -2784,7 +2784,7 @@ void Grid::get_associated(SecureFaceContainer& faces, Volume* v)
 
 ////////////////////////////////////////////////////////////////////////////////
 //	ASSOCIATED VOLUMES
-void Grid::get_associated(SecureVolumeContainer& vols, VertexBase* v)
+void Grid::get_associated(SecureVolumeContainer& vols, Vertex* v)
 {
 //	Without the VRTOPT_STORE_ASSOCIATED_... option, this operation would have
 //	complexity O(n). This has to be avoided! We thus simply enable the option.
@@ -2835,7 +2835,7 @@ void Grid::get_associated(SecureVolumeContainer& vols, EdgeBase* e)
 		}
 
 	//	check as few faces as possible
-		VertexBase* vrt = e->vertex(0);
+		Vertex* vrt = e->vertex(0);
 /*	//	This check could be beneficial - however, it probably introduces unnecessary overhead.
  		if(m_aaVolumeContainerVERTEX[vrt].size() >
 			m_aaVolumeContainerVERTEX[e->vertex(1)].size())
@@ -2886,7 +2886,7 @@ void Grid::get_associated_vols_raw(SecureVolumeContainer& vols, Face* f)
 	}
 
 //	check as few faces as possible
-	VertexBase* vrt = f->vertex(0);
+	Vertex* vrt = f->vertex(0);
 
 	VolumeContainer& assVols = m_aaVolumeContainerVERTEX[vrt];
 	for(size_t i = 0; i < assVols.size(); ++i){
@@ -2919,7 +2919,7 @@ void Grid::get_associated_sorted(SecureVertexContainer& vrts, Volume* v) const
 }
 
 
-void Grid::get_associated_sorted(SecureEdgeContainer& edges, VertexBase*)
+void Grid::get_associated_sorted(SecureEdgeContainer& edges, Vertex*)
 {
 	edges.set_external_array(NULL, 0);
 }
@@ -2983,7 +2983,7 @@ void Grid::get_associated_sorted(SecureEdgeContainer& edges, Volume* v)
 	}
 }
 
-void Grid::get_associated_sorted(SecureFaceContainer& faces, VertexBase*)
+void Grid::get_associated_sorted(SecureFaceContainer& faces, Vertex*)
 {
 	faces.set_external_array(NULL, 0);
 }
@@ -3021,7 +3021,7 @@ void Grid::get_associated_sorted(SecureFaceContainer& faces, Volume* v)
 	}
 }
 
-void Grid::get_associated_sorted(SecureVolumeContainer& vols, VertexBase*)
+void Grid::get_associated_sorted(SecureVolumeContainer& vols, Vertex*)
 {
 	vols.set_external_array(NULL, 0);
 }

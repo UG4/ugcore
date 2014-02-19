@@ -13,7 +13,7 @@ namespace ug{
 
 
 /// returns the vertices of the object constraining a hanging vertex
-void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
+void CollectConstraining(std::vector<Vertex*>& vConstrainingVrt,
 						 const Grid& grid,
                          ConstrainedVertex* hgVrt,
                          bool bClearContainer)
@@ -51,7 +51,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 								"constrained edge, but is not.");
 
 			//	get non-hanging vertex
-				VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
+				Vertex* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
 
 			//	push back in list of interpolation vertices
 				vConstrainingVrt.push_back(vrt);
@@ -67,7 +67,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 			for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge){
 				EdgeBase* e = edges[i_edge];
 				if(e->is_constrained()){
-					VertexBase* conVrt = GetConnectedVertex(e, hgVrt);
+					Vertex* conVrt = GetConnectedVertex(e, hgVrt);
 					if(!conVrt->is_constrained()){
 						vConstrainingVrt.push_back(conVrt);
 					}
@@ -96,7 +96,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 			{
 				Face* face = bigQuad->constrained_face(i_cf);
 
-				VertexBase* vrt = NULL;
+				Vertex* vrt = NULL;
 				size_t i_vrt = 0;
 				for(i_vrt = 0; i_vrt < face->num_vertices(); ++i_vrt)
 				{
@@ -120,7 +120,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 			for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 				Face* f = faces[i_face];
 				if(f->is_constrained()){
-					VertexBase* vrt = NULL;
+					Vertex* vrt = NULL;
 					size_t i_vrt = 0;
 					for(i_vrt = 0; i_vrt < f->num_vertices(); ++i_vrt){
 						vrt = f->vertex(i_vrt);

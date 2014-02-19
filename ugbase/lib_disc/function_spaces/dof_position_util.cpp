@@ -108,7 +108,7 @@ bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GridObject* 
 	std::vector<MathVector<TDomain::dim> > vVertPos;
 	switch(elem->base_object_id())
 	{
-		case VERTEX: CollectCornerCoordinates(vVertPos, *static_cast<VertexBase*>(elem), domain, true); break;
+		case VERTEX: CollectCornerCoordinates(vVertPos, *static_cast<Vertex*>(elem), domain, true); break;
 		case EDGE: CollectCornerCoordinates(vVertPos, *static_cast<EdgeBase*>(elem), domain, true); break;
 		case FACE: CollectCornerCoordinates(vVertPos, *static_cast<Face*>(elem), domain, true); break;
 		case VOLUME: CollectCornerCoordinates(vVertPos, *static_cast<Volume*>(elem), domain, true); break;
@@ -198,7 +198,7 @@ bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GridObject* elem,
 	std::vector<MathVector<TDomain::dim> > vVertPos;
 	switch(elem->base_object_id())
 	{
-		case VERTEX: CollectCornerCoordinates(vVertPos, *static_cast<VertexBase*>(elem), domain, true); break;
+		case VERTEX: CollectCornerCoordinates(vVertPos, *static_cast<Vertex*>(elem), domain, true); break;
 		case EDGE: CollectCornerCoordinates(vVertPos, *static_cast<EdgeBase*>(elem), domain, true); break;
 		case FACE: CollectCornerCoordinates(vVertPos, *static_cast<Face*>(elem), domain, true); break;
 		case VOLUME: CollectCornerCoordinates(vVertPos, *static_cast<Volume*>(elem), domain, true); break;
@@ -313,20 +313,20 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 	const typename TDomain::position_accessor_type& aaPos = domain->position_accessor();
 
 //	iterator
-	typename DoFDistribution::traits<VertexBase>::const_iterator iter, iterEnd;
+	typename DoFDistribution::traits<Vertex>::const_iterator iter, iterEnd;
 
 //	algebra indices vector
 	std::vector<size_t> ind;
 
 //	get iterators
-	iter = dd->begin<VertexBase>(SurfaceView::ALL);
-	iterEnd = dd->end<VertexBase>(SurfaceView::ALL);
+	iter = dd->begin<Vertex>(SurfaceView::ALL);
+	iterEnd = dd->end<Vertex>(SurfaceView::ALL);
 
 //	loop all vertices
 	for(;iter != iterEnd; ++iter)
 	{
 	//	get vertex
-		VertexBase* v = *iter;
+		Vertex* v = *iter;
 
 	//	load indices associated with vertex
 		dd->inner_algebra_indices(v, ind);
@@ -470,7 +470,7 @@ void ExtractAlgebraIndices(ConstSmartPtr<TDomain> domain,
 	fctIndex.resize(nr);
 
 //	extract for all element types
-	if(dd->max_dofs(VERTEX)) ExtractAlgebraIndices2<TDomain, VertexBase>(domain, dd, fctIndex);
+	if(dd->max_dofs(VERTEX)) ExtractAlgebraIndices2<TDomain, Vertex>(domain, dd, fctIndex);
 	if(dd->max_dofs(EDGE)) ExtractAlgebraIndices2<TDomain, EdgeBase>(domain, dd, fctIndex);
 	if(dd->max_dofs(FACE)) ExtractAlgebraIndices2<TDomain, Face>(domain, dd, fctIndex);
 	if(dd->max_dofs(VOLUME)) ExtractAlgebraIndices2<TDomain, Volume>(domain, dd, fctIndex);
@@ -492,11 +492,11 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 //	resize positions
 	vPosPair.resize(dd->num_indices());
 
-	typedef DoFDistribution::traits<VertexBase>::const_iterator const_iterator;
+	typedef DoFDistribution::traits<Vertex>::const_iterator const_iterator;
 
 //	loop all vertices
-	const_iterator iter = dd->begin<VertexBase>(SurfaceView::ALL);
-	const_iterator iterEnd = dd->end<VertexBase>(SurfaceView::ALL);
+	const_iterator iter = dd->begin<Vertex>(SurfaceView::ALL);
+	const_iterator iterEnd = dd->end<Vertex>(SurfaceView::ALL);
 
 //	algebra indices vector
 	std::vector<size_t> ind;
@@ -504,7 +504,7 @@ void ExtractPositionsVertex(ConstSmartPtr<TDomain> domain,
 	for(;iter != iterEnd; ++iter)
 	{
 	//	get vertex
-		VertexBase* v = *iter;
+		Vertex* v = *iter;
 
 	//	load indices associated with vertex
 		dd->inner_algebra_indices(v, ind);
@@ -669,7 +669,7 @@ void ExtractPositions(ConstSmartPtr<TDomain> domain,
 	vPosPair.clear();
 
 //	extract for all element types
-	if(dd->max_dofs(VERTEX)) ExtractPositionsElem<TDomain, VertexBase>(domain, dd, fct, vPosPair);
+	if(dd->max_dofs(VERTEX)) ExtractPositionsElem<TDomain, Vertex>(domain, dd, fct, vPosPair);
 	if(dd->max_dofs(EDGE)) ExtractPositionsElem<TDomain, EdgeBase>(domain, dd, fct, vPosPair);
 	if(dd->max_dofs(FACE)) ExtractPositionsElem<TDomain, Face>(domain, dd, fct, vPosPair);
 	if(dd->max_dofs(VOLUME)) ExtractPositionsElem<TDomain, Volume>(domain, dd, fct, vPosPair);
@@ -804,7 +804,7 @@ bool CheckDoFPositions(ConstSmartPtr<TDomain> domain,
 
 //	extract for all element types
 	bool bRes = true;
-	if(dd->max_dofs(VERTEX)) bRes &= CheckDoFElem<TDomain, VertexBase>(domain, dd, vPos);
+	if(dd->max_dofs(VERTEX)) bRes &= CheckDoFElem<TDomain, Vertex>(domain, dd, vPos);
 	if(dd->max_dofs(EDGE)) bRes &= CheckDoFElem<TDomain, EdgeBase>(domain, dd, vPos);
 	if(dd->max_dofs(FACE)) bRes &= CheckDoFElem<TDomain, Face>(domain, dd, vPos);
 	if(dd->max_dofs(VOLUME)) bRes &= CheckDoFElem<TDomain, Volume>(domain, dd, vPos);

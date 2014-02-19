@@ -70,11 +70,11 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 												domain.position_attachment(),
 												firstAxisToCut);
 		}
-		else if(pMG->num<VertexBase>() > 0){
+		else if(pMG->num<Vertex>() > 0){
 			partitionMap.get_partition_handler().assign_subset(
-							pMG->begin<VertexBase>(), pMG->end<VertexBase>(), bucketSubset);
+							pMG->begin<Vertex>(), pMG->end<Vertex>(), bucketSubset);
 
-			PartitionElementsByRepeatedIntersection<VertexBase, TDomain::dim>(
+			PartitionElementsByRepeatedIntersection<Vertex, TDomain::dim>(
 												partitionMap.get_partition_handler(),
 												*pMG, pMG->num_levels() - 1,
 												partitionMap.num_target_procs(),
@@ -92,8 +92,8 @@ static bool PartitionDomain_Bisection(TDomain& domain, PartitionMap& partitionMa
 
 //	Assign all elements to partition 0
 	UG_LOG("WARNING: Serial fallback implementation of PartitionDomain_Bisection is used.\n");
-	partitionMap.get_partition_handler().assign_subset(pMG->begin<VertexBase>(),
-													   pMG->end<VertexBase>(), 0);
+	partitionMap.get_partition_handler().assign_subset(pMG->begin<Vertex>(),
+													   pMG->end<Vertex>(), 0);
 	partitionMap.get_partition_handler().assign_subset(pMG->begin<EdgeBase>(),
 													   pMG->end<EdgeBase>(), 0);
 	partitionMap.get_partition_handler().assign_subset(pMG->begin<Face>(),
@@ -122,7 +122,7 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 		}
 
 		typedef typename TDomain::position_attachment_type TAPos;
-		Grid::AttachmentAccessor<VertexBase, TAPos> aaPos(*pMG,
+		Grid::AttachmentAccessor<Vertex, TAPos> aaPos(*pMG,
 												domain.position_attachment());
 
 	//	this callback allows us to only distribute surface elements, which are no ghosts
@@ -180,17 +180,17 @@ static bool PartitionDomain_RegularGrid(TDomain& domain, PartitionMap& partition
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
-		else if(pMG->num<VertexBase>() > 0){
+		else if(pMG->num<Vertex>() > 0){
 			if(!surfaceOnly)
-				PartitionElements_RegularGrid<VertexBase>(
+				PartitionElements_RegularGrid<Vertex>(
 											partitionMap.get_partition_handler(),
-											pMG->begin<VertexBase>(), pMG->end<VertexBase>(),
+											pMG->begin<Vertex>(), pMG->end<Vertex>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											Grid::vertex_traits::cb_consider_all, bucketSubset);
 			else
-				PartitionElements_RegularGrid<VertexBase>(
+				PartitionElements_RegularGrid<Vertex>(
 											partitionMap.get_partition_handler(),
-											pMG->begin<VertexBase>(), pMG->end<VertexBase>(),
+											pMG->begin<Vertex>(), pMG->end<Vertex>(),
 											numCellsX, numCellsY, numCellsZ, aaPos,
 											cbConsiderElem, bucketSubset);
 		}
@@ -457,7 +457,7 @@ static bool DistributeDomain(TDomain& domainOut,
 
 //	data serialization
 	SPVertexDataSerializer posSerializer =
-			GeomObjAttachmentSerializer<VertexBase, position_attachment_type>::
+			GeomObjAttachmentSerializer<Vertex, position_attachment_type>::
 								create(*pGrid, domainOut.position_attachment());
 
 	SPGridDataSerializer shSerializer = SubsetHandlerSerializer::

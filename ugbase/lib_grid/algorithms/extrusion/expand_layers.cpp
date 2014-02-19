@@ -44,7 +44,7 @@ class AttachmentUnequal{
  *	Requires the option FACEOPT_AUTOGENERATE_EDGES.
  */
 /*
-static bool VertexLiesOnSurface(Grid& grid, VertexBase* vrt,
+static bool VertexLiesOnSurface(Grid& grid, Vertex* vrt,
 						 CB_ConsiderFace funcIsSurfFace)
 {
 	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
@@ -138,7 +138,7 @@ static bool VertexLiesOnSurface(Grid& grid, VertexBase* vrt,
  */
 template <class TAAPosVRT>
 typename TAAPosVRT::ValueType
-CalculateCreaseNormal(Grid& grid, Face* f, VertexBase* vrt,
+CalculateCreaseNormal(Grid& grid, Face* f, Vertex* vrt,
 						Grid::edge_traits::callback funcIsCreaseEdge,
 						TAAPosVRT& aaPos)
 {
@@ -228,7 +228,7 @@ CalculateCreaseNormal(Grid& grid, Face* f, VertexBase* vrt,
  */
 template <class TAAPosVRT>
 typename TAAPosVRT::ValueType
-CalculateCreaseNormal(Grid& grid, Volume* vol, VertexBase* vrt,
+CalculateCreaseNormal(Grid& grid, Volume* vol, Vertex* vrt,
 						Grid::face_traits::callback funcIsCreaseFace,
 						TAAPosVRT& aaPos)
 {
@@ -371,7 +371,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 		//	select associated vertices
 			for(size_t i = 0; i < 2; ++i){
-				VertexBase* v = (*iter)->vertex(i);
+				Vertex* v = (*iter)->vertex(i);
 				sel.select(v);
 
 			//	if fracture boundaries are expanded, we'll regard all fracture vertices
@@ -396,10 +396,10 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	are treated as inner fracture vertices.
 //	This is only required if frac-boundaries are not expanded anyways.
 	if(expandOuterFracBnds && !expandInnerFracBnds){
-		for(VertexBaseIterator iter = sel.vertices_begin();
+		for(VertexIterator iter = sel.vertices_begin();
 			iter != sel.vertices_end(); ++iter)
 		{
-			VertexBase* v = *iter;
+			Vertex* v = *iter;
 			if(aaMarkVRT[v] == 1){
 				if(IsBoundaryVertex2D(grid, v))
 					aaMarkVRT[v] = 2;
@@ -408,8 +408,8 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	}
 
 //	Select all edges and faces which are connected to inner fracture vertices
-	for(VertexBaseIterator iter = sel.begin<VertexBase>();
-		iter != sel.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = sel.begin<Vertex>();
+		iter != sel.end<Vertex>(); ++iter)
 	{
 		if(aaMarkVRT[*iter] > 1){
 			sel.select(grid.associated_edges_begin(*iter),
@@ -425,7 +425,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	we have to associate a vector of vertices with each node in the fracture.
 //	since an empty vector is quite small, we can associate one with each vertex in
 //	the whole grid. This could be optimized if required, by using subset attachments.
-	typedef Attachment<vector<VertexBase*> > AVrtVec;
+	typedef Attachment<vector<Vertex*> > AVrtVec;
 	AVrtVec aVrtVec;
 	grid.attach_to_vertices(aVrtVec);
 	Grid::VertexAttachmentAccessor<AVrtVec> aaVrtVecVRT(grid, aVrtVec);
@@ -444,7 +444,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	{
 		Face* sf = *iter_sf;
 
-		vector<VertexBase*>& newVrts = aaVrtVecFACE[sf];
+		vector<Vertex*>& newVrts = aaVrtVecFACE[sf];
 		newVrts.resize(sf->num_vertices());
 
 	//	check for each vertex whether it lies in the fracture
@@ -454,7 +454,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		for(size_t i_vrt = 0; i_vrt < sf->num_vertices(); ++i_vrt)
 		{
 			newVrts[i_vrt] = NULL;
-			VertexBase* vrt = sf->vertex(i_vrt);
+			Vertex* vrt = sf->vertex(i_vrt);
 			if(aaMarkVRT[vrt] > 1){
 			//	calculate the normal on this side of the frac
 				vector3 n = CalculateCreaseNormal(grid, sf, vrt, isFracEdge, aaPos);
@@ -462,7 +462,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 			//	check whether aaVrtVecs already contains a vertex associated with n.
 			//	the normal of new vrts is stored in their position attachment
-				vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
+				vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
 				for(size_t i = 0; i < vrtVec.size(); ++i){
 					//UG_LOG("comparing to: " << aaPos[vrtVec[i]] << endl);
 					if(VecDistanceSq(aaPos[vrtVec[i]], n) < SMALL){
@@ -484,10 +484,10 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	}
 
 //	assign the new positions
-	for(VertexBaseIterator iter = sel.vertices_begin();
+	for(VertexIterator iter = sel.vertices_begin();
 		iter != sel.vertices_end(); ++iter)
 	{
-		VertexBase* vrt = *iter;
+		Vertex* vrt = *iter;
 
 	//	calculate the width as the maximum of associated fracture widths
 		CollectEdges(edges, grid, vrt);
@@ -499,11 +499,11 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		}
 
 	//	iterate over associated vertices
-		vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
+		vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
 
 	//	note that the position attachment of new vertices holds their normal.
 		for(size_t i = 0; i < vrtVec.size(); ++i){
-			VertexBase* nVrt = vrtVec[i];
+			Vertex* nVrt = vrtVec[i];
 			if(width > 0){
 				vector3 n = aaPos[nVrt];
 				if(VecLengthSq(n) > SMALL)
@@ -571,8 +571,8 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 				size_t ind0 = i_edge;
 				size_t ind1 = (i_edge + 1) % sf->num_edges();
 
-				VertexBase* nv0 = (aaVrtVecFACE[sf])[ind0];
-				VertexBase* nv1 = (aaVrtVecFACE[sf])[ind1];
+				Vertex* nv0 = (aaVrtVecFACE[sf])[ind0];
+				Vertex* nv1 = (aaVrtVecFACE[sf])[ind1];
 
 				if(nv0 || nv1){
 				//	if one vertex has no associated new one, then we use the vertex itself
@@ -596,7 +596,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		Face* sf = *iter_sf;
 		++iter_sf;
 
-		vector<VertexBase*> newVrts = aaVrtVecFACE[sf];
+		vector<Vertex*> newVrts = aaVrtVecFACE[sf];
 
 	//	all new vertices have been assigned to newVrts.
 	//	Note that if newVrts[i] == NULL, then we have to take the
@@ -714,7 +714,7 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 
 		//	collect associated volumes of the vertices and add them to surroundingFaces
 			for(size_t i = 0; i < f->num_vertices(); ++i){
-				VertexBase* v = f->vertex(i);
+				Vertex* v = f->vertex(i);
 				sel.select(v);
 //				CollectVolumes(vols, grid, v);
 //				sel.select(vols.begin(), vols.end());
@@ -756,7 +756,7 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 //		treated as a boundary vertex for the non-degenerated case.
 //		This is because regarding the mix of both would result in problematic element shapes.
 //		For the degenerated case we regard the mix as an inner vertex.
-	for(VertexBaseIterator iter = sel.vertices_begin();
+	for(VertexIterator iter = sel.vertices_begin();
 		iter != sel.vertices_end(); ++iter)
 	{
 		CollectEdges(edges, grid, *iter);
@@ -811,17 +811,17 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 //	if fracture boundaries shall be extended, then we have to regard all
 //	boundary vertices as inner vertices
 	if(expandInnerFracBnds && expandOuterFracBnds){
-		for(VertexBaseIterator iter = sel.vertices_begin(); iter != sel.vertices_end(); ++iter)
+		for(VertexIterator iter = sel.vertices_begin(); iter != sel.vertices_end(); ++iter)
 		{
-			VertexBase* v = *iter;
+			Vertex* v = *iter;
 			if(aaMarkVRT[v] == 1)
 				aaMarkVRT[v] = 2;
 		}
 	}
 	else if(expandInnerFracBnds){
-		for(VertexBaseIterator iter = sel.vertices_begin(); iter != sel.vertices_end(); ++iter)
+		for(VertexIterator iter = sel.vertices_begin(); iter != sel.vertices_end(); ++iter)
 		{
-			VertexBase* v = *iter;
+			Vertex* v = *iter;
 			if(!IsBoundaryVertex3D(grid, v)){
 				if(aaMarkVRT[v] == 1)
 					aaMarkVRT[v] = 2;
@@ -829,9 +829,9 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 		}
 	}
 	else if(expandOuterFracBnds){
-		for(VertexBaseIterator iter = sel.vertices_begin(); iter != sel.vertices_end(); ++iter)
+		for(VertexIterator iter = sel.vertices_begin(); iter != sel.vertices_end(); ++iter)
 		{
-			VertexBase* v = *iter;
+			Vertex* v = *iter;
 			if(IsBoundaryVertex3D(grid, v)){
 			//	get state from marked associated boundary edges
 				aaMarkVRT[v] = 0;
@@ -856,10 +856,10 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 
 //	select all non-fracture edges, faces and volumes, which are connected to an
 //	inner fracture vertex.
-	for(VertexBaseIterator iter = sel.begin<VertexBase>();
-		iter != sel.end<VertexBase>(); ++iter)
+	for(VertexIterator iter = sel.begin<Vertex>();
+		iter != sel.end<Vertex>(); ++iter)
 	{
-		VertexBase* vrt = *iter;
+		Vertex* vrt = *iter;
 		if(aaMarkVRT[vrt] > 1){
 		//	select all associated edges, faces and volumes
 			sel.select(grid.associated_edges_begin(vrt),
@@ -972,7 +972,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	we have to associate a vector of vertices with each node in the fracture.
 //	since an empty vector is quite small, we can associate one with each vertex in
 //	the whole grid. This could be optimized if required, by using subset attachments.
-	typedef Attachment<vector<VertexBase*> > AVrtVec;
+	typedef Attachment<vector<Vertex*> > AVrtVec;
 	AVrtVec aVrtVec;
 	grid.attach_to_vertices(aVrtVec);
 	Grid::VertexAttachmentAccessor<AVrtVec> aaVrtVecVRT(grid, aVrtVec);
@@ -991,7 +991,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 	{
 		Volume* sv = *iter_sv;
 
-		vector<VertexBase*>& newVrts = aaVrtVecVOL[sv];
+		vector<Vertex*>& newVrts = aaVrtVecVOL[sv];
 		newVrts.resize(sv->num_vertices());
 
 	//	check for each vertex whether it lies in the fracture
@@ -1001,7 +1001,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		for(size_t i_vrt = 0; i_vrt < sv->num_vertices(); ++i_vrt)
 		{
 			newVrts[i_vrt] = NULL;
-			VertexBase* vrt = sv->vertex(i_vrt);
+			Vertex* vrt = sv->vertex(i_vrt);
 			if(aaMarkVRT[vrt] > 1){
 			//	calculate the normal on this side of the frac
 				vector3 n = CalculateCreaseNormal(grid, sv, vrt, faceIsInFrac, aaPos);
@@ -1009,7 +1009,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 			//	check whether aaVrtVecs already contains a vertex associated with n.
 			//	the normal of new vrts is stored in their position attachment
-				vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
+				vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
 				for(size_t i = 0; i < vrtVec.size(); ++i){
 					//UG_LOG("comparing to: " << aaPos[vrtVec[i]] << endl);
 					if(VecDistanceSq(aaPos[vrtVec[i]], n) < SMALL){
@@ -1032,10 +1032,10 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 
 ////////////////////////////////
 //	assign positions
-	for(VertexBaseIterator iter = sel.vertices_begin();
+	for(VertexIterator iter = sel.vertices_begin();
 		iter != sel.vertices_end(); ++iter)
 	{
-		VertexBase* vrt = *iter;
+		Vertex* vrt = *iter;
 
 	//	calculate the width as the maximum of associated fracture widths
 		CollectFaces(faces, grid, vrt);
@@ -1047,11 +1047,11 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 		}
 
 	//	iterate over associated vertices
-		vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
+		vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
 
 	//	note that the position attachment of new vertices holds their normal.
 		for(size_t i = 0; i < vrtVec.size(); ++i){
-			VertexBase* nVrt = vrtVec[i];
+			Vertex* nVrt = vrtVec[i];
 			if(width > 0){
 				vector3 n = aaPos[nVrt];
 				if(VecLengthSq(n) > SMALL)
@@ -1112,8 +1112,8 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 			//	new vertices already exists, we'll create the new edge.
 				size_t ind0, ind1;
 				sv->get_local_vertex_indices_of_edge(ind0, ind1, i_edge);
-				VertexBase* nv0 = (aaVrtVecVOL[sv])[ind0];
-				VertexBase* nv1 = (aaVrtVecVOL[sv])[ind1];
+				Vertex* nv0 = (aaVrtVecVOL[sv])[ind0];
+				Vertex* nv1 = (aaVrtVecVOL[sv])[ind1];
 
 				if(nv0 || nv1){
 				//	if one vertex has no associated new one, then we use the vertex itself
@@ -1148,7 +1148,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 				fd.set_num_vertices(sf->num_vertices());
 
 				for(size_t i = 0; i < sf->num_vertices(); ++i){
-					VertexBase* nVrt = (aaVrtVecVOL[sv])[locVrtInds[i]];
+					Vertex* nVrt = (aaVrtVecVOL[sv])[locVrtInds[i]];
 					if(nVrt)
 						fd.set_vertex(i, nVrt);
 					else
@@ -1314,14 +1314,14 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 //	in this case equality with 0 is desired.
 	if(maxFracWidth == 0){
 	//	set all positions of new vertices to the positions of their parents
-		for(VertexBaseIterator iter = sel.vertices_begin();
+		for(VertexIterator iter = sel.vertices_begin();
 			iter != sel.vertices_end(); ++iter)
 		{
-			VertexBase* vrt = *iter;
+			Vertex* vrt = *iter;
 		//	iterate over associated vertices
-			vector<VertexBase*>& vrtVec = aaVrtVecVRT[vrt];
+			vector<Vertex*>& vrtVec = aaVrtVecVRT[vrt];
 			for(size_t i = 0; i < vrtVec.size(); ++i){
-				VertexBase* nVrt = vrtVec[i];
+				Vertex* nVrt = vrtVec[i];
 				aaPos[nVrt] = aaPos[vrt];
 			}
 		}

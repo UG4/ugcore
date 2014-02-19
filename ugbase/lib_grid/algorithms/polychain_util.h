@@ -56,7 +56,7 @@ GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
  *	If there are no edges between the given iterators, std::pair(NULL, NULL) is returned.
  */
 template <class TEdgeIterator>
-std::pair<VertexBase*, EdgeBase*>
+std::pair<Vertex*, EdgeBase*>
 GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 						  TEdgeIterator edgesEnd,
 						  Grid::edge_traits::callback cbEdgeIsInPolyChain);
@@ -76,8 +76,8 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
  *	the algorithm still terminates. However assumtions on the outcome should not
  *	be made.
  */
-std::pair<VertexBase*, EdgeBase*>
-GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSection,
+std::pair<Vertex*, EdgeBase*>
+GetNextSectionOfPolyChain(Grid& grid, std::pair<Vertex*, EdgeBase*> lastSection,
 						  Grid::edge_traits::callback cbEdgeIsInPolyChain);
 
 ////////////////////////////////////////////////////////////////////////
@@ -98,7 +98,7 @@ bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex);
  * edges between edgesBegin and edgesEnd should build a closed regular polygon.
  * \todo	add support for open chains.*/
 template <class TEdgeIter>
-bool CreatePolyChain(std::vector<VertexBase*>& polyChainOut, Grid& grid,
+bool CreatePolyChain(std::vector<Vertex*>& polyChainOut, Grid& grid,
 					TEdgeIter edgesBegin, TEdgeIter edgesEnd);
 
 /**@}*/ // end of doxygen defgroup command

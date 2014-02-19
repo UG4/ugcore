@@ -74,13 +74,13 @@ class DelaunayInfo : public GridObserver
 		Grid& grid()				{return m_grid;}
 		AAPos& position_accessor()	{return m_aaPos;}
 
-		void mark(VertexBase* vrt, bool mark = true)
+		void mark(Vertex* vrt, bool mark = true)
 		{
 			if(mark)	m_aaMarkedVRT[vrt] = 1;
 			else		m_aaMarkedVRT[vrt] = 0;
 		}
 
-		bool is_marked(VertexBase* vrt)		{return m_aaMarkedVRT[vrt] != 0;}
+		bool is_marked(Vertex* vrt)		{return m_aaMarkedVRT[vrt] != 0;}
 
 		void mark_as_constrained(EdgeBase* e)	{m_aaMarkedEDGE[e] = 2;}
 
@@ -233,7 +233,7 @@ class DelaunayInfo : public GridObserver
 			m_faceClassificationEnabled = (minAngle > 0);
 		}
 
-		virtual void vertex_created(Grid* grid, VertexBase* vrt,
+		virtual void vertex_created(Grid* grid, Vertex* vrt,
 									GridObject* pParent,
 									bool replacesParent)
 		{
@@ -391,7 +391,7 @@ class DelaunayInfo : public GridObserver
 		AAPos	m_aaPos;
 
 		AByte 	m_aCandidateMark;
-		Grid::AttachmentAccessor<VertexBase, AByte>	m_aaMarkedVRT;
+		Grid::AttachmentAccessor<Vertex, AByte>	m_aaMarkedVRT;
 		Grid::AttachmentAccessor<EdgeBase, AByte>	m_aaMarkedEDGE;
 		std::queue<EdgeBase*>	m_qEdgeCandidates;
 
@@ -443,8 +443,8 @@ class UG_API DelaunayDebugSaver
 				UG_LOG(msg << ": debug-save to " << ss.str() << std::endl);
 				SubsetHandler sh(g);
 
-				for(VertexBaseIterator iter = g.begin<VertexBase>();
-					iter != g.end<VertexBase>(); ++iter)
+				for(VertexIterator iter = g.begin<Vertex>();
+					iter != g.end<Vertex>(); ++iter)
 				{
 					if(dinfo.is_marked(*iter))
 						sh.assign_subset(*iter, 1);
@@ -536,8 +536,8 @@ bool MakeDelaunay(DelaunayInfo<TAAPos>& info)
 				continue;
 
 		//	This section is just temporary...
-			VertexBase* conVrt0 = GetConnectedVertex(e, nbrFaces[0]);
-			VertexBase* conVrt1 = GetConnectedVertex(e, nbrFaces[1]);
+			Vertex* conVrt0 = GetConnectedVertex(e, nbrFaces[0]);
+			Vertex* conVrt1 = GetConnectedVertex(e, nbrFaces[1]);
 
 			vector_t& v0 = aaPos[e->vertex(0)];
 			vector_t& v1 = aaPos[e->vertex(1)];
@@ -677,8 +677,8 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 
 //	helper to collect neighbors
 	Face* nbrFaces[2];
-	queue<VertexBase*> qvrts; // used during splits
-	vector<VertexBase*> vrts;
+	queue<Vertex*> qvrts; // used during splits
+	vector<Vertex*> vrts;
 	vector<EdgeBase*> edges;
 	vector<EdgeBase*> closeEdges; // used during splits
 	vector<Face*> faces;
@@ -794,7 +794,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 			//vector_t startPos = CalculateCenter(f, aaPos);
 			vector_t rayDir;
 			VecSubtract(rayDir, cc, faceCenter);
-			VertexBase* pointInserted = NULL;
+			Vertex* pointInserted = NULL;
 
 			while(pointInserted == NULL){
 				//UG_LOG("curTri: " << CalculateCenter(curFace, aaPos) << "\n");
@@ -853,8 +853,8 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 						//UG_LOG("EDGE-SPLIT\n");
 						vector_t center = CalculateCenter(nextEdge, aaPos);
 
-						VertexBase* vrt0 = nextEdge->vertex(0);
-						VertexBase* vrt1 = nextEdge->vertex(1);
+						Vertex* vrt0 = nextEdge->vertex(0);
+						Vertex* vrt1 = nextEdge->vertex(1);
 						number radiusSq = VecDistanceSq(center, aaPos[vrt0]);
 						number radius = sqrt(radiusSq);
 						pointInserted = SplitEdge<RegularVertex>(grid, nextEdge, false);
@@ -874,7 +874,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 
 							grid.begin_marking();
 							while(!qvrts.empty()){
-								VertexBase* vrt = qvrts.front();
+								Vertex* vrt = qvrts.front();
 								qvrts.pop();
 
 							//	collect all edges connected to vrt
@@ -899,7 +899,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 										//	the queue, regardless whether it lies in the circle
 										//	or not, since an edge from this vertex could
 										//	reenter the circle
-											VertexBase* vcon = GetConnectedVertex(e, vrt);
+											Vertex* vcon = GetConnectedVertex(e, vrt);
 											if(grid.is_marked(vcon))
 												continue;
 											grid.mark(vcon);
@@ -933,7 +933,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 						//	if it is visible, then we'll delete it and locally remesh
 						//	the grid.
 							for(size_t i_vrts = 0; i_vrts < vrts.size(); ++i_vrts){
-								VertexBase* vrt = vrts[i_vrts];
+								Vertex* vrt = vrts[i_vrts];
 								vector_t& v = aaPos[vrt];
 								//UG_LOG("ERASING VRT at " << v << "...\n");
 								bool intersects = false;
@@ -978,7 +978,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 							//	perform retriangulation
 							//	get the vertices of the poly-chain
 								//UG_LOG("1");
-								std::vector<VertexBase*> vrtPolyChain;
+								std::vector<Vertex*> vrtPolyChain;
 								CreatePolyChain(vrtPolyChain, grid, edges.begin(), edges.end());
 								//UG_LOG("2");
 								std::vector<vector_t> posPolyChain(vrtPolyChain.size());
@@ -1031,7 +1031,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 
 							grid.begin_marking();
 							while(!qvrts.empty()){
-								VertexBase* vrt = qvrts.front();
+								Vertex* vrt = qvrts.front();
 								qvrts.pop();
 
 							//	collect all edges connected to vrt
@@ -1063,7 +1063,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 										//	the queue, regardless whether it lies in the circle
 										//	or not, since an edge from this vertex could
 										//	reenter the circle
-											VertexBase* vcon = GetConnectedVertex(e, vrt);
+											Vertex* vcon = GetConnectedVertex(e, vrt);
 											qvrts.push(vcon);
 										}
 									}
@@ -1082,12 +1082,12 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 				//	todo: make sure, that cc really lies in curTri
 				//...
 					//UG_LOG("Inserting point into triangle\n");
-					VertexBase* vrt0 = curFace->vertex(0);
-					VertexBase* vrt1 = curFace->vertex(1);
-					VertexBase* vrt2 = curFace->vertex(2);
+					Vertex* vrt0 = curFace->vertex(0);
+					Vertex* vrt1 = curFace->vertex(1);
+					Vertex* vrt2 = curFace->vertex(2);
 
 				//UG_LOG("creating new elements...\n");
-					VertexBase* vrt = *grid.create<RegularVertex>(curFace);
+					Vertex* vrt = *grid.create<RegularVertex>(curFace);
 					aaPos[vrt] = cc;
 					grid.create<Triangle>(TriangleDescriptor(vrt0, vrt1, vrt), curFace);
 					grid.create<Triangle>(TriangleDescriptor(vrt1, vrt2, vrt), curFace);

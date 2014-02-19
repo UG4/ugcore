@@ -20,7 +20,7 @@ PeriodicBoundaryManager::~PeriodicBoundaryManager()
 void PeriodicBoundaryManager::set_grid(Grid* g)
 {
 	// group attachments
-	Attachment<Group<VertexBase>*> aGroupVRT;
+	Attachment<Group<Vertex>*> aGroupVRT;
 	Attachment<Group<EdgeBase>*> aGroupEDG;
 	Attachment<Group<Face>*> aGroupFCE;
 
@@ -79,7 +79,7 @@ Grid* PeriodicBoundaryManager::get_grid() const {
 
 // group accessors
 template <>
-Grid::AttachmentAccessor<VertexBase, Attachment<PeriodicBoundaryManager::Group<VertexBase>* > >&
+Grid::AttachmentAccessor<Vertex, Attachment<PeriodicBoundaryManager::Group<Vertex>* > >&
 PeriodicBoundaryManager::get_group_accessor() {
 	return m_aaGroupVRT;
 }
@@ -97,7 +97,7 @@ PeriodicBoundaryManager::get_group_accessor() {
 }
 
 template <>
-const Grid::AttachmentAccessor<VertexBase, Attachment<PeriodicBoundaryManager::Group<VertexBase>* > >&
+const Grid::AttachmentAccessor<Vertex, Attachment<PeriodicBoundaryManager::Group<Vertex>* > >&
 PeriodicBoundaryManager::get_group_accessor() const {
 	return m_aaGroupVRT;
 }
@@ -122,13 +122,13 @@ PeriodicBoundaryManager::get_group_accessor() const {
 
 // periodic status accessors
 template <>
-const Grid::AttachmentAccessor<VertexBase, Attachment<PeriodicBoundaryManager::PeriodicStatus> >&
+const Grid::AttachmentAccessor<Vertex, Attachment<PeriodicBoundaryManager::PeriodicStatus> >&
 PeriodicBoundaryManager::get_periodic_status_accessor() const {
 	return m_aaPeriodicStatusVRT;
 }
 
 template <>
-Grid::AttachmentAccessor<VertexBase, Attachment<PeriodicBoundaryManager::PeriodicStatus> >&
+Grid::AttachmentAccessor<Vertex, Attachment<PeriodicBoundaryManager::PeriodicStatus> >&
 PeriodicBoundaryManager::get_periodic_status_accessor() {
 	return m_aaPeriodicStatusVRT;
 }
@@ -173,8 +173,8 @@ PeriodicBoundaryManager::get_periodic_status_accessor() const {
 void PeriodicBoundaryManager::grid_to_be_destroyed(Grid* grid) {
 
 	/// delete groups
-	for (VertexBaseIterator iter = m_pGrid->begin<VertexBase>();
-			iter != m_pGrid->end<VertexBase>(); ++iter) {
+	for (VertexIterator iter = m_pGrid->begin<Vertex>();
+			iter != m_pGrid->end<Vertex>(); ++iter) {
 		if(is_master(*iter)) delete m_aaGroupVRT[*iter];
 	}
 
@@ -191,7 +191,7 @@ void PeriodicBoundaryManager::grid_to_be_destroyed(Grid* grid) {
 	set_grid(NULL);
 }
 
-void PeriodicBoundaryManager::vertex_created(Grid* grid, VertexBase* vrt,
+void PeriodicBoundaryManager::vertex_created(Grid* grid, Vertex* vrt,
 		GridObject* pParent, bool replacesParent) {
 	handle_creation_cast_wrapper(vrt, pParent, replacesParent);
 }
@@ -206,8 +206,8 @@ void PeriodicBoundaryManager::face_created(Grid* grid, Face* f, GridObject* pPar
 	handle_creation_cast_wrapper(f, pParent, replacesParent);
 }
 
-void PeriodicBoundaryManager::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
-		VertexBase* replacedBy) {
+void PeriodicBoundaryManager::vertex_to_be_erased(Grid* grid, Vertex* vrt,
+		Vertex* replacedBy) {
 	handle_deletion(vrt, replacedBy);
 }
 
@@ -232,7 +232,7 @@ bool PeriodicBoundaryManager::check_periodicity(
 		const GridObjectCollection& goc1,
 		const GridObjectCollection& goc2, ISubsetHandler* sh) {
 
-	Group<VertexBase>::unique_pairs s_vert;
+	Group<Vertex>::unique_pairs s_vert;
 	Group<EdgeBase>::unique_pairs s_edge;
 	Group<Face>::unique_pairs s_face;
 
@@ -253,10 +253,10 @@ bool PeriodicBoundaryManager::check_periodicity(
 				goc2.end<EdgeBase>(lvl), s_edge, sh);
 
 		// check vertices
-		check_elements_periodicity<VertexBase>(goc1.begin<VertexBase>(lvl),
-				goc1.end<VertexBase>(lvl), s_vert, sh);
-		check_elements_periodicity<VertexBase>(goc2.begin<VertexBase>(lvl),
-				goc2.end<VertexBase>(lvl), s_vert, sh);
+		check_elements_periodicity<Vertex>(goc1.begin<Vertex>(lvl),
+				goc1.end<Vertex>(lvl), s_vert, sh);
+		check_elements_periodicity<Vertex>(goc2.begin<Vertex>(lvl),
+				goc2.end<Vertex>(lvl), s_vert, sh);
 	}
 
 	return true;

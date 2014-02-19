@@ -60,7 +60,7 @@ CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
  * original code, if only a tiny subset of the grid is sorted into the
  * tree.
 int tmpCounter = 0;
-for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter){
+for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter){
 	aaInt[*iter] = tmpCounter++;
 	vPoints.push_back(aaPos[*iter]);
 }
@@ -71,7 +71,7 @@ for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end()
 		
 	//	insert the indices into vElems and build vPoints at the same time
 		for(size_t i = 0; i < numVertices; ++i){
-			VertexBase* v = elem->vertex(i);
+			Vertex* v = elem->vertex(i);
 			if(aaInt[v] == -1){
 				aaInt[v] = (int)vPoints.size();
 				vPoints.push_back(aaPos[v]);

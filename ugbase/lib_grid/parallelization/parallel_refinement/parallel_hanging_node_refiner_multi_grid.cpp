@@ -62,17 +62,17 @@ continue_collect_objects_for_refine(bool continueRequired)
 }
 
 
-static void ReplaceByNormal(MultiGrid& mg, VertexBase* v)
+static void ReplaceByNormal(MultiGrid& mg, Vertex* v)
 {
 	mg.create_and_replace<RegularVertex>(v);
 }
 
-static void ReplaceByConstrained(MultiGrid& mg, VertexBase* v)
+static void ReplaceByConstrained(MultiGrid& mg, Vertex* v)
 {
 	mg.create_and_replace<ConstrainedVertex>(v);
 }
 
-static void ReplaceByConstraining(MultiGrid&, VertexBase*)
+static void ReplaceByConstraining(MultiGrid&, Vertex*)
 {
 	UG_THROW("Can't convert vertex to constraining-vertex! "
 			"(Constraining vertices don't exist!");
@@ -353,7 +353,7 @@ assign_hnode_marks()
 
 bool
 ParallelHangingNodeRefiner_MultiGrid::
-refinement_is_allowed(VertexBase* elem)
+refinement_is_allowed(Vertex* elem)
 {
 	return (!m_pDistGridMgr->is_ghost(elem))
 			&& BaseClass::refinement_is_allowed(elem);
@@ -462,7 +462,7 @@ void ParallelHangingNodeRefiner_MultiGrid::
 copy_marks_to_vmasters(bool vertices, bool edges, bool faces, bool volumes)
 {
 	if(vertices)
-		copy_marks_to_vmasters<VertexBase>(m_intfComVRT);
+		copy_marks_to_vmasters<Vertex>(m_intfComVRT);
 	if(edges)
 		copy_marks_to_vmasters<EdgeBase>(m_intfComEDGE);
 	if(faces)
@@ -487,7 +487,7 @@ void ParallelHangingNodeRefiner_MultiGrid::
 copy_marks_to_vslaves(bool vertices, bool edges, bool faces, bool volumes)
 {
 	if(vertices)
-		copy_marks_to_vslaves<VertexBase>(m_intfComVRT);
+		copy_marks_to_vslaves<Vertex>(m_intfComVRT);
 	if(edges)
 		copy_marks_to_vslaves<EdgeBase>(m_intfComEDGE);
 	if(faces)
@@ -681,8 +681,8 @@ contains_volumes()
 
 	UG_LOG("\nTesting horizontal layouts...\n");
 	{
-		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_MASTER);
-		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_H_SLAVE);
+		VertexLayout& masterLayout = layoutMap.get_layout<Vertex>(INT_MASTER);
+		VertexLayout& slaveLayout = layoutMap.get_layout<Vertex>(INT_H_SLAVE);
 		for(size_t i = 0; i < m_pMG->num_levels(); ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
@@ -692,8 +692,8 @@ contains_volumes()
 
 	UG_LOG("\nTesting vertical layouts...\n");
 	{
-		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_V_MASTER);
-		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_V_SLAVE);
+		VertexLayout& masterLayout = layoutMap.get_layout<Vertex>(INT_V_MASTER);
+		VertexLayout& slaveLayout = layoutMap.get_layout<Vertex>(INT_V_SLAVE);
 		for(size_t i = 0; i < m_pMG->num_levels(); ++i){
 			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
@@ -703,8 +703,8 @@ contains_volumes()
 
 	UG_LOG("\nTesting virtual layouts...\n");
 	{
-		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_VIRTUAL_MASTER);
-		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_VIRTUAL_SLAVE);
+		VertexLayout& masterLayout = layoutMap.get_layout<Vertex>(INT_VIRTUAL_MASTER);
+		VertexLayout& slaveLayout = layoutMap.get_layout<Vertex>(INT_VIRTUAL_SLAVE);
 		for(size_t i = 0; i < m_pMG->num_levels(); ++i){
 			UG_LOG("Testing VerticalVertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),

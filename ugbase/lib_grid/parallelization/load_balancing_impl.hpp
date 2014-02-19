@@ -228,7 +228,7 @@ bool PartitionElements_RegularGrid(SubsetHandler& shOut,
 	vector_t tmin(0), tmax(0);
 	{
 		grid.begin_marking();
-		vector<VertexBase*>	vrts, associatedVrts;
+		vector<Vertex*>	vrts, associatedVrts;
 		for(TIterator iter = begin; iter != end; ++iter){
 			CollectAssociated(vrts, grid, *iter);
 			for(size_t i = 0; i < vrts.size(); ++i){

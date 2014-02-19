@@ -35,7 +35,7 @@ assemble_prolongation_p1(matrix_type& P,
 
 //  iterators
 	const MultiGrid& mg = *coarseDD.multi_grid();
-	typedef DoFDistribution::traits<VertexBase>::const_iterator const_iterator;
+	typedef DoFDistribution::traits<Vertex>::const_iterator const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on fine level
@@ -43,14 +43,14 @@ assemble_prolongation_p1(matrix_type& P,
 	std::vector<DoFIndex> vParentDoF, vChildDoF;
 	for(int si = 0; si < fineDD.num_subsets(); ++si)
 	{
-		iterBegin = fineDD.template begin<VertexBase>(si);
-		iterEnd = fineDD.template end<VertexBase>(si);
+		iterBegin = fineDD.template begin<Vertex>(si);
+		iterEnd = fineDD.template end<Vertex>(si);
 
 	//  loop vertices for fine level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
 		//	get element
-			VertexBase* child = *iter;
+			Vertex* child = *iter;
 
 		//  get father
 			GridObject* parent = mg.get_parent(child);
@@ -101,7 +101,7 @@ assemble_prolongation_p1(matrix_type& P,
 				{
 					case ROID_VERTEX:
 					{
-						VertexBase* vrt = dynamic_cast<VertexBase*>(parent);
+						Vertex* vrt = dynamic_cast<Vertex*>(parent);
 						coarseDD.inner_dof_indices(vrt, fct, vParentDoF);
 						DoFRef(P, vChildDoF[0], vParentDoF[0]) = 1.0;
 					}
@@ -320,7 +320,7 @@ assemble_prolongation(matrix_type& P,
 	P.resize_and_clear(fineDD.num_indices(), coarseDD.num_indices());
 
 	// loop all base types carrying indices on fine elems
-	if(fineDD.max_dofs(VERTEX)) assemble_prolongation<VertexBase>(P, fineDD, coarseDD, spDomain);
+	if(fineDD.max_dofs(VERTEX)) assemble_prolongation<Vertex>(P, fineDD, coarseDD, spDomain);
 	if(fineDD.max_dofs(EDGE)) assemble_prolongation<EdgeBase>(P, fineDD, coarseDD, spDomain);
 	if(fineDD.max_dofs(FACE)) assemble_prolongation<Face>(P, fineDD, coarseDD, spDomain);
 	if(fineDD.max_dofs(VOLUME)) assemble_prolongation<Volume>(P, fineDD, coarseDD, spDomain);
@@ -515,7 +515,7 @@ assemble_restriction(matrix_type& R,
 	R.resize_and_clear(coarseDD.num_indices(), fineDD.num_indices());
 
 	// loop all base types carrying indices on fine elems
-	if(fineDD.max_dofs(VERTEX)) assemble_restriction<VertexBase>(R, coarseDD, fineDD, spDomain);
+	if(fineDD.max_dofs(VERTEX)) assemble_restriction<Vertex>(R, coarseDD, fineDD, spDomain);
 	if(fineDD.max_dofs(EDGE)) assemble_restriction<EdgeBase>(R, coarseDD, fineDD, spDomain);
 	if(fineDD.max_dofs(FACE)) assemble_restriction<Face>(R, coarseDD, fineDD, spDomain);
 	if(fineDD.max_dofs(VOLUME)) assemble_restriction<Volume>(R, coarseDD, fineDD, spDomain);

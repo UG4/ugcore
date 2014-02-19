@@ -191,7 +191,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		 */
 		/// \{
 		void indices(GridObject* elem, LocalIndices& ind, bool bHang = false) const;
-		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const;
+		void indices(Vertex* elem, LocalIndices& ind, bool bHang = false) const;
 		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const;
 		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const;
 		void indices(Volume* elem, LocalIndices& ind, bool bHang = false) const;
@@ -217,7 +217,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		/// \{
 		size_t dof_indices(GridObject* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                   bool bHang = false, bool bClear = true) const;
-		size_t dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind,
+		size_t dof_indices(Vertex* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                   bool bHang = false, bool bClear = true) const;
 		size_t dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                   bool bHang = false, bool bClear = true) const;
@@ -243,7 +243,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		/// \{
 		size_t inner_dof_indices(GridObject* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                         bool bClear = true) const;
-		size_t inner_dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind,
+		size_t inner_dof_indices(Vertex* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                         bool bClear = true) const;
 		size_t inner_dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                         bool bClear = true) const;
@@ -267,7 +267,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		/// \{
 		size_t algebra_indices(GridObject* elem,	std::vector<size_t>& ind,
 		                       bool bClear = true) const;
-		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind,
+		size_t algebra_indices(Vertex* elem, std::vector<size_t>& ind,
 		                       bool bClear = true) const;
 		size_t algebra_indices(EdgeBase* elem, std::vector<size_t>& ind,
 		                       bool bClear = true) const;
@@ -294,7 +294,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		/// \{
 		size_t inner_algebra_indices(GridObject* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;
-		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind,
+		size_t inner_algebra_indices(Vertex* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;
 		size_t inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;

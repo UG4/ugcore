@@ -99,7 +99,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		void debug_save(ISelector& sel, const char* filename);
 
 	///	a callback that allows to deny refinement of special vertices
-		virtual bool refinement_is_allowed(VertexBase* elem);
+		virtual bool refinement_is_allowed(Vertex* elem);
 	///	a callback that allows to deny refinement of special edges
 		virtual bool refinement_is_allowed(EdgeBase* elem);
 	///	a callback that allows to deny refinement of special faces
@@ -136,30 +136,30 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
 
 		virtual void refine_edge_with_normal_vertex(EdgeBase* e,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 		virtual void refine_edge_with_hanging_vertex(EdgeBase* e,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 
 		virtual void refine_face_with_normal_vertex(Face* f,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 		virtual void refine_face_with_hanging_vertex(Face* f,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 
 		virtual void refine_volume_with_normal_vertex(Volume* v,
-											VertexBase** newVolumeVrts = NULL);
+											Vertex** newVolumeVrts = NULL);
 	/*	\} */
 
 	///	Returns the vertex associated with the edge
-		virtual VertexBase* get_center_vertex(EdgeBase* e);
+		virtual Vertex* get_center_vertex(EdgeBase* e);
 
 	///	Associates a vertex with the edge.
-		virtual void set_center_vertex(EdgeBase* e, VertexBase* v);
+		virtual void set_center_vertex(EdgeBase* e, Vertex* v);
 
 	///	Returns the vertex associated with the face
-		virtual VertexBase* get_center_vertex(Face* f);
+		virtual Vertex* get_center_vertex(Face* f);
 
 	///	Associates a vertex with the face.
-		virtual void set_center_vertex(Face* f, VertexBase* v);
+		virtual void set_center_vertex(Face* f, Vertex* v);
 
 
 	///	collects corner vertices and fills them into the associated vector
@@ -167,7 +167,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 	 *  The i-th element of corners out will contain the child vertex of the
 	 *  i-th vertex of elem.*/
 		template <class TElem>
-		void collect_child_corners(std::vector<VertexBase*>& cornersOut, TElem* elem)
+		void collect_child_corners(std::vector<Vertex*>& cornersOut, TElem* elem)
 		{
 			cornersOut.resize(elem->num_vertices());
 			for(size_t i = 0; i < elem->num_vertices(); ++i){
@@ -211,7 +211,7 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase<MGSelector>
 
 	///	Applies marks like RM_COARSEN_CONSTRAINING or RM_COARSEN_UNCONSTRAIN
 	/**	This method should first be called for Face, then for EdgeBase, then for
-	 * VertexBase.*/
+	 * Vertex.*/
 		//template <class TElem>
 		//void adjust_coarsen_marks_on_side_elements();
 

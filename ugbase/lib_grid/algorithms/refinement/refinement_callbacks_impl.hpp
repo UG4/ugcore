@@ -17,7 +17,7 @@ namespace ug
 
 template <class TAttachmentAccessor>
 int IRefinementCallback::
-current_pos_helper(number* coordsOut, VertexBase* vrt, int maxCoords,
+current_pos_helper(number* coordsOut, Vertex* vrt, int maxCoords,
 				   TAttachmentAccessor& aaPos)
 {
 	using namespace std;
@@ -60,7 +60,7 @@ RefinementCallbackLinear<TAPosition>::
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackLinear<TAPosition>::
-new_vertex(VertexBase* vrt, VertexBase* parent)
+new_vertex(Vertex* vrt, Vertex* parent)
 {
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	m_aaPos[vrt] = m_aaPos[parent];
@@ -69,7 +69,7 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackLinear<TAPosition>::
-new_vertex(VertexBase* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, EdgeBase* parent)
 {
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	m_aaPos[vrt] = CalculateCenter(parent, m_aaPos);
@@ -78,7 +78,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackLinear<TAPosition>::
-new_vertex(VertexBase* vrt, Face* parent)
+new_vertex(Vertex* vrt, Face* parent)
 {
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	m_aaPos[vrt] = CalculateCenter(parent, m_aaPos);
@@ -87,7 +87,7 @@ new_vertex(VertexBase* vrt, Face* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackLinear<TAPosition>::
-new_vertex(VertexBase* vrt, Volume* parent)
+new_vertex(Vertex* vrt, Volume* parent)
 {
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	m_aaPos[vrt] = CalculateCenter(parent, m_aaPos);
@@ -96,7 +96,7 @@ new_vertex(VertexBase* vrt, Volume* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 int RefinementCallbackLinear<TAPosition>::
-current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
+current_pos(number* coordsOut, Vertex* vrt, int maxCoords)
 {
 	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
 }
@@ -138,7 +138,7 @@ RefinementCallbackSphere<TAPosition>::
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackSphere<TAPosition>::
-new_vertex(VertexBase* vrt, VertexBase* parent)
+new_vertex(Vertex* vrt, Vertex* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -146,7 +146,7 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackSphere<TAPosition>::
-new_vertex(VertexBase* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, EdgeBase* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -154,7 +154,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackSphere<TAPosition>::
-new_vertex(VertexBase* vrt, Face* parent)
+new_vertex(Vertex* vrt, Face* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -162,7 +162,7 @@ new_vertex(VertexBase* vrt, Face* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackSphere<TAPosition>::
-new_vertex(VertexBase* vrt, Volume* parent)
+new_vertex(Vertex* vrt, Volume* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -170,7 +170,7 @@ new_vertex(VertexBase* vrt, Volume* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 int RefinementCallbackSphere<TAPosition>::
-current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
+current_pos(number* coordsOut, Vertex* vrt, int maxCoords)
 {
 	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
 }
@@ -179,7 +179,7 @@ current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
 template <class TAPosition>
 template <class TElem>
 void RefinementCallbackSphere<TAPosition>::
-perform_projection(VertexBase* vrt, TElem* parent)
+perform_projection(Vertex* vrt, TElem* parent)
 {
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 
@@ -231,7 +231,7 @@ RefinementCallbackCylinder<TAPosition>::
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackCylinder<TAPosition>::
-new_vertex(VertexBase* vrt, VertexBase* parent)
+new_vertex(Vertex* vrt, Vertex* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -239,7 +239,7 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackCylinder<TAPosition>::
-new_vertex(VertexBase* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, EdgeBase* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -247,7 +247,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackCylinder<TAPosition>::
-new_vertex(VertexBase* vrt, Face* parent)
+new_vertex(Vertex* vrt, Face* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -255,7 +255,7 @@ new_vertex(VertexBase* vrt, Face* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 void RefinementCallbackCylinder<TAPosition>::
-new_vertex(VertexBase* vrt, Volume* parent)
+new_vertex(Vertex* vrt, Volume* parent)
 {
 	perform_projection(vrt, parent);
 }
@@ -263,7 +263,7 @@ new_vertex(VertexBase* vrt, Volume* parent)
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
 int RefinementCallbackCylinder<TAPosition>::
-current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
+current_pos(number* coordsOut, Vertex* vrt, int maxCoords)
 {
 	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
 }
@@ -272,7 +272,7 @@ current_pos(number* coordsOut, VertexBase* vrt, int maxCoords)
 template <class TAPosition>
 template <class TElem>
 void RefinementCallbackCylinder<TAPosition>::
-perform_projection(VertexBase* vrt, TElem* parent)
+perform_projection(Vertex* vrt, TElem* parent)
 {
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 
@@ -320,7 +320,7 @@ RefinementCallbackSubdivBoundary<TAPosition>::
 
 template <class TAPosition>
 void RefinementCallbackSubdivBoundary<TAPosition>::
-new_vertex(VertexBase* vrt, VertexBase* parent)
+new_vertex(Vertex* vrt, Vertex* parent)
 {
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
@@ -363,7 +363,7 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 
 template <class TAPosition>
 void RefinementCallbackSubdivBoundary<TAPosition>::
-new_vertex(VertexBase* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, EdgeBase* parent)
 {
 	using std::swap;
 	
@@ -385,7 +385,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 
 template <class TAPosition>
 void RefinementCallbackSubdivBoundary<TAPosition>::
-new_vertex(VertexBase* vrt, Face* parent)
+new_vertex(Vertex* vrt, Face* parent)
 {
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
 
@@ -397,7 +397,7 @@ new_vertex(VertexBase* vrt, Face* parent)
 
 template <class TAPosition>
 void RefinementCallbackSubdivBoundary<TAPosition>::
-new_vertex(VertexBase* vrt, Volume* parent)
+new_vertex(Vertex* vrt, Volume* parent)
 {
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
 
@@ -409,7 +409,7 @@ new_vertex(VertexBase* vrt, Volume* parent)
 
 template <class TAPosition>
 bool RefinementCallbackSubdivBoundary<TAPosition>::
-is_crease_vertex(VertexBase* vrt)
+is_crease_vertex(Vertex* vrt)
 {
 	return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
 	//return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
@@ -456,7 +456,7 @@ RefinementCallbackSubdivisionLoop<TAPosition>::
 
 template <class TAPosition>
 void RefinementCallbackSubdivisionLoop<TAPosition>::
-new_vertex(VertexBase* vrt, VertexBase* parent)
+new_vertex(Vertex* vrt, Vertex* parent)
 {
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
@@ -540,7 +540,7 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 
 template <class TAPosition>
 void RefinementCallbackSubdivisionLoop<TAPosition>::
-new_vertex(VertexBase* vrt, EdgeBase* parent)
+new_vertex(Vertex* vrt, EdgeBase* parent)
 {
 	using namespace std;
 	using std::swap;
@@ -589,7 +589,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 		if(numAssociatedBndFaces == 2){
 			if(f[0]->num_vertices() == 3 && f[1]->num_vertices() == 3){
 			//	the 4 vertices that are important for the calculation
-				VertexBase* v[4];
+				Vertex* v[4];
 				v[0] = parent->vertex(0); v[1] = parent->vertex(1);
 				v[2] = GetConnectedVertex(parent, f[0]);
 				v[3] = GetConnectedVertex(parent, f[1]);
@@ -639,7 +639,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 
 template <class TAPosition>
 void RefinementCallbackSubdivisionLoop<TAPosition>::
-new_vertex(VertexBase* vrt, Face* parent)
+new_vertex(Vertex* vrt, Face* parent)
 {
 //	this would only be interesting for quad subdivision.
 	m_aaTargetPos[vrt] = CalculateCenter(parent, BaseClass::m_aaPos);
@@ -647,7 +647,7 @@ new_vertex(VertexBase* vrt, Face* parent)
 
 template <class TAPosition>
 void RefinementCallbackSubdivisionLoop<TAPosition>::
-new_vertex(VertexBase* vrt, Volume* parent)
+new_vertex(Vertex* vrt, Volume* parent)
 {
 //	here a more elaborate scheme would be nice.
 	m_aaTargetPos[vrt] = CalculateCenter(parent, BaseClass::m_aaPos);
@@ -655,7 +655,7 @@ new_vertex(VertexBase* vrt, Volume* parent)
 
 template <class TAPosition>
 bool RefinementCallbackSubdivisionLoop<TAPosition>::
-is_crease_vertex(VertexBase* vrt)
+is_crease_vertex(Vertex* vrt)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
 		return false;

@@ -41,7 +41,7 @@ class UG_API Edge : public EdgeBase
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Edge*>(pObj) != NULL;}
 
 		Edge()	{}
-		Edge(VertexBase* v1, VertexBase* v2)
+		Edge(Vertex* v1, Vertex* v2)
 			{
 				m_vertices[0] = v1;
 				m_vertices[1] = v2;
@@ -66,8 +66,8 @@ class UG_API Edge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
-							VertexBase* newVertex,
-							VertexBase** pSubstituteVrts = NULL);
+							Vertex* newVertex,
+							Vertex** pSubstituteVrts = NULL);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to Edge.
@@ -76,8 +76,8 @@ class UG_API Edge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		bool refine(std::vector<Edge*>& vNewEdgesOut,
-					VertexBase* newVertex,
-					VertexBase** pSubstituteVrts = NULL);
+					Vertex* newVertex,
+					Vertex** pSubstituteVrts = NULL);
 };
 
 template <>
@@ -121,7 +121,7 @@ class UG_API ConstrainedEdge : public EdgeBase
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedEdge*>(pObj) != NULL;}
 
 		ConstrainedEdge() : m_pConstrainingObject(NULL), m_parentBaseObjectId(-1)	{}
-		ConstrainedEdge(VertexBase* v1, VertexBase* v2) :
+		ConstrainedEdge(Vertex* v1, Vertex* v2) :
 			m_pConstrainingObject(NULL),
 			m_parentBaseObjectId(-1)
 			{
@@ -154,8 +154,8 @@ class UG_API ConstrainedEdge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
-							VertexBase* newVertex,
-							VertexBase** pSubstituteVrts = NULL);
+							Vertex* newVertex,
+							Vertex** pSubstituteVrts = NULL);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to ConstrainedEdge.
@@ -166,8 +166,8 @@ class UG_API ConstrainedEdge : public EdgeBase
 	 * \sa EdgeBase::refine
 	 */
 		bool refine(std::vector<ConstrainedEdge*>& vNewEdgesOut,
-					VertexBase* newVertex,
-					VertexBase** pSubstituteVrts = NULL);
+					Vertex* newVertex,
+					Vertex** pSubstituteVrts = NULL);
 
 		inline void set_constraining_object(GridObject* pObj)
 		{
@@ -236,7 +236,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingEdge*>(pObj) != NULL;}
 
 		ConstrainingEdge()	{}
-		ConstrainingEdge(VertexBase* v1, VertexBase* v2)
+		ConstrainingEdge(Vertex* v1, Vertex* v2)
 			{
 				m_vertices[0] = v1;
 				m_vertices[1] = v2;
@@ -268,8 +268,8 @@ class UG_API ConstrainingEdge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
-							VertexBase* newVertex,
-							VertexBase** pSubstituteVrts = NULL);
+							Vertex* newVertex,
+							Vertex** pSubstituteVrts = NULL);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to ConstrainingEdge.
@@ -279,11 +279,11 @@ class UG_API ConstrainingEdge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		bool refine(std::vector<ConstrainingEdge*>& vNewEdgesOut,
-						VertexBase* newVertex,
-						VertexBase** pSubstituteVrts = NULL);
+						Vertex* newVertex,
+						Vertex** pSubstituteVrts = NULL);
 
 
-		inline void add_constrained_object(VertexBase* pObj)
+		inline void add_constrained_object(Vertex* pObj)
 			{
 				UG_ASSERT(!is_constrained_object(pObj), "vertex is already constrained by this edge.");
 					m_constrainedVertices.push_back(pObj);
@@ -295,9 +295,9 @@ class UG_API ConstrainingEdge : public EdgeBase
 					m_constrainedEdges.push_back(pObj);
 			}
 
-		inline bool is_constrained_object(VertexBase* vrt)
+		inline bool is_constrained_object(Vertex* vrt)
 			{
-				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
+				std::vector<Vertex*>::iterator iter = find(m_constrainedVertices.begin(),
 																m_constrainedVertices.end(), vrt);
 				return iter != m_constrainedVertices.end();
 			}
@@ -309,9 +309,9 @@ class UG_API ConstrainingEdge : public EdgeBase
 				return iter != m_constrainedEdges.end();
 			}
 
-		inline void unconstrain_object(const VertexBase* vrt)
+		inline void unconstrain_object(const Vertex* vrt)
 			{
-				std::vector<VertexBase*>::iterator iter = find(m_constrainedVertices.begin(),
+				std::vector<Vertex*>::iterator iter = find(m_constrainedVertices.begin(),
 																m_constrainedVertices.end(), vrt);
 				if(iter != m_constrainedVertices.end())
 					m_constrainedVertices.erase(iter);
@@ -341,7 +341,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 
 
 	//	ACCESS TO CONSTRAINED ELEMENTS
-		VertexBase* constrained_vertex(size_t ind) const
+		Vertex* constrained_vertex(size_t ind) const
 		{
 			UG_ASSERT(ind < m_constrainedVertices.size(), "bad index");
 			return m_constrainedVertices[ind];
@@ -356,7 +356,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 		template <class TElem> TElem* constrained(size_t ind) const;
 
 	protected:
-		std::vector<VertexBase*>	m_constrainedVertices;
+		std::vector<Vertex*>	m_constrainedVertices;
 		std::vector<EdgeBase*>		m_constrainedEdges;
 };
 

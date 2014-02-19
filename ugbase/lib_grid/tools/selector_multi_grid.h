@@ -61,7 +61,7 @@ class MultiGrid;
  * // ... create elements and select some
  *
  * // number of selected vertices on level 1
- * int nSelVrts = sel.num<VertexBase>(1);
+ * int nSelVrts = sel.num<Vertex>(1);
  *
  * // total number of selected triangles
  * int nSelTris = sel.num<Triangle>();
@@ -274,8 +274,8 @@ class UG_API MGSelector : public ISelector
 		end(int level) const;
 
 	//	convenience begin and end
-		inline traits<VertexBase>::level_iterator	vertices_begin(int level)	{return begin<VertexBase>(level);}
-		inline traits<VertexBase>::level_iterator	vertices_end(int level)		{return end<VertexBase>(level);}
+		inline traits<Vertex>::level_iterator	vertices_begin(int level)	{return begin<Vertex>(level);}
+		inline traits<Vertex>::level_iterator	vertices_end(int level)		{return end<Vertex>(level);}
 		inline traits<EdgeBase>::level_iterator		edges_begin(int level)		{return begin<EdgeBase>(level);}
 		inline traits<EdgeBase>::level_iterator		edges_end(int level)		{return end<EdgeBase>(level);}
 		inline traits<Face>::level_iterator			faces_begin(int level)		{return begin<Face>(level);}
@@ -305,7 +305,7 @@ class UG_API MGSelector : public ISelector
 		virtual void grid_to_be_destroyed(Grid* grid);
 		
 	///	returns true if the selector contains vertices
-		virtual bool contains_vertices() const	{return num<VertexBase>() > 0;}
+		virtual bool contains_vertices() const	{return num<Vertex>() > 0;}
 
 	///	returns true if the selector contains edges
 		virtual bool contains_edges() const		{return num<EdgeBase>() > 0;}
@@ -319,12 +319,12 @@ class UG_API MGSelector : public ISelector
 	protected:
 		void clear_lists();
 
-		virtual void add_to_list(VertexBase* elem);
+		virtual void add_to_list(Vertex* elem);
 		virtual void add_to_list(EdgeBase* elem);
 		virtual void add_to_list(Face* elem);
 		virtual void add_to_list(Volume* elem);
 
-		virtual void erase_from_list(VertexBase* elem);
+		virtual void erase_from_list(Vertex* elem);
 		virtual void erase_from_list(EdgeBase* elem);
 		virtual void erase_from_list(Face* elem);
 		virtual void erase_from_list(Volume* elem);
@@ -373,10 +373,10 @@ class UG_API MGSelector : public ISelector
 	 * \{
 	 */
 		inline VertexSectionContainer::iterator
-		get_level_iterator(VertexBase* o)
+		get_level_iterator(Vertex* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected.");
-			return section_container<VertexBase>(m_pMultiGrid->get_level(o)).
+			return section_container<Vertex>(m_pMultiGrid->get_level(o)).
 				get_container().get_iterator(o);
 		}
 
@@ -414,8 +414,8 @@ class UG_API MGSelector : public ISelector
 	protected:
 		MultiGrid*	m_pMultiGrid;
 		LevelVec 	m_levels;
-		VertexBaseIterator m_tmpVBegin;
-		VertexBaseIterator m_tmpVEnd;
+		VertexIterator m_tmpVBegin;
+		VertexIterator m_tmpVEnd;
 
 	//	callback-id (automatically unregisters callback, when the selector is deleted).
 		MessageHub::SPCallbackId	m_callbackId;

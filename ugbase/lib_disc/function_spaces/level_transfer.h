@@ -24,7 +24,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
                   GridFunction<TDomain, TAlgebra>& uCoarse)
 {
 	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-	typedef typename TGridFunction::template traits<VertexBase>::const_iterator const_iterator;
+	typedef typename TGridFunction::template traits<Vertex>::const_iterator const_iterator;
 
 //  get subsethandler and grid
 	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
@@ -43,12 +43,12 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 	std::vector<size_t> vFineIndex, vCoarseIndex;
 
 //	loop elements
-	const_iterator iterEnd = uFine.template end<VertexBase>();
-	const_iterator iter = uFine.template begin<VertexBase>();
+	const_iterator iterEnd = uFine.template end<Vertex>();
+	const_iterator iter = uFine.template begin<Vertex>();
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get vertex
-		VertexBase* vrt = *iter;
+		Vertex* vrt = *iter;
 		const int vertexLevel = mg->get_level(vrt);
 
 	//	a) 	if not on the same level as the top level of the fine grid function
@@ -86,7 +86,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 			{
 				case ROID_VERTEX:
 				{
-					VertexBase* pParent = static_cast<VertexBase*>(parent);
+					Vertex* pParent = static_cast<Vertex*>(parent);
 					uFine.inner_algebra_indices(vrt, vFineIndex);
 					uCoarse.inner_algebra_indices(pParent, vCoarseIndex);
 
@@ -103,7 +103,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 					EdgeBase* pParent = static_cast<EdgeBase*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
-						VertexBase* edgeVrt = pParent->vertex(i);
+						Vertex* edgeVrt = pParent->vertex(i);
 						uCoarse.inner_algebra_indices(edgeVrt, vCoarseIndex);
 
 						for(size_t i = 0; i < vFineIndex.size(); ++i)
@@ -122,7 +122,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 					Face* pParent = static_cast<Face*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
-						VertexBase* faceVrt = pParent->vertex(i);
+						Vertex* faceVrt = pParent->vertex(i);
 						uCoarse.inner_algebra_indices(faceVrt, vCoarseIndex);
 
 						for(size_t i = 0; i < vFineIndex.size(); ++i)
@@ -141,7 +141,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 					Volume* pParent = static_cast<Volume*>(parent);
 					for(size_t i = 0; i < pParent->num_vertices(); ++i)
 					{
-						VertexBase* hexVrt = pParent->vertex(i);
+						Vertex* hexVrt = pParent->vertex(i);
 						uCoarse.inner_algebra_indices(hexVrt, vCoarseIndex);
 
 						for(size_t i = 0; i < vFineIndex.size(); ++i)
@@ -365,7 +365,7 @@ void RestrictP1(GridFunction<TDomain, TAlgebra>& uCoarse,
                 GridFunction<TDomain,  TAlgebra>& uFine)
 {
 	typedef GridFunction<TDomain, TAlgebra> TGridFunction;
-	typedef typename TGridFunction::template traits<VertexBase>::const_iterator const_iterator;
+	typedef typename TGridFunction::template traits<Vertex>::const_iterator const_iterator;
 
 //  get subsethandler and grid
 	SmartPtr<MultiGrid> mg = uFine.domain()->grid();
@@ -384,18 +384,18 @@ void RestrictP1(GridFunction<TDomain, TAlgebra>& uCoarse,
 	std::vector<size_t> vFineIndex, vCoarseIndex;
 
 //	loop elements
-	const_iterator iterEnd = uCoarse.template end<VertexBase>();
-	const_iterator iter = uCoarse.template begin<VertexBase>();
+	const_iterator iterEnd = uCoarse.template end<Vertex>();
+	const_iterator iter = uCoarse.template begin<Vertex>();
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get vertex
-		VertexBase* coarseVrt = *iter;
+		Vertex* coarseVrt = *iter;
 
 	//  get children where fine grid function is defined
-		VertexBase* fineVrt = coarseVrt;
+		Vertex* fineVrt = coarseVrt;
 		while(mg->get_level(fineVrt) != fineTopLevel &&
 				mg->has_children(fineVrt)){
-			fineVrt = mg->get_child<VertexBase,VertexBase>(fineVrt, 0);
+			fineVrt = mg->get_child<Vertex,Vertex>(fineVrt, 0);
 		}
 
 	//	copy values

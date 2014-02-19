@@ -96,10 +96,10 @@ void MultiGrid::enable_hierarchical_insertion(bool bEnable)
 
 ////////////////////////////////////////////////////////////////////////
 //	create methods
-VertexBaseIterator MultiGrid::
-create_by_cloning(VertexBase* pCloneMe, int level)
+VertexIterator MultiGrid::
+create_by_cloning(Vertex* pCloneMe, int level)
 {
-	VertexBaseIterator iter = Grid::create_by_cloning(pCloneMe);
+	VertexIterator iter = Grid::create_by_cloning(pCloneMe);
 //	put the element into the hierarchy
 //	(by default it already was assigned to level 0)
 	if(level > 0){
@@ -154,7 +154,7 @@ GridObject* MultiGrid::get_parent(GridObject* parent) const
 	int baseType = parent->base_object_id();
 	switch(baseType)
 	{
-		case VERTEX:	return get_parent((VertexBase*)parent);
+		case VERTEX:	return get_parent((Vertex*)parent);
 		case EDGE:		return get_parent((EdgeBase*)parent);
 		case FACE:		return get_parent((Face*)parent);
 		case VOLUME:	return get_parent((Volume*)parent);
@@ -171,7 +171,7 @@ void MultiGrid::elements_to_be_cleared(Grid* grid)
 }
 
 //	vertices
-void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
+void MultiGrid::vertex_created(Grid* grid, Vertex* vrt,
 								GridObject* pParent,
 								bool replacesParent)
 {
@@ -186,7 +186,7 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
 		UG_ASSERT(pParent->base_object_id() == VERTEX,
 				  "only objects of the same base type can be replaced.");
-		VertexBase* pReplaceMe = static_cast<VertexBase*>(pParent);
+		Vertex* pReplaceMe = static_cast<Vertex*>(pParent);
 		GridObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
@@ -194,14 +194,14 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 			int baseType = realParent->base_object_id();
 			switch(baseType)
 			{
-			case VERTEX:	element_created(vrt, (VertexBase*)realParent, pReplaceMe); break;
+			case VERTEX:	element_created(vrt, (Vertex*)realParent, pReplaceMe); break;
 			case EDGE:		element_created(vrt, (EdgeBase*)realParent, pReplaceMe); break;
 			case FACE:		element_created(vrt, (Face*)realParent, pReplaceMe); break;
 			case VOLUME:	element_created(vrt, (Volume*)realParent, pReplaceMe); break;
 			}
 		}
 		else
-			element_created<VertexBase, VertexBase>(vrt, NULL, pReplaceMe);
+			element_created<Vertex, Vertex>(vrt, NULL, pReplaceMe);
 
 	//	copy pReplaceMe's children and replace parent of children
 		MGVertexInfo& myInfo = get_info(vrt);
@@ -222,7 +222,7 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 			int baseType = pParent->base_object_id();
 			switch(baseType)
 			{
-			case VERTEX:	element_created(vrt, (VertexBase*)pParent); break;
+			case VERTEX:	element_created(vrt, (Vertex*)pParent); break;
 			case EDGE:		element_created(vrt, (EdgeBase*)pParent); break;
 			case FACE:		element_created(vrt, (Face*)pParent); break;
 			case VOLUME:	element_created(vrt, (Volume*)pParent); break;
@@ -233,8 +233,8 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 	}
 }
 
-void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
-									 VertexBase* replacedBy)
+void MultiGrid::vertex_to_be_erased(Grid* grid, Vertex* vrt,
+									 Vertex* replacedBy)
 {
 //	if replacedBy != NULL, then vertex_created already handled the
 //	deregistration at the parent.
@@ -247,7 +247,7 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
 		int baseType = pParent->base_object_id();
 		switch(baseType)
 		{
-		case VERTEX:	element_to_be_erased(vrt, (VertexBase*)pParent); break;
+		case VERTEX:	element_to_be_erased(vrt, (Vertex*)pParent); break;
 		case EDGE:		element_to_be_erased(vrt, (EdgeBase*)pParent); break;
 		case FACE:		element_to_be_erased(vrt, (Face*)pParent); break;
 		case VOLUME:	element_to_be_erased(vrt, (Volume*)pParent); break;

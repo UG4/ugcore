@@ -10,7 +10,7 @@
 namespace ug{
 
 template <class TAAPosVRT>
-VertexBase* ResolveVertexEdgeIntersection(Grid& grid, VertexBase* v,
+Vertex* ResolveVertexEdgeIntersection(Grid& grid, Vertex* v,
 										   EdgeBase* e, TAAPosVRT& aaPos,
 										   number snapThreshold)
 {
@@ -61,7 +61,7 @@ VertexBase* ResolveVertexEdgeIntersection(Grid& grid, VertexBase* v,
  *		 should be used, which can take care of volumes, too.
  */
 template <class TAAPosVRT>
-bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
+bool ResolveVertexFaceIntersection(Grid& grid, Vertex* v,
 								   Face* f, TAAPosVRT& aaPos,
 								   number snapThreshold)
 {
@@ -86,8 +86,8 @@ bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
 	if(VecDistanceSq(p, aaPos[v]) < snapThresholdSq){
 		bool refined = false;
 		vector<Face*> newFaces;
-		VertexBase* newFaceVrt = NULL;
-		VertexBase* nVrt = NULL;
+		Vertex* newFaceVrt = NULL;
+		Vertex* nVrt = NULL;
 		vector_t pi;
 	//	now we have to check whether the projection lies in the face
 		if(f->num_vertices() == 3){
@@ -98,7 +98,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
 			//	we'll create a temporary new vertex, which will then be merged with v.
 			//	This is important, since we can avoid double elements this way.
 				nVrt = *grid.create<RegularVertex>();
-				VertexBase* newEdgeVrts[3] = {NULL, NULL, NULL};
+				Vertex* newEdgeVrts[3] = {NULL, NULL, NULL};
 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, nVrt);
 			}
 		}
@@ -120,7 +120,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
 			//	we'll create a temporary new vertex, which will then be merged with v.
 			//	This is important, since we can avoid double elements this way.
 				nVrt = *grid.create<RegularVertex>();
-				VertexBase* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
+				Vertex* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, nVrt);
 			}
 		}
@@ -149,7 +149,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
  * ReolveVertexEdgeIntersection.
  */
 template <class TAAPosVRT>
-VertexBase* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
+Vertex* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
 										TAAPosVRT& aaPos, number snapThreshold)
 {
 	typedef typename TAAPosVRT::ValueType vector_t;
@@ -228,8 +228,8 @@ bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
 	number t1, t2, s;
 	bool refined = false;
 	vector<Face*> newFaces;
-	VertexBase* newFaceVrt = NULL;
-	VertexBase* vrt = NULL;
+	Vertex* newFaceVrt = NULL;
+	Vertex* vrt = NULL;
 	if(f->num_vertices() == 3){
 		if(RayTriangleIntersection(p, t1, t2, s, aaPos[f->vertex(0)], aaPos[f->vertex(1)],
 									aaPos[f->vertex(2)], aaPos[e->vertex(0)], dir))
@@ -237,7 +237,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
 			if((s >= 0) && (s <= 1.)){
 			//	split the face
 				vrt = *grid.create<RegularVertex>();
-				VertexBase* newEdgeVrts[3] = {NULL, NULL, NULL};
+				Vertex* newEdgeVrts[3] = {NULL, NULL, NULL};
 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, vrt);
 			}
 		}
@@ -259,7 +259,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
 		{
 		//	split the face
 			vrt = *grid.create<RegularVertex>();
-			VertexBase* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
+			Vertex* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
 			refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, vrt);
 		}
 	}
@@ -304,10 +304,10 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
 {
 //	perform vertex/edge intersections
 //	iterate over all vertices
-	for(VertexBaseIterator vrtIter = elems.begin<VertexBase>();
-		vrtIter != elems.end<VertexBase>();)
+	for(VertexIterator vrtIter = elems.begin<Vertex>();
+		vrtIter != elems.end<Vertex>();)
 	{
-		VertexBase* vrt = *vrtIter;
+		Vertex* vrt = *vrtIter;
 		++vrtIter;
 
 	//	check against all edges
@@ -336,10 +336,10 @@ bool ProjectVerticesToCloseFaces(Grid& grid,
 {
 //	perform vertex/face intersections
 //	iterate over all vertices
-	for(VertexBaseIterator vrtIter = elems.vertices_begin();
+	for(VertexIterator vrtIter = elems.vertices_begin();
 		vrtIter != elems.vertices_end();)
 	{
-		VertexBase* vrt = *vrtIter;
+		Vertex* vrt = *vrtIter;
 		++vrtIter;
 
 	//	check against all faces
@@ -406,7 +406,7 @@ bool IntersectCloseEdges(Grid& grid,
 ///	returns the index of the first vertex closer to p than snapThreshold.
 /**	returns -1 if nothing was found.*/
 template <class TAAPosVRT>
-int FindCloseVertexInArray(std::vector<VertexBase*>& array,
+int FindCloseVertexInArray(std::vector<Vertex*>& array,
 							const typename TAAPosVRT::ValueType& p,
 							TAAPosVRT& aaPos, number snapThreshold)
 {
@@ -448,7 +448,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 
 //	clear edges and vertices from the selector. faces have to stay, since we will
 //	operate on them now.
-	sel.clear<VertexBase>();
+	sel.clear<Vertex>();
 	sel.clear<EdgeBase>();
 
 //	enable selection inheritance, since we want new elements to be
@@ -457,7 +457,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 
 //	we need some attachments in order to store new vertices and edges for
 //	each face.
-	typedef Attachment<vector<VertexBase*> >		AVrtVec;
+	typedef Attachment<vector<Vertex*> >		AVrtVec;
 	typedef Attachment<vector<pair<int, int> > >	AEdgeDescVec;
 	AVrtVec aVrtVec;
 	AEdgeDescVec aEdgeDescVec;
@@ -509,7 +509,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 				for(size_t i_tri = 0; i_tri < 2; ++i_tri){
 				//	If it is encountered for the first time,
 				//	we'll add its corner-vertices to its list of vertices.
-					vector<VertexBase*>& vrts = aaVrtVec[t[i_tri]];
+					vector<Vertex*>& vrts = aaVrtVec[t[i_tri]];
 					if(vrts.empty()){
 						for(size_t i = 0; i < t[i_tri]->num_vertices(); ++i)
 							vrts.push_back(t[i_tri]->vertex(i));
@@ -528,7 +528,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 					if(tind1 == -1){
 						if(tind2 == -1){
 						//	we have to create a new vertex
-							VertexBase* vrt = *grid.create<RegularVertex>();
+							Vertex* vrt = *grid.create<RegularVertex>();
 							aaPos[vrt] = ip[i];
 							tind1 = (int)aaVrtVec[t[0]].size();
 							tind2 = (int)aaVrtVec[t[1]].size();
@@ -569,18 +569,18 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 	vector<Triangle*> vDelTris;
 //	here we collect all vertices on which a merge has to be performed at the end
 //	of the algorithm (vertices created through edge-edge intersections inside a triangle)
-	vector<VertexBase*> cutVertices;
+	vector<Vertex*> cutVertices;
 	Grid tgrid(GRIDOPT_STANDARD_INTERCONNECTION);
 	AInt aInt;
-	AVertexBase aVrt;
+	AVertex aVrt;
 	tgrid.attach_to_vertices(aPosition);
 	tgrid.attach_to_vertices(aInt);
 	tgrid.attach_to_vertices_dv(aVrt, NULL);
 	Grid::VertexAttachmentAccessor<APosition> taaPos(tgrid, aPosition);
-	Grid::VertexAttachmentAccessor<AVertexBase> aaVrt(tgrid, aVrt);
+	Grid::VertexAttachmentAccessor<AVertex> aaVrt(tgrid, aVrt);
 
 //	holds vertices of tgrid, so that they are accessible by index.
-	vector<VertexBase*> tgridVrts;
+	vector<Vertex*> tgridVrts;
 
 	for(TriangleIterator triIter = sel.begin<Triangle>();
 		triIter != sel.end<Triangle>(); ++triIter)
@@ -593,9 +593,9 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 			tgridVrts.clear();
 
 		//	copy vertices associated with t1 to tgrid
-			vector<VertexBase*>& vrts = aaVrtVec[t];
+			vector<Vertex*>& vrts = aaVrtVec[t];
 			for(size_t i = 0; i < vrts.size(); ++i){
-				VertexBase* vrt = *tgrid.create<RegularVertex>();
+				Vertex* vrt = *tgrid.create<RegularVertex>();
 				aaVrt[vrt] = vrts[i];
 				taaPos[vrt] = aaPos[vrts[i]];
 				tgridVrts.push_back(vrt);
@@ -625,7 +625,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 								taaPos, SMALL);
 
 		//	make sure that all vertices have an associated aaVrt
-			for(VertexBaseIterator viter = tgrid.vertices_begin();
+			for(VertexIterator viter = tgrid.vertices_begin();
 				viter != tgrid.vertices_end(); ++viter)
 			{
 				if(!aaVrt[*viter]){
@@ -668,7 +668,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 				SaveGridToFile(tgrid, ss3d.str().c_str(), aPosition);
 			//	perform transformation to 2d and save that too.
 				std::vector<vector3> vrts;
-				for(VertexBaseIterator iter = tgrid.vertices_begin();
+				for(VertexIterator iter = tgrid.vertices_begin();
 					iter != tgrid.vertices_end(); ++iter)
 				{
 					vrts.push_back(taaPos[*iter]);
@@ -678,7 +678,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 									  vrts.size());
 
 				size_t counter = 0;
-				for(VertexBaseIterator iter = tgrid.vertices_begin();
+				for(VertexIterator iter = tgrid.vertices_begin();
 					iter != tgrid.vertices_end(); ++iter, ++counter)
 				{
 					taaPos[*iter] = vector3(vrts2d[counter].x(), vrts2d[counter].y(), 0);
@@ -705,12 +705,12 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 //	perform the merge (this has to be done on a selector.
 //	  the current version of RemoveDoubles is a little restrictive
 //	  in this regard.)
-	if(!sel.empty<VertexBase>()){
+	if(!sel.empty<Vertex>()){
 		RemoveDoubles<3>(grid, sel.vertices_begin(), sel.vertices_end(),
 						 aPosition, snapThreshold);
 	}
 
-	sel.clear<VertexBase>();
+	sel.clear<Vertex>();
 	sel.clear<EdgeBase>();
 
 //	finally delete all refined triangles and associated unused edges and vertices
@@ -719,7 +719,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 
 	grid.erase(sel.begin<Face>(), sel.end<Face>());
 	grid.erase(sel.begin<EdgeBase>(), sel.end<EdgeBase>());
-	grid.erase(sel.begin<VertexBase>(), sel.end<VertexBase>());
+	grid.erase(sel.begin<Vertex>(), sel.end<Vertex>());
 
 	return true;
 }

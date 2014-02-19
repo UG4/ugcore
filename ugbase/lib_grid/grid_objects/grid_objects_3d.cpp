@@ -70,7 +70,7 @@ class HexahedronClass{
  * the method is used locally and has been created for a special case.
  */
 static inline
-bool ReorderCornersCCW(VertexBase** cornersOut, VertexBase** const cornersIn,
+bool ReorderCornersCCW(Vertex** cornersOut, Vertex** const cornersIn,
 					   int numCorners, int firstCorner)
 {
 	cornersOut[0] = cornersIn[firstCorner];
@@ -85,12 +85,12 @@ bool ReorderCornersCCW(VertexBase** cornersOut, VertexBase** const cornersIn,
  */
 template <class TElemClass>
 static bool Refine(std::vector<Volume*>& vNewVolumesOut,
-					VertexBase** ppNewVertexOut,
-					VertexBase** newEdgeVertices,
-					VertexBase** newFaceVertices,
-					VertexBase* newVolumeVertex,
-					const VertexBase& prototypeVertex,
-					VertexBase** vrts,
+					Vertex** ppNewVertexOut,
+					Vertex** newEdgeVertices,
+					Vertex** newFaceVertices,
+					Vertex* newVolumeVertex,
+					const Vertex& prototypeVertex,
+					Vertex** vrts,
 					int (*funcRefine)(int*, int*, bool&, vector3*),
 					vector3* corners = NULL)
 {
@@ -101,7 +101,7 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 //	we will index it with the results later on to create the new elements.
 	const int allVrtsSize = TElemClass::NUM_VERTICES + TElemClass::NUM_EDGES
 							+ TElemClass::NUM_FACES + 1;
-	VertexBase* allVrts[allVrtsSize];
+	Vertex* allVrts[allVrtsSize];
 	for(int i = 0; i < TElemClass::NUM_VERTICES; ++i)
 		allVrts[i] = vrts[i];
 
@@ -139,7 +139,7 @@ static bool Refine(std::vector<Volume*>& vNewVolumesOut,
 //	if a new center vertex is required, then we'll create one now.
 	if(centerVrtRequired){
 		if(!newVolumeVertex)
-			newVolumeVertex = static_cast<VertexBase*>(
+			newVolumeVertex = static_cast<Vertex*>(
 								prototypeVertex.create_empty_instance());
 		*ppNewVertexOut = newVolumeVertex;
 		allVrts[allVrtsSize - 1] = *ppNewVertexOut;
@@ -205,7 +205,7 @@ TetrahedronDescriptor::TetrahedronDescriptor(const VolumeVertices& vv)
 	m_vertex[3] = vv.vertex(3);
 }
 
-TetrahedronDescriptor::TetrahedronDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4)
+TetrahedronDescriptor::TetrahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4)
 {
 	m_vertex[0] = v1;
 	m_vertex[1] = v2;
@@ -223,7 +223,7 @@ Tetrahedron::Tetrahedron(const TetrahedronDescriptor& td)
 	m_vertices[3] = td.vertex(3);
 }
 
-Tetrahedron::Tetrahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4)
+Tetrahedron::Tetrahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4)
 {
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
@@ -313,8 +313,8 @@ get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
 }
 
 bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-					int edgeIndex, VertexBase* newVertex,
-					std::vector<VertexBase*>* pvSubstituteVertices)
+					int edgeIndex, Vertex* newVertex,
+					std::vector<Vertex*>* pvSubstituteVertices)
 {
 //	if an edge of a tetrahedron is collapsed, nothing remains.
 	vNewVolumesOut.clear();
@@ -322,7 +322,7 @@ bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 }
 
 std::pair<GridBaseObjectId, int> Tetrahedron::
-get_opposing_object(VertexBase* vrt) const
+get_opposing_object(Vertex* vrt) const
 {
 	using namespace tet_rules;
 	for(int i = 0; i < tet_rules::NUM_VERTICES; ++i){
@@ -336,16 +336,16 @@ get_opposing_object(VertexBase* vrt) const
 }
 
 bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
-							VertexBase** ppNewVertexOut,
-							VertexBase** newEdgeVertices,
-							VertexBase** newFaceVertices,
-							VertexBase* newVolumeVertex,
-							const VertexBase& prototypeVertex,
-							VertexBase** pSubstituteVertices,
+							Vertex** ppNewVertexOut,
+							Vertex** newEdgeVertices,
+							Vertex** newFaceVertices,
+							Vertex* newVolumeVertex,
+							const Vertex& prototypeVertex,
+							Vertex** pSubstituteVertices,
 							vector3* corners)
 {
 //	handle substitute vertices.
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
@@ -395,8 +395,8 @@ HexahedronDescriptor::HexahedronDescriptor(const VolumeVertices& vv)
 	m_vertex[7] = vv.vertex(7);
 }
 
-HexahedronDescriptor::HexahedronDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
-											VertexBase* v5, VertexBase* v6, VertexBase* v7, VertexBase* v8)
+HexahedronDescriptor::HexahedronDescriptor(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4,
+											Vertex* v5, Vertex* v6, Vertex* v7, Vertex* v8)
 {
 	m_vertex[0] = v1;
 	m_vertex[1] = v2;
@@ -422,8 +422,8 @@ Hexahedron::Hexahedron(const HexahedronDescriptor& td)
 	m_vertices[7] = td.vertex(7);
 }
 
-Hexahedron::Hexahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
-						VertexBase* v5, VertexBase* v6, VertexBase* v7, VertexBase* v8)
+Hexahedron::Hexahedron(Vertex* v1, Vertex* v2, Vertex* v3, Vertex* v4,
+						Vertex* v5, Vertex* v6, Vertex* v7, Vertex* v8)
 {
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
@@ -512,7 +512,7 @@ bool Hexahedron::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
 }
 
 std::pair<GridBaseObjectId, int> Hexahedron::
-get_opposing_object(VertexBase* vrt) const
+get_opposing_object(Vertex* vrt) const
 {
 	using namespace hex_rules;
 	for(int i = 0; i < hex_rules::NUM_VERTICES; ++i){
@@ -526,8 +526,8 @@ get_opposing_object(VertexBase* vrt) const
 }
 
 bool Hexahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-					int edgeIndex, VertexBase* newVertex,
-					std::vector<VertexBase*>* pvSubstituteVertices)
+					int edgeIndex, Vertex* newVertex,
+					std::vector<Vertex*>* pvSubstituteVertices)
 {
 //	NOT YET SUPPORTED!
 //TODO: implement Hexahedron::collapse_edge
@@ -536,16 +536,16 @@ bool Hexahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 }
 
 bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
-						VertexBase** ppNewVertexOut,
-						VertexBase** newEdgeVertices,
-						VertexBase** newFaceVertices,
-						VertexBase* newVolumeVertex,
-						const VertexBase& prototypeVertex,
-						VertexBase** pSubstituteVertices,
+						Vertex** ppNewVertexOut,
+						Vertex** newEdgeVertices,
+						Vertex** newFaceVertices,
+						Vertex* newVolumeVertex,
+						const Vertex& prototypeVertex,
+						Vertex** pSubstituteVertices,
 						vector3*)
 {
 //	handle substitute vertices.
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
@@ -598,8 +598,8 @@ PrismDescriptor::PrismDescriptor(const VolumeVertices& vv)
 	m_vertex[5] = vv.vertex(5);
 }
 
-PrismDescriptor::PrismDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
-									VertexBase* v4, VertexBase* v5, VertexBase* v6)
+PrismDescriptor::PrismDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
+									Vertex* v4, Vertex* v5, Vertex* v6)
 {
 	m_vertex[0] = v1;
 	m_vertex[1] = v2;
@@ -621,8 +621,8 @@ Prism::Prism(const PrismDescriptor& td)
 	m_vertices[5] = td.vertex(5);
 }
 
-Prism::Prism(VertexBase* v1, VertexBase* v2, VertexBase* v3,
-						VertexBase* v4, VertexBase* v5, VertexBase* v6)
+Prism::Prism(Vertex* v1, Vertex* v2, Vertex* v3,
+						Vertex* v4, Vertex* v5, Vertex* v6)
 {
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
@@ -726,7 +726,7 @@ bool Prism::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
 }
 
 std::pair<GridBaseObjectId, int> Prism::
-get_opposing_object(VertexBase* vrt) const
+get_opposing_object(Vertex* vrt) const
 {
 	using namespace prism_rules;
 	for(int i = 0; i < prism_rules::NUM_VERTICES; ++i){
@@ -739,8 +739,8 @@ get_opposing_object(VertexBase* vrt) const
 }
 
 bool Prism::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-					int edgeIndex, VertexBase* newVertex,
-					std::vector<VertexBase*>* pvSubstituteVertices)
+					int edgeIndex, Vertex* newVertex,
+					std::vector<Vertex*>* pvSubstituteVertices)
 {
 //	NOT YET SUPPORTED!
 //TODO: implement prism::collapse_edge
@@ -749,16 +749,16 @@ bool Prism::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 }
 
 bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
-					VertexBase** ppNewVertexOut,
-					VertexBase** newEdgeVertices,
-					VertexBase** newFaceVertices,
-					VertexBase* newVolumeVertex,
-					const VertexBase& prototypeVertex,
-					VertexBase** pSubstituteVertices,
+					Vertex** ppNewVertexOut,
+					Vertex** newEdgeVertices,
+					Vertex** newFaceVertices,
+					Vertex* newVolumeVertex,
+					const Vertex& prototypeVertex,
+					Vertex** pSubstituteVertices,
 					vector3*)
 {
 //	handle substitute vertices.
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
@@ -806,8 +806,8 @@ PyramidDescriptor::PyramidDescriptor(const VolumeVertices& vv)
 	m_vertex[4] = vv.vertex(4);
 }
 
-PyramidDescriptor::PyramidDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
-									VertexBase* v4, VertexBase* v5)
+PyramidDescriptor::PyramidDescriptor(Vertex* v1, Vertex* v2, Vertex* v3,
+									Vertex* v4, Vertex* v5)
 {
 	m_vertex[0] = v1;
 	m_vertex[1] = v2;
@@ -827,8 +827,8 @@ Pyramid::Pyramid(const PyramidDescriptor& td)
 	m_vertices[4] = td.vertex(4);
 }
 
-Pyramid::Pyramid(VertexBase* v1, VertexBase* v2, VertexBase* v3,
-				VertexBase* v4, VertexBase* v5)
+Pyramid::Pyramid(Vertex* v1, Vertex* v2, Vertex* v3,
+				Vertex* v4, Vertex* v5)
 {
 	m_vertices[0] = v1;
 	m_vertices[1] = v2;
@@ -916,7 +916,7 @@ Face* Pyramid::create_face(int index)
 }
 
 std::pair<GridBaseObjectId, int> Pyramid::
-get_opposing_object(VertexBase* vrt) const
+get_opposing_object(Vertex* vrt) const
 {
 	using namespace pyra_rules;
 	for(int i = 0; i < pyra_rules::NUM_VERTICES; ++i){
@@ -929,8 +929,8 @@ get_opposing_object(VertexBase* vrt) const
 }
 
 bool Pyramid::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
-					int edgeIndex, VertexBase* newVertex,
-					std::vector<VertexBase*>* pvSubstituteVertices)
+					int edgeIndex, Vertex* newVertex,
+					std::vector<Vertex*>* pvSubstituteVertices)
 {
 //	NOT YET SUPPORTED!
 //TODO: implement pyramids::collapse_edge
@@ -939,16 +939,16 @@ bool Pyramid::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 }
 
 bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
-						VertexBase** ppNewVertexOut,
-						VertexBase** newEdgeVertices,
-						VertexBase** newFaceVertices,
-						VertexBase* newVolumeVertex,
-						const VertexBase& prototypeVertex,
-						VertexBase** pSubstituteVertices,
+						Vertex** ppNewVertexOut,
+						Vertex** newEdgeVertices,
+						Vertex** newFaceVertices,
+						Vertex* newVolumeVertex,
+						const Vertex& prototypeVertex,
+						Vertex** pSubstituteVertices,
 						vector3*)
 {
 //	handle substitute vertices.
-	VertexBase** vrts;
+	Vertex** vrts;
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else

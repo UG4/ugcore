@@ -36,11 +36,11 @@ bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offse
 	SelectAssociatedGridObjects(sel);
 
 //	store the currently selected elements in arrays
-	vector<VertexBase*>	oldVrts;
+	vector<Vertex*>	oldVrts;
 	vector<EdgeBase*>	oldEdges;
 	vector<Face*>		oldFaces;
 	vector<Volume*>		oldVols;
-	oldVrts.reserve(sel.num<VertexBase>());
+	oldVrts.reserve(sel.num<Vertex>());
 	oldVrts.assign(sel.vertices_begin(), sel.vertices_end());
 	oldEdges.reserve(sel.num<EdgeBase>());
 	oldEdges.assign(sel.edges_begin(), sel.edges_end());
@@ -62,8 +62,8 @@ bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offse
 	}
 
 //	new vertices have to be stored in an array, so that we can access them later on
-	vector<VertexBase*> vrts;
-	vrts.reserve(sel.num<VertexBase>());
+	vector<Vertex*> vrts;
+	vrts.reserve(sel.num<Vertex>());
 
 //	attach an integer to the vertices. This is required, since
 //	we have to access them by index later on.
@@ -73,11 +73,11 @@ bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offse
 
 //	create new vertices and push them to the vrts array.
 //	Store the new index in the aInt attachment of old ones.
-	for(vector<VertexBase*>::iterator iter = oldVrts.begin();
+	for(vector<Vertex*>::iterator iter = oldVrts.begin();
 		iter != oldVrts.end(); ++iter)
 	{
-		VertexBase* oldVrt = *iter;
-		VertexBase* vrt = *grid.create_by_cloning(oldVrt, oldVrt);
+		Vertex* oldVrt = *iter;
+		Vertex* vrt = *grid.create_by_cloning(oldVrt, oldVrt);
 		VecAdd(aaPos[vrt], aaPos[oldVrt], offset);
 		aaInt[oldVrt] = (int)vrts.size();
 		vrts.push_back(vrt);

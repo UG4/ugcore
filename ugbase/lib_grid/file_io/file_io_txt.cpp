@@ -28,7 +28,7 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 
 //	create points
 //	store pointers to the vertices on the fly in a vector.
-	vector<VertexBase*>	vVrts;
+	vector<Vertex*>	vVrts;
 	vVrts.reserve(numVrts);
 
 	for(int i = 0; i < numVrts; ++i)
@@ -40,7 +40,7 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 
 //	read the points
 	{
-		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
+		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter)
 		{
 			int Index;
 			in >> Index;
@@ -90,7 +90,7 @@ bool SaveGridToTXT(Grid& grid, const char* filename, AVector3& aPos)
 	{
 		int counter = 0;
 
-		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
+		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
 		{
 			out << counter << " " << 	aaPos[*iter].x() << " " <<
 										aaPos[*iter].y() << " " <<

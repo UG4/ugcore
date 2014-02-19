@@ -52,7 +52,7 @@ namespace ug
  * // ... create elements and select some
  *
  * // number of selected vertices
- * int nSelVrts = sel.num<VertexBase>();
+ * int nSelVrts = sel.num<Vertex>();
  *
  * // number of selected triangles
  * int nSelTris = sel.num<Triangle>();
@@ -141,8 +141,8 @@ class UG_API Selector : public ISelector
 		end() const;
 
 	//	convenience begin and end
-		inline VertexBaseIterator vertices_begin()	{return begin<VertexBase>();}
-		inline VertexBaseIterator vertices_end()	{return end<VertexBase>();}
+		inline VertexIterator vertices_begin()	{return begin<Vertex>();}
+		inline VertexIterator vertices_end()	{return end<Vertex>();}
 		inline EdgeBaseIterator edges_begin()		{return begin<EdgeBase>();}
 		inline EdgeBaseIterator edges_end()			{return end<EdgeBase>();}
 		inline FaceIterator faces_begin()			{return begin<Face>();}
@@ -198,7 +198,7 @@ class UG_API Selector : public ISelector
 		end(size_t);
 
 	///	returns true if the selector contains vertices
-		virtual bool contains_vertices() const	{return num<VertexBase>() > 0;}
+		virtual bool contains_vertices() const	{return num<Vertex>() > 0;}
 
 	///	returns true if the selector contains edges
 		virtual bool contains_edges() const		{return num<EdgeBase>() > 0;}
@@ -223,12 +223,12 @@ class UG_API Selector : public ISelector
 	protected:
 		void clear_lists();
 
-		virtual void add_to_list(VertexBase* elem);
+		virtual void add_to_list(Vertex* elem);
 		virtual void add_to_list(EdgeBase* elem);
 		virtual void add_to_list(Face* elem);
 		virtual void add_to_list(Volume* elem);
 
-		virtual void erase_from_list(VertexBase* elem);
+		virtual void erase_from_list(Vertex* elem);
 		virtual void erase_from_list(EdgeBase* elem);
 		virtual void erase_from_list(Face* elem);
 		virtual void erase_from_list(Volume* elem);
@@ -238,10 +238,10 @@ class UG_API Selector : public ISelector
 	 * \{
 	 */
 		inline VertexSectionContainer::iterator
-		get_iterator(VertexBase* o)
+		get_iterator(Vertex* o)
 		{
 			assert((is_selected(o) >= 0) && "object not selected.");
-			return section_container<VertexBase>().get_container().get_iterator(o);
+			return section_container<Vertex>().get_container().get_iterator(o);
 		}
 
 		inline EdgeSectionContainer::iterator

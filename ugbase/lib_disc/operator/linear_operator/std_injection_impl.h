@@ -58,7 +58,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	{
 	// 	get father
 		GridObject* geomObj = grid.get_parent(*iter);
-		VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
+		Vertex* vert = dynamic_cast<Vertex*>(geomObj);
 
 	//	Check if father is RegularVertex
 		if(vert != NULL)
@@ -185,7 +185,7 @@ void StdInjection<TDomain, TAlgebra>::
 set_identity_on_pure_surface(matrix_type& mat,
                              const DoFDistribution& coarseDD, const DoFDistribution& fineDD)
 {
-	if(coarseDD.max_dofs(VERTEX)) set_identity_on_pure_surface<VertexBase>(mat, coarseDD, fineDD);
+	if(coarseDD.max_dofs(VERTEX)) set_identity_on_pure_surface<Vertex>(mat, coarseDD, fineDD);
 	if(coarseDD.max_dofs(EDGE)) set_identity_on_pure_surface<EdgeBase>(mat, coarseDD, fineDD);
 	if(coarseDD.max_dofs(FACE)) set_identity_on_pure_surface<Face>(mat, coarseDD, fineDD);
 	if(coarseDD.max_dofs(VOLUME)) set_identity_on_pure_surface<Volume>(mat, coarseDD, fineDD);

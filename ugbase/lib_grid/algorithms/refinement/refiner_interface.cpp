@@ -11,7 +11,7 @@ namespace ug{
 bool IRefiner::mark(GridObject* o, RefinementMark refMark)
 {
 	switch(o->base_object_id()){
-		case VERTEX:	return mark(static_cast<VertexBase*>(o), refMark);
+		case VERTEX:	return mark(static_cast<Vertex*>(o), refMark);
 		case EDGE:		return mark(static_cast<EdgeBase*>(o), refMark);
 		case FACE:		return mark(static_cast<Face*>(o), refMark);
 		case VOLUME:	return mark(static_cast<Volume*>(o), refMark);
@@ -22,7 +22,7 @@ bool IRefiner::mark(GridObject* o, RefinementMark refMark)
 RefinementMark IRefiner::get_mark(GridObject* o)
 {
 	switch(o->base_object_id()){
-		case VERTEX:	return get_mark(static_cast<VertexBase*>(o));
+		case VERTEX:	return get_mark(static_cast<Vertex*>(o));
 		case EDGE:		return get_mark(static_cast<EdgeBase*>(o));
 		case FACE:		return get_mark(static_cast<Face*>(o));
 		case VOLUME:	return get_mark(static_cast<Volume*>(o));

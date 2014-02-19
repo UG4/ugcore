@@ -28,7 +28,7 @@ struct reference_element_traits;
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct reference_element_traits<VertexBase>
+struct reference_element_traits<Vertex>
 {
 	typedef ReferenceVertex reference_element_type;
 	static const int dim = reference_element_type::dim;
@@ -36,11 +36,11 @@ struct reference_element_traits<VertexBase>
 
 template <>
 struct reference_element_traits<RegularVertex>
-	: public reference_element_traits<VertexBase> {};
+	: public reference_element_traits<Vertex> {};
 
 template <>
 struct reference_element_traits<ConstrainedVertex>
-	: public reference_element_traits<VertexBase> {};
+	: public reference_element_traits<Vertex> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Edge

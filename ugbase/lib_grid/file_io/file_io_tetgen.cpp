@@ -360,7 +360,7 @@ bool ExportGridToSMESH(Grid& grid, const char* filename, AVector3& aPos,
 		out << grid.num_vertices() << " 3 " << numAttribs << " " << numBoundaryMarkers << endl;
 
 		int counter = 0;
-		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++, counter++)
+		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++, counter++)
 		{
 			aaIntVRT[*iter] = counter;
 			out << counter << " " <<	aaPos[*iter].x() << " " <<
@@ -511,7 +511,7 @@ bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
 		out << grid.num_vertices() << " 3 " << numAttribs << " " << numBoundaryMarkers << endl;
 
 		int counter = 0;
-		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++, counter++)
+		for(VertexIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++, counter++)
 		{
 			aaIntVRT[*iter] = counter;
 			out << counter << " " <<	aaPos[*iter].x() << " " <<

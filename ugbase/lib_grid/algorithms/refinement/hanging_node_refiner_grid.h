@@ -46,7 +46,7 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 		virtual bool coarsening_supported() const	{return false;}
 
 	///	Marks a vertex for refinement (ignores RM_COARSEN).
-		virtual bool mark(VertexBase* v, RefinementMark refMark = RM_REFINE);
+		virtual bool mark(Vertex* v, RefinementMark refMark = RM_REFINE);
 
 	///	Marks an edge for refinement (ignores RM_COARSEN).
 		virtual bool mark(EdgeBase* e, RefinementMark refMark = RM_REFINE);
@@ -72,32 +72,32 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase<Selector>
 
 		virtual void process_constraining_edge(ConstrainingEdge* cge);
 		virtual void refine_edge_with_normal_vertex(EdgeBase* e,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 
 		virtual void refine_face_with_normal_vertex(Face* f,
-											VertexBase** newCornerVrts = NULL);
+											Vertex** newCornerVrts = NULL);
 		virtual void process_constraining_face(ConstrainingFace* cgf);
 
 		virtual void refine_volume_with_normal_vertex(Volume* v,
-											VertexBase** newVolumeVrts = NULL);
+											Vertex** newVolumeVrts = NULL);
 
 	///	Returns the vertex associated with the edge
-		virtual VertexBase* get_center_vertex(EdgeBase* e);
+		virtual Vertex* get_center_vertex(EdgeBase* e);
 
 	///	Associates a vertex with the edge.
-		virtual void set_center_vertex(EdgeBase* e, VertexBase* v);
+		virtual void set_center_vertex(EdgeBase* e, Vertex* v);
 
 	///	Returns the vertex associated with the face
-		virtual VertexBase* get_center_vertex(Face* f);
+		virtual Vertex* get_center_vertex(Face* f);
 
 	///	Associates a vertex with the face.
-		virtual void set_center_vertex(Face* f, VertexBase* v);
+		virtual void set_center_vertex(Face* f, Vertex* v);
 
 	private:
 		Grid* 			m_pGrid;
-		AVertexBase		m_aVertex;
-		Grid::EdgeAttachmentAccessor<AVertexBase>		m_aaVertexEDGE;
-		Grid::FaceAttachmentAccessor<AVertexBase>		m_aaVertexFACE;
+		AVertex		m_aVertex;
+		Grid::EdgeAttachmentAccessor<AVertex>		m_aaVertexEDGE;
+		Grid::FaceAttachmentAccessor<AVertex>		m_aaVertexFACE;
 };
 
 /// @}	// end of add_to_group command

@@ -97,11 +97,11 @@ class P1LagrangeElemTransfer
 		                TransferValueAccessor& vValueParent)
 		{
 			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
-			const int numChild = mg->num_children<VertexBase>(parent);
+			const int numChild = mg->num_children<Vertex>(parent);
 			if(numChild == 0) return;
 			if(numChild != 1) UG_THROW("Max child Vertex must be 1");
 
-			VertexBase* child = mg->get_child<VertexBase>(parent, 0);
+			Vertex* child = mg->get_child<Vertex>(parent, 0);
 
 			vValueChild.access_inner(child);
 			vValueParent.access_closure(parent);
@@ -129,15 +129,15 @@ class P1LagrangeElemTransfer
 			UG_THROW("Should not be called.")
 		}
 
-		void do_restrict(VertexBase* parent,
+		void do_restrict(Vertex* parent,
 		                 TransferValueAccessor& vValueChild,
 		                 TransferValueAccessor& vValueParent)
 		{
 			const MultiGrid* mg = IElemRestriction<TDomain>::m_spGrid.get();
-			const int numChild = mg->num_children<VertexBase>(parent);
+			const int numChild = mg->num_children<Vertex>(parent);
 			if(numChild != 1) UG_THROW("Num child Vertex must be 1");
 
-			VertexBase* child = mg->get_child<VertexBase>(parent, 0);
+			Vertex* child = mg->get_child<Vertex>(parent, 0);
 
 			vValueChild.access_inner(child);
 			vValueParent.access_closure(parent);
@@ -194,7 +194,7 @@ class StdLagrangeElemTransfer
 				case 3: prolongate<TElem,Volume>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
 				case 2: prolongate<TElem,Face>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
 				case 1: prolongate<TElem,EdgeBase>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
-						prolongate<TElem,VertexBase>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
+						prolongate<TElem,Vertex>(parent, vValueChild, vValueParent, lsfs, vCornerParent, parentRoid);
 				break;
 				default: UG_THROW("Dimension "<<pdim<<" not supported");
 			}
@@ -249,7 +249,7 @@ class StdLagrangeElemTransfer
 		}
 
 
-		virtual void prolongate(VertexBase* parent)
+		virtual void prolongate(Vertex* parent)
 		{
 			const MultiGrid* mg = IElemProlongation<TDomain>::m_spGrid.get();
 			TransferValueAccessor& vValueChild = *IElemProlongation<TDomain>::m_vValueChild;
@@ -259,12 +259,12 @@ class StdLagrangeElemTransfer
 			vValueParent.access_closure(parent);
 
 		//	 number of children of the base type
-			const int numChild = mg->num_children<VertexBase>(parent);
+			const int numChild = mg->num_children<Vertex>(parent);
 			if(numChild == 0) return;
 			if(numChild != 1) UG_THROW("Num child Vertex must be 1");
 
 		//	get child
-			VertexBase* child = mg->get_child<VertexBase>(parent, 0);
+			Vertex* child = mg->get_child<Vertex>(parent, 0);
 
 		//	access the values
 			vValueChild.access_inner(child);
@@ -335,16 +335,16 @@ class StdLagrangeElemTransfer
 		}
 
 
-		virtual void do_restrict(VertexBase* parent)
+		virtual void do_restrict(Vertex* parent)
 		{
 			const MultiGrid* mg = IElemRestriction<TDomain>::m_spGrid.get();
-			const int numChild = mg->num_children<VertexBase>(parent);
+			const int numChild = mg->num_children<Vertex>(parent);
 			if(numChild != 1) UG_THROW("Num child Vertex must be 1");
 
 			TransferValueAccessor& vValueChild = *IElemRestriction<TDomain>::m_vValueChild;
             TransferValueAccessor& vValueParent = *IElemRestriction<TDomain>::m_vValueParent;
 
-			VertexBase* child = mg->get_child<VertexBase>(parent, 0);
+			Vertex* child = mg->get_child<Vertex>(parent, 0);
 
 			vValueChild.access_inner(child);
 			vValueParent.access_inner(parent);
@@ -379,7 +379,7 @@ class CrouzeixRaviartElemTransfer
 
 		// the following line silences -Woverloaded-virtual
 		using ElemProlongationBase<TDomain, CrouzeixRaviartElemTransfer<TDomain> >::prolongate;
-		void prolongate(VertexBase* parent,
+		void prolongate(Vertex* parent,
 						TransferValueAccessor& vValueChild,
 						TransferValueAccessor& vValueParent)
 		{

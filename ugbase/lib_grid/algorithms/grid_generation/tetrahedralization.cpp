@@ -43,10 +43,10 @@ static bool PerformTetrahedralization(Grid& grid,
 //	we have to make sure that all vertices in the grid are actually connected
 //	to a triangle. If this wouldn't be the case, tetgen would likely have problems.
 	size_t numVrtsRemoved = 0;
-	for(VertexBaseIterator iter = grid.begin<VertexBase>();
-		iter != grid.end<VertexBase>();)
+	for(VertexIterator iter = grid.begin<Vertex>();
+		iter != grid.end<Vertex>();)
 	{
-		VertexBase* v = *iter;
+		Vertex* v = *iter;
 		++iter;
 		if((NumAssociatedEdges(grid, v) == 0) || (NumAssociatedFaces(grid, v) == 0)){
 			grid.erase(v);
@@ -75,7 +75,7 @@ static bool PerformTetrahedralization(Grid& grid,
 	//	copy position data
 		int counter = 0;
 
-		for(VertexBaseIterator iter = grid.vertices_begin();
+		for(VertexIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter, ++counter)
 		{
 			aaInd[*iter] = counter;
@@ -179,11 +179,11 @@ static bool PerformTetrahedralization(Grid& grid,
 	}
 */
 //	add new vertices to the grid. store all vertices in a vector.
-	vector<VertexBase*> vVrts(out.numberofpoints);
+	vector<Vertex*> vVrts(out.numberofpoints);
 	{
 		int counter = 0;
 	//	add the old ones to the vector
-		for(VertexBaseIterator iter = grid.vertices_begin();
+		for(VertexIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter, ++counter)
 		{
 			aaPos[*iter].x() = out.pointlist[counter*3];
@@ -288,7 +288,7 @@ static bool PerformRetetrahedralization(Grid& grid,
 	//	copy position data
 		int counter = 0;
 
-		for(VertexBaseIterator iter = grid.vertices_begin();
+		for(VertexIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter, ++counter)
 		{
 			aaInd[*iter] = counter;
@@ -392,11 +392,11 @@ static bool PerformRetetrahedralization(Grid& grid,
 	grid.erase(grid.begin<Tetrahedron>(), grid.end<Tetrahedron>());
 
 //	add new vertices to the grid. store all vertices in a vector.
-	vector<VertexBase*> vVrts(out.numberofpoints);
+	vector<Vertex*> vVrts(out.numberofpoints);
 	{
 		int counter = 0;
 	//	add the old ones to the vector
-		for(VertexBaseIterator iter = grid.vertices_begin();
+		for(VertexIterator iter = grid.vertices_begin();
 			iter != grid.vertices_end(); ++iter, ++counter)
 		{
 			aaPos[*iter].x() = out.pointlist[counter*3];
