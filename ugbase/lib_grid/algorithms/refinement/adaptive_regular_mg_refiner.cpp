@@ -169,7 +169,7 @@ create_closure_elements_2d()
 				if(!mg.has_children(e)){
 					ed.set_vertices(mg.get_child_vertex(e->vertex(0)),
 									mg.get_child_vertex(e->vertex(1)));
-					mg.create<Edge>(ed, e);
+					mg.create<RegularEdge>(ed, e);
 					newEdgeVrts.push_back(NULL);
 				}
 				else
@@ -276,7 +276,7 @@ create_closure_elements_3d()
 				if(!mg.has_children(e)){
 					ed.set_vertices(mg.get_child_vertex(e->vertex(0)),
 									mg.get_child_vertex(e->vertex(1)));
-					mg.create<Edge>(ed, e);
+					mg.create<RegularEdge>(ed, e);
 					newVolEdgeVrts.push_back(NULL);
 				}
 				else

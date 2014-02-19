@@ -605,13 +605,13 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 			vector<pair<int, int> >& edgeDescs = aaEdgeDescVec[t];
 
 		//	tri edges
-			tgrid.create<Edge>(EdgeDescriptor(tgridVrts[0], tgridVrts[1]));
-			tgrid.create<Edge>(EdgeDescriptor(tgridVrts[1], tgridVrts[2]));
-			tgrid.create<Edge>(EdgeDescriptor(tgridVrts[2], tgridVrts[0]));
+			tgrid.create<RegularEdge>(EdgeDescriptor(tgridVrts[0], tgridVrts[1]));
+			tgrid.create<RegularEdge>(EdgeDescriptor(tgridVrts[1], tgridVrts[2]));
+			tgrid.create<RegularEdge>(EdgeDescriptor(tgridVrts[2], tgridVrts[0]));
 
 		//	new edges
 			for(size_t i = 0; i < edgeDescs.size(); ++i){
-				tgrid.create<Edge>(EdgeDescriptor(tgridVrts[edgeDescs[i].first],
+				tgrid.create<RegularEdge>(EdgeDescriptor(tgridVrts[edgeDescs[i].first],
 												  tgridVrts[edgeDescs[i].second]));
 			}
 

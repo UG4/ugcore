@@ -90,7 +90,7 @@ void Extrude(Grid& grid,
 			VecAdd(aaPos[v], aaPos[v], direction);
 
 		//	create an edge between both vertices.
-			grid.create<Edge>(EdgeDescriptor(vOld, v), vOld);
+			grid.create<RegularEdge>(EdgeDescriptor(vOld, v), vOld);
 
 		//	overwrite the vertex in pvVerticesInOut
 			vVertices[i] = v;
@@ -125,7 +125,7 @@ void Extrude(Grid& grid,
 
 		//	both new vertices exist now.
 		//	create the new edge
-			Edge* eNew = *grid.create<Edge>(EdgeDescriptor(v[0], v[1]), e);
+			RegularEdge* eNew = *grid.create<RegularEdge>(EdgeDescriptor(v[0], v[1]), e);
 
 		//	overwrite the edge in pvEdgesInOut
 			vEdges[i] = eNew;

@@ -184,7 +184,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 	UG_ASSERT(marked_to_normal(cge), "A constraining has to be converted to a"
 									 " normal edge when it is refined.");
 	Vertex* centerVrt = get_center_vertex(cge);
-	Edge* e = *m_pMG->create_and_replace<Edge>(cge);
+	RegularEdge* e = *m_pMG->create_and_replace<RegularEdge>(cge);
 	if(centerVrt)
 		set_center_vertex(e, centerVrt);
 }
@@ -1595,7 +1595,7 @@ We have to handle elements as follows:
 
 			case HNCM_REPLACE:{
 			//	this should only not be set on constrained edges
-				UG_ASSERT(!elem->is_constrained(), "Edge should not be constrained: "
+				UG_ASSERT(!elem->is_constrained(), "RegularEdge should not be constrained: "
 						  << ElementDebugInfo(mg, elem));
 				if(elem->is_constraining()){
 				//	the constraining edge has to be transformed to a normal edge
@@ -1611,7 +1611,7 @@ We have to handle elements as follows:
 						}
 					#endif
 
-					mg.create_and_replace<Edge>(elem);
+					mg.create_and_replace<RegularEdge>(elem);
 				}
 				else{
 				//	transform the edge to a constraining edge

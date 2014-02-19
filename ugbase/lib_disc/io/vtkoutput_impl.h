@@ -440,7 +440,7 @@ count_piece_sizes(Grid& grid, const T& iterContainer, int si, int dim,
 	switch(dim)
 	{
 		case 0: count_sizes<Vertex, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
-		case 1: count_sizes<Edge, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
+		case 1: count_sizes<RegularEdge, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
 		case 2: count_sizes<Triangle, T>(grid, iterContainer, si, numVert, numElem, numConn);
 				count_sizes<Quadrilateral, T>(grid, iterContainer, si, numVert, numElem, numConn); break;
 		case 3: count_sizes<Tetrahedron, T>(grid, iterContainer, si, numVert, numElem, numConn);
@@ -536,7 +536,7 @@ write_points(VTKFileWriter& File,
 	if(numVert > 0){
 		switch(dim){
 			case 0: write_points_elementwise<Vertex,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n); break;
-			case 1: write_points_elementwise<Edge,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);	break;
+			case 1: write_points_elementwise<RegularEdge,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);	break;
 			case 2: write_points_elementwise<Triangle,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
 					write_points_elementwise<Quadrilateral,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n); break;
 			case 3:	write_points_elementwise<Tetrahedron,T>(File, aaVrtIndex, aaPos, grid, iterContainer, si, n);
@@ -676,7 +676,7 @@ write_cell_connectivity(VTKFileWriter& File,
 		switch(dim)
 		{
 			case 0: break; // no elements -> nothing to do
-			case 1: write_cell_connectivity<Edge,T>(File, aaVrtIndex, grid, iterContainer, si);	break;
+			case 1: write_cell_connectivity<RegularEdge,T>(File, aaVrtIndex, grid, iterContainer, si);	break;
 			case 2: write_cell_connectivity<Triangle,T>(File, aaVrtIndex, grid, iterContainer, si);
 					write_cell_connectivity<Quadrilateral,T>(File, aaVrtIndex, grid, iterContainer, si); break;
 			case 3: write_cell_connectivity<Tetrahedron,T>(File, aaVrtIndex, grid, iterContainer, si);
@@ -751,7 +751,7 @@ write_cell_offsets(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 		switch(dim)
 		{
 			case 0: break; // no elements -> nothing to do
-			case 1: write_cell_offsets<Edge,T>(File, iterContainer, si, n); break;
+			case 1: write_cell_offsets<RegularEdge,T>(File, iterContainer, si, n); break;
 			case 2: write_cell_offsets<Triangle,T>(File, iterContainer, si, n);
 					write_cell_offsets<Quadrilateral,T>(File, iterContainer, si, n); break;
 			case 3: write_cell_offsets<Tetrahedron,T>(File, iterContainer, si, n);
@@ -839,7 +839,7 @@ write_cell_types(VTKFileWriter& File, const T& iterContainer, int si, int dim,
 		switch(dim)
 		{
 			case 0: break; // no elements -> nothing to do
-			case 1: write_cell_types<Edge>(File, iterContainer, si); break;
+			case 1: write_cell_types<RegularEdge>(File, iterContainer, si); break;
 			case 2: write_cell_types<Triangle>(File, iterContainer, si);
 					write_cell_types<Quadrilateral>(File, iterContainer, si);break;
 			case 3: write_cell_types<Tetrahedron>(File, iterContainer, si);
@@ -986,7 +986,7 @@ write_nodal_data(VTKFileWriter& File, TFunction& u, number time,
 //	switch dimension
 	switch(dim)
 	{
-		case 1:	write_nodal_data_elementwise<Edge,TFunction,TData>(File, u, time, spData, grid, si);break;
+		case 1:	write_nodal_data_elementwise<RegularEdge,TFunction,TData>(File, u, time, spData, grid, si);break;
 		case 2:	write_nodal_data_elementwise<Triangle,TFunction,TData>(File, u, time, spData, grid, si);
 				write_nodal_data_elementwise<Quadrilateral,TFunction,TData>(File, u, time, spData, grid, si);break;
 		case 3:	write_nodal_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, si);
@@ -1103,7 +1103,7 @@ write_nodal_values(VTKFileWriter& File, TFunction& u,
 	switch(dim)
 	{
 		case 0:	write_nodal_values_elementwise<Vertex>(File, u, vFct, grid, si); break;
-		case 1:	write_nodal_values_elementwise<Edge>(File, u, vFct, grid, si);break;
+		case 1:	write_nodal_values_elementwise<RegularEdge>(File, u, vFct, grid, si);break;
 		case 2:	write_nodal_values_elementwise<Triangle>(File, u, vFct, grid, si);
 				write_nodal_values_elementwise<Quadrilateral>(File, u, vFct, grid, si);break;
 		case 3:	write_nodal_values_elementwise<Tetrahedron>(File, u, vFct, grid, si);
@@ -1337,7 +1337,7 @@ write_cell_data(VTKFileWriter& File, TFunction& u, number time,
 //	switch dimension
 	switch(dim)
 	{
-		case 1:	write_cell_data_elementwise<Edge,TFunction,TData>(File, u, time, spData, grid, si);break;
+		case 1:	write_cell_data_elementwise<RegularEdge,TFunction,TData>(File, u, time, spData, grid, si);break;
 		case 2:	write_cell_data_elementwise<Triangle,TFunction,TData>(File, u, time, spData, grid, si);
 				write_cell_data_elementwise<Quadrilateral,TFunction,TData>(File, u, time, spData, grid, si);break;
 		case 3:	write_cell_data_elementwise<Tetrahedron,TFunction,TData>(File, u, time, spData, grid, si);
@@ -1459,7 +1459,7 @@ write_cell_values(VTKFileWriter& File, TFunction& u,
 //	switch dimension
 	switch(dim)
 	{
-		case 1:	write_cell_values_elementwise<Edge>(File, u, vFct, grid, si);break;
+		case 1:	write_cell_values_elementwise<RegularEdge>(File, u, vFct, grid, si);break;
 		case 2:	write_cell_values_elementwise<Triangle>(File, u, vFct, grid, si);
 				write_cell_values_elementwise<Quadrilateral>(File, u, vFct, grid, si);break;
 		case 3:	write_cell_values_elementwise<Tetrahedron>(File, u, vFct, grid, si);

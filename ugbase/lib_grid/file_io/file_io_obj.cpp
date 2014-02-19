@@ -83,7 +83,7 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 							UG_THROW("Bad vertex index in edge " << i / 2 << ": " << obj.m_vEdgeList[i] + 1);
 						}
 					}
-					grid.create<Edge>(EdgeDescriptor(vVertices[obj.m_vEdgeList[i]],
+					grid.create<RegularEdge>(EdgeDescriptor(vVertices[obj.m_vEdgeList[i]],
 													vVertices[obj.m_vEdgeList[i+1]]));
 				}
 			//	create triangles
@@ -119,7 +119,7 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 							UG_THROW("Bad vertex index in edge " << i / 2 << ": " << obj.m_vEdgeList[i] + 1);
 						}
 					}
-					Edge* e = *grid.create<Edge>(EdgeDescriptor(vVertices[obj.m_vEdgeList[i]],
+					RegularEdge* e = *grid.create<RegularEdge>(EdgeDescriptor(vVertices[obj.m_vEdgeList[i]],
 													vVertices[obj.m_vEdgeList[i+1]]));
 					pSubsetHandler->assign_subset(e, objCounter);
 				}

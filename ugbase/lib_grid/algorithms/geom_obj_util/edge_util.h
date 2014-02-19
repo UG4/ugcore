@@ -130,7 +130,7 @@ inline number EdgeLength(const EdgeVertices* e, TAAPosVRT& aaPos);
  *
  * \param vNormOut		normal
  * \param grid			Grid
- * \param e				Edge
+ * \param e				RegularEdge
  * \param aaPos			vertec attachment accessor
  * \param paaNormFACE 	An optional parameter that allows to specify an
  *						accessor for precalculated face normals.
@@ -154,7 +154,7 @@ int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
  *
  * \param vNormOut		normal
  * \param grid			Grid
- * \param e				Edge
+ * \param e				RegularEdge
  * \param aaPos			vertec attachment accessor
  * \param paaNormFACE: An optional parameter that allows to specify an
  *						accessor for precalculated face normals.

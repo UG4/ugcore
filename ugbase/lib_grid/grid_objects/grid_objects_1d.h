@@ -19,7 +19,7 @@ namespace ug
 enum EdgeContainerSections
 {
 	CSEDGE_NONE = -1,
-	CSEDGE_EDGE = 0,
+	CSEDGE_REGULAR_EDGE = 0,
 	CSEDGE_CONSTRAINED_EDGE = 1,
 	CSEDGE_CONSTRAINING_EDGE = 2
 };
@@ -27,37 +27,37 @@ enum EdgeContainerSections
 
 
 ////////////////////////////////////////////////////////////////////////
-//	Edge
+//	RegularEdge
 ///	Edges connect two vertices.
 /**
  * The most commonly used edge-type.
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API Edge : public EdgeBase
+class UG_API RegularEdge : public EdgeBase
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Edge*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<RegularEdge*>(pObj) != NULL;}
 
-		Edge()	{}
-		Edge(Vertex* v1, Vertex* v2)
+		RegularEdge()	{}
+		RegularEdge(Vertex* v1, Vertex* v2)
 			{
 				m_vertices[0] = v1;
 				m_vertices[1] = v2;
 			}
 
-		Edge(const EdgeDescriptor& descriptor)
+		RegularEdge(const EdgeDescriptor& descriptor)
 			{
 				m_vertices[0] = descriptor.vertex(0);
 				m_vertices[1] = descriptor.vertex(1);
 			}
 
-		virtual ~Edge()	{}
+		virtual ~RegularEdge()	{}
 
-		virtual GridObject* create_empty_instance() const	{return new Edge;}
+		virtual GridObject* create_empty_instance() const	{return new RegularEdge;}
 
-		virtual int container_section() const	{return CSEDGE_EDGE;}
+		virtual int container_section() const	{return CSEDGE_REGULAR_EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
 
 	///	virtual refine. Returns pointers to EdgeBase.
@@ -70,22 +70,22 @@ class UG_API Edge : public EdgeBase
 							Vertex** pSubstituteVrts = NULL);
 
 //TODO:	Think about this method. It is not safe!
-	///	non virtual refine. Returns pointers to Edge.
+	///	non virtual refine. Returns pointers to RegularEdge.
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
 	 * \sa EdgeBase::refine.
 	 */
-		bool refine(std::vector<Edge*>& vNewEdgesOut,
+		bool refine(std::vector<RegularEdge*>& vNewEdgesOut,
 					Vertex* newVertex,
 					Vertex** pSubstituteVrts = NULL);
 };
 
 template <>
-class geometry_traits<Edge>
+class geometry_traits<RegularEdge>
 {
 	public:
-		typedef GenericGridObjectIterator<Edge*, EdgeBaseIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<Edge*, EdgeBaseIterator,
+		typedef GenericGridObjectIterator<RegularEdge*, EdgeBaseIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<RegularEdge*, EdgeBaseIterator,
 														ConstEdgeBaseIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
@@ -93,14 +93,14 @@ class geometry_traits<Edge>
 
 		enum
 		{
-			CONTAINER_SECTION = CSEDGE_EDGE,
+			CONTAINER_SECTION = CSEDGE_REGULAR_EDGE,
 			BASE_OBJECT_ID = EDGE
 		};
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
-typedef geometry_traits<Edge>::iterator 		EdgeIterator;
-typedef geometry_traits<Edge>::const_iterator 	ConstEdgeIterator;
+typedef geometry_traits<RegularEdge>::iterator 		RegularEdgeIterator;
+typedef geometry_traits<RegularEdge>::const_iterator 	ConstRegularEdgeIterator;
 
 
 

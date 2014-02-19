@@ -141,7 +141,7 @@ class UG_API Triangle : public CustomTriangle<Triangle, Face>
 	protected:
 		virtual EdgeBase* create_edge(int index)
 			{
-				return new Edge(m_vertices[index], m_vertices[(index+1) % 3]);
+				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
 };
 
@@ -284,7 +284,7 @@ class UG_API Quadrilateral : public CustomQuadrilateral<Quadrilateral, Face>
 	protected:
 		virtual EdgeBase* create_edge(int index)
 		{
-			return new Edge(m_vertices[index], m_vertices[(index+1) % 4]);
+			return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 		}
 };
 
@@ -627,7 +627,7 @@ class UG_API ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, 
 
 		virtual EdgeBase* create_edge(int index)
 			{
-				return new Edge(m_vertices[index], m_vertices[(index+1) % 3]);
+				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 3]);
 			}
 };
 
@@ -688,7 +688,7 @@ class UG_API ConstrainingQuadrilateral : public CustomQuadrilateral<Constraining
 
 		virtual EdgeBase* create_edge(int index)
 			{
-				return new Edge(m_vertices[index], m_vertices[(index+1) % 4]);
+				return new RegularEdge(m_vertices[index], m_vertices[(index+1) % 4]);
 			}
 };
 

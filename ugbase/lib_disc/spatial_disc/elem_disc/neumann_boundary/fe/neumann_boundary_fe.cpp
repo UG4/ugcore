@@ -327,7 +327,7 @@ extract_bip(const TFEGeom& geo)
 template<>
 void NeumannBoundaryFE<Domain1d>::register_all_funcs(int order)
 {
-	register_func<Edge, DimFEGeometry<dim, 1> >();
+	register_func<RegularEdge, DimFEGeometry<dim, 1> >();
 }
 #endif
 

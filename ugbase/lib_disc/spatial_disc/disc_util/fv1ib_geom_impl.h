@@ -760,9 +760,9 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 //////////////////////
 // FV1IBGeometry
 
-template class FV1IBGeometry<Edge, 1>;
-template class FV1IBGeometry<Edge, 2>;
-template class FV1IBGeometry<Edge, 3>;
+template class FV1IBGeometry<RegularEdge, 1>;
+template class FV1IBGeometry<RegularEdge, 2>;
+template class FV1IBGeometry<RegularEdge, 3>;
 
 template class FV1IBGeometry<Triangle, 2>;
 template class FV1IBGeometry<Triangle, 3>;

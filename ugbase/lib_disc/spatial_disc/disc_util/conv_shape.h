@@ -61,7 +61,7 @@ class ConvectionShapesNoUpwind
 
 	private:
 		void register_func(Int2Type<1>)
-		{register_func<Edge>();}
+		{register_func<RegularEdge>();}
 
 		void register_func(Int2Type<2>)
 		{	register_func(Int2Type<1>());
@@ -199,7 +199,7 @@ class ConvectionShapesFullUpwind
 
 	private:
 		void register_func(Int2Type<1>)
-		{register_func<Edge>();}
+		{register_func<RegularEdge>();}
 
 		void register_func(Int2Type<2>)
 		{	register_func(Int2Type<1>());
@@ -370,7 +370,7 @@ class ConvectionShapesWeightedUpwind
 		number m_weight;
 
 		void register_func(Int2Type<1>)
-		{register_func<Edge>();}
+		{register_func<RegularEdge>();}
 
 		void register_func(Int2Type<2>)
 		{	register_func(Int2Type<1>());
@@ -529,7 +529,7 @@ class ConvectionShapesPartialUpwind
 
 	private:
 		void register_func(Int2Type<1>)
-		{register_func<Edge>();}
+		{register_func<RegularEdge>();}
 
 		void register_func(Int2Type<2>)
 		{	register_func(Int2Type<1>());

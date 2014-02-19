@@ -101,7 +101,7 @@ bool ImportGridFromLGM(Grid& grid,
 	}
 
 	//	read lines and store them in an array for index access
-	vector<Edge*> vEdges;
+	vector<RegularEdge*> vEdges;
 	vEdges.reserve(l->num_lines);
 
 	//	read lines
@@ -118,7 +118,7 @@ bool ImportGridFromLGM(Grid& grid,
 			int v2 = li->points[j];
 
 			// create edge
-			Edge* e = *grid.create<Edge>(EdgeDescriptor(
+			RegularEdge* e = *grid.create<RegularEdge>(EdgeDescriptor(
 				vVertices[v1],
 				vVertices[v2]
 			));

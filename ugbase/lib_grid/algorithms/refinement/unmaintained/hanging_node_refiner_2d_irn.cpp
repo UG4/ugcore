@@ -1057,7 +1057,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 				//	if the edge was scheduled we have to output this
 					scheduledEdgeReplaced[i] = m_selScheduledElements.is_selected(replaceMe);
 				//	create and replace
-					Edge* nEdge = *grid.create_and_replace<Edge>(replaceMe);
+					RegularEdge* nEdge = *grid.create_and_replace<RegularEdge>(replaceMe);
 				//	assign the stored vertex
 					set_center_vertex(nEdge, tmpVrt);
 				//	store the new edge
@@ -1075,7 +1075,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 					//PrintConstrainingEdgeInfo(ce, m_aaPos);
 
 					assert(!"WARNING in PerformHangingNodeEdgeRefinement(...): Program shouldn't reach this point! Expect undefined behaviour.");
-					grid.create<Edge>(EdgeDescriptor(vrt1, vrt2));
+					grid.create<RegularEdge>(EdgeDescriptor(vrt1, vrt2));
 				}
 			}
 		}
@@ -1118,7 +1118,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 			LOG(endl);
 		}
 		*/
-		LOG("Edge attachment index: " << grid.get_attachment_data_index(ce) << endl);
+		LOG("RegularEdge attachment index: " << grid.get_attachment_data_index(ce) << endl);
 		LOG("num_constrained_vertices: " << ce->num_constrained_vertices() << endl);
 		LOG("coords of constrained vertices:" << endl);
 		for(VertexIterator vrtIter = ce->constrained_vertices_begin();

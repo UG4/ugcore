@@ -460,17 +460,17 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 		
 	//	fill the stream
 	//	normal edges first.
-		if(goc.num<Edge>() > 0)
+		if(goc.num<RegularEdge>() > 0)
 		{
 			tInt = GOID_EDGE;
 			out.write((char*)&tInt, sizeof(int));
-			tInt = (int)goc.num<Edge>();
+			tInt = (int)goc.num<RegularEdge>();
 			out.write((char*)&tInt, sizeof(int));
 
-			for(EdgeIterator iter = goc.begin<Edge>();
-				iter != goc.end<Edge>(); ++iter)
+			for(RegularEdgeIterator iter = goc.begin<RegularEdge>();
+				iter != goc.end<RegularEdge>(); ++iter)
 			{
-				Edge* e = *iter;
+				RegularEdge* e = *iter;
 				edgeInd++;
 				out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
 				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
@@ -684,7 +684,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
 
-							Edge* e = *grid.create<Edge>(EdgeDescriptor(vVrts[i1], vVrts[i2]));
+							RegularEdge* e = *grid.create<RegularEdge>(EdgeDescriptor(vVrts[i1], vVrts[i2]));
 							vEdges.push_back(e);
 						}
 					}break;
@@ -942,17 +942,17 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 	//	fill the stream
 	//	normal edges first.
-		if(mgoc.num<Edge>(iLevel) > 0)
+		if(mgoc.num<RegularEdge>(iLevel) > 0)
 		{
 			tInt = GOID_EDGE;
 			out.write((char*)&tInt, sizeof(int));
-			tInt = (int)mgoc.num<Edge>(iLevel);
+			tInt = (int)mgoc.num<RegularEdge>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
 
-			for(EdgeIterator iter = mgoc.begin<Edge>(iLevel);
-				iter != mgoc.end<Edge>(iLevel); ++iter)
+			for(RegularEdgeIterator iter = mgoc.begin<RegularEdge>(iLevel);
+				iter != mgoc.end<RegularEdge>(iLevel); ++iter)
 			{
-				Edge* e = *iter;
+				RegularEdge* e = *iter;
 				mg.mark(e);
 				out.write((char*)&aaInt[e->vertex(0)], sizeof(int));
 				out.write((char*)&aaInt[e->vertex(1)], sizeof(int));
@@ -1626,7 +1626,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								Deserialize(in, id);
 								EdgeBase* oldEdge;
 								if(edgeHash.get_entry(oldEdge, id)){
-									assert(dynamic_cast<Edge*>(oldEdge));
+									assert(dynamic_cast<RegularEdge*>(oldEdge));
 									vEdges.push_back(oldEdge);
 								//	make sure that its parent is registered
 									if(parent && (!mg.get_parent(oldEdge)))
@@ -1634,12 +1634,12 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 									continue;
 								}
 							}
-							Edge* e;
+							RegularEdge* e;
 							if(parent)
-								e = *mg.create<Edge>(
+								e = *mg.create<RegularEdge>(
 										EdgeDescriptor(vVrts[i1], vVrts[i2]), parent);
 							else{
-								e = *mg.create<Edge>(
+								e = *mg.create<RegularEdge>(
 										EdgeDescriptor(vVrts[i1], vVrts[i2]), currentLevel);
 								mg.set_parent_type(e, pInfo.second);
 							}

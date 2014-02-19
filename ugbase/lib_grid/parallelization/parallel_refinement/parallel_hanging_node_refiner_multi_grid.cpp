@@ -80,7 +80,7 @@ static void ReplaceByConstraining(MultiGrid&, Vertex*)
 
 static void ReplaceByNormal(MultiGrid& mg, EdgeBase* e)
 {
-	mg.create_and_replace<Edge>(e);
+	mg.create_and_replace<RegularEdge>(e);
 }
 
 static void ReplaceByConstrained(MultiGrid& mg, EdgeBase* e)

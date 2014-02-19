@@ -266,7 +266,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
 
 		e->refine(vEdges, nVrt, substituteVrts);
-		assert((vEdges.size() == 2) && "Edge refine produced wrong number of edges.");
+		assert((vEdges.size() == 2) && "RegularEdge refine produced wrong number of edges.");
 		mg.register_element(vEdges[0], e);
 		mg.register_element(vEdges[1], e);
 		//GMGR_PROFILE_END();

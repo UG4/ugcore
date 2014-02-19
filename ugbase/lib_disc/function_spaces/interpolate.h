@@ -236,7 +236,7 @@ void InterpolateOnElements(SmartPtr<UserData<number, TGridFunction::dim> > spInt
 		case DIM_SUBSET_EMPTY_GRID: break;
 		case 0: /* \TODO: do nothing may be wrong */	break;
 		case 1:
-			InterpolateOnElements<Edge, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
+			InterpolateOnElements<RegularEdge, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);
 			break;
 		case 2:
 			InterpolateOnElements<Triangle, TGridFunction>(spInterpolFunction, spGridFct, fct, si, time);

@@ -32,7 +32,7 @@ void PrintElementNumbers(const GridObjectCollection& goc)
 
 		UG_LOG("  edges total:\t\t" << goc.num<EdgeBase>(i) << endl);
 		if(goc.num<EdgeBase>() > 0){
-			UG_LOG("    normal edges:\t" << goc.num<Edge>(i) << endl);
+			UG_LOG("    normal edges:\t" << goc.num<RegularEdge>(i) << endl);
 			UG_LOG("    constraining edges:\t" << goc.num<ConstrainingEdge>(i) << endl);
 			UG_LOG("    constrained edges:\t" << goc.num<ConstrainedEdge>(i) << endl);
 		}

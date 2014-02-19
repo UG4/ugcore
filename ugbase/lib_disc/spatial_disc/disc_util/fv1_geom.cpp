@@ -1111,7 +1111,7 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 	{
 		m_vBF[i].nodeId = i;
 
-		if (dim == 1) // Edge
+		if (dim == 1) // RegularEdge
 		{
 			m_vBF[i].midId[0] = MidID(0, i);	// set node as corner of bf
 			m_vBF[i].midId[1] = MidID(dim, 0);	// center of bnd element
@@ -1238,7 +1238,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		// copy global corners of bf
 		copy_global_corners(m_vBF[i]);
 		
-		if (dim == 1) // Edge
+		if (dim == 1) // RegularEdge
 			{AveragePositions(m_vBF[i].globalIP, m_vBF[i].vGloPos, 2);}
 		else if (dim == 2)	// Quadrilateral
 			{AveragePositions(m_vBF[i].globalIP, m_vBF[i].vGloPos, 4);}
@@ -1277,9 +1277,9 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 //////////////////////
 // FV1Geometry
 
-template class FV1Geometry<Edge, 1>;
-template class FV1Geometry<Edge, 2>;
-template class FV1Geometry<Edge, 3>;
+template class FV1Geometry<RegularEdge, 1>;
+template class FV1Geometry<RegularEdge, 2>;
+template class FV1Geometry<RegularEdge, 3>;
 
 template class FV1Geometry<Triangle, 2>;
 template class FV1Geometry<Triangle, 3>;
@@ -1305,7 +1305,7 @@ template class DimFV1Geometry<3, 3>;
 
 //////////////////////
 // Manifold
-template class FV1ManifoldBoundary<Edge, 2>;
+template class FV1ManifoldBoundary<RegularEdge, 2>;
 template class FV1ManifoldBoundary<Triangle, 3>;
 template class FV1ManifoldBoundary<Quadrilateral, 3>;
 

@@ -1120,9 +1120,9 @@ void AssignSubsetsByElementType(ISubsetHandler& sh)
 		sh.subset_info(subsetInd++).name = "HangingVertex";
 	}
 
-	if(g.num<Edge>() > 0){
-		sh.assign_subset(g.begin<Edge>(), g.end<Edge>(), subsetInd);
-		sh.subset_info(subsetInd++).name = "Edge";
+	if(g.num<RegularEdge>() > 0){
+		sh.assign_subset(g.begin<RegularEdge>(), g.end<RegularEdge>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "RegularEdge";
 	}
 
 	if(g.num<ConstrainingEdge>() > 0){

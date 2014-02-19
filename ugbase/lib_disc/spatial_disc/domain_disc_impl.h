@@ -113,7 +113,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			AssembleMassMatrix<Edge,TDomain,TAlgebra>
+			AssembleMassMatrix<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, M, u, m_spAssTuner);
 			break;
 		case 2:
@@ -215,7 +215,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			AssembleStiffnessMatrix<Edge,TDomain,TAlgebra>
+			AssembleStiffnessMatrix<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, A, u, m_spAssTuner);
 			break;
 		case 2:
@@ -342,7 +342,7 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			AssembleJacobian<Edge,TDomain,TAlgebra>
+			AssembleJacobian<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, *pModifyU, m_spAssTuner);
 			break;
 		case 2:
@@ -461,7 +461,7 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			AssembleDefect<Edge,TDomain,TAlgebra>
+			AssembleDefect<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, *pModifyU, m_spAssTuner);
 			break;
 		case 2:
@@ -562,7 +562,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleLinear<Edge,TDomain,TAlgebra>
+			AssembleLinear<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, m_spAssTuner);
 			break;
 		case 2:
@@ -664,7 +664,7 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleRhs<Edge,TDomain,TAlgebra>
+			AssembleRhs<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, u, m_spAssTuner);
 			break;
 		case 2:
@@ -810,7 +810,7 @@ prepare_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			PrepareTimestep<Edge,TDomain,TAlgebra>
+			PrepareTimestep<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
 			break;
 		case 2:
@@ -915,7 +915,7 @@ assemble_jacobian(matrix_type& J,
 		switch(dim)
 		{
 		case 1:
-			AssembleJacobian<Edge,TDomain,TAlgebra>
+			AssembleJacobian<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, J, pModifyU, s_a0, m_spAssTuner);
 			break;
 		case 2:
@@ -1036,7 +1036,7 @@ assemble_defect(vector_type& d,
 		switch(dim)
 		{
 		case 1:
-			AssembleDefect<Edge,TDomain,TAlgebra>
+			AssembleDefect<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, d, pModifyU, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 2:
@@ -1139,7 +1139,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleLinear<Edge,TDomain,TAlgebra>
+			AssembleLinear<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, mat, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 2:
@@ -1245,7 +1245,7 @@ assemble_rhs(vector_type& rhs,
 		switch(dim)
 		{
 		case 1:
-			AssembleRhs<Edge,TDomain,TAlgebra>
+			AssembleRhs<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, rhs, vSol, vScaleMass, vScaleStiff, m_spAssTuner);
 			break;
 		case 2:
@@ -1377,7 +1377,7 @@ finish_timestep(ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 		switch(dim)
 		{
 		case 1:
-			FinishTimestep<Edge,TDomain,TAlgebra>
+			FinishTimestep<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, vSol, m_spAssTuner);
 			break;
 		case 2:
@@ -1474,7 +1474,7 @@ mark_error
 		switch(dim)
 		{
 		case 1:
-			AssembleErrorEstimator<Edge,TDomain,TAlgebra>
+			AssembleErrorEstimator<RegularEdge,TDomain,TAlgebra>
 				(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u);
 			break;
 		case 2:
@@ -1533,7 +1533,7 @@ mark_error
 							Attachment<number> > err_est_field_type;
 				pMG->template attach_to<element_type>(aError);
 				err_est_field_type aaError(*pMG, aError);
-				GetErrorEstimator<Edge,TDomain,TAlgebra,err_est_field_type>
+				GetErrorEstimator<RegularEdge,TDomain,TAlgebra,err_est_field_type>
 					(vSubsetElemDisc, m_spApproxSpace->domain(), dd, si, bNonRegularGrid, u, aaError);
 				MarkElements<element_type>(aaError, refiner, dd, TOL, refineFrac, coarseFrac, maxLevel);
 				pMG->template detach_from<element_type>(aError);

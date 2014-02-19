@@ -131,8 +131,8 @@ class GridWriterUGX
 
 	//	EDGES
 		rapidxml::xml_node<>*
-		create_edge_node(EdgeIterator edgesBegin,
-						 EdgeIterator edgesEnd,
+		create_edge_node(RegularEdgeIterator edgesBegin,
+						 RegularEdgeIterator edgesEnd,
 						 AAVrtIndex aaIndVRT);
 
 		rapidxml::xml_node<>*

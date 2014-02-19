@@ -279,7 +279,7 @@ EdgeBase* Tetrahedron::create_edge(int index)
 	using namespace tet_rules;
 	assert(index >= 0 && index < NUM_EDGES);
 	const int* e = EDGE_VRT_INDS[index];
-	return new Edge(m_vertices[e[0]], m_vertices[e[1]]);
+	return new RegularEdge(m_vertices[e[0]], m_vertices[e[1]]);
 }
 
 Face* Tetrahedron::create_face(int index)
@@ -487,7 +487,7 @@ EdgeBase* Hexahedron::create_edge(int index)
 	using namespace hex_rules;
 	assert(index >= 0 && index < NUM_EDGES);
 	const int* e = EDGE_VRT_INDS[index];
-	return new Edge(m_vertices[e[0]], m_vertices[e[1]]);
+	return new RegularEdge(m_vertices[e[0]], m_vertices[e[1]]);
 }
 
 Face* Hexahedron::create_face(int index)
@@ -691,7 +691,7 @@ EdgeBase* Prism::create_edge(int index)
 	using namespace prism_rules;
 	assert(index >= 0 && index < NUM_EDGES);
 	const int* e = EDGE_VRT_INDS[index];
-	return new Edge(m_vertices[e[0]], m_vertices[e[1]]);
+	return new RegularEdge(m_vertices[e[0]], m_vertices[e[1]]);
 }
 
 Face* Prism::create_face(int index)
@@ -896,7 +896,7 @@ EdgeBase* Pyramid::create_edge(int index)
 	using namespace pyra_rules;
 	assert(index >= 0 && index < NUM_EDGES);
 	const int* e = EDGE_VRT_INDS[index];
-	return new Edge(m_vertices[e[0]], m_vertices[e[1]]);
+	return new RegularEdge(m_vertices[e[0]], m_vertices[e[1]]);
 }
 
 Face* Pyramid::create_face(int index)

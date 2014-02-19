@@ -334,7 +334,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 	}
 
 //	read the edges
-	vector<Edge*>	vEdges;
+	vector<RegularEdge*>	vEdges;
 
 	while((!in.eof()))
 	{
@@ -360,7 +360,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 		i2 = atoi(tok);
 
 	//	create a new edge
-		Edge* e = *grid.create<Edge>(EdgeDescriptor(vVrts[i1], vVrts[i2]));
+		RegularEdge* e = *grid.create<RegularEdge>(EdgeDescriptor(vVrts[i1], vVrts[i2]));
 //	edges won't be assigned to subsets in the moment, since things are a little chaotic in the files...
 /*
 		if(si < 1)

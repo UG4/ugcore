@@ -187,8 +187,8 @@ adjust_sol_and_cor(value_type& sol_i, value_type& c_i, bool& dofIsActive,
 		case 0:
 			break;
 		case 1:
-			adjust_sol_and_cor_elem<Edge>
-				(m_spDD->template begin<Edge>(si), m_spDD->template end<Edge>(si),
+			adjust_sol_and_cor_elem<RegularEdge>
+				(m_spDD->template begin<RegularEdge>(si), m_spDD->template end<RegularEdge>(si),
 						sol_i, c_i, dofIsActive, dof);
 			break;
 		case 2:

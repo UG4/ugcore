@@ -282,8 +282,8 @@ init_grid_attachments(Grid& grid)
 				  aaIndVRT, baseInd);
 
 	baseInd = 0;
-	AssignIndices(grid.begin<Edge>(), grid.end<Edge>(), aaIndEDGE, baseInd);
-	baseInd += grid.num<Edge>();
+	AssignIndices(grid.begin<RegularEdge>(), grid.end<RegularEdge>(), aaIndEDGE, baseInd);
+	baseInd += grid.num<RegularEdge>();
 	AssignIndices(grid.begin<ConstrainingEdge>(), grid.end<ConstrainingEdge>(),
 				  aaIndEDGE, baseInd);
 	baseInd += grid.num<ConstrainingEdge>();
@@ -319,9 +319,9 @@ add_elements_to_node(rapidxml::xml_node<>* node,
 	Grid::VolumeAttachmentAccessor<AInt> aaIndVOL(grid, m_aInt);
 
 //	write edges
-	if(grid.num<Edge>() > 0)
-		node->append_node(create_edge_node(grid.begin<Edge>(),
-										grid.end<Edge>(), aaIndVRT));
+	if(grid.num<RegularEdge>() > 0)
+		node->append_node(create_edge_node(grid.begin<RegularEdge>(),
+										grid.end<RegularEdge>(), aaIndVRT));
 
 //	write constraining edges
 	if(grid.num<ConstrainingEdge>() > 0)
@@ -394,13 +394,13 @@ add_elements_to_node(rapidxml::xml_node<>* node,
 }
 
 rapidxml::xml_node<>* GridWriterUGX::
-create_edge_node(EdgeIterator edgesBegin,
-				 EdgeIterator edgesEnd,
+create_edge_node(RegularEdgeIterator edgesBegin,
+				 RegularEdgeIterator edgesEnd,
 				 AAVrtIndex aaIndVRT)
 {
 //	write the elements to a temporary stream
 	stringstream ss;
-	for(EdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
+	for(RegularEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
 	{
 		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " ";
 	}
@@ -1141,7 +1141,7 @@ create_edges(std::vector<EdgeBase*>& edgesOut,
 		}
 
 	//	create the edge
-		edgesOut.push_back(*grid.create<Edge>(EdgeDescriptor(vrts[i1], vrts[i2])));
+		edgesOut.push_back(*grid.create<RegularEdge>(EdgeDescriptor(vrts[i1], vrts[i2])));
 	}
 
 	return true;

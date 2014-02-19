@@ -47,7 +47,7 @@ struct reference_element_traits<ConstrainedVertex>
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct reference_element_traits<Edge>
+struct reference_element_traits<RegularEdge>
 {
 	typedef ReferenceEdge reference_element_type;
 	static const int dim = reference_element_type::dim;
@@ -55,11 +55,11 @@ struct reference_element_traits<Edge>
 
 template <>
 struct reference_element_traits<ConstrainedEdge>
-	: public reference_element_traits<Edge>{};
+	: public reference_element_traits<RegularEdge>{};
 
 template <>
 struct reference_element_traits<ConstrainingEdge>
-	: public reference_element_traits<Edge>{};
+	: public reference_element_traits<RegularEdge>{};
 
 ///////////////////////////////////////////////////////////////////////////////
 // Triangle

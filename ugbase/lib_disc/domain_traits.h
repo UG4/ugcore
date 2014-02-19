@@ -44,8 +44,8 @@ const static size_t MaxNumVerticesOfElem = 1;
 
 // 1d
 template <> struct domain_traits<1> {
-typedef boost::mpl::list<Edge> DimElemList;
-typedef boost::mpl::list<Edge> AllElemList;
+typedef boost::mpl::list<RegularEdge> DimElemList;
+typedef boost::mpl::list<RegularEdge> AllElemList;
 typedef boost::mpl::list<> ManifoldElemList;
 
 typedef geometry_traits<EdgeBase>::const_iterator const_iterator;
@@ -66,8 +66,8 @@ typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_access
 // 2d
 template <> struct domain_traits<2> {
 typedef boost::mpl::list<Triangle, Quadrilateral> DimElemList;
-typedef boost::mpl::list<Edge, Triangle, Quadrilateral> AllElemList;
-typedef boost::mpl::list<Edge> ManifoldElemList;
+typedef boost::mpl::list<RegularEdge, Triangle, Quadrilateral> AllElemList;
+typedef boost::mpl::list<RegularEdge> ManifoldElemList;
 
 typedef geometry_traits<Face>::const_iterator const_iterator;
 typedef geometry_traits<Face>::iterator iterator;
@@ -86,7 +86,7 @@ typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_access
 // 3d
 template <> struct domain_traits<3> {
 typedef boost::mpl::list<Tetrahedron, Prism, Pyramid, Hexahedron> DimElemList;
-typedef boost::mpl::list<Edge, Triangle, Quadrilateral,
+typedef boost::mpl::list<RegularEdge, Triangle, Quadrilateral,
 								 Tetrahedron, Prism, Pyramid, Hexahedron> AllElemList;
 typedef boost::mpl::list<Triangle, Quadrilateral> ManifoldElemList;
 

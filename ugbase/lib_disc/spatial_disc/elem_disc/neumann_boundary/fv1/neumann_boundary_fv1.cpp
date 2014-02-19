@@ -315,7 +315,7 @@ extract_bip(const TFVGeom& geo)
 template<>
 void NeumannBoundaryFV1<Domain1d>::register_all_funcs(bool bHang)
 {
-	register_func<Edge, FV1Geometry<Edge, dim> >();
+	register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
 }
 #endif
 

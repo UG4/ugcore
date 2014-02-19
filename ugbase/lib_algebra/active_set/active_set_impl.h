@@ -55,7 +55,7 @@ void ActiveSet<TDomain, TAlgebra>::prepare(function_type& u)
 /*template <typename TDomain, typename TAlgebra>
 bool ActiveSet<TDomain, TAlgebra>::check_dist_to_obs(vector_type& u)
 {
-	//	STILL IN PROGRESS: u sollte hier reference-position + Startlšsung sein!
+	//	STILL IN PROGRESS: u sollte hier reference-position + Startlï¿½sung sein!
 	value_type dist;
 
 	bool geometry_cut_by_cons = false;
@@ -66,7 +66,7 @@ bool ActiveSet<TDomain, TAlgebra>::check_dist_to_obs(vector_type& u)
 		UG_LOG("m_spObs(" << i << "):" << (*m_spObs)[i] << "\n");
 		dist = (*m_spObs)[i] - u[i];
 		UG_LOG("dist:" << dist << "\n");
-		//TODO: anstatt u muss hier die geometrische Info einflie§en!
+		//TODO: anstatt u muss hier die geometrische Info einflieï¿½en!
 		for (size_t fct = 0; fct < m_nrFcts; fct++)
 		{
 			if (BlockRef(dist,fct) < 0.0) // i.e.: u < m_spObs
@@ -278,9 +278,9 @@ bool ActiveSet<TDomain, TAlgebra>::active_index(function_type& u,
 		case 0:
 			break;
 		case 1:
-			active_index_elem<Edge>
-				(m_spDD->template begin<Edge>(*activeSI),
-						m_spDD->template end<Edge>(*activeSI), u, rhs, lagrangeMult);
+			active_index_elem<RegularEdge>
+				(m_spDD->template begin<RegularEdge>(*activeSI),
+						m_spDD->template end<RegularEdge>(*activeSI), u, rhs, lagrangeMult);
 			break;
 		case 2:
 			active_index_elem<Triangle>
@@ -418,8 +418,8 @@ void ActiveSet<TDomain, TAlgebra>::lagrange_mat_inv(matrix_type& lagrangeMatInv)
 		case 0:
 			break;
 		case 1:
-			lagrange_mat_inv_elem<Edge>
-				(m_spDD->template begin<Edge>(*activeSI), m_spDD->template end<Edge>(*activeSI), lagrangeMatInv);
+			lagrange_mat_inv_elem<RegularEdge>
+				(m_spDD->template begin<RegularEdge>(*activeSI), m_spDD->template end<RegularEdge>(*activeSI), lagrangeMatInv);
 			break;
 		case 2:
 			lagrange_mat_inv_elem<Triangle>
@@ -608,8 +608,8 @@ bool ActiveSet<TDomain, TAlgebra>::check_conv(function_type& u, const function_t
 			case 0:
 				break;
 			case 1:
-				if (!check_conv_elem<Edge>
-					(m_spDD->template begin<Edge>(*activeSI), m_spDD->template end<Edge>(*activeSI),
+				if (!check_conv_elem<RegularEdge>
+					(m_spDD->template begin<RegularEdge>(*activeSI), m_spDD->template end<RegularEdge>(*activeSI),
 							u, lambda))
 				{bConstraintViolated = true;}
 

@@ -499,11 +499,11 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 	UG_DLOG(LIB_GRID, 1, "  normal edges.\n");
 	HNODE_PROFILE_BEGIN(href_NormalEdges);
 	{
-		typename selector_t::template traits<Edge>::iterator
-			iter = m_selMarkedElements.template begin<Edge>();
-		while(iter != m_selMarkedElements.template end<Edge>())
+		typename selector_t::template traits<RegularEdge>::iterator
+			iter = m_selMarkedElements.template begin<RegularEdge>();
+		while(iter != m_selMarkedElements.template end<RegularEdge>())
 		{
-			Edge* e = *iter;
+			RegularEdge* e = *iter;
 			++iter;
 
 		//	a normal edge may have previously been created by replacing a
@@ -1022,7 +1022,7 @@ process_constrained_edge(ConstrainedEdge* cde)
 
 	Grid& grid = *m_pGrid;
 	if(marked_to_normal(cde)){
-		grid.create_and_replace<Edge>(cde);
+		grid.create_and_replace<RegularEdge>(cde);
 	}
 	else if(marked_to_constraining(cde)){
 		refine_edge_with_hanging_vertex(cde);
@@ -1067,7 +1067,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 		}
 		else{
 		//	the constrained-edge can be transformed to a normal edge
-			grid.create_and_replace<Edge>(cde);
+			grid.create_and_replace<RegularEdge>(cde);
 		}
 	}
 
@@ -1437,7 +1437,7 @@ process_constraining_face(ConstrainingFace* cgf)
 		}
 		else{
 		//	the constrained-edge can be transformed to a normal edge
-			grid.create_and_replace<Edge>(cde);
+			grid.create_and_replace<RegularEdge>(cde);
 		}
 	}
 

@@ -58,7 +58,7 @@ void CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandle
 		if(refDim == 2)
 		{
 			if (scvf.num_corners() == 2) {
-				grid.template create<Edge>(EdgeDescriptor(vVert[0], vVert[1]));
+				grid.template create<RegularEdge>(EdgeDescriptor(vVert[0], vVert[1]));
 			}
 			else {
 				UG_THROW("SCVF has a number of nodes, that is not drawable.");
@@ -131,7 +131,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 1>
 	{
 		switch(siDim)
 		{
-			case 1: ConstructGridOfSCVF<Edge, TFVGeom, 1>(shOut, surfView, aaPos, aaPosOut, si);
+			case 1: ConstructGridOfSCVF<RegularEdge, TFVGeom, 1>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
 			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 1 <<".");
 		}
@@ -148,7 +148,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 2>
 	{
 		switch(siDim)
 		{
-			case 1: ConstructGridOfSCVF<Edge, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
+			case 1: ConstructGridOfSCVF<RegularEdge, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
 			case 2: ConstructGridOfSCVF<Triangle, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
 					ConstructGridOfSCVF<Quadrilateral, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
@@ -168,7 +168,7 @@ struct ConstructGridOfSCVFWrapper<TFVGeom, 3>
 	{
 		switch(siDim)
 		{
-			case 1: ConstructGridOfSCVF<Edge, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+			case 1: ConstructGridOfSCVF<RegularEdge, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
 			case 2: ConstructGridOfSCVF<Triangle, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					ConstructGridOfSCVF<Quadrilateral, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
@@ -239,7 +239,7 @@ void CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler
 		// edge
 		if(refDim == 1)
 		{
-			grid.template create<Edge>(EdgeDescriptor(vVert[0], vVert[1]));
+			grid.template create<RegularEdge>(EdgeDescriptor(vVert[0], vVert[1]));
 		}
 		// face
 		else if(refDim == 2)
@@ -317,7 +317,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 1>
 	{
 		switch(siDim)
 		{
-			case 1: ConstructGridOfSCV<Edge, TFVGeom, 1>(shOut, surfView, aaPos, aaPosOut, si);
+			case 1: ConstructGridOfSCV<RegularEdge, TFVGeom, 1>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
 			default: UG_THROW("CreateDualGrid: Dimension " << siDim << " not supported. World dimension is " << 1);
 		}
@@ -334,7 +334,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 2>
 	{
 		switch(siDim)
 		{
-			case 1: ConstructGridOfSCV<Edge, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
+			case 1: ConstructGridOfSCV<RegularEdge, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
 			case 2: ConstructGridOfSCV<Triangle, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
 					ConstructGridOfSCV<Quadrilateral, TFVGeom, 2>(shOut, surfView, aaPos, aaPosOut, si);
@@ -354,7 +354,7 @@ struct ConstructGridOfSCVWrapper<TFVGeom, 3>
 	{
 		switch(siDim)
 		{
-			case 1: ConstructGridOfSCV<Edge, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
+			case 1: ConstructGridOfSCV<RegularEdge, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					break;
 			case 2: ConstructGridOfSCV<Triangle, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);
 					ConstructGridOfSCV<Quadrilateral, TFVGeom, 3>(shOut, surfView, aaPos, aaPosOut, si);

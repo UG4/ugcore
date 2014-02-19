@@ -86,7 +86,7 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 		switch(vEdges[i]->container_section())
 		{
 		case CSEDGE_CONSTRAINED_EDGE:
-		case CSEDGE_EDGE:
+		case CSEDGE_REGULAR_EDGE:
 			// classic case: Just set corner ids
 			if(dim == 2)
 			{
@@ -650,7 +650,7 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 		switch(vEdges[i]->container_section())
 		{
 		case CSEDGE_CONSTRAINED_EDGE:
-		case CSEDGE_EDGE:
+		case CSEDGE_REGULAR_EDGE:
 			// classic case: Just set corner ids
 			if(dim == 2)
 			{
@@ -1102,9 +1102,9 @@ update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubs
 	
 }
 
-template class HFV1Geometry<Edge, 1>;
-template class HFV1Geometry<Edge, 2>;
-template class HFV1Geometry<Edge, 3>;
+template class HFV1Geometry<RegularEdge, 1>;
+template class HFV1Geometry<RegularEdge, 2>;
+template class HFV1Geometry<RegularEdge, 3>;
 
 template class HFV1Geometry<Triangle, 2>;
 template class HFV1Geometry<Triangle, 3>;

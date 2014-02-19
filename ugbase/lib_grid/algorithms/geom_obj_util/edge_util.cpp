@@ -553,12 +553,12 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 			parent = NULL;
 			
 		if(paAssociatedVertices){
-			destGrid.create<Edge>(EdgeDescriptor(aaAssociatedVertices[e->vertex(0)], newVertex), parent);
-			destGrid.create<Edge>(EdgeDescriptor(newVertex, aaAssociatedVertices[e->vertex(1)]), parent);
+			destGrid.create<RegularEdge>(EdgeDescriptor(aaAssociatedVertices[e->vertex(0)], newVertex), parent);
+			destGrid.create<RegularEdge>(EdgeDescriptor(newVertex, aaAssociatedVertices[e->vertex(1)]), parent);
 		}
 		else{
-			destGrid.create<Edge>(EdgeDescriptor(e->vertex(0), newVertex), parent);
-			destGrid.create<Edge>(EdgeDescriptor(newVertex, e->vertex(1)), parent);
+			destGrid.create<RegularEdge>(EdgeDescriptor(e->vertex(0), newVertex), parent);
+			destGrid.create<RegularEdge>(EdgeDescriptor(newVertex, e->vertex(1)), parent);
 		}
 	}
 

@@ -75,7 +75,7 @@ bool TriangleFill_SweepLine(Grid& grid, TIterator edgesBegin,
 	//DEBUG ONLY
 	//	create edges
 		for(size_t i = numInitialEdges; i < edges.size(); i+=2){
-			EdgeBase* e = *grid.create<Edge>(EdgeDescriptor(vrtPtrs[edges[i]], vrtPtrs[edges[i+1]]));
+			EdgeBase* e = *grid.create<RegularEdge>(EdgeDescriptor(vrtPtrs[edges[i]], vrtPtrs[edges[i+1]]));
 			if(pSH){
 				pSH->assign_subset(e, newSubsetIndex);
 			}

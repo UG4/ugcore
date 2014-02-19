@@ -1006,7 +1006,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 						
 					//	write the vertex index
 						if(aaInt[curVrt] == -1){
-							throw(UGError("Edge subsets have not been assigned correctly."));
+							throw(UGError("RegularEdge subsets have not been assigned correctly."));
 						}
 						
 						if(aaLineInt[curEdge] != -1){

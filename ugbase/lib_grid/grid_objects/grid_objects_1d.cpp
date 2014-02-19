@@ -7,25 +7,25 @@
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////
-//	Edge
-bool Edge::refine(std::vector<EdgeBase*>& vNewEdgesOut, Vertex* newVertex,
+//	RegularEdge
+bool RegularEdge::refine(std::vector<EdgeBase*>& vNewEdgesOut, Vertex* newVertex,
 				Vertex** pSubstituteVrts)
 {
 	vNewEdgesOut.clear();
 	if(pSubstituteVrts)
 	{
-		vNewEdgesOut.push_back(new Edge(pSubstituteVrts[0], newVertex));
-		vNewEdgesOut.push_back(new Edge(newVertex, pSubstituteVrts[1]));
+		vNewEdgesOut.push_back(new RegularEdge(pSubstituteVrts[0], newVertex));
+		vNewEdgesOut.push_back(new RegularEdge(newVertex, pSubstituteVrts[1]));
 	}
 	else
 	{
-		vNewEdgesOut.push_back(new Edge(vertex(0), newVertex));
-		vNewEdgesOut.push_back(new Edge(newVertex, vertex(1)));
+		vNewEdgesOut.push_back(new RegularEdge(vertex(0), newVertex));
+		vNewEdgesOut.push_back(new RegularEdge(newVertex, vertex(1)));
 	}
 	return true;
 }
 
-bool Edge::refine(std::vector<Edge*>& vNewEdgesOut, Vertex* newVertex,
+bool RegularEdge::refine(std::vector<RegularEdge*>& vNewEdgesOut, Vertex* newVertex,
 				  Vertex** pSubstituteVrts)
 {
 	return refine(reinterpret_cast<std::vector<EdgeBase*>&>(vNewEdgesOut),
