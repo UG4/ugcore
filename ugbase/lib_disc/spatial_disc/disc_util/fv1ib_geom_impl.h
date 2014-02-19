@@ -15,23 +15,77 @@
 #include "lib_disc/quadrature/quadrature.h"
 #include "lib_algebra/common/operations_vec.h"
 
+template <typename TElem, int TWorldDim>
+void FV1IBGeometry<TElem, TWorldDim>::
+ adapt(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
+					const ISubsetHandler* ish)
+{
+
+	for(size_t ip = 0; ip < num_scvf(); ++ip)
+ 		UG_LOG("#### vSCVF_PosOnEdge = " << vSCVF_PosOnEdge[ip] << "\n");
+
+// 	compute global informations for scvf
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		UG_LOG("ip's: " << m_vSCVF[i].globalIP << "\n");
+		UG_LOG("normals: " << m_vSCVF[i].Normal << "\n");
+
+	}
+
+// 	compute global informations for scvf
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		//VecScaleAdd(m_vSCVF[i].globalIP, vSCVF_PosOnEdge[i], 0.5, m_MidPoint, 0.5);
+		for(size_t d = 0; d < m_vSCVF[i].globalIP.size(); ++d)
+			m_vSCVF[i].globalIP[d] = 0.5*(vSCVF_PosOnEdge[i][d] + m_MidPoint[d]);
+
+		//traits::NormalOnSCVF(m_vSCVF[i].Normal, vSCVF_PosOnEdge[i], m_MidPoint);
+		// 'NormalOnSCVF' braucht Felder im 2. und 3. Parameter
+		//traits::NormalOnSCVF(m_vSCVF[i].Normal, vSCVF_PosOnEdge, vSCVF_PosOnEdge);
+		MathVector<worldDim> buffer_comp;
+		VecSubtract(buffer_comp, vSCVF_PosOnEdge[i], m_MidPoint);
+
+		MathVector<worldDim> buffer_copy;
+		buffer_copy[0] = -buffer_comp[1];
+		buffer_copy[1] =  buffer_comp[0];
+
+		// check the orientation of the newly computet Normal:
+		// 	-> has to be in direction from -> to, i.e. VecDot(Normal_alt, Normal_neu) > 0
+		if ( VecDot(m_vSCVF[i].Normal, buffer_copy) > 0 )
+		{
+			UG_LOG("Positiv: normals: " << m_vSCVF[i].Normal << "\n");
+			UG_LOG("Positiv: normals: " << buffer_copy << "\n");
+
+			m_vSCVF[i].Normal[0] = buffer_copy[0];
+			m_vSCVF[i].Normal[1] = buffer_copy[1];
+		}
+		else
+		{
+			UG_LOG("Negativ: normals: " << m_vSCVF[i].Normal << "\n");
+			UG_LOG("Negativ: normals: " << buffer_copy << "\n");
+
+			m_vSCVF[i].Normal[0] = -buffer_copy[0];
+			m_vSCVF[i].Normal[1] = -buffer_copy[1];
+		}
+
+
+		UG_LOG("***ip's: " << m_vSCVF[i].globalIP << "\n");
+		UG_LOG("***normals: " << m_vSCVF[i].Normal << "\n");
+		UG_LOG("***buffer_copy: " << buffer_copy << "\n");
+
+	}
+
+	//UG_THROW("### ok done...\n");
+}
+
 
 template <typename TElem, int TWorldDim>
 void FV1IBGeometry<TElem, TWorldDim>::
 adapt_integration_points(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
 					const ISubsetHandler* ish)
 {
+	UG_THROW("adapt_integration_points: ok done...\n");
 
-// 	compute global informations for scvf
-	for(size_t i = 0; i < num_scvf(); ++i)
-	{
-		UG_LOG("ip's: " << m_vSCVF[i].globalIP << "\n");
-
-		UG_LOG("normals: " << m_vSCVF[i].Normal << "\n");
-
-	}
-
-	UG_THROW("oh wow!...\n");
 }
 
 template <typename TElem, int TWorldDim>
@@ -39,10 +93,21 @@ void FV1IBGeometry<TElem, TWorldDim>::
 adapt_normals(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
 					const ISubsetHandler* ish)
 {
-	UG_LOG("ohooo!...\n");
+/// BEACHTE:
+/// normal on scvf (points direction "from"->"to")
+
+
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		UG_LOG("ip's: " << m_vSCVF[i].globalIP << "\n");
+		UG_LOG("normals: " << m_vSCVF[i].Normal << "\n");
+
+	}
+
+		UG_THROW("stop hier...\n");
+
 
 }
-
 
 
 
@@ -550,8 +615,8 @@ template <typename TElem, int TWorldDim>
 void FV1IBGeometry<TElem, TWorldDim>::
 update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
-	UG_LOG("blubb....\n");
-	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
+
+ 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
 
 // 	if already update for this element, do nothing
@@ -640,6 +705,8 @@ update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubse
 //	if no boundary subsets required, return
 	if(num_boundary_subsets() == 0 || ish == NULL) return;
 	else update_boundary_faces(pElem, vCornerCoords, ish);
+
+
 }
 
 template <typename TElem, int TWorldDim>
@@ -756,6 +823,445 @@ update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoord
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Dim-dependent Finite Volume Geometry
+////////////////////////////////////////////////////////////////////////////////
+template <int TDim, int TWorldDim>
+void DimFV1IBGeometry<TDim, TWorldDim>::
+adapt(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
+					const ISubsetHandler* ish)
+{
+
+	for(size_t ip = 0; ip < num_scvf(); ++ip)
+ 		UG_LOG("Dim- vSCVF_PosOnEdge = " << vSCVF_PosOnEdge[ip] << "\n");
+
+// 	compute global informations for scvf
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		UG_LOG("Dim-ip's: " << m_vSCVF[i].globalIP << "\n");
+		UG_LOG("Dim-normals: " << m_vSCVF[i].Normal << "\n");
+
+	}
+
+// 	compute global informations for scvf
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		//VecScaleAdd(m_vSCVF[i].globalIP, vSCVF_PosOnEdge[i], 0.5, m_MidPoint, 0.5);
+		for(size_t d = 0; d < m_vSCVF[i].globalIP.size(); ++d)
+			m_vSCVF[i].globalIP[d] = 0.5*(vSCVF_PosOnEdge[i][d] + m_MidPoint[d]);
+
+		//traits::NormalOnSCVF(m_vSCVF[i].Normal, vSCVF_PosOnEdge[i], m_MidPoint);
+		// 'NormalOnSCVF' braucht Felder im 2. und 3. Parameter
+		//traits::NormalOnSCVF(m_vSCVF[i].Normal, vSCVF_PosOnEdge, vSCVF_PosOnEdge);
+		MathVector<worldDim> buffer_comp;
+		VecSubtract(buffer_comp, vSCVF_PosOnEdge[i], m_MidPoint);
+
+		MathVector<worldDim> buffer_copy;
+		buffer_copy[0] = -buffer_comp[1];
+		buffer_copy[1] =  buffer_comp[0];
+
+		// check the orientation of the newly computet Normal:
+		// 	-> has to be in direction from -> to, i.e. VecDot(Normal_alt, Normal_neu) > 0
+		if ( VecDot(m_vSCVF[i].Normal, buffer_copy) > 0 )
+		{
+			UG_LOG("Dim-Positiv: normals: " << m_vSCVF[i].Normal << "\n");
+			UG_LOG("Dim-Positiv: normals: " << buffer_copy << "\n");
+
+			m_vSCVF[i].Normal[0] = buffer_copy[0];
+			m_vSCVF[i].Normal[1] = buffer_copy[1];
+		}
+		else
+		{
+			UG_LOG("Dim-Negativ: normals: " << m_vSCVF[i].Normal << "\n");
+			UG_LOG("Dim-Negativ: normals: " << buffer_copy << "\n");
+
+			m_vSCVF[i].Normal[0] = -buffer_copy[0];
+			m_vSCVF[i].Normal[1] = -buffer_copy[1];
+		}
+
+
+		UG_LOG("Dim-***ip's: " << m_vSCVF[i].globalIP << "\n");
+		UG_LOG("Dim-***normals: " << m_vSCVF[i].Normal << "\n");
+		UG_LOG("Dim-***buffer_copy: " << buffer_copy << "\n");
+
+	}
+
+	//UG_THROW("### ok done...\n");
+}
+
+template <int TDim, int TWorldDim>
+void DimFV1IBGeometry<TDim, TWorldDim>::
+adapt_integration_points(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
+					const ISubsetHandler* ish)
+{
+	UG_THROW("adapt_integration_points: ok done...\n");
+
+}
+
+template <int TDim, int TWorldDim>
+void DimFV1IBGeometry<TDim, TWorldDim>::
+adapt_normals(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
+					const ISubsetHandler* ish)
+{
+/// BEACHTE:
+/// normal on scvf (points direction "from"->"to")
+
+
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		UG_LOG("ip's: " << m_vSCVF[i].globalIP << "\n");
+		UG_LOG("normals: " << m_vSCVF[i].Normal << "\n");
+
+	}
+
+		UG_THROW("stop hier...\n");
+
+
+}
+
+template <int TDim, int TWorldDim>
+void DimFV1IBGeometry<TDim, TWorldDim>::
+update_local_data()
+{
+//	get reference element
+	try{
+	const DimReferenceElement<dim>& rRefElem
+		= ReferenceElementProvider::get<dim>(m_roid);
+
+// 	set corners of element as local centers of nodes
+	for(size_t i = 0; i < rRefElem.num(0); ++i)
+		m_vvLocMid[0][i] = rRefElem.corner(i);
+
+//	compute local midpoints
+	ComputeMidPoints<dim, DimReferenceElement<dim>, maxMid>
+										(rRefElem, m_vvLocMid[0], m_vvLocMid);
+
+//	set number of scvf / scv of this roid
+	m_numSCV = (m_roid != ROID_PYRAMID) ? rRefElem.num(0) : 8; // number of corners
+	m_numSCVF = (m_roid != ROID_PYRAMID) ? rRefElem.num(1) : 12; // number of edges
+
+// 	set up local informations for SubControlVolumeFaces (scvf)
+// 	each scvf is associated to one edge of the element
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+	//	this scvf separates the given nodes
+		if (m_roid != ROID_PYRAMID)
+		{
+			m_vSCVF[i].From = rRefElem.id(1, i, 0, 0);
+			m_vSCVF[i].To = rRefElem.id(1, i, 0, 1);
+		}
+		// special case pyramid (scvf not mappable by edges)
+		else
+		{
+			// map according to order defined in ComputeSCVFMidID
+			m_vSCVF[i].From = ((i>6 && i%3) ? (i%3)+1 : i%3);
+			m_vSCVF[i].To = i%6 > 2 ? 4 : ((i+1)%3 + (i>5 && i<8 ? 1 : 0));
+		}
+
+
+	//	compute mid ids of the scvf
+		ComputeSCVFMidID(rRefElem, m_vSCVF[i].vMidID, i);
+
+	// 	copy local corners of scvf
+		CopyCornerByMidID<dim, maxMid>(m_vSCVF[i].vLocPos, m_vSCVF[i].vMidID, m_vvLocMid, SCVF::numCo);
+
+	// 	integration point
+		AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].vLocPos, SCVF::numCo);
+	}
+
+// 	set up local informations for SubControlVolumes (scv)
+// 	each scv is associated to one corner of the element
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+	//	store associated node
+		if (m_roid != ROID_PYRAMID)
+		{
+			m_vSCV[i].nodeId = i;
+		}
+		// special case pyramid (scv not mappable by corners)
+		else
+		{
+			// map according to order defined in ComputeSCVMidID
+			m_vSCV[i].nodeId = i<3 ? i : (i<5 ? (i+1)%5 : i-3);
+		}
+
+	//	compute mid ids scv
+		ComputeSCVMidID(rRefElem, m_vSCV[i].vMidID, i);
+
+	// 	copy local corners of scv
+		CopyCornerByMidID<dim, maxMid>(m_vSCV[i].vLocPos, m_vSCV[i].vMidID, m_vvLocMid, m_vSCV[i].num_corners());
+	}
+
+	/////////////////////////
+	// Shapes and Derivatives
+	/////////////////////////
+
+	const LocalShapeFunctionSet<dim>& TrialSpace =
+		LocalFiniteElementProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
+
+	m_nsh = TrialSpace.num_sh();
+
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+		m_vSCVF[i].numSH = TrialSpace.num_sh();
+		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
+		TrialSpace.grads(&(m_vSCVF[i].vLocalGrad[0]), m_vSCVF[i].localIP);
+	}
+
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+		m_vSCV[i].numSH = TrialSpace.num_sh();
+		TrialSpace.shapes(&(m_vSCV[i].vShape[0]), m_vSCV[i].vLocPos[0]);
+		TrialSpace.grads(&(m_vSCV[i].vLocalGrad[0]), m_vSCV[i].vLocPos[0]);
+	}
+
+	}
+	UG_CATCH_THROW("DimFV1IBGeometry: update failed.");
+
+// 	copy ip positions in a list for Sub Control Volumes Faces (SCVF)
+	for(size_t i = 0; i < num_scvf(); ++i)
+		m_vLocSCVF_IP[i] = scvf(i).local_ip();
+}
+
+
+/// update data for given element
+template <int TDim, int TWorldDim>
+void DimFV1IBGeometry<TDim, TWorldDim>::
+update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+{
+// 	If already update for this element, do nothing
+	if(m_pElem == pElem) return; else m_pElem = pElem;
+
+//	refresh local data, if different roid given
+	if(m_roid != pElem->reference_object_id())
+	{
+	//	remember new roid
+		m_roid = (ReferenceObjectID) pElem->reference_object_id();
+
+	//	update local data
+		update_local_data();
+	}
+
+//	get reference element
+	try{
+	const DimReferenceElement<dim>& rRefElem
+		= ReferenceElementProvider::get<dim>(m_roid);
+
+// 	remember global position of nodes
+	for(size_t i = 0; i < rRefElem.num(0); ++i)
+		m_vvGloMid[0][i] = vCornerCoords[i];
+
+//	compute local midpoints
+	ComputeMidPoints<worldDim, DimReferenceElement<dim>, maxMid>(rRefElem, m_vvGloMid[0], m_vvGloMid);
+
+// 	compute global informations for scvf
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+	// 	copy local corners of scvf
+		CopyCornerByMidID<worldDim, maxMid>(m_vSCVF[i].vGloPos, m_vSCVF[i].vMidID, m_vvGloMid, SCVF::numCo);
+
+	// 	integration point
+		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].vGloPos, SCVF::numCo);
+
+	// 	normal on scvf
+		traits::NormalOnSCVF(m_vSCVF[i].Normal, m_vSCVF[i].vGloPos, m_vvGloMid[0]);
+	}
+
+// 	compute size of scv
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+	// 	copy global corners
+		CopyCornerByMidID<worldDim, maxMid>(m_vSCV[i].vGloPos, m_vSCV[i].vMidID, m_vvGloMid, m_vSCV[i].num_corners());
+
+	// 	compute volume of scv
+		m_vSCV[i].Vol = ElementSize<scv_type, worldDim>(m_vSCV[i].vGloPos);
+	}
+
+//	get reference mapping
+	DimReferenceMapping<dim, worldDim>& rMapping = ReferenceMappingProvider::get<dim, worldDim>(m_roid);
+	rMapping.update(vCornerCoords);
+
+	//\todo compute with on virt. call
+//	compute jacobian for linear mapping
+	if(rMapping.is_linear())
+	{
+		MathMatrix<worldDim,dim> JtInv;
+		rMapping.jacobian_transposed_inverse(JtInv, m_vSCVF[0].local_ip());
+		const number detJ = rMapping.sqrt_gram_det(m_vSCVF[0].local_ip());
+
+		for(size_t i = 0; i < num_scvf(); ++i)
+		{
+			m_vSCVF[i].JtInv = JtInv;
+			m_vSCVF[i].detj = detJ;
+		}
+
+		for(size_t i = 0; i < num_scv(); ++i)
+		{
+			m_vSCV[i].JtInv = JtInv;
+			m_vSCV[i].detj = detJ;
+		}
+	}
+//	else compute jacobian for each integration point
+	else
+	{
+		for(size_t i = 0; i < num_scvf(); ++i)
+		{
+			rMapping.jacobian_transposed_inverse(m_vSCVF[i].JtInv, m_vSCVF[i].local_ip());
+			m_vSCVF[i].detj = rMapping.sqrt_gram_det(m_vSCVF[i].local_ip());
+		}
+		for(size_t i = 0; i < num_scv(); ++i)
+		{
+			rMapping.jacobian_transposed_inverse(m_vSCV[i].JtInv, m_vSCV[i].local_ip());
+			m_vSCV[i].detj = rMapping.sqrt_gram_det(m_vSCV[i].local_ip());
+		}
+	}
+
+//	compute global gradients
+	for(size_t i = 0; i < num_scvf(); ++i)
+		for(size_t sh = 0; sh < scvf(i).num_sh(); ++sh)
+			MatVecMult(m_vSCVF[i].vGlobalGrad[sh], m_vSCVF[i].JtInv, m_vSCVF[i].vLocalGrad[sh]);
+
+	for(size_t i = 0; i < num_scv(); ++i)
+		for(size_t sh = 0; sh < scv(i).num_sh(); ++sh)
+			MatVecMult(m_vSCV[i].vGlobalGrad[sh], m_vSCV[i].JtInv, m_vSCV[i].vLocalGrad[sh]);
+
+// 	copy ip points in list (SCVF)
+	for(size_t i = 0; i < num_scvf(); ++i)
+		m_vGlobSCVF_IP[i] = scvf(i).global_ip();
+
+	}
+	UG_CATCH_THROW("DimFV1IBGeometry: update failed.");
+
+//	if no boundary subsets required, return
+	if(num_boundary_subsets() == 0 || ish == NULL) return;
+	else update_boundary_faces(pElem, vCornerCoords, ish);
+}
+
+template <int TDim, int TWorldDim>
+void DimFV1IBGeometry<TDim, TWorldDim>::
+update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+{
+//	get grid
+	Grid& grid = *(ish->grid());
+
+//	vector of subset indices of side
+	std::vector<int> vSubsetIndex;
+
+//	get subset indices for sides (i.e. edge in 2d, faces in 3d)
+	if(dim == 1) {
+		std::vector<Vertex*> vVertex;
+		CollectVertices(vVertex, grid, pElem);
+		vSubsetIndex.resize(vVertex.size());
+		for(size_t i = 0; i < vVertex.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vVertex[i]);
+	}
+	if(dim == 2) {
+		std::vector<Edge*> vEdges;
+		CollectEdgesSorted(vEdges, grid, pElem);
+		vSubsetIndex.resize(vEdges.size());
+		for(size_t i = 0; i < vEdges.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vEdges[i]);
+	}
+	if(dim == 3) {
+		std::vector<Face*> vFaces;
+		CollectFacesSorted(vFaces, grid, pElem);
+		vSubsetIndex.resize(vFaces.size());
+		for(size_t i = 0; i < vFaces.size(); ++i)
+			vSubsetIndex[i] = ish->get_subset_index(vFaces[i]);
+	}
+
+	try{
+	const DimReferenceElement<dim>& rRefElem
+		= ReferenceElementProvider::get<dim>(m_roid);
+
+	DimReferenceMapping<dim, worldDim>& rMapping = ReferenceMappingProvider::get<dim, worldDim>(m_roid);
+	rMapping.update(vCornerCoords);
+
+	const LocalShapeFunctionSet<dim>& TrialSpace =
+		LocalFiniteElementProvider::get<dim>(m_roid, LFEID(LFEID::LAGRANGE, dim, 1));
+
+//	loop requested subset
+	typename std::map<int, std::vector<BF> >::iterator it;
+	for (it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); ++it)
+	{
+	//	get subset index
+		const int bndIndex = (*it).first;
+
+	//	get vector of BF for element
+		std::vector<BF>& vBF = (*it).second;
+
+	//	clear vector
+		vBF.clear();
+
+	//	current number of bf
+		size_t curr_bf = 0;
+
+	//	loop sides of element
+		for(size_t side = 0; side < vSubsetIndex.size(); ++side)
+		{
+		//	skip non boundary sides
+			if(vSubsetIndex[side] != bndIndex) continue;
+
+		//	number of corners of side (special case bottom side pyramid)
+			const int coOfSide = (pElem->reference_object_id() != ROID_PYRAMID || side != 0)
+								? rRefElem.num(dim-1, side, 0) : rRefElem.num(dim-1, side, 0) + 2;
+		//	resize vector
+			vBF.resize(curr_bf + coOfSide);
+
+		//	loop corners
+			for(int co = 0; co < coOfSide; ++co)
+			{
+			//	get current bf
+				BF& bf = vBF[curr_bf];
+
+			//	set node id == scv this bf belongs to
+				if (pElem->reference_object_id() != ROID_PYRAMID || side != 0)
+					bf.nodeId = rRefElem.id(dim-1, side, 0, co);
+				else
+				{
+					// map according to order defined in ComputeBFMidID
+					bf.nodeId = rRefElem.id(dim-1, side, 0, (co % 3) + (co>3 ? 1 : 0));
+				}
+
+			//	Compute MidID for BF
+				ComputeBFMidID(rRefElem, side, bf.vMidID, co);
+
+			// 	copy corners of bf
+				CopyCornerByMidID<dim, maxMid>(bf.vLocPos, bf.vMidID, m_vvLocMid, BF::numCo);
+				CopyCornerByMidID<worldDim, maxMid>(bf.vGloPos, bf.vMidID, m_vvGloMid, BF::numCo);
+
+			// 	integration point
+				AveragePositions(bf.localIP, bf.vLocPos, BF::numCo);
+				AveragePositions(bf.globalIP, bf.vGloPos, BF::numCo);
+
+			// 	normal on scvf
+				traits::NormalOnSCVF(bf.Normal, bf.vGloPos, m_vvGloMid[0]);
+
+			//	compute volume
+				bf.Vol = VecTwoNorm(bf.Normal);
+
+			//	compute shapes and grads
+				bf.numSH = TrialSpace.num_sh();
+				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
+				TrialSpace.grads(&(bf.vLocalGrad[0]), bf.localIP);
+
+			//	get reference mapping
+				rMapping.jacobian_transposed_inverse(bf.JtInv, bf.localIP);
+				bf.detj = rMapping.sqrt_gram_det(bf.localIP);
+
+			//	compute global gradients
+				for(size_t sh = 0 ; sh < bf.num_sh(); ++sh)
+					MatVecMult(bf.vGlobalGrad[sh], bf.JtInv, bf.vLocalGrad[sh]);
+
+			//	increase curr_bf
+				++curr_bf;
+			}
+		}
+	}
+
+	}
+	UG_CATCH_THROW("DimFV1IBGeometry: update failed.");
+}
 
 //////////////////////
 // FV1IBGeometry
@@ -776,5 +1282,16 @@ template class FV1IBGeometry<Pyramid, 3>;
 template class FV1IBGeometry<Hexahedron, 3>;
 
 
+
+//////////////////////
+// DimFV1IBGeometry
+template class DimFV1IBGeometry<1, 1>;
+template class DimFV1IBGeometry<1, 2>;
+template class DimFV1IBGeometry<1, 3>;
+
+template class DimFV1IBGeometry<2, 2>;
+template class DimFV1IBGeometry<2, 3>;
+
+template class DimFV1IBGeometry<3, 3>;
 
 
