@@ -198,7 +198,7 @@ static bool PerformTetrahedralization(Grid& grid,
 	//	create new ones and add them to the vector
 		for(; counter < out.numberofpoints; ++counter)
 		{
-			Vertex* v = *grid.create<Vertex>();
+			RegularVertex* v = *grid.create<RegularVertex>();
 			aaPos[v].x() = out.pointlist[counter*3];
 			aaPos[v].y() = out.pointlist[counter*3+1];
 			aaPos[v].z() = out.pointlist[counter*3+2];
@@ -411,7 +411,7 @@ static bool PerformRetetrahedralization(Grid& grid,
 	//	create new ones and add them to the vector
 		for(; counter < out.numberofpoints; ++counter)
 		{
-			Vertex* v = *grid.create<Vertex>();
+			RegularVertex* v = *grid.create<RegularVertex>();
 			aaPos[v].x() = out.pointlist[counter*3];
 			aaPos[v].y() = out.pointlist[counter*3+1];
 			aaPos[v].z() = out.pointlist[counter*3+2];

@@ -563,7 +563,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 		{
 		//	we'll create 4 new quads. create a new center if required.
 			if(!newFaceVertex)
-				newFaceVertex = new Vertex;
+				newFaceVertex = new RegularVertex;
 
 			*newFaceVertexOut = newFaceVertex;
 		

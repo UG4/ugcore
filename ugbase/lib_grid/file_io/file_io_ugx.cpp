@@ -276,8 +276,8 @@ init_grid_attachments(Grid& grid)
 	Grid::VolumeAttachmentAccessor<AInt> aaIndVOL(grid, m_aInt);
 
 	int baseInd = 0;
-	AssignIndices(grid.begin<Vertex>(), grid.end<Vertex>(), aaIndVRT, baseInd);
-	baseInd += grid.num<Vertex>();
+	AssignIndices(grid.begin<RegularVertex>(), grid.end<RegularVertex>(), aaIndVRT, baseInd);
+	baseInd += grid.num<RegularVertex>();
 	AssignIndices(grid.begin<ConstrainedVertex>(), grid.end<ConstrainedVertex>(),
 				  aaIndVRT, baseInd);
 

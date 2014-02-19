@@ -45,10 +45,10 @@ static bool ReadTriangles(Grid& grid, ifstream& in,
 			else if(paramVec.size() == 9){
 			//	this line contains the coordinates of a triangle.
 			//	create vertices and assign the coordinates.
-				Vertex* v[3];
+				RegularVertex* v[3];
 				for(int i = 0; i < 3; ++i)
 				{
-					v[i] = *grid.create<Vertex>();
+					v[i] = *grid.create<RegularVertex>();
 					aaPos[v[i]].x() = atof(paramVec[i*3].c_str());
 					aaPos[v[i]].y() = atof(paramVec[i*3 + 1].c_str());
 					aaPos[v[i]].z() = atof(paramVec[i*3 + 2].c_str());
@@ -104,10 +104,10 @@ static bool ReadTetrahedrons(Grid& grid, ifstream& in,
 			else if(paramVec.size() == 12){
 			//	this line contains the coordinates of a triangle.
 			//	create vertices and assign the coordinates.
-				Vertex* v[4];
+				RegularVertex* v[4];
 				for(int i = 0; i < 4; ++i)
 				{
-					v[i] = *grid.create<Vertex>();
+					v[i] = *grid.create<RegularVertex>();
 					aaPos[v[i]].x() = atof(paramVec[i*3].c_str());
 					aaPos[v[i]].y() = atof(paramVec[i*3 + 1].c_str());
 					aaPos[v[i]].z() = atof(paramVec[i*3 + 2].c_str());

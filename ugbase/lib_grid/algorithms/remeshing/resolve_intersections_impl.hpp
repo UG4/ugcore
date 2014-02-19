@@ -40,7 +40,7 @@ VertexBase* ResolveVertexEdgeIntersection(Grid& grid, VertexBase* v,
 	if((t >= 0) && (t <= 1.)){
 		if(VecDistanceSq(p, aaPos[v]) < snapThresholdSq){
 		//	to make sure that no double edges may occur, we'll use MergeVertices
-			Vertex* nVrt = SplitEdge<Vertex>(grid, grid, e);
+			RegularVertex* nVrt = SplitEdge<RegularVertex>(grid, grid, e);
 			aaPos[v] = p;
 			MergeVertices(grid, v, nVrt);
 			return v;
@@ -97,7 +97,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
 			//	ok we have to insert the vertex
 			//	we'll create a temporary new vertex, which will then be merged with v.
 			//	This is important, since we can avoid double elements this way.
-				nVrt = *grid.create<Vertex>();
+				nVrt = *grid.create<RegularVertex>();
 				VertexBase* newEdgeVrts[3] = {NULL, NULL, NULL};
 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, nVrt);
 			}
@@ -119,7 +119,7 @@ bool ResolveVertexFaceIntersection(Grid& grid, VertexBase* v,
 			//	ok we have to insert the vertex
 			//	we'll create a temporary new vertex, which will then be merged with v.
 			//	This is important, since we can avoid double elements this way.
-				nVrt = *grid.create<Vertex>();
+				nVrt = *grid.create<RegularVertex>();
 				VertexBase* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, nVrt);
 			}
@@ -176,15 +176,15 @@ VertexBase* ResolveEdgeEdgeIntersection(Grid& grid, EdgeBase* e1, EdgeBase* e2,
 			VecScaleAdd(p, 0.5, v1, 0.5, v2);
 
 		//	to make sure that no double edges may occur, we'll use MergeVertices
-			Vertex* nVrt1 = SplitEdge<Vertex>(grid, grid, e1);
-			Vertex* nVrt2 = SplitEdge<Vertex>(grid, grid, e2);
+			RegularVertex* nVrt1 = SplitEdge<RegularVertex>(grid, grid, e1);
+			RegularVertex* nVrt2 = SplitEdge<RegularVertex>(grid, grid, e2);
 			aaPos[nVrt1] = p;
 			MergeVertices(grid, nVrt1, nVrt2);
 
 			return nVrt1;
 		/*
 		//	create a new vertex and split both edges using it
-			Vertex* vrt = *grid.create<Vertex>();
+			RegularVertex* vrt = *grid.create<RegularVertex>();
 			aaPos[vrt] = p;
 			CreateEdgeSplitGeometry(grid, grid, e1, vrt);
 			CreateEdgeSplitGeometry(grid, grid, e2, vrt);
@@ -236,7 +236,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
 		{
 			if((s >= 0) && (s <= 1.)){
 			//	split the face
-				vrt = *grid.create<Vertex>();
+				vrt = *grid.create<RegularVertex>();
 				VertexBase* newEdgeVrts[3] = {NULL, NULL, NULL};
 				refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, vrt);
 			}
@@ -258,7 +258,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
 		if(intersecting && (s >= 0) && (s <= 1.))
 		{
 		//	split the face
-			vrt = *grid.create<Vertex>();
+			vrt = *grid.create<RegularVertex>();
 			VertexBase* newEdgeVrts[4] = {NULL, NULL, NULL, NULL};
 			refined = f->refine(newFaces, &newFaceVrt, newEdgeVrts, vrt);
 		}
@@ -275,7 +275,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
 
 	//	to make sure that no double edges may occur, we'll use MergeVertices
 	//	and SplitEdge
-		Vertex* nVrt = SplitEdge<Vertex>(grid, grid, e);
+		RegularVertex* nVrt = SplitEdge<RegularVertex>(grid, grid, e);
 		MergeVertices(grid, vrt, nVrt);
 
 /*
@@ -528,7 +528,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 					if(tind1 == -1){
 						if(tind2 == -1){
 						//	we have to create a new vertex
-							VertexBase* vrt = *grid.create<Vertex>();
+							VertexBase* vrt = *grid.create<RegularVertex>();
 							aaPos[vrt] = ip[i];
 							tind1 = (int)aaVrtVec[t[0]].size();
 							tind2 = (int)aaVrtVec[t[1]].size();
@@ -595,7 +595,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 		//	copy vertices associated with t1 to tgrid
 			vector<VertexBase*>& vrts = aaVrtVec[t];
 			for(size_t i = 0; i < vrts.size(); ++i){
-				VertexBase* vrt = *tgrid.create<Vertex>();
+				VertexBase* vrt = *tgrid.create<RegularVertex>();
 				aaVrt[vrt] = vrts[i];
 				taaPos[vrt] = aaPos[vrts[i]];
 				tgridVrts.push_back(vrt);
@@ -632,7 +632,7 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 				//	since the vertex does not have an associated vertex in grid,
 				//	it is clear that it has been created through an edge-edge cut.
 				//	Associates of such vertices have to be merged later on.
-					aaVrt[*viter] = *grid.create<Vertex>();
+					aaVrt[*viter] = *grid.create<RegularVertex>();
 					aaPos[aaVrt[*viter]] = taaPos[*viter];
 					cutVertices.push_back(aaVrt[*viter]);
 				}

@@ -17,54 +17,54 @@ namespace ug
 enum VertexContainerSections
 {
 	CSVRT_NONE = -1,
-	CSVRT_VERTEX = 0,
+	CSVRT_REGULAR_VERTEX = 0,
 	CSVRT_CONSTRAINED_VERTEX = 1
 };
 
 
 ////////////////////////////////////////////////////////////////////////
-//	Vertex
+//	RegularVertex
 ///	A basic vertex-type
 /**
  * This type represents the most commonly used vertex.
  *
  * \ingroup lib_grid_grid_objects
  */
-class UG_API Vertex : public VertexBase
+class UG_API RegularVertex : public VertexBase
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Vertex*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<RegularVertex*>(pObj) != NULL;}
 
-		virtual ~Vertex()	{}
+		virtual ~RegularVertex()	{}
 
-		virtual GridObject* create_empty_instance() const	{return new Vertex;}
+		virtual GridObject* create_empty_instance() const	{return new RegularVertex;}
 
-		virtual int container_section() const	{return CSVRT_VERTEX;}
+		virtual int container_section() const	{return CSVRT_REGULAR_VERTEX;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_VERTEX;}
 };
 
 template <>
-class geometry_traits<Vertex>
+class geometry_traits<RegularVertex>
 {
 	public:
-		typedef GenericGridObjectIterator<Vertex*, VertexBaseIterator>			iterator;
-		typedef ConstGenericGridObjectIterator<Vertex*, VertexBaseIterator,
+		typedef GenericGridObjectIterator<RegularVertex*, VertexBaseIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<RegularVertex*, VertexBaseIterator,
 														ConstVertexBaseIterator>	const_iterator;
 
 		typedef VertexBase	grid_base_object;
 
 		enum
 		{
-			CONTAINER_SECTION = CSVRT_VERTEX,
+			CONTAINER_SECTION = CSVRT_REGULAR_VERTEX,
 			BASE_OBJECT_ID = VERTEX
 		};
 
 		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
 
-typedef geometry_traits<Vertex>::iterator 		VertexIterator;
-typedef geometry_traits<Vertex>::const_iterator	ConstVertexIterator;
+typedef geometry_traits<RegularVertex>::iterator 		RegularVertexIterator;
+typedef geometry_traits<RegularVertex>::const_iterator	ConstRegularVertexIterator;
 
 
 

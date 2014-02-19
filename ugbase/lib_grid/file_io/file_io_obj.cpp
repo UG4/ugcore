@@ -39,18 +39,18 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 
 //	create vertices and assign position data.
 //	Store pointers in a vector so that they can be accessed by index.
-	vector<Vertex*> vVertices;
+	vector<RegularVertex*> vVertices;
 	vVertices.reserve(loader.num_points());
 	{
 		for(uint i = 0; i < (uint)loader.num_points(); ++i)
 		{
-			Vertex* pVrt = *grid.create<Vertex>();
+			RegularVertex* pVrt = *grid.create<RegularVertex>();
 			vVertices.push_back(pVrt);
 			aaPosVRT[pVrt] = *loader.point(i);
 		}
 	//	if a subset handler was specified, we'll push all vertices into subset 0
 		if(pSubsetHandler){
-			pSubsetHandler->assign_subset(grid.begin<Vertex>(), grid.end<Vertex>(), 0);
+			pSubsetHandler->assign_subset(grid.begin<RegularVertex>(), grid.end<RegularVertex>(), 0);
 		}
 	}
 

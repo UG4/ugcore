@@ -114,7 +114,7 @@ number VertexDistance(VertexBase* v0, VertexBase* v1, TAAPos& aaPos);
  */
 UG_API 
 VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin,
-									VertexIterator iterEnd,
+									VertexBaseIterator iterEnd,
 									Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////

@@ -857,7 +857,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 						VertexBase* vrt1 = nextEdge->vertex(1);
 						number radiusSq = VecDistanceSq(center, aaPos[vrt0]);
 						number radius = sqrt(radiusSq);
-						pointInserted = SplitEdge<Vertex>(grid, nextEdge, false);
+						pointInserted = SplitEdge<RegularVertex>(grid, nextEdge, false);
 
 						if(isConstrained){
 							//UG_LOG("IS CONSTRAINED\n");
@@ -1087,7 +1087,7 @@ bool QualityGridGeneration(Grid& grid, TriIter trisBegin, TriIter trisEnd,
 					VertexBase* vrt2 = curFace->vertex(2);
 
 				//UG_LOG("creating new elements...\n");
-					VertexBase* vrt = *grid.create<Vertex>(curFace);
+					VertexBase* vrt = *grid.create<RegularVertex>(curFace);
 					aaPos[vrt] = cc;
 					grid.create<Triangle>(TriangleDescriptor(vrt0, vrt1, vrt), curFace);
 					grid.create<Triangle>(TriangleDescriptor(vrt1, vrt2, vrt), curFace);

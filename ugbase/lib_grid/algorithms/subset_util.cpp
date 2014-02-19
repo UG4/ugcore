@@ -1110,9 +1110,9 @@ void AssignSubsetsByElementType(ISubsetHandler& sh)
 
 	int subsetInd = 0;
 
-	if(g.num<Vertex>() > 0){
-		sh.assign_subset(g.begin<Vertex>(), g.end<Vertex>(), subsetInd);
-		sh.subset_info(subsetInd++).name = "Vertex";
+	if(g.num<RegularVertex>() > 0){
+		sh.assign_subset(g.begin<RegularVertex>(), g.end<RegularVertex>(), subsetInd);
+		sh.subset_info(subsetInd++).name = "RegularVertex";
 	}
 
 	if(g.num<ConstrainedVertex>() > 0){

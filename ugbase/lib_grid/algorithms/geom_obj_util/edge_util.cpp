@@ -681,14 +681,14 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 
 			//	create the new faces by splitting the old face. use substitutes.
 				oldVol->refine(newVols, &newVolVrt, &edgeVrts.front(), NULL, NULL,
-							   Vertex(), &vSubstituteVertices.front());
+							   RegularVertex(), &vSubstituteVertices.front());
 			}
 			else
 			{
 			//	create the new faces by splitting the old face.
 			//	no substitutes required
 				oldVol->refine(newVols, &newVolVrt, &edgeVrts.front(), NULL, NULL,
-							   Vertex(), NULL);
+							   RegularVertex(), NULL);
 			}
 
 		//	register all new vertices and volumes at destGrid

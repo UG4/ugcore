@@ -112,8 +112,8 @@ class GridWriterUGX
 	//	VERTICES
 		template <class TAAPos>
 		rapidxml::xml_node<>*
-		create_vertex_node(VertexIterator vrtsBegin,
-						  VertexIterator vrtsEnd,
+		create_vertex_node(RegularVertexIterator vrtsBegin,
+						  RegularVertexIterator vrtsEnd,
 						  TAAPos& aaPos);
 
 		template <class TAAPos>

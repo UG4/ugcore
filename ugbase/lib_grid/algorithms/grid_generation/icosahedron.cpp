@@ -34,7 +34,7 @@ void GenerateIcosahedron(Grid& grid, const vector3& center,
 	Grid::AttachmentAccessor<VertexBase, AVector3> aaPos(grid, aPos);
 
 	for(size_t i = 0; i < 12; ++i){
-		vrts[i] = *grid.create<Vertex>();
+		vrts[i] = *grid.create<RegularVertex>();
 		aaPos[vrts[i]] = vector3(coords[i][0], coords[i][1], coords[i][2]);
 		VecScaleAdd(aaPos[vrts[i]], 1.0, center, radius, aaPos[vrts[i]]);
 	}

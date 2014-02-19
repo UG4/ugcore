@@ -82,9 +82,9 @@ add_grid(Grid& grid, const char* name,
 	Grid::FaceAttachmentAccessor<AInt> aaIndFACE(grid, m_aInt);
 	
 //	write vertices
-	if(grid.num<Vertex>() > 0)
-		gridNode->append_node(create_vertex_node(grid.begin<Vertex>(),
-										grid.end<Vertex>(), aaPos));
+	if(grid.num<RegularVertex>() > 0)
+		gridNode->append_node(create_vertex_node(grid.begin<RegularVertex>(),
+										grid.end<RegularVertex>(), aaPos));
 
 //	write constrained vertices
 	if(grid.num<ConstrainedVertex>() > 0)
@@ -117,8 +117,8 @@ add_vertex_attachment(const TAttachment& attachment,
 template <class TAAPos>
 rapidxml::xml_node<>*
 GridWriterUGX::
-create_vertex_node(VertexIterator vrtsBegin,
-				  VertexIterator vrtsEnd,
+create_vertex_node(RegularVertexIterator vrtsBegin,
+				  RegularVertexIterator vrtsEnd,
 				  TAAPos& aaPos)
 {
 	using namespace rapidxml;
@@ -129,7 +129,7 @@ create_vertex_node(VertexIterator vrtsBegin,
 //	write the vertices to a temporary stream
 	stringstream ss;
 	ss.precision(32);
-	for(VertexIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
+	for(RegularVertexIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
 	{
 		for(int i = 0; i < numCoords; ++i)
 			ss << aaPos[*iter][i] << " ";
@@ -557,7 +557,7 @@ create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
 				break;
 
 		//	create a new vertex
-			Vertex* vrt = *grid.create<Vertex>();
+			RegularVertex* vrt = *grid.create<RegularVertex>();
 			vrtsOut.push_back(vrt);
 
 		//	set the coordinates
@@ -594,7 +594,7 @@ create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
 			}
 
 		//	create a new vertex
-			Vertex* vrt = *grid.create<Vertex>();
+			RegularVertex* vrt = *grid.create<RegularVertex>();
 			vrtsOut.push_back(vrt);
 
 		//	set the coordinates

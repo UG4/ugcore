@@ -252,7 +252,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 		//GMGR_PROFILE(GMGR_Refine_CreatingEdgeVertices);
 	//	create two new edges by edge-split
-		Vertex* nVrt = *mg.create<Vertex>(e);
+		RegularVertex* nVrt = *mg.create<RegularVertex>(e);
 
 	//	allow refCallback to calculate a new position
 		if(m_refCallback)
@@ -368,7 +368,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 
 		VertexBase* newVrt;
 		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
-					NULL, Vertex(), &vVrts.front(), pCorners)){
+					NULL, RegularVertex(), &vVrts.front(), pCorners)){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				mg.register_element(newVrt, v);

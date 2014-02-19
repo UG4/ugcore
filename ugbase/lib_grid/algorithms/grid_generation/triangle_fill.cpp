@@ -304,8 +304,8 @@ bool TriangleFill(Grid& grid, EdgeBaseIterator edgesBegin,
 									polyChain2D.size(), bTriangulateInside);
 	
 	for(size_t i = 0; i < polyChain2D.size(); ++i){
-		VertexBase* vrt1 = *grid.create<Vertex>();
-		VertexBase* vrt2 = *grid.create<Vertex>();
+		VertexBase* vrt1 = *grid.create<RegularVertex>();
+		VertexBase* vrt2 = *grid.create<RegularVertex>();
 		EdgeBase* e = *grid.create<Edge>(EdgeDescriptor(vrt1, vrt2));
 		
 		VecAdd(aaPos[vrt1], aaPos[vrtPolyChain[i]], aaPos[vrtPolyChain[(i+1)%vrtPolyChain.size()]]);

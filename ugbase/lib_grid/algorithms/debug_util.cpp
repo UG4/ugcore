@@ -26,7 +26,7 @@ void PrintElementNumbers(const GridObjectCollection& goc)
 		}
 		UG_LOG("  vertices total:\t" << goc.num<VertexBase>(i) << endl);
 		if(goc.num<VertexBase>() > 0){
-			UG_LOG("    normal vrts:\t" << goc.num<Vertex>(i) << endl);
+			UG_LOG("    normal vrts:\t" << goc.num<RegularVertex>(i) << endl);
 			UG_LOG("    hanging vrts:\t" << goc.num<ConstrainedVertex>(i) << endl);
 		}
 

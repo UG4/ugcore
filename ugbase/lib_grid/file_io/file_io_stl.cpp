@@ -119,7 +119,7 @@ bool LoadGridFromSTL(Grid& grid, const char* filename,
 			//	create the vertices
 				VertexBase* v[3];
 				for(size_t i = 0; i < 3; ++i){
-					v[i] = *grid.create<Vertex>();
+					v[i] = *grid.create<RegularVertex>();
 					aaPos[v[i]] = positions[i];
 				}
 			

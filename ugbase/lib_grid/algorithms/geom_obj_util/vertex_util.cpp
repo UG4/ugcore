@@ -215,7 +215,7 @@ bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
-VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin, VertexIterator iterEnd,
+VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin, VertexBaseIterator iterEnd,
 									Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	if(iterBegin == iterEnd)

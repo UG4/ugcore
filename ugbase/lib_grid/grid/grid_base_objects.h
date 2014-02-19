@@ -842,7 +842,7 @@ template <> struct GeomObjBaseTypeByDim<3>{
 /**	template helpers that return the geometric base object type
  *	given a pointer to a derived class of VertexBase, EdgeBase, Face or Volume.
  *
- *	e.g. PtrTypeToGeomObjBaseType<Vertex*>::base_type = VertexBase.
+ *	e.g. PtrTypeToGeomObjBaseType<RegularVertex*>::base_type = VertexBase.
  * \{
  */
 template <class TGeomObjPtrType>

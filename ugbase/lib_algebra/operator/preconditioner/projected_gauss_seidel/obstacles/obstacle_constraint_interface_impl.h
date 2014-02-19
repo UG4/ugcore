@@ -332,7 +332,7 @@ init_obstacle_dofs_with_values(const std::map<int, std::vector<TUserData*> >& mv
 		try
 		{
 		if(m_spDD->max_dofs(VERTEX))
-			init_obstacle_dofs_with_values<Vertex, TUserData>(vUserData, si, time);
+			init_obstacle_dofs_with_values<RegularVertex, TUserData>(vUserData, si, time);
 		if(m_spDD->max_dofs(EDGE))
 			init_obstacle_dofs_with_values<EdgeBase, TUserData>(vUserData, si, time);
 		if(m_spDD->max_dofs(FACE))

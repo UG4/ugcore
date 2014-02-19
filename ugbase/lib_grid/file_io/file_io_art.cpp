@@ -303,7 +303,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 	vector<VertexBase*> vLocalVrts;
 	
 //	read the vertices
-	vector<Vertex*>	vVrts;
+	vector<RegularVertex*>	vVrts;
 
 	while((!in.eof()))
 	{
@@ -320,7 +320,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 			break;
 
 	//	create a new vertex
-		Vertex* v = *grid.create<Vertex>();
+		RegularVertex* v = *grid.create<RegularVertex>();
 	//	read the coordinates
 //TODO:	make sure that everything is ok.
 		aaPos[v].x() = atof(tok);

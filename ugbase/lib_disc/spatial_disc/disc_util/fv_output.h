@@ -47,7 +47,7 @@ void CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandle
 		for(size_t co = 0; co < scvf.num_corners(); ++co)
 		{
 			//	create a new vertex
-				Vertex* vrt = *(grid.create<Vertex>());
+				RegularVertex* vrt = *(grid.create<RegularVertex>());
 				vVert.push_back(vrt);
 
 			//	set the coordinates
@@ -222,7 +222,7 @@ void CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, ISubsetHandler
 		for(size_t co = 0; co < scv.num_corners(); ++co)
 		{
 			//	create a new vertex
-				Vertex* vrt = *(grid.create<Vertex>());
+				RegularVertex* vrt = *(grid.create<RegularVertex>());
 				vVert.push_back(vrt);
 
 			//	set the coordinates

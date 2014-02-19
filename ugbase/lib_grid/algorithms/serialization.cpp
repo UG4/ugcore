@@ -416,18 +416,18 @@ bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 		int vrtInd = 0;
 			
 	//	init vertex-indices (only for Vertey type. Rest is done later on).
-		for(VertexIterator iter = goc.begin<Vertex>();
-			iter != goc.end<Vertex>(); ++iter)
+		for(RegularVertexIterator iter = goc.begin<RegularVertex>();
+			iter != goc.end<RegularVertex>(); ++iter)
 		{
 			aaIntVRT[*iter] = vrtInd++;
 		}
 		
 	//	write vertices to the stream
-		if(goc.num<Vertex>() > 0)
+		if(goc.num<RegularVertex>() > 0)
 		{
 			tInt = GOID_VERTEX;
 			out.write((char*)&tInt, sizeof(int));
-			tInt = (int)goc.num<Vertex>();
+			tInt = (int)goc.num<RegularVertex>();
 			out.write((char*)&tInt, sizeof(int));
 		}
 		
@@ -659,7 +659,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 				case GOID_VERTEX:
 					{
 						for(int i = 0; i < numElems; ++i)
-							vVrts.push_back(*grid.create<Vertex>());
+							vVrts.push_back(*grid.create<RegularVertex>());
 					}break;
 					
 				case GOID_HANGING_VERTEX:
@@ -867,15 +867,15 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 	//	prepare vertices and set num-vertices and num-hanging-vertices.
 	//	write vertices
-		if(mgoc.num<Vertex>(iLevel) > 0)
+		if(mgoc.num<RegularVertex>(iLevel) > 0)
 		{
 			tInt = GOID_VERTEX;
 			out.write((char*)&tInt, sizeof(int));
-			tInt = (int)mgoc.num<Vertex>(iLevel);
+			tInt = (int)mgoc.num<RegularVertex>(iLevel);
 			out.write((char*)&tInt, sizeof(int));
 
-			for(VertexIterator iter = mgoc.begin<Vertex>(iLevel);
-				iter != mgoc.end<Vertex>(iLevel); ++iter)
+			for(RegularVertexIterator iter = mgoc.begin<RegularVertex>(iLevel);
+				iter != mgoc.end<RegularVertex>(iLevel); ++iter)
 			{
 				aaInt[*iter] = vrtInd++;
 				mg.mark(*iter);
@@ -1492,7 +1492,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 								Deserialize(in, id);
 								VertexBase* oldVrt;
 								if(vrtHash.get_entry(oldVrt, id)){
-									assert(dynamic_cast<Vertex*>(oldVrt));
+									assert(dynamic_cast<RegularVertex*>(oldVrt));
 									vVrts.push_back(oldVrt);
 								//	make sure that its parent is registered
 									if(parent && (!mg.get_parent(oldVrt)))
@@ -1508,9 +1508,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							}
 
 							if(parent)
-								vVrts.push_back(*mg.create<Vertex>(parent));
+								vVrts.push_back(*mg.create<RegularVertex>(parent));
 							else{
-								vVrts.push_back(*mg.create<Vertex>(currentLevel));
+								vVrts.push_back(*mg.create<RegularVertex>(currentLevel));
 								mg.set_parent_type(vVrts.back(), pInfo.second);
 							}
 

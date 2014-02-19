@@ -185,7 +185,7 @@ void MultiGridRefiner::refine()
 		default:
 			{
 			//	create two new edges by edge-split
-				Vertex* nVrt = *mg.create<Vertex>(e);
+				RegularVertex* nVrt = *mg.create<RegularVertex>(e);
 				VertexBase* substituteVrts[2];
 				substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
 				substituteVrts[1] = mg.get_child_vertex(e->vertex(1));

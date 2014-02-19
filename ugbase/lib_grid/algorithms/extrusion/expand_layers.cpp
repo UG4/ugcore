@@ -475,7 +475,7 @@ bool ExpandFractures2d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 			//	if we didn't find one then create and associate one.
 			//	store the normal in the position attachment of the new vertex
 				if(!newVrts[i_vrt]){
-					newVrts[i_vrt] = *grid.create<Vertex>();
+					newVrts[i_vrt] = *grid.create<RegularVertex>();
 					aaPos[newVrts[i_vrt]] = n;
 					aaVrtVecVRT[vrt].push_back(newVrts[i_vrt]);
 				}
@@ -795,7 +795,7 @@ static void DistributeExpansionMarks3D(Grid& grid, SubsetHandler& sh, Selector& 
 
 	for(size_t i = 0; i < edges.size(); ++i){
 		vector3 center = CalculateCenter(edges[i], aaPos);
-		Vertex* v =	SplitEdge<Vertex>(grid, edges[i], false);
+		RegularVertex* v =	SplitEdge<RegularVertex>(grid, edges[i], false);
 		aaPos[v] = center;
 		aaMarkVRT[v] = 2;
 		sel.select(v);
@@ -1022,7 +1022,7 @@ bool ExpandFractures3d(Grid& grid, SubsetHandler& sh, const vector<FractureInfo>
 			//	if we didn't find one then create and associate one.
 			//	store the normal in the position attachment of the new vertex
 				if(!newVrts[i_vrt]){
-					newVrts[i_vrt] = *grid.create<Vertex>();
+					newVrts[i_vrt] = *grid.create<RegularVertex>();
 					aaPos[newVrts[i_vrt]] = n;
 					aaVrtVecVRT[vrt].push_back(newVrts[i_vrt]);
 				}

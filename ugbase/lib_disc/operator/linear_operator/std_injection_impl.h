@@ -14,7 +14,7 @@ namespace ug{
 
 /**
  * This functions assembles the interpolation matrix between to
- * grid levels using only the Vertex degrees of freedom.
+ * grid levels using only the RegularVertex degrees of freedom.
  *
  * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
  * \param[in] 	approxSpace		Approximation Space
@@ -46,12 +46,12 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 
 	std::vector<size_t> coarseInd, fineInd;
 
-// 	Vertex iterators
-	typedef DoFDistribution::traits<Vertex>::const_iterator const_iterator;
+// 	RegularVertex iterators
+	typedef DoFDistribution::traits<RegularVertex>::const_iterator const_iterator;
 	const_iterator iter, iterBegin, iterEnd;
 
-	iterBegin = fineDD.template begin<Vertex>();
-	iterEnd = fineDD.template end<Vertex>();
+	iterBegin = fineDD.template begin<RegularVertex>();
+	iterEnd = fineDD.template end<RegularVertex>();
 
 // 	loop nodes of fine subset
 	for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -60,7 +60,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 		GridObject* geomObj = grid.get_parent(*iter);
 		VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
 
-	//	Check if father is Vertex
+	//	Check if father is RegularVertex
 		if(vert != NULL)
 		{
 			// get global indices
@@ -87,7 +87,7 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 
 	std::vector<size_t> coarseInd, fineInd;
 
-// 	Vertex iterators
+// 	RegularVertex iterators
 	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
 	typedef typename DoFDistribution::dim_traits<dim>::grid_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;

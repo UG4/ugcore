@@ -167,7 +167,7 @@ pre_refine()
 		iter != m_selMarkedElements.end<VertexBase>(); ++iter)
 	{
 		if(marked_refine(*iter) && refinement_is_allowed(*iter)){
-			VertexBase* vrt = *mg.create<Vertex>(*iter);
+			VertexBase* vrt = *mg.create<RegularVertex>(*iter);
 			if(m_refCallback)
 				m_refCallback->new_vertex(vrt, *iter);
 		}

@@ -660,7 +660,7 @@ bool TrySplit(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	}
 
 //	split the edge
-	Vertex* vrt = SplitEdge<Vertex>(grid, e, false);
+	RegularVertex* vrt = SplitEdge<RegularVertex>(grid, e, false);
 
 //	assign the new position
 	aaPos[vrt] = vCenter;

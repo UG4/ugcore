@@ -64,7 +64,7 @@ continue_collect_objects_for_refine(bool continueRequired)
 
 static void ReplaceByNormal(MultiGrid& mg, VertexBase* v)
 {
-	mg.create_and_replace<Vertex>(v);
+	mg.create_and_replace<RegularVertex>(v);
 }
 
 static void ReplaceByConstrained(MultiGrid& mg, VertexBase* v)

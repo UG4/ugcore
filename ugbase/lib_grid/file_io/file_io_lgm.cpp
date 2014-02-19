@@ -79,7 +79,7 @@ bool ImportGridFromLGM(Grid& grid,
 	Grid::VertexAttachmentAccessor<AVector3> aaPosition(grid, aPos);
 
 	//	read points and store them in an array for index access
-	vector<Vertex*> vVertices;
+	vector<RegularVertex*> vVertices;
 	vVertices.reserve(l->num_points);
 
 	// read points
@@ -89,7 +89,7 @@ bool ImportGridFromLGM(Grid& grid,
 		double* point = l->points[i];
 
 		// create and store vertex
-		Vertex* vert = *grid.create<Vertex>();
+		RegularVertex* vert = *grid.create<RegularVertex>();
 		vVertices.push_back(vert);
 
 		// set vertex coordinates

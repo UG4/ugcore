@@ -70,7 +70,7 @@ bool ImportGridFromNG(Grid& grid,
 	Grid::VertexAttachmentAccessor<AVector3> aaPosition(grid, aPos);
 
 	//	read nodes and store them in an array for index access
-	vector<Vertex*>	vVertices;
+	vector<RegularVertex*>	vVertices;
 	vVertices.reserve(n->num_bnodes + n->num_inodes);
 
 	// read boundary nodes
@@ -80,7 +80,7 @@ bool ImportGridFromNG(Grid& grid,
 		ng_bnode* node = &n->bnodes[i];
 
 		// create and store vertex
-		Vertex* vert = *grid.create<Vertex>();
+		RegularVertex* vert = *grid.create<RegularVertex>();
 		vVertices.push_back(vert);
 
 		// set vertex coordinates
@@ -98,7 +98,7 @@ bool ImportGridFromNG(Grid& grid,
 		ng_inode* node = &n->inodes[i];
 
 		// create and store vertex
-		Vertex* vert = *grid.create<Vertex>();
+		RegularVertex* vert = *grid.create<RegularVertex>();
 		vVertices.push_back(vert);
 
 		// set vertex coordinates

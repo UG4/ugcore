@@ -155,7 +155,7 @@ create_closure_elements_2d()
 			for(size_t i_vrt = 0; i_vrt < numVrts; ++i_vrt){
 				VertexBase* vrt = vrts[i_vrt];
 				if(!mg.has_children(vrt)){
-					newVrtVrts.push_back(*mg.create<Vertex>(vrt));
+					newVrtVrts.push_back(*mg.create<RegularVertex>(vrt));
 					if(m_refCallback)
 						m_refCallback->new_vertex(newVrtVrts.back(), vrt);
 				}
@@ -262,7 +262,7 @@ create_closure_elements_3d()
 			for(size_t i_vrt = 0; i_vrt < numVrts; ++i_vrt){
 				VertexBase* vrt = vrts[i_vrt];
 				if(!mg.has_children(vrt)){
-					newVolVrtVrts.push_back(*mg.create<Vertex>(vrt));
+					newVolVrtVrts.push_back(*mg.create<RegularVertex>(vrt));
 					if(m_refCallback)
 						m_refCallback->new_vertex(newVolVrtVrts.back(), vrt);
 				}
@@ -357,7 +357,7 @@ create_closure_elements_3d()
 
 			VertexBase* newVolVrt;
 			if(elem->refine(newVols, &newVolVrt, &newVolEdgeVrts.front(),
-							&newVolFaceVrts.front(), NULL, Vertex(),
+							&newVolFaceVrts.front(), NULL, RegularVertex(),
 							&newVolVrtVrts.front(), pCorners))
 			{
 				if(newVolVrt){

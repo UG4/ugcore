@@ -986,7 +986,7 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 		}
 
 		Grid& grid = *m_pGrid;
-		VertexBase* nVrt = *grid.create_and_replace<Vertex>(cdv);
+		VertexBase* nVrt = *grid.create_and_replace<RegularVertex>(cdv);
 		if(parentEdge)
 			set_center_vertex(parentEdge, nVrt);
 		else if(parentFace)
@@ -1053,7 +1053,7 @@ process_constraining_edge(ConstrainingEdge* cge)
 	}
 
 //	replace the central vertex with a normal vertex
-	Vertex* centerVrt = *grid.create_and_replace<Vertex>(centralHV);
+	RegularVertex* centerVrt = *grid.create_and_replace<RegularVertex>(centralHV);
 
 //	Iterate over the constrained edges.
 //	Unmarked constrained edges will be replaced by a normal edge.
@@ -1089,7 +1089,7 @@ refine_edge_with_normal_vertex(EdgeBase* e, VertexBase** newCornerVrts)
 		return;
 	}
 
-	Vertex* nVrt = *grid.create<Vertex>(e);
+	RegularVertex* nVrt = *grid.create<RegularVertex>(e);
 	set_center_vertex(e, nVrt);
 
 //	allow refCallback to calculate a new position
@@ -1188,7 +1188,7 @@ refine_face_with_normal_vertex(Face* f, VertexBase** newCornerVrts)
 //	we'll perform a regular refine
 	VertexBase* nVrt = NULL;
 	/*f->refine_regular(vFaces, &nVrt, vNewEdgeVertices, NULL,
-					  Vertex(), newCornerVrts);*/
+					  RegularVertex(), newCornerVrts);*/
 	f->refine(vFaces, &nVrt, vNewEdgeVertices, NULL, newCornerVrts);
 
 //	if a new vertex has been created during refine, then register it at the grid.
@@ -1412,7 +1412,7 @@ process_constraining_face(ConstrainingFace* cgf)
 			  << "At face with center " << GetGridObjectCenter(grid, cgf));
 
 	ConstrainedVertex* centralHV = NULL;
-	Vertex* centerVrt = NULL;
+	RegularVertex* centerVrt = NULL;
 
 	if(numVrts == 4){
 	//	the central hanging vertex has to be transformed into a normal vertex
@@ -1422,7 +1422,7 @@ process_constraining_face(ConstrainingFace* cgf)
 
 	//	replace the central vertex with a normal vertex
 		if(centralHV)
-			centerVrt = *grid.create_and_replace<Vertex>(centralHV);
+			centerVrt = *grid.create_and_replace<RegularVertex>(centralHV);
 	}
 
 //	Iterate over the constrained edges.
@@ -1571,7 +1571,7 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 //	refine the volume and register new volumes at the grid.
 	VertexBase* createdVrt = NULL;
 	v->refine(vVolumes, &createdVrt, &vNewEdgeVertices.front(),
-			  &vNewFaceVertices.front(), NULL, Vertex(), newCornerVrts, pCorners);
+			  &vNewFaceVertices.front(), NULL, RegularVertex(), newCornerVrts, pCorners);
 
 	if(createdVrt){
 	//	register the new vertex

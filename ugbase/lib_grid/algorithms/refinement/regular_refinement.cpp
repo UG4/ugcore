@@ -141,7 +141,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 //	this one stores pointers to all edges that shall be refined
 	vector<EdgeBase*> edges(numRefEdges);
 //	one that stores the new vertex for each edge that shall be refined.
-	vector<Vertex*>	edgeVrts(numRefEdges);
+	vector<RegularVertex*>	edgeVrts(numRefEdges);
 //	one that stores the selected faces
 	vector<Face*> faces(numRefFaces);
 //	one that stores vertices which are created on faces
@@ -184,7 +184,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 				aaIntEDGE[*iter] = i;
 				
 		//	create the new vertex
-			edgeVrts[i] = *grid.create<Vertex>(*iter);
+			edgeVrts[i] = *grid.create<RegularVertex>(*iter);
 			sel.select(edgeVrts[i]);
 		//	calculate new position
 			refCallback->new_vertex(edgeVrts[i], *iter);
@@ -330,7 +330,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 		}
 
 		if(v->refine(newVols, &newVrt, &volEdgeVrts.front(),
-					&volFaceVrts.front(), NULL, Vertex(), NULL, pCorners))
+					&volFaceVrts.front(), NULL, RegularVertex(), NULL, pCorners))
 		{
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){

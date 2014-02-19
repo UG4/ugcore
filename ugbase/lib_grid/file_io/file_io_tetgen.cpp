@@ -123,7 +123,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 {
 //	read nodes and store them in an array for index access
 
-	vector<Vertex*>	vVertices;
+	vector<RegularVertex*>	vVertices;
 
 	{
 		ifstream in(nodesFilename);
@@ -160,7 +160,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 		int index;
 		for(uint i = 0; i < numNodes; ++i)
 		{
-			Vertex* v = *grid.create<Vertex>();
+			RegularVertex* v = *grid.create<RegularVertex>();
 			vVertices.push_back(v);
 
 		//	read index and coords

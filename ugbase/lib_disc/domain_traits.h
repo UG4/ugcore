@@ -30,8 +30,8 @@ template <int dim> struct domain_traits;
 
 // 0d
 template <> struct domain_traits<0> {
-typedef boost::mpl::list<Vertex> DimElemList;
-typedef boost::mpl::list<Vertex> AllElemList;
+typedef boost::mpl::list<RegularVertex> DimElemList;
+typedef boost::mpl::list<RegularVertex> AllElemList;
 
 typedef geometry_traits<VertexBase>::const_iterator const_iterator;
 typedef geometry_traits<VertexBase>::iterator iterator;

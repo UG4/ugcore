@@ -24,7 +24,7 @@ struct reference_element_traits;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Vertex
+// RegularVertex
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
@@ -35,7 +35,7 @@ struct reference_element_traits<VertexBase>
 };
 
 template <>
-struct reference_element_traits<Vertex>
+struct reference_element_traits<RegularVertex>
 	: public reference_element_traits<VertexBase> {};
 
 template <>

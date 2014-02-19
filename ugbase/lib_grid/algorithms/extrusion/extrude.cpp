@@ -82,7 +82,7 @@ void Extrude(Grid& grid,
 		//	create a new vertex and store it in the hash.
 		//	use the attachment_data_index of the old one as key.
 		//	WARNING: this is only secure as long as nobody calls defragment while the hash is active!
-			VertexBase* v = *grid.create<Vertex>(vOld);
+			VertexBase* v = *grid.create<RegularVertex>(vOld);
 			vrtHash.insert(grid.get_attachment_data_index(vOld), v);
 
 		//	calculate new position
@@ -115,7 +115,7 @@ void Extrude(Grid& grid,
 			{
 				if(!vrtHash.get_entry(v[j], grid.get_attachment_data_index(e->vertex(j))))
 				{
-					v[j] = *grid.create<Vertex>(e->vertex(j));
+					v[j] = *grid.create<RegularVertex>(e->vertex(j));
 					vrtHash.insert(grid.get_attachment_data_index(e->vertex(j)), v[j]);
 				//	calculate new position
 					aaPos[v[j]] = aaPos[e->vertex(j)];
@@ -165,7 +165,7 @@ void Extrude(Grid& grid,
 			{
 				uint oldVrtInd = grid.get_attachment_data_index(f->vertex(j));
 				if(!vrtHash.get_entry(v[j], oldVrtInd)){
-					v[j] = *grid.create<Vertex>(f->vertex(j));
+					v[j] = *grid.create<RegularVertex>(f->vertex(j));
 					vrtHash.insert(oldVrtInd, v[j]);
 				//	calculate new position
 					aaPos[v[j]] = aaPos[f->vertex(j)];

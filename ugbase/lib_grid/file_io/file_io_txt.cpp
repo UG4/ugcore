@@ -32,7 +32,7 @@ bool LoadGridFromTXT(Grid& grid, const char* filename, AVector3& aPos)
 	vVrts.reserve(numVrts);
 
 	for(int i = 0; i < numVrts; ++i)
-		vVrts[i] = *grid.create<Vertex>();
+		vVrts[i] = *grid.create<RegularVertex>();
 
 	if(!grid.has_vertex_attachment(aPos))
 		grid.attach_to_vertices(aPos);

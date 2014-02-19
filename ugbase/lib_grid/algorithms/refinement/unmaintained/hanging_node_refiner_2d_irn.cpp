@@ -87,7 +87,7 @@ static number GetLocalVertexCoordinate(EdgeBase* e, VertexBase* vrt)
 		return hv->get_local_coordinate_1();
 	}
 
-	LOG("WARNING in GetLocalVertexCoordinate(...): Vertex does not lie on edge. Returning -1." << endl);
+	LOG("WARNING in GetLocalVertexCoordinate(...): RegularVertex does not lie on edge. Returning -1." << endl);
 	return -1.0;
 }
 /*
@@ -918,7 +918,7 @@ void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constr
 		ce->unconstrain_object(centerVrt);
 		vector3 vPos;
 
-		Vertex* nCenterVrt = *grid.create_and_replace<Vertex>(centerVrt);
+		RegularVertex* nCenterVrt = *grid.create_and_replace<RegularVertex>(centerVrt);
 
 	//	store this vertex for later use on ce
 		set_center_vertex(ce, nCenterVrt);
@@ -1144,7 +1144,7 @@ void HangingNodeRefiner2D_IRN::refine_edge_with_normal_vertex(EdgeBase* e)
 {
 	Grid& grid = *m_pGrid;
 
-	Vertex* nVrt = *grid.create<Vertex>(e);
+	RegularVertex* nVrt = *grid.create<RegularVertex>(e);
 	set_center_vertex(e, nVrt);
 
 //	allow refCallback to calculate a new position
@@ -1222,7 +1222,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_normal_vertex(Face* f)
 
 //	we'll perform a regular refine
 	VertexBase* vNewVrt = NULL;
-	f->refine_regular(vFaces, &vNewVrt, vNewEdgeVertices, NULL, Vertex(), NULL);
+	f->refine_regular(vFaces, &vNewVrt, vNewEdgeVertices, NULL, RegularVertex(), NULL);
 
 //	if a new vertex has been created during refine, then register it at the grid.
 	if(vNewVrt)
@@ -1307,7 +1307,7 @@ void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 
 			//	refine the constrainedTri and register new ones.
 				VertexBase* tmpVrt;
-				constrainedTri.refine_regular(vFaces, &tmpVrt, vNewEdgeVertices, NULL, Vertex(), NULL);
+				constrainedTri.refine_regular(vFaces, &tmpVrt, vNewEdgeVertices, NULL, RegularVertex(), NULL);
 			}
 			break;
 //TODO: add support for quadrilaterals
@@ -1420,7 +1420,7 @@ void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 	VertexBase* vNewVrt = NULL;
 	if(f->num_vertices() > 3)
 	{
-		vNewVrt = *grid.create<Vertex>(f);
+		vNewVrt = *grid.create<RegularVertex>(f);
 	//	assign a new position
 		if(m_aaPos.valid())
 			m_aaPos[vNewVrt] = CalculateFaceCenter(f, m_aaPos);
@@ -1429,7 +1429,7 @@ void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 //	refine the volume and register new volumes at the grid.
 	VertexBase* createdVrt = NULL;
 	v->refine(vVolumes, &createdVrt, &vNewEdgeVertices.front(),
-			  &vNewFaceVertices.front(), NULL, Vertex(), NULL);
+			  &vNewFaceVertices.front(), NULL, RegularVertex(), NULL);
 
 
 	for(uint i = 0; i < vVolumes.size(); ++i)
