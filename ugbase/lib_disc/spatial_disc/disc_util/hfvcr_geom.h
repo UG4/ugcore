@@ -401,7 +401,7 @@ class HCRFVGeometry : public FVGeometryBase
 		void update_local_data();
 
 	/// update data for given element
-		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	///	debug output

@@ -298,7 +298,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
  */
 template <class TAAPosVRT>
 bool ProjectVerticesToCloseEdges(Grid& grid,
-								 GeometricObjectCollection elems,
+								 GridObjectCollection elems,
 								 TAAPosVRT& aaPos,
 								 number snapThreshold)
 {
@@ -330,7 +330,7 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
  */
 template <class TAAPosVRT>
 bool ProjectVerticesToCloseFaces(Grid& grid,
-								 GeometricObjectCollection elems,
+								 GridObjectCollection elems,
 								 TAAPosVRT& aaPos,
 								 number snapThreshold)
 {
@@ -360,7 +360,7 @@ bool ProjectVerticesToCloseFaces(Grid& grid,
  * than snapThreshold.*/
 template <class TAAPosVRT>
 bool IntersectCloseEdges(Grid& grid,
-						 GeometricObjectCollection elems,
+						 GridObjectCollection elems,
 						 TAAPosVRT& aaPos,
 						 number snapThreshold)
 {
@@ -617,11 +617,11 @@ bool ResolveGridIntersections(Grid& grid, TriangleIterator trisBegin,
 
 		//	we now have to resolve intersections between the edges
 		//	first we'll try to snap vertices to edges
-			ProjectVerticesToCloseEdges(tgrid, tgrid.get_geometric_objects(),
+			ProjectVerticesToCloseEdges(tgrid, tgrid.get_grid_objects(),
 										taaPos, SMALL);
 
 		//	now resolve edge/edge intersections
-			IntersectCloseEdges(tgrid, tgrid.get_geometric_objects(),
+			IntersectCloseEdges(tgrid, tgrid.get_grid_objects(),
 								taaPos, SMALL);
 
 		//	make sure that all vertices have an associated aaVrt

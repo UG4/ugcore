@@ -270,7 +270,7 @@ void IElemDisc<TDomain>::set_time_independent()
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_prep_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -288,7 +288,7 @@ do_prep_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, 
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_prep_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_prep_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -306,7 +306,7 @@ do_prep_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCorne
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_fsh_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -366,7 +366,7 @@ do_fsh_elem_loop()
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -385,7 +385,7 @@ do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const M
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// check if really needed (may occur in cases, when mixing stat and instat)
 	if(m_bStationaryForced) return;
@@ -407,7 +407,7 @@ do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const M
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -426,7 +426,7 @@ do_add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const M
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -445,7 +445,7 @@ do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, co
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	// check if really needed (may occur in cases, when mixing stat and instat)
 	if(m_bStationaryForced) return;
@@ -467,7 +467,7 @@ do_add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const M
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	rhs.access_by_map(map());
@@ -510,7 +510,7 @@ do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-do_compute_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_compute_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -528,7 +528,7 @@ do_compute_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<
 
 template <typename TDomain>
 number IElemDisc<TDomain>::
-do_get_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+do_get_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	//	access by map
 	u.access_by_map(map());
@@ -575,21 +575,21 @@ static void ThrowMissingVirtualMethod(const char* method){
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("prep_timestep_elem");
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("prep_elem");
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+fsh_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("fsh_timestep_elem");
 }
@@ -610,42 +610,42 @@ fsh_elem_loop()
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("add_jac_A_elem");
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("add_jac_M_elem");
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("add_def_A_elem");
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("add_def_A_expl_elem");
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("add_def_M_elem");
 }
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("add_rhs_elem");
 }
@@ -659,14 +659,14 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 
 template <typename TDomain>
 void IElemDisc<TDomain>::
-compute_err_est_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+compute_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("compute_err_est_elem");
 }
 
 template <typename TDomain>
 number IElemDisc<TDomain>::
-get_err_est_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+get_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	ThrowMissingVirtualMethod("get_err_est_elem");
 	return 0;

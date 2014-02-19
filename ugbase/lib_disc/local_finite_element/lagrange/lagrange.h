@@ -14,7 +14,7 @@
 #include "lagrange_local_dof.h"
 #include "lib_disc/common/multi_index.h"
 #include "common/util/metaprogramming_util.h"
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 
 namespace ug{
 

@@ -346,25 +346,25 @@ register_subset_elements_at_pipe()
 }
 */
 
-GeometricObjectCollection
+GridObjectCollection
 MultiGridSubsetHandler::
-get_geometric_objects(int subsetIndex, int level) const
+get_grid_objects(int subsetIndex, int level) const
 {
 	subset_required(subsetIndex);
 	level_required(level);
 
-	return GeometricObjectCollection(&m_levels[level][subsetIndex]->m_vertices,
+	return GridObjectCollection(&m_levels[level][subsetIndex]->m_vertices,
 									 &m_levels[level][subsetIndex]->m_edges,
 									 &m_levels[level][subsetIndex]->m_faces,
 									 &m_levels[level][subsetIndex]->m_volumes);
 }
 
-GeometricObjectCollection
+GridObjectCollection
 MultiGridSubsetHandler::
-get_geometric_objects_in_subset(int subsetIndex) const
+get_grid_objects_in_subset(int subsetIndex) const
 {
 	subset_required(subsetIndex);
-	GeometricObjectCollection goc(m_levels.size());
+	GridObjectCollection goc(m_levels.size());
 	for(size_t i = 0; i < m_levels.size(); ++i)
 	{
 		goc.add_level(	&m_levels[i][subsetIndex]->m_vertices,
@@ -376,13 +376,13 @@ get_geometric_objects_in_subset(int subsetIndex) const
 	return goc;
 }
 
-GeometricObjectCollection
+GridObjectCollection
 MultiGridSubsetHandler::
-get_geometric_objects_in_level(int level) const
+get_grid_objects_in_level(int level) const
 {
 	level_required(level);
 	uint numSubsets = num_subsets_in_list();
-	GeometricObjectCollection goc(numSubsets);
+	GridObjectCollection goc(numSubsets);
 	for(uint i = 0; i < numSubsets; ++i)
 	{
 		goc.add_level(	&m_levels[level][i]->m_vertices,

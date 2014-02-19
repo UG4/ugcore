@@ -517,7 +517,7 @@ update_local_data()
 /// update data for given element
 template <typename TElem, int TWorldDim>
 void FV1Geometry<TElem, TWorldDim>::
-update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
@@ -612,7 +612,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 
 template <typename TElem, int TWorldDim>
 void FV1Geometry<TElem, TWorldDim>::
-update_boundary_faces(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
@@ -835,7 +835,7 @@ update_local_data()
 /// update data for given element
 template <int TDim, int TWorldDim>
 void DimFV1Geometry<TDim, TWorldDim>::
-update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
@@ -947,7 +947,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 
 template <int TDim, int TWorldDim>
 void DimFV1Geometry<TDim, TWorldDim>::
-update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
 	Grid& grid = *(ish->grid());
@@ -1180,7 +1180,7 @@ FV1ManifoldBoundary() : m_pElem(NULL), m_rRefElem(Provider<ref_elem_type>::get()
 /// update data for given element
 template <typename TElem, int TWorldDim>
 void FV1ManifoldBoundary<TElem, TWorldDim>::
-update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);

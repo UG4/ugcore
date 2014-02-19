@@ -515,7 +515,7 @@ reset_subset_indices(uint shElements)
 }
 
 int ISubsetHandler::
-get_subset_index(GeometricObject* elem) const
+get_subset_index(GridObject* elem) const
 {
 	uint type = elem->base_object_id();
 	switch(type)
@@ -531,7 +531,7 @@ get_subset_index(GeometricObject* elem) const
 	}
 
 //	we should never arrive at this point
-	assert(!"ERROR in SubsetHandler::get_subset_index(GeometricObject* elem): Program should never reach this point!");
+	assert(!"ERROR in SubsetHandler::get_subset_index(GridObject* elem): Program should never reach this point!");
 	return -1;
 }
 
@@ -930,7 +930,7 @@ elements_to_be_cleared(Grid* grid)
 
 //	vertex callbacks
 void ISubsetHandler::
-vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
+vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent,
 				bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_created(...): Grids do not match.");
@@ -974,7 +974,7 @@ vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
 
 //	edge callbacks
 void ISubsetHandler::
-edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent,
+edge_created(Grid* grid, EdgeBase* edge, GridObject* pParent,
 			 bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::edge_created(...): Grids do not match.");
@@ -1015,7 +1015,7 @@ edge_to_be_erased(Grid* grid, EdgeBase* edge, EdgeBase* replacedBy)
 
 //	face callbacks
 void ISubsetHandler::
-face_created(Grid* grid, Face* face, GeometricObject* pParent,
+face_created(Grid* grid, Face* face, GridObject* pParent,
 			 bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::face_created(...): Grids do not match.");
@@ -1055,7 +1055,7 @@ face_to_be_erased(Grid* grid, Face* face, Face* replacedBy)
 
 //	volume callbacks
 void ISubsetHandler::
-volume_created(Grid* grid, Volume* vol, GeometricObject* pParent,
+volume_created(Grid* grid, Volume* vol, GridObject* pParent,
 			   bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::volume_created(...): Grids do not match.");

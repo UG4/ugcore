@@ -328,7 +328,7 @@ class UG_API ISubsetHandler : public GridObserver
 		template <class TIterator>
 		void assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex);
 
-		int get_subset_index(GeometricObject* elem) const;
+		int get_subset_index(GridObject* elem) const;
 		inline int get_subset_index(VertexBase* elem) const;
 		inline int get_subset_index(EdgeBase* elem) const;
 		inline int get_subset_index(Face* elem) const;
@@ -348,19 +348,19 @@ class UG_API ISubsetHandler : public GridObserver
 
 	//	element callbacks
 		virtual void vertex_created(Grid* grid, VertexBase* vrt,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void edge_created(Grid* grid, EdgeBase* e,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void face_created(Grid* grid, Face* f,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
@@ -450,8 +450,8 @@ class UG_API ISubsetHandler : public GridObserver
 
 	///	Returns the geometric object collection for the given subset.
 	/**	Note that the GOC may contain multiple levels.*/
-		virtual GeometricObjectCollection
-			get_geometric_objects_in_subset(int subsetInd) const = 0;
+		virtual GridObjectCollection
+			get_grid_objects_in_subset(int subsetInd) const = 0;
 
 	////////////////////////////////
 	//	attachments

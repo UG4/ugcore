@@ -54,7 +54,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 						Grid& grid, Attachment<TIndexType>* paIndex = NULL,
 						TGeomBaseObj** pGeomObjsOut = NULL,
 						NeighborhoodType nbhType = NHT_DEFAULT,
-						const GeometricObjectCollection* pgoc = NULL)
+						const GridObjectCollection* pgoc = NULL)
 {
 	using namespace std;
 	typedef TGeomBaseObj Elem;
@@ -71,11 +71,11 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 		
 	Grid::AttachmentAccessor<Elem, AIndex> aaInd(grid, aIndex);
 	
-	GeometricObjectCollection goc;
+	GridObjectCollection goc;
 	if(pgoc)
 		goc = *pgoc;
 	else
-		goc = grid.get_geometric_objects();
+		goc = grid.get_grid_objects();
 
 //	init the indices
 	TIndexType ind = 0;
@@ -249,7 +249,7 @@ void ConstructDualGraphMG(std::vector<TIndexType>& adjacencyMapStructureOut,
 				}
 
 			//	add a connection to the parents to the list
-				GeometricObject* parent = mg.get_parent(elem);
+				GridObject* parent = mg.get_parent(elem);
 				if(parent && Elem::type_match(parent)){
 					adjacencyMapOut.push_back(aaInd[static_cast<Elem*>(parent)]);
 					if(pEdgeWeightsOut)

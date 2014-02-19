@@ -222,7 +222,7 @@ class HFV1Geometry : public FVGeometryBase{
 		HFV1Geometry();
 
 	///	update values for an element
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		            			 const ISubsetHandler* ish = NULL);
 
 	// 	debug output
@@ -689,7 +689,7 @@ class DimHFV1Geometry : public FVGeometryBase{
 		void update_local_data();
 
 	///	update values for an element
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		            			 const ISubsetHandler* ish = NULL);
 
 	// 	debug output
@@ -887,7 +887,7 @@ class DimHFV1Geometry : public FVGeometryBase{
 
 	private:
 	///	pointer to current element
-		GeometricObject* m_pElem;
+		GridObject* m_pElem;
 		
 	///	current reference object id
 		ReferenceObjectID m_roid;

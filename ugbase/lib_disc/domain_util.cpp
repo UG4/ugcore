@@ -102,7 +102,7 @@ void SaveDomain(TDomain& domain, const char* filename)
 template <typename TDomain>
 number MaxElementDiameter(TDomain& domain, int level)
 {
-	typedef typename domain_traits<TDomain::dim>::geometric_base_object TElem;
+	typedef typename domain_traits<TDomain::dim>::grid_base_object TElem;
 	return  MaxElementDiameter(*domain.grid(), domain.position_accessor(),
 	                           domain.grid()->template begin<TElem>(level),
 	                           domain.grid()->template end<TElem>(level));

@@ -77,19 +77,19 @@ class UG_API GridObserver
 	 *  and obj are pseudonyms for the concrete type).*/
 	/// \{
 		virtual void vertex_created(Grid* grid, VertexBase* vrt,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false)			{}
 
 		virtual void edge_created(Grid* grid, EdgeBase* e,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false)			{}
 
 		virtual void face_created(Grid* grid, Face* f,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false)			{}
 
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false)			{}
 	///	\}
 

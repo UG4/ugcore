@@ -122,7 +122,7 @@ class UG_API ISelector : public GridObserver
 	 * in the list of selected elements.
 	 * \{
 	 */
-		inline void select(GeometricObject* elem, byte status = 1);
+		inline void select(GridObject* elem, byte status = 1);
 
 		template <class TElem>
 		inline void select(TElem* elem, byte status = 1);
@@ -132,7 +132,7 @@ class UG_API ISelector : public GridObserver
 	/**	\} */
 		
 	//	deselection
-		inline void deselect(GeometricObject* elem);
+		inline void deselect(GridObject* elem);
 		
 		template <class TElem>
 		inline void deselect(TElem* elem);
@@ -141,7 +141,7 @@ class UG_API ISelector : public GridObserver
 		inline void deselect(TIterator iterBegin, TIterator iterEnd);
 
 	//	selection status
-		inline byte get_selection_status(GeometricObject* elem) const;
+		inline byte get_selection_status(GridObject* elem) const;
 		inline byte get_selection_status(VertexBase* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return 0; return m_aaSelVRT[vrt];}
 		inline byte get_selection_status(EdgeBase* edge) const	{if(!elements_are_supported(SE_EDGE)) return 0; return m_aaSelEDGE[edge];}
 		inline byte get_selection_status(Face* face) const		{if(!elements_are_supported(SE_FACE)) return 0; return m_aaSelFACE[face];}
@@ -154,7 +154,7 @@ class UG_API ISelector : public GridObserver
 		inline Grid* grid() const		{return m_pGrid;}
 
 	///	returns a geometric object collection, containing all selected objects
-		virtual GeometricObjectCollection get_geometric_objects() const = 0;
+		virtual GridObjectCollection get_grid_objects() const = 0;
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
@@ -185,19 +185,19 @@ class UG_API ISelector : public GridObserver
 
 	//	element callbacks
 		virtual void vertex_created(Grid* grid, VertexBase* vrt,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void edge_created(Grid* grid, EdgeBase* e,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void face_created(Grid* grid, Face* f,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,

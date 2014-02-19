@@ -378,7 +378,7 @@ create_closure_elements_3d()
 
 template <class TElem>
 void AdaptiveRegularRefiner_MultiGrid::
-get_parents_of_marked_closure_elements(std::vector<GeometricObject*>& parents,
+get_parents_of_marked_closure_elements(std::vector<GridObject*>& parents,
 									   Selector::status_t mark)
 {
 	UG_ASSERT(multi_grid(), "A multi grid has to be assigned to the refiner.");
@@ -393,7 +393,7 @@ get_parents_of_marked_closure_elements(std::vector<GeometricObject*>& parents,
 			continue;
 
 		if(get_mark(e) & mark){
-			GeometricObject* parent = mg.get_parent(e);
+			GridObject* parent = mg.get_parent(e);
 			if(parent && !m_closureElems.is_selected(parent))
 				parents.push_back(parent);
 		}
@@ -404,7 +404,7 @@ void AdaptiveRegularRefiner_MultiGrid::
 perform_refinement()
 {
 //	todo: copy refinement marks from closure elements to their parents
-	vector<GeometricObject*> parents;
+	vector<GridObject*> parents;
 	Selector::status_t refMark = RM_REFINE | RM_ANISOTROPIC;
 	get_parents_of_marked_closure_elements<VertexBase>(parents, refMark);
 	get_parents_of_marked_closure_elements<EdgeBase>(parents, refMark);

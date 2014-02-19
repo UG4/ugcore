@@ -172,17 +172,17 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 	TDomain& dom = *m_spApproxSpace->domain();
 	typename TDomain::grid_type& grid = *dom.grid();
 
-	typedef typename domain_traits<TDomain::dim>::geometric_base_object geometric_base_object;
-	typedef typename TDomain::grid_type::template traits<geometric_base_object>::iterator
+	typedef typename domain_traits<TDomain::dim>::grid_base_object grid_base_object;
+	typedef typename TDomain::grid_type::template traits<grid_base_object>::iterator
 			ElemIter;
 
-	ElemIter iterBegin = grid.template begin<geometric_base_object>(grid.top_level());
-	ElemIter iterEnd = grid.template end<geometric_base_object>(grid.top_level());
+	ElemIter iterBegin = grid.template begin<grid_base_object>(grid.top_level());
+	ElemIter iterEnd = grid.template end<grid_base_object>(grid.top_level());
 
 	typedef typename elemList::iterator ListIter;
 
 	/* VERSION �BER ATTACHMENT:
-	typename Grid::traits<geometric_base_object>::secure_container elems;
+	typename Grid::traits<grid_base_object>::secure_container elems;
 
 	int vtr_count = 0;
 
@@ -201,7 +201,7 @@ bool NLGaussSeidelSolver<TDomain, TAlgebra>::prepare(vector_type& u)
 	for(ElemIter elemIter = iterBegin; elemIter != iterEnd; ++elemIter)
 	{
 		//	get element
-		geometric_base_object* elem = *elemIter;
+		grid_base_object* elem = *elemIter;
 
 		if(m_gridLevel.type() == GridLevel::LEVEL)
 			m_spLevDD->indices(elem, ind);

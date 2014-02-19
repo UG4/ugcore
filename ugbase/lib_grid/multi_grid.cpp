@@ -149,7 +149,7 @@ create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, int level)
 }
 
 
-GeometricObject* MultiGrid::get_parent(GeometricObject* parent) const
+GridObject* MultiGrid::get_parent(GridObject* parent) const
 {
 	int baseType = parent->base_object_id();
 	switch(baseType)
@@ -172,7 +172,7 @@ void MultiGrid::elements_to_be_cleared(Grid* grid)
 
 //	vertices
 void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
-								GeometricObject* pParent,
+								GridObject* pParent,
 								bool replacesParent)
 {
 //	if hierarchical_insertion is disabled, the elemenet is inserted
@@ -187,7 +187,7 @@ void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
 		UG_ASSERT(pParent->base_object_id() == VERTEX,
 				  "only objects of the same base type can be replaced.");
 		VertexBase* pReplaceMe = static_cast<VertexBase*>(pParent);
-		GeometricObject* realParent = get_parent(pReplaceMe);
+		GridObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
 		if(realParent){
@@ -241,7 +241,7 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
 	if(replacedBy)
 		return;
 
-	GeometricObject* pParent = get_parent(vrt);
+	GridObject* pParent = get_parent(vrt);
 	if(pParent)
 	{
 		int baseType = pParent->base_object_id();
@@ -259,7 +259,7 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
 
 //	edges
 void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
-							GeometricObject* pParent,
+							GridObject* pParent,
 							bool replacesParent)
 {
 	if(replacesParent){
@@ -269,7 +269,7 @@ void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
 		UG_ASSERT(pParent->base_object_id() == EDGE,
 				  "only objects of the same base type can be replaced.");
 		EdgeBase* pReplaceMe = static_cast<EdgeBase*>(pParent);
-		GeometricObject* realParent = get_parent(pReplaceMe);
+		GridObject* realParent = get_parent(pReplaceMe);
 		if(realParent){
 		//	we call a version of element_created, which allows a replace
 			int baseType = realParent->base_object_id();
@@ -324,7 +324,7 @@ void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge,
 	if(replacedBy)
 		return;
 
-	GeometricObject* pParent = get_parent(edge);
+	GridObject* pParent = get_parent(edge);
 	if(pParent)
 	{
 		int baseType = pParent->base_object_id();
@@ -341,7 +341,7 @@ void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge,
 
 //	faces
 void MultiGrid::face_created(Grid* grid, Face* face,
-							GeometricObject* pParent,
+							GridObject* pParent,
 							bool replacesParent)
 {
 	if(replacesParent){
@@ -351,7 +351,7 @@ void MultiGrid::face_created(Grid* grid, Face* face,
 		UG_ASSERT(pParent->base_object_id() == FACE,
 				  "only objects of the same base type can be replaced.");
 		Face* pReplaceMe = static_cast<Face*>(pParent);
-		GeometricObject* realParent = get_parent(pReplaceMe);
+		GridObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
 		if(realParent){
@@ -414,7 +414,7 @@ void MultiGrid::face_to_be_erased(Grid* grid, Face* face,
 	if(replacedBy)
 		return;
 
-	GeometricObject* pParent = get_parent(face);
+	GridObject* pParent = get_parent(face);
 	if(pParent)
 	{
 		int baseType = pParent->base_object_id();
@@ -430,7 +430,7 @@ void MultiGrid::face_to_be_erased(Grid* grid, Face* face,
 
 //	volumes
 void MultiGrid::volume_created(Grid* grid, Volume* vol,
-								GeometricObject* pParent,
+								GridObject* pParent,
 								bool replacesParent)
 {
 	if(replacesParent){
@@ -440,7 +440,7 @@ void MultiGrid::volume_created(Grid* grid, Volume* vol,
 		UG_ASSERT(pParent->base_object_id() == VOLUME,
 				  "only objects of the same base type can be replaced.");
 		Volume* pReplaceMe = static_cast<Volume*>(pParent);
-		GeometricObject* realParent = get_parent(pReplaceMe);
+		GridObject* realParent = get_parent(pReplaceMe);
 
 	//	we call a version of element_created, which allows a replace
 		element_created(vol, (Volume*)realParent, pReplaceMe);
@@ -497,7 +497,7 @@ void MultiGrid::volume_to_be_erased(Grid* grid, Volume* vol,
 	if(replacedBy)
 		return;
 
-	GeometricObject* pParent = get_parent(vol);
+	GridObject* pParent = get_parent(vol);
 	if(pParent)
 	{
 		UG_ASSERT(pParent->base_object_id() == VOLUME,

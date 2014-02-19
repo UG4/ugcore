@@ -400,11 +400,11 @@ class FV1Geometry : public FVGeometryBase
 		void update_local_data();
 
 	/// update data for given element
-		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -892,11 +892,11 @@ class DimFV1Geometry : public FVGeometryBase
 		void update_local_data();
 
 	/// update data for given element
-		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -1003,7 +1003,7 @@ class DimFV1Geometry : public FVGeometryBase
 
 	private:
 	///	pointer to current element
-		GeometricObject* m_pElem;
+		GridObject* m_pElem;
 
 	///	current reference object id
 		ReferenceObjectID m_roid;
@@ -1177,7 +1177,7 @@ class FV1ManifoldBoundary
 		FV1ManifoldBoundary();
 		
 	///	update data for given element
-		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 			
 	/// get vector of corners for current element

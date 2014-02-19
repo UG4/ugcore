@@ -399,22 +399,22 @@ public:
 		FV1IBGeometry();
 
 	/// adapt normals for elements cut by the inner boundary
-		void adapt_normals(GeometricObject* elem, const MathVector<TWorldDim>* vCornerCoords,
+		void adapt_normals(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
 					const ISubsetHandler* ish = NULL);
 
 	/// adapt integration points for elements cut by the inner boundary
-		void adapt_integration_points(GeometricObject* elem, const MathVector<TWorldDim>* vCornerCoords,
+		void adapt_integration_points(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
 					const ISubsetHandler* ish = NULL);
 
 	///	update local data
 		void update_local_data();
 
 	/// update data for given element
-		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 					const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GridObject* elem,
 								   const MathVector<worldDim>* vCornerCoords,
 								   const ISubsetHandler* ish = NULL);
 

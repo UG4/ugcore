@@ -48,7 +48,7 @@ class StdGlobPosData
 		inline void evaluate(TData vValue[],
 		                     const MathVector<dim> vGlobIP[],
 		                     number time, int si,
-		                     GeometricObject* elem,
+		                     GridObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     const MathVector<refDim> vLocIP[],
 		                     const size_t nip,
@@ -60,7 +60,7 @@ class StdGlobPosData
 		}
 
 	///	implement as a UserData
-		virtual void compute(LocalVector* u, GeometricObject* elem,
+		virtual void compute(LocalVector* u, GridObject* elem,
 		                     const MathVector<dim> vCornerCoords[], bool bDeriv = false)
 		{
 			const number t = this->time();

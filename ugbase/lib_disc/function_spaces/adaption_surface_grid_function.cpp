@@ -29,7 +29,7 @@ prolongate(const GridMessage_Adaption& msg)
 	for(size_t fct = 0; fct < m_spDDInfo->num_fct(); ++fct)
 		m_vpProlong.push_back(GetStandardElementProlongation<TDomain>(m_spDDInfo->lfeid(fct)));
 
-	const GeometricObjectCollection& goc = msg.affected_elements();
+	const GridObjectCollection& goc = msg.affected_elements();
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 	{
 		prolongate<VertexBase>(msg, lvl);
@@ -44,7 +44,7 @@ template <typename TBaseElem>
 void AdaptionSurfaceGridFunction<TDomain>::
 prolongate(const GridMessage_Adaption& msg, const size_t lvl)
 {
-	const GeometricBaseObject gbo = (GeometricBaseObject)TBaseElem::BASE_OBJECT_ID;
+	const GridBaseObjectId gbo = (GridBaseObjectId)TBaseElem::BASE_OBJECT_ID;
 
 //	extract and init prolongations working on the base element type
 	std::vector<SmartPtr<IElemProlongation<TDomain> > > vpProlong;
@@ -63,8 +63,8 @@ prolongate(const GridMessage_Adaption& msg, const size_t lvl)
 	if(vpProlong.empty()) return;
 
 //	iterators
-	const GeometricObjectCollection& goc = msg.affected_elements();
-	typedef typename GeometricObjectCollection::traits<TBaseElem>::const_iterator const_iterator;
+	const GridObjectCollection& goc = msg.affected_elements();
+	typedef typename GridObjectCollection::traits<TBaseElem>::const_iterator const_iterator;
 
 
 	const_iterator iter = goc.begin<TBaseElem>(lvl);
@@ -106,7 +106,7 @@ prolongate(const GridMessage_Adaption& msg, const size_t lvl)
 //	}
 //}
 //
-//static void select_associated(MGSelector& sel, GeometricObject* elem)
+//static void select_associated(MGSelector& sel, GridObject* elem)
 //{
 //	switch(elem->base_object_id()){
 //		case VERTEX: return; // no sub elems
@@ -124,8 +124,8 @@ void AdaptionSurfaceGridFunction<TDomain>::
 select_parents(MGSelector& sel, const GridMessage_Adaption& msg)
 {
 //	iterators
-	const GeometricObjectCollection& goc = msg.affected_elements();
-	typedef typename GeometricObjectCollection::traits<TBaseElem>::const_iterator const_iterator;
+	const GridObjectCollection& goc = msg.affected_elements();
+	typedef typename GridObjectCollection::traits<TBaseElem>::const_iterator const_iterator;
 
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 	{
@@ -143,7 +143,7 @@ select_parents(MGSelector& sel, const GridMessage_Adaption& msg)
 				continue;
 
 		//	get parent
-			GeometricObject* parent = sel.multi_grid()->get_parent(elem);
+			GridObject* parent = sel.multi_grid()->get_parent(elem);
 
 		//	check whether a parent exist and if it is of the same type as the
 		//	elements considered. Parents of a different type are handled in
@@ -188,7 +188,7 @@ template <typename TBaseElem>
 void AdaptionSurfaceGridFunction<TDomain>::
 do_restrict(const MGSelector& sel, const GridMessage_Adaption& msg)
 {
-	const GeometricBaseObject gbo = (GeometricBaseObject)TBaseElem::BASE_OBJECT_ID;
+	const GridBaseObjectId gbo = (GridBaseObjectId)TBaseElem::BASE_OBJECT_ID;
 
 //	extract and init prolongations working on the base element type
 	std::vector<SmartPtr<IElemRestriction<TDomain> > > vpRestrict;
@@ -311,7 +311,7 @@ ValueAccessor(AdaptionSurfaceGridFunction<TDomain>& rASGF,
 {
 	for(int g = 0; g < NUM_GEOMETRIC_BASE_OBJECTS; ++g)
 	{
-		const GeometricBaseObject gbo = (GeometricBaseObject)g;
+		const GridBaseObjectId gbo = (GridBaseObjectId)g;
 		m_HasDoFs[gbo] = (m_rASGF.m_spDDInfo->max_fct_dofs(fct, gbo) > 0);
 	}
 }
@@ -319,7 +319,7 @@ ValueAccessor(AdaptionSurfaceGridFunction<TDomain>& rASGF,
 template <typename TDomain>
 void
 AdaptionSurfaceGridFunction<TDomain>::ValueAccessor::
-access_inner(GeometricObject* elem)
+access_inner(GridObject* elem)
 {
 	UG_ASSERT(m_fct < m_rASGF.m_aaValue[elem].size(), "Only storage for "
 	          <<m_rASGF.m_aaValue[elem].size()<<" fcts, but fct-cmp "
@@ -385,7 +385,7 @@ access_closure(TBaseElem* elem)
 template <typename TDomain>
 void
 AdaptionSurfaceGridFunction<TDomain>::ValueAccessor::
-access_closure(GeometricObject* elem)
+access_closure(GridObject* elem)
 {
 	switch(elem->base_object_id()){
 		case VERTEX: access_closure(static_cast<VertexBase*>(elem)); return;

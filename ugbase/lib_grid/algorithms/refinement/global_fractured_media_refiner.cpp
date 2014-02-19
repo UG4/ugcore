@@ -188,7 +188,7 @@ perform_refinement()
 //	the old top level
 	int oldTopLevel = mg.num_levels() - 1;
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS,
-													mg.get_geometric_objects(oldTopLevel)));
+													mg.get_grid_objects(oldTopLevel)));
 
 	UG_DLOG(LIB_GRID, 1, "REFINER: reserving memory...");
 
@@ -462,7 +462,7 @@ perform_refinement()
 	}
 
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS,
-													mg.get_geometric_objects(oldTopLevel)));
+													mg.get_grid_objects(oldTopLevel)));
 
 	UG_DLOG(LIB_GRID, 1, "  refinement done.");
 }
@@ -583,7 +583,7 @@ assign_elem_and_side_marks()
 		else if(numMarked != 1){
 			UG_THROW("Unknown fracture topology encountered. "
 					<< numMarked << " sides marked, but only 1 should be marked."
-					" In element at " << GetGeometricObjectCenter(mg, e));
+					" In element at " << GetGridObjectCenter(mg, e));
 		}
 
 	//	iterate over neighbors which lie in the fracture. If exactly one
@@ -621,7 +621,7 @@ assign_elem_and_side_marks()
 		if(elemsFound == 0){
 			UG_THROW("Couldn't decide which inner edge to refine."
 					" Please check your fractures topology at "
-					<< GetGeometricObjectCenter(mg, e));
+					<< GetGridObjectCenter(mg, e));
 		}
 		else if(elemsFound == 1){
 		//	we found the side which we have to mark.
@@ -734,7 +734,7 @@ assign_elem_and_side_marks()
 
 		if((numMarked == 0) || (numMarked > 2)){
 			UG_THROW("Bad fracture topology encountered in element with center "
-					 << GetGeometricObjectCenter(mg, e) << "! Aborting.");
+					 << GetGridObjectCenter(mg, e) << "! Aborting.");
 		}
 
 		typename geometry_traits<Side>::GeneralDescriptor desc;
@@ -743,7 +743,7 @@ assign_elem_and_side_marks()
 			if(opSide){
 				if((numMarked == 2) && (!m_marker.is_marked(opSide))){
 					UG_THROW("Bad fracture topology encountered in element with center "
-							 << GetGeometricObjectCenter(mg, e) << "! Aborting.");
+							 << GetGridObjectCenter(mg, e) << "! Aborting.");
 				}
 				m_marker.mark(opSide);
 			}

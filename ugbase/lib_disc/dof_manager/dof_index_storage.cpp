@@ -59,7 +59,7 @@ void DoFIndexStorage::clear_attachments()
 	m_aaIndexVOL.invalidate();
 }
 
-size_t& DoFIndexStorage::obj_index(GeometricObject* obj)
+size_t& DoFIndexStorage::obj_index(GridObject* obj)
 {
 	switch(obj->base_object_id())
 	{
@@ -71,7 +71,7 @@ size_t& DoFIndexStorage::obj_index(GeometricObject* obj)
 	}
 }
 
-const size_t& DoFIndexStorage::obj_index(GeometricObject* obj) const
+const size_t& DoFIndexStorage::obj_index(GridObject* obj) const
 {
 	switch(obj->base_object_id())
 	{

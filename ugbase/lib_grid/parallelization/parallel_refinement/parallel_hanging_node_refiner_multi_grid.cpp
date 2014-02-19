@@ -246,21 +246,21 @@ class ComPol_AdjustType : public pcl::ICommunicationPolicy<TLayout>
 					case CT_TO_NORMAL:
 						if(elem->is_constraining() || elem->is_constrained()){
 //							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with normal element at "
-//									<< GetGeometricObjectCenter(mg, elem) << ".\n");
+//									<< GetGridObjectCenter(mg, elem) << ".\n");
 							ReplaceByNormal(mg, elem);
 						}
 						break;
 					case CT_TO_CONSTRAINING:
 						if(!elem->is_constraining()){
 //							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constraining element at "
-//									<< GetGeometricObjectCenter(mg, elem) << ".\n");
+//									<< GetGridObjectCenter(mg, elem) << ".\n");
 							ReplaceByConstraining(mg, elem);
 						}
 						break;
 					case CT_TO_CONSTRAINED:
 						if(!elem->is_constrained()){
 //							UG_DLOG(LIB_GRID, 2, "ParHNodeRef: replacing with constrained element at "
-//									<< GetGeometricObjectCenter(mg, elem) << ".\n");
+//									<< GetGridObjectCenter(mg, elem) << ".\n");
 							ReplaceByConstrained(mg, elem);
 						}
 						break;

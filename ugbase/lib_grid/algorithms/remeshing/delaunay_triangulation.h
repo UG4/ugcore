@@ -234,7 +234,7 @@ class DelaunayInfo : public GridObserver
 		}
 
 		virtual void vertex_created(Grid* grid, VertexBase* vrt,
-									GeometricObject* pParent,
+									GridObject* pParent,
 									bool replacesParent)
 		{
 			m_aaMarkedVRT[vrt] = 1;
@@ -249,7 +249,7 @@ class DelaunayInfo : public GridObserver
 		}
 
 		virtual void edge_created(Grid* grid, EdgeBase* e,
-									GeometricObject* pParent,
+									GridObject* pParent,
 									bool replacesParent)
 		{
 			m_aaMarkedEDGE[e] = 0;
@@ -263,7 +263,7 @@ class DelaunayInfo : public GridObserver
 		}
 
 		virtual void face_created(Grid* grid, Face* f,
-									GeometricObject* pParent,
+									GridObject* pParent,
 									bool replacesParent)
 		{
 		//	if the new face has a parent (it should always have one if a split

@@ -323,26 +323,26 @@ register_subset_elements_at_pipe()
 }*/
 
 
-GeometricObjectCollection
+GridObjectCollection
 GridSubsetHandler::
-get_geometric_objects_in_subset(int subsetIndex) const
+get_grid_objects_in_subset(int subsetIndex) const
 {
 //todo: replace with throw
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) && "invalid subset index!");
 
 	subset_required(subsetIndex);
-	return GeometricObjectCollection(&m_subsets[subsetIndex]->m_vertices,
+	return GridObjectCollection(&m_subsets[subsetIndex]->m_vertices,
 									 &m_subsets[subsetIndex]->m_edges,
 									 &m_subsets[subsetIndex]->m_faces,
 									 &m_subsets[subsetIndex]->m_volumes);
 }
 
-GeometricObjectCollection
+GridObjectCollection
 GridSubsetHandler::
-get_geometric_objects() const
+get_grid_objects() const
 {
 	uint numSubsets = num_subsets_in_list();
-	GeometricObjectCollection goc(numSubsets);
+	GridObjectCollection goc(numSubsets);
 	for(uint i = 0; i < numSubsets; ++i)
 	{
 		goc.add_level(	&m_subsets[i]->m_vertices,

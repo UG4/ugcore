@@ -214,7 +214,7 @@ void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
 };
 
 void ComputeOrientationOffsetLagrange(std::vector<size_t>& vOrientOffset,
-                                      GeometricObject* volume, GeometricObject* face, size_t nrFace,
+                                      GridObject* volume, GridObject* face, size_t nrFace,
                                       const size_t p)
 {
 	UG_THROW("Should never be called.")
@@ -276,7 +276,7 @@ void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
 }
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              GeometricObject* Elem, GeometricObject* SubElem, size_t nrSub,
+                              GridObject* Elem, GridObject* SubElem, size_t nrSub,
                               const LFEID& lfeid)
 {
 //	general case: no offset needed

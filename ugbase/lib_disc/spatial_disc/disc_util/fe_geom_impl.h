@@ -50,7 +50,7 @@ template <	typename TElem,	int TWorldDim,
 			typename TTrialSpace, typename TQuadratureRule>
 void
 FEGeometry<TElem,TWorldDim,TTrialSpace,TQuadratureRule>::
-update(GeometricObject* elem, const MathVector<worldDim>* vCorner,
+update(GridObject* elem, const MathVector<worldDim>* vCorner,
        const LFEID& lfeID, size_t orderQuad)
 {
 //	check

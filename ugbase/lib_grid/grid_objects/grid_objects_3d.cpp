@@ -4,7 +4,7 @@
 
 #include <vector>
 #include <algorithm>
-#include "geometric_objects.h"
+#include "grid_objects.h"
 #include "common/common.h"
 #include "tetrahedron_rules.h"
 #include "pyramid_rules.h"
@@ -321,13 +321,13 @@ bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 	return true;
 }
 
-std::pair<GeometricBaseObject, int> Tetrahedron::
+std::pair<GridBaseObjectId, int> Tetrahedron::
 get_opposing_object(VertexBase* vrt) const
 {
 	using namespace tet_rules;
 	for(int i = 0; i < tet_rules::NUM_VERTICES; ++i){
 		if(vrt == m_vertices[i]){
-			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
+			return make_pair(static_cast<GridBaseObjectId>(OPPOSED_OBJECT[i][0]),
 							 OPPOSED_OBJECT[i][1]);
 		}
 	}
@@ -511,13 +511,13 @@ bool Hexahedron::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
 	return true;
 }
 
-std::pair<GeometricBaseObject, int> Hexahedron::
+std::pair<GridBaseObjectId, int> Hexahedron::
 get_opposing_object(VertexBase* vrt) const
 {
 	using namespace hex_rules;
 	for(int i = 0; i < hex_rules::NUM_VERTICES; ++i){
 		if(vrt == m_vertices[i]){
-			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
+			return make_pair(static_cast<GridBaseObjectId>(OPPOSED_OBJECT[i][0]),
 							 OPPOSED_OBJECT[i][1]);
 		}
 	}
@@ -725,13 +725,13 @@ bool Prism::get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const
 	return true;
 }
 
-std::pair<GeometricBaseObject, int> Prism::
+std::pair<GridBaseObjectId, int> Prism::
 get_opposing_object(VertexBase* vrt) const
 {
 	using namespace prism_rules;
 	for(int i = 0; i < prism_rules::NUM_VERTICES; ++i){
 		if(vrt == m_vertices[i]){
-			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
+			return make_pair(static_cast<GridBaseObjectId>(OPPOSED_OBJECT[i][0]),
 							 OPPOSED_OBJECT[i][1]);
 		}
 	}
@@ -915,13 +915,13 @@ Face* Pyramid::create_face(int index)
 	}
 }
 
-std::pair<GeometricBaseObject, int> Pyramid::
+std::pair<GridBaseObjectId, int> Pyramid::
 get_opposing_object(VertexBase* vrt) const
 {
 	using namespace pyra_rules;
 	for(int i = 0; i < pyra_rules::NUM_VERTICES; ++i){
 		if(vrt == m_vertices[i]){
-			return make_pair(static_cast<GeometricBaseObject>(OPPOSED_OBJECT[i][0]),
+			return make_pair(static_cast<GridBaseObjectId>(OPPOSED_OBJECT[i][0]),
 							 OPPOSED_OBJECT[i][1]);
 		}
 	}

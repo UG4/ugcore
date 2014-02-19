@@ -4,7 +4,7 @@
 
 #include <vector>
 #include <algorithm>
-#include "geometric_objects_2d.h"
+#include "grid_objects_2d.h"
 //#include "../algorithms/geom_obj_util/geom_obj_util.h"
 
 using namespace std;
@@ -74,7 +74,7 @@ CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3)
 }
 
 template <class ConcreteTriangleType, class BaseClass>
-std::pair<GeometricBaseObject, int>
+std::pair<GridBaseObjectId, int>
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 get_opposing_object(VertexBase* vrt) const
 {
@@ -353,7 +353,7 @@ get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const
 }
 
 template <class ConcreteQuadrilateralType, class BaseClass>
-std::pair<GeometricBaseObject, int>
+std::pair<GridBaseObjectId, int>
 CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
 get_opposing_object(VertexBase* vrt) const
 {

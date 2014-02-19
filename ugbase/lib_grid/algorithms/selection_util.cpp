@@ -60,7 +60,7 @@ size_t CollectVerticesTouchingSelection(std::vector<VertexBase*>& vrtsOut,
 	grid.begin_marking();
 
 //	get the goc and iterate over all elements
-	GeometricObjectCollection goc = sel.get_geometric_objects();
+	GridObjectCollection goc = sel.get_grid_objects();
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 		for(VertexBaseIterator iter = goc.begin<VertexBase>(lvl);
 			iter != goc.end<VertexBase>(lvl); ++iter)
@@ -155,11 +155,11 @@ void InvertSelection(TSelector& sel)
 }
 
 //////////////////////////////////////////////////////////////////////////
-////	SelectAssociatedGeometricObjects
-//void SelectAssociatedGeometricObjects(Selector& sel, ISelector::status_t status)
+////	SelectAssociatedGridObjects
+//void SelectAssociatedGridObjects(Selector& sel, ISelector::status_t status)
 //{
 //	if(!sel.grid()){
-//		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
+//		UG_LOG("ERROR in SelectAssociatedGridObjects: Selector has to be assigned to a grid.\n");
 //		return;
 //	}
 //
@@ -189,12 +189,12 @@ void InvertSelection(TSelector& sel)
 
 
 ////////////////////////////////////////////////////////////////////////
-//	SelectAssociatedGeometricObjects
+//	SelectAssociatedGridObjects
 template <class TSelector>
-void SelectAssociatedGeometricObjects(TSelector& sel, ISelector::status_t status)
+void SelectAssociatedGridObjects(TSelector& sel, ISelector::status_t status)
 {
 	if(!sel.grid()){
-		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
+		UG_LOG("ERROR in SelectAssociatedGridObjects: Selector has to be assigned to a grid.\n");
 		return;
 	}
 	
@@ -224,9 +224,9 @@ void SelectAssociatedGeometricObjects(TSelector& sel, ISelector::status_t status
 	}
 }
 
-template void SelectAssociatedGeometricObjects<Selector>(Selector& sel,
+template void SelectAssociatedGridObjects<Selector>(Selector& sel,
 													ISelector::status_t status);
-template void SelectAssociatedGeometricObjects<MGSelector>(MGSelector& sel,
+template void SelectAssociatedGridObjects<MGSelector>(MGSelector& sel,
 													ISelector::status_t status);
 
 
@@ -241,7 +241,7 @@ static void SelectParents(MultiGrid& mg, MGSelector& msel,
 	while(iterBegin != iterEnd)
 	{
 	//	if the object has a parent, then select it.
-		GeometricObject* parent = mg.get_parent(*iterBegin);
+		GridObject* parent = mg.get_parent(*iterBegin);
 		if(parent)
 			msel.select(parent);
 
@@ -271,11 +271,11 @@ void ExtendSelection(TSelector& sel, size_t extSize, ISelector::status_t status)
 //	perform iteration
 	for(size_t extIters = 0; extIters < extSize; ++extIters)
 	{
-//TODO: speed-up by only calling SelectAssociatedGeometricObjects once before the loop.
+//TODO: speed-up by only calling SelectAssociatedGridObjects once before the loop.
 //		During the loop only newly selected elements should be checked for associated elements.
 
 	//	select associated elements
-		SelectAssociatedGeometricObjects(sel, status);
+		SelectAssociatedGridObjects(sel, status);
 
 	//	iterate over all selected vertices.
 		for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl){

@@ -460,8 +460,8 @@ template <class TElem>
 void SelectSubsetElements(ISelector& sel, ISubsetHandler& sh, int subsetIndex,
 						  ISelector::status_t status)
 {
-	typedef typename GeometricObjectCollection::traits<TElem>::iterator	TIter;
-	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(subsetIndex);
+	typedef typename GridObjectCollection::traits<TElem>::iterator	TIter;
+	GridObjectCollection goc = sh.get_grid_objects_in_subset(subsetIndex);
 
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 		for(TIter iter = goc.begin<TElem>(lvl); iter != goc.end<TElem>(lvl); ++iter)
@@ -517,7 +517,7 @@ void SelectLinkedElements(ISelector& sel,
 	queue<TElem*> qElems;
 	
 //	add all currently selected elements to the qElems queue
-	GeometricObjectCollection goc = sel.get_geometric_objects();
+	GridObjectCollection goc = sel.get_grid_objects();
 	for(size_t i = 0; i < goc.num_levels(); ++i){
 		for(ElemIter iter = goc.begin<TElem>(i); iter != goc.end<TElem>(i); ++iter)
 			qElems.push(*iter);
@@ -571,7 +571,7 @@ number FaceArea(ISelector& sel, TAAPosVRT& aaPos)
 	}
 
 	typedef Grid::traits<Face>::const_iterator FaceIter;
-	GeometricObjectCollection goc = sel.get_geometric_objects();
+	GridObjectCollection goc = sel.get_grid_objects();
 
 	for(size_t i = 0; i < goc.num_levels(); ++i)
 		for(FaceIter iter = goc.begin<Face>(i); iter != goc.end<Face>(i); ++iter)

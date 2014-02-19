@@ -354,7 +354,7 @@ class VRLUserLinker
 		void eval_and_deriv(TData vValue[],
 		                    const MathVector<dim> vGlobIP[],
 		                    number time, int si,
-		                    GeometricObject* elem,
+		                    GridObject* elem,
 		                    const MathVector<dim> vCornerCoords[],
 		                    const MathVector<refDim> vLocIP[],
 		                    const size_t nip,
@@ -440,7 +440,7 @@ class VRLUserLinker
 		inline void evaluate(TData vValue[],
 							 const MathVector<dim> vGlobIP[],
 							 number time, int si,
-							 GeometricObject* elem,
+							 GridObject* elem,
 							 const MathVector<dim> vCornerCoords[],
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
@@ -865,7 +865,7 @@ public:
 		return result;
 	}
 
-	virtual void compute(LocalVector* u, GeometricObject* elem,
+	virtual void compute(LocalVector* u, GridObject* elem,
 	                     const MathVector<dim> vCornerCoords[], bool computeDeriv = false)
 	{
 		// \todo: should remember flag

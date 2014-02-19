@@ -18,7 +18,7 @@
 
 template <typename TElem, int TWorldDim>
 void FV1IBGeometry<TElem, TWorldDim>::
-adapt_integration_points(GeometricObject* elem, const MathVector<TWorldDim>* vCornerCoords,
+adapt_integration_points(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
 					const ISubsetHandler* ish)
 {
 
@@ -36,7 +36,7 @@ adapt_integration_points(GeometricObject* elem, const MathVector<TWorldDim>* vCo
 
 template <typename TElem, int TWorldDim>
 void FV1IBGeometry<TElem, TWorldDim>::
-adapt_normals(GeometricObject* elem, const MathVector<TWorldDim>* vCornerCoords,
+adapt_normals(GridObject* elem, const MathVector<TWorldDim>* vCornerCoords,
 					const ISubsetHandler* ish)
 {
 	UG_LOG("ohooo!...\n");
@@ -548,7 +548,7 @@ update_local_data()
 /// update data for given element
 template <typename TElem, int TWorldDim>
 void FV1IBGeometry<TElem, TWorldDim>::
-update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_LOG("blubb....\n");
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
@@ -644,7 +644,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 
 template <typename TElem, int TWorldDim>
 void FV1IBGeometry<TElem, TWorldDim>::
-update_boundary_faces(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);

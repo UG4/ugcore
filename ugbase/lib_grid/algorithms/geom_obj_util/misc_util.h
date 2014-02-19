@@ -6,13 +6,13 @@
 #define __H__LIB_GRID__MISC_UTIL__
 
 #include "lib_grid/grid/grid.h"
-#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/common_attachments.h"
 
 namespace ug
 {
 /**
- * \brief contains miscellaneus methods that are related to GeometricObjects.
+ * \brief contains miscellaneus methods that are related to GridObjects.
  * 
  * \defgroup lib_grid_algorithms_geom_obj_misc misc geometric object util
  * \ingroup lib_grid_algorithms
@@ -29,13 +29,13 @@ GetSharedSide(Grid& grid, TElem* e1, TElem* e2);
 
 
 ////////////////////////////////////////////////////////////////////////
-//	CalculateGeometricObjectCenter
+//	CalculateGridObjectCenter
 ///	calculates the center for arbitrary geometric object
 template<class TAAPosVRT>
 UG_API
 inline
 typename TAAPosVRT::ValueType
-CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT);
+CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ template<class TAAPosVRT, class TAAWeightVRT>
 UG_API
 inline
 typename TAAPosVRT::ValueType
-CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT,
+CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT,
 								TAAWeightVRT& aaWeight);
 
 ////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ number ElementDiameterSq(Grid& grid,
 template <class TAAPos>
 number ElementDiameterSq(Grid& grid,
                          TAAPos& aaPos,
-					     GeometricObject* elem);
+					     GridObject* elem);
 
 ///	returns the maximal distance between to element vertices
 template <class TElem, class TAAPos>

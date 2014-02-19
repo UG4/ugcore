@@ -192,16 +192,16 @@ void PeriodicBoundaryManager::grid_to_be_destroyed(Grid* grid) {
 }
 
 void PeriodicBoundaryManager::vertex_created(Grid* grid, VertexBase* vrt,
-		GeometricObject* pParent, bool replacesParent) {
+		GridObject* pParent, bool replacesParent) {
 	handle_creation_cast_wrapper(vrt, pParent, replacesParent);
 }
 
-void PeriodicBoundaryManager::edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
+void PeriodicBoundaryManager::edge_created(Grid* grid, EdgeBase* e, GridObject* pParent,
 		bool replacesParent) {
 	handle_creation_cast_wrapper(e, pParent, replacesParent);
 }
 
-void PeriodicBoundaryManager::face_created(Grid* grid, Face* f, GeometricObject* pParent,
+void PeriodicBoundaryManager::face_created(Grid* grid, Face* f, GridObject* pParent,
 		bool replacesParent) {
 	handle_creation_cast_wrapper(f, pParent, replacesParent);
 }
@@ -229,8 +229,8 @@ void PeriodicBoundaryManager::face_to_be_erased(Grid* grid, Face* f,
  * 4.
  */
 bool PeriodicBoundaryManager::check_periodicity(
-		const GeometricObjectCollection& goc1,
-		const GeometricObjectCollection& goc2, ISubsetHandler* sh) {
+		const GridObjectCollection& goc1,
+		const GridObjectCollection& goc2, ISubsetHandler* sh) {
 
 	Group<VertexBase>::unique_pairs s_vert;
 	Group<EdgeBase>::unique_pairs s_edge;

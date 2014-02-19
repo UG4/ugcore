@@ -12,11 +12,11 @@
 #include "common/util/message_hub.h"
 #include "common/ug_config.h"
 #include "grid_constants.h"
-#include "geometric_base_objects.h"
+#include "grid_base_objects.h"
 #include "grid_observer.h"
-#include "geometric_object_collection.h"
+#include "grid_object_collection.h"
 #include "element_storage.h"
-#include "geometric_base_object_traits.h"
+#include "grid_base_object_traits.h"
 
 //	Define PROFILE_GRID to profile some often used gird-methods
 //#define PROFILE_GRID
@@ -45,7 +45,7 @@ class DistributedGridManager;
 class PeriodicBoundaryManager;
 
 /**
- * \brief Grid, MultiGrid and GeometricObjectCollection are contained in this group
+ * \brief Grid, MultiGrid and GridObjectCollection are contained in this group
  * \defgroup lib_grid_grid grid
  * \ingroup lib_grid
  * \{ */
@@ -58,7 +58,7 @@ class PeriodicBoundaryManager;
  * custom types, for example Vertices, Triangles or Tetrahedrons.
  * All elements have to be derived from either VertexBase, EdgeBase, Face or Volume
  * and have to specialize the template-class geometry_traits
- * (both defined in geometric_base_objects.h).
+ * (both defined in grid_base_objects.h).
  * The grid can automatically create information about connected geometric objects.
  * You could for example query a face for associated volumes.
  * Associated elements are however only stored, if the according options are set.
@@ -106,7 +106,7 @@ class UG_API Grid
 	///	The traits class holds some important types for each element-type
 		template <class TElem>
 		struct traits{
-			typedef typename TElem::geometric_base_object			base_object;
+			typedef typename TElem::grid_base_object			base_object;
 			typedef ug::ElementStorage<base_object>					ElementStorage;
 			typedef typename ElementStorage::AttachmentPipe			AttachmentPipe;
 			typedef typename ElementStorage::AttachedElementList	AttachedElementList;
@@ -153,7 +153,7 @@ class UG_API Grid
 
 	///	the generic attachment-accessor for access to grids attachment pipes.
 		template <class TElem, class TAttachment>
-		class AttachmentAccessor : public ug::AttachmentAccessor<typename TElem::geometric_base_object*,
+		class AttachmentAccessor : public ug::AttachmentAccessor<typename TElem::grid_base_object*,
 																 TAttachment,
 																 typename traits<TElem>::ElementStorage>
 		{
@@ -165,7 +165,7 @@ class UG_API Grid
 
 				inline bool access(Grid& grid, TAttachment& a)
 					{
-						return ug::AttachmentAccessor<typename TElem::geometric_base_object*,
+						return ug::AttachmentAccessor<typename TElem::grid_base_object*,
 													  TAttachment,
 													  typename traits<TElem>::ElementStorage>::
 							access(grid.get_attachment_pipe<TElem>(), a);
@@ -335,24 +335,24 @@ class UG_API Grid
 	//	element creation
 	///	create a custom element.
 	/**
-	 * TGeomObj has to be a geometric object type as described in geometric_base_objects.h.
-	 * You may optionally specify a GeometricObject pParent.
+	 * TGeomObj has to be a geometric object type as described in grid_base_objects.h.
+	 * You may optionally specify a GridObject pParent.
 	 * pParent may be used by observers to initialize the created object in a specific way.
 	 */
 		template<class TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
-		create(GeometricObject* pParent = NULL);
+		create(GridObject* pParent = NULL);
 
 	///	create a custom element from a descriptor.
 	/**
-	 * TGeomObj has to be a geometric object type as described in geometric_base_objects.h.
-	 * You may optionally specify a GeometricObject pParent.
+	 * TGeomObj has to be a geometric object type as described in grid_base_objects.h.
+	 * You may optionally specify a GridObject pParent.
 	 * pParent may be used by observers to initialize the created object in a specific way.
 	 */
 		template <class TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
 		create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
-				GeometricObject* pParent = NULL);
+				GridObject* pParent = NULL);
 
 	///	create a custom element and replaces an old one.
 	/**
@@ -371,19 +371,19 @@ class UG_API Grid
 	 */
 		template <class TGeomObj>
 		typename geometry_traits<TGeomObj>::iterator
-		create_and_replace(typename geometry_traits<TGeomObj>::geometric_base_object* pReplaceMe);
+		create_and_replace(typename geometry_traits<TGeomObj>::grid_base_object* pReplaceMe);
 
 	///	this method creates a new vertex, which has the same type as pCloneMe.
-		VertexBaseIterator create_by_cloning(VertexBase* pCloneMe, GeometricObject* pParent = NULL);
+		VertexBaseIterator create_by_cloning(VertexBase* pCloneMe, GridObject* pParent = NULL);
 
 	///	this method creates a new edge, which has the same type as pCloneMe.
-		EdgeBaseIterator create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GeometricObject* pParent = NULL);
+		EdgeBaseIterator create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GridObject* pParent = NULL);
 
 	///	this method creates a new face, which has the same type as pCloneMe.
-		FaceIterator create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GeometricObject* pParent = NULL);
+		FaceIterator create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GridObject* pParent = NULL);
 
 	///	this method creates a new volume, which has the same type as pCloneMe.
-		VolumeIterator create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GeometricObject* pParent = NULL);
+		VolumeIterator create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GridObject* pParent = NULL);
 
 	///	Reserves memory for the creation of the given object type
 	/**	Calls to this method are optional, but can improve runtime.
@@ -396,7 +396,7 @@ class UG_API Grid
 
 	////////////////////////////////////////////////
 	//	element deletion
-		void erase(GeometricObject* geomObj);
+		void erase(GridObject* geomObj);
 		void erase(VertexBase* vrt);
 		void erase(EdgeBase* edge);
 		void erase(Face* face);
@@ -461,8 +461,8 @@ class UG_API Grid
 
 	////////////////////////////////////////////////
 	//	geometric-object-collection
-	///	returns the the GeometricObjectCollection of the grid:
-		virtual GeometricObjectCollection get_geometric_objects();
+	///	returns the the GridObjectCollection of the grid:
+		virtual GridObjectCollection get_grid_objects();
 
 	////////////////////////////////////////////////
 	///	flips the orientation of an edge.
@@ -624,8 +624,8 @@ class UG_API Grid
 	///	returns the geometric object on the opposing side of the given vertex regarding the given element.
 	/**	\note Currently only implemented for Face and Volume.
 	 * \{ */
-		GeometricObject* get_opposing_object(VertexBase* vrt, Face* elem);
-		GeometricObject* get_opposing_object(VertexBase* vrt, Volume* elem);
+		GridObject* get_opposing_object(VertexBase* vrt, Face* elem);
+		GridObject* get_opposing_object(VertexBase* vrt, Volume* elem);
 	/** \} */
 
 
@@ -839,13 +839,13 @@ class UG_API Grid
 
 	////////////////////////////////////////////////
 	//	advanced element manipulation
-		inline void register_element(VertexBase* v, GeometricObject* pParent = NULL)	{register_vertex(v, pParent);}
+		inline void register_element(VertexBase* v, GridObject* pParent = NULL)	{register_vertex(v, pParent);}
 		inline void unregister_element(VertexBase* v)									{unregister_vertex(v);}
-		inline void register_element(EdgeBase* e, GeometricObject* pParent = NULL)		{register_edge(e, pParent);}
+		inline void register_element(EdgeBase* e, GridObject* pParent = NULL)		{register_edge(e, pParent);}
 		inline void unregister_element(EdgeBase* e)										{unregister_edge(e);}
-		inline void register_element(Face* f, GeometricObject* pParent = NULL)			{register_face(f, pParent);}
+		inline void register_element(Face* f, GridObject* pParent = NULL)			{register_face(f, pParent);}
 		inline void unregister_element(Face* f)											{unregister_face(f);}
-		inline void register_element(Volume* v, GeometricObject* pParent = NULL)		{register_volume(v, pParent);}
+		inline void register_element(Volume* v, GridObject* pParent = NULL)		{register_volume(v, pParent);}
 		inline void unregister_element(Volume* v)										{unregister_volume(v);}
 
 	///	registers the given element and replaces the old one. Calls pass_on_values.
@@ -871,7 +871,7 @@ class UG_API Grid
 	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
 	/**	Only pass objects that are contained by the grid.
 	 * \{ */
-		inline void mark(GeometricObject* obj);
+		inline void mark(GridObject* obj);
 		inline void mark(VertexBase* obj);
 		inline void mark(EdgeBase* obj);
 		inline void mark(Face* obj);
@@ -887,7 +887,7 @@ class UG_API Grid
 	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
 	/**	Only pass objects that are contained by the grid.
 	 * \{ */
-		inline void unmark(GeometricObject* obj);
+		inline void unmark(GridObject* obj);
 		inline void unmark(VertexBase* obj);
 		inline void unmark(EdgeBase* obj);
 		inline void unmark(Face* obj);
@@ -903,7 +903,7 @@ class UG_API Grid
 	///	returns true if the object is marked, false if not.
 	/**	Only pass objects that are contained by the grid.
 	 * \{ */
-		inline bool is_marked(GeometricObject* obj);
+		inline bool is_marked(GridObject* obj);
 		inline bool is_marked(VertexBase* obj);
 		inline bool is_marked(EdgeBase* obj);
 		inline bool is_marked(Face* obj);
@@ -943,7 +943,7 @@ class UG_API Grid
 		template <class TElem> inline
 		typename traits<TElem>::ElementStorage&
 		element_storage()
-		{return ElementStorageSelector<typename geometry_traits<TElem>::geometric_base_object>::
+		{return ElementStorageSelector<typename geometry_traits<TElem>::grid_base_object>::
 				element_storage(m_vertexElementStorage, m_edgeElementStorage,
 								m_faceElementStorage, m_volumeElementStorage);
 		}
@@ -952,7 +952,7 @@ class UG_API Grid
 		template <class TElem> inline
 		const typename traits<TElem>::ElementStorage&
 		element_storage() const
-		{return ElementStorageSelector<typename geometry_traits<TElem>::geometric_base_object>::
+		{return ElementStorageSelector<typename geometry_traits<TElem>::grid_base_object>::
 				element_storage(m_vertexElementStorage, m_edgeElementStorage,
 								m_faceElementStorage, m_volumeElementStorage);
 		}
@@ -967,15 +967,15 @@ class UG_API Grid
 	 *	If sombody creates 2^32 elements, the uniquness can no longer be guaranteed.*/
 		inline void assign_hash_value(VertexBase* vrt)	{vrt->m_hashValue = m_hashCounter++;}
 
-		void register_vertex(VertexBase* v, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
+		void register_vertex(VertexBase* v, GridObject* pParent = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_vertex(VertexBase* v);
-		void register_edge(EdgeBase* e, GeometricObject* pParent = NULL,
+		void register_edge(EdgeBase* e, GridObject* pParent = NULL,
 						Face* createdByFace = NULL, Volume* createdByVol = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_edge(EdgeBase* e);
-		void register_face(Face* f, GeometricObject* pParent = NULL,
+		void register_face(Face* f, GridObject* pParent = NULL,
 						   Volume* createdByVol = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_face(Face* f);
-		void register_volume(Volume* v, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
+		void register_volume(Volume* v, GridObject* pParent = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_volume(Volume* v);
 
 		void change_options(uint optsNew);
@@ -1038,10 +1038,10 @@ class UG_API Grid
 		void get_associated(SecureVolumeContainer& vols, Face* f);
 
 		template <class TContainer>
-		void get_associated(TContainer& container, GeometricObject* o);
+		void get_associated(TContainer& container, GridObject* o);
 
 		template <class TElem>
-		void get_associated(typename traits<typename TElem::geometric_base_object>
+		void get_associated(typename traits<typename TElem::grid_base_object>
 							::secure_container& elems, TElem* e);
 		
 	/**	this method does not use possibly attached containers and can thus
@@ -1065,7 +1065,7 @@ class UG_API Grid
 		void get_associated_sorted(SecureVolumeContainer& vols, Face* f);
 
 		template <class TElem>
-		void get_associated_sorted(typename traits<typename TElem::geometric_base_object>
+		void get_associated_sorted(typename traits<typename TElem::grid_base_object>
 								   ::secure_container& elems, TElem* e);
 
 

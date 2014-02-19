@@ -65,7 +65,7 @@ ref_marks_changed(IRefiner& ref,
 				continue;
 
 		//	make sure that all parents are marked
-			GeometricObject* co = hv->get_constraining_object();
+			GridObject* co = hv->get_constraining_object();
 			if(co){
 				if(EdgeBase* e = dynamic_cast<EdgeBase*>(co)){
 					ref.mark(e);
@@ -112,7 +112,7 @@ ref_marks_changed(IRefiner& ref,
 				UG_ASSERT(grid.is_parallel(),
 						  "Constrained edge doesn't have a constraining edge. In "
 						  "a serial environment this should always be the case!"
-						  << " At: " << GetGeometricObjectCenter(grid, e));
+						  << " At: " << GetGridObjectCenter(grid, e));
 			}
 		}
 		else if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>(e))
@@ -167,7 +167,7 @@ ref_marks_changed(IRefiner& ref,
 				UG_ASSERT(grid.is_parallel(),
 						  "Constrained face doesn't have a constraining face. In "
 						  "a serial environment this should always be the case!"
-						  << " At: " << GetGeometricObjectCenter(grid, f));
+						  << " At: " << GetGridObjectCenter(grid, f));
 			}
 		}
 		else if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>(f)){

@@ -2,11 +2,11 @@
 // s.b.reiter@googlemail.com
 // 22.12.2011 (m,d,y)
 
-#ifndef __H__UG__geometric_base_object_traits__
-#define __H__UG__geometric_base_object_traits__
+#ifndef __H__UG__grid_base_object_traits__
+#define __H__UG__grid_base_object_traits__
 
 #include "element_storage.h"
-#include "generic_geometric_object_iterator.h"
+#include "generic_grid_object_iterator.h"
 
 namespace ug
 {
@@ -20,7 +20,7 @@ namespace ug
  *
  * MANDATORY:
  * Types:
- * - geometric_base_object:		the geometric object from which TElem derives.
+ * - grid_base_object:		the geometric object from which TElem derives.
  * 					has to be either VertexBase, EdgeBase, Face or Volume.
  * - iterator:		An iterator that iterates over ElementContainer<BaseClass>
  * 					and which has a constructor that takes
@@ -29,7 +29,7 @@ namespace ug
  *
  * constants:
  * - CONTAINER_SECTION: This constant should hold the pipes section in which your objects should be placed after creation, starting from 0. See the Grid-documentation for more information.
- * - BASE_OBJECT_ID: Has to hold one of the GeometricBaseObject constants, or -1.
+ * - BASE_OBJECT_ID: Has to hold one of the GridBaseObjectId constants, or -1.
  *
  * OPTIONAL:
  * Types:
@@ -58,7 +58,7 @@ typedef ElementStorage<Volume>::SectionContainer::const_iterator		ConstVolumeIte
 
 ////////////////////////////////////////////////////////////////////////////////
 template <>
-class geometry_traits<GeometricObject>
+class geometry_traits<GridObject>
 {
 	public:
 
@@ -76,7 +76,7 @@ class geometry_traits<VertexBase>
 		typedef VertexBaseIterator		iterator;
 		typedef ConstVertexBaseIterator	const_iterator;
 
-		typedef VertexBase	geometric_base_object;
+		typedef VertexBase	grid_base_object;
 
 		enum
 		{
@@ -93,7 +93,7 @@ class geometry_traits<EdgeBase>
 		typedef EdgeBaseIterator		iterator;
 		typedef ConstEdgeBaseIterator	const_iterator;
 
-		typedef EdgeBase	geometric_base_object;
+		typedef EdgeBase	grid_base_object;
 		typedef EdgeDescriptor GeneralDescriptor;
 
 		enum
@@ -111,7 +111,7 @@ class geometry_traits<Face>
 		typedef FaceIterator		iterator;
 		typedef ConstFaceIterator	const_iterator;
 
-		typedef Face	geometric_base_object;
+		typedef Face	grid_base_object;
 		typedef FaceDescriptor GeneralDescriptor;
 
 		enum
@@ -129,7 +129,7 @@ class geometry_traits<Volume>
 		typedef VolumeIterator			iterator;
 		typedef ConstVolumeIterator		const_iterator;
 
-		typedef Volume		geometric_base_object;
+		typedef Volume		grid_base_object;
 		typedef VolumeDescriptor GeneralDescriptor;
 
 		enum

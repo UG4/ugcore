@@ -201,7 +201,7 @@ typename Grid::traits<TElem>::SectionContainer&
 Selector::
 section_container()
 {
-	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TElem>::grid_base_object>::
 			section_container(m_vertices, m_edges, m_faces, m_volumes);
 }
 
@@ -211,7 +211,7 @@ const typename Grid::traits<TElem>::SectionContainer&
 Selector::
 section_container() const
 {
-	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TElem>::grid_base_object>::
 			section_container(m_vertices, m_edges, m_faces, m_volumes);
 }
 

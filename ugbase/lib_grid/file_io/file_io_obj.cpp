@@ -318,8 +318,8 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 					out << "usemtl (null)" << endl;
 
 			//	get the goc
-				GeometricObjectCollection goc = pSubsetHandler->
-						get_geometric_objects_in_subset(i);
+				GridObjectCollection goc = pSubsetHandler->
+						get_grid_objects_in_subset(i);
 
 				for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 				//	write the edges of this subset

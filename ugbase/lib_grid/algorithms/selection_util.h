@@ -182,14 +182,14 @@ void SelectAssociatedVolumes(TSelector& sel, TElemIterator elemsBegin,
 //////////////////////////////////////////////////////////////////////////
 /////	selects associated geometric objects of selected ones.
 //UG_API
-//void SelectAssociatedGeometricObjects(Selector& sel,
+//void SelectAssociatedGridObjects(Selector& sel,
 //							  ISelector::status_t status = ISelector::SELECTED);
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects associated geometric objects of selected ones on each level.
 template <class TSelector>
 UG_API
-void SelectAssociatedGeometricObjects(TSelector& sel,
+void SelectAssociatedGridObjects(TSelector& sel,
 							  ISelector::status_t status = ISelector::SELECTED);
 
 

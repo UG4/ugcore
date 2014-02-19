@@ -27,7 +27,7 @@ class DoFIndexStorage : public DoFDistributionInfoProvider
 
 		///	returns first algebra index of a geometric object
 		/// \{
-			   size_t& obj_index(GeometricObject* obj);
+			   size_t& obj_index(GridObject* obj);
 		inline size_t& obj_index(VertexBase* vrt) 	{return m_aaIndexVRT[vrt];}
 		inline size_t& obj_index(EdgeBase* ed) 		{return m_aaIndexEDGE[ed];}
 		inline size_t& obj_index(Face* face)     	{return m_aaIndexFACE[face];}
@@ -36,7 +36,7 @@ class DoFIndexStorage : public DoFDistributionInfoProvider
 
 		///	const access to first algebra index of a geometric object
 		/// \{
-			   const size_t& obj_index(GeometricObject* obj) const;
+			   const size_t& obj_index(GridObject* obj) const;
 		inline const size_t& obj_index(VertexBase* vrt) const {return m_aaIndexVRT[vrt];}
 		inline const size_t& obj_index(EdgeBase* ed)    const {return m_aaIndexEDGE[ed];}
 		inline const size_t& obj_index(Face* face)      const {return m_aaIndexFACE[face];}

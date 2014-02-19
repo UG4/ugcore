@@ -16,7 +16,7 @@ using namespace std;
 
 namespace ug{
 
-void PrintElementNumbers(const GeometricObjectCollection& goc)
+void PrintElementNumbers(const GridObjectCollection& goc)
 {
 	UG_LOG("grid element numbers:\n");
 	for(size_t i = 0; i < goc.num_levels(); ++i)
@@ -62,17 +62,17 @@ void PrintElementNumbers(const GeometricObjectCollection& goc)
 
 void PrintGridElementNumbers(Grid& grid)
 {
-	PrintElementNumbers(grid.get_geometric_objects());
+	PrintElementNumbers(grid.get_grid_objects());
 }
 
 void PrintGridElementNumbers(MultiGrid& mg)
 {
-	PrintElementNumbers(mg.get_geometric_objects());
+	PrintElementNumbers(mg.get_grid_objects());
 }
 
 void PrintGridElementNumbers(GridSubsetHandler& sh)
 {
-	PrintElementNumbers(sh.get_geometric_objects());
+	PrintElementNumbers(sh.get_grid_objects());
 }
 
 template <class TGeomObj>
@@ -161,7 +161,7 @@ static void CheckMultiGridConsistencyImpl(MultiGrid& mg)
 
 		//	also make sure that each element with a parent is contained in the
 		//	children list of its parent
-			GeometricObject* parent = mg.get_parent(e);
+			GridObject* parent = mg.get_parent(e);
 			if(parent){
 				bool gotIt = false;
 				for(size_t i = 0; i < mg.num_children<TElem>(parent); ++i){
@@ -205,7 +205,7 @@ void CheckMultiGridConsistency(MultiGrid& mg)
 //	and is highly specialized for them.
 #define FAILED_CHECK(elem, msg)\
 	{UG_ERR_LOG("CheckHangingNodeConsistency: " << msg << endl);\
-	 UG_ERR_LOG("  at: " << GetGeometricObjectCenter(g, elem));\
+	 UG_ERR_LOG("  at: " << GetGridObjectCenter(g, elem));\
 	 if(MultiGrid* mg = dynamic_cast<MultiGrid*>(&g))\
 		{UG_ERR_LOG(" on level " << mg->get_level(elem));}\
 	 UG_ERR_LOG(endl);\
@@ -223,7 +223,7 @@ bool CheckHangingNodeConsistency(Grid& g)
 		iter != g.end<ConstrainedVertex>(); ++iter)
 	{
 		ConstrainedVertex* hnode = *iter;
-		GeometricObject* constrObj = hnode->get_constraining_object();
+		GridObject* constrObj = hnode->get_constraining_object();
 		if(!constrObj){
 			FAILED_CHECK(hnode, "Hanging Vertex has no constraining object!");
 		}
@@ -251,7 +251,7 @@ bool CheckHangingNodeConsistency(Grid& g)
 		iter != g.end<ConstrainedEdge>(); ++iter)
 	{
 		ConstrainedEdge* e = *iter;
-		GeometricObject* parent = e->get_constraining_object();
+		GridObject* parent = e->get_constraining_object();
 
 		if(!parent){
 			FAILED_CHECK(e, "Constrained Edge has no parent!");
@@ -328,8 +328,8 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 		iter != g.end<ConstrainedVertex>(); ++iter)
 	{
 		ConstrainedVertex* hnode = *iter;
-		GeometricObject* co = hnode->get_constraining_object();
-		GeometricObject* parent = mg.get_parent(hnode);
+		GridObject* co = hnode->get_constraining_object();
+		GridObject* parent = mg.get_parent(hnode);
 
 		if(co != parent){
 			FAILED_CHECK(hnode, "Hanging Vertex: Constraining object and parent do not match!");
@@ -356,7 +356,7 @@ bool CheckHangingNodeConsistency(MultiGrid& mg)
 		for(size_t i = 0; i < 2; ++i){
 			if(mg.get_level(e) != mg.get_level(e->vertex(i))){
 				FAILED_CHECK(e, "Edge-Vertex is not on the same level as the edge itself!");
-				UG_ERR_LOG("  Vertex at " << GetGeometricObjectCenter(mg, e->vertex(i))
+				UG_ERR_LOG("  Vertex at " << GetGridObjectCenter(mg, e->vertex(i))
 							<< " on level " << mg.get_level(e->vertex(i)) << endl);
 			}
 		}
@@ -589,7 +589,7 @@ static bool CheckDistributedObjectConstraintTypes(MultiGrid& mg)
 
 		if(state != aaState[e]){
 			UG_LOG("ERROR: Distributed object has different constraint states on different procs. "
-					<< "At: " << GetGeometricObjectCenter(mg, e)
+					<< "At: " << GetGridObjectCenter(mg, e)
 					<< " on level " << mg.get_level(e) << endl);
 			retVal = false;
 		}
@@ -669,23 +669,23 @@ class ComPol_CheckDistributedParentStates : public pcl::ICommunicationPolicy<TLa
 				Deserialize(buff, parentType);
 
 				if(m_performMasterCheck){
-					GeometricObject* parent = m_mg.get_parent(elem);
+					GridObject* parent = m_mg.get_parent(elem);
 					if(parent && (parentType != parent->base_object_id())){
 						UG_LOG("  PARENT-TYPE MISMATCH AT CHILD ELEMENT WITH OBJECT ID " << elem->base_object_id()
-								<< " at " << GetGeometricObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
+								<< " at " << GetGridObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
 						UG_LOG("    Parent object id: " << parent->base_object_id() << ", received id: " << parentType << "\n");
 						m_comparisionFailed = true;
 					}
 					else if((!parent) && (parentType != -1)){
 						UG_LOG("  PARENT-TYPE MISMATCH AT CHILD ELEMENT WITH OBJECT ID " << elem->base_object_id()
-								<< " at " << GetGeometricObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
+								<< " at " << GetGridObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
 						UG_LOG("  The element hasn't got a parent but received parent id is != -1. Received id: " << parentType << "\n");
 						m_comparisionFailed = true;
 					}
 				}
 				else if(parentType != m_mg.parent_type(elem)){
 					UG_LOG("  PARENT-TYPE MISMATCH AT ELEMENT WITH OBJECT ID " << elem->base_object_id()
-							<< " at " << GetGeometricObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
+							<< " at " << GetGridObjectCenter(m_mg, elem) << " on level " << m_mg.get_level(elem) << "\n");
 					UG_LOG("    Parent object id: " <<  (int)m_mg.parent_type(elem) << ", received id: " << parentType << "\n");
 					m_comparisionFailed = true;
 				}
@@ -731,11 +731,11 @@ bool CheckLocalParentTypes(MultiGrid& mg)
 	typedef typename MultiGrid::traits<TElem>::iterator iter_t;
 	for(iter_t iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter){
 		TElem* e = *iter;
-		GeometricObject* parent = mg.get_parent(e);
+		GridObject* parent = mg.get_parent(e);
 		if(parent){
 			if(mg.parent_type(e) != parent->base_object_id()){
 				UG_LOG("  LOCAL PARENT-TYPE MISMATCH AT ELEMENT WITH OBJECT ID " << e->base_object_id()
-						<< " at " << GetGeometricObjectCenter(mg, e) << " on level " << mg.get_level(e) << "\n");
+						<< " at " << GetGridObjectCenter(mg, e) << " on level " << mg.get_level(e) << "\n");
 				UG_LOG("    Stored parent id: " <<  (int)mg.parent_type(e) << ", actual parent id: " << parent->base_object_id() << "\n");
 				success = false;
 			}
@@ -786,7 +786,7 @@ bool CheckDistributedParentTypes(MultiGrid& mg)
 bool CheckElementConsistency(MultiGrid& mg, VertexBase* v)
 {
 	bool success = true;
-	UG_LOG("DEBUG: Checking vertex at " << GetGeometricObjectCenter(mg, v) << endl);
+	UG_LOG("DEBUG: Checking vertex at " << GetGridObjectCenter(mg, v) << endl);
 	UG_LOG("  vertex type:");
 	if(v->is_constrained()){
 		UG_LOG(" constrained");
@@ -812,7 +812,7 @@ bool CheckElementConsistency(MultiGrid& mg, VertexBase* v)
 bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e)
 {
 	bool success = true;
-	UG_LOG("DEBUG: Checking edge at " << GetGeometricObjectCenter(mg, e) << endl);
+	UG_LOG("DEBUG: Checking edge at " << GetGridObjectCenter(mg, e) << endl);
 	UG_LOG("  edge type:");
 	if(e->is_constrained()){
 		UG_LOG(" constrained");
@@ -871,7 +871,7 @@ bool CheckElementConsistency(MultiGrid& mg, EdgeBase* e)
 bool CheckElementConsistency(MultiGrid& mg, Face* f)
 {
 	bool success = true;
-	UG_LOG("DEBUG: Checking face at " << GetGeometricObjectCenter(mg, f) << endl);
+	UG_LOG("DEBUG: Checking face at " << GetGridObjectCenter(mg, f) << endl);
 
 	UG_LOG("  face type:");
 	if(f->is_constrained()){

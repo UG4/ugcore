@@ -71,7 +71,7 @@ class AdaptiveRegularRefiner_MultiGrid : public HangingNodeRefiner_MultiGrid
 	 * added to the container.
 	 * Note that a parent may be added multiple times to the parents container.*/
 		template <class TElem>
-		void get_parents_of_marked_closure_elements(std::vector<GeometricObject*>& parents,
+		void get_parents_of_marked_closure_elements(std::vector<GridObject*>& parents,
 									   	   	   	    Selector::status_t mark);
 
 	///	removes all closure elements, calls the base implementation and creates a new closure

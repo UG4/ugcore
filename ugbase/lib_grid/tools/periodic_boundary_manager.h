@@ -10,7 +10,7 @@
 
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/multi_grid.h"
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 
 #include <set>
 
@@ -136,15 +136,15 @@ public:
 	/// grid observation methods
 	virtual void grid_to_be_destroyed(Grid* grid);
 	virtual void vertex_created(Grid* grid, VertexBase* vrt,
-										GeometricObject* pParent = NULL,
+										GridObject* pParent = NULL,
 										bool replacesParent = false);
 
 	virtual void edge_created(Grid* grid, EdgeBase* e,
-								GeometricObject* pParent = NULL,
+								GridObject* pParent = NULL,
 								bool replacesParent = false);
 
 	virtual void face_created(Grid* grid, Face* f,
-								GeometricObject* pParent = NULL,
+								GridObject* pParent = NULL,
 								bool replacesParent = false);
 
 	virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
@@ -157,8 +157,8 @@ public:
 									 Face* replacedBy = NULL);
 
 	/// checks that all elements of given gocs are periodic (called after identification)
-	bool check_periodicity(const GeometricObjectCollection& goc1,
-							  const GeometricObjectCollection& goc2,
+	bool check_periodicity(const GridObjectCollection& goc1,
+							  const GridObjectCollection& goc2,
 							  ISubsetHandler* sh = NULL);
 
 	/**
@@ -238,7 +238,7 @@ protected:
 
 	/// casts parent pointer to exact type before calling handle_creation
 	template <class TElem>
-	void handle_creation_cast_wrapper(TElem* e, GeometricObject* parent, bool replacesParent);
+	void handle_creation_cast_wrapper(TElem* e, GridObject* parent, bool replacesParent);
 
 	template <class TElem, class TIterator>
 	void check_elements_periodicity(

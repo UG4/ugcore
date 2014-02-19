@@ -6,10 +6,10 @@
 #define __H__LIB_GRID__GEOMETRIC_OBJECT_COLLECTION__
 
 #include <list>
-#include "geometric_base_objects.h"
+#include "grid_base_objects.h"
 #include "common/util/section_container.h"
 #include "element_storage.h"
-#include "geometric_base_object_traits.h"
+#include "grid_base_object_traits.h"
 
 namespace ug
 {
@@ -18,7 +18,7 @@ namespace ug
 /// @{
 
 ////////////////////////////////////////////////////////////////////////
-//	GeometricObjectCollection
+//	GridObjectCollection
 ///	a helper class that holds a collection of possibly unconnected geometric-objects.
 /**
  * This class is a simple helper class..
@@ -26,35 +26,35 @@ namespace ug
  * to a function while maintaining the possibility to iterate over different
  * sub-types of geometric-objects seperatly.
  *
- * In contrary to \sa GeometricObjectCollection, the
- * GeometricObjectCollection allows access to the elements through
+ * In contrary to \sa GridObjectCollection, the
+ * GridObjectCollection allows access to the elements through
  * different levels.
  *
- * Please note that a GeometricObjectCollection is only valid as long as
+ * Please note that a GridObjectCollection is only valid as long as
  * the object from which you received the collection still exists.
  *
- * A GeometricObjectCollection can only be queried for iterators and 
+ * A GridObjectCollection can only be queried for iterators and 
  * element-counts. You may not insert new elements or remove
  * old ones (at least not directly).
  *
- * Classes that you can query for their GeometricObjectCollection
+ * Classes that you can query for their GridObjectCollection
  * are for example ug::Grid, ug::MultiGrid, ug::SubsetHandler,
  * ug::MGSubsetHandler, ug::Selector, ug::MGSelector.
  *
- * As long as the object that provides the GeometricObjectCollection
- * is still valid, the GeometricObjectCollection will always hold the current
+ * As long as the object that provides the GridObjectCollection
+ * is still valid, the GridObjectCollection will always hold the current
  * geometric objects of the source-object (i.e. a grid, a selector or a subset-handler),
  * as long as new objects are inserted into existing subsets (SubsetHandler) or
  * existing levels (MultiGrid). Insertion or removal of subsets or levels is
  * not reflected by the goc and can lead to severe errors.
  * Make sure to retrieve a new goc if such changes happened.
  *
- * Please note that a GeometricObjectCollection does not necessarily represent
+ * Please note that a GridObjectCollection does not necessarily represent
  * a topological closed part of a grid.
  * A Collection can for example hold faces without their
  * associated vertices.
  *
- * How to use GeometricObjectCollection:
+ * How to use GridObjectCollection:
  * Once you retrieved an instance (let's call it goc) you can query it for
  * iterators like this:
  * VertexBaseIterator iter = goc.vertices_begin(0);
@@ -64,7 +64,7 @@ namespace ug
  * if you want to get the number of hexahedrons in level 0 you would go like this:
  * uint numHexas = goc.num<Hexahedron>(0);
  */
-class UG_API GeometricObjectCollection
+class UG_API GridObjectCollection
 {
 	public:
 	///	The traits class holds some important types for each element-type
@@ -77,18 +77,18 @@ class UG_API GeometricObjectCollection
 	///	initializes the instance with an estimate of the number of levels.
 	/**	The estimate does not have to match exactly. However, if it does
 	 *  it makes things faster.*/
-		GeometricObjectCollection(size_t levelEstimate = 1);
+		GridObjectCollection(size_t levelEstimate = 1);
 		
 	///	initializes level 0 with the given sections.
-		GeometricObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+		GridObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
 								ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 								ElementStorage<Face>::SectionContainer* faceCon,
 								ElementStorage<Volume>::SectionContainer* volCon);
 
 	//	copy constructor.
-		GeometricObjectCollection(const GeometricObjectCollection& mgoc);
+		GridObjectCollection(const GridObjectCollection& mgoc);
 		
-		GeometricObjectCollection& operator =(const GeometricObjectCollection& mgoc);
+		GridObjectCollection& operator =(const GridObjectCollection& mgoc);
 		
 	///	only used during creation by the methods that create the collection
 		void add_level(ElementStorage<VertexBase>::SectionContainer* vrtCon,
@@ -166,14 +166,14 @@ class UG_API GeometricObjectCollection
 		inline size_t num_volumes(size_t level) const	{return num<Volume>(level);}
 		
 	protected:
-		void assign(const GeometricObjectCollection& goc);
+		void assign(const GridObjectCollection& goc);
 
 		template <class TGeomObj> inline
-		const typename ElementStorage<typename geometry_traits<TGeomObj>::geometric_base_object>::
+		const typename ElementStorage<typename geometry_traits<TGeomObj>::grid_base_object>::
 		SectionContainer* get_container(size_t level) const;
 		
 		template <class TGeomObj> inline
-		typename ElementStorage<typename geometry_traits<TGeomObj>::geometric_base_object>::
+		typename ElementStorage<typename geometry_traits<TGeomObj>::grid_base_object>::
 		SectionContainer* get_container(size_t level);
 				
 	protected:
@@ -191,7 +191,7 @@ class UG_API GeometricObjectCollection
 		};
 		
 		typedef std::vector<ContainerCollection> ContainerVec;
-		//typedef std::vector<GeometricObjectCollection> GOCVec;
+		//typedef std::vector<GridObjectCollection> GOCVec;
 
 	protected:
 		ContainerVec	m_levels;
@@ -202,6 +202,6 @@ class UG_API GeometricObjectCollection
 
 ////////////////////////////////////////////////
 //	include implementation
-#include "geometric_object_collection_impl.hpp"
+#include "grid_object_collection_impl.hpp"
 
 #endif

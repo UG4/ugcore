@@ -71,7 +71,7 @@ class DistInfoSupplier{
 		vector<TargetProcInfo>& get(EdgeBase* edge)		{return m_aaDistInfoEDGE[edge];}
 		vector<TargetProcInfo>& get(Face* face)			{return m_aaDistInfoFACE[face];}
 		vector<TargetProcInfo>& get(Volume* vol)		{return m_aaDistInfoVOL[vol];}
-		vector<TargetProcInfo>& get(GeometricObject* obj)
+		vector<TargetProcInfo>& get(GridObject* obj)
 		{
 			int objType = obj->base_object_id();
 			switch(objType){
@@ -398,7 +398,7 @@ static void WriteDistInfosToTextFile(MultiGrid& mg, DistInfoSupplier& infoSuppli
 			TElem* e = *iter;
 
 			table(row, 0) << lvl;
-			table(row, 1) << GetGeometricObjectCenter(mg, e);
+			table(row, 1) << GetGridObjectCenter(mg, e);
 
 			vector<TargetProcInfo>& infos = infoSupplier.get(e);
 
@@ -427,7 +427,7 @@ template <class TElem>
 static string LocateElement(MultiGrid& mg, TElem* e)
 {
 	stringstream ssLocator;
-	ssLocator << "at " << GetGeometricObjectCenter(mg, e)
+	ssLocator << "at " << GetGridObjectCenter(mg, e)
 			  << " on level " << mg.get_level(e);
 	return ssLocator.str();
 }
@@ -716,7 +716,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //				iter != msel.end<TElem>(lvl); ++iter)
 //			{
 //				ConstrainedFace* e = *iter;
-//				if(GeometricObject* cg = e->get_constraining_object()){
+//				if(GridObject* cg = e->get_constraining_object()){
 //				//	we won't select pure v-masters!
 ////					if(msel.get_selection_status(cg) == IS_VMASTER)
 ////						continue;
@@ -743,7 +743,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //				iter != msel.end<TElem>(lvl); ++iter)
 //			{
 //				ConstrainedFace* e = *iter;
-//				if(GeometricObject* cg = e->get_constraining_object()){
+//				if(GridObject* cg = e->get_constraining_object()){
 //				//	we won't select pure v-masters!
 ////					if(msel.get_selection_status(cg) == IS_VMASTER)
 ////						continue;
@@ -770,7 +770,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //				iter != msel.end<TElem>(lvl); ++iter)
 //			{
 //				ConstrainedEdge* e = *iter;
-//				if(GeometricObject* cg = e->get_constraining_object()){
+//				if(GridObject* cg = e->get_constraining_object()){
 //				//	we won't select pure v-masters!
 ////					if(msel.get_selection_status(cg) == IS_VMASTER)
 ////						continue;
@@ -801,7 +801,7 @@ static void SelectAssociatedConstrainedElements(MGSelector& msel,
 //				iter != msel.end<TElem>(lvl); ++iter)
 //			{
 //				ConstrainedVertex* e = *iter;
-//				if(GeometricObject* cg = e->get_constraining_object()){
+//				if(GridObject* cg = e->get_constraining_object()){
 //				//	we won't select pure v-masters!
 ////					if(msel.get_selection_status(cg) == IS_VMASTER)
 ////						continue;
@@ -914,7 +914,7 @@ static void AssignVerticalMasterAndSlaveStates(MGSelector& msel, bool partitionF
 
 		//	assign vertical master states first
 			size_t numChildren = mg.num_children<TElem>(e);
-			GeometricObject* parent = mg.get_parent(e);
+			GridObject* parent = mg.get_parent(e);
 			bool parentIsSelected = false;
 			if(parent)
 				parentIsSelected = msel.is_selected(parent);
@@ -1773,16 +1773,16 @@ bool DistributeGrid(MultiGrid& mg,
 										 localPartition, createVerticalInterfaces);
 			//AdjustGhostSelection(msel, ISelector::DESELECTED);
 
-			SerializeMultiGridElements(mg, msel.get_geometric_objects(), aaInt, out, &aaID);
+			SerializeMultiGridElements(mg, msel.get_grid_objects(), aaInt, out, &aaID);
 
 
 		//	serialize associated data
 			distInfoSerializer.write_infos(out);
-			distInfoSerializer.serialize(out, msel.get_geometric_objects());
+			distInfoSerializer.serialize(out, msel.get_grid_objects());
 			serializer.write_infos(out);
-			serializer.serialize(out, msel.get_geometric_objects());
+			serializer.serialize(out, msel.get_grid_objects());
 			userDataSerializer.write_infos(out);
-			userDataSerializer.serialize(out, msel.get_geometric_objects());
+			userDataSerializer.serialize(out, msel.get_grid_objects());
 
 		//	write a magic number for debugging purposes
 			out.write((char*)&magicNumber2, sizeof(int));
@@ -1835,7 +1835,7 @@ bool DistributeGrid(MultiGrid& mg,
 			for(ConstrainedVertexIterator iter = msel.begin<ConstrainedVertex>(lvl);
 				iter != msel.end<ConstrainedVertex>(lvl); ++iter)
 			{
-				GeometricObject* co = (*iter)->get_constraining_object();
+				GridObject* co = (*iter)->get_constraining_object();
 				if(co && !msel.is_selected(co)){
 					switch(co->base_object_id()){
 						case EDGE:{
@@ -1860,7 +1860,7 @@ bool DistributeGrid(MultiGrid& mg,
 			for(ConstrainedEdgeIterator iter = msel.begin<ConstrainedEdge>(lvl);
 				iter != msel.end<ConstrainedEdge>(lvl); ++iter)
 			{
-				GeometricObject* co = (*iter)->get_constraining_object();
+				GridObject* co = (*iter)->get_constraining_object();
 				if(co && !msel.is_selected(co)){
 					switch(co->base_object_id()){
 						case EDGE:{
@@ -1903,7 +1903,7 @@ bool DistributeGrid(MultiGrid& mg,
 			for(ConstrainedTriangleIterator iter = msel.begin<ConstrainedTriangle>(lvl);
 				iter != msel.end<ConstrainedTriangle>(lvl); ++iter)
 			{
-				GeometricObject* co = (*iter)->get_constraining_object();
+				GridObject* co = (*iter)->get_constraining_object();
 				if(co && !msel.is_selected(co)){
 					if(ConstrainingTriangle* ce = dynamic_cast<ConstrainingTriangle*>(co))
 						ce->unconstrain_object(*iter);
@@ -1913,7 +1913,7 @@ bool DistributeGrid(MultiGrid& mg,
 			for(ConstrainedQuadrilateralIterator iter = msel.begin<ConstrainedQuadrilateral>(lvl);
 				iter != msel.end<ConstrainedQuadrilateral>(lvl); ++iter)
 			{
-				GeometricObject* co = (*iter)->get_constraining_object();
+				GridObject* co = (*iter)->get_constraining_object();
 				if(co && !msel.is_selected(co)){
 					if(ConstrainingQuadrilateral* ce = dynamic_cast<ConstrainingQuadrilateral*>(co))
 						ce->unconstrain_object(*iter);

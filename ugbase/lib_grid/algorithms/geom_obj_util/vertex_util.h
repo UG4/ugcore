@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "lib_grid/grid/grid.h"
-#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/tools/subset_handler_grid.h"
 #include "common/math/ugmath.h"

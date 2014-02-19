@@ -65,9 +65,9 @@ class AdaptionSurfaceGridFunction : public GridObserver
 				ValueAccessor(AdaptionSurfaceGridFunction<TDomain>& rASGF,
 				              size_t fct);
 
-				void access_inner(GeometricObject* elem);
+				void access_inner(GridObject* elem);
 
-				void access_closure(GeometricObject* elem);
+				void access_closure(GridObject* elem);
 
 			protected:
 				template <typename TBaseElem, typename TSubBaseElem>
@@ -90,10 +90,10 @@ class AdaptionSurfaceGridFunction : public GridObserver
 
 		/// grid observer callbacks
 		/// \{
-		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL, bool replacesParent = false){obj_created(vrt);}
-		virtual void edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent = NULL, bool replacesParent = false){obj_created(e);}
-		virtual void face_created(Grid* grid, Face* f, GeometricObject* pParent = NULL, bool replacesParent = false){obj_created(f);}
-		virtual void volume_created(Grid* grid, Volume* vol, GeometricObject* pParent = NULL, bool replacesParent = false){obj_created(vol);}
+		virtual void vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent = NULL, bool replacesParent = false){obj_created(vrt);}
+		virtual void edge_created(Grid* grid, EdgeBase* e, GridObject* pParent = NULL, bool replacesParent = false){obj_created(e);}
+		virtual void face_created(Grid* grid, Face* f, GridObject* pParent = NULL, bool replacesParent = false){obj_created(f);}
+		virtual void volume_created(Grid* grid, Volume* vol, GridObject* pParent = NULL, bool replacesParent = false){obj_created(vol);}
 		/// \}
 
 	protected:

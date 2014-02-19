@@ -396,7 +396,7 @@ bool PartitionMultiGridLevel_MetisKway(SubsetHandler& shPartitionOut,
 				int start = adjacencyMapStructure[i_vrt];
 				int end = adjacencyMapStructure[i_vrt + 1];
 
-				GeometricObject* parent = mg.get_parent(elems[i_vrt]);
+				GridObject* parent = mg.get_parent(elems[i_vrt]);
 				for(int i_edge = start; i_edge < end; ++i_edge){
 					if(parent == mg.get_parent(elems[adjacencyMap[i_edge]]))
 						edgeWeights.push_back(siblingWeight);

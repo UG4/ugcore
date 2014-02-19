@@ -39,7 +39,7 @@ HFV1Geometry()
 
 template <typename TElem, int TWorldDim>
 void HFV1Geometry<TElem, TWorldDim>::
-update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
@@ -604,7 +604,7 @@ update_local_data()
 
 template <int TDim, int TWorldDim>
 void DimHFV1Geometry<TDim, TWorldDim>::
-update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	// 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;

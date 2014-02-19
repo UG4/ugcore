@@ -88,7 +88,7 @@ class ActiveSet
 		typedef GridFunction<TDomain, TAlgebra> function_type;
 
 	///	base element type of associated domain
-		typedef typename domain_traits<TDomain::dim>::geometric_base_object TBaseElem;
+		typedef typename domain_traits<TDomain::dim>::grid_base_object TBaseElem;
 
 	///	domain dimension
 		static const int dim = TDomain::dim;

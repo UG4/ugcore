@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__CROUZEIX_RAVIART__
 
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 #include "lib_disc/local_finite_element/local_shape_function_set.h"
 

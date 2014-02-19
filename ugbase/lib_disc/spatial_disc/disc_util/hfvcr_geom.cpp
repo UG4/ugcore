@@ -108,7 +108,7 @@ update_local_data()
 /// update data for given element
 template <	typename TElem, int TWorldDim>
 void HCRFVGeometry<TElem, TWorldDim>::
-update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);

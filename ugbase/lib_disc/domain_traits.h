@@ -10,7 +10,7 @@
 
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
-#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/grid_objects/grid_objects.h"
 
 namespace ug{
 
@@ -36,8 +36,8 @@ typedef boost::mpl::list<Vertex> AllElemList;
 typedef geometry_traits<VertexBase>::const_iterator const_iterator;
 typedef geometry_traits<VertexBase>::iterator iterator;
 
-typedef geometry_traits<VertexBase>::geometric_base_object geometric_base_object;
-typedef geometry_traits<VertexBase>::geometric_base_object element_type;
+typedef geometry_traits<VertexBase>::grid_base_object grid_base_object;
+typedef geometry_traits<VertexBase>::grid_base_object element_type;
 
 const static size_t MaxNumVerticesOfElem = 1;
 };
@@ -51,9 +51,9 @@ typedef boost::mpl::list<> ManifoldElemList;
 typedef geometry_traits<EdgeBase>::const_iterator const_iterator;
 typedef geometry_traits<EdgeBase>::iterator iterator;
 
-typedef geometry_traits<EdgeBase>::geometric_base_object geometric_base_object;
-typedef geometry_traits<EdgeBase>::geometric_base_object element_type;
-typedef geometry_traits<VertexBase>::geometric_base_object side_type;
+typedef geometry_traits<EdgeBase>::grid_base_object grid_base_object;
+typedef geometry_traits<EdgeBase>::grid_base_object element_type;
+typedef geometry_traits<VertexBase>::grid_base_object side_type;
 
 const static size_t MaxNumVerticesOfElem = 2;
 
@@ -72,9 +72,9 @@ typedef boost::mpl::list<Edge> ManifoldElemList;
 typedef geometry_traits<Face>::const_iterator const_iterator;
 typedef geometry_traits<Face>::iterator iterator;
 
-typedef geometry_traits<Face>::geometric_base_object geometric_base_object;
-typedef geometry_traits<Face>::geometric_base_object element_type;
-typedef geometry_traits<EdgeBase>::geometric_base_object side_type;
+typedef geometry_traits<Face>::grid_base_object grid_base_object;
+typedef geometry_traits<Face>::grid_base_object element_type;
+typedef geometry_traits<EdgeBase>::grid_base_object side_type;
 
 const static size_t MaxNumVerticesOfElem = 4;
 
@@ -93,9 +93,9 @@ typedef boost::mpl::list<Triangle, Quadrilateral> ManifoldElemList;
 typedef geometry_traits<Volume>::const_iterator const_iterator;
 typedef geometry_traits<Volume>::iterator iterator;
 
-typedef geometry_traits<Volume>::geometric_base_object geometric_base_object;
-typedef geometry_traits<Volume>::geometric_base_object element_type;
-typedef geometry_traits<Face>::geometric_base_object side_type;
+typedef geometry_traits<Volume>::grid_base_object grid_base_object;
+typedef geometry_traits<Volume>::grid_base_object element_type;
+typedef geometry_traits<Face>::grid_base_object side_type;
 
 const static size_t MaxNumVerticesOfElem = 8;
 

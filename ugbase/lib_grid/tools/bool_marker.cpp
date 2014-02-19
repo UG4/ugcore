@@ -55,7 +55,7 @@ void BoolMarker::assign_grid(Grid* g)
 }
 
 
-bool BoolMarker::is_marked(GeometricObject* e) const
+bool BoolMarker::is_marked(GridObject* e) const
 {
 	switch(e->base_object_id()){
 		case VERTEX: return is_marked(static_cast<VertexBase*>(e));
@@ -85,7 +85,7 @@ void BoolMarker::clear()
 
 
 void BoolMarker::
-vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
+vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent,
 				bool replacesParent)
 {
 	if(!pParent){
@@ -105,7 +105,7 @@ vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
 }
 
 void BoolMarker::
-edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
+edge_created(Grid* grid, EdgeBase* e, GridObject* pParent,
 			 bool replacesParent)
 {
 	if(!pParent){
@@ -125,7 +125,7 @@ edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
 }
 
 void BoolMarker::
-face_created(Grid* grid, Face* f, GeometricObject* pParent,
+face_created(Grid* grid, Face* f, GridObject* pParent,
 			 bool replacesParent)
 {
 	if(!pParent){
@@ -145,7 +145,7 @@ face_created(Grid* grid, Face* f, GeometricObject* pParent,
 }
 
 void BoolMarker::
-volume_created(Grid* grid, Volume* vol, GeometricObject* pParent,
+volume_created(Grid* grid, Volume* vol, GridObject* pParent,
 			   bool replacesParent)
 {
 	if(!pParent){

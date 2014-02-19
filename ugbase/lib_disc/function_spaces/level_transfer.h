@@ -67,7 +67,7 @@ void ProlongateP1(GridFunction<TDomain, TAlgebra>& uFine,
 		}
 
 	//  get parent and level where coarse grid function is defined
-		GeometricObject* parent = mg->get_parent(vrt);
+		GridObject* parent = mg->get_parent(vrt);
 		const ReferenceObjectID parentBaseObjectID = parent->reference_object_id();
 		int parentLevel = mg->get_level(parent);
 		while(parentLevel > coarseTopLevel){
@@ -218,7 +218,7 @@ void ProlongateElemwise(GridFunction<TDomain, TAlgebra>& uFine,
 
 //  iterators
 	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
-	typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object Element;
+	typedef typename DoFDistribution::dim_traits<dim>::grid_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level
@@ -460,7 +460,7 @@ void RestrictElemwise(GridFunction<TDomain, TAlgebra>& uCoarse,
 
 //  iterators
 	typedef typename DoFDistribution::dim_traits<locDim>::const_iterator const_iterator;
-	typedef typename DoFDistribution::dim_traits<locDim>::geometric_base_object Element;
+	typedef typename DoFDistribution::dim_traits<locDim>::grid_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;
 
 //  loop subsets on coarse level

@@ -89,7 +89,7 @@ void GridDataSerializationHandler::read_infos(BinaryBuffer& in)
 }
 
 void GridDataSerializationHandler::
-serialize(BinaryBuffer& out, GeometricObjectCollection goc) const
+serialize(BinaryBuffer& out, GridObjectCollection goc) const
 {
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 		serialize(out, goc.begin<VertexBase>(lvl), goc.end<VertexBase>(lvl));
@@ -102,7 +102,7 @@ serialize(BinaryBuffer& out, GeometricObjectCollection goc) const
 }
 
 void GridDataSerializationHandler::
-deserialize(BinaryBuffer& in, GeometricObjectCollection goc)
+deserialize(BinaryBuffer& in, GridObjectCollection goc)
 {
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl)
 		deserialize(in, goc.begin<VertexBase>(lvl), goc.end<VertexBase>(lvl));
@@ -250,7 +250,7 @@ read_data(BinaryBuffer& in, Volume* o)
  * Don't change the constants, since they are used i.e. in external files too.
  * If you want to add constants, do so at the end of the enumeration.
  */
-enum GeometricObjectID
+enum GridObjectID
 {
 	GOID_END_OF_GRID = -2,
 	GOID_INVALID = -1,
@@ -375,13 +375,13 @@ bool SerializeGridElements(Grid& grid, BinaryBuffer& out)
 {
 //	call SerializeGridElements with the grids goc
 	return SerializeGridElements(grid,
-							grid.get_geometric_objects(),
+							grid.get_grid_objects(),
 							out);
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridElements
-bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
+bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 						   BinaryBuffer& out)
 {
 //	create the required int-attachment and call SerializeGridElements.
@@ -394,7 +394,7 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridElements
-bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
+bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 						   AInt& aIntVRT, BinaryBuffer& out)
 {	
 //TODO: add volume support
@@ -815,7 +815,7 @@ static void WriteParent(MultiGrid& mg, TElem* pElem,
 						MultiElementAttachmentAccessor<AInt>&	aaInt,
 						BinaryBuffer& out)
 {
-	GeometricObject* pParent = mg.get_parent(pElem);
+	GridObject* pParent = mg.get_parent(pElem);
 	char type = mg.parent_type(pElem);
 	int index = -1;
 
@@ -833,7 +833,7 @@ static void WriteParent(MultiGrid& mg, TElem* pElem,
 
 ////////////////////////////////////////////////////////////////////////
 bool SerializeMultiGridElements(MultiGrid& mg,
-								GeometricObjectCollection mgoc,
+								GridObjectCollection mgoc,
 								MultiElementAttachmentAccessor<AInt>&	aaInt,
 								BinaryBuffer& out,
 								MultiElementAttachmentAccessor<AGeomObjID>* paaID)
@@ -908,7 +908,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 			//	write constraining object
 				int type = -1;
 				int ind = -1;
-				if(GeometricObject* cobj = v->get_constraining_object()){
+				if(GridObject* cobj = v->get_constraining_object()){
 					type = cobj->base_object_id();
 					if(mg.is_marked(cobj)){
 						switch(type){
@@ -982,7 +982,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 			//	write constraining object
 				int type = -1;
 				int ind = -1;
-				if(GeometricObject* cobj = e->get_constraining_object()){
+				if(GridObject* cobj = e->get_constraining_object()){
 					if(mg.is_marked(cobj)){
 						type = cobj->base_object_id();
 						switch(type){
@@ -1091,7 +1091,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 			//	write constraining object
 				int ind = -1;
-				if(GeometricObject* cobj = e->get_constraining_object()){
+				if(GridObject* cobj = e->get_constraining_object()){
 					if(mg.is_marked(cobj)){
 						UG_ASSERT(cobj->base_object_id() == FACE,
 								  "A constrained face can only be constrained by "
@@ -1151,7 +1151,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 
 			//	write constraining object
 				int ind = -1;
-				if(GeometricObject* cobj = e->get_constraining_object()){
+				if(GridObject* cobj = e->get_constraining_object()){
 					if(mg.is_marked(cobj)){
 						UG_ASSERT(cobj->base_object_id() == FACE,
 								  "A constrained face can only be constrained by "
@@ -1302,7 +1302,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
 bool SerializeMultiGridElements(MultiGrid& mg,
-								GeometricObjectCollection goc,
+								GridObjectCollection goc,
 								BinaryBuffer& out)
 {
 	AInt aInt;
@@ -1321,14 +1321,14 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								BinaryBuffer& out)
 {
 	return SerializeMultiGridElements(mg,
-						mg.get_geometric_objects(),
+						mg.get_grid_objects(),
 						out);
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-static pair<GeometricObject*, char>
+static pair<GridObject*, char>
 GetParent(BinaryBuffer& in, const vector<VertexBase*>& vVrts,
 		const vector<EdgeBase*>& vEdges, const vector<Face*>& vFaces,
 		const vector<Volume*>& vVols)
@@ -1355,7 +1355,7 @@ GetParent(BinaryBuffer& in, const vector<VertexBase*>& vVrts,
 		}
 	}
 	
-	return make_pair<GeometricObject*, char>(NULL, type);
+	return make_pair<GridObject*, char>(NULL, type);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1484,9 +1484,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 						SRLZ_PROFILE(srlz_vertices);
 						for(int i = 0; i < numElems; ++i)
 						{
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1538,9 +1538,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							UG_ASSERT(parentBaseObjId != -1,
 									  "Bad constraining element id in constrained vertex encountered");
 
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1618,9 +1618,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int i1, i2;
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1656,9 +1656,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int i1, i2;
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1702,9 +1702,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int parentBaseObjId;
 							in.read((char*)&parentBaseObjId, sizeof(int));
 
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1786,9 +1786,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1829,9 +1829,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1872,9 +1872,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1920,9 +1920,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int parentBaseObjId;
 							in.read((char*)&parentBaseObjId, sizeof(int));
 
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -1983,9 +1983,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -2035,9 +2035,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							int parentBaseObjId;
 							in.read((char*)&parentBaseObjId, sizeof(int));
 
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -2101,9 +2101,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i2, sizeof(int));
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -2150,9 +2150,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i6, sizeof(int));
 							in.read((char*)&i7, sizeof(int));
 							in.read((char*)&i8, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -2197,9 +2197,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i4, sizeof(int));
 							in.read((char*)&i5, sizeof(int));
 							in.read((char*)&i6, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -2243,9 +2243,9 @@ bool DeserializeMultiGridElements(MultiGrid& mg, BinaryBuffer& in,
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
 							in.read((char*)&i5, sizeof(int));
-							pair<GeometricObject*, char> pInfo = GetParent(in, vVrts, vEdges,
+							pair<GridObject*, char> pInfo = GetParent(in, vVrts, vEdges,
 																			vFaces, vVols);
-							GeometricObject* parent = pInfo.first;
+							GridObject* parent = pInfo.first;
 
 							if(paaID){
 								Deserialize(in, id);
@@ -2304,7 +2304,7 @@ void WriteSubsetIndicesToStream(TElemIter iterBegin, TElemIter iterEnd,
 
 ////////////////////////////////////////////////////////////////////////
 bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							GeometricObjectCollection goc,
+							GridObjectCollection goc,
 							BinaryBuffer& out)
 {
 //	write a magic number at the beginning and at the end.
@@ -2368,7 +2368,7 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							BinaryBuffer& out)
 {
 	return SerializeSubsetHandler(grid, sh,
-							grid.get_geometric_objects(),
+							grid.get_grid_objects(),
 							out);
 }
 
@@ -2391,7 +2391,7 @@ void ReadSubsetIndicesFromStream(TElemIter iterBegin, TElemIter iterEnd,
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeSubsetHandler
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							GeometricObjectCollection goc,
+							GridObjectCollection goc,
 							BinaryBuffer& in, bool readPropertyMap)
 {
 //	read a magic number at the beginning and at the end.
@@ -2474,7 +2474,7 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							BinaryBuffer& in, bool readPropertyMap)
 {
 	return DeserializeSubsetHandler(grid, sh,
-							grid.get_geometric_objects(),
+							grid.get_grid_objects(),
 							in, readPropertyMap);
 }
 

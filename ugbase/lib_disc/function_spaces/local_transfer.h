@@ -25,7 +25,7 @@ class PiecewiseConstantElemTransfer
 	public:
 		PiecewiseConstantElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-		virtual bool perform_prolongation_on(GeometricBaseObject gbo) {
+		virtual bool perform_prolongation_on(GridBaseObjectId gbo) {
 			if(m_lfeid.dim() == gbo) return true;
 			return false;
 		}
@@ -47,7 +47,7 @@ class PiecewiseConstantElemTransfer
 			}
 		}
 
-		virtual bool perform_restriction_on(GeometricBaseObject gbo) {
+		virtual bool perform_restriction_on(GridBaseObjectId gbo) {
 			if(m_lfeid.dim() == gbo) return true;
 			return false;
 		}
@@ -86,7 +86,7 @@ class P1LagrangeElemTransfer
 	public:
 		P1LagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-		virtual bool perform_prolongation_on(GeometricBaseObject gbo) {
+		virtual bool perform_prolongation_on(GridBaseObjectId gbo) {
 			if(m_lfeid.dim() < gbo) return false;
 			return true;
 		}
@@ -115,14 +115,14 @@ class P1LagrangeElemTransfer
 			vValueChild[0] *= 1.0/numVrt;
 		}
 
-		virtual bool perform_restriction_on(GeometricBaseObject gbo){
+		virtual bool perform_restriction_on(GridBaseObjectId gbo){
 			if(gbo == VERTEX) return true;
 			return false;
 		}
 
 		// the following line silences -Woverloaded-virtual
 		using ElemRestrictionBase<TDomain, P1LagrangeElemTransfer<TDomain> >::do_restrict;
-		void do_restrict(GeometricObject* parent,
+		void do_restrict(GridObject* parent,
 		                 TransferValueAccessor& vValueChild,
 		                 TransferValueAccessor& vValueParent)
 		{
@@ -162,7 +162,7 @@ class StdLagrangeElemTransfer
 	public:
 		StdLagrangeElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-		virtual bool perform_prolongation_on(GeometricBaseObject gbo) {
+		virtual bool perform_prolongation_on(GridBaseObjectId gbo) {
 			if(m_lfeid.order() == 1 && gbo != VERTEX) return false;
 			if(m_lfeid.dim() < gbo) return false;
 			return true;
@@ -274,7 +274,7 @@ class StdLagrangeElemTransfer
 		}
 
 
-		virtual bool perform_restriction_on(GeometricBaseObject gbo) {
+		virtual bool perform_restriction_on(GridBaseObjectId gbo) {
 			if(m_lfeid.dim() < gbo) return false;
 			return true;
 		}
@@ -370,7 +370,7 @@ class CrouzeixRaviartElemTransfer
 	public:
 		CrouzeixRaviartElemTransfer(const LFEID& lfeid) : m_lfeid(lfeid) {}
 
-		virtual bool perform_prolongation_on(GeometricBaseObject gbo) {
+		virtual bool perform_prolongation_on(GridBaseObjectId gbo) {
 		//	prolongation from elems that have a side as child
 			if(m_lfeid.dim()-1 == gbo) return true;
 			if(m_lfeid.dim()   == gbo) return true;
@@ -514,7 +514,7 @@ class CrouzeixRaviartElemTransfer
 			}
 		}
 
-		virtual bool perform_restriction_on(GeometricBaseObject gbo) {
+		virtual bool perform_restriction_on(GridBaseObjectId gbo) {
 		//	restriction only on sides
 			if(m_lfeid.dim()-1 == gbo) return true;
 			return false;

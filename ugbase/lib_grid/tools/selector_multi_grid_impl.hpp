@@ -252,7 +252,7 @@ section_container(int level)
 	assert(level >= 0 && "bad level index.");
 	level_required(level);
 	Level* lev = m_levels[level];
-	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TElem>::grid_base_object>::
 			section_container(lev->m_vertices, lev->m_edges, lev->m_faces, lev->m_volumes);
 }
 
@@ -264,7 +264,7 @@ section_container(int level) const
 {
 	assert((level >= 0) && (level < (int)m_levels.size()) && "bad level index.");
 	const Level* lev = m_levels[level];
-	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TElem>::grid_base_object>::
 			section_container(lev->m_vertices, lev->m_edges, lev->m_faces, lev->m_volumes);
 }
 

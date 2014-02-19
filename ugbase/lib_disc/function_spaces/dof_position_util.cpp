@@ -98,7 +98,7 @@ bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObject
 }
 
 template <typename TDomain>
-bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem,
+bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GridObject* elem,
                       const TDomain& domain, const LFEID& lfeID)
 {
 //	reference object id
@@ -188,7 +188,7 @@ bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID ro
 }
 
 template <typename TDomain>
-bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GeometricObject* elem,
+bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos, GridObject* elem,
                  const TDomain& domain, const LFEID& lfeID)
 {
 //	reference object id
@@ -276,7 +276,7 @@ void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
 template <typename TDomain>
 void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
                            const std::vector<MathVector<TDomain::dim> >& vGlobPos,
-                           GeometricObject* elem, const TDomain& domain, const LFEID& lfeID)
+                           GridObject* elem, const TDomain& domain, const LFEID& lfeID)
 {
 	const int baseDim = elem->base_object_id();
 	if(baseDim == VERTEX)
@@ -812,9 +812,9 @@ bool CheckDoFPositions(ConstSmartPtr<TDomain> domain,
 }
 
 #ifdef UG_DIM_1
-template bool InnerDoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GeometricObject* elem, const Domain1d& domain, const LFEID& lfeID);
+template bool InnerDoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GridObject* elem, const Domain1d& domain, const LFEID& lfeID);
 template bool InnerDoFPosition<1>(std::vector<MathVector<1> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
-template bool DoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GeometricObject* elem, const Domain1d& domain, const LFEID& lfeID);
+template bool DoFPosition<Domain1d>(std::vector<MathVector<1> >& vPos, GridObject* elem, const Domain1d& domain, const LFEID& lfeID);
 template bool DoFPosition<1>(std::vector<MathVector<1> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
 template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain1d::dim> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain1d::dim>, size_t> >& vPos);
@@ -822,12 +822,12 @@ template void ExtractPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoF
 template bool CheckDoFPositions(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd);
 template void ExtractAlgebraIndices<Domain1d>(ConstSmartPtr<Domain1d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex);
 template void ShapesAtGlobalPosition<1>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<1> >& vGlobPos, const ReferenceObjectID roid,const std::vector<MathVector<1> >& vCornerCoord, const LFEID& lfeID);
-template void ShapesAtGlobalPosition<Domain1d>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<1> >& vGlobPos,GeometricObject* elem, const Domain1d& domain, const LFEID& lfeID);
+template void ShapesAtGlobalPosition<Domain1d>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<1> >& vGlobPos,GridObject* elem, const Domain1d& domain, const LFEID& lfeID);
 #endif
 #ifdef UG_DIM_2
-template bool InnerDoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
+template bool InnerDoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GridObject* elem, const Domain2d& domain, const LFEID& lfeID);
 template bool InnerDoFPosition<2>(std::vector<MathVector<2> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
-template bool DoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
+template bool DoFPosition<Domain2d>(std::vector<MathVector<2> >& vPos, GridObject* elem, const Domain2d& domain, const LFEID& lfeID);
 template bool DoFPosition<2>(std::vector<MathVector<2> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
 template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain2d::dim> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain2d::dim>, size_t> >& vPos);
@@ -835,12 +835,12 @@ template void ExtractPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoF
 template bool CheckDoFPositions(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd);
 template void ExtractAlgebraIndices<Domain2d>(ConstSmartPtr<Domain2d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex);
 template void ShapesAtGlobalPosition<2>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<2> >& vGlobPos, const ReferenceObjectID roid,const std::vector<MathVector<2> >& vCornerCoord, const LFEID& lfeID);
-template void ShapesAtGlobalPosition<Domain2d>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<2> >& vGlobPos,GeometricObject* elem, const Domain2d& domain, const LFEID& lfeID);
+template void ShapesAtGlobalPosition<Domain2d>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<2> >& vGlobPos,GridObject* elem, const Domain2d& domain, const LFEID& lfeID);
 #endif
 #ifdef UG_DIM_3
-template bool InnerDoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
+template bool InnerDoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GridObject* elem, const Domain3d& domain, const LFEID& lfeID);
 template bool InnerDoFPosition<3>(std::vector<MathVector<3> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
-template bool DoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
+template bool DoFPosition<Domain3d>(std::vector<MathVector<3> >& vPos, GridObject* elem, const Domain3d& domain, const LFEID& lfeID);
 template bool DoFPosition<3>(std::vector<MathVector<3> >& vPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
 template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<MathVector<Domain3d::dim> >& vPos);
 template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<std::pair<MathVector<Domain3d::dim>, size_t> >& vPos);
@@ -848,7 +848,7 @@ template void ExtractPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoF
 template bool CheckDoFPositions(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd);
 template void ExtractAlgebraIndices<Domain3d>(ConstSmartPtr<Domain3d> domain, ConstSmartPtr<DoFDistribution> dd, std::vector<size_t> &fctIndex);
 template void ShapesAtGlobalPosition<3>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<3> >& vGlobPos, const ReferenceObjectID roid,const std::vector<MathVector<3> >& vCornerCoord, const LFEID& lfeID);
-template void ShapesAtGlobalPosition<Domain3d>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<3> >& vGlobPos,GeometricObject* elem, const Domain3d& domain, const LFEID& lfeID);
+template void ShapesAtGlobalPosition<Domain3d>(std::vector<std::vector<number> >& vvShape, const std::vector<MathVector<3> >& vGlobPos,GridObject* elem, const Domain3d& domain, const LFEID& lfeID);
 #endif
 
 } // end namespace ug

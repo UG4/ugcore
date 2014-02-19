@@ -2,17 +2,17 @@
 // s.b.reiter@googlemail.com
 // 22.12.2011 (m,d,y)
 
-#ifndef __H__UG__generic_geometric_object_iterator__
-#define __H__UG__generic_geometric_object_iterator__
+#ifndef __H__UG__generic_grid_object_iterator__
+#define __H__UG__generic_grid_object_iterator__
 
 namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//	GenericGeometricObjectIterator
+//	GenericGridObjectIterator
 ///	Use this class as a tool to create iterators to your own geometric objects.
 template <class TValue, class TBaseIterator>
-class GenericGeometricObjectIterator : public TBaseIterator
+class GenericGridObjectIterator : public TBaseIterator
 {
 	friend class Grid;
 	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
@@ -21,24 +21,24 @@ class GenericGeometricObjectIterator : public TBaseIterator
 		typedef TValue	value_type;
 
 	public:
-		GenericGeometricObjectIterator()	{}
+		GenericGridObjectIterator()	{}
 
-		GenericGeometricObjectIterator(const GenericGeometricObjectIterator& iter) :
+		GenericGridObjectIterator(const GenericGridObjectIterator& iter) :
 			TBaseIterator(iter)	{}
 
 	///	note that the * operator is read only.
 		inline TValue operator* () const	{return static_cast<TValue>(TBaseIterator::operator*());}
 
 	protected:
-		GenericGeometricObjectIterator(const TBaseIterator& iter) :
+		GenericGridObjectIterator(const TBaseIterator& iter) :
 			TBaseIterator(iter)	{}
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//	ConstGenericGeometricObjectIterator
+//	ConstGenericGridObjectIterator
 ///	Use this class as a tool to create const_iterators to your own geometric objects.
 template <class TValue, class TBaseIterator, class TConstBaseIterator>
-class ConstGenericGeometricObjectIterator : public TConstBaseIterator
+class ConstGenericGridObjectIterator : public TConstBaseIterator
 {
 	friend class Grid;
 	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
@@ -47,22 +47,22 @@ class ConstGenericGeometricObjectIterator : public TConstBaseIterator
 		typedef TValue	value_type;
 
 	public:
-		ConstGenericGeometricObjectIterator()	{}
+		ConstGenericGridObjectIterator()	{}
 
-		ConstGenericGeometricObjectIterator(const ConstGenericGeometricObjectIterator& iter) :
+		ConstGenericGridObjectIterator(const ConstGenericGridObjectIterator& iter) :
 			TConstBaseIterator(iter)	{}
 
-		ConstGenericGeometricObjectIterator(const GenericGeometricObjectIterator<TValue, TBaseIterator>& iter) :
+		ConstGenericGridObjectIterator(const GenericGridObjectIterator<TValue, TBaseIterator>& iter) :
 			TConstBaseIterator(iter)	{}
 
 	///	note that the * operator is read only.
 		inline TValue operator* () const	{return static_cast<TValue>(TConstBaseIterator::operator*());}
 
 	protected:
-		ConstGenericGeometricObjectIterator(const TBaseIterator& iter) :
+		ConstGenericGridObjectIterator(const TBaseIterator& iter) :
 			TConstBaseIterator(iter)	{}
 
-		ConstGenericGeometricObjectIterator(const TConstBaseIterator& iter) :
+		ConstGenericGridObjectIterator(const TConstBaseIterator& iter) :
 			TConstBaseIterator(iter)	{}
 };
 

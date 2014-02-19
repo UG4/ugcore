@@ -215,7 +215,7 @@ size_t DoFDistribution::_inner_algebra_indices(TBaseElem* elem,
 
 // this function could be merged with inner_algebra_indices with additional
 // default paramter e.g. selectedFct==-1 -> all functions.
-size_t DoFDistribution::inner_algebra_indices_for_fct(GeometricObject* elem,
+size_t DoFDistribution::inner_algebra_indices_for_fct(GridObject* elem,
                                                 std::vector<size_t>& ind,
                                                 bool bClear, int fct) const
 {
@@ -1171,7 +1171,7 @@ void DoFDistribution::indices(VertexBase* elem, LocalIndices& ind, bool bHang) c
 void DoFDistribution::indices(EdgeBase* elem, LocalIndices& ind, bool bHang) const {_indices<EdgeBase>(elem, ind, bHang);}
 void DoFDistribution::indices(Face* elem, LocalIndices& ind, bool bHang) const {_indices<Face>(elem, ind, bHang);}
 void DoFDistribution::indices(Volume* elem, LocalIndices& ind, bool bHang) const {_indices<Volume>(elem, ind, bHang);}
-void DoFDistribution::indices(GeometricObject* elem, LocalIndices& ind, bool bHang) const
+void DoFDistribution::indices(GridObject* elem, LocalIndices& ind, bool bHang) const
 {
 	switch(elem->base_object_id())
 	{
@@ -1187,7 +1187,7 @@ size_t DoFDistribution::dof_indices(VertexBase* elem, size_t fct, std::vector<Do
 size_t DoFDistribution::dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<EdgeBase>(elem, fct, ind, bHang, bClear);}
 size_t DoFDistribution::dof_indices(Face* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<Face>(elem, fct, ind, bHang, bClear);}
 size_t DoFDistribution::dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const {return _dof_indices<Volume>(elem, fct, ind, bHang, bClear);}
-size_t DoFDistribution::dof_indices(GeometricObject* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const
+size_t DoFDistribution::dof_indices(GridObject* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang, bool bClear) const
 {
 	switch(elem->base_object_id())
 	{
@@ -1203,7 +1203,7 @@ size_t DoFDistribution::inner_dof_indices(VertexBase* elem, size_t fct, std::vec
 size_t DoFDistribution::inner_dof_indices(EdgeBase* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<EdgeBase>(elem, fct, ind, bHang);}
 size_t DoFDistribution::inner_dof_indices(Face* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<Face>(elem, fct, ind, bHang);}
 size_t DoFDistribution::inner_dof_indices(Volume* elem, size_t fct, std::vector<DoFIndex>& ind, bool bHang) const {return _inner_dof_indices<Volume>(elem, fct, ind, bHang);}
-size_t DoFDistribution::inner_dof_indices(GeometricObject* elem, size_t fct, std::vector<DoFIndex>& ind, bool bClear) const
+size_t DoFDistribution::inner_dof_indices(GridObject* elem, size_t fct, std::vector<DoFIndex>& ind, bool bClear) const
 {
 	switch(elem->base_object_id())
 	{
@@ -1220,7 +1220,7 @@ size_t DoFDistribution::algebra_indices(VertexBase* elem, std::vector<size_t>& i
 size_t DoFDistribution::algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<EdgeBase>(elem, ind, bClear);}
 size_t DoFDistribution::algebra_indices(Face* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<Face>(elem, ind, bClear);}
 size_t DoFDistribution::algebra_indices(Volume* elem, std::vector<size_t>& ind, bool bClear) const {return _algebra_indices<Volume>(elem, ind, bClear);}
-size_t DoFDistribution::algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind, bool bClear) const
+size_t DoFDistribution::algebra_indices(GridObject* elem,	std::vector<size_t>& ind, bool bClear) const
 {
 	switch(elem->base_object_id())
 	{
@@ -1236,7 +1236,7 @@ size_t DoFDistribution::inner_algebra_indices(VertexBase* elem, std::vector<size
 size_t DoFDistribution::inner_algebra_indices(EdgeBase* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<EdgeBase>(elem, ind, bClear);}
 size_t DoFDistribution::inner_algebra_indices(Face* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<Face>(elem, ind, bClear);}
 size_t DoFDistribution::inner_algebra_indices(Volume* elem, std::vector<size_t>& ind, bool bClear) const {return _inner_algebra_indices<Volume>(elem, ind, bClear);}
-size_t DoFDistribution::inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind, bool bClear) const
+size_t DoFDistribution::inner_algebra_indices(GridObject* elem, std::vector<size_t>& ind, bool bClear) const
 {
 	switch(elem->base_object_id())
 	{

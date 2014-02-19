@@ -116,7 +116,7 @@ class NLGaussSeidelSolver
 		typedef ApproximationSpace<domain_type>	approx_space_type;
 
 	///	Type of geometric base object
-		typedef typename domain_traits<TDomain::dim>::geometric_base_object geometric_base_object;
+		typedef typename domain_traits<TDomain::dim>::grid_base_object grid_base_object;
 
 	protected:
 		typedef DebugWritingObject<TAlgebra> base_writer_type;
@@ -197,8 +197,8 @@ class NLGaussSeidelSolver
 		///	call counter
 		int m_dgbCall;
 
-		/* TODO: hier alle typen von geometric_base_object zulassen?
-		typedef Attachment<vector<geometric_base_object*> > AElemList; 	//attachment type: attachment of ElemDatas
+		/* TODO: hier alle typen von grid_base_object zulassen?
+		typedef Attachment<vector<grid_base_object*> > AElemList; 	//attachment type: attachment of ElemDatas
 		AElemList m_aElemList;						//the instance of the attachment type
 		typedef Grid::VertexAttachmentAccessor<AElemList>	ElemListAccessor;
 		ElemListAccessor m_aaElemList;
@@ -210,8 +210,8 @@ class NLGaussSeidelSolver
 			m_aaElemList.access(grid, m_aElemList);
 		}*/
 
-		// TODO: hier alle typen von geometric_base_object zulassen?
-		typedef std::vector<geometric_base_object*> elemList;
+		// TODO: hier alle typen von grid_base_object zulassen?
+		typedef std::vector<grid_base_object*> elemList;
 		std::vector<elemList> m_vElemList;
 
 		///	selector of elements with contributions to a specific DoF

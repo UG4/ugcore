@@ -43,12 +43,12 @@ GetSharedSide(Grid& grid, TElem* e1, TElem* e2)
 
 
 ////////////////////////////////////////////////////////////////////////
-//	CalculateGeometricObjectCenter
+//	CalculateGridObjectCenter
 template<class TAAPosVRT>
 UG_API
 inline
 typename TAAPosVRT::ValueType
-CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT)
+CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT)
 {
 	switch(o->base_object_id()){
 		case VERTEX:	return CalculateCenter(static_cast<const VertexBase*>(o), aaPosVRT);
@@ -64,7 +64,7 @@ template<class TAAPosVRT, class TAAWeightVRT>
 UG_API
 inline
 typename TAAPosVRT::ValueType
-CalculateGeometricObjectCenter(const GeometricObject* o, TAAPosVRT& aaPosVRT,
+CalculateGridObjectCenter(const GridObject* o, TAAPosVRT& aaPosVRT,
 							   TAAWeightVRT& aaWeight)
 {
 	switch(o->base_object_id()){
@@ -237,7 +237,7 @@ number ElementDiameterSq(Grid& grid,
 template <class TAAPos>
 number ElementDiameterSq(Grid& grid,
 						 TAAPos& aaPos,
-						 GeometricObject* elem)
+						 GridObject* elem)
 {
 	switch(elem->base_object_id()){
 		case VERTEX: return ElementDiameterSq(grid, aaPos, static_cast<VertexBase*>(elem));

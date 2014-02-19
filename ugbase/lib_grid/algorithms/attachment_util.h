@@ -65,7 +65,7 @@ class MultiElementAttachmentAccessor
 		RefType operator[](EdgeBase* e)		{return m_aaEdge[e];}
 		RefType operator[](Face* e)			{return m_aaFace[e];}
 		RefType operator[](Volume* e)		{return m_aaVol[e];}
-		RefType operator[](GeometricObject* e)
+		RefType operator[](GridObject* e)
 		{
 			switch(e->base_object_id()){
 				case VERTEX: return m_aaVrt[static_cast<VertexBase*>(e)];
@@ -80,7 +80,7 @@ class MultiElementAttachmentAccessor
 		ConstRefType operator[](EdgeBase* e) const		{return m_aaEdge[e];}
 		ConstRefType operator[](Face* e) const			{return m_aaFace[e];}
 		ConstRefType operator[](Volume* e) const 		{return m_aaVol[e];}
-		ConstRefType operator[](GeometricObject* e) const
+		ConstRefType operator[](GridObject* e) const
 		{
 			switch(e->base_object_id()){
 				case VERTEX: return m_aaVrt[static_cast<VertexBase*>(e)];

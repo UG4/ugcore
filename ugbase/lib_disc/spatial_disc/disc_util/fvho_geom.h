@@ -476,11 +476,11 @@ class FVGeometry : public FVGeometryBase
 		                  size_t orderQuad = TQuadOrder);
 
 	/// update data for given element
-		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -1022,19 +1022,19 @@ class DimFVGeometry : public FVGeometryBase
 		}
 
 	/// update data for given element
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL)
 		{
 			update(pElem, vCornerCoords, m_lfeID, m_quadOrderSCV, ish);
 		}
 
 	/// update data for given element
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
 		            const LFEID& lfeID, size_t orderQuad,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(GeometricObject* pElem,
+		void update_boundary_faces(GridObject* pElem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -1166,7 +1166,7 @@ class DimFVGeometry : public FVGeometryBase
 
 	private:
 	///	pointer to current element
-		GeometricObject* m_pElem;
+		GridObject* m_pElem;
 
 	///	current reference object id
 		ReferenceObjectID m_roid;

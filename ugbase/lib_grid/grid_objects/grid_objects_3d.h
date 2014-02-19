@@ -2,15 +2,15 @@
 // s.b.reiter@googlemail.com
 // 23.12.2011 (m,d,y)
 
-#ifndef __H__UG__geometric_objects_3d__
-#define __H__UG__geometric_objects_3d__
+#ifndef __H__UG__grid_objects_3d__
+#define __H__UG__grid_objects_3d__
 
 #include "../grid/grid.h"
 #include "common/math/ugmath.h"
 #include "common/assert.h"
-#include "geometric_objects_0d.h"
-#include "geometric_objects_1d.h"
-#include "geometric_objects_2d.h"
+#include "grid_objects_0d.h"
+#include "grid_objects_1d.h"
+#include "grid_objects_2d.h"
 
 namespace ug
 {
@@ -56,7 +56,7 @@ class UG_API TetrahedronDescriptor
 /**
  * order of vertices should be the same as described in \sa TetrahedronDescriptor
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
 class UG_API Tetrahedron : public Volume
 {
@@ -66,13 +66,13 @@ class UG_API Tetrahedron : public Volume
 		static const size_t NUM_VERTICES = 4;
 
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != NULL;}
 
 		Tetrahedron()	{}
 		Tetrahedron(const TetrahedronDescriptor& td);
 		Tetrahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4);
 
-		virtual GeometricObject* create_empty_instance() const	{return new Tetrahedron;}
+		virtual GridObject* create_empty_instance() const	{return new Tetrahedron;}
 
 		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
@@ -96,7 +96,7 @@ class UG_API Tetrahedron : public Volume
 		virtual void get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
 													  size_t side) const;
 
-		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	Creates new volume elements through refinement.
 	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
@@ -130,12 +130,12 @@ template <>
 class geometry_traits<Tetrahedron>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Tetrahedron*, VolumeIterator>		iterator;
-		typedef ConstGenericGeometricObjectIterator<Tetrahedron*, VolumeIterator,
+		typedef GenericGridObjectIterator<Tetrahedron*, VolumeIterator>		iterator;
+		typedef ConstGenericGridObjectIterator<Tetrahedron*, VolumeIterator,
 															ConstVolumeIterator>	const_iterator;
 
 		typedef TetrahedronDescriptor Descriptor;
-		typedef Volume 		geometric_base_object;
+		typedef Volume 		grid_base_object;
 
 		enum
 		{
@@ -179,7 +179,7 @@ class UG_API HexahedronDescriptor
 /**
  * Order of vertices should be the same as described in \sa HexahedronDescriptor
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
 class UG_API Hexahedron : public Volume
 {
@@ -189,14 +189,14 @@ class UG_API Hexahedron : public Volume
 		static const size_t NUM_VERTICES = 8;
 
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != NULL;}
 
 		Hexahedron()	{}
 		Hexahedron(const HexahedronDescriptor& td);
 		Hexahedron(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
 					VertexBase* v5, VertexBase* v6, VertexBase* v7, VertexBase* v8);
 
-		virtual GeometricObject* create_empty_instance() const	{return new Hexahedron;}
+		virtual GridObject* create_empty_instance() const	{return new Hexahedron;}
 
 		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
@@ -215,7 +215,7 @@ class UG_API Hexahedron : public Volume
 
 		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
 
-		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
@@ -247,12 +247,12 @@ template <>
 class geometry_traits<Hexahedron>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Hexahedron*, VolumeIterator>			iterator;
-		typedef ConstGenericGeometricObjectIterator<Hexahedron*, VolumeIterator,
+		typedef GenericGridObjectIterator<Hexahedron*, VolumeIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<Hexahedron*, VolumeIterator,
 															 ConstVolumeIterator>	const_iterator;
 
 		typedef HexahedronDescriptor Descriptor;
-		typedef Volume 		geometric_base_object;
+		typedef Volume 		grid_base_object;
 
 		enum
 		{
@@ -296,7 +296,7 @@ class UG_API PrismDescriptor
 /**
  * order of vertices should be the same as described in \sa PrismDescriptor
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
 class UG_API Prism : public Volume
 {
@@ -306,14 +306,14 @@ class UG_API Prism : public Volume
 		static const size_t NUM_VERTICES = 6;
 
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Prism*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Prism*>(pObj) != NULL;}
 
 		Prism()	{}
 		Prism(const PrismDescriptor& td);
 		Prism(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 				VertexBase* v4, VertexBase* v5, VertexBase* v6);
 
-		virtual GeometricObject* create_empty_instance() const	{return new Prism;}
+		virtual GridObject* create_empty_instance() const	{return new Prism;}
 
 		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
@@ -332,7 +332,7 @@ class UG_API Prism : public Volume
 
 		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const;
 
-		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
@@ -364,12 +364,12 @@ template <>
 class geometry_traits<Prism>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Prism*, VolumeIterator>				iterator;
-		typedef ConstGenericGeometricObjectIterator<Prism*, VolumeIterator,
+		typedef GenericGridObjectIterator<Prism*, VolumeIterator>				iterator;
+		typedef ConstGenericGridObjectIterator<Prism*, VolumeIterator,
 															 ConstVolumeIterator>	const_iterator;
 
 		typedef PrismDescriptor Descriptor;
-		typedef Volume 		geometric_base_object;
+		typedef Volume 		grid_base_object;
 
 		enum
 		{
@@ -413,7 +413,7 @@ class UG_API PyramidDescriptor
 /**
  * order of vertices should be the same as described in \sa PyramidDescriptor
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
 class UG_API Pyramid : public Volume
 {
@@ -423,14 +423,14 @@ class UG_API Pyramid : public Volume
 		static const size_t NUM_VERTICES = 5;
 
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != NULL;}
 
 		Pyramid()	{}
 		Pyramid(const PyramidDescriptor& td);
 		Pyramid(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 				VertexBase* v4, VertexBase* v5);
 
-		virtual GeometricObject* create_empty_instance() const	{return new Pyramid;}
+		virtual GridObject* create_empty_instance() const	{return new Pyramid;}
 
 		virtual VertexBase* vertex(uint index) const	{return m_vertices[index];}
 		virtual ConstVertexArray vertices() const		{return m_vertices;}
@@ -447,7 +447,7 @@ class UG_API Pyramid : public Volume
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
-		virtual std::pair<GeometricBaseObject, int> get_opposing_object(VertexBase* vrt) const;
+		virtual std::pair<GridBaseObjectId, int> get_opposing_object(VertexBase* vrt) const;
 
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
@@ -479,12 +479,12 @@ template <>
 class geometry_traits<Pyramid>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Pyramid*, VolumeIterator>			iterator;
-		typedef ConstGenericGeometricObjectIterator<Pyramid*, VolumeIterator,
+		typedef GenericGridObjectIterator<Pyramid*, VolumeIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<Pyramid*, VolumeIterator,
 															 ConstVolumeIterator>	const_iterator;
 
 		typedef PyramidDescriptor Descriptor;
-		typedef Volume 		geometric_base_object;
+		typedef Volume 		grid_base_object;
 
 		enum
 		{

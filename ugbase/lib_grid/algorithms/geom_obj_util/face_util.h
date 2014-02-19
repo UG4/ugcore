@@ -6,7 +6,7 @@
 #define __H__LIB_GRID__FACE_UTIL__
 
 #include "lib_grid/grid/grid.h"
-#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/common_attachments.h"
 
 namespace ug

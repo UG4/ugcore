@@ -147,7 +147,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void NeumannBoundaryFE<TDomain>::
-prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 //  update Geometry for this element
 	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
@@ -167,7 +167,7 @@ prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCo
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void NeumannBoundaryFE<TDomain>::
-add_rhs_elem(LocalVector& d, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
+add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 	typedef typename TFEGeom::BF BF;

@@ -26,9 +26,8 @@ namespace ug
 //	CONSTANTS
 
 ////////////////////////////////////////////////////////////////////////
-//	GeometricBaseObject
-///	enumeration of the GeometricBaseObjects that make up a grid.
-enum GeometricBaseObject
+///	enumeration of the GridBaseObjects that make up a grid.
+enum GridBaseObjectId
 {
 	VERTEX = 0,
 	EDGE,
@@ -80,7 +79,7 @@ std::ostream& operator<< (std::ostream& outStream, ReferenceObjectID type)
 class Grid;
 template<class TElem>	class ElementStorage;
 
-class GeometricObject;	//	geometric base object
+class GridObject;	//	geometric base object
 class VertexBase;		//	base for all 0-dimensional grid objects.
 class EdgeBase;			//	base for all 1-dimensional grid objects.
 class Face;				//	base for all 2-dimensional grid objects.
@@ -116,19 +115,19 @@ template<> class attachment_traits<Volume*, ElementStorage<Volume> >;
 /**
  * \brief Geometric objects are the building blocks of a grid.
  *
- * \defgroup lib_grid_geometric_objects geometric objects
+ * \defgroup lib_grid_grid_objects geometric objects
  * \ingroup lib_grid
  */
 ////////////////////////////////////////////////////////////////////////
-//	GeometricObject
+//	GridObject
 ///	The base class for all geometric objects, such as vertices, edges, faces, volumes, ...
 /**
- * In order to be used by libGrid, all derivatives of GeometricObject
+ * In order to be used by libGrid, all derivatives of GridObject
  * have to specialize geometry_traits<GeomObjectType>.
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
-class UG_API GeometricObject/* : public SmallObject<>*/
+class UG_API GridObject/* : public SmallObject<>*/
 {
 	friend class Grid;
 	friend class attachment_traits<VertexBase*, ElementStorage<VertexBase> >;
@@ -137,11 +136,11 @@ class UG_API GeometricObject/* : public SmallObject<>*/
 	friend class attachment_traits<Volume*, ElementStorage<Volume> >;
 
 	public:
-		virtual ~GeometricObject()	{}
+		virtual ~GridObject()	{}
 
 	///	create an instance of the derived type
 	/**	Make sure to overload this method in derivates of this class!*/
-		virtual GeometricObject* create_empty_instance() const {return NULL;}
+		virtual GridObject* create_empty_instance() const {return NULL;}
 
 		virtual int container_section() const = 0;
 		virtual int base_object_id() const = 0;
@@ -186,13 +185,13 @@ class UG_API GeometricObject/* : public SmallObject<>*/
  * They are the geometric objects of lowest dimension.
  * All other geometric objects of higher dimension reference vertices.
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
-class UG_API VertexBase : public GeometricObject
+class UG_API VertexBase : public GridObject
 {
 	friend class Grid;
 	public:
-		typedef VertexBase geometric_base_object;
+		typedef VertexBase grid_base_object;
 
 	//	lower dimensional Base Object
 		typedef void lower_dim_base_object;
@@ -216,7 +215,7 @@ class UG_API VertexBase : public GeometricObject
 		static const size_t NUM_VERTICES = 1;
 
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<VertexBase*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<VertexBase*>(pObj) != NULL;}
 
 		virtual ~VertexBase()	{}
 
@@ -276,15 +275,15 @@ class UG_API EdgeVertices
  * EdgeBase is the base class of all 1-dimensional geometric objects.
  * Edges connect two vertices.
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
-class UG_API EdgeBase : public GeometricObject, public EdgeVertices
+class UG_API EdgeBase : public GridObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
 		typedef VertexBase* const* ConstVertexArray;
 
-		typedef EdgeBase geometric_base_object;
+		typedef EdgeBase grid_base_object;
 
 	//	lower dimensional Base Object
 		typedef VertexBase lower_dim_base_object;
@@ -305,7 +304,7 @@ class UG_API EdgeBase : public GeometricObject, public EdgeVertices
 		static const size_t NUM_VERTICES = 2;
 
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}
 
 		virtual ~EdgeBase()	{}
 
@@ -391,15 +390,15 @@ class UG_API FaceVertices
  * You can not create an instance of Face. grids are constructed from derivatives of face.
  * The vertices of a face have always to be specified in counterclockwise order!
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
-class UG_API Face : public GeometricObject, public FaceVertices
+class UG_API Face : public GridObject, public FaceVertices
 {
 	friend class Grid;
 	public:
 		typedef VertexBase* const* ConstVertexArray;
 
-		typedef Face geometric_base_object;
+		typedef Face grid_base_object;
 
 	//	lower dimensional Base Object
 		typedef EdgeBase lower_dim_base_object;
@@ -417,7 +416,7 @@ class UG_API Face : public GeometricObject, public FaceVertices
 		static const int BASE_OBJECT_ID = FACE;
 
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Face*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Face*>(pObj) != NULL;}
 
 		virtual ~Face()	{}
 
@@ -451,10 +450,10 @@ class UG_API Face : public GeometricObject, public FaceVertices
 		virtual bool get_opposing_side(EdgeVertices* e, EdgeDescriptor& edOut) const	{return false;}
 
 	///	returns an index to the obbject, which lies on the opposite side of the face to the given vertex.
-	/**	The method returs a pair <GeometricBaseObject, int>, where GeometricBaseObject
+	/**	The method returs a pair <GridBaseObjectId, int>, where GridBaseObjectId
 	 * is either VERTEX or EDGE and where the second entry specifies the local index
 	 * of the object in the given face.*/
-		virtual std::pair<GeometricBaseObject, int>
+		virtual std::pair<GridBaseObjectId, int>
 		get_opposing_object(VertexBase* vrt) const	{UG_THROW("Base method not implemented.");}
 
 	///	returns the local index of the specified edge.
@@ -612,15 +611,15 @@ class UG_API VolumeVertices
  * for compile-time method selection by dummy-parameters.
  * It is cruical that derived classes overload those methods.
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
-class UG_API Volume : public GeometricObject, public VolumeVertices
+class UG_API Volume : public GridObject, public VolumeVertices
 {
 	friend class Grid;
 	public:
 		typedef VertexBase* const* ConstVertexArray;
 
-		typedef Volume geometric_base_object;
+		typedef Volume grid_base_object;
 
 	//	lower dimensional Base Object
 		typedef Face lower_dim_base_object;
@@ -639,7 +638,7 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 		static const int BASE_OBJECT_ID = VOLUME;
 
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Volume*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Volume*>(pObj) != NULL;}
 
 		virtual ~Volume()	{}
 
@@ -682,10 +681,10 @@ class UG_API Volume : public GeometricObject, public VolumeVertices
 		virtual bool get_opposing_side(FaceVertices* f, FaceDescriptor& fdOut) const	{return false;}
 
 	///	returns an index to the obbject, which lies on the opposite side of the volume to the given vertex.
-	/**	The method returs a pair <GeometricBaseObject, int>, where GeometricBaseObject
+	/**	The method returs a pair <GridBaseObjectId, int>, where GridBaseObjectId
 	 * is either VERTEX, EDGE, or FACE and where the second entry specifies the local index
 	 * of the object in the given volume.*/
-		virtual std::pair<GeometricBaseObject, int>
+		virtual std::pair<GridBaseObjectId, int>
 		get_opposing_object(VertexBase* vrt) const	{UG_THROW("Base method not implemented.");}
 
 	///	returns the local index of the given face or -1, if the face is not part of the volume.

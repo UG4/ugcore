@@ -58,21 +58,21 @@ class IIntegrand
 	/// \{
 		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
+		                    GridObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<1> vLocIP[],
 		                    const MathMatrix<1, worldDim> vJT[],
 		                    const size_t numIP) = 0;
 		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
+		                    GridObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<2> vLocIP[],
 		                    const MathMatrix<2, worldDim> vJT[],
 		                    const size_t numIP) = 0;
 		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
+		                    GridObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<3> vLocIP[],
 		                    const MathMatrix<3, worldDim> vJT[],
@@ -108,7 +108,7 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
 	/// \{
 		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
+		                    GridObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<1> vLocIP[],
 		                    const MathMatrix<1, worldDim> vJT[],
@@ -118,7 +118,7 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
 		}
 		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
+		                    GridObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<2> vLocIP[],
 		                    const MathMatrix<2, worldDim> vJT[],
@@ -128,7 +128,7 @@ class StdIntegrand : public IIntegrand<TData, TWorldDim>
 		}
 		virtual void values(TData vValue[],
 		                    const MathVector<worldDim> vGlobIP[],
-		                    GeometricObject* pElem,
+		                    GridObject* pElem,
 	                        const MathVector<worldDim> vCornerCoords[],
 		                    const MathVector<3> vLocIP[],
 		                    const MathMatrix<3, worldDim> vJT[],
@@ -186,7 +186,7 @@ number Integrate(TConstIterator iterBegin,
 
 //	this is the base element type (e.g. Face). This is the type when the
 //	iterators above are dereferenciated.
-	typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+	typedef typename domain_traits<dim>::grid_base_object grid_base_object;
 
 //	get quad type
 	if(quadType.empty()) quadType = "best";
@@ -196,7 +196,7 @@ number Integrate(TConstIterator iterBegin,
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get element
-		geometric_base_object* pElem = *iter;
+		grid_base_object* pElem = *iter;
 
 	//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 		ReferenceObjectID roid = (ReferenceObjectID) pElem->reference_object_id();
@@ -271,14 +271,14 @@ number IntegrateSubset(SmartPtr<IIntegrand<number, TGridFunction::dim> > spInteg
                        int si, int quadOrder, std::string quadType)
 {
 //	integrate elements of subset
-	typedef typename TGridFunction::template dim_traits<dim>::geometric_base_object geometric_base_object;
+	typedef typename TGridFunction::template dim_traits<dim>::grid_base_object grid_base_object;
 	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
 
 	spIntegrand->set_subset(si);
 
 	return Integrate<TGridFunction::dim,dim,const_iterator>
-					(spGridFct->template begin<geometric_base_object>(si),
-	                 spGridFct->template end<geometric_base_object>(si),
+					(spGridFct->template begin<grid_base_object>(si),
+	                 spGridFct->template end<grid_base_object>(si),
 	                 spGridFct->domain()->position_accessor(),
 	                 *spIntegrand,
 	                 quadOrder, quadType);
@@ -403,7 +403,7 @@ class UserDataIntegrand
 		template <int elemDim>
 		void evaluate(TData vValue[],
 		              const MathVector<worldDim> vGlobIP[],
-		              GeometricObject* pElem,
+		              GridObject* pElem,
 		              const MathVector<worldDim> vCornerCoords[],
 		              const MathVector<elemDim> vLocIP[],
 		              const MathMatrix<elemDim, worldDim> vJT[],
@@ -608,7 +608,7 @@ class L2ErrorIntegrand
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vGlobIP[],
-		              GeometricObject* pElem,
+		              GridObject* pElem,
 		              const MathVector<worldDim> vCornerCoords[],
 		              const MathVector<elemDim> vLocIP[],
 		              const MathMatrix<elemDim, worldDim> vJT[],
@@ -782,16 +782,16 @@ class L2DiffIntegrand
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vFineGlobIP[],
-		              GeometricObject* pFineElem,
+		              GridObject* pFineElem,
 		              const MathVector<worldDim> vCornerCoords[],
 		              const MathVector<elemDim> vFineLocIP[],
 		              const MathMatrix<elemDim, worldDim> vJT[],
 		              const size_t numIP)
 		{
-			typedef typename TGridFunction::template dim_traits<elemDim>::geometric_base_object Element;
+			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
 
 			//	get coarse element
-			GeometricObject* pCoarseElem = pFineElem;
+			GridObject* pCoarseElem = pFineElem;
 			if(m_coarseTopLevel < m_fineTopLevel){
 				int parentLevel = m_spMG->get_level(pCoarseElem);
 				while(parentLevel > m_coarseTopLevel){
@@ -975,7 +975,7 @@ class H1ErrorIntegrand
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vGlobIP[],
-		              GeometricObject* pElem,
+		              GridObject* pElem,
 		              const MathVector<worldDim> vCornerCoords[],
 		              const MathVector<elemDim> vLocIP[],
 		              const MathMatrix<elemDim, worldDim> vJT[],
@@ -1171,16 +1171,16 @@ class H1DiffIntegrand
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vFineGlobIP[],
-		              GeometricObject* pFineElem,
+		              GridObject* pFineElem,
 		              const MathVector<worldDim> vCornerCoords[],
 		              const MathVector<elemDim> vFineLocIP[],
 		              const MathMatrix<elemDim, worldDim> vJT[],
 		              const size_t numIP)
 		{
-			typedef typename TGridFunction::template dim_traits<elemDim>::geometric_base_object Element;
+			typedef typename TGridFunction::template dim_traits<elemDim>::grid_base_object Element;
 
 			//	get coarse element
-			GeometricObject* pCoarseElem = pFineElem;
+			GridObject* pCoarseElem = pFineElem;
 			if(m_coarseTopLevel < m_fineTopLevel){
 				int parentLevel = m_spMG->get_level(pCoarseElem);
 				while(parentLevel > m_coarseTopLevel){
@@ -1362,7 +1362,7 @@ class L2FuncIntegrand
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vGlobIP[],
-		              GeometricObject* pElem,
+		              GridObject* pElem,
 		              const MathVector<worldDim> vCornerCoords[],
 		              const MathVector<elemDim> vLocIP[],
 		              const MathMatrix<elemDim, worldDim> vJT[],
@@ -1496,7 +1496,7 @@ class StdFuncIntegrand
 		template <int elemDim>
 		void evaluate(number vValue[],
 		              const MathVector<worldDim> vGlobIP[],
-		              GeometricObject* pElem,
+		              GridObject* pElem,
 		              const MathVector<worldDim> vCornerCoords[],
 		              const MathVector<elemDim> vLocIP[],
 		              const MathMatrix<elemDim, worldDim> vJT[],
@@ -1556,7 +1556,7 @@ number StdFuncIntegralOnVertex(SmartPtr<TGridFunction> spGridFct,
 							   int si)
 {
 //	integrate elements of subset
-	typedef typename TGridFunction::template dim_traits<0>::geometric_base_object geometric_base_object;
+	typedef typename TGridFunction::template dim_traits<0>::grid_base_object grid_base_object;
 	typedef typename TGridFunction::template dim_traits<0>::const_iterator const_iterator;
 
 	//	reset the result
@@ -1564,14 +1564,14 @@ number StdFuncIntegralOnVertex(SmartPtr<TGridFunction> spGridFct,
 
 //	note: this iterator is for the base elements, e.g. Face and not
 //			for the special type, e.g. Triangle, Quadrilateral
-	const_iterator iter = spGridFct->template begin<geometric_base_object>(si);
-	const_iterator iterEnd = spGridFct->template end<geometric_base_object>(si);
+	const_iterator iter = spGridFct->template begin<grid_base_object>(si);
+	const_iterator iterEnd = spGridFct->template end<grid_base_object>(si);
 
 // 	iterate over all elements
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get element
-		geometric_base_object* pElem = *iter;
+		grid_base_object* pElem = *iter;
 
 		std::vector<DoFIndex> ind;  // 	aux. index array
 		spGridFct->dof_indices(pElem, fct, ind);
@@ -1686,7 +1686,7 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 
 //	this is the base element type (e.g. Face). This is the type when the
 //	iterators above are dereferenciated.
-	typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+	typedef typename domain_traits<dim>::grid_base_object grid_base_object;
 
 //	create a FV1 Geometry
 	DimFV1Geometry<dim> geo;
@@ -1709,7 +1709,7 @@ number IntegralNormalComponentOnManifoldUsingFV1Geom(TConstIterator iterBegin,
 	for(; iter != iterEnd; ++iter)
 	{
 	//	get element
-		geometric_base_object* pElem = *iter;
+		grid_base_object* pElem = *iter;
 
 	//	get all corner coordinates
 		CollectCornerCoordinates(vCorner, *pElem, aaPos, true);
@@ -1904,7 +1904,7 @@ number IntegralNormalComponentOnManifoldSubset(SmartPtr<IIntegrand<MathVector<TG
                                  int si, const SubsetGroup& bndSSGrp, int quadOrder)
 {
 //	integrate elements of subset
-	typedef typename TGridFunction::template dim_traits<dim>::geometric_base_object geometric_base_object;
+	typedef typename TGridFunction::template dim_traits<dim>::grid_base_object grid_base_object;
 	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
 	static const int WorldDim = TGridFunction::dim;
 
@@ -1912,16 +1912,16 @@ number IntegralNormalComponentOnManifoldSubset(SmartPtr<IIntegrand<MathVector<TG
 
 	if(quadOrder == 1)
 		return IntegralNormalComponentOnManifoldUsingFV1Geom<WorldDim,dim,const_iterator>
-					(spGridFct->template begin<geometric_base_object>(si),
-	                 spGridFct->template end<geometric_base_object>(si),
+					(spGridFct->template begin<grid_base_object>(si),
+	                 spGridFct->template end<grid_base_object>(si),
 	                 spGridFct->domain()->position_accessor(),
 	                 spGridFct->domain()->subset_handler().get(),
 	                 *spIntegrand, bndSSGrp);
 	else{
 		UG_LOG(" #### IntegralNormalComponentOnManifoldSubset ####:\n")
 		return IntegralNormalComponentOnManifoldGeneral<WorldDim,dim,const_iterator>
-					(spGridFct->template begin<geometric_base_object>(si),
-	                 spGridFct->template end<geometric_base_object>(si),
+					(spGridFct->template begin<grid_base_object>(si),
+	                 spGridFct->template end<grid_base_object>(si),
 	                 spGridFct->domain()->position_accessor(),
 	                 spGridFct->domain()->subset_handler().get(),
 	                 *spIntegrand, bndSSGrp, quadOrder, *spGridFct->domain()->grid());
@@ -2159,12 +2159,12 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 		static const int dim = TGridFunction::dim;
 
 	//	integrate elements of subset
-		typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
+		typedef typename domain_traits<dim>::grid_base_object grid_base_object;
 
 	//	get iterators for all elems on subset
 		typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
-		const_iterator iter = u.template begin<geometric_base_object>();
-		const_iterator iterEnd = u.template end<geometric_base_object>();
+		const_iterator iter = u.template begin<grid_base_object>();
+		const_iterator iterEnd = u.template end<grid_base_object>();
 
 	//	create a FV1 Geometry
 		DimFV1Geometry<dim> geo;
@@ -2187,7 +2187,7 @@ number IntegrateNormalGradientOnManifold(TGridFunction& u, const char* cmp,
 		for( ; iter != iterEnd; ++iter)
 		{
 		//	get element
-			geometric_base_object* elem = *iter;
+			grid_base_object* elem = *iter;
 
 		//	get all corner coordinates
 			CollectCornerCoordinates(vCorner, *elem, u.domain()->position_accessor(), true);

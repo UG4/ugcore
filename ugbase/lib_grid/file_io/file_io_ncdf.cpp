@@ -60,7 +60,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	out << "\tnum_el_blk = " << sh.num_subsets() << " ;" << endl;
 
 	for(int i = 0; i < sh.num_subsets(); ++i){
-		GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(i);
+		GridObjectCollection goc = sh.get_grid_objects_in_subset(i);
 		out << "\tnum_el_in_blk" << i+1 << " = " << goc.num<Tetrahedron>() << " ;" << endl;
 		out << "\tnum_nod_per_el" << i+1 << " = 4 ;" << endl;
 	}
@@ -119,7 +119,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 //	write elements
 	for(int i = 0; i < sh.num_subsets(); ++i){
 	//	get the goc for this subset
-		GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(i);
+		GridObjectCollection goc = sh.get_grid_objects_in_subset(i);
 
 		out << "connect" << i+1 << " =" << endl;
 		for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){

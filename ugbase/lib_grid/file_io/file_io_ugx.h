@@ -14,7 +14,7 @@
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/tools/selector_interface.h"
 #include "lib_grid/common_attachments.h"
-#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/grid_objects/grid_objects.h"
 
 namespace ug
 {

@@ -33,40 +33,40 @@ namespace bridge
  * \{
  */
 
-///	Wrapper object that simplifies script creation
-class GridObject : public Grid
-{
-	public:
-		GridObject() : Grid(GRIDOPT_STANDARD_INTERCONNECTION), m_sh(*this)	{}
-		inline Grid& grid()	{return *this;}
-		inline SubsetHandler& subset_handler()	{return m_sh;}
-		
-	protected:
-		SubsetHandler m_sh;
-};
-
-bool LoadGridObject(GridObject& go, const char* filename)
-{
-	PROFILE_FUNC_GROUP("grid");
-	return LoadGridFromFile(go.grid(), go.subset_handler(), filename);
-}
-
-bool SaveGridObject(GridObject& go, const char* filename)
-{
-	PROFILE_FUNC_GROUP("grid");
-	return SaveGridToFile(go.grid(), go.subset_handler(), filename);
-}
-
-GridObject* CreateGridObject(const char* filename)
-{
-	PROFILE_FUNC_GROUP("grid");
-	GridObject* go = new GridObject;
-	if(!LoadGridObject(*go, filename)){
-		delete go;
-		return NULL;
-	}
-	return go;
-}
+/////	Wrapper object that simplifies script creation
+//class GridObject : public Grid
+//{
+//	public:
+//		GridObject() : Grid(GRIDOPT_STANDARD_INTERCONNECTION), m_sh(*this)	{}
+//		inline Grid& grid()	{return *this;}
+//		inline SubsetHandler& subset_handler()	{return m_sh;}
+//
+//	protected:
+//		SubsetHandler m_sh;
+//};
+//
+//bool LoadGridObject(GridObject& go, const char* filename)
+//{
+//	PROFILE_FUNC_GROUP("grid");
+//	return LoadGridFromFile(go.grid(), go.subset_handler(), filename);
+//}
+//
+//bool SaveGridObject(GridObject& go, const char* filename)
+//{
+//	PROFILE_FUNC_GROUP("grid");
+//	return SaveGridToFile(go.grid(), go.subset_handler(), filename);
+//}
+//
+//GridObject* CreateGridObject(const char* filename)
+//{
+//	PROFILE_FUNC_GROUP("grid");
+//	GridObject* go = new GridObject;
+//	if(!LoadGridObject(*go, filename)){
+//		delete go;
+//		return NULL;
+//	}
+//	return go;
+//}
 
 bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 					number scaleFac, size_t numIterations)
@@ -382,11 +382,11 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 	string grp = groupString.str();
 	try{
 	//	Geometric Objects
-		reg.add_class_<GeometricObject>("GeometricObject", grp);
-		reg.add_class_<VertexBase, GeometricObject>("Vertex", grp);
-		reg.add_class_<EdgeBase, GeometricObject>("Edge", grp);
-		reg.add_class_<Face, GeometricObject>("Face", grp);
-		reg.add_class_<Volume, GeometricObject>("Volume", grp);
+		reg.add_class_<GridObject>("GridObject", grp);
+		reg.add_class_<VertexBase, GridObject>("Vertex", grp);
+		reg.add_class_<EdgeBase, GridObject>("Edge", grp);
+		reg.add_class_<Face, GridObject>("Face", grp);
+		reg.add_class_<Volume, GridObject>("Volume", grp);
 
 		reg.add_function("IsValid", &IsValidPtr<VertexBase>, grp);
 		reg.add_function("IsValid", &IsValidPtr<EdgeBase>, grp);
@@ -567,11 +567,11 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.set_construct_as_smart_pointer(true);
 
 	//	GridObject
-		reg.add_class_<GridObject, Grid>("GridObject", grp)
-			.add_constructor()
-			.add_method("grid", &GridObject::grid)
-			.add_method("subset_handler", &GridObject::subset_handler)
-			.set_construct_as_smart_pointer(true);
+//		reg.add_class_<GridObject, Grid>("GridObject", grp)
+//			.add_constructor()
+//			.add_method("grid", &GridObject::grid)
+//			.add_method("subset_handler", &GridObject::subset_handler)
+//			.set_construct_as_smart_pointer(true);
 
 	//	Grid functions
 		reg.add_function("CreateFractal", &CreateFractal, grp)
@@ -601,10 +601,10 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 					"", "grid#sh#filename")
 			.add_function("SaveGrid", static_cast<bool (*)(Grid&, const char*)>(&SaveGrid), grp,
 					"", "grid#filename")
-			.add_function("LoadGridObject", &LoadGridObject, grp,
-					"", "go#filename")
-			.add_function("SaveGridObject", &SaveGridObject, grp,
-					"", "go#filename")
+//			.add_function("LoadGridObject", &LoadGridObject, grp,
+//					"", "go#filename")
+//			.add_function("SaveGridObject", &SaveGridObject, grp,
+//					"", "go#filename")
 			.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp,
 					"", "mg#filename")
 			.add_function("SaveGridHierarchyTransformed",
@@ -618,7 +618,7 @@ void RegisterBridge_Grid(Registry& reg, string parentGroup)
 			.add_function("SaveParallelGridLayout", &SaveParallelGridLayout,
 					grp, "", "mg#filename#offset")
 			.add_function("SaveSurfaceViewTransformed", &SaveSurfaceViewTransformed)
-			.add_function("CreateGridObject", &CreateGridObject, grp)
+//			.add_function("CreateGridObject", &CreateGridObject, grp)
 			.add_function("PrintGridElementNumbers", static_cast<void (*)(MultiGrid&)>(&PrintGridElementNumbers), grp)
 			.add_function("PrintGridElementNumbers", static_cast<void (*)(Grid&)>(&PrintGridElementNumbers), grp);
 

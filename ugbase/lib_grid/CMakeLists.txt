@@ -12,9 +12,9 @@ project(P_LIB_GRID)
 include("../../cmake/ug_includes.cmake")
 
 set(srcGrid		grid/grid.cpp
-				grid/geometric_base_objects.cpp
+				grid/grid_base_objects.cpp
 				grid/grid_connection_managment.cpp
-				grid/geometric_object_collection.cpp
+				grid/grid_object_collection.cpp
 				grid/grid_util.cpp
 				grid/neighborhood.cpp)
 				
@@ -85,14 +85,14 @@ set(srcLibGrid	common_attachments.cpp
 				tools/partition_map.cpp
 				tools/periodic_boundary_manager.cpp
 				tools/grid_level.cpp
-				geometric_objects/geometric_objects_1d.cpp
-				geometric_objects/geometric_objects_2d.cpp
-				geometric_objects/geometric_objects_3d.cpp
-				geometric_objects/tetrahedron_rules.cpp
-				geometric_objects/pyramid_rules.cpp
-				geometric_objects/prism_rules.cpp
-				geometric_objects/hexahedron_rules.cpp
-				geometric_objects/rule_util.cpp
+				grid_objects/grid_objects_1d.cpp
+				grid_objects/grid_objects_2d.cpp
+				grid_objects/grid_objects_3d.cpp
+				grid_objects/tetrahedron_rules.cpp
+				grid_objects/pyramid_rules.cpp
+				grid_objects/prism_rules.cpp
+				grid_objects/hexahedron_rules.cpp
+				grid_objects/rule_util.cpp
 				multi_grid.cpp
 				lib_grid_messages.cpp
 				)

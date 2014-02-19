@@ -13,7 +13,7 @@
 
 #include "local_finite_element_id.h"
 #include "lib_disc/reference_element/reference_element_traits.h"
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 
 namespace ug{
 

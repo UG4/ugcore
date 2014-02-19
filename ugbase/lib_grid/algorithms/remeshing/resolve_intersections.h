@@ -50,7 +50,7 @@ bool ResolveEdgeFaceIntersection(Grid& grid, EdgeBase* e, Face* f,
  */
 template <class TAAPosVRT>
 bool ProjectVerticesToCloseEdges(Grid& grid,
-								 GeometricObjectCollection elems,
+								 GridObjectCollection elems,
 								 TAAPosVRT& aaPos,
 								 number snapThreshold);
 
@@ -59,7 +59,7 @@ bool ProjectVerticesToCloseEdges(Grid& grid,
  */
 template <class TAAPosVRT>
 bool ProjectVerticesToCloseFaces(Grid& grid,
-								 GeometricObjectCollection elems,
+								 GridObjectCollection elems,
 								 TAAPosVRT& aaPos,
 								 number snapThreshold);
 
@@ -68,7 +68,7 @@ bool ProjectVerticesToCloseFaces(Grid& grid,
  * than snapThreshold.*/
 template <class TAAPosVRT>
 bool IntersectCloseEdges(Grid& grid,
-						 GeometricObjectCollection elems,
+						 GridObjectCollection elems,
 						 TAAPosVRT& aaPos,
 						 number snapThreshold);
 

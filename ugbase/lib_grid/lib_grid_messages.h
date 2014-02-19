@@ -6,7 +6,7 @@
 #define __H__UG__lib_grid_messages__
 
 #include "common/util/message_hub.h"
-#include "lib_grid/grid/geometric_object_collection.h"
+#include "lib_grid/grid/grid_object_collection.h"
 #include "lib_grid/algorithms/serialization.h"
 
 namespace ug
@@ -66,7 +66,7 @@ class GridMessage_Adaption : public MessageHub::IMessage
 			m_adaptionType(adaptionType)	{}
 
 		GridMessage_Adaption(GridMessageAdaptionType adaptionType,
-							 const GeometricObjectCollection& affectedElements) :
+							 const GridObjectCollection& affectedElements) :
 			m_adaptionType(adaptionType),
 			m_affectedElements(affectedElements){}
 
@@ -119,11 +119,11 @@ class GridMessage_Adaption : public MessageHub::IMessage
 	 *			Note that elements may be marked during coarsening which actually have children
 	 *			themselves, even if not all of those children are removed during coarsening
 	 *			(e.g. edges which are replaced by constraining edges).*/
-		const GeometricObjectCollection& affected_elements() const {return m_affectedElements;}
+		const GridObjectCollection& affected_elements() const {return m_affectedElements;}
 
 	protected:
 		GridMessageAdaptionType		m_adaptionType;
-		GeometricObjectCollection	m_affectedElements;
+		GridObjectCollection	m_affectedElements;
 };
 
 

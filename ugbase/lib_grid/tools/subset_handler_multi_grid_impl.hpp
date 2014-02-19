@@ -216,7 +216,7 @@ MultiGridSubsetHandler::
 section_container(int si, int lvl)
 {
 	Subset* sub = subset(si, lvl);
-	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TElem>::grid_base_object>::
 			section_container(sub->m_vertices, sub->m_edges, sub->m_faces, sub->m_volumes);
 }
 
@@ -227,7 +227,7 @@ MultiGridSubsetHandler::
 section_container(int si, int lvl) const
 {
 	const Subset* sub = subset(si, lvl);
-	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TElem>::grid_base_object>::
 			section_container(sub->m_vertices, sub->m_edges, sub->m_faces, sub->m_volumes);
 }
 

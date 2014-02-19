@@ -20,9 +20,9 @@ namespace ug{
 class TransferValueAccessor
 {
 	public:
-		virtual void access_inner(GeometricObject* elem) = 0;
+		virtual void access_inner(GridObject* elem) = 0;
 
-		virtual void access_closure(GeometricObject* elem) = 0;
+		virtual void access_closure(GridObject* elem) = 0;
 
 		virtual ~TransferValueAccessor() {}
 
@@ -60,7 +60,7 @@ class IElemProlongation
 			m_vValueParent = vValueParent;
 		}
 
-		virtual bool perform_prolongation_on(GeometricBaseObject gbo) = 0;
+		virtual bool perform_prolongation_on(GridBaseObjectId gbo) = 0;
 
 		virtual void prolongate(VertexBase* parent) = 0;
 		virtual void prolongate(EdgeBase* parent) = 0;
@@ -127,7 +127,7 @@ class IElemRestriction
 			m_vValueParent = vValueParent;
 		}
 
-		virtual bool perform_restriction_on(GeometricBaseObject gbo) = 0;
+		virtual bool perform_restriction_on(GridBaseObjectId gbo) = 0;
 
 		virtual void do_restrict(VertexBase* parent) = 0;
 		virtual void do_restrict(EdgeBase* parent) = 0;

@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISC__QUADRATURE_PROVIDER__
 #define __H__UG__LIB_DISC__QUADRATURE_PROVIDER__
 
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 #include "quadrature.h"
 
 

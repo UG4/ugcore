@@ -13,7 +13,7 @@
 #include <sstream>
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 
 namespace ug{
 

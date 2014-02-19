@@ -31,7 +31,7 @@ namespace ug{
 class DomainInfo
 {
 	public:
-		inline GeometricBaseObject element_type()	const			{return m_elementType;}
+		inline GridBaseObjectId element_type()	const			{return m_elementType;}
 		inline size_t num_levels() const							{return m_numElems.size();}
 	///	returns the global number of elements on the given level (excluding ghosts...)
 		inline int num_elements_on_level(size_t lvl) const			{return m_numElems[lvl];}
@@ -49,7 +49,7 @@ class DomainInfo
 		inline int subset_dim(int si) const
 			{return m_subsetDims[si];}
 
-		inline void set_info(GeometricBaseObject elemType,
+		inline void set_info(GridBaseObjectId elemType,
 								const std::vector<int>& numElems,
 								const std::vector<int>& numLocalElems,
 								const std::vector<int>& minNumLocalElems,
@@ -67,7 +67,7 @@ class DomainInfo
 		std::string to_string() const;
 
 	private:
-		GeometricBaseObject	m_elementType;
+		GridBaseObjectId	m_elementType;
 		std::vector<int>	m_numElems;
 		std::vector<int>	m_numLocalElems;///< local number of elements excluding ghosts.
 		std::vector<int>	m_minNumLocalElems;

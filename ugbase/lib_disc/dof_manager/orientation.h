@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISC__DOF_MANAGER__ORIENTATION__
 
 #include <vector>
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 #include "lib_disc/local_finite_element/local_finite_element_id.h"
 
 namespace ug{
@@ -36,7 +36,7 @@ namespace ug{
  */
 /// \{
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,
-                              GeometricObject* Elem, GeometricObject* SubElem, size_t nrSub,
+                              GridObject* Elem, GridObject* SubElem, size_t nrSub,
                               const LFEID& lfeid);
 
 void ComputeOrientationOffset(std::vector<size_t>& vOrientOffset,

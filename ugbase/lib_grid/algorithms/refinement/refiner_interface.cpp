@@ -8,7 +8,7 @@
 
 namespace ug{
 
-bool IRefiner::mark(GeometricObject* o, RefinementMark refMark)
+bool IRefiner::mark(GridObject* o, RefinementMark refMark)
 {
 	switch(o->base_object_id()){
 		case VERTEX:	return mark(static_cast<VertexBase*>(o), refMark);
@@ -19,7 +19,7 @@ bool IRefiner::mark(GeometricObject* o, RefinementMark refMark)
 	return false;
 }
 
-RefinementMark IRefiner::get_mark(GeometricObject* o)
+RefinementMark IRefiner::get_mark(GridObject* o)
 {
 	switch(o->base_object_id()){
 		case VERTEX:	return get_mark(static_cast<VertexBase*>(o));

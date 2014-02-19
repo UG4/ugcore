@@ -27,7 +27,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 	case EDGE:
 	{
 	//	in a parallel environment, the parent may be missing...
-		GeometricObject* constrainingObject = hgVrt->get_constraining_object();
+		GridObject* constrainingObject = hgVrt->get_constraining_object();
 		if(constrainingObject){
 		//	cast to constraining edge
 			ConstrainingEdge* constrainingEdge =
@@ -79,7 +79,7 @@ void CollectConstraining(std::vector<VertexBase*>& vConstrainingVrt,
 	case FACE:
 	{
 	//	in a parallel environment, the parent may be missing...
-		GeometricObject* constrainingObject = hgVrt->get_constraining_object();
+		GridObject* constrainingObject = hgVrt->get_constraining_object();
 		if(constrainingObject){
 		//	cast to constraining quadrilateral
 			ConstrainingQuadrilateral* bigQuad =

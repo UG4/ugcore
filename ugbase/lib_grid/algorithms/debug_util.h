@@ -19,7 +19,7 @@ namespace ug
  */
 
 ///	prints how many elements of each type exist in the goc.
-void PrintElementNumbers(const GeometricObjectCollection& goc);
+void PrintElementNumbers(const GridObjectCollection& goc);
 
 ///	prints how many elements of each type exist in the grid.
 void PrintGridElementNumbers(Grid& grid);
@@ -45,13 +45,13 @@ void PrintAttachmentInfo(Grid& grid);
  * regardless of the actual dimension of the position attachment. Unused
  * coordinates are set to 0.
  *
- * TElem has to be derived from GeometricObject
+ * TElem has to be derived from GridObject
  *
  * \{
  */
 template <class TElem>
-vector3 GetGeometricObjectCenter(Grid& g, TElem* elem);
-inline vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem);
+vector3 GetGridObjectCenter(Grid& g, TElem* elem);
+inline vector3 GetGridObjectCenter(Grid& g, GridObject* elem);
 /** \} */
 
 
@@ -65,7 +65,7 @@ void WriteDebugValuesToFile(const char* filename, Grid& grid,
 /**	Runtime O(n). Returns -1 if the element could not be found.
  * \note: The all elements of the same base-type are considered during counting.*/
 template <class TElem>
-int GetGeometricObjectIndex(Grid& g, TElem* elem);
+int GetGridObjectIndex(Grid& g, TElem* elem);
 
 
 ///	Checks whether parent child connections in a multi-grid are correct

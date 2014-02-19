@@ -52,7 +52,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		template <typename TElem>
 		struct traits
 		{
-			typedef TElem geometric_object;
+			typedef TElem grid_object;
 			typedef typename SurfaceView::traits<TElem>::iterator iterator;
 			typedef typename SurfaceView::traits<TElem>::const_iterator const_iterator;
 		};
@@ -60,9 +60,9 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		template <int dim>
 		struct dim_traits
 		{
-			typedef typename domain_traits<dim>::geometric_base_object geometric_base_object;
-			typedef typename SurfaceView::traits<geometric_base_object>::iterator iterator;
-			typedef typename SurfaceView::traits<geometric_base_object>::const_iterator const_iterator;
+			typedef typename domain_traits<dim>::grid_base_object grid_base_object;
+			typedef typename SurfaceView::traits<grid_base_object>::iterator iterator;
+			typedef typename SurfaceView::traits<grid_base_object>::const_iterator const_iterator;
 		};
 
 		/// iterator for elements where dofs are defined
@@ -190,7 +190,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		 * \param[in]		bHang		flag if extracting of constrained dofs required
 		 */
 		/// \{
-		void indices(GeometricObject* elem, LocalIndices& ind, bool bHang = false) const;
+		void indices(GridObject* elem, LocalIndices& ind, bool bHang = false) const;
 		void indices(VertexBase* elem, LocalIndices& ind, bool bHang = false) const;
 		void indices(EdgeBase* elem, LocalIndices& ind, bool bHang = false) const;
 		void indices(Face* elem, LocalIndices& ind, bool bHang = false) const;
@@ -215,7 +215,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		 * \param[in]		bClear		flag if vector has to be clear before insertion
 		 */
 		/// \{
-		size_t dof_indices(GeometricObject* elem, size_t fct, std::vector<DoFIndex>& ind,
+		size_t dof_indices(GridObject* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                   bool bHang = false, bool bClear = true) const;
 		size_t dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                   bool bHang = false, bool bClear = true) const;
@@ -241,7 +241,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		 * \param[in]		bClear		flag if vector has to be clear before insertion
 		 */
 		/// \{
-		size_t inner_dof_indices(GeometricObject* elem, size_t fct, std::vector<DoFIndex>& ind,
+		size_t inner_dof_indices(GridObject* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                         bool bClear = true) const;
 		size_t inner_dof_indices(VertexBase* elem, size_t fct, std::vector<DoFIndex>& ind,
 		                         bool bClear = true) const;
@@ -265,7 +265,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		 * \param[in]		bClear		flag if vector has to be clear before insertion
 		 */
 		/// \{
-		size_t algebra_indices(GeometricObject* elem,	std::vector<size_t>& ind,
+		size_t algebra_indices(GridObject* elem,	std::vector<size_t>& ind,
 		                       bool bClear = true) const;
 		size_t algebra_indices(VertexBase* elem, std::vector<size_t>& ind,
 		                       bool bClear = true) const;
@@ -277,7 +277,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		                       bool bClear = true) const;
 		/// \}
 
-		size_t inner_algebra_indices_for_fct(GeometricObject* elem, std::vector<size_t>& ind,
+		size_t inner_algebra_indices_for_fct(GridObject* elem, std::vector<size_t>& ind,
 							bool bClear, int fct) const;
 
 		/// extracts all algebra indices in the inner of the element (not sorted)
@@ -292,7 +292,7 @@ class DoFDistribution : public DoFDistributionInfoProvider
 		 * \param[in]		bClear		flag if vector has to be clear before insertion
 		 */
 		/// \{
-		size_t inner_algebra_indices(GeometricObject* elem, std::vector<size_t>& ind,
+		size_t inner_algebra_indices(GridObject* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;
 		size_t inner_algebra_indices(VertexBase* elem, std::vector<size_t>& ind,
 		                             bool bClear = true) const;

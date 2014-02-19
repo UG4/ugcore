@@ -368,14 +368,14 @@ void Grid::assign_grid(const Grid& grid)
 }
 
 
-VertexBaseIterator Grid::create_by_cloning(VertexBase* pCloneMe, GeometricObject* pParent)
+VertexBaseIterator Grid::create_by_cloning(VertexBase* pCloneMe, GridObject* pParent)
 {
 	VertexBase* pNew = reinterpret_cast<VertexBase*>(pCloneMe->create_empty_instance());
 	register_vertex(pNew, pParent);
 	return iterator_cast<VertexBaseIterator>(get_iterator(pNew));
 }
 
-EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GeometricObject* pParent)
+EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GridObject* pParent)
 {
 	EdgeBase* pNew = reinterpret_cast<EdgeBase*>(pCloneMe->create_empty_instance());
 	pNew->set_vertex(0, ev.vertex(0));
@@ -384,7 +384,7 @@ EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices&
 	return iterator_cast<EdgeBaseIterator>(get_iterator(pNew));
 }
 
-FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GeometricObject* pParent)
+FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GridObject* pParent)
 {
 	Face* pNew = reinterpret_cast<Face*>(pCloneMe->create_empty_instance());
 	uint numVrts = fv.num_vertices();
@@ -395,7 +395,7 @@ FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, Geo
 	return iterator_cast<FaceIterator>(get_iterator(pNew));
 }
 
-VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GeometricObject* pParent)
+VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GridObject* pParent)
 {
 	Volume* pNew = reinterpret_cast<Volume*>(pCloneMe->create_empty_instance());
 	uint numVrts = vv.num_vertices();
@@ -408,7 +408,7 @@ VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& v
 
 ////////////////////////////////////////////////////////////////////////
 //	erase functions
-void Grid::erase(GeometricObject* geomObj)
+void Grid::erase(GridObject* geomObj)
 {
 	assert(geomObj->container_section() != -1
 			&& "ERROR in Grid::erase(Vertex*). Invalid pipe section!");
@@ -476,9 +476,9 @@ void Grid::erase(Volume* vol)
 }
 
 //	the geometric-object-collection:
-GeometricObjectCollection Grid::get_geometric_objects()
+GridObjectCollection Grid::get_grid_objects()
 {
-	return GeometricObjectCollection(&m_vertexElementStorage.m_sectionContainer,
+	return GridObjectCollection(&m_vertexElementStorage.m_sectionContainer,
 									 &m_edgeElementStorage.m_sectionContainer,
 									 &m_faceElementStorage.m_sectionContainer,
 									 &m_volumeElementStorage.m_sectionContainer);
@@ -579,10 +579,10 @@ size_t Grid::volume_fragmentation()
 }
 
 
-GeometricObject* Grid::
+GridObject* Grid::
 get_opposing_object(VertexBase* vrt, Face* elem)
 {
-	std::pair<GeometricBaseObject, int> id = elem->get_opposing_object(vrt);
+	std::pair<GridBaseObjectId, int> id = elem->get_opposing_object(vrt);
 	switch(id.first){
 		case VERTEX:
 			return elem->vertex(id.second);
@@ -594,10 +594,10 @@ get_opposing_object(VertexBase* vrt, Face* elem)
 	}
 }
 
-GeometricObject* Grid::
+GridObject* Grid::
 get_opposing_object(VertexBase* vrt, Volume* elem)
 {
-	std::pair<GeometricBaseObject, int> id = elem->get_opposing_object(vrt);
+	std::pair<GridBaseObjectId, int> id = elem->get_opposing_object(vrt);
 	switch(id.first){
 		case VERTEX:
 			return elem->vertex(id.second);

@@ -15,7 +15,7 @@
 #include "grid/grid_util.h"
 #include "grid/neighborhood.h"
 #include "multi_grid.h"
-#include "geometric_objects/geometric_objects.h"
+#include "grid_objects/grid_objects.h"
 #include "common_attachments.h"
 #include "selector.h"
 #include "subset_handler.h"

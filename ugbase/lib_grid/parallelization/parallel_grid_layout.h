@@ -10,8 +10,8 @@
 #include <map>
 #include <algorithm>
 #include "pcl/pcl_communication_structs.h"
-#include "lib_grid/grid/geometric_base_objects.h"
-#include "geometric_object_id.h"
+#include "lib_grid/grid/grid_base_objects.h"
+#include "grid_object_id.h"
 
 //	specialize pcl::type_traits for VertexBase, EdgeBase, Face and Volume
 namespace pcl

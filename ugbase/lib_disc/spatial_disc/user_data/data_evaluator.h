@@ -56,47 +56,47 @@ class DataEvaluator
 		////////////////////////////////////////////
 
 	///	prepares the element for all time-dependent IElemDiscs
-		void prepare_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void prepare_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	prepares the element loop for all IElemDiscs
 		void prepare_elem_loop(const ReferenceObjectID id, int si);
 
 	///	prepares the element for all IElemDiscs
-		void prepare_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[],
+		void prepare_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[],
 		                  const LocalIndices& ind, bool bDeriv = false);
 
 	///	finishes the element loop for all IElemDiscs
 		void finish_elem_loop();
 
 	///	finishes the element for all time-dependent IElemDiscs
-		void finish_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void finish_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	compute local stiffness matrix for all IElemDiscs
-		void add_jac_A_elem(LocalMatrix& A, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_jac_A_elem(LocalMatrix& A, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local mass matrix for all IElemDiscs
-		void add_jac_M_elem(LocalMatrix& M, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_jac_M_elem(LocalMatrix& M, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local stiffness defect for all IElemDiscs
-		void add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local stiffness defect for all IElemDiscs explicit
-		void add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local mass defect for all IElemDiscs
-		void add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 
 	///	compute local rhs for all IElemDiscs
-		void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
+		void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[], ProcessType type = PT_ALL);
 		
 	///	prepares the element loop for all IElemDiscs for the computation of the error estimator
 		void prepare_err_est_elem_loop(const ReferenceObjectID id, int si);
 
 	///	compute contributions of the local error indicators in one element for all IElemDiscs
-		void compute_elem_err_est(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind);
+		void compute_elem_err_est(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind);
 
 	///	summarize contributions of the local error indicators in one element for all IElemDiscs
-		number get_elem_err_est(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind);
+		number get_elem_err_est(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const LocalIndices& ind);
 
 	///	finishes the error estimator element loop for all IElemDiscs
 		void finish_err_est_elem_loop();

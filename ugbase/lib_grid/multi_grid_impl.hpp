@@ -115,7 +115,7 @@ inline void MultiGrid::level_required(int lvl)
 
 
 template <class TChild>
-size_t MultiGrid::num_children(GeometricObject* elem) const
+size_t MultiGrid::num_children(GridObject* elem) const
 {
 	switch(elem->base_object_id()){
 	case VERTEX:	return num_children<TChild>(static_cast<VertexBase*>(elem));
@@ -127,7 +127,7 @@ size_t MultiGrid::num_children(GeometricObject* elem) const
 }
 
 template <class TChild>
-TChild* MultiGrid::get_child(GeometricObject* elem, size_t ind) const
+TChild* MultiGrid::get_child(GridObject* elem, size_t ind) const
 {
 	switch(elem->base_object_id()){
 	case VERTEX:	return get_child<TChild>(static_cast<VertexBase*>(elem), ind);
@@ -148,13 +148,13 @@ clear_child_connections(TElem* parent)
 
 template <class TElem>
 void MultiGrid::
-associate_parent(TElem* elem, GeometricObject* parent)
+associate_parent(TElem* elem, GridObject* parent)
 {
 	if(elem->base_object_id() > parent->base_object_id()){
 		UG_THROW("Dimension of parent too low.");
 	}
 
-	GeometricObject* oldParent = get_parent(elem);
+	GridObject* oldParent = get_parent(elem);
 	if(oldParent == parent)
 		return;
 
@@ -243,7 +243,7 @@ void MultiGrid::add_child(TParent* p, TChild* c)
 }
 
 template <class TChild>
-void MultiGrid::add_child(GeometricObject* p, TChild* c)
+void MultiGrid::add_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
 	case VERTEX:	add_child(static_cast<VertexBase*>(p), c); break;
@@ -260,7 +260,7 @@ void MultiGrid::remove_child(TParent* p, TChild* c)
 }
 
 template <class TChild>
-void MultiGrid::remove_child(GeometricObject* p, TChild* c)
+void MultiGrid::remove_child(GridObject* p, TChild* c)
 {
 	switch(p->base_object_id()){
 	case VERTEX:	remove_child(static_cast<VertexBase*>(p), c); break;

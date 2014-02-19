@@ -6,34 +6,34 @@
 #define __H__LIB_GRID__GEOMETRIC_OBJECT_COLLECTION_IMPL__
 
 #include <cassert>
-#include "geometric_object_collection.h"
+#include "grid_object_collection.h"
 #include "element_storage.h"
 
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-//	GeometricObjectCollection
+//	GridObjectCollection
 
 ////////////////////////////////////////////////////////////////////////
 //	get_container
 
 template <class TGeomObj> inline
-const typename ElementStorage<typename geometry_traits<TGeomObj>::geometric_base_object>::
+const typename ElementStorage<typename geometry_traits<TGeomObj>::grid_base_object>::
 SectionContainer*
-GeometricObjectCollection::get_container(size_t level) const
+GridObjectCollection::get_container(size_t level) const
 {
-	return SectionContainerSelector<typename geometry_traits<TGeomObj>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TGeomObj>::grid_base_object>::
 			section_container(m_levels[level].vrtContainer, m_levels[level].edgeContainer,
 							  m_levels[level].faceContainer, m_levels[level].volContainer);
 }
 
 template <class TGeomObj> inline
-typename ElementStorage<typename geometry_traits<TGeomObj>::geometric_base_object>::
+typename ElementStorage<typename geometry_traits<TGeomObj>::grid_base_object>::
 SectionContainer*
-GeometricObjectCollection::get_container(size_t level)
+GridObjectCollection::get_container(size_t level)
 {
-	return SectionContainerSelector<typename geometry_traits<TGeomObj>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TGeomObj>::grid_base_object>::
 			section_container(m_levels[level].vrtContainer, m_levels[level].edgeContainer,
 							  m_levels[level].faceContainer, m_levels[level].volContainer);
 }
@@ -42,7 +42,7 @@ GeometricObjectCollection::get_container(size_t level)
 //	begin
 template <class TGeomObj>
 typename geometry_traits<TGeomObj>::const_iterator
-GeometricObjectCollection::begin(size_t level) const
+GridObjectCollection::begin(size_t level) const
 {
 	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
 		(get_container<TGeomObj>(level)->section_begin(
@@ -53,7 +53,7 @@ GeometricObjectCollection::begin(size_t level) const
 //	end
 template <class TGeomObj>
 typename geometry_traits<TGeomObj>::const_iterator
-GeometricObjectCollection::end(size_t level) const
+GridObjectCollection::end(size_t level) const
 {
 	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
 		(get_container<TGeomObj>(level)->section_end(
@@ -64,7 +64,7 @@ GeometricObjectCollection::end(size_t level) const
 //	begin
 template <class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
-GeometricObjectCollection::begin(size_t level)
+GridObjectCollection::begin(size_t level)
 {
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
 		(get_container<TGeomObj>(level)->section_begin(
@@ -75,7 +75,7 @@ GeometricObjectCollection::begin(size_t level)
 //	end
 template <class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
-GeometricObjectCollection::end(size_t level)
+GridObjectCollection::end(size_t level)
 {
 	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
 		(get_container<TGeomObj>(level)->section_end(
@@ -86,7 +86,7 @@ GeometricObjectCollection::end(size_t level)
 //	element numbers
 template <class TGeomObj>
 size_t
-GeometricObjectCollection::num(size_t level) const
+GridObjectCollection::num(size_t level) const
 {
 	int secIndex = geometry_traits<TGeomObj>::CONTAINER_SECTION;
 
@@ -96,10 +96,10 @@ GeometricObjectCollection::num(size_t level) const
 	return get_container<TGeomObj>(level)->num_elements(secIndex);
 }
 
-//	GeometricObjectCollection
+//	GridObjectCollection
 template <class TGeomObj>
 size_t
-GeometricObjectCollection::num() const
+GridObjectCollection::num() const
 {
 	size_t counter = 0;
 	for(size_t i = 0; i < m_levels.size(); ++i)

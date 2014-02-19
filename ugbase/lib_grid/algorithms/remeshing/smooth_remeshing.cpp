@@ -112,7 +112,7 @@ class IPatchRemesher : public ILocalRemesher{
 	private:
 		class ProjectedPoint{
 			int 				patchID;
-			GeometricObject* 	elem;
+			GridObject* 	elem;
 			vector2				barycentricCoords;
 		};
 

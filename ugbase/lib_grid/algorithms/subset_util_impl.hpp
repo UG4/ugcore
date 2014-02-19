@@ -299,7 +299,7 @@ template <class TAAPosVRT>
 number FaceArea(ISubsetHandler& sh, int si, size_t lvl, TAAPosVRT& aaPos)
 {
 	number sum = 0.;
-	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
+	GridObjectCollection goc = sh.get_grid_objects_in_subset(si);
 
 	if (goc.num<Face>(lvl) == 0) {
 		UG_WARNING("WARNING: Given subset doesn't contain any faces on given level.");

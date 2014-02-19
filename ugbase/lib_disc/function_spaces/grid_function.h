@@ -114,7 +114,7 @@ class GridFunction
 		template <typename TElem>
 		struct traits
 		{
-			typedef typename DoFDistribution::traits<TElem>::geometric_object geometric_object;
+			typedef typename DoFDistribution::traits<TElem>::grid_object grid_object;
 			typedef typename DoFDistribution::traits<TElem>::iterator iterator;
 			typedef typename DoFDistribution::traits<TElem>::const_iterator const_iterator;
 		};
@@ -122,16 +122,16 @@ class GridFunction
 		template <int dim>
 		struct dim_traits
 		{
-			typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object geometric_base_object;
+			typedef typename DoFDistribution::dim_traits<dim>::grid_base_object grid_base_object;
 			typedef typename DoFDistribution::dim_traits<dim>::iterator iterator;
 			typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
 		};
 
-		typedef typename dim_traits<dim>::geometric_base_object element_type;
+		typedef typename dim_traits<dim>::grid_base_object element_type;
 		typedef typename dim_traits<dim>::iterator element_iterator;
 		typedef typename dim_traits<dim>::const_iterator const_element_iterator;
 
-		typedef typename dim_traits<dim-1>::geometric_base_object side_type;
+		typedef typename dim_traits<dim-1>::grid_base_object side_type;
 		typedef typename dim_traits<dim-1>::iterator side_iterator;
 		typedef typename dim_traits<dim-1>::const_iterator const_side_iterator;
 

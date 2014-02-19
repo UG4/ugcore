@@ -2,13 +2,13 @@
 // s.b.reiter@googlemail.com
 // 23.12.2011 (m,d,y)
 
-#ifndef __H__UG__geometric_objects_1d__
-#define __H__UG__geometric_objects_1d__
+#ifndef __H__UG__grid_objects_1d__
+#define __H__UG__grid_objects_1d__
 
 #include "../grid/grid.h"
 #include "common/math/ugmath.h"
 #include "common/assert.h"
-#include "geometric_objects_0d.h"
+#include "grid_objects_0d.h"
 
 namespace ug
 {
@@ -32,13 +32,13 @@ enum EdgeContainerSections
 /**
  * The most commonly used edge-type.
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
 class UG_API Edge : public EdgeBase
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Edge*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<Edge*>(pObj) != NULL;}
 
 		Edge()	{}
 		Edge(VertexBase* v1, VertexBase* v2)
@@ -55,7 +55,7 @@ class UG_API Edge : public EdgeBase
 
 		virtual ~Edge()	{}
 
-		virtual GeometricObject* create_empty_instance() const	{return new Edge;}
+		virtual GridObject* create_empty_instance() const	{return new Edge;}
 
 		virtual int container_section() const	{return CSEDGE_EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
@@ -84,12 +84,12 @@ template <>
 class geometry_traits<Edge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Edge*, EdgeBaseIterator>			iterator;
-		typedef ConstGenericGeometricObjectIterator<Edge*, EdgeBaseIterator,
+		typedef GenericGridObjectIterator<Edge*, EdgeBaseIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<Edge*, EdgeBaseIterator,
 														ConstEdgeBaseIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
-		typedef EdgeBase		geometric_base_object;
+		typedef EdgeBase		grid_base_object;
 
 		enum
 		{
@@ -112,13 +112,13 @@ typedef geometry_traits<Edge>::const_iterator 	ConstEdgeIterator;
  * Treat them with care, since they are referenced by other objects,
  * i.e. \sa ConstrainingEdge
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
 class UG_API ConstrainedEdge : public EdgeBase
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainedEdge*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainedEdge*>(pObj) != NULL;}
 
 		ConstrainedEdge() : m_pConstrainingObject(NULL), m_parentBaseObjectId(-1)	{}
 		ConstrainedEdge(VertexBase* v1, VertexBase* v2) :
@@ -139,7 +139,7 @@ class UG_API ConstrainedEdge : public EdgeBase
 
 		virtual ~ConstrainedEdge()	{}
 
-		virtual GeometricObject* create_empty_instance() const	{return new ConstrainedEdge;}
+		virtual GridObject* create_empty_instance() const	{return new ConstrainedEdge;}
 
 		virtual int container_section() const	{return CSEDGE_CONSTRAINED_EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
@@ -169,14 +169,14 @@ class UG_API ConstrainedEdge : public EdgeBase
 					VertexBase* newVertex,
 					VertexBase** pSubstituteVrts = NULL);
 
-		inline void set_constraining_object(GeometricObject* pObj)
+		inline void set_constraining_object(GridObject* pObj)
 		{
 			m_pConstrainingObject = pObj;
 			if(pObj)
 				m_parentBaseObjectId = pObj->base_object_id();
 		}
 
-		inline GeometricObject* get_constraining_object()	{return m_pConstrainingObject;}
+		inline GridObject* get_constraining_object()	{return m_pConstrainingObject;}
 
 		inline int get_parent_base_object_id()				{return m_parentBaseObjectId;}
 		inline void set_parent_base_object_id(int id)
@@ -192,7 +192,7 @@ class UG_API ConstrainedEdge : public EdgeBase
 
 
 	protected:
-		GeometricObject*	m_pConstrainingObject;
+		GridObject*	m_pConstrainingObject;
 		int					m_parentBaseObjectId;
 };
 
@@ -200,12 +200,12 @@ template <>
 class geometry_traits<ConstrainedEdge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainedEdge*, EdgeBaseIterator>		iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainedEdge*, EdgeBaseIterator,
+		typedef GenericGridObjectIterator<ConstrainedEdge*, EdgeBaseIterator>		iterator;
+		typedef ConstGenericGridObjectIterator<ConstrainedEdge*, EdgeBaseIterator,
 																ConstEdgeBaseIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
-		typedef EdgeBase		geometric_base_object;
+		typedef EdgeBase		grid_base_object;
 
 		enum
 		{
@@ -227,13 +227,13 @@ typedef geometry_traits<ConstrainedEdge>::const_iterator 	ConstConstrainedEdgeIt
  * Edges of this type appear during hanging-vertex-refinement.
  * Treat with care.
  *
- * \ingroup lib_grid_geometric_objects
+ * \ingroup lib_grid_grid_objects
  */
 class UG_API ConstrainingEdge : public EdgeBase
 {
 	friend class Grid;
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainingEdge*>(pObj) != NULL;}
+		inline static bool type_match(GridObject* pObj)	{return dynamic_cast<ConstrainingEdge*>(pObj) != NULL;}
 
 		ConstrainingEdge()	{}
 		ConstrainingEdge(VertexBase* v1, VertexBase* v2)
@@ -254,7 +254,7 @@ class UG_API ConstrainingEdge : public EdgeBase
 
 		virtual ~ConstrainingEdge()	{}
 
-		virtual GeometricObject* create_empty_instance() const	{return new ConstrainingEdge;}
+		virtual GridObject* create_empty_instance() const	{return new ConstrainingEdge;}
 
 		virtual int container_section() const	{return CSEDGE_CONSTRAINING_EDGE;}
 		virtual ReferenceObjectID reference_object_id() const {return ROID_EDGE;}
@@ -364,12 +364,12 @@ template <>
 class geometry_traits<ConstrainingEdge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainingEdge*, EdgeBaseIterator>			iterator;
-		typedef ConstGenericGeometricObjectIterator<ConstrainingEdge*, EdgeBaseIterator,
+		typedef GenericGridObjectIterator<ConstrainingEdge*, EdgeBaseIterator>			iterator;
+		typedef ConstGenericGridObjectIterator<ConstrainingEdge*, EdgeBaseIterator,
 																	ConstEdgeBaseIterator>	const_iterator;
 
 		typedef EdgeDescriptor	Descriptor;
-		typedef EdgeBase		geometric_base_object;
+		typedef EdgeBase		grid_base_object;
 
 		enum
 		{

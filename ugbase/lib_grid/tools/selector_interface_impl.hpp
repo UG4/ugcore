@@ -25,7 +25,7 @@ inline void ISelector::select(TElem* elem, byte status){
 		deselect(elem);
 }
 
-inline void ISelector::select(GeometricObject* elem, byte status){
+inline void ISelector::select(GridObject* elem, byte status){
 	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:
@@ -65,7 +65,7 @@ inline void ISelector::deselect(TElem* elem){
 	}
 }
 
-inline void ISelector::deselect(GeometricObject* elem){
+inline void ISelector::deselect(GridObject* elem){
 	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:
@@ -94,7 +94,7 @@ inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
 }
 
 
-byte ISelector::get_selection_status(GeometricObject* elem) const{
+byte ISelector::get_selection_status(GridObject* elem) const{
 	int elemID = elem->base_object_id();
 	switch(elemID){
 		case VERTEX:

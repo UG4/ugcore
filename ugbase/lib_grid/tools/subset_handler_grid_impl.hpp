@@ -232,7 +232,7 @@ GridSubsetHandler::
 section_container(int si)
 {
 	Subset* sub = m_subsets[si];
-	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TElem>::grid_base_object>::
 			section_container(sub->m_vertices, sub->m_edges, sub->m_faces, sub->m_volumes);
 }
 
@@ -243,7 +243,7 @@ GridSubsetHandler::
 section_container(int si) const
 {
 	const Subset* sub = m_subsets[si];
-	return SectionContainerSelector<typename geometry_traits<TElem>::geometric_base_object>::
+	return SectionContainerSelector<typename geometry_traits<TElem>::grid_base_object>::
 			section_container(sub->m_vertices, sub->m_edges, sub->m_faces, sub->m_volumes);
 }
 

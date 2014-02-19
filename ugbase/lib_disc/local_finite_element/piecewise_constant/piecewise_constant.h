@@ -9,7 +9,7 @@
 #define __H__UG__LIB_DISC__LOCAL_SHAPE_FUNCTION_SET__PIECEWISE_CONSTANT__
 
 #include "common/util/provider.h"
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 #include "lib_disc/local_finite_element/local_dof_set.h"
 #include "lib_disc/reference_element/reference_element_util.h"
 

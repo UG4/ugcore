@@ -98,7 +98,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 template <int TWorldDim, int TRefDim>
 void
 DimFEGeometry<TWorldDim,TRefDim>::
-update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
+update(GridObject* pElem, const MathVector<worldDim>* vCorner,
 		const LFEID& lfeID, size_t orderQuad)
 {
 //	check if same element
@@ -136,7 +136,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
 template <int TWorldDim, int TRefDim>
 void
 DimFEGeometry<TWorldDim,TRefDim>::
-update_boundary_faces(GeometricObject* pElem,
+update_boundary_faces(GridObject* pElem,
                       const MathVector<worldDim>* vCornerCoords,
                       size_t quadOrder,
                       const ISubsetHandler* ish)

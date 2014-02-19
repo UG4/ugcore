@@ -2,21 +2,21 @@
 // y09 m07 d31
 // s.b.reiter@googlemail.com
 
-#include "geometric_object_collection.h"
+#include "grid_object_collection.h"
 
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-//	GeometricObjectCollection
-GeometricObjectCollection::
-GeometricObjectCollection(size_t levelEstimate)
+//	GridObjectCollection
+GridObjectCollection::
+GridObjectCollection(size_t levelEstimate)
 {
 	m_levels.reserve(levelEstimate);
 }
 
-GeometricObjectCollection::
-GeometricObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
+GridObjectCollection::
+GridObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
 							ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 							ElementStorage<Face>::SectionContainer* faceCon,
 							ElementStorage<Volume>::SectionContainer* volCon)
@@ -25,23 +25,23 @@ GeometricObjectCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
 	add_level(vrtCon, edgeCon, faceCon, volCon);
 }
 
-GeometricObjectCollection::
-GeometricObjectCollection(const GeometricObjectCollection& mgoc)
+GridObjectCollection::
+GridObjectCollection(const GridObjectCollection& mgoc)
 {
 	assign(mgoc);
 }
 
-GeometricObjectCollection&
-GeometricObjectCollection::
-operator =(const GeometricObjectCollection& mgoc)
+GridObjectCollection&
+GridObjectCollection::
+operator =(const GridObjectCollection& mgoc)
 {
 	assign(mgoc);
 	return *this;
 }
 
 void
-GeometricObjectCollection::
-assign(const GeometricObjectCollection& mgoc)
+GridObjectCollection::
+assign(const GridObjectCollection& mgoc)
 {
 	m_levels.resize(mgoc.num_levels());
 	for(size_t i = 0; i < m_levels.size(); ++i)
@@ -49,7 +49,7 @@ assign(const GeometricObjectCollection& mgoc)
 }
 
 void
-GeometricObjectCollection::
+GridObjectCollection::
 add_level(ElementStorage<VertexBase>::SectionContainer* vrtCon,
 			ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 			ElementStorage<Face>::SectionContainer* faceCon,
@@ -62,7 +62,7 @@ add_level(ElementStorage<VertexBase>::SectionContainer* vrtCon,
 }
 
 
-GeometricObjectCollection::ContainerCollection::
+GridObjectCollection::ContainerCollection::
 ContainerCollection(ElementStorage<VertexBase>::SectionContainer* vrtCon,
 					ElementStorage<EdgeBase>::SectionContainer* edgeCon,
 					ElementStorage<Face>::SectionContainer* faceCon,

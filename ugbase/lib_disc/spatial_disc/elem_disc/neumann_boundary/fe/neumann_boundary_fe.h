@@ -118,11 +118,11 @@ class NeumannBoundaryFE
 		template<typename TElem, typename TFEGeom>
 		void prep_elem_loop(const ReferenceObjectID roid, const int si);
 		template<typename TElem, typename TFEGeom>
-		void prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		template<typename TElem, typename TFEGeom>
 		void finish_elem_loop();
 		template<typename TElem, typename TFEGeom>
-		void add_rhs_elem(LocalVector& d, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 	/// \}
 
 		static const int _C_ = 0;

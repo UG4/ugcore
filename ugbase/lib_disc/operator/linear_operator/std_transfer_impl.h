@@ -53,7 +53,7 @@ assemble_prolongation_p1(matrix_type& P,
 			VertexBase* child = *iter;
 
 		//  get father
-			GeometricObject* parent = mg.get_parent(child);
+			GridObject* parent = mg.get_parent(child);
 
 		//	check if child contained in coarseDD. This should always be false
 		//	for a GridLevel::LEVEL, but might be the case for GridLevel::SURFACE
@@ -177,7 +177,7 @@ assemble_prolongation(matrix_type& P,
 			TChild* child = *iter;
 
 		//	get parent
-			GeometricObject* parent = mg.get_parent(child);
+			GridObject* parent = mg.get_parent(child);
 
 		//	check if child contained in coarseDD. This should always be false
 		//	for a GridLevel::LEVEL, but might be the case for GridLevel::SURFACE
@@ -236,7 +236,7 @@ assemble_prolongation(matrix_type& P,
 					{
 					//	get dimension of parent
 						const int parentDim = parent->base_object_id();
-						std::vector<GeometricObject*> vParent;
+						std::vector<GridObject*> vParent;
 
 					//	check if to interpolate from neighbor elems
 						if(parentDim == lfeID.dim()){
@@ -367,7 +367,7 @@ assemble_restriction(matrix_type& R,
 			TChild* child = *iter;
 
 		//	get parent
-			GeometricObject* parent = mg.get_parent(child);
+			GridObject* parent = mg.get_parent(child);
 
 		//	check if child contained in coarseDD. This should always be false
 		//	for a GridLevel::LEVEL, but might be the case for GridLevel::SURFACE
@@ -426,7 +426,7 @@ assemble_restriction(matrix_type& R,
 					{
 					//	get dimension of parent
 						const int parentDim = parent->base_object_id();
-						std::vector<GeometricObject*> vParent;
+						std::vector<GridObject*> vParent;
 
 					//	check if to interpolate from neighbor elems
 						if(parentDim == lfeID.dim()){

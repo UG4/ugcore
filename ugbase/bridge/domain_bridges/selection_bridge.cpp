@@ -56,7 +56,7 @@ void SelectAssociatedElements(ISelector& sel, bool bSelect, bool selectVrts,
 										 : ISelector::DESELECTED;
 
 
-	GeometricObjectCollection goc = sel.get_geometric_objects();
+	GridObjectCollection goc = sel.get_grid_objects();
 
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 		if(selectVrts){

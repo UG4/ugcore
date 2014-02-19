@@ -15,7 +15,7 @@ namespace ug
 {
 
 template <class TElem>
-vector3 GetGeometricObjectCenter(Grid& g, TElem* elem)
+vector3 GetGridObjectCenter(Grid& g, TElem* elem)
 {
 	if(g.has_vertex_attachment(aPosition)){
 		Grid::VertexAttachmentAccessor<APosition> aaPos(g, aPosition);
@@ -32,18 +32,18 @@ vector3 GetGeometricObjectCenter(Grid& g, TElem* elem)
 		return vector3(v.x(), 0, 0);
 	}
 
-	UG_LOG("GetGeometricObjectCenter failed! No standard position attachment found.\n");
+	UG_LOG("GetGridObjectCenter failed! No standard position attachment found.\n");
 	return vector3(0, 0, 0);
 }
 
 
-inline vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem)
+inline vector3 GetGridObjectCenter(Grid& g, GridObject* elem)
 {
 	switch(elem->base_object_id()){
-		case VERTEX:	return GetGeometricObjectCenter(g, static_cast<VertexBase*>(elem));
-		case EDGE:		return GetGeometricObjectCenter(g, static_cast<EdgeBase*>(elem));
-		case FACE:		return GetGeometricObjectCenter(g, static_cast<Face*>(elem));
-		case VOLUME:	return GetGeometricObjectCenter(g, static_cast<Volume*>(elem));
+		case VERTEX:	return GetGridObjectCenter(g, static_cast<VertexBase*>(elem));
+		case EDGE:		return GetGridObjectCenter(g, static_cast<EdgeBase*>(elem));
+		case FACE:		return GetGridObjectCenter(g, static_cast<Face*>(elem));
+		case VOLUME:	return GetGridObjectCenter(g, static_cast<Volume*>(elem));
 		default:		UG_THROW("Unknown base object type."); break;
 	}
 	return vector3(0, 0, 0);
@@ -51,7 +51,7 @@ inline vector3 GetGeometricObjectCenter(Grid& g, GeometricObject* elem)
 
 
 template <class TElem>
-int GetGeometricObjectIndex(Grid& g, TElem* elem)
+int GetGridObjectIndex(Grid& g, TElem* elem)
 {
 	typedef typename Grid::traits<TElem>::base_object TBase;
 
@@ -82,13 +82,13 @@ void WriteDebugValuesToFile(const char* filename, Grid& grid,
 
 	size_t row = 1;
 	if(levelWise){
-		GeometricObjectCollection goc = grid.get_geometric_objects();
+		GridObjectCollection goc = grid.get_grid_objects();
 		for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 			for(typename Grid::traits<TElem>::iterator iter = goc.begin<TElem>(lvl);
 				iter != goc.end<TElem>(lvl); ++iter, ++row)
 			{
 				table(row, 0) << lvl;
-				table(row, 1) << GetGeometricObjectCenter(grid, *iter);
+				table(row, 1) << GetGridObjectCenter(grid, *iter);
 				table(row, 2) << aaVal[*iter];
 			}
 		}
@@ -99,7 +99,7 @@ void WriteDebugValuesToFile(const char* filename, Grid& grid,
 			iter != grid.end<TElem>(); ++iter, ++row)
 		{
 			table(row, 0) << mg.get_level(*iter);
-			table(row, 1) << GetGeometricObjectCenter(grid, *iter);
+			table(row, 1) << GetGridObjectCenter(grid, *iter);
 			table(row, 2) << aaVal[*iter];
 		}
 	}
@@ -108,7 +108,7 @@ void WriteDebugValuesToFile(const char* filename, Grid& grid,
 			iter != grid.end<TElem>(); ++iter, ++row)
 		{
 			table(row, 0) << 0;
-			table(row, 1) << GetGeometricObjectCenter(grid, *iter);
+			table(row, 1) << GetGridObjectCenter(grid, *iter);
 			table(row, 2) << aaVal[*iter];
 		}
 	}
@@ -138,7 +138,7 @@ std::string ElementDebugInfo(const Grid& grid, TElem* e)
 		default: ss << "UNKNOWN ELEMENT TYPE"; return ss.str();
 	}
 
-	ss << "at " << GetGeometricObjectCenter(*const_cast<Grid*>(&grid), e) << " ";
+	ss << "at " << GetGridObjectCenter(*const_cast<Grid*>(&grid), e) << " ";
 
 	if(const MultiGrid* mg = dynamic_cast<const MultiGrid*>(&grid)){
 		ss << "on level " << mg->get_level(e);

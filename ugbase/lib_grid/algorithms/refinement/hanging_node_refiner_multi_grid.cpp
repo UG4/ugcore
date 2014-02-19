@@ -326,7 +326,7 @@ template <class TElem>
 void HangingNodeRefiner_MultiGrid::
 restrict_selection_to_coarsen_families()
 {
-	typedef typename TElem::geometric_base_object	TBaseElem;
+	typedef typename TElem::grid_base_object	TBaseElem;
 	MultiGrid& mg = *m_pMG;
 	selector_t& sel = get_refmark_selector();
 
@@ -457,7 +457,7 @@ static void DeselectFamily(ISelector& sel, MultiGrid& mg, Volume* elem)
 		DeselectFamily(sel, mg, mg.get_child<Volume>(elem, i));
 }
 
-static void DeselectFamily(ISelector& sel, MultiGrid& mg, GeometricObject* elem)
+static void DeselectFamily(ISelector& sel, MultiGrid& mg, GridObject* elem)
 {
 	switch(elem->base_object_id()){
 		case VERTEX:	return DeselectFamily(sel, mg, static_cast<VertexBase*>(elem));
@@ -759,7 +759,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //					for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){
 //						if(!sel.is_selected(vols[i_vol]))
 //							continue;
-//						GeometricObject* parent = mg.get_parent(vols[i_vol]);
+//						GridObject* parent = mg.get_parent(vols[i_vol]);
 //						if(parent){
 //							DeselectFamily(sel, mg, parent);
 //							mg.associated_elements(edges, parent);
@@ -797,7 +797,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //					for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 //						if(!sel.is_selected(faces[i_face]))
 //							continue;
-//						GeometricObject* parent = mg.get_parent(faces[i_face]);
+//						GridObject* parent = mg.get_parent(faces[i_face]);
 //						if(parent){
 //							DeselectFamily(sel, mg, parent);
 //							mg.associated_elements(edges, parent);
@@ -895,7 +895,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 ////				in the specified geometric-object-collection.
 //	if(scheduleCoarseningBeginsMessage){
 //		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS,
-//										m_selMarkedElements.get_geometric_objects()));
+//										m_selMarkedElements.get_grid_objects()));
 //	}
 //
 //
@@ -908,7 +908,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //		iter = sel.begin<EdgeBase>(); iter != sel.end<EdgeBase>(); ++iter)
 //	{
 //		EdgeBase* e = *iter;
-//		if(GeometricObject* parent = mg.get_parent(e)){
+//		if(GridObject* parent = mg.get_parent(e)){
 //			bool isConstrained = e->is_constrained();
 //			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
 //			    ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
@@ -923,7 +923,7 @@ static void ParallelLayoutDebugSave(MultiGrid& mg)
 //		iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter)
 //	{
 //		Face* e = *iter;
-//		if(GeometricObject* parent = mg.get_parent(e)){
+//		if(GridObject* parent = mg.get_parent(e)){
 //			bool isConstrained = e->is_constrained();
 //			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
 //			   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
@@ -1082,7 +1082,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 					for(size_t i_vol = 0; i_vol < vols.size(); ++i_vol){
 						if(!sel.is_selected(vols[i_vol]))
 							continue;
-						GeometricObject* parent = mg.get_parent(vols[i_vol]);
+						GridObject* parent = mg.get_parent(vols[i_vol]);
 						if(parent){
 							DeselectFamily(sel, mg, parent);
 							mg.associated_elements(vrts, parent);
@@ -1131,7 +1131,7 @@ debug_save(sel, "coarsen_marks_02_restricted_to_surface_families");
 					for(size_t i_face = 0; i_face < faces.size(); ++i_face){
 						if(!sel.is_selected(faces[i_face]))
 							continue;
-						GeometricObject* parent = mg.get_parent(faces[i_face]);
+						GridObject* parent = mg.get_parent(faces[i_face]);
 						if(parent){
 							DeselectFamily(sel, mg, parent);
 							mg.associated_elements(vrts, parent);
@@ -1271,7 +1271,7 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 //				in the specified geometric-object-collection.
 	if(scheduleCoarseningBeginsMessage){
 		m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_COARSENING_BEGINS,
-										m_selMarkedElements.get_geometric_objects()));
+										m_selMarkedElements.get_grid_objects()));
 	}
 
 
@@ -1284,7 +1284,7 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 		iter = sel.begin<EdgeBase>(); iter != sel.end<EdgeBase>(); ++iter)
 	{
 		EdgeBase* e = *iter;
-		if(GeometricObject* parent = mg.get_parent(e)){
+		if(GridObject* parent = mg.get_parent(e)){
 			bool isConstrained = e->is_constrained();
 			if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
 			    ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
@@ -1300,7 +1300,7 @@ debug_save(sel, "coarsen_marks_04_faces_and_vertices_classified");
 			iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter)
 		{
 			Face* e = *iter;
-			if(GeometricObject* parent = mg.get_parent(e)){
+			if(GridObject* parent = mg.get_parent(e)){
 				bool isConstrained = e->is_constrained();
 				if((isConstrained && (sel.get_selection_status(e) == HNCM_ALL)) ||
 				   ((!isConstrained) && (sel.get_selection_status(*iter) == HNCM_PARTIAL)))
@@ -1553,7 +1553,7 @@ We have to handle elements as follows:
 				elem = cde;
 
 			//	establish connection to constraining element
-				GeometricObject* parent = mg.get_parent(cde);
+				GridObject* parent = mg.get_parent(cde);
 				if(parent){
 					switch(parent->base_object_id()){
 						case EDGE:{
@@ -1672,7 +1672,7 @@ We have to handle elements as follows:
 					break;
 
 			//	associated constrained and constraining elements
-				GeometricObject* parent = mg.get_parent(hv);
+				GridObject* parent = mg.get_parent(hv);
 
 				if(parent){
 				//	the parent may not be a constrained object

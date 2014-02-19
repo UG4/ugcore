@@ -29,7 +29,7 @@ namespace ug
  * Mark inheritance is enabled by default.
  *
  * \todo	Allow to restrict marking to vertices, edges, faces or volumes
- * \todo	Add is_marked, mark, unmark for GeometricObject
+ * \todo	Add is_marked, mark, unmark for GridObject
  * \todo	Refactor to template \<class T\> Marker.
  */
 class BoolMarker : public GridObserver
@@ -72,7 +72,7 @@ class BoolMarker : public GridObserver
 	/**	\} */
 
 
-		bool is_marked(GeometricObject* e) const;
+		bool is_marked(GridObject* e) const;
 		bool is_marked(VertexBase* e) const			{assert(m_pGrid); return m_aaMarkVRT[e];}
 		bool is_marked(EdgeBase* e)	const			{assert(m_pGrid); return m_aaMarkEDGE[e];}
 		bool is_marked(Face* e)	const				{assert(m_pGrid); return m_aaMarkFACE[e];}
@@ -105,19 +105,19 @@ class BoolMarker : public GridObserver
 
 	//	element callbacks
 		virtual void vertex_created(Grid* grid, VertexBase* vrt,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void edge_created(Grid* grid, EdgeBase* e,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void face_created(Grid* grid, Face* f,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void vertices_to_be_merged(Grid* grid, VertexBase* target,

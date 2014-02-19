@@ -66,7 +66,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	VERTICES
 ///	creates and removes connectivity data, as specified in optsNew.
-void Grid::register_vertex(VertexBase* v, GeometricObject* pParent)
+void Grid::register_vertex(VertexBase* v, GridObject* pParent)
 {
 	GCM_PROFILE_FUNC();
 
@@ -447,7 +447,7 @@ void Grid::vertex_store_associated_volumes(bool bStoreIt)
 ////////////////////////////////////////////////////////////////////////
 //	EDGES
 ///	creates and removes connectivity data, as specified in optsNew.
-void Grid::register_edge(EdgeBase* e, GeometricObject* pParent,
+void Grid::register_edge(EdgeBase* e, GridObject* pParent,
 						 Face* createdByFace, Volume* createdByVol)
 {
 	GCM_PROFILE_FUNC();
@@ -891,7 +891,7 @@ void Grid::edge_store_associated_volumes(bool bStoreIt)
 ////////////////////////////////////////////////////////////////////////////////
 //	FACES
 ///	creates and removes connectivity data, as specified in optsNew.
-void Grid::register_face(Face* f, GeometricObject* pParent, Volume* createdByVol)
+void Grid::register_face(Face* f, GridObject* pParent, Volume* createdByVol)
 {
 	GCM_PROFILE_FUNC();
 
@@ -1409,7 +1409,7 @@ void Grid::face_autogenerate_edges(bool bAutogen)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VOLUMES
 ///	creates and removes connectivity data, as specified in optsNew.
-void Grid::register_volume(Volume* v, GeometricObject* pParent)
+void Grid::register_volume(Volume* v, GridObject* pParent)
 {
 	GCM_PROFILE_FUNC();
 

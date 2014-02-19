@@ -57,7 +57,7 @@ void AssembleInjectionForP1Lagrange(typename TAlgebra::matrix_type& mat,
 	for(iter = iterBegin; iter != iterEnd; ++iter)
 	{
 	// 	get father
-		GeometricObject* geomObj = grid.get_parent(*iter);
+		GridObject* geomObj = grid.get_parent(*iter);
 		VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
 
 	//	Check if father is Vertex
@@ -89,7 +89,7 @@ void AssembleInjectionByAverageOfChildren(typename TAlgebra::matrix_type& mat,
 
 // 	Vertex iterators
 	typedef typename DoFDistribution::dim_traits<dim>::const_iterator const_iterator;
-	typedef typename DoFDistribution::dim_traits<dim>::geometric_base_object Element;
+	typedef typename DoFDistribution::dim_traits<dim>::grid_base_object Element;
 	const_iterator iter, iterBegin, iterEnd;
 
 	iterBegin = coarseDD.template begin<Element>();

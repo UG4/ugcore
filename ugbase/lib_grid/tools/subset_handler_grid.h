@@ -114,12 +114,12 @@ class UG_API GridSubsetHandler : public ISubsetHandler
 		void clear_subset_elements(int subsetIndex);
 
 	//	geometric-object-collection
-		virtual GeometricObjectCollection
-		get_geometric_objects_in_subset(int subsetIndex) const;
+		virtual GridObjectCollection
+		get_grid_objects_in_subset(int subsetIndex) const;
 		
 	//	multi-level-geometric-object-collection
-		GeometricObjectCollection
-		get_geometric_objects() const;
+		GridObjectCollection
+		get_grid_objects() const;
 
 	///	collects all vertices that are in the given subset.
 	/**	Please consider using begin and end methods instead.

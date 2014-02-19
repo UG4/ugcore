@@ -41,7 +41,7 @@ void StdDataLinker<TImpl,TData,dim>::
 evaluate(TData vValue[],
 					 const MathVector<dim> vGlobIP[],
 					 number time, int si,
-					 GeometricObject* elem,
+					 GridObject* elem,
 					 const MathVector<dim> vCornerCoords[],
 					 const MathVector<refDim> vLocIP[],
 					 const size_t nip,
@@ -54,7 +54,7 @@ evaluate(TData vValue[],
 
 template <typename TImpl, typename TData, int dim>
 template <int refDim>
-void StdDataLinker<TImpl,TData,dim>::eval_deriv(LocalVector* u, GeometricObject* elem,
+void StdDataLinker<TImpl,TData,dim>::eval_deriv(LocalVector* u, GridObject* elem,
                 const MathVector<dim> vCornerCoords[], bool bDeriv){
 
 	const number t = this->time();
@@ -78,7 +78,7 @@ void StdDataLinker<TImpl,TData,dim>::eval_deriv(LocalVector* u, GeometricObject*
 
 template <typename TImpl, typename TData, int dim>
 void StdDataLinker<TImpl,TData,dim>::
-compute(LocalVector* u, GeometricObject* elem,
+compute(LocalVector* u, GridObject* elem,
         const MathVector<dim> vCornerCoords[], bool bDeriv){
 
 	UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),

@@ -59,7 +59,7 @@ class MultiGrid : public Grid, public GridObserver
 		using Grid::begin;
 		using Grid::end;
 		using Grid::num;
-		using Grid::get_geometric_objects;
+		using Grid::get_grid_objects;
 		using Grid::create;
 		using Grid::create_by_cloning;
 
@@ -79,7 +79,7 @@ class MultiGrid : public Grid, public GridObserver
 	//	element creation
 	///	create a custom element on a specific level.
 	/**
-	 * TGeomObj has to be a geometric object type as described in geometric_base_objects.h.
+	 * TGeomObj has to be a geometric object type as described in grid_base_objects.h.
 	 * This method should only be used if a geometric object has to be created
 	 * without a parent in higher levels of the hierarchy.
 	 * Use the create method derived from ug::Grid if you want to specify a parent.
@@ -166,23 +166,23 @@ class MultiGrid : public Grid, public GridObserver
 		}
 
 	//	geometric-object-collection
-		inline GeometricObjectCollection
-		get_geometric_objects(int level)
-		{return m_hierarchy.get_geometric_objects_in_subset(level);}
+		inline GridObjectCollection
+		get_grid_objects(int level)
+		{return m_hierarchy.get_grid_objects_in_subset(level);}
 		
 	//	multi-level-geometric-object-collection
-		virtual GeometricObjectCollection get_geometric_objects()
-		{return m_hierarchy.get_geometric_objects();}
+		virtual GridObjectCollection get_grid_objects()
+		{return m_hierarchy.get_grid_objects();}
 		
 		template <class TElem> inline
 		int get_level(TElem* elem) const
 		{return m_hierarchy.get_subset_index(elem);}
 
-		GeometricObject* get_parent(GeometricObject* parent) const;
-		inline GeometricObject* get_parent(VertexBase* o) const	{return get_info(o).m_pParent;}
-		inline GeometricObject* get_parent(EdgeBase* o) const	{return get_info(o).m_pParent;}
-		inline GeometricObject* get_parent(Face* o) const		{return m_aaParentFACE[o];}
-		inline GeometricObject* get_parent(Volume* o) const		{return m_aaParentVOL[o];}
+		GridObject* get_parent(GridObject* parent) const;
+		inline GridObject* get_parent(VertexBase* o) const	{return get_info(o).m_pParent;}
+		inline GridObject* get_parent(EdgeBase* o) const	{return get_info(o).m_pParent;}
+		inline GridObject* get_parent(Face* o) const		{return m_aaParentFACE[o];}
+		inline GridObject* get_parent(Volume* o) const		{return m_aaParentVOL[o];}
 
 	//	number of children
 		template <class TElem> inline
@@ -197,7 +197,7 @@ class MultiGrid : public Grid, public GridObserver
 		inline size_t num_children(TElem* elem)	const	{return num_children(elem, TChild());}
 
 		template <class TChild>
-		size_t num_children(GeometricObject* elem)	const;
+		size_t num_children(GridObject* elem)	const;
 	/** \} */
 
 	///	returns the total number of children and grand-children.
@@ -240,7 +240,7 @@ class MultiGrid : public Grid, public GridObserver
 		inline TChild* get_child(TElem* elem, size_t ind) const	{return get_child(elem, ind, TChild());}
 
 		template <class TChild>
-		TChild* get_child(GeometricObject* elem, size_t ind) const;
+		TChild* get_child(GridObject* elem, size_t ind) const;
 	/** \} */
 
 	///	Returns the child vertex of the given element or NULL if there is none
@@ -285,7 +285,7 @@ class MultiGrid : public Grid, public GridObserver
 	 * The method also sets the parent type if a parent is supplied and leaves the
 	 * parent type as it is if none is supplied.*/
 		template <class TElem>
-		void associate_parent(TElem* elem, GeometricObject* parent);
+		void associate_parent(TElem* elem, GridObject* parent);
 
 	///	returns the object-type of the parent of a given object
 		template <class TElem>
@@ -322,7 +322,7 @@ class MultiGrid : public Grid, public GridObserver
 	 *  iterates over the list of children of pParents parent in its
 	 *  vertex_created method, it won't find pParent.*/
 		virtual void vertex_created(Grid* grid, VertexBase* vrt,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 	 /**  In order to correctly register e in the hierarchy, we have to
@@ -331,7 +331,7 @@ class MultiGrid : public Grid, public GridObserver
 	 *  iterates over the list of children of pParents parent in its
 	 *  edge_created method, it won't find pParent.*/
 		virtual void edge_created(Grid* grid, EdgeBase* e,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 	 /**  In order to correctly register f in the hierarchy, we have to
@@ -340,7 +340,7 @@ class MultiGrid : public Grid, public GridObserver
 	 *  iterates over the list of children of pParents parent in its
 	 *  face_created method, it won't find pParent.*/
 		virtual void face_created(Grid* grid, Face* f,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 	 /**  In order to correctly register vol in the hierarchy, we have to
@@ -349,7 +349,7 @@ class MultiGrid : public Grid, public GridObserver
 	 *  iterates over the list of children of pParents parent in its
 	 *  volume_created method, it won't find pParent.*/
 		virtual void volume_created(Grid* grid, Volume* vol,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
@@ -368,7 +368,7 @@ class MultiGrid : public Grid, public GridObserver
 
 	//	Note: VertexInfo and EdgeInfo are stored directly, FaceInfo and
 	//	VolumeInfo are stored dynamically.
-		typedef Attachment<GeometricObject*>	AParent;
+		typedef Attachment<GridObject*>	AParent;
 		typedef Attachment<VertexInfo>			AVertexInfo;
 		typedef Attachment<EdgeInfo>			AEdgeInfo;
 		typedef Attachment<FaceInfo*>			AFaceInfo;
@@ -457,10 +457,10 @@ class MultiGrid : public Grid, public GridObserver
 
 	///	sets the parent for the given object
 	/**	\{ */
-		inline void set_parent(VertexBase* o, GeometricObject* p)	{get_info(o).m_pParent = p;}
-		inline void set_parent(EdgeBase* o, GeometricObject* p)		{get_info(o).m_pParent = p;}
-		inline void set_parent(Face* o, GeometricObject* p)			{m_aaParentFACE[o] = p;}
-		inline void set_parent(Volume* o, GeometricObject* p)		{m_aaParentVOL[o] = p;}
+		inline void set_parent(VertexBase* o, GridObject* p)	{get_info(o).m_pParent = p;}
+		inline void set_parent(EdgeBase* o, GridObject* p)		{get_info(o).m_pParent = p;}
+		inline void set_parent(Face* o, GridObject* p)			{m_aaParentFACE[o] = p;}
+		inline void set_parent(Volume* o, GridObject* p)		{m_aaParentVOL[o] = p;}
 	/**	\} */
 
 	///	adds a child to the given object
@@ -469,7 +469,7 @@ class MultiGrid : public Grid, public GridObserver
 		void add_child(TParent* p, TChild* c);
 
 		template <class TChild>
-		void add_child(GeometricObject* p, TChild* c);
+		void add_child(GridObject* p, TChild* c);
 	/** \} */
 
 	///	removes a child from the given object
@@ -478,7 +478,7 @@ class MultiGrid : public Grid, public GridObserver
 		void remove_child(TParent* p, TChild* c);
 
 		template <class TChild>
-		void remove_child(GeometricObject* p, TChild* c);
+		void remove_child(GridObject* p, TChild* c);
 	/** \} */
 
 	///	creates the info-object for the given object (if necessary)

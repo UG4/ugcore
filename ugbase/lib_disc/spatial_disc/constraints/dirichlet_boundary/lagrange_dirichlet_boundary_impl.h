@@ -357,7 +357,7 @@ adjust_prolongation(const std::vector<TUserData*>& vUserData, int si,
 	{
 	//	get vertex
 		TBaseElem* elem = *iter;
-		GeometricObject* parent = m_spDomain->grid()->get_parent(elem);
+		GridObject* parent = m_spDomain->grid()->get_parent(elem);
 		if(!parent) continue;
 		if(!ddCoarse->is_contained(parent)) continue;
 
@@ -479,7 +479,7 @@ adjust_restriction(const std::vector<TUserData*>& vUserData, int si,
 	{
 	//	get vertex
 		TBaseElem* elem = *iter;
-		GeometricObject* parent = m_spDomain->grid()->get_parent(elem);
+		GridObject* parent = m_spDomain->grid()->get_parent(elem);
 		if(!parent) continue;
 		if(!ddCoarse->is_contained(parent)) continue;
 

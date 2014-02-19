@@ -9,12 +9,12 @@
 #include "common/util/smart_pointer.h"
 #include "common/util/binary_buffer.h"
 #include "common/serialization.h"
-#include "lib_grid/geometric_objects/geometric_objects.h"
+#include "lib_grid/grid_objects/grid_objects.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/common_attachments.h"
 #include "lib_grid/algorithms/attachment_util.h"
-#include "lib_grid/parallelization/geometric_object_id.h"
+#include "lib_grid/parallelization/grid_object_id.h"
 
 namespace ug
 {
@@ -184,7 +184,7 @@ class GridDataSerializationHandler
 		void serialize(BinaryBuffer& out, TIterator begin, TIterator end) const;
 
 	///	Calls serialize on all elements in the given geometric object collection
-		void serialize(BinaryBuffer& out, GeometricObjectCollection goc) const;
+		void serialize(BinaryBuffer& out, GridObjectCollection goc) const;
 
 	///	calls read_info on all registered serializers
 		void read_infos(BinaryBuffer& in);
@@ -204,7 +204,7 @@ class GridDataSerializationHandler
 		void deserialize(BinaryBuffer& in, TIterator begin, TIterator end);
 
 	///	Calls deserialize on all elements in the given geometric object collection
-		void deserialize(BinaryBuffer& in, GeometricObjectCollection goc);
+		void deserialize(BinaryBuffer& in, GridObjectCollection goc);
 
 	///	this method will be called before read_infos is called for the first time
 	///	in a deserialization run.
@@ -312,7 +312,7 @@ class SubsetHandlerSerializer : public GridDataSerializer
 ////////////////////////////////////////////////////////////////////////
 ///	Writes a part of the grids elements to a binary-stream.
 /**
- * The passed GeometricObjectCollection goc may only reference
+ * The passed GridObjectCollection goc may only reference
  * elements of the given grid. It is important, that the goc
  * is complete - that means that all referenced vertices are
  * contained in the goc.
@@ -333,7 +333,7 @@ class SubsetHandlerSerializer : public GridDataSerializer
  * After termination the attachment holds the indices at which
  * the respcetive vertices are stored in the pack.
  */
-bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
+bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 						   AInt& aIntVRT, BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
@@ -343,7 +343,7 @@ bool SerializeGridElements(Grid& grid, BinaryBuffer& out);
 ////////////////////////////////////////////////////////////////////////
 ///	Writes a part of the grids elements to a binary-stream.
 /**
- * The passed GeometricObjectCollection goc may only reference
+ * The passed GridObjectCollection goc may only reference
  * elements of the given grid. It is important, that the goc
  * is complete - that means that all referenced vertices are
  * contained in the goc.
@@ -351,7 +351,7 @@ bool SerializeGridElements(Grid& grid, BinaryBuffer& out);
  * If you're planning to serialize multiple parts of one grid, you
  * should consider to use the full-featured serialization method.
  */
-bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
+bool SerializeGridElements(Grid& grid, GridObjectCollection goc,
 						   BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
@@ -374,7 +374,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
 /**
  * THIS METHOD USES Grid::mark.
  *
- * The passed GeometricObjectCollection goc may only
+ * The passed GridObjectCollection goc may only
  * reference elements of the given grid. It is important, that the goc
  * is complete - that means that all referenced vertices are
  * contained in the goc.
@@ -408,7 +408,7 @@ bool DeserializeGridElements(Grid& grid, BinaryBuffer& in,
  * \todo	use ConstVertexArrays instead of virtual functions ...->vertex(...)
  */
 bool SerializeMultiGridElements(MultiGrid& mg,
-								GeometricObjectCollection goc,
+								GridObjectCollection goc,
 								MultiElementAttachmentAccessor<AInt>&	aaInt,
 								BinaryBuffer& out,
 								MultiElementAttachmentAccessor<AGeomObjID>* paaID = NULL);
@@ -417,7 +417,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 //	SerializeMultiGridElements
 ///	writes a part of the elements of a MultiGrid to a binary stream.
 /**
- * The passed GeometricObjectCollection goc may only reference
+ * The passed GridObjectCollection goc may only reference
  * elements of the given grid. It is important, that the goc
  * is complete - that means that all referenced vertices are
  * contained in the goc.
@@ -429,7 +429,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
  * should consider to use the full-featured serialization method.
  */
 bool SerializeMultiGridElements(MultiGrid& mg,
-								GeometricObjectCollection goc,
+								GridObjectCollection goc,
 								BinaryBuffer& out);
 
 ////////////////////////////////////////////////////////////////////////
@@ -527,7 +527,7 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 ////////////////////////////////////////////////////////////////////////
 ///	writes the subset-indices of all elements in the goc to a stream.
 bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							GeometricObjectCollection goc,
+							GridObjectCollection goc,
 							BinaryBuffer& out);
 							
 ////////////////////////////////////////////////////////////////////////
@@ -547,7 +547,7 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
  * compatibility with older binary files, which did not support property maps.
  */
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							GeometricObjectCollection goc,
+							GridObjectCollection goc,
 							BinaryBuffer& in,
 							bool readPropertyMap = true);
 

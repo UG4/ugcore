@@ -68,7 +68,7 @@ void AssignSelectionToSubset(ISelector& sel, ISubsetHandler& sh, int subsetInd)
 	UG_ASSERT(sel.grid() == sh.grid(), "Specified selector and subset-handler "
 									   "have to operate on the same grid!");
 
-	GeometricObjectCollection selGoc = sel.get_geometric_objects();
+	GridObjectCollection selGoc = sel.get_grid_objects();
 
 	for(size_t i = 0; i < selGoc.num_levels(); ++i){
 		sh.assign_subset(selGoc.begin<VertexBase>(i),

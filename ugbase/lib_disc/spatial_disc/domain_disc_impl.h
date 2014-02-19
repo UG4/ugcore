@@ -1528,7 +1528,7 @@ mark_error
 		{
 		case 1:
 			{
-				typedef domain_traits<1>::geometric_base_object element_type;
+				typedef domain_traits<1>::grid_base_object element_type;
 				typedef MultiGrid::AttachmentAccessor<element_type,
 							Attachment<number> > err_est_field_type;
 				pMG->template attach_to<element_type>(aError);
@@ -1541,7 +1541,7 @@ mark_error
 			break;
 		case 2:
 			{
-				typedef domain_traits<2>::geometric_base_object element_type;
+				typedef domain_traits<2>::grid_base_object element_type;
 				typedef MultiGrid::AttachmentAccessor<element_type,
 							Attachment<number> > err_est_field_type;
 				pMG->template attach_to<element_type>(aError);
@@ -1556,7 +1556,7 @@ mark_error
 			break;
 		case 3:
 			{
-				typedef domain_traits<3>::geometric_base_object element_type;
+				typedef domain_traits<3>::grid_base_object element_type;
 				typedef MultiGrid::AttachmentAccessor<element_type,
 							Attachment<number> > err_est_field_type;
 				pMG->template attach_to<element_type>(aError);

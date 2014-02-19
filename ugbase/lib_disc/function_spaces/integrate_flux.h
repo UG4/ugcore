@@ -29,7 +29,7 @@ void IntegrateDiscFlux(std::vector<number>& vValue,
 {
 //	get iterators for all elems on subset
 	typedef typename TGridFunction::template dim_traits<dim>::const_iterator const_iterator;
-	typedef typename TGridFunction::template dim_traits<dim>::geometric_base_object element_type;
+	typedef typename TGridFunction::template dim_traits<dim>::grid_base_object element_type;
 	const_iterator iter = rDefect.template begin<element_type>(si);
 	const_iterator iterEnd = rDefect.template end<element_type>(si);
 

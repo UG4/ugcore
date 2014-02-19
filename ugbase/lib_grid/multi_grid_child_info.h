@@ -8,7 +8,7 @@
 #include <vector>
 #include "common/error.h"
 #include "common/assert.h"
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 namespace ug{
 
 
@@ -50,7 +50,7 @@ struct MGVertexInfo
 
 	VertexBase* child_vertex() const {return m_pVrtChild;}
 
-	GeometricObject*	m_pParent;
+	GridObject*	m_pParent;
 private:
 	VertexBase*			m_pVrtChild;
 };
@@ -85,7 +85,7 @@ struct MGEdgeInfo
 	VertexBase* child_vertex() const		{return m_pVrtChild;}
 	EdgeBase* child_edge(size_t i) const	{assert(i < num_child_edges()); return m_pEdgeChild[i];}
 
-	GeometricObject*	m_pParent;
+	GridObject*	m_pParent;
 private:
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];

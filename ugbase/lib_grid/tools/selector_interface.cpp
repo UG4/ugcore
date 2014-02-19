@@ -335,7 +335,7 @@ void ISelector::elements_to_be_cleared(Grid* grid)
 
 //	vertex callbacks
 void ISelector::vertex_created(Grid* grid, VertexBase* vrt,
-								GeometricObject* pParent,
+								GridObject* pParent,
 								bool replacesParent)
 {
 	assert((m_pGrid == grid) && "grids do not match.");
@@ -380,7 +380,7 @@ void ISelector::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
 
 //	edge callbacks
 void ISelector::edge_created(Grid* grid, EdgeBase* edge,
-							GeometricObject* pParent,
+							GridObject* pParent,
 							bool replacesParent)
 {
 	assert((m_pGrid == grid) && "grids do not match.");
@@ -425,7 +425,7 @@ void ISelector::edge_to_be_erased(Grid* grid, EdgeBase* edge,
 
 //	face callbacks
 void ISelector::face_created(Grid* grid, Face* face,
-							GeometricObject* pParent,
+							GridObject* pParent,
 							bool replacesParent)
 {
 	assert((m_pGrid == grid) && "grids do not match.");
@@ -470,7 +470,7 @@ void ISelector::face_to_be_erased(Grid* grid, Face* face,
 
 //	volume callbacks
 void ISelector::volume_created(Grid* grid, Volume* vol,
-								GeometricObject* pParent,
+								GridObject* pParent,
 								bool replacesParent)
 {
 	assert((m_pGrid == grid) && "grids do not match.");

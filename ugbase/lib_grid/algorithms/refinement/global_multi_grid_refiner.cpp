@@ -125,7 +125,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 //	the old top level
 	int oldTopLevel = mg.num_levels() - 1;
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_BEGINS,
-													mg.get_geometric_objects(oldTopLevel)));
+													mg.get_grid_objects(oldTopLevel)));
 
 	UG_DLOG(LIB_GRID, 1, "REFINER: reserving memory...");
 
@@ -401,7 +401,7 @@ void GlobalMultiGridRefiner::perform_refinement()
 	}
 
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_GLOBAL_REFINEMENT_ENDS,
-													mg.get_geometric_objects(oldTopLevel)));
+													mg.get_grid_objects(oldTopLevel)));
 
 	UG_DLOG(LIB_GRID, 1, "  refinement done.");
 }

@@ -38,7 +38,7 @@ distributed_grid_manager() const
 //	create functions
 template<class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
-Grid::create(GeometricObject* pParent)
+Grid::create(GridObject* pParent)
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::CONTAINER_SECTION != -1
 		&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
@@ -57,7 +57,7 @@ Grid::create(GeometricObject* pParent)
 template <class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
 Grid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
-			GeometricObject* pParent)
+			GridObject* pParent)
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::CONTAINER_SECTION != -1
 			&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
@@ -76,7 +76,7 @@ Grid::create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
 
 template<class TGeomObj>
 typename geometry_traits<TGeomObj>::iterator
-Grid::create_and_replace(typename geometry_traits<TGeomObj>::geometric_base_object* pReplaceMe)
+Grid::create_and_replace(typename geometry_traits<TGeomObj>::grid_base_object* pReplaceMe)
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::CONTAINER_SECTION != -1
 		&&	geometry_traits<TGeomObj>::BASE_OBJECT_ID != -1,
@@ -390,7 +390,7 @@ template <class TGeomObj>
 uint
 Grid::get_attachment_data_index(TGeomObj* pObj) const
 {
-	typedef typename geometry_traits<TGeomObj>::geometric_base_object BaseObj;
+	typedef typename geometry_traits<TGeomObj>::grid_base_object BaseObj;
 	return attachment_traits<BaseObj*, ElementStorage<BaseObj> >::
 			get_data_index(&element_storage<TGeomObj>(), pObj);
 }
@@ -424,7 +424,7 @@ void Grid::unmark(TIterator begin, TIterator end)
 
 ////////////////////////////////////////////////////////////////////////
 template <class TContainer>
-void Grid::get_associated(TContainer& container, GeometricObject* o)
+void Grid::get_associated(TContainer& container, GridObject* o)
 {
 	switch(o->base_object_id()){
 		case VERTEX: return get_associated(container, static_cast<VertexBase*>(o));
@@ -459,14 +459,14 @@ void Grid::associated_elements(traits<Volume>::secure_container& elemsOut, TElem
 }
 
 template <class TElem>
-void Grid::get_associated(typename traits<typename TElem::geometric_base_object>
+void Grid::get_associated(typename traits<typename TElem::grid_base_object>
 						  ::secure_container& elems, TElem* e)
 {
 //	we have to retrieve a valid pointer on the element pointer. The only way
 //	to receive it, is to return the pointer to the entry in which e is stored in
 //	the element storage.
 	elems.set_external_array(
-		element_storage<typename TElem::geometric_base_object>().m_sectionContainer.
+		element_storage<typename TElem::grid_base_object>().m_sectionContainer.
 			get_container().get_pointer_to_element(e),
 		1);
 }
@@ -497,14 +497,14 @@ void Grid::associated_elements_sorted(traits<Volume>::secure_container& elemsOut
 
 
 template <class TElem>
-void Grid::get_associated_sorted(typename traits<typename TElem::geometric_base_object>
+void Grid::get_associated_sorted(typename traits<typename TElem::grid_base_object>
 								 ::secure_container& elems, TElem* e)
 {
 //	we have to retrieve a valid pointer on the element pointer. The only way
 //	to receive it, is to return the pointer to the entry in which e is stored in
 //	the element storage.
 	elems.set_external_array(
-		element_storage<typename TElem::geometric_base_object>().m_sectionContainer.
+		element_storage<typename TElem::grid_base_object>().m_sectionContainer.
 			get_container().get_pointer_to_element(e),
 		1);
 }
@@ -598,7 +598,7 @@ ug::AttachmentAccessor<TElem*, TAttachment, ElementStorage<TElem> >(aa)
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a) :
-ug::AttachmentAccessor<typename TElem::geometric_base_object*, TAttachment,
+ug::AttachmentAccessor<typename TElem::grid_base_object*, TAttachment,
 					   typename traits<TElem>::ElementStorage>
 	(grid.get_attachment_pipe<TElem>(), a)
 {
@@ -607,7 +607,7 @@ ug::AttachmentAccessor<typename TElem::geometric_base_object*, TAttachment,
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
 AttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
-ug::AttachmentAccessor<typename TElem::geometric_base_object*, TAttachment,
+ug::AttachmentAccessor<typename TElem::grid_base_object*, TAttachment,
 					   typename traits<TElem>::ElementStorage>()
 {
 	if(autoAttach){
@@ -744,7 +744,7 @@ VolumeAttachmentAccessor(Grid& grid, TAttachment& a, bool autoAttach) :
 
 ////////////////////////////////////////////////////////////////////////
 //	marks
-inline void Grid::mark(GeometricObject* obj)
+inline void Grid::mark(GridObject* obj)
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
@@ -779,7 +779,7 @@ inline void Grid::mark(Volume* obj)
 	m_aaMarkVOL[obj] = m_currentMark;
 }
 
-inline void Grid::unmark(GeometricObject* obj)
+inline void Grid::unmark(GridObject* obj)
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){
@@ -814,7 +814,7 @@ inline void Grid::unmark(Volume* obj)
 	m_aaMarkVOL[obj] = 0;
 }
 
-inline bool Grid::is_marked(GeometricObject* obj)
+inline bool Grid::is_marked(GridObject* obj)
 {
 	const int typeID = obj->base_object_id();
 	switch(typeID){

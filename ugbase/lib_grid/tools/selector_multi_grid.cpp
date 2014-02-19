@@ -264,10 +264,10 @@ void MGSelector::erase_from_list(Volume* elem)
 }
 
 //	geometric-object-collection
-GeometricObjectCollection MGSelector::get_geometric_objects() const
+GridObjectCollection MGSelector::get_grid_objects() const
 {
 	uint numLevels = num_levels();
-	GeometricObjectCollection goc(numLevels);
+	GridObjectCollection goc(numLevels);
 	
 	for(uint i = 0; i < numLevels; ++i)
 	{

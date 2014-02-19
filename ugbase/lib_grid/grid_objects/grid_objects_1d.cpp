@@ -2,7 +2,7 @@
 // s.b.reiter@googlemail.com
 // 23.12.2011 (m,d,y)
  
-#include "geometric_objects_1d.h"
+#include "grid_objects_1d.h"
 
 namespace ug{
 

@@ -14,7 +14,7 @@
 #include "lib_disc/common/multi_index.h"
 #include "common/util/provider.h"
 #include "common/util/metaprogramming_util.h"
-#include "lib_grid/grid/geometric_base_objects.h"
+#include "lib_grid/grid/grid_base_objects.h"
 #include "common/util/provider.h"
 #include "../local_dof_set.h"
 #include "lib_disc/reference_element/reference_element_util.h"

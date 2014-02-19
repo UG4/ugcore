@@ -25,7 +25,7 @@ namespace ug{
  * inline TRet evaluate(TData vValue[],
 		                const MathVector\<dim\> vGlobIP[],
 		                number time, int si,
-		                GeometricObject* elem,
+		                GridObject* elem,
 		                const MathVector\<dim\> vCornerCoords[],
 		                const MathVector\<refDim\> vLocIP[],
 		                const size_t nip,
@@ -52,7 +52,7 @@ class StdUserData : public TBase
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        GeometricObject* elem,
+		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
 		                        const size_t nip,
@@ -66,7 +66,7 @@ class StdUserData : public TBase
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        GeometricObject* elem,
+		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
 		                        const size_t nip,
@@ -80,7 +80,7 @@ class StdUserData : public TBase
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        GeometricObject* elem,
+		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
 		                        const size_t nip,
@@ -134,7 +134,7 @@ class StdDependentUserData
 		inline void evaluate(TData vValue[],
 							 const MathVector<dim> vGlobIP[],
 							 number time, int si,
-							 GeometricObject* elem,
+							 GridObject* elem,
 							 const MathVector<dim> vCornerCoords[],
 							 const MathVector<refDim> vLocIP[],
 							 const size_t nip,
@@ -148,7 +148,7 @@ class StdDependentUserData
 		}
 
 		template <int refDim>
-		void eval_deriv(LocalVector* u, GeometricObject* elem,
+		void eval_deriv(LocalVector* u, GridObject* elem,
 		                const MathVector<dim> vCornerCoords[], bool bDeriv = false) {
 
 			const number t = this->time();
@@ -170,7 +170,7 @@ class StdDependentUserData
 			}
 		}
 
-		virtual void compute(LocalVector* u, GeometricObject* elem,
+		virtual void compute(LocalVector* u, GridObject* elem,
 							 const MathVector<dim> vCornerCoords[], bool bDeriv = false){
 
 			UG_ASSERT(elem->base_object_id() == this->dim_local_ips(),

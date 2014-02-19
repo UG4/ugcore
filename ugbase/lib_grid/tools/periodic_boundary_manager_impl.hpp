@@ -139,11 +139,11 @@ void PeriodicBoundaryManager::print_identification() const {
 		UG_ASSERT(g, "group not valid")
 		UG_LOG("group of " << (*elem)->reference_object_id() << "\tlevel: " <<
 				m_pGrid->get_level(*elem) << "\tmaster: " <<
-				GetGeometricObjectCenter(*m_pGrid, g->m_master) << "\tslaves: ");
+				GetGridObjectCenter(*m_pGrid, g->m_master) << "\tslaves: ");
 		for (SlaveIter slave = g->get_slaves().begin();
 				slave != g->get_slaves().end(); ++slave) {
 			TElem* e = *slave;
-			UG_LOG(GetGeometricObjectCenter(*m_pGrid, e) << ", ")
+			UG_LOG(GetGridObjectCenter(*m_pGrid, e) << ", ")
 			UG_ASSERT(m_pGrid->get_level(*elem) == m_pGrid->get_level(e),
 					"wrong level in group")
 		}
@@ -492,7 +492,7 @@ void PeriodicBoundaryManager::set_group(Group<TElem>* g, TElem* e) {
 
 template <class TElem>
 void PeriodicBoundaryManager::handle_creation_cast_wrapper(TElem* e,
-		GeometricObject* pParent, bool replacesParent) {
+		GridObject* pParent, bool replacesParent) {
 	// we can only identify periodic elements, which have a periodic parent
 	if(!pParent)
 		return;
@@ -539,7 +539,7 @@ void PeriodicBoundaryManager::check_elements_periodicity(
 			}
 			UG_THROW("Element in subset '" << sh_name
 					<< "' is not periodic after identification: "
-					<< GetGeometricObjectCenter(*get_grid(), e)
+					<< GetGridObjectCenter(*get_grid(), e)
 					<< "\nCheck your geometry for symmetry!\n")
 		}
 
@@ -627,8 +627,8 @@ void IdentifySubsets(TDomain& dom, int sInd1, int sInd2) {
 	position_type shift;
 
 	// collect all geometric objects (even for all levels in case of multi grid)
-	GeometricObjectCollection goc1 = sh.get_geometric_objects_in_subset(sInd1);
-	GeometricObjectCollection goc2 = sh.get_geometric_objects_in_subset(sInd2);
+	GridObjectCollection goc1 = sh.get_grid_objects_in_subset(sInd1);
+	GridObjectCollection goc2 = sh.get_grid_objects_in_subset(sInd2);
 
 	if(goc1.num<VertexBase>() != goc2.num<VertexBase>()) {
 		UG_THROW("IdentifySubsets: Given subsets have different number of vertices."

@@ -208,7 +208,7 @@ mark_shadowing(bool markSides)
 			if(surface_state(e).contains(MG_SHADOW_PURE))
 				continue;
 
-			GeometricObject* p = mg.get_parent(e);
+			GridObject* p = mg.get_parent(e);
 			if(p && (surface_state(p).contains(MG_SHADOW_RIM_COPY)
 					 || surface_state(p).contains(MG_SHADOW_RIM_NONCOPY)))
 			{

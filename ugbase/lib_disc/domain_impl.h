@@ -170,7 +170,7 @@ update_domain_info()
 	TGrid& mg = *m_spGrid;
 	TSubsetHandler& sh = *m_spSH;
 
-	GeometricBaseObject	locElemType;
+	GridBaseObjectId	locElemType;
 	if(mg.template num<Volume>() > 0)
 		locElemType = VOLUME;
 	else if(mg.template num<Face>() > 0)
@@ -180,7 +180,7 @@ update_domain_info()
 	else
 		locElemType = VERTEX;
 
-	GeometricBaseObject	elemType;
+	GridBaseObjectId	elemType;
 	#ifdef UG_PARALLEL
 		pcl::ProcessCommunicator commWorld;
 
@@ -195,7 +195,7 @@ update_domain_info()
 		}
 
 	//	communicate the element type of highest dimension present in the global grid.
-		elemType = (GeometricBaseObject) commWorld.allreduce((int)locElemType, PCL_RO_MAX);
+		elemType = (GridBaseObjectId) commWorld.allreduce((int)locElemType, PCL_RO_MAX);
 	#else
 		elemType = locElemType;
 	#endif

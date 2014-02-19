@@ -106,15 +106,15 @@ class FEGeometry
 		}
 
 	/// update Geometry for corners
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
+		void update(GridObject* pElem, const MathVector<worldDim>* vCorner)
 		{
 			update(pElem, vCorner, LFEID(), m_rQuadRule.order());
 		}
 
 	/// update Geometry for corners
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
+		void update(GridObject* pElem, const MathVector<worldDim>* vCorner,
 		            const LFEID& lfeID, size_t orderQuad);
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
+		void update(GridObject* pElem, const MathVector<worldDim>* vCorner,
 		            const LFEID& lfeID){
 			update(pElem, vCorner, lfeID, 2*lfeID.order() + 1);
 		}
@@ -240,15 +240,15 @@ class DimFEGeometry
 		}
 
 	/// update Geometry for corners
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner)
+		void update(GridObject* pElem, const MathVector<worldDim>* vCorner)
 		{
 			update(pElem, vCorner, m_lfeID, m_quadOrder);
 		}
 
 	/// update Geometry for corners
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
+		void update(GridObject* pElem, const MathVector<worldDim>* vCorner,
 					const LFEID& lfeID, size_t orderQuad);
-		void update(GeometricObject* pElem, const MathVector<worldDim>* vCorner,
+		void update(GridObject* pElem, const MathVector<worldDim>* vCorner,
 					const LFEID& lfeID){
 			update(pElem, vCorner, lfeID, 2*lfeID.order() + 1);
 		}
@@ -338,7 +338,7 @@ class DimFEGeometry
 		};
 
 		/// update boundary data for given element
-		void update_boundary_faces(GeometricObject* pElem,
+		void update_boundary_faces(GridObject* pElem,
 								   const MathVector<worldDim>* vCornerCoords,
 								   size_t orderQuad,
 								   const ISubsetHandler* ish);
@@ -403,7 +403,7 @@ class DimFEGeometry
 		ReferenceObjectID m_roid;
 
 	///	current element
-		GeometricObject* m_pElem;
+		GridObject* m_pElem;
 
 	///	current integration order
 		int m_quadOrder;

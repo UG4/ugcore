@@ -346,7 +346,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addSt
 }
 
 byte DistributedGridManager::
-get_status(GeometricObject* go) const
+get_status(GridObject* go) const
 {
 	int baseType = go->base_object_id();
 	switch(baseType)
@@ -537,7 +537,7 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 //	new elements are handled here.
 template <class TElem>
 void DistributedGridManager::
-handle_created_element(TElem* pElem, GeometricObject* pParent,
+handle_created_element(TElem* pElem, GridObject* pParent,
 						bool replacesParent)
 {
 	if(replacesParent){
@@ -640,7 +640,7 @@ handle_created_element(TElem* pElem, GeometricObject* pParent,
 }
 
 void DistributedGridManager::
-vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
+vertex_created(Grid* grid, VertexBase* vrt, GridObject* pParent,
 				bool replacesParent)
 {
 	handle_created_element(vrt, pParent, replacesParent);
@@ -648,21 +648,21 @@ vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
 
 
 void DistributedGridManager::
-edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
+edge_created(Grid* grid, EdgeBase* e, GridObject* pParent,
 			 bool replacesParent)
 {
 	handle_created_element(e, pParent, replacesParent);
 }
 
 void DistributedGridManager::
-face_created(Grid* grid, Face* f, GeometricObject* pParent,
+face_created(Grid* grid, Face* f, GridObject* pParent,
 			 bool replacesParent)
 {
 	handle_created_element(f, pParent, replacesParent);
 }
 
 void DistributedGridManager::
-volume_created(Grid* grid, Volume* v, GeometricObject* pParent,
+volume_created(Grid* grid, Volume* v, GridObject* pParent,
 			   bool replacesParent)
 {
 	handle_created_element(v, pParent, replacesParent);
@@ -727,7 +727,7 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 				m_dgm->collect_interface_entries(interfaceEntries, e, ES_V_MASTER);
 				UG_ASSERT(!interfaceEntries.empty(),
 						  "Elem with type " << e->base_object_id() << " at " <<
-						   GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), e)
+						   GetGridObjectCenter(*m_dgm->get_assigned_grid(), e)
 						   << " is marked as v-master but is not contained in a vslave interface!");
 				int lp = interfaceEntries.front().first;
 				for(size_t i = 1; i < interfaceEntries.size(); ++i)
@@ -957,26 +957,26 @@ class ComPol_NewConstrainedVerticals : public pcl::ICommunicationPolicy<TLayout>
 ////			UG_LOG("\n DEBUG CHECK check_corresponding_h_order\n");
 ////			for(size_t i = 0; i < m_newConstrained.size(); ++i){
 ////				GeomObj* elem = m_newConstrained[i];
-////				if(vector3(0.015625, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////				if(vector3(0.015625, -0.25, 0) == GetGridObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("(0.015625, -0.25, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
 ////					UG_LOG("(0.015625, -0.25, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
-////				if(vector3(0, -0.265625, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////				if(vector3(0, -0.265625, 0) == GetGridObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("\n");
 ////					UG_LOG("(0, -0.265625, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
 ////					UG_LOG("(0, -0.265625, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
-////				if(vector3(0, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////				if(vector3(0, -0.25, 0) == GetGridObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("\n");
 ////					UG_LOG("(0, -0.25, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
 ////					UG_LOG("(0, -0.25, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
-////				if(vector3(0.03125, -0.25, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////				if(vector3(0.03125, -0.25, 0) == GetGridObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("\n");
 ////					UG_LOG("(0.03125, -0.25, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
 ////					UG_LOG("(0.03125, -0.25, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");
 ////				}
-////				if(vector3(0.15625, -0.28125, 0) == GetGeometricObjectCenter(*m_dgm->get_assigned_grid(), elem)){
+////				if(vector3(0.15625, -0.28125, 0) == GetGridObjectCenter(*m_dgm->get_assigned_grid(), elem)){
 ////					UG_LOG("\n");
 ////					UG_LOG("(0.15625, -0.28125, 0) h-master: " << m_hash.get_entry(elem).hmasterProcInfo.first << "\n");
 ////					UG_LOG("(0.15625, -0.28125, 0) h-order: " << m_hash.get_entry(elem).hmasterProcInfo.second << "\n");

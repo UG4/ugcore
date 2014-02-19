@@ -121,24 +121,24 @@ class UG_API MultiGridSubsetHandler : public ISubsetHandler
 		template <class TElem>
 		void clear_subset_elements(int subsetIndex, int level);
 
-	///	returns a GeometricObjectCollection
-	/**	the returned GeometricObjectCollection hold the elements of the
+	///	returns a GridObjectCollection
+	/**	the returned GridObjectCollection hold the elements of the
 	 *	specified subset on the given level.*/
-		GeometricObjectCollection
-		get_geometric_objects(int subsetIndex, int level) const;
+		GridObjectCollection
+		get_grid_objects(int subsetIndex, int level) const;
 		
-	///	returns a GeometricObjectCollection with multiple levels
-	/**	the returned GeometricObjectCollection hold the
+	///	returns a GridObjectCollection with multiple levels
+	/**	the returned GridObjectCollection hold the
 	 *	elements of the specified subset.*/
-		GeometricObjectCollection
-		get_geometric_objects_in_subset(int subsetIndex) const;
+		GridObjectCollection
+		get_grid_objects_in_subset(int subsetIndex) const;
 
-	///	returns a GeometricObjectCollection with multiple levels - each representing a subset.
-	/**	the returned GeometricObjectCollection hold the
+	///	returns a GridObjectCollection with multiple levels - each representing a subset.
+	/**	the returned GridObjectCollection hold the
 	 *	elements of the specified level, each level of the collection
 	 *	represents a subset.*/
-		GeometricObjectCollection
-		get_geometric_objects_in_level(int level) const;
+		GridObjectCollection
+		get_grid_objects_in_level(int level) const;
 		
 	///	collects all vertices that are in the given subset.
 	/**	Please consider using begin and end methods instead.

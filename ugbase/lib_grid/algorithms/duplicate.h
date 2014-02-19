@@ -33,7 +33,7 @@ bool Duplicate(Grid& grid, Selector& sel, const typename TAPos::ValueType& offse
 
 
 //	first of all we have to select all associated elements
-	SelectAssociatedGeometricObjects(sel);
+	SelectAssociatedGridObjects(sel);
 
 //	store the currently selected elements in arrays
 	vector<VertexBase*>	oldVrts;

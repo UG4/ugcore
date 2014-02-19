@@ -82,7 +82,7 @@ void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 template <class TElem>
 bool IsSubSurfaceElement(MultiGrid& mg, TElem* e, bool checkSides)
 {
-	typedef typename TElem::geometric_base_object TBaseElem;
+	typedef typename TElem::grid_base_object TBaseElem;
 
 	size_t numChildren = mg.num_children<TBaseElem>(e);
 	for(size_t i = 0; i < numChildren; ++i){

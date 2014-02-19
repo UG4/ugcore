@@ -553,19 +553,19 @@ class DimCRFVGeometry : public FVGeometryBase
 		void update_local_data();
 
 	/// update data for given element
-		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 					
 	/// update data for given element
-		void update_hanging(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update_hanging(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL,bool keepSCV=false,bool keepSCVF=false);
 					
 	/// update data for given element
-		void update_geometric_data(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update_geometric_data(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 
@@ -690,7 +690,7 @@ class DimCRFVGeometry : public FVGeometryBase
 		
 	private:
 	///	pointer to current element
-		GeometricObject* m_pElem;
+		GridObject* m_pElem;
 
 	///	current reference object id
 		ReferenceObjectID m_roid;
@@ -1094,11 +1094,11 @@ class CRFVGeometry : public FVGeometryBase
 		void update_local_data();
 
 	/// update data for given element
-		void update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords,
+		void update(GridObject* elem, const MathVector<worldDim>* vCornerCoords,
 		            const ISubsetHandler* ish = NULL);
 
 	/// update boundary data for given element
-		void update_boundary_faces(GeometricObject* elem,
+		void update_boundary_faces(GridObject* elem,
 		                           const MathVector<worldDim>* vCornerCoords,
 		                           const ISubsetHandler* ish = NULL);
 								   

@@ -117,7 +117,7 @@ class UserData : virtual public UserDataInfo
 		TRet operator() (TData& value,
 						 const MathVector<dim>& globIP,
 						 number time, int si,
-						 GeometricObject* elem,
+						 GridObject* elem,
 						 const MathVector<dim> vCornerCoords[],
 						 const MathVector<1>& locIP,
 						 LocalVector* u) const {
@@ -127,7 +127,7 @@ class UserData : virtual public UserDataInfo
 		TRet operator() (TData& value,
 						 const MathVector<dim>& globIP,
 						 number time, int si,
-						 GeometricObject* elem,
+						 GridObject* elem,
 						 const MathVector<dim> vCornerCoords[],
 						 const MathVector<2>& locIP,
 						 LocalVector* u) const {
@@ -137,7 +137,7 @@ class UserData : virtual public UserDataInfo
 		TRet operator() (TData& value,
 						 const MathVector<dim>& globIP,
 						 number time, int si,
-						 GeometricObject* elem,
+						 GridObject* elem,
 						 const MathVector<dim> vCornerCoords[],
 						 const MathVector<3>& locIP,
 	                     LocalVector* u) const {
@@ -150,7 +150,7 @@ class UserData : virtual public UserDataInfo
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        GeometricObject* elem,
+		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<1> vLocIP[],
 		                        const size_t nip,
@@ -160,7 +160,7 @@ class UserData : virtual public UserDataInfo
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        GeometricObject* elem,
+		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<2> vLocIP[],
 		                        const size_t nip,
@@ -170,7 +170,7 @@ class UserData : virtual public UserDataInfo
 		virtual void operator()(TData vValue[],
 		                        const MathVector<dim> vGlobIP[],
 		                        number time, int si,
-		                        GeometricObject* elem,
+		                        GridObject* elem,
 		                        const MathVector<dim> vCornerCoords[],
 		                        const MathVector<3> vLocIP[],
 		                        const size_t nip,
@@ -227,7 +227,7 @@ class ICplUserData : virtual public UserDataInfo
 
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual void compute(LocalVector* u,
-		                     GeometricObject* elem,
+		                     GridObject* elem,
 		                     const MathVector<dim> vCornerCoords[],
 		                     bool bDeriv = false) = 0;
 

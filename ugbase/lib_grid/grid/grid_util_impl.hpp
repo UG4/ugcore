@@ -130,7 +130,7 @@ inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
 }
 
 inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
-                              Grid& grid, GeometricObject* obj, bool clearContainer)
+                              Grid& grid, GridObject* obj, bool clearContainer)
 {
 	uint type = obj->base_object_id();
 	switch(type)
@@ -170,7 +170,7 @@ inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
 }
 
 inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
-                              Grid& grid, GeometricObject* obj, bool clearContainer)
+                              Grid& grid, GridObject* obj, bool clearContainer)
 {
 	uint type = obj->base_object_id();
 	switch(type)
@@ -210,7 +210,7 @@ inline void CollectAssociated(std::vector<Face*>& vFacesOut,
 }
 
 inline void CollectAssociated(std::vector<Face*>& vFacesOut,
-                              Grid& grid, GeometricObject* obj, bool clearContainer)
+                              Grid& grid, GridObject* obj, bool clearContainer)
 {
 	uint type = obj->base_object_id();
 	switch(type)
@@ -257,7 +257,7 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 }
 
 inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
-                              Grid& grid, GeometricObject* obj, bool clearContainer)
+                              Grid& grid, GridObject* obj, bool clearContainer)
 {
 	uint type = obj->base_object_id();
 	switch(type)
@@ -274,7 +274,7 @@ inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
 ////////////////////////////////////////////////////////////////////////////////
 
 inline void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
-                            				GeometricObject* obj, bool clearContainer)
+                            				GridObject* obj, bool clearContainer)
 {
 	switch(obj->base_object_id())
 	{
@@ -287,7 +287,7 @@ inline void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid,
 }
 
 inline void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
-                            				GeometricObject* obj, bool clearContainer)
+                            				GridObject* obj, bool clearContainer)
 {
 	switch(obj->base_object_id())
 	{
@@ -300,7 +300,7 @@ inline void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid,
 }
 
 inline void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid,
-                            				GeometricObject* obj, bool clearContainer)
+                            				GridObject* obj, bool clearContainer)
 {
 	switch(obj->base_object_id())
 	{

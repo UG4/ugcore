@@ -1103,7 +1103,7 @@ update_local_data()
 /// update data for given element
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
 void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
-update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
@@ -1220,7 +1220,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 
 template <int TOrder, typename TElem, int TWorldDim, int TQuadOrder>
 void FVGeometry<TOrder, TElem, TWorldDim, TQuadOrder>::
-update_boundary_faces(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
@@ -1599,7 +1599,7 @@ update_local(ReferenceObjectID roid, const LFEID& lfeID, size_t orderQuad)
 /// update data for given element
 template <int TDim, int TWorldDim>
 void DimFVGeometry<TDim, TWorldDim>::
-update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
+update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords,
        const LFEID& lfeID, size_t quadOrder,
        const ISubsetHandler* ish)
 {
@@ -1700,7 +1700,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords,
 
 template <int TDim, int TWorldDim>
 void DimFVGeometry<TDim, TWorldDim>::
-update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
 	Grid& grid = *(ish->grid());

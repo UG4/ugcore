@@ -128,7 +128,7 @@ class ConstAttachedElementListIterator : public std::iterator<
 ////////////////////////////////////////////////////////////////////////////////
 ///	A linked list of elements living in an attachment
 /**	This is a highly specialized linked list mainly (only!) used in the Grid,
- * SubsetHandler, Selector, ... classes to maintain a list of GeometricObjects.
+ * SubsetHandler, Selector, ... classes to maintain a list of GridObjects.
  *
  * Only elements registered at the underlying attachment pipe may be added
  * to the list. Note that each element may only be added once.

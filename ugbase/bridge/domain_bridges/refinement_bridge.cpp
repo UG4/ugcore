@@ -802,9 +802,9 @@ void MarkForRefinement_ElementsInSubset(TDomain& dom, IRefiner& refiner,
 										TSubsetHandler& sh, int subsetIndex)
 {
 	PROFILE_FUNC();
-	typedef typename GeometricObjectCollection::traits<TElem>::iterator iterator_t;
+	typedef typename GridObjectCollection::traits<TElem>::iterator iterator_t;
 
-	GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(subsetIndex);
+	GridObjectCollection goc = sh.get_grid_objects_in_subset(subsetIndex);
 
 	for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 		for(iterator_t iter = goc.begin<TElem>(lvl);

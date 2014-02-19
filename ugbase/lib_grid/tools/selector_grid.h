@@ -161,7 +161,7 @@ class UG_API Selector : public ISelector
 		template <class TElem> TElem* back();
 
 	//	geometric-object-collection
-		virtual GeometricObjectCollection get_geometric_objects() const;
+		virtual GridObjectCollection get_grid_objects() const;
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver

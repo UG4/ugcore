@@ -325,46 +325,46 @@ class IElemDisc
 	////////////////////////////
 	public:
 	/// prepare the timestep
-		virtual void prep_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void prep_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual prepares the loop over all elements of one type
 		virtual void prep_elem_loop(const ReferenceObjectID roid, const int si);
 
 	///	virtual prepare one elements for assembling
-		virtual void prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual postprocesses the loop over all elements of one type
 		virtual void fsh_elem_loop();
 
 	/// virtual finish the timestep
-		virtual void fsh_timestep_elem(const number time, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void fsh_timestep_elem(const number time, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// Assembling of Jacobian (Stiffness part)
-		virtual void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// Assembling of Jacobian (Mass part)
-		virtual void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// virtual Assembling of Defect (Stiffness part)
-		virtual void add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
     /// defect for explicit terms
-		virtual void add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// virtual Assembling of Defect (Mass part)
-		virtual void add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	/// virtual Assembling of Right-Hand Side
-		virtual void add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		
 	///	virtual prepares the loop over all elements of one type for the computation of the error estimator
 		virtual void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
 
 	///	virtual compute the error estimator contribution for one element
-		virtual void compute_err_est_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual void compute_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		
 	///	virtual summarize the contributions of the error estimator in one element
-		virtual number get_err_est_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		virtual number get_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	virtual postprocesses the loop over all elements of one type in the computation of the error estimator
 		virtual void fsh_err_est_elem_loop();
@@ -376,20 +376,20 @@ class IElemDisc
 		
 	///	function dispatching call to implementation (fast or virtual)
 	/// \{
-		void do_prep_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_prep_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_prep_elem_loop(const ReferenceObjectID roid, const int si);
-		void do_prep_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_prep_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_fsh_elem_loop();
-		void do_fsh_timestep_elem(const number time, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_def_A_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-   	    void do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_def_M_elem(LocalVector& d, LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		void do_add_rhs_elem(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_fsh_timestep_elem(const number time, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_jac_A_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_jac_M_elem(LocalMatrix& J, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_def_A_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+   	    void do_add_def_A_expl_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_def_M_elem(LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_add_rhs_elem(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
-		void do_compute_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		number do_get_err_est_elem(LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void do_compute_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		number do_get_err_est_elem(LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		void do_fsh_err_est_elem_loop();
 	/// \}
 
@@ -398,29 +398,29 @@ class IElemDisc
 		typedef IElemDisc<TDomain> T;
 
 	// 	types of timestep function pointers
-		typedef void (T::*PrepareTimestepElemFct)(number, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef void (T::*FinishTimestepElemFct)(number, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*PrepareTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*FinishTimestepElemFct)(number, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	// 	types of loop function pointers
 		typedef void (T::*PrepareElemLoopFct)(ReferenceObjectID roid, int si);
-		typedef void (T::*PrepareElemFct)(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*PrepareElemFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		typedef void (T::*FinishElemLoopFct)();
 
 	// 	types of Jacobian assemble functions
-		typedef void (T::*ElemJAFct)(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef void (T::*ElemJMFct)(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemJAFct)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemJMFct)(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	// 	types of Defect assemble functions
-		typedef void (T::*ElemdAFct)(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef void (T::*ElemdMFct)(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemdAFct)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemdMFct)(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	// 	types of right hand side assemble functions
-		typedef void (T::*ElemRHSFct)(LocalVector& rhs, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemRHSFct)(LocalVector& rhs, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 	
 	//	types of the error estimator assembler
 		typedef void (T::*PrepareErrEstElemLoopFct)(ReferenceObjectID roid, int si);
-		typedef void (T::*ElemComputeErrEstFct)(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
-		typedef number (T::*ElemGetErrEstFct)(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef void (T::*ElemComputeErrEstFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		typedef number (T::*ElemGetErrEstFct)(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		typedef void (T::*FinishErrEstElemLoopFct)();
 
 	protected:

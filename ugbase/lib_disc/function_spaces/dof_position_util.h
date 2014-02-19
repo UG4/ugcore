@@ -19,7 +19,7 @@ namespace ug {
 /**
  * Returns the global DoF position on an element.
  */
-///Ê\{
+///ï¿½\{
 template <int dim>
 bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
                       const std::vector<MathVector<dim> >& vCornerCoord, const LFEID& lfeID);
@@ -27,20 +27,20 @@ bool InnerDoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObject
 
 template <typename TDomain>
 bool InnerDoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
-                      GeometricObject* elem, const TDomain& domain, const LFEID& lfeID);
+                      GridObject* elem, const TDomain& domain, const LFEID& lfeID);
 /// \}
 
 /**
  * Returns the global DoF position on an element.
  */
-///Ê\{
+///ï¿½\{
 template <int dim>
 bool DoFPosition(std::vector<MathVector<dim> >& vPos, const ReferenceObjectID roid,
                  const std::vector<MathVector<dim> >& vCornerCoord, const LFEID& lfeID);
 
 template <typename TDomain>
 bool DoFPosition(std::vector<MathVector<TDomain::dim> >& vPos,
-                 GeometricObject* elem, const TDomain& domain, const LFEID& lfeID);
+                 GridObject* elem, const TDomain& domain, const LFEID& lfeID);
 /// \}
 
 /**
@@ -56,7 +56,7 @@ void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
 template <typename TDomain>
 void ShapesAtGlobalPosition(std::vector<std::vector<number> >& vvShape,
                            const std::vector<MathVector<TDomain::dim> >& vGlobPos,
-                           GeometricObject* elem, const TDomain& domain, const LFEID& lfeID);
+                           GridObject* elem, const TDomain& domain, const LFEID& lfeID);
 /// \}
 
 /**

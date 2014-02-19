@@ -5,12 +5,12 @@
 #ifndef __H__UG__element_storage__
 #define __H__UG__element_storage__
 
-#include "geometric_base_objects.h"
+#include "grid_base_objects.h"
 #include "common/util/section_container.h"
 
 namespace ug
 {
-///	This struct is used to hold GeometricObjects and their attachment pipes.
+///	This struct is used to hold GridObjects and their attachment pipes.
 template <class TElem>
 class ElementStorage
 {

@@ -73,7 +73,7 @@ class IRefiner
 	///	marks the specified geometric object
 	/**	The default implementation casts the object to a more concrete type
 	 * (VertexBase, EdgeBase, Face, Volume) and calls the appropriate mark method.*/
-		virtual bool mark(GeometricObject* o, RefinementMark refMark = RM_REFINE);
+		virtual bool mark(GridObject* o, RefinementMark refMark = RM_REFINE);
 
 	///	marks the neighborhood of currently marked elements.
 	/**	In each step direct neighbors of currently marked elements are selected.
@@ -92,7 +92,7 @@ class IRefiner
 	///	returns the mark of the specified geometric object
 	/**	The default implementation casts the object to a more concrete type
 	 * (VertexBase, EdgeBase, Face, Volume) and calls the appropriate get_mark method.*/
-		virtual RefinementMark get_mark(GeometricObject* o);
+		virtual RefinementMark get_mark(GridObject* o);
 
 	///	marks all elements between iterBegin and iterEnd.
 	/**	the value-type of TIterator has to be a pointer to a type derived

@@ -92,7 +92,7 @@ class DistributedGridManager : public GridObserver
 	 * in InterfaceNodeTypes and ElementStatusTypes.
 	 * \sa contains_status
 	 * \{ */
-		byte get_status(GeometricObject* go) const;
+		byte get_status(GridObject* go) const;
 		inline byte get_status(VertexBase* vrt)	const	{return elem_info(vrt).get_status();}
 		inline byte get_status(EdgeBase* edge) const	{return elem_info(edge).get_status();}
 		inline byte get_status(Face* face) const		{return elem_info(face).get_status();}
@@ -164,19 +164,19 @@ class DistributedGridManager : public GridObserver
 		
 	//	vertex callbacks
 		virtual void vertex_created(Grid* grid, VertexBase* vrt,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void edge_created(Grid* grid, EdgeBase* e,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 		
 		virtual void face_created(Grid* grid, Face* f,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void volume_created(Grid* grid, Volume* v,
-									GeometricObject* pParent = NULL,
+									GridObject* pParent = NULL,
 									bool replacesParent = false);
 
 		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
@@ -218,7 +218,7 @@ class DistributedGridManager : public GridObserver
 							  
 	///	vertex_created, edge_created, ... callbacks call this method.
 		template <class TElem>
-		void handle_created_element(TElem* pElem, GeometricObject* pParent,
+		void handle_created_element(TElem* pElem, GridObject* pParent,
 									bool replacesParent);
 		
 		template <class TElem, class TScheduledElemMap, class TParent>
@@ -378,10 +378,10 @@ class DistributedGridManager : public GridObserver
 	 *	be retrieved from the status of the associated geomObj.*/
 		struct ScheduledElement
 		{
-			ScheduledElement(GeometricObject* obj, int procID) :
+			ScheduledElement(GridObject* obj, int procID) :
 				geomObj(obj), connectedProcID(procID)				{}
 
-			GeometricObject*	geomObj;
+			GridObject*	geomObj;
 			int					connectedProcID;
 		};
 		

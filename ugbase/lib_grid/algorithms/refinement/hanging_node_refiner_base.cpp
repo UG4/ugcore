@@ -434,7 +434,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 		save_marks_to_file(m_adjustedMarksDebugFilename.c_str());
 
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_BEGINS,
-										m_selMarkedElements.get_geometric_objects()));
+										m_selMarkedElements.get_grid_objects()));
 
 //	call pre_refine to allow derived classes to perform some actions
 	HNODE_PROFILE_BEGIN(href_PreRefine);
@@ -702,7 +702,7 @@ void HangingNodeRefinerBase<TSelector>::perform_refinement()
 //	notify the grid's message hub that refinement ends
 	HNODE_PROFILE_BEGIN(href_AdaptionEndsMessage);
 	m_messageHub->post_message(GridMessage_Adaption(GMAT_HNODE_REFINEMENT_ENDS,
-										m_selMarkedElements.get_geometric_objects()));
+										m_selMarkedElements.get_grid_objects()));
 	HNODE_PROFILE_END();
 
 ////////////////////////////////
@@ -956,7 +956,7 @@ process_constrained_vertex(ConstrainedVertex* cdv)
 	if(marked_to_normal(cdv)){
 		EdgeBase* parentEdge = NULL;
 		Face* parentFace = NULL;
-		GeometricObject* constrObj = cdv->get_constraining_object();
+		GridObject* constrObj = cdv->get_constraining_object();
 
 		if(constrObj){
 			switch(cdv->get_parent_base_object_id()){
@@ -998,7 +998,7 @@ template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
 process_constrained_edge(ConstrainedEdge* cde)
 {
-	GeometricObject* constrObj = cde->get_constraining_object();
+	GridObject* constrObj = cde->get_constraining_object();
 	if(constrObj && (marked_to_normal(cde) || marked_to_constraining(cde))){
 		switch(cde->get_parent_base_object_id()){
 			case EDGE:{
@@ -1364,7 +1364,7 @@ template <class TSelector>
 void HangingNodeRefinerBase<TSelector>::
 process_constrained_face(ConstrainedFace* cdf)
 {
-	GeometricObject* constrObj = cdf->get_constraining_object();
+	GridObject* constrObj = cdf->get_constraining_object();
 
 	if(constrObj && (marked_to_normal(cdf) || marked_to_constraining(cdf))){
 		switch(cdf->get_parent_base_object_id()){
@@ -1406,10 +1406,10 @@ process_constraining_face(ConstrainingFace* cgf)
 	UG_ASSERT(cgf->num_constrained_edges() == numVrts,
 			 "bad number of constrained edges: " << cgf->num_constrained_edges()
 			 << ". There have to be as many as vertices: " << numVrts << "."
-			 << "At face with center " << GetGeometricObjectCenter(grid, cgf));
+			 << "At face with center " << GetGridObjectCenter(grid, cgf));
 	UG_ASSERT(cgf->num_constrained_faces() == 4,
 			  "bad number of constrained faces. There have to be exactly 4. "
-			  << "At face with center " << GetGeometricObjectCenter(grid, cgf));
+			  << "At face with center " << GetGridObjectCenter(grid, cgf));
 
 	ConstrainedVertex* centralHV = NULL;
 	Vertex* centerVrt = NULL;
@@ -1525,11 +1525,11 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 			UG_LOG(", face in level " << pmg->get_level(f) << endl);
 			UG_LOG("positions of volume vertices:");
 			for(size_t i_c = 0; i_c < v->num_vertices(); ++i_c){
-				UG_LOG(" " << GetGeometricObjectCenter(grid, v->vertex(i_c)));
+				UG_LOG(" " << GetGridObjectCenter(grid, v->vertex(i_c)));
 			}
 			UG_LOG("\npositions of face vertices:");
 			for(size_t i_c = 0; i_c < f->num_vertices(); ++i_c){
-				UG_LOG(" " << GetGeometricObjectCenter(grid, f->vertex(i_c)));
+				UG_LOG(" " << GetGridObjectCenter(grid, f->vertex(i_c)));
 			}
 			UG_LOG(endl);
 		}*/
@@ -1541,17 +1541,17 @@ refine_volume_with_normal_vertex(Volume* v, VertexBase** newCornerVrts)
 			UG_ASSERT(marked_anisotropic(v) || vNewFaceVertices[i],
 					"In order to fully refine a volume, all quadrilateral sides have"
 					" to contain a new vertex!"
-					<< ", vol-center " << GetGeometricObjectCenter(grid, v)
-					<< ", face-center " << GetGeometricObjectCenter(grid, f));
+					<< ", vol-center " << GetGridObjectCenter(grid, v)
+					<< ", face-center " << GetGridObjectCenter(grid, f));
 		//todo:remove this!!!
 			/*if(!vNewFaceVertices[i]){
-				UG_LOG("missing face-vertex: " << GetGeometricObjectCenter(grid, f) << endl);
+				UG_LOG("missing face-vertex: " << GetGridObjectCenter(grid, f) << endl);
 				UG_LOG("corners of face:");
 				for(size_t i_c = 0; i_c < f->num_vertices(); ++i_c){
-					UG_LOG(" " << GetGeometricObjectCenter(grid, f->vertex(i_c)));
+					UG_LOG(" " << GetGridObjectCenter(grid, f->vertex(i_c)));
 				}
 				UG_LOG(endl);
-				UG_LOG("during refinement of volume: " << GetGeometricObjectCenter(grid, v) << endl);
+				UG_LOG("during refinement of volume: " << GetGridObjectCenter(grid, v) << endl);
 			}*/
 		}
 	}

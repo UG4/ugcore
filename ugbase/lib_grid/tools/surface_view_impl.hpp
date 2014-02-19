@@ -515,7 +515,7 @@ collect_associated(std::vector<TBaseElem*>& vAssElem,
 	if(is_contained(elem, gl, SURFACE_RIM))
 	{
 	//	get parent if copy
-		GeometricObject* pParent = m_pMG->get_parent(elem);
+		GridObject* pParent = m_pMG->get_parent(elem);
 		TElem* parent = dynamic_cast<TElem*>(pParent);
 		if(parent == NULL) return;
 		if(m_pMG->num_children<TBaseElem>(parent) != 1) return;

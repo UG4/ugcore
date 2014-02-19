@@ -30,7 +30,7 @@ struct MarkerPoint
 	vector3	pos;
 	vector3 norm;
 	vector3 localCoord;
-	GeometricObject* associatedObj;
+	GridObject* associatedObj;
 };
 
 ////////////////////////////////////////////////////////////////////////

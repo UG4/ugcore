@@ -5,9 +5,9 @@
 #ifndef __H__LIB_GRID__GEOMETRIC_OBJECTS__
 #define __H__LIB_GRID__GEOMETRIC_OBJECTS__
 
-#include "geometric_objects_0d.h"
-#include "geometric_objects_1d.h"
-#include "geometric_objects_2d.h"
-#include "geometric_objects_3d.h"
+#include "grid_objects_0d.h"
+#include "grid_objects_1d.h"
+#include "grid_objects_2d.h"
+#include "grid_objects_3d.h"
 
 #endif

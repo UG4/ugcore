@@ -168,7 +168,7 @@ create_subset_element_node(const char* name, const ISubsetHandler& sh,
 	//	access the attachment
 		Grid::AttachmentAccessor<TGeomObj, AInt> aaInd(grid, m_aInt);
 		if(aaInd.valid()){
-			GeometricObjectCollection goc = sh.get_geometric_objects_in_subset(si);
+			GridObjectCollection goc = sh.get_grid_objects_in_subset(si);
 			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 				for(typename geometry_traits<TGeomObj>::iterator iter =
 					goc.begin<TGeomObj>(lvl); iter != goc.end<TGeomObj>(lvl); ++iter)
@@ -206,7 +206,7 @@ create_selector_element_node(const char* name, const ISelector& sel)
 	//	access the attachment
 		Grid::AttachmentAccessor<TGeomObj, AInt> aaInd(grid, m_aInt);
 		if(aaInd.valid()){
-			GeometricObjectCollection goc = sel.get_geometric_objects();
+			GridObjectCollection goc = sel.get_grid_objects();
 			for(size_t lvl = 0; lvl < goc.num_levels(); ++lvl){
 				for(typename geometry_traits<TGeomObj>::iterator iter =
 					goc.begin<TGeomObj>(lvl); iter != goc.end<TGeomObj>(lvl); ++iter)

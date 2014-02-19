@@ -112,7 +112,7 @@ update_local_data()
 /// update data for given element
 template <int TDim, int TWorldDim>
 void DimCRFVGeometry<TDim, TWorldDim>::
-update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
@@ -237,7 +237,7 @@ update(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const 
 /// update data checking for hanging nodes for given element
 template <int TDim, int TWorldDim>
 void DimCRFVGeometry<TDim, TWorldDim>::
-update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish,bool keepSCV,bool keepSCVF)
+update_hanging(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish,bool keepSCV,bool keepSCVF)
 {
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
@@ -724,7 +724,7 @@ update_hanging(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords
 /// update geometric data for given element (no shapes)
 template <int TDim, int TWorldDim>
 void DimCRFVGeometry<TDim, TWorldDim>::
-update_geometric_data(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_geometric_data(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 // 	If already update for this element, do nothing
 	if(m_pElem == pElem) return; else m_pElem = pElem;
@@ -793,7 +793,7 @@ update_geometric_data(GeometricObject* pElem, const MathVector<worldDim>* vCorne
 
 template <int TDim, int TWorldDim>
 void DimCRFVGeometry<TDim, TWorldDim>::
-update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
 	Grid& grid = *(ish->grid());
@@ -983,7 +983,7 @@ update_local_data()
 /// update data for given element
 template <	typename TElem, int TWorldDim>
 void CRFVGeometry<TElem, TWorldDim>::
-update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update(GridObject* elem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 	UG_ASSERT(dynamic_cast<TElem*>(elem) != NULL, "Wrong element type.");
 	TElem* pElem = static_cast<TElem*>(elem);
@@ -1092,7 +1092,7 @@ update(GeometricObject* elem, const MathVector<worldDim>* vCornerCoords, const I
 
 template <	typename TElem, int TWorldDim>
 void CRFVGeometry<TElem, TWorldDim>::
-update_boundary_faces(GeometricObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
+update_boundary_faces(GridObject* pElem, const MathVector<worldDim>* vCornerCoords, const ISubsetHandler* ish)
 {
 //	get grid
 	Grid& grid = *(ish->grid());
