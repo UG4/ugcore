@@ -108,7 +108,7 @@ class LinearIteratorProduct : public CombinedLinearIterator<X,Y>
 		virtual bool apply(Y& c, const X& d)
 		{
 			// create temporary defect and forward request
-			SmartPtr<X> spDTmp = d.clone_without_values();
+			SmartPtr<X> spDTmp = d.clone();
 			return apply_update_defect(c, *spDTmp);
 		}
 
