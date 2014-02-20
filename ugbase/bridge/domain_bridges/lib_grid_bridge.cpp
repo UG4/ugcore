@@ -15,6 +15,7 @@
 //todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors/standard_refinement_projectors.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "common/space_partitioning/ntree_traverser.h"

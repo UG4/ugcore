@@ -17,6 +17,7 @@
 //todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/refinement_projection_handler.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors/standard_refinement_projectors.h"
 
 using namespace std;
 
@@ -961,6 +962,23 @@ SphereProjector(TDomain* dom, number x, number y, number z, number radius)
 			new TRefProj(*dom->grid(), dom->position_attachment(), v, radius));
 }
 
+///	Creates a refinement projector which projects new vertices onto a sphere
+/** An outer radius can also be specified. Vertices outside this outer radius will
+ * be projected linear.
+ * Specify a domain, the center of the sphere (cx, cy, cz), an inner and an outer radius.
+ */
+template <class TDomain>
+SmartPtr<IRefinementCallback>
+SphericalFalloffProjector(TDomain* dom, number x, number y, number z,
+						  number innerRadius, number outerRadius)
+{
+	typedef RefinementCallbackSphericalFalloff<typename TDomain::position_attachment_type>	TRefProj;
+	typename TDomain::position_type v;
+	VecCopy(v, vector3(x, y, z), 0);
+	return SmartPtr<TRefProj>(
+			new TRefProj(*dom->grid(), dom->position_attachment(), v, innerRadius, outerRadius));
+}
+
 ///	Creates a refinement projector which projects new vertices onto a cylinder
 /** Specify a domain, a point on the cylinder's axis (cx, cy, cz), the direction
  * of the axis (ax, ay, az) and the cylinder's radius.
@@ -1138,11 +1156,12 @@ static void Domain(Registry& reg, string grp)
 					"IRefinementCallback", "domain")
 		.add_function("SphereProjector", &SphereProjector<TDomain>, grp,
 					"IRefinementCallback", "domain#centerX#centerY#centerZ#radius")
+		.add_function("SphericalFalloffProjector", &SphericalFalloffProjector<TDomain>, grp,
+					"IRefinementCallback", "domain#centerX#centerY#centerZ#innerRadius#outerRadius")
 		.add_function("CylinderProjector", &CylinderProjector<TDomain>, grp,
 					"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ#radius")
 		.add_function("SubdivisionLoopProjector", &SubdivisionLoopProjector<TDomain>, grp,
 					"IRefinementCallback", "domain");
-
 }
 
 }; // end Functionality

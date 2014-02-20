@@ -4,6 +4,7 @@
  
 #include "icosahedron.h"
 #include "lib_grid/algorithms/refinement/regular_refinement.h"
+#include "../refinement/refinement_projectors/standard_refinement_projectors.h"
 
 namespace ug{
 
