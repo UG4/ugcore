@@ -4,7 +4,7 @@
  
 #include "icosahedron.h"
 #include "lib_grid/algorithms/refinement/regular_refinement.h"
-#include "../refinement/refinement_projectors/standard_refinement_projectors.h"
+#include "../refinement/refinement_projectors/sphere_projector.h"
 
 namespace ug{
 
@@ -75,7 +75,7 @@ void GenerateIcosphere(Grid& grid, const vector3& center, number radius,
 	grid.attach_to_edges(aInt);
 
 //	use a refinement callback to project the new vertices to the sphere
-	RefinementCallbackSphere<APosition> sphereProjecton(grid, aPos, center, radius);
+	SphereProjector<APosition> sphereProjecton(grid, aPos, center);
 
 	for(int i = 0; i < numRefinements; ++i)
 		Refine(grid, sel, aInt, &sphereProjecton);

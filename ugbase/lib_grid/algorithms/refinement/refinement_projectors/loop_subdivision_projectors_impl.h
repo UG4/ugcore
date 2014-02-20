@@ -2,315 +2,22 @@
 // s.b.reiter@gmail.com
 // Feb 20, 2014
 
-#ifndef __H__UG__standard_refinement_projectors_impl__
-#define __H__UG__standard_refinement_projectors_impl__
+#ifndef __H__UG__loop_subdivision_projectors_impl__
+#define __H__UG__loop_subdivision_projectors_impl__
 
-#include "standard_refinement_projectors.h"
+#include "loop_subdivision_projectors.h"
 
 namespace ug{
 
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
-RefinementCallbackSphere<TAPosition>::
-RefinementCallbackSphere() :
-	m_pGrid(NULL)
+SubdivisionLoopBoundaryProjector<TAPosition>::
+SubdivisionLoopBoundaryProjector()
 {
 }
 
 template <class TAPosition>
-RefinementCallbackSphere<TAPosition>::
-RefinementCallbackSphere(Grid& grid, TAPosition& aPos,
-						 const typename TAPosition::ValueType& center,
-						 number radius) :
-	m_pGrid(&grid),
-	m_center(center),
-	m_radius(radius)
-{
-//	we have to make sure that aPos is attached at the grid.
-//	This is important to avoid crashes later on.
-	if(!grid.has_vertex_attachment(aPos))
-		grid.attach_to_vertices(aPos);
-	m_aaPos.access(grid, aPos);
-}
-
-template <class TAPosition>
-RefinementCallbackSphere<TAPosition>::
-~RefinementCallbackSphere()
-{
-}
-
-template <class TAPosition>
-void RefinementCallbackSphere<TAPosition>::
-new_vertex(Vertex* vrt, Vertex* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-template <class TAPosition>
-void RefinementCallbackSphere<TAPosition>::
-new_vertex(Vertex* vrt, Edge* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-template <class TAPosition>
-void RefinementCallbackSphere<TAPosition>::
-new_vertex(Vertex* vrt, Face* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-template <class TAPosition>
-void RefinementCallbackSphere<TAPosition>::
-new_vertex(Vertex* vrt, Volume* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-template <class TAPosition>
-int RefinementCallbackSphere<TAPosition>::
-current_pos(number* coordsOut, Vertex* vrt, int maxCoords)
-{
-	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
-}
-
-template <class TAPosition>
-template <class TElem>
-void RefinementCallbackSphere<TAPosition>::
-perform_projection(Vertex* vrt, TElem* parent)
-{
-	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-
-//	calculate the new position by linear interpolation and project that point
-//	onto the sphere.
-	pos_type v;
-	VecSubtract(v, CalculateCenter(parent, m_aaPos), m_center);
-	VecNormalize(v, v);
-	VecScale(v, v, m_radius);
-	VecAdd(m_aaPos[vrt], m_center, v);
-}
-
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-RefinementCallbackSphericalFalloff<TAPosition>::
-RefinementCallbackSphericalFalloff() :
-	m_pGrid(NULL)
-{
-}
-
-template <class TAPosition>
-RefinementCallbackSphericalFalloff<TAPosition>::
-RefinementCallbackSphericalFalloff(Grid& grid, TAPosition& aPos,
-						 const typename TAPosition::ValueType& center,
-						 number innerRadius, number outerRadius) :
-	m_pGrid(&grid),
-	m_center(center),
-	m_innerRadius(innerRadius),
-	m_outerRadius(outerRadius)
-{
-//	we have to make sure that aPos is attached at the grid.
-//	This is important to avoid crashes later on.
-	if(!grid.has_vertex_attachment(aPos))
-		grid.attach_to_vertices(aPos);
-	m_aaPos.access(grid, aPos);
-
-	if(m_outerRadius < m_innerRadius + SMALL)
-		m_outerRadius = m_innerRadius + SMALL;
-}
-
-template <class TAPosition>
-RefinementCallbackSphericalFalloff<TAPosition>::
-~RefinementCallbackSphericalFalloff()
-{
-}
-
-template <class TAPosition>
-void RefinementCallbackSphericalFalloff<TAPosition>::
-new_vertex(Vertex* vrt, Vertex* parent)
-{
-	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-	m_aaPos[vrt] = m_aaPos[parent];
-}
-
-template <class TAPosition>
-void RefinementCallbackSphericalFalloff<TAPosition>::
-new_vertex(Vertex* vrt, Edge* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-template <class TAPosition>
-void RefinementCallbackSphericalFalloff<TAPosition>::
-new_vertex(Vertex* vrt, Face* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-template <class TAPosition>
-void RefinementCallbackSphericalFalloff<TAPosition>::
-new_vertex(Vertex* vrt, Volume* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-template <class TAPosition>
-int RefinementCallbackSphericalFalloff<TAPosition>::
-current_pos(number* coordsOut, Vertex* vrt, int maxCoords)
-{
-	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
-}
-
-template <class TAPosition>
-template <class TElem>
-void RefinementCallbackSphericalFalloff<TAPosition>::
-perform_projection(Vertex* vrt, TElem* parent)
-{
-	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-//	first calculate the average distance of corners of parent
-	typename TElem::ConstVertexArray vrts = parent->vertices();
-	size_t numVrts = parent->num_vertices();
-	number avDist = 0;
-	pos_type parentCenter;
-	VecSet(parentCenter, 0);
-
-	for(size_t i = 0; i < numVrts; ++i){
-		const pos_type& p = m_aaPos[vrts[i]];
-		avDist += VecDistance(p, m_center);
-		VecAdd(parentCenter, parentCenter, p);
-	}
-
-	avDist /= (number)numVrts;
-	VecScale(parentCenter, parentCenter, 1. / (number)numVrts);
-
-	number ia = (avDist - m_innerRadius) / (m_outerRadius - m_innerRadius);
-
-	if(ia > 1)
-		m_aaPos[vrt] = parentCenter;
-	else{
-	//	calculate cylindrical projection
-		pos_type cylProj;
-		VecSubtract(cylProj, parentCenter, m_center);
-		VecNormalize(cylProj, cylProj);
-		VecScale(cylProj, cylProj, avDist);
-		VecAdd(cylProj, cylProj, m_center);
-
-		if(ia <= 0)
-			m_aaPos[vrt] = cylProj;
-		else
-			VecScaleAdd(m_aaPos[vrt], 1.-ia, cylProj, ia, parentCenter);
-	}
-}
-
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-RefinementCallbackCylinder<TAPosition>::
-RefinementCallbackCylinder() :
-	m_pGrid(NULL)
-{
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-RefinementCallbackCylinder<TAPosition>::
-RefinementCallbackCylinder(Grid& grid, TAPosition& aPos,
-						 const typename TAPosition::ValueType& center,
-						 const typename TAPosition::ValueType& axis,
-						 number radius) :
-	m_pGrid(&grid),
-	m_center(center),
-	m_axis(axis),
-	m_radius(radius)
-{
-//	we have to make sure that aPos is attached at the grid.
-//	This is important to avoid crashes later on.
-	if(!grid.has_vertex_attachment(aPos))
-		grid.attach_to_vertices(aPos);
-	m_aaPos.access(grid, aPos);
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-RefinementCallbackCylinder<TAPosition>::
-~RefinementCallbackCylinder()
-{
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-void RefinementCallbackCylinder<TAPosition>::
-new_vertex(Vertex* vrt, Vertex* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-void RefinementCallbackCylinder<TAPosition>::
-new_vertex(Vertex* vrt, Edge* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-void RefinementCallbackCylinder<TAPosition>::
-new_vertex(Vertex* vrt, Face* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-void RefinementCallbackCylinder<TAPosition>::
-new_vertex(Vertex* vrt, Volume* parent)
-{
-	perform_projection(vrt, parent);
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-int RefinementCallbackCylinder<TAPosition>::
-current_pos(number* coordsOut, Vertex* vrt, int maxCoords)
-{
-	return IRefinementCallback::current_pos_helper(coordsOut, vrt, maxCoords, m_aaPos);
-}
-
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-template <class TElem>
-void RefinementCallbackCylinder<TAPosition>::
-perform_projection(Vertex* vrt, TElem* parent)
-{
-	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-
-//	calculate the new position by linear interpolation and project that point
-//	onto the cylinder.
-	pos_type v = CalculateCenter(parent, m_aaPos);
-	pos_type proj;
-	ProjectPointToRay(proj, v, m_center, m_axis);
-	VecSubtract(v, v, proj);
-	VecNormalize(v, v);
-	VecScale(v, v, m_radius);
-	VecAdd(m_aaPos[vrt], proj, v);
-}
-
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-template <class TAPosition>
-RefinementCallbackSubdivBoundary<TAPosition>::
-RefinementCallbackSubdivBoundary()
-{
-}
-
-template <class TAPosition>
-RefinementCallbackSubdivBoundary<TAPosition>::
-RefinementCallbackSubdivBoundary(Grid& g,
+SubdivisionLoopBoundaryProjector<TAPosition>::
+SubdivisionLoopBoundaryProjector(Grid& g,
 								  TAPosition& aPos,
 								  TAPosition& aTargetPos) :
 	BaseClass(g, aPos)
@@ -324,14 +31,14 @@ RefinementCallbackSubdivBoundary(Grid& g,
 }
 
 template <class TAPosition>
-RefinementCallbackSubdivBoundary<TAPosition>::
-~RefinementCallbackSubdivBoundary()
+SubdivisionLoopBoundaryProjector<TAPosition>::
+~SubdivisionLoopBoundaryProjector()
 {
 
 }
 
 template <class TAPosition>
-void RefinementCallbackSubdivBoundary<TAPosition>::
+void SubdivisionLoopBoundaryProjector<TAPosition>::
 new_vertex(Vertex* vrt, Vertex* parent)
 {
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
@@ -374,7 +81,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 }
 
 template <class TAPosition>
-void RefinementCallbackSubdivBoundary<TAPosition>::
+void SubdivisionLoopBoundaryProjector<TAPosition>::
 new_vertex(Vertex* vrt, Edge* parent)
 {
 	using std::swap;
@@ -396,7 +103,7 @@ new_vertex(Vertex* vrt, Edge* parent)
 }
 
 template <class TAPosition>
-void RefinementCallbackSubdivBoundary<TAPosition>::
+void SubdivisionLoopBoundaryProjector<TAPosition>::
 new_vertex(Vertex* vrt, Face* parent)
 {
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
@@ -408,7 +115,7 @@ new_vertex(Vertex* vrt, Face* parent)
 }
 
 template <class TAPosition>
-void RefinementCallbackSubdivBoundary<TAPosition>::
+void SubdivisionLoopBoundaryProjector<TAPosition>::
 new_vertex(Vertex* vrt, Volume* parent)
 {
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
@@ -420,7 +127,7 @@ new_vertex(Vertex* vrt, Volume* parent)
 }
 
 template <class TAPosition>
-bool RefinementCallbackSubdivBoundary<TAPosition>::
+bool SubdivisionLoopBoundaryProjector<TAPosition>::
 is_crease_vertex(Vertex* vrt)
 {
 	return !IsRegularSurfaceVertex(*BaseClass::m_pGrid, vrt);
@@ -428,7 +135,7 @@ is_crease_vertex(Vertex* vrt)
 }
 
 template <class TAPosition>
-bool RefinementCallbackSubdivBoundary<TAPosition>::
+bool SubdivisionLoopBoundaryProjector<TAPosition>::
 is_crease_edge(Edge* edge)
 {
 	return NumAssociatedFaces(*BaseClass::m_pGrid, edge) != 2;
@@ -439,14 +146,14 @@ is_crease_edge(Edge* edge)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
-RefinementCallbackSubdivisionLoop<TAPosition>::
-RefinementCallbackSubdivisionLoop()
+SubdivisionLoopProjector<TAPosition>::
+SubdivisionLoopProjector()
 {
 }
 
 template <class TAPosition>
-RefinementCallbackSubdivisionLoop<TAPosition>::
-RefinementCallbackSubdivisionLoop(Grid& g,
+SubdivisionLoopProjector<TAPosition>::
+SubdivisionLoopProjector(Grid& g,
 								  TAPosition& aPos,
 								  TAPosition& aTargetPos) :
 	BaseClass(g, aPos)
@@ -460,14 +167,14 @@ RefinementCallbackSubdivisionLoop(Grid& g,
 }
 
 template <class TAPosition>
-RefinementCallbackSubdivisionLoop<TAPosition>::
-~RefinementCallbackSubdivisionLoop()
+SubdivisionLoopProjector<TAPosition>::
+~SubdivisionLoopProjector()
 {
 
 }
 
 template <class TAPosition>
-void RefinementCallbackSubdivisionLoop<TAPosition>::
+void SubdivisionLoopProjector<TAPosition>::
 new_vertex(Vertex* vrt, Vertex* parent)
 {
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
@@ -551,7 +258,7 @@ new_vertex(Vertex* vrt, Vertex* parent)
 }
 
 template <class TAPosition>
-void RefinementCallbackSubdivisionLoop<TAPosition>::
+void SubdivisionLoopProjector<TAPosition>::
 new_vertex(Vertex* vrt, Edge* parent)
 {
 	using namespace std;
@@ -650,7 +357,7 @@ new_vertex(Vertex* vrt, Edge* parent)
 }
 
 template <class TAPosition>
-void RefinementCallbackSubdivisionLoop<TAPosition>::
+void SubdivisionLoopProjector<TAPosition>::
 new_vertex(Vertex* vrt, Face* parent)
 {
 //	this would only be interesting for quad subdivision.
@@ -658,7 +365,7 @@ new_vertex(Vertex* vrt, Face* parent)
 }
 
 template <class TAPosition>
-void RefinementCallbackSubdivisionLoop<TAPosition>::
+void SubdivisionLoopProjector<TAPosition>::
 new_vertex(Vertex* vrt, Volume* parent)
 {
 //	here a more elaborate scheme would be nice.
@@ -666,7 +373,7 @@ new_vertex(Vertex* vrt, Volume* parent)
 }
 
 template <class TAPosition>
-bool RefinementCallbackSubdivisionLoop<TAPosition>::
+bool SubdivisionLoopProjector<TAPosition>::
 is_crease_vertex(Vertex* vrt)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)
@@ -676,7 +383,7 @@ is_crease_vertex(Vertex* vrt)
 }
 
 template <class TAPosition>
-bool RefinementCallbackSubdivisionLoop<TAPosition>::
+bool SubdivisionLoopProjector<TAPosition>::
 is_crease_edge(Edge* edge)
 {
 	if(BaseClass::m_pGrid->template num<Volume>() > 0)

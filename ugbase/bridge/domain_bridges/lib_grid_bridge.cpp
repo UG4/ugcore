@@ -15,7 +15,7 @@
 //todo: include this in algorithms.h
 #include "lib_grid/algorithms/refinement/global_fractured_media_refiner.h"
 #include "lib_grid/algorithms/refinement/adaptive_regular_mg_refiner.h"
-#include "lib_grid/algorithms/refinement/refinement_projectors/standard_refinement_projectors.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
 #include "lib_grid/parallelization/util/partition_weighting_callbacks.h"
 #include "lib_grid/algorithms/space_partitioning/lg_ntree.h"
 #include "common/space_partitioning/ntree_traverser.h"
@@ -122,7 +122,7 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 //		even if they were initialized before the attachment was attached to the grid.
 	MultiGrid mg;
 	SubsetHandler sh(mg);
-	RefinementCallbackSubdivisionLoop<APosition> refCallback(mg, aPosition, aPosition);
+	SubdivisionLoopProjector<APosition> refCallback(mg, aPosition, aPosition);
 	GlobalMultiGridRefiner ref(mg, &refCallback);
 	
 	if(LoadGridFromFile(mg, sh, fileIn)){
@@ -158,11 +158,11 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
 	if(mg.has_vertex_attachment(aPosition1))
-		refCallback = new RefinementCallbackSubdivisionLoop<APosition1>(mg, aPosition1, aPosition1);
+		refCallback = new SubdivisionLoopProjector<APosition1>(mg, aPosition1, aPosition1);
 	else if(mg.has_vertex_attachment(aPosition2))
-		refCallback = new RefinementCallbackSubdivisionLoop<APosition2>(mg, aPosition2, aPosition2);
+		refCallback = new SubdivisionLoopProjector<APosition2>(mg, aPosition2, aPosition2);
 	else if(mg.has_vertex_attachment(aPosition))
-		refCallback = new RefinementCallbackSubdivisionLoop<APosition>(mg, aPosition, aPosition);
+		refCallback = new SubdivisionLoopProjector<APosition>(mg, aPosition, aPosition);
 		
 	if(!refCallback){
 		UG_LOG("No standard position attachment found. Aborting.\n");
@@ -193,11 +193,11 @@ bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
 	if(mg.has_vertex_attachment(aPosition1))
-		refCallback = new RefinementCallbackSubdivBoundary<APosition1>(mg, aPosition1, aPosition1);
+		refCallback = new SubdivisionLoopBoundaryProjector<APosition1>(mg, aPosition1, aPosition1);
 	else if(mg.has_vertex_attachment(aPosition2))
-		refCallback = new RefinementCallbackSubdivBoundary<APosition2>(mg, aPosition2, aPosition2);
+		refCallback = new SubdivisionLoopBoundaryProjector<APosition2>(mg, aPosition2, aPosition2);
 	else if(mg.has_vertex_attachment(aPosition))
-		refCallback = new RefinementCallbackSubdivBoundary<APosition>(mg, aPosition, aPosition);
+		refCallback = new SubdivisionLoopBoundaryProjector<APosition>(mg, aPosition, aPosition);
 		
 	if(!refCallback){
 		UG_LOG("No standard position attachment found. Aborting.\n");

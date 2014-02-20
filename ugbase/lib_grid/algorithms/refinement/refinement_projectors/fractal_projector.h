@@ -22,19 +22,19 @@ namespace ug{
  *
  *	An uninitialized refinement-callback may not be used during refinement.
  */
-class RefinementCallbackFractal : public RefinementCallbackLinear<APosition>
+class FractalProjector : public RefinementCallbackLinear<APosition>
 {
 	public:
 		using RefinementCallbackLinear<APosition>::new_vertex;
 
 	public:
-		RefinementCallbackFractal();
+		FractalProjector();
 
 	///	make sure that aPos is attached to the vertices of the grid.
-		RefinementCallbackFractal(Grid& grid, number scaleFac,
+		FractalProjector(Grid& grid, number scaleFac,
 								  APosition& aPos = aPosition);
 
-		virtual ~RefinementCallbackFractal();
+		virtual ~FractalProjector();
 
 		virtual void new_vertex(Vertex* vrt, Edge* parent);
 		virtual void new_vertex(Vertex* vrt, Face* parent);

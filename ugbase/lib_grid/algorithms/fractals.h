@@ -27,7 +27,7 @@ bool CreateFractal_NormalScale(Grid& grid, HangingNodeRefiner_Grid& href,
 	IRefinementCallback* oldCallback = href.get_refinement_callback();
 	
 //	create the new one.
-	RefinementCallbackFractal refCallback(grid, scaleFac);
+	FractalProjector refCallback(grid, scaleFac);
 	href.set_refinement_callback(&refCallback);
 	
 //	iterate for the specified number of times

@@ -8,27 +8,27 @@ namespace ug{
 
 
 ////////////////////////////////////////////////////////////////////////
-RefinementCallbackFractal::
-RefinementCallbackFractal()
+FractalProjector::
+FractalProjector()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////
-RefinementCallbackFractal::
-RefinementCallbackFractal(Grid& grid, number scaleFac, APosition& aPos) :
+FractalProjector::
+FractalProjector(Grid& grid, number scaleFac, APosition& aPos) :
 	RefinementCallbackLinear<APosition>(grid, aPos),
 	m_scaleFac(scaleFac)
 {
 }
 
 ////////////////////////////////////////////////////////////////////////
-RefinementCallbackFractal::
-~RefinementCallbackFractal()
+FractalProjector::
+~FractalProjector()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////
-void RefinementCallbackFractal::
+void FractalProjector::
 new_vertex(Vertex* vrt, Edge* parent)
 {
 //	set the vertex to the center by calling the parents method
@@ -47,7 +47,7 @@ new_vertex(Vertex* vrt, Edge* parent)
 }
 
 ////////////////////////////////////////////////////////////////////////
-void RefinementCallbackFractal::
+void FractalProjector::
 new_vertex(Vertex* vrt, Face* parent)
 {
 //	set the vertex to the center by calling the parents method
