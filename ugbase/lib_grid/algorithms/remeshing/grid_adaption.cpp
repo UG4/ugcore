@@ -7,7 +7,7 @@
 #include "lib_grid/lg_base.h"
 #include "../geom_obj_util/geom_obj_util.h"
 #include "../refinement/regular_refinement.h"
-#include "../refinement/refinement_projectors/standard_refinement_projectors.h"
+#include "../refinement/refinement_projectors/misc_refinement_projectors.h"
 #include "grid_adaption.h"
 
 using namespace std;

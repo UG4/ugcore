@@ -20,6 +20,7 @@
 #include "lib_grid/algorithms/refinement/refinement_projectors/sphere_projector.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/spherical_falloff_projector.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/cylinder_projector.h"
+#include "lib_grid/algorithms/refinement/refinement_projectors/cylindrical_falloff_projector.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/loop_subdivision_projectors.h"
 #include "lib_grid/algorithms/refinement/refinement_projectors/fractal_projector.h"
 
@@ -985,7 +986,7 @@ SphericalFalloffProjectorFactory(TDomain* dom, number x, number y, number z,
 
 ///	Creates a refinement projector which projects new vertices onto a cylinder
 /** Specify a domain, a point on the cylinder's axis (cx, cy, cz), the direction
- * of the axis (ax, ay, az) and the cylinder's radius.
+ * of the axis (ax, ay, az)
  */
 template <class TDomain>
 SmartPtr<IRefinementCallback>
@@ -998,6 +999,21 @@ CylinderProjectorFactory(TDomain* dom, number cx, number cy, number cz,
 	VecCopy(a, vector3(ax, ay, az), 0);
 	return SmartPtr<TRefProj>(
 			new TRefProj(*dom->grid(), dom->position_attachment(), c, a));
+}
+
+template <class TDomain>
+SmartPtr<IRefinementCallback>
+CylindricalFalloffProjectorFactory(TDomain* dom, number cx, number cy, number cz,
+				  	  	  	  	   number ax, number ay, number az,
+				  	  	  	  	   number innerRadius, number outerRadius)
+{
+	typedef CylindricalFalloffProjector<typename TDomain::position_attachment_type>	TRefProj;
+	typename TDomain::position_type c, a;
+	VecCopy(c, vector3(cx, cy, cz), 0);
+	VecCopy(a, vector3(ax, ay, az), 0);
+	return SmartPtr<TRefProj>(
+			new TRefProj(*dom->grid(), dom->position_attachment(), c, a,
+						 innerRadius, outerRadius));
 }
 
 template <class TDomain>
@@ -1163,7 +1179,9 @@ static void Domain(Registry& reg, string grp)
 		.add_function("SphericalFalloffProjector", &SphericalFalloffProjectorFactory<TDomain>, grp,
 					"IRefinementCallback", "domain#centerX#centerY#centerZ#innerRadius#outerRadius")
 		.add_function("CylinderProjector", &CylinderProjectorFactory<TDomain>, grp,
-					"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ#radius")
+					"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ")
+		.add_function("CylindricalFalloffProjector", &CylindricalFalloffProjectorFactory<TDomain>, grp,
+					"IRefinementCallback", "domain#centerX#centerY#centerZ#axisX#axisY#axisZ#innerRadius#outerRadius")
 		.add_function("SubdivisionLoopProjector", &SubdivisionLoopProjectorFactory<TDomain>, grp,
 					"IRefinementCallback", "domain");
 }
