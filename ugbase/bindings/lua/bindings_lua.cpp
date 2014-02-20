@@ -95,21 +95,27 @@ std::string ParameterStackString(ParameterStack &s)
 	for(int i=0; i<s.size(); i++)
 	{
 		if(i != 0) ss << ", ";
-		switch(s.type(i))
-		{
-			case Variant::VT_INVALID: ss << "invalid"; break;
-			case Variant::VT_BOOL: ss << "bool " << s.to<bool>(i); break;
-			case Variant::VT_INT: ss << "int " << s.to<int>(i); break;
-			case Variant::VT_SIZE_T: ss << "size_t " << s.to<size_t>(i); break;
-			case Variant::VT_FLOAT: ss << "float " << s.to<float>(i); break;
-			case Variant::VT_DOUBLE: ss << "double " << s.to<double>(i); break;
-			case Variant::VT_CSTRING: ss << "cstring \"" << s.to<const char*>(i) << "\""; break;
-			case Variant::VT_STDSTRING: ss << "stdstring " << s.to<std::string>(i) << "\""; break;
-			case Variant::VT_POINTER: ss << "pointer " << s.to<void*>(i); break;
-			case Variant::VT_CONST_POINTER: ss << "constPointer " << s.to<const void*>(i); break;
-			case Variant::VT_SMART_POINTER: ss << "smartPointer " << s.to<SmartPtr<void> >(i).get(); break;
-			case Variant::VT_CONST_SMART_POINTER: ss << "constSmartPointer " << s.to<ConstSmartPtr<void> >(i).get(); break;
-			default: ss << "unknown"; break;
+		const bool bIsVector = s.is_vector(i);
+		if(s.is_vector(i)){
+			// todo: more specific output for vectors
+			ss << "std::vector";
+		} else {
+			switch(s.type(i))
+			{
+				case Variant::VT_INVALID: ss << "invalid"; break;
+				case Variant::VT_BOOL: ss << "bool " << s.to<bool>(i); break;
+				case Variant::VT_INT: ss << "int " << s.to<int>(i); break;
+				case Variant::VT_SIZE_T: ss << "size_t " << s.to<size_t>(i); break;
+				case Variant::VT_FLOAT: ss << "float " << s.to<float>(i); break;
+				case Variant::VT_DOUBLE: ss << "double " << s.to<double>(i); break;
+				case Variant::VT_CSTRING: ss << "cstring \"" << s.to<const char*>(i) << "\""; break;
+				case Variant::VT_STDSTRING: ss << "stdstring " << s.to<std::string>(i) << "\""; break;
+				case Variant::VT_POINTER: ss << "pointer " << s.to<void*>(i); break;
+				case Variant::VT_CONST_POINTER: ss << "constPointer " << s.to<const void*>(i); break;
+				case Variant::VT_SMART_POINTER: ss << "smartPointer " << s.to<SmartPtr<void> >(i).get(); break;
+				case Variant::VT_CONST_SMART_POINTER: ss << "constSmartPointer " << s.to<ConstSmartPtr<void> >(i).get(); break;
+				default: ss << "unknown"; break;
+			}
 		}
 	}
 	return ss.str();
