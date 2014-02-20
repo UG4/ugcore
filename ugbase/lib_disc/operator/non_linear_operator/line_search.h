@@ -165,7 +165,8 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 		//	print heading line
 		if(m_verbose)
-			UG_LOG(m_offset << "   ++++ Line Search:  Iter       lambda        Defect          Rate \n");
+			UG_LOG(m_offset << "   ++++ Line Search:\n");
+			UG_LOG(m_offset << "   +  Iter       lambda        Defect          Rate \n");
 
 
 		//	loop line search steps
@@ -186,7 +187,7 @@ class StandardLineSearch : public ILineSearch<TVector>
 
 			//	print rate
 				if(m_verbose)
-					UG_LOG(m_offset << "   +                 " << std::setw(4)
+					UG_LOG(m_offset << "   + " << std::setw(4)
 							<< k << ":   " << std::setw(11)
 							<< std::resetiosflags( ::std::ios::scientific )<<
 							lambda << "     "
