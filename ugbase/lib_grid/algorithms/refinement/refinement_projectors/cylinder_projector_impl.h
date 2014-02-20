@@ -21,12 +21,10 @@ template <class TAPosition>
 CylinderProjector<TAPosition>::
 CylinderProjector(Grid& grid, TAPosition& aPos,
 						 const typename TAPosition::ValueType& center,
-						 const typename TAPosition::ValueType& axis,
-						 number radius) :
+						 const typename TAPosition::ValueType& axis) :
 	m_pGrid(&grid),
 	m_center(center),
-	m_axis(axis),
-	m_radius(radius)
+	m_axis(axis)
 {
 //	we have to make sure that aPos is attached at the grid.
 //	This is important to avoid crashes later on.
@@ -47,7 +45,8 @@ template <class TAPosition>
 void CylinderProjector<TAPosition>::
 new_vertex(Vertex* vrt, Vertex* parent)
 {
-	perform_projection(vrt, parent);
+	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	m_aaPos[vrt] = m_aaPos[parent];
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -92,12 +91,26 @@ perform_projection(Vertex* vrt, TElem* parent)
 
 //	calculate the new position by linear interpolation and project that point
 //	onto the cylinder.
-	pos_type v = CalculateCenter(parent, m_aaPos);
+	typename TElem::ConstVertexArray vrts = parent->vertices();
+	size_t numVrts = parent->num_vertices();
+	number avDist = 0;
+	pos_type v;
+	VecSet(v, 0);
+
+	for(size_t i = 0; i < numVrts; ++i){
+		const pos_type& p = m_aaPos[vrts[i]];
+		avDist += DistancePointToRay(p, m_center, m_axis);
+		VecAdd(v, v, p);
+	}
+
+	avDist /= (number)numVrts;
+	VecScale(v, v, 1. / (number)numVrts);
+
 	pos_type proj;
 	ProjectPointToRay(proj, v, m_center, m_axis);
 	VecSubtract(v, v, proj);
 	VecNormalize(v, v);
-	VecScale(v, v, m_radius);
+	VecScale(v, v, avDist);
 	VecAdd(m_aaPos[vrt], proj, v);
 }
 

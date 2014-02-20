@@ -30,8 +30,7 @@ class CylinderProjector : public IRefinementCallback
 	///	make sure that aPos is attached to the vertices of the grid.
 		CylinderProjector(Grid& grid, TAPosition& aPos,
 								   const typename TAPosition::ValueType& center,
-								   const typename TAPosition::ValueType& axis,
-								   number radius);
+								   const typename TAPosition::ValueType& axis);
 
 		virtual ~CylinderProjector();
 
@@ -53,7 +52,6 @@ class CylinderProjector : public IRefinementCallback
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 		pos_type									m_center;
 		pos_type									m_axis;
-		number										m_radius;
 };
 
 /// @}

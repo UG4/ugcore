@@ -990,14 +990,14 @@ SphericalFalloffProjectorFactory(TDomain* dom, number x, number y, number z,
 template <class TDomain>
 SmartPtr<IRefinementCallback>
 CylinderProjectorFactory(TDomain* dom, number cx, number cy, number cz,
-				  number ax, number ay, number az, number radius)
+				  number ax, number ay, number az)
 {
 	typedef CylinderProjector<typename TDomain::position_attachment_type>	TRefProj;
 	typename TDomain::position_type c, a;
 	VecCopy(c, vector3(cx, cy, cz), 0);
 	VecCopy(a, vector3(ax, ay, az), 0);
 	return SmartPtr<TRefProj>(
-			new TRefProj(*dom->grid(), dom->position_attachment(), c, a, radius));
+			new TRefProj(*dom->grid(), dom->position_attachment(), c, a));
 }
 
 template <class TDomain>
