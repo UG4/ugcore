@@ -147,6 +147,9 @@ class GlobalGridFunctionNumberData
 			if(!bFound) value = 0.0;
 			number globValue = com.allreduce(value, PCL_RO_SUM) / numFound;
 
+			if(numFound == 0)
+				UG_THROW("Point "<<x<<" not found on all "<<pcl::NumProcs()<<" procs.");
+
 			// check correctness
 			if(bFound)
 				if( fabs((globValue - value) / value) > 1e-8)
