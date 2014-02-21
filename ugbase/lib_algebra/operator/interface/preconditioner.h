@@ -88,10 +88,10 @@ class IPreconditioner :
 
 	///	Matrix Operator type
 		typedef MatrixOperator<matrix_type, vector_type> matrix_operator_type;
-
+		using DebugWritingObject<TAlgebra>::set_debug;
 	protected:
 		using ILinearIterator<vector_type>::damping;
-		using DebugWritingObject<TAlgebra>::set_debug;
+
 		using DebugWritingObject<TAlgebra>::debug_writer;
 		using DebugWritingObject<TAlgebra>::write_debug;
 
